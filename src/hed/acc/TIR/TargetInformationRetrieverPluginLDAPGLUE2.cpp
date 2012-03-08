@@ -36,12 +36,12 @@ namespace Arc {
     std::string::size_type pos3 = service.find("/", pos1 + 3);
     if (pos3 == std::string::npos) {
       if (pos2 == std::string::npos)
-        service += ":2170";
+        service += ":2135";
       // Is this a good default path?
-      service += "/o=Grid";
+      service += "/o=glue";
     }
     else if (pos2 == std::string::npos || pos2 > pos3)
-      service.insert(pos3, ":2170");
+      service.insert(pos3, ":2135");
 
     return service;
   }
