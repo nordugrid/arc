@@ -706,6 +706,7 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
   Arc::UserConfig usercfg(cred_type);
   usercfg.UtilsDirPath(jobuser->ControlDir());
   usercfg.CACertificatesDirectory(env.cert_dir_loc());
+  if (jobuser->StrictSession() && !jobuser->UnixName().empty()) usercfg.SetUser(Arc::User(jobuser->UnixName()));
   // TODO: chelonia bartenders
 
   // create job.id.errors file with correct permissions to add to Logger
