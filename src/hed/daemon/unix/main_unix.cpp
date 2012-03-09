@@ -167,6 +167,16 @@ static uid_t get_uid(const std::string &name)
     return (ent->pw_uid);
 }
 
+static gid_t get_gid(uid_t uid)
+{
+    struct passwd *ent;
+    if (!(ent = getpwuid(uid))) {
+        std::cerr << "Bad user id" << std::endl;
+        exit(1);
+    }
+    return (ent->pw_gid);
+}
+
 static gid_t get_gid(const std::string &name)
 {
     struct group *ent;
@@ -306,6 +316,13 @@ int main(int argc, char **argv)
                 /* switch user if it is specied */
                 if (!user.empty()) {
                     uid_t u = get_uid(user);
+                    if (group.empty()) {
+                        gid_t g = get_gid(u);
+                        if (setgid(g) != 0) {
+                            logger.msg(Arc::ERROR, "Cannot switch to primary group for user (%s)", user);
+                            exit(1);
+                        }
+                    }
                     if (setuid(u) != 0) {
                         logger.msg(Arc::ERROR, "Cannot switch to user (%s)", user);
                         exit(1);
