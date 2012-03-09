@@ -295,8 +295,6 @@ int main(int argc, char **argv)
             /* overwrite config variables by cmdline options */
             merge_options_and_config(config, options);
             std::string pid_file = (config["Server"]["PidFile"] ? (std::string)config["Server"]["PidFile"] : "/var/run/arched.pid");
-            /* initalize logger infrastucture */
-            std::string root_log_file = init_logger(config["Server"]["Logger"], config["Server"]["Foreground"]);
             std::string user = (std::string)config["Server"]["User"];
             std::string group = (std::string)config["Server"]["Group"];
             // set signal handlers
@@ -329,6 +327,8 @@ int main(int argc, char **argv)
                     }
                 }
             }
+            /* initalize logger infrastucture */
+            std::string root_log_file = init_logger(config["Server"]["Logger"], config["Server"]["Foreground"]);
             // demonize if the foreground options was not set
             if (!(bool)(config)["Server"]["Foreground"]) {
                 main_daemon = new Arc::Daemon(pid_file, root_log_file);
