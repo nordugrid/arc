@@ -152,14 +152,14 @@ namespace Arc {
     ~CountedPointer(void) {
       object->rem();
     }
-    CountedPointer& operator=(T *p) {
+    CountedPointer<T>& operator=(T *p) {
       if (p != object->ptr) {
         object->rem();
         object = new Base<T>(p);
       }
       return *this;
     }
-    CountedPointer& operator=(CountedPointer& p) {
+    CountedPointer<T>& operator=(const CountedPointer<T>& p) {
       if (p.object->ptr != object->ptr) {
         object->rem();
         object = p.object->add();

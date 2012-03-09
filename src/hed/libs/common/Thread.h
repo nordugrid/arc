@@ -363,14 +363,14 @@ namespace Arc {
     ~ThreadedPointer(void) {
       delete((T*)(object_->rem()));
     }
-    ThreadedPointer& operator=(T *p) {
+    ThreadedPointer<T>& operator=(T *p) {
       if (p != object_->ptr()) {
         delete((T*)(object_->rem()));
         object_ = new ThreadedPointerBase(p);
       }
       return *this;
     }
-    ThreadedPointer& operator=(ThreadedPointer& p) {
+    ThreadedPointer<T>& operator=(const ThreadedPointer<T>& p) {
       if (p.object_->ptr() != object_->ptr()) {
         delete((T*)(object_->rem()));
         object_ = p.object_->add();
