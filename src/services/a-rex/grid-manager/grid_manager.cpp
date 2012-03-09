@@ -170,11 +170,12 @@ void GridManager::grid_manager(void* arg) {
   logger.msg(Arc::INFO,"Starting grid-manager thread");
 
   JobUsers& users = *(gm->Users());
-  std::string my_username("");
-  uid_t my_uid=getuid();
+  //std::string my_username("");
+  //uid_t my_uid=getuid();
   JobUser *my_user = NULL;
 
   /* recognize itself */
+  /*
   {
     struct passwd pw_;
     struct passwd *pw;
@@ -187,8 +188,17 @@ void GridManager::grid_manager(void* arg) {
     gm->active_ = false;
     return;
   };
-  my_user = new JobUser(env,my_username);
-  if(!configure_serviced_users(users,my_uid,my_username,*my_user/*,&daemon*/)) {
+  */
+  //my_user = new JobUser(env,my_username);
+  my_user = new JobUser(env,getuid(),getgid());
+  if((my_user->get_uid() != 0) && (my_user->UnixName().empty())) {
+    logger.msg(Arc::FATAL,"Can't recognize own username - EXITING");
+    gm->active_ = false;
+    return;
+  };
+  bool enable_arc = false;
+  bool enable_emies = false;
+  if(!configure_serviced_users(users/*,my_uid,my_username*/,*my_user,enable_arc,enable_emies)) {
     logger.msg(Arc::INFO,"Used configuration file %s",env.nordugrid_config_loc());
     logger.msg(Arc::FATAL,"Error processing configuration - EXITING");
     gm->active_ = false;

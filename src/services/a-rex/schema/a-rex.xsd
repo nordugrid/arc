@@ -363,6 +363,25 @@
         </xsd:sequence>
     </xsd:complexType>
 
+
+    <xsd:simpleType name="fixDirectories_Type">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+              Specifies how service prepares its control and session directories at
+              startup.
+                yes - directories are created and they ownership and permissions adjusted
+                missing - directories are created and only for those which are created
+                    ownership and permission are adjusted
+                no - nothing is created and adjusted
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="yes"/>
+          <xsd:enumeration value="missing"/>
+          <xsd:enumeration value="no"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:complexType name="control_Type">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
@@ -382,6 +401,8 @@
             <xsd:element name="maxReruns" type="xsd:nonNegativeInteger"
                          minOccurs="0"/>
             <xsd:element name="noRootPower" type="xsd:boolean"
+                         minOccurs="0"/>
+            <xsd:element name="fixDirectories" type="fixDirectories_Type"
                          minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>

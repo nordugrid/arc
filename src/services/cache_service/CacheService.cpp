@@ -85,8 +85,10 @@ CacheService::CacheService(Arc::Config *cfg) : RegisteredService(cfg),
   // read A-REX config
   // user running this service
   Arc::User u;
-  JobUser my_user(*gm_env);
-  if (!configure_serviced_users(*users, u.get_uid(), u.Name(), my_user)) {
+  JobUser my_user(*gm_env, u.Name());
+  bool enable_arc = false;
+  bool enable_emies = false;
+  if (!configure_serviced_users(*users, my_user, enable_arc, enable_emies)) {
     logger.msg(Arc::ERROR, "Failed to process A-REX configuration in %s", gm_env->nordugrid_config_loc());
     return;
   }

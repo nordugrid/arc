@@ -209,15 +209,17 @@ int main(int argc, char* argv[]) {
       std::cout<<"Can't read configuration file"<<std::endl;
       return 1;
     }
+    bool enable_arc = false;
+    bool enable_emies = false;
     if (config_detect(cfile) == config_file_XML) {
       // take out the element that can be passed to configure_serviced_users
       Arc::XMLNode arex;
       get_arex_xml(arex,env);
-      if (!arex || !configure_serviced_users(arex, users, my_uid, my_username, my_user)) {
+      if (!arex || !configure_serviced_users(arex, users/*, my_uid, my_username*/, my_user, enable_arc, enable_emies)) {
         std::cout<<"Error processing configuration."<<std::endl;
         return 1;
       }
-    } else if(!configure_serviced_users(users,my_uid,my_username,my_user)) {
+    } else if(!configure_serviced_users(users/*, my_uid, my_username*/, my_user, enable_arc, enable_emies)) {
       std::cout<<"Error processing configuration."<<std::endl;
       return 1;
     }

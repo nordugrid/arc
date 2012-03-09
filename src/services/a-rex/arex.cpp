@@ -21,7 +21,7 @@
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
 #include "job.h"
-#include "grid-manager/conf/conf_pre.h"
+#include "grid-manager/conf/conf_file.h"
 #include "grid-manager/log/job_log.h"
 #include "grid-manager/jobs/job_config.h"
 #include "arex.h"
@@ -885,7 +885,8 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
     // some better approach - maybe like creating file with service
     // id in its name.
     try {
-      if(!configure_users_dirs(*cfg,users,enablearc_,enableemies_)) {
+      JobUser my_user(*gm_env_,getuid(),getgid());
+      if(!configure_serviced_users(*cfg,users,my_user,enablearc_,enableemies_)) {
         logger_.msg(Arc::ERROR, "Failed to process service configuration");
         return;
       }
@@ -951,13 +952,14 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
   } else {
     // External configuration file
     gm_env_->nordugrid_config_loc(gmconfig_);
-    if(!configure_users_dirs(users,*gm_env_,enablearc_,enableemies_)) {
+    JobUser my_user(*gm_env_,getuid(),getgid());
+    if(!configure_serviced_users(users,my_user,enablearc_,enableemies_)) {
       logger_.msg(Arc::ERROR, "Failed to process configuration in %s",gmconfig_);
     }
     // create control and session directories if not yet done
     for(JobUsers::iterator user = users.begin();user != users.end();++user) {
       if(!user->CreateDirectories()) {
-        logger_.msg(Arc::ERROR, "Failed to create control (%s) or session (%s) directories",user->ControlDir(),user->SessionRoot());
+        logger_.msg(Arc::ERROR, "Failed to create/detect control (%s) or session (%s) directories",user->ControlDir(),user->SessionRoot());
       };
     };
   };

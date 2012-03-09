@@ -36,14 +36,4 @@ bool configure_user_dirs(const std::string &my_username,
                 bool& enable_emies_interface,
                 const GMEnvironment& env);
 
-/*
-  Reads configuration file to find all defined control directories.
-  Returns
-    true - success
-    false - failure
-    On success 'control_dirs' contains list of all control directories.
-*/
-bool configure_users_dirs(JobUsers& users,GMEnvironment& env,bool& enable_arc_interface,bool& enable_emies_interface);
-bool configure_users_dirs(Arc::XMLNode cfg,JobUsers& users,bool& enable_arc_interface,bool& enable_emies_interface);
-
 #endif // __GM_CONFIG_PRE_H__

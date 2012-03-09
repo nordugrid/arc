@@ -43,10 +43,12 @@ static void check_lrms_backends(const std::string& default_lrms,GMEnvironment& e
   };
 }
 
-bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user/*,Daemon* daemon*/) {
+bool configure_serviced_users(JobUsers &users/*,uid_t my_uid,const std::string &my_username*/,JobUser &my_user,bool& enable_arc_interface,bool& enable_emies_interface) {
+  uid_t my_uid = my_user.get_uid();
+  const std::string my_username(my_user.UnixName());
   std::ifstream cfile;
   std::vector<std::string> session_roots;
-  std::string session_root("");
+  //std::string session_root("");
   std::string default_lrms("");
   std::string default_queue("");
   std::string last_control_dir("");
@@ -78,7 +80,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         return false;
       };
       config_close(cfile);
-      return configure_serviced_users(cfg,users,my_uid,my_username,my_user);
+      return configure_serviced_users(cfg,users/*,my_uid,my_username*/,my_user,enable_arc_interface,enable_emies_interface);
     }; break;
     case config_file_INI: {
       // Fall through. TODO: make INI processing a separate function.
@@ -553,6 +555,10 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       session_roots.push_back(session_root);
     } else if(command == "controldir") {
       central_control_dir=rest;
+    } else if(command == "enable_arc_interface") {
+      enable_arc_interface = (Arc::lower(config_next_arg(rest)) == "yes");
+    } else if(command == "enable_emies_interface") {
+      enable_emies_interface = (Arc::lower(config_next_arg(rest)) == "yes");
     } else if(command == "control") {
       std::string control_dir = config_next_arg(rest);
       if(control_dir.length() == 0) {
@@ -705,7 +711,9 @@ exit:
   return false;
 }
 
-bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user) {
+bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users/*,uid_t my_uid,const std::string &my_username*/,JobUser &my_user,bool& enable_arc_interface,bool& enable_emies_interface) {
+  uid_t my_uid = my_user.get_uid();
+  const std::string my_username(my_user.UnixName());
   Arc::XMLNode tmp_node;
   bool superuser = (my_uid == 0);
   std::string head_node;
@@ -732,6 +740,22 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     CertificatePath
     CACertificatesDir
   */
+  tmp_node = cfg["enableARCInterface"];
+  if(tmp_node) {
+    if (Arc::lower((std::string)tmp_node) == "no") {
+      enable_arc_interface=false;
+    } else {
+      enable_arc_interface=true;
+    }
+  }
+  tmp_node = cfg["enableEMIESInterface"];
+  if(tmp_node) {
+    if (Arc::lower((std::string)tmp_node) == "no") {
+      enable_emies_interface=false;
+    } else {
+      enable_emies_interface=true;
+    }
+  }
   tmp_node = cfg["jobLogPath"];
   if(tmp_node) {
     std::string fname = tmp_node;
