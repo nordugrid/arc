@@ -145,6 +145,9 @@ DTRGenerator::DTRGenerator(const JobUsers& users,
   // Delivery services
   scheduler.SetDeliveryServices(staging_conf.delivery_services);
 
+  // Limit on remote delivery size
+  scheduler.SetRemoteSizeLimit(staging_conf.remote_size_limit);
+
   // End of configuration - start Scheduler thread
   scheduler.start();
 

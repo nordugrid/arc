@@ -296,6 +296,8 @@
             * priority: share priority
           * deliveryService: remote data delivery service endpoint
           * localDelivery: whether to use local delivery as well as remote
+          * remoteSizeLimit: Lower limit on file size (in bytes) under which
+            transfers always use local delivery
           * useHostCert: whether to use host certificate for communication with
             remote delivery services
           * dtrLog: path to location where DTR state is periodically dumped
@@ -319,6 +321,8 @@
           <xsd:element name="deliveryService" type="xsd:anyURI"
                        minOccurs="0" maxOccurs="unbounded"/>
           <xsd:element name="localDelivery" type="xsd:boolean"
+                       minOccurs="0"/>
+          <xsd:element name="remoteSizeLimit" type="xsd:nonNegativeInteger"
                        minOccurs="0"/>
           <xsd:element name="useHostCert" type="xsd:boolean"
                        minOccurs="0"/>

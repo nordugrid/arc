@@ -17,7 +17,7 @@ namespace DataStaging {
 	
   Arc::Logger Scheduler::logger(Arc::Logger::getRootLogger(), "DataStaging.Scheduler");
   
-  Scheduler::Scheduler(): scheduler_state(INITIATED) {
+  Scheduler::Scheduler(): remote_size_limit(0), scheduler_state(INITIATED) {
     // Conservative defaults
     PreProcessorSlots = 20;
     DeliverySlots = 10;
@@ -64,6 +64,11 @@ namespace DataStaging {
   void Scheduler::SetDeliveryServices(const std::vector<Arc::URL>& endpoints) {
     if (scheduler_state == INITIATED)
       configured_delivery_services = endpoints;
+  }
+
+  void Scheduler::SetRemoteSizeLimit(unsigned long long int limit) {
+    if (scheduler_state == INITIATED)
+      remote_size_limit = limit;
   }
 
   void Scheduler::SetDumpLocation(const std::string& location) {
@@ -805,6 +810,16 @@ namespace DataStaging {
       // No local defined so log a warning
       request->get_logger()->msg(Arc::WARNING, "DTR %s: Using non-RFC proxy so forcing local delivery",
                                  request->get_short_id());
+      request->set_delivery_endpoint(DTR::LOCAL_DELIVERY);
+      return;
+    }
+
+    // Check for size limit under which local should be used
+    if (remote_size_limit > 0 &&
+        request->get_source()->CheckSize() &&
+        request->get_source()->GetSize() < remote_size_limit) {
+      request->get_logger()->msg(Arc::INFO, "DTR %s: File is smaller than %llu bytes, will use local delivery",
+                                 request->get_short_id(), remote_size_limit);
       request->set_delivery_endpoint(DTR::LOCAL_DELIVERY);
       return;
     }

@@ -20,6 +20,7 @@ StagingConfig::StagingConfig(const GMEnvironment& env):
   max_retries(10),
   passive(false),
   secure(false),
+  remote_size_limit(0),
   use_host_cert_for_remote_delivery(false),
   valid(true)
 {
@@ -94,31 +95,31 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
 
     if (command == "maxdelivery") {
       if (!paramToInt(config_next_arg(rest), max_delivery)) {
-        logger.msg(Arc::ERROR, "Bad number in max_delivery");
+        logger.msg(Arc::ERROR, "Bad number in maxdelivery");
         return false;
       }
     }
     else if (command == "maxemergency") {
       if (!paramToInt(config_next_arg(rest), max_emergency)) {
-        logger.msg(Arc::ERROR, "Bad number in max_emergency");
+        logger.msg(Arc::ERROR, "Bad number in maxemergency");
         return false;
       }
     }
     else if (command == "maxprocessor") {
       if (!paramToInt(config_next_arg(rest), max_processor)) {
-        logger.msg(Arc::ERROR, "Bad number in max_processor");
+        logger.msg(Arc::ERROR, "Bad number in maxprocessor");
         return false;
       }
     }
     else if (command == "maxprepared") {
       if (!paramToInt(config_next_arg(rest), max_prepared) || max_prepared <= 0) {
-        logger.msg(Arc::ERROR, "Bad number in max_prepared");
+        logger.msg(Arc::ERROR, "Bad number in maxprepared");
         return false;
       }
     }
     else if (command == "maxretries") {
       if (!paramToInt(config_next_arg(rest), max_retries)) {
-        logger.msg(Arc::ERROR, "Bad number in max_retries");
+        logger.msg(Arc::ERROR, "Bad number in maxretries");
         return false;
       }
     }
@@ -138,7 +139,7 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
       std::string share = config_next_arg(rest);
       int priority = 0;
       if (!paramToInt(config_next_arg(rest), priority) || priority <= 0) {
-        logger.msg(Arc::ERROR, "Bad number in defined_share %s", share);
+        logger.msg(Arc::ERROR, "Bad number in definedshare %s", share);
         return false;
       }
       defined_shares[share] = priority;
@@ -147,7 +148,7 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
       std::string url = config_next_arg(rest);
       Arc::URL u(url);
       if (!u) {
-        logger.msg(Arc::ERROR, "Bad URL in delivery_service: %s", url);
+        logger.msg(Arc::ERROR, "Bad URL in deliveryservice: %s", url);
         return false;
       }
       delivery_services.push_back(u);
@@ -155,6 +156,12 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
     else if (command == "localdelivery") {
       std::string use_local = config_next_arg(rest);
       if (use_local == "yes") delivery_services.push_back(Arc::URL("file:/local"));
+    }
+    else if (command == "remotesizelimit") {
+      if (!Arc::stringto(config_next_arg(rest), remote_size_limit)) {
+        logger.msg(Arc::ERROR, "Bad number in remotesizelimit");
+        return false;
+      }
     }
     else if (command == "passivetransfer") {
       std::string pasv = config_next_arg(rest);
@@ -222,7 +229,9 @@ bool StagingConfig::readStagingConf(const Arc::XMLNode& cfg) {
     bool use_local_delivery = false;
     if (!elementtobool(tmp_node,"localDelivery",use_local_delivery,&logger)) return false;
     if (use_local_delivery) delivery_services.push_back(Arc::URL("file:/local"));
-
+    if (tmp_node["remoteSizeLimit"]) {
+      if (!Arc::stringto((std::string)tmp_node["remoteSizeLimit"], remote_size_limit)) return false;
+    }
     if (!elementtobool(tmp_node, "localDelivery", use_host_cert_for_remote_delivery, &logger)) return false;
     if (tmp_node["dtrLog"]) dtr_log = (std::string)tmp_node["dtrLog"];
   }

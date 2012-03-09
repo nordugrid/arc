@@ -37,6 +37,7 @@ public:
   bool get_secure() const { return secure; };
   std::string get_preferred_pattern() const { return preferred_pattern; };
   std::vector<Arc::URL> get_delivery_services() const { return delivery_services; };
+  unsigned int get_remote_size_limit() const { return remote_size_limit; };
   std::string get_share_type() const { return share_type; };
   std::map<std::string, int> get_defined_shares() const { return defined_shares; };
   bool get_use_host_cert_for_remote_delivery() const { return use_host_cert_for_remote_delivery; };
@@ -75,6 +76,8 @@ private:
 
   /// Endpoints of delivery services
   std::vector<Arc::URL> delivery_services;
+  /// File size limit (in bytes) below which local transfer should be used
+  unsigned long long int remote_size_limit;
   /// Criterion on which to split transfers into shares
   std::string share_type;
   /// The list of shares with defined priorities

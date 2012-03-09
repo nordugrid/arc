@@ -85,6 +85,9 @@ class Scheduler: public DTRCallback {
     /// Timestamp of last check of delivery services
     Arc::Time delivery_last_checked;
 
+    /// File size limit (in bytes) under which local transfer is used
+    unsigned long long int remote_size_limit;
+
     /// Logger object
     static Arc::Logger logger;
 
@@ -224,6 +227,9 @@ class Scheduler: public DTRCallback {
 
     /// Set the list of delivery services. DTR::LOCAL_DELIVERY means local Delivery.
     void SetDeliveryServices(const std::vector<Arc::URL>& endpoints);
+
+    /// Set the remote transfer size limit
+    void SetRemoteSizeLimit(unsigned long long int limit);
 
     /// Set location for periodic dump of DTR state (only file paths currently supported)
     void SetDumpLocation(const std::string& location);
