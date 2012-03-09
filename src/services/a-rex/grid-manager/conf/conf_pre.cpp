@@ -395,8 +395,15 @@ bool configure_users_dirs(Arc::XMLNode cfg,JobUsers& users,bool& enable_arc_inte
   }
   tmp_node = cfg["control"];
   for(;tmp_node;++tmp_node) {
+    bool strict_session = false;
     Arc::XMLNode unode = tmp_node["username"];
     std::list<std::string> usernames;
+    elementtobool(tmp_node,"noRootPower",strict_session,&logger);
+    JobUser::fixdir_t fixdir = JobUser::fixdir_always;
+    const char* fixdir_opts[] = { "yes", "missing", "no", NULL};
+    int n = (int)fixdir;
+    elementtoenum(tmp_node,"fixDirectories",n,fixdir_opts,&logger);
+    fixdir = (JobUser::fixdir_t)n;
     for(;unode;++unode) {
       std::string username;
       username = (std::string)unode;
@@ -434,6 +441,8 @@ bool configure_users_dirs(Arc::XMLNode cfg,JobUsers& users,bool& enable_arc_inte
       user->substitute(session_root);
       user->SetControlDir(control_dir);
       user->SetSessionRoot(session_root);
+      user->SetStrictSession(strict_session);
+      user->SetFixDirectories(fixdir);
     };
   }; // for(control)
   return true;
@@ -445,6 +454,9 @@ bool configure_users_dirs(JobUsers& users,GMEnvironment& env,bool& enable_arc_in
   std::string central_control_dir("");
   ConfigSections* cf = NULL;
   std::string session_root;
+  JobUser::fixdir_t fixdir = JobUser::fixdir_always;
+  bool strict_session = false;
+
 
   if(!config_open(cfile,env)) {
     logger.msg(Arc::ERROR,"Can't open configuration file"); return false;
@@ -481,6 +493,27 @@ bool configure_users_dirs(JobUsers& users,GMEnvironment& env,bool& enable_arc_in
         };
         if(cf->SectionNum() == 2) { // queue
         }
+        else if(command == "norootpower") {
+          std::string s = config_next_arg(rest);
+          if(strcasecmp("yes",s.c_str()) == 0) {
+            strict_session=true;
+          }
+          else if(strcasecmp("no",s.c_str()) == 0) {
+            strict_session=false;
+          };
+        }
+        else if(command == "fixdirectories") {
+          std::string s = config_next_arg(rest);
+          if(strcasecmp("yes",s.c_str()) == 0) {
+            fixdir=JobUser::fixdir_always;
+          }
+          else if(strcasecmp("missing",s.c_str()) == 0) {
+            fixdir=JobUser::fixdir_missing;
+          }
+          else if(strcasecmp("no",s.c_str()) == 0) {
+            fixdir=JobUser::fixdir_never;
+          }
+        }
         else if(command == "sessiondir") {
           session_root = config_next_arg(rest);
           if(session_root.length() == 0) { config_close(cfile); delete cf; return false; };
@@ -511,6 +544,8 @@ bool configure_users_dirs(JobUsers& users,GMEnvironment& env,bool& enable_arc_in
             user->substitute(session_root);
             user->SetControlDir(control_dir);
             user->SetSessionRoot(session_root);
+            user->SetStrictSession(strict_session);
+            user->SetFixDirectories(fixdir);
           };
         }
         else if(command == "enable_arc_interface") {

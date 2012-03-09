@@ -62,5 +62,6 @@ config_file_type config_detect(std::istream& in);
 bool elementtobool(Arc::XMLNode pnode,const char* ename,bool& val,Arc::Logger* logger = NULL);
 bool elementtoint(Arc::XMLNode pnode,const char* ename,int& val,Arc::Logger* logger = NULL);
 bool elementtoint(Arc::XMLNode pnode,const char* ename,unsigned int& val,Arc::Logger* logger = NULL);
+bool elementtoenum(Arc::XMLNode pnode,const char* ename,int& val,const char* const opts[],Arc::Logger* logger = NULL);
 
 #endif // __GM_CONF_H__

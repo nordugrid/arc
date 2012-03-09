@@ -56,6 +56,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
   int default_diskspace = DEFAULT_DISKSPACE;
   bool superuser = (my_uid == 0);
   bool strict_session = false;
+  JobUser::fixdir_t fixdir = JobUser::fixdir_always;
   std::string central_control_dir("");
   std::string infosys_user("");
   std::string jobreport_key("");
@@ -524,7 +525,22 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         }
       }
     }
-   else if(command == "sessiondir") {
+    else if(command == "fixdirectories") {
+      std::string s = config_next_arg(rest);
+      if(strcasecmp("yes",s.c_str()) == 0) {
+        fixdir=JobUser::fixdir_always;
+      }
+      else if(strcasecmp("missing",s.c_str()) == 0) {
+        fixdir=JobUser::fixdir_missing;
+      }
+      else if(strcasecmp("no",s.c_str()) == 0) {
+        fixdir=JobUser::fixdir_never;
+      }
+      else {
+        logger.msg(Arc::ERROR,"Wrong option in fixdirectories"); goto exit;
+      };
+    }
+    else if(command == "sessiondir") {
       /* set session root directory - applied
          to all following 'control' commands */
       std::string session_root = config_next_arg(rest);
@@ -589,6 +605,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
             user->SetControlDir(control_dir_);
             user->SetSessionRoot(session_roots_);
             user->SetStrictSession(strict_session);
+            user->SetFixDirectories(fixdir);
             // get cache parameters for this user
             try {
               CacheConfig cache_config = CacheConfig(users.Env(),user->UnixName());
@@ -997,6 +1014,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     return false;
   };
   for(;tmp_node;++tmp_node) {
+    int n;
     std::string control_dir = tmp_node["controlDir"];
     if(control_dir.empty()) {
       logger.msg(Arc::ERROR,"controlDir is missing"); return false;
@@ -1017,6 +1035,10 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     last_control_dir = control_dir;
     bool strict_session = false;
     if(!elementtobool(tmp_node,"noRootPower",strict_session,&logger)) return false;
+    JobUser::fixdir_t fixdir = JobUser::fixdir_always;
+    const char* fixdir_opts[] = { "yes", "missing", "no", NULL };
+    if(!elementtoenum(tmp_node,"fixDirectories",n=(int)fixdir,fixdir_opts,&logger)) return false;
+    fixdir = (JobUser::fixdir_t)n;
     unsigned int default_reruns = DEFAULT_JOB_RERUNS;
     unsigned int default_ttl = DEFAULT_KEEP_FINISHED;
     unsigned int default_ttr = DEFAULT_KEEP_DELETED;
@@ -1084,6 +1106,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
           user->SetControlDir(control_dir_);
           user->SetSessionRoot(session_roots_);
           user->SetStrictSession(strict_session);
+          user->SetFixDirectories(fixdir);
           // get cache parameters for this user
           try {
             CacheConfig cache_config(users.Env(),user->UnixName());

@@ -40,6 +40,7 @@ JobUser::JobUser(const GMEnvironment& env):gm_env(env) {
   keep_deleted=DEFAULT_KEEP_DELETED;
   cred_plugin=NULL;
   strict_session=false;
+  fixdir=fixdir_always;
   share_uid=0;
   reruns = 0;
   diskspace = 0;
@@ -107,62 +108,67 @@ void JobUser::SetCacheParams(CacheConfig params) {
   cache_params = params;
 }
 
-bool JobUser::CreateDirectories(void) {
-  bool res = true;
-  if(control_dir.length() != 0) {
-    if(!Arc::DirCreate(control_dir,S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH,true)) {
-      res=false;
-    } else {
-      (chown(control_dir.c_str(),uid,gid) != 0);
-      if(uid == 0) {
-        chmod(control_dir.c_str(),S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-      } else {
-        chmod(control_dir.c_str(),S_IRUSR | S_IWUSR | S_IXUSR);
-      };
-    };
-    if(!Arc::DirCreate(control_dir+"/logs",uid,gid,S_IRWXU)) {
-      res=false;
-    } else {
-      (chown((control_dir+"/logs").c_str(),uid,gid) != 0);
-    };
-    if(!Arc::DirCreate(control_dir+"/accepting",uid,gid,S_IRWXU)) {
-      res=false;
-    } else {
-      (chown((control_dir+"/accepting").c_str(),uid,gid) != 0);
-    };
-    if(!Arc::DirCreate(control_dir+"/restarting",uid,gid,S_IRWXU)) {
-      res=false;
-    } else {
-      (chown((control_dir+"/restarting").c_str(),uid,gid) != 0);
-    };
-    if(!Arc::DirCreate(control_dir+"/processing",uid,gid,S_IRWXU)) {
-      res=false;
-    } else {
-      (chown((control_dir+"/processing").c_str(),uid,gid) != 0);
-    };
-    if(!Arc::DirCreate(control_dir+"/finished",uid,gid,S_IRWXU)) {
-      res=false;
-    } else {
-      (chown((control_dir+"/finished").c_str(),uid,gid) != 0);
-    };
-    std::string deleg_dir = DelegationDir();
-    if(!Arc::DirCreate(deleg_dir,uid,gid,S_IRWXU)) {
-      res=false;
-    } else {
-      (chown(deleg_dir.c_str(),uid,gid) != 0);
+static bool fix_directory(const std::string& path, JobUser::fixdir_t fixmode, mode_t mode, uid_t uid, gid_t gid) {
+  if(fixmode == JobUser::fixdir_never) {
+    struct stat st;
+    if(!Arc::FileStat(path,&st,true)) return false;
+    if(!S_ISDIR(st.st_mode)) return false;
+    return true;
+  } else if(fixmode == JobUser::fixdir_missing) {
+    struct stat st;
+    if(Arc::FileStat(path,&st,true)) {
+      if(!S_ISDIR(st.st_mode)) return false;
+      return true;
     };
   };
-  for(std::vector<std::string>::iterator i = session_roots.begin(); i != session_roots.end(); i++) {
-    if(!Arc::DirCreate(*i,S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH,true)) {
-      res=false;
+  // JobUser::fixdir_always
+  if(!Arc::DirCreate(path,mode,true)) return false;
+  // Only can switch owner if running as root
+  if(::getuid() == 0) (::chown(path.c_str(),uid,gid) != 0);
+  (::chmod(path.c_str(),mode) != 0);
+  return true;
+}
+
+bool JobUser::CreateDirectories(void) {
+  bool res = true;
+  if(!control_dir.empty()) {
+    mode_t mode = 0;
+    if((uid == 0) && (getuid() == 0)) {
+      // This control dir serves multiple users and running
+      // as root (hence really can serve multiple users)
+      mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
     } else {
-      (chown(i->c_str(),uid,gid) != 0);
-      if(uid == 0) {
-        chmod(i->c_str(),S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-      } else {
-        chmod(i->c_str(),S_IRUSR | S_IWUSR | S_IXUSR);
-      };
+      mode = S_IRWXU;
     };
+    if(!fix_directory(control_dir,fixdir,mode,uid,gid)) res = false;
+    // Structure inside control dir is important - *always* create it
+    // Directories containing logs and job states may need access from 
+    // information system, etc. So allowing them to be more open.
+    // Delegation is only accessed by service itself.
+    if(!fix_directory(control_dir+"/logs",fixdir_always,mode,uid,gid)) res = false;
+    if(!fix_directory(control_dir+"/accepting",fixdir_always,mode,uid,gid)) res = false;
+    if(!fix_directory(control_dir+"/restarting",fixdir_always,mode,uid,gid)) res = false;
+    if(!fix_directory(control_dir+"/processing",fixdir_always,mode,uid,gid)) res = false;
+    if(!fix_directory(control_dir+"/finished",fixdir_always,mode,uid,gid)) res = false;
+    std::string deleg_dir = DelegationDir();
+    if(!fix_directory(deleg_dir,fixdir_always,S_IRWXU,uid,gid)) res = false;
+  };
+  for(std::vector<std::string>::iterator i = session_roots.begin(); i != session_roots.end(); i++) {
+    mode_t mode = 0;
+    if((uid == 0) && (getuid() == 0)) {
+      if(strict_session) {
+        // For multiple users creating immediate subdirs using own account
+        // dangerous permissions, but there is no other option
+        mode = S_IRWXU | S_IRWXG | S_IRWXO | S_ISVTX;
+      } else {
+        // For multiple users not creating immediate subdirs using own account
+        mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
+      }
+    } else {
+      // For single user
+      mode = S_IRWXU;
+    };
+    if(!fix_directory(*i,fixdir,mode,uid,gid)) res = false;
   };
   return res;
 }
@@ -294,6 +300,7 @@ JobUser::JobUser(const GMEnvironment& env,uid_t uid_,gid_t gid_,RunPlugin* cred)
   keep_finished=DEFAULT_KEEP_FINISHED;
   keep_deleted=DEFAULT_KEEP_DELETED;
   strict_session=false;
+  fixdir=fixdir_always;
   share_uid=0;
   reruns = 0;
   diskspace = 0;
@@ -342,6 +349,7 @@ JobUser::JobUser(const GMEnvironment& env,const std::string &u_name,RunPlugin* c
   keep_finished=DEFAULT_KEEP_FINISHED;
   keep_deleted=DEFAULT_KEEP_DELETED;
   strict_session=false;
+  fixdir=fixdir_always;
   share_uid=0;
   diskspace=0;
   reruns = 0;
@@ -363,6 +371,7 @@ JobUser::JobUser(const JobUser &user):gm_env(user.gm_env) {
   cache_params=user.cache_params;
   cred_plugin=user.cred_plugin;
   strict_session=user.strict_session;
+  fixdir=user.fixdir;
   share_uid=user.share_uid;
   share_gids=user.share_gids;
   diskspace=user.diskspace;

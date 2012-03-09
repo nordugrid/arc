@@ -124,3 +124,11 @@ bool elementtoint(Arc::XMLNode pnode,const char* ename,int& val,Arc::Logger* log
   return false;
 }
 
+bool elementtoenum(Arc::XMLNode pnode,const char* ename,int& val,const char* const opts[],Arc::Logger* logger) {
+  std::string v = ename?pnode[ename]:pnode;
+  if(v.empty()) return true; // default
+  for(int n = 0;opts[n];++n) {
+    if(v == opts[n]) { val = n; return true; };
+  }; 
+  return false;
+}

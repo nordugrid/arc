@@ -163,9 +163,9 @@ void GridManager::grid_manager(void* arg) {
     gm->active_ = false;
     return;
   }
-  unsigned int clean_first_level=0;
-  setpgid(0,0);
-  opterr=0;
+  //unsigned int clean_first_level=0;
+  //setpgid(0,0);
+  //opterr=0;
 
   logger.msg(Arc::INFO,"Starting grid-manager thread");
 
@@ -226,6 +226,7 @@ void GridManager::grid_manager(void* arg) {
     return;
   };
   RunParallel::kicker(&kick_func,&wakeup_h);
+  /*
   if(clean_first_level) {
     bool clean_finished = false;
     bool clean_active = false;
@@ -251,12 +252,12 @@ void GridManager::grid_manager(void* arg) {
           sleep(10); 
           logger.msg(Arc::WARNING,"Trying again");
         };
-        kill(getpid(),SIGCHLD);  /* make sure no child is missed */
+        kill(getpid(),SIGCHLD);  // make sure no child is missed
       };
       if(cleaned_all) {
         if(clean_junk && clean_active && clean_finished) {  
-          /* at the moment cleaning junk means cleaning all the files in 
-             session and control directories */
+          // at the moment cleaning junk means cleaning all the files in 
+          // session and control directories
           for(JobUsers::iterator user=users.begin();user!=users.end();++user) {
             std::list<FileData> flist;
             for(std::vector<std::string>::const_iterator i = user->SessionRoots().begin(); i != user->SessionRoots().end(); i++) {
@@ -272,6 +273,7 @@ void GridManager::grid_manager(void* arg) {
     };
     logger.msg(Arc::INFO,"Jobs cleaned");
   };
+  */
   // check if cleaning is enabled for any user, if so activate cleaning thread
   for (JobUsers::const_iterator cacheuser = users.begin(); cacheuser != users.end(); ++cacheuser) {
     if (!cacheuser->CacheParams().getCacheDirs().empty() && cacheuser->CacheParams().cleanCache()) {
@@ -281,10 +283,9 @@ void GridManager::grid_manager(void* arg) {
       break;
     }
   }
-  /* create control and session directories */
-  logger.msg(Arc::INFO,"Preparing directories");
+  logger.msg(Arc::INFO,"Picking up left jobs");
   for(JobUsers::iterator user = users.begin();user != users.end();++user) {
-    user->CreateDirectories();
+    //user->CreateDirectories(); it is done at higher level now
     user->get_jobs()->RestartJobs();
   };
   hard_job_time = time(NULL) + HARD_JOB_PERIOD;
