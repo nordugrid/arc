@@ -372,10 +372,12 @@ sub fix_config {
         my $shorthost = shift @dns;
         my $dnsdomain = join ".", @dns;
 
-        $log->info("AdminDomain config option is missing. Defaulting to: $dnsdomain") unless $config->{AdminDomain};
+        $log->info("AdminDomain config option is missing in XML. Defaulting to arc.conf values") unless $config->{AdminDomain};
+        $log->info("AdminDomain name in [infosys/admindomain] block is missing or incorrect in arc.conf. Defaulting to UNDEFINEDVALUE") unless $config->{admindomain}{Name};
         $log->info("ClusterName config option is missing. Defaulting to: $shorthost") unless $config->{service}{ClusterName};
 
-        chomp ($config->{AdminDomain} ||= $dnsdomain);
+        chomp ($config->{admindomain}{Name} ||= "UNDEFINEDVALUE");
+        chomp ($config->{AdminDomain} ||= "UNDEFINEDVALUE");
         chomp ($config->{service}{ClusterName} ||= $shorthost);
     }
 
