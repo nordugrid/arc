@@ -45,8 +45,14 @@ namespace DataStaging {
     /// when a new transfer arrives
     Arc::SimpleCondition cond;
 
-    /// Thread to start new Delivery
+    /// Thread to start new Delivery process
     static void start_delivery(void* arg);
+
+    /// Thread to stop Delivery process
+    static void stop_delivery(void* arg);
+
+    /// Delete delivery_pair_t object. Starts a new thread which calls stop_delivery()
+    bool delete_delivery_pair(delivery_pair_t* dp);
 
     /// Static version of main_thread, used when thread is created
     static void main_thread(void* arg);
