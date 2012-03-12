@@ -680,10 +680,19 @@ sub collect($) {
     my $udID = "urn:ogf:UserDomain:$userdomain" ; # UserDomain ID;
     my $csvID = "urn:ogf:ComputingService:$hostname:arex"; # ComputingService ID
     my $cmgrID = "urn:ogf:ComputingManager:$hostname:$lrmsname"; # ComputingManager ID
-    my $ARCgftpjobcepIDp = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:"; # ARCGridFTPComputingEndpoint ID
+    
+    # Computing Endpoints IDs
+    my $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:gsiftp://$gridftphostport"; # ARCGridFTPComputingEndpoint ID
     my $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:xbes:$config->{endpoint}" if $config->{endpoint}; # ARCWSComputingEndpoint ID
     my $EMIEScepID = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $config->{endpoint}; # EMIESComputingEndpoint ID
     my $StageincepID = "urn:ogf:ComputingEndpoint:$hostname:gridftp:$stageinhostport"; # StageinComputingEndpoint ID
+    # the following is needed to publish in shares. Must be modified
+    # if we support share-per-endpoint configurations.
+    my @cepIDs = ();
+    push(@cepIDs,$ARCgftpjobcepID) if ($config->{GridftpdEnabled} == 1);
+    push(@cepIDs,$ARCWScepID) unless ($arexhostport eq '');
+    push(@cepIDs,$EMIEScepID) unless ($emieshostport eq '');
+    
     my $cactIDp = "urn:ogf:ComputingActivity:$hostname"; # ComputingActivity ID prefix
     my $cshaIDp = "urn:ogf:ComputingShare:$hostname"; # ComputingShare ID prefix
     my $xenvIDp = "urn:ogf:ExecutionEnvironment:$hostname"; # ExecutionEnvironment ID prefix
@@ -1164,9 +1173,8 @@ sub collect($) {
             # Name not necessary -- why? added back
             $cep->{Name} = "ARC GridFTP job execution interface";
 
-            # OBS: ideally HED should be asked for the URL
             $cep->{URL} = "gsiftp://$gridftphostport";
-            $cep->{ID} = $ARCgftpjobcepIDp.$cep->{URL};
+            $cep->{ID} = $ARCgftpjobcepID;
             $cep->{Capability} = [ 'executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription' ];
             $cep->{Technology} = 'gridftp';
             $cep->{InterfaceName} = 'org.nordugrid.gridftpjob';
@@ -1796,7 +1804,7 @@ sub collect($) {
         push @{$csha->{ExecutionEnvironmentID}}, $xenvIDs{$_} for @$xenvs;
 
         ## check this association below. Which endpoint?
-        # $csha->{ComputingEndpointID} = $cepID;
+        $csha->{ComputingEndpointID} = \@cepIDs;
         $csha->{ServiceID} = $csvID;
         $csha->{ComputingServiceID} = $csvID;
 
