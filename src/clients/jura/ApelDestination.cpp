@@ -118,7 +118,7 @@ namespace Arc
   int ApelDestination::submit_batch()
   {
     std::string urstr;
-    urstr = "APEL-individual-job-message: v0.22\n";
+    urstr = "APEL-individual-job-message: v0.2\n";
     std::map<std::string,std::string>::iterator it;
     for (int i=0; i<(int)usagerecordset_apel.size(); i++){
         for ( it=usagerecordset_apel[i].begin() ; it != usagerecordset_apel[i].end(); it++ ){
