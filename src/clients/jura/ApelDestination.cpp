@@ -118,7 +118,7 @@ namespace Arc
   int ApelDestination::submit_batch()
   {
     std::string urstr;
-    urstr = "APEL-individual-job-message: v0.1\n";
+    urstr = "APEL-individual-job-message: v0.22\n";
     std::map<std::string,std::string>::iterator it;
     for (int i=0; i<(int)usagerecordset_apel.size(); i++){
         for ( it=usagerecordset_apel[i].begin() ; it != usagerecordset_apel[i].end(); it++ ){
@@ -312,14 +312,14 @@ namespace Arc
 
     //LocalJobId
     if( bool(xml_ur["JobIdentity"]["LocalJobId"]) ){
-        key_ur.insert ( std::pair<std::string,std::string>("LocalJobID", xml_ur["JobIdentity"]["LocalJobId"]) );
+        key_ur.insert ( std::pair<std::string,std::string>("LocalJobId", xml_ur["JobIdentity"]["LocalJobId"]) );
     }
 
     //ProcessId 
 
     //LocalUserId 
     if( bool(xml_ur["JobIdentity"]["LocalUserId"]) ){
-        key_ur.insert ( std::pair<std::string,std::string>("LocalUserID", xml_ur["JobIdentity"]["LocalUserId"]) );
+        key_ur.insert ( std::pair<std::string,std::string>("LocalUserId", xml_ur["JobIdentity"]["LocalUserId"]) );
     } 
 
     //GlobalUserName 
@@ -401,9 +401,9 @@ namespace Arc
     //ServiceLevel
 
     //Apel's default values
-    key_ur.insert ( std::pair<std::string,std::string>("ScalingFactorUnit", "custom") );
-    key_ur.insert ( std::pair<std::string,std::string>("ScalingFactor", "1") );
-    key_ur.insert ( std::pair<std::string,std::string>("UserFQAN", "None") );
+    key_ur.insert ( std::pair<std::string,std::string>("ServiceLevelType", "custom") );
+    key_ur.insert ( std::pair<std::string,std::string>("ServiceLevel", "1") );
+    key_ur.insert ( std::pair<std::string,std::string>("FQAN", "None") );
   }
 
 }
