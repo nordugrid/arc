@@ -119,7 +119,7 @@ void ProcessorTest::TestCacheCheck() {
 
   std::string cache_dir(tmpdir);
   cache_dir += "/cache";
-  DataStaging::CacheParameters cache_param;
+  DataStaging::DTRCacheParameters cache_param;
   cache_param.cache_dirs.push_back(cache_dir);
 
   // use non-cacheable input and check it cannot be not cached
@@ -527,7 +527,7 @@ void ProcessorTest::TestCacheProcess() {
   session += "/session";
   std::string cache_dir(tmpdir);
   cache_dir += "/cache";
-  DataStaging::CacheParameters cache_param;
+  DataStaging::DTRCacheParameters cache_param;
   cache_param.cache_dirs.push_back(cache_dir);
 
   // make conf file

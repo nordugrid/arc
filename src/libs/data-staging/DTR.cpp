@@ -72,6 +72,7 @@ namespace DataStaging {
     if (!logger) {
       // use root logger if none is supplied
       logger = new Arc::Logger(Arc::Logger::getRootLogger(), "DTR");
+      logger->addDestinations(Arc::Logger::getRootLogger().getDestinations());
     }
     log_destinations = logger->getDestinations();
 
@@ -383,9 +384,9 @@ namespace DataStaging {
   	lock.unlock();
   }
 
-  CacheParameters::CacheParameters(std::vector<std::string> caches,
-                  std::vector<std::string> remote_caches,
-                  std::vector<std::string> drain_caches):
+  DTRCacheParameters::DTRCacheParameters(std::vector<std::string> caches,
+                                         std::vector<std::string> remote_caches,
+                                         std::vector<std::string> drain_caches):
        cache_dirs(caches),
        remote_cache_dirs(remote_caches),
        drain_cache_dirs(drain_caches) {

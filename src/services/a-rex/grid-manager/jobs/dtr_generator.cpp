@@ -784,7 +784,7 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     // set whether to use A-REX host certificate for remote delivery services
     dtr->host_cert_for_remote_delivery(staging_conf.use_host_cert_for_remote_delivery);
 
-    DataStaging::CacheParameters cache_parameters;
+    DataStaging::DTRCacheParameters cache_parameters;
     cache_parameters.cache_dirs = jobuser->CacheParams().getCacheDirs();
     cache_parameters.remote_cache_dirs = jobuser->CacheParams().getRemoteCacheDirs();
     dtr->set_cache_parameters(cache_parameters);

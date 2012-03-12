@@ -54,7 +54,7 @@ namespace DataStaging {
   };
 
   /// The configured cache directories
-  class CacheParameters {
+  class DTRCacheParameters {
     public:
     /// List of (cache dir [link dir])
     std::vector<std::string> cache_dirs;
@@ -63,11 +63,11 @@ namespace DataStaging {
     /// List of draining caches. Not necessary for data staging but here for completeness.
     std::vector<std::string> drain_cache_dirs;
     /// Constructor with empty lists initialised
-    CacheParameters(void) {};
+    DTRCacheParameters(void) {};
     /// Constructor with supplied cache lists
-    CacheParameters(std::vector<std::string> caches,
-                    std::vector<std::string> remote_caches,
-                    std::vector<std::string> drain_caches);
+    DTRCacheParameters(std::vector<std::string> caches,
+                       std::vector<std::string> remote_caches,
+                       std::vector<std::string> drain_caches);
   };
 
   /// Represents possible cache states of this DTR
@@ -191,7 +191,7 @@ namespace DataStaging {
       std::string cache_file;
 
       /// Cache configuration
-      CacheParameters cache_parameters;
+      DTRCacheParameters cache_parameters;
 
       /// Cache state for this DTR
       CacheState cache_state;
@@ -318,7 +318,7 @@ namespace DataStaging {
     public:
       
       /// URL that is used to denote local Delivery should be used
-      const static Arc::URL LOCAL_DELIVERY;
+      static const Arc::URL LOCAL_DELIVERY;
 
       /// Public empty constructor
       DTR();
@@ -488,9 +488,9 @@ namespace DataStaging {
      std::string get_cache_file() const { return cache_file; };
 
      /// Set cache parameters
-     void set_cache_parameters(const CacheParameters& param) { cache_parameters = param; };
+     void set_cache_parameters(const DTRCacheParameters& param) { cache_parameters = param; };
      /// Get cache parameters
-     const CacheParameters& get_cache_parameters() const { return cache_parameters; };
+     const DTRCacheParameters& get_cache_parameters() const { return cache_parameters; };
 
      /// Set the cache state
      void set_cache_state(CacheState state);
