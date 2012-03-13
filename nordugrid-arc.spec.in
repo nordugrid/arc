@@ -716,7 +716,10 @@ make install DESTDIR=$RPM_BUILD_ROOT
 
 # Remove empty .apd files:
 rm -f $RPM_BUILD_ROOT%{_libdir}/%{pkgdir}/libmodcrypto.apd \
-      $RPM_BUILD_ROOT%{_libdir}/%{pkgdir}/libmodcredential.apd
+      $RPM_BUILD_ROOT%{_libdir}/%{pkgdir}/libmodcredential.apd \
+      $RPM_BUILD_ROOT%{_libdir}/%{pkgdir}/fileplugin.apd \
+      $RPM_BUILD_ROOT%{_libdir}/%{pkgdir}/gaclplugin.apd \
+      $RPM_BUILD_ROOT%{_libdir}/%{pkgdir}/jobplugin.apd
 
 # Install Logrotate.
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d

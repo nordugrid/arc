@@ -71,7 +71,10 @@ install: build-stamp
 
 	# Remove empty .apd files:
 	rm -f debian/tmp/usr/lib/arc/libmodcrypto.apd \
-              debian/tmp/usr/lib/arc/libmodcredential.apd
+              debian/tmp/usr/lib/arc/libmodcredential.apd \
+              debian/tmp/usr/lib/arc/gaclplugin.apd \
+              debian/tmp/usr/lib/arc/fileplugin.apd \
+              debian/tmp/usr/lib/arc/jobplugin.apd
 
 	find $(CURDIR)/debian/tmp -name \*.la -exec rm -fv '{}' ';'
 
