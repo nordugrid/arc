@@ -156,83 +156,54 @@ typedef struct {
 } args_st;
 
 void GridManager::grid_manager(void* arg) {
-
   GridManager* gm = (GridManager*)arg;
-  GMEnvironment& env = *(gm->Environment());
+  //GMEnvironment& env = *(gm->Environment());
   if(!arg) {
     gm->active_ = false;
     return;
   }
-  //unsigned int clean_first_level=0;
-  //setpgid(0,0);
-  //opterr=0;
+  gm->thread();
+}
 
+void GridManager::thread() {
   logger.msg(Arc::INFO,"Starting grid-manager thread");
-
-  JobUsers& users = *(gm->Users());
-  //std::string my_username("");
-  //uid_t my_uid=getuid();
-  JobUser *my_user = NULL;
-
-  /* recognize itself */
-  /*
-  {
-    struct passwd pw_;
-    struct passwd *pw;
-    char buf[BUFSIZ];
-    getpwuid_r(my_uid,&pw_,buf,BUFSIZ,&pw);
-    if(pw != NULL) { my_username=pw->pw_name; };
-  };
-  if(my_username.length() == 0) {
-    logger.msg(Arc::FATAL,"Can't recognize own username - EXITING");
-    gm->active_ = false;
-    return;
-  };
-  */
-  //my_user = new JobUser(env,my_username);
-  my_user = new JobUser(env,getuid(),getgid());
-  if((my_user->get_uid() != 0) && (my_user->UnixName().empty())) {
-    logger.msg(Arc::FATAL,"Can't recognize own username - EXITING");
-    gm->active_ = false;
-    return;
-  };
   bool enable_arc = false;
   bool enable_emies = false;
-  if(!configure_serviced_users(users/*,my_uid,my_username*/,*my_user,enable_arc,enable_emies)) {
-    logger.msg(Arc::INFO,"Used configuration file %s",env.nordugrid_config_loc());
+  if(!configure_serviced_users(*users_/*,my_uid,my_username*/,*my_user_,enable_arc,enable_emies)) {
+    logger.msg(Arc::INFO,"Used configuration file %s",env_->nordugrid_config_loc());
     logger.msg(Arc::FATAL,"Error processing configuration - EXITING");
-    gm->active_ = false;
+    active_ = false;
     return;
   };
-  if(users.size() == 0) {
+  if(users_->size() == 0) {
     logger.msg(Arc::FATAL,"No suitable users found in configuration - EXITING");
-    gm->active_ = false;
+    active_ = false;
     return;
   };
 
-  logger.msg(Arc::INFO,"Used configuration file %s",env.nordugrid_config_loc());
-  print_serviced_users(users);
+  logger.msg(Arc::INFO,"Used configuration file %s",env_->nordugrid_config_loc());
+  print_serviced_users(*users_);
 
   CommFIFO wakeup_interface;
   pthread_t wakeup_thread;
   pthread_t cache_thread;
   time_t hard_job_time; 
   sleep_st wakeup_h;
-  wakeup_h.sleep_cond=gm->sleep_cond_;
+  wakeup_h.sleep_cond=sleep_cond_;
   wakeup_h.timeout=&wakeup_interface;
-  for(JobUsers::iterator i = users.begin();i!=users.end();++i) {
+  for(JobUsers::iterator i = users_->begin();i!=users_->end();++i) {
     if(!wakeup_interface.add(*i)) {
       logger.msg(Arc::FATAL,"Error adding communication interface in %s for user %s. Maybe another instance of A-REX is already running or permissions are not suitable.",i->ControlDir(),i->UnixName());
-      gm->active_ = false;
+      active_ = false;
       return;
     };
   };
-  wakeup_interface.timeout(env.jobs_cfg().WakeupPeriod());
+  wakeup_interface.timeout(env_->jobs_cfg().WakeupPeriod());
 
   /* start timer thread - wake up every 2 minutes */
   if(pthread_create(&wakeup_thread,NULL,&wakeup_func,&wakeup_h) != 0) {
     logger.msg(Arc::ERROR,"Failed to start new thread");
-    gm->active_ = false;
+    active_ = false;
     return;
   };
   RunParallel::kicker(&kick_func,&wakeup_h);
@@ -252,7 +223,7 @@ void GridManager::grid_manager(void* arg) {
     };
     for(;;) { 
       bool cleaned_all=true;
-      for(JobUsers::iterator user = users.begin();user != users.end();++user) {
+      for(JobUsers::iterator user = users_->begin();user != users_->end();++user) {
         size_t njobs = user->get_jobs()->size();
         user->get_jobs()->ScanNewJobs();
         if(user->get_jobs()->size() == njobs) break;
@@ -268,7 +239,7 @@ void GridManager::grid_manager(void* arg) {
         if(clean_junk && clean_active && clean_finished) {  
           // at the moment cleaning junk means cleaning all the files in 
           // session and control directories
-          for(JobUsers::iterator user=users.begin();user!=users.end();++user) {
+          for(JobUsers::iterator user=users_->begin();user!=users_->end();++user) {
             std::list<FileData> flist;
             for(std::vector<std::string>::const_iterator i = user->SessionRoots().begin(); i != user->SessionRoots().end(); i++) {
               logger.msg(Arc::INFO,"Cleaning all files in directory %s", *i);
@@ -285,30 +256,32 @@ void GridManager::grid_manager(void* arg) {
   };
   */
   // check if cleaning is enabled for any user, if so activate cleaning thread
-  for (JobUsers::const_iterator cacheuser = users.begin(); cacheuser != users.end(); ++cacheuser) {
+  for (JobUsers::const_iterator cacheuser = users_->begin();
+                                    cacheuser != users_->end(); ++cacheuser) {
     if (!cacheuser->CacheParams().getCacheDirs().empty() && cacheuser->CacheParams().cleanCache()) {
-      if(pthread_create(&cache_thread,NULL,&cache_func,(void*)(&users))!=0) {
+      if(pthread_create(&cache_thread,NULL,&cache_func,(void*)users_)!=0) {
         logger.msg(Arc::INFO,"Failed to start new thread: cache won't be cleaned");
       }
       break;
     }
   }
   logger.msg(Arc::INFO,"Picking up left jobs");
-  for(JobUsers::iterator user = users.begin();user != users.end();++user) {
+  for(JobUsers::iterator user = users_->begin();user != users_->end();++user) {
     //user->CreateDirectories(); it is done at higher level now
     user->get_jobs()->RestartJobs();
   };
   hard_job_time = time(NULL) + HARD_JOB_PERIOD;
-  if (env.jobs_cfg().GetNewDataStaging()) {
+  if (env_->jobs_cfg().GetNewDataStaging()) {
     logger.msg(Arc::INFO, "Starting data staging threads");
-    DTRGenerator* dtr_generator = new DTRGenerator(users, &kick_func, &wakeup_h);
+    DTRGenerator* dtr_generator = new DTRGenerator(*users_, &kick_func, &wakeup_h);
     if (!(*dtr_generator)) {
+      delete dtr_generator;
       logger.msg(Arc::ERROR, "Failed to start data staging threads, exiting Grid Manager thread");
-      gm->active_ = false;
+      active_ = false;
       return;
     }
-    gm->dtr_generator_ = dtr_generator;
-    for(JobUsers::iterator user = users.begin();user != users.end();++user) {
+    dtr_generator_ = dtr_generator;
+    for(JobUsers::iterator user = users_->begin();user != users_->end();++user) {
       user->get_jobs()->SetDataGenerator(dtr_generator);
     }
   }
@@ -317,12 +290,12 @@ void GridManager::grid_manager(void* arg) {
   /* main loop - forever */
   logger.msg(Arc::INFO,"Starting jobs' monitoring");
   for(;;) {
-    if(gm->tostop_) break;
-    users.run_helpers();
-    env.job_log().RunReporter(users);
-    my_user->run_helpers();
+    if(tostop_) break;
+    users_->run_helpers();
+    env_->job_log().RunReporter(*users_);
+    my_user_->run_helpers();
     bool hard_job = ((int)(time(NULL) - hard_job_time)) > 0;
-    for(JobUsers::iterator user = users.begin();user != users.end();++user) {
+    for(JobUsers::iterator user = users_->begin();user != users_->end();++user) {
       // touch heartbeat file
       std::string gm_heartbeat(std::string(user->ControlDir() + "/" + heartbeat_file));
       int r = ::open(gm_heartbeat.c_str(), O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
@@ -337,8 +310,8 @@ void GridManager::grid_manager(void* arg) {
       /* slowly scan throug old jobs for deleting them in time */
       if(hard_job || scan_old) {
         int max,max_running,max_per_dn,max_total;
-        env.jobs_cfg().GetMaxJobs(max,max_running,max_per_dn,max_total);
-        scan_old = user->get_jobs()->ScanOldJobs(env.jobs_cfg().WakeupPeriod()/2,max);
+        env_->jobs_cfg().GetMaxJobs(max,max_running,max_per_dn,max_total);
+        scan_old = user->get_jobs()->ScanOldJobs(env_->jobs_cfg().WakeupPeriod()/2,max);
       };
       /* process known jobs */
       user->get_jobs()->ActJobs();
@@ -352,47 +325,73 @@ void GridManager::grid_manager(void* arg) {
       };
     };
     if(hard_job) hard_job_time = time(NULL) + HARD_JOB_PERIOD;
-    gm->sleep_cond_->wait();
+    sleep_cond_->wait();
     logger.msg(Arc::DEBUG,"Waking up");
   };
   // Waiting for children to finish
   logger.msg(Arc::INFO,"Stopping jobs processing thread");
-  for(JobUsers::iterator user = users.begin();user != users.end();++user) {
+  for(JobUsers::iterator user = users_->begin();user != users_->end();++user) {
     user->PrepareToDestroy();
     user->get_jobs()->PrepareToDestroy();
   };
   logger.msg(Arc::INFO,"Destroying jobs and waiting for underlying processes to finish");
-  for(JobUsers::iterator user = users.begin();user != users.end();++user) {
+  for(JobUsers::iterator user = users_->begin();user != users_->end();++user) {
     delete user->get_jobs();
   };
-  gm->active_ = false;
+  active_ = false;
   return;
 }
 
-GridManager::GridManager(GMEnvironment& env/*const char* config_filename*/):active_(false),tostop_(false) {
-  env_ = &env;
-  users_ = new JobUsers(env);
-  dtr_generator_ = NULL;
+GridManager::GridManager(GMEnvironment& env):active_(false),tostop_(false) {
   sleep_cond_ = new Arc::SimpleCondition;
-  void* arg = (void*)this; // config_filename?strdup(config_filename):NULL;
-  active_=Arc::CreateThreadFunction(&grid_manager,arg);
-  //if(!active_) if(arg) free(arg);
+  env_ = &env;
+  my_user_ = new JobUser(env,::getuid(),::getgid()); my_user_owned_ = true;
+  users_ = new JobUsers(env); users_owned_ = true;
+  dtr_generator_ = NULL;
+  // recognize itself
+  if((my_user_->get_uid() != 0) && (my_user_->UnixName().empty())) {
+    logger.msg(Arc::FATAL,"Can't recognize own username - EXITING");
+    return;
+  };
+  logger.msg(Arc::INFO,"Processing grid-manager configuration");
+  logger.msg(Arc::INFO,"Used configuration file %s",env_->nordugrid_config_loc());
+  bool enable_arc = false;
+  bool enable_emies = false;
+  if(!configure_serviced_users(*users_/*,my_uid,my_username*/,*my_user_,enable_arc,enable_emies)) {
+    logger.msg(Arc::FATAL,"Error processing configuration - EXITING");
+    return;
+  };
+  active_=true;
+  if(!Arc::CreateThreadFunction(&grid_manager,(void*)this)) active_=false;
+}
+
+GridManager::GridManager(JobUsers& users, JobUser& my_user):active_(false),tostop_(false) {
+  sleep_cond_ = new Arc::SimpleCondition;
+  env_ = &(users.Env());
+  my_user_ = &my_user; my_user_owned_ = false;
+  users_ = &users; users_owned_ = false;
+  dtr_generator_ = NULL;
+  void* arg = (void*)this;
+  active_=true;
+  if(!Arc::CreateThreadFunction(&grid_manager,(void*)this)) active_=false;
 }
 
 GridManager::~GridManager(void) {
   logger.msg(Arc::INFO, "Shutting down job processing");
-  if(active_) {
-    if (dtr_generator_) {
-      logger.msg(Arc::INFO, "Shutting down data staging threads");
-      delete dtr_generator_;
-    }
-    // Stop GM thread
-    tostop_ = true;
-    while(active_) {
-      sleep_cond_->signal();
-      sleep(1); // TODO: use condition
-    }
+  // Tell main thread to stop
+  tostop_ = true;
+  // Stop data staging
+  if (dtr_generator_) {
+    logger.msg(Arc::INFO, "Shutting down data staging threads");
+    delete dtr_generator_;
   }
+  // Stop GM thread
+  while(active_) {
+    sleep_cond_->signal();
+    sleep(1); // TODO: use condition
+  }
+  if(users_owned_) delete users_;
+  if(my_user_owned_) delete my_user_;
   delete sleep_cond_;
 }
 

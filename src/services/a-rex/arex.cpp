@@ -835,6 +835,8 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
               job_log_(NULL),
               jobs_cfg_(NULL),
               gm_env_(NULL),
+              users_(NULL),
+              my_user_(NULL),
               gm_(NULL) {
   valid = false;
   // logger_.addDestination(logcerr);
@@ -873,7 +875,8 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
   jobs_cfg_ = new JobsListConfig;
   gm_env_ = new GMEnvironment(*job_log_,*jobs_cfg_);
   gm_env_->delegations(&delegation_stores_);
-  JobUsers users(*gm_env_);
+  users_ = new JobUsers(*gm_env_);
+  my_user_= new JobUser(*gm_env_,getuid(),getgid());
   if(gmconfig_.empty()) {
     // No external configuration file means configuration is
     // directly embedded into this configuration node.
@@ -885,15 +888,14 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
     // some better approach - maybe like creating file with service
     // id in its name.
     try {
-      JobUser my_user(*gm_env_,getuid(),getgid());
-      if(!configure_serviced_users(*cfg,users,my_user,enablearc_,enableemies_)) {
+      if(!configure_serviced_users(*cfg,*users_,*my_user_,enablearc_,enableemies_)) {
         logger_.msg(Arc::ERROR, "Failed to process service configuration");
         return;
       }
       // create control and session directories if not yet done
       // extract control directories to be used for temp configuration
       std::list<std::string> tmp_dirs;
-      for(JobUsers::iterator user = users.begin();user != users.end();++user) {
+      for(JobUsers::iterator user = users_->begin();user != users_->end();++user) {
         std::string tmp_dir = user->ControlDir();
         std::list<std::string>::iterator t = tmp_dirs.begin();
         for(;t != tmp_dirs.end();++t) {
@@ -952,12 +954,11 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
   } else {
     // External configuration file
     gm_env_->nordugrid_config_loc(gmconfig_);
-    JobUser my_user(*gm_env_,getuid(),getgid());
-    if(!configure_serviced_users(users,my_user,enablearc_,enableemies_)) {
+    if(!configure_serviced_users(*users_,*my_user_,enablearc_,enableemies_)) {
       logger_.msg(Arc::ERROR, "Failed to process configuration in %s",gmconfig_);
     }
     // create control and session directories if not yet done
-    for(JobUsers::iterator user = users.begin();user != users.end();++user) {
+    for(JobUsers::iterator user = users_->begin();user != users_->end();++user) {
       if(!user->CreateDirectories()) {
         logger_.msg(Arc::ERROR, "Failed to create/detect control (%s) or session (%s) directories",user->ControlDir(),user->SessionRoot());
       };
@@ -972,7 +973,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
     if (!lrms_name_.empty()) {
       logger_.msg(Arc::ERROR, "Provided LRMSName is not a valid URL: %s",lrms_name_);
     } else {
-      logger_.msg(Arc::WARNING, "No LRMSName is provided. This is needed if you wish to support the BES interface to A-REX.");
+      logger_.msg(Arc::WARNING, "No LRMSName is provided. This is needed if you wish to completely comply with the BES specifications.");
     };
     // Filling something to make it follow BES specs
     lrms_name_ = "uri:undefined";
@@ -1006,8 +1007,12 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
 
   // Run grid-manager in thread
   if((gmrun_.empty()) || (gmrun_ == "internal")) {
-    gm_=new GridManager(*gm_env_);
-    if(!(*gm_)) { delete gm_; gm_=NULL; return; };
+    //gm_=new GridManager(*gm_env_);
+    gm_=new GridManager(*users_,*my_user_);
+    if(!(*gm_)) {
+      logger_.msg(Arc::ERROR, "Failed to run Grid Manager thread");
+      delete gm_; gm_=NULL; return;
+    };
   };
   CreateThreadFunction(&information_collector_starter,this);
   valid=true;
@@ -1016,6 +1021,8 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
 ARexService::~ARexService(void) {
   thread_count_.RequestCancel();
   if(gm_) delete gm_; // This should stop all GM-related threads too
+  if(my_user_) delete my_user_;
+  if(users_) delete users_;
   if(gm_env_) delete gm_env_;
   if(jobs_cfg_) delete jobs_cfg_;
   if(job_log_) delete job_log_;

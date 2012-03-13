@@ -86,6 +86,8 @@ class ARexService: public Arc::RegisteredService {
   JobLog* job_log_;
   JobsListConfig* jobs_cfg_;
   GMEnvironment* gm_env_;
+  JobUsers* users_;
+  JobUser* my_user_;
   GridManager* gm_;
   ARexConfigContext* get_configuration(Arc::Message& inmsg);
 

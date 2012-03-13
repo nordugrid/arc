@@ -6,6 +6,7 @@
 
 class GMEnvironment;
 class JobUsers;
+class JobUser;
 class DTRGenerator;
 
 namespace ARex {
@@ -16,18 +17,21 @@ class GridManager {
   bool tostop_;
   Arc::SimpleCondition* sleep_cond_;
   GMEnvironment* env_;
+  JobUser* my_user_;
+  bool my_user_owned_;
   JobUsers* users_;
+  bool users_owned_;
   DTRGenerator* dtr_generator_;
   GridManager(void) { };
   GridManager(const GridManager&) { };
   static void grid_manager(void* arg);
+  void thread(void);
  public:
-  //GridManager(Arc::XMLNode argv);
   GridManager(GMEnvironment& env);
+  GridManager(JobUsers& users, JobUser& my_user);
   ~GridManager(void);
   operator bool(void) { return active_; };
   JobUsers* Users(void) { return users_; };
-  GMEnvironment* Environment(void) { return env_; };
 };
 
 }
