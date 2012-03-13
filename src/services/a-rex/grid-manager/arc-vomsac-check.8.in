@@ -59,7 +59,7 @@ Prepending '-' or '!' indicate negative match (users with FQAN match are prohibi
 Without any prefix character, rule is treated as positive match.
 
 FQAN format can be specified either in ARC format or general VOMS format:
-'/VO=students/Group=physics/Role=production' is the same as '/students/physics/Role=production' 
+\&'/VO=students/Group=physics/Role=production' is the same as '/students/physics/Role=production' 
 or '/students/Group=physics/Role=production/Capability=NULL' or any other combinations.
 Regalar expressions syntax can be used in FQAN specification.
 
