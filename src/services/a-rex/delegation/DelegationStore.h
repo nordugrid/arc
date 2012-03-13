@@ -20,6 +20,7 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
     };
   };
   Glib::Mutex lock_;
+  Glib::Mutex check_lock_;
   FileRecord fstore_;
   std::map<Arc::DelegationConsumerSOAP*,Consumer> acquired_;
   unsigned int expiration_;
@@ -42,6 +43,7 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
   virtual void ReleaseConsumer(Arc::DelegationConsumerSOAP* c);
   virtual void RemoveConsumer(Arc::DelegationConsumerSOAP* c);
   virtual void CheckConsumers(void);
+  void PeriodicCheckConsumers(void);
   std::string FindCred(const std::string& id,const std::string& client);
 
   bool LockCred(const std::string& lock_id, const std::list<std::string>& ids,const std::string& client);

@@ -299,10 +299,11 @@ void GridManager::thread() {
       // touch heartbeat file
       std::string gm_heartbeat(std::string(user->ControlDir() + "/" + heartbeat_file));
       int r = ::open(gm_heartbeat.c_str(), O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
-      if (r < 0)
+      if (r < 0) {
         logger.msg(Arc::WARNING, "Failed to open heartbeat file %s", gm_heartbeat);
-      else
+      } else {
         close(r);
+      };
       /* check for new marks and activate related jobs */
       user->get_jobs()->ScanNewMarks();
       /* look for new jobs */
@@ -321,7 +322,7 @@ void GridManager::thread() {
         ARex::DelegationStore& deleg = (*delegs)[user->DelegationDir()];
         deleg.Expiration(24*60*60);
         deleg.CheckTimeout(60);
-        deleg.CheckConsumers();
+        deleg.PeriodicCheckConsumers();
       };
     };
     if(hard_job) hard_job_time = time(NULL) + HARD_JOB_PERIOD;

@@ -155,10 +155,16 @@ namespace ARex {
   }
 
   void DelegationStore::CheckConsumers(void) {
+    // Not doing any cleaning ocasionally to avoid delegation response delay.
+    // Instead PeriodicCheckConsumers() is called to do periodic cleaning.
+  }
+
+  void DelegationStore::PeriodicCheckConsumers(void) {
     // Go through stored credentials
     // Remove outdated records (those with locks won't be removed)
     time_t start = ::time(NULL);
     if(expiration_) {
+      Glib::Mutex::Lock check_lock(lock_);
       if(mrec_ == NULL) mrec_ = new FileRecord::Iterator(fstore_);
       for(;(bool)(*mrec_);++(*mrec_)) {
         if(mtimeout_ && (((unsigned int)(::time(NULL) - start)) > mtimeout_)) return;
