@@ -933,6 +933,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/libarccredentialstore.so.*
 %{_libdir}/libarccrypto.so.*
 %{_libdir}/libarcdata2.so.*
+%{_libdir}/libarcdatastaging.so.*
 %{_libdir}/libarcdbxml.so.*
 %{_libdir}/libarcloader.so.*
 %{_libdir}/libarcmessage.so.*

@@ -32,6 +32,7 @@ ARCLIBS = \
 	$(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/libs/data-staging/libarcdatastaging.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
 
 _arc_la_SOURCES = arc_init.cpp

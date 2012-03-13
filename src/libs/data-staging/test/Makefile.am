@@ -7,22 +7,22 @@ if CPPUNIT_ENABLED
 DTRTest_SOURCES = $(top_srcdir)/src/Test.cpp DTRTest.cpp
 DTRTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
-DTRTest_LDADD = ../libdatastaging.la $(CPPUNIT_LIBS) $(GLIBMM_LIBS)
+DTRTest_LDADD = ../libarcdatastaging.la $(CPPUNIT_LIBS) $(GLIBMM_LIBS)
 
 ProcessorTest_SOURCES = $(top_srcdir)/src/Test.cpp ProcessorTest.cpp
 ProcessorTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
-ProcessorTest_LDADD = ../libdatastaging.la $(CPPUNIT_LIBS) $(GLIBMM_LIBS)
+ProcessorTest_LDADD = ../libarcdatastaging.la $(CPPUNIT_LIBS) $(GLIBMM_LIBS)
 
 DeliveryTest_SOURCES = $(top_srcdir)/src/Test.cpp DeliveryTest.cpp
 DeliveryTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
-DeliveryTest_LDADD = ../libdatastaging.la $(CPPUNIT_LIBS) $(GLIBMM_LIBS)
+DeliveryTest_LDADD = ../libarcdatastaging.la $(CPPUNIT_LIBS) $(GLIBMM_LIBS)
 
 noinst_PROGRAMS = DTRMemTest DTRTest ProcessorTest DeliveryTest
 
 DTRMemTest_SOURCES = DTRMemTest.cpp
 DTRMemTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
-DTRMemTest_LDADD = ../libdatastaging.la $(CPPUNIT_LIBS) $(GLIBMM_LIBS)
+DTRMemTest_LDADD = ../libarcdatastaging.la $(CPPUNIT_LIBS) $(GLIBMM_LIBS)
 endif

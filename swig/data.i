@@ -15,6 +15,11 @@
 #include <arc/data/FileCache.h>
 #include <arc/data/DataMover.h>
 
+#include <arc/data-staging/DTRStatus.h>
+#include <arc/data-staging/DTR.h>
+#include <arc/data-staging/TransferShares.h>
+#include <arc/data-staging/Scheduler.h>
+
 #ifdef WIN32
 #define uid_t int
 #define gid_t int
@@ -158,3 +163,12 @@ and the second member is the original return value, the DataStatus. */
 %include "../src/hed/libs/data/DataBuffer.h"
 %include "../src/hed/libs/data/FileCache.h"
 %include "../src/hed/libs/data/DataMover.h"
+
+%include "../src/libs/data-staging/DTRStatus.h"
+%include "../src/libs/data-staging/DTR.h"
+%include "../src/libs/data-staging/TransferShares.h"
+%include "../src/libs/data-staging/Scheduler.h"
+
+%include "../src/hed/libs/common/Thread.h"
+%template(DTRPointer) Arc::ThreadedPointer<DataStaging::DTR>;
+%template(DTRLogger) Arc::ThreadedPointer<Arc::Logger>;
