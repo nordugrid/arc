@@ -2403,7 +2403,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/ldap-monitor/man/Makefile
                  src/services/ldap-monitor/man/ldap-monitor.7
                  src/services/ldap-monitor/includes/Makefile
-                 src/services/ldap-monitor/cache/Makefile
                  src/services/ldap-monitor/mon-icons/Makefile
                  src/services/ldap-monitor/lang/Makefile
                  src/services/ws-monitor/Makefile
@@ -2412,7 +2411,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/ws-monitor/man/Makefile
                  src/services/ws-monitor/man/ws-monitor.7
                  src/services/ws-monitor/includes/Makefile
-                 src/services/ws-monitor/cache/Makefile
                  src/services/ws-monitor/mon-icons/Makefile
                  src/services/ws-monitor/lang/Makefile
                  src/services/slcs/Makefile
