@@ -11,6 +11,11 @@ AM_CONFIG_HEADER([config.h])
 baseversion=`echo $VERSION | sed 's/[[^0-9.]].*//'`
 preversion=`echo $VERSION | sed 's/^[[0-9.]]*//'`
 
+if test "x$baseversion" = "x" ; then
+   baseversion=$VERSION
+   preversion=""
+fi
+
 if test "x$preversion" = "x" ; then
    fedorarelease="1"
    fedorasetupopts="-q"
