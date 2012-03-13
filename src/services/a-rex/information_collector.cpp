@@ -433,9 +433,15 @@ Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode
   if(h == -1) ESFAULT("Failed to open resource information file");
   ::lseek(h,0,SEEK_SET);
   struct stat st;
-  if((::fstat(h,&st) != 0) || (st.st_size == 0)) ESFAULT("Failed to stat resource information file");
+  if((::fstat(h,&st) != 0) || (st.st_size == 0)) {
+    ::close(h);
+    ESFAULT("Failed to stat resource information file");
+  };
   char* buf = (char*)::malloc(st.st_size+1);
-  if(!buf) ESFAULT("Failed to allocate memory for resoure information");
+  if(!buf) {
+    ::close(h);
+    ESFAULT("Failed to allocate memory for resoure information");
+  };
   off_t p = 0;
   for(;p<st.st_size;) {
     ssize_t l = ::read(h,buf+p,st.st_size-p);
@@ -443,12 +449,14 @@ Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode
     if(l == -1) {
       if(errno != EAGAIN) {
         ::free(buf);
+        ::close(h);
         ESFAULT("Failed to read resource information file");
       };
     };
     p+=l;
   };
   buf[p] = 0;
+  ::close(h);
   Arc::XMLNode doc(buf);
   ::free(buf); buf=NULL;
   if(!doc) {
