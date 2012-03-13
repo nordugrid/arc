@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 ###############################################################################
 #   Copyright [2012] [gLite - Lightweight Middleware for Grid Computing]      #
 #                                                                             #
