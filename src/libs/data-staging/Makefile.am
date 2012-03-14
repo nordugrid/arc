@@ -7,7 +7,7 @@ libarcdatastaging_ladir = $(pkgincludedir)/data-staging
 
 libarcdatastaging_la_HEADERS = DataDelivery.h DataDeliveryComm.h \
   DataDeliveryLocalComm.h DataDeliveryRemoteComm.h DTR.h DTRList.h \
-  DTRStatus.h Processor.h Scheduler.h TransferShares.h 
+  DTRStatus.h Processor.h Scheduler.h TransferShares.h
 
 libarcdatastaging_la_SOURCES = DataDelivery.cpp DataDeliveryComm.cpp \
   DataDeliveryLocalComm.cpp DataDeliveryRemoteComm.cpp DTR.cpp DTRList.cpp \
@@ -27,9 +27,13 @@ libarcdatastaging_la_LDFLAGS = -version-info 1:0:0
 
 noinst_PROGRAMS = generator
 
-generator_SOURCES = generator-main.cpp Generator.h Generator.cpp 
+generator_SOURCES = generator-main.cpp Generator.h Generator.cpp
 generator_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
-generator_LDADD = libarcdatastaging.la
+generator_LDADD = libarcdatastaging.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
+	$(top_builddir)/src/hed/libs/data/libarcdata2.la \
+	$(GLIBMM_LIBS)
 
 pkglibexec_PROGRAMS = DataStagingDelivery
 
