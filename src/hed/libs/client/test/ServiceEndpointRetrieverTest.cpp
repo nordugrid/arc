@@ -60,7 +60,7 @@ void ServiceEndpointRetrieverTest::BasicServiceRetrieverTest() {
   Arc::ServiceEndpointRetrieverPluginTESTControl::delay = 0;
   Arc::ServiceEndpointRetrieverPluginTESTControl::endpoints.push_back(Arc::Endpoint());
   Arc::ServiceEndpointRetrieverPluginTESTControl::status = Arc::EndpointQueryingStatus(Arc::EndpointQueryingStatus::SUCCESSFUL);
-  Arc::Endpoint registry("test.nordugrid.org", "org.nordugrid.sertest");
+  Arc::Endpoint registry("test.nordugrid.org", Arc::Endpoint::REGISTRY, "org.nordugrid.sertest");
   retriever.addEndpoint(registry);
   retriever.wait();
 

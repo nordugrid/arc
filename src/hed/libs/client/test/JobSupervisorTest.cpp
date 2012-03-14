@@ -131,7 +131,7 @@ void JobSupervisorTest::TestResubmit()
 
   js = new Arc::JobSupervisor(usercfg, jobs);
 
-  std::list<Arc::Endpoint> services(1, Arc::Endpoint("http://test2.nordugrid.org",  "org.nordugrid.tirtest", std::list<std::string>(1, Arc::Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO))));
+  std::list<Arc::Endpoint> services(1, Arc::Endpoint("http://test2.nordugrid.org",  Arc::Endpoint::COMPUTINGINFO, "org.nordugrid.tirtest"));
   std::list<Arc::Job> resubmitted;
   CPPUNIT_ASSERT(js->Resubmit(0, services, resubmitted));
   CPPUNIT_ASSERT_EQUAL(2, (int)resubmitted.size());

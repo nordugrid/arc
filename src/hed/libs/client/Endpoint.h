@@ -23,9 +23,15 @@ public:
   }
   
   Endpoint(const std::string& URLString = "",
-           const std::string& InterfaceName = "",
-           const std::list<std::string>& Capability = std::list<std::string>())
+           const std::list<std::string>& Capability = std::list<std::string>(),
+           const std::string& InterfaceName = "")
     : URLString(URLString), InterfaceName(InterfaceName), Capability(Capability) {}
+
+  Endpoint(const std::string& URLString,
+           const Endpoint::CapabilityEnum cap,
+           const std::string& InterfaceName = "")
+    : URLString(URLString), InterfaceName(InterfaceName), Capability(std::list<std::string>(1,GetStringForCapability(cap))) {}
+
   
   // This will call operator=
   Endpoint(const ConfigEndpoint& e) { *this = e; }

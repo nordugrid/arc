@@ -12,30 +12,39 @@ class EndpointTest(arcom.test.ARCClientTestCase):
     def test_default_attributes_are_empty(self):
         registry = arc.Endpoint()
         self.expect(registry.URLString).to_be("")
+        self.expect(registry.Capability).to_have(0).capabilities()
         self.expect(registry.InterfaceName).to_be("")
 
     def test_constructor_with_values(self):
-        registry = arc.Endpoint("test.nordugrid.org", "org.nordugrid.sertest")
+        registry = arc.Endpoint("test.nordugrid.org", ["information.discovery.registry"], "org.nordugrid.sertest")
         self.expect(registry.URLString).to_be("test.nordugrid.org")
+        self.expect(registry.Capability[0]).to_be("information.discovery.registry")
         self.expect(registry.InterfaceName).to_be("org.nordugrid.sertest")
         
-    def test_string_representation(self):
-        registry = arc.Endpoint("test.nordugrid.org", "org.nordugrid.sertest")
-        self.expect(registry.str()).to_be("test.nordugrid.org (org.nordugrid.sertest)")
+    def test_constructor_with_enum_registry(self):
+        registry = arc.Endpoint("test.nordugrid.org", arc.Endpoint.REGISTRY)
+        self.expect(registry.URLString).to_be("test.nordugrid.org")
+        self.expect(registry.Capability[0]).to_be("information.discovery.registry")
+        self.expect(registry.InterfaceName).to_be("")
+
+    def test_constructor_with_enum_computing(self):
+        endpoint = arc.Endpoint("test.nordugrid.org", arc.Endpoint.COMPUTINGINFO)
+        self.expect(endpoint.URLString).to_be("test.nordugrid.org")
+        self.expect(endpoint.Capability[0]).to_be("information.discovery.resource")
+        self.expect(endpoint.InterfaceName).to_be("")
+
+    def test_has_capability_with_enum(self):
+        registry = arc.Endpoint("test.nordugrid.org", arc.Endpoint.REGISTRY)
+        self.expect(registry.HasCapability(arc.Endpoint.REGISTRY)).to_be(True);
+
+    def test_has_capability_with_string(self):
+        registry = arc.Endpoint("test.nordugrid.org", arc.Endpoint.REGISTRY)
+        self.expect(registry.HasCapability("information.discovery.registry")).to_be(True);
         
-    def test_check_if_service_is_registry(self):
-        service = arc.Endpoint(
-            "test.nordugrid.org",
-            "org.nordugrid.ldapegiis",
-            ["information.discovery.registry"]
-        )
-        self.expect(service.HasCapability(arc.Endpoint.REGISTRY)).to_be(True)
-        service = arc.Endpoint(
-            "test.nordugrid.org",
-            "org.nordugrid.wsrfglue2",
-            ["information.discovery.resource"]
-        )
-        self.expect(service.HasCapability(arc.Endpoint.REGISTRY)).to_be(False)
+    def test_string_representation(self):
+        registry = arc.Endpoint("test.nordugrid.org", ["information.discovery.registry"], "org.nordugrid.sertest")
+        self.expect(registry.str()).to_be("test.nordugrid.org (registry, sertest)")
+        
               
 if __name__ == '__main__':
     unittest.main()
