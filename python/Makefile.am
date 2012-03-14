@@ -83,7 +83,9 @@ arc_wrap.cpp: $(SWIG_INPUTS)
     sed '/*_wrap_@SWIG_PYTHON_NAMING@Iterator_/,/SWIG_PYTHON_THREAD_END/ s/.*SWIG_PYTHON_THREAD_[A-Z]*_ALLOW.*//' arc_wrap.cpp > arc_wrap.cpp.new; \
     mv arc_wrap.cpp.new arc_wrap.cpp; \
   fi
-	
+	sed 's/>>(new/> >(new/g' arc_wrap.cpp > arc_wrap.cpp.new # When mapping a template with a template class no space is inserted between the two right angle brackets.
+	mv arc_wrap.cpp.new arc_wrap.cpp
+
 pydoxygen.i: $(srcdir)/Doxyfile.api
 	doxygen $(srcdir)/Doxyfile.api
 	python $(srcdir)/doxy2swig.py api/xml/index.xml $@

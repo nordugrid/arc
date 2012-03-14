@@ -24,6 +24,7 @@ typedef unsigned int uint32_t;
 #include <arc/Logger.h>
 #include <arc/DateTime.h>
 #include <arc/URL.h>
+#include <arc/Utils.h>
 #include <arc/User.h>
 #include <arc/UserConfig.h>
 #include <arc/GUID.h>
@@ -48,6 +49,19 @@ typedef unsigned int uint32_t;
 
 %ignore Arc::MatchXMLName;
 %ignore Arc::MatchXMLNamespace;
+
+// Ignoring functions from Utils.h since swig thinks they are methods of the CountedPointer class, and thus compilation fails.
+%ignore Arc::GetEnv;
+%ignore Arc::SetEnv;
+%ignore Arc::UnsetEnv;
+%ignore Arc::EnvLockAcquire;
+%ignore Arc::EnvLockRelease;
+%ignore Arc::EnvLockWrap;
+%ignore Arc::EnvLockUnwrap;
+%ignore Arc::EnvLockUnwrapComplete;
+%ignore Arc::EnvLockWrapper;
+%ignore Arc::StrError;
+%ignore PersistentLibraryInit;
 
 %template(XMLNodeList) std::list<Arc::XMLNode>;
 %template(URLList) std::list<Arc::URL>;
@@ -94,6 +108,21 @@ typedef unsigned int uint32_t;
 %include "../src/hed/libs/common/XMLNode.h"
 %clear std::string& out_xml_str;
 
+
+/* Swig tries to create functions which return a new CountedPointer object.
+ * Those functions takes no arguments, and since there is no default
+ * constructor for the CountedPointer compilation fails.
+ * Adding a "constructor" (used as a function in the cpp file) which
+ * returns a new CountedPointer object with newed T object created
+ * Ts default constructor. Thus if T has no default constructor,
+ * another work around is needed in order to map that CountedPointer
+ * wrapped class with swig.
+ */
+%extend Arc::CountedPointer {
+  CountedPointer() { return new Arc::CountedPointer<T>(new T());}
+}
+
+
 %include "../src/hed/libs/common/ArcConfig.h"
 %include "../src/hed/libs/common/ArcLocation.h"
 %include "../src/hed/libs/common/ArcVersion.h"
@@ -102,6 +131,7 @@ typedef unsigned int uint32_t;
 %include "../src/hed/libs/common/Logger.h"
 %include "../src/hed/libs/common/DateTime.h"
 %include "../src/hed/libs/common/URL.h"
+%include "../src/hed/libs/common/Utils.h"
 %include "../src/hed/libs/common/User.h"
 %include "../src/hed/libs/common/UserConfig.h"
 %include "../src/hed/libs/common/GUID.h"

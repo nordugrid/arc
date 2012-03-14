@@ -31,13 +31,13 @@ namespace Arc {
     double T2performance = 0;
     std::map<std::string, double>::const_iterator iter;
 
-    for (iter = T1->Benchmarks.begin(); iter != T1->Benchmarks.end(); iter++)
+    for (iter = T1->Benchmarks->begin(); iter != T1->Benchmarks->end(); iter++)
       if (lower(iter->first) == benchmark) {
         T1performance = iter->second;
         break;
       }
 
-    for (iter = T2->Benchmarks.begin(); iter != T2->Benchmarks.end(); iter++)
+    for (iter = T2->Benchmarks->begin(); iter != T2->Benchmarks->end(); iter++)
       if (lower(iter->first) == benchmark) {
         T2performance = iter->second;
         break;
@@ -67,15 +67,15 @@ namespace Arc {
     //Remove clusters with incomplete information for target sorting
     std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
     while (iter != PossibleTargets.end()) {
-      if (((*iter)->Benchmarks).empty()) {
+      if (((*iter)->Benchmarks)->empty()) {
         iter = PossibleTargets.erase(iter);
         continue;
       }
       else {
         std::map<std::string, double>::const_iterator iter2;
         bool ok = false;
-        for (iter2 = (*iter)->Benchmarks.begin();
-             iter2 != (*iter)->Benchmarks.end(); iter2++)
+        for (iter2 = (*iter)->Benchmarks->begin();
+             iter2 != (*iter)->Benchmarks->end(); iter2++)
           if (lower(iter2->first) == benchmark) {
             ok = true;
             break;
@@ -94,7 +94,7 @@ namespace Arc {
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain.Name, (*iter)->ComputingShare.Name);
+      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain->Name, (*iter)->ComputingShare->Name);
 
     cmp Cmp(benchmark);
 
@@ -107,10 +107,9 @@ namespace Arc {
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain.Name, (*iter)->ComputingShare.Name);
+      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain->Name, (*iter)->ComputingShare->Name);
 
     TargetSortingDone = true;
-
   }
 
 } // namespace Arc

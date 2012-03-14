@@ -75,7 +75,7 @@ public:
 class TargetInformationRetrieverPluginTESTControl {
 public:
   static float delay;
-  static std::list<ExecutionTarget> targets;
+  static std::list<ComputingServiceType> targets;
   static EndpointQueryingStatus status;
 };
 

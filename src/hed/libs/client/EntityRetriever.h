@@ -222,18 +222,18 @@ typedef EntityRetriever<Endpoint>             ServiceEndpointRetriever;
 typedef EntityRetrieverPlugin<Endpoint>       ServiceEndpointRetrieverPlugin;
 typedef EntityRetrieverPluginLoader<Endpoint> ServiceEndpointRetrieverPluginLoader;
 
-typedef EntityRetriever<ExecutionTarget>             TargetInformationRetriever;
-typedef EntityRetrieverPlugin<ExecutionTarget>       TargetInformationRetrieverPlugin;
-typedef EntityRetrieverPluginLoader<ExecutionTarget> TargetInformationRetrieverPluginLoader;
+typedef EntityRetriever<ComputingServiceType>             TargetInformationRetriever;
+typedef EntityRetrieverPlugin<ComputingServiceType>       TargetInformationRetrieverPlugin;
+typedef EntityRetrieverPluginLoader<ComputingServiceType> TargetInformationRetrieverPluginLoader;
 
 typedef EntityRetriever<Job>             JobListRetriever;
 typedef EntityRetrieverPlugin<Job>       JobListRetrieverPlugin;
 typedef EntityRetrieverPluginLoader<Job> JobListRetrieverPluginLoader;
 
 
-class ExecutionTargetRetriever : public EntityConsumer<Endpoint>, public EntityContainer<ExecutionTarget> {
+class ComputingServiceRetriever : public EntityConsumer<Endpoint>, public EntityContainer<ComputingServiceType> {
 public:
-  ExecutionTargetRetriever(
+  ComputingServiceRetriever(
     const UserConfig& uc,
     const std::list<Endpoint>& services,
     const std::list<std::string>& rejectedServices = std::list<std::string>(),

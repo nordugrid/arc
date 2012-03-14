@@ -36,6 +36,39 @@
 %template(SubmitterList) std::list<Arc::Submitter*>;
 %template(EndpointList) std::list<Arc::Endpoint>;
 %template(ExecutionTargetList) std::list<Arc::ExecutionTarget>;
+%template(ComputingServiceList) std::list<Arc::ComputingServiceType>;
+%template(ComputingEndpointMap) std::map<int, Arc::ComputingEndpointType>;
+%template(ComputingShareMap) std::map<int, Arc::ComputingShareType>;
+%template(ComputingManagerMap) std::map<int, Arc::ComputingManagerType>;
+%template(ExecutionEnvironmentMap) std::map<int, Arc::ExecutionEnvironmentType>;
+#ifdef SWIGJAVA
+%template(doublemap) std::map<std::string, double>;
+%template(SharedApplicationEnvironmentList) Arc::CountedPointer< std::list<Arc::ApplicationEnvironment> >;
+#endif
+%template(BenchmarkMap) Arc::CountedPointer< std::map<std::string, double> >;
+#ifdef SWIGPYTHON
+%{
+typedef std::list<Arc::ApplicationEnvironment> ApplicationEnvironmentList;
+%}
+%template(SharedApplicationEnvironmentList) Arc::CountedPointer<ApplicationEnvironmentList>;
+#endif
+
+%include "../src/hed/libs/client/GLUE2Entity.h"
+%template(GLUE2EntityLocationAttributes) Arc::GLUE2Entity<Arc::LocationAttributes>;
+%template(CPLocationAttributes) Arc::CountedPointer<Arc::LocationAttributes>;
+%template(GLUE2EntityAdminDomainAttributes) Arc::GLUE2Entity<Arc::AdminDomainAttributes>;
+%template(CPAdminDomainAttributes) Arc::CountedPointer<Arc::AdminDomainAttributes>;
+%template(GLUE2EntityExecutionEnvironmentAttributes) Arc::GLUE2Entity<Arc::ExecutionEnvironmentAttributes>;
+%template(CPExecutionEnvironmentAttributes) Arc::CountedPointer<Arc::ExecutionEnvironmentAttributes>;
+%template(GLUE2Entity) Arc::GLUE2Entity<Arc::ComputingManagerAttributes>;
+%template(CPComputingManagerAttributes) Arc::CountedPointer<Arc::ComputingManagerAttributes>;
+%template(GLUE2EntityComputingShareAttributes) Arc::GLUE2Entity<Arc::ComputingShareAttributes>;
+%template(CPComputingShareAttributes) Arc::CountedPointer<Arc::ComputingShareAttributes>;
+%template(GLUE2EntityComputingEndpointAttributes) Arc::GLUE2Entity<Arc::ComputingEndpointAttributes>;
+%template(CPComputingEndpointAttributes) Arc::CountedPointer<Arc::ComputingEndpointAttributes>;
+%template(GLUE2EntityComputingServiceAttributes) Arc::GLUE2Entity<Arc::ComputingServiceAttributes>;
+%template(CPComputingServiceAttributes) Arc::CountedPointer<Arc::ComputingServiceAttributes>;
+
 
 #ifdef SWIGJAVA
 %ignore Arc::SoftwareRequirement::getComparisonOperatorList() const;
@@ -106,6 +139,22 @@ std::ostream& getStdout() {
 }
 %}
 
+%ignore Arc::LocationType::operator->;
+%ignore Arc::LocationType::operator*;
+%ignore Arc::AdminDomainType::operator->;
+%ignore Arc::AdminDomainType::operator*;
+%ignore Arc::ExecutionEnvironmentType::operator->;
+%ignore Arc::ExecutionEnvironmentType::operator*;
+%ignore Arc::ComputingManagerType::operator->;
+%ignore Arc::ComputingManagerType::operator*;
+%ignore Arc::ComputingShareType::operator->;
+%ignore Arc::ComputingShareType::operator*;
+%ignore Arc::ComputingEndpointType::operator->;
+%ignore Arc::ComputingEndpointType::operator*;
+%ignore Arc::ComputingServiceType::operator->;
+%ignore Arc::ComputingServiceType::operator*;
+
+
 #endif
 
 %include "../src/hed/libs/client/ClientInterface.h"
@@ -129,12 +178,11 @@ std::ostream& getStdout() {
 #endif
 %include "../src/hed/libs/client/EntityRetriever.h"
 %template(ServiceEndpointRetriever) Arc::EntityRetriever<Arc::Endpoint>;
-%template(TargetInformationRetriever) Arc::EntityRetriever<Arc::ExecutionTarget>;
+%template(TargetInformationRetriever) Arc::EntityRetriever<Arc::ComputingServiceType>;
 %template(EndpointContainer) Arc::EntityContainer<Arc::Endpoint>;
-%template(ExecutionTargetContainer) Arc::EntityContainer<Arc::ExecutionTarget>;
+%template(ComputingServiceContainer) Arc::EntityContainer<Arc::ComputingServiceType>;
 %template(ServiceEndpointQueryOptions) Arc::EndpointQueryOptions<Arc::Endpoint>;
-%template(ExecutionTargetQueryOptions) Arc::EndpointQueryOptions<Arc::ExecutionTarget>;
-
+%template(ComputingServiceQueryOptions) Arc::EndpointQueryOptions<Arc::ComputingServiceType>;
 
 
 /* These template instantiations must be created after the respective

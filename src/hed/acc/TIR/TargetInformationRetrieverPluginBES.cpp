@@ -41,7 +41,7 @@ namespace Arc {
     return service;
   }
 
-  EndpointQueryingStatus TargetInformationRetrieverPluginBES::Query(const UserConfig& uc, const Endpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
+  EndpointQueryingStatus TargetInformationRetrieverPluginBES::Query(const UserConfig& uc, const Endpoint& cie, std::list<ComputingServiceType>& csList, const EndpointQueryOptions<ComputingServiceType>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
     // Return FAILED while the implementation is not complete
     return s;
@@ -58,15 +58,20 @@ namespace Arc {
     //}
 
 
-    ExecutionTarget target;
-    target.Cluster = url;
-    target.ComputingEndpoint.URLString = url.str();
-    //target.InterfaceName = flavour;
-    target.ComputingEndpoint.Implementor = "NorduGrid";
-    target.AdminDomain.Name = url.Host();
-    target.ComputingEndpoint.HealthState = "ok";
+    ComputingServiceType cs;
+    cs->Cluster = url;
+    cs.AdminDomain->Name = url.Host();
 
-    etList.push_back(target);
+    ComputingEndpointType ComputingEndpoint;
+    ComputingEndpoint->URLString = url.str();
+    ComputingEndpoint->InterfaceName = "org.ogf.bes";
+    ComputingEndpoint->Implementor = "NorduGrid";
+    ComputingEndpoint->HealthState = "ok";
+
+    cs.ComputingEndpoint.insert(std::pair<int, ComputingEndpointType>(0, ComputingEndpoint));
+    // TODO: ComputingServiceType object must be filled with ComputingManager, ComputingShare and ExecutionEnvironment before it is valid.
+
+    csList.push_back(cs);
 
     s = EndpointQueryingStatus::SUCCESSFUL;
     return s;

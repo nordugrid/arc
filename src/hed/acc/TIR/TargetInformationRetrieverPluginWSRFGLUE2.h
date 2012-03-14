@@ -21,9 +21,9 @@ namespace Arc {
     ~TargetInformationRetrieverPluginWSRFGLUE2() {};
 
     static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginWSRFGLUE2(); };
-    virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint&, std::list<ExecutionTarget>&, const EndpointQueryOptions<ExecutionTarget>&) const;
+    virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint&, std::list<ComputingServiceType>&, const EndpointQueryOptions<ComputingServiceType>&) const;
     virtual bool isEndpointNotSupported(const Endpoint&) const;
-    static void ExtractTargets(const URL&, XMLNode, std::list<ExecutionTarget>&);
+    static void ExtractTargets(const URL&, XMLNode, std::list<ComputingServiceType>&);
 
   private:
     static Logger logger;

@@ -65,7 +65,7 @@ namespace Arc {
                              const ExecutionTarget& et, Job& job) {
     // TODO: this is multi step process. So having retries would be nice.
 
-    URL url(et.ComputingEndpoint.URLString);
+    URL url(et.ComputingEndpoint->URLString);
 
     EMIESClient* ac = acquireClient(url);
 
@@ -174,7 +174,7 @@ namespace Arc {
     URL jobidu(jobid.manager);
     jobidu.AddOption("emiesjobid",jobid.id,true);
 
-    AddJobDetails(preparedjobdesc, jobidu, et.Cluster, jobid.manager, job);
+    AddJobDetails(preparedjobdesc, jobidu, et.ComputingService->Cluster, jobid.manager, job);
 
     releaseClient(url);
     return true;

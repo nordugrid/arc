@@ -87,9 +87,11 @@ int RUNINFO(main)(int argc, char **argv) {
 
   std::list<std::string> rejectedURLs = usercfg.RejectedURLs();
 
-  Arc::ExecutionTargetRetriever etr(usercfg, endpoints, rejectedURLs, preferredInterfaceNames);
-  etr.wait();
-  for (std::list<Arc::ExecutionTarget>::const_iterator it = etr.begin(); it != etr.end(); ++it) {
+  Arc::ComputingServiceRetriever csr(usercfg, endpoints, rejectedURLs, preferredInterfaceNames);
+  csr.wait();
+  std::list<Arc::ExecutionTarget> etList;
+  Arc::ExecutionTarget::GetExecutionTargetsOfList(csr, etList);
+  for (std::list<Arc::ExecutionTarget>::const_iterator it = etList.begin(); it != etList.end(); ++it) {
     it->SaveToStream(std::cout, opt.longlist);
   }
   _exit(0);

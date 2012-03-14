@@ -5,11 +5,14 @@
 
 #include <list>
 #include <map>
+#include <set>
 #include <string>
 
 #include <arc/DateTime.h>
 #include <arc/client/Endpoint.h>
 #include <arc/URL.h>
+#include <arc/Utils.h>
+#include <arc/client/GLUE2Entity.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/Software.h>
 #include <arc/client/Submitter.h>
@@ -44,15 +47,16 @@ namespace Arc {
       Software::operator=(sv);
       return *this;
     }
+
     std::string State;
     int FreeSlots;
     int FreeJobs;
     int FreeUserSeats;
   };
 
-  class LocationType {
+  class LocationAttributes {
   public:
-    LocationType() : Latitude(0), Longitude(0) {}
+    LocationAttributes() : Latitude(0), Longitude(0) {}
 
     std::string Address;
     std::string Place;
@@ -62,42 +66,75 @@ namespace Arc {
     float Longitude;
   };
 
-  class AdminDomainType {
+  class AdminDomainAttributes {
   public:
     std::string Name;
     std::string Owner;
   };
 
-  class ComputingServiceType {
+  class ExecutionEnvironmentAttributes {
   public:
-    std::string Name;
-    std::string Type;
+    ExecutionEnvironmentAttributes()
+      : VirtualMachine(false), CPUClockSpeed(-1), MainMemorySize(-1),
+        ConnectivityIn(false), ConnectivityOut(false) {}
+    std::string ID;
+    std::string Platform;
+    bool VirtualMachine;
+    std::string CPUVendor;
+    std::string CPUModel;
+    std::string CPUVersion;
+    int CPUClockSpeed;
+    int MainMemorySize;
+
+    /// OperatingSystem
+    /**
+     * The OperatingSystem member is not present in GLUE2 but contains the three
+     * GLUE2 attributes OSFamily, OSName and OSVersion.
+     * - OSFamily OSFamily_t 1
+     *   * The general family to which the Execution Environment operating
+     *   * system belongs.
+     * - OSName OSName_t 0..1
+     *   * The specific name of the operating sytem
+     * - OSVersion String 0..1
+     *   * The version of the operating system, as defined by the vendor.
+     */
+    Software OperatingSystem;
+
+    bool ConnectivityIn;
+    bool ConnectivityOut;
   };
 
-  class ComputingEndpointType : public Endpoint {
+  class ComputingManagerAttributes {
   public:
-    ComputingEndpointType() : DowntimeStarts(-1), DowntimeEnds(-1) {}
+    ComputingManagerAttributes() :
+      Reservation(false), BulkSubmission(false),
+      TotalPhysicalCPUs(-1), TotalLogicalCPUs(-1), TotalSlots(-1),
+      Homogeneous(true),
+      WorkingAreaShared(true), WorkingAreaTotal(-1), WorkingAreaFree(-1), WorkingAreaLifeTime(-1),
+      CacheTotal(-1), CacheFree(-1) {}
 
-    std::string Technology;
-    std::list<std::string> InterfaceVersion;
-    std::list<std::string> InterfaceExtension;
-    std::list<std::string> SupportedProfile;
-    std::string Implementor;
-    Software Implementation;
-    std::string ServingState;
-    std::string IssuerCA;
-    std::list<std::string> TrustedCA;
-    Time DowntimeStarts;
-    Time DowntimeEnds;
-    std::string Staging;
-    // This is singular in the GLUE2 doc: JobDescription
-    std::list<std::string> JobDescriptions;
+    std::string ID;
+    std::string ProductName;
+    std::string ProductVersion;
+    bool Reservation;
+    bool BulkSubmission;
+    int TotalPhysicalCPUs;
+    int TotalLogicalCPUs;
+    int TotalSlots;
+    bool Homogeneous;
+    std::list<std::string> NetworkInfo;
+    bool WorkingAreaShared;
+    int WorkingAreaTotal;
+    int WorkingAreaFree;
+    Period WorkingAreaLifeTime;
+    int CacheTotal;
+    int CacheFree;
   };
 
-  class ComputingShareType {
+  class ComputingShareAttributes {
   public:
-    ComputingShareType()
-    : MaxWallTime(-1), MaxTotalWallTime(-1), MinWallTime(-1), DefaultWallTime(-1),
+    ComputingShareAttributes() :
+      MaxWallTime(-1), MaxTotalWallTime(-1), MinWallTime(-1), DefaultWallTime(-1),
       MaxCPUTime(-1), MaxTotalCPUTime(-1), MinCPUTime(-1), DefaultCPUTime(-1),
       MaxTotalJobs(-1), MaxRunningJobs(-1), MaxWaitingJobs(-1),
       MaxPreLRMSWaitingJobs(-1), MaxUserRunningJobs(-1), MaxSlotsPerJob(-1),
@@ -109,7 +146,8 @@ namespace Arc {
       EstimatedAverageWaitingTime(-1), EstimatedWorstWaitingTime(-1),
       FreeSlots(-1), UsedSlots(-1), RequestedSlots(-1) {}
 
-    /// ComputingShareName String 0..1
+    std::string ID;
+    /// Name String 0..1
     /**
      * Human-readable name.
      * This variable represents the ComputingShare.Name attribute of GLUE2.
@@ -185,64 +223,107 @@ namespace Arc {
     int UsedSlots;
     int RequestedSlots;
     std::string ReservationPolicy;
-
   };
 
-  class ComputingManagerType {
+  class ComputingEndpointAttributes {
   public:
-    ComputingManagerType()
-      : Reservation(false), BulkSubmission(false),
-      TotalPhysicalCPUs(-1), TotalLogicalCPUs(-1), TotalSlots(-1),
-      Homogeneous(true),
-      WorkingAreaShared(true), WorkingAreaTotal(-1), WorkingAreaFree(-1), WorkingAreaLifeTime(-1),
-      CacheTotal(-1), CacheFree(-1) {}
+    ComputingEndpointAttributes() : DowntimeStarts(-1), DowntimeEnds(-1),
+      TotalJobs(-1), RunningJobs(-1), WaitingJobs(-1),
+      StagingJobs(-1), SuspendedJobs(-1), PreLRMSWaitingJobs(-1) {}
 
-    std::string ProductName;
-    std::string ProductVersion;
-    bool Reservation;
-    bool BulkSubmission;
-    int TotalPhysicalCPUs;
-    int TotalLogicalCPUs;
-    int TotalSlots;
-    bool Homogeneous;
-    std::list<std::string> NetworkInfo;
-    bool WorkingAreaShared;
-    int WorkingAreaTotal;
-    int WorkingAreaFree;
-    Period WorkingAreaLifeTime;
-    int CacheTotal;
-    int CacheFree;
+    std::string ID;
+    std::string URLString;
+    std::string InterfaceName;
+    std::string HealthState;
+    std::string HealthStateInfo;
+    std::string QualityLevel;
+    std::list<std::string> Capability;
+    std::string PreferredJobInterfaceName;
+    std::string Technology;
+    std::list<std::string> InterfaceVersion;
+    std::list<std::string> InterfaceExtension;
+    std::list<std::string> SupportedProfile;
+    std::string Implementor;
+    Software Implementation;
+    std::string ServingState;
+    std::string IssuerCA;
+    std::list<std::string> TrustedCA;
+    Time DowntimeStarts;
+    Time DowntimeEnds;
+    std::string Staging;
+    int TotalJobs;
+    int RunningJobs;
+    int WaitingJobs;
+    int StagingJobs;
+    int SuspendedJobs;
+    int PreLRMSWaitingJobs;
+    // This is singular in the GLUE2 doc: JobDescription
+    std::list<std::string> JobDescriptions;
   };
 
-  class ExecutionEnvironmentType {
+  class ComputingServiceAttributes {
   public:
-    ExecutionEnvironmentType()
-      : VirtualMachine(false), CPUClockSpeed(-1), MainMemorySize(-1),
-        ConnectivityIn(false), ConnectivityOut(false) {}
-    std::string Platform;
-    bool VirtualMachine;
-    std::string CPUVendor;
-    std::string CPUModel;
-    std::string CPUVersion;
-    int CPUClockSpeed;
-    int MainMemorySize;
+    ComputingServiceAttributes() :
+      TotalJobs(-1), RunningJobs(-1), WaitingJobs(-1),
+      StagingJobs(-1), SuspendedJobs(-1), PreLRMSWaitingJobs(-1) {}
+    std::string ID;
+    std::string Name;
+    std::string Type;
+    std::list<std::string> Capability;
+    std::string QualityLevel;
+    int TotalJobs;
+    int RunningJobs;
+    int WaitingJobs;
+    int StagingJobs;
+    int SuspendedJobs;
+    int PreLRMSWaitingJobs;
 
-    /// OperatingSystem
+    // Other
+    URL Cluster; // contains the URL of the infosys that provided the info
+  };
+
+  class LocationType : public GLUE2Entity<LocationAttributes> {};
+
+  class AdminDomainType : public GLUE2Entity<AdminDomainAttributes> {};
+
+  class ExecutionEnvironmentType : public GLUE2Entity<ExecutionEnvironmentAttributes> {};
+
+  class ComputingManagerType : public GLUE2Entity<ComputingManagerAttributes> {
+  public:
+    ComputingManagerType() : Benchmarks(new std::map<std::string, double>), ApplicationEnvironments(new std::list<ApplicationEnvironment>) {}
+    // TODO: Currently using int as key, use std::string instead for holding ID.
+    std::map<int, ExecutionEnvironmentType> ExecutionEnvironment;
+    CountedPointer< std::map<std::string, double> > Benchmarks;
+    /// ApplicationEnvironments
     /**
-     * The OperatingSystem member is not present in GLUE2 but contains the three
-     * GLUE2 attributes OSFamily, OSName and OSVersion.
-     * - OSFamily OSFamily_t 1
-     *   * The general family to which the Execution Environment operating
-     *   * system belongs.
-     * - OSName OSName_t 0..1
-     *   * The specific name of the operating sytem
-     * - OSVersion String 0..1
-     *   * The version of the operating system, as defined by the vendor.
+     * The ApplicationEnvironments member is a list of
+     * ApplicationEnvironment's, defined in section 6.7 GLUE2.
      */
-    Software OperatingSystem;
+    CountedPointer< std::list<ApplicationEnvironment> > ApplicationEnvironments;
+  };
 
-    bool ConnectivityIn;
-    bool ConnectivityOut;
+  class ComputingShareType : public GLUE2Entity<ComputingShareAttributes> {
+  public:
+    // TODO: Currently using int, use std::string instead for holding ID.
+    std::set<int> ComputingEndpointIDs;
+  };
+
+  class ComputingEndpointType : public GLUE2Entity<ComputingEndpointAttributes> {
+  public:
+    // TODO: Currently using int, use std::string instead for holding ID.
+    std::set<int> ComputingShareIDs;
+  };
+
+  class ComputingServiceType : public GLUE2Entity<ComputingServiceAttributes> {
+  public:
+    void GetExecutionTargets(std::list<ExecutionTarget>& etList) const;
+
+    LocationType Location;
+    AdminDomainType AdminDomain;
+    // TODO: Currently using int as key, use std::string instead for holding ID.
+    std::map<int, ComputingEndpointType> ComputingEndpoint;
+    std::map<int, ComputingShareType> ComputingShare;
+    std::map<int, ComputingManagerType> ComputingManager;
   };
 
   /// ExecutionTarget
@@ -259,7 +340,16 @@ namespace Arc {
      * Default constructor to create an ExecutionTarget. Takes no
      * arguments.
      **/
-    ExecutionTarget() {};
+    ExecutionTarget() :
+      Location(new LocationAttributes()),
+      AdminDomain(new AdminDomainAttributes()),
+      ComputingService(new ComputingServiceAttributes()),
+      ComputingEndpoint(new ComputingEndpointAttributes()),
+      ComputingShare(new ComputingShareAttributes()),
+      ComputingManager(new ComputingManagerAttributes()),
+      ExecutionEnvironment(new ExecutionEnvironmentAttributes()),
+      Benchmarks(new std::map<std::string, double>()),
+      ApplicationEnvironments(new std::list<ApplicationEnvironment>()) {};
 
     /// Create an ExecutionTarget
     /**
@@ -267,7 +357,23 @@ namespace Arc {
      *
      * @param target ExecutionTarget to copy.
      **/
-    ExecutionTarget(const ExecutionTarget& target) { *this = target; };
+    ExecutionTarget(const ExecutionTarget& t) :
+      Location(t.Location), AdminDomain(t.AdminDomain), ComputingService(t.ComputingService),
+      ComputingEndpoint(t.ComputingEndpoint), ComputingShare(t.ComputingShare), ComputingManager(t.ComputingManager),
+      ExecutionEnvironment(t.ExecutionEnvironment), Benchmarks(t.Benchmarks), ApplicationEnvironments(t.ApplicationEnvironments) {}
+
+    ExecutionTarget(const CountedPointer<LocationAttributes>& l,
+                    const CountedPointer<AdminDomainAttributes>& a,
+                    const CountedPointer<ComputingServiceAttributes>& cse,
+                    const CountedPointer<ComputingEndpointAttributes>& ce,
+                    const CountedPointer<ComputingShareAttributes>& csh,
+                    const CountedPointer<ComputingManagerAttributes>& cm,
+                    const CountedPointer<ExecutionEnvironmentAttributes>& ee,
+                    const CountedPointer< std::map<std::string, double> >& b,
+                    const CountedPointer< std::list<ApplicationEnvironment> >& ae) :
+      Location(l), AdminDomain(a), ComputingService(cse),
+      ComputingEndpoint(ce), ComputingShare(csh), ComputingManager(cm),
+      ExecutionEnvironment(ee), Benchmarks(b), ApplicationEnvironments(ae) {}
 
     /// Create an ExecutionTarget
     /**
@@ -276,13 +382,22 @@ namespace Arc {
      * @param addrptr
      *
      **/
-    ExecutionTarget(const long int addrptr) { *this = *(ExecutionTarget*)addrptr; }
+    ExecutionTarget(long int addrptr) :
+      Location((*(ExecutionTarget*)addrptr).Location),
+      AdminDomain((*(ExecutionTarget*)addrptr).AdminDomain),
+      ComputingService((*(ExecutionTarget*)addrptr).ComputingService),
+      ComputingEndpoint((*(ExecutionTarget*)addrptr).ComputingEndpoint),
+      ComputingShare((*(ExecutionTarget*)addrptr).ComputingShare),
+      ComputingManager((*(ExecutionTarget*)addrptr).ComputingManager),
+      ExecutionEnvironment((*(ExecutionTarget*)addrptr).ExecutionEnvironment),
+      Benchmarks((*(ExecutionTarget*)addrptr).Benchmarks),
+      ApplicationEnvironments((*(ExecutionTarget*)addrptr).ApplicationEnvironments) {}
+
 
     ExecutionTarget& operator=(const ExecutionTarget& et) {
       Location = et.Location; AdminDomain = et.AdminDomain; ComputingService = et.ComputingService;
       ComputingEndpoint = et.ComputingEndpoint; ComputingShare = et.ComputingShare; ComputingManager = et.ComputingManager;
       Benchmarks = et.Benchmarks; ExecutionEnvironment = et.ExecutionEnvironment; ApplicationEnvironments = et.ApplicationEnvironments;
-      Cluster = et.Cluster;
       return *this;
     }
 
@@ -345,45 +460,21 @@ namespace Arc {
      **/
     void SaveToStream(std::ostream& out, bool longlist) const;
 
-    // Attributes from 5.3 Location
-    LocationType Location;
+    static void GetExecutionTargetsOfList(const std::list<ComputingServiceType>& csList, std::list<ExecutionTarget>& etList);
 
-    // Attributes from 5.5.1 Admin Domain
-    AdminDomainType AdminDomain;
-
-    // Attributes from 6.1 Computing Service
-    ComputingServiceType ComputingService;
-
-    // Attributes from 6.2 Computing Endpoint
-    ComputingEndpointType ComputingEndpoint;
-
-    // Attributes from 6.3 Computing Share
-    ComputingShareType ComputingShare;
-
-    // Attributes from 6.4 Computing Manager
-    ComputingManagerType ComputingManager;
-
-    // Attributes from 6.5 Benchmark
-
-    std::map<std::string, double> Benchmarks;
-
-    // Attributes from 6.6 Execution Environment
-    ExecutionEnvironmentType ExecutionEnvironment;
-
-    /// ApplicationEnvironments
-    /**
-     * The ApplicationEnvironments member is a list of
-     * ApplicationEnvironment's, defined in section 6.7 GLUE2.
-     */
-    std::list<ApplicationEnvironment> ApplicationEnvironments;
-
-    // Other
-
-    URL Cluster; // contains the URL of the infosys that provided the info
+    CountedPointer<LocationAttributes> Location;
+    CountedPointer<AdminDomainAttributes> AdminDomain;
+    CountedPointer<ComputingServiceAttributes> ComputingService;
+    CountedPointer<ComputingEndpointAttributes> ComputingEndpoint;
+    CountedPointer<ComputingShareAttributes> ComputingShare;
+    CountedPointer<ComputingManagerAttributes> ComputingManager;
+    CountedPointer<ExecutionEnvironmentAttributes> ExecutionEnvironment;
+    CountedPointer< std::map<std::string, double> > Benchmarks;
+    CountedPointer< std::list<ApplicationEnvironment> > ApplicationEnvironments;
 
   private:
     SubmitterLoader loader;
-    
+
     const std::string GetPluginName() const;
 
     static Logger logger;

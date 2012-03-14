@@ -103,7 +103,7 @@ namespace Arc {
 
       ++itT;
     }
-    
+
     common->setAvailablePlugins(availablePlugins);
   }
 
@@ -270,7 +270,7 @@ namespace Arc {
         }
         // Create a new endpoint with the same endpoint and a specified interface
         Endpoint endpoint = a->endpoint;
-        ThreadArg* newArg; 
+        ThreadArg* newArg;
         // Set interface
         std::list<std::string>::const_iterator itSI = plugin->SupportedInterfaces().begin();
         for (; itSI != plugin->SupportedInterfaces().end(); ++itSI) {
@@ -336,20 +336,20 @@ namespace Arc {
           status = EndpointQueryingStatus(EndpointQueryingStatus::FAILED);
         }
       }
-      
+
       (*common)->setStatusOfEndpoint(a->endpoint, status);
       common->unlockShared();
     }
   }
 
-  ExecutionTargetRetriever::ExecutionTargetRetriever(
+  ComputingServiceRetriever::ComputingServiceRetriever(
     const UserConfig& uc,
     const std::list<Endpoint>& services,
     const std::list<std::string>& rejectedServices,
     const std::list<std::string>& preferredInterfaceNames,
     const std::list<std::string>& capabilityFilter
   ) : ser(uc, EndpointQueryOptions<Endpoint>(true, capabilityFilter, rejectedServices)),
-      tir(uc, EndpointQueryOptions<ExecutionTarget>(preferredInterfaceNames))
+      tir(uc, EndpointQueryOptions<ComputingServiceType>(preferredInterfaceNames))
   {
     ser.addConsumer(*this);
     tir.addConsumer(*this);
@@ -361,14 +361,14 @@ namespace Arc {
       }
     }
   }
-  
-  void ExecutionTargetRetriever::addEntity(const Endpoint& service) {
+
+  void ComputingServiceRetriever::addEntity(const Endpoint& service) {
     // If we got a computing element info endpoint, then we pass it to the TIR
     if (service.HasCapability(Endpoint::COMPUTINGINFO)) {
       tir.addEndpoint(service);
     }
   }
-  
+
   template class EntityRetriever<Endpoint>;
   template class EntityRetrieverPlugin<Endpoint>;
   template class EntityRetrieverPluginLoader<Endpoint>;
@@ -376,11 +376,11 @@ namespace Arc {
   template<> const std::string EntityRetrieverPlugin<Endpoint>::kind("HED:ServiceEndpointRetrieverPlugin");
   template<> Logger EntityRetrieverPluginLoader<Endpoint>::logger(Logger::getRootLogger(), "ServiceEndpointRetrieverPluginLoader");
 
-  template class EntityRetriever<ExecutionTarget>;
-  template class EntityRetrieverPlugin<ExecutionTarget>;
-  template class EntityRetrieverPluginLoader<ExecutionTarget>;
-  template<> Logger EntityRetriever<ExecutionTarget>::logger(Logger::getRootLogger(), "TargetInformationRetriever");
-  template<> Logger EntityRetrieverPluginLoader<ExecutionTarget>::logger(Logger::getRootLogger(), "TargetInformationRetrieverPluginLoader");
+  template class EntityRetriever<ComputingServiceType>;
+  template class EntityRetrieverPlugin<ComputingServiceType>;
+  template class EntityRetrieverPluginLoader<ComputingServiceType>;
+  template<> Logger EntityRetriever<ComputingServiceType>::logger(Logger::getRootLogger(), "TargetInformationRetriever");
+  template<> Logger EntityRetrieverPluginLoader<ComputingServiceType>::logger(Logger::getRootLogger(), "TargetInformationRetrieverPluginLoader");
   template<> const std::string TargetInformationRetrieverPlugin::kind("HED:TargetInformationRetrieverPlugin");
 
   template class EntityRetriever<Job>;

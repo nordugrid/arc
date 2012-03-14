@@ -200,10 +200,10 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
 
   std::list<std::string> rejectedURLs = usercfg.RejectedURLs();
 
-  Arc::ExecutionTargetRetriever etr(usercfg, services, rejectedURLs, preferredInterfaceNames);
-  etr.wait();
+  Arc::ComputingServiceRetriever csr(usercfg, services, rejectedURLs, preferredInterfaceNames);
+  csr.wait();
 
-  if (etr.empty()) {
+  if (csr.empty()) {
     std::cout << Arc::IString("Job submission aborted because no resource returned any information") << std::endl;
     return 1;
   }
@@ -216,6 +216,9 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
   }
   logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
+  std::list<Arc::ExecutionTarget> etList;
+  Arc::ExecutionTarget::GetExecutionTargetsOfList(csr, etList);
+
   int jobnr = 1;
   std::list<std::string> jobids;
   std::list<Arc::Job> submittedJobs;
@@ -226,7 +229,7 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
        it++, jobnr++) {
     bool descriptionSubmitted = false;
     submittedJobs.push_back(Arc::Job());
-    if (ChosenBroker->Submit(etr, *it, submittedJobs.back())) {
+    if (ChosenBroker->Submit(etList, *it, submittedJobs.back())) {
       printjobid(submittedJobs.back().JobID.fullstr(), jobidfile);
       descriptionSubmitted = true;
     }
@@ -234,7 +237,7 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
       // TODO: Deal with alternative job descriptions more effective.
       for (std::list<Arc::JobDescription>::const_iterator itAlt = it->GetAlternatives().begin();
            itAlt != it->GetAlternatives().end(); itAlt++) {
-        if (ChosenBroker->Submit(etr, *itAlt, submittedJobs.back())) {
+        if (ChosenBroker->Submit(etList, *itAlt, submittedJobs.back())) {
           printjobid(submittedJobs.back().JobID.fullstr(), jobidfile);
           descriptionSubmitted = true;
           break;
@@ -292,10 +295,10 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
 
   std::list<std::string> rejectedURLs = usercfg.RejectedURLs();
 
-  Arc::ExecutionTargetRetriever etr(usercfg, services, rejectedURLs, preferredInterfaceNames);
-  etr.wait();
+  Arc::ComputingServiceRetriever csr(usercfg, services, rejectedURLs, preferredInterfaceNames);
+  csr.wait();
 
-  if (etr.empty()) {
+  if (csr.empty()) {
     std::cout << Arc::IString("Dumping job description aborted because no resource returned any information") << std::endl;
     return 1;
   }
@@ -308,16 +311,19 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
   }
   logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
+  std::list<Arc::ExecutionTarget> etList;
+  Arc::ExecutionTarget::GetExecutionTargetsOfList(csr, etList);
+
   for (std::list<Arc::JobDescription>::const_iterator it = jobdescriptionlist.begin();
        it != jobdescriptionlist.end(); it++) {
     Arc::JobDescription jobdescdump(*it);
-    ChosenBroker->PreFilterTargets(etr, *it);
+    ChosenBroker->PreFilterTargets(etList, *it);
     ChosenBroker->Sort();
 
     if (ChosenBroker->EndOfList() && it->HasAlternatives()) {
       for (std::list<Arc::JobDescription>::const_iterator itAlt = it->GetAlternatives().begin();
            itAlt != it->GetAlternatives().end(); itAlt++) {
-        ChosenBroker->PreFilterTargets(etr, *itAlt);
+        ChosenBroker->PreFilterTargets(etList, *itAlt);
         ChosenBroker->Sort();
         if (!ChosenBroker->EndOfList()) {
           jobdescdump = *itAlt;
@@ -337,13 +343,13 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
       }
 
       std::string jobdesclang = "nordugrid:jsdl";
-      if (target->ComputingEndpoint.InterfaceName == "org.nordugrid.gridftpjob") {
+      if (target->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") {
         jobdesclang = "nordugrid:xrsl";
       }
-      else if (target->ComputingEndpoint.InterfaceName == "org.glite.cream") {
+      else if (target->ComputingEndpoint->InterfaceName == "org.glite.cream") {
         jobdesclang = "egee:jdl";
       }
-      else if (target->ComputingEndpoint.InterfaceName == "org.ogf.emies") {
+      else if (target->ComputingEndpoint->InterfaceName == "org.ogf.emies") {
         jobdesclang = "emies:adl";
       }
       std::string jobdesc;
@@ -353,7 +359,7 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
         break;
       }
 
-      std::cout << Arc::IString("Job description to be sent to %s:", target->Cluster.str()) << std::endl;
+      std::cout << Arc::IString("Job description to be sent to %s:", target->ComputingService->Cluster.str()) << std::endl;
       std::cout << jobdesc << std::endl;
       break;
     } //end loop over all possible targets

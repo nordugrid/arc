@@ -18,10 +18,10 @@ Plugin* TargetInformationRetrieverPluginTEST::Instance(PluginArgument* arg) {
 
 EndpointQueryingStatus TargetInformationRetrieverPluginTEST::Query(const UserConfig& userconfig,
                                                                    const Endpoint& endpoint,
-                                                                   std::list<ExecutionTarget>& etList,
-                                                                   const EndpointQueryOptions<ExecutionTarget>&) const {
+                                                                   std::list<ComputingServiceType>& csList,
+                                                                   const EndpointQueryOptions<ComputingServiceType>&) const {
   Glib::usleep(TargetInformationRetrieverPluginTESTControl::delay*1000000);
-  etList = TargetInformationRetrieverPluginTESTControl::targets;
+  csList = TargetInformationRetrieverPluginTESTControl::targets;
   return TargetInformationRetrieverPluginTESTControl::status;
 };
 

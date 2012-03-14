@@ -27,7 +27,7 @@ Job* SubmitterTestACCControl::submitJob = NULL;
 Job* SubmitterTestACCControl::migrateJob = NULL;
 
 float TargetInformationRetrieverPluginTESTControl::delay = 0;
-std::list<ExecutionTarget> TargetInformationRetrieverPluginTESTControl::targets;
+std::list<ComputingServiceType> TargetInformationRetrieverPluginTESTControl::targets;
 EndpointQueryingStatus TargetInformationRetrieverPluginTESTControl::status;
 
 float ServiceEndpointRetrieverPluginTESTControl::delay = 0;

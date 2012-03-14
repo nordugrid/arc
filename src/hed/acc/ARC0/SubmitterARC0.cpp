@@ -51,8 +51,8 @@ namespace Arc {
   bool SubmitterARC0::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) {
 
     FTPControl ctrl;
-    
-    URL url(et.ComputingEndpoint.URLString);
+
+    URL url(et.ComputingEndpoint->URLString);
 
     if (!ctrl.Connect(url,
                       usercfg.ProxyPath(), usercfg.CertificatePath(),
@@ -125,11 +125,11 @@ namespace Arc {
     }
 
     // Prepare contact url for information about this job
-    URL infoendpoint(et.Cluster);
+    URL infoendpoint(et.ComputingService->Cluster);
     infoendpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" + escape_chars(jobid.str(),filter_esc,'\\',false,escape_hex) + ")");
     infoendpoint.ChangeLDAPScope(URL::subtree);
 
-    AddJobDetails(preparedjobdesc, jobid, et.Cluster, infoendpoint, job);
+    AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, infoendpoint, job);
 
     return true;
   }
@@ -137,7 +137,7 @@ namespace Arc {
   bool SubmitterARC0::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
                              const ExecutionTarget& et, bool /* forcemigration */,
                              Job& /* job */) {
-    logger.msg(INFO, "Trying to migrate to %s: Migration to a legacy ARC resource is not supported.", et.ComputingEndpoint.URLString);
+    logger.msg(INFO, "Trying to migrate to %s: Migration to a legacy ARC resource is not supported.", et.ComputingEndpoint->URLString);
     return false;
   }
 

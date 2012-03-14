@@ -46,7 +46,7 @@ namespace Arc {
     return service;
   }
 
-  EndpointQueryingStatus TargetInformationRetrieverPluginLDAPGLUE1::Query(const UserConfig& uc, const Endpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
+  EndpointQueryingStatus TargetInformationRetrieverPluginLDAPGLUE1::Query(const UserConfig& uc, const Endpoint& cie, std::list<ComputingServiceType>& csList, const EndpointQueryOptions<ComputingServiceType>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
     URL url(CreateURL(cie.URLString));
@@ -93,9 +93,11 @@ namespace Arc {
          it != VOViews.end(); it++) {
       XMLNode VOView(*it);
 
-      ExecutionTarget target;
+      ComputingServiceType cs;
+      AdminDomainType& AdminDomain = cs.AdminDomain;
+      LocationType& Location = cs.Location;
 
-      target.Cluster = url;
+      cs->Cluster = url;
 
       std::string key;
       std::string::size_type pos = std::string::npos;
@@ -124,7 +126,7 @@ namespace Arc {
                                                key.substr(pos + 1) + "']", NS()).begin();
 
       // Consider using XMLNode::XPath for increased performance
-      // What to do if a cluster has more than one subcluster???
+      // TODO: What to do if a cluster has more than one subcluster??? Map into multiple ExecutionEnvironment objects
       XMLNode SubCluster =
         *XMLresult.XPathLookup("//*[objectClass='GlueSubCluster']"
                                "[GlueChunkKey='" + key + "']", NS()).begin();
@@ -254,154 +256,156 @@ namespace Arc {
 
          ... now do the mapping */
 
-      // TODO: we need to somehow query the HealthState
+      // TODO: Mapping to new GLUE2 class structure need to be done.
+      /*
 
-      target.ComputingEndpoint.HealthState = "ok";
+      // TODO: we need to somehow query the HealthState
+      ComputingEndpoint->HealthState = "ok";
 
       if (CE["GlueCEName"])
-        target.ComputingShare.Name = (std::string)CE["GlueCEName"];
+        ComputingShare->Name = (std::string)CE["GlueCEName"];
       if (CE["GlueCEInfoLRMSType"])
-        target.ComputingManager.ProductName = (std::string)CE["GlueCEInfoLRMSType"];
+        ComputingManager->ProductName = (std::string)CE["GlueCEInfoLRMSType"];
       if (CE["GlueCEInfoLRMSVersion"])
-        target.ComputingManager.ProductVersion = (std::string)CE["GlueCEInfoLRMSVersion"];
+        ComputingManager->ProductVersion = (std::string)CE["GlueCEInfoLRMSVersion"];
       if (CE["GlueCEInfoJobManager"])
-        target.ComputingShare.MappingQueue = (std::string)CE["GlueCEInfoJobManager"];
+        ComputingShare->MappingQueue = (std::string)CE["GlueCEInfoJobManager"];
       if (Cluster["GlueClusterName"]) {
-        target.ComputingService.Name = (std::string)Cluster["GlueClusterName"];
+        cs->Name = (std::string)Cluster["GlueClusterName"];
       }
       if (Site["GlueSiteName"])
-        target.AdminDomain.Name = (std::string)Site["GlueSiteName"];
+        AdminDomain->Name = (std::string)Site["GlueSiteName"];
       if (Site["GlueSiteLocation"])
-        target.Location.Place = (std::string)Site["GlueSiteLocation"];
+        Location->Place = (std::string)Site["GlueSiteLocation"];
       if (Site["GlueSiteLatitude"])
-        target.Location.Latitude = stringtof(Site["GlueSiteLatitude"]);
+        Location->Latitude = stringtof(Site["GlueSiteLatitude"]);
       if (Site["GlueSiteLongitude"])
-        target.Location.Longitude = stringtof(Site["GlueSiteLongitude"]);
+        Location->Longitude = stringtof(Site["GlueSiteLongitude"]);
       if (CE["GlueCEInfoContactString"])
-        target.ComputingEndpoint.URLString = (std::string)CE["GlueCEInfoContactString"];
+        ComputingEndpoint->URLString = (std::string)CE["GlueCEInfoContactString"];
       if (CE["GlueCEImplementationName"]) {
         if (CE["GlueCEImplementationVersion"])
-          target.ComputingEndpoint.Implementation =
+          ComputingEndpoint->Implementation =
             Software((std::string)CE["GlueCEImplementationName"],
                      (std::string)CE["GlueCEImplementationVersion"]);
         else
-          target.ComputingEndpoint.Implementation =
+          ComputingEndpoint->Implementation =
             (std::string)CE["GlueCEImplementationName"];
       }
       if (VOView["GlueCEStateTotalJobs"])
-        target.ComputingShare.TotalJobs = stringtoi(VOView["GlueCEStateTotalJobs"]);
+        ComputingShare->TotalJobs = stringtoi(VOView["GlueCEStateTotalJobs"]);
       else if (CE["GlueCEStateTotalJobs"])
-        target.ComputingShare.TotalJobs = stringtoi(CE["GlueCEStateTotalJobs"]);
+        ComputingShare->TotalJobs = stringtoi(CE["GlueCEStateTotalJobs"]);
       if (VOView["GlueCEStateRunningJobs"])
-        target.ComputingShare.RunningJobs = stringtoi(VOView["GlueCEStateRunningJobs"]);
+        ComputingShare->RunningJobs = stringtoi(VOView["GlueCEStateRunningJobs"]);
       else if (CE["GlueCEStateRunningJobs"])
-        target.ComputingShare.RunningJobs = stringtoi(CE["GlueCEStateRunningJobs"]);
+        ComputingShare->RunningJobs = stringtoi(CE["GlueCEStateRunningJobs"]);
       if (VOView["GlueCEStateWaitingJobs"])
-        target.ComputingShare.WaitingJobs = stringtoi(VOView["GlueCEStateWaitingJobs"]);
+        ComputingShare->WaitingJobs = stringtoi(VOView["GlueCEStateWaitingJobs"]);
       else if (CE["GlueCEStateWaitingJobs"])
-        target.ComputingShare.WaitingJobs = stringtoi(CE["GlueCEStateWaitingJobs"]);
+        ComputingShare->WaitingJobs = stringtoi(CE["GlueCEStateWaitingJobs"]);
 
-      // target.StagingJobs           - not available in schema
-      // target.SuspendedJobs         - not available in schema
-      // target.PreLRMSWaitingJobs    - not available in schema
-      // target.ComputingShareName          - not available in schema
+      // StagingJobs           - not available in schema
+      // SuspendedJobs         - not available in schema
+      // PreLRMSWaitingJobs    - not available in schema
+      // ComputingShareName          - not available in schema
 
       if (VOView["GlueCEPolicyMaxWallClockTime"])
-        target.ComputingShare.MaxWallTime = stringtoi(VOView["GlueCEPolicyMaxWallClockTime"]);
+        ComputingShare->MaxWallTime = stringtoi(VOView["GlueCEPolicyMaxWallClockTime"]);
       else if (CE["GlueCEPolicyMaxWallClockTime"])
-        target.ComputingShare.MaxWallTime = stringtoi(CE["GlueCEPolicyMaxWallClockTime"]);
+        ComputingShare->MaxWallTime = stringtoi(CE["GlueCEPolicyMaxWallClockTime"]);
 
-      // target.MinWallTime           - not available in schema
-      // target.DefaultWallTime       - not available in schema
+      // MinWallTime           - not available in schema
+      // DefaultWallTime       - not available in schema
 
       if (VOView["GlueCEPolicyMaxCPUTime"])
-        target.ComputingShare.MaxCPUTime = stringtoi(VOView["GlueCEPolicyMaxCPUTime"]);
+        ComputingShare->MaxCPUTime = stringtoi(VOView["GlueCEPolicyMaxCPUTime"]);
       else if (CE["GlueCEPolicyMaxCPUTime"])
-        target.ComputingShare.MaxCPUTime = stringtoi(CE["GlueCEPolicyMaxCPUTime"]);
+        ComputingShare->MaxCPUTime = stringtoi(CE["GlueCEPolicyMaxCPUTime"]);
 
-      // target.MinCPUTime            - not available in schema
-      // target.DefaultCPUTime        - not available in schema
+      // MinCPUTime            - not available in schema
+      // DefaultCPUTime        - not available in schema
 
       if (VOView["GlueCEPolicyMaxTotalJobs"])
-        target.ComputingShare.MaxTotalJobs = stringtoi(VOView["GlueCEPolicyMaxTotalJobs"]);
+        ComputingShare->MaxTotalJobs = stringtoi(VOView["GlueCEPolicyMaxTotalJobs"]);
       else if (CE["GlueCEPolicyMaxTotalJobs"])
-        target.ComputingShare.MaxTotalJobs = stringtoi(CE["GlueCEPolicyMaxTotalJobs"]);
+        ComputingShare->MaxTotalJobs = stringtoi(CE["GlueCEPolicyMaxTotalJobs"]);
       if (VOView["GlueCEPolicyMaxRunningJobs"])
-        target.ComputingShare.MaxRunningJobs =
+        ComputingShare->MaxRunningJobs =
           stringtoi(VOView["GlueCEPolicyMaxRunningJobs"]);
       else if (CE["GlueCEPolicyMaxRunningJobs"])
-        target.ComputingShare.MaxRunningJobs = stringtoi(CE["GlueCEPolicyMaxRunningJobs"]);
+        ComputingShare->MaxRunningJobs = stringtoi(CE["GlueCEPolicyMaxRunningJobs"]);
       if (VOView["GlueCEPolicyMaxWaitingJobs"])
-        target.ComputingShare.MaxWaitingJobs =
+        ComputingShare->MaxWaitingJobs =
           stringtoi(VOView["GlueCEPolicyMaxWaitingJobs"]);
       else if (CE["GlueCEPolicyMaxWaitingJobs"])
-        target.ComputingShare.MaxWaitingJobs = stringtoi(CE["GlueCEPolicyMaxWaitingJobs"]);
+        ComputingShare->MaxWaitingJobs = stringtoi(CE["GlueCEPolicyMaxWaitingJobs"]);
       if (SubCluster["GlueHostMainMemoryRAMSize"])
-        target.ComputingShare.MaxMainMemory = stringtoi(SubCluster["GlueHostMainMemoryRAMSize"]);
+        ComputingShare->MaxMainMemory = stringtoi(SubCluster["GlueHostMainMemoryRAMSize"]);
 
-      // target.MaxPreLRMSWaitingJobs - not available in schema
+      // MaxPreLRMSWaitingJobs - not available in schema
 
       // is this correct ???
       if (VOView["GlueCEPolicyAssignedJobSlots"])
-        target.ComputingShare.MaxUserRunningJobs =
+        ComputingShare->MaxUserRunningJobs =
           stringtoi(VOView["GlueCEPolicyAssignedJobSlots"]);
       else if (CE["GlueCEPolicyAssignedJobSlots"])
-        target.ComputingShare.MaxUserRunningJobs =
+        ComputingShare->MaxUserRunningJobs =
           stringtoi(CE["GlueCEPolicyAssignedJobSlots"]);
       if (VOView["GlueCEPolicyMaxSlotsPerJob"])
-        target.ComputingShare.MaxSlotsPerJob =
+        ComputingShare->MaxSlotsPerJob =
           stringtoi(VOView["GlueCEPolicyMaxSlotsPerJob"]);
       else if (CE["GlueCEPolicyMaxSlotsPerJob"])
-        target.ComputingShare.MaxSlotsPerJob =
+        ComputingShare->MaxSlotsPerJob =
           stringtoi(CE["GlueCEPolicyMaxSlotsPerJob"]);
 
-      // target.MaxStageInStreams     - not available in schema
-      // target.MaxStageOutStreams    - not available in schema
-      // target.SchedulingPolicy      - not available in schema
+      // MaxStageInStreams     - not available in schema
+      // MaxStageOutStreams    - not available in schema
+      // SchedulingPolicy      - not available in schema
 
       if (SubCluster["GlueHostMainMemoryVirtualSize"])
-        target.ComputingShare.MaxMainMemory =
+        ComputingShare->MaxMainMemory =
           stringtoi(SubCluster["GlueHostMainMemoryVirtualSize"]);
 
-      // target.MaxDiskSpace          - not available in schema
+      // MaxDiskSpace          - not available in schema
 
       if (VOView["GlueCEInfoDefaultSE"])
-        target.ComputingShare.DefaultStorageService =
+        ComputingShare->DefaultStorageService =
           (std::string)VOView["GlueCEInfoDefaultSE"];
       else if (CE["GlueCEInfoDefaultSE"])
-        target.ComputingShare.DefaultStorageService = (std::string)CE["GlueCEInfoDefaultSE"];
+        ComputingShare->DefaultStorageService = (std::string)CE["GlueCEInfoDefaultSE"];
       if (VOView["GlueCEPolicyPreemption"])
-        target.ComputingShare.Preemption = stringtoi(VOView["GlueCEPolicyPreemption"]);
+        ComputingShare->Preemption = stringtoi(VOView["GlueCEPolicyPreemption"]);
       else if (CE["GlueCEPolicyPreemption"])
-        target.ComputingShare.Preemption = stringtoi(CE["GlueCEPolicyPreemption"]);
+        ComputingShare->Preemption = stringtoi(CE["GlueCEPolicyPreemption"]);
       if (VOView["GlueCEStateStatus"])
-        target.ComputingEndpoint.ServingState = (std::string)VOView["GlueCEStateStatus"];
+        ComputingEndpoint->ServingState = (std::string)VOView["GlueCEStateStatus"];
       else if (CE["GlueCEStateStatus"])
-        target.ComputingEndpoint.ServingState = (std::string)CE["GlueCEStateStatus"];
+        ComputingEndpoint->ServingState = (std::string)CE["GlueCEStateStatus"];
       if (VOView["GlueCEStateEstimatedResponseTime"])
-        target.ComputingShare.EstimatedAverageWaitingTime =
+        ComputingShare->EstimatedAverageWaitingTime =
           stringtoi(VOView["GlueCEStateEstimatedResponseTime"]);
       else if (CE["GlueCEStateEstimatedResponseTime"])
-        target.ComputingShare.EstimatedAverageWaitingTime =
+        ComputingShare->EstimatedAverageWaitingTime =
           stringtoi(CE["GlueCEStateEstimatedResponseTime"]);
       if (VOView["GlueCEStateWorstResponseTime"])
-        target.ComputingShare.EstimatedWorstWaitingTime =
+        ComputingShare->EstimatedWorstWaitingTime =
           stringtoi(VOView["GlueCEStateWorstResponseTime"]);
       else if (CE["GlueCEStateWorstResponseTime"])
-        target.ComputingShare.EstimatedWorstWaitingTime =
+        ComputingShare->EstimatedWorstWaitingTime =
           stringtoi(CE["GlueCEStateWorstResponseTime"]);
       if (VOView["GlueCEStateFreeJobSlots"])
-        target.ComputingShare.FreeSlots = stringtoi(VOView["GlueCEStateFreeJobSlots"]);
+        ComputingShare->FreeSlots = stringtoi(VOView["GlueCEStateFreeJobSlots"]);
       else if (VOView["GlueCEStateFreeCPUs"])
-        target.ComputingShare.FreeSlots = stringtoi(VOView["GlueCEStateFreeCPUs"]);
+        ComputingShare->FreeSlots = stringtoi(VOView["GlueCEStateFreeCPUs"]);
       else if (CE["GlueCEStateFreeJobSlots"])
-        target.ComputingShare.FreeSlots = stringtoi(CE["GlueCEStateFreeJobSlots"]);
+        ComputingShare->FreeSlots = stringtoi(CE["GlueCEStateFreeJobSlots"]);
       else if (CE["GlueCEStateFreeCPUs"])
-        target.ComputingShare.FreeSlots = stringtoi(CE["GlueCEStateFreeCPUs"]);
+        ComputingShare->FreeSlots = stringtoi(CE["GlueCEStateFreeCPUs"]);
 
-      // target.UsedSlots;
-      // target.RequestedSlots;
-      // target.ReservationPolicy;
+      // UsedSlots;
+      // RequestedSlots;
+      // ReservationPolicy;
 
       for (XMLNode node =
              SubCluster["GlueHostApplicationSoftwareRunTimeEnvironment"];
@@ -411,13 +415,14 @@ namespace Arc {
         ae.FreeSlots = -1;
         ae.FreeUserSeats = -1;
         ae.FreeJobs = -1;
-        target.ApplicationEnvironments.push_back(ae);
+        ComputingManager.ApplicationEnvironments->push_back(ae);
       }
 
-      etList.push_back(target);
+      csList.push_back(cs);
+      */
     }
 
-    if (!etList.empty()) s = EndpointQueryingStatus::SUCCESSFUL;
+    if (!csList.empty()) s = EndpointQueryingStatus::SUCCESSFUL;
     return s;
   }
 

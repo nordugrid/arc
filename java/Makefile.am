@@ -44,6 +44,8 @@ arc_wrap.cpp: $(top_srcdir)/swig/*.i
 	sed 's%#include <jni.h>%#include <arc_jni.h>%' < \
 	arc_wrap.cpp > arc_wrap.cpp.tmp
 	mv arc_wrap.cpp.tmp arc_wrap.cpp
+	sed 's/>>(new/> >(new/g' arc_wrap.cpp > arc_wrap.cpp.tmp # When mapping a template with a template class no space is inserted between the two right angle brackets.
+	mv arc_wrap.cpp.tmp arc_wrap.cpp
 	for javafile in `ls $(JAVA_PATH)/*.java` ; do \
 		echo >> $(DEPDIR)/arc_wrap.deps ; \
 		echo `sed s/.java$$/.class/ <<< $${javafile}`: $${javafile} \

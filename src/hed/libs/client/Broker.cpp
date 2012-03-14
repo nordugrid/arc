@@ -37,7 +37,7 @@ namespace Arc {
       if (!rejectTargets.empty()) {
         std::list<URL>::const_iterator it = rejectTargets.begin();
         for (; it != rejectTargets.end(); ++it) {
-          if ((*it) == target->ComputingEndpoint.URLString || (*it) == target->Cluster) {
+          if ((*it) == target->ComputingEndpoint->URLString || (*it) == target->ComputingService->Cluster) {
             // Target should be dropped.
             break;
           }
@@ -45,7 +45,7 @@ namespace Arc {
 
         // If loop did not reach the end, target should be dropped.
         if (it != rejectTargets.end()) {
-          logger.msg(VERBOSE, "Target (%s) was explicitly rejected.", target->ComputingEndpoint.URLString);
+          logger.msg(VERBOSE, "Target (%s) was explicitly rejected.", target->ComputingEndpoint->URLString);
           continue;
         }
       }
@@ -60,8 +60,8 @@ namespace Arc {
     std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++) {
-      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain.Name, (*iter)->ComputingShare.Name);
-      logger.msg(VERBOSE, "Health State: %s", (*iter)->ComputingEndpoint.HealthState);
+      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain->Name, (*iter)->ComputingShare->Name);
+      logger.msg(VERBOSE, "Health State: %s", (*iter)->ComputingEndpoint->HealthState);
     }
 
     TargetSortingDone = false;
@@ -72,81 +72,81 @@ namespace Arc {
     std::string proxyDN = credential.GetDN();
     std::string proxyIssuerCA = credential.GetCAName();
 
-    logger.msg(VERBOSE, "Performing matchmaking against target (%s).", t.ComputingEndpoint.URLString);
+    logger.msg(VERBOSE, "Performing matchmaking against target (%s).", t.ComputingEndpoint->URLString);
 
-    if ( !(t.ComputingEndpoint.TrustedCA.empty()) && (find(t.ComputingEndpoint.TrustedCA.begin(), t.ComputingEndpoint.TrustedCA.end(), proxyIssuerCA)
-            == t.ComputingEndpoint.TrustedCA.end()) ){
-        logger.msg(VERBOSE, "The CA issuer (%s) of the credentials (%s) is not trusted by the target (%s).", proxyIssuerCA, proxyDN, t.ComputingEndpoint.URLString);
+    if ( !(t.ComputingEndpoint->TrustedCA.empty()) && (find(t.ComputingEndpoint->TrustedCA.begin(), t.ComputingEndpoint->TrustedCA.end(), proxyIssuerCA)
+            == t.ComputingEndpoint->TrustedCA.end()) ){
+        logger.msg(VERBOSE, "The CA issuer (%s) of the credentials (%s) is not trusted by the target (%s).", proxyIssuerCA, proxyDN, t.ComputingEndpoint->URLString);
         return false;
     }
 
     std::map<std::string, std::string>::const_iterator itAtt;
     if ((itAtt = job->OtherAttributes.find("nordugrid:broker;reject_queue")) != job->OtherAttributes.end()) {
-      if (t.ComputingShare.Name.empty()) {
-        logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", t.ComputingEndpoint.URLString);
+      if (t.ComputingShare->Name.empty()) {
+        logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", t.ComputingEndpoint->URLString);
         return false;
       }
 
-      if (t.ComputingShare.Name == itAtt->second) {
+      if (t.ComputingShare->Name == itAtt->second) {
         logger.msg(VERBOSE, "ComputingShare (%s) explicitly rejected", itAtt->second);
         return false;
       }
     }
 
     if (!job->Resources.QueueName.empty()) {
-      if (t.ComputingShare.Name.empty()) {
-        logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", t.ComputingEndpoint.URLString);
+      if (t.ComputingShare->Name.empty()) {
+        logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", t.ComputingEndpoint->URLString);
         return false;
       }
 
-      if (t.ComputingShare.Name != job->Resources.QueueName) {
-        logger.msg(VERBOSE, "ComputingShare (%s) does not match selected queue (%s)", t.ComputingShare.Name, job->Resources.QueueName);
+      if (t.ComputingShare->Name != job->Resources.QueueName) {
+        logger.msg(VERBOSE, "ComputingShare (%s) does not match selected queue (%s)", t.ComputingShare->Name, job->Resources.QueueName);
         return false;
       }
     }
 
     if ((int)job->Application.ProcessingStartTime.GetTime() != -1) {
-      if ((int)t.ComputingEndpoint.DowntimeStarts.GetTime() != -1 && (int)t.ComputingEndpoint.DowntimeEnds.GetTime() != -1) {
-        if (t.ComputingEndpoint.DowntimeStarts <= job->Application.ProcessingStartTime && job->Application.ProcessingStartTime <= t.ComputingEndpoint.DowntimeEnds) {
-          logger.msg(VERBOSE, "ProcessingStartTime (%s) specified in job description is inside the targets downtime period [ %s - %s ].", (std::string)job->Application.ProcessingStartTime, (std::string)t.ComputingEndpoint.DowntimeStarts, (std::string)t.ComputingEndpoint.DowntimeEnds);
+      if ((int)t.ComputingEndpoint->DowntimeStarts.GetTime() != -1 && (int)t.ComputingEndpoint->DowntimeEnds.GetTime() != -1) {
+        if (t.ComputingEndpoint->DowntimeStarts <= job->Application.ProcessingStartTime && job->Application.ProcessingStartTime <= t.ComputingEndpoint->DowntimeEnds) {
+          logger.msg(VERBOSE, "ProcessingStartTime (%s) specified in job description is inside the targets downtime period [ %s - %s ].", (std::string)job->Application.ProcessingStartTime, (std::string)t.ComputingEndpoint->DowntimeStarts, (std::string)t.ComputingEndpoint->DowntimeEnds);
           return false;
         }
       }
       else
-        logger.msg(WARNING, "The downtime of the target (%s) is not published. Keeping target.", t.ComputingEndpoint.URLString);
+        logger.msg(WARNING, "The downtime of the target (%s) is not published. Keeping target.", t.ComputingEndpoint->URLString);
     }
 
-    if (!t.ComputingEndpoint.HealthState.empty()) {
+    if (!t.ComputingEndpoint->HealthState.empty()) {
 
-      if (t.ComputingEndpoint.HealthState != "ok") { // Enumeration for healthstate: ok, critical, other, unknown, warning
-        logger.msg(VERBOSE, "HealthState of ExecutionTarget (%s) is not OK (%s)", t.ComputingEndpoint.URLString, t.ComputingEndpoint.HealthState);
+      if (t.ComputingEndpoint->HealthState != "ok") { // Enumeration for healthstate: ok, critical, other, unknown, warning
+        logger.msg(VERBOSE, "HealthState of ExecutionTarget (%s) is not OK (%s)", t.ComputingEndpoint->URLString, t.ComputingEndpoint->HealthState);
         return false;
       }
     }
     else {
-      logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, HealthState is not defined", t.ComputingEndpoint.URLString);
+      logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, HealthState is not defined", t.ComputingEndpoint->URLString);
       return false;
     }
 
     if (!job->Resources.CEType.empty()) {
-      if (!t.ComputingEndpoint.Implementation().empty()) {
-        if (!job->Resources.CEType.isSatisfied(t.ComputingEndpoint.Implementation)) {
-          logger.msg(VERBOSE, "Matchmaking, Computing endpoint requirement not satisfied. ExecutionTarget: %s", (std::string)t.ComputingEndpoint.Implementation);
+      if (!t.ComputingEndpoint->Implementation().empty()) {
+        if (!job->Resources.CEType.isSatisfied(t.ComputingEndpoint->Implementation)) {
+          logger.msg(VERBOSE, "Matchmaking, Computing endpoint requirement not satisfied. ExecutionTarget: %s", (std::string)t.ComputingEndpoint->Implementation);
           return false;
         }
       }
       else {
-        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, ImplementationName is not defined", t.ComputingEndpoint.URLString);
+        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, ImplementationName is not defined", t.ComputingEndpoint->URLString);
         return false;
       }
     }
 
     {
       typedef std::pair<std::string, int> EtTimePair;
-      EtTimePair etTime[] = {EtTimePair("MaxWallTime", (int)t.ComputingShare.MaxWallTime.GetPeriod()),
-                             EtTimePair("MinWallTime", (int)t.ComputingShare.MinWallTime.GetPeriod()),
-                             EtTimePair("MaxCPUTime", (int)t.ComputingShare.MaxCPUTime.GetPeriod()),
-                             EtTimePair("MinCPUTime", (int)t.ComputingShare.MinCPUTime.GetPeriod())};
+      EtTimePair etTime[] = {EtTimePair("MaxWallTime", (int)t.ComputingShare->MaxWallTime.GetPeriod()),
+                             EtTimePair("MinWallTime", (int)t.ComputingShare->MinWallTime.GetPeriod()),
+                             EtTimePair("MaxCPUTime", (int)t.ComputingShare->MaxCPUTime.GetPeriod()),
+                             EtTimePair("MinCPUTime", (int)t.ComputingShare->MinCPUTime.GetPeriod())};
 
       typedef std::pair<std::string, const ScalableTime<int>*> JobTimePair;
       JobTimePair jobTime[] = {JobTimePair("TotalWallTime", &job->Resources.TotalWallTime),
@@ -174,8 +174,8 @@ namespace Arc {
             }
             else { // Benchmark defined => scale using benchmark.
               double targetBenchmark = -1.;
-              for (std::map<std::string, double>::const_iterator itTBench = t.Benchmarks.begin();
-                   itTBench != t.Benchmarks.end(); itTBench++) {
+              for (std::map<std::string, double>::const_iterator itTBench = t.Benchmarks->begin();
+                   itTBench != t.Benchmarks->end(); itTBench++) {
                 if (lower(jTime->second->benchmark.first) == lower(itTBench->first)) {
                   targetBenchmark = itTBench->second;
                   break;
@@ -184,7 +184,7 @@ namespace Arc {
 
               // Make it possible to scale according to clock rate.
               if (targetBenchmark <= 0. && lower(jTime->second->benchmark.first) == "clock rate") {
-                targetBenchmark = (t.ExecutionEnvironment.CPUClockSpeed > 0. ? (double)t.ExecutionEnvironment.CPUClockSpeed : 1000.);
+                targetBenchmark = (t.ExecutionEnvironment->CPUClockSpeed > 0. ? (double)t.ExecutionEnvironment->CPUClockSpeed : 1000.);
               }
 
               if (targetBenchmark > 0.) {
@@ -214,210 +214,209 @@ namespace Arc {
     }
 
     if (job->Resources.IndividualPhysicalMemory != -1) {
-      if (t.ExecutionEnvironment.MainMemorySize != -1) {     // Example: 678
-        if (t.ExecutionEnvironment.MainMemorySize < job->Resources.IndividualPhysicalMemory) {
-          logger.msg(VERBOSE, "Matchmaking, MainMemorySize problem, ExecutionTarget: %d (MainMemorySize), JobDescription: %d (IndividualPhysicalMemory)", t.ExecutionEnvironment.MainMemorySize, job->Resources.IndividualPhysicalMemory.max);
+      if (t.ExecutionEnvironment->MainMemorySize != -1) {     // Example: 678
+        if (t.ExecutionEnvironment->MainMemorySize < job->Resources.IndividualPhysicalMemory) {
+          logger.msg(VERBOSE, "Matchmaking, MainMemorySize problem, ExecutionTarget: %d (MainMemorySize), JobDescription: %d (IndividualPhysicalMemory)", t.ExecutionEnvironment->MainMemorySize, job->Resources.IndividualPhysicalMemory.max);
           return false;
         }
       }
-      else if (t.ComputingShare.MaxMainMemory != -1) {     // Example: 678
-        if (t.ComputingShare.MaxMainMemory < job->Resources.IndividualPhysicalMemory) {
-          logger.msg(VERBOSE, "Matchmaking, MaxMainMemory problem, ExecutionTarget: %d (MaxMainMemory), JobDescription: %d (IndividualPhysicalMemory)", t.ComputingShare.MaxMainMemory, job->Resources.IndividualPhysicalMemory.max);
+      else if (t.ComputingShare->MaxMainMemory != -1) {     // Example: 678
+        if (t.ComputingShare->MaxMainMemory < job->Resources.IndividualPhysicalMemory) {
+          logger.msg(VERBOSE, "Matchmaking, MaxMainMemory problem, ExecutionTarget: %d (MaxMainMemory), JobDescription: %d (IndividualPhysicalMemory)", t.ComputingShare->MaxMainMemory, job->Resources.IndividualPhysicalMemory.max);
           return false;
         }
-
       }
       else {
-        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, MaxMainMemory and MainMemorySize are not defined", t.ComputingEndpoint.URLString);
+        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, MaxMainMemory and MainMemorySize are not defined", t.ComputingEndpoint->URLString);
         return false;
       }
     }
 
     if (job->Resources.IndividualVirtualMemory != -1) {
-      if (t.ComputingShare.MaxVirtualMemory != -1) {     // Example: 678
-        if (t.ComputingShare.MaxVirtualMemory < job->Resources.IndividualVirtualMemory) {
-          logger.msg(VERBOSE, "Matchmaking, MaxVirtualMemory problem, ExecutionTarget: %d (MaxVirtualMemory), JobDescription: %d (IndividualVirtualMemory)", t.ComputingShare.MaxVirtualMemory, job->Resources.IndividualVirtualMemory.max);
+      if (t.ComputingShare->MaxVirtualMemory != -1) {     // Example: 678
+        if (t.ComputingShare->MaxVirtualMemory < job->Resources.IndividualVirtualMemory) {
+          logger.msg(VERBOSE, "Matchmaking, MaxVirtualMemory problem, ExecutionTarget: %d (MaxVirtualMemory), JobDescription: %d (IndividualVirtualMemory)", t.ComputingShare->MaxVirtualMemory, job->Resources.IndividualVirtualMemory.max);
           return false;
         }
       }
       else {
-        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, MaxVirtualMemory is not defined", t.ComputingEndpoint.URLString);
+        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, MaxVirtualMemory is not defined", t.ComputingEndpoint->URLString);
         return false;
       }
     }
 
     if (!job->Resources.Platform.empty()) {
-      if (!t.ExecutionEnvironment.Platform.empty()) {    // Example: i386
-        if (t.ExecutionEnvironment.Platform != job->Resources.Platform) {
-          logger.msg(VERBOSE, "Matchmaking, Platform problem, ExecutionTarget: %s (Platform) JobDescription: %s (Platform)", t.ExecutionEnvironment.Platform, job->Resources.Platform);
+      if (!t.ExecutionEnvironment->Platform.empty()) {    // Example: i386
+        if (t.ExecutionEnvironment->Platform != job->Resources.Platform) {
+          logger.msg(VERBOSE, "Matchmaking, Platform problem, ExecutionTarget: %s (Platform) JobDescription: %s (Platform)", t.ExecutionEnvironment->Platform, job->Resources.Platform);
           return false;
         }
       }
       else {
-        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, Platform is not defined", t.ComputingEndpoint.URLString);
+        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, Platform is not defined", t.ComputingEndpoint->URLString);
         return false;
       }
     }
 
     if (!job->Resources.OperatingSystem.empty()) {
-      if (!t.ExecutionEnvironment.OperatingSystem.empty()) {
-        if (!job->Resources.OperatingSystem.isSatisfied(t.ExecutionEnvironment.OperatingSystem)) {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, OperatingSystem requirements not satisfied", t.ComputingEndpoint.URLString);
+      if (!t.ExecutionEnvironment->OperatingSystem.empty()) {
+        if (!job->Resources.OperatingSystem.isSatisfied(t.ExecutionEnvironment->OperatingSystem)) {
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, OperatingSystem requirements not satisfied", t.ComputingEndpoint->URLString);
           return false;
         }
       }
       else {
-        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s,  OperatingSystem is not defined", t.ComputingEndpoint.URLString);
+        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s,  OperatingSystem is not defined", t.ComputingEndpoint->URLString);
         return false;
       }
     }
 
     if (!job->Resources.RunTimeEnvironment.empty()) {
-      if (!t.ApplicationEnvironments.empty()) {
-        if (!job->Resources.RunTimeEnvironment.isSatisfied(t.ApplicationEnvironments)) {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, RunTimeEnvironment requirements not satisfied", t.ComputingEndpoint.URLString);
+      if (!t.ApplicationEnvironments->empty()) {
+        if (!job->Resources.RunTimeEnvironment.isSatisfied(*t.ApplicationEnvironments)) {
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, RunTimeEnvironment requirements not satisfied", t.ComputingEndpoint->URLString);
           return false;
         }
       }
       else {
-        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, ApplicationEnvironments not defined", t.ComputingEndpoint.URLString);
+        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, ApplicationEnvironments not defined", t.ComputingEndpoint->URLString);
         return false;
       }
     }
 
     if (!job->Resources.NetworkInfo.empty())
-      if (!t.ComputingManager.NetworkInfo.empty()) {    // Example: infiniband
-        if (std::find(t.ComputingManager.NetworkInfo.begin(), t.ComputingManager.NetworkInfo.end(),
-                      job->Resources.NetworkInfo) == t.ComputingManager.NetworkInfo.end()) {
+      if (!t.ComputingManager->NetworkInfo.empty()) {    // Example: infiniband
+        if (std::find(t.ComputingManager->NetworkInfo.begin(), t.ComputingManager->NetworkInfo.end(),
+                      job->Resources.NetworkInfo) == t.ComputingManager->NetworkInfo.end()) {
           logger.msg(VERBOSE, "Matchmaking, NetworkInfo demand not fulfilled, ExecutionTarget do not support %s, specified in the JobDescription.", job->Resources.NetworkInfo);
           return false;
         }
         else {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, NetworkInfo is not defined", t.ComputingEndpoint.URLString);
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, NetworkInfo is not defined", t.ComputingEndpoint->URLString);
           return false;
         }
       }
 
     if (job->Resources.DiskSpaceRequirement.SessionDiskSpace > -1) {
-      if (t.ComputingShare.MaxDiskSpace > -1) {     // Example: 5656
-        if (t.ComputingShare.MaxDiskSpace*1024 < job->Resources.DiskSpaceRequirement.SessionDiskSpace) {
-          logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (SessionDiskSpace)", t.ComputingShare.MaxDiskSpace*1024, job->Resources.DiskSpaceRequirement.SessionDiskSpace);
+      if (t.ComputingShare->MaxDiskSpace > -1) {     // Example: 5656
+        if (t.ComputingShare->MaxDiskSpace*1024 < job->Resources.DiskSpaceRequirement.SessionDiskSpace) {
+          logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (SessionDiskSpace)", t.ComputingShare->MaxDiskSpace*1024, job->Resources.DiskSpaceRequirement.SessionDiskSpace);
           return false;
         }
       }
 
-      if (t.ComputingManager.WorkingAreaFree > -1) {     // Example: 5656
-        if (t.ComputingManager.WorkingAreaFree*1024 < job->Resources.DiskSpaceRequirement.SessionDiskSpace) {
-          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree problem, ExecutionTarget: %d MB (WorkingAreaFree); JobDescription: %d MB (SessionDiskSpace)", t.ComputingManager.WorkingAreaFree*1024, job->Resources.DiskSpaceRequirement.SessionDiskSpace);
+      if (t.ComputingManager->WorkingAreaFree > -1) {     // Example: 5656
+        if (t.ComputingManager->WorkingAreaFree*1024 < job->Resources.DiskSpaceRequirement.SessionDiskSpace) {
+          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree problem, ExecutionTarget: %d MB (WorkingAreaFree); JobDescription: %d MB (SessionDiskSpace)", t.ComputingManager->WorkingAreaFree*1024, job->Resources.DiskSpaceRequirement.SessionDiskSpace);
           return false;
         }
       }
 
-      if (t.ComputingShare.MaxDiskSpace <= -1 && t.ComputingManager.WorkingAreaFree <= -1) {
-        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", t.ComputingEndpoint.URLString);
+      if (t.ComputingShare->MaxDiskSpace <= -1 && t.ComputingManager->WorkingAreaFree <= -1) {
+        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", t.ComputingEndpoint->URLString);
         return false;
       }
     }
 
     if (job->Resources.DiskSpaceRequirement.DiskSpace.max > -1 && job->Resources.DiskSpaceRequirement.CacheDiskSpace > -1) {
-      if (t.ComputingShare.MaxDiskSpace > -1) {     // Example: 5656
-        if (t.ComputingShare.MaxDiskSpace*1024 < job->Resources.DiskSpaceRequirement.DiskSpace.max - job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
-          logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace*1024 >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace), %d MB (CacheDiskSpace)", t.ComputingShare.MaxDiskSpace*1024, job->Resources.DiskSpaceRequirement.DiskSpace.max, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
+      if (t.ComputingShare->MaxDiskSpace > -1) {     // Example: 5656
+        if (t.ComputingShare->MaxDiskSpace*1024 < job->Resources.DiskSpaceRequirement.DiskSpace.max - job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
+          logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace*1024 >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace), %d MB (CacheDiskSpace)", t.ComputingShare->MaxDiskSpace*1024, job->Resources.DiskSpaceRequirement.DiskSpace.max, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
           return false;
         }
       }
 
-      if (t.ComputingManager.WorkingAreaFree > -1) {     // Example: 5656
-        if (t.ComputingManager.WorkingAreaFree*1024 < job->Resources.DiskSpaceRequirement.DiskSpace.max - job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
-          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree*1024 >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace), %d MB (CacheDiskSpace)", t.ComputingManager.WorkingAreaFree*1024, job->Resources.DiskSpaceRequirement.DiskSpace.max, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
+      if (t.ComputingManager->WorkingAreaFree > -1) {     // Example: 5656
+        if (t.ComputingManager->WorkingAreaFree*1024 < job->Resources.DiskSpaceRequirement.DiskSpace.max - job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
+          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree*1024 >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace), %d MB (CacheDiskSpace)", t.ComputingManager->WorkingAreaFree*1024, job->Resources.DiskSpaceRequirement.DiskSpace.max, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
           return false;
         }
       }
 
-      if (t.ComputingShare.MaxDiskSpace <= -1 && t.ComputingManager.WorkingAreaFree <= -1) {
-        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", t.ComputingEndpoint.URLString);
+      if (t.ComputingShare->MaxDiskSpace <= -1 && t.ComputingManager->WorkingAreaFree <= -1) {
+        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", t.ComputingEndpoint->URLString);
         return false;
       }
     }
 
     if (job->Resources.DiskSpaceRequirement.DiskSpace.max > -1) {
-      if (t.ComputingShare.MaxDiskSpace > -1) {     // Example: 5656
-        if (t.ComputingShare.MaxDiskSpace*1024 < job->Resources.DiskSpaceRequirement.DiskSpace.max) {
-          logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace)", t.ComputingShare.MaxDiskSpace*1024, job->Resources.DiskSpaceRequirement.DiskSpace.max);
+      if (t.ComputingShare->MaxDiskSpace > -1) {     // Example: 5656
+        if (t.ComputingShare->MaxDiskSpace*1024 < job->Resources.DiskSpaceRequirement.DiskSpace.max) {
+          logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace)", t.ComputingShare->MaxDiskSpace*1024, job->Resources.DiskSpaceRequirement.DiskSpace.max);
           return false;
         }
       }
 
-      if (t.ComputingManager.WorkingAreaFree > -1) {     // Example: 5656
-        if (t.ComputingManager.WorkingAreaFree*1024 < job->Resources.DiskSpaceRequirement.DiskSpace.max) {
-          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree problem, ExecutionTarget: %d MB (WorkingAreaFree); JobDescription: %d MB (DiskSpace)", t.ComputingManager.WorkingAreaFree*1024, job->Resources.DiskSpaceRequirement.DiskSpace.max);
+      if (t.ComputingManager->WorkingAreaFree > -1) {     // Example: 5656
+        if (t.ComputingManager->WorkingAreaFree*1024 < job->Resources.DiskSpaceRequirement.DiskSpace.max) {
+          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree problem, ExecutionTarget: %d MB (WorkingAreaFree); JobDescription: %d MB (DiskSpace)", t.ComputingManager->WorkingAreaFree*1024, job->Resources.DiskSpaceRequirement.DiskSpace.max);
           return false;
         }
       }
 
-      if (t.ComputingManager.WorkingAreaFree <= -1 && t.ComputingShare.MaxDiskSpace <= -1) {
-        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", t.ComputingEndpoint.URLString);
+      if (t.ComputingManager->WorkingAreaFree <= -1 && t.ComputingShare->MaxDiskSpace <= -1) {
+        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", t.ComputingEndpoint->URLString);
         return false;
       }
     }
 
     if (job->Resources.DiskSpaceRequirement.CacheDiskSpace > -1) {
-      if (t.ComputingManager.CacheTotal > -1) {     // Example: 5656
-        if (t.ComputingManager.CacheTotal*1024 < job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
-          logger.msg(VERBOSE, "Matchmaking, CacheTotal problem, ExecutionTarget: %d MB (CacheTotal); JobDescription: %d MB (CacheDiskSpace)", t.ComputingManager.CacheTotal*1024, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
+      if (t.ComputingManager->CacheTotal > -1) {     // Example: 5656
+        if (t.ComputingManager->CacheTotal*1024 < job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
+          logger.msg(VERBOSE, "Matchmaking, CacheTotal problem, ExecutionTarget: %d MB (CacheTotal); JobDescription: %d MB (CacheDiskSpace)", t.ComputingManager->CacheTotal*1024, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
           return false;
         }
       }
       else {
-        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, CacheTotal is not defined", t.ComputingEndpoint.URLString);
+        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, CacheTotal is not defined", t.ComputingEndpoint->URLString);
         return false;
       }
     }
 
     if (job->Resources.SlotRequirement.NumberOfSlots != -1) {
-      if (t.ComputingManager.TotalSlots != -1) {     // Example: 5656
-        if (t.ComputingManager.TotalSlots < job->Resources.SlotRequirement.NumberOfSlots) {
-          logger.msg(VERBOSE, "Matchmaking, TotalSlots problem, ExecutionTarget: %d (TotalSlots) JobDescription: %d (NumberOfProcesses)", t.ComputingManager.TotalSlots, job->Resources.SlotRequirement.NumberOfSlots);
+      if (t.ComputingManager->TotalSlots != -1) {     // Example: 5656
+        if (t.ComputingManager->TotalSlots < job->Resources.SlotRequirement.NumberOfSlots) {
+          logger.msg(VERBOSE, "Matchmaking, TotalSlots problem, ExecutionTarget: %d (TotalSlots) JobDescription: %d (NumberOfProcesses)", t.ComputingManager->TotalSlots, job->Resources.SlotRequirement.NumberOfSlots);
           return false;
         }
       }
-      if (t.ComputingShare.MaxSlotsPerJob != -1) {     // Example: 5656
-        if (t.ComputingShare.MaxSlotsPerJob < job->Resources.SlotRequirement.NumberOfSlots) {
-          logger.msg(VERBOSE, "Matchmaking, MaxSlotsPerJob problem, ExecutionTarget: %d (MaxSlotsPerJob) JobDescription: %d (NumberOfProcesses)", t.ComputingManager.TotalSlots, job->Resources.SlotRequirement.NumberOfSlots);
+      if (t.ComputingShare->MaxSlotsPerJob != -1) {     // Example: 5656
+        if (t.ComputingShare->MaxSlotsPerJob < job->Resources.SlotRequirement.NumberOfSlots) {
+          logger.msg(VERBOSE, "Matchmaking, MaxSlotsPerJob problem, ExecutionTarget: %d (MaxSlotsPerJob) JobDescription: %d (NumberOfProcesses)", t.ComputingManager->TotalSlots, job->Resources.SlotRequirement.NumberOfSlots);
           return false;
         }
       }
 
-      if (t.ComputingManager.TotalSlots == -1 && t.ComputingShare.MaxSlotsPerJob == -1) {
-        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, TotalSlots and MaxSlotsPerJob are not defined", t.ComputingEndpoint.URLString);
+      if (t.ComputingManager->TotalSlots == -1 && t.ComputingShare->MaxSlotsPerJob == -1) {
+        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, TotalSlots and MaxSlotsPerJob are not defined", t.ComputingEndpoint->URLString);
         return false;
       }
     }
 
     if ((int)job->Resources.SessionLifeTime.GetPeriod() != -1) {
-      if ((int)t.ComputingManager.WorkingAreaLifeTime.GetPeriod() != -1) {     // Example: 123
-        if (t.ComputingManager.WorkingAreaLifeTime < job->Resources.SessionLifeTime) {
-          logger.msg(VERBOSE, "Matchmaking, WorkingAreaLifeTime problem, ExecutionTarget: %s (WorkingAreaLifeTime) JobDescription: %s (SessionLifeTime)", (std::string)t.ComputingManager.WorkingAreaLifeTime, (std::string)job->Resources.SessionLifeTime);
+      if ((int)t.ComputingManager->WorkingAreaLifeTime.GetPeriod() != -1) {     // Example: 123
+        if (t.ComputingManager->WorkingAreaLifeTime < job->Resources.SessionLifeTime) {
+          logger.msg(VERBOSE, "Matchmaking, WorkingAreaLifeTime problem, ExecutionTarget: %s (WorkingAreaLifeTime) JobDescription: %s (SessionLifeTime)", (std::string)t.ComputingManager->WorkingAreaLifeTime, (std::string)job->Resources.SessionLifeTime);
           return false;
         }
       }
       else {
-        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, WorkingAreaLifeTime is not defined", t.ComputingEndpoint.URLString);
+        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, WorkingAreaLifeTime is not defined", t.ComputingEndpoint->URLString);
         return false;
       }
     }
 
     if ((job->Resources.NodeAccess == NAT_INBOUND ||
          job->Resources.NodeAccess == NAT_INOUTBOUND) &&
-        !t.ExecutionEnvironment.ConnectivityIn) {     // Example: false (boolean)
-      logger.msg(VERBOSE, "Matchmaking, ConnectivityIn problem, ExecutionTarget: %s (ConnectivityIn) JobDescription: %s (InBound)", (job->Resources.NodeAccess == NAT_INBOUND ? "INBOUND" : "INOUTBOUND"), (t.ExecutionEnvironment.ConnectivityIn ? "true" : "false"));
+        !t.ExecutionEnvironment->ConnectivityIn) {     // Example: false (boolean)
+      logger.msg(VERBOSE, "Matchmaking, ConnectivityIn problem, ExecutionTarget: %s (ConnectivityIn) JobDescription: %s (InBound)", (job->Resources.NodeAccess == NAT_INBOUND ? "INBOUND" : "INOUTBOUND"), (t.ExecutionEnvironment->ConnectivityIn ? "true" : "false"));
       return false;
     }
 
     if ((job->Resources.NodeAccess == NAT_OUTBOUND ||
          job->Resources.NodeAccess == NAT_INOUTBOUND) &&
-        !t.ExecutionEnvironment.ConnectivityOut) {     // Example: false (boolean)
-      logger.msg(VERBOSE, "Matchmaking, ConnectivityOut problem, ExecutionTarget: %s (ConnectivityOut) JobDescription: %s (OutBound)", (job->Resources.NodeAccess == NAT_OUTBOUND ? "OUTBOUND" : "INOUTBOUND"), (t.ExecutionEnvironment.ConnectivityIn ? "true" : "false"));
+        !t.ExecutionEnvironment->ConnectivityOut) {     // Example: false (boolean)
+      logger.msg(VERBOSE, "Matchmaking, ConnectivityOut problem, ExecutionTarget: %s (ConnectivityOut) JobDescription: %s (OutBound)", (job->Resources.NodeAccess == NAT_OUTBOUND ? "OUTBOUND" : "INOUTBOUND"), (t.ExecutionEnvironment->ConnectivityIn ? "true" : "false"));
       return false;
     }
 
@@ -528,17 +527,17 @@ namespace Arc {
       return;
     }
 
-    if ((*current)->ComputingShare.FreeSlots >= job->Resources.SlotRequirement.NumberOfSlots) {
-      (*current)->ComputingShare.FreeSlots -= job->Resources.SlotRequirement.NumberOfSlots;
-      if ((*current)->ComputingShare.UsedSlots != -1) {
-        (*current)->ComputingShare.UsedSlots += job->Resources.SlotRequirement.NumberOfSlots;
+    if ((*current)->ComputingShare->FreeSlots >= job->Resources.SlotRequirement.NumberOfSlots) {
+      (*current)->ComputingShare->FreeSlots -= job->Resources.SlotRequirement.NumberOfSlots;
+      if ((*current)->ComputingShare->UsedSlots != -1) {
+        (*current)->ComputingShare->UsedSlots += job->Resources.SlotRequirement.NumberOfSlots;
       }
     }
-    else if ((*current)->ComputingShare.WaitingJobs != -1) {
-      (*current)->ComputingShare.WaitingJobs += job->Resources.SlotRequirement.NumberOfSlots;
+    else if ((*current)->ComputingShare->WaitingJobs != -1) {
+      (*current)->ComputingShare->WaitingJobs += job->Resources.SlotRequirement.NumberOfSlots;
     }
 
-    logger.msg(DEBUG, "FreeSlots = %d; UsedSlots = %d; WaitingJobs = %d", (*current)->ComputingShare.FreeSlots, (*current)->ComputingShare.UsedSlots, (*current)->ComputingShare.WaitingJobs);
+    logger.msg(DEBUG, "FreeSlots = %d; UsedSlots = %d; WaitingJobs = %d", (*current)->ComputingShare->FreeSlots, (*current)->ComputingShare->UsedSlots, (*current)->ComputingShare->WaitingJobs);
   }
 
   BrokerLoader::BrokerLoader()

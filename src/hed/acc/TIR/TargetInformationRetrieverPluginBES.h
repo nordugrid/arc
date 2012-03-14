@@ -19,7 +19,7 @@ namespace Arc {
     ~TargetInformationRetrieverPluginBES() {};
 
     static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginBES(); };
-    virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint&, std::list<ExecutionTarget>&, const EndpointQueryOptions<ExecutionTarget>&) const;
+    virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint&, std::list<ComputingServiceType>&, const EndpointQueryOptions<ComputingServiceType>&) const;
     virtual bool isEndpointNotSupported(const Endpoint&) const;
 
   private:

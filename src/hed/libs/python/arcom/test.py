@@ -7,7 +7,7 @@ class ExpectationalTestCase(unittest.TestCase):
             self.actual = actual
             self.testcase = testcase
             self.number = None
-                        
+
         def to_be(self, expected, message = None):
             if message is None:
                 message = "%s was expected to be %s" % (self.actual, expected)
@@ -17,7 +17,7 @@ class ExpectationalTestCase(unittest.TestCase):
             if message is None:
                 message = "%s was expected not to be %s" % (self.actual, expected)
             self.testcase.assertNotEqual(self.actual, expected, message)
-            
+
         def to_be_empty(self):
             self.testcase.assertEqual(len(self.actual), 0, "%s was expected to be empty" % (self.actual,))
 
@@ -25,8 +25,8 @@ class ExpectationalTestCase(unittest.TestCase):
             self.testcase.assertNotEqual(len(self.actual), 0, "%s was expected to be empty" % (self.actual,))
 
         def to_be_an_instance_of(self, class_):
-            self.testcase.assertTrue(isinstance(self.actual, class_), "%s was expected to be an instance of %s" % (self.actual, class_)) 
-            
+            self.testcase.assertTrue(isinstance(self.actual, class_), "%s was expected to be an instance of %s" % (self.actual, class_))
+
         def to_not_throw(self):
             try:
                 self.actual()
@@ -40,7 +40,7 @@ class ExpectationalTestCase(unittest.TestCase):
         def to_have(self, number):
             self.number = number
             return self
-        
+
         def _test_having(self):
             self.testcase.assertEqual(len(self.actual), self.number,
                 "%s was expected to have %s %s, but it has %s instead" %
@@ -55,7 +55,7 @@ class ExpectationalTestCase(unittest.TestCase):
                 return self._test_having
             else:
                 raise AttributeError
-            
+
     def expect(self, actual):
         return self.Expectation(actual, self)
 
@@ -71,13 +71,18 @@ def with_logging(function):
     return logging_func
 
 class ARCClientTestCase(ExpectationalTestCase):
-        
+
     def create_test_target(self, url = "http://test.nordugrid.org"):
-        target = arc.ExecutionTarget()
-        target.ComputingEndpoint.URLString = url
-        target.ComputingEndpoint.InterfaceName = "org.nordugrid.test"
-        target.ComputingEndpoint.HealthState = "ok"
-        return target
+        cs = arc.ComputingServiceType()
+        cs.ComputingEndpoint[0] = arc.ComputingEndpointType()
+        cs.ComputingEndpoint[0].URLString = url
+        cs.ComputingEndpoint[0].InterfaceName = "org.nordugrid.test"
+        cs.ComputingEndpoint[0].HealthState = "ok"
+
+        cs.ComputingShare[0] = arc.ComputingShareType()
+        cs.ComputingManager[0] = arc.ComputingManagerType()
+        cs.ComputingManager[0].ExecutionEnvironment[0] = arc.ExecutionEnvironmentType()
+        return cs
 
     def create_test_job(self,
                         job_id = "http://test.nordugrid.org/testid",

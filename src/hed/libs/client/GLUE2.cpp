@@ -12,7 +12,7 @@ namespace Arc {
 
   Logger GLUE2::logger(Logger::getRootLogger(), "GLUE2");
 
-  void GLUE2::ParseExecutionTargets(XMLNode glue2tree, std::list<ExecutionTarget>& targets,const std::string& interface) {
+  void GLUE2::ParseExecutionTargets(XMLNode glue2tree, std::list<ComputingServiceType>& targets) {
 
     XMLNode GLUEService = glue2tree;
     if(GLUEService.Name() != "ComputingService") {
@@ -20,264 +20,193 @@ namespace Arc {
     }
 
     for (; GLUEService; ++GLUEService) {
+      ComputingServiceType cs;
 
-      XMLNode xmlCENode = GLUEService["ComputingEndpoint"];
-      if(!interface.empty()) {
-        for(;(bool)xmlCENode;++xmlCENode) {
-          if((xmlCENode["InterfaceName"] == interface) ||
-             (xmlCENode["Interface"] == interface)) break;
-        }
-        if(!xmlCENode) {
-          continue;
-        }
-      }
-
-      targets.push_back(ExecutionTarget());
-
-      logger.msg(VERBOSE, "Generating computing target: %s", targets.back().Cluster.str());
-
-      if (xmlCENode["HealthState"]) {
-        targets.back().ComputingEndpoint.HealthState = (std::string)xmlCENode["HealthState"];
-      } else {
-        logger.msg(VERBOSE, "The Service advertises no Health State.");
-      }
-      if (xmlCENode["HealthStateInfo"]) {
-        // TODO: Map to HealthStateInfo instead?
-        targets.back().ComputingEndpoint.HealthState = (std::string)xmlCENode["HealthStateInfo"];
-      }
       if (GLUEService["Name"]) {
-        targets.back().ComputingService.Name = (std::string)GLUEService["Name"];
+        cs->Name = (std::string)GLUEService["Name"];
       }
-      if (xmlCENode["Capability"]) {
-        for (XMLNode n = xmlCENode["Capability"]; n; ++n) {
-          targets.back().ComputingEndpoint.Capability.push_back((std::string)n);
-        }
-      } else if (GLUEService["Capability"]) {
+      if (GLUEService["Capability"]) {
         for (XMLNode n = GLUEService["Capability"]; n; ++n) {
-          targets.back().ComputingEndpoint.Capability.push_back((std::string)n);
+          cs->Capability.push_back((std::string)n);
         }
       }
       if (GLUEService["Type"]) {
-        targets.back().ComputingService.Type = (std::string)GLUEService["Type"];
+        cs->Type = (std::string)GLUEService["Type"];
       } else {
         logger.msg(VERBOSE, "The Service doesn't advertise its Type.");
       }
-      if (xmlCENode["QualityLevel"]) {
-        targets.back().ComputingEndpoint.QualityLevel = (std::string)xmlCENode["QualityLevel"];
-      } else if (GLUEService["QualityLevel"]) {
-        targets.back().ComputingEndpoint.QualityLevel = (std::string)GLUEService["QualityLevel"];
+      if (GLUEService["QualityLevel"]) {
+        cs->QualityLevel = (std::string)GLUEService["QualityLevel"];
       } else {
-        logger.msg(VERBOSE, "The Service doesn't advertise its Quality Level.");
+        logger.msg(VERBOSE, "The ComputingService doesn't advertise its Quality Level.");
       }
+      if (GLUEService["TotalJobs"]) {
+        cs->TotalJobs = stringtoi((std::string)GLUEService["TotalJobs"]);
+      }
+      if (GLUEService["RunningJobs"]) {
+        cs->RunningJobs = stringtoi((std::string)GLUEService["RunningJobs"]);
+      }
+      if (GLUEService["WaitingJobs"]) {
+        cs->WaitingJobs = stringtoi((std::string)GLUEService["WaitingJobs"]);
+      }
+      if (GLUEService["StagingJobs"]) {
+        cs->StagingJobs = stringtoi((std::string)GLUEService["StagingJobs"]);
+      }
+      if (GLUEService["SuspendedJobs"]) {
+        cs->SuspendedJobs = stringtoi((std::string)GLUEService["SuspendedJobs"]);
+      }
+      if (GLUEService["PreLRMSWaitingJobs"]) {
+        cs->PreLRMSWaitingJobs = stringtoi((std::string)GLUEService["PreLRMSWaitingJobs"]);
+      }
+      // The GLUE2 specification does not have attribute ComputingService.LocalRunningJobs
+      //if (GLUEService["LocalRunningJobs"]) {
+      //  cs->LocalRunningJobs = stringtoi((std::string)GLUEService["LocalRunningJobs"]);
+      //}
+      // The GLUE2 specification does not have attribute ComputingService.LocalWaitingJobs
+      //if (GLUEService["LocalWaitingJobs"]) {
+      //  cs->LocalWaitingJobs = stringtoi((std::string)GLUEService["LocalWaitingJobs"]);
+      //}
+      // The GLUE2 specification does not have attribute ComputingService.LocalSuspendedJobs
+      //if (GLUEService["LocalSuspendedJobs"]) {
+      //  cs->LocalWaitingJobs = stringtoi((std::string)GLUEService["LocalSuspendedJobs"]);
+      //}
 
-      if (xmlCENode["Technology"]) {
-        targets.back().ComputingEndpoint.Technology = (std::string)xmlCENode["Technology"];
-      }
-      if (xmlCENode["InterfaceName"]) {
-        targets.back().ComputingEndpoint.InterfaceName = (std::string)xmlCENode["InterfaceName"];
-      } else if (xmlCENode["Interface"]) {
-        targets.back().ComputingEndpoint.InterfaceName = (std::string)xmlCENode["Interface"];
-      } else {
-        logger.msg(VERBOSE, "The Service doesn't advertise its Interface.");
-      }
-      if (xmlCENode["InterfaceVersion"]) {
-        targets.back().ComputingEndpoint.InterfaceName = (std::string)xmlCENode["InterfaceVersion"];
-      }
-      if (xmlCENode["InterfaceExtension"]) {
-        for (XMLNode n = xmlCENode["InterfaceExtension"]; n; ++n) {
-          targets.back().ComputingEndpoint.InterfaceExtension.push_back((std::string)n);
-        }
-      }
-      if (xmlCENode["SupportedProfile"]) {
-        for (XMLNode n = xmlCENode["SupportedProfile"]; n; ++n) {
-          targets.back().ComputingEndpoint.SupportedProfile.push_back((std::string)n);
-        }
-      }
-      if (xmlCENode["Implementor"]) {
-        targets.back().ComputingEndpoint.Implementor = (std::string)xmlCENode["Implementor"];
-      }
-      if (xmlCENode["ImplementationName"]) {
-        if (xmlCENode["ImplementationVersion"]) {
-          targets.back().ComputingEndpoint.Implementation =
-            Software((std::string)xmlCENode["ImplementationName"],
-                     (std::string)xmlCENode["ImplementationVersion"]);
-        } else {
-          targets.back().ComputingEndpoint.Implementation = Software((std::string)xmlCENode["ImplementationName"]);
-        }
-      }
-      if (xmlCENode["ServingState"]) {
-        targets.back().ComputingEndpoint.ServingState = (std::string)xmlCENode["ServingState"];
-      } else {
-        logger.msg(VERBOSE, "The Service doesn't advertise its Serving State.");
-      }
-      if (xmlCENode["IssuerCA"]) {
-        targets.back().ComputingEndpoint.IssuerCA = (std::string)xmlCENode["IssuerCA"];
-      }
-      if (xmlCENode["TrustedCA"]) {
-        XMLNode n = xmlCENode["TrustedCA"];
-        while (n) {
-          targets.back().ComputingEndpoint.TrustedCA.push_back((std::string)n);
-          ++n; //The increment operator works in an unusual manner (returns void)
-        }
-      }
-      if (xmlCENode["DowntimeStart"]) {
-        targets.back().ComputingEndpoint.DowntimeStarts = (std::string)xmlCENode["DowntimeStart"];
-      }
-      if (xmlCENode["DowntimeEnd"]) {
-        targets.back().ComputingEndpoint.DowntimeEnds = (std::string)xmlCENode["DowntimeEnd"];
-      }
-      if (xmlCENode["Staging"]) {
-        targets.back().ComputingEndpoint.Staging = (std::string)xmlCENode["Staging"];
-      }
-      if (xmlCENode["JobDescription"]) {
-        for (XMLNode n = xmlCENode["JobDescription"]; n; ++n) {
-          targets.back().ComputingEndpoint.JobDescriptions.push_back((std::string)n);
-        }
-      }
 
-      //Attributes below should possibly consider elements in different places (Service/Endpoint/Share etc).
-      if (xmlCENode["TotalJobs"]) {
-        targets.back().ComputingShare.TotalJobs = stringtoi((std::string)xmlCENode["TotalJobs"]);
-      } else if (GLUEService["TotalJobs"]) {
-        targets.back().ComputingShare.TotalJobs = stringtoi((std::string)GLUEService["TotalJobs"]);
-      }
-      if (xmlCENode["RunningJobs"]) {
-        targets.back().ComputingShare.RunningJobs = stringtoi((std::string)xmlCENode["RunningJobs"]);
-      } else if (GLUEService["RunningJobs"]) {
-        targets.back().ComputingShare.RunningJobs = stringtoi((std::string)GLUEService["RunningJobs"]);
-      }
-      if (xmlCENode["WaitingJobs"]) {
-        targets.back().ComputingShare.WaitingJobs = stringtoi((std::string)xmlCENode["WaitingJobs"]);
-      } else if (GLUEService["WaitingJobs"]) {
-        targets.back().ComputingShare.WaitingJobs = stringtoi((std::string)GLUEService["WaitingJobs"]);
-      }
-      if (xmlCENode["StagingJobs"]) {
-        targets.back().ComputingShare.StagingJobs = stringtoi((std::string)xmlCENode["StagingJobs"]);
-      } else if (GLUEService["StagingJobs"]) {
-        targets.back().ComputingShare.StagingJobs = stringtoi((std::string)GLUEService["StagingJobs"]);
-      }
-      if (xmlCENode["SuspendedJobs"]) {
-        targets.back().ComputingShare.SuspendedJobs = stringtoi((std::string)xmlCENode["SuspendedJobs"]);
-      } else if (GLUEService["SuspendedJobs"]) {
-        targets.back().ComputingShare.SuspendedJobs = stringtoi((std::string)GLUEService["SuspendedJobs"]);
-      }
-      if (xmlCENode["PreLRMSWaitingJobs"]) {
-        targets.back().ComputingShare.PreLRMSWaitingJobs = stringtoi((std::string)xmlCENode["PreLRMSWaitingJobs"]);
-      } else if (GLUEService["PreLRMSWaitingJobs"]) {
-        targets.back().ComputingShare.PreLRMSWaitingJobs = stringtoi((std::string)GLUEService["PreLRMSWaitingJobs"]);
-      }
-      if (xmlCENode["LocalRunningJobs"]) {
-        targets.back().ComputingShare.LocalRunningJobs = stringtoi((std::string)xmlCENode["LocalRunningJobs"]);
-      } else if (GLUEService["LocalRunningJobs"]) {
-        targets.back().ComputingShare.LocalRunningJobs = stringtoi((std::string)GLUEService["LocalRunningJobs"]);
-      }
-      if (xmlCENode["LocalWaitingJobs"]) {
-        targets.back().ComputingShare.LocalWaitingJobs = stringtoi((std::string)xmlCENode["LocalWaitingJobs"]);
-      } else if (GLUEService["LocalWaitingJobs"]) {
-        targets.back().ComputingShare.LocalWaitingJobs = stringtoi((std::string)GLUEService["LocalWaitingJobs"]);
-      }
-      if (xmlCENode["LocalSuspendedJobs"]) {
-        targets.back().ComputingShare.LocalSuspendedJobs = stringtoi((std::string)xmlCENode["LocalSuspendedJobs"]);
-      } else if (GLUEService["LocalSuspendedJobs"]) {
-        targets.back().ComputingShare.LocalWaitingJobs = stringtoi((std::string)GLUEService["LocalSuspendedJobs"]);
-      }
-
-      XMLNode ComputingManager = GLUEService["ComputingManager"];
-      if (ComputingManager["ProductName"]) {
-        targets.back().ComputingManager.ProductName = (std::string)ComputingManager["ProductName"];
-      } else if (ComputingManager["Type"]) { // is this non-standard fallback needed?
-        targets.back().ComputingManager.ProductName = (std::string)ComputingManager["Type"];
-      }
-      if (ComputingManager["ProductVersion"]) {
-        targets.back().ComputingManager.ProductVersion = (std::string)ComputingManager["ProductVersion"];
-      }
-      if (ComputingManager["Reservation"]) {
-        targets.back().ComputingManager.Reservation = ((std::string)ComputingManager["Reservation"] == "true") ? true : false;
-      }
-      if (ComputingManager["BulkSubmission"]) {
-        targets.back().ComputingManager.BulkSubmission = ((std::string)ComputingManager["BulkSubmission"] == "true") ? true : false;
-      }
-      if (ComputingManager["TotalPhysicalCPUs"]) {
-        targets.back().ComputingManager.TotalPhysicalCPUs = stringtoi((std::string)ComputingManager["TotalPhysicalCPUs"]);
-      }
-      if (ComputingManager["TotalLogicalCPUs"]) {
-        targets.back().ComputingManager.TotalLogicalCPUs = stringtoi((std::string)ComputingManager["TotalLogicalCPUs"]);
-      }
-      if (ComputingManager["TotalSlots"]) {
-        targets.back().ComputingManager.TotalSlots = stringtoi((std::string)ComputingManager["TotalSlots"]);
-      }
-      if (ComputingManager["Homogeneous"]) {
-        targets.back().ComputingManager.Homogeneous = ((std::string)ComputingManager["Homogeneous"] == "true") ? true : false;
-      }
-      if (ComputingManager["NetworkInfo"]) {
-        for (XMLNode n = ComputingManager["NetworkInfo"]; n; ++n) {
-          targets.back().ComputingManager.NetworkInfo.push_back((std::string)n);
-        }
-      }
-      if (ComputingManager["WorkingAreaShared"]) {
-        targets.back().ComputingManager.WorkingAreaShared = ((std::string)ComputingManager["WorkingAreaShared"] == "true") ? true : false;
-      }
-      if (ComputingManager["WorkingAreaFree"]) {
-        targets.back().ComputingManager.WorkingAreaFree = stringtoi((std::string)ComputingManager["WorkingAreaFree"]);
-      }
-      if (ComputingManager["WorkingAreaTotal"]) {
-        targets.back().ComputingManager.WorkingAreaTotal = stringtoi((std::string)ComputingManager["WorkingAreaTotal"]);
-      }
-      if (ComputingManager["WorkingAreaLifeTime"]) {
-        targets.back().ComputingManager.WorkingAreaLifeTime = (std::string)ComputingManager["WorkingAreaLifeTime"];
-      }
-      if (ComputingManager["CacheFree"]) {
-        targets.back().ComputingManager.CacheFree = stringtoi((std::string)ComputingManager["CacheFree"]);
-      }
-      if (ComputingManager["CacheTotal"]) {
-        targets.back().ComputingManager.CacheTotal = stringtoi((std::string)ComputingManager["CacheTotal"]);
-      }
-      for (XMLNode n = ComputingManager["Benchmark"]; n; ++n) {
-        double value;
-        if (n["Type"] && n["Value"] &&
-            stringto((std::string)n["Value"], value)) {
-          targets.back().Benchmarks[(std::string)n["Type"]] = value;
+      XMLNode xmlCENode = GLUEService["ComputingEndpoint"];
+      int endpointID = 0;
+      for(;(bool)xmlCENode;++xmlCENode) {
+        ComputingEndpointType ComputingEndpoint;
+        if (xmlCENode["HealthState"]) {
+          ComputingEndpoint->HealthState = (std::string)xmlCENode["HealthState"];
         } else {
-          logger.msg(VERBOSE, "Couldn't parse benchmark XML:\n%s", (std::string)n);
-          continue;
+          logger.msg(VERBOSE, "The Service advertises no Health State.");
         }
-      }
-      for (XMLNode n = ComputingManager["ApplicationEnvironments"]["ApplicationEnvironment"]; n; ++n) {
-        ApplicationEnvironment ae((std::string)n["AppName"], (std::string)n["AppVersion"]);
-        ae.State = (std::string)n["State"];
-        if (n["FreeSlots"]) {
-          ae.FreeSlots = stringtoi((std::string)n["FreeSlots"]);
+        if (xmlCENode["HealthStateInfo"]) {
+          ComputingEndpoint->HealthStateInfo = (std::string)xmlCENode["HealthStateInfo"];
+        }
+        if (xmlCENode["Capability"]) {
+          for (XMLNode n = xmlCENode["Capability"]; n; ++n) {
+            ComputingEndpoint->Capability.push_back((std::string)n);
+          }
+        }
+        if (xmlCENode["QualityLevel"]) {
+          ComputingEndpoint->QualityLevel = (std::string)xmlCENode["QualityLevel"];
         } else {
-          ae.FreeSlots = targets.back().ComputingShare.FreeSlots;
-        }
-        if (n["FreeJobs"]) {
-          ae.FreeJobs = stringtoi((std::string)n["FreeJobs"]);
-        } else {
-          ae.FreeJobs = -1;
-        }
-        if (n["FreeUserSeats"]) {
-          ae.FreeUserSeats = stringtoi((std::string)n["FreeUserSeats"]);
-        } else {
-          ae.FreeUserSeats = -1;
-        }
-        targets.back().ApplicationEnvironments.push_back(ae);
-      }
-
-      XMLNode ComputingShare = GLUEService["ComputingShare"];
-      for (int i = 0; ComputingShare[i]; i++) {
-        ExecutionTarget& currentTarget = targets.back();
-        if (ComputingShare[i+1]) {
-          targets.push_back(ExecutionTarget(targets.back()));
+          logger.msg(VERBOSE, "The ComputingEndpoint doesn't advertise its Quality Level.");
         }
 
-        if (ComputingShare[i]["FreeSlots"]) {
-          currentTarget.ComputingShare.FreeSlots = stringtoi((std::string)ComputingShare[i]["FreeSlots"]);
+        if (xmlCENode["Technology"]) {
+          ComputingEndpoint->Technology = (std::string)xmlCENode["Technology"];
         }
-        if (ComputingShare[i]["FreeSlotsWithDuration"]) {
+        if (xmlCENode["InterfaceName"]) {
+          ComputingEndpoint->InterfaceName = (std::string)xmlCENode["InterfaceName"];
+        } else if (xmlCENode["Interface"]) { // No such attribute according to GLUE2 document. Legacy/backward compatibility?
+          ComputingEndpoint->InterfaceName = (std::string)xmlCENode["Interface"];
+        } else {
+          logger.msg(VERBOSE, "The ComputingService doesn't advertise its Interface.");
+        }
+        if (xmlCENode["InterfaceVersion"]) {
+          ComputingEndpoint->InterfaceName = (std::string)xmlCENode["InterfaceVersion"];
+        }
+        if (xmlCENode["InterfaceExtension"]) {
+          for (XMLNode n = xmlCENode["InterfaceExtension"]; n; ++n) {
+            ComputingEndpoint->InterfaceExtension.push_back((std::string)n);
+          }
+        }
+        if (xmlCENode["SupportedProfile"]) {
+          for (XMLNode n = xmlCENode["SupportedProfile"]; n; ++n) {
+            ComputingEndpoint->SupportedProfile.push_back((std::string)n);
+          }
+        }
+        if (xmlCENode["Implementor"]) {
+          ComputingEndpoint->Implementor = (std::string)xmlCENode["Implementor"];
+        }
+        if (xmlCENode["ImplementationName"]) {
+          if (xmlCENode["ImplementationVersion"]) {
+            ComputingEndpoint->Implementation =
+              Software((std::string)xmlCENode["ImplementationName"],
+                       (std::string)xmlCENode["ImplementationVersion"]);
+          } else {
+            ComputingEndpoint->Implementation = Software((std::string)xmlCENode["ImplementationName"]);
+          }
+        }
+        if (xmlCENode["ServingState"]) {
+          ComputingEndpoint->ServingState = (std::string)xmlCENode["ServingState"];
+        } else {
+          logger.msg(VERBOSE, "The ComputingEndpoint doesn't advertise its Serving State.");
+        }
+        if (xmlCENode["IssuerCA"]) {
+          ComputingEndpoint->IssuerCA = (std::string)xmlCENode["IssuerCA"];
+        }
+        if (xmlCENode["TrustedCA"]) {
+          XMLNode n = xmlCENode["TrustedCA"];
+          while (n) {
+            ComputingEndpoint->TrustedCA.push_back((std::string)n);
+            ++n; //The increment operator works in an unusual manner (returns void)
+          }
+        }
+        if (xmlCENode["DowntimeStart"]) {
+          ComputingEndpoint->DowntimeStarts = (std::string)xmlCENode["DowntimeStart"];
+        }
+        if (xmlCENode["DowntimeEnd"]) {
+          ComputingEndpoint->DowntimeEnds = (std::string)xmlCENode["DowntimeEnd"];
+        }
+        if (xmlCENode["Staging"]) {
+          ComputingEndpoint->Staging = (std::string)xmlCENode["Staging"];
+        }
+        if (xmlCENode["JobDescription"]) {
+          for (XMLNode n = xmlCENode["JobDescription"]; n; ++n) {
+            ComputingEndpoint->JobDescriptions.push_back((std::string)n);
+          }
+        }
+
+        if (xmlCENode["TotalJobs"]) {
+          ComputingEndpoint->TotalJobs = stringtoi((std::string)xmlCENode["TotalJobs"]);
+        }
+        if (xmlCENode["RunningJobs"]) {
+          ComputingEndpoint->RunningJobs = stringtoi((std::string)xmlCENode["RunningJobs"]);
+        }
+        if (xmlCENode["WaitingJobs"]) {
+          ComputingEndpoint->WaitingJobs = stringtoi((std::string)xmlCENode["WaitingJobs"]);
+        }
+        if (xmlCENode["StagingJobs"]) {
+          ComputingEndpoint->StagingJobs = stringtoi((std::string)xmlCENode["StagingJobs"]);
+        }
+        if (xmlCENode["SuspendedJobs"]) {
+          ComputingEndpoint->SuspendedJobs = stringtoi((std::string)xmlCENode["SuspendedJobs"]);
+        }
+        if (xmlCENode["PreLRMSWaitingJobs"]) {
+          ComputingEndpoint->PreLRMSWaitingJobs = stringtoi((std::string)xmlCENode["PreLRMSWaitingJobs"]);
+        }
+        // The GLUE2 specification does not have attribute ComputingEndpoint.LocalRunningJobs
+        //if (xmlCENode["LocalRunningJobs"]) {
+        //  ComputingEndpoint->LocalRunningJobs = stringtoi((std::string)xmlCENode["LocalRunningJobs"]);
+        //}
+        // The GLUE2 specification does not have attribute ComputingEndpoint.LocalWaitingJobs
+        //if (xmlCENode["LocalWaitingJobs"]) {
+        //  ComputingEndpoint->LocalWaitingJobs = stringtoi((std::string)xmlCENode["LocalWaitingJobs"]);
+        //}
+        // The GLUE2 specification does not have attribute ComputingEndpoint.LocalSuspendedJobs
+        //if (xmlCENode["LocalSuspendedJobs"]) {
+        //  ComputingEndpoint->LocalSuspendedJobs = stringtoi((std::string)xmlCENode["LocalSuspendedJobs"]);
+        //}
+
+        cs.ComputingEndpoint.insert(std::pair<int, ComputingEndpointType>(endpointID++, ComputingEndpoint));
+      }
+
+      XMLNode xComputingShare = GLUEService["ComputingShare"];
+      int shareID = 0;
+      for (;(bool)xComputingShare;++xComputingShare) {
+        ComputingShareType ComputingShare;
+
+        if (xComputingShare["FreeSlots"]) {
+          ComputingShare->FreeSlots = stringtoi((std::string)xComputingShare["FreeSlots"]);
+        }
+        if (xComputingShare["FreeSlotsWithDuration"]) {
           // Format: ns[:t] [ns[:t]]..., where ns is number of slots and t is the duration.
-          currentTarget.ComputingShare.FreeSlotsWithDuration.clear();
+          ComputingShare->FreeSlotsWithDuration.clear();
 
-          const std::string fswdValue = (std::string)ComputingShare[i]["FreeSlotsWithDuration"];
+          const std::string fswdValue = (std::string)xComputingShare["FreeSlotsWithDuration"];
           std::list<std::string> fswdList;
           tokenize(fswdValue, fswdList);
           for (std::list<std::string>::iterator it = fswdList.begin();
@@ -292,154 +221,239 @@ namespace Arc {
               continue;
             }
 
-            currentTarget.ComputingShare.FreeSlotsWithDuration[Period(duration)] = freeSlots;
+            ComputingShare->FreeSlotsWithDuration[Period(duration)] = freeSlots;
           }
         }
-        if (ComputingShare[i]["UsedSlots"]) {
-          currentTarget.ComputingShare.UsedSlots = stringtoi((std::string)ComputingShare[i]["UsedSlots"]);
+        if (xComputingShare["UsedSlots"]) {
+          ComputingShare->UsedSlots = stringtoi((std::string)xComputingShare["UsedSlots"]);
         }
-        if (ComputingShare[i]["RequestedSlots"]) {
-          currentTarget.ComputingShare.RequestedSlots = stringtoi((std::string)ComputingShare[i]["RequestedSlots"]);
+        if (xComputingShare["RequestedSlots"]) {
+          ComputingShare->RequestedSlots = stringtoi((std::string)xComputingShare["RequestedSlots"]);
         }
-        if (ComputingShare[i]["Name"]) {
-          currentTarget.ComputingShare.Name = (std::string)ComputingShare[i]["Name"];
+        if (xComputingShare["Name"]) {
+          ComputingShare->Name = (std::string)xComputingShare["Name"];
         }
-        if (ComputingShare[i]["MaxWallTime"]) {
-          currentTarget.ComputingShare.MaxWallTime = (std::string)ComputingShare[i]["MaxWallTime"];
+        if (xComputingShare["MaxWallTime"]) {
+          ComputingShare->MaxWallTime = (std::string)xComputingShare["MaxWallTime"];
         }
-        if (ComputingShare[i]["MaxTotalWallTime"]) {
-          currentTarget.ComputingShare.MaxTotalWallTime = (std::string)ComputingShare[i]["MaxTotalWallTime"];
+        if (xComputingShare["MaxTotalWallTime"]) {
+          ComputingShare->MaxTotalWallTime = (std::string)xComputingShare["MaxTotalWallTime"];
         }
-        if (ComputingShare[i]["MinWallTime"]) {
-          currentTarget.ComputingShare.MinWallTime = (std::string)ComputingShare[i]["MinWallTime"];
+        if (xComputingShare["MinWallTime"]) {
+          ComputingShare->MinWallTime = (std::string)xComputingShare["MinWallTime"];
         }
-        if (ComputingShare[i]["DefaultWallTime"]) {
-          currentTarget.ComputingShare.DefaultWallTime = (std::string)ComputingShare[i]["DefaultWallTime"];
+        if (xComputingShare["DefaultWallTime"]) {
+          ComputingShare->DefaultWallTime = (std::string)xComputingShare["DefaultWallTime"];
         }
-        if (ComputingShare[i]["MaxCPUTime"]) {
-          currentTarget.ComputingShare.MaxCPUTime = (std::string)ComputingShare[i]["MaxCPUTime"];
+        if (xComputingShare["MaxCPUTime"]) {
+          ComputingShare->MaxCPUTime = (std::string)xComputingShare["MaxCPUTime"];
         }
-        if (ComputingShare[i]["MaxTotalCPUTime"]) {
-          currentTarget.ComputingShare.MaxTotalCPUTime = (std::string)ComputingShare[i]["MaxTotalCPUTime"];
+        if (xComputingShare["MaxTotalCPUTime"]) {
+          ComputingShare->MaxTotalCPUTime = (std::string)xComputingShare["MaxTotalCPUTime"];
         }
-        if (ComputingShare[i]["MinCPUTime"]) {
-          currentTarget.ComputingShare.MinCPUTime = (std::string)ComputingShare[i]["MinCPUTime"];
+        if (xComputingShare["MinCPUTime"]) {
+          ComputingShare->MinCPUTime = (std::string)xComputingShare["MinCPUTime"];
         }
-        if (ComputingShare[i]["DefaultCPUTime"]) {
-          currentTarget.ComputingShare.DefaultCPUTime = (std::string)ComputingShare[i]["DefaultCPUTime"];
+        if (xComputingShare["DefaultCPUTime"]) {
+          ComputingShare->DefaultCPUTime = (std::string)xComputingShare["DefaultCPUTime"];
         }
-        if (ComputingShare[i]["MaxTotalJobs"]) {
-          currentTarget.ComputingShare.MaxTotalJobs = stringtoi((std::string)ComputingShare[i]["MaxTotalJobs"]);
+        if (xComputingShare["MaxTotalJobs"]) {
+          ComputingShare->MaxTotalJobs = stringtoi((std::string)xComputingShare["MaxTotalJobs"]);
         }
-        if (ComputingShare[i]["MaxRunningJobs"]) {
-          currentTarget.ComputingShare.MaxRunningJobs = stringtoi((std::string)ComputingShare[i]["MaxRunningJobs"]);
+        if (xComputingShare["MaxRunningJobs"]) {
+          ComputingShare->MaxRunningJobs = stringtoi((std::string)xComputingShare["MaxRunningJobs"]);
         }
-        if (ComputingShare[i]["MaxWaitingJobs"]) {
-          currentTarget.ComputingShare.MaxWaitingJobs = stringtoi((std::string)ComputingShare[i]["MaxWaitingJobs"]);
+        if (xComputingShare["MaxWaitingJobs"]) {
+          ComputingShare->MaxWaitingJobs = stringtoi((std::string)xComputingShare["MaxWaitingJobs"]);
         }
-        if (ComputingShare[i]["MaxPreLRMSWaitingJobs"]) {
-          currentTarget.ComputingShare.MaxPreLRMSWaitingJobs = stringtoi((std::string)ComputingShare[i]["MaxPreLRMSWaitingJobs"]);
+        if (xComputingShare["MaxPreLRMSWaitingJobs"]) {
+          ComputingShare->MaxPreLRMSWaitingJobs = stringtoi((std::string)xComputingShare["MaxPreLRMSWaitingJobs"]);
         }
-        if (ComputingShare[i]["MaxUserRunningJobs"]) {
-          currentTarget.ComputingShare.MaxUserRunningJobs = stringtoi((std::string)ComputingShare[i]["MaxUserRunningJobs"]);
+        if (xComputingShare["MaxUserRunningJobs"]) {
+          ComputingShare->MaxUserRunningJobs = stringtoi((std::string)xComputingShare["MaxUserRunningJobs"]);
         }
-        if (ComputingShare[i]["MaxSlotsPerJob"]) {
-          currentTarget.ComputingShare.MaxSlotsPerJob = stringtoi((std::string)ComputingShare[i]["MaxSlotsPerJob"]);
+        if (xComputingShare["MaxSlotsPerJob"]) {
+          ComputingShare->MaxSlotsPerJob = stringtoi((std::string)xComputingShare["MaxSlotsPerJob"]);
         }
-        if (ComputingShare[i]["MaxStageInStreams"]) {
-          currentTarget.ComputingShare.MaxStageInStreams = stringtoi((std::string)ComputingShare[i]["MaxStageInStreams"]);
+        if (xComputingShare["MaxStageInStreams"]) {
+          ComputingShare->MaxStageInStreams = stringtoi((std::string)xComputingShare["MaxStageInStreams"]);
         }
-        if (ComputingShare[i]["MaxStageOutStreams"]) {
-          currentTarget.ComputingShare.MaxStageOutStreams = stringtoi((std::string)ComputingShare[i]["MaxStageOutStreams"]);
+        if (xComputingShare["MaxStageOutStreams"]) {
+          ComputingShare->MaxStageOutStreams = stringtoi((std::string)xComputingShare["MaxStageOutStreams"]);
         }
-        if (ComputingShare[i]["SchedulingPolicy"]) {
-          currentTarget.ComputingShare.SchedulingPolicy = (std::string)ComputingShare[i]["SchedulingPolicy"];
+        if (xComputingShare["SchedulingPolicy"]) {
+          ComputingShare->SchedulingPolicy = (std::string)xComputingShare["SchedulingPolicy"];
         }
-        if (ComputingShare[i]["MaxMainMemory"]) {
-          currentTarget.ComputingShare.MaxMainMemory = stringtoi((std::string)ComputingShare[i]["MaxMainMemory"]);
+        if (xComputingShare["MaxMainMemory"]) {
+          ComputingShare->MaxMainMemory = stringtoi((std::string)xComputingShare["MaxMainMemory"]);
         }
-        if (ComputingShare[i]["MaxVirtualMemory"]) {
-          currentTarget.ComputingShare.MaxVirtualMemory = stringtoi((std::string)ComputingShare[i]["MaxVirtualMemory"]);
+        if (xComputingShare["MaxVirtualMemory"]) {
+          ComputingShare->MaxVirtualMemory = stringtoi((std::string)xComputingShare["MaxVirtualMemory"]);
         }
-        if (ComputingShare[i]["MaxDiskSpace"]) {
-          currentTarget.ComputingShare.MaxDiskSpace = stringtoi((std::string)ComputingShare[i]["MaxDiskSpace"]);
+        if (xComputingShare["MaxDiskSpace"]) {
+          ComputingShare->MaxDiskSpace = stringtoi((std::string)xComputingShare["MaxDiskSpace"]);
         }
-        if (ComputingShare[i]["DefaultStorageService"]) {
-          currentTarget.ComputingShare.DefaultStorageService = (std::string)ComputingShare[i]["DefaultStorageService"];
+        if (xComputingShare["DefaultStorageService"]) {
+          ComputingShare->DefaultStorageService = (std::string)xComputingShare["DefaultStorageService"];
         }
-        if (ComputingShare[i]["Preemption"]) {
-          currentTarget.ComputingShare.Preemption = ((std::string)ComputingShare[i]["Preemption"] == "true") ? true : false;
+        if (xComputingShare["Preemption"]) {
+          ComputingShare->Preemption = ((std::string)xComputingShare["Preemption"] == "true") ? true : false;
         }
-        if (ComputingShare[i]["EstimatedAverageWaitingTime"]) {
-          currentTarget.ComputingShare.EstimatedAverageWaitingTime = (std::string)ComputingShare[i]["EstimatedAverageWaitingTime"];
+        if (xComputingShare["EstimatedAverageWaitingTime"]) {
+          ComputingShare->EstimatedAverageWaitingTime = (std::string)xComputingShare["EstimatedAverageWaitingTime"];
         }
-        if (ComputingShare[i]["EstimatedWorstWaitingTime"]) {
-          currentTarget.ComputingShare.EstimatedWorstWaitingTime = stringtoi((std::string)ComputingShare[i]["EstimatedWorstWaitingTime"]);
+        if (xComputingShare["EstimatedWorstWaitingTime"]) {
+          ComputingShare->EstimatedWorstWaitingTime = stringtoi((std::string)xComputingShare["EstimatedWorstWaitingTime"]);
         }
-        if (ComputingShare[i]["ReservationPolicy"]) {
-          currentTarget.ComputingShare.ReservationPolicy = stringtoi((std::string)ComputingShare[i]["ReservationPolicy"]);
+        if (xComputingShare["ReservationPolicy"]) {
+          ComputingShare->ReservationPolicy = stringtoi((std::string)xComputingShare["ReservationPolicy"]);
         }
 
-        /*
-         * A ComputingShare is linked to multiple ExecutionEnvironments.
-         * Due to bug 2101 multiple ExecutionEnvironments per ComputingShare
-         * will be ignored. The ExecutionEnvironment information will only be
-         * stored if there is one ExecutionEnvironment associated with a
-         * ComputingShare.
-         */
-        if (ComputingShare[i]["Associations"]["ExecutionEnvironmentID"][1]) { // Check if there are multiple ExecutionEnvironments associated with this ComputingShare.
-          logger.msg(WARNING, "Multiple execution environments per queue specified for target. Execution environment information will be ignored.");
-        }
-        else {
-          if (ComputingShare[i]["Associations"]["ExecutionEnvironmentID"]) {
-            logger.msg(DEBUG, "ComputingShare is associated with the ExecutionEnvironment \"%s\"", (std::string)ComputingShare[i]["Associations"]["ExecutionEnvironmentID"]);
-            XMLNode ExecutionEnvironment = ComputingManager["ExecutionEnvironments"]["ExecutionEnvironment"];
-            for (int j = 0; ExecutionEnvironment[j]; j++) {
-              if (ExecutionEnvironment[j]["Name"] &&
-                  (std::string)ExecutionEnvironment[j]["Name"] == (std::string)ComputingShare[i]["Associations"]["ExecutionEnvironmentID"]) {
-                ExecutionEnvironment = ExecutionEnvironment[j];
-              }
-            }
-
-            if (ExecutionEnvironment) {
-              logger.msg(DEBUG, "ExecutionEnvironment \"%s\" located", (std::string)ComputingShare[i]["Associations"]["ExecutionEnvironmentID"]);
-
-              if (ExecutionEnvironment["Platform"]) {
-                currentTarget.ExecutionEnvironment.Platform = (std::string)ExecutionEnvironment["Platform"];
-              }
-
-              if (ExecutionEnvironment["MainMemorySize"]) {
-                currentTarget.ExecutionEnvironment.MainMemorySize = stringtoi((std::string)ExecutionEnvironment["MainMemorySize"]);
-              }
-
-              if (ExecutionEnvironment["OSName"]) {
-                if (ExecutionEnvironment["OSVersion"]) {
-                  if (ExecutionEnvironment["OSFamily"]) {
-                    currentTarget.ExecutionEnvironment.OperatingSystem = Software((std::string)ExecutionEnvironment["OSFamily"],
-                                                                                  (std::string)ExecutionEnvironment["OSName"],
-                                                                                  (std::string)ExecutionEnvironment["OSVersion"]);
-                  }
-                  else {
-                    currentTarget.ExecutionEnvironment.OperatingSystem = Software((std::string)ExecutionEnvironment["OSName"],
-                                                                                  (std::string)ExecutionEnvironment["OSVersion"]);
-                  }
-                }
-                else {
-                  currentTarget.ExecutionEnvironment.OperatingSystem = Software((std::string)ExecutionEnvironment["OSName"]);
-                }
-              }
-
-              if (ExecutionEnvironment["ConnectivityIn"]) {
-                currentTarget.ExecutionEnvironment.ConnectivityIn = (lower((std::string)ExecutionEnvironment["ConnectivityIn"]) == "true");
-              }
-
-              if (ExecutionEnvironment["ConnectivityOut"]) {
-                currentTarget.ExecutionEnvironment.ConnectivityOut = (lower((std::string)ExecutionEnvironment["ConnectivityOut"]) == "true");
-              }
-            }
-          }
-        }
+        cs.ComputingShare.insert(std::pair<int, ComputingShareType>(shareID++, ComputingShare));
       }
+
+      /*
+       * A ComputingShare is linked to multiple ExecutionEnvironments.
+       * Due to bug 2101 multiple ExecutionEnvironments per ComputingShare
+       * will be ignored. The ExecutionEnvironment information will only be
+       * stored if there is one ExecutionEnvironment associated with a
+       * ComputingShare.
+       */
+      /*
+       * TODO: Store ExecutionEnvironment information in the list of
+       * ExecutionEnvironmentType objects and issue a warning when the
+       * resources published in multiple ExecutionEnvironment are
+       * requested in a job description document.
+       */
+
+      int managerID = 0;
+      for (XMLNode xComputingManager = GLUEService["ComputingManager"]; (bool)xComputingManager; ++xComputingManager) {
+        ComputingManagerType ComputingManager;
+        if (xComputingManager["ProductName"]) {
+          ComputingManager->ProductName = (std::string)xComputingManager["ProductName"];
+        }
+        // The GlUE2 specification does not have attribute ComputingManager.Type
+        //if (xComputingManager["Type"]) {
+        //  ComputingManager->Type = (std::string)xComputingManager["Type"];
+        //}
+        if (xComputingManager["ProductVersion"]) {
+          ComputingManager->ProductVersion = (std::string)xComputingManager["ProductVersion"];
+        }
+        if (xComputingManager["Reservation"]) {
+          ComputingManager->Reservation = ((std::string)xComputingManager["Reservation"] == "true");
+        }
+        if (xComputingManager["BulkSubmission"]) {
+          ComputingManager->BulkSubmission = ((std::string)xComputingManager["BulkSubmission"] == "true");
+        }
+        if (xComputingManager["TotalPhysicalCPUs"]) {
+          ComputingManager->TotalPhysicalCPUs = stringtoi((std::string)xComputingManager["TotalPhysicalCPUs"]);
+        }
+        if (xComputingManager["TotalLogicalCPUs"]) {
+          ComputingManager->TotalLogicalCPUs = stringtoi((std::string)xComputingManager["TotalLogicalCPUs"]);
+        }
+        if (xComputingManager["TotalSlots"]) {
+          ComputingManager->TotalSlots = stringtoi((std::string)xComputingManager["TotalSlots"]);
+        }
+        if (xComputingManager["Homogeneous"]) {
+          ComputingManager->Homogeneous = ((std::string)xComputingManager["Homogeneous"] == "true");
+        }
+        if (xComputingManager["NetworkInfo"]) {
+          for (XMLNode n = xComputingManager["NetworkInfo"]; n; ++n) {
+            ComputingManager->NetworkInfo.push_back((std::string)n);
+          }
+        }
+        if (xComputingManager["WorkingAreaShared"]) {
+          ComputingManager->WorkingAreaShared = ((std::string)xComputingManager["WorkingAreaShared"] == "true");
+        }
+        if (xComputingManager["WorkingAreaFree"]) {
+          ComputingManager->WorkingAreaFree = stringtoi((std::string)xComputingManager["WorkingAreaFree"]);
+        }
+        if (xComputingManager["WorkingAreaTotal"]) {
+          ComputingManager->WorkingAreaTotal = stringtoi((std::string)xComputingManager["WorkingAreaTotal"]);
+        }
+        if (xComputingManager["WorkingAreaLifeTime"]) {
+          ComputingManager->WorkingAreaLifeTime = (std::string)xComputingManager["WorkingAreaLifeTime"];
+        }
+        if (xComputingManager["CacheFree"]) {
+          ComputingManager->CacheFree = stringtoi((std::string)xComputingManager["CacheFree"]);
+        }
+        if (xComputingManager["CacheTotal"]) {
+          ComputingManager->CacheTotal = stringtoi((std::string)xComputingManager["CacheTotal"]);
+        }
+        for (XMLNode n = xComputingManager["Benchmark"]; n; ++n) {
+          double value;
+          if (n["Type"] && n["Value"] &&
+              stringto((std::string)n["Value"], value)) {
+            (*ComputingManager.Benchmarks)[(std::string)n["Type"]] = value;
+          } else {
+            logger.msg(VERBOSE, "Couldn't parse benchmark XML:\n%s", (std::string)n);
+            continue;
+          }
+        }
+        for (XMLNode n = xComputingManager["ApplicationEnvironments"]["ApplicationEnvironment"]; n; ++n) {
+          ApplicationEnvironment ae((std::string)n["AppName"], (std::string)n["AppVersion"]);
+          ae.State = (std::string)n["State"];
+          if (n["FreeSlots"]) {
+            ae.FreeSlots = stringtoi((std::string)n["FreeSlots"]);
+          }
+          //else {
+          //  ae.FreeSlots = ComputingShare->FreeSlots; // Non compatible??, i.e. a ComputingShare is unrelated to the ApplicationEnvironment.
+          //}
+          if (n["FreeJobs"]) {
+            ae.FreeJobs = stringtoi((std::string)n["FreeJobs"]);
+          } else {
+            ae.FreeJobs = -1;
+          }
+          if (n["FreeUserSeats"]) {
+            ae.FreeUserSeats = stringtoi((std::string)n["FreeUserSeats"]);
+          } else {
+            ae.FreeUserSeats = -1;
+          }
+          ComputingManager.ApplicationEnvironments->push_back(ae);
+        }
+
+        int eeID = 0;
+        for (XMLNode xExecutionEnvironment = xComputingManager["ExecutionEnvironments"]["ExecutionEnvironment"]; (bool)xExecutionEnvironment; ++xExecutionEnvironment) {
+          ExecutionEnvironmentType ExecutionEnvironment;
+          if (xExecutionEnvironment["Platform"]) {
+            ExecutionEnvironment->Platform = (std::string)xExecutionEnvironment["Platform"];
+          }
+
+          if (xExecutionEnvironment["MainMemorySize"]) {
+            ExecutionEnvironment->MainMemorySize = stringtoi((std::string)xExecutionEnvironment["MainMemorySize"]);
+          }
+
+          if (xExecutionEnvironment["OSName"]) {
+            if (xExecutionEnvironment["OSVersion"]) {
+              if (xExecutionEnvironment["OSFamily"]) {
+                ExecutionEnvironment->OperatingSystem = Software((std::string)xExecutionEnvironment["OSFamily"],
+                                                                 (std::string)xExecutionEnvironment["OSName"],
+                                                                 (std::string)xExecutionEnvironment["OSVersion"]);
+              }
+              else {
+                ExecutionEnvironment->OperatingSystem = Software((std::string)xExecutionEnvironment["OSName"],
+                                                                 (std::string)xExecutionEnvironment["OSVersion"]);
+              }
+            }
+            else {
+              ExecutionEnvironment->OperatingSystem = Software((std::string)xExecutionEnvironment["OSName"]);
+            }
+          }
+
+          if (xExecutionEnvironment["ConnectivityIn"]) {
+            ExecutionEnvironment->ConnectivityIn = (lower((std::string)xExecutionEnvironment["ConnectivityIn"]) == "true");
+          }
+
+          if (xExecutionEnvironment["ConnectivityOut"]) {
+            ExecutionEnvironment->ConnectivityOut = (lower((std::string)xExecutionEnvironment["ConnectivityOut"]) == "true");
+          }
+          ComputingManager.ExecutionEnvironment.insert(std::pair<int, ExecutionEnvironmentType>(eeID++, ExecutionEnvironment));
+        }
+
+        cs.ComputingManager.insert(std::pair<int, ComputingManagerType>(managerID++, ComputingManager));
+      }
+
+      targets.push_back(cs);
     }
   }
 

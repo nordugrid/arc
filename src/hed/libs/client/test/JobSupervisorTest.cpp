@@ -113,16 +113,24 @@ void JobSupervisorTest::TestResubmit()
 
   usercfg.Broker("TEST");
 
-  Arc::ExecutionTarget target;
-  target.ComputingEndpoint.URLString = "http://test2.nordugrid.org";
-  target.ComputingEndpoint.InterfaceName = "org.nordugrid.test";
-  target.ComputingEndpoint.HealthState = "ok";
+  Arc::ComputingServiceType cs;
 
-  Arc::TargetInformationRetrieverPluginTESTControl::targets.push_back(target);
+  Arc::ComputingEndpointType ce;
+  ce->URLString = "http://test2.nordugrid.org";
+  ce->InterfaceName = "org.nordugrid.test";
+  ce->HealthState = "ok";
+
+  cs.ComputingEndpoint.insert(std::pair<int, Arc::ComputingEndpointType>(0, ce));
+  cs.ComputingShare.insert(std::pair<int, Arc::ComputingShareType>(0, Arc::ComputingShareType()));
+  Arc::ComputingManagerType cm;
+  cm.ExecutionEnvironment.insert(std::pair<int, Arc::ExecutionEnvironmentType>(0, Arc::ExecutionEnvironmentType()));
+  cs.ComputingManager.insert(std::pair<int, Arc::ComputingManagerType>(0, cm));
+
+  Arc::TargetInformationRetrieverPluginTESTControl::targets.push_back(cs);
   Arc::TargetInformationRetrieverPluginTESTControl::status = Arc::EndpointQueryingStatus::SUCCESSFUL;
 
   js = new Arc::JobSupervisor(usercfg, jobs);
-  
+
   std::list<Arc::Endpoint> services(1, Arc::Endpoint("http://test2.nordugrid.org",  "org.nordugrid.tirtest", std::list<std::string>(1, Arc::Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO))));
   std::list<Arc::Job> resubmitted;
   CPPUNIT_ASSERT(js->Resubmit(0, services, resubmitted));

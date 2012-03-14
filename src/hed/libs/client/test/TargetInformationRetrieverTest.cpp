@@ -48,8 +48,8 @@ void TargetInformationRetrieverTest::QueryTest() {
 
   Arc::UserConfig uc;
   Arc::Endpoint endpoint;
-  std::list<Arc::ExecutionTarget> etList;
-  Arc::EndpointQueryingStatus sReturned = p->Query(uc, endpoint, etList, Arc::EndpointQueryOptions<Arc::ExecutionTarget>());
+  std::list<Arc::ComputingServiceType> csList;
+  Arc::EndpointQueryingStatus sReturned = p->Query(uc, endpoint, csList, Arc::EndpointQueryOptions<Arc::ComputingServiceType>());
   CPPUNIT_ASSERT(sReturned == Arc::EndpointQueryingStatus::SUCCESSFUL);
 }
 
@@ -60,7 +60,7 @@ void TargetInformationRetrieverTest::GettingStatusFromUnspecifiedCE() {
   Arc::TargetInformationRetrieverPluginTESTControl::status = sInitial;
 
   Arc::UserConfig uc;
-  Arc::TargetInformationRetriever retriever(uc, Arc::EndpointQueryOptions<Arc::ExecutionTarget>());
+  Arc::TargetInformationRetriever retriever(uc, Arc::EndpointQueryOptions<Arc::ComputingServiceType>());
 
   Arc::Endpoint ce;
   ce.URLString = "test.nordugrid.org";

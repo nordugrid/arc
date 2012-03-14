@@ -71,7 +71,7 @@ namespace Arc {
   void JobSupervisor::SelectValid() {
     processed.clear();
     notprocessed.clear();
-    
+
     for (JobSelectionMap::iterator it = jcJobMap.begin();
          it != jcJobMap.end(); ++it) {
       for (std::list<Job*>::iterator itJ = it->second.first.begin();
@@ -92,7 +92,7 @@ namespace Arc {
   void JobSupervisor::SelectByStatus(const std::list<std::string>& status) {
     processed.clear();
     notprocessed.clear();
-    
+
     if (status.empty()) {
       return;
     }
@@ -321,13 +321,13 @@ namespace Arc {
       return false;
     }
 
-    ExecutionTargetRetriever* etr = NULL;
+    ComputingServiceRetriever* csr = NULL;
     if (destination != 1) { // Jobs should not go to same target, making a general information gathering.
-      etr = new ExecutionTargetRetriever(resubmitUsercfg, services, rejectedURLs);
-      etr->wait();
-      if (etr->empty()) {
+      csr = new ComputingServiceRetriever(resubmitUsercfg, services, rejectedURLs);
+      csr->wait();
+      if (csr->empty()) {
         logger.msg(ERROR, "Job resubmission aborted because no resource returned any information");
-        delete etr;
+        delete csr;
         for (std::list< std::list<Job*>::iterator >::iterator itJ = resubmittableJobs.begin();
              itJ != resubmittableJobs.end(); ++itJ) {
           notprocessed.push_back((**itJ)->IDFromEndpoint);
@@ -364,11 +364,11 @@ namespace Arc {
         std::list<Endpoint> sametarget(1, Endpoint((**itJ)->Cluster.fullstr()));
         sametarget.front().Capability.push_back(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO));
 
-        etr = new ExecutionTargetRetriever(resubmitUsercfg, sametarget, rejectedURLs);
-        etr->wait();
-        if (etr->empty()) {
+        csr = new ComputingServiceRetriever(resubmitUsercfg, sametarget, rejectedURLs);
+        csr->wait();
+        if (csr->empty()) {
           logger.msg(ERROR, "Unable to resubmit job (%s), target information retrieval failed for target: %s", (**itJ)->IDFromEndpoint.fullstr(), (**itJ)->Cluster.str());
-          delete etr;
+          delete csr;
           resubmittedJobs.pop_back();
           notprocessed.push_back((**itJ)->IDFromEndpoint);
           jcJobMap[(**itJ)->jc].second.push_back(**itJ);
@@ -380,7 +380,9 @@ namespace Arc {
         rejectTargets.push_back((**itJ)->Cluster);
       }
 
-      if (!chosenBroker->Submit(*etr, jobdescs.front(), resubmittedJobs.back(), rejectTargets)) {
+      std::list<ExecutionTarget> etList;
+      ExecutionTarget::GetExecutionTargetsOfList(*csr, etList);
+      if (!chosenBroker->Submit(etList, jobdescs.front(), resubmittedJobs.back(), rejectTargets)) {
         resubmittedJobs.pop_back();
         notprocessed.push_back((**itJ)->IDFromEndpoint);
         ok = false;
@@ -393,12 +395,12 @@ namespace Arc {
       }
 
       if (destination == 1) {
-        delete etr;
+        delete csr;
       }
     }
 
     if (destination != 1) {
-      delete etr;
+      delete csr;
     }
 
     return ok;
@@ -439,9 +441,9 @@ namespace Arc {
       return ok;
     }
 
-    ExecutionTargetRetriever etr(usercfg, services, rejectedURLs);
-    etr.wait();
-    if (etr.empty()) {
+    ComputingServiceRetriever csr(usercfg, services, rejectedURLs);
+    csr.wait();
+    if (csr.empty()) {
       logger.msg(ERROR, "Job migration aborted, no resource returned any information");
       for (std::list< std::list<Job*>::iterator >::const_iterator itJ = migratableJobs.begin();
            itJ != migratableJobs.end(); ++itJ) {
@@ -465,6 +467,9 @@ namespace Arc {
       return false;
     }
 
+    std::list<ExecutionTarget> etList;
+    ExecutionTarget::GetExecutionTargetsOfList(csr, etList);
+
     for (std::list< std::list<Job*>::iterator >::iterator itJ = migratableJobs.begin();
          itJ != migratableJobs.end(); ++itJ) {
       std::list<JobDescription> jobdescs;
@@ -483,7 +488,7 @@ namespace Arc {
 
       migratedJobs.push_back(Job());
 
-      chosenBroker->PreFilterTargets(etr, jobdescs.front());
+      chosenBroker->PreFilterTargets(etList, jobdescs.front());
       chosenBroker->Sort();
 
       for (const ExecutionTarget*& t = chosenBroker->GetReference(); !chosenBroker->EndOfList(); chosenBroker->Advance()) {

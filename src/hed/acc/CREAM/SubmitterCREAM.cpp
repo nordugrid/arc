@@ -34,7 +34,7 @@ namespace Arc {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     std::string delegationid = UUID();
-    URL url(et.ComputingEndpoint.URLString);
+    URL url(et.ComputingEndpoint->URLString);
     URL delegationurl(url);
     delegationurl.ChangePath(delegationurl.Path() + "/gridsite-delegation");
     CREAMClient gLiteClientDelegation(delegationurl, cfg, usercfg.Timeout());
@@ -54,11 +54,11 @@ namespace Arc {
     }
 
     if (preparedjobdesc.OtherAttributes.find("egee:jdl;BatchSystem") == preparedjobdesc.OtherAttributes.end()) {
-      if (!et.ComputingManager.ProductName.empty()) {
-        preparedjobdesc.OtherAttributes["egee:jdl;BatchSystem"] = et.ComputingManager.ProductName;
+      if (!et.ComputingManager->ProductName.empty()) {
+        preparedjobdesc.OtherAttributes["egee:jdl;BatchSystem"] = et.ComputingManager->ProductName;
       }
-      else if (!et.ComputingShare.MappingQueue.empty()) {
-        preparedjobdesc.OtherAttributes["egee:jdl;BatchSystem"] = et.ComputingShare.MappingQueue;
+      else if (!et.ComputingShare->MappingQueue.empty()) {
+        preparedjobdesc.OtherAttributes["egee:jdl;BatchSystem"] = et.ComputingShare->MappingQueue;
       }
     }
 
@@ -84,7 +84,7 @@ namespace Arc {
       return false;
     }
 
-    AddJobDetails(preparedjobdesc, submissionurl.str() + '/' + jobInfo.jobId, et.Cluster,
+    AddJobDetails(preparedjobdesc, submissionurl.str() + '/' + jobInfo.jobId, et.ComputingService->Cluster,
                   delegationurl.str() + '/' + delegationid, job);
 
     job.ISB = URL(jobInfo.ISB_URI);
@@ -96,7 +96,7 @@ namespace Arc {
   bool SubmitterCREAM::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
                                const ExecutionTarget& et, bool /* forcemigration */,
                                Job& /* job */) {
-    logger.msg(INFO, "Trying to migrate to %s: Migration to a CREAM resource is not supported.", et.ComputingEndpoint.URLString);
+    logger.msg(INFO, "Trying to migrate to %s: Migration to a CREAM resource is not supported.", et.ComputingEndpoint->URLString);
     return false;
   }
 } // namespace Arc

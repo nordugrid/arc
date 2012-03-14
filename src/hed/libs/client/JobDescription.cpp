@@ -499,28 +499,28 @@ namespace Arc {
     }
 
     if (!Resources.RunTimeEnvironment.empty() &&
-        !Resources.RunTimeEnvironment.selectSoftware(et.ApplicationEnvironments)) {
+        !Resources.RunTimeEnvironment.selectSoftware(*et.ApplicationEnvironments)) {
       // This error should never happen since RTE is checked in the Broker.
       logger.msg(VERBOSE, "Unable to select runtime environment");
       return false;
     }
 
     if (!Resources.CEType.empty() &&
-        !Resources.CEType.selectSoftware(et.ComputingEndpoint.Implementation)) {
+        !Resources.CEType.selectSoftware(et.ComputingEndpoint->Implementation)) {
       // This error should never happen since Middleware is checked in the Broker.
       logger.msg(VERBOSE, "Unable to select middleware");
       return false;
     }
 
     if (!Resources.OperatingSystem.empty() &&
-        !Resources.OperatingSystem.selectSoftware(et.ExecutionEnvironment.OperatingSystem)) {
+        !Resources.OperatingSystem.selectSoftware(et.ExecutionEnvironment->OperatingSystem)) {
       // This error should never happen since OS is checked in the Broker.
       logger.msg(VERBOSE, "Unable to select operating system.");
       return false;
     }
 
     // Set queue name to the selected ExecutionTarget
-    Resources.QueueName = et.ComputingShare.Name;
+    Resources.QueueName = et.ComputingShare->Name;
 
     return true;
   }

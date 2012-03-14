@@ -127,10 +127,10 @@ void JobDescriptionTest::PrepareTest()
   {
     Arc::JobDescription jd;
     Arc::ExecutionTarget et;
-    et.ApplicationEnvironments.push_back(Arc::ApplicationEnvironment("SOFTWARE/HELLOWORLD-1.0.0"));
+    et.ApplicationEnvironments->push_back(Arc::ApplicationEnvironment("SOFTWARE/HELLOWORLD-1.0.0"));
     jd.Resources.RunTimeEnvironment.add(Arc::Software("SOFTWARE/HELLOWORLD-1.0.0"), Arc::Software::GREATERTHAN);
     CPPUNIT_ASSERT(!jd.Prepare(et));
-    et.ApplicationEnvironments.push_back(Arc::ApplicationEnvironment("SOFTWARE/HELLOWORLD-2.0.0"));
+    et.ApplicationEnvironments->push_back(Arc::ApplicationEnvironment("SOFTWARE/HELLOWORLD-2.0.0"));
     CPPUNIT_ASSERT(jd.Prepare(et));
     CPPUNIT_ASSERT_EQUAL(1, (int)jd.Resources.RunTimeEnvironment.getSoftwareList().size());
     CPPUNIT_ASSERT_EQUAL((std::string)"SOFTWARE/HELLOWORLD", jd.Resources.RunTimeEnvironment.getSoftwareList().front().getName());
@@ -142,7 +142,7 @@ void JobDescriptionTest::PrepareTest()
   {
     Arc::JobDescription jd;
     Arc::ExecutionTarget et;
-    et.ComputingEndpoint.Implementation = Arc::Software("MIDDLEWARE/ABC-1.2.3");
+    et.ComputingEndpoint->Implementation = Arc::Software("MIDDLEWARE/ABC-1.2.3");
     jd.Resources.CEType.add(Arc::Software("MIDDLEWARE/ABC-2.0.0"), Arc::Software::GREATERTHANOREQUAL);
     CPPUNIT_ASSERT(!jd.Prepare(et));
     jd.Resources.CEType.clear();
@@ -158,7 +158,7 @@ void JobDescriptionTest::PrepareTest()
   {
     Arc::JobDescription jd;
     Arc::ExecutionTarget et;
-    et.ExecutionEnvironment.OperatingSystem = Arc::Software("OPERATINGSYSTEM/COW-2.2.2");
+    et.ExecutionEnvironment->OperatingSystem = Arc::Software("OPERATINGSYSTEM/COW-2.2.2");
     jd.Resources.OperatingSystem.add(Arc::Software("OPERATINGSYSTEM/COW-2.0.0"), Arc::Software::LESSTHAN);
     CPPUNIT_ASSERT(!jd.Prepare(et));
     jd.Resources.OperatingSystem.clear();

@@ -104,6 +104,16 @@ namespace Arc {
       }
     }
 
+    bool set(const std::string name, float& number) {
+      std::string value = get(name);
+      if (!value.empty()) {
+        number = stringtof(value);
+        return true;
+      } else {
+        return false;
+      }
+    }
+
     bool set(const std::string name, double& number) {
       std::string value = get(name);
       if (!value.empty()) {
@@ -180,7 +190,7 @@ namespace Arc {
   };
 
 
-  EndpointQueryingStatus TargetInformationRetrieverPluginLDAPGLUE2::Query(const UserConfig& uc, const Endpoint& ce, std::list<ExecutionTarget>& targets, const EndpointQueryOptions<ExecutionTarget>&) const {
+  EndpointQueryingStatus TargetInformationRetrieverPluginLDAPGLUE2::Query(const UserConfig& uc, const Endpoint& ce, std::list<ComputingServiceType>& csList, const EndpointQueryOptions<ComputingServiceType>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
 
@@ -225,190 +235,215 @@ namespace Arc {
     std::list<Extractor> services = Extractor::All(document, "ComputingService");
     for (std::list<Extractor>::iterator it = services.begin(); it != services.end(); it++) {
       Extractor& service = *it;
-      ExecutionTarget target;
+      ComputingServiceType cs;
+      AdminDomainType& AdminDomain = cs.AdminDomain;
+      LocationType& Location = cs.Location;
 
-      target.Cluster = url; // contains the URL of the infosys that provided the info
+      cs->Cluster = url; // contains the URL of the infosys that provided the info
 
       // GFD.147 GLUE2 5.3 Location
       Extractor location = Extractor::First(service, "Location");
-      location.set("Address", target.Location.Address);
-      location.set("Place", target.Location.Place);
-      location.set("Country", target.Location.Country);
-      location.set("PostCode", target.Location.PostCode);
-      // location.set("Latitude", target.Latitude);
-      // location.set("Longitude", target.Longitude);
+      location.set("Address", Location->Address);
+      location.set("Place", Location->Place);
+      location.set("Country", Location->Country);
+      location.set("PostCode", Location->PostCode);
+      location.set("Latitude", Location->Latitude);
+      location.set("Longitude", Location->Longitude);
 
       // GFD.147 GLUE2 5.5.1 Admin Domain
       Extractor domain = Extractor::First(document, "AdminDomain");
-      domain.set("EntityName", target.AdminDomain.Name);
-      domain.set("Owner", target.AdminDomain.Owner);
+      domain.set("EntityName", AdminDomain->Name);
+      domain.set("Owner", AdminDomain->Owner);
 
       // GFD.147 GLUE2 6.1 Computing Service
-      service.set("EntityName", target.ComputingService.Name);
-      service.set("ServiceType", target.ComputingService.Type);
+      service.set("EntityName", cs->Name);
+      service.set("ServiceType", cs->Type);
 
       // GFD.147 GLUE2 6.2 ComputingEndpoint
       std::list<Extractor> endpoints = Extractor::All(service, "ComputingEndpoint");
-      for (std::list<Extractor>::iterator ite = endpoints.begin(); ite != endpoints.end(); ite++) {
+      int endpointID = 0;
+      for (std::list<Extractor>::iterator ite = endpoints.begin(); ite != endpoints.end(); ++ite) {
         Extractor& endpoint = *ite;
         endpoint.prefix = "Endpoint";
-        // *** This should go into one of the multiple endpoints of the ExecutionTarget, not directly into it
-        endpoint.set("URL", target.ComputingEndpoint.URLString);
-        endpoint.set("Capability", target.ComputingEndpoint.Capability);
-        endpoint.set("Technology", target.ComputingEndpoint.Technology);
-        endpoint.set("InterfaceName", target.ComputingEndpoint.InterfaceName);
-        endpoint.set("InterfaceVersion", target.ComputingEndpoint.InterfaceVersion);
-        endpoint.set("InterfaceExtension", target.ComputingEndpoint.InterfaceExtension);
-        endpoint.set("SupportedProfile", target.ComputingEndpoint.SupportedProfile);
-        endpoint.set("Implementor", target.ComputingEndpoint.Implementor);
-        target.ComputingEndpoint.Implementation = Software(endpoint["ImplementationName"], endpoint["ImplementationVersion"]);
-        endpoint.set("QualityLevel", target.ComputingEndpoint.QualityLevel);
-        endpoint.set("HealthState", target.ComputingEndpoint.HealthState);
-        endpoint.set("HealthStateInfo", target.ComputingEndpoint.HealthStateInfo);
-        endpoint.set("ServingState", target.ComputingEndpoint.ServingState);
-        endpoint.set("IssuerCA", target.ComputingEndpoint.IssuerCA);
-        endpoint.set("TrustedCA", target.ComputingEndpoint.TrustedCA);
-        endpoint.set("DowntimeStarts", target.ComputingEndpoint.DowntimeStarts);
-        endpoint.set("DowntimeEnds", target.ComputingEndpoint.DowntimeEnds);
-        endpoint.set("Staging", target.ComputingEndpoint.Staging);
-        endpoint.set("JobDescription", target.ComputingEndpoint.JobDescriptions);
+
+        ComputingEndpointType ComputingEndpoint;
+        endpoint.set("URL", ComputingEndpoint->URLString);
+        endpoint.set("Capability", ComputingEndpoint->Capability);
+        endpoint.set("Technology", ComputingEndpoint->Technology);
+        endpoint.set("InterfaceName", ComputingEndpoint->InterfaceName);
+        endpoint.set("InterfaceVersion", ComputingEndpoint->InterfaceVersion);
+        endpoint.set("InterfaceExtension", ComputingEndpoint->InterfaceExtension);
+        endpoint.set("SupportedProfile", ComputingEndpoint->SupportedProfile);
+        endpoint.set("Implementor", ComputingEndpoint->Implementor);
+        ComputingEndpoint->Implementation = Software(endpoint["ImplementationName"], endpoint["ImplementationVersion"]);
+        endpoint.set("QualityLevel", ComputingEndpoint->QualityLevel);
+        endpoint.set("HealthState", ComputingEndpoint->HealthState);
+        endpoint.set("HealthStateInfo", ComputingEndpoint->HealthStateInfo);
+        endpoint.set("ServingState", ComputingEndpoint->ServingState);
+        endpoint.set("IssuerCA", ComputingEndpoint->IssuerCA);
+        endpoint.set("TrustedCA", ComputingEndpoint->TrustedCA);
+        endpoint.set("DowntimeStarts", ComputingEndpoint->DowntimeStarts);
+        endpoint.set("DowntimeEnds", ComputingEndpoint->DowntimeEnds);
+        endpoint.set("Staging", ComputingEndpoint->Staging);
+        endpoint.set("JobDescription", ComputingEndpoint->JobDescriptions);
+
+        cs.ComputingEndpoint.insert(std::pair<int, ComputingEndpointType>(endpointID++, ComputingEndpoint));
       }
 
       // GFD.147 GLUE2 6.3 Computing Share
-      Extractor share = Extractor::First(service, "ComputingShare");
-      share.set("EntityName", target.ComputingShare.Name);
-      share.set("MappingQueue", target.ComputingShare.MappingQueue);
-      share.set("MaxWallTime", target.ComputingShare.MaxWallTime);
-      share.set("MaxTotalWallTime", target.ComputingShare.MaxTotalWallTime);
-      share.set("MinWallTime", target.ComputingShare.MinWallTime);
-      share.set("DefaultWallTime", target.ComputingShare.DefaultWallTime);
-      share.set("MaxCPUTime", target.ComputingShare.MaxCPUTime);
-      share.set("MaxTotalCPUTime", target.ComputingShare.MaxTotalCPUTime);
-      share.set("MinCPUTime", target.ComputingShare.MinCPUTime);
-      share.set("DefaultCPUTime", target.ComputingShare.DefaultCPUTime);
-      share.set("MaxTotalJobs", target.ComputingShare.MaxTotalJobs);
-      share.set("MaxRunningJobs", target.ComputingShare.MaxRunningJobs);
-      share.set("MaxWaitingJobs", target.ComputingShare.MaxWaitingJobs);
-      share.set("MaxPreLRMSWaitingJobs", target.ComputingShare.MaxPreLRMSWaitingJobs);
-      share.set("MaxUserRunningJobs", target.ComputingShare.MaxUserRunningJobs);
-      share.set("MaxSlotsPerJob", target.ComputingShare.MaxSlotsPerJob);
-      share.set("MaxStageInStreams", target.ComputingShare.MaxStageInStreams);
-      share.set("MaxStageOutStreams", target.ComputingShare.MaxStageOutStreams);
-      share.set("SchedulingPolicy", target.ComputingShare.SchedulingPolicy);
-      share.set("MaxMainMemory", target.ComputingShare.MaxMainMemory);
-      share.set("MaxVirtualMemory", target.ComputingShare.MaxVirtualMemory);
-      share.set("MaxDiskSpace", target.ComputingShare.MaxDiskSpace);
-      share.set("DefaultStorageService", target.ComputingShare.DefaultStorageService);
-      share.set("Preemption", target.ComputingShare.Preemption);
-      share.set("TotalJobs", target.ComputingShare.TotalJobs);
-      share.set("RunningJobs", target.ComputingShare.RunningJobs);
-      share.set("LocalRunningJobs", target.ComputingShare.LocalRunningJobs);
-      share.set("WaitingJobs", target.ComputingShare.WaitingJobs);
-      share.set("LocalWaitingJobs", target.ComputingShare.LocalWaitingJobs);
-      share.set("SuspendedJobs", target.ComputingShare.SuspendedJobs);
-      share.set("LocalSuspendedJobs", target.ComputingShare.LocalSuspendedJobs);
-      share.set("StagingJobs", target.ComputingShare.StagingJobs);
-      share.set("PreLRMSWaitingJobs", target.ComputingShare.PreLRMSWaitingJobs);
-      share.set("EstimatedAverageWaitingTime", target.ComputingShare.EstimatedAverageWaitingTime);
-      share.set("EstimatedWorstWaitingTime", target.ComputingShare.EstimatedWorstWaitingTime);
-      share.set("FreeSlots", target.ComputingShare.FreeSlots);
-      std::string fswdValue = share["FreeSlotsWithDuration"];
-      if (!fswdValue.empty()) {
-        // Format: ns[:t] [ns[:t]]..., where ns is number of slots and t is the duration.
-        target.ComputingShare.FreeSlotsWithDuration.clear();
-        std::list<std::string> fswdList;
-        tokenize(fswdValue, fswdList);
-        for (std::list<std::string>::iterator it = fswdList.begin(); it != fswdList.end(); it++) {
-          std::list<std::string> fswdPair;
-          tokenize(*it, fswdPair, ":");
-          long duration = LONG_MAX;
-          int freeSlots = 0;
-          if (fswdPair.size() > 2 || !stringto(fswdPair.front(), freeSlots) || (fswdPair.size() == 2 && !stringto(fswdPair.back(), duration))) {
-            logger.msg(VERBOSE, "The \"FreeSlotsWithDuration\" attribute is wrongly formatted. Ignoring it.");
-            logger.msg(DEBUG, "Wrong format of the \"FreeSlotsWithDuration\" = \"%s\" (\"%s\")", fswdValue, *it);
-            continue;
+      std::list<Extractor> shares = Extractor::All(service, "ComputingShare");
+      int shareID = 0;
+      for (std::list<Extractor>::iterator its = shares.begin(); its != shares.end(); ++its) {
+        Extractor& share = *its;
+
+        ComputingShareType ComputingShare;
+        share.set("EntityName", ComputingShare->Name);
+        share.set("MappingQueue", ComputingShare->MappingQueue);
+        share.set("MaxWallTime", ComputingShare->MaxWallTime);
+        share.set("MaxTotalWallTime", ComputingShare->MaxTotalWallTime);
+        share.set("MinWallTime", ComputingShare->MinWallTime);
+        share.set("DefaultWallTime", ComputingShare->DefaultWallTime);
+        share.set("MaxCPUTime", ComputingShare->MaxCPUTime);
+        share.set("MaxTotalCPUTime", ComputingShare->MaxTotalCPUTime);
+        share.set("MinCPUTime", ComputingShare->MinCPUTime);
+        share.set("DefaultCPUTime", ComputingShare->DefaultCPUTime);
+        share.set("MaxTotalJobs", ComputingShare->MaxTotalJobs);
+        share.set("MaxRunningJobs", ComputingShare->MaxRunningJobs);
+        share.set("MaxWaitingJobs", ComputingShare->MaxWaitingJobs);
+        share.set("MaxPreLRMSWaitingJobs", ComputingShare->MaxPreLRMSWaitingJobs);
+        share.set("MaxUserRunningJobs", ComputingShare->MaxUserRunningJobs);
+        share.set("MaxSlotsPerJob", ComputingShare->MaxSlotsPerJob);
+        share.set("MaxStageInStreams", ComputingShare->MaxStageInStreams);
+        share.set("MaxStageOutStreams", ComputingShare->MaxStageOutStreams);
+        share.set("SchedulingPolicy", ComputingShare->SchedulingPolicy);
+        share.set("MaxMainMemory", ComputingShare->MaxMainMemory);
+        share.set("MaxVirtualMemory", ComputingShare->MaxVirtualMemory);
+        share.set("MaxDiskSpace", ComputingShare->MaxDiskSpace);
+        share.set("DefaultStorageService", ComputingShare->DefaultStorageService);
+        share.set("Preemption", ComputingShare->Preemption);
+        share.set("TotalJobs", ComputingShare->TotalJobs);
+        share.set("RunningJobs", ComputingShare->RunningJobs);
+        share.set("LocalRunningJobs", ComputingShare->LocalRunningJobs);
+        share.set("WaitingJobs", ComputingShare->WaitingJobs);
+        share.set("LocalWaitingJobs", ComputingShare->LocalWaitingJobs);
+        share.set("SuspendedJobs", ComputingShare->SuspendedJobs);
+        share.set("LocalSuspendedJobs", ComputingShare->LocalSuspendedJobs);
+        share.set("StagingJobs", ComputingShare->StagingJobs);
+        share.set("PreLRMSWaitingJobs", ComputingShare->PreLRMSWaitingJobs);
+        share.set("EstimatedAverageWaitingTime", ComputingShare->EstimatedAverageWaitingTime);
+        share.set("EstimatedWorstWaitingTime", ComputingShare->EstimatedWorstWaitingTime);
+        share.set("FreeSlots", ComputingShare->FreeSlots);
+        std::string fswdValue = share["FreeSlotsWithDuration"];
+        if (!fswdValue.empty()) {
+          // Format: ns[:t] [ns[:t]]..., where ns is number of slots and t is the duration.
+          ComputingShare->FreeSlotsWithDuration.clear();
+          std::list<std::string> fswdList;
+          tokenize(fswdValue, fswdList);
+          for (std::list<std::string>::iterator it = fswdList.begin(); it != fswdList.end(); it++) {
+            std::list<std::string> fswdPair;
+            tokenize(*it, fswdPair, ":");
+            long duration = LONG_MAX;
+            int freeSlots = 0;
+            if (fswdPair.size() > 2 || !stringto(fswdPair.front(), freeSlots) || (fswdPair.size() == 2 && !stringto(fswdPair.back(), duration))) {
+              logger.msg(VERBOSE, "The \"FreeSlotsWithDuration\" attribute is wrongly formatted. Ignoring it.");
+              logger.msg(DEBUG, "Wrong format of the \"FreeSlotsWithDuration\" = \"%s\" (\"%s\")", fswdValue, *it);
+              continue;
+            }
+            ComputingShare->FreeSlotsWithDuration[Period(duration)] = freeSlots;
           }
-          target.ComputingShare.FreeSlotsWithDuration[Period(duration)] = freeSlots;
         }
+        share.set("UsedSlots", ComputingShare->UsedSlots);
+        share.set("RequestedSlots", ComputingShare->RequestedSlots);
+        share.set("ReservationPolicy", ComputingShare->ReservationPolicy);
+
+        cs.ComputingShare.insert(std::pair<int, ComputingShareType>(shareID++, ComputingShare));
       }
-      share.set("UsedSlots", target.ComputingShare.UsedSlots);
-      share.set("RequestedSlots", target.ComputingShare.RequestedSlots);
-      share.set("ReservationPolicy", target.ComputingShare.ReservationPolicy);
 
 
       // GFD.147 GLUE2 6.4 Computing Manager
-      Extractor manager = Extractor::First(service, "ComputingManager");
-      manager.set("ManagerProductName", target.ComputingManager.ProductName);
-      manager.set("ManagerProductVersion", target.ComputingManager.ProductVersion);
-      manager.set("Reservation", target.ComputingManager.Reservation);
-      manager.set("BulkSubmission", target.ComputingManager.BulkSubmission);
-      manager.set("TotalPhysicalCPUs", target.ComputingManager.TotalPhysicalCPUs);
-      manager.set("TotalLogicalCPUs", target.ComputingManager.TotalLogicalCPUs);
-      manager.set("TotalSlots", target.ComputingManager.TotalSlots);
-      manager.set("Homogeneous", target.ComputingManager.Homogeneous);
-      manager.set("NetworkInfo", target.ComputingManager.NetworkInfo);
-      manager.set("WorkingAreaShared", target.ComputingManager.WorkingAreaShared);
-      manager.set("WorkingAreaTotal", target.ComputingManager.WorkingAreaTotal);
-      manager.set("WorkingAreaFree", target.ComputingManager.WorkingAreaFree);
-      manager.set("WorkingAreaLifeTime", target.ComputingManager.WorkingAreaLifeTime);
-      manager.set("CacheTotal", target.ComputingManager.CacheTotal);
-      manager.set("CacheFree", target.ComputingManager.CacheFree);
+      std::list<Extractor> managers = Extractor::All(service, "ComputingManager");
+      int managerID = 0;
+      for (std::list<Extractor>::iterator itm = managers.begin(); itm != managers.end(); ++itm) {
+        Extractor& manager = *itm;
 
-      // GFD.147 GLUE2 6.5 Benchmark
+        ComputingManagerType ComputingManager;
+        manager.set("ManagerProductName", ComputingManager->ProductName);
+        manager.set("ManagerProductVersion", ComputingManager->ProductVersion);
+        manager.set("Reservation", ComputingManager->Reservation);
+        manager.set("BulkSubmission", ComputingManager->BulkSubmission);
+        manager.set("TotalPhysicalCPUs", ComputingManager->TotalPhysicalCPUs);
+        manager.set("TotalLogicalCPUs", ComputingManager->TotalLogicalCPUs);
+        manager.set("TotalSlots", ComputingManager->TotalSlots);
+        manager.set("Homogeneous", ComputingManager->Homogeneous);
+        manager.set("NetworkInfo", ComputingManager->NetworkInfo);
+        manager.set("WorkingAreaShared", ComputingManager->WorkingAreaShared);
+        manager.set("WorkingAreaTotal", ComputingManager->WorkingAreaTotal);
+        manager.set("WorkingAreaFree", ComputingManager->WorkingAreaFree);
+        manager.set("WorkingAreaLifeTime", ComputingManager->WorkingAreaLifeTime);
+        manager.set("CacheTotal", ComputingManager->CacheTotal);
+        manager.set("CacheFree", ComputingManager->CacheFree);
 
-      std::list<Extractor> benchmarks = Extractor::All(service, "Benchmark");
-      for (std::list<Extractor>::iterator itb = benchmarks.begin(); itb != benchmarks.end(); itb++) {
-        Extractor& benchmark = *itb;
-        std::string Type; benchmark.set("Type", Type);
-        double Value = -1.0; benchmark.set("Value", Value);
-        target.Benchmarks[Type] = Value;
-      }
-
-      // GFD.147 GLUE2 6.6 Execution Environment
-
-      std::list<Extractor> execenvironments = Extractor::All(service, "ExecutionEnvironment");
-      for (std::list<Extractor>::iterator ite = execenvironments.begin(); ite != execenvironments.end(); ite++) {
-        Extractor& environment = *ite;
-        // *** This should go into one of the multiple execution environments of the ExecutionTarget, not directly into it
-        environment.set("Platform", target.ExecutionEnvironment.Platform);
-        environment.set("VirtualMachine", target.ExecutionEnvironment.VirtualMachine);
-        environment.set("CPUVendor", target.ExecutionEnvironment.CPUVendor);
-        environment.set("CPUModel", target.ExecutionEnvironment.CPUModel);
-        environment.set("CPUVersion", target.ExecutionEnvironment.CPUVersion);
-        environment.set("CPUClockSpeed", target.ExecutionEnvironment.CPUClockSpeed);
-        environment.set("MainMemorySize", target.ExecutionEnvironment.MainMemorySize);
-        std::string OSName = environment["OSName"];
-        std::string OSVersion = environment["OSVersion"];
-        std::string OSFamily = environment["OSFamily"];
-        if (!OSName.empty()) {
-          if (!OSVersion.empty()) {
-            if (!OSFamily.empty()) {
-              target.ExecutionEnvironment.OperatingSystem = Software(OSFamily, OSName, OSVersion);
-            } else {
-              target.ExecutionEnvironment.OperatingSystem = Software(OSName, OSVersion);
-            }
-          } else {
-            target.ExecutionEnvironment.OperatingSystem = Software(OSName);
-          }
+        // TODO: Only benchmarks belonging to this ComputingManager should be considered.
+        // GFD.147 GLUE2 6.5 Benchmark
+        std::list<Extractor> benchmarks = Extractor::All(service, "Benchmark");
+        for (std::list<Extractor>::iterator itb = benchmarks.begin(); itb != benchmarks.end(); ++itb) {
+          Extractor& benchmark = *itb;
+          std::string Type; benchmark.set("Type", Type);
+          double Value = -1.0; benchmark.set("Value", Value);
+          (*ComputingManager.Benchmarks)[Type] = Value;
         }
-        environment.set("ConnectivityIn", target.ExecutionEnvironment.ConnectivityIn);
-        environment.set("ConnectivityOut", target.ExecutionEnvironment.ConnectivityOut);
+
+        // GFD.147 GLUE2 6.6 Execution Environment
+        std::list<Extractor> execenvironments = Extractor::All(service, "ExecutionEnvironment");
+        int eeID = 0;
+        for (std::list<Extractor>::iterator ite = execenvironments.begin(); ite != execenvironments.end(); ite++) {
+          Extractor& environment = *ite;
+
+          ExecutionEnvironmentType ExecutionEnvironment;
+          environment.set("Platform", ExecutionEnvironment->Platform);
+          environment.set("VirtualMachine", ExecutionEnvironment->VirtualMachine);
+          environment.set("CPUVendor", ExecutionEnvironment->CPUVendor);
+          environment.set("CPUModel", ExecutionEnvironment->CPUModel);
+          environment.set("CPUVersion", ExecutionEnvironment->CPUVersion);
+          environment.set("CPUClockSpeed", ExecutionEnvironment->CPUClockSpeed);
+          environment.set("MainMemorySize", ExecutionEnvironment->MainMemorySize);
+          std::string OSName = environment["OSName"];
+          std::string OSVersion = environment["OSVersion"];
+          std::string OSFamily = environment["OSFamily"];
+          if (!OSName.empty()) {
+            if (!OSVersion.empty()) {
+              if (!OSFamily.empty()) {
+                ExecutionEnvironment->OperatingSystem = Software(OSFamily, OSName, OSVersion);
+              } else {
+                ExecutionEnvironment->OperatingSystem = Software(OSName, OSVersion);
+              }
+            } else {
+              ExecutionEnvironment->OperatingSystem = Software(OSName);
+            }
+          }
+          environment.set("ConnectivityIn", ExecutionEnvironment->ConnectivityIn);
+          environment.set("ConnectivityOut", ExecutionEnvironment->ConnectivityOut);
+
+          ComputingManager.ExecutionEnvironment.insert(std::pair<int, ExecutionEnvironmentType>(eeID++, ExecutionEnvironment));
+        }
+
+        // GFD.147 GLUE2 6.7 Application Environment
+        std::list<Extractor> appenvironments = Extractor::All(service, "ApplicationEnvironment");
+        ComputingManager.ApplicationEnvironments->clear();
+        for (std::list<Extractor>::iterator ita = appenvironments.begin(); ita != appenvironments.end(); ita++) {
+          Extractor& application = *ita;
+          ApplicationEnvironment ae(application["AppName"], application["AppVersion"]);
+          ae.State = application["State"];
+          ComputingManager.ApplicationEnvironments->push_back(ae);
+        }
+
+        cs.ComputingManager.insert(std::pair<int, ComputingManagerType>(managerID++, ComputingManager));
       }
 
-      // GFD.147 GLUE2 6.7 Application Environment
-      std::list<Extractor> appenvironments = Extractor::All(service, "ApplicationEnvironment");
-      target.ApplicationEnvironments.clear();
-      for (std::list<Extractor>::iterator ita = appenvironments.begin(); ita != appenvironments.end(); ita++) {
-        Extractor& application = *ita;
-        ApplicationEnvironment ae(application["AppName"], application["AppVersion"]);
-        ae.State = application["State"];
-        target.ApplicationEnvironments.push_back(ae);
-      }
-
-      targets.push_back(target);
+      csList.push_back(cs);
     }
 
-    s = EndpointQueryingStatus::SUCCESSFUL;
+    if (!csList.empty()) s = EndpointQueryingStatus::SUCCESSFUL;
     return s;
   }
 

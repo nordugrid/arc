@@ -69,8 +69,8 @@ namespace Arc {
 
   bool SubmitterARC1::Submit(const JobDescription& jobdesc,
                              const ExecutionTarget& et, Job& job) {
-    URL url(et.ComputingEndpoint.URLString);
-  
+    URL url(et.ComputingEndpoint->URLString);
+
     AREXClient* ac = acquireClient(url);
 
     JobDescription preparedjobdesc(jobdesc);
@@ -109,7 +109,7 @@ namespace Arc {
       return false;
     }
 
-    AddJobDetails(preparedjobdesc, jobid, et.Cluster, jobid, job);
+    AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, jobid, job);
 
     releaseClient(url);
     return true;
@@ -118,8 +118,8 @@ namespace Arc {
   bool SubmitterARC1::Migrate(const URL& jobid, const JobDescription& jobdesc,
                              const ExecutionTarget& et,
                              bool forcemigration, Job& job) {
-    URL url(et.ComputingEndpoint.URLString);
-    
+    URL url(et.ComputingEndpoint->URLString);
+
     AREXClient* ac = acquireClient(url);
 
     std::string idstr;
@@ -189,7 +189,7 @@ namespace Arc {
       return false;
     }
 
-    AddJobDetails(preparedjobdesc, newjobid, et.Cluster, newjobid, job);
+    AddJobDetails(preparedjobdesc, newjobid, et.ComputingService->Cluster, newjobid, job);
 
     releaseClient(url);
     return true;

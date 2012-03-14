@@ -22,9 +22,9 @@ namespace Arc {
     ~TargetInformationRetrieverPluginEMIES() {};
 
     static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginEMIES(); };
-    virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint&, std::list<ExecutionTarget>&, const EndpointQueryOptions<ExecutionTarget>&) const;
+    virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint&, std::list<ComputingServiceType>&, const EndpointQueryOptions<ComputingServiceType>&) const;
     virtual bool isEndpointNotSupported(const Endpoint&) const;
-    static void ExtractTargets(const URL&, XMLNode response, std::list<ExecutionTarget>&);
+    static void ExtractTargets(const URL&, XMLNode response, std::list<ComputingServiceType>&);
 
   private:
     static Logger logger;

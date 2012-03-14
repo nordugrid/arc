@@ -45,7 +45,7 @@ namespace Arc {
     return service;
   }
 
-  EndpointQueryingStatus TargetInformationRetrieverPluginEMIES::Query(const UserConfig& uc, const Endpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
+  EndpointQueryingStatus TargetInformationRetrieverPluginEMIES::Query(const UserConfig& uc, const Endpoint& cie, std::list<ComputingServiceType>& csList, const EndpointQueryOptions<ComputingServiceType>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
     URL url(CreateURL(cie.URLString));
@@ -62,24 +62,24 @@ namespace Arc {
       return s;
     }
 
-    ExtractTargets(url, servicesQueryResponse, etList);
+    ExtractTargets(url, servicesQueryResponse, csList);
 
-    if (!etList.empty()) s = EndpointQueryingStatus::SUCCESSFUL;
+    if (!csList.empty()) s = EndpointQueryingStatus::SUCCESSFUL;
     return s;
   }
 
-  void TargetInformationRetrieverPluginEMIES::ExtractTargets(const URL& url, XMLNode response, std::list<ExecutionTarget>& targets) {
-    targets.clear();
+  void TargetInformationRetrieverPluginEMIES::ExtractTargets(const URL& url, XMLNode response, std::list<ComputingServiceType>& csList) {
     logger.msg(VERBOSE, "Generating EMIES targets");
-    GLUE2::ParseExecutionTargets(response, targets, "EMI-ES");
-    GLUE2::ParseExecutionTargets(response, targets, "org.ogf.emies");
-    for(std::list<ExecutionTarget>::iterator target = targets.begin();
-                           target != targets.end(); ++target) {
-      if(!(target->Cluster)) target->Cluster = url;
-      if(target->ComputingEndpoint.URLString.empty()) target->ComputingEndpoint.URLString = url;
-      if(target->ComputingEndpoint.InterfaceName.empty()) target->ComputingEndpoint.InterfaceName = "EMI-ES"; // TODO: Specify correct interface name.
-      if(target->AdminDomain.Name.empty()) target->AdminDomain.Name = url.Host();
-      logger.msg(VERBOSE, "Generated EMIES target: %s", target->Cluster.str());
+    GLUE2::ParseExecutionTargets(response, csList);
+    for(std::list<ComputingServiceType>::iterator cs = csList.begin(); cs != csList.end(); ++cs) {
+      if(!((*cs)->Cluster)) (*cs)->Cluster = url;
+      for (std::map<int, ComputingEndpointType>::iterator ce = cs->ComputingEndpoint.begin();
+           ce != cs->ComputingEndpoint.end(); ++ce) {
+        if(ce->second->URLString.empty()) ce->second->URLString = url;
+        if(ce->second->InterfaceName.empty()) ce->second->InterfaceName = "org.ogf.emies";
+      }
+      if(cs->AdminDomain->Name.empty()) cs->AdminDomain->Name = url.Host();
+      logger.msg(VERBOSE, "Generated EMIES target: %s", (*cs)->Cluster.str());
     }
   }
 

@@ -17,7 +17,7 @@ endif
 
 libarcclient_ladir = $(pkgincludedir)/client
 libarcclient_la_HEADERS = Broker.h ExecutionTarget.h \
-	Submitter.h \
+	Submitter.h GLUE2Entity.h \
 	JobState.h Job.h JobController.h JobSupervisor.h \
 	JobDescription.h JobDescriptionParser.h Software.h \
 	GLUE2.h EndpointQueryingStatus.h TestACCControl.h \

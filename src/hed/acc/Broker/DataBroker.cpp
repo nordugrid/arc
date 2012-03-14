@@ -40,7 +40,7 @@ namespace Arc {
 
     for (std::list<ExecutionTarget*>::iterator target = PossibleTargets.begin();
          target != PossibleTargets.end(); target++) {
-      URL url((*target)->ComputingEndpoint.URLString);
+      URL url((*target)->ComputingEndpoint->URLString);
       ClientSOAP client(cfg, url, usercfg.Timeout());
 
       long DataSize = 0;
@@ -49,11 +49,11 @@ namespace Arc {
       MCC_Status status = client.process(&request, &response);
 
       if (!status) {
-        CacheMappingTable[(*target)->ComputingEndpoint.URLString] = 0;
+        CacheMappingTable[(*target)->ComputingEndpoint->URLString] = 0;
         continue;
       }
       if (response == NULL) {
-        CacheMappingTable[(*target)->ComputingEndpoint.URLString] = 0;
+        CacheMappingTable[(*target)->ComputingEndpoint->URLString] = 0;
         continue;
       }
 
@@ -65,7 +65,7 @@ namespace Arc {
         DataSize += stringto<long>((std::string)ExistCount[i]["FileSize"]);
       }
 
-      CacheMappingTable[(*target)->ComputingEndpoint.URLString] = DataSize;
+      CacheMappingTable[(*target)->ComputingEndpoint->URLString] = DataSize;
       delete response;
       response = NULL;
     }
@@ -74,7 +74,7 @@ namespace Arc {
   }
 
   bool DataCompare(const ExecutionTarget *T1, const ExecutionTarget *T2) {
-    return CacheMappingTable[T1->ComputingEndpoint.URLString] > CacheMappingTable[T2->ComputingEndpoint.URLString];
+    return CacheMappingTable[T1->ComputingEndpoint->URLString] > CacheMappingTable[T2->ComputingEndpoint->URLString];
   }
 
   DataBroker::DataBroker(const UserConfig& usercfg)
@@ -96,7 +96,7 @@ namespace Arc {
     std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
 
     while (iter != PossibleTargets.end()) {
-      if (!((*iter)->ComputingEndpoint.Implementation >= Software("ARC", "1"))) {
+      if (!((*iter)->ComputingEndpoint->Implementation >= Software("ARC", "1"))) {
         iter = PossibleTargets.erase(iter);
         continue;
       }
@@ -108,7 +108,7 @@ namespace Arc {
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain.Name, (*iter)->ComputingShare.Name);
+      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain->Name, (*iter)->ComputingShare->Name);
 
     CacheCheck();
     PossibleTargets.sort(DataCompare);
@@ -118,7 +118,7 @@ namespace Arc {
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain.Name, (*iter)->ComputingShare.Name);
+      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain->Name, (*iter)->ComputingShare->Name);
 
     TargetSortingDone = true;
   }
