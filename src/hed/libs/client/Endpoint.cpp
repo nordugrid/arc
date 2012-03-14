@@ -37,7 +37,24 @@ namespace Arc {
   }
   
   std::string Endpoint::str() const {
-    return URLString + " (" + (InterfaceName.empty() ? "<unspecified>" : InterfaceName) + ")";
+    std::string mainCapability = "<no Capability>";
+    size_t lastDotPos;
+    if (!Capability.empty()) {
+      mainCapability = Capability.front();
+      lastDotPos = mainCapability.rfind(".");
+      if (lastDotPos != mainCapability.npos) {
+        mainCapability = mainCapability.substr(lastDotPos+1);
+      }      
+    }
+    std::string strippedInterfaceName = "<empty InterfaceName>";
+    if (!InterfaceName.empty()) {
+      strippedInterfaceName = InterfaceName;
+      lastDotPos = strippedInterfaceName.rfind(".");
+      if (lastDotPos != strippedInterfaceName.npos) {
+        strippedInterfaceName = strippedInterfaceName.substr(lastDotPos+1);
+      }
+    }
+    return URLString + " (" + mainCapability + ", " + strippedInterfaceName + ")";
   }
   
   bool Endpoint::operator<(const Endpoint& other) const {
