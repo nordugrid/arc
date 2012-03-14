@@ -48,6 +48,10 @@ typedef struct {
 }
 %}
 
+// to make SWIG treat uid_t and gid_t as integers
+typedef long uid_t;
+typedef long gid_t;
+
 namespace Arc {
 
 /* this typemap tells SWIG that we don't want to use the 'std::list<FileInfo>& files' argument
