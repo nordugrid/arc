@@ -147,6 +147,7 @@ namespace Arc {
       target.ComputingEndpoint.Capability.push_back("executionmanagement.jobexecution");
       target.ComputingEndpoint.Capability.push_back("executionmanagement.jobmanager");
       target.ComputingEndpoint.Technology = "gridftp";
+      target.ComputingEndpoint.InterfaceName = "org.nordugrid.gridftpjob";
       if (cluster["nordugrid-cluster-middleware"]) {
         std::string mw =
           (std::string)cluster["nordugrid-cluster-middleware"];
