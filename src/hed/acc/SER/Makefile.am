@@ -1,7 +1,6 @@
 pkglib_LTLIBRARIES = libaccSER.la
 
 libaccSER_la_SOURCES  = DescriptorsSER.cpp \
-	ServiceEndpointRetrieverPluginEGIIS.cpp ServiceEndpointRetrieverPluginEGIIS.h \
 	ServiceEndpointRetrieverPluginEMIR.cpp ServiceEndpointRetrieverPluginEMIR.h
 libaccSER_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)

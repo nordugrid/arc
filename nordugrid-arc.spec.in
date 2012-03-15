@@ -52,93 +52,93 @@
 
 %global pkgdir arc
 
-Name:		@PACKAGE@
-Version:	@baseversion@
-Release:	@fedorarelease@%{?dist}
-Summary:	Advanced Resource Connector Grid Middleware
-Group:		System Environment/Daemons
-License:	ASL 2.0
-URL:		http://www.nordugrid.org/
-Source:		http://download.nordugrid.org/packages/%{name}/releases/%{version}@preversion@/src/%{name}-%{version}@preversion@.tar.gz
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+Name:   @PACKAGE@
+Version:  @baseversion@
+Release:  @fedorarelease@%{?dist}
+Summary:  Advanced Resource Connector Grid Middleware
+Group:    System Environment/Daemons
+License:  ASL 2.0
+URL:    http://www.nordugrid.org/
+Source:   http://download.nordugrid.org/packages/%{name}/releases/%{version}@preversion@/src/%{name}-%{version}@preversion@.tar.gz
+BuildRoot:  %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-Provides:	%{name}-libs = %{version}-%{release}
-Obsoletes:	%{name}-libs < 1.0.0
-Provides:	nordugrid-arc1 = 1.3.0
-Obsoletes:	nordugrid-arc1 < 1.0.0
-Provides:	nordugrid-arc-nox = 1.3.0
-Obsoletes:	nordugrid-arc-nox < 1.3.0
-#		Packages dropped without replacements
-Obsoletes:	%{name}-httpsd < 0.8.2-1
-Obsoletes:	%{name}-logger-server < 0.8.2-1
-Obsoletes:	nordugrid-arc-nox-charon < 1.3.0
-Obsoletes:	nordugrid-arc-nox-compiler < 1.3.0
-Obsoletes:	nordugrid-arc-nox-delegation < 1.3.0
-Obsoletes:	nordugrid-arc-nox-paul < 1.3.0
-Obsoletes:	nordugrid-arc-nox-saml2sp < 1.3.0
-Obsoletes:	nordugrid-arc-nox-slcs < 1.3.0
+Provides: %{name}-libs = %{version}-%{release}
+Obsoletes:  %{name}-libs < 1.0.0
+Provides: nordugrid-arc1 = 1.3.0
+Obsoletes:  nordugrid-arc1 < 1.0.0
+Provides: nordugrid-arc-nox = 1.3.0
+Obsoletes:  nordugrid-arc-nox < 1.3.0
+#   Packages dropped without replacements
+Obsoletes:  %{name}-httpsd < 0.8.2-1
+Obsoletes:  %{name}-logger-server < 0.8.2-1
+Obsoletes:  nordugrid-arc-nox-charon < 1.3.0
+Obsoletes:  nordugrid-arc-nox-compiler < 1.3.0
+Obsoletes:  nordugrid-arc-nox-delegation < 1.3.0
+Obsoletes:  nordugrid-arc-nox-paul < 1.3.0
+Obsoletes:  nordugrid-arc-nox-saml2sp < 1.3.0
+Obsoletes:  nordugrid-arc-nox-slcs < 1.3.0
 
-BuildRequires:	cppunit-devel
-BuildRequires:	pkgconfig
+BuildRequires:  cppunit-devel
+BuildRequires:  pkgconfig
 %if %{?fedora}%{!?fedora:0} >= 12 || %{?rhel}%{!?rhel:0} >= 6
-BuildRequires:	libuuid-devel
+BuildRequires:  libuuid-devel
 %else
-BuildRequires:	e2fsprogs-devel
+BuildRequires:  e2fsprogs-devel
 %endif
-BuildRequires:	gettext
+BuildRequires:  gettext
 %if %{with_python}
-BuildRequires:	python-devel
+BuildRequires:  python-devel
 %endif
 %if %{?rhel}%{!?rhel:0} == 5
-BuildRequires:	python26-devel
+BuildRequires:  python26-devel
 %endif
 %if %{?fedora}%{!?fedora:0} >= 13
-BuildRequires:	python3-devel
+BuildRequires:  python3-devel
 %endif
-BuildRequires:	glibmm24-devel
-BuildRequires:	glib2-devel
-BuildRequires:	libxml2-devel
-BuildRequires:	openssl
-BuildRequires:	openssl-devel
-BuildRequires:	xmlsec1-devel >= 1.2.4
-BuildRequires:	xmlsec1-openssl-devel >= 1.2.4
-BuildRequires:	openldap-devel
-BuildRequires:	globus-common-devel
-BuildRequires:	globus-ftp-client-devel
-BuildRequires:	globus-ftp-control-devel
-BuildRequires:	globus-rls-client-devel
+BuildRequires:  glibmm24-devel
+BuildRequires:  glib2-devel
+BuildRequires:  libxml2-devel
+BuildRequires:  openssl
+BuildRequires:  openssl-devel
+BuildRequires:  xmlsec1-devel >= 1.2.4
+BuildRequires:  xmlsec1-openssl-devel >= 1.2.4
+BuildRequires:  openldap-devel
+BuildRequires:  globus-common-devel
+BuildRequires:  globus-ftp-client-devel
+BuildRequires:  globus-ftp-control-devel
+BuildRequires:  globus-rls-client-devel
 %if %{with_lfc}
-BuildRequires:	lfc-devel
+BuildRequires:  lfc-devel
 %endif
-BuildRequires:	gridsite-devel
+BuildRequires:  gridsite-devel
 %if %{with_xrootd}
-BuildRequires:	xrootd-devel
+BuildRequires:  xrootd-devel
 %endif
 %if %{?suse_version}%{!?suse_version:0}
-BuildRequires:	libdb-4_5-devel
+BuildRequires:  libdb-4_5-devel
 %else
-BuildRequires:	db4-devel
+BuildRequires:  db4-devel
 %endif
 %if %{with_java}
-BuildRequires:	java-devel
-BuildRequires:	jpackage-utils
+BuildRequires:  java-devel
+BuildRequires:  jpackage-utils
 %if %{with_gcj}
-BuildRequires:	java-gcj-compat-devel
+BuildRequires:  java-gcj-compat-devel
 %endif
 %endif
 # Needed for LRMS testing during make check
-BuildRequires:	perl(Test::Harness)
-BuildRequires:	perl(Test::Simple)
-BuildRequires:	mktemp
+BuildRequires:  perl(Test::Harness)
+BuildRequires:  perl(Test::Simple)
+BuildRequires:  mktemp
 %if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 # The compilation of the selinux module fails on Fedora 5
-BuildRequires:	selinux-policy-devel
+BuildRequires:  selinux-policy-devel
 %endif
-BuildRequires:	swig
+BuildRequires:  swig
 %if %{?fedora}%{!?fedora:0} >= 4 || %{?rhel}%{!?rhel:0} >= 5
-BuildRequires:	libtool-ltdl-devel
+BuildRequires:  libtool-ltdl-devel
 %else
-BuildRequires:	libtool
+BuildRequires:  libtool
 %endif
 
 %description
@@ -158,14 +158,14 @@ The first release, ARC-0.x, was dependent on Globus, the current
 release keeps that compatibility but can also be used independently.
 
 %package client
-Summary:	ARC command line interface
-Group:		Applications/Internet
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-plugins-needed = %{version}-%{release}
-Provides:	nordugrid-arc1-client = 1.3.0
-Obsoletes:	nordugrid-arc1-client < 1.0.0
-Provides:	nordugrid-arc-nox-client = 1.3.0
-Obsoletes:	nordugrid-arc-nox-client < 1.3.0
+Summary:  ARC command line interface
+Group:    Applications/Internet
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-plugins-needed = %{version}-%{release}
+Provides: nordugrid-arc1-client = 1.3.0
+Obsoletes:  nordugrid-arc1-client < 1.0.0
+Provides: nordugrid-arc-nox-client = 1.3.0
+Obsoletes:  nordugrid-arc-nox-client < 1.3.0
 
 %description client
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -178,18 +178,18 @@ that are needed to submit jobs, query their status and
 retrieve results.
 
 %package hed
-Summary:	ARC Hosting Environment Daemon
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-Provides:	nordugrid-arc1-server = 1.3.0
-Obsoletes:	nordugrid-arc1-server < 1.0.0
-Provides:	nordugrid-arc-nox-hed = 1.3.0
-Obsoletes:	nordugrid-arc-nox-hed < 1.3.0
+Summary:  ARC Hosting Environment Daemon
+Group:    System Environment/Libraries
+Requires: %{name} = %{version}-%{release}
+Provides: nordugrid-arc1-server = 1.3.0
+Obsoletes:  nordugrid-arc1-server < 1.0.0
+Provides: nordugrid-arc-nox-hed = 1.3.0
+Obsoletes:  nordugrid-arc-nox-hed < 1.3.0
 
-Requires(post):		chkconfig
-Requires(preun):	chkconfig
-Requires(preun):	initscripts
-Requires(postun):	initscripts
+Requires(post):   chkconfig
+Requires(preun):  chkconfig
+Requires(preun):  initscripts
+Requires(postun): initscripts
 
 %description hed
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -201,16 +201,16 @@ ARC services.
 
 %if %{with_python}
 %package chelonia
-Summary:	ARC chelonia service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-hed = %{version}-%{release}
-Requires:	%{name}-python = %{version}-%{release}
-Requires:	fuse-python
-Provides:	nordugrid-arc-nox-chelonia = 1.3.0
-Obsoletes:	nordugrid-arc-nox-chelonia < 1.3.0
+Summary:  ARC chelonia service
+Group:    System Environment/Libraries
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-hed = %{version}-%{release}
+Requires: %{name}-python = %{version}-%{release}
+Requires: fuse-python
+Provides: nordugrid-arc-nox-chelonia = 1.3.0
+Obsoletes:  nordugrid-arc-nox-chelonia < 1.3.0
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 7
-BuildArch:	noarch
+BuildArch:  noarch
 %endif
 
 %description chelonia
@@ -224,12 +224,12 @@ reliable, robust, scalable, resilient and consistent data storage system.
 %endif
 
 %package hopi
-Summary:	ARC hopi service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-hed = %{version}-%{release}
-Provides:	nordugrid-arc-nox-hopi = 1.3.0
-Obsoletes:	nordugrid-arc-nox-hopi < 1.3.0
+Summary:  ARC hopi service
+Group:    System Environment/Libraries
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-hed = %{version}-%{release}
+Provides: nordugrid-arc-nox-hopi = 1.3.0
+Obsoletes:  nordugrid-arc-nox-hopi < 1.3.0
 
 %description hopi
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -242,13 +242,13 @@ file transfer service and it is usable via common web browsers and
 other http(s) clients (e.g. wget).
 
 %package isis
-Summary:	ARC isis service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-hed = %{version}-%{release}
-Requires:	%{name}-plugins-needed = %{version}-%{release}
-Provides:	nordugrid-arc-nox-isis = 1.3.0
-Obsoletes:	nordugrid-arc-nox-isis < 1.3.0
+Summary:  ARC isis service
+Group:    System Environment/Libraries
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-hed = %{version}-%{release}
+Requires: %{name}-plugins-needed = %{version}-%{release}
+Provides: nordugrid-arc-nox-isis = 1.3.0
+Obsoletes:  nordugrid-arc-nox-isis < 1.3.0
 
 %description isis
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -261,17 +261,17 @@ grants grid participants an increase in flexibility, robustness and it
 also offers easier configuration and self-healing capability.
 
 %package gridftpd
-Summary:	ARC gridftp server
-Group:		System Environment/Daemons
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-plugins-globus
-Provides:	nordugrid-arc-nox-gridftp-server = 1.3.0
-Obsoletes:	nordugrid-arc-nox-gridftp-server < 1.3.0
+Summary:  ARC gridftp server
+Group:    System Environment/Daemons
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-plugins-globus
+Provides: nordugrid-arc-nox-gridftp-server = 1.3.0
+Obsoletes:  nordugrid-arc-nox-gridftp-server < 1.3.0
 
-Requires(post):		chkconfig
-Requires(preun):	chkconfig
-Requires(preun):	initscripts
-Requires(postun):	initscripts
+Requires(post):   chkconfig
+Requires(preun):  chkconfig
+Requires(preun):  initscripts
+Requires(postun): initscripts
 
 %description gridftpd
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -286,18 +286,18 @@ Current plugins include:
   jobplugin  : Classical ARC job submission interface
 
 %package cache-service
-Summary:	ARC cache service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-hed = %{version}-%{release}
-Requires:	%{name}-plugins-needed = %{version}-%{release}
-Provides:	nordugrid-arc-nox-cache-service = 1.3.0
-Obsoletes:	nordugrid-arc-nox-cache-service < 1.3.0
+Summary:  ARC cache service
+Group:    System Environment/Libraries
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-hed = %{version}-%{release}
+Requires: %{name}-plugins-needed = %{version}-%{release}
+Provides: nordugrid-arc-nox-cache-service = 1.3.0
+Obsoletes:  nordugrid-arc-nox-cache-service < 1.3.0
 
-Requires(post):		chkconfig
-Requires(preun):	chkconfig
-Requires(preun):	initscripts
-Requires(postun):	initscripts
+Requires(post):   chkconfig
+Requires(preun):  chkconfig
+Requires(preun):  initscripts
+Requires(postun): initscripts
 
 %description cache-service
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -309,16 +309,16 @@ some operations on the A-REX cache remotely. It can be especially helpful
 for data management within a pilot job framework.
 
 %package datadelivery-service
-Summary:	ARC data delivery service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-hed = %{version}-%{release}
-Requires:	%{name}-plugins-needed = %{version}-%{release}
+Summary:  ARC data delivery service
+Group:    System Environment/Libraries
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-hed = %{version}-%{release}
+Requires: %{name}-plugins-needed = %{version}-%{release}
 
-Requires(post):		chkconfig
-Requires(preun):	chkconfig
-Requires(preun):	initscripts
-Requires(postun):	initscripts
+Requires(post):   chkconfig
+Requires(preun):  chkconfig
+Requires(preun):  initscripts
+Requires(postun): initscripts
 
 %description datadelivery-service
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -328,31 +328,31 @@ Connector (ARC).
 This package contains the ARC data delivery service.
 
 %package aris
-Summary:	ARC LDAP information service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	bdii
-Provides:	%{name}-infoindex = %{version}-%{release}
-Obsoletes:	%{name}-infoindex < 0.8.2-1
-Provides:	%{name}-infosys-ldap = %{version}-%{release}
-Obsoletes:	%{name}-infosys-ldap < 1.0.0
-Provides:	nordugrid-arc-nox-ldap-infosys = 1.3.0
-Obsoletes:	nordugrid-arc-nox-ldap-infosys < 1.3.0
+Summary:  ARC LDAP information service
+Group:    System Environment/Libraries
+Requires: %{name} = %{version}-%{release}
+Requires: bdii
+Provides: %{name}-infoindex = %{version}-%{release}
+Obsoletes:  %{name}-infoindex < 0.8.2-1
+Provides: %{name}-infosys-ldap = %{version}-%{release}
+Obsoletes:  %{name}-infosys-ldap < 1.0.0
+Provides: nordugrid-arc-nox-ldap-infosys = 1.3.0
+Obsoletes:  nordugrid-arc-nox-ldap-infosys < 1.3.0
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
-BuildArch:	noarch
+BuildArch:  noarch
 %endif
 
-Requires(post):		chkconfig
-Requires(preun):	chkconfig
-Requires(preun):	initscripts
-Requires(postun):	initscripts
+Requires(post):   chkconfig
+Requires(preun):  chkconfig
+Requires(preun):  initscripts
+Requires(postun): initscripts
 
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
-Requires(post):		policycoreutils
-Requires(postun):	policycoreutils
+Requires(post):   policycoreutils
+Requires(postun): policycoreutils
 %if %{?fedora}%{!?fedora:0} >= 11 || %{?rhel}%{!?rhel:0} >= 6
-Requires(post):		policycoreutils-python
-Requires(postun):	policycoreutils-python
+Requires(post):   policycoreutils-python
+Requires(postun): policycoreutils-python
 %endif
 %endif
 
@@ -367,16 +367,16 @@ nordugrid-arc-arex to be a part of a local information system or by
 nordugrid-arc-egiis to be a part of a EGIIS service.
 
 %package egiis
-Summary:	ARC EGIIS service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-aris = %{version}-%{release}
-Provides:	nordugrid-arc-nox-giis = 1.3.0
-Obsoletes:	nordugrid-arc-nox-giis < 1.3.0
+Summary:  ARC EGIIS service
+Group:    System Environment/Libraries
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-aris = %{version}-%{release}
+Provides: nordugrid-arc-nox-giis = 1.3.0
+Obsoletes:  nordugrid-arc-nox-giis < 1.3.0
 
 %if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
-Requires(post):		policycoreutils
-Requires(postun):	policycoreutils
+Requires(post):   policycoreutils
+Requires(postun): policycoreutils
 %endif
 
 %description egiis
@@ -389,16 +389,16 @@ used to set up a ldap-based server that local information systems register
 to.
 
 %package ldap-monitor
-Summary:	ARC LDAP monitor service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-Provides:	%{name}-monitor = %{version}-%{release}
-Obsoletes:	%{name}-monitor < 1.0.0
-Requires:	php
-Requires:	php-gd
-Requires:	php-ldap
+Summary:  ARC LDAP monitor service
+Group:    System Environment/Libraries
+Requires: %{name} = %{version}-%{release}
+Provides: %{name}-monitor = %{version}-%{release}
+Obsoletes:  %{name}-monitor < 1.0.0
+Requires: php
+Requires: php-gd
+Requires: php-ldap
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
-BuildArch:	noarch
+BuildArch:  noarch
 %endif
 
 %description ldap-monitor
@@ -411,11 +411,11 @@ This package is self-contained. It is used to set up a web-based monitor
 which pulls information from a EGIIS and shows it graphically.
 
 %package ws-monitor
-Summary:	ARC WS monitor service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
+Summary:  ARC WS monitor service
+Group:    System Environment/Libraries
+Requires: %{name} = %{version}-%{release}
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
-BuildArch:	noarch
+BuildArch:  noarch
 %endif
 
 %description ws-monitor
@@ -428,30 +428,30 @@ This package is self-contained. It is used to set up a web-based monitor
 which pulls information from ISIS and shows it graphically.
 
 %package arex
-Summary:	ARC Remote EXecution service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-hed = %{version}-%{release}
-Requires:	%{name}-plugins-needed = %{version}-%{release}
-Requires:	mktemp
-Requires:	python-twisted-core
-Requires:	python-twisted-web
-Requires:	stomppy
-Requires:	m2crypto
-Requires:	%{name}-aris = %{version}-%{release}
-Provides:	%{name}-grid-manager = %{version}-%{release}
-Obsoletes:	%{name}-grid-manager < 1.0.0
-Provides:	%{name}-server = %{version}-%{release}
-Obsoletes:	%{name}-server < 1.0.0
-Provides:	nordugrid-arc1-arex = 1.3.0
-Obsoletes:	nordugrid-arc1-arex < 1.0.0
-Provides:	nordugrid-arc-nox-arex = 1.3.0
-Obsoletes:	nordugrid-arc-nox-arex < 1.3.0
+Summary:  ARC Remote EXecution service
+Group:    System Environment/Libraries
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-hed = %{version}-%{release}
+Requires: %{name}-plugins-needed = %{version}-%{release}
+Requires: mktemp
+Requires: python-twisted-core
+Requires: python-twisted-web
+Requires: stomppy
+Requires: m2crypto
+Requires: %{name}-aris = %{version}-%{release}
+Provides: %{name}-grid-manager = %{version}-%{release}
+Obsoletes:  %{name}-grid-manager < 1.0.0
+Provides: %{name}-server = %{version}-%{release}
+Obsoletes:  %{name}-server < 1.0.0
+Provides: nordugrid-arc1-arex = 1.3.0
+Obsoletes:  nordugrid-arc1-arex < 1.0.0
+Provides: nordugrid-arc-nox-arex = 1.3.0
+Obsoletes:  nordugrid-arc-nox-arex < 1.3.0
 
-Requires(post):		chkconfig
-Requires(preun):	chkconfig
-Requires(preun):	initscripts
-Requires(postun):	initscripts
+Requires(post):   chkconfig
+Requires(preun):  chkconfig
+Requires(preun):  initscripts
+Requires(postun): initscripts
 
 %description arex
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -462,15 +462,15 @@ The ARC Remote EXecution service (AREX) provides a service for the
 execution of compute jobs and the transfer of input or output data.
 
 %package plugins-needed
-Summary:	ARC base plugins
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-Provides:	nordugrid-arc1-plugins-base = 1.3.0
-Obsoletes:	nordugrid-arc1-plugins-base < 1.0.0
-Provides:	nordugrid-arc-nox-plugins-base = 1.3.0
-Obsoletes:	nordugrid-arc-nox-plugins-base < 1.3.0
-Provides:	nordugrid-arc-plugins-base = %{version}-%{release}
-Obsoletes:	nordugrid-arc-plugins-base < 1.0.0-0.b2
+Summary:  ARC base plugins
+Group:    System Environment/Libraries
+Requires: %{name} = %{version}-%{release}
+Provides: nordugrid-arc1-plugins-base = 1.3.0
+Obsoletes:  nordugrid-arc1-plugins-base < 1.0.0
+Provides: nordugrid-arc-nox-plugins-base = 1.3.0
+Obsoletes:  nordugrid-arc-nox-plugins-base < 1.3.0
+Provides: nordugrid-arc-plugins-base = %{version}-%{release}
+Obsoletes:  nordugrid-arc-plugins-base < 1.0.0-0.b2
 
 %description plugins-needed
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -481,13 +481,13 @@ ARC base plugins. This includes the Message Chain Components (MCCs) and
 Data Manager Components (DMCs).
 
 %package plugins-globus
-Summary:	ARC Globus plugins
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-Provides:	nordugrid-arc1-plugins-globus = 1.3.0
-Obsoletes:	nordugrid-arc1-plugins-globus < 1.0.0
-Provides:	nordugrid-arc-nox-plugins-globus = 1.3.0
-Obsoletes:	nordugrid-arc-nox-plugins-globus < 1.3.0
+Summary:  ARC Globus plugins
+Group:    System Environment/Libraries
+Requires: %{name} = %{version}-%{release}
+Provides: nordugrid-arc1-plugins-globus = 1.3.0
+Obsoletes:  nordugrid-arc1-plugins-globus < 1.0.0
+Provides: nordugrid-arc-nox-plugins-globus = 1.3.0
+Obsoletes:  nordugrid-arc-nox-plugins-globus < 1.3.0
 
 %description plugins-globus
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -498,19 +498,19 @@ ARC Globus plugins. This includes the Globus dependent Data Manager
 Components (DMCs).
 
 %package devel
-Summary:	ARC development files
-Group:		Development/Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	glibmm24-devel
-Requires:	glib2-devel
-Requires:	libxml2-devel
-Requires:	openssl-devel
-Provides:	%{name}-libs-devel = %{version}-%{release}
-Obsoletes:	%{name}-libs-devel < 1.0.0
-Provides:	nordugrid-arc1-devel = 1.3.0
-Obsoletes:	nordugrid-arc1-devel < 1.0.0
-Provides:	nordugrid-arc-nox-devel = 1.3.0
-Obsoletes:	nordugrid-arc-nox-devel < 1.3.0
+Summary:  ARC development files
+Group:    Development/Libraries
+Requires: %{name} = %{version}-%{release}
+Requires: glibmm24-devel
+Requires: glib2-devel
+Requires: libxml2-devel
+Requires: openssl-devel
+Provides: %{name}-libs-devel = %{version}-%{release}
+Obsoletes:  %{name}-libs-devel < 1.0.0
+Provides: nordugrid-arc1-devel = 1.3.0
+Obsoletes:  nordugrid-arc1-devel < 1.0.0
+Provides: nordugrid-arc-nox-devel = 1.3.0
+Obsoletes:  nordugrid-arc-nox-devel < 1.3.0
 
 %description devel
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -521,13 +521,13 @@ Header files and libraries needed to develop applications using ARC.
 
 %if %{with_python}
 %package python
-Summary:	ARC Python wrapper
-Group:		Development/Libraries
-Requires:	%{name} = %{version}-%{release}
-Provides:	nordugrid-arc1-python = 1.3.0
-Obsoletes:	nordugrid-arc1-python < 1.0.0
-Provides:	nordugrid-arc-nox-python = 1.3.0
-Obsoletes:	nordugrid-arc-nox-python < 1.3.0
+Summary:  ARC Python wrapper
+Group:    Development/Libraries
+Requires: %{name} = %{version}-%{release}
+Provides: nordugrid-arc1-python = 1.3.0
+Obsoletes:  nordugrid-arc1-python < 1.0.0
+Provides: nordugrid-arc-nox-python = 1.3.0
+Obsoletes:  nordugrid-arc-nox-python < 1.3.0
 
 %description python
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -539,10 +539,10 @@ Python bindings for ARC.
 
 %if %{?rhel}%{!?rhel:0} == 5
 %package python26
-Summary:	ARC Python wrapper
-Group:		Development/Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	python(abi) = 2.6
+Summary:  ARC Python wrapper
+Group:    Development/Libraries
+Requires: %{name} = %{version}-%{release}
+Requires: python(abi) = 2.6
 
 %description python26
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -554,9 +554,9 @@ Python bindings for ARC.
 
 %if %{?fedora}%{!?fedora:0} >= 13
 %package python3
-Summary:	ARC Python wrapper
-Group:		Development/Libraries
-Requires:	%{name} = %{version}-%{release}
+Summary:  ARC Python wrapper
+Group:    Development/Libraries
+Requires: %{name} = %{version}-%{release}
 
 %description python3
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -568,19 +568,19 @@ Python bindings for ARC.
 
 %if %{with_java}
 %package java
-Summary:	ARC Java wrapper
-Group:		Development/Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	java
-Requires:	jpackage-utils
+Summary:  ARC Java wrapper
+Group:    Development/Libraries
+Requires: %{name} = %{version}-%{release}
+Requires: java
+Requires: jpackage-utils
 %if %{with_gcj}
-Requires(post):		java-gcj-compat
-Requires(postun):	java-gcj-compat
+Requires(post):   java-gcj-compat
+Requires(postun): java-gcj-compat
 %endif
-Provides:	nordugrid-arc1-java = 1.3.0
-Obsoletes:	nordugrid-arc1-java < 1.0.0
-Provides:	nordugrid-arc-nox-java = 1.3.0
-Obsoletes:	nordugrid-arc-nox-java < 1.3.0
+Provides: nordugrid-arc1-java = 1.3.0
+Obsoletes:  nordugrid-arc1-java < 1.0.0
+Provides: nordugrid-arc-nox-java = 1.3.0
+Obsoletes:  nordugrid-arc-nox-java < 1.3.0
 
 %description java
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -591,15 +591,15 @@ Java bindings for ARC.
 %endif
 
 %package janitor
-Summary:	ARC dynamic installation of runtime environments
-Group:		Applications/Internet
-Requires:	wget
-Provides:	nordugrid-arc1-janitor = 1.3.0
-Obsoletes:	nordugrid-arc1-janitor < 1.0.0
-Provides:	nordugrid-arc-nox-janitor = 1.3.0
-Obsoletes:	nordugrid-arc-nox-janitor < 1.3.0
+Summary:  ARC dynamic installation of runtime environments
+Group:    Applications/Internet
+Requires: wget
+Provides: nordugrid-arc1-janitor = 1.3.0
+Obsoletes:  nordugrid-arc1-janitor < 1.0.0
+Provides: nordugrid-arc-nox-janitor = 1.3.0
+Obsoletes:  nordugrid-arc-nox-janitor < 1.3.0
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
-BuildArch:	noarch
+BuildArch:  noarch
 %endif
 
 %description janitor
@@ -616,10 +616,10 @@ The Janitor is a recent development and the community to prepare
 catalogs of dynamically installable packages still needs to evolve.
 
 %package doxygen
-Summary:	ARC API documentation
-Group:		Documentation
+Summary:  ARC API documentation
+Group:    Documentation
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
-BuildArch:	noarch
+BuildArch:  noarch
 %endif
 
 %description doxygen
@@ -630,11 +630,11 @@ Connector (ARC).
 Reference to the ARC programming API. It is prepared with doxygen.
 
 %package gridmap-utils
-Summary:	NorduGrid authorization tools
-Group:		Applications/Internet
-Requires:	perl(Crypt::SSLeay)
+Summary:  NorduGrid authorization tools
+Group:    Applications/Internet
+Requires: perl(Crypt::SSLeay)
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
-BuildArch:	noarch
+BuildArch:  noarch
 %endif
 
 %description gridmap-utils
@@ -647,13 +647,13 @@ A prominent tool distributed in this package is the nordugridmap
 script to collect user information from the virtual organizations.
 
 %package ca-utils
-Summary:	NorduGrid authentication tools
-Group:		Applications/Internet
-Requires:	fetch-crl
-Requires(post):	fetch-crl
-Requires(post):	chkconfig
+Summary:  NorduGrid authentication tools
+Group:    Applications/Internet
+Requires: fetch-crl
+Requires(post): fetch-crl
+Requires(post): chkconfig
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
-BuildArch:	noarch
+BuildArch:  noarch
 %endif
 
 %description ca-utils
@@ -764,7 +764,7 @@ cd -
 %if %{?rhel}%{!?rhel:0} == 5
 %{__python}    -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT"'", 10, "%{python_sitearch}", 1)' > /dev/null
 %{__python} -O -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT"'", 10, "%{python_sitearch}", 1)' > /dev/null
-%{__python26}	 -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT%{python26_sitearch}"'", 10, "%{python26_sitearch}", 1)' > /dev/null
+%{__python26}  -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT%{python26_sitearch}"'", 10, "%{python26_sitearch}", 1)' > /dev/null
 %{__python26} -O -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT%{python26_sitearch}"'", 10, "%{python26_sitearch}", 1)' > /dev/null
 %endif
 
@@ -1206,6 +1206,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.so
 %{_libdir}/%{pkgdir}/libaccSER.so
 %{_libdir}/%{pkgdir}/libaccTIR.so
+%{_libdir}/%{pkgdir}/libaccldap.so
 %{_libdir}/%{pkgdir}/test/libaccTEST.so
 %{_libdir}/%{pkgdir}/libarcshc.so
 %{_libdir}/%{pkgdir}/libarcshclegacy.so
@@ -1228,6 +1229,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.apd
 %{_libdir}/%{pkgdir}/libaccSER.apd
 %{_libdir}/%{pkgdir}/libaccTIR.apd
+%{_libdir}/%{pkgdir}/libaccldap.apd
 %{_libdir}/%{pkgdir}/test/libaccTEST.apd
 %{_libdir}/%{pkgdir}/libarcshc.apd
 %{_libdir}/%{pkgdir}/libarcshclegacy.apd

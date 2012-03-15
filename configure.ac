@@ -2252,6 +2252,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/acc/SER/Makefile
                  src/hed/acc/TIR/Makefile
                  src/hed/acc/JLR/Makefile
+                 src/hed/acc/ldap/Makefile
                  src/hed/acc/TEST/Makefile
                  src/hed/dmc/Makefile
                  src/hed/dmc/file/Makefile

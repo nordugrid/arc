@@ -72,6 +72,8 @@ namespace Arc {
     std::string Owner;
   };
 
+  class BenchmarkAttributes : public std::map<std::string, double> {};
+
   class ExecutionEnvironmentAttributes {
   public:
     ExecutionEnvironmentAttributes()
@@ -290,10 +292,10 @@ namespace Arc {
 
   class ComputingManagerType : public GLUE2Entity<ComputingManagerAttributes> {
   public:
-    ComputingManagerType() : Benchmarks(new std::map<std::string, double>), ApplicationEnvironments(new std::list<ApplicationEnvironment>) {}
+    ComputingManagerType() : Benchmarks(new BenchmarkAttributes), ApplicationEnvironments(new std::list<ApplicationEnvironment>) {}
     // TODO: Currently using int as key, use std::string instead for holding ID.
     std::map<int, ExecutionEnvironmentType> ExecutionEnvironment;
-    CountedPointer< std::map<std::string, double> > Benchmarks;
+    CountedPointer<BenchmarkAttributes> Benchmarks;
     /// ApplicationEnvironments
     /**
      * The ApplicationEnvironments member is a list of
@@ -348,7 +350,7 @@ namespace Arc {
       ComputingShare(new ComputingShareAttributes()),
       ComputingManager(new ComputingManagerAttributes()),
       ExecutionEnvironment(new ExecutionEnvironmentAttributes()),
-      Benchmarks(new std::map<std::string, double>()),
+      Benchmarks(new BenchmarkAttributes()),
       ApplicationEnvironments(new std::list<ApplicationEnvironment>()) {};
 
     /// Create an ExecutionTarget
@@ -369,7 +371,7 @@ namespace Arc {
                     const CountedPointer<ComputingShareAttributes>& csh,
                     const CountedPointer<ComputingManagerAttributes>& cm,
                     const CountedPointer<ExecutionEnvironmentAttributes>& ee,
-                    const CountedPointer< std::map<std::string, double> >& b,
+                    const CountedPointer<BenchmarkAttributes>& b,
                     const CountedPointer< std::list<ApplicationEnvironment> >& ae) :
       Location(l), AdminDomain(a), ComputingService(cse),
       ComputingEndpoint(ce), ComputingShare(csh), ComputingManager(cm),
@@ -469,7 +471,7 @@ namespace Arc {
     CountedPointer<ComputingShareAttributes> ComputingShare;
     CountedPointer<ComputingManagerAttributes> ComputingManager;
     CountedPointer<ExecutionEnvironmentAttributes> ExecutionEnvironment;
-    CountedPointer< std::map<std::string, double> > Benchmarks;
+    CountedPointer<BenchmarkAttributes> Benchmarks;
     CountedPointer< std::list<ApplicationEnvironment> > ApplicationEnvironments;
 
   private:
