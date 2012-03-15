@@ -23,7 +23,8 @@ import logging
 import ConfigParser
 import stomp
 
-sys.path.insert(len(sys.path)+1, sys.path[len(sys.path)-1][:5]+"local/"+ sys.path[len(sys.path)-1][5:])
+# Prepend module path
+sys.path.insert(0,SSMDIR)
 
 from SecureStompMessenger import SecureStompMessenger, \
     Config, ProducerConfig, ConsumerConfig, SSMLoggerID
