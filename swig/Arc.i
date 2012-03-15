@@ -132,6 +132,11 @@ class listiteratorhandler
   return ret;
 }
 
+// Do not apply memory management to the get method of the wrapped std::map<std::string, double> class.
+%typemap(javaout) double& get {
+  return new $javaclassname($jnicall, $owner);
+}
+
 /* On CentOS the following is needed in order for java bindings to be compiled
  * successfully.
  */
@@ -143,6 +148,8 @@ class listiteratorhandler
 %template(StringPair) std::pair<std::string, std::string>;
 %template(StringList) std::list<std::string>;
 %template(StringStringMap) std::map<std::string, std::string>;
+%template(StringDoubleMap) std::map<std::string, double>;
+
 
 #ifdef SWIGPYTHON
 namespace Arc {

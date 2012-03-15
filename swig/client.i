@@ -41,17 +41,23 @@
 %template(ComputingShareMap) std::map<int, Arc::ComputingShareType>;
 %template(ComputingManagerMap) std::map<int, Arc::ComputingManagerType>;
 %template(ExecutionEnvironmentMap) std::map<int, Arc::ExecutionEnvironmentType>;
-#ifdef SWIGJAVA
-%template(doublemap) std::map<std::string, double>;
-%template(SharedApplicationEnvironmentList) Arc::CountedPointer< std::list<Arc::ApplicationEnvironment> >;
-#endif
-%template(BenchmarkMap) Arc::CountedPointer< std::map<std::string, double> >;
+
 #ifdef SWIGPYTHON
-%{
-typedef std::list<Arc::ApplicationEnvironment> ApplicationEnvironmentList;
-%}
-%template(SharedApplicationEnvironmentList) Arc::CountedPointer<ApplicationEnvironmentList>;
-#endif
+/* When instantiating a template of the form
+ * Arc::CountedPointer< T<S> > two __nonzero__
+ * python methods are created in the generated python module file which
+ * causes an swig error. The two __nonzero__ methods probably stems from
+ * the "operator bool" and "operator ->" methods. At least in the Arc.i
+ * file the "operator bool" method is renamed to "__nonzero__". In
+ * order to avoid that name clash the following "operator bool" methods 
+ * is ignored.
+ */
+%ignore Arc::CountedPointer< std::map<std::string, double> >::operator bool;
+%ignore Arc::CountedPointer< std::list<Arc::ApplicationEnvironment> >::operator bool;
+#endif // SWIGPYTHON
+
+%template(SharedBenchmarkMap) Arc::CountedPointer< std::map<std::string, double> >;
+%template(SharedApplicationEnvironmentList) Arc::CountedPointer< std::list<Arc::ApplicationEnvironment> >;
 
 %include "../src/hed/libs/client/GLUE2Entity.h"
 %template(GLUE2EntityLocationAttributes) Arc::GLUE2Entity<Arc::LocationAttributes>;

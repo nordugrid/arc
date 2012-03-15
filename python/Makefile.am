@@ -72,19 +72,31 @@ arc_wrap.cpp: $(SWIG_INPUTS)
 	$(SWIG) -v -c++ -python -threads -module arc -o arc_wrap.cpp \
 		-I/usr/include -I$(top_srcdir)/include \
 		$(PYDOXFLAGS) $(AM_CPPFLAGS) $(OPENSSL_CFLAGS) $(top_srcdir)/swig/Arc.i
-	sed 's/\(^\s*char \*.*\) = \(.*ml_doc\)/\1 = (char *)\2/' arc_wrap.cpp > arc_wrap.cpp.new # Workaround for RHEL5 swig + EPEL5 python26
+# Workaround for RHEL5 swig + EPEL5 python26
+	sed 's/\(^\s*char \*.*\) = \(.*ml_doc\)/\1 = (char *)\2/' arc_wrap.cpp > arc_wrap.cpp.new
 	mv arc_wrap.cpp.new arc_wrap.cpp
-	sed 's/^\(\s*char \*cstr;\) int len;/#if PY_VERSION_HEX < 0x02050000 \&\& !defined(PY_SSIZE_T_MIN)\n&\n#else\n\1 Py_ssize_t len;\n#endif/' arc_wrap.cpp > arc_wrap.cpp.new # Ditto - for 64 bit
+# Ditto - for 64 bit
+	sed 's/^\(\s*char \*cstr;\) int len;/#if PY_VERSION_HEX < 0x02050000 \&\& !defined(PY_SSIZE_T_MIN)\n&\n#else\n\1 Py_ssize_t len;\n#endif/' arc_wrap.cpp > arc_wrap.cpp.new
 	mv arc_wrap.cpp.new arc_wrap.cpp
-	sed '/*_wrap_delete_@SWIG_PYTHON_NAMING@Iterator/,/SWIG_PYTHON_THREAD_END/ s/.*SWIG_PYTHON_THREAD_[A-Z]*_ALLOW.*//' arc_wrap.cpp > arc_wrap.cpp.new # Dont allow threading when deleting SwigPyIterator objects
+# Dont allow threading when deleting SwigPyIterator objects
+	sed '/*_wrap_delete_@SWIG_PYTHON_NAMING@Iterator/,/SWIG_PYTHON_THREAD_END/ s/.*SWIG_PYTHON_THREAD_[A-Z]*_ALLOW.*//' arc_wrap.cpp > arc_wrap.cpp.new
 	mv arc_wrap.cpp.new arc_wrap.cpp
-# Dont allow threading when handling SWIG Python iterators (see bug 2683). Fixed in SWIG version 2.
+# Dont allow threading when handling SWIG Python iterators (see bug
+# 2683). Fixed in SWIG version 2.
 	if test "x@SWIG2@" != "xyes"; then \
     sed '/*_wrap_@SWIG_PYTHON_NAMING@Iterator_/,/SWIG_PYTHON_THREAD_END/ s/.*SWIG_PYTHON_THREAD_[A-Z]*_ALLOW.*//' arc_wrap.cpp > arc_wrap.cpp.new; \
     mv arc_wrap.cpp.new arc_wrap.cpp; \
   fi
-	sed 's/>>(new/> >(new/g' arc_wrap.cpp > arc_wrap.cpp.new # When mapping a template with a template class no space is inserted between the two right angle brackets.
+# When mapping a template with a template class no space is inserted
+# between the two right angle brackets.
+	sed 's/>>(new/> >(new/g' arc_wrap.cpp > arc_wrap.cpp.new
 	mv arc_wrap.cpp.new arc_wrap.cpp
+# When mapping a template with another template class as argument, and
+# that template class takes two classes as argument, then older swigs
+# put parentheses around the two class arguments, e.g. T<(A,B)>, not
+# valid syntax should be T<A,B> instead.
+	sed 's/<(\([,:[:alnum:]]*\))>/<\1>/g' arc_wrap.cpp > arc_wrap.cpp.tmp
+	mv arc_wrap.cpp.tmp arc_wrap.cpp
 
 pydoxygen.i: $(srcdir)/Doxyfile.api
 	doxygen $(srcdir)/Doxyfile.api
