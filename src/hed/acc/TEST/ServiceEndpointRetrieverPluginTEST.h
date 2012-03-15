@@ -7,7 +7,11 @@ namespace Arc {
 
 class ServiceEndpointRetrieverPluginTEST : public ServiceEndpointRetrieverPlugin {
 protected:
-  ServiceEndpointRetrieverPluginTEST() { supportedInterfaces.push_back("org.nordugrid.sertest"); }
+  ServiceEndpointRetrieverPluginTEST(PluginArgument* parg):
+    ServiceEndpointRetrieverPlugin(parg)
+  {
+     supportedInterfaces.push_back("org.nordugrid.sertest");
+  }
 public:
   virtual EndpointQueryingStatus Query(const UserConfig& userconfig,
                                        const Endpoint& registry,

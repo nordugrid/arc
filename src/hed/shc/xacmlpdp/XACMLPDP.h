@@ -14,7 +14,7 @@ namespace ArcSec {
 class XACMLPDP : public PDP {
  public:
   static Arc::Plugin* get_xacml_pdp(Arc::PluginArgument* arg);
-  XACMLPDP(Arc::Config* cfg);
+  XACMLPDP(Arc::Config* cfg, Arc::PluginArgument* parg);
   virtual ~XACMLPDP();
 
   virtual bool isPermitted(Arc::Message *msg) const;

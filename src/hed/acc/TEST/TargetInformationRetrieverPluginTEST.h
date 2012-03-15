@@ -8,7 +8,11 @@ namespace Arc {
 
 class TargetInformationRetrieverPluginTEST : public TargetInformationRetrieverPlugin {
 protected:
-  TargetInformationRetrieverPluginTEST() { supportedInterfaces.push_back("org.nordugrid.tirtest"); }
+  TargetInformationRetrieverPluginTEST(PluginArgument* parg):
+    TargetInformationRetrieverPlugin(parg)
+  {
+    supportedInterfaces.push_back("org.nordugrid.tirtest");
+  }
 public:
   virtual EndpointQueryingStatus Query(const UserConfig& userconfig,
                                        const Endpoint& registry,

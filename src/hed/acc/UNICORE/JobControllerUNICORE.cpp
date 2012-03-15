@@ -19,8 +19,8 @@ namespace Arc {
 
   Logger JobControllerUNICORE::logger(Logger::getRootLogger(), "JobController.UNICORE");
 
-  JobControllerUNICORE::JobControllerUNICORE(const UserConfig& usercfg)
-    : JobController(usercfg, "UNICORE") {}
+  JobControllerUNICORE::JobControllerUNICORE(const UserConfig& usercfg, PluginArgument* parg)
+    : JobController(usercfg, "UNICORE", parg) {}
 
   JobControllerUNICORE::~JobControllerUNICORE() {}
 
@@ -29,7 +29,7 @@ namespace Arc {
       dynamic_cast<JobControllerPluginArgument*>(arg);
     if (!jcarg)
       return NULL;
-    return new JobControllerUNICORE(*jcarg);
+    return new JobControllerUNICORE(*jcarg, arg);
   }
 
   void JobControllerUNICORE::UpdateJobs(std::list<Job*>& jobs) const {

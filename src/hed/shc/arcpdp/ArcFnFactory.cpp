@@ -26,8 +26,8 @@ using namespace Arc;
 
 namespace ArcSec {
 
-Arc::Plugin* get_arcpdp_fn_factory (Arc::PluginArgument*) {
-    return new ArcSec::ArcFnFactory();
+Arc::Plugin* get_arcpdp_fn_factory (Arc::PluginArgument* arg) {
+    return new ArcSec::ArcFnFactory(arg);
 }
 
 void ArcFnFactory::initFunctions(){
@@ -92,7 +92,7 @@ void ArcFnFactory::initFunctions(){
   fnmap.insert(std::pair<std::string, Function*>(fnName, new InRangeFunction(fnName, argType)));
 }
 
-ArcFnFactory::ArcFnFactory(){
+ArcFnFactory::ArcFnFactory(Arc::PluginArgument* parg): FnFactory(parg) {
   initFunctions();
 }
 

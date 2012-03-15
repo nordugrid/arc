@@ -11,7 +11,7 @@ namespace Arc {
     : public Broker {
 
   public:
-    BenchmarkBroker(const UserConfig& usercfg);
+    BenchmarkBroker(const UserConfig& usercfg, PluginArgument* parg);
     ~BenchmarkBroker();
     static Plugin* Instance(PluginArgument *arg);
 

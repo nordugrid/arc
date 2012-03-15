@@ -16,8 +16,9 @@ namespace Arc {
 
   Logger DataPoint::logger(Logger::rootLogger, "DataPoint");
 
-  DataPoint::DataPoint(const URL& url, const UserConfig& usercfg)
-    : url(url),
+  DataPoint::DataPoint(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
+    : Plugin(parg),
+      url(url),
       usercfg(usercfg),
       size((unsigned long long int)(-1)),
       created(-1),

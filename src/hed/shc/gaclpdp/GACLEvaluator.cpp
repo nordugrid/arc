@@ -13,7 +13,7 @@ Arc::Plugin* ArcSec::GACLEvaluator::get_evaluator(Arc::PluginArgument* arg) {
     Arc::ClassLoaderPluginArgument* clarg =
             arg?dynamic_cast<Arc::ClassLoaderPluginArgument*>(arg):NULL;
     if(!clarg) return NULL;
-    return new ArcSec::GACLEvaluator((Arc::XMLNode*)(*clarg));
+    return new ArcSec::GACLEvaluator((Arc::XMLNode*)(*clarg),arg);
 }
 
 //loader_descriptors __arc_evaluator_modules__  = {
@@ -26,13 +26,13 @@ using namespace ArcSec;
 
 Arc::Logger ArcSec::GACLEvaluator::logger(Arc::Logger::rootLogger, "GACLEvaluator");
 
-GACLEvaluator::GACLEvaluator(Arc::XMLNode* cfg) : Evaluator(cfg), plstore(NULL)  {
+GACLEvaluator::GACLEvaluator(Arc::XMLNode* cfg, Arc::PluginArgument* parg) : Evaluator(cfg,parg), plstore(NULL)  {
   plstore = new PolicyStore("", "gacl.policy", NULL);
   if(!plstore) logger.msg(ERROR, "Can not create PolicyStore object");
   combining_alg = EvaluatorFailsOnDeny;
 }
 
-GACLEvaluator::GACLEvaluator(const char * cfgfile) : Evaluator(cfgfile){
+GACLEvaluator::GACLEvaluator(const char * cfgfile, Arc::PluginArgument* parg) : Evaluator(cfgfile,parg){
   plstore = new PolicyStore("", "gacl.policy", NULL);
   if(!plstore) logger.msg(ERROR, "Can not create PolicyStore object");
   combining_alg = EvaluatorFailsOnDeny;
@@ -59,18 +59,18 @@ Response* GACLEvaluator::evaluate(Request* request, Policy* policyobj) {
 }
 
 Response* GACLEvaluator::evaluate(const Source& request, const Source& policy) {
-  GACLRequest greq(request);
-  GACLPolicy* gpol = new GACLPolicy(policy);
-  return evaluate(&greq,gpol);
+  GACLRequest greq(request,NULL);
+  GACLPolicy gpol(policy,NULL);
+  return evaluate(&greq,&gpol);
 }
 
 Response* GACLEvaluator::evaluate(Request* request, const Source& policy) {
-  GACLPolicy* gpol = new GACLPolicy(policy);
-  return evaluate(request,gpol);
+  GACLPolicy gpol(policy,NULL);
+  return evaluate(request,&gpol);
 }
 
 Response* GACLEvaluator::evaluate(const Source& request, Policy* policyobj) {
-  GACLRequest greq(request);
+  GACLRequest greq(request,NULL);
   return evaluate(&greq,policyobj);
 }
 
@@ -120,7 +120,7 @@ Response* GACLEvaluator::evaluate(Request* request) {
 }
 
 Response* GACLEvaluator::evaluate(const Source& request) {
-  GACLRequest greq(request);
+  GACLRequest greq(request,NULL);
   return evaluate(&greq);
 }
 

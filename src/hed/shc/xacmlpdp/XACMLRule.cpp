@@ -16,7 +16,7 @@ Arc::Logger ArcSec::XACMLRule::logger(Arc::Logger::rootLogger, "XACMLRule");
 using namespace Arc;
 using namespace ArcSec;
 
-XACMLRule::XACMLRule(XMLNode& node, EvaluatorContext* ctx) : Policy(node), 
+XACMLRule::XACMLRule(XMLNode& node, EvaluatorContext* ctx) : Policy(node,NULL), 
   target(NULL), condition(NULL) {
   rulenode = node;
   evalres.node = node;

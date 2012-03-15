@@ -17,7 +17,7 @@ using namespace ArcMCCTLS;
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"DelegationCollector");
 
-DelegationCollector::DelegationCollector(Config *cfg):SecHandler(cfg) {
+DelegationCollector::DelegationCollector(Config *cfg,PluginArgument* parg):SecHandler(cfg,parg) {
 }
 
 DelegationCollector::~DelegationCollector(void) {
@@ -113,7 +113,7 @@ Arc::Plugin* DelegationCollector::get_sechandler(Arc::PluginArgument* arg) {
     ArcSec::SecHandlerPluginArgument* shcarg =
             arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
     if(!shcarg) return NULL;
-    return new DelegationCollector((Arc::Config*)(*shcarg));
+    return new DelegationCollector((Arc::Config*)(*shcarg),shcarg);
 }
 
 }

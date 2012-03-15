@@ -352,7 +352,7 @@ class MCC_TLS_Context:public MessageContextElement {
 
 /* The main functionality of the constructor method is to
    initialize SSL layer. */
-MCC_TLS_Service::MCC_TLS_Service(Config& cfg):MCC_TLS(cfg,false) {
+MCC_TLS_Service::MCC_TLS_Service(Config& cfg,PluginArgument* parg):MCC_TLS(cfg,false,parg) {
    if(!OpenSSLInit()) return;
 }
 
@@ -446,7 +446,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    return MCC_Status(STATUS_OK);
 }
 
-MCC_TLS_Client::MCC_TLS_Client(Config& cfg):MCC_TLS(cfg,true){
+MCC_TLS_Client::MCC_TLS_Client(Config& cfg,PluginArgument* parg):MCC_TLS(cfg,true,parg){
    stream_=NULL;
    if(!OpenSSLInit()) return;
    /* Get DN from certificate, and put it into message's attribute */
@@ -524,21 +524,21 @@ void MCC_TLS_Client::Next(MCCInterface* next,const std::string& label) {
 //Glib::Mutex Arc::MCC_TLS::lock_;
 Arc::Logger ArcMCCTLS::MCC_TLS::logger(Arc::Logger::getRootLogger(), "MCC.TLS");
 
-ArcMCCTLS::MCC_TLS::MCC_TLS(Arc::Config& cfg,bool client) : Arc::MCC(&cfg), config_(cfg,logger,client) {
+ArcMCCTLS::MCC_TLS::MCC_TLS(Arc::Config& cfg,bool client,PluginArgument* parg) : Arc::MCC(&cfg,parg), config_(cfg,logger,client) {
 }
 
 static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    return new ArcMCCTLS::MCC_TLS_Service(*(Arc::Config*)(*mccarg));
+    return new ArcMCCTLS::MCC_TLS_Service(*(Arc::Config*)(*mccarg),mccarg);
 }
 
 static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    return new ArcMCCTLS::MCC_TLS_Client(*(Arc::Config*)(*mccarg));
+    return new ArcMCCTLS::MCC_TLS_Client(*(Arc::Config*)(*mccarg),mccarg);
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {

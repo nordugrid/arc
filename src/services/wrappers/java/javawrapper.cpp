@@ -11,7 +11,7 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     Arc::ServicePluginArgument* srvarg =
             arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
     if(!srvarg) return NULL;
-    return new Arc::Service_JavaWrapper((Arc::Config*)(*srvarg));
+    return new Arc::Service_JavaWrapper((Arc::Config*)(*srvarg),arg);
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
@@ -23,8 +23,8 @@ namespace Arc {
 
 Arc::Logger Service_JavaWrapper::logger(Service::logger, "JavaWrapper");
 
-Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg)
-  : Service(cfg),
+Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg, Arc::PluginArgument* parg)
+  : RegisteredService(cfg,parg),
     libjvm(NULL),
     jvm(NULL),
     classPath(NULL) {

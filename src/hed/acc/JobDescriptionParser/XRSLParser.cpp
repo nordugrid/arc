@@ -19,15 +19,15 @@
 
 namespace Arc {
 
-  XRSLParser::XRSLParser()
-    : JobDescriptionParser() {
+  XRSLParser::XRSLParser(PluginArgument* parg)
+    : JobDescriptionParser(parg) {
     supportedLanguages.push_back("nordugrid:xrsl");
   }
 
   XRSLParser::~XRSLParser() {}
 
   Plugin* XRSLParser::Instance(PluginArgument *arg) {
-    return new XRSLParser();
+    return new XRSLParser(arg);
   }
 
   static Software::ComparisonOperator convertOperator(const RSLRelOp& op) {

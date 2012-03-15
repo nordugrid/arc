@@ -25,7 +25,7 @@ Plugin* SAML2SSO_AssertionConsumerSH::get_sechandler(PluginArgument* arg) {
   SecHandlerPluginArgument* shcarg =
           arg?dynamic_cast<SecHandlerPluginArgument*>(arg):NULL;
   if(!shcarg) return NULL;
-  SAML2SSO_AssertionConsumerSH* plugin = new SAML2SSO_AssertionConsumerSH((Config*)(*shcarg),(ChainContext*)(*shcarg));
+  SAML2SSO_AssertionConsumerSH* plugin = new SAML2SSO_AssertionConsumerSH((Config*)(*shcarg),(ChainContext*)(*shcarg),arg);
   if(!plugin) return NULL;
   if(!(*plugin)) { delete plugin; plugin = NULL; };
   return plugin;
@@ -38,7 +38,7 @@ sechandler_descriptors ARC_SECHANDLER_LOADER = {
 };
 */
 
-SAML2SSO_AssertionConsumerSH::SAML2SSO_AssertionConsumerSH(Config *cfg,ChainContext*):SecHandler(cfg), SP_service_loader(NULL), valid_(false) {
+SAML2SSO_AssertionConsumerSH::SAML2SSO_AssertionConsumerSH(Config *cfg,ChainContext*,Arc::PluginArgument* parg):SecHandler(cfg,parg), SP_service_loader(NULL), valid_(false) {
   if(!init_xmlsec()) return;
   valid_ = true;
 }

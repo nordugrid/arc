@@ -44,7 +44,7 @@ Plugin* GACLPDP::get_gacl_pdp(PluginArgument* arg) {
     PDPPluginArgument* pdparg =
             arg?dynamic_cast<PDPPluginArgument*>(arg):NULL;
     if(!pdparg) return NULL;
-    return new GACLPDP((Config*)(*pdparg));
+    return new GACLPDP((Config*)(*pdparg),arg);
 }
 
 class GACLPDPContext:public Arc::MessageContextElement {
@@ -69,7 +69,7 @@ GACLPDPContext::GACLPDPContext(void):eval(NULL) {
   eval = eval_loader.getEvaluator(std::string("gacl.evaluator"));
 }
 
-GACLPDP::GACLPDP(Config* cfg):PDP(cfg) {
+GACLPDP::GACLPDP(Config* cfg, Arc::PluginArgument* parg):PDP(cfg,parg) {
   XMLNode pdp_node(*cfg);
 
   XMLNode filter = (*cfg)["Filter"];

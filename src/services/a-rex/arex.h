@@ -177,7 +177,7 @@ class ARexService: public Arc::RegisteredService {
   void ESActivityNotInTerminalStateFault(Arc::SOAPFault& fault,const std::string& message,const std::string& desc = "");
 
  public:
-  ARexService(Arc::Config *cfg);
+  ARexService(Arc::Config *cfg,Arc::PluginArgument *parg);
   virtual ~ARexService(void);
   virtual Arc::MCC_Status process(Arc::Message& inmsg,Arc::Message& outmsg);
   void InformationCollector(void);

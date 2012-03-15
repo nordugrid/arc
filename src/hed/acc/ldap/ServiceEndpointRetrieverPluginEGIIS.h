@@ -15,10 +15,13 @@ class Logger;
 
 class ServiceEndpointRetrieverPluginEGIIS : public ServiceEndpointRetrieverPlugin {
 public:
-  ServiceEndpointRetrieverPluginEGIIS() { supportedInterfaces.push_back("org.nordugrid.ldapegiis"); }
+  ServiceEndpointRetrieverPluginEGIIS(PluginArgument* parg):
+      ServiceEndpointRetrieverPlugin(parg) {
+    supportedInterfaces.push_back("org.nordugrid.ldapegiis");
+  }
   virtual ~ServiceEndpointRetrieverPluginEGIIS() {}
 
-  static Plugin* Instance(PluginArgument*) { return new ServiceEndpointRetrieverPluginEGIIS(); }
+  static Plugin* Instance(PluginArgument* arg) { return new ServiceEndpointRetrieverPluginEGIIS(arg); }
   virtual EndpointQueryingStatus Query(const UserConfig& uc,
                                        const Endpoint& rEndpoint,
                                        std::list<Endpoint>&,

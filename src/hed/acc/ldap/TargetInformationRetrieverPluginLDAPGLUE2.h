@@ -11,10 +11,13 @@ namespace Arc {
 
   class TargetInformationRetrieverPluginLDAPGLUE2 : public TargetInformationRetrieverPlugin {
   public:
-    TargetInformationRetrieverPluginLDAPGLUE2() { supportedInterfaces.push_back("org.nordugrid.ldapglue2"); };
+    TargetInformationRetrieverPluginLDAPGLUE2(PluginArgument *parg):
+        TargetInformationRetrieverPlugin(parg) {
+      supportedInterfaces.push_back("org.nordugrid.ldapglue2");
+    };
     ~TargetInformationRetrieverPluginLDAPGLUE2() {};
 
-    static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginLDAPGLUE2(); };
+    static Plugin* Instance(PluginArgument *arg) { return new TargetInformationRetrieverPluginLDAPGLUE2(arg); };
     virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint&, std::list<ComputingServiceType>&, const EndpointQueryOptions<ComputingServiceType>&) const;
     virtual bool isEndpointNotSupported(const Endpoint&) const;
 

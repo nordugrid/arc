@@ -26,8 +26,10 @@ namespace Arc {
   Logger Submitter::logger(Logger::getRootLogger(), "Submitter");
 
   Submitter::Submitter(const UserConfig& usercfg,
-                       const std::string& flavour)
-    : flavour(flavour),
+                       const std::string& flavour,
+                       PluginArgument* parg)
+    : Plugin(parg),
+      flavour(flavour),
       usercfg(usercfg) {}
 
   Submitter::~Submitter() {}

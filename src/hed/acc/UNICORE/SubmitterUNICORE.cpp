@@ -21,8 +21,8 @@ namespace Arc {
 
   Logger SubmitterUNICORE::logger(Logger::getRootLogger(), "Submitter.UNICORE");
 
-  SubmitterUNICORE::SubmitterUNICORE(const UserConfig& usercfg)
-    : Submitter(usercfg, "UNICORE") {}
+  SubmitterUNICORE::SubmitterUNICORE(const UserConfig& usercfg, PluginArgument* parg)
+    : Submitter(usercfg, "UNICORE", parg) {}
 
   SubmitterUNICORE::~SubmitterUNICORE() {}
 
@@ -31,7 +31,7 @@ namespace Arc {
       dynamic_cast<SubmitterPluginArgument*>(arg);
     if (!subarg)
       return NULL;
-    return new SubmitterUNICORE(*subarg);
+    return new SubmitterUNICORE(*subarg, arg);
   }
 
   bool SubmitterUNICORE::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) {

@@ -26,7 +26,7 @@ Plugin* XACMLPDP::get_xacml_pdp(PluginArgument* arg) {
     ArcSec::PDPPluginArgument* pdparg =
             arg?dynamic_cast<ArcSec::PDPPluginArgument*>(arg):NULL;
     if(!pdparg) return NULL;
-    return new XACMLPDP((Arc::Config*)(*pdparg));
+    return new XACMLPDP((Arc::Config*)(*pdparg),arg);
 }
 
 // This class is used to store Evaluator per connection
@@ -53,7 +53,7 @@ XACMLPDPContext::XACMLPDPContext(void):eval(NULL) {
   eval = eval_loader.getEvaluator(evaluator);
 }
 
-XACMLPDP::XACMLPDP(Config* cfg):PDP(cfg) /*, eval(NULL)*/ {
+XACMLPDP::XACMLPDP(Config* cfg, Arc::PluginArgument* parg):PDP(cfg,parg) /*, eval(NULL)*/ {
   XMLNode pdp_node(*cfg);
 
   XMLNode filter = (*cfg)["Filter"];

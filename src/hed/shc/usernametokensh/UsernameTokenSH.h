@@ -28,7 +28,7 @@ class UsernameTokenSH : public SecHandler {
   bool valid_;
 
  public:
-  UsernameTokenSH(Arc::Config *cfg, Arc::ChainContext* ctx);
+  UsernameTokenSH(Arc::Config *cfg, Arc::ChainContext* ctx, Arc::PluginArgument* parg);
   virtual ~UsernameTokenSH(void);
   static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
   virtual bool Handle(Arc::Message* msg) const;

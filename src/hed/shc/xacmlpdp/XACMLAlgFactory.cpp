@@ -15,8 +15,8 @@ using namespace Arc;
 
 namespace ArcSec {
 
-Arc::Plugin* get_xacmlpdp_alg_factory (Arc::PluginArgument*) {
-    return new ArcSec::XACMLAlgFactory();
+Arc::Plugin* get_xacmlpdp_alg_factory (Arc::PluginArgument* arg) {
+    return new ArcSec::XACMLAlgFactory(arg);
 }
 
 
@@ -56,7 +56,7 @@ void XACMLAlgFactory::initCombiningAlgs(){
 
 }
 
-XACMLAlgFactory::XACMLAlgFactory(){
+XACMLAlgFactory::XACMLAlgFactory(Arc::PluginArgument* parg) : AlgFactory(parg) {
   initCombiningAlgs();
 }
 

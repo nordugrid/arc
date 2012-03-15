@@ -26,7 +26,7 @@ Plugin* DelegationSH::get_sechandler(PluginArgument* arg) {
   SecHandlerPluginArgument* shcarg =
           arg?dynamic_cast<SecHandlerPluginArgument*>(arg):NULL;
   if(!shcarg) return NULL;
-  DelegationSH* plugin = new DelegationSH((Config*)(*shcarg),(ChainContext*)(*shcarg));
+  DelegationSH* plugin = new DelegationSH((Config*)(*shcarg),(ChainContext*)(*shcarg),arg);
   if(!plugin) return NULL;
   if(!(*plugin)) { delete plugin; plugin = NULL; };
   return plugin;
@@ -46,7 +46,7 @@ class DelegationContext:public Arc::MessageContextElement{
   virtual ~DelegationContext(void) { };
 };
 
-DelegationSH::DelegationSH(Config *cfg,ChainContext*):SecHandler(cfg),valid_(false) {
+DelegationSH::DelegationSH(Config *cfg,ChainContext*,Arc::PluginArgument* parg):SecHandler(cfg,parg),valid_(false) {
   std::string delegation_type = (std::string)((*cfg)["Type"]);
   std::string delegation_role = (std::string)((*cfg)["Role"]);
   ds_endpoint_ = (std::string)((*cfg)["DelegationServiceEndpoint"]);

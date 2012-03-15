@@ -15,7 +15,7 @@ Plugin* ArcAuthZ::get_sechandler(PluginArgument* arg) {
   SecHandlerPluginArgument* shcarg =
             arg?dynamic_cast<SecHandlerPluginArgument*>(arg):NULL;
   if(!shcarg) return NULL;
-  ArcAuthZ* plugin = new ArcAuthZ((Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
+  ArcAuthZ* plugin = new ArcAuthZ((Config*)(*shcarg),(Arc::ChainContext*)(*shcarg),arg);
   if(!plugin) return NULL;
   if(!(*plugin)) { delete plugin; plugin = NULL; };
   return plugin;
@@ -28,7 +28,7 @@ ArcAuthZ::PDPDesc::PDPDesc(const std::string& action_,const std::string& id_,PDP
   else if(strcasecmp("breakNever",action_.c_str()) == 0) { action=breakNever; };
 }
 
-ArcAuthZ::ArcAuthZ(Config *cfg,ChainContext* ctx):SecHandler(cfg),valid_(false) {
+ArcAuthZ::ArcAuthZ(Config *cfg,ChainContext* ctx,Arc::PluginArgument* parg):SecHandler(cfg,parg),valid_(false) {
   pdp_factory = (PluginsFactory*)(*ctx);
   if(pdp_factory) {
     for(int n = 0;;++n) {

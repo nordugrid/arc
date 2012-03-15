@@ -651,7 +651,7 @@ namespace Arc {
      * \param url The URL representing the DataPoint
      * \param usercfg User configuration object
      */
-    DataPoint(const URL& url, const UserConfig& usercfg);
+    DataPoint(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
   };
 
   /// Class used by DataHandle to load the required DMC.

@@ -23,8 +23,8 @@ namespace Arc {
 
   Logger SubmitterEMIES::logger(Logger::getRootLogger(), "Submitter.EMIES");
 
-  SubmitterEMIES::SubmitterEMIES(const UserConfig& usercfg)
-    : Submitter(usercfg, "EMIES") {}
+  SubmitterEMIES::SubmitterEMIES(const UserConfig& usercfg, PluginArgument* parg)
+    : Submitter(usercfg, "EMIES", parg) {}
 
   SubmitterEMIES::~SubmitterEMIES() {
     deleteAllClients();
@@ -34,7 +34,7 @@ namespace Arc {
     SubmitterPluginArgument *subarg =
       dynamic_cast<SubmitterPluginArgument*>(arg);
     if (!subarg) return NULL;
-    return new SubmitterEMIES(*subarg);
+    return new SubmitterEMIES(*subarg, arg);
   }
 
   EMIESClient* SubmitterEMIES::acquireClient(const URL& url) {

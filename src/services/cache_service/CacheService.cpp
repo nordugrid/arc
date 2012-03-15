@@ -34,7 +34,7 @@ static Arc::Plugin *get_service(Arc::PluginArgument* arg)
     Arc::ServicePluginArgument* srvarg =
             arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
     if(!srvarg) return NULL;
-    CacheService* s = new CacheService((Arc::Config*)(*srvarg));
+    CacheService* s = new CacheService((Arc::Config*)(*srvarg),arg);
     if (*s)
       return s;
     delete s;
@@ -43,7 +43,8 @@ static Arc::Plugin *get_service(Arc::PluginArgument* arg)
 
 Arc::Logger CacheService::logger(Arc::Logger::rootLogger, "CacheService");
 
-CacheService::CacheService(Arc::Config *cfg) : RegisteredService(cfg),
+CacheService::CacheService(Arc::Config *cfg, Arc::PluginArgument* parg) :
+                                               RegisteredService(cfg,parg),
                                                max_downloads(10),
                                                current_downloads(0),
                                                users(NULL),

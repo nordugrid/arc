@@ -13,8 +13,8 @@
 
 namespace Arc {
 
-  RandomBroker::RandomBroker(const UserConfig& usercfg)
-    : Broker(usercfg) {}
+  RandomBroker::RandomBroker(const UserConfig& usercfg, PluginArgument* parg)
+    : Broker(usercfg, parg) {}
 
   RandomBroker::~RandomBroker() {}
 
@@ -22,7 +22,7 @@ namespace Arc {
     BrokerPluginArgument *brokerarg = dynamic_cast<BrokerPluginArgument*>(arg);
     if (!brokerarg)
       return NULL;
-    return new RandomBroker(*brokerarg);
+    return new RandomBroker(*brokerarg, arg);
   }
 
   void RandomBroker::SortTargets() {

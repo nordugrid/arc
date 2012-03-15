@@ -13,7 +13,7 @@ namespace Arc {
   class JobControllerEMIES
     : public JobController {
   public:
-    JobControllerEMIES(const UserConfig& usercfg);
+    JobControllerEMIES(const UserConfig& usercfg, PluginArgument* parg);
     ~JobControllerEMIES();
 
     virtual void UpdateJobs(std::list<Job*>& jobs) const;

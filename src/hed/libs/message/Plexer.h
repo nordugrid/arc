@@ -41,7 +41,7 @@ namespace Arc {
       instances of "well-behaving" STL classes, nothing needs to be
       done.
      */
-    Plexer(Config *cfg);
+    Plexer(Config *cfg, PluginArgument* arg);
 
     //! The destructor.
     /*! This is the destructor. Since all member variables are

@@ -15,7 +15,7 @@ namespace Arc {
   {
   }
 
-  Plexer::Plexer(Config *cfg) : MCC(cfg) {
+  Plexer::Plexer(Config *cfg, PluginArgument* arg) : MCC(cfg, arg) {
   }
 
   Plexer::~Plexer(){

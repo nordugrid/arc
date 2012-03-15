@@ -1586,6 +1586,9 @@ fi
 AM_CONDITIONAL([GSI_MCC_ENABLED],[test "x$enables_gsi_mcc" = "xyes"])
 
 # Setup defines
+if test -n "$GLOBUS_COMMON_VERSION"; then
+    AC_DEFINE(HAVE_GLOBUS,,[define if GLOBUS is available])
+fi
 if test -n "$GLOBUS_RLS_CLIENT_VERSION"; then
     AC_DEFINE(HAVE_GLOBUS_RLS_CLIENT,,[define if GLOBUS RLS client package is available])
 fi

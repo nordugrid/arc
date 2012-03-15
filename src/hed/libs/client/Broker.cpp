@@ -18,8 +18,9 @@ namespace Arc {
 
   Logger Broker::logger(Logger::getRootLogger(), "Broker");
 
-  Broker::Broker(const UserConfig& usercfg)
-    : usercfg(usercfg),
+  Broker::Broker(const UserConfig& usercfg, PluginArgument* parg)
+    : Plugin(parg),
+      usercfg(usercfg),
       TargetSortingDone(false),
       job(NULL),
       pCurrent(NULL) {}

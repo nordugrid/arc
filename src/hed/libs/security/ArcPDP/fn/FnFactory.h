@@ -18,7 +18,7 @@ typedef std::map<std::string, Function*> FnMap;
  */
 class FnFactory : public Arc::LoadableClass {
 public:
-  FnFactory() {};
+  FnFactory(Arc::PluginArgument* parg): Arc::LoadableClass(parg) {};
   virtual ~FnFactory(){};
 
 public:

@@ -12,8 +12,8 @@
 
 namespace Arc {
 
-  DataPointIndex::DataPointIndex(const URL& url, const UserConfig& usercfg)
-    : DataPoint(url, usercfg),
+  DataPointIndex::DataPointIndex(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
+    : DataPoint(url, usercfg, parg),
       registered(false),
       h(NULL) {
     location = locations.end();

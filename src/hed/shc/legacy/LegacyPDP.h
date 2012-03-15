@@ -23,7 +23,7 @@ class LegacyPDP : public ArcSec::PDP {
   std::list<std::string> vos_;
  public:
   static Arc::Plugin* get_pdp(Arc::PluginArgument *arg);
-  LegacyPDP(Arc::Config* cfg);
+  LegacyPDP(Arc::Config* cfg, Arc::PluginArgument* parg);
   virtual ~LegacyPDP();
   virtual bool isPermitted(Arc::Message *msg) const;
 };

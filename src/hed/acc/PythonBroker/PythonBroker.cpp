@@ -89,15 +89,15 @@ namespace Arc {
 
     logger.msg(DEBUG, "Loading Python broker (%i)", refcount);
 
-    Broker *broker = new PythonBroker(*brokerarg);
+    Broker *broker = new PythonBroker(*brokerarg, arg);
 
     PyEval_ReleaseThread(tstate); // Release current thread
 
     return broker;
   }
 
-  PythonBroker::PythonBroker(const UserConfig& usercfg)
-    : Broker(usercfg),
+  PythonBroker::PythonBroker(const UserConfig& usercfg, PluginArgument* parg)
+    : Broker(usercfg, parg),
       arc_module(NULL),
       arc_userconfig_klass(NULL),
       arc_jobrepr_klass(NULL),

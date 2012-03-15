@@ -26,9 +26,9 @@ Arc::Plugin* ArcSec::ArcRequest::get_request(Arc::PluginArgument* arg) {
             arg?dynamic_cast<Arc::ClassLoaderPluginArgument*>(arg):NULL;
     if(!clarg) return NULL;
     Arc::XMLNode* xarg = (Arc::XMLNode*)(*clarg);
-    if(xarg==NULL) { return new ArcSec::ArcRequest(); } // ???
+    if(xarg==NULL) { return new ArcSec::ArcRequest(arg); } // ???
     ArcSec::Source source(*xarg);
-    return new ArcSec::ArcRequest(source);
+    return new ArcSec::ArcRequest(source,arg);
   }
 }
 
@@ -151,14 +151,14 @@ const char* ArcRequest::getName() const{
   return "arc.request";
 }
 
-ArcRequest::ArcRequest (const Source& req) : Request(req) {
+ArcRequest::ArcRequest (const Source& req,Arc::PluginArgument* parg) : Request(req,parg) {
   req.Get().New(reqnode);
   NS ns;
   ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
   reqnode.Namespaces(ns);
 }
 
-ArcRequest::ArcRequest () {
+ArcRequest::ArcRequest (Arc::PluginArgument* parg) : Request(parg) {
   NS ns;
   ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
   XMLNode request(ns,"ra:Request");

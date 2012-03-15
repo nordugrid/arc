@@ -31,8 +31,8 @@ namespace Arc {
   Logger JobControllerARC0::logger(Logger::getRootLogger(),
                                    "JobController.ARC0");
 
-  JobControllerARC0::JobControllerARC0(const UserConfig& usercfg)
-    : JobController(usercfg, "ARC0") {}
+  JobControllerARC0::JobControllerARC0(const UserConfig& usercfg, PluginArgument* parg)
+    : JobController(usercfg, "ARC0", parg) {}
 
   JobControllerARC0::~JobControllerARC0() {}
 
@@ -48,7 +48,7 @@ namespace Arc {
       return NULL;
     }
     factory->makePersistent(module);
-    return new JobControllerARC0(*jcarg);
+    return new JobControllerARC0(*jcarg, arg);
   }
 
   void JobControllerARC0::UpdateJobs(std::list<Job*>& jobs) const {

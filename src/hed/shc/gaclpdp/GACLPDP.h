@@ -20,7 +20,7 @@ class GACLPDP: public PDP {
  public:
   static Arc::SecAttrFormat GACL;
   static Arc::Plugin* get_gacl_pdp(Arc::PluginArgument *arg);
-  GACLPDP(Arc::Config* cfg);
+  GACLPDP(Arc::Config* cfg, Arc::PluginArgument* parg);
   virtual ~GACLPDP();
   virtual bool isPermitted(Arc::Message *msg) const;
  private:

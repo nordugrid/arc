@@ -22,7 +22,7 @@ namespace Arc {
   class XRSLParser
     : public JobDescriptionParser {
   public:
-    XRSLParser();
+    XRSLParser(PluginArgument* parg);
     ~XRSLParser();
     JobDescriptionParserResult Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "") const;
     JobDescriptionParserResult UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect = "") const;

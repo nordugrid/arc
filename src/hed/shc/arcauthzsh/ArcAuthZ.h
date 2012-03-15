@@ -47,7 +47,7 @@ class ArcAuthZ : public SecHandler {
   bool MakePDPs(Arc::XMLNode cfg);
 
  public:
-  ArcAuthZ(Arc::Config *cfg, Arc::ChainContext* ctx);
+  ArcAuthZ(Arc::Config *cfg, Arc::ChainContext* ctx, Arc::PluginArgument* parg);
   virtual ~ArcAuthZ(void);
   static Plugin* get_sechandler(Arc::PluginArgument* arg);  
   /** Get authorization decision*/

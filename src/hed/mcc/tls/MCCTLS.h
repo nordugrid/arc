@@ -13,7 +13,7 @@ namespace ArcMCCTLS {
    */
   class MCC_TLS : public MCC {
   public:
-    MCC_TLS(Config& cfg,bool client);
+    MCC_TLS(Config& cfg,bool client,PluginArgument* parg);
   protected:
     //bool tls_random_seed(std::string filename, long n);
     static unsigned int ssl_initialized_;
@@ -51,7 +51,7 @@ class MCC_TLS_Service: public MCC_TLS
     private:
         //SSL_CTX* sslctx_;
     public:
-        MCC_TLS_Service(Config& cfg);
+        MCC_TLS_Service(Config& cfg,PluginArgument* parg);
         virtual ~MCC_TLS_Service(void);
         virtual MCC_Status process(Message&,Message&);
 };
@@ -66,7 +66,7 @@ class MCC_TLS_Client: public MCC_TLS
         //SSL_CTX* sslctx_;
         PayloadTLSMCC* stream_;
     public:
-        MCC_TLS_Client(Config& cfg);
+        MCC_TLS_Client(Config& cfg,PluginArgument* parg);
         virtual ~MCC_TLS_Client(void);
         virtual MCC_Status process(Message&,Message&);
         virtual void Next(MCCInterface* next,const std::string& label = "");

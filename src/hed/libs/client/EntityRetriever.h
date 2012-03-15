@@ -55,7 +55,7 @@ private:
 template<typename T>
 class EntityRetrieverPlugin : public Plugin {
 protected:
-  EntityRetrieverPlugin() {};
+  EntityRetrieverPlugin(PluginArgument* parg): Plugin(parg) {};
 public:
   virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };
   virtual bool isEndpointNotSupported(const Endpoint&) const = 0;

@@ -24,8 +24,8 @@ loader_descriptors __arc_attrfactory_modules__  = {
 using namespace Arc;
 namespace ArcSec {
 
-Arc::Plugin* get_arcpdp_attr_factory (Arc::PluginArgument*) {
-    return new ArcSec::ArcAttributeFactory();
+Arc::Plugin* get_arcpdp_attr_factory (Arc::PluginArgument* arg) {
+    return new ArcSec::ArcAttributeFactory(arg);
 }
 
 void ArcAttributeFactory::initDatatypes(){
@@ -44,7 +44,7 @@ void ArcAttributeFactory::initDatatypes(){
 
 }
 
-ArcAttributeFactory::ArcAttributeFactory(){
+ArcAttributeFactory::ArcAttributeFactory(Arc::PluginArgument* parg) : AttributeFactory(parg) {
   initDatatypes();
 }
 

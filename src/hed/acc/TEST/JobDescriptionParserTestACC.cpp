@@ -9,7 +9,7 @@
 namespace Arc {
 
 Plugin* JobDescriptionParserTestACC::GetInstance(PluginArgument *arg) {
-  return new JobDescriptionParserTestACC();
+  return new JobDescriptionParserTestACC(arg);
 }
 
 }

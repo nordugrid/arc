@@ -29,7 +29,7 @@ static Arc::Plugin *get_service(Arc::PluginArgument* arg)
     Arc::ServicePluginArgument* srvarg =
             arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
     if(!srvarg) return NULL;
-    return new Hopi((Arc::Config*)(*srvarg));
+    return new Hopi((Arc::Config*)(*srvarg),arg);
 }
 
 Arc::Logger Hopi::logger(Arc::Logger::rootLogger, "Hopi");
@@ -407,7 +407,7 @@ void HopiFileTimeout::DestroyAll(void) {
 }
 
 
-Hopi::Hopi(Arc::Config *cfg):RegisteredService(cfg),slave_mode(false)
+Hopi::Hopi(Arc::Config *cfg, Arc::PluginArgument* parg):RegisteredService(cfg,parg),slave_mode(false)
 {
     logger.msg(Arc::INFO, "Hopi Initialized"); 
     doc_root = (std::string)((*cfg)["DocumentRoot"]);

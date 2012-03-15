@@ -26,8 +26,9 @@ namespace Arc {
 
   Logger SubmitterARC1::logger(Logger::getRootLogger(), "Submitter.ARC1");
 
-  SubmitterARC1::SubmitterARC1(const UserConfig& usercfg)
-    : Submitter(usercfg, "ARC1") {}
+  SubmitterARC1::SubmitterARC1(const UserConfig& usercfg, PluginArgument* parg)
+    : Submitter(usercfg, "ARC1", parg) {
+  }
 
   SubmitterARC1::~SubmitterARC1() {
     deleteAllClients();
@@ -37,7 +38,7 @@ namespace Arc {
     SubmitterPluginArgument *subarg =
       dynamic_cast<SubmitterPluginArgument*>(arg);
     if (!subarg) return NULL;
-    return new SubmitterARC1(*subarg);
+    return new SubmitterARC1(*subarg, arg);
   }
 
   AREXClient* SubmitterARC1::acquireClient(const URL& url) {

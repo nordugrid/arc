@@ -14,8 +14,8 @@ namespace Arc {
 
   Logger DataPointXrootd::logger(Logger::getRootLogger(), "DataPoint.Xrootd");
 
-  DataPointXrootd::DataPointXrootd(const URL& url, const UserConfig& usercfg)
-    : DataPointDirect(url, usercfg),
+  DataPointXrootd::DataPointXrootd(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
+    : DataPointDirect(url, usercfg, parg),
       reading(false),
       writing(false) {
     client = new XrdClient(url.str().c_str());
@@ -35,7 +35,7 @@ namespace Arc {
       return NULL;
     if (((const URL &)(*dmcarg)).Protocol() != "root")
       return NULL;
-    return new DataPointXrootd(*dmcarg, *dmcarg);
+    return new DataPointXrootd(*dmcarg, *dmcarg, dmcarg);
   }
 
   void DataPointXrootd::read_file_start(void* arg) {

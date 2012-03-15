@@ -23,7 +23,7 @@ namespace ArcSec {
     through XML subtree fed to constructor. */ 
   class SecHandler: public Arc::Plugin {
    public:
-    SecHandler(Arc::Config*) {};
+    SecHandler(Arc::Config*, Arc::PluginArgument* arg):Arc::Plugin(arg) {};
     virtual ~SecHandler() {};
     virtual bool Handle(Arc::Message *msg) const = 0;
 

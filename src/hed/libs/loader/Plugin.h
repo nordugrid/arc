@@ -19,13 +19,16 @@
 namespace Arc {
 
   class PluginsFactory;
+  class PluginArgument;
 
   /// Base class for loadable ARC components.
   /** All classes representing loadable ARC components must be either
      descendants of this class or be wrapped by its offspring. */
   class Plugin {
     protected:
-      Plugin(void);
+      PluginsFactory* factory_;
+      Glib::Module* module_;
+      Plugin(PluginArgument* arg);
     public:
       virtual ~Plugin(void);
   };

@@ -15,7 +15,7 @@ class LegacySecHandler : public ArcSec::SecHandler {
   std::list<std::string> conf_files_;
 
  public:
-  LegacySecHandler(Arc::Config *cfg, Arc::ChainContext* ctx);
+  LegacySecHandler(Arc::Config *cfg, Arc::ChainContext* ctx, Arc::PluginArgument* parg);
   virtual ~LegacySecHandler(void);
   static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
   virtual bool Handle(Arc::Message* msg) const;

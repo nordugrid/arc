@@ -39,7 +39,8 @@ namespace Arc {
     : public Plugin {
   protected:
     JobController(const UserConfig& usercfg,
-                  const std::string& flavour);
+                  const std::string& flavour,
+                  PluginArgument* parg);
   public:
     virtual ~JobController();
 

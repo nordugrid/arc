@@ -13,7 +13,7 @@ namespace Arc {
 class BrokerTestACC
   : public Broker {
 private:
-  BrokerTestACC(const UserConfig& usercfg) : Broker(usercfg) {
+  BrokerTestACC(const UserConfig& usercfg, PluginArgument* parg) : Broker(usercfg, parg) {
     BrokerTestACCControl::PossibleTargets = &PossibleTargets;
     BrokerTestACCControl::TargetSortingDone = &TargetSortingDone;
   }

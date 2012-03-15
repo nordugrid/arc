@@ -36,8 +36,8 @@ private:
   CombiningAlg* combining_alg_ex;
 
 public:
-  ArcEvaluator (Arc::XMLNode* cfg);
-  ArcEvaluator (const char * cfgfile);
+  ArcEvaluator (Arc::XMLNode* cfg, Arc::PluginArgument* parg);
+  ArcEvaluator (const char * cfgfile, Arc::PluginArgument* parg);
   virtual ~ArcEvaluator();
 
   /**Evaluate the request based on the policy information inside PolicyStore*/

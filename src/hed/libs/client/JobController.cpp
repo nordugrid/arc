@@ -26,8 +26,10 @@ namespace Arc {
   Logger JobController::logger(Logger::getRootLogger(), "JobController");
 
   JobController::JobController(const UserConfig& usercfg,
-                               const std::string& flavour)
-    : flavour(flavour),
+                               const std::string& flavour,
+                               PluginArgument* parg)
+    : Plugin(parg),
+      flavour(flavour),
       usercfg(usercfg),
       data_source(NULL),
       data_destination(NULL) {}

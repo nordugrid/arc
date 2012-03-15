@@ -106,7 +106,7 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     python_service_counter++;
     Arc::Logger::getRootLogger().msg(Arc::DEBUG, "Loading %u-th Python service", python_service_counter);
     service_lock.unlock();
-    Arc::RegisteredService* service = new Arc::Service_PythonWrapper((Arc::Config*)(*srvarg));
+    Arc::RegisteredService* service = new Arc::Service_PythonWrapper((Arc::Config*)(*srvarg),arg);
     PyEval_ReleaseThread(tstate); // Release current thread
     Arc::Logger::getRootLogger().msg(Arc::DEBUG, "Initialized %u-th Python service", python_service_counter);
     return service;
@@ -119,7 +119,7 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 
 namespace Arc {
 
-Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg):RegisteredService(cfg)
+Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg,Arc::PluginArgument* parg):RegisteredService(cfg,parg)
 {
     PyObject *py_module_name = NULL;
     PyObject *py_arc_module_name = NULL;

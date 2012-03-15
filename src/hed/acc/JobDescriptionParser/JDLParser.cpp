@@ -19,15 +19,15 @@
 
 namespace Arc {
 
-  JDLParser::JDLParser()
-    : JobDescriptionParser() {
+  JDLParser::JDLParser(PluginArgument* parg)
+    : JobDescriptionParser(parg) {
     supportedLanguages.push_back("egee:jdl");
   }
 
   JDLParser::~JDLParser() {}
 
   Plugin* JDLParser::Instance(PluginArgument *arg) {
-    return new JDLParser();
+    return new JDLParser(arg);
   }
 
   bool JDLParser::splitJDL(const std::string& original_string,

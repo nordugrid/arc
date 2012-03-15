@@ -23,8 +23,8 @@ namespace Arc {
 
   Logger JobControllerEMIES::logger(Logger::getRootLogger(), "JobController.EMIES");
 
-  JobControllerEMIES::JobControllerEMIES(const UserConfig& usercfg)
-    : JobController(usercfg, "EMIES") {}
+  JobControllerEMIES::JobControllerEMIES(const UserConfig& usercfg, PluginArgument* parg)
+    : JobController(usercfg, "EMIES", parg) {}
 
   JobControllerEMIES::~JobControllerEMIES() {}
 
@@ -32,7 +32,7 @@ namespace Arc {
     JobControllerPluginArgument *jcarg =
       dynamic_cast<JobControllerPluginArgument*>(arg);
     if (!jcarg) return NULL;
-    return new JobControllerEMIES(*jcarg);
+    return new JobControllerEMIES(*jcarg, arg);
   }
 
   static EMIESJob JobToEMIES(const Job& ajob) {

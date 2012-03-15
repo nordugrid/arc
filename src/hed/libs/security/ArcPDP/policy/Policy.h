@@ -28,13 +28,13 @@ protected:
  
 public:
   /// Template constructor - creates empty policy
-  Policy() {};
+  Policy(Arc::PluginArgument* parg): Arc::LoadableClass(parg) {};
 
   /// Template constructor - creates policy based on XML document
   /** If XML document is empty then empty policy is created. If it is not 
     empty then it must be valid policy document - otherwise created object
     should be invalid. */
-  Policy(const Arc::XMLNode) {};  
+  Policy(const Arc::XMLNode, Arc::PluginArgument* parg): Arc::LoadableClass(parg) {};  
 
   /// Template constructor - creates policy based on XML document
   /** If XML document is empty then empty policy is created. If it is not 
@@ -42,7 +42,7 @@ public:
     should be invalid. This constructor is based on the policy node and i
     the EvaluatorContext which includes the factory objects for combining 
     algorithm and function */ 
-  Policy(const Arc::XMLNode, EvaluatorContext*) {};
+  Policy(const Arc::XMLNode, EvaluatorContext*, Arc::PluginArgument* parg): Arc::LoadableClass(parg) {};
   virtual ~Policy(){};
 
   /// Returns true is object is valid.

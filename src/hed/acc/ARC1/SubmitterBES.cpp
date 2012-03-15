@@ -40,16 +40,18 @@ namespace Arc {
     return jobid;
   }
 
-  SubmitterBES::SubmitterBES(const UserConfig& usercfg)
-    : Submitter(usercfg, "BES") {}
+  SubmitterBES::SubmitterBES(const UserConfig& usercfg, PluginArgument* parg)
+    : Submitter(usercfg, "BES", parg) {
+  }
 
-  SubmitterBES::~SubmitterBES() {}
+  SubmitterBES::~SubmitterBES() {
+  }
 
   Plugin* SubmitterBES::Instance(PluginArgument *arg) {
     SubmitterPluginArgument *subarg =
       dynamic_cast<SubmitterPluginArgument*>(arg);
     if (!subarg) return NULL;
-    return new SubmitterBES(*subarg);
+    return new SubmitterBES(*subarg, arg);
   }
 
   bool SubmitterBES::Submit(const JobDescription& jobdesc,

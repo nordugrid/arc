@@ -10,7 +10,7 @@ namespace ArcSec {
 /// Function factory class for Arc specified attributes
 class ArcFnFactory : public FnFactory {
 public:
-  ArcFnFactory();
+  ArcFnFactory(Arc::PluginArgument* parg);
   virtual ~ArcFnFactory();
 
 public:

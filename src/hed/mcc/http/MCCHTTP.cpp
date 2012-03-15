@@ -15,21 +15,21 @@
 
 Arc::Logger ArcMCCHTTP::MCC_HTTP::logger(Arc::Logger::getRootLogger(), "MCC.HTTP");
 
-ArcMCCHTTP::MCC_HTTP::MCC_HTTP(Arc::Config *cfg) : Arc::MCC(cfg) {
+ArcMCCHTTP::MCC_HTTP::MCC_HTTP(Arc::Config *cfg,PluginArgument* parg) : Arc::MCC(cfg,parg) {
 }
 
 static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    return new ArcMCCHTTP::MCC_HTTP_Service((Arc::Config*)(*mccarg));
+    return new ArcMCCHTTP::MCC_HTTP_Service((Arc::Config*)(*mccarg),mccarg);
 }
 
 static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    return new ArcMCCHTTP::MCC_HTTP_Client((Arc::Config*)(*mccarg));
+    return new ArcMCCHTTP::MCC_HTTP_Client((Arc::Config*)(*mccarg),mccarg);
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
@@ -137,7 +137,7 @@ bool HTTPSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   return false;
 }
 
-MCC_HTTP_Service::MCC_HTTP_Service(Config *cfg):MCC_HTTP(cfg) {
+MCC_HTTP_Service::MCC_HTTP_Service(Config *cfg,PluginArgument* parg):MCC_HTTP(cfg,parg) {
 }
 
 MCC_HTTP_Service::~MCC_HTTP_Service(void) {
@@ -352,7 +352,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   return MCC_Status(STATUS_OK);
 }
 
-MCC_HTTP_Client::MCC_HTTP_Client(Config *cfg):MCC_HTTP(cfg) {
+MCC_HTTP_Client::MCC_HTTP_Client(Config *cfg,PluginArgument* parg):MCC_HTTP(cfg,parg) {
   endpoint_=(std::string)((*cfg)["Endpoint"]);
   method_=(std::string)((*cfg)["Method"]);
 }

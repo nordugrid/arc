@@ -17,7 +17,7 @@ Arc::Plugin* ArcSec::XACMLEvaluator::get_evaluator(Arc::PluginArgument* arg) {
     Arc::ClassLoaderPluginArgument* clarg =
             arg?dynamic_cast<Arc::ClassLoaderPluginArgument*>(arg):NULL;
     if(!clarg) return NULL;
-    return new ArcSec::XACMLEvaluator((Arc::XMLNode*)(*clarg));
+    return new ArcSec::XACMLEvaluator((Arc::XMLNode*)(*clarg),arg);
 }
 
 using namespace Arc;
@@ -121,7 +121,7 @@ void XACMLEvaluator::parsecfg(Arc::XMLNode& cfg){
     logger.msg(ERROR, "Can not create PolicyStore object");
 }
 
-XACMLEvaluator::XACMLEvaluator(Arc::XMLNode* cfg) : Evaluator(cfg), m_cfg(cfg) {
+XACMLEvaluator::XACMLEvaluator(Arc::XMLNode* cfg, Arc::PluginArgument* parg) : Evaluator(cfg,parg), m_cfg(cfg) {
   plstore = NULL;;
   fnfactory = NULL;
   attrfactory = NULL;
@@ -133,7 +133,7 @@ XACMLEvaluator::XACMLEvaluator(Arc::XMLNode* cfg) : Evaluator(cfg), m_cfg(cfg) {
   parsecfg(*m_cfg);
 }
 
-XACMLEvaluator::XACMLEvaluator(const char * cfgfile) : Evaluator(cfgfile){
+XACMLEvaluator::XACMLEvaluator(const char * cfgfile, Arc::PluginArgument* parg) : Evaluator(cfgfile,parg){
   combining_alg = EvaluatorFailsOnDeny;
   combining_alg_ex = NULL;
   std::string str;

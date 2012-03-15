@@ -260,8 +260,8 @@ namespace Arc {
     lock_.unlock();
   }
 
-  DataPointHTTP::DataPointHTTP(const URL& url, const UserConfig& usercfg)
-    : DataPointDirect(url, usercfg),
+  DataPointHTTP::DataPointHTTP(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
+    : DataPointDirect(url, usercfg, parg),
       chunks(NULL),
       transfers_tofinish(0) {}
 
@@ -280,7 +280,7 @@ namespace Arc {
         ((const URL &)(*dmcarg)).Protocol() != "https" &&
         ((const URL &)(*dmcarg)).Protocol() != "httpg")
       return NULL;
-    return new DataPointHTTP(*dmcarg, *dmcarg);
+    return new DataPointHTTP(*dmcarg, *dmcarg, dmcarg);
   }
 
   static bool html2list(const char *html, const URL& base,

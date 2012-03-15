@@ -48,16 +48,18 @@ namespace Arc {
     return s;
   }
 
-  JobControllerBES::JobControllerBES(const UserConfig& usercfg)
-    : JobController(usercfg, "BES") {}
+  JobControllerBES::JobControllerBES(const UserConfig& usercfg, PluginArgument* parg)
+    : JobController(usercfg, "BES", parg) {
+  }
 
-  JobControllerBES::~JobControllerBES() {}
+  JobControllerBES::~JobControllerBES() {
+  }
 
   Plugin* JobControllerBES::Instance(PluginArgument *arg) {
     JobControllerPluginArgument *jcarg =
       dynamic_cast<JobControllerPluginArgument*>(arg);
     if (!jcarg) return NULL;
-    return new JobControllerBES(*jcarg);
+    return new JobControllerBES(*jcarg, arg);
   }
 
   void JobControllerBES::UpdateJobs(std::list<Job*>& jobs) const {

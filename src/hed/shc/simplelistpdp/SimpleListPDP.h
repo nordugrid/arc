@@ -17,7 +17,7 @@ namespace ArcSec {
 class SimpleListPDP : public PDP {
  public:
   static Arc::Plugin* get_simplelist_pdp(Arc::PluginArgument *arg);
-  SimpleListPDP(Arc::Config* cfg);
+  SimpleListPDP(Arc::Config* cfg, Arc::PluginArgument* parg);
   virtual ~SimpleListPDP() {};
   virtual bool isPermitted(Arc::Message *msg) const;
  private:

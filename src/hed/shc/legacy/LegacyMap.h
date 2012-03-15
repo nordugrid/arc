@@ -21,7 +21,7 @@ class LegacyMap : public ArcSec::SecHandler {
   };
   std::list<cfgfile> blocks_;
  public:
-  LegacyMap(Arc::Config *cfg, Arc::ChainContext* ctx);
+  LegacyMap(Arc::Config *cfg, Arc::ChainContext* ctx, Arc::PluginArgument* parg);
   virtual ~LegacyMap(void);
   static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
   virtual bool Handle(Arc::Message* msg) const;

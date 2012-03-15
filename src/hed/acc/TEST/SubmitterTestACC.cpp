@@ -13,7 +13,7 @@ Plugin* SubmitterTestACC::GetInstance(PluginArgument *arg) {
   if (!jcarg) {
     return NULL;
   }
-  return new SubmitterTestACC(*jcarg);
+  return new SubmitterTestACC(*jcarg,arg);
 }
 
 }

@@ -10,7 +10,7 @@ namespace Arc {
   class RandomBroker
     : public Broker {
   public:
-    RandomBroker(const UserConfig& usercfg);
+    RandomBroker(const UserConfig& usercfg, PluginArgument* parg);
     ~RandomBroker();
     static Plugin* Instance(PluginArgument *arg);
 

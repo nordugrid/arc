@@ -29,6 +29,10 @@ namespace Arc {
     Loader(XMLNode cfg);
     /** Destructor destroys all components created by constructor */
     ~Loader();
+
+   private:
+    Loader(const Loader&) { };
+    Loader& operator=(const Loader&) { };
  };
 
 } // namespace Arc

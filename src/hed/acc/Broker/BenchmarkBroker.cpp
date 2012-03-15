@@ -46,8 +46,8 @@ namespace Arc {
     return T1performance > T2performance;
   }
 
-  BenchmarkBroker::BenchmarkBroker(const UserConfig& usercfg)
-    : Broker(usercfg) {
+  BenchmarkBroker::BenchmarkBroker(const UserConfig& usercfg, PluginArgument* parg)
+    : Broker(usercfg, parg) {
     benchmark = usercfg.Broker().second;
     if (benchmark.empty())
       benchmark = "specint2000";
@@ -59,7 +59,7 @@ namespace Arc {
     BrokerPluginArgument *brokerarg = dynamic_cast<BrokerPluginArgument*>(arg);
     if (!brokerarg)
       return NULL;
-    return new BenchmarkBroker(*brokerarg);
+    return new BenchmarkBroker(*brokerarg, arg);
   }
 
   void BenchmarkBroker::SortTargets() {

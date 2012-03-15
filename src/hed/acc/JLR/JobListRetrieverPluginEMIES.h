@@ -12,10 +12,12 @@ namespace Arc {
 
   class JobListRetrieverPluginEMIES : public JobListRetrieverPlugin {
   public:
-    JobListRetrieverPluginEMIES() { supportedInterfaces.push_back("org.ogf.emies"); }
+    JobListRetrieverPluginEMIES(PluginArgument* parg): JobListRetrieverPlugin(parg) {
+      supportedInterfaces.push_back("org.ogf.emies");
+    }
     virtual ~JobListRetrieverPluginEMIES() {}
 
-    static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginEMIES(); }
+    static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginEMIES(arg); }
     virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const;
     virtual bool isEndpointNotSupported(const Endpoint&) const;
 

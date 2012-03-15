@@ -17,7 +17,7 @@ static const char XACML_DATATYPE_FQAN[]= "http://glite.org/xacml/datatype/fqan";
 static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg) {
     ArcSec::SecHandlerPluginArgument* shcarg = arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
     if(!shcarg) return NULL;
-    ArcSec::ArgusPEP* plugin = new ArcSec::ArgusPEP((Arc::Config*)(*shcarg));
+    ArcSec::ArgusPEP* plugin = new ArcSec::ArgusPEP((Arc::Config*)(*shcarg),arg);
     if(!plugin) return NULL;
     if(!(*plugin)) { delete plugin; return NULL;};
     return plugin;
@@ -95,7 +95,7 @@ std::string xacml_decision_to_string(xacml_decision_t decision) {
 }
 
 /* extract the elements from the configuration file */
-ArgusPEP::ArgusPEP(Arc::Config *cfg):ArcSec::SecHandler(cfg) {  
+ArgusPEP::ArgusPEP(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHandler(cfg,parg) {  
     valid_ = false;
     accept_mapping = false;
     logger.setThreshold(Arc::DEBUG);

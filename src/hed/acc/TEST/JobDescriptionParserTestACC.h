@@ -10,8 +10,8 @@ namespace Arc {
 class JobDescriptionParserTestACC
   : public JobDescriptionParser {
 private:
-  JobDescriptionParserTestACC()
-    : JobDescriptionParser() {}
+  JobDescriptionParserTestACC(PluginArgument* parg)
+    : JobDescriptionParser(parg) {}
 
 public:
   ~JobDescriptionParserTestACC() {}

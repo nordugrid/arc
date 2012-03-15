@@ -36,7 +36,7 @@ class Service_Echo: public Arc::RegisteredService
         Arc::InformationContainer infodoc;
     public:
         /** Constructor accepts configuration describing content of prefix and suffix */
-        Service_Echo(Arc::Config *cfg);
+        Service_Echo(Arc::Config *cfg, Arc::PluginArgument *parg);
         virtual ~Service_Echo(void);
         /** Service request processing routine */
         virtual Arc::MCC_Status process(Arc::Message&,Arc::Message&);

@@ -90,7 +90,7 @@ namespace ISIS {
 
             
         public:
-            ISIService(Arc::Config *cfg);
+            ISIService(Arc::Config *cfg, Arc::PluginArgument* parg);
             virtual ~ISIService(void);
             virtual Arc::MCC_Status process(Arc::Message &in, Arc::Message &out);
             virtual bool RegistrationCollector(Arc::XMLNode &doc);

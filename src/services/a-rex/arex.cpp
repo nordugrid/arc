@@ -314,7 +314,7 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     Arc::ServicePluginArgument* srvarg =
             arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
     if(!srvarg) return NULL;
-    ARexService* arex = new ARexService((Arc::Config*)(*srvarg));
+    ARexService* arex = new ARexService((Arc::Config*)(*srvarg),arg);
     if(!*arex) { delete arex; arex=NULL; };
     return arex;
 }
@@ -825,7 +825,7 @@ static void information_collector_starter(void* arg) {
   ((ARexService*)arg)->InformationCollector();
 }
 
-ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
+ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):RegisteredService(cfg,parg),
               logger_(Arc::Logger::rootLogger, "A-REX"),
               infodoc_(true),
               //inforeg_(*cfg,this),

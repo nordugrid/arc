@@ -20,7 +20,7 @@ using namespace Arc;
   class MCC_GSI_Service
     : public MCC {
   public:
-    MCC_GSI_Service(Config& cfg, ModuleManager& mm);
+    MCC_GSI_Service(Config& cfg, PluginArgument& parg);
     virtual ~MCC_GSI_Service();
     virtual MCC_Status process(Message&, Message&);
   private:
@@ -33,7 +33,7 @@ using namespace Arc;
   class MCC_GSI_Client
     : public MCC {
   public:
-    MCC_GSI_Client(Config& cfg, ModuleManager& mm);
+    MCC_GSI_Client(Config& cfg, PluginArgument& parg);
     virtual ~MCC_GSI_Client();
     virtual MCC_Status process(Message&, Message&);
     virtual void Next(MCCInterface *next, const std::string& label = "");

@@ -18,6 +18,7 @@ namespace Arc {
       read the description of the Message class. */
   class MCCInterface: public Plugin {
   public:
+    MCCInterface(PluginArgument* arg):Plugin(arg) {};
     /** Method for processing of requests and responses.
         This method is called by preceeding MCC in chain when a request
         needs to be processed.
@@ -34,7 +35,7 @@ namespace Arc {
      */
     virtual MCC_Status process(Message& request,
             Message& response) = 0;
-    virtual ~MCCInterface() {}
+    virtual ~MCCInterface() {};
   };
 
   /// Message Chain Component - base class for every MCC plugin.
@@ -72,7 +73,7 @@ namespace Arc {
 
   public:
     /** Example contructor - MCC takes at least it's configuration subtree */
-    MCC(Config *) {}
+    MCC(Config *, PluginArgument* arg):MCCInterface(arg) {}
 
     virtual ~MCC() {}
 

@@ -31,10 +31,10 @@ Plugin* PDPServiceInvoker::get_pdpservice_invoker(PluginArgument* arg) {
     PDPPluginArgument* pdparg =
             arg?dynamic_cast<PDPPluginArgument*>(arg):NULL;
     if(!pdparg) return NULL;
-    return new PDPServiceInvoker((Config*)(*pdparg));
+    return new PDPServiceInvoker((Config*)(*pdparg),arg);
 }
 
-PDPServiceInvoker::PDPServiceInvoker(Config* cfg):PDP(cfg), client(NULL), 
+PDPServiceInvoker::PDPServiceInvoker(Config* cfg,Arc::PluginArgument* parg):PDP(cfg,parg), client(NULL), 
   is_xacml(false), is_saml(false) {
   XMLNode filter = (*cfg)["Filter"];
   if((bool)filter) {

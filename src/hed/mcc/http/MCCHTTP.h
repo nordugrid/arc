@@ -14,7 +14,7 @@ using namespace Arc;
  */
 class MCC_HTTP : public MCC {
   public:
-    MCC_HTTP(Config *cfg);
+    MCC_HTTP(Config *cfg,PluginArgument* parg);
   protected:
     static Logger logger;
 };
@@ -39,7 +39,7 @@ class MCC_HTTP : public MCC {
  */
 class MCC_HTTP_Service: public MCC_HTTP {
     public:
-        MCC_HTTP_Service(Config *cfg);
+        MCC_HTTP_Service(Config *cfg,PluginArgument* parg);
         virtual ~MCC_HTTP_Service(void);
         virtual MCC_Status process(Message&,Message&);
 };
@@ -66,7 +66,7 @@ class MCC_HTTP_Client: public MCC_HTTP {
         std::string method_;
         std::string endpoint_;
     public:
-        MCC_HTTP_Client(Config *cfg);
+        MCC_HTTP_Client(Config *cfg,PluginArgument* parg);
         virtual ~MCC_HTTP_Client(void);
         virtual MCC_Status process(Message&,Message&);
 };

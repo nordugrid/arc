@@ -36,8 +36,8 @@ private:
   CombiningAlg* combining_alg_ex;
 
 public:
-  XACMLEvaluator (Arc::XMLNode* cfg);
-  XACMLEvaluator (const char * cfgfile);
+  XACMLEvaluator (Arc::XMLNode* cfg, Arc::PluginArgument* parg);
+  XACMLEvaluator (const char * cfgfile, Arc::PluginArgument* parg);
   virtual ~XACMLEvaluator();
 
   /**Evaluate the request based on the policy information inside PolicyStore*/

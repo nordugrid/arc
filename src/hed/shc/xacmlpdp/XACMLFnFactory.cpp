@@ -17,8 +17,8 @@ using namespace Arc;
 
 namespace ArcSec {
 
-Arc::Plugin* get_xacmlpdp_fn_factory (Arc::PluginArgument*) {
-    return new ArcSec::XACMLFnFactory();
+Arc::Plugin* get_xacmlpdp_fn_factory (Arc::PluginArgument* arg) {
+    return new ArcSec::XACMLFnFactory(arg);
 }
 
 void XACMLFnFactory::initFunctions(){
@@ -80,7 +80,7 @@ void XACMLFnFactory::initFunctions(){
   /** TODO:  other function type............. */
 }
 
-XACMLFnFactory::XACMLFnFactory(){
+XACMLFnFactory::XACMLFnFactory(Arc::PluginArgument* parg) : FnFactory(parg) {
   initFunctions();
 }
 

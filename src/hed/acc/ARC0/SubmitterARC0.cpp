@@ -27,8 +27,8 @@ namespace Arc {
 
   Logger SubmitterARC0::logger(Logger::getRootLogger(), "Submitter.ARC0");
 
-  SubmitterARC0::SubmitterARC0(const UserConfig& usercfg)
-    : Submitter(usercfg, "ARC0") {}
+  SubmitterARC0::SubmitterARC0(const UserConfig& usercfg, PluginArgument* parg)
+    : Submitter(usercfg, "ARC0", parg) {}
 
   SubmitterARC0::~SubmitterARC0() {}
 
@@ -44,7 +44,7 @@ namespace Arc {
       return NULL;
     }
     factory->makePersistent(module);
-    return new SubmitterARC0(*subarg);
+    return new SubmitterARC0(*subarg, arg);
   }
 
 

@@ -17,8 +17,8 @@
 using namespace Arc;
 namespace ArcSec {
 
-Arc::Plugin* get_xacmlpdp_attr_factory (Arc::PluginArgument*) {
-    return new ArcSec::XACMLAttributeFactory();
+Arc::Plugin* get_xacmlpdp_attr_factory (Arc::PluginArgument* arg) {
+    return new ArcSec::XACMLAttributeFactory(arg);
 }
 
 void XACMLAttributeFactory::initDatatypes(){
@@ -37,7 +37,7 @@ void XACMLAttributeFactory::initDatatypes(){
 
 }
 
-XACMLAttributeFactory::XACMLAttributeFactory(){
+XACMLAttributeFactory::XACMLAttributeFactory(Arc::PluginArgument* parg) : AttributeFactory(parg) {
   initDatatypes();
 }
 

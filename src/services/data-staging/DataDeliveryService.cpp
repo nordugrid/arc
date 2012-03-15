@@ -18,7 +18,7 @@ namespace DataStaging {
     Arc::ServicePluginArgument* srvarg =
             arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
     if(!srvarg) return NULL;
-    DataDeliveryService* s = new DataDeliveryService((Arc::Config*)(*srvarg));
+    DataDeliveryService* s = new DataDeliveryService((Arc::Config*)(*srvarg),arg);
     if (*s)
       return s;
     delete s;
@@ -518,8 +518,8 @@ namespace DataStaging {
   }
 
 
-  DataDeliveryService::DataDeliveryService(Arc::Config *cfg)
-    : RegisteredService(cfg),
+  DataDeliveryService::DataDeliveryService(Arc::Config *cfg, Arc::PluginArgument* parg)
+    : RegisteredService(cfg,parg),
       max_processes(100),
       current_processes(0) {
 

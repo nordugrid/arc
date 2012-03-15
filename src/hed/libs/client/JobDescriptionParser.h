@@ -52,7 +52,7 @@ namespace Arc {
     const std::string& GetError(void) { return error; };
 
   protected:
-    JobDescriptionParser();
+    JobDescriptionParser(PluginArgument* parg);
 
     std::string& SourceLanguage(JobDescription& j) const;
 
@@ -93,22 +93,23 @@ namespace Arc {
     class iterator {
     private:
       iterator(JobDescriptionParserLoader& jdpl);
+      iterator& operator=(const iterator& it) {}
     public:
       ~iterator() {}
-      iterator& operator=(const iterator& it) { current = it.current; jdpl = it.jdpl; return *this; }
+      //iterator& operator=(const iterator& it) { current = it.current; jdpl = it.jdpl; return *this; }
       JobDescriptionParser& operator*() { return **current; }
       const JobDescriptionParser& operator*() const { return **current; }
       JobDescriptionParser* operator->() { return *current; }
       const JobDescriptionParser* operator->() const { return *current; }
       iterator& operator++();
-      operator bool() { return !jdpl.jdpDescs.empty() || current != jdpl.jdps.end(); }
+      operator bool() { return !jdpl->jdpDescs.empty() || current != jdpl->jdps.end(); }
 
       friend class JobDescriptionParserLoader;
     private:
       void LoadNext();
 
       std::list<JobDescriptionParser*>::iterator current;
-      JobDescriptionParserLoader& jdpl;
+      JobDescriptionParserLoader* jdpl;
     };
 
     iterator GetIterator() { return iterator(*this); }

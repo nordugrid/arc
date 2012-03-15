@@ -25,7 +25,7 @@ Arc::Plugin* ArcSec::SAMLTokenSH::get_sechandler(Arc::PluginArgument* arg) {
   ArcSec::SecHandlerPluginArgument* shcarg =
           arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
   if(!shcarg) return NULL;
-  ArcSec::SAMLTokenSH* plugin = new ArcSec::SAMLTokenSH((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
+  ArcSec::SAMLTokenSH* plugin = new ArcSec::SAMLTokenSH((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg),arg);
   if(!plugin) return NULL;
   if(!(*plugin)) { delete plugin; plugin = NULL; };
   return plugin;
@@ -142,7 +142,7 @@ bool SAMLAssertionSecAttr::Import(Arc::SecAttrFormat format, const XMLNode& val)
   return false;
 }
 
-SAMLTokenSH::SAMLTokenSH(Config *cfg,ChainContext*):SecHandler(cfg),valid_(false){
+SAMLTokenSH::SAMLTokenSH(Config *cfg,ChainContext*,Arc::PluginArgument* parg):SecHandler(cfg,parg),valid_(false){
   if(!init_xmlsec()) return;
   process_type_=process_none;
   std::string process_type = (std::string)((*cfg)["Process"]);

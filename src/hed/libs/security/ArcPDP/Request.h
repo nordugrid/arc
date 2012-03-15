@@ -78,10 +78,10 @@ public:
   virtual const char* getName() const = 0;
 
   /**Default constructor*/
-  Request () {};
+  Request (Arc::PluginArgument* parg): Arc::LoadableClass(parg) {};
 
   /**Constructor: Parse request information from a xml stucture in memory*/
-  Request (const Source&) {};
+  Request (const Source&, Arc::PluginArgument* parg): Arc::LoadableClass(parg) {};
 
   virtual Arc::XMLNode& getReqNode() = 0;
 

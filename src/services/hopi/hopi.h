@@ -17,7 +17,7 @@ class Hopi: public Arc::RegisteredService {
         Arc::MCC_Status Put(const std::string &path, Arc::MessagePayload &buf);
     public:
         static Arc::Logger logger;
-        Hopi(Arc::Config *cfg);
+        Hopi(Arc::Config *cfg, Arc::PluginArgument* parg);
         virtual ~Hopi(void);
         virtual Arc::MCC_Status process(Arc::Message &inmsg, Arc::Message &outmsg);
         bool RegistrationCollector(Arc::XMLNode &doc);

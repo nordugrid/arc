@@ -23,8 +23,8 @@ namespace Arc {
 
   Logger DataPointSRM::logger(Logger::getRootLogger(), "DataPoint.SRM");
 
-  DataPointSRM::DataPointSRM(const URL& url, const UserConfig& usercfg)
-    : DataPointDirect(url, usercfg),
+  DataPointSRM::DataPointSRM(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
+    : DataPointDirect(url, usercfg, parg),
       srm_request(NULL),
       r_handle(NULL),
       reading(false),
@@ -41,7 +41,7 @@ namespace Arc {
       return NULL;
     if (((const URL&)(*dmcarg)).Protocol() != "srm")
       return NULL;
-    return new DataPointSRM(*dmcarg, *dmcarg);
+    return new DataPointSRM(*dmcarg, *dmcarg, dmcarg);
   }
 
   DataStatus DataPointSRM::Check() {

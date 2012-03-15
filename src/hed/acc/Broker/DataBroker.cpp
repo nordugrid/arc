@@ -77,8 +77,8 @@ namespace Arc {
     return CacheMappingTable[T1->ComputingEndpoint->URLString] > CacheMappingTable[T2->ComputingEndpoint->URLString];
   }
 
-  DataBroker::DataBroker(const UserConfig& usercfg)
-    : Broker(usercfg) {}
+  DataBroker::DataBroker(const UserConfig& usercfg, PluginArgument* parg)
+    : Broker(usercfg, parg) {}
 
   DataBroker::~DataBroker() {}
 
@@ -86,7 +86,7 @@ namespace Arc {
     BrokerPluginArgument *brokerarg = dynamic_cast<BrokerPluginArgument*>(arg);
     if (!brokerarg)
       return NULL;
-    return new DataBroker(*brokerarg);
+    return new DataBroker(*brokerarg, arg);
   }
 
   void DataBroker::SortTargets() {

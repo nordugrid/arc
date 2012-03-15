@@ -14,7 +14,7 @@ namespace ArcSec {
 class PDPServiceInvoker : public PDP {
  public:
   static Arc::Plugin* get_pdpservice_invoker(Arc::PluginArgument* arg);
-  PDPServiceInvoker(Arc::Config* cfg);
+  PDPServiceInvoker(Arc::Config* cfg, Arc::PluginArgument* parg);
   virtual ~PDPServiceInvoker();
   virtual bool isPermitted(Arc::Message *msg) const;
  private:

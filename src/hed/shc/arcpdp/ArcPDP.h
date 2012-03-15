@@ -14,7 +14,7 @@ namespace ArcSec {
 class ArcPDP : public PDP {
  public:
   static Arc::Plugin* get_arc_pdp(Arc::PluginArgument* arg);
-  ArcPDP(Arc::Config* cfg);
+  ArcPDP(Arc::Config* cfg, Arc::PluginArgument* parg);
   virtual ~ArcPDP();
 
   /***/

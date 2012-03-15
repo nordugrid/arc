@@ -102,7 +102,7 @@ namespace Arc {
     DataStatus RemoveDir();
     DataStatus do_more_stat(FileInfo& f);
   public:
-    DataPointGridFTP(const URL& url, const UserConfig& usercfg);
+    DataPointGridFTP(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
     virtual ~DataPointGridFTP();
     static Plugin* Instance(PluginArgument *arg);
     virtual bool SetURL(const URL& url);

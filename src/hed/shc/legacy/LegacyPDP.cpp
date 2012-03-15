@@ -16,10 +16,10 @@ Arc::Plugin* LegacyPDP::get_pdp(Arc::PluginArgument *arg) {
     ArcSec::PDPPluginArgument* pdparg =
             arg?dynamic_cast<ArcSec::PDPPluginArgument*>(arg):NULL;
     if(!pdparg) return NULL;
-    return new LegacyPDP((Arc::Config*)(*pdparg));
+    return new LegacyPDP((Arc::Config*)(*pdparg),arg);
 }
 
-LegacyPDP::LegacyPDP(Arc::Config* cfg):PDP(cfg) {
+LegacyPDP::LegacyPDP(Arc::Config* cfg,Arc::PluginArgument* parg):PDP(cfg,parg) {
   Arc::XMLNode group = (*cfg)["Group"];
   while((bool)group) {
     groups_.push_back((std::string)group);

@@ -22,7 +22,7 @@ namespace Arc {
   class DataPointLFC
     : public DataPointIndex {
   public:
-    DataPointLFC(const URL& url, const UserConfig& usercfg);
+    DataPointLFC(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
     ~DataPointLFC();
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus Resolve(bool source);

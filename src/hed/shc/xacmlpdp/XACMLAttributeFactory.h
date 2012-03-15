@@ -12,7 +12,7 @@ namespace ArcSec {
 /// Attribute factory class for XACML specified attributes
 class XACMLAttributeFactory : public AttributeFactory {
 public:
-  XACMLAttributeFactory();
+  XACMLAttributeFactory(Arc::PluginArgument* parg);
   virtual ~XACMLAttributeFactory();
 
 public:

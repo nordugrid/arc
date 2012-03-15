@@ -20,7 +20,7 @@ namespace Arc {
   class DataPointFile
     : public DataPointDirect {
   public:
-    DataPointFile(const URL& url, const UserConfig& usercfg);
+    DataPointFile(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
     virtual ~DataPointFile();
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus StartReading(DataBuffer& buffer);

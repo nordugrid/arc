@@ -18,15 +18,15 @@
 
 namespace Arc {
 
-  ADLParser::ADLParser()
-    : JobDescriptionParser() {
+  ADLParser::ADLParser(PluginArgument* parg)
+    : JobDescriptionParser(parg) {
     supportedLanguages.push_back("emies:adl");
   }
 
   ADLParser::~ADLParser() {}
 
   Plugin* ADLParser::Instance(PluginArgument *arg) {
-    return new ADLParser();
+    return new ADLParser(arg);
   }
 
   //  EMI state             ARC state

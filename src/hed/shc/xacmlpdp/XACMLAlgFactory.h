@@ -11,7 +11,7 @@ namespace ArcSec {
 ///Algorithm factory class for XACML
 class XACMLAlgFactory : public AlgFactory {
 public:
-  XACMLAlgFactory();
+  XACMLAlgFactory(Arc::PluginArgument* parg);
   virtual ~XACMLAlgFactory();
 
 public:

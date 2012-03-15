@@ -96,8 +96,8 @@ namespace Arc {
     func; \
   }
 
-  DataPointLFC::DataPointLFC(const URL& url, const UserConfig& usercfg)
-    : DataPointIndex(url, usercfg),
+  DataPointLFC::DataPointLFC(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
+    : DataPointIndex(url, usercfg, parg),
       guid(""),
       path_for_guid(url.Path()){
     /*
@@ -150,7 +150,7 @@ namespace Arc {
       GlobusModuleActivate(GLOBUS_OPENSSL_MODULE);
       proxy_initialized = GlobusRecoverProxyOpenSSL();
     }
-    return new DataPointLFC(*dmcarg, *dmcarg);
+    return new DataPointLFC(*dmcarg, *dmcarg, arg);
   }
 
   DataStatus DataPointLFC::Check() {

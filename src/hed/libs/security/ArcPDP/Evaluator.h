@@ -34,8 +34,8 @@ class Evaluator : public Arc::LoadableClass {
 protected:
   static Arc::Logger logger;
 public:
-  Evaluator (Arc::XMLNode*) {};
-  Evaluator (const char *) {};
+  Evaluator (Arc::XMLNode*, Arc::PluginArgument* parg): Arc::LoadableClass(parg) {};
+  Evaluator (const char *, Arc::PluginArgument* parg): Arc::LoadableClass(parg) {};
   virtual ~Evaluator() {};
 
   /**Evaluates the request by using a Request object.

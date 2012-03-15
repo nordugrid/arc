@@ -15,8 +15,8 @@ namespace Arc {
 class JobControllerTestACC
   : public JobController {
 public:
-  JobControllerTestACC(const UserConfig& usercfg)
-    : JobController(usercfg, "TEST") {}
+  JobControllerTestACC(const UserConfig& usercfg, PluginArgument* parg)
+    : JobController(usercfg, "TEST", parg) {}
   ~JobControllerTestACC() {}
 
   void UpdateJobs(std::list<Job*>&) const {}

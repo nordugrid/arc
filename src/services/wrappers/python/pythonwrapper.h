@@ -16,7 +16,7 @@ class Service_PythonWrapper: public Arc::RegisteredService {
         bool initialized;
 
     public:
-        Service_PythonWrapper(Arc::Config *cfg);
+        Service_PythonWrapper(Arc::Config *cfg, Arc::PluginArgument* parg);
         virtual ~Service_PythonWrapper(void);
         /** Service request processing routine */
         virtual Arc::MCC_Status process(Arc::Message&, Arc::Message&);

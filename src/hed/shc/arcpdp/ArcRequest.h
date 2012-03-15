@@ -30,10 +30,10 @@ public:
   virtual void setAttributeFactory(AttributeFactory* attributefactory) { attrfactory = attributefactory; };
 
   //**Default constructor*/
-  ArcRequest ();
+  ArcRequest (Arc::PluginArgument* parg);
 
   //**Parse request information from external source*/
-  ArcRequest (const Source& source);
+  ArcRequest (const Source& source,Arc::PluginArgument* parg);
 
   virtual ~ArcRequest();
 

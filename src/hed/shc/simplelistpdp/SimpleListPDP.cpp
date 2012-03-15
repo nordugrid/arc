@@ -21,10 +21,10 @@ Plugin* SimpleListPDP::get_simplelist_pdp(PluginArgument* arg) {
     ArcSec::PDPPluginArgument* pdparg =
             arg?dynamic_cast<ArcSec::PDPPluginArgument*>(arg):NULL;
     if(!pdparg) return NULL;
-    return new SimpleListPDP((Arc::Config*)(*pdparg));
+    return new SimpleListPDP((Arc::Config*)(*pdparg),arg);
 }
 
-SimpleListPDP::SimpleListPDP(Config* cfg):PDP(cfg){
+SimpleListPDP::SimpleListPDP(Config* cfg, Arc::PluginArgument* parg):PDP(cfg,parg){
   location = (std::string)(cfg->Attribute("location"));
   logger.msg(VERBOSE, "Access list location: %s", location);
   for(XMLNode dn = (*cfg)["DN"];(bool)dn;++dn) {

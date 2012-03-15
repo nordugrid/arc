@@ -270,7 +270,8 @@ namespace Arc {
       if(MatchXMLName(cn, "Plexer")) {
         std::string id = cn.Attribute("id");
         if(id.empty()) id = "plexer";
-        Plexer* plexer = new Plexer(&cfg_);
+        MCCPluginArgument arg(&cfg_,context_);
+        Plexer* plexer = new Plexer(&cfg_,&arg);
         plexers_[id] = plexer;
         plexer_connector_t plexer_connector(plexers_.find(id));
         for(int nn = 0;; ++nn) {

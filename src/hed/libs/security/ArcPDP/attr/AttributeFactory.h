@@ -15,7 +15,7 @@ typedef std::map<std::string, AttributeProxy*> AttrProxyMap;
 /** Base attribute factory class*/
 class AttributeFactory : public Arc::LoadableClass {
 public:
-  AttributeFactory() {};
+  AttributeFactory(Arc::PluginArgument* parg): Arc::LoadableClass(parg) {};
   virtual ~AttributeFactory(){};
 
 public:

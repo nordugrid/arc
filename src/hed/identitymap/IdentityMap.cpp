@@ -17,7 +17,7 @@ static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg) {
   ArcSec::SecHandlerPluginArgument* shcarg =
           arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
   if(!shcarg) return NULL;
-  ArcSec::IdentityMap* plugin = new ArcSec::IdentityMap((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
+  ArcSec::IdentityMap* plugin = new ArcSec::IdentityMap((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg),shcarg);
   if(!plugin) return NULL;
   if(!(*plugin)) { delete plugin; return NULL; };
   return plugin;
@@ -169,7 +169,7 @@ static LocalMap* MakeLocalMap(Arc::XMLNode pdp) {
 }
 
 // ---------------------------------------------------------------------------
-IdentityMap::IdentityMap(Arc::Config *cfg,Arc::ChainContext* ctx):ArcSec::SecHandler(cfg),valid_(false){
+IdentityMap::IdentityMap(Arc::Config *cfg,Arc::ChainContext* ctx,Arc::PluginArgument* parg):ArcSec::SecHandler(cfg,parg),valid_(false){
   Arc::PluginsFactory* pdp_factory = (Arc::PluginsFactory*)(*ctx);
   if(pdp_factory) {
     Arc::XMLNode plugins = (*cfg)["Plugins"];

@@ -11,7 +11,7 @@
 namespace Arc {
 
 Plugin* ServiceEndpointRetrieverPluginTEST::Instance(PluginArgument* arg) {
-  return new ServiceEndpointRetrieverPluginTEST();
+  return new ServiceEndpointRetrieverPluginTEST(arg);
 }
 
 EndpointQueryingStatus ServiceEndpointRetrieverPluginTEST::Query(const UserConfig& userconfig,

@@ -16,8 +16,8 @@ class URL;
 class SubmitterTestACC
   : public Submitter {
 private:
-  SubmitterTestACC(const UserConfig& usercfg)
-    : Submitter(usercfg, "TEST") {}
+  SubmitterTestACC(const UserConfig& usercfg, PluginArgument* parg)
+    : Submitter(usercfg, "TEST", parg) {}
 
 public:
   ~SubmitterTestACC() {}

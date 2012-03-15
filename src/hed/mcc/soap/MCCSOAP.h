@@ -14,7 +14,7 @@ using namespace Arc;
    */
   class MCC_SOAP : public MCC {
   public:
-    MCC_SOAP(Config *cfg);
+    MCC_SOAP(Config *cfg,PluginArgument* parg);
   protected:
     static Logger logger;
   };
@@ -29,7 +29,7 @@ class MCC_SOAP_Service: public MCC_SOAP
     public:
         /* Constructor takes configuration of MCC. 
          Currently there are no configuration parameters for this MCC */
-        MCC_SOAP_Service(Config *cfg);
+        MCC_SOAP_Service(Config *cfg,PluginArgument* parg);
         virtual ~MCC_SOAP_Service(void);
         virtual MCC_Status process(Message&,Message&);
 };
@@ -43,7 +43,7 @@ class MCC_SOAP_Client: public MCC_SOAP
     public:
         /* Constructor takes configuration of MCC. 
          Currently there are no configuration parameters for this MCC */
-        MCC_SOAP_Client(Config *cfg);
+        MCC_SOAP_Client(Config *cfg,PluginArgument* parg);
         virtual ~MCC_SOAP_Client(void);
         virtual MCC_Status process(Message&,Message&);
 };

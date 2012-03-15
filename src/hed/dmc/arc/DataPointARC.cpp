@@ -73,8 +73,8 @@ namespace Arc {
     return ret;
   }
 
-  DataPointARC::DataPointARC(const URL& url, const UserConfig& usercfg)
-    : DataPointDirect(url, usercfg),
+  DataPointARC::DataPointARC(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
+    : DataPointDirect(url, usercfg, parg),
       transfer(NULL),
       reading(false),
       writing(false),
@@ -121,7 +121,7 @@ namespace Arc {
       return NULL;
     if (((const URL&)(*dmcarg)).Protocol() != "arc")
       return NULL;
-    return new DataPointARC(*dmcarg, *dmcarg);
+    return new DataPointARC(*dmcarg, *dmcarg, dmcarg);
   }
 
   static void set_stat(XMLNode metadata, FileInfo& file) {

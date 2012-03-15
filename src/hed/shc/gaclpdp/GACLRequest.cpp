@@ -14,9 +14,9 @@ Arc::Plugin* ArcSec::GACLRequest::get_request(Arc::PluginArgument* arg) {
           arg?dynamic_cast<Arc::ClassLoaderPluginArgument*>(arg):NULL;
   if(!clarg) return NULL;
   Arc::XMLNode* xarg = (Arc::XMLNode*)(*clarg);
-  if(xarg == NULL) return new ArcSec::GACLRequest();
+  if(xarg == NULL) return new ArcSec::GACLRequest(arg);
   ArcSec::Source source(*xarg);
-  return new ArcSec::GACLRequest(source);
+  return new ArcSec::GACLRequest(source,arg);
 }
 
 //loader_descriptors __arc_request_modules__  = {
@@ -28,11 +28,11 @@ Arc::Plugin* ArcSec::GACLRequest::get_request(Arc::PluginArgument* arg) {
 using namespace Arc;
 using namespace ArcSec;
 
-GACLRequest::GACLRequest (const Source& req) : Request(req) {
+GACLRequest::GACLRequest (const Source& req, Arc::PluginArgument* parg) : Request(req,parg) {
   req.Get().New(reqnode);
 }
 
-GACLRequest::GACLRequest () {
+GACLRequest::GACLRequest (Arc::PluginArgument* parg) : Request(parg) {
 }
 
 GACLRequest::~GACLRequest(){

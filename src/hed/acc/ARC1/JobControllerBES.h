@@ -13,7 +13,7 @@ namespace Arc {
   class JobControllerBES
     : public JobController {
   public:
-    JobControllerBES(const UserConfig& usercfg);
+    JobControllerBES(const UserConfig& usercfg, PluginArgument* parg);
     ~JobControllerBES();
 
     static Plugin* Instance(PluginArgument *arg);

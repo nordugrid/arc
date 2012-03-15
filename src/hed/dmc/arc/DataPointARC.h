@@ -32,7 +32,7 @@ namespace Arc {
     int chksum_index;
     bool checkBartenderURL(const URL& bartender_url);
   public:
-    DataPointARC(const URL& url, const UserConfig& usercfg);
+    DataPointARC(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
     virtual ~DataPointARC();
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus Check();

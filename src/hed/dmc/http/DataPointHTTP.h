@@ -20,7 +20,7 @@ namespace Arc {
   class DataPointHTTP
     : public DataPointDirect {
   public:
-    DataPointHTTP(const URL& url, const UserConfig& usercfg);
+    DataPointHTTP(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
     virtual ~DataPointHTTP();
     static Plugin* Instance(PluginArgument *arg);
     virtual bool SetURL(const URL& url);

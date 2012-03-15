@@ -16,21 +16,21 @@
 Arc::Logger ArcMCCSOAP::MCC_SOAP::logger(Arc::Logger::getRootLogger(), "MCC.SOAP");
 
 
-ArcMCCSOAP::MCC_SOAP::MCC_SOAP(Arc::Config *cfg) : Arc::MCC(cfg) {
+ArcMCCSOAP::MCC_SOAP::MCC_SOAP(Arc::Config *cfg,PluginArgument* parg) : Arc::MCC(cfg,parg) {
 }
 
 static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    return new ArcMCCSOAP::MCC_SOAP_Service((Arc::Config*)(*mccarg));
+    return new ArcMCCSOAP::MCC_SOAP_Service((Arc::Config*)(*mccarg),mccarg);
 }
 
 static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    return new ArcMCCSOAP::MCC_SOAP_Client((Arc::Config*)(*mccarg));
+    return new ArcMCCSOAP::MCC_SOAP_Client((Arc::Config*)(*mccarg),mccarg);
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
@@ -144,13 +144,13 @@ bool SOAPSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   return false;
 }
 
-MCC_SOAP_Service::MCC_SOAP_Service(Config *cfg):MCC_SOAP(cfg) {
+MCC_SOAP_Service::MCC_SOAP_Service(Config *cfg,PluginArgument* parg):MCC_SOAP(cfg,parg) {
 }
 
 MCC_SOAP_Service::~MCC_SOAP_Service(void) {
 }
 
-MCC_SOAP_Client::MCC_SOAP_Client(Config *cfg):MCC_SOAP(cfg) {
+MCC_SOAP_Client::MCC_SOAP_Client(Config *cfg,PluginArgument* parg):MCC_SOAP(cfg,parg) {
 }
 
 MCC_SOAP_Client::~MCC_SOAP_Client(void) {

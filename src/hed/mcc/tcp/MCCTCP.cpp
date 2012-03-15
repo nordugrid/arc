@@ -58,14 +58,14 @@ inline const char *inet_ntop(int af, const void *__restrict src, char *__restric
 #define PROTO_NAME(ADDR) ((ADDR->ai_family==AF_INET6)?"IPv6":"IPv4")
 Arc::Logger ArcMCCTCP::MCC_TCP::logger(Arc::Logger::getRootLogger(), "MCC.TCP");
 
-ArcMCCTCP::MCC_TCP::MCC_TCP(Arc::Config *cfg) : Arc::MCC(cfg) {
+ArcMCCTCP::MCC_TCP::MCC_TCP(Arc::Config *cfg, PluginArgument* parg) : Arc::MCC(cfg, parg) {
 }
 
 static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    ArcMCCTCP::MCC_TCP_Service* plugin = new ArcMCCTCP::MCC_TCP_Service((Arc::Config*)(*mccarg));
+    ArcMCCTCP::MCC_TCP_Service* plugin = new ArcMCCTCP::MCC_TCP_Service((Arc::Config*)(*mccarg),mccarg);
     if(!(*plugin)) {
         delete plugin;
         return NULL;
@@ -77,7 +77,7 @@ static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    ArcMCCTCP::MCC_TCP_Client* plugin =  new ArcMCCTCP::MCC_TCP_Client((Arc::Config*)(*mccarg));
+    ArcMCCTCP::MCC_TCP_Client* plugin =  new ArcMCCTCP::MCC_TCP_Client((Arc::Config*)(*mccarg),mccarg);
     if(!(*plugin)) {
         delete plugin;
         return NULL;
@@ -97,7 +97,7 @@ namespace ArcMCCTCP {
 using namespace Arc;
 
 
-MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),valid_(false),max_executers_(-1),max_executers_drop_(false) {
+MCC_TCP_Service::MCC_TCP_Service(Config *cfg, PluginArgument* parg):MCC_TCP(cfg,parg),valid_(false),max_executers_(-1),max_executers_drop_(false) {
 #ifdef WIN32
     WSADATA wsadata;
     if (WSAStartup(MAKEWORD(2,2), &wsadata) != 0) {
@@ -622,7 +622,7 @@ MCC_Status MCC_TCP_Service::process(Message&,Message&) {
   return MCC_Status();
 }
 
-MCC_TCP_Client::MCC_TCP_Client(Config *cfg):MCC_TCP(cfg),s_(NULL) {
+MCC_TCP_Client::MCC_TCP_Client(Config *cfg, PluginArgument* parg):MCC_TCP(cfg,parg),s_(NULL) {
 #ifdef WIN32
     WSADATA wsadata;
     if (WSAStartup(MAKEWORD(2,2), &wsadata) != 0) {

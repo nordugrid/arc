@@ -14,10 +14,10 @@ Plugin* DenyPDP::get_deny_pdp(PluginArgument* arg) {
     ArcSec::PDPPluginArgument* pdparg =
             arg?dynamic_cast<ArcSec::PDPPluginArgument*>(arg):NULL;
     if(!pdparg) return NULL;
-    return new DenyPDP((Arc::Config*)(*pdparg));
+    return new DenyPDP((Arc::Config*)(*pdparg),arg);
 }
 
-DenyPDP::DenyPDP(Config* cfg):PDP(cfg){
+DenyPDP::DenyPDP(Config* cfg,PluginArgument* parg):PDP(cfg,parg){
 }
 
 bool DenyPDP::isPermitted(Message*) const {

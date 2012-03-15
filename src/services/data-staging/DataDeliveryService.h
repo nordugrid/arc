@@ -94,7 +94,7 @@ namespace DataStaging {
 
    public:
     /// Make a new DataDeliveryService. Sets up the process handler.
-    DataDeliveryService(Arc::Config *cfg);
+    DataDeliveryService(Arc::Config *cfg, Arc::PluginArgument* parg);
     /// Destroy the DataDeliveryService
     virtual ~DataDeliveryService();
 

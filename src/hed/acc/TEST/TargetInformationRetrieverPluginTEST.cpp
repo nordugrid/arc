@@ -13,7 +13,7 @@
 namespace Arc {
 
 Plugin* TargetInformationRetrieverPluginTEST::Instance(PluginArgument* arg) {
-  return new TargetInformationRetrieverPluginTEST();
+  return new TargetInformationRetrieverPluginTEST(arg);
 }
 
 EndpointQueryingStatus TargetInformationRetrieverPluginTEST::Query(const UserConfig& userconfig,

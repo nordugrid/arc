@@ -17,7 +17,7 @@ namespace Arc {
     : public Submitter {
 
   private:
-    SubmitterARC0(const UserConfig& usercfg);
+    SubmitterARC0(const UserConfig& usercfg, PluginArgument* parg);
     ~SubmitterARC0();
 
     static Logger logger;

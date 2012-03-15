@@ -24,7 +24,7 @@ namespace Arc {
   class DataPointLDAP
     : public DataPointDirect {
   public:
-    DataPointLDAP(const URL& url, const UserConfig& usercfg);
+    DataPointLDAP(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
     virtual ~DataPointLDAP();
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus StartReading(DataBuffer& buffer);

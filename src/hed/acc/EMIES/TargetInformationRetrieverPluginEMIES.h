@@ -18,10 +18,13 @@ namespace Arc {
 
   class TargetInformationRetrieverPluginEMIES: public TargetInformationRetrieverPlugin {
   public:
-    TargetInformationRetrieverPluginEMIES() { supportedInterfaces.push_back("org.ogf.emies"); };
+    TargetInformationRetrieverPluginEMIES(PluginArgument* parg):
+        TargetInformationRetrieverPlugin(parg) {
+        supportedInterfaces.push_back("org.ogf.emies");
+    };
     ~TargetInformationRetrieverPluginEMIES() {};
 
-    static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginEMIES(); };
+    static Plugin* Instance(PluginArgument *arg) { return new TargetInformationRetrieverPluginEMIES(arg); };
     virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint&, std::list<ComputingServiceType>&, const EndpointQueryOptions<ComputingServiceType>&) const;
     virtual bool isEndpointNotSupported(const Endpoint&) const;
     static void ExtractTargets(const URL&, XMLNode response, std::list<ComputingServiceType>&);

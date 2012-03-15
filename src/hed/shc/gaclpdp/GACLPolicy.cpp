@@ -19,8 +19,8 @@ Arc::Plugin* ArcSec::GACLPolicy::get_policy(Arc::PluginArgument* arg) {
     std::cerr<<"GACLPolicy creation needs XMLNode as argument"<<std::endl;
     return NULL;
   };
-  if(!(*doc)) return new ArcSec::GACLPolicy;
-  ArcSec::GACLPolicy* policy = new ArcSec::GACLPolicy(*doc);
+  if(!(*doc)) return new ArcSec::GACLPolicy(arg);
+  ArcSec::GACLPolicy* policy = new ArcSec::GACLPolicy(*doc,arg);
   if(!(*policy)) {
     delete policy;
     return NULL;
@@ -36,12 +36,12 @@ Arc::Plugin* ArcSec::GACLPolicy::get_policy(Arc::PluginArgument* arg) {
 using namespace Arc;
 using namespace ArcSec;
 
-GACLPolicy::GACLPolicy(void) : Policy() {
+GACLPolicy::GACLPolicy(Arc::PluginArgument* parg) : Policy(parg) {
   NS ns;
   policynode.Replace(XMLNode(ns,"gacl"));
 }
 
-GACLPolicy::GACLPolicy(const XMLNode node) : Policy(node) {
+GACLPolicy::GACLPolicy(const XMLNode node, Arc::PluginArgument* parg) : Policy(node,parg) {
   if((!node) || (node.Size() == 0)) {
     logger.msg(ERROR,"Policy is empty");
     return;
@@ -53,7 +53,7 @@ GACLPolicy::GACLPolicy(const XMLNode node) : Policy(node) {
   node.New(policynode);
 }
 
-GACLPolicy::GACLPolicy(const Source& source) : Policy(source.Get()) {
+GACLPolicy::GACLPolicy(const Source& source, Arc::PluginArgument* parg) : Policy(source.Get(),parg) {
   XMLNode node = source.Get();
   if((!node) || (node.Size() == 0)) {
     logger.msg(ERROR,"Policy is empty");

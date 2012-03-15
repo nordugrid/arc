@@ -32,7 +32,7 @@ class SAMLTokenSH : public SecHandler {
   bool valid_;
 
  public:
-  SAMLTokenSH(Arc::Config *cfg, Arc::ChainContext* ctx);
+  SAMLTokenSH(Arc::Config *cfg, Arc::ChainContext* ctx, Arc::PluginArgument* parg);
   virtual ~SAMLTokenSH(void);
   static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
   virtual bool Handle(Arc::Message* msg) const;

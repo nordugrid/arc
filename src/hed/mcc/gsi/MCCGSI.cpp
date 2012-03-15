@@ -72,8 +72,7 @@ using namespace Arc;
       arg ? dynamic_cast<MCCPluginArgument*>(arg) : NULL;
     if (!mccarg)
       return NULL;
-    return new MCC_GSI_Service(*(Config*)(*mccarg),
-                               *(PluginsFactory*)(*(ChainContext*)(*mccarg)));
+    return new MCC_GSI_Service(*(Config*)(*mccarg),*mccarg);
   }
 
   static Plugin* get_mcc_client(PluginArgument *arg) {
@@ -81,8 +80,7 @@ using namespace Arc;
       arg ? dynamic_cast<MCCPluginArgument*>(arg) : NULL;
     if (!mccarg)
       return NULL;
-    return new MCC_GSI_Client(*(Config*)(*mccarg),
-                              *(PluginsFactory*)(*(ChainContext*)(*mccarg)));
+    return new MCC_GSI_Client(*(Config*)(*mccarg),*mccarg);
   }
 
   class MCC_GSI_Context
@@ -245,8 +243,9 @@ using namespace Arc;
     return MCC_Status(STATUS_OK);
   }
 
-  MCC_GSI_Service::MCC_GSI_Service(Config& cfg, ModuleManager& mm)
-    : MCC(&cfg) {
+  MCC_GSI_Service::MCC_GSI_Service(Config& cfg, PluginArgument& parg)
+    : MCC(&cfg,&parg) {
+    ModuleManager& mm = *parg.get_factory();
     //globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
     globus_openldap_lock(mm);
     if (!proxy_initialized)
@@ -290,9 +289,10 @@ using namespace Arc;
     }
   }
 
-  MCC_GSI_Client::MCC_GSI_Client(Config& cfg, ModuleManager& mm)
-    : MCC(&cfg),
+  MCC_GSI_Client::MCC_GSI_Client(Config& cfg, PluginArgument& parg)
+    : MCC(&cfg,&parg),
       ctx(GSS_C_NO_CONTEXT) {
+    ModuleManager& mm = *parg.get_factory();
     //globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
     globus_openldap_lock(mm);
     //if (!proxy_initialized)

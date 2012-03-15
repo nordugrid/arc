@@ -16,7 +16,7 @@ namespace Arc {
   Logger JobDescriptionParser::logger(Logger::getRootLogger(),
                                       "JobDescriptionParser");
 
-  JobDescriptionParser::JobDescriptionParser() {}
+  JobDescriptionParser::JobDescriptionParser(PluginArgument* parg): Plugin(parg) {}
 
   JobDescriptionParser::~JobDescriptionParser() {}
 
@@ -65,9 +65,9 @@ namespace Arc {
     return jdp;
   }
 
-  JobDescriptionParserLoader::iterator::iterator(JobDescriptionParserLoader& jdpl) : jdpl(jdpl) {
+  JobDescriptionParserLoader::iterator::iterator(JobDescriptionParserLoader& jdpl) : jdpl(&jdpl) {
     LoadNext();
-    current = jdpl.jdps.begin();
+    current = this->jdpl->jdps.begin();
   }
 
   JobDescriptionParserLoader::iterator& JobDescriptionParserLoader::iterator::operator++() {
@@ -77,23 +77,23 @@ namespace Arc {
   }
 
   void JobDescriptionParserLoader::iterator::LoadNext() {
-    if (!jdpl.scaningDone) {
-      jdpl.scan();
+    if (!jdpl->scaningDone) {
+      jdpl->scan();
     }
 
-    while (!jdpl.jdpDescs.empty()) {
+    while (!jdpl->jdpDescs.empty()) {
       JobDescriptionParser* loadedJDPL = NULL;
 
-      while (!jdpl.jdpDescs.front().plugins.empty()) {
-        loadedJDPL = jdpl.load(jdpl.jdpDescs.front().plugins.front().name);
-        jdpl.jdpDescs.front().plugins.pop_front();
+      while (!jdpl->jdpDescs.front().plugins.empty()) {
+        loadedJDPL = jdpl->load(jdpl->jdpDescs.front().plugins.front().name);
+        jdpl->jdpDescs.front().plugins.pop_front();
         if (loadedJDPL != NULL) {
           break;
         }
       }
 
-      if (jdpl.jdpDescs.front().plugins.empty()) {
-        jdpl.jdpDescs.pop_front();
+      if (jdpl->jdpDescs.front().plugins.empty()) {
+        jdpl->jdpDescs.pop_front();
       }
 
       if (loadedJDPL != NULL) {

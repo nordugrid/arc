@@ -17,13 +17,13 @@ Arc::Plugin* LegacySecHandler::get_sechandler(Arc::PluginArgument* arg) {
   ArcSec::SecHandlerPluginArgument* shcarg =
             arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
   if(!shcarg) return NULL;
-  LegacySecHandler* plugin = new LegacySecHandler((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg));
+  LegacySecHandler* plugin = new LegacySecHandler((Arc::Config*)(*shcarg),(Arc::ChainContext*)(*shcarg),arg);
   if(!plugin) return NULL;
   if(!(*plugin)) { delete plugin; plugin = NULL; };
   return plugin;
 }
 
-LegacySecHandler::LegacySecHandler(Arc::Config *cfg,Arc::ChainContext* ctx):SecHandler(cfg) {
+LegacySecHandler::LegacySecHandler(Arc::Config *cfg,Arc::ChainContext* ctx,Arc::PluginArgument* parg):SecHandler(cfg,parg) {
   Arc::XMLNode conf_file = (*cfg)["ConfigFile"];
   while((bool)conf_file) {
     std::string filename = (std::string)conf_file;

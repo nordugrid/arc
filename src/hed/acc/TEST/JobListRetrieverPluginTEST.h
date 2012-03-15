@@ -7,10 +7,14 @@ namespace Arc {
 
 class JobListRetrieverPluginTEST : public JobListRetrieverPlugin {
 public:
-  JobListRetrieverPluginTEST() { supportedInterfaces.push_back("org.nordugrid.jlrtest"); }
+  JobListRetrieverPluginTEST(PluginArgument* parg):
+    JobListRetrieverPlugin(parg)
+  {
+    supportedInterfaces.push_back("org.nordugrid.jlrtest");
+  }
   ~JobListRetrieverPluginTEST() {}
 
-  static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginTEST; }
+  static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginTEST(arg); }
   virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const;
   virtual bool isEndpointNotSupported(const Endpoint& endpoint) const { return endpoint.URLString.empty(); }
 };

@@ -42,8 +42,8 @@ namespace Arc {
 
   Logger DataPointGFAL::logger(Logger::getRootLogger(), "DataPoint.GFAL");
 
-  DataPointGFAL::DataPointGFAL(const URL& url, const UserConfig& usercfg)
-    : DataPointDirect(url, usercfg), reading(false), writing(false) {
+  DataPointGFAL::DataPointGFAL(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
+    : DataPointDirect(url, usercfg, parg), reading(false), writing(false) {
       LogLevel loglevel = logger.getThreshold();
       if (loglevel == DEBUG)
         gfal_set_verbose (GFAL_VERBOSE_VERBOSE | GFAL_VERBOSE_TRACE);
@@ -62,7 +62,7 @@ namespace Arc {
       return NULL;
     if (((const URL &)(*dmcarg)).Protocol() != "rfio")
       return NULL;
-    return new DataPointGFAL(*dmcarg, *dmcarg);
+    return new DataPointGFAL(*dmcarg, *dmcarg, dmcarg);
   }
 
   DataStatus DataPointGFAL::StartReading(DataBuffer& buf) {

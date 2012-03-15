@@ -100,7 +100,7 @@ namespace Arc {
     unsigned long long int range_start;
     unsigned long long int range_end;
     std::list<CheckSum*> checksums;
-    DataPointDirect(const URL& url, const UserConfig& usercfg);
+    DataPointDirect(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
   };
 
 } // namespace Arc

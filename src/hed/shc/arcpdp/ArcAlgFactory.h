@@ -11,7 +11,7 @@ namespace ArcSec {
 ///Algorithm factory class for Arc
 class ArcAlgFactory : public AlgFactory {
 public:
-  ArcAlgFactory();
+  ArcAlgFactory(Arc::PluginArgument* parg);
   virtual ~ArcAlgFactory();
 
 public:

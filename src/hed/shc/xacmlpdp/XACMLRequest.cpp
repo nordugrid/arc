@@ -19,9 +19,9 @@ Arc::Plugin* ArcSec::XACMLRequest::get_request(Arc::PluginArgument* arg) {
             arg?dynamic_cast<Arc::ClassLoaderPluginArgument*>(arg):NULL;
     if(!clarg) return NULL;
     Arc::XMLNode* xarg = (Arc::XMLNode*)(*clarg);
-    if(xarg==NULL) { return new ArcSec::XACMLRequest(); } // ???
+    if(xarg==NULL) { return new ArcSec::XACMLRequest(arg); } // ???
     ArcSec::Source source(*xarg);
-    return new ArcSec::XACMLRequest(source);
+    return new ArcSec::XACMLRequest(source,arg);
   }
 }
 
@@ -85,14 +85,14 @@ void XACMLRequest::make_request(){
 
 }
 
-XACMLRequest::XACMLRequest (const Source& req) : Request(req) {
+XACMLRequest::XACMLRequest (const Source& req, Arc::PluginArgument* parg) : Request(req,parg) {
   req.Get().New(reqnode);
   NS ns;
   ns["ra"]="urn:oasis:names:tc:xacml:2.0:context:schema:os";
   reqnode.Namespaces(ns);
 }
 
-XACMLRequest::XACMLRequest () {
+XACMLRequest::XACMLRequest (Arc::PluginArgument* parg) : Request(parg) {
   NS ns;
   ns["ra"]="urn:oasis:names:tc:xacml:2.0:context:schema:os";
   XMLNode request(ns,"ra:Request");

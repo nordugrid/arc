@@ -13,7 +13,7 @@ Plugin* JobControllerTestACC::GetInstance(PluginArgument *arg) {
   if (!jcarg) {
     return NULL;
   }
-  return new JobControllerTestACC(*jcarg);
+  return new JobControllerTestACC(*jcarg,arg);
 }
 
 }

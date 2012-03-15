@@ -6,7 +6,9 @@
 
 namespace Arc {
 
-  RegisteredService::RegisteredService(Config* cfg):Service(cfg),inforeg(*cfg, this) {
+  RegisteredService::RegisteredService(Config* cfg, PluginArgument* parg):
+      Service(cfg, parg),inforeg(*cfg, this)
+  {
   }
 
 } // namespace Arc

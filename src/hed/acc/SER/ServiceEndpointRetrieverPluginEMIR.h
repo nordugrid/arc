@@ -16,10 +16,12 @@ class Logger;
 
 class ServiceEndpointRetrieverPluginEMIR : public ServiceEndpointRetrieverPlugin {
 public:
-  ServiceEndpointRetrieverPluginEMIR() { supportedInterfaces.push_back("org.nordugrid.emir"); }
+  ServiceEndpointRetrieverPluginEMIR(PluginArgument* parg): ServiceEndpointRetrieverPlugin(parg) {
+    supportedInterfaces.push_back("org.nordugrid.emir");
+  }
   ~ServiceEndpointRetrieverPluginEMIR() {}
 
-  static Plugin* Instance(PluginArgument*) { return new ServiceEndpointRetrieverPluginEMIR(); }
+  static Plugin* Instance(PluginArgument* arg) { return new ServiceEndpointRetrieverPluginEMIR(arg); }
   virtual EndpointQueryingStatus Query(const UserConfig& uc,
                                        const Endpoint& rEndpoint,
                                        std::list<Endpoint>&,

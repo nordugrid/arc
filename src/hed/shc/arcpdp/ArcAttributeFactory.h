@@ -12,7 +12,7 @@ namespace ArcSec {
 /// Attribute factory class for Arc specified attributes
 class ArcAttributeFactory : public AttributeFactory {
 public:
-  ArcAttributeFactory();
+  ArcAttributeFactory(Arc::PluginArgument* parg);
   virtual ~ArcAttributeFactory();
 
 public:

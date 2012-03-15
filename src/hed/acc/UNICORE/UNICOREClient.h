@@ -15,7 +15,7 @@ namespace Arc {
   class ClientSOAP;
   class Config;
   class Loader;
-  class Logger;
+  //class Logger;
   class MCC;
   class MCCConfig;
 

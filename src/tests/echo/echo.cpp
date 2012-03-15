@@ -15,7 +15,7 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     Arc::ServicePluginArgument* mccarg =
             arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    return new Echo::Service_Echo((Arc::Config*)(*mccarg));
+    return new Echo::Service_Echo((Arc::Config*)(*mccarg),arg);
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
@@ -27,7 +27,7 @@ using namespace Arc;
 
 namespace Echo {
 
-Service_Echo::Service_Echo(Arc::Config *cfg):RegisteredService(cfg),logger(Arc::Logger::rootLogger, "Echo") {
+Service_Echo::Service_Echo(Arc::Config *cfg, Arc::PluginArgument *parg):RegisteredService(cfg,parg),logger(Arc::Logger::rootLogger, "Echo") {
   ns_["echo"]="http://www.nordugrid.org/schemas/echo";
   prefix_=(std::string)((*cfg)["prefix"]);
   suffix_=(std::string)((*cfg)["suffix"]);

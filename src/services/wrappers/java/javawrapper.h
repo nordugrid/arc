@@ -9,11 +9,11 @@
 #endif
 #endif
 
-#include <arc/message/Service.h>
+#include <arc/infosys/RegisteredService.h>
 #include <arc/Logger.h>
 
 namespace Arc {
-class Service_JavaWrapper: public Arc::Service {
+class Service_JavaWrapper: public Arc::RegisteredService {
     protected:
         Glib::Module *libjvm;
         JavaVM *jvm;
@@ -25,7 +25,7 @@ class Service_JavaWrapper: public Arc::Service {
         Arc::MCC_Status java_error(JNIEnv *jenv, const char *str);
 	static Arc::Logger logger;
     public:
-        Service_JavaWrapper(Arc::Config *cfg);
+        Service_JavaWrapper(Arc::Config *cfg, Arc::PluginArgument* parg);
         virtual ~Service_JavaWrapper(void);
         /** Service request processing routine */
         virtual Arc::MCC_Status process(Arc::Message&, Arc::Message&);

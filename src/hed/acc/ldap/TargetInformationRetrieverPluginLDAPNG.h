@@ -16,10 +16,13 @@ namespace Arc {
 
   class TargetInformationRetrieverPluginLDAPNG : public TargetInformationRetrieverPlugin {
   public:
-    TargetInformationRetrieverPluginLDAPNG() { supportedInterfaces.push_back("org.nordugrid.ldapng"); };
+    TargetInformationRetrieverPluginLDAPNG(PluginArgument *parg):
+        TargetInformationRetrieverPlugin(parg) {
+      supportedInterfaces.push_back("org.nordugrid.ldapng");
+    };
     ~TargetInformationRetrieverPluginLDAPNG() {};
 
-    static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginLDAPNG(); };
+    static Plugin* Instance(PluginArgument *arg) { return new TargetInformationRetrieverPluginLDAPNG(arg); };
     virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint&, std::list<ComputingServiceType>&, const EndpointQueryOptions<ComputingServiceType>&) const;
     virtual bool isEndpointNotSupported(const Endpoint&) const;
 

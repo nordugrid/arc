@@ -19,7 +19,7 @@ namespace Arc {
   private:
     static Logger logger;
 
-    SubmitterBES(const UserConfig& usercfg);
+    SubmitterBES(const UserConfig& usercfg, PluginArgument* parg);
     ~SubmitterBES();
 
   public:

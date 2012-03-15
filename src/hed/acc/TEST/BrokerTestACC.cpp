@@ -13,7 +13,7 @@ Plugin* BrokerTestACC::GetInstance(PluginArgument *arg) {
   if (!jcarg) {
     return NULL;
   }
-  return new BrokerTestACC(*jcarg);
+  return new BrokerTestACC(*jcarg,arg);
 }
 
 }

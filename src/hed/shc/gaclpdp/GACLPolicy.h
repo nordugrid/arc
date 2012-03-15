@@ -7,11 +7,11 @@ namespace ArcSec {
 
 class GACLPolicy : public Policy {
 public:
-  GACLPolicy(void);
+  GACLPolicy(Arc::PluginArgument* parg);
 
-  GACLPolicy(const Source& source);
+  GACLPolicy(const Source& source, Arc::PluginArgument* parg);
 
-  GACLPolicy(const Arc::XMLNode source);
+  GACLPolicy(const Arc::XMLNode source, Arc::PluginArgument* parg);
 
   virtual ~GACLPolicy();  
 

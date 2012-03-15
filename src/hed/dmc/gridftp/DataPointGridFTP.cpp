@@ -1047,8 +1047,8 @@ namespace Arc {
     return result;
   }
 
-  DataPointGridFTP::DataPointGridFTP(const URL& url, const UserConfig& usercfg)
-    : DataPointDirect(url, usercfg),
+  DataPointGridFTP::DataPointGridFTP(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
+    : DataPointDirect(url, usercfg, parg),
       cbarg(new CBArg(this)),
       ftp_active(false),
       credential(NULL),
@@ -1175,9 +1175,10 @@ namespace Arc {
     }
     else { // gridftp protocol
 
-      if (!credential)
+      if (!credential){
         credential = new GSSCredential(usercfg.ProxyPath(),
                                        usercfg.CertificatePath(), usercfg.KeyPath());
+      }
       lister->set_credential(credential);
 
       GlobusResult r = globus_ftp_client_operationattr_set_authorization(
@@ -1264,7 +1265,7 @@ namespace Arc {
     }
     factory->makePersistent(module);
     OpenSSLInit();
-    return new DataPointGridFTP(*dmcarg, *dmcarg);
+    return new DataPointGridFTP(*dmcarg, *dmcarg, dmcarg);
   }
 
   bool DataPointGridFTP::WriteOutOfOrder() {

@@ -24,8 +24,8 @@ private:
   PolicyStore *plstore;
 
 public:
-  GACLEvaluator (Arc::XMLNode* cfg);
-  GACLEvaluator (const char * cfgfile);
+  GACLEvaluator (Arc::XMLNode* cfg, Arc::PluginArgument* parg);
+  GACLEvaluator (const char * cfgfile, Arc::PluginArgument* parg);
   virtual ~GACLEvaluator();
 
   /**Evaluate the request based on the policy information inside PolicyStore*/

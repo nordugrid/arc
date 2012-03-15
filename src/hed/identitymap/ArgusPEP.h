@@ -43,7 +43,7 @@ class ArgusPEP : public SecHandler {
     static int pep_log(int level, const char *fmt, va_list args);
 
   public:
-    ArgusPEP(Arc::Config *cfg);
+    ArgusPEP(Arc::Config *cfg,Arc::PluginArgument* parg);
     ArgusPEP(void);
     virtual ~ArgusPEP(void);
     virtual bool Handle(Arc::Message* msg) const ;

@@ -29,7 +29,7 @@ Arc::Plugin* ArcSec::ArcPolicy::get_policy(Arc::PluginArgument* arg) {
     }
     // NOTE: Following line is not good for autodetection. Should it be removed?
     //if(!(*doc)) return new ArcSec::ArcPolicy;
-    ArcSec::ArcPolicy* policy = new ArcSec::ArcPolicy(*doc);
+    ArcSec::ArcPolicy* policy = new ArcSec::ArcPolicy(*doc,arg);
     if((!policy) || (!(*policy))) {
       delete policy;
       return NULL;
@@ -45,13 +45,13 @@ Arc::Plugin* ArcSec::ArcPolicy::get_policy(Arc::PluginArgument* arg) {
 using namespace Arc;
 using namespace ArcSec;
 
-ArcPolicy::ArcPolicy(void) : Policy(), comalg(NULL) {
+ArcPolicy::ArcPolicy(Arc::PluginArgument* parg) : Policy(parg), comalg(NULL) {
   Arc::XMLNode newpolicy(policyns,"policy:Policy");
   newpolicy.New(policynode);
   policytop=policynode;
 }
 
-ArcPolicy::ArcPolicy(const XMLNode node) : Policy(node), comalg(NULL) {
+ArcPolicy::ArcPolicy(const XMLNode node,Arc::PluginArgument* parg) : Policy(node,parg), comalg(NULL) {
   if((!node) || (node.Size() == 0)) {
     logger.msg(ERROR,"Policy is empty");
     return;
@@ -65,7 +65,7 @@ ArcPolicy::ArcPolicy(const XMLNode node) : Policy(node), comalg(NULL) {
   policytop = *(res.begin());
 }
 
-ArcPolicy::ArcPolicy(const XMLNode node, EvaluatorContext* ctx) : Policy(node), comalg(NULL) {
+ArcPolicy::ArcPolicy(const XMLNode node, EvaluatorContext* ctx, Arc::PluginArgument* parg) : Policy(node,parg), comalg(NULL) {
   if((!node) || (node.Size() == 0)) {
     logger.msg(WARNING,"Policy is empty");
     return;

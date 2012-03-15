@@ -20,9 +20,9 @@ public:
 
   virtual void make_request() { };
 
-  GACLRequest ();
+  GACLRequest (Arc::PluginArgument* parg);
 
-  GACLRequest (const Source& source);
+  GACLRequest (const Source& source, Arc::PluginArgument* parg);
 
   virtual ~GACLRequest();
 

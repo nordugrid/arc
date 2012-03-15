@@ -18,7 +18,7 @@ namespace Arc {
     : public DataPointDirect {
 
    public:
-    DataPointXrootd(const URL& url, const UserConfig& usercfg);
+    DataPointXrootd(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
     virtual ~DataPointXrootd();
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus StartReading(DataBuffer& buffer);

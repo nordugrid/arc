@@ -20,7 +20,7 @@
 Arc::Logger ArcMCCMsgValidator::MCC_MsgValidator::logger(Arc::Logger::getRootLogger(), "MCC.MsgValidator");
 
 
-ArcMCCMsgValidator::MCC_MsgValidator::MCC_MsgValidator(Arc::Config *cfg) : Arc::MCC(cfg) {
+ArcMCCMsgValidator::MCC_MsgValidator::MCC_MsgValidator(Arc::Config *cfg,PluginArgument* parg) : Arc::MCC(cfg,parg) {
     // Collect services to be validated
     for(int i = 0;;++i) {
         Arc::XMLNode n = (*cfg)["ValidatedService"][i];
@@ -47,7 +47,7 @@ static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    return new ArcMCCMsgValidator::MCC_MsgValidator_Service((Arc::Config*)(*mccarg));
+    return new ArcMCCMsgValidator::MCC_MsgValidator_Service((Arc::Config*)(*mccarg),mccarg);
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
@@ -60,7 +60,7 @@ namespace ArcMCCMsgValidator {
 
 using namespace Arc;
 
-MCC_MsgValidator_Service::MCC_MsgValidator_Service(Config *cfg):MCC_MsgValidator(cfg) {
+MCC_MsgValidator_Service::MCC_MsgValidator_Service(Config *cfg,PluginArgument* parg):MCC_MsgValidator(cfg,parg) {
 }
 
 MCC_MsgValidator_Service::~MCC_MsgValidator_Service(void) {

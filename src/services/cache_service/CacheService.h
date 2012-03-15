@@ -96,7 +96,7 @@ class CacheService: public Arc::RegisteredService {
    * Make a new CacheService. Reads the configuration and determines
    * the validity of the service.
    */
-  CacheService(Arc::Config *cfg);
+  CacheService(Arc::Config *cfg, Arc::PluginArgument* parg);
   /**
    * Destroy the CacheService
    */

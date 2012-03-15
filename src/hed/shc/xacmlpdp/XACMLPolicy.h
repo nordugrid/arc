@@ -17,13 +17,13 @@ namespace ArcSec {
 class XACMLPolicy : public Policy {
 public:
   /**Constructor*/
-  XACMLPolicy(void);
+  XACMLPolicy(Arc::PluginArgument* parg);
 
   /**Constructor*/
-  XACMLPolicy(const Arc::XMLNode node);
+  XACMLPolicy(const Arc::XMLNode node, Arc::PluginArgument* parg);
 
   /**Constructor - */
-  XACMLPolicy(const Arc::XMLNode node, EvaluatorContext* ctx);  
+  XACMLPolicy(const Arc::XMLNode node, EvaluatorContext* ctx, Arc::PluginArgument* parg);  
 
   virtual ~XACMLPolicy();  
 

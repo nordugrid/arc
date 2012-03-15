@@ -17,7 +17,7 @@ typedef std::map<std::string, CombiningAlg*> AlgMap;
  */
 class AlgFactory : public Arc::LoadableClass {
 public:
-  AlgFactory() {};
+  AlgFactory(Arc::PluginArgument* parg): Arc::LoadableClass(parg) {};
   virtual ~AlgFactory() {};
 
 public:

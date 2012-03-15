@@ -77,7 +77,7 @@ namespace Arc {
     void RegisterJobsubmission();
 
   protected:
-    Broker(const UserConfig& usercfg);
+    Broker(const UserConfig& usercfg, PluginArgument* parg);
   public:
     virtual ~Broker();
   protected:

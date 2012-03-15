@@ -39,16 +39,49 @@ ModuleManager::ModuleManager(XMLNode cfg)
 
 ModuleManager::~ModuleManager(void)
 {
-    // removes all elements from cache
-    plugin_cache_t::iterator i;
-    for(i=plugin_cache.begin();i!=plugin_cache.end();++i) {
-        while(i->second.unload() > 0) { };
-    };
-    plugin_cache.clear();
+  Glib::Mutex::Lock lock(mlock);
+  // Try to unload all modules
+  // Remove unloaded plugins from cache
+  for(plugin_cache_t::iterator i = plugin_cache.begin(); i != plugin_cache.end();) {
+    while(i->second.unload() > 0) { };
+    if(i->second) {
+      // module is on unloaded only if it is in use according to usage counter
+std::cerr<<">>>>> BUSY PLUGIN found: "<<i->second.usage()<<std::endl;
+      ++i;
+    } else {
+      plugin_cache.erase(i);
+      i = plugin_cache.begin(); // for map erase does not return iterator
+    }
+  }
+  // exit only when all plugins unloaded
+  if(plugin_cache.empty()) return;
+std::cerr<<">>>>> BUSY PLUGINS found: "<<plugin_cache.size()<<std::endl;
+  // otherwise wait for plugins to be released
+  logger.msg(WARNING, "Busy plugins found while unloading Module Manager. Waiting for them to be released.");
+  for(;;) {
+    // wait for plugins to be released
+    lock.release();
+    sleep(1);
+    lock.acquire();
+    // Check again
+    // Just in case something called load() - unloading them again
+    for(plugin_cache_t::iterator i = plugin_cache.begin(); i != plugin_cache.end();) {
+      while(i->second.unload() > 0) { };
+      if(i->second) {
+std::cerr<<">>>>> BUSY PLUGIN still here: "<<i->second.usage()<<std::endl;
+        ++i;
+      } else {
+        plugin_cache.erase(i);
+        i = plugin_cache.begin(); // for map erase does not return iterator
+      }
+    }
+    if(plugin_cache.empty()) return;
+  };
 }
 
 std::string ModuleManager::findLocation(const std::string& name)
 {
+  Glib::Mutex::Lock lock(mlock);
   std::string path;
   std::list<std::string>::const_iterator i = plugin_dir.begin();
   for (; i != plugin_dir.end(); i++) {
@@ -66,14 +99,26 @@ std::string ModuleManager::findLocation(const std::string& name)
   return path;
 }
 
-void ModuleManager::unload(Glib::Module *module)
+void ModuleManager::load(Glib::Module *module)
 {
+  Glib::Mutex::Lock lock(mlock);
   for(plugin_cache_t::iterator p = plugin_cache.begin();
                                p!=plugin_cache.end();++p) {
     if(p->second == module) {
-      if(p->second.unload() <= 0) {
-        plugin_cache.erase(p);
-      }
+      p->second.load();
+      break;
+    }
+  }
+}
+
+void ModuleManager::unload(Glib::Module *module)
+{
+  Glib::Mutex::Lock lock(mlock);
+  for(plugin_cache_t::iterator p = plugin_cache.begin();
+                               p!=plugin_cache.end();++p) {
+    if(p->second == module) {
+      p->second.unload();
+      if(!(p->second)) plugin_cache.erase(p);
       break;
     }
   }
@@ -81,10 +126,35 @@ void ModuleManager::unload(Glib::Module *module)
 
 void ModuleManager::unload(const std::string& name)
 {
+  Glib::Mutex::Lock lock(mlock);
   plugin_cache_t::iterator p = plugin_cache.find(name);
   if (p != plugin_cache.end()) {
-    if(p->second.unload() <= 0) {
-      plugin_cache.erase(p);
+    p->second.unload();
+    if(!(p->second)) plugin_cache.erase(p);
+  }
+}
+
+void ModuleManager::use(Glib::Module *module)
+{
+  Glib::Mutex::Lock lock(mlock);
+  for(plugin_cache_t::iterator p = plugin_cache.begin();
+                               p!=plugin_cache.end();++p) {
+    if(p->second == module) {
+      p->second.use();
+      break;
+    }
+  }
+}
+
+void ModuleManager::unuse(Glib::Module *module)
+{
+  Glib::Mutex::Lock lock(mlock);
+  for(plugin_cache_t::iterator p = plugin_cache.begin();
+                               p!=plugin_cache.end();++p) {
+    if(p->second == module) {
+      p->second.unuse();
+      if(!(p->second)) plugin_cache.erase(p);
+      break;
     }
   }
 }
@@ -101,6 +171,7 @@ Glib::Module *ModuleManager::load(const std::string& name,bool probe /*,bool rel
   }
   // find name in plugin_cache
   {
+    Glib::Mutex::Lock lock(mlock);
     plugin_cache_t::iterator p = plugin_cache.find(name);
     if (p != plugin_cache.end()) {
       ModuleManager::logger.msg(DEBUG, "Found %s in cache", name);
@@ -111,12 +182,15 @@ Glib::Module *ModuleManager::load(const std::string& name,bool probe /*,bool rel
   std::string path = findLocation(name);
   if(path.empty()) {
     ModuleManager::logger.msg(VERBOSE, "Could not locate module %s in following paths:", name);
+    Glib::Mutex::Lock lock(mlock);
     std::list<std::string>::const_iterator i = plugin_dir.begin();
     for (; i != plugin_dir.end(); i++) {
       ModuleManager::logger.msg(VERBOSE, "\t%s", *i);
     }
     return NULL;
   };
+  // race!
+  Glib::Mutex::Lock lock(mlock);
   Glib::ModuleFlags flags = Glib::ModuleFlags(0);
   if(probe) flags|=Glib::MODULE_BIND_LAZY;
   Glib::Module *module = new Glib::Module(path,flags);
@@ -132,6 +206,7 @@ Glib::Module *ModuleManager::load(const std::string& name,bool probe /*,bool rel
 
 Glib::Module* ModuleManager::reload(Glib::Module* omodule)
 {
+  Glib::Mutex::Lock lock(mlock);
   plugin_cache_t::iterator p = plugin_cache.begin();
   for(;p!=plugin_cache.end();++p) {
     if(p->second == omodule) break;
@@ -162,16 +237,17 @@ void ModuleManager::setCfg (XMLNode cfg) {
       break;
     }
     if (MatchXMLName(path, "Path")) {
+      Glib::Mutex::Lock lock(mlock);
       //std::cout<<"Size:"<<plugin_dir.size()<<"plugin cache size:"<<plugin_cache.size()<<std::endl;
       std::list<std::string>::const_iterator it;
       for( it = plugin_dir.begin(); it != plugin_dir.end(); it++){
         //std::cout<<(std::string)path<<"*********"<<(*it)<<std::endl;
         if(((*it).compare((std::string)path)) == 0)break;
       }
-      if(it == plugin_dir.end())
-        plugin_dir.push_back((std::string)path);
+      if(it == plugin_dir.end()) plugin_dir.push_back((std::string)path);
     }
   }
+  Glib::Mutex::Lock lock(mlock);
   if (plugin_dir.empty()) {
     plugin_dir = ArcLocation::GetPlugins();
   }
@@ -183,6 +259,7 @@ bool ModuleManager::makePersistent(const std::string& name) {
   }
   // find name in plugin_cache
   {
+    Glib::Mutex::Lock lock(mlock);
     plugin_cache_t::iterator p = plugin_cache.find(name);
     if (p != plugin_cache.end()) {
       p->second.makePersistent();
@@ -195,6 +272,7 @@ bool ModuleManager::makePersistent(const std::string& name) {
 }
 
 bool ModuleManager::makePersistent(Glib::Module* module) {
+  Glib::Mutex::Lock lock(mlock);
   for(plugin_cache_t::iterator p = plugin_cache.begin();
                                p!=plugin_cache.end();++p) {
     if(p->second == module) {

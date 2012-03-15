@@ -221,9 +221,15 @@ namespace Arc {
 
   Logger PluginsFactory::logger(Logger::rootLogger, "Plugin");
 
-  Plugin::Plugin(void) { }
+  Plugin::Plugin(PluginArgument* arg):
+       factory_(arg?arg->get_factory():NULL),module_(arg?arg->get_module():NULL)
+  {
+    if(factory_ && module_) ((ModuleManager*)factory_)->use(module_);
+  }
 
-  Plugin::~Plugin(void) { }
+  Plugin::~Plugin(void) {
+    if(factory_ && module_) ((ModuleManager*)factory_)->unuse(module_);
+  }
 
   Plugin* PluginsFactory::get_instance(const std::string& kind,PluginArgument* arg,bool search) {
     return get_instance(kind,0,INT_MAX,arg,search);

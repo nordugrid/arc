@@ -52,7 +52,7 @@ class Service: public MCCInterface
 
     public:
         /** Example constructor - Server takes at least its configuration subtree */
-        Service(Config*);
+        Service(Config*, PluginArgument* arg);
 
         virtual ~Service(void) { };
 

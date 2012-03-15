@@ -29,8 +29,8 @@ namespace Arc {
 
   Logger DataPointRLS::logger(Logger::getRootLogger(), "DataPoint.RLS");
 
-  DataPointRLS::DataPointRLS(const URL& url, const UserConfig& usercfg)
-    : DataPointIndex(url, usercfg),
+  DataPointRLS::DataPointRLS(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
+    : DataPointIndex(url, usercfg, parg),
       guid_enabled(false) {
     if(!proxy_initialized) {
 #ifdef HAVE_GLOBUS_THREAD_SET_MODEL
@@ -68,7 +68,7 @@ namespace Arc {
     factory->makePersistent(module);
     OpenSSLInit();
     persistent_initialized = true;
-    return new DataPointRLS(*dmcarg, *dmcarg);
+    return new DataPointRLS(*dmcarg, *dmcarg, dmcarg);
   }
 
   static const char* get_path_str(const URL& url) {

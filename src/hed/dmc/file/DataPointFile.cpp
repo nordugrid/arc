@@ -40,8 +40,8 @@ namespace Arc {
 
   Logger DataPointFile::logger(Logger::getRootLogger(), "DataPoint.File");
 
-  DataPointFile::DataPointFile(const URL& url, const UserConfig& usercfg)
-    : DataPointDirect(url, usercfg),
+  DataPointFile::DataPointFile(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
+    : DataPointDirect(url, usercfg, parg),
       reading(false),
       writing(false),
       is_channel(false),
@@ -70,7 +70,7 @@ namespace Arc {
       return NULL;
     if (((const URL &)(*dmcarg)).Protocol() != "file" && ((const URL &)(*dmcarg)).Protocol() != "stdio")
       return NULL;
-    return new DataPointFile(*dmcarg, *dmcarg);
+    return new DataPointFile(*dmcarg, *dmcarg, dmcarg);
   }
 
   unsigned int DataPointFile::get_channel() {

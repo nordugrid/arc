@@ -332,7 +332,7 @@ static void soft_state_thread(void *data) {
     }
 }
 
-    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),validity("PT12H"),remove("PT1D"),db_(NULL),neighbors_update_needed(false),available_provider(false),neighbors_count(0) {
+    ISIService::ISIService(Arc::Config *cfg, Arc::PluginArgument* parg):RegisteredService(cfg,parg),logger_(Arc::Logger::rootLogger, "ISIS"),validity("PT12H"),remove("PT1D"),db_(NULL),neighbors_update_needed(false),available_provider(false),neighbors_count(0) {
 
         logger_.msg(Arc::VERBOSE, "Parsing configuration parameters");
 
@@ -1000,7 +1000,7 @@ static void soft_state_thread(void *data) {
     static Arc::Plugin *get_service(Arc::PluginArgument* arg) {
         Arc::ServicePluginArgument* srvarg = arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
         if(!srvarg) return NULL;
-        return new ISIService((Arc::Config*)(*srvarg));
+        return new ISIService((Arc::Config*)(*srvarg),arg);
     }
 
     void ISIService::Neighbors_Update() {

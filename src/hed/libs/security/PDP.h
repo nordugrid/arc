@@ -81,7 +81,9 @@ namespace ArcSec {
     through XML subtree fed to constructor. */
   class PDP: public Arc::Plugin {
    public:
-    PDP(Arc::Config* cfg) { if(cfg) id_=(std::string)(cfg->Attribute("id")); };
+    PDP(Arc::Config* cfg, Arc::PluginArgument* parg): Arc::Plugin(parg) {
+      if(cfg) id_=(std::string)(cfg->Attribute("id"));
+    };
     virtual ~PDP() {};
     virtual bool isPermitted(Arc::Message *msg) const = 0;
     void SetId(std::string& id) { id_ = id; };

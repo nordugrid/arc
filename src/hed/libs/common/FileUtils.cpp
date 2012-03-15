@@ -367,9 +367,7 @@ bool DirCreate(const std::string& path,uid_t uid,gid_t gid,mode_t mode,bool with
       // is directory. That still does not solve problem with parent
       // directory without x access right.
       struct stat st;
-      // Doing lstat because this function is supposed to create directory,
-      // not link to directory.
-      if(fa.lstat(path,st)) {
+      if(fa.stat(path,st)) {
         if(S_ISDIR(st.st_mode)) {
           exists = true;
         } else {
@@ -418,7 +416,7 @@ bool DirCreate(const std::string& path,mode_t mode,bool with_parents) {
   }
   // Look above in previous DirCreate() for description of following
   struct stat st;
-  if(::lstat(path.c_str(),&st) != 0) return false;
+  if(::stat(path.c_str(),&st) != 0) return false;
   if(!S_ISDIR(st.st_mode)) return false;
   errno = EEXIST;
   return true;

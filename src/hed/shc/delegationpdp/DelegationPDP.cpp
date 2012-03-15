@@ -33,10 +33,10 @@ Plugin* DelegationPDP::get_delegation_pdp(PluginArgument* arg) {
     PDPPluginArgument* pdparg =
             arg?dynamic_cast<PDPPluginArgument*>(arg):NULL;
     if(!pdparg) return NULL;
-    return new DelegationPDP((Config*)(*pdparg));
+    return new DelegationPDP((Config*)(*pdparg),arg);
 }
 
-DelegationPDP::DelegationPDP(Config* cfg):PDP(cfg) {
+DelegationPDP::DelegationPDP(Config* cfg, Arc::PluginArgument* parg):PDP(cfg,parg) {
   XMLNode pdp_node(*cfg);
   XMLNode filter = (*cfg)["Filter"];
   if((bool)filter) {

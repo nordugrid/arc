@@ -14,13 +14,13 @@ namespace ArcSec {
 class ArcPolicy : public Policy {
 public:
   /**Constructor*/
-  ArcPolicy(void);
+  ArcPolicy(Arc::PluginArgument* parg);
 
   /**Constructor*/
-  ArcPolicy(const Arc::XMLNode node);
+  ArcPolicy(const Arc::XMLNode node, Arc::PluginArgument* parg);
 
   /**Constructor*/
-  ArcPolicy(const Arc::XMLNode node, EvaluatorContext* ctx);  
+  ArcPolicy(const Arc::XMLNode node, EvaluatorContext* ctx, Arc::PluginArgument* parg);  
 
   virtual ~ArcPolicy();  
 

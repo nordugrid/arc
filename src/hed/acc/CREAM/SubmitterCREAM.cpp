@@ -17,8 +17,8 @@
 
 namespace Arc {
 
-  SubmitterCREAM::SubmitterCREAM(const UserConfig& usercfg)
-    : Submitter(usercfg, "CREAM") {}
+  SubmitterCREAM::SubmitterCREAM(const UserConfig& usercfg, PluginArgument* parg)
+    : Submitter(usercfg, "CREAM", parg) {}
 
   SubmitterCREAM::~SubmitterCREAM() {}
 
@@ -27,7 +27,7 @@ namespace Arc {
       dynamic_cast<SubmitterPluginArgument*>(arg);
     if (!subarg)
       return NULL;
-    return new SubmitterCREAM(*subarg);
+    return new SubmitterCREAM(*subarg, arg);
   }
 
   bool SubmitterCREAM::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) {

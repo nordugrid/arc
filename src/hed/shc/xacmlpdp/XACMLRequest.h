@@ -31,10 +31,10 @@ public:
   virtual void setAttributeFactory(AttributeFactory* attributefactory) { attrfactory = attributefactory; };
 
   //**Default constructor*/
-  XACMLRequest ();
+  XACMLRequest (Arc::PluginArgument* parg);
 
   //**Parse request information from external source*/
-  XACMLRequest (const Source& source);
+  XACMLRequest (const Source& source, Arc::PluginArgument* parg);
 
   virtual ~XACMLRequest();
 

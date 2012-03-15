@@ -10,7 +10,7 @@ namespace ArcSec {
 /// Function factory class for XACML specified attributes
 class XACMLFnFactory : public FnFactory {
 public:
-  XACMLFnFactory();
+  XACMLFnFactory(Arc::PluginArgument* parg);
   virtual ~XACMLFnFactory();
 
 public:

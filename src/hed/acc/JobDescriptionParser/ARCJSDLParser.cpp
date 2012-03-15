@@ -23,15 +23,15 @@ namespace Arc {
   #define JSDL_ARC_NAMESPACE "http://www.nordugrid.org/ws/schemas/jsdl-arc"
   #define JSDL_HPCPA_NAMESPACE "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa"
 
-  ARCJSDLParser::ARCJSDLParser()
-    : JobDescriptionParser() {
+  ARCJSDLParser::ARCJSDLParser(PluginArgument* parg)
+    : JobDescriptionParser(parg) {
     supportedLanguages.push_back("nordugrid:jsdl");
   }
 
   ARCJSDLParser::~ARCJSDLParser() {}
 
   Plugin* ARCJSDLParser::Instance(PluginArgument *arg) {
-    return new ARCJSDLParser();
+    return new ARCJSDLParser(arg);
   }
 
   bool ARCJSDLParser::parseSoftware(XMLNode xmlSoftware, SoftwareRequirement& sr) const {

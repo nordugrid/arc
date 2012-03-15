@@ -21,8 +21,8 @@ using namespace Arc;
 
 namespace ArcSec {
 
-Arc::Plugin* get_arcpdp_alg_factory (Arc::PluginArgument*) {
-    return new ArcSec::ArcAlgFactory();
+Arc::Plugin* get_arcpdp_alg_factory (Arc::PluginArgument* arg) {
+    return new ArcSec::ArcAlgFactory(arg);
 }
 
 
@@ -62,7 +62,7 @@ void ArcAlgFactory::initCombiningAlgs(){
 
 }
 
-ArcAlgFactory::ArcAlgFactory(){
+ArcAlgFactory::ArcAlgFactory(Arc::PluginArgument* parg) : AlgFactory(parg) {
   initCombiningAlgs();
 }
 

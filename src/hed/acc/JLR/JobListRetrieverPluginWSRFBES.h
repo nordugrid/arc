@@ -12,10 +12,12 @@ namespace Arc {
 
   class JobListRetrieverPluginWSRFBES : public JobListRetrieverPlugin {
   public:
-    JobListRetrieverPluginWSRFBES() { supportedInterfaces.push_back("org.ogf.bes"); }
+    JobListRetrieverPluginWSRFBES(PluginArgument* parg): JobListRetrieverPlugin(parg) {
+      supportedInterfaces.push_back("org.ogf.bes");
+    }
     virtual ~JobListRetrieverPluginWSRFBES() {}
 
-    static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginWSRFBES(); }
+    static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginWSRFBES(arg); }
     virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const; // No implementation in cpp file -- returns EndpointQueryingStatus::FAILED.
     virtual bool isEndpointNotSupported(const Endpoint&) const;
 

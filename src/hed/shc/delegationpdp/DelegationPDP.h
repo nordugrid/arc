@@ -14,7 +14,7 @@ namespace ArcSec {
 class DelegationPDP : public PDP {
  public:
   static Arc::Plugin* get_delegation_pdp(Arc::PluginArgument *arg);
-  DelegationPDP(Arc::Config* cfg);
+  DelegationPDP(Arc::Config* cfg, Arc::PluginArgument* parg);
   virtual ~DelegationPDP();
   virtual bool isPermitted(Arc::Message *msg) const;
  private:

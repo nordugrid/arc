@@ -59,7 +59,7 @@ void FileAccessTest::setUp() {
 }
 
 void FileAccessTest::tearDown() {
-  Arc::DirDelete(testroot);
+//  Arc::DirDelete(testroot);
 }
 
 void FileAccessTest::TestOpenWriteReadStat() {

@@ -13,7 +13,7 @@ namespace Arc {
     : public Submitter {
 
   private:
-    SubmitterCREAM(const UserConfig& usercfg);
+    SubmitterCREAM(const UserConfig& usercfg, PluginArgument* parg);
     ~SubmitterCREAM();
 
   public:

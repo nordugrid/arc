@@ -28,7 +28,7 @@ namespace Arc {
   class DataPointRLS
     : public DataPointIndex {
   public:
-    DataPointRLS(const URL& url, const UserConfig& usercfg);
+    DataPointRLS(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
     ~DataPointRLS();
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus Resolve(bool source);

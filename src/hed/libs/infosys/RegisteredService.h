@@ -20,7 +20,7 @@ class RegisteredService: public Service
 
     public:
         /** Example contructor - Server takes at least it's configuration subtree */
-        RegisteredService(Config*);
+        RegisteredService(Config*, PluginArgument*);
 
         virtual ~RegisteredService(void) { };
 };
