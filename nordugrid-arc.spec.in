@@ -945,6 +945,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/ngconfigtest.1*
 %dir %{_datadir}/%{pkgdir}/examples
 %doc %{_datadir}/%{pkgdir}/examples/arc.conf.template
+%doc %{_datadir}/%{pkgdir}/examples/arc.conf.reference
 %{_datadir}/%{pkgdir}/schema
 %dir %{_datadir}/%{pkgdir}
 %doc README AUTHORS LICENSE
