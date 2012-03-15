@@ -13,10 +13,8 @@
 #include <arc/client/GLUE2.h>
 #include <arc/message/MCC.h>
 
-// Temporary solution
-#include "../EMIES/JobStateEMIES.cpp"
-#include "../EMIES/EMIESClient.cpp"
-
+#include "JobStateEMIES.h"
+#include "EMIESClient.h"
 #include "TargetInformationRetrieverPluginEMIES.h"
 
 namespace Arc {

@@ -4,6 +4,7 @@ libaccEMIES_la_SOURCES  = EMIESClient.cpp EMIESClient.h \
 	JobStateEMIES.cpp JobStateEMIES.h \
 	SubmitterEMIES.cpp SubmitterEMIES.h \
 	JobControllerEMIES.cpp JobControllerEMIES.h \
+	TargetInformationRetrieverPluginEMIES.cpp TargetInformationRetrieverPluginEMIES.h \
 	DescriptorsEMIES.cpp
 libaccEMIES_la_CXXFLAGS = -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 libaccEMIES_la_LIBADD = \

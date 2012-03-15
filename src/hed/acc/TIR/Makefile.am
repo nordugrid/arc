@@ -2,8 +2,7 @@ pkglib_LTLIBRARIES = libaccTIR.la
 
 libaccTIR_la_SOURCES  = DescriptorsTIR.cpp \
 	TargetInformationRetrieverPluginBES.cpp TargetInformationRetrieverPluginBES.h \
-	TargetInformationRetrieverPluginWSRFGLUE2.cpp TargetInformationRetrieverPluginWSRFGLUE2.h \
-	TargetInformationRetrieverPluginEMIES.cpp TargetInformationRetrieverPluginEMIES.h
+	TargetInformationRetrieverPluginWSRFGLUE2.cpp TargetInformationRetrieverPluginWSRFGLUE2.h
 libaccTIR_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 libaccTIR_la_LIBADD = \

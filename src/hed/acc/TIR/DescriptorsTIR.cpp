@@ -9,11 +9,9 @@
 
 #include "TargetInformationRetrieverPluginBES.h"
 #include "TargetInformationRetrieverPluginWSRFGLUE2.h"
-#include "TargetInformationRetrieverPluginEMIES.h"
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
   { "BES", "HED:TargetInformationRetrieverPlugin", "", 0, &Arc::TargetInformationRetrieverPluginBES::Instance },
   { "WSRFGLUE2", "HED:TargetInformationRetrieverPlugin", "", 0, &Arc::TargetInformationRetrieverPluginWSRFGLUE2::Instance },
-  { "EMIES", "HED:TargetInformationRetrieverPlugin", "", 0, &Arc::TargetInformationRetrieverPluginEMIES::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
