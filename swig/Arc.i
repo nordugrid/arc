@@ -209,6 +209,7 @@ def deprecated(method):
 
 
 %include "common.i"
+%include "loader.i"
 %include "message.i"
 %include "client.i"
 %include "credential.i"

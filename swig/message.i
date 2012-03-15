@@ -53,10 +53,6 @@
 %pythonappend Arc::MessageAuth::Export %{
         return x
 %}
-
-%import "../src/hed/libs/loader/Loader.h"
-%import "../src/hed/libs/loader/ModuleManager.h"
-%import "../src/hed/libs/loader/Plugin.h"
 #endif
 
 %ignore operator Arc::Config*;
