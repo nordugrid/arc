@@ -13,11 +13,9 @@
 #include <arc/client/ExecutionTarget.h>
 #include <arc/message/MCC.h>
 
-// Temporary solution
-#include "../ARC1/JobStateBES.cpp"
-#include "../ARC1/JobStateARC1.cpp"
-#include "../ARC1/AREXClient.cpp"
-
+#include "JobStateBES.h"
+#include "JobStateARC1.h"
+#include "AREXClient.h"
 #include "TargetInformationRetrieverPluginWSRFGLUE2.h"
 
 namespace Arc {

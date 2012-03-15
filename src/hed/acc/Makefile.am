@@ -22,5 +22,5 @@ else
 EMIES =
 endif
 
-SUBDIRS = TEST $(ARC0) ARC1 $(EMIES) CREAM Broker $(PYTHONBROKER) $(UNICORE) JobDescriptionParser SER TIR JLR ldap
-DIST_SUBDIRS = TEST ARC0 ARC1 EMIES CREAM Broker PythonBroker UNICORE JobDescriptionParser SER TIR JLR ldap
+SUBDIRS = TEST $(ARC0) ARC1 $(EMIES) CREAM Broker $(PYTHONBROKER) $(UNICORE) JobDescriptionParser SER JLR ldap
+DIST_SUBDIRS = TEST ARC0 ARC1 EMIES CREAM Broker PythonBroker UNICORE JobDescriptionParser SER JLR ldap

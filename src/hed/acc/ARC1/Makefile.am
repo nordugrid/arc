@@ -5,6 +5,8 @@ libaccARC1_la_SOURCES  = SubmitterARC1.cpp SubmitterARC1.h \
 	JobControllerARC1.cpp JobControllerARC1.h \
 	AREXClient.cpp AREXClient.h \
 	DescriptorsARC1.cpp JobStateARC1.h JobStateARC1.cpp \
+	TargetInformationRetrieverPluginWSRFGLUE2.cpp TargetInformationRetrieverPluginWSRFGLUE2.h \
+	TargetInformationRetrieverPluginBES.cpp TargetInformationRetrieverPluginBES.h \
 	SubmitterBES.cpp SubmitterBES.h \
 	JobControllerBES.cpp JobControllerBES.h \
 	JobStateBES.cpp JobStateBES.h
