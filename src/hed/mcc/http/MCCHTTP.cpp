@@ -15,7 +15,7 @@
 
 Arc::Logger ArcMCCHTTP::MCC_HTTP::logger(Arc::Logger::getRootLogger(), "MCC.HTTP");
 
-ArcMCCHTTP::MCC_HTTP::MCC_HTTP(Arc::Config *cfg,PluginArgument* parg) : Arc::MCC(cfg,parg) {
+ArcMCCHTTP::MCC_HTTP::MCC_HTTP(Arc::Config *cfg,Arc::PluginArgument* parg) : Arc::MCC(cfg,parg) {
 }
 
 static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
