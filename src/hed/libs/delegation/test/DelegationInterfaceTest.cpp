@@ -34,7 +34,7 @@ class DirectMCC: public Arc::MCCInterface {
   private:
     Arc::DelegationContainerSOAP& container_;
   public:
-    DirectMCC(Arc::DelegationContainerSOAP& container):container_(container) {};
+    DirectMCC(Arc::DelegationContainerSOAP& container,Arc::PluginArgument* parg):Arc::MCCInterface(parg),container_(container) {};
     Arc::MCC_Status process(Arc::Message& in,Arc::Message& out);
 };
 
@@ -92,7 +92,7 @@ void DelegationInterfaceTest::tearDown() {
 void DelegationInterfaceTest::TestDelegationInterfaceDELEGATEARC() {
   Arc::DelegationContainerSOAP c;
   Arc::DelegationProviderSOAP p(credentials);
-  DirectMCC m(c);
+  DirectMCC m(c,NULL);
   Arc::MessageContext context;
 
   CPPUNIT_ASSERT((bool)p.DelegateCredentialsInit(m,&context,Arc::DelegationProviderSOAP::ARCDelegation));
@@ -104,7 +104,7 @@ void DelegationInterfaceTest::TestDelegationInterfaceDELEGATEARC() {
 void DelegationInterfaceTest::TestDelegationInterfaceDELEGATEGDS20() {
   Arc::DelegationContainerSOAP c;
   Arc::DelegationProviderSOAP p(credentials);
-  DirectMCC m(c);
+  DirectMCC m(c,NULL);
   Arc::MessageContext context;
 
   CPPUNIT_ASSERT((bool)p.DelegateCredentialsInit(m,&context,Arc::DelegationProviderSOAP::GDS20));
@@ -116,7 +116,7 @@ void DelegationInterfaceTest::TestDelegationInterfaceDELEGATEGDS20() {
 void DelegationInterfaceTest::TestDelegationInterfaceDELEGATEEMIES() {
   Arc::DelegationContainerSOAP c;
   Arc::DelegationProviderSOAP p(credentials);
-  DirectMCC m(c);
+  DirectMCC m(c,NULL);
   Arc::MessageContext context;
 
   CPPUNIT_ASSERT((bool)p.DelegateCredentialsInit(m,&context,Arc::DelegationProviderSOAP::EMIES));

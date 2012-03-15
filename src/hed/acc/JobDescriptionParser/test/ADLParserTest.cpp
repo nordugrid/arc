@@ -34,7 +34,7 @@ class ADLParserTest
   CPPUNIT_TEST_SUITE_END();
 
 public:
-  ADLParserTest() {}
+  ADLParserTest():PARSER((Arc::PluginArgument*)NULL) {}
 
   void setUp();
   void tearDown();

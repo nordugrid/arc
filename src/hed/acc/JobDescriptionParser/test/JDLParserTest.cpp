@@ -24,7 +24,7 @@ class JDLParserTest
   CPPUNIT_TEST_SUITE_END();
 
 public:
-  JDLParserTest() {}
+  JDLParserTest():PARSER((Arc::PluginArgument*)NULL) {}
 
   void setUp();
   void tearDown();

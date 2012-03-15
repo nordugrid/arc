@@ -63,7 +63,7 @@ xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><SOAP-ENV:Body><bes-fact
   {
       public:
           /** Example contructor - Server takes at least it's configuration subtree */
-          MyRegisteredService(Arc::Config* cfg):RegisteredService(cfg) {};
+          MyRegisteredService(Arc::Config* cfg,Arc::PluginArgument* parg):RegisteredService(cfg,parg) {};
 
           virtual ~MyRegisteredService(void) { };
           virtual Arc::MCC_Status process(Arc::Message&,Arc::Message&) {return Arc::MCC_Status(Arc::STATUS_OK);};
@@ -106,7 +106,7 @@ void RegisteredServiceTest::TestRegisteredService() {
   cfg_str +="    </ArcConfig>";
   
   Arc::Config cfg(cfg_str);
-  MyRegisteredService myservice(&cfg);
+  MyRegisteredService myservice(&cfg,NULL);
 
   CPPUNIT_ASSERT(true);
 }

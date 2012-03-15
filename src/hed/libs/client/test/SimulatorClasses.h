@@ -23,7 +23,7 @@ class ClientSOAPTest :
     ClientSOAPTest(const BaseConfig& cfg, const URL& url, int timeout = -1)
       : ClientSOAP(cfg, url, timeout) {
       Config config;
-      soap_entry = new MCC(&config);;
+      soap_entry = new MCC(&config,NULL);;
     }
 
     /** Send SOAP request and receive response. */

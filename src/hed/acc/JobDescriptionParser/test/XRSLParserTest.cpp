@@ -36,7 +36,7 @@ class XRSLParserTest
   CPPUNIT_TEST_SUITE_END();
 
 public:
-  XRSLParserTest() {}
+  XRSLParserTest():PARSER((Arc::PluginArgument*)NULL) {}
 
   void setUp();
   void tearDown();

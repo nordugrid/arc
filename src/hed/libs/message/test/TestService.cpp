@@ -6,12 +6,12 @@
 
 class TestService: public Arc::Service {
     public:
-        TestService(Arc::Config *cfg);
+        TestService(Arc::Config *cfg, Arc::PluginArgument *parg);
         virtual ~TestService(void);
         virtual Arc::MCC_Status process(Arc::Message&,Arc::Message&);
 };
 
-TestService::TestService(Arc::Config* cfg):Arc::Service(cfg) {
+TestService::TestService(Arc::Config* cfg, Arc::PluginArgument *parg):Arc::Service(cfg,parg) {
 }
 
 TestService::~TestService() {
@@ -25,7 +25,7 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     Arc::ServicePluginArgument* servicearg =
             arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
     if(!servicearg) return NULL;
-    return new TestService((Arc::Config*)(*servicearg));
+    return new TestService((Arc::Config*)(*servicearg),arg);
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {

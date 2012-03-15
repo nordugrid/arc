@@ -28,7 +28,7 @@ class ARCJSDLParserTest
   CPPUNIT_TEST_SUITE_END();
 
 public:
-  ARCJSDLParserTest() {}
+  ARCJSDLParserTest():PARSER((Arc::PluginArgument*)NULL) {}
 
   void setUp();
   void tearDown();

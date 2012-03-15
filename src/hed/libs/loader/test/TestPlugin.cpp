@@ -9,19 +9,19 @@ namespace Test {
 
 class TestPlugin: Arc::Plugin {
     public:
-        TestPlugin();
+        TestPlugin(Arc::PluginArgument*);
         ~TestPlugin();
 };
 
-TestPlugin::TestPlugin() {
+TestPlugin::TestPlugin(Arc::PluginArgument* parg): Plugin(parg) {
 }
 
 TestPlugin::~TestPlugin(void) {
 }
 
-Arc::Plugin *get_instance(Arc::PluginArgument*) 
+Arc::Plugin *get_instance(Arc::PluginArgument* arg) 
 {
-    return (Arc::Plugin *)(new TestPlugin());
+    return (Arc::Plugin *)(new TestPlugin(arg));
 }
 
 } // namespace Test
