@@ -117,6 +117,7 @@ namespace Arc {
      protection implementation is suboptimal and will be revised
      in future. */
   class PluginsFactory: public ModuleManager {
+    friend class PluginArgument;
     private:
       Glib::Mutex lock_;
       typedef std::map<std::string,PluginDescriptor*> descriptors_t_;

@@ -76,9 +76,7 @@ class ModuleManager
         ModuleManager(XMLNode cfg);
         ~ModuleManager();
         /** Finds module 'name' in cache or loads corresponding loadable module */
-        Glib::Module* load(const std::string& name,bool probe = false /*,bool reload = false*/ );
-        /** Increase count of loaded module. Provided for symetry. */
-        void load(Glib::Module* module);
+        Glib::Module* load(const std::string& name,bool probe);
         /** Finds loadable module by 'name' looking in
            same places as load() does, but does not load it. */
         std::string find(const std::string& name);
@@ -88,7 +86,7 @@ class ModuleManager
           module is not unloaded. */
         Glib::Module* reload(Glib::Module* module);
         /** Unload module by its identifier.
-           Decreases counter and unloads module when it reaches 0. */
+           Decreases load counter and unloads module when it reaches 0. */
         void unload(Glib::Module* module);
         /** Unload module by its name */
         void unload(const std::string& name);

@@ -99,18 +99,6 @@ std::string ModuleManager::findLocation(const std::string& name)
   return path;
 }
 
-void ModuleManager::load(Glib::Module *module)
-{
-  Glib::Mutex::Lock lock(mlock);
-  for(plugin_cache_t::iterator p = plugin_cache.begin();
-                               p!=plugin_cache.end();++p) {
-    if(p->second == module) {
-      p->second.load();
-      break;
-    }
-  }
-}
-
 void ModuleManager::unload(Glib::Module *module)
 {
   Glib::Mutex::Lock lock(mlock);
@@ -164,7 +152,7 @@ std::string ModuleManager::find(const std::string& name)
   return findLocation(name);
 }
 
-Glib::Module *ModuleManager::load(const std::string& name,bool probe /*,bool reload*/ )
+Glib::Module* ModuleManager::load(const std::string& name,bool probe)
 {
   if (!Glib::Module::get_supported()) {
     return NULL;
