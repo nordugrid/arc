@@ -47,6 +47,13 @@ static std::string replace_file_suffix(const std::string& path,const std::string
 }
 
 static bool process_module(const std::string& plugin_filename, bool create_apd) {
+    Arc::PluginDescriptor dummy_desc[2];
+    memset(dummy_desc,0,sizeof(dummy_desc));
+    dummy_desc[0].name = "";
+    dummy_desc[0].kind = "";
+    dummy_desc[0].description = "";
+    dummy_desc[0].version = 0;
+    dummy_desc[0].instance = (Arc::get_plugin_instance)dummy_desc;
     std::string descriptor_filename = replace_file_suffix(plugin_filename,"apd");
     Glib::ModuleFlags flags = Glib::ModuleFlags(0);
     flags|=Glib::MODULE_BIND_LAZY;
@@ -63,7 +70,9 @@ static bool process_module(const std::string& plugin_filename, bool create_apd) 
     if(!module->get_symbol(PLUGINS_TABLE_SYMB,ptr)) {
         std::cerr << "Module " << plugin_filename << " is not an ARC plugin: " << Glib::Module::get_last_error() << std::endl;
         if(create_apd) {
-          std::cerr << "Empty descriptor file will be created to avoid loading this module at all" << std::endl;
+          std::cerr << "Dummy descriptor file will be created to avoid loading this module at all" << std::endl;
+          // This is needed to make rpmlint happy.
+          ptr = dummy_desc;
         }
         //delete module;
         //return -1;
@@ -128,13 +137,22 @@ int main(int argc, char **argv)
             --argc; ++argv;
         } else if(strcmp(argv[1],"-r") == 0) {
             recursive = true;
+        } if (strcmp(argv[1],"-h") == 0) {
+            std::cout << "arcplugin [-c] [-r] [-h] plugin_path [plugin_path [...]]" << std::endl;
+            std::cout << "  -c If specified then APD file is created using same name" << std::endl;
+            std::cout << "     as ARC plugin with suffix replaced with .apd." << std::endl;
+            std::cout << "  -r If specified operation is fully recursive." << std::endl;
+            std::cout << "  -h prints this help and exits." << std::endl;
+            std::cout << "  plugin_path is full path to ARC plugin loadable module" << std::endl;
+            std::cout << "     file or directory containing such modules." << std::endl;
+            return 0;
         } else {
             break;
         };
     };
 
     if (argc < 2) {
-        std::cerr << "Invalid arguments" << std::endl;
+        std::cerr << "Missing arguments" << std::endl;
         return -1;
     };
 
