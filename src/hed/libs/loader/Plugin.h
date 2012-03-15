@@ -19,19 +19,6 @@
 namespace Arc {
 
   class PluginsFactory;
-  class PluginArgument;
-
-  /// Base class for loadable ARC components.
-  /** All classes representing loadable ARC components must be either
-     descendants of this class or be wrapped by its offspring. */
-  class Plugin {
-    protected:
-      PluginsFactory* factory_;
-      Glib::Module* module_;
-      Plugin(PluginArgument* arg);
-    public:
-      virtual ~Plugin(void);
-  };
 
   /// Base class for passing arguments to loadable ARC components.
   /** During its creation constructor function of ARC loadable component
@@ -60,6 +47,18 @@ namespace Arc {
          after factory is detroyed. So it is advisable to use obtained
          pointer only in constructor function of plugin. */
       Glib::Module* get_module(void);
+  };
+
+  /// Base class for loadable ARC components.
+  /** All classes representing loadable ARC components must be either
+     descendants of this class or be wrapped by its offspring. */
+  class Plugin {
+    protected:
+      PluginsFactory* factory_;
+      Glib::Module* module_;
+      Plugin(PluginArgument* arg);
+    public:
+      virtual ~Plugin(void);
   };
 
   /// Name of symbol refering to table of plugins.
@@ -147,7 +146,7 @@ namespace Arc {
          for analyzing its content. If set to false only *.apd
          files are checked. Modules without corresponding *.apd
          will be ignored. Default is true; */
-      void TryLoad(bool v = true) { try_load_ = v; };
+      void TryLoad(bool v) { try_load_ = v; };
       bool TryLoad(void) { return try_load_; };
       Plugin* get_instance(const std::string& kind,PluginArgument* arg,bool search = true);
       Plugin* get_instance(const std::string& kind,int version,PluginArgument* arg,bool search = true);
