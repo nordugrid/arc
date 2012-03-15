@@ -428,6 +428,14 @@ namespace Arc {
     return load(name,kinds);
   }
 
+  bool PluginsFactory::load(const std::string& name,const std::string& kind,const std::string& pname) {
+    std::list<std::string> kinds;
+    std::list<std::string> pnames;
+    kinds.push_back(kind);
+    pnames.push_back(pname);
+    return load(name,kinds,pnames);
+  }
+
   bool PluginsFactory::load(const std::string& name,const std::list<std::string>& kinds) {
     std::list<std::string> pnames;
     return load(name,kinds,pnames);
