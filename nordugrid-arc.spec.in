@@ -714,13 +714,6 @@ rm -rf $RPM_BUILD_ROOT
 
 make install DESTDIR=$RPM_BUILD_ROOT
 
-# Remove empty .apd files:
-rm -f $RPM_BUILD_ROOT%{_libdir}/%{pkgdir}/libmodcrypto.apd \
-      $RPM_BUILD_ROOT%{_libdir}/%{pkgdir}/libmodcredential.apd \
-      $RPM_BUILD_ROOT%{_libdir}/%{pkgdir}/fileplugin.apd \
-      $RPM_BUILD_ROOT%{_libdir}/%{pkgdir}/gaclplugin.apd \
-      $RPM_BUILD_ROOT%{_libdir}/%{pkgdir}/jobplugin.apd
-
 # Install Logrotate.
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
 install -p -m 644 debian/%{name}-arex.logrotate \
@@ -943,8 +936,10 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/libarcxmlsec.so.*
 # We need to have libmodcrypto.so close to libarccrypto
 %{_libdir}/%{pkgdir}/libmodcrypto.so
+%{_libdir}/%{pkgdir}/libmodcrypto.apd
 # We need to have libmodcredential.so close to libarccredential
 %{_libdir}/%{pkgdir}/libmodcredential.so
+%{_libdir}/%{pkgdir}/libmodcredential.apd
 %{_libexecdir}/%{pkgdir}/arc-file-access
 %{_bindir}/ngconfigtest
 %doc %{_mandir}/man1/ngconfigtest.1*
