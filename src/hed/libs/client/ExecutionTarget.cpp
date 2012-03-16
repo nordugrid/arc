@@ -120,7 +120,7 @@ namespace Arc {
 
   void ExecutionTarget::SaveToStream(std::ostream& out, bool longlist) const {
 
-    out << IString("Execution Service: %s", (!ComputingService->Name.empty() ? ComputingService->Name : ComputingService->Cluster.Host())) << std::endl;
+    out << IString("Execution Target on Computing Service: %s", (!ComputingService->Name.empty() ? ComputingService->Name : ComputingService->Cluster.Host())) << std::endl;
     if (!ComputingEndpoint->URLString.empty()) {
       out << IString(" URL: %s", ComputingEndpoint->URLString) << std::endl;
     } else if (ComputingService->Cluster) {
@@ -129,6 +129,8 @@ namespace Arc {
       std::string::size_type pos = formattedURL.find("?"); // Do not output characters after the '?' character.
       out << IString(" URL: %s", formattedURL.substr(0, pos)) << std::endl;
     }
+    if (!ComputingEndpoint->InterfaceName.empty())
+      out << IString(" Interface name: %s", ComputingEndpoint->InterfaceName) << std::endl;
     if (!ComputingShare->Name.empty()) {
        out << IString(" Queue: %s", ComputingShare->Name) << std::endl;
     }
@@ -179,8 +181,6 @@ namespace Arc {
       }
       if (!ComputingEndpoint->Technology.empty())
         out << IString(" Technology: %s", ComputingEndpoint->Technology) << std::endl;
-      if (!ComputingEndpoint->InterfaceName.empty())
-        out << IString(" Interface name: %s", ComputingEndpoint->InterfaceName) << std::endl;
       if (!ComputingEndpoint->InterfaceVersion.empty()) {
         out << IString(" Interface versions:") << std::endl;
         for (std::list<std::string>::const_iterator it = ComputingEndpoint->InterfaceVersion.begin();
