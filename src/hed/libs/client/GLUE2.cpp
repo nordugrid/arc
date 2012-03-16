@@ -111,7 +111,9 @@ namespace Arc {
           logger.msg(VERBOSE, "The ComputingService doesn't advertise its Interface.");
         }
         if (xmlCENode["InterfaceVersion"]) {
-          ComputingEndpoint->InterfaceName = (std::string)xmlCENode["InterfaceVersion"];
+          for (XMLNode n = xmlCENode["InterfaceVersion"]; n; ++n) {
+            ComputingEndpoint->InterfaceVersion.push_back((std::string)n);
+          }
         }
         if (xmlCENode["InterfaceExtension"]) {
           for (XMLNode n = xmlCENode["InterfaceExtension"]; n; ++n) {
