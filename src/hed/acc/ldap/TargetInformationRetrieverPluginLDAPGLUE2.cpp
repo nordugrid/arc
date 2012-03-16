@@ -240,6 +240,7 @@ namespace Arc {
       LocationType& Location = cs.Location;
 
       cs->Cluster = url; // contains the URL of the infosys that provided the info
+      cs->OriginalEndpoint = ce;
 
       // GFD.147 GLUE2 5.3 Location
       Extractor location = Extractor::First(service, "Location");

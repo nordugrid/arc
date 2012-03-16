@@ -117,6 +117,7 @@ namespace Arc {
       LocationType& Location = cs.Location;
 
       cs->Cluster = url;
+      cs->OriginalEndpoint = cie;
       // Computing Service attributes
       if ((*it)["nordugrid-cluster-name"]) {
         cs->Name = (std::string)(*it)["nordugrid-cluster-name"];

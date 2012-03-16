@@ -61,6 +61,10 @@ namespace Arc {
     }
 
     ExtractTargets(url, servicesQueryResponse, csList);
+    
+    for (std::list<ComputingServiceType>::iterator it = csList.begin(); it != csList.end(); it++) {
+      (*it)->OriginalEndpoint = cie;
+    }
 
     if (!csList.empty()) s = EndpointQueryingStatus::SUCCESSFUL;
     return s;
