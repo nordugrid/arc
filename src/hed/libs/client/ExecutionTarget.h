@@ -238,7 +238,6 @@ namespace Arc {
     std::string HealthStateInfo;
     std::string QualityLevel;
     std::list<std::string> Capability;
-    std::string PreferredJobInterfaceName;
     std::string Technology;
     std::list<std::string> InterfaceVersion;
     std::list<std::string> InterfaceExtension;
@@ -280,7 +279,8 @@ namespace Arc {
 
     // Other
     URL Cluster; // contains the URL of the infosys that provided the info
-  };
+    Endpoint OriginalEndpoint; // this ComputingService was generated while this Endpoint was queried
+    };
 
   class LocationType : public GLUE2Entity<LocationAttributes> {};
 
