@@ -21,6 +21,10 @@ namespace Arc {
     // TODO: Currently assuming only one ComputingManager and one ExecutionEnvironment.
     for (std::map<int, ComputingEndpointType>::const_iterator itCE = ComputingEndpoint.begin();
          itCE != ComputingEndpoint.end(); ++itCE) {
+      if (!Attributes->OriginalEndpoint.PreferredJobInterfaceName.empty()) {
+        // If this endpoint has a non-preferred job interface, we skip it
+        if (itCE->second->InterfaceName != Attributes->OriginalEndpoint.PreferredJobInterfaceName) continue;             
+      }
       if (!itCE->second.ComputingShareIDs.empty()) {
         for (std::set<int>::const_iterator itCSIDs = itCE->second.ComputingShareIDs.begin();
              itCSIDs != itCE->second.ComputingShareIDs.end(); ++itCSIDs) {
