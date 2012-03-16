@@ -866,7 +866,7 @@ sub collect($) {
 
           my ($interface) = @_;
           
-          $log->debug("interface is $interface");
+          # $log->debug("interface is $interface");
           
           my $joblist = $jobs_by_endpoint->{$interface};
 
