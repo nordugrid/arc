@@ -152,6 +152,12 @@ namespace Arc {
 
         ComputingEndpointType ComputingEndpoint;
 
+        if (xmlCENode["URL"]) {
+          ComputingEndpoint->URLString = (std::string)xmlCENode["URL"];
+        } else {
+          logger.msg(VERBOSE, "The ComputingEndpoint has no URL.");
+        }
+
         if (xmlCENode["HealthState"]) {
           ComputingEndpoint->HealthState = (std::string)xmlCENode["HealthState"];
         } else {
