@@ -121,7 +121,9 @@ namespace Arc {
   void ExecutionTarget::SaveToStream(std::ostream& out, bool longlist) const {
 
     out << IString("Execution Service: %s", (!ComputingService->Name.empty() ? ComputingService->Name : ComputingService->Cluster.Host())) << std::endl;
-    if (ComputingService->Cluster) {
+    if (!ComputingEndpoint->URLString.empty()) {
+      out << IString(" URL: %s", ComputingEndpoint->URLString) << std::endl;
+    } else if (ComputingService->Cluster) {
       std::string formattedURL = ComputingService->Cluster.str();
       formattedURL.erase(std::remove(formattedURL.begin(), formattedURL.end(), ' '), formattedURL.end()); // Remove spaces.
       std::string::size_type pos = formattedURL.find("?"); // Do not output characters after the '?' character.
