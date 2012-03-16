@@ -68,7 +68,7 @@ class ModuleManager
         std::list<std::string> plugin_dir; /** collection of path to directory for modules */
         plugin_cache_t plugin_cache; /** Cache of handles of loaded modules */
         ModuleManager(const ModuleManager&) {};
-        ModuleManager& operator=(const ModuleManager&) {};
+        ModuleManager& operator=(const ModuleManager&) { return *this; };
     public:
         /** Constructor.
            It is supposed to process correponding configuration subtree

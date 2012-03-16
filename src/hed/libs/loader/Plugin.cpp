@@ -475,7 +475,6 @@ namespace Arc {
         return false;
       };
       // Descriptor not found or indicates presence of requested kinds.
-      // Descriptor not found or indicates presence of requested kinds.
       // Now try to load module directly
       module = probe_module(mname,*this);
       if (module == NULL) {
