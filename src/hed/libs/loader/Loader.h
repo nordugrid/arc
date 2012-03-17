@@ -32,7 +32,7 @@ namespace Arc {
 
    private:
     Loader(const Loader&) { };
-    Loader& operator=(const Loader&) { };
+    Loader& operator=(const Loader&) { return *this; };
  };
 
 } // namespace Arc
