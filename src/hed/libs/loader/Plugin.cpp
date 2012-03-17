@@ -308,7 +308,7 @@ namespace Arc {
         if(!nmodule) {
           logger.msg(VERBOSE, "Module %s failed to reload (%s)",mname,strip_newline(Glib::Module::get_last_error()));
           unload_module(module,*this);
-          return false;
+          return NULL;
         };
         descriptors_[mname]=(PluginDescriptor*)ptr;
         modules_[mname]=nmodule;
@@ -403,7 +403,7 @@ namespace Arc {
       if(!nmodule) {
         logger.msg(VERBOSE, "Module %s failed to reload (%s)",mname,strip_newline(Glib::Module::get_last_error()));
         unload_module(module,*this);
-        return false;
+        return NULL;
       };
       descriptors_[mname]=(PluginDescriptor*)ptr;
       modules_[mname]=nmodule;
