@@ -456,7 +456,7 @@ gridmap="/etc/grid-security/grid-mapfile"
 #
 # logfile path - Specify log file location. This file is opened/created
 #  before daemon swithces to specified user. Hence it can be owned 
-#  by 'root'. Default log file is "/var/log/arc/grid-manage.log"
+#  by 'root'. Default log file is "/var/log/arc/grid-manager.log"
 #logfile="/var/log/arc/grid-manager.log"
 #
 # logsize size [number] - 'Size' specifies in bytes how big log file is 
@@ -466,14 +466,14 @@ gridmap="/etc/grid-security/grid-mapfile"
 #  want to enable the ARC logrotation because another logrotation tool is used.
 #logsize="100000 2"
 #
-# pidfile path - Specify location of file containig PID of daemon process.
-#  This is usefull for automatic star/stop scripts. 
+# pidfile path - Specify location of file containing PID of daemon process.
+#  This is useful for automatic start/stop scripts. 
 #pidfile="/var/run/arched-arex.pid"
 #
 # the gnu time command, default /usr/bin/time
 #gnu_time="/usr/bin/time"
 #
-# if computing node can access sesion directory at frontend, defaults to 'yes' 
+# if computing node can access session directory at frontend, defaults to 'yes' 
 #shared_filesystem="yes"
 #
 # specifies the email address from where the notification mails are sent, <must
@@ -515,8 +515,9 @@ gridmap="/etc/grid-security/grid-mapfile"
 # maxload number1 number2 number3 - specifies maximum allowed number of jobs.
 # number1 - jobs being processed on frontend (PREPARING, FINISHING states)
 # number2 - additional reserved number of jobs being processed on frontend
-# number3 - number of files being transfered simultaneously by jobs in
+# number3 - number of files being transferred simultaneously by jobs in
 # PREPARING and FINISHING states. Missing number or -1 means no limit.
+# With newdatastaging="yes" options in [data-staging] should be used instead.
 #maxload="10 2 5"
 #
 # maxloadshare maxshare sharetype - specifies a sharing mechanism for data
@@ -524,6 +525,7 @@ gridmap="/etc/grid-security/grid-mapfile"
 # that can run per transfer share and sharetype is the scheme
 # used to assign jobs to transfer shares. Possible values of sharetype
 # are "dn", "voms:vo", "voms:role", and "voms:group".
+# With newdatastaging="yes" options in [data-staging] should be used instead.
 #maxloadshare="4 voms:role"
 #
 # share_limit name limit – specifies a transfer share that has a number
@@ -531,21 +533,14 @@ gridmap="/etc/grid-security/grid-mapfile"
 # the name of the share and limit is the number of processes for this
 # share. In the configuration should appear after maxloadshare. Can be
 # repeated several times for different shares.
+# With newdatastaging="yes" options in [data-staging] should be used instead.
 #share_limit="atlas:production 10"
 #
 # newdatastaging yes|no - turns on and off the new data staging framework
 # which replaces the downloader and uploader for managing input and output
-# files. It is off by default.
+# files. Options for this are set in the [data-staging] section. It is off by
+# default.
 #newdatastaging="yes"
-#
-# delivery_service URL - specifies a remote delivery service to be used by
-# the new data staging framework.
-#delivery_service="https://example.com:60002/datadeliveryservice"
-#
-# local_delivery yes|no - in case remote delivery services are configured
-# using the previous option, this option specifices whether or not delivery
-# should also be done locally on the A-REX host. Default is no.
-#local_delivery="yes"
 #
 # wakeupperiod time - specifies how often grid-manager cheks for new
 # jobs arrived, job state change requests, etc. That is resposivity of
@@ -632,14 +627,6 @@ gridmap="/etc/grid-security/grid-mapfile"
 #allowsubmit="mygroup"
 #allowsubmit="yourgroup"
 #
-# preferredpattern pattern - specifies a preferred pattern on which
-# to sort multiple replicas of an input file. It consists of one or
-# more patterns separated by a pipe  character (|) listed in order of
-# preference. Replicas will be ordered by the earliest match. If the
-# dollar character ($) is used at the end of a pattern, the pattern
-# will be matched to the end of the hostname of the replica.
-#preferredpattern="srm://myhost.ac.uk|.uk$|ndgf.org$"
-#
 # helper user executable arguments - allows to run additional
 # executables on behalf of users. Every time this executable finishes it
 # will be started again. This helper plugin mechanism can be used as the
@@ -649,6 +636,14 @@ gridmap="/etc/grid-security/grid-mapfile"
 # if user is '.' - it is run unrelated to any specified user.
 # an example:
 #helper=" . /usr/local/bin/myutility"
+#
+# preferredpattern pattern - specifies a preferred pattern on which
+# to sort multiple replicas of an input file. It consists of one or
+# more patterns separated by a pipe  character (|) listed in order of
+# preference. Replicas will be ordered by the earliest match. If the
+# dollar character ($) is used at the end of a pattern, the pattern
+# will be matched to the end of the hostname of the replica.
+#preferredpattern="srm://myhost.ac.uk|.uk$|ndgf.org$"
 #
 # copyurl url_head local_path - specifies that URLs, starting from 'url_head'
 # should be accessed in a different way (most probaly unix open). The
@@ -706,6 +701,65 @@ gridmap="/etc/grid-security/grid-mapfile"
 #  path. Make sure the choosen port is not blocked by firewall
 #  or other security rules.
 #arex_mount_point="https://piff.hep.lu.se:60000/arex"
+#
+####################################################################
+#
+# [data-staging] block configures data staging parameters if
+# newdatastaging="yes" is set in [grid-manager].
+#
+#[data-staging]
+#
+# maxdelivery - Maximum number of concurrent file transfers, i.e. active
+# transfers using network bandwidth. This is the total number for the whole
+# system including any remote staging hosts. Default is 10.
+#maxdelivery="40"
+#
+# maxprocessor - Maximum number of concurrent files in each pre- and post-
+# processing state, eg cache check or replica resolution. Default is 10.
+#maxprocessor="20"
+#
+# maxemergency - Maximum "emergency" slots which can be assigned to transfer
+# shares when all slots up to the limits configured by the above two options
+# are used by other shares. This ensures shares cannot be blocked by others.
+# Default is 1.
+#maxemergency="5"
+#
+# maxprepared - Maximum number of files in a prepared state, i.e. pinned on a
+# remote storage such as SRM for transfer. A good value is a small multiple of
+# maxdelivery. Default is 200.
+#maxprepared="250"
+#
+# sharetype - Scheme to assign transfer shares. Possible values are dn,
+# voms:vo, voms:role and voms:group.
+#sharetype="voms:role"
+#
+# definedshare - Defines a share with a fixed priority, different from the
+# default (50). Priority is an integer between 1 (lowest) and 100 (highest).
+#definedshare="myvo:production 80"
+#definedshare="myvo:student 20"
+#
+# dtrlog - A file in which data staging state information (for monitoring and
+# recovery purposes) is periodically dumped. Default is controldir/dtrstate.log
+#dtrlog="/tmp/dtrstate.log"
+#
+# The following 4 options are used to configure multi-host data staging.
+#
+# deliveryservice - URL to a data delivery service which can perform remote
+# data staging
+#deliveryservice="https://myhost.org:60003/datadeliveryservice"
+#
+# localtransfer - If any deliveryservice is defined, this option determines
+# whether local data transfer is also performed. Default is no.
+#localtransfer="yes"
+#
+# remotesizelimit - Lower limit on file size (in bytes) of files that remote
+# hosts should transfer. Can be used to increase performance by transferring
+# small files using local processes.
+#remotesizelimit="100000"
+#
+# usehostcert - Whether the A-REX host certificate should be used for
+# communication with remote hosts instead of the users' proxies. Default is no.
+#usehostcert="yes"
 #
 ####################################################################
 #

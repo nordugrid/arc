@@ -69,8 +69,7 @@ tag:
 .BR <attribute\ subattr1 ="subval1"\  subattr2 ="subval2" > value </attribute>
 
 The following keywords are used in the block names: common, client,
-group, vo, grid-manager, gridftpd, httpsd, infosys, registration,
-cluster, queue, se, rc.
+group, vo, grid-manager, gridftpd, infosys, registration, cluster, queue.
 
 If the ARC_LOCATION environment variable is set the ARC configuration
 file located at ${ARC_LOCATION}/etc/arc.conf is read first. If this
@@ -568,8 +567,8 @@ user="griduser:gridgroup"
 
 .TP
 .B debug
-Set the debug level of the grid-manager daemon. Level 0 stands for
-no debug. Increasing number gives more information, up to a maximum of 5.
+Set the debug level of the grid-manager daemon between 0 (FATAL) and 5 (DEBUG).
+Defaults to 3 (INFO).
 
 .IR Example :
 debug="2"
@@ -644,6 +643,28 @@ the job information will be sent to all specified services.
 jobreport="https://grid.uio.no:8001/logger"
 
 .TP
+.B jobreport_publisher
+Name of the accounting records publisher.
+
+.IR Example :
+jobreport_publisher="jura"
+
+.TP
+.B jobreport_credentials
+Specifies the credentials for accessing the accounting service. Arguments are
+key_file [cert_file [ca_dir]]
+
+.IR Example :
+jobreport_credentials="/etc/grid-security/hostkey.pem /etc/grid-security/hostcert.pem /etc/grid-security/certificates"
+
+.TP
+.B jobreport_options
+Specifies additional parameters for the jobreporter.
+
+.IR Example  
+jobreport_options="urbatch:50,archiving:/tmp/archive"
+
+.TP
 .B maxjobs
 Specifies the maximum allowed number of jobs being processed at 
 different stages: 1. max processed jobs – maximum number of concurrent 
@@ -668,7 +689,8 @@ of jobs being processed on frontend (PREPARING, FINISHING states). The
 second number is the additional reserved number of jobs being
 processed on frontend. The third number limits the number of files
 being transferred simultaneously by jobs in PREPARING and FINISHING
-states. Missing number or -1 means no limit.
+states. Missing number or -1 means no limit. With newdatastaging="yes"
+options in [data-staging] should be used instead.
 
 .IR Example :
 maxload="10 2 5"
@@ -679,7 +701,8 @@ Specifies a sharing mechanism for data transfer. The values are an integer
 followed by a space followed by a string. The first number is the maximum
 number of processes that can run per transfer share and the string is the scheme
 used to assign jobs to transfer shares. Possible values of this string
-are "dn", "voms:vo", "voms:role", and "voms:group".
+are "dn", "voms:vo", "voms:role", and "voms:group". With newdatastaging="yes"
+options in [data-staging] should be used instead.
 
 .IR Example:
 maxloadshare="4 voms:role"
@@ -689,37 +712,20 @@ maxloadshare="4 voms:role"
 Specifies a transfer share that has a number of processes different from the
 default value in maxloadshare. name is the name of the share and limit is
 the number of processes for this share. In the conﬁguration should appear
-after maxloadshare. Can be repeated several times for different shares.
+after maxloadshare. Can be repeated several times for different shares. With
+newdatastaging="yes" options in [data-staging] should be used instead.
 
 .IR Example:
 share_limit="atlas:production 10"
 
 .TP
 .B newdatastaging
-Turns on and off the new data staging framework which replaces the 
-downloader and uploader for managing input and output files. It is off
-by default
+Turns on and off the new data staging framework which replaces the downloader
+and uploader for managing input and output files. Options for this are set in
+the [data-staging] section. It is off by default.
 
 .IR Example:
 newdatastaging="yes"
-
-.TP
-.B delivery_service
-Specifies a remote delivery service to be used by the new data staging framework.
-
-.IR Example:
-delivery_service="https://example.com:60002/datadeliveryservice
-
-.TP
-.B local_delivery
-
-In case remote delivery services are configured using the previous option, this option
-specifices whether or not delivery should also be done locally on the A-REX
-host. Default is
-.B no.
-
-.IR Example:
-local_delivery="yes"
 
 .TP
 .B wakeupperiod
@@ -1172,6 +1178,17 @@ format of the argument is host[:port].
 .IR Example :
 http_proxy="proxy.mydomain.org:3128"
 
+.TP
+.B arex_mount_point
+Enables web services interfaces, including job execution and information
+system. The argument is an https URL defining the endpoint port and path:
+https://<hostname>:<port>/<path>. In order to submit job a client must
+specify the exact published path. Make sure the choosen port is not blocked
+by firewall or other security rules.
+
+.IR Example :
+arex_mount_point="https://piff.hep.lu.se:60000/arex"
+
 .PP
 In the command arguments (paths, executables, ...) the following
 substitutions can be used:
@@ -1249,6 +1266,105 @@ reason (for localcred plugins only, substituted at runtime). Possible reasons ar
 
 .PP
 See some of the examples above for examples of use.
+
+.SH DATA STAGING OPTIONS
+
+The [data-staging] block configures A-REX data staging if new data staging is
+switched on with newdatastaging="yes" in the [grid-manager] section.
+
+.TP
+.B maxdelivery
+Maximum number of concurrent file transfers, i.e. active transfers using
+network bandwidth. This is the total number for the whole system including
+any remote staging hosts. Default is 10.
+
+.IR Example :
+maxdelivery="40"
+
+.TP
+.B maxprocessor
+Maximum number of concurrent files in each pre- and post-processing state,
+e.g. cache check or replica resolution. Default is 10.
+
+.IR Example :
+maxprocessor="20"
+
+.TP
+.B maxemergency
+Maximum "emergency" slots which can be assigned to transfer shares when all
+slots up to the limits configured by the above two options are used by other
+shares. This ensures shares cannot be blocked by others. Default is 1.
+
+.IR Example :
+maxemergency="5"
+
+.TP
+.B maxprepared
+Maximum number of files in a prepared state, i.e. pinned on a remote storage
+such as SRM for transfer. A good value is a small multiple of maxdelivery.
+Default is 200.
+
+.IR Example :
+maxprepared="250"
+
+.TP
+.B sharetype
+Scheme to assign transfer shares. Possible values are dn, voms:vo, voms:role
+and voms:group.
+
+.IR Example :
+sharetype="voms:role"
+
+.TP
+.B definedshare
+Defines a share with a fixed priority, different from the default (50).
+Priority is an integer between 1 (lowest) and 100 (highest).
+
+.IR Example :
+
+definedshare="myvo:production 80"
+.br
+definedshare="myvo:student 20"
+
+.TP
+.B dtrlog
+A file in which data staging state information (for monitoring and recovery
+purposes) is periodically dumped. Default is controldir/dtrstate.log
+
+.IR Example :
+dtrlog="/tmp/dtrstate.log"
+
+.TP
+.B deliveryservice
+URL to a data delivery service which can perform remote data staging
+
+.IR Example :
+deliveryservice="https://myhost.org:60003/datadeliveryservice"
+
+.TP
+.B localtransfer
+If any deliveryservice is defined, this option determines whether local data
+transfer is also performed. Default is no.
+
+.IR Example :
+localtransfer="yes"
+
+.TP
+.B remotesizelimit
+Lower limit on file size (in bytes) of files that remote hosts should transfer.
+Can be used to increase performance by transferring small files using local
+processes.
+
+.IR Example :
+remotesizelimit="100000"
+
+.TP
+.B usehostcert
+Whether the A-REX host certificate should be used for communication with remote
+hosts instead of the users' proxies. Default is no.
+
+.IR Example :
+usehostcert="yes"
 
 .SH GRIDFTPD OPTIONS
 
