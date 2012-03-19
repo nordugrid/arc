@@ -382,11 +382,13 @@ sub fix_config {
         chomp ($config->{service}{ClusterName} ||= $shorthost);
     }
 
-    if ($config->{endpoint} and $config->{endpoint} =~ m{^(https?)://([^:/]+)(?::(\d+))?}) {
-        my ($proto,$host,$port) = ($1,$2,$3);
+    if ($config->{endpoint} and $config->{endpoint} =~ m{^(https?)://([^:/]+)(?::(\d+))?(.*)}) {
+        my ($proto,$host,$port,$mountpoint) = ($1,$2,$3,$4);
         $port ||= 80 if $proto eq "http";
         $port ||= 443 if $proto eq "https";
         $config->{arexhostport} = "$host:$port";
+        # fix endpoint information if not complete
+        $config->{endpoint} = "$proto://$host:$port$mountpoint"
     } 
     
     if ($config->{enable_emies_interface} and $config->{enable_emies_interface} = "yes") {
