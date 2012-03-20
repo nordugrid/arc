@@ -203,8 +203,10 @@ std::ostream& getStdout() {
 %include "../src/hed/libs/client/EntityRetriever.h"
 %template(ServiceEndpointRetriever) Arc::EntityRetriever<Arc::Endpoint>;
 %template(TargetInformationRetriever) Arc::EntityRetriever<Arc::ComputingServiceType>;
+%template(JobListRetriever) Arc::EntityRetriever<Arc::Job>;
 %template(EndpointContainer) Arc::EntityContainer<Arc::Endpoint>;
 %template(ComputingServiceContainer) Arc::EntityContainer<Arc::ComputingServiceType>;
+%template(JobContainer) Arc::EntityContainer<Arc::Job>;
 %template(ServiceEndpointQueryOptions) Arc::EndpointQueryOptions<Arc::Endpoint>;
 %template(ComputingServiceQueryOptions) Arc::EndpointQueryOptions<Arc::ComputingServiceType>;
 
