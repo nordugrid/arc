@@ -1340,12 +1340,22 @@ start () {
 	#TODO perhaps we should use getent hosts localhost and
 	#getent hosts $slapd_hostnamebind and see that they don't 
 	#resolve to the same thing
-	if [ "x$slapd_hostnamebind" = "x*" ]; then
-	    LD_PRELOAD=${pkglibdir}/arc-infoindex-slapd-wrapper.so \
-		${slapd_cmd} -f ${bdii_slapd_conf} -h "ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
+	if [ -n "$ldaplib" ]; then
+	    if [ "x$slapd_hostnamebind" = "x*" ]; then
+		ARC_LDAPLIB_SHELL=${ldaplib}/back_shell.so \
+		    ${slapd_cmd} -f ${bdii_slapd_conf} -h "ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
+	    else
+		ARC_LDAPLIB_SHELL=${ldaplib}/back_shell.so \
+		    ${slapd_cmd} -f ${bdii_slapd_conf} -h "ldap://localhost:${bdii_port} ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
+	    fi
 	else
-	    LD_PRELOAD=${pkglibdir}/arc-infoindex-slapd-wrapper.so \
-		${slapd_cmd} -f ${bdii_slapd_conf} -h "ldap://localhost:${bdii_port} ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
+	    if [ "x$slapd_hostnamebind" = "x*" ]; then
+		LD_PRELOAD=${pkglibdir}/arc-infoindex-slapd-wrapper.so \
+		    ${slapd_cmd} -f ${bdii_slapd_conf} -h "ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
+	    else
+		LD_PRELOAD=${pkglibdir}/arc-infoindex-slapd-wrapper.so \
+		    ${slapd_cmd} -f ${bdii_slapd_conf} -h "ldap://localhost:${bdii_port} ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
+	    fi
 	fi
     else
 	if [ "x$slapd_hostnamebind" = "x*" ]; then
