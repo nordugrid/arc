@@ -13,7 +13,6 @@ arcproxy_CXXFLAGS = -I$(top_srcdir)/include \
 arcproxy_LDADD = \
 	$(top_builddir)/src/hed/libs/credentialstore/libarccredentialstore.la \
 	$(top_builddir)/src/hed/libs/client/libarcclient.la \
-	$(top_builddir)/src/hed/libs/data/libarcdata2.la \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
@@ -40,7 +39,6 @@ test2vomsserver_CXXFLAGS = -I$(top_srcdir)/include \
 test2vomsserver_LDADD = \
 	$(top_builddir)/src/hed/libs/client/libarcclient.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
-	$(top_builddir)/src/hed/libs/data/libarcdata2.la \
 	$(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
@@ -53,7 +51,6 @@ test2myproxyserver_put_CXXFLAGS = -I$(top_srcdir)/include \
 test2myproxyserver_put_LDADD = \
 	$(top_builddir)/src/hed/libs/client/libarcclient.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
-	$(top_builddir)/src/hed/libs/data/libarcdata2.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
@@ -65,7 +62,6 @@ test2myproxyserver_get_CXXFLAGS = -I$(top_srcdir)/include \
 test2myproxyserver_get_LDADD = \
 	$(top_builddir)/src/hed/libs/client/libarcclient.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
-	$(top_builddir)/src/hed/libs/data/libarcdata2.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \

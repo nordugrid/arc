@@ -40,7 +40,6 @@ test_usernametoken_CXXFLAGS = -I$(top_srcdir)/include $(LIBXML2_CFLAGS)
 test_usernametoken_LDADD = \
 	libarcwssecurity.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
-	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS)
 

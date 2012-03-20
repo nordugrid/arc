@@ -49,9 +49,6 @@ test_jobdescription_SOURCES = test_jobdescription.cpp
 test_jobdescription_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 test_jobdescription_LDADD = libarcclient.la \
-	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
-	$(top_builddir)/src/hed/libs/data/libarcdata2.la \
-	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
 
