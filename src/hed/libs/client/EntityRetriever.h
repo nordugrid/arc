@@ -244,6 +244,10 @@ public:
   void wait() { ser.wait(); tir.wait(); }
 
   void addEntity(const Endpoint& service);
+  
+  void GetExecutionTargets(std::list<ExecutionTarget>& etList) {
+    ExecutionTarget::GetExecutionTargets(*this, etList);
+  }
 
 private:
   ServiceEndpointRetriever ser;

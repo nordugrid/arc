@@ -191,6 +191,14 @@ std::ostream& getStdout() {
       return self.getResults().__iter__()
   %}
 }
+%pythonprepend Arc::ComputingServiceRetriever::GetExecutionTargets %{
+        etList = ExecutionTargetList()
+        args = args + (etList,)
+%}
+%pythonappend Arc::ComputingServiceRetriever::GetExecutionTargets %{
+        return etList
+%}
+
 #endif
 %include "../src/hed/libs/client/EntityRetriever.h"
 %template(ServiceEndpointRetriever) Arc::EntityRetriever<Arc::Endpoint>;
