@@ -19,8 +19,8 @@ def retrieve(uc, endpoints):
 # Creating a UserConfig object with the user's proxy
 # and the path of the trusted CA certificates
 uc = arc.UserConfig()
-uc.ProxyPath("~/.cert/proxy")
-uc.CACertificatesDirectory("~/.cert/certificates")
+uc.ProxyPath("/tmp/proxy")
+uc.CACertificatesDirectory("/tmp/certificates")
 
 # Query two registries (index servers) for Computing Services
 registries = [
