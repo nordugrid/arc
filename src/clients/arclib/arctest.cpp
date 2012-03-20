@@ -199,7 +199,7 @@ int test(const Arc::UserConfig& usercfg, const int& testid, const std::list<Arc:
   logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
   std::list<Arc::ExecutionTarget> etList;
-  Arc::ExecutionTarget::GetExecutionTargetsOfList(csr, etList);
+  Arc::ExecutionTarget::GetExecutionTargets(csr, etList);
 
   std::list<std::string> jobids;
   std::list<Arc::Job> submittedJobs;
@@ -254,7 +254,7 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const int& testid, const 
   logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
   std::list<Arc::ExecutionTarget> etList;
-  Arc::ExecutionTarget::GetExecutionTargetsOfList(csr, etList);
+  Arc::ExecutionTarget::GetExecutionTargets(csr, etList);
 
   ChosenBroker->UseAllTargets(etList);
 

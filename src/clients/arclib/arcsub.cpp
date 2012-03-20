@@ -217,7 +217,7 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
   logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
   std::list<Arc::ExecutionTarget> etList;
-  Arc::ExecutionTarget::GetExecutionTargetsOfList(csr, etList);
+  Arc::ExecutionTarget::GetExecutionTargets(csr, etList);
 
   int jobnr = 1;
   std::list<std::string> jobids;
@@ -312,7 +312,7 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
   logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
   std::list<Arc::ExecutionTarget> etList;
-  Arc::ExecutionTarget::GetExecutionTargetsOfList(csr, etList);
+  Arc::ExecutionTarget::GetExecutionTargets(csr, etList);
 
   for (std::list<Arc::JobDescription>::const_iterator it = jobdescriptionlist.begin();
        it != jobdescriptionlist.end(); it++) {

@@ -53,7 +53,7 @@ namespace Arc {
     }
   }
 
-  void ExecutionTarget::GetExecutionTargetsOfList(const std::list<ComputingServiceType>& csList, std::list<ExecutionTarget>& etList) {
+  void ExecutionTarget::GetExecutionTargets(const std::list<ComputingServiceType>& csList, std::list<ExecutionTarget>& etList) {
     for (std::list<ComputingServiceType>::const_iterator it = csList.begin();
          it != csList.end(); ++it) {
       it->GetExecutionTargets(etList);

@@ -460,7 +460,7 @@ namespace Arc {
      **/
     void SaveToStream(std::ostream& out, bool longlist) const;
 
-    static void GetExecutionTargetsOfList(const std::list<ComputingServiceType>& csList, std::list<ExecutionTarget>& etList);
+    static void GetExecutionTargets(const std::list<ComputingServiceType>& csList, std::list<ExecutionTarget>& etList);
 
     CountedPointer<LocationAttributes> Location;
     CountedPointer<AdminDomainAttributes> AdminDomain;

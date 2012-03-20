@@ -90,7 +90,7 @@ int RUNINFO(main)(int argc, char **argv) {
   Arc::ComputingServiceRetriever csr(usercfg, endpoints, rejectedURLs, preferredInterfaceNames);
   csr.wait();
   std::list<Arc::ExecutionTarget> etList;
-  Arc::ExecutionTarget::GetExecutionTargetsOfList(csr, etList);
+  Arc::ExecutionTarget::GetExecutionTargets(csr, etList);
   for (std::list<Arc::ExecutionTarget>::const_iterator it = etList.begin(); it != etList.end(); ++it) {
     it->SaveToStream(std::cout, opt.longlist);
   }

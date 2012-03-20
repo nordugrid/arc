@@ -381,7 +381,7 @@ namespace Arc {
       }
 
       std::list<ExecutionTarget> etList;
-      ExecutionTarget::GetExecutionTargetsOfList(*csr, etList);
+      ExecutionTarget::GetExecutionTargets(*csr, etList);
       if (!chosenBroker->Submit(etList, jobdescs.front(), resubmittedJobs.back(), rejectTargets)) {
         resubmittedJobs.pop_back();
         notprocessed.push_back((**itJ)->IDFromEndpoint);
@@ -468,7 +468,7 @@ namespace Arc {
     }
 
     std::list<ExecutionTarget> etList;
-    ExecutionTarget::GetExecutionTargetsOfList(csr, etList);
+    ExecutionTarget::GetExecutionTargets(csr, etList);
 
     for (std::list< std::list<Job*>::iterator >::iterator itJ = migratableJobs.begin();
          itJ != migratableJobs.end(); ++itJ) {
