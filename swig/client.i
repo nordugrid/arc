@@ -182,6 +182,16 @@ std::ostream& getStdout() {
 #ifdef SWIGJAVA
 %rename(waitUntilDone) wait;
 #endif
+#ifdef SWIGPYTHON
+%extend Arc::ComputingServiceRetriever {
+  const std::list<ComputingServiceType>& getResults() { return *self; }  
+
+  %insert("python") %{
+    def __iter__(self):
+      return self.getResults().__iter__()
+  %}
+}
+#endif
 %include "../src/hed/libs/client/EntityRetriever.h"
 %template(ServiceEndpointRetriever) Arc::EntityRetriever<Arc::Endpoint>;
 %template(TargetInformationRetriever) Arc::EntityRetriever<Arc::ComputingServiceType>;
