@@ -227,6 +227,12 @@ namespace Arc {
     if(factory_ && module_) ((ModuleManager*)factory_)->use(module_);
   }
 
+  Plugin::Plugin(const Plugin& obj):
+       factory_(obj.factory_),module_(obj.module_)
+  {
+    if(factory_ && module_) ((ModuleManager*)factory_)->use(module_);
+  }
+
   Plugin::~Plugin(void) {
     if(factory_ && module_) ((ModuleManager*)factory_)->unuse(module_);
   }

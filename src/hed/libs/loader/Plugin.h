@@ -53,10 +53,16 @@ namespace Arc {
   /** All classes representing loadable ARC components must be either
      descendants of this class or be wrapped by its offspring. */
   class Plugin {
+    private:
+      Plugin(void) {};
+      Plugin& operator=(const Plugin&) { return *this; };
     protected:
       PluginsFactory* factory_;
       Glib::Module* module_;
+      /// Main constructor for creating new plugin object
       Plugin(PluginArgument* arg);
+      /// Constructor to be used if plugin want to copy itself
+      Plugin(const Plugin& obj);
     public:
       virtual ~Plugin(void);
   };
