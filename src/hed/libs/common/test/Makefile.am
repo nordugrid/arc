@@ -4,12 +4,12 @@ else
 MYSQL_WRAPPER_TEST =
 endif
 
-TESTS = URLTest LoggerTest RunTest XMLNodeTest FileAccessTest FileUtilsTest \
-        ProfileTest ArcRegexTest FileLockTest EnvTest UserConfigTest \
+check_PROGRAMS = URLTest LoggerTest RunTest XMLNodeTest FileAccessTest FileUtilsTest \
+        ProfileTest ArcRegexTest ThreadTest FileLockTest EnvTest UserConfigTest \
         StringConvTest CheckSumTest $(MYSQL_WRAPPER_TEST)
-TESTS_ENVIRONMENT = srcdir=$(srcdir)
 
-check_PROGRAMS = $(TESTS)
+TESTS = $(filter-out ThreadTest,$(TESTS))
+TESTS_ENVIRONMENT = srcdir=$(srcdir)
 
 URLTest_SOURCES = $(top_srcdir)/src/Test.cpp URLTest.cpp
 URLTest_CXXFLAGS = -I$(top_srcdir)/include \
@@ -39,12 +39,12 @@ ProfileTest_LDADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS)
 
-#ThreadTest_SOURCES = $(top_srcdir)/src/Test.cpp ThreadTest.cpp
-#ThreadTest_CXXFLAGS = -I$(top_srcdir)/include \
-#	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS)
-#ThreadTest_LDADD = \
-#	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-#	$(CPPUNIT_LIBS) $(GLIBMM_LIBS)
+ThreadTest_SOURCES = $(top_srcdir)/src/Test.cpp ThreadTest.cpp
+ThreadTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS)
+ThreadTest_LDADD = \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS)
 
 XMLNodeTest_SOURCES = $(top_srcdir)/src/Test.cpp XMLNodeTest.cpp
 XMLNodeTest_CXXFLAGS = -I$(top_srcdir)/include \
