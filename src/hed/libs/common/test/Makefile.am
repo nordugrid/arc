@@ -8,7 +8,7 @@ check_PROGRAMS = URLTest LoggerTest RunTest XMLNodeTest FileAccessTest FileUtils
         ProfileTest ArcRegexTest ThreadTest FileLockTest EnvTest UserConfigTest \
         StringConvTest CheckSumTest $(MYSQL_WRAPPER_TEST)
 
-TESTS = $(filter-out ThreadTest,$(TESTS))
+TESTS = $(filter-out ThreadTest,$(check_PROGRAMS))
 TESTS_ENVIRONMENT = srcdir=$(srcdir)
 
 URLTest_SOURCES = $(top_srcdir)/src/Test.cpp URLTest.cpp
