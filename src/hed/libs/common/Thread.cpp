@@ -131,6 +131,7 @@ namespace Arc {
    public:
     ThreadPool(void);
     void PushQueue(ThreadArgument* arg);
+    int Num(void) { return count; };
   };
 
   ThreadPool::ThreadPool(void):max_count(0),count(0) {
@@ -761,6 +762,14 @@ namespace Arc {
     pool = NULL;
 #endif
     GlibThreadInitialize();
+  }
+
+  void ThreadInitializer::waitExit(void) {
+#ifdef USE_THREAD_POOL
+    while(pool->Num() > 0) {
+      sleep(1);
+    }
+#endif
   }
 
 } // namespace Arc

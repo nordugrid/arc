@@ -534,6 +534,10 @@ namespace Arc {
     // This method is meant to be used only after fork.
     // It resets state of all internal locks and variables.
     void forceReset(void);
+    // Wait for all known threads to exit.
+    // It can be used before exiting application to make 
+    // sure no concurent threads are running during cleanup.
+    void waitExit(void);
   };
 
   // This is done intentionally to make sure glibmm is
