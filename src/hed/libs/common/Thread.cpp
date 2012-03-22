@@ -131,6 +131,7 @@ namespace Arc {
    public:
     ThreadPool(void);
     void PushQueue(ThreadArgument* arg);
+    void AtExit(void);
   };
 
   ThreadPool::ThreadPool(void):max_count(0),count(0) {
@@ -205,6 +206,11 @@ namespace Arc {
     lock.release();
     if(CheckQueue() > 0)
       threadLogger.msg(INFO, "Maximum number of threads running - puting new request into queue");
+  }
+
+  void ThreadPool::AtExit(void) {
+std::cerr<<"---- count = "<<count<<std::endl;
+    if(count > 0) _exit(0);
   }
 
   static ThreadPool* pool = NULL;
@@ -737,16 +743,22 @@ namespace Arc {
 
   // ----------------------------------------
 
+#ifdef USE_THREAD_POOL
+  static void GlibThreadTerminate(void) {
+    if(pool) pool->AtExit();
+  }
+#endif
+
   void GlibThreadInitialize(void) {
     Glib::init();
-    if (!Glib::thread_supported())
-      Glib::thread_init();
+    if (!Glib::thread_supported()) Glib::thread_init();
 #ifdef USE_THREAD_POOL
     if (!pool) {
 #ifdef USE_THREAD_DATA
       data_pool = new ThreadDataPool;
 #endif
       pool = new ThreadPool;
+      atexit(&GlibThreadTerminate);
     }
 #endif
   }
