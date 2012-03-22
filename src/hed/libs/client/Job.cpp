@@ -518,6 +518,9 @@ namespace Arc {
           out << "  " << *it << std::endl;
         }
       }
+
+      out << IString(" Flavour: %s", Flavour) << std::endl;
+      out << IString(" Cluster: %s", Cluster.fullstr()) << std::endl;      
     }
 
     out << std::endl;
