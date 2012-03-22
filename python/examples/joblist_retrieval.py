@@ -35,7 +35,7 @@ def example():
 
     print "Number of jobs found:", len(jobs)
     for job in jobs:
-        job.SaveToStream(arc.CPyOstream(sys.stdout), False)
+        job.SaveToStream(arc.CPyOstream(sys.stdout), True)
 
 # run the example and catch all Exceptions in order to make sure we can call _exit() at the end
 try:
