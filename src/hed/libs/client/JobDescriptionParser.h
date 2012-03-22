@@ -58,7 +58,7 @@ namespace Arc {
 
     std::list<std::string> supportedLanguages;
 
-    std::string error;
+    mutable std::string error;
 
     static Logger logger;
   };

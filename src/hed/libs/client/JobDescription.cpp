@@ -414,6 +414,7 @@ namespace Arc {
         bool r = it->UnParse(*this, product, language, dialect);
         std::string unparse_error = it->GetError();
         JobDescriptionResult res(r,unparse_error);
+        if (!r) logger.msg(VERBOSE, "Generating %s job description output failed: %s", language, unparse_error);
         jdpl_lock.unlock();
         return res;
       }

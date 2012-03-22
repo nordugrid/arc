@@ -724,10 +724,12 @@ namespace Arc {
 
   JobDescriptionParserResult ARCJSDLParser::UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
     if (!IsLanguageSupported(language)) {
+        error = "Language is not supported";
       return false;
     }
 
     if (job.Application.Executable.Path.empty()) {
+      error = "The path of the application's executable is empty.";
       return false;
     }
 
@@ -1134,6 +1136,7 @@ namespace Arc {
     for (std::list<InputFileType>::const_iterator it = job.DataStaging.InputFiles.begin();
          it != job.DataStaging.InputFiles.end(); ++it) {
       if (it->Name.empty()) {
+        error = "The name of the input file is empty.";
         return false;
       }
       XMLNode datastaging = jobdescription.NewChild("DataStaging");
@@ -1177,6 +1180,7 @@ namespace Arc {
     for (std::list<OutputFileType>::const_iterator it = job.DataStaging.OutputFiles.begin();
          it != job.DataStaging.OutputFiles.end(); ++it) {
       if (it->Name.empty()) {
+        error = "The name of the output file is empty.";
         return false;
       }
       XMLNode datastaging = jobdescription.NewChild("DataStaging");
