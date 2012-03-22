@@ -212,10 +212,11 @@ namespace Arc {
     return manager.reload(module);
   }
 
-  inline static void unload_module(Glib::Module* module,ModuleManager& manager) {
-    if(!module) return;
-    manager.unload(module);
-  }
+#define unload_module(module,manager) { if(module) unload(module); }
+//  inline static void unload_module(Glib::Module* module,ModuleManager& manager) {
+//    if(!module) return;
+//    manager.unload(module);
+//  }
 
   const char* plugins_table_name = PLUGINS_TABLE_SYMB;
 

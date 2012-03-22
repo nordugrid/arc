@@ -46,7 +46,6 @@ ModuleManager::~ModuleManager(void)
     while(i->second.unload() > 0) { };
     if(i->second) {
       // module is on unloaded only if it is in use according to usage counter
-std::cerr<<">>>>> BUSY PLUGIN found: "<<i->second.usage()<<std::endl;
       ++i;
     } else {
       plugin_cache.erase(i);
@@ -55,7 +54,6 @@ std::cerr<<">>>>> BUSY PLUGIN found: "<<i->second.usage()<<std::endl;
   }
   // exit only when all plugins unloaded
   if(plugin_cache.empty()) return;
-std::cerr<<">>>>> BUSY PLUGINS found: "<<plugin_cache.size()<<std::endl;
   // otherwise wait for plugins to be released
   logger.msg(WARNING, "Busy plugins found while unloading Module Manager. Waiting for them to be released.");
   for(;;) {
@@ -68,7 +66,6 @@ std::cerr<<">>>>> BUSY PLUGINS found: "<<plugin_cache.size()<<std::endl;
     for(plugin_cache_t::iterator i = plugin_cache.begin(); i != plugin_cache.end();) {
       while(i->second.unload() > 0) { };
       if(i->second) {
-std::cerr<<">>>>> BUSY PLUGIN still here: "<<i->second.usage()<<std::endl;
         ++i;
       } else {
         plugin_cache.erase(i);
