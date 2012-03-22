@@ -209,6 +209,7 @@ std::ostream& getStdout() {
 %template(JobContainer) Arc::EntityContainer<Arc::Job>;
 %template(ServiceEndpointQueryOptions) Arc::EndpointQueryOptions<Arc::Endpoint>;
 %template(ComputingServiceQueryOptions) Arc::EndpointQueryOptions<Arc::ComputingServiceType>;
+%template(JobListQueryOptions) Arc::EndpointQueryOptions<Arc::Job>;
 
 
 /* These template instantiations must be created after the respective
