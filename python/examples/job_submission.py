@@ -11,8 +11,8 @@ def example():
     # Creating a UserConfig object with the user's proxy
     # and the path of the trusted CA certificates
     uc = arc.UserConfig()
-    uc.ProxyPath("/tmp/proxy")
-    uc.CACertificatesDirectory("/tmp/certificates")
+    uc.ProxyPath("/tmp/x509up_u%s" % os.getuid())
+    uc.CACertificatesDirectory("/etc/grid-security/certificates")
 
     # Creating an endpoint for a Computing Element
     endpoint = arc.Endpoint("piff.hep.lu.se", arc.Endpoint.COMPUTINGINFO, "org.nordugrid.ldapglue2")
