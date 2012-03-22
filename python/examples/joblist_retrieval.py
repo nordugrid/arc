@@ -3,6 +3,9 @@ import arc
 import sys
 import os
 
+# arc.Logger.getRootLogger().addDestination(arc.LogStream(sys.stdout))
+# arc.Logger.getRootLogger().setThreshold(arc.DEBUG)
+
 def example():
     # Creating a UserConfig object with the user's proxy
     # and the path of the trusted CA certificates
@@ -11,7 +14,7 @@ def example():
     uc.CACertificatesDirectory("/tmp/certificates")
 
     # Creating an endpoint for a Computing Element
-    endpoint = arc.Endpoint("piff.hep.lu.se", arc.Endpoint.COMPUTINGINFO)
+    endpoint = arc.Endpoint("piff.hep.lu.se:443/arex", arc.Endpoint.COMPUTINGINFO)
 
     # Creating a container which will store the retrieved jobs
     jobs = arc.JobContainer()
@@ -31,6 +34,8 @@ def example():
     print retriever.getStatusOfEndpoint(endpoint).str()
 
     print "Number of jobs found:", len(jobs)
+    for job in jobs:
+        job.SaveToStream(arc.CPyOstream(sys.stdout), False)
 
 # run the example and catch all Exceptions in order to make sure we can call _exit() at the end
 try:
