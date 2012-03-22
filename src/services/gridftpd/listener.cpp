@@ -265,6 +265,7 @@ int main(int argc,char** argv) {
 
 
 #ifndef __DONT_USE_FORK__
+  unsigned int addrs_num = 0;
   {
     struct addrinfo hint;
     struct addrinfo *info = NULL;
@@ -280,10 +281,11 @@ int main(int argc,char** argv) {
       logger.msg(Arc::ERROR, "Failed to obtain local address: %s",err_str); exit(-1);
     };
     for(struct addrinfo *info_ = info;info_;info_=info_->ai_next) {
+      ++addrs_num;
       int s = socket(info_->ai_family,info_->ai_socktype,info_->ai_protocol);
       if(s == -1) {
         std::string e = Arc::StrError(errno);
-        logger.msg(Arc::ERROR, "Failed to create socket(%s): %s",PROTO_NAME(info_),e); exit(-1);
+        logger.msg(Arc::WARNING, "Failed to create socket(%s): %s",PROTO_NAME(info_),e);
       };
       {
         int on = 1;
@@ -297,23 +299,29 @@ int main(int argc,char** argv) {
         // separate sockets for v4 and v6.
         if(setsockopt(s,IPPROTO_IPV6,IPV6_V6ONLY,&v,sizeof(v)) != 0) {
           std::string e = Arc::StrError(errno);
-          logger.msg(Arc::ERROR, "Failed to limit socket to IPv6: %s",e); exit(-1);
+          logger.msg(Arc::WARNING, "Failed to limit socket to IPv6: %s",e);
+          close(s); continue;
         };
       };
 #endif
       if(bind(s,info_->ai_addr,info_->ai_addrlen) == -1) {
         std::string e = Arc::StrError(errno);
-        logger.msg(Arc::ERROR, "Failed to bind socket(%s): %s",PROTO_NAME(info_),e); exit(-1);
+        logger.msg(Arc::WARNING, "Failed to bind socket(%s): %s",PROTO_NAME(info_),e);
+        close(s); continue;
       };
       if(listen(s,128) == -1) {
         std::string e = Arc::StrError(errno);
-        logger.msg(Arc::ERROR, "Failed to listen on socket(%s): %s",PROTO_NAME(info_),e); exit(-1);
+        logger.msg(Arc::WARNING, "Failed to listen on socket(%s): %s",PROTO_NAME(info_),e);
+        close(s); continue;
       };
       handles.push_back(s);
     };
   };
   if(handles.empty()) {
     logger.msg(Arc::ERROR, "Not listening to anything"); exit(-1);
+  };
+  if(handles.size() < addrs_num) {
+    logger.msg(Arc::WARNING, "Some addresses failed. Listening on %u of %u.",(unsigned int)handles.size(),addrs_num);
   };
   daemon.logfile(DEFAULT_LOG_FILE);
   daemon.pidfile(DEFAULT_PID_FILE);
