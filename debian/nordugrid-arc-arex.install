@@ -75,4 +75,6 @@ debian/tmp/usr/share/arc/examples/a-rex
 debian/tmp/usr/share/arc/ssm/encrypt_utils.py*
 debian/tmp/usr/share/arc/ssm/ssm.py*
 debian/tmp/usr/share/arc/ssm/message_db.py*
+debian/tmp/usr/share/arc/ssm/ssm.cfg
+debian/tmp/usr/share/arc/ssm/ssm.log.cfg
 

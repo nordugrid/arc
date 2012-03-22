@@ -1177,9 +1177,8 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/ssm/encrypt_utils.py*
 %{_datadir}/%{pkgdir}/ssm/ssm.py*
 %{_datadir}/%{pkgdir}/ssm/message_db.py*
-%doc src/clients/jura/ssm/README.ssm
-%doc src/clients/jura/ssm/ssm.cfg
-%doc src/clients/jura/ssm/ssm.log.cfg
+%{_datadir}/%{pkgdir}/ssm/ssm.cfg
+%{_datadir}/%{pkgdir}/ssm/ssm.log.cfg
 %endif
 
 %files devel
