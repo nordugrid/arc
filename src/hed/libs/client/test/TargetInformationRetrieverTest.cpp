@@ -5,6 +5,7 @@
 #include <arc/client/EntityRetriever.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/TestACCControl.h>
+#include <arc/Thread.h>
 
 //static Arc::Logger testLogger(Arc::Logger::getRootLogger(), "TargetInformationRetrieverTest");
 
@@ -21,7 +22,9 @@ public:
   TargetInformationRetrieverTest() {};
 
   void setUp() {}
-  void tearDown() {}
+  void tearDown() {
+    Arc::ThreadInitializer().waitExit();
+  }
 
   void PluginLoading();
   void QueryTest();
@@ -33,7 +36,6 @@ void TargetInformationRetrieverTest::PluginLoading() {
   Arc::TargetInformationRetrieverPlugin* p = l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 }
-
 
 void TargetInformationRetrieverTest::QueryTest() {
   Arc::EndpointQueryingStatus sInitial(Arc::EndpointQueryingStatus::SUCCESSFUL);

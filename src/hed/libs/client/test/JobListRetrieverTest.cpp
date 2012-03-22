@@ -5,6 +5,7 @@
 #include <arc/client/Job.h>
 #include <arc/client/EntityRetriever.h>
 #include <arc/client/TestACCControl.h>
+#include <arc/Thread.h>
 
 //static Arc::Logger testLogger(Arc::Logger::getRootLogger(), "JobListRetrieverTest");
 
@@ -20,7 +21,7 @@ public:
   JobListRetrieverTest() {};
 
   void setUp() {}
-  void tearDown() {}
+  void tearDown() { Arc::ThreadInitializer().waitExit(); }
 
   void PluginLoading();
   void QueryTest();

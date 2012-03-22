@@ -7,6 +7,7 @@
 #include <arc/Utils.h>
 #include <arc/client/Job.h>
 #include <arc/client/Submitter.h>
+#include <arc/Thread.h>
 
 class SubmitterTest
   : public CppUnit::TestFixture {
@@ -20,7 +21,7 @@ public:
   ~SubmitterTest() { delete sl; }
 
   void setUp() {}
-  void tearDown() {}
+  void tearDown() { Arc::ThreadInitializer().waitExit(); }
 
   void LoadTest();
 

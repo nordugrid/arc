@@ -4,6 +4,7 @@
 
 #include <arc/client/Software.h>
 #include <arc/client/ExecutionTarget.h>
+#include <arc/Thread.h>
 
 #define SV Arc::Software
 #define SR Arc::SoftwareRequirement
@@ -28,7 +29,7 @@ class SoftwareTest
 public:
   SoftwareTest() {}
   void setUp() {}
-  void tearDown() {}
+  void tearDown() { Arc::ThreadInitializer().waitExit(); }
   void EqualityTest();
   void ComparisonTest();
   void BasicRequirementsTest();

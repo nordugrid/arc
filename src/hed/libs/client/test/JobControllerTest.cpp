@@ -7,6 +7,7 @@
 #include <arc/Utils.h>
 #include <arc/client/Job.h>
 #include <arc/client/JobController.h>
+#include <arc/Thread.h>
 
 class JobControllerTest
   : public CppUnit::TestFixture {
@@ -20,7 +21,7 @@ public:
   ~JobControllerTest() { delete jcl; }
 
   void setUp() {}
-  void tearDown() {}
+  void tearDown() { Arc::ThreadInitializer().waitExit(); }
 
   void LoadTest();
 

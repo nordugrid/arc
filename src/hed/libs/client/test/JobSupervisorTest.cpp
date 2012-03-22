@@ -8,6 +8,7 @@
 #include <arc/client/Endpoint.h>
 #include <arc/client/Job.h>
 #include <arc/client/JobSupervisor.h>
+#include <arc/Thread.h>
 
 #include <arc/client/TestACCControl.h>
 
@@ -27,7 +28,7 @@ public:
   ~JobSupervisorTest() {}
 
   void setUp() {}
-  void tearDown() {}
+  void tearDown() { Arc::ThreadInitializer().waitExit(); }
 
   void TestConstructor();
   void TestAddJob();

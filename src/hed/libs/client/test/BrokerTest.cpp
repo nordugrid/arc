@@ -7,6 +7,7 @@
 #include <arc/client/Broker.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/JobDescription.h>
+#include <arc/Thread.h>
 
 #include <arc/client/TestACCControl.h>
 
@@ -62,7 +63,7 @@ void BrokerTest::setUp() {
   etl.front().ComputingEndpoint->HealthState = "ok";
 }
 
-void BrokerTest::tearDown() {}
+void BrokerTest::tearDown() { Arc::ThreadInitializer().waitExit(); }
 
 void BrokerTest::LoadTest() {
   b = bl->load("", usercfg);

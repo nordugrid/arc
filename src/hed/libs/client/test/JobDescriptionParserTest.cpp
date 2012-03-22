@@ -18,7 +18,7 @@ public:
   ~JobDescriptionParserTest() { delete jdpl; }
 
   void setUp() {}
-  void tearDown() {}
+  void tearDown() { Arc::ThreadInitializer().waitExit(); }
 
   void LoadTest();
 
