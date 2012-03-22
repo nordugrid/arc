@@ -2,7 +2,7 @@ ssmdir= $(pkgdatadir)/ssm
 
 pkglibexec_SCRIPTS = ssm_master
 
-ssm_DATA = SecureStompMessenger.py EncryptUtils.py message_db.py
+ssm_DATA = sm.py encrypt_utils.py message_db.py
 
 EXTRA_DIST = $(ssm_DATA) $(pkglibexec_SCRIPTS) README.ssm ssm.cfg ssm.log.cfg
 

@@ -209,8 +209,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_sysconfdir}/arc/client.conf
 %{_mingw32_libexecdir}/%{pkgdir}/jura.exe
 %{_mingw32_libexecdir}/%{pkgdir}/ssm_master
-%{_mingw32_datadir}/%{pkgdir}/ssm/EncryptUtils.py*
-%{_mingw32_datadir}/%{pkgdir}/ssm/SecureStompMessenger.py*
+%{_mingw32_datadir}/%{pkgdir}/ssm/encrypt_utils.py*
+%{_mingw32_datadir}/%{pkgdir}/ssm/ssm.py*
 %{_mingw32_datadir}/%{pkgdir}/ssm/message_db.py*
 %doc src/clients/jura/ssm/README.ssm
 %doc src/clients/jura/ssm/ssm.cfg

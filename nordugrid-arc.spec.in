@@ -1174,8 +1174,8 @@ service fetch-crl-cron start > /dev/null 2>&1
 %dir %{_localstatedir}/log/arc
 %if %{with_python}
 %{_libexecdir}/%{pkgdir}/ssm_master
-%{_datadir}/%{pkgdir}/ssm/EncryptUtils.py*
-%{_datadir}/%{pkgdir}/ssm/SecureStompMessenger.py*
+%{_datadir}/%{pkgdir}/ssm/encrypt_utils.py*
+%{_datadir}/%{pkgdir}/ssm/ssm.py*
 %{_datadir}/%{pkgdir}/ssm/message_db.py*
 %doc src/clients/jura/ssm/README.ssm
 %doc src/clients/jura/ssm/ssm.cfg

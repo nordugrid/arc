@@ -214,7 +214,7 @@ namespace Arc
     }
 
     //Save all records into the default folder.
-    std::string default_path = "/tmp/messages/";
+    std::string default_path = "/var/spool/arc/ssm/";
     struct stat st;
     //directory check
     if (stat(default_path.c_str(), &st) != 0) {

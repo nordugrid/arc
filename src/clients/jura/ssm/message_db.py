@@ -13,8 +13,7 @@
 #   See the License for the specific language governing permissions and       #
 #   limitations under the License.                                            #
 ###############################################################################
-from EncryptUtils import from_file
-from SecureStompMessenger import message_hash
+from encrypt_utils import from_file, message_hash, file_is_closed
 import glob
 import os
 import tempfile
@@ -89,13 +88,15 @@ class MessageDB:
         msg_file=self._inpath+msg_id
         if self._dup_check(msg_data, msg_file+'\t'+producer_dn+'\n'):
 
-            # write out the signer DN to the signature file
-
+            # write the message file first, so there isn't a period
+            # where the .sig file is there but the message is still 
+            # being written
+            self._atomic_write_file(msg_file, msg_data)
+            
+            # write out the signer DN to the signature file (small, quick)
             sigfile=open(msg_file+'.sig','w')
             sigfile.write(producer_dn+'\n')
             sigfile.close()
-
-            self._atomic_write_file(msg_file, msg_data)
 
             return True
         else:
@@ -110,7 +111,7 @@ class MessageDB:
         (id,message) = self._get_message(self._inpath)
         if id != None:
             try:
-                signer = from_file(self._inpath+id+'.sig')
+                signer = from_file(self._inpath+id+'.sig').strip()
             except:
                 # most likely if the .sig file isn't present
                 signer = None
@@ -203,9 +204,11 @@ class MessageDB:
             return (None, None)
         
         # Ensure the file isn't being written to by another process.
-        #### (Taken out for now, can't figure a sensible way to do this)
+        # This is difficult to do in a system-independent way.
+
         #if not file_is_closed(msgs[0]):
-            #return (None, None)
+        #    log.info("File is not closed.")
+        #    return (None, None)
 
         msgs.sort()
         msg_id = os.path.basename(msgs[0]) 

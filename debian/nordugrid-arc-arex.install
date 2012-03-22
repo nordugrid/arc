@@ -72,7 +72,7 @@ debian/tmp/usr/share/man/man8/arc-vomsac-check.8
 
 debian/tmp/usr/share/arc/examples/a-rex
 
-debian/tmp/usr/share/arc/ssm/EncryptUtils.py*
-debian/tmp/usr/share/arc/ssm/SecureStompMessenger.py*
+debian/tmp/usr/share/arc/ssm/encrypt_utils.py*
+debian/tmp/usr/share/arc/ssm/ssm.py*
 debian/tmp/usr/share/arc/ssm/message_db.py*
 
