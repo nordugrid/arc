@@ -2,7 +2,12 @@
 This modified Python codes are part of the SSM that developed by APEL.
 
 Changelog:
-*Thu Mar 6 2012 Gabor Sziegti <szigeti@niif.hu>
+*Fri Mar 23 2012 Gabor Szigeti <szigeti@niif.hu>
+ -update to ssm 0.8
+ -fixed temporary location of the log and the messages 
+ -better packaging structrure
+ 
+*Thu Mar 6 2012 Gabor Szigeti <szigeti@niif.hu>
  -add license information
 
 *Mon Dec 19 2012 Gabor Szigeti <szigeti@niif.hu> 
