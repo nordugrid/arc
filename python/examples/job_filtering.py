@@ -3,9 +3,6 @@ import arc
 import sys
 import os
 
-# arc.Logger.getRootLogger().addDestination(arc.LogStream(sys.stdout))
-# arc.Logger.getRootLogger().setThreshold(arc.DEBUG)
-
 def example():
     # Creating a UserConfig object with the user's proxy
     # and the path of the trusted CA certificates
@@ -43,15 +40,15 @@ def example():
     print "The failed jobs:"
     for job in failed_jobs:
         job.SaveToStream(arc.CPyOstream(sys.stdout), True)
-    
 
-# run the example and catch all Exceptions in order to make sure we can call _exit() at the end
-try:
-    example()
-except:
-    import traceback
-    traceback.print_exc()
-    os._exit(1)
+# wait for all the background threads to finish before we destroy the objects they may use
+import atexit
+@atexit.register
+def wait_exit():
+    arc.ThreadInitializer().waitExit()
 
-# _exit() is needed to avoid segmentation faults by still running background threads
-os._exit(0)
+# arc.Logger.getRootLogger().addDestination(arc.LogStream(sys.stderr))
+# arc.Logger.getRootLogger().setThreshold(arc.DEBUG)
+
+# run the example
+example()

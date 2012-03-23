@@ -26,7 +26,10 @@ def example():
 
     # Query two registries (index servers) for Computing Services
     registries = [
-        arc.Endpoint("index1.nordugrid.org", arc.Endpoint.REGISTRY),
+        # for the index1, we specify that it is an EGIIS service
+        arc.Endpoint("index1.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.ldapegiis"),
+        # for the arc-emi.grid.upjs.sk, we don't specify the type (the InterfaceName)
+        # we let the system to try all possibilities
         arc.Endpoint("arc-emi.grid.upjs.sk/O=Grid/Mds-Vo-Name=ARC-EMI", arc.Endpoint.REGISTRY)
     ]
 
@@ -41,7 +44,9 @@ def example():
 
     # Query the local infosys (COMPUTINGINFO) of computing elements
     computing_elements = [
+        # for piff, we specify that we want to query the LDAP GLUE2 tree
         arc.Endpoint("piff.hep.lu.se", arc.Endpoint.COMPUTINGINFO, "org.nordugrid.ldapglue2"),
+        # for pgs03, we don't specify the interface, we let the system try all possibilities
         arc.Endpoint("pgs03.grid.upjs.sk", arc.Endpoint.COMPUTINGINFO)
     ]
 
@@ -66,13 +71,14 @@ def example():
     print "Discovered ComputingServices:", ", ".join([service.Name for service in retriever3])
 
 
-# run the example and catch all Exceptions in order to make sure we can call _exit() at the end
-try:
-    example()
-except:
-    import traceback
-    traceback.print_exc()
-    os._exit(1)
+# wait for all the background threads to finish before we destroy the objects they may use
+import atexit
+@atexit.register
+def wait_exit():
+    arc.ThreadInitializer().waitExit()
 
-# _exit() is needed to avoid segmentation faults by still running background threads
-os._exit(0)
+# arc.Logger.getRootLogger().addDestination(arc.LogStream(sys.stderr))
+# arc.Logger.getRootLogger().setThreshold(arc.DEBUG)
+
+# run the example
+example()
