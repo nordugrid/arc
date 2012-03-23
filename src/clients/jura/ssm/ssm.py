@@ -22,7 +22,7 @@ from encrypt_utils import encrypt_message, decrypt_message, verify_message, \
     sign_message, verify_certificate, from_file, get_certificate_subject, \
     check_cert_key, message_hash
 
-import get_brokers
+#import get_brokers
 
 import stomp
 import stomp.exception

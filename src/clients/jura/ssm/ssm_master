@@ -27,7 +27,7 @@ import sys
 import time
 import logging
 import ConfigParser
-from daemon import DaemonContext
+#from daemon import DaemonContext
 
 # Prepend module path
 sys.path.insert(0,SSMDIR)
@@ -73,16 +73,13 @@ def get_basic_config(config):
         c.password = config.get('broker', 'password')
     
     try:
-        c.host = config.get('broker','host')
-        c.port = config.getint('broker','port')
-    
         # As well as fetching filepaths, expand any environment variables.
-        c.capath = config.get('certificates','cadir')
-        c.capath = os.path.normpath(os.path.expandvars(c.capath))
-        c.certificate = config.get('certificates','certificate')
-        c.certificate = os.path.normpath(os.path.expandvars(c.certificate))
-        c.key = config.get('certificates','key')
-        c.key = os.path.normpath(os.path.expandvars(c.key))
+        #c.capath = config.get('certificates','cadir')
+        #c.capath = os.path.normpath(os.path.expandvars(c.capath))
+        #c.certificate = config.get('certificates','certificate')
+        #c.certificate = os.path.normpath(os.path.expandvars(c.certificate))
+        #c.key = config.get('certificates','key')
+        #c.key = os.path.normpath(os.path.expandvars(c.key))
         
         c.pidfile = config.get('pidfile','pidfile')
         c.pidfile = os.path.normpath(os.path.expandvars(c.pidfile))
@@ -250,7 +247,7 @@ def runprocess(config_file, daemon, host, port, topic, key, cert, cadir, message
         config = get_basic_config(config_parser)
         config.daemon = daemon
         config.host = host
-        config.port = port
+        config.port = int(port)
         config.key = key
         config.certificate = cert
         config.capath = cadir
