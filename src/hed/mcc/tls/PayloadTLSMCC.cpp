@@ -276,6 +276,13 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    //SSL_set_connect_state(ssl_);
    if((err=SSL_connect(ssl_)) != 1) {
       err = SSL_get_error(ssl_,err);
+      /* TODO: Print nice message when server side certificated has
+       *       expired. Still to investigate if this case is only when
+       *       server side certificate has expired.
+      if (ERR_GET_REASON(ERR_peek_last_error()) == SSL_R_SSLV3_ALERT_CERTIFICATE_EXPIRED) {
+        logger.msg(INFO, "Server side certificate expired.");
+      }
+      */
       logger.msg(VERBOSE, "Failed to establish SSL connection");
       goto error;
    };
