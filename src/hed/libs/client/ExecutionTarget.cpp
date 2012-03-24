@@ -7,6 +7,7 @@
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
+#include <arc/client/Broker.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Submitter.h>
@@ -17,7 +18,8 @@ namespace Arc {
 
   Logger ExecutionTarget::logger(Logger::getRootLogger(), "ExecutionTarget");
 
-  void ComputingServiceType::GetExecutionTargets(std::list<ExecutionTarget>& etList) const {
+  template<typename T>
+  void ComputingServiceType::GetExecutionTargets(T& container) const {
     // TODO: Currently assuming only one ComputingManager and one ExecutionEnvironment.
     for (std::map<int, ComputingEndpointType>::const_iterator itCE = ComputingEndpoint.begin();
          itCE != ComputingEndpoint.end(); ++itCE) {
@@ -30,11 +32,11 @@ namespace Arc {
              itCSIDs != itCE->second.ComputingShareIDs.end(); ++itCSIDs) {
           std::map<int, ComputingShareType>::const_iterator itCS = ComputingShare.find(*itCSIDs);
           if (itCS != ComputingShare.end() && !ComputingManager.empty() && !ComputingManager.begin()->second.ExecutionEnvironment.empty()) {
-            etList.push_back(ExecutionTarget(Location.Attributes, AdminDomain.Attributes,
-                                             Attributes, itCE->second.Attributes,
-                                             itCS->second.Attributes, ComputingManager.begin()->second.Attributes,
-                                             ComputingManager.begin()->second.ExecutionEnvironment.begin()->second.Attributes, ComputingManager.begin()->second.Benchmarks,
-                                             ComputingManager.begin()->second.ApplicationEnvironments));
+            AddExecutionTarget<T>(container, ExecutionTarget(Location.Attributes, AdminDomain.Attributes,
+                                                             Attributes, itCE->second.Attributes,
+                                                             itCS->second.Attributes, ComputingManager.begin()->second.Attributes,
+                                                             ComputingManager.begin()->second.ExecutionEnvironment.begin()->second.Attributes, ComputingManager.begin()->second.Benchmarks,
+                                                             ComputingManager.begin()->second.ApplicationEnvironments));
           }
         }
       }
@@ -42,15 +44,31 @@ namespace Arc {
         for (std::map<int, ComputingShareType>::const_iterator itCS = ComputingShare.begin();
              itCS != ComputingShare.end(); ++itCS) {
           if (!ComputingManager.empty() && !ComputingManager.begin()->second.ExecutionEnvironment.empty()) {
-            etList.push_back(ExecutionTarget(Location.Attributes, AdminDomain.Attributes,
-                                             Attributes, itCE->second.Attributes,
-                                             itCS->second.Attributes, ComputingManager.begin()->second.Attributes,
-                                             ComputingManager.begin()->second.ExecutionEnvironment.begin()->second.Attributes, ComputingManager.begin()->second.Benchmarks,
-                                             ComputingManager.begin()->second.ApplicationEnvironments));
+            AddExecutionTarget<T>(container, ExecutionTarget(Location.Attributes, AdminDomain.Attributes,
+                                                             Attributes, itCE->second.Attributes,
+                                                             itCS->second.Attributes, ComputingManager.begin()->second.Attributes,
+                                                             ComputingManager.begin()->second.ExecutionEnvironment.begin()->second.Attributes, ComputingManager.begin()->second.Benchmarks,
+                                                             ComputingManager.begin()->second.ApplicationEnvironments));
           }
         }
       }
     }
+  }
+
+  template void ComputingServiceType::GetExecutionTargets< std::list<ExecutionTarget> >(std::list<ExecutionTarget>&) const;
+  template void ComputingServiceType::GetExecutionTargets<ExecutionTargetSet>(ExecutionTargetSet&) const;
+
+  template<typename T>
+  void ComputingServiceType::AddExecutionTarget(T&, const ExecutionTarget&) const {}
+  
+  template<>
+  void ComputingServiceType::AddExecutionTarget< std::list<ExecutionTarget> >(std::list<ExecutionTarget>& etList, const ExecutionTarget& et) const {
+    etList.push_back(et);
+  }
+  
+  template<>
+  void ComputingServiceType::AddExecutionTarget<ExecutionTargetSet>(ExecutionTargetSet& etSet, const ExecutionTarget& et) const {
+    etSet.insert(et);
   }
 
   void ExecutionTarget::GetExecutionTargets(const std::list<ComputingServiceType>& csList, std::list<ExecutionTarget>& etList) {
@@ -69,7 +87,7 @@ namespace Arc {
     return s;
   }
 
-  void ExecutionTarget::Update(const JobDescription& jobdesc) {
+  void ExecutionTarget::RegisterJobSubmission(const JobDescription& jobdesc) const {
 
     //WorkingAreaFree
     if (jobdesc.Resources.DiskSpaceRequirement.DiskSpace) {
@@ -120,7 +138,7 @@ namespace Arc {
       ComputingShare->WaitingJobs += abs(jobdesc.Resources.SlotRequirement.NumberOfSlots);
 
     return;
-    }
+  }
 
   void ExecutionTarget::SaveToStream(std::ostream& out, bool longlist) const {
 

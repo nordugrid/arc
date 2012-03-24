@@ -11,10 +11,7 @@
 
 #include <arc/client/TestACCControl.h>
 
-#define CPPASSERT(n)\
-  b->PreFilterTargets(etl, job);\
-  CPPUNIT_ASSERT_EQUAL(n, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
-
+static Arc::Logger testLogger(Arc::Logger::getRootLogger(), "BrokerTest");
 
 class BrokerTest
   : public CppUnit::TestFixture {
@@ -24,14 +21,12 @@ class BrokerTest
   CPPUNIT_TEST(QueueTest);
   CPPUNIT_TEST(CPUWallTimeTest);
   CPPUNIT_TEST(BenckmarkCPUWallTimeTest);
-  CPPUNIT_TEST(RegisterJobsubmissionTest);
   CPPUNIT_TEST(RegresssionTestMultipleDifferentJobDescriptions);
   CPPUNIT_TEST(RejectTargetsTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
   BrokerTest();
-  ~BrokerTest() { delete bl; }
 
   void setUp();
   void tearDown();
@@ -40,14 +35,11 @@ public:
   void QueueTest();
   void CPUWallTimeTest();
   void BenckmarkCPUWallTimeTest();
-  void RegisterJobsubmissionTest();
   void RegresssionTestMultipleDifferentJobDescriptions();
   void RejectTargetsTest();
 
 private:
   const Arc::UserConfig usercfg;
-  Arc::BrokerLoader *bl;
-  Arc::Broker *b;
   std::list<Arc::ExecutionTarget> etl;
   Arc::JobDescription job;
 };
@@ -55,10 +47,10 @@ private:
 BrokerTest::BrokerTest()
   : usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)),
     etl(1, Arc::ExecutionTarget()) {
-  bl = new Arc::BrokerLoader();
 }
 
 void BrokerTest::setUp() {
+  Arc::BrokerPluginTestACCControl::match = true;
   etl.front().ComputingEndpoint->URLString = "http://localhost/test";
   etl.front().ComputingEndpoint->HealthState = "ok";
 }
@@ -66,100 +58,132 @@ void BrokerTest::setUp() {
 void BrokerTest::tearDown() { Arc::ThreadInitializer().waitExit(); }
 
 void BrokerTest::LoadTest() {
-  b = bl->load("", usercfg);
+  Arc::BrokerPluginLoader bpl;
+  Arc::BrokerPlugin *b = bpl.load(usercfg, "NON-EXISTENT");
   CPPUNIT_ASSERT(b == NULL);
 
-  b = bl->load("NON-EXISTENT", usercfg);
-  CPPUNIT_ASSERT(b == NULL);
-
-  b = bl->load("TEST", usercfg);
+  b = bpl.load(usercfg, "TEST");
   CPPUNIT_ASSERT(b != NULL);
 }
 
 void BrokerTest::QueueTest() {
-  b = bl->load("TEST", usercfg);
-  CPPUNIT_ASSERT(b != NULL);
-  CPPUNIT_ASSERT(Arc::BrokerTestACCControl::PossibleTargets != NULL);
+  Arc::Broker b(usercfg, "TEST");
+  CPPUNIT_ASSERT(b.isValid());
 
-  job.Resources.QueueName = "q1"; CPPASSERT(0)
-  etl.front().ComputingShare->Name = "q1"; CPPASSERT(1)
-  job.Resources.QueueName = "q2"; CPPASSERT(0)
+  job.Resources.QueueName = "q1";
+  b.set(job);
+
+  CPPUNIT_ASSERT(!b.match(etl.front()));
+  etl.front().ComputingShare->Name = "q1";
+  CPPUNIT_ASSERT(b.match(etl.front()));
+  
+  job.Resources.QueueName = "q2";
+  CPPUNIT_ASSERT(!b.match(etl.front()));
+
   job.Resources.QueueName = "";
-  job.OtherAttributes["nordugrid:broker;reject_queue"] = "q1";  CPPASSERT(0)
-  job.OtherAttributes["nordugrid:broker;reject_queue"] = "q2";  CPPASSERT(1)
-  etl.front().ComputingShare->Name = ""; CPPASSERT(0)
+  job.OtherAttributes["nordugrid:broker;reject_queue"] = "q1";
+  CPPUNIT_ASSERT(!b.match(etl.front()));
+  job.OtherAttributes["nordugrid:broker;reject_queue"] = "q2";
+  CPPUNIT_ASSERT(b.match(etl.front()));
+  
+  etl.front().ComputingShare->Name = "";
+  CPPUNIT_ASSERT(!b.match(etl.front()));
   job.OtherAttributes.erase("nordugrid:broker;reject_queue");
 }
 
 void BrokerTest::CPUWallTimeTest() {
-  b = bl->load("TEST", usercfg);
-  CPPUNIT_ASSERT(b != NULL);
-  CPPUNIT_ASSERT(Arc::BrokerTestACCControl::PossibleTargets != NULL);
+  Arc::Broker b(usercfg, "TEST");
+  CPPUNIT_ASSERT(b.isValid());
+  b.set(job);
 
   etl.front().ComputingShare->MaxCPUTime = 100;
-  job.Resources.TotalCPUTime.range.max = 110; CPPASSERT(0)
-  job.Resources.TotalCPUTime.range.max = 100; CPPASSERT(1)
-  job.Resources.TotalCPUTime.range.max = 90;  CPPASSERT(1)
+  job.Resources.TotalCPUTime.range.max = 110;
+  CPPUNIT_ASSERT(!b.match(etl.front()));
+  job.Resources.TotalCPUTime.range.max = 100; 
+  CPPUNIT_ASSERT(b.match(etl.front()));
+  job.Resources.TotalCPUTime.range.max = 90;
+  CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ComputingShare->MaxCPUTime = -1;
   job.Resources.TotalCPUTime.range.max = -1;
 
   etl.front().ComputingShare->MinCPUTime = 10;
-  job.Resources.TotalCPUTime.range.min = 5; CPPASSERT(0)
-  job.Resources.TotalCPUTime.range.min = 10; CPPASSERT(1)
-  job.Resources.TotalCPUTime.range.min = 15; CPPASSERT(1)
+  job.Resources.TotalCPUTime.range.min = 5;
+  CPPUNIT_ASSERT(!b.match(etl.front()));
+  job.Resources.TotalCPUTime.range.min = 10;
+  CPPUNIT_ASSERT(b.match(etl.front()));
+  job.Resources.TotalCPUTime.range.min = 15;
+  CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ComputingShare->MinCPUTime = -1;
   job.Resources.TotalCPUTime.range.min = -1;
 
   etl.front().ComputingShare->MaxWallTime = 100;
-  job.Resources.TotalWallTime.range.max = 110; CPPASSERT(0)
-  job.Resources.TotalWallTime.range.max = 100; CPPASSERT(1)
-  job.Resources.TotalWallTime.range.max = 90;  CPPASSERT(1)
+  job.Resources.TotalWallTime.range.max = 110;
+  CPPUNIT_ASSERT(!b.match(etl.front()));
+  job.Resources.TotalWallTime.range.max = 100;
+  CPPUNIT_ASSERT(b.match(etl.front()));
+  job.Resources.TotalWallTime.range.max = 90;
+  CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ComputingShare->MaxWallTime = -1;
   job.Resources.TotalWallTime.range.max = -1;
 
   etl.front().ComputingShare->MinWallTime = 10;
-  job.Resources.TotalWallTime.range.min = 5;  CPPASSERT(0)
-  job.Resources.TotalWallTime.range.min = 10; CPPASSERT(1)
-  job.Resources.TotalWallTime.range.min = 15; CPPASSERT(1)
+  job.Resources.TotalWallTime.range.min = 5;
+  CPPUNIT_ASSERT(!b.match(etl.front()));
+  job.Resources.TotalWallTime.range.min = 10;
+  CPPUNIT_ASSERT(b.match(etl.front()));
+  job.Resources.TotalWallTime.range.min = 15;
+  CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ComputingShare->MinWallTime = -1;
   job.Resources.TotalWallTime.range.min = -1;
 }
 
 void BrokerTest::BenckmarkCPUWallTimeTest() {
-  b = bl->load("TEST", usercfg);
-  CPPUNIT_ASSERT(b != NULL);
-  CPPUNIT_ASSERT(Arc::BrokerTestACCControl::PossibleTargets != NULL);
+  Arc::Broker b(usercfg, "TEST");
+  CPPUNIT_ASSERT(b.isValid());
+  b.set(job);
 
   (*etl.front().Benchmarks)["TestBenchmark"] = 100.;
 
   job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("TestBenchmark", 50.);
   etl.front().ComputingShare->MaxCPUTime = 100;
-  job.Resources.TotalCPUTime.range.max = 210; CPPASSERT(0)
-  job.Resources.TotalCPUTime.range.max = 200; CPPASSERT(1)
-  job.Resources.TotalCPUTime.range.max = 190;  CPPASSERT(1)
+  job.Resources.TotalCPUTime.range.max = 210;
+  CPPUNIT_ASSERT(!b.match(etl.front()));
+  job.Resources.TotalCPUTime.range.max = 200;
+  CPPUNIT_ASSERT(b.match(etl.front()));
+  job.Resources.TotalCPUTime.range.max = 190;
+  CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ComputingShare->MaxCPUTime = -1;
   job.Resources.TotalCPUTime.range.max = -1;
 
   etl.front().ComputingShare->MinCPUTime = 10;
-  job.Resources.TotalCPUTime.range.min = 10; CPPASSERT(0)
-  job.Resources.TotalCPUTime.range.min = 20; CPPASSERT(1)
-  job.Resources.TotalCPUTime.range.min = 30; CPPASSERT(1)
+  job.Resources.TotalCPUTime.range.min = 10;
+  CPPUNIT_ASSERT(!b.match(etl.front()));
+  job.Resources.TotalCPUTime.range.min = 20;
+  CPPUNIT_ASSERT(b.match(etl.front()));
+  job.Resources.TotalCPUTime.range.min = 30;
+  CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ComputingShare->MinCPUTime = -1;
   job.Resources.TotalCPUTime.range.min = -1;
   job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("", -1.);
 
   job.Resources.TotalWallTime.benchmark = std::pair<std::string, double>("TestBenchmark", 50.);
   etl.front().ComputingShare->MaxWallTime = 100;
-  job.Resources.TotalWallTime.range.max = 210; CPPASSERT(0)
-  job.Resources.TotalWallTime.range.max = 200; CPPASSERT(1)
-  job.Resources.TotalWallTime.range.max = 190;  CPPASSERT(1)
+  job.Resources.TotalWallTime.range.max = 210;
+  CPPUNIT_ASSERT(!b.match(etl.front()));
+  job.Resources.TotalWallTime.range.max = 200;
+  CPPUNIT_ASSERT(b.match(etl.front()));
+  job.Resources.TotalWallTime.range.max = 190;
+  CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ComputingShare->MaxWallTime = -1;
   job.Resources.TotalWallTime.range.max = -1;
 
   etl.front().ComputingShare->MinWallTime = 10;
-  job.Resources.TotalWallTime.range.min = 10;  CPPASSERT(0)
-  job.Resources.TotalWallTime.range.min = 20; CPPASSERT(1)
-  job.Resources.TotalWallTime.range.min = 30; CPPASSERT(1)
+  job.Resources.TotalWallTime.range.min = 10;
+  CPPUNIT_ASSERT(!b.match(etl.front()));
+  job.Resources.TotalWallTime.range.min = 20;
+  CPPUNIT_ASSERT(b.match(etl.front()));
+  job.Resources.TotalWallTime.range.min = 30;
+  CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ComputingShare->MinWallTime = -1;
   job.Resources.TotalWallTime.range.min = -1;
   job.Resources.TotalWallTime.benchmark = std::pair<std::string, double>("", -1.);
@@ -167,109 +191,95 @@ void BrokerTest::BenckmarkCPUWallTimeTest() {
   etl.front().ExecutionEnvironment->CPUClockSpeed = 2500;
   job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("clock rate", 1000.);
   etl.front().ComputingShare->MaxCPUTime = 100;
-  job.Resources.TotalCPUTime.range.max = 300; CPPASSERT(0)
-  job.Resources.TotalCPUTime.range.max = 250; CPPASSERT(1)
-  job.Resources.TotalCPUTime.range.max = 200;  CPPASSERT(1)
+  job.Resources.TotalCPUTime.range.max = 300;
+  CPPUNIT_ASSERT(!b.match(etl.front()));
+  job.Resources.TotalCPUTime.range.max = 250;
+  CPPUNIT_ASSERT(b.match(etl.front()));
+  job.Resources.TotalCPUTime.range.max = 200;
+  CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ExecutionEnvironment->CPUClockSpeed = -1;
   etl.front().ComputingShare->MaxCPUTime = -1;
   job.Resources.TotalCPUTime.range.max = -1;
   job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("", -1.);
 }
 
-void BrokerTest::RegisterJobsubmissionTest() {
-  b = bl->load("TEST", usercfg);
-  CPPUNIT_ASSERT(b != NULL);
-  CPPUNIT_ASSERT(Arc::BrokerTestACCControl::PossibleTargets != NULL);
-  CPPUNIT_ASSERT(Arc::BrokerTestACCControl::TargetSortingDone != NULL);
-
-  job.Resources.SlotRequirement.NumberOfSlots = 4;
-  etl.front().ComputingManager->TotalSlots = 100;
-  etl.front().ComputingShare->MaxSlotsPerJob = 5;
-  etl.front().ComputingShare->FreeSlots = 7;
-  etl.front().ComputingShare->UsedSlots = 10;
-  etl.front().ComputingShare->WaitingJobs = 0;
-
-  b->PreFilterTargets(etl, job);
-  b->GetBestTarget();
-  *Arc::BrokerTestACCControl::TargetSortingDone = true;
-  b->RegisterJobsubmission();
-
-  CPPUNIT_ASSERT_EQUAL(1, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
-  CPPUNIT_ASSERT_EQUAL(3, Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShare->FreeSlots);
-  CPPUNIT_ASSERT_EQUAL(14, Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShare->UsedSlots);
-  CPPUNIT_ASSERT_EQUAL(0, Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShare->WaitingJobs);
-
-  b->RegisterJobsubmission();
-
-  CPPUNIT_ASSERT_EQUAL(1, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
-  CPPUNIT_ASSERT_EQUAL(3, Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShare->FreeSlots);
-  CPPUNIT_ASSERT_EQUAL(14, Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShare->UsedSlots);
-  CPPUNIT_ASSERT_EQUAL(4, Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShare->WaitingJobs);
-}
-
 void BrokerTest::RegresssionTestMultipleDifferentJobDescriptions() {
-  b = bl->load("TEST", usercfg);
-  CPPUNIT_ASSERT(b != NULL);
-  CPPUNIT_ASSERT(Arc::BrokerTestACCControl::PossibleTargets != NULL);
+  job.Resources.QueueName = "front";
+
+  Arc::Broker b(usercfg, job, "TEST");
+  CPPUNIT_ASSERT(b.isValid());
 
   /* When prefiltered by the broker, each JobDescription object "correspond" to
    * a (list of) ExecutionTarget object(s).
    */
 
-  Arc::JobDescription frontJD, backJD;
-  frontJD.Resources.QueueName = "front";
-  backJD.Resources.QueueName = "back";
+  Arc::ExecutionTargetSet ets(b);
+  Arc::ExecutionTarget aET, bET;
+  aET.ComputingEndpoint->URLString = "http://localhost/test";
+  aET.ComputingEndpoint->HealthState = "ok";
+  aET.ComputingShare->Name = "front";
+  ets.insert(aET);
+  bET.ComputingEndpoint->URLString = "http://localhost/test";
+  bET.ComputingEndpoint->HealthState = "ok";
+  bET.ComputingShare->Name = "back";
+  ets.insert(bET);
+  
+  CPPUNIT_ASSERT_EQUAL(1, (int)ets.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"front", ets.begin()->ComputingShare->Name);
 
-  std::list<Arc::ExecutionTarget> targets;
-  targets.push_back(Arc::ExecutionTarget());
-  targets.push_back(Arc::ExecutionTarget());
-  targets.front().ComputingEndpoint->URLString = "http://localhost/test";
-  targets.front().ComputingEndpoint->HealthState = "ok";
-  targets.back().ComputingEndpoint->URLString = "http://localhost/test";
-  targets.back().ComputingEndpoint->HealthState = "ok";
-
-  targets.front().ComputingShare->Name = "front";
-  targets.back().ComputingShare->Name = "back";
-
-  b->PreFilterTargets(targets, frontJD);
-  CPPUNIT_ASSERT_EQUAL(1, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"front", Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShare->Name);
-  b->PreFilterTargets(targets, backJD);
-  CPPUNIT_ASSERT_EQUAL(1, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"back", Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShare->Name);
+  job.Resources.QueueName = "back";
+  ets.set(job);
+  ets.insert(aET); ets.insert(bET);
+  CPPUNIT_ASSERT_EQUAL(1, (int)ets.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"back", ets.begin()->ComputingShare->Name);
 }
 
 void BrokerTest::RejectTargetsTest() {
-  b = bl->load("TEST", usercfg);
-  CPPUNIT_ASSERT(b != NULL);
-  CPPUNIT_ASSERT(Arc::BrokerTestACCControl::PossibleTargets != NULL);
+  job.Application.Executable.Path = "executable";
 
-  Arc::JobDescription j;
-  j.Application.Executable.Path = "executable";
+  Arc::Broker b(usercfg, job, "TEST");
+  CPPUNIT_ASSERT(b.isValid());
 
-  std::list<Arc::ExecutionTarget> targets;
-  targets.push_back(Arc::ExecutionTarget());
-  targets.push_back(Arc::ExecutionTarget());
-  targets.front().ComputingEndpoint->URLString = "http://localhost/test1";
-  targets.front().ComputingEndpoint->HealthState = "ok";
-  targets.back().ComputingEndpoint->URLString = Arc::URL("http://localhost/test2");
-  targets.back().ComputingEndpoint->HealthState = "ok";
 
+  {
   // Rejecting no targets.
-  b->PreFilterTargets(targets, j);
-  CPPUNIT_ASSERT_EQUAL(2, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
+  Arc::ExecutionTarget target;
+  target.ComputingEndpoint->HealthState = "ok";
+  Arc::ExecutionTargetSet ets(b);
+  target.ComputingEndpoint->URLString = "http://localhost/test1"; ets.insert(target);
+  target.ComputingEndpoint->URLString = "http://localhost/test2"; ets.insert(target);
+  CPPUNIT_ASSERT_EQUAL(2, (int)ets.size());
+  }
 
+  {
   // Reject test1 target.
   std::list<Arc::URL> rejectTargets;
-  rejectTargets.push_back(targets.front().ComputingEndpoint->URLString);
-  b->PreFilterTargets(targets, j, rejectTargets);
-  CPPUNIT_ASSERT_EQUAL(1, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
-  CPPUNIT_ASSERT_EQUAL(targets.back().ComputingEndpoint->URLString, Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingEndpoint->URLString);
+  rejectTargets.push_back(Arc::URL("http://localhost/test1"));
+  Arc::ExecutionTarget aET, bET;
+  aET.ComputingEndpoint->HealthState = "ok";
+  aET.ComputingEndpoint->URLString = "http://localhost/test1"; 
+  bET.ComputingEndpoint->HealthState = "ok";
+  bET.ComputingEndpoint->URLString = "http://localhost/test2";
+  Arc::ExecutionTargetSet ets(b, rejectTargets);
+  ets.insert(aET); ets.insert(bET);
+  CPPUNIT_ASSERT_EQUAL(1, (int)ets.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://localhost/test2", ets.begin()->ComputingEndpoint->URLString);
+  }
 
+  {
   // Reject both targets.
-  rejectTargets.push_back(targets.back().ComputingEndpoint->URLString);
-  b->PreFilterTargets(targets, j, rejectTargets);
-  CPPUNIT_ASSERT_EQUAL(0, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
+  std::list<Arc::URL> rejectTargets;
+  rejectTargets.push_back(Arc::URL("http://localhost/test1"));
+  rejectTargets.push_back(Arc::URL("http://localhost/test2"));
+  Arc::ExecutionTarget aET, bET;
+  aET.ComputingEndpoint->HealthState = "ok";
+  aET.ComputingEndpoint->URLString = "http://localhost/test1"; 
+  bET.ComputingEndpoint->HealthState = "ok";
+  bET.ComputingEndpoint->URLString = "http://localhost/test2";
+  Arc::ExecutionTargetSet ets(b, rejectTargets);
+  ets.insert(aET); ets.insert(bET);
+  CPPUNIT_ASSERT_EQUAL(0, (int)ets.size());
+  }
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(BrokerTest);

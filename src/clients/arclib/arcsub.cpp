@@ -77,7 +77,7 @@ int RUNSUB(main)(int argc, char **argv) {
     types.push_back("HED:ServiceEndpointRetrieverPlugin");
     types.push_back("HED:TargetInformationRetrieverPlugin");
     types.push_back("HED:JobDescriptionParser");
-    types.push_back("HED:Broker");
+    types.push_back("HED:BrokerPlugin");
     showplugins("arcsub", types, logger, usercfg.Broker().first);
     return 0;
   }
@@ -208,38 +208,48 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
     return 1;
   }
 
-  Arc::BrokerLoader loader;
-  Arc::Broker *ChosenBroker = loader.load(usercfg.Broker().first, usercfg);
-  if (!ChosenBroker) {
+  Arc::Broker broker(usercfg, usercfg.Broker().first);
+  if (!broker.isValid()) {
     logger.msg(Arc::ERROR, "Unable to load broker %s", usercfg.Broker().first);
     return 1;
   }
   logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
-
-  std::list<Arc::ExecutionTarget> etList;
-  Arc::ExecutionTarget::GetExecutionTargets(csr, etList);
 
   int jobnr = 1;
   std::list<std::string> jobids;
   std::list<Arc::Job> submittedJobs;
   std::map<int, std::string> notsubmitted;
 
-  for (std::list<Arc::JobDescription>::const_iterator it =
-         jobdescriptionlist.begin(); it != jobdescriptionlist.end();
-       it++, jobnr++) {
+  for (std::list<Arc::JobDescription>::const_iterator itJ =
+         jobdescriptionlist.begin(); itJ != jobdescriptionlist.end();
+       ++itJ, ++jobnr) {
     bool descriptionSubmitted = false;
     submittedJobs.push_back(Arc::Job());
-    if (ChosenBroker->Submit(etList, *it, submittedJobs.back())) {
-      printjobid(submittedJobs.back().JobID.fullstr(), jobidfile);
-      descriptionSubmitted = true;
+    broker.set(*itJ);
+    Arc::ExecutionTargetSet etSet(broker, csr);
+    for (Arc::ExecutionTargetSet::iterator itET = etSet.begin(); itET != etSet.end(); ++itET) {
+      if (itET->Submit(usercfg, *itJ, submittedJobs.back())) {
+        printjobid(submittedJobs.back().JobID.fullstr(), jobidfile);
+        descriptionSubmitted = true;
+        itET->RegisterJobSubmission(*itJ);
+        break;
+      }
     }
-    else if (it->HasAlternatives()) {
+    if (!descriptionSubmitted && itJ->HasAlternatives()) {
       // TODO: Deal with alternative job descriptions more effective.
-      for (std::list<Arc::JobDescription>::const_iterator itAlt = it->GetAlternatives().begin();
-           itAlt != it->GetAlternatives().end(); itAlt++) {
-        if (ChosenBroker->Submit(etList, *itAlt, submittedJobs.back())) {
-          printjobid(submittedJobs.back().JobID.fullstr(), jobidfile);
-          descriptionSubmitted = true;
+      for (std::list<Arc::JobDescription>::const_iterator itJAlt = itJ->GetAlternatives().begin();
+           itJAlt != itJ->GetAlternatives().end(); ++itJAlt) {
+        broker.set(*itJAlt);
+        Arc::ExecutionTargetSet etSetAlt(broker, csr);
+        for (Arc::ExecutionTargetSet::iterator itET = etSetAlt.begin(); itET != etSetAlt.end(); ++itET) {
+          if (itET->Submit(usercfg, *itJAlt, submittedJobs.back())) {
+            printjobid(submittedJobs.back().JobID.fullstr(), jobidfile);
+            descriptionSubmitted = true;
+            itET->RegisterJobSubmission(*itJAlt);
+            break;
+          }
+        }
+        if (descriptionSubmitted) {
           break;
         }
       }
@@ -248,7 +258,7 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
     if (!descriptionSubmitted) {
       std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
       submittedJobs.pop_back();
-      notsubmitted[jobnr] = it->Identification.JobName;
+      notsubmitted[jobnr] = itJ->Identification.JobName;
       retval = 1;
     }
   } //end loop over all job descriptions
@@ -303,71 +313,65 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
     return 1;
   }
 
-  Arc::BrokerLoader loader;
-  Arc::Broker *ChosenBroker = loader.load(usercfg.Broker().first, usercfg);
-  if (!ChosenBroker) {
+  Arc::Broker broker(usercfg, usercfg.Broker().first);
+  if (!broker.isValid()) {
     logger.msg(Arc::ERROR, "Dumping job description aborted: Unable to load broker %s", usercfg.Broker().first);
     return 1;
   }
   logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
-  std::list<Arc::ExecutionTarget> etList;
-  Arc::ExecutionTarget::GetExecutionTargets(csr, etList);
-
-  for (std::list<Arc::JobDescription>::const_iterator it = jobdescriptionlist.begin();
-       it != jobdescriptionlist.end(); it++) {
-    Arc::JobDescription jobdescdump(*it);
-    ChosenBroker->PreFilterTargets(etList, *it);
-    ChosenBroker->Sort();
-
-    if (ChosenBroker->EndOfList() && it->HasAlternatives()) {
-      for (std::list<Arc::JobDescription>::const_iterator itAlt = it->GetAlternatives().begin();
-           itAlt != it->GetAlternatives().end(); itAlt++) {
-        ChosenBroker->PreFilterTargets(etList, *itAlt);
-        ChosenBroker->Sort();
-        if (!ChosenBroker->EndOfList()) {
+  for (std::list<Arc::JobDescription>::const_iterator itJ = jobdescriptionlist.begin();
+       itJ != jobdescriptionlist.end(); ++itJ) {
+    Arc::JobDescription jobdescdump(*itJ);
+  
+    broker.set(*itJ);
+    Arc::ExecutionTargetSet ets(broker, csr);
+    if (ets.empty() && itJ->HasAlternatives()) {
+      for (std::list<Arc::JobDescription>::const_iterator itAlt = itJ->GetAlternatives().begin();
+           itAlt != itJ->GetAlternatives().end(); ++itAlt) {
+        ets.set(*itAlt);
+        ets.addEntities(csr);
+        if (ets.empty()) {
           jobdescdump = *itAlt;
           break;
         }
       }
     }
-
-    for (const Arc::ExecutionTarget*& target = ChosenBroker->GetReference();
-         !ChosenBroker->EndOfList(); ChosenBroker->Advance()) {
-      target->GetSubmitter(usercfg);
-
-      if (!jobdescdump.Prepare(*target)) {
-        std::cout << Arc::IString("Unable to prepare job description according to needs of the target resource.") << std::endl;
-        retval = 1;
-        break;
+    
+    Arc::ExecutionTargetSet::iterator itET = ets.begin();
+    for (; itET != ets.end(); ++itET) {
+      if (!jobdescdump.Prepare(*itET)) {
+        logger.msg(Arc::INFO, "Unable to prepare job description according to needs of the target resource (%s).", itET->ComputingEndpoint->URLString); 
+        continue;
       }
 
       std::string jobdesclang = "nordugrid:jsdl";
-      if (target->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") {
+      if (itET->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") {
         jobdesclang = "nordugrid:xrsl";
       }
-      else if (target->ComputingEndpoint->InterfaceName == "org.glite.cream") {
+      else if (itET->ComputingEndpoint->InterfaceName == "org.glite.cream") {
         jobdesclang = "egee:jdl";
       }
-      else if (target->ComputingEndpoint->InterfaceName == "org.ogf.emies") {
+      else if (itET->ComputingEndpoint->InterfaceName == "org.ogf.emies") {
         jobdesclang = "emies:adl";
       }
       std::string jobdesc;
       if (!jobdescdump.UnParse(jobdesc, jobdesclang)) {
-        std::cout << Arc::IString("An error occurred during the generation of the job description output.") << std::endl;
-        retval = 1;
-        break;
+        logger.msg(Arc::INFO, "An error occurred during the generation of job description to be sent to %s", itET->ComputingEndpoint->URLString); 
+        continue;
       }
 
-      std::cout << Arc::IString("Job description to be sent to %s:", target->ComputingService->Cluster.str()) << std::endl;
+      std::cout << Arc::IString("Job description to be sent to %s:", itET->ComputingService->Cluster.str()) << std::endl;
       std::cout << jobdesc << std::endl;
       break;
-    } //end loop over all possible targets
+    }
 
-    if (ChosenBroker->EndOfList()) {
+    if (ets.empty()) {
       std::cout << Arc::IString("Unable to print job description: No matching target found.") << std::endl;
       retval = 1;
-      break;
+    } else if (itET == ets.end()) {
+      std::cout << Arc::IString("Unable to prepare job description according to needs of the target resource.") << std::endl;
+      retval = 1;
     }
   } //end loop over all job descriptions
 

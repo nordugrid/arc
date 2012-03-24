@@ -308,9 +308,8 @@ namespace Arc {
     }
 
     UserConfig resubmitUsercfg = usercfg; // UserConfig object might need to be modified.
-    BrokerLoader brokerLoader;
-    Broker *chosenBroker = brokerLoader.load(resubmitUsercfg.Broker().first, resubmitUsercfg);
-    if (!chosenBroker) {
+    Broker broker(resubmitUsercfg, resubmitUsercfg.Broker().first);
+    if (!broker.isValid()) {
       logger.msg(ERROR, "Job resubmission failed: Unable to load broker (%s)", resubmitUsercfg.Broker().first);
       for (std::list< std::list<Job*>::iterator >::iterator itJ = resubmittableJobs.begin();
            itJ != resubmittableJobs.end(); ++itJ) {
@@ -359,7 +358,7 @@ namespace Arc {
       // remove the queuename which was added during the original submission of the job
       jobdescs.front().Resources.QueueName = "";
 
-      std::list<URL> rejectTargets;
+      std::list<URL> rejectEndpoints;
       if (destination == 1) { // Jobs should be resubmitted to same target.
         std::list<Endpoint> sametarget(1, Endpoint((**itJ)->Cluster.fullstr()));
         sametarget.front().Capability.push_back(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO));
@@ -377,21 +376,27 @@ namespace Arc {
         }
       }
       else if (destination == 2) { // Jobs should NOT be resubmitted to same target.
-        rejectTargets.push_back((**itJ)->Cluster);
+        rejectEndpoints.push_back((**itJ)->Cluster);
       }
 
-      std::list<ExecutionTarget> etList;
-      ExecutionTarget::GetExecutionTargets(*csr, etList);
-      if (!chosenBroker->Submit(etList, jobdescs.front(), resubmittedJobs.back(), rejectTargets)) {
+      broker.set(jobdescs.front());
+      ExecutionTargetSet ets(broker, *csr, rejectEndpoints);
+      ExecutionTargetSet::iterator it = ets.begin();
+      for (; it != ets.end(); ++it) {
+        if (it->Submit(resubmitUsercfg, jobdescs.front(), resubmittedJobs.back())) {
+          it->RegisterJobSubmission(jobdescs.front());
+          processed.push_back((**itJ)->IDFromEndpoint);
+          break;
+        }
+      }
+      
+      if (it == ets.end()) {
         resubmittedJobs.pop_back();
         notprocessed.push_back((**itJ)->IDFromEndpoint);
         ok = false;
         logger.msg(ERROR, "Unable to resubmit job (%s), no targets applicable for submission", (**itJ)->IDFromEndpoint.fullstr());
         jcJobMap[(**itJ)->jc].second.push_back(**itJ);
         jcJobMap[(**itJ)->jc].first.erase(*itJ);
-      }
-      else {
-        processed.push_back((**itJ)->IDFromEndpoint);
       }
 
       if (destination == 1) {
@@ -454,9 +459,8 @@ namespace Arc {
       return false;
     }
 
-    BrokerLoader brokerLoader;
-    Broker *chosenBroker = brokerLoader.load(usercfg.Broker().first, usercfg);
-    if (!chosenBroker) {
+    Broker broker(usercfg, usercfg.Broker().first);
+    if (!broker.isValid()) {
       logger.msg(ERROR, "Job migration aborted, unable to load broker (%s)", usercfg.Broker().first);
       for (std::list< std::list<Job*>::iterator >::const_iterator itJ = migratableJobs.begin();
            itJ != migratableJobs.end(); ++itJ) {
@@ -466,9 +470,6 @@ namespace Arc {
       }
       return false;
     }
-
-    std::list<ExecutionTarget> etList;
-    ExecutionTarget::GetExecutionTargets(csr, etList);
 
     for (std::list< std::list<Job*>::iterator >::iterator itJ = migratableJobs.begin();
          itJ != migratableJobs.end(); ++itJ) {
@@ -488,17 +489,17 @@ namespace Arc {
 
       migratedJobs.push_back(Job());
 
-      chosenBroker->PreFilterTargets(etList, jobdescs.front());
-      chosenBroker->Sort();
-
-      for (const ExecutionTarget*& t = chosenBroker->GetReference(); !chosenBroker->EndOfList(); chosenBroker->Advance()) {
-        if (t->Migrate(usercfg, (**itJ)->IDFromEndpoint, jobdescs.front(), forcemigration, migratedJobs.back())) {
-          chosenBroker->RegisterJobsubmission();
+      broker.set(jobdescs.front());
+      ExecutionTargetSet ets(broker, csr);
+      ExecutionTargetSet::iterator it = ets.begin();
+      for (; it != ets.end(); ++it) {
+        if (it->Migrate(usercfg, (**itJ)->IDFromEndpoint, jobdescs.front(), forcemigration, migratedJobs.back())) {
+          it->RegisterJobSubmission(jobdescs.front());
           break;
         }
       }
 
-      if (chosenBroker->EndOfList()) {
+      if (it == ets.end()) {
         logger.msg(ERROR, "Job migration failed for job (%s), no applicable targets", (**itJ)->IDFromEndpoint.fullstr());
         ok = false;
         migratedJobs.pop_back();

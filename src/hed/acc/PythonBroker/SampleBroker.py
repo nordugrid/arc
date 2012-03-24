@@ -9,11 +9,8 @@ import arc
 import random
 
 class MyBroker:
-
-    def __init__(self, usercfg):
-
+    def __init__(self, usercfg, job):
         # Extract some useful information from the broker configuration
-
         self.proxypath = usercfg.ProxyPath()
         self.certificatepath = usercfg.CertificatePath()
         self.keypath = usercfg.KeyPath()
@@ -24,10 +21,15 @@ class MyBroker:
         else:
             self.args = ""
 
-    def SortTargets(self, PossibleTargets, job):
+        # Either set the job description as a member object, or extract
+        # the relevant information. Only printing below for clarity.
+        print 'JobName:', job.Identification.JobName
+        print 'Executable:', job.Application.Executable.Path
+        for i in range(job.Application.Executable.Argument.size()):
+            print 'Argument', i, ':', job.Application.Executable.Argument[i]
 
+    def match(self, target):
         # Some printouts - only as an example
-
         print 'Proxy Path:', self.proxypath
         print 'Certificate Path:', self.certificatepath
         print 'Key Path:', self.keypath
@@ -35,23 +37,15 @@ class MyBroker:
 
         print 'Broker arguments:', self.args
 
-        print 'JobName:', job.Identification.JobName
-        print 'Executable:', job.Application.Executable.Path
-        for i in range(job.Application.Executable.Argument.size()):
-            print 'Argument', i, ':', job.Application.Executable.Argument[i]
-
         # Broker implementation starts here
 
         print 'Targets before brokering:'
 
-        for t in PossibleTargets:
-            print t.url.str()
+        print target.ComputingEndpoint.URLString
+        
+        # Accept target
+        return True
 
+    def lessthan(self, lhs, rhs):
         print 'Randomizing...'
-
-        random.shuffle(PossibleTargets)
-
-        print 'Targets after brokering:'
-
-        for t in PossibleTargets:
-            print t.url.str()
+        return random.randint(0, 1)

@@ -120,7 +120,7 @@ the first member will be the '*response' and the second member is the original r
   bool Parse(const std::string& str, std::list<JobDescription>& jobdescs, const std::string& lang = "", const std::string& dialect = "") { return Arc::JobDescription::Parse(str, jobdescs, lang, dialect); }
 };
 
-%rename(_BrokerTestACCControl) BrokerTestACCControl;
+%rename(_BrokerPluginTestACCControl) BrokerPluginTestACCControl;
 %rename(_JobDescriptionParserTestACCControl) JobDescriptionParserTestACCControl;
 %rename(_JobControllerTestACCControl) JobControllerTestACCControl;
 %rename(_SubmitterTestACCControl) SubmitterTestACCControl;
@@ -211,6 +211,10 @@ std::ostream& getStdout() {
 %template(ComputingServiceQueryOptions) Arc::EndpointQueryOptions<Arc::ComputingServiceType>;
 %template(JobListQueryOptions) Arc::EndpointQueryOptions<Arc::Job>;
 
+%extend Arc::ComputingServiceType {
+  %template(GetExecutionTargetsFromList) GetExecutionTargets< std::list<ExecutionTarget> >;
+  %template(GetExecutionTargetsFromSet) GetExecutionTargets<ExecutionTargetSet>;
+};
 
 /* These template instantiations must be created after the respective
    template classes have been defined, which is done in the
@@ -241,7 +245,7 @@ class StaticPropertyWrapper(object):
         else:
             setattr(self.wrapped_class, name, value)
 
-BrokerTestACCControl = StaticPropertyWrapper(_BrokerTestACCControl)
+BrokerPluginTestACCControl = StaticPropertyWrapper(_BrokerPluginTestACCControl)
 JobDescriptionParserTestACCControl = StaticPropertyWrapper(_JobDescriptionParserTestACCControl)
 JobControllerTestACCControl = StaticPropertyWrapper(_JobControllerTestACCControl)
 SubmitterTestACCControl = StaticPropertyWrapper(_SubmitterTestACCControl)

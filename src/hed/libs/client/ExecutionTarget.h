@@ -316,7 +316,8 @@ namespace Arc {
 
   class ComputingServiceType : public GLUE2Entity<ComputingServiceAttributes> {
   public:
-    void GetExecutionTargets(std::list<ExecutionTarget>& etList) const;
+    template<typename T>
+    void GetExecutionTargets(T& container) const;
 
     LocationType Location;
     AdminDomainType AdminDomain;
@@ -324,6 +325,9 @@ namespace Arc {
     std::map<int, ComputingEndpointType> ComputingEndpoint;
     std::map<int, ComputingShareType> ComputingShare;
     std::map<int, ComputingManagerType> ComputingManager;
+  private:
+    template<typename T>
+    void AddExecutionTarget(T& container, const ExecutionTarget& et) const;
   };
 
   /// ExecutionTarget
@@ -445,7 +449,7 @@ namespace Arc {
      * @param jobdesc contains all information about the job
      * submitted.
      **/
-    void Update(const JobDescription& jobdesc);
+    void RegisterJobSubmission(const JobDescription& jobdesc) const;
 
     /// Print the ExecutionTarget information to a std::ostream object
     /**

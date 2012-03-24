@@ -5,7 +5,7 @@ libaccTEST_la_SOURCES = TestACCPluginDescriptors.cpp \
 	JobControllerTestACC.cpp JobControllerTestACC.h \
 	JobDescriptionParserTestACC.cpp JobDescriptionParserTestACC.h \
 	SubmitterTestACC.cpp SubmitterTestACC.h \
-	BrokerTestACC.cpp BrokerTestACC.h \
+	BrokerPluginTestACC.h \
 	TargetInformationRetrieverPluginTEST.cpp TargetInformationRetrieverPluginTEST.h \
 	ServiceEndpointRetrieverPluginTEST.cpp ServiceEndpointRetrieverPluginTEST.h \
 	JobListRetrieverPluginTEST.cpp JobListRetrieverPluginTEST.h

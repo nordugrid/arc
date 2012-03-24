@@ -14,10 +14,10 @@
 
 namespace Arc {
 
-class BrokerTestACCControl {
+class BrokerPluginTestACCControl {
   public:
-    static bool* TargetSortingDone;
-    static std::list<ExecutionTarget*>* PossibleTargets;
+    static bool match;
+    static bool less;
 };
 
 class JobDescriptionParserTestACCControl {

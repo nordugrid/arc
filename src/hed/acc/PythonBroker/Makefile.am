@@ -1,6 +1,6 @@
 pkglib_LTLIBRARIES = libaccPythonBroker.la
 
-libaccPythonBroker_la_SOURCES = PythonBroker.cpp PythonBroker.h
+libaccPythonBroker_la_SOURCES = PythonBrokerPlugin.cpp PythonBrokerPlugin.h
 libaccPythonBroker_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(PYTHON_CFLAGS)
 libaccPythonBroker_la_LIBADD = \

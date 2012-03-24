@@ -32,8 +32,8 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 
-int test(const Arc::UserConfig& usercfg, const int& testid, const std::list<Arc::Endpoint>& services, const std::string& jobidfile);
-int dumpjobdescription(const Arc::UserConfig& usercfg, const int& testid, const std::list<Arc::Endpoint>& services);
+int test(const Arc::UserConfig& usercfg, const Arc::ExecutionTargetSet& ets, const Arc::JobDescription& testJob, const std::string& jobidfile);
+int dumpjobdescription(const Arc::UserConfig& usercfg, const Arc::ExecutionTargetSet& ets, const Arc::JobDescription& testJob);
 
 #ifdef TEST
 #define RUNSUB(X) test_arctest_##X
@@ -88,7 +88,7 @@ int RUNSUB(main)(int argc, char **argv) {
     types.push_back("HED:ServiceEndpointRetrieverPlugin");
     types.push_back("HED:TargetInformationRetrieverPlugin");
     types.push_back("HED:JobDescriptionParser");
-    types.push_back("HED:Broker");
+    types.push_back("HED:BrokerPlugin");
     showplugins("arctest", types, logger, usercfg.Broker().first);
     return 0;
   }
@@ -148,18 +148,59 @@ int RUNSUB(main)(int argc, char **argv) {
     return EXIT_SUCCESS;
   }
 
-  // TODO: this shouldn't be hardwired
-  if ((opt.testjobid < 1) || (opt.testjobid > 3)) {
-    std::cout << Arc::IString("The testjob ID should be 1, 2 or 3.\n");
+  Arc::JobDescription testJob;
+  if (!Arc::JobDescription::GetTestJob(opt.testjobid, testJob)) {
+    std::cout << Arc::IString("No test-job, with ID \"%d\"", opt.testjobid) << std::endl;
     return 1;
   }
 
+  Arc::Broker broker(usercfg, testJob, usercfg.Broker().first);
+  if (!broker.isValid()) {
+    logger.msg(Arc::ERROR, "Unable to load broker %s", usercfg.Broker().first);
+    return 1;
+  }
+  logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
+
   std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters);
+  std::list<std::string> preferredInterfaceNames;
+  if (usercfg.PreferredInfoInterface().empty()) {
+    preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
+    preferredInterfaceNames.push_back("org.ogf.emies");
+  } else {
+    preferredInterfaceNames.push_back(usercfg.PreferredInfoInterface());
+  }
+
+  Arc::ExecutionTargetSet ets(broker);
+
+  Arc::ComputingServiceRetriever csr(usercfg, std::list<Arc::Endpoint>(), usercfg.RejectedURLs(), preferredInterfaceNames);
+  csr.addConsumer(ets);
+  for (std::list<Arc::Endpoint>::const_iterator it = services.begin(); it != services.end(); ++it) {
+    csr.addEndpoint(*it);
+  }
+  csr.wait();
+
+  if (csr.empty()) {
+    if (!opt.dumpdescription) {
+      std::cout << Arc::IString("Test aborted because no resource returned any information") << std::endl;
+    } else {
+      std::cout << Arc::IString("Dumping job description aborted because no resource returned any information") << std::endl;
+    }
+    return 1;
+  }
+
+  if (ets.empty()) {
+    if (!opt.dumpdescription) {
+      std::cout << Arc::IString("ERROR: Test aborted because no suitable resources were found for the test-job") << std::endl;
+    } else {
+      std::cout << Arc::IString("ERROR: Dumping job description aborted because no suitable resources were found for the test-job") << std::endl;
+    }
+    return 1;
+  }
 
   if (opt.dumpdescription) {
-     _exit(dumpjobdescription(usercfg, opt.testjobid, services));
+     _exit(dumpjobdescription(usercfg, ets, testJob));
   }
-  _exit(test(usercfg, opt.testjobid, services, opt.jobidoutfile));
+  _exit(test(usercfg, ets, testJob, opt.jobidoutfile));
 }
 
 void printjobid(const std::string& jobid, const std::string& jobidfile) {
@@ -169,50 +210,24 @@ void printjobid(const std::string& jobid, const std::string& jobidfile) {
   std::cout << Arc::IString("Test submitted with jobid: %s", jobid) << std::endl;
 }
 
-int test(const Arc::UserConfig& usercfg, const int& testid, const std::list<Arc::Endpoint>& services, const std::string& jobidfile) {
+int test(const Arc::UserConfig& usercfg, const Arc::ExecutionTargetSet& ets, const Arc::JobDescription& testJob, const std::string& jobidfile) {
   int retval = 0;
-
-  std::list<std::string> preferredInterfaceNames;
-  if (usercfg.PreferredInfoInterface().empty()) {
-    preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
-    preferredInterfaceNames.push_back("org.ogf.emies");
-  } else {
-    preferredInterfaceNames.push_back(usercfg.PreferredInfoInterface());
-  }
-
-  std::list<std::string> rejectedURLs = usercfg.RejectedURLs();
-
-  Arc::ComputingServiceRetriever csr(usercfg, services, rejectedURLs, preferredInterfaceNames);
-  csr.wait();
-
-  if (csr.empty()) {
-    std::cout << Arc::IString("Test aborted because no resource returned any information") << std::endl;
-    return 1;
-  }
-
-  Arc::BrokerLoader loader;
-  Arc::Broker *ChosenBroker = loader.load(usercfg.Broker().first, usercfg);
-  if (!ChosenBroker) {
-    logger.msg(Arc::ERROR, "Unable to load broker %s", usercfg.Broker().first);
-    return 1;
-  }
-  logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
-
-  std::list<Arc::ExecutionTarget> etList;
-  Arc::ExecutionTarget::GetExecutionTargets(csr, etList);
-
-  Arc::JobDescription testJob;
-  Arc::JobDescription::GetTestJob(testid, testJob);
 
   std::list<std::string> jobids;
   std::list<Arc::Job> submittedJobs;
   std::map<int, std::string> notsubmitted;
 
   submittedJobs.push_back(Arc::Job());
-  if (ChosenBroker->Submit(etList, testJob, submittedJobs.back())) {
-    printjobid(submittedJobs.back().JobID.str(), jobidfile);
+
+  Arc::ExecutionTargetSet::const_iterator it = ets.begin(); 
+  for (; it != ets.end(); ++it) {
+    if (it->Submit(usercfg, testJob, submittedJobs.back())) {
+      printjobid(submittedJobs.back().JobID.str(), jobidfile);
+      break;
+    }
   }
-  else {
+  
+  if (it == ets.end()) {
     std::cout << Arc::IString("Test failed, no more possible targets") << std::endl;
     submittedJobs.pop_back();
     retval = 1;
@@ -227,76 +242,34 @@ int test(const Arc::UserConfig& usercfg, const int& testid, const std::list<Arc:
   return retval;
 }
 
-int dumpjobdescription(const Arc::UserConfig& usercfg, const int& testid, const std::list<Arc::Endpoint>& services) {
-  int retval = 0;
-
-  std::list<std::string> preferredInterfaceNames;
-  if (usercfg.PreferredInfoInterface().empty()) {
-    preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
-    preferredInterfaceNames.push_back("org.ogf.emies");
-  } else {
-    preferredInterfaceNames.push_back(usercfg.PreferredInfoInterface());
-  }
-
-  std::list<std::string> rejectedURLs = usercfg.RejectedURLs();
-
-  Arc::ComputingServiceRetriever csr(usercfg, services, rejectedURLs, preferredInterfaceNames);
-  csr.wait();
-
-  if (csr.empty()) {
-    std::cout << Arc::IString("Dumping job description aborted because no resource returned any information") << std::endl;
-    return 1;
-  }
-
-  Arc::BrokerLoader loader;
-  Arc::Broker *ChosenBroker = loader.load(usercfg.Broker().first, usercfg);
-  if (!ChosenBroker) {
-    logger.msg(Arc::ERROR, "Dumping job description aborted: Unable to load broker %s", usercfg.Broker().first);
-    return 1;
-  }
-  logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
-
-  std::list<Arc::ExecutionTarget> etList;
-  Arc::ExecutionTarget::GetExecutionTargets(csr, etList);
-
-  Arc::JobDescription testJob;
-  Arc::JobDescription::GetTestJob(testid, testJob);
-
-  ChosenBroker->PreFilterTargets(etList, testJob);
-  ChosenBroker->Sort();
-
-  for (const Arc::ExecutionTarget*& target = ChosenBroker->GetReference();
-       !ChosenBroker->EndOfList(); ChosenBroker->Advance()) {
-    if (!testJob.Prepare(*target)) {
-      logger.msg(Arc::INFO, "Unable to prepare job description according to needs of the target resource (%s).", target->ComputingEndpoint->URLString);
+int dumpjobdescription(const Arc::UserConfig& usercfg, const Arc::ExecutionTargetSet& ets, const Arc::JobDescription& testJob) {
+  Arc::ExecutionTargetSet::const_iterator it = ets.begin();
+  for (; it != ets.end(); ++it) {
+    Arc::JobDescription preparedTestJob(testJob);
+    std::string jobdesc;
+    // Prepare the test jobdescription according to the choosen ExecutionTarget
+    if (!preparedTestJob.Prepare(*it)) {
+      logger.msg(Arc::INFO, "Unable to prepare job description according to needs of the target resource (%s).", it->ComputingEndpoint->URLString); 
       continue;
     }
-
+  
     std::string jobdesclang = "nordugrid:jsdl";
-    if (target->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") {
+    if (it->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") {
       jobdesclang = "nordugrid:xrsl";
     }
-    else if (target->ComputingEndpoint->InterfaceName == "org.glite.cream") {
+    else if (it->ComputingEndpoint->InterfaceName == "org.glite.cream") {
       jobdesclang = "egee:jdl";
     }
-    else if (target->ComputingEndpoint->InterfaceName == "org.ogf.emies") {
-      jobdesclang = "emies:adl";
-    }
-    std::string jobdesc;
-    if (!testJob.UnParse(jobdesc, jobdesclang)) {
-      logger.msg(Arc::INFO, "An error occurred during the generation of job description to be sent to %s", target->ComputingEndpoint->URLString);
+    
+    if (!preparedTestJob.UnParse(jobdesc, jobdesclang)) {
+      logger.msg(Arc::INFO, "An error occurred during the generation of job description to be sent to %s", it->ComputingEndpoint->URLString); 
       continue;
     }
-
-    std::cout << Arc::IString("Job description to be sent to %s:", target->ComputingEndpoint->URLString) << std::endl;
+  
+    std::cout << Arc::IString("Job description to be sent to %s:", it->ComputingService->Cluster.str()) << std::endl;
     std::cout << jobdesc << std::endl;
     break;
-  } //end loop over all possible targets
-
-  if (ChosenBroker->EndOfList()) {
-    std::cout << Arc::IString("Unable to print job description: No suitable target found.") << std::endl;
-    retval = 1;
   }
 
-  return retval;
+  return (it != ets.end());
 }

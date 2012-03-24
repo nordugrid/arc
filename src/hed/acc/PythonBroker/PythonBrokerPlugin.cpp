@@ -4,7 +4,9 @@
 #include <config.h>
 #endif
 
-#include "PythonBroker.h"
+#include <arc/client/ExecutionTarget.h>
+
+#include "PythonBrokerPlugin.h"
 
 extern "C" {
 typedef struct {
@@ -16,46 +18,31 @@ typedef struct {
 
 namespace Arc {
 
-  Logger PythonBroker::logger(Logger::getRootLogger(), "Broker.PythonBroker");
-  PyThreadState*PythonBroker::tstate = NULL;
-  int PythonBroker::refcount = 0;
-  Glib::Mutex PythonBroker::lock;
+  Logger PythonBrokerPlugin::logger(Logger::getRootLogger(), "Broker.PythonBrokerPlugin");
+  PyThreadState* PythonBrokerPlugin::tstate = NULL;
+  int PythonBrokerPlugin::refcount = 0;
+  Glib::Mutex PythonBrokerPlugin::lock;
 
   class PythonLock {
   public:
-    PythonLock() {
-      gstate = PyGILState_Ensure();
-    }
-    ~PythonLock() {
-      PyGILState_Release(gstate);
-    }
+    PythonLock() : gstate(PyGILState_Ensure()) {}
+    ~PythonLock() { PyGILState_Release(gstate); }
   private:
     PyGILState_STATE gstate;
   };
 
   class PyObjectP {
   public:
-    PyObjectP(PyObject *obj)
-      : obj(obj) {}
-    ~PyObjectP() {
-      if (obj) {
-        Py_DECREF(obj);
-      }
-    }
-    operator bool() {
-      return obj;
-    }
-    bool operator!() {
-      return !obj;
-    }
-    operator PyObject*() {
-      return obj;
-    }
+    PyObjectP(PyObject *obj) : obj(obj) {}
+    ~PyObjectP() { if (obj) { Py_DECREF(obj); } }
+    operator bool() { return obj; }
+    bool operator!() { return !obj; }
+    operator PyObject*() { return obj; }
   private:
     PyObject *obj;
   };
 
-  Plugin* PythonBroker::Instance(PluginArgument *arg) {
+  Plugin* PythonBrokerPlugin::Instance(PluginArgument *arg) {
 
     BrokerPluginArgument *brokerarg = dynamic_cast<BrokerPluginArgument*>(arg);
     if (!brokerarg)
@@ -89,15 +76,13 @@ namespace Arc {
 
     logger.msg(DEBUG, "Loading Python broker (%i)", refcount);
 
-    Broker *broker = new PythonBroker(*brokerarg, arg);
-
+    PythonBrokerPlugin *broker = new PythonBrokerPlugin(brokerarg);
     PyEval_ReleaseThread(tstate); // Release current thread
-
     return broker;
   }
 
-  PythonBroker::PythonBroker(const UserConfig& usercfg, PluginArgument* parg)
-    : Broker(usercfg, parg),
+  PythonBrokerPlugin::PythonBrokerPlugin(BrokerPluginArgument* parg)
+    : BrokerPlugin(parg),
       arc_module(NULL),
       arc_userconfig_klass(NULL),
       arc_jobrepr_klass(NULL),
@@ -113,7 +98,7 @@ namespace Arc {
 
     logger.msg(VERBOSE, "PythonBroker init");
 
-    std::string args = usercfg.Broker().second;
+    std::string args = uc.Broker().second;
     std::string::size_type pos = args.find(':');
     if (pos != std::string::npos)
       args.resize(pos);
@@ -247,23 +232,23 @@ namespace Arc {
       return;
     }
 
-    PyObjectP usercfgarg = Py_BuildValue("(l)", (long int)usercfg);
-    if (!usercfgarg) {
+    PyObjectP ucarg = Py_BuildValue("(l)", (long int)uc);
+    if (!ucarg) {
       logger.msg(ERROR, "Cannot create UserConfig argument");
       if (PyErr_Occurred())
         PyErr_Print();
       return;
     }
 
-    PyObject *py_usercfg = PyObject_CallObject(arc_userconfig_klass, usercfgarg);
-    if (!py_usercfg) {
+    PyObject *py_uc = PyObject_CallObject(arc_userconfig_klass, ucarg);
+    if (!py_uc) {
       logger.msg(ERROR, "Cannot convert UserConfig to Python object");
       if (PyErr_Occurred())
         PyErr_Print();
       return;
     }
 
-    PyObjectP arg = Py_BuildValue("(O)", py_usercfg);
+    PyObjectP arg = Py_BuildValue("(O)", py_uc);
     if (!arg) {
       logger.msg(ERROR, "Cannot create argument of the constructor");
       if (PyErr_Occurred())
@@ -283,8 +268,7 @@ namespace Arc {
     logger.msg(VERBOSE, "Python broker constructor called (%d)", refcount);
   }
 
-  PythonBroker::~PythonBroker() {
-
+  PythonBrokerPlugin::~PythonBrokerPlugin() {
     if (module) {
       Py_DECREF(module);
     }
@@ -307,12 +291,91 @@ namespace Arc {
     logger.msg(VERBOSE, "Python broker destructor called (%d)", refcount);
   }
 
-  void PythonBroker::SortTargets() {
-
+  bool PythonBrokerPlugin::operator()(const ExecutionTarget& lhs, const ExecutionTarget& rhs) const {
     PythonLock pylock;
 
-    // Convert JobDescription to python object
-    PyObjectP arg = Py_BuildValue("(l)", job);
+    // Convert ExecutionTarget object to python object
+    PyObjectP arg = Py_BuildValue("(l)", &lhs);
+    if (!arg) {
+      logger.msg(ERROR, "Cannot create ExecutionTarget argument");
+      if (PyErr_Occurred())
+        PyErr_Print();
+      return false;
+    }
+
+    PyObjectP py_lhs = PyObject_CallObject(arc_xtarget_klass, arg);
+    if (!py_lhs) {
+      logger.msg(ERROR,
+                 "Cannot convert ExecutionTarget to python object");
+      if (PyErr_Occurred())
+        PyErr_Print();
+      return false;
+    }
+
+    arg = Py_BuildValue("(l)", &rhs);
+    if (!arg) {
+      logger.msg(ERROR, "Cannot create ExecutionTarget argument");
+      if (PyErr_Occurred())
+        PyErr_Print();
+      return false;
+    }
+
+    PyObjectP py_rhs = PyObject_CallObject(arc_xtarget_klass, arg);
+    if (!py_rhs) {
+      logger.msg(ERROR, "Cannot convert ExecutionTarget to python object");
+      if (PyErr_Occurred())
+        PyErr_Print();
+      return false;
+    }
+
+    PyObjectP py_status = PyObject_CallMethod(object, (char*)"lessthan",
+                                              (char*)"(OO)",
+                                              (PyObject*)py_lhs,
+                                              (PyObject*)py_rhs);
+    if (!py_status) {
+      if (PyErr_Occurred())
+        PyErr_Print();
+      return false;
+    }
+
+    return PyBool_Check((PyObject*)py_status) && PyObject_IsTrue((PyObject*)py_status);
+  }
+
+  bool PythonBrokerPlugin::match(const ExecutionTarget& et) const {
+    PythonLock pylock;
+
+    PyObjectP arg = Py_BuildValue("(l)", &et);
+    if (!arg) {
+      logger.msg(ERROR, "Cannot create ExecutionTarget argument");
+      if (PyErr_Occurred())
+        PyErr_Print();
+      return false;
+    }
+
+    PyObjectP py_xtarget = PyObject_CallObject(arc_xtarget_klass, arg);
+    if (!py_xtarget) {
+      logger.msg(ERROR, "Cannot convert ExecutionTarget to python object");
+      if (PyErr_Occurred())
+        PyErr_Print();
+      return false;
+    }
+
+    PyObjectP py_status = PyObject_CallMethod(object, (char*)"match",
+                                              (char*)"(O)",
+                                              (PyObject*)py_xtarget);
+    if (!py_status) {
+      if (PyErr_Occurred())
+        PyErr_Print();
+      return false;
+    }
+
+    return PyBool_Check((PyObject*)py_status) && PyObject_IsTrue((PyObject*)py_status);
+  }
+
+  void PythonBrokerPlugin::set(const JobDescription& j) {
+    PythonLock pylock;
+
+    PyObjectP arg = Py_BuildValue("(l)", &j);
     if (!arg) {
       logger.msg(ERROR, "Cannot create JobDescription argument");
       if (PyErr_Occurred())
@@ -320,72 +383,22 @@ namespace Arc {
       return;
     }
 
-    PyObjectP py_job = PyObject_CallObject(arc_jobrepr_klass, arg);
-    if (!py_job) {
-      logger.msg(ERROR,
-                 "Cannot convert JobDescription to python object");
+    PyObjectP py_jobdesc = PyObject_CallObject(arc_jobrepr_klass, arg);
+    if (!py_jobdesc) {
+      logger.msg(ERROR, "Cannot convert JobDescription to python object");
       if (PyErr_Occurred())
         PyErr_Print();
       return;
     }
 
-    // Convert incoming PossibleTargets to python list
-    PyObjectP py_list = PyList_New(0);
-    if (!py_list) {
-      logger.msg(ERROR, "Cannot create Python list");
-      if (PyErr_Occurred())
-        PyErr_Print();
-      return;
-    }
-
-    for (std::list<ExecutionTarget*>::iterator it = PossibleTargets.begin();
-         it != PossibleTargets.end(); it++) {
-
-      PyObjectP arg = Py_BuildValue("(l)", (long int)&**it);
-      if (!arg) {
-        logger.msg(ERROR, "Cannot create ExecutionTarget argument");
-        if (PyErr_Occurred())
-          PyErr_Print();
-        return;
-      }
-
-      PyObject *py_xtarget = PyObject_CallObject(arc_xtarget_klass, arg);
-      if (!py_xtarget) {
-        logger.msg(ERROR, "Cannot convert ExecutionTarget to python object");
-        if (PyErr_Occurred())
-          PyErr_Print();
-        return;
-      }
-
-      PyList_Append(py_list, py_xtarget);
-    }
-
-    PyObjectP py_status = PyObject_CallMethod(object, (char*)"SortTargets",
-                                              (char*)"(OO)",
-                                              (PyObject*)py_list,
-                                              (PyObject*)py_job);
+    PyObjectP py_status = PyObject_CallMethod(object, (char*)"set",
+                                              (char*)"(O)",
+                                              (PyObject*)py_jobdesc);
     if (!py_status) {
       if (PyErr_Occurred())
         PyErr_Print();
       return;
     }
-
-    PossibleTargets.clear();
-
-    for (int i = 0; i < PyList_Size(py_list); i++) {
-      PyObject *obj = PyList_GetItem(py_list, i);
-      char this_str[] = "this";
-      if (!PyObject_HasAttrString(obj, this_str))
-        return;
-      PyObject *thisattr = PyObject_GetAttrString(obj, this_str);
-      if (!thisattr)
-        return;
-      void *ptr = ((PySwigObject*)thisattr)->ptr;
-      PossibleTargets.push_back(((ExecutionTarget*)ptr));
-      Py_DECREF(thisattr);
-    }
-
-    TargetSortingDone = true;
 
     return;
   }
@@ -393,6 +406,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "PythonBroker", "HED:Broker", istring("Do sorting using user created python broker"), 0, &Arc::PythonBroker::Instance },
+  { "PythonBroker", "HED:BrokerPlugin", istring("Do sorting using user created python broker"), 0, &Arc::PythonBrokerPlugin::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

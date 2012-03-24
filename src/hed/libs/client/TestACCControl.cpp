@@ -2,8 +2,8 @@
 
 namespace Arc {
 
-bool* BrokerTestACCControl::TargetSortingDone = NULL;
-std::list<ExecutionTarget*>* BrokerTestACCControl::PossibleTargets = NULL;
+bool BrokerPluginTestACCControl::match = false;
+bool BrokerPluginTestACCControl::less = false;
 
 bool JobDescriptionParserTestACCControl::parseStatus = true;
 std::list<JobDescription> JobDescriptionParserTestACCControl::parsedJobDescriptions(1, JobDescription());

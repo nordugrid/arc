@@ -1,7 +1,7 @@
 // -*- indent-tabs-mode: nil -*-
 
-#ifndef __ARC_PYTHON_BROKER_H__
-#define __ARC_PYTHON_BROKER_H__
+#ifndef __ARC_PYTHONBROKERPLUGIN_H__
+#define __ARC_PYTHONBROKERPLUGIN_H__
 
 #include <Python.h>
 #include <arc/UserConfig.h>
@@ -9,16 +9,15 @@
 
 namespace Arc {
 
-  class PythonBroker
-    : public Broker {
-
+  class PythonBrokerPlugin : public BrokerPlugin {
   public:
-    PythonBroker(const UserConfig& usercfg, PluginArgument* parg);
-    virtual ~PythonBroker();
+    PythonBrokerPlugin(BrokerPluginArgument* parg);
+    virtual ~PythonBrokerPlugin();
     static Plugin* Instance(PluginArgument *arg);
-
-  protected:
-    virtual void SortTargets();
+    
+    bool operator()(const ExecutionTarget&, const ExecutionTarget&) const;
+    bool match(const ExecutionTarget&) const;
+    void set(const JobDescription&);
 
   private:
     PyObject *arc_module;
@@ -37,4 +36,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // __ARC_PYTHON_BROKER_H__
+#endif // __ARC_PYTHONBROKERPLUGIN_H__
