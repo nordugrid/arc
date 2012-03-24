@@ -52,5 +52,9 @@ test_jobdescription_LDADD = libarcclient.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
 
+testjobdir = $(pkgdatadir)/test-jobs
+testjob_DATA = test-job-1 test-job-2 test-job-3
+EXTRA_DIST = $(testjob_DATA)
+
 DIST_SUBDIRS = test
 SUBDIRS = $(TEST_DIR)

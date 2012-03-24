@@ -1,0 +1,4 @@
+&(executable = '/bin/echo')
+ (arguments = 'hello, grid')
+ (jobname = 'arctest1')
+ (stdout = 'stdout')

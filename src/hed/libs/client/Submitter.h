@@ -37,14 +37,6 @@ namespace Arc {
   public:
     virtual ~Submitter();
 
-    /**
-    * This virtual method can be ovverriden by plugins which should
-    * be capable of getting test job descriptions for the specified flavour.
-    * This method should return with the JobDescription or NULL if ther is no
-    * test description defined with the requested id.
-    */
-    bool GetTestJob(const int& testid, JobDescription& jobdescription);
-
     /// Submit job
     /**
      * This virtual method should be overridden by plugins which should

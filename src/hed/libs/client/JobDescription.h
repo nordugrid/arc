@@ -609,6 +609,8 @@ namespace Arc {
      */
     bool Prepare(const ExecutionTarget& et);
 
+    static bool GetTestJob(int testid, JobDescription& jobdescription);
+
     /// Holds attributes not fitting into this class
     /**
      * This member is used by JobDescriptionParser classes to store

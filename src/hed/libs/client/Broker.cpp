@@ -443,53 +443,6 @@ namespace Arc {
     return (current != PossibleTargets.end() ? *current : NULL);
   }
 
-  void Broker::UseAllTargets(std::list<ExecutionTarget>& targets) {
-
-    PossibleTargets.clear();
-
-    for (std::list<ExecutionTarget>::iterator target = targets.begin();
-         target != targets.end(); target++) {
-      PossibleTargets.push_back(&*target);
-    }
-
-    TargetSortingDone = false;
-  }
-
-  bool Broker::Test(std::list<ExecutionTarget>& targets, const int& testid, Job& job) {
-    // Skipping PreFiltering using every targets
-    UseAllTargets(targets);
-
-    if (PossibleTargets.empty()) {
-      return false;
-    }
-
-    SortTargets();
-
-    for (std::list<ExecutionTarget*>::iterator it = PossibleTargets.begin();
-         it != PossibleTargets.end(); it++) {
-      JobDescription jobdescription;
-      // Return if test jobdescription is not defined
-      if (!((*it)->GetTestJob(usercfg, testid, jobdescription))) {
-        std::ostringstream ids;
-        int i = 0;
-        while ((*it)->GetTestJob(usercfg, ++i, jobdescription)) {
-          if ( i-1 == 0 ) ids << i;
-          else ids << ", " << i;
-        }
-        if ( i-1 == 0 ) logger.msg(Arc::INFO, "For this middleware there are no testjobs defined.");
-        else logger.msg(Arc::INFO, "For this middleware only %s testjobs are defined.", ids.str());
-      } else {
-        if ((*it)->Submit(usercfg, jobdescription, job)) {
-          current = it;
-          RegisterJobsubmission();
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
   void Broker::Sort() {
     if (TargetSortingDone) {
       return;

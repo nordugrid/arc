@@ -201,12 +201,15 @@ int test(const Arc::UserConfig& usercfg, const int& testid, const std::list<Arc:
   std::list<Arc::ExecutionTarget> etList;
   Arc::ExecutionTarget::GetExecutionTargets(csr, etList);
 
+  Arc::JobDescription testJob;
+  Arc::JobDescription::GetTestJob(testid, testJob);
+
   std::list<std::string> jobids;
   std::list<Arc::Job> submittedJobs;
   std::map<int, std::string> notsubmitted;
 
   submittedJobs.push_back(Arc::Job());
-  if (ChosenBroker->Test(etList, testid, submittedJobs.back())) {
+  if (ChosenBroker->Submit(etList, testJob, submittedJobs.back())) {
     printjobid(submittedJobs.back().JobID.str(), jobidfile);
   }
   else {
@@ -256,57 +259,44 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const int& testid, const 
   std::list<Arc::ExecutionTarget> etList;
   Arc::ExecutionTarget::GetExecutionTargets(csr, etList);
 
-  ChosenBroker->UseAllTargets(etList);
+  Arc::JobDescription testJob;
+  Arc::JobDescription::GetTestJob(testid, testJob);
 
-  while (true) {
-    const Arc::ExecutionTarget* target = ChosenBroker->GetBestTarget();
+  ChosenBroker->PreFilterTargets(etList, testJob);
+  ChosenBroker->Sort();
 
-    if (!target) {
-      std::cout << Arc::IString("Unable to print job description: No target found.") << std::endl;
-      break;
+  for (const Arc::ExecutionTarget*& target = ChosenBroker->GetReference();
+       !ChosenBroker->EndOfList(); ChosenBroker->Advance()) {
+    if (!testJob.Prepare(*target)) {
+      logger.msg(Arc::INFO, "Unable to prepare job description according to needs of the target resource (%s).", target->ComputingEndpoint->URLString);
+      continue;
     }
 
-    Arc::Submitter *submitter = target->GetSubmitter(usercfg);
-
-    Arc::JobDescription jobdescdump;
-
-    if (!(submitter->GetTestJob(testid, jobdescdump))) {
-      std::ostringstream ids;
-      int i = 0;
-      while (submitter->GetTestJob(++i, jobdescdump)) {
-        if ( i-1 == 0 ) ids << i;
-        else ids << ", " << i;
-      }
-      if ( i-1 == 0 ) logger.msg(Arc::INFO, "For this middleware there are no testjobs defined.");
-      else logger.msg(Arc::INFO, "For this middleware only %s testjobs are defined.", ids.str());
-    } else {
-      std::string jobdesclang = "nordugrid:jsdl";
-      if (target->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") {
-        jobdesclang = "nordugrid:xrsl";
-      }
-      else if (target->ComputingEndpoint->InterfaceName == "org.glite.cream") {
-        jobdesclang = "egee:jdl";
-      }
-      std::string jobdesc;
-
-      // Modify the test jobdescription according the choosen submitter if necessary
-      if (!jobdescdump.Prepare(*target)) {
-        std::cout << Arc::IString("Unable to prepare job description according to needs of the target resource.") << std::endl;
-        retval = 1;
-        break;
-      }
-
-      if (!jobdescdump.UnParse(jobdesc, jobdesclang)) {
-        std::cout << Arc::IString("An error occurred during the generation of the job description output.") << std::endl;
-        retval = 1;
-        break;
-      }
-
-      std::cout << Arc::IString("Job description to be sent to %s:", target->ComputingService->Cluster.str()) << std::endl;
-      std::cout << jobdesc << std::endl;
-      break;
+    std::string jobdesclang = "nordugrid:jsdl";
+    if (target->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") {
+      jobdesclang = "nordugrid:xrsl";
     }
+    else if (target->ComputingEndpoint->InterfaceName == "org.glite.cream") {
+      jobdesclang = "egee:jdl";
+    }
+    else if (target->ComputingEndpoint->InterfaceName == "org.ogf.emies") {
+      jobdesclang = "emies:adl";
+    }
+    std::string jobdesc;
+    if (!testJob.UnParse(jobdesc, jobdesclang)) {
+      logger.msg(Arc::INFO, "An error occurred during the generation of job description to be sent to %s", target->ComputingEndpoint->URLString);
+      continue;
+    }
+
+    std::cout << Arc::IString("Job description to be sent to %s:", target->ComputingEndpoint->URLString) << std::endl;
+    std::cout << jobdesc << std::endl;
+    break;
   } //end loop over all possible targets
+
+  if (ChosenBroker->EndOfList()) {
+    std::cout << Arc::IString("Unable to print job description: No suitable target found.") << std::endl;
+    retval = 1;
+  }
 
   return retval;
 }

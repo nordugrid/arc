@@ -1,0 +1,4 @@
+&(executable = '/bin/env')
+ (jobname = 'arctest2')
+ (stdout = 'stdout')
+ (join = 'yes')

@@ -4,6 +4,7 @@
 #include <config.h>
 #endif
 
+#include <arc/ArcLocation.h>
 #include <arc/StringConv.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/JobDescriptionParser.h>
@@ -523,6 +524,33 @@ namespace Arc {
     // Set queue name to the selected ExecutionTarget
     Resources.QueueName = et.ComputingShare->Name;
 
+    return true;
+  }
+
+  bool JobDescription::GetTestJob(int testid, JobDescription& jobdescription) {
+    const std::string testJobFileName(ArcLocation::Get() + G_DIR_SEPARATOR_S PKGDATASUBDIR G_DIR_SEPARATOR_S "test-jobs" G_DIR_SEPARATOR_S "test-job-" + tostring(testid));
+    std::ifstream testJobFile(testJobFileName.c_str());
+    if (!Glib::file_test(testJobFileName, Glib::FILE_TEST_IS_REGULAR) || !testJobFile) {
+      logger.msg(ERROR, "No test-job with ID %d found.", testid);
+      return false;
+    }
+    
+    std::string description;
+    testJobFile.seekg(0, std::ios::end);
+    description.reserve(testJobFile.tellg());
+    testJobFile.seekg(0, std::ios::beg);
+    description.assign((std::istreambuf_iterator<char>(testJobFile)), std::istreambuf_iterator<char>());
+
+    std::list<JobDescription> jobdescs;
+    if (!JobDescription::Parse(description, jobdescs, "nordugrid:xrsl")) {
+      logger.msg(ERROR, "Test was defined with ID %d, but some error occurred during parsing it.", testid);
+      return false;
+    }
+    if (jobdescs.empty()) {
+      logger.msg(ERROR, "No jobdescription resulted at %d test", testid);
+      return false;
+    }
+    jobdescription = (*(jobdescs.begin()));
     return true;
   }
 } // namespace Arc
