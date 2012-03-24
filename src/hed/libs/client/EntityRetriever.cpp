@@ -354,18 +354,16 @@ namespace Arc {
     ser.addConsumer(*this);
     tir.addConsumer(*this);
     for (std::list<Endpoint>::const_iterator it = services.begin(); it != services.end(); it++) {
-      if (it->HasCapability(Endpoint::REGISTRY)) {
-        ser.addEndpoint(*it);
-      } else {
-        addEntity(*it);
-      }
+      addEndpoint(*it);
     }
   }
 
-  void ComputingServiceRetriever::addEntity(const Endpoint& service) {
+  void ComputingServiceRetriever::addEndpoint(const Endpoint& service) {
     // If we got a computing element info endpoint, then we pass it to the TIR
     if (service.HasCapability(Endpoint::COMPUTINGINFO)) {
       tir.addEndpoint(service);
+    } else if (service.HasCapability(Endpoint::REGISTRY)) {
+      ser.addEndpoint(service);
     }
   }
 

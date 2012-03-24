@@ -235,7 +235,7 @@ class ComputingServiceRetriever : public EntityConsumer<Endpoint>, public Entity
 public:
   ComputingServiceRetriever(
     const UserConfig& uc,
-    const std::list<Endpoint>& services,
+    const std::list<Endpoint>& services = std::list<Endpoint>(),
     const std::list<std::string>& rejectedServices = std::list<std::string>(),
     const std::list<std::string>& preferredInterfaceNames = std::list<std::string>(),
     const std::list<std::string>& capabilityFilter = std::list<std::string>(1, Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO))
@@ -243,7 +243,11 @@ public:
 
   void wait() { ser.wait(); tir.wait(); }
 
-  void addEntity(const Endpoint& service);
+  void addEndpoint(const Endpoint& service);
+  void addEntity(const Endpoint& service) { addEndpoint(service); }
+  
+  void addConsumer(EntityConsumer<ComputingServiceType>& c) { tir.addConsumer(c); };
+  void removeConsumer(const EntityConsumer<ComputingServiceType>& c) { tir.removeConsumer(c); }
   
   void GetExecutionTargets(std::list<ExecutionTarget>& etList) {
     ExecutionTarget::GetExecutionTargets(*this, etList);
