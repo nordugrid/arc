@@ -37,11 +37,13 @@ void PayloadTLSStream::HandleError(Logger& logger,int code) {
       const char* lib = ERR_lib_error_string(e);
       const char* func = ERR_func_error_string(e);
       const char* reason = ERR_reason_error_string(e);
-      logger.msg(DEBUG, "SSL error: %d - %s:%s:%s",
-                        e,
-                        lib?lib:"",
-                        func?func:"",
-                        reason?reason:"");
+      const char* alert = SSL_alert_desc_string_long(e);
+      std::string errstr = "SSL error";
+      if (reason) errstr += ", \"" + std::string(reason) + "\"";
+      if (func) errstr += ", in \"" + std::string(func) + "\" function";
+      if (lib) errstr += ", at \"" + std::string(lib) + "\" library";
+      if (alert) errstr += ", with \"" + std::string(alert) + "\" alert";
+      logger.msg(DEBUG, errstr);
     };
     e = ERR_get_error();
   }
