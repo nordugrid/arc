@@ -151,7 +151,7 @@ set_req_mem () {
             echo "WARNING: The job description contains no explicit memory requirement." 1>&2
             echo "         A default memory limit taken from 'defaultmemory' in        " 1>&2
             echo "         arc.conf will apply.                                        " 1>&2
-            echo "         Limit is: $CONFIG_nodememory mb.                            " 1>&2
+            echo "         Limit is: $CONFIG_defaultmemory mb.                         " 1>&2
             echo "                                                                     " 1>&2
 
             if [ "$joboption_localtransfer" = 'yes' ] && [ "$CONFIG_nodememory" -lt 1000 ]; then

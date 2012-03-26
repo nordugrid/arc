@@ -78,6 +78,7 @@ my $share_options = {
     SchedulingPolicy => '*',
     Preemption => '*',
     totalcpus => '*',
+    defaultmemory => '*',
 };
 my $gmuser_options = {
     controldir => '',
@@ -940,6 +941,7 @@ sub printLRMSConfigScript {
 
     my $cluster = {};
     rename_keys $config->{service}, $cluster, {MaxVirtualMemory => 'nodememory'};
+    move_keys $config->{service}, $cluster, ['defaultmemory'];
 
     _print_shell_section('cluster', $cluster) if %$cluster;
 
