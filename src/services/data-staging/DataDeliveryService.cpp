@@ -230,7 +230,12 @@ namespace DataStaging {
       std::string proxy_file(tmp_proxy_dir+"/DTR."+dtrid+".proxy");
       logger.msg(Arc::VERBOSE, "Storing temp proxy at %s", proxy_file);
 
-      if (!Arc::FileCreate(proxy_file, credential)) {
+      bool proxy_result = Arc::FileCreate(proxy_file, credential);
+      if (!proxy_result && errno == ENOENT) {
+        Arc::DirCreate(tmp_proxy_dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH, true);
+        proxy_result = Arc::FileCreate(proxy_file, credential);
+      }
+      if (!proxy_result) {
         logger.msg(Arc::ERROR, "Failed to create temp proxy at %s: %s", proxy_file, Arc::StrError(errno));
         resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
         resultelement.NewChild("ErrorDescription") = "Failed to store temporary proxy";
