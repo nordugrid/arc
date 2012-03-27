@@ -946,6 +946,8 @@ service fetch-crl-cron start > /dev/null 2>&1
 %dir %{_datadir}/%{pkgdir}/examples
 %doc %{_datadir}/%{pkgdir}/examples/arc.conf.template
 %doc %{_datadir}/%{pkgdir}/examples/arc.conf.reference
+%dir %{_datadir}/%{pkgdir}/test-jobs
+%{_datadir}/%{pkgdir}/test-jobs/test-job-*
 %{_datadir}/%{pkgdir}/schema
 %dir %{_datadir}/%{pkgdir}
 %doc README AUTHORS LICENSE
