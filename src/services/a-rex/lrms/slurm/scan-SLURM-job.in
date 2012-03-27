@@ -154,6 +154,39 @@ function handle_exitcode {
     kicklist=(${kicklist[@]} $localid)
 }
 
+# A special version of the function above, needed to force 
+# exit code to non-zero if the job was cancelled, since
+# CANCELLED jobs in SLURM can have 0 exit code.
+# This is a temporary workaround, should later be replaced by 
+# proper fix that determines the reason of failure
+function handle_exitcode_cancelled {
+    localid="$1"
+    tmpexitcode="$2"
+    reason="$3"
+ 
+    jobinfostring=$("$scontrol" -o show job $localid)
+ 
+    exitcode1=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\1/p')
+    exitcode2=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\2/p')
+ 
+    if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
+      exitcode=$tmpexitcode
+    elif [ $exitcode2 -ne 0 ]; then
+      exitcode=$(( $exitcode2 + 256 ))
+    elif [ $exitcode1 -ne 0 ]; then
+      exitcode=$exitcode1
+    else
+      exitcode=0
+    fi
+    if [ $exitcode -eq 0 ]; then
+      exitcode=15
+      reason="Job probably exceeded memory limit"
+    fi
+    echo "$exitcode $reason" > "${basenames[$localid]}.lrms_done"
+    kicklist=(${kicklist[@]} $localid)
+}
+
+
 #This function filters out WallTime from the .diag-file if present and
 #replaces it with output from the LRMS, it also adds StartTime and
 #EndTime for accounting.
@@ -261,7 +294,7 @@ for localid in ${localids[@]}; do
 	    handle_commentfile $localid
 	    echo "-1 Job was cancelled" > "${basenames[$localid]}.lrms_done"
 	    kicklist=(${kicklist[@]} $localid)
-	    handle_exitcode $localid "-1" "Job was cancelled"
+	    handle_exitcode_cancelled $localid "-1" "Job was cancelled"
 	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
 	    ;;
   	COMPLETED)
