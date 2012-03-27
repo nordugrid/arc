@@ -63,17 +63,8 @@ namespace Arc {
     }
 
     //Create credential object in order to get the user DN
-    const std::string *certpath, *keypath;
-    if (uc.ProxyPath().empty()) {
-      certpath = &uc.CertificatePath();
-      keypath  = &uc.KeyPath();
-    }
-    else {
-      certpath = &uc.ProxyPath();
-      keypath  = &uc.ProxyPath();
-    }
     std::string emptycadir, emptycafile;
-    Credential credential(*certpath, *keypath, emptycadir, emptycafile);
+    Credential credential(uc.ProxyPath().empty() ? uc.ProxyPath() : uc.CertificatePath(), "", emptycadir, emptycafile);
     std::string escaped_dn = escape_chars(credential.GetIdentityName(), filter_esc, '\\', false, escape_hex);
 
     url.ChangeLDAPFilter("(|(objectclass=nordugrid-cluster)"
