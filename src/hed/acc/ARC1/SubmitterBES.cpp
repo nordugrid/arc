@@ -93,9 +93,4 @@ namespace Arc {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a BES resource is not supported.", et.ComputingEndpoint->URLString);
     return false;
   }
-
-  bool SubmitterBES::ModifyJobDescription(JobDescription& /* jobdesc */, const ExecutionTarget& /* et */) const {
-    return true;
-  }
-
 } // namespace Arc

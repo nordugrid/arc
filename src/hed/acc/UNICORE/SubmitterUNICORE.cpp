@@ -129,8 +129,4 @@ namespace Arc {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a UNICORE resource is not supported.", et.ComputingEndpoint.URLString);
     return false;
   }
-
-  bool SubmitterUNICORE::ModifyJobDescription(JobDescription& /* jobdesc */, const ExecutionTarget& /* et */) const {
-    return true;
-  }
 } // namespace Arc

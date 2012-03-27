@@ -161,17 +161,6 @@ void XRSLParserTest::TestInputFileClientStageable() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Sources.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Sources.back(),  it->Sources.front());
 
-  /* When unparsing the job description, the executable will not be added. The
-   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
-   * to add the executable. This might change in the future.
-  it++;
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
-  */
-
   remove(file.Name.c_str());
 }
 
@@ -197,17 +186,6 @@ void XRSLParserTest::TestInputFileServiceStageable() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Sources.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Sources.back(),  it->Sources.front());
-
-  /* When unparsing the job description, the executable will not be added. The
-   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
-   * to add the executable. This might change in the future.
-  it++;
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
-  */
 }
 
 /** Client stageable output file */
@@ -228,17 +206,6 @@ void XRSLParserTest::TestOutputFileClientStageable() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().DataStaging.OutputFiles.size());
 
   std::list<Arc::OutputFileType>::const_iterator it = OUTJOBS.front().DataStaging.OutputFiles.begin();
-  /* When unparsing the job description, the executable will not be added. The
-   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
-   * to add the executable. This might change in the future.
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front().URI);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
-  it++;
-  */
-
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Targets.size());
 }
@@ -262,18 +229,6 @@ void XRSLParserTest::TestOutputFileServiceStageable() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().DataStaging.OutputFiles.size());
 
   std::list<Arc::OutputFileType>::const_iterator it = OUTJOBS.front().DataStaging.OutputFiles.begin();
-
-  /* When unparsing the job description, the executable will not be added. The
-   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
-   * to add the executable. This might change in the future.
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
-  it++;
-  */
-
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Targets.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Targets.back(),  it->Targets.front());

@@ -71,11 +71,6 @@ namespace Arc {
 
     JobDescription preparedjobdesc(jobdesc);
 
-    // TODO: redo after EMI ES job description is implemented
-    /* The above comment is from removed ModifyJobDescription method. It has
-     * been replaced by the JobDescription::Prepare method.
-     */
-
     if (!preparedjobdesc.Prepare(et)) {
       logger.msg(INFO, "Failed preparing job description to target resources");
       releaseClient(url);
