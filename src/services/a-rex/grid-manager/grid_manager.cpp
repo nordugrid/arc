@@ -50,8 +50,22 @@ namespace ARex {
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AREX:GM");
 
-static void* cache_func(void* arg) {
-  const JobUsers* users = (const JobUsers*)arg;
+class cache_st {
+ public:
+  Arc::SimpleCounter counter;
+  Arc::SimpleCondition to_exit;
+  const JobUsers* users;
+  cache_st(const JobUsers* users_):users(users_) {
+  };
+  ~cache_st(void) {
+    to_exit.signal();
+    counter.wait();
+  };
+};
+
+static void cache_func(void* arg) {
+  const JobUsers* users = ((cache_st*)arg)->users;
+  Arc::SimpleCondition& to_exit = ((cache_st*)arg)->to_exit;
   JobUser gmuser(users->Env(),getuid(),getgid()); // Cleaning should run under the GM user
   
   // run cache cleaning periodically forever
@@ -112,11 +126,14 @@ static void* cache_func(void* arg) {
         if (result == -1) logger.msg(Arc::ERROR, "Failed to start cache clean script");
         else logger.msg(Arc::ERROR, "Cache cleaning script failed");
       }
-      for(unsigned int t=CACHE_CLEAN_PERIOD;t;) t=sleep(t);
+      if(to_exit.wait(CACHE_CLEAN_PERIOD*1000)) {
+        have_caches = false;
+        break;
+      }
     }
     if(!have_caches) break;
   }
-  return NULL;
+  return;
 }
 
 class sleep_st {
@@ -132,7 +149,7 @@ class sleep_st {
   };
 };
 
-static void* wakeup_func(void* arg) {
+static void wakeup_func(void* arg) {
   sleep_st* s = (sleep_st*)arg;
   for(;;) {
     if(s->to_exit) break;
@@ -142,7 +159,7 @@ static void* wakeup_func(void* arg) {
     if(s->to_exit) break;
   };
   s->to_exit = false;
-  return NULL;
+  return;
 }
 
 static void kick_func(void* arg) {
@@ -185,8 +202,6 @@ void GridManager::thread() {
   print_serviced_users(*users_);
 
   CommFIFO wakeup_interface;
-  pthread_t wakeup_thread;
-  pthread_t cache_thread;
   time_t hard_job_time; 
   sleep_st wakeup_h;
   wakeup_h.sleep_cond=sleep_cond_;
@@ -201,7 +216,7 @@ void GridManager::thread() {
   wakeup_interface.timeout(env_->jobs_cfg().WakeupPeriod());
 
   /* start timer thread - wake up every 2 minutes */
-  if(pthread_create(&wakeup_thread,NULL,&wakeup_func,&wakeup_h) != 0) {
+  if(!Arc::CreateThreadFunction(wakeup_func,&wakeup_h)) {
     logger.msg(Arc::ERROR,"Failed to start new thread");
     active_ = false;
     return;
@@ -256,10 +271,11 @@ void GridManager::thread() {
   };
   */
   // check if cleaning is enabled for any user, if so activate cleaning thread
+  cache_st cache_h(users_);
   for (JobUsers::const_iterator cacheuser = users_->begin();
                                     cacheuser != users_->end(); ++cacheuser) {
     if (!cacheuser->CacheParams().getCacheDirs().empty() && cacheuser->CacheParams().cleanCache()) {
-      if(pthread_create(&cache_thread,NULL,&cache_func,(void*)users_)!=0) {
+      if(!Arc::CreateThreadFunction(cache_func,&cache_h,&cache_h.counter)) {
         logger.msg(Arc::INFO,"Failed to start new thread: cache won't be cleaned");
       }
       break;
@@ -394,6 +410,7 @@ GridManager::~GridManager(void) {
   if(users_owned_) delete users_;
   if(my_user_owned_) delete my_user_;
   delete sleep_cond_;
+  // TODO: cache_func
 }
 
 } // namespace ARex
