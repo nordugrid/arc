@@ -112,7 +112,7 @@ bool checkproxy(const Arc::UserConfig& uc)
     }
   }
   else {
-    std::cout << Arc::IString("Cannot find any proxy. arcresub currently cannot run without a proxy.\n"
+    std::cout << Arc::IString("Cannot find any proxy. This application currently cannot run without a proxy.\n"
                               "  If you have the proxy file in a non-default location,\n"
                               "  please make sure the path is specified in the client configuration file.\n"
                               "  If you don't have a proxy yet, please run 'arcproxy'!") << std::endl;
