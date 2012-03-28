@@ -702,6 +702,12 @@ gridmap="/etc/grid-security/grid-mapfile"
 #  or other security rules.
 #arex_mount_point="https://piff.hep.lu.se:60000/arex"
 #
+# enable_emies_interface - enable the EMI Execution Service interface. If
+# enabled the interface can be accessed at the URL specified in 
+# arex_mount_point (this option must also be specified)
+#enable_emies_interface="yes"
+# 
+#
 ####################################################################
 #
 # [data-staging] block configures data staging parameters if

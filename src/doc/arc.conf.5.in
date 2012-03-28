@@ -1189,6 +1189,16 @@ by firewall or other security rules.
 .IR Example :
 arex_mount_point="https://piff.hep.lu.se:60000/arex"
 
+.TP
+.B enable_emies_interface
+Enables the EMI Execution Service interface. If enabled the interface can be
+accessed at the URL specified in 
+.B arex_mount_point
+(this option must also be specified)
+
+.IR Example :
+enable_emies_interface="yes"
+
 .PP
 In the command arguments (paths, executables, ...) the following
 substitutions can be used:
