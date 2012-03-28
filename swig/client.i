@@ -124,6 +124,24 @@ the first member will be the '*response' and the second member is the original r
   bool Parse(const std::string& str, std::list<JobDescription>& jobdescs, const std::string& lang = "", const std::string& dialect = "") { return Arc::JobDescription::Parse(str, jobdescs, lang, dialect); }
 };
 
+/* In python, ignore the "product" argument from:
+ * JobDescriptionResult JobDescription::UnParse(std::string& product, std::string language, const std::string& dialect = "") const;
+ * Store a reference to it in the internal wrapped SWIG method, which
+ * is then used in the argout typemap.
+ */
+%typemap(in, numinputs=0) std::string& product (std::string temp) {
+  $1 = &temp;
+}
+
+/* In python, modify the return value of the JobDescription::UnParse
+ * method, it is matched on the "product" argument. Return a tuple with
+ * 2 items, original return value, and the string representation of the
+ * JobDescription in the specified target language.
+ */
+%typemap(argout) std::string& product {
+  $result = PyTuple_Pack(2, $result, SWIG_From_std_string(*$1));
+}
+
 %rename(_BrokerPluginTestACCControl) BrokerPluginTestACCControl;
 %rename(_JobDescriptionParserTestACCControl) JobDescriptionParserTestACCControl;
 %rename(_JobControllerTestACCControl) JobControllerTestACCControl;
