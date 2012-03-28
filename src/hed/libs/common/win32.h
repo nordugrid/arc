@@ -14,6 +14,11 @@
 #include <io.h>
 #include <winsock2.h>
 
+/* Windows redefines CreateDirectory in winbase.h */
+#ifdef CreateDirectory
+#undef CreateDirectory
+#endif
+
 #define SIGPIPE 13
 #define SIGTTIN 21
 #define SIGTTOU 22
