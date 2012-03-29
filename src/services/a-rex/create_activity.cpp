@@ -139,10 +139,10 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
 
 Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& clientid) {
   /*
-    CreateActivities
+    CreateActivity
       adl:ActivityDescription - http://www.eu-emi.eu/es/2010/12/adl 1-unbounded
 
-    CreateActivitiesResponse
+    CreateActivityResponse
       ActivityCreationResponse 1-
         types:ActivityID
         types:ActivityManagerURI
@@ -164,12 +164,12 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
   if(Arc::VERBOSE >= logger_.getThreshold()) {
     std::string s;
     in.GetXML(s);
-    logger_.msg(Arc::VERBOSE, "EMIES:CreateActivities: request = \n%s", s);
+    logger_.msg(Arc::VERBOSE, "EMIES:CreateActivity: request = \n%s", s);
   };
   Arc::XMLNode adl = in["ActivityDescription"];
   if(!adl) {
     // Wrongly formated request
-    logger_.msg(Arc::ERROR, "EMIES:CreateActivities: no job description found");
+    logger_.msg(Arc::ERROR, "EMIES:CreateActivity: no job description found");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"ActivityDescription element is missing");
     ESInternalBaseFault(fault,"ActivityDescription element is missing");
     out.Destroy();
@@ -177,14 +177,14 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
   };
   Arc::XMLNode adl2 = adl; ++adl2;
   if((bool)adl2) {
-    logger_.msg(Arc::ERROR, "EMIES:CreateActivities: too many job descriptions found");
+    logger_.msg(Arc::ERROR, "EMIES:CreateActivity: too many job descriptions found");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Too many ActivityDescription elements");
     ESVectorLimitExceededFault(fault,1,"Too many ActivityDescription elements");
     out.Destroy();
     return Arc::MCC_Status();
   };
   if(max_jobs_reached(*jobs_cfg_,all_jobs_count_)) {
-    logger_.msg(Arc::ERROR, "EMIES:CreateActivities: max jobs total limit reached");
+    logger_.msg(Arc::ERROR, "EMIES:CreateActivity: max jobs total limit reached");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Reached limit of total allowed jobs");
     ESInternalBaseFault(fault,"Reached limit of total allowed jobs");
     out.Destroy();
@@ -209,7 +209,7 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
         ESInvalidActivityDescriptionFault(fault,failure);
       }; break;
       default: {
-        logger_.msg(Arc::ERROR, "ES:CreateActivities: Failed to create new job: %s",failure);
+        logger_.msg(Arc::ERROR, "ES:CreateActivity: Failed to create new job: %s",failure);
         Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Failed to create new activity");
         ESInternalBaseFault(fault,failure);
       };
@@ -228,11 +228,11 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
   resp.NewChild("escreate:StageOutDirectory").NewChild("escreate:URL")=config.Endpoint()+"/"+job.ID();
   rstatus.NewChild("estypes:Timestamp")=Arc::Time().str(Arc::ISOTime);
   //rstatus.NewChild("estypes:Description")=;
-  logger_.msg(Arc::VERBOSE, "EMIES:CreateActivities finished successfully");
+  logger_.msg(Arc::VERBOSE, "EMIES:CreateActivity finished successfully");
   if(Arc::VERBOSE >= logger_.getThreshold()) {
     std::string s;
     out.GetXML(s);
-    logger_.msg(Arc::VERBOSE, "EMIES:CreateActivities: response = \n%s", s);
+    logger_.msg(Arc::VERBOSE, "EMIES:CreateActivity: response = \n%s", s);
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
 }

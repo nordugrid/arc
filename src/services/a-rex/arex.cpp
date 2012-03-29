@@ -158,7 +158,7 @@ ARexSecAttr::ARexSecAttr(const Arc::XMLNode op) {
     id_=AREX_POLICY_OPERATION_URN;
     action_=AREX_POLICY_OPERATION_INFO;
   } else if(MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
-    if(MatchXMLName(op,"CreateActivities")) {
+    if(MatchXMLName(op,"CreateActivity")) {
       id_=JOB_POLICY_OPERATION_URN;
       action_=JOB_POLICY_OPERATION_CREATE;
     }
@@ -626,9 +626,9 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       } else if(enableemies_ && MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
-        if(MatchXMLName(op,"CreateActivities")) {
+        if(MatchXMLName(op,"CreateActivity")) {
           CountedResourceLock cl_lock(beslimit_);
-          ESCreateActivities(*config,op,ESCreateResponse(res,"CreateActivities"),clientid);
+          ESCreateActivities(*config,op,ESCreateResponse(res,"CreateActivity"),clientid);
         } else {
           SOAP_NOT_SUPPORTED;
         }

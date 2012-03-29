@@ -177,15 +177,15 @@ namespace Arc {
   }
 
   bool EMIESClient::submit(const std::string& jobdesc, EMIESJob& job, EMIESJobState& state, bool delegate) {
-    std::string action = "CreateActivities";
+    std::string action = "CreateActivity";
     logger.msg(VERBOSE, "Creating and sending job submit request to %s", rurl.str());
 
     // Create job request
     /*
-       escreate:CreateActivities
+       escreate:CreateActivity
          esadl:ActivityDescription
 
-       escreate:CreateActivitiesResponse
+       escreate:CreateActivityResponse
          escreate:ActivityCreationResponse
            estypes:ActivityID
            estypes:ActivityManagerURI
