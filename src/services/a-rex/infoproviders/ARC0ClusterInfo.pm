@@ -299,8 +299,8 @@ sub collect($) {
             } else {
                 $q->{status} = 'active';
             }
-            push @{$q->{comment}}, $sconfig->{Description} if $sconfig->{Description};
-            push @{$q->{comment}}, $sconfig->{OtherInfo} if $sconfig->{OtherInfo};
+            $q->{comment}=$sconfig->{Description} if $sconfig->{Description};
+            $q->{comment}="$q->{comment}, OtherInfo: ".@$sconfig->{OtherInfo} if $sconfig->{OtherInfo};
             $q->{schedulingpolicy} = $sconfig->{SchedulingPolicy} if $sconfig->{SchedulingPolicy};
             if (defined $sconfig->{Homogeneous}) {
                 $q->{homogeneity} = $sconfig->{Homogeneous} ? 'TRUE' : 'FALSE';
