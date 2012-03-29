@@ -27,6 +27,12 @@
 #include <iterator>
 %}
 
+/* Swig does not offer any bindings of the std::list template class, so
+ * below a implementation is done which offers basic looping and element
+ * access support, i.e. through the std::list and listiteratorhandler
+ * classes.
+ */
+
 namespace std {
     template<class T> class list {
       public:

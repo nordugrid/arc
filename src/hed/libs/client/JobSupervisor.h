@@ -363,10 +363,13 @@ namespace Arc {
     std::list<Job> GetSelectedJobs() const;
 
     void SelectValid();
+    void SelectByStatus(const std::string& status) { SelectByStatus(std::list<std::string>(1, status)); }
     void SelectByStatus(const std::list<std::string>& status);
+    void SelectByStatus(const JobState& status) { SelectByStatus(std::list<JobState>(1, status)); }
+    void SelectByStatus(const std::list<JobState>& status);
 
     void ClearSelection();
-    
+
     const std::list<URL>& GetIDsProcessed() const { return processed; }
     const std::list<URL>& GetIDsNotProcessed() const { return notprocessed; }
 
