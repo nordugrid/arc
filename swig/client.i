@@ -77,7 +77,6 @@
 %template(GLUE2EntityComputingServiceAttributes) Arc::GLUE2Entity<Arc::ComputingServiceAttributes>;
 %template(CPComputingServiceAttributes) Arc::CountedPointer<Arc::ComputingServiceAttributes>;
 
-
 #ifdef SWIGJAVA
 %ignore Arc::SoftwareRequirement::getComparisonOperatorList() const;
 
@@ -96,7 +95,6 @@
 %template(BrokerListIteratorHandler) listiteratorhandler<Arc::Broker*>;
 %template(SubmitterListIteratorHandler) listiteratorhandler<Arc::Submitter*>;
 #endif
-
 
 #ifdef SWIGPYTHON
 namespace Arc {
@@ -118,24 +116,6 @@ the first member will be the '*response' and the second member is the original r
     PyTuple_SetItem(tuple,0,o);
     PyTuple_SetItem(tuple,1,$result);
     $result = tuple;
-}
-
-/* In python, ignore the "product" argument from:
- * JobDescriptionResult JobDescription::UnParse(std::string& product, std::string language, const std::string& dialect = "") const;
- * Store a reference to it in the internal wrapped SWIG method, which
- * is then used in the argout typemap.
- */
-%typemap(in, numinputs=0) std::string& product (std::string temp) {
-  $1 = &temp;
-}
-
-/* In python, modify the return value of the JobDescription::UnParse
- * method, it is matched on the "product" argument. Return a tuple with
- * 2 items, original return value, and the string representation of the
- * JobDescription in the specified target language.
- */
-%typemap(argout) std::string& product {
-  $result = PyTuple_Pack(2, $result, SWIG_From_std_string(*$1));
 }
 
 %rename(_BrokerPluginTestACCControl) BrokerPluginTestACCControl;
@@ -182,9 +162,20 @@ std::ostream& getStdout() {
 #endif
 
 %include "../src/hed/libs/client/ClientInterface.h"
-%apply std::string& INOUT { std::string& delegation_id };
+#ifdef SWIGPYTHON
+%apply std::string& OUTPUT { std::string& delegation_id };
+/* Currently applies to:
+ * bool ClientX509Delegation::createDelegation(DelegationType deleg, std::string& delegation_id);
+ * bool ClientX509Delegation::acquireDelegation(DelegationType deleg, std::string& delegation_cred, std::string& delegation_id,
+                                                const std::string cred_identity = "", const std::string cred_delegator_ip = "",
+                                                const std::string username = "", const std::string password = "");
+ * Look in Arc.i for a description of the OUTPUT typemap.
+ */
+#endif
 %include "../src/hed/libs/client/ClientX509Delegation.h"
+#ifdef SWIGPYTHON
 %clear std::string& delegation_id;
+#endif
 %include "../src/hed/libs/client/Submitter.h"
 %include "../src/hed/libs/client/Software.h"
 %include "../src/hed/libs/client/Endpoint.h"
@@ -193,7 +184,16 @@ std::ostream& getStdout() {
 %include "../src/hed/libs/client/Job.h"
 %include "../src/hed/libs/client/Broker.h"
 %include "../src/hed/libs/client/JobController.h"
+#ifdef SWIGPYTHON
+%apply std::string& OUTPUT { std::string& product };
+/* ... applies to:
+ * JobDescriptionResult JobDescription::UnParse(std::string& product, std::string language, const std::string& dialect = "") const;
+ */
+#endif
 %include "../src/hed/libs/client/JobDescription.h"
+#ifdef SWIGPYTHON
+%clear std::string& product;
+#endif
 %include "../src/hed/libs/client/JobSupervisor.h"
 %include "../src/hed/libs/client/EndpointQueryingStatus.h"
 %include "../src/hed/libs/client/TestACCControl.h"

@@ -167,7 +167,7 @@ namespace Arc {
  * the string reference does not contain any input to the function being
  * called.
  **/
-%typemap(in, numinputs=0) std::string& content (std::string str) {
+%typemap(in, numinputs=0) std::string& OUTPUT (std::string str) {
   $1 = &str;
 }
 
@@ -175,12 +175,8 @@ namespace Arc {
  * Return the original return value and the temporary string reference
  * combined in a Python tuple.
  **/
-%typemap(argout) std::string& content {
-  PyObject *tuple;
-  tuple = PyTuple_New(2);
-  PyTuple_SetItem(tuple,0,$result);
-  PyTuple_SetItem(tuple,1,Py_BuildValue("s",$1->c_str()));
-  $result = tuple;
+%typemap(argout) std::string& OUTPUT {
+  $result = PyTuple_Pack(2, $result, SWIG_From_std_string(*$1));
 }
 }
 
