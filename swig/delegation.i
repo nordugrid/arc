@@ -14,10 +14,10 @@
 #endif
 
 #ifdef SWIGPYTHON
-%apply std::string& OUTPUT { std::string& credentials };
-%apply std::string& OUTPUT { std::string& identity };
+%apply std::string& TUPLEOUTPUTSTRING { std::string& credentials };
+%apply std::string& TUPLEOUTPUTSTRING { std::string& identity };
 
-%apply std::string& OUTPUT { std::string& content };
+%apply std::string& TUPLEOUTPUTSTRING { std::string& content };
 /* ... applies to:
  * bool DelegationConsumer::Backup(std::string& content);
  * bool DelegationConsumer::Request(std::string& content);

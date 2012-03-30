@@ -163,7 +163,7 @@ std::ostream& getStdout() {
 
 %include "../src/hed/libs/client/ClientInterface.h"
 #ifdef SWIGPYTHON
-%apply std::string& OUTPUT { std::string& delegation_id };
+%apply std::string& TUPLEOUTPUTSTRING { std::string& delegation_id };
 /* Currently applies to:
  * bool ClientX509Delegation::createDelegation(DelegationType deleg, std::string& delegation_id);
  * bool ClientX509Delegation::acquireDelegation(DelegationType deleg, std::string& delegation_cred, std::string& delegation_id,
@@ -185,7 +185,7 @@ std::ostream& getStdout() {
 %include "../src/hed/libs/client/Broker.h"
 %include "../src/hed/libs/client/JobController.h"
 #ifdef SWIGPYTHON
-%apply std::string& OUTPUT { std::string& product };
+%apply std::string& TUPLEOUTPUTSTRING { std::string& product };
 /* ... applies to:
  * JobDescriptionResult JobDescription::UnParse(std::string& product, std::string language, const std::string& dialect = "") const;
  */
