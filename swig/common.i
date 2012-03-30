@@ -38,12 +38,11 @@
 %ignore Arc::XMLNode::NewChild(const std::string&, int);
 %ignore Arc::XMLNode::NewChild(const std::string&, NS const&, int);
 %ignore Arc::XMLNode::NewChild(const std::string&, NS const&);
-%ignore Name(const char*);
-%ignore Attribute(const char*) const;
-%ignore NewAttribute(const char*);
-%ignore NewChild(const char*, int, bool);
-%ignore NewChild(const char*, const NS&, int, bool);
-%ignore Config(const char*);
+%ignore Arc::XMLNode::Name(const char*);
+%ignore Arc::XMLNode::Attribute(const char*);
+%ignore Arc::XMLNode::NewAttribute(const char*);
+%ignore Arc::XMLNode::NewChild(const char*, int, bool);
+%ignore Arc::XMLNode::NewChild(const char*, const NS&, int, bool);
 #endif
 %{
 #include <arc/XMLNode.h>
@@ -61,6 +60,9 @@
 
 // Wrap contents of <arc/ArcConfig.h>
 %rename(_print) Arc::Config::print;
+#ifdef SWIGJAVA
+%ignore Arc::Config::Config(const char*);
+#endif
 %{
 #include <arc/ArcConfig.h>
 %}
