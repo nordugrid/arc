@@ -498,7 +498,7 @@ int main(int argc, char *argv[]) {
 
   // Set default, predefined or guessed credentials. Also check if they exist.
   Arc::UserConfig usercfg(conffile,
-        Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCARequireCredentials));//TryCredentials));
+        Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization.");
     return EXIT_FAILURE;
