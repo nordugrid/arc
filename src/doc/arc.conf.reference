@@ -706,7 +706,26 @@ gridmap="/etc/grid-security/grid-mapfile"
 # enabled the interface can be accessed at the URL specified in 
 # arex_mount_point (this option must also be specified)
 #enable_emies_interface="yes"
-# 
+#
+# arguspep_endpoint - specifies URL of Argus PEPD service to use for 
+# authorization and user mapping. If specified Argus is contacted
+# for every operation requested through WS interface (see arex_mount_point).
+#arguspep_endpoint="https://argus.hostname:port/path"
+#
+# arguspep_profile - defines which communication profile to use while communicationg
+# with Argus PEPD service. Possible values are:
+#  direct - pass all authorization attributes (only for debugging)
+#  subject - pass only subject name of client
+#  cream - makes A-REX pretend it is gLite CREAM service. This is default 
+#    and currently recommended profile.
+#  emi - new profile devloped in EMI project
+#arguspep_profile="cream"
+#
+# arguspep_usermap - specifies either response from Argus servie may define mapping
+# of client to local account. Possible values are 'yes' and 'no'. Default is 'no'.
+# Argus is contacted after all other user mapping is performed. Hence it can 
+# overwrite all other decisions.
+#arguspep_usermap="no"
 #
 ####################################################################
 #
