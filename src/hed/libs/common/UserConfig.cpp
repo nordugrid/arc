@@ -327,7 +327,48 @@ namespace Arc {
 #else
     std::string home_path = Glib::get_home_dir();
 #endif
+    bool has_proxy = false;
     // Look for credentials.
+    std::string proxy_path = GetEnv("X509_USER_PROXY");
+    if (!proxy_path.empty()) {
+      proxyPath = proxy_path;     
+      if (test && !private_file_test(proxyPath, user)) {
+        if(require) {
+          logger.msg(ERROR, "Can not access proxy file: %s", proxyPath);
+          //res = false;
+        }
+        proxyPath.clear();
+      } else {
+        has_proxy = true;
+      }
+    } else if (!proxyPath.empty()) {
+      if (test && !private_file_test(proxyPath, user)) {
+        if(require) {
+          logger.msg(ERROR, "Can not access proxy file: %s", proxyPath);
+          //res = false;
+        }
+        proxyPath.clear();
+      } else {
+        has_proxy = true;
+      }
+    } else {
+      proxy_path = Glib::build_filename(Glib::get_tmp_dir(),
+                             std::string("x509up_u") + tostring(user.get_uid()));
+      proxyPath = proxy_path;
+      if (test && !private_file_test(proxyPath, user)) {
+        if (require) {
+          // TODO: Maybe this message should be printed only after checking for key/cert
+          logger.msg(WARNING, "Proxy file does not exist: %s ", proxyPath);
+          // This is not error yet because there may be key/credentials
+          //res = false;
+        }
+        proxyPath.clear();
+      } else {
+        has_proxy = true;
+      }
+    }
+
+    if(has_proxy) require = false;
     // Should we really handle them in pairs
     std::string cert_path = GetEnv("X509_USER_CERT");
     std::string key_path = GetEnv("X509_USER_KEY");
@@ -335,7 +376,7 @@ namespace Arc {
       certificatePath = cert_path;
       if (test && !user_file_test(certificatePath, user)) {
         if(require) {
-          logger.msg(require?ERROR:VERBOSE, "Can not access certificate file: %s, please make sure the file permission is set to 644", certificatePath);
+          logger.msg(require?ERROR:VERBOSE, "Can not access certificate file: %s", certificatePath);
           res = false;
         }
         certificatePath.clear();
@@ -343,7 +384,7 @@ namespace Arc {
       keyPath = key_path;
       if (test && !private_file_test(keyPath, user)) {
         if(require) {
-          logger.msg(require?ERROR:VERBOSE, "Can not access key file: %s, please make sure the file permission is set to 600", keyPath);
+          logger.msg(require?ERROR:VERBOSE, "Can not access key file: %s", keyPath);
           res = false;
         }
         keyPath.clear();
@@ -351,14 +392,14 @@ namespace Arc {
     } else if (!certificatePath.empty() && !keyPath.empty()) {
       if (test && !user_file_test(certificatePath, user)) {
         if(require) {
-          logger.msg(require?ERROR:VERBOSE, "Can not access certificate file: %s, please make sure the file permission is set to 644", certificatePath);
+          logger.msg(require?ERROR:VERBOSE, "Can not access certificate file: %s", certificatePath);
           res = false;
         }
         certificatePath.clear();
       }
       if (test && !private_file_test(keyPath, user)) {
         if(require) {
-          logger.msg(require?ERROR:VERBOSE, "Can not access key file: %s, please make sure the file permission is set to 600", keyPath);
+          logger.msg(require?ERROR:VERBOSE, "Can not access key file: %s", keyPath);
           res = false;
         }
         keyPath.clear();
@@ -403,39 +444,6 @@ namespace Arc {
           }
         }
       }
-    }
-    
-    //If credential is required and yet the cert/key is not found,
-    //we have to check the existence of the proxy
-    std::string proxy_path = GetEnv("X509_USER_PROXY");
-    if (!proxy_path.empty()) {
-      proxyPath = proxy_path;
-      if (!res && test && !private_file_test(proxyPath, user)) {
-        if(require) {
-          logger.msg(ERROR, "Can not access proxy file: %s", proxyPath);
-          res = false;
-        }
-        proxyPath.clear();
-      } 
-    } else if (!proxyPath.empty()) {
-      if (!res && test && !private_file_test(proxyPath, user)) {
-        if(require) {
-          logger.msg(ERROR, "Can not access proxy file: %s", proxyPath);
-          res = false;
-        }
-        proxyPath.clear();
-      } 
-    } else {
-      proxy_path = Glib::build_filename(Glib::get_tmp_dir(),
-                               std::string("x509up_u") + tostring(user.get_uid()));
-      proxyPath = proxy_path;
-      if (!res && test && !private_file_test(proxyPath, user)) {
-        if (require) {
-          logger.msg(WARNING, "Proxy file does not exist: %s ", proxyPath);
-          res = false;
-        }
-        proxyPath.clear();
-      } 
     }
 
     if(!noca) {
