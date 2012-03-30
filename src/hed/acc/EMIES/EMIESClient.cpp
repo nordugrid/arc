@@ -329,8 +329,8 @@ namespace Arc {
     esrinfo:GetResourceInfo
 
     esrinfo:GetResourceInfoResponse">
-      glue2:ComputingService
-      glue2:ActivityManager
+      esrinfo:ComputingService - glue:ComputingService_t
+      esrinfo:ActivityManager - glue:Service_t
     */
     std::string action = "GetResourceInfo";
     logger.msg(VERBOSE, "Creating and sending service information query request to %s", rurl.str());
@@ -341,12 +341,8 @@ namespace Arc {
     if (!process(req, false, response)) return false;
 
     response.Namespaces(ns);
-    XMLNode service = response["glue2:ComputingService"];
-    XMLNode manager = response["glue2:ActivityManager"];
-    if(!service) service = response["glue2pre:ComputingService"];
-    if(!manager) manager = response["glue2pre:ActivityManager"];
-    if(!service) service = response["glue2d:ComputingService"];
-    if(!manager) manager = response["glue2d:ActivityManager"];
+    XMLNode service = response["ComputingService"]; // esrinfo:ComputingService
+    XMLNode manager = response["ActivityManager"];  // esrinfo:ActivityManager
     if(!service) {
       logger.msg(VERBOSE, "Missing ComputingService in response from %s", rurl.str());
       return false;
@@ -355,6 +351,23 @@ namespace Arc {
       logger.msg(VERBOSE, "Missing ActivityManager in response from %s", rurl.str());
       return false;
     }
+    // Converting elements to glue2 namespace so it canbe used by any glue2 parser
+    std::string prefix;
+    for(int n = 0;;++n) {
+      XMLNode c = service.Child(n);
+      if((c.Prefix() == "glue2") || (c.Prefix() == "glue2pre") || (c.Prefix() == "glue2d")) {
+        prefix=c.Prefix(); break;
+      };
+    };
+    if(prefix.empty()) for(int n = 0;;++n) {
+      XMLNode c = manager.Child(n);
+      if((c.Prefix() == "glue2") || (c.Prefix() == "glue2pre") || (c.Prefix() == "glue2d")) {
+        prefix=c.Prefix(); break;
+      };
+    };
+    if(prefix.empty()) prefix="glue2";
+    service.Name(prefix+":ComputingService");
+    manager.Name(prefix+":ActivityManager");
     return true;
   }
 

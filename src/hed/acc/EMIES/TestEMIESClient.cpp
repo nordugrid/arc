@@ -50,7 +50,7 @@ void print(const std::list<EMIESJob>& jobs) {
 }
 
 void FillJob(EMIESJob& job, int argc, char* argv[]) {
-    if(argc < 4) exit(1);
+    if(argc < 4) usage();
     URL url(argv[2]);
     std::string id = argv[3];
     job.manager = url;
@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
       return 1;
     };
     std::string s;
-    info.GetDoc(s);
+    info.GetXML(s,true);
     std::cout<<s<<std::endl;
   } else if(command == "submit") {
     if(argc < 4) usage();
