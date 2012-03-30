@@ -465,13 +465,29 @@ Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode
   Arc::XMLNode service = doc["Domains"]["AdminDomain"]["Services"]["ComputingService"];
   if(!service) {
     service = doc["Domains"]["AdminDomain"]["ComputingService"];
-    if(!service) {
-      ESFAULT("Missing ComputingService in resource information");
-    };
+    //if(!service) {
+    //  ESFAULT("Missing ComputingService in resource information");
+    //};
   };
-  service = out.NewChild(service);
-  //service.Name("glue2:ComputingService");
-  out.NewChild("glue2:ActivityManager");
+  Arc::XMLNode manager = doc["Domains"]["AdminDomain"]["Services"]["Service"];
+  if(!manager) {
+    manager = doc["Domains"]["AdminDomain"]["Service"];
+    //if(!manager) {
+    //  ESFAULT("Missing Service in resource information");
+    //};
+  };
+  if(service) {
+    service = out.NewChild(service);
+    service.Name("esrinfo:ComputingService");
+  } else {
+    service.NewChild("esrinfo:ComputingService");
+  }
+  if(manager) {
+    manager = out.NewChild(manager);
+    manager.Name("esrinfo:ActivityManager");
+  } else {
+    service.NewChild("esrinfo:ActivityManager");
+  }
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
