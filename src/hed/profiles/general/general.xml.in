@@ -413,6 +413,7 @@ attributes depending on how the mapping should be done.
         <ip:ProviderLog inisections="arex/info" initag="providerlog" inidefaultvalue="/var/log/arc/infoprovider.log"/>
 
         <ip:ClusterName inisections="arex/info" initag="clustername"/>
+        <ip:ClusterAlias inisections="arex/info" initag="clusteralias"/>
         <ip:OtherInfo initype="multi" inisections="arex/info" initag="otherinfo"/>
         <ip:AdminDomain inisections="arex/info" initag="admindomain"/>
         <ip:StatusInfo initype="multi" inisections="arex/info" initag="statusinfo"/>
