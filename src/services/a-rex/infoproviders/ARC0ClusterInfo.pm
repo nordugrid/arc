@@ -300,7 +300,10 @@ sub collect($) {
                 $q->{status} = 'active';
             }
             $q->{comment}=$sconfig->{Description} if $sconfig->{Description};
-            $q->{comment}="$q->{comment}, OtherInfo: ".@$sconfig->{OtherInfo} if $sconfig->{OtherInfo};
+            if ( defined $sconfig->{OtherInfo}) {
+              my @sotherinfo = @{ $sconfig->{OtherInfo} };
+              $q->{comment} = "$q->{comment}, OtherInfo: @sotherinfo";
+            }
             $q->{schedulingpolicy} = $sconfig->{SchedulingPolicy} if $sconfig->{SchedulingPolicy};
             if (defined $sconfig->{Homogeneous}) {
                 $q->{homogeneity} = $sconfig->{Homogeneous} ? 'TRUE' : 'FALSE';
