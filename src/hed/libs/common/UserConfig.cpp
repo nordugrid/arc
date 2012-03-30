@@ -35,34 +35,76 @@
 
 namespace Arc {
 
+  typedef enum {
+    file_test_missing,
+    file_test_not_file,
+    file_test_wrong_ownership,
+    file_test_wrong_permissions,
+    file_test_success
+  } file_test_status;
+
 #ifndef WIN32
-  static bool user_file_test(const std::string& path, const User& user) {
+  static file_test_status user_file_test(const std::string& path, const User& user) {
     struct stat st;
-    if(::stat(path.c_str(),&st) != 0) return false;
-    if(!S_ISREG(st.st_mode)) return false;
-    if(user.get_uid() != st.st_uid) return false;
-    return true;
+    if(::stat(path.c_str(),&st) != 0) return file_test_missing;
+    if(!S_ISREG(st.st_mode)) return file_test_not_file;
+    if(user.get_uid() != st.st_uid) return file_test_wrong_ownership;
+    return file_test_success;
   }
 
-  static bool private_file_test(const std::string& path, const User& user) {
+  static file_test_status private_file_test(const std::string& path, const User& user) {
     struct stat st;
-    if(::stat(path.c_str(),&st) != 0) return false;
-    if(!S_ISREG(st.st_mode)) return false;
-    if(user.get_uid() != st.st_uid) return false;
-    if(st.st_mode & (S_IRWXG | S_IRWXO)) return false;
-    return true;
+    if(::stat(path.c_str(),&st) != 0) return file_test_missing;
+    if(!S_ISREG(st.st_mode)) return file_test_not_file;
+    if(user.get_uid() != st.st_uid) return file_test_wrong_ownership;
+    if(st.st_mode & (S_IRWXG | S_IRWXO)) return file_test_wrong_permissions;
+    return file_test_success;
   }
 #else
-  static bool user_file_test(const std::string& path, const User& /*user*/) {
+  static file_test_status user_file_test(const std::string& path, const User& /*user*/) {
     // TODO: implement
-    return Glib::file_test(path, Glib::FILE_TEST_IS_REGULAR);
+    if(!Glib::file_test(path, Glib::FILE_TEST_EXISTS)) return file_test_missing;
+    if(!Glib::file_test(path, Glib::FILE_TEST_IS_REGULAR)) return file_test_not_file;
+    return file_test_success;
   }
 
-  static bool private_file_test(const std::string& path, const User& /*user*/) {
+  static file_test_status private_file_test(const std::string& path, const User& /*user*/) {
     // TODO: implement
-    return Glib::file_test(path, Glib::FILE_TEST_IS_REGULAR);
+    if(!Glib::file_test(path, Glib::FILE_TEST_EXISTS)) return file_test_missing;
+    if(!Glib::file_test(path, Glib::FILE_TEST_IS_REGULAR)) return file_test_not_file;
+    return file_test_success;
   }
 #endif
+
+  static void certificate_file_error_report(file_test_status fts, bool require, const std::string& path, Logger& logger) {
+    if(fts == file_test_wrong_ownership) {
+      logger.msg(require?ERROR:VERBOSE, "Wrong ownership of certificate file: %s", path);
+    } else if(fts == file_test_wrong_permissions) {
+      logger.msg(require?ERROR:VERBOSE, "Wrong permissions of certificate file: %s", path);
+    } else {
+      logger.msg(require?ERROR:VERBOSE, "Can not access certificate file: %s", path);
+    }
+  }
+
+  static void key_file_error_report(file_test_status fts, bool require, const std::string& path, Logger& logger) {
+    if(fts == file_test_wrong_ownership) {
+      logger.msg(require?ERROR:VERBOSE, "Wrong ownership of key file: %s", path);
+    } else if(fts == file_test_wrong_permissions) {
+      logger.msg(require?ERROR:VERBOSE, "Wrong permissions of key file: %s", path);
+    } else {
+      logger.msg(require?ERROR:VERBOSE, "Can not access key file: %s", path);
+    }
+  }
+
+  static void proxy_file_error_report(file_test_status fts, bool require, const std::string& path, Logger& logger) {
+    if(fts == file_test_wrong_ownership) {
+      logger.msg(require?ERROR:VERBOSE, "Wrong ownership of proxy file: %s", path);
+    } else if(fts == file_test_wrong_permissions) {
+      logger.msg(require?ERROR:VERBOSE, "Wrong permissions of proxy file: %s", path);
+    } else {
+      logger.msg(require?ERROR:VERBOSE, "Can not access proxy file: %s", path);
+    }
+  }
 
   static bool dir_test(const std::string& path) {
     return Glib::file_test(path, Glib::FILE_TEST_IS_DIR);
@@ -332,9 +374,10 @@ namespace Arc {
     std::string proxy_path = GetEnv("X509_USER_PROXY");
     if (!proxy_path.empty()) {
       proxyPath = proxy_path;     
-      if (test && !private_file_test(proxyPath, user)) {
+      file_test_status fts;
+      if (test && ((fts = private_file_test(proxyPath, user)) != file_test_success)) {
         if(require) {
-          logger.msg(ERROR, "Can not access proxy file: %s", proxyPath);
+          proxy_file_error_report(fts,require,proxyPath,logger);
           //res = false;
         }
         proxyPath.clear();
@@ -342,9 +385,10 @@ namespace Arc {
         has_proxy = true;
       }
     } else if (!proxyPath.empty()) {
-      if (test && !private_file_test(proxyPath, user)) {
+      file_test_status fts;
+      if (test && ((fts = private_file_test(proxyPath, user)) != file_test_success)) {
         if(require) {
-          logger.msg(ERROR, "Can not access proxy file: %s", proxyPath);
+          proxy_file_error_report(fts,require,proxyPath,logger);
           //res = false;
         }
         proxyPath.clear();
@@ -355,10 +399,11 @@ namespace Arc {
       proxy_path = Glib::build_filename(Glib::get_tmp_dir(),
                              std::string("x509up_u") + tostring(user.get_uid()));
       proxyPath = proxy_path;
-      if (test && !private_file_test(proxyPath, user)) {
+      file_test_status fts;
+      if (test && ((fts = private_file_test(proxyPath, user)) != file_test_success)) {
         if (require) {
           // TODO: Maybe this message should be printed only after checking for key/cert
-          logger.msg(WARNING, "Proxy file does not exist: %s ", proxyPath);
+          proxy_file_error_report(fts,require,proxyPath,logger);
           // This is not error yet because there may be key/credentials
           //res = false;
         }
@@ -374,32 +419,34 @@ namespace Arc {
     std::string key_path = GetEnv("X509_USER_KEY");
     if (!cert_path.empty() && !key_path.empty()) {
       certificatePath = cert_path;
-      if (test && !user_file_test(certificatePath, user)) {
+      file_test_status fts;
+      if (test && ((fts = user_file_test(certificatePath, user)) != file_test_success)) {
+        certificate_file_error_report(fts,require,certificatePath,logger);
         if(require) {
-          logger.msg(require?ERROR:VERBOSE, "Can not access certificate file: %s", certificatePath);
           res = false;
         }
         certificatePath.clear();
       }
       keyPath = key_path;
-      if (test && !private_file_test(keyPath, user)) {
+      if (test && ((fts = private_file_test(keyPath, user)) != file_test_success)) {
         if(require) {
-          logger.msg(require?ERROR:VERBOSE, "Can not access key file: %s", keyPath);
+          key_file_error_report(fts,require,keyPath,logger);
           res = false;
         }
         keyPath.clear();
       }
     } else if (!certificatePath.empty() && !keyPath.empty()) {
-      if (test && !user_file_test(certificatePath, user)) {
+      file_test_status fts;
+      if (test && ((fts = user_file_test(certificatePath, user)) != file_test_success)) {
+        certificate_file_error_report(fts,require,certificatePath,logger);
         if(require) {
-          logger.msg(require?ERROR:VERBOSE, "Can not access certificate file: %s", certificatePath);
           res = false;
         }
         certificatePath.clear();
       }
-      if (test && !private_file_test(keyPath, user)) {
+      if (test && ((fts = private_file_test(keyPath, user)) != file_test_success)) {
         if(require) {
-          logger.msg(require?ERROR:VERBOSE, "Can not access key file: %s", keyPath);
+          key_file_error_report(fts,require,keyPath,logger);
           res = false;
         }
         keyPath.clear();
