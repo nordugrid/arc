@@ -506,12 +506,9 @@ int main(int argc, char *argv[]) {
   // Check for needed credentials objects
   // Can proxy be used for? Could not find it in documentation.
   // Key and certificate not needed if only printing proxy information
-  if(usercfg.CertificatePath().empty() && !info) {
-    logger.msg(Arc::ERROR, "Failed to find certificate.");
-    return EXIT_FAILURE;
-  }
-  if(usercfg.KeyPath().empty() && !info) {
-    logger.msg(Arc::ERROR, "Failed to find private key.");
+  if((usercfg.CertificatePath().empty() || usercfg.KeyPath().empty()) && !info) {
+    logger.msg(Arc::ERROR, "Failed to find certificate and/or private key or files have improper permissions or ownership.");
+    logger.msg(Arc::ERROR, "You may try to increase verbosity to get more information.");
     return EXIT_FAILURE;
   }
   if(!vomslist.empty() || !myproxy_command.empty()) {
@@ -521,6 +518,7 @@ int main(int argc, char *argv[]) {
       logger.msg(Arc::ERROR, "Cannot find the CA certificates directory path, "
                  "please set environment variable X509_CERT_DIR, "
                  "or cacertificatesdirectory in a configuration file.");
+      logger.msg(Arc::ERROR, "You may try to increase verbosity to get more information.");
       logger.msg(Arc::ERROR, "The CA certificates directory is required for "
                  "contacting VOMS and MyProxy servers.");
       return EXIT_FAILURE;
