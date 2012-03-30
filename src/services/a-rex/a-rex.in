@@ -345,6 +345,29 @@ prepare() {
         fi
     fi
 
+    argus_shc=""
+    argus_plugin=""
+    arguspep_endpoint=`readconfigvar "$ARC_CONFIG" grid-manager arguspep_endpoint`
+    if [ ! -z "$arguspep_endpoint" ]; then
+      argus_plugin="<Plugins><Name>arguspep</Name></Plugins>"
+      arguspep_profile=`readconfigvar "$ARC_CONFIG" grid-manager arguspep_profile`
+      if [ -z "$arguspep_profile" ]; then arguspep_profile="cream"; fi
+      arguspep_usermap=`readconfigvar "$ARC_CONFIG" grid-manager arguspep_usermap`
+      if [ -z "$arguspep_usermap" ]; then arguspep_usermap="false"; fi
+      if [ "$arguspep_usermap" = "yes" ]; then arguspep_usermap="true"; fi
+      if [ "$arguspep_usermap" = "no" ]; then arguspep_usermap="false"; fi
+      argus_shc="\
+<!-- Perform client authorization and mapping according to Argus -->
+<SecHandler name=\"arguspep.map\" id=\"argus\" event=\"incoming\">
+  <PEPD>$arguspep_endpoint</PEPD>
+  <Conversion>$arguspep_profile</Conversion>
+  <KeyPath>$X509_USER_KEY</KeyPath>
+  <CertificatePath>$X509_USER_CERT</CertificatePath>
+  <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>
+  <AcceptMapping>$arguspep_usermap</AcceptMapping>
+</SecHandler>"
+    fi
+
     AREX_CONFIG=`mktemp -t arex.xml.XXXXXX`
     if [ -z "$AREX_CONFIG" ] ; then
         log_failure_msg "Failed to create temporary file"
@@ -468,6 +491,7 @@ prepare() {
   <Plugins><Name>identitymap</Name></Plugins>
   <Plugins><Name>arcshc</Name></Plugins>
   <Plugins><Name>arcshclegacy</Name></Plugins>
+  $argus_plugin
   <Chain>
     <Component name=\"tcp.service\" id=\"tcp\">
       <next id=\"tls\"/>
@@ -522,6 +546,7 @@ prepare() {
             <BlockName>gridftpd</BlockName>
           </ConfigBlock>
       </SecHandler>
+      $argus_shc
       $arex_endpoint
       $enable_emies_interface
       $emir_registration
