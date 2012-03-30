@@ -1,39 +1,3 @@
-/**
- * Note that the order of the "%include" statements are important! If a
- * "%include" depends on other "%include"s, it should be placed after these
- * "%include" dependencies.
- */
-
-#ifdef SWIGJAVA
-/* The static logger object will always exist, so do not set any references. See
- * comments in Arc.i.
- */
-%typemap(javaout) Arc::Logger& Arc::Logger::getRootLogger() {
-  return new $javaclassname($jnicall, $owner);
-}
-#endif
-
-%{
-typedef long time_t;
-typedef unsigned int uint32_t;
-#include <arc/XMLNode.h>
-#include <arc/ArcConfig.h>
-#include <arc/ArcLocation.h>
-#include <arc/ArcVersion.h>
-#include <arc/IString.h>
-#include <arc/Logger.h>
-#include <arc/DateTime.h>
-#include <arc/URL.h>
-#include <arc/Utils.h>
-#include <arc/User.h>
-#include <arc/UserConfig.h>
-#include <arc/GUID.h>
-%}
-#ifdef SWIGPYTHON
-typedef long time_t;
-typedef unsigned int uint32_t;
-#endif
-%include <typemaps.i>
 %include <std_vector.i>
 
 %ignore operator !;
@@ -47,31 +11,26 @@ typedef unsigned int uint32_t;
 %ignore *::operator--;
 %ignore *::operator=;
 
+#ifdef SWIGJAVA
+%ignore *::operator==;
+%ignore *::operator!=;
+%ignore *::operator>>;
+%ignore *::operator<;
+%ignore *::operator>;
+%ignore *::operator<=;
+%ignore *::operator>=;
+%ignore *::operator+;
+%ignore *::operator-;
+#endif
+
+
+// Wrap contents of <arc/XMLNode.h>
 %ignore Arc::MatchXMLName;
 %ignore Arc::MatchXMLNamespace;
-
-// Ignoring functions from Utils.h since swig thinks they are methods of the CountedPointer class, and thus compilation fails.
-%ignore Arc::GetEnv;
-%ignore Arc::SetEnv;
-%ignore Arc::UnsetEnv;
-%ignore Arc::EnvLockAcquire;
-%ignore Arc::EnvLockRelease;
-%ignore Arc::EnvLockWrap;
-%ignore Arc::EnvLockUnwrap;
-%ignore Arc::EnvLockUnwrapComplete;
-%ignore Arc::EnvLockWrapper;
-%ignore Arc::StrError;
-%ignore PersistentLibraryInit;
-
-%template(XMLNodeList) std::list<Arc::XMLNode>;
-%template(URLList) std::list<Arc::URL>;
-%template(URLVector) std::vector<Arc::URL>;
-%template(URLListMap) std::map< std::string, std::list<Arc::URL> >;
-%template(URLLocationList) std::list<Arc::URLLocation>;
-%template(XMLNodePList) std::list<Arc::XMLNode*>;
-%template(LogDestinationList) std::list<Arc::LogDestination*>;
-
-
+#ifdef SWIGPYTHON
+%include <typemaps.i>
+%apply std::string& OUTPUT { std::string& out_xml_str };
+#endif
 #ifdef SWIGJAVA
 %ignore Arc::XMLNode::XMLNode(const char*);
 %ignore Arc::XMLNode::XMLNode(const char*, int);
@@ -85,99 +44,88 @@ typedef unsigned int uint32_t;
 %ignore NewChild(const char*, int, bool);
 %ignore NewChild(const char*, const NS&, int, bool);
 %ignore Config(const char*);
-
-
-%ignore *::operator==;
-%ignore *::operator!=;
-%ignore *::operator>>;
-%ignore *::operator<;
-%ignore *::operator>;
-%ignore *::operator<=;
-%ignore *::operator>=;
-%ignore *::operator+;
-%ignore *::operator-;
-
+#endif
+%{
+#include <arc/XMLNode.h>
+%}
+%include "../src/hed/libs/common/XMLNode.h"
+%template(XMLNodeList) std::list<Arc::XMLNode>;
+%template(XMLNodePList) std::list<Arc::XMLNode*>;
+#ifdef SWIGPYTHON
+%clear std::string& out_xml_str;
+#endif
+#ifdef SWIGJAVA
 %template(XMLNodePListIteratorHandler) listiteratorhandler<Arc::XMLNode*>;
-%template(LogDestinationListIteratorHandler) listiteratorhandler<Arc::LogDestination*>;
-%template(URLLocationListIteratorHandler) listiteratorhandler<Arc::URLLocation>;
 #endif
 
+
+// Wrap contents of <arc/ArcConfig.h>
 %rename(_print) Arc::Config::print;
-
-%apply std::string& OUTPUT { std::string& out_xml_str };
-%include "../src/hed/libs/common/XMLNode.h"
-%clear std::string& out_xml_str;
-
-
-/* Swig tries to create functions which return a new CountedPointer object.
- * Those functions takes no arguments, and since there is no default
- * constructor for the CountedPointer compilation fails.
- * Adding a "constructor" (used as a function in the cpp file) which
- * returns a new CountedPointer object with newed T object created
- * Ts default constructor. Thus if T has no default constructor,
- * another work around is needed in order to map that CountedPointer
- * wrapped class with swig.
- */
-%extend Arc::CountedPointer {
-  CountedPointer() { return new Arc::CountedPointer<T>(new T());}
-}
-
-
+%{
+#include <arc/ArcConfig.h>
+%}
 %include "../src/hed/libs/common/ArcConfig.h"
+
+
+// Wrap contents of <arc/ArcLocation.h>
+%{
+#include <arc/ArcLocation.h>
+%}
 %include "../src/hed/libs/common/ArcLocation.h"
+
+
+// Wrap contents of <arc/ArcVersion.h>
+%{
+#include <arc/ArcVersion.h>
+%}
 %include "../src/hed/libs/common/ArcVersion.h"
+
+
+// Wrap contents of <arc/IString.h>
+%{
+#include <arc/IString.h>
+%}
 %include "../src/hed/libs/common/IString.h"
-%rename(LogStream_ostream) LogStream;
-%include "../src/hed/libs/common/Logger.h"
-%include "../src/hed/libs/common/DateTime.h"
-%include "../src/hed/libs/common/URL.h"
-%include "../src/hed/libs/common/Utils.h"
-%include "../src/hed/libs/common/User.h"
-%include "../src/hed/libs/common/UserConfig.h"
-%include "../src/hed/libs/common/GUID.h"
 
 
+// Wrap contents of <arc/Logger.h>
+%rename(LogStream_ostream) Arc::LogStream;
 #ifdef SWIGPYTHON
+// Suppress warnings about unknown classes std::streambuf and std::ostream
+%warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) CPyOutbuf;
+%warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) CPyOstream;
 // code from: http://www.nabble.com/Using-std%3A%3Aistream-from-Python-ts7920114.html#a7923253
 %inline %{
-class CPyOutbuf : public std::streambuf
-{
+class CPyOutbuf : public std::streambuf {
 public:
-     CPyOutbuf(PyObject* obj) {
-         m_PyObj = obj;
-         Py_INCREF(m_PyObj);
-     }
-     ~CPyOutbuf() {
-         Py_DECREF(m_PyObj);
-     }
+  CPyOutbuf(PyObject* obj) : m_PyObj(obj) { Py_INCREF(m_PyObj); }
+  ~CPyOutbuf() { Py_DECREF(m_PyObj); }
 protected:
-     int_type overflow(int_type c) {
-         // Call to PyGILState_Ensure ensures there is Python
-         // thread state created/assigned.
-         PyGILState_STATE gstate = PyGILState_Ensure();
-         PyObject_CallMethod(m_PyObj, (char*) "write", (char*) "c", c);
-         PyGILState_Release(gstate);
-         return c;
-     }
-     std::streamsize xsputn(const char* s, std::streamsize count) {
-         // Call to PyGILState_Ensure ensures there is Python
-         // thread state created/assigned.
-         PyGILState_STATE gstate = PyGILState_Ensure();
-         PyObject_CallMethod(m_PyObj, (char*) "write", (char*) "s#", s, int(count));
-         PyGILState_Release(gstate);
-         return count;
-     }
-     PyObject* m_PyObj;
+  int_type overflow(int_type c) {
+    // Call to PyGILState_Ensure ensures there is Python
+    // thread state created/assigned.
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    PyObject_CallMethod(m_PyObj, (char*) "write", (char*) "c", c);
+    PyGILState_Release(gstate);
+    return c;
+  }
+  std::streamsize xsputn(const char* s, std::streamsize count) {
+    // Call to PyGILState_Ensure ensures there is Python
+    // thread state created/assigned.
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    PyObject_CallMethod(m_PyObj, (char*) "write", (char*) "s#", s, int(count));
+    PyGILState_Release(gstate);
+    return count;
+  }
+  PyObject* m_PyObj;
 };
 
-class CPyOstream : public std::ostream
-{
+class CPyOstream : public std::ostream {
 public:
-     CPyOstream(PyObject* obj) : std::ostream(&m_Buf), m_Buf(obj) {}
+  CPyOstream(PyObject* obj) : std::ostream(&m_Buf), m_Buf(obj) {}
 private:
-     CPyOutbuf m_Buf;
+  CPyOutbuf m_Buf;
 };
-
 %}
 
 %pythoncode %{
@@ -190,3 +138,99 @@ private:
 
 %}
 #endif
+#ifdef SWIGJAVA
+/* The static logger object will always exist, so do not set any references. See
+ * comments in Arc.i.
+ */
+%typemap(javaout) Arc::Logger& Arc::Logger::getRootLogger() {
+  return new $javaclassname($jnicall, $owner);
+}
+#endif
+%{
+#include <arc/Logger.h>
+%}
+%include "../src/hed/libs/common/Logger.h"
+%template(LogDestinationList) std::list<Arc::LogDestination*>;
+#ifdef SWIGJAVA
+%template(LogDestinationListIteratorHandler) listiteratorhandler<Arc::LogDestination*>;
+#endif
+
+
+// Wrap contents of <arc/DateTime.h>
+#ifdef SWIGPYTHON
+%inline %{
+typedef long time_t;
+typedef unsigned int uint32_t;
+%}  
+#endif
+%{
+#include <arc/DateTime.h>
+%}
+%include "../src/hed/libs/common/DateTime.h"
+
+
+// Wrap contents of <arc/URL.h>
+%{
+#include <arc/URL.h>
+%}
+%include "../src/hed/libs/common/URL.h"
+%template(URLList) std::list<Arc::URL>;
+%template(URLVector) std::vector<Arc::URL>;
+%template(URLListMap) std::map< std::string, std::list<Arc::URL> >;
+%template(URLLocationList) std::list<Arc::URLLocation>;
+#ifdef SWIGJAVA
+%template(URLLocationListIteratorHandler) listiteratorhandler<Arc::URLLocation>;
+#endif
+
+
+// Wrap contents of <arc/Utils.h>
+// Ignoring functions from Utils.h since swig thinks they are methods of the CountedPointer class, and thus compilation fails.
+%ignore Arc::GetEnv;
+%ignore Arc::SetEnv;
+%ignore Arc::UnsetEnv;
+%ignore Arc::EnvLockAcquire;
+%ignore Arc::EnvLockRelease;
+%ignore Arc::EnvLockWrap;
+%ignore Arc::EnvLockUnwrap;
+%ignore Arc::EnvLockUnwrapComplete;
+%ignore Arc::EnvLockWrapper;
+%ignore Arc::StrError;
+%ignore PersistentLibraryInit;
+/* Swig tries to create functions which return a new CountedPointer object.
+ * Those functions takes no arguments, and since there is no default
+ * constructor for the CountedPointer compilation fails.
+ * Adding a "constructor" (used as a function in the cpp file) which
+ * returns a new CountedPointer object with newed T object created
+ * Ts default constructor. Thus if T has no default constructor,
+ * another work around is needed in order to map that CountedPointer
+ * wrapped class with swig.
+ */
+%extend Arc::CountedPointer {
+  CountedPointer() { return new Arc::CountedPointer<T>(new T());}
+}
+%{
+#include <arc/Utils.h>
+%}
+%include "../src/hed/libs/common/Utils.h"
+
+
+// Wrap contents of <arc/User.h>
+%{
+#include <arc/User.h>
+%}
+%include "../src/hed/libs/common/User.h"
+
+
+// Wrap contents of <arc/UserConfig.h>
+%rename(toValue) Arc::initializeCredentialsType::operator initializeType;
+%{
+#include <arc/UserConfig.h>
+%}
+%include "../src/hed/libs/common/UserConfig.h"
+
+
+// Wrap contents of <arc/GUID.h>
+%{
+#include <arc/GUID.h>
+%}
+%include "../src/hed/libs/common/GUID.h"
