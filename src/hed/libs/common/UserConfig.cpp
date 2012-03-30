@@ -77,7 +77,8 @@ namespace Arc {
 #endif
 
   static void certificate_file_error_report(file_test_status fts, bool require, const std::string& path, Logger& logger) {
-    if(fts == file_test_wrong_ownership) {
+    if(fts == file_test_success) {
+    } else if(fts == file_test_wrong_ownership) {
       logger.msg(require?ERROR:VERBOSE, "Wrong ownership of certificate file: %s", path);
     } else if(fts == file_test_wrong_permissions) {
       logger.msg(require?ERROR:VERBOSE, "Wrong permissions of certificate file: %s", path);
@@ -87,7 +88,8 @@ namespace Arc {
   }
 
   static void key_file_error_report(file_test_status fts, bool require, const std::string& path, Logger& logger) {
-    if(fts == file_test_wrong_ownership) {
+    if(fts == file_test_success) {
+    } else if(fts == file_test_wrong_ownership) {
       logger.msg(require?ERROR:VERBOSE, "Wrong ownership of key file: %s", path);
     } else if(fts == file_test_wrong_permissions) {
       logger.msg(require?ERROR:VERBOSE, "Wrong permissions of key file: %s", path);
@@ -97,7 +99,8 @@ namespace Arc {
   }
 
   static void proxy_file_error_report(file_test_status fts, bool require, const std::string& path, Logger& logger) {
-    if(fts == file_test_wrong_ownership) {
+    if(fts == file_test_success) {
+    } else if(fts == file_test_wrong_ownership) {
       logger.msg(require?ERROR:VERBOSE, "Wrong ownership of proxy file: %s", path);
     } else if(fts == file_test_wrong_permissions) {
       logger.msg(require?ERROR:VERBOSE, "Wrong permissions of proxy file: %s", path);
@@ -376,8 +379,8 @@ namespace Arc {
       proxyPath = proxy_path;     
       file_test_status fts;
       if (test && ((fts = private_file_test(proxyPath, user)) != file_test_success)) {
+        proxy_file_error_report(fts,require,proxyPath,logger);
         if(require) {
-          proxy_file_error_report(fts,require,proxyPath,logger);
           //res = false;
         }
         proxyPath.clear();
@@ -387,8 +390,8 @@ namespace Arc {
     } else if (!proxyPath.empty()) {
       file_test_status fts;
       if (test && ((fts = private_file_test(proxyPath, user)) != file_test_success)) {
+        proxy_file_error_report(fts,require,proxyPath,logger);
         if(require) {
-          proxy_file_error_report(fts,require,proxyPath,logger);
           //res = false;
         }
         proxyPath.clear();
@@ -401,9 +404,9 @@ namespace Arc {
       proxyPath = proxy_path;
       file_test_status fts;
       if (test && ((fts = private_file_test(proxyPath, user)) != file_test_success)) {
+        proxy_file_error_report(fts,require,proxyPath,logger);
         if (require) {
           // TODO: Maybe this message should be printed only after checking for key/cert
-          proxy_file_error_report(fts,require,proxyPath,logger);
           // This is not error yet because there may be key/credentials
           //res = false;
         }
@@ -429,8 +432,8 @@ namespace Arc {
       }
       keyPath = key_path;
       if (test && ((fts = private_file_test(keyPath, user)) != file_test_success)) {
+        key_file_error_report(fts,require,keyPath,logger);
         if(require) {
-          key_file_error_report(fts,require,keyPath,logger);
           res = false;
         }
         keyPath.clear();
@@ -445,8 +448,8 @@ namespace Arc {
         certificatePath.clear();
       }
       if (test && ((fts = private_file_test(keyPath, user)) != file_test_success)) {
+        key_file_error_report(fts,require,keyPath,logger);
         if(require) {
-          key_file_error_report(fts,require,keyPath,logger);
           res = false;
         }
         keyPath.clear();
@@ -457,33 +460,56 @@ namespace Arc {
       std::string base_path = home_path+G_DIR_SEPARATOR_S+".arc"+G_DIR_SEPARATOR_S;
       cert_path = base_path+"usercert.pem";
       key_path = base_path+"userkey.pem";
-      if( test && !(Glib::file_test(certificatePath = cert_path, Glib::FILE_TEST_EXISTS) &&
-                    Glib::file_test(keyPath = key_path, Glib::FILE_TEST_EXISTS)) ) {
+      file_test_status fts1 = file_test_success;
+      file_test_status fts2 = file_test_success;
+      certificatePath = cert_path;
+      keyPath = key_path;
+      if( test && !(
+          ((fts1 = user_file_test(certificatePath, user)) == file_test_success) &&
+          ((fts2 = private_file_test(keyPath, user)) == file_test_success) ) ) {
+        certificate_file_error_report(fts1,false,certificatePath,logger);
+        key_file_error_report(fts2,false,keyPath,logger);
+        fts1 = file_test_success; fts2 = file_test_success;
         base_path = home_path+G_DIR_SEPARATOR_S+".globus"+G_DIR_SEPARATOR_S;
         certificatePath = base_path+"usercert.pem";
         keyPath = base_path+"userkey.pem";
-        if( !(Glib::file_test(certificatePath, Glib::FILE_TEST_EXISTS) &&
-              Glib::file_test(keyPath, Glib::FILE_TEST_EXISTS)) ) {
+        if( test && !(
+            ((fts1 = user_file_test(certificatePath, user)) == file_test_success) &&
+            ((fts2 = private_file_test(keyPath, user)) == file_test_success) ) ) {
+          certificate_file_error_report(fts1,false,certificatePath,logger);
+          key_file_error_report(fts2,false,keyPath,logger);
+          fts1 = file_test_success; fts2 = file_test_success;
           base_path = ArcLocation::Get()+G_DIR_SEPARATOR_S+"etc"+G_DIR_SEPARATOR_S+"arc"+G_DIR_SEPARATOR_S;
           certificatePath = base_path+"usercert.pem";
           keyPath = base_path+"userkey.pem";
-          if( !(Glib::file_test(certificatePath, Glib::FILE_TEST_EXISTS) &&
-                Glib::file_test(keyPath, Glib::FILE_TEST_EXISTS)) ) {
+          if( test && !(
+              ((fts1 = user_file_test(certificatePath, user)) == file_test_success) &&
+              ((fts2 = private_file_test(keyPath, user)) == file_test_success) ) ) {
+            certificate_file_error_report(fts1,false,certificatePath,logger);
+            key_file_error_report(fts2,false,keyPath,logger);
+            fts1 = file_test_success; fts2 = file_test_success;
             // TODO: is it really safe to take credentials from ./ ? NOOOO
             base_path = Glib::get_current_dir() + G_DIR_SEPARATOR_S;
             certificatePath = base_path+"usercert.pem";
             keyPath = base_path+"userkey.pem";
-            if( !(Glib::file_test(certificatePath, Glib::FILE_TEST_EXISTS) &&
-                  Glib::file_test(keyPath, Glib::FILE_TEST_EXISTS)) ) {
+            if( test && !(
+                ((fts1 = user_file_test(certificatePath, user)) == file_test_success) &&
+                ((fts2 = private_file_test(keyPath, user)) == file_test_success) ) ) {
+              certificate_file_error_report(fts1,false,certificatePath,logger);
+              key_file_error_report(fts2,false,keyPath,logger);
+              fts1 = file_test_success; fts2 = file_test_success;
               // Not found
-              if(require) {
-                logger.msg(WARNING, 
-                "Proxy certificate path was not explicitely set or does not exist and not \n"
-                "found at default location. Key/certificate paths were not explicitely set\n"
-                "or do not exist and usercert.pem/userkey.pem not found at default locations:\n"
+              logger.msg(require?WARNING:VERBOSE, 
+                "Proxy certificate path was not explicitely set or does not exist or has\n"
+                "improper permissions/ownership and not found at default location.\n"
+                "Key/certificate paths were not explicitely set or do not exist or have\n"
+                "improper permissions/ownership and usercert.pem/userkey.pem not found\n"
+                "at default locations:\n"
                 "~/.arc/, ~/.globus/, %s/etc/arc, and ./.\n"
                 "Please manually specify the proxy or certificate/key locations, or use\n"
-                "arcproxy utility to create a proxy certificte", ArcLocation::Get());
+                "arcproxy utility to create a proxy certificte", ArcLocation::Get()
+              );
+              if(require) {
                 res = false;
               }
               certificatePath.clear(); keyPath.clear();
