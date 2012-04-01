@@ -153,6 +153,7 @@ class listiteratorhandler
 
 %template(StringPair) std::pair<std::string, std::string>;
 %template(StringList) std::list<std::string>;
+%template(StringVector) std::vector<std::string>;
 %template(StringStringMap) std::map<std::string, std::string>;
 %template(StringDoubleMap) std::map<std::string, double>;
 
