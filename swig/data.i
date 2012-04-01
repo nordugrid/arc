@@ -1,36 +1,84 @@
-/**
- * Note that the order of the "%include" statements are important! If a
- * "%include" depends on other "%include"s, it should be placed after these
- * "%include" dependencies.
- */
-
+// Wrap contents of <arc/data/DataStatus.h>
 %{
 #include <arc/data/DataStatus.h>
+%}
+%include "../src/hed/libs/data/DataStatus.h"
+
+
+// Wrap contents of <arc/data/FileInfo.h>
+%{
 #include <arc/data/FileInfo.h>
+%}
+%include "../src/hed/libs/data/FileInfo.h"
+
+
+// Wrap contents of <arc/data/URLMap.h>
+%{
 #include <arc/data/URLMap.h>
+%}
+%include "../src/hed/libs/data/URLMap.h"
+
+
+// Wrap contents of <arc/data/DataPoint.h>
+%ignore Arc::DataPointPluginArgument::operator const URL&;
+%ignore Arc::DataPointPluginArgument::operator const UserConfig&;
+#ifdef SWIGPYTHON
+/* This typemap tells SWIG that we don't want to use the
+ * 'std::list<FileInfo>& files' argument from the target language, but
+ * we need a temporary variable for internal use, and we want this
+ * argument to point to this temporary variable
+ */
+%typemap(in, numinputs=0) std::list<Arc::FileInfo>& files (std::list<Arc::FileInfo> temp) { $1 = &temp; }
+/* This typemap tells SWIG what we want to do with the
+ * 'std::list<FileInfo> & files' argument after the method finished:
+ * first we create a python list from the std::list (it should be a
+ * better way to do this...) then we want to return a tuple with two
+ * members, the first member will be the newly created list, and the
+ * second member is the original return value, the DataStatus.
+ */
+%typemap(argout) std::list<Arc::FileInfo>& files {
+  PyObject *o = PyList_New(0);
+  std::list<Arc::FileInfo>::iterator it;
+  for (it = (*$1).begin(); it != (*$1).end(); ++it) {
+    PyList_Append(o, SWIG_NewPointerObj(new Arc::FileInfo(*it), SWIGTYPE_p_Arc__FileInfo, SWIG_POINTER_OWN | 0 ));
+  }
+  $result = PyTuple_Pack(2, o, $result);
+} /* applies to:
+ * virtual DataStatus DataPoint::Stat(std::list<FileInfo>& files, const std::list<DataPoint*>& urls, DataPointInfoType verb = INFO_TYPE_ALL)
+ * virtual DataStatus DataPoint::List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL)
+ */
+#endif
+%{
 #include <arc/data/DataPoint.h>
-#include <arc/data/DataHandle.h>
-#include <arc/data/DataSpeed.h>
-#include <arc/data/DataBuffer.h>
-#include <arc/data/FileCache.h>
-#include <arc/data/DataMover.h>
-
-#include <arc/data-staging/DTRStatus.h>
-#include <arc/data-staging/DTR.h>
-#include <arc/data-staging/TransferShares.h>
-#include <arc/data-staging/Scheduler.h>
-
-#ifdef WIN32
-#define uid_t int
-#define gid_t int
+%}
+%include "../src/hed/libs/data/DataPoint.h"
+#ifdef SWIGPYTHON
+%clear std::list<Arc::FileInfo>& files;
 #endif
 
-%}
 
+// Wrap contents of <arc/data/DataHandle.h>
+%ignore Arc::DataHandle::operator->;
+#ifdef SWIGJAVA
+%ignore Arc::DataHandle::operator*;
+#endif
+%{
+#include <arc/data/DataHandle.h>
+%}
+%include "../src/hed/libs/data/DataHandle.h"
+
+
+// Wrap contents of <arc/data/DataSpeed.h>
+%{
+#include <arc/data/DataSpeed.h>
+%}
+%include "../src/hed/libs/data/DataSpeed.h"
+
+
+// Wrap contents of <arc/data/DataBuffer.h>
 #ifdef SWIGPYTHON
 %{
 namespace Arc {
-
 typedef struct {
     bool result;
     int handle;
@@ -44,104 +92,60 @@ typedef struct {
     int handle;
     unsigned int size;
 } DataBufferForReadResult;
-
-}
+} // namespace Arc
 %}
 
-// to make SWIG treat uid_t and gid_t as integers
-typedef long uid_t;
-typedef long gid_t;
-
-namespace Arc {
-
-/* this typemap tells SWIG that we don't want to use the 'std::list<FileInfo>& files' argument
-from the target language, but we need a temporary variable for internal use,
-and we want this argument to point to this temporary variable */
-%typemap(in, numinputs=0) std::list<FileInfo> & files (std::list<FileInfo> temp) {
-    $1 = &temp;
-}
-
-/* this typemap tells SWIG what we want to do with the 'std::list<FileInfo> & files'
-argument after the method finished:
-first we create a python list from the std::list (it should be a better way to do this...)
-then we want to return a tuple with two members, the first member will be the newly created list,
-and the second member is the original return value, the DataStatus. */
-%typemap(argout) std::list<FileInfo> & files {
-    PyObject *o, *tuple;
-    o = PyList_New(0);
-    std::list<Arc::FileInfo>::iterator it;
-    for (it = (*$1).begin(); it != (*$1).end(); ++it) {
-        PyList_Append(o, SWIG_NewPointerObj(new Arc::FileInfo(*it), SWIGTYPE_p_Arc__FileInfo, SWIG_POINTER_OWN | 0 ));
-    }
-    tuple = PyTuple_New(2);
-    PyTuple_SetItem(tuple,0,o);
-    PyTuple_SetItem(tuple,1,$result);
-    $result = tuple;
-}
-
 %typemap(out) Arc::DataBufferForWriteResult {
-    $result = PyTuple_New(5);
-    PyTuple_SetItem($result,0,PyInt_FromLong($1.result));
-    PyTuple_SetItem($result,1,PyInt_FromLong($1.handle));
-    PyTuple_SetItem($result,2,PyInt_FromLong($1.size));
-    PyTuple_SetItem($result,3,PyInt_FromLong($1.offset));
+  $result = PyTuple_New(5);
+  PyTuple_SetItem($result,0,PyInt_FromLong($1.result));
+  PyTuple_SetItem($result,1,PyInt_FromLong($1.handle));
+  PyTuple_SetItem($result,2,PyInt_FromLong($1.size));
+  PyTuple_SetItem($result,3,PyInt_FromLong($1.offset));
 %#if PY_VERSION_HEX>=0x03000000
-    PyTuple_SetItem($result,4,$1.buffer?PyUnicode_FromStringAndSize($1.buffer,$1.size):Py_None);
+  PyTuple_SetItem($result,4,$1.buffer?PyUnicode_FromStringAndSize($1.buffer,$1.size):Py_None);
 %#else
-    PyTuple_SetItem($result,4,$1.buffer?PyString_FromStringAndSize($1.buffer,$1.size):Py_None);
+  PyTuple_SetItem($result,4,$1.buffer?PyString_FromStringAndSize($1.buffer,$1.size):Py_None);
 %#endif
-
-
 }
 
 %typemap(out) Arc::DataBufferForReadResult {
-    $result = PyTuple_New(3);
-    PyTuple_SetItem($result,0,PyInt_FromLong($1.result));
-    PyTuple_SetItem($result,1,PyInt_FromLong($1.handle));
-    PyTuple_SetItem($result,2,PyInt_FromLong($1.size));
+  $result = PyTuple_Pack(3, PyInt_FromLong($1.result), PyInt_FromLong($1.handle), PyInt_FromLong($1.size));
 }
 
-%typemap(in) (char* DataBufferIsReadBuf,unsigned int DataBufferIsReadSize) {
-
+%typemap(in) (char* DataBufferIsReadBuf, unsigned int DataBufferIsReadSize) {
 %#if PY_VERSION_HEX>=0x03000000
-    $input = PyUnicode_AsUTF8String($input);
-    $1 = PyBytes_AsString($input);
-    $2 = ($1)?PyBytes_Size($input):0;
+  $input = PyUnicode_AsUTF8String($input);
+  $1 = PyBytes_AsString($input);
+  $2 = ($1)?PyBytes_Size($input):0;
 %#else
-    $1 = PyString_AsString($input);
-    $2 = ($1)?PyString_Size($input):0;
+  $1 = PyString_AsString($input);
+  $2 = ($1)?PyString_Size($input):0;
 %#endif
-
 }
 
-%extend DataBuffer {
-
+%extend Arc::DataBuffer {
     Arc::DataBufferForWriteResult for_write(bool wait) {
         Arc::DataBufferForWriteResult r;
-        r.result = self->for_write(r.handle,r.size,r.offset,wait);
+        r.result = self->for_write(r.handle, r.size, r.offset, wait);
         r.buffer = r.result?(self->operator[](r.handle)):NULL;
         return r;
     }
     
     Arc::DataBufferForReadResult for_read(bool wait) {
         Arc::DataBufferForReadResult r;
-        r.result = self->for_read(r.handle,r.size,wait);
+        r.result = self->for_read(r.handle, r.size, wait);
         return r;
     }
 
-    bool is_read(int handle,char* DataBufferIsReadBuf,unsigned int DataBufferIsReadSize,unsigned long long int offset) {
+    bool is_read(int handle, char* DataBufferIsReadBuf, unsigned int DataBufferIsReadSize, unsigned long long int offset) {
         char* buf = self->operator[](handle);
         if(!buf) return false;
         if(DataBufferIsReadSize > self->buffer_size()) return false;
-        memcpy(buf,DataBufferIsReadBuf,DataBufferIsReadSize);
-        return self->is_read(handle,DataBufferIsReadSize,offset);
+        memcpy(buf, DataBufferIsReadBuf, DataBufferIsReadSize);
+        return self->is_read(handle, DataBufferIsReadSize, offset);
     }
-
 };
 
-}
-
-%ignore Arc::DataHandle::operator->;
 %ignore Arc::DataBuffer::operator[];
 %ignore Arc::DataBuffer::for_write(int&,unsigned int&,unsigned long long int&,bool);
 %ignore Arc::DataBuffer::for_read(int&,unsigned int&,bool);
@@ -149,30 +153,76 @@ and the second member is the original return value, the DataStatus. */
 %ignore Arc::DataBuffer::is_read(char*,unsigned int,unsigned long long int);
 %ignore Arc::DataBuffer::is_written(char*);
 %ignore Arc::DataBuffer::is_notwritten(char*);
-
 #endif
-
-#ifdef SWIGJAVA
-%ignore Arc::DataHandle::operator->;
-%ignore Arc::DataHandle::operator*;
-#endif
-
-
-%include "../src/hed/libs/data/DataStatus.h"
-%include "../src/hed/libs/data/FileInfo.h"
-%include "../src/hed/libs/data/URLMap.h"
-%include "../src/hed/libs/data/DataPoint.h"
-%include "../src/hed/libs/data/DataHandle.h"
-%include "../src/hed/libs/data/DataSpeed.h"
+%{
+#include <arc/data/DataBuffer.h>
+%}
 %include "../src/hed/libs/data/DataBuffer.h"
+
+
+// Wrap contents of <arc/data/FileCache.h>
+%{
+#ifdef WIN32
+#ifndef uid_t
+#define uid_t int
+#endif
+#ifndef gid_t
+#define gid_t int
+#endif
+#endif
+%}
+typedef int uid_t;
+typedef int gid_t;
+%{
+#include <arc/data/FileCache.h>
+%}
 %include "../src/hed/libs/data/FileCache.h"
+
+
+// Wrap contents of <arc/data/DataMover.h>
+%{
+#include <arc/data/DataMover.h>
+%}
 %include "../src/hed/libs/data/DataMover.h"
 
+
+// Wrap contents of <arc/data-staging/DTRStatus.h>
+%{
+#include <arc/data-staging/DTRStatus.h>
+%}
 %include "../src/libs/data-staging/DTRStatus.h"
+
+
+// Wrap contents of <arc/data-staging/DTR.h>
+#ifdef SWIGJAVA
+%ignore DataStaging::DTR::get_source() const; // Clashing with non const version of 'get_source'.
+%ignore DataStaging::DTR::get_destination() const; // Clashing with non const version of 'get_destination'.
+#endif
+%{
+#include <arc/data-staging/DTR.h>
+%}
 %include "../src/libs/data-staging/DTR.h"
+
+
+// Wrap contents of <arc/data-staging/TransferShares.h>
+%{
+#include <arc/data-staging/TransferShares.h>
+%}
 %include "../src/libs/data-staging/TransferShares.h"
+
+
+// Wrap contents of <arc/data-staging/Scheduler.h>
+%{
+#include <arc/data-staging/Scheduler.h>
+%}
 %include "../src/libs/data-staging/Scheduler.h"
 
+#ifdef SWIGJAVA
+%rename(_wait) Arc::SimpleCondition::wait;
+%rename(_wait) Arc::SimpleCounter::wait;
+%rename(_wait) Arc::ThreadedPointerBase::wait;
+#endif
 %include "../src/hed/libs/common/Thread.h"
+%ignore Arc::ThreadedPointer<DataStaging::DTR>::operator bool; // Clash between "operator bool" in DTR and ThreadedPointer (smart pointer wrapping).
 %template(DTRPointer) Arc::ThreadedPointer<DataStaging::DTR>;
 %template(DTRLogger) Arc::ThreadedPointer<Arc::Logger>;
