@@ -190,6 +190,7 @@ bool PayloadTCPSocket::Get(char* buf,int& size) {
 #endif
   l=::recv(handle_,buf,l,flags);
   if(l == -1) return false;
+  if(flags & MSG_OOB) { size = 0; return true; }
   size=l;
 #ifndef WIN32
   if((l == 0) && (events & POLLERR)) return false;
