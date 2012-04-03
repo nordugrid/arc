@@ -3,6 +3,7 @@
  * needed in the bindings, it should be renamed.
  */
 %ignore Arc::LoadableModuleDescription::operator Glib::Module*;
+%ignore Arc::LoadableModuleDescription::operator!;
 %{
 #include <arc/loader/ModuleManager.h>
 %}

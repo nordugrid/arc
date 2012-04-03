@@ -46,4 +46,5 @@
 %{
 #include <arc/credentialstore/CredentialStore.h>
 %}
+%ignore Arc::CredentialStore::operator!;
 %include "../src/hed/libs/credentialstore/CredentialStore.h"

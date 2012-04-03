@@ -1,4 +1,9 @@
 // Wrap contents of $(top_srcdir)/src/hed/libs/delegation/DelegationInterface.h
+%{
+#include <arc/delegation/DelegationInterface.h>
+%}
+%ignore Arc::DelegationConsumer::operator!;
+%ignore Arc::DelegationProvider::operator!;
 #ifdef SWIGPYTHON
 %ignore Arc::DelegationConsumer::Acquire(std::string&, std::string&);
 %ignore Arc::DelegationConsumerSOAP::UpdateCredentials(std::string&, std::string&, const SOAPEnvelope&, SOAPEnvelope&);
@@ -19,9 +24,6 @@
  * bool DelegationConsumer::Acquire(std::string& content);
  */
 #endif
-%{
-#include <arc/delegation/DelegationInterface.h>
-%}
 %include "../src/hed/libs/delegation/DelegationInterface.h"
 #ifdef SWIGPYTHON
 %clear std::string& credentials;

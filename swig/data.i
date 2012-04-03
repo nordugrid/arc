@@ -2,6 +2,7 @@
 %{
 #include <arc/data/DataStatus.h>
 %}
+%ignore Arc::DataStatus::operator!;
 %include "../src/hed/libs/data/DataStatus.h"
 
 
@@ -9,6 +10,7 @@
 %{
 #include <arc/data/FileInfo.h>
 %}
+%ignore Arc::FileInfo::operator!;
 %include "../src/hed/libs/data/FileInfo.h"
 
 
@@ -16,10 +18,15 @@
 %{
 #include <arc/data/URLMap.h>
 %}
+%ignore Arc::URLMap::operator!;
 %include "../src/hed/libs/data/URLMap.h"
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/data/DataPoint.h
+%{
+#include <arc/data/DataPoint.h>
+%}
+%ignore Arc::DataPoint::operator!;
 %ignore Arc::DataPointPluginArgument::operator const URL&;
 %ignore Arc::DataPointPluginArgument::operator const UserConfig&;
 #ifdef SWIGPYTHON
@@ -48,9 +55,6 @@
  * virtual DataStatus DataPoint::List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL)
  */
 #endif
-%{
-#include <arc/data/DataPoint.h>
-%}
 %include "../src/hed/libs/data/DataPoint.h"
 #ifdef SWIGPYTHON
 %clear std::list<Arc::FileInfo>& files;
@@ -58,13 +62,14 @@
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/data/DataHandle.h
+%{
+#include <arc/data/DataHandle.h>
+%}
+%ignore Arc::DataHandle::operator!;
 %ignore Arc::DataHandle::operator->;
 #ifdef SWIGJAVA
 %ignore Arc::DataHandle::operator*;
 #endif
-%{
-#include <arc/data/DataHandle.h>
-%}
 %include "../src/hed/libs/data/DataHandle.h"
 
 
@@ -194,13 +199,14 @@ typedef int gid_t;
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/data-staging/DTR.h
+%{
+#include <arc/data-staging/DTR.h>
+%}
+%ignore DataStaging::DTR::operator!;
 #ifdef SWIGJAVA
 %ignore DataStaging::DTR::get_source() const; // Clashing with non const version of 'get_source'.
 %ignore DataStaging::DTR::get_destination() const; // Clashing with non const version of 'get_destination'.
 #endif
-%{
-#include <arc/data-staging/DTR.h>
-%}
 %include "../src/libs/data-staging/DTR.h"
 
 
@@ -222,6 +228,7 @@ typedef int gid_t;
 %rename(_wait) Arc::SimpleCounter::wait;
 %rename(_wait) Arc::ThreadedPointerBase::wait;
 #endif
+%ignore Arc::ThreadedPointer::operator!;
 %include "../src/hed/libs/common/Thread.h"
 %ignore Arc::ThreadedPointer<DataStaging::DTR>::operator bool; // Clash between "operator bool" in DTR and ThreadedPointer (smart pointer wrapping).
 %template(DTRPointer) Arc::ThreadedPointer<DataStaging::DTR>;

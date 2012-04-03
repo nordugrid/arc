@@ -2,6 +2,7 @@
 %{
 #include <arc/message/MCC_Status.h>
 %}
+%ignore Arc::MCC_Status::operator!;
 %include "../src/hed/libs/message/MCC_Status.h"
 
 
@@ -121,22 +122,25 @@
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/message/PayloadStream.h
-#ifdef SWIGJAVA
-%ignore Arc::PayloadStreamInterface::Put(const char*); // Put(const std::string&) is wrapped instead which is equivalent to this one.
-#endif
 %{
 #include <arc/message/PayloadStream.h>
 %}
+%ignore Arc::PayloadStreamInterface::operator!;
+%ignore Arc::PayloadStream::operator!;
+#ifdef SWIGJAVA
+%ignore Arc::PayloadStreamInterface::Put(const char*); // Put(const std::string&) is wrapped instead which is equivalent to this one.
+#endif
 %include "../src/hed/libs/message/PayloadStream.h"
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/message/Service.h
+%{
+#include <arc/message/Service.h>
+%}
+%ignore Arc::Service::operator!;
 /* The 'operator Config*' and 'operator ChainContext*' methods cannot be
  * wrapped. If they are needed in the bindings, they should be renamed.
  */
 %ignore Arc::ServicePluginArgument::operator Config*;
 %ignore Arc::ServicePluginArgument::operator ChainContext*;
-%{
-#include <arc/message/Service.h>
-%}
 %include "../src/hed/libs/message/Service.h"

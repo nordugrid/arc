@@ -1,6 +1,5 @@
 %include <std_vector.i>
 
-%ignore operator !;
 %ignore operator [];
 %ignore operator =;
 %ignore operator ++;
@@ -27,6 +26,7 @@
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/XMLNode.h
 %ignore Arc::MatchXMLName;
 %ignore Arc::MatchXMLNamespace;
+%ignore Arc::XMLNode::operator!;
 #ifdef SWIGPYTHON
 %include <typemaps.i>
 %apply std::string& OUTPUT { std::string& out_xml_str };
@@ -92,6 +92,7 @@
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/Logger.h
 %rename(LogStream_ostream) Arc::LogStream;
+%ignore Arc::LogFile::operator!;
 #ifdef SWIGPYTHON
 // Suppress warnings about unknown classes std::streambuf and std::ostream
 %warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) CPyOutbuf;
@@ -175,6 +176,7 @@ typedef unsigned int uint32_t;
 %{
 #include <arc/URL.h>
 %}
+%ignore Arc::URL::operator!;
 %include "../src/hed/libs/common/URL.h"
 %template(URLList) std::list<Arc::URL>;
 %template(URLVector) std::vector<Arc::URL>;
@@ -186,6 +188,8 @@ typedef unsigned int uint32_t;
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/Utils.h
+%ignore Arc::AutoPointer::operator!;
+%ignore Arc::CountedPointer::operator!;
 // Ignoring functions from Utils.h since swig thinks they are methods of the CountedPointer class, and thus compilation fails.
 %ignore Arc::GetEnv;
 %ignore Arc::SetEnv;
@@ -225,6 +229,8 @@ typedef unsigned int uint32_t;
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/UserConfig.h>
 %rename(toValue) Arc::initializeCredentialsType::operator initializeType;
+%ignore Arc::UserConfig::operator!;
+%ignore Arc::ConfigEndpoint::operator!;
 %{
 #include <arc/UserConfig.h>
 %}

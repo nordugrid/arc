@@ -163,6 +163,7 @@
 %{
 #include <arc/client/JobState.h>
 %}
+%ignore Arc::JobState::operator!;
 %rename(GetType) Arc::JobState::operator StateType;
 %rename(GetNativeState) Arc::JobState::operator();
 %template(JobStateList) std::list<Arc::JobState>;
@@ -210,6 +211,7 @@
 %{
 #include <arc/client/EndpointQueryingStatus.h>
 %}
+%ignore Arc::EndpointQueryingStatus::operator!;
 %include "../src/hed/libs/client/EndpointQueryingStatus.h"
 
 
@@ -244,6 +246,7 @@ TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInfor
 %{
 #include <arc/client/JobDescription.h>
 %}
+%ignore Arc::JobDescriptionResult::operator!;
 %ignore Arc::Range<int>::operator int;
 #ifdef SWIGPYTHON
 %apply std::string& TUPLEOUTPUTSTRING { std::string& product }; /* Applies to:
