@@ -4,6 +4,7 @@
 %}
 %ignore Arc::DataStatus::operator!;
 %ignore Arc::DataStatus::operator=(const DataStatusType&);
+%ignore operator<<(std::ostream&, const DataStatus&);
 %include "../src/hed/libs/data/DataStatus.h"
 
 

@@ -67,6 +67,7 @@
 %ignore Arc::SoftwareRequirement::operator=(const SoftwareRequirement&);
 %ignore Arc::Software::convert(const ComparisonOperatorEnum& co);
 %ignore Arc::Software::toString(ComparisonOperator co);
+%ignore operator<<(std::ostream&, const Software&);
 %ignore Arc::SoftwareRequirement::SoftwareRequirement(const Software& sw, Software::ComparisonOperator swComOp = &Software::operator==);
 %ignore Arc::SoftwareRequirement::add(const Software& sw, Software::ComparisonOperator swComOp = &Software::operator==);
 %template(SoftwareList) std::list<Arc::Software>;

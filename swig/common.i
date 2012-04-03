@@ -1,7 +1,5 @@
 %include <std_vector.i>
 
-%ignore operator <<;
-
 %ignore *::operator--;
 
 #ifdef SWIGJAVA
@@ -18,6 +16,9 @@
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/XMLNode.h
+%{
+#include <arc/XMLNode.h>
+%}
 %ignore Arc::MatchXMLName;
 %ignore Arc::MatchXMLNamespace;
 %ignore Arc::XMLNode::operator!;
@@ -30,6 +31,7 @@
 %ignore Arc::XMLNode::operator++();
 %ignore Arc::XMLNodeContainer::operator[](int);
 %ignore Arc::XMLNodeContainer::operator=(const XMLNodeContainer&);
+%ignore operator<<(std::ostream&, const XMLNode&);
 #ifdef SWIGPYTHON
 %include <typemaps.i>
 %apply std::string& OUTPUT { std::string& out_xml_str };
@@ -47,9 +49,6 @@
 %ignore Arc::XMLNode::NewChild(const char*, int, bool);
 %ignore Arc::XMLNode::NewChild(const char*, const NS&, int, bool);
 #endif
-%{
-#include <arc/XMLNode.h>
-%}
 %include "../src/hed/libs/common/XMLNode.h"
 %template(XMLNodeList) std::list<Arc::XMLNode>;
 %template(XMLNodePList) std::list<Arc::XMLNode*>;
@@ -91,12 +90,19 @@
 #include <arc/IString.h>
 %}
 %ignore Arc::IString::operator=(const IString&);
+%ignore operator<<(std::ostream&, const IString&);
 %include "../src/hed/libs/common/IString.h"
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/Logger.h
+%{
+#include <arc/Logger.h>
+%}
 %rename(LogStream_ostream) Arc::LogStream;
 %ignore Arc::LogFile::operator!;
+%ignore operator<<(std::ostream&, const LoggerFormat&);
+%ignore operator<<(std::ostream&, LogLevel);
+%ignore operator<<(std::ostream&, const LogMessage&);
 #ifdef SWIGPYTHON
 // Suppress warnings about unknown classes std::streambuf and std::ostream
 %warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) CPyOutbuf;
@@ -153,9 +159,6 @@ private:
   return new $javaclassname($jnicall, $owner);
 }
 #endif
-%{
-#include <arc/Logger.h>
-%}
 %include "../src/hed/libs/common/Logger.h"
 %template(LogDestinationList) std::list<Arc::LogDestination*>;
 #ifdef SWIGJAVA
@@ -177,8 +180,10 @@ typedef unsigned int uint32_t;
 %ignore Arc::Time::operator=(const Time&);
 %ignore Arc::Time::operator=(const char*);
 %ignore Arc::Time::operator=(const std::string&);
+%ignore operator<<(std::ostream&, const Time&);;
 %ignore Arc::Period::operator=(time_t);
 %ignore Arc::Period::operator=(const Period&);
+%ignore operator<<(std::ostream&, const Period&);
 %include "../src/hed/libs/common/DateTime.h"
 
 
@@ -188,6 +193,7 @@ typedef unsigned int uint32_t;
 %}
 %ignore Arc::URL::operator!;
 %ignore Arc::PathIterator::operator++();
+%ignore operator<<(std::ostream&, const URL&);
 %include "../src/hed/libs/common/URL.h"
 %template(URLList) std::list<Arc::URL>;
 %template(URLVector) std::vector<Arc::URL>;
