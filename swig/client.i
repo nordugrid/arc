@@ -1,4 +1,4 @@
-// Wrap contents of <arc/client/ClientInterface.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/ClientInterface.h
 %{
 #include <arc/client/ClientInterface.h>
 %}
@@ -28,7 +28,7 @@
 #endif
 
 
-// Wrap contents of <arc/client/ClientX509Delegation.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/ClientX509Delegation.h
 %{
 #include <arc/client/ClientX509Delegation.h>
 %}
@@ -48,7 +48,7 @@
 #endif
 
 
-// Wrap contents of <arc/client/Submitter.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/Submitter.h
 %{
 #include <arc/client/Submitter.h>
 %}
@@ -60,7 +60,7 @@
 %include "../src/hed/libs/client/Submitter.h"
 
 
-// Wrap contents of <arc/client/Software.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/Software.h
 %{
 #include <arc/client/Software.h>
 %}
@@ -79,7 +79,7 @@
 %include "../src/hed/libs/client/Software.h"
 
 
-// Wrap contents of <arc/client/Endpoint.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/Endpoint.h
 %{
 #include <arc/client/Endpoint.h>
 %}
@@ -90,7 +90,7 @@
 %include "../src/hed/libs/client/Endpoint.h"
 
 
-// Wrap contents of <arc/client/ExecutionTarget.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/ExecutionTarget.h
 %{
 #include <arc/client/ExecutionTarget.h>
 %}
@@ -159,7 +159,7 @@
 };
 
 
-// Wrap contents of <arc/client/JobState.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/JobState.h
 %{
 #include <arc/client/JobState.h>
 %}
@@ -172,7 +172,7 @@
 %include "../src/hed/libs/client/JobState.h"
 
 
-// Wrap contents of <arc/client/Job.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/Job.h
 %{
 #include <arc/client/Job.h>
 %}
@@ -186,7 +186,7 @@
 %include "../src/hed/libs/client/Job.h"
 
 
-// Wrap contents of <arc/client/JobController.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/JobController.h
 %{
 #include <arc/client/JobController.h>
 %}
@@ -199,21 +199,21 @@
 %include "../src/hed/libs/client/JobController.h"
 
 
-// Wrap contents of <arc/client/JobSupervisor.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/JobSupervisor.h
 %{
 #include <arc/client/JobSupervisor.h>
 %}
 %include "../src/hed/libs/client/JobSupervisor.h"
 
 
-// Wrap contents of <arc/client/EndpointQueryingStatus.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/EndpointQueryingStatus.h
 %{
 #include <arc/client/EndpointQueryingStatus.h>
 %}
 %include "../src/hed/libs/client/EndpointQueryingStatus.h"
 
 
-// Wrap contents of <arc/client/TestACCControl.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/TestACCControl.h
 %{
 #include <arc/client/TestACCControl.h>
 %}
@@ -238,7 +238,7 @@ TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInfor
 %include "../src/hed/libs/client/TestACCControl.h"
 
 
-// Wrap contents of <arc/client/JobDescription.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/JobDescription.h
 %{
 #include <arc/client/JobDescription.h>
 %}
@@ -272,7 +272,7 @@ TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInfor
 #endif
 
 
-// Wrap contents of <arc/client/EntityRetriever.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/EntityRetriever.h
 %{
 #include <arc/client/EntityRetriever.h>
 %}
@@ -294,7 +294,7 @@ TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInfor
 %template(JobListRetriever) Arc::EntityRetriever<Arc::Job>;
 
 
-// Wrap contents of <arc/client/ComputingServiceRetriever.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/ComputingServiceRetriever.h
 %{
 #include <arc/client/ComputingServiceRetriever.h>
 %}
@@ -321,7 +321,7 @@ TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInfor
 %include "../src/hed/libs/client/ComputingServiceRetriever.h"
 
 
-// Wrap contents of <arc/client/Broker.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/Broker.h
 %{
 #include <arc/client/Broker.h>
 %}

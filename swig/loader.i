@@ -1,4 +1,4 @@
-// Wrap contents of <arc/loader/ModuleManager.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/loader/ModuleManager.h
 /* The 'operator Glib::Module*' method cannot be wrapped. If it is
  * needed in the bindings, it should be renamed.
  */
@@ -9,7 +9,7 @@
 %include "../src/hed/libs/loader/ModuleManager.h"
 
 
-// Wrap contents of <arc/loader/Plugin.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/loader/Plugin.h
 /* Suppress warnings about potential possibility of memory leak, when
  * using Arc::plugins_table_name, and
  * Arc::PluginDescriptor::{name,kind,description}
@@ -22,7 +22,7 @@
 %include "../src/hed/libs/loader/Plugin.h"
 
 
-// Wrap contents of <arc/loader/Loader.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/loader/Loader.h
 %{
 #include <arc/loader/Loader.h>
 %}

@@ -4,14 +4,14 @@
  */
 #define STACK_OF(A) void
 
-// Wrap contents of <arc/crypto/OpenSSL.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/crypto/OpenSSL.h
 %{
 #include <arc/crypto/OpenSSL.h>
 %}
 %include "../src/hed/libs/crypto/OpenSSL.h"
 
 
-// Wrap contents of <arc/credential/Credential.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/credential/Credential.h
 #ifdef SWIGJAVA
 // Suppress warning about unknown class std::runtime_error
 %warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) Arc::CredentialError;
@@ -22,14 +22,14 @@
 %include "../src/hed/libs/credential/Credential.h"
 
 
-// Wrap contents of <arc/ArcRegex.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/common/ArcRegex.h
 %{
 #include <arc/ArcRegex.h>
 %}
 %include "../src/hed/libs/common/ArcRegex.h"
 
 
-// Wrap contents of <arc/credential/VOMSUtil.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/credential/VOMSUtil.h
 #ifdef SWIGPYTHON
 /* 'from' is a python keyword, renaming to _from.
  */
@@ -42,7 +42,7 @@
 %template(VOMSACInfoVector) std::vector<Arc::VOMSACInfo>;
 
 
-// Wrap contents of <arc/credentialstore/CredentialStore.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/credentialstore/CredentialStore.h
 %{
 #include <arc/credentialstore/CredentialStore.h>
 %}

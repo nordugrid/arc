@@ -24,7 +24,7 @@
 #endif
 
 
-// Wrap contents of <arc/XMLNode.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/common/XMLNode.h
 %ignore Arc::MatchXMLName;
 %ignore Arc::MatchXMLNamespace;
 #ifdef SWIGPYTHON
@@ -58,7 +58,7 @@
 #endif
 
 
-// Wrap contents of <arc/ArcConfig.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/common/ArcConfig.h
 %rename(_print) Arc::Config::print;
 #ifdef SWIGJAVA
 %ignore Arc::Config::Config(const char*);
@@ -69,28 +69,28 @@
 %include "../src/hed/libs/common/ArcConfig.h"
 
 
-// Wrap contents of <arc/ArcLocation.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/common/ArcLocation.h
 %{
 #include <arc/ArcLocation.h>
 %}
 %include "../src/hed/libs/common/ArcLocation.h"
 
 
-// Wrap contents of <arc/ArcVersion.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/common/ArcVersion.h
 %{
 #include <arc/ArcVersion.h>
 %}
 %include "../src/hed/libs/common/ArcVersion.h"
 
 
-// Wrap contents of <arc/IString.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/common/IString.h
 %{
 #include <arc/IString.h>
 %}
 %include "../src/hed/libs/common/IString.h"
 
 
-// Wrap contents of <arc/Logger.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/common/Logger.h
 %rename(LogStream_ostream) Arc::LogStream;
 #ifdef SWIGPYTHON
 // Suppress warnings about unknown classes std::streambuf and std::ostream
@@ -158,7 +158,7 @@ private:
 #endif
 
 
-// Wrap contents of <arc/DateTime.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/common/DateTime.h
 #ifdef SWIGPYTHON
 %inline %{
 typedef long time_t;
@@ -171,7 +171,7 @@ typedef unsigned int uint32_t;
 %include "../src/hed/libs/common/DateTime.h"
 
 
-// Wrap contents of <arc/URL.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/common/URL.h
 %{
 #include <arc/URL.h>
 %}
@@ -185,7 +185,7 @@ typedef unsigned int uint32_t;
 #endif
 
 
-// Wrap contents of <arc/Utils.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/common/Utils.h
 // Ignoring functions from Utils.h since swig thinks they are methods of the CountedPointer class, and thus compilation fails.
 %ignore Arc::GetEnv;
 %ignore Arc::SetEnv;
@@ -216,14 +216,14 @@ typedef unsigned int uint32_t;
 %include "../src/hed/libs/common/Utils.h"
 
 
-// Wrap contents of <arc/User.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/common/User.h
 %{
 #include <arc/User.h>
 %}
 %include "../src/hed/libs/common/User.h"
 
 
-// Wrap contents of <arc/UserConfig.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/UserConfig.h>
 %rename(toValue) Arc::initializeCredentialsType::operator initializeType;
 %{
 #include <arc/UserConfig.h>
@@ -231,7 +231,7 @@ typedef unsigned int uint32_t;
 %include "../src/hed/libs/common/UserConfig.h"
 
 
-// Wrap contents of <arc/GUID.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/common/GUID.h
 %{
 #include <arc/GUID.h>
 %}

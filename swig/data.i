@@ -1,25 +1,25 @@
-// Wrap contents of <arc/data/DataStatus.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/data/DataStatus.h
 %{
 #include <arc/data/DataStatus.h>
 %}
 %include "../src/hed/libs/data/DataStatus.h"
 
 
-// Wrap contents of <arc/data/FileInfo.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/data/FileInfo.h
 %{
 #include <arc/data/FileInfo.h>
 %}
 %include "../src/hed/libs/data/FileInfo.h"
 
 
-// Wrap contents of <arc/data/URLMap.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/data/URLMap.h
 %{
 #include <arc/data/URLMap.h>
 %}
 %include "../src/hed/libs/data/URLMap.h"
 
 
-// Wrap contents of <arc/data/DataPoint.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/data/DataPoint.h
 %ignore Arc::DataPointPluginArgument::operator const URL&;
 %ignore Arc::DataPointPluginArgument::operator const UserConfig&;
 #ifdef SWIGPYTHON
@@ -57,7 +57,7 @@
 #endif
 
 
-// Wrap contents of <arc/data/DataHandle.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/data/DataHandle.h
 %ignore Arc::DataHandle::operator->;
 #ifdef SWIGJAVA
 %ignore Arc::DataHandle::operator*;
@@ -68,14 +68,14 @@
 %include "../src/hed/libs/data/DataHandle.h"
 
 
-// Wrap contents of <arc/data/DataSpeed.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/data/DataSpeed.h
 %{
 #include <arc/data/DataSpeed.h>
 %}
 %include "../src/hed/libs/data/DataSpeed.h"
 
 
-// Wrap contents of <arc/data/DataBuffer.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/data/DataBuffer.h
 #ifdef SWIGPYTHON
 %{
 namespace Arc {
@@ -160,7 +160,7 @@ typedef struct {
 %include "../src/hed/libs/data/DataBuffer.h"
 
 
-// Wrap contents of <arc/data/FileCache.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/data/FileCache.h
 %{
 #ifdef WIN32
 #ifndef uid_t
@@ -179,21 +179,21 @@ typedef int gid_t;
 %include "../src/hed/libs/data/FileCache.h"
 
 
-// Wrap contents of <arc/data/DataMover.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/data/DataMover.h
 %{
 #include <arc/data/DataMover.h>
 %}
 %include "../src/hed/libs/data/DataMover.h"
 
 
-// Wrap contents of <arc/data-staging/DTRStatus.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/data-staging/DTRStatus.h
 %{
 #include <arc/data-staging/DTRStatus.h>
 %}
 %include "../src/libs/data-staging/DTRStatus.h"
 
 
-// Wrap contents of <arc/data-staging/DTR.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/data-staging/DTR.h
 #ifdef SWIGJAVA
 %ignore DataStaging::DTR::get_source() const; // Clashing with non const version of 'get_source'.
 %ignore DataStaging::DTR::get_destination() const; // Clashing with non const version of 'get_destination'.
@@ -204,14 +204,14 @@ typedef int gid_t;
 %include "../src/libs/data-staging/DTR.h"
 
 
-// Wrap contents of <arc/data-staging/TransferShares.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/data-staging/TransferShares.h
 %{
 #include <arc/data-staging/TransferShares.h>
 %}
 %include "../src/libs/data-staging/TransferShares.h"
 
 
-// Wrap contents of <arc/data-staging/Scheduler.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/data-staging/Scheduler.h
 %{
 #include <arc/data-staging/Scheduler.h>
 %}

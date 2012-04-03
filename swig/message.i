@@ -1,11 +1,11 @@
-// Wrap contents of <arc/message/MCC_Status.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/message/MCC_Status.h
 %{
 #include <arc/message/MCC_Status.h>
 %}
 %include "../src/hed/libs/message/MCC_Status.h"
 
 
-// Wrap contents of <arc/message/MessageAttributes.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/message/MessageAttributes.h
 %rename(next) Arc::AttributeIterator::operator++;
 #ifdef SWIGPYTHON
 %pythonappend Arc::MessageAttributes::getAll %{
@@ -22,7 +22,7 @@
 %include "../src/hed/libs/message/MessageAttributes.h"
 
 
-// Wrap contents of <arc/message/SecAttr.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/message/SecAttr.h
 #ifdef SWIGPYTHON
 %include <typemaps.i>
 %apply std::string& OUTPUT { std::string &val };
@@ -36,7 +36,7 @@
 #endif
 
 
-// Wrap contents of <arc/message/MessageAuth.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/message/MessageAuth.h
 #ifdef SWIGPYTHON
 %pythonprepend Arc::MessageAuth::Export %{
         x = XMLNode("<dummy/>")
@@ -53,14 +53,14 @@
 %include "../src/hed/libs/message/MessageAuth.h"
 
 
-// Wrap contents of <arc/message/Message.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/message/Message.h
 %{
 #include <arc/message/Message.h>
 %}
 %include "../src/hed/libs/message/Message.h"
 
 
-// Wrap contents of <arc/message/MCC.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/message/MCC.h
 /* The 'operator Config*' and 'operator ChainContext*' methods cannot be
  * wrapped. If they are needed in the bindings, they should be renamed.
  */
@@ -72,13 +72,13 @@
 %include "../src/hed/libs/message/MCC.h"
 
 
-// Wrap contents of <arc/message/PayloadRaw.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/message/PayloadRaw.h
 %{
 #include <arc/message/PayloadRaw.h>
 %}
 %include "../src/hed/libs/message/PayloadRaw.h"
 
-// Wrap contents of <arc/message/SOAPEnvelope.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/message/SOAPEnvelope.h
 /* The 'operator XMLNode' method cannot be wrapped. If it is needed in
  * the bindings, it should be renamed.
  */
@@ -99,14 +99,14 @@
 %clear std::string& out_xml_str;
 #endif
 
-// Wrap contents of <arc/message/SOAPMessage.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/message/SOAPMessage.h
 %{
 #include <arc/message/SOAPMessage.h>
 %}
 %include "../src/hed/libs/message/SOAPMessage.h"
 
 
-// Wrap contents of <arc/message/PayloadSOAP.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/message/PayloadSOAP.h
 #ifdef SWIGJAVA
 /* Multiple inheritance is not supported in Java, so the PayloadSOAP
  * class might not be fully functional. If needed further investigations
@@ -120,7 +120,7 @@
 %include "../src/hed/libs/message/PayloadSOAP.h"
 
 
-// Wrap contents of <arc/message/PayloadStream.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/message/PayloadStream.h
 #ifdef SWIGJAVA
 %ignore Arc::PayloadStreamInterface::Put(const char*); // Put(const std::string&) is wrapped instead which is equivalent to this one.
 #endif
@@ -130,7 +130,7 @@
 %include "../src/hed/libs/message/PayloadStream.h"
 
 
-// Wrap contents of <arc/message/Service.h>
+// Wrap contents of $(top_srcdir)/src/hed/libs/message/Service.h
 /* The 'operator Config*' and 'operator ChainContext*' methods cannot be
  * wrapped. If they are needed in the bindings, they should be renamed.
  */
