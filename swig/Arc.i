@@ -238,6 +238,7 @@ class StaticPropertyWrapper(object):
  * with the LogDestination class.
  */
 %inline %{
+#include <iostream>
 std::ostream& getStdout() { return std::cout; }
 %}
 #endif
