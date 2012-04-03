@@ -1,7 +1,5 @@
 %include <std_vector.i>
 
-%ignore *::operator--;
-
 #ifdef SWIGJAVA
 %ignore *::operator==;
 %ignore *::operator!=;
@@ -29,6 +27,7 @@
 %ignore Arc::XMLNode::operator=(const std::string&);
 %ignore Arc::XMLNode::operator=(const XMLNode&);
 %ignore Arc::XMLNode::operator++();
+%ignore Arc::XMLNode::operator--();
 %ignore Arc::XMLNodeContainer::operator[](int);
 %ignore Arc::XMLNodeContainer::operator=(const XMLNodeContainer&);
 %ignore operator<<(std::ostream&, const XMLNode&);
@@ -193,6 +192,7 @@ typedef unsigned int uint32_t;
 %}
 %ignore Arc::URL::operator!;
 %ignore Arc::PathIterator::operator++();
+%ignore Arc::PathIterator::operator--();
 %ignore operator<<(std::ostream&, const URL&);
 %include "../src/hed/libs/common/URL.h"
 %template(URLList) std::list<Arc::URL>;
