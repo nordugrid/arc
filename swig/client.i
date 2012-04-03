@@ -226,6 +226,9 @@
 %rename(_SubmitterTestACCControl) Arc::SubmitterTestACCControl;
 %rename(_ServiceEndpointRetrieverPluginTESTControl) Arc::ServiceEndpointRetrieverPluginTESTControl;
 %rename(_TargetInformationRetrieverPluginTESTControl) Arc::TargetInformationRetrieverPluginTESTControl;
+#endif
+%include "../src/hed/libs/client/TestACCControl.h"
+#ifdef SWIGPYTHON
 %pythoncode %{
 BrokerPluginTestACCControl = StaticPropertyWrapper(_BrokerPluginTestACCControl)
 JobDescriptionParserTestACCControl = StaticPropertyWrapper(_JobDescriptionParserTestACCControl)
@@ -235,7 +238,6 @@ ServiceEndpointRetrieverPluginTESTControl = StaticPropertyWrapper(_ServiceEndpoi
 TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInformationRetrieverPluginTESTControl)
 %}
 #endif
-%include "../src/hed/libs/client/TestACCControl.h"
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/client/JobDescription.h
