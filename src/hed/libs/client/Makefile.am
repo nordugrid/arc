@@ -21,8 +21,8 @@ libarcclient_la_HEADERS = Broker.h ExecutionTarget.h \
 	JobState.h Job.h JobController.h JobSupervisor.h \
 	JobDescription.h JobDescriptionParser.h Software.h \
 	GLUE2.h EndpointQueryingStatus.h TestACCControl.h \
-	EntityRetriever.h Endpoint.h \
-	ClientInterface.h \
+	EntityRetriever.h Endpoint.h \ 
+	ComputingServiceRetriever.h ClientInterface.h \
 	ClientX509Delegation.h $(HEADER_WITH_XMLSEC)
 libarcclient_la_SOURCES = Broker.cpp ExecutionTarget.cpp \
 	Submitter.cpp \
@@ -30,7 +30,7 @@ libarcclient_la_SOURCES = Broker.cpp ExecutionTarget.cpp \
 	JobDescription.cpp JobDescriptionParser.cpp Software.cpp \
 	GLUE2.cpp EndpointQueryingStatus.cpp TestACCControl.cpp \
 	EntityRetriever.cpp Endpoint.cpp \
-	ClientInterface.cpp \
+	ComputingServiceRetriever.cpp ClientInterface.cpp \
 	ClientX509Delegation.cpp $(SOURCE_WITH_XMLSEC)
 libarcclient_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CFLAGS_WITH_XMLSEC) $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)

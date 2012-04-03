@@ -19,7 +19,7 @@
 #include <arc/UserConfig.h>
 #include <arc/Utils.h>
 #include <arc/client/Broker.h>
-#include <arc/client/EntityRetriever.h>
+#include <arc/client/ComputingServiceRetriever.h>
 #include <arc/client/Job.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/Submitter.h>
