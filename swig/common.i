@@ -3,7 +3,6 @@
 #ifdef SWIGJAVA
 %ignore *::operator==;
 %ignore *::operator!=;
-%ignore *::operator>>;
 %ignore *::operator<;
 %ignore *::operator>;
 %ignore *::operator<=;
@@ -31,6 +30,7 @@
 %ignore Arc::XMLNodeContainer::operator[](int);
 %ignore Arc::XMLNodeContainer::operator=(const XMLNodeContainer&);
 %ignore operator<<(std::ostream&, const XMLNode&);
+%ignore operator>>(std::istream&, XMLNode&);
 #ifdef SWIGPYTHON
 %include <typemaps.i>
 %apply std::string& OUTPUT { std::string& out_xml_str };
