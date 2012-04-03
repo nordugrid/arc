@@ -102,7 +102,6 @@ namespace Arc {
       LESSTHANOREQUAL = 5 /**< see #operator<= */
     };
 
-#ifndef SWIG
     /// Convert a #ComparisonOperatorEnum value to a comparison method pointer.
     /**
      * The passed #ComparisonOperatorEnum will be converted to a
@@ -116,7 +115,6 @@ namespace Arc {
      * @return A method pointer to a comparison method is returned.
      **/
     static ComparisonOperator convert(const ComparisonOperatorEnum& co);
-#endif
 
     /// Indicates whether the object is empty.
     /**
@@ -270,7 +268,6 @@ namespace Arc {
 
     void addOption(const std::string& opt) { option.push_back(opt); }
 
-#ifndef SWIG
     /// Convert Software::ComparisonOperator to a string.
     /**
      * This method is not available in language bindings created by
@@ -281,7 +278,6 @@ namespace Arc {
      *         Software::ComparisonOperator is returned.
      **/
     static std::string toString(ComparisonOperator co);
-#endif
 
     /// Tokens used to split version string.
     /**
@@ -324,7 +320,6 @@ namespace Arc {
      * requirements.
      **/
     SoftwareRequirement() {}
-#ifndef SWIG
     /// Create a SoftwareRequirement object.
     /**
      * The created SoftwareRequirement object will contain one
@@ -342,7 +337,6 @@ namespace Arc {
      **/
     SoftwareRequirement(const Software& sw,
                         Software::ComparisonOperator swComOp = &Software::operator==);
-#endif
 
     /// Create a SoftwareRequirement object.
     /**
@@ -376,7 +370,6 @@ namespace Arc {
      **/
     SoftwareRequirement(const SoftwareRequirement& sr) { *this = sr; }
 
-#ifndef SWIG
     /// Add a Software object a corresponding comparion operator to this object.
     /**
      * Adds software name and version to list of requirements and
@@ -392,7 +385,7 @@ namespace Arc {
      *        will be Software::operator==().
      **/
     void add(const Software& sw, Software::ComparisonOperator swComOp = &Software::operator==);
-#endif
+
     /// Add a Software object a corresponding comparion operator to this object.
     /**
      * Adds software name and version to list of requirements and

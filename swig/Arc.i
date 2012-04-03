@@ -10,6 +10,7 @@
 
 #ifdef SWIGPYTHON
 %include <std_list.i>
+%include <std_set.i>
 #ifdef PYDOXYGEN
 %include "../python/pydoxygen.i"
 #endif
@@ -200,6 +201,27 @@ def deprecated(method):
 %rename(__nonzero__) operator bool;
 %rename(__str__) operator std::string;
 
+%pythoncode %{
+class StaticPropertyWrapper(object):
+    def __init__(self, wrapped_class):
+        object.__setattr__(self, "wrapped_class", wrapped_class)
+
+    def __getattr__(self, name):
+        orig_attr = getattr(self.wrapped_class, name)
+        if isinstance(orig_attr, property):
+            return orig_attr.fget()
+        else:
+            return orig_attr
+
+    def __setattr__(self, name, value):
+        orig_attr = getattr(self.wrapped_class, name)
+        if isinstance(orig_attr, property):
+            orig_attr.fset(value)
+        else:
+            setattr(self.wrapped_class, name, value)
+
+
+%}
 #endif
 
 #ifdef SWIGJAVA
@@ -208,6 +230,16 @@ def deprecated(method):
 %rename(toBool) operator bool;
 %rename(toString) operator std::string;
 
+/* The std::cout object will always exist, so do not set any references. See
+ * comments in Arc.i.
+ */
+%typemap(javaout) std::ostream& getStdout { return new $javaclassname($jnicall, $owner); }
+/* Provide method of getting std::cout as a std::ostream object, usable
+ * with the LogDestination class.
+ */
+%inline %{
+std::ostream& getStdout() { return std::cout; }
+%}
 #endif
 
 
