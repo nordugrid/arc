@@ -26,6 +26,7 @@
 %{
 #include <arc/ArcRegex.h>
 %}
+%ignore Arc::RegularExpression::operator=(const RegularExpression&);
 %include "../src/hed/libs/common/ArcRegex.h"
 
 

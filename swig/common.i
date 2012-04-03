@@ -1,12 +1,10 @@
 %include <std_vector.i>
 
-%ignore operator =;
 %ignore operator ++;
 %ignore operator <<;
 
 %ignore *::operator++;
 %ignore *::operator--;
-%ignore *::operator=;
 
 #ifdef SWIGJAVA
 %ignore *::operator==;
@@ -28,7 +26,11 @@
 %ignore Arc::XMLNode::operator[](const char *) const;
 %ignore Arc::XMLNode::operator[](const std::string&) const;
 %ignore Arc::XMLNode::operator[](int) const;
+%ignore Arc::XMLNode::operator=(const char *);
+%ignore Arc::XMLNode::operator=(const std::string&);
+%ignore Arc::XMLNode::operator=(const XMLNode&);
 %ignore Arc::XMLNodeContainer::operator[](int);
+%ignore Arc::XMLNodeContainer::operator=(const XMLNodeContainer&);
 #ifdef SWIGPYTHON
 %include <typemaps.i>
 %apply std::string& OUTPUT { std::string& out_xml_str };
@@ -89,6 +91,7 @@
 %{
 #include <arc/IString.h>
 %}
+%ignore Arc::IString::operator=(const IString&);
 %include "../src/hed/libs/common/IString.h"
 
 
@@ -162,15 +165,21 @@ private:
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/DateTime.h
+%{
+#include <arc/DateTime.h>
+%}
 #ifdef SWIGPYTHON
 %inline %{
 typedef long time_t;
 typedef unsigned int uint32_t;
 %}  
 #endif
-%{
-#include <arc/DateTime.h>
-%}
+%ignore Arc::Time::operator=(time_t);
+%ignore Arc::Time::operator=(const Time&);
+%ignore Arc::Time::operator=(const char*);
+%ignore Arc::Time::operator=(const std::string&);
+%ignore Arc::Period::operator=(time_t);
+%ignore Arc::Period::operator=(const Period&);
 %include "../src/hed/libs/common/DateTime.h"
 
 
@@ -192,6 +201,8 @@ typedef unsigned int uint32_t;
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/Utils.h
 %ignore Arc::AutoPointer::operator!;
 %ignore Arc::CountedPointer::operator!;
+%ignore Arc::CountedPointer::operator=(T*);
+%ignore Arc::CountedPointer::operator=(const CountedPointer<T>&);
 // Ignoring functions from Utils.h since swig thinks they are methods of the CountedPointer class, and thus compilation fails.
 %ignore Arc::GetEnv;
 %ignore Arc::SetEnv;

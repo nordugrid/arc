@@ -64,6 +64,7 @@
 %{
 #include <arc/client/Software.h>
 %}
+%ignore Arc::SoftwareRequirement::operator=(const SoftwareRequirement&);
 %ignore Arc::Software::convert(const ComparisonOperatorEnum& co);
 %ignore Arc::Software::toString(ComparisonOperator co);
 %ignore Arc::SoftwareRequirement::SoftwareRequirement(const Software& sw, Software::ComparisonOperator swComOp = &Software::operator==);
@@ -83,6 +84,7 @@
 %{
 #include <arc/client/Endpoint.h>
 %}
+%ignore Arc::Endpoint::operator=(const ConfigEndpoint&);
 %template(EndpointList) std::list<Arc::Endpoint>;
 #ifdef SWIGJAVA
 %template(EndpointListIteratorHandler) listiteratorhandler<Arc::Endpoint>;
@@ -94,6 +96,8 @@
 %{
 #include <arc/client/ExecutionTarget.h>
 %}
+%ignore Arc::ApplicationEnvironment::operator=(const Software&);
+%ignore Arc::ExecutionTarget::operator=(const ExecutionTarget&);
 %ignore Arc::GLUE2Entity<Arc::LocationAttributes>::operator->() const;
 %ignore Arc::GLUE2Entity<Arc::AdminDomainAttributes>::operator->() const;
 %ignore Arc::GLUE2Entity<Arc::ExecutionEnvironmentAttributes>::operator->() const;
@@ -164,6 +168,7 @@
 #include <arc/client/JobState.h>
 %}
 %ignore Arc::JobState::operator!;
+%ignore Arc::JobState::operator=(const JobState&);
 %rename(GetType) Arc::JobState::operator StateType;
 %rename(GetNativeState) Arc::JobState::operator();
 %template(JobStateList) std::list<Arc::JobState>;
@@ -177,6 +182,8 @@
 %{
 #include <arc/client/Job.h>
 %}
+%ignore Arc::Job::operator=(XMLNode);
+%ignore Arc::Job::operator=(const Job&);
 %template(JobList) std::list<Arc::Job>;
 #ifdef SWIGPYTHON
 %ignore Arc::Job::WriteJobIDsToFile(const std::list<Job>&, const std::string&, unsigned = 10, unsigned = 500000); // Clash. It is sufficient to wrap only WriteJobIDsToFile(cosnt std::list<URL>&, ...);
@@ -212,6 +219,8 @@
 #include <arc/client/EndpointQueryingStatus.h>
 %}
 %ignore Arc::EndpointQueryingStatus::operator!;
+%ignore Arc::EndpointQueryingStatus::operator=(EndpointQueryingStatusType);
+%ignore Arc::EndpointQueryingStatus::operator=(const EndpointQueryingStatus&);
 %include "../src/hed/libs/client/EndpointQueryingStatus.h"
 
 
@@ -248,6 +257,13 @@ TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInfor
 %}
 %ignore Arc::JobDescriptionResult::operator!;
 %ignore Arc::Range<int>::operator int;
+%ignore Arc::OptIn::operator=(const OptIn<T>&);
+%ignore Arc::OptIn::operator=(const T&);
+%ignore Arc::Range::operator=(const Range<T>&);
+%ignore Arc::Range::operator=(const T&);
+%ignore Arc::SourceType::operator=(const URL&);
+%ignore Arc::SourceType::operator=(const std::string&);
+%ignore Arc::JobDescription::operator=(const JobDescription&);
 #ifdef SWIGPYTHON
 %apply std::string& TUPLEOUTPUTSTRING { std::string& product }; /* Applies to:
  * JobDescriptionResult JobDescription::UnParse(std::string& product, std::string language, const std::string& dialect = "") const;
@@ -330,6 +346,7 @@ TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInfor
 %{
 #include <arc/client/Broker.h>
 %}
+%ignore Arc::Broker::operator=(const Broker&);
 %ignore Arc::BrokerPluginArgument::operator const UserConfig&;
 /* Currently the CountedBroker cannot be wrapped since a default
  * constructor (no arguments) for the CountedBroker and Broker classes

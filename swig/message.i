@@ -24,13 +24,15 @@
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/message/SecAttr.h
+%{
+#include <arc/message/SecAttr.h>
+%}
+%ignore Arc::SecAttrFormat::operator=(SecAttrFormat);
+%ignore Arc::SecAttrFormat::operator=(const char*);
 #ifdef SWIGPYTHON
 %include <typemaps.i>
 %apply std::string& OUTPUT { std::string &val };
 #endif
-%{
-#include <arc/message/SecAttr.h>
-%}
 %include "../src/hed/libs/message/SecAttr.h"
 #ifdef SWIGPYTHON
 %clear std::string &val;
@@ -60,6 +62,7 @@
 #include <arc/message/Message.h>
 %}
 %ignore Arc::MessageContext::operator[](const std::string&);
+%ignore Arc::Message::operator=(Message&);
 %include "../src/hed/libs/message/Message.h"
 
 
@@ -84,6 +87,10 @@
 %include "../src/hed/libs/message/PayloadRaw.h"
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/message/SOAPEnvelope.h
+%{
+#include <arc/message/SOAPEnvelope.h>
+%}
+%ignore Arc::SOAPEnvelope::operator=(const SOAPEnvelope&);
 /* The 'operator XMLNode' method cannot be wrapped. If it is needed in
  * the bindings, it should be renamed.
  */
@@ -96,9 +103,6 @@
 %ignore Arc::SOAPEnvelope::SOAPEnvelope(const char*); // SOAPEnvelope(const std::string&) is wrapped instead which is equivalent to this one.
 %ignore Arc::SOAPEnvelope::SOAPEnvelope(const char*, int); // SOAPEnvelope(const std::string& xml) is wrapped instead which is equivalent to this one.
 #endif
-%{
-#include <arc/message/SOAPEnvelope.h>
-%}
 %include "../src/hed/libs/message/SOAPEnvelope.h"
 #ifdef SWIGPYTHON
 %clear std::string& out_xml_str;

@@ -3,6 +3,7 @@
 #include <arc/data/DataStatus.h>
 %}
 %ignore Arc::DataStatus::operator!;
+%ignore Arc::DataStatus::operator=(const DataStatusType&);
 %include "../src/hed/libs/data/DataStatus.h"
 
 
@@ -195,6 +196,8 @@ typedef int gid_t;
 %{
 #include <arc/data-staging/DTRStatus.h>
 %}
+%ignore DataStaging::DTRStatus::operator=(const DTRStatusType&);
+%ignore DataStaging::DTRErrorStatus::operator=(const DTRErrorStatusType&);
 %include "../src/libs/data-staging/DTRStatus.h"
 
 
@@ -214,6 +217,7 @@ typedef int gid_t;
 %{
 #include <arc/data-staging/TransferShares.h>
 %}
+%ignore DataStaging::TransferShares::operator=(const TransferShares&);
 %include "../src/libs/data-staging/TransferShares.h"
 
 
@@ -223,6 +227,9 @@ typedef int gid_t;
 %}
 %include "../src/libs/data-staging/Scheduler.h"
 
+
+%ignore Arc::ThreadedPointer::operator=(const ThreadedPointer<T>&);
+%ignore Arc::ThreadedPointer::operator=(T*);
 #ifdef SWIGJAVA
 %rename(_wait) Arc::SimpleCondition::wait;
 %rename(_wait) Arc::SimpleCounter::wait;

@@ -4,6 +4,8 @@
  */
 %ignore Arc::LoadableModuleDescription::operator Glib::Module*;
 %ignore Arc::LoadableModuleDescription::operator!;
+%ignore Arc::LoadableModuleDescription::operator=(Glib::Module*);
+%ignore Arc::LoadableModuleDescription::operator=(const LoadableModuleDescription&);
 %{
 #include <arc/loader/ModuleManager.h>
 %}
