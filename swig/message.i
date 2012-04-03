@@ -38,6 +38,10 @@
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/message/MessageAuth.h
+%{
+#include <arc/message/MessageAuth.h>
+%}
+%ignore Arc::MessageAuth::operator[](const std::string&);
 #ifdef SWIGPYTHON
 %pythonprepend Arc::MessageAuth::Export %{
         x = XMLNode("<dummy/>")
@@ -48,9 +52,6 @@
         return x
 %}
 #endif
-%{
-#include <arc/message/MessageAuth.h>
-%}
 %include "../src/hed/libs/message/MessageAuth.h"
 
 
@@ -58,6 +59,7 @@
 %{
 #include <arc/message/Message.h>
 %}
+%ignore Arc::MessageContext::operator[](const std::string&);
 %include "../src/hed/libs/message/Message.h"
 
 
@@ -77,6 +79,8 @@
 %{
 #include <arc/message/PayloadRaw.h>
 %}
+%ignore Arc::PayloadRawInterface::operator[](Size_t) const;
+%ignore Arc::PayloadRaw::operator[](Size_t) const;
 %include "../src/hed/libs/message/PayloadRaw.h"
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/message/SOAPEnvelope.h

@@ -14,6 +14,8 @@
 #include <arc/security/ArcPDP/Source.h>
 %}
 
+%ignore ArcSec::ResponseList::operator[](int);
+
 namespace ArcSec {
 
     %nodefaultctor Policy;

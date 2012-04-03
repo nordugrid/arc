@@ -81,6 +81,10 @@
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/data/DataBuffer.h
+%{
+#include <arc/data/DataBuffer.h>
+%}
+%ignore Arc::DataBuffer::operator[];
 #ifdef SWIGPYTHON
 %{
 namespace Arc {
@@ -151,7 +155,6 @@ typedef struct {
     }
 };
 
-%ignore Arc::DataBuffer::operator[];
 %ignore Arc::DataBuffer::for_write(int&,unsigned int&,unsigned long long int&,bool);
 %ignore Arc::DataBuffer::for_read(int&,unsigned int&,bool);
 %ignore Arc::DataBuffer::is_read(int,unsigned int,unsigned long long int);
@@ -159,9 +162,6 @@ typedef struct {
 %ignore Arc::DataBuffer::is_written(char*);
 %ignore Arc::DataBuffer::is_notwritten(char*);
 #endif
-%{
-#include <arc/data/DataBuffer.h>
-%}
 %include "../src/hed/libs/data/DataBuffer.h"
 
 

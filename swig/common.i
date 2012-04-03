@@ -1,11 +1,9 @@
 %include <std_vector.i>
 
-%ignore operator [];
 %ignore operator =;
 %ignore operator ++;
 %ignore operator <<;
 
-%ignore *::operator[];
 %ignore *::operator++;
 %ignore *::operator--;
 %ignore *::operator=;
@@ -27,6 +25,10 @@
 %ignore Arc::MatchXMLName;
 %ignore Arc::MatchXMLNamespace;
 %ignore Arc::XMLNode::operator!;
+%ignore Arc::XMLNode::operator[](const char *) const;
+%ignore Arc::XMLNode::operator[](const std::string&) const;
+%ignore Arc::XMLNode::operator[](int) const;
+%ignore Arc::XMLNodeContainer::operator[](int);
 #ifdef SWIGPYTHON
 %include <typemaps.i>
 %apply std::string& OUTPUT { std::string& out_xml_str };
