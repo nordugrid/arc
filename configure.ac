@@ -122,6 +122,10 @@ AC_SUBST(cronddir)
 
 # gettext
 AM_GNU_GETTEXT([external])
+# Using Autoconf 2.60 or later you will get a warning during configure:
+#  config.status: WARNING:  'po/Makefile.in.in' seems to ignore the --datarootdir setting
+# This warning can be removed by bumping the gettext version requirement below from 0.12 to at least 0.15
+# See more: info Autoconf "Changed Directory Variables"  
 AM_GNU_GETTEXT_VERSION([0.12])
 [[ -r $srcdir/po/POTFILES.in ]] || touch $srcdir/po/POTFILES.in
 
