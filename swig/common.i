@@ -7,8 +7,6 @@
 %ignore *::operator>;
 %ignore *::operator<=;
 %ignore *::operator>=;
-%ignore *::operator+;
-%ignore *::operator-;
 #endif
 
 
@@ -183,6 +181,11 @@ typedef unsigned int uint32_t;
 %ignore Arc::Period::operator=(time_t);
 %ignore Arc::Period::operator=(const Period&);
 %ignore operator<<(std::ostream&, const Period&);
+#ifdef SWIGJAVA
+%rename(add) Arc::Time::operator+(const Period&) const;
+%rename(sub) Arc::Time::operator-(const Period&) const;
+%rename(sub) Arc::Time::operator-(const Time&) const;
+#endif
 %include "../src/hed/libs/common/DateTime.h"
 
 
