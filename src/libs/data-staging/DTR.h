@@ -377,12 +377,8 @@ namespace DataStaging {
      
      /// Get source handle. Return by reference since DataHandle cannot be copied
      Arc::DataHandle& get_source() { return source_endpoint; };
-     /// Get source handle. Return by reference since DataHandle cannot be copied
-     const Arc::DataHandle& get_source() const { return source_endpoint; };
      /// Get destination handle. Return by reference since DataHandle cannot be copied
      Arc::DataHandle& get_destination() { return destination_endpoint; };
-     /// Get destination handle. Return by reference since DataHandle cannot be copied
-     const Arc::DataHandle& get_destination() const { return destination_endpoint; };
 
      /// Get source as a string
      std::string get_source_str() const { return source_url_str; };

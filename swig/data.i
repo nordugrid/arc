@@ -207,10 +207,6 @@ typedef int gid_t;
 #include <arc/data-staging/DTR.h>
 %}
 %ignore DataStaging::DTR::operator!;
-#ifdef SWIGJAVA
-%ignore DataStaging::DTR::get_source() const; // Clashing with non const version of 'get_source'.
-%ignore DataStaging::DTR::get_destination() const; // Clashing with non const version of 'get_destination'.
-#endif
 %include "../src/libs/data-staging/DTR.h"
 
 
