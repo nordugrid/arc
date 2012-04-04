@@ -317,7 +317,7 @@ sub get_host_info {
 
     my $gm_timeout = $options->{wakeupperiod}
                    ? $options->{wakeupperiod} * 2
-                   : 120;
+                   : 240;
     $host_info->{gm_alive} = gm_alive($gm_timeout, @controldirs);
 
     #Globus Toolkit version
