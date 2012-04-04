@@ -21,7 +21,7 @@ libarcclient_la_HEADERS = Broker.h ExecutionTarget.h \
 	JobState.h Job.h JobController.h JobSupervisor.h \
 	JobDescription.h JobDescriptionParser.h Software.h \
 	GLUE2.h EndpointQueryingStatus.h TestACCControl.h \
-	EntityRetriever.h Endpoint.h \ 
+	EntityRetriever.h Endpoint.h \
 	ComputingServiceRetriever.h ClientInterface.h \
 	ClientX509Delegation.h $(HEADER_WITH_XMLSEC)
 libarcclient_la_SOURCES = Broker.cpp ExecutionTarget.cpp \
