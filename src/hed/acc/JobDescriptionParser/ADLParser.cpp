@@ -479,7 +479,7 @@ namespace Arc {
       if((bool)os) {
         // TODO: convert from EMI ES types. So far they look similar.
         Software os_((std::string)os["adl:Family"],(std::string)os["adl:Name"],(std::string)os["adl:Version"]);
-        job.Resources.OperatingSystem.add(os_);
+        job.Resources.OperatingSystem.add(os_, Software::EQUAL);
       }
       XMLNode platform = resources["adl:Platform"];
       if((bool)platform) {
@@ -496,7 +496,7 @@ namespace Arc {
           jobdescs.clear();
           return false;
         }
-        job.Resources.RunTimeEnvironment.add(rte_);
+        job.Resources.RunTimeEnvironment.add(rte_, Software::EQUAL);
       }
       if((bool)resources["adl:ParallelEnvironment"]) {
         ParallelEnvironmentType& pe = job.Resources.ParallelEnvironment;

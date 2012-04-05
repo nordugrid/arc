@@ -335,8 +335,7 @@ namespace Arc {
      * @param swComOp is the Software::ComparisonOperator of the
      *        requirement to add.
      **/
-    SoftwareRequirement(const Software& sw,
-                        Software::ComparisonOperator swComOp = &Software::operator==);
+    SoftwareRequirement(const Software& sw, Software::ComparisonOperator swComOp);
 
     /// Create a SoftwareRequirement object.
     /**
@@ -348,8 +347,7 @@ namespace Arc {
      * @param co is the Software::ComparisonOperatorEnum of the
      *        requirement to add.
      **/
-    SoftwareRequirement(const Software& sw,
-                        Software::ComparisonOperatorEnum co);
+    SoftwareRequirement(const Software& sw, Software::ComparisonOperatorEnum co = Software::EQUAL);
 
     /// Assignment operator.
     /**
@@ -384,7 +382,7 @@ namespace Arc {
      *        to add as part of a requirement, the default operator
      *        will be Software::operator==().
      **/
-    void add(const Software& sw, Software::ComparisonOperator swComOp = &Software::operator==);
+    void add(const Software& sw, Software::ComparisonOperator swComOp);
 
     /// Add a Software object a corresponding comparion operator to this object.
     /**

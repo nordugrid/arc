@@ -68,8 +68,8 @@
 %ignore Arc::Software::convert(const ComparisonOperatorEnum& co);
 %ignore Arc::Software::toString(ComparisonOperator co);
 %ignore operator<<(std::ostream&, const Software&);
-%ignore Arc::SoftwareRequirement::SoftwareRequirement(const Software& sw, Software::ComparisonOperator swComOp = &Software::operator==);
-%ignore Arc::SoftwareRequirement::add(const Software& sw, Software::ComparisonOperator swComOp = &Software::operator==);
+%ignore Arc::SoftwareRequirement::SoftwareRequirement(const Software& sw, Software::ComparisonOperator swComOp);
+%ignore Arc::SoftwareRequirement::add(const Software& sw, Software::ComparisonOperator swComOp);
 %template(SoftwareList) std::list<Arc::Software>;
 %template(SoftwareRequirementList) std::list<Arc::SoftwareRequirement>;
 #ifdef SWIGJAVA
