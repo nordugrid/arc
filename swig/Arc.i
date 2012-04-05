@@ -229,6 +229,7 @@ class StaticPropertyWrapper(object):
 
 %rename(toBool) operator bool;
 %rename(toString) operator std::string;
+%rename(equal) operator==;
 
 /* The std::cout object will always exist, so do not set any references. See
  * comments in Arc.i.

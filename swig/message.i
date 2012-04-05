@@ -33,6 +33,9 @@
 %include <typemaps.i>
 %apply std::string& OUTPUT { std::string &val };
 #endif
+#ifdef SWIGJAVA
+%ignore Arc::SecAttr::equal;
+#endif
 %include "../src/hed/libs/message/SecAttr.h"
 #ifdef SWIGPYTHON
 %clear std::string &val;

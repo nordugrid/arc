@@ -1,7 +1,6 @@
 %include <std_vector.i>
 
 #ifdef SWIGJAVA
-%ignore *::operator==;
 %ignore *::operator!=;
 %ignore *::operator<;
 %ignore *::operator>;
@@ -45,6 +44,7 @@
 %ignore Arc::XMLNode::NewAttribute(const char*);
 %ignore Arc::XMLNode::NewChild(const char*, int, bool);
 %ignore Arc::XMLNode::NewChild(const char*, const NS&, int, bool);
+%ignore Arc::XMLNode::operator==(const char*); // Arc::XMLNode::operator==(const std::string&) is wrapped instead which is equivalent to this.
 #endif
 %include "../src/hed/libs/common/XMLNode.h"
 %template(XMLNodeList) std::list<Arc::XMLNode>;
