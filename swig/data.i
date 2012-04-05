@@ -29,8 +29,10 @@
 #include <arc/data/DataPoint.h>
 %}
 %ignore Arc::DataPoint::operator!;
-%ignore Arc::DataPointPluginArgument::operator const URL&;
-%ignore Arc::DataPointPluginArgument::operator const UserConfig&;
+%ignore Arc::DataPointPluginArgument::operator const URL&; // works with swig 1.3.40, and higher...
+%ignore Arc::DataPointPluginArgument::operator const Arc::URL&; // works with swig 1.3.29
+%ignore Arc::DataPointPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
+%ignore Arc::DataPointPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
 #ifdef SWIGPYTHON
 /* This typemap tells SWIG that we don't want to use the
  * 'std::list<FileInfo>& files' argument from the target language, but

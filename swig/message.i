@@ -70,8 +70,10 @@
 /* The 'operator Config*' and 'operator ChainContext*' methods cannot be
  * wrapped. If they are needed in the bindings, they should be renamed.
  */
-%ignore Arc::MCCPluginArgument::operator Config*;
-%ignore Arc::MCCPluginArgument::operator ChainContext*;
+%ignore Arc::MCCPluginArgument::operator Config*; // works with swig 1.3.40, and higher...
+%ignore Arc::MCCPluginArgument::operator Arc::Config*; // works with swig 1.3.29
+%ignore Arc::MCCPluginArgument::operator ChainContext*; // works with swig 1.3.40, and higher...
+%ignore Arc::MCCPluginArgument::operator Arc::ChainContext*; // works with swig 1.3.29
 %{
 #include <arc/message/MCC.h>
 %}
@@ -94,7 +96,8 @@
 /* The 'operator XMLNode' method cannot be wrapped. If it is needed in
  * the bindings, it should be renamed.
  */
-%ignore Arc::SOAPFault::operator XMLNode;
+%ignore Arc::SOAPFault::operator XMLNode; // works with swig 1.3.40, and higher...
+%ignore Arc::SOAPFault::operator Arc::XMLNode; // works with swig 1.3.29
 #ifdef SWIGPYTHON
 %apply std::string& OUTPUT { std::string& out_xml_str };
 #endif
@@ -149,6 +152,8 @@
 /* The 'operator Config*' and 'operator ChainContext*' methods cannot be
  * wrapped. If they are needed in the bindings, they should be renamed.
  */
-%ignore Arc::ServicePluginArgument::operator Config*;
-%ignore Arc::ServicePluginArgument::operator ChainContext*;
+%ignore Arc::ServicePluginArgument::operator Config*; // works with swig 1.3.40, and higher...
+%ignore Arc::ServicePluginArgument::operator Arc::Config*; // works with swig 1.3.29
+%ignore Arc::ServicePluginArgument::operator ChainContext*; // works with swig 1.3.40, and higher...
+%ignore Arc::ServicePluginArgument::operator Arc::ChainContext*; // works with swig 1.3.29
 %include "../src/hed/libs/message/Service.h"

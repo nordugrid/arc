@@ -250,7 +250,8 @@ typedef unsigned int uint32_t;
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/UserConfig.h>
-%rename(toValue) Arc::initializeCredentialsType::operator initializeType;
+%rename(toValue) Arc::initializeCredentialsType::operator initializeType; // works with swig 1.3.40, and higher...
+%rename(toValue) Arc::initializeCredentialsType::operator Arc::initializeCredentialsType::initializeType; // works with swig 1.3.29
 %ignore Arc::UserConfig::operator!;
 %ignore Arc::ConfigEndpoint::operator!;
 %{

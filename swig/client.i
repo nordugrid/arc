@@ -52,7 +52,8 @@
 %{
 #include <arc/client/Submitter.h>
 %}
-%ignore Arc::SubmitterPluginArgument::operator const UserConfig&;
+%ignore Arc::SubmitterPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
+%ignore Arc::SubmitterPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
 %template(SubmitterList) std::list<Arc::Submitter*>;
 #ifdef SWIGJAVA
 %template(SubmitterListIteratorHandler) listiteratorhandler<Arc::Submitter*>;
@@ -170,7 +171,8 @@
 %}
 %ignore Arc::JobState::operator!;
 %ignore Arc::JobState::operator=(const JobState&);
-%rename(GetType) Arc::JobState::operator StateType;
+%rename(GetType) Arc::JobState::operator StateType; // works with swig 1.3.40, and higher...
+%rename(GetType) Arc::JobState::operator Arc::JobState::StateType; // works with swig 1.3.29
 %rename(GetNativeState) Arc::JobState::operator();
 %template(JobStateList) std::list<Arc::JobState>;
 #ifdef SWIGJAVA
@@ -199,7 +201,8 @@
 %{
 #include <arc/client/JobController.h>
 %}
-%ignore Arc::JobControllerPluginArgument::operator const UserConfig&;
+%ignore Arc::JobControllerPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
+%ignore Arc::JobControllerPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
 %template(JobControllerList) std::list<Arc::JobController *>;
 %template(JobControllerMap) std::map<std::string, Arc::JobController *>;
 #ifdef SWIGJAVA
@@ -348,7 +351,8 @@ TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInfor
 #include <arc/client/Broker.h>
 %}
 %ignore Arc::Broker::operator=(const Broker&);
-%ignore Arc::BrokerPluginArgument::operator const UserConfig&;
+%ignore Arc::BrokerPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
+%ignore Arc::BrokerPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
 /* Currently the CountedBroker cannot be wrapped since a default
  * constructor (no arguments) for the CountedBroker and Broker classes
  * is required when wrapping. More investigation is needed.
