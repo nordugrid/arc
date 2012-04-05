@@ -7,6 +7,9 @@
 %module arc
 
 %include <stl.i>
+%include <std_vector.i>
+
+#define DEPRECATED(X) X
 
 #ifdef SWIGPYTHON
 %include <std_list.i>
@@ -14,9 +17,70 @@
 #ifdef PYDOXYGEN
 %include "../python/pydoxygen.i"
 #endif
-#endif
 
-#define DEPRECATED(X) X
+namespace Arc {
+
+/**
+ * Python cannot deal with string references since strings in Python
+ * are immutable. Therefore ignore the string reference argument and
+ * store a reference in a temporary variable. Here it is assumed that
+ * the string reference does not contain any input to the function being
+ * called.
+ **/
+%typemap(in, numinputs=0) std::string& TUPLEOUTPUTSTRING (std::string str) {
+  $1 = &str;
+}
+
+/**
+ * Return the original return value and the temporary string reference
+ * combined in a Python tuple.
+ **/
+%typemap(argout) std::string& TUPLEOUTPUTSTRING {
+  $result = PyTuple_Pack(2, $result, SWIG_From_std_string(*$1));
+}
+}
+
+%pythoncode %{
+import warnings
+
+def deprecated(method):
+    """This decorator is used to mark python methods as deprecated, _not_
+    functions. It will result in a warning being emmitted when the method
+    is used."""
+    def newMethod(*args, **kwargs):
+        warnings.warn("Call to deprecated method 'arc.%s.%s'." % (args[0].__class__.__name__, method.__name__), category = DeprecationWarning, stacklevel = 2)
+        return method(*args, **kwargs)
+    newMethod.__name__ = method.__name__
+    newMethod.__doc__ = method.__doc__
+    newMethod.__dict__.update(method.__dict__)
+    return newMethod
+%}
+
+%rename(__nonzero__) operator bool;
+%rename(__str__) operator std::string;
+
+%pythoncode %{
+class StaticPropertyWrapper(object):
+    def __init__(self, wrapped_class):
+        object.__setattr__(self, "wrapped_class", wrapped_class)
+
+    def __getattr__(self, name):
+        orig_attr = getattr(self.wrapped_class, name)
+        if isinstance(orig_attr, property):
+            return orig_attr.fget()
+        else:
+            return orig_attr
+
+    def __setattr__(self, name, value):
+        orig_attr = getattr(self.wrapped_class, name)
+        if isinstance(orig_attr, property):
+            orig_attr.fset(value)
+        else:
+            setattr(self.wrapped_class, name, value)
+
+
+%}
+#endif
 
 #ifdef SWIGJAVA
 %include <std_common.i>
@@ -150,86 +214,16 @@ class listiteratorhandler
 %typemap(javaout) std::string& get {
   return new $javaclassname($jnicall, $owner);
 }
-#endif
-
-%template(StringPair) std::pair<std::string, std::string>;
-%template(StringList) std::list<std::string>;
-%template(StringVector) std::vector<std::string>;
-%template(StringStringMap) std::map<std::string, std::string>;
-%template(StringDoubleMap) std::map<std::string, double>;
-
-
-#ifdef SWIGPYTHON
-namespace Arc {
-
-/**
- * Python cannot deal with string references since strings in Python
- * are immutable. Therefore ignore the string reference argument and
- * store a reference in a temporary variable. Here it is assumed that
- * the string reference does not contain any input to the function being
- * called.
- **/
-%typemap(in, numinputs=0) std::string& TUPLEOUTPUTSTRING (std::string str) {
-  $1 = &str;
-}
-
-/**
- * Return the original return value and the temporary string reference
- * combined in a Python tuple.
- **/
-%typemap(argout) std::string& TUPLEOUTPUTSTRING {
-  $result = PyTuple_Pack(2, $result, SWIG_From_std_string(*$1));
-}
-}
-
-%pythoncode %{
-import warnings
-
-def deprecated(method):
-    """This decorator is used to mark python methods as deprecated, _not_
-    functions. It will result in a warning being emmitted when the method
-    is used."""
-    def newMethod(*args, **kwargs):
-        warnings.warn("Call to deprecated method 'arc.%s.%s'." % (args[0].__class__.__name__, method.__name__), category = DeprecationWarning, stacklevel = 2)
-        return method(*args, **kwargs)
-    newMethod.__name__ = method.__name__
-    newMethod.__doc__ = method.__doc__
-    newMethod.__dict__.update(method.__dict__)
-    return newMethod
-%}
-
-%rename(__nonzero__) operator bool;
-%rename(__str__) operator std::string;
-
-%pythoncode %{
-class StaticPropertyWrapper(object):
-    def __init__(self, wrapped_class):
-        object.__setattr__(self, "wrapped_class", wrapped_class)
-
-    def __getattr__(self, name):
-        orig_attr = getattr(self.wrapped_class, name)
-        if isinstance(orig_attr, property):
-            return orig_attr.fget()
-        else:
-            return orig_attr
-
-    def __setattr__(self, name, value):
-        orig_attr = getattr(self.wrapped_class, name)
-        if isinstance(orig_attr, property):
-            orig_attr.fset(value)
-        else:
-            setattr(self.wrapped_class, name, value)
-
-
-%}
-#endif
-
-#ifdef SWIGJAVA
-%template(StringListIteratorHandler) listiteratorhandler<std::string>;
 
 %rename(toBool) operator bool;
 %rename(toString) operator std::string;
 %rename(equals) operator==;
+
+%ignore *::operator!=;
+%ignore *::operator<;
+%ignore *::operator>;
+%ignore *::operator<=;
+%ignore *::operator>=;
 
 /* The std::cout object will always exist, so do not set any references. See
  * comments in Arc.i.
@@ -243,6 +237,15 @@ class StaticPropertyWrapper(object):
 std::ostream& getStdout() { return std::cout; }
 %}
 #endif
+
+%template(StringPair) std::pair<std::string, std::string>;
+%template(StringList) std::list<std::string>;
+#ifdef SWIGJAVA
+%template(StringListIteratorHandler) listiteratorhandler<std::string>;
+#endif
+%template(StringVector) std::vector<std::string>;
+%template(StringStringMap) std::map<std::string, std::string>;
+%template(StringDoubleMap) std::map<std::string, double>;
 
 
 %include "common.i"

@@ -1,14 +1,3 @@
-%include <std_vector.i>
-
-#ifdef SWIGJAVA
-%ignore *::operator!=;
-%ignore *::operator<;
-%ignore *::operator>;
-%ignore *::operator<=;
-%ignore *::operator>=;
-#endif
-
-
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/XMLNode.h
 %{
 #include <arc/XMLNode.h>
