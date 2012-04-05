@@ -332,9 +332,9 @@ namespace Arc {
       }
     }
 
-    // Time ExpiryTime;
+    // Time ExpirationTime;
     if (bool(xmlApplication["ExpiryTime"]))
-      job.Application.ExpiryTime = Time((std::string)xmlApplication["ExpiryTime"]);
+      job.Application.ExpirationTime = Time((std::string)xmlApplication["ExpiryTime"]);
 
     // Time ProcessingStartTime;
     if (bool(xmlApplication["ProcessingStartTime"]))
@@ -854,9 +854,9 @@ namespace Arc {
     if (job.Application.Priority > -1)
       xmlApplication.NewChild("Priority") = tostring(job.Application.Priority);
 
-    // Time ExpiryTime;
-    if (job.Application.ExpiryTime > -1)
-      xmlApplication.NewChild("ExpiryTime") = job.Application.ExpiryTime.str();
+    // Time ExpirationTime;
+    if (job.Application.ExpirationTime > -1)
+      xmlApplication.NewChild("ExpiryTime") = job.Application.ExpirationTime.str();
 
 
     // Time ProcessingStartTime;

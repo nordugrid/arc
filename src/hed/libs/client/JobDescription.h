@@ -209,7 +209,7 @@ namespace Arc {
   public:
     ApplicationType() :
       Rerun(-1),
-      ExpiryTime(-1),
+      ExpirationTime(-1),
       ProcessingStartTime(-1),
       Priority (-1),
       DryRun(false)
@@ -280,7 +280,7 @@ namespace Arc {
     std::list<RemoteLoggingType> RemoteLogging;
 
     int Rerun;
-    Time ExpiryTime;
+    Time ExpirationTime;
     Time ProcessingStartTime;
     int Priority;
     std::list<NotificationType> Notification;

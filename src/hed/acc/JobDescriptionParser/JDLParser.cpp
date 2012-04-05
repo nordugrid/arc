@@ -293,7 +293,7 @@ namespace Arc {
       return true;
     }
     else if (attributeName == "expirytime") {
-      job.Application.ExpiryTime = Time(stringtol(simpleJDLvalue(attributeValue)));
+      job.Application.ExpirationTime = Time(stringtol(simpleJDLvalue(attributeValue)));
       return true;
     }
     else if (attributeName == "environment") {
@@ -701,7 +701,7 @@ namespace Arc {
 
     product += ADDJDLNUMBER(job.Application.Rerun, "RetryCount");
     product += ADDJDLNUMBER(job.Application.Rerun, "ShallowRetryCount");
-    product += ADDJDLNUMBER(job.Application.ExpiryTime.GetTime(), "ExpiryTime");
+    product += ADDJDLNUMBER(job.Application.ExpirationTime.GetTime(), "ExpiryTime");
 
     if (!job.Application.CredentialService.empty() &&
         job.Application.CredentialService.front()) {

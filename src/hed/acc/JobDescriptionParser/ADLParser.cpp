@@ -417,8 +417,8 @@ namespace Arc {
           jobdescs.clear();
           return false;
         }
-        job.Application.ExpiryTime = (std::string)expire;
-        if(job.Application.ExpiryTime.GetTime() == (time_t)(-1)) {
+        job.Application.ExpirationTime = (std::string)expire;
+        if(job.Application.ExpirationTime.GetTime() == (time_t)(-1)) {
           logger.msg(b?WARNING:ERROR, "[ADLParser] Wrong time %s in ExpirationTime.",(std::string)expire);
           if(!b) {
             jobdescs.clear();
@@ -818,9 +818,9 @@ namespace Arc {
       logging.NewChild("URL") = it->Location.fullstr();
       if(it->optional) logging.NewAttribute("optional") = "true";
     }
-    if(job.Application.ExpiryTime > -1) {
+    if(job.Application.ExpirationTime > -1) {
       XMLNode expire = application.NewChild("ExpirationTime");
-      expire = job.Application.ExpiryTime.str();
+      expire = job.Application.ExpirationTime.str();
       //if() expire.NewAttribute("optional") = "true";
     }
     if(job.Resources.SessionLifeTime > -1) {
