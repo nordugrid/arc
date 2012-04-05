@@ -209,6 +209,7 @@ typedef unsigned int uint32_t;
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/Utils.h
 %ignore Arc::AutoPointer::operator!;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Arc::CountedPointer::Base;
 %ignore Arc::CountedPointer::operator!;
 %ignore Arc::CountedPointer::operator=(T*);
 %ignore Arc::CountedPointer::operator=(const CountedPointer<T>&);
