@@ -9,8 +9,8 @@
 #include <arc/URL.h>
 #include <arc/message/MCC.h>
 
-#include "../EMIES/JobStateEMIES.cpp" // TODO
-#include "../EMIES/EMIESClient.cpp" // TODO
+#include "JobStateEMIES.h"
+#include "EMIESClient.h"
 #include "JobListRetrieverPluginEMIES.h"
 
 namespace Arc {

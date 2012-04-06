@@ -1,7 +1,6 @@
 pkglib_LTLIBRARIES = libaccJLR.la
 
 libaccJLR_la_SOURCES  = DescriptorsJLR.cpp \
-	JobListRetrieverPluginEMIES.cpp JobListRetrieverPluginEMIES.h \
 	JobListRetrieverPluginLDAPNG.cpp JobListRetrieverPluginLDAPNG.h \
 	JobListRetrieverPluginWSRFBES.cpp JobListRetrieverPluginWSRFBES.h \
 	JobListRetrieverPluginWSRFCREAM.cpp JobListRetrieverPluginWSRFCREAM.h \
