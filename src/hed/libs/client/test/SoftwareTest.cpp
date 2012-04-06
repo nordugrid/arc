@@ -124,7 +124,7 @@ void SoftwareTest::BasicRequirementsTest() {
 }
 
 void SoftwareTest::RequirementsAndTest() {
-  SR sr; sr.add(SV("A-1.03")); sr.add(SV("B-2.12"));
+  SR sr; sr.add(SV("A-1.03"), SV::EQUAL); sr.add(SV("B-2.12"), SV::EQUAL);
 
   versions.push_back(SV("A-1.03"));
   versions.push_back(SV("B-2.12"));
@@ -145,7 +145,7 @@ void SoftwareTest::RequirementsAssignmentTest() {
   versions.push_back(SV("A-2.2"));
   versions.push_back(SV("A-2.3"));
 
-  sr.add(SV("A-1.3"));
+  sr.add(SV("A-1.3"), SV::EQUAL);
   CPPUNIT_ASSERT(sr.isSatisfied(versions));
   CPPUNIT_ASSERT(sr.selectSoftware(versions));
   CPPUNIT_ASSERT_EQUAL(1, (int) sr.getSoftwareList().size());
@@ -153,13 +153,13 @@ void SoftwareTest::RequirementsAssignmentTest() {
   CPPUNIT_ASSERT(sr.isResolved());
   sr.clear();
 
-  sr.add(SV("A-1.2"));
+  sr.add(SV("A-1.2"), SV::EQUAL);
   CPPUNIT_ASSERT(!sr.isSatisfied(versions));
   CPPUNIT_ASSERT(!sr.selectSoftware(versions));
   sr.clear();
   
-  sr.add(SV("A-1.3"));
-  sr.add(SV("A-2.4"));
+  sr.add(SV("A-1.3"), SV::EQUAL);
+  sr.add(SV("A-2.4"), SV::EQUAL);
   CPPUNIT_ASSERT(!sr.isSatisfied(versions));
   CPPUNIT_ASSERT(!sr.selectSoftware(versions));
   CPPUNIT_ASSERT_EQUAL(2, (int) sr.getSoftwareList().size());
