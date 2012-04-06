@@ -3,7 +3,6 @@ pkglib_LTLIBRARIES = libaccJLR.la
 libaccJLR_la_SOURCES  = DescriptorsJLR.cpp \
 	JobListRetrieverPluginLDAPNG.cpp JobListRetrieverPluginLDAPNG.h \
 	JobListRetrieverPluginWSRFBES.cpp JobListRetrieverPluginWSRFBES.h \
-	JobListRetrieverPluginWSRFCREAM.cpp JobListRetrieverPluginWSRFCREAM.h \
 	JobListRetrieverPluginWSRFGLUE2.cpp JobListRetrieverPluginWSRFGLUE2.h
 libaccJLR_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
