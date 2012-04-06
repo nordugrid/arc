@@ -1,7 +1,6 @@
 pkglib_LTLIBRARIES = libaccJLR.la
 
-libaccJLR_la_SOURCES  = DescriptorsJLR.cpp \
-	JobListRetrieverPluginWSRFBES.cpp JobListRetrieverPluginWSRFBES.h
+libaccJLR_la_SOURCES  = DescriptorsJLR.cpp
 libaccJLR_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 libaccJLR_la_LIBADD = \

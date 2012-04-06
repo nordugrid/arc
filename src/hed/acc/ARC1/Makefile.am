@@ -1,5 +1,6 @@
 pkglib_LTLIBRARIES = libaccARC1.la
 #noinst_LTLIBRARIES = libarexclient.la
+noinst_LTLIBRARIES = libaccJLRWSRFBES.la
 
 libaccARC1_la_SOURCES  = SubmitterARC1.cpp SubmitterARC1.h \
 	JobListRetrieverPluginWSRFGLUE2.cpp JobListRetrieverPluginWSRFGLUE2.h \
@@ -24,6 +25,22 @@ libaccARC1_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
 libaccARC1_la_LDFLAGS = -no-undefined -avoid-version -module
+
+libaccJLRWSRFBES_la_SOURCES  = \
+	JobListRetrieverPluginWSRFBES.cpp JobListRetrieverPluginWSRFBES.h
+libaccJLRWSRFBES_la_CXXFLAGS = -I$(top_srcdir)/include \
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+libaccJLRWSRFBES_la_LIBADD = \
+	$(top_builddir)/src/hed/libs/ws/libarcws.la \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
+	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
+	$(top_builddir)/src/hed/libs/data/libarcdata2.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la\
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
+libaccJLRWSRFBES_la_LDFLAGS = -no-undefined -avoid-version -module
 
 #libarexclient_la_SOURCES = AREXClient.cpp AREXClient.h
 #libarexclient_la_CXXFLAGS = -I$(top_srcdir)/include \
