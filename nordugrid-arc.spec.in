@@ -1200,7 +1200,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libaccBroker.so
 %{_libdir}/%{pkgdir}/libaccCREAM.so
 %{_libdir}/%{pkgdir}/libaccEMIES.so
-%{_libdir}/%{pkgdir}/libaccJLR.so
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.so
 %{_libdir}/%{pkgdir}/libaccSER.so
 %{_libdir}/%{pkgdir}/libaccldap.so
@@ -1222,7 +1221,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libaccBroker.apd
 %{_libdir}/%{pkgdir}/libaccCREAM.apd
 %{_libdir}/%{pkgdir}/libaccEMIES.apd
-%{_libdir}/%{pkgdir}/libaccJLR.apd
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.apd
 %{_libdir}/%{pkgdir}/libaccSER.apd
 %{_libdir}/%{pkgdir}/libaccldap.apd

@@ -310,7 +310,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_libdir}/%{pkgdir}/libaccBroker.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccCREAM.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccEMIES.dll*
-%{_mingw32_libdir}/%{pkgdir}/libaccJLR.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccSER.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccldap.dll*
 #%{_mingw32_libdir}/%{pkgdir}/libaccUNICORE.dll*
