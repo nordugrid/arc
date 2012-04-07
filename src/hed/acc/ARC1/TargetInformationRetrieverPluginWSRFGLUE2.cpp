@@ -199,6 +199,9 @@ namespace Arc {
         if (xmlCENode["InterfaceExtension"]) {
           for (XMLNode n = xmlCENode["InterfaceExtension"]; n; ++n) {
             ComputingEndpoint->InterfaceExtension.push_back((std::string)n);
+            if ((std::string)n == "urn:org.nordugrid.xbes") {
+              ComputingEndpoint->InterfaceName = "org.nordugrid.xbes";
+            }
           }
         }
         if (xmlCENode["SupportedProfile"]) {
