@@ -23,22 +23,6 @@
 #define BES_FACTORY_ACTIONS_BASE_URL "http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/"
 
 namespace Arc {
-  // TODO: probably worth moving it to common library
-  // Of course xpath can be used too. But such solution is probably an overkill.
-  static XMLNode find_xml_node(XMLNode node,
-                               const std::string& el_name,
-                               const std::string& attr_name,
-                               const std::string& attr_value) {
-    if (MatchXMLName(node, el_name) &&
-        (((std::string)node.Attribute(attr_name)) == attr_value))
-      return node;
-    for (XMLNode cn = node[el_name]; cn; cn = cn[1]) {
-      XMLNode fn = find_xml_node(cn, el_name, attr_name, attr_value);
-      if (fn)
-        return fn;
-    }
-    return XMLNode();
-  }
 
   Logger AREXClient::logger(Logger::rootLogger, "A-REX-Client");
 
