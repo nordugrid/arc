@@ -14,19 +14,19 @@
 #include <arc/message/MCC.h>
 #include <arc/ws-addressing/WSA.h>
 
-#include "SubmitterUNICORE.h"
+#include "SubmitterPluginUNICORE.h"
 #include "UNICOREClient.h"
 
 namespace Arc {
 
-  Logger SubmitterUNICORE::logger(Logger::getRootLogger(), "Submitter.UNICORE");
+  Logger SubmitterPluginUNICORE::logger(Logger::getRootLogger(), "SubmitterPlugin.UNICORE");
 
-  bool SubmitterUNICORE::isEndpointNotSupported(const std::string& endpoint) const {
+  bool SubmitterPluginUNICORE::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
   
-  bool SubmitterUNICORE::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) {
+  bool SubmitterPluginUNICORE::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
@@ -115,7 +115,7 @@ namespace Arc {
     return true;
   }
 
-  bool SubmitterUNICORE::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
+  bool SubmitterPluginUNICORE::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
                                  const ExecutionTarget& et, bool /* forcemigration */,
                                  Job& /* job */) {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a UNICORE resource is not supported.", et.ComputingEndpoint->URLString);

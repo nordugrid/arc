@@ -16,19 +16,19 @@
 #include <arc/client/JobDescription.h>
 #include <arc/message/MCC.h>
 
-#include "SubmitterEMIES.h"
+#include "SubmitterPluginEMIES.h"
 #include "EMIESClient.h"
 
 namespace Arc {
 
-  Logger SubmitterEMIES::logger(Logger::getRootLogger(), "Submitter.EMIES");
+  Logger SubmitterPluginEMIES::logger(Logger::getRootLogger(), "SubmitterPlugin.EMIES");
 
-  bool SubmitterEMIES::isEndpointNotSupported(const std::string& endpoint) const {
+  bool SubmitterPluginEMIES::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
   
-  EMIESClient* SubmitterEMIES::acquireClient(const URL& url) {
+  EMIESClient* SubmitterPluginEMIES::acquireClient(const URL& url) {
     std::map<URL, EMIESClient*>::const_iterator url_it = clients.find(url);
     if ( url_it != clients.end() ) {
       return url_it->second;
@@ -40,11 +40,11 @@ namespace Arc {
     }
   }
 
-  bool SubmitterEMIES::releaseClient(const URL& url) {
+  bool SubmitterPluginEMIES::releaseClient(const URL& url) {
     return true;
   }
 
-  bool SubmitterEMIES::deleteAllClients() {
+  bool SubmitterPluginEMIES::deleteAllClients() {
     std::map<URL, EMIESClient*>::iterator it;
     for (it = clients.begin(); it != clients.end(); it++) {
         if ((*it).second != NULL) delete (*it).second;
@@ -52,7 +52,7 @@ namespace Arc {
     return true;
   }
 
-  bool SubmitterEMIES::Submit(const JobDescription& jobdesc,
+  bool SubmitterPluginEMIES::Submit(const JobDescription& jobdesc,
                              const ExecutionTarget& et, Job& job) {
     // TODO: this is multi step process. So having retries would be nice.
 
@@ -166,7 +166,7 @@ namespace Arc {
     return true;
   }
 
-  bool SubmitterEMIES::Migrate(const URL& jobid, const JobDescription& jobdesc,
+  bool SubmitterPluginEMIES::Migrate(const URL& jobid, const JobDescription& jobdesc,
                          const ExecutionTarget& et, bool forcemigration,
                          Job& job) {
     logger.msg(VERBOSE, "Migration for EMI ES is not implemented");

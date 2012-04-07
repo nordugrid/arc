@@ -10,7 +10,7 @@
 #include <arc/client/Broker.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/client/ExecutionTarget.h>
-#include <arc/client/Submitter.h>
+#include <arc/client/SubmitterPlugin.h>
 #include <arc/UserConfig.h>
 #include <arc/StringConv.h>
 
@@ -18,7 +18,7 @@ namespace Arc {
 
   Logger ExecutionTarget::logger(Logger::getRootLogger(), "ExecutionTarget");
 
-  SubmitterLoader ExecutionTarget::loader;
+  SubmitterPluginLoader ExecutionTarget::loader;
 
   template<typename T>
   void ComputingServiceType::GetExecutionTargets(T& container) const {
@@ -80,8 +80,8 @@ namespace Arc {
     }
   }
 
-  Submitter* ExecutionTarget::GetSubmitter(const UserConfig& ucfg) const {
-    Submitter* s = loader.loadByInterfaceName(ComputingEndpoint->InterfaceName, ucfg);
+  SubmitterPlugin* ExecutionTarget::GetSubmitterPlugin(const UserConfig& ucfg) const {
+    SubmitterPlugin* s = loader.loadByInterfaceName(ComputingEndpoint->InterfaceName, ucfg);
     if (s == NULL) {
       return s;
     }

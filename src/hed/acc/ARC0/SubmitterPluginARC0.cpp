@@ -17,7 +17,7 @@
 #include <arc/client/Job.h>
 #include <arc/client/JobDescription.h>
 
-#include "SubmitterARC0.h"
+#include "SubmitterPluginARC0.h"
 #include "FTPControl.h"
 
 namespace Arc {
@@ -25,14 +25,14 @@ namespace Arc {
   // Characters to be escaped in LDAP filter according to RFC4515
   static const std::string filter_esc("&|=!><~*/()");
 
-  Logger SubmitterARC0::logger(Logger::getRootLogger(), "Submitter.ARC0");
+  Logger SubmitterPluginARC0::logger(Logger::getRootLogger(), "SubmitterPlugin.ARC0");
 
-  bool SubmitterARC0::isEndpointNotSupported(const std::string& endpoint) const {
+  bool SubmitterPluginARC0::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "gsiftp";
   }
   
-  Plugin* SubmitterARC0::Instance(PluginArgument *arg) {
+  Plugin* SubmitterPluginARC0::Instance(PluginArgument *arg) {
     SubmitterPluginArgument *subarg =
       dynamic_cast<SubmitterPluginArgument*>(arg);
     if (!subarg)
@@ -40,15 +40,15 @@ namespace Arc {
     Glib::Module* module = subarg->get_module();
     PluginsFactory* factory = subarg->get_factory();
     if(!(factory && module)) {
-      logger.msg(ERROR, "Missing reference to factory and/or module. It is unsafe to use Globus in non-persistent mode - Submitter for ARC0 is disabled. Report to developers.");
+      logger.msg(ERROR, "Missing reference to factory and/or module. It is unsafe to use Globus in non-persistent mode - SubmitterPlugin for ARC0 is disabled. Report to developers.");
       return NULL;
     }
     factory->makePersistent(module);
-    return new SubmitterARC0(*subarg, arg);
+    return new SubmitterPluginARC0(*subarg, arg);
   }
 
 
-  bool SubmitterARC0::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) {
+  bool SubmitterPluginARC0::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) {
     FTPControl ctrl;
 
     URL url(et.ComputingEndpoint->URLString);
@@ -133,7 +133,7 @@ namespace Arc {
     return true;
   }
 
-  bool SubmitterARC0::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
+  bool SubmitterPluginARC0::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
                              const ExecutionTarget& et, bool /* forcemigration */,
                              Job& /* job */) {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a legacy ARC resource is not supported.", et.ComputingEndpoint->URLString);

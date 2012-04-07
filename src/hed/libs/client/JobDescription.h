@@ -579,7 +579,7 @@ namespace Arc {
     /**
      * The Prepare method, is used to check and adapt the JobDescription object
      * to the passed ExecutionTarget object before submitting the job
-     * description to the target. This method is normally called by Submitter
+     * description to the target. This method is normally called by SubmitterPlugin
      * plugin classes, before submitting the job description.
      * First the method checks the DataStaging.InputFiles list, for identical
      * file names, and non-existent local input files. If any of such files are

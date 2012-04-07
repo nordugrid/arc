@@ -1,7 +1,7 @@
 pkglib_LTLIBRARIES = libaccUNICORE.la
 
 libaccUNICORE_la_SOURCES = \
-	SubmitterUNICORE.cpp SubmitterUNICORE.h \
+	SubmitterPluginUNICORE.cpp SubmitterPluginUNICORE.h \
 	JobControllerUNICORE.cpp JobControllerUNICORE.h \
 	UNICOREClient.cpp UNICOREClient.h \
 	DescriptorsUNICORE.cpp \

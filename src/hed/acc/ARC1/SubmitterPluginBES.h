@@ -1,9 +1,9 @@
 // -*- indent-tabs-mode: nil -*-
 
-#ifndef __ARC_SUBMITTERBES_H__
-#define __ARC_SUBMITTERBES_H__
+#ifndef __ARC_SUBMITTERPLUGINBES_H__
+#define __ARC_SUBMITTERPLUGINBES_H__
 
-#include <arc/client/Submitter.h>
+#include <arc/client/SubmitterPlugin.h>
 #include <arc/XMLNode.h>
 #include <arc/URL.h>
 #include <arc/loader/Loader.h>
@@ -11,14 +11,14 @@
 
 namespace Arc {
 
-  class SubmitterBES : public Submitter {
+  class SubmitterPluginBES : public SubmitterPlugin {
   public:
-    SubmitterBES(const UserConfig& usercfg, PluginArgument* parg) : Submitter(usercfg, parg) { supportedInterfaces.push_back("org.ogf.bes"); }
-    ~SubmitterBES() {}
+    SubmitterPluginBES(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg) { supportedInterfaces.push_back("org.ogf.bes"); }
+    ~SubmitterPluginBES() {}
 
     static Plugin* Instance(PluginArgument *arg) {
       SubmitterPluginArgument *subarg = dynamic_cast<SubmitterPluginArgument*>(arg);
-      return subarg ? new SubmitterBES(*subarg, arg) : NULL;
+      return subarg ? new SubmitterPluginBES(*subarg, arg) : NULL;
     }
 
     bool isEndpointNotSupported(const std::string& endpoint) const;
@@ -34,4 +34,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // __ARC_SUBMITTERBES_H__
+#endif // __ARC_SUBMITTERPLUGINBES_H__

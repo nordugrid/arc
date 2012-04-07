@@ -4,4 +4,4 @@
 #include <config.h>
 #endif
 
-#include "SubmitterTestACC.h"
+#include "SubmitterPluginTestACC.h"

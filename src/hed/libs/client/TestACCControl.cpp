@@ -20,11 +20,11 @@ std::string JobControllerTestACCControl::getJobDescriptionString = "";
 URL JobControllerTestACCControl::fileURL = URL();
 URL JobControllerTestACCControl::createURL = URL();
 
-bool SubmitterTestACCControl::submitStatus = true;
-bool SubmitterTestACCControl::migrateStatus = true;
-bool SubmitterTestACCControl::modifyStatus = true;
-Job* SubmitterTestACCControl::submitJob = NULL;
-Job* SubmitterTestACCControl::migrateJob = NULL;
+bool SubmitterPluginTestACCControl::submitStatus = true;
+bool SubmitterPluginTestACCControl::migrateStatus = true;
+bool SubmitterPluginTestACCControl::modifyStatus = true;
+Job* SubmitterPluginTestACCControl::submitJob = NULL;
+Job* SubmitterPluginTestACCControl::migrateJob = NULL;
 
 float TargetInformationRetrieverPluginTESTControl::delay = 0;
 std::list<ComputingServiceType> TargetInformationRetrieverPluginTESTControl::targets;

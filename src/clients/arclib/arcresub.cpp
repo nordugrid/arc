@@ -58,7 +58,7 @@ int RUNRESUB(main)(int argc, char **argv) {
 
   if (opt.show_plugins) {
     std::list<std::string> types;
-    types.push_back("HED:Submitter");
+    types.push_back("HED:SubmitterPlugin");
     types.push_back("HED:ServiceEndpointRetrieverPlugin");
     types.push_back("HED:TargetInformationRetrieverPlugin");
     types.push_back("HED:Broker");

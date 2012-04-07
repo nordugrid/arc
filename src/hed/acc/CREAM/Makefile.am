@@ -2,7 +2,7 @@ pkglib_LTLIBRARIES = libaccCREAM.la
 noinst_LTLIBRARIES = libaccCREAMJLR.la
 
 libaccCREAM_la_SOURCES = DescriptorsCREAM.cpp \
-	SubmitterCREAM.cpp SubmitterCREAM.h \
+	SubmitterPluginCREAM.cpp SubmitterPluginCREAM.h \
 	JobControllerCREAM.cpp JobControllerCREAM.h \
 	CREAMClient.cpp CREAMClient.h \
 	JobStateCREAM.cpp JobStateCREAM.h

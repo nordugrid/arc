@@ -19,19 +19,19 @@
 #include <arc/client/JobDescription.h>
 #include <arc/message/MCC.h>
 
-#include "SubmitterARC1.h"
+#include "SubmitterPluginARC1.h"
 #include "AREXClient.h"
 
 namespace Arc {
 
-  Logger SubmitterARC1::logger(Logger::getRootLogger(), "Submitter.ARC1");
+  Logger SubmitterPluginARC1::logger(Logger::getRootLogger(), "SubmitterPlugin.ARC1");
 
-  bool SubmitterARC1::isEndpointNotSupported(const std::string& endpoint) const {
+  bool SubmitterPluginARC1::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  AREXClient* SubmitterARC1::acquireClient(const URL& url) {
+  AREXClient* SubmitterPluginARC1::acquireClient(const URL& url) {
     std::map<URL, AREXClient*>::const_iterator url_it = clients.find(url);
     if ( url_it != clients.end() ) {
       // If AREXClient is already existing for the
@@ -46,11 +46,11 @@ namespace Arc {
     }
   }
 
-  bool SubmitterARC1::releaseClient(const URL& url) {
+  bool SubmitterPluginARC1::releaseClient(const URL& url) {
     return true;
   }
 
-  bool SubmitterARC1::deleteAllClients() {
+  bool SubmitterPluginARC1::deleteAllClients() {
     std::map<URL, AREXClient*>::iterator it;
     for (it = clients.begin(); it != clients.end(); it++) {
         if ((*it).second != NULL) delete (*it).second;
@@ -58,7 +58,7 @@ namespace Arc {
     return true;
   }
 
-  bool SubmitterARC1::Submit(const JobDescription& jobdesc,
+  bool SubmitterPluginARC1::Submit(const JobDescription& jobdesc,
                              const ExecutionTarget& et, Job& job) {
     URL url(et.ComputingEndpoint->URLString);
 
@@ -106,7 +106,7 @@ namespace Arc {
     return true;
   }
 
-  bool SubmitterARC1::Migrate(const URL& jobid, const JobDescription& jobdesc,
+  bool SubmitterPluginARC1::Migrate(const URL& jobid, const JobDescription& jobdesc,
                              const ExecutionTarget& et,
                              bool forcemigration, Job& job) {
     URL url(et.ComputingEndpoint->URLString);

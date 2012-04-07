@@ -22,7 +22,7 @@
 #include <arc/Utils.h>
 #include <arc/client/ComputingServiceRetriever.h>
 #include <arc/client/Job.h>
-#include <arc/client/Submitter.h>
+#include <arc/client/SubmitterPlugin.h>
 #include <arc/client/JobDescription.h>
 #include <arc/credential/Credential.h>
 #include <arc/UserConfig.h>
@@ -84,7 +84,7 @@ int RUNSUB(main)(int argc, char **argv) {
 
   if (opt.show_plugins) {
     std::list<std::string> types;
-    types.push_back("HED:Submitter");
+    types.push_back("HED:SubmitterPlugin");
     types.push_back("HED:ServiceEndpointRetrieverPlugin");
     types.push_back("HED:TargetInformationRetrieverPlugin");
     types.push_back("HED:JobDescriptionParser");

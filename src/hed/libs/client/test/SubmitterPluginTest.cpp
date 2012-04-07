@@ -6,19 +6,19 @@
 #include <arc/UserConfig.h>
 #include <arc/Utils.h>
 #include <arc/client/Job.h>
-#include <arc/client/Submitter.h>
+#include <arc/client/SubmitterPlugin.h>
 #include <arc/Thread.h>
 
-class SubmitterTest
+class SubmitterPluginTest
   : public CppUnit::TestFixture {
 
-  CPPUNIT_TEST_SUITE(SubmitterTest);
+  CPPUNIT_TEST_SUITE(SubmitterPluginTest);
   CPPUNIT_TEST(LoadTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
-  SubmitterTest();
-  ~SubmitterTest() { delete sl; }
+  SubmitterPluginTest();
+  ~SubmitterPluginTest() { delete sl; }
 
   void setUp() {}
   void tearDown() { Arc::ThreadInitializer().waitExit(); }
@@ -26,16 +26,16 @@ public:
   void LoadTest();
 
 private:
-  Arc::Submitter *s;
-  Arc::SubmitterLoader *sl;
+  Arc::SubmitterPlugin *s;
+  Arc::SubmitterPluginLoader *sl;
   Arc::UserConfig usercfg;
 };
 
-SubmitterTest::SubmitterTest() : s(NULL), usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)) {
-  sl = new Arc::SubmitterLoader();
+SubmitterPluginTest::SubmitterPluginTest() : s(NULL), usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)) {
+  sl = new Arc::SubmitterPluginLoader();
 }
 
-void SubmitterTest::LoadTest()
+void SubmitterPluginTest::LoadTest()
 {
   s = sl->load("", usercfg);
   CPPUNIT_ASSERT(s == NULL);
@@ -47,4 +47,4 @@ void SubmitterTest::LoadTest()
   CPPUNIT_ASSERT(s != NULL);
 }
 
-CPPUNIT_TEST_SUITE_REGISTRATION(SubmitterTest);
+CPPUNIT_TEST_SUITE_REGISTRATION(SubmitterPluginTest);

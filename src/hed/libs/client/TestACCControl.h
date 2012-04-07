@@ -41,7 +41,7 @@ class JobControllerTestACCControl {
     static URL createURL;
 };
 
-class SubmitterTestACCControl {
+class SubmitterPluginTestACCControl {
   public:
     static bool submitStatus;
     static bool migrateStatus;

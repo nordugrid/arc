@@ -48,17 +48,17 @@
 #endif
 
 
-// Wrap contents of $(top_srcdir)/src/hed/libs/client/Submitter.h
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/SubmitterPlugin.h
 %{
-#include <arc/client/Submitter.h>
+#include <arc/client/SubmitterPlugin.h>
 %}
 %ignore Arc::SubmitterPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
 %ignore Arc::SubmitterPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
-%template(SubmitterList) std::list<Arc::Submitter*>;
+%template(SubmitterPluginList) std::list<Arc::SubmitterPlugin*>;
 #ifdef SWIGJAVA
-%template(SubmitterListIteratorHandler) listiteratorhandler<Arc::Submitter*>;
+%template(SubmitterPluginListIteratorHandler) listiteratorhandler<Arc::SubmitterPlugin*>;
 #endif
-%include "../src/hed/libs/client/Submitter.h"
+%include "../src/hed/libs/client/SubmitterPlugin.h"
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/client/Software.h
@@ -233,12 +233,12 @@
 #include <arc/client/TestACCControl.h>
 %}
 #ifdef SWIGPYTHON
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) Arc::SubmitterTestACCControl::submitJob;
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) Arc::SubmitterTestACCControl::migrateJob;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) Arc::SubmitterPluginTestACCControl::submitJob;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) Arc::SubmitterPluginTestACCControl::migrateJob;
 %rename(_BrokerPluginTestACCControl) Arc::BrokerPluginTestACCControl;
 %rename(_JobDescriptionParserTestACCControl) Arc::JobDescriptionParserTestACCControl;
 %rename(_JobControllerTestACCControl) Arc::JobControllerTestACCControl;
-%rename(_SubmitterTestACCControl) Arc::SubmitterTestACCControl;
+%rename(_SubmitterPluginTestACCControl) Arc::SubmitterPluginTestACCControl;
 %rename(_ServiceEndpointRetrieverPluginTESTControl) Arc::ServiceEndpointRetrieverPluginTESTControl;
 %rename(_TargetInformationRetrieverPluginTESTControl) Arc::TargetInformationRetrieverPluginTESTControl;
 #endif
@@ -248,7 +248,7 @@
 BrokerPluginTestACCControl = StaticPropertyWrapper(_BrokerPluginTestACCControl)
 JobDescriptionParserTestACCControl = StaticPropertyWrapper(_JobDescriptionParserTestACCControl)
 JobControllerTestACCControl = StaticPropertyWrapper(_JobControllerTestACCControl)
-SubmitterTestACCControl = StaticPropertyWrapper(_SubmitterTestACCControl)
+SubmitterPluginTestACCControl = StaticPropertyWrapper(_SubmitterPluginTestACCControl)
 ServiceEndpointRetrieverPluginTESTControl = StaticPropertyWrapper(_ServiceEndpointRetrieverPluginTESTControl)
 TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInformationRetrieverPluginTESTControl)
 %}

@@ -1,22 +1,22 @@
 // -*- indent-tabs-mode: nil -*-
 
-#ifndef __ARC_SUBMITTERARC0_H__
-#define __ARC_SUBMITTERARC0_H__
+#ifndef __ARC_SUBMITTERPLUGINARC0_H__
+#define __ARC_SUBMITTERPLUGINARC0_H__
 
 #ifdef WIN32
 #include <fcntl.h>
 #endif
 
-#include <arc/client/Submitter.h>
+#include <arc/client/SubmitterPlugin.h>
 
 namespace Arc {
 
   class Config;
 
-  class SubmitterARC0 : public Submitter {
+  class SubmitterPluginARC0 : public SubmitterPlugin {
   public:
-    SubmitterARC0(const UserConfig& usercfg, PluginArgument* parg) : Submitter(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.gridftpjob"); }
-    ~SubmitterARC0() {}
+    SubmitterPluginARC0(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.gridftpjob"); }
+    ~SubmitterPluginARC0() {}
 
     static Plugin* Instance(PluginArgument *arg);
 
@@ -33,4 +33,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // __ARC_SUBMITTERARC0_H__
+#endif // __ARC_SUBMITTERPLUGINARC0_H__

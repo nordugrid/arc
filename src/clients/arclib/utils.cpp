@@ -55,7 +55,7 @@ void showplugins(const std::string& program, const std::list<std::string>& types
 
   for (std::list<std::string>::const_iterator itType = types.begin();
        itType != types.end(); ++itType) {
-    if (*itType == "HED:Submitter") {
+    if (*itType == "HED:SubmitterPlugin") {
       std::cout << Arc::IString("Types of execution services %s is able to submit jobs to:", program) << std::endl;
     }
     else if (*itType == "HED:ServiceEndpointRetrieverPlugin") {

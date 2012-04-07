@@ -4,7 +4,7 @@ pkglibtest_LTLIBRARIES = libaccTEST.la
 libaccTEST_la_SOURCES = \
 	JobControllerTestACC.cpp JobControllerTestACC.h \
 	JobDescriptionParserTestACC.cpp JobDescriptionParserTestACC.h \
-	SubmitterTestACC.cpp SubmitterTestACC.h \
+	SubmitterPluginTestACC.cpp SubmitterPluginTestACC.h \
 	BrokerPluginTestACC.h \
 	TargetInformationRetrieverPluginTEST.cpp TargetInformationRetrieverPluginTEST.h \
 	ServiceEndpointRetrieverPluginTEST.cpp ServiceEndpointRetrieverPluginTEST.h \

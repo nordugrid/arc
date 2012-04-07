@@ -1,7 +1,7 @@
 pkglib_LTLIBRARIES = libaccARC0.la
 
 libaccARC0_la_SOURCES = \
-	SubmitterARC0.cpp SubmitterARC0.h \
+	SubmitterPluginARC0.cpp SubmitterPluginARC0.h \
 	DescriptorsARC0.cpp \
 	JobControllerARC0.cpp JobControllerARC0.h \
 	FTPControl.cpp FTPControl.h JobStateARC0.cpp JobStateARC0.h

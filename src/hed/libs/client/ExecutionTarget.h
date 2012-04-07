@@ -15,13 +15,13 @@
 #include <arc/client/GLUE2Entity.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/Software.h>
-#include <arc/client/Submitter.h>
+#include <arc/client/SubmitterPlugin.h>
 
 namespace Arc {
 
   class Job;
   class Logger;
-  class Submitter;
+  class SubmitterPlugin;
   class UserConfig;
 
   /// ApplicationEnvironment
@@ -407,20 +407,20 @@ namespace Arc {
 
     ~ExecutionTarget() {};
 
-    /// Get Submitter to the computing resource represented by the ExecutionTarget
+    /// Get SubmitterPlugin to the computing resource represented by the ExecutionTarget
     /**
-     * Method which returns a specialized Submitter which can be used
+     * Method which returns a specialized SubmitterPlugin which can be used
      * for submitting jobs to the computing resource represented by
      * the ExecutionTarget. In order to return the correct specialized
-     * Submitter the GridFlavour variable must be correctly set.
+     * SubmitterPlugin the GridFlavour variable must be correctly set.
      *
      * @param ucfg UserConfig object with paths to user credentials
      * etc.
      **/
-    Submitter* GetSubmitter(const UserConfig& ucfg) const;
+    SubmitterPlugin* GetSubmitterPlugin(const UserConfig& ucfg) const;
 
     bool Submit(const UserConfig& ucfg, const JobDescription& jobdesc, Job& job) const {
-      Submitter* s = GetSubmitter(ucfg);
+      SubmitterPlugin* s = GetSubmitterPlugin(ucfg);
       if (s == NULL) {
         return false;
       }
@@ -430,7 +430,7 @@ namespace Arc {
     bool Migrate(const UserConfig& ucfg, const URL& jobid,
                  const JobDescription& jobdesc, bool forcemigration,
                  Job& job) const {
-      Submitter* s = GetSubmitter(ucfg);
+      SubmitterPlugin* s = GetSubmitterPlugin(ucfg);
       if (s == NULL) {
         return false;
       }
@@ -473,7 +473,7 @@ namespace Arc {
     CountedPointer< std::list<ApplicationEnvironment> > ApplicationEnvironments;
 
   private:
-    static SubmitterLoader loader;
+    static SubmitterPluginLoader loader;
 
     static Logger logger;
   };

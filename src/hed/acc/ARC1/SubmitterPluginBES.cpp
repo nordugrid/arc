@@ -14,12 +14,12 @@
 #include <arc/client/JobDescription.h>
 #include <arc/message/MCC.h>
 
-#include "SubmitterBES.h"
+#include "SubmitterPluginBES.h"
 #include "AREXClient.h"
 
 namespace Arc {
 
-  Logger SubmitterBES::logger(Logger::getRootLogger(), "Submitter.BES");
+  Logger SubmitterPluginBES::logger(Logger::getRootLogger(), "SubmitterPlugin.BES");
 
   static std::string char_to_hex(char v) {
     std::string s;
@@ -40,12 +40,12 @@ namespace Arc {
     return jobid;
   }
 
-  bool SubmitterBES::isEndpointNotSupported(const std::string& endpoint) const {
+  bool SubmitterPluginBES::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  bool SubmitterBES::Submit(const JobDescription& jobdesc,
+  bool SubmitterPluginBES::Submit(const JobDescription& jobdesc,
                             const ExecutionTarget& et, Job& job) {
     URL url(et.ComputingEndpoint->URLString);
 
@@ -78,7 +78,7 @@ namespace Arc {
     return true;
   }
 
-  bool SubmitterBES::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
+  bool SubmitterPluginBES::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
                              const ExecutionTarget& et, bool /* forcemigration */,
                              Job& /* job */) {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a BES resource is not supported.", et.ComputingEndpoint->URLString);

@@ -4,11 +4,11 @@
 #include <config.h>
 #endif
 
-#include "SubmitterCREAM.h"
+#include "SubmitterPluginCREAM.h"
 #include "JobControllerCREAM.h"
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "CREAM", "HED:Submitter", "The Computing Resource Execution And Management service", 0, &Arc::SubmitterCREAM::Instance },
+  { "CREAM", "HED:SubmitterPlugin", "The Computing Resource Execution And Management service", 0, &Arc::SubmitterPluginCREAM::Instance },
   { "CREAM", "HED:JobController", "The Computing Resource Execution And Management service", 0, &Arc::JobControllerCREAM::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

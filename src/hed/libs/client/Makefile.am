@@ -17,7 +17,7 @@ endif
 
 libarcclient_ladir = $(pkgincludedir)/client
 libarcclient_la_HEADERS = Broker.h ExecutionTarget.h \
-	Submitter.h GLUE2Entity.h \
+	SubmitterPlugin.h GLUE2Entity.h \
 	JobState.h Job.h JobController.h JobSupervisor.h \
 	JobDescription.h JobDescriptionParser.h Software.h \
 	GLUE2.h EndpointQueryingStatus.h TestACCControl.h \
@@ -25,7 +25,7 @@ libarcclient_la_HEADERS = Broker.h ExecutionTarget.h \
 	ComputingServiceRetriever.h ClientInterface.h \
 	ClientX509Delegation.h $(HEADER_WITH_XMLSEC)
 libarcclient_la_SOURCES = Broker.cpp ExecutionTarget.cpp \
-	Submitter.cpp \
+	SubmitterPlugin.cpp \
 	JobState.cpp Job.cpp JobController.cpp JobSupervisor.cpp \
 	JobDescription.cpp JobDescriptionParser.cpp Software.cpp \
 	GLUE2.cpp EndpointQueryingStatus.cpp TestACCControl.cpp \

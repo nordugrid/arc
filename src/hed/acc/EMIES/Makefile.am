@@ -3,7 +3,7 @@ noinst_PROGRAMS = test-emies-client
 
 libaccEMIES_la_SOURCES  = EMIESClient.cpp EMIESClient.h \
 	JobStateEMIES.cpp JobStateEMIES.h \
-	SubmitterEMIES.cpp SubmitterEMIES.h \
+	SubmitterPluginEMIES.cpp SubmitterPluginEMIES.h \
 	JobControllerEMIES.cpp JobControllerEMIES.h \
 	JobListRetrieverPluginEMIES.cpp JobListRetrieverPluginEMIES.h \
 	TargetInformationRetrieverPluginEMIES.cpp TargetInformationRetrieverPluginEMIES.h \

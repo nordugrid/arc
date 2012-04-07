@@ -1,7 +1,7 @@
 // -*- indent-tabs-mode: nil -*-
 
-#ifndef __ARC_SUBMITTER_H__
-#define __ARC_SUBMITTER_H__
+#ifndef __ARC_SUBMITTERPLUGIN_H__
+#define __ARC_SUBMITTERPLUGIN_H__
 
 #include <list>
 #include <map>
@@ -21,19 +21,19 @@ namespace Arc {
   class Logger;
   class UserConfig;
 
-  //! Base class for the Submitters
+  //! Base class for the SubmitterPlugins
   /**
-   * Submitter is the base class for Grid middleware specialized
-   * Submitter objects. The class submits job(s) to the computing
+   * SubmitterPlugin is the base class for Grid middleware specialized
+   * SubmitterPlugin objects. The class submits job(s) to the computing
    * resource it represents and uploads (needed by the job) local
    * input files.
    */
-  class Submitter : public Plugin {
+  class SubmitterPlugin : public Plugin {
   protected:
-    Submitter(const UserConfig& usercfg, PluginArgument* parg)
+    SubmitterPlugin(const UserConfig& usercfg, PluginArgument* parg)
       : Plugin(parg), usercfg(usercfg) {}
   public:
-    virtual ~Submitter() {}
+    virtual ~SubmitterPlugin() {}
 
     /// Submit job
     /**
@@ -92,32 +92,32 @@ namespace Arc {
     static Logger logger;
   };
 
-  //! Class responsible for loading Submitter plugins
-  /// The Submitter objects returned by a SubmitterLoader
-  /// must not be used after the SubmitterLoader goes out of scope.
-  class SubmitterLoader : public Loader {
+  //! Class responsible for loading SubmitterPlugin plugins
+  /// The SubmitterPlugin objects returned by a SubmitterPluginLoader
+  /// must not be used after the SubmitterPluginLoader goes out of scope.
+  class SubmitterPluginLoader : public Loader {
   public:
     //! Constructor
-    /// Creates a new SubmitterLoader.
-    SubmitterLoader();
+    /// Creates a new SubmitterPluginLoader.
+    SubmitterPluginLoader();
 
     //! Destructor
-    /// Calling the destructor destroys all Submitters loaded
-    /// by the SubmitterLoader instance.
-    ~SubmitterLoader();
+    /// Calling the destructor destroys all SubmitterPlugins loaded
+    /// by the SubmitterPluginLoader instance.
+    ~SubmitterPluginLoader();
 
-    //! Load a new Submitter
-    /// \param name    The name of the Submitter to load.
-    /// \param usercfg The UserConfig object for the new Submitter.
-    /// \returns       A pointer to the new Submitter (NULL on error).
-    Submitter* load(const std::string& name, const UserConfig& usercfg);
+    //! Load a new SubmitterPlugin
+    /// \param name    The name of the SubmitterPlugin to load.
+    /// \param usercfg The UserConfig object for the new SubmitterPlugin.
+    /// \returns       A pointer to the new SubmitterPlugin (NULL on error).
+    SubmitterPlugin* load(const std::string& name, const UserConfig& usercfg);
 
-    Submitter* loadByInterfaceName(const std::string& name, const UserConfig& usercfg);
+    SubmitterPlugin* loadByInterfaceName(const std::string& name, const UserConfig& usercfg);
 
   private:
     void initialiseInterfacePluginMap(const UserConfig& uc);
   
-    std::multimap<std::string, Submitter*> submitters;
+    std::multimap<std::string, SubmitterPlugin*> submitters;
     static std::map<std::string, std::string> interfacePluginMap;
   };
 
@@ -136,4 +136,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // __ARC_SUBMITTER_H__
+#endif // __ARC_SUBMITTERPLUGIN_H__

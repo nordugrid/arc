@@ -13,16 +13,16 @@
 #include <arc/message/MCC.h>
 
 #include "CREAMClient.h"
-#include "SubmitterCREAM.h"
+#include "SubmitterPluginCREAM.h"
 
 namespace Arc {
 
-  bool SubmitterCREAM::isEndpointNotSupported(const std::string& endpoint) const {
+  bool SubmitterPluginCREAM::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  bool SubmitterCREAM::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) {
+  bool SubmitterPluginCREAM::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     std::string delegationid = UUID();
@@ -85,7 +85,7 @@ namespace Arc {
     return true;
   }
 
-  bool SubmitterCREAM::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
+  bool SubmitterPluginCREAM::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
                                const ExecutionTarget& et, bool /* forcemigration */,
                                Job& /* job */) {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a CREAM resource is not supported.", et.ComputingEndpoint->URLString);
