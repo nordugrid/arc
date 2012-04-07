@@ -473,9 +473,7 @@ namespace Arc {
     CountedPointer< std::list<ApplicationEnvironment> > ApplicationEnvironments;
 
   private:
-    SubmitterLoader loader;
-
-    const std::string GetPluginName() const;
+    static SubmitterLoader loader;
 
     static Logger logger;
   };

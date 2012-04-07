@@ -1,14 +1,15 @@
 pkglibtestdir = $(pkglibdir)/test
 pkglibtest_LTLIBRARIES = libaccTEST.la
 
-libaccTEST_la_SOURCES = TestACCPluginDescriptors.cpp \
+libaccTEST_la_SOURCES = \
 	JobControllerTestACC.cpp JobControllerTestACC.h \
 	JobDescriptionParserTestACC.cpp JobDescriptionParserTestACC.h \
 	SubmitterTestACC.cpp SubmitterTestACC.h \
 	BrokerPluginTestACC.h \
 	TargetInformationRetrieverPluginTEST.cpp TargetInformationRetrieverPluginTEST.h \
 	ServiceEndpointRetrieverPluginTEST.cpp ServiceEndpointRetrieverPluginTEST.h \
-	JobListRetrieverPluginTEST.cpp JobListRetrieverPluginTEST.h
+	JobListRetrieverPluginTEST.cpp JobListRetrieverPluginTEST.h \
+	TestACCPluginDescriptors.cpp
 libaccTEST_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 libaccTEST_la_LIBADD = \

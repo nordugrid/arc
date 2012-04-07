@@ -13,12 +13,9 @@ namespace Arc {
   class JobDescription;
   class URL;
   
-  class SubmitterTestACC
-    : public Submitter {
-  private:
-    SubmitterTestACC(const UserConfig& usercfg, PluginArgument* parg) : Submitter(usercfg, "TEST", parg) {}
-  
+  class SubmitterTestACC : public Submitter {
   public:
+    SubmitterTestACC(const UserConfig& usercfg, PluginArgument* parg) : Submitter(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.test"); }
     ~SubmitterTestACC() {}
   
     static Plugin* GetInstance(PluginArgument *arg) {
@@ -26,6 +23,8 @@ namespace Arc {
       return jcarg ? new SubmitterTestACC(*jcarg,arg) : NULL;
     }
   
+    virtual bool isEndpointNotSupported(const std::string& endpoint) const { return endpoint.empty(); }
+
     virtual bool Submit(const JobDescription& /*jobdesc*/, const ExecutionTarget& /*et*/, Job& job) { SubmitterTestACCControl::submitJob = &job; return SubmitterTestACCControl::submitStatus; }
     virtual bool Migrate(const URL& /*jobid*/, const JobDescription& /*jobdesc*/, const ExecutionTarget& /*et*/, bool /*forcemigration*/, Job& job) { SubmitterTestACCControl::migrateJob = &job; return SubmitterTestACCControl::migrateStatus; }
   };

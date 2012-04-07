@@ -13,21 +13,22 @@ namespace Arc {
 
   class Config;
 
-  class SubmitterARC0
-    : public Submitter {
-
-  private:
-    SubmitterARC0(const UserConfig& usercfg, PluginArgument* parg);
-    ~SubmitterARC0();
-
-    static Logger logger;
-
+  class SubmitterARC0 : public Submitter {
   public:
+    SubmitterARC0(const UserConfig& usercfg, PluginArgument* parg) : Submitter(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.gridftpjob"); }
+    ~SubmitterARC0() {}
+
     static Plugin* Instance(PluginArgument *arg);
+
+    bool isEndpointNotSupported(const std::string& endpoint) const;
+
     virtual bool Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job);
     virtual bool Migrate(const URL& jobid, const JobDescription& jobdesc,
                          const ExecutionTarget& et, bool forcemigration,
                          Job& job);
+
+  private:
+    static Logger logger;
   };
 
 } // namespace Arc

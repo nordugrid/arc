@@ -11,6 +11,7 @@
 namespace Arc {
 
   class JobController;
+  class JobControllerLoader;
   class JobSupervisor;
   class Logger;
   class XMLNode;
@@ -37,9 +38,9 @@ namespace Arc {
 
     // Information stored in the job list file
     // Obligatory information
-    std::string Flavour;
     URL& JobID;
     URL Cluster;
+    std::string InterfaceName;
     // Optional information (ACCs fills if they need it)
     URL InfoEndpoint;
     URL ISB;
@@ -137,6 +138,10 @@ namespace Arc {
      * @see operator=
      **/
     void ToXML(XMLNode job) const;
+    
+    bool CopyJobFile(const URL& src, const URL& dst) const;
+
+    URL GetFileUrl(const std::string& whichfile) const;
 
     static bool CompareJobID(const Job& a, const Job& b) { return a.IDFromEndpoint.fullstr().compare(b.IDFromEndpoint.fullstr()) < 0; }
     static bool CompareSubmissionTime(const Job& a, const Job& b) { return a.SubmissionTime < b.SubmissionTime; }
@@ -377,6 +382,8 @@ namespace Arc {
 
   private:
     JobController* jc;
+
+    static JobControllerLoader loader;
 
     static Logger logger;
   };

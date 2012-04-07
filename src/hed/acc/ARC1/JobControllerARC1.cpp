@@ -22,18 +22,9 @@ namespace Arc {
 
   Logger JobControllerARC1::logger(Logger::getRootLogger(), "JobController.ARC1");
 
-  JobControllerARC1::JobControllerARC1(const UserConfig& usercfg, PluginArgument* parg)
-    : JobController(usercfg, "ARC1",  parg) {
-  }
-
-  JobControllerARC1::~JobControllerARC1() {
-  }
-
-  Plugin* JobControllerARC1::Instance(PluginArgument *arg) {
-    JobControllerPluginArgument *jcarg =
-      dynamic_cast<JobControllerPluginArgument*>(arg);
-    if (!jcarg) return NULL;
-    return new JobControllerARC1(*jcarg, arg);
+  bool JobControllerARC1::isEndpointNotSupported(const std::string& endpoint) const {
+    const std::string::size_type pos = endpoint.find("://");
+    return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
   void JobControllerARC1::UpdateJobs(std::list<Job*>& jobs) const {

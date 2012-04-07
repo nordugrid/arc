@@ -9,11 +9,14 @@ namespace Arc {
 
   class URL;
 
-  class JobControllerARC0
-    : public JobController {
+  class JobControllerARC0 : public JobController {
   public:
-    JobControllerARC0(const UserConfig& usercfg, PluginArgument* parg);
-    ~JobControllerARC0();
+    JobControllerARC0(const UserConfig& usercfg, PluginArgument* parg) : JobController(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.gridftpjob"); }
+    ~JobControllerARC0() {}
+
+    static Plugin* Instance(PluginArgument *arg);
+
+    bool isEndpointNotSupported(const std::string& endpoint) const;
 
     virtual void UpdateJobs(std::list<Job*>& jobs) const;
     virtual bool RetrieveJob(const Job& job, std::string& downloaddir, bool usejobname, bool force) const;
@@ -24,8 +27,6 @@ namespace Arc {
     virtual URL GetFileUrlForJob(const Job& job, const std::string& whichfile) const;
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) const;
     virtual URL CreateURL(std::string service, ServiceType st) const;
-
-    static Plugin* Instance(PluginArgument *arg);
 
   private:
     static Logger logger;

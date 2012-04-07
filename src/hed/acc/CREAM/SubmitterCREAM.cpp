@@ -17,17 +17,9 @@
 
 namespace Arc {
 
-  SubmitterCREAM::SubmitterCREAM(const UserConfig& usercfg, PluginArgument* parg)
-    : Submitter(usercfg, "CREAM", parg) {}
-
-  SubmitterCREAM::~SubmitterCREAM() {}
-
-  Plugin* SubmitterCREAM::Instance(PluginArgument *arg) {
-    SubmitterPluginArgument *subarg =
-      dynamic_cast<SubmitterPluginArgument*>(arg);
-    if (!subarg)
-      return NULL;
-    return new SubmitterCREAM(*subarg, arg);
+  bool SubmitterCREAM::isEndpointNotSupported(const std::string& endpoint) const {
+    const std::string::size_type pos = endpoint.find("://");
+    return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
   bool SubmitterCREAM::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) {

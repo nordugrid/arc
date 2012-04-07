@@ -23,20 +23,11 @@ namespace Arc {
 
   Logger SubmitterEMIES::logger(Logger::getRootLogger(), "Submitter.EMIES");
 
-  SubmitterEMIES::SubmitterEMIES(const UserConfig& usercfg, PluginArgument* parg)
-    : Submitter(usercfg, "EMIES", parg) {}
-
-  SubmitterEMIES::~SubmitterEMIES() {
-    deleteAllClients();
+  bool SubmitterEMIES::isEndpointNotSupported(const std::string& endpoint) const {
+    const std::string::size_type pos = endpoint.find("://");
+    return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
-
-  Plugin* SubmitterEMIES::Instance(PluginArgument *arg) {
-    SubmitterPluginArgument *subarg =
-      dynamic_cast<SubmitterPluginArgument*>(arg);
-    if (!subarg) return NULL;
-    return new SubmitterEMIES(*subarg, arg);
-  }
-
+  
   EMIESClient* SubmitterEMIES::acquireClient(const URL& url) {
     std::map<URL, EMIESClient*>::const_iterator url_it = clients.find(url);
     if ( url_it != clients.end() ) {

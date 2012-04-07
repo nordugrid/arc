@@ -37,7 +37,6 @@ private:
 
 JobTest::JobTest() : xmlJob(Arc::XMLNode("<ComputingActivity>"
     "<Name>mc08.1050.J7</Name>"
-    "<Flavour>ARC1</Flavour>"
     "<Cluster>https://ce01.niif.hu:60000/arex/</Cluster>"
     "<InfoEndpoint>https://ce01.niif.hu:60000/arex/</InfoEndpoint>"
     "<ISB>https://isb.niif.hu:60000/arex/</ISB>"
@@ -106,7 +105,6 @@ void JobTest::XMLToJobTest() {
   job = xmlJob;
 
   CPPUNIT_ASSERT_EQUAL((std::string)"mc08.1050.J7", job.Name);
-  CPPUNIT_ASSERT_EQUAL((std::string)"ARC1", job.Flavour);
   CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce01.niif.hu:60000/arex/"), job.Cluster);
   CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce01.niif.hu:60000/arex/"), job.InfoEndpoint);
   CPPUNIT_ASSERT_EQUAL(Arc::URL("https://isb.niif.hu:60000/arex/"), job.ISB);
@@ -180,7 +178,6 @@ void JobTest::JobToXMLTest() {
   job.ToXML(xmlOut);
 
   CPPUNIT_ASSERT_EQUAL((std::string)"mc08.1050.J7", (std::string)xmlOut["Name"]); xmlOut["Name"].Destroy();
-  CPPUNIT_ASSERT_EQUAL((std::string)"ARC1", (std::string)xmlOut["Flavour"]); xmlOut["Flavour"].Destroy();
   CPPUNIT_ASSERT_EQUAL((std::string)"https://ce01.niif.hu:60000/arex/", (std::string)xmlOut["Cluster"]); xmlOut["Cluster"].Destroy();
   CPPUNIT_ASSERT_EQUAL((std::string)"https://ce01.niif.hu:60000/arex/", (std::string)xmlOut["InfoEndpoint"]); xmlOut["InfoEndpoint"].Destroy();
   CPPUNIT_ASSERT_EQUAL((std::string)"https://isb.niif.hu:60000/arex/", (std::string)xmlOut["ISB"]); xmlOut["ISB"].Destroy();
@@ -291,7 +288,7 @@ void JobTest::FromOldFormatTest() {
 
   CPPUNIT_ASSERT_EQUAL(Arc::URL("https://example-ce.com:443/arex/3456789101112"), job.JobID);
   CPPUNIT_ASSERT_EQUAL(Arc::URL("https://example-ce.com:443/arex/3456789101112"), job.IDFromEndpoint);
-  CPPUNIT_ASSERT_EQUAL((std::string)"ARC1", job.Flavour);
+  //CPPUNIT_ASSERT_EQUAL((std::string)"ARC1", job.Flavour); // TODO
   CPPUNIT_ASSERT_EQUAL(Arc::URL("https://example-ce.com:443/arex"), job.Cluster);
   CPPUNIT_ASSERT_EQUAL(Arc::URL("https://example-ce.com:443/arex/3456789101112"), job.InfoEndpoint);
   CPPUNIT_ASSERT_EQUAL(Arc::Time("2010-09-24 16:17:46"), job.LocalSubmissionTime);

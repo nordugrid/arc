@@ -14,20 +14,22 @@
 
 namespace Arc {
 
-  class Config;
-
-  class SubmitterEMIES
-    : public Submitter {
-
-  private:
-    static Logger logger;
-
-    SubmitterEMIES(const UserConfig& usercfg, PluginArgument* parg);
-    ~SubmitterEMIES();
-
+  class SubmitterEMIES : public Submitter {
   public:
-    static Plugin* Instance(PluginArgument *arg);
+    SubmitterEMIES(const UserConfig& usercfg, PluginArgument* parg) : Submitter(usercfg, parg) { supportedInterfaces.push_back("org.ogf.emies"); }
+    ~SubmitterEMIES() { deleteAllClients(); }
 
+    static Plugin* Instance(PluginArgument *arg) {
+      SubmitterPluginArgument *subarg = dynamic_cast<SubmitterPluginArgument*>(arg);
+      return subarg ? new SubmitterEMIES(*subarg, arg) : NULL;
+    }
+
+    virtual bool isEndpointNotSupported(const std::string& endpoint) const;
+
+    virtual bool Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job);
+    virtual bool Migrate(const URL& jobid, const JobDescription& jobdesc,
+                         const ExecutionTarget& et, bool forcemigration,
+                         Job& job);
   private:
     std::map<URL, EMIESClient*> clients;
 
@@ -35,11 +37,7 @@ namespace Arc {
     bool releaseClient(const URL& url);
     bool deleteAllClients();
 
-  public:
-    virtual bool Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job);
-    virtual bool Migrate(const URL& jobid, const JobDescription& jobdesc,
-                         const ExecutionTarget& et, bool forcemigration,
-                         Job& job);
+    static Logger logger;
   };
 
 } // namespace Arc

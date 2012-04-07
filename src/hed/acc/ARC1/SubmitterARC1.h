@@ -11,22 +11,24 @@
 
 #include "AREXClient.h"
 
-
 namespace Arc {
 
-  class Config;
-
-  class SubmitterARC1
-    : public Submitter {
-
-  private:
-    static Logger logger;
-
-    SubmitterARC1(const UserConfig& usercfg, PluginArgument* parg);
-    ~SubmitterARC1();
-
+  class SubmitterARC1 : public Submitter {
   public:
-    static Plugin* Instance(PluginArgument *arg);
+    SubmitterARC1(const UserConfig& usercfg, PluginArgument* parg) : Submitter(usercfg, parg) { supportedInterfaces.push_back("org.ogf.bes"); }
+    ~SubmitterARC1() { deleteAllClients(); }
+
+    static Plugin* Instance(PluginArgument *arg) {
+      SubmitterPluginArgument *subarg = dynamic_cast<SubmitterPluginArgument*>(arg);
+      return subarg ? new SubmitterARC1(*subarg, arg) : NULL;
+    }
+    
+    bool isEndpointNotSupported(const std::string& endpoint) const;
+
+    virtual bool Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job);
+    virtual bool Migrate(const URL& jobid, const JobDescription& jobdesc,
+                         const ExecutionTarget& et, bool forcemigration,
+                         Job& job);
 
   private:
     // Centralized AREXClient handling
@@ -36,11 +38,7 @@ namespace Arc {
     bool releaseClient(const URL& url);
     bool deleteAllClients();
 
-  public:
-    virtual bool Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job);
-    virtual bool Migrate(const URL& jobid, const JobDescription& jobdesc,
-                         const ExecutionTarget& et, bool forcemigration,
-                         Job& job);
+    static Logger logger;
   };
 
 } // namespace Arc

@@ -14,8 +14,6 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
         ]);
         self.expect(js.GetAllJobs()).not_to_be_empty()
 
-        self.expect(js.GetJobControllers()).to_have(1).item()
-
         jobs = js.GetJobs()
         self.expect(jobs).to_have(2).jobs()
 
@@ -30,11 +28,11 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
         self.expect(js.AddJob(job)).to_be(True, message = "AddJob was expected to return True")
         self.expect(js.GetAllJobs()).not_to_be_empty()
 
-        job.Flavour = ""
+        job.InterfaceName = ""
         self.expect(js.AddJob(job)).to_be(False, message = "AddJob was expected to return False")
         self.expect(js.GetAllJobs()).to_have(1).job()
 
-        job.Flavour = "NON-EXISTENT"
+        job.InterfaceName = "non.existent.interface"
         self.expect(js.AddJob(job)).to_be(False, message = "AddJob was expected to return False")
         self.expect(js.GetAllJobs()).to_have(1).job()
 

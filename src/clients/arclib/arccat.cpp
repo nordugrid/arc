@@ -173,21 +173,14 @@ int RUNCAT(main)(int argc, char **argv) {
       continue;
     }
 
-    const Arc::JobController* jc = jobmaster.GetJobController(it->Flavour);
-    if (!jc) {
-      logger.msg(Arc::VERBOSE, "Unable to find JobController for job %s (plugin type: %s)", it->JobID.fullstr(), it->Flavour);
-      retval = 1;
-      continue;
-    }
-
-    Arc::URL src = jc->GetFileUrlForJob((*it), whichfile);
+    Arc::URL src = it->GetFileUrl(whichfile);
     if (!src) {
       logger.msg(Arc::ERROR, "Cannot create output of %s for job (%s): Invalid source %s", whichfile, it->JobID.fullstr(), src.str());
       retval = 1;
       continue;
     }
 
-    if (!jc->CopyJobFile(src, dst)) {
+    if (!it->CopyJobFile(src, dst)) {
       retval = 1;
       continue;
     }

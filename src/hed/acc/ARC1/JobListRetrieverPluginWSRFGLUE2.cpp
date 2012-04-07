@@ -69,7 +69,7 @@ namespace Arc {
       Job j;
       j.JobID = url;
       j.JobID.ChangePath(j.JobID.Path() + "/" + file->GetName());
-      j.Flavour = "ARC1"; // TODO: use InterfaceName instead
+      j.InterfaceName = supportedInterfaces.front();
       j.Cluster = url;
       jobs.push_back(j);
     }

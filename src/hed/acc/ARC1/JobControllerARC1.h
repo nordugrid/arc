@@ -7,14 +7,17 @@
 
 namespace Arc {
 
-  class Config;
-  class URL;
-
-  class JobControllerARC1
-    : public JobController {
+  class JobControllerARC1 : public JobController {
   public:
-    JobControllerARC1(const UserConfig& usercfg, PluginArgument* parg);
-    ~JobControllerARC1();
+    JobControllerARC1(const UserConfig& usercfg, PluginArgument* parg) : JobController(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.xbes"); }
+    ~JobControllerARC1() {}
+
+    static Plugin* Instance(PluginArgument *arg) {
+      JobControllerPluginArgument *jcarg = dynamic_cast<JobControllerPluginArgument*>(arg);
+      return jcarg ? new JobControllerARC1(*jcarg, arg) : NULL;
+    }
+
+    bool isEndpointNotSupported(const std::string& endpoint) const;
 
     virtual void UpdateJobs(std::list<Job*>& jobs) const;
     virtual bool RetrieveJob(const Job& job, std::string& downloaddir, bool usejobname, bool force) const;
@@ -25,8 +28,6 @@ namespace Arc {
     virtual URL GetFileUrlForJob(const Job& job, const std::string& whichfile) const;
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) const;
     virtual URL CreateURL(std::string service, ServiceType st) const;
-
-    static Plugin* Instance(PluginArgument *arg);
 
   private:
     static Logger logger;

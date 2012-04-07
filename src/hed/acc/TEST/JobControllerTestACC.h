@@ -15,8 +15,7 @@ namespace Arc {
 class JobControllerTestACC
   : public JobController {
 public:
-  JobControllerTestACC(const UserConfig& usercfg, PluginArgument* parg)
-    : JobController(usercfg, "TEST", parg) {}
+  JobControllerTestACC(const UserConfig& usercfg, PluginArgument* parg) : JobController(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.test"); }
   ~JobControllerTestACC() {}
 
   void UpdateJobs(std::list<Job*>&) const {}
@@ -29,6 +28,8 @@ public:
   virtual bool GetJobDescription(const Job& job, std::string& desc_str) const { desc_str = JobControllerTestACCControl::getJobDescriptionString; return JobControllerTestACCControl::getJobDescriptionStatus; }
   virtual Arc::URL CreateURL(std::string service, ServiceType st) const { return JobControllerTestACCControl::createURL; }
 
+  virtual bool isEndpointNotSupported(const std::string& endpoint) const { return endpoint.empty(); }
+  
   static Plugin* GetInstance(PluginArgument *arg);
 };
 

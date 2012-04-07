@@ -27,11 +27,11 @@ namespace Arc {
 
   Logger SubmitterARC0::logger(Logger::getRootLogger(), "Submitter.ARC0");
 
-  SubmitterARC0::SubmitterARC0(const UserConfig& usercfg, PluginArgument* parg)
-    : Submitter(usercfg, "ARC0", parg) {}
-
-  SubmitterARC0::~SubmitterARC0() {}
-
+  bool SubmitterARC0::isEndpointNotSupported(const std::string& endpoint) const {
+    const std::string::size_type pos = endpoint.find("://");
+    return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "gsiftp";
+  }
+  
   Plugin* SubmitterARC0::Instance(PluginArgument *arg) {
     SubmitterPluginArgument *subarg =
       dynamic_cast<SubmitterPluginArgument*>(arg);
@@ -49,7 +49,6 @@ namespace Arc {
 
 
   bool SubmitterARC0::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) {
-
     FTPControl ctrl;
 
     URL url(et.ComputingEndpoint->URLString);

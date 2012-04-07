@@ -10,23 +10,25 @@
 
 namespace Arc {
 
-  class Config;
-
-  class SubmitterUNICORE
-    : public Submitter {
-
-  private:
-    static Logger logger;
-
-    SubmitterUNICORE(const UserConfig& usercfg, PluginArgument* parg);
-    ~SubmitterUNICORE();
-
+  class SubmitterUNICORE : public Submitter {
   public:
-    static Plugin* Instance(PluginArgument *arg);
+    SubmitterUNICORE(const UserConfig& usercfg, PluginArgument* parg) : Submitter(usercfg, parg) { supportedInterfaces.push_back("org.ogf.bes"); }
+    ~SubmitterUNICORE() {}
+
+    static Plugin* Instance(PluginArgument *arg) {
+      SubmitterPluginArgument *subarg = dynamic_cast<SubmitterPluginArgument*>(arg);
+      return subarg ? new SubmitterUNICORE(*subarg, arg) : NULL;
+    }
+
+    virtual bool isEndpointNotSupported(const std::string& endpoint) const;
+
     virtual bool Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job);
     virtual bool Migrate(const URL& jobid, const JobDescription& jobdesc,
                          const ExecutionTarget& et, bool forcemigration,
                          Job& job);
+
+  private:
+    static Logger logger;
   };
 
 } // namespace Arc

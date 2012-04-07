@@ -28,13 +28,12 @@
 
 namespace Arc {
 
-  Logger JobControllerARC0::logger(Logger::getRootLogger(),
-                                   "JobController.ARC0");
+  Logger JobControllerARC0::logger(Logger::getRootLogger(), "JobController.ARC0");
 
-  JobControllerARC0::JobControllerARC0(const UserConfig& usercfg, PluginArgument* parg)
-    : JobController(usercfg, "ARC0", parg) {}
-
-  JobControllerARC0::~JobControllerARC0() {}
+  bool JobControllerARC0::isEndpointNotSupported(const std::string& endpoint) const {
+    const std::string::size_type pos = endpoint.find("://");
+    return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "gsiftp";
+  }
 
   Plugin* JobControllerARC0::Instance(PluginArgument *arg) {
     JobControllerPluginArgument *jcarg =
@@ -52,7 +51,6 @@ namespace Arc {
   }
 
   void JobControllerARC0::UpdateJobs(std::list<Job*>& jobs) const {
-
     std::map<std::string, std::list<Job*> > jobsbyhost;
     for (std::list<Job*>::iterator it = jobs.begin();
          it != jobs.end(); it++)

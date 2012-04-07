@@ -27,18 +27,18 @@ namespace Arc {
     /**
      * The list of Job objects passed to the constructor will be managed by this
      * JobSupervisor, through the JobController class. It is important that the
-     * Flavour member of each Job object is set and correspond to the
-     * JobController plugin which are capable of managing that specific job. The
+     * InterfaceName member of each Job object is set and names a interface
+     * supported by one of the available JobController plugins. The
      * JobController plugin will be loaded using the JobControllerLoader class,
-     * loading a plugin of type "HED:JobController" and name specified by the
-     * Flavour member, and the a reference to the UserConfig object usercfg will
+     * loading a plugin of type "HED:JobController" which supports the particular
+     * interface, and the a reference to the UserConfig object usercfg will
      * be passed to the plugin. Additionally a reference to the UserConfig
      * object usercfg will be stored, thus usercfg must exist throughout the
-     * scope of the created object. If the Flavour member of a Job object is
+     * scope of the created object. If the InterfaceName member of a Job object is
      * unset, a VERBOSE log message will be reported and that Job object will
-     * be ignored. If the JobController plugin for a given Flavour cannot be
-     * loaded, a WARNING log message will be reported and any Job object with
-     * that Flavour will be ignored. If loading of a specific plugin failed,
+     * be ignored. If the JobController plugin for a given interface cannot be
+     * loaded, a WARNING log message will be reported and any Job object requesting
+     * that interface will be ignored. If loading of a specific plugin failed,
      * that plugin will not be tried loaded for subsequent Job objects
      * requiring that plugin.
      * Job objects will be added to the corresponding JobController plugin, if
@@ -51,7 +51,7 @@ namespace Arc {
      **/
     JobSupervisor(const UserConfig& usercfg, const std::list<Job>& jobs = std::list<Job>());
 
-    ~JobSupervisor();
+    ~JobSupervisor() {}
 
     /// Add job
     /**
@@ -348,16 +348,6 @@ namespace Arc {
      * @return false if calls to JobController::CleanJob fails, true otherwise.
      **/
     bool Clean();
-
-    const JobController* GetJobController(const std::string& flavour) const { return loader.GetJobController(flavour); }
-
-    /// Get list of JobControllers
-    /**
-     * Method to get the list of JobControllers loaded by constructor.
-     **/
-    const std::list<JobController*>& GetJobControllers() const {
-      return loader.GetJobControllers();
-    }
 
     const std::list<Job>& GetAllJobs() const { return jobs; }
     std::list<Job> GetSelectedJobs() const;

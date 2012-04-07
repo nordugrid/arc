@@ -813,11 +813,9 @@ int main(int argc,char** argv) {
 
       if (found != std::string::npos) {
         Arc::Job job;
-        job.Flavour = "ARC1";
         job.JobID = Arc::URL(desc.get_local()->migrateactivityid);
         job.Cluster = Arc::URL(desc.get_local()->migrateactivityid.substr(0, found));
-        std::list<Arc::Job*> jobs;
-        jobs.push_back(&job);
+        std::list<Arc::Job*> jobs(1, &job);
 
         Arc::UserConfig usercfg(job.Cluster.Protocol() == "https" ?
                                 Arc::initializeCredentialsType() :

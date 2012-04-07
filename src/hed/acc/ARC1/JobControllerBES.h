@@ -7,17 +7,18 @@
 
 namespace Arc {
 
-  class Config;
-  class URL;
-
-  class JobControllerBES
-    : public JobController {
+  class JobControllerBES : public JobController {
   public:
-    JobControllerBES(const UserConfig& usercfg, PluginArgument* parg);
-    ~JobControllerBES();
+    JobControllerBES(const UserConfig& usercfg, PluginArgument* parg) : JobController(usercfg, parg) { supportedInterfaces.push_back("org.ogf.bes"); }
+    ~JobControllerBES() {}
 
-    static Plugin* Instance(PluginArgument *arg);
+    static Plugin* Instance(PluginArgument *arg) {
+      JobControllerPluginArgument *jcarg = dynamic_cast<JobControllerPluginArgument*>(arg);
+      return jcarg ? new JobControllerBES(*jcarg, arg) : NULL;
+    }
 
+    virtual bool isEndpointNotSupported(const std::string& endpoint) const;
+    
     virtual void UpdateJobs(std::list<Job*>& jobs) const;
     virtual bool RetrieveJob(const Job& job, std::string& downloaddir, bool usejobname, bool force) const;
     virtual bool CleanJob(const Job& job) const;

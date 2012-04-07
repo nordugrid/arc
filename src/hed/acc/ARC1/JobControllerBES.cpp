@@ -48,18 +48,9 @@ namespace Arc {
     return s;
   }
 
-  JobControllerBES::JobControllerBES(const UserConfig& usercfg, PluginArgument* parg)
-    : JobController(usercfg, "BES", parg) {
-  }
-
-  JobControllerBES::~JobControllerBES() {
-  }
-
-  Plugin* JobControllerBES::Instance(PluginArgument *arg) {
-    JobControllerPluginArgument *jcarg =
-      dynamic_cast<JobControllerPluginArgument*>(arg);
-    if (!jcarg) return NULL;
-    return new JobControllerBES(*jcarg, arg);
+  bool JobControllerBES::isEndpointNotSupported(const std::string& endpoint) const {
+    const std::string::size_type pos = endpoint.find("://");
+    return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
   void JobControllerBES::UpdateJobs(std::list<Job*>& jobs) const {

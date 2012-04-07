@@ -80,6 +80,8 @@ namespace Arc {
 
   Logger Job::logger(Logger::getRootLogger(), "Job");
 
+  JobControllerLoader Job::loader;
+
   Job::Job()
     : JobID(IDFromEndpoint),
       ExitCode(-1),
@@ -157,8 +159,8 @@ namespace Arc {
   Job& Job::operator=(const Job& j) {
     jc = j.jc;
 
-    Flavour = j.Flavour;
     Cluster = j.Cluster;
+    InterfaceName = j.InterfaceName;
 
     InfoEndpoint = j.InfoEndpoint;
     ISB = j.ISB;
@@ -229,8 +231,17 @@ namespace Arc {
     jc = NULL;
 
     JXMLTOSTRING(Name)
-    JXMLTOSTRING(Flavour)
     JXMLTOSTRING(Cluster)
+    if (job["InterfaceName"]) {
+      JXMLTOSTRING(InterfaceName)
+    }
+    else if (job["Flavour"]) {
+      if      ((std::string)job["Flavour"] == "ARC0")  InterfaceName = "org.nordugrid.gridftpjob";
+      else if ((std::string)job["Flavour"] == "BES")   InterfaceName = "org.ogf.bes";
+      else if ((std::string)job["Flavour"] == "ARC1")  InterfaceName = "org.ogf.bes";
+      else if ((std::string)job["Flavour"] == "EMIES") InterfaceName = "org.ogf.emies";
+      else if ((std::string)job["Flavour"] == "TEST")  InterfaceName = "org.nordugrid.test";
+    }
     JXMLTOSTRING(InfoEndpoint)
     JXMLTOSTRING(ISB)
     JXMLTOSTRING(OSB)
@@ -356,8 +367,8 @@ namespace Arc {
 
   void Job::ToXML(XMLNode node) const {
     STRINGTOXML(Name)
-    STRINGTOXML(Flavour)
     URLTOXML(Cluster)
+    STRINGTOXML(InterfaceName)
     URLTOXML(InfoEndpoint)
     URLTOXML(ISB)
     URLTOXML(OSB)
@@ -519,12 +530,15 @@ namespace Arc {
         }
       }
 
-      out << IString(" Flavour: %s", Flavour) << std::endl;
-      out << IString(" Cluster: %s", Cluster.fullstr()) << std::endl;      
+      out << IString(" Cluster: %s", Cluster.fullstr()) << std::endl;
+      out << IString(" Management Interface: %s", InterfaceName) << std::endl;
     }
 
     out << std::endl;
   } // end Print
+
+  bool Job::CopyJobFile(const URL& src, const URL& dst) const { return jc ? jc->CopyJobFile(src, dst) : false; }
+  URL Job::GetFileUrl(const std::string& whichfile) const { return jc ? jc->GetFileUrlForJob(*this, whichfile) : URL(); }
 
   bool Job::ReadAllJobsFromFile(const std::string& filename, std::list<Job>& jobs, unsigned nTries, unsigned tryInterval) {
     jobs.clear();
@@ -591,8 +605,7 @@ namespace Arc {
         // Check if the job (itJ) is selected by endpoints.
         std::list<std::string>::const_iterator itC = endpoints.begin();
         for (; itC != endpoints.end(); ++itC) {
-          const std::string endpoint = itC->substr((itJ->Flavour.length()+1)*(int)(itJ->Flavour + ":" == itC->substr(0, itJ->Flavour.length()+1)));
-          if (itJ->Cluster.StringMatches(endpoint) || itJ->InfoEndpoint.StringMatches(endpoint)) {
+          if (itJ->Cluster.StringMatches(*itC) || itJ->InfoEndpoint.StringMatches(*itC)) {
             break;
           }
         }
@@ -614,8 +627,7 @@ namespace Arc {
     for (std::list<std::string>::const_iterator itC = rEndpoints.begin();
          itC != rEndpoints.end(); ++itC) {
       for (std::list<Arc::Job>::iterator itJ = jobs.begin(); itJ != jobs.end();) {
-        const std::string endpoint = itC->substr((itJ->Flavour.length()+1)*(int)(itJ->Flavour + ":" == itC->substr(0, itJ->Flavour.length()+1)));
-        if (itJ->Cluster.StringMatches(endpoint) || itJ->InfoEndpoint.StringMatches(endpoint)) {
+        if (itJ->Cluster.StringMatches(*itC) || itJ->InfoEndpoint.StringMatches(*itC)) {
           itJ = jobs.erase(itJ);
         }
         else {

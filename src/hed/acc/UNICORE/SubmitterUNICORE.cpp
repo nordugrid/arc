@@ -21,19 +21,11 @@ namespace Arc {
 
   Logger SubmitterUNICORE::logger(Logger::getRootLogger(), "Submitter.UNICORE");
 
-  SubmitterUNICORE::SubmitterUNICORE(const UserConfig& usercfg, PluginArgument* parg)
-    : Submitter(usercfg, "UNICORE", parg) {}
-
-  SubmitterUNICORE::~SubmitterUNICORE() {}
-
-  Plugin* SubmitterUNICORE::Instance(PluginArgument *arg) {
-    SubmitterPluginArgument *subarg =
-      dynamic_cast<SubmitterPluginArgument*>(arg);
-    if (!subarg)
-      return NULL;
-    return new SubmitterUNICORE(*subarg, arg);
+  bool SubmitterUNICORE::isEndpointNotSupported(const std::string& endpoint) const {
+    const std::string::size_type pos = endpoint.find("://");
+    return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
-
+  
   bool SubmitterUNICORE::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);

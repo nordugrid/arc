@@ -7,17 +7,18 @@
 
 namespace Arc {
 
-  class Config;
-
-  class SubmitterCREAM
-    : public Submitter {
-
-  private:
-    SubmitterCREAM(const UserConfig& usercfg, PluginArgument* parg);
-    ~SubmitterCREAM();
-
+  class SubmitterCREAM : public Submitter {
   public:
-    static Plugin* Instance(PluginArgument *arg);
+    SubmitterCREAM(const UserConfig& usercfg, PluginArgument* parg) : Submitter(usercfg, parg) { supportedInterfaces.push_back("org.glite.cream"); }
+    ~SubmitterCREAM() {}
+
+    static Plugin* Instance(PluginArgument *arg) {
+      SubmitterPluginArgument *subarg = dynamic_cast<SubmitterPluginArgument*>(arg);
+      return subarg ? new SubmitterCREAM(*subarg, arg) : NULL;
+    }
+
+    virtual bool isEndpointNotSupported(const std::string& endpoint) const;
+
     virtual bool Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job);
     virtual bool Migrate(const URL& jobid, const JobDescription& jobdesc,
                          const ExecutionTarget& et, bool forcemigration,

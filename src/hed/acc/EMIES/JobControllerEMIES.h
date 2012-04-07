@@ -7,15 +7,20 @@
 
 namespace Arc {
 
-  class Config;
   class URL;
 
-  class JobControllerEMIES
-    : public JobController {
+  class JobControllerEMIES : public JobController {
   public:
-    JobControllerEMIES(const UserConfig& usercfg, PluginArgument* parg);
-    ~JobControllerEMIES();
+    JobControllerEMIES(const UserConfig& usercfg, PluginArgument* parg) : JobController(usercfg, parg) { supportedInterfaces.push_back("org.ogf.emies"); }
+    ~JobControllerEMIES() {}
 
+    static Plugin* Instance(PluginArgument *arg) {
+      JobControllerPluginArgument *jcarg = dynamic_cast<JobControllerPluginArgument*>(arg);
+      return jcarg ? new JobControllerEMIES(*jcarg, arg) : NULL;
+    }
+  
+    virtual bool isEndpointNotSupported(const std::string& endpoint) const;
+  
     virtual void UpdateJobs(std::list<Job*>& jobs) const;
     virtual bool RetrieveJob(const Job& job, std::string& downloaddir, bool usejobname, bool force) const;
     virtual bool CleanJob(const Job& job) const;
@@ -25,8 +30,6 @@ namespace Arc {
     virtual URL GetFileUrlForJob(const Job& job, const std::string& whichfile) const;
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) const;
     virtual URL CreateURL(std::string service, ServiceType st) const;
-
-    static Plugin* Instance(PluginArgument *arg);
 
   private:
     static Logger logger;

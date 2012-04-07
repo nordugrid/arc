@@ -61,7 +61,7 @@ namespace Arc {
     for(std::list<EMIESJob>::iterator jobid = jobids.begin(); jobid != jobids.end(); ++jobid) {
       Job j;
       if(!jobid->manager) jobid->manager = url;
-      j.Flavour = "EMIES"; // TODO: Use InterfaceName instead
+      j.InterfaceName = supportedInterfaces.front();
       j.Cluster = jobid->manager;
       j.InfoEndpoint = url;
       // URL-izing job id

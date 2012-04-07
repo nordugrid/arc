@@ -112,7 +112,7 @@ namespace Arc {
       if ((*it)["nordugrid-job-submissiontime"])
         j.LocalSubmissionTime = (std::string)(*it)["nordugrid-job-submissiontime"];
 
-      j.Flavour = "ARC0"; // TODO: Use InterfaceName instead
+      j.InterfaceName = "org.nordugrid.gridftpjob";
       j.Cluster = url;
 
       URL infoEndpoint(url);

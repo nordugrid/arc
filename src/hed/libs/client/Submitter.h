@@ -28,14 +28,12 @@ namespace Arc {
    * resource it represents and uploads (needed by the job) local
    * input files.
    */
-  class Submitter
-    : public Plugin {
+  class Submitter : public Plugin {
   protected:
-    Submitter(const UserConfig& usercfg,
-              const std::string& flavour,
-              PluginArgument* parg);
+    Submitter(const UserConfig& usercfg, PluginArgument* parg)
+      : Plugin(parg), usercfg(usercfg) {}
   public:
-    virtual ~Submitter();
+    virtual ~Submitter() {}
 
     /// Submit job
     /**
@@ -75,14 +73,18 @@ namespace Arc {
     }
 
     void SetSubmissionTarget(const ExecutionTarget& submissiontarget) { target = &submissiontarget; }
+
+    virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };
+    virtual bool isEndpointNotSupported(const std::string&) const = 0;
+
   protected:
     bool PutFiles(const JobDescription& jobdesc, const URL& url) const;
     void AddJobDetails(const JobDescription& jobdesc, const URL& jobid,
                        const URL& cluster, const URL& infoendpoint,
                        Job& job) const;
 
-    const std::string flavour;
     const UserConfig& usercfg;
+    std::list<std::string> supportedInterfaces;
 
     /// Target to submit to.
     const ExecutionTarget* target;
@@ -93,9 +95,7 @@ namespace Arc {
   //! Class responsible for loading Submitter plugins
   /// The Submitter objects returned by a SubmitterLoader
   /// must not be used after the SubmitterLoader goes out of scope.
-  class SubmitterLoader
-    : public Loader {
-
+  class SubmitterLoader : public Loader {
   public:
     //! Constructor
     /// Creates a new SubmitterLoader.
@@ -112,14 +112,13 @@ namespace Arc {
     /// \returns       A pointer to the new Submitter (NULL on error).
     Submitter* load(const std::string& name, const UserConfig& usercfg);
 
-    //! Retrieve the list of loaded Submitters.
-    /// \returns A reference to the list of Submitters.
-    const std::list<Submitter*>& GetSubmitters() const {
-      return submitters;
-    }
+    Submitter* loadByInterfaceName(const std::string& name, const UserConfig& usercfg);
 
   private:
-    std::list<Submitter*> submitters;
+    void initialiseInterfacePluginMap(const UserConfig& uc);
+  
+    std::multimap<std::string, Submitter*> submitters;
+    static std::map<std::string, std::string> interfacePluginMap;
   };
 
   class SubmitterPluginArgument

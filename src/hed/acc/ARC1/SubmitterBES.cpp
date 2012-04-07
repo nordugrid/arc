@@ -40,18 +40,9 @@ namespace Arc {
     return jobid;
   }
 
-  SubmitterBES::SubmitterBES(const UserConfig& usercfg, PluginArgument* parg)
-    : Submitter(usercfg, "BES", parg) {
-  }
-
-  SubmitterBES::~SubmitterBES() {
-  }
-
-  Plugin* SubmitterBES::Instance(PluginArgument *arg) {
-    SubmitterPluginArgument *subarg =
-      dynamic_cast<SubmitterPluginArgument*>(arg);
-    if (!subarg) return NULL;
-    return new SubmitterBES(*subarg, arg);
+  bool SubmitterBES::isEndpointNotSupported(const std::string& endpoint) const {
+    const std::string::size_type pos = endpoint.find("://");
+    return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
   bool SubmitterBES::Submit(const JobDescription& jobdesc,

@@ -44,7 +44,7 @@ private:
 
 
 JobSupervisorTest::JobSupervisorTest() : usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)) {
-  j.Flavour = "TEST";
+  j.InterfaceName = "org.nordugrid.test";
   j.Cluster = Arc::URL("http://test.nordugrid.org");
   j.InfoEndpoint = Arc::URL("http://test.nordugrid.org");
 }
@@ -60,9 +60,6 @@ void JobSupervisorTest::TestConstructor()
 
   js = new Arc::JobSupervisor(usercfg, jobs);
   CPPUNIT_ASSERT(!js->GetAllJobs().empty());
-
-  // One and only one JobController should be loaded.
-  CPPUNIT_ASSERT_EQUAL(1, (int)js->GetJobControllers().size());
 
   jobs = js->GetJobs();
 
@@ -84,11 +81,11 @@ void JobSupervisorTest::TestAddJob()
   CPPUNIT_ASSERT(js->AddJob(j));
   CPPUNIT_ASSERT(!js->GetAllJobs().empty());
 
-  j.Flavour = "";
+  j.InterfaceName = "";
   CPPUNIT_ASSERT(!js->AddJob(j));
   CPPUNIT_ASSERT_EQUAL(1, (int)js->GetAllJobs().size());
 
-  j.Flavour = "NON-EXISTENT";
+  j.InterfaceName = "non.existent.interface";
   CPPUNIT_ASSERT(!js->AddJob(j));
   CPPUNIT_ASSERT_EQUAL(1, (int)js->GetAllJobs().size());
 

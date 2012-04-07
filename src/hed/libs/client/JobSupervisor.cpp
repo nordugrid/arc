@@ -29,11 +29,9 @@ namespace Arc {
     }
   }
 
-  JobSupervisor::~JobSupervisor() {}
-
   bool JobSupervisor::AddJob(const Job& job) {
-    if (job.Flavour.empty()) {
-      logger.msg(VERBOSE, "Ignoring job (%s), the Job::Flavour attribute must be specified", job.IDFromEndpoint.fullstr());
+    if (job.InterfaceName.empty()) {
+      logger.msg(VERBOSE, "Ignoring job (%s), the Job::InterfaceName attribute must be specified", job.IDFromEndpoint.fullstr());
       return false;
     }
 
@@ -47,12 +45,11 @@ namespace Arc {
       return false;
     }
 
-    std::map<std::string, JobController*>::iterator currentJC = loadedJCs.find(job.Flavour);
+    std::map<std::string, JobController*>::iterator currentJC = loadedJCs.find(job.InterfaceName);
     if (currentJC == loadedJCs.end()) {
-      JobController *jc = loader.load(job.Flavour, usercfg);
-      currentJC = loadedJCs.insert(std::pair<std::string, JobController*>(job.Flavour, jc)).first;
+      JobController *jc = Job::loader.loadByInterfaceName(job.InterfaceName, usercfg);
+      currentJC = loadedJCs.insert(std::pair<std::string, JobController*>(job.InterfaceName, jc)).first;
       if (!jc) {
-        logger.msg(WARNING, "Unable to load JobController %s plugin. Is the %s plugin installed?", job.Flavour, job.Flavour);
         return false;
       }
       jcJobMap[jc] = std::pair< std::list<Job *>, std::list<Job*> >();

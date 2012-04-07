@@ -26,19 +26,9 @@ namespace Arc {
 
   Logger SubmitterARC1::logger(Logger::getRootLogger(), "Submitter.ARC1");
 
-  SubmitterARC1::SubmitterARC1(const UserConfig& usercfg, PluginArgument* parg)
-    : Submitter(usercfg, "ARC1", parg) {
-  }
-
-  SubmitterARC1::~SubmitterARC1() {
-    deleteAllClients();
-  }
-
-  Plugin* SubmitterARC1::Instance(PluginArgument *arg) {
-    SubmitterPluginArgument *subarg =
-      dynamic_cast<SubmitterPluginArgument*>(arg);
-    if (!subarg) return NULL;
-    return new SubmitterARC1(*subarg, arg);
+  bool SubmitterARC1::isEndpointNotSupported(const std::string& endpoint) const {
+    const std::string::size_type pos = endpoint.find("://");
+    return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
   AREXClient* SubmitterARC1::acquireClient(const URL& url) {

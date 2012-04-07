@@ -19,21 +19,12 @@ namespace Arc {
 
   Logger JobControllerCREAM::logger(Logger::getRootLogger(), "JobController.CREAM");
 
-  JobControllerCREAM::JobControllerCREAM(const UserConfig& usercfg, PluginArgument* parg)
-    : JobController(usercfg, "CREAM", parg) {}
-
-  JobControllerCREAM::~JobControllerCREAM() {}
-
-  Plugin* JobControllerCREAM::Instance(PluginArgument *arg) {
-    JobControllerPluginArgument *jcarg =
-      dynamic_cast<JobControllerPluginArgument*>(arg);
-    if (!jcarg)
-      return NULL;
-    return new JobControllerCREAM(*jcarg, arg);
+  bool JobControllerCREAM::isEndpointNotSupported(const std::string& endpoint) const {
+    const std::string::size_type pos = endpoint.find("://");
+    return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
   void JobControllerCREAM::UpdateJobs(std::list<Job*>& jobs) const {
-
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     for (std::list<Job*>::iterator iter = jobs.begin();

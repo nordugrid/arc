@@ -23,18 +23,11 @@ namespace Arc {
 
   Logger JobControllerEMIES::logger(Logger::getRootLogger(), "JobController.EMIES");
 
-  JobControllerEMIES::JobControllerEMIES(const UserConfig& usercfg, PluginArgument* parg)
-    : JobController(usercfg, "EMIES", parg) {}
-
-  JobControllerEMIES::~JobControllerEMIES() {}
-
-  Plugin* JobControllerEMIES::Instance(PluginArgument *arg) {
-    JobControllerPluginArgument *jcarg =
-      dynamic_cast<JobControllerPluginArgument*>(arg);
-    if (!jcarg) return NULL;
-    return new JobControllerEMIES(*jcarg, arg);
+  bool JobControllerEMIES::isEndpointNotSupported(const std::string& endpoint) const {
+    const std::string::size_type pos = endpoint.find("://");
+    return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
-
+  
   static EMIESJob JobToEMIES(const Job& ajob) {
     EMIESJob job;
     job.id = ajob.JobID.Option("emiesjobid");

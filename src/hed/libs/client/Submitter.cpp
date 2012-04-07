@@ -25,17 +25,9 @@ namespace Arc {
 
   Logger Submitter::logger(Logger::getRootLogger(), "Submitter");
 
-  Submitter::Submitter(const UserConfig& usercfg,
-                       const std::string& flavour,
-                       PluginArgument* parg)
-    : Plugin(parg),
-      flavour(flavour),
-      usercfg(usercfg) {}
-
-  Submitter::~Submitter() {}
+  std::map<std::string, std::string> SubmitterLoader::interfacePluginMap;
 
   bool Submitter::PutFiles(const JobDescription& job, const URL& url) const {
-
     FileCache cache;
     DataMover mover;
     mover.retry(true);
@@ -81,7 +73,9 @@ namespace Arc {
     if (!jobdesc.Identification.JobName.empty()) {
       job.Name = jobdesc.Identification.JobName;
     }
-    job.Flavour = flavour;
+    if (!supportedInterfaces.empty()) {
+      job.InterfaceName = supportedInterfaces.front();
+    }
     job.Cluster = cluster;
     job.InfoEndpoint = infoendpoint;
     job.LocalSubmissionTime = Arc::Time().str(UTCTime);
@@ -99,13 +93,42 @@ namespace Arc {
     }
   }
 
-  SubmitterLoader::SubmitterLoader()
-    : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}
+  SubmitterLoader::SubmitterLoader() : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}
 
   SubmitterLoader::~SubmitterLoader() {
-    for (std::list<Submitter*>::iterator it = submitters.begin();
-         it != submitters.end(); it++)
-      delete *it;
+    for (std::multimap<std::string, Submitter*>::iterator it = submitters.begin(); it != submitters.end(); ++it)
+      delete it->second;
+  }
+
+  void SubmitterLoader::initialiseInterfacePluginMap(const UserConfig& uc) {
+    std::list<ModuleDesc> modules;
+    PluginsFactory factory(BaseConfig().MakeConfig(Config()).Parent());
+    factory.scan(FinderLoader::GetLibrariesList(), modules);
+    PluginsFactory::FilterByKind("HED:Submitter", modules);
+    std::list<std::string> availablePlugins;
+    for (std::list<ModuleDesc>::const_iterator it = modules.begin(); it != modules.end(); ++it) {
+      for (std::list<PluginDesc>::const_iterator it2 = it->plugins.begin(); it2 != it->plugins.end(); ++it2) {
+        availablePlugins.push_back(it2->name);
+      }
+    }
+
+    if (interfacePluginMap.empty()) {
+      // Map supported interfaces to available plugins.
+      for (std::list<std::string>::iterator itT = availablePlugins.begin(); itT != availablePlugins.end(); ++itT) {
+        Submitter* p = load(*itT, uc);
+  
+        if (!p) {
+          continue;
+        }
+  
+        for (std::list<std::string>::const_iterator itI = p->SupportedInterfaces().begin(); itI != p->SupportedInterfaces().end(); ++itI) {
+          if (!itT->empty()) { // Do not allow empty interface.
+            // If two plugins supports two identical interfaces, then only the last will appear in the map.
+            interfacePluginMap[*itI] = *itT;
+          }
+        }
+      }
+    }
   }
 
   Submitter* SubmitterLoader::load(const std::string& name,
@@ -130,9 +153,26 @@ namespace Arc {
       return NULL;
     }
 
-    submitters.push_back(submitter);
+    submitters.insert(std::pair<std::string, Submitter*>(name, submitter));
     logger.msg(DEBUG, "Loaded Submitter %s", name);
     return submitter;
   }
 
+  Submitter* SubmitterLoader::loadByInterfaceName(const std::string& name, const UserConfig& uc) {
+    if (interfacePluginMap.empty()) {
+      initialiseInterfacePluginMap(uc);
+    }
+    
+    std::map<std::string, std::string>::const_iterator itPN = interfacePluginMap.find(name);
+    if (itPN != interfacePluginMap.end()) {
+      std::map<std::string, Submitter*>::iterator itS = submitters.find(itPN->second);
+      if (itS != submitters.end()) {
+        return itS->second;
+      }
+      
+      return load(itPN->second, uc);
+    }
+
+    return NULL;
+  }
 } // namespace Arc

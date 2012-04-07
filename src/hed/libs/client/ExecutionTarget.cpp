@@ -18,6 +18,8 @@ namespace Arc {
 
   Logger ExecutionTarget::logger(Logger::getRootLogger(), "ExecutionTarget");
 
+  SubmitterLoader ExecutionTarget::loader;
+
   template<typename T>
   void ComputingServiceType::GetExecutionTargets(T& container) const {
     // TODO: Currently assuming only one ComputingManager and one ExecutionEnvironment.
@@ -79,7 +81,7 @@ namespace Arc {
   }
 
   Submitter* ExecutionTarget::GetSubmitter(const UserConfig& ucfg) const {
-    Submitter* s = (const_cast<ExecutionTarget*>(this))->loader.load(GetPluginName(), ucfg);
+    Submitter* s = loader.loadByInterfaceName(ComputingEndpoint->InterfaceName, ucfg);
     if (s == NULL) {
       return s;
     }
@@ -501,19 +503,5 @@ namespace Arc {
     out << std::endl;
 
   } // end print
-
- const std::string ExecutionTarget::GetPluginName() const {
-   if (ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") return "ARC0";
-   if (ComputingEndpoint->InterfaceName == "org.ogf.bes") {
-     if (std::find(ComputingEndpoint->InterfaceExtension.begin(),
-                   ComputingEndpoint->InterfaceExtension.end(),
-                   "urn:org.nordugrid.xbes") != ComputingEndpoint->InterfaceExtension.end()) return "ARC1";
-     else return "BES";
-   }
-   if (ComputingEndpoint->InterfaceName == "org.ogf.emies") return "EMIES";
-   if (ComputingEndpoint->InterfaceName == "org.nordugrid.test") return "TEST";
-   return "";
- }
-
 
 } // namespace Arc
