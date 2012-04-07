@@ -539,8 +539,8 @@
 ## With newdatastaging="yes" options in [data-staging] should be used instead.
 #maxloadshare="4 voms:role"
 
-## share_limit name limit – specifies a transfer share that has a number
-## of processes diﬀerent from the default value in maxloadshare. name is
+## share_limit name limit - specifies a transfer share that has a number
+## of processes different from the default value in maxloadshare. name is
 ## the name of the share and limit is the number of processes for this
 ## share. In the configuration should appear after maxloadshare. Can be
 ## repeated several times for different shares.

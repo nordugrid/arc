@@ -667,15 +667,15 @@ jobreport_options="urbatch:50,archiving:/tmp/archive"
 .TP
 .B maxjobs
 Specifies the maximum allowed number of jobs being processed at 
-different stages: 1. max processed jobs – maximum number of concurrent 
+different stages: 1. max processed jobs - maximum number of concurrent
 jobs processed. This does not limit the amount of jobs which can be 
-submitted to the cluster. 2. max running jobs – maximum number of 
-jobs passed to Local Resource Management System. 3. max jobs per dn –
+submitted to the cluster. 2. max running jobs - maximum number of 
+jobs passed to Local Resource Management System. 3. max jobs per dn -
 maximum number of concurrent jobs processed by A-REX per user DN. If this
 option is used the total maximum number of jobs processed is still 
-max processed jobs. 4. max jobs total – total maximum number of jobs
+max processed jobs. 4. max jobs total - total maximum number of jobs
 associated with service. It is advised to use this limit only in
-exceptional case because it also accounts for ﬁnished jobs. Missing 
+exceptional case because it also accounts for finished jobs. Missing 
 number or -1 means no limit.
 
 .IR Example :
@@ -711,7 +711,7 @@ maxloadshare="4 voms:role"
 .B share_limit
 Specifies a transfer share that has a number of processes different from the
 default value in maxloadshare. name is the name of the share and limit is
-the number of processes for this share. In the conﬁguration should appear
+the number of processes for this share. In the configuration should appear
 after maxloadshare. Can be repeated several times for different shares. With
 newdatastaging="yes" options in [data-staging] should be used instead.
 

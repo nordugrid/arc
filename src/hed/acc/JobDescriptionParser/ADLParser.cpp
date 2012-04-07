@@ -785,7 +785,7 @@ namespace Arc {
          it != job.Identification.Annotation.end(); it++) {
       identification.NewChild("Annotation") = *it;
     }
-    // ARC extension: ActivityOldID
+    // ARC extension: ActivityOldID
     for (std::list<std::string>::const_iterator it = job.Identification.ActivityOldID.begin();
          it != job.Identification.ActivityOldID.end(); ++it) {
       identification.NewChild("nordugrid-adl:ActivityOldID") = *it;
