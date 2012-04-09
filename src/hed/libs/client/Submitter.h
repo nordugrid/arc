@@ -9,6 +9,7 @@
 #include <arc/client/JobDescription.h>
 #include <arc/client/Job.h>
 #include <arc/client/SubmitterPlugin.h>
+#include <arc/client/ExecutionTarget.h>
 
 
 namespace Arc {

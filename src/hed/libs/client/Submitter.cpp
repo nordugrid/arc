@@ -19,11 +19,20 @@ namespace Arc {
     return false;
   }
   
-  bool Submit(const ExecutionTarget& et, const std::list<JobDescription>& descs, std::list<Job>& jobs) {
-    return false;
+  bool Submitter::Submit(const ExecutionTarget& et, const std::list<JobDescription>& descs, std::list<Job>& jobs) {
+    bool success = true;
+    for (std::list<JobDescription>::const_iterator it = descs.begin(); it != descs.end(); it++) {
+      Arc::Job job;
+      if (et.Submit(uc, *it, job)) {
+        jobs.push_back(job);
+      } else {
+        success = false;
+      }
+    }
+    return success;
   }
   
-  bool BrokeredSubmit(const std::list<Endpoint>& endpoints, const std::list<JobDescription>& descs, std::list<Job>& jobs) {
+  bool Submitter::BrokeredSubmit(const std::list<Endpoint>& endpoints, const std::list<JobDescription>& descs, std::list<Job>& jobs) {
     return false;
   }
   
