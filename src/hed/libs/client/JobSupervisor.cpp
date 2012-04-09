@@ -59,31 +59,12 @@ namespace Arc {
       return false;
     }
 
+    // Because jobs are identified by ID there should probably be 
+    // protection against duplicate job ID
     jobs.push_back(job);
     jobs.back().jc = currentJC->second;
     jcJobMap[currentJC->second].first.push_back(&jobs.back());
     return true;
-  }
-
-  void JobSupervisor::SelectValid() {
-    processed.clear();
-    notprocessed.clear();
-
-    for (JobSelectionMap::iterator it = jcJobMap.begin();
-         it != jcJobMap.end(); ++it) {
-      for (std::list<Job*>::iterator itJ = it->second.first.begin();
-           itJ != it->second.first.end();) {
-        if (!(*itJ)->State) {
-          notprocessed.push_back((*itJ)->JobID);
-          it->second.second.push_back(*itJ);
-          itJ = it->second.first.erase(itJ);
-        }
-        else {
-          processed.push_back((*itJ)->JobID);
-          ++itJ;
-        }
-      }
-    }
   }
 
   void JobSupervisor::SelectByStatus(const std::list<std::string>& status) {
@@ -100,6 +81,37 @@ namespace Arc {
            itJ != it->second.first.end();) {
         if (std::find(status.begin(), status.end(), (*itJ)->State()) == status.end() &&
             std::find(status.begin(), status.end(), (*itJ)->State.GetGeneralState()) == status.end()) {
+          notprocessed.push_back((*itJ)->JobID);
+          it->second.second.push_back(*itJ);
+          itJ = it->second.first.erase(itJ);
+        }
+        else {
+          processed.push_back((*itJ)->JobID);
+          ++itJ;
+        }
+      }
+    }
+  }
+
+  void JobSupervisor::SelectByID(const std::list<URL>& ids) {
+    processed.clear();
+    notprocessed.clear();
+
+    if (ids.empty()) {
+      return;
+    }
+
+    // For better performance on big lists
+    std::list<std::string> ids_str;
+    for(std::list<URL>::const_iterator id = ids.begin(); id != ids.end(); ++id) {
+      ids_str.push_back(id->fullstr());
+    }
+
+    for (JobSelectionMap::iterator it = jcJobMap.begin();
+         it != jcJobMap.end(); ++it) {
+      for (std::list<Job*>::iterator itJ = it->second.first.begin();
+           itJ != it->second.first.end();) {
+        if (std::find(ids_str.begin(), ids_str.end(), (*itJ)->JobID.fullstr()) == ids_str.end()) {
           notprocessed.push_back((*itJ)->JobID);
           it->second.second.push_back(*itJ);
           itJ = it->second.first.erase(itJ);
