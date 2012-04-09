@@ -134,13 +134,34 @@ int RUNGET(main)(int argc, char **argv) {
     std::cout << Arc::IString("Results stored at: %s", *it) << std::endl;
   }
 
-  if (!opt.keep && !Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), jobmaster.GetIDsProcessed())) {
-    std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
-    std::cout << Arc::IString("         Use arclean to remove retrieved jobs from job list", usercfg.JobListFile()) << std::endl;
-    retval = 1;
-  }
+  unsigned int retrieved_num = jobmaster.GetIDsProcessed().size();
+  unsigned int notretrieved_num = jobmaster.GetIDsNotProcessed().size();
+  unsigned int cleaned_num = 0;
 
-  std::cout << Arc::IString("Jobs processed: %d, successfully retrieved: %d", jobmaster.GetIDsProcessed().size()+jobmaster.GetIDsNotProcessed().size(), jobmaster.GetIDsProcessed().size()) << std::endl;
+  if (!opt.keep) {
+    std::list<Arc::URL> retrieved = jobmaster.GetIDsProcessed();
+    // No need to clean selection because retrieved is subset of selected
+    jobmaster.SelectByID(retrieved);
+    if(!jobmaster.Clean()) {
+      std::cout << Arc::IString("Warning: Some jobs were not removed from server") << std::endl;
+      std::cout << Arc::IString("         Use arclean to remove retrieved jobs from job list", usercfg.JobListFile()) << std::endl;
+      retval = 1;
+    }
+    cleaned_num = jobmaster.GetIDsProcessed().size();
+
+    if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), jobmaster.GetIDsProcessed())) {
+      std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
+      std::cout << Arc::IString("         Use arclean to remove retrieved jobs from job list", usercfg.JobListFile()) << std::endl;
+      retval = 1;
+    }
+
+    std::cout << Arc::IString("Jobs processed: %d, successfully retrieved: %d, successfully cleaned: %d", retrieved_num+notretrieved_num, retrieved_num, cleaned_num) << std::endl;
+
+  } else {
+
+    std::cout << Arc::IString("Jobs processed: %d, successfully retrieved: %d", retrieved_num+notretrieved_num, retrieved_num) << std::endl;
+
+  }
 
   return retval;
 }
