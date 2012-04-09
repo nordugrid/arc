@@ -1019,14 +1019,20 @@ bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files,job
     } else if(mode == job_output_success) {
       if(i->ifsuccess) {
         f << (*i) << std::endl;
+      } else {
+        // This case is handled at higher level
       };
     } else if(mode == job_output_cancel) {
       if(i->ifcancel) {
         f << (*i) << std::endl;
+      } else {
+        // This case is handled at higher level
       };
     } else if(mode == job_output_failure) {
       if(i->iffailure) {
         f << (*i) << std::endl;
+      } else {
+        // This case is handled at higher level
       };
     };
   };

@@ -119,6 +119,9 @@ FileData::FileData(void) {
 }
 
 FileData::FileData(const std::string& pfn_s,const std::string& lfn_s) {
+  ifsuccess = true;
+  ifcancel = false;
+  iffailure = false;
   if(!pfn_s.empty()) { pfn=pfn_s; } else { pfn.resize(0); };
   if(!lfn_s.empty()) { lfn=lfn_s; } else { lfn.resize(0); };
 }
@@ -244,6 +247,9 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
        file != arc_job_desc.DataStaging.OutputFiles.end(); ++file) {
     std::string fname = file->Name;
     if(fname[0] != '/') fname = "/"+fname; // Just for safety
+    bool ifsuccess = false;
+    bool ifcancel = false;
+    bool iffailure = false;
     if (!file->Targets.empty()) { // output file
       for(std::list<Arc::TargetType>::const_iterator target = file->Targets.begin();
                               target != file->Targets.end(); ++target) {
@@ -272,11 +278,28 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
           // So temporarily storing id here.
           outputdata.back().cred = target->DelegationID;
         }
+        if(outputdata.back().ifsuccess) ifsuccess = true;
+        if(outputdata.back().ifcancel) ifcancel = true;
+        if(outputdata.back().iffailure) iffailure = true;
+      }
+      if(ifsuccess && ifcancel && iffailure) {
+        // All possible results are covered
+      } else {
+        // For not covered cases file is treated as user downloadable
+        FileData fdata(fname, "");
+        fdata.ifsuccess = !ifsuccess;
+        fdata.ifcancel = !ifcancel;
+        fdata.iffailure = !iffailure;
+        outputdata.push_back(fdata);
       }
     }
     else {
       // user downloadable file
       FileData fdata(fname, "");
+      // user decides either to use file
+      fdata.ifsuccess = true;
+      fdata.ifcancel = true;
+      fdata.iffailure = true;
       outputdata.push_back(fdata);
     }
   }
