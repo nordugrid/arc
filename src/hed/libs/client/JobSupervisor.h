@@ -77,8 +77,6 @@ namespace Arc {
      * @see JobState::operator bool
      **/
     std::list<Job> GetJobs(bool includeJobsWithoutStatus = true) const;
-    Job GetJobByID(const URL& id) const;
-    std::list<Job> GetJobsByIDs(const std::list<URL>& ids) const;
 
     /// Update job information
     /**
