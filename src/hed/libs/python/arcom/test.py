@@ -87,7 +87,6 @@ class ARCClientTestCase(ExpectationalTestCase):
     def create_test_job(self,
                         job_id = "http://test.nordugrid.org/testid",
                         cluster = "http://test.nordugrid.org",
-                        info_endpoint = "http://test.nordugrid.org",
                         state = arc.JobState.RUNNING,
                         state_text = None,
                         job_description = "non-empty"):
@@ -97,7 +96,6 @@ class ARCClientTestCase(ExpectationalTestCase):
         job.JobID = job_id
         job.InterfaceName = "org.nordugrid.test"
         job.Cluster = arc.URL(cluster)
-        job.InfoEndpoint = arc.URL(info_endpoint)
         if state_text is None:
             job.State = arc.JobStateTEST(state)
         else:

@@ -39,7 +39,7 @@ namespace Arc {
     // Attributes not part of ComputingActivity entity in GLUE2
     // These are used for central functionality in the library
     URL JobID;
-    URL Cluster, InfoEndpoint;
+    URL Cluster;
     std::string InterfaceName;
 
 
@@ -185,15 +185,15 @@ namespace Arc {
      * job list file, using the ReadAllJobsFromFile method. If the all argument
      * is false, jobs will only be put into the list of Job objects (jobs) if
      * the IDFromEndpoint or Name attributes of the Job object matches one of
-     * the entries in the jobIdentifiers list argument or if the Cluster or
-     * InfoEndpoint attributes of the Job object matches one of the entries in
+     * the entries in the jobIdentifiers list argument or if the Cluster
+     * attribute of the Job object matches one of the entries in
      * the endpoints list argument (if specified), using the URL::StringMatches
      * method. If the all argument is true, none of those matchings is carried
      * out, instead all jobs are put into the list of Job objects. For both
      * values of the all argument, the entries in the jobIdentifiers list will
      * be removed if corresponding to a job in the jobs list. In the end, if the
      * rejectEndpoints list is non-empty, the jobs list will be filtered by
-     * removing Job objects for which the Cluster or InfoEndpoint attributes
+     * removing Job objects for which the Cluster attribute
      * matches those in the rejectEndpoints list, using the URL::StringMatches
      * method. This method returns true, except when the ReadAllJobsFromFile
      * method returns false.
@@ -207,10 +207,10 @@ namespace Arc {
      * @param all specifies whether all jobs from the jobs list should be put
      *  into the jobs list.
      * @param endpoints is a list of strings resembling endpoints for which Job
-     *  objects having matching Cluster or InfoEndpoint attributes should be
+     *  objects having matching Cluster attribute should be
      *  added to the jobs list.
      * @param rejectEndpoints is a list of strings resembling endpoint for which
-     *  Job objects having matching Cluster or InfoEndpoint attributes should be
+     *  Job objects having matching Cluster attribute should be
      *  removed from the jobs list. Overides jobIdentifiers, all and endpoints.
      * @param nTries will be passed to the ReadAllJobsFromFile method
      * @param tryInterval will be passed to the ReadAllJobsFromFile method

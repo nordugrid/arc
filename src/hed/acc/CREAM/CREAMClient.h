@@ -22,6 +22,7 @@ namespace Arc {
     std::string creamURL;
     std::string ISB;
     std::string OSB;
+    std::string delegationID;
     
     creamJobInfo& operator=(XMLNode n);
     XMLNode ToXML() const;

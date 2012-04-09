@@ -119,7 +119,7 @@ namespace Arc {
       infoEndpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" +
                                     escape_chars((std::string)(*it)["nordugrid-job-globalid"],filter_esc,'\\',false,escape_hex) + ")");
       infoEndpoint.ChangeLDAPScope(URL::subtree);
-      j.InfoEndpoint = infoEndpoint;
+      j.IDFromEndpoint = infoEndpoint.fullstr();
 
       jobs.push_back(j);
     }

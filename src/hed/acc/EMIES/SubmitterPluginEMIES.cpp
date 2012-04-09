@@ -160,7 +160,9 @@ namespace Arc {
     URL jobidu(jobid.manager);
     jobidu.AddOption("emiesjobid",jobid.id,true);
 
-    AddJobDetails(preparedjobdesc, jobidu, et.ComputingService->Cluster, jobid.manager, job);
+    jobid.ToXML().GetXML(job.IDFromEndpoint);
+
+    AddJobDetails(preparedjobdesc, jobidu, et.ComputingService->Cluster, job);
 
     releaseClient(url);
     return true;

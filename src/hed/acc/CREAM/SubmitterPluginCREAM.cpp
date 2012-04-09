@@ -76,10 +76,12 @@ namespace Arc {
       return false;
     }
 
-    AddJobDetails(preparedjobdesc, URL(submissionurl.str() + '/' + jobInfo.id), et.ComputingService->Cluster,
-                  delegationurl.str() + '/' + delegationid, job);
+    AddJobDetails(preparedjobdesc, URL(submissionurl.str() + '/' + jobInfo.id), et.ComputingService->Cluster, job);
 
-    jobInfo.ToXML().GetXML(job.IDFromEndpoint);
+    XMLNode xIDFromEndpoint(jobInfo.ToXML());
+    xIDFromEndpoint.NewChild("delegationID") = delegationurl.str() + '/' + delegationid;
+
+    xIDFromEndpoint.GetXML(job.IDFromEndpoint);
 
     return true;
   }

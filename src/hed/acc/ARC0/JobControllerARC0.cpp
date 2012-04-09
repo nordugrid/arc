@@ -53,20 +53,22 @@ namespace Arc {
   void JobControllerARC0::UpdateJobs(std::list<Job*>& jobs) const {
     std::map<std::string, std::list<Job*> > jobsbyhost;
     for (std::list<Job*>::iterator it = jobs.begin();
-         it != jobs.end(); it++)
-      jobsbyhost[(*it)->InfoEndpoint.ConnectionURL() +
-                 (*it)->InfoEndpoint.Path()].push_back(*it);
+         it != jobs.end(); ++it) {
+      URL infoEndpoint((*it)->IDFromEndpoint);
+      jobsbyhost[infoEndpoint.ConnectionURL() +
+                 infoEndpoint.Path()].push_back(*it);
+    }
 
     for (std::map<std::string, std::list<Job*> >::iterator hostit =
-           jobsbyhost.begin(); hostit != jobsbyhost.end(); hostit++) {
-
-      URL infourl = (*hostit->second.begin())->InfoEndpoint;
+           jobsbyhost.begin(); hostit != jobsbyhost.end(); ++hostit) {
+      URL infourl((*hostit->second.begin())->IDFromEndpoint);
 
       // merge filters
       std::string filter = "(|";
       for (std::list<Job*>::iterator it = hostit->second.begin();
-           it != hostit->second.end(); it++)
-        filter += (*it)->InfoEndpoint.LDAPFilter();
+           it != hostit->second.end(); ++it) {
+        filter += URL((*it)->IDFromEndpoint).LDAPFilter();
+      }
       filter += ")";
 
       infourl.ChangeLDAPFilter(filter);

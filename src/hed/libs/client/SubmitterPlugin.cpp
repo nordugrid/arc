@@ -67,8 +67,7 @@ namespace Arc {
   }
 
   void SubmitterPlugin::AddJobDetails(const JobDescription& jobdesc, const URL& jobid,
-                                      const URL& cluster, const URL& infoendpoint,
-                                      Job& job) const {
+                                      const URL& cluster, Job& job) const {
     job.JobID = jobid;
     if (!jobdesc.Identification.JobName.empty()) {
       job.Name = jobdesc.Identification.JobName;
@@ -77,7 +76,6 @@ namespace Arc {
       job.InterfaceName = supportedInterfaces.front();
     }
     job.Cluster = cluster;
-    job.InfoEndpoint = infoendpoint;
     job.LocalSubmissionTime = Arc::Time().str(UTCTime);
 
     job.ActivityOldID = jobdesc.Identification.ActivityOldID;

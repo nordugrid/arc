@@ -128,7 +128,9 @@ namespace Arc {
     infoendpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" + escape_chars(jobid.str(),filter_esc,'\\',false,escape_hex) + ")");
     infoendpoint.ChangeLDAPScope(URL::subtree);
 
-    AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, infoendpoint, job);
+    job.IDFromEndpoint = infoendpoint.fullstr();
+
+    AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, job);
 
     return true;
   }

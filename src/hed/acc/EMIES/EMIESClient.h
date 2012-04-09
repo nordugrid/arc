@@ -84,6 +84,7 @@ namespace Arc {
     URL session;
     URL stageout;
     EMIESJob& operator=(XMLNode job);
+    XMLNode ToXML() const;
     bool operator!(void);
   };
 

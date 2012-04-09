@@ -97,6 +97,7 @@ namespace Arc {
                     "<creamURL>"+creamURL+"</creamURL>"+
                     (!ISB.empty() ? "<property><name>CREAMInputSandboxURI</name><value>" + ISB +"</value></property>" : std::string()) +
                     (!ISB.empty() ? "<property><name>CREAMOutputSandboxURI</name><value>" + OSB +"</value></property>" : std::string()) +
+                    "<delegationID>"+delegationID+"</delegationID>"
                    "</jobId>");
   }
   
@@ -112,6 +113,9 @@ namespace Arc {
       else if ((std::string)property["name"] == "CREAMOutputSandboxURI") {
         OSB = (std::string)property["value"];
       }
+    }
+    if (n["delegationID"]) {
+      delegationID = (std::string)n["delegationID"];
     }
     
     return *this;

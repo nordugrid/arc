@@ -46,7 +46,6 @@ private:
 JobSupervisorTest::JobSupervisorTest() : usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)) {
   j.InterfaceName = "org.nordugrid.test";
   j.Cluster = Arc::URL("http://test.nordugrid.org");
-  j.InfoEndpoint = Arc::URL("http://test.nordugrid.org");
 }
 
 void JobSupervisorTest::TestConstructor()

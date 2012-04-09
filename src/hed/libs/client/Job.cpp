@@ -159,8 +159,6 @@ namespace Arc {
     JobID = j.JobID;
     Cluster = j.Cluster;
     InterfaceName = j.InterfaceName;
-    InfoEndpoint = j.InfoEndpoint;
-
 
     Name = j.Name;
     Type = j.Type;
@@ -240,7 +238,6 @@ namespace Arc {
       else if ((std::string)job["Flavour"] == "EMIES") InterfaceName = "org.ogf.emies";
       else if ((std::string)job["Flavour"] == "TEST")  InterfaceName = "org.nordugrid.test";
     }
-    JXMLTOSTRING(InfoEndpoint)
     JXMLTOSTRING(Type)
 
     if (job["IDFromEndpoint"]
@@ -252,6 +249,10 @@ namespace Arc {
         && job["JobID"]
         ) {
       IDFromEndpoint = (std::string)job["IDFromEndpoint"];
+    }
+    
+    if (job["InfoEndpoint"] && job["Flavour"] && (std::string)job["Flavour"] == "ARC0") {
+      IDFromEndpoint = (std::string)job["InfoEndpoint"];
     }
 
     JXMLTOSTRING(LocalIDFromManager)
@@ -368,7 +369,6 @@ namespace Arc {
     STRINGTOXML(Name)
     URLTOXML(Cluster)
     STRINGTOXML(InterfaceName)
-    URLTOXML(InfoEndpoint)
     STRINGTOXML(Type)
     STRINGTOXML(IDFromEndpoint)
     STRINGTOXML(LocalIDFromManager)
@@ -600,7 +600,7 @@ namespace Arc {
         // Check if the job (itJ) is selected by endpoints.
         std::list<std::string>::const_iterator itC = endpoints.begin();
         for (; itC != endpoints.end(); ++itC) {
-          if (itJ->Cluster.StringMatches(*itC) || itJ->InfoEndpoint.StringMatches(*itC)) {
+          if (itJ->Cluster.StringMatches(*itC)) {
             break;
           }
         }
@@ -622,7 +622,7 @@ namespace Arc {
     for (std::list<std::string>::const_iterator itC = rEndpoints.begin();
          itC != rEndpoints.end(); ++itC) {
       for (std::list<Arc::Job>::iterator itJ = jobs.begin(); itJ != jobs.end();) {
-        if (itJ->Cluster.StringMatches(*itC) || itJ->InfoEndpoint.StringMatches(*itC)) {
+        if (itJ->Cluster.StringMatches(*itC)) {
           itJ = jobs.erase(itJ);
         }
         else {

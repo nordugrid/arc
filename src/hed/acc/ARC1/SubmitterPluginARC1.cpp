@@ -115,7 +115,7 @@ namespace Arc {
       jobid.ChangePath(jobid.Path() + "/BES" + tostring(t.GetTime()) + tostring(t.GetTimeNanosec()));
     }
 
-    AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, jobid, job);
+    AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, job);
 
     releaseClient(url);
     return true;
@@ -195,7 +195,7 @@ namespace Arc {
       return false;
     }
 
-    AddJobDetails(preparedjobdesc, newjobid, et.ComputingService->Cluster, newjobid, job);
+    AddJobDetails(preparedjobdesc, newjobid, et.ComputingService->Cluster, job);
 
     releaseClient(url);
     return true;

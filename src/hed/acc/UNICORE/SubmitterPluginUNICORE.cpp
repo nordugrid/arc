@@ -106,7 +106,7 @@ namespace Arc {
     }*/
 
     id.GetDoc(job.IDFromEndpoint);
-    AddJobDetails(jobdesc, (std::string)id["Address"], et.ComputingService->Cluster, URL(et.ComputingEndpoint->URLString), job);
+    AddJobDetails(jobdesc, (std::string)id["Address"], et.ComputingService->Cluster, job);
 
     return true;
   }

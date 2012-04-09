@@ -107,8 +107,11 @@ namespace Arc {
       logger.msg(INFO, "Failed cleaning job: %s", job.JobID.fullstr());
       return false;
     }
-    PathIterator pi2(job.InfoEndpoint.Path(), true);
-    URL url2(job.InfoEndpoint);
+    
+    creamJobInfo info;
+    info = XMLNode(job.IDFromEndpoint);
+    URL url2(info.delegationID);
+    PathIterator pi2(url2.Path(), true);
     url2.ChangePath(*pi2);
     CREAMClient gLiteClient2(url2, cfg, usercfg.Timeout());
     if (!gLiteClient2.destroyDelegation(pi2.Rest())) {

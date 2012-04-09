@@ -638,6 +638,30 @@ namespace Arc {
     return *this;
   }
 
+  XMLNode EMIESJob::ToXML() const {
+    /*
+    estypes:ActivityID
+    estypes:ActivityManagerURI
+    escreate:StageInDirectory
+    escreate:SessionDirectory
+    escreate:StageOutDirectory
+    */
+    // TODO: Add namespace;
+    return XMLNode("<ActivityIdentifier>"
+                     "<ActivityID>"+id+"</ActivityID>"
+                     "<ActivityManagerURI>"+manager.fullstr()+"</ActivityManagerURI>"
+                     "<StageInDirectory>"
+                      "<URL>"+stagein.fullstr()+"</URL>"
+                     "</StageInDirectory>"
+                     "<SessionDirectory>"
+                      "<URL>"+session.fullstr()+"</URL>"
+                     "</SessionDirectory>"
+                     "<StageOutDirectory>"
+                      "<URL>"+stageout.fullstr()+"</URL>"
+                     "</StageOutDirectory>"
+                   "</ActivityIdentifier>");
+  }
+
   bool EMIESJob::operator!(void) {
     return id.empty();
   }
