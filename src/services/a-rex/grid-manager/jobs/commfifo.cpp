@@ -124,11 +124,11 @@ JobUser* CommFIFO::wait(int timeout) {
   };
 }
 
-bool CommFIFO::add(JobUser& user) {
+CommFIFO::add_result CommFIFO::add(JobUser& user) {
   std::string path = user.ControlDir() + "/gm." + user.UnixName() + ".fifo";
   if(mkfifo(path.c_str(),S_IRUSR | S_IWUSR) != 0) {
     if(errno != EEXIST) {
-      return false; 
+      return add_error; 
     };
   };
   (void)chmod(path.c_str(),S_IRUSR | S_IWUSR);
@@ -138,12 +138,12 @@ bool CommFIFO::add(JobUser& user) {
   int fd = -1;
   // This must fail. If not then there is another a-rex hanging around.
   fd = open(path.c_str(),O_WRONLY | O_NONBLOCK);
-  if(fd != -1) { close(fd); return false; };
+  if(fd != -1) { close(fd); return add_busy; };
   // (errno != ENXIO)) {
   fd = open(path.c_str(),O_RDONLY | O_NONBLOCK);
-  if(fd == -1) return false;
+  if(fd == -1) return add_error;
   int fd_keep = open(path.c_str(),O_WRONLY | O_NONBLOCK);
-  if(fd_keep == -1) { close(fd); return false; };
+  if(fd_keep == -1) { close(fd); return add_error; };
   elem_t el; el.user=&user; el.fd=fd; el.fd_keep=fd_keep;
   lock.lock();
   fds.push_back(el);
@@ -152,7 +152,7 @@ bool CommFIFO::add(JobUser& user) {
     char c = 0;
     (write(kick_in,&c,1) != -1);
   };
-  return true;
+  return add_success;
 }
 
 static int OpenFIFO(const JobUser& user) {
@@ -199,7 +199,7 @@ JobUser* CommFIFO::wait(int timeout) {
 }
 
 bool CommFIFO::add(JobUser& user) {
-  retrn false;
+  retrn add_error;
 }
 
 bool SignalFIFO(const JobUser& user) {

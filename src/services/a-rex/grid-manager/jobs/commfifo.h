@@ -21,9 +21,14 @@ class CommFIFO {
   int timeout_;
   bool make_pipe(void);
  public:
+  typedef enum {
+    add_success,
+    add_busy,
+    add_error
+  } add_result;
   CommFIFO(void);
   ~CommFIFO(void);
-  bool add(JobUser& user);
+  add_result add(JobUser& user);
   JobUser* wait(int timeout);
   JobUser* wait(void) { return wait(timeout_); };
   void timeout(int t) { timeout_=t; };

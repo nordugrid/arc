@@ -140,12 +140,13 @@ class sleep_st {
  public:
   Arc::SimpleCondition* sleep_cond;
   CommFIFO* timeout;
-  bool to_exit;
-  sleep_st(void):sleep_cond(NULL),timeout(NULL),to_exit(false) {
+  bool to_exit; // tells thread to exit
+  bool exited;  // set by thread while exiting
+  sleep_st(void):sleep_cond(NULL),timeout(NULL),to_exit(false),exited(false) {
   };
   ~sleep_st(void) {
     to_exit = true;
-    while(to_exit) sleep(1);
+    while(!exited) sleep(1);
   };
 };
 
@@ -177,12 +178,17 @@ void GridManager::grid_manager(void* arg) {
   //GMEnvironment& env = *(gm->Environment());
   if(!arg) {
     gm->active_ = false;
+    ::kill(::getpid(),SIGTERM);
     return;
   }
-  gm->thread();
+  if(!gm->thread()) {
+    // thread exited because of internal error
+    // that means whole server must be stopped 
+    ::kill(::getpid(),SIGTERM);
+  }
 }
 
-void GridManager::thread() {
+bool GridManager::thread() {
   logger.msg(Arc::INFO,"Starting grid-manager thread");
   bool enable_arc = false;
   bool enable_emies = false;
@@ -190,12 +196,12 @@ void GridManager::thread() {
     logger.msg(Arc::INFO,"Used configuration file %s",env_->nordugrid_config_loc());
     logger.msg(Arc::FATAL,"Error processing configuration - EXITING");
     active_ = false;
-    return;
+    return false;
   };
   if(users_->size() == 0) {
     logger.msg(Arc::FATAL,"No suitable users found in configuration - EXITING");
     active_ = false;
-    return;
+    return false;
   };
 
   logger.msg(Arc::INFO,"Used configuration file %s",env_->nordugrid_config_loc());
@@ -203,23 +209,29 @@ void GridManager::thread() {
 
   CommFIFO wakeup_interface;
   time_t hard_job_time; 
-  sleep_st wakeup_h;
-  wakeup_h.sleep_cond=sleep_cond_;
-  wakeup_h.timeout=&wakeup_interface;
   for(JobUsers::iterator i = users_->begin();i!=users_->end();++i) {
-    if(!wakeup_interface.add(*i)) {
-      logger.msg(Arc::FATAL,"Error adding communication interface in %s for user %s. Maybe another instance of A-REX is already running or permissions are not suitable.",i->ControlDir(),i->UnixName());
+    CommFIFO::add_result r = wakeup_interface.add(*i);
+    if(r != CommFIFO::add_success) {
+      if(r == CommFIFO::add_busy) {
+        logger.msg(Arc::FATAL,"Error adding communication interface in %s for user %s. Maybe another instance of A-REX is already running.",i->ControlDir(),i->UnixName());
+      } else {
+        logger.msg(Arc::FATAL,"Error adding communication interface in %s for user %s. Maybe permissions are not suitable.",i->ControlDir(),i->UnixName());
+      };
       active_ = false;
-      return;
+      return false;
     };
   };
   wakeup_interface.timeout(env_->jobs_cfg().WakeupPeriod());
 
   /* start timer thread - wake up every 2 minutes */
+  sleep_st wakeup_h;
+  wakeup_h.sleep_cond=sleep_cond_;
+  wakeup_h.timeout=&wakeup_interface;
   if(!Arc::CreateThreadFunction(wakeup_func,&wakeup_h)) {
     logger.msg(Arc::ERROR,"Failed to start new thread");
     active_ = false;
-    return;
+    wakeup_h.exited = true;
+    return false;
   };
   RunParallel::kicker(&kick_func,&wakeup_h);
   /*
@@ -294,7 +306,7 @@ void GridManager::thread() {
       delete dtr_generator;
       logger.msg(Arc::ERROR, "Failed to start data staging threads, exiting Grid Manager thread");
       active_ = false;
-      return;
+      return false;
     }
     dtr_generator_ = dtr_generator;
     for(JobUsers::iterator user = users_->begin();user != users_->end();++user) {
@@ -356,7 +368,7 @@ void GridManager::thread() {
     delete user->get_jobs();
   };
   active_ = false;
-  return;
+  return true;
 }
 
 GridManager::GridManager(GMEnvironment& env):active_(false),tostop_(false) {

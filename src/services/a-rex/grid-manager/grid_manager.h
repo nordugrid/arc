@@ -25,7 +25,7 @@ class GridManager {
   GridManager(void) { };
   GridManager(const GridManager&) { };
   static void grid_manager(void* arg);
-  void thread(void);
+  bool thread(void);
  public:
   GridManager(GMEnvironment& env);
   GridManager(JobUsers& users, JobUser& my_user);
