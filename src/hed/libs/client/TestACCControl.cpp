@@ -23,8 +23,8 @@ URL JobControllerTestACCControl::createURL = URL();
 bool SubmitterPluginTestACCControl::submitStatus = true;
 bool SubmitterPluginTestACCControl::migrateStatus = true;
 bool SubmitterPluginTestACCControl::modifyStatus = true;
-Job* SubmitterPluginTestACCControl::submitJob = NULL;
-Job* SubmitterPluginTestACCControl::migrateJob = NULL;
+Job SubmitterPluginTestACCControl::submitJob = Job();
+Job SubmitterPluginTestACCControl::migrateJob = Job();
 
 float TargetInformationRetrieverPluginTESTControl::delay = 0;
 std::list<ComputingServiceType> TargetInformationRetrieverPluginTESTControl::targets;

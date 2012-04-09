@@ -25,8 +25,8 @@ namespace Arc {
   
     virtual bool isEndpointNotSupported(const std::string& endpoint) const { return endpoint.empty(); }
 
-    virtual bool Submit(const JobDescription& /*jobdesc*/, const ExecutionTarget& /*et*/, Job& job) { SubmitterPluginTestACCControl::submitJob = &job; return SubmitterPluginTestACCControl::submitStatus; }
-    virtual bool Migrate(const URL& /*jobid*/, const JobDescription& /*jobdesc*/, const ExecutionTarget& /*et*/, bool /*forcemigration*/, Job& job) { SubmitterPluginTestACCControl::migrateJob = &job; return SubmitterPluginTestACCControl::migrateStatus; }
+    virtual bool Submit(const JobDescription& /*jobdesc*/, const ExecutionTarget& /*et*/, Job& job) { job = SubmitterPluginTestACCControl::submitJob; return SubmitterPluginTestACCControl::submitStatus; }
+    virtual bool Migrate(const URL& /*jobid*/, const JobDescription& /*jobdesc*/, const ExecutionTarget& /*et*/, bool /*forcemigration*/, Job& job) { job = SubmitterPluginTestACCControl::migrateJob; return SubmitterPluginTestACCControl::migrateStatus; }
   };
 
 }

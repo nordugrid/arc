@@ -46,8 +46,8 @@ class SubmitterPluginTestACCControl {
     static bool submitStatus;
     static bool migrateStatus;
     static bool modifyStatus;
-    static Job* submitJob;
-    static Job* migrateJob;
+    static Job submitJob;
+    static Job migrateJob;
 };
 
 class JobStateTEST : public JobState {
