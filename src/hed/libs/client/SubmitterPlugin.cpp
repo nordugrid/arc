@@ -73,7 +73,7 @@ namespace Arc {
     if (!jobdesc.Identification.JobName.empty()) {
       job.Name = jobdesc.Identification.JobName;
     }
-    if (!supportedInterfaces.empty()) {
+    if (job.InterfaceName.empty() && !supportedInterfaces.empty()) {
       job.InterfaceName = supportedInterfaces.front();
     }
     job.Cluster = cluster;

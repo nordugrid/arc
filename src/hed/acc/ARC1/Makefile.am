@@ -9,7 +9,6 @@ libaccARC1_la_SOURCES  = SubmitterPluginARC1.cpp SubmitterPluginARC1.h \
 	DescriptorsARC1.cpp JobStateARC1.h JobStateARC1.cpp \
 	TargetInformationRetrieverPluginWSRFGLUE2.cpp TargetInformationRetrieverPluginWSRFGLUE2.h \
 	TargetInformationRetrieverPluginBES.cpp TargetInformationRetrieverPluginBES.h \
-	SubmitterPluginBES.cpp SubmitterPluginBES.h \
 	JobControllerBES.cpp JobControllerBES.h \
 	JobStateBES.cpp JobStateBES.h
 libaccARC1_la_CXXFLAGS = -I$(top_srcdir)/include \

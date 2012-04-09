@@ -22,32 +22,6 @@ namespace Arc {
 
   Logger JobControllerBES::logger(Logger::getRootLogger(), "JobController.BES");
 
-  static char hex_to_char(const char* v) {
-    char r = 0;
-    if((*v >= '0') && (*v <= '9')) { r |= *v  - '0'; }
-    else if((*v >= 'a') && (*v <= 'f')) { r |= *v  - 'a' + 10; }
-    else if((*v >= 'A') && (*v <= 'F')) { r |= *v  - 'A' + 10; }
-    r <<= 4; ++v;
-    if((*v >= '0') && (*v <= '9')) { r |= *v  - '0'; }
-    else if((*v >= 'a') && (*v <= 'f')) { r |= *v  - 'a' + 10; }
-    else if((*v >= 'A') && (*v <= 'F')) { r |= *v  - 'A' + 10; }
-    return r;
-  }
-
-  static std::string extract_job_id(const URL& u) {
-    std::string jobid = u.Path();
-    if(jobid.empty()) return jobid;
-    std::string::size_type p = jobid.find('#');
-    if(p == std::string::npos) { p=0; } else { ++p; }
-    std::string s;
-    for(;p < jobid.length();p+=2) {
-      char r = hex_to_char(jobid.c_str() + p);
-      if(r == 0) { s.resize(0); break; }
-      s += r;
-    }
-    return s;
-  }
-
   bool JobControllerBES::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
@@ -60,8 +34,7 @@ namespace Arc {
     for (std::list<Job*>::iterator iter = jobs.begin();
          iter != jobs.end(); iter++) {
       AREXClient ac((*iter)->Cluster, cfg, usercfg.Timeout(),false);
-      std::string idstr = extract_job_id((*iter)->JobID);
-      if (!ac.stat(idstr, **iter)) {
+      if (!ac.stat((*iter)->IDFromEndpoint, **iter)) {
         logger.msg(INFO, "Failed retrieving job status information");
       }
     }
@@ -84,8 +57,7 @@ namespace Arc {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(job.Cluster, cfg, usercfg.Timeout(), false);
-    std::string idstr = extract_job_id(job.JobID);
-    return ac.kill(idstr);
+    return ac.kill(job.IDFromEndpoint);
   }
 
   bool JobControllerBES::RenewJob(const Job& /* job */) const {
@@ -102,8 +74,7 @@ namespace Arc {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(job.Cluster, cfg, usercfg.Timeout(), false);
-    std::string idstr = extract_job_id(job.JobID);
-    if (ac.getdesc(idstr, desc_str)) {
+    if (ac.getdesc(job.IDFromEndpoint, desc_str)) {
       std::list<JobDescription> descs;
       if (JobDescription::Parse(desc_str, descs) && !descs.empty()) {
         return true;

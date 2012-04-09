@@ -66,12 +66,13 @@ namespace Arc {
 
     JobDescription preparedjobdesc(jobdesc);
 
-    if (!preparedjobdesc.Prepare(et)) {
+    if (et.ComputingService->Type == "org.nordugrid.execution.arex" && !preparedjobdesc.Prepare(et)) {
       logger.msg(INFO, "Failed to prepare job description to target resources");
       releaseClient(url);
       return false;
     }
 
+    // !! TODO: For regular BES ordinary JSDL is needed - keeping nordugrid:jsdl so far
     std::string product;
     if (!preparedjobdesc.UnParse(product, "nordugrid:jsdl")) {
       logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:jsdl");
@@ -91,13 +92,27 @@ namespace Arc {
     }
 
     XMLNode activityIdentifier(job.IDFromEndpoint);
-    URL jobid((std::string)(activityIdentifier["ReferenceParameters"]["JobSessionDir"]));
-
-    if (!PutFiles(preparedjobdesc, jobid)) {
-      logger.msg(INFO, "Failed uploading local input files");
-      job.IDFromEndpoint = "";
-      releaseClient(url);
-      return false;
+    URL jobid;
+    if (activityIdentifier["ReferenceParameters"]["a-rex:JobID"]) { // Service seems to be A-REX. Extract job ID, and upload files.
+      jobid = URL((std::string)(activityIdentifier["ReferenceParameters"]["JobSessionDir"]));
+  
+      if (!PutFiles(preparedjobdesc, jobid)) {
+        logger.msg(INFO, "Failed uploading local input files");
+        job.IDFromEndpoint = "";
+        releaseClient(url);
+        return false;
+      }
+      
+      job.InterfaceName = "org.nordugrid.xbes";
+    } else {
+      if (activityIdentifier["Address"]) {
+        jobid = URL((std::string)activityIdentifier["Address"]);
+      } else {
+        jobid = url;
+      }
+      Time t;
+      // Since BES doesn't specify a simple unique ID, but rather an EPR, a unique non-reproduceable (to arcsync) job ID is create below.
+      jobid.ChangePath(jobid.Path() + "/BES" + tostring(t.GetTime()) + tostring(t.GetTimeNanosec()));
     }
 
     AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, jobid, job);
