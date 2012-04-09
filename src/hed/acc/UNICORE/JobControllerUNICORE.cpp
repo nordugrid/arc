@@ -31,7 +31,7 @@ namespace Arc {
     for (std::list<Job*>::iterator iter = jobs.begin();
          iter != jobs.end(); iter++) {
       URL url((*iter)->Cluster);
-      XMLNode id((*iter)->AuxInfo);
+      XMLNode id((*iter)->IDFromEndpoint);
       ClientSOAP client(cfg, url, usercfg.Timeout());
       logger.msg(INFO, "Creating and sending a status request");
       NS ns;

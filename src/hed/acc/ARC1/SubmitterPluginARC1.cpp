@@ -79,23 +79,23 @@ namespace Arc {
       return false;
     }
 
-    std::string sJobid;
-    if (!ac->submit(product, sJobid, url.Protocol() == "https")) {
+    if (!ac->submit(product, job.IDFromEndpoint, url.Protocol() == "https")) {
       releaseClient(url);
       return false;
     }
 
-    if (sJobid.empty()) {
+    if (job.IDFromEndpoint.empty()) {
       logger.msg(INFO, "No job identifier returned by A-REX");
       releaseClient(url);
       return false;
     }
 
-    XMLNode jobidx(sJobid);
-    URL jobid((std::string)(jobidx["ReferenceParameters"]["JobSessionDir"]));
+    XMLNode activityIdentifier(job.IDFromEndpoint);
+    URL jobid((std::string)(activityIdentifier["ReferenceParameters"]["JobSessionDir"]));
 
     if (!PutFiles(preparedjobdesc, jobid)) {
       logger.msg(INFO, "Failed uploading local input files");
+      job.IDFromEndpoint = "";
       releaseClient(url);
       return false;
     }

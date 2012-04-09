@@ -83,8 +83,7 @@ namespace Arc {
   JobControllerLoader Job::loader;
 
   Job::Job()
-    : JobID(IDFromEndpoint),
-      ExitCode(-1),
+    : ExitCode(-1),
       WaitingPosition(-1),
       RequestedTotalWallTime(-1),
       RequestedTotalCPUTime(-1),
@@ -108,8 +107,7 @@ namespace Arc {
   Job::~Job() {}
 
   Job::Job(const Job& j)
-    : JobID(IDFromEndpoint),
-      ExitCode(-1),
+    : ExitCode(-1),
       WaitingPosition(-1),
       RequestedTotalWallTime(-1),
       RequestedTotalCPUTime(-1),
@@ -133,8 +131,7 @@ namespace Arc {
   }
 
   Job::Job(XMLNode j)
-    : JobID(IDFromEndpoint),
-      ExitCode(-1),
+    : ExitCode(-1),
       WaitingPosition(-1),
       RequestedTotalWallTime(-1),
       RequestedTotalCPUTime(-1),
@@ -159,14 +156,11 @@ namespace Arc {
   Job& Job::operator=(const Job& j) {
     jc = j.jc;
 
+    JobID = j.JobID;
     Cluster = j.Cluster;
     InterfaceName = j.InterfaceName;
-
     InfoEndpoint = j.InfoEndpoint;
-    ISB = j.ISB;
-    OSB = j.OSB;
 
-    AuxInfo = j.AuxInfo;
 
     Name = j.Name;
     Type = j.Type;
@@ -223,12 +217,16 @@ namespace Arc {
     return *this;
   }
 
-  int Job::operator==(const Job& other) {
-    return IDFromEndpoint == other.IDFromEndpoint;
-  }
+  int Job::operator==(const Job& other) { return JobID == other.JobID; }
 
   Job& Job::operator=(XMLNode job) {
     jc = NULL;
+
+    if (job["JobID"]) {
+      JobID = URL((std::string)job["JobID"]);
+    } else if (job["IDFromEndpoint"]) { // Backwardscompatibility: Pre 2.0.0 format.
+      JobID = URL((std::string)job["IDFromEndpoint"]);
+    }
 
     JXMLTOSTRING(Name)
     JXMLTOSTRING(Cluster)
@@ -238,22 +236,22 @@ namespace Arc {
     else if (job["Flavour"]) {
       if      ((std::string)job["Flavour"] == "ARC0")  InterfaceName = "org.nordugrid.gridftpjob";
       else if ((std::string)job["Flavour"] == "BES")   InterfaceName = "org.ogf.bes";
-      else if ((std::string)job["Flavour"] == "ARC1")  InterfaceName = "org.ogf.bes";
+      else if ((std::string)job["Flavour"] == "ARC1")  InterfaceName = "org.nordugrid.xbes";
       else if ((std::string)job["Flavour"] == "EMIES") InterfaceName = "org.ogf.emies";
       else if ((std::string)job["Flavour"] == "TEST")  InterfaceName = "org.nordugrid.test";
     }
     JXMLTOSTRING(InfoEndpoint)
-    JXMLTOSTRING(ISB)
-    JXMLTOSTRING(OSB)
-    JXMLTOSTRING(AuxInfo)
     JXMLTOSTRING(Type)
 
-    if (job["IDFromEndpoint"]) {
-      IDFromEndpoint = URL((std::string)job["IDFromEndpoint"]);
-    }
-    /* Element 'JobID' included for backwards compatibility. */
-    else if (job["JobID"]) {
-      IDFromEndpoint = URL((std::string)job["JobID"]);
+    if (job["IDFromEndpoint"]
+        /* If this is pre 2.0.0 format then JobID element would not
+         * exist, and the usage of IDFromEndpoint element corresponded
+         * to the current usage of the JobID element. Therefore only set
+         * the IDFromEndpoint member if the JobID _does_ exist.
+         */
+        && job["JobID"]
+        ) {
+      IDFromEndpoint = (std::string)job["IDFromEndpoint"];
     }
 
     JXMLTOSTRING(LocalIDFromManager)
@@ -366,15 +364,13 @@ namespace Arc {
   }
 
   void Job::ToXML(XMLNode node) const {
+    URLTOXML(JobID)
     STRINGTOXML(Name)
     URLTOXML(Cluster)
     STRINGTOXML(InterfaceName)
     URLTOXML(InfoEndpoint)
-    URLTOXML(ISB)
-    URLTOXML(OSB)
-    STRINGTOXML(AuxInfo)
     STRINGTOXML(Type)
-    URLTOXML(IDFromEndpoint)
+    STRINGTOXML(IDFromEndpoint)
     STRINGTOXML(LocalIDFromManager)
     STRINGTOXML(JobDescription)
     STRINGTOXML(JobDescriptionDocument)
@@ -438,7 +434,7 @@ namespace Arc {
   }
 
   void Job::SaveToStream(std::ostream& out, bool longlist) const {
-    out << IString("Job: %s", IDFromEndpoint.fullstr()) << std::endl;
+    out << IString("Job: %s", JobID.fullstr()) << std::endl;
     if (!Name.empty())
       out << IString(" Name: %s", Name) << std::endl;
     if (!State().empty())
@@ -576,8 +572,7 @@ namespace Arc {
     return true;
   }
 
-  bool Job::ReadJobsFromFile(const std::string& filename, std::list<Job>& jobs, std::list<std::string>& jobIdentifiers, bool all, const std::list<std::string>& endpoints, const std::list<std::string>& rEndpoints, unsigned nTries, unsigned tryInterval)
-  {
+  bool Job::ReadJobsFromFile(const std::string& filename, std::list<Job>& jobs, std::list<std::string>& jobIdentifiers, bool all, const std::list<std::string>& endpoints, const std::list<std::string>& rEndpoints, unsigned nTries, unsigned tryInterval) {
     if (!ReadAllJobsFromFile(filename, jobs, nTries, tryInterval)) { return false; }
 
     std::list<std::string> jobIdentifiersCopy = jobIdentifiers;
@@ -587,7 +582,7 @@ namespace Arc {
       std::list<std::string>::iterator itJIdentifier = jobIdentifiers.begin();
       for (;itJIdentifier != jobIdentifiers.end(); ++itJIdentifier) {
         if ((!itJ->Name.empty() && itJ->Name == *itJIdentifier) ||
-            (itJ->IDFromEndpoint.fullstr() == URL(*itJIdentifier).fullstr())) {
+            (itJ->JobID.fullstr() == *itJIdentifier)) {
           break;
         }
       }
@@ -646,11 +641,11 @@ namespace Arc {
     std::map<std::string, XMLNode> jobIDXMLMap;
     for (std::list<Job>::const_iterator it = jobs.begin();
          it != jobs.end(); it++) {
-      std::map<std::string, XMLNode>::iterator itJobXML = jobIDXMLMap.find(it->IDFromEndpoint.fullstr());
+      std::map<std::string, XMLNode>::iterator itJobXML = jobIDXMLMap.find(it->JobID.fullstr());
       if (itJobXML == jobIDXMLMap.end()) {
         XMLNode xJob = jobfile.NewChild("Job");
         it->ToXML(xJob);
-        jobIDXMLMap[it->IDFromEndpoint.fullstr()] = xJob;
+        jobIDXMLMap[it->JobID.fullstr()] = xJob;
       }
       else {
         itJobXML->second.Replace(XMLNode(NS(), "Job"));
@@ -694,22 +689,19 @@ namespace Arc {
         // Use std::map to store job IDs to be searched for duplicates.
         std::map<std::string, XMLNode> jobIDXMLMap;
         for (Arc::XMLNode j = jobfile["Job"]; j; ++j) {
-          if (!((std::string)j["IDFromEndpoint"]).empty()) {
-            jobIDXMLMap[(std::string)j["IDFromEndpoint"]] = j;
-          }
-          else if (!((std::string)j["JobID"]).empty()) {
+          if (!((std::string)j["JobID"]).empty()) {
             jobIDXMLMap[(std::string)j["JobID"]] = j;
           }
         }
 
         std::map<std::string, const Job*> newJobsMap;
         for (std::list<Job>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
-          std::map<std::string, XMLNode>::iterator itJobXML = jobIDXMLMap.find(it->IDFromEndpoint.fullstr());
+          std::map<std::string, XMLNode>::iterator itJobXML = jobIDXMLMap.find(it->JobID.fullstr());
           if (itJobXML == jobIDXMLMap.end()) {
             XMLNode xJob = jobfile.NewChild("Job");
             it->ToXML(xJob);
-            jobIDXMLMap[it->IDFromEndpoint.fullstr()] = xJob;
-            newJobsMap[it->IDFromEndpoint.fullstr()] = &(*it);
+            jobIDXMLMap[it->JobID.fullstr()] = xJob;
+            newJobsMap[it->JobID.fullstr()] = &(*it);
           }
           else {
             // Duplicate found, replace it.
@@ -717,7 +709,7 @@ namespace Arc {
             it->ToXML(itJobXML->second);
 
             // Only add to newJobsMap if this is a new job, i.e. not previous present in jobfile.
-            std::map<std::string, const Job*>::iterator itNewJobsMap = newJobsMap.find(it->IDFromEndpoint.fullstr());
+            std::map<std::string, const Job*>::iterator itNewJobsMap = newJobsMap.find(it->JobID.fullstr());
             if (itNewJobsMap != newJobsMap.end()) {
               itNewJobsMap->second = &(*it);
             }
@@ -765,8 +757,8 @@ namespace Arc {
         XMLNodeList xmlJobs = jobstorage.Path("Job");
         for (std::list<URL>::const_iterator it = jobids.begin(); it != jobids.end(); ++it) {
           for (XMLNodeList::iterator xJIt = xmlJobs.begin(); xJIt != xmlJobs.end(); ++xJIt) {
-            if ((*xJIt)["IDFromEndpoint"] == it->fullstr() ||
-                (*xJIt)["JobID"] == it->fullstr() // Included for backwards compatibility.
+            if ((*xJIt)["JobID"] == it->fullstr() ||
+                (*xJIt)["IDFromEndpoint"] == it->fullstr() // Included for backwards compatibility.
                 ) {
               xJIt->Destroy(); // Do not break, since for some reason there might be multiple identical jobs in the file.
             }
@@ -836,7 +828,7 @@ namespace Arc {
           lock.release();
           return false;
         }
-        os << jobid.str() << std::endl;
+        os << jobid.fullstr() << std::endl;
         bool good = os.good();
         os.close();
         lock.release();
@@ -866,7 +858,7 @@ namespace Arc {
         }
         for (std::list<URL>::const_iterator it = jobids.begin();
              it != jobids.end(); ++it) {
-          os << it->str() << std::endl;
+          os << it->fullstr() << std::endl;
         }
 
         bool good = os.good();
@@ -899,7 +891,7 @@ namespace Arc {
         }
         for (std::list<Job>::const_iterator it = jobs.begin();
              it != jobs.end(); ++it) {
-          os << it->IDFromEndpoint.fullstr() << std::endl;
+          os << it->JobID.fullstr() << std::endl;
         }
 
         bool good = os.good();

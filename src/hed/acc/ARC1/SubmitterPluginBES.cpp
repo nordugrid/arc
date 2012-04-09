@@ -60,10 +60,9 @@ namespace Arc {
       return false;
     }
 
-    std::string jobid;
-    if (!ac.submit(jobdescstring, jobid, url.Protocol() == "https")) return false;
+    if (!ac.submit(jobdescstring, job.IDFromEndpoint, url.Protocol() == "https")) return false;
 
-    if (jobid.empty()) {
+    if (job.IDFromEndpoint.empty()) {
       logger.msg(INFO, "No job identifier returned by BES service");
       return false;
     }
@@ -73,7 +72,7 @@ namespace Arc {
     // Unfortunately Job handling framework somewhy want to have job
     // URL instead of identifier we have to invent one. So we disguise
     // XML blob inside URL path.
-    AddJobDetails(jobdesc, URL(disguise_id_into_url(url,jobid)), et.ComputingService->Cluster, url, job);
+    AddJobDetails(jobdesc, URL(disguise_id_into_url(url,job.IDFromEndpoint)), et.ComputingService->Cluster, url, job);
 
     return true;
   }

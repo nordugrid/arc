@@ -92,6 +92,9 @@ class ARCClientTestCase(ExpectationalTestCase):
                         state_text = None,
                         job_description = "non-empty"):
         job = arc.Job()
+        if isinstance(job_id, str):
+            job_id = arc.URL(job_id)
+        job.JobID = job_id
         job.InterfaceName = "org.nordugrid.test"
         job.Cluster = arc.URL(cluster)
         job.InfoEndpoint = arc.URL(info_endpoint)
@@ -99,8 +102,5 @@ class ARCClientTestCase(ExpectationalTestCase):
             job.State = arc.JobStateTEST(state)
         else:
             job.State = arc.JobStateTEST(state, state_text)
-        if isinstance(job_id, str):
-            job_id = arc.URL(job_id)
-        job.IDFromEndpoint = job_id
         job.JobDescriptionDocument = job_description
         return job

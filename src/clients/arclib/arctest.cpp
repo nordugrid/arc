@@ -222,7 +222,7 @@ int test(const Arc::UserConfig& usercfg, const Arc::ExecutionTargetSet& ets, con
   Arc::ExecutionTargetSet::const_iterator it = ets.begin(); 
   for (; it != ets.end(); ++it) {
     if (it->Submit(usercfg, testJob, submittedJobs.back())) {
-      printjobid(submittedJobs.back().JobID.str(), jobidfile);
+      printjobid(submittedJobs.back().JobID.fullstr(), jobidfile);
       break;
     }
   }

@@ -17,8 +17,8 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
         jobs = js.GetJobs()
         self.expect(jobs).to_have(2).jobs()
 
-        self.expect(jobs[0].IDFromEndpoint.str()).to_be(id1.str())
-        self.expect(jobs[1].IDFromEndpoint.str()).to_be(id2.str())
+        self.expect(jobs[0].JobID.str()).to_be(id1.str())
+        self.expect(jobs[1].JobID.str()).to_be(id2.str())
 
     def test_add_job(self):
         js = arc.JobSupervisor(self.usercfg, arc.JobList())

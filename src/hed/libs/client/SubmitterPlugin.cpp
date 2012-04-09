@@ -67,8 +67,8 @@ namespace Arc {
   }
 
   void SubmitterPlugin::AddJobDetails(const JobDescription& jobdesc, const URL& jobid,
-                                const URL& cluster, const URL& infoendpoint,
-                                Job& job) const {
+                                      const URL& cluster, const URL& infoendpoint,
+                                      Job& job) const {
     job.JobID = jobid;
     if (!jobdesc.Identification.JobName.empty()) {
       job.Name = jobdesc.Identification.JobName;

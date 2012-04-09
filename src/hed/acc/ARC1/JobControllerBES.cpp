@@ -110,7 +110,7 @@ namespace Arc {
       }
     }
 
-    logger.msg(ERROR, "Failed retrieving job description for job: %s", job.JobID.str());
+    logger.msg(ERROR, "Failed retrieving job description for job: %s", job.JobID.fullstr());
     return false;
   }
 

@@ -66,21 +66,20 @@ namespace Arc {
       return false;
     }
 
-    if (!PutFiles(preparedjobdesc, jobInfo.ISB_URI)) {
+    if (!PutFiles(preparedjobdesc, jobInfo.ISB)) {
       logger.msg(INFO, "Failed uploading local input files");
       return false;
     }
 
-    if (!gLiteClientSubmission.startJob(jobInfo.jobId)) {
+    if (!gLiteClientSubmission.startJob(jobInfo.id)) {
       logger.msg(INFO, "Failed starting job");
       return false;
     }
 
-    AddJobDetails(preparedjobdesc, submissionurl.str() + '/' + jobInfo.jobId, et.ComputingService->Cluster,
+    AddJobDetails(preparedjobdesc, URL(submissionurl.str() + '/' + jobInfo.id), et.ComputingService->Cluster,
                   delegationurl.str() + '/' + delegationid, job);
 
-    job.ISB = URL(jobInfo.ISB_URI);
-    job.OSB = URL(jobInfo.OSB_URI);
+    jobInfo.ToXML().GetXML(job.IDFromEndpoint);
 
     return true;
   }

@@ -380,7 +380,7 @@ namespace Arc {
     std::string urlstr = job.JobID.str();
     std::string::size_type pos = urlstr.rfind('/');
     if (pos == std::string::npos || pos == 0) {
-      logger.msg(INFO, "Illegal jobID specified");
+      logger.msg(INFO, "Illegal jobID specified (%s)", job.JobID.str());
       return false;
     }
     std::string jobnr = urlstr.substr(pos + 1);

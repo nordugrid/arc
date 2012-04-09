@@ -46,7 +46,7 @@ namespace Arc {
                                       std::string& downloaddir,
                                       bool usejobname,
                                       bool force) const {
-    logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
+    logger.msg(VERBOSE, "Downloading job: %s", job.JobID.fullstr());
 
     if (!downloaddir.empty()) {
       downloaddir += G_DIR_SEPARATOR_S;
@@ -124,11 +124,11 @@ namespace Arc {
   bool JobControllerARC1::ResumeJob(const Job& job) const {
 
     if (!job.RestartState) {
-      logger.msg(INFO, "Job %s does not report a resumable state", job.JobID.str());
+      logger.msg(INFO, "Job %s does not report a resumable state", job.JobID.fullstr());
       return false;
     }
 
-    logger.msg(VERBOSE, "Resuming job: %s at state: %s (%s)", job.JobID.str(), job.RestartState.GetGeneralState(), job.RestartState());
+    logger.msg(VERBOSE, "Resuming job: %s at state: %s (%s)", job.JobID.fullstr(), job.RestartState.GetGeneralState(), job.RestartState());
 
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
@@ -168,7 +168,7 @@ namespace Arc {
       }
     }
 
-    logger.msg(ERROR, "Failed retrieving job description for job: %s", job.JobID.str());
+    logger.msg(ERROR, "Failed retrieving job description for job: %s", job.JobID.fullstr());
     return false;
   }
 

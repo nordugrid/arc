@@ -91,6 +91,32 @@ namespace Arc {
     ns["types"] = "http://glite.org/2007/11/ce/cream/types";
   }
 
+  XMLNode creamJobInfo::ToXML() const {
+    return XMLNode("<jobId>"
+                    "<id>"+id+"</id>"
+                    "<creamURL>"+creamURL+"</creamURL>"+
+                    (!ISB.empty() ? "<property><name>CREAMInputSandboxURI</name><value>" + ISB +"</value></property>" : std::string()) +
+                    (!ISB.empty() ? "<property><name>CREAMOutputSandboxURI</name><value>" + OSB +"</value></property>" : std::string()) +
+                   "</jobId>");
+  }
+  
+  creamJobInfo& creamJobInfo::operator=(XMLNode n) {
+    id = (std::string)n["id"];
+    if (n["creamURL"]) {
+      creamURL = URL((std::string)n["creamURL"]);
+    }
+    for (XMLNode property = n["property"]; property; ++property) {
+      if ((std::string)property["name"] == "CREAMInputSandboxURI") {
+        ISB = (std::string)property["value"];
+      }
+      else if ((std::string)property["name"] == "CREAMOutputSandboxURI") {
+        OSB = (std::string)property["value"];
+      }
+    }
+    
+    return *this;
+  }
+
   CREAMClient::CREAMClient(const URL& url, const MCCConfig& cfg, int timeout)
     : client(NULL),
       cafile(cfg.cafile),
@@ -378,15 +404,7 @@ namespace Arc {
       return false;
     }
 
-    info.jobId = (std::string)response["jobId"]["id"];
-    if (response["jobId"]["creamURL"])
-      info.creamURL = URL((std::string)response["jobId"]["creamURL"]);
-    for (XMLNode property = response["jobId"]["property"]; property; ++property) {
-      if ((std::string)property["name"] == "CREAMInputSandboxURI")
-        info.ISB_URI = (std::string)property["value"];
-      else if ((std::string)property["name"] == "CREAMOutputSandboxURI")
-        info.OSB_URI = (std::string)property["value"];
-    }
+    info = response["jobId"];
 
     return true;
   }

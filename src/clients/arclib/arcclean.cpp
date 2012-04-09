@@ -137,7 +137,7 @@ int RUNCLEAN(main)(int argc, char **argv) {
     else {
       for (std::list<Arc::Job>::const_iterator it = jobmaster.GetAllJobs().begin(); it != jobmaster.GetAllJobs().end(); ++it) {
         if (it->State == Arc::JobState::UNDEFINED) {
-          cleaned.push_back(it->IDFromEndpoint);
+          cleaned.push_back(it->JobID);
         }
       }
     }

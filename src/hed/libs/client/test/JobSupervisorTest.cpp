@@ -53,9 +53,9 @@ void JobSupervisorTest::TestConstructor()
 {
   std::list<Arc::Job> jobs;
   Arc::URL id1("http://test.nordugrid.org/1234567890test1"), id2("http://test.nordugrid.org/1234567890test2");
-  j.IDFromEndpoint = id1;
+  j.JobID = id1;
   jobs.push_back(j);
-  j.IDFromEndpoint = id2;
+  j.JobID = id2;
   jobs.push_back(j);
 
   js = new Arc::JobSupervisor(usercfg, jobs);
@@ -66,8 +66,8 @@ void JobSupervisorTest::TestConstructor()
   // JobController should contain 2 jobs.
   CPPUNIT_ASSERT_EQUAL(2, (int)jobs.size());
 
-  CPPUNIT_ASSERT_EQUAL(id1.str(), jobs.front().IDFromEndpoint.str());
-  CPPUNIT_ASSERT_EQUAL(id2.str(), jobs.back().IDFromEndpoint.str());
+  CPPUNIT_ASSERT_EQUAL(id1, jobs.front().JobID);
+  CPPUNIT_ASSERT_EQUAL(id2, jobs.back().JobID);
 
   delete js;
 }
@@ -77,7 +77,7 @@ void JobSupervisorTest::TestAddJob()
   js = new Arc::JobSupervisor(usercfg, std::list<Arc::Job>());
   CPPUNIT_ASSERT(js->GetAllJobs().empty());
 
-  j.IDFromEndpoint = Arc::URL("http://test.nordugrid.org/1234567890test1");
+  j.JobID = Arc::URL("http://test.nordugrid.org/1234567890test1");
   CPPUNIT_ASSERT(js->AddJob(j));
   CPPUNIT_ASSERT(!js->GetAllJobs().empty());
 
@@ -100,12 +100,12 @@ void JobSupervisorTest::TestResubmit()
            id3("http://test.nordugrid.org/1234567890test3");
 
   j.State = Arc::JobStateTEST(Arc::JobState::FAILED);
-  j.IDFromEndpoint = id1;
+  j.JobID = id1;
   j.JobDescriptionDocument = "CONTENT";
   jobs.push_back(j);
 
   j.State = Arc::JobStateTEST(Arc::JobState::RUNNING);
-  j.IDFromEndpoint = id1;
+  j.JobID = id1;
   j.JobDescriptionDocument = "CONTENT";
   jobs.push_back(j);
 
@@ -146,15 +146,15 @@ void JobSupervisorTest::TestCancel()
            id4("http://test.nordugrid.org/1234567890test4");
 
   j.State = Arc::JobStateTEST(Arc::JobState::RUNNING);
-  j.IDFromEndpoint = id1;
+  j.JobID = id1;
   jobs.push_back(j);
 
   j.State = Arc::JobStateTEST(Arc::JobState::FINISHED);
-  j.IDFromEndpoint = id2;
+  j.JobID = id2;
   jobs.push_back(j);
 
   j.State = Arc::JobStateTEST(Arc::JobState::UNDEFINED);
-  j.IDFromEndpoint = id3;
+  j.JobID = id3;
   jobs.push_back(j);
 
   js = new Arc::JobSupervisor(usercfg, jobs);
@@ -164,11 +164,11 @@ void JobSupervisorTest::TestCancel()
   CPPUNIT_ASSERT(js->Cancel());
 
   CPPUNIT_ASSERT_EQUAL(1, (int)js->GetIDsProcessed().size());
-  CPPUNIT_ASSERT_EQUAL(id1.str(), js->GetIDsProcessed().front().str());
+  CPPUNIT_ASSERT_EQUAL(id1, js->GetIDsProcessed().front());
 
   CPPUNIT_ASSERT_EQUAL(2, (int)js->GetIDsNotProcessed().size());
-  CPPUNIT_ASSERT_EQUAL(id2.str(), js->GetIDsNotProcessed().front().str());
-  CPPUNIT_ASSERT_EQUAL(id3.str(), js->GetIDsNotProcessed().back().str());
+  CPPUNIT_ASSERT_EQUAL(id2, js->GetIDsNotProcessed().front());
+  CPPUNIT_ASSERT_EQUAL(id3, js->GetIDsNotProcessed().back());
   js->ClearSelection();
 
   Arc::JobControllerTestACCControl::cancelStatus = false;
@@ -177,12 +177,12 @@ void JobSupervisorTest::TestCancel()
   CPPUNIT_ASSERT_EQUAL(0, (int)js->GetIDsProcessed().size());
 
   CPPUNIT_ASSERT_EQUAL(3, (int)js->GetIDsNotProcessed().size());
-  CPPUNIT_ASSERT_EQUAL(id1.str(), js->GetIDsNotProcessed().front().str());
-  CPPUNIT_ASSERT_EQUAL(id3.str(), js->GetIDsNotProcessed().back().str());
+  CPPUNIT_ASSERT_EQUAL(id1, js->GetIDsNotProcessed().front());
+  CPPUNIT_ASSERT_EQUAL(id3, js->GetIDsNotProcessed().back());
   js->ClearSelection();
 
   j.State = Arc::JobStateTEST(Arc::JobState::ACCEPTED, "Accepted");
-  j.IDFromEndpoint = id4;
+  j.JobID = id4;
 
   CPPUNIT_ASSERT(js->AddJob(j));
 
@@ -196,7 +196,7 @@ void JobSupervisorTest::TestCancel()
   CPPUNIT_ASSERT(js->Cancel());
 
   CPPUNIT_ASSERT_EQUAL(1, (int)js->GetIDsProcessed().size());
-  CPPUNIT_ASSERT_EQUAL(id4.str(), js->GetIDsProcessed().front().str());
+  CPPUNIT_ASSERT_EQUAL(id4, js->GetIDsProcessed().front());
   CPPUNIT_ASSERT_EQUAL(0, (int)js->GetIDsNotProcessed().size());
   js->ClearSelection();
 
@@ -209,7 +209,7 @@ void JobSupervisorTest::TestCancel()
   CPPUNIT_ASSERT_EQUAL(0, (int)js->GetIDsProcessed().size());
 
   CPPUNIT_ASSERT_EQUAL(1, (int)js->GetIDsNotProcessed().size());
-  CPPUNIT_ASSERT_EQUAL(id4.str(), js->GetIDsNotProcessed().front().str());
+  CPPUNIT_ASSERT_EQUAL(id4, js->GetIDsNotProcessed().front());
   js->ClearSelection();
 
   delete js;
@@ -222,11 +222,11 @@ void JobSupervisorTest::TestClean()
            id2("http://test.nordugrid.org/1234567890test2");
 
   j.State = Arc::JobStateTEST(Arc::JobState::FINISHED, "Finished");
-  j.IDFromEndpoint = id1;
+  j.JobID = id1;
   jobs.push_back(j);
 
   j.State = Arc::JobStateTEST(Arc::JobState::UNDEFINED);
-  j.IDFromEndpoint = id2;
+  j.JobID = id2;
   jobs.push_back(j);
 
   js = new Arc::JobSupervisor(usercfg, jobs);
@@ -237,9 +237,9 @@ void JobSupervisorTest::TestClean()
   CPPUNIT_ASSERT(js->Clean());
 
   CPPUNIT_ASSERT_EQUAL(1, (int)js->GetIDsProcessed().size());
-  CPPUNIT_ASSERT_EQUAL(id1.str(), js->GetIDsProcessed().front().str());
+  CPPUNIT_ASSERT_EQUAL(id1, js->GetIDsProcessed().front());
   CPPUNIT_ASSERT_EQUAL(1, (int)js->GetIDsNotProcessed().size());
-  CPPUNIT_ASSERT_EQUAL(id2.str(), js->GetIDsNotProcessed().back().str());
+  CPPUNIT_ASSERT_EQUAL(id2, js->GetIDsNotProcessed().back());
   js->ClearSelection();
 
 
@@ -248,8 +248,8 @@ void JobSupervisorTest::TestClean()
 
   CPPUNIT_ASSERT_EQUAL(0, (int)js->GetIDsProcessed().size());
   CPPUNIT_ASSERT_EQUAL(2, (int)js->GetIDsNotProcessed().size());
-  CPPUNIT_ASSERT_EQUAL(id1.str(), js->GetIDsNotProcessed().front().str());
-  CPPUNIT_ASSERT_EQUAL(id2.str(), js->GetIDsNotProcessed().back().str());
+  CPPUNIT_ASSERT_EQUAL(id1, js->GetIDsNotProcessed().front());
+  CPPUNIT_ASSERT_EQUAL(id2, js->GetIDsNotProcessed().back());
   js->ClearSelection();
 
   std::list<std::string> status;
@@ -262,7 +262,7 @@ void JobSupervisorTest::TestClean()
   CPPUNIT_ASSERT(js->Clean());
 
   CPPUNIT_ASSERT_EQUAL(1, (int)js->GetIDsProcessed().size());
-  CPPUNIT_ASSERT_EQUAL(id1.str(), js->GetIDsProcessed().front().str());
+  CPPUNIT_ASSERT_EQUAL(id1, js->GetIDsProcessed().front());
   CPPUNIT_ASSERT_EQUAL(0, (int)js->GetIDsNotProcessed().size());
   js->ClearSelection();
 
@@ -274,7 +274,7 @@ void JobSupervisorTest::TestClean()
 
   CPPUNIT_ASSERT_EQUAL(0, (int)js->GetIDsProcessed().size());
   CPPUNIT_ASSERT_EQUAL(1, (int)js->GetIDsNotProcessed().size());
-  CPPUNIT_ASSERT_EQUAL(id1.str(), js->GetIDsNotProcessed().front().str());
+  CPPUNIT_ASSERT_EQUAL(id1, js->GetIDsNotProcessed().front());
 
   delete js;
 }

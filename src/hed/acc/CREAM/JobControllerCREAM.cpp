@@ -28,9 +28,9 @@ namespace Arc {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     for (std::list<Job*>::iterator iter = jobs.begin();
-         iter != jobs.end(); iter++) {
-      PathIterator pi((*iter)->JobID.Path(), true);
+         iter != jobs.end(); ++iter) {
       URL url((*iter)->JobID);
+      PathIterator pi(url.Path(), true);
       url.ChangePath(*pi);
       CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
       if (!gLiteClient.stat(pi.Rest(), (**iter))) {
@@ -43,7 +43,7 @@ namespace Arc {
                                        std::string& downloaddir,
                                        bool usejobname,
                                        bool force) const {
-    logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
+    logger.msg(VERBOSE, "Downloading job: %s", job.JobID.fullstr());
 
     if (!downloaddir.empty()) {
       downloaddir += G_DIR_SEPARATOR_S;
@@ -55,14 +55,16 @@ namespace Arc {
       std::string::size_type pos = path.rfind('/');
       downloaddir += path.substr(pos + 1);
     }
+    creamJobInfo info;
+    info = XMLNode(job.IDFromEndpoint);
 
     std::list<std::string> files;
-    if (!ListFilesRecursive(job.OSB, files)) {
+    if (!ListFilesRecursive(info.OSB, files)) {
       logger.msg(ERROR, "Unable to retrieve list of job files to download for job %s", job.JobID.fullstr());
       return false;
     }
 
-    URL src(job.OSB);
+    URL src(info.OSB);
     URL dst(downloaddir);
 
     std::string srcpath = src.Path();
@@ -97,12 +99,12 @@ namespace Arc {
 
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    PathIterator pi(job.JobID.Path(), true);
     URL url(job.JobID);
+    PathIterator pi(url.Path(), true);
     url.ChangePath(*pi);
     CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
     if (!gLiteClient.purge(pi.Rest())) {
-      logger.msg(INFO, "Failed cleaning job: %s", job.JobID.str());
+      logger.msg(INFO, "Failed cleaning job: %s", job.JobID.fullstr());
       return false;
     }
     PathIterator pi2(job.InfoEndpoint.Path(), true);
@@ -110,7 +112,7 @@ namespace Arc {
     url2.ChangePath(*pi2);
     CREAMClient gLiteClient2(url2, cfg, usercfg.Timeout());
     if (!gLiteClient2.destroyDelegation(pi2.Rest())) {
-      logger.msg(INFO, "Failed destroying delegation credentials for job: %s", job.JobID.str());
+      logger.msg(INFO, "Failed destroying delegation credentials for job: %s", job.JobID.fullstr());
       return false;
     }
     return true;
@@ -120,12 +122,12 @@ namespace Arc {
 
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    PathIterator pi(job.JobID.Path(), true);
     URL url(job.JobID);
+    PathIterator pi(url.Path(), true);
     url.ChangePath(*pi);
     CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
     if (!gLiteClient.cancel(pi.Rest())) {
-      logger.msg(INFO, "Failed canceling job: %s", job.JobID.str());
+      logger.msg(INFO, "Failed canceling job: %s", job.JobID.fullstr());
       return false;
     }
     return true;

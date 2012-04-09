@@ -30,13 +30,13 @@ namespace Arc {
   }
 
   bool JobSupervisor::AddJob(const Job& job) {
-    if (job.InterfaceName.empty()) {
-      logger.msg(VERBOSE, "Ignoring job (%s), the Job::InterfaceName attribute must be specified", job.IDFromEndpoint.fullstr());
+    if (!job.JobID) {
+      logger.msg(VERBOSE, "Ignoring job (%s), the job ID (%s) is not a valid URL", job.JobID.fullstr(), job.JobID.fullstr());
       return false;
     }
 
-    if (!job.JobID) {
-      logger.msg(VERBOSE, "Ignoring job (%s), the job ID (%s) is not a valid URL", job.JobID.fullstr(), job.JobID.fullstr());
+    if (job.InterfaceName.empty()) {
+      logger.msg(VERBOSE, "Ignoring job (%s), the Job::InterfaceName attribute must be specified", job.JobID.fullstr());
       return false;
     }
 
@@ -270,7 +270,7 @@ namespace Arc {
            itJ != it->second.first.end();) {
         // If job description is not set, then try to fetch it from execution service.
         if ((*itJ)->JobDescriptionDocument.empty() && !it->first->GetJobDescription(**itJ, (*itJ)->JobDescriptionDocument)) {
-          notprocessed.push_back((*itJ)->IDFromEndpoint);
+          notprocessed.push_back((*itJ)->JobID);
           ok = false;
           it->second.second.push_back(*itJ);
           itJ = it->second.first.erase(itJ);
@@ -287,7 +287,7 @@ namespace Arc {
           }
 
           if (itF != (*itJ)->LocalInputFiles.end()) {
-            notprocessed.push_back((*itJ)->IDFromEndpoint);
+            notprocessed.push_back((*itJ)->JobID);
             ok = false;
             it->second.second.push_back(*itJ);
             itJ = it->second.first.erase(itJ);
@@ -310,7 +310,7 @@ namespace Arc {
       logger.msg(ERROR, "Job resubmission failed: Unable to load broker (%s)", resubmitUsercfg.Broker().first);
       for (std::list< std::list<Job*>::iterator >::iterator itJ = resubmittableJobs.begin();
            itJ != resubmittableJobs.end(); ++itJ) {
-        notprocessed.push_back((**itJ)->IDFromEndpoint);
+        notprocessed.push_back((**itJ)->JobID);
         jcJobMap[(**itJ)->jc].second.push_back(**itJ);
         jcJobMap[(**itJ)->jc].first.erase(*itJ);
       }
@@ -326,7 +326,7 @@ namespace Arc {
         delete csr;
         for (std::list< std::list<Job*>::iterator >::iterator itJ = resubmittableJobs.begin();
              itJ != resubmittableJobs.end(); ++itJ) {
-          notprocessed.push_back((**itJ)->IDFromEndpoint);
+          notprocessed.push_back((**itJ)->JobID);
           jcJobMap[(**itJ)->jc].second.push_back(**itJ);
           jcJobMap[(**itJ)->jc].first.erase(*itJ);
         }
@@ -341,9 +341,9 @@ namespace Arc {
 
       std::list<JobDescription> jobdescs;
       if (!JobDescription::Parse((**itJ)->JobDescriptionDocument, jobdescs) || jobdescs.empty()) {
-        logger.msg(ERROR, "Unable to resubmit job (%s), unable to parse obtained job description", (**itJ)->IDFromEndpoint.fullstr());
+        logger.msg(ERROR, "Unable to resubmit job (%s), unable to parse obtained job description", (**itJ)->JobID.fullstr());
         resubmittedJobs.pop_back();
-        notprocessed.push_back((**itJ)->IDFromEndpoint);
+        notprocessed.push_back((**itJ)->JobID);
         ok = false;
         jcJobMap[(**itJ)->jc].second.push_back(**itJ);
         jcJobMap[(**itJ)->jc].first.erase(*itJ);
@@ -363,10 +363,10 @@ namespace Arc {
         csr = new ComputingServiceRetriever(resubmitUsercfg, sametarget, rejectedURLs);
         csr->wait();
         if (csr->empty()) {
-          logger.msg(ERROR, "Unable to resubmit job (%s), target information retrieval failed for target: %s", (**itJ)->IDFromEndpoint.fullstr(), (**itJ)->Cluster.str());
+          logger.msg(ERROR, "Unable to resubmit job (%s), target information retrieval failed for target: %s", (**itJ)->JobID.fullstr(), (**itJ)->Cluster.str());
           delete csr;
           resubmittedJobs.pop_back();
-          notprocessed.push_back((**itJ)->IDFromEndpoint);
+          notprocessed.push_back((**itJ)->JobID);
           jcJobMap[(**itJ)->jc].second.push_back(**itJ);
           jcJobMap[(**itJ)->jc].first.erase(*itJ);
           continue;
@@ -382,16 +382,16 @@ namespace Arc {
       for (; it != ets.end(); ++it) {
         if (it->Submit(resubmitUsercfg, jobdescs.front(), resubmittedJobs.back())) {
           it->RegisterJobSubmission(jobdescs.front());
-          processed.push_back((**itJ)->IDFromEndpoint);
+          processed.push_back((**itJ)->JobID);
           break;
         }
       }
       
       if (it == ets.end()) {
         resubmittedJobs.pop_back();
-        notprocessed.push_back((**itJ)->IDFromEndpoint);
+        notprocessed.push_back((**itJ)->JobID);
         ok = false;
-        logger.msg(ERROR, "Unable to resubmit job (%s), no targets applicable for submission", (**itJ)->IDFromEndpoint.fullstr());
+        logger.msg(ERROR, "Unable to resubmit job (%s), no targets applicable for submission", (**itJ)->JobID.fullstr());
         jcJobMap[(**itJ)->jc].second.push_back(**itJ);
         jcJobMap[(**itJ)->jc].first.erase(*itJ);
       }
@@ -417,7 +417,7 @@ namespace Arc {
       for (std::list<Job*>::iterator itJ = it->second.first.begin();
            itJ != it->second.first.end();) {
         if ((*itJ)->State != JobState::QUEUING) {
-          notprocessed.push_back((*itJ)->IDFromEndpoint);
+          notprocessed.push_back((*itJ)->JobID);
           ok = false;
           it->second.second.push_back(*itJ);
           itJ = it->second.first.erase(itJ);
@@ -426,8 +426,8 @@ namespace Arc {
 
         // If job description is not set, then try to fetch it from execution service.
         if ((*itJ)->JobDescriptionDocument.empty() && !it->first->GetJobDescription((**itJ), (*itJ)->JobDescriptionDocument)) {
-          logger.msg(ERROR, "Unable to migrate job (%s), job description could not be retrieved remotely", (*itJ)->IDFromEndpoint.fullstr());
-          notprocessed.push_back((*itJ)->IDFromEndpoint);
+          logger.msg(ERROR, "Unable to migrate job (%s), job description could not be retrieved remotely", (*itJ)->JobID.fullstr());
+          notprocessed.push_back((*itJ)->JobID);
           ok = false;
           it->second.second.push_back(*itJ);
           itJ = it->second.first.erase(itJ);
@@ -449,7 +449,7 @@ namespace Arc {
       logger.msg(ERROR, "Job migration aborted, no resource returned any information");
       for (std::list< std::list<Job*>::iterator >::const_iterator itJ = migratableJobs.begin();
            itJ != migratableJobs.end(); ++itJ) {
-        notprocessed.push_back((**itJ)->IDFromEndpoint);
+        notprocessed.push_back((**itJ)->JobID);
         jcJobMap[(**itJ)->jc].second.push_back(**itJ);
         jcJobMap[(**itJ)->jc].first.erase(*itJ);
       }
@@ -461,7 +461,7 @@ namespace Arc {
       logger.msg(ERROR, "Job migration aborted, unable to load broker (%s)", usercfg.Broker().first);
       for (std::list< std::list<Job*>::iterator >::const_iterator itJ = migratableJobs.begin();
            itJ != migratableJobs.end(); ++itJ) {
-        notprocessed.push_back((**itJ)->IDFromEndpoint);
+        notprocessed.push_back((**itJ)->JobID);
         jcJobMap[(**itJ)->jc].second.push_back(**itJ);
         jcJobMap[(**itJ)->jc].first.erase(*itJ);
       }
@@ -472,8 +472,8 @@ namespace Arc {
          itJ != migratableJobs.end(); ++itJ) {
       std::list<JobDescription> jobdescs;
       if (!JobDescription::Parse((**itJ)->JobDescriptionDocument, jobdescs) || jobdescs.empty()) {
-        logger.msg(ERROR, "Unable to migrate job (%s), unable to parse obtained job description", (**itJ)->IDFromEndpoint.fullstr());
-        notprocessed.push_back((**itJ)->IDFromEndpoint);
+        logger.msg(ERROR, "Unable to migrate job (%s), unable to parse obtained job description", (**itJ)->JobID.fullstr());
+        notprocessed.push_back((**itJ)->JobID);
         jcJobMap[(**itJ)->jc].second.push_back(**itJ);
         jcJobMap[(**itJ)->jc].first.erase(*itJ);
         continue;
@@ -490,22 +490,22 @@ namespace Arc {
       ExecutionTargetSet ets(broker, csr);
       ExecutionTargetSet::iterator it = ets.begin();
       for (; it != ets.end(); ++it) {
-        if (it->Migrate(usercfg, (**itJ)->IDFromEndpoint, jobdescs.front(), forcemigration, migratedJobs.back())) {
+        if (it->Migrate(usercfg, (**itJ)->JobID, jobdescs.front(), forcemigration, migratedJobs.back())) {
           it->RegisterJobSubmission(jobdescs.front());
           break;
         }
       }
 
       if (it == ets.end()) {
-        logger.msg(ERROR, "Job migration failed for job (%s), no applicable targets", (**itJ)->IDFromEndpoint.fullstr());
+        logger.msg(ERROR, "Job migration failed for job (%s), no applicable targets", (**itJ)->JobID.fullstr());
         ok = false;
         migratedJobs.pop_back();
-        notprocessed.push_back((**itJ)->IDFromEndpoint);
+        notprocessed.push_back((**itJ)->JobID);
         jcJobMap[(**itJ)->jc].second.push_back(**itJ);
         jcJobMap[(**itJ)->jc].first.erase(*itJ);
       }
       else {
-        processed.push_back((**itJ)->IDFromEndpoint);
+        processed.push_back((**itJ)->JobID);
       }
     }
 

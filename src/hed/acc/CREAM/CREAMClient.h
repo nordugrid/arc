@@ -16,11 +16,15 @@ namespace Arc {
   class URL;
   class PayloadSOAP;
 
-  struct creamJobInfo {
-    std::string jobId;
+  class creamJobInfo {
+  public:
+    std::string id;
     std::string creamURL;
-    std::string ISB_URI;
-    std::string OSB_URI;
+    std::string ISB;
+    std::string OSB;
+    
+    creamJobInfo& operator=(XMLNode n);
+    XMLNode ToXML() const;
   };
 
   class CREAMClient {

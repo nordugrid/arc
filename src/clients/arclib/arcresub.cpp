@@ -140,7 +140,7 @@ int RUNRESUB(main)(int argc, char **argv) {
 
   for (std::list<Arc::Job>::const_iterator it = resubmittedJobs.begin();
        it != resubmittedJobs.end(); ++it) {
-    std::cout << Arc::IString("Job submitted with jobid: %s", it->IDFromEndpoint.str()) << std::endl;
+    std::cout << Arc::IString("Job submitted with jobid: %s", it->JobID.fullstr()) << std::endl;
   }
 
   if (!resubmittedJobs.empty() && !Arc::Job::WriteJobsToFile(usercfg.JobListFile(), resubmittedJobs)) {
@@ -161,7 +161,7 @@ int RUNRESUB(main)(int argc, char **argv) {
   }
   for (std::list<Arc::URL>::const_iterator it = jobmaster.GetIDsNotProcessed().begin();
        it != jobmaster.GetIDsNotProcessed().end(); ++it) {
-    logger.msg(Arc::WARNING, "Resubmission of job (%s) succeeded, but killing the job failed - it will still appear in the job list", it->str());
+    logger.msg(Arc::WARNING, "Resubmission of job (%s) succeeded, but killing the job failed - it will still appear in the job list", it->fullstr());
   }
 
   if (!opt.keep) {
@@ -170,7 +170,7 @@ int RUNRESUB(main)(int argc, char **argv) {
     }
     for (std::list<Arc::URL>::const_iterator it = jobmaster.GetIDsNotProcessed().begin();
          it != jobmaster.GetIDsNotProcessed().end(); ++it) {
-      logger.msg(Arc::WARNING, "Resubmission of job (%s) succeeded, but cleaning the job failed - it will still appear in the job list", it->str());
+      logger.msg(Arc::WARNING, "Resubmission of job (%s) succeeded, but cleaning the job failed - it will still appear in the job list", it->fullstr());
     }
 
     if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), jobmaster.GetIDsProcessed())) {
@@ -188,7 +188,7 @@ int RUNRESUB(main)(int argc, char **argv) {
       std::cout << Arc::IString("The following %d were not resubmitted", notresubmitted.size()) << std::endl;
       for (std::list<Arc::URL>::const_iterator it = notresubmitted.begin();
            it != notresubmitted.end(); ++it) {
-        std::cout << it->str() << std::endl;
+        std::cout << it->fullstr() << std::endl;
       }
     }
   }

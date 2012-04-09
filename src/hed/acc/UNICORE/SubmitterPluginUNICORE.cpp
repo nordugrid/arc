@@ -34,7 +34,6 @@ namespace Arc {
     UNICOREClient uc(URL(et.ComputingEndpoint->URLString), cfg, usercfg.Timeout());
 
     XMLNode id;
-
     if (!uc.submit(jobdesc, id)){
       return false;
     }
@@ -106,11 +105,8 @@ namespace Arc {
       return URL();
     }*/
 
-    std::string jobid;
-    id.GetDoc(jobid);
-
+    id.GetDoc(job.IDFromEndpoint);
     AddJobDetails(jobdesc, (std::string)id["Address"], et.ComputingService->Cluster, URL(et.ComputingEndpoint->URLString), job);
-    job.AuxInfo = jobid;
 
     return true;
   }

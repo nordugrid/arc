@@ -36,22 +36,16 @@ namespace Arc {
     Job(const Job& job);
     Job(XMLNode job);
 
-    // Information stored in the job list file
-    // Obligatory information
-    URL& JobID;
-    URL Cluster;
+    // Attributes not part of ComputingActivity entity in GLUE2
+    // These are used for central functionality in the library
+    URL JobID;
+    URL Cluster, InfoEndpoint;
     std::string InterfaceName;
-    // Optional information (ACCs fills if they need it)
-    URL InfoEndpoint;
-    URL ISB;
-    URL OSB;
-    // ACC implementation dependent information
-    std::string AuxInfo;
 
-    // Information retrieved from the information system
+
     std::string Name;
     std::string Type;
-    URL IDFromEndpoint;
+    std::string IDFromEndpoint;
     std::string LocalIDFromManager;
     std::string JobDescription;
     std::string JobDescriptionDocument;
@@ -99,6 +93,7 @@ namespace Arc {
     std::string UsedOSFamily;
     std::string UsedPlatform;
 
+
     /// Write job information to a std::ostream object
     /**
      * This method will write job information to the passed std::ostream object.
@@ -143,7 +138,7 @@ namespace Arc {
 
     URL GetFileUrl(const std::string& whichfile) const;
 
-    static bool CompareJobID(const Job& a, const Job& b) { return a.IDFromEndpoint.fullstr().compare(b.IDFromEndpoint.fullstr()) < 0; }
+    static bool CompareJobID(const Job& a, const Job& b) { return a.JobID.fullstr().compare(b.JobID.fullstr()) < 0; }
     static bool CompareSubmissionTime(const Job& a, const Job& b) { return a.SubmissionTime < b.SubmissionTime; }
     static bool CompareJobName(const Job& a, const Job& b) { return a.Name.compare(b.Name) < 0; }
 

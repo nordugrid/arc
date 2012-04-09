@@ -132,7 +132,7 @@ int RUNMIGRATE(main)(int argc, char **argv) {
 
   for (std::list<Arc::Job>::const_iterator it = migratedJobs.begin();
        it != migratedJobs.end(); ++it) {
-    std::cout << Arc::IString("Job submitted with jobid: %s", it->IDFromEndpoint.str()) << std::endl;
+    std::cout << Arc::IString("Job submitted with jobid: %s", it->JobID.fullstr()) << std::endl;
   }
 
   if (!migratedJobs.empty() && !Arc::Job::WriteJobsToFile(usercfg.JobListFile(), migratedJobs)) {
@@ -151,7 +151,7 @@ int RUNMIGRATE(main)(int argc, char **argv) {
   }
   for (std::list<Arc::URL>::const_iterator it = jobmaster.GetIDsNotProcessed().begin();
        it != jobmaster.GetIDsNotProcessed().end(); ++it) {
-    logger.msg(Arc::WARNING, "Migration of job (%s) succeeded, but killing the job failed - it will still appear in the job list", it->str());
+    logger.msg(Arc::WARNING, "Migration of job (%s) succeeded, but killing the job failed - it will still appear in the job list", it->fullstr());
   }
 
   if (!opt.keep) {
@@ -160,7 +160,7 @@ int RUNMIGRATE(main)(int argc, char **argv) {
     }
     for (std::list<Arc::URL>::const_iterator it = jobmaster.GetIDsNotProcessed().begin();
          it != jobmaster.GetIDsNotProcessed().end(); ++it) {
-      logger.msg(Arc::WARNING, "Migration of job (%s) succeeded, but cleaning the job failed - it will still appear in the job list", it->str());
+      logger.msg(Arc::WARNING, "Migration of job (%s) succeeded, but cleaning the job failed - it will still appear in the job list", it->fullstr());
     }
 
     if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), jobmaster.GetIDsProcessed())) {
@@ -178,7 +178,7 @@ int RUNMIGRATE(main)(int argc, char **argv) {
       std::cout << Arc::IString("The following %d were not migrated", notmigrated.size()) << std::endl;
       for (std::list<Arc::URL>::const_iterator it = notmigrated.begin();
            it != notmigrated.end(); ++it) {
-        std::cout << it->str() << std::endl;
+        std::cout << it->fullstr() << std::endl;
       }
     }
   }
