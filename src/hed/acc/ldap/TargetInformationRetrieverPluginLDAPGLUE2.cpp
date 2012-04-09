@@ -49,6 +49,7 @@ namespace Arc {
 
   class Extractor {
   public:
+    Extractor() : logger(NULL) {}
     Extractor(XMLNode node, const std::string prefix = "", Logger* logger = NULL) : node(node), prefix(prefix), logger(logger) {}
 
     std::string get(const std::string name) {
@@ -162,8 +163,9 @@ namespace Arc {
     }
 
     static Extractor First(XMLNode& node, const std::string objectClass, Logger* logger = NULL) {
-      XMLNode object = node.XPathLookup("//*[objectClass='GLUE2" + objectClass + "']", NS()).front();
-      return Extractor(object, objectClass , logger);
+      XMLNodeList objects = node.XPathLookup("//*[objectClass='GLUE2" + objectClass + "']", NS());
+      if(objects.empty()) return Extractor();
+      return Extractor(objects.front(), objectClass , logger);
     }
 
     static Extractor First(Extractor& e, const std::string objectClass) {
@@ -345,7 +347,9 @@ namespace Arc {
             tokenize(*it, fswdPair, ":");
             long duration = LONG_MAX;
             int freeSlots = 0;
-            if (fswdPair.size() > 2 || !stringto(fswdPair.front(), freeSlots) || (fswdPair.size() == 2 && !stringto(fswdPair.back(), duration))) {
+            if ((fswdPair.size() > 2) || 
+                (fswdPair.size() >= 1 && !stringto(fswdPair.front(), freeSlots)) || 
+                (fswdPair.size() == 2 && !stringto(fswdPair.back(), duration))) {
               logger.msg(VERBOSE, "The \"FreeSlotsWithDuration\" attribute is wrongly formatted. Ignoring it.");
               logger.msg(DEBUG, "Wrong format of the \"FreeSlotsWithDuration\" = \"%s\" (\"%s\")", fswdValue, *it);
               continue;
