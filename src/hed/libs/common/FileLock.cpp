@@ -44,10 +44,12 @@ namespace Arc {
     if (use_pid) {
       // get our hostname and pid
       char host[256];
-      if (gethostname(host, sizeof(host)) != 0)
-        logger.msg(ERROR, "Cannot determine hostname from gethostname()");
-      else
+      if (gethostname(host, sizeof(host)) != 0) {
+        logger.msg(WARNING, "Cannot determine hostname from gethostname()");
+      } else {
+        host[sizeof(host)-1] = 0;
         hostname = host;
+      }
       int pid_i = getpid();
       pid = Arc::tostring(pid_i);
     }
