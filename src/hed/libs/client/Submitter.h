@@ -10,14 +10,10 @@
 #include <arc/client/Job.h>
 #include <arc/client/SubmitterPlugin.h>
 #include <arc/client/ExecutionTarget.h>
+#include <arc/client/EntityRetriever.h>
 
 
-namespace Arc {
-
-  class JobConsumer {
-  public:
-    virtual void AddJob(const Job&) = 0;
-  };
+namespace Arc {  
 
   class Submitter {
   public:
@@ -25,8 +21,8 @@ namespace Arc {
     ~Submitter() {}
   
     // === Using the consumer concept as in the EntityRetriever ===
-    void addConsumer(JobConsumer& jc) { consumers.push_back(&jc); }
-    void removeConsumer(JobConsumer& jc);
+    void addConsumer(EntityConsumer<Job>& jc) { consumers.push_back(&jc); }
+    void removeConsumer(EntityConsumer<Job>& jc);
     // ===
 
     // === No brokering ===
@@ -91,7 +87,7 @@ namespace Arc {
     const UserConfig& uc;
   
     std::list<std::string> notprocessed;
-    std::list<JobConsumer*> consumers;
+    std::list<EntityConsumer<Job>*> consumers;
   
     static SubmitterPluginLoader loader;
   };

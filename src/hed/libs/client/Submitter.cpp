@@ -8,8 +8,8 @@
 
 namespace Arc {
 
-  void Submitter::removeConsumer(JobConsumer& jc) {
-    std::list<JobConsumer*>::iterator it = std::find(consumers.begin(), consumers.end(), &jc);
+  void Submitter::removeConsumer(EntityConsumer<Job>& jc) {
+    std::list<EntityConsumer<Job>*>::iterator it = std::find(consumers.begin(), consumers.end(), &jc);
     if (it != consumers.end()) {
       consumers.erase(it);
     }
@@ -25,6 +25,9 @@ namespace Arc {
       Arc::Job job;
       if (et.Submit(uc, *it, job)) {
         jobs.push_back(job);
+        for (std::list< EntityConsumer<Job>*>::iterator itc = consumers.begin(); itc != consumers.end(); itc++) {
+          (*itc)->addEntity(job);
+        }
       } else {
         success = false;
       }
