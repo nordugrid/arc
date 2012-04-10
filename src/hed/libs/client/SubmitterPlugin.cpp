@@ -86,7 +86,7 @@ namespace Arc {
     for (std::list<InputFileType>::const_iterator it = jobdesc.DataStaging.InputFiles.begin();
          it != jobdesc.DataStaging.InputFiles.end(); it++) {
       if (!it->Sources.empty() && it->Sources.front().Protocol() == "file") {
-        job.LocalInputFiles[it->Name] = CheckSumAny::FileChecksum(it->Sources.front().Path(), CheckSumAny::cksum, true);
+        job.LocalInputFiles[it->Name] = it->Checksum; //CheckSumAny::FileChecksum(it->Sources.front().Path(), CheckSumAny::cksum, true);
       }
     }
   }

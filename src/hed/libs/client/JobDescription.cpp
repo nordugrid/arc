@@ -4,8 +4,14 @@
 #include <config.h>
 #endif
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include <arc/ArcLocation.h>
 #include <arc/StringConv.h>
+#include <arc/FileUtils.h>
+#include <arc/CheckSum.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/JobDescriptionParser.h>
 
@@ -440,10 +446,12 @@ namespace Arc {
         }
       }
 
+      /*
       if (!it1->Sources.empty() && it1->Sources.front().Protocol() == "file" && !Glib::file_test(it1->Sources.front().Path(), Glib::FILE_TEST_EXISTS)) {
         logger.msg(ERROR, "Cannot stat local input file '%s'", it1->Sources.front().Path());
         return false;
       }
+      */
 
       executableIsAdded  |= (it1->Name == Application.Executable.Path);
       inputIsAdded       |= (it1->Name == Application.Input);
@@ -473,6 +481,28 @@ namespace Arc {
       file.Name = Application.Input;
       file.Sources.push_back(URL(file.Name));
       file.IsExecutable = false;
+    }
+
+    for (std::list<InputFileType>::iterator it1 = DataStaging.InputFiles.begin();
+         it1 != DataStaging.InputFiles.end(); ++it1) {
+      if (it1->Sources.empty() || (it1->Sources.front().Protocol() == "file")) {
+        std::string path = it1->Name;
+        if (!it1->Sources.empty()) path = it1->Sources.front().Path();
+        // Local file
+        // Check presence
+        struct stat st;
+        if (!FileStat(path,&st,true) || !S_ISREG(st.st_mode)) {
+          logger.msg(ERROR, "Cannot find local input file '%s'", it1->Sources.front().Path());
+          return false;
+        }
+        // Collect information about file
+        if (it1->FileSize < 0) it1->FileSize = st.st_size; // TODO: if FileSize defined compare?
+        if (it1->Checksum.empty() && (st.st_size <= 65536)) {
+          // Checksum is only done for reasonably small files
+          // Checkum type is chosen for xRSL
+          it1->Checksum = CheckSumAny::FileChecksum(path,CheckSumAny::cksum,true);
+        }
+      }
     }
 
     for (std::list<OutputFileType>::iterator it1 = DataStaging.OutputFiles.begin();

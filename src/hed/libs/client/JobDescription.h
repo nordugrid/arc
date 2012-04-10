@@ -432,10 +432,10 @@ namespace Arc {
     std::string Name;
     bool IsExecutable;
     long FileSize;
-    /// MD5 checksum of file
+    /// CRC32 checksum of file
     /**
-     * The Checksum attribute specifies the textural representation of MD5
-     * checksum of file in base 16.
+     * The Checksum attribute specifies the textural representation of CRC32
+     * checksum of file in base 10.
      **/
     std::string Checksum;
     std::list<SourceType> Sources;
