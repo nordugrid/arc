@@ -23,9 +23,9 @@ namespace Arc {
     : public JobDescriptionParser {
   public:
     XRSLParser(PluginArgument* parg);
-    ~XRSLParser();
-    JobDescriptionParserResult Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "") const;
-    JobDescriptionParserResult UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect = "") const;
+    virtual ~XRSLParser();
+    virtual JobDescriptionParserResult Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "") const;
+    virtual JobDescriptionParserResult UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect = "") const;
 
     static Plugin* Instance(PluginArgument *arg);
 

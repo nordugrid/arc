@@ -562,9 +562,21 @@ namespace Arc {
             return false;
           }
 
+          bool is_file = true;
           long fileSize = -1;
-          // The second string in the list (it2) might either be a URL or file size.
-          if (!it2->empty() && !stringto(*it2, fileSize)) {
+          std::string fileChecksum;
+          // The second string in the list (it2) might either be a URL or filesize.checksum.
+          if (!it2->empty()) {
+            std::string::size_type sep = it2->find('.');
+            if(sep == std::string::npos) {
+              if(!stringto(*it2, fileSize)) is_file = false;
+            } else {
+              fileChecksum = it2->substr(sep+1);
+              if(!stringto(it2->substr(0,sep), fileSize)) is_file = false;
+            }
+            if(fileSize < 0) is_file = false;
+          }
+          if (!is_file) {
             URL turl(*it2);
             if (!turl) {
               return false;
@@ -599,8 +611,9 @@ namespace Arc {
             file.Sources.push_back(turl);
           }
           else {
-            if (fileSize != -1) file.FileSize = fileSize;
-            file.Sources.push_back(URL(file.Name));
+            file.FileSize = fileSize;
+            file.Checksum = fileChecksum;
+            if(dialect != "GRIDMANAGER") file.Sources.push_back(URL(file.Name));
           }
           file.IsExecutable = false;
 
@@ -1380,82 +1393,147 @@ namespace Arc {
       r.Add(new RSLCondition("environment", RSLEqual, l));
     }
 
-    if (!j.DataStaging.InputFiles.empty() || !j.Application.Executable.Path.empty() || !j.Application.Input.empty()) {
+    if(dialect == "GRIDMANAGER") {
       RSLList *l = NULL;
+
+      // inputfiles
+      //   name url
+      //   name size.checksum
       for (std::list<InputFileType>::const_iterator it = j.DataStaging.InputFiles.begin();
            it != j.DataStaging.InputFiles.end(); it++) {
-        if (it->Sources.empty()) {
-          continue;
-        }
         RSLList *s = new RSLList;
         s->Add(new RSLLiteral(it->Name));
-        if (it->Sources.front().Protocol() == "file" && it->FileSize != -1) {
-          std::string fsizechecksum = tostring(it->FileSize);
-          if (!it->Checksum.empty()) {
-            fsizechecksum += "."+it->Checksum;
-          }
+        if (it->Sources.empty() || (it->Sources.front().Protocol() == "file")) { // Local file
+          std::string fsizechecksum = ".";
+          if(it->FileSize != -1) fsizechecksum = tostring(it->FileSize)+fsizechecksum;
+          if (!it->Checksum.empty()) fsizechecksum = fsizechecksum+it->Checksum;
+          if(fsizechecksum == ".") fsizechecksum = "";
           s->Add(new RSLLiteral(fsizechecksum));
-        }
-        else {
+        } else {
           s->Add(new RSLLiteral(it->Sources.front().fullstr()));
         }
-        if (!l) {
-          l = new RSLList;
-        }
+        if (!l) l = new RSLList;
         l->Add(new RSLSequence(s));
       }
-
-      if (l) {
-        r.Add(new RSLCondition("inputfiles", RSLEqual, l));
-      }
+      if (l) r.Add(new RSLCondition("inputfiles", RSLEqual, l));
+      l = NULL;
 
       // Executables
-      l = NULL;
       for (std::list<InputFileType>::const_iterator it = j.DataStaging.InputFiles.begin();
-           it != j.DataStaging.InputFiles.end(); it++)
+           it != j.DataStaging.InputFiles.end(); it++) {
         if (it->IsExecutable) {
-          if (!l) {
-            l = new RSLList;
-          }
+          if (!l) l = new RSLList;
           l->Add(new RSLLiteral(it->Name));
         }
-      if (l) {
-        r.Add(new RSLCondition("executables", RSLEqual, l));
       }
-    }
+      if (l) r.Add(new RSLCondition("executables", RSLEqual, l));
+      l = NULL;
 
-    if (!j.DataStaging.OutputFiles.empty() || !j.Application.Output.empty() || !j.Application.Error.empty()) {
-      RSLList *l = NULL;
+      // outputfiles
+      //   name url
+      //   name void
       for (std::list<OutputFileType>::const_iterator it = j.DataStaging.OutputFiles.begin();
            it != j.DataStaging.OutputFiles.end(); it++) {
-        if (!it->Targets.empty()) {
-          RSLList *s = new RSLList;
-          s->Add(new RSLLiteral(it->Name));
-          if (!it->Targets.front() || it->Targets.front().Protocol() == "file")
-            s->Add(new RSLLiteral(""));
-          else {
-            URL url(it->Targets.front());
-            s->Add(new RSLLiteral(url.fullstr()));
-          }
-          if (!l) {
-            l = new RSLList;
-          }
-          l->Add(new RSLSequence(s));
-        }
-        else {
+        if (it->Targets.empty() || (it->Targets.front().Protocol() == "file")) {
+          // file to keep
+          // normally must be no file:// here - just a protection
           RSLList *s = new RSLList;
           s->Add(new RSLLiteral(it->Name));
           s->Add(new RSLLiteral(""));
-          if (!l)
-            l = new RSLList;
+          if (!l) l = new RSLList;
+          l->Add(new RSLSequence(s));
+        } else {
+          // file to stage
+          RSLList *s = new RSLList;
+          s->Add(new RSLLiteral(it->Name));
+          s->Add(new RSLLiteral(it->Targets.front().fullstr()));
+          if (!l) l = new RSLList;
           l->Add(new RSLSequence(s));
         }
       }
+      if (l) r.Add(new RSLCondition("outputfiles", RSLEqual, l));
+      l = NULL;
 
-      if (l) {
-        r.Add(new RSLCondition("outputfiles", RSLEqual, l));
+    } else { // (dialect == "GRIDMANAGER")
+
+      if (!j.DataStaging.InputFiles.empty() || !j.Application.Executable.Path.empty() || !j.Application.Input.empty()) {
+        RSLList *l = NULL;
+        for (std::list<InputFileType>::const_iterator it = j.DataStaging.InputFiles.begin();
+             it != j.DataStaging.InputFiles.end(); it++) {
+          RSLList *s = new RSLList;
+          s->Add(new RSLLiteral(it->Name));
+          if (it->Sources.empty()) {
+            s->Add(new RSLLiteral(""));
+          } else if (it->Sources.front().Protocol() == "file" && it->FileSize != -1) {
+            // This hides possibly unequal name and path of local file.
+            // TODO: rethink, maybe it is better to loose FileSize instead of original path
+            std::string fsizechecksum = tostring(it->FileSize);
+            if (!it->Checksum.empty()) {
+              fsizechecksum += "."+it->Checksum;
+            }
+            s->Add(new RSLLiteral(fsizechecksum));
+          }
+          else {
+            s->Add(new RSLLiteral(it->Sources.front().fullstr()));
+          }
+          if (!l) {
+            l = new RSLList;
+          }
+          l->Add(new RSLSequence(s));
+        }
+
+        if (l) {
+          r.Add(new RSLCondition("inputfiles", RSLEqual, l));
+        }
+
+        // Executables
+        l = NULL;
+        for (std::list<InputFileType>::const_iterator it = j.DataStaging.InputFiles.begin();
+             it != j.DataStaging.InputFiles.end(); it++)
+          if (it->IsExecutable) {
+            if (!l) {
+              l = new RSLList;
+            }
+            l->Add(new RSLLiteral(it->Name));
+          }
+        if (l) {
+          r.Add(new RSLCondition("executables", RSLEqual, l));
+        }
       }
-    }
+
+      if (!j.DataStaging.OutputFiles.empty() || !j.Application.Output.empty() || !j.Application.Error.empty()) {
+        RSLList *l = NULL;
+        for (std::list<OutputFileType>::const_iterator it = j.DataStaging.OutputFiles.begin();
+             it != j.DataStaging.OutputFiles.end(); it++) {
+          if (!it->Targets.empty()) {
+            RSLList *s = new RSLList;
+            s->Add(new RSLLiteral(it->Name));
+            if (!it->Targets.front() || it->Targets.front().Protocol() == "file")
+              s->Add(new RSLLiteral(""));
+            else {
+              URL url(it->Targets.front());
+              s->Add(new RSLLiteral(url.fullstr()));
+            }
+            if (!l) {
+              l = new RSLList;
+            }
+            l->Add(new RSLSequence(s));
+          }
+          else {
+            RSLList *s = new RSLList;
+            s->Add(new RSLLiteral(it->Name));
+            s->Add(new RSLLiteral(""));
+            if (!l)
+              l = new RSLList;
+            l->Add(new RSLSequence(s));
+          }
+        }
+
+        if (l) {
+          r.Add(new RSLCondition("outputfiles", RSLEqual, l));
+        }
+      }
+    } // (dialect == "GRIDMANAGER")
 
     if (!j.Resources.QueueName.empty()) {
       RSLList *l = new RSLList;
