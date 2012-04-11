@@ -65,7 +65,7 @@ namespace Arc {
      */
     virtual bool Migrate(const URL& jobid, const JobDescription& jobdesc,
                          const ExecutionTarget& et,
-                         bool forcemigration, Job& job) = 0;
+                         bool forcemigration, Job& job);
 
     bool Migrate(const URL& jobid, const JobDescription& jobdesc,
                  bool forcemigration, Job& job) {

@@ -23,10 +23,6 @@ namespace Arc {
     bool isEndpointNotSupported(const std::string& endpoint) const;
 
     virtual bool Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job);
-    virtual bool Migrate(const URL& jobid, const JobDescription& jobdesc,
-                         const ExecutionTarget& et, bool forcemigration,
-                         Job& job);
-
   private:
     static Logger logger;
   };

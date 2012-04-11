@@ -167,13 +167,4 @@ namespace Arc {
     releaseClient(url);
     return true;
   }
-
-  bool SubmitterPluginEMIES::Migrate(const URL& jobid, const JobDescription& jobdesc,
-                         const ExecutionTarget& et, bool forcemigration,
-                         Job& job) {
-    logger.msg(VERBOSE, "Migration for EMI ES is not implemented");
-    return false;
-  }
-
-
 } // namespace Arc

@@ -110,11 +110,4 @@ namespace Arc {
 
     return true;
   }
-
-  bool SubmitterPluginUNICORE::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
-                                 const ExecutionTarget& et, bool /* forcemigration */,
-                                 Job& /* job */) {
-    logger.msg(INFO, "Trying to migrate to %s: Migration to a UNICORE resource is not supported.", et.ComputingEndpoint->URLString);
-    return false;
-  }
 } // namespace Arc
