@@ -75,7 +75,6 @@ namespace Arc {
     void SetSubmissionTarget(const ExecutionTarget& submissiontarget) { target = &submissiontarget; }
 
     virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };
-    virtual bool isEndpointNotSupported(const std::string&) const = 0;
 
   protected:
     bool PutFiles(const JobDescription& jobdesc, const URL& url) const;

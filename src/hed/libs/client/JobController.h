@@ -43,7 +43,6 @@ namespace Arc {
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) const = 0;
 
     virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };
-    virtual bool isEndpointNotSupported(const std::string&) const = 0;
 
   protected:
     const UserConfig& usercfg;
