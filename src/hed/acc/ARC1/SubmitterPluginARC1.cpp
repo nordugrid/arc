@@ -31,7 +31,7 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  AREXClient* SubmitterPluginARC1::acquireClient(const URL& url) {
+  AREXClient* SubmitterPluginARC1::acquireClient(const URL& url, bool arex_features) {
     std::map<URL, AREXClient*>::const_iterator url_it = clients.find(url);
     if ( url_it != clients.end() ) {
       // If AREXClient is already existing for the
@@ -41,7 +41,7 @@ namespace Arc {
       // Else create a new one and return with that
       MCCConfig cfg;
       usercfg.ApplyToConfig(cfg);
-      AREXClient* ac = new AREXClient(url, cfg, usercfg.Timeout());
+      AREXClient* ac = new AREXClient(url, cfg, usercfg.Timeout(), arex_features);
       return clients[url] = ac;
     }
   }
@@ -61,12 +61,12 @@ namespace Arc {
   bool SubmitterPluginARC1::Submit(const JobDescription& jobdesc,
                              const ExecutionTarget& et, Job& job) {
     URL url(et.ComputingEndpoint->URLString);
-
-    AREXClient* ac = acquireClient(url);
+    bool arex_features = et.ComputingService->Type == "org.nordugrid.execution.arex";
+    AREXClient* ac = acquireClient(url, arex_features);
 
     JobDescription preparedjobdesc(jobdesc);
 
-    if (et.ComputingService->Type == "org.nordugrid.execution.arex" && !preparedjobdesc.Prepare(et)) {
+    if (arex_features && !preparedjobdesc.Prepare(et)) {
       logger.msg(INFO, "Failed to prepare job description to target resources");
       releaseClient(url);
       return false;
@@ -80,7 +80,7 @@ namespace Arc {
       return false;
     }
 
-    if (!ac->submit(product, job.IDFromEndpoint, url.Protocol() == "https")) {
+    if (!ac->submit(product, job.IDFromEndpoint, arex_features && (url.Protocol() == "https"))) {
       releaseClient(url);
       return false;
     }

@@ -34,7 +34,7 @@ namespace Arc {
     // Centralized AREXClient handling
     std::map<URL, AREXClient*> clients;
 
-    AREXClient* acquireClient(const URL& url);
+    AREXClient* acquireClient(const URL& url, bool arex_features = true);
     bool releaseClient(const URL& url);
     bool deleteAllClients();
 
