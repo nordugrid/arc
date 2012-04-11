@@ -41,7 +41,6 @@ namespace Arc {
     virtual bool ResumeJob(const Job& job) const = 0;
     virtual URL GetFileUrlForJob(const Job& job, const std::string& whichfile) const = 0;
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) const = 0;
-    virtual URL CreateURL(std::string service, ServiceType st) const = 0;
 
     virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };
     virtual bool isEndpointNotSupported(const std::string&) const = 0;
