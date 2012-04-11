@@ -31,7 +31,7 @@ libarccredential_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(OPENSSL_LIBS) $(NSS_LIBS)
-libarccredential_la_LDFLAGS  = -version-info 1:0:0
+libarccredential_la_LDFLAGS  = -version-info 2:0:0
 
 testproxy_SOURCES = testproxy.cpp
 testproxy_CXXFLAGS = -I$(top_srcdir)/include \

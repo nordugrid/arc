@@ -34,7 +34,7 @@ libarcdata2_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(GTHREAD_LIBS) \
 	$(OPENSSL_LIBS)
-libarcdata2_la_LDFLAGS = -version-info 1:0:0
+libarcdata2_la_LDFLAGS = -version-info 2:0:0
 
 if WIN32
 man_MANS = 

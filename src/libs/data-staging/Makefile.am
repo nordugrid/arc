@@ -23,7 +23,7 @@ libarcdatastaging_la_LIBADD = \
   $(top_builddir)/src/hed/libs/loader/libarcloader.la \
   $(top_builddir)/src/hed/libs/client/libarcclient.la \
   $(GLIBMM_LIBS)
-libarcdatastaging_la_LDFLAGS = -version-info 1:0:0
+libarcdatastaging_la_LDFLAGS = -version-info 2:0:0
 
 noinst_PROGRAMS = generator
 

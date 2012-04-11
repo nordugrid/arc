@@ -11,7 +11,7 @@ libarcxmlsec_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS) \
 	$(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS) $(ZLIB_LIBS)
-libarcxmlsec_la_LDFLAGS  = -version-info 1:0:0
+libarcxmlsec_la_LDFLAGS  = -version-info 2:0:0
 
 noinst_PROGRAMS = test_xmlsecnode
 

@@ -10,7 +10,7 @@ libarcdbxml_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DBCXX_LIBS)
 
-libarcdbxml_la_LDFLAGS = -version-info 1:0:0
+libarcdbxml_la_LDFLAGS = -version-info 2:0:0
 
 test_SOURCES = test.cpp
 test_CXXFLAGS = -I$(top_srcdir)/include \
