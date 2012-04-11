@@ -329,13 +329,13 @@ int main(int argc,char** argv) {
     perror("daemonization failed");
     return 1;
   };
+  logger.msg(Arc::INFO, "Listen started");
   for(;;) {
     fd_set ifds;
     fd_set efds;
     FD_ZERO(&ifds);
     FD_ZERO(&efds);
     int maxfd = -1;
-    logger.msg(Arc::INFO, "Listen started");
     for(std::list<int>::iterator handle = handles.begin();handle != handles.end();++handle) {
       FD_SET(*handle,&ifds);
       FD_SET(*handle,&efds);
