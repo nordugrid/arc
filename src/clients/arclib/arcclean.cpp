@@ -16,12 +16,7 @@
 
 #include "utils.h"
 
-#ifdef TEST
-#define RUNCLEAN(X) test_arcclean_##X
-#else
-#define RUNCLEAN(X) X
-#endif
-int RUNCLEAN(main)(int argc, char **argv) {
+int RUNMAIN(arcclean)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
