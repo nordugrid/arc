@@ -16,12 +16,7 @@
 
 #include "utils.h"
 
-#ifdef TEST
-#define RUNKILL(X) test_arckill_##X
-#else
-#define RUNKILL(X) X
-#endif
-int RUNKILL(main)(int argc, char **argv) {
+int RUNMAIN(arckill)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
