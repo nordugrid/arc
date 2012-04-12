@@ -4,10 +4,6 @@
 
 #include "CARDestination.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "jura.h"
 #include <arc/Utils.h>
 #include <arc/client/ClientInterface.h>

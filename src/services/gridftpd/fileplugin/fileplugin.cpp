@@ -4,10 +4,6 @@
 
 #define GRIDFTP_PLUGIN
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <grp.h>
 #if HAVE_SYS_STATFS_H
 #include <sys/statfs.h>
