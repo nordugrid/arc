@@ -16,12 +16,7 @@
 
 #include "utils.h"
 
-#ifdef TEST
-#define RUNRENEW(X) test_arcrenew_##X
-#else
-#define RUNRENEW(X) X
-#endif
-int RUNRENEW(main)(int argc, char **argv) {
+int RUNMAIN(arcrenew)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
