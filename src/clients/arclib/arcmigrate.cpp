@@ -18,12 +18,7 @@
 
 #include "utils.h"
 
-#ifdef TEST
-#define RUNMIGRATE(X) test_arcmigrate_##X
-#else
-#define RUNMIGRATE(X) X
-#endif
-int RUNMIGRATE(main)(int argc, char **argv) {
+int RUNMAIN(arcmigrate)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
