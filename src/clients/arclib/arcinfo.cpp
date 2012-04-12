@@ -18,12 +18,7 @@
 
 #include "utils.h"
 
-#ifdef TEST
-#define RUNINFO(X) test_arcinfo_##X
-#else
-#define RUNINFO(X) X
-#endif
-int RUNINFO(main)(int argc, char **argv) {
+int RUNMAIN(arcinfo)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
@@ -94,5 +89,5 @@ int RUNINFO(main)(int argc, char **argv) {
   for (std::list<Arc::ExecutionTarget>::const_iterator it = etList.begin(); it != etList.end(); ++it) {
     it->SaveToStream(std::cout, opt.longlist);
   }
-  _exit(0);
+  return 0;
 }
