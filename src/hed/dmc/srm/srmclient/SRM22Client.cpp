@@ -1,4 +1,7 @@
 // -*- indent-tabs-mode: nil -*-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #ifdef WIN32 
 #include <arc/win32.h>

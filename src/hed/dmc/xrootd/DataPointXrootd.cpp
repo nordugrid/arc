@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <XrdClient/XrdClient.hh>
 
 #include <arc/StringConv.h>

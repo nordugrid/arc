@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /*
   This tests are good for the ArexClient's 19411 revision.
 */
