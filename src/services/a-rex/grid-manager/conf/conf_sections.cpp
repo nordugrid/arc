@@ -44,7 +44,6 @@ bool ConfigSections::AddSection(const char* name) {
 
 bool ConfigSections::ReadNext(std::string& line) {
   if(!fin) return false;
-  if(!*fin) return false;
   current_section_changed=false;
   for(;;) {
     line=config_read_line(*fin);
