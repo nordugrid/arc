@@ -5,6 +5,14 @@
 #include <arc/OptionParser.h>
 #include <arc/client/Endpoint.h>
 
+#ifdef TEST
+#define RUNMAIN(X) test_##X##_main
+#else
+#define RUNMAIN(X) X(int argc, char **argv); \
+  int main(int argc, char **argv) { _exit(X(argc,argv)); return 0; } \
+  int X
+#endif
+
 std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig, std::list<std::string>, std::list<std::string>);
 
 void showplugins(const std::string& program, const std::list<std::string>& types, Arc::Logger& logger, const std::string& chosenBroker = "");
