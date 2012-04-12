@@ -19,12 +19,7 @@
 
 #include "utils.h"
 
-#ifdef TEST
-#define RUNRESUB(X) test_arcresub_##X
-#else
-#define RUNRESUB(X) X
-#endif
-int RUNRESUB(main)(int argc, char **argv) {
+int RUNMAIN(arcresub)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
