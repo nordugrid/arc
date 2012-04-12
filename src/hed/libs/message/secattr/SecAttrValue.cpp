@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "SecAttrValue.h"
 
 bool Arc::SecAttrValue::equal (SecAttrValue &b) {
