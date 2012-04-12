@@ -22,12 +22,7 @@
 
 #include "utils.h"
 
-#ifdef TEST
-#define RUNACL(X) test_arcacl_##X
-#else
-#define RUNACL(X) X
-#endif
-int RUNACL(main)(int argc, char **argv) {
+int RUNMAIN(arcacl)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
