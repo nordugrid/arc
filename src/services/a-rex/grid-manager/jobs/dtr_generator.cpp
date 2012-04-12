@@ -612,10 +612,10 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
         }
       }
     }
-    // check if any input files are also output files downloadable by user (bug 1387)
+    // check if any input files are also output files (bug 1387 and 2793)
     for (std::list<FileData>::iterator j = output_files.begin(); j != output_files.end(); j++) {
       for (std::list<FileData>::iterator i = files.begin(); i != files.end(); i++) {
-        if (i->pfn == j->pfn && j->lfn.empty() && i->lfn.find(':') != std::string::npos) {
+        if (i->pfn == j->pfn && i->lfn.find(':') != std::string::npos) {
           Arc::URL u(i->lfn);
           std::string opt = u.Option("cache");
           // don't add copy option if exists or current option is "no" or "renew"
