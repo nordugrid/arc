@@ -18,12 +18,7 @@
 
 #include "utils.h"
 
-#ifdef TEST
-#define RUNCAT(X) test_arccat_##X
-#else
-#define RUNCAT(X) X
-#endif
-int RUNCAT(main)(int argc, char **argv) {
+int RUNMAIN(arccat)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
