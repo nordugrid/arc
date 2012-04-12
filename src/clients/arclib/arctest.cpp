@@ -35,12 +35,7 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 int test(const Arc::UserConfig& usercfg, const Arc::ExecutionTargetSet& ets, const Arc::JobDescription& testJob, const std::string& jobidfile);
 int dumpjobdescription(const Arc::UserConfig& usercfg, const Arc::ExecutionTargetSet& ets, const Arc::JobDescription& testJob);
 
-#ifdef TEST
-#define RUNSUB(X) test_arctest_##X
-#else
-#define RUNSUB(X) X
-#endif
-int RUNSUB(main)(int argc, char **argv) {
+int RUNMAIN(arctest)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
@@ -198,9 +193,9 @@ int RUNSUB(main)(int argc, char **argv) {
   }
 
   if (opt.dumpdescription) {
-     _exit(dumpjobdescription(usercfg, ets, testJob));
+     return dumpjobdescription(usercfg, ets, testJob);
   }
-  _exit(test(usercfg, ets, testJob, opt.jobidoutfile));
+  return test(usercfg, ets, testJob, opt.jobidoutfile);
 }
 
 void printjobid(const std::string& jobid, const std::string& jobidfile) {

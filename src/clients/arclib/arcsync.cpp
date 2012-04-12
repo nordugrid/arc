@@ -113,12 +113,7 @@ private:
 
 #include "utils.h"
 
-#ifdef TEST
-#define RUNSYNC(X) test_arcsync_##X
-#else
-#define RUNSYNC(X) X
-#endif
-int RUNSYNC(main)(int argc, char **argv) {
+int RUNMAIN(arcsync)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
@@ -199,5 +194,5 @@ int RUNSYNC(main)(int argc, char **argv) {
 
   JobSynchronizer js(usercfg, endpoints, preferredInterfaceNames);
   js.wait();
-  _exit(js.writeJobs(opt.truncate) == false); // true -> 0, false -> 1.
+  return js.writeJobs(opt.truncate)?0:1; // true -> 0, false -> 1.
 }

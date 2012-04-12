@@ -17,12 +17,7 @@
 
 #include "utils.h"
 
-#ifdef TEST
-#define RUNSTAT(X) test_arcstat_##X
-#else
-#define RUNSTAT(X) X
-#endif
-int RUNSTAT(main)(int argc, char **argv) {
+int RUNMAIN(arcstat)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 

@@ -31,12 +31,7 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::string& jobidfile);
 int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services);
 
-#ifdef TEST
-#define RUNSUB(X) test_arcsub_##X
-#else
-#define RUNSUB(X) X
-#endif
-int RUNSUB(main)(int argc, char **argv) {
+int RUNMAIN(arcsub)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
@@ -174,10 +169,10 @@ int RUNSUB(main)(int argc, char **argv) {
   std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters);
 
   if (opt.dumpdescription) {
-    _exit(dumpjobdescription(usercfg, jobdescriptionlist, services));
+    return dumpjobdescription(usercfg, jobdescriptionlist, services);
   }
 
-  _exit(submit(usercfg, jobdescriptionlist, services, opt.jobidoutfile));
+  return submit(usercfg, jobdescriptionlist, services, opt.jobidoutfile);
 }
 
 void printjobid(const std::string& jobid, const std::string& jobidfile) {
