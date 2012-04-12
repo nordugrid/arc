@@ -16,12 +16,7 @@
 
 #include "utils.h"
 
-#ifdef TEST
-#define RUNRESUME(X) test_arcresume_##X
-#else
-#define RUNRESUME(X) X
-#endif
-int RUNRESUME(main)(int argc, char **argv) {
+int RUNMAIN(arcresume)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
