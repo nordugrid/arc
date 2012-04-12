@@ -16,12 +16,7 @@
 
 #include "utils.h"
 
-#ifdef TEST
-#define RUNGET(X) test_arcget_##X
-#else
-#define RUNGET(X) X
-#endif
-int RUNGET(main)(int argc, char **argv) {
+int RUNMAIN(arcget)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
