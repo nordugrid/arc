@@ -1430,7 +1430,7 @@ namespace Arc {
                   unsigned char* data = NULL;
                   int length;
                   ext_method = X509V3_EXT_get_nid(OBJ_sn2nid(certinfo_sn.c_str()));
-                  if(ext_method == NULL) {
+                  if((ext_method == NULL) || (ext_method->i2d == NULL)) {
                     CredentialLogger.msg(ERROR, "Can not get X509V3_EXT_METHOD for %s",certinfo_sn.c_str());
                     LogError();                   
                     if(pkey) EVP_PKEY_free(pkey);
@@ -2005,7 +2005,7 @@ err:
       unsigned int   len;
       const X509V3_EXT_METHOD* ext_method = NULL;
       ext_method = X509V3_EXT_get_nid(certinfo_NID);
-      if(ext_method == NULL) {
+      if((ext_method == NULL) || (ext_method->i2d == NULL)) {
         CredentialLogger.msg(ERROR, "Can't get X509V3_EXT_METHOD for %s",OBJ_nid2sn(certinfo_NID));
         LogError(); goto err;
       }

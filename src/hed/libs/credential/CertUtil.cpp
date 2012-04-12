@@ -1,6 +1,6 @@
-//#ifdef HAVE_CONFIG_H
-//#include <config.h>
-//#endif
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <iostream>
 #include <cstring>
@@ -685,6 +685,40 @@ bool check_cert_type(X509* cert, certType& type) {
         }
       }
     }
+#ifdef HAVE_OPENSSL_PROXY
+    else if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid(PROXYCERTINFO_OPENSSL), -1)) != -1) {
+      certinfo_ext = X509_get_ext(cert,index);
+      if(X509_EXTENSION_get_critical(certinfo_ext)) {
+        PROXY_CERT_INFO_EXTENSION* certinfo_openssl = NULL;
+        PROXY_POLICY* policy_openssl = NULL;
+        ASN1_OBJECT* policylang_openssl = NULL;        
+        if((certinfo_openssl = (PROXY_CERT_INFO_EXTENSION *)X509V3_EXT_d2i(certinfo_ext)) == NULL) {
+          logger.msg(Arc::ERROR,"Can't convert DER encoded PROXYCERTINFO extension to internal form"
+);
+          goto err;
+        }
+        if((policy_openssl = certinfo_openssl->proxyPolicy) == NULL) {
+          logger.msg(Arc::ERROR,"Can't get policy from PROXYCERTINFO extension");
+          goto err;
+        }
+        if((policylang_openssl = policy_openssl->policyLanguage) == NULL) {
+          logger.msg(Arc::ERROR,"Can't get policy language from PROXYCERTINFO extension");
+          goto err;
+        }
+        policynid = OBJ_obj2nid(policylang_openssl);
+        if(policynid == NID_id_ppl_inheritAll) { type = CERT_TYPE_RFC_IMPERSONATION_PROXY; }
+        else if(policynid == NID_Independent) { type = CERT_TYPE_RFC_INDEPENDENT_PROXY; }
+        else if(policynid == NID_id_ppl_anyLanguage) { type = CERT_TYPE_RFC_ANYLANGUAGE_PROXY; }
+        else if(policynid == OBJ_txt2nid(LIMITED_PROXY_OID)) { type = CERT_TYPE_RFC_LIMITED_PROXY; }
+        else { type = CERT_TYPE_RFC_RESTRICTED_PROXY; }
+
+        if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid(PROXYCERTINFO_V3), -1)) != -1) {
+          logger.msg(Arc::ERROR,"Found more than one PCI extension");
+          goto err;
+        }
+      }
+    }
+#endif
     else if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid(PROXYCERTINFO_V3), -1)) != -1) {
       certinfo_ext = X509_get_ext(cert,index);
       if(X509_EXTENSION_get_critical(certinfo_ext)) {
