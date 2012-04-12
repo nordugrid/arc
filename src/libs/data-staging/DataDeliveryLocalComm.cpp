@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <arc/ArcLocation.h>
 #include <arc/FileAccess.h>
 #include <arc/FileUtils.h>

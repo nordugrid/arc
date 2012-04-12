@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "identity_voms.h"
 
 std::string IdentityItemVOMS::vo_name_("vo");

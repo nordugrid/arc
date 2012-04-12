@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "object_access.h"
 
 ObjectAccess::Item ObjectAccess::empty_(NULL,NULL);

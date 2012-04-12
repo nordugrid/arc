@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <arc/message/MCC.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/delegation/DelegationInterface.h>

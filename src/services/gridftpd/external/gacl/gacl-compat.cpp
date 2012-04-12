@@ -1,4 +1,7 @@
 // -*- indent-tabs-mode: nil -*-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 // This file contains functions for backward compatibility with the
 // old NorduGrid gacl extensions

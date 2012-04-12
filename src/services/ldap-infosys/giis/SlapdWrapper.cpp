@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* Quite an ugly hack to return all attributes from slapd-shell even if
    a attribute name is given.
    Needed in order to be compatible with clients expecting the non-standard
