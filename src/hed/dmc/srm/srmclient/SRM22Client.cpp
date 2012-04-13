@@ -1043,7 +1043,7 @@ namespace Arc {
         break;
       }
       SRMStatusCode filestatuscode = GetStatus(details["status"], explanation);
-      if (filestatuscode != SRM_SUCCESS) {
+      if (filestatuscode != SRM_SUCCESS && filestatuscode != SRM_FILE_BUSY) {
         logger.msg(ERROR, "%s: %s", *surl, explanation);
         continue;
       }
