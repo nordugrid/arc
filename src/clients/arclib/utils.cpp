@@ -73,7 +73,7 @@ void showplugins(const std::string& program, const std::list<std::string>& types
     else if (*itType == "HED:JobDescriptionParser") {
       std::cout << Arc::IString("Job description languages supported by %s:", program) << std::endl;
     }
-    else if (*itType == "HED:Broker") {
+    else if (*itType == "HED:BrokerPlugin") {
       std::cout << Arc::IString("Brokers available to %s:", program) << std::endl;
     }
 
@@ -88,7 +88,7 @@ void showplugins(const std::string& program, const std::list<std::string>& types
       for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
            itPlug != itMod->plugins.end(); itPlug++) {
         std::cout << "  " << itPlug->name;
-        if (*itType == "HED:Broker" && itPlug->name == chosenBroker) {
+        if (*itType == "HED:BrokerPlugin" && itPlug->name == chosenBroker) {
           std::cout << " (default)";
           isDefaultBrokerLocated = true;
         }
@@ -96,7 +96,7 @@ void showplugins(const std::string& program, const std::list<std::string>& types
       }
     }
 
-    if (*itType == "HED:Broker" && !isDefaultBrokerLocated) {
+    if (*itType == "HED:BrokerPlugin" && !isDefaultBrokerLocated) {
       logger.msg(Arc::WARNING, "Default broker (%s) is not available. When using %s a broker should be specified explicitly (-b option).", chosenBroker, program);
     }
   }
