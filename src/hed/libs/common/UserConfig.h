@@ -64,7 +64,7 @@ namespace Arc {
       SkipCATryCredentials,
       SkipCARequireCredentials
     } initializeType;
-    initializeCredentialsType(void):val(SkipCATryCredentials) { };
+    initializeCredentialsType(void):val(TryCredentials) { };
     initializeCredentialsType(initializeType v):val(v) { };
     bool operator==(initializeType v) { return (val == v); };
     bool operator!=(initializeType v) { return (val != v); };
