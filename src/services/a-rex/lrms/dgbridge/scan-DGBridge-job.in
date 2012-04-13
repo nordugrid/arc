@@ -151,7 +151,6 @@ dato=`date +%Y-%m-%d_%H:%M:%S`
 numids=$((${#localids[@]}-1))
 for ind in `seq 0 $numids` ; do
     wsendpoint=${endpoints[$ind]}
-    #echo "${localids[$ind]}($wsendpoint ; ${gridids[$ind]}): ${jobstates[$ind]}" >> /tmp/chrulle.scan
     
     case "${jobstates[$ind]}" in
   	Init)
@@ -184,8 +183,6 @@ for ind in `seq 0 $numids` ; do
 
             OUTPUT=$(wsclient -e "$wsendpoint" -m output -j "${localids[$ind]}" 2>&1)
             if [ $? -ne 0 ]; then
-               #echo "cannot get ouput fail job" >> /tmp/scanlog.chrulle
-                
                echo "-1 Job could not get output" > "${basenames[$ind]}.lrms_done"
                kicklist=(${kicklist[@]} $ind)
                #clean bridge?
@@ -201,15 +198,14 @@ for ind in `seq 0 $numids` ; do
             fi
             #fetch list using wget? yes
             # parse output
+            session=`grep -h '^sessiondir=' "$option_ctrdir/job.${gridids[$ind]}.local" | sed 's/^sessiondir=\(.*\)/\1/'`
             output=$(echo "$OUTPUT"|grep http|awk '{print $2}')
             for line in $output; do
-              # FIX
-   	      #echo "fetching $line" >> /tmp/chrulle.scan
-              wget -P /var/spool/nordugrid/session/${gridids[$ind]}/ $line
+              wget -P "$session" $line
             done
             uid=`id -u`
             gid=`id -g`  
-            chown -R $uid:$gid /var/spool/nordugrid/session/${gridids[$ind]}/
+            chown -R $uid:$gid "$session"
 	    #clean 3Gbridge
 	    cleanbridge $wsendpoint ${localids[$ind]} ${gridids[$ind]}
             

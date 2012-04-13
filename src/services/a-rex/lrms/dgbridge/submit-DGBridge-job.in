@@ -28,12 +28,8 @@ pkgdatadir="$basedir"
 init $1
 
 #extract staging info:
-bdir=`grep "lrms:dg_stage_dir" $ARC_CONFIG | sed 's/<lrms:dg_stage_dir>//g' | sed 's/<\/lrms:dg_stage_dir>//g'`
-bweb=`grep "lrms:dg_stage_prepend" $ARC_CONFIG | sed 's/<lrms:dg_stage_prepend>//g' | sed 's/<\/lrms:dg_stage_prepend>//g'`
-
-#echo $bdir > /tmp/testet
-#echo $bweb >> /tmp/testet
-#set > /tmp/vars.chrulle
+bdir=$dgbridge_stage_dir
+bweb=$dgbridge_stage_prepend
 
 failures_file="$joboption_controldir/job.$joboption_gridid.failed"
 

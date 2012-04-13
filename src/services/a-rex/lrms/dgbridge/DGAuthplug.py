@@ -1,12 +1,12 @@
 #!/usr/bin/python
 
-"""Usage: DGAuthplug.py <status> <control dir> <runtime dir> <jobid>
+"""Usage: DGAuthplug.py <status> <control dir> <runtime dir> <jobid> [username]
 
 Authplugin for ACCEPTING state in 3G-Bridge
 
 Example:
 
-  authplugin="ACCEPTED timeout=60,onfailure=fail,onsuccess=log /usr/libexec/arc/3GAuthplug.py %S %C /var/spool/nordugrid/runtime %I"
+  authplugin="ACCEPTED timeout=60,onfailure=fail,onsuccess=log /usr/share/arc/DGAuthplug.py %S %C /var/spool/arc/runtime %I"
 
 """
 
@@ -96,10 +96,11 @@ def GetRTEs(desc):
     """Return array with RTEs"""
 
     import arc
+    jl = arc.JobDescriptionList()
     jd = arc.JobDescription()
-    jd.Parse(desc)
+    jd.Parse(desc,jl)
     rtes = []
-    for i in jd.Resources.RunTimeEnvironment.getSoftwareList():
+    for i in jl.front().Resources.RunTimeEnvironment.getSoftwareList():
        rtes.append(i.getName())
     return rtes
 
@@ -216,10 +217,17 @@ def main():
 
     # Parse arguments
 
-    if len(sys.argv) != 6:
-        ExitError("Too few arguments\n"+__doc__,1)
+    if len(sys.argv) < 5:
+        ExitError("Too few arguments:\n"+"%s"%sys.argv,1)
 
-    (exe, status, control_dir, runtime_dir, jobid, username) = sys.argv
+    
+    if len(sys.argv) == 5:
+        (exe, status, control_dir, runtime_dir, jobid) = sys.argv
+        username = 'root'
+    elif len(sys.argv) == 6:
+        (exe, status, control_dir, runtime_dir, jobid, username) = sys.argv
+    else:
+        ExitError("Too many arguments\n"+__doc__,1)
 
     if status == "ACCEPTED" and IsAccepted(control_dir,runtime_dir,jobid):
         sys.exit(0)

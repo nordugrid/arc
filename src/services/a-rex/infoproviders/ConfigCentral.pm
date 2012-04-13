@@ -38,6 +38,8 @@ my $lrms_options = {
     ll_bin_path => '*',
     slurm_bin_path => '*',
     slurm_wakeupperiod => '*',
+    dgbridge_stage_dir => '*',
+    dgbridge_stage_prepend => '*',
 };
 my $lrms_share_options = {
     fork_job_limit => '*',

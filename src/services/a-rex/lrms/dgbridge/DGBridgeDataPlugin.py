@@ -21,32 +21,31 @@ rawdesc=f.read()
 f.close()
 
 jobdesc=arc.JobDescription()
-if not jobdesc.Parse(rawdesc):
+jobdesclist=arc.JobDescriptionList()
+if not jobdesc.Parse(rawdesc,jobdesclist):
    sys.exit(-1)
 
 #extract staging info
 dselements=[]
-while jobdesc.Files.size()>0:
-  dselements.append(jobdesc.Files.pop())
+while jobdesclist.front().DataStaging.InputFiles.size()>0:
+  dselements.append(jobdesclist.front().DataStaging.InputFiles.pop())
 
 inputfiles=""
 locelements=[]
 #filter staging
 for dsel in dselements:
-  if dsel.Source.size()==0: #not an input file
-    jobdesc.Files.append(dsel)
-  else: #check for attic or http
-    proto=dsel.Source[0].Protocol()
-    url=dsel.Source[0].str()
-    matchlist = re.findall(".*?;md5=.*?:size=.*?$",url) #check whether url has md5 and size set
-    if (proto=='attic' or proto=='http') and len(matchlist)==1 and matchlist[0]==url : #we can put http here also, but we'll need to check for md5 and size
-      locelements.append(dsel)
+  #check for attic or http
+  proto=dsel.Sources[0].Protocol()
+  url=dsel.Sources[0].str()
+  matchlist = re.findall(".*?;md5=.*?:size=.*?$",url) #check whether url has md5 and size set
+  if (proto=='attic' or proto=='http') and len(matchlist)==1 and matchlist[0]==url : #we can put http here also, but we'll need to check for md5 and size
+    locelements.append(dsel)
+  else:
+    jobdesclist.front().DataStaging.InputFiles.append(dsel)
+    if not dsel.Sources[0].Protocol()=='file':
+      inputfiles = inputfiles +  dsel.Name + " " + dsel.Sources[0].str() + "\n"
     else:
-      jobdesc.Files.append(dsel)
-      if not dsel.Source[0].Protocol()=='file':
-        inputfiles = inputfiles +  dsel.Name + " " + dsel.Source[0].str() + "\n"
-      else:
-        inputfiles = inputfiles + dsel.Name + "\n"
+      inputfiles = inputfiles + dsel.Name + "\n"
 
  
 #write modified input
@@ -55,7 +54,7 @@ f.write(inputfiles)
 f.close()
 
 print(inputfiles)
-print(jobdesc.UnParse()+"\n\n")
+#print(jobdesc.UnParse()+"\n\n")
 print("attic type files\n")
 #append attic and http info to .3gdata
 f=open(locfile,'a')

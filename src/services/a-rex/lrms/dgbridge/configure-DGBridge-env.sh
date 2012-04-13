@@ -18,6 +18,9 @@ config_import_section "infosys"
 config_import_section "grid-manager"
 config_import_section "lrms"
 
+dgbridge_stage_dir=$CONFIG_dgbridge_stage_dir
+dgbridge_stage_prepend=$CONFIG_dgbridge_stage_prepend
+
 #set 3G values
 EDGES_3G_TIMEOUT=24
 EDGES_3G_RETRIES=3

@@ -152,6 +152,11 @@
 ## no need to set if LoadLeveler is not used
 #ll_consumable_resources="yes"
 
+## Desktop Bridge www publish dir
+#dgbridge_stage_dir="/var/www/DGBridge"
+
+## Desktop Bridge url prefix pointing to dgbridge_stage_dir
+#dgbridge_stage_prepend="http://edgi-bridge.example.com/DGBridge/"
 
 ### Globus specifics
 ## globus_tcp_port_range, globus_udp_port_range - Firewall configuration
