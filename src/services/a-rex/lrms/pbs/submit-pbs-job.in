@@ -329,6 +329,7 @@ else
 # Delete all files except listed in job.#.output
   echo '  find ./ -type l -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
   echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
+  echo '  find ./ -type d -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
 
   if [ -f "$joboption_controldir/job.$joboption_gridid.output" ] ; then
     cat "$joboption_controldir/job.$joboption_gridid.output" | \
@@ -361,6 +362,7 @@ EOSCR
   
   echo '  find ./ -type f -perm +200 -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
   echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
+  echo '  find ./ -type d -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
   echo 'fi' >> $LRMS_JOB_SCRIPT
 fi
 echo "" >> $LRMS_JOB_SCRIPT
