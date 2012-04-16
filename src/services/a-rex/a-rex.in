@@ -211,6 +211,7 @@ prepare() {
     MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_job_control_requests`
     MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_infosys_requests`
     MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_data_transfer_requests`
+    ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" gridftpd allowunknown`
     if [ -z "$X509_USER_CERT" ] ; then
         X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_user_cert`
     fi
@@ -253,6 +254,9 @@ prepare() {
     fi
     if [ -z "$X509_CERT_DIR" ] ; then
         X509_CERT_DIR=/etc/grid-security/certificates
+    fi
+    if [ "$ALLOWUNKNOWN" != "yes" ] ; then
+        ALLOWUNKNOWN=""
     fi
 
     # Web Service configuration
@@ -365,6 +369,15 @@ prepare() {
   <CertificatePath>$X509_USER_CERT</CertificatePath>
   <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>
   <AcceptMapping>$arguspep_usermap</AcceptMapping>
+</SecHandler>"
+    fi
+
+    if [ -z "$ALLOWUNKNOWN" ]; then
+        gridmapmatch="\
+<!-- Do initial user filtering by gridmap file -->
+<SecHandler name=\"arc.authz\" event=\"incoming\">
+  <PDP name=\"simplelist.pdp\" location=\"$GRIDMAP\">
+  </PDP>
 </SecHandler>"
     fi
 
@@ -506,6 +519,7 @@ prepare() {
         <VOMSCertTrustRegex>.*</VOMSCertTrustRegex>
       </VOMSCertTrustDNChain>
       <VOMSProcessing>$VOMS_PROCESSING</VOMSProcessing>
+      $gridmapmatch
       <!-- Do initial identity mappping by gridmap file -->
       <SecHandler name=\"identity.map\" id=\"map\" event=\"incoming\">
         <PDP name=\"allow.pdp\"><LocalList>$GRIDMAP</LocalList></PDP>
