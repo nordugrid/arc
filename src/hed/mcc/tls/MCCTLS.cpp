@@ -393,6 +393,11 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       // Creating new SSL object bound to stream of previous MCC
       // TODO: renew stream because it may be recreated by TCP MCC
       stream = new PayloadTLSMCC(inpayload,config_,logger);
+      // Check for established connection
+      if(!*stream) {
+        delete stream;
+        return MCC_Status();
+      }
       context=new MCC_TLS_Context(stream);
       inmsg.Context()->Add("tls.service",context);
    };
