@@ -12,6 +12,22 @@
 
 #include "utils.h"
 
+std::list<std::string> getSelectedURLsFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> computingelements) {
+  std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, std::list<std::string>(), computingelements);
+  std::list<std::string> serviceURLs;
+  for (std::list<Arc::Endpoint>::const_iterator it = endpoints.begin(); it != endpoints.end(); it++) {
+    serviceURLs.push_back(it->URLString);
+  }
+  return serviceURLs;
+}
+
+std::list<std::string> getRejectedURLsFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> rejectedURLArguments) {
+  std::list<std::string> rejectedURLs = usercfg.RejectedURLs();  
+  rejectedURLs.insert(rejectedURLs.end(), rejectedURLArguments.begin(), rejectedURLArguments.end());
+  return rejectedURLs;
+}
+
+
 std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> registries, std::list<std::string> computingelements, std::string requestedJobInterfaceName) {
   std::list<Arc::Endpoint> services;
   if (computingelements.empty() && registries.empty()) {
@@ -177,9 +193,15 @@ ClientOptions::ClientOptions(Client_t c,
   bool cIsJobMan = (c == CO_CAT || c == CO_CLEAN || c == CO_GET || c == CO_KILL || c == CO_RENEW || c == CO_RESUME || c == CO_STAT || c == CO_ACL);
 
   AddOption('c', "cluster",
-            istring("explicitly select or reject a specific resource"),
-            istring("[-]name"),
+            istring("selecting a computing element with a URL or an alias, "
+                    "or selecting a group of computing elements with the name of the group"),
+            istring("name"),
             clusters);
+
+  AddOption('r', "reject",
+            istring("reject the service with the given URL"),
+            istring("URL"),
+            rejectedurls);
 
   if (c == CO_RESUB || c == CO_MIGRATE) {
     AddOption('q', "qluster",

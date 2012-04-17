@@ -13,7 +13,11 @@
   int X
 #endif
 
-std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig, std::list<std::string>, std::list<std::string>, std::string = "");
+std::list<std::string> getSelectedURLsFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> computingelements);
+
+std::list<std::string> getRejectedURLsFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> rejectedURLArguments);
+
+std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> registries, std::list<std::string> computingelements, std::string requestedJobInterfaceName = "");
 
 void showplugins(const std::string& program, const std::list<std::string>& types, Arc::Logger& logger, const std::string& chosenBroker = "");
 
@@ -77,4 +81,6 @@ public:
   std::list<std::string> jobdescriptionfiles;
   std::list<std::string> jobidinfiles;
   std::list<std::string> status;
+
+  std::list<std::string> rejectedurls;
 };
