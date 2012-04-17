@@ -1961,7 +1961,7 @@ sub collect($) {
                 $execenv->{CPUClockSpeed} = $xeconfig->{CPUClockSpeed} if $xeconfig->{CPUClockSpeed};
                 $execenv->{CPUTimeScalingFactor} = $xeconfig->{CPUTimeScalingFactor} if $xeconfig->{CPUTimeScalingFactor};
                 $execenv->{WallTimeScalingFactor} = $xeconfig->{WallTimeScalingFactor} if $xeconfig->{WallTimeScalingFactor};
-                $execenv->{MainMemorySize} = $xeinfo->{pmem} || "999999999999999999";  # placeholder value
+                $execenv->{MainMemorySize} = $xeinfo->{pmem} || "999999999";  # placeholder value
                 $execenv->{VirtualMemorySize} = $xeinfo->{vmem} if $xeinfo->{vmem};
                 $execenv->{OSFamily} = $sysname || 'UNDEFINEDVALUE'; # placeholder value
                 $execenv->{OSName} = $xeconfig->{OSName} if $xeconfig->{OSName};
