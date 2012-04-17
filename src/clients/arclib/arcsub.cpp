@@ -166,7 +166,7 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     }
   }
 
-  std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters);
+  std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.preferredJobInterface);
 
   if (opt.dumpdescription) {
     return dumpjobdescription(usercfg, jobdescriptionlist, services);

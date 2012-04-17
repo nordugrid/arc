@@ -13,7 +13,7 @@
   int X
 #endif
 
-std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig, std::list<std::string>, std::list<std::string>);
+std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig, std::list<std::string>, std::list<std::string>, std::string = "");
 
 void showplugins(const std::string& program, const std::list<std::string>& types, Arc::Logger& logger, const std::string& chosenBroker = "");
 
@@ -68,6 +68,7 @@ public:
   std::string sort;
   std::string rsort;
   std::string downloaddir;
+  std::string preferredJobInterface;
 
   std::list<std::string> clusters;
   std::list<std::string> qlusters;

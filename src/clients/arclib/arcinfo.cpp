@@ -70,7 +70,7 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
   if (opt.timeout > 0)
     usercfg.Timeout(opt.timeout);
 
-  std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters);
+  std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.preferredJobInterface);
 
   std::list<std::string> preferredInterfaceNames;
   if (usercfg.PreferredInfoInterface().empty()) {
