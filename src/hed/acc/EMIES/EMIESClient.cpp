@@ -288,7 +288,7 @@ namespace Arc {
     if(!MatchXMLName(item,"esainfo:ActivityInfoItem")) return false;
     if((std::string)(item["estypes:ActivityID"]) != job.id) return false;
     // Processing generic GLUE2 information
-    info = item["estypes:ActivityInfo"];
+    info.Update(item["estypes:ActivityInfo"]);
     // Looking for EMI ES specific state
     XMLNode state = item["estypes:ActivityInfo"]["State"];
     for(;(bool)state;++state) {
