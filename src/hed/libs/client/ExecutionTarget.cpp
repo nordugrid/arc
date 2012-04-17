@@ -151,8 +151,8 @@ namespace Arc {
   void ExecutionTarget::SaveToStream(std::ostream& out, bool longlist) const {
 
     out << IString("Execution Target on Computing Service: %s", (!ComputingService->Name.empty() ? ComputingService->Name : ComputingService->Cluster.Host())) << std::endl;
-    if (!ComputingEndpoint->URLString.empty()) {
-      out << IString(" URL: %s", ComputingEndpoint->URLString) << std::endl;
+    if (!ComputingService->OriginalEndpoint.URLString.empty()) {
+      out << IString(" URL: %s", ComputingService->OriginalEndpoint.URLString) << std::endl;
     } else if (ComputingService->Cluster) {
       std::string formattedURL = ComputingService->Cluster.str();
       formattedURL.erase(std::remove(formattedURL.begin(), formattedURL.end(), ' '), formattedURL.end()); // Remove spaces.
