@@ -10,10 +10,12 @@
 
 namespace Arc {
 
+  class DataHandle;
   class JobController;
   class JobControllerLoader;
   class JobSupervisor;
   class Logger;
+  class UserConfig;
   class XMLNode;
 
   /// Job
@@ -134,10 +136,11 @@ namespace Arc {
      **/
     void ToXML(XMLNode job) const;
     
-    bool CopyJobFile(const URL& src, const URL& dst) const;
-
     URL GetFileUrl(const std::string& whichfile) const;
 
+    static bool CopyJobFile(const UserConfig& uc, const URL& src, const URL& dst);
+    static bool ListFilesRecursive(const UserConfig& uc, const URL& dir, std::list<std::string>& files, const std::string& prefix = "");
+    
     static bool CompareJobID(const Job& a, const Job& b) { return a.JobID.fullstr().compare(b.JobID.fullstr()) < 0; }
     static bool CompareSubmissionTime(const Job& a, const Job& b) { return a.SubmissionTime < b.SubmissionTime; }
     static bool CompareJobName(const Job& a, const Job& b) { return a.Name.compare(b.Name) < 0; }
@@ -380,6 +383,9 @@ namespace Arc {
 
     static JobControllerLoader loader;
 
+    // Objects might be pointing to allocated memory upon termination, leave it as garbage.
+    static DataHandle *data_source, *data_destination;
+    
     static Logger logger;
   };
 

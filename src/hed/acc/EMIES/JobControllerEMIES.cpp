@@ -75,7 +75,7 @@ namespace Arc {
     URL src(GetFileUrlForJob(job,""));
     URL dst(downloaddir);
     std::list<std::string> files;
-    if (!ListFilesRecursive(src, files)) {
+    if (!Job::ListFilesRecursive(usercfg, src, files)) {
       logger.msg(ERROR, "Unable to retrieve list of job files to download for job %s", job.JobID.fullstr());
       return false;
     }
@@ -102,7 +102,7 @@ namespace Arc {
          it != files.end(); it++) {
       src.ChangePath(srcpath + *it);
       dst.ChangePath(dstpath + *it);
-      if (!CopyJobFile(src, dst)) {
+      if (!Job::CopyJobFile(usercfg, src, dst)) {
         logger.msg(INFO, "Failed dowloading %s to %s", src.str(), dst.str());
         ok = false;
       }
@@ -186,13 +186,6 @@ namespace Arc {
   bool JobControllerEMIES::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) const {
     logger.msg(INFO, "Retrieving job description of EMI ES jobs is not supported");
     return false;
-  }
-
-  URL JobControllerEMIES::CreateURL(std::string service, ServiceType /* st */) const {
-    std::string::size_type pos1 = service.find("://");
-    if (pos1 == std::string::npos)
-      service = "https://" + service;
-    return service;
   }
 
 } // namespace Arc

@@ -175,7 +175,7 @@ int RUNMAIN(arccat)(int argc, char **argv) {
       continue;
     }
 
-    if (!it->CopyJobFile(src, dst)) {
+    if (!it->CopyJobFile(usercfg, src, dst)) {
       retval = 1;
       continue;
     }

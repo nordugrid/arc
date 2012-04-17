@@ -60,7 +60,7 @@ namespace Arc {
     }
 
     std::list<std::string> files;
-    if (!ListFilesRecursive(job.JobID, files)) {
+    if (!Job::ListFilesRecursive(usercfg, job.JobID, files)) {
       logger.msg(ERROR, "Unable to retrieve list of job files to download for job %s", job.JobID.fullstr());
       return false;
     }
@@ -89,7 +89,7 @@ namespace Arc {
          it != files.end(); it++) {
       src.ChangePath(srcpath + *it);
       dst.ChangePath(dstpath + *it);
-      if (!CopyJobFile(src, dst)) {
+      if (!Job::CopyJobFile(usercfg, src, dst)) {
         logger.msg(INFO, "Failed dowloading %s to %s", src.str(), dst.str());
         ok = false;
       }
@@ -171,14 +171,4 @@ namespace Arc {
     logger.msg(ERROR, "Failed retrieving job description for job: %s", job.JobID.fullstr());
     return false;
   }
-
-  URL JobControllerARC1::CreateURL(std::string service, ServiceType /* st */) const {
-    std::string::size_type pos1 = service.find("://");
-    if (pos1 == std::string::npos)
-      service = "https://" + service;
-    // Default port other than 443?
-    // Default path?
-    return service;
-  }
-
 } // namespace Arc

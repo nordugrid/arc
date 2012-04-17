@@ -59,7 +59,7 @@ namespace Arc {
     info = XMLNode(job.IDFromEndpoint);
 
     std::list<std::string> files;
-    if (!ListFilesRecursive(info.OSB, files)) {
+    if (!Job::ListFilesRecursive(usercfg, info.OSB, files)) {
       logger.msg(ERROR, "Unable to retrieve list of job files to download for job %s", job.JobID.fullstr());
       return false;
     }
@@ -86,7 +86,7 @@ namespace Arc {
          it != files.end(); it++) {
       src.ChangePath(srcpath + *it);
       dst.ChangePath(dstpath + *it);
-      if (!CopyJobFile(src, dst)) {
+      if (!Job::CopyJobFile(usercfg, src, dst)) {
         logger.msg(INFO, "Failed dowloading %s to %s", src.str(), dst.str());
         ok = false;
       }
@@ -153,26 +153,6 @@ namespace Arc {
 
   bool JobControllerCREAM::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) const {
     return false;
-  }
-
-  URL JobControllerCREAM::CreateURL(std::string service, ServiceType /* st */) const {
-    std::string::size_type pos1 = service.find("://");
-    if (pos1 == std::string::npos) {
-      service = "ldap://" + service;
-      pos1 = 4;
-    }
-    std::string::size_type pos2 = service.find(":", pos1 + 3);
-    std::string::size_type pos3 = service.find("/", pos1 + 3);
-    if (pos3 == std::string::npos) {
-      if (pos2 == std::string::npos)
-        service += ":2170";
-      // Is this a good default path?
-      // Different for computing and index?
-      service += "/o=Grid";
-    }
-    else if (pos2 == std::string::npos || pos2 > pos3)
-      service.insert(pos3, ":2170");
-    return service;
   }
 
 } // namespace Arc

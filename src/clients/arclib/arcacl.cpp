@@ -13,6 +13,7 @@
 #include <arc/Logger.h>
 #include <arc/client/JobController.h>
 #include <arc/UserConfig.h>
+#include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/URLMap.h>
 /*

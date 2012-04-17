@@ -226,7 +226,7 @@ namespace Arc {
     }
 
     std::list<std::string> files;
-    if (!ListFilesRecursive(job.JobID, files)) {
+    if (!Job::ListFilesRecursive(usercfg, job.JobID, files)) {
       logger.msg(ERROR, "Unable to retrieve list of job files to download for job %s", job.JobID.fullstr());
       return false;
     }
@@ -253,7 +253,7 @@ namespace Arc {
          it != files.end(); it++) {
       src.ChangePath(srcpath + *it);
       dst.ChangePath(dstpath + *it);
-      if (!CopyJobFile(src, dst)) {
+      if (!Job::CopyJobFile(usercfg, src, dst)) {
         logger.msg(INFO, "Failed downloading %s to %s", src.str(), dst.str());
         ok = false;
       }
@@ -473,7 +473,7 @@ namespace Arc {
     std::string localfile = Glib::build_filename(Glib::get_tmp_dir(), tmpfile);
     URL dest_url(localfile);
 
-    if (!CopyJobFile(source_url, dest_url)) {
+    if (!Job::CopyJobFile(usercfg, source_url, dest_url)) {
       return false;
     }
 
@@ -537,27 +537,6 @@ namespace Arc {
     }
     logger.msg(VERBOSE, "Valid JobDescription found");
     return true;
-  }
-
-  URL JobControllerARC0::CreateURL(std::string service, ServiceType st) const {
-    std::string::size_type pos1 = service.find("://");
-    if (pos1 == std::string::npos) {
-      service = "ldap://" + service;
-      pos1 = 4;
-    }
-    std::string::size_type pos2 = service.find(":", pos1 + 3);
-    std::string::size_type pos3 = service.find("/", pos1 + 3);
-    if (pos3 == std::string::npos) {
-      if (pos2 == std::string::npos)
-        service += ":2135";
-      if (st == COMPUTING)
-        service += "/Mds-Vo-name=local, o=Grid";
-      else
-        service += "/Mds-Vo-name=NorduGrid, o=Grid";
-    }
-    else if (pos2 == std::string::npos || pos2 > pos3)
-      service.insert(pos3, ":2135");
-    return service;
   }
 
 } // namespace Arc

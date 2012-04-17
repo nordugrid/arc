@@ -9,7 +9,6 @@
 
 #include <arc/URL.h>
 #include <arc/client/Job.h>
-#include <arc/data/DataHandle.h>
 #include <arc/loader/Loader.h>
 #include <arc/loader/Plugin.h>
 
@@ -26,12 +25,8 @@ namespace Arc {
     JobController(const UserConfig& usercfg,
                   PluginArgument* parg);
   public:
-    virtual ~JobController();
+    virtual ~JobController() {}
 
-    bool ListFilesRecursive(const URL& dir, std::list<std::string>& files, const std::string& prefix = "") const;
-
-    bool CopyJobFile(const URL& src, const URL& dst) const;
- 
     // Implemented by specialized classes
     virtual void UpdateJobs(std::list<Job*>& jobs) const = 0;
     virtual bool RetrieveJob(const Job& job, std::string& downloaddir, bool usejobname, bool force) const = 0;
@@ -47,8 +42,6 @@ namespace Arc {
   protected:
     const UserConfig& usercfg;
     std::list<std::string> supportedInterfaces;
-    mutable DataHandle* data_source;
-    mutable DataHandle* data_destination;
     static Logger logger;
   };
 

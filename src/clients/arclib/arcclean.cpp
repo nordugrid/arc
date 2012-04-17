@@ -11,6 +11,7 @@
 #include <arc/ArcLocation.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 #include <arc/UserConfig.h>
 #include <arc/client/JobSupervisor.h>
 
