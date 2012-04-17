@@ -38,11 +38,11 @@ namespace Arc {
   class ApplicationEnvironment
     : public Software {
   public:
-    ApplicationEnvironment() {}
+    ApplicationEnvironment() : FreeSlots(-1), FreeJobs(-1), FreeUserSeats(-1) {}
     ApplicationEnvironment(const std::string& Name)
-      : Software(Name) {}
+      : Software(Name), FreeSlots(-1), FreeJobs(-1), FreeUserSeats(-1)  {}
     ApplicationEnvironment(const std::string& Name, const std::string& Version)
-      : Software(Name, Version) {}
+      : Software(Name, Version), FreeSlots(-1), FreeJobs(-1), FreeUserSeats(-1)  {}
     ApplicationEnvironment& operator=(const Software& sv) {
       Software::operator=(sv);
       return *this;

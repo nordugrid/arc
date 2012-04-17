@@ -27,6 +27,8 @@ namespace Arc {
     virtual bool isEndpointNotSupported(const Endpoint&) const;
 
   private:
+    static bool EntryToInt(const URL& url, XMLNode entry, int& i);
+
     static Logger logger;
   };
 

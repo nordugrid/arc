@@ -29,6 +29,8 @@ namespace Arc {
     static void ExtractTargets(const URL&, XMLNode, std::list<ComputingServiceType>&);
 
   private:
+    static bool EntryToInt(const URL& url, XMLNode entry, int& i);
+  
     static Logger logger;
   };
 

@@ -102,24 +102,10 @@ namespace Arc {
       } else {
         logger.msg(VERBOSE, "The Service doesn't advertise its Quality Level.");
       }
-      if (GLUEService["TotalJobs"]) {
-        cs->TotalJobs = stringtoi((std::string)GLUEService["TotalJobs"]);
-      }
-      if (GLUEService["RunningJobs"]) {
-        cs->RunningJobs = stringtoi((std::string)GLUEService["RunningJobs"]);
-      }
-      if (GLUEService["WaitingJobs"]) {
-        cs->WaitingJobs = stringtoi((std::string)GLUEService["WaitingJobs"]);
-      }
-      if (GLUEService["StagingJobs"]) {
-        cs->StagingJobs = stringtoi((std::string)GLUEService["StagingJobs"]);
-      }
-      if (GLUEService["SuspendedJobs"]) {
-        cs->SuspendedJobs = stringtoi((std::string)GLUEService["SuspendedJobs"]);
-      }
-      if (GLUEService["PreLRMSWaitingJobs"]) {
-        cs->PreLRMSWaitingJobs = stringtoi((std::string)GLUEService["PreLRMSWaitingJobs"]);
-      }
+      EntryToInt(url, GLUEService["TotalJobs"], cs->TotalJobs);
+      EntryToInt(url, GLUEService["RunningJobs"], cs->RunningJobs);
+      EntryToInt(url, GLUEService["WaitingJobs"], cs->WaitingJobs);
+      EntryToInt(url, GLUEService["PreLRMSWaitingJobs"], cs->PreLRMSWaitingJobs);
       // The GLUE2 specification does not have attribute ComputingService.LocalRunningJobs
       //if (GLUEService["LocalRunningJobs"]) {
       //  cs->LocalRunningJobs = stringtoi((std::string)GLUEService["LocalRunningJobs"]);
@@ -247,24 +233,12 @@ namespace Arc {
             ComputingEndpoint->JobDescriptions.push_back((std::string)n);
           }
         }
-        if (xmlCENode["TotalJobs"]) {
-          ComputingEndpoint->TotalJobs = stringtoi((std::string)xmlCENode["TotalJobs"]);
-        }
-        if (xmlCENode["RunningJobs"]) {
-          ComputingEndpoint->RunningJobs = stringtoi((std::string)xmlCENode["RunningJobs"]);
-        }
-        if (xmlCENode["WaitingJobs"]) {
-          ComputingEndpoint->WaitingJobs = stringtoi((std::string)xmlCENode["WaitingJobs"]);
-        }
-        if (xmlCENode["StagingJobs"]) {
-          ComputingEndpoint->StagingJobs = stringtoi((std::string)xmlCENode["StagingJobs"]);
-        }
-        if (xmlCENode["SuspendedJobs"]) {
-          ComputingEndpoint->SuspendedJobs = stringtoi((std::string)xmlCENode["SuspendedJobs"]);
-        }
-        if (xmlCENode["PreLRMSWaitingJobs"]) {
-          ComputingEndpoint->PreLRMSWaitingJobs = stringtoi((std::string)xmlCENode["PreLRMSWaitingJobs"]);
-        }
+        EntryToInt(url, xmlCENode["TotalJobs"], ComputingEndpoint->TotalJobs);
+        EntryToInt(url, xmlCENode["RunningJobs"], ComputingEndpoint->RunningJobs);
+        EntryToInt(url, xmlCENode["WaitingJobs"], ComputingEndpoint->WaitingJobs);
+        EntryToInt(url, xmlCENode["StagingJobs"], ComputingEndpoint->StagingJobs);
+        EntryToInt(url, xmlCENode["SuspendedJobs"], ComputingEndpoint->SuspendedJobs);
+        EntryToInt(url, xmlCENode["PreLRMSWaitingJobs"], ComputingEndpoint->PreLRMSWaitingJobs);
         // The GLUE2 specification does not have attribute ComputingEndpoint.LocalRunningJobs
         //if (xmlCENode["LocalRunningJobs"]) {
         //  ComputingEndpoint->LocalRunningJobs = stringtoi((std::string)xmlCENode["LocalRunningJobs"]);
@@ -285,9 +259,7 @@ namespace Arc {
       for (XMLNode xmlCSNode = GLUEService["ComputingShare"]; (bool)xmlCSNode; ++xmlCSNode) {
         ComputingShareType ComputingShare;
 
-        if (xmlCSNode["FreeSlots"]) {
-          ComputingShare->FreeSlots = stringtoi((std::string)xmlCSNode["FreeSlots"]);
-        }
+        EntryToInt(url, xmlCSNode["FreeSlots"], ComputingShare->FreeSlots);
         if (xmlCSNode["FreeSlotsWithDuration"]) {
           // Format: ns[:t] [ns[:t]]..., where ns is number of slots and t is the duration.
           ComputingShare->FreeSlotsWithDuration.clear();
@@ -301,7 +273,7 @@ namespace Arc {
             tokenize(*it, fswdPair, ":");
             long duration = LONG_MAX;
             int freeSlots = 0;
-            if (fswdPair.size() > 2 || !stringto(fswdPair.front(), freeSlots) || (fswdPair.size() == 2 && !stringto(fswdPair.back(), duration))) {
+            if (fswdPair.size() > 2 || !Arc::stringto(fswdPair.front(), freeSlots) || (fswdPair.size() == 2 && !Arc::stringto(fswdPair.back(), duration))) {
               logger.msg(VERBOSE, "The \"FreeSlotsWithDuration\" attribute published by \"%s\" is wrongly formatted. Ignoring it.");
               logger.msg(DEBUG, "Wrong format of the \"FreeSlotsWithDuration\" = \"%s\" (\"%s\")", fswdValue, *it);
               continue;
@@ -310,12 +282,8 @@ namespace Arc {
             ComputingShare->FreeSlotsWithDuration[Period(duration)] = freeSlots;
           }
         }
-        if (xmlCSNode["UsedSlots"]) {
-          ComputingShare->UsedSlots = stringtoi((std::string)xmlCSNode["UsedSlots"]);
-        }
-        if (xmlCSNode["RequestedSlots"]) {
-          ComputingShare->RequestedSlots = stringtoi((std::string)xmlCSNode["RequestedSlots"]);
-        }
+        EntryToInt(url, xmlCSNode["UsedSlots"], ComputingShare->UsedSlots);
+        EntryToInt(url, xmlCSNode["RequestedSlots"], ComputingShare->RequestedSlots);
         if (xmlCSNode["Name"]) {
           ComputingShare->Name = (std::string)xmlCSNode["Name"];
         }
@@ -343,42 +311,20 @@ namespace Arc {
         if (xmlCSNode["DefaultCPUTime"]) {
           ComputingShare->DefaultCPUTime = (std::string)xmlCSNode["DefaultCPUTime"];
         }
-        if (xmlCSNode["MaxTotalJobs"]) {
-          ComputingShare->MaxTotalJobs = stringtoi((std::string)xmlCSNode["MaxTotalJobs"]);
-        }
-        if (xmlCSNode["MaxRunningJobs"]) {
-          ComputingShare->MaxRunningJobs = stringtoi((std::string)xmlCSNode["MaxRunningJobs"]);
-        }
-        if (xmlCSNode["MaxWaitingJobs"]) {
-          ComputingShare->MaxWaitingJobs = stringtoi((std::string)xmlCSNode["MaxWaitingJobs"]);
-        }
-        if (xmlCSNode["MaxPreLRMSWaitingJobs"]) {
-          ComputingShare->MaxPreLRMSWaitingJobs = stringtoi((std::string)xmlCSNode["MaxPreLRMSWaitingJobs"]);
-        }
-        if (xmlCSNode["MaxUserRunningJobs"]) {
-          ComputingShare->MaxUserRunningJobs = stringtoi((std::string)xmlCSNode["MaxUserRunningJobs"]);
-        }
-        if (xmlCSNode["MaxSlotsPerJob"]) {
-          ComputingShare->MaxSlotsPerJob = stringtoi((std::string)xmlCSNode["MaxSlotsPerJob"]);
-        }
-        if (xmlCSNode["MaxStageInStreams"]) {
-          ComputingShare->MaxStageInStreams = stringtoi((std::string)xmlCSNode["MaxStageInStreams"]);
-        }
-        if (xmlCSNode["MaxStageOutStreams"]) {
-          ComputingShare->MaxStageOutStreams = stringtoi((std::string)xmlCSNode["MaxStageOutStreams"]);
-        }
+        EntryToInt(url, xmlCSNode["MaxTotalJobs"], ComputingShare->MaxTotalJobs);
+        EntryToInt(url, xmlCSNode["MaxRunningJobs"], ComputingShare->MaxRunningJobs);
+        EntryToInt(url, xmlCSNode["MaxWaitingJobs"], ComputingShare->MaxWaitingJobs);
+        EntryToInt(url, xmlCSNode["MaxPreLRMSWaitingJobs"], ComputingShare->MaxPreLRMSWaitingJobs);
+        EntryToInt(url, xmlCSNode["MaxUserRunningJobs"], ComputingShare->MaxUserRunningJobs);
+        EntryToInt(url, xmlCSNode["MaxSlotsPerJob"], ComputingShare->MaxSlotsPerJob);
+        EntryToInt(url, xmlCSNode["MaxStageInStreams"], ComputingShare->MaxStageInStreams);
+        EntryToInt(url, xmlCSNode["MaxStageOutStreams"], ComputingShare->MaxStageOutStreams);
         if (xmlCSNode["SchedulingPolicy"]) {
           ComputingShare->SchedulingPolicy = (std::string)xmlCSNode["SchedulingPolicy"];
         }
-        if (xmlCSNode["MaxMainMemory"]) {
-          ComputingShare->MaxMainMemory = stringtoi((std::string)xmlCSNode["MaxMainMemory"]);
-        }
-        if (xmlCSNode["MaxVirtualMemory"]) {
-          ComputingShare->MaxVirtualMemory = stringtoi((std::string)xmlCSNode["MaxVirtualMemory"]);
-        }
-        if (xmlCSNode["MaxDiskSpace"]) {
-          ComputingShare->MaxDiskSpace = stringtoi((std::string)xmlCSNode["MaxDiskSpace"]);
-        }
+        EntryToInt(url, xmlCSNode["MaxMainMemory"], ComputingShare->MaxMainMemory);
+        EntryToInt(url, xmlCSNode["MaxVirtualMemory"], ComputingShare->MaxVirtualMemory);
+        EntryToInt(url, xmlCSNode["MaxDiskSpace"], ComputingShare->MaxDiskSpace);
         if (xmlCSNode["DefaultStorageService"]) {
           ComputingShare->DefaultStorageService = (std::string)xmlCSNode["DefaultStorageService"];
         }
@@ -388,11 +334,12 @@ namespace Arc {
         if (xmlCSNode["EstimatedAverageWaitingTime"]) {
           ComputingShare->EstimatedAverageWaitingTime = (std::string)xmlCSNode["EstimatedAverageWaitingTime"];
         }
-        if (xmlCSNode["EstimatedWorstWaitingTime"]) {
-          ComputingShare->EstimatedWorstWaitingTime = stringtoi((std::string)xmlCSNode["EstimatedWorstWaitingTime"]);
+        int EstimatedWorstWaitingTime;
+        if (EntryToInt(url, xmlCSNode["EstimatedWorstWaitingTime"], EstimatedWorstWaitingTime)) {
+          ComputingShare->EstimatedWorstWaitingTime = EstimatedWorstWaitingTime;
         }
         if (xmlCSNode["ReservationPolicy"]) {
-          ComputingShare->ReservationPolicy = stringtoi((std::string)xmlCSNode["ReservationPolicy"]);
+          ComputingShare->ReservationPolicy = (std::string)xmlCSNode["ReservationPolicy"];
         }
 
         cs.ComputingShare.insert(std::pair<int, ComputingShareType>(shareID++, ComputingShare));
@@ -411,22 +358,16 @@ namespace Arc {
           ComputingManager->ProductVersion = (std::string)xmlCMNode["ProductVersion"];
         }
         if (xmlCMNode["Reservation"]) {
-          ComputingManager->Reservation = ((std::string)xmlCMNode["Reservation"] == "true") ? true : false;
+          ComputingManager->Reservation = ((std::string)xmlCMNode["Reservation"] == "true");
         }
         if (xmlCMNode["BulkSubmission"]) {
-          ComputingManager->BulkSubmission = ((std::string)xmlCMNode["BulkSubmission"] == "true") ? true : false;
+          ComputingManager->BulkSubmission = ((std::string)xmlCMNode["BulkSubmission"] == "true");
         }
-        if (xmlCMNode["TotalPhysicalCPUs"]) {
-          ComputingManager->TotalPhysicalCPUs = stringtoi((std::string)xmlCMNode["TotalPhysicalCPUs"]);
-        }
-        if (xmlCMNode["TotalLogicalCPUs"]) {
-          ComputingManager->TotalLogicalCPUs = stringtoi((std::string)xmlCMNode["TotalLogicalCPUs"]);
-        }
-        if (xmlCMNode["TotalSlots"]) {
-          ComputingManager->TotalSlots = stringtoi((std::string)xmlCMNode["TotalSlots"]);
-        }
+        EntryToInt(url, xmlCMNode["TotalPhysicalCPUs"], ComputingManager->TotalPhysicalCPUs);
+        EntryToInt(url, xmlCMNode["TotalLogicalCPUs"], ComputingManager->TotalLogicalCPUs);
+        EntryToInt(url, xmlCMNode["TotalSlots"], ComputingManager->TotalSlots);
         if (xmlCMNode["Homogeneous"]) {
-          ComputingManager->Homogeneous = ((std::string)xmlCMNode["Homogeneous"] == "true") ? true : false;
+          ComputingManager->Homogeneous = ((std::string)xmlCMNode["Homogeneous"] == "true");
         }
         if (xmlCMNode["NetworkInfo"]) {
           for (XMLNode n = xmlCMNode["NetworkInfo"]; n; ++n) {
@@ -434,27 +375,19 @@ namespace Arc {
           }
         }
         if (xmlCMNode["WorkingAreaShared"]) {
-          ComputingManager->WorkingAreaShared = ((std::string)xmlCMNode["WorkingAreaShared"] == "true") ? true : false;
+          ComputingManager->WorkingAreaShared = ((std::string)xmlCMNode["WorkingAreaShared"] == "true");
         }
-        if (xmlCMNode["WorkingAreaFree"]) {
-          ComputingManager->WorkingAreaFree = stringtoi((std::string)xmlCMNode["WorkingAreaFree"]);
-        }
-        if (xmlCMNode["WorkingAreaTotal"]) {
-          ComputingManager->WorkingAreaTotal = stringtoi((std::string)xmlCMNode["WorkingAreaTotal"]);
-        }
+        EntryToInt(url, xmlCMNode["WorkingAreaFree"], ComputingManager->WorkingAreaFree);
+        EntryToInt(url, xmlCMNode["WorkingAreaTotal"], ComputingManager->WorkingAreaTotal);
         if (xmlCMNode["WorkingAreaLifeTime"]) {
           ComputingManager->WorkingAreaLifeTime = (std::string)xmlCMNode["WorkingAreaLifeTime"];
         }
-        if (xmlCMNode["CacheFree"]) {
-          ComputingManager->CacheFree = stringtoi((std::string)xmlCMNode["CacheFree"]);
-        }
-        if (xmlCMNode["CacheTotal"]) {
-          ComputingManager->CacheTotal = stringtoi((std::string)xmlCMNode["CacheTotal"]);
-        }
+        EntryToInt(url, xmlCMNode["CacheFree"], ComputingManager->CacheFree);
+        EntryToInt(url, xmlCMNode["CacheTotal"], ComputingManager->CacheTotal);
         for (XMLNode n = xmlCMNode["Benchmark"]; n; ++n) {
           double value;
           if (n["Type"] && n["Value"] &&
-              stringto((std::string)n["Value"], value)) {
+              Arc::stringto((std::string)n["Value"], value)) {
             (*ComputingManager.Benchmarks)[(std::string)n["Type"]] = value;
           } else {
             logger.msg(VERBOSE, "Couldn't parse benchmark XML:\n%s", (std::string)n);
@@ -464,22 +397,12 @@ namespace Arc {
         for (XMLNode n = xmlCMNode["ApplicationEnvironments"]["ApplicationEnvironment"]; n; ++n) {
           ApplicationEnvironment ae((std::string)n["AppName"], (std::string)n["AppVersion"]);
           ae.State = (std::string)n["State"];
-          if (n["FreeSlots"]) {
-            ae.FreeSlots = stringtoi((std::string)n["FreeSlots"]);
-          }
+          EntryToInt(url, n["FreeSlots"], ae.FreeSlots);
           //else {
           //  ae.FreeSlots = ComputingShare->FreeSlots; // Non compatible??, i.e. a ComputingShare is unrelated to the ApplicationEnvironment.
           //}
-          if (n["FreeJobs"]) {
-            ae.FreeJobs = stringtoi((std::string)n["FreeJobs"]);
-          } else {
-            ae.FreeJobs = -1;
-          }
-          if (n["FreeUserSeats"]) {
-            ae.FreeUserSeats = stringtoi((std::string)n["FreeUserSeats"]);
-          } else {
-            ae.FreeUserSeats = -1;
-          }
+          EntryToInt(url, n["FreeJobs"], ae.FreeJobs);
+          EntryToInt(url, n["FreeUserSeats"], ae.FreeUserSeats);
           ComputingManager.ApplicationEnvironments->push_back(ae);
         }
 
@@ -497,9 +420,7 @@ namespace Arc {
             ExecutionEnvironment->Platform = (std::string)xmlEENode["Platform"];
           }
 
-          if (xmlEENode["MainMemorySize"]) {
-            ExecutionEnvironment->MainMemorySize = stringtoi((std::string)xmlEENode["MainMemorySize"]);
-          }
+          EntryToInt(url, xmlEENode["MainMemorySize"], ExecutionEnvironment->MainMemorySize);
 
           if (xmlEENode["OSName"]) {
             if (xmlEENode["OSVersion"]) {
@@ -534,6 +455,15 @@ namespace Arc {
 
       csList.push_back(cs);
     }
+  }
+
+  bool TargetInformationRetrieverPluginWSRFGLUE2::EntryToInt(const URL& url, XMLNode entry, int& i) {
+    if (entry && !stringto((std::string)entry, i)) {
+      logger.msg(INFO, "Unable to parse the %s.%s value from execution service (%s).", entry.Parent().Name(), entry.Name(), url.fullstr());
+      logger.msg(DEBUG, "Value of %s.%s is \"%s\"", entry.Parent().Name(), entry.Name(), (std::string)entry);
+      return false;
+    }
+    return (bool)entry;
   }
 
 } // namespace Arc

@@ -206,44 +206,33 @@ namespace Arc {
         if (queue["nordugrid-queue-defaultcputime"]) {
           ComputingShare->DefaultCPUTime = Period((std::string)queue["nordugrid-queue-defaultcputime"], PeriodMinutes);
         }
-        if (queue["nordugrid-queue-maxrunning"]) {
-          ComputingShare->MaxRunningJobs = stringtoi((std::string)queue["nordugrid-queue-maxrunning"]);
-        }
-        if (queue["nordugrid-queue-maxqueable"]) {
-          ComputingShare->MaxWaitingJobs = stringtoi((std::string)queue["nordugrid-queue-maxqueable"]);
-        }
-        if (queue["nordugrid-queue-maxuserrun"]) {
-          ComputingShare->MaxUserRunningJobs = stringtoi((std::string)queue["nordugrid-queue-maxuserrun"]);
-        }
+        EntryToInt(url, queue["nordugrid-queue-maxrunning"], ComputingShare->MaxRunningJobs);
+        EntryToInt(url, queue["nordugrid-queue-maxqueable"], ComputingShare->MaxWaitingJobs);
+        EntryToInt(url, queue["nordugrid-queue-maxuserrun"], ComputingShare->MaxUserRunningJobs);
         if (queue["nordugrid-queue-schedulingpolicy"]) {
           ComputingShare->SchedulingPolicy = (std::string)queue["nordugrid-queue-schedulingpolicy"];
         }
-        if (queue["nordugrid-queue-nodememory"]) {
-          ComputingShare->MaxMainMemory = ComputingShare->MaxVirtualMemory = stringtoi((std::string)queue["nordugrid-queue-nodememory"]);
-        } else if ((*it)["nordugrid-cluster-nodememory"]) {
-          ComputingShare->MaxMainMemory = ComputingShare->MaxVirtualMemory = stringtoi((std::string)(*it)["nordugrid-cluster-nodememory"]);
-        }
-        if (authuser["nordugrid-authuser-diskspace"]) {
-          ComputingShare->MaxDiskSpace = stringtoi((std::string)authuser["nordugrid-authuser-diskspace"]) / 1000;
-        }
+        EntryToInt(url, queue["nordugrid-queue-nodememory"], ComputingShare->MaxVirtualMemory) || 
+          EntryToInt(url, (*it)["nordugrid-cluster-nodememory"], ComputingShare->MaxVirtualMemory);
+        EntryToInt(url, authuser["nordugrid-authuser-diskspace"], ComputingShare->MaxDiskSpace);
         if ((*it)["nordugrid-cluster-localse"]) {
           ComputingShare->DefaultStorageService = (std::string)(*it)["nordugrid-cluster-localse"];
         }
-        if (queue["nordugrid-queue-running"]) {
-          ComputingShare->RunningJobs = stringtoi((std::string)queue["nordugrid-queue-running"]);
-        }
+        EntryToInt(url, queue["nordugrid-queue-running"], ComputingShare->RunningJobs);
         if (queue["nordugrid-queue-running"] && queue["nordugrid-queue-gridrunning"]) {
-          ComputingShare->LocalRunningJobs = stringtoi((std::string)queue["nordugrid-queue-running"]) - stringtoi((std::string)queue["nordugrid-queue-gridrunning"]);
+          int run = 0, gridrun = 0;
+          stringto((std::string)queue["nordugrid-queue-running"], run);
+          stringto((std::string)queue["nordugrid-queue-gridrunning"], gridrun);
+          ComputingShare->LocalRunningJobs = run - gridrun;
         }
         if (queue["nordugrid-queue-gridqueued"] && queue["nordugrid-queue-localqueued"]) {
-          ComputingShare->WaitingJobs = stringtoi((std::string)queue["nordugrid-queue-gridqueued"]) + stringtoi((std::string)queue["nordugrid-queue-localqueued"]);
+          int gridqueued = 0, localqueued = 0;
+          stringto((std::string)queue["nordugrid-queue-gridqueued"], gridqueued);
+          stringto((std::string)queue["nordugrid-queue-localqueued"], localqueued);
+          ComputingShare->WaitingJobs = gridqueued + localqueued;
         }
-        if (queue["nordugrid-queue-localqueued"]) {
-          ComputingShare->LocalWaitingJobs = stringtoi((std::string)queue["nordugrid-queue-localqueued"]);
-        }
-        if (queue["nordugrid-queue-prelrmsqueued"]) {
-          ComputingShare->PreLRMSWaitingJobs = stringtoi((std::string)queue["nordugrid-queue-prelrmsqueued"]);
-        }
+        EntryToInt(url, queue["nordugrid-queue-localqueued"], ComputingShare->LocalWaitingJobs);
+        EntryToInt(url, queue["nordugrid-queue-prelrmsqueued"], ComputingShare->PreLRMSWaitingJobs);
         ComputingShare->TotalJobs =
           (ComputingShare->RunningJobs > 0) ? ComputingShare->RunningJobs : 0 +
           (ComputingShare->WaitingJobs > 0) ? ComputingShare->WaitingJobs : 0 +
@@ -259,16 +248,19 @@ namespace Arc {
               entry = value.substr(pos);
             else
               entry = value.substr(pos, spacepos - pos);
-            int num_cpus;
+            int num_cpus = 0;
             Period time;
             std::string::size_type colonpos = entry.find(':');
             if (colonpos == std::string::npos) {
-              num_cpus = stringtoi(entry);
+              stringto(entry, num_cpus);
               time = LONG_MAX;
             }
             else {
-              num_cpus = stringtoi(entry.substr(0, colonpos));
-              time = stringtoi(entry.substr(colonpos + 1)) * 60;
+              stringto(entry.substr(0, colonpos), num_cpus);
+              int t = 0;
+              if (stringto(entry.substr(colonpos + 1), t)) {
+                time = t*60;
+              }
             }
             ComputingShare->FreeSlotsWithDuration[time] = num_cpus;
             pos = spacepos;
@@ -277,11 +269,9 @@ namespace Arc {
           } while (pos != std::string::npos);
           ComputingShare->FreeSlots = ComputingShare->FreeSlotsWithDuration.begin()->second;
         }
-        if ((*it)["nordugrid-queue-usedcpus"]) {
-          ComputingShare->UsedSlots = stringtoi((std::string)(*it)["nordugrid-queue-usedcpus"]);
-        }
-        if ((*it)["nordugrid-queue-schedulingpolicy"]) {
-          ComputingShare->ReservationPolicy = (std::string)(*it)["nordugrid-queue-schedulingpolicy"];
+        EntryToInt(url, (*it)["nordugrid-cluser-usedcpus"], ComputingShare->UsedSlots);
+        if (queue["nordugrid-queue-schedulingpolicy"]) {
+          ComputingShare->ReservationPolicy = (std::string)queue["nordugrid-queue-schedulingpolicy"];
         }
 
         cs.ComputingShare.insert(std::pair<int, ComputingShareType>(shareID++, ComputingShare));
@@ -304,13 +294,9 @@ namespace Arc {
         ComputingManager->TotalSlots =
           stringtoi((std::string)queue["nordugrid-queue-totalcpus"]);
       } else */
-      if ((*it)["nordugrid-cluster-totalcpus"]) {
-        ComputingManager->TotalPhysicalCPUs =
-        ComputingManager->TotalLogicalCPUs =
-        ComputingManager->TotalSlots =
-          stringtoi((std::string)(*it)["nordugrid-cluster-totalcpus"]);
+      if (EntryToInt(url, (*it)["nordugrid-cluster-totalcpus"], ComputingManager->TotalPhysicalCPUs)) {
+        ComputingManager->TotalLogicalCPUs = ComputingManager->TotalSlots = ComputingManager->TotalPhysicalCPUs;
       }
-
       // TODO: nordugrid-queue-homogenity might need to mapped to ComputingManager->Homogeneous, i.e. multiple to single mapping.
       /*
       if (queue["nordugrid-queue-homogeneity"]) {
@@ -319,24 +305,22 @@ namespace Arc {
       if ((*it)["nordugrid-cluster-homogeneity"]) {
         ComputingManager->Homogeneous = ((std::string)(*it)["nordugrid-cluster-homogeneity"] != "false");
       }
-      if ((*it)["nordugrid-cluster-sessiondir-total"]) {
-        ComputingManager->WorkingAreaTotal = stringtoi((std::string)(*it)["nordugrid-cluster-sessiondir-total"]) / 1000;
+      if (EntryToInt(url, (*it)["nordugrid-cluster-sessiondir-total"], ComputingManager->WorkingAreaTotal)) {
+        ComputingManager->WorkingAreaTotal /= 1000;
       }
-      if ((*it)["nordugrid-cluster-sessiondir-free"]) {
-        ComputingManager->WorkingAreaFree = stringtoi((std::string)(*it)["nordugrid-cluster-sessiondir-free"]) / 1000;
+      if (EntryToInt(url, (*it)["nordugrid-cluster-sessiondir-free"], ComputingManager->WorkingAreaFree)) {
+        ComputingManager->WorkingAreaFree /= 1000;
       }
       if ((*it)["nordugrid-cluster-sessiondir-lifetime"]) {
         ComputingManager->WorkingAreaLifeTime =
           Period((std::string)(*it)["nordugrid-cluster-sessiondir-lifetime"],
                  PeriodMinutes);
       }
-      if ((*it)["nordugrid-cluster-cache-total"]) {
-        ComputingManager->CacheTotal =
-          stringtoi((std::string)(*it)["nordugrid-cluster-cache-total"]) / 1000;
+      if (EntryToInt(url, (*it)["nordugrid-cluster-cache-total"], ComputingManager->CacheTotal)) {
+        ComputingManager->CacheTotal /= 1000;
       }
-      if ((*it)["nordugrid-cluster-cache-free"]) {
-        ComputingManager->CacheFree =
-          stringtoi((std::string)(*it)["nordugrid-cluster-cache-free"]) / 1000;
+      if (EntryToInt(url, (*it)["nordugrid-cluster-cache-free"], ComputingManager->CacheFree)) {
+        ComputingManager->CacheFree /= 1000;
       }
       // Benchmarks
       // TODO: nordugrid-queue-benchmark might need to mapped to ComputingManager.Benchmark, i.e. multiple to single mapping.
@@ -355,7 +339,8 @@ namespace Arc {
           std::string benchmark = (std::string)n;
           std::string::size_type alpha = benchmark.find_first_of("@");
           std::string benchmarkname = benchmark.substr(0, alpha);
-          double performance = stringtod(benchmark.substr(alpha + 1));
+          double performance = 0;
+          stringto(benchmark.substr(alpha + 1), performance);
           (*ComputingManager.Benchmarks)[benchmarkname] = performance;
         }
       }
@@ -392,9 +377,7 @@ namespace Arc {
       if (queue["nordugrid-queue-nodememory"]) {
         ExecutionEnvironment->MainMemorySize = stringtoi((std::string)queue["nordugrid-queue-nodememory"]);
       } else */
-      if ((*it)["nordugrid-cluster-nodememory"]) {
-        ExecutionEnvironment->MainMemorySize = stringtoi((std::string)(*it)["nordugrid-cluster-nodememory"]);
-      }
+      EntryToInt(url, (*it)["nordugrid-cluster-nodememory"], ExecutionEnvironment->MainMemorySize);
       // TODO: Map to multiple ExecutionEnvironment objects.
       /*
       if (queue["nordugrid-queue-opsys"]) {
@@ -435,6 +418,15 @@ namespace Arc {
 
     if (!csList.empty()) s = EndpointQueryingStatus::SUCCESSFUL;
     return s;
+  }
+
+  bool TargetInformationRetrieverPluginLDAPNG::EntryToInt(const URL& url, XMLNode entry, int& i) {
+    if (entry && !stringto((std::string)entry, i)) {
+      logger.msg(INFO, "Unable to parse the %s.%s value from execution service (%s).", entry.Parent().Name(), entry.Name(), url.fullstr());
+      logger.msg(DEBUG, "Value of %s.%s is \"%s\"", entry.Parent().Name(), entry.Name(), (std::string)entry);
+      return false;
+    }
+    return (bool)entry;
   }
 
 } // namespace Arc
