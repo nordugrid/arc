@@ -166,7 +166,7 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     }
   }
 
-  std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.preferredJobInterface);
+  std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedJobInterfaceName);
 
   if (opt.dumpdescription) {
     return dumpjobdescription(usercfg, jobdescriptionlist, services);
@@ -186,11 +186,11 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
   int retval = 0;
 
   std::list<std::string> preferredInterfaceNames;
-  if (usercfg.PreferredInfoInterface().empty()) {
+  if (usercfg.InfoInterface().empty()) {
     preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
     preferredInterfaceNames.push_back("org.ogf.emies");
   } else {
-    preferredInterfaceNames.push_back(usercfg.PreferredInfoInterface());
+    preferredInterfaceNames.push_back(usercfg.InfoInterface());
   }
 
   std::list<std::string> rejectedURLs = usercfg.RejectedURLs();
@@ -291,11 +291,11 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
   int retval = 0;
 
   std::list<std::string> preferredInterfaceNames;
-  if (usercfg.PreferredInfoInterface().empty()) {
+  if (usercfg.InfoInterface().empty()) {
     preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
     preferredInterfaceNames.push_back("org.ogf.emies");
   } else {
-    preferredInterfaceNames.push_back(usercfg.PreferredInfoInterface());
+    preferredInterfaceNames.push_back(usercfg.InfoInterface());
   }
 
   std::list<std::string> rejectedURLs = usercfg.RejectedURLs();

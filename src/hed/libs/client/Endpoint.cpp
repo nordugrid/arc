@@ -13,7 +13,7 @@ namespace Arc {
   Endpoint& Endpoint::operator=(const ConfigEndpoint& e) {
     URLString = e.URLString;
     InterfaceName = e.InterfaceName;
-    PreferredJobInterfaceName = e.PreferredJobInterfaceName;
+    RequestedJobInterfaceName = e.RequestedJobInterfaceName;
     
     Capability.clear();
     switch (e.type) {

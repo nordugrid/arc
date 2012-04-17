@@ -185,11 +185,11 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
 
 
   std::list<std::string> preferredInterfaceNames;
-  if (usercfg.PreferredInfoInterface().empty()) {
+  if (usercfg.InfoInterface().empty()) {
     preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
     preferredInterfaceNames.push_back("org.ogf.emies");
   } else {
-    preferredInterfaceNames.push_back(usercfg.PreferredInfoInterface());
+    preferredInterfaceNames.push_back(usercfg.InfoInterface());
   }
 
   JobSynchronizer js(usercfg, endpoints, preferredInterfaceNames);

@@ -68,7 +68,7 @@ public:
   std::string sort;
   std::string rsort;
   std::string downloaddir;
-  std::string preferredJobInterface;
+  std::string requestedJobInterfaceName;
 
   std::list<std::string> clusters;
   std::list<std::string> qlusters;

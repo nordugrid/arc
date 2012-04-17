@@ -772,8 +772,8 @@ namespace Arc {
           HANDLESTRATT("jobdownloaddirectory", JobDownloadDirectory)
           HANDLESTRATT("storedirectory", StoreDirectory)
           HANDLESTRATT("idpname", IdPName)
-          HANDLESTRATT("preferredinfointerface", PreferredInfoInterface)
-          HANDLESTRATT("preferredjobinterface", PreferredJobInterface)
+          HANDLESTRATT("infointerface", InfoInterface)
+          HANDLESTRATT("jobinterface", JobInterface)
           if (common["defaultservices"]) {
             std::list<std::string> defaultServicesStr;
             tokenize(common["defaultservices"], defaultServicesStr, " \t");
@@ -914,9 +914,9 @@ namespace Arc {
                 alias = sectionName.substr(computingSectionPrefix.length());
                 service.type = ConfigEndpoint::COMPUTINGINFO;
                 service.InterfaceName = (std::string)section["infointerface"];
-                service.PreferredJobInterfaceName = (std::string)section["jobinterface"];
-                if (service.PreferredJobInterfaceName.empty()) {
-                  service.PreferredJobInterfaceName = PreferredJobInterface();
+                service.RequestedJobInterfaceName = (std::string)section["jobinterface"];
+                if (service.RequestedJobInterfaceName.empty()) {
+                  service.RequestedJobInterfaceName = JobInterface();
                 }
               }
               

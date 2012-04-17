@@ -31,7 +31,7 @@ namespace Arc {
     Type type;
     std::string URLString;
     std::string InterfaceName;
-    std::string PreferredJobInterfaceName;
+    std::string RequestedJobInterfaceName;
 
     operator bool() const {
       return (!URLString.empty());
@@ -1043,18 +1043,18 @@ namespace Arc {
     std::list<ConfigEndpoint> GetServicesInGroup(const std::string& group, ConfigEndpoint::Type type = ConfigEndpoint::ANY);
 
 
-    const std::string& PreferredInfoInterface() const { return preferredinfointerface; };
+    const std::string& InfoInterface() const { return infointerface; };
 
-    bool PreferredInfoInterface(const std::string& preferredinfointerface_) {
-      preferredinfointerface = preferredinfointerface_;
+    bool InfoInterface(const std::string& infointerface_) {
+      infointerface = infointerface_;
       return true;
     }
 
 
-    const std::string& PreferredJobInterface() const { return preferredjobinterface; };
+    const std::string& JobInterface() const { return jobinterface; };
 
-    bool PreferredJobInterface(const std::string& preferredjobinterface_) {
-      preferredjobinterface = preferredjobinterface_;
+    bool JobInterface(const std::string& jobinterface_) {
+      jobinterface = jobinterface_;
       return true;
     }
 
@@ -1179,8 +1179,8 @@ namespace Arc {
     std::string overlayfile;
     std::string utilsdir;
 
-    std::string preferredjobinterface;
-    std::string preferredinfointerface;
+    std::string jobinterface;
+    std::string infointerface;
     // User whose identity (uid/gid) should be used to access filesystem
     // Normally this is the same as the process owner
     User user;

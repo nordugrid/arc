@@ -53,7 +53,7 @@ public:
   std::string HealthStateInfo;
   std::string QualityLevel;
   std::list<std::string> Capability;
-  std::string PreferredJobInterfaceName;
+  std::string RequestedJobInterfaceName;
 };
 
 } // namespace Arc

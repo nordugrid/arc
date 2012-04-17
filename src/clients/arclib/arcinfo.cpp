@@ -70,14 +70,14 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
   if (opt.timeout > 0)
     usercfg.Timeout(opt.timeout);
 
-  std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.preferredJobInterface);
+  std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedJobInterfaceName);
 
   std::list<std::string> preferredInterfaceNames;
-  if (usercfg.PreferredInfoInterface().empty()) {
+  if (usercfg.InfoInterface().empty()) {
     preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
     preferredInterfaceNames.push_back("org.ogf.emies");
   } else {
-    preferredInterfaceNames.push_back(usercfg.PreferredInfoInterface());
+    preferredInterfaceNames.push_back(usercfg.InfoInterface());
   }
 
   std::list<std::string> rejectedURLs = usercfg.RejectedURLs();

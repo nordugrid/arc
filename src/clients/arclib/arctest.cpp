@@ -158,11 +158,11 @@ int RUNMAIN(arctest)(int argc, char **argv) {
 
   std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters);
   std::list<std::string> preferredInterfaceNames;
-  if (usercfg.PreferredInfoInterface().empty()) {
+  if (usercfg.InfoInterface().empty()) {
     preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
     preferredInterfaceNames.push_back("org.ogf.emies");
   } else {
-    preferredInterfaceNames.push_back(usercfg.PreferredInfoInterface());
+    preferredInterfaceNames.push_back(usercfg.InfoInterface());
   }
 
   Arc::ExecutionTargetSet ets(broker);
