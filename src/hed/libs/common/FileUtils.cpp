@@ -25,6 +25,7 @@
 #include <arc/User.h>
 #include <arc/GUID.h>
 #include <arc/FileAccess.h>
+#include <arc/Utils.h>
 
 #include "FileUtils.h"
 
@@ -147,29 +148,14 @@ bool FileCopy(int source_handle,int destination_handle) {
 bool FileRead(const std::string& filename, std::list<std::string>& data, uid_t uid, gid_t gid) {
   data.clear();
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
-    FileAccess fa;
-    if(!fa.setuid(uid,gid)) {
-      errno = fa.geterrno();
-      return false;
-    };
-    if(!fa.open(filename,O_RDONLY,0)) {
-      errno = fa.geterrno();
-      return false;
-    };
-    char buf[1024];
-    std::string line;
+    std::string content;
+    if (!FileRead(filename, content, uid, gid)) return false;
     for(;;) {
-      ssize_t l = fa.read(buf,sizeof(buf)-1);
-      if(l <= 0) break;
-      buf[l] = 0; line += buf;
-      for(;;) {
-        std::string::size_type p = line.find('\r');
-        data.push_back(line.substr(0,p));
-        line.erase(0,p+1);
-      }
+      std::string::size_type p = content.find('\n');
+      data.push_back(content.substr(0,p));
+      if (p == std::string::npos) break;
+      content.erase(0,p+1);
     }
-    fa.close();
-    if(!line.empty()) data.push_back(line);
     return true;
   }
   std::ifstream is(filename.c_str());
@@ -422,18 +408,23 @@ bool DirCreate(const std::string& path,mode_t mode,bool with_parents) {
   return true;
 }
 
-bool DirDelete(const std::string& path,uid_t uid,gid_t gid) {
+bool DirDelete(const std::string& path,bool recursive,uid_t uid,gid_t gid) {
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
     if(!fa.setuid(uid,gid)) { errno = fa.geterrno(); return false; }
-    if(!fa.rmdirr(path)) { errno = fa.geterrno(); return false; }
+    if (recursive) {
+      if(!fa.rmdirr(path)) { errno = fa.geterrno(); return false; }
+    } else {
+      if(!fa.rmdir(path)) { errno = fa.geterrno(); return false; }
+    }
     return true;
   }
-  return DirDelete(path);
+  return DirDelete(path, recursive);
 }  
 
-bool DirDelete(const std::string& path) {
+bool DirDelete(const std::string& path, bool recursive) {
 
+  if (!recursive) return (rmdir(path.c_str()) == 0);
   struct stat st;
   if (::stat(path.c_str(), &st) != 0 || ! S_ISDIR(st.st_mode))
     return false;

@@ -91,12 +91,14 @@ namespace Arc {
   /// Specified uid and gid are used for accessing filesystem.
   bool DirCreate(const std::string& path,uid_t uid,gid_t gid,mode_t mode,bool with_parents = false);
 
-  /// Delete a directory and its content.
-  bool DirDelete(const std::string& path);
+  /// Delete a directory, and its content if recursive is true. If the
+  /// directory is not empty and recursive is false DirDelete will fail.
+  bool DirDelete(const std::string& path, bool recursive = true);
 
-  /// Delete a directory using the specified uid and gid
+  /// Delete a directory, and its content if recursive is true. If the
+  /// directory is not empty and recursive is false DirDelete will fail.
   /// Specified uid and gid are used for accessing filesystem.
-  bool DirDelete(const std::string& path,uid_t uid,gid_t gid);
+  bool DirDelete(const std::string& path, bool recursive, uid_t uid, gid_t gid);
 
   /// Create a temporary directory under the system defined temp location, and return its path
   /** Uses mkdtemp if available, and a combination of random parameters if not. This
