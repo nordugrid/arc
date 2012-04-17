@@ -75,7 +75,7 @@ namespace Arc {
          it != jcJobMap.end(); ++it) {
       for (std::list<Job*>::iterator itJ = it->second.first.begin();
            itJ != it->second.first.end();) {
-        if (false) {
+        if (!(*itJ)->State) {
           notprocessed.push_back((*itJ)->JobID);
           it->second.second.push_back(*itJ);
           itJ = it->second.first.erase(itJ);
