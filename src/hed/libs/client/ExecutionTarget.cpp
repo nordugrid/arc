@@ -17,6 +17,7 @@
 namespace Arc {
 
   Logger ExecutionTarget::logger(Logger::getRootLogger(), "ExecutionTarget");
+  Logger ComputingServiceType::logger(Logger::getRootLogger(), "ComputingServiceType");
 
   SubmitterPluginLoader ExecutionTarget::loader;
 
@@ -27,7 +28,12 @@ namespace Arc {
          itCE != ComputingEndpoint.end(); ++itCE) {
       if (!Attributes->OriginalEndpoint.PreferredJobInterfaceName.empty()) {
         // If this endpoint has a non-preferred job interface, we skip it
-        if (itCE->second->InterfaceName != Attributes->OriginalEndpoint.PreferredJobInterfaceName) continue;             
+        if (itCE->second->InterfaceName != Attributes->OriginalEndpoint.PreferredJobInterfaceName) {
+          logger.msg(INFO,
+            "Skipping ComputingEndpoint '%s', because it has '%s' interface instead of the preferred '%s'.",
+            itCE->second->URLString, itCE->second->InterfaceName, Attributes->OriginalEndpoint.PreferredJobInterfaceName);
+          continue;
+        }
       }
       if (!itCE->second.ComputingShareIDs.empty()) {
         for (std::set<int>::const_iterator itCSIDs = itCE->second.ComputingShareIDs.begin();

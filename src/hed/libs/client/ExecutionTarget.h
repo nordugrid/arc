@@ -328,6 +328,7 @@ namespace Arc {
   private:
     template<typename T>
     void AddExecutionTarget(T& container, const ExecutionTarget& et) const;
+    static Logger logger;
   };
 
   /// ExecutionTarget
