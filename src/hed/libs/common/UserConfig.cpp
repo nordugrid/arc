@@ -880,6 +880,11 @@ namespace Arc {
                 common["rejectservices"].Destroy();
             }
           }
+          while (common["reject"]) {
+            rejectedURLs.push_back((std::string)common["reject"]);
+            common["reject"].Destroy();
+          }
+          
           HANDLESTRATT("overlayfile", OverlayFile)
           if(!overlayfile.empty())
             if (!Glib::file_test(overlayfile, Glib::FILE_TEST_IS_REGULAR))
@@ -901,32 +906,28 @@ namespace Arc {
         while (XMLNode section = ini.Child()) {
           std::string sectionName = section.Name();
           if (sectionName.find(registrySectionPrefix) == 0 || sectionName.find(computingSectionPrefix) == 0) {
-            if (section["reject"] && section["reject"] != "no") {
-              rejectedURLs.push_back(section["url"]);
+            ConfigEndpoint service(section["url"]);
+            std::string alias;
+            if (sectionName.find(registrySectionPrefix) == 0) {
+              alias = sectionName.substr(registrySectionPrefix.length());
+              service.type = ConfigEndpoint::REGISTRY;
+              service.InterfaceName = (std::string)section["registryinterface"];
             } else {
-              ConfigEndpoint service(section["url"]);
-              std::string alias;
-              if (sectionName.find(registrySectionPrefix) == 0) {
-                alias = sectionName.substr(registrySectionPrefix.length());
-                service.type = ConfigEndpoint::REGISTRY;
-                service.InterfaceName = (std::string)section["registryinterface"];
-              } else {
-                alias = sectionName.substr(computingSectionPrefix.length());
-                service.type = ConfigEndpoint::COMPUTINGINFO;
-                service.InterfaceName = (std::string)section["infointerface"];
-                service.RequestedJobInterfaceName = (std::string)section["jobinterface"];
-                if (service.RequestedJobInterfaceName.empty()) {
-                  service.RequestedJobInterfaceName = JobInterface();
-                }
+              alias = sectionName.substr(computingSectionPrefix.length());
+              service.type = ConfigEndpoint::COMPUTINGINFO;
+              service.InterfaceName = (std::string)section["infointerface"];
+              service.RequestedJobInterfaceName = (std::string)section["jobinterface"];
+              if (service.RequestedJobInterfaceName.empty()) {
+                service.RequestedJobInterfaceName = JobInterface();
               }
+            }
               
-              allServices[alias] = service;
-              if (section["default"] && section["default"] != "no") {
-                defaultServices.push_back(service);
-              }
-              if (section["group"]) {
-                groupMap[section["group"]].push_back(service);
-              }
+            allServices[alias] = service;
+            if (section["default"] && section["default"] != "no") {
+              defaultServices.push_back(service);
+            }
+            if (section["group"]) {
+              groupMap[section["group"]].push_back(service);
             }
           } else {
             logger.msg(INFO, "Unknown section %s, ignoring it", sectionName);
