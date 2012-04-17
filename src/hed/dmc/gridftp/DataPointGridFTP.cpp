@@ -561,7 +561,7 @@ namespace Arc {
       logger.msg(INFO, "Failed to get ftp file");
       logger.msg(ERROR, trim(globus_object_to_string(error)));
       it->cond.lock();
-      it->failure_code = DataStatus(DataStatus::ReadStartError, globus_object_to_string(error));
+      it->failure_code = DataStatus(DataStatus::ReadStartError, trim(globus_object_to_string(error)));
       it->cond.unlock();
       it->buffer->error_read(true);
     } else {
@@ -811,7 +811,7 @@ namespace Arc {
     if (error != GLOBUS_SUCCESS) {
       logger.msg(INFO, "Failed to store ftp file");
       it->cond.lock(); // Protect access to failure_code
-      it->failure_code = DataStatus(DataStatus::WriteStartError, globus_object_to_string(error));
+      it->failure_code = DataStatus(DataStatus::WriteStartError, trim(globus_object_to_string(error)));
       it->cond.unlock();
       logger.msg(ERROR, trim(globus_object_to_string(error)));
       it->buffer->error_write(true);
