@@ -22,6 +22,7 @@
 #include <arc/DateTime.h>
 #include <arc/Thread.h>
 #include <arc/FileAccess.h>
+#include <arc/FileUtils.h>
 #include "../files/delete.h"
 #include "../misc/escaped.h"
 
@@ -1010,44 +1011,44 @@ bool job_output_read_file(const JobId &id,const JobUser &user,std::list<FileData
 
 /* common functions */
 
-bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files,job_output_mode mode) {
-  std::ofstream f(fname.c_str(),std::ios::out | std::ios::trunc);
-  if(! f.is_open() ) return false; /* can't open file */
+bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files,job_output_mode mode, uid_t uid, gid_t gid) {
+  std::ostringstream s;
   for(FileData::iterator i=files.begin();i!=files.end(); ++i) { 
     if(mode == job_output_all) {
-      f << (*i) << std::endl;
+      s << (*i) << std::endl;
     } else if(mode == job_output_success) {
       if(i->ifsuccess) {
-        f << (*i) << std::endl;
+        s << (*i) << std::endl;
       } else {
         // This case is handled at higher level
       };
     } else if(mode == job_output_cancel) {
       if(i->ifcancel) {
-        f << (*i) << std::endl;
+        s << (*i) << std::endl;
       } else {
         // This case is handled at higher level
       };
     } else if(mode == job_output_failure) {
       if(i->iffailure) {
-        f << (*i) << std::endl;
+        s << (*i) << std::endl;
       } else {
         // This case is handled at higher level
       };
     };
   };
-  f.close();
+  if (!Arc::FileCreate(fname, s.str(), uid, gid)) return false;
   return true;
 }
 
-bool job_Xput_read_file(const std::string &fname,std::list<FileData> &files) {
-  std::ifstream f(fname.c_str());
-  if(! f.is_open() ) return false; /* can't open file */
-  for(;!f.eof();) {
-    FileData fd; f >> fd;
+bool job_Xput_read_file(const std::string &fname,std::list<FileData> &files, uid_t uid, gid_t gid) {
+  std::list<std::string> file_content;
+  if (!Arc::FileRead(fname, file_content, uid, gid)) return false;
+  for(std::list<std::string>::iterator i = file_content.begin(); i != file_content.end(); ++i) {
+    FileData fd;
+    std::istringstream s(*i);
+    s >> fd;
     if(!fd.pfn.empty()) files.push_back(fd);
   };
-  f.close();
   return true;
 }
 
@@ -1097,18 +1098,14 @@ bool job_clean_deleted(const JobDescription &desc,const JobUser &user,std::list<
   fname = user.ControlDir()+"/job."+id+sfx_outputstatus; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+sfx_inputstatus; remove(fname.c_str());
   /* remove session directory */
-  std::list<FileData> flist;
   std::string dname = user.SessionRoot(id)+"/"+id;
   if(user.StrictSession()) {
     uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
-    Arc::FileAccess fa;
-    fa.setuid(uid,gid);
-    fa.rmdirr(dname);
+    Arc::DirDelete(dname, true, uid, gid);
   } else {
-    delete_all_files(dname,flist,true);
-    remove(dname.c_str());
-  };
+    Arc::DirDelete(dname);
+  }
   // remove cache per-job links, in case this failed earlier
   // list all files in the dir and delete them
   for (std::list<std::string>::iterator i = cache_per_job_dirs.begin(); i != cache_per_job_dirs.end(); i++) {

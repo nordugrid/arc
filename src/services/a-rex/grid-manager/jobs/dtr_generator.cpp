@@ -338,6 +338,8 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
     }
   }
   const JobUser* jobuser(it->second);
+  uid_t job_uid = jobuser->StrictSession() ? dtr->get_local_user().get_uid() : 0;
+  uid_t job_gid = jobuser->StrictSession() ? dtr->get_local_user().get_gid() : 0;
 
   // create JobDescription object to pass to job_..write_file methods
   std::string session_dir(jobuser->SessionRoot(jobid) + '/' + jobid);
@@ -384,7 +386,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
           if (i->pfn.size() > 1 && i->pfn[1] == '@') {
             std::string dynamic_output(session_dir+'/'+i->pfn.substr(2));
             std::list<FileData> dynamic_files;
-            if (!job_Xput_read_file(dynamic_output, dynamic_files)) {
+            if (!job_Xput_read_file(dynamic_output, dynamic_files, job_uid, job_gid)) {
               logger.msg(Arc::WARNING, "%s: Failed to read dynamic output files in %s", jobid, dynamic_output);
             } else {
               logger.msg(Arc::DEBUG, "%s: Going through files in list %s", jobid, dynamic_output);
@@ -394,7 +396,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
                   logger.msg(Arc::DEBUG, "%s: Removing %s from dynamic output file %s", jobid, dtr_lfn.str(), dynamic_output);
                   uploaded_file = *dynamic_file;
                   dynamic_files.erase(dynamic_file);
-                  if (!job_Xput_write_file(dynamic_output, dynamic_files))
+                  if (!job_Xput_write_file(dynamic_output, dynamic_files, job_output_all, job_uid, job_gid))
                     logger.msg(Arc::WARNING, "%s: Failed to write back dynamic output files in %s", jobid, dynamic_output);
                   break;
                 }
@@ -403,9 +405,6 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
           }
           if (file_lfn.str() == dtr_lfn.str()) {
             uploaded_file = *i;
-            struct stat st;
-            Arc::FileStat(job.SessionDir() + i->pfn, &st, true);
-            dtr_transfer_statistics += "size=" + Arc::tostring(st.st_size) + ',';
             i = files.erase(i);
           } else {
             ++i;
@@ -422,13 +421,12 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
           }
         }
       }
+      if (dtr->get_source()->CheckSize()) dtr_transfer_statistics += "size=" + Arc::tostring(dtr->get_source()->GetSize()) + ',';
       dtr_transfer_statistics += "starttime=" + dtr->get_creation_time().str(Arc::UTCTime) + ',';
       dtr_transfer_statistics += "endtime=" + Arc::Time().str(Arc::UTCTime); 
     }
     else if (dtr->get_destination()->Local()) {
       // input files
-      struct stat st;
-      Arc::FileStat(dtr->get_destination()->str(), &st, true);
       dtr_transfer_statistics = "inputfile:url=" + dtr->get_source()->str() + ',';
       if (!job_input_read_file(jobid, *jobuser, files)) {
         logger.msg(Arc::WARNING,"%s: Failed to read list of input files", jobid);
@@ -440,7 +438,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
           Arc::URL dtr_lfn(dtr->get_source()->str());
           if (file_lfn.str() == dtr_lfn.str()) {
             struct stat st;
-            Arc::FileStat(job.SessionDir() + i->pfn, &st, true);
+            Arc::FileStat(job.SessionDir() + i->pfn, &st, job_uid, job_gid, true);
             dtr_transfer_statistics += "size=" + Arc::tostring(st.st_size) + ',';
             i = files.erase(i);
             break;
@@ -509,12 +507,24 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
       if (finished_jobs.find(jobid) != finished_jobs.end() && !finished_jobs[jobid].empty()) {
         for (std::list<FileData>::iterator i = files.begin(); i != files.end(); ++i) {
           if (i->pfn.size() > 1 && i->pfn[1] == '@') {
+            std::string dynamic_output(session_dir+'/'+i->pfn.substr(2));
             FileData fd(std::string(i->pfn.erase(1,1)), "");
             files.push_back(fd);
+            // also add files left inside dynamic output file
+            std::list<FileData> dynamic_files;
+            if (!job_Xput_read_file(dynamic_output, dynamic_files, job_uid, job_gid)) {
+              logger.msg(Arc::WARNING, "%s: Failed to read dynamic output files in %s", jobid, dynamic_output);
+            } else {
+              for (std::list<FileData>::iterator dynamic_file = dynamic_files.begin();
+                   dynamic_file != dynamic_files.end(); ++dynamic_file) {
+                FileData f(dynamic_file->pfn, "");
+                files.push_back(f);
+              }
+            }
           }
         }
       }
-      if (delete_all_files(job.SessionDir(), files, true) == 2)
+      if (delete_all_files(job.SessionDir(), files, true, job_uid, job_gid) == 2)
         logger.msg(Arc::WARNING, "%s: Failed to clean up session dir", jobid);
     }
   }
@@ -523,7 +533,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
     std::list<FileData> files;
     if (!job_input_read_file(jobid, *jobuser, files))
       logger.msg(Arc::WARNING, "%s: Failed to read list of input files, can't clean up session dir", jobid);
-    else if (delete_all_files(job.SessionDir(), files, false, true, false) == 2)
+    else if (delete_all_files(job.SessionDir(), files, false, job_uid, job_gid) == 2)
       logger.msg(Arc::WARNING, "%s: Failed to clean up session dir", jobid);
   }
   // add to finished jobs (without overwriting existing error)
@@ -568,6 +578,8 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
   }
   const JobUser* jobuser(it->second);
   const GMEnvironment& env = jobuser->Env();
+  uid_t job_uid = jobuser->StrictSession() ? job.get_uid() : 0;
+  uid_t job_gid = jobuser->StrictSession() ? job.get_gid() : 0;
   
   // Create a file for the transfer statistics and fix its permissions
   std::string fname = jobuser->ControlDir() + "/job." + jobid + ".statistics";
@@ -627,7 +639,7 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
       }
     }
     // pre-clean session dir before downloading
-    if (delete_all_files(job.SessionDir(), files, false, true, false) == 2) {
+    if (delete_all_files(job.SessionDir(), files, false, job_uid, job_gid) == 2) {
       logger.msg(Arc::ERROR, "%s: Failed to clean up session dir", jobid);
       lock.lock();
       finished_jobs[jobid] = std::string("Failed to clean up session dir before downloading inputs");
@@ -644,7 +656,7 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
       if (it->pfn.find("@") == 1) { // GM puts a slash on the front of the local file
         std::string outputfilelist = job.SessionDir() + std::string("/") + it->pfn.substr(2);
         logger.msg(Arc::INFO, "%s: Reading output files from user generated list in %s", jobid, outputfilelist);
-        if (!job_Xput_read_file(outputfilelist, files)) {
+        if (!job_Xput_read_file(outputfilelist, files, job_uid, job_gid)) {
           logger.msg(Arc::ERROR, "%s: Error reading user generated output file list in %s", jobid, outputfilelist);
           lock.lock();
           finished_jobs[jobid] = std::string("Error reading user generated output file list");
@@ -691,7 +703,7 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
         break;
     }
     // pre-clean session dir before uploading
-    if (delete_all_files(job.SessionDir(), files, true) == 2) {
+    if (delete_all_files(job.SessionDir(), files, true, job_uid, job_gid) == 2) {
       logger.msg(Arc::ERROR, "%s: Failed to clean up session dir", jobid);
       lock.lock();
       finished_jobs[jobid] = std::string("Failed to clean up session dir before uploading outputs");
@@ -850,6 +862,8 @@ int DTRGenerator::checkUploadedFiles(JobDescription& job) {
     }
   }
   const JobUser* jobuser(it->second);
+  uid_t job_uid = jobuser->StrictSession() ? jobuser->get_uid() : 0;
+  uid_t job_gid = jobuser->StrictSession() ? jobuser->get_gid() : 0;
 
   std::string session_dir(jobuser->SessionRoot(jobid) + '/' + jobid);
   // get input files list
@@ -871,7 +885,7 @@ int DTRGenerator::checkUploadedFiles(JobDescription& job) {
     }
     logger.msg(Arc::VERBOSE, "%s: Checking user uploadable file: %s", jobid, i->pfn);
     std::string error;
-    int err = user_file_exists(*i, session_dir, error);
+    int err = user_file_exists(*i, session_dir, error, job_uid, job_gid);
 
     if (err == 0) { // file is uploaded
       logger.msg(Arc::VERBOSE, "%s: User has uploaded file %s", jobid, i->pfn);
@@ -905,21 +919,20 @@ int DTRGenerator::checkUploadedFiles(JobDescription& job) {
     logger.msg(Arc::ERROR, "%s: Uploadable files timed out", jobid);
     res = 1;
   }
-  // clean unfinished files here
-  delete_all_files(session_dir, input_files, false, true, false);
   return res;
 }
 
 int DTRGenerator::user_file_exists(FileData &dt,
                                    const std::string& session_dir,
-                                   std::string& error) {
+                                   std::string& error,
+                                   uid_t uid, gid_t gid) {
   struct stat st;
   std::string file_info(dt.lfn);
   if (file_info == "*.*") return 0; // do not wait for this file
 
   std::string fname = session_dir + '/' + dt.pfn;
   // check if file exists at all
-  if (lstat(fname.c_str(), &st) != 0) return 2;
+  if (!Arc::FileStat(fname.c_str(), &st, uid, gid, false)) return 2;
 
   // if no size/checksum was supplied, return success
   if (file_info.empty()) return 0;
@@ -986,6 +999,7 @@ int DTRGenerator::user_file_exists(FileData &dt,
   }
 
   if (have_checksum) { // calculate checksum
+    // TODO user switch when norootpower is set eg CheckSum::FileChecksum with FileAccess
     int h = ::open(fname.c_str(), O_RDONLY);
     if (h == -1) { // if we can't read that file job won't too
       logger.msg(Arc::ERROR, "Error accessing file %s", dt.pfn);

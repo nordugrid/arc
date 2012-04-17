@@ -107,7 +107,7 @@ class SimpleConditionLock {
 
 int clean_files(std::list<FileData> &job_files,char* session_dir) {
   std::string session(session_dir);
-  if(delete_all_files(session,job_files,true) != 2) return 0;
+  if(delete_all_files(session,job_files,true,0,0) != 2) return 0;
   return 1;
 }
 
