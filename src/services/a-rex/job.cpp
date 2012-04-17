@@ -5,6 +5,9 @@
 #include <cstdlib>
 // NOTE: On Solaris errno is not working properly if cerrno is included first
 #include <cerrno>
+#include <fstream>
+#include <iostream>
+#include <string>
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -288,6 +291,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
 
 ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid, Arc::Logger& logger, JobIDGenerator& idgenerator,  Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
   if(!config_) return;
+  DelegationStores* deleg = config_.User()->Env().delegations();
   // New job is created here
   // First get and acquire new id
   if(!make_job_id()) return;
@@ -439,7 +443,67 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     delete_job_id();
     return;
   };
-
+  std::string cred = credentials;
+  if(cred.empty()) {
+    // If job comes through EMI-ES it has delegations assigned per file.
+    // But special dynamic output files @list have no targets and no delegations.
+    bool need_delegation = false;
+    for(std::list<Arc::OutputFileType>::iterator f = desc.DataStaging.OutputFiles.begin();
+                                                 f != desc.DataStaging.OutputFiles.end();++f) {
+      if(f->Name[0] == '@') {
+        // dynamic file
+        // It should be error here. But cirrent workaround is to try to use
+        // any of provided delegations.
+        need_delegation = true; 
+        break;
+      };
+    };
+    // hack - find any delegation available
+    if(need_delegation && deleg) {
+      for(std::list<Arc::OutputFileType>::iterator f = desc.DataStaging.OutputFiles.begin();
+                                                   f != desc.DataStaging.OutputFiles.end();++f) {
+        for(std::list<Arc::TargetType>::iterator t = f->Targets.begin();t != f->Targets.end();++t) {
+          if(!(t->DelegationID.empty())) {
+            std::string path = (*deleg)[config_.User()->DelegationDir()].
+                                      FindCred(t->DelegationID,config_.GridName());
+            if(!path.empty()) {
+              std::ifstream fcred(path.c_str());
+              std::getline(fcred,cred,'\0');
+              if(!cred.empty()) {
+                need_delegation = false; 
+                break;
+              };
+            };
+          };
+        };
+      };
+    };
+    if(need_delegation && deleg) {
+      for(std::list<Arc::InputFileType>::iterator f = desc.DataStaging.InputFiles.begin();
+                                                  f != desc.DataStaging.InputFiles.end();++f) {
+        for(std::list<Arc::SourceType>::iterator t = f->Sources.begin();t != f->Sources.end();++t) {
+          if(!(t->DelegationID.empty())) {
+            std::string path = (*deleg)[config_.User()->DelegationDir()].
+                                      FindCred(t->DelegationID,config_.GridName());
+            if(!path.empty()) {
+              std::ifstream fcred(path.c_str());
+              std::getline(fcred,cred,'\0');
+              if(!cred.empty()) {
+                need_delegation = false;
+                break;
+              };
+            };
+          };
+        };
+      };
+    };
+    if(need_delegation) {
+      failure_="Dynamic output files and no delegation assigned to job are incompatible.";
+      failure_type_=ARexJobDescriptionUnsupportedError;
+      delete_job_id();
+      return;
+    }
+  };
   // Start local file
   /* !!!!! some parameters are unchecked here - rerun,diskspace !!!!! */
   job_.jobid=id_;
@@ -454,8 +518,8 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   job_.headnode = idgenerator.GetManager();
   job_.interface = idgenerator.GetInterface();
   // Try to create proxy/certificate
-  if(!credentials.empty()) {
-    if(!update_credentials(credentials)) {
+  if(!cred.empty()) {
+    if(!update_credentials(cred)) {
       failure_="Failed to store credentials";
       failure_type_=ARexJobInternalError;
       delete_job_id();
@@ -601,7 +665,6 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     return;
   };
   // Put lock on delegated credentials
-  DelegationStores* deleg = config_.User()->Env().delegations();
   if(deleg) (*deleg)[config_.User()->DelegationDir()].LockCred(id_,deleg_ids,config_.GridName());
 
   SignalFIFO(*config_.User());
