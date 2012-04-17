@@ -346,7 +346,7 @@ ClientOptions::ClientOptions(Client_t c,
                       "in the language accepted by the target"),
               dumpdescription);
     
-    AddOption('i', "interface",
+    AddOption('I', "interface",
               istring("the interface which should be used for submitting "
                       "(e.g. org.nordugrid.gridftpjob, org.ogf.emies, org.nordugrid.xbes)"),
               istring("InterfaceName"),
@@ -354,7 +354,7 @@ ClientOptions::ClientOptions(Client_t c,
   }
   
   if (c == CO_INFO) {
-    AddOption('i', "interface",
+    AddOption('I', "interface",
               istring("only get information about executon targets which supports this job submission interface "
                       "(e.g. org.nordugrid.gridftpjob, org.ogf.emies, org.nordugrid.xbes)"),
               istring("InterfaceName"),
