@@ -125,6 +125,16 @@ namespace Arc {
 
     int operator==(const Job& other);
 
+    /// Set Job attributes from a XMLNode representing GLUE2 ComputingActivity
+    /**
+     * Because job XML representation follows GLUE2 model this method is
+     * similar to operator=(XMLNode). But it only covers job attributes which
+     * are part of GLUE2 computing activity. Also it treats Job object as
+     * being iextended with information provided by XMLNode. Contrary operator=(XMLNode)
+     * fully reinitializes Job, hence removing any associations to other objects.
+     **/
+    void Update(XMLNode job);
+
     /// Add job information to a XMLNode
     /**
      * Child nodes of GLUE ComputingActivity type containing job information of

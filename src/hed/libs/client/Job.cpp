@@ -226,10 +226,21 @@ namespace Arc {
   Job& Job::operator=(XMLNode job) {
     jc = NULL;
 
+    // Information specific to how job is stored in jobs list
     if (job["JobID"]) {
       JobID = URL((std::string)job["JobID"]);
     } else if (job["IDFromEndpoint"]) { // Backwardscompatibility: Pre 2.0.0 format.
       JobID = URL((std::string)job["IDFromEndpoint"]);
+    }
+    if (job["IDFromEndpoint"]
+        /* If this is pre 2.0.0 format then JobID element would not
+         * exist, and the usage of IDFromEndpoint element corresponded
+         * to the current usage of the JobID element. Therefore only set
+         * the IDFromEndpoint member if the JobID _does_ exist.
+         */
+        && job["JobID"]
+        ) {
+      IDFromEndpoint = (std::string)job["IDFromEndpoint"];
     }
 
     JXMLTOSTRING(Name)
@@ -244,31 +255,11 @@ namespace Arc {
       else if ((std::string)job["Flavour"] == "EMIES") InterfaceName = "org.ogf.emies";
       else if ((std::string)job["Flavour"] == "TEST")  InterfaceName = "org.nordugrid.test";
     }
-    JXMLTOSTRING(Type)
 
-    if (job["IDFromEndpoint"]
-        /* If this is pre 2.0.0 format then JobID element would not
-         * exist, and the usage of IDFromEndpoint element corresponded
-         * to the current usage of the JobID element. Therefore only set
-         * the IDFromEndpoint member if the JobID _does_ exist.
-         */
-        && job["JobID"]
-        ) {
-      IDFromEndpoint = (std::string)job["IDFromEndpoint"];
-    }
-    
     if (job["InfoEndpoint"] && job["Flavour"] && (std::string)job["Flavour"] == "ARC0") {
       IDFromEndpoint = (std::string)job["InfoEndpoint"];
     }
 
-    JXMLTOSTRING(LocalIDFromManager)
-
-    /* Earlier the 'JobDescription' element in a XMLNode representing a Job
-     * object contained the actual job description, but in GLUE2 the name
-     * 'JobDescription' specifies the job description language which was used to
-     * describe the job. Due to the name clash we must guess what is meant when
-     * parsing the 'JobDescription' element.
-     */
     if (job["JobDescription"]) {
       const std::string sjobdesc = job["JobDescription"];
       if (job["JobDescriptionDocument"] || job["State"] ||
@@ -284,6 +275,60 @@ namespace Arc {
     }
 
     JXMLTOSTRING(JobDescriptionDocument)
+    JXMLTOTIME(LocalSubmissionTime)
+
+    if (job["Associations"]["ActivityOldID"]) {
+      ActivityOldID.clear();
+      for (XMLNode n = job["Associations"]["ActivityOldID"]; n; ++n) {
+        ActivityOldID.push_back((std::string)n);
+      }
+    }
+    else if (job["OldJobID"]) { // Included for backwards compatibility.
+      ActivityOldID.clear();
+      for (XMLNode n = job["OldJobID"]; n; ++n) {
+        ActivityOldID.push_back((std::string)n);
+      }
+    }
+
+    if (job["Associations"]["LocalInputFile"]) {
+      LocalInputFiles.clear();
+      for (XMLNode n = job["Associations"]["LocalInputFile"]; n; ++n) {
+        if (n["Source"] && n["CheckSum"]) {
+          LocalInputFiles[(std::string)n["Source"]] = (std::string)n["CheckSum"];
+        }
+      }
+    }
+    else if (job["LocalInputFiles"]["File"]) { // Included for backwards compatibility.
+      LocalInputFiles.clear();
+      for (XMLNode n = job["LocalInputFiles"]["File"]; n; ++n) {
+        if (n["Source"] && n["CheckSum"]) {
+          LocalInputFiles[(std::string)n["Source"]] = (std::string)n["CheckSum"];
+        }
+      }
+    }
+
+    // Pick generic GLUE2 information
+    Update(job);
+
+    return *this;
+  }
+
+  void Job::Update(XMLNode job) {
+
+    JXMLTOSTRING(Type)
+
+    // TODO: find out how to treat IDFromEndpoint in case of pure GLUE2
+    
+    JXMLTOSTRING(LocalIDFromManager)
+
+    /* Earlier the 'JobDescription' element in a XMLNode representing a Job
+     * object contained the actual job description, but in GLUE2 the name
+     * 'JobDescription' specifies the job description language which was used to
+     * describe the job. Due to the name clash we must guess what is meant when
+     * parsing the 'JobDescription' element.
+     */
+
+    //  TODO: same for JobDescription
 
     // Parse libarcclient special state format.
     if (job["State"]["General"] && job["State"]["Specific"]) {
@@ -325,7 +370,6 @@ namespace Arc {
     JXMLSTRINGTO(long, UsedTotalWallTime)
     JXMLSTRINGTO(long, UsedTotalCPUTime)
     JXMLSTRINGTO(int, UsedMainMemory)
-    JXMLTOTIME(LocalSubmissionTime)
     JXMLTOTIME(SubmissionTime)
     JXMLTOTIME(ComputingManagerSubmissionTime)
     JXMLTOTIME(StartTime)
@@ -337,37 +381,6 @@ namespace Arc {
     JXMLTOSTRING(SubmissionClientName)
     JXMLTOSTRINGLIST(OtherMessages)
 
-    if (job["Associations"]["ActivityOldID"]) {
-      ActivityOldID.clear();
-      for (XMLNode n = job["Associations"]["ActivityOldID"]; n; ++n) {
-        ActivityOldID.push_back((std::string)n);
-      }
-    }
-    else if (job["OldJobID"]) { // Included for backwards compatibility.
-      ActivityOldID.clear();
-      for (XMLNode n = job["OldJobID"]; n; ++n) {
-        ActivityOldID.push_back((std::string)n);
-      }
-    }
-
-    if (job["Associations"]["LocalInputFile"]) {
-      LocalInputFiles.clear();
-      for (XMLNode n = job["Associations"]["LocalInputFile"]; n; ++n) {
-        if (n["Source"] && n["CheckSum"]) {
-          LocalInputFiles[(std::string)n["Source"]] = (std::string)n["CheckSum"];
-        }
-      }
-    }
-    else if (job["LocalInputFiles"]["File"]) { // Included for backwards compatibility.
-      LocalInputFiles.clear();
-      for (XMLNode n = job["LocalInputFiles"]["File"]; n; ++n) {
-        if (n["Source"] && n["CheckSum"]) {
-          LocalInputFiles[(std::string)n["Source"]] = (std::string)n["CheckSum"];
-        }
-      }
-    }
-
-    return *this;
   }
 
   void Job::ToXML(XMLNode node) const {
