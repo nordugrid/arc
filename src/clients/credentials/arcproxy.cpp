@@ -299,11 +299,11 @@ int main(int argc, char *argv[]) {
                     istring("path"), proxy_path);
 
   std::string cert_path;
-  options.AddOption('C', "cert", istring("path to the certificate file"),
+  options.AddOption('C', "cert", istring("path to the certificate file, it can be either pem, der, or pkcs12 formated"),
                     istring("path"), cert_path);
 
   std::string key_path;
-  options.AddOption('K', "key", istring("path to the private key file"),
+  options.AddOption('K', "key", istring("path to the private key file, if the certificate is in pkcs12 format, then no need to give private key"),
                     istring("path"), key_path);
 
   std::string ca_dir;
