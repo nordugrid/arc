@@ -94,10 +94,10 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
   }
 
   std::list<std::string> selectedURLs = getSelectedURLsFromUserConfigAndCommandLine(usercfg, opt.clusters);
-  std::list<std::string> rejectedURLs = getRejectedURLsFromUserConfigAndCommandLine(usercfg, opt.rejectedurls);
+  std::list<std::string> rejectManagementURLs = getRejectManagementURLsFromUserConfigAndCommandLine(usercfg, opt.rejectmanagement);
 
   std::list<Arc::Job> jobs;
-  if (!Arc::Job::ReadJobsFromFile(usercfg.JobListFile(), jobs, jobIDsOrNames, opt.all, selectedURLs, rejectedURLs)) {
+  if (!Arc::Job::ReadJobsFromFile(usercfg.JobListFile(), jobs, jobIDsOrNames, opt.all, selectedURLs, rejectManagementURLs)) {
     logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());
     return 1;
   }
@@ -121,10 +121,11 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
   }
 
   std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.qlusters, opt.indexurls, opt.requestedSubmissionInterfaceName);
+  std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
 
   std::list<Arc::Job> resubmittedJobs;
   // same + 2*notsame in {0,1,2}. same and notsame cannot both be true, see above.
-  int retval = (int)!jobmaster.Resubmit((int)opt.same + 2*(int)opt.notsame, services, resubmittedJobs);
+  int retval = (int)!jobmaster.Resubmit((int)opt.same + 2*(int)opt.notsame, services, resubmittedJobs, rejectDiscoveryURLs);
   if (retval == 0 && resubmittedJobs.empty()) {
     std::cout << Arc::IString("No jobs to resubmit with the specified status") << std::endl;
     return 0;

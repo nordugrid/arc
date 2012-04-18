@@ -93,8 +93,6 @@ namespace Arc {
    * - cacertificatepath / CACertificatePath(const std::string&)
    * - timeout / Timeout(int)
    * - joblist / JobListFile(const std::string&)
-   * - defaultservices / AddServices(const std::list<std::string>&, const std::list<std::string>&, ServiceType)
-   * - rejectservices / AddServices(const std::list<std::string>&, const std::list<std::string>&, ServiceType)
    * - verbosity / Verbosity(const std::string&)
    * - brokername / Broker(const std::string&) or Broker(const std::string&, const std::string&)
    * - brokerarguments / Broker(const std::string&) or Broker(const std::string&, const std::string&)
@@ -346,8 +344,6 @@ namespace Arc {
      * - cacertificatepath (CACertificatePath(const std::string&))
      * - timeout (Timeout(int))
      * - joblist (JobListFile(const std::string&))
-     * - defaultservices (AddServices(const std::list<std::string>&, const std::list<std::string>&, ServiceType))
-     * - rejectservices (AddServices(const std::list<std::string>&, const std::list<std::string>&, ServiceType))
      * - verbosity (Verbosity(const std::string&))
      * - brokername (Broker(const std::string&) or Broker(const std::string&, const std::string&))
      * - brokerarguments (Broker(const std::string&) or Broker(const std::string&, const std::string&))
@@ -1061,7 +1057,8 @@ namespace Arc {
     }
 
 
-    const std::list<std::string>& RejectedURLs() const { return rejectedURLs; };
+    const std::list<std::string>& RejectDiscoveryURLs() const { return rejectDiscoveryURLs; };
+    const std::list<std::string>& RejectManagementURLs() const { return rejectManagementURLs; };
 
 
     /// Path to ARC user home directory
@@ -1146,7 +1143,8 @@ namespace Arc {
     std::list<ConfigEndpoint> defaultServices;
     std::map<std::string, ConfigEndpoint> allServices;
     std::map<std::string, std::list<ConfigEndpoint> > groupMap;
-    std::list<std::string> rejectedURLs;
+    std::list<std::string> rejectDiscoveryURLs;
+    std::list<std::string> rejectManagementURLs;
 
     // Vector needed for random access.
     std::vector<URL> bartenders;

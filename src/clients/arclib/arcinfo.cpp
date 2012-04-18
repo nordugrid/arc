@@ -80,9 +80,9 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
     preferredInterfaceNames.push_back(usercfg.InfoInterface());
   }
 
-  std::list<std::string> rejectedURLs = getRejectedURLsFromUserConfigAndCommandLine(usercfg, opt.rejectedurls);
+  std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
 
-  Arc::ComputingServiceRetriever csr(usercfg, endpoints, rejectedURLs, preferredInterfaceNames);
+  Arc::ComputingServiceRetriever csr(usercfg, endpoints, rejectDiscoveryURLs, preferredInterfaceNames);
   csr.wait();
   std::list<Arc::ExecutionTarget> etList;
   Arc::ExecutionTarget::GetExecutionTargets(csr, etList);

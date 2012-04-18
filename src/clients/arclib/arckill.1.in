@@ -25,6 +25,8 @@ the file storing information about active jobs (default ~/.arc/jobs.xml)
 a file containing a list of jobIDs
 .IP "\fB-c\fR, \fB--cluster\fR=\fIname\fR"
 select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
+.IP "\fB-r\fR, \fB--rejectmanagement\fR=\fIURL\fR"
+skip jobs which are on a computing element with a given URL
 .IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"
 only select jobs whose status is statusstr
 .IP "\fB-k\fR, \fB--keep\fR"

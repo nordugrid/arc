@@ -99,7 +99,7 @@ int RUNMAIN(arcacl)(int argc, char **argv) {
   }
 
   std::list<std::string> selectedURLs = getSelectedURLsFromUserConfigAndCommandLine(usercfg, opt.clusters);
-  std::list<std::string> rejectedURLs = getRejectedURLsFromUserConfigAndCommandLine(usercfg, opt.rejectedurls);
+  std::list<std::string> rejectManagementURLs = getRejectManagementURLsFromUserConfigAndCommandLine(usercfg, opt.rejectmanagement);
 
   /*
   // If needed, read ACL from stdin
@@ -118,7 +118,7 @@ int RUNMAIN(arcacl)(int argc, char **argv) {
 
   // First try to find objects in jobs' file
   std::list<Arc::Job> jobs;
-  if (!Arc::Job::ReadJobsFromFile(usercfg.JobListFile(), jobs, jobidentifiers, opt.all, selectedURLs, rejectedURLs)) {
+  if (!Arc::Job::ReadJobsFromFile(usercfg.JobListFile(), jobs, jobidentifiers, opt.all, selectedURLs, rejectManagementURLs)) {
     // If no jobs file still try and treat things like data objects
   }
 

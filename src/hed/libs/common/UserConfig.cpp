@@ -774,9 +774,14 @@ namespace Arc {
             }
           }
           
-          while (common["reject"]) {
-            rejectedURLs.push_back((std::string)common["reject"]);
-            common["reject"].Destroy();
+          while (common["rejectdiscovery"]) {
+            rejectDiscoveryURLs.push_back((std::string)common["rejectdiscovery"]);
+            common["rejectdiscovery"].Destroy();
+          }
+
+          while (common["rejectmanagement"]) {
+            rejectManagementURLs.push_back((std::string)common["rejectmanagement"]);
+            common["rejectmanagement"].Destroy();
           }
     
           HANDLESTRATT("overlayfile", OverlayFile)
@@ -865,9 +870,14 @@ namespace Arc {
       file << "certificatelifetime = " << certificateLifeTime << std::endl;
     if (slcs)
       file << "slcs = " << slcs.fullstr() << std::endl;
-    if (!rejectedURLs.empty()) {
-      for (std::list<std::string>::const_iterator it = rejectedURLs.begin(); it != rejectedURLs.end(); it++) {
-        file << "reject = " << (*it) << std::endl;
+    if (!rejectDiscoveryURLs.empty()) {
+      for (std::list<std::string>::const_iterator it = rejectDiscoveryURLs.begin(); it != rejectDiscoveryURLs.end(); it++) {
+        file << "rejectdiscovery = " << (*it) << std::endl;
+      }
+    }
+    if (!rejectManagementURLs.empty()) {
+      for (std::list<std::string>::const_iterator it = rejectManagementURLs.begin(); it != rejectManagementURLs.end(); it++) {
+        file << "rejectmanagement = " << (*it) << std::endl;
       }
     }
     if (!verbosity.empty())

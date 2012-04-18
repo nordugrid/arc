@@ -21,10 +21,16 @@ std::list<std::string> getSelectedURLsFromUserConfigAndCommandLine(Arc::UserConf
   return serviceURLs;
 }
 
-std::list<std::string> getRejectedURLsFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> rejectedURLArguments) {
-  std::list<std::string> rejectedURLs = usercfg.RejectedURLs();  
-  rejectedURLs.insert(rejectedURLs.end(), rejectedURLArguments.begin(), rejectedURLArguments.end());
-  return rejectedURLs;
+std::list<std::string> getRejectDiscoveryURLsFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> rejectdiscovery) {
+  std::list<std::string> rejectDiscoveryURLs = usercfg.RejectDiscoveryURLs();  
+  rejectDiscoveryURLs.insert(rejectDiscoveryURLs.end(), rejectdiscovery.begin(), rejectdiscovery.end());
+  return rejectDiscoveryURLs;
+}
+
+std::list<std::string> getRejectManagementURLsFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> rejectmanagement) {
+  std::list<std::string> rejectManagementURLs = usercfg.RejectManagementURLs();  
+  rejectManagementURLs.insert(rejectManagementURLs.end(), rejectmanagement.begin(), rejectmanagement.end());
+  return rejectManagementURLs;
 }
 
 
@@ -198,11 +204,6 @@ ClientOptions::ClientOptions(Client_t c,
             istring("name"),
             clusters);
 
-  AddOption('r', "reject",
-            istring("reject the service with the given URL"),
-            istring("URL"),
-            rejectedurls);
-
   if (c == CO_RESUB || c == CO_MIGRATE) {
     AddOption('q', "qluster",
               istring("selecting a computing element for the new jobs with a URL or an alias, "
@@ -357,13 +358,27 @@ ClientOptions::ClientOptions(Client_t c,
                       "(e.g. org.nordugrid.gridftpjob, org.ogf.emies, org.nordugrid.xbes)"),
               istring("InterfaceName"),
               requestedSubmissionInterfaceName);
+
   }
+  
+  if (c == CO_MIGRATE || c == CO_RESUB || c == CO_SUB || c == CO_TEST || c == CO_INFO) {
+    AddOption('R', "rejectdiscovery",
+              istring("skip the service with the given URL during service discovery"),
+              istring("URL"),
+              rejectdiscovery);
+  }
+  
 
   if (cIsJobMan || c == CO_MIGRATE || c == CO_RESUB) {
     AddOption('i', "jobids-from-file",
               istring("a file containing a list of jobIDs"),
               istring("filename"),
               jobidinfiles);
+
+    AddOption('r', "rejectmanagement",
+              istring("skip jobs which are on a computing element with a given URL"),
+              istring("URL"),
+              rejectmanagement);    
   }
 
   if (c == CO_SUB || c == CO_TEST) {

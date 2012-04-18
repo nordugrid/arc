@@ -25,9 +25,10 @@ public:
   JobSynchronizer(
     const Arc::UserConfig& uc,
     const std::list<Arc::Endpoint>& services,
+    const std::list<std::string>& rejectedServices = std::list<std::string>(),  
     const std::list<std::string>& preferredInterfaceNames = std::list<std::string>(),
     const std::list<std::string>& capabilityFilter = std::list<std::string>(1, Arc::Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO))
-  ) : uc(uc), ser(uc, Arc::EndpointQueryOptions<Arc::Endpoint>(true, capabilityFilter)),
+  ) : uc(uc), ser(uc, Arc::EndpointQueryOptions<Arc::Endpoint>(true, capabilityFilter, rejectedServices)),
       jlr(uc, Arc::EndpointQueryOptions<Arc::Job>(preferredInterfaceNames))
   {
     ser.addConsumer(*this);
@@ -177,6 +178,8 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
 
   std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters);
 
+  std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
+
   if (endpoints.empty()) {
     logger.msg(Arc::ERROR, "No services specified. Please configure default services in the client configuration,"
                            "or specify a cluster or index (-c or -g options, see arcsync -h).");
@@ -192,7 +195,7 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
     preferredInterfaceNames.push_back(usercfg.InfoInterface());
   }
 
-  JobSynchronizer js(usercfg, endpoints, preferredInterfaceNames);
+  JobSynchronizer js(usercfg, endpoints, rejectDiscoveryURLs, preferredInterfaceNames);
   js.wait();
   return js.writeJobs(opt.truncate)?0:1; // true -> 0, false -> 1.
 }

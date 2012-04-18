@@ -302,14 +302,21 @@ void UserConfigTest::LegacyAliasTest()
 void UserConfigTest::RejectionTest()
 {
   std::ofstream f(conffile.c_str(), std::ifstream::trunc);
-  f << "reject=ldap://puff.hep.lu.se\nreject=test.nordugrid.org\n";
+  f << "rejectdiscovery=ldap://puff.hep.lu.se\nrejectdiscovery=test.nordugrid.org\n";
+  f << "rejectmanagement=ldap://puff.hep.lu.se\nrejectmanagement=test.nordugrid.org\n";
   f.close();
   uc.LoadConfigurationFile(conffile);
   
-  std::list<std::string> urls = uc.RejectedURLs();
+  std::list<std::string> urls = uc.RejectDiscoveryURLs();
   CPPUNIT_ASSERT_EQUAL(2, (int)urls.size());
   CPPUNIT_ASSERT_EQUAL((std::string)"ldap://puff.hep.lu.se", urls.front());
   CPPUNIT_ASSERT_EQUAL((std::string)"test.nordugrid.org", urls.back());
+
+  std::list<std::string> urls2 = uc.RejectManagementURLs();
+  CPPUNIT_ASSERT_EQUAL(2, (int)urls2.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"ldap://puff.hep.lu.se", urls2.front());
+  CPPUNIT_ASSERT_EQUAL((std::string)"test.nordugrid.org", urls2.back());
+
   remove(conffile.c_str());
 }
 
@@ -322,8 +329,10 @@ void UserConfigTest::SaveToFileTest()
     "certificatepath = /home/username/cert.pem\n"
     "keypath = /home/username/key.pem\n"
     "cacertificatesdirectory = /home/user/cacertificates\n"
-    "reject = bad.service.org\n"
-    "reject = bad2.service.org\n"
+    "rejectdiscovery = bad.service.org\n"
+    "rejectdiscovery = bad2.service.org\n"
+    "rejectmanagement = bad3.service.org\n"
+    "rejectmanagement = bad4.service.org\n"
     "timeout = 50\n"
     "brokername = FastestQueue\n"
     "brokerarguments = arg\n"

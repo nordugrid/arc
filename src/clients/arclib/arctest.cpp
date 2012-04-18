@@ -167,8 +167,8 @@ int RUNMAIN(arctest)(int argc, char **argv) {
 
   Arc::ExecutionTargetSet ets(broker);
 
-  std::list<std::string> rejectedURLs = getRejectedURLsFromUserConfigAndCommandLine(usercfg, opt.rejectedurls);
-  Arc::ComputingServiceRetriever csr(usercfg, std::list<Arc::Endpoint>(), rejectedURLs, preferredInterfaceNames);
+  std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
+  Arc::ComputingServiceRetriever csr(usercfg, std::list<Arc::Endpoint>(), rejectDiscoveryURLs, preferredInterfaceNames);
   csr.addConsumer(ets);
   for (std::list<Arc::Endpoint>::const_iterator it = services.begin(); it != services.end(); ++it) {
     csr.addEndpoint(*it);

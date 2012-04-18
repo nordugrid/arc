@@ -20,6 +20,8 @@ information at a given cluster or index server.
 select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
 .IP "\fB-g\fR, \fB--index\fR=\fIname\fR"
 select one or more registries: \fIname\fR can be an alias for a single registry, a group of registries or a URL
+.IP "\fB-R\fR, \fB--rejectdiscovery\fR=\fIURL\fR"
+skip the service with the given URL during service discovery
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
 the file storing information about active jobs (default ~/.arc/jobs.xml)
 .IP "\fB-f\fR, \fB--force\fR"
