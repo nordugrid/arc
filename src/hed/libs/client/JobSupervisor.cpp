@@ -41,7 +41,7 @@ namespace Arc {
     }
 
     if (!job.Cluster) {
-      logger.msg(VERBOSE, "Ignoring job (%s), the resource URL is not a valid URL", job.JobID.fullstr(), job.Cluster.str());
+      logger.msg(VERBOSE, "Ignoring job (%s), the resource URL is not a valid URL", job.JobID.fullstr());
       return false;
     }
 
@@ -50,12 +50,14 @@ namespace Arc {
       JobController *jc = Job::loader.loadByInterfaceName(job.InterfaceName, usercfg);
       currentJC = loadedJCs.insert(std::pair<std::string, JobController*>(job.InterfaceName, jc)).first;
       if (!jc) {
+        logger.msg(VERBOSE, "Ignoring job (%s), unable to load JobController", job.JobID.fullstr());
         return false;
       }
       jcJobMap[jc] = std::pair< std::list<Job *>, std::list<Job*> >();
     }
     else if (!currentJC->second) {
       // Already tried to load JobController, and it failed.
+      logger.msg(VERBOSE, "Ignoring job (%s), unable to load JobController", job.JobID.fullstr());
       return false;
     }
 
