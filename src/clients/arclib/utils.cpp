@@ -354,7 +354,7 @@ ClientOptions::ClientOptions(Client_t c,
               jobidoutfile);
     
     AddOption('S', "submissioninterface",
-              istring("the interface which should be used for submitting "
+              istring("only use this interface for submitting "
                       "(e.g. org.nordugrid.gridftpjob, org.ogf.emies, org.nordugrid.xbes)"),
               istring("InterfaceName"),
               requestedSubmissionInterfaceName);

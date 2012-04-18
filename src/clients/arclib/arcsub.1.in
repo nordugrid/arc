@@ -23,6 +23,8 @@ select one or more computing elements: \fIname\fR can be an alias for a single C
 select one or more registries: \fIname\fR can be an alias for a single registry, a group of registries or a URL
 .IP "\fB-R\fR, \fB--rejectdiscovery\fR=\fIURL\fR"
 skip the service with the given URL during service discovery
+.IP "\fB-S\fR, \fB--submissioninterface\fR=\fIInterfaceName\fR"
+only use this interface for submitting (e.g. org.nordugrid.gridftpjob, org.ogf.emies, org.nordugrid.xbes)
 .IP "\fB-e\fR, \fB--jobdescrstring=\fIString"
 jobdescription string describing the job to be submitted
 .IP "\fB-f\fR, \fB--jobdescrfile=\fIfilename"
@@ -67,42 +69,30 @@ submission you need to be authenticated at the computing element. Since
 enables submission to other targets, e.g. the classic ARC CE Grid-Manager.
 
 Job submission can be accomplished by invoking the \fBarcsub\fR command
-with the \fB--cluster\fR option set to the target CE, and the job description
-file given as argument. The \fB--cluster\fR option has the following format:
-.br
-\fB[<middleware_flavour>:]<URL>\fR
-.br
-where \fBmiddleware_flavour\fR can specify the CE type, e.g. for A-REX 'ARC1'
-should be used, 'CREAM' for CREAM and 'ARC0' for Grid-Manager, and <URL>
-specifies the information endpoint of the CE, which may include the protocol (e.g. http,
-ldap, etc.). If the \fBmiddleware_flavour\fR is not specified, then the client will
-try all supported flavours to find the correct one.
+with the \fB--cluster\fR option set to the target CE (URL, alias or group), and the job description
+file given as argument.
 Multiple CEs can be targeted for submission by specifying the
 \fB--cluster\fR option multiple times, in which case the CEs will be ranked by
 the resource broker. If no \fB--cluster\fR or \fB--index\fR (see below) options
 have been specified, then the defaults, which is read from the configuration
 file (see the files section), will be used. That also makes it possible to
 define own defaults, so it makes it superfluous to specify the CE usually used
-for submission. In the same manner aliases, defined in the configuration file,
-can be utilized, and should be used as argument to the \fB--cluster\fR or
+for submission. In the same manner aliases and groups, defined in the configuration file,
+can be utilized, and can be used as argument to the \fB--cluster\fR or
 \fB--index\fR options.
 
-The format of 'ARC0' cluster URLs:
+The format of a classic GRIDFTP-based cluster URLs:
 .br
-\fB[ARC0:][ldap://]<hostname>[:2135/nordugrid-cluster-name=<hostname>,Mds-Vo-name=local,o=grid]\fR
+\fB[ldap://]<hostname>[:2135/nordugrid-cluster-name=<hostname>,Mds-Vo-name=local,o=grid]\fR
 .br
 Only the \fBhostname\fR part has to be specified, the rest of the URL is automatically generated.
 
-The format of 'ARC1' cluster URLs:
+The format of an A-REX URL is:
 .br
-\fB[ARC1:][https://]<hostname>:<port>/<path>\fR
+\fB[https://]<hostname>[:<port>][/<path>]\fR
 .br
-
-The format of 'CREAM' cluster URLs:
-.br
-\fB[CREAM:][ldap://]<hostname>[:2170/o=Grid??base?(objectClass=*)]\fR
-.br
-Only the \fBhostname\fR part has to be specified, the rest of the URL is automatically generated.
+Here the port is 443 by default, but the path cannot be guessed, so if it is not specified, then
+the service is assumed to live on the root path.
 
 Job descriptions can also be specified using the \fB--jobdescrfile\fR option
 which expect the file name of the description as argument, or the
@@ -123,7 +113,12 @@ stored in the .arc directory in the home directory of the user, however another
 location can be specified using the \fB--joblist\fR option taking the location
 of this file as argument. If the \fB--joblist\fR option was used during
 submission, it should also be specified in the consecutive commands when
-managing the job.
+managing the job. If a Computing Element has multiple job submission interfaces
+(e.g. gridftp, EMI-ES, BES), then the brokering algorithm will choose one of them.
+With the \fB--submissioninterface\fR option the requested interface
+can be specified, and in that case only those Computing Elements will be
+considered which has that specific interface, and only that interface
+will be used to submit the jobs.
 
 Instead of directly targeting a CE for submission, using the \fB--cluster\fR
 option, an information index server can be specified with the \fB--index\fR
@@ -131,14 +126,11 @@ option. Specifying one or multiple index servers instructs the \fBarcsub\fR
 command to query the servers for registered CEs, the returned CEs will then be
 matched against the job description and those matching will be ranked by the
 chosen broker (see below) and submission will be tried in order until
-successful or reaching the end. The format of the argument to the \fB--index\fR
-option follows the one for the \fB--cluster\fR option described above, however
-here \fBmiddleware_flavour\fR designates the type of information index
-server, e.g. for ISIS 'ARC1' should be used, 'CREAM' for BDII and 'ARC0' for
-GIIS. From the returned list of CEs it might happen that a troublesome or
-undesirable CE is selected for submission, in that case it possible to specify
-that cluster using the \fB--cluster\fR option and prepending the argument it
-with a '-', which will disregard that CE as a target for submission.
+successful or reaching the end.
+From the returned list of CEs it might happen that a troublesome or
+undesirable CE is selected for submission, in that case it possible to reject
+that cluster using the \fB--rejectdiscovery\fR option and providing the URL
+(or just the hostname) of the CE, which will disregard that CE as a target for submission.
 
 When multiple CEs are targeted for submission, the resource broker will be used
 to rank the CEs. The broker used by default will rank the CEs randomly,
@@ -171,65 +163,49 @@ grid-manager (ARC0) and A-REX (ARC1) CEs support this feature.
 
 .SH EXAMPLES
 
-Submission of a job description file "helloworld.jsdl" to the A-REX CE located
-at "example.com":
+Submission of a job description file "helloworld.jsdl" to ce.example.com:
 .br
-\fBarcsub --cluster ARC1:example.com:60000/arex helloworld.jsdl\fR
+\fBarcsub -c ce.example.com helloworld.jsdl\fR
 
-Similar submission to a CREAM CE:
+A information index server (registry) can also be queried for CEs to submit to:
 .br
-\fBarcsub --cluster CREAM:example.com helloworld.jsdl\fR
-
-And if the 'ARC0' module is installed submission to a Grid-Manager CE can be
-done as:
-.br
-\fBarcsub --cluster ARC0:example.com helloworld.jsdl\fR
-
-Specifying the flavour is not mandatory, so this command will submit the job to "example.com" regardless of the type of the CE (by trying all possibilites):
-.br
-\fBarcsub --cluster example.com helloworld.jsdl\fR
-
-A ISIS information index server can also be queried for CEs to submit to:
-.br
-\fBarcsub --index example.com/isis helloworld.jsdl\fR
+\fBarcsub -g registry.example.com helloworld.jsdl\fR
 
 The job description can also be specified directly on the command line as shown
 in the example, using the XRSL job description language:
 .br
-\fBarcsub --cluster example.com/arex --jobdescrstring \\
+\fBarcsub -c example.com/arex -e \\
 .br
 \'&(executable="/bin/echo")(arguments="Hello World!")\'\fR
 
 When submitting against CEs retrieved from information index servers it might
 be useful to do resource brokering:
 .br
-\fBarcsub --index example.com/isis --broker FastestQueue \\
-.br
-helloworld.jsdl\fR
+\fBarcsub -g registry.example.com -b FastestQueue helloworld.jsdl\fR
 
 Disregarding a specific CE for submission submitting against an information
 index server:
 .br
-\fBarcsub --index example.com/isis \\
-.br --cluster -badcomputingelement.com/arex helloworld.jsdl\fR
+\fBarcsub -g registry.example.com -R badcomputingelement.com/arex helloworld.jsdl\fR
 
 Dumping the job description is done as follows:
 .br
-\fBarcsub --cluster example.com/arex --dumpdescription \\
-.br
-helloworld.jsdl\fR
-
+\fBarcsub -c example.com/arex -x helloworld.jsdl\fR
 
 .SH FILES
 
 .TP
 .B ~/.arc/client.conf
 Some options can be given default values by specifying them in the ARC client
-configuration file. The default services can be specified by
-the 'defaultservices' attribute, thus when no \fB--cluster\fR or \fB--index\fR
-options are given these will be used for submission. It is also possible to
-define aliases, and a alias can consist of multiple CEs and index servers. By
-using the \fB--conffile\fR option a different configuration file can be used
+configuration file. Registry and computing element services can be specified
+in seperate sections of the config. The default services can be specified by
+adding 'default=yes' attribute to the section of the service,
+thus when no \fB--cluster\fR or \fB--index\fR
+options are given these will be used for submission. Each service has an alias,
+and can be member of any number of groups. Then specifying the alias or the
+name of the group with the \fB--cluster\fR or \fB--index\fR options will
+select the given services.
+By using the \fB--conffile\fR option a different configuration file can be used
 than the default. Note that some installations also have a system client
 configuration file, however attributes in the client one takes precedence,
 and then command line options takes precedence over configuration file

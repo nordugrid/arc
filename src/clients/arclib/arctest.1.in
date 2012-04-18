@@ -22,6 +22,8 @@ select one or more computing elements: \fIname\fR can be an alias for a single C
 select one or more registries: \fIname\fR can be an alias for a single registry, a group of registries or a URL
 .IP "\fB-R\fR, \fB--rejectdiscovery\fR=\fIURL\fR"
 skip the service with the given URL during service discovery
+.IP "\fB-S\fR, \fB--submissioninterface\fR=\fIInterfaceName\fR"
+only use this interface for submitting (e.g. org.nordugrid.gridftpjob, org.ogf.emies, org.nordugrid.xbes)
 .IP "\fB-J\fR \fIjobid\fR, \fB--jobid\fR=\fIjobid\fR"
 submits testjob given by the jobid.
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
