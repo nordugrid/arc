@@ -541,7 +541,7 @@ namespace Arc {
         if(pkcs12){
           char password[100];
           EVP_read_pw_string(password, 100, "Enter Password for PKCS12 certificate:", 0);
-          if(!PKCS12_parse(pkcs12, password, NULL, &x509, &pkcs12_certs)) {
+          if(!PKCS12_parse(pkcs12, password, &pkey_, &x509, &pkcs12_certs)) {
             if(pkcs12) PKCS12_free(pkcs12);
             throw CredentialError("Can not parse PKCS12 file");
           }
@@ -621,18 +621,6 @@ namespace Arc {
 
       case CRED_DER:
         pkey=d2i_PrivateKey_bio(keybio, NULL);
-        break;
-
-      case CRED_PKCS:
-        pkcs12 = d2i_PKCS12_bio(keybio, NULL);
-        if(pkcs12) {
-          char password[100];
-          EVP_read_pw_string(password, 100, "Enter Password for PKCS12 certificate:", 0);
-          if(!PKCS12_parse(pkcs12, password, &pkey, NULL, NULL)) {
-            throw CredentialError("Can not parse PKCS12");
-          }
-          PKCS12_free(pkcs12);
-        }
         break;
 
       default:
