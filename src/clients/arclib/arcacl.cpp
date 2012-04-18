@@ -98,11 +98,8 @@ int RUNMAIN(arcacl)(int argc, char **argv) {
     return 1;
   }
 
-  std::list<std::string> rejectClusters;
-  splitendpoints(opt.clusters, rejectClusters);
-  if (!usercfg.ResolveAliases(opt.clusters, Arc::COMPUTING) || !usercfg.ResolveAliases(rejectClusters, Arc::COMPUTING)) {
-    return 1;
-  }
+  std::list<std::string> selectedURLs = getSelectedURLsFromUserConfigAndCommandLine(usercfg, opt.clusters);
+  std::list<std::string> rejectedURLs = getRejectedURLsFromUserConfigAndCommandLine(usercfg, opt.rejectedurls);
 
   /*
   // If needed, read ACL from stdin
@@ -121,7 +118,7 @@ int RUNMAIN(arcacl)(int argc, char **argv) {
 
   // First try to find objects in jobs' file
   std::list<Arc::Job> jobs;
-  if (!Arc::Job::ReadJobsFromFile(usercfg.JobListFile(), jobs, jobidentifiers, opt.all, opt.clusters, rejectClusters)) {
+  if (!Arc::Job::ReadJobsFromFile(usercfg.JobListFile(), jobs, jobidentifiers, opt.all, selectedURLs, rejectedURLs)) {
     // If no jobs file still try and treat things like data objects
   }
 

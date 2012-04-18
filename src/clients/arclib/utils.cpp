@@ -205,9 +205,9 @@ ClientOptions::ClientOptions(Client_t c,
 
   if (c == CO_RESUB || c == CO_MIGRATE) {
     AddOption('q', "qluster",
-              istring("explicitly select or reject a specific resource "
-                      "for new jobs"),
-              istring("[-]name"),
+              istring("selecting a computing element for the new jobs with a URL or an alias, "
+                      "or selecting a group of computing elements with the name of the group"),
+              istring("name"),
               qlusters);
   }
 
