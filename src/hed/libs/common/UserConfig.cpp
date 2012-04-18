@@ -454,6 +454,26 @@ namespace Arc {
         }
         keyPath.clear();
       }
+    } else if (!certificatePath.empty() && (certificatePath.find(".p12") != std::string::npos) && keyPath.empty()) {
+      //If only certificatePath provided, then it could be a pkcs12 file
+      file_test_status fts;
+      if (test && ((fts = user_file_test(certificatePath, user)) != file_test_success)) {
+        certificate_file_error_report(fts,require,certificatePath,logger);
+        if(require) {
+          res = false;
+        }
+        certificatePath.clear();
+      }
+    } else if (!cert_path.empty() && (cert_path.find(".p12") != std::string::npos) && key_path.empty()) {
+      //If only cert_path provided, then it could be a pkcs12 file
+      file_test_status fts;
+      if (test && ((fts = user_file_test(cert_path, user)) != file_test_success)) {
+        certificate_file_error_report(fts,require,cert_path,logger);
+        if(require) {
+          res = false;
+        }
+        cert_path.clear();
+      }
     } else {
       // Guessing starts here
       // First option is also main default
