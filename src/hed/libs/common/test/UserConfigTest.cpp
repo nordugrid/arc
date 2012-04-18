@@ -6,6 +6,7 @@
 
 #include <string>
 #include <fstream>
+#include <glibmm.h>
 
 #include <arc/UserConfig.h>
 
@@ -22,6 +23,7 @@ class UserConfigTest
   CPPUNIT_TEST(LegacyDefaultServicesTest);
   CPPUNIT_TEST(LegacyAliasTest);
   CPPUNIT_TEST(RejectionTest);
+  CPPUNIT_TEST(SaveToFileTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -36,6 +38,7 @@ public:
   void LegacyDefaultServicesTest();
   void LegacyAliasTest();
   void RejectionTest();
+  void SaveToFileTest();
 
   void setUp() {}
   void tearDown() {}
@@ -307,6 +310,49 @@ void UserConfigTest::RejectionTest()
   CPPUNIT_ASSERT_EQUAL(2, (int)urls.size());
   CPPUNIT_ASSERT_EQUAL((std::string)"ldap://puff.hep.lu.se", urls.front());
   CPPUNIT_ASSERT_EQUAL((std::string)"test.nordugrid.org", urls.back());
+  remove(conffile.c_str());
+}
+
+void UserConfigTest::SaveToFileTest()
+{
+  std::ofstream f(conffile.c_str(), std::ifstream::trunc);
+  std::string input = 
+    "[common]\n"
+    "proxypath = /tmp/my-proxy\n"
+    "certificatepath = /home/username/cert.pem\n"
+    "keypath = /home/username/key.pem\n"
+    "cacertificatesdirectory = /home/user/cacertificates\n"
+    "reject = bad.service.org\n"
+    "reject = bad2.service.org\n"
+    "timeout = 50\n"
+    "brokername = FastestQueue\n"
+    "brokerarguments = arg\n"
+    "vomsespath = /home/user/vomses\n"
+    "submissioninterface = org.nordugrid.gridftpjob\n"
+    "infointerface = org.nordugrid.ldapglue2\n"
+    "[registry/index1]\n"
+    "url = ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid\n"
+    "registryinterface = org.nordugrid.ldapegiis\n"
+    "default = yes\n"
+    "group = index\n"
+    "[registry/index2]\n"
+    "url = ldap://index2.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid\n"
+    "registryinterface = org.nordugrid.ldapegiis\n"
+    "group = index\n"
+    "group = special\n"
+    "[computing/interop]\n"
+    "url = https://interop.grid.niif.hu:2010/arex-x509\n"
+    "infointerface = org.nordugrid.ldapglue2\n"
+    "submissioninterface = org.nordugrid.gridftpjob\n"
+    "default = yes\n";
+  f <<   input;
+  f.close();
+  uc.LoadConfigurationFile(conffile);
+  remove(conffile.c_str());
+  
+  uc.SaveToFile(conffile);
+  std::string output = Glib::file_get_contents(conffile);
+  CPPUNIT_ASSERT_EQUAL((std::string)input, (std::string)output);
   remove(conffile.c_str());
 }
 

@@ -810,6 +810,9 @@ namespace Arc {
               alias = sectionName.substr(computingSectionPrefix.length());
               service.type = ConfigEndpoint::COMPUTINGINFO;
               service.InterfaceName = (std::string)section["infointerface"];
+              if (service.InterfaceName.empty()) {
+                service.InterfaceName = InfoInterface();
+              }
               service.RequestedSubmissionInterfaceName = (std::string)section["submissioninterface"];
               if (service.RequestedSubmissionInterfaceName.empty()) {
                 service.RequestedSubmissionInterfaceName = SubmissionInterface();
@@ -820,8 +823,9 @@ namespace Arc {
             if (section["default"] && section["default"] != "no") {
               defaultServices.push_back(service);
             }
-            if (section["group"]) {
+            while (section["group"]) {
               groupMap[section["group"]].push_back(service);
+              section["group"].Destroy();
             }
           } else {
             logger.msg(INFO, "Unknown section %s, ignoring it", sectionName);
@@ -842,7 +846,30 @@ namespace Arc {
     if (!file)
       return false;
 
-    file << "[ common ]" << std::endl;
+    file << "[common]" << std::endl;
+    if (!proxyPath.empty())
+      file << "proxypath = " << proxyPath << std::endl;
+    if (!certificatePath.empty())
+      file << "certificatepath = " << certificatePath << std::endl;
+    if (!keyPath.empty())
+      file << "keypath = " << keyPath << std::endl;
+    if (!keyPassword.empty())
+      file << "keypassword = " << keyPassword << std::endl;
+    if (keySize > 0)
+      file << "keysize = " << keySize << std::endl;
+    if (!caCertificatePath.empty())
+      file << "cacertificatepath = " << caCertificatePath << std::endl;
+    if (!caCertificatesDirectory.empty())
+      file << "cacertificatesdirectory = " << caCertificatesDirectory << std::endl;
+    if (certificateLifeTime > 0)
+      file << "certificatelifetime = " << certificateLifeTime << std::endl;
+    if (slcs)
+      file << "slcs = " << slcs.fullstr() << std::endl;
+    if (!rejectedURLs.empty()) {
+      for (std::list<std::string>::const_iterator it = rejectedURLs.begin(); it != rejectedURLs.end(); it++) {
+        file << "reject = " << (*it) << std::endl;
+      }
+    }
     if (!verbosity.empty())
       file << "verbosity = " << verbosity << std::endl;
     if (!joblistfile.empty())
@@ -868,31 +895,44 @@ namespace Arc {
       file << "username = " << username << std::endl;
     if (!password.empty())
       file << "password = " << password << std::endl;
-    if (!proxyPath.empty())
-      file << "proxypath = " << proxyPath << std::endl;
-    if (!certificatePath.empty())
-      file << "certificatepath = " << certificatePath << std::endl;
-    if (!keyPath.empty())
-      file << "keypath = " << keyPath << std::endl;
-    if (!keyPassword.empty())
-      file << "keypassword = " << keyPassword << std::endl;
-    if (keySize > 0)
-      file << "keysize = " << keySize << std::endl;
-    if (!caCertificatePath.empty())
-      file << "cacertificatepath = " << caCertificatePath << std::endl;
-    if (!caCertificatesDirectory.empty())
-      file << "cacertificatesdirectory = " << caCertificatesDirectory << std::endl;
-    if (certificateLifeTime > 0)
-      file << "certificatelifetime = " << certificateLifeTime << std::endl;
-    if (slcs)
-      file << "slcs = " << slcs.fullstr() << std::endl;
     if (!storeDirectory.empty())
       file << "storedirectory = " << storeDirectory << std::endl;
     if (!idPName.empty())
       file << "idpname = " << idPName << std::endl;
     if (!overlayfile.empty())
       file << "overlayfile = " << overlayfile << std::endl;
-
+    if (!submissioninterface.empty())
+      file << "submissioninterface = " << submissioninterface << std::endl;
+    if (!infointerface.empty())
+      file << "infointerface = " << infointerface << std::endl;
+    
+    for (std::map<std::string, ConfigEndpoint>::const_iterator it = allServices.begin(); it != allServices.end(); it++) {
+      if (it->second.type == ConfigEndpoint::REGISTRY) {
+        file << "[registry/" << it->first << "]" << std::endl;
+        file << "url = " << it->second.URLString << std::endl;
+        if (!it->second.InterfaceName.empty()) {
+          file << "registryinterface = " << it->second.InterfaceName << std::endl;
+        }
+      } else {
+        file << "[computing/" << it->first << "]" << std::endl;                  
+        file << "url = " << it->second.URLString << std::endl;
+        if (!it->second.InterfaceName.empty()) {
+          file << "infointerface = " << it->second.InterfaceName << std::endl;
+        }
+        if (!it->second.RequestedSubmissionInterfaceName.empty()) {
+          file << "submissioninterface = " << it->second.RequestedSubmissionInterfaceName << std::endl;
+        }
+      }
+      if (std::find(defaultServices.begin(), defaultServices.end(), it->second) != defaultServices.end()) {
+        file << "default = yes" << std::endl;
+      }
+      for (std::map<std::string, std::list<ConfigEndpoint> >::const_iterator git = groupMap.begin(); git != groupMap.end(); git++) {
+        if (std::find(git->second.begin(), git->second.end(), it->second) != git->second.end()) {
+          file << "group = " << git->first << std::endl;
+        }
+      }
+    }
+    
     logger.msg(INFO, "UserConfiguration saved to file (%s)", filename);
 
     return true;

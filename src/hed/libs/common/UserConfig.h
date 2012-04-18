@@ -40,6 +40,10 @@ namespace Arc {
     bool operator!() const {
       return (!URLString.empty());
     }
+    
+    bool operator==(ConfigEndpoint c) const {
+      return (type == c.type) && (URLString == c.URLString) && (InterfaceName == c.InterfaceName) && (RequestedSubmissionInterfaceName == c.RequestedSubmissionInterfaceName);
+    }
   };
 
   typedef std::list<std::string> ServiceList[2];
