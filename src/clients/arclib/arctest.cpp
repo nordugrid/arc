@@ -156,7 +156,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
   }
   logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
-  std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters);
+  std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName);
   std::list<std::string> preferredInterfaceNames;
   if (usercfg.InfoInterface().empty()) {
     preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
@@ -167,7 +167,8 @@ int RUNMAIN(arctest)(int argc, char **argv) {
 
   Arc::ExecutionTargetSet ets(broker);
 
-  Arc::ComputingServiceRetriever csr(usercfg, std::list<Arc::Endpoint>(), usercfg.RejectedURLs(), preferredInterfaceNames);
+  std::list<std::string> rejectedURLs = getRejectedURLsFromUserConfigAndCommandLine(usercfg, opt.rejectedurls);
+  Arc::ComputingServiceRetriever csr(usercfg, std::list<Arc::Endpoint>(), rejectedURLs, preferredInterfaceNames);
   csr.addConsumer(ets);
   for (std::list<Arc::Endpoint>::const_iterator it = services.begin(); it != services.end(); ++it) {
     csr.addEndpoint(*it);

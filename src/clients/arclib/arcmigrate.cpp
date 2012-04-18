@@ -115,7 +115,7 @@ int RUNMAIN(arcmigrate)(int argc, char **argv) {
     return 1;
   }
 
-  std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.qlusters, opt.indexurls);
+  std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.qlusters, opt.indexurls, opt.requestedSubmissionInterfaceName);
 
   std::list<Arc::Job> migratedJobs;
   int retval = (int)!jobmaster.Migrate(opt.forcemigration, services, migratedJobs);

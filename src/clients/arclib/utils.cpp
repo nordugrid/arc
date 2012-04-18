@@ -350,6 +350,12 @@ ClientOptions::ClientOptions(Client_t c,
               istring("the IDs of the submitted jobs will be appended to this file"),
               istring("filename"),
               jobidoutfile);
+    
+    AddOption('S', "submissioninterface",
+              istring("the interface which should be used for submitting "
+                      "(e.g. org.nordugrid.gridftpjob, org.ogf.emies, org.nordugrid.xbes)"),
+              istring("InterfaceName"),
+              requestedSubmissionInterfaceName);
   }
 
   if (cIsJobMan || c == CO_MIGRATE || c == CO_RESUB) {
@@ -367,12 +373,6 @@ ClientOptions::ClientOptions(Client_t c,
               istring("do not submit - dump job description "
                       "in the language accepted by the target"),
               dumpdescription);
-    
-    AddOption('S', "submissioninterface",
-              istring("the interface which should be used for submitting "
-                      "(e.g. org.nordugrid.gridftpjob, org.ogf.emies, org.nordugrid.xbes)"),
-              istring("InterfaceName"),
-              requestedSubmissionInterfaceName);
   }
   
   if (c == CO_INFO) {
