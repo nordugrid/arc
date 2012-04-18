@@ -31,7 +31,7 @@ namespace Arc {
     Type type;
     std::string URLString;
     std::string InterfaceName;
-    std::string RequestedJobInterfaceName;
+    std::string RequestedSubmissionInterfaceName;
 
     operator bool() const {
       return (!URLString.empty());
@@ -461,8 +461,6 @@ namespace Arc {
      * @see JobListFile(const std::string&)
      **/
     const std::string& JobListFile() const { return joblistfile; }
-
-    bool ResolveAliases(std::list<std::string>& services, ServiceType st);
 
     /// Set timeout
     /**
@@ -1051,10 +1049,10 @@ namespace Arc {
     }
 
 
-    const std::string& JobInterface() const { return jobinterface; };
+    const std::string& SubmissionInterface() const { return submissioninterface; };
 
-    bool JobInterface(const std::string& jobinterface_) {
-      jobinterface = jobinterface_;
+    bool SubmissionInterface(const std::string& submissioninterface_) {
+      submissioninterface = submissioninterface_;
       return true;
     }
 
@@ -1127,10 +1125,6 @@ namespace Arc {
     static bool makeDir(const std::string& path);
     static bool copyFile(const std::string& source,
                          const std::string& destination);
-    bool ResolveAlias(std::list<std::string>& services, ServiceType st,
-                      std::list<std::string>& resolvedAlias);
-    bool ResolveAlias(ServiceList& services,
-                      std::list<std::string>& resolvedAlias);
     bool CreateDefaultConfigurationFile() const;
 
     std::list<ConfigEndpoint> FilterServices(const std::list<ConfigEndpoint>&, ConfigEndpoint::Type);
@@ -1144,9 +1138,6 @@ namespace Arc {
 
     // Broker name and arguments.
     std::pair<std::string, std::string> broker;
-
-    ServiceList selectedServices;
-    ServiceList rejectedServices;
 
     std::list<ConfigEndpoint> defaultServices;
     std::map<std::string, ConfigEndpoint> allServices;
@@ -1179,15 +1170,12 @@ namespace Arc {
     std::string overlayfile;
     std::string utilsdir;
 
-    std::string jobinterface;
+    std::string submissioninterface;
     std::string infointerface;
     // User whose identity (uid/gid) should be used to access filesystem
     // Normally this is the same as the process owner
     User user;
     // Private members not refered to outside this class:
-    // Alias map.
-    XMLNode aliasMap;
-
     bool ok;
 
     initializeCredentialsType initializeCredentials;

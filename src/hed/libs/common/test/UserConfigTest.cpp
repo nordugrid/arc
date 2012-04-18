@@ -75,7 +75,7 @@ void UserConfigTest::ParseRegistryTest()
 void UserConfigTest::ParseComputingTest()
 {
   std::ofstream f(conffile.c_str(), std::ifstream::trunc);
-  f << "[computing/puff]\nurl=ldap://puff.hep.lu.se\ninfointerface=org.nordugrid.ldapglue2\njobinterface=org.nordugrid.gridftpjob\ndefault=yes\n";
+  f << "[computing/puff]\nurl=ldap://puff.hep.lu.se\ninfointerface=org.nordugrid.ldapglue2\nsubmissioninterface=org.nordugrid.gridftpjob\ndefault=yes\n";
   
   f.close();
   uc.LoadConfigurationFile(conffile);
@@ -96,7 +96,7 @@ void UserConfigTest::ParseComputingTest()
   Arc::ConfigEndpoint service = uc.GetService("puff");
   CPPUNIT_ASSERT_EQUAL((std::string)"ldap://puff.hep.lu.se", service.URLString);
   CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.ldapglue2", service.InterfaceName);  
-  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.gridftpjob", service.RequestedJobInterfaceName);  
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.gridftpjob", service.RequestedSubmissionInterfaceName);  
   
   remove(conffile.c_str());
 }
@@ -114,7 +114,7 @@ void UserConfigTest::UnspecifiedInterfaceTest()
   service = uc.GetService("puff");
   CPPUNIT_ASSERT_EQUAL((std::string)"ldap://puff.hep.lu.se", service.URLString);
   CPPUNIT_ASSERT_EQUAL((std::string)"", service.InterfaceName);  
-  CPPUNIT_ASSERT_EQUAL((std::string)"", service.RequestedJobInterfaceName);  
+  CPPUNIT_ASSERT_EQUAL((std::string)"", service.RequestedSubmissionInterfaceName);  
 
   service = uc.GetService("emir1");
   CPPUNIT_ASSERT_EQUAL((std::string)"http://emir1.nordugrid.org", service.URLString);
@@ -148,16 +148,16 @@ void UserConfigTest::GroupTest()
 void UserConfigTest::RequestedInterfacesTest()
 {
   std::ofstream f(conffile.c_str(), std::ifstream::trunc);
-  f << "infointerface=org.nordugrid.ldapglue2\njobinterface=org.nordugrid.gridftpjob\n"
+  f << "infointerface=org.nordugrid.ldapglue2\nsubmissioninterface=org.nordugrid.gridftpjob\n"
     << "[computing/puff]\nurl=ldap://puff.hep.lu.se\n";
   f.close();
   uc.LoadConfigurationFile(conffile);
   
-  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.gridftpjob", uc.JobInterface());
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.gridftpjob", uc.SubmissionInterface());
   CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.ldapglue2", uc.InfoInterface());
   Arc::ConfigEndpoint service;
   service = uc.GetService("puff");
-  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.gridftpjob", service.RequestedJobInterfaceName);  
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.gridftpjob", service.RequestedSubmissionInterfaceName);  
   
   remove(conffile.c_str());
 }

@@ -26,12 +26,12 @@ namespace Arc {
     // TODO: Currently assuming only one ComputingManager and one ExecutionEnvironment.
     for (std::map<int, ComputingEndpointType>::const_iterator itCE = ComputingEndpoint.begin();
          itCE != ComputingEndpoint.end(); ++itCE) {
-      if (!Attributes->OriginalEndpoint.RequestedJobInterfaceName.empty()) {
+      if (!Attributes->OriginalEndpoint.RequestedSubmissionInterfaceName.empty()) {
         // If this endpoint has a non-preferred job interface, we skip it
-        if (itCE->second->InterfaceName != Attributes->OriginalEndpoint.RequestedJobInterfaceName) {
+        if (itCE->second->InterfaceName != Attributes->OriginalEndpoint.RequestedSubmissionInterfaceName) {
           logger.msg(INFO,
             "Skipping ComputingEndpoint '%s', because it has '%s' interface instead of the requested '%s'.",
-            itCE->second->URLString, itCE->second->InterfaceName, Attributes->OriginalEndpoint.RequestedJobInterfaceName);
+            itCE->second->URLString, itCE->second->InterfaceName, Attributes->OriginalEndpoint.RequestedSubmissionInterfaceName);
           continue;
         }
       }

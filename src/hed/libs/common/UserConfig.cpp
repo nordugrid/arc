@@ -639,15 +639,13 @@ namespace Arc {
       if (ini) {
         logger.msg(INFO, "Loading configuration (%s)", conffile);
 
+        // Legacy alias support
         if (ini["alias"]) {
-          XMLNode aliasXML = ini["alias"];
-          
-          XMLNode aliases;
-          aliasXML.New(aliases);
-          while (aliases.Child()) {
-            std::string group = aliases.Child().Name();
+          XMLNode alias = ini["alias"];
+          while (alias.Child()) {
+            std::string group = alias.Child().Name();
             std::list<std::string> serviceStrings;
-            tokenize(aliases.Child(), serviceStrings, " \t");
+            tokenize(alias.Child(), serviceStrings, " \t");
             for (std::list<std::string>::iterator it = serviceStrings.begin(); it != serviceStrings.end(); it++) {
               std::list<ConfigEndpoint> services = GetServices(*it);
               if (services.empty()) {
@@ -658,24 +656,8 @@ namespace Arc {
               }
               groupMap[group].insert(groupMap[group].end(), services.begin(), services.end());
             }
-            aliases.Child().Destroy();
+            alias.Child().Destroy();
           }
-          
-          if (aliasMap) { // Merge aliases. Overwrite existing aliases
-            while (aliasXML.Child()) {
-              if (aliasMap[aliasXML.Child().Name()]) {
-                aliasMap[aliasXML.Child().Name()].Replace(aliasXML.Child());
-                logger.msg(INFO, "Overwriting already defined alias \"%s\"",  aliasXML.Child().Name());
-              }
-              else
-                aliasMap.NewChild(aliasXML.Child());
-
-              aliasXML.Child().Destroy();
-            }
-          }
-          else
-            aliasXML.New(aliasMap);
-          aliasXML.Destroy();
         }
 
         if (ini["common"]) {
@@ -773,51 +755,14 @@ namespace Arc {
           HANDLESTRATT("storedirectory", StoreDirectory)
           HANDLESTRATT("idpname", IdPName)
           HANDLESTRATT("infointerface", InfoInterface)
-          HANDLESTRATT("jobinterface", JobInterface)
+          HANDLESTRATT("submissioninterface", SubmissionInterface)
+          // Legacy defaultservices support
           if (common["defaultservices"]) {
             std::list<std::string> defaultServicesStr;
             tokenize(common["defaultservices"], defaultServicesStr, " \t");
-            for (std::list<std::string>::const_iterator it =
-                   defaultServicesStr.begin();
-                 it != defaultServicesStr.end(); it++) {
+            for (std::list<std::string>::const_iterator it = defaultServicesStr.begin(); it != defaultServicesStr.end(); it++) {
               ConfigEndpoint service = ServiceFromLegacyString(*it);
               if (service) defaultServices.push_back(service);
-              // Aliases cannot contain '.' or ':'
-              if (it->find_first_of(":.") == std::string::npos) { // Alias
-                if (!aliasMap[*it]) {
-                  logger.msg(ERROR, "Could not resolve alias \"%s\" it is not defined.", *it);
-                  return false;
-                }
-
-                std::list<std::string> resolvedAliases(1, *it);
-                if (!ResolveAlias(selectedServices, resolvedAliases))
-                  return false;
-              }
-              else {
-                const std::size_t pos1 = it->find(":");
-                if (pos1 == std::string::npos) {
-                  logger.msg(WARNING,
-                             "The defaultservices attribute value contains a "
-                             "wrongly formated element (%s) in configuration "
-                             "file (%s)", *it, conffile);
-                  continue;
-                }
-                const std::string serviceType = it->substr(0, pos1);
-                if (serviceType != "computing" && serviceType != "index") {
-                  logger.msg(WARNING,
-                             "The defaultservices attribute value contains an "
-                             "unknown servicetype %s at %s in configuration "
-                             "file (%s)", serviceType, *it, conffile);
-                  continue;
-                }
-                const std::string service = it->substr(pos1 + 1);
-                logger.msg(VERBOSE, "Adding selected service %s:%s",
-                           serviceType, service);
-                if (serviceType == "computing")
-                  selectedServices[COMPUTING].push_back(service);
-                else
-                  selectedServices[INDEX].push_back(service);
-              }
             }
             common["defaultservices"].Destroy();
             if (common["defaultservices"]) {
@@ -828,63 +773,12 @@ namespace Arc {
                 common["defaultservices"].Destroy();
             }
           }
-          if (common["rejectservices"]) {
-            std::list<std::string> rejectServicesStr;
-            tokenize(common["rejectservices"], rejectServicesStr, " \t");
-            for (std::list<std::string>::const_iterator it =
-                   rejectServicesStr.begin();
-                 it != rejectServicesStr.end(); it++) {
-              // Aliases cannot contain '.' or ':'.
-              if (it->find_first_of(":.") == std::string::npos) { // Alias
-                if (!aliasMap[*it]) {
-                  logger.msg(ERROR, "Could not resolve alias \"%s\" it is not defined.", *it);
-                  return false;
-                }
-
-                std::list<std::string> resolvedAliases(1, *it);
-                if (!ResolveAlias(rejectedServices, resolvedAliases))
-                  return false;
-              }
-              else {
-                const std::size_t pos1 = it->find(":");
-                if (pos1 == std::string::npos) {
-                  logger.msg(WARNING,
-                             "The rejectservices attribute value contains a "
-                             "wrongly formated element (%s) in configuration "
-                             "file (%s)", *it, conffile);
-                  continue;
-                }
-                const std::string serviceType = it->substr(0, pos1);
-                if (serviceType != "computing" && serviceType != "index") {
-                  logger.msg(WARNING,
-                             "The rejectservices attribute value contains an "
-                             "unknown servicetype %s at %s in configuration "
-                             "file (%s)", serviceType, *it, conffile);
-                  continue;
-                }
-                const std::string service = it->substr(pos1 + 1);
-                logger.msg(VERBOSE, "Adding rejected service %s:%s",
-                           serviceType, service);
-                if (serviceType == "computing")
-                  rejectedServices[COMPUTING].push_back(service);
-                else
-                  rejectedServices[INDEX].push_back(service);
-              }
-            }
-            common["rejectservices"].Destroy();
-            if (common["rejectservices"]) {
-              logger.msg(WARNING,
-                         "Multiple %s attributes in configuration file (%s)",
-                         "rejectservices", conffile);
-              while (common["rejectservices"])
-                common["rejectservices"].Destroy();
-            }
-          }
+          
           while (common["reject"]) {
             rejectedURLs.push_back((std::string)common["reject"]);
             common["reject"].Destroy();
           }
-          
+    
           HANDLESTRATT("overlayfile", OverlayFile)
           if(!overlayfile.empty())
             if (!Glib::file_test(overlayfile, Glib::FILE_TEST_IS_REGULAR))
@@ -916,9 +810,9 @@ namespace Arc {
               alias = sectionName.substr(computingSectionPrefix.length());
               service.type = ConfigEndpoint::COMPUTINGINFO;
               service.InterfaceName = (std::string)section["infointerface"];
-              service.RequestedJobInterfaceName = (std::string)section["jobinterface"];
-              if (service.RequestedJobInterfaceName.empty()) {
-                service.RequestedJobInterfaceName = JobInterface();
+              service.RequestedSubmissionInterfaceName = (std::string)section["submissioninterface"];
+              if (service.RequestedSubmissionInterfaceName.empty()) {
+                service.RequestedSubmissionInterfaceName = SubmissionInterface();
               }
             }
               
@@ -996,42 +890,8 @@ namespace Arc {
       file << "storedirectory = " << storeDirectory << std::endl;
     if (!idPName.empty())
       file << "idpname = " << idPName << std::endl;
-    if (!selectedServices[COMPUTING].empty() ||
-        !selectedServices[INDEX].empty()) {
-      file << "defaultservices =";
-      for (std::list<std::string>::const_iterator it =
-             selectedServices[COMPUTING].begin();
-           it != selectedServices[COMPUTING].end(); it++)
-        file << " computing:" << *it;
-      for (std::list<std::string>::const_iterator it =
-             selectedServices[INDEX].begin();
-           it != selectedServices[INDEX].end(); it++)
-        file << " index:" << *it;
-      file << std::endl;
-    }
-    if (!rejectedServices[COMPUTING].empty() ||
-        !rejectedServices[INDEX].empty()) {
-      file << "rejectservices =";
-      for (std::list<std::string>::const_iterator it =
-             rejectedServices[COMPUTING].begin();
-           it != rejectedServices[COMPUTING].end(); it++)
-        file << " computing:" << *it;
-      for (std::list<std::string>::const_iterator it =
-             rejectedServices[INDEX].begin();
-           it != rejectedServices[INDEX].end(); it++)
-        file << " index:" << *it;
-      file << std::endl;
-    }
     if (!overlayfile.empty())
       file << "overlayfile = " << overlayfile << std::endl;
-
-    if (aliasMap.Size() > 0) {
-      int i = 0;
-      file << std::endl << "[ alias ]" << std::endl;
-      while (XMLNode n = const_cast<XMLNode&>(aliasMap).Child(i++)) {
-        file << n.Name() << " = " << (std::string)n << std::endl;
-      }
-    }
 
     logger.msg(INFO, "UserConfiguration saved to file (%s)", filename);
 
@@ -1073,164 +933,6 @@ namespace Arc {
     else if (!Glib::file_test(DEFAULTCONFIG, Glib::FILE_TEST_IS_REGULAR)) {
       logger.msg(INFO, "The default configuration file (%s) is not a regular file.", DEFAULTCONFIG);
       return false;
-    }
-
-    return true;
-  }
-
-  bool UserConfig::ResolveAliases(std::list<std::string>& services, ServiceType st) {
-    for (std::list<std::string>::iterator it = services.begin();
-         it != services.end();) {
-      if (it->find_first_of(":. \t") == std::string::npos) { // Alias.
-        if (!aliasMap[*it]) {
-          logger.msg(ERROR, "Could not resolve alias \"%s\" it is not defined.", *it);
-          return false;
-        }
-
-        std::list<std::string> resolvedAliases(1, *it), resolvedServices;
-        if (!ResolveAlias(resolvedServices, st, resolvedAliases)) {
-          return false;
-        }
-        else if (!resolvedServices.empty()) {
-          services.insert(it, resolvedServices.begin(), resolvedServices.end());
-        }
-
-        it = services.erase(it);
-      }
-      else {
-        ++it;
-      }
-    }
-
-    return true;
-  }
-
-  bool UserConfig::ResolveAlias(std::list<std::string>& services,
-                                ServiceType st,
-                                std::list<std::string>& resolvedAliases) {
-    std::list<std::string> valueList;
-    tokenize(aliasMap[resolvedAliases.back()], valueList, " \t");
-
-    for (std::list<std::string>::const_iterator it = valueList.begin();
-         it != valueList.end(); it++) {
-      const std::size_t pos1 = it->find(":");
-      const std::size_t pos2 = it->find(":", pos1 + 1);
-
-      if (pos1 == std::string::npos) { // Alias.
-        const std::string& referedAlias = *it;
-        if (std::find(resolvedAliases.begin(), resolvedAliases.end(),
-                      referedAlias) != resolvedAliases.end()) {
-          // Loop detected.
-          std::string loopstr = "";
-          for (std::list<std::string>::const_iterator itloop =
-                 resolvedAliases.begin();
-               itloop != resolvedAliases.end(); itloop++)
-            loopstr += *itloop + " -> ";
-          loopstr += referedAlias;
-          logger.msg(ERROR, "Cannot resolve alias \"%s\". Loop detected: %s",
-                     resolvedAliases.front(), loopstr);
-          return false;
-        }
-
-        if (!aliasMap[referedAlias]) {
-          logger.msg(ERROR, "Cannot resolve alias %s, it is not defined",
-                     referedAlias);
-          return false;
-        }
-
-        resolvedAliases.push_back(referedAlias);
-        if (!ResolveAlias(services, st, resolvedAliases))
-          return false;
-
-        resolvedAliases.pop_back();
-      }
-      else if (pos2 != std::string::npos) { // serviceType:flavour:URL
-        const std::string serviceType = it->substr(0, pos1);
-        if (serviceType != "computing" && serviceType != "index") {
-          logger.msg(WARNING,
-                     "Alias name (%s) contains a unknown servicetype %s at %s",
-                     resolvedAliases.front(), serviceType, *it);
-          continue;
-        }
-        else if ((st == COMPUTING && serviceType != "computing") ||
-                 (st == INDEX && serviceType != "index")) {
-          continue;
-        }
-
-        std::string service = it->substr(pos1 + 1);
-        logger.msg(VERBOSE, "Adding service %s:%s from resolved alias %s",
-                   serviceType, service, resolvedAliases.back());
-        services.push_back(service);
-      }
-      else {
-        logger.msg(WARNING,
-                   "Alias (%s) contains a wrongly formatted element (%s)",
-                   resolvedAliases.front(), *it);
-      }
-    }
-
-    return true;
-  }
-
-  bool UserConfig::ResolveAlias(ServiceList& services,
-                                std::list<std::string>& resolvedAliases) {
-    std::list<std::string> valueList;
-    tokenize(aliasMap[resolvedAliases.back()], valueList, " \t");
-
-    for (std::list<std::string>::const_iterator it = valueList.begin();
-         it != valueList.end(); it++) {
-      const std::size_t pos1 = it->find(":");
-      const std::size_t pos2 = it->find(":", pos1+1);
-
-      if (pos1 == std::string::npos) { // Alias.
-        const std::string& referedAlias = *it;
-        if (std::find(resolvedAliases.begin(), resolvedAliases.end(),
-                      referedAlias) != resolvedAliases.end()) {
-          // Loop detected.
-          std::string loopstr = "";
-          for (std::list<std::string>::const_iterator itloop =
-                 resolvedAliases.begin();
-               itloop != resolvedAliases.end(); itloop++)
-            loopstr += *itloop + " -> ";
-          loopstr += referedAlias;
-          logger.msg(ERROR, "Cannot resolve alias \"%s\". Loop detected: %s",
-                     resolvedAliases.front(), loopstr);
-          return false;
-        }
-
-        if (!aliasMap[referedAlias]) {
-          logger.msg(ERROR, "Cannot resolve alias %s, it is not defined",
-                     referedAlias);
-          return false;
-        }
-
-        resolvedAliases.push_back(referedAlias);
-        if (!ResolveAlias(services, resolvedAliases))
-          return false;
-
-        resolvedAliases.pop_back();
-      }
-      else if (pos2 != std::string::npos) { // serviceType:flavour:URL
-        const std::string serviceType = it->substr(0, pos1);
-        if (serviceType != "computing" && serviceType != "index") {
-          logger.msg(WARNING,
-                     "Alias name (%s) contains a unknown servicetype %s at %s",
-                     resolvedAliases.front(), serviceType, *it);
-          continue;
-        }
-        const std::string service = it->substr(pos1 + 1);
-        logger.msg(VERBOSE, "Adding service %s:%s from resolved alias %s",
-                   serviceType, service, resolvedAliases.back());
-        if (serviceType == "computing")
-          services[COMPUTING].push_back(service);
-        else
-          services[INDEX].push_back(service);
-      }
-      else {
-        logger.msg(WARNING,
-                   "Alias (%s) contains a wrongly formatted element (%s)",
-                   resolvedAliases.front(), *it);
-      }
     }
 
     return true;

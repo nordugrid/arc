@@ -28,7 +28,7 @@ std::list<std::string> getRejectedURLsFromUserConfigAndCommandLine(Arc::UserConf
 }
 
 
-std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> registries, std::list<std::string> computingelements, std::string requestedJobInterfaceName) {
+std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> registries, std::list<std::string> computingelements, std::string requestedSubmissionInterfaceName) {
   std::list<Arc::Endpoint> services;
   if (computingelements.empty() && registries.empty()) {
     std::list<Arc::ConfigEndpoint> endpoints = usercfg.GetDefaultServices();
@@ -43,7 +43,7 @@ std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig
           // if it was not an alias or a group, then it should be the URL
           Arc::Endpoint service(*it);
           service.Capability.push_back(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO));
-          service.RequestedJobInterfaceName = requestedJobInterfaceName;
+          service.RequestedSubmissionInterfaceName = requestedSubmissionInterfaceName;
           services.push_back(service);
       } else {
         // if it was a group (or an alias), add all the services
@@ -372,7 +372,7 @@ ClientOptions::ClientOptions(Client_t c,
               istring("the interface which should be used for submitting "
                       "(e.g. org.nordugrid.gridftpjob, org.ogf.emies, org.nordugrid.xbes)"),
               istring("InterfaceName"),
-              requestedJobInterfaceName);
+              requestedSubmissionInterfaceName);
   }
   
   if (c == CO_INFO) {
@@ -380,7 +380,7 @@ ClientOptions::ClientOptions(Client_t c,
               istring("only get information about executon targets which supports this job submission interface "
                       "(e.g. org.nordugrid.gridftpjob, org.ogf.emies, org.nordugrid.xbes)"),
               istring("InterfaceName"),
-              requestedJobInterfaceName);
+              requestedSubmissionInterfaceName);
   }
 
   if (c == CO_TEST) {

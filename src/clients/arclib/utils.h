@@ -17,7 +17,7 @@ std::list<std::string> getSelectedURLsFromUserConfigAndCommandLine(Arc::UserConf
 
 std::list<std::string> getRejectedURLsFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> rejectedURLArguments);
 
-std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> registries, std::list<std::string> computingelements, std::string requestedJobInterfaceName = "");
+std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> registries, std::list<std::string> computingelements, std::string requestedSubmissionInterfaceName = "");
 
 void showplugins(const std::string& program, const std::list<std::string>& types, Arc::Logger& logger, const std::string& chosenBroker = "");
 
@@ -72,7 +72,7 @@ public:
   std::string sort;
   std::string rsort;
   std::string downloaddir;
-  std::string requestedJobInterfaceName;
+  std::string requestedSubmissionInterfaceName;
 
   std::list<std::string> clusters;
   std::list<std::string> qlusters;
