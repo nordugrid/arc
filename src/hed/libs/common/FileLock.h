@@ -110,6 +110,9 @@ namespace Arc {
 
     /// private acquire method.
     bool acquire_(bool& lock_removed);
+
+    /// convenience method for writing pid@hostname to file
+    bool write_pid(int h);
   };
 
 } // namespace Arc
