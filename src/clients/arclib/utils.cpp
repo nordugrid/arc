@@ -193,8 +193,8 @@ ClientOptions::ClientOptions(Client_t c,
   bool cIsJobMan = (c == CO_CAT || c == CO_CLEAN || c == CO_GET || c == CO_KILL || c == CO_RENEW || c == CO_RESUME || c == CO_STAT || c == CO_ACL);
 
   AddOption('c', "cluster",
-            istring("selecting a computing element with a URL or an alias, "
-                    "or selecting a group of computing elements with the name of the group"),
+            istring("select one or more computing elements: "
+                    "name can be an alias for a single CE, a group of CEs or a URL"),
             istring("name"),
             clusters);
 
@@ -302,8 +302,9 @@ ClientOptions::ClientOptions(Client_t c,
 
   if (!cIsJobMan) {
     AddOption('g', "index",
-              istring("explicitly select or reject an index server"),
-              istring("[-]name"),
+              istring("select one or more registries: "
+                      "name can be an alias for a single registry, a group of registries or a URL"),
+              istring("name"),
               indexurls);
   }
 

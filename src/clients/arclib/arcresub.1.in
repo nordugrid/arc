@@ -25,12 +25,12 @@ the file storing information about active jobs (default ~/.arc/jobs.xml)
 a file containing a list of job IDs
 .IP "\fB-o\fR, \fB--jobids-to-file\fR=\fIfilename\fR"
 the IDs of the submitted jobs will be appended to this file
-.IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
-explicitly select or reject a specific cluster for new jobs
-.IP "\fB-q\fR, \fB--qluster\fR=[-]\fIname\fR"
-explicitly select or reject a specific cluster for the new job
-.IP "\fB-g\fR, \fB--index\fR=[-]\fIname\fR"
-explicitly select or reject jobs from an index server
+.IP "\fB-c\fR, \fB--cluster\fR=\fIname\fR"
+select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
+.IP "\fB-q\fR, \fB--qluster\fR=\fIname\fR"
+select one or more computing elements for the new jobs: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
+.IP "\fB-g\fR, \fB--index\fR=\fIname\fR"
+select one or more registries: \fIname\fR can be an alias for a single registry, a group of registries or a URL
 .IP "\fB-k\fR, \fB--keep\fR"
 keep the files on the server (do not clean)
 .IP "\fB-m\fR, \fB--same\fR"

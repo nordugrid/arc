@@ -18,12 +18,12 @@ cluster. Currently migration only works between clusters running A-REX.
 
 .SH OPTIONS
 
-.IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
-explicitly select or reject a specific cluster holding queued jobs
-.IP "\fB-q\fR, \fB--qluster\fR=[-]\fIname\fR"
-explicitly select or reject a specific cluster which queued jobs should/shouldn't be migrated to
-.IP "\fB-g\fR, \fB--index\fR=[-]\fIname\fR"
-explicitly select or reject an index server
+.IP "\fB-c\fR, \fB--cluster\fR=\fIname\fR"
+select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
+.IP "\fB-q\fR, \fB--qluster\fR=\fIname\fR"
+select one or more computing elements for the new jobs: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
+.IP "\fB-g\fR, \fB--index\fR=\fIname\fR"
+select one or more registries: \fIname\fR can be an alias for a single registry, a group of registries or a URL
 .IP "\fB-k\fR, \fB--keep\fR"
 keep the files on the server (do not clean)
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"

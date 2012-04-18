@@ -17,10 +17,10 @@ command is used for submitting jobs to grid enabled computing resources.
 
 .SH OPTIONS
 
-.IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
-explicitly select or reject a specific cluster
-.IP "\fB-g\fR, \fB--index\fR=[-]\fIname\fR"
-explicitly select or reject an index server
+.IP "\fB-c\fR, \fB--cluster\fR=\fIname\fR"
+select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
+.IP "\fB-g\fR, \fB--index\fR=\fIname\fR"
+select one or more registries: \fIname\fR can be an alias for a single registry, a group of registries or a URL
 .IP "\fB-e\fR, \fB--jobdescrstring=\fIString"
 jobdescription string describing the job to be submitted
 .IP "\fB-f\fR, \fB--jobdescrfile=\fIfilename"
