@@ -506,7 +506,16 @@ int main(int argc, char *argv[]) {
   // Check for needed credentials objects
   // Can proxy be used for? Could not find it in documentation.
   // Key and certificate not needed if only printing proxy information
-  if((usercfg.CertificatePath().empty() || usercfg.KeyPath().empty()) && !info) {
+
+  //If the UserConfig still can not contain proxy or cert/key location, set them with 
+  //the information from command option
+  if(usercfg.ProxyPath().empty() && !proxy_path.empty()) usercfg.ProxyPath(proxy_path);
+  else {
+    if(usercfg.CertificatePath().empty() && !cert_path.empty()) usercfg.CertificatePath(cert_path);
+    if(usercfg.KeyPath().empty() && !key_path.empty()) usercfg.KeyPath(key_path);
+  }
+
+  if((usercfg.CertificatePath().empty() || (usercfg.KeyPath().empty() && (usercfg.CertificatePath().find(".p12") == std::string::npos))) && !info) {
     logger.msg(Arc::ERROR, "Failed to find certificate and/or private key or files have improper permissions or ownership.");
     logger.msg(Arc::ERROR, "You may try to increase verbosity to get more information.");
     return EXIT_FAILURE;
@@ -1025,7 +1034,6 @@ int main(int argc, char *argv[]) {
 
   //Create proxy or voms proxy
   try {
-
     Arc::Credential signer(cert_path, key_path, "", "");
     if (signer.GetIdentityName().empty()) {
       std::cerr << Arc::IString("Proxy generation failed: No valid certificate found.") << std::endl;
@@ -1037,7 +1045,7 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
     if(pkey) EVP_PKEY_free(pkey);
-    std::cout << Arc::IString("Your identity: %s", Arc::Credential(cert_path, "", "", "").GetIdentityName()) << std::endl;
+    std::cout << Arc::IString("Your identity: %s", signer.GetIdentityName()) << std::endl;
     if (now > signer.GetEndTime()) {
       std::cerr << Arc::IString("Proxy generation failed: Certificate has expired.") << std::endl;
       return EXIT_FAILURE;
