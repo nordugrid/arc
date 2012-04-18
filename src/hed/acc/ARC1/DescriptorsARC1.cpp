@@ -16,7 +16,7 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
   { "ARC1", "HED:SubmitterPlugin", "A-REX (ARC REsource coupled EXecution service)", 0, &Arc::SubmitterPluginARC1::Instance },
   { "ARC1", "HED:JobController", "A-REX (ARC REsource coupled EXecution service)", 0, &Arc::JobControllerARC1::Instance },
   { "BES",  "HED:JobController", "OGSA-BES conforming execution service", 0, &Arc::JobControllerBES::Instance },
-  { "BES", "HED:TargetInformationRetrieverPlugin", "", 0, &Arc::TargetInformationRetrieverPluginBES::Instance },
-  { "WSRFGLUE2", "HED:TargetInformationRetrieverPlugin", "", 0, &Arc::TargetInformationRetrieverPluginWSRFGLUE2::Instance },
+  { "BES", "HED:TargetInformationRetrieverPlugin", "OGSA-BES Local Information", 0, &Arc::TargetInformationRetrieverPluginBES::Instance },
+  { "WSRFGLUE2", "HED:TargetInformationRetrieverPlugin", "WSRF GLUE2 Local Information", 0, &Arc::TargetInformationRetrieverPluginWSRFGLUE2::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

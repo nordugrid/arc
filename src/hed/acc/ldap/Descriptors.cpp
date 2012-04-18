@@ -14,10 +14,10 @@
 #include "ServiceEndpointRetrieverPluginEGIIS.h"
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "LDAPNG", "HED:JobListRetrieverPlugin", "", 0, &Arc::JobListRetrieverPluginLDAPNG::Instance },
-  { "LDAPGLUE1", "HED:TargetInformationRetrieverPlugin", "", 0, &Arc::TargetInformationRetrieverPluginLDAPGLUE1::Instance },
-  { "LDAPGLUE2", "HED:TargetInformationRetrieverPlugin", "", 0, &Arc::TargetInformationRetrieverPluginLDAPGLUE2::Instance },
-  { "LDAPNG", "HED:TargetInformationRetrieverPlugin", "", 0, &Arc::TargetInformationRetrieverPluginLDAPNG::Instance },
-  { "EGIIS", "HED:ServiceEndpointRetrieverPlugin", "", 0, &Arc::ServiceEndpointRetrieverPluginEGIIS::Instance },
+  { "LDAPNG", "HED:JobListRetrieverPlugin", "Classic NorduGrid LDAP Job List", 0, &Arc::JobListRetrieverPluginLDAPNG::Instance },
+  { "LDAPGLUE1", "HED:TargetInformationRetrieverPlugin", "GLUE1.x LDAP Local Information", 0, &Arc::TargetInformationRetrieverPluginLDAPGLUE1::Instance },
+  { "LDAPGLUE2", "HED:TargetInformationRetrieverPlugin", "GLUE2 LDAP Local Information", 0, &Arc::TargetInformationRetrieverPluginLDAPGLUE2::Instance },
+  { "LDAPNG", "HED:TargetInformationRetrieverPlugin", "Classic NorduGrid LDAP Local Information", 0, &Arc::TargetInformationRetrieverPluginLDAPNG::Instance },
+  { "EGIIS", "HED:ServiceEndpointRetrieverPlugin", "Classic NorduGrid EGIIS Registry", 0, &Arc::ServiceEndpointRetrieverPluginEGIIS::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
