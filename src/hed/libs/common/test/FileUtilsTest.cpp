@@ -41,6 +41,7 @@ public:
 private:
   bool _createFile(const std::string& filename, const std::string& text = "a");
   std::string testroot;
+  std::string sep;
 };
 
 
@@ -48,6 +49,7 @@ void FileUtilsTest::setUp() {
   std::string tmpdir;
   Arc::TmpDirCreate(tmpdir);
   testroot = tmpdir;
+  sep = G_DIR_SEPARATOR_S;
 }
 
 void FileUtilsTest::tearDown() {
@@ -81,6 +83,7 @@ void FileUtilsTest::TestFileCopy() {
 }
 
 void FileUtilsTest::TestFileLink() {
+#ifndef WIN32
   CPPUNIT_ASSERT(_createFile(testroot + "/file1"));
   CPPUNIT_ASSERT(Arc::FileLink(testroot+"/file1", testroot+"/file1s", true));
   CPPUNIT_ASSERT(Arc::FileLink(testroot+"/file1", testroot+"/file1h", false));
@@ -90,6 +93,7 @@ void FileUtilsTest::TestFileLink() {
   CPPUNIT_ASSERT(Arc::FileStat(testroot+"/file1h", &st, true));
   CPPUNIT_ASSERT_EQUAL(1, (int)st.st_size);
   CPPUNIT_ASSERT_EQUAL(testroot+"/file1", Arc::FileReadLink(testroot+"/file1s"));
+#endif
 }
 
 void FileUtilsTest::TestFileCreateAndRead() {
@@ -100,7 +104,9 @@ void FileUtilsTest::TestFileCreateAndRead() {
   struct stat st;
   CPPUNIT_ASSERT(Arc::FileStat(filename, &st, true));
   CPPUNIT_ASSERT_EQUAL(0, (int)st.st_size);
+#ifndef WIN32
   CPPUNIT_ASSERT_EQUAL(0600, (int)(st.st_mode & 0777));
+#endif
 
   std::list<std::string> data;
   CPPUNIT_ASSERT(Arc::FileRead(filename, data));
@@ -126,19 +132,21 @@ void FileUtilsTest::TestMakeAndDeleteDir() {
   // create a few subdirs and files then recursively delete
   struct stat st;
   CPPUNIT_ASSERT(stat(testroot.c_str(), &st) == 0);
-  CPPUNIT_ASSERT(_createFile(testroot + "/file1"));
-  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot + "/dir1"), S_IRUSR | S_IWUSR | S_IXUSR));
-  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot + "/dir1"), S_IRUSR | S_IWUSR | S_IXUSR));
-  CPPUNIT_ASSERT(stat(std::string(testroot + "/dir1").c_str(), &st) == 0);
+  CPPUNIT_ASSERT(_createFile(testroot+sep+"file1"));
+  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot+sep+"dir1"), S_IRUSR | S_IWUSR | S_IXUSR));
+  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot+sep+"dir1"), S_IRUSR | S_IWUSR | S_IXUSR));
+  CPPUNIT_ASSERT(stat(std::string(testroot+sep+"dir1").c_str(), &st) == 0);
   CPPUNIT_ASSERT(S_ISDIR(st.st_mode));
-  CPPUNIT_ASSERT(_createFile(testroot + "/dir1/file2"));
+  CPPUNIT_ASSERT(_createFile(testroot+sep+"dir1"+sep+"file2"));
   // should fail if with_parents is set to false
-  CPPUNIT_ASSERT(!Arc::DirCreate(std::string(testroot + "/dir1/dir2/dir3"), S_IRUSR | S_IWUSR | S_IXUSR, false));
-  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot + "/dir1/dir2/dir3"), S_IRUSR | S_IWUSR | S_IXUSR, true));
-  CPPUNIT_ASSERT(stat(std::string(testroot + "/dir1/dir2/dir3").c_str(), &st) == 0);
+  CPPUNIT_ASSERT(!Arc::DirCreate(std::string(testroot+sep+"dir1"+sep+"dir2"+sep+"dir3"), S_IRUSR | S_IWUSR | S_IXUSR, false));
+  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot+sep+"dir1"+sep+"dir2"+sep+"dir3"), S_IRUSR | S_IWUSR | S_IXUSR, true));
+  CPPUNIT_ASSERT(stat(std::string(testroot+sep+"dir1"+sep+"dir2"+sep+"dir3").c_str(), &st) == 0);
   CPPUNIT_ASSERT(S_ISDIR(st.st_mode));
-  CPPUNIT_ASSERT(_createFile(testroot + "/dir1/dir2/dir3/file4"));
-  CPPUNIT_ASSERT(symlink(std::string(testroot + "/dir1/dir2").c_str(), std::string(testroot + "/dir1/dir2/link1").c_str()) == 0);
+  CPPUNIT_ASSERT(_createFile(testroot+sep+"dir1"+sep+"dir2"+sep+"dir3"+sep+"file4"));
+#ifndef WIN32
+  CPPUNIT_ASSERT(symlink(std::string(testroot+sep+"dir1"+sep+"dir2").c_str(), std::string(testroot+sep+"dir1"+sep+"dir2"+sep+"link1").c_str()) == 0);
+#endif
 
   CPPUNIT_ASSERT(!Arc::DirDelete(testroot, false));
   CPPUNIT_ASSERT(Arc::DirDelete(testroot, true));
@@ -167,28 +175,29 @@ void FileUtilsTest::TestTmpFileCreate() {
   CPPUNIT_ASSERT(stat(path.c_str(), &st) != 0);
 }
 
+
 void FileUtilsTest::TestCanonicalDir() {
-  std::string dir("/home/me/dir1");
+  std::string dir(sep+"home"+sep+"me"+sep+"dir1");
 
   CPPUNIT_ASSERT(Arc::CanonicalDir(dir));
-  CPPUNIT_ASSERT_EQUAL(std::string("/home/me/dir1"), dir);
+  CPPUNIT_ASSERT_EQUAL(std::string(sep+"home"+sep+"me"+sep+"dir1"), dir);
 
   CPPUNIT_ASSERT(Arc::CanonicalDir(dir, false));
-  CPPUNIT_ASSERT_EQUAL(std::string("home/me/dir1"), dir);
+  CPPUNIT_ASSERT_EQUAL(std::string("home"+sep+"me"+sep+"dir1"), dir);
 
-  dir = "/home/me/../me";
+  dir = sep+"home"+sep+"me"+sep+".."+sep+"me";
   CPPUNIT_ASSERT(Arc::CanonicalDir(dir));
-  CPPUNIT_ASSERT_EQUAL(std::string("/home/me"), dir);
+  CPPUNIT_ASSERT_EQUAL(std::string(sep+"home"+sep+"me"), dir);
 
-  dir = "/home/me/../..";
+  dir = sep+"home"+sep+"me"+sep+".."+sep+"..";
   CPPUNIT_ASSERT(Arc::CanonicalDir(dir));
-  CPPUNIT_ASSERT_EQUAL(std::string("/"), dir);
+  CPPUNIT_ASSERT_EQUAL(sep, dir);
 
-  dir = "/home/me/../..";
+  dir = sep+"home"+sep+"me"+sep+".."+sep+"..";
   CPPUNIT_ASSERT(Arc::CanonicalDir(dir, false));
   CPPUNIT_ASSERT_EQUAL(std::string(""), dir);
 
-  dir = "/home/me/../../..";
+  dir = sep+"home"+sep+"me"+sep+".."+sep+".."+sep+"..";
   CPPUNIT_ASSERT(!Arc::CanonicalDir(dir, false));
 }
 
