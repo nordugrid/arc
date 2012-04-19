@@ -4,6 +4,7 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
+#include <time.h>
 #include <arc/Utils.h>
 
 class EnvTest
@@ -43,6 +44,7 @@ void EnvTest::TestEnv() {
   Arc::SetEnv("TEST_ENV_VAR","TEST_ENV_VALUE4", false);
   CPPUNIT_ASSERT_EQUAL(std::string("TEST_ENV_VALUE3"), Arc::GetEnv("TEST_ENV_VAR",found));
 
+  time_t start = ::time(NULL);
   for(int n = 0; n < 1000000; ++n) {
     Arc::SetEnv("TEST_ENV_VAR1","TEST_ENV_VALUE");
     Arc::UnsetEnv("TEST_ENV_VAR1");
@@ -53,6 +55,8 @@ void EnvTest::TestEnv() {
     Arc::SetEnv("TEST_ENV_VAR3","TEST_ENV_VALUE");
     Arc::UnsetEnv("TEST_ENV_VAR3");
     Arc::SetEnv("TEST_ENV_VAR3","TEST_ENV_VALUE");
+    // Limit duration by reasonable value
+    if(((unsigned int)(time(NULL)-start)) > 300) break;
   }
 }
 
