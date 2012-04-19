@@ -65,9 +65,7 @@ namespace Arc {
       j.Cluster = jobid->manager;
       jobid->ToXML().GetXML(j.IDFromEndpoint);
       // URL-izing job id
-      URL jobidu(jobid->manager);
-      jobidu.AddOption("emiesjobid",jobid->id,true);
-      j.JobID = jobidu;
+      j.JobID = URL(jobid->manager + "/" + jobid->id);
       jobs.push_back(j);
     };
 

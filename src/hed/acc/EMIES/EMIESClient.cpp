@@ -317,9 +317,7 @@ namespace Arc {
     }
     // Making EMI ES specific job id
     // URL-izing job id
-    URL jobidu(job.manager);
-    jobidu.AddOption("emiesjobid",job.id,true);
-    info.JobID = jobidu;
+    info.JobID = URL(job.manager + "/" + job.id);
     //if(!info) return false;
     return true;
   }

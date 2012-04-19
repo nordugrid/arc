@@ -28,21 +28,14 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
   
-  static EMIESJob JobToEMIES(const Job& ajob) {
-    EMIESJob job;
-    job.id = ajob.JobID.Option("emiesjobid");
-    job.manager = ajob.JobID;
-    job.manager.RemoveOption("emiesjobid");
-    return job;
-  }
-
   void JobControllerEMIES::UpdateJobs(std::list<Job*>& jobs) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
     for (std::list<Job*>::iterator iter = jobs.begin();
-         iter != jobs.end(); iter++) {
-      EMIESJob job = JobToEMIES(**iter);
+         iter != jobs.end(); ++iter) {
+      EMIESJob job;
+      job = (*iter)->IDFromEndpoint;
       EMIESClient ac(job.manager, cfg, usercfg.Timeout());
       if (!ac.info(job, **iter)) {
         logger.msg(WARNING, "Job information not found in the information system: %s", (*iter)->JobID.fullstr());
@@ -69,7 +62,9 @@ namespace Arc {
     if (usejobname && !job.Name.empty()) {
       downloaddir += job.Name;
     } else {
-      downloaddir += job.JobID.Option("emiesjobid");
+      std::string path = job.JobID.Path();
+      std::string::size_type pos = path.rfind('/');
+      downloaddir += path.substr(pos + 1);
     }
 
     URL src(GetFileUrlForJob(job,""));
@@ -115,7 +110,8 @@ namespace Arc {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
-    EMIESJob ejob = JobToEMIES(job);
+    EMIESJob ejob;
+    ejob = job.IDFromEndpoint;
     EMIESClient ac(ejob.manager, cfg, usercfg.Timeout());
     return ac.clean(ejob);
   }
@@ -141,7 +137,8 @@ namespace Arc {
     usercfg.ApplyToConfig(cfg);
 
     // Obtain information about staging urls
-    EMIESJob ejob = JobToEMIES(job);
+    EMIESJob ejob;
+    ejob = job.IDFromEndpoint;
     std::string stagein;
     std::string stageout;
     std::string session;

@@ -157,8 +157,7 @@ namespace Arc {
     }
 
     // URL-izing job id
-    URL jobidu(jobid.manager);
-    jobidu.AddOption("emiesjobid",jobid.id,true);
+    URL jobidu(jobid.manager + "/" + jobid.id);
 
     jobid.ToXML().GetXML(job.IDFromEndpoint);
 
