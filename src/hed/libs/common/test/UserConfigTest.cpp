@@ -360,9 +360,12 @@ void UserConfigTest::SaveToFileTest()
   remove(conffile.c_str());
   
   uc.SaveToFile(conffile);
-  std::string output = Glib::file_get_contents(conffile);
-  CPPUNIT_ASSERT_EQUAL((std::string)input, (std::string)output);
+  std::ifstream ff(conffile.c_str());
+  std::string output;
+  std::getline(ff,output,'\0');
+  ff.close();
   remove(conffile.c_str());
+  CPPUNIT_ASSERT_EQUAL((std::string)input, (std::string)output);
 }
 
 
