@@ -387,12 +387,12 @@ namespace Arc {
   }
 
   void MD5Sum::scan(const char *buf) {
-    u_char A0, A1, A2, A3, B0, B1, B2, B3, C0, C1, C2, C3, D0, D1, D2, D3;
+    unsigned A0, A1, A2, A3, B0, B1, B2, B3, C0, C1, C2, C3, D0, D1, D2, D3;
     computed = false;
     if (strncasecmp("md5:", buf, 4) != 0) return;
     int l = sscanf(buf + 4,
-                   "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx"
-                   "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",
+                   "%02x%02x%02x%02x%02x%02x%02x%02x"
+                   "%02x%02x%02x%02x%02x%02x%02x%02x",
                    &A0, &A1, &A2, &A3, &B0, &B1, &B2, &B3,
                    &C0, &C1, &C2, &C3, &D0, &D1, &D2, &D3
                    );
