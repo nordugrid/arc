@@ -21,7 +21,7 @@ namespace Arc {
     std::string line;
     XMLNode section;
     while (getline(is, line)) {
-      line = trim(line, " \t");
+      line = trim(line, " \t\r\n");
       if (line.empty() || line[0] == '#')
         continue;
       if (line[0] == '[' && line[line.size() - 1] == ']') {
