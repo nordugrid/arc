@@ -6,7 +6,9 @@
 
 #include <utime.h>
 #include <sys/stat.h>
+#ifndef WIN32
 #include <sys/utsname.h>
+#endif
 #include <unistd.h>
 #ifdef WIN32
 #include <Winsock2.h> // for gethostname()
@@ -72,13 +74,16 @@ void FileLockTest::TestFileLockAcquire() {
 
   // construct hostname
   char hostname[256];
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("Cannot determine hostname from gethostname()", 0, gethostname(hostname, sizeof(hostname)));
+  if(gethostname(hostname, sizeof(hostname)) != 0) hostname[0] = '\0';
   std::string host(hostname);
   CPPUNIT_ASSERT_EQUAL(Arc::tostring(getpid()) + "@" + host, lock_pid);
 
-  // set old modification time
+  bool lock_removed = false;
   struct utimbuf times;
   time_t t = 1;
+#ifndef WIN32
+  // set old modification time
+  // utime does not work on windows - skip for windows
   times.actime = t;
   times.modtime = t;
   CPPUNIT_ASSERT_EQUAL(0, utime(lock_file.c_str(), &times));
@@ -86,9 +91,9 @@ void FileLockTest::TestFileLockAcquire() {
   CPPUNIT_ASSERT_EQUAL(t, fileStat.st_mtime);
 
   // call acquire() again - should succeed and make new lock file
-  bool lock_removed = false;
   CPPUNIT_ASSERT(lock.acquire(lock_removed));
   CPPUNIT_ASSERT(lock_removed);
+#endif
 
   // look at modification time - should not be more than 1 second old
   CPPUNIT_ASSERT_EQUAL_MESSAGE("Could not stat lock file " + lock_file, 0, stat(lock_file.c_str(), &fileStat));
@@ -108,11 +113,14 @@ void FileLockTest::TestFileLockAcquire() {
   CPPUNIT_ASSERT(!lock.acquire(lock_removed));
   CPPUNIT_ASSERT(!lock_removed);
 
+#ifndef WIN32
   // try again with a non-existent pid
+  // windows can't check for running pid - skip for windows
   _createFile(lock_file, "99999@" + host);
   lock_removed = false;
   CPPUNIT_ASSERT(lock.acquire(lock_removed));
   CPPUNIT_ASSERT(lock_removed);
+#endif
 
   // badly formatted pid
   _createFile(lock_file, "abcd@" + host);
@@ -126,7 +134,9 @@ void FileLockTest::TestFileLockAcquire() {
   lock = Arc::FileLock(filename, 1);
   CPPUNIT_ASSERT(lock.acquire(lock_removed));
   CPPUNIT_ASSERT(!lock_removed);
-  sleep(2);
+  // use longer sleep because times and sleeps are very
+  // approximate on windows
+  sleep(4);
   CPPUNIT_ASSERT(lock.acquire(lock_removed));
   CPPUNIT_ASSERT(lock_removed);
 
@@ -147,7 +157,9 @@ void FileLockTest::TestFileLockAcquire() {
   lock = Arc::FileLock(filename);
   CPPUNIT_ASSERT(!lock.acquire());
 
+#ifndef WIN32
   // set old modification time - acquire should now succeed
+  // utime does not work on windows - skip for windows
   times.actime = t;
   times.modtime = t;
   CPPUNIT_ASSERT_EQUAL(0, utime(lock_file.c_str(), &times));
@@ -155,13 +167,17 @@ void FileLockTest::TestFileLockAcquire() {
   CPPUNIT_ASSERT_EQUAL(t, fileStat.st_mtime);
 
   CPPUNIT_ASSERT(lock.acquire());
+#endif
 
+#ifndef WIN32
   // create lock with empty hostname - acquire should still work
+  // windows can't check for running pid - skip for windows
   lock = Arc::FileLock(filename);
   _createFile(lock_file, "99999@");
   lock_removed = false;
   CPPUNIT_ASSERT(lock.acquire(lock_removed));
   CPPUNIT_ASSERT(lock_removed);
+#endif
 }
 
 void FileLockTest::TestFileLockRelease() {
@@ -177,7 +193,7 @@ void FileLockTest::TestFileLockRelease() {
 
   // construct hostname
   char hostname[256];
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("Cannot determine hostname from gethostname()", 0, gethostname(hostname, sizeof(hostname)));
+  if(gethostname(hostname, sizeof(hostname)) != 0) hostname[0] = '\0';
   std::string host(hostname);
 
   // create a valid lock file with this pid
@@ -235,7 +251,7 @@ void FileLockTest::TestFileLockCheck() {
 
   // construct hostname
   char hostname[256];
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("Cannot determine hostname from gethostname()", 0, gethostname(hostname, sizeof(hostname)));
+  if(gethostname(hostname, sizeof(hostname)) != 0) hostname[0] = '\0';
   std::string host(hostname);
 
   // create a valid lock file with this pid
