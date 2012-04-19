@@ -152,7 +152,7 @@ int main(void) {
   Arc::VOMSTrustList trust_dn(vomscert_trust_dn);
   Arc::Credential proxy2(in_file_ac, "", ca_cert_dir, ca_cert_file);
   std::vector<Arc::VOMSACInfo> attributes;
-  Arc::parseVOMSAC(proxy2, ca_cert_dir, ca_cert_file, trust_dn, attributes); 
+  Arc::parseVOMSAC(proxy2, ca_cert_dir, ca_cert_file, "", trust_dn, attributes); 
 
   for(size_t n=0; n<attributes.size(); n++) {
     for(size_t i=0; i<attributes[n].attributes.size(); i++) {

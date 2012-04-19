@@ -158,6 +158,8 @@ void RunParallel::initializer(void* arg) {
 #endif
       std::string cert_dir = it->user_.Env().cert_dir_loc();
       if(!cert_dir.empty()) Arc::SetEnv("X509_CERT_DIR",cert_dir);
+      std::string voms_dir = it->user_.Env().voms_dir_loc();
+      if(!voms_dir.empty()) Arc::SetEnv("X509_VOMS_DIR",voms_dir);
     };
   };
 #endif

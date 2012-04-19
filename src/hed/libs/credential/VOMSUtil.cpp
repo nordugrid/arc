@@ -20,6 +20,8 @@
 #include <arc/credential/VOMSUtil.h>
 #include "listfunc.h"
 
+static std::string default_vomsdir = std::string(G_DIR_SEPARATOR_S) + "etc" + G_DIR_SEPARATOR_S +"grid-security" + G_DIR_SEPARATOR_S + "vomsdir";
+
 #ifdef WIN32
 int gethostname_mingw (char *, size_t);
 int gethostname_mingw (char *name, size_t len) {
@@ -846,10 +848,10 @@ err:
   }
   
   /* Get the DNs chain from relative *.lsc file.
-   * The location of .lsc file is fixed as default path: /etc/grid-security/vomsdir/<VO>/<hostname>.lsc
+   * The location of .lsc file is path: $vomsdir/<VO>/<hostname>.lsc
    */
-  static bool getLSC(const std::string& voname, const std::string& hostname, std::vector<std::string>& vomscert_trust_dn) {
-    std::string lsc_loc = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("vomsdir") + G_DIR_SEPARATOR_S + voname + G_DIR_SEPARATOR_S + hostname + ".lsc");
+  static bool getLSC(const std::string& vomsdir, const std::string& voname, const std::string& hostname, std::vector<std::string>& vomscert_trust_dn) {
+    std::string lsc_loc = vomsdir + G_DIR_SEPARATOR_S + voname + G_DIR_SEPARATOR_S + hostname + ".lsc";
     if (!Glib::file_test(lsc_loc, Glib::FILE_TEST_IS_REGULAR)) {
       CredentialLogger.msg(INFO, "VOMS: The lsc file %s does not exist", lsc_loc);
       return false;
@@ -866,7 +868,8 @@ err:
     return true;
   }
 
-  static bool checkSignature(AC* ac, std::string& voname, std::string& hostname, 
+  static bool checkSignature(AC* ac,
+    const std::string vomsdir, const std::string& voname, const std::string& hostname, 
     const std::string& ca_cert_dir, const std::string& ca_cert_file, 
     VOMSTrustList& vomscert_trust_dn, 
     X509*& issuer_cert, unsigned int& status, bool verify) {
@@ -903,7 +906,7 @@ err:
         bool lsc_check = false;
         if((vomscert_trust_dn.SizeChains()==0) && (vomscert_trust_dn.SizeRegexs()==0)) {
           std::vector<std::string> voms_trustdn;
-          if(!getLSC(voname, hostname, voms_trustdn)) {
+          if(!getLSC(vomsdir, voname, hostname, voms_trustdn)) {
             CredentialLogger.msg(INFO,"VOMS: there is no constraints of trusted voms DNs, the certificates stack in AC will not be checked.");
             success = true;
           }
@@ -1524,7 +1527,7 @@ err:
   // Returns false if any error happened.
   // Also always fills status with information about errors detected if any.
   static bool verifyVOMSAC(AC* ac,
-        const std::string& ca_cert_dir, const std::string& ca_cert_file, 
+        const std::string& ca_cert_dir, const std::string& ca_cert_file, const std::string vomsdir,
         VOMSTrustList& vomscert_trust_dn,
         X509* holder, std::vector<std::string>& attr_output, 
         std::string& vo_name, std::string& ac_holder_name, std::string& ac_issuer_name, 
@@ -1591,8 +1594,9 @@ err:
  
     X509* issuer = NULL;
 
-    if(!checkSignature(ac, voname, hostname, ca_cert_dir, ca_cert_file, vomscert_trust_dn,
-                                                           issuer, status, verify)) {
+    if(!checkSignature(ac, vomsdir, voname, hostname,
+                       ca_cert_dir, ca_cert_file, vomscert_trust_dn,
+                       issuer, status, verify)) {
       CredentialLogger.msg(ERROR,"VOMS: can not verify the signature of the AC");
       res = false;
     }
@@ -1609,7 +1613,7 @@ err:
 
   bool parseVOMSAC(X509* holder,
         const std::string& ca_cert_dir, const std::string& ca_cert_file, 
-        VOMSTrustList& vomscert_trust_dn,
+        const std::string& vomsdir, VOMSTrustList& vomscert_trust_dn,
         std::vector<VOMSACInfo>& output, bool verify, bool reportall) {
 
     InitVOMSAttribute();
@@ -1641,7 +1645,8 @@ err:
     for (int i = 0; i < num; i++) {
       AC *ac = (AC *)sk_AC_value(aclist->acs, i);
       VOMSACInfo ac_info;
-      bool r = verifyVOMSAC(ac, ca_cert_dir, ca_cert_file, vomscert_trust_dn, 
+      bool r = verifyVOMSAC(ac, ca_cert_dir, ca_cert_file,
+          vomsdir.empty()?default_vomsdir:vomsdir, vomscert_trust_dn, 
           holder, ac_info.attributes, ac_info.voname, ac_info.holder, ac_info.issuer, 
           ac_info.from, ac_info.till, ac_info.status, verify);
       if(!r) verified = false;
@@ -1658,12 +1663,12 @@ err:
 
   bool parseVOMSAC(const Credential& holder_cred,
          const std::string& ca_cert_dir, const std::string& ca_cert_file,
-         VOMSTrustList& vomscert_trust_dn,
+         const std::string& vomsdir, VOMSTrustList& vomscert_trust_dn,
          std::vector<VOMSACInfo>& output, bool verify, bool reportall) {
     X509* holder = holder_cred.GetCert();
     if(!holder) return false;
-    bool res = parseVOMSAC(holder, ca_cert_dir, ca_cert_file, vomscert_trust_dn,
-                                                         output, verify, reportall);
+    bool res = parseVOMSAC(holder, ca_cert_dir, ca_cert_file, vomsdir,
+                           vomscert_trust_dn, output, verify, reportall);
 
     //Also parse the voms attributes inside the certificates on 
     //the upstream of the holder certificate; in this case,
@@ -1676,8 +1681,8 @@ err:
         if(idx >= sk_X509_num(certchain)) break;
         // TODO: stop at actual certificate, do not go to CAs and sub-CAs
         X509* cert = sk_X509_value(certchain,sk_X509_num(certchain)-idx-1);
-        bool res2 = parseVOMSAC(cert, ca_cert_dir, ca_cert_file, vomscert_trust_dn,
-                                                           output, verify, reportall);
+        bool res2 = parseVOMSAC(cert, ca_cert_dir, ca_cert_file, vomsdir,
+                                vomscert_trust_dn, output, verify, reportall);
         if (!res2) res = res2;
       };
     }
@@ -1779,7 +1784,7 @@ err:
     return MyDecode(data, size, j);
   }
 
-  std::string getCredentialProperty(const Arc::Credential& u, const std::string& property, const std::string& ca_cert_dir, const std::string& ca_cert_file, const std::vector<std::string>& voms_trust_list) {
+  std::string getCredentialProperty(const Arc::Credential& u, const std::string& property, const std::string& ca_cert_dir, const std::string& ca_cert_file, const std::string& vomsdir, const std::vector<std::string>& voms_trust_list) {
     if (property == "dn"){
         return u.GetIdentityName();
     }
@@ -1788,7 +1793,7 @@ err:
     VOMSTrustList vomstrustlist(voms_trust_list);
     bool verify = false;
     if(vomstrustlist.SizeRegexs() || vomstrustlist.SizeChains())verify = true;
-    parseVOMSAC(u,ca_cert_dir,ca_cert_file,vomstrustlist,output,verify);
+    parseVOMSAC(u,ca_cert_dir,vomsdir,ca_cert_file,vomstrustlist,output,verify);
     if (property == "voms:vo"){
         if (output.empty()) {
                 // if it's not possible to determine the VO -- such jobs will go into generic share

@@ -61,6 +61,22 @@
     </xsd:complexType>
 </xsd:element>
 
+<xsd:element name="VOMSDir" default="/etc/grid-security/vomsdir">
+    <xsd:complexType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            Directory containing per-VO subdirectories each containing
+            per-host *.lsc VOMS configuration files.
+            Default is /etc/grid-security/vomsdir
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+</xsd:element>
+
 <xsd:element name="ClientAuthn" type="xsd:boolean" default="true">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">

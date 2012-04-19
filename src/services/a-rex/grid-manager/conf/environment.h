@@ -42,6 +42,10 @@ class GMEnvironment {
   std::string cert_dir_loc() const;
   void cert_dir_loc(const std::string&) const;
 
+  // VOMS lsc root directory location
+  std::string voms_dir_loc() const;
+  void voms_dir_loc(const std::string&) const;
+
   // RTE setup scripts
   std::string runtime_config_dir(void) const;
   void runtime_config_dir(const std::string&);

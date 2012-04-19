@@ -135,6 +135,8 @@ static prstring nordugrid_sbin_loc_;
 static prstring nordugrid_config_loc_;
 // Certificates directory 
 static prstring cert_dir_loc_;
+// VOMS lsc top directory 
+static prstring voms_dir_loc_;
 // RTE setup scripts
 static prstring runtime_config_dir_;
 // Email address of person responsible for this ARC installation
@@ -174,6 +176,14 @@ std::string GMEnvironment::cert_dir_loc(void) const {
 
 void GMEnvironment::cert_dir_loc(const std::string& val) const {
   cert_dir_loc_=val;
+}
+
+std::string GMEnvironment::voms_dir_loc(void) const {
+  return voms_dir_loc_.str();
+}
+
+void GMEnvironment::voms_dir_loc(const std::string& val) const {
+  voms_dir_loc_=val;
 }
 
 std::string GMEnvironment::runtime_config_dir(void) const {
@@ -231,6 +241,10 @@ static bool read_env_vars(bool guess) {
   
   if(cert_dir_loc_.empty()) {
     cert_dir_loc_=Arc::GetEnv("X509_CERT_DIR");
+  };
+
+  if(voms_dir_loc_.empty()) {
+    voms_dir_loc_=Arc::GetEnv("X509_VOMS_DIR");
   };
 
   // Set all environement variables for other tools

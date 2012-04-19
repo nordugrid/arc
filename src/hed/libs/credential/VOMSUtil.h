@@ -189,7 +189,7 @@ namespace Arc {
    *          instead of a directory. Only one of them need to be set
    * @param vomsdir  The directory which include *.lsc file for each vo.
    *          For instance, a vo called "knowarc.eu" should
-   *          have file $prefix/vomsdir/knowarc/voms.knowarc.eu.lsc which
+   *          have file vomsdir/knowarc/voms.knowarc.eu.lsc which
    *          contains on the first line the DN of the VOMS server, and on
    *          the second line the corresponding CA DN:
    *                   /O=Grid/O=NorduGrid/OU=KnowARC/CN=voms.knowarc.eu
@@ -234,8 +234,10 @@ namespace Arc {
    *                most information.
    *
    */
-  bool parseVOMSAC(X509* holder, const std::string& ca_cert_dir,
+  bool parseVOMSAC(X509* holder,
+                   const std::string& ca_cert_dir,
                    const std::string& ca_cert_file, 
+                   const std::string& vomsdir, 
                    VOMSTrustList& vomscert_trust_dn,
                    std::vector<VOMSACInfo>& output, 
                    bool verify = true, bool reportall = false);
@@ -245,6 +247,7 @@ namespace Arc {
   bool parseVOMSAC(const Credential& holder_cred,
                    const std::string& ca_cert_dir,
                    const std::string& ca_cert_file, 
+                   const std::string& vomsdir, 
                    VOMSTrustList& vomscert_trust_dn,
                    std::vector<VOMSACInfo>& output,
                    bool verify = true, bool reportall = false);
@@ -260,9 +263,14 @@ namespace Arc {
    *          including: dn, voms:vo, voms:role, voms:group 
    * @param ca_cert_dir 
    * @param ca_cert_file
+   * @param vomsdir
    * @param voms_trust_list  the dn chain that is trusted when parsing voms AC
   */
-  std::string getCredentialProperty(const Arc::Credential& u, const std::string& property, const std::string& ca_cert_dir = std::string(""), const std::string& ca_cert_file = std::string(""), const std::vector<std::string>& voms_trust_list = std::vector<std::string>());
+  std::string getCredentialProperty(const Arc::Credential& u, const std::string& property,
+                                    const std::string& ca_cert_dir = std::string(""),
+                                    const std::string& ca_cert_file = std::string(""),
+                                    const std::string& vomsdir = std::string(""),
+                                    const std::vector<std::string>& voms_trust_list = std::vector<std::string>());
 
   std::string VOMSFQANToFull(const std::string& vo, const std::string& fqan);
 

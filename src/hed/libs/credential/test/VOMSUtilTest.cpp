@@ -109,7 +109,7 @@ void VOMSUtilTest::VOMSTrustListTest() {
 
   std::vector<Arc::VOMSACInfo> attributes;
   Arc::VOMSTrustList trust_dn(vomscert_trust_dn);
-  Arc::parseVOMSAC(voms_proxy, ".", CAcert, trust_dn, attributes, true); 
+  Arc::parseVOMSAC(voms_proxy, ".", CAcert, "", trust_dn, attributes, true); 
   
   for(size_t n=0; n<attributes.size(); n++) {
     for(size_t i=0; i<attributes[n].attributes.size(); i++) {

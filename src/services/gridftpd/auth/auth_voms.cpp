@@ -101,11 +101,11 @@ int AuthUser::match_voms(const char* line) {
 
 static int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool /* auto_cert */) {
   std::vector<struct voms>::iterator i;
-  //std::string voms_dir = "/etc/grid-security/vomsdir";
+  std::string voms_dir = "/etc/grid-security/vomsdir";
   std::string cert_dir = "/etc/grid-security/certificates";
   {
     std::string v;
-    //if((v = getenv("X509_VOMS_DIR"))) voms_dir = v;
+    if(!(v = Arc::GetEnv("X509_VOMS_DIR")).empty()) voms_dir = v;
     if(!(v = Arc::GetEnv("X509_CERT_DIR")).empty()) cert_dir = v;
   };
   std::string voms_processing = Arc::GetEnv("VOMS_PROCESSING");
@@ -120,7 +120,7 @@ static int process_vomsproxy(const char* filename,std::vector<struct voms> &data
   std::vector<std::string> vomstrustlist;
   Arc::tokenize(voms_trust_chains, vomstrustlist, "\n");
   Arc::VOMSTrustList voms_trust_list(vomstrustlist);
-  parseVOMSAC(c, cert_dir, emptystring, voms_trust_list, output, true, true);
+  parseVOMSAC(c, cert_dir, emptystring, voms_dir, voms_trust_list, output, true, true);
   for(size_t n=0;n<output.size();++n) {
     if(!(output[n].status & Arc::VOMSACInfo::Error)) {
       data.push_back(AuthUser::arc_to_voms(output[n].voname,output[n].attributes));

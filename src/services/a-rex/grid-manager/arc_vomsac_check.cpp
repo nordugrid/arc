@@ -168,7 +168,9 @@ int main(int argc, char *argv[]) {
 		return EXIT_SUCCESS;
 	}
 
-	// CA Cert directory requires to work with proxy
+	struct stat statFInfo;
+
+	// CA Cert directory required to work with proxy
 	std::string ca_dir;
 	ca_dir = (std::string)cfg["common"]["x509_cert_dir"];
 	if (ca_dir.empty()) {
@@ -176,11 +178,24 @@ int main(int argc, char *argv[]) {
 	} else {
 		ca_dir = Arc::trim(ca_dir,"\"");
 	}
-	struct stat statFInfo;
 	if ( stat(ca_dir.c_str(),&statFInfo) ) {
 		logger.msg(Arc::ERROR,"CA certificates directory %s does not exist", ca_dir);
 		return EXIT_FAILURE;
 	}
+
+	// VOMS directory required to verify VOMS ACs
+	std::string voms_dir;
+	ca_dir = (std::string)cfg["common"]["x509_voms_dir"];
+	if (voms_dir.empty()) {
+		voms_dir = "/etc/grid-security/vomsdir";
+	} else {
+		voms_dir = Arc::trim(voms_dir,"\"");
+	}
+        // Or maybe not _required_
+	//if ( stat(voms_dir.c_str(),&statFInfo) ) {
+	//	logger.msg(Arc::ERROR,"VOMS directory %s does not exist", voms_dir);
+	//	return EXIT_FAILURE;
+	//}
 
 	// construct ARC credentials object
 	Arc::Credential holder(user_proxy_f, "", ca_dir, "");
@@ -195,7 +210,7 @@ int main(int argc, char *argv[]) {
 	Arc::VOMSTrustList vomscert_trust_dn;
 	vomscert_trust_dn.AddRegex(".*");
 
-	if ( ! Arc::parseVOMSAC(holder, ca_dir, "", vomscert_trust_dn, voms_attributes, true, true) ) {
+	if ( ! Arc::parseVOMSAC(holder, ca_dir, "", voms_dir, vomscert_trust_dn, voms_attributes, true, true) ) {
 		// logger.msg(Arc::WARNING,"Error parsing VOMS AC");
 		if ( no_ac_success ) return EXIT_SUCCESS;
 		return EXIT_FAILURE;

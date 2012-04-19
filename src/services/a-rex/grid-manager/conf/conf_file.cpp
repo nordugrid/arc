@@ -107,6 +107,8 @@ bool configure_serviced_users(JobUsers &users/*,uid_t my_uid,const std::string &
         infosys_user=rest;
       } else if(command == "x509_cert_dir") {
         users.Env().cert_dir_loc(rest);
+      } else if(command == "x509_voms_dir") {
+        users.Env().voms_dir_loc(rest);
       };
     };
     /*

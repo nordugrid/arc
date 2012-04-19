@@ -16,6 +16,7 @@ class ConfigTLSMCC {
  private:  
   std::string ca_dir_;
   std::string ca_file_;
+  std::string voms_dir_;
   std::string proxy_file_;
   std::string cert_file_;
   std::string key_file_;
@@ -39,6 +40,7 @@ class ConfigTLSMCC {
   ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client = false);
   const std::string& CADir(void) const { return ca_dir_; };
   const std::string& CAFile(void) const { return ca_file_; };
+  const std::string& VOMSDir(void) const { return voms_dir_; };
   const std::string& ProxyFile(void) const { return proxy_file_; };
   const std::string& CertFile(void) const { return cert_file_; };
   const std::string& KeyFile(void) const { return key_file_; };

@@ -310,6 +310,10 @@ int main(int argc, char *argv[]) {
   options.AddOption('T', "cadir", istring("path to the trusted certificate directory, only needed for the VOMS client functionality"),
                     istring("path"), ca_dir);
 
+  std::string voms_dir;
+  options.AddOption('s', "vomsdir", istring("path to the top directory of VOMS *.lsc files, only needed for the VOMS client functionality"),
+                    istring("path"), ca_dir);
+
   std::string vomses_path;
   options.AddOption('V', "vomses", istring("path to the VOMS server configuration file"),
                     istring("path"), vomses_path);
@@ -538,6 +542,7 @@ int main(int argc, char *argv[]) {
   if(key_path.empty()) key_path = usercfg.KeyPath();
   if(cert_path.empty()) cert_path = usercfg.CertificatePath();
   if(ca_dir.empty()) ca_dir = usercfg.CACertificatesDirectory();
+  if(voms_dir.empty()) voms_dir = Arc::GetEnv("X509_VOMS_DIR");
 
   if (debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
@@ -601,7 +606,7 @@ int main(int argc, char *argv[]) {
 
     Arc::VOMSTrustList voms_trust_dn;
     voms_trust_dn.AddRegex(".*");
-    res = parseVOMSAC(holder, ca_dir, "", voms_trust_dn, voms_attributes, true, true);
+    res = parseVOMSAC(holder, ca_dir, "", voms_dir, voms_trust_dn, voms_attributes, true, true);
     // Not printing error message because parseVOMSAC will print everything itself
     //if (!res) logger.msg(Arc::ERROR, "VOMS attribute parsing failed");
     for(int n = 0; n<voms_attributes.size(); ++n) {

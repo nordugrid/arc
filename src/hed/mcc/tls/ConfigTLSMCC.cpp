@@ -42,6 +42,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client) {
   key_file_ = (std::string)(cfg["KeyPath"]);
   ca_file_ = (std::string)(cfg["CACertificatePath"]);
   ca_dir_ = (std::string)(cfg["CACertificatesDir"]);
+  voms_dir_ = (std::string)(cfg["VOMSDir"]);
   globus_policy_ = (((std::string)(cfg["CACertificatesDir"].Attribute("PolicyGlobus"))) == "true");
   globus_gsi_ = (((std::string)(cfg["GSI"])) == "globus");
   globusio_gsi_ = (((std::string)(cfg["GSI"])) == "globusio");
@@ -97,6 +98,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client) {
     if(cert_file_.empty() && proxy_file_.empty()) client_authn_ = false;
   };
   if(ca_dir_.empty() && ca_file_.empty()) ca_dir_= gridSecurityDir + G_DIR_SEPARATOR_S + "certificates";
+  if(voms_dir_.empty()) voms_dir_= gridSecurityDir + G_DIR_SEPARATOR_S + "vomsdir";
   if(!proxy_file_.empty()) { key_file_=proxy_file_; cert_file_=proxy_file_; };
 }
 
