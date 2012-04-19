@@ -7,7 +7,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#ifndef WIN32
 #include <pwd.h>
+#endif
 #include <fcntl.h>
 #include <string.h>
 
@@ -20,20 +22,24 @@ class FileAccessTest
   : public CppUnit::TestFixture {
 
   CPPUNIT_TEST_SUITE(FileAccessTest);
+#ifndef WIN32
   CPPUNIT_TEST(TestOpenWriteReadStat);
   CPPUNIT_TEST(TestCopy);
   CPPUNIT_TEST(TestDir);
   CPPUNIT_TEST(TestSeekAllocate);
+#endif
   CPPUNIT_TEST_SUITE_END();
 
 public:
   void setUp();
   void tearDown();
 
+#ifndef WIN32
   void TestOpenWriteReadStat();
   void TestCopy();
   void TestDir();
   void TestSeekAllocate();
+#endif
 
 private:
   uid_t uid;
@@ -45,6 +51,7 @@ private:
 void FileAccessTest::setUp() {
   CPPUNIT_ASSERT(Arc::TmpDirCreate(testroot));
   CPPUNIT_ASSERT(!testroot.empty());
+#ifndef WIN32
   if(getuid() == 0) {
     struct passwd* pwd = getpwnam("nobody");
     CPPUNIT_ASSERT(pwd);
@@ -55,6 +62,10 @@ void FileAccessTest::setUp() {
     uid = getuid();
     gid = getgid();
   }
+#else
+  uid = 0;
+  gid = 0;
+#endif
   Arc::FileAccess::testtune();
 }
 
@@ -62,6 +73,7 @@ void FileAccessTest::tearDown() {
 //  Arc::DirDelete(testroot);
 }
 
+#ifndef WIN32
 void FileAccessTest::TestOpenWriteReadStat() {
   Arc::FileAccess fa;
   std::string testfile = testroot+"/file1";
@@ -73,7 +85,7 @@ void FileAccessTest::TestOpenWriteReadStat() {
   struct stat st;
   CPPUNIT_ASSERT_EQUAL(0,::stat(testfile.c_str(),&st));
   CPPUNIT_ASSERT_EQUAL((int)testdata.length(),(int)st.st_size);
-  CPPUNIT_ASSERT_EQUAL(uid,st.st_uid);
+  CPPUNIT_ASSERT_EQUAL((int)uid,(int)st.st_uid);
   // Group ownership of a file is not guaranteed to be gid of user proces.
   // This is especially true on MAC OSX:
   //  https://bugzilla.nordugrid.org/show_bug.cgi?id=2089#c3
@@ -150,5 +162,6 @@ void FileAccessTest::TestSeekAllocate() {
   CPPUNIT_ASSERT_EQUAL((int)4096,(int)fa.lseek(0,SEEK_END));
   CPPUNIT_ASSERT(fa.close());
 }
+#endif
 
 CPPUNIT_TEST_SUITE_REGISTRATION(FileAccessTest);
