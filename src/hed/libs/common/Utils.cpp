@@ -43,7 +43,10 @@
 
 // If defined this turn on additional layer in handling
 // setenv() which tries to avoid memory leaks.
+// Windows uses different way to store environment. TODO: investigate
+#ifndef WIN32
 #define TRICKED_ENVIRONMENT
+#endif
 
 namespace Arc {
 
