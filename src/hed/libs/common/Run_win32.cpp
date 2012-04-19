@@ -238,7 +238,14 @@ namespace Arc {
       return false;
     if (!running_)
       return true;
-    // XXX timeouted wait
+    if(WaitForSingleObject(pid_->processinfo.hProcess, timeout*1000) == WAIT_TIMEOUT) return false;
+    if(WaitForSingleObject(pid_->processinfo.hThread, timeout*1000) == WAIT_TIMEOUT) return false;
+    DWORD code = (DWORD)(-1);
+    if(GetExitCodeProcess(pid_->processinfo.hProcess,&code)) result_ = code;
+    CloseHandle(pid_->processinfo.hThread);
+    CloseHandle(pid_->processinfo.hProcess);
+    running_ = false;
+    exit_time_ = Time();
     return true;
   }
 
@@ -249,6 +256,8 @@ namespace Arc {
       return true;
     WaitForSingleObject(pid_->processinfo.hProcess, INFINITE);
     WaitForSingleObject(pid_->processinfo.hThread, INFINITE);
+    DWORD code = (DWORD)(-1);
+    if(GetExitCodeProcess(pid_->processinfo.hProcess,&code)) result_ = code;
     CloseHandle(pid_->processinfo.hThread);
     CloseHandle(pid_->processinfo.hProcess);
     running_ = false;
