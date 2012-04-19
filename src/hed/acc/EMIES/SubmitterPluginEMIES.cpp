@@ -157,8 +157,8 @@ namespace Arc {
     }
 
     // URL-izing job id
-    URL jobidu(jobid.manager + "/" + jobid.id);
-
+    URL jobidu(jobid.manager.str() + "/" + jobid.id);
+    
     jobid.ToXML().GetXML(job.IDFromEndpoint);
 
     AddJobDetails(preparedjobdesc, jobidu, et.ComputingService->Cluster, job);

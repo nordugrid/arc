@@ -317,7 +317,7 @@ namespace Arc {
     }
     // Making EMI ES specific job id
     // URL-izing job id
-    info.JobID = URL(job.manager + "/" + job.id);
+    info.JobID = URL(job.manager.str() + "/" + job.id);
     //if(!info) return false;
     return true;
   }
