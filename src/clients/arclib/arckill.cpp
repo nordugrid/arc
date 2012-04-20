@@ -106,13 +106,34 @@ int RUNMAIN(arckill)(int argc, char **argv) {
 
   int retval = (int)!jobmaster.Cancel();
 
-  if (!opt.keep && !Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), jobmaster.GetIDsProcessed())) {
-    std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
-    std::cout << Arc::IString("         Run 'arcclean -s Undefined' to remove killed jobs from job list", usercfg.JobListFile()) << std::endl;
-    retval = 1;
-  }
+  unsigned int canceled_num = jobmaster.GetIDsProcessed().size();
+  unsigned int notcanceled_num = jobmaster.GetIDsNotProcessed().size();
+  unsigned int cleaned_num = 0;
 
-  std::cout << Arc::IString("Jobs processed: %d, killed: %d", jobmaster.GetIDsProcessed().size()+jobmaster.GetIDsNotProcessed().size(), jobmaster.GetIDsProcessed().size()) << std::endl;
+  if (!opt.keep) {
+    std::list<Arc::URL> canceled = jobmaster.GetIDsProcessed();
+    // No need to clean selection because retrieved is subset of selected
+    jobmaster.SelectByID(canceled);
+    if(!jobmaster.Clean()) {
+      std::cout << Arc::IString("Warning: Some jobs were not removed from server") << std::endl;
+      std::cout << Arc::IString("         Use arclean to remove retrieved jobs from job list", usercfg.JobListFile()) << std::endl;
+      retval = 1;
+    }
+    cleaned_num = jobmaster.GetIDsProcessed().size();
+
+    if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), jobmaster.GetIDsProcessed())) {
+      std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
+      std::cout << Arc::IString("         Run 'arcclean -s Undefined' to remove killed jobs from job list", usercfg.JobListFile()) << std::endl;
+      retval = 1;
+    }
+
+    std::cout << Arc::IString("Jobs processed: %d, successfully killed: %d, successfully cleaned: %d", canceled_num+notcanceled_num, canceled_num, cleaned_num) << std::endl;
+
+  } else {
+
+    std::cout << Arc::IString("Jobs processed: %d, successfully killed: %d", canceled_num+notcanceled_num, canceled_num) << std::endl;
+
+  }
 
   return retval;
 }
