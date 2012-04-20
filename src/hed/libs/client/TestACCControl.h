@@ -37,7 +37,8 @@ class JobControllerTestACCControl {
     static bool resumeStatus;
     static bool getJobDescriptionStatus;
     static std::string getJobDescriptionString;
-    static URL fileURL;
+    static bool resourceExist;
+    static URL resourceURL;
     static URL createURL;
 };
 

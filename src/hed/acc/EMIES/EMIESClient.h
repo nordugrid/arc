@@ -134,8 +134,7 @@ namespace Arc {
      */
     bool stat(const EMIESJob& job, XMLNode& state);
     bool stat(const EMIESJob& job, EMIESJobState& state);
-    bool info(const EMIESJob& job, Job& info);
-    bool info(const EMIESJob& job, Job& info, std::string& stagein, std::string& stageout, std::string& session);
+    bool info(EMIESJob& job, Job& info);
 
     //! Terminates a job.
     /*! This method sends a request to the EMI ES service to terminate

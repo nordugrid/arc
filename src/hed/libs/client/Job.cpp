@@ -552,7 +552,7 @@ namespace Arc {
     out << std::endl;
   } // end Print
 
-  URL Job::GetFileUrl(const std::string& whichfile) const { return jc ? jc->GetFileUrlForJob(*this, whichfile) : URL(); }
+  bool Job::GetURLToResource(ResourceType resource, URL& url) const { return jc ? jc->GetURLToJobResource(*this, resource, url) : false; }
 
   bool Job::ListFilesRecursive(const UserConfig& uc, const URL& dir, std::list<std::string>& files, const std::string& prefix) {
     std::list<FileInfo> outputfiles;

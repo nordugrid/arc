@@ -146,9 +146,36 @@ namespace Arc {
     return false;
   }
 
-  URL JobControllerCREAM::GetFileUrlForJob(const Job& /* job */,
-                                           const std::string& /* whichfile */) const {
-    return URL();
+  bool JobControllerCREAM::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
+    creamJobInfo info;
+    info = XMLNode(job.IDFromEndpoint);
+    
+    switch (resource) {
+    case Job::STDIN:
+    case Job::STDOUT:
+    case Job::STDERR:
+      return false;
+      break;
+    case Job::STAGEINDIR:
+      if (info.ISB.empty()) {
+        return false;
+      }
+      url = info.ISB;
+      break;
+    case Job::STAGEOUTDIR:
+      if (info.OSB.empty()) {
+        return false;
+      }
+      url = info.OSB;
+      break;
+    case Job::SESSIONDIR:
+    case Job::JOBLOG:
+    case Job::JOBDESCRIPTION:
+      return false;
+      break;
+    }
+    
+    return true;
   }
 
   bool JobControllerCREAM::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) const {

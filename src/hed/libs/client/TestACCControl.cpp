@@ -21,7 +21,8 @@ bool JobControllerTestACCControl::renewStatus = true;
 bool JobControllerTestACCControl::resumeStatus = true;
 bool JobControllerTestACCControl::getJobDescriptionStatus = true;
 std::string JobControllerTestACCControl::getJobDescriptionString = "";
-URL JobControllerTestACCControl::fileURL = URL();
+bool JobControllerTestACCControl::resourceExist = true;
+URL JobControllerTestACCControl::resourceURL = URL();
 URL JobControllerTestACCControl::createURL = URL();
 
 bool SubmitterPluginTestACCControl::submitStatus = true;

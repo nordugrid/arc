@@ -108,10 +108,11 @@ int RUNMAIN(arccat)(int argc, char **argv) {
     return 1;
   }
 
-  std::string whichfile;
-  if (opt.show_joblog)      whichfile = "joblog";
-  else if (opt.show_stderr) whichfile = "stderr";
-  else                      whichfile = "stdout";
+  std::string resourceName;
+  Arc::Job::ResourceType resource;
+  if (opt.show_joblog)      { resource = Arc::Job::JOBLOG; resourceName = "joblog"; }
+  else if (opt.show_stderr) { resource = Arc::Job::STDERR; resourceName = "stderr"; }
+  else                      { resource = Arc::Job::STDOUT; resourceName = "stdout"; }
 
   // saving to a temp file is necessary because chunks from server
   // may arrive out of order
@@ -119,13 +120,13 @@ int RUNMAIN(arccat)(int argc, char **argv) {
   int tmp_h = Glib::mkstemp(filename);
   if (tmp_h == -1) {
     logger.msg(Arc::INFO, "Could not create temporary file \"%s\"", filename);
-    logger.msg(Arc::ERROR, "Cannot create output of %s for any jobs", whichfile);
+    logger.msg(Arc::ERROR, "Cannot create output of %s for any jobs", resourceName);
     return 1;
   }
 
   Arc::URL dst("stdio:///"+Arc::tostring(tmp_h));
   if (!dst) {
-    logger.msg(Arc::ERROR, "Cannot create output of %s for any jobs", whichfile);
+    logger.msg(Arc::ERROR, "Cannot create output of %s for any jobs", resourceName);
     logger.msg(Arc::INFO, "Invalid destination URL %s", dst.str());
     close(tmp_h);
     unlink(filename.c_str());
@@ -160,14 +161,15 @@ int RUNMAIN(arccat)(int argc, char **argv) {
     if ((opt.show_joblog && it->LogDir.empty()) ||
         (!opt.show_joblog && opt.show_stderr && it->StdErr.empty()) ||
         (!opt.show_joblog && !opt.show_stderr && it->StdOut.empty())) {
-      logger.msg(Arc::ERROR, "Cannot determine the %s location: %s", whichfile, it->JobID.fullstr());
+      logger.msg(Arc::ERROR, "Cannot determine the %s location: %s", resourceName, it->JobID.fullstr());
       retval = 1;
       continue;
     }
 
-    Arc::URL src = it->GetFileUrl(whichfile);
+    Arc::URL src;
+    it->GetURLToResource(resource, src);
     if (!src) {
-      logger.msg(Arc::ERROR, "Cannot create output of %s for job (%s): Invalid source %s", whichfile, it->JobID.fullstr(), src.str());
+      logger.msg(Arc::ERROR, "Cannot create output of %s for job (%s): Invalid source %s", resourceName, it->JobID.fullstr(), src.str());
       retval = 1;
       continue;
     }
@@ -177,7 +179,7 @@ int RUNMAIN(arccat)(int argc, char **argv) {
       continue;
     }
 
-    logger.msg(Arc::VERBOSE, "Catting %s for job %s", whichfile, it->JobID.fullstr());
+    logger.msg(Arc::VERBOSE, "Catting %s for job %s", resourceName, it->JobID.fullstr());
 
     std::ifstream is(filename.c_str());
     char c;

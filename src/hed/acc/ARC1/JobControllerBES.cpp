@@ -85,10 +85,6 @@ namespace Arc {
     return false;
   }
 
-  URL JobControllerBES::GetFileUrlForJob(const Job& /* job */, const std::string& /* whichfile */) const {
-    return URL();
-  }
-
   URL JobControllerBES::CreateURL(std::string service, ServiceType /* st */) const {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos)

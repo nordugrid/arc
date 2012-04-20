@@ -181,11 +181,6 @@ namespace Arc {
     return false;
   }
 
-  URL JobControllerUNICORE::GetFileUrlForJob(const Job& /* job */,
-                                             const std::string& /* whichfile */) const {
-    return URL();
-  }
-
   bool JobControllerUNICORE::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) const {
     return false;
   }

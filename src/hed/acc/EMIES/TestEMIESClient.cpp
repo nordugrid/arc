@@ -118,17 +118,14 @@ int main(int argc, char* argv[]) {
     EMIESJob job;
     FillJob(job,argc,argv);
     Job info;
-    std::string stagein;
-    std::string session;
-    std::string stageout;
-    if(!ac.info(job,info,stagein,stageout,session)) {
+    if(!ac.info(job,info)) {
       logger.msg(ERROR,"Obtaining information failed");
       return 1;
     };
     print(job);
-    std::cout<<"stagein:   "<<stagein<<std::endl;
-    std::cout<<"session:   "<<session<<std::endl;
-    std::cout<<"stageout:  "<<stageout<<std::endl;
+    std::cout<<"stagein:   "<<job.stagein.fullstr()<<std::endl;
+    std::cout<<"session:   "<<job.session.fullstr()<<std::endl;
+    std::cout<<"stageout:  "<<job.stageout.fullstr()<<std::endl;
   } else if(command == "clean") {
     EMIESJob job;
     FillJob(job,argc,argv);

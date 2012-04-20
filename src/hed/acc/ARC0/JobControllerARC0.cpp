@@ -435,22 +435,31 @@ namespace Arc {
     return true;
   }
 
-  URL JobControllerARC0::GetFileUrlForJob(const Job& job,
-                                          const std::string& whichfile) const {
-
-    URL url(job.JobID);
-
-    if (whichfile == "stdout")
+  bool JobControllerARC0::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
+    url = job.JobID;
+    switch (resource) {
+    case Job::STDIN:
+      url.ChangePath(url.Path() + '/' + job.StdIn);
+      break;
+    case Job::STDOUT:
       url.ChangePath(url.Path() + '/' + job.StdOut);
-    else if (whichfile == "stderr")
+      break;
+    case Job::STDERR:
       url.ChangePath(url.Path() + '/' + job.StdErr);
-    else if (whichfile == "joblog") {
+      break;
+    case Job::STAGEINDIR:
+    case Job::STAGEOUTDIR:
+    case Job::SESSIONDIR:
+      break;
+    case Job::JOBLOG:
+    case Job::JOBDESCRIPTION:
       std::string path = url.Path();
       path.insert(path.rfind('/'), "/info");
-      url.ChangePath(path + "/errors");
+      url.ChangePath(path + (Job::JOBLOG ? "/errors" : "/description"));
+      break;
     }
 
-    return url;
+    return true;
   }
 
   bool JobControllerARC0::GetJobDescription(const Job& job,
@@ -468,7 +477,8 @@ namespace Arc {
     std::string shortid = jobid.substr(pos + 1);
 
     // Transfer job description
-    URL source_url(cluster + "/info/" + shortid + "/description");
+    URL source_url;
+    GetURLToJobResource(job, Job::JOBDESCRIPTION, source_url);
     std::string tmpfile = shortid + G_DIR_SEPARATOR_S + "description";
     std::string localfile = Glib::build_filename(Glib::get_tmp_dir(), tmpfile);
     URL dest_url(localfile);

@@ -67,7 +67,10 @@ namespace Arc {
       downloaddir += path.substr(pos + 1);
     }
 
-    URL src(GetFileUrlForJob(job,""));
+    URL src;
+    if (!GetURLToJobResource(job, Job::STAGEOUTDIR, src)) {
+      return false;
+    }
     URL dst(downloaddir);
     std::list<std::string> files;
     if (!Job::ListFilesRecursive(usercfg, src, files)) {
@@ -131,53 +134,75 @@ namespace Arc {
     return false;
   }
 
-  URL JobControllerEMIES::GetFileUrlForJob(const Job& job,
-                                          const std::string& whichfile) const {
-    MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
-
+  bool JobControllerEMIES::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
+    if (resource == Job::JOBDESCRIPTION) {
+      return false;
+    }
+    
     // Obtain information about staging urls
     EMIESJob ejob;
     ejob = job.IDFromEndpoint;
-    std::string stagein;
-    std::string stageout;
-    std::string session;
-    Job tjob;
-    EMIESClient ac(ejob.manager, cfg, usercfg.Timeout());
-    if (!ac.info(ejob, tjob, stagein, stageout, session)) {
-      logger.msg(INFO, "Failed retrieving information for job: %s", job.JobID.fullstr());
-      return URL();
+
+    if ((resource != Job::STAGEINDIR  || !ejob.stagein)  &&
+        (resource != Job::STAGEOUTDIR || !ejob.stageout) &&
+        (resource != Job::SESSIONDIR  || !ejob.session)) {
+      MCCConfig cfg;
+      usercfg.ApplyToConfig(cfg);
+      Job tjob;
+      EMIESClient ac(ejob.manager, cfg, usercfg.Timeout());
+      if (!ac.info(ejob, tjob)) {
+        logger.msg(INFO, "Failed retrieving information for job: %s", job.JobID.fullstr());
+        return false;
+      }
+      // Choose url by state
+      // TODO: maybe this method should somehow know what is purpose of URL
+      // TODO: state attributes would be more suitable
+      if((tjob.State == JobState::ACCEPTED) ||
+         (tjob.State == JobState::PREPARING)) {
+        url = ejob.stagein;
+      } else if((tjob.State == JobState::DELETED) ||
+                (tjob.State == JobState::FAILED) ||
+                (tjob.State == JobState::KILLED) ||
+                (tjob.State == JobState::FINISHED) ||
+                (tjob.State == JobState::FINISHING)) {
+        url = ejob.stageout;
+      } else {
+        url = ejob.session;
+      }
+      // If no url found by state still try to get something
+      if(!url) {
+        if(ejob.session)  url = ejob.session;
+        if(ejob.stagein)  url = ejob.stagein;
+        if(ejob.stageout) url = ejob.stageout;
+      }
     }
-    URL url;
-    // Choose url by state
-    // TODO: maybe this method should somehow know what is purpose of URL
-    // TODO: state attributes woul dbe more suitable
-    if((tjob.State == JobState::ACCEPTED) ||
-       (tjob.State == JobState::PREPARING)) {
-      url = stagein;
-    } else if((tjob.State == JobState::DELETED) ||
-              (tjob.State == JobState::FAILED) ||
-              (tjob.State == JobState::KILLED) ||
-              (tjob.State == JobState::FINISHED) ||
-              (tjob.State == JobState::FINISHING)) {
-      url = stageout;
-    } else {
-      url = session;
-    }
-    // If no url found by state still try to get something
-    if(!url) if(!session.empty()) url = session;
-    if(!url) if(!stagein.empty()) url = stagein;
-    if(!url) if(!stageout.empty()) url = stageout;
-    if (whichfile == "stdout") {
+    
+    switch (resource) {
+    case Job::STDIN:
+      url.ChangePath(url.Path() + '/' + job.StdIn);
+      break;
+    case Job::STDOUT:
       url.ChangePath(url.Path() + '/' + job.StdOut);
-    } else if (whichfile == "stderr") {
+      break;
+    case Job::STDERR:
       url.ChangePath(url.Path() + '/' + job.StdErr);
-    } else if (whichfile == "joblog") {
+      break;
+    case Job::JOBLOG:
       url.ChangePath(url.Path() + "/" + job.LogDir + "/errors");
-    } else {
-      if(!whichfile.empty()) url.ChangePath(url.Path() + "/" + whichfile);
+      break;
+    case Job::STAGEINDIR:
+      url = ejob.stagein;
+      break;
+    case Job::STAGEOUTDIR:
+      url = ejob.stageout;
+      break;
+    case Job::SESSIONDIR:
+      url = ejob.session;
+      break;
+    default:
+      break;
     }
-    return url;
+    return true;
   }
 
   bool JobControllerEMIES::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) const {

@@ -34,7 +34,7 @@ namespace Arc {
     virtual bool CancelJob(const Job& job) const = 0;
     virtual bool RenewJob(const Job& job) const = 0;
     virtual bool ResumeJob(const Job& job) const = 0;
-    virtual URL GetFileUrlForJob(const Job& job, const std::string& whichfile) const = 0;
+    virtual bool GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const = 0;
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) const = 0;
 
     virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };

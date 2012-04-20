@@ -254,14 +254,7 @@ namespace Arc {
     return true;
   }
 
-  bool EMIESClient::info(const EMIESJob& job, Job& info) {
-    std::string stagein;
-    std::string stageout;
-    std::string session;
-    return EMIESClient::info(job,info,stagein,stageout,session);
-  }
-
-  bool EMIESClient::info(const EMIESJob& job, Job& info, std::string& stagein, std::string& stageout, std::string& session) {
+  bool EMIESClient::info(EMIESJob& job, Job& info) {
     /*
       esainfo:GetActivityInfo
         estypes:ActivityID
@@ -305,15 +298,17 @@ namespace Arc {
       break;
     }
     XMLNode ext = item["estypes:ActivityInfo"]["Extensions"]["Extension"];
+    
     for(;(bool)ext;++ext) {
+      bool nodeFound = false;
       XMLNode s;
       s = ext["esainfo:StageInDirectory"];
-      if(s) stagein = (std::string)s;
+      if(s) { job.stagein = (std::string)s; nodeFound = true; }
       s = ext["esainfo:StageOutDirectory"];
-      if(s) stageout = (std::string)s;
+      if(s) { job.stageout = (std::string)s; nodeFound = true; }
       s = ext["esainfo:SessionDirectory"];
-      if(s) session = (std::string)s;
-      if((!stagein.empty()) || (!stageout.empty()) || (!session.empty())) break;
+      if(s) { job.session = (std::string)s; nodeFound = true; }
+      if(nodeFound) break;
     }
     // Making EMI ES specific job id
     // URL-izing job id

@@ -127,22 +127,17 @@ namespace Arc {
         releaseClient(url);
         return false;
       }
-      URL stageurl(jobid.stagein);
-      if(!stageurl) {
+      if(!jobid.stagein) {
         // Try to obtain it from job info
         Job tjob;
-        std::string stagein;
-        std::string stageout;
-        std::string session;
-        if((!ac->info(jobid, tjob, stagein, stageout, session)) ||
-           stagein.empty() ||
-           (!(stageurl = stagein))) {
-          logger.msg(INFO, "Failed to obtain valid stagein URL for input files: %s", stagein);
+        if((!ac->info(jobid, tjob)) ||
+           (!jobid.stagein)) {
+          logger.msg(INFO, "Failed to obtain valid stagein URL for input files: %s", jobid.stagein.fullstr());
           releaseClient(url);
           return false;
         }
       }
-      if (!PutFiles(preparedjobdesc, stageurl)) {
+      if (!PutFiles(preparedjobdesc, jobid.stagein)) {
         logger.msg(INFO, "Failed uploading local input files");
         releaseClient(url);
         return false;

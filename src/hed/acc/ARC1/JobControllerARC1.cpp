@@ -140,19 +140,31 @@ namespace Arc {
     return ok;
   }
 
-  URL JobControllerARC1::GetFileUrlForJob(const Job& job,
-                                          const std::string& whichfile) const {
-    URL url(job.JobID);
-
-    if (whichfile == "stdout") {
+  bool JobControllerARC1::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
+    url = job.JobID;
+    switch (resource) {
+    case Job::STDIN:
+      url.ChangePath(url.Path() + '/' + job.StdIn);
+      break;
+    case Job::STDOUT:
       url.ChangePath(url.Path() + '/' + job.StdOut);
-    } else if (whichfile == "stderr") {
+      break;
+    case Job::STDERR:
       url.ChangePath(url.Path() + '/' + job.StdErr);
-    } else if (whichfile == "joblog") {
-      url.ChangePath(url.Path() + "/" + job.LogDir + "/errors");
+      break;
+    case Job::STAGEINDIR:
+    case Job::STAGEOUTDIR:
+    case Job::SESSIONDIR:
+      break;
+    case Job::JOBLOG:
+    case Job::JOBDESCRIPTION:
+      std::string path = url.Path();
+      path.insert(path.rfind('/'), "/info");
+      url.ChangePath(path + (Job::JOBLOG ? "/errors" : "/description"));
+      break;
     }
 
-    return url;
+    return true;
   }
 
   bool JobControllerARC1::GetJobDescription(const Job& job, std::string& desc_str) const {

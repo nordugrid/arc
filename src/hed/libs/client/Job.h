@@ -96,6 +96,17 @@ namespace Arc {
     std::string UsedPlatform;
 
 
+    enum ResourceType {
+      STDIN,
+      STDOUT,
+      STDERR,
+      STAGEINDIR,
+      STAGEOUTDIR,
+      SESSIONDIR,
+      JOBLOG,
+      JOBDESCRIPTION
+    };
+  
     /// Write job information to a std::ostream object
     /**
      * This method will write job information to the passed std::ostream object.
@@ -146,7 +157,7 @@ namespace Arc {
      **/
     void ToXML(XMLNode job) const;
     
-    URL GetFileUrl(const std::string& whichfile) const;
+    bool GetURLToResource(ResourceType resource, URL& url) const;
 
     static bool CopyJobFile(const UserConfig& uc, const URL& src, const URL& dst);
     static bool ListFilesRecursive(const UserConfig& uc, const URL& dir, std::list<std::string>& files, const std::string& prefix = "");
