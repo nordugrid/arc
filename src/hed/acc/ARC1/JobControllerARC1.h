@@ -19,11 +19,13 @@ namespace Arc {
 
     bool isEndpointNotSupported(const std::string& endpoint) const;
 
-    virtual void UpdateJobs(std::list<Job*>& jobs) const;
-    virtual bool CleanJob(const Job& job) const;
-    virtual bool CancelJob(const Job& job) const;
-    virtual bool RenewJob(const Job& job) const;
-    virtual bool ResumeJob(const Job& job) const;
+    virtual void UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
+    
+    virtual bool CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
+    virtual bool CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
+    virtual bool RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
+    virtual bool ResumeJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
+    
     virtual bool GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const;
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) const;
 

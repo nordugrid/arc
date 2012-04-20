@@ -27,60 +27,99 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  void JobControllerARC1::UpdateJobs(std::list<Job*>& jobs) const {
+  void JobControllerARC1::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
-    for (std::list<Job*>::iterator iter = jobs.begin();
-         iter != jobs.end(); iter++) {
-      AREXClient ac((*iter)->Cluster, cfg, usercfg.Timeout());
+    for (std::list<Job*>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      AREXClient ac((*it)->Cluster, cfg, usercfg.Timeout());
       std::string idstr;
-      AREXClient::createActivityIdentifier((*iter)->JobID, idstr);
-      if (!ac.stat(idstr, **iter)) {
-        logger.msg(WARNING, "Job information not found in the information system: %s", (*iter)->JobID.fullstr());
+      AREXClient::createActivityIdentifier((*it)->JobID, idstr);
+      if (!ac.stat(idstr, **it)) {
+        logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID.fullstr());
+        IDsNotProcessed.push_back((*it)->JobID);
+        continue;
       }
+      IDsProcessed.push_back((*it)->JobID);
     }
   }
 
-  bool JobControllerARC1::CleanJob(const Job& job) const {
+  bool JobControllerARC1::CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(job.Cluster, cfg, usercfg.Timeout());
-    std::string idstr;
-    AREXClient::createActivityIdentifier(job.JobID, idstr);
-    return ac.clean(idstr);
+    bool ok = true;
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      Job& job = **it;
+      AREXClient ac(job.Cluster, cfg, usercfg.Timeout());
+      std::string idstr;
+      AREXClient::createActivityIdentifier(job.JobID, idstr);
+      if (!ac.clean(idstr)) {
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+      IDsProcessed.push_back(job.JobID);
+    }
+    
+    return ok;
   }
 
-  bool JobControllerARC1::CancelJob(const Job& job) const {
+  bool JobControllerARC1::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(job.Cluster, cfg, usercfg.Timeout());
-    std::string idstr;
-    AREXClient::createActivityIdentifier(job.JobID, idstr);
-    return ac.kill(idstr);
+    bool ok = true;
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      Job& job = **it;
+      AREXClient ac(job.Cluster, cfg, usercfg.Timeout());
+      std::string idstr;
+      AREXClient::createActivityIdentifier(job.JobID, idstr);
+      if (!ac.kill(idstr)) {
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+      IDsProcessed.push_back(job.JobID);
+    }
+    
+    return ok;
   }
 
-  bool JobControllerARC1::RenewJob(const Job& /* job */) const {
-    logger.msg(INFO, "Renewal of ARC1 jobs is not supported");
+  bool JobControllerARC1::RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      logger.msg(INFO, "Renewal of ARC1 jobs is not supported");
+      IDsNotProcessed.push_back((*it)->JobID);
+    }
     return false;
   }
 
-  bool JobControllerARC1::ResumeJob(const Job& job) const {
-
-    if (!job.RestartState) {
-      logger.msg(INFO, "Job %s does not report a resumable state", job.JobID.fullstr());
-      return false;
-    }
-
-    logger.msg(VERBOSE, "Resuming job: %s at state: %s (%s)", job.JobID.fullstr(), job.RestartState.GetGeneralState(), job.RestartState());
-
+  bool JobControllerARC1::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(job.Cluster, cfg, usercfg.Timeout());
-    std::string idstr;
-    AREXClient::createActivityIdentifier(job.JobID, idstr);
-    bool ok = ac.resume(idstr);
-    if (ok) logger.msg(VERBOSE, "Job resuming successful");
+    bool ok = true;
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      Job& job = **it;
+      if (!job.RestartState) {
+        logger.msg(INFO, "Job %s does not report a resumable state", job.JobID.fullstr());
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+  
+      logger.msg(VERBOSE, "Resuming job: %s at state: %s (%s)", job.JobID.fullstr(), job.RestartState.GetGeneralState(), job.RestartState());
+  
+      AREXClient ac(job.Cluster, cfg, usercfg.Timeout());
+      std::string idstr;
+      AREXClient::createActivityIdentifier(job.JobID, idstr);
+      if (!ac.resume(idstr)) {
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+
+      IDsProcessed.push_back(job.JobID);
+      logger.msg(VERBOSE, "Job resuming successful");
+    }
+    
     return ok;
   }
 

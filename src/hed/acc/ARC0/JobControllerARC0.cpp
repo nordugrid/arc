@@ -50,7 +50,7 @@ namespace Arc {
     return new JobControllerARC0(*jcarg, arg);
   }
 
-  void JobControllerARC0::UpdateJobs(std::list<Job*>& jobs) const {
+  void JobControllerARC0::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     std::map<std::string, std::list<Job*> > jobsbyhost;
     for (std::list<Job*>::iterator it = jobs.begin();
          it != jobs.end(); ++it) {
@@ -117,6 +117,7 @@ namespace Arc {
             logger.msg(WARNING, "This job was very recently "
                        "submitted and might not yet "
                        "have reached the information system");
+          IDsNotProcessed.push_back((*jit)->JobID);
           continue;
         }
 
@@ -204,179 +205,235 @@ namespace Arc {
             (*jit)->RequestedApplicationEnvironment.push_back((std::string)n);
 
         jobinfolist.erase(xit);
+        IDsProcessed.push_back((*jit)->JobID);
       }
     }
   }
 
-  bool JobControllerARC0::CleanJob(const Job& job) const {
-
-    logger.msg(VERBOSE, "Cleaning job: %s", job.JobID.str());
-
-    FTPControl ctrl;
-    if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
-                      usercfg.KeyPath(), usercfg.Timeout())) {
-      logger.msg(INFO, "Failed to connect for job cleaning");
-      return false;
+  bool JobControllerARC0::CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+    bool ok = true;
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      Job& job = **it;
+      
+      logger.msg(VERBOSE, "Cleaning job: %s", job.JobID.str());
+  
+      FTPControl ctrl;
+      if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
+                        usercfg.KeyPath(), usercfg.Timeout())) {
+        logger.msg(INFO, "Failed to connect for job cleaning");
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+  
+      std::string path = job.JobID.Path();
+      std::string::size_type pos = path.rfind('/');
+      std::string jobpath = path.substr(0, pos);
+      std::string jobidnum = path.substr(pos + 1);
+  
+      if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
+        logger.msg(INFO, "Failed sending CWD command for job cleaning");
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+  
+      if (!ctrl.SendCommand("RMD " + jobidnum, usercfg.Timeout())) {
+        logger.msg(INFO, "Failed sending RMD command for job cleaning");
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+  
+      if (!ctrl.Disconnect(usercfg.Timeout())) {
+        logger.msg(INFO, "Failed to disconnect after job cleaning");
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+  
+      IDsProcessed.push_back(job.JobID);
+      logger.msg(VERBOSE, "Job cleaning successful");
     }
 
-    std::string path = job.JobID.Path();
-    std::string::size_type pos = path.rfind('/');
-    std::string jobpath = path.substr(0, pos);
-    std::string jobidnum = path.substr(pos + 1);
-
-    if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
-      logger.msg(INFO, "Failed sending CWD command for job cleaning");
-      return false;
-    }
-
-    if (!ctrl.SendCommand("RMD " + jobidnum, usercfg.Timeout())) {
-      logger.msg(INFO, "Failed sending RMD command for job cleaning");
-      return false;
-    }
-
-    if (!ctrl.Disconnect(usercfg.Timeout())) {
-      logger.msg(INFO, "Failed to disconnect after job cleaning");
-      return false;
-    }
-
-    logger.msg(VERBOSE, "Job cleaning successful");
-
-    return true;
+    return ok;
   }
 
-  bool JobControllerARC0::CancelJob(const Job& job) const {
+  bool JobControllerARC0::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+    bool ok = true;
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      Job& job = **it;
 
-    logger.msg(VERBOSE, "Cleaning job: %s", job.JobID.str());
-
-    FTPControl ctrl;
-    if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
-                      usercfg.KeyPath(), usercfg.Timeout())) {
-      logger.msg(INFO, "Failed to connect for job cleaning");
-      return false;
+      logger.msg(VERBOSE, "Cleaning job: %s", job.JobID.str());
+  
+      FTPControl ctrl;
+      if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
+                        usercfg.KeyPath(), usercfg.Timeout())) {
+        logger.msg(INFO, "Failed to connect for job cleaning");
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+  
+      std::string path = job.JobID.Path();
+      std::string::size_type pos = path.rfind('/');
+      std::string jobpath = path.substr(0, pos);
+      std::string jobidnum = path.substr(pos + 1);
+  
+      if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
+        logger.msg(INFO, "Failed sending CWD command for job cancelling");
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+  
+      if (!ctrl.SendCommand("DELE " + jobidnum, usercfg.Timeout())) {
+        logger.msg(INFO, "Failed sending DELE command for job cancelling");
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+  
+      if (!ctrl.Disconnect(usercfg.Timeout())) {
+        logger.msg(INFO, "Failed to disconnect after job cancelling");
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+  
+      IDsProcessed.push_back(job.JobID);
+      logger.msg(VERBOSE, "Job cancelling successful");
     }
 
-    std::string path = job.JobID.Path();
-    std::string::size_type pos = path.rfind('/');
-    std::string jobpath = path.substr(0, pos);
-    std::string jobidnum = path.substr(pos + 1);
-
-    if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
-      logger.msg(INFO, "Failed sending CWD command for job cancelling");
-      return false;
-    }
-
-    if (!ctrl.SendCommand("DELE " + jobidnum, usercfg.Timeout())) {
-      logger.msg(INFO, "Failed sending DELE command for job cancelling");
-      return false;
-    }
-
-    if (!ctrl.Disconnect(usercfg.Timeout())) {
-      logger.msg(INFO, "Failed to disconnect after job cancelling");
-      return false;
-    }
-
-    logger.msg(VERBOSE, "Job cancelling successful");
-
-    return true;
+    return ok;
   }
 
-  bool JobControllerARC0::RenewJob(const Job& job) const {
-
-    logger.msg(VERBOSE, "Renewing credentials for job: %s", job.JobID.str());
-
-    FTPControl ctrl;
-    if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
-                      usercfg.KeyPath(), usercfg.Timeout())) {
-      logger.msg(INFO, "Failed to connect for credential renewal");
-      return false;
+  bool JobControllerARC0::RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+    bool ok = true;
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      Job& job = **it;
+  
+      logger.msg(VERBOSE, "Renewing credentials for job: %s", job.JobID.str());
+  
+      FTPControl ctrl;
+      if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
+                        usercfg.KeyPath(), usercfg.Timeout())) {
+        logger.msg(INFO, "Failed to connect for credential renewal");
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+  
+      std::string path = job.JobID.Path();
+      std::string::size_type pos = path.rfind('/');
+      std::string jobpath = path.substr(0, pos);
+      std::string jobidnum = path.substr(pos + 1);
+  
+      if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
+        logger.msg(INFO, "Failed sending CWD command for credentials renewal");
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+  
+      if (!ctrl.SendCommand("CWD " + jobidnum, usercfg.Timeout())) {
+        logger.msg(INFO, "Failed sending CWD command for credentials renewal");
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+      }
+  
+      if (!ctrl.Disconnect(usercfg.Timeout())) {
+        logger.msg(INFO, "Failed to disconnect after credentials renewal");
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+  
+      IDsProcessed.push_back(job.JobID);
+      logger.msg(VERBOSE, "Renewal of credentials was successful");
     }
 
-    std::string path = job.JobID.Path();
-    std::string::size_type pos = path.rfind('/');
-    std::string jobpath = path.substr(0, pos);
-    std::string jobidnum = path.substr(pos + 1);
-
-    if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
-      logger.msg(INFO, "Failed sending CWD command for credentials renewal");
-      return false;
-    }
-
-    if (!ctrl.SendCommand("CWD " + jobidnum, usercfg.Timeout())) {
-      logger.msg(INFO, "Failed sending CWD command for credentials renewal");
-      return false;
-    }
-
-    if (!ctrl.Disconnect(usercfg.Timeout())) {
-      logger.msg(INFO, "Failed to disconnect after credentials renewal");
-      return false;
-    }
-
-    logger.msg(VERBOSE, "Renewal of credentials was successful");
-
-    return true;
+    return ok;
   }
 
-  bool JobControllerARC0::ResumeJob(const Job& job) const {
-    if (!job.RestartState) {
-      logger.msg(INFO, "Job %s does not report a resumable state", job.JobID.str());
-      return false;
+  bool JobControllerARC0::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+    bool ok = true;
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      Job& job = **it;
+  
+      if (!job.RestartState) {
+        logger.msg(INFO, "Job %s does not report a resumable state", job.JobID.str());
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+  
+      // dump rsl into temporary file
+      std::string urlstr = job.JobID.str();
+      std::string::size_type pos = urlstr.rfind('/');
+      if (pos == std::string::npos || pos == 0) {
+        logger.msg(INFO, "Illegal jobID specified (%s)", job.JobID.str());
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+      std::string jobnr = urlstr.substr(pos + 1);
+      urlstr = urlstr.substr(0, pos) + "/new/action";
+      logger.msg(VERBOSE, "HER: %s", urlstr);
+  
+      std::string rsl("&(action=restart)(jobid=" + jobnr + ")");
+  
+      std::string filename = Glib::build_filename(Glib::get_tmp_dir(), "arcresume.XXXXXX");
+      int tmp_h = Glib::mkstemp(filename);
+      if (tmp_h == -1) {
+        logger.msg(INFO, "Could not create temporary file: %s", filename);
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+      std::ofstream outfile(filename.c_str(), std::ofstream::binary);
+      outfile.write(rsl.c_str(), rsl.size());
+      if (outfile.fail()) {
+        logger.msg(INFO, "Could not write temporary file: %s", filename);
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+      outfile.close();
+  
+      // Send temporary file to cluster
+      DataMover mover;
+      FileCache cache;
+      URL source_url(filename);
+      URL dest_url(urlstr);
+      DataHandle source(source_url, usercfg);
+      DataHandle destination(dest_url, usercfg);
+      source->SetTries(1);
+      destination->SetTries(1);
+      DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
+                                      0, 0, 0, usercfg.Timeout());
+      if (!res.Passed()) {
+        if (!res.GetDesc().empty())
+          logger.msg(INFO, "Current transfer FAILED: %s - %s", std::string(res), res.GetDesc());
+        else
+          logger.msg(INFO, "Current transfer FAILED: %s", std::string(res));
+        mover.Delete(*destination);
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+      else {
+        logger.msg(INFO, "Current transfer complete");
+      }
+  
+      //Cleaning up
+      source->Remove();
+  
+      IDsProcessed.push_back(job.JobID);
+      logger.msg(VERBOSE, "Job resumed successful");
     }
-
-    // dump rsl into temporary file
-    std::string urlstr = job.JobID.str();
-    std::string::size_type pos = urlstr.rfind('/');
-    if (pos == std::string::npos || pos == 0) {
-      logger.msg(INFO, "Illegal jobID specified (%s)", job.JobID.str());
-      return false;
-    }
-    std::string jobnr = urlstr.substr(pos + 1);
-    urlstr = urlstr.substr(0, pos) + "/new/action";
-    logger.msg(VERBOSE, "HER: %s", urlstr);
-
-    std::string rsl("&(action=restart)(jobid=" + jobnr + ")");
-
-    std::string filename = Glib::build_filename(Glib::get_tmp_dir(), "arcresume.XXXXXX");
-    int tmp_h = Glib::mkstemp(filename);
-    if (tmp_h == -1) {
-      logger.msg(INFO, "Could not create temporary file: %s", filename);
-      return false;
-    }
-    std::ofstream outfile(filename.c_str(), std::ofstream::binary);
-    outfile.write(rsl.c_str(), rsl.size());
-    if (outfile.fail()) {
-      logger.msg(INFO, "Could not write temporary file: %s", filename);
-      return false;
-    }
-    outfile.close();
-
-    // Send temporary file to cluster
-    DataMover mover;
-    FileCache cache;
-    URL source_url(filename);
-    URL dest_url(urlstr);
-    DataHandle source(source_url, usercfg);
-    DataHandle destination(dest_url, usercfg);
-    source->SetTries(1);
-    destination->SetTries(1);
-    DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
-                                    0, 0, 0, usercfg.Timeout());
-    if (!res.Passed()) {
-      if (!res.GetDesc().empty())
-        logger.msg(INFO, "Current transfer FAILED: %s - %s", std::string(res), res.GetDesc());
-      else
-        logger.msg(INFO, "Current transfer FAILED: %s", std::string(res));
-      mover.Delete(*destination);
-      return false;
-    }
-    else
-      logger.msg(INFO, "Current transfer complete");
-
-    //Cleaning up
-    source->Remove();
-
-    logger.msg(VERBOSE, "Job resumed successful");
-
-    return true;
+  
+    return ok;
   }
 
   bool JobControllerARC0::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {

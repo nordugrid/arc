@@ -28,50 +28,74 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
   
-  void JobControllerEMIES::UpdateJobs(std::list<Job*>& jobs) const {
+  void JobControllerEMIES::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
-    for (std::list<Job*>::iterator iter = jobs.begin();
-         iter != jobs.end(); ++iter) {
+    for (std::list<Job*>::iterator it = jobs.begin();
+         it != jobs.end(); ++it) {
       EMIESJob job;
-      job = (*iter)->IDFromEndpoint;
+      job = (*it)->IDFromEndpoint;
       EMIESClient ac(job.manager, cfg, usercfg.Timeout());
-      if (!ac.info(job, **iter)) {
-        logger.msg(WARNING, "Job information not found in the information system: %s", (*iter)->JobID.fullstr());
+      if (!ac.info(job, **it)) {
+        logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID.fullstr());
+        IDsNotProcessed.push_back((*it)->JobID);
+        continue;
       }
       // Going for more detailed state
       XMLNode jst;
       if (!ac.stat(job, jst)) {
       } else {
         JobStateEMIES jst_ = jst;
-        if(jst_) (*iter)->State = jst_;
+        if(jst_) (*it)->State = jst_;
       }
+      IDsProcessed.push_back((*it)->JobID);
     }
   }
 
-  bool JobControllerEMIES::CleanJob(const Job& job) const {
+  bool JobControllerEMIES::CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
-    EMIESJob ejob;
-    ejob = job.IDFromEndpoint;
-    EMIESClient ac(ejob.manager, cfg, usercfg.Timeout());
-    return ac.clean(ejob);
+    bool ok = true;
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      Job& job = **it;
+      EMIESJob ejob;
+      ejob = job.IDFromEndpoint;
+      EMIESClient ac(ejob.manager, cfg, usercfg.Timeout());
+      if (!ac.clean(ejob)) {
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+      
+      IDsProcessed.push_back(job.JobID);
+    }
+    
+    return ok;
   }
 
-  bool JobControllerEMIES::CancelJob(const Job& job) const {
-    logger.msg(INFO, "Cancel of EMI ES jobs is not supported");
+  bool JobControllerEMIES::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      logger.msg(INFO, "Cancel of EMI ES jobs is not supported");
+      IDsNotProcessed.push_back((*it)->JobID);
+    }
     return false;
   }
 
-  bool JobControllerEMIES::RenewJob(const Job& /* job */) const {
-    logger.msg(INFO, "Renewal of EMI ES jobs is not supported");
+  bool JobControllerEMIES::RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      logger.msg(INFO, "Renewal of EMI ES jobs is not supported");
+      IDsNotProcessed.push_back((*it)->JobID);
+    }
     return false;
   }
 
-  bool JobControllerEMIES::ResumeJob(const Job& job) const {
-    logger.msg(INFO, "Resume of EMI ES jobs is not supported");
+  bool JobControllerEMIES::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      logger.msg(INFO, "Resume of EMI ES jobs is not supported");
+      IDsNotProcessed.push_back((*it)->JobID);
+    }
     return false;
   }
 

@@ -18,14 +18,16 @@ public:
   JobControllerTestACC(const UserConfig& usercfg, PluginArgument* parg) : JobController(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.test"); }
   ~JobControllerTestACC() {}
 
-  void UpdateJobs(std::list<Job*>&) const {}
-  virtual bool CleanJob(const Job& job) const { return JobControllerTestACCControl::cleanStatus; }
-  virtual bool CancelJob(const Job& job) const { return JobControllerTestACCControl::cancelStatus; }
-  virtual bool RenewJob(const Job& job) const { return JobControllerTestACCControl::renewStatus; }
-  virtual bool ResumeJob(const Job& job) const { return JobControllerTestACCControl::resumeStatus; }
+  virtual void UpdateJobs(std::list<Job*>&, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
+  
+  virtual bool CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
+  virtual bool CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
+  virtual bool RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
+  virtual bool ResumeJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
+  
   virtual bool GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const { url = JobControllerTestACCControl::resourceURL; return JobControllerTestACCControl::resourceExist; }
   virtual bool GetJobDescription(const Job& job, std::string& desc_str) const { desc_str = JobControllerTestACCControl::getJobDescriptionString; return JobControllerTestACCControl::getJobDescriptionStatus; }
-  virtual Arc::URL CreateURL(std::string service, ServiceType st) const { return JobControllerTestACCControl::createURL; }
+  virtual URL CreateURL(std::string service, ServiceType st) const { return JobControllerTestACCControl::createURL; }
 
   virtual bool isEndpointNotSupported(const std::string& endpoint) const { return endpoint.empty(); }
   

@@ -178,7 +178,7 @@ namespace Arc {
   void JobSupervisor::Update() {
     for (JobSelectionMap::iterator it = jcJobMap.begin();
          it != jcJobMap.end(); ++it) {
-      it->first->UpdateJobs(it->second.first);
+      it->first->UpdateJobs(it->second.first, processed, notprocessed);
     }
   }
 
@@ -275,14 +275,12 @@ namespace Arc {
           continue;
         }
 
-        if (!it->first->RenewJob(**itJ)) {
+        if (!it->first->RenewJobs(std::list<Job*>(1, *itJ), processed, notprocessed)) {
           ok = false;
-          notprocessed.push_back((*itJ)->JobID);
           it->second.second.push_back(*itJ);
           itJ = it->second.first.erase(itJ);
         }
         else {
-          processed.push_back((*itJ)->JobID);
           ++itJ;
         }
       }
@@ -307,14 +305,12 @@ namespace Arc {
           continue;
         }
 
-        if (!it->first->ResumeJob(**itJ)) {
+        if (!it->first->ResumeJobs(std::list<Job*>(1, *itJ), processed, notprocessed)) {
           ok = false;
-          notprocessed.push_back((*itJ)->JobID);
           it->second.second.push_back(*itJ);
           itJ = it->second.first.erase(itJ);
         }
         else {
-          processed.push_back((*itJ)->JobID);
           ++itJ;
         }
       }
@@ -593,14 +589,12 @@ namespace Arc {
           continue;
         }
 
-        if (!it->first->CancelJob(**itJ)) {
+        if (!it->first->CancelJobs(std::list<Job*>(1, *itJ), processed, notprocessed)) {
           ok = false;
-          notprocessed.push_back((*itJ)->JobID);
           it->second.second.push_back(*itJ);
           itJ = it->second.first.erase(itJ);
         }
         else {
-          processed.push_back((*itJ)->JobID);
           ++itJ;
         }
       }
@@ -625,14 +619,12 @@ namespace Arc {
           continue;
         }
 
-        if (!it->first->CleanJob(**itJ)) {
+        if (!it->first->CleanJobs(std::list<Job*>(1, *itJ), processed, notprocessed)) {
           ok = false;
-          notprocessed.push_back((*itJ)->JobID);
           it->second.second.push_back(*itJ);
           itJ = it->second.first.erase(itJ);
         }
         else {
-          processed.push_back((*itJ)->JobID);
           ++itJ;
         }
       }

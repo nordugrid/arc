@@ -22,20 +22,28 @@ namespace Arc {
   class JobController
     : public Plugin {
   protected:
-    JobController(const UserConfig& usercfg,
-                  PluginArgument* parg);
+    JobController(const UserConfig& usercfg, PluginArgument* parg)
+      : Plugin(parg), usercfg(usercfg) {}
   public:
     virtual ~JobController() {}
 
-    // Implemented by specialized classes
-    virtual void UpdateJobs(std::list<Job*>& jobs) const = 0;
-    virtual bool CleanJob(const Job& job) const = 0;
-    virtual bool CancelJob(const Job& job) const = 0;
-    virtual bool RenewJob(const Job& job) const = 0;
-    virtual bool ResumeJob(const Job& job) const = 0;
-    virtual bool GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const = 0;
-    virtual bool GetJobDescription(const Job& job, std::string& desc_str) const = 0;
+    virtual void UpdateJobs(std::list<Job*>& jobs, bool isGrouped = false) const;
+    virtual void UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const = 0;
 
+    virtual bool CleanJobs(const std::list<Job*>& jobs, bool isGrouped = false) const;
+    virtual bool CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const = 0;
+    virtual bool CancelJobs(const std::list<Job*>& jobs, bool isGrouped = false) const;
+    virtual bool CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const = 0;
+    virtual bool RenewJobs(const std::list<Job*>& jobs, bool isGrouped = false) const;
+    virtual bool RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const = 0;
+    virtual bool ResumeJobs(const std::list<Job*>& jobs, bool isGrouped = false) const;
+    virtual bool ResumeJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const = 0;
+
+    virtual bool GetJobDescription(const Job& job, std::string& desc_str) const = 0;
+    virtual bool GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const = 0;
+
+    virtual std::string GetGroupID() const { return ""; }
+    
     virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };
 
   protected:

@@ -24,14 +24,13 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  void JobControllerUNICORE::UpdateJobs(std::list<Job*>& jobs) const {
+  void JobControllerUNICORE::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
-    for (std::list<Job*>::iterator iter = jobs.begin();
-         iter != jobs.end(); iter++) {
-      URL url((*iter)->Cluster);
-      XMLNode id((*iter)->IDFromEndpoint);
+    for (std::list<Job*>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      URL url((*it)->Cluster);
+      XMLNode id((*it)->IDFromEndpoint);
       ClientSOAP client(cfg, url, usercfg.Timeout());
       logger.msg(INFO, "Creating and sending a status request");
       NS ns;
@@ -51,6 +50,7 @@ namespace Arc {
                        "BESFactoryPortType/GetActivityStatuses", &req, &resp);
       if (resp == NULL) {
         logger.msg(VERBOSE, "There was no SOAP response");
+        IDsNotProcessed.push_back((*it)->JobID);
         continue;
       }
       XMLNode st, fs;
@@ -62,19 +62,21 @@ namespace Arc {
       // delete resp;
       if (!faultstring.empty()) {
         logger.msg(ERROR, faultstring);
+        IDsNotProcessed.push_back((*it)->JobID);
         continue;
       }
       if (state.empty()) {
         logger.msg(ERROR, "Failed retrieving job status information");
+        IDsNotProcessed.push_back((*it)->JobID);
         continue;
       }
-      (*iter)->State = JobStateUNICORE(state);
+      
+      IDsProcessed.push_back((*it)->JobID);
+      (*it)->State = JobStateUNICORE(state);
     }
-
-
   }
 
-  bool JobControllerUNICORE::CleanJob(const Job& /* job */) const {
+  bool JobControllerUNICORE::CleanJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
     //     MCCConfig cfg;
     //     usercfg.ApplyToConfig(cfg);
     //     PathIterator pi(job.JobID.Path(), true);
@@ -95,10 +97,15 @@ namespace Arc {
     //     std::string idstr;
     //     id.GetXML(idstr);
     //     return ac.clean(idstr);
+
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      logger.msg(INFO, "Cleaning of UNICORE jobs is not supported");
+      IDsNotProcessed.push_back((*it)->JobID);
+    }
     return false;
   }
 
-  bool JobControllerUNICORE::CancelJob(const Job& /* job */) const {
+  bool JobControllerUNICORE::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     //     MCCConfig cfg;
     //     usercfg.ApplyToConfig(cfg);
     //     PathIterator pi(job.JobID.Path(), true);
@@ -119,16 +126,27 @@ namespace Arc {
     //     std::string idstr;
     //     id.GetXML(idstr);
     //     return ac.kill(idstr);
+
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      logger.msg(INFO, "Canceling of UNICORE jobs is not supported");
+      IDsNotProcessed.push_back((*it)->JobID);
+    }
     return false;
   }
 
-  bool JobControllerUNICORE::RenewJob(const Job& /* job */) const {
-    logger.msg(ERROR, "Renewal of UNICORE jobs is not supported");
+  bool JobControllerUNICORE::RenewJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      logger.msg(ERROR, "Renewal of UNICORE jobs is not supported");
+      IDsNotProcessed.push_back((*it)->JobID);
+    }
     return false;
   }
 
-  bool JobControllerUNICORE::ResumeJob(const Job& /* job */) const {
-    logger.msg(ERROR, "Resumation of UNICORE jobs is not supported");
+  bool JobControllerUNICORE::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      logger.msg(ERROR, "Resumation of UNICORE jobs is not supported");
+      IDsNotProcessed.push_back((*it)->JobID);
+    }
     return false;
   }
 

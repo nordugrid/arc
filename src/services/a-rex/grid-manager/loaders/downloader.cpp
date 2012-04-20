@@ -826,7 +826,7 @@ int main(int argc,char** argv) {
           Arc::JobController *jobctrl = loader.load("ARC1", usercfg);
           if (jobctrl) {
             jobctrl->UpdateJobs(jobs);
-            if ((job.State != Arc::JobState::QUEUING || !jobctrl->CancelJob(job)) && !desc.get_local()->forcemigration) {
+            if ((job.State != Arc::JobState::QUEUING || !jobctrl->CancelJobs(jobs)) && !desc.get_local()->forcemigration) {
               res = 1;
               failure_reason = "FATAL ERROR: Migration failed attempting to kill old job \"" + desc.get_local()->migrateactivityid + "\".";
             }

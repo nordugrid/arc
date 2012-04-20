@@ -27,38 +27,60 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  void JobControllerBES::UpdateJobs(std::list<Job*>& jobs) const {
+  void JobControllerBES::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
-    for (std::list<Job*>::iterator iter = jobs.begin();
-         iter != jobs.end(); iter++) {
-      AREXClient ac((*iter)->Cluster, cfg, usercfg.Timeout(),false);
-      if (!ac.stat((*iter)->IDFromEndpoint, **iter)) {
+    for (std::list<Job*>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      AREXClient ac((*it)->Cluster, cfg, usercfg.Timeout(),false);
+      if (!ac.stat((*it)->IDFromEndpoint, **it)) {
         logger.msg(INFO, "Failed retrieving job status information");
+        IDsNotProcessed.push_back((*it)->JobID);
+        continue;
       }
+      IDsProcessed.push_back((*it)->JobID);
     }
   }
 
-  bool JobControllerBES::CleanJob(const Job& /* job */) const {
-    logger.msg(INFO, "Cleaning of BES jobs is not supported");
+  bool JobControllerBES::CleanJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      logger.msg(INFO, "Cleaning of BES jobs is not supported");
+      IDsNotProcessed.push_back((*it)->JobID);
+    }
     return false;
   }
 
-  bool JobControllerBES::CancelJob(const Job& job) const {
+  bool JobControllerBES::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(job.Cluster, cfg, usercfg.Timeout(), false);
-    return ac.kill(job.IDFromEndpoint);
+    bool ok = true;
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      Job& job = **it;
+      AREXClient ac(job.Cluster, cfg, usercfg.Timeout(), false);
+      if (!ac.kill(job.IDFromEndpoint)) {
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+      
+      IDsProcessed.push_back(job.JobID);
+    }
+    return ok;
   }
 
-  bool JobControllerBES::RenewJob(const Job& /* job */) const {
-    logger.msg(INFO, "Renewal of BES jobs is not supported");
+  bool JobControllerBES::RenewJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      logger.msg(INFO, "Renewal of BES jobs is not supported");
+      IDsNotProcessed.push_back((*it)->JobID);
+    }
     return false;
   }
 
-  bool JobControllerBES::ResumeJob(const Job& /* job */) const {
-    logger.msg(INFO, "Resuming BES jobs is not supported");
+  bool JobControllerBES::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      logger.msg(INFO, "Resuming BES jobs is not supported");
+      IDsNotProcessed.push_back((*it)->JobID);
+    }
     return false;
   }
 

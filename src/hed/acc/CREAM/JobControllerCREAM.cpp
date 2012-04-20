@@ -24,69 +24,92 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  void JobControllerCREAM::UpdateJobs(std::list<Job*>& jobs) const {
+  void JobControllerCREAM::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    for (std::list<Job*>::iterator iter = jobs.begin();
-         iter != jobs.end(); ++iter) {
-      URL url((*iter)->JobID);
+    for (std::list<Job*>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      URL url((*it)->JobID);
       PathIterator pi(url.Path(), true);
       url.ChangePath(*pi);
       CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
-      if (!gLiteClient.stat(pi.Rest(), (**iter))) {
-        logger.msg(WARNING, "Job information not found in the information system: %s", (*iter)->JobID.fullstr());
+      if (!gLiteClient.stat(pi.Rest(), (**it))) {
+        logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID.fullstr());
+        IDsNotProcessed.push_back((*it)->JobID);
+        continue;
       }
+      IDsProcessed.push_back((*it)->JobID);
     }
   }
 
-  bool JobControllerCREAM::CleanJob(const Job& job) const {
-
+  bool JobControllerCREAM::CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    URL url(job.JobID);
-    PathIterator pi(url.Path(), true);
-    url.ChangePath(*pi);
-    CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
-    if (!gLiteClient.purge(pi.Rest())) {
-      logger.msg(INFO, "Failed cleaning job: %s", job.JobID.fullstr());
-      return false;
+    bool ok = true;
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      Job& job = **it;
+      URL url(job.JobID);
+      PathIterator pi(url.Path(), true);
+      url.ChangePath(*pi);
+      CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
+      if (!gLiteClient.purge(pi.Rest())) {
+        logger.msg(INFO, "Failed cleaning job: %s", job.JobID.fullstr());
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+      
+      creamJobInfo info;
+      info = XMLNode(job.IDFromEndpoint);
+      URL url2(info.delegationID);
+      PathIterator pi2(url2.Path(), true);
+      url2.ChangePath(*pi2);
+      CREAMClient gLiteClient2(url2, cfg, usercfg.Timeout());
+      if (!gLiteClient2.destroyDelegation(pi2.Rest())) {
+        logger.msg(INFO, "Failed destroying delegation credentials for job: %s", job.JobID.fullstr());
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+      IDsProcessed.push_back(job.JobID);
+    }
+    return ok;
+  }
+
+  bool JobControllerCREAM::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+    MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
+    bool ok = true;
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      Job& job = **it;
+      URL url(job.JobID);
+      PathIterator pi(url.Path(), true);
+      url.ChangePath(*pi);
+      CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
+      if (!gLiteClient.cancel(pi.Rest())) {
+        logger.msg(INFO, "Failed canceling job: %s", job.JobID.fullstr());
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+      IDsProcessed.push_back(job.JobID);
     }
     
-    creamJobInfo info;
-    info = XMLNode(job.IDFromEndpoint);
-    URL url2(info.delegationID);
-    PathIterator pi2(url2.Path(), true);
-    url2.ChangePath(*pi2);
-    CREAMClient gLiteClient2(url2, cfg, usercfg.Timeout());
-    if (!gLiteClient2.destroyDelegation(pi2.Rest())) {
-      logger.msg(INFO, "Failed destroying delegation credentials for job: %s", job.JobID.fullstr());
-      return false;
-    }
-    return true;
+    return ok;
   }
 
-  bool JobControllerCREAM::CancelJob(const Job& job) const {
-
-    MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
-    URL url(job.JobID);
-    PathIterator pi(url.Path(), true);
-    url.ChangePath(*pi);
-    CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
-    if (!gLiteClient.cancel(pi.Rest())) {
-      logger.msg(INFO, "Failed canceling job: %s", job.JobID.fullstr());
-      return false;
+  bool JobControllerCREAM::RenewJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      logger.msg(INFO, "Renewal of CREAM jobs is not supported");
+      IDsNotProcessed.push_back((*it)->JobID);
     }
-    return true;
-  }
-
-  bool JobControllerCREAM::RenewJob(const Job& /* job */) const {
-    logger.msg(INFO, "Renewal of CREAM jobs is not supported");
     return false;
   }
 
-  bool JobControllerCREAM::ResumeJob(const Job& /* job */) const {
-    logger.msg(INFO, "Resumation of CREAM jobs is not supported");
+  bool JobControllerCREAM::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      logger.msg(INFO, "Resumation of CREAM jobs is not supported");
+      IDsNotProcessed.push_back((*it)->JobID);
+    }
     return false;
   }
 
