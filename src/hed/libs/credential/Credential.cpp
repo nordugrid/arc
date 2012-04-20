@@ -565,6 +565,7 @@ namespace Arc {
           throw CredentialError("Unable to read DER credential from BIO");
         }
         //Get the issuer chain
+/*
         *certchain = sk_X509_new_null();
         n = 0;
         while(!BIO_eof(certbio)){
@@ -574,12 +575,12 @@ namespace Arc {
             ERR_clear_error(); break;
           }
           if(!sk_X509_insert(*certchain, tmp, n)) {
-            //std::string str(X509_NAME_oneline(X509_get_subject_name(tmp),0,0));
             X509_free(tmp);
             throw CredentialError("Can not insert cert into certificate's issuer chain");
           }
           ++n;
         }
+*/
         break;
 
       case CRED_PKCS:
