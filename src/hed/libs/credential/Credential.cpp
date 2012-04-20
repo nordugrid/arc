@@ -335,12 +335,11 @@ namespace Arc {
       if(firstbyte==48)  {
         //DER-encoded, PKCS12 or DER? firstly parse it as PKCS12 ASN.1,
         //if can not parse it, then it is DER format
-        AutoBIO pkcs12bio(BIO_new_mem_buf(bio_str,len));
         PKCS12* pkcs12 = NULL;
-        const unsigned char* source_chr = (const unsigned char*)(source.c_str());
-        if((pkcs12 = d2i_PKCS12(NULL, &source_chr, source.length())) == NULL){ format=CRED_DER; }
+        unsigned char* source_chr = (unsigned char*)(source.c_str());
+        if((pkcs12 = d2i_PKCS12(NULL, (const unsigned char**)&source_chr, source.length())) != NULL){ format=CRED_PKCS; PKCS12_free(pkcs12); }
         else {
-          format = CRED_PKCS; PKCS12_free(pkcs12);
+          format = CRED_DER;
         }
       }
       else { format = CRED_PEM; }
@@ -349,6 +348,7 @@ namespace Arc {
       CredentialLogger.msg(ERROR,"Can't get the first byte of input BIO to get its format");
       return format;
     }
+
     return format;
   }
 
@@ -496,10 +496,14 @@ namespace Arc {
       LogError();
       throw CredentialError("Can not read certificate file");
     }
+
     std::string certstr;
-    std::ifstream in(certfile.c_str(), std::ios::in);
-    std::getline<char>(in, certstr, 0);
-    in.close();
+    for(;;) {
+      char s[256];
+      int l = BIO_read(certbio,s,sizeof(s));
+      if(l <= 0) break;
+      certstr.append(s,l);
+    }
 
     loadCertificateString(certstr,x509,certchain);
   }
@@ -625,9 +629,12 @@ namespace Arc {
     }
 
     std::string keystr;
-    std::ifstream in(keyfile.c_str(), std::ios::in);
-    std::getline<char>(in, keystr, 0);
-    in.close();
+    for(;;) {
+      char s[256];
+      int l = BIO_read(keybio,s,sizeof(s));
+      if(l <= 0) break;
+      keystr.append(s,l);
+    }
 
     loadKeyString(keystr,pkey,passphrase);
   }
