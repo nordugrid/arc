@@ -682,7 +682,7 @@ sub collect($) {
     my $cmgrID = "urn:ogf:ComputingManager:$hostname:$lrmsname"; # ComputingManager ID
     
     # Computing Endpoints IDs
-    my $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:gsiftp://$gridftphostport"; # ARCGridFTPComputingEndpoint ID
+    my $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:gsiftp://$gridftphostport".$config->{GridftpdMountPoint}; # ARCGridFTPComputingEndpoint ID
     my $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:xbes:$config->{endpoint}" if $config->{endpoint}; # ARCWSComputingEndpoint ID
     my $EMIEScepID = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $config->{endpoint}; # EMIESComputingEndpoint ID
     my $StageincepID = "urn:ogf:ComputingEndpoint:$hostname:gridftp:$stageinhostport"; # StageinComputingEndpoint ID
@@ -1173,7 +1173,7 @@ sub collect($) {
             # Name not necessary -- why? added back
             $cep->{Name} = "ARC GridFTP job execution interface";
 
-            $cep->{URL} = "gsiftp://$gridftphostport";
+            $cep->{URL} = "gsiftp://$gridftphostport".$config->{GridftpdMountPoint};
             $cep->{ID} = $ARCgftpjobcepID;
             $cep->{Capability} = [ 'executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription' ];
             $cep->{Technology} = 'gridftp';
