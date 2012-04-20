@@ -76,9 +76,22 @@ namespace Arc {
   }
 
   bool JobControllerEMIES::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+    MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
+
+    bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
-      logger.msg(INFO, "Cancel of EMI ES jobs is not supported");
-      IDsNotProcessed.push_back((*it)->JobID);
+      Job& job = **it;
+      EMIESJob ejob;
+      ejob = job.IDFromEndpoint;
+      EMIESClient ac(ejob.manager, cfg, usercfg.Timeout());
+      if(!ac.kill(ejob)) {
+        ok = false;
+        IDsNotProcessed.push_back((*it)->JobID);
+        continue;
+      }
+      
+      IDsProcessed.push_back((*it)->JobID);
     }
     return false;
   }
