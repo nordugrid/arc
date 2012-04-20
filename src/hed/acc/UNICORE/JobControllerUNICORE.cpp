@@ -74,55 +74,6 @@ namespace Arc {
 
   }
 
-  bool JobControllerUNICORE::RetrieveJob(const Job& /* job */,
-                                         std::string& /* downloaddir */,
-                                         bool /* usejobname */,
-                                         bool /*force*/) const {
-    /*
-        logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
-
-        std::string jobidnum;
-        if (usejobname && !job.Name.empty())
-          jobidnum = job.Name;
-        else {
-          std::string path = job.JobID.Path();
-          std::string::size_type pos = path.rfind('/');
-          jobidnum = path.substr(pos + 1);
-        }
-
-        std::list<std::string> files;
-        if (!ListFilesRecursive(job.JobID, files)) {
-          // TODO
-        }
-
-        URL src(job.JobID);
-        URL dst(downloaddir.empty() ? jobidnum : downloaddir + G_DIR_SEPARATOR_S + jobidnum);
-
-
-        std::string srcpath = src.Path();
-        std::string dstpath = dst.Path();
-
-        if (srcpath.empty() || (srcpath[srcpath.size() - 1] != '/'))
-          srcpath += '/';
-        if (dstpath.empty() || (dstpath[dstpath.size() - 1] != G_DIR_SEPARATOR))
-          dstpath += G_DIR_SEPARATOR_S;
-
-        bool ok = true;
-
-        for (std::list<std::string>::iterator it = files.begin();
-             it != files.end(); it++) {
-          src.ChangePath(srcpath + *it);
-          dst.ChangePath(dstpath + *it);
-          if (!CopyJobFile(src, dst)) {
-            logger.msg(ERROR, "Failed dowloading %s to %s", src.str(), dst.str());
-            ok = false;
-          }
-        }
-
-        return ok;*/
-    return false;
-  }
-
   bool JobControllerUNICORE::CleanJob(const Job& /* job */) const {
     //     MCCConfig cfg;
     //     usercfg.ApplyToConfig(cfg);

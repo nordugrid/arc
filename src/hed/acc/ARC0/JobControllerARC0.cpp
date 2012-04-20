@@ -208,60 +208,6 @@ namespace Arc {
     }
   }
 
-  bool JobControllerARC0::RetrieveJob(const Job& job,
-                                      std::string& downloaddir,
-                                      bool usejobname,
-                                      bool force) const {
-    logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
-
-    if (!downloaddir.empty()) {
-      downloaddir += G_DIR_SEPARATOR_S;
-    }
-    if (usejobname && !job.Name.empty()) {
-      downloaddir += job.Name;
-    } else {
-      std::string path = job.JobID.Path();
-      std::string::size_type pos = path.rfind('/');
-      downloaddir += path.substr(pos + 1);
-    }
-
-    std::list<std::string> files;
-    if (!Job::ListFilesRecursive(usercfg, job.JobID, files)) {
-      logger.msg(ERROR, "Unable to retrieve list of job files to download for job %s", job.JobID.fullstr());
-      return false;
-    }
-
-    URL src(job.JobID);
-    URL dst(downloaddir);
-
-    std::string srcpath = src.Path();
-    std::string dstpath = dst.Path();
-
-    if (!force && Glib::file_test(dstpath, Glib::FILE_TEST_EXISTS)) {
-      logger.msg(WARNING, "%s directory exist! Skipping job.", dstpath);
-      return false;
-    }
-
-    if (srcpath[srcpath.size() - 1] != '/')
-      srcpath += '/';
-    if (dstpath[dstpath.size() - 1] != G_DIR_SEPARATOR)
-      dstpath += G_DIR_SEPARATOR_S;
-
-    bool ok = true;
-
-    for (std::list<std::string>::iterator it = files.begin();
-         it != files.end(); it++) {
-      src.ChangePath(srcpath + *it);
-      dst.ChangePath(dstpath + *it);
-      if (!Job::CopyJobFile(usercfg, src, dst)) {
-        logger.msg(INFO, "Failed downloading %s to %s", src.str(), dst.str());
-        ok = false;
-      }
-    }
-
-    return ok;
-  }
-
   bool JobControllerARC0::CleanJob(const Job& job) const {
 
     logger.msg(VERBOSE, "Cleaning job: %s", job.JobID.str());

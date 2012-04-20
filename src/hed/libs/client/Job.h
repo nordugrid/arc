@@ -158,7 +158,9 @@ namespace Arc {
     void ToXML(XMLNode job) const;
     
     bool GetURLToResource(ResourceType resource, URL& url) const;
-
+    
+    bool Retrieve(const UserConfig& uc, const URL& destination, bool force) const;
+    
     static bool CopyJobFile(const UserConfig& uc, const URL& src, const URL& dst);
     static bool ListFilesRecursive(const UserConfig& uc, const URL& dir, std::list<std::string>& files, const std::string& prefix = "");
     

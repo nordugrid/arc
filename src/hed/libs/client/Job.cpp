@@ -380,7 +380,6 @@ namespace Arc {
     JXMLTOSTRING(SubmissionHost)
     JXMLTOSTRING(SubmissionClientName)
     JXMLTOSTRINGLIST(OtherMessages)
-
   }
 
   void Job::ToXML(XMLNode node) const {
@@ -553,6 +552,54 @@ namespace Arc {
   } // end Print
 
   bool Job::GetURLToResource(ResourceType resource, URL& url) const { return jc ? jc->GetURLToJobResource(*this, resource, url) : false; }
+
+  bool Job::Retrieve(const UserConfig& uc, const URL& destination, bool force) const {
+    if (!destination) {
+      logger.msg(ERROR, "Invalid download destination path specified (%s)", destination.fullstr());
+      return false;
+    }
+    
+    logger.msg(VERBOSE, "Downloading job: %s", JobID.str());
+    
+    if (jc == NULL) { return false; }
+    
+    URL src, dst(destination);
+    if (!jc->GetURLToJobResource(*this, STAGEOUTDIR, src)) {
+      logger.msg(ERROR, "Cant retrieve job files for job (%s) - unable to determine URL of stage out directory", JobID.fullstr());
+      return false;
+    }
+
+    if (!src) {
+      logger.msg(ERROR, "Invalid stage out path specified (%s)", src.fullstr());
+      return false;
+    }
+
+    if (!force && Glib::file_test(dst.Path(), Glib::FILE_TEST_EXISTS)) {
+      logger.msg(WARNING, "%s directory exist! Skipping job.", dst.Path());
+      return false;
+    }
+
+    std::list<std::string> files;
+    if (!ListFilesRecursive(uc, src, files)) {
+      logger.msg(ERROR, "Unable to retrieve list of job files to download for job %s", JobID.fullstr());
+      return false;
+    }
+
+    const std::string srcpath = src.Path() + (src.Path().empty() || *src.Path().rbegin() != '/' ? "/" : "");
+    const std::string dstpath = dst.Path() + (dst.Path().empty() || *dst.Path().rbegin() != G_DIR_SEPARATOR ? G_DIR_SEPARATOR_S : "");
+
+    bool ok = true;
+    for (std::list<std::string>::const_iterator it = files.begin(); it != files.end(); ++it) {
+      src.ChangePath(srcpath + *it);
+      dst.ChangePath(dstpath + *it);
+      if (!CopyJobFile(uc, src, dst)) {
+        logger.msg(INFO, "Failed downloading %s to %s", src.str(), dst.str());
+        ok = false;
+      }
+    }
+
+    return ok;
+  }
 
   bool Job::ListFilesRecursive(const UserConfig& uc, const URL& dir, std::list<std::string>& files, const std::string& prefix) {
     std::list<FileInfo> outputfiles;

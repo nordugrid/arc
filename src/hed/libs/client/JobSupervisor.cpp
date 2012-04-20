@@ -211,8 +211,28 @@ namespace Arc {
           continue;
         }
 
-        std::string downloaddir = downloaddirprefix;
-        if (!it->first->RetrieveJob(**itJ, downloaddir, usejobname, force)) {
+        std::string downloaddirname;
+        if (usejobname && !(*itJ)->Name.empty()) {
+          downloaddirname = (*itJ)->Name;
+        } else {
+          std::string path = (*itJ)->JobID.Path();
+          std::string::size_type pos = path.rfind('/');
+          downloaddirname = path.substr(pos + 1);
+        }
+
+        URL downloaddir;
+        if (!downloaddirprefix.empty()) {
+          downloaddir = downloaddirprefix;
+          if (downloaddir.Protocol() == "file") {
+            downloaddir.ChangePath(downloaddir.Path() + G_DIR_SEPARATOR_S + downloaddirname);
+          } else {
+            downloaddir.ChangePath(downloaddir.Path() + "/" + downloaddirname);
+          }
+        } else {
+          downloaddir = downloaddirname;
+        }
+
+        if (!(*itJ)->Retrieve(usercfg, downloaddir, force)) {
           ok = false;
           notprocessed.push_back((*itJ)->JobID);
           it->second.second.push_back(*itJ);
@@ -220,7 +240,17 @@ namespace Arc {
         }
         else {
           processed.push_back((*itJ)->JobID);
-          downloaddirectories.push_back(downloaddir);
+          if (downloaddir.Protocol() == "file") {
+            std::string cwd = URL(".").Path();
+            cwd.resize(cwd.size()-1);
+            if (downloaddir.Path().substr(0, cwd.size()) == cwd) {
+              downloaddirectories.push_back(downloaddir.Path().substr(cwd.size()));
+            } else {
+              downloaddirectories.push_back(downloaddir.Path());
+            }
+          } else {
+            downloaddirectories.push_back(downloaddir.str());
+          }
           ++itJ;
         }
       }

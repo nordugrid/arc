@@ -39,62 +39,6 @@ namespace Arc {
     }
   }
 
-  bool JobControllerCREAM::RetrieveJob(const Job& job,
-                                       std::string& downloaddir,
-                                       bool usejobname,
-                                       bool force) const {
-    logger.msg(VERBOSE, "Downloading job: %s", job.JobID.fullstr());
-
-    if (!downloaddir.empty()) {
-      downloaddir += G_DIR_SEPARATOR_S;
-    }
-    if (usejobname && !job.Name.empty()) {
-      downloaddir += job.Name;
-    } else {
-      std::string path = job.JobID.Path();
-      std::string::size_type pos = path.rfind('/');
-      downloaddir += path.substr(pos + 1);
-    }
-    creamJobInfo info;
-    info = XMLNode(job.IDFromEndpoint);
-
-    std::list<std::string> files;
-    if (!Job::ListFilesRecursive(usercfg, info.OSB, files)) {
-      logger.msg(ERROR, "Unable to retrieve list of job files to download for job %s", job.JobID.fullstr());
-      return false;
-    }
-
-    URL src(info.OSB);
-    URL dst(downloaddir);
-
-    std::string srcpath = src.Path();
-    std::string dstpath = dst.Path();
-
-    if (!force && Glib::file_test(dstpath, Glib::FILE_TEST_EXISTS)) {
-      logger.msg(WARNING, "%s directory exist! Skipping job.", dstpath);
-      return false;
-    }
-
-    if (srcpath.empty() || (srcpath[srcpath.size() - 1] != '/'))
-      srcpath += '/';
-    if (dstpath.empty() || (dstpath[dstpath.size() - 1] != G_DIR_SEPARATOR))
-      dstpath += G_DIR_SEPARATOR_S;
-
-    bool ok = true;
-
-    for (std::list<std::string>::iterator it = files.begin();
-         it != files.end(); it++) {
-      src.ChangePath(srcpath + *it);
-      dst.ChangePath(dstpath + *it);
-      if (!Job::CopyJobFile(usercfg, src, dst)) {
-        logger.msg(INFO, "Failed dowloading %s to %s", src.str(), dst.str());
-        ok = false;
-      }
-    }
-
-    return ok;
-  }
-
   bool JobControllerCREAM::CleanJob(const Job& job) const {
 
     MCCConfig cfg;
