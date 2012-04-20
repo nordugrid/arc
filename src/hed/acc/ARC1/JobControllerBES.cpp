@@ -40,14 +40,6 @@ namespace Arc {
     }
   }
 
-  bool JobControllerBES::RetrieveJob(const Job& /* job */,
-                                        std::string& /* downloaddir */,
-                                        bool /* usejobname */,
-                                        bool /*force*/) const {
-    logger.msg(INFO, "Getting BES jobs is not supported");
-    return false;
-  }
-
   bool JobControllerBES::CleanJob(const Job& /* job */) const {
     logger.msg(INFO, "Cleaning of BES jobs is not supported");
     return false;
