@@ -322,8 +322,6 @@ namespace Arc {
       return false;
     }
 
-    RenewJob(job);
-
     // dump rsl into temporary file
     std::string urlstr = job.JobID.str();
     std::string::size_type pos = urlstr.rfind('/');
