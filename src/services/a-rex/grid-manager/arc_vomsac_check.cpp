@@ -171,8 +171,7 @@ int main(int argc, char *argv[]) {
 	struct stat statFInfo;
 
 	// CA Cert directory required to work with proxy
-	std::string ca_dir;
-	ca_dir = (std::string)cfg["common"]["x509_cert_dir"];
+	std::string ca_dir = (std::string)cfg["common"]["x509_cert_dir"];
 	if (ca_dir.empty()) {
 		ca_dir = "/etc/grid-security/certificates";
 	} else {
@@ -184,8 +183,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// VOMS directory required to verify VOMS ACs
-	std::string voms_dir;
-	ca_dir = (std::string)cfg["common"]["x509_voms_dir"];
+	std::string voms_dir = (std::string)cfg["common"]["x509_voms_dir"];
 	if (voms_dir.empty()) {
 		voms_dir = "/etc/grid-security/vomsdir";
 	} else {
