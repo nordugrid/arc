@@ -113,7 +113,7 @@ binary-arch: install
 	dh_installinit -a --name arc-cache-service
 	dh_installinit -a --name arc-datadelivery-service
 	dh_installinit -a --name gridftpd
-	dh_installinit -a --name grid-infosys
+	dh_installinit -i --name grid-infosys
 	dh_perl -a
 	[ -x /usr/bin/dh_python2 ] && dh_python2 -a || dh_pysupport -a
 	[ -x /usr/bin/dh_lintian ] && dh_lintian -a || :
