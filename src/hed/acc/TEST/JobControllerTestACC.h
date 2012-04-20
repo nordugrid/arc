@@ -19,7 +19,6 @@ public:
   ~JobControllerTestACC() {}
 
   void UpdateJobs(std::list<Job*>&) const {}
-  virtual bool RetrieveJob(const Job& job, std::string& downloaddir, const bool usejobname, const bool force) const { return JobControllerTestACCControl::jobStatus; }
   virtual bool CleanJob(const Job& job) const { return JobControllerTestACCControl::cleanStatus; }
   virtual bool CancelJob(const Job& job) const { return JobControllerTestACCControl::cancelStatus; }
   virtual bool RenewJob(const Job& job) const { return JobControllerTestACCControl::renewStatus; }

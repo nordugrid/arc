@@ -30,7 +30,6 @@ class JobDescriptionParserTestACCControl {
 
 class JobControllerTestACCControl {
   public:
-    static bool jobStatus;
     static bool cleanStatus;
     static bool cancelStatus;
     static bool renewStatus;

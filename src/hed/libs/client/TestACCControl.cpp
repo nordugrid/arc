@@ -14,7 +14,6 @@ std::list<JobDescription> JobDescriptionParserTestACCControl::parsedJobDescripti
 bool JobDescriptionParserTestACCControl::unparseStatus = true;
 std::string JobDescriptionParserTestACCControl::unparsedString = "";
 
-bool JobControllerTestACCControl::jobStatus = true;
 bool JobControllerTestACCControl::cleanStatus = true;
 bool JobControllerTestACCControl::cancelStatus = true;
 bool JobControllerTestACCControl::renewStatus = true;
