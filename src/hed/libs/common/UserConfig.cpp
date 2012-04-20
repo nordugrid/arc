@@ -141,7 +141,7 @@ namespace Arc {
   const std::string UserConfig::DEFAULTCONFIG = Glib::build_filename(ARCUSERDIRECTORY, "client.conf");
 
   UserConfig::UserConfig(initializeCredentialsType initializeCredentials)
-    : ok(false), initializeCredentials(initializeCredentials) {
+    : timeout(0), keySize(0), ok(false), initializeCredentials(initializeCredentials) {
     if (!InitializeCredentials(initializeCredentials)) {
       return;
     }
@@ -154,7 +154,7 @@ namespace Arc {
   UserConfig::UserConfig(const std::string& conffile,
                          initializeCredentialsType initializeCredentials,
                          bool loadSysConfig)
-    : ok(false), initializeCredentials(initializeCredentials)  {
+    : timeout(0), keySize(0), ok(false), initializeCredentials(initializeCredentials)  {
     if (loadSysConfig) {
 #ifndef WIN32
       if (Glib::file_test(SYSCONFIG, Glib::FILE_TEST_IS_REGULAR)) {
@@ -208,7 +208,7 @@ namespace Arc {
 
   UserConfig::UserConfig(const std::string& conffile, const std::string& jfile,
                          initializeCredentialsType initializeCredentials, bool loadSysConfig)
-    : ok(false), initializeCredentials(initializeCredentials)  {
+    : timeout(0), keySize(0), ok(false), initializeCredentials(initializeCredentials)  {
     // If job list file have been specified, try to initialize it, and
     // if it fails then this object is non-valid (ok = false).
     if (!jfile.empty() && !JobListFile(jfile))
@@ -287,7 +287,7 @@ namespace Arc {
   }
 
   bool UserConfig::Timeout(int newTimeout) {
-    if (timeout > 0) {
+    if (newTimeout > 0) {
       timeout = newTimeout;
       return true;
     }
