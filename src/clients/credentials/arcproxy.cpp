@@ -312,7 +312,7 @@ int main(int argc, char *argv[]) {
 
   std::string voms_dir;
   options.AddOption('s', "vomsdir", istring("path to the top directory of VOMS *.lsc files, only needed for the VOMS client functionality"),
-                    istring("path"), ca_dir);
+                    istring("path"), voms_dir);
 
   std::string vomses_path;
   options.AddOption('V', "vomses", istring("path to the VOMS server configuration file"),
