@@ -559,9 +559,12 @@ namespace Arc {
       return false;
     }
     
+    if (jc == NULL) {
+      logger.msg(DEBUG, "Unable to download job (%s), no JobController plugin was set to handle the job.", JobID.str());
+      return false;
+    }
+
     logger.msg(VERBOSE, "Downloading job: %s", JobID.str());
-    
-    if (jc == NULL) { return false; }
     
     URL src, dst(destination);
     if (!jc->GetURLToJobResource(*this, STAGEOUTDIR, src)) {
