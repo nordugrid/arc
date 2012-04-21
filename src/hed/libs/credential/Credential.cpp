@@ -337,7 +337,11 @@ namespace Arc {
         //if can not parse it, then it is DER format
         PKCS12* pkcs12 = NULL;
         unsigned char* source_chr = (unsigned char*)(source.c_str());
+#ifdef HAVE_OPENSSL_OLDRSA
+        if((pkcs12 = d2i_PKCS12(NULL, (unsigned char**)&source_chr, source.length())) != NULL){ format=CRED_PKCS; PKCS12_free(pkcs12); }
+#else
         if((pkcs12 = d2i_PKCS12(NULL, (const unsigned char**)&source_chr, source.length())) != NULL){ format=CRED_PKCS; PKCS12_free(pkcs12); }
+#endif
         else {
           format = CRED_DER;
         }
@@ -529,8 +533,8 @@ namespace Arc {
       *certchain = NULL;
     }
 
-    const unsigned char* der_chr;
-    const unsigned char* pkcs_chr;
+    unsigned char* der_chr;
+    unsigned char* pkcs_chr;
 
     switch(format) {
       case CRED_PEM:
@@ -559,8 +563,12 @@ namespace Arc {
 
       case CRED_DER:
         CredentialLogger.msg(DEBUG,"Certificate format is DER");
-        der_chr = (const unsigned char*)(cert.c_str());
-        x509 = d2i_X509(NULL, &der_chr, cert.length());
+        der_chr = (unsigned char*)(cert.c_str());
+#ifdef HAVE_OPENSSL_OLDRSA
+        x509 = d2i_X509(NULL, (unsigned char**)&der_chr, cert.length());
+#else
+        x509 = d2i_X509(NULL, (const unsigned char**)&der_chr, cert.length());
+#endif
         if(!x509){
           throw CredentialError("Unable to read DER credential from BIO");
         }
@@ -585,8 +593,12 @@ namespace Arc {
 
       case CRED_PKCS:
         CredentialLogger.msg(DEBUG,"Certificate format is PKCS");
-        pkcs_chr = (const unsigned char*)(cert.c_str());
-        pkcs12 = d2i_PKCS12(NULL, &pkcs_chr, cert.length());
+        pkcs_chr = (unsigned char*)(cert.c_str());
+#ifdef HAVE_OPENSSL_OLDRSA
+        pkcs12 = d2i_PKCS12(NULL, (unsigned char**)&pkcs_chr, cert.length());
+#else
+        pkcs12 = d2i_PKCS12(NULL, (const unsigned char**)&pkcs_chr, cert.length());
+#endif
         if(pkcs12){
           char password[100];
           EVP_read_pw_string(password, 100, "Enter Password for PKCS12 certificate:", 0);
@@ -656,7 +668,7 @@ namespace Arc {
     if(!keybio) return;
     format = getFormat_str(key);
 
-    const unsigned char* key_chr;
+    unsigned char* key_chr;
 
     switch(format){
       case CRED_PEM:
@@ -678,8 +690,12 @@ namespace Arc {
         break;
 
       case CRED_DER:
-        key_chr = (const unsigned char*)(key.c_str());
-        pkey=d2i_PrivateKey(EVP_PKEY_RSA, NULL, &key_chr, key.length());
+        key_chr = (unsigned char*)(key.c_str());
+#ifdef HAVE_OPENSSL_OLDRSA
+        pkey=d2i_PrivateKey(EVP_PKEY_RSA, NULL, (unsigned char**)&key_chr, key.length());
+#else
+        pkey=d2i_PrivateKey(EVP_PKEY_RSA, NULL, (const unsigned char**)&key_chr, key.length());
+#endif
         break;
 
       default:
