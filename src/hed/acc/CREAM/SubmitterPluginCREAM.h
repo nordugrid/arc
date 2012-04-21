@@ -19,7 +19,7 @@ namespace Arc {
 
     virtual bool isEndpointNotSupported(const std::string& endpoint) const;
 
-    virtual bool Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job);
+    virtual bool Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, std::list<Job>& jobs, std::list<const JobDescription*>& notSubmitted);
   };
 
 } // namespace Arc

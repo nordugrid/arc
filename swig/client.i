@@ -48,19 +48,6 @@
 #endif
 
 
-// Wrap contents of $(top_srcdir)/src/hed/libs/client/SubmitterPlugin.h
-%{
-#include <arc/client/SubmitterPlugin.h>
-%}
-%ignore Arc::SubmitterPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
-%ignore Arc::SubmitterPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
-%template(SubmitterPluginList) std::list<Arc::SubmitterPlugin*>;
-#ifdef SWIGJAVA
-%template(SubmitterPluginListIteratorHandler) listiteratorhandler<Arc::SubmitterPlugin*>;
-#endif
-%include "../src/hed/libs/client/SubmitterPlugin.h"
-
-
 // Wrap contents of $(top_srcdir)/src/hed/libs/client/Software.h
 %{
 #include <arc/client/Software.h>
@@ -92,6 +79,111 @@
 %template(EndpointListIteratorHandler) listiteratorhandler<Arc::Endpoint>;
 #endif
 %include "../src/hed/libs/client/Endpoint.h"
+
+
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/JobState.h
+%{
+#include <arc/client/JobState.h>
+%}
+%ignore Arc::JobState::operator!;
+%ignore Arc::JobState::operator=(const JobState&);
+%rename(GetType) Arc::JobState::operator StateType; // works with swig 1.3.40, and higher...
+%rename(GetType) Arc::JobState::operator Arc::JobState::StateType; // works with swig 1.3.29
+%rename(GetNativeState) Arc::JobState::operator();
+%template(JobStateList) std::list<Arc::JobState>;
+#ifdef SWIGJAVA
+%template(JobStateListIteratorHandler) listiteratorhandler<Arc::JobState>;
+#endif
+%include "../src/hed/libs/client/JobState.h"
+
+
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/Job.h
+%{
+#include <arc/client/Job.h>
+%}
+%ignore Arc::Job::operator=(XMLNode);
+%ignore Arc::Job::operator=(const Job&);
+%template(JobList) std::list<Arc::Job>;
+#ifdef SWIGPYTHON
+%ignore Arc::Job::WriteJobIDsToFile(const std::list<Job>&, const std::string&, unsigned = 10, unsigned = 500000); // Clash. It is sufficient to wrap only WriteJobIDsToFile(cosnt std::list<URL>&, ...);
+#endif
+#ifdef SWIGJAVA
+%template(JobListIteratorHandler) listiteratorhandler<Arc::Job>;
+#endif
+%include "../src/hed/libs/client/Job.h"
+
+
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/JobController.h
+%{
+#include <arc/client/JobController.h>
+%}
+%ignore Arc::JobControllerPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
+%ignore Arc::JobControllerPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
+%template(JobControllerList) std::list<Arc::JobController *>;
+%template(JobControllerMap) std::map<std::string, Arc::JobController *>;
+#ifdef SWIGJAVA
+%template(JobControllerListIteratorHandler) listiteratorhandler<Arc::JobController *>;
+#endif
+%include "../src/hed/libs/client/JobController.h"
+
+
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/JobSupervisor.h
+%{
+#include <arc/client/JobSupervisor.h>
+%}
+%include "../src/hed/libs/client/JobSupervisor.h"
+
+
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/EndpointQueryingStatus.h
+%{
+#include <arc/client/EndpointQueryingStatus.h>
+%}
+%ignore Arc::EndpointQueryingStatus::operator!;
+%ignore Arc::EndpointQueryingStatus::operator=(EndpointQueryingStatusType);
+%ignore Arc::EndpointQueryingStatus::operator=(const EndpointQueryingStatus&);
+%include "../src/hed/libs/client/EndpointQueryingStatus.h"
+
+
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/JobDescription.h
+%{
+#include <arc/client/JobDescription.h>
+%}
+%ignore Arc::JobDescriptionResult::operator!;
+%ignore Arc::Range<int>::operator int;
+%ignore Arc::OptIn::operator=(const OptIn<T>&);
+%ignore Arc::OptIn::operator=(const T&);
+%ignore Arc::Range::operator=(const Range<T>&);
+%ignore Arc::Range::operator=(const T&);
+%ignore Arc::SourceType::operator=(const URL&);
+%ignore Arc::SourceType::operator=(const std::string&);
+%ignore Arc::JobDescription::operator=(const JobDescription&);
+#ifdef SWIGPYTHON
+%apply std::string& TUPLEOUTPUTSTRING { std::string& product }; /* Applies to:
+ * JobDescriptionResult JobDescription::UnParse(std::string& product, std::string language, const std::string& dialect = "") const;
+ */
+#endif
+#ifdef SWIGJAVA
+%ignore Arc::JobDescription::GetAlternatives() const;
+#endif
+%include "../src/hed/libs/client/JobDescription.h"
+%template(JobDescriptionList) std::list<Arc::JobDescription>;
+%template(InputFileTypeList) std::list<Arc::InputFileType>;
+%template(OutputFileTypeList) std::list<Arc::OutputFileType>;
+%template(SourceTypeList) std::list<Arc::SourceType>;
+%template(TargetTypeList) std::list<Arc::TargetType>;
+%template(ScalableTimeInt) Arc::ScalableTime<int>;
+%template(RangeInt) Arc::Range<int>;
+%template(StringOptIn) Arc::OptIn<std::string>;
+#ifdef SWIGPYTHON
+%clear std::string& product;
+#endif
+#ifdef SWIGJAVA
+%template(JobDescriptionListIteratorHandler) listiteratorhandler<Arc::JobDescription>;
+%template(InputFileTypeListIteratorHandler) listiteratorhandler<Arc::InputFileType>;
+%template(OutputFileTypeListIteratorHandler) listiteratorhandler<Arc::OutputFileType>;
+%template(SourceTypeListIteratorHandler) listiteratorhandler<Arc::SourceType>;
+%template(TargetTypeListIteratorHandler) listiteratorhandler<Arc::TargetType>;
+#endif
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/client/ExecutionTarget.h
@@ -165,136 +257,17 @@
 };
 
 
-// Wrap contents of $(top_srcdir)/src/hed/libs/client/JobState.h
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/SubmitterPlugin.h
 %{
-#include <arc/client/JobState.h>
+#include <arc/client/SubmitterPlugin.h>
 %}
-%ignore Arc::JobState::operator!;
-%ignore Arc::JobState::operator=(const JobState&);
-%rename(GetType) Arc::JobState::operator StateType; // works with swig 1.3.40, and higher...
-%rename(GetType) Arc::JobState::operator Arc::JobState::StateType; // works with swig 1.3.29
-%rename(GetNativeState) Arc::JobState::operator();
-%template(JobStateList) std::list<Arc::JobState>;
+%ignore Arc::SubmitterPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
+%ignore Arc::SubmitterPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
+%template(SubmitterPluginList) std::list<Arc::SubmitterPlugin*>;
 #ifdef SWIGJAVA
-%template(JobStateListIteratorHandler) listiteratorhandler<Arc::JobState>;
+%template(SubmitterPluginListIteratorHandler) listiteratorhandler<Arc::SubmitterPlugin*>;
 #endif
-%include "../src/hed/libs/client/JobState.h"
-
-
-// Wrap contents of $(top_srcdir)/src/hed/libs/client/Job.h
-%{
-#include <arc/client/Job.h>
-%}
-%ignore Arc::Job::operator=(XMLNode);
-%ignore Arc::Job::operator=(const Job&);
-%template(JobList) std::list<Arc::Job>;
-#ifdef SWIGPYTHON
-%ignore Arc::Job::WriteJobIDsToFile(const std::list<Job>&, const std::string&, unsigned = 10, unsigned = 500000); // Clash. It is sufficient to wrap only WriteJobIDsToFile(cosnt std::list<URL>&, ...);
-#endif
-#ifdef SWIGJAVA
-%template(JobListIteratorHandler) listiteratorhandler<Arc::Job>;
-#endif
-%include "../src/hed/libs/client/Job.h"
-
-
-// Wrap contents of $(top_srcdir)/src/hed/libs/client/JobController.h
-%{
-#include <arc/client/JobController.h>
-%}
-%ignore Arc::JobControllerPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
-%ignore Arc::JobControllerPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
-%template(JobControllerList) std::list<Arc::JobController *>;
-%template(JobControllerMap) std::map<std::string, Arc::JobController *>;
-#ifdef SWIGJAVA
-%template(JobControllerListIteratorHandler) listiteratorhandler<Arc::JobController *>;
-#endif
-%include "../src/hed/libs/client/JobController.h"
-
-
-// Wrap contents of $(top_srcdir)/src/hed/libs/client/JobSupervisor.h
-%{
-#include <arc/client/JobSupervisor.h>
-%}
-%include "../src/hed/libs/client/JobSupervisor.h"
-
-
-// Wrap contents of $(top_srcdir)/src/hed/libs/client/EndpointQueryingStatus.h
-%{
-#include <arc/client/EndpointQueryingStatus.h>
-%}
-%ignore Arc::EndpointQueryingStatus::operator!;
-%ignore Arc::EndpointQueryingStatus::operator=(EndpointQueryingStatusType);
-%ignore Arc::EndpointQueryingStatus::operator=(const EndpointQueryingStatus&);
-%include "../src/hed/libs/client/EndpointQueryingStatus.h"
-
-
-// Wrap contents of $(top_srcdir)/src/hed/libs/client/TestACCControl.h
-%{
-#include <arc/client/TestACCControl.h>
-%}
-#ifdef SWIGPYTHON
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) Arc::SubmitterPluginTestACCControl::submitJob;
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) Arc::SubmitterPluginTestACCControl::migrateJob;
-%rename(_BrokerPluginTestACCControl) Arc::BrokerPluginTestACCControl;
-%rename(_JobDescriptionParserTestACCControl) Arc::JobDescriptionParserTestACCControl;
-%rename(_JobControllerTestACCControl) Arc::JobControllerTestACCControl;
-%rename(_SubmitterPluginTestACCControl) Arc::SubmitterPluginTestACCControl;
-%rename(_ServiceEndpointRetrieverPluginTESTControl) Arc::ServiceEndpointRetrieverPluginTESTControl;
-%rename(_TargetInformationRetrieverPluginTESTControl) Arc::TargetInformationRetrieverPluginTESTControl;
-#endif
-%include "../src/hed/libs/client/TestACCControl.h"
-#ifdef SWIGPYTHON
-%pythoncode %{
-BrokerPluginTestACCControl = StaticPropertyWrapper(_BrokerPluginTestACCControl)
-JobDescriptionParserTestACCControl = StaticPropertyWrapper(_JobDescriptionParserTestACCControl)
-JobControllerTestACCControl = StaticPropertyWrapper(_JobControllerTestACCControl)
-SubmitterPluginTestACCControl = StaticPropertyWrapper(_SubmitterPluginTestACCControl)
-ServiceEndpointRetrieverPluginTESTControl = StaticPropertyWrapper(_ServiceEndpointRetrieverPluginTESTControl)
-TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInformationRetrieverPluginTESTControl)
-%}
-#endif
-
-
-// Wrap contents of $(top_srcdir)/src/hed/libs/client/JobDescription.h
-%{
-#include <arc/client/JobDescription.h>
-%}
-%ignore Arc::JobDescriptionResult::operator!;
-%ignore Arc::Range<int>::operator int;
-%ignore Arc::OptIn::operator=(const OptIn<T>&);
-%ignore Arc::OptIn::operator=(const T&);
-%ignore Arc::Range::operator=(const Range<T>&);
-%ignore Arc::Range::operator=(const T&);
-%ignore Arc::SourceType::operator=(const URL&);
-%ignore Arc::SourceType::operator=(const std::string&);
-%ignore Arc::JobDescription::operator=(const JobDescription&);
-#ifdef SWIGPYTHON
-%apply std::string& TUPLEOUTPUTSTRING { std::string& product }; /* Applies to:
- * JobDescriptionResult JobDescription::UnParse(std::string& product, std::string language, const std::string& dialect = "") const;
- */
-#endif
-#ifdef SWIGJAVA
-%ignore Arc::JobDescription::GetAlternatives() const;
-#endif
-%include "../src/hed/libs/client/JobDescription.h"
-%template(JobDescriptionList) std::list<Arc::JobDescription>;
-%template(InputFileTypeList) std::list<Arc::InputFileType>;
-%template(OutputFileTypeList) std::list<Arc::OutputFileType>;
-%template(SourceTypeList) std::list<Arc::SourceType>;
-%template(TargetTypeList) std::list<Arc::TargetType>;
-%template(ScalableTimeInt) Arc::ScalableTime<int>;
-%template(RangeInt) Arc::Range<int>;
-%template(StringOptIn) Arc::OptIn<std::string>;
-#ifdef SWIGPYTHON
-%clear std::string& product;
-#endif
-#ifdef SWIGJAVA
-%template(JobDescriptionListIteratorHandler) listiteratorhandler<Arc::JobDescription>;
-%template(InputFileTypeListIteratorHandler) listiteratorhandler<Arc::InputFileType>;
-%template(OutputFileTypeListIteratorHandler) listiteratorhandler<Arc::OutputFileType>;
-%template(SourceTypeListIteratorHandler) listiteratorhandler<Arc::SourceType>;
-%template(TargetTypeListIteratorHandler) listiteratorhandler<Arc::TargetType>;
-#endif
+%include "../src/hed/libs/client/SubmitterPlugin.h"
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/client/EntityRetriever.h
@@ -377,3 +350,30 @@ TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInfor
 %rename(compare) Arc::CountedBroker::operator()(const ExecutionTarget&, const ExecutionTarget&) const;
 #endif
 %include "../src/hed/libs/client/Broker.h"
+
+
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/TestACCControl.h
+%{
+#include <arc/client/TestACCControl.h>
+%}
+#ifdef SWIGPYTHON
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) Arc::SubmitterPluginTestACCControl::submitJob;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) Arc::SubmitterPluginTestACCControl::migrateJob;
+%rename(_BrokerPluginTestACCControl) Arc::BrokerPluginTestACCControl;
+%rename(_JobDescriptionParserTestACCControl) Arc::JobDescriptionParserTestACCControl;
+%rename(_JobControllerTestACCControl) Arc::JobControllerTestACCControl;
+%rename(_SubmitterPluginTestACCControl) Arc::SubmitterPluginTestACCControl;
+%rename(_ServiceEndpointRetrieverPluginTESTControl) Arc::ServiceEndpointRetrieverPluginTESTControl;
+%rename(_TargetInformationRetrieverPluginTESTControl) Arc::TargetInformationRetrieverPluginTESTControl;
+#endif
+%include "../src/hed/libs/client/TestACCControl.h"
+#ifdef SWIGPYTHON
+%pythoncode %{
+BrokerPluginTestACCControl = StaticPropertyWrapper(_BrokerPluginTestACCControl)
+JobDescriptionParserTestACCControl = StaticPropertyWrapper(_JobDescriptionParserTestACCControl)
+JobControllerTestACCControl = StaticPropertyWrapper(_JobControllerTestACCControl)
+SubmitterPluginTestACCControl = StaticPropertyWrapper(_SubmitterPluginTestACCControl)
+ServiceEndpointRetrieverPluginTESTControl = StaticPropertyWrapper(_ServiceEndpointRetrieverPluginTESTControl)
+TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInformationRetrieverPluginTESTControl)
+%}
+#endif

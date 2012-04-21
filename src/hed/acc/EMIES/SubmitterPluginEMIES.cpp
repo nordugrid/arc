@@ -52,113 +52,132 @@ namespace Arc {
     return true;
   }
 
-  bool SubmitterPluginEMIES::Submit(const JobDescription& jobdesc,
-                             const ExecutionTarget& et, Job& job) {
+  bool SubmitterPluginEMIES::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, std::list<Job>& jobs, std::list<const JobDescription*>& notSubmitted) {
     // TODO: this is multi step process. So having retries would be nice.
 
     URL url(et.ComputingEndpoint->URLString);
 
     EMIESClient* ac = acquireClient(url);
 
-    JobDescription preparedjobdesc(jobdesc);
-
-    if (!preparedjobdesc.Prepare(et)) {
-      logger.msg(INFO, "Failed preparing job description to target resources");
-      releaseClient(url);
-      return false;
-    }
-
-    std::string product;
-    if (!preparedjobdesc.UnParse(product, "emies:adl")) {
-      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "emies:adl");
-      releaseClient(url);
-      return false;
-    }
-
-    EMIESJob jobid;
-    EMIESJobState jobstate;
-    if (!ac->submit(product, jobid, jobstate, url.Protocol() == "https")) {
-      logger.msg(INFO, "Failed to submit job description");
-      releaseClient(url);
-      return false;
-    }
-
-    if (!jobid) {
-      logger.msg(INFO, "No valid job identifier returned by EMI ES");
-      releaseClient(url);
-      return false;
-    }
-
-    if(!jobid.manager) jobid.manager = url;
-
-    // Check if we have anything to upload. Otherwise there is no need to wait.
-    bool have_uploads = false;
-    for(std::list<InputFileType>::const_iterator it =
-          preparedjobdesc.DataStaging.InputFiles.begin();
-          it != preparedjobdesc.DataStaging.InputFiles.end(); ++it) {
-      if((!it->Sources.empty()) && (it->Sources.front().Protocol() == "file")) {
-        have_uploads = true;
-        break;
+    bool ok = true;
+    for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
+      JobDescription preparedjobdesc(*it);
+  
+      if (!preparedjobdesc.Prepare(et)) {
+        logger.msg(INFO, "Failed preparing job description to target resources");
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
+      }
+  
+      std::string product;
+      if (!preparedjobdesc.UnParse(product, "emies:adl")) {
+        logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "emies:adl");
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
+      }
+  
+      EMIESJob jobid;
+      EMIESJobState jobstate;
+      if (!ac->submit(product, jobid, jobstate, url.Protocol() == "https")) {
+        logger.msg(INFO, "Failed to submit job description");
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
+      }
+  
+      if (!jobid) {
+        logger.msg(INFO, "No valid job identifier returned by EMI ES");
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
+      }
+  
+      if(!jobid.manager) jobid.manager = url;
+  
+      // Check if we have anything to upload. Otherwise there is no need to wait.
+      bool have_uploads = false;
+      for(std::list<InputFileType>::const_iterator itIF =
+            preparedjobdesc.DataStaging.InputFiles.begin();
+            itIF != preparedjobdesc.DataStaging.InputFiles.end(); ++itIF) {
+        if((!itIF->Sources.empty()) && (itIF->Sources.front().Protocol() == "file")) {
+          have_uploads = true;
+          break;
+        };
       };
-    };
-
-    if(have_uploads) for(;;) {
-      // TODO: implement timeout
-      if(jobstate.HasAttribute("CLIENT-STAGEIN-POSSIBLE")) break;
-      if(jobstate.state == "TERMINAL") {
-        logger.msg(INFO, "Job failed on service side");
-        releaseClient(url);
-        return false;
+  
+      if(have_uploads) {
+        // Wait for job to go into proper state
+        for(;;) {
+          // TODO: implement timeout
+          if(jobstate.HasAttribute("CLIENT-STAGEIN-POSSIBLE")) break;
+          if(jobstate.state == "TERMINAL") {
+            logger.msg(INFO, "Job failed on service side");
+            notSubmitted.push_back(&*it);
+            ok = false;
+            break;
+          }
+          // If service jumped over stageable state client probably does not
+          // have to send anything.
+          if((jobstate.state != "ACCEPTED") && (jobstate.state != "PREPROCESSING")) break;
+          sleep(5);
+          if(!ac->stat(jobid, jobstate)) {
+            logger.msg(INFO, "Failed to obtain state of job");
+            notSubmitted.push_back(&*it);
+            ok = false;
+            break;
+          }
+        }
+        
+        if (!ok) continue;
       }
-      // If service jumped over stageable state client probably does not
-      // have to send anything.
-      if((jobstate.state != "ACCEPTED") && (jobstate.state != "PREPROCESSING")) break;
-      sleep(5);
-      if(!ac->stat(jobid, jobstate)) {
-        logger.msg(INFO, "Failed to obtain state of job");
-        releaseClient(url);
-        return false;
-      }
-    }
-
-    if(have_uploads) {
-      if(!jobstate.HasAttribute("CLIENT-STAGEIN-POSSIBLE")) {
-        logger.msg(INFO, "Failed to wait for job to allow stage in");
-        releaseClient(url);
-        return false;
-      }
-      if(!jobid.stagein) {
-        // Try to obtain it from job info
-        Job tjob;
-        if((!ac->info(jobid, tjob)) ||
-           (!jobid.stagein)) {
-          logger.msg(INFO, "Failed to obtain valid stagein URL for input files: %s", jobid.stagein.fullstr());
-          releaseClient(url);
-          return false;
+        
+      if(have_uploads) {
+        if(!jobstate.HasAttribute("CLIENT-STAGEIN-POSSIBLE")) {
+          logger.msg(INFO, "Failed to wait for job to allow stage in");
+          notSubmitted.push_back(&*it);
+          ok = false;
+          continue;
+        }
+        if(!jobid.stagein) {
+          // Try to obtain it from job info
+          Job tjob;
+          if((!ac->info(jobid, tjob)) ||
+             (!jobid.stagein)) {
+            logger.msg(INFO, "Failed to obtain valid stagein URL for input files: %s", jobid.stagein.fullstr());
+            notSubmitted.push_back(&*it);
+            ok = false;
+            continue;
+          }
+        }
+        if (!PutFiles(preparedjobdesc, jobid.stagein)) {
+          logger.msg(INFO, "Failed uploading local input files");
+          notSubmitted.push_back(&*it);
+          ok = false;
+          continue;
         }
       }
-      if (!PutFiles(preparedjobdesc, jobid.stagein)) {
-        logger.msg(INFO, "Failed uploading local input files");
-        releaseClient(url);
-        return false;
+  
+      // It is not clear how service is implemented. So notifying should not harm.
+      if (!ac->notify(jobid)) {
+        logger.msg(INFO, "Failed to notify service");
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
       }
+  
+      jobs.push_back(Job());
+
+      // URL-izing job id
+      URL jobidu(jobid.manager.str() + "/" + jobid.id);
+      
+      jobid.ToXML().GetXML(jobs.back().IDFromEndpoint);
+  
+      AddJobDetails(preparedjobdesc, jobidu, et.ComputingService->Cluster, jobs.back());
     }
-
-    // It is not clear how service is implemented. So notifying should not harm.
-    if (!ac->notify(jobid)) {
-      logger.msg(INFO, "Failed to notify service");
-      releaseClient(url);
-      return false;
-    }
-
-    // URL-izing job id
-    URL jobidu(jobid.manager.str() + "/" + jobid.id);
-    
-    jobid.ToXML().GetXML(job.IDFromEndpoint);
-
-    AddJobDetails(preparedjobdesc, jobidu, et.ComputingService->Cluster, job);
 
     releaseClient(url);
-    return true;
+    return ok;
   }
 } // namespace Arc

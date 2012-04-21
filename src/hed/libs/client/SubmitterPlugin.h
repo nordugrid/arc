@@ -10,13 +10,13 @@
 #include <arc/URL.h>
 #include <arc/loader/Loader.h>
 #include <arc/loader/Plugin.h>
+#include <arc/client/Job.h>
 #include <arc/client/JobDescription.h>
 
 namespace Arc {
 
   class Config;
   class ExecutionTarget;
-  class Job;
   class JobDescription;
   class Logger;
   class UserConfig;
@@ -44,11 +44,16 @@ namespace Arc {
      * This method should return the URL of the submitted job. In case
      * submission fails an empty URL should be returned.
      */
-    virtual bool Submit(const JobDescription& jobdesc,
-                        const ExecutionTarget& et, Job& job) = 0;
+    virtual bool Submit(const std::list<JobDescription>& jobdesc, const ExecutionTarget& et, std::list<Job>& job, std::list<const JobDescription*>& notSubmitted) = 0;
 
     bool Submit(const JobDescription& jobdesc, Job& job) {
-      return target != NULL && Submit(jobdesc, *target, job);
+      std::list<const JobDescription*> notSubmitted;
+      std::list<Job> jobs;
+      bool ok = (target != NULL && Submit(std::list<JobDescription>(1, jobdesc), *target, jobs, notSubmitted));
+      if (ok && !jobs.empty()) {
+        job = jobs.front();
+      }
+      return ok;
     }
 
     /// Migrate job

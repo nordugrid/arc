@@ -22,7 +22,7 @@ namespace Arc {
 
     virtual bool isEndpointNotSupported(const std::string& endpoint) const;
 
-    virtual bool Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job);
+    virtual bool Submit(const std::list<JobDescription>& jobdesc, const ExecutionTarget& et, std::list<Job>& job, std::list<const JobDescription*>& notSubmitted);
   private:
     static Logger logger;
   };

@@ -15,6 +15,13 @@ namespace Arc {
     }
   }
   
+  bool Submitter::Submit(const Endpoint& endpoint, const std::string& desc, Job& job) {
+    std::list<Job> jobs;
+    bool result = Submit(endpoint, std::list<std::string>(1, desc), jobs);
+    if (jobs.size() > 0) job = jobs.front();
+    return result;
+  }
+
   bool Submitter::Submit(const Endpoint& endpoint, const std::list<std::string>& descs, std::list<Job>& jobs) {
     return false;
   }

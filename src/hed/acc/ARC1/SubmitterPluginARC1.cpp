@@ -58,67 +58,77 @@ namespace Arc {
     return true;
   }
 
-  bool SubmitterPluginARC1::Submit(const JobDescription& jobdesc,
-                             const ExecutionTarget& et, Job& job) {
+  bool SubmitterPluginARC1::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, std::list<Job>& jobs, std::list<const JobDescription*>& notSubmitted) {
     URL url(et.ComputingEndpoint->URLString);
     bool arex_features = et.ComputingService->Type == "org.nordugrid.execution.arex";
     AREXClient* ac = acquireClient(url, arex_features);
 
-    JobDescription preparedjobdesc(jobdesc);
-
-    if (arex_features && !preparedjobdesc.Prepare(et)) {
-      logger.msg(INFO, "Failed to prepare job description to target resources");
-      releaseClient(url);
-      return false;
-    }
-
-    // !! TODO: For regular BES ordinary JSDL is needed - keeping nordugrid:jsdl so far
-    std::string product;
-    if (!preparedjobdesc.UnParse(product, "nordugrid:jsdl")) {
-      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:jsdl");
-      releaseClient(url);
-      return false;
-    }
-
-    if (!ac->submit(product, job.IDFromEndpoint, arex_features && (url.Protocol() == "https"))) {
-      releaseClient(url);
-      return false;
-    }
-
-    if (job.IDFromEndpoint.empty()) {
-      logger.msg(INFO, "No job identifier returned by A-REX");
-      releaseClient(url);
-      return false;
-    }
-
-    XMLNode activityIdentifier(job.IDFromEndpoint);
-    URL jobid;
-    if (activityIdentifier["ReferenceParameters"]["a-rex:JobID"]) { // Service seems to be A-REX. Extract job ID, and upload files.
-      jobid = URL((std::string)(activityIdentifier["ReferenceParameters"]["JobSessionDir"]));
+    bool ok = true;
+    for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
+      JobDescription preparedjobdesc(*it);
   
-      if (!PutFiles(preparedjobdesc, jobid)) {
-        logger.msg(INFO, "Failed uploading local input files");
-        job.IDFromEndpoint = "";
-        releaseClient(url);
-        return false;
+      if (arex_features && !preparedjobdesc.Prepare(et)) {
+        logger.msg(INFO, "Failed to prepare job description to target resources");
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
       }
-      
-      job.InterfaceName = "org.nordugrid.xbes";
-    } else {
-      if (activityIdentifier["Address"]) {
-        jobid = URL((std::string)activityIdentifier["Address"]);
+  
+      // !! TODO: For regular BES ordinary JSDL is needed - keeping nordugrid:jsdl so far
+      std::string product;
+      if (!preparedjobdesc.UnParse(product, "nordugrid:jsdl")) {
+        logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:jsdl");
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
+      }
+
+      std::string idFromEndpoint;
+      if (!ac->submit(product, idFromEndpoint, arex_features && (url.Protocol() == "https"))) {
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
+      }
+  
+      if (idFromEndpoint.empty()) {
+        logger.msg(INFO, "No job identifier returned by BES service");
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
+      }
+  
+      XMLNode activityIdentifier(idFromEndpoint);
+      URL jobid;
+      if (activityIdentifier["ReferenceParameters"]["a-rex:JobID"]) { // Service seems to be A-REX. Extract job ID, and upload files.
+        jobid = URL((std::string)(activityIdentifier["ReferenceParameters"]["JobSessionDir"]));
+    
+        if (!PutFiles(preparedjobdesc, jobid)) {
+          logger.msg(INFO, "Failed uploading local input files");
+          notSubmitted.push_back(&*it);
+          ok = false;
+          continue;
+        }
       } else {
-        jobid = url;
+        if (activityIdentifier["Address"]) {
+          jobid = URL((std::string)activityIdentifier["Address"]);
+        } else {
+          jobid = url;
+        }
+        Time t;
+        // Since BES doesn't specify a simple unique ID, but rather an EPR, a unique non-reproduceable (to arcsync) job ID is create below.
+        jobid.ChangePath(jobid.Path() + "/BES" + tostring(t.GetTime()) + tostring(t.GetTimeNanosec()));
       }
-      Time t;
-      // Since BES doesn't specify a simple unique ID, but rather an EPR, a unique non-reproduceable (to arcsync) job ID is create below.
-      jobid.ChangePath(jobid.Path() + "/BES" + tostring(t.GetTime()) + tostring(t.GetTimeNanosec()));
+    
+      jobs.push_back(Job());
+      jobs.back().IDFromEndpoint = idFromEndpoint;
+  
+      if (activityIdentifier["ReferenceParameters"]["a-rex:JobID"]) jobs.back().InterfaceName = "org.nordugrid.xbes";
+
+      AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, jobs.back());
     }
-
-    AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, job);
-
+  
     releaseClient(url);
-    return true;
+    return ok;
   }
 
   bool SubmitterPluginARC1::Migrate(const URL& jobid, const JobDescription& jobdesc,
