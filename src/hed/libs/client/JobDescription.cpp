@@ -421,7 +421,12 @@ namespace Arc {
         bool r = it->UnParse(*this, product, language, dialect);
         std::string unparse_error = it->GetError();
         JobDescriptionResult res(r,unparse_error);
-        if (!r) logger.msg(VERBOSE, "Generating %s job description output failed: %s", language, unparse_error);
+        /* TOOD: This log message for some reason causes a race
+         *       condition in globus on certain platforms. It has
+         *       currently only been observed during job submission on
+         *       Ubuntu 11.10 64bit, in which case job submission fails.
+         *if (!r) logger.msg(VERBOSE, "Generating %s job description output failed: %s", language, unparse_error);
+         */
         jdpl_lock.unlock();
         return res;
       }
