@@ -63,13 +63,7 @@ namespace Arc {
       return false;
     }
     
-    bool success = true;
-    for (std::list<JobDescription>::const_iterator it = descs.begin(); it != descs.end(); ++it) {
-      if (!sp->Submit(std::list<JobDescription>(1, *it), et, cw, notsubmitted)) {
-        success = false;
-      }
-    }
-    return success;
+    return sp->Submit(descs, et, cw, notsubmitted);
   }
   
   bool Submitter::BrokeredSubmit(const std::list<Endpoint>& endpoints, const std::list<JobDescription>& descs, std::list<Job>& jobs) {
