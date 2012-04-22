@@ -46,16 +46,6 @@ namespace Arc {
      */
     virtual bool Submit(const std::list<JobDescription>& jobdesc, const ExecutionTarget& et, std::list<Job>& job, std::list<const JobDescription*>& notSubmitted) = 0;
 
-    bool Submit(const JobDescription& jobdesc, Job& job) {
-      std::list<const JobDescription*> notSubmitted;
-      std::list<Job> jobs;
-      bool ok = (target != NULL && Submit(std::list<JobDescription>(1, jobdesc), *target, jobs, notSubmitted));
-      if (ok && !jobs.empty()) {
-        job = jobs.front();
-      }
-      return ok;
-    }
-
     /// Migrate job
     /**
      * This virtual method should be overridden by plugins which should

@@ -408,25 +408,7 @@ namespace Arc {
 
     ~ExecutionTarget() {};
 
-    /// Get SubmitterPlugin to the computing resource represented by the ExecutionTarget
-    /**
-     * Method which returns a specialized SubmitterPlugin which can be used
-     * for submitting jobs to the computing resource represented by
-     * the ExecutionTarget. In order to return the correct specialized
-     * SubmitterPlugin the GridFlavour variable must be correctly set.
-     *
-     * @param ucfg UserConfig object with paths to user credentials
-     * etc.
-     **/
-    SubmitterPlugin* GetSubmitterPlugin(const UserConfig& ucfg) const;
-
-    bool Submit(const UserConfig& ucfg, const JobDescription& jobdesc, Job& job) const {
-      SubmitterPlugin* s = GetSubmitterPlugin(ucfg);
-      if (s == NULL) {
-        return false;
-      }
-      return s->Submit(jobdesc, job);
-    }
+    bool Submit(const UserConfig& ucfg, const JobDescription& jobdesc, Job& job) const;
 
     /// Update ExecutionTarget after succesful job submission
     /**
@@ -463,8 +445,6 @@ namespace Arc {
     CountedPointer< std::list<ApplicationEnvironment> > ApplicationEnvironments;
 
   private:
-    static SubmitterPluginLoader loader;
-
     static Logger logger;
   };
 

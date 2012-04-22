@@ -10,7 +10,7 @@
 #include <arc/client/Broker.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/client/ExecutionTarget.h>
-#include <arc/client/SubmitterPlugin.h>
+#include <arc/client/Submitter.h>
 #include <arc/UserConfig.h>
 #include <arc/StringConv.h>
 
@@ -18,8 +18,6 @@ namespace Arc {
 
   Logger ExecutionTarget::logger(Logger::getRootLogger(), "ExecutionTarget");
   Logger ComputingServiceType::logger(Logger::getRootLogger(), "ComputingServiceType");
-
-  SubmitterPluginLoader ExecutionTarget::loader;
 
   template<typename T>
   void ComputingServiceType::GetExecutionTargets(T& container) const {
@@ -79,20 +77,15 @@ namespace Arc {
     etSet.insert(et);
   }
 
+  bool ExecutionTarget::Submit(const UserConfig& ucfg, const JobDescription& jobdesc, Job& job) const {
+    return Submitter(ucfg).Submit(*this, jobdesc, job);
+  }
+
   void ExecutionTarget::GetExecutionTargets(const std::list<ComputingServiceType>& csList, std::list<ExecutionTarget>& etList) {
     for (std::list<ComputingServiceType>::const_iterator it = csList.begin();
          it != csList.end(); ++it) {
       it->GetExecutionTargets(etList);
     }
-  }
-
-  SubmitterPlugin* ExecutionTarget::GetSubmitterPlugin(const UserConfig& ucfg) const {
-    SubmitterPlugin* s = loader.loadByInterfaceName(ComputingEndpoint->InterfaceName, ucfg);
-    if (s == NULL) {
-      return s;
-    }
-    s->SetSubmissionTarget(*this);
-    return s;
   }
 
   void ExecutionTarget::RegisterJobSubmission(const JobDescription& jobdesc) const {
