@@ -26,7 +26,7 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
   
-  bool SubmitterPluginUNICORE::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, std::list<Job>& jobs, std::list<const JobDescription*>& notSubmitted) {
+  bool SubmitterPluginUNICORE::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
@@ -41,10 +41,10 @@ namespace Arc {
         continue;
       }
   
-      jobs.push_back(Job());
-  
-      id.GetDoc(jobs.back().IDFromEndpoint);
-      AddJobDetails(*it, (std::string)id["Address"], et.ComputingService->Cluster, jobs.back());
+      Job j;
+      id.GetDoc(j.IDFromEndpoint);
+      AddJobDetails(*it, (std::string)id["Address"], et.ComputingService->Cluster, j);
+      jc.addEntity(j);
     }
   
     return ok;

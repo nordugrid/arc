@@ -17,8 +17,42 @@ namespace Arc {
     }
   }
   
+  class JobConsumerSingle : public EntityConsumer<Job> {
+  public:
+    JobConsumerSingle(Job& j) : _j(j) {}
+    void addEntity(const Job& j) { _j = j; }
+  private:
+    Job& _j;
+  };
+
+  class JobConsumerList : public EntityConsumer<Job> {
+  public:
+    JobConsumerList(std::list<Job>& joblist) : joblist(joblist) {}
+    void addEntity(const Job& j) { joblist.push_back(j); }
+  private:
+    std::list<Job>& joblist;
+  };
+
+  bool Submitter::Submit(const ExecutionTarget& et, const JobDescription& desc, Job& job) {
+    JobConsumerSingle jcs(job);
+    addConsumer(jcs);
+    bool ok = Submit(et, std::list<JobDescription>(1, desc));
+    removeConsumer(jcs);
+    return ok;
+  }
+
   bool Submitter::Submit(const ExecutionTarget& et, const std::list<JobDescription>& descs, std::list<Job>& jobs) {
+    JobConsumerList jcl(jobs);
+    addConsumer(jcl);
+    bool ok = Submit(et, descs);
+    removeConsumer(jcl);
+    return ok;
+  }
+
+  bool Submitter::Submit(const ExecutionTarget& et, const std::list<JobDescription>& descs) {
     ClearNotSubmittedDescriptions();
+
+    ConsumerWrapper cw(*this);
 
     SubmitterPlugin *sp = loader.loadByInterfaceName(et.ComputingEndpoint->InterfaceName, uc);
     
@@ -31,15 +65,8 @@ namespace Arc {
     
     bool success = true;
     for (std::list<JobDescription>::const_iterator it = descs.begin(); it != descs.end(); ++it) {
-      std::list<Job> tmpJobs;
-      if (sp->Submit(std::list<JobDescription>(1, *it), et, tmpJobs, notsubmitted) && !tmpJobs.empty()) {
-        jobs.push_back(tmpJobs.back());
-        for (std::list< EntityConsumer<Job>*>::iterator itc = consumers.begin(); itc != consumers.end(); ++itc) {
-          (*itc)->addEntity(tmpJobs.back());
-        }
-      } else {
+      if (!sp->Submit(std::list<JobDescription>(1, *it), et, cw, notsubmitted)) {
         success = false;
-        notsubmitted.push_back(&*it);
       }
     }
     return success;

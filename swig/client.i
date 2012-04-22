@@ -257,19 +257,6 @@
 };
 
 
-// Wrap contents of $(top_srcdir)/src/hed/libs/client/SubmitterPlugin.h
-%{
-#include <arc/client/SubmitterPlugin.h>
-%}
-%ignore Arc::SubmitterPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
-%ignore Arc::SubmitterPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
-%template(SubmitterPluginList) std::list<Arc::SubmitterPlugin*>;
-#ifdef SWIGJAVA
-%template(SubmitterPluginListIteratorHandler) listiteratorhandler<Arc::SubmitterPlugin*>;
-#endif
-%include "../src/hed/libs/client/SubmitterPlugin.h"
-
-
 // Wrap contents of $(top_srcdir)/src/hed/libs/client/EntityRetriever.h
 %{
 #include <arc/client/EntityRetriever.h>
@@ -290,6 +277,19 @@
 %template(JobContainer) Arc::EntityContainer<Arc::Job>;
 %template(JobListQueryOptions) Arc::EndpointQueryOptions<Arc::Job>;
 %template(JobListRetriever) Arc::EntityRetriever<Arc::Job>;
+
+
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/SubmitterPlugin.h
+%{
+#include <arc/client/SubmitterPlugin.h>
+%}
+%ignore Arc::SubmitterPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
+%ignore Arc::SubmitterPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
+%template(SubmitterPluginList) std::list<Arc::SubmitterPlugin*>;
+#ifdef SWIGJAVA
+%template(SubmitterPluginListIteratorHandler) listiteratorhandler<Arc::SubmitterPlugin*>;
+#endif
+%include "../src/hed/libs/client/SubmitterPlugin.h"
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/client/ComputingServiceRetriever.h

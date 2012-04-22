@@ -10,6 +10,7 @@
 #include <arc/URL.h>
 #include <arc/loader/Loader.h>
 #include <arc/loader/Plugin.h>
+#include <arc/client/EntityRetriever.h>
 #include <arc/client/Job.h>
 #include <arc/client/JobDescription.h>
 
@@ -44,7 +45,7 @@ namespace Arc {
      * This method should return the URL of the submitted job. In case
      * submission fails an empty URL should be returned.
      */
-    virtual bool Submit(const std::list<JobDescription>& jobdesc, const ExecutionTarget& et, std::list<Job>& job, std::list<const JobDescription*>& notSubmitted) = 0;
+    virtual bool Submit(const std::list<JobDescription>& jobdesc, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) = 0;
 
     /// Migrate job
     /**

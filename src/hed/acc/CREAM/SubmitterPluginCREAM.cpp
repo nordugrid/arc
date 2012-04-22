@@ -22,7 +22,7 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  bool SubmitterPluginCREAM::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, std::list<Job>& jobs, std::list<const JobDescription*>& notSubmitted) {
+  bool SubmitterPluginCREAM::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     URL url(et.ComputingEndpoint->URLString);
@@ -91,14 +91,13 @@ namespace Arc {
         continue;
       }
   
-      jobs.push_back(Job());
-  
-      AddJobDetails(preparedjobdesc, URL(submissionurl.str() + '/' + jobInfo.id), et.ComputingService->Cluster, jobs.back());
-  
       XMLNode xIDFromEndpoint(jobInfo.ToXML());
       xIDFromEndpoint.NewChild("delegationID") = delegationurl.str() + '/' + delegationid;
-  
-      xIDFromEndpoint.GetXML(jobs.back().IDFromEndpoint);
+
+      Job j;
+      AddJobDetails(preparedjobdesc, URL(submissionurl.str() + '/' + jobInfo.id), et.ComputingService->Cluster, j);
+      xIDFromEndpoint.GetXML(j.IDFromEndpoint);
+      jc.addEntity(j);
     }
 
     return ok;

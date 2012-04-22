@@ -52,7 +52,7 @@ namespace Arc {
     return true;
   }
 
-  bool SubmitterPluginEMIES::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, std::list<Job>& jobs, std::list<const JobDescription*>& notSubmitted) {
+  bool SubmitterPluginEMIES::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     // TODO: this is multi step process. So having retries would be nice.
 
     URL url(et.ComputingEndpoint->URLString);
@@ -167,14 +167,13 @@ namespace Arc {
         continue;
       }
   
-      jobs.push_back(Job());
-
       // URL-izing job id
       URL jobidu(jobid.manager.str() + "/" + jobid.id);
       
-      jobid.ToXML().GetXML(jobs.back().IDFromEndpoint);
-  
-      AddJobDetails(preparedjobdesc, jobidu, et.ComputingService->Cluster, jobs.back());
+      Job j;
+      jobid.ToXML().GetXML(j.IDFromEndpoint);
+      AddJobDetails(preparedjobdesc, jobidu, et.ComputingService->Cluster, j);
+      jc.addEntity(j);
     }
 
     releaseClient(url);

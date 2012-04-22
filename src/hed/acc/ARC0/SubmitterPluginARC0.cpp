@@ -48,7 +48,7 @@ namespace Arc {
   }
 
 
-  bool SubmitterPluginARC0::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, std::list<Job>& jobs, std::list<const JobDescription*>& notSubmitted) {
+  bool SubmitterPluginARC0::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     FTPControl ctrl;
     URL url(et.ComputingEndpoint->URLString);
     
@@ -140,16 +140,15 @@ namespace Arc {
         continue;
       }
 
-      jobs.push_back(Job());
-
       // Prepare contact url for information about this job
       URL infoendpoint(et.ComputingService->Cluster);
       infoendpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" + escape_chars(jobid.str(),filter_esc,'\\',false,escape_hex) + ")");
       infoendpoint.ChangeLDAPScope(URL::subtree);
   
-      jobs.back().IDFromEndpoint = infoendpoint.fullstr();
-  
-      AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, jobs.back());
+      Job j;
+      j.IDFromEndpoint = infoendpoint.fullstr();
+      AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, j);
+      jc.addEntity(j);
     }
 
     return ok;

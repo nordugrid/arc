@@ -58,7 +58,7 @@ namespace Arc {
     return true;
   }
 
-  bool SubmitterPluginARC1::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, std::list<Job>& jobs, std::list<const JobDescription*>& notSubmitted) {
+  bool SubmitterPluginARC1::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     URL url(et.ComputingEndpoint->URLString);
     bool arex_features = et.ComputingService->Type == "org.nordugrid.execution.arex";
     AREXClient* ac = acquireClient(url, arex_features);
@@ -119,12 +119,13 @@ namespace Arc {
         jobid.ChangePath(jobid.Path() + "/BES" + tostring(t.GetTime()) + tostring(t.GetTimeNanosec()));
       }
     
-      jobs.push_back(Job());
-      jobs.back().IDFromEndpoint = idFromEndpoint;
-  
-      if (activityIdentifier["ReferenceParameters"]["a-rex:JobID"]) jobs.back().InterfaceName = "org.nordugrid.xbes";
-
-      AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, jobs.back());
+      Job j;
+      j.IDFromEndpoint = idFromEndpoint;
+      if (activityIdentifier["ReferenceParameters"]["a-rex:JobID"]) {
+        j.InterfaceName = "org.nordugrid.xbes";
+      }
+      AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, j);
+      jc.addEntity(j);
     }
   
     releaseClient(url);

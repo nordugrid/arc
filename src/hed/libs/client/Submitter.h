@@ -28,16 +28,11 @@ namespace Arc {
     // === No brokering ===
     // ==== Submission to single configuration (adaption of job description) ====
     // ===== Single job =====
-    bool Submit(const ExecutionTarget& et,   const JobDescription& desc) { Job job; return Submit(et, desc, job); }
-    bool Submit(const ExecutionTarget& et,   const JobDescription& desc, Job& job) {
-      std::list<Job> jobs;
-      bool result = Submit(et, std::list<JobDescription>(1, desc), jobs);
-      if (jobs.size() > 0) job = jobs.front();
-      return result;
-    }
+    bool Submit(const ExecutionTarget& et,   const JobDescription& desc) { return Submit(et, std::list<JobDescription>(1, desc)); }
+    bool Submit(const ExecutionTarget& et,   const JobDescription& desc, Job& job);
     // =====
     // ===== Multiple jobs =====
-    bool Submit(const ExecutionTarget& et,   const std::list<JobDescription>& descs) { std::list<Job> jobs; return Submit(et, descs, jobs); }
+    bool Submit(const ExecutionTarget& et,   const std::list<JobDescription>& descs);
     bool Submit(const ExecutionTarget& et,   const std::list<JobDescription>& descs, std::list<Job>& jobs);
     // =====
     // ====
@@ -64,6 +59,18 @@ namespace Arc {
     // ===
   
   private:
+    class ConsumerWrapper : public EntityConsumer<Job> {
+    public:
+      ConsumerWrapper(Submitter& s) : s(s) {}
+      void addEntity(const Job& j) {
+        for (std::list<EntityConsumer<Job>*>::iterator it = s.consumers.begin(); it != s.consumers.end(); ++it) {
+          (*it)->addEntity(j);
+        }
+      }
+    private:
+      Submitter& s;
+    };
+
     const UserConfig& uc;
   
     std::list<const JobDescription*> notsubmitted;
