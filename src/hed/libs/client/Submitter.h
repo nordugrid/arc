@@ -40,16 +40,16 @@ namespace Arc {
 
     // === Brokering with service discovery (multiple endpoints) ===
     // ==== Using provided JobDescription objects for brokering ====
-    bool BrokeredSubmit(const std::list<std::string>& endpoints, const std::list<JobDescription>& descs) { std::list<Job> jobs; return BrokeredSubmit(endpoints, descs, jobs); }
-    bool BrokeredSubmit(const std::list<Endpoint>& endpoints, const std::list<JobDescription>& descs) { std::list<Job> jobs; return BrokeredSubmit(endpoints, descs, jobs); }
-    bool BrokeredSubmit(const std::list<std::string>& endpoints, const std::list<JobDescription>& descs, std::list<Job>& jobs) {
-      std::list<Endpoint> endpointObjects;
-      for (std::list<std::string>::const_iterator it = endpoints.begin(); it != endpoints.end(); it++) {
-        endpointObjects.push_back(Endpoint(*it, Endpoint::JOBSUBMIT));
-      }
-      return BrokeredSubmit(endpointObjects, descs, jobs);
-    }
-    bool BrokeredSubmit(const std::list<Endpoint>& endpoints, const std::list<JobDescription>& descs, std::list<Job>& jobs);
+    //bool BrokeredSubmit(const std::list<std::string>& endpoints, const std::list<JobDescription>& descs) { std::list<Job> jobs; return BrokeredSubmit(endpoints, descs, jobs); }
+    //bool BrokeredSubmit(const std::list<Endpoint>& endpoints, const std::list<JobDescription>& descs) { std::list<Job> jobs; return BrokeredSubmit(endpoints, descs, jobs); }
+    //bool BrokeredSubmit(const std::list<std::string>& endpoints, const std::list<JobDescription>& descs, std::list<Job>& jobs) {
+    //  std::list<Endpoint> endpointObjects;
+    //  for (std::list<std::string>::const_iterator it = endpoints.begin(); it != endpoints.end(); it++) {
+    //    endpointObjects.push_back(Endpoint(*it, Endpoint::JOBSUBMIT));
+    //  }
+    //  return BrokeredSubmit(endpointObjects, descs, jobs);
+    //}
+    //bool BrokeredSubmit(const std::list<Endpoint>& endpoints, const std::list<JobDescription>& descs, std::list<Job>& jobs);
     // ====
     // ===
   

@@ -66,8 +66,8 @@ namespace Arc {
     return sp->Submit(descs, et, cw, notsubmitted);
   }
   
-  bool Submitter::BrokeredSubmit(const std::list<Endpoint>& endpoints, const std::list<JobDescription>& descs, std::list<Job>& jobs) {
-    return false;
-  }
+  //bool Submitter::BrokeredSubmit(const std::list<Endpoint>& endpoints, const std::list<JobDescription>& descs, std::list<Job>& jobs) {
+  //  return false;
+  //}
   
 } // namespace Arc
