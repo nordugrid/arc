@@ -20,13 +20,22 @@ namespace Arc {
   bool Submitter::Submit(const ExecutionTarget& et, const std::list<JobDescription>& descs, std::list<Job>& jobs) {
     ClearNotSubmittedDescriptions();
 
+    SubmitterPlugin *sp = loader.loadByInterfaceName(et.ComputingEndpoint->InterfaceName, uc);
+    
+    if (sp == NULL) {
+      for (std::list<JobDescription>::const_iterator it = descs.begin(); it != descs.end(); ++it) {
+        notsubmitted.push_back(&*it);
+      }
+      return false;
+    }
+    
     bool success = true;
-    for (std::list<JobDescription>::const_iterator it = descs.begin(); it != descs.end(); it++) {
-      Arc::Job job;
-      if (et.Submit(uc, *it, job)) {
-        jobs.push_back(job);
-        for (std::list< EntityConsumer<Job>*>::iterator itc = consumers.begin(); itc != consumers.end(); itc++) {
-          (*itc)->addEntity(job);
+    for (std::list<JobDescription>::const_iterator it = descs.begin(); it != descs.end(); ++it) {
+      std::list<Job> tmpJobs;
+      if (sp->Submit(std::list<JobDescription>(1, *it), et, tmpJobs, notsubmitted) && !tmpJobs.empty()) {
+        jobs.push_back(tmpJobs.back());
+        for (std::list< EntityConsumer<Job>*>::iterator itc = consumers.begin(); itc != consumers.end(); ++itc) {
+          (*itc)->addEntity(tmpJobs.back());
         }
       } else {
         success = false;
