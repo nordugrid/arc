@@ -72,11 +72,6 @@ namespace Arc {
                          const ExecutionTarget& et,
                          bool forcemigration, Job& job);
 
-    bool Migrate(const URL& jobid, const JobDescription& jobdesc,
-                 bool forcemigration, Job& job) {
-      return target != NULL && Migrate(jobid, jobdesc, *target, forcemigration, job);
-    }
-
     void SetSubmissionTarget(const ExecutionTarget& submissiontarget) { target = &submissiontarget; }
 
     virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };
