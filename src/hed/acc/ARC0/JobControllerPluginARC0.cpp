@@ -23,21 +23,21 @@
 #endif
 
 #include "JobStateARC0.h"
-#include "JobControllerARC0.h"
+#include "JobControllerPluginARC0.h"
 #include "FTPControl.h"
 
 namespace Arc {
 
-  Logger JobControllerARC0::logger(Logger::getRootLogger(), "JobController.ARC0");
+  Logger JobControllerPluginARC0::logger(Logger::getRootLogger(), "JobControllerPlugin.ARC0");
 
-  bool JobControllerARC0::isEndpointNotSupported(const std::string& endpoint) const {
+  bool JobControllerPluginARC0::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "gsiftp";
   }
 
-  Plugin* JobControllerARC0::Instance(PluginArgument *arg) {
-    JobControllerPluginArgument *jcarg =
-      dynamic_cast<JobControllerPluginArgument*>(arg);
+  Plugin* JobControllerPluginARC0::Instance(PluginArgument *arg) {
+    JobControllerPluginPluginArgument *jcarg =
+      dynamic_cast<JobControllerPluginPluginArgument*>(arg);
     if (!jcarg)
       return NULL;
     Glib::Module* module = jcarg->get_module();
@@ -47,10 +47,10 @@ namespace Arc {
       return NULL;
     }
     factory->makePersistent(module);
-    return new JobControllerARC0(*jcarg, arg);
+    return new JobControllerPluginARC0(*jcarg, arg);
   }
 
-  void JobControllerARC0::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  void JobControllerPluginARC0::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     std::map<std::string, std::list<Job*> > jobsbyhost;
     for (std::list<Job*>::iterator it = jobs.begin();
          it != jobs.end(); ++it) {
@@ -210,7 +210,7 @@ namespace Arc {
     }
   }
 
-  bool JobControllerARC0::CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginARC0::CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
@@ -259,7 +259,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerARC0::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginARC0::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
@@ -308,7 +308,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerARC0::RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginARC0::RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
@@ -356,7 +356,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerARC0::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginARC0::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
@@ -436,7 +436,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerARC0::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
+  bool JobControllerPluginARC0::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
     url = job.JobID;
     switch (resource) {
     case Job::STDIN:
@@ -463,7 +463,7 @@ namespace Arc {
     return true;
   }
 
-  bool JobControllerARC0::GetJobDescription(const Job& job,
+  bool JobControllerPluginARC0::GetJobDescription(const Job& job,
                                             std::string& desc_str) const {
     std::string jobid = job.JobID.str();
     logger.msg(VERBOSE, "Trying to retrieve job description of %s from "

@@ -13,18 +13,18 @@
 #include <arc/message/MCC.h>
 
 #include "CREAMClient.h"
-#include "JobControllerCREAM.h"
+#include "JobControllerPluginCREAM.h"
 
 namespace Arc {
 
-  Logger JobControllerCREAM::logger(Logger::getRootLogger(), "JobController.CREAM");
+  Logger JobControllerPluginCREAM::logger(Logger::getRootLogger(), "JobControllerPlugin.CREAM");
 
-  bool JobControllerCREAM::isEndpointNotSupported(const std::string& endpoint) const {
+  bool JobControllerPluginCREAM::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  void JobControllerCREAM::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  void JobControllerPluginCREAM::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     for (std::list<Job*>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
@@ -41,7 +41,7 @@ namespace Arc {
     }
   }
 
-  bool JobControllerCREAM::CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginCREAM::CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     bool ok = true;
@@ -75,7 +75,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerCREAM::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginCREAM::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     bool ok = true;
@@ -97,7 +97,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerCREAM::RenewJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+  bool JobControllerPluginCREAM::RenewJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       logger.msg(INFO, "Renewal of CREAM jobs is not supported");
       IDsNotProcessed.push_back((*it)->JobID);
@@ -105,7 +105,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerCREAM::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+  bool JobControllerPluginCREAM::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       logger.msg(INFO, "Resumation of CREAM jobs is not supported");
       IDsNotProcessed.push_back((*it)->JobID);
@@ -113,7 +113,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerCREAM::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
+  bool JobControllerPluginCREAM::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
     creamJobInfo info;
     info = XMLNode(job.IDFromEndpoint);
     
@@ -145,7 +145,7 @@ namespace Arc {
     return true;
   }
 
-  bool JobControllerCREAM::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) const {
+  bool JobControllerPluginCREAM::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) const {
     return false;
   }
 

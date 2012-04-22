@@ -14,15 +14,15 @@ std::list<JobDescription> JobDescriptionParserTestACCControl::parsedJobDescripti
 bool JobDescriptionParserTestACCControl::unparseStatus = true;
 std::string JobDescriptionParserTestACCControl::unparsedString = "";
 
-bool JobControllerTestACCControl::cleanStatus = true;
-bool JobControllerTestACCControl::cancelStatus = true;
-bool JobControllerTestACCControl::renewStatus = true;
-bool JobControllerTestACCControl::resumeStatus = true;
-bool JobControllerTestACCControl::getJobDescriptionStatus = true;
-std::string JobControllerTestACCControl::getJobDescriptionString = "";
-bool JobControllerTestACCControl::resourceExist = true;
-URL JobControllerTestACCControl::resourceURL = URL();
-URL JobControllerTestACCControl::createURL = URL();
+bool JobControllerPluginTestACCControl::cleanStatus = true;
+bool JobControllerPluginTestACCControl::cancelStatus = true;
+bool JobControllerPluginTestACCControl::renewStatus = true;
+bool JobControllerPluginTestACCControl::resumeStatus = true;
+bool JobControllerPluginTestACCControl::getJobDescriptionStatus = true;
+std::string JobControllerPluginTestACCControl::getJobDescriptionString = "";
+bool JobControllerPluginTestACCControl::resourceExist = true;
+URL JobControllerPluginTestACCControl::resourceURL = URL();
+URL JobControllerPluginTestACCControl::createURL = URL();
 
 bool SubmitterPluginTestACCControl::submitStatus = true;
 bool SubmitterPluginTestACCControl::migrateStatus = true;

@@ -69,7 +69,7 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
             self.create_test_job(job_id = id3, state = arc.JobState.UNDEFINED)
         ])
 
-        arc.JobControllerTestACCControl.cancelStatus = True
+        arc.JobControllerPluginTestACCControl.cancelStatus = True
         self.expect(js.Cancel()).to_be(True, message = "Cancel was expected to return True")
         self.expect(js.GetIDsProcessed()).to_have(1).ID()
         self.expect(js.GetIDsProcessed()[0].str()).to_be(id1.str())
@@ -78,7 +78,7 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
         self.expect(js.GetIDsNotProcessed()[1].str()).to_be(id3.str())
         js.ClearSelection()
 
-        arc.JobControllerTestACCControl.cancelStatus = False
+        arc.JobControllerPluginTestACCControl.cancelStatus = False
         self.expect(js.Cancel()).to_be(False, message = "Cancel was expected to return False")
         self.expect(js.GetIDsProcessed()).to_have(0).IDs()
         self.expect(js.GetIDsNotProcessed()).to_have(3).IDs()
@@ -90,7 +90,7 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
         job = self.create_test_job(job_id = id4, state = arc.JobState.ACCEPTED, state_text = "Accepted")
         self.expect(js.AddJob(job)).to_be(True, message = "AddJob was expected to return True")
 
-        arc.JobControllerTestACCControl.cancelStatus = True
+        arc.JobControllerPluginTestACCControl.cancelStatus = True
         js.SelectByStatus(["Accepted"])
         self.expect(js.Cancel()).to_be(True, message = "Cancel was expected to return False")
         self.expect(js.GetIDsProcessed()).to_have(1).ID()
@@ -98,7 +98,7 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
         self.expect(js.GetIDsNotProcessed()).to_have(0).IDs()
         js.ClearSelection()
 
-        arc.JobControllerTestACCControl.cancelStatus = False
+        arc.JobControllerPluginTestACCControl.cancelStatus = False
         js.SelectByStatus(["Accepted"])
         self.expect(js.Cancel()).to_be(False, message = "Cancel was expected to return False")
         self.expect(js.GetIDsProcessed()).to_have(0).IDs()
@@ -115,7 +115,7 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
         ])
         self.expect(js.GetAllJobs()).to_have(2).jobs()
 
-        arc.JobControllerTestACCControl.cleanStatus = True
+        arc.JobControllerPluginTestACCControl.cleanStatus = True
         self.expect(js.Clean()).to_be(True, message = "Clean was expected to return True")
         self.expect(js.GetIDsProcessed()).to_have(1).ID()
         self.expect(js.GetIDsProcessed()[0].str()).to_be(id1.str())
@@ -123,7 +123,7 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
         self.expect(js.GetIDsNotProcessed()[0].str()).to_be(id2.str())
         js.ClearSelection()
 
-        arc.JobControllerTestACCControl.cleanStatus = False
+        arc.JobControllerPluginTestACCControl.cleanStatus = False
         self.expect(js.Clean()).to_be(False, message = "Clean was expected to return False")
         self.expect(js.GetIDsProcessed()).to_have(0).IDs()
         self.expect(js.GetIDsNotProcessed()).to_have(2).IDs()
@@ -131,7 +131,7 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
         self.expect(js.GetIDsNotProcessed()[1].str()).to_be(id2.str())
         js.ClearSelection()
 
-        arc.JobControllerTestACCControl.cleanStatus = True
+        arc.JobControllerPluginTestACCControl.cleanStatus = True
         js.SelectByStatus(["Finished"])
         self.expect(js.Clean()).to_be(True, message = "Clean was expected to return True")
         self.expect(js.GetIDsProcessed()).to_have(1).ID()
@@ -139,7 +139,7 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
         self.expect(js.GetIDsNotProcessed()).to_have(0).IDs()
         js.ClearSelection()
 
-        arc.JobControllerTestACCControl.cleanStatus = False
+        arc.JobControllerPluginTestACCControl.cleanStatus = False
         js.SelectByStatus(["Finished"])
         self.expect(js.Clean()).to_be(False, message = "Clean was expected to return False")
         self.expect(js.GetIDsProcessed()).to_have(0).IDs()

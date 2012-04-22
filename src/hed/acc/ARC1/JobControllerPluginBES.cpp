@@ -16,18 +16,18 @@
 #include <arc/message/MCC.h>
 
 #include "AREXClient.h"
-#include "JobControllerBES.h"
+#include "JobControllerPluginBES.h"
 
 namespace Arc {
 
-  Logger JobControllerBES::logger(Logger::getRootLogger(), "JobController.BES");
+  Logger JobControllerPluginBES::logger(Logger::getRootLogger(), "JobControllerPlugin.BES");
 
-  bool JobControllerBES::isEndpointNotSupported(const std::string& endpoint) const {
+  bool JobControllerPluginBES::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  void JobControllerBES::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  void JobControllerPluginBES::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
@@ -42,7 +42,7 @@ namespace Arc {
     }
   }
 
-  bool JobControllerBES::CleanJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+  bool JobControllerPluginBES::CleanJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       logger.msg(INFO, "Cleaning of BES jobs is not supported");
       IDsNotProcessed.push_back((*it)->JobID);
@@ -50,7 +50,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerBES::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginBES::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     bool ok = true;
@@ -68,7 +68,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerBES::RenewJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+  bool JobControllerPluginBES::RenewJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       logger.msg(INFO, "Renewal of BES jobs is not supported");
       IDsNotProcessed.push_back((*it)->JobID);
@@ -76,7 +76,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerBES::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+  bool JobControllerPluginBES::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       logger.msg(INFO, "Resuming BES jobs is not supported");
       IDsNotProcessed.push_back((*it)->JobID);
@@ -84,7 +84,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerBES::GetJobDescription(const Job& job, std::string& desc_str) const {
+  bool JobControllerPluginBES::GetJobDescription(const Job& job, std::string& desc_str) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(job.Cluster, cfg, usercfg.Timeout(), false);
@@ -99,7 +99,7 @@ namespace Arc {
     return false;
   }
 
-  URL JobControllerBES::CreateURL(std::string service, ServiceType /* st */) const {
+  URL JobControllerPluginBES::CreateURL(std::string service, ServiceType /* st */) const {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos)
       service = "https://" + service;

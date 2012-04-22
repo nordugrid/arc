@@ -49,7 +49,7 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
 
   if (opt.show_plugins) {
     std::list<std::string> types;
-    types.push_back("HED:JobController");
+    types.push_back("HED:JobControllerPlugin");
     showplugins("arcstat", types, logger);
     return 0;
   }

@@ -16,18 +16,18 @@
 #include <arc/message/MCC.h>
 
 #include "AREXClient.h"
-#include "JobControllerARC1.h"
+#include "JobControllerPluginARC1.h"
 
 namespace Arc {
 
-  Logger JobControllerARC1::logger(Logger::getRootLogger(), "JobController.ARC1");
+  Logger JobControllerPluginARC1::logger(Logger::getRootLogger(), "JobControllerPlugin.ARC1");
 
-  bool JobControllerARC1::isEndpointNotSupported(const std::string& endpoint) const {
+  bool JobControllerPluginARC1::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  void JobControllerARC1::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  void JobControllerPluginARC1::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
@@ -44,7 +44,7 @@ namespace Arc {
     }
   }
 
-  bool JobControllerARC1::CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginARC1::CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     bool ok = true;
@@ -64,7 +64,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerARC1::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginARC1::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     bool ok = true;
@@ -84,7 +84,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerARC1::RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginARC1::RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       logger.msg(INFO, "Renewal of ARC1 jobs is not supported");
       IDsNotProcessed.push_back((*it)->JobID);
@@ -92,7 +92,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerARC1::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginARC1::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     bool ok = true;
@@ -123,7 +123,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerARC1::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
+  bool JobControllerPluginARC1::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
     url = job.JobID;
     switch (resource) {
     case Job::STDIN:
@@ -150,7 +150,7 @@ namespace Arc {
     return true;
   }
 
-  bool JobControllerARC1::GetJobDescription(const Job& job, std::string& desc_str) const {
+  bool JobControllerPluginARC1::GetJobDescription(const Job& job, std::string& desc_str) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(job.Cluster, cfg, usercfg.Timeout());

@@ -90,7 +90,7 @@ void showplugins(const std::string& program, const std::list<std::string>& types
     else if (*itType == "HED:JobListRetriever") {
       std::cout << Arc::IString("Types of local information services which %s is able collect job information from:", program) << std::endl;
     }
-    else if (*itType == "HED:JobController") {
+    else if (*itType == "HED:JobControllerPlugin") {
       std::cout << Arc::IString("Types of services %s is able to manage jobs at:", program) << std::endl;
     }
     else if (*itType == "HED:JobDescriptionParser") {

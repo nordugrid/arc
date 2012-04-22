@@ -7,7 +7,7 @@
 #include <string>
 
 #include <arc/URL.h>
-#include <arc/client/JobController.h>
+#include <arc/client/JobControllerPlugin.h>
 
 namespace Arc {
 
@@ -17,7 +17,7 @@ namespace Arc {
 
   /// % JobSupervisor class
   /**
-   * The JobSupervisor class is tool for loading JobController plugins
+   * The JobSupervisor class is tool for loading JobControllerPlugin plugins
    * for managing Grid jobs.
    **/
 
@@ -26,25 +26,25 @@ namespace Arc {
     /// Create a JobSupervisor
     /**
      * The list of Job objects passed to the constructor will be managed by this
-     * JobSupervisor, through the JobController class. It is important that the
+     * JobSupervisor, through the JobControllerPlugin class. It is important that the
      * InterfaceName member of each Job object is set and names a interface
-     * supported by one of the available JobController plugins. The
-     * JobController plugin will be loaded using the JobControllerLoader class,
-     * loading a plugin of type "HED:JobController" which supports the particular
+     * supported by one of the available JobControllerPlugin plugins. The
+     * JobControllerPlugin plugin will be loaded using the JobControllerPluginLoader class,
+     * loading a plugin of type "HED:JobControllerPlugin" which supports the particular
      * interface, and the a reference to the UserConfig object usercfg will
      * be passed to the plugin. Additionally a reference to the UserConfig
      * object usercfg will be stored, thus usercfg must exist throughout the
      * scope of the created object. If the InterfaceName member of a Job object is
      * unset, a VERBOSE log message will be reported and that Job object will
-     * be ignored. If the JobController plugin for a given interface cannot be
+     * be ignored. If the JobControllerPlugin plugin for a given interface cannot be
      * loaded, a WARNING log message will be reported and any Job object requesting
      * that interface will be ignored. If loading of a specific plugin failed,
      * that plugin will not be tried loaded for subsequent Job objects
      * requiring that plugin.
-     * Job objects will be added to the corresponding JobController plugin, if
+     * Job objects will be added to the corresponding JobControllerPlugin plugin, if
      * loaded successfully.
      *
-     * @param usercfg UserConfig object to pass to JobController plugins and to
+     * @param usercfg UserConfig object to pass to JobControllerPlugin plugins and to
      *  use in member methods.
      * @param jobs List of Job objects which will be managed by the created
      *  object.
@@ -56,11 +56,11 @@ namespace Arc {
     /// Add job
     /**
      * Add Job object to this JobSupervisor for job management. The Job
-     * object will be passed to the corresponding specialized JobController.
+     * object will be passed to the corresponding specialized JobControllerPlugin.
      *
      * @param job Job object to add for job management
      * @return true is returned if the passed Job object was added to the
-     *  underlying JobController, otherwise false is returned and a log
+     *  underlying JobControllerPlugin, otherwise false is returned and a log
      *  message emitted with the reason.
      **/
     bool AddJob(const Job& job);
@@ -82,7 +82,7 @@ namespace Arc {
     /**
      * When invoking this method the job information for the jobs managed by
      * this JobSupervisor will be updated. Internally, for each loaded
-     * JobController the JobController::UpdateJobs method will be
+     * JobControllerPlugin the JobControllerPlugin::UpdateJobs method will be
      * called, which will be responsible for updating job information.
      **/
     void Update();
@@ -92,8 +92,8 @@ namespace Arc {
      * This method retrieves output files of jobs managed by this JobSupervisor.
      *
      * Before identifying jobs for which to retrieve output files, the
-     * JobController::UpdateJobs method is called for each loaded
-     * JobController in order to retrieve the most up to date job information.
+     * JobControllerPlugin::UpdateJobs method is called for each loaded
+     * JobControllerPlugin in order to retrieve the most up to date job information.
      * If an empty status-filter is specified, all jobs managed by this
      * JobSupervisor will be considered for retrieval, except jobs in the
      * undefined state (see JobState). If the status-filter is not empty, then
@@ -110,7 +110,7 @@ namespace Arc {
      * 'force' argument is set to 'true', and a download directory for a
      * given job already exist it will be overwritten, otherwise files for
      * that job will not be downloaded. This method calls the
-     * JobController::GetJob method in order to download jobs, and if a job
+     * JobControllerPlugin::GetJob method in order to download jobs, and if a job
      * is successfully retrieved the job ID will be appended to the
      * 'retrievedJobs' list. If all jobs are successfully retrieved this
      * method returns true, otherwise false.
@@ -121,7 +121,7 @@ namespace Arc {
      *   directory name to store job output files in.
      * @param force indicates whether existing job directories should be
      *   overwritten or not.
-     * @see JobController::RetrieveJob.
+     * @see JobControllerPlugin::RetrieveJob.
      * @return true if all jobs are successfully retrieved, otherwise false.
      **/
     bool Retrieve(const std::string& downloaddirprefix, bool usejobname, bool force, std::list<std::string>& downloaddirectories);
@@ -131,8 +131,8 @@ namespace Arc {
      * This method will renew credentials of jobs managed by this JobSupervisor.
      *
      * Before identifying jobs for which to renew credentials, the
-     * JobController::UpdateJobs method is called for each loaded
-     * JobController in order to retrieve the most up to date job
+     * JobControllerPlugin::UpdateJobs method is called for each loaded
+     * JobControllerPlugin in order to retrieve the most up to date job
      * information.
      *
      * Since jobs in the JobState::DELETED, JobState::FINISHED or
@@ -147,16 +147,16 @@ namespace Arc {
      * excluding the already filtered states as mentioned above.
      *
      * For each job for which to renew credentials, the specialized
-     * JobController::RenewJob method is called and is responsible for
+     * JobControllerPlugin::RenewJob method is called and is responsible for
      * renewing the credentials for the given job. If the method fails to
      * renew any job credentials, this method will return false (otherwise
      * true), and the job ID (IDFromEndpoint) of such jobs is appended to the
      * notrenewed list. The job ID of successfully renewed jobs will be appended
      * to the passed renewed list.
      *
-     * @return false if any call to JobController::RenewJob fails, true
+     * @return false if any call to JobControllerPlugin::RenewJob fails, true
      *  otherwise.
-     * @see JobController::RenewJob.
+     * @see JobControllerPlugin::RenewJob.
      **/
     bool Renew();
 
@@ -165,8 +165,8 @@ namespace Arc {
      * This method resumes jobs managed by this JobSupervisor.
      *
      * Before identifying jobs to resume, the
-     * JobController::UpdateJobs method is called for each loaded
-     * JobController in order to retrieve the most up to date job
+     * JobControllerPlugin::UpdateJobs method is called for each loaded
+     * JobControllerPlugin in order to retrieve the most up to date job
      * information.
      *
      * Since jobs in the JobState::DELETED, JobState::FINISHED or
@@ -179,15 +179,15 @@ namespace Arc {
      * to any of the entries in the status-filter will be resumed, excluding
      * the already filtered states as mentioned above.
      *
-     * For each job to resume, the specialized JobController::ResumeJob
+     * For each job to resume, the specialized JobControllerPlugin::ResumeJob
      * method is called and is responsible for resuming the particular job.
      * If the method fails to resume a job, this method will return false,
      * otherwise true is returned. The job ID of successfully resumed jobs
      * will be appended to the passed resumedJobs list.
      *
-     * @return false if any call to JobController::ResumeJob fails, true
+     * @return false if any call to JobControllerPlugin::ResumeJob fails, true
      *  otherwise.
-     * @see JobController::ResumeJob.
+     * @see JobControllerPlugin::ResumeJob.
      **/
     bool Resume();
 
@@ -198,8 +198,8 @@ namespace Arc {
      * if successful a new job will be submitted.
      *
      * Before identifying jobs to be resubmitted, the
-     * JobController::UpdateJobs method is called for each loaded
-     * JobController in order to retrieve the most up to date job information.
+     * JobControllerPlugin::UpdateJobs method is called for each loaded
+     * JobControllerPlugin in order to retrieve the most up to date job information.
      * If an empty status-filter is specified, all jobs managed by this
      * JobSupervisor will be considered for resubmission, except jobs in the
      * undefined state (see JobState). If the status-filter is not empty, then
@@ -258,8 +258,8 @@ namespace Arc {
      * description.
      *
      * Before identifying jobs to be migrated, the
-     * JobController::UpdateJobs method is called for each loaded
-     * JobController in order to retrieve the most up to date job information.
+     * JobControllerPlugin::UpdateJobs method is called for each loaded
+     * JobControllerPlugin in order to retrieve the most up to date job information.
      * Only jobs for which the State member of the Job object has the value
      * JobState::QUEUEING, will be considered for migration. Furthermore the job
      * description must be obtained (either locally or remote) and successfully
@@ -308,8 +308,8 @@ namespace Arc {
     /**
      * This method cancels jobs managed by this JobSupervisor.
      *
-     * Before identifying jobs to cancel, the JobController::UpdateJobs
-     * method is called for each loaded JobController in order to retrieve
+     * Before identifying jobs to cancel, the JobControllerPlugin::UpdateJobs
+     * method is called for each loaded JobControllerPlugin in order to retrieve
      * the most up to date job information.
      *
      * Since jobs in the JobState::DELETED, JobState::FINISHED,
@@ -321,23 +321,23 @@ namespace Arc {
      * (see JobState) identical to any of the entries in the status-filter,
      * excluding the states mentioned above.
      *
-     * For each job to be cancelled, the specialized JobController::CancelJob
+     * For each job to be cancelled, the specialized JobControllerPlugin::CancelJob
      * method is called and is responsible for cancelling the given job. If the
      * method fails to cancel a job, this method will return false (otherwise
      * true), and the job ID (IDFromEndpoint) of such jobs is appended to the
      * notcancelled list. The job ID of successfully cancelled jobs will be
      * appended to the passed cancelled list.
      *
-     * @return false if any call to JobController::CancelJob failed, true
+     * @return false if any call to JobControllerPlugin::CancelJob failed, true
      *  otherwise.
-     * @see JobController::CancelJob.
+     * @see JobControllerPlugin::CancelJob.
      **/
     bool Cancel();
 
     /// Clean jobs
     /**
      * This method is identical to the CleanByIDs method, except that before
-     * cleaning jobs, the JobController::GetInformation method is called in
+     * cleaning jobs, the JobControllerPlugin::GetInformation method is called in
      * order to update job information, and that jobs are selected by job status
      * instead of by job IDs. The status list argument should contain states
      * for which cleaning of job in any of those states should be carried out.
@@ -345,7 +345,7 @@ namespace Arc {
      * JobState::GetGeneralState() methods. If the status list is empty, all
      * jobs will be selected for cleaning.
      *
-     * @return false if calls to JobController::CleanJob fails, true otherwise.
+     * @return false if calls to JobControllerPlugin::CleanJob fails, true otherwise.
      **/
     bool Clean();
 
@@ -366,13 +366,13 @@ namespace Arc {
 
     std::list<Job> jobs;
     // Selected and non-selected jobs.
-    typedef std::map<JobController*, std::pair< std::list<Job*>, std::list<Job*> > > JobSelectionMap;
+    typedef std::map<JobControllerPlugin*, std::pair< std::list<Job*>, std::list<Job*> > > JobSelectionMap;
     JobSelectionMap jcJobMap;
-    std::map<std::string, JobController*> loadedJCs;
+    std::map<std::string, JobControllerPlugin*> loadedJCs;
 
     std::list<URL> processed, notprocessed;
 
-    JobControllerLoader loader;
+    JobControllerPluginLoader loader;
 
     static Logger logger;
   };

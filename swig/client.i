@@ -113,18 +113,18 @@
 %include "../src/hed/libs/client/Job.h"
 
 
-// Wrap contents of $(top_srcdir)/src/hed/libs/client/JobController.h
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/JobControllerPlugin.h
 %{
-#include <arc/client/JobController.h>
+#include <arc/client/JobControllerPlugin.h>
 %}
-%ignore Arc::JobControllerPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
-%ignore Arc::JobControllerPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
-%template(JobControllerList) std::list<Arc::JobController *>;
-%template(JobControllerMap) std::map<std::string, Arc::JobController *>;
+%ignore Arc::JobControllerPluginPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
+%ignore Arc::JobControllerPluginPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
+%template(JobControllerPluginList) std::list<Arc::JobControllerPlugin *>;
+%template(JobControllerPluginMap) std::map<std::string, Arc::JobControllerPlugin *>;
 #ifdef SWIGJAVA
-%template(JobControllerListIteratorHandler) listiteratorhandler<Arc::JobController *>;
+%template(JobControllerPluginListIteratorHandler) listiteratorhandler<Arc::JobControllerPlugin *>;
 #endif
-%include "../src/hed/libs/client/JobController.h"
+%include "../src/hed/libs/client/JobControllerPlugin.h"
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/client/JobSupervisor.h
@@ -361,7 +361,7 @@
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) Arc::SubmitterPluginTestACCControl::migrateJob;
 %rename(_BrokerPluginTestACCControl) Arc::BrokerPluginTestACCControl;
 %rename(_JobDescriptionParserTestACCControl) Arc::JobDescriptionParserTestACCControl;
-%rename(_JobControllerTestACCControl) Arc::JobControllerTestACCControl;
+%rename(_JobControllerPluginTestACCControl) Arc::JobControllerPluginTestACCControl;
 %rename(_SubmitterPluginTestACCControl) Arc::SubmitterPluginTestACCControl;
 %rename(_ServiceEndpointRetrieverPluginTESTControl) Arc::ServiceEndpointRetrieverPluginTESTControl;
 %rename(_TargetInformationRetrieverPluginTESTControl) Arc::TargetInformationRetrieverPluginTESTControl;
@@ -371,7 +371,7 @@
 %pythoncode %{
 BrokerPluginTestACCControl = StaticPropertyWrapper(_BrokerPluginTestACCControl)
 JobDescriptionParserTestACCControl = StaticPropertyWrapper(_JobDescriptionParserTestACCControl)
-JobControllerTestACCControl = StaticPropertyWrapper(_JobControllerTestACCControl)
+JobControllerPluginTestACCControl = StaticPropertyWrapper(_JobControllerPluginTestACCControl)
 SubmitterPluginTestACCControl = StaticPropertyWrapper(_SubmitterPluginTestACCControl)
 ServiceEndpointRetrieverPluginTESTControl = StaticPropertyWrapper(_ServiceEndpointRetrieverPluginTESTControl)
 TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInformationRetrieverPluginTESTControl)

@@ -3,7 +3,7 @@
 #endif
 
 #include "BrokerPluginTestACC.h"
-#include "JobControllerTestACC.h"
+#include "JobControllerPluginTestACC.h"
 #include "JobDescriptionParserTestACC.h"
 #include "SubmitterPluginTestACC.h"
 #include "TargetInformationRetrieverPluginTEST.h"
@@ -12,7 +12,7 @@
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
   { "TEST", "HED:BrokerPlugin", "", 0, &Arc::BrokerPluginTestACC::GetInstance },
-  { "TEST", "HED:JobController", "", 0, &Arc::JobControllerTestACC::GetInstance },
+  { "TEST", "HED:JobControllerPlugin", "", 0, &Arc::JobControllerPluginTestACC::GetInstance },
   { "TEST", "HED:JobDescriptionParser", "", 0, &Arc::JobDescriptionParserTestACC::GetInstance },
   { "TEST", "HED:SubmitterPlugin", "", 0, &Arc::SubmitterPluginTestACC::GetInstance },
   { "TEST", Arc::TargetInformationRetrieverPluginTEST::kind.c_str(), "TargetInformationRetriever test plugin", 0, &Arc::TargetInformationRetrieverPluginTEST::Instance },

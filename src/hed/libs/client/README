@@ -6,9 +6,9 @@ The following classes/files are present:
 o ClientInterface - Sets up client side mcc chain
 o Broker - Base class for Broker
 o ExecutionTarget - Generic execution target (flattened glue2 structure)
-o JobController - Base class for specialization (see src/hed/acc)
+o JobControllerPlugin - Base class for specialization (see src/hed/acc)
 o Job - Generic representation of a job
-o JobSupervisor - Responsible for loading JobControllers
+o JobSupervisor - Responsible for loading JobControllerPlugins
 o Submitter - Base class for specialization (see src/hed/acc)
 
 Several of the above listed classes are base classes for ARC Client 

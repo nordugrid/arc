@@ -4,11 +4,11 @@
 #include <config.h>
 #endif
 
-#include "JobControllerUNICORE.h"
+#include "JobControllerPluginUNICORE.h"
 #include "SubmitterPluginUNICORE.h"
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
   { "UNICORE", "HED:SubmitterPlugin", NULL, 0, &Arc::SubmitterPluginUNICORE::Instance },
-  { "UNICORE", "HED:JobController", NULL, 0, &Arc::JobControllerUNICORE::Instance },
+  { "UNICORE", "HED:JobControllerPlugin", NULL, 0, &Arc::JobControllerPluginUNICORE::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

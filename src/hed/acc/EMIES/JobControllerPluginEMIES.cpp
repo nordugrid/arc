@@ -17,18 +17,18 @@
 
 #include "EMIESClient.h"
 #include "JobStateEMIES.h"
-#include "JobControllerEMIES.h"
+#include "JobControllerPluginEMIES.h"
 
 namespace Arc {
 
-  Logger JobControllerEMIES::logger(Logger::getRootLogger(), "JobController.EMIES");
+  Logger JobControllerPluginEMIES::logger(Logger::getRootLogger(), "JobControllerPlugin.EMIES");
 
-  bool JobControllerEMIES::isEndpointNotSupported(const std::string& endpoint) const {
+  bool JobControllerPluginEMIES::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
   
-  void JobControllerEMIES::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  void JobControllerPluginEMIES::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
@@ -53,7 +53,7 @@ namespace Arc {
     }
   }
 
-  bool JobControllerEMIES::CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginEMIES::CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
@@ -75,7 +75,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerEMIES::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginEMIES::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
@@ -96,7 +96,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerEMIES::RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginEMIES::RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       logger.msg(INFO, "Renewal of EMI ES jobs is not supported");
       IDsNotProcessed.push_back((*it)->JobID);
@@ -104,7 +104,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerEMIES::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginEMIES::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       logger.msg(INFO, "Resume of EMI ES jobs is not supported");
       IDsNotProcessed.push_back((*it)->JobID);
@@ -112,7 +112,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerEMIES::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
+  bool JobControllerPluginEMIES::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
     if (resource == Job::JOBDESCRIPTION) {
       return false;
     }
@@ -183,7 +183,7 @@ namespace Arc {
     return true;
   }
 
-  bool JobControllerEMIES::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) const {
+  bool JobControllerPluginEMIES::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) const {
     logger.msg(INFO, "Retrieving job description of EMI ES jobs is not supported");
     return false;
   }

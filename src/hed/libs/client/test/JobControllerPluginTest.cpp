@@ -10,19 +10,19 @@
 #include <arc/UserConfig.h>
 #include <arc/Utils.h>
 #include <arc/client/Job.h>
-#include <arc/client/JobController.h>
+#include <arc/client/JobControllerPlugin.h>
 #include <arc/Thread.h>
 
-class JobControllerTest
+class JobControllerPluginTest
   : public CppUnit::TestFixture {
 
-  CPPUNIT_TEST_SUITE(JobControllerTest);
+  CPPUNIT_TEST_SUITE(JobControllerPluginTest);
   CPPUNIT_TEST(LoadTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
-  JobControllerTest();
-  ~JobControllerTest() { delete jcl; }
+  JobControllerPluginTest();
+  ~JobControllerPluginTest() { delete jcl; }
 
   void setUp() {}
   void tearDown() { Arc::ThreadInitializer().waitExit(); }
@@ -30,16 +30,16 @@ public:
   void LoadTest();
 
 private:
-  Arc::JobController *jc;
-  Arc::JobControllerLoader *jcl;
+  Arc::JobControllerPlugin *jc;
+  Arc::JobControllerPluginLoader *jcl;
   Arc::UserConfig usercfg;
 };
 
-JobControllerTest::JobControllerTest() : jc(NULL), usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)) {
-  jcl = new Arc::JobControllerLoader();
+JobControllerPluginTest::JobControllerPluginTest() : jc(NULL), usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)) {
+  jcl = new Arc::JobControllerPluginLoader();
 }
 
-void JobControllerTest::LoadTest()
+void JobControllerPluginTest::LoadTest()
 {
   jc = jcl->load("", usercfg);
   CPPUNIT_ASSERT(jc == NULL);
@@ -51,4 +51,4 @@ void JobControllerTest::LoadTest()
   CPPUNIT_ASSERT(jc != NULL);
 }
 
-CPPUNIT_TEST_SUITE_REGISTRATION(JobControllerTest);
+CPPUNIT_TEST_SUITE_REGISTRATION(JobControllerPluginTest);

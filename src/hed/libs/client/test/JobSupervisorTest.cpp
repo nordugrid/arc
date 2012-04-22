@@ -66,7 +66,7 @@ void JobSupervisorTest::TestConstructor()
 
   jobs = js->GetJobs();
 
-  // JobController should contain 2 jobs.
+  // JobControllerPlugin should contain 2 jobs.
   CPPUNIT_ASSERT_EQUAL(2, (int)jobs.size());
 
   CPPUNIT_ASSERT_EQUAL(id1, jobs.front().JobID);
@@ -162,7 +162,7 @@ void JobSupervisorTest::TestCancel()
 
   js = new Arc::JobSupervisor(usercfg, jobs);
 
-  Arc::JobControllerTestACCControl::cancelStatus = true;
+  Arc::JobControllerPluginTestACCControl::cancelStatus = true;
 
   CPPUNIT_ASSERT(js->Cancel());
 
@@ -174,7 +174,7 @@ void JobSupervisorTest::TestCancel()
   CPPUNIT_ASSERT_EQUAL(id3, js->GetIDsNotProcessed().back());
   js->ClearSelection();
 
-  Arc::JobControllerTestACCControl::cancelStatus = false;
+  Arc::JobControllerPluginTestACCControl::cancelStatus = false;
   CPPUNIT_ASSERT(!js->Cancel());
 
   CPPUNIT_ASSERT_EQUAL(0, (int)js->GetIDsProcessed().size());
@@ -193,7 +193,7 @@ void JobSupervisorTest::TestCancel()
   status.push_back("Accepted");
 
 
-  Arc::JobControllerTestACCControl::cancelStatus = true;
+  Arc::JobControllerPluginTestACCControl::cancelStatus = true;
 
   js->SelectByStatus(status);
   CPPUNIT_ASSERT(js->Cancel());
@@ -204,7 +204,7 @@ void JobSupervisorTest::TestCancel()
   js->ClearSelection();
 
 
-  Arc::JobControllerTestACCControl::cancelStatus = false;
+  Arc::JobControllerPluginTestACCControl::cancelStatus = false;
 
   js->SelectByStatus(status);
   CPPUNIT_ASSERT(!js->Cancel());
@@ -235,7 +235,7 @@ void JobSupervisorTest::TestClean()
   js = new Arc::JobSupervisor(usercfg, jobs);
   CPPUNIT_ASSERT_EQUAL(2, (int)js->GetAllJobs().size());
 
-  Arc::JobControllerTestACCControl::cleanStatus = true;
+  Arc::JobControllerPluginTestACCControl::cleanStatus = true;
 
   CPPUNIT_ASSERT(js->Clean());
 
@@ -246,7 +246,7 @@ void JobSupervisorTest::TestClean()
   js->ClearSelection();
 
 
-  Arc::JobControllerTestACCControl::cleanStatus = false;
+  Arc::JobControllerPluginTestACCControl::cleanStatus = false;
   CPPUNIT_ASSERT(!js->Clean());
 
   CPPUNIT_ASSERT_EQUAL(0, (int)js->GetIDsProcessed().size());
@@ -259,7 +259,7 @@ void JobSupervisorTest::TestClean()
   status.push_back("Finished");
 
 
-  Arc::JobControllerTestACCControl::cleanStatus = true;
+  Arc::JobControllerPluginTestACCControl::cleanStatus = true;
 
   js->SelectByStatus(status);
   CPPUNIT_ASSERT(js->Clean());
@@ -270,7 +270,7 @@ void JobSupervisorTest::TestClean()
   js->ClearSelection();
 
 
-  Arc::JobControllerTestACCControl::cleanStatus = false;
+  Arc::JobControllerPluginTestACCControl::cleanStatus = false;
 
   js->SelectByStatus(status);
   CPPUNIT_ASSERT(!js->Clean());

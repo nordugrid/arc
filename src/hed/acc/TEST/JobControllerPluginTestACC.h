@@ -7,16 +7,16 @@
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
 #include <arc/client/Job.h>
-#include <arc/client/JobController.h>
+#include <arc/client/JobControllerPlugin.h>
 #include <arc/client/TestACCControl.h>
 
 namespace Arc {
 
-class JobControllerTestACC
-  : public JobController {
+class JobControllerPluginTestACC
+  : public JobControllerPlugin {
 public:
-  JobControllerTestACC(const UserConfig& usercfg, PluginArgument* parg) : JobController(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.test"); }
-  ~JobControllerTestACC() {}
+  JobControllerPluginTestACC(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.test"); }
+  ~JobControllerPluginTestACC() {}
 
   virtual void UpdateJobs(std::list<Job*>&, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
   
@@ -25,9 +25,9 @@ public:
   virtual bool RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
   virtual bool ResumeJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
   
-  virtual bool GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const { url = JobControllerTestACCControl::resourceURL; return JobControllerTestACCControl::resourceExist; }
-  virtual bool GetJobDescription(const Job& job, std::string& desc_str) const { desc_str = JobControllerTestACCControl::getJobDescriptionString; return JobControllerTestACCControl::getJobDescriptionStatus; }
-  virtual URL CreateURL(std::string service, ServiceType st) const { return JobControllerTestACCControl::createURL; }
+  virtual bool GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const { url = JobControllerPluginTestACCControl::resourceURL; return JobControllerPluginTestACCControl::resourceExist; }
+  virtual bool GetJobDescription(const Job& job, std::string& desc_str) const { desc_str = JobControllerPluginTestACCControl::getJobDescriptionString; return JobControllerPluginTestACCControl::getJobDescriptionStatus; }
+  virtual URL CreateURL(std::string service, ServiceType st) const { return JobControllerPluginTestACCControl::createURL; }
 
   virtual bool isEndpointNotSupported(const std::string& endpoint) const { return endpoint.empty(); }
   

@@ -47,19 +47,19 @@ namespace Arc {
       return false;
     }
 
-    std::map<std::string, JobController*>::iterator currentJC = loadedJCs.find(job.InterfaceName);
+    std::map<std::string, JobControllerPlugin*>::iterator currentJC = loadedJCs.find(job.InterfaceName);
     if (currentJC == loadedJCs.end()) {
-      JobController *jc = Job::loader.loadByInterfaceName(job.InterfaceName, usercfg);
-      currentJC = loadedJCs.insert(std::pair<std::string, JobController*>(job.InterfaceName, jc)).first;
+      JobControllerPlugin *jc = Job::loader.loadByInterfaceName(job.InterfaceName, usercfg);
+      currentJC = loadedJCs.insert(std::pair<std::string, JobControllerPlugin*>(job.InterfaceName, jc)).first;
       if (!jc) {
-        logger.msg(VERBOSE, "Ignoring job (%s), unable to load JobController", job.JobID.fullstr());
+        logger.msg(VERBOSE, "Ignoring job (%s), unable to load JobControllerPlugin", job.JobID.fullstr());
         return false;
       }
       jcJobMap[jc] = std::pair< std::list<Job *>, std::list<Job*> >();
     }
     else if (!currentJC->second) {
-      // Already tried to load JobController, and it failed.
-      logger.msg(VERBOSE, "Ignoring job (%s), unable to load JobController", job.JobID.fullstr());
+      // Already tried to load JobControllerPlugin, and it failed.
+      logger.msg(VERBOSE, "Ignoring job (%s), unable to load JobControllerPlugin", job.JobID.fullstr());
       return false;
     }
 

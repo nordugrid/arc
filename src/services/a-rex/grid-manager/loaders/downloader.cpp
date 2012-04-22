@@ -16,7 +16,7 @@
 
 #include <arc/XMLNode.h>
 #include <arc/client/Job.h>
-#include <arc/client/JobController.h>
+#include <arc/client/JobControllerPlugin.h>
 #include <arc/UserConfig.h>
 #include <arc/CheckSum.h>
 #include <arc/data/FileCache.h>
@@ -822,8 +822,8 @@ int main(int argc,char** argv) {
                                 Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
         if (job.Cluster.Protocol() != "https" ||
             (job.Cluster.Protocol() == "https" && usercfg.CredentialsFound())) {
-          Arc::JobControllerLoader loader;
-          Arc::JobController *jobctrl = loader.load("ARC1", usercfg);
+          Arc::JobControllerPluginLoader loader;
+          Arc::JobControllerPlugin *jobctrl = loader.load("ARC1", usercfg);
           if (jobctrl) {
             jobctrl->UpdateJobs(jobs);
             if ((job.State != Arc::JobState::QUEUING || !jobctrl->CancelJobs(jobs)) && !desc.get_local()->forcemigration) {
@@ -833,7 +833,7 @@ int main(int argc,char** argv) {
           }
           else {
             res = 1;
-            failure_reason = "FATAL ERROR: Migration failed, could not locate ARC1 JobController plugin. Maybe it is not installed?";
+            failure_reason = "FATAL ERROR: Migration failed, could not locate ARC1 JobControllerPlugin plugin. Maybe it is not installed?";
           }
         }
         else {

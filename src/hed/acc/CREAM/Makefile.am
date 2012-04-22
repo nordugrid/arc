@@ -3,7 +3,7 @@ noinst_LTLIBRARIES = libaccCREAMJLR.la
 
 libaccCREAM_la_SOURCES = DescriptorsCREAM.cpp \
 	SubmitterPluginCREAM.cpp SubmitterPluginCREAM.h \
-	JobControllerCREAM.cpp JobControllerCREAM.h \
+	JobControllerPluginCREAM.cpp JobControllerPluginCREAM.h \
 	CREAMClient.cpp CREAMClient.h \
 	JobStateCREAM.cpp JobStateCREAM.h
 libaccCREAM_la_CXXFLAGS = -I$(top_srcdir)/include \

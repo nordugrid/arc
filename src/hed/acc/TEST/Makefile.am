@@ -2,7 +2,7 @@ pkglibtestdir = $(pkglibdir)/test
 pkglibtest_LTLIBRARIES = libaccTEST.la
 
 libaccTEST_la_SOURCES = \
-	JobControllerTestACC.cpp JobControllerTestACC.h \
+	JobControllerPluginTestACC.cpp JobControllerPluginTestACC.h \
 	JobDescriptionParserTestACC.cpp JobDescriptionParserTestACC.h \
 	SubmitterPluginTestACC.cpp SubmitterPluginTestACC.h \
 	BrokerPluginTestACC.h \

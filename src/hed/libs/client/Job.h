@@ -11,8 +11,8 @@
 namespace Arc {
 
   class DataHandle;
-  class JobController;
-  class JobControllerLoader;
+  class JobControllerPlugin;
+  class JobControllerPluginLoader;
   class JobSupervisor;
   class Logger;
   class UserConfig;
@@ -402,9 +402,9 @@ namespace Arc {
     static bool WriteJobIDsToFile(const std::list<Job>& jobs, const std::string& filename, unsigned nTries = 10, unsigned tryInterval = 500000);
 
   private:
-    JobController* jc;
+    JobControllerPlugin* jc;
 
-    static JobControllerLoader loader;
+    static JobControllerPluginLoader loader;
 
     // Objects might be pointing to allocated memory upon termination, leave it as garbage.
     static DataHandle *data_source, *data_destination;

@@ -28,7 +28,7 @@ class JobDescriptionParserTestACCControl {
     static std::string unparsedString;
 };
 
-class JobControllerTestACCControl {
+class JobControllerPluginTestACCControl {
   public:
     static bool cleanStatus;
     static bool cancelStatus;

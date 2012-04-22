@@ -1,24 +1,24 @@
 // -*- indent-tabs-mode: nil -*-
 
-#ifndef __ARC_JOBCONTROLLERBES_H__
-#define __ARC_JOBCONTROLLERBES_H__
+#ifndef __ARC_JOBCONTROLLERARC1_H__
+#define __ARC_JOBCONTROLLERARC1_H__
 
-#include <arc/client/JobController.h>
+#include <arc/client/JobControllerPlugin.h>
 
 namespace Arc {
 
-  class JobControllerBES : public JobController {
+  class JobControllerPluginARC1 : public JobControllerPlugin {
   public:
-    JobControllerBES(const UserConfig& usercfg, PluginArgument* parg) : JobController(usercfg, parg) { supportedInterfaces.push_back("org.ogf.bes"); }
-    ~JobControllerBES() {}
+    JobControllerPluginARC1(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.xbes"); }
+    ~JobControllerPluginARC1() {}
 
     static Plugin* Instance(PluginArgument *arg) {
-      JobControllerPluginArgument *jcarg = dynamic_cast<JobControllerPluginArgument*>(arg);
-      return jcarg ? new JobControllerBES(*jcarg, arg) : NULL;
+      JobControllerPluginPluginArgument *jcarg = dynamic_cast<JobControllerPluginPluginArgument*>(arg);
+      return jcarg ? new JobControllerPluginARC1(*jcarg, arg) : NULL;
     }
 
-    virtual bool isEndpointNotSupported(const std::string& endpoint) const;
-    
+    bool isEndpointNotSupported(const std::string& endpoint) const;
+
     virtual void UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
     
     virtual bool CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
@@ -26,9 +26,8 @@ namespace Arc {
     virtual bool RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
     virtual bool ResumeJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
     
-    virtual bool GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const { return false; }
+    virtual bool GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const;
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) const;
-    virtual URL CreateURL(std::string service, ServiceType st) const;
 
   private:
     static Logger logger;
@@ -36,4 +35,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // __ARC_JOBCONTROLLERBES_H__
+#endif // __ARC_JOBCONTROLLERARC1_H__

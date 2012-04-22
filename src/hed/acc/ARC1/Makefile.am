@@ -4,12 +4,12 @@ noinst_LTLIBRARIES = libaccJLRWSRFBES.la
 
 libaccARC1_la_SOURCES  = SubmitterPluginARC1.cpp SubmitterPluginARC1.h \
 	JobListRetrieverPluginWSRFGLUE2.cpp JobListRetrieverPluginWSRFGLUE2.h \
-	JobControllerARC1.cpp JobControllerARC1.h \
+	JobControllerPluginARC1.cpp JobControllerPluginARC1.h \
 	AREXClient.cpp AREXClient.h \
 	DescriptorsARC1.cpp JobStateARC1.h JobStateARC1.cpp \
 	TargetInformationRetrieverPluginWSRFGLUE2.cpp TargetInformationRetrieverPluginWSRFGLUE2.h \
 	TargetInformationRetrieverPluginBES.cpp TargetInformationRetrieverPluginBES.h \
-	JobControllerBES.cpp JobControllerBES.h \
+	JobControllerPluginBES.cpp JobControllerPluginBES.h \
 	JobStateBES.cpp JobStateBES.h
 libaccARC1_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)

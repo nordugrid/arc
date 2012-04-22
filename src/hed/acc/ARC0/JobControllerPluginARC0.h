@@ -3,16 +3,16 @@
 #ifndef __ARC_JOBCONTROLLERARC0_H__
 #define __ARC_JOBCONTROLLERARC0_H__
 
-#include <arc/client/JobController.h>
+#include <arc/client/JobControllerPlugin.h>
 
 namespace Arc {
 
   class URL;
 
-  class JobControllerARC0 : public JobController {
+  class JobControllerPluginARC0 : public JobControllerPlugin {
   public:
-    JobControllerARC0(const UserConfig& usercfg, PluginArgument* parg) : JobController(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.gridftpjob"); }
-    ~JobControllerARC0() {}
+    JobControllerPluginARC0(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.gridftpjob"); }
+    ~JobControllerPluginARC0() {}
 
     static Plugin* Instance(PluginArgument *arg);
 

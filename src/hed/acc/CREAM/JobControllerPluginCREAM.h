@@ -1,24 +1,26 @@
 // -*- indent-tabs-mode: nil -*-
 
-#ifndef __ARC_JOBCONTROLLERARC1_H__
-#define __ARC_JOBCONTROLLERARC1_H__
+#ifndef __ARC_JOBCONTROLLERCREAM_H__
+#define __ARC_JOBCONTROLLERCREAM_H__
 
-#include <arc/client/JobController.h>
+#include <arc/client/JobControllerPlugin.h>
 
 namespace Arc {
 
-  class JobControllerARC1 : public JobController {
+  class URL;
+
+  class JobControllerPluginCREAM : public JobControllerPlugin {
   public:
-    JobControllerARC1(const UserConfig& usercfg, PluginArgument* parg) : JobController(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.xbes"); }
-    ~JobControllerARC1() {}
+    JobControllerPluginCREAM(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg) { supportedInterfaces.push_back("org.glite.cream"); }
+    ~JobControllerPluginCREAM() {}
 
     static Plugin* Instance(PluginArgument *arg) {
-      JobControllerPluginArgument *jcarg = dynamic_cast<JobControllerPluginArgument*>(arg);
-      return jcarg ? new JobControllerARC1(*jcarg, arg) : NULL;
+      JobControllerPluginPluginArgument *jcarg = dynamic_cast<JobControllerPluginPluginArgument*>(arg);
+      return jcarg ? new JobControllerPluginCREAM(*jcarg, arg) : NULL;
     }
-
-    bool isEndpointNotSupported(const std::string& endpoint) const;
-
+  
+    virtual bool isEndpointNotSupported(const std::string& endpoint) const;
+  
     virtual void UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
     
     virtual bool CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const;
@@ -35,4 +37,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // __ARC_JOBCONTROLLERARC1_H__
+#endif // __ARC_JOBCONTROLLERCREAM_H__

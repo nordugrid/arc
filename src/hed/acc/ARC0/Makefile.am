@@ -3,7 +3,7 @@ pkglib_LTLIBRARIES = libaccARC0.la
 libaccARC0_la_SOURCES = \
 	SubmitterPluginARC0.cpp SubmitterPluginARC0.h \
 	DescriptorsARC0.cpp \
-	JobControllerARC0.cpp JobControllerARC0.h \
+	JobControllerPluginARC0.cpp JobControllerPluginARC0.h \
 	FTPControl.cpp FTPControl.h JobStateARC0.cpp JobStateARC0.h
 libaccARC0_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_FTP_CONTROL_CFLAGS)

@@ -19,13 +19,13 @@ namespace Arc {
   class UserConfig;
 
   // Must be specialiced for each supported middleware flavour.
-  class JobController
+  class JobControllerPlugin
     : public Plugin {
   protected:
-    JobController(const UserConfig& usercfg, PluginArgument* parg)
+    JobControllerPlugin(const UserConfig& usercfg, PluginArgument* parg)
       : Plugin(parg), usercfg(usercfg) {}
   public:
-    virtual ~JobController() {}
+    virtual ~JobControllerPlugin() {}
 
     virtual void UpdateJobs(std::list<Job*>& jobs, bool isGrouped = false) const;
     virtual void UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const = 0;
@@ -52,41 +52,41 @@ namespace Arc {
     static Logger logger;
   };
 
-  //! Class responsible for loading JobController plugins
-  /// The JobController objects returned by a JobControllerLoader
-  /// must not be used after the JobControllerLoader goes out of scope.
-  class JobControllerLoader
+  //! Class responsible for loading JobControllerPlugin plugins
+  /// The JobControllerPlugin objects returned by a JobControllerPluginLoader
+  /// must not be used after the JobControllerPluginLoader goes out of scope.
+  class JobControllerPluginLoader
     : public Loader {
 
   public:
     //! Constructor
-    /// Creates a new JobControllerLoader.
-    JobControllerLoader();
+    /// Creates a new JobControllerPluginLoader.
+    JobControllerPluginLoader();
 
     //! Destructor
-    /// Calling the destructor destroys all JobControllers loaded
-    /// by the JobControllerLoader instance.
-    ~JobControllerLoader();
+    /// Calling the destructor destroys all JobControllerPlugins loaded
+    /// by the JobControllerPluginLoader instance.
+    ~JobControllerPluginLoader();
 
-    //! Load a new JobController
-    /// \param name    The name of the JobController to load.
-    /// \param usercfg The UserConfig object for the new JobController.
-    /// \returns       A pointer to the new JobController (NULL on error).
-    JobController* load(const std::string& name, const UserConfig& uc);
+    //! Load a new JobControllerPlugin
+    /// \param name    The name of the JobControllerPlugin to load.
+    /// \param usercfg The UserConfig object for the new JobControllerPlugin.
+    /// \returns       A pointer to the new JobControllerPlugin (NULL on error).
+    JobControllerPlugin* load(const std::string& name, const UserConfig& uc);
 
-    JobController* loadByInterfaceName(const std::string& name, const UserConfig& uc);
+    JobControllerPlugin* loadByInterfaceName(const std::string& name, const UserConfig& uc);
 
   private:
     void initialiseInterfacePluginMap(const UserConfig& uc);
   
-    std::multimap<std::string, JobController*> jobcontrollers;
+    std::multimap<std::string, JobControllerPlugin*> jobcontrollers;
     static std::map<std::string, std::string> interfacePluginMap;
   };
 
-  class JobControllerPluginArgument : public PluginArgument {
+  class JobControllerPluginPluginArgument : public PluginArgument {
   public:
-    JobControllerPluginArgument(const UserConfig& usercfg) : usercfg(usercfg) {}
-    ~JobControllerPluginArgument() {}
+    JobControllerPluginPluginArgument(const UserConfig& usercfg) : usercfg(usercfg) {}
+    ~JobControllerPluginPluginArgument() {}
     operator const UserConfig&() { return usercfg; }
   private:
     const UserConfig& usercfg;

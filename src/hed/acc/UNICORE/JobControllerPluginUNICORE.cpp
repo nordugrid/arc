@@ -13,18 +13,18 @@
 
 #include "UNICOREClient.h"
 #include "JobStateUNICORE.h"
-#include "JobControllerUNICORE.h"
+#include "JobControllerPluginUNICORE.h"
 
 namespace Arc {
 
-  Logger JobControllerUNICORE::logger(Logger::getRootLogger(), "JobController.UNICORE");
+  Logger JobControllerPluginUNICORE::logger(Logger::getRootLogger(), "JobControllerPlugin.UNICORE");
 
-  bool JobControllerUNICORE::isEndpointNotSupported(const std::string& endpoint) const {
+  bool JobControllerPluginUNICORE::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  void JobControllerUNICORE::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  void JobControllerPluginUNICORE::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
@@ -76,7 +76,7 @@ namespace Arc {
     }
   }
 
-  bool JobControllerUNICORE::CleanJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+  bool JobControllerPluginUNICORE::CleanJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
     //     MCCConfig cfg;
     //     usercfg.ApplyToConfig(cfg);
     //     PathIterator pi(job.JobID.Path(), true);
@@ -105,7 +105,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerUNICORE::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginUNICORE::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     //     MCCConfig cfg;
     //     usercfg.ApplyToConfig(cfg);
     //     PathIterator pi(job.JobID.Path(), true);
@@ -134,7 +134,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerUNICORE::RenewJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+  bool JobControllerPluginUNICORE::RenewJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       logger.msg(ERROR, "Renewal of UNICORE jobs is not supported");
       IDsNotProcessed.push_back((*it)->JobID);
@@ -142,7 +142,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerUNICORE::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+  bool JobControllerPluginUNICORE::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       logger.msg(ERROR, "Resumation of UNICORE jobs is not supported");
       IDsNotProcessed.push_back((*it)->JobID);
@@ -150,7 +150,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerUNICORE::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) const {
+  bool JobControllerPluginUNICORE::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) const {
     return false;
   }
 

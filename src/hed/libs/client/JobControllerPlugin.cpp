@@ -20,52 +20,52 @@
 #include <arc/data/URLMap.h>
 #include <arc/loader/FinderLoader.h>
 
-#include "JobController.h"
+#include "JobControllerPlugin.h"
 
 namespace Arc {
 
-  Logger JobController::logger(Logger::getRootLogger(), "JobController");
+  Logger JobControllerPlugin::logger(Logger::getRootLogger(), "JobControllerPlugin");
 
-  std::map<std::string, std::string> JobControllerLoader::interfacePluginMap;
+  std::map<std::string, std::string> JobControllerPluginLoader::interfacePluginMap;
 
-  void JobController::UpdateJobs(std::list<Job*>& jobs, bool isGrouped) const {
+  void JobControllerPlugin::UpdateJobs(std::list<Job*>& jobs, bool isGrouped) const {
     std::list<URL> idsProcessed, idsNotProcessed;
     return UpdateJobs(jobs, idsProcessed, idsNotProcessed, isGrouped);
   };
 
-  bool JobController::CleanJobs(const std::list<Job*>& jobs, bool isGrouped) const {
+  bool JobControllerPlugin::CleanJobs(const std::list<Job*>& jobs, bool isGrouped) const {
     std::list<URL> idsProcessed, idsNotProcessed;
     return CleanJobs(jobs, idsProcessed, idsNotProcessed, isGrouped);
   }
   
-  bool JobController::CancelJobs(const std::list<Job*>& jobs, bool isGrouped) const {
+  bool JobControllerPlugin::CancelJobs(const std::list<Job*>& jobs, bool isGrouped) const {
     std::list<URL> idsProcessed, idsNotProcessed;
     return CancelJobs(jobs, idsProcessed, idsNotProcessed, isGrouped);
   }
   
-  bool JobController::RenewJobs(const std::list<Job*>& jobs, bool isGrouped) const {
+  bool JobControllerPlugin::RenewJobs(const std::list<Job*>& jobs, bool isGrouped) const {
     std::list<URL> idsProcessed, idsNotProcessed;
     return RenewJobs(jobs, idsProcessed, idsNotProcessed, isGrouped);
   }
   
-  bool JobController::ResumeJobs(const std::list<Job*>& jobs, bool isGrouped) const {
+  bool JobControllerPlugin::ResumeJobs(const std::list<Job*>& jobs, bool isGrouped) const {
     std::list<URL> idsProcessed, idsNotProcessed;
     return ResumeJobs(jobs, idsProcessed, idsNotProcessed, isGrouped);
   }
 
-  JobControllerLoader::JobControllerLoader()
+  JobControllerPluginLoader::JobControllerPluginLoader()
     : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}
 
-  JobControllerLoader::~JobControllerLoader() {
-    for (std::multimap<std::string, JobController*>::iterator it = jobcontrollers.begin(); it != jobcontrollers.end(); it++)
+  JobControllerPluginLoader::~JobControllerPluginLoader() {
+    for (std::multimap<std::string, JobControllerPlugin*>::iterator it = jobcontrollers.begin(); it != jobcontrollers.end(); it++)
       delete it->second;
   }
 
-  void JobControllerLoader::initialiseInterfacePluginMap(const UserConfig& uc) {
+  void JobControllerPluginLoader::initialiseInterfacePluginMap(const UserConfig& uc) {
     std::list<ModuleDesc> modules;
     PluginsFactory factory(BaseConfig().MakeConfig(Config()).Parent());
     factory.scan(FinderLoader::GetLibrariesList(), modules);
-    PluginsFactory::FilterByKind("HED:JobController", modules);
+    PluginsFactory::FilterByKind("HED:JobControllerPlugin", modules);
     std::list<std::string> availablePlugins;
     for (std::list<ModuleDesc>::const_iterator it = modules.begin(); it != modules.end(); ++it) {
       for (std::list<PluginDesc>::const_iterator it2 = it->plugins.begin(); it2 != it->plugins.end(); ++it2) {
@@ -76,7 +76,7 @@ namespace Arc {
     if (interfacePluginMap.empty()) {
       // Map supported interfaces to available plugins.
       for (std::list<std::string>::iterator itT = availablePlugins.begin(); itT != availablePlugins.end(); ++itT) {
-        JobController* p = load(*itT, uc);
+        JobControllerPlugin* p = load(*itT, uc);
   
         if (!p) {
           continue;
@@ -92,38 +92,38 @@ namespace Arc {
     }
   }
 
-  JobController* JobControllerLoader::load(const std::string& name, const UserConfig& uc) {
+  JobControllerPlugin* JobControllerPluginLoader::load(const std::string& name, const UserConfig& uc) {
     if (name.empty())
       return NULL;
 
-    if(!factory_->load(FinderLoader::GetLibrariesList(), "HED:JobController", name)) {
+    if(!factory_->load(FinderLoader::GetLibrariesList(), "HED:JobControllerPlugin", name)) {
       logger.msg(ERROR, "Unable to locate the \"%s\" plugin. Please refer to installation instructions and check if package providing support for \"%s\" plugin is installed", name, name);
-      logger.msg(DEBUG, "JobController plugin \"%s\" not found.", name);
+      logger.msg(DEBUG, "JobControllerPlugin plugin \"%s\" not found.", name);
       return NULL;
     }
 
-    JobControllerPluginArgument arg(uc);
-    JobController *jobcontroller = factory_->GetInstance<JobController>("HED:JobController", name, &arg, false);
+    JobControllerPluginPluginArgument arg(uc);
+    JobControllerPlugin *jobcontroller = factory_->GetInstance<JobControllerPlugin>("HED:JobControllerPlugin", name, &arg, false);
 
     if (!jobcontroller) {
       logger.msg(ERROR, "Unable to locate the \"%s\" plugin. Please refer to installation instructions and check if package providing support for \"%s\" plugin is installed", name, name);
-      logger.msg(DEBUG, "JobController %s could not be created", name);
+      logger.msg(DEBUG, "JobControllerPlugin %s could not be created", name);
       return NULL;
     }
 
-    jobcontrollers.insert(std::pair<std::string, JobController*>(name, jobcontroller));
-    logger.msg(DEBUG, "Loaded JobController %s", name);
+    jobcontrollers.insert(std::pair<std::string, JobControllerPlugin*>(name, jobcontroller));
+    logger.msg(DEBUG, "Loaded JobControllerPlugin %s", name);
     return jobcontroller;
   }
 
-  JobController* JobControllerLoader::loadByInterfaceName(const std::string& name, const UserConfig& uc) {
+  JobControllerPlugin* JobControllerPluginLoader::loadByInterfaceName(const std::string& name, const UserConfig& uc) {
     if (interfacePluginMap.empty()) {
       initialiseInterfacePluginMap(uc);
     }
     
     std::map<std::string, std::string>::const_iterator itPN = interfacePluginMap.find(name);
     if (itPN != interfacePluginMap.end()) {
-      std::map<std::string, JobController*>::iterator itJC = jobcontrollers.find(itPN->second);
+      std::map<std::string, JobControllerPlugin*>::iterator itJC = jobcontrollers.find(itPN->second);
       if (itJC != jobcontrollers.end()) {
         return itJC->second;
       }

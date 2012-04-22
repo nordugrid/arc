@@ -14,7 +14,7 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
-#include <arc/client/JobController.h>
+#include <arc/client/JobControllerPlugin.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/FileCache.h>
@@ -83,7 +83,7 @@ namespace Arc {
 
   Logger Job::logger(Logger::getRootLogger(), "Job");
 
-  JobControllerLoader Job::loader;
+  JobControllerPluginLoader Job::loader;
   
   DataHandle* Job::data_source = NULL;
   DataHandle* Job::data_destination = NULL;
@@ -560,7 +560,7 @@ namespace Arc {
     }
     
     if (jc == NULL) {
-      logger.msg(DEBUG, "Unable to download job (%s), no JobController plugin was set to handle the job.", JobID.str());
+      logger.msg(DEBUG, "Unable to download job (%s), no JobControllerPlugin plugin was set to handle the job.", JobID.str());
       return false;
     }
 
