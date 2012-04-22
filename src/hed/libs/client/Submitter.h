@@ -59,14 +59,14 @@ namespace Arc {
     // ===
   
     // === Methods for handling errors ===
-    const std::list<std::string>& GetDescriptionsNotProcessed() const { return notprocessed; }
-    void ClearNotProcessedDescriptions() { notprocessed.clear(); }
+    const std::list<const JobDescription*>& GetDescriptionsNotSubmitted() const { return notsubmitted; }
+    void ClearNotSubmittedDescriptions() { notsubmitted.clear(); }
     // ===
   
   private:
     const UserConfig& uc;
   
-    std::list<std::string> notprocessed;
+    std::list<const JobDescription*> notsubmitted;
     std::list<EntityConsumer<Job>*> consumers;
   
     static SubmitterPluginLoader loader;
