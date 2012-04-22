@@ -62,8 +62,6 @@ namespace Arc {
                          const ExecutionTarget& et,
                          bool forcemigration, Job& job);
 
-    void SetSubmissionTarget(const ExecutionTarget& submissiontarget) { target = &submissiontarget; }
-
     virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };
 
   protected:
@@ -73,9 +71,6 @@ namespace Arc {
 
     const UserConfig& usercfg;
     std::list<std::string> supportedInterfaces;
-
-    /// Target to submit to.
-    const ExecutionTarget* target;
 
     static Logger logger;
   };
