@@ -14,6 +14,7 @@
 #include <arc/UserConfig.h>
 #include <arc/client/Broker.h>
 #include <arc/client/ComputingServiceRetriever.h>
+#include <arc/client/SubmitterPlugin.h>
 
 #include "JobSupervisor.h"
 
@@ -529,6 +530,8 @@ namespace Arc {
       return false;
     }
 
+    SubmitterPluginLoader *spl = NULL;
+
     for (std::list< std::list<Job*>::iterator >::iterator itJ = migratableJobs.begin();
          itJ != migratableJobs.end(); ++itJ) {
       std::list<JobDescription> jobdescs;
@@ -551,7 +554,15 @@ namespace Arc {
       ExecutionTargetSet ets(broker, csr);
       ExecutionTargetSet::iterator it = ets.begin();
       for (; it != ets.end(); ++it) {
-        if (it->Migrate(usercfg, (**itJ)->JobID, jobdescs.front(), forcemigration, migratedJobs.back())) {
+        if (spl == NULL) {
+          spl = new SubmitterPluginLoader();
+        }
+        SubmitterPlugin* sp = spl->loadByInterfaceName(it->ComputingEndpoint->InterfaceName, usercfg);
+        if (sp == NULL) {
+          logger.msg(INFO, "Unable to load submission plugin for %s interface", it->ComputingEndpoint->InterfaceName);
+          continue;
+        }
+        if (sp->Migrate((**itJ)->JobID, jobdescs.front(), *it, forcemigration, migratedJobs.back())) {
           it->RegisterJobSubmission(jobdescs.front());
           break;
         }
@@ -568,6 +579,10 @@ namespace Arc {
       else {
         processed.push_back((**itJ)->JobID);
       }
+    }
+
+    if (spl) {
+      delete spl;
     }
 
     return ok;

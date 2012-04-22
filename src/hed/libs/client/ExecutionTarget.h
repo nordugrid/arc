@@ -428,17 +428,6 @@ namespace Arc {
       return s->Submit(jobdesc, job);
     }
 
-    bool Migrate(const UserConfig& ucfg, const URL& jobid,
-                 const JobDescription& jobdesc, bool forcemigration,
-                 Job& job) const {
-      SubmitterPlugin* s = GetSubmitterPlugin(ucfg);
-      if (s == NULL) {
-        return false;
-      }
-      return s->Migrate(jobid, jobdesc, forcemigration, job);
-    }
-
-
     /// Update ExecutionTarget after succesful job submission
     /**
      * Method to update the ExecutionTarget after a job succesfully
