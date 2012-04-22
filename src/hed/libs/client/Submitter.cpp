@@ -18,6 +18,8 @@ namespace Arc {
   }
   
   bool Submitter::Submit(const ExecutionTarget& et, const std::list<JobDescription>& descs, std::list<Job>& jobs) {
+    ClearNotSubmittedDescriptions();
+
     bool success = true;
     for (std::list<JobDescription>::const_iterator it = descs.begin(); it != descs.end(); it++) {
       Arc::Job job;
@@ -28,6 +30,7 @@ namespace Arc {
         }
       } else {
         success = false;
+        notsubmitted.push_back(&*it);
       }
     }
     return success;
