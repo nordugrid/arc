@@ -15,7 +15,6 @@
 #include <arc/client/GLUE2Entity.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/Software.h>
-#include <arc/client/SubmitterPlugin.h>
 
 namespace Arc {
 
