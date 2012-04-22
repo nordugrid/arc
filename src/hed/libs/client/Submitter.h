@@ -26,21 +26,6 @@ namespace Arc {
     // ===
 
     // === No brokering ===
-    // ==== Submission to endpoint ====
-    // ===== Single job =====
-    bool Submit(const std::string& endpoint, const std::string& desc) { Job job; return Submit(endpoint, desc, job); }
-    bool Submit(const Endpoint& endpoint,    const std::string& desc) { Job job; return Submit(endpoint, desc, job); }
-    bool Submit(const std::string& endpoint, const std::string& desc, Job& job) { return Submit(Endpoint(endpoint, Endpoint::JOBSUBMIT), desc, job); }
-    bool Submit(const Endpoint& endpoint,    const std::string& desc, Job& job);
-    
-    // =====
-    // ===== Multiple jobs =====
-    bool Submit(const std::string& endpoint, const std::list<std::string>& descs) { std::list<Job> jobs; return Submit(endpoint, descs, jobs); }
-    bool Submit(const Endpoint& endpoint,    const std::list<std::string>& descs) { std::list<Job> jobs; return Submit(endpoint, descs, jobs); }
-    bool Submit(const std::string& endpoint, const std::list<std::string>& descs, std::list<Job>& jobs) { return Submit(Endpoint(endpoint, Endpoint::JOBSUBMIT), descs, jobs); }
-    bool Submit(const Endpoint& endpoint,    const std::list<std::string>& descs, std::list<Job>& jobs);
-    // =====
-    // ====
     // ==== Submission to single configuration (adaption of job description) ====
     // ===== Single job =====
     bool Submit(const ExecutionTarget& et,   const JobDescription& desc) { Job job; return Submit(et, desc, job); }
