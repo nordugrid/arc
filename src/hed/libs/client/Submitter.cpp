@@ -8,6 +8,8 @@
 
 namespace Arc {
 
+  SubmitterPluginLoader Submitter::loader;
+
   void Submitter::removeConsumer(EntityConsumer<Job>& jc) {
     std::list<EntityConsumer<Job>*>::iterator it = std::find(consumers.begin(), consumers.end(), &jc);
     if (it != consumers.end()) {
