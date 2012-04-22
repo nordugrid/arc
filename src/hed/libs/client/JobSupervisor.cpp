@@ -14,6 +14,7 @@
 #include <arc/UserConfig.h>
 #include <arc/client/Broker.h>
 #include <arc/client/ComputingServiceRetriever.h>
+#include <arc/client/Submitter.h>
 #include <arc/client/SubmitterPlugin.h>
 
 #include "JobSupervisor.h"
@@ -397,12 +398,15 @@ namespace Arc {
 
     }
 
+    Submitter s(resubmitUsercfg);
+
     for (std::list< std::list<Job*>::iterator >::iterator itJ = resubmittableJobs.begin();
          itJ != resubmittableJobs.end(); ++itJ) {
       resubmittedJobs.push_back(Job());
 
       std::list<JobDescription> jobdescs;
       if (!JobDescription::Parse((**itJ)->JobDescriptionDocument, jobdescs) || jobdescs.empty()) {
+        std::cout << (**itJ)->JobDescriptionDocument << std::endl;
         logger.msg(ERROR, "Unable to resubmit job (%s), unable to parse obtained job description", (**itJ)->JobID.fullstr());
         resubmittedJobs.pop_back();
         notprocessed.push_back((**itJ)->JobID);
@@ -442,7 +446,7 @@ namespace Arc {
       ExecutionTargetSet ets(broker, *csr, rejectEndpoints);
       ExecutionTargetSet::iterator it = ets.begin();
       for (; it != ets.end(); ++it) {
-        if (it->Submit(resubmitUsercfg, jobdescs.front(), resubmittedJobs.back())) {
+        if (s.Submit(*it, jobdescs.front(), resubmittedJobs.back())) {
           it->RegisterJobSubmission(jobdescs.front());
           processed.push_back((**itJ)->JobID);
           break;
