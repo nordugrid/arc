@@ -144,6 +144,12 @@ namespace Arc {
       URL infoendpoint(et.ComputingService->Cluster);
       infoendpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" + escape_chars(jobid.str(),filter_esc,'\\',false,escape_hex) + ")");
       infoendpoint.ChangeLDAPScope(URL::subtree);
+      std::size_t ogluepos = infoendpoint.Path().find("o=glue");
+      if (ogluepos != std::string::npos) {
+        std::string newpath = infoendpoint.Path();
+        newpath.replace(ogluepos, 6, "o=grid");
+        infoendpoint.ChangePath(newpath);
+      }
   
       Job j;
       j.IDFromEndpoint = infoendpoint.fullstr();
