@@ -1688,6 +1688,10 @@ namespace Arc {
       if (keys.size() != 2 || keys.front() != "nordugrid:xrsl") {
         continue;
       }
+      if (keys.back() == "action" && dialect != "GRIDMANAGER") {
+        // Dont put the action attribute into non GRIDMANAGER xRSL
+        continue;
+      }
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(it->second));
       r.Add(new RSLCondition(keys.back(), RSLEqual, l));
