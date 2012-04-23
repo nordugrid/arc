@@ -264,12 +264,12 @@ namespace Arc {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
 
-      logger.msg(VERBOSE, "Cleaning job: %s", job.JobID.str());
+      logger.msg(VERBOSE, "Cancelling job: %s", job.JobID.str());
   
       FTPControl ctrl;
       if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
                         usercfg.KeyPath(), usercfg.Timeout())) {
-        logger.msg(INFO, "Failed to connect for job cleaning");
+        logger.msg(INFO, "Failed to connect for job cancelling");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
