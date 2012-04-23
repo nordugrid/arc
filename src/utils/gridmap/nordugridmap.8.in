@@ -7,14 +7,14 @@ nordugridmap \- ARC grid-mapfile generator
 [\fB-t\fR, \fB--test\fR] [\fB-c\fR, \fB--config\fR \fIFILE\fR] [\fB-h\fR, \fB--help\fR]
 .SH DESCRIPTION
 .PP
-nordugridmap is usually run as a crontab entry in order to automatically generate mapfile(s). For configuration information consult the arc.conf.template
+nordugridmap is usually run as a crontab entry in order to automatically generate mapfile(s). For configuration information consult tne Nordugruid ARC documentation and the arc.conf.template
 .SH OPTIONS
 .TP
 \fB\-t\fR, \fB\-\-test\fR
-Print the filter generated from the configuration file and other debug informations including used configuration settings. In this case the grid-mapfile(s) is not created.
+Does not actually create grid-mapfile(s), but perform test run in debug mode.
 .TP
 \fB\-c\fR, \fB\-\-config \fIFILE\fR
-Specifies the configuration file, by the default the /etc/arc.conf is used. nordugridmap processes all the [vo] blocks from the arc.conf.
+Specifies the configuration file to be used. By default the /etc/arc.conf is used. nordugridmap utilize [nordugridmap] section for general options fine-tunung and processes all the [vo] blocks from the config.
 .TP
 \fB\-h\fR, \fB\-\-help\fR
 Show help options
@@ -29,4 +29,4 @@ APACHE LICENSE Version 2.0
 .BR /etc/arc.conf
 
 .SH AUTHOR
-Anders Waananen <waananen@nbi.dk>
+Anders Waananen <waananen@nbi.dk>, Andrii Salnikov <manf@grid.org.ua>
