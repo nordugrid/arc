@@ -8,6 +8,11 @@ nordugridmap \- ARC grid-mapfile generator
 .SH DESCRIPTION
 .PP
 nordugridmap is usually run as a crontab entry in order to automatically generate mapfile(s). For configuration information consult tne Nordugruid ARC documentation and the arc.conf.template
+
+Note that when parsing remote URLs such as https://, the target file is expected to 
+contain a single column with DNs. This is because a remote location might not be 
+aware of any local unix users (as a local gridmap file would).
+
 .SH OPTIONS
 .TP
 \fB\-t\fR, \fB\-\-test\fR
