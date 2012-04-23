@@ -7,6 +7,7 @@
 #include <cctype>
 #include <fstream>
 
+#include <fcntl.h>
 #include <sys/types.h>
 
 #include <arc/StringConv.h>
@@ -548,22 +549,23 @@ namespace Arc {
   }
 
   std::string CheckSumAny::FileChecksum(const std::string& file_path, type tp, bool decimalbase) {
-    std::ifstream file(file_path.c_str(), std::ios_base::in|std::ios_base::binary|std::ios_base::ate);
-    if (!file) {
+    int h = open(file_path.c_str(), O_RDONLY);
+    if (h == -1) {
       return "";
     }
 
-    long size = file.tellg();
-    file.seekg(0, std::ios_base::beg);
-    char * buffer = new char [size];
-    file.read(buffer, size);
-    file.close();
-
     CheckSumAny csa(tp);
-    csa.start();
-    csa.add(buffer, size);
+
+    char buffer[1024];
+    ssize_t l;
+    for(;;) {
+      l = read(h, buffer, 1024);
+      if (l == -1) return "";
+      if (l == 0) break;
+      csa.add(buffer, l);
+    }
+    close(h);
     csa.end();
-    delete[] buffer;
 
     char checksum[100];
     csa.print(checksum, 100);
