@@ -103,12 +103,14 @@ class DTRGenerator: public DataStaging::DTRCallback {
    *         2 - not there yet
    * @param dt Filename and size/checksum information
    * @param session_dir Directory in which to find uploaded file
+   * @param jobid Job ID, used in log messages
    * @param error Errors are reported in this string
    * @param uid uid under which to access session dir
    * @param gid gid under which to access session dir
    */
   static int user_file_exists(FileData &dt,
                               const std::string& session_dir,
+                              const std::string& jobid,
                               std::string& error,
                               uid_t uid, gid_t gid);
 

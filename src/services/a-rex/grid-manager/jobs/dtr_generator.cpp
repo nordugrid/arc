@@ -6,6 +6,7 @@
 #include <fcntl.h>
 
 #include <arc/FileUtils.h>
+#include <arc/FileAccess.h>
 #include <arc/data/FileCache.h>
 
 #include <arc/data-staging/Scheduler.h>
@@ -862,8 +863,8 @@ int DTRGenerator::checkUploadedFiles(JobDescription& job) {
     }
   }
   const JobUser* jobuser(it->second);
-  uid_t job_uid = jobuser->StrictSession() ? jobuser->get_uid() : 0;
-  uid_t job_gid = jobuser->StrictSession() ? jobuser->get_gid() : 0;
+  uid_t job_uid = jobuser->StrictSession() ? job.get_uid() : 0;
+  uid_t job_gid = jobuser->StrictSession() ? job.get_gid() : 0;
 
   std::string session_dir(jobuser->SessionRoot(jobid) + '/' + jobid);
   // get input files list
@@ -885,7 +886,7 @@ int DTRGenerator::checkUploadedFiles(JobDescription& job) {
     }
     logger.msg(Arc::VERBOSE, "%s: Checking user uploadable file: %s", jobid, i->pfn);
     std::string error;
-    int err = user_file_exists(*i, session_dir, error, job_uid, job_gid);
+    int err = user_file_exists(*i, session_dir, jobid, error, job_uid, job_gid);
 
     if (err == 0) { // file is uploaded
       logger.msg(Arc::VERBOSE, "%s: User has uploaded file %s", jobid, i->pfn);
@@ -924,6 +925,7 @@ int DTRGenerator::checkUploadedFiles(JobDescription& job) {
 
 int DTRGenerator::user_file_exists(FileData &dt,
                                    const std::string& session_dir,
+                                   const std::string& jobid,
                                    std::string& error,
                                    uid_t uid, gid_t gid) {
   struct stat st;
@@ -954,14 +956,14 @@ int DTRGenerator::user_file_exists(FileData &dt,
   // parse format [size][.checksum]
   if (file_info[0] == '.') { // checksum only
     if (!Arc::stringto(file_info.substr(1), fsum)) {
-      logger.msg(Arc::ERROR, "Can't convert checksum %s to int for %s", file_info.substr(1), dt.pfn);
+      logger.msg(Arc::ERROR, "%s: Can't convert checksum %s to int for %s", jobid, file_info.substr(1), dt.pfn);
       error = "Invalid checksum information";
       return 1;
     }
     have_checksum = true;
   } else if (file_info.find('.') == std::string::npos) { // size only
     if (!Arc::stringto(file_info, fsize)) {
-      logger.msg(Arc::ERROR, "Can't convert filesize %s to int for %s", file_info, dt.pfn);
+      logger.msg(Arc::ERROR, "%s: Can't convert filesize %s to int for %s", jobid, file_info, dt.pfn);
       error = "Invalid file size information";
       return 1;
     }
@@ -970,17 +972,17 @@ int DTRGenerator::user_file_exists(FileData &dt,
     std::vector<std::string> file_attrs;
     Arc::tokenize(dt.lfn, file_attrs, ".");
     if (file_attrs.size() != 2) {
-      logger.msg(Arc::ERROR, "Invalid size/checksum information (%s) for %s", file_info, dt.pfn);
+      logger.msg(Arc::ERROR, "%s: Invalid size/checksum information (%s) for %s", jobid, file_info, dt.pfn);
       error = "Invalid size/checksum information";
       return 1;
     }
     if (!Arc::stringto(file_attrs[0], fsize)) {
-      logger.msg(Arc::ERROR, "Can't convert filesize %s to int for %s", file_attrs[0], dt.pfn);
+      logger.msg(Arc::ERROR, "%s: Can't convert filesize %s to int for %s", jobid, file_attrs[0], dt.pfn);
       error = "Invalid file size information";
       return 1;
     }
     if (!Arc::stringto(file_attrs[1], fsum)) {
-      logger.msg(Arc::ERROR, "Can't convert checksum %s to int for %s", file_attrs[1], dt.pfn);
+      logger.msg(Arc::ERROR, "%s: Can't convert checksum %s to int for %s", jobid, file_attrs[1], dt.pfn);
       error = "Invalid checksum information";
       return 1;
     }
@@ -992,42 +994,68 @@ int DTRGenerator::user_file_exists(FileData &dt,
   if (have_size) {
     if (st.st_size < fsize) return 2;
     if (st.st_size > fsize) {
-      logger.msg(Arc::ERROR, "Invalid file: %s is too big.", dt.pfn);
+      logger.msg(Arc::ERROR, "%s: Invalid file: %s is too big.", jobid, dt.pfn);
       error = "Delivered file is bigger than specified.";
       return 1;
     }
   }
 
   if (have_checksum) { // calculate checksum
-    // TODO user switch when norootpower is set eg CheckSum::FileChecksum with FileAccess
-    int h = ::open(fname.c_str(), O_RDONLY);
-    if (h == -1) { // if we can't read that file job won't too
-      logger.msg(Arc::ERROR, "Error accessing file %s", dt.pfn);
-      error = "Delivered file is unreadable.";
-      return 1;
+    int h = -1;
+    Arc::FileAccess* fa = NULL;
+
+    if ((uid && uid != getuid()) || (gid && gid != getgid())) {
+      fa = new Arc::FileAccess();
+      if (!fa->setuid(uid, gid)) {
+        delete fa;
+        logger.msg(Arc::ERROR, "%s: Failed to switch user id to %d/%d to read file %s", jobid, (unsigned int)uid, (unsigned int)gid, dt.pfn);
+        error = "Could not switch user id to read file";
+        return 1;
+      }
+      if(!fa->open(fname, O_RDONLY, 0)) {
+        delete fa;
+        logger.msg(Arc::ERROR, "%s: Failed to open file %s for reading", jobid, dt.pfn);
+        error = "Failed to open file for reading";
+        return 1;
+      }
+    }
+    else {
+      h = ::open(fname.c_str(), O_RDONLY);
+      if (h == -1) { // if we can't read that file job won't too
+        logger.msg(Arc::ERROR, "%s: Error accessing file %s", jobid, dt.pfn);
+        error = "Delivered file is unreadable.";
+        return 1;
+      }
     }
     Arc::CRC32Sum crc;
     char buffer[1024];
     ssize_t l;
     for(;;) {
-      if((l=read(h,buffer,1024)) == -1) {
-        logger.msg(Arc::ERROR, "Error reading file %s", dt.pfn);
+      if (fa) l = fa->read(buffer, 1024);
+      else l = read(h, buffer, 1024);
+      if (l == -1) {
+        logger.msg(Arc::ERROR, "%s: Error reading file %s", jobid, dt.pfn);
         error = "Could not read file to compute checksum.";
+        delete fa;
         return 1;
       }
-      if(l==0) break;
-      crc.add(buffer,l);
+      if (l == 0) break;
+      crc.add(buffer, l);
     }
     close(h);
+    if (fa) fa->close();
+    delete fa;
     crc.end();
+
     if (fsum != crc.crc()) {
       if (have_size) { // size was checked and is ok
-        logger.msg(Arc::ERROR, "File %s has wrong CRC.", dt.pfn);
+        logger.msg(Arc::ERROR, "%s: File %s has wrong checksum: %llu. Expected %lli", jobid, dt.pfn, crc.crc(), fsum);
         error = "Delivered file has wrong checksum.";
         return 1;
       }
       return 2; // not uploaded yet
     }
+    logger.msg(Arc::VERBOSE, "%s: Checksum %llu verified for %s", jobid, crc.crc(), dt.pfn);
   }
   return 0; // all checks passed - file is ok
 }
