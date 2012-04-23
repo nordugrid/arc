@@ -336,8 +336,8 @@ namespace Arc {
 
     /// Clean jobs
     /**
-     * This method is identical to the CleanByIDs method, except that before
-     * cleaning jobs, the JobControllerPlugin::GetInformation method is called in
+     * This method removes from services jobs managed by this JobSupervisor.
+     * Before cleaning jobs, the JobController::GetInformation method is called in
      * order to update job information, and that jobs are selected by job status
      * instead of by job IDs. The status list argument should contain states
      * for which cleaning of job in any of those states should be carried out.
