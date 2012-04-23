@@ -1007,26 +1007,18 @@ sge_execd_port="537"
 .fi
 
 .TP
-.B SLURM_bin_path
+.B slurm_bin_path
 The path to squeue, sinfo and other SLURM binaries. No need to
 set if SLURM is not used.
 
 .IR Example :
-SLURM_bin_path="/usr/bin"
+slurm_bin_path="/usr/bin"
 
-.B SLURM_log_path
-The path to the SLURM server log files which are used by the grid-manager
-to determine whether a SLURM job is completed. 
-
-.IR Example :
-SLURM_log_path="/var/spool/slurm"
-
-
-.B SLURM_wakeupperiod
+.B slurm_wakeupperiod
 How long should infosys wait between querying SLURM for new data.
 
 .IR Example :
-SLURM_wakeupperiod="15"
+slurm_wakeupperiod="15"
 
 .TP
 .B condor_location

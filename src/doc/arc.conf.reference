@@ -126,15 +126,12 @@
 #sge_qmaster_port="536"
 #sge_execd_port="537"
 
-## SLURM_bin_path - Path to SLURM binaries, must be set if installed
+## slurm_bin_path - Path to SLURM binaries, must be set if installed
 ## outside of normal $PATH
-#SLURM_bin_path="/usr/bin"
-
-## Where to find the SLURM logs.
-#SLURM_log_path="/var/spool/slurm/"
+#slurm_bin_path="/usr/bin"
 
 ## How long should infosys wait between querying SLURM for new data.
-#SLURM_wakeupperiod="15"
+#slurm_wakeupperiod="15"
 
 ## the PATH to LSF bin folder
 ## no need to set if LSF is not used
