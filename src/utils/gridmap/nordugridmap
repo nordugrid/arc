@@ -163,6 +163,9 @@ my $x509key         = $parsedconfig{'nordugridmap'}{'x509_user_key'} ||
                       "/etc/grid-security/hostkey.pem";
 my $gridvomapfile   = $parsedconfig{'nordugridmap'}{'vomapfile'} || 
                       "/etc/grid-security/grid-vo-mapfile";
+my $default_mapfile = $parsedconfig{'nordugridmap'}{'gridmap'} ||
+                      $parsedconfig{'common'}{'gridmap'} ||
+                      "/etc/grid-security/grid-mapfile";
 my $logfile         = $parsedconfig{'nordugridmap'}{'logfile'} ||
                       "/var/log/arc/nordugridmap.log";
 my $cachedir        = $parsedconfig{'nordugridmap'}{'cachedir'} ||
@@ -333,13 +336,14 @@ sub process_mapfiles {
 
     foreach my $block (sort(keys %parsedconfig)) {
         next unless $block =~ /^vo_/;
-        my $gmf = $parsedconfig{$block}{'file'};
+        my $gmf = $parsedconfig{$block}{'file'} || $default_mapfile;
+
         next if defined $ref_mapfile_data->{$gmf};
 
         &Logger("Assembling gridmap file: $gmf", INFO);
         $ref_mapfile_data->{$gmf} = {};
 
-        my @vo_blocks_list = &get_file_vo_sources($parsedconfig{$block}{'file'});
+        my @vo_blocks_list = &get_file_vo_sources($gmf);
         foreach my $source ( @vo_blocks_list ) {
             foreach my $dn ( keys %{$ref_sources_data->{$source}} ) {
                 unless ( defined $ref_mapfile_data->{$gmf}->{$dn} ) {
@@ -516,7 +520,11 @@ sub get_file_vo_sources {
 
     foreach my $block (sort(keys %parsedconfig)) {
         next unless $block =~ /^vo_/;
-        next unless $parsedconfig{$block}{'file'} eq $file_name;
+        if ( defined $parsedconfig{$block}{'file'} ) {
+            next unless $parsedconfig{$block}{'file'} eq $file_name;
+        } else {
+            next unless $file_name eq $default_mapfile;
+        }
         push @file_vos_list, "vo://".get_vo_name($block);
     }
 
