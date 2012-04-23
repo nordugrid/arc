@@ -88,7 +88,7 @@ option_ctrdir=$@
 #    | sed 's/.status$//')
 for basename in $(ls $option_ctrdir/processing|sed -e 's/.status//g' -e "s,^,$option_ctrdir/,")
 do
-  localid=$(grep ^localid= "${basename}.local" | cut -d= -f2)
+  localid=$(grep ^localid= "${basename}.local" | cut -d= -f2 | tr -d '"')
   ind=${#localids[@]}
   localids[$ind]=`echo $localid| awk -F '|' '{ print $2; }'`
   endpoints[$ind]=`echo $localid| awk -F '|' '{ print $1; }'`
@@ -113,7 +113,7 @@ for ind in `seq 0 $numids` ; do
    jobid=${localids[$ind]}
    jobstate=$(wsclient -e "$wsendpoint" -m status -j "$jobid" 2>&1)
    if [[ $? -ne 0 || ! "${jobstate#$jobid }" =~ \
-      "Init|Running|Finished|Unknown|Error|TempFailed" ]]; then
+      Init|Running|Finished|Unknown|Error|TempFailed ]]; then
       echo "Failed to get job status from web service: $jobstate" 2>&1
       jobstate="$jobid WSError"
    fi
@@ -203,9 +203,12 @@ for ind in `seq 0 $numids` ; do
             for line in $output; do
               wget -P "$session" $line
             done
-            uid=`id -u`
-            gid=`id -g`  
-            chown -R $uid:$gid "$session"
+            #uid=`id -u`
+            #gid=`id -g`  
+            uid=`sed -n  's!.*<LocalOwner>\(.*\)</LocalOwner>.*!\1!p' < "$option_ctrdir/job.${gridids[$ind]}.xml"`
+            gid=""
+
+            chown -Rv $uid:$gid "$session"
 	    #clean 3Gbridge
 	    cleanbridge $wsendpoint ${localids[$ind]} ${gridids[$ind]}
             

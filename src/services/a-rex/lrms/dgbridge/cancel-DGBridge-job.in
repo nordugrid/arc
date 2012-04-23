@@ -18,10 +18,11 @@ pkgdatadir="$basedir"
 
 . ${pkgdatadir}/cancel_common.sh $1 || exit $?
 
-echo "executing wsclient delete with endpoint $joboption_wsendpoint and job id $joboption_jobid" 1>&2
+dgjobid=`echo "$joboption_jobid" |cut -f 2 -d \|`
+echo "executing wsclient delete with endpoint $joboption_wsendpoint and job id $dgjobid" 1>&2
 #remember to generalize endpoint to config file
 
-wsclient -e $joboption_wsendpoint -m delete -j $joboption_jobid
+wsclient -e $joboption_wsendpoint -m delete -j $dgjobid
 if [ "$?" != "0" ];then
     echo "wsclient delete failed" 1>&2
 fi

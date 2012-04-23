@@ -46,7 +46,7 @@ sub cluster_info ($) {
     my (%lrms_cluster);
 
     $lrms_cluster{lrms_type} = "DGBridge";
-    $lrms_cluster{lrms_version} = "1.5";
+    $lrms_cluster{lrms_version} = "1.8.1";
 
     # only enforcing per-process cputime limit
     $lrms_cluster{has_total_cputime_limit} = 0;
@@ -144,6 +144,8 @@ sub jobs_info ($$@) {
         $lrms_jobs{$id}{nodes} = [ ];
         # get real endpoint
         my ($endp, $bid) = split'\|',$id,2;
+        $endp =~ s/^\"//;
+        $bid =~ s/\"$//;
         my $dgstate = getDGstate($bid, $endp);
         #states possible
  	#Init

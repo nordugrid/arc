@@ -257,14 +257,14 @@ OUT=$(eval "$cmdline 2>&1")
 if [ $? -eq 0 ]; then
    jobid="$DG_Endpoint|$OUT"
    #write EDGI monitor log
-   msg="dt=$dato event=job_submission bridge_id=$DG_Endpoint job_id=$joboption_gridid job_id_bridge=$jobid status=Submitted"
+   msg="dt=$dato event=job_submission bridge_id=$DG_Endpoint job_id=$joboption_gridid job_id_bridge=\"$jobid\" status=Submitted"
    flock -w 10 $edgilog -c "echo $msg >> $edgilog"
    if [ $? == 1 ]; then
      echo "Failed to log monitor data to: $edgilog" 1>&2
    fi
    # write output to arg file
    echo "joboption_wsendpoint=$DG_Endpoint" >> $arg_file
-   echo "joboption_jobid=$jobid" >> $arg_file
+   echo "joboption_jobid=\"$jobid\"" >> $arg_file
    echo "job submitted successfully!" 1>&2
    echo "local job id: $jobid" 1>&2
    echo "----- exiting submit_DGBridge_job -----" 1>&2
