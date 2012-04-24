@@ -1269,21 +1269,23 @@ start () {
           bdii_default_set_cachesize_kb=`echo ${bdii_cachesize_line} | awk '{print $3}'`
           if [ $bdii_default_set_cachesize_gb != '0' ]; then
               bdii_default_set_cachesize_gb=${bdii_default_set_cachesize_gb}000000000
-              let sum=${bdii_default_set_cachesize_gb}+${bdii_default_set_cachesize_kb}
-              bdii_default_set_cachesize_kb=$sum
+              let bdii_cachesize_mem_sum=${bdii_default_set_cachesize_gb}+${bdii_default_set_cachesize_kb}
+              bdii_default_set_cachesize_kb=$bdii_cachesize_mem_sum
           fi
-          if [ $bdii_default_set_cachesize_kb -ge $memsize ]; then
+          let half_memsize=${memsize}/2
+          if [ $bdii_default_set_cachesize_kb -ge $half_memsize ]; then
              log_warning_msg "The system does not fulfill BDII optimal memory requirements. ARC will try to fix it anyway..."
-             let a=$memsize/16
-             cachesize=$a
+             let bdii_cachesize_new_value=$memsize/16
+             new_bdii_cachesize=$bdii_cachesize_new_value
              TEMPBDIIDBCONFIG=`mktemp -q /tmp/DB_CONFIG.XXXXXX`
+             chmod 644 $TEMPBDIIDBCONFIG
              if [ $? -ne 0 ]; then
                log_warning_msg "Can't create workaround DB_CONFIG temp file. If slapd doesn't start,"
                log_warning_msg "please manually set set_cachesize parameter in ${bdii_db_config}"
              else 
-               sed "s/^set_cachesize.*$/set_cachesize 0 $cachesize 1/" $bdii_db_config > $TEMPBDIIDBCONFIG
+               sed "s/^set_cachesize.*$/set_cachesize 0 $new_bdii_cachesize 1/" $bdii_db_config > $TEMPBDIIDBCONFIG
                bdii_db_config=${TEMPBDIIDBCONFIG}
-               log_warning_msg "DB_CONFIG set_cachesize is now :  0 $cachesize 1"
+               log_warning_msg "DB_CONFIG set_cachesize is now :  0 $new_bdii_cachesize 1"
              fi
           fi
         else 
