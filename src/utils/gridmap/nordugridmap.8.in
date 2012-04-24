@@ -14,15 +14,17 @@ The following applies for [vo] blocks in arc.conf :
 For
    "source=file://some/file.txt"
 
-file.txt MUST be in grid-mapfile syntax:
+if file.txt is in the grid-mapfile syntax:
 
    /c=dk/cn=some user/... some_unix_user
 .PP
-otherwise the line with missing user is simply ignored. 
 When parsing a local grid-mapfile (the one defined with file://), 
 the nordugridmap utility will IGNORE the mapped_unixid field in 
 the [vo] configuration block for that specific line of the file.
-In other words, mapped_unixid in arc.conf has no effect on file://
+In other words, mapped_unixid in arc.conf has no effect on an entry
+in file.txt if a unixid is specified for that entry. 
+For DNs without userid, the utility will use the one specified in 
+[vo]'s mapped_unixid command.
 .PP
 For
    "source=http://some.server.com/some/file.txt"
