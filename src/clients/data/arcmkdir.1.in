@@ -41,7 +41,7 @@ the directory to create
 .SH EXTENDED DESCRIPTION
 
 The
-.B arcrm
+.B arcmkdir
 command creates directories on grid storage elements and indexing services.
 If the parent directory does not exist and
 .B -p
