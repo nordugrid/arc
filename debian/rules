@@ -113,7 +113,6 @@ binary-arch: install
 	dh_installinit -p nordugrid-arc-cache-service --name arc-cache-service
 	dh_installinit -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
 	dh_installinit -p nordugrid-arc-gridftpd --name gridftpd
-	dh_installinit -p nordugrid-arc-aris --name grid-infosys
 	dh_perl -a
 	[ -x /usr/bin/dh_python2 ] && dh_python2 -a || dh_pysupport -a
 	[ -x /usr/bin/dh_lintian ] && dh_lintian -a || :
@@ -143,6 +142,7 @@ binary-indep: install
 	dh_install -i --fail-missing ; \
 	fi
 	dh_installchangelogs -i
+	dh_installinit -p nordugrid-arc-aris --name grid-infosys
 	dh_perl -i
 	[ -x /usr/bin/dh_python2 ] && dh_python2 -i || dh_pysupport -i
 	[ -x /usr/bin/dh_lintian ] && dh_lintian -i || :
