@@ -13,6 +13,10 @@ Note that when parsing remote URLs such as https://, the target file is expected
 contain a single column with DNs. This is because a remote location might not be 
 aware of any local unix users (as a local gridmap file would).
 
+When parsing a local grid-mapfile (the one defined with file://), if a line of the file contains a userid in the second column,
+then the nordugridmap utility will IGNORE the mapped_unixid field in the [vo] configuration block for that specific line of the file.
+In other words, userid defined in grid-mapfiles take precedence on what is defined as mapped_unixid in arc.conf .
+
 .SH OPTIONS
 .TP
 \fB\-t\fR, \fB\-\-test\fR
