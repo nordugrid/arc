@@ -81,6 +81,7 @@ Build & runtime:
 
 Runtime dependencies:
   o Perl, libxml-simple-perl, perl-Digest-SHA1 (A-rex)
+  o Perl, perl-SOAP-Lite, perl-Crypt-OpenSSL-X509 (nordugridmap)
   o GNU time (A-rex)
   o VOMS (LFC DMC)
   o wget (Janitor)
