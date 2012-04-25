@@ -375,7 +375,7 @@ Description: ARC API documentation
 
 Package: nordugrid-arc-gridmap-utils
 Architecture: all
-Depends: libnet-ldap-perl, libxml-dom-perl, libcrypt-ssleay-perl, ${perl:Depends}, ${misc:Depends}
+Depends: libnet-ldap-perl, libxml-dom-perl, libcrypt-ssleay-perl, libsoap-lite-perl, libcrypt-openssl-x509-perl, ${perl:Depends}, ${misc:Depends}
 Recommends: cron
 Description: NorduGrid authorization tools
  NorduGrid is a collaboration aiming at development, maintenance and
