@@ -161,7 +161,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files -f @PACKAGE@.lang
 %defattr(-,root,root,-)
-%doc README AUTHORS LICENSE
+%doc README AUTHORS LICENSE ChangeLog
 %{_mingw32_bindir}/lib*.dll
 # We need to have libmodcrypto.dll close to libarccrypto
 %{_mingw32_libdir}/%{pkgdir}/libmodcrypto.dll*

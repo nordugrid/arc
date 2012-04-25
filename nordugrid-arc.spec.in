@@ -952,7 +952,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/test-jobs/test-job-*
 %{_datadir}/%{pkgdir}/schema
 %dir %{_datadir}/%{pkgdir}
-%doc README AUTHORS LICENSE
+%doc README AUTHORS LICENSE ChangeLog
 
 %files client
 %defattr(-,root,root,-)
