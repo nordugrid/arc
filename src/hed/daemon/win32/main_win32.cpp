@@ -71,7 +71,7 @@ static std::string init_logger(Arc::Config& cfg)
     std::string log_file = (log["File"] ? (std::string)log["File"] :  Glib::build_filename(Glib::get_tmp_dir(), "arched.log"));
     sd = new Arc::LogFile(log_file);
     if((!sd) || (!(*sd))) {
-      logger.msg(Arc::ERROR, "Failed to open log file: %s", (std::string)log["File"]);
+      logger.msg(Arc::ERROR, "Failed to open log file: %s", log_file);
       _exit(1);
     }   
     if(log["Backups"]) {
