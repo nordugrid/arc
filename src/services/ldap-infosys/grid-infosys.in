@@ -1263,7 +1263,7 @@ start () {
     bdii_cachesize_line=`egrep '^[[:space:]]*'set_cachesize ${bdii_db_config}`
     if [ -n "${bdii_cachesize_line}" ]; then
         if [ -e /proc/meminfo ]; then
-          memsize=$(grep MemTotal /proc/meminfo | awk '{print $2}')000
+          memsize=$(grep MemFree /proc/meminfo | awk '{print $2}')000
           bdii_default_set_cachesize_kb=$memsize;
           bdii_default_set_cachesize_gb=`echo ${bdii_cachesize_line} | awk '{print $2}'`
           bdii_default_set_cachesize_kb=`echo ${bdii_cachesize_line} | awk '{print $3}'`
