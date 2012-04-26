@@ -27,6 +27,7 @@ public:
 
 /**
  * Reads conf file and provides methods to obtain cache info from it.
+ * Methods of this class may throw CacheConfigException.
  */
 class CacheConfig {
  private:
@@ -60,6 +61,11 @@ class CacheConfig {
     * Timeout for cleaning process
     */
    int _clean_timeout;
+  /**
+   * Parsers for the two different conf styles
+   */
+  void parseINIConf(std::string username, ConfigSections* cf);
+  void parseXMLConf(std::string username, Arc::XMLNode cfg);
  public:
    /**
     * Create a new CacheConfig instance. Read the config file and fill in
@@ -67,15 +73,20 @@ class CacheConfig {
     * defined in the conf file, use the cache parameters for the given username.
     */
   CacheConfig(const GMEnvironment& env,std::string username = "");
+   /**
+    * Create a new CacheConfig instance. Read the XML config tree and fill in
+    * private member variables with cache parameters. If cfg points to parent
+    * node of <control> elements then all <control> elements are checked for
+    * user matching specified username. Any username matches "." in configuration
+    * tree. If cfg corresponds to <control> element then this element is used
+    * without performing matching. Cache parameters of the matched user
+    * are used for filling internal variables.
+    */
+  CacheConfig(Arc::XMLNode cfg,std::string username = "");
   /**
    * Empty CacheConfig
    */
   CacheConfig(): _cache_max(0), _cache_min(0), _clean_timeout(0) {};
-  /**
-   * Parsers for the two different conf styles
-   */
-  void parseINIConf(std::string username, ConfigSections* cf);
-  void parseXMLConf(std::string username, Arc::XMLNode cfg);
   std::vector<std::string> getCacheDirs() const { return _cache_dirs; };
   std::vector<std::string> getRemoteCacheDirs() const { return _remote_cache_dirs; };
   std::vector<std::string> getDrainingCacheDirs() const { return _draining_cache_dirs; };

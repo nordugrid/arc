@@ -1134,15 +1134,14 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users/*,uid_t my_uid,co
           user->SetStrictSession(strict_session);
           user->SetFixDirectories(fixdir);
           // get cache parameters for this user
-          // Currently cache confuguration in XML mode is not supported
-          //try {
-          //  CacheConfig cache_config(users.Env(),user->UnixName());
-          //  user->SetCacheParams(cache_config);
-          //}
-          //catch (CacheConfigException& e) {
-          //  logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
-          //  return false;
-          //}
+          try {
+            CacheConfig cache_config(tmp_node,user->UnixName());
+            user->SetCacheParams(cache_config);
+          }
+          catch (CacheConfigException& e) {
+            logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
+            return false;
+          }
           /* add helper to poll for finished jobs */
           std::string cmd_ = users.Env().nordugrid_data_loc();
           cmd_+="/scan-"+default_lrms+"-job";

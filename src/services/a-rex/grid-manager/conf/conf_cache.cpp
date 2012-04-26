@@ -53,6 +53,16 @@ CacheConfig::CacheConfig(const GMEnvironment& env,std::string username):
   config_close(cfile);
 }
 
+CacheConfig::CacheConfig(Arc::XMLNode cfg,std::string username):
+                                                _cache_max(100),
+                                                _cache_min(100),
+                                                _log_file("/var/log/arc/cache-clean.log"),
+                                                _log_level("INFO") ,
+                                                _lifetime("0"),
+                                                _clean_timeout(0) {
+  parseXMLConf(username, cfg);
+}
+
 void CacheConfig::parseINIConf(std::string username, ConfigSections* cf) {
   
   cf->AddSection("common");
@@ -265,13 +275,29 @@ void CacheConfig::parseXMLConf(std::string username, Arc::XMLNode cfg) {
     maxReruns
     noRootPower
   */
-  Arc::XMLNode control_node = cfg["control"];
+  bool match_user = false;
+  Arc::XMLNode control_node = cfg;
+  if(control_node.Name() != "control") {
+    control_node = cfg["control"];
+    match_user = true;
+  }
   while (control_node) {
-    // does this match our username?
-    std::string user = control_node["username"];
-    if (user != username && user != ".") {
-      ++control_node;
-      continue;
+    if(match_user) {
+      // does this match our username?
+      Arc::XMLNode user_node = control_node["username"];
+      while (user_node) {
+        std::string user = user_node;
+        if ((user != username) && (user != ".")) {
+          ++user_node;
+          continue;
+        }
+        break;
+      }
+      if (!user_node) {
+        ++control_node;
+        continue;
+      }
+      break;
     }
     Arc::XMLNode cache_node = control_node["cache"];
     if(cache_node) {
@@ -412,7 +438,7 @@ void CacheConfig::parseXMLConf(std::string username, Arc::XMLNode cfg) {
     } else {
       // cache is disabled
     }
-    ++control_node;
+    break; // looping is done at beginning
   }
 }
 
