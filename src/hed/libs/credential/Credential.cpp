@@ -659,7 +659,7 @@ namespace Arc {
       LogError();
       throw CredentialError("Can not read key string");
     }
-    std::string prompt_info = "load private key";
+    std::string prompt_info = "private key";
 
     //Read key
     Credformat format;
