@@ -235,6 +235,19 @@ namespace Arc {
     return false;
   }
 
+  bool FileAccess::rename(const std::string& oldpath, const std::string& newpath) {
+    RETRYLOOP {
+    STARTHEADER(CMD_RENAME,sizeof(int)+oldpath.length()+sizeof(int)+newpath.length());
+    if(!swrite_string(*file_access_,oldpath)) ABORTALL;
+    if(!swrite_string(*file_access_,newpath)) ABORTALL;
+    int res = 0;
+    ENDHEADER(CMD_RENAME,0);
+    return (res == 0);
+    }
+    errno_ = -1;
+    return false;
+  }
+
   bool FileAccess::stat(const std::string& path, struct stat& st) {
     RETRYLOOP {
     STARTHEADER(CMD_STAT,sizeof(int)+path.length());

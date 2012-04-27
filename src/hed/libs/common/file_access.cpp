@@ -625,6 +625,17 @@ int main(int argc,char* argv[]) {
         if(!swrite_result(sout,header.cmd,res,err,&length,sizeof(length))) return -1;
       }; break;
 
+      case CMD_RENAME: {
+        std::string oldpath;
+        std::string newpath;
+        if(!sread_string(sin,oldpath,header.size)) return -1;
+        if(!sread_string(sin,newpath,header.size)) return -1;
+        if(header.size) return -1;
+        errno = 0;
+        int res = rename(oldpath.c_str(), newpath.c_str());
+        if(!swrite_result(sout,header.cmd,res,errno)) return -1;
+      }; break;
+
       default: return -1;
     };
   };

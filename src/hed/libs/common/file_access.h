@@ -190,3 +190,9 @@
 // errno
 // string path
 
+#define CMD_RENAME (29)
+// string oldname
+// string newname
+// -
+// result
+// errno

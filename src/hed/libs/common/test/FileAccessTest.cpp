@@ -25,6 +25,7 @@ class FileAccessTest
 #ifndef WIN32
   CPPUNIT_TEST(TestOpenWriteReadStat);
   CPPUNIT_TEST(TestCopy);
+  CPPUNIT_TEST(TestRename);
   CPPUNIT_TEST(TestDir);
   CPPUNIT_TEST(TestSeekAllocate);
 #endif
@@ -37,6 +38,7 @@ public:
 #ifndef WIN32
   void TestOpenWriteReadStat();
   void TestCopy();
+  void TestRename();
   void TestDir();
   void TestSeekAllocate();
 #endif
@@ -126,6 +128,21 @@ void FileAccessTest::TestCopy() {
   CPPUNIT_ASSERT(fa.close());
   std::string testdata2(buf,testdata.length());
   CPPUNIT_ASSERT_EQUAL(testdata,testdata2);
+}
+
+void FileAccessTest::TestRename() {
+  Arc::FileAccess fa;
+  std::string oldfile = testroot+"/oldfile";
+  std::string newfile = testroot+"/newfile";
+  std::string testdata = "renametest";
+  CPPUNIT_ASSERT(fa.setuid(uid,gid));
+  CPPUNIT_ASSERT(fa.open(oldfile,O_WRONLY|O_CREAT|O_EXCL,0600));
+  CPPUNIT_ASSERT_EQUAL((int)testdata.length(),(int)fa.write(testdata.c_str(),testdata.length()));
+  CPPUNIT_ASSERT(fa.close());
+  CPPUNIT_ASSERT(fa.rename(oldfile, newfile));
+  struct stat st;
+  CPPUNIT_ASSERT(fa.stat(newfile,st));
+  CPPUNIT_ASSERT(!fa.stat(oldfile,st));
 }
 
 void FileAccessTest::TestDir() {
