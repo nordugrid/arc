@@ -141,6 +141,8 @@ static prstring voms_dir_loc_;
 static prstring runtime_config_dir_;
 // Email address of person responsible for this ARC installation
 static prstring support_mail_address_;
+// Scratch dir used for job execution on the node, as seen from front-end
+static prstring scratch_dir_;
 
 std::string GMEnvironment::nordugrid_loc(void) const {
   return nordugrid_loc_.str();
@@ -202,6 +204,13 @@ void GMEnvironment::support_mail_address(const std::string& val) {
   support_mail_address_=val;
 }
 
+std::string GMEnvironment::scratch_dir() const {
+  return scratch_dir_;
+}
+
+void GMEnvironment::scratch_dir(const std::string& dir) {
+  scratch_dir_ = dir;
+}
 
 static bool file_exists(const char* name) {
   struct stat st;

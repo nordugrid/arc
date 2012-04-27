@@ -174,6 +174,15 @@ bool configure_serviced_users(JobUsers &users/*,uid_t my_uid,const std::string &
       std::string accounting_options = config_next_arg(rest);
       users.Env().job_log().set_options(accounting_options);
     }
+    else if(command == "scratchdir") {
+      std::string scratch = config_next_arg(rest);
+      // don't set if already set by shared_scratch
+      if (users.Env().scratch_dir().empty()) users.Env().scratch_dir(scratch);
+    }
+    else if(command == "shared_scratch") {
+      std::string scratch = config_next_arg(rest);
+      users.Env().scratch_dir(scratch);
+    }
     else if(command == "maxjobs") { /* maximum number of the jobs to support */
       std::string max_jobs_s = config_next_arg(rest);
       long int i;
@@ -949,6 +958,12 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users/*,uid_t my_uid,co
     default_queue = (std::string)(tmp_node["defaultShare"]);
     check_lrms_backends(default_lrms,users.Env());
     users.Env().runtime_config_dir((std::string)(tmp_node["runtimeDir"]));
+    // We only want the scratch path as seen on the front-end
+    if (tmp_node["sharedScratch"]) {
+      users.Env().scratch_dir((std::string)tmp_node["sharedScratch"]);
+    } else if (tmp_node["scratchDir"]) {
+      users.Env().scratch_dir((std::string)tmp_node["scratchDir"]);
+    }
   } else {
     logger.msg(Arc::ERROR,"LRMS is missing"); return false;
   }

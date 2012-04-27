@@ -60,6 +60,10 @@ class GMEnvironment {
 
   ARex::DelegationStores* delegations(void) const;
   void delegations(ARex::DelegationStores*);
+
+  /// Scratch dir for job execution on node
+  std::string scratch_dir() const;
+  void scratch_dir(const std::string& dir);
 };
 
 ///  Read environment, check files and set variables
