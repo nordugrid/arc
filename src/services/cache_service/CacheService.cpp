@@ -2,12 +2,12 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include <arc/credential/Credential.h>
 #include <arc/data/FileCache.h>
 #include <arc/data/DataHandle.h>
 #include <arc/URL.h>
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
+#include <arc/FileAccess.h>
 #include <arc/FileUtils.h>
 #include <arc/User.h>
 #include <arc/Utils.h>
@@ -17,13 +17,10 @@
 #include <arc/message/PayloadStream.h>
 #include <arc/message/PayloadSOAP.h>
 
-// A-REX includes for configuration and running downloader
+// A-REX includes for configuration
 #include "../a-rex/grid-manager/conf/conf_file.h"
 #include "../a-rex/grid-manager/log/job_log.h"
 #include "../a-rex/grid-manager/jobs/job_config.h"
-#include "../a-rex/grid-manager/files/info_types.h"
-#include "../a-rex/grid-manager/files/info_files.h"
-#include "../a-rex/grid-manager/run/run_parallel.h"
 
 #include "CacheService.h"
 
@@ -45,18 +42,15 @@ Arc::Logger CacheService::logger(Arc::Logger::rootLogger, "CacheService");
 
 CacheService::CacheService(Arc::Config *cfg, Arc::PluginArgument* parg) :
                                                RegisteredService(cfg,parg),
-                                               max_downloads(10),
-                                               current_downloads(0),
                                                users(NULL),
                                                gm_env(NULL),
-                                               jcfg(NULL) {
+                                               jcfg(NULL),
+                                               dtr_generator(NULL) {
   valid = false;
   // read configuration information
   /*
   cacheservice config specifies A-REX conf file
     <cacheservice:config>/etc/arc.conf</cacheservice:config>
-  max simultaneous downloads
-    <cacheservice:maxload>10</cacheservice:maxload>
   */
   ns["cacheservice"] = "urn:cacheservice_config";
 
@@ -67,15 +61,6 @@ CacheService::CacheService(Arc::Config *cfg, Arc::PluginArgument* parg) :
   }
   std::string arex_config = (std::string)(*cfg)["cache"]["config"];
   logger.msg(Arc::INFO, "Using A-REX config file %s", arex_config);
-
-  if ((*cfg)["cache"]["maxload"]) {
-    std::string maxload = (std::string)(*cfg)["cache"]["maxload"];
-    if (maxload.empty() || !Arc::stringto(maxload, max_downloads)) {
-      logger.msg(Arc::ERROR, "Error converting maxload parameter %s to integer", maxload);
-      return;
-    }
-  }
-  logger.msg(Arc::INFO, "Setting max downloads to %u", max_downloads);
 
   JobLog job_log;
   jcfg = new JobsListConfig;
@@ -95,6 +80,9 @@ CacheService::CacheService(Arc::Config *cfg, Arc::PluginArgument* parg) :
   }
   print_serviced_users(*users);
 
+  // start Generator for data staging
+  dtr_generator = new CacheServiceGenerator(*users);
+
   valid = true;
 }
 
@@ -111,155 +99,10 @@ CacheService::~CacheService(void) {
     delete jcfg;
     jcfg = NULL;
   }
-}
-
-int CacheService::Download(const std::map<std::string, std::string>& urls,
-                           const JobUser& user,
-                           const std::string& job_id,
-                           const Arc::User& mapped_user) {
-  // create job.id.input file, then run new downloader process
-  // wait for result with some timeout
-  g_atomic_int_inc(&current_downloads);
-
-  // set up objects for writing .input file
-  JobDescription job_desc(job_id, user.SessionRoot(job_id) + "/" + job_id);
-  job_desc.set_uid(mapped_user.get_uid(), mapped_user.get_gid());
-  std::list<FileData> files;
-  for (std::map<std::string, std::string>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
-    FileData filedata(i->second, i->first);
-    files.push_back(filedata);
+  if (dtr_generator) {
+    delete dtr_generator;
+    dtr_generator = NULL;
   }
-  if (!job_input_write_file(job_desc, user, files)) {
-    logger.msg(Arc::ERROR, "Failed writing file with inputs");
-    return -1;
-  }
-
-  // get parameters from JobListConfig
-  bool switch_user = false; // download to cache should always be done as root
-  std::string cmd = user.Env().nordugrid_libexec_loc()+"/downloader";
-  std::string user_id = Arc::tostring(mapped_user.get_uid());
-  std::string max_files_s;
-  std::string min_speed_s;
-  std::string min_time_s;
-  std::string min_average_s;
-  std::string max_inactivity_time_s;
-  int argn=4;
-  const char* args[] = {
-    cmd.c_str(),
-    "-U",
-    user_id.c_str(),
-    "-f",
-    NULL, // -n
-    NULL, // (-n)
-    NULL, // -c
-    NULL, // -p
-    NULL, // -l
-    NULL, // -s
-    NULL, // (-s)
-    NULL, // -S
-    NULL, // (-S)
-    NULL, // -a
-    NULL, // (-a)
-    NULL, // -i
-    NULL, // (-i)
-    NULL, // -d
-    NULL, // (-d)
-    NULL, // -C
-    NULL, // (-C)
-    NULL, // -r
-    NULL, // (-r)
-    NULL, // id
-    NULL, // control
-    NULL, // session
-    NULL,
-    NULL
-  };
-  int max_processing, max_processing_emergency, max_down;
-  jcfg->GetMaxJobsLoad(max_processing, max_processing_emergency, max_down);
-  if (max_down > 0) {
-    max_files_s=Arc::tostring(max_down);
-    args[argn]="-n"; argn++;
-    args[argn]=(char*)(max_files_s.c_str()); argn++;
-  };
-  if (!jcfg->GetSecureTransfer()) {
-    args[argn]="-c"; argn++;
-  };
-  if (jcfg->GetPassiveTransfer()) {
-    args[argn]="-p"; argn++;
-  };
-  if (jcfg->GetLocalTransfer()) {
-    args[argn]="-l"; argn++;
-  };
-  unsigned long long int min_speed, min_average_speed;
-  time_t min_time, max_inactivity_time;
-  jcfg->GetSpeedControl(min_speed, min_time, min_average_speed, max_inactivity_time);
-  if (min_speed > 0) {
-    min_speed_s = Arc::tostring(min_speed);
-    min_time_s = Arc::tostring(min_time);
-    args[argn]="-s"; argn++;
-    args[argn]=(char*)(min_speed_s.c_str()); argn++;
-    args[argn]="-S"; argn++;
-    args[argn]=(char*)(min_time_s.c_str()); argn++;
-  };
-  if (min_average_speed > 0) {
-    min_average_s = Arc::tostring(min_average_speed);
-    args[argn]="-a"; argn++;
-    args[argn]=(char*)(min_average_s.c_str()); argn++;
-  };
-  if (max_inactivity_time > 0) {
-    max_inactivity_time_s=Arc::tostring(max_inactivity_time);
-    args[argn]="-i"; argn++;
-    args[argn]=(char*)(max_inactivity_time_s.c_str()); argn++;
-  };
-  std::string debug_level = Arc::level_to_string(Arc::Logger::getRootLogger().getThreshold());
-  if (!debug_level.empty()) {
-    args[argn]="-d"; argn++;
-    args[argn]=(char*)(debug_level.c_str()); argn++;
-  }
-  std::string cfg_path = user.Env().nordugrid_config_loc();
-  if (!cfg_path.empty()) {
-    args[argn]="-C"; argn++;
-    args[argn]=(char*)(cfg_path.c_str()); argn++;
-  }
-  if (!jcfg->GetPreferredPattern().empty()) {
-    args[argn]="-r"; argn++;
-    args[argn]=(char*)(jcfg->GetPreferredPattern().c_str()); argn++;
-  }
-  args[argn]=(char*)(job_id.c_str()); argn++;
-  args[argn]=(char*)(user.ControlDir().c_str()); argn++;
-  args[argn]=(char*)(job_desc.SessionDir().c_str()); argn++;
-
-  Arc::Run* child = new Arc::Run(cmd);
-  logger.msg(Arc::INFO, "Starting child downloader process");
-  for (int i = 0; i < argn; ++i)
-    logger.msg(Arc::VERBOSE, args[i]);
-  if(!RunParallel::run(user, job_desc, (char**)args, &child, switch_user)) {
-    logger.msg(Arc::ERROR, "Failed to run downloader process for job id %s", job_id);
-    delete child;
-    return false;
-  }
-
-  // wait for child to finish
-  Arc::Time timeout;
-  timeout = timeout + 3600; // timeout 1 hour TODO make configurable
-  while (child->Running() && (Arc::Time() < timeout)) {
-    logger.msg(Arc::DEBUG, "%s: child is running", job_id);
-    sleep(1);
-  }
-  if (Arc::Time() >= timeout) {
-    // timeout so kill child process
-    delete child;
-    logger.msg(Arc::ERROR, "Download process for job %s timed out", job_id);
-    return -1;
-  }
-
-  // child finished - check exit code
-  int result = child->Result();
-  logger.msg(Arc::INFO, "Downloader exited with code: %i", result);
-  delete child;
-
-  g_atomic_int_dec_and_test(&current_downloads);
-  return result;
 }
 
 Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, const JobUser& user) {
@@ -351,6 +194,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
      </TheseFilesNeedToLink>
      <Username>uname</Username>
      <JobID>123456789</JobID>
+     <Priority>90</Priority>
      <Stage>false</Stage>
    </CacheLink>
 
@@ -378,6 +222,17 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
     return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheLink", "Bad input (no JobID specified)");
   }
   std::string jobid = (std::string)jobidnode;
+
+  int priority = 50;
+  Arc::XMLNode prioritynode = in["CacheLink"]["Priority"];
+  if (prioritynode) {
+    if (!Arc::stringto((std::string)prioritynode, priority)) {
+      logger.msg(Arc::ERROR, "Bad number in priority element: %s", (std::string)prioritynode);
+      return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheLink", "Bad input (bad number in Priority)");
+    }
+    if (priority <= 0) priority = 1;
+    if (priority > 100) priority = 100;
+  }
 
   Arc::XMLNode uname = in["CacheLink"]["Username"];
   if (!uname) {
@@ -463,6 +318,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
 
     std::string fileurl = (std::string)f_url;
     std::string filename = (std::string)f_name;
+    std::string session_file = session_dir + '/' + filename;
 
     logger.msg(Arc::INFO, "Looking up URL %s", fileurl);
 
@@ -491,7 +347,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
     if (!available) {
       cache.Stop(url);
       // file not in cache - the result status for these files will be set later
-      to_download[fileurl] = filename;
+      to_download[fileurl] = session_file;
       continue;
     }
     Arc::XMLNode resultelement = results.NewChild("Result");
@@ -511,15 +367,35 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
     }
 
     // link file
-    std::string session_file = session_dir + '/' + filename;
     bool try_again = false;
-    if (!cache.Link(session_file, url, false, false, false, try_again)) { // TODO add executable flag to request
+    // TODO add executable and copy flags to request
+    if (!cache.Link(session_file, url, false, false, false, try_again)) {
+      // If locked, send to DTR and let it deal with the retry strategy
+      if (try_again) {
+        to_download[fileurl] = session_file;
+        continue;
+      }
       // failed to link - report as if not there
       resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::LinkError);
       resultelement.NewChild("ReturnCodeExplanation") = "Failed to link to session dir";
       error_happened = true;
       continue;
     }
+    // Successfully linked to session - move to scratch if necessary
+    if (!user.Env().scratch_dir().empty()) {
+      std::string scratch_file(user.Env().scratch_dir()+'/'+jobid+'/'+filename);
+      // Access session and scratch under mapped uid
+      Arc::FileAccess fa;
+      if (!fa.setuid(mapped_user.get_uid(), mapped_user.get_gid()) ||
+          !fa.rename(session_file, scratch_file)) {
+        logger.msg(Arc::ERROR, "Failed to move %s to %s: %s", session_file, scratch_file, Arc::StrError(errno));
+        resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::LinkError);
+        resultelement.NewChild("ReturnCodeExplanation") = "Failed to link to move file from session dir to scratch";
+        error_happened = true;
+        continue;
+      }
+    }
+
     // everything went ok so report success
     resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Success);
     resultelement.NewChild("ReturnCodeExplanation") = "Success";
@@ -536,37 +412,93 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
     return Arc::MCC_Status(Arc::STATUS_OK);
   }
 
-  // check max_downloads
-  if (g_atomic_int_get(&current_downloads) >= max_downloads) {
-    for (std::map<std::string, std::string>::iterator i = to_download.begin(); i != to_download.end(); ++i) {
-      Arc::XMLNode resultelement = results.NewChild("Result");
-      resultelement.NewChild("FileURL") = i->first;
-      // fill in this status for unavailable files
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::TooManyDownloadsError);
-      resultelement.NewChild("ReturnCodeExplanation") = "Currently at maximum limit of downloads";
-    }
-    return Arc::MCC_Status(Arc::STATUS_OK);
-  }
+  bool stage_start_error = false;
 
-  // launch download and wait for completion
-  int result = Download(to_download, user, jobid, mapped_user);
-
-  // if successful return success for each file
-  // TODO: retry on cache lock? (result == 4)
+  // Loop through files to download and start a DTR for each one
   for (std::map<std::string, std::string>::iterator i = to_download.begin(); i != to_download.end(); ++i) {
     Arc::XMLNode resultelement = results.NewChild("Result");
     resultelement.NewChild("FileURL") = i->first;
-    if (result == 0) {
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Success);
-      resultelement.NewChild("ReturnCodeExplanation") = "Success";
+
+    // if one DTR failed to start then don't start any more
+    // TODO cancel others already started
+    if (stage_start_error) {
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::DownloadError);
+      resultelement.NewChild("ReturnCodeExplanation") = "Failed to start data staging";
+      continue;
+    }
+
+    logger.msg(Arc::VERBOSE, "Starting new DTR for %s", i->first);
+    if (!dtr_generator->addNewRequest(user, i->first, i->second, usercfg, jobid, mapped_user.get_uid(), priority)) {
+      logger.msg(Arc::ERROR, "Failed to start new DTR for %s", i->first);
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::DownloadError);
+      resultelement.NewChild("ReturnCodeExplanation") = "Failed to start data staging";
+      stage_start_error = true;
     }
     else {
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::DownloadError);
-      resultelement.NewChild("ReturnCodeExplanation") = "Download failed";
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Staging);
+      resultelement.NewChild("ReturnCodeExplanation") = "Staging started";
     }
   }
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
+
+Arc::MCC_Status CacheService::CacheLinkQuery(Arc::XMLNode in, Arc::XMLNode out) {
+  /*
+   Accepts:
+   <CacheLinkQuery>
+     <JobID>123456789</JobID>
+   </CacheLinkQuery>
+
+   Returns:
+   <CacheLinkQueryResponse>
+     <CacheLinkQueryResult>
+       <Result>
+         <ReturnCode>0</ReturnCode>
+         <ReturnExplanation>success</ReturnExplanation>
+       </Result>
+     </CacheLinkQueryResult>
+   </CacheLinkQueryResponse>
+   */
+
+  Arc::XMLNode jobidnode = in["CacheLinkQuery"]["JobID"];
+  if (!jobidnode) {
+    logger.msg(Arc::ERROR, "No job ID supplied");
+    return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheLinkQuery", "Bad input (no JobID specified)");
+  }
+  std::string jobid = (std::string)jobidnode;
+
+  // set up response structure
+  Arc::XMLNode resp = out.NewChild("CacheLinkQueryResponse");
+  Arc::XMLNode results = resp.NewChild("CacheLinkQueryResult");
+  Arc::XMLNode resultelement = results.NewChild("Result");
+
+  std::string error;
+  // query Generator for DTR status
+  if (dtr_generator->queryRequestsFinished(jobid, error)) {
+    if (error.empty()) {
+      logger.msg(Arc::INFO, "Job %s: all files downloaded successfully", jobid);
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Success);
+      resultelement.NewChild("ReturnCodeExplanation") = "Success";
+    }
+    else if (error == "Job not found") {
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::CacheError);
+      resultelement.NewChild("ReturnCodeExplanation") = "No such job";
+    }
+    else {
+      logger.msg(Arc::INFO, "Job %s: Some downloads failed", jobid);
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::DownloadError);
+      resultelement.NewChild("ReturnCodeExplanation") = "Download failed: " + error;
+    }
+  }
+  else {
+    logger.msg(Arc::VERBOSE, "Job %s: files still downloading", jobid);
+    resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Staging);
+    resultelement.NewChild("ReturnCodeExplanation") = "Still staging";
+  }
+
+  return Arc::MCC_Status(Arc::STATUS_OK);
+}
+
 
 Arc::MCC_Status CacheService::process(Arc::Message &inmsg, Arc::Message &outmsg) {
 
@@ -647,6 +579,9 @@ Arc::MCC_Status CacheService::process(Arc::Message &inmsg, Arc::Message &outmsg)
     }
     else if (MatchXMLName(op, "CacheLink")) {
       result = CacheLink(*inpayload, *outpayload, jobuser, mapped_user);
+    }
+    else if (MatchXMLName(op, "CacheLinkQuery")) {
+      result = CacheLinkQuery(*inpayload, *outpayload);
     }
     else {
       // unknown operation

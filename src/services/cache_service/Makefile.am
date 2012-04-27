@@ -7,7 +7,8 @@ CACHE_SCRIPT =
 endif
 initd_SCRIPTS = $(CACHE_SCRIPT)
 
-libcacheservice_la_SOURCES = CacheService.h CacheService.cpp
+libcacheservice_la_SOURCES = CacheService.h CacheService.cpp \
+                             CacheServiceGenerator.h CacheServiceGenerator.cpp
 libcacheservice_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 libcacheservice_la_LIBADD = \

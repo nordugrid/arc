@@ -5,6 +5,7 @@ Python client for the HED cache service.
 import sys
 import httplib
 import re
+import time
 import os
 
 try:
@@ -105,7 +106,7 @@ def cacheCheck(service, proxy, urls):
         cache_result = response.find('{http://schemas.xmlsoap.org/soap/envelope/}Body').find('CacheCheckResponse').find('CacheCheckResult')
         results = cache_result.findall('Result')
     except:
-        raise CacheException('Error with XML structure received from echo service')
+        raise CacheException('Error with XML structure received from cache service')
     
     if len(results) == 0:
         raise CacheException('No results returned')
@@ -150,18 +151,18 @@ def cacheLink(service, proxy, user, jobid, urls, dostage):
     soap = ET.Element('soap-env:Envelope', attrib={'xmlns:echo': 'urn:echo', 'xmlns:soap-enc': 'http://schemas.xmlsoap.org/soap/encoding/', 'xmlns:soap-env': 'http://schemas.xmlsoap.org/soap/envelope/', 'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema', 'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance' })
     
     body = ET.SubElement(soap, 'soap-env:Body')
-    cachecheck = ET.SubElement(body, 'CacheLink')
-    files = ET.SubElement(cachecheck, 'TheseFilesNeedToLink')
+    cachelink = ET.SubElement(body, 'CacheLink')
+    files = ET.SubElement(cachelink, 'TheseFilesNeedToLink')
     for url in urls:
         file = ET.SubElement(files, 'File')
         addETElement(file, 'FileURL', url)
         addETElement(file, 'FileName', urls[url])
-    addETElement(cachecheck, 'Username', user)
-    addETElement(cachecheck, 'JobID', jobid)
+    addETElement(cachelink, 'Username', user)
+    addETElement(cachelink, 'JobID', jobid)
     stage = 'false'
     if dostage:
         stage = 'true'
-    addETElement(cachecheck, 'Stage', stage)
+    addETElement(cachelink, 'Stage', stage)
         
     request = ET.tostring(soap)
         
@@ -187,21 +188,75 @@ def cacheLink(service, proxy, user, jobid, urls, dostage):
         cache_result = response.find('{http://schemas.xmlsoap.org/soap/envelope/}Body').find('CacheLinkResponse').find('CacheLinkResult')
         results = cache_result.findall('Result')
     except:
-        raise CacheException('Error with XML structure received from echo service')
+        raise CacheException('Error with XML structure received from cache service')
     
     if len(results) == 0:
         raise CacheException('No results returned')
     
     cachefiles = {}
+    stagingfiles = []
     for result in results:
         url = result.find('FileURL').text
         link_result_code = result.find('ReturnCode').text
         link_result_text = result.find('ReturnCodeExplanation').text
-        cachefiles[url] = (link_result_code, link_result_text)
+        if link_result_code == '1':
+            stagingfiles.append(url)
+        else:
+            cachefiles[url] = (link_result_code, link_result_text)
+    
+    if len(stagingfiles) == 0:
+        return cachefiles
 
-    return cachefiles
+    # Some files required staging so poll until finished
+    soap = ET.Element('soap-env:Envelope', attrib={'xmlns:echo': 'urn:echo', 'xmlns:soap-enc': 'http://schemas.xmlsoap.org/soap/encoding/', 'xmlns:soap-env': 'http://schemas.xmlsoap.org/soap/envelope/', 'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema', 'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance' })
+    
+    body = ET.SubElement(soap, 'soap-env:Body')
+    cachelinkquery = ET.SubElement(body, 'CacheLinkQuery')
+    addETElement(cachelink, 'Username', user)
+    addETElement(cachelinkquery, 'JobID', jobid)
 
-
+    request = ET.tostring(soap)
+        
+    conn = httplib.HTTPSConnection(host, port, proxy, proxy)
+    
+    while True: # add timeout
+        time.sleep(0.5)
+        try:
+            conn.request('POST', path, request)
+            resp = conn.getresponse()
+        except Exception, e:
+            raise CacheException('Error connecting to service at ' + host + ': ' + str(e))
+        
+        # On SOAP fault 500 is returned - this is caught in checkSOAPFault
+        if resp.status != 200 and resp.status != 500:
+            conn.close()
+            raise CacheException('Error code '+str(resp.status)+' returned: '+resp.reason)
+    
+        xmldata = resp.read()
+        response = ET.XML(xmldata)
+        checkSOAPFault(response)
+        
+        try:
+            cache_result = response.find('{http://schemas.xmlsoap.org/soap/envelope/}Body').find('CacheLinkQueryResponse').find('CacheLinkQueryResult').find('Result')
+            link_result_code = cache_result.find('ReturnCode').text
+            link_result_text = cache_result.find('ReturnCodeExplanation').text
+        except:
+            raise CacheException('Error with XML structure received from cache service')
+        
+        if link_result_code == '1':
+            # still staging
+            print "still staging"
+            continue
+        
+        # finished - either successfully or failed
+        for url in stagingfiles:
+            cachefiles[url] = (link_result_code, link_result_text)
+        
+        break
+            
+    return cachefiles    
+            
+            
 def echo(service, proxy, say):
     """
     Call the echo service at the given location and print the response to
@@ -265,7 +320,7 @@ if __name__ == '__main__':
                     'lfc://lfc1.ndgf.org/:guid=8471134f-494e-41cb-b81e-b341f6a18caf': 'file3'}
     jobid = '1'
     try:
-        cacheurls = cacheLink(endpoint, proxy, os.getlogin(), jobid, urls_to_link, False)
+        cacheurls = cacheLink(endpoint, proxy, os.getlogin(), jobid, urls_to_link, True)
     except CacheException, e:
         print('Error calling cacheLink: ' + str(e))
         sys.exit(1)
