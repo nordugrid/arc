@@ -121,10 +121,10 @@ def parseini(inifile):
     config = ConfigParser.RawConfigParser()
     config.read(inifile)
 
-    stage_path = config.get('lrms/DG', 'stage_path')
+    stage_path = config.get('common', 'dgbridge_stage_dir')
     xmldir = os.path.join(stage_path,"monitor")
 
-    controldir = config.get('arex', 'controldir')
+    controldir = config.get('grid-manager', 'controldir')
     logdir = os.path.join(controldir,"3gbridge_logs")
 
     return xmldir,logdir
