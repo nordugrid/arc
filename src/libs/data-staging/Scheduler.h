@@ -37,8 +37,8 @@ class Scheduler: public DTRCallback {
     /// A list of DTRs to process
     std::list<DTR_ptr> events;
 
-    /// List of staged DTRs. Filled each event processing loop
-    std::list<DTR_ptr> staged_queue;
+    /// Map of transfer shares to staged DTRs. Filled each event processing loop
+    std::map<std::string, std::list<DTR_ptr> > staged_queue;
 
     /// A lock for the cancelled jobs list
     Arc::SimpleCondition cancelled_jobs_lock;
@@ -62,15 +62,15 @@ class Scheduler: public DTRCallback {
     Arc::SimpleCondition dump_signal;
 
     /// Limit on number of DTRs in pre-processor
-    int PreProcessorSlots;
+    unsigned int PreProcessorSlots;
     /// Limit on number of DTRs in delivery
-    int DeliverySlots;
+    unsigned int DeliverySlots;
     /// Limit on number of DTRs in post-processor
-    int PostProcessorSlots;
+    unsigned int PostProcessorSlots;
     /// Limit on number of emergency DTRs in each state
-    int EmergencySlots;
+    unsigned int EmergencySlots;
     /// Limit on number of staged-prepared files, per share
-    int StagedPreparedSlots;
+    unsigned int StagedPreparedSlots;
 
     /// Where to dump DTR state. Currently only a path to a file is supported.
     std::string dumplocation;

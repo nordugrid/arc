@@ -378,33 +378,11 @@ namespace DataStaging {
     request->reset_error_status();
     if (request->get_source()->IsStageable() || request->get_destination()->IsStageable()) {
       // Normal workflow is STAGE_PREPARE
-
-      // Apply limit to staging to avoid preparing too many files and then
-      // pins expire while in the transfer queue. In future it may be better
-      // to limit per remote host. For now count staging transfers in this
-      // share already in transfer queue and apply limit. In order not to block
-      // the highest priority DTRs here we allow them to bypass the limit.
-      int share_queue = 0, highest_priority = 0;
-      for (std::list<DTR_ptr>::iterator dtr = staged_queue.begin(); dtr != staged_queue.end(); ++dtr) {
-        if ((*dtr)->get_transfer_share() == request->get_transfer_share() &&
-            ((*dtr)->get_source()->IsStageable() ||
-             (*dtr)->get_destination()->IsStageable())) {
-          ++share_queue;
-          if ((*dtr)->get_priority() > highest_priority) highest_priority = (*dtr)->get_priority();
-        }
-      }
-      if (share_queue >= StagedPreparedSlots && request->get_priority() <= highest_priority) {
-        request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Large transfer queue - will wait 10s before staging", request->get_short_id());
-        request->set_process_time(10);
-      }
-      else {
-        // Need to set the timeout to prevent from waiting for too long
-        request->set_timeout(3600);
-        // processor will take care of staging source or destination or both
-        request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Source or destination requires staging", request->get_short_id());
-        staged_queue.push_back(request);
-        request->set_status(DTRStatus::STAGE_PREPARE);
-      }
+      // Need to set the timeout to prevent from waiting for too long
+      request->set_timeout(3600);
+      // processor will take care of staging source or destination or both
+      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Source or destination requires staging", request->get_short_id());
+      request->set_status(DTRStatus::STAGE_PREPARE);
     }
     else {
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: No need to stage source or destination, skipping staging", request->get_short_id());
@@ -942,10 +920,6 @@ namespace DataStaging {
 
   void Scheduler::process_events(void){
     
-    // Get all the DTRs in a staged state
-    staged_queue.clear();
-    DtrList.filter_dtrs_by_statuses(DTRStatus::StagedStates, staged_queue);
-
     Arc::Time now;
     event_lock.lock();
 
@@ -986,6 +960,24 @@ namespace DataStaging {
     // The active DTRs currently in processing states
     std::map<DTRStatus::DTRStatusType, std::list<DTR_ptr> > DTRRunningStates;
     DtrList.filter_dtrs_by_statuses(DTRStatus::ProcessingStates, DTRRunningStates);
+
+    // Get all the DTRs in a staged state
+    staged_queue.clear();
+    std::list<DTR_ptr> staged_queue_list;
+    DtrList.filter_dtrs_by_statuses(DTRStatus::StagedStates, staged_queue_list);
+
+    // filter out stageable DTRs per transfer share, putting the highest
+    // priority at the front
+    for (std::list<DTR_ptr>::iterator i = staged_queue_list.begin(); i != staged_queue_list.end(); ++i) {
+      if ((*i)->get_source()->IsStageable() || (*i)->get_destination()->IsStageable()) {
+        std::list<DTR_ptr>& queue = staged_queue[(*i)->get_transfer_share()];
+        if (!queue.empty() && (*i)->get_priority() > queue.front()->get_priority()) {
+          queue.push_front(*i);
+        } else {
+          queue.push_back(*i);
+        }
+      }
+    }
 
     Arc::Time now;
 
@@ -1045,6 +1037,28 @@ namespace DataStaging {
         if (tmp->get_timeout() < now && tmp->get_priority() < highest_priority) {
           tmp->set_priority(tmp->get_priority() + 1);
           tmp->set_timeout(300);
+        }
+
+        // STAGE_PREPARE is a special case where we have to apply a limit to
+        // avoid preparing too many files and then pins expire while in the
+        // transfer queue. In future it may be better to limit per remote host.
+        // For now count DTRs staging and transferring in this share and apply
+        // limit. In order not to block the highest priority DTRs here we allow
+        // them to bypass the limit.
+        if (DTRStatus::ToProcessStates.at(i) == DTRStatus::STAGE_PREPARE) {
+          if (staged_queue[tmp->get_transfer_share()].size() < StagedPreparedSlots ||
+              staged_queue[tmp->get_transfer_share()].front()->get_priority() < tmp->get_priority() ) {
+            // Reset timeout
+            tmp->set_timeout(3600);
+            // add to the staging queue and sort to put highest priority first
+            staged_queue[tmp->get_transfer_share()].push_front(tmp);
+            staged_queue[tmp->get_transfer_share()].sort(dtr_sort_predicate);
+          }
+          else {
+            // Past limit - this DTR cannot be processed this time so erase from queue
+            dtr = DTRQueue.erase(dtr);
+            continue;
+          }
         }
 
         // check if bulk operation is possible for this DTR. To keep it simple
@@ -1112,7 +1126,7 @@ namespace DataStaging {
       if (DTRQueue.empty()) continue;
 
       // Slot limit for this state
-      int slot_limit = DeliverySlots;
+      unsigned int slot_limit = DeliverySlots;
       if (DTRQueue.front()->is_destined_for_pre_processor()) slot_limit = PreProcessorSlots;
       else if (DTRQueue.front()->is_destined_for_post_processor()) slot_limit = PostProcessorSlots;
 
@@ -1122,7 +1136,7 @@ namespace DataStaging {
       // Shares which have at least one DTR active and running.
       // Shares can only use emergency slots if they are not in this list.
       std::set<std::string> active_shares;
-      int running = ActiveDTRs.size();
+      unsigned int running = ActiveDTRs.size();
 
       // Go over the active DTRs again and decrease slots in corresponding shares
       for (std::list<DTR_ptr>::iterator dtr = ActiveDTRs.begin(); dtr != ActiveDTRs.end(); ++dtr) {
@@ -1288,11 +1302,11 @@ namespace DataStaging {
   	
     logger.msg(Arc::INFO, "Scheduler starting up");
     logger.msg(Arc::INFO, "Scheduler configuration:");
-    logger.msg(Arc::INFO, "  Pre-processor slots: %i", PreProcessorSlots);
-    logger.msg(Arc::INFO, "  Delivery slots: %i", DeliverySlots);
-    logger.msg(Arc::INFO, "  Post-processor slots: %i", PostProcessorSlots);
-    logger.msg(Arc::INFO, "  Emergency slots: %i", EmergencySlots);
-    logger.msg(Arc::INFO, "  Prepared slots: %i", StagedPreparedSlots);
+    logger.msg(Arc::INFO, "  Pre-processor slots: %u", PreProcessorSlots);
+    logger.msg(Arc::INFO, "  Delivery slots: %u", DeliverySlots);
+    logger.msg(Arc::INFO, "  Post-processor slots: %u", PostProcessorSlots);
+    logger.msg(Arc::INFO, "  Emergency slots: %u", EmergencySlots);
+    logger.msg(Arc::INFO, "  Prepared slots: %u", StagedPreparedSlots);
     logger.msg(Arc::INFO, "  Shares configuration:\n%s", transferSharesConf.conf());
     for (std::vector<Arc::URL>::iterator i = configured_delivery_services.begin();
          i != configured_delivery_services.end(); ++i) {
