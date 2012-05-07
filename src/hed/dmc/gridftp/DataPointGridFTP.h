@@ -100,7 +100,7 @@ namespace Arc {
     void set_attributes();
     DataStatus RemoveFile();
     DataStatus RemoveDir();
-    DataStatus do_more_stat(FileInfo& f);
+    DataStatus do_more_stat(FileInfo& f, DataPointInfoType verb);
   public:
     DataPointGridFTP(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
     virtual ~DataPointGridFTP();

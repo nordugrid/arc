@@ -824,14 +824,14 @@ namespace Arc {
     return;
   }
 
-  DataStatus DataPointGridFTP::do_more_stat(FileInfo& f) {
+  DataStatus DataPointGridFTP::do_more_stat(FileInfo& f, DataPointInfoType verb) {
     DataStatus result = DataStatus::Success;
     GlobusResult res;
     globus_off_t size = 0;
     globus_abstime_t gl_modify_time;
     time_t modify_time;
     std::string f_url = url.ConnectionURL() + f.GetName();
-    if ((!f.CheckSize()) && (f.GetType() != FileInfo::file_type_dir)) {
+    if (((verb & INFO_TYPE_CONTENT) == INFO_TYPE_CONTENT) && (!f.CheckSize()) && (f.GetType() != FileInfo::file_type_dir)) {
       logger.msg(DEBUG, "list_files_ftp: looking for size of %s", f_url);
       res = globus_ftp_client_size(&ftp_handle, f_url.c_str(), &ftp_opattr,
                                    &size, &ftp_complete_callback, cbarg);
@@ -860,7 +860,7 @@ namespace Arc {
         f.SetType(FileInfo::file_type_file);
       }
     }
-    if (!f.CheckCreated()) {
+    if ((verb & INFO_TYPE_TIMES) == INFO_TYPE_TIMES && !f.CheckCreated()) {
       logger.msg(DEBUG, "list_files_ftp: "
                         "looking for modification time of %s", f_url);
       res = globus_ftp_client_modification_time(&ftp_handle, f_url.c_str(),
@@ -891,7 +891,7 @@ namespace Arc {
         f.SetCreated(modify_time);
       }
     }
-    if (!f.CheckCheckSum() && f.GetType() != FileInfo::file_type_dir) {
+    if ((verb & INFO_TYPE_CONTENT) == INFO_TYPE_CONTENT && !f.CheckCheckSum() && f.GetType() != FileInfo::file_type_dir) {
       // not all implementations support checksum so failure is not an error
       logger.msg(DEBUG, "list_files_ftp: "
                         "looking for checksum of %s", f_url);
@@ -973,7 +973,7 @@ namespace Arc {
     file.SetName(lister_info.GetName());
     file.SetMetaData("path", lister_info.GetName());
     if (more_info) {
-      DataStatus r = do_more_stat(lister_info);
+      DataStatus r = do_more_stat(lister_info, verb);
       if(!r) result = r;
     }
     file.SetType(lister_info.GetType());
@@ -1022,7 +1022,7 @@ namespace Arc {
         files.insert(files.end(), FileInfo(i->GetLastName()));
       f->SetMetaData("path", i->GetLastName());
       if (more_info) {
-        DataStatus r = do_more_stat(*i);
+        DataStatus r = do_more_stat(*i, verb);
         if(!r) {
           if(r == DataStatus::StatError) r = DataStatus(DataStatus::ListError, r.GetDesc());
           result = r;
