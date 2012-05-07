@@ -33,7 +33,6 @@ namespace DataStaging {
   };
 
   static const DTRStatus::DTRStatusType staged_states[] = {
-      DTRStatus::STAGE_PREPARE,
       DTRStatus::STAGING_PREPARING,
       DTRStatus::STAGING_PREPARING_WAIT,
       DTRStatus::STAGED_PREPARED,
