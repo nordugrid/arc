@@ -749,7 +749,7 @@ namespace Arc {
     if (!commonlocoptions.empty())
       urlstr += ';' + OptionString(commonlocoptions, ';');
 
-    if (!username.empty() || !passwd.empty() || !locations.empty())
+    if (!username.empty() || !passwd.empty() || !locations.empty() || !commonlocoptions.empty())
       urlstr += '@';
 
     if (!host.empty()) {
