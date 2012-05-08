@@ -67,7 +67,6 @@ bool PayloadHTTP::readline(std::string& line) {
 }
 
 bool PayloadHTTP::read(char* buf,int64_t& size) {
-char* ss = buf;
   if(tbuflen_ >= size) {
     memcpy(buf,tbuf_,size);
     memmove(tbuf_,tbuf_+size,tbuflen_-size+1);
@@ -428,7 +427,7 @@ bool PayloadHTTP::parse_header(void) {
     std::string line;
     for(;;) {
       if(!readline_chunked(line)) return false;
-      if(line.length() >= multipart_tag_.length()) {
+      if(line.length() == multipart_tag_.length()) {
         if(strncmp(line.c_str(),multipart_tag_.c_str(),multipart_tag_.length()) == 0) {
           multipart_ = MULTIPART_BODY;
           break;
@@ -836,6 +835,7 @@ bool PayloadHTTP::Truncate(PayloadRawInterface::Size_t size) {
 }
 
 bool PayloadHTTP::Get(char* buf,int& size) {
+  if(!valid_) return false;
   if(fetched_) {
     // Read from buffers
     uint64_t bo = 0;
