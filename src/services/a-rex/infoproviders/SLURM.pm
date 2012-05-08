@@ -253,6 +253,7 @@ sub slurm_parse_number($){
 sub slurm_get_first_node($){
     my $nodes = shift;
     my @enodes = split(",", slurm_expand_nodes($nodes));
+    return " NoNode " if ! @enodes;
     return $enodes[0];
 }
 #translates a list like n[1-2,5],n23,n[54-55] to n1,n2,n5,n23,n54,n55 

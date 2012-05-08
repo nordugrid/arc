@@ -144,7 +144,7 @@ sub delete_empty($) {
     my $hashref = shift;
     foreach my $k ( keys %$hashref) {
         delete $hashref->{$k}
-            if $hashref->{$k} eq '';
+            if ! defined $hashref->{$k} || $hashref->{$k} eq '';
     }
     return $hashref;
 }
