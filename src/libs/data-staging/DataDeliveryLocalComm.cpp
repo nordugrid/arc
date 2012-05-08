@@ -54,21 +54,26 @@ namespace DataStaging {
       // maybe just nordugrid_libexec_loc_?
       std::string execpath = Arc::ArcLocation::Get()+G_DIR_SEPARATOR_S+PKGLIBEXECSUBDIR+G_DIR_SEPARATOR_S+"DataStagingDelivery";
       args.push_back(execpath);
+
       // check for alternative source or destination eg cache, mapped URL, TURL
-      if (dtr->get_source()->TransferLocations().empty()) {
+      std::string surl;
+      if (!dtr->get_mapped_source().empty()) {
+        surl = dtr->get_mapped_source();
+      }
+      else if (!dtr->get_source()->TransferLocations().empty()) {
+        surl = dtr->get_source()->TransferLocations()[0].fullstr();
+      }
+      else {
         logger_->msg(Arc::ERROR, "DTR %s: No locations defined for %s", dtr_id, dtr->get_source()->str());
         return;
       }
-      std::string surl = dtr->get_source()->TransferLocations()[0].fullstr();
-      bool caching = false;
-      if (!dtr->get_mapped_source().empty())
-        surl = dtr->get_mapped_source();
 
       if (dtr->get_destination()->TransferLocations().empty()) {
         logger_->msg(Arc::ERROR, "DTR %s: No locations defined for %s", dtr_id, dtr->get_destination()->str());
         return;
       }
       std::string durl = dtr->get_destination()->TransferLocations()[0].fullstr();
+      bool caching = false;
       if ((dtr->get_cache_state() == CACHEABLE) && !dtr->get_cache_file().empty()) {
         durl = dtr->get_cache_file();
         caching = true;
