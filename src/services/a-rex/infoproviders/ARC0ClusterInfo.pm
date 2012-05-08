@@ -331,7 +331,13 @@ sub collect($) {
             $q->{defaultwalltime} = int $qinfo->{defaultwallt}/60 if defined $qinfo->{defaultwallt};
             $q->{running} = $qinfo->{running} if defined $qinfo->{running};
             $q->{gridrunning} = $gridrunning{$share} || 0;   
-            $q->{gridqueued} = $gridqueued{$share} || 0;    
+            $q->{gridqueued} = $gridqueued{$share} || 0;
+            if ( $qinfo->{queued} >= ( $gridqueued{$share} || 0 ) ) {
+                $q->{localqueued} = ($qinfo->{queued} - ( $gridqueued{$share} || 0 ));
+            }
+            else {
+                $q->{localqueued} = 0;
+            }  
             $q->{localqueued} = ($qinfo->{queued} - ( $gridqueued{$share} || 0 ));   
             $q->{prelrmsqueued} = $prelrmsqueued{$share} || 0;
             if ( $sconfig->{totalcpus} ) {

@@ -1701,6 +1701,9 @@ sub collect($) {
         # Substract grid jobs submitted belonging to shares that submit to the same lrms queue
         $localrunning -= $inlrmsjobs{$_}{running} || 0 for @{$sconfig->{siblingshares}};
         $localqueued -= $inlrmsjobs{$_}{queued} || 0 for @{$sconfig->{siblingshares}};
+        if ( $localqueued < 0 ) {
+             $localqueued = 0;
+        }
         $localsuspended -= $inlrmsjobs{$_}{suspended} || 0 for @{$sconfig->{siblingshares}};
 
         # OBS: Finished/failed/deleted jobs are not counted
