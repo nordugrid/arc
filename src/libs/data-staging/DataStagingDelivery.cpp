@@ -404,6 +404,10 @@ int main(int argc,char* argv[]) {
                      0,0);
         reported = true;
         eof_reached = false; // TODO general error flag is better than this
+        // Delete destination
+        if (!dest->Remove().Passed()) {
+          logger.msg(WARNING, "Failed cleaning up destination %s", dest->GetURL().str());
+        }
       }
       else
         logger.msg(INFO, "Calculated transfer checksum %s matches source checksum", calc_csum);
