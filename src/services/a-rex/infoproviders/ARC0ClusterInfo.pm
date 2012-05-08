@@ -332,13 +332,10 @@ sub collect($) {
             $q->{running} = $qinfo->{running} if defined $qinfo->{running};
             $q->{gridrunning} = $gridrunning{$share} || 0;   
             $q->{gridqueued} = $gridqueued{$share} || 0;
-            if ( $qinfo->{queued} >= ( $gridqueued{$share} || 0 ) ) {
-                $q->{localqueued} = ($qinfo->{queued} - ( $gridqueued{$share} || 0 ));
-            }
-            else {
+            $q->{localqueued} = ($qinfo->{queued} - ( $gridqueued{$share} || 0 ));
+            if ( $q->{localqueued} < 0 ) {
                 $q->{localqueued} = 0;
             }  
-            $q->{localqueued} = ($qinfo->{queued} - ( $gridqueued{$share} || 0 ));   
             $q->{prelrmsqueued} = $prelrmsqueued{$share} || 0;
             if ( $sconfig->{totalcpus} ) {
                 $q->{totalcpus} = $sconfig->{totalcpus}; # orphan
