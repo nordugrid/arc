@@ -420,7 +420,11 @@ sub write_gluece_entries(){
 	    # currently running and jobs that are waiting. Formula
 	    # aquired from Kalle Happonen and the "NDGF BDII" for LHC
 	    # T1 services
-	    $estRespTime = int(600 + ($queue_attributes{'nordugrid-queue-running'} /$queue_attributes{'nordugrid-queue-maxrunning'}) *3600 + ($waitingJobs /$queue_attributes{'nordugrid-queue-maxrunning'}) * 600 );
+	    if ( $queue_attributes{'nordugrid-queue-maxrunning'} ne $DEFAULT ) {
+           $estRespTime = int(600 + ($queue_attributes{'nordugrid-queue-running'} /$queue_attributes{'nordugrid-queue-maxrunning'}) *3600 + ($waitingJobs /$queue_attributes{'nordugrid-queue-maxrunning'}) * 600 );
+        } else {
+           $estRespTime = $DEFAULT;
+        }
 	    $worstRespTime = $estRespTime + 2000;
 	    my @vos= split / /, $cluster_attributes{'nordugrid-cluster-acl'};
 
