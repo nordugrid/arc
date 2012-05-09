@@ -11,6 +11,12 @@
 namespace Arc {
 
   /**
+   * Provides access to the gLite Grid File Access Library through ARC's API.
+   * Only rfio:// protocol is supported at the moment.
+   *
+   * Notes on env variables:
+   *  - If LFC plugin is installed LFC_HOST must be set (lcgutils bug 322)
+   *  - If SRM is used LCG_GFAL_INFOSYS must be set to BDII host:port
    *
    * This class is a loadable module and cannot be used directly. The DataHandle
    * class loads modules at runtime and should be used instead of this.
