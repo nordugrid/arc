@@ -57,7 +57,7 @@ is_cluster=true
 echo "#!/bin/bash -l" > $LRMS_JOB_SCRIPT
 echo "# SLURM batch job script built by grid-manager" >> $LRMS_JOB_SCRIPT
 
-# rerun is handled by GM, do not let SLURM rqueue jobs itself.
+# rerun is handled by GM, do not let SLURM requeue jobs itself.
 echo "#SBATCH --no-requeue" >> $LRMS_JOB_SCRIPT
 
 # write SLURM output to 'comment' file

@@ -527,8 +527,12 @@ sub jobs_info ($$@) {
             $lrms_jobs{$id}{cputime} = floor(($job{lc 'RemoteUserCpu'} + $job{lc 'RemoteSysCpu'}) / 60);
             $lrms_jobs{$id}{nodes} = [$job{lc 'LastRemoteHost'}];
             $lrms_jobs{$id}{nodes} = [$job{lc 'RemoteHost'}] if $job{lc 'RemoteHost'};
-            $lrms_jobs{$id}{reqwalltime} = floor($job{lc 'JobTimeLimit'} / 60); # caller knows these better
-            $lrms_jobs{$id}{reqcputime} = floor($job{lc 'JobCpuLimit'} / 60); # caller knows these better
+            if (defined $job{lc 'JobTimeLimit'}) {
+                $lrms_jobs{$id}{reqwalltime} = floor($job{lc 'JobTimeLimit'} / 60); # caller knows these better
+            }
+            if (defined $job{lc 'JobCpuLimit'}) {
+                $lrms_jobs{$id}{reqcputime} = floor($job{lc 'JobCpuLimit'} / 60); # caller knows these better
+            }
             $lrms_jobs{$id}{rank} = rank($id0) ? rank($id0) : '';
             $lrms_jobs{$id}{comment} = []; # TODO
             $lrms_jobs{$id}{cpus} = $job{lc 'CurrentHosts'};
