@@ -100,10 +100,10 @@ int RUNMAIN(arcclean)(int argc, char **argv) {
     jobmaster.SelectByStatus(opt.status);
   }
 
-  if (jobmaster.GetSelectedJobs().empty()) {
-    std::cout << Arc::IString("No jobs") << std::endl;
-    return 1;
-  }
+  //if (jobmaster.GetSelectedJobs().empty()) {
+  //  std::cout << Arc::IString("No jobs") << std::endl;
+  //  return 1;
+  //}
 
   int retval = (int)!jobmaster.Clean();
 
@@ -136,9 +136,15 @@ int RUNMAIN(arcclean)(int argc, char **argv) {
     }
   }
 
+
   if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), cleaned)) {
     std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
     std::cout << Arc::IString("         Run 'arcclean -s Undefined' to remove cleaned jobs from job list", usercfg.JobListFile()) << std::endl;
+  }
+
+  if (cleaned.empty() && notcleaned.empty()) {
+    std::cout << Arc::IString("No jobs") << std::endl;
+    return 1;
   }
 
   std::cout << Arc::IString("Jobs processed: %d, deleted: %d", cleaned.size()+notcleaned.size(), cleaned.size()) << std::endl;
