@@ -899,11 +899,16 @@ void InfoRegistrar::sendRegistrationToEMIREG() {
                 } else {
                     if( http_info.code == 200 )  {
                         logger_.msg(VERBOSE, "Successful %s to EMIRegistry (%s)", method, id_);
+                        already_registered = true;
                         delete http_response;
                         break;
                     } else {
                         std::string method2 = already_registered ? "update" : "register";
                         logger_.msg(VERBOSE, "Failed to %s to EMIRegistry (%s) - %d", method2, id_, http_info.code );
+                        if ( retry_ == 1 ) {
+                            // Already registration need becasue the entry expired (and removed) on the EMIR.
+                            already_registered = false;
+                        }
                     }
                 }
                 retry_--;
@@ -912,7 +917,6 @@ void InfoRegistrar::sendRegistrationToEMIREG() {
                 sleep(1);
             }
         }
-        already_registered = true;
         // end of the connection with the EMIRegistry
 
         // Thread sleeping
