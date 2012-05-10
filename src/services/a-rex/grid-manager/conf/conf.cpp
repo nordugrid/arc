@@ -8,25 +8,6 @@
 #include "../misc/escaped.h"
 #include "environment.h"
 
-#if defined __GNUC__ && __GNUC__ >= 3
-
-#include <limits>
-#define istream_readline(__f,__s,__n) {      \
-   __f.get(__s,__n,__f.widen('\n'));         \
-   if(__f.fail()) __f.clear();               \
-   __f.ignore(std::numeric_limits<std::streamsize>::max(), __f.widen('\n')); \
-}
-
-#else
-
-#define istream_readline(__f,__s,__n) {      \
-   __f.get(__s,__n,'\n');         \
-   if(__f.fail()) __f.clear();               \
-   __f.ignore(INT_MAX,'\n'); \
-}
-
-#endif
-
 bool config_open(std::ifstream &cfile,const GMEnvironment& env) {
   return config_open(cfile,env.nordugrid_config_loc());
 }
@@ -49,15 +30,11 @@ std::string config_read_line(std::istream &cfile,std::string &rest,char separato
 std::string config_read_line(std::istream &cfile) {
   std::string rest;
   for(;;) {
-    if(cfile.eof()) { rest=""; return rest; };
-    {
-      char buf[4096];
-      istream_readline(cfile,buf,sizeof(buf));
-      rest=buf;
-    };
-    std::string::size_type n=rest.find_first_not_of(" \t");
-    if(n == std::string::npos) continue; /* empty string - skip */
-    if(rest[n] == '#') continue; /* comment - skip */
+    if(cfile.eof() || cfile.fail()) { rest=""; return rest; };
+    std::getline(cfile,rest);
+    Arc::trim(rest," \t\r\n");
+    if(rest.empty()) continue; /* empty string - skip */
+    if(rest[0] == '#') continue; /* comment - skip */
     break;
   };
   return rest;

@@ -4,38 +4,21 @@
 
 #include <string>
 #include <fstream>
+#include <arc/StringConv.h>
 #include "environment.h"
 #include "conf.h"
 #include "gridmap.h"
 
-#if defined __GNUC__ && __GNUC__ >= 3
-
-#include <limits>
-#define istream_readline(__f,__s,__n) {      \
-   __f.get(__s,__n,__f.widen('\n'));         \
-   if(__f.fail()) __f.clear();               \
-   __f.ignore(std::numeric_limits<std::streamsize>::max(), __f.widen('\n')); \
-}
-
-#else
-
-#define istream_readline(__f,__s,__n) {      \
-   __f.get(__s,__n,'\n');         \
-   if(__f.fail()) __f.clear();               \
-   __f.ignore(INT_MAX,'\n'); \
-}
-
-#endif
 
 namespace gridftpd {
 
   bool file_user_list(const std::string& path,std::string &ulist) {
     std::ifstream f(path.c_str());
     if(! f.is_open() ) return false;
-    for(;!f.eof();) {
-      char buf[512];
-      istream_readline(f,buf,sizeof(buf));
-      std::string rest = buf;
+    for(;!(f.eof() || f.fail());) {
+      std::string rest;
+      std::getline(f,rest);
+      Arc::trim(rest," \t\r\n");
       std::string name = "";
       for(;rest.length() != 0;) {
         name=config_next_arg(rest);
@@ -58,10 +41,10 @@ namespace gridftpd {
   bool file_user_list(const std::string& path,std::list<std::string> &ulist) {
     std::ifstream f(path.c_str());
     if(! f.is_open() ) return false;
-    for(;!f.eof();) {
-      char buf[512];
-      istream_readline(f,buf,sizeof(buf));
-      std::string rest = buf;
+    for(;!(f.eof() || f.fail());) {
+      std::string rest;
+      std::getline(f,rest);
+      Arc::trim(rest," \t\r\n");
       std::string name = "";
       for(;rest.length() != 0;) {
         name=config_next_arg(rest);

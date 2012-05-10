@@ -33,25 +33,6 @@
 #include "info_types.h"
 #include "info_files.h"
 
-#if defined __GNUC__ && __GNUC__ >= 3
-
-#define istream_readline(__f,__s,__n) {      \
-   __f.get(__s,__n,__f.widen('\n'));         \
-   if(__f.fail()) __f.clear();               \
-   __f.ignore(std::numeric_limits<std::streamsize>::max(), __f.widen('\n')); \
-}
-
-#else
-
-#define istream_readline(__f,__s,__n) {      \
-   __f.get(__s,__n,'\n');         \
-   if(__f.fail()) __f.clear();               \
-   __f.ignore(INT_MAX,'\n'); \
-}
-
-#endif
-
-
 const char * const sfx_failed      = ".failed";
 const char * const sfx_cancel      = ".cancel";
 const char * const sfx_restart     = ".restart";

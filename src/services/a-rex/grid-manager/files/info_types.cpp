@@ -19,25 +19,6 @@
 #include "../misc/escaped.h"
 #include "info_types.h"
 
-#if defined __GNUC__ && __GNUC__ >= 3
-
-#include <limits>
-#define istream_readline(__f,__s,__n) {      \
-   __f.get(__s,__n,__f.widen('\n'));         \
-   if(__f.fail()) __f.clear();               \
-   __f.ignore(std::numeric_limits<std::streamsize>::max(), __f.widen('\n')); \
-}
-
-#else
-
-#define istream_readline(__f,__s,__n) {      \
-   __f.get(__s,__n,'\n');         \
-   if(__f.fail()) __f.clear();               \
-   __f.ignore(INT_MAX,'\n'); \
-}
-
-#endif
-
 static Glib::Mutex local_lock;
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
@@ -98,12 +79,13 @@ std::ostream &operator<< (std::ostream &o,const FileData &fd) {
 }
 
 std::istream &operator>> (std::istream &i,FileData &fd) {
-  char buf[1024];
-  istream_readline(i,buf,sizeof(buf));
+  std::string buf;
+  std::getline(i,buf);
+  Arc::trim(buf," \t\r\n");
   fd.pfn.resize(0); fd.lfn.resize(0); fd.cred.resize(0);
-  int n=input_escaped_string(buf,fd.pfn);
-  n+=input_escaped_string(buf+n,fd.lfn);
-  n+=input_escaped_string(buf+n,fd.cred);
+  int n=input_escaped_string(buf.c_str(),fd.pfn);
+  n+=input_escaped_string(buf.c_str()+n,fd.lfn);
+  n+=input_escaped_string(buf.c_str()+n,fd.cred);
   if((fd.pfn.length() == 0) && (fd.lfn.length() == 0)) return i; /* empty st */
   if(!Arc::CanonicalDir(fd.pfn)) {
     logger.msg(Arc::ERROR,"Wrong directory in %s",buf);
@@ -402,8 +384,11 @@ bool LRMSResult::set(const char* s) {
 }
 
 std::istream& operator>>(std::istream& i,LRMSResult &r) {
-  char buf[1025]; // description must have reasonable size
-  if(i.eof()) { buf[0]=0; } else { istream_readline(i,buf,sizeof(buf)); };
+  std::string buf;
+  if(i.eof() || i.fail()) {
+  } else {
+    std::getline(i,buf);
+  };
   r=buf;
   return i;
 }

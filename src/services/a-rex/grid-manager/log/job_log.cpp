@@ -14,24 +14,6 @@
 #include "job_log.h"
 #include <unistd.h>
 
-#if defined __GNUC__ && __GNUC__ >= 3
-
-#include <limits>
-#define istream_readline(__f,__s,__n) {      \
-   __f.get(__s,__n,__f.widen('\n'));         \
-   if(__f.fail()) __f.clear();               \
-   __f.ignore(std::numeric_limits<std::streamsize>::max(), __f.widen('\n')); \
-}
-
-#else
-
-#define istream_readline(__f,__s,__n) {      \
-   __f.get(__s,__n,'\n');         \
-   if(__f.fail()) __f.clear();               \
-   __f.ignore(INT_MAX,'\n'); \
-}
-
-#endif
 
 JobLog::JobLog(void):filename(""),proc(NULL),last_run(0),ex_period(0) {
 }
@@ -113,12 +95,12 @@ bool JobLog::finish_info(JobDescription &job,const JobUser &user) {
 bool JobLog::read_info(std::fstream &i,bool &processed,bool &jobstart,struct tm &t,JobId &jobid,JobLocalDescription &job_desc,std::string &failure) {
   processed=false;
   if(!i.is_open()) return false;
-  char line[4096];
+  std::string line;
   std::streampos start_p=i.tellp();
-  istream_readline(i,line,sizeof(line));
+  std::getline(i,line);
   std::streampos end_p=i.tellp();
-  if((line[0] == 0) || (line[0] == '*')) { processed=true; return true; };
-  char* p = line;
+  if(line.empty() || (line[0] == '*')) { processed=true; return true; };
+  const char* p = line.c_str();
   if((*p) == ' ') p++;
   // struct tm t;
   /* read time */
@@ -143,13 +125,13 @@ bool JobLog::read_info(std::fstream &i,bool &processed,bool &jobstart,struct tm 
     return false;
   };
   /* read values */
-  char* name;
+  std::string name;
   char* value;
   char* pp;
   for(;;) {
     for(;(*p) && ((*p)==' ');p++) {} if(!(*p)) break;
     if((pp=strchr(p,':')) == NULL) break;
-    name=p; (*pp)=0; pp++;
+    name.assign(p,pp-p); pp++;
     for(;(*pp) && ((*pp)==' ');pp++) {}
     value=pp;
     if((*value) == '"') {
@@ -163,21 +145,21 @@ bool JobLog::read_info(std::fstream &i,bool &processed,bool &jobstart,struct tm 
     };
     p=pp;
     /* use name:value pair */
-    if(strcasecmp("job id",name) == 0) {
+    if(strcasecmp("job id",name.c_str()) == 0) {
       jobid=value;
-    } else if(strcasecmp("name",name) == 0) {
+    } else if(strcasecmp("name",name.c_str()) == 0) {
       job_desc.jobname=value;
-    } else if(strcasecmp("unix user",name) == 0) {
+    } else if(strcasecmp("unix user",name.c_str()) == 0) {
 
-    } else if(strcasecmp("owner",name) == 0) {
+    } else if(strcasecmp("owner",name.c_str()) == 0) {
       job_desc.DN=value;
-    } else if(strcasecmp("lrms",name) == 0) {
+    } else if(strcasecmp("lrms",name.c_str()) == 0) {
       job_desc.lrms=value;
-    } else if(strcasecmp("queue",name) == 0) {
+    } else if(strcasecmp("queue",name.c_str()) == 0) {
       job_desc.queue=value;
-    } else if(strcasecmp("lrmsid",name) == 0) {
+    } else if(strcasecmp("lrmsid",name.c_str()) == 0) {
       job_desc.localid=value;
-    } else if(strcasecmp("failure",name) == 0) {
+    } else if(strcasecmp("failure",name.c_str()) == 0) {
       failure=value;
     } else {
 

@@ -25,26 +25,6 @@
 
 // TODO: move to using process_job_req as much as possible
 
-#if defined __GNUC__ && __GNUC__ >= 3
-
-#include <limits>
-#define istream_readline(__f,__s,__n) {      \
-   __f.get(__s,__n,__f.widen('\n'));         \
-   if(__f.fail()) __f.clear();               \
-   __f.ignore(std::numeric_limits<std::streamsize>::max(), __f.widen('\n')); \
-}
-
-#else
-
-#define istream_readline(__f,__s,__n) {      \
-   __f.get(__s,__n,'\n');         \
-   if(__f.fail()) __f.clear();               \
-   __f.ignore(INT_MAX,'\n'); \
-}
-
-#endif
-
-
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 typedef enum {
@@ -193,18 +173,19 @@ std::string read_grami(const JobId &job_id,const JobUser &user) {
   const char* local_id_param = "joboption_jobid=";
   int l = strlen(local_id_param);
   std::string id = "";
-  char buf[256];
   std::string fgrami = user.ControlDir() + "/job." + job_id + ".grami";
   std::ifstream f(fgrami.c_str());
   if(!f.is_open()) return id;
-  for(;!f.eof();) {
-    istream_readline(f,buf,sizeof(buf));
-    if(strncmp(local_id_param,buf,l)) continue;
-    if(buf[0]=='\'') {
-      l++; int ll = strlen(buf);
-      if(buf[ll-1]=='\'') buf[ll-1]=0;
+  for(;!(f.eof() || f.fail());) {
+    std::string buf;
+    std::getline(f,buf);
+    Arc::trim(buf," \t\r\n");
+    if(strncmp(local_id_param,buf.c_str(),l)) continue;
+    if(buf[l]=='\'') {
+      l++; int ll = buf.length();
+      if(buf[ll-1]=='\'') buf.resize(ll-1);
     };
-    id=buf+l; break;
+    id=buf.substr(l); break;
   };
   f.close();
   return id;
