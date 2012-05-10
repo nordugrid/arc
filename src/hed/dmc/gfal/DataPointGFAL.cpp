@@ -33,6 +33,27 @@
 
 namespace Arc {
 
+  /// Class for locking environment while calling gfal functions.
+  class GFALEnvLocker: public CertEnvLocker {
+  public:
+    static Logger logger;
+    GFALEnvLocker(const UserConfig& usercfg): CertEnvLocker(usercfg) {
+      EnvLockUnwrap(false);
+      // if root, we have to set X509_USER_CERT and X509_USER_KEY to
+      // X509_USER_PROXY to force GFAL to use the proxy. If they are undefined
+      // it uses the host cert and key.
+      if (getuid() == 0 && !GetEnv("X509_USER_PROXY").empty()) {
+        SetEnv("X509_USER_KEY", GetEnv("X509_USER_PROXY"), true);
+        SetEnv("X509_USER_CERT", GetEnv("X509_USER_PROXY"), true);
+      }
+      logger.msg(DEBUG, "Using proxy %s", GetEnv("X509_USER_PROXY"));
+      logger.msg(DEBUG, "Using key %s", GetEnv("X509_USER_KEY"));
+      logger.msg(DEBUG, "Using cert %s", GetEnv("X509_USER_CERT"));
+      EnvLockWrap(false);
+    }
+  };
+
+  Logger GFALEnvLocker::logger(Logger::getRootLogger(), "GFALEnvLocker");
 
   static char const * const stdfds[] = {
     "stdin",
@@ -71,10 +92,14 @@ namespace Arc {
     reading = true;
     
     // Open the file
-    if ((fd = gfal_open(url.plainstr().c_str(), O_RDONLY, 0)) < 0) {
-      logger.msg(ERROR, "gfal_open failed: %s", StrError(errno));
-      reading = false;
-      return DataStatus::ReadStartError;
+    {
+      GFALEnvLocker gfal_lock(usercfg);
+      if ((fd = gfal_open(url.plainstr().c_str(), O_RDONLY, 0)) < 0) {
+        logger.msg(ERROR, "gfal_open failed: %s", StrError(errno));
+        log_gfal_err();
+        reading = false;
+        return DataStatus::ReadStartError;
+      }
     }
     
     // Remember the DataBuffer we got: the separate reading thread will use it
@@ -176,18 +201,23 @@ namespace Arc {
     if (writing) return DataStatus::IsWritingError;
     writing = true;
 
-    // Create the parent directory
-    URL parent_url = URL(url.plainstr());
-    parent_url.ChangePath(Glib::path_get_dirname(url.Path()));
-    if (gfal_mkdir(parent_url.plainstr().c_str(), 0700) < 0) {
-      logger.msg(DEBUG, "Failed to create parent directory, continuing anyway: %s", StrError(errno));
-    }
+    {
+      GFALEnvLocker gfal_lock(usercfg);
 
-    // Open the file
-    if ((fd = gfal_open(url.plainstr().c_str(), O_WRONLY | O_CREAT, 0600)) < 0) {
-      logger.msg(ERROR, "gfal_open failed: %s", StrError(errno));
-      writing = false;
-      return DataStatus::WriteStartError;
+      // Create the parent directory
+      URL parent_url = URL(url.plainstr());
+      parent_url.ChangePath(Glib::path_get_dirname(url.Path()));
+      if (gfal_mkdir(parent_url.plainstr().c_str(), 0700) < 0) {
+        logger.msg(DEBUG, "Failed to create parent directory, continuing anyway: %s", StrError(errno));
+      }
+
+      // Open the file
+      if ((fd = gfal_open(url.plainstr().c_str(), O_WRONLY | O_CREAT, 0600)) < 0) {
+        logger.msg(ERROR, "gfal_open failed: %s", StrError(errno));
+        log_gfal_err();
+        writing = false;
+        return DataStatus::WriteStartError;
+      }
     }
     
     // Remember the DataBuffer we got, the separate writing thread will use it
@@ -300,10 +330,17 @@ namespace Arc {
     return DataStatus::Success;
   }  
   
-  static DataStatus do_stat(URL stat_url, FileInfo& file) {
+  DataStatus DataPointGFAL::do_stat(URL stat_url, FileInfo& file) {
     struct stat st;
-    if (gfal_stat(stat_url.plainstr().c_str(), &st) < 0) {
-      return DataStatus::StatError;
+
+    {
+      GFALEnvLocker gfal_lock(usercfg);
+
+      if (gfal_stat(stat_url.plainstr().c_str(), &st) < 0) {
+        logger.msg(ERROR, "gfal_stat failed: %s", StrError(errno));
+        log_gfal_err();
+        return DataStatus::StatError;
+      }
     }
 
     if(S_ISREG(st.st_mode)) {
@@ -367,9 +404,13 @@ namespace Arc {
     // Open the directory
     struct dirent *d;
     DIR *dir;    
-    if ((dir = gfal_opendir(url.plainstr().c_str())) == NULL) {
-      logger.msg(ERROR, "gfal_opendir failed: %s", StrError(errno));
-      return DataStatus::ListError;
+    {
+      GFALEnvLocker gfal_lock(usercfg);
+      if ((dir = gfal_opendir(url.plainstr().c_str())) == NULL) {
+        logger.msg(ERROR, "gfal_opendir failed: %s", StrError(errno));
+        log_gfal_err();
+        return DataStatus::ListError;
+      }
     }
     
     // Loop over the content of the directory
@@ -409,28 +450,42 @@ namespace Arc {
     DataStatus status_from_stat = do_stat(url, file);
     if (status_from_stat != DataStatus::Success)
       return DataStatus::DeleteError;
-    if (file.GetType() == FileInfo::file_type_dir) {
-      if (gfal_rmdir(url.plainstr().c_str()) < 0) {
-        logger.msg(ERROR, "gfal_rmdir failed: %s", StrError(errno));
-        return DataStatus::DeleteError;
-      }      
-    } else {
-      if (gfal_unlink(url.plainstr().c_str()) < 0) {
-        logger.msg(ERROR, "gfal_unlink failed: %s", StrError(errno));
-        return DataStatus::DeleteError;
+    {
+      GFALEnvLocker gfal_lock(usercfg);
+
+      if (file.GetType() == FileInfo::file_type_dir) {
+        if (gfal_rmdir(url.plainstr().c_str()) < 0) {
+          logger.msg(ERROR, "gfal_rmdir failed: %s", StrError(errno));
+          log_gfal_err();
+          return DataStatus::DeleteError;
+        }
+      } else {
+        if (gfal_unlink(url.plainstr().c_str()) < 0) {
+          logger.msg(ERROR, "gfal_unlink failed: %s", StrError(errno));
+          log_gfal_err();
+          return DataStatus::DeleteError;
+        }
       }
     }
     return DataStatus::Success;
   }
   
   DataStatus DataPointGFAL::CreateDirectory(bool with_parents) {
+
+    GFALEnvLocker gfal_lock(usercfg);
     if (gfal_mkdir(url.plainstr().c_str(), 0700) < 0) {
       logger.msg(ERROR, "gfal_mkdir failed: %s", StrError(errno));
+      log_gfal_err();
       return DataStatus::CreateDirectoryError;
     }
     return DataStatus::Success;    
   }
   
+  void DataPointGFAL::log_gfal_err() {
+    char errbuf[2048];
+    gfal_posix_strerror_r(errbuf, sizeof(errbuf));
+    logger.msg(ERROR, errbuf);
+  }
 
 } // namespace Arc
 
