@@ -112,7 +112,7 @@ namespace Arc {
       logger.msg(ERROR, "Failed to create reading thread");
       if (fd != -1) {
         if (gfal_close(fd) < 0) {
-          logger.msg(ERROR, "gfal_close failed: %s", StrError(errno));
+          logger.msg(WARNING, "gfal_close failed: %s", StrError(errno));
         }
       }
       reading = false;
@@ -135,14 +135,15 @@ namespace Arc {
       if (!buffer->for_read(handle, length, true)) {
         buffer->error_read(true);
         break;
-      }      
-      
+      }
+
       // Read into the buffer
       bytes_read = gfal_read(fd, (*(buffer))[handle], length);
             
       // If there was an error
       if (bytes_read < 0) {
         logger.msg(ERROR, "gfal_read failed: %s", StrError(errno));
+        log_gfal_err();
         buffer->error_read(true);
         break;
       }
@@ -164,8 +165,9 @@ namespace Arc {
     // Close the file
     if (fd != -1) {
       if (gfal_close(fd) < 0) {
-        logger.msg(ERROR, "gfal_close failed: %s", StrError(errno));
+        logger.msg(WARNING, "gfal_close failed: %s", StrError(errno));
       }
+      fd = -1;
     }
     // Signal that we finished reading (even if there was an error)
     transfer_condition.signal();
@@ -174,21 +176,21 @@ namespace Arc {
   DataStatus DataPointGFAL::StopReading() {
     if (!reading) return DataStatus::ReadStopError;
     reading = false;
-    // If the reading is not finished yet
-    if (!buffer->eof_read()) {
-      // Trigger reading error
-      buffer->error_read(true);
-      // Close the file
-      if (fd != -1) {
-        if (gfal_close(fd) < 0) {
-          logger.msg(ERROR, "gfal_close failed: %s", StrError(errno));
-        }
-      }
-    }
+    // If the reading is not finished yet trigger reading error
+    if (!buffer->eof_read()) buffer->error_read(true);
+
     // Wait for the reading thread to finish
     logger.msg(DEBUG, "StopReading starts waiting for transfer_condition.");
     transfer_condition.wait();
     logger.msg(DEBUG, "StopReading finished waiting for transfer_condition.");
+
+    // Close the file if not already done
+    if (fd != -1) {
+      if (gfal_close(fd) < 0) {
+        logger.msg(WARNING, "gfal_close failed: %s", StrError(errno));
+      }
+      fd = -1;
+    }
     // If there was an error (maybe we triggered it)
     if (buffer->error_read())
       return DataStatus::ReadError;
@@ -230,7 +232,7 @@ namespace Arc {
       logger.msg(ERROR, "Failed to create writing thread");
       if (fd != -1) {
         if (gfal_close(fd) < 0) {
-          logger.msg(ERROR, "gfal_close failed: %s", StrError(errno));
+          logger.msg(WARNING, "gfal_close failed: %s", StrError(errno));
         }
       }
       writing = false;
@@ -262,7 +264,7 @@ namespace Arc {
         }
         break;
       }      
-      
+
       // if the buffer gives different position than we are currently in the
       // destination, then we have to seek there
       if (position != offset) {
@@ -290,6 +292,7 @@ namespace Arc {
       // if there was an error during writing
       if (bytes_written < 0) {
         logger.msg(ERROR, "gfal_write failed: %s", StrError(errno));
+        log_gfal_err();
         buffer->error_write(true);
         break;
       }
@@ -298,8 +301,9 @@ namespace Arc {
     // Close the file
     if (fd != -1) {
       if (gfal_close(fd) < 0) {
-        logger.msg(ERROR, "gfal_close failed: %s", StrError(errno));
+        logger.msg(WARNING, "gfal_close failed: %s", StrError(errno));
       }
+      fd = -1;
     }
     // Signal that we finished writing (even if there was an error)
     transfer_condition.signal();
@@ -309,21 +313,21 @@ namespace Arc {
     if (!writing) return DataStatus::WriteStopError;
     writing = false;
     
-    // If the writing is not finished
-    if (!buffer->eof_write()) {
-      // Trigger error
-      buffer->error_write(true);
-      // Close the file
-      if (fd != -1) {
-        if (gfal_close(fd) < 0) {
-          logger.msg(ERROR, "gfal_close failed: %s", StrError(errno));
-        }
-      }
-    }
+    // If the writing is not finished, trigger writing error
+    if (!buffer->eof_write()) buffer->error_write(true);
+
     // Wait until the writing thread finishes
     logger.msg(DEBUG, "StopWriting starts waiting for transfer_condition.");
     transfer_condition.wait();
     logger.msg(DEBUG, "StopWriting finished waiting for transfer_condition.");
+
+    // Close the file if not done already
+    if (fd != -1) {
+      if (gfal_close(fd) < 0) {
+        logger.msg(WARNING, "gfal_close failed: %s", StrError(errno));
+      }
+      fd = -1;
+    }
     // If there was an error (maybe we triggered it)
     if (buffer->error_write())
       return DataStatus::WriteError;
@@ -436,7 +440,7 @@ namespace Arc {
     
     // Then close the dir
     if (gfal_closedir (dir) < 0) {
-      logger.msg(ERROR, "gfal_closedir failed: %s", StrError(errno));
+      logger.msg(WARNING, "gfal_closedir failed: %s", StrError(errno));
       return DataStatus::ListError;
     }
     
