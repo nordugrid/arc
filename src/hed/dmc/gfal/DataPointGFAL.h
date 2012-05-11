@@ -37,7 +37,7 @@ namespace Arc {
     virtual DataStatus Remove();
     virtual DataStatus CreateDirectory(bool with_parents=false);
   private:
-    DataStatus do_stat(URL stat_url, FileInfo& file);
+    DataStatus do_stat(const URL& stat_url, FileInfo& file);
     void log_gfal_err();
     static void read_file_start(void *object);
     void read_file();

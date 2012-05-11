@@ -208,7 +208,13 @@ namespace Arc {
 
       // Create the parent directory
       URL parent_url = URL(url.plainstr());
-      parent_url.ChangePath(Glib::path_get_dirname(url.Path()));
+      // For SRM the path can be given as SFN HTTP option
+      if ((url.Protocol() == "srm" && !url.HTTPOption("SFN").empty())) {
+        parent_url.AddHTTPOption("SFN", Glib::path_get_dirname(url.HTTPOption("SFN")), true);
+      } else {
+        parent_url.ChangePath(Glib::path_get_dirname(url.Path()));
+      }
+      // gfal_mkdir is always recursive
       if (gfal_mkdir(parent_url.plainstr().c_str(), 0700) < 0) {
         logger.msg(DEBUG, "Failed to create parent directory, continuing anyway: %s", StrError(errno));
       }
@@ -334,7 +340,7 @@ namespace Arc {
     return DataStatus::Success;
   }  
   
-  DataStatus DataPointGFAL::do_stat(URL stat_url, FileInfo& file) {
+  DataStatus DataPointGFAL::do_stat(const URL& stat_url, FileInfo& file) {
     struct stat st;
 
     {
@@ -358,6 +364,9 @@ namespace Arc {
     }
 
     std::string path = stat_url.Path();
+    // For SRM the path can be given as SFN HTTP Option
+    if ((stat_url.Protocol() == "srm" && !stat_url.HTTPOption("SFN").empty())) path = stat_url.HTTPOption("SFN");
+
     std::string name = Glib::path_get_basename(path);
     file.SetMetaData("path", path);
     file.SetName(name);
@@ -477,6 +486,7 @@ namespace Arc {
   DataStatus DataPointGFAL::CreateDirectory(bool with_parents) {
 
     GFALEnvLocker gfal_lock(usercfg);
+    // gfal_mkdir is always recursive
     if (gfal_mkdir(url.plainstr().c_str(), 0700) < 0) {
       logger.msg(ERROR, "gfal_mkdir failed: %s", StrError(errno));
       log_gfal_err();
@@ -489,6 +499,7 @@ namespace Arc {
     char errbuf[2048];
     gfal_posix_strerror_r(errbuf, sizeof(errbuf));
     logger.msg(ERROR, errbuf);
+    gfal_posix_clear_error();
   }
 
 } // namespace Arc
