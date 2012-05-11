@@ -126,8 +126,9 @@ bool JobLog::read_info(std::fstream &i,bool &processed,bool &jobstart,struct tm 
   };
   /* read values */
   std::string name;
-  char* value;
-  char* pp;
+  const char* value;
+  const char* pp;
+  // code below makes modiications directly in std::string. This is intentional.
   for(;;) {
     for(;(*p) && ((*p)==' ');p++) {} if(!(*p)) break;
     if((pp=strchr(p,':')) == NULL) break;
@@ -136,12 +137,12 @@ bool JobLog::read_info(std::fstream &i,bool &processed,bool &jobstart,struct tm 
     value=pp;
     if((*value) == '"') {
       value++;
-      pp=make_unescaped_string(value,'"');
+      pp=make_unescaped_string((char*)value,'"');
       for(;(*pp) && ((*pp) != ',');pp++) {}
       if((*pp)) pp++;
     } else {
       for(;(*pp) && ((*pp) != ',');pp++) {}
-      if((*pp)) { (*pp)=0; pp++; };
+      if((*pp)) { (*(char*)(pp))=0; pp++; };
     };
     p=pp;
     /* use name:value pair */

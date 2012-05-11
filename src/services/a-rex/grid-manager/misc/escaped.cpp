@@ -16,7 +16,7 @@ static int hextoint(unsigned char c) {
 }
 
 /// Remove escape chracters from string and decode \x## codes.
-/// Unescaped value of e is also treated as end of string 
+/// Unescaped value of e is also treated as end of string and is converted to \0
 char* make_unescaped_string(char* str,char e) {
   size_t l = 0;
   char* s_end = str;
