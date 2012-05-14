@@ -365,7 +365,7 @@ namespace Arc {
             break;
           if (!destination.IsIndex()) {
             // pfn has chance to be overwritten directly
-            logger.msg(ERROR, "Failed to delete %s but will still try to upload", del_url.str());
+            logger.msg(WARNING, "Failed to delete %s but will still try to copy", del_url.str());
             break;
           }
           logger.msg(INFO, "Failed to delete %s", del_url.str());
