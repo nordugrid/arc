@@ -273,13 +273,15 @@ bool JobsList::ActJobs(void) {
   bool once_more = false;
   bool postpone_preparing = false;
   bool postpone_finishing = false;
-  if((jcfg.max_jobs_processing != -1) && 
-     (!jcfg.use_local_transfer) && 
-     ((JOB_NUM_PROCESSING*3) > (jcfg.max_jobs_processing*2))) {
-    if(JOB_NUM_PREPARING > JOB_NUM_FINISHING) { 
-      postpone_preparing=true; 
-    } else if(JOB_NUM_PREPARING < JOB_NUM_FINISHING) {
-      postpone_finishing=true;
+  if (!(jcfg.use_new_data_staging && dtr_generator)) {
+    if((jcfg.max_jobs_processing != -1) && 
+       (!jcfg.use_local_transfer) && 
+       ((JOB_NUM_PROCESSING*3) > (jcfg.max_jobs_processing*2))) {
+      if(JOB_NUM_PREPARING > JOB_NUM_FINISHING) { 
+        postpone_preparing=true; 
+      } else if(JOB_NUM_PREPARING < JOB_NUM_FINISHING) {
+        postpone_finishing=true;
+      };
     };
   };
   // first pass - optionally skipping some states
