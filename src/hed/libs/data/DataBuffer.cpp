@@ -18,9 +18,9 @@ namespace Arc {
       return false;
     }
     if (bufs != NULL) {
-      for (int i = 0; i < bufs_n; i++)
-        if (bufs[i].start)
-          free(bufs[i].start);
+      for (int i = 0; i < bufs_n; i++) {
+        if (bufs[i].start) free(bufs[i].start);
+      }
       free(bufs);
       bufs_n = 0;
       bufs = NULL;
@@ -48,31 +48,29 @@ namespace Arc {
     //checksum = cksum;
     checksums.clear();
     checksums.push_back(checksum_desc(cksum));
-    if (cksum)
-      cksum->start();
+    if (cksum) cksum->start();
     lock.unlock();
     return true;
   }
 
   int DataBuffer::add(CheckSum *cksum) {
-    if (!cksum)
-      return -1;
+    if (!cksum) return -1;
     lock.lock();
     checksum_desc cs = cksum;
     cs.sum->start();
-    for (int i = 0; i < bufs_n; i++)
+    for (int i = 0; i < bufs_n; i++) {
       if (bufs[i].used != 0) {
         if (bufs[i].offset == cs.offset) {
           cs.sum->add(bufs[i].start, bufs[i].used);
           cs.offset += bufs[i].used;
           i = -1;
           cs.ready = true;
-        }
-        else if (cs.offset < bufs[i].offset)
+        } else if (cs.offset < bufs[i].offset) {
           cs.ready = false;
+        }
       }
-    if (eof_read_flag && cs.ready)
-      cs.sum->end();
+    }
+    if (eof_read_flag && cs.ready) cs.sum->end();
     checksums.push_back(cs);
     int res = checksums.size() - 1;
     lock.unlock();
@@ -132,11 +130,12 @@ namespace Arc {
 
   void DataBuffer::eof_read(bool eof_) {
     lock.lock();
-    if (eof_)
+    if (eof_) {
       for (std::list<checksum_desc>::iterator itCheckSum = checksums.begin();
-           itCheckSum != checksums.end(); itCheckSum++)
-        if (itCheckSum->sum)
-          itCheckSum->sum->end();
+           itCheckSum != checksums.end(); itCheckSum++) {
+        if (itCheckSum->sum) itCheckSum->sum->end();
+      }
+    }
     eof_read_flag = eof_;
     cond.broadcast();
     lock.unlock();
@@ -157,16 +156,15 @@ namespace Arc {
     lock.lock();
     // error_read_flag=error_;
     if (error_) {
-      if (!(error_write_flag || error_transfer_flag))
-        error_read_flag = true;
+      if (!(error_write_flag || error_transfer_flag)) error_read_flag = true;
       for (std::list<checksum_desc>::iterator itCheckSum = checksums.begin();
-           itCheckSum != checksums.end(); itCheckSum++)
-        if (itCheckSum->sum)
-          itCheckSum->sum->end();
+           itCheckSum != checksums.end(); itCheckSum++) {
+        if (itCheckSum->sum) itCheckSum->sum->end();
+      }
       eof_read_flag = true;
-    }
-    else
+    } else {
       error_read_flag = false;
+    }
     cond.broadcast();
     lock.unlock();
   }
@@ -175,12 +173,11 @@ namespace Arc {
     lock.lock();
     // error_write_flag=error_;
     if (error_) {
-      if (!(error_read_flag || error_transfer_flag))
-        error_write_flag = true;
+      if (!(error_read_flag || error_transfer_flag)) error_write_flag = true;
       eof_write_flag = true;
-    }
-    else
+    } else {
       error_write_flag = false;
+    }
     cond.broadcast();
     lock.unlock();
   }
@@ -188,8 +185,7 @@ namespace Arc {
   bool DataBuffer::wait_eof_read() {
     lock.lock();
     for (;;) {
-      if (eof_read_flag)
-        break;
+      if (eof_read_flag) break;
       cond.wait(lock);
     }
     lock.unlock();
@@ -199,10 +195,8 @@ namespace Arc {
   bool DataBuffer::wait_read() {
     lock.lock();
     for (;;) {
-      if (eof_read_flag)
-        break;
-      if (error_read_flag)
-        break;
+      if (eof_read_flag) break;
+      if (error_read_flag) break;
       cond.wait(lock);
     }
     lock.unlock();
@@ -212,8 +206,7 @@ namespace Arc {
   bool DataBuffer::wait_eof_write() {
     lock.lock();
     for (;;) {
-      if (eof_write_flag)
-        break;
+      if (eof_write_flag) break;
       cond.wait(lock);
     }
     lock.unlock();
@@ -223,10 +216,8 @@ namespace Arc {
   bool DataBuffer::wait_write() {
     lock.lock();
     for (;;) {
-      if (eof_write_flag)
-        break;
-      if (error_write_flag)
-        break;
+      if (eof_write_flag) break;
+      if (error_write_flag) break;
       cond.wait(lock);
     }
     lock.unlock();
@@ -236,8 +227,7 @@ namespace Arc {
   bool DataBuffer::wait_eof() {
     lock.lock();
     for (;;) {
-      if (eof_read_flag && eof_write_flag)
-        break;
+      if (eof_read_flag && eof_write_flag) break;
       cond.wait(lock);
     }
     lock.unlock();
@@ -252,26 +242,23 @@ namespace Arc {
     // cond.wait(lock);
     bool err = false;
     for (;;) {
-      if (!speed.transfer())
+      if (!speed.transfer()) {
         if ((!(error_read_flag || error_write_flag)) &&
-            (!(eof_read_flag && eof_write_flag)))
+            (!(eof_read_flag && eof_write_flag))) {
           error_transfer_flag = true;
+        }
+      }
       if (eof_read_flag && eof_write_flag) { // there wil be no more events
         lock.unlock();
         Glib::Thread::yield();
         lock.lock();
         return true;
       }
-      if (eof_read_flag_tmp != eof_read_flag)
-        return true;
-      if (eof_write_flag_tmp != eof_write_flag)
-        return true;
-      if (error())
-        return false; // useless to wait for - better fail
-      if (set_counter != tmp)
-        return false;
-      if (err)
-        break; // Some event
+      if (eof_read_flag_tmp != eof_read_flag) return true;
+      if (eof_write_flag_tmp != eof_write_flag) return true;
+      if (error()) return false; // useless to wait for - better fail
+      if (set_counter != tmp) return false;
+      if (err) break; // Some event
       int t = 60;
       Glib::TimeVal stime;
       stime.assign_current_time();
@@ -282,15 +269,15 @@ namespace Arc {
   }
 
   bool DataBuffer::for_read() {
-    if (bufs == NULL)
-      return false;
+    if (bufs == NULL) return false;
     lock.lock();
-    for (int i = 0; i < bufs_n; i++)
+    for (int i = 0; i < bufs_n; i++) {
       if ((!bufs[i].taken_for_read) && (!bufs[i].taken_for_write) &&
           (bufs[i].used == 0)) {
         lock.unlock();
         return true;
       }
+    }
     lock.unlock();
     return false;
   }
@@ -306,13 +293,12 @@ namespace Arc {
         lock.unlock();
         return false;
       }
-      for (int i = 0; i < bufs_n; i++)
+      for (int i = 0; i < bufs_n; i++) {
         if ((!bufs[i].taken_for_read) && (!bufs[i].taken_for_write) &&
             (bufs[i].used == 0)) {
           if (bufs[i].start == NULL) {
             bufs[i].start = (char*)malloc(bufs[i].size);
-            if (bufs[i].start == NULL)
-              continue;
+            if (bufs[i].start == NULL) continue;
           }
           handle = i;
           bufs[i].taken_for_read = true;
@@ -321,6 +307,7 @@ namespace Arc {
           lock.unlock();
           return true;
         }
+      }
       /* suitable block not found - wait for changes or quit */
       if (eof_write_flag) { /* writing side quited, no need to wait */
         lock.unlock();
@@ -342,11 +329,12 @@ namespace Arc {
   bool DataBuffer::is_read(char *buf, unsigned int length,
                            unsigned long long int offset) {
     lock.lock();
-    for (int i = 0; i < bufs_n; i++)
+    for (int i = 0; i < bufs_n; i++) {
       if (bufs[i].start == buf) {
         lock.unlock();
         return is_read(i, length, offset);
       }
+    }
     lock.unlock();
     return false;
   }
@@ -377,19 +365,22 @@ namespace Arc {
       eof_pos = offset + length;
     /* checksum on the fly */
     for (std::list<checksum_desc>::iterator itCheckSum = checksums.begin();
-         itCheckSum != checksums.end(); itCheckSum++)
-      if ((itCheckSum->sum != NULL) && (offset == itCheckSum->offset))
-        for (int i = handle; i < bufs_n; i++)
+         itCheckSum != checksums.end(); itCheckSum++) {
+      if ((itCheckSum->sum != NULL) && (offset == itCheckSum->offset)) {
+        for (int i = handle; i < bufs_n; i++) {
           if (bufs[i].used != 0) {
             if (bufs[i].offset == itCheckSum->offset) {
               itCheckSum->sum->add(bufs[i].start, bufs[i].used);
               itCheckSum->offset += bufs[i].used;
               i = -1;
               itCheckSum->ready = true;
-            }
-            else if (itCheckSum->offset < bufs[i].offset)
+            } else if (itCheckSum->offset < bufs[i].offset) {
               itCheckSum->ready = false;
+            }
           }
+        }
+      }
+    }
     cond.broadcast();
     lock.unlock();
     return true;
@@ -399,12 +390,13 @@ namespace Arc {
     if (bufs == NULL)
       return false;
     lock.lock();
-    for (int i = 0; i < bufs_n; i++)
+    for (int i = 0; i < bufs_n; i++) {
       if ((!bufs[i].taken_for_read) && (!bufs[i].taken_for_write) &&
           (bufs[i].used != 0)) {
         lock.unlock();
         return true;
       }
+    }
     lock.unlock();
     return false;
   }
@@ -428,27 +420,27 @@ namespace Arc {
       unsigned long long int min_offset = (unsigned long long int)(-1);
       handle = -1;
       for (int i = 0; i < bufs_n; i++) {
-        if (bufs[i].taken_for_read)
-          have_for_read = true;
+        if (bufs[i].taken_for_read) have_for_read = true;
         if ((!bufs[i].taken_for_read) && (!bufs[i].taken_for_write) &&
-            (bufs[i].used != 0))
+            (bufs[i].used != 0)) {
           if (bufs[i].offset < min_offset) {
             min_offset = bufs[i].offset;
             handle = i;
           }
-        if (bufs[i].taken_for_read || (bufs[i].used == 0))
-          have_unused = true;
+        }
+        if (bufs[i].taken_for_read || (bufs[i].used == 0)) have_unused = true;
       }
       if (handle != -1) {
         bool keep_buffers = false;
         for (std::list<checksum_desc>::iterator itCheckSum = checksums.begin();
-             itCheckSum != checksums.end(); itCheckSum++)
+             itCheckSum != checksums.end(); itCheckSum++) {
           if ((!itCheckSum->ready) && (bufs[handle].offset >= itCheckSum->offset)) {
             keep_buffers = true;
             break;
           }
+        }
 
-        if (keep_buffers)
+        if (keep_buffers) {
           /* try to keep buffers as long as possible for checksuming */
           if (have_unused && (!eof_read_flag)) {
             /* still have chances to get that block */
@@ -462,6 +454,7 @@ namespace Arc {
             }
             continue;
           }
+        }
 
         bufs[handle].taken_for_write = true;
         length = bufs[handle].used;
@@ -490,22 +483,24 @@ namespace Arc {
 
   bool DataBuffer::is_written(char *buf) {
     lock.lock();
-    for (int i = 0; i < bufs_n; i++)
+    for (int i = 0; i < bufs_n; i++) {
       if (bufs[i].start == buf) {
         lock.unlock();
         return is_written(i);
       }
+    }
     lock.unlock();
     return false;
   }
 
   bool DataBuffer::is_notwritten(char *buf) {
     lock.lock();
-    for (int i = 0; i < bufs_n; i++)
+    for (int i = 0; i < bufs_n; i++) {
       if (bufs[i].start == buf) {
         lock.unlock();
         return is_notwritten(i);
       }
+    }
     lock.unlock();
     return false;
   }
@@ -527,8 +522,9 @@ namespace Arc {
     /* speed control */
     if (!speed.transfer(bufs[handle].used))
       if ((!(error_read_flag || error_write_flag)) &&
-          (!(eof_read_flag && eof_write_flag)))
+          (!(eof_read_flag && eof_write_flag))) {
         error_transfer_flag = true;
+    }
     bufs[handle].taken_for_write = false;
     bufs[handle].used = 0;
     bufs[handle].offset = 0;
@@ -622,10 +618,11 @@ namespace Arc {
   }
 
   bool DataBuffer::checksum_valid() const {
-    if (checksums.size() != 0)
+    if (checksums.size() != 0) {
       return (checksums.begin()->ready && (checksums.begin()->offset == eof_pos));
-    else
+    } else {
       return false;
+    }
   }
 
   bool DataBuffer::checksum_valid(int index) const {
@@ -634,8 +631,7 @@ namespace Arc {
     int i = 0;
     for (std::list<checksum_desc>::const_iterator itCheckSum = checksums.begin();
          itCheckSum != checksums.end(); itCheckSum++) {
-      if (index == i)
-        return itCheckSum->ready;
+      if (index == i) return itCheckSum->ready;
       i++;
     }
 
@@ -643,10 +639,11 @@ namespace Arc {
   }
 
   const CheckSum* DataBuffer::checksum_object() const {
-    if (checksums.size() != 0)
+    if (checksums.size() != 0) {
       return checksums.begin()->sum;
-    else
+    } else {
       return NULL;
+    }
   }
 
   const CheckSum* DataBuffer::checksum_object(int index) const {
@@ -655,8 +652,7 @@ namespace Arc {
     int i = 0;
     for (std::list<checksum_desc>::const_iterator itCheckSum = checksums.begin();
          itCheckSum != checksums.end(); itCheckSum++) {
-      if (index == i)
-        return itCheckSum->sum;
+      if (index == i) return itCheckSum->sum;
       i++;
     }
 
@@ -664,12 +660,11 @@ namespace Arc {
   }
 
   unsigned int DataBuffer::buffer_size() const {
-    if (bufs == NULL)
-      return 65536;
+    if (bufs == NULL) return 65536;
     unsigned int size = 0;
-    for (int i = 0; i < bufs_n; i++)
-      if (size < bufs[i].size)
-        size = bufs[i].size;
+    for (int i = 0; i < bufs_n; i++) {
+      if (size < bufs[i].size) size = bufs[i].size;
+    }
     return size;
   }
 
