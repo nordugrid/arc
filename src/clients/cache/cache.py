@@ -194,13 +194,13 @@ def cacheLink(service, proxy, user, jobid, urls, dostage):
         raise CacheException('No results returned')
     
     cachefiles = {}
-    stagingfiles = []
+    stagingfiles = {}
     for result in results:
         url = result.find('FileURL').text
         link_result_code = result.find('ReturnCode').text
         link_result_text = result.find('ReturnCodeExplanation').text
         if link_result_code == '1':
-            stagingfiles.append(url)
+            stagingfiles[url] = urls[url]
         else:
             cachefiles[url] = (link_result_code, link_result_text)
     
@@ -208,6 +208,9 @@ def cacheLink(service, proxy, user, jobid, urls, dostage):
         return cachefiles
 
     # Some files required staging so poll until finished
+    # So we don't overload the service, we poll for the link appearing in the
+    # session dir, checking the service occasionally in case the transfer
+    # failed.
     soap = ET.Element('soap-env:Envelope', attrib={'xmlns:echo': 'urn:echo', 'xmlns:soap-enc': 'http://schemas.xmlsoap.org/soap/encoding/', 'xmlns:soap-env': 'http://schemas.xmlsoap.org/soap/envelope/', 'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema', 'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance' })
     
     body = ET.SubElement(soap, 'soap-env:Body')
@@ -217,10 +220,10 @@ def cacheLink(service, proxy, user, jobid, urls, dostage):
 
     request = ET.tostring(soap)
         
-    conn = httplib.HTTPSConnection(host, port, proxy, proxy)
-    
     while True: # add timeout
-        time.sleep(0.5)
+        time.sleep(1)
+        
+        conn = httplib.HTTPSConnection(host, port, proxy, proxy)
         try:
             conn.request('POST', path, request)
             resp = conn.getresponse()
@@ -233,6 +236,7 @@ def cacheLink(service, proxy, user, jobid, urls, dostage):
             raise CacheException('Error code '+str(resp.status)+' returned: '+resp.reason)
     
         xmldata = resp.read()
+        conn.close()
         response = ET.XML(xmldata)
         checkSOAPFault(response)
         
@@ -246,13 +250,27 @@ def cacheLink(service, proxy, user, jobid, urls, dostage):
         if link_result_code == '1':
             # still staging
             print "still staging"
-            continue
+            
+            # poll for final link appearing in local dir, for one minute, then
+            # check service again. It is assumed that files will appear in the
+            # current working dir.
+            for i in range(60):
+                time.sleep(1)
+                for stagingfile in stagingfiles:
+                    print "Checking for", stagingfiles[stagingfile]
+                    if not os.path.exists(stagingfiles[stagingfile]):
+                        break
+                else:
+                    # all files exist - check service again to make sure (files
+                    # could take a while to copy to session dir for example)
+                    break
+        else:
         
-        # finished - either successfully or failed
-        for url in stagingfiles:
-            cachefiles[url] = (link_result_code, link_result_text)
+            # finished - either successfully or failed
+            for url in stagingfiles:
+                cachefiles[url] = (link_result_code, link_result_text)
         
-        break
+            break
             
     return cachefiles    
             
