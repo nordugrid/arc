@@ -10,6 +10,7 @@
 #include <arc/OptionParser.h>
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
+#include <arc/Utils.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataBuffer.h>
 
@@ -226,6 +227,15 @@ int main(int argc,char* argv[]) {
   };
   dest->SetSecure(false);
   dest->Passive(true);
+
+  // set X509* for 3rd party tools which need it (eg GFAL)
+  SetEnv("X509_USER_PROXY", source_cfg.ProxyPath());
+  SetEnv("X509_CERT_DIR", source_cfg.CACertificatesDirectory());
+  // those tools also use hostcert by default if the user is root...
+  if (getuid() == 0) {
+    SetEnv("X509_USER_CERT", source_cfg.ProxyPath());
+    SetEnv("X509_USER_KEY", source_cfg.ProxyPath());
+  }
 
   // set signal handlers
   signal(SIGTERM, sig_shutdown);
