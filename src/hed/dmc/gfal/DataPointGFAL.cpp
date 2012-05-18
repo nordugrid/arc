@@ -82,7 +82,8 @@ namespace Arc {
     if (!dmcarg)
       return NULL;
     if (((const URL &)(*dmcarg)).Protocol() != "rfio" &&
-        ((const URL &)(*dmcarg)).Protocol() != "dcap")
+        ((const URL &)(*dmcarg)).Protocol() != "dcap" &&
+        ((const URL &)(*dmcarg)).Protocol() != "gsidcap")
       return NULL;
     return new DataPointGFAL(*dmcarg, *dmcarg, dmcarg);
   }
@@ -519,5 +520,6 @@ namespace Arc {
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
   { "rfio", "HED:DMC", "RFIO plugin using the GFAL2 library", 0, &Arc::DataPointGFAL::Instance },
   { "dcap", "HED:DMC", "DCAP plugin using the GFAL2 library", 0, &Arc::DataPointGFAL::Instance },
+  { "gsidcap", "HED:DMC", "DCAP with GSI security using the GFAL2 library", 0, &Arc::DataPointGFAL::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
