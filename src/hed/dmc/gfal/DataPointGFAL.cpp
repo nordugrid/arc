@@ -67,7 +67,7 @@ namespace Arc {
     : DataPointDirect(url, usercfg, parg), reading(false), writing(false) {
       LogLevel loglevel = logger.getThreshold();
       if (loglevel == DEBUG)
-        gfal_set_verbose (GFAL_VERBOSE_VERBOSE | GFAL_VERBOSE_TRACE);
+        gfal_set_verbose (GFAL_VERBOSE_VERBOSE | GFAL_VERBOSE_DEBUG);
       if (loglevel == VERBOSE)
         gfal_set_verbose (GFAL_VERBOSE_VERBOSE);
   }
@@ -81,7 +81,8 @@ namespace Arc {
     DataPointPluginArgument *dmcarg = dynamic_cast<DataPointPluginArgument*>(arg);
     if (!dmcarg)
       return NULL;
-    if (((const URL &)(*dmcarg)).Protocol() != "rfio")
+    if (((const URL &)(*dmcarg)).Protocol() != "rfio" &&
+        ((const URL &)(*dmcarg)).Protocol() != "dcap")
       return NULL;
     return new DataPointGFAL(*dmcarg, *dmcarg, dmcarg);
   }
@@ -94,12 +95,13 @@ namespace Arc {
     // Open the file
     {
       GFALEnvLocker gfal_lock(usercfg);
-      if ((fd = gfal_open(url.plainstr().c_str(), O_RDONLY, 0)) < 0) {
-        logger.msg(ERROR, "gfal_open failed: %s", StrError(errno));
-        log_gfal_err();
-        reading = false;
-        return DataStatus::ReadStartError;
-      }
+      fd = gfal_open(url.plainstr().c_str(), O_RDONLY, 0);
+    }
+    if (fd < 0) {
+      logger.msg(ERROR, "gfal_open failed: %s", StrError(errno));
+      log_gfal_err();
+      reading = false;
+      return DataStatus::ReadStartError;
     }
     
     // Remember the DataBuffer we got: the separate reading thread will use it
@@ -203,29 +205,33 @@ namespace Arc {
     if (writing) return DataStatus::IsWritingError;
     writing = true;
 
+    // Create the parent directory
+    URL parent_url = URL(url.plainstr());
+    // For SRM the path can be given as SFN HTTP option
+    if ((url.Protocol() == "srm" && !url.HTTPOption("SFN").empty())) {
+      parent_url.AddHTTPOption("SFN", Glib::path_get_dirname(url.HTTPOption("SFN")), true);
+    } else {
+      parent_url.ChangePath(Glib::path_get_dirname(url.Path()));
+    }
+
+    int mkdir_res;
     {
       GFALEnvLocker gfal_lock(usercfg);
-
-      // Create the parent directory
-      URL parent_url = URL(url.plainstr());
-      // For SRM the path can be given as SFN HTTP option
-      if ((url.Protocol() == "srm" && !url.HTTPOption("SFN").empty())) {
-        parent_url.AddHTTPOption("SFN", Glib::path_get_dirname(url.HTTPOption("SFN")), true);
-      } else {
-        parent_url.ChangePath(Glib::path_get_dirname(url.Path()));
-      }
       // gfal_mkdir is always recursive
-      if (gfal_mkdir(parent_url.plainstr().c_str(), 0700) < 0) {
-        logger.msg(DEBUG, "Failed to create parent directory, continuing anyway: %s", StrError(errno));
-      }
+      mkdir_res = gfal_mkdir(parent_url.plainstr().c_str(), 0700);
+    }
+    if (mkdir_res < 0) logger.msg(DEBUG, "Failed to create parent directory, continuing anyway: %s", StrError(errno));
 
+    {
+      GFALEnvLocker gfal_lock(usercfg);
       // Open the file
-      if ((fd = gfal_open(url.plainstr().c_str(), O_WRONLY | O_CREAT, 0600)) < 0) {
-        logger.msg(ERROR, "gfal_open failed: %s", StrError(errno));
-        log_gfal_err();
-        writing = false;
-        return DataStatus::WriteStartError;
-      }
+      fd = gfal_open(url.plainstr().c_str(), O_WRONLY | O_CREAT, 0600);
+    }
+    if (fd < 0) {
+      logger.msg(ERROR, "gfal_open failed: %s", StrError(errno));
+      log_gfal_err();
+      writing = false;
+      return DataStatus::WriteStartError;
     }
     
     // Remember the DataBuffer we got, the separate writing thread will use it
@@ -342,15 +348,16 @@ namespace Arc {
   
   DataStatus DataPointGFAL::do_stat(const URL& stat_url, FileInfo& file) {
     struct stat st;
+    int res;
 
     {
       GFALEnvLocker gfal_lock(usercfg);
-
-      if (gfal_stat(stat_url.plainstr().c_str(), &st) < 0) {
-        logger.msg(ERROR, "gfal_stat failed: %s", StrError(errno));
-        log_gfal_err();
-        return DataStatus::StatError;
-      }
+      res = gfal_stat(stat_url.plainstr().c_str(), &st);
+    }
+    if (res < 0) {
+      logger.msg(ERROR, "gfal_stat failed: %s", StrError(errno));
+      log_gfal_err();
+      return DataStatus::StatError;
     }
 
     if(S_ISREG(st.st_mode)) {
@@ -419,11 +426,12 @@ namespace Arc {
     DIR *dir;    
     {
       GFALEnvLocker gfal_lock(usercfg);
-      if ((dir = gfal_opendir(url.plainstr().c_str())) == NULL) {
-        logger.msg(ERROR, "gfal_opendir failed: %s", StrError(errno));
-        log_gfal_err();
-        return DataStatus::ListError;
-      }
+      dir = gfal_opendir(url.plainstr().c_str());
+    }
+    if (!dir) {
+      logger.msg(ERROR, "gfal_opendir failed: %s", StrError(errno));
+      log_gfal_err();
+      return DataStatus::ListError;
     }
     
     // Loop over the content of the directory
@@ -463,31 +471,35 @@ namespace Arc {
     DataStatus status_from_stat = do_stat(url, file);
     if (status_from_stat != DataStatus::Success)
       return DataStatus::DeleteError;
+
+    int res;
     {
       GFALEnvLocker gfal_lock(usercfg);
 
       if (file.GetType() == FileInfo::file_type_dir) {
-        if (gfal_rmdir(url.plainstr().c_str()) < 0) {
-          logger.msg(ERROR, "gfal_rmdir failed: %s", StrError(errno));
-          log_gfal_err();
-          return DataStatus::DeleteError;
-        }
+        res = gfal_rmdir(url.plainstr().c_str());
       } else {
-        if (gfal_unlink(url.plainstr().c_str()) < 0) {
-          logger.msg(ERROR, "gfal_unlink failed: %s", StrError(errno));
-          log_gfal_err();
-          return DataStatus::DeleteError;
-        }
+        res = gfal_unlink(url.plainstr().c_str());
       }
+    }
+    if (res < 0) {
+      if (file.GetType() == FileInfo::file_type_dir) logger.msg(ERROR, "gfal_rmdir failed: %s", StrError(errno));
+      else logger.msg(ERROR, "gfal_unlink failed: %s", StrError(errno));
+      log_gfal_err();
+      return DataStatus::DeleteError;
     }
     return DataStatus::Success;
   }
   
   DataStatus DataPointGFAL::CreateDirectory(bool with_parents) {
 
-    GFALEnvLocker gfal_lock(usercfg);
-    // gfal_mkdir is always recursive
-    if (gfal_mkdir(url.plainstr().c_str(), 0700) < 0) {
+    int res;
+    {
+      GFALEnvLocker gfal_lock(usercfg);
+      // gfal_mkdir is always recursive
+      res = gfal_mkdir(url.plainstr().c_str(), 0700);
+    }
+    if (res < 0) {
       logger.msg(ERROR, "gfal_mkdir failed: %s", StrError(errno));
       log_gfal_err();
       return DataStatus::CreateDirectoryError;
@@ -506,5 +518,6 @@ namespace Arc {
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
   { "rfio", "HED:DMC", "RFIO plugin using the GFAL2 library", 0, &Arc::DataPointGFAL::Instance },
+  { "dcap", "HED:DMC", "DCAP plugin using the GFAL2 library", 0, &Arc::DataPointGFAL::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
