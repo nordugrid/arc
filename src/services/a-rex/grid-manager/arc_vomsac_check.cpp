@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <unistd.h>
 #include <iostream>
 #include <fstream>
 #include <sys/stat.h>

@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <unistd.h>
+
 #include <arc/ArcLocation.h>
 #include <arc/loader/ModuleManager.h>
 

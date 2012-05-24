@@ -10,6 +10,7 @@
 #include <stdint.h>
 #endif
 
+#include <unistd.h>
 #include <glibmm/init.h>
 
 #ifdef USE_THREAD_POOL

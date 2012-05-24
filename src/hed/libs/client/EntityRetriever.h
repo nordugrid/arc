@@ -94,7 +94,7 @@ template<typename T>
 class EntityContainer : public EntityConsumer<T>, public std::list<T> {
 public:
   virtual ~EntityContainer() {}
-  virtual void addEntity(const T& t) { push_back(t); }
+  virtual void addEntity(const T& t) { this->push_back(t); }
 };
 
 template<typename T>

@@ -4,6 +4,7 @@
 #include <config.h>
 #endif
 
+#include <unistd.h>
 #include <string>
 #include <sstream>
 
