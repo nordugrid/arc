@@ -14,6 +14,9 @@ arched is the ARC Hosting Environment Daemon and is responsible for...
 \fB\-f\fR, \fB\-\-foreground\fR
 run daemon in foreground
 .TP
+\fB\-w\fR, \fB\-\-watchdog\fR
+enables watchdog which restarts stuck and failed arched (it works only in background mode)
+.TP
 \fB\-c\fR, \fB\-\-xml-config\fR
 full path of XML config file
 .TP

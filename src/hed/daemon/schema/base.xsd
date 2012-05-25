@@ -67,6 +67,13 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="Logger" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Watchdog" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                    Makes arched spawn intermediate watchdog process which restarts main process if it dies or is stuck.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:all>
     </xsd:complexType>
 </xsd:element>

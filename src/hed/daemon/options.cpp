@@ -11,6 +11,10 @@ namespace Arc {
 
     foreground = false;
     AddOption('f', "foreground", "run daemon in foreground", foreground);
+#ifndef WIN32
+    watchdog = false;
+    AddOption('w', "watchdog", "enable watchdog to restart process", watchdog);
+#endif
     AddOption('c', "xml-config", "full path of XML config file", "path", xml_config_file);
     AddOption('i', "ini-config", "full path of InI config file", "path", ini_config_file);
     config_dump = false;

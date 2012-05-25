@@ -76,6 +76,12 @@ static void merge_options_and_config(Arc::Config& cfg, Arc::ServerOptions& opt)
         }
     }
 
+    if (opt.watchdog == true) {
+        if (!(bool)srv["Watchdog"]) {
+            srv.NewChild("Watchdog");
+        }
+    }
+
     if (opt.user != "") {
         if (!(bool)srv["User"]) {
             srv.NewChild("User") = opt.user;
@@ -297,13 +303,10 @@ int main(int argc, char **argv)
             std::string pid_file = (config["Server"]["PidFile"] ? (std::string)config["Server"]["PidFile"] : "/var/run/arched.pid");
             std::string user = (std::string)config["Server"]["User"];
             std::string group = (std::string)config["Server"]["Group"];
-            // set signal handlers
-            signal(SIGTERM, sig_shutdown);
-            signal(SIGINT, sig_shutdown);
 
             // switch user
             if (getuid() == 0) { // are we root?
-                /* switch group it is specified */
+                /* switch group if it is specified */
                 if (!group.empty()) {
                     gid_t g = get_gid(group);
                     if (setgid(g) != 0) {
@@ -311,7 +314,7 @@ int main(int argc, char **argv)
                         exit(1);
                     }
                 }
-                /* switch user if it is specied */
+                /* switch user if it is specified */
                 if (!user.empty()) {
                     uid_t u = get_uid(user);
                     if (group.empty()) {
@@ -329,10 +332,13 @@ int main(int argc, char **argv)
             }
             /* initalize logger infrastucture */
             std::string root_log_file = init_logger(config["Server"]["Logger"], config["Server"]["Foreground"]);
-            // demonize if the foreground options was not set
+            // demonize if the foreground option was not set
             if (!(bool)(config)["Server"]["Foreground"]) {
-                main_daemon = new Arc::Daemon(pid_file, root_log_file);
+                main_daemon = new Arc::Daemon(pid_file, root_log_file, (bool)(config)["Server"]["Watchdog"]);
             }
+            // set signal handlers
+            signal(SIGTERM, sig_shutdown);
+            signal(SIGINT, sig_shutdown);
 
             // bootstrap
             loader = new Arc::MCCLoader(config);
