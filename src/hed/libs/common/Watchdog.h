@@ -12,14 +12,21 @@ namespace Arc {
   class WatchdogListener {
   private:
     Watchdog& instance_;
+    time_t last;
 
   public:
     WatchdogListener(void);
 
     /// Waits till timeout occures and then returns true.
-    /// If any error occures it retruns false and watchdog
+    /// If any error occures it returns false and watchdog
     /// is normally not usable anymore.
     bool Listen(void);
+
+    /// Similar to Listen() but forces method to exit after
+    /// limit seconds. If limit passed false is returned.
+    /// If method is exited due to internal error then 
+    /// error argument is filled with true.
+    bool Listen(int limit, bool& error);
   };
 
   /// This class is meant to be used in code

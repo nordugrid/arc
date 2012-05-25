@@ -842,41 +842,61 @@ namespace Arc {
     Watchdog::Instance().Kick(id_);
   }
 
-  WatchdogListener::WatchdogListener(void):instance_(Watchdog::Instance()) {
+  WatchdogListener::WatchdogListener(void):
+             instance_(Watchdog::Instance()),last((time_t)(-1)) {
   }
 
-  bool WatchdogListener::Listen(void) {
-    // timeout counting starts only after first byte is received
-    bool first = true;
+  bool WatchdogListener::Listen(int limit, bool& error) {
+    error = false;
     int h = instance_.Listen();
-    if(h == -1) return false;
-    int to = WATCHDOG_TEST_INTERVAL*1000;
+    if(h == -1) return !(error = true);
+    time_t out = (time_t)(-1); // when to leave
+    if(limit >= 0) out = ::time(NULL) + limit;
+    int to = 0; // initailly just check if something already arrived
     for(;;) {
       pollfd fd;
       fd.fd = h; fd.events = POLLIN; fd.revents = 0;
-      time_t next = time(NULL) + to;
       int err = ::poll(&fd, 1, to);
-      if((err < 0) && (errno != EINTR)) break;
-      if((err == 0) && (!first)) return true; // timeout
-      if(err > 0) {
+      // process errors
+      if((err < 0) && (errno != EINTR)) break; // unrecoverable error
+      if(err > 0) { // unexpected results
         if(err != 1) break;
         if(!(fd.revents & POLLIN)) break;
       };
+      time_t now = ::time(NULL);
+      time_t next = (time_t)(-1); // when to timeout
       if(err == 1) {
+        // something arrived
         char c;
         ::read(fd.fd,&c,1);
-        to = WATCHDOG_TEST_INTERVAL*1000;
-        first = false;
+        last = now; next = now + WATCHDOG_TEST_INTERVAL;
       } else {
-        if(first) {
-          to = WATCHDOG_TEST_INTERVAL*1000;
-        } else {
-          to = (int)(next - time(NULL));
-          if(to <= 0) return true; // timeout
-        };
-      };
+        // check timeout
+        if(last != (time_t)(-1)) next = last + WATCHDOG_TEST_INTERVAL;
+        if((next != (time_t)(-1)) && (((int)(next-now)) <= 0)) return true;
+      }
+      // check for time limit
+      if((limit >= 0) && (((int)(out-now)) <= 0)) return false;
+      // prepare timeout for poll
+      to = WATCHDOG_TEST_INTERVAL;
+      if(next != (time_t)(-1)) {
+        int tto = next-now;
+        if(tto < to) to = tto;
+      }
+      if(limit >= 0) {
+        int tto = out-now;
+        if(tto < to) to = tto;
+      }
+      if(to < 0) to = 0;
     }
-    return false; // communication failure
+    // communication failure
+    error = true;
+    return false;
+  }
+
+  bool WatchdogListener::Listen(void) {
+    bool error;
+    return Listen(-1,error);
   }
 
 }
