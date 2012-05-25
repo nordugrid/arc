@@ -312,4 +312,15 @@ namespace Arc {
   void Run::AfterFork(void) {
   }
 
+  WatchdogChannel::WatchdogChannel(int timeout) {
+    id_ = -1;
+  }
+
+  void WatchdogChannel::Kick(void) {
+  }
+
+  bool WatchdogListener::Listen(void) {
+    return false;
+  }
+
 }

@@ -25,6 +25,7 @@
 #include <arc/Utils.h>
 
 #include "Run.h"
+#include "Watchdog.h"
 
 
 namespace Arc {
@@ -37,8 +38,11 @@ namespace Arc {
     }; \
 }
 
+  class Watchdog;
+
   class RunPump {
     friend class Run;
+    friend class Watchdog;
   private:
     static Glib::Mutex instance_lock_;
     static RunPump *instance_;
@@ -149,8 +153,7 @@ namespace Arc {
     // Wait for context_ to be intialized
     // TODO: what to do if context never initialized
     for (;;) {
-      if (context_)
-        break;
+      if (context_) break;
       thread_->yield(); // This is simpler than condition+mutex
     }
   }
@@ -716,4 +719,165 @@ namespace Arc {
     RunPump::fork_handler();
   }
 
+
+#define WATCHDOG_TEST_INTERVAL (60)
+#define WATCHDOG_KICK_INTERVAL (10)
+
+  class Watchdog {
+  friend class WatchdogListener;
+  friend class WatchdogChannel;
+  private:
+    class Channel {
+    public:
+      int timeout;
+      time_t next;
+      Channel(void):timeout(-1),next(0) {};
+    };
+    int lpipe[2];
+    sigc::connection timer_;
+    static Glib::Mutex instance_lock_;
+    std::vector<Channel> channels_;
+    static Watchdog *instance_;
+    static unsigned int mark_;
+#define WatchdogMagic (0x1E84FC05)
+    static Watchdog& Instance(void);
+    int Open(int timeout);
+    void Kick(int channel);
+    void Close(int channel);
+    int Listen(void);
+    bool Timer(void);
+  public:
+    Watchdog(void);
+    ~Watchdog(void);
+  };
+
+  Glib::Mutex Watchdog::instance_lock_;
+  Watchdog* Watchdog::instance_ = NULL;
+  unsigned int Watchdog::mark_ = ~WatchdogMagic;
+
+  Watchdog& Watchdog::Instance(void) {
+    instance_lock_.lock();
+    if ((instance_ == NULL) || (mark_ != WatchdogMagic)) {
+      instance_ = new Watchdog();
+      mark_ = WatchdogMagic;
+    }
+    instance_lock_.unlock();
+    return *instance_;
+  }
+
+  Watchdog::Watchdog(void) {
+    lpipe[0] = -1; lpipe[1] = -1;
+    ::pipe(lpipe);
+  }
+
+  Watchdog::~Watchdog(void) {
+    if(timer_.connected()) timer_.disconnect();
+    if(lpipe[0] != -1) ::close(lpipe[0]);
+    if(lpipe[1] != -1) ::close(lpipe[1]);
+  }
+
+  bool Watchdog::Timer(void) {
+    char c = '\0';
+    time_t now = ::time(NULL);
+    {
+      Glib::Mutex::Lock lock(instance_lock_);
+      for(int n = 0; n < channels_.size(); ++n) {
+        if(channels_[n].timeout < 0) continue;
+        if(((int)(now - channels_[n].next)) > 0) return true; // timeout
+      }
+    }
+    if(lpipe[1] != -1) write(lpipe[1],&c,1);
+    return true;
+  }
+
+  int Watchdog::Open(int timeout) {
+    if(timeout <= 0) return -1;
+    Glib::Mutex::Lock lock(instance_lock_);
+    if(!timer_.connected()) {
+      // start glib loop and attach timer to context
+      Glib::RefPtr<Glib::MainContext> context = RunPump::Instance().context_;
+      timer_ = context->signal_timeout().connect(sigc::mem_fun(*this,&Watchdog::Timer),WATCHDOG_KICK_INTERVAL*1000);
+    }
+    int n = 0;
+    for(; n < channels_.size(); ++n) {
+      if(channels_[n].timeout < 0) {
+        channels_[n].timeout = timeout;
+        channels_[n].next = ::time(NULL) + timeout;
+        return n;
+      }
+    }
+    channels_.resize(n+1);
+    channels_[n].timeout = timeout;
+    channels_[n].next = ::time(NULL) + timeout;
+    return n;
+  }
+
+  void Watchdog::Kick(int channel) {
+    Glib::Mutex::Lock lock(instance_lock_);
+    if((channel < 0) || (channel >= channels_.size())) return;
+    if(channels_[channel].timeout < 0) return;
+    channels_[channel].next = ::time(NULL) + channels_[channel].timeout;
+  }
+
+  void Watchdog::Close(int channel) {
+    Glib::Mutex::Lock lock(instance_lock_);
+    if((channel < 0) || (channel >= channels_.size())) return;
+    channels_[channel].timeout = -1;
+    // resize?
+  }
+
+  int Watchdog::Listen(void) {
+    return lpipe[0];
+  }
+
+  WatchdogChannel::WatchdogChannel(int timeout) {
+    id_ = Watchdog::Instance().Open(timeout);
+  }
+
+  WatchdogChannel::~WatchdogChannel(void) {
+    Watchdog::Instance().Close(id_);
+  }
+ 
+  void WatchdogChannel::Kick(void) {
+    Watchdog::Instance().Kick(id_);
+  }
+
+  WatchdogListener::WatchdogListener(void):instance_(Watchdog::Instance()) {
+  }
+
+  bool WatchdogListener::Listen(void) {
+    // timeout counting starts only after first byte is received
+    bool first = true;
+    int h = instance_.Listen();
+    if(h == -1) return false;
+    int to = WATCHDOG_TEST_INTERVAL*1000;
+    for(;;) {
+      pollfd fd;
+      fd.fd = h; fd.events = POLLIN; fd.revents = 0;
+      time_t next = time(NULL) + to;
+      int err = ::poll(&fd, 1, to);
+      if((err < 0) && (errno != EINTR)) break;
+      if((err == 0) && (!first)) return true; // timeout
+      if(err > 0) {
+        if(err != 1) break;
+        if(!(fd.revents & POLLIN)) break;
+      };
+      if(err == 1) {
+        char c;
+        ::read(fd.fd,&c,1);
+        to = WATCHDOG_TEST_INTERVAL*1000;
+        first = false;
+      } else {
+        if(first) {
+          to = WATCHDOG_TEST_INTERVAL*1000;
+        } else {
+          to = (int)(next - time(NULL));
+          if(to <= 0) return true; // timeout
+        };
+      };
+    }
+    return false; // communication failure
+  }
+
 }
+
