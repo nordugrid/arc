@@ -18,6 +18,7 @@
 #include <arc/Thread.h>
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
+#include <arc/Watchdog.h>
 #include "jobs/users.h"
 #include "jobs/states.h"
 #include "jobs/commfifo.h"
@@ -315,6 +316,7 @@ bool GridManager::thread() {
   }
   bool scan_old = false;
   std::string heartbeat_file("gm-heartbeat");
+  Arc::WatchdogChannel wd(env_->jobs_cfg().WakeupPeriod()*3+300);
   /* main loop - forever */
   logger.msg(Arc::INFO,"Starting jobs' monitoring");
   for(;;) {
@@ -332,6 +334,7 @@ bool GridManager::thread() {
       } else {
         close(r);
       };
+      wd.Kick();
       /* check for new marks and activate related jobs */
       user->get_jobs()->ScanNewMarks();
       /* look for new jobs */
