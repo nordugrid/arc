@@ -1228,6 +1228,14 @@ overwrite all other decisions.
 .IR Example :
 arguspep_usermap="no"
 
+.TP
+.B watchdog
+Specifies if additinal watchdog processes is spawned to restart main proces
+if it is stuck or dies. Possible values are 'yes' and 'no'. Default is 'no'.
+
+.IR Example :
+watchdog="no"
+
 .PP
 In the command arguments (paths, executables, ...) the following
 substitutions can be used:

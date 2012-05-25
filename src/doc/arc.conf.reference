@@ -740,6 +740,11 @@
 ## overwrite all other decisions.
 #arguspep_usermap="no"
 
+## watchdog - specifies if additinal watchdog processes is spawned to restart
+## main proces if it is stuck or dies. Possible values are 'yes' and 'no'.
+## Default is 'no'.
+#watchdog="no"
+
 
 ####################################################################
 

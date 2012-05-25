@@ -198,6 +198,7 @@ prepare() {
     LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager debug`
     LOGSIZE=`readconfigvar "$ARC_CONFIG" grid-manager logsize`
     LOGREOPEN=`readconfigvar "$ARC_CONFIG" grid-manager logreopen`
+    WATCHDOG=`readconfigvar "$ARC_CONFIG" grid-manager watchdog`
     USERNAME=`readconfigvar "$ARC_CONFIG" grid-manager user`
     GROUPNAME=`echo "$USERNAME" | sed 's/^[^:]*//;s/^://'`
     USERNAME=`echo "$USERNAME" | sed 's/:.*//'`
@@ -436,6 +437,12 @@ prepare() {
     else
         LOGREOPEN="false"
     fi
+    WATCHDOG=${WATCHDOG:-no}
+    if [ "$WATCHDOG" = "yes" ] ; then
+        WATCHDOG="true"
+    else
+        WATCHDOG="false"
+    fi
     VOMS_PROCESSING=${VOMS_PROCESSING:-standard}
     MAX_JOB_CONTROL_REQUESTS=${MAX_JOB_CONTROL_REQUESTS:-100}
     MAX_INFOSYS_REQUESTS=${MAX_INFOSYS_REQUESTS:-1}
@@ -463,6 +470,7 @@ prepare() {
       <Maxsize>$LOGSIZE</Maxsize>
       <Reopen>$LOGREOPEN</Reopen>
     </Logger>
+    <Watchdog>$WATCHDOG</Watchdog>
   </Server>
   <ModuleManager>
     <Path>$ARC_LOCATION/@pkglibsubdir@/</Path>
@@ -492,6 +500,7 @@ prepare() {
       <Maxsize>$LOGSIZE</Maxsize>
       <Reopen>$LOGREOPEN</Reopen>
     </Logger>
+    <Watchdog>$WATCHDOG</Watchdog>
   </Server>
   <ModuleManager>
     <Path>$ARC_LOCATION/@pkglibsubdir@/</Path>
