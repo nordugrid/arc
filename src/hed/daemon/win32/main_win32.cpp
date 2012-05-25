@@ -45,9 +45,18 @@ static void merge_options_and_config(Arc::Config& cfg, Arc::ServerOptions& opt)
     }
     if (opt.foreground == true) {
         if (!(bool)srv["Foreground"]) {
-            srv.NewChild("Foreground");
+            srv.NewChild("Foreground") = "true";
+        } else {
+            srv["Foreground"] = "true";
         }
     }
+}
+
+static bool is_true(Arc::XMLNode val) {
+  std::string v = (std::string)val;
+  if(v == "true") return true;
+  if(v == "1") return true;
+  return false;
 }
 
 static std::string init_logger(Arc::Config& cfg)
@@ -96,7 +105,7 @@ static std::string init_logger(Arc::Config& cfg)
 
     Arc::Logger::rootLogger.removeDestinations();
     if(sd) Arc::Logger::rootLogger.addDestination(*sd);
-    if ((bool)cfg["Server"]["Foreground"]) {
+    if (is_true(cfg["Server"]["Foreground"])) {
       logger.msg(Arc::INFO, "Start foreground");
       Arc::LogStream *err = new Arc::LogStream(std::cerr);
       Arc::Logger::rootLogger.addDestination(*err);

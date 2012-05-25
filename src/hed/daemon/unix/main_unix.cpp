@@ -72,13 +72,17 @@ static void merge_options_and_config(Arc::Config& cfg, Arc::ServerOptions& opt)
 
     if (opt.foreground == true) {
         if (!(bool)srv["Foreground"]) {
-            srv.NewChild("Foreground");
+            srv.NewChild("Foreground")="true";
+        } else {
+            srv["Foreground"]="true";
         }
     }
 
     if (opt.watchdog == true) {
         if (!(bool)srv["Watchdog"]) {
-            srv.NewChild("Watchdog");
+            srv.NewChild("Watchdog")="true";
+        } else {
+            srv["Watchdog"]="true";
         }
     }
 
@@ -105,6 +109,13 @@ static void merge_options_and_config(Arc::Config& cfg, Arc::ServerOptions& opt)
             srv["Logger"]["File"] = opt.log_file;
         }
     }
+}
+
+static bool is_true(Arc::XMLNode val) {
+  std::string v = (std::string)val;
+  if(v == "true") return true;
+  if(v == "1") return true;
+  return false;
 }
 
 static std::string init_logger(Arc::XMLNode log, bool foreground)
@@ -331,10 +342,10 @@ int main(int argc, char **argv)
                 }
             }
             /* initalize logger infrastucture */
-            std::string root_log_file = init_logger(config["Server"]["Logger"], config["Server"]["Foreground"]);
+            std::string root_log_file = init_logger(config["Server"]["Logger"], is_true(config["Server"]["Foreground"]));
             // demonize if the foreground option was not set
-            if (!(bool)(config)["Server"]["Foreground"]) {
-                main_daemon = new Arc::Daemon(pid_file, root_log_file, (bool)(config)["Server"]["Watchdog"]);
+            if (!is_true((config)["Server"]["Foreground"])) {
+                main_daemon = new Arc::Daemon(pid_file, root_log_file, is_true((config)["Server"]["Watchdog"]));
             }
             // set signal handlers
             signal(SIGTERM, sig_shutdown);
