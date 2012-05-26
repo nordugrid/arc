@@ -19,7 +19,7 @@ libarccommon_la_HEADERS = ArcVersion.h ArcConfig.h ArcLocation.h ArcRegex.h \
 	Logger.h OptionParser.h StringConv.h Thread.h URL.h \
 	User.h UserConfig.h Utils.h XMLNode.h \
 	Counter.h IntraProcessCounter.h IniConfig.h Profile.h \
-	Run.h win32.h $(MYSQL_WRAPPER_HEADER)
+	Run.h Watchdog.h win32.h $(MYSQL_WRAPPER_HEADER)
 
 if WIN32
 PLATFORM_SPECIFIC = Run_win32.cpp win32.cpp
