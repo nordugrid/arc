@@ -557,9 +557,9 @@ sub Top {
     #$self->attribute(objectClass => "organization");
     #$self->attribute(o => "glue");
     # builds the grid subtree, with domain information
-    $self->beginGroup("grid");
+    #$self->beginGroup("grid");
     $self->AdminDomain(&$data->{AdminDomain});
-    $self->end;
+    #$self->end;
     $self->beginGroup("resource");
     $self->Services(&$data->{Services});
     $self->ComputingService(&$data->{ComputingService});
