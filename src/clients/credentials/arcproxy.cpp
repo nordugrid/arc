@@ -342,6 +342,9 @@ int main(int argc, char *argv[]) {
   bool use_gsi_comm = false;
   options.AddOption('G', "gsicom", istring("use GSI communication protocol for contacting VOMS services"), use_gsi_comm);
 
+  bool use_http_comm = false;
+  options.AddOption('H', "httpcom", istring("use HTTP communication protocol for contacting VOMS services that provide RESTful access"), use_http_comm);
+
   bool use_gsi_proxy = false;
   options.AddOption('O', "old", istring("use GSI proxy (RFC 3820 compliant proxy is default)"), use_gsi_proxy);
 
@@ -1258,31 +1261,59 @@ int main(int argc, char *argv[]) {
           send_msg.append("<order>").append(ordering).append("</order>");
           send_msg.append("<lifetime>").append(voms_period).append("</lifetime></voms>");
           logger.msg(Arc::VERBOSE, "Message sent to VOMS server %s is: %s", voms_name, send_msg);
-          
-          Arc::ClientTCP client(cfg, address, atoi(port.c_str()), use_gsi_comm ? Arc::GSISec : Arc::SSL3Sec, usercfg.Timeout());
-          Arc::PayloadRaw request;
-          request.Insert(send_msg.c_str(), 0, send_msg.length());
-          Arc::PayloadStreamInterface *response = NULL;
-          Arc::MCC_Status status = client.process(&request, &response, true);
-          if (!status) {
-            //logger.msg(Arc::ERROR, (std::string)status);
-            if (response) delete response;
-            std::cout << Arc::IString("The VOMS server with the information:\n\t%s\"\ncan not be reached, please make sure it is available", tokens_to_string(voms_line)) << std::endl;
-            continue; //There could be another voms replicated server with the same name exists
-          }
-          if (!response) {
-            logger.msg(Arc::ERROR, "No stream response from VOMS server");
-            continue;
-          }
-          Arc::XMLNode node;
+       
           std::string ret_str;
-          char ret_buf[1024];
-          int len = sizeof(ret_buf);
-          while(response->Get(ret_buf, len)) {
-            ret_str.append(ret_buf, len);
-            len = sizeof(ret_buf);
-          };
-          logger.msg(Arc::VERBOSE, "Returned message from VOMS server: %s", ret_str);
+          if(use_http_comm) { 
+            // Use http to contact voms server, for the RESRful interface provided by voms server
+            // The format of the URL: https://moldyngrid.org:15112/generate-ac?fqans=/testbed.univ.kiev.ua
+            std::string url_str = "https://" + address + ":" + port + "/generate-ac?" + "fqans=/" + voms_name;
+            Arc::URL voms_url(url_str);
+            Arc::ClientHTTP client(cfg, voms_url, usercfg.Timeout());
+            Arc::PayloadRaw request;
+            Arc::PayloadRawInterface* response;
+            Arc::HTTPClientInfo info;
+            Arc::MCC_Status status = client.process("GET", &request, &info, &response);
+            if (!status) {
+              if (response) delete response;
+              std::cout << Arc::IString("The VOMS server with the information:\n\t%s\"\ncan not be reached, please make sure it is available", tokens_to_string(voms_line)) << std::endl;
+              continue; //There could be another voms replicated server with the same name exists
+            }
+            if (!response) {
+              logger.msg(Arc::ERROR, "No http response from VOMS server");
+              continue;
+            }
+            if(response->Content() != NULL) ret_str.append(response->Content());
+            if (response) delete response;
+            logger.msg(Arc::VERBOSE, "Returned message from VOMS server: %s", ret_str);
+          }
+          else {
+            // Use GSI or TLS to contact voms server 
+            Arc::ClientTCP client(cfg, address, atoi(port.c_str()), use_gsi_comm ? Arc::GSISec : Arc::SSL3Sec, usercfg.Timeout());
+            Arc::PayloadRaw request;
+            request.Insert(send_msg.c_str(), 0, send_msg.length());
+            Arc::PayloadStreamInterface *response = NULL;
+            Arc::MCC_Status status = client.process(&request, &response, true);
+            if (!status) {
+              //logger.msg(Arc::ERROR, (std::string)status);
+              if (response) delete response;
+              std::cout << Arc::IString("The VOMS server with the information:\n\t%s\"\ncan not be reached, please make sure it is available", tokens_to_string(voms_line)) << std::endl;
+              continue; //There could be another voms replicated server with the same name exists
+            }
+            if (!response) {
+              logger.msg(Arc::ERROR, "No stream response from VOMS server");
+              continue;
+            }
+            char ret_buf[1024];
+            int len = sizeof(ret_buf);
+            while(response->Get(ret_buf, len)) {
+              ret_str.append(ret_buf, len);
+              len = sizeof(ret_buf);
+            };
+            if (response) delete response;
+            logger.msg(Arc::VERBOSE, "Returned message from VOMS server: %s", ret_str);
+          }
+
+          Arc::XMLNode node;
           Arc::XMLNode(ret_str).Exchange(node);
           if((!node) || ((bool)(node["error"]))) {
             if((bool)(node["error"])) {
@@ -1322,13 +1353,8 @@ int main(int argc, char *argv[]) {
             //logger.msg(Arc::INFO, "The attribute information from voms server: %s is list as following:\n%s",
             //           voms_server, decodedac);
             std::cout << Arc::IString("The attribute information from VOMS server: %s is list as following:", voms_server) << std::endl << decodedac << std::endl;
-            if (response)
-              delete response;
             return EXIT_SUCCESS;
           }
-
-          if (response)
-            delete response;
 
           Arc::addVOMSAC(aclist, acorder, decodedac);
           succeeded = true; break;
