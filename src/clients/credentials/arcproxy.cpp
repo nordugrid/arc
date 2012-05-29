@@ -1269,6 +1269,7 @@ int main(int argc, char *argv[]) {
             std::string url_str = "https://" + address + ":" + port + "/generate-ac?" + "fqans=/" + voms_name;
             Arc::URL voms_url(url_str);
             Arc::ClientHTTP client(cfg, voms_url, usercfg.Timeout());
+            client.RelativeURI(true);
             Arc::PayloadRaw request;
             Arc::PayloadRawInterface* response;
             Arc::HTTPClientInfo info;
