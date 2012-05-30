@@ -343,7 +343,10 @@ int main(int argc, char *argv[]) {
   options.AddOption('G', "gsicom", istring("use GSI communication protocol for contacting VOMS services"), use_gsi_comm);
 
   bool use_http_comm = false;
-  options.AddOption('H', "httpcom", istring("use HTTP communication protocol for contacting VOMS services that provide RESTful access"), use_http_comm);
+  options.AddOption('H', "httpcom", istring("use HTTP communication protocol for contacting VOMS services that provide RESTful access \n"
+                                            "               Note for RESTful access, \'list\' command and multiple voms server are not supported\n"
+                                            ), 
+                    use_http_comm);
 
   bool use_gsi_proxy = false;
   options.AddOption('O', "old", istring("use GSI proxy (RFC 3820 compliant proxy is default)"), use_gsi_proxy);
@@ -1265,8 +1268,9 @@ int main(int argc, char *argv[]) {
           std::string ret_str;
           if(use_http_comm) { 
             // Use http to contact voms server, for the RESRful interface provided by voms server
-            // The format of the URL: https://moldyngrid.org:15112/generate-ac?fqans=/testbed.univ.kiev.ua
-            std::string url_str = "https://" + address + ":" + port + "/generate-ac?" + "fqans=/" + voms_name + "&lifetime=" + voms_period;
+            // The format of the URL: https://moldyngrid.org:15112/generate-ac?fqans=/testbed.univ.kiev.ua/blabla/Role=test-role&lifetime=86400
+            // fqans is composed of the voname, group name and role, i.e., the "command" for voms.
+            std::string url_str = "https://" + address + ":" + port + "/generate-ac?" + "fqans=" + command + "&lifetime=" + voms_period;
             Arc::URL voms_url(url_str);
             Arc::ClientHTTP client(cfg, voms_url, usercfg.Timeout());
             client.RelativeURI(true);
