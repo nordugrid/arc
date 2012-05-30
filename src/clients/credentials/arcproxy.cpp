@@ -1266,7 +1266,7 @@ int main(int argc, char *argv[]) {
           if(use_http_comm) { 
             // Use http to contact voms server, for the RESRful interface provided by voms server
             // The format of the URL: https://moldyngrid.org:15112/generate-ac?fqans=/testbed.univ.kiev.ua
-            std::string url_str = "https://" + address + ":" + port + "/generate-ac?" + "fqans=/" + voms_name;
+            std::string url_str = "https://" + address + ":" + port + "/generate-ac?" + "fqans=/" + voms_name + "&lifetime=" + voms_period;
             Arc::URL voms_url(url_str);
             Arc::ClientHTTP client(cfg, voms_url, usercfg.Timeout());
             client.RelativeURI(true);
