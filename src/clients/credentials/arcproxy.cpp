@@ -1270,7 +1270,9 @@ int main(int argc, char *argv[]) {
             // Use http to contact voms server, for the RESRful interface provided by voms server
             // The format of the URL: https://moldyngrid.org:15112/generate-ac?fqans=/testbed.univ.kiev.ua/blabla/Role=test-role&lifetime=86400
             // fqans is composed of the voname, group name and role, i.e., the "command" for voms.
-            std::string url_str = "https://" + address + ":" + port + "/generate-ac?" + "fqans=" + command + "&lifetime=" + voms_period;
+            std::string url_str;
+            if(!command.empty()) url_str = "https://" + address + ":" + port + "/generate-ac?" + "fqans=" + command + "&lifetime=" + voms_period;
+            else url_str = "https://" + address + ":" + port + "/generate-ac?" + "lifetime=" + voms_period;
             Arc::URL voms_url(url_str);
             Arc::ClientHTTP client(cfg, voms_url, usercfg.Timeout());
             client.RelativeURI(true);
