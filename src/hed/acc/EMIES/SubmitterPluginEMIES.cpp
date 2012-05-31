@@ -42,6 +42,10 @@ namespace Arc {
   }
 
   bool SubmitterPluginEMIES::releaseClient(const URL& url) {
+    std::map<URL, EMIESClient*>::iterator url_it = clients.find(url);
+    if ( url_it != clients.end() ) {
+      if(!(*(url_it->second))) clients.erase(url_it);
+    }
     return true;
   }
 

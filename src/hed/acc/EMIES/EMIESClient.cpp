@@ -140,7 +140,10 @@ namespace Arc {
 
     if (delegate) {
       XMLNode op = req.Child(0);
-      if(!delegation(op)) return false;
+      if(!delegation(op)) {
+        delete client; client = NULL;
+        return false;
+      }
     }
 
     std::string action = req.Child(0).Name();
@@ -148,11 +151,13 @@ namespace Arc {
     PayloadSOAP* resp = NULL;
     if (!client->process(&req, &resp)) {
       logger.msg(VERBOSE, "%s request failed", req.Child(0).FullName());
+      delete client; client = NULL;
       return false;
     }
 
     if (resp == NULL) {
       logger.msg(VERBOSE, "No response from %s", rurl.str());
+      delete client; client = NULL;
       return false;
     }
 
@@ -162,6 +167,7 @@ namespace Arc {
       resp->GetXML(s);
       logger.msg(DEBUG, "XML response: %s", s);
       delete resp;
+      delete client; client = NULL;
       return false;
     }
 

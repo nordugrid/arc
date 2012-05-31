@@ -114,6 +114,14 @@ namespace Arc {
      */
     ~EMIESClient();
 
+    operator bool(void) {
+      return (client != NULL);
+    }
+
+    bool operator!(void) {
+      return (client == NULL);
+    }
+
     //! Submit a job.
     /*! This method submits a job to the EM IES service corresponding
        to this client instance. It does not do data staging.
