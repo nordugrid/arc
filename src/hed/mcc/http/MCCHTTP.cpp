@@ -166,7 +166,15 @@ static MCC_Status make_raw_fault(Message& outmsg,const char* desc = NULL) {
   PayloadRaw* outpayload = new PayloadRaw;
   if(desc) outpayload->Insert(desc,0);
   outmsg.Payload(outpayload);
+  if(desc) return MCC_Status(GENERIC_ERROR,"HTTP",desc);
   return MCC_Status();
+}
+
+static MCC_Status make_raw_fault(Message& outmsg,const MCC_Status& desc) {
+  PayloadRaw* outpayload = new PayloadRaw;
+  std::string errstr = (std::string)desc;
+  if(!errstr.empty()) outpayload->Insert(errstr.c_str(),0);
+  return desc;
 }
 
 static void parse_http_range(PayloadHTTP& http,Message& msg) {
@@ -365,12 +373,12 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   // generate new Raw payload to pass further through chain.
   // TODO: do not create new object - use or acqure same one.
   // Extracting payload
-  if(!inmsg.Payload()) return make_raw_fault(outmsg);
+  if(!inmsg.Payload()) return make_raw_fault(outmsg,"Notihing to send");
   PayloadRawInterface* inpayload = NULL;
   try {
     inpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
   } catch(std::exception& e) { };
-  if(!inpayload) return make_raw_fault(outmsg);
+  if(!inpayload) return make_raw_fault(outmsg,"Notihing to send");
   // Making HTTP request
   // Use attributes which higher level MCC may have produced for HTTP
   std::string http_method = inmsg.Attributes()->get("HTTP:METHOD");
@@ -397,26 +405,26 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
 
   // Call next MCC
   MCCInterface* next = Next();
-  if(!next) return make_raw_fault(outmsg);
+  if(!next) return make_raw_fault(outmsg,"Chain has no continuation");
   Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
   MCC_Status ret = next->process(nextinmsg,nextoutmsg);
   // Do checks and process response - supported response so far is stream
   // Generated result is HTTP payload with Raw and Stream interfaces
   if(!ret) {
     if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
-    return make_raw_fault(outmsg);
+    return make_raw_fault(outmsg,ret);
   };
-  if(!nextoutmsg.Payload()) return make_raw_fault(outmsg);
+  if(!nextoutmsg.Payload()) return make_raw_fault(outmsg,"No response received by HTTP layer");
   PayloadStreamInterface* retpayload = NULL;
   try {
     retpayload = dynamic_cast<PayloadStreamInterface*>(nextoutmsg.Payload());
   } catch(std::exception& e) { };
-  if(!retpayload) { delete nextoutmsg.Payload(); return make_raw_fault(outmsg); };
+  if(!retpayload) { delete nextoutmsg.Payload(); return make_raw_fault(outmsg,"HTTP layer got something that is not stream"); };
   // Stream retpayload becomes owned by outpayload. This is needed because
   // HTTP payload may postpone extracting information from stream till demanded.
   PayloadHTTP* outpayload  = new PayloadHTTP(*retpayload,true);
-  if(!outpayload) { delete retpayload; return make_raw_fault(outmsg); };
-  if(!(*outpayload)) { delete outpayload; return make_raw_fault(outmsg); };
+  if(!outpayload) { delete retpayload; return make_raw_fault(outmsg,"Returned payload is not recognized as HTTP"); };
+  if(!(*outpayload)) { delete outpayload; return make_raw_fault(outmsg,"Returned payload is not recognized as HTTP"); };
   // Check for closed connection during response - not suitable in client mode
   if(outpayload->Method() == "END") { delete outpayload; return make_raw_fault(outmsg); };
   outmsg = nextoutmsg;
