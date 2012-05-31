@@ -514,7 +514,10 @@ PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream,bool own):
     multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
     head_response_(false) {
   tbuf_[0]=0; tbuflen_=0;
-  if(!parse_header()) return;
+  if(!parse_header()) {
+    error_ = IString("Failed to parse HTTP header").str();
+    return;
+  }
   // If stream_ is owned then body can be fetched later
   // if(!stream_own_) if(!get_body()) return;
   valid_=true;
@@ -576,7 +579,10 @@ PayloadHTTP::~PayloadHTTP(void) {
 bool PayloadHTTP::Flush(void) {
   std::string header;
   bool to_stream = (stream_ != NULL);
-  if(method_.empty() && (code_ == 0)) return false;
+  if(method_.empty() && (code_ == 0)) {
+    error_ = IString("Invalid HTTP object can't produce result").str();
+    return false;
+  };
   // Computing length of Body part
   int64_t length = 0;
   std::string range_header;
@@ -666,7 +672,10 @@ bool PayloadHTTP::Flush(void) {
   header+="\r\n";
   logger.msg(Arc::DEBUG,"> %s",header);
   if(to_stream) {
-    if(!stream_->Put(header)) return false;
+    if(!stream_->Put(header)) {
+      error_ = IString("Failed to write header to output stream").str();
+      return false;
+    };
     if(length > 0) {
       if(sbody_) {
         // stream to stream transfer
@@ -674,11 +683,18 @@ bool PayloadHTTP::Flush(void) {
         // TODO: parallel read and write for better performance
         int tbufsize = (length>1024*1024)?(1024*1024):length;
         char* tbuf = new char[tbufsize];
-        if(!tbuf) return false;
+        if(!tbuf) {
+          error_ = IString("Memory allocation error").str();
+          return false;
+        };
         for(;;) {
           int lbuf = tbufsize;
           if(!sbody_->Get(tbuf,lbuf)) break;
-          if(!stream_->Put(tbuf,lbuf)) { delete[] tbuf; return false; };
+          if(!stream_->Put(tbuf,lbuf)) {
+            error_ = IString("Failed to write body to output stream").str();
+            delete[] tbuf;
+            return false;
+          };
         };
         delete[] tbuf;
       } else {
@@ -686,7 +702,10 @@ bool PayloadHTTP::Flush(void) {
           char* tbuf = Buffer(n);
           if(tbuf == NULL) break;
           int64_t lbuf = BufferSize(n);
-          if(lbuf > 0) if(!stream_->Put(tbuf,lbuf)) return false;
+          if(lbuf > 0) if(!stream_->Put(tbuf,lbuf)) {
+            error_ = IString("Failed to write body to output stream").str();
+            return false;
+          };
         };
       };
     };

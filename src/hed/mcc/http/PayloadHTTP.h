@@ -80,6 +80,7 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
   multipart_t multipart_;
   std::string multipart_tag_;
   std::string multipart_buf_;
+  std::string error_;
 
   bool readtbuf(void);
   /** Read from stream till \r\n */
@@ -173,7 +174,7 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
   virtual void Timeout(int to);
   virtual PayloadStreamInterface::Size_t Pos(void) const;
   virtual PayloadStreamInterface::Size_t Limit(void) const;
-
+  std::string GetError() { return error_; };
 };
 
 } // namespace ArcMCCHTTP

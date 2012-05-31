@@ -167,7 +167,7 @@ static MCC_Status make_raw_fault(Message& outmsg,const char* desc = NULL) {
   if(desc) outpayload->Insert(desc,0);
   outmsg.Payload(outpayload);
   if(desc) return MCC_Status(GENERIC_ERROR,"HTTP",desc);
-  return MCC_Status();
+  return MCC_Status(GENERIC_ERROR,"HTTP");
 }
 
 static MCC_Status make_raw_fault(Message& outmsg,const MCC_Status& desc) {
@@ -423,10 +423,19 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   // Stream retpayload becomes owned by outpayload. This is needed because
   // HTTP payload may postpone extracting information from stream till demanded.
   PayloadHTTP* outpayload  = new PayloadHTTP(*retpayload,true);
-  if(!outpayload) { delete retpayload; return make_raw_fault(outmsg,"Returned payload is not recognized as HTTP"); };
-  if(!(*outpayload)) { delete outpayload; return make_raw_fault(outmsg,"Returned payload is not recognized as HTTP"); };
+  if(!outpayload) {
+    delete retpayload;
+    return make_raw_fault(outmsg,"Returned payload is not recognized as HTTP");
+  };
+  if(!(*outpayload)) {
+    std::string errstr = "Returned payload is not recognized as HTTP: "+outpayload->GetError();
+    delete outpayload;
+    return make_raw_fault(outmsg,errstr.c_str());
+  };
   // Check for closed connection during response - not suitable in client mode
-  if(outpayload->Method() == "END") { delete outpayload; return make_raw_fault(outmsg); };
+  if(outpayload->Method() == "END") {
+    delete outpayload; return make_raw_fault(outmsg,"Connection was closed");
+  };
   outmsg = nextoutmsg;
   // Payload returned by next.process is not destroyed here because
   // it is now owned by outpayload.
