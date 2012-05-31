@@ -426,6 +426,9 @@ static void fill_xacml_string_attribute(XMLNode object,std::string value,const c
   object.NewAttribute("AttributeId")=id;
 }
 
+#define TCP_SECATTR_REMOTE_NS "http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteendpoint"
+#define TCP_SECATTR_LOCAL_NS "http://www.nordugrid.org/schemas/policy-arc/types/tcp/localendpoint"
+
 bool TCPSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   if(format == UNDEFINED) {
   } else if(format == ARCAuth) {
@@ -434,14 +437,14 @@ bool TCPSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
     val.Namespaces(ns); val.Name("ra:Request");
     XMLNode item = val.NewChild("ra:RequestItem");
     if(!local_port_.empty()) {
-      fill_arc_string_attribute(item.NewChild("ra:Resource"),local_ip_+":"+local_port_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/localendpoint");
+      fill_arc_string_attribute(item.NewChild("ra:Resource"),local_ip_+":"+local_port_,TCP_SECATTR_LOCAL_NS);
     } else if(!local_ip_.empty()) {
-      fill_arc_string_attribute(item.NewChild("ra:Resource"),local_ip_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/localendpoint");
+      fill_arc_string_attribute(item.NewChild("ra:Resource"),local_ip_,TCP_SECATTR_LOCAL_NS);
     };
     if(!remote_port_.empty()) {
-      fill_arc_string_attribute(item.NewChild("ra:Subject").NewChild("ra:SubjectAttribute"),remote_ip_+":"+remote_port_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteendpoint");
+      fill_arc_string_attribute(item.NewChild("ra:Subject").NewChild("ra:SubjectAttribute"),remote_ip_+":"+remote_port_,TCP_SECATTR_REMOTE_NS);
     } else if(!remote_ip_.empty()) {
-      fill_arc_string_attribute(item.NewChild("ra:Subject").NewChild("ra:SubjectAttribute"),remote_ip_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteiendpoint");
+      fill_arc_string_attribute(item.NewChild("ra:Subject").NewChild("ra:SubjectAttribute"),remote_ip_,TCP_SECATTR_REMOTE_NS);
     };
     return true;
   } else if(format == XACML) {
@@ -449,12 +452,12 @@ bool TCPSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
     ns["ra"]="urn:oasis:names:tc:xacml:2.0:context:schema:os";
     val.Namespaces(ns); val.Name("ra:Request");
     if(!local_port_.empty()) {
-      fill_xacml_string_attribute(val.NewChild("ra:Resource").NewChild("ra:Attribute"),local_ip_+":"+local_port_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/localendpoint");
+      fill_xacml_string_attribute(val.NewChild("ra:Resource").NewChild("ra:Attribute"),local_ip_+":"+local_port_,TCP_SECATTR_LOCAL_NS);
     } else if(!local_ip_.empty()) {
-      fill_xacml_string_attribute(val.NewChild("ra:Resource").NewChild("ra:Attribute"),local_ip_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/localendpoint");
+      fill_xacml_string_attribute(val.NewChild("ra:Resource").NewChild("ra:Attribute"),local_ip_,TCP_SECATTR_LOCAL_NS);
     };
     if(!remote_port_.empty()) {
-      fill_xacml_string_attribute(val.NewChild("ra:Subject").NewChild("ra:Attribute"),remote_ip_+":"+remote_port_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteendpoint");
+      fill_xacml_string_attribute(val.NewChild("ra:Subject").NewChild("ra:Attribute"),remote_ip_+":"+remote_port_,TCP_SECATTR_REMOTE_NS);
     } else if(!remote_ip_.empty()) {
       fill_xacml_string_attribute(val.NewChild("ra:Subject").NewChild("ra:Attribute"),remote_ip_,"http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteiendpoint");
     };
@@ -657,6 +660,7 @@ MCC_TCP_Client::MCC_TCP_Client(Config *cfg, PluginArgument* parg):MCC_TCP(cfg,pa
     }
     s_ = new PayloadTCPSocket(host_s.c_str(),port,timeout,logger);
     if(!(*s_)) {
+       // Connection error is reported in process()
     } else {
        std::string v = c["NoDelay"];
        s_->NoDelay((v == "true") || (v == "1"));
@@ -677,7 +681,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     logger.msg(DEBUG, "TCP client process called");
     //outmsg.Attributes(inmsg.Attributes());
     //outmsg.Context(inmsg.Context());
-    if(!s_) return MCC_Status(GENERIC_ERROR);
+    if(!s_) return MCC_Status(GENERIC_ERROR,"TCP","Not connected");
     if(!*s_) return MCC_Status(GENERIC_ERROR,"TCP",s_->GetError());
     // Extracting payload
     if(!inmsg.Payload()) return MCC_Status(GENERIC_ERROR);
