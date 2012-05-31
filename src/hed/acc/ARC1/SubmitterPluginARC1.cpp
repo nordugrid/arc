@@ -36,6 +36,7 @@ namespace Arc {
     if ( url_it != clients.end() ) {
       // If AREXClient is already existing for the
       // given URL then return with that
+      url_it->second->arexFeatures(arex_features);
       return url_it->second;
     } else {
       // Else create a new one and return with that
