@@ -32,7 +32,7 @@ namespace Arc {
   }
 
   AREXClient* SubmitterPluginARC1::acquireClient(const URL& url, bool arex_features) {
-    std::map<URL, AREXClient*>::const_iterator url_it = clients.find(url);
+    std::map<URL, AREXClient*>::iterator url_it = clients.find(url);
     if ( url_it != clients.end() ) {
       // If AREXClient is already existing for the
       // given URL then return with that
@@ -47,6 +47,10 @@ namespace Arc {
   }
 
   bool SubmitterPluginARC1::releaseClient(const URL& url) {
+    std::map<URL, AREXClient*>::iterator url_it = clients.find(url);
+    if ( url_it != clients.end() ) {
+      if(!(*(url_it->second))) clients.erase(url_it);
+    }
     return true;
   }
 

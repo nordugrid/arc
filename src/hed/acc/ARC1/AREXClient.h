@@ -52,6 +52,14 @@ namespace Arc {
      */
     ~AREXClient();
 
+    operator bool(void) {
+      return (client != NULL);
+    }
+
+    bool operator!(void) {
+      return (client == NULL);
+    }
+
     //! Submit a job.
     /*! This method submits a job to the A-REX service corresponding
        to this client instance.
