@@ -349,13 +349,18 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   // Do checks and create SOAP response
   // TODO: pass SOAP action from HTTP header to SOAP:ACTION attribute
   if(!ret) {
-    return make_soap_fault(outmsg,nextoutmsg,false,"Failed to send SOAP message");
+    std::string errstr = "Failed to send SOAP message: "+(std::string)ret;
+    return make_soap_fault(outmsg,nextoutmsg,false,errstr.c_str());
   };
-  if(!nextoutmsg.Payload()) return make_soap_fault(outmsg,nextoutmsg,false,"No response for SOAP message recieved");
+  if(!nextoutmsg.Payload()) {
+    return make_soap_fault(outmsg,nextoutmsg,false,"No response for SOAP message recieved");
+  };
   MessagePayload* retpayload = nextoutmsg.Payload();
   if(!retpayload) return make_soap_fault(outmsg,nextoutmsg,false,"No valid response for SOAP message recieved");
   PayloadSOAP* outpayload  = new PayloadSOAP(*retpayload);
-  if(!outpayload) return make_soap_fault(outmsg,nextoutmsg,false,"Response is not SOAP");
+  if(!outpayload) {
+    return make_soap_fault(outmsg,nextoutmsg,false,"Response is not SOAP");
+  };
   if(!(*outpayload)) {
     delete outpayload; return make_soap_fault(outmsg,nextoutmsg,false,"Response is not valid SOAP");
   };
