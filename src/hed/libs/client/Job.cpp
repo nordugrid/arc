@@ -663,6 +663,8 @@ namespace Arc {
     URL dst_(dst);
     src_.AddOption("checksum=no");
     dst_.AddOption("checksum=no");
+    src_.AddOption("blocksize=1048576",false);
+    dst_.AddOption("blocksize=1048576",false);
 
     if ((!data_source) || (!*data_source) ||
         (!(*data_source)->SetURL(src_))) {

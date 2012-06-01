@@ -46,6 +46,7 @@ namespace Arc {
           };
           URL dst(url);
           dst.ChangePath(dst.Path() + '/' + it->Name);
+          dst.AddOption("blocksize=1048576",false);
           DataHandle source(src, usercfg);
           DataHandle destination(dst, usercfg);
           DataStatus res =
