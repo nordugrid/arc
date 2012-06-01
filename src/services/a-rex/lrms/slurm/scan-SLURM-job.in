@@ -180,7 +180,7 @@ function handle_exitcode_cancelled {
     fi
     if [ $exitcode -eq 0 ]; then
       exitcode=15
-      reason="Job probably exceeded memory limit"
+      reason="Job was cancelled by SLURM"
     fi
     echo "$exitcode $reason" > "${basenames[$localid]}.lrms_done"
     kicklist=(${kicklist[@]} $localid)
