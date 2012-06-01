@@ -1,5 +1,0 @@
-This folder collects files associated with the configuration
-of the Janitor.
-
-arc.conf - The [Janitor] block for the arc config file
-log.conf - Specification of the logging library log4perl

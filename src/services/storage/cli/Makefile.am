@@ -1,8 +1,0 @@
-pythondir= $(PYTHON_SITE_LIB)/storage/cli
-
-python_DATA = librarian_client.py ahash_client.py shepherd_client.py bartender_client.py
-
-noinst_SCRIPTS = storage storage_bash_completion 
-
-EXTRA_DIST = $(python_DATA) $(noinst_SCRIPTS)
-

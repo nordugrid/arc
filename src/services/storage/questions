@@ -1,6 +1,0 @@
-- Format of PreferedStorages.
-- Structure and format of Owner.
-- Status of FILE
-- Verbosity (client) and recursivity (directory can contains lot of file) of List
-- Metadata belongs to GUID
-- 

@@ -1,7 +1,0 @@
-SUBDIRS=schema
-pythondir= $(PYTHON_SITE_LIB)/storage/ahash
-
-python_DATA = __init__.py ahash.py replicatedahash.py
-
-EXTRA_DIST = $(python_DATA)
-
