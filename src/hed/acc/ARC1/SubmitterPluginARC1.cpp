@@ -31,42 +31,10 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  AREXClient* SubmitterPluginARC1::acquireClient(const URL& url, bool arex_features) {
-    std::map<URL, AREXClient*>::iterator url_it = clients.find(url);
-    if ( url_it != clients.end() ) {
-      // If AREXClient is already existing for the
-      // given URL then return with that
-      url_it->second->arexFeatures(arex_features);
-      return url_it->second;
-    } else {
-      // Else create a new one and return with that
-      MCCConfig cfg;
-      usercfg.ApplyToConfig(cfg);
-      AREXClient* ac = new AREXClient(url, cfg, usercfg.Timeout(), arex_features);
-      return clients[url] = ac;
-    }
-  }
-
-  bool SubmitterPluginARC1::releaseClient(const URL& url) {
-    std::map<URL, AREXClient*>::iterator url_it = clients.find(url);
-    if ( url_it != clients.end() ) {
-      if(!(*(url_it->second))) clients.erase(url_it);
-    }
-    return true;
-  }
-
-  bool SubmitterPluginARC1::deleteAllClients() {
-    std::map<URL, AREXClient*>::iterator it;
-    for (it = clients.begin(); it != clients.end(); it++) {
-        if ((*it).second != NULL) delete (*it).second;
-    }
-    return true;
-  }
-
   bool SubmitterPluginARC1::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     URL url(et.ComputingEndpoint->URLString);
     bool arex_features = et.ComputingService->Type == "org.nordugrid.execution.arex";
-    AREXClient* ac = acquireClient(url, arex_features);
+    AREXClient* ac = clients.acquire(url, arex_features);
 
     bool ok = true;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
@@ -133,7 +101,7 @@ namespace Arc {
       jc.addEntity(j);
     }
   
-    releaseClient(url);
+    clients.release(ac);
     return ok;
   }
 
@@ -142,7 +110,7 @@ namespace Arc {
                              bool forcemigration, Job& job) {
     URL url(et.ComputingEndpoint->URLString);
 
-    AREXClient* ac = acquireClient(url);
+    AREXClient* ac = clients.acquire(url,true);
 
     std::string idstr;
     AREXClient::createActivityIdentifier(jobid, idstr);
@@ -175,7 +143,7 @@ namespace Arc {
 
     if (!preparedjobdesc.Prepare(et)) {
       logger.msg(INFO, "Failed adapting job description to target resources");
-      releaseClient(url);
+      clients.release(ac);
       return false;
     }
 
@@ -185,20 +153,20 @@ namespace Arc {
     std::string product;
     if (!preparedjobdesc.UnParse(product, "nordugrid:jsdl")) {
       logger.msg(INFO, "Unable to migrate job. Job description is not valid in the %s format", "nordugrid:jsdl");
-      releaseClient(url);
+      clients.release(ac);
       return false;
     }
 
     std::string sNewjobid;
     if (!ac->migrate(idstr, product, forcemigration, sNewjobid,
                     url.Protocol() == "https")) {
-      releaseClient(url);
+      clients.release(ac);
       return false;
     }
 
     if (sNewjobid.empty()) {
       logger.msg(INFO, "No job identifier returned by A-REX");
-      releaseClient(url);
+      clients.release(ac);
       return false;
     }
 
@@ -207,13 +175,13 @@ namespace Arc {
 
     if (!PutFiles(preparedjobdesc, newjobid)) {
       logger.msg(INFO, "Failed uploading local input files");
-      releaseClient(url);
+      clients.release(ac);
       return false;
     }
 
     AddJobDetails(preparedjobdesc, newjobid, et.ComputingService->Cluster, job);
 
-    releaseClient(url);
+    clients.release(ac);
     return true;
   }
 } // namespace Arc

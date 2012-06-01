@@ -15,8 +15,8 @@ namespace Arc {
 
   class SubmitterPluginARC1 : public SubmitterPlugin {
   public:
-    SubmitterPluginARC1(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg) { supportedInterfaces.push_back("org.ogf.bes"); }
-    ~SubmitterPluginARC1() { deleteAllClients(); }
+    SubmitterPluginARC1(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg), clients(this->usercfg) { supportedInterfaces.push_back("org.ogf.bes"); }
+    ~SubmitterPluginARC1() { /*deleteAllClients();*/ }
 
     static Plugin* Instance(PluginArgument *arg) {
       SubmitterPluginArgument *subarg = dynamic_cast<SubmitterPluginArgument*>(arg);
@@ -32,11 +32,7 @@ namespace Arc {
 
   private:
     // Centralized AREXClient handling
-    std::map<URL, AREXClient*> clients;
-
-    AREXClient* acquireClient(const URL& url, bool arex_features = true);
-    bool releaseClient(const URL& url);
-    bool deleteAllClients();
+    AREXClients clients;
 
     static Logger logger;
   };

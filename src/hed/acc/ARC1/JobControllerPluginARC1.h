@@ -5,11 +5,13 @@
 
 #include <arc/client/JobControllerPlugin.h>
 
+#include "AREXClient.h"
+
 namespace Arc {
 
   class JobControllerPluginARC1 : public JobControllerPlugin {
   public:
-    JobControllerPluginARC1(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.xbes"); }
+    JobControllerPluginARC1(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg),clients(this->usercfg) { supportedInterfaces.push_back("org.nordugrid.xbes"); }
     ~JobControllerPluginARC1() {}
 
     static Plugin* Instance(PluginArgument *arg) {
@@ -31,6 +33,7 @@ namespace Arc {
 
   private:
     static Logger logger;
+    AREXClients clients;
   };
 
 } // namespace Arc

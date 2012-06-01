@@ -145,6 +145,10 @@ namespace Arc {
       return client;
     }
 
+    const URL& url(void) const {
+      return rurl;
+    }
+
     bool delegation(XMLNode& operation);
 
     void arexFeatures(bool val) { arex_enabled = val; };
@@ -172,6 +176,17 @@ namespace Arc {
        client are sent.
      */
     static Logger logger;
+  };
+
+
+  class AREXClients {
+    std::multimap<URL, AREXClient*> clients_;
+    const UserConfig& usercfg_;
+  public:
+    AREXClients(const UserConfig& usercfg);
+    ~AREXClients(void);
+    AREXClient* acquire(const URL& url, bool arex_features);
+    void release(AREXClient* client);
   };
 
 }

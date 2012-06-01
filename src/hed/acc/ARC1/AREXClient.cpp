@@ -485,4 +485,44 @@ namespace Arc {
     id.NewChild("wsa:ReferenceParameters").NewChild("a-rex:JobID") = pi.Rest();
     id.GetXML(activityIdentifier);
   }
+
+// -----------------------------------------------------------------------------
+
+  // TODO: does it need locking?
+
+  AREXClients::AREXClients(const UserConfig& usercfg):usercfg_(usercfg) {
+  }
+
+  AREXClients::~AREXClients(void) {
+    std::multimap<URL, AREXClient*>::iterator it;
+    for (it = clients_.begin(); it != clients_.end(); it = clients_.begin()) {
+      delete it->second;
+    }
+  }
+
+  AREXClient* AREXClients::acquire(const URL& url, bool arex_features) {
+    std::multimap<URL, AREXClient*>::iterator it = clients_.find(url);
+    if ( it != clients_.end() ) {
+      // If AREXClient is already existing for the
+      // given URL then return with that
+      AREXClient* client = it->second;
+      client->arexFeatures(arex_features);
+      clients_.erase(it);
+      return client;
+    }
+    // Else create a new one and return with that
+    MCCConfig cfg;
+    usercfg_.ApplyToConfig(cfg);
+    AREXClient* client = new AREXClient(url, cfg, usercfg_.Timeout(), arex_features);
+    return client;
+  }
+
+  void AREXClients::release(AREXClient* client) {
+    if(!client) return;
+    if(!*client) return;
+    // TODO: maybe strip path from URL?
+    clients_.insert(std::pair<URL, AREXClient*>(client->url(),client));
+  }
+
 }
+
