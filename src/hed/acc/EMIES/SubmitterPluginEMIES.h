@@ -16,8 +16,8 @@ namespace Arc {
 
   class SubmitterPluginEMIES : public SubmitterPlugin {
   public:
-    SubmitterPluginEMIES(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg) { supportedInterfaces.push_back("org.ogf.emies"); }
-    ~SubmitterPluginEMIES() { deleteAllClients(); }
+    SubmitterPluginEMIES(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg),clients(this->usercfg) { supportedInterfaces.push_back("org.ogf.emies"); }
+    ~SubmitterPluginEMIES() { /*deleteAllClients();*/ }
 
     static Plugin* Instance(PluginArgument *arg) {
       SubmitterPluginArgument *subarg = dynamic_cast<SubmitterPluginArgument*>(arg);
@@ -28,11 +28,7 @@ namespace Arc {
 
     virtual bool Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted);
   private:
-    std::map<URL, EMIESClient*> clients;
-
-    EMIESClient* acquireClient(const URL& url);
-    bool releaseClient(const URL& url);
-    bool deleteAllClients();
+    EMIESClients clients;
 
     static Logger logger;
   };

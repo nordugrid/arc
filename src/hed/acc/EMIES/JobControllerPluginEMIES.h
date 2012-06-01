@@ -11,7 +11,7 @@ namespace Arc {
 
   class JobControllerPluginEMIES : public JobControllerPlugin {
   public:
-    JobControllerPluginEMIES(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg) { supportedInterfaces.push_back("org.ogf.emies"); }
+    JobControllerPluginEMIES(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg),clients(this->usercfg) { supportedInterfaces.push_back("org.ogf.emies"); }
     ~JobControllerPluginEMIES() {}
 
     static Plugin* Instance(PluginArgument *arg) {
@@ -32,6 +32,7 @@ namespace Arc {
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) const;
 
   private:
+    EMIESClients clients;
     static Logger logger;
   };
 

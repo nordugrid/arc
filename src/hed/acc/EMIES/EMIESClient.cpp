@@ -665,6 +665,42 @@ namespace Arc {
     return id.empty();
   }
 
+// -----------------------------------------------------------------------------
+
+  // TODO: does it need locking?
+
+  EMIESClients::EMIESClients(const UserConfig& usercfg):usercfg_(usercfg) {
+  }
+
+  EMIESClients::~EMIESClients(void) {
+    std::multimap<URL, EMIESClient*>::iterator it;
+    for (it = clients_.begin(); it != clients_.end(); it = clients_.begin()) {
+      delete it->second;
+    }
+  }
+
+  EMIESClient* EMIESClients::acquire(const URL& url) {
+    std::multimap<URL, EMIESClient*>::iterator it = clients_.find(url);
+    if ( it != clients_.end() ) {
+      // If EMIESClient is already existing for the
+      // given URL then return with that
+      EMIESClient* client = it->second;
+      clients_.erase(it);
+      return client;
+    }
+    // Else create a new one and return with that
+    MCCConfig cfg;
+    usercfg_.ApplyToConfig(cfg);
+    EMIESClient* client = new EMIESClient(url, cfg, usercfg_.Timeout());
+    return client;
+  }
+
+  void EMIESClients::release(EMIESClient* client) {
+    if(!client) return;
+    if(!*client) return;
+    // TODO: maybe strip path from URL?
+    clients_.insert(std::pair<URL, EMIESClient*>(client->url(),client));
+  }
 
 }
 

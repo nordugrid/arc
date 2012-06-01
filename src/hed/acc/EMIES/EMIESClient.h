@@ -9,6 +9,7 @@
 #include <arc/XMLNode.h>
 #include <arc/DateTime.h>
 #include <arc/message/MCC.h>
+#include <arc/UserConfig.h>
 /*
 #include <utility>
 
@@ -205,6 +206,10 @@ namespace Arc {
       return client;
     }
 
+    const URL& url(void) {
+      return rurl;
+    }
+
     bool delegation(XMLNode& operation);
 
   private:
@@ -228,6 +233,16 @@ namespace Arc {
        client are sent.
      */
     static Logger logger;
+  };
+
+  class EMIESClients {
+    std::multimap<URL, EMIESClient*> clients_;
+    const UserConfig& usercfg_;
+  public:
+    EMIESClients(const UserConfig& usercfg);
+    ~EMIESClients(void);
+    EMIESClient* acquire(const URL& url);
+    void release(EMIESClient* client);
   };
 
 }

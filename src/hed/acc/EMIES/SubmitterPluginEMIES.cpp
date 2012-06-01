@@ -29,40 +29,12 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
   
-  EMIESClient* SubmitterPluginEMIES::acquireClient(const URL& url) {
-    std::map<URL, EMIESClient*>::const_iterator url_it = clients.find(url);
-    if ( url_it != clients.end() ) {
-      return url_it->second;
-    } else {
-      MCCConfig cfg;
-      usercfg.ApplyToConfig(cfg);
-      EMIESClient* ac = new EMIESClient(url, cfg, usercfg.Timeout());
-      return clients[url] = ac;
-    }
-  }
-
-  bool SubmitterPluginEMIES::releaseClient(const URL& url) {
-    std::map<URL, EMIESClient*>::iterator url_it = clients.find(url);
-    if ( url_it != clients.end() ) {
-      if(!(*(url_it->second))) clients.erase(url_it);
-    }
-    return true;
-  }
-
-  bool SubmitterPluginEMIES::deleteAllClients() {
-    std::map<URL, EMIESClient*>::iterator it;
-    for (it = clients.begin(); it != clients.end(); it++) {
-        if ((*it).second != NULL) delete (*it).second;
-    }
-    return true;
-  }
-
   bool SubmitterPluginEMIES::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     // TODO: this is multi step process. So having retries would be nice.
 
     URL url(et.ComputingEndpoint->URLString);
 
-    EMIESClient* ac = acquireClient(url);
+    AutoPointer<EMIESClient> ac(clients.acquire(url));
 
     bool ok = true;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
@@ -181,7 +153,7 @@ namespace Arc {
       jc.addEntity(j);
     }
 
-    releaseClient(url);
+    clients.release(ac.Release());
     return ok;
   }
 } // namespace Arc

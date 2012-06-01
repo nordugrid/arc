@@ -14,6 +14,7 @@
 #include <arc/data/DataHandle.h>
 #include <arc/data/URLMap.h>
 #include <arc/message/MCC.h>
+#include <arc/Utils.h>
 
 #include "EMIESClient.h"
 #include "JobStateEMIES.h"
@@ -29,27 +30,26 @@ namespace Arc {
   }
   
   void JobControllerPluginEMIES::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
-    MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
-
     for (std::list<Job*>::iterator it = jobs.begin();
          it != jobs.end(); ++it) {
       EMIESJob job;
       job = (*it)->IDFromEndpoint;
-      EMIESClient ac(job.manager, cfg, usercfg.Timeout());
-      if (!ac.info(job, **it)) {
+      AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(job.manager));
+      if (!ac->info(job, **it)) {
         logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID.fullstr());
         IDsNotProcessed.push_back((*it)->JobID);
+        ((EMIESClients&)clients).release(ac.Release());
         continue;
       }
       // Going for more detailed state
       XMLNode jst;
-      if (!ac.stat(job, jst)) {
+      if (!ac->stat(job, jst)) {
       } else {
         JobStateEMIES jst_ = jst;
         if(jst_) (*it)->State = jst_;
       }
       IDsProcessed.push_back((*it)->JobID);
+      ((EMIESClients&)clients).release(ac.Release());
     }
   }
 
@@ -62,14 +62,16 @@ namespace Arc {
       Job& job = **it;
       EMIESJob ejob;
       ejob = job.IDFromEndpoint;
-      EMIESClient ac(ejob.manager, cfg, usercfg.Timeout());
-      if (!ac.clean(ejob)) {
+      AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(ejob.manager));
+      if (!ac->clean(ejob)) {
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
+        ((EMIESClients&)clients).release(ac.Release());
         continue;
       }
       
       IDsProcessed.push_back(job.JobID);
+      ((EMIESClients&)clients).release(ac.Release());
     }
     
     return ok;
@@ -84,14 +86,16 @@ namespace Arc {
       Job& job = **it;
       EMIESJob ejob;
       ejob = job.IDFromEndpoint;
-      EMIESClient ac(ejob.manager, cfg, usercfg.Timeout());
-      if(!ac.kill(ejob)) {
+      AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(ejob.manager));
+      if(!ac->kill(ejob)) {
         ok = false;
         IDsNotProcessed.push_back((*it)->JobID);
+        ((EMIESClients&)clients).release(ac.Release());
         continue;
       }
       
       IDsProcessed.push_back((*it)->JobID);
+      ((EMIESClients&)clients).release(ac.Release());
     }
     return false;
   }
@@ -127,8 +131,9 @@ namespace Arc {
       MCCConfig cfg;
       usercfg.ApplyToConfig(cfg);
       Job tjob;
-      EMIESClient ac(ejob.manager, cfg, usercfg.Timeout());
-      if (!ac.info(ejob, tjob)) {
+      AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(ejob.manager));
+      if (!ac->info(ejob, tjob)) {
+        ((EMIESClients&)clients).release(ac.Release());
         logger.msg(INFO, "Failed retrieving information for job: %s", job.JobID.fullstr());
         return false;
       }
@@ -153,6 +158,7 @@ namespace Arc {
         if(ejob.stagein)  url = ejob.stagein;
         if(ejob.stageout) url = ejob.stageout;
       }
+      ((EMIESClients&)clients).release(ac.Release());
     }
     
     switch (resource) {
