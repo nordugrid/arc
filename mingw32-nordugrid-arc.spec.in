@@ -62,22 +62,6 @@ Requires: %{name} = %{version}
 %description hed
 ARC Hosting Environment Daemon (HED).
 
-%package chelonia
-Summary:        ARC chelonia service
-Group:          System Environment/Libraries
-Requires:       %{name} = %{version}-%{release}
-Requires:       %{name}-hed = %{version}-%{release}
-Requires:       %{name}-python = %{version}-%{release}
-
-%description chelonia
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-The ARC storage service Chelonia consists of a set of SOAP based
-services residing within HED. Together, the services provide a self-healing,
-reliable, robust, scalable, resilient and consistent data storage system.
-
 %package plugins-needed
 Summary: ARC base plugins
 Group: System Environment/Libraries
@@ -198,7 +182,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_bindir}/arcget.exe
 %{_mingw32_bindir}/arcclean.exe
 %{_mingw32_bindir}/arckill.exe
-#%{_mingw32_bindir}/arcdecision.exe
 %{_mingw32_bindir}/arcmigrate.exe
 %{_mingw32_bindir}/arcrenew.exe
 %{_mingw32_bindir}/arcresume.exe
@@ -216,7 +199,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_datadir}/%{pkgdir}/ssm/message_db.py*
 %{_mingw32_datadir}/%{pkgdir}/ssm/ssm.cfg
 %{_mingw32_datadir}/%{pkgdir}/ssm/ssm.log.cfg
-%{_mingw32_bindir}/isistest.exe
 #%{_mingw32_bindir}/voms_assertion_init
 #%{_mingw32_bindir}/arc_storage_cli
 #
@@ -239,21 +221,17 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_mingw32_mandir}/man1/arcget.1*
 %doc %{_mingw32_mandir}/man1/arcclean.1*
 %doc %{_mingw32_mandir}/man1/arckill.1*
-#%doc %{_mingw32_mandir}/man1/arcdecision.1*
 %doc %{_mingw32_mandir}/man1/arcmigrate.1*
 %doc %{_mingw32_mandir}/man1/arcrenew.1*
 %doc %{_mingw32_mandir}/man1/arcresume.1*
 %doc %{_mingw32_mandir}/man1/arcacl.1*
 %doc %{_mingw32_mandir}/man1/arctest.1*
 %doc %{_mingw32_mandir}/man1/arcwsrf.1*
-%doc %{_mingw32_mandir}/man1/isistest.1*
 %doc %{_mingw32_mandir}/man1/perftest.1*
 %doc %{_mingw32_mandir}/man1/saml_assertion_init.1*
 %doc %{_mingw32_mandir}/man1/jura.1*
 #%doc %{_mingw32_mandir}/man1/voms_assertion_init.1*
 #%doc %{_mingw32_mandir}/man1/arc_storage_cli.1*
-#%doc %{_mingw32_datadir}/%{pkgdir}/examples/charon/charon_client.xml.example
-#%doc %{_mingw32_datadir}/%{pkgdir}/examples/charon/charon_request.xml.example
 %doc %{_mingw32_datadir}/%{pkgdir}/examples/echo/echo.wsdl
 
 %files hed
@@ -269,15 +247,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_mingw32_datadir}/%{pkgdir}/examples/echo/echo_service.xml.example
 #%{_mingw32_sbindir}/manage_jobq
 #%doc %{_mingw32_mandir}/man8/manage_jobq.8*
-#%doc src/services/charon/charon_policy.xml.example
-#%doc src/services/charon/charon_service.xml.example
-#%doc src/services/hopi/hopi_service.xml.example
-#%doc src/services/storage/storage_service.xml.example
 #%doc src/tests/echo/echo_service.xml.example
 %{_mingw32_libdir}/%{pkgdir}/libecho.dll*
-#%{_mingw32_libdir}/%{pkgdir}/libcharon.dll*
-#%{_mingw32_libdir}/%{pkgdir}/libhopi.dll*
-#%{_mingw32_libdir}/%{pkgdir}/libisis.dll*
 #%{_mingw32_libdir}/%{pkgdir}/libslcs.dll*
 %{_mingw32_libexecdir}/%{pkgdir}/DataStagingDelivery.exe
 
@@ -336,14 +307,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_libdir}/%{pkgdir}/libpythonservice.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccPythonBroker.dll*
 %doc %{_mingw32_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
-
-%files chelonia
-%defattr(-,root,root,-)
-%{_mingw32_bindir}/chelonia
-%doc %{_mingw32_mandir}/man1/chelonia.1*
-%{_mingw32_libdir}/python?.?/site-packages/storage
-%doc %{_mingw32_datadir}/%{pkgdir}/examples/storage_service.xml.example
-
 
 %changelog
 

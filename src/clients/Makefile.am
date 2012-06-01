@@ -10,12 +10,6 @@ else
 ECHO_CLIENT =
 endif
 
-if ISIS_CLIENT_ENABLED
-ISIS_CLIENT = isis
-else
-ISIS_CLIENT =
-endif
-
 if CREDENTIALS_CLIENT_ENABLED
 CREDENTIALS_CLIENT = credentials
 else
@@ -27,12 +21,6 @@ ARCLIB_CLIENT = arclib
 else
 ARCLIB_CLIENT =
 endif
-
-#if CHARON_CLIENT_ENABLED
-#CHARON_CLIENT = charon
-#else
-CHARON_CLIENT =
-#endif
 
 if SAML_CLIENT_ENABLED
 SAML_CLIENT = saml
@@ -64,16 +52,12 @@ else
 CACHE_CLIENT =
 endif
 
-SUBDIRS = $(DATA_CLIENT) $(ECHO_CLIENT) $(ISIS_CLIENT) $(CREDENTIALS_CLIENT) $(ARCLIB_CLIENT) $(CHARON_CLIENT) $(SAML_CLIENT) $(SRM_CLIENT) $(JURA_CLIENT) $(WSRF_CLIENT) $(CACHE_CLIENT)
-DIST_SUBDIRS = data echo isis credentials arclib charon saml srm jura wsrf cache
+SUBDIRS = $(DATA_CLIENT) $(ECHO_CLIENT) $(CREDENTIALS_CLIENT) $(ARCLIB_CLIENT) $(SAML_CLIENT) $(SRM_CLIENT) $(JURA_CLIENT) $(WSRF_CLIENT) $(CACHE_CLIENT)
+DIST_SUBDIRS = data echo credentials arclib saml srm jura wsrf cache
 
 arcsysconfdir = $(sysconfdir)/arc
 arcsysconf_DATA = client.conf
 exampledir = $(pkgdatadir)/examples
 example_DATA = client.conf
 EXTRA_DIST = $(example_DATA) $(arcsysconf_DATA)
-
-
-
-
 

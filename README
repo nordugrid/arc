@@ -61,11 +61,11 @@ Optional dependencies
 Build:
   o CppUnit for unit testing
   o Grid Packaging Tools (GPT) (arclib)
-  o swig version 1.3.28 or later (Chelonia, bindings)
+  o swig version 1.3.28 or later (bindings)
 
 Build & runtime:
   o open-ldap client (LDAP DMC)
-  o python 2.4 or higher (Chelonia, bindings, APEL publisher by Jura)
+  o python 2.4 or higher (bindings, APEL publisher by Jura)
   o java sdk 1.4 or later (bindings)
   o globus-common 4 (arclib)
   o globus-gssapi-gsi 4 (arclib)
@@ -75,7 +75,7 @@ Build & runtime:
   o globus-io  4 (arclib)
   o globus-openssl (arclib)
   o LHC File Catalog (LFC DMC)
-  o Berkeley DB C++ interface (ISIS)
+  o Berkeley DB C++ interface (Delegation)
   o xmlsec1 1.2.4 or higher (Security)
   o GridSite (GridFTP)
 
@@ -84,9 +84,6 @@ Runtime dependencies:
   o Perl, perl-SOAP-Lite, perl-Crypt-OpenSSL-X509 (nordugridmap)
   o GNU time (A-rex)
   o VOMS (LFC DMC)
-  o wget (Janitor)
-  o fuse-python (Chelonia)
-  o Berkley DB Python interface - python-bsddb3 (replicated A-Hash)
   o Stomppy, m2Crypto (APEL publisher by Jura)
 
 Please note that depending on operating system distribution to build

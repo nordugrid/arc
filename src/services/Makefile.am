@@ -10,12 +10,6 @@ else
 GRIDFTPD_SERVICE =
 endif
 
-if ISIS_SERVICE_ENABLED
-ISIS_SERVICE = isis
-else
-ISIS_SERVICE =
-endif
-
 if LDAP_SERVICE_ENABLED
 LDAP_SERVICE = ldap-infosys
 else
@@ -34,41 +28,11 @@ else
 WS_MONITOR =
 endif
 
-#if CHARON_SERVICE_ENABLED
-#CHARON_SERVICE = charon
-#else
-CHARON_SERVICE =
-#endif
-
-if HOPI_SERVICE_ENABLED
-HOPI_SERVICE = hopi
-else
-HOPI_SERVICE =
-endif
-
-if STORAGE_SERVICE_ENABLED
-STORAGE_SERVICE = storage
-else
-STORAGE_SERVICE =
-endif
-
-if JANITOR_SERVICE_ENABLED
-JANITOR_SERVICE = janitor
-else
-JANITOR_SERVICE =
-endif
-
 if PYTHON_SERVICE
 PYTHON_SERVICE = echo_python
 else
 PYTHON_SERVICE =
 endif
-
-#if SLCS_SERVICE_ENABLED
-#SLCS_SERVICE = charon
-#else
-SLCS_SERVICE =
-#endif
 
 #if JAVA_ENABLED
 #JAVA_SERVICE = echo_java
@@ -88,11 +52,11 @@ else
 DATADELIVERY_SERVICE =
 endif
 
-SUBDIRS = $(GRIDFTPD_SERVICE) $(AREX_SERVICE) $(ISIS_SERVICE) $(LDAP_SERVICE) \
-	$(LDAP_MONITOR) $(WS_MONITOR) $(CHARON_SERVICE) $(HOPI_SERVICE) \
-	$(STORAGE_SERVICE) $(JANITOR_SERVICE) $(CACHE_SERVICE) $(SLCS_SERVICE) \
+SUBDIRS = $(GRIDFTPD_SERVICE) $(AREX_SERVICE) $(LDAP_SERVICE) \
+	$(LDAP_MONITOR) $(WS_MONITOR) \
+	$(CACHE_SERVICE) \
 	$(DATADELIVERY_SERVICE) wrappers $(PYTHON_SERVICE) $(JAVA_SERVICE)
-DIST_SUBDIRS = gridftpd a-rex isis ldap-infosys \
-	ldap-monitor ws-monitor charon hopi \
-	storage janitor cache_service slcs \
+DIST_SUBDIRS = gridftpd a-rex ldap-infosys \
+	ldap-monitor ws-monitor \
+	cache_service \
 	data-staging wrappers echo_python echo_java

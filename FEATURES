@@ -62,8 +62,6 @@ AREX/User mapping      Done          None                      Aleksandr        
 AREX/Inform. interf.   Prototype     None                      Aleksandr                -         Uses code from ARC0
 AREX/Client            Prototype     In deliverable            Markus                   -
 Data/Clients           Done          -h                        Mattias                  -         Code ported from ARC0.
-ISIS/Centralised Serv. Partial       In deliverable            Aleksandr                -         Code and schemas cleaning needed.
-ISIS/Client            Partial       None                      Aleksandr,Ferenc         -         Only registration class is available
 
 **  Development started
  Component/Feature    Status         Documentation            Assigned person        Due date       Comments
@@ -77,7 +75,6 @@ ARCLib/Job description Being  devel. None                      Ivan             
 ARCLib/Brokering       Being devel.  None                      Gabor                    -
 ARCLib/CREAM2 plugin   Being devel.  None                      Ivan                     -
 ARCLib/ARC0 plugin     Being ported  None                      Bjarte                   -
-ISIS/Distributed Serv. Being devel.  None                      Ferenc                   -
 AREX/Backends          Being devel.  None                      Thomas, Adrian           -
 Security/Attributes    Being devel.  None                      Aleksandr,Johan          -
   

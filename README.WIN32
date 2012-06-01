@@ -120,7 +120,7 @@ Configure setup:
  
    LDFLAGS="-L/usr/local/bin" CXXFLAGS="-I/usr/local/include/python2.4"
 
-Berkeley DB install and building (recommend version: 4.7, Sched/ISIS using this):
+Berkeley DB install and building (recommend version: 4.7)
 
 Source code:
 

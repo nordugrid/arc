@@ -8,11 +8,9 @@ groups exist in the source code:
 
  o arclib      - client for computational job management
  o cache       - client for internal A-REX cache handling service
- o charon      - client for accessing ARC PDP service Charon
  o credentials - user tools for handling user credentials
  o data        - clients for basic file handlng on the Grid
  o echo        - client for ARC Echo service (demo)    
- o isis        - client for ARC ISIS information service
  o jura        - A-REX compatible accounting agent for SGAS-LUTS
  o saml        - client tool to communicate to SAML-based VOMS services
  o srm         - ping client for the SRM service

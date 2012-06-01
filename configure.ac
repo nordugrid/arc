@@ -166,24 +166,17 @@ enables_hed=yes
 #  Services
 enables_a_rex_service=yes
 enables_gridftpd_service=yes
-enables_hopi_service=yes
-enables_isis_service=yes
 enables_ldap_service=yes
 enables_giis_service=yes
-enables_janitor_service=yes
-#enables_charon_service=yes
-enables_storage_service=yes
 enables_cache_service=yes
 enables_datadelivery_service=yes
 enables_ldap_monitor=yes
 enables_ws_monitor=yes
 #  Clients
 enables_arclib_client=yes
-#enables_charon_client=yes
 enables_credentials_client=yes
 enables_echo_client=yes
 enables_data_client=yes
-enables_isis_client=yes
 enables_jura_client=yes
 enables_saml_client=yes
 enables_srm_client=yes
@@ -199,23 +192,16 @@ AC_ARG_ENABLE(all, AC_HELP_STRING([--disable-all], [disables all buildable compo
 [
 enables_a_rex_service=$enableval
 enables_gridftpd_service=$enableval
-enables_hopi_service=$enableval
-enables_isis_service=$enableval
 enables_ldap_service=$enableval
 enables_giis_service=$enableval
 enables_ldap_monitor=$enableval
 enables_ws_monitor=$enableval
-enables_janitor_service=$enableval
-#enables_charon_service=$enableval
-enables_storage_service=$enableval
 enables_cache_service=$enableval
 enables_datadelivery_service=$enableval
 enables_arclib_client=$enableval
-#enables_charon_client=$enableval
 enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
-enables_isis_client=$enableval
 enables_jura_client=$enableval
 enables_saml_client=$enableval
 enables_srm_client=$enableval
@@ -241,11 +227,9 @@ enables_doc=$enableval
 AC_ARG_ENABLE(all-clients, AC_HELP_STRING([--disable-all-clients], [disables all buildable client components. Can be overwritten with --enable-* for specific component. It is also possible to use --enable-all-clients to overwrite defaults and --enable-all.]),
 [
 enables_arclib_client=$enableval
-#enables_charon_client=$enableval
 enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
-enables_isis_client=$enableval
 enables_jura_client=$enableval
 enables_saml_client=$enableval
 enables_srm_client=$enableval
@@ -268,14 +252,9 @@ AC_ARG_ENABLE(all-services, AC_HELP_STRING([--disable-all-services], [disables a
 [
 enables_a_rex_service=$enableval
 enables_gridftpd_service=$enableval
-enables_hopi_service=$enableval
-enables_isis_service=$enableval
 enables_ldap_service=$enableval
 enables_giis_service=$enableval
 enables_ldap_monitor=$enableval
-enables_janitor_service=$enableval
-#enables_charon_service=$enableval
-enables_storage_service=$enableval
 enables_cache_service=$enableval
 enables_datadelivery_service=$enableval
 ],
@@ -1883,24 +1862,6 @@ fi
 AC_MSG_NOTICE([Gridftpd service enabled: $enables_gridftpd_service])
 AM_CONDITIONAL([GRIDFTPD_SERVICE_ENABLED],[test "x$enables_gridftpd_service" = "xyes"])
 
-# ISIS
-AC_ARG_ENABLE(isis_service, AC_HELP_STRING([--disable-isis-service], [disable building ISIS Service]),
-  [enables_isis_service=$enableval],[])
-if test "$enables_isis_service" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    AC_MSG_NOTICE([ISIS can't be built for WIN32 environment - disabling])
-    enables_isis_service="no"
-  fi
-fi
-if test "$enables_isis_service" = "yes"; then
-  if test "$DBCXX_LIBS" = ""; then
-    enables_isis_service="no"
-    AC_MSG_NOTICE([WARNING: Missing db_cxx - disabling ISIS])
-  fi
-fi
-AC_MSG_NOTICE([ISIS service enabled: $enables_isis_service])
-AM_CONDITIONAL([ISIS_SERVICE_ENABLED],[test "x$enables_isis_service" = "xyes"])
-
 # LDAP service
 AC_ARG_ENABLE(ldap_service, AC_HELP_STRING([--disable-ldap-service], [disable building LDAP Infosystem Service]),
   [enables_ldap_service=$enableval],[])
@@ -1948,55 +1909,6 @@ AC_ARG_ENABLE(ws_monitor, AC_HELP_STRING([--disable-ws-monitor], [disable buildi
 AC_MSG_NOTICE([WS Monitor enabled: $enables_ws_monitor])
 AM_CONDITIONAL([WS_MONITOR_ENABLED],[test "x$enables_ws_monitor" = "xyes"])
 
-## Charon service
-#AC_ARG_ENABLE(charon_service, AC_HELP_STRING([--disable-charon-service], [disable building Charon Service]),
-#  [enables_charon_service=$enableval],[])
-#if test "$enables_charon_service" = "yes"; then
-#  if test "x$WIN32" = "xyes" ; then
-#    enables_charon_service="no"
-#    AC_MSG_NOTICE([Charon can't be built for WIN32 environment - disabling])
-#  fi
-#fi
-#AC_MSG_NOTICE([Charon Service enabled: $enables_charon_service])
-#AM_CONDITIONAL([CHARON_SERVICE_ENABLED],[test "x$enables_charon_service" = "xyes"])
-
-# Hopi service
-AC_ARG_ENABLE(hopi_service, AC_HELP_STRING([--disable-hopi-service], [disable building Hopi Service]),
-  [enables_hopi_service=$enableval],[])
-if test "$enables_hopi_service" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    enables_hopi_service="no"
-    AC_MSG_NOTICE([Hopi can't be built for WIN32 environment - disabling])
-  fi
-fi
-AC_MSG_NOTICE([Hopi Service enabled: $enables_hopi_service])
-AM_CONDITIONAL([HOPI_SERVICE_ENABLED],[test "x$enables_hopi_service" = "xyes"])
-
-# Storage service
-AC_ARG_ENABLE(storage_service, AC_HELP_STRING([--disable-storage-service], [disable building Storage service]),
-  [enables_storage_service=$enableval],[])
-if test "$enables_storage_service" = "yes"; then
-  if test "x$enables_python" != "xyes"; then
-    AC_MSG_NOTICE([WARNING: Missing or disabled Python - disabling STORAGE service])
-    enables_storage_service="no"
-  fi
-fi
-AC_MSG_NOTICE([STORAGE Service enabled: $enables_storage_service])
-AM_CONDITIONAL([STORAGE_SERVICE_ENABLED],[test "x$enables_storage_service" = "xyes"])
-
-# Janitor service
-AC_ARG_ENABLE(janitor_service, AC_HELP_STRING([--disable-janitor-service], [disable building JANITOR Service]),
-  [enables_janitor_service=$enableval],[])
-if test "$enables_janitor_service" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    enables_janitor_service="no"
-    AC_MSG_NOTICE([Janitor can't be built for WIN32 environment - disabling])
-  fi
-fi
-AC_MSG_NOTICE([JANITOR Service enabled: $enables_janitor_service])
-AM_CONDITIONAL([JANITOR_SERVICE_ENABLED],[test "x$enables_janitor_service" = "xyes"])
-AM_CONDITIONAL([JANITOR_WEBSERVICE_ENABLED],[test "x$enables_janitor_service" = "xyes"])
-
 # Cache service
 AC_ARG_ENABLE(cache_service, AC_HELP_STRING([--disable-cache-service], [disable building cache service]),
   [enables_cache_service=$enableval],[])
@@ -2031,11 +1943,6 @@ AC_ARG_ENABLE(arclib_client, AC_HELP_STRING([--disable-arclib-client], [disable 
 AC_MSG_NOTICE([Arclib client tools enabled: $enables_arclib_client])
 AM_CONDITIONAL([ARCLIB_CLIENT_ENABLED],[test "x$enables_arclib_client" = "xyes"])
 
-#AC_ARG_ENABLE(charon_client, AC_HELP_STRING([--disable-charon-client], [disable building client for Charon service]),
-#  [enables_charon_client=$enableval],[])
-#AC_MSG_NOTICE([Charon client tool enabled: $enables_charon_client])
-#AM_CONDITIONAL([CHARON_CLIENT_ENABLED],[test "x$enables_charon_client" = "xyes"])
-
 AC_ARG_ENABLE(credentials_client, AC_HELP_STRING([--disable-credentials-client], [disable building client tools for handling X.509 credentials]),
   [enables_credentials_client=$enableval],[])
 AC_MSG_NOTICE([Credentials client tools enabled: $enables_credentials_client])
@@ -2050,11 +1957,6 @@ AC_ARG_ENABLE(data_client, AC_HELP_STRING([--disable-data-client], [disable buil
   [enables_data_client=$enableval],[])
 AC_MSG_NOTICE([Data client tools enabled: $enables_data_client])
 AM_CONDITIONAL([DATA_CLIENT_ENABLED],[test "x$enables_data_client" = "xyes"])
-
-AC_ARG_ENABLE(isis_client, AC_HELP_STRING([--disable-isis-client], [disable building client tool for communicating ISIS]),
-  [enables_isis_client=$enableval],[])
-AC_MSG_NOTICE([ISIS client tool enabled: $enables_isis_client])
-AM_CONDITIONAL([ISIS_CLIENT_ENABLED],[test "x$enables_isis_client" = "xyes"])
 
 AC_ARG_ENABLE(jura_client, AC_HELP_STRING([--disable-jura-client], [disable building client tool for communicating JURA]),
   [enables_jura_client=$enableval],[])
@@ -2107,19 +2009,12 @@ AM_CONDITIONAL([EMIES_ENABLED],[test "x$enables_emies_client" = "xyes"])
 # Check for consistency among disabled components
 if test "$enables_hed" = "no"; then
   if test "$enables_a_rex_service" = "yes" -o \
-          "$enables_hopi_service" = "yes" -o \
-          "$enables_isis_service" = "yes" -o \
-          "$enables_janitor_service" = "yes" -o \
-          "$enables_charon_service" = "yes" -o \
-          "$enables_storage_service" = "yes" -o \
           "$enables_cache_service" = "yes" -o \
           "$enables_datadelivery_service" = "yes" -o \
           "$enables_arclib_client" = "yes" -o \
-          "$enables_charon_client" = "yes" -o \
           "$enables_credentials_client" = "yes" -o \
           "$enables_echo_client" = "yes" -o \
           "$enables_data_client" = "yes" -o \
-          "$enables_isis_client" = "yes" -o \
           "$enables_jura_client" = "yes" -o \
           "$enables_saml_client" = "yes" -o \
           "$enables_srm_client" = "yes" -o \
@@ -2378,9 +2273,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/schema/Makefile
                  src/services/cache_service/Makefile
                  src/services/cache_service/arc-cache-service
-                 src/services/charon/Makefile
-                 src/services/charon/schema/Makefile
-                 src/services/charon/charon_service.xml.example
                  src/services/data-staging/Makefile
                  src/services/data-staging/arc-datadelivery-service
                  src/services/gridftpd/Makefile
@@ -2394,10 +2286,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/gridftpd/run/Makefile
                  src/services/gridftpd/fileplugin/Makefile
                  src/services/gridftpd/gaclplugin/Makefile
-                 src/services/hopi/Makefile
-                 src/services/hopi/hopi_service.xml.example
-                 src/services/isis/Makefile
-                 src/services/isis/schema/Makefile
                  src/services/ldap-infosys/Makefile
                  src/services/ldap-infosys/grid-infosys
                  src/services/ldap-infosys/giis/Makefile
@@ -2419,32 +2307,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/ws-monitor/includes/Makefile
                  src/services/ws-monitor/mon-icons/Makefile
                  src/services/ws-monitor/lang/Makefile
-                 src/services/slcs/Makefile
-                 src/services/slcs/schema/Makefile
-                 src/services/storage/Makefile
-                 src/services/storage/storage_service.xml.example
-                 src/services/storage/chelonia.1
-                 src/services/storage/librarian/Makefile
-                 src/services/storage/librarian/schema/Makefile
-                 src/services/storage/cli/Makefile
-                 src/services/storage/shepherd/Makefile
-                 src/services/storage/shepherd/schema/Makefile
-                 src/services/storage/ahash/Makefile
-                 src/services/storage/ahash/schema/Makefile
-                 src/services/storage/bartender/Makefile
-                 src/services/storage/bartender/schema/Makefile
-                 src/services/storage/bartender/gateway/Makefile
-                 src/services/storage/fuse/Makefile
-                 src/services/janitor/interfaces/commandline/Makefile
-                 src/services/janitor/interfaces/commandline/janitor
-                 src/services/janitor/interfaces/webservice/Makefile
-                 src/services/janitor/interfaces/Makefile
-                 src/services/janitor/interfaces/client/Makefile
-                 src/services/janitor/module/Catalog/Makefile
-                 src/services/janitor/module/Makefile
-                 src/services/janitor/schema/Makefile
-                 src/services/janitor/resources/Makefile
-                 src/services/janitor/Makefile
                  src/services/echo_java/Makefile
                  src/services/echo_python/Makefile
                  src/services/wrappers/Makefile
@@ -2460,10 +2322,6 @@ AC_CONFIG_FILES([Makefile
                  src/clients/data/arcmkdir.1
                  src/clients/echo/Makefile
                  src/clients/echo/arcecho.1
-                 src/clients/charon/Makefile
-                 src/clients/charon/arcdecision.1
-                 src/clients/isis/Makefile
-                 src/clients/isis/isistest.1
                  src/clients/credentials/Makefile
                  src/clients/credentials/arcproxy.1
                  src/clients/credentials/arcslcs.1
@@ -2561,17 +2419,12 @@ HED:                ${enables_hed}
 
 A-REX service:      ${enables_a_rex_service}
 GRIDFTPD service:   ${enables_gridftpd_service}
-ISIS service:       ${enables_isis_service}
 LDAP Info service:  ${enables_ldap_service}
 GIIS service:       ${enables_giis_service}
-HOPI service:       ${enables_hopi_service}
-STORAGE service:    ${enables_storage_service}
-JANITOR service:    ${enables_janitor_service}
 CACHE service:      ${enables_cache_service}
 DATADELIVERY service: ${enables_datadelivery_service}
 
 ARCLIB clients:     ${enables_arclib_client}
-ISIS client:        ${enables_isis_client}
 DATA clients:       ${enables_data_client}
 SRM ping client:    ${enables_srm_client}
 CREDENTIAL clients: ${enables_credentials_client}
