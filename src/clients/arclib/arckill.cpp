@@ -106,6 +106,7 @@ int RUNMAIN(arckill)(int argc, char **argv) {
 
   int retval = (int)!jobmaster.Cancel();
 
+  unsigned int selected_num = jobmaster.GetSelectedJobs().size();
   unsigned int canceled_num = jobmaster.GetIDsProcessed().size();
   unsigned int notcanceled_num = jobmaster.GetIDsNotProcessed().size();
   unsigned int cleaned_num = 0;
@@ -127,11 +128,11 @@ int RUNMAIN(arckill)(int argc, char **argv) {
       retval = 1;
     }
 
-    std::cout << Arc::IString("Jobs processed: %d, successfully killed: %d, successfully cleaned: %d", canceled_num+notcanceled_num, canceled_num, cleaned_num) << std::endl;
+    std::cout << Arc::IString("Jobs processed: %d, successfully killed: %d, successfully cleaned: %d", selected_num, canceled_num, cleaned_num) << std::endl;
 
   } else {
 
-    std::cout << Arc::IString("Jobs processed: %d, successfully killed: %d", canceled_num+notcanceled_num, canceled_num) << std::endl;
+    std::cout << Arc::IString("Jobs processed: %d, successfully killed: %d", selected_num, canceled_num) << std::endl;
 
   }
 
