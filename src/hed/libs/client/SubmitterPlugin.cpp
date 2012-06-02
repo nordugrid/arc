@@ -16,7 +16,6 @@
 #include <arc/data/FileCache.h>
 #include <arc/CheckSum.h>
 #include <arc/data/DataMover.h>
-#include <arc/data/DataHandle.h>
 #include <arc/data/URLMap.h>
 #include <arc/loader/FinderLoader.h>
 
@@ -48,7 +47,11 @@ namespace Arc {
           dst.ChangePath(dst.Path() + '/' + it->Name);
           dst.AddOption("blocksize=1048576",false);
           DataHandle source(src, usercfg);
-          DataHandle destination(dst, usercfg);
+          if ((!dest_handle) || (!*dest_handle) || (!(*dest_handle)->SetURL(dst))) {
+            if(dest_handle) delete dest_handle;
+            ((SubmitterPlugin*)this)->dest_handle = new DataHandle(dst, usercfg);
+          };
+          DataHandle& destination = *dest_handle;
           DataStatus res =
             mover.Transfer(*source, *destination, cache, URLMap(), 0, 0, 0,
                            usercfg.Timeout());
@@ -102,8 +105,9 @@ namespace Arc {
   SubmitterPluginLoader::SubmitterPluginLoader() : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}
 
   SubmitterPluginLoader::~SubmitterPluginLoader() {
-    for (std::multimap<std::string, SubmitterPlugin*>::iterator it = submitters.begin(); it != submitters.end(); ++it)
+    for (std::multimap<std::string, SubmitterPlugin*>::iterator it = submitters.begin(); it != submitters.end(); ++it) {
       delete it->second;
+    }
   }
 
   void SubmitterPluginLoader::initialiseInterfacePluginMap(const UserConfig& uc) {

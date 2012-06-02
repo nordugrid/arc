@@ -13,6 +13,7 @@
 #include <arc/client/EntityRetriever.h>
 #include <arc/client/Job.h>
 #include <arc/client/JobDescription.h>
+#include <arc/data/DataHandle.h>
 
 namespace Arc {
 
@@ -32,9 +33,9 @@ namespace Arc {
   class SubmitterPlugin : public Plugin {
   protected:
     SubmitterPlugin(const UserConfig& usercfg, PluginArgument* parg)
-      : Plugin(parg), usercfg(usercfg) {}
+      : Plugin(parg), usercfg(usercfg), dest_handle(NULL) {}
   public:
-    virtual ~SubmitterPlugin() {}
+    virtual ~SubmitterPlugin() { delete dest_handle; }
 
     /// Submit job
     /**
@@ -72,6 +73,7 @@ namespace Arc {
 
     const UserConfig& usercfg;
     std::list<std::string> supportedInterfaces;
+    DataHandle* dest_handle;
 
     static Logger logger;
   };
