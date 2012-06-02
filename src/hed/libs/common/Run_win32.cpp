@@ -13,6 +13,7 @@
 #include <arc/Thread.h>
 #include <arc/Logger.h>
 #include "Run.h"
+#include "Watchdog.h"
 
 std::string GetOsErrorMessage(void);
 
