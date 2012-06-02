@@ -115,3 +115,5 @@ install-data-hook:
 
 DIST_SUBDIRS = test
 SUBDIRS = $(TEST_DIR)
+
+.NOTPARALLEL: %.lo %.o
