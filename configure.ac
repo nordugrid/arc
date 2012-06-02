@@ -2386,8 +2386,6 @@ AC_CONFIG_FILES([Makefile
                  mingw32-nordugrid-arc.spec
                  src/hed/daemon/arched.8
                  src/hed/daemon/scripts/arched
-                 src/services/janitor/interfaces/commandline/janitor.8
-                 src/services/janitor/interfaces/commandline/rjanitor.c
                  arcbase.pc
                  nsis/Makefile
                  nsis/arc.nsis
