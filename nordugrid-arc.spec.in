@@ -71,12 +71,21 @@ Obsoletes:	nordugrid-arc-nox < 1.3.0
 #		Packages dropped without replacements
 Obsoletes:	%{name}-httpsd < 0.8.2-1
 Obsoletes:	%{name}-logger-server < 0.8.2-1
+Obsoletes:	nordugrid-arc1-janitor < 1.0.0
 Obsoletes:	nordugrid-arc-nox-charon < 1.3.0
+Obsoletes:	nordugrid-arc-nox-chelonia < 1.3.0
 Obsoletes:	nordugrid-arc-nox-compiler < 1.3.0
 Obsoletes:	nordugrid-arc-nox-delegation < 1.3.0
+Obsoletes:	nordugrid-arc-nox-hopi < 1.3.0
+Obsoletes:	nordugrid-arc-nox-isis < 1.3.0
+Obsoletes:	nordugrid-arc-nox-janitor < 1.3.0
 Obsoletes:	nordugrid-arc-nox-paul < 1.3.0
 Obsoletes:	nordugrid-arc-nox-saml2sp < 1.3.0
 Obsoletes:	nordugrid-arc-nox-slcs < 1.3.0
+Obsoletes:	nordugrid-arc-chelonia < 2.0.0
+Obsoletes:	nordugrid-arc-hopi < 2.0.0
+Obsoletes:	nordugrid-arc-isis < 2.0.0
+Obsoletes:	nordugrid-arc-janitor < 2.0.0
 
 BuildRequires:	cppunit-devel
 BuildRequires:	pkgconfig
