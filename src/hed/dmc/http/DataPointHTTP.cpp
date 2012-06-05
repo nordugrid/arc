@@ -268,8 +268,10 @@ namespace Arc {
   DataPointHTTP::~DataPointHTTP() {
     StopReading();
     StopWriting();
-    if (chunks)
-      delete chunks;
+    if (chunks) delete chunks;
+    for(std::multimap<std::string,ClientHTTP*>::iterator cl = clients.begin(); cl != clients.end(); ++cl) {
+      delete cl->second;
+    };
   }
 
   Plugin* DataPointHTTP::Instance(PluginArgument *arg) {
