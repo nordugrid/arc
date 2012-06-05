@@ -16,7 +16,7 @@
 #include <arc/data/DataBuffer.h>
 #include <arc/message/MCC.h>
 #include <arc/message/PayloadRaw.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/Utils.h>
 
 #include "DataPointHTTP.h"
 
@@ -26,7 +26,7 @@ namespace Arc {
 
   typedef struct {
     DataPointHTTP *point;
-    ClientHTTP *client;
+    //ClientHTTP *client;
   } HTTPInfo_t;
 
   class ChunkControl {
@@ -349,16 +349,22 @@ namespace Arc {
     return true;
   }
 
-  static DataStatus do_stat(const std::string& path, ClientHTTP& client, FileInfo& file) {
+  DataStatus DataPointHTTP::do_stat(const std::string& path, const URL& curl, FileInfo& file) {
     PayloadRaw request;
     PayloadRawInterface *inbuf;
     HTTPClientInfo info;
     info.lastModified = (time_t)(-1);
+    AutoPointer<ClientHTTP> client(acquire_client(curl));
+    if (!client) return DataStatus::StatError;
     // Do HEAD to obtain some metadata
-    MCC_Status r = client.process("HEAD", path, &request, &info, &inbuf);
+    MCC_Status r = client->process("HEAD", path, &request, &info, &inbuf);
     if (inbuf) delete inbuf;
     // TODO: handle redirects
-    if ((!r) || (info.code != 200)) {
+    if (!r) {
+      return DataStatus::StatError;
+    }
+    release_client(curl,client.Release());
+    if (info.code != 200) {
       if(info.code == 404) return DataStatus::StatNotPresentError;
       return DataStatus::StatError;
     }
@@ -391,11 +397,7 @@ namespace Arc {
 
   DataStatus DataPointHTTP::Stat(FileInfo& file, DataPointInfoType verb) {
     // verb is not used
-    MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
-    ClientHTTP client(cfg, url, usercfg.Timeout());
-
-    DataStatus r = do_stat(url.FullPathURIEncoded(), client, file);
+    DataStatus r = do_stat(url.FullPathURIEncoded(), url, file);
     if(!r) return r;
     std::string name = url.FullPath();
     std::string::size_type p = name.rfind('/');
@@ -422,13 +424,10 @@ namespace Arc {
   DataStatus DataPointHTTP::List(std::list<FileInfo>& files, DataPointInfoType verb) {
     if (transfers_started.get() != 0) return DataStatus::ListError;
     URL curl = url;
-    MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
 
     {
-      ClientHTTP client(cfg, curl, usercfg.Timeout());
       FileInfo file;
-      DataStatus r = do_stat(curl.FullPathURIEncoded(), client, file);
+      DataStatus r = do_stat(curl.FullPathURIEncoded(), curl, file);
       if(r) {
         if(file.CheckSize()) size = file.GetSize();
         if(file.CheckCreated()) created = file.GetCreated();
@@ -485,17 +484,7 @@ namespace Arc {
       if(verb & (INFO_TYPE_TYPE | INFO_TYPE_TIMES | INFO_TYPE_CONTENT)) {
         for(std::list<FileInfo>::iterator f = files.begin(); f != files.end(); ++f) {
           URL furl(url.str()+'/'+(f->GetName()));
-          /* for future use
-          if((furl.Host() != curl.Host()) ||
-             (furl.Port() != curl.Port()) ||
-             (furl.Protocol() != curl.Protocol())) {
-            curl = furl;
-            delete client;
-            client = new ClientHTTP(cfg, curl, usercfg.Timeout());
-          }
-          */
-          ClientHTTP client(cfg, curl, usercfg.Timeout());
-          do_stat(furl.FullPathURIEncoded(), client, *f);
+          do_stat(furl.FullPathURIEncoded(), curl, *f);
         }
       }
     }
@@ -515,7 +504,7 @@ namespace Arc {
     for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
-      info->client = new ClientHTTP(cfg, url, usercfg.Timeout());
+      //info->client = new ClientHTTP(cfg, url, usercfg.Timeout());
       if (!CreateThreadFunction(&read_thread, info, &transfers_started)) {
         delete info;
       } else {
@@ -562,7 +551,7 @@ namespace Arc {
     for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
-      info->client = new ClientHTTP(cfg, url, usercfg.Timeout());
+      //info->client = new ClientHTTP(cfg, url, usercfg.Timeout());
       if (!CreateThreadFunction(&write_thread, info, &transfers_started)) {
         delete info;
       } else {
@@ -596,20 +585,21 @@ namespace Arc {
   }
 
   DataStatus DataPointHTTP::Check() {
-    MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
-    ClientHTTP client(cfg, url, usercfg.Timeout());
     PayloadRaw request;
     PayloadRawInterface *inbuf;
     HTTPClientInfo info;
-    MCC_Status r = client.process("GET", url.FullPathURIEncoded(), 0, 15,
+    AutoPointer<ClientHTTP> client(acquire_client(url));
+    if (!client) return DataStatus::CheckError;
+    MCC_Status r = client->process("GET", url.FullPathURIEncoded(), 0, 15,
                                   &request, &info, &inbuf);
     PayloadRawInterface::Size_t logsize = 0;
     if (inbuf){
       logsize = inbuf->Size();
       delete inbuf;
     }
-    if ((!r) || ((info.code != 200) && (info.code != 206))) return DataStatus::CheckError;
+    if (!r) return DataStatus::CheckError;
+    release_client(url,client.Release());
+    if ((info.code != 200) && (info.code != 206)) return DataStatus::CheckError;
     size = logsize;
     logger.msg(VERBOSE, "Check: obtained size %llu", size);
     created = info.lastModified;
@@ -626,12 +616,16 @@ namespace Arc {
     DataPointHTTP& point = *(info.point);
     point.transfer_lock.lock();
     point.transfer_lock.unlock();
-    ClientHTTP *client = info.client;
     URL client_url = point.url;
+    ClientHTTP* client = point.acquire_client(client_url);
     bool transfer_failure = false;
     int retries = 0;
     std::string path = point.CurrentLocation().FullPathURIEncoded();
     for (;;) {
+      if (!client) {
+        transfer_failure = true;
+        break;
+      }
       unsigned int transfer_size = 0;
       int transfer_handle = -1;
       // get first buffer
@@ -660,6 +654,7 @@ namespace Arc {
         point.buffer->is_read(transfer_handle, 0, 0);
         point.chunks->Unclaim(transfer_offset, chunk_length);
         if (inbuf) delete inbuf;
+        delete client; client = NULL;
         // Failed to transfer chunk - retry.
         // 10 times in a row seems to be reasonable number
         // TODO: mark failure?
@@ -669,11 +664,7 @@ namespace Arc {
           break;
         }
         // Recreate connection
-        delete client;
-        client = NULL;
-        MCCConfig cfg;
-        point.usercfg.ApplyToConfig(cfg);
-        client = new ClientHTTP(cfg, client_url, point.usercfg.Timeout());
+        client = point.acquire_client(client_url);
         continue;
       }
       if (transfer_info.code == 416) { // EOF
@@ -692,17 +683,11 @@ namespace Arc {
         point.chunks->Unclaim(transfer_offset, chunk_length);
         if (inbuf) delete inbuf;
         // Recreate connection now to new URL
-        delete client;
-        client = NULL;
-        MCCConfig cfg;
-        point.usercfg.ApplyToConfig(cfg);
+        point.release_client(client_url,client); client = NULL;
         client_url = transfer_info.location;
         logger.msg(VERBOSE,"Redirecting to %s",transfer_info.location);
-        if(client_url && (
-            (client_url.Protocol() == "http") ||
-            (client_url.Protocol() == "https") ||
-            (client_url.Protocol() == "httpg"))) {
-          client = new ClientHTTP(cfg, client_url, point.usercfg.Timeout());
+        client = point.acquire_client(client_url);
+        if (client) {
           path = client_url.FullPathURIEncoded();
           continue;
         }
@@ -820,7 +805,7 @@ namespace Arc {
       // TODO: process/report failure?
       point.buffer->eof_read(true);
     }
-    if (client) delete client;
+    point.release_client(client_url,client); client = NULL;
     delete &info;
     point.transfer_lock.unlock();
   }
@@ -830,11 +815,16 @@ namespace Arc {
     DataPointHTTP& point = *(info.point);
     point.transfer_lock.lock();
     point.transfer_lock.unlock();
-    ClientHTTP *client = info.client;
+    URL client_url = point.url;
+    ClientHTTP *client = point.acquire_client(client_url);
     bool transfer_failure = false;
     int retries = 0;
-    std::string path = point.CurrentLocation().FullPathURIEncoded();
+    std::string path = client_url.FullPathURIEncoded();
     for (;;) {
+      if (!client) {
+        transfer_failure = true;
+        break;
+      }
       unsigned int transfer_size = 0;
       int transfer_handle = -1;
       unsigned long long int transfer_offset = 0;
@@ -853,9 +843,9 @@ namespace Arc {
       PayloadRawInterface *response;
       MCC_Status r = client->process("PUT", path, &request, &transfer_info,
                                      &response);
-      if (response)
-        delete response;
+      if (response) delete response;
       if (!r) {
+        delete client; client = NULL;
         // Failed to transfer chunk - retry.
         // 10 times in a row seems to be reasonable number
         // TODO: mark failure?
@@ -867,11 +857,7 @@ namespace Arc {
         // Return buffer
         point.buffer->is_notwritten(transfer_handle);
         // Recreate connection
-        delete client;
-        client = NULL;
-        MCCConfig cfg;
-        point.usercfg.ApplyToConfig(cfg);
-        client = new ClientHTTP(cfg, point.url, point.usercfg.Timeout());
+        client = point.acquire_client(client_url);
         continue;
       }
       if ((transfer_info.code != 201) &&
@@ -880,9 +866,9 @@ namespace Arc {
         point.buffer->is_notwritten(transfer_handle);
         if ((transfer_info.code == 500) ||
             (transfer_info.code == 503) ||
-            (transfer_info.code == 504))
-          if ((++retries) <= 10)
-            continue;
+            (transfer_info.code == 504)) {
+          if ((++retries) <= 10) continue;
+        }
         transfer_failure = true;
         break;
       }
@@ -895,27 +881,28 @@ namespace Arc {
     if (point.transfers_tofinish == 0) {
       // TODO: process/report failure?
       point.buffer->eof_write(true);
-      if ((!(point.buffer->error())) && (point.buffer->eof_position() == 0))
+      if ((!(point.buffer->error())) && (point.buffer->eof_position() == 0)) {
         // Zero size data was trasfered - must send at least one empty packet
         for (;;) {
+          if (!client) client = point.acquire_client(client_url);
+          if (!client) {
+            point.buffer->error_write(true);
+            break;
+          }
           HTTPClientInfo transfer_info;
           PayloadMemConst request(NULL, 0, 0, 0);
           PayloadRawInterface *response;
           MCC_Status r = client->process("PUT", path, &request, &transfer_info,
                                          &response);
-          if (response)
-            delete response;
+          if (response) delete response;
           if (!r) {
+            delete client; client = NULL;
             if ((++retries) > 10) {
               point.buffer->error_write(true);
               break;
             }
             // Recreate connection
-            delete client;
-            client = NULL;
-            MCCConfig cfg;
-            point.usercfg.ApplyToConfig(cfg);
-            client = new ClientHTTP(cfg, point.url, point.usercfg.Timeout());
+            client = point.acquire_client(client_url);;
             continue;
           }
           if ((transfer_info.code != 201) &&
@@ -924,15 +911,15 @@ namespace Arc {
             if ((transfer_info.code == 500) ||
                 (transfer_info.code == 503) ||
                 (transfer_info.code == 504))
-              if ((++retries) <= 10)
-                continue;
+              if ((++retries) <= 10) continue;
             point.buffer->error_write(true);
             break;
           }
           break;
         }
+      }
     }
-    if (client) delete client;
+    point.release_client(client_url,client); client = NULL;
     delete &info;
     point.transfer_lock.unlock();
   }
@@ -945,6 +932,37 @@ namespace Arc {
     return true;
   }
 
+  ClientHTTP* DataPointHTTP::acquire_client(const URL& curl) {
+    // TODO: lock
+    if(!curl) return NULL;
+    if((curl.Protocol() != "http") &&
+       (curl.Protocol() != "https") &&
+       (curl.Protocol() != "httpg")) return NULL;
+    ClientHTTP* client = NULL;
+    std::string key = curl.ConnectionURL();
+    clients_lock.lock();
+    std::multimap<std::string,ClientHTTP*>::iterator cl = clients.find(key);
+    if(cl != clients.end()) {
+      client = cl->second;
+      clients.erase(cl);
+      clients_lock.unlock();
+    } else {
+      clients_lock.unlock();
+      MCCConfig cfg;
+      usercfg.ApplyToConfig(cfg);
+      client = new ClientHTTP(cfg, curl, usercfg.Timeout());
+    };
+    return client;
+  }
+
+  void DataPointHTTP::release_client(const URL& curl, ClientHTTP* client) {
+    if(!client) return;
+    std::string key = curl.ConnectionURL();
+    //if(!*client) return;
+    clients_lock.lock();
+    clients.insert(std::pair<std::string,ClientHTTP*>(key,client));
+    clients_lock.unlock();
+  }
 
 } // namespace Arc
 

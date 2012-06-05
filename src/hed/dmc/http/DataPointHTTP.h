@@ -4,6 +4,7 @@
 #define __ARC_DATAPOINTHTTP_H__
 
 #include <arc/Thread.h>
+#include <arc/client/ClientInterface.h>
 #include <arc/data/DataPointDirect.h>
 
 namespace Arc {
@@ -36,11 +37,16 @@ namespace Arc {
   private:
     static void read_thread(void *arg);
     static void write_thread(void *arg);
+    DataStatus do_stat(const std::string& path, const URL& curl, FileInfo& file);
+    ClientHTTP* acquire_client(const URL& curl);
+    void release_client(const URL& curl, ClientHTTP* client);
     static Logger logger;
     ChunkControl *chunks;
+    std::multimap<std::string,ClientHTTP*> clients;
     SimpleCounter transfers_started;
     int transfers_tofinish;
     Glib::Mutex transfer_lock;
+    Glib::Mutex clients_lock;
   };
 
 } // namespace Arc
