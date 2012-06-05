@@ -40,7 +40,6 @@
 #include "../conf/conf_map.h"
 #include "../conf/conf_cache.h"
 #include "../log/job_log.h"
-#include "janitor.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "Downloader");
 
@@ -512,8 +511,6 @@ int main(int argc,char** argv) {
   UrlMapConfig url_map(env);
   logger.msg(Arc::INFO, "Downloader started");
 
-  Janitor janitor(desc.get_id(),user.ControlDir(),user.Env());
-
   Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
   Arc::UserConfig usercfg(cred_type);
   usercfg.UtilsDirPath(control_dir);
@@ -582,27 +579,6 @@ int main(int argc,char** argv) {
   if(!desc.GetLocalDescription(user)) {
     failure_reason+="Internal error in downloader\n";
     logger.msg(Arc::ERROR, "Can't read job local description"); res=1; goto exit;
-  };
-
-  // Start janitor in parallel
-  if(!janitor) {
-    if (!janitor.enabled()) {
-      logger.msg(Arc::VERBOSE,"Not invoking janitor because it's not enabled in the config file");
-    };
-    if(desc.get_local()->rtes > 0) {
-      failure_reason+="Non-existing RTE(s) requested\n";
-      if (!janitor.enabled()) {
-        logger.msg(Arc::ERROR, "Janitor not enabled and job contains non-deployed RTEs");
-      } else {
-        logger.msg(Arc::ERROR, "Janitor not installed and job contains non-deployed RTEs");
-      };
-      res=1; goto exit;
-    };
-  } else {
-    if(!janitor.deploy()) {
-      failure_reason+="The Janitor failed\n";
-      logger.msg(Arc::ERROR, "Failed to deploy Janitor"); res=1; goto exit;
-    };
   };
 
   // initialize structures to handle download
@@ -778,31 +754,6 @@ int main(int argc,char** argv) {
   for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
   if(!job_input_write_file(desc,user,job_files_)) {
     logger.msg(Arc::WARNING, "Failed writing changed input file.");
-  };
-
-  // Check for janitor result
-  if(janitor) {
-    unsigned int time_passed = time(NULL) - start_time;
-    // Hardcoding max 30 minutes per RTE + 5 minutes just in case
-    unsigned int time_left = 30*60*desc.get_local()->rtes + 5*60;
-    time_left-=(time_left > time_passed)?time_passed:time_left;
-    if(!janitor.wait(time_left)) {
-      failure_reason+="The Janitor failed\n";
-      logger.msg(Arc::ERROR, "Janitor timeout while deploying Dynamic RTE(s)");
-      res=1; goto exit;
-    };
-    if(janitor.result() == Janitor::DEPLOYED) {
-    } else if(janitor.result() == Janitor::NOTENABLED) {
-      if(desc.get_local()->rtes > 0) {
-        failure_reason+="The Janitor failed\n";
-        logger.msg(Arc::ERROR, "Janitor not enabled and there are missing RTE(s)");
-        res=1; goto exit;
-      }
-    } else {
-      failure_reason+="The Janitor failed\n";
-      logger.msg(Arc::ERROR, "Janitor failed to deploy Dynamic RTE(s)");
-      res=1; goto exit;
-    };
   };
 
   // Job migration functionality

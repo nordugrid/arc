@@ -13,7 +13,7 @@ initd_SCRIPTS = $(AREX_SCRIPT)
 exampledir = $(pkgdatadir)/examples/a-rex
 example_DATA = arex.xml.example arex_secure.xml.example \
 	arex_minimalistic.xml.example arex_xmlonly.xml.example \
-	arex_showcase.xml.example arex_janitor.xml.example
+	arex_showcase.xml.example
 
 GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la
 

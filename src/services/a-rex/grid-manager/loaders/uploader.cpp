@@ -36,7 +36,6 @@
 #include "../conf/conf_map.h"
 #include "../conf/conf_cache.h"
 #include "../log/job_log.h"
-#include "janitor.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "Uploader");
 
@@ -420,8 +419,6 @@ int main(int argc,char** argv) {
   UrlMapConfig url_map(env);
   logger.msg(Arc::INFO, "Uploader started");
 
-  Janitor janitor(desc.get_id(),user.ControlDir(),env);
-
   Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
   Arc::UserConfig usercfg(cred_type);
   usercfg.UtilsDirPath(control_dir);
@@ -511,13 +508,6 @@ int main(int argc,char** argv) {
 
   if(!desc.GetLocalDescription(user)) {
     logger.msg(Arc::ERROR, "Can't read job local description"); res=1; goto exit;
-  };
-
-  // Start janitor in parallel
-  if(janitor) {
-    if(!janitor.remove()) {
-      logger.msg(Arc::ERROR, "Failed to deploy Janitor"); res=1; goto exit;
-    };
   };
 
   // initialize structures to handle upload
@@ -700,16 +690,6 @@ exit:
   // release input files used for this job
   cache->Release();
   delete cache;
-  // We are not extremely interested if janitor finished successfuly
-  // but it should be at least reported.
-  if(janitor) {
-    if(!janitor.wait(5*60)) {
-      logger.msg(Arc::WARNING, "Janitor timeout while removing Dynamic RTE(s) associations (ignoring)");
-    };
-    if(janitor.result() != Janitor::REMOVED && janitor.result() != Janitor::NOTENABLED) {
-      logger.msg(Arc::WARNING, "Janitor failed to remove Dynamic RTE(s) associations (ignoring)");
-    };
-  };
   if(res != 0 && res != 4) {
     job_failed_mark_add(desc,user,failure_reason);
   };

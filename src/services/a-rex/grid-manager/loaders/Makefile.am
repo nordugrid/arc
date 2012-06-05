@@ -1,6 +1,6 @@
 pkglibexec_PROGRAMS = downloader uploader
 
-downloader_SOURCES = downloader.cpp janitor.cpp janitor.h
+downloader_SOURCES = downloader.cpp
 downloader_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 downloader_LDADD = \
@@ -9,7 +9,7 @@ downloader_LDADD = \
 	../mail/libmail.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata2.la
 
-uploader_SOURCES = uploader.cpp janitor.cpp janitor.h
+uploader_SOURCES = uploader.cpp
 uploader_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 uploader_LDADD = \
