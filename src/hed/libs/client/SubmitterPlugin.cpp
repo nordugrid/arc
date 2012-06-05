@@ -52,6 +52,8 @@ namespace Arc {
             ((SubmitterPlugin*)this)->dest_handle = new DataHandle(dst, usercfg);
           };
           DataHandle& destination = *dest_handle;
+          source->SetTries((src.Protocol() == "file")?1:3);
+          destination->SetTries((dst.Protocol() == "file")?1:3);
           DataStatus res =
             mover.Transfer(*source, *destination, cache, URLMap(), 0, 0, 0,
                            usercfg.Timeout());
