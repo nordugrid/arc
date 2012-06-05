@@ -36,7 +36,7 @@ skip jobs which are on a computing element with a given URL
 .IP "\fB-R\fR, \fB--rejectdiscovery\fR=\fIURL\fR"
 skip the service with the given URL during service discovery
 .IP "\fB-S\fR, \fB--submissioninterface\fR=\fIInterfaceName\fR"
-only use this interface for submitting (e.g. org.nordugrid.gridftpjob, org.ogf.emies, org.nordugrid.xbes)
+only use this interface for submitting (e.g. org.nordugrid.gridftpjob, org.ogf.emies, org.ogf.bes)
 .IP "\fB-k\fR, \fB--keep\fR"
 keep the files on the server (do not clean)
 .IP "\fB-m\fR, \fB--same\fR"

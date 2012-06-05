@@ -24,7 +24,7 @@ select one or more registries: \fIname\fR can be an alias for a single registry,
 .IP "\fB-R\fR, \fB--rejectdiscovery\fR=\fIURL\fR"
 skip the service with the given URL during service discovery
 .IP "\fB-S\fR, \fB--submissioninterface\fR=\fIInterfaceName\fR"
-only use this interface for submitting (e.g. org.nordugrid.gridftpjob, org.ogf.emies, org.nordugrid.xbes)
+only use this interface for submitting (e.g. org.nordugrid.gridftpjob, org.ogf.emies, org.ogf.bes)
 .IP "\fB-e\fR, \fB--jobdescrstring=\fIString"
 jobdescription string describing the job to be submitted
 .IP "\fB-f\fR, \fB--jobdescrfile=\fIfilename"
