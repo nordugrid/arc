@@ -813,8 +813,8 @@ namespace Arc {
                          overlayfile);
           while (common.Child()) {
             logger.msg(WARNING,
-                       "Unknown attribute %s in common section, ignoring it",
-                       common.Child().Name());
+                       "Unknown attribute %s in common section of configuration file (%s), ignoring it",
+                       common.Child().Name(), conffile);
             common.Child().Destroy();
           }
 
