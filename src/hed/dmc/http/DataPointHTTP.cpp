@@ -931,6 +931,7 @@ namespace Arc {
     if(url.Host() != this->url.Host()) return false;
     if(url.Port() != this->url.Port()) return false;
     this->url = url;
+    if(triesleft < 1) triesleft = 1;
     return true;
   }
 

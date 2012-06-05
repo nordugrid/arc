@@ -1287,6 +1287,7 @@ namespace Arc {
     }
     // Globus FTP handle allows changing url completely
     this->url = url;
+    if(triesleft < 1) triesleft = 1;
     return true;
   }
 
