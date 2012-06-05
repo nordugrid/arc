@@ -414,10 +414,9 @@ sub cluster_info ($) {
 
     for my $key (keys %qstat_jobs){
 	if ( $qstat_jobs{$key}{job_state} =~ /R/){
-	    my $count;
 	    $lrms_cluster{runningjobs}++;
-	    ++$count while ( $qstat_jobs{$key}{exec_host} =~ /\//g);
-	    $lrms_cluster{usedcpus}+=$count;
+	    my @nodes = split_hostlist($qstat_jobs{$key}{exec_host});
+	    $lrms_cluster{usedcpus} += @nodes;
 	}
 	if ( $qstat_jobs{$key}{job_state} =~ /(W|T|Q)/){
         $lrms_cluster{queuedjobs}++;
