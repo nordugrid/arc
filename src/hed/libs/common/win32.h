@@ -48,6 +48,8 @@ inline ssize_t readlink(const char *path, char *buf, size_t bufsiz) {
 };
 
 #if defined(__cplusplus)
+#include <sys/stat.h>
+#include <sys/types.h>
 inline int mkdir(const char *pathname, mode_t mode) {
     return ::mkdir(pathname);
 }
