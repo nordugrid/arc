@@ -126,7 +126,11 @@ BuildRequires:	xrootd-devel
 %if %{?suse_version}%{!?suse_version:0}
 BuildRequires:	libdb-4_5-devel
 %else
+%if %{?fedora}%{!?fedora:0} >= 14 || %{?rhel}%{!?rhel:0} >= 7
+BuildRequires:	libdb-cxx-devel
+%else
 BuildRequires:	db4-devel
+%endif
 %endif
 %if %{with_java}
 BuildRequires:	java-devel
