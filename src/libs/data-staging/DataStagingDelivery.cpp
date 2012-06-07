@@ -399,7 +399,7 @@ int main(int argc,char* argv[]) {
     crc_dest.print(buf,100);
     calc_csum = buf;
   }
-  if (!calc_csum.empty() && crc.Type() != CheckSumAny::none) {
+  if (!reported && !calc_csum.empty() && crc.Type() != CheckSumAny::none) {
 
     // compare calculated to any checksum given as an option
     if (source->CheckCheckSum()) {
