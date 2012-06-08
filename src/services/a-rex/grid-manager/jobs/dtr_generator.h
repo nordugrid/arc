@@ -66,7 +66,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
   /** logger to a-rex log */
   static Arc::Logger logger;
   /** Associated scheduler */
-  DataStaging::Scheduler scheduler;
+  DataStaging::Scheduler* scheduler;
 
   /** Staging configuration */
   StagingConfig staging_conf;

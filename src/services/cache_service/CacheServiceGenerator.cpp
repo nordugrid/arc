@@ -2,6 +2,7 @@
 #include <arc/Utils.h>
 
 #include "../a-rex/grid-manager/conf/conf_map.h"
+#include "../a-rex/grid-manager/conf/conf_staging.h"
 #include "../a-rex/grid-manager/jobs/job_config.h"
 
 #include "CacheServiceGenerator.h"
@@ -10,10 +11,19 @@ namespace Cache {
 
   Arc::Logger CacheServiceGenerator::logger(Arc::Logger::rootLogger, "CacheServiceGenerator");
 
-  CacheServiceGenerator::CacheServiceGenerator(const JobUsers& users) :
+  CacheServiceGenerator::CacheServiceGenerator(const JobUsers& users, bool with_arex) :
       generator_state(DataStaging::INITIATED),
       use_host_cert(false),
-      scratch_dir(users.Env().scratch_dir()) {
+      scratch_dir(users.Env().scratch_dir()),
+      run_with_arex(with_arex) {
+
+    scheduler = DataStaging::Scheduler::getInstance();
+
+    if (run_with_arex) {
+      // A-REX sets DTR configuration
+      generator_state = DataStaging::RUNNING;
+      return;
+    }
 
     StagingConfig staging_conf(users.Env());
     if (!staging_conf) return;
@@ -23,16 +33,16 @@ namespace Cache {
     // TODO find location for DTR state log, should be different from A-REX's
 
     // Processing limits
-    scheduler.SetSlots(staging_conf.get_max_processor(),
-                       staging_conf.get_max_processor(),
-                       staging_conf.get_max_delivery(),
-                       staging_conf.get_max_emergency(),
-                       staging_conf.get_max_prepared());
+    scheduler->SetSlots(staging_conf.get_max_processor(),
+                        staging_conf.get_max_processor(),
+                        staging_conf.get_max_delivery(),
+                        staging_conf.get_max_emergency(),
+                        staging_conf.get_max_prepared());
 
     // Transfer shares
     DataStaging::TransferSharesConf share_conf(staging_conf.get_share_type(),
                                                staging_conf.get_defined_shares());
-    scheduler.SetTransferSharesConf(share_conf);
+    scheduler->SetTransferSharesConf(share_conf);
 
     // Transfer limits
     DataStaging::TransferParameters transfer_limits;
@@ -40,28 +50,34 @@ namespace Cache {
     transfer_limits.averaging_time = staging_conf.get_min_speed_time();
     transfer_limits.min_average_bandwidth = staging_conf.get_min_average_speed();
     transfer_limits.max_inactivity_time = staging_conf.get_max_inactivity_time();
-    scheduler.SetTransferParameters(transfer_limits);
+    scheduler->SetTransferParameters(transfer_limits);
 
     // URL mappings
     UrlMapConfig url_map(users.Env());
-    scheduler.SetURLMapping(url_map);
+    scheduler->SetURLMapping(url_map);
 
     // Preferred pattern
-    scheduler.SetPreferredPattern(staging_conf.get_preferred_pattern());
+    scheduler->SetPreferredPattern(staging_conf.get_preferred_pattern());
 
     // Delivery services
-    scheduler.SetDeliveryServices(staging_conf.get_delivery_services());
+    scheduler->SetDeliveryServices(staging_conf.get_delivery_services());
 
     // Limit on remote delivery size
-    scheduler.SetRemoteSizeLimit(staging_conf.get_remote_size_limit());
+    scheduler->SetRemoteSizeLimit(staging_conf.get_remote_size_limit());
 
     // Set whether to use host cert for remote delivery
     use_host_cert = staging_conf.get_use_host_cert_for_remote_delivery();
 
     // End of configuration - start Scheduler thread
-    scheduler.start();
+    scheduler->start();
 
     generator_state = DataStaging::RUNNING;
+  }
+
+  CacheServiceGenerator::~CacheServiceGenerator() {
+    generator_state = DataStaging::STOPPED;
+    if (!run_with_arex) scheduler->stop();
+    // delete scheduler? it is possible another thread is using the static instance
   }
 
   void CacheServiceGenerator::receiveDTR(DataStaging::DTR_ptr dtr) {
@@ -158,13 +174,15 @@ namespace Cache {
     dtr->set_priority(priority);
     // set whether to use A-REX host certificate for remote delivery services
     dtr->host_cert_for_remote_delivery(use_host_cert);
+    // use a separate share from A-REX downloads
+    dtr->set_sub_share("cache-service-download");
 
     DataStaging::DTRCacheParameters cache_parameters;
     cache_parameters.cache_dirs = jobuser.CacheParams().getCacheDirs();
     cache_parameters.remote_cache_dirs = jobuser.CacheParams().getRemoteCacheDirs();
     dtr->set_cache_parameters(cache_parameters);
     dtr->registerCallback(this, DataStaging::GENERATOR);
-    dtr->registerCallback(&scheduler, DataStaging::SCHEDULER);
+    dtr->registerCallback(scheduler, DataStaging::SCHEDULER);
 
     processing_lock.lock();
     processing_dtrs.insert(std::pair<std::string, DataStaging::DTR_ptr>(jobid, dtr));

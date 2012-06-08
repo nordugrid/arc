@@ -1,3 +1,7 @@
+2012-06-08  David Cameron  <d.g.cameron@fys.uio.no>
+
+	* Cache service can run in same arched as A-REX with shared DTR instance
+
 2012-06-01  Anders Wäänänen  <waananen@nbi.dk>
 
 	* Remove ISIS, Janitor, Chelonia and Hopi

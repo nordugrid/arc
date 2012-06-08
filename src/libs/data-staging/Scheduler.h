@@ -52,6 +52,9 @@ class Scheduler: public DTRCallback {
     /// Preferred pattern to match replicas defined in configuration
     std::string preferred_pattern;
       
+    /// Lock to protect multi-threaded access to start() and stop()
+    Arc::SimpleCondition state_lock;
+
     /// Lock for events list
     Arc::SimpleCondition event_lock;
 
@@ -102,6 +105,12 @@ class Scheduler: public DTRCallback {
 
     /// Delivery object
     DataDelivery delivery;
+
+    /// Static instance of Scheduler
+    static Scheduler* scheduler_instance;
+
+    /// Lock for multiple threads getting static Scheduler instance
+    static Glib::Mutex instance_lock;
 
     /// Copy constructor is private because Scheduler should not be copied
     Scheduler(const Scheduler&); // should not happen
@@ -197,6 +206,15 @@ class Scheduler: public DTRCallback {
 
   public:
   
+    /// Get static instance of Scheduler, to use one DTR instance with multiple generators.
+    /** Configuration of Scheduler by Set* methods can only be done before
+     * start() is called, so undetermined behaviour can result from multiple
+     * threads simultaneously calling Set* then start(). It is safer to make
+     * sure that all threads use the same configuration (calling start() twice
+     * is harmless). It is also better to make sure that threads call stop() in
+     * a roughly coordinated way, i.e. all generators stop at the same time. */
+    static Scheduler* getInstance();
+
     /// Constructor
     Scheduler();
 

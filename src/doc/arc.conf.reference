@@ -510,6 +510,13 @@
 ## increased to allow the cleaning to complete. Defaults to 3600 (1 hour).
 #cachecleantimeout="10000"
 
+## enable_cache_service yes|no - Turn on or off the cache service interface.
+## If turned on the cache service must be installed, the A-REX WS interface
+## must be enabled via arex_mount_point and the option newdatastaging="yes"
+## must be set. The interface is accessible at the same host and port as given
+## in arex_mount_point with path /cacheservice. Default is off.
+#enable_cache_service="yes" 
+
 ## user user[:group] - Switch to a non root user/group after startup.
 ## Use with caution.
 #user="grid"

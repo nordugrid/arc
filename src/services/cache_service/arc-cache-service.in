@@ -352,7 +352,7 @@ prepare() {
       </SecHandler>\
       <cacheservice:cache>\
         <cacheservice:config>$ARC_CONFIG</cacheservice:config>\
-        <cacheservice:maxload>5</cacheservice:maxload>\
+        <cacheservice:witharex>false</cacheservice:witharex>\
       </cacheservice:cache>\
     </Service>
   </Chain>\
@@ -463,7 +463,7 @@ case "$1" in
 	stop
 	;;
     status)
-	status
+	status $prog
 	;;
     restart | force-reload)
 	restart

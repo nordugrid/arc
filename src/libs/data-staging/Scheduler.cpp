@@ -17,6 +17,17 @@ namespace DataStaging {
 	
   Arc::Logger Scheduler::logger(Arc::Logger::getRootLogger(), "DataStaging.Scheduler");
   
+  Scheduler* Scheduler::scheduler_instance = NULL;
+  Glib::Mutex Scheduler::instance_lock;
+
+  Scheduler* Scheduler::getInstance() {
+    Glib::Mutex::Lock lock(instance_lock);
+    if (!scheduler_instance) {
+      scheduler_instance = new Scheduler();
+    }
+    return scheduler_instance;
+  }
+
   Scheduler::Scheduler(): remote_size_limit(0), scheduler_state(INITIATED) {
     // Conservative defaults
     PreProcessorSlots = 20;
@@ -77,8 +88,14 @@ namespace DataStaging {
 
 
   bool Scheduler::start(void) {
-    if(scheduler_state == RUNNING || scheduler_state == TO_STOP) return false;
+    state_lock.lock();
+    if(scheduler_state == RUNNING || scheduler_state == TO_STOP) {
+      state_lock.unlock();
+      return false;
+    }
     scheduler_state = RUNNING;
+    state_lock.unlock();
+
     processor.start();
     delivery.start();
     // if no delivery services set, then use local
@@ -1277,7 +1294,11 @@ namespace DataStaging {
   }
 
   bool Scheduler::stop() {
-    if(scheduler_state != RUNNING) return false;
+    state_lock.lock();
+    if(scheduler_state != RUNNING) {
+      state_lock.unlock();
+      return false;
+    }
 
     // cancel all jobs
     std::list<std::string> alljobs = DtrList.all_jobs();
@@ -1290,6 +1311,8 @@ namespace DataStaging {
     scheduler_state = TO_STOP;
     run_signal.wait();
     scheduler_state = STOPPED;
+
+    state_lock.unlock();
     return true;
   }
 

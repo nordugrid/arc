@@ -90,7 +90,7 @@ void DTRGenerator::thread() {
     Glib::usleep(50000);
   }
   // stop scheduler - cancels all DTRs and waits for them to complete
-  scheduler.stop();
+  scheduler->stop();
   run_condition.signal();
   logger.msg(Arc::INFO, "Exiting Generator thread");
 }
@@ -109,28 +109,30 @@ DTRGenerator::DTRGenerator(const JobUsers& users,
     jobusers[i->get_uid()] = &(*i);
   }
 
+  scheduler = DataStaging::Scheduler::getInstance();
+
   // Convert A-REX configuration values to DTR configuration
 
   // If not configured, set the DTR dump file to the first control dir registered
   std::string dtr_log(staging_conf.dtr_log);
   if (dtr_log.empty() && !jobusers.empty()) dtr_log = jobusers.begin()->second->ControlDir()+"/dtrstate.log";
-  scheduler.SetDumpLocation(dtr_log);
+  scheduler->SetDumpLocation(dtr_log);
 
   // Read DTR state from previous dump to find any transfers stopped half-way
   // If those destinations appear again, add overwrite=yes
   readDTRState(dtr_log);
 
   // Processing limits
-  scheduler.SetSlots(staging_conf.max_processor,
-                     staging_conf.max_processor,
-                     staging_conf.max_delivery,
-                     staging_conf.max_emergency,
-                     staging_conf.max_prepared);
+  scheduler->SetSlots(staging_conf.max_processor,
+                      staging_conf.max_processor,
+                      staging_conf.max_delivery,
+                      staging_conf.max_emergency,
+                      staging_conf.max_prepared);
 
   // Transfer shares
   DataStaging::TransferSharesConf share_conf(staging_conf.share_type,
                                              staging_conf.defined_shares);
-  scheduler.SetTransferSharesConf(share_conf);
+  scheduler->SetTransferSharesConf(share_conf);
 
   // Transfer limits
   DataStaging::TransferParameters transfer_limits;
@@ -138,23 +140,23 @@ DTRGenerator::DTRGenerator(const JobUsers& users,
   transfer_limits.averaging_time = staging_conf.min_speed_time;
   transfer_limits.min_average_bandwidth = staging_conf.min_average_speed;
   transfer_limits.max_inactivity_time = staging_conf.max_inactivity_time;
-  scheduler.SetTransferParameters(transfer_limits);
+  scheduler->SetTransferParameters(transfer_limits);
 
   // URL mappings
   UrlMapConfig url_map(users.Env());
-  scheduler.SetURLMapping(url_map);
+  scheduler->SetURLMapping(url_map);
 
   // Preferred pattern
-  scheduler.SetPreferredPattern(staging_conf.preferred_pattern);
+  scheduler->SetPreferredPattern(staging_conf.preferred_pattern);
 
   // Delivery services
-  scheduler.SetDeliveryServices(staging_conf.delivery_services);
+  scheduler->SetDeliveryServices(staging_conf.delivery_services);
 
   // Limit on remote delivery size
-  scheduler.SetRemoteSizeLimit(staging_conf.remote_size_limit);
+  scheduler->SetRemoteSizeLimit(staging_conf.remote_size_limit);
 
   // End of configuration - start Scheduler thread
-  scheduler.start();
+  scheduler->start();
 
   generator_state = DataStaging::RUNNING;
   Arc::CreateThreadFunction(&main_thread, this);
@@ -306,7 +308,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   if (!(*dtr)) {
     logger.msg(Arc::ERROR, "%s: Invalid DTR", jobid);
     if (dtr->get_status() != DataStaging::DTRStatus::CANCELLED) {
-      scheduler.cancelDTRs(jobid);
+      scheduler->cancelDTRs(jobid);
       lock.lock();
       finished_jobs[jobid] = std::string("Invalid Data Transfer Request");
       active_dtrs.erase(jobid);
@@ -327,7 +329,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
         logger.msg(Arc::ERROR, "%s: No configured user found for uid %i",
                    dtr->get_parent_job_id(), dtr->get_local_user().get_uid());
         // cancel other DTRs (which will also fail here anyway)
-        scheduler.cancelDTRs(jobid);
+        scheduler->cancelDTRs(jobid);
         lock.lock();
         finished_jobs[jobid] = std::string("Internal configuration error in data staging");
         lock.unlock();
@@ -358,7 +360,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
     if (!dtr->get_source()->Local() && finished_jobs.find(jobid) == finished_jobs.end()) { // download
       // cancel other DTRs and erase from our list unless error was already reported
       logger.msg(Arc::INFO, "%s: Cancelling other DTRs", jobid);
-      scheduler.cancelDTRs(jobid);
+      scheduler->cancelDTRs(jobid);
     }
     // add error to finished jobs
     finished_jobs[jobid] += std::string("Failed in data staging: " + dtr->get_error_status().GetDesc() + '\n');
@@ -806,7 +808,7 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     cache_parameters.remote_cache_dirs = jobuser->CacheParams().getRemoteCacheDirs();
     dtr->set_cache_parameters(cache_parameters);
     dtr->registerCallback(this,DataStaging::GENERATOR);
-    dtr->registerCallback(&scheduler,DataStaging::SCHEDULER);
+    dtr->registerCallback(scheduler, DataStaging::SCHEDULER);
     // callbacks for info
     dtr->registerCallback(&info, DataStaging::SCHEDULER);
     lock.lock();
@@ -844,7 +846,7 @@ bool DTRGenerator::processCancelledJob(const std::string& jobid) {
 
   // cancel DTRs in Scheduler
   logger.msg(Arc::INFO, "%s: Cancelling active DTRs", jobid);
-  scheduler.cancelDTRs(jobid);
+  scheduler->cancelDTRs(jobid);
   return true;
 }
 

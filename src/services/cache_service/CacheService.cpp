@@ -80,8 +80,12 @@ CacheService::CacheService(Arc::Config *cfg, Arc::PluginArgument* parg) :
   }
   print_serviced_users(*users);
 
+  // check if we are running along with A-REX or standalone
+  bool with_arex = false;
+  if ((*cfg)["cache"]["witharex"] && (std::string)(*cfg)["cache"]["witharex"] == "true") with_arex = true;
+
   // start Generator for data staging
-  dtr_generator = new CacheServiceGenerator(*users);
+  dtr_generator = new CacheServiceGenerator(*users, with_arex);
 
   valid = true;
 }

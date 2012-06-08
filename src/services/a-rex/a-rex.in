@@ -372,7 +372,46 @@ prepare() {
   <AcceptMapping>$arguspep_usermap</AcceptMapping>
 </SecHandler>"
     fi
-
+    
+    # cache service
+    cache_service_plexer=""
+    cache_service=""
+    use_cache_service=`readconfigvar "$ARC_CONFIG" grid-manager enable_cache_service`
+    if [ "$use_cache_service" = "yes" ]; then
+        
+        use_new_staging=`readconfigvar "$ARC_CONFIG" grid-manager newdatastaging`
+        if [ -z "$arex_mount_point" -o "$use_new_staging" != "yes" ]; then
+            log_failure_msg "New data staging and A-REX WS interface must be turned on to use cache service"
+            exit 1
+        fi
+        
+        cache_service_plexer="<next id=\"cacheservice\">^/cacheservice</next>"
+        cache_service="\
+    <Service name=\"cacheservice\" id=\"cacheservice\">\
+      <!-- Do authorization in same way as jobs plugin of gridftpd does -->
+      <!-- Beware of hardcoded block name -->
+      <SecHandler name=\"arc.authz\" event=\"incoming\">
+        <PDP name=\"arclegacy.pdp\">
+          <ConfigBlock>
+            <ConfigFile>$ARC_CONFIG</ConfigFile>
+            <BlockName>gridftpd/jobs</BlockName>
+          </ConfigBlock>
+        </PDP>
+      </SecHandler>
+      <!-- Perform client mapping according to rules of gridftpd -->
+      <SecHandler name=\"arclegacy.map\" event=\"incoming\">
+          <ConfigBlock>
+            <ConfigFile>$ARC_CONFIG</ConfigFile>
+            <BlockName>gridftpd</BlockName>
+          </ConfigBlock>
+      </SecHandler> 
+      <cacheservice:cache>\
+        <cacheservice:config>$ARC_CONFIG</cacheservice:config>\
+        <cacheservice:witharex>true</cacheservice:witharex>\
+      </cacheservice:cache>\
+    </Service>"
+    fi
+    
     if [ -z "$ALLOWUNKNOWN" ]; then
         gridmapmatch="\
 <!-- Do initial user filtering by gridmap file -->
@@ -550,6 +589,7 @@ prepare() {
     </Component>
     <Plexer name=\"plexer.service\" id=\"plexer\">
       <next id=\"a-rex\">^/$arex_path</next>
+      $cache_service_plexer
     </Plexer>
     <Service name=\"a-rex\" id=\"a-rex\">
       <!-- Do authorization in same way as jobs plugin of gridftpd does -->
@@ -579,6 +619,7 @@ prepare() {
       <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>
       <arex:DataTransferInterfaceMaxClients>$MAX_DATA_TRANSFER_REQUESTS</arex:DataTransferInterfaceMaxClients>
     </Service>
+    $cache_service
   </Chain>
 </ArcConfig>
 "
