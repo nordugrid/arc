@@ -610,7 +610,19 @@ namespace Arc {
   }
 
   DataStatus DataPointHTTP::Remove() {
-    return DataStatus::DeleteError;
+    MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
+    ClientHTTP client(cfg, url, usercfg.Timeout());
+    PayloadRaw request;
+    PayloadRawInterface *inbuf;
+    HTTPClientInfo info;
+    MCC_Status r = client.process("DELETE", url.FullPathURIEncoded(),
+                                  &request, &info, &inbuf);
+    if (inbuf){
+      delete inbuf;
+    }
+    if ((!r) || ((info.code != 200) && (info.code != 202) && (info.code != 204))) return DataStatus::DeleteError;
+    return DataStatus::Success;
   }
 
   void DataPointHTTP::read_thread(void *arg) {
