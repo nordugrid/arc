@@ -353,7 +353,7 @@ namespace Arc {
 
   DataStatus DataPointHTTP::do_stat(const std::string& path, const URL& curl, FileInfo& file) {
     PayloadRaw request;
-    PayloadRawInterface *inbuf;
+    PayloadRawInterface *inbuf = NULL;
     HTTPClientInfo info;
     info.lastModified = (time_t)(-1);
     AutoPointer<ClientHTTP> client(acquire_client(curl));
@@ -496,17 +496,17 @@ namespace Arc {
   DataStatus DataPointHTTP::StartReading(DataBuffer& buffer) {
     if (transfers_started.get() != 0) return DataStatus::ReadStartError;
     int transfer_streams = 1;
+    strtoint(url.Option("threads"),transfer_streams);
+    if (transfer_streams < 1) transfer_streams = 1;
+    if (transfer_streams > MAX_PARALLEL_STREAMS) transfer_streams = MAX_PARALLEL_STREAMS;
     DataPointHTTP::buffer = &buffer;
     if (chunks) delete chunks;
     chunks = new ChunkControl;
-    MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
     transfer_lock.lock();
     transfers_tofinish = 0;
     for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
-      //info->client = new ClientHTTP(cfg, url, usercfg.Timeout());
       if (!CreateThreadFunction(&read_thread, info, &transfers_started)) {
         delete info;
       } else {
@@ -542,18 +542,17 @@ namespace Arc {
                                          DataCallback*) {
     if (transfers_started.get() != 0) return DataStatus::WriteStartError;
     int transfer_streams = 1;
+    strtoint(url.Option("threads"),transfer_streams);
+    if (transfer_streams < 1) transfer_streams = 1;
+    if (transfer_streams > MAX_PARALLEL_STREAMS) transfer_streams = MAX_PARALLEL_STREAMS;
     DataPointHTTP::buffer = &buffer;
-    if (chunks)
-      delete chunks;
+    if (chunks) delete chunks;
     chunks = new ChunkControl;
-    MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
     transfer_lock.lock();
     transfers_tofinish = 0;
     for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
-      //info->client = new ClientHTTP(cfg, url, usercfg.Timeout());
       if (!CreateThreadFunction(&write_thread, info, &transfers_started)) {
         delete info;
       } else {
@@ -588,7 +587,7 @@ namespace Arc {
 
   DataStatus DataPointHTTP::Check() {
     PayloadRaw request;
-    PayloadRawInterface *inbuf;
+    PayloadRawInterface *inbuf = NULL;
     HTTPClientInfo info;
     AutoPointer<ClientHTTP> client(acquire_client(url));
     if (!client) return DataStatus::CheckError;
@@ -610,18 +609,16 @@ namespace Arc {
   }
 
   DataStatus DataPointHTTP::Remove() {
-    MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
-    ClientHTTP client(cfg, url, usercfg.Timeout());
+    AutoPointer<ClientHTTP> client(acquire_client(url));
     PayloadRaw request;
-    PayloadRawInterface *inbuf;
+    PayloadRawInterface *inbuf = NULL;
     HTTPClientInfo info;
-    MCC_Status r = client.process("DELETE", url.FullPathURIEncoded(),
+    MCC_Status r = client->process("DELETE", url.FullPathURIEncoded(),
                                   &request, &info, &inbuf);
-    if (inbuf){
-      delete inbuf;
-    }
-    if ((!r) || ((info.code != 200) && (info.code != 202) && (info.code != 204))) return DataStatus::DeleteError;
+    if (inbuf) delete inbuf;
+    if(!r) return DataStatus::DeleteError;
+    release_client(url,client.Release());
+    if ((info.code != 200) && (info.code != 202) && (info.code != 204)) return DataStatus::DeleteError;
     return DataStatus::Success;
   }
 
@@ -659,7 +656,7 @@ namespace Arc {
       // Read chunk
       HTTPClientInfo transfer_info;
       PayloadRaw request;
-      PayloadRawInterface *inbuf;
+      PayloadRawInterface *inbuf = NULL;
       MCC_Status r = client->process("GET", path, transfer_offset,
                                      transfer_end, &request, &transfer_info,
                                      &inbuf);
