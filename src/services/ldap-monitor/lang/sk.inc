@@ -494,6 +494,7 @@ $message = array (
                                       "127" => " spustil úlohu ",
                                       "128" => " nemajúc autorizáciu",
                                       "129" => "Niet údajov o objekte: chyba ",
+                                      "130" => " Časový limit pre spojenie s EMIR: ",
                                       // icon titles
                                       "301" => "Obnoviť",
                                       "302" => "Tlač",

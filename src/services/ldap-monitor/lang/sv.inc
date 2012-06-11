@@ -556,6 +556,7 @@ $message = array (
                                       "127" => " har jobb ",
                                       "128" => " utan att vara auktoriserad",
                                       "129" => "Kan inte hämta objektdata: fel ",
+                                      "130" => " Monitor-time-out för EMIR: ",
                                       // icon titles
                                       "301" => "Ladda om",
                                       "302" => "Skriv ut",

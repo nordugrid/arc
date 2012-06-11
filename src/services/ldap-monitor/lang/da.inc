@@ -546,6 +546,7 @@ $message = array (
                                       "127" => " har job ",
                                       "128" => " men ikke autoriseret",
                                       "129" => "Kan ikke f&aring; objektdata: fejl ",
+                                      "130" => " Monitor timeouts for EMIR: ",
                                       // icon titles
                                       "301" => "Genl&aelig;s",
                                       "302" => "Udskriv",

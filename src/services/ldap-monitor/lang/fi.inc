@@ -525,6 +525,7 @@ jonon paikalliskaytanto saattaa muuttaa prioriteetteja.</dd>
                                       "127" => " tyo ",
                                       "128" => " ei käyttooikeutta",
                                       "129" => "Virhe: ei tietoa kohteesta ",
+                                      "130" => " Monitoriprosessille annettu aika ylittyi, EMIR: ",
                                       // icon titles
                                       "301" => "Lataa uudestaan",
                                       "302" => "Tulosta",

@@ -545,6 +545,7 @@ $message = array (
                                       "127" => " hat Job ",
                                       "128" => " obwohl nicht autorisiert",
                                       "129" => "Kann die Objektdaten nicht erhalten: Fehler ",
+                                      "130" => " Monitor timeouts f&uuml;r EMIR: ",
                                       // icon titles
                                       "301" => "Update",
                                       "302" => "Drucken",

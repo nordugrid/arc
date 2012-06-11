@@ -564,6 +564,7 @@ oppkoblingen",
                                       "127" => " har jobb ",
                                       "128" => " uten  være autorisert",
                                       "129" => "Kan ikke lade objektdata: feil ",
+                                      "130" => " Monitor timeout for EMIR: ",
                                       // icon titles
                                       "301" => "Reload",
                                       "302" => "Skriv ut",

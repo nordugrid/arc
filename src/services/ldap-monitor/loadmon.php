@@ -31,6 +31,7 @@ require_once('comfun.inc');
 require_once('toreload.inc');
 require_once('ldap_purge.inc');
 require_once('recursive_giis_info.inc');
+require_once('emirs_info.inc');
 require_once('postcode.inc');
 require_once('cache.inc');
 
@@ -53,6 +54,8 @@ $module   = &$toppage->module;
 $strings  = &$toppage->strings;
 $errors   = &$toppage->errors;
 $giislist = &$toppage->giislist;
+$emirslist= &$toppage->emirslist;
+$cert     = &$toppage->cert;
 $yazyk    = &$toppage->language;
 
 // Header table
@@ -132,6 +135,7 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
   $ts1      = time();
   //========================= GET CLUSTER LIST ============================
   $gentries = recursive_giis_info($giislist,"cluster",$errors,$debug);
+  $gentries = emirs_info($emirslist,"cluster",$errors,$gentries,$debug,$cert);
   //=======================================================================
   $ts2      = time(); if($debug) dbgmsg("<br><b>".$errors["106"].$ngiis." (".($ts2-$ts1).$errors["104"].")</b><br>");
   

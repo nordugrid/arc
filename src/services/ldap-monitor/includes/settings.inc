@@ -38,6 +38,25 @@ array("host" => "index4.nordugrid.org",
 //      "vo"   => "Germany")
 );
 
+// list of available EMIRs
+$emirslist = array(
+array("schema" => "https",
+      "host" => "testbed-emi5.grid.upjs.sk",
+      "port" => "54321",
+      "base" => "mds-vo-name=NorduGrid,o=grid")
+);
+
+/*
+ * place of the certificate file
+ *
+ * Set up SSL connection to server that requires client certificate:
+ *
+ * Convert client certificate from *.pfx (pkcs12) into *.pem with openssl (if needed):
+ *
+ * > openssl pkcs12 -in keys.pfx -out keys.pem
+ */
+$cert = "/var/www/ldap-monitor-svn/includes/test.pem";
+
 // base DNs for searches: local (GRIS), global (GIIS), VO
 if ( !defined("DN_LOCAL") ) define("DN_LOCAL","mds-vo-name=local,o=grid");
 if ( !defined("DN_GLOBL") ) define("DN_GLOBL","mds-vo-name=NorduGrid,o=grid");

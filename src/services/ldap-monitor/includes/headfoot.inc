@@ -37,6 +37,8 @@ class LmDoc { // class LmDoc
   var $ldapdump   = array();
 
   var $giislist   = array();
+  var $emirslist  = array();
+  var $cert;
 
   /**
    * @return LmDoc
@@ -143,6 +145,8 @@ class LmDoc { // class LmDoc
 	// define giislist
 
 	$this->giislist = $giislist;
+	$this->emirslist= $emirslist;
+	$this->cert = $cert;
 
       }
       

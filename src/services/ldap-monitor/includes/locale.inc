@@ -239,6 +239,8 @@
 				     "126" => "Search for jobs",
 				     "127" => " has job ",
 				     "128" => " while not being authorized",
+				     "129" => "Can not get object data: error ",
+				     "130" => " Monitor timeouts for EMIR: ",
 				     "301" => "Refresh",
 				     "302" => "Print",
 				     "303" => "Help",

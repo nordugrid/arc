@@ -446,7 +446,7 @@ $message = array (
                   // Errors, warnings etc
                   "errors"   => array(
                                       // failure notices
-                                      "1"   => "Nem tudom olvasni a top level GIS szerverek index szolgáltatásait",
+                                      "1"   => "Nem tudom olvasni a top level GIS és EMIR szerverek index szolgáltatásait",
                                       "2"   => "Egyik helyi index sem jelzett vissza kapcsolatot",
                                       "3"   => " rossz konfiguráció, vagy kérési időtúllépés",
                                       "4"   => "Grid-es job nem található",
@@ -489,6 +489,7 @@ $message = array (
                                       "127" => " van job-ja ",
                                       "128" => " amíg nincsen engedélyezve ",
                                       "129" => "Nem lehet elérni az objektum adatait: hiba ",
+                                      "130" => "Monitorozási időtúllépések az EMIR esetén: ",
                                       // icon titles
                                       "301" => "Frissítés",
                                       "302" => "Nyomtatás",
