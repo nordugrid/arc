@@ -81,6 +81,8 @@ function emirs_info($emirslist,$element,$errors,$gentries,$debug="0",$cert)
       for ($i = 0; $i < $nrecords; $i++) {
         $url = parse_url($json_a[$i]["Service_Endpoint_URL"]);
         $curhost = $url["host"];
+        $curhstat = $json_a[$i]["Service_Endpoint_HealthState"];
+        $cursstat = $json_a[$i]["Service_Endpoint_ServingState"];
         /*
          * URL structure:
          *    * ldapng:    ldap://<url>:2135/Mds-Vo-Name=local,o=grid
@@ -95,11 +97,12 @@ function emirs_info($emirslist,$element,$errors,$gentries,$debug="0",$cert)
           if ( $debug>0 ) dbgmsg("<div align=\"left\"><font color=\"red\"><b>".$errors["122"]."$curhost</b></font></div>\n");
           continue;
         }
-        //TODO: check validite
-        //if ( $curstat != "VALID" ) {
-        //  if ( $debug ) dbgmsg("<div align=\"left\"><font color=\"red\"><b>$curstat".$errors["121"]."$fakedn</b></font></div>\n");
-        //  continue;
-        //}
+
+        $curstat = (($curhstat == "ok")&&($cursstat == "production")) ? "VALID": "healt state: '".$curhstate."', serving state: '".$cursstate."'";
+        if ( $curstat != "VALID" ) {
+          if ( $debug ) dbgmsg("<div align=\"left\"><font color=\"red\"><b>$curstat".$errors["121"]."$fakedn</b></font></div>\n");
+          continue;
+        }
 
         $entries[$counter]["host"] = $url["host"];
         $entries[$counter]["port"] = $url["port"];
