@@ -1,10 +1,6 @@
 #ifndef DTR_H_
 #define DTR_H_
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <arc/data/DataHandle.h>
 #include <arc/CheckSum.h>
 #include <arc/data/URLMap.h>
