@@ -13,6 +13,7 @@ class JobsList;
 class RunPlugin;
 
 class JobUser;
+class JobUsers;
 
 /*
   Object to run external processes associated with user (helper)
@@ -26,6 +27,7 @@ class JobUserHelper {
  public:
   JobUserHelper(const std::string &cmd);
   ~JobUserHelper(void);
+  void substitute(const JobUser &user, const JobUsers &users);
   /* start process if it is not running yet */
   bool run(JobUser &user);
 };
@@ -147,6 +149,7 @@ class JobUser {
   /* Start/restart all helper processes */
   bool run_helpers(void);
   bool substitute(std::string& param) const;
+  bool substitute(const JobUsers &users);
   void PrepareToDestroy(void);
 };
 
@@ -186,6 +189,7 @@ class JobUsers {
   /* Start/restart all associated processes of all users */
   bool run_helpers(void);
   bool substitute(std::string& param) const;
+  bool substitute(void);
 };
 
 #endif

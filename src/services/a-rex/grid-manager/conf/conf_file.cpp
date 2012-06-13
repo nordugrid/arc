@@ -636,8 +636,10 @@ bool configure_serviced_users(JobUsers &users/*,uid_t my_uid,const std::string &
             std::string cmd_ = users.Env().nordugrid_data_loc();
             cmd_+="/scan-"+default_lrms+"-job";
             cmd_ = Arc::escape_chars(cmd_, " \\", '\\', false);
-            cmd_+=" --config ";
-            cmd_+=users.Env().nordugrid_config_loc();
+            if(!users.Env().nordugrid_config_loc().empty()) {
+              cmd_+=" --config ";
+              cmd_+=users.Env().nordugrid_config_loc();
+            };
             cmd_+=" ";
             cmd_+=user->ControlDir();
             user->add_helper(cmd_);
@@ -1161,8 +1163,10 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users/*,uid_t my_uid,co
           std::string cmd_ = users.Env().nordugrid_data_loc();
           cmd_+="/scan-"+default_lrms+"-job";
           cmd_ = Arc::escape_chars(cmd_, " \\", '\\', false);
-          cmd_+=" --config ";
-          cmd_+=users.Env().nordugrid_config_loc();
+          if(!users.Env().nordugrid_config_loc().empty()) {
+            cmd_+=" --config ";
+            cmd_+=users.Env().nordugrid_config_loc();
+          }
           cmd_+=" ";
           cmd_+=user->ControlDir();
           user->add_helper(cmd_);

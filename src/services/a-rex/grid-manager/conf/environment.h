@@ -37,6 +37,8 @@ class GMEnvironment {
   ///   $ARC_LOCATION/etc/arc.conf
   std::string nordugrid_config_loc(void) const;
   void nordugrid_config_loc(const std::string&);
+  bool nordugrid_config_is_temp(void) const;
+  void nordugrid_config_is_temp(bool);
 
   // Certificates directory location
   std::string cert_dir_loc() const;

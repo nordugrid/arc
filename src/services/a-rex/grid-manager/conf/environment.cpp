@@ -133,6 +133,7 @@ static prstring nordugrid_lib_loc_;
 static prstring nordugrid_sbin_loc_;
 // ARC configuration file
 static prstring nordugrid_config_loc_;
+static bool nordugrid_config_is_temp_ = false;
 // Certificates directory 
 static prstring cert_dir_loc_;
 // VOMS lsc top directory 
@@ -170,6 +171,14 @@ std::string GMEnvironment::nordugrid_config_loc(void) const {
 
 void GMEnvironment::nordugrid_config_loc(const std::string& val) {
   nordugrid_config_loc_=val;
+}
+
+bool GMEnvironment::nordugrid_config_is_temp(void) const {
+  return nordugrid_config_is_temp_;
+}
+
+void GMEnvironment::nordugrid_config_is_temp(bool val) {
+  nordugrid_config_is_temp_=val;
 }
 
 std::string GMEnvironment::cert_dir_loc(void) const {

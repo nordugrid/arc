@@ -888,10 +888,45 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):RegisteredS
     // some better approach - maybe like creating file with service
     // id in its name.
     try {
+      std::string tmp_dir = Glib::get_tmp_dir();
+      std::string tmp_path = Glib::build_filename(tmp_dir,"arexcfgXXXXXX");
+      int h = Glib::mkstemp(tmp_path);
+      if(h == -1) {
+        logger_.msg(Arc::DEBUG, "Failed to create temporary file in %s - %s",tmp_dir,Arc::StrError(errno));
+        throw Glib::FileError(Glib::FileError::FAILED,"Failed to create temporary file in "+tmp_dir);
+      };
+      gmconfig_ = tmp_path;
+      ::chmod(gmconfig_.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+      logger_.msg(Arc::DEBUG, "Storing configuration into temporary file - %s",gmconfig_);
+      Arc::XMLNode gmxml;
+      cfg->New(gmxml);
+      // Storing configuration into temporary file
+      // Maybe XMLNode needs method SaveToHandle ?
+      std::string gmstr;
+      gmxml.GetDoc(gmstr);
+      // Candidate for common function ?
+      for(int p = 0;p<gmstr.length();) {
+        int l = write(h,gmstr.c_str()+p,gmstr.length()-p);
+        if(l == -1) throw Glib::FileError(Glib::FileError::IO_ERROR,""); // TODO: process error
+        p+=l;
+      };
+      close(h); h = -1;
+      gmconfig_temporary_=true;
+      gm_env_->nordugrid_config_loc(gmconfig_);
+      gm_env_->nordugrid_config_is_temp(true);
+      // Configure all users and associated objects
       if(!configure_serviced_users(*cfg,*users_,*my_user_,enablearc_,enableemies_)) {
         logger_.msg(Arc::ERROR, "Failed to process service configuration");
         return;
       }
+      // create control and session directories if not yet done
+      for(JobUsers::iterator user = users_->begin();user != users_->end();++user) {
+        if(!user->CreateDirectories()) {
+          logger_.msg(Arc::ERROR, "Failed to create control (%s) or session (%s) directories",user->ControlDir(),user->SessionRoot());
+          return;
+        };
+      };
+      /*
       // create control and session directories if not yet done
       // extract control directories to be used for temp configuration
       std::list<std::string> tmp_dirs;
@@ -943,6 +978,7 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):RegisteredS
       close(h);
       gmconfig_temporary_=true;
       gm_env_->nordugrid_config_loc(gmconfig_);
+      */
     } catch(Glib::FileError& e) {
       logger_.msg(Arc::ERROR, "Failed to store configuration into temporary file: %s",e.what());
       if(!gmconfig_.empty()) {

@@ -269,6 +269,25 @@ bool JobUsers::substitute(std::string& param) const {
   return true;
 }
 
+bool JobUser::substitute(const JobUsers &users) {
+  substitute(control_dir);
+  users.substitute(control_dir);
+  for(std::vector<std::string>::iterator s = session_roots.begin();
+                  s != session_roots.end(); ++s) {
+    substitute(*s);
+    users.substitute(*s);
+  };
+  //CacheConfig cache_params;
+  return true;
+}
+
+bool JobUsers::substitute(void) {
+  for(JobUsers::iterator u = begin();u!=end();++u) {
+    u->substitute(*this);
+  };
+  return true;
+}
+
 JobUser::JobUser(const GMEnvironment& env,uid_t uid_,gid_t gid_,RunPlugin* cred):gm_env(env) {
   struct passwd pw_;
   struct passwd *pw;
@@ -550,6 +569,11 @@ JobUserHelper::~JobUserHelper(void) {
       proc=NULL;
     };
 #endif
+}
+
+void JobUserHelper::substitute(const JobUser &user, const JobUsers &users) {
+    user.substitute(command);
+    users.substitute(command);
 }
 
 #ifndef NO_GLOBUS_CODE

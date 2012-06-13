@@ -11,6 +11,7 @@
 #include <list>
 #include <fcntl.h>
 #include <signal.h>
+#include <sys/time.h>
 
 #include <arc/FileUtils.h>
 #include <arc/Logger.h>
@@ -332,7 +333,11 @@ bool GridManager::thread() {
       if (r < 0) {
         logger.msg(Arc::WARNING, "Failed to open heartbeat file %s", gm_heartbeat);
       } else {
-        close(r);
+        close(r); r = -1;
+      };
+      // touch temporary configuration so /tmp cleaner does not erase it
+      if(env_->nordugrid_config_is_temp()) {
+        ::utimes(env_->nordugrid_config_loc().c_str(), NULL);
       };
       wd.Kick();
       /* check for new marks and activate related jobs */
