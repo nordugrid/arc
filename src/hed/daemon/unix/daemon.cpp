@@ -66,9 +66,9 @@ static void init_parent(pid_t pid,const std::string& pid_file) {
             }
 }
 
-Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool watchdog) : pid_file(pid_file_),log_file(log_file_)
+Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool watchdog) : pid_file(pid_file_),log_file(log_file_),watchdog_pid(0)
 {
-    pid_t pid = fork();
+    pid_t pid = ::fork();
     switch(pid) {
         case -1: // parent fork error
             logger.msg(ERROR, "Daemonization fork failed: %s", StrError(errno));
@@ -78,12 +78,13 @@ Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool 
             /* Watchdog need to be initialized before fork to make sure it is shared */
             WatchdogListener wdl;
             while(true) { // stay in loop waiting for watchdog alarm
-                if(watchdog) pid = fork();
+                if(watchdog) pid = ::fork();
                 switch(pid) {
                     case -1: // parent fork error
                         logger.msg(ERROR, "Watchdog fork failed: %s", StrError(errno));
                         exit(1);
                     case 0: // real child
+                        if(watchdog) watchdog_pid = ::getppid();
                         init_child(log_file);
                         break;
                     default: // watchdog
@@ -118,6 +119,7 @@ Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool 
                         } else {
                             /* watchdog timeouted - kill process */
                             // TODO: more sophisticated killing
+                            sighandler_t old_sigterm = ::signal(SIGTERM,SIG_IGN);
                             int patience = 600; // how long can we wait? Maybe configure it.
                             ::kill(pid,SIGTERM);
                             while(waitpid(pid,&status,WNOHANG) == 0) {
@@ -127,6 +129,7 @@ Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool 
                             ::kill(pid,SIGKILL);
                             sleep(1);
                             ::waitpid(pid,&status,0);
+                            ::signal(SIGTERM,old_sigterm);
                         }
                         break; // go in loop and do another fork
                 }
@@ -151,6 +154,10 @@ void Daemon::logreopen(void) {
         if (std::freopen(log_file.c_str(), "a", stdout) == NULL) fclose(stdout);
         if (std::freopen(log_file.c_str(), "a", stderr) == NULL) fclose(stderr);
     }
+}
+
+void Daemon::shutdown(void) {
+    if(watchdog_pid) kill(watchdog_pid,SIGTERM);
 }
 
 } // namespace Arc

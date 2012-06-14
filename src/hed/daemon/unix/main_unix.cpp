@@ -37,6 +37,7 @@ static void sig_shutdown(int)
 
 static void do_shutdown(void)
 {
+    if(main_daemon) main_daemon->shutdown();
     logger.msg(Arc::VERBOSE, "shutdown");
     if(loader) delete loader;
     if(main_daemon) delete main_daemon;

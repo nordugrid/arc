@@ -8,14 +8,16 @@ namespace Arc {
 
 class Daemon {
   public:
-    Daemon() {};
+    Daemon():watchdog_pid(0) {};
     Daemon(const std::string &pid_file_, const std::string &log_file_, bool watchdog);
     ~Daemon();
     void logreopen(void);
+    void shutdown(void);
   private:
     const std::string pid_file;
     const std::string log_file;
     static Logger logger;
+    unsigned int watchdog_pid;
 };
 
 class Watchdogs {
