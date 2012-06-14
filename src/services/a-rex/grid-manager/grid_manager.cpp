@@ -161,7 +161,7 @@ static void wakeup_func(void* arg) {
     s->sleep_cond->signal();
     if(s->to_exit) break;
   };
-  s->to_exit = false;
+  s->exited = true;
   return;
 }
 
