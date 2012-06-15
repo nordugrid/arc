@@ -2,6 +2,10 @@
 
 	* Cache service can run in same arched as A-REX with shared DTR instance
 
+2012-06-01 Weizhong Qiang <weizhong.qiang@fys.uio.no>
+
+        * arcproxy can support the contacting to voms server with RESTful interface
+
 2012-06-01  Anders Wäänänen  <waananen@nbi.dk>
 
 	* Remove ISIS, Janitor, Chelonia and Hopi
