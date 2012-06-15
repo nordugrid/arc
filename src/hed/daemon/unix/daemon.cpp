@@ -119,7 +119,8 @@ Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool 
                         } else {
                             /* watchdog timeouted - kill process */
                             // TODO: more sophisticated killing
-                            sighandler_t old_sigterm = ::signal(SIGTERM,SIG_IGN);
+                            //sighandler_t old_sigterm = ::signal(SIGTERM,SIG_IGN);
+                            sig_t old_sigterm = ::signal(SIGTERM,SIG_IGN);
                             int patience = 600; // how long can we wait? Maybe configure it.
                             ::kill(pid,SIGTERM);
                             while(waitpid(pid,&status,WNOHANG) == 0) {
