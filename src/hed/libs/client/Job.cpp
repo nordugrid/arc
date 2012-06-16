@@ -636,7 +636,7 @@ namespace Arc {
         URL tmpdir(dir);
         tmpdir.ChangePath(path + i->GetName());
 
-        std::string dirname = i->GetName();
+        std::string dirname = prefix + i->GetName();
         if (dirname[dirname.size() - 1] != '/') {
           dirname += "/";
         }
