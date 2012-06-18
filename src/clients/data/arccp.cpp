@@ -402,11 +402,6 @@ bool arccp(const Arc::URL& source_url_,
             logger.msg(Arc::INFO, "Current transfer FAILED: %s", std::string(res));
           if (res.Retryable())
             logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
-          destination->SetTries(1);
-          // It is not clear how to clear half-registered file. So remove it
-          // only in case of explicit destination.
-          if (!(destination->IsIndex()))
-            mover.Delete(*destination);
           failures = true;
         }
         else
@@ -490,11 +485,6 @@ bool arccp(const Arc::URL& source_url_,
     if (res.Retryable())
       logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
     return false;
-    destination->SetTries(1);
-    // It is not clear how to clear half-registered file. So remove it only
-    // in case of explicit destination.
-    if (!(destination->IsIndex()))
-      mover.Delete(*destination);
   }
   logger.msg(Arc::INFO, "Transfer complete");
   return true;
