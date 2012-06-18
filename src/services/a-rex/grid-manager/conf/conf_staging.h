@@ -41,6 +41,7 @@ public:
   std::string get_share_type() const { return share_type; };
   std::map<std::string, int> get_defined_shares() const { return defined_shares; };
   bool get_use_host_cert_for_remote_delivery() const { return use_host_cert_for_remote_delivery; };
+  Arc::LogLevel get_log_level() const { return log_level; };
   std::string get_dtr_log() const { return dtr_log; };
 
 private:
@@ -84,6 +85,8 @@ private:
   std::map<std::string, int> defined_shares;
   /// Whether to use the host certificate for remote delivery
   bool use_host_cert_for_remote_delivery;
+  /// Log level for DTR transfer log in job.id.errors file
+  Arc::LogLevel log_level;
   /// where to log DTR state information
   std::string dtr_log;
 

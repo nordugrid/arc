@@ -1380,8 +1380,8 @@ bool JobPlugin::make_job_id(void) {
     //std::string id=Arc::tostring((unsigned int)getpid())+
     //               Arc::tostring((unsigned int)time(NULL))+
     //               Arc::tostring(rand(),1);
-    std::string id;
-    Arc::GUID(id);
+    std::string id(Arc::tostring(time(NULL)));
+    //Arc::GUID(id);
     // create job.id.description file then loop through all control dirs to find if it already exists
     std::vector<gm_dirs_>::iterator it = gm_dirs_info.begin();
     std::string fname=it->control_dir+"/job."+id+".description";

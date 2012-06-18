@@ -1392,6 +1392,14 @@ The [data-staging] block configures A-REX data staging if new data staging is
 switched on with newdatastaging="yes" in the [grid-manager] section.
 
 .TP
+.B debug
+Log level for transfer logging in job.id.errors files, between 0 (FATAL) and 5
+(DEBUG). Default is to use value set by debug option in [grid-manager] section.
+
+.IR Example:
+debug="4"
+
+.TP
 .B maxdelivery
 Maximum number of concurrent file transfers, i.e. active transfers using
 network bandwidth. This is the total number for the whole system including

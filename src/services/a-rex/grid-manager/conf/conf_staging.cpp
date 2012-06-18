@@ -22,6 +22,7 @@ StagingConfig::StagingConfig(const GMEnvironment& env):
   secure(false),
   remote_size_limit(0),
   use_host_cert_for_remote_delivery(false),
+  log_level(Arc::Logger::getRootLogger().getThreshold()),
   valid(true)
 {
 
@@ -178,6 +179,14 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
       std::string use_host_cert = config_next_arg(rest);
       if (use_host_cert == "yes") use_host_cert_for_remote_delivery = true;
     }
+    else if (command == "debug") {
+      unsigned int level;
+      if (!Arc::strtoint(config_next_arg(rest), level)) {
+        logger.msg(Arc::ERROR, "Bad value for debug");
+        return false;
+      }
+      log_level = Arc::old_level_to_level(level);
+    }
     else if (command == "dtrlog") {
       dtr_log = config_next_arg(rest);
     }
@@ -199,6 +208,7 @@ bool StagingConfig::readStagingConf(const Arc::XMLNode& cfg) {
     deliveryService
     localDelivery
     useHostCert
+    logLevel
     dtrLog
   */
   Arc::XMLNode tmp_node = cfg["dataTransfer"]["DTR"];
@@ -233,6 +243,12 @@ bool StagingConfig::readStagingConf(const Arc::XMLNode& cfg) {
       if (!Arc::stringto((std::string)tmp_node["remoteSizeLimit"], remote_size_limit)) return false;
     }
     if (!elementtobool(tmp_node, "localDelivery", use_host_cert_for_remote_delivery, &logger)) return false;
+    if (tmp_node["logLevel"]) {
+      if (!Arc::string_to_level((std::string)tmp_node["logLevel"], log_level)) {
+        logger.msg(Arc::ERROR, "Bad value for logLevel");
+        return false;
+      }
+    }
     if (tmp_node["dtrLog"]) dtr_log = (std::string)tmp_node["dtrLog"];
   }
 
