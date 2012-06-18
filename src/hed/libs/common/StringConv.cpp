@@ -348,7 +348,7 @@ namespace Arc {
     return true;
   }
 
-  bool stroint(const std::string& s, unsigned int& t, int base) {
+  bool strtoint(const std::string& s, unsigned int& t, int base) {
     unsigned long long n;
     bool sign;
     if(!strtoint(s,n,sign,base)) return false;
