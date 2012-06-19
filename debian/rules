@@ -73,6 +73,8 @@ install: build-stamp
 
 	rm -f $(CURDIR)/debian/tmp/usr/lib/arc/lib*.a
 
+	rm -f $(CURDIR)/debian/tmp/usr/lib/arc/libarcglobusutils.so
+
 	mv debian/tmp/etc/init.d/a-rex \
 	   debian/nordugrid-arc-arex.a-rex.init
 	mv debian/tmp/etc/init.d/arched \

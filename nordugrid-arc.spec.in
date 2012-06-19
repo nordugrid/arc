@@ -661,7 +661,7 @@ install -p -m 644 debian/%{name}-datadelivery-service.logrotate \
 find $RPM_BUILD_ROOT -type f -name \*.la -exec rm -fv '{}' ';'
 
 # libarcglobusutils is not part of the ARC api.
-find $RPM_BUILD_ROOT -type f -name libarcglobusutils.so -exec rm -fv '{}' ';'
+find $RPM_BUILD_ROOT -name libarcglobusutils.so -exec rm -fv '{}' ';'
 
 # Turn off default enabling of the services
 mkdir -p $RPM_BUILD_ROOT%{_initrddir}
