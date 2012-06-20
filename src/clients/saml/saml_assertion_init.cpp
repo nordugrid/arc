@@ -32,7 +32,7 @@ int main(int argc, char* argv[]){
 
     setlocale(LC_ALL, "");
 
-    Arc::Logger logger(Arc::Logger::getRootLogger(), "voms_assertion_init");
+    Arc::Logger logger(Arc::Logger::getRootLogger(), "saml_assertion_init");
     Arc::LogStream logcerr(std::cerr);
     logcerr.setFormat(Arc::ShortFormat);
     Arc::Logger::getRootLogger().addDestination(logcerr);
