@@ -37,7 +37,7 @@ ARCLIBS = \
 
 _arc_la_SOURCES = arc_init.cpp
 nodist__arc_la_SOURCES = arc_wrap.cpp
-_arc_la_CXXFLAGS = -I$(top_srcdir)/include \
+_arc_la_CXXFLAGS = -include ../config.h -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(PYTHON_CFLAGS) \
 	-fno-strict-aliasing -DSWIG_COBJECT_TYPES
 _arc_la_LIBADD = \
@@ -46,7 +46,7 @@ _arc_la_LDFLAGS = -no-undefined -avoid-version -module
 
 alt__arc_la_SOURCES = arc_init.cpp
 nodist_alt__arc_la_SOURCES = arc_wrap.cpp
-alt__arc_la_CXXFLAGS = -I$(top_srcdir)/include \
+alt__arc_la_CXXFLAGS = -include ../config.h -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(ALTPYTHON_CFLAGS) \
 	-fno-strict-aliasing -DSWIG_COBJECT_TYPES
 alt__arc_la_LIBADD = \
