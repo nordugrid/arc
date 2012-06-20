@@ -50,9 +50,9 @@ and
 .B newurl
 must differ and it must be the only component of both URLs which is different.
 .B arcrename
-will exit with an error if the paths are different or other components of the
-URLs are not identical. Renaming a URL to an existing URL may either fail or
-overwrite the existing URL, depending on the protocol. 
+will exit with an error if the paths are equivalent or other components of
+the URLs are different. Renaming a URL to an existing URL will either fail
+or overwrite the existing URL, depending on the protocol. 
 .B arcrename
 works purely at the namespace level and does not perform data transfer.
 
