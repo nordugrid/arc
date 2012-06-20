@@ -153,8 +153,20 @@ void InfoRegisterContainer::removeService(InfoRegister* reg) {
     // being deleted.
     Glib::Mutex::Lock lock(lock_);
     for(std::list<InfoRegistrar*>::iterator r = regr_.begin();
-                              r != regr_.end();++r) {
-            (*r)->removeService(reg);
+                              r != regr_.end();) {
+        InfoRegistrar* rega = *r;
+        if(rega) { // just in case
+          // Detach service
+            if(rega->removeService(reg)) {
+            };
+            // If corresponding InfoRegistrar has no services attached delete it too.
+            if(rega->empty()) {
+                r = regr_.erase(r);
+                delete rega;
+                continue;
+            };
+        };
+        ++r;
     };
 }
 
@@ -288,6 +300,11 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
     };
     logger_.msg(VERBOSE, "Unregistred Service can not be removed.");
     return false;
+}
+
+bool InfoRegistrar::empty(void) {
+    Glib::Mutex::Lock lock(lock_);
+    return reg_.empty();
 }
 
 void InfoRegistrar::sendDeleteToISIS(std::list<Register_Info_Type>::iterator r) {

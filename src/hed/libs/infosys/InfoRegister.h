@@ -153,7 +153,7 @@ class InfoRegistrar {
         bool operator!(void) { return myISIS.url.empty(); };
         /// Performs registartion in a loop.
         /** Never exits unless there is a critical error or
-           requested by destructor. */
+           requested by destructor. Must be called only once. */
         void registration(void);
         /// Adds new service to list of handled services.
         /** Service is described by it's InfoRegister object
@@ -162,8 +162,7 @@ class InfoRegistrar {
         /// Removes service from list of handled services.
         bool removeService(InfoRegister*);
         const std::string& id(void) { return id_; };
-
-
+        bool empty(void);
 };
 
 /// Singleton class for scanning configuration and storing
