@@ -9,11 +9,11 @@
 #endif
 #endif
 
-#include <arc/infosys/RegisteredService.h>
+#include <arc/message/Service.h>
 #include <arc/Logger.h>
 
 namespace Arc {
-class Service_JavaWrapper: public Arc::RegisteredService {
+class Service_JavaWrapper: public Arc::Service {
     protected:
         Glib::Module *libjvm;
         JavaVM *jvm;

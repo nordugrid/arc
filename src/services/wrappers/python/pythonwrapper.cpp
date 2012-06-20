@@ -73,7 +73,7 @@ void *extract_swig_wrappered_pointer(PyObject *obj)
 static PyThreadState *tstate = NULL;
 static int python_service_counter = 0;
 static Glib::Mutex service_lock;
-Arc::Logger Arc::Service_PythonWrapper::logger(RegisteredService::logger, "PythonWrapper");
+Arc::Logger Arc::Service_PythonWrapper::logger(Service::logger, "PythonWrapper");
 
 static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     Arc::ServicePluginArgument* srvarg =
@@ -106,7 +106,7 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     python_service_counter++;
     Arc::Logger::getRootLogger().msg(Arc::DEBUG, "Loading %u-th Python service", python_service_counter);
     service_lock.unlock();
-    Arc::RegisteredService* service = new Arc::Service_PythonWrapper((Arc::Config*)(*srvarg),arg);
+    Arc::Service* service = new Arc::Service_PythonWrapper((Arc::Config*)(*srvarg),arg);
     PyEval_ReleaseThread(tstate); // Release current thread
     Arc::Logger::getRootLogger().msg(Arc::DEBUG, "Initialized %u-th Python service", python_service_counter);
     return service;
@@ -119,7 +119,7 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 
 namespace Arc {
 
-Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg,Arc::PluginArgument* parg):RegisteredService(cfg,parg)
+Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg,Arc::PluginArgument* parg):Service(cfg,parg), initialized(false)
 {
     PyObject *py_module_name = NULL;
     PyObject *py_arc_module_name = NULL;
@@ -133,7 +133,7 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg,Arc::PluginArgumen
     arc_module = NULL;
     module = NULL;
     object = NULL;
-    initialized = false;
+    inforeg = NULL;
 
     if (tstate == NULL) {
         logger.msg(Arc::ERROR, "Main Python thread is not initialized");
@@ -282,12 +282,15 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg,Arc::PluginArgumen
     //tstate = PyGILState_GetThisThreadState();
     //PyEval_ReleaseThread(tstate);
 
+    inforeg = new InfoRegisters(*cfg, this);
+
     logger.msg(Arc::VERBOSE, "Python Wrapper constructor succeeded");
     initialized = true;
 }
 
 Service_PythonWrapper::~Service_PythonWrapper(void)
 {
+    if(inforeg) delete inforeg;
     service_lock.lock();
     PyEval_AcquireThread(tstate);
     // Release python objects - it is needed for Python

@@ -825,10 +825,10 @@ static void information_collector_starter(void* arg) {
   ((ARexService*)arg)->InformationCollector();
 }
 
-ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):RegisteredService(cfg,parg),
+ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Service(cfg,parg),
               logger_(Arc::Logger::rootLogger, "A-REX"),
               infodoc_(true),
-              //inforeg_(*cfg,this),
+              inforeg_(NULL),
               gmconfig_temporary_(false),
               infoprovider_wakeup_period_(0),
               all_jobs_count_(0),
@@ -1052,9 +1052,11 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):RegisteredS
   };
   CreateThreadFunction(&information_collector_starter,this);
   valid=true;
+  inforeg_ = new Arc::InfoRegisters(*cfg,this);
 }
 
 ARexService::~ARexService(void) {
+  if(inforeg_) delete inforeg_;
   thread_count_.RequestCancel();
   if(gm_) delete gm_; // This should stop all GM-related threads too
   if(my_user_) delete my_user_;

@@ -2,17 +2,19 @@
 #define __ARC_SERVICE_PYTHON_WRAPPER_H__
 
 #include <Python.h>
-#include <arc/infosys/RegisteredService.h>
+#include <arc/message/Service.h>
+#include <arc/infosys/InfoRegister.h>
 #include <arc/Logger.h>
 
 namespace Arc {
-class Service_PythonWrapper: public Arc::RegisteredService {
+class Service_PythonWrapper: public Arc::Service {
     protected:
         Arc::MCC_Status make_fault(Arc::Message& outmsg);
         static Arc::Logger logger;
         PyObject *arc_module;
         PyObject *module;
         PyObject *object;
+        InfoRegisters *inforeg;
         bool initialized;
 
     public:

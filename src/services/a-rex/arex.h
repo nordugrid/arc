@@ -1,7 +1,6 @@
 #ifndef __ARC_AREX_H__
 #define __ARC_AREX_H__
 
-#include <arc/infosys/RegisteredService.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
@@ -56,14 +55,14 @@ class OptimizedInformationContainer: public Arc::InformationContainer {
 };
 
 #define AREXOP(NAME) Arc::MCC_Status NAME(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out)
-class ARexService: public Arc::RegisteredService {
+class ARexService: public Arc::Service {
  protected:
   Arc::ThreadRegistry thread_count_;
   Arc::NS ns_;
   Arc::Logger logger_;
   DelegationStores delegation_stores_;
   OptimizedInformationContainer infodoc_;
-  //Arc::InfoRegisters inforeg_;
+  Arc::InfoRegisters* inforeg_;
   CountedResource infolimit_;
   CountedResource beslimit_;
   CountedResource datalimit_;

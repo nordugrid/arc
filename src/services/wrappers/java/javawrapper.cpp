@@ -24,7 +24,7 @@ namespace Arc {
 Arc::Logger Service_JavaWrapper::logger(Service::logger, "JavaWrapper");
 
 Service_JavaWrapper::Service_JavaWrapper(Arc::Config *cfg, Arc::PluginArgument* parg)
-  : RegisteredService(cfg,parg),
+  : Service(cfg,parg),
     libjvm(NULL),
     jvm(NULL),
     classPath(NULL) {
