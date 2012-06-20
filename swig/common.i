@@ -156,12 +156,7 @@ private:
 %{
 #include <arc/DateTime.h>
 %}
-#ifdef SWIGPYTHON
-%inline %{
-typedef long time_t;
-typedef unsigned int uint32_t;
-%}  
-#endif
+%ignore Arc::Time::UNDEFINED;
 %ignore Arc::Time::operator=(time_t);
 %ignore Arc::Time::operator=(const Time&);
 %ignore Arc::Time::operator=(const char*);
