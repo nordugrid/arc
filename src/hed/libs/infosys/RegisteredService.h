@@ -11,7 +11,14 @@
 namespace Arc {
 
 /// RegisteredService - extension of Service performing self-registration.
-/**  
+/**
+   Service is automatically added to registration framework. Registration
+   information for service is obtained by calling its RegistrationCollector()
+   method. It is important to note that RegistrationCollector() may be called 
+   anytime after RegisteredService constructor completed and hence even before
+   actual constructor of inheriting class is complete. That must be taken into
+   account while writing implementation of RegistrationCollector() or object of
+   InfoRegisters class must be used directly.
  */
 class RegisteredService: public Service
 {
@@ -22,7 +29,7 @@ class RegisteredService: public Service
         /** Example contructor - Server takes at least it's configuration subtree */
         RegisteredService(Config*, PluginArgument*);
 
-        virtual ~RegisteredService(void) { };
+        virtual ~RegisteredService(void);
 };
 
 

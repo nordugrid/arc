@@ -11,4 +11,6 @@ namespace Arc {
   {
   }
 
+  RegisteredService::~RegisteredService(void) {
+  }
 } // namespace Arc

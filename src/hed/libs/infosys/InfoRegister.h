@@ -20,7 +20,7 @@ namespace Arc {
 
 class InfoRegisterContainer;
 
-/// Registration to ISIS interface
+/// Registration to Information Indexing Service
 /** This class represents service registering to Information Indexing Service.
   It does not perform registration itself. It only collects configuration 
   information. Configuration is as described in InfoRegisterConfig.xsd for 
@@ -49,13 +49,13 @@ class InfoRegister {
         Service* getService(void) { return service_; };
 };
 
-/// Handling multiple registrations to ISISes
+/// Handling registrations to multiple Information Indexing Services
 class InfoRegisters {
     private:
         std::list<InfoRegister*> registers_;
     public:
         /// Constructor creates InfoRegister objects according to configuration
-        /** Inside cfg elements InfoRegister are found and for each
+        /** Inside cfg elements InfoRegister elements are found and for each
            corresponding InfoRegister object is created. Those objects 
            are destroyed in destructor of this class. */
         InfoRegisters(XMLNode cfg, Service *service);
