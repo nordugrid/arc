@@ -360,6 +360,7 @@ const std::string& DelegationConsumer::ID(void) {
   return s;
 }
 
+/*
 #ifdef HAVE_OPENSSL_OLDRSA
 static void progress_cb(int p, int, void*) {
   char c='*';
@@ -380,6 +381,7 @@ static int progress_cb(int p, int, BN_GENCB*) {
   return 1;
 }
 #endif
+*/
 
 static int ssl_err_cb(const char *str, size_t len, void *u) {
   std::string& ssl_err = *((std::string*)u);
