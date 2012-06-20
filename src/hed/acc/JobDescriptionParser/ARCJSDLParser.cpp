@@ -479,8 +479,10 @@ namespace Arc {
     else if (bool(resource["FileSystem"]["DiskSpace"])) {
       Range<long long int> diskspace = -1;
       parseRange<long long int>(resource["FileSystem"]["DiskSpace"], diskspace, -1);
-      if (diskspace > -1) {
+      if (diskspace.max > -1) {
         job.Resources.DiskSpaceRequirement.DiskSpace.max = diskspace.max/(1024*1024);
+      }
+      if (diskspace.min > -1) {
         job.Resources.DiskSpaceRequirement.DiskSpace.min = diskspace.min/(1024*1024);
       }
     }

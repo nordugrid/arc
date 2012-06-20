@@ -27,6 +27,7 @@ class ARCJSDLParserTest
   CPPUNIT_TEST(TestURIOptionsOutput);
   CPPUNIT_TEST(TestQueue);
   CPPUNIT_TEST(TestDryRun);
+  CPPUNIT_TEST(TestBasicJSDLCompliance);
   CPPUNIT_TEST(TestPOSIXCompliance);
   CPPUNIT_TEST(TestHPCCompliance);
   CPPUNIT_TEST_SUITE_END();
@@ -46,6 +47,7 @@ public:
   void TestURIOptionsOutput();
   void TestQueue();
   void TestDryRun();
+  void TestBasicJSDLCompliance();
   void TestPOSIXCompliance();
   void TestHPCCompliance();
 
@@ -382,6 +384,40 @@ void ARCJSDLParserTest::TestDryRun() {
 
   CPPUNIT_ASSERT(!OUTJOBS.front().Application.DryRun);
   CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
+}
+
+void ARCJSDLParserTest::TestBasicJSDLCompliance() {
+  /** Testing compliance with GFD 56 **/
+  MESSAGE = "Error: The parser does not comply with the JDSL specification.";
+
+  const std::string jsdlStr = "<?xml version=\"1.0\"?>"
+"<JobDefinition xmlns=\"http://schemas.ggf.org/jsdl/2005/11/jsdl\""
+" xmlns:posix-jsdl=\"http://schemas.ggf.org/jsdl/2005/11/jsdl-posix\">"
+"<JobDescription>"
+"<Application>"
+"<posix-jsdl:POSIXApplication>"
+"<posix-jsdl:Executable>executable</posix-jsdl:Executable>"
+"</posix-jsdl:POSIXApplication>"
+"</Application>"
+"<Resources>"
+"<FileSystem>"
+"<DiskSpace>"
+"<LowerBoundedRange>128974848</LowerBoundedRange>" // 1024*1024*123
+"</DiskSpace>"
+"</FileSystem>"
+"</Resources>"
+"</JobDescription>"
+"</JobDefinition>";
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(jsdlStr, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 123, OUTJOBS.front().Resources.DiskSpaceRequirement.DiskSpace.min);
+  
+  std::string tempjobdesc;
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "nordugrid:jsdl"));
+
+  Arc::XMLNode xmlArcJSDL(tempjobdesc);
 }
 
 void ARCJSDLParserTest::TestPOSIXCompliance() {
