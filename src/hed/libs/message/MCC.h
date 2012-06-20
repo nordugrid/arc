@@ -5,6 +5,7 @@
 #include <map>
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
+#include <arc/Thread.h>
 #include <arc/message/SecHandler.h>
 #include <arc/loader/Plugin.h>
 #include <arc/message/Message.h>
@@ -18,7 +19,7 @@ namespace Arc {
       read the description of the Message class. */
   class MCCInterface: public Plugin {
   public:
-    MCCInterface(PluginArgument* arg):Plugin(arg) {};
+    MCCInterface(PluginArgument* arg);
     /** Method for processing of requests and responses.
         This method is called by preceeding MCC in chain when a request
         needs to be processed.
@@ -35,7 +36,7 @@ namespace Arc {
      */
     virtual MCC_Status process(Message& request,
             Message& response) = 0;
-    virtual ~MCCInterface() {};
+    virtual ~MCCInterface();
   };
 
   /// Message Chain Component - base class for every MCC plugin.
@@ -49,11 +50,14 @@ namespace Arc {
         Each implemented MCC must call process() method of
         corresponding MCCInterface from this set in own process() method. */
     std::map<std::string, MCCInterface *> next_;
+    /** Mutex to protect access to next_. */
+    Glib::Mutex next_lock_;
+    /** Returns "next" component associated with provided label. */
     MCCInterface *Next(const std::string& label = "");
 
     /** Set of labeled authentication and authorization handlers.
         MCC calls sequence of handlers at specific point depending
-        on associated identifier. In most aces those are "in" and "out"
+        on associated identifier. In most cases those are "in" and "out"
         for incoming and outgoing messages correspondingly. */
     std::map<std::string, std::list<ArcSec::SecHandler *> > sechandlers_;
 
@@ -73,9 +77,9 @@ namespace Arc {
 
   public:
     /** Example contructor - MCC takes at least it's configuration subtree */
-    MCC(Config *, PluginArgument* arg):MCCInterface(arg) {}
+    MCC(Config *, PluginArgument* arg);
 
-    virtual ~MCC() {}
+    virtual ~MCC();
 
     /** Add reference to next MCC in chain.
         This method is called by Loader for every potentially labeled link to

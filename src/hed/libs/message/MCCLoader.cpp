@@ -21,6 +21,11 @@ namespace Arc {
     // self-destruction or break links first or use semaphors in
     // MCC destructors
     // Unlink all objects
+    for(mcc_container_t::iterator mcc_i = mccs_unlinked_.begin();
+        mcc_i != mccs_unlinked_.end(); ++mcc_i) {
+      MCC* mcc = mcc_i->second;
+      if(mcc) mcc->Unlink();
+    }
     for(mcc_container_t::iterator mcc_i = mccs_.begin();
         mcc_i != mccs_.end(); ++mcc_i) {
       MCC* mcc = mcc_i->second;
@@ -32,17 +37,21 @@ namespace Arc {
       if(plexer) plexer->Unlink();
     }
     // Destroy all objects
+    // First unlinked MCC are destroyed because they handle spawned threads
+    // processing request. After they are destroyed there should be no 
+    // processing left.
+    for(mcc_container_t::iterator mcc_i = mccs_unlinked_.begin();
+        mcc_i != mccs_unlinked_.end(); mcc_i = mccs_unlinked_.begin()) {
+      MCC* mcc = mcc_i->second;
+      mccs_unlinked_.erase(mcc_i);
+      if(mcc) delete mcc;
+    }
+    // Then ordinary MCCs and other objects
     for(mcc_container_t::iterator mcc_i = mccs_.begin();
         mcc_i != mccs_.end(); mcc_i = mccs_.begin()) {
       MCC* mcc = mcc_i->second;
       mccs_.erase(mcc_i);
       if(mcc) delete mcc;
-    }
-    for(service_container_t::iterator service_i = services_.begin();
-        service_i != services_.end(); service_i = services_.begin()) {
-      Service* service = service_i->second;
-      services_.erase(service_i);
-      if(service) delete service;
     }
     for(plexer_container_t::iterator plexer_i = plexers_.begin();
         plexer_i != plexers_.end(); plexer_i = plexers_.begin()) {
@@ -50,6 +59,14 @@ namespace Arc {
       plexers_.erase(plexer_i);
       if(plexer) delete plexer;
     }
+    for(service_container_t::iterator service_i = services_.begin();
+        service_i != services_.end(); service_i = services_.begin()) {
+      Service* service = service_i->second;
+      services_.erase(service_i);
+      if(service) delete service;
+    }
+    // Last are SecHandlers because now there are no objects which 
+    // could use them.
     for(sechandler_container_t::iterator sechandler_i = sechandlers_.begin();
         sechandler_i != sechandlers_.end();
         sechandler_i = sechandlers_.begin()) {
@@ -345,6 +362,7 @@ namespace Arc {
     // 2nd stage - making links between elements.
 
     // Making links from MCCs
+    mccs_unlinked_ = mccs_;
     for(mcc_connectors_t::iterator mcc = mcc_connectors->begin();
         mcc != mcc_connectors->end(); ++mcc) {
       for(std::map<std::string, std::string>::iterator next =
@@ -359,6 +377,8 @@ namespace Arc {
           logger.msg(DEBUG, "Linking MCC %s(%s) to MCC (%s) under %s",
                mcc->name, mcc->mcc->first, id, label);
           mcc->nexts.erase(next);
+          mcc_container_t::iterator mcc_ul = mccs_unlinked_.find(id);
+          if(mcc_ul != mccs_unlinked_.end()) mccs_unlinked_.erase(mcc_ul);
           continue;
         }
         service_container_t::iterator service_l = services_.find(id);
@@ -400,6 +420,8 @@ namespace Arc {
           logger.msg(INFO, "Linking Plexer %s to MCC (%s) under %s",
                plexer->plexer->first, id, label);
           plexer->nexts.erase(next);
+          mcc_container_t::iterator mcc_ul = mccs_unlinked_.find(id);
+          if(mcc_ul != mccs_unlinked_.end()) mccs_unlinked_.erase(mcc_ul);
           continue;
         }
         service_container_t::iterator service_l = services_.find(id);
@@ -429,6 +451,12 @@ namespace Arc {
     }
     if(mcc_connectors) delete mcc_connectors;
     if(plexer_connectors) delete plexer_connectors;
+    // Move all unlinked MCCs to dedicated container
+    for(mcc_container_t::iterator mcc = mccs_unlinked_.begin();
+                                  mcc != mccs_unlinked_.end();++mcc) {
+      mcc_container_t::iterator mcc_l = mccs_.find(mcc->first);
+      if(mcc_l != mccs_.end()) mccs_.erase(mcc_l);
+    }
     return success;
   }
 

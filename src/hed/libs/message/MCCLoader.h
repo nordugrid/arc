@@ -57,6 +57,9 @@ namespace Arc {
     /** Set of labeled MCC objects */
     mcc_container_t mccs_;
 
+    /** Set of labeled MCC objects which are not linked by anything */
+    mcc_container_t mccs_unlinked_;
+
     /** Set of MCC objects exposed to external interface */
     mcc_container_t mccs_exposed_;
 
