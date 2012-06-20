@@ -2310,6 +2310,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/data/arcls.1
                  src/clients/data/arcrm.1
                  src/clients/data/arcmkdir.1
+                 src/clients/data/arcrename.1
                  src/clients/echo/Makefile
                  src/clients/echo/arcecho.1
                  src/clients/credentials/Makefile

@@ -365,6 +365,17 @@ namespace Arc {
      * are created */
     virtual DataStatus CreateDirectory(bool with_parents=false) = 0;
 
+    /// Rename a URL.
+    /** This method renames the file or directory specified in the constructor
+     * to the new name specified in newurl. It only performs namespace
+     * operations using the paths of the two URLs and in general ignores any
+     * differences in protocol and host between them. It is assumed that checks
+     * that the URLs are consistent are done by the caller of this method.
+     * This method does not do any data transfer and is only implemented for
+     * protocols which support renaming as an atomic namespace operation.
+     * \param newurl The new name for the URL */
+    virtual DataStatus Rename(const URL& newurl) = 0;
+
     /// Allow/disallow DataPoint to produce scattered data during
     /// *reading* operation.
     /** \param v true if allowed (default is false). */

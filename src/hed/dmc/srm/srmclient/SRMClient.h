@@ -307,12 +307,21 @@ namespace Arc {
     virtual SRMReturnCode mkDir(SRMClientRequest& req) = 0;
 
     /**
+     * Rename the URL in req to newurl.
+     * @oaram req The request object
+     * @param newurl The new URL
+     * @returns SRMReturnCode specifying outcome of operation
+     */
+    virtual SRMReturnCode rename(SRMClientRequest& req,
+                                 const URL& newurl) = 0;
+    /**
      * Check permissions for the SURL in the request using the
      * current credentials.
      * @oaram req The request object
      * @returns SRMReturnCode specifying outcome of operation
      */
     virtual SRMReturnCode checkPermissions(SRMClientRequest& req) = 0;
+
 
     operator bool() const {
       return client;

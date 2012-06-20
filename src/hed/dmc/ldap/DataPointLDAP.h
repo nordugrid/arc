@@ -35,6 +35,7 @@ namespace Arc {
     virtual DataStatus Check();
     virtual DataStatus Remove();
     virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus::UnimplementedError; };
+    virtual DataStatus Rename(const URL& newurl) { return DataStatus::UnimplementedError; };
     virtual DataStatus Stat(FileInfo& file, DataPoint::DataPointInfoType verb);
     virtual DataStatus List(std::list<FileInfo>& file, DataPoint::DataPointInfoType verb);
   private:

@@ -50,9 +50,10 @@ namespace Arc {
     istring("Failed to finalize reading from source"), // 36
     istring("Failed to finalize writing to destination"), // 37
     istring("Failed to create directory"), // 38
-    istring("Data was already cached"), // 39
-    istring("Generic error"), // 40
-    istring("Unknown error") // 41
+    istring("Failed to rename URL"), // 39
+    istring("Data was already cached"), // 40
+    istring("Generic error"), // 41
+    istring("Unknown error") // 42
   };
 
   DataStatus::operator std::string() const {

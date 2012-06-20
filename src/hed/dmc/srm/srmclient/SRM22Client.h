@@ -159,6 +159,12 @@ namespace Arc {
     SRMReturnCode mkDir(SRMClientRequest& req);
 
     /**
+     * Call srmMv
+     */
+    SRMReturnCode rename(SRMClientRequest& req,
+                         const URL& newurl);
+
+    /**
      * Call srmCheckPermission
      */
     SRMReturnCode checkPermissions(SRMClientRequest& req);

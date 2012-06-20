@@ -31,6 +31,7 @@ namespace Arc {
     virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus Remove();
     virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus::UnimplementedError; };
+    virtual DataStatus Rename(const URL& newurl) { return DataStatus::UnimplementedError; };
 
    private:
     /// thread functions for async read/write

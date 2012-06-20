@@ -157,6 +157,32 @@ namespace Arc {
     return DataStatus::Success;
   }
 
+  DataStatus DataPointSRM::Rename(const URL& newurl) {
+
+    bool timedout;
+    SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
+    if (!client) {
+      if (timedout) return DataStatus::RenameErrorRetryable;
+      return DataStatus::RenameError;
+    }
+
+    // take out options in srm urls and encode paths
+    SRMClientRequest request(CanonicSRMURL(url));
+    URL canonic_newurl(CanonicSRMURL(newurl));
+
+    logger.msg(VERBOSE, "Renaming %s to %s", CanonicSRMURL(url), canonic_newurl.str());
+
+    SRMReturnCode res = client->rename(request, canonic_newurl);
+    delete client;
+    client = NULL;
+
+    if (res != SRM_OK) {
+      if (res == SRM_ERROR_TEMPORARY) return DataStatus::RenameErrorRetryable;
+      return DataStatus::RenameError;
+    }
+    return DataStatus::Success;
+  }
+
   DataStatus DataPointSRM::PrepareReading(unsigned int stage_timeout,
                                           unsigned int& wait_time) {
     if (writing) return DataStatus::IsWritingError;

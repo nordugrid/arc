@@ -40,6 +40,7 @@ namespace Arc {
     virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus::UnimplementedError; };
     virtual DataStatus Stat(FileInfo& file, DataPoint::DataPointInfoType verb);
     virtual DataStatus List(std::list<FileInfo>& file, DataPoint::DataPointInfoType verb);
+    virtual DataStatus Rename(const URL& newurl) { return DataStatus::UnimplementedError; };
     virtual DataStatus StartReading(DataBuffer& buffer);
     virtual DataStatus StartWriting(DataBuffer& buffer,
                                     DataCallback *space_cb = NULL);

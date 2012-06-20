@@ -818,6 +818,28 @@ namespace Arc {
     return DataStatus::Success;
   }
 
+  DataStatus DataPointLFC::Rename(const URL& newurl) {
+
+    // source can be specified by GUID, but destination must have path
+    std::string path = url.Path();
+    if (path.empty() || path == "/") path = ResolveGUIDToLFN();
+    if (path.empty()) return IsTempError() ? DataStatus::RenameErrorRetryable : DataStatus::RenameError;
+
+    if (newurl.Path().empty() || newurl.Path() == "/") {
+      logger.msg(ERROR, "Cannot rename to root directory");
+      return DataStatus::RenameError;
+    }
+    logger.msg(VERBOSE, "Renaming %s to %s", path, newurl.Path());
+
+    int lfc_r;
+    LFCLOCKINT(lfc_r, lfc_rename(path.c_str(), newurl.Path().c_str()), url);
+    if (lfc_r != 0) {
+      logger.msg(ERROR, "Error renaming %s to %s: %s", path, newurl.Path(), sstrerror(serrno));
+      return IsTempError() ? DataStatus::RenameErrorRetryable : DataStatus::RenameError;
+    }
+    return DataStatus::Success;
+  }
+
   std::string DataPointLFC::ResolveGUIDToLFN() {
 
     // check if guid is already defined

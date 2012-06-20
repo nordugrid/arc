@@ -516,6 +516,15 @@ namespace Arc {
     return DataStatus::Success;
   }
 
+  DataStatus DataPointFile::Rename(const URL& newurl) {
+    logger.msg(VERBOSE, "Renaming %s to %s", url.Path(), newurl.Path());
+    if (rename(url.Path().c_str(), newurl.Path().c_str()) != 0) {
+      logger.msg(ERROR, "Can't rename file %s: %s", url.Path(), StrError(errno));
+      return DataStatus::RenameError;
+    }
+    return DataStatus::Success;
+  }
+
 
   DataStatus DataPointFile::StartReading(DataBuffer& buf) {
     if (reading) return DataStatus::IsReadingError;

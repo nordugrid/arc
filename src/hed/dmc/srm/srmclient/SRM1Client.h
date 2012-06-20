@@ -44,6 +44,11 @@ namespace Arc {
       return SRM_ERROR_NOT_SUPPORTED;
     }
     // not supported
+    SRMReturnCode rename(SRMClientRequest& /* req */,
+                         const URL& /* newurl */) {
+      return SRM_ERROR_NOT_SUPPORTED;
+    }
+    // not supported
     SRMReturnCode checkPermissions(SRMClientRequest& /* req */) {
       return SRM_ERROR_NOT_SUPPORTED;
     }

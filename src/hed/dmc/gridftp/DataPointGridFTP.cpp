@@ -1047,6 +1047,40 @@ namespace Arc {
     return result;
   }
 
+  DataStatus DataPointGridFTP::Rename(const URL& newurl) {
+    if (!ftp_active)
+      return DataStatus::NotInitializedError;
+    if (reading)
+      return DataStatus::IsReadingError;
+    if (writing)
+      return DataStatus::IsWritingError;
+    set_attributes();
+
+    GlobusResult res = globus_ftp_client_move(&ftp_handle,
+                                              url.str().c_str(),
+                                              newurl.str().c_str(),
+                                              &ftp_opattr,
+                                              &ftp_complete_callback,
+                                              cbarg);
+    if (!res) {
+      logger.msg(ERROR, "Rename: globus_ftp_client_move failed");
+      std::string err(res.str());
+      logger.msg(ERROR, "Globus error: %s", err);
+      return DataStatus(DataStatus::RenameError, err);
+    }
+    if (!cond.wait(1000*usercfg.Timeout())) {
+      logger.msg(ERROR, "Rename: timeout waiting for operation to complete");
+      globus_ftp_client_abort(&ftp_handle);
+      cond.wait();
+      return DataStatus(DataStatus::RenameError, "Timeout");
+    }
+    if (!callback_status) {
+      logger.msg(ERROR, "Rename: failed to rename file");
+      return callback_status;
+    }
+    return DataStatus::Success;
+  }
+
   DataPointGridFTP::DataPointGridFTP(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
     : DataPointDirect(url, usercfg, parg),
       cbarg(new CBArg(this)),

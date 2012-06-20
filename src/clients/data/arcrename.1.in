@@ -1,24 +1,22 @@
 .\" -*- nroff -*-
-.TH ARCMDKIR 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+.TH ARCRENAME 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 
 .SH NAME
 
-arcmkdir \- create directories
+arcrename \- rename file or directory
 
 .SH DESCRIPTION
 
 The
-.B arcmkdir
-command creates directories on grid storage elements and indexing services.
+.B arcrename
+renames files or directories on grid storage elements and indexing services.
 
 .SH SYNOPSIS
 
-.B arcmkdir [options] url
+.B arcrename [options] oldurl newurl
 
 .SH OPTIONS
 
-.IP "\fB-p\fR, \fB--parents\fR"
-make parent directories as needed
 .IP "\fB-P\fR, \fB--listplugins\fR"
 list the available plugins (protocols supported)
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
@@ -34,34 +32,38 @@ print help
 
 .SH ARGUMENTS
 
-.IP "\fBurl\fR"
-the directory to create
+.IP "\fBoldurl\fR"
+current name of file or directory
+.IP "\fBnewurl\fR"
+new name for file or directory
 .LP
+
 
 .SH EXTENDED DESCRIPTION
 
 The
-.B arcmkdir
-command creates directories on grid storage elements and indexing services.
-If the parent directory does not exist and
-.B -p
-is not specified, then arcmkdir will probably fail, but it depends on the
-protocol. The permissions on the new directory are the default of the server,
-or if the protocol requires them to be specified then the directory is only
-readable/writable/searchable by the user (the equivalent of 700 on a file system).
+.B arcrename
+command renames files or directories on grid storage elements and indexing
+services. The path component of
+.B oldurl
+and
+.B newurl
+must differ and it must be the only component of both URLs which is different.
+.B arcrename
+will exit with an error if the paths are different or other components of the
+URLs are not identical. Renaming a URL to an existing URL may either fail or
+overwrite the existing URL, depending on the protocol. 
+.B arcrename
+works purely at the namespace level and does not perform data transfer.
 
-If
-.B url
-starts from '@', the remaining argument is assumed to be a
-path to a local file containing a list of URLs, one per line.
-In this case
-.B arcmkdir
-performs like it were called multiple times - once for every URL.
+For more information on ARC URL syntax please read "Protocols, Uniform
+Resource Locators (URL) and Extensions Supported in ARC" [NORDUGRID-TECH-7]
 
 Depending on the installed libraries (check with
 .B -P
 ), the following protocols may be used: file  (file://  prefix  may  be
-omitted), http, https, httpg, ftp, gsiftp, lfc, rls, srm.
+omitted), http, https, httpg, ftp, gsiftp, lfc, rls, srm, xrootd. However
+renaming is not supported or implemented for some of those protocols.
 
 .SH FILES
 
@@ -94,7 +96,7 @@ default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
 
 .SH EXAMPLE
 
-arcmkdir lfc://lfc.org/grid/newdir
+arcrename lfc://lfc.org/grid/file.dat lfc://lfc.org/grid/new.file.dat
 
 .SH COPYRIGHT
 
@@ -102,11 +104,11 @@ APACHE LICENSE Version 2.0
 
 .SH AUTHOR
 
-David Cameron <david.cameron@cern.ch>
+David Cameron <d.g.cameron@fys.uio.no>
 
 .SH SEE ALSO
 
 .BR arccp (1),
 .BR arcls (1),
-.BR arcrename (1),
-.BR arcrm (1),
+.BR arcmkdir(1),
+.BR arcrm(1),

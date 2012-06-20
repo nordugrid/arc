@@ -165,15 +165,19 @@ namespace Arc {
       CreateDirectoryError = 38,
       CreateDirectoryErrorRetryable = DataStatusRetryableBase+CreateDirectoryError,
 
+      /// Can't rename URL
+      RenameError = 39,
+      RenameErrorRetryable = DataStatusRetryableBase+RenameError,
+
       /// Data was already cached
-      SuccessCached = 39,
+      SuccessCached = 40,
       
       /// General error which doesn't fit any other error
-      GenericError = 40,
+      GenericError = 41,
       GenericErrorRetryable = DataStatusRetryableBase+GenericError,
 
       /// Undefined
-      UnknownError = 41
+      UnknownError = 42
     };
 
     DataStatus(const DataStatusType& status, std::string desc="")

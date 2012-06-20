@@ -1,6 +1,6 @@
-bin_PROGRAMS = arccp arcls arcrm arcmkdir
+bin_PROGRAMS = arccp arcls arcrm arcmkdir arcrename
 
-man_MANS = arccp.1 arcls.1 arcrm.1 arcmkdir.1
+man_MANS = arccp.1 arcls.1 arcrm.1 arcmkdir.1 arcrename.1
 
 CLILIBS = \
 	$(top_builddir)/src/hed/libs/client/libarcclient.la \
@@ -24,3 +24,7 @@ arcrm_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 arcmkdir_SOURCES  = arcmkdir.cpp
 arcmkdir_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 arcmkdir_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
+
+arcrename_SOURCES  = arcrename.cpp
+arcrename_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+arcrename_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)

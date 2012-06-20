@@ -508,6 +508,21 @@ namespace Arc {
     return DataStatus::Success;    
   }
   
+  DataStatus DataPointGFAL::Rename(const URL& newurl) {
+
+    int res;
+    {
+      GFALEnvLocker gfal_lock(usercfg);
+      res = gfal_rename(url.plainstr().c_str(), newurl.plainstr().c_str());
+    }
+    if (res < 0) {
+      logger.msg(ERROR, "gfal_rename failed: %s", StrError(errno));
+      log_gfal_err();
+      return DataStatus::RenameError;
+    }
+    return DataStatus::Success;
+  }
+
   void DataPointGFAL::log_gfal_err() {
     char errbuf[2048];
     gfal_posix_strerror_r(errbuf, sizeof(errbuf));

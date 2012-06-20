@@ -1664,6 +1664,32 @@ namespace Arc {
     return SRM_OK;
   }
 
+  SRMReturnCode SRM22Client::rename(SRMClientRequest& creq,
+                                    const URL& newurl) {
+    PayloadSOAP request(ns);
+    XMLNode req = request.NewChild("SRMv2:srmMv")
+                  .NewChild("srmMvRequest");
+    req.NewChild("fromSURL") = creq.surl();
+    req.NewChild("toSURL") = newurl.plainstr();
+
+    PayloadSOAP *response = NULL;
+    SRMReturnCode status = process("", &request, &response);
+    if (status != SRM_OK)
+      return status;
+
+    XMLNode res = (*response)["srmMvResponse"]["srmMvResponse"];
+
+    std::string explanation;
+    SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
+
+    if (statuscode == SRM_SUCCESS)
+      return SRM_OK;
+    logger.msg(ERROR, "%s", explanation);
+    if (statuscode == SRM_INTERNAL_ERROR || statuscode == SRM_FILE_UNAVAILABLE || statuscode == SRM_FILE_BUSY)
+      return SRM_ERROR_TEMPORARY;
+    return SRM_ERROR_PERMANENT;
+  }
+
   SRMReturnCode SRM22Client::checkPermissions(SRMClientRequest& creq) {
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmCheckPermission")

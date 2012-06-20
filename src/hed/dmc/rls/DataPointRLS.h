@@ -44,6 +44,7 @@ namespace Arc {
                             DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus::UnimplementedError; };
+    virtual DataStatus Rename(const URL& newurl) { return DataStatus::UnimplementedError; };
     bool ResolveCallback(globus_rls_handle_t *h, const URL& url, void *arg);
     bool ListFilesCallback(globus_rls_handle_t *h, const URL& url, void *arg);
     bool UnregisterCallback(globus_rls_handle_t *h, const URL& url, void *arg);
