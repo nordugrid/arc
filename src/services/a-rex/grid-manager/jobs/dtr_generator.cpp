@@ -1009,13 +1009,13 @@ int DTRGenerator::user_file_exists(FileData &dt,
 
     if ((uid && uid != getuid()) || (gid && gid != getgid())) {
       fa = new Arc::FileAccess();
-      if (!fa->setuid(uid, gid)) {
+      if (!fa->fa_setuid(uid, gid)) {
         delete fa;
         logger.msg(Arc::ERROR, "%s: Failed to switch user id to %d/%d to read file %s", jobid, (unsigned int)uid, (unsigned int)gid, dt.pfn);
         error = "Could not switch user id to read file";
         return 1;
       }
-      if(!fa->open(fname, O_RDONLY, 0)) {
+      if(!fa->fa_open(fname, O_RDONLY, 0)) {
         delete fa;
         logger.msg(Arc::ERROR, "%s: Failed to open file %s for reading", jobid, dt.pfn);
         error = "Failed to open file for reading";
@@ -1034,7 +1034,7 @@ int DTRGenerator::user_file_exists(FileData &dt,
     char buffer[1024];
     ssize_t l;
     for(;;) {
-      if (fa) l = fa->read(buffer, 1024);
+      if (fa) l = fa->fa_read(buffer, 1024);
       else l = read(h, buffer, 1024);
       if (l == -1) {
         logger.msg(Arc::ERROR, "%s: Error reading file %s", jobid, dt.pfn);
@@ -1046,7 +1046,7 @@ int DTRGenerator::user_file_exists(FileData &dt,
       crc.add(buffer, l);
     }
     close(h);
-    if (fa) fa->close();
+    if (fa) fa->fa_close();
     delete fa;
     crc.end();
 

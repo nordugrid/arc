@@ -195,7 +195,7 @@ Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%llu, end=%llu, burl=
       if(!hpath.empty()) furl+="/"+hpath;
       std::string path = job.GetFilePath(hpath);
       for(;;) {
-        if(!dir->readdir(file)) break;
+        if(!dir->fa_readdir(file)) break;
         if(file == ".") continue;
         if(file == "..") continue;
         std::string fpath = path+"/"+file;
@@ -244,7 +244,7 @@ Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%llu, end=%llu, burl=
       outmsg.Payload(buf);
       outmsg.Attributes()->set("HTTP:content-type","text/html");
     };
-    dir->closedir();
+    dir->fa_closedir();
     delete dir;
     return Arc::MCC_Status(Arc::STATUS_OK);
   };
@@ -253,13 +253,13 @@ Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%llu, end=%llu, burl=
     // File 
     if(!no_content) {
       Arc::MessagePayload* h = newFileRead(file,start,end);
-      if(!h) { file->close(); delete file; return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR); };
+      if(!h) { file->fa_close(); delete file; return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR); };
       outmsg.Payload(h);
     } else {
       struct stat st;
       Arc::PayloadRaw* buf = new Arc::PayloadRaw;
-      if(buf && (file->fstat(st))) buf->Truncate(st.st_size);
-      file->close(); delete file;
+      if(buf && (file->fa_fstat(st))) buf->Truncate(st.st_size);
+      file->fa_close(); delete file;
       outmsg.Payload(buf);
     };
     outmsg.Attributes()->set("HTTP:content-type","application/octet-stream");

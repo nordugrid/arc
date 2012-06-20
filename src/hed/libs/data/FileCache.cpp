@@ -603,7 +603,7 @@ namespace Arc {
           logger.msg(ERROR, "Failed to set executable bit on file %s", dest_path);
           return false;
         }
-        if (!fa.setuid(_uid, _gid) || !fa.chmod(dest_path, S_IRWXU)) {
+        if (!fa.fa_setuid(_uid, _gid) || !fa.fa_chmod(dest_path, S_IRWXU)) {
           errno = fa.geterrno();
           logger.msg(ERROR, "Failed to set executable bit on file %s: %s", dest_path, StrError(errno));
           return false;

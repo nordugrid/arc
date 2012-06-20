@@ -155,7 +155,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::setuid(int uid,int gid) {
+  bool FileAccess::fa_setuid(int uid,int gid) {
     RETRYLOOP {
     STARTHEADER(CMD_SETUID,sizeof(uid)+sizeof(gid));
     if(!swrite(*file_access_,&uid,sizeof(uid))) ABORTALL;
@@ -169,7 +169,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::mkdir(const std::string& path, mode_t mode) {
+  bool FileAccess::fa_mkdir(const std::string& path, mode_t mode) {
     RETRYLOOP {
     STARTHEADER(CMD_MKDIR,sizeof(mode)+sizeof(int)+path.length());
     if(!swrite(*file_access_,&mode,sizeof(mode))) ABORTALL;
@@ -182,7 +182,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::mkdirp(const std::string& path, mode_t mode) {
+  bool FileAccess::fa_mkdirp(const std::string& path, mode_t mode) {
     RETRYLOOP {
     STARTHEADER(CMD_MKDIRP,sizeof(mode)+sizeof(int)+path.length());
     if(!swrite(*file_access_,&mode,sizeof(mode))) ABORTALL;
@@ -195,7 +195,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::link(const std::string& oldpath, const std::string& newpath) {
+  bool FileAccess::fa_link(const std::string& oldpath, const std::string& newpath) {
     RETRYLOOP {
     STARTHEADER(CMD_HARDLINK,sizeof(int)+oldpath.length()+sizeof(int)+newpath.length());
     if(!swrite_string(*file_access_,oldpath)) ABORTALL;
@@ -208,7 +208,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::softlink(const std::string& oldpath, const std::string& newpath) {
+  bool FileAccess::fa_softlink(const std::string& oldpath, const std::string& newpath) {
     RETRYLOOP {
     STARTHEADER(CMD_SOFTLINK,sizeof(int)+oldpath.length()+sizeof(int)+newpath.length());
     if(!swrite_string(*file_access_,oldpath)) ABORTALL;
@@ -221,7 +221,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::copy(const std::string& oldpath, const std::string& newpath, mode_t mode) {
+  bool FileAccess::fa_copy(const std::string& oldpath, const std::string& newpath, mode_t mode) {
     RETRYLOOP {
     STARTHEADER(CMD_COPY,sizeof(mode)+sizeof(int)+oldpath.length()+sizeof(int)+newpath.length());
     if(!swrite(*file_access_,&mode,sizeof(mode))) ABORTALL;
@@ -235,7 +235,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::rename(const std::string& oldpath, const std::string& newpath) {
+  bool FileAccess::fa_rename(const std::string& oldpath, const std::string& newpath) {
     RETRYLOOP {
     STARTHEADER(CMD_RENAME,sizeof(int)+oldpath.length()+sizeof(int)+newpath.length());
     if(!swrite_string(*file_access_,oldpath)) ABORTALL;
@@ -248,7 +248,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::stat(const std::string& path, struct stat& st) {
+  bool FileAccess::fa_stat(const std::string& path, struct stat& st) {
     RETRYLOOP {
     STARTHEADER(CMD_STAT,sizeof(int)+path.length());
     if(!swrite_string(*file_access_,path)) ABORTALL;
@@ -261,7 +261,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::lstat(const std::string& path, struct stat& st) {
+  bool FileAccess::fa_lstat(const std::string& path, struct stat& st) {
     RETRYLOOP {
     STARTHEADER(CMD_LSTAT,sizeof(int)+path.length());
     if(!swrite_string(*file_access_,path)) ABORTALL;
@@ -274,7 +274,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::chmod(const std::string& path, mode_t mode) {
+  bool FileAccess::fa_chmod(const std::string& path, mode_t mode) {
     RETRYLOOP {
     STARTHEADER(CMD_CHMOD,sizeof(mode)+sizeof(int)+path.length());
     if(!swrite(*file_access_,&mode,sizeof(mode))) ABORTALL;
@@ -287,7 +287,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::fstat(struct stat& st) {
+  bool FileAccess::fa_fstat(struct stat& st) {
     RETRYLOOP {
     STARTHEADER(CMD_FSTAT,0);
     int res = 0;
@@ -299,7 +299,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::ftruncate(off_t length) {
+  bool FileAccess::fa_ftruncate(off_t length) {
     RETRYLOOP {
     STARTHEADER(CMD_FTRUNCATE,sizeof(length));
     if(!swrite(*file_access_,&length,sizeof(length))) ABORTALL;
@@ -311,7 +311,7 @@ namespace Arc {
     return false;
   }
 
-  off_t FileAccess::fallocate(off_t length) {
+  off_t FileAccess::fa_fallocate(off_t length) {
     RETRYLOOP {
     STARTHEADER(CMD_FALLOCATE,sizeof(length));
     if(!swrite(*file_access_,&length,sizeof(length))) ABORTALL;
@@ -324,7 +324,7 @@ namespace Arc {
     return -1;
   }
 
-  bool FileAccess::readlink(const std::string& path, std::string& linkpath) {
+  bool FileAccess::fa_readlink(const std::string& path, std::string& linkpath) {
     RETRYLOOP {
     STARTHEADER(CMD_READLINK,sizeof(int)+path.length());
     if(!swrite_string(*file_access_,path)) ABORTALL;
@@ -345,7 +345,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::remove(const std::string& path) {
+  bool FileAccess::fa_remove(const std::string& path) {
     RETRYLOOP {
     STARTHEADER(CMD_REMOVE,sizeof(int)+path.length());
     if(!swrite_string(*file_access_,path)) ABORTALL;
@@ -357,7 +357,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::unlink(const std::string& path) {
+  bool FileAccess::fa_unlink(const std::string& path) {
     RETRYLOOP {
     STARTHEADER(CMD_UNLINK,sizeof(int)+path.length());
     if(!swrite_string(*file_access_,path)) ABORTALL;
@@ -369,7 +369,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::rmdir(const std::string& path) {
+  bool FileAccess::fa_rmdir(const std::string& path) {
     RETRYLOOP {
     STARTHEADER(CMD_RMDIR,sizeof(int)+path.length());
     if(!swrite_string(*file_access_,path)) ABORTALL;
@@ -381,7 +381,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::rmdirr(const std::string& path) {
+  bool FileAccess::fa_rmdirr(const std::string& path) {
     RETRYLOOP {
     STARTHEADER(CMD_RMDIRR,sizeof(int)+path.length());
     if(!swrite_string(*file_access_,path)) ABORTALL;
@@ -393,7 +393,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::opendir(const std::string& path) {
+  bool FileAccess::fa_opendir(const std::string& path) {
     RETRYLOOP {
     STARTHEADER(CMD_OPENDIR,sizeof(int)+path.length());
     if(!swrite_string(*file_access_,path)) ABORTALL;
@@ -405,7 +405,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::closedir(void) {
+  bool FileAccess::fa_closedir(void) {
     NORETRYLOOP {
     STARTHEADER(CMD_CLOSEDIR,0);
     int res = 0;
@@ -416,7 +416,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::readdir(std::string& name) {
+  bool FileAccess::fa_readdir(std::string& name) {
     NORETRYLOOP {
     STARTHEADER(CMD_READDIR,0);
     int res = 0;
@@ -436,7 +436,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::open(const std::string& path, int flags, mode_t mode) {
+  bool FileAccess::fa_open(const std::string& path, int flags, mode_t mode) {
     RETRYLOOP {
     STARTHEADER(CMD_OPENFILE,sizeof(flags)+sizeof(mode)+sizeof(int)+path.length());
     if(!swrite(*file_access_,&flags,sizeof(flags))) ABORTALL;
@@ -450,7 +450,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::mkstemp(std::string& path, mode_t mode) {
+  bool FileAccess::fa_mkstemp(std::string& path, mode_t mode) {
     RETRYLOOP {
     STARTHEADER(CMD_TEMPFILE,sizeof(mode)+sizeof(int)+path.length());
     if(!swrite(*file_access_,&mode,sizeof(mode))) ABORTALL;
@@ -472,7 +472,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileAccess::close(void) {
+  bool FileAccess::fa_close(void) {
     NORETRYLOOP {
     STARTHEADER(CMD_CLOSEFILE,0);
     int res = 0;
@@ -483,7 +483,7 @@ namespace Arc {
     return false;
   }
 
-  off_t FileAccess::lseek(off_t offset, int whence) {
+  off_t FileAccess::fa_lseek(off_t offset, int whence) {
     NORETRYLOOP {
     STARTHEADER(CMD_SEEKFILE,sizeof(offset)+sizeof(whence));
     if(!swrite(*file_access_,&offset,sizeof(offset))) ABORTALL;
@@ -497,7 +497,7 @@ namespace Arc {
     return (off_t)(-1);
   }
 
-  ssize_t FileAccess::read(void* buf,size_t size) {
+  ssize_t FileAccess::fa_read(void* buf,size_t size) {
     NORETRYLOOP {
     STARTHEADER(CMD_READFILE,sizeof(size));
     if(!swrite(*file_access_,&size,sizeof(size))) ABORTALL;
@@ -516,7 +516,7 @@ namespace Arc {
     return -1;
   }
 
-  ssize_t FileAccess::pread(void* buf,size_t size,off_t offset) {
+  ssize_t FileAccess::fa_pread(void* buf,size_t size,off_t offset) {
     NORETRYLOOP {
     STARTHEADER(CMD_READFILEAT,sizeof(size)+sizeof(offset));
     if(!swrite(*file_access_,&size,sizeof(size))) ABORTALL;
@@ -536,7 +536,7 @@ namespace Arc {
     return -1;
   }
 
-  ssize_t FileAccess::write(const void* buf,size_t size) {
+  ssize_t FileAccess::fa_write(const void* buf,size_t size) {
     NORETRYLOOP {
     unsigned int l = size;
     STARTHEADER(CMD_WRITEFILE,sizeof(l)+l);
@@ -550,7 +550,7 @@ namespace Arc {
     return -1;
   }
 
-  ssize_t FileAccess::pwrite(const void* buf,size_t size,off_t offset) {
+  ssize_t FileAccess::fa_pwrite(const void* buf,size_t size,off_t offset) {
     NORETRYLOOP {
     unsigned int l = size;
     STARTHEADER(CMD_WRITEFILEAT,sizeof(offset)+sizeof(l)+l);

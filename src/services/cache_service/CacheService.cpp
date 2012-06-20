@@ -390,8 +390,8 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
       std::string scratch_file(user.Env().scratch_dir()+'/'+jobid+'/'+filename);
       // Access session and scratch under mapped uid
       Arc::FileAccess fa;
-      if (!fa.setuid(mapped_user.get_uid(), mapped_user.get_gid()) ||
-          !fa.rename(session_file, scratch_file)) {
+      if (!fa.fa_setuid(mapped_user.get_uid(), mapped_user.get_gid()) ||
+          !fa.fa_rename(session_file, scratch_file)) {
         logger.msg(Arc::ERROR, "Failed to move %s to %s: %s", session_file, scratch_file, Arc::StrError(errno));
         resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::LinkError);
         resultelement.NewChild("ReturnCodeExplanation") = "Failed to link to move file from session dir to scratch";

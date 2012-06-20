@@ -77,7 +77,7 @@ bool fix_file_permissions(const std::string &fname,bool executable) {
 static bool fix_file_permissions(Arc::FileAccess& fa,const std::string &fname,bool executable = false) {
   mode_t mode = S_IRUSR | S_IWUSR;
   if(executable) { mode |= S_IXUSR; };
-  return fa.chmod(fname.c_str(),mode);
+  return fa.fa_chmod(fname.c_str(),mode);
 }
 
 bool fix_file_permissions(const std::string &fname,const JobDescription &desc,const JobUser &user) {
@@ -103,8 +103,8 @@ bool fix_file_permissions_in_session(const std::string &fname,const JobDescripti
     uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
     Arc::FileAccess fa;
-    if(!fa.setuid(uid,gid)) return false;
-    return fa.chmod(fname,mode);
+    if(!fa.fa_setuid(uid,gid)) return false;
+    return fa.fa_chmod(fname,mode);
   };
   return (chmod(fname.c_str(),mode) == 0);
 }
@@ -277,7 +277,7 @@ bool job_diagnostics_mark_put(const JobDescription &desc,const JobUser &user) {
     uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
     Arc::FileAccess fa;
-    if(!fa.setuid(uid,gid)) return false;
+    if(!fa.fa_setuid(uid,gid)) return false;
     return job_mark_put(fa,fname) & fix_file_permissions(fa,fname);
   };
   return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
@@ -289,7 +289,7 @@ bool job_session_create(const JobDescription &desc,const JobUser &user) {
     uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
     Arc::FileAccess fa;
-    if(!fa.setuid(uid,gid)) return false;
+    if(!fa.fa_setuid(uid,gid)) return false;
     return job_dir_create(fa,dname) & fix_file_permissions(fa,dname,true);
   };
   return job_dir_create(dname) & fix_file_owner(dname,desc,user) & fix_file_permissions(dname,true);
@@ -318,7 +318,7 @@ bool job_lrmsoutput_mark_put(const JobDescription &desc,const JobUser &user) {
     uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
     Arc::FileAccess fa;
-    if(!fa.setuid(uid,gid)) return false;
+    if(!fa.fa_setuid(uid,gid)) return false;
     return job_mark_put(fa,fname) & fix_file_permissions(fa,fname);
   };
   return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
@@ -330,7 +330,7 @@ bool job_diagnostics_mark_add(const JobDescription &desc,const JobUser &user,con
     uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
     Arc::FileAccess fa;
-    if(!fa.setuid(uid,gid)) return false;
+    if(!fa.fa_setuid(uid,gid)) return false;
     return job_mark_add_s(fa,fname,content) & fix_file_permissions(fa,fname);
   };
   return job_mark_add_s(fname,content) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
@@ -344,7 +344,7 @@ bool job_diagnostics_mark_remove(const JobDescription &desc,const JobUser &user)
     uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
     Arc::FileAccess fa;
-    if(!fa.setuid(uid,gid)) return res1;
+    if(!fa.fa_setuid(uid,gid)) return res1;
     return (res1 | job_mark_remove(fa,fname));
   };
   return (res1 | job_mark_remove(fname));
@@ -356,7 +356,7 @@ bool job_lrmsoutput_mark_remove(const JobDescription &desc,const JobUser &user) 
     uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
     Arc::FileAccess fa;
-    if(!fa.setuid(uid,gid)) return false;
+    if(!fa.fa_setuid(uid,gid)) return false;
     return job_mark_remove(fa,fname);
   };
   return job_mark_remove(fname);
@@ -373,17 +373,17 @@ bool job_diagnostics_mark_move(const JobDescription &desc,const JobUser &user) {
     uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
     Arc::FileAccess fa;
-    if(!fa.setuid(uid,gid)) return false;
-    if(!fa.open(fname1,O_RDONLY,S_IRUSR | S_IWUSR)) { close(h2); return false; };
+    if(!fa.fa_setuid(uid,gid)) return false;
+    if(!fa.fa_open(fname1,O_RDONLY,S_IRUSR | S_IWUSR)) { close(h2); return false; };
     char buf[256];
     int l;
     for(;;) {
-      l=fa.read(buf,256);
+      l=fa.fa_read(buf,256);
       if((l==0) || (l==-1)) break;
       (write(h2,buf,l) != -1);
     };
-    fa.close(); close(h2);
-    fa.unlink(fname1);
+    fa.fa_close(); close(h2);
+    fa.fa_unlink(fname1);
     return true;
   };
   int h1=open(fname1.c_str(),O_RDONLY);
@@ -415,7 +415,7 @@ bool job_dir_create(const std::string &dname) {
 }
 
 static bool job_dir_create(Arc::FileAccess& fa,const std::string &dname) {
-  return fa.mkdir(dname,S_IRUSR | S_IWUSR | S_IXUSR);
+  return fa.fa_mkdir(dname,S_IRUSR | S_IWUSR | S_IXUSR);
 }
 
 bool job_mark_put(const std::string &fname) {
@@ -424,8 +424,8 @@ bool job_mark_put(const std::string &fname) {
 }
 
 static bool job_mark_put(Arc::FileAccess& fa, const std::string &fname) {
-  if(!fa.open(fname,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR)) return false;
-  fa.close(); return true;
+  if(!fa.fa_open(fname,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR)) return false;
+  fa.fa_close(); return true;
 }
 
 bool job_mark_check(const std::string &fname) {
@@ -441,7 +441,7 @@ bool job_mark_remove(const std::string &fname) {
 }
 
 static bool job_mark_remove(Arc::FileAccess& fa,const std::string &fname) {
-  if(!fa.unlink(fname)) {
+  if(!fa.fa_unlink(fname)) {
     if(fa.geterrno() != ENOENT) return false;
   };
   return true;
@@ -477,11 +477,11 @@ bool job_mark_add_s(const std::string &fname,const std::string &content) {
 }
 
 static bool job_mark_add_s(Arc::FileAccess& fa,const std::string &fname,const std::string &content) {
-  if(!fa.open(fname.c_str(),O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR)) return false;
-  if(!fa.write((const void *)content.c_str(),content.length())) {
-    fa.close(); return false;
+  if(!fa.fa_open(fname.c_str(),O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR)) return false;
+  if(!fa.fa_write((const void *)content.c_str(),content.length())) {
+    fa.fa_close(); return false;
   };
-  fa.close(); return true;
+  fa.fa_close(); return true;
 }
 
 time_t job_mark_time(const std::string &fname) {

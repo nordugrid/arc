@@ -48,7 +48,7 @@ static bool write_all(int h,const void* buf,size_t l) {
 
 static bool write_all(FileAccess& fa,const void* buf,size_t l) {
   for(;l>0;) {
-    ssize_t ll = fa.write(buf,l);
+    ssize_t ll = fa.fa_write(buf,l);
     if(ll == -1) {
       if(fa.geterrno() == EINTR) continue;
       return false;
@@ -62,8 +62,8 @@ static bool write_all(FileAccess& fa,const void* buf,size_t l) {
 bool FileCopy(const std::string& source_path,const std::string& destination_path,uid_t uid,gid_t gid) {
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
-    if(!fa.setuid(uid,gid)) return false;
-    bool r = fa.copy(source_path,destination_path,S_IRUSR|S_IWUSR);
+    if(!fa.fa_setuid(uid,gid)) return false;
+    bool r = fa.fa_copy(source_path,destination_path,S_IRUSR|S_IWUSR);
     errno = fa.geterrno();
     return r;
   };
@@ -171,21 +171,21 @@ bool FileRead(const std::string& filename, std::string& data, uid_t uid, gid_t g
   data.clear();
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
-    if(!fa.setuid(uid,gid)) {
+    if(!fa.fa_setuid(uid,gid)) {
       errno = fa.geterrno();
       return false;
     };
-    if(!fa.open(filename,O_RDONLY,0)) {
+    if(!fa.fa_open(filename,O_RDONLY,0)) {
       errno = fa.geterrno();
       return false;
     };
     char buf[1024];
     for(;;) {
-      ssize_t l = fa.read(buf,sizeof(buf));
+      ssize_t l = fa.fa_read(buf,sizeof(buf));
       if(l <= 0) break;
       data += std::string(buf,l);
     }
-    fa.close();
+    fa.fa_close();
     return true;
   }
   int h = ::open(filename.c_str(),O_RDONLY);
@@ -205,11 +205,11 @@ bool FileCreate(const std::string& filename, const std::string& data, uid_t uid,
     FileAccess fa;
     // If somebody bother about changing uid/gid then probably safer mode is needed
     if(mode == 0) mode = S_IRUSR|S_IWUSR;
-    if(!fa.setuid(uid,gid)) { errno = fa.geterrno(); return false; }
-    if((!fa.remove(filename)) && (fa.geterrno() != ENOENT)) { errno = fa.geterrno(); return false; }
-    if(!fa.open(filename,O_WRONLY|O_CREAT|O_EXCL,mode)) { errno = fa.geterrno(); return false; }
-    if(!write_all(fa,data.c_str(),data.length())) { errno = fa.geterrno(); fa.close(); return false; }
-    fa.close();
+    if(!fa.fa_setuid(uid,gid)) { errno = fa.geterrno(); return false; }
+    if((!fa.fa_remove(filename)) && (fa.geterrno() != ENOENT)) { errno = fa.geterrno(); return false; }
+    if(!fa.fa_open(filename,O_WRONLY|O_CREAT|O_EXCL,mode)) { errno = fa.geterrno(); return false; }
+    if(!write_all(fa,data.c_str(),data.length())) { errno = fa.geterrno(); fa.fa_close(); return false; }
+    fa.fa_close();
     return true;
   }
 #ifndef WIN32
@@ -230,11 +230,11 @@ bool FileCreate(const std::string& filename, const std::string& data, uid_t uid,
 bool FileStat(const std::string& path,struct stat *st,uid_t uid,gid_t gid,bool follow_symlinks) {
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
-    if(!fa.setuid(uid,gid)) { errno = fa.geterrno(); return false; }
+    if(!fa.fa_setuid(uid,gid)) { errno = fa.geterrno(); return false; }
     if(follow_symlinks) {
-      if(!fa.stat(path,*st)) { errno = fa.geterrno(); return false; }
+      if(!fa.fa_stat(path,*st)) { errno = fa.geterrno(); return false; }
     } else {
-      if(!fa.lstat(path,*st)) { errno = fa.geterrno(); return false; }
+      if(!fa.fa_lstat(path,*st)) { errno = fa.geterrno(); return false; }
     }
     return true;
   };
@@ -264,11 +264,11 @@ bool FileLink(const std::string& oldpath,const std::string& newpath,bool symboli
 bool FileLink(const std::string& oldpath,const std::string& newpath,uid_t uid,gid_t gid,bool symbolic) {
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
-    if(!fa.setuid(uid,gid)) return false;
+    if(!fa.fa_setuid(uid,gid)) return false;
     if(symbolic) {
-      if(!fa.softlink(oldpath,newpath)) { errno = fa.geterrno(); return false; }
+      if(!fa.fa_softlink(oldpath,newpath)) { errno = fa.geterrno(); return false; }
     } else {
-      if(!fa.link(oldpath,newpath)) { errno = fa.geterrno(); return false; }
+      if(!fa.fa_link(oldpath,newpath)) { errno = fa.geterrno(); return false; }
     }
     return true;
   }
@@ -278,9 +278,9 @@ bool FileLink(const std::string& oldpath,const std::string& newpath,uid_t uid,gi
 std::string FileReadLink(const std::string& path,uid_t uid,gid_t gid) {
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
-    if(!fa.setuid(uid,gid)) return "";
+    if(!fa.fa_setuid(uid,gid)) return "";
     std::string linkpath;
-    fa.readlink(path,linkpath);
+    fa.fa_readlink(path,linkpath);
     errno = fa.geterrno();
     return linkpath;
   }
@@ -323,8 +323,8 @@ bool FileDelete(const std::string& path) {
 bool FileDelete(const std::string& path,uid_t uid,gid_t gid) {
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
-    if(!fa.setuid(uid,gid)) { errno = fa.geterrno(); return false; }
-    if(!fa.unlink(path)) { errno = fa.geterrno(); return false; }
+    if(!fa.fa_setuid(uid,gid)) { errno = fa.geterrno(); return false; }
+    if(!fa.fa_unlink(path)) { errno = fa.geterrno(); return false; }
     return true;
   };
   return FileDelete(path);
@@ -336,11 +336,11 @@ bool DirCreate(const std::string& path,uid_t uid,gid_t gid,mode_t mode,bool with
     bool created = false;
     bool exists = false;
     FileAccess fa;
-    if(!fa.setuid(uid,gid)) return false;
+    if(!fa.fa_setuid(uid,gid)) return false;
     if(with_parents) {
-      created = fa.mkdirp(path,mode);
+      created = fa.fa_mkdirp(path,mode);
     } else {
-      created = fa.mkdir(path,mode);
+      created = fa.fa_mkdir(path,mode);
     }
     int err = fa.geterrno();
     exists = created;
@@ -353,7 +353,7 @@ bool DirCreate(const std::string& path,uid_t uid,gid_t gid,mode_t mode,bool with
       // is directory. That still does not solve problem with parent
       // directory without x access right.
       struct stat st;
-      if(fa.stat(path,st)) {
+      if(fa.fa_stat(path,st)) {
         if(S_ISDIR(st.st_mode)) {
           exists = true;
         } else {
@@ -372,7 +372,7 @@ bool DirCreate(const std::string& path,uid_t uid,gid_t gid,mode_t mode,bool with
       errno = EEXIST;
       return true;
     }
-    if(fa.chmod(path,mode)) return true;
+    if(fa.fa_chmod(path,mode)) return true;
     errno = fa.geterrno();
     return false;
   }
@@ -411,11 +411,11 @@ bool DirCreate(const std::string& path,mode_t mode,bool with_parents) {
 bool DirDelete(const std::string& path,bool recursive,uid_t uid,gid_t gid) {
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
-    if(!fa.setuid(uid,gid)) { errno = fa.geterrno(); return false; }
+    if(!fa.fa_setuid(uid,gid)) { errno = fa.geterrno(); return false; }
     if (recursive) {
-      if(!fa.rmdirr(path)) { errno = fa.geterrno(); return false; }
+      if(!fa.fa_rmdirr(path)) { errno = fa.geterrno(); return false; }
     } else {
-      if(!fa.rmdir(path)) { errno = fa.geterrno(); return false; }
+      if(!fa.fa_rmdir(path)) { errno = fa.geterrno(); return false; }
     }
     return true;
   }
@@ -481,9 +481,9 @@ bool TmpFileCreate(std::string& filename, const std::string& data, uid_t uid, gi
   if(mode == 0) mode = S_IRUSR|S_IWUSR;
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
-    if(!fa.setuid(uid,gid)) { errno = fa.geterrno(); return false; }
-    if(!fa.mkstemp(filename,mode)) { errno = fa.geterrno(); return false; }
-    if(!write_all(fa,data.c_str(),data.length())) { errno = fa.geterrno(); fa.close(); return false; }
+    if(!fa.fa_setuid(uid,gid)) { errno = fa.geterrno(); return false; }
+    if(!fa.fa_mkstemp(filename,mode)) { errno = fa.geterrno(); return false; }
+    if(!write_all(fa,data.c_str(),data.length())) { errno = fa.geterrno(); fa.fa_close(); return false; }
     return true;
   }
   int h = Glib::mkstemp(filename);

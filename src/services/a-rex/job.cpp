@@ -905,11 +905,11 @@ Arc::FileAccess* ARexJob::CreateFile(const std::string& filename) {
     delete fa;
     return NULL;
   };
-  if(!fa->setuid(config_.User()->get_uid(),config_.User()->get_gid())) {
+  if(!fa->fa_setuid(config_.User()->get_uid(),config_.User()->get_gid())) {
     delete fa;
     return NULL;
   };
-  if(!fa->open(fname,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR)) {
+  if(!fa->fa_open(fname,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR)) {
     if(fa->geterrno() != ENOENT) {
       delete fa;
       return NULL;
@@ -919,13 +919,13 @@ Arc::FileAccess* ARexJob::CreateFile(const std::string& filename) {
       delete fa;
       return NULL;
     };
-    if(!fa->mkdirp(fname.substr(0,n),S_IRUSR | S_IWUSR | S_IXUSR)) {
+    if(!fa->fa_mkdirp(fname.substr(0,n),S_IRUSR | S_IWUSR | S_IXUSR)) {
       if(fa->geterrno() != EEXIST) {
         delete fa;
         return NULL;
       };
     };
-    if(!fa->open(fname,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR)) {
+    if(!fa->fa_open(fname,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR)) {
       delete fa;
       return NULL;
     };
@@ -949,8 +949,8 @@ Arc::FileAccess* ARexJob::OpenFile(const std::string& filename,bool for_read,boo
   //return Arc::FileOpen(fname,flags,config_.User()->get_uid(),config_.User()->get_gid(),0);
   Arc::FileAccess* fa = new Arc::FileAccess();
   if(*fa) {
-    if(fa->setuid(config_.User()->get_uid(),config_.User()->get_gid())) {
-      if(fa->open(fname,flags,0)) {
+    if(fa->fa_setuid(config_.User()->get_uid(),config_.User()->get_gid())) {
+      if(fa->fa_open(fname,flags,0)) {
         return fa;
       };
     };
@@ -973,8 +973,8 @@ Arc::FileAccess* ARexJob::OpenDir(const std::string& dirname) {
   dname = config_.User()->SessionRoot(id_)+"/"+id_+"/"+dname;
   Arc::FileAccess* fa = new Arc::FileAccess();
   if(*fa) {
-    if(fa->setuid(config_.User()->get_uid(),config_.User()->get_gid())) {
-      if(fa->opendir(dname)) {
+    if(fa->fa_setuid(config_.User()->get_uid(),config_.User()->get_gid())) {
+      if(fa->fa_opendir(dname)) {
         return fa;
       };
     };

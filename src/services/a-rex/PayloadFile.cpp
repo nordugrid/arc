@@ -189,26 +189,26 @@ bool PayloadBigFile::Get(char* buf,int& size) {
 PayloadFAFile::PayloadFAFile(Arc::FileAccess* h,Size_t start,Size_t end) {
   handle_ = h;
   if(handle_ == NULL) return;
-  handle_->lseek(start,SEEK_SET);
+  handle_->fa_lseek(start,SEEK_SET);
   limit_ = end;
 }
 
 PayloadFAFile::~PayloadFAFile(void) {
   if(handle_ != NULL) {
-    handle_->close();
+    handle_->fa_close();
     delete handle_;
   };
 }
 
 Arc::PayloadStream::Size_t PayloadFAFile::Pos(void) const {
   if(handle_ == NULL) return 0;
-  return handle_->lseek(0,SEEK_CUR);
+  return handle_->fa_lseek(0,SEEK_CUR);
 }
 
 Arc::PayloadStream::Size_t PayloadFAFile::Size(void) const {
   if(handle_ == NULL) return 0;
   struct stat st;
-  if(!handle_->fstat(st)) return 0;
+  if(!handle_->fa_fstat(st)) return 0;
   return st.st_size;
 }
 
@@ -225,7 +225,7 @@ bool PayloadFAFile::Get(char* buf,int& size) {
     if(cpos >= limit_) { size=0; return false; }
     if((cpos+size) > limit_) size=limit_-cpos;
   };
-  ssize_t l = handle_->read(buf,size);
+  ssize_t l = handle_->fa_read(buf,size);
   if(l <= 0) { size=0; return false; }
   size = (int)l;
   return true;

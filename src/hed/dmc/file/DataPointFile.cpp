@@ -107,7 +107,7 @@ namespace Arc {
       range_length = range_end - range_start;
       limit_length = true;
       if(fd != -1) lseek(fd, range_start, SEEK_SET);
-      if(fa) fa->lseek(range_start, SEEK_SET);
+      if(fa) fa->fa_lseek(range_start, SEEK_SET);
       offset = range_start;
       if(offset > 0) {
         // Note: checksum calculation not possible
@@ -116,7 +116,7 @@ namespace Arc {
     }
     else {
       if(fd != -1) lseek(fd, 0, SEEK_SET);
-      if(fa) fa->lseek(0, SEEK_SET);
+      if(fa) fa->fa_lseek(0, SEEK_SET);
     }
     for (;;) {
       if (limit_length) if (range_length == 0) break;
@@ -143,9 +143,9 @@ namespace Arc {
         ll = read(fd, (*(buffer))[h], l);
       }
       if(fa) {
-        if(fa) p = fa->lseek(0, SEEK_CUR);
+        if(fa) p = fa->fa_lseek(0, SEEK_CUR);
         if (p == (unsigned long long int)(-1)) p = offset;
-        ll = fa->read((*(buffer))[h], l);
+        ll = fa->fa_read((*(buffer))[h], l);
       }
       if (ll == -1) { /* error */
         buffer->is_read(h, 0, 0);
@@ -179,7 +179,7 @@ namespace Arc {
       offset += ll; // for non-seakable files
     }
     if(fd != -1) close(fd);
-    if(fa) fa->close();
+    if(fa) fa->fa_close();
     buffer->eof_read(true);
     transfer_cond.signal();
   }
@@ -268,7 +268,7 @@ namespace Arc {
           // from file
           off_t coff = 0;
           if(fd != -1) coff = lseek(fd, cksum_p, SEEK_SET);
-          if(fa) coff = fa->lseek(cksum_p, SEEK_SET);
+          if(fa) coff = fa->fa_lseek(cksum_p, SEEK_SET);
           if(coff == cksum_p) {
             const unsigned int tbuf_size = 4096; // too small?
             char* tbuf = new char[tbuf_size];
@@ -277,7 +277,7 @@ namespace Arc {
               if(l > (cksum_chunks.extends()-cksum_p)) l=cksum_chunks.extends()-cksum_p;
               int ll = -1;
               if(fd != -1) ll = read(fd,tbuf,l);
-              if(fa) ll = fa->read(tbuf,l);
+              if(fa) ll = fa->fa_read(tbuf,l);
               if(ll < 0) { do_cksum=false; break; }
               for(std::list<CheckSum*>::iterator cksum = checksums.begin();
                         cksum != checksums.end(); ++cksum) {
@@ -301,9 +301,9 @@ namespace Arc {
         }
       }
       if(fa) {
-        fa->lseek(p, SEEK_SET);
+        fa->fa_lseek(p, SEEK_SET);
         while (l_ < l) {
-          ll = fa->write((*(buffer))[h] + l_, l - l_);
+          ll = fa->fa_write((*(buffer))[h] + l_, l - l_);
           if (ll == -1) break; // error
           l_ += ll;
         }
@@ -332,7 +332,7 @@ namespace Arc {
     }    
     if (fa) {
       // Lustre?
-      if(!fa->close()) {
+      if(!fa->fa_close()) {
         logger.msg(ERROR, "closing file %s failed: %s", url.Path(), StrError(errno));
         buffer->error_write(true);
       }
@@ -563,20 +563,20 @@ namespace Arc {
     } else {
       fd = -1;
       fa = new FileAccess;
-      if(!fa->setuid(uid,gid)) {
+      if(!fa->fa_setuid(uid,gid)) {
         delete fa; fa = NULL;
         logger.msg(ERROR, "Failed to switch user id to %d/%d", (unsigned int)uid, (unsigned int)gid);
         reading = false;
         return DataStatus(DataStatus::ReadStartError, "Failed to switch user id");
       }
-      if(!fa->open(url.Path(), flags, 0)) {
+      if(!fa->fa_open(url.Path(), flags, 0)) {
         delete fa; fa = NULL;
         logger.msg(ERROR, "Failed to create/open file %s: %s", url.Path(), StrError(errno));
         reading = false;
         return DataStatus(DataStatus::ReadStartError, StrError(errno));
       }
       struct stat st;
-      if(fa->fstat(st)) {
+      if(fa->fa_fstat(st)) {
         SetSize(st.st_size);
         SetCreated(st.st_mtime);
       }
@@ -586,7 +586,7 @@ namespace Arc {
     /* create thread to maintain reading */
     if(!CreateThreadFunction(&DataPointFile::read_file_start,this)) {
       if(fd != -1) close(fd);
-      if(fa) { fa->close(); delete fa; }
+      if(fa) { fa->fa_close(); delete fa; }
       fd = -1; fa = NULL;
       logger.msg(ERROR, "Failed to create thread");
       reading = false;
@@ -601,7 +601,7 @@ namespace Arc {
     if (!buffer->eof_read()) {
       buffer->error_read(true);      /* trigger transfer error */
       if(fd != -1) close(fd);
-      if(fa) fa->close();
+      if(fa) fa->fa_close();
       fd = -1;
     }
     // buffer->wait_eof_read();
@@ -613,7 +613,7 @@ namespace Arc {
 
   static bool file_allocate(int fd, FileAccess* fa, unsigned long long int& fsize) {
     if(fa) {
-      off_t nsize = fa->fallocate(fsize);
+      off_t nsize = fa->fa_fallocate(fsize);
       if((fa->geterrno() == 0) || (fa->geterrno() == ENOSPC)) {
         fsize = nsize;
         return true;
@@ -701,7 +701,7 @@ namespace Arc {
       } else {
         fd = -1;
         fa = new FileAccess;
-        if(!fa->setuid(uid,gid)) {
+        if(!fa->fa_setuid(uid,gid)) {
           delete fa; fa = NULL;
           logger.msg(ERROR, "Failed to switch user id to %d/%d", (unsigned int)uid, (unsigned int)gid);
           buffer->error_write(true);
@@ -709,7 +709,7 @@ namespace Arc {
           writing = false;
           return DataStatus(DataStatus::WriteStartError, "Failed to switch user id");
         }
-        if(!fa->open(url.Path(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR)) {
+        if(!fa->fa_open(url.Path(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR)) {
           delete fa; fa = NULL;
           logger.msg(ERROR, "Failed to create file %s: %s", url.Path(), StrError(errno));
           buffer->error_write(true);
@@ -738,9 +738,9 @@ namespace Arc {
             close(fd); fd = -1;
           }
           if(fa) {
-            fa->lseek(0, SEEK_SET);
-            fa->ftruncate(0);
-            fa->close(); delete fa; fa = NULL;
+            fa->fa_lseek(0, SEEK_SET);
+            fa->fa_ftruncate(0);
+            fa->fa_close(); delete fa; fa = NULL;
           }
           logger.msg(ERROR, "Failed to preallocate space for %s", url.Path());
           buffer->speed.reset();
@@ -758,7 +758,7 @@ namespace Arc {
     /* create thread to maintain writing */
     if(!CreateThreadFunction(&DataPointFile::write_file_start,this)) {
       if(fd != -1) close(fd); fd = -1;
-      if(fa) fa->close(); delete fa; fa = NULL;
+      if(fa) fa->fa_close(); delete fa; fa = NULL;
       buffer->error_write(true);
       buffer->eof_write(true);
       writing = false;
@@ -773,7 +773,7 @@ namespace Arc {
     if (!buffer->eof_write()) {
       buffer->error_write(true);      /* trigger transfer error */
       if(fd != -1) close(fd);
-      if(fa) fa->close();
+      if(fa) fa->fa_close();
       fd = -1;
     }
     // buffer->wait_eof_write();
@@ -782,7 +782,7 @@ namespace Arc {
     // clean up if transfer failed for any reason
     if (buffer->error()) {
       bool err = false;
-      if (fa) err = fa->unlink(url.Path());
+      if (fa) err = fa->fa_unlink(url.Path());
       else err = FileDelete(url.Path());
       if (!err && errno != ENOENT) logger.msg(WARNING, "Failed to clean up file %s: %s", url.Path(), StrError(errno));
     }

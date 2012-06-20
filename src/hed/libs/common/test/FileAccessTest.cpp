@@ -80,10 +80,10 @@ void FileAccessTest::TestOpenWriteReadStat() {
   Arc::FileAccess fa;
   std::string testfile = testroot+"/file1";
   std::string testdata = "test";
-  CPPUNIT_ASSERT(fa.setuid(uid,gid));
-  CPPUNIT_ASSERT(fa.open(testfile,O_WRONLY|O_CREAT|O_EXCL,0600));
-  CPPUNIT_ASSERT_EQUAL((int)testdata.length(),(int)fa.write(testdata.c_str(),testdata.length()));
-  CPPUNIT_ASSERT(fa.close());
+  CPPUNIT_ASSERT(fa.fa_setuid(uid,gid));
+  CPPUNIT_ASSERT(fa.fa_open(testfile,O_WRONLY|O_CREAT|O_EXCL,0600));
+  CPPUNIT_ASSERT_EQUAL((int)testdata.length(),(int)fa.fa_write(testdata.c_str(),testdata.length()));
+  CPPUNIT_ASSERT(fa.fa_close());
   struct stat st;
   CPPUNIT_ASSERT_EQUAL(0,::stat(testfile.c_str(),&st));
   CPPUNIT_ASSERT_EQUAL((int)testdata.length(),(int)st.st_size);
@@ -93,19 +93,19 @@ void FileAccessTest::TestOpenWriteReadStat() {
   //  https://bugzilla.nordugrid.org/show_bug.cgi?id=2089#c3
   //CPPUNIT_ASSERT_EQUAL(gid,st.st_gid);
   CPPUNIT_ASSERT_EQUAL(0600,(int)(st.st_mode & 0777));
-  CPPUNIT_ASSERT(fa.open(testfile,O_RDONLY,0));
+  CPPUNIT_ASSERT(fa.fa_open(testfile,O_RDONLY,0));
   char buf[16];
   struct stat st2;
-  CPPUNIT_ASSERT(fa.fstat(st2));
-  CPPUNIT_ASSERT_EQUAL((int)testdata.length(),(int)fa.read(buf,sizeof(buf)));
-  CPPUNIT_ASSERT(fa.close());
+  CPPUNIT_ASSERT(fa.fa_fstat(st2));
+  CPPUNIT_ASSERT_EQUAL((int)testdata.length(),(int)fa.fa_read(buf,sizeof(buf)));
+  CPPUNIT_ASSERT(fa.fa_close());
   std::string testdata2(buf,testdata.length());
   CPPUNIT_ASSERT_EQUAL(testdata,testdata2);
   CPPUNIT_ASSERT_EQUAL(st.st_mode,st2.st_mode);
   CPPUNIT_ASSERT_EQUAL(st.st_uid,st2.st_uid);
   CPPUNIT_ASSERT_EQUAL(st.st_gid,st2.st_gid);
   CPPUNIT_ASSERT_EQUAL(st.st_size,st2.st_size);
-  CPPUNIT_ASSERT(fa.stat(testfile,st2));
+  CPPUNIT_ASSERT(fa.fa_stat(testfile,st2));
   CPPUNIT_ASSERT_EQUAL(st.st_mode,st2.st_mode);
   CPPUNIT_ASSERT_EQUAL(st.st_uid,st2.st_uid);
   CPPUNIT_ASSERT_EQUAL(st.st_gid,st2.st_gid);
@@ -117,15 +117,15 @@ void FileAccessTest::TestCopy() {
   std::string testfile1 = testroot+"/copyfile1";
   std::string testfile2 = testroot+"/copyfile2";
   std::string testdata = "copytest";
-  CPPUNIT_ASSERT(fa.setuid(uid,gid));
-  CPPUNIT_ASSERT(fa.open(testfile1,O_WRONLY|O_CREAT|O_EXCL,0600));
-  CPPUNIT_ASSERT_EQUAL((int)testdata.length(),(int)fa.write(testdata.c_str(),testdata.length()));
-  CPPUNIT_ASSERT(fa.close());
-  CPPUNIT_ASSERT(fa.copy(testfile1,testfile2,0600));
-  CPPUNIT_ASSERT(fa.open(testfile2,O_RDONLY,0));
+  CPPUNIT_ASSERT(fa.fa_setuid(uid,gid));
+  CPPUNIT_ASSERT(fa.fa_open(testfile1,O_WRONLY|O_CREAT|O_EXCL,0600));
+  CPPUNIT_ASSERT_EQUAL((int)testdata.length(),(int)fa.fa_write(testdata.c_str(),testdata.length()));
+  CPPUNIT_ASSERT(fa.fa_close());
+  CPPUNIT_ASSERT(fa.fa_copy(testfile1,testfile2,0600));
+  CPPUNIT_ASSERT(fa.fa_open(testfile2,O_RDONLY,0));
   char buf[16];
-  CPPUNIT_ASSERT_EQUAL((int)testdata.length(),(int)fa.read(buf,sizeof(buf)));
-  CPPUNIT_ASSERT(fa.close());
+  CPPUNIT_ASSERT_EQUAL((int)testdata.length(),(int)fa.fa_read(buf,sizeof(buf)));
+  CPPUNIT_ASSERT(fa.fa_close());
   std::string testdata2(buf,testdata.length());
   CPPUNIT_ASSERT_EQUAL(testdata,testdata2);
 }
@@ -135,14 +135,14 @@ void FileAccessTest::TestRename() {
   std::string oldfile = testroot+"/oldfile";
   std::string newfile = testroot+"/newfile";
   std::string testdata = "renametest";
-  CPPUNIT_ASSERT(fa.setuid(uid,gid));
-  CPPUNIT_ASSERT(fa.open(oldfile,O_WRONLY|O_CREAT|O_EXCL,0600));
-  CPPUNIT_ASSERT_EQUAL((int)testdata.length(),(int)fa.write(testdata.c_str(),testdata.length()));
-  CPPUNIT_ASSERT(fa.close());
-  CPPUNIT_ASSERT(fa.rename(oldfile, newfile));
+  CPPUNIT_ASSERT(fa.fa_setuid(uid,gid));
+  CPPUNIT_ASSERT(fa.fa_open(oldfile,O_WRONLY|O_CREAT|O_EXCL,0600));
+  CPPUNIT_ASSERT_EQUAL((int)testdata.length(),(int)fa.fa_write(testdata.c_str(),testdata.length()));
+  CPPUNIT_ASSERT(fa.fa_close());
+  CPPUNIT_ASSERT(fa.fa_rename(oldfile, newfile));
   struct stat st;
-  CPPUNIT_ASSERT(fa.stat(newfile,st));
-  CPPUNIT_ASSERT(!fa.stat(oldfile,st));
+  CPPUNIT_ASSERT(fa.fa_stat(newfile,st));
+  CPPUNIT_ASSERT(!fa.fa_stat(oldfile,st));
 }
 
 void FileAccessTest::TestDir() {
@@ -150,34 +150,34 @@ void FileAccessTest::TestDir() {
   std::string testdir2 = testroot + "/dir1/dir2/dir3/dir4";
   std::string testdir3 = testroot + "/dir1";
   Arc::FileAccess fa;
-  CPPUNIT_ASSERT(fa.setuid(uid,gid));
-  CPPUNIT_ASSERT(!fa.mkdir(testdir1,0700));
-  CPPUNIT_ASSERT(fa.mkdirp(testdir1,0700));
-  CPPUNIT_ASSERT(fa.mkdir(testdir2,0700));
-  CPPUNIT_ASSERT(fa.opendir(testdir1));
+  CPPUNIT_ASSERT(fa.fa_setuid(uid,gid));
+  CPPUNIT_ASSERT(!fa.fa_mkdir(testdir1,0700));
+  CPPUNIT_ASSERT(fa.fa_mkdirp(testdir1,0700));
+  CPPUNIT_ASSERT(fa.fa_mkdir(testdir2,0700));
+  CPPUNIT_ASSERT(fa.fa_opendir(testdir1));
   std::string name;
   while(true) {
-    CPPUNIT_ASSERT(fa.readdir(name));
+    CPPUNIT_ASSERT(fa.fa_readdir(name));
     if(name == ".") continue;
     if(name == "..") continue;
     break;
   }
-  CPPUNIT_ASSERT(fa.closedir());
+  CPPUNIT_ASSERT(fa.fa_closedir());
   CPPUNIT_ASSERT_EQUAL(testdir2.substr(testdir1.length()+1),name);
-  CPPUNIT_ASSERT(!fa.rmdir(testdir3));
-  CPPUNIT_ASSERT(fa.rmdir(testdir2));
-  CPPUNIT_ASSERT(fa.rmdirr(testdir3));
+  CPPUNIT_ASSERT(!fa.fa_rmdir(testdir3));
+  CPPUNIT_ASSERT(fa.fa_rmdir(testdir2));
+  CPPUNIT_ASSERT(fa.fa_rmdirr(testdir3));
 }
 
 void FileAccessTest::TestSeekAllocate() {
   Arc::FileAccess fa;
   std::string testfile = testroot+"/file3";
-  CPPUNIT_ASSERT(fa.setuid(uid,gid));
-  CPPUNIT_ASSERT(fa.open(testfile,O_WRONLY|O_CREAT|O_EXCL,0600));
-  CPPUNIT_ASSERT_EQUAL((int)4096,(int)fa.fallocate(4096));
-  CPPUNIT_ASSERT_EQUAL((int)0,(int)fa.lseek(0,SEEK_SET));
-  CPPUNIT_ASSERT_EQUAL((int)4096,(int)fa.lseek(0,SEEK_END));
-  CPPUNIT_ASSERT(fa.close());
+  CPPUNIT_ASSERT(fa.fa_setuid(uid,gid));
+  CPPUNIT_ASSERT(fa.fa_open(testfile,O_WRONLY|O_CREAT|O_EXCL,0600));
+  CPPUNIT_ASSERT_EQUAL((int)4096,(int)fa.fa_fallocate(4096));
+  CPPUNIT_ASSERT_EQUAL((int)0,(int)fa.fa_lseek(0,SEEK_SET));
+  CPPUNIT_ASSERT_EQUAL((int)4096,(int)fa.fa_lseek(0,SEEK_END));
+  CPPUNIT_ASSERT(fa.fa_close());
 }
 #endif
 

@@ -131,8 +131,8 @@ namespace Cache {
       std::string scratch_file(scratch_dir+'/'+session_file.substr(pos));
       // Access session and scratch under mapped uid
       Arc::FileAccess fa;
-      if (!fa.setuid(dtr->get_local_user().get_uid(), dtr->get_local_user().get_gid()) ||
-          !fa.rename(session_file, scratch_file)) {
+      if (!fa.fa_setuid(dtr->get_local_user().get_uid(), dtr->get_local_user().get_gid()) ||
+          !fa.fa_rename(session_file, scratch_file)) {
         logger.msg(Arc::ERROR, "Failed to move %s to %s: %s", session_file, scratch_file, Arc::StrError(errno));
         finished_lock.lock();
         finished_jobs[jobid] += "Failed to move file from session dir to scratch. ";
