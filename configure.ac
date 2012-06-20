@@ -1473,33 +1473,24 @@ AC_SUBST(LFC_CFLAGS)
 AC_SUBST(LFC_LIBS)
 
 
-# Check for GFAL
+# Check for GFAL2
 
-AC_ARG_ENABLE(gfal, AC_HELP_STRING([--enable-gfal], [disable the GFAL support, default is disable]),[enables_gfal="$enableval"],[])
+AC_ARG_ENABLE(gfal, AC_HELP_STRING([--enable-gfal], [enable the GFAL support, default is disable]),[enables_gfal="$enableval"],[])
 if test "x$enables_gfal" = "xyes"; then
-  GFAL_CFLAGS="-I/usr/include/gfal2"
-  AC_ARG_WITH(gfal, [  --with-gfal=(PATH)  GFAL location])
-  if test ! "x$with_gfal" = "x" ; then
-    GFAL_LOCATION="$with_gfal"
-    GFAL_CFLAGS="-I$GFAL_LOCATION/include/gfal2"
-    if test -d $GFAL_LOCATION/lib64; then
-      GFAL_LDFLAGS="-L$GFAL_LOCATION/lib64"
-    else
-      GFAL_LDFLAGS="-L$GFAL_LOCATION/lib"
-    fi
-  fi
+  PKG_CHECK_MODULES(GFAL2, gfal2, [], [enables_gfal="no"])
+  AC_SUBST(GFAL2_CFLAGS)
+  AC_SUBST(GFAL2_LIBS)
+
   SAVE_CPPFLAGS=$CPPFLAGS
-  CPPFLAGS="$CPPFLAGS $GFAL_CFLAGS"
+  CPPFLAGS="$CPPFLAGS $GFAL2_CFLAGS"
   AC_CHECK_HEADER(gfal_api.h, [], [enables_gfal="no"])
   CPPFLAGS=$SAVE_CPPFLAGS
+
   SAVE_LDFLAGS=$LDFLAGS
-  LDFLAGS="$LDFLAGS $GFAL_LDFLAGS"
-  AC_CHECK_LIB([gfal2], [_init],
-               [GFAL_LIBS="$GFAL_LDFLAGS -lgfal2"], [enables_gfal="no"])
+  LDFLAGS="$LDFLAGS $GFAL2_LIBS"
+  AC_CHECK_LIB([gfal2], [_init], [], [enables_gfal="no"])
   LDFLAGS=$SAVE_LDFLAGS
 fi
-AC_SUBST(GFAL_CFLAGS)
-AC_SUBST(GFAL_LIBS)
 
 # Check for xrootd (c++)
 
