@@ -1299,6 +1299,12 @@
 #timelimit="30"
 #sizelimit="10"
 
+## LDAP checkpoint enable/disable
+## This option was introduced to solve bug #2032, to reduce the number 
+## of log files produced by BDII. It is usually not needed, but if BDII produces
+## large logs and huge number of files, try to enable it.
+# slapd_cron_checkpoint="enable"
+
 
 ####################################################################
 ##
