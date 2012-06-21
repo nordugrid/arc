@@ -19,6 +19,7 @@ class RunParallel {
   RunPlugin::substitute_t subst_;
   void* subst_arg_;
   static void initializer(void* arg);
+  // TODO: no static variables
   static void (*kicker_func_)(void*);
   static void* kicker_arg_;
  public:

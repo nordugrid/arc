@@ -179,7 +179,6 @@ void GridManager::grid_manager(void* arg) {
   GridManager* gm = (GridManager*)arg;
   //GMEnvironment& env = *(gm->Environment());
   if(!arg) {
-    gm->active_ = false;
     ::kill(::getpid(),SIGTERM);
     return;
   }
@@ -197,45 +196,41 @@ bool GridManager::thread() {
   if(!configure_serviced_users(*users_/*,my_uid,my_username*/,*my_user_,enable_arc,enable_emies)) {
     logger.msg(Arc::INFO,"Used configuration file %s",env_->nordugrid_config_loc());
     logger.msg(Arc::FATAL,"Error processing configuration - EXITING");
-    active_ = false;
     return false;
   };
   if(users_->size() == 0) {
     logger.msg(Arc::FATAL,"No suitable users found in configuration - EXITING");
-    active_ = false;
     return false;
   };
 
   logger.msg(Arc::INFO,"Used configuration file %s",env_->nordugrid_config_loc());
   print_serviced_users(*users_);
 
-  CommFIFO wakeup_interface;
+  wakeup_interface_ = new CommFIFO;
   time_t hard_job_time; 
   for(JobUsers::iterator i = users_->begin();i!=users_->end();++i) {
-    CommFIFO::add_result r = wakeup_interface.add(*i);
+    CommFIFO::add_result r = wakeup_interface_->add(*i);
     if(r != CommFIFO::add_success) {
       if(r == CommFIFO::add_busy) {
         logger.msg(Arc::FATAL,"Error adding communication interface in %s for user %s. Maybe another instance of A-REX is already running.",i->ControlDir(),i->UnixName());
       } else {
         logger.msg(Arc::FATAL,"Error adding communication interface in %s for user %s. Maybe permissions are not suitable.",i->ControlDir(),i->UnixName());
       };
-      active_ = false;
       return false;
     };
   };
-  wakeup_interface.timeout(env_->jobs_cfg().WakeupPeriod());
+  wakeup_interface_->timeout(env_->jobs_cfg().WakeupPeriod());
 
   /* start timer thread - wake up every 2 minutes */
-  sleep_st wakeup_h;
-  wakeup_h.sleep_cond=sleep_cond_;
-  wakeup_h.timeout=&wakeup_interface;
-  if(!Arc::CreateThreadFunction(wakeup_func,&wakeup_h)) {
+  wakeup_ = new sleep_st;
+  wakeup_->sleep_cond=sleep_cond_;
+  wakeup_->timeout=wakeup_interface_;
+  if(!Arc::CreateThreadFunction(wakeup_func,wakeup_)) {
     logger.msg(Arc::ERROR,"Failed to start new thread");
-    active_ = false;
-    wakeup_h.exited = true;
+    wakeup_->exited = true;
     return false;
   };
-  RunParallel::kicker(&kick_func,&wakeup_h);
+  RunParallel::kicker(&kick_func,wakeup_);
   /*
   if(clean_first_level) {
     bool clean_finished = false;
@@ -303,11 +298,10 @@ bool GridManager::thread() {
   hard_job_time = time(NULL) + HARD_JOB_PERIOD;
   if (env_->jobs_cfg().GetNewDataStaging()) {
     logger.msg(Arc::INFO, "Starting data staging threads");
-    DTRGenerator* dtr_generator = new DTRGenerator(*users_, &kick_func, &wakeup_h);
+    DTRGenerator* dtr_generator = new DTRGenerator(*users_, &kick_func, wakeup_);
     if (!(*dtr_generator)) {
       delete dtr_generator;
       logger.msg(Arc::ERROR, "Failed to start data staging threads, exiting Grid Manager thread");
-      active_ = false;
       return false;
     }
     dtr_generator_ = dtr_generator;
@@ -375,12 +369,13 @@ bool GridManager::thread() {
   for(JobUsers::iterator user = users_->begin();user != users_->end();++user) {
     delete user->get_jobs();
   };
-  active_ = false;
   return true;
 }
 
-GridManager::GridManager(GMEnvironment& env):active_(false),tostop_(false) {
+GridManager::GridManager(GMEnvironment& env):tostop_(false) {
   sleep_cond_ = new Arc::SimpleCondition;
+  wakeup_interface_ = NULL;
+  wakeup_ = NULL;
   env_ = &env;
   my_user_ = new JobUser(env,::getuid(),::getgid()); my_user_owned_ = true;
   users_ = new JobUsers(env); users_owned_ = true;
@@ -398,19 +393,19 @@ GridManager::GridManager(GMEnvironment& env):active_(false),tostop_(false) {
     logger.msg(Arc::FATAL,"Error processing configuration - EXITING");
     return;
   };
-  active_=true;
-  if(!Arc::CreateThreadFunction(&grid_manager,(void*)this)) active_=false;
+  if(!Arc::CreateThreadFunction(&grid_manager,(void*)this,&active_)) { };
 }
 
-GridManager::GridManager(JobUsers& users, JobUser& my_user):active_(false),tostop_(false) {
+GridManager::GridManager(JobUsers& users, JobUser& my_user):tostop_(false) {
   sleep_cond_ = new Arc::SimpleCondition;
+  wakeup_interface_ = NULL;
+  wakeup_ = NULL;
   env_ = &(users.Env());
   my_user_ = &my_user; my_user_owned_ = false;
   users_ = &users; users_owned_ = false;
   dtr_generator_ = NULL;
   void* arg = (void*)this;
-  active_=true;
-  if(!Arc::CreateThreadFunction(&grid_manager,(void*)this)) active_=false;
+  if(!Arc::CreateThreadFunction(&grid_manager,(void*)this,&active_)) { };
 }
 
 GridManager::~GridManager(void) {
@@ -422,15 +417,19 @@ GridManager::~GridManager(void) {
     logger.msg(Arc::INFO, "Shutting down data staging threads");
     delete dtr_generator_;
   }
-  // Stop GM thread
-  while(active_) {
+  // Wait for main thread
+  while(true) {
     sleep_cond_->signal();
-    sleep(1); // TODO: use condition
+    if(active_.wait(1000)) break;
   }
   if(users_owned_) delete users_;
   if(my_user_owned_) delete my_user_;
+  // wakeup_ is used by users through RunParallel and by 
+  // dtr_generator. Hence it must be deleted almost last.
+  if(wakeup_) delete wakeup_;
+  // wakeup_interface_ and sleep_cond_ are used by wakeup_
+  if(wakeup_interface_) delete wakeup_interface_;
   delete sleep_cond_;
-  // TODO: cache_func
 }
 
 } // namespace ARex

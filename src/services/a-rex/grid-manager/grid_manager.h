@@ -8,19 +8,24 @@ class GMEnvironment;
 class JobUsers;
 class JobUser;
 class DTRGenerator;
+class CommFIFO;
 
 namespace ARex {
 
+class sleep_st;
+
 class GridManager {
  private:
-  bool active_;
+  Arc::SimpleCounter active_;
   bool tostop_;
   Arc::SimpleCondition* sleep_cond_;
+  CommFIFO* wakeup_interface_;
   GMEnvironment* env_;
   JobUser* my_user_;
   bool my_user_owned_;
   JobUsers* users_;
   bool users_owned_;
+  sleep_st* wakeup_;
   DTRGenerator* dtr_generator_;
   GridManager(void) { };
   GridManager(const GridManager&) { };
@@ -30,7 +35,7 @@ class GridManager {
   GridManager(GMEnvironment& env);
   GridManager(JobUsers& users, JobUser& my_user);
   ~GridManager(void);
-  operator bool(void) { return active_; };
+  operator bool(void) { return (active_.get()>0); };
   JobUsers* Users(void) { return users_; };
 };
 
