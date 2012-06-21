@@ -131,7 +131,7 @@
 ## outside of normal $PATH
 #slurm_bin_path="/usr/bin"
 
-## How long should infosys wait between querying SLURM for new data.
+## How long should infosys wait before querying SLURM for new data (seconds)
 #slurm_wakeupperiod="15"
 
 ## the PATH to LSF bin folder
