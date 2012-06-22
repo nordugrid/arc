@@ -91,9 +91,11 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
     logger.msg(Arc::ERROR, "Put: failed to allocate memory for file %s in job %s", hpath, job.ID());
     return Arc::MCC_Status();
   };
+  bool got_something = false;
   for(;;) {
     int size = bufsize;
     if(!stream.Get(buf,size)) break;
+    if(size > 0) got_something = true;
     if(!write_file(h,buf,size)) {
       std::string err = Arc::StrError();
       delete[] buf;
@@ -106,7 +108,17 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
   };
   delete[] buf;
   h->fa_close(); delete h;
-  if(fc->Complete()) job.ReportFileComplete(hpath);
+  if(fc->Complete()) {
+    job.ReportFileComplete(hpath);
+  } else {
+    // Due to limitation of PayloadStreamInterface it is not possible to
+    // directly distingush between zero sized file and file with undefined
+    // size. But by applying some dynamic heuristics it possible.
+    // TODO: extend/modify PayloadStreamInterface.
+    if((stream.Size() == 0) && (stream.Pos() == 0) && (!got_something)) {
+      job.ReportFileComplete(hpath);
+    }
+  }
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
@@ -119,6 +131,7 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
     return Arc::MCC_Status();
   };
   FileChunksRef fc = fchunks.Get(job.ID()+"/"+hpath);
+  bool got_something = false;
   if(!fc->Size()) fc->Size(buf.Size());
   for(int n = 0;;++n) {
     char* sbuf = buf.Buffer(n);
@@ -126,6 +139,7 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
     off_t offset = buf.BufferPos(n);
     off_t size = buf.BufferSize(n);
     if(size > 0) {
+      got_something = true;
       off_t o = h->fa_lseek(offset,SEEK_SET);
       if(o != offset) {
         h->fa_close(); delete h;
@@ -139,7 +153,13 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
     };
   };
   h->fa_close(); delete h;
-  if(fc->Complete()) job.ReportFileComplete(hpath);
+  if(fc->Complete()) {
+    job.ReportFileComplete(hpath);
+  } else {
+    if((buf.Size() == 0) && (!got_something)) {
+      job.ReportFileComplete(hpath);
+    }
+  }
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
