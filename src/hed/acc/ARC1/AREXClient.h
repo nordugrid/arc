@@ -154,7 +154,8 @@ namespace Arc {
     void arexFeatures(bool val) { arex_enabled = val; };
 
   private:
-    bool process(PayloadSOAP& req, bool delegate, XMLNode& response);
+    bool process(PayloadSOAP& req, bool delegate, XMLNode& response, bool retry = true);
+    bool reconnect(void);
 
     ClientSOAP *client;
 
@@ -168,6 +169,8 @@ namespace Arc {
     const MCCConfig cfg;
 
     std::string action;
+
+    int timeout;
 
     bool arex_enabled;
 
