@@ -138,7 +138,10 @@ namespace Arc {
         // TODO: better way to check of retriable.
         if(!retry) return false;
         if(!reconnect()) return false;
-        if(!delegation(op)) return false;
+        if(!delegation(op)) {
+          delete client; client = NULL;
+          return false;
+        }
       }
     }
 
