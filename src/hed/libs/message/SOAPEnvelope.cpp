@@ -6,7 +6,30 @@
 
 #include "SOAPEnvelope.h"
 
+#define SOAP12_ENV_NAMESPACE "http://www.w3.org/2003/05/soap-envelope"
+#define SOAP12_ENC_NAMESPACE "http://www.w3.org/2003/05/soap-encoding"
+
+#define SOAP11_ENV_NAMESPACE "http://schemas.xmlsoap.org/soap/envelope/"
+#define SOAP11_ENC_NAMESPACE "http://schemas.xmlsoap.org/soap/encoding/"
+
 namespace Arc {
+
+namespace internal {
+
+class SOAPNS: public NS {
+ public:
+  SOAPNS(bool ver12) {
+    if(ver12) {
+      (*this)["soap-enc"]=SOAP12_ENC_NAMESPACE;
+      (*this)["soap-env"]=SOAP12_ENV_NAMESPACE;
+    } else {
+      (*this)["soap-enc"]=SOAP11_ENC_NAMESPACE;
+      (*this)["soap-env"]=SOAP11_ENV_NAMESPACE;
+    };
+  }
+};
+
+}
 
 SOAPEnvelope::SOAPEnvelope(const std::string& s):XMLNode(s) {
   set();
@@ -28,22 +51,14 @@ SOAPEnvelope::SOAPEnvelope(const NS& ns,bool f):XMLNode(ns,"Envelope"),fault(NUL
   if(!it) return;
   ver12=false;
   for(NS::const_iterator i = ns.begin();i!=ns.end();++i) {
-    if(i->second == "http://www.w3.org/2003/05/soap-envelope") {
+    if(i->second == SOAP12_ENV_NAMESPACE) {
       ver12=true; break;
     };
   };
-  NS ns_;
-  if(ver12) {
-    ns_["soap-enc"]="http://www.w3.org/2003/05/soap-encoding";
-    ns_["soap-env"]="http://www.w3.org/2003/05/soap-envelope";
-  } else {
-    ns_["soap-enc"]="http://schemas.xmlsoap.org/soap/encoding/";
-    ns_["soap-env"]="http://schemas.xmlsoap.org/soap/envelope/";
-  };
+  internal::SOAPNS ns_(ver12);
   ns_["xsi"]="http://www.w3.org/2001/XMLSchema-instance";
   ns_["xsd"]="http://www.w3.org/2001/XMLSchema";
   XMLNode::Namespaces(ns_);
-  // XMLNode::Namespaces(ns); 
   XMLNode::Name("soap-env:Envelope"); // Fixing namespace
   header=XMLNode::NewChild("soap-env:Header");
   body=XMLNode::NewChild("soap-env:Body");
@@ -83,15 +98,8 @@ void SOAPEnvelope::set(void) {
   XMLNode& it = *this;
   if(!it) return;
   ver12=false;
-  if(!it.NamespacePrefix("http://www.w3.org/2003/05/soap-envelope").empty()) ver12=true;
-  NS ns;
-  if(ver12) {
-    ns["soap-enc"]="http://www.w3.org/2003/05/soap-encoding";
-    ns["soap-env"]="http://www.w3.org/2003/05/soap-envelope";
-  } else {
-    ns["soap-enc"]="http://schemas.xmlsoap.org/soap/encoding/";
-    ns["soap-env"]="http://schemas.xmlsoap.org/soap/envelope/";
-  };
+  if(!it.NamespacePrefix(SOAP12_ENV_NAMESPACE).empty()) ver12=true;
+  internal::SOAPNS ns(ver12);
   ns["xsi"]="http://www.w3.org/2001/XMLSchema-instance";
   ns["xsd"]="http://www.w3.org/2001/XMLSchema";
   // Do not apply deeper than Envelope + Header/Body + Fault
@@ -236,41 +244,48 @@ void SOAPEnvelope::GetXML(std::string& out_xml_str,bool user_friendly) const {
   envelope.GetXML(out_xml_str,user_friendly);
 }
 
+// Wrap existing fault
 SOAPFault::SOAPFault(XMLNode body) {
-  // TODO: set namespaces
+  ver12 = (body.Namespace() == SOAP12_ENV_NAMESPACE);
   if(body.Size() != 1) return;
   fault=body.Child(0);
-  if(!MatchXMLName(fault,"soap-env:Fault")) { fault=XMLNode(); return; };
-  code=fault["soap-env:faultcode"];
-  if(code) {
-    ver12=false;
-    reason=fault["soap-env:faultstring"];
-    node=fault["soap-env:faultactor"];
-    role=XMLNode();
-    detail=fault["soap-env:detail"];
-    return;
-  };
-  code=fault["soap-env:Code"];
-  if(code) {
-    ver12=true;
-    reason=fault["soap-env:Reason"];
-    node=fault["soap-env:Node"];
-    role=fault["soap-env:Role"];
-    detail=fault["soap-env:Detail"];
-    return;
+  if(!MatchXMLName(fault,body.Prefix()+":Fault")) { fault=XMLNode(); return; };
+  if(!ver12) {
+    code=fault["faultcode"];
+    if(code) {
+      reason=fault["faultstring"];
+      node=fault["faultactor"];
+      role=XMLNode();
+      detail=fault["detail"];
+      return;
+    };
+  } else {
+    code=fault["Code"];
+    if(code) {
+      reason=fault["Reason"];
+      node=fault["Node"];
+      role=fault["Role"];
+      detail=fault["Detail"];
+      return;
+    };
   };
   fault=XMLNode();
   return;
 }
 
+// Create new fault in existing body
 SOAPFault::SOAPFault(XMLNode body,SOAPFaultCode c,const char* r) {
-  //bool ver12 = (body.Namespace() == "http://www.w3.org/2003/05/soap-envelope");
-  fault=body.NewChild("soap-env:Fault");
+  ver12 = (body.Namespace() == SOAP12_ENV_NAMESPACE);
+  fault=body.NewChild("Fault");
   if(!fault) return;
+  internal::SOAPNS ns(ver12);
+  fault.Namespaces(ns);
+  fault.Name("soap-env:Fault");
   Code(c);
   Reason(0,r);
 }
 
+// Create new fault in existing body
 SOAPFault::SOAPFault(XMLNode body,SOAPFaultCode c,const char* r,bool v12) {
   ver12=v12;
   fault=body.NewChild("soap-env:Fault");
@@ -287,13 +302,13 @@ std::string SOAPFault::Reason(int num) {
 
 void SOAPFault::Reason(int num,const char* r) {
   if(ver12) {
-    if(!reason) reason=fault.NewChild("soap-env:Reason");
+    if(!reason) reason=fault.NewChild(fault.Prefix()+":Reason");
     XMLNode rn = reason.Child(num);
-    if(!rn) rn=reason.NewChild("soap-env:Text");
+    if(!rn) rn=reason.NewChild(fault.Prefix()+":Text");
     rn=r;
     return;
   };
-  if(!reason) reason=fault.NewChild("soap-env:faultstring");
+  if(!reason) reason=fault.NewChild(fault.Prefix()+":faultstring");
   reason=r;
   return;
 }
@@ -305,9 +320,9 @@ std::string SOAPFault::Node(void) {
 void SOAPFault::Node(const char* n) {
   if(!node) {
     if(ver12) {
-      node=fault.NewChild("soap-env:Node");
+      node=fault.NewChild(fault.Prefix()+":Node");
     } else {
-      node=fault.NewChild("soap-env:faultactor");
+      node=fault.NewChild(fault.Prefix()+":faultactor");
     };
   };
   node=n;
@@ -319,7 +334,7 @@ std::string SOAPFault::Role(void) {
 
 void SOAPFault::Role(const char* r) {
   if(ver12) {
-    if(!role) role=fault.NewChild("soap-env:Role");
+    if(!role) role=fault.NewChild(fault.Prefix()+":Role");
     role=r;
   };
 }
@@ -335,27 +350,31 @@ static const char* FaultCodeMatch(const char* base,const char* code) {
 SOAPFault::SOAPFaultCode SOAPFault::Code(void) {
   if(!code) return undefined;
   if(ver12) {
-    std::string c = code["soap-env:Value"];
-    if(strcasecmp("soap-env:VersionMismatch",c.c_str()) == 0) 
+    std::string c = code["Value"];
+    std::string::size_type p = c.find(":");
+    if(p != std::string::npos) c.erase(0,p+1);
+    if(strcasecmp("VersionMismatch",c.c_str()) == 0) 
       return VersionMismatch;
-    if(strcasecmp("soap-env:MustUnderstand",c.c_str()) == 0) 
+    if(strcasecmp("MustUnderstand",c.c_str()) == 0) 
       return MustUnderstand;
-    if(strcasecmp("soap-env:DataEncodingUnknown",c.c_str()) == 0) 
+    if(strcasecmp("DataEncodingUnknown",c.c_str()) == 0) 
       return DataEncodingUnknown;
-    if(strcasecmp("soap-env:Sender",c.c_str()) == 0) 
+    if(strcasecmp("Sender",c.c_str()) == 0) 
       return Sender;
-    if(strcasecmp("soap-env:Receiver",c.c_str()) == 0) 
+    if(strcasecmp("Receiver",c.c_str()) == 0) 
       return Receiver;
     return unknown;
   } else {
     std::string c = code;
-    if(FaultCodeMatch("soap-env:VersionMismatch",c.c_str())) 
+    std::string::size_type p = c.find(":");
+    if(p != std::string::npos) c.erase(0,p+1);
+    if(FaultCodeMatch("VersionMismatch",c.c_str())) 
       return VersionMismatch;
-    if(FaultCodeMatch("soap-env:MustUnderstand",c.c_str())) 
+    if(FaultCodeMatch("MustUnderstand",c.c_str())) 
       return MustUnderstand;
-    if(FaultCodeMatch("soap-env:Client",c.c_str())) 
+    if(FaultCodeMatch("Client",c.c_str())) 
       return Sender;
-    if(FaultCodeMatch("soap-env:Server",c.c_str())) 
+    if(FaultCodeMatch("Server",c.c_str())) 
       return Receiver;
     return unknown;
   };
@@ -363,24 +382,24 @@ SOAPFault::SOAPFaultCode SOAPFault::Code(void) {
 
 void SOAPFault::Code(SOAPFaultCode c) {
   if(ver12) {
-    if(!code) code=fault.NewChild("soap-env:Code");
-    XMLNode value = code["soap-env:Value"];
-    if(!value) value=code.NewChild("soap-env:Value");
+    if(!code) code=fault.NewChild(fault.Prefix()+":Code");
+    XMLNode value = code["Value"];
+    if(!value) value=code.NewChild(code.Prefix()+":Value");
     switch(c) {
-      case VersionMismatch: value="soap-env:VersionMismatch"; break;
-      case MustUnderstand: value="soap-env:MustUnderstand"; break;
-      case DataEncodingUnknown: value="soap-env:DataEncodingUnknown"; break;
-      case Sender: value="soap-env:Sender"; break;
-      case Receiver: value="soap-env:Receiver"; break;
+      case VersionMismatch: value=value.Prefix()+":VersionMismatch"; break;
+      case MustUnderstand: value=value.Prefix()+":MustUnderstand"; break;
+      case DataEncodingUnknown: value=value.Prefix()+":DataEncodingUnknown"; break;
+      case Sender: value=value.Prefix()+":Sender"; break;
+      case Receiver: value=value.Prefix()+":Receiver"; break;
       default: value="";
     };
   } else {
-    if(!code) code=fault.NewChild("soap-env:faultcode");
+    if(!code) code=fault.NewChild(fault.Prefix()+":faultcode");
     switch(c) {
-      case VersionMismatch: code="soap-env:VersionMismatch"; break;
-      case MustUnderstand: code="soap-env:MustUnderstand"; break;
-      case Sender: code="soap-env:Client"; break;
-      case Receiver: code="soap-env:Server"; break;
+      case VersionMismatch: code=code.Prefix()+":VersionMismatch"; break;
+      case MustUnderstand: code=code.Prefix()+":MustUnderstand"; break;
+      case Sender: code=code.Prefix()+":Client"; break;
+      case Receiver: code=code.Prefix()+":Server"; break;
       default: code="";
     };
   };
@@ -392,26 +411,26 @@ std::string SOAPFault::Subcode(int level) {
   if(!code) return "";
   XMLNode subcode = code;
   for(;level;--level) {
-    subcode=subcode["soap-env:Subcode"];
+    subcode=subcode["Subcode"];
     if(!subcode) return "";
   };
-  return subcode["soap-env:Value"];
+  return subcode["Value"];
 }
 
 void SOAPFault::Subcode(int level,const char* s) {
   if(!ver12) return;
   if(level < 0) return;
-  if(!code) code=fault.NewChild("soap-env:Code");
+  if(!code) code=fault.NewChild(fault.Prefix()+":Code");
   XMLNode subcode = code;
   for(;level;--level) {
-    XMLNode subcode_ = subcode["soap-env:Subcode"];
-    if(!subcode_) subcode_=subcode.NewChild("soap-env:Subcode");
+    XMLNode subcode_ = subcode["Subcode"];
+    if(!subcode_) subcode_=subcode.NewChild(subcode.Prefix()+":Subcode");
     subcode=subcode_;
   };
-  if(!subcode["soap-env:Value"]) {
-    subcode.NewChild("soap-env:Value")=s;
+  if(!subcode["Value"]) {
+    subcode.NewChild(subcode.Prefix()+":Value")=s;
   } else {
-    subcode["soap-env:Value"]=s;
+    subcode["Value"]=s;
   };
 }
 
@@ -419,9 +438,9 @@ XMLNode SOAPFault::Detail(bool create) {
   if(detail) return detail;
   if(!create) return XMLNode();
   if(!ver12) {
-    detail=fault.NewChild("soap-env:detail");
+    detail=fault.NewChild(fault.Prefix()+":detail");
   } else {
-    detail=fault.NewChild("soap-env:Detail");
+    detail=fault.NewChild(fault.Prefix()+":Detail");
   };
   return detail;
 }
