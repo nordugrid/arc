@@ -213,7 +213,9 @@ namespace Arc {
     bool delegation(XMLNode& operation);
 
   private:
-    bool process(PayloadSOAP& req, bool delegate, XMLNode& response);
+    bool process(PayloadSOAP& req, bool delegate, XMLNode& response, bool retry = true);
+
+    bool reconnect();
 
     bool dosimple(const std::string& action, const std::string& id);
 
@@ -227,6 +229,8 @@ namespace Arc {
     URL rurl;
 
     const MCCConfig cfg;
+
+    int timeout;
 
     //! A logger for the A-REX client.
     /*! This is a logger to which all logging messages from the EMI ES

@@ -69,7 +69,8 @@ namespace Arc {
                          int timeout)
     : client(NULL),
       rurl(url),
-      cfg(cfg) {
+      cfg(cfg),
+      timeout(timeout) {
 
     logger.msg(DEBUG, "Creating an EMI ES client");
     client = new ClientSOAP(cfg, url, timeout);
@@ -130,7 +131,19 @@ namespace Arc {
     return true;
   }
 
-  bool EMIESClient::process(PayloadSOAP& req, bool delegate, XMLNode& response) {
+   bool EMIESClient::reconnect(void) { 
+    delete client; client = NULL; 
+    logger.msg(DEBUG, "Re-creating an EMI ES client");
+    client = new ClientSOAP(cfg, rurl, timeout);
+    if (!client) {
+      logger.msg(VERBOSE, "Unable to create SOAP client used by EMIESClient.");
+      return false;
+    }
+    set_namespaces(ns);
+    return true; 
+  } 
+
+  bool EMIESClient::process(PayloadSOAP& req, bool delegate, XMLNode& response, bool retry) {
     if (!client) {
       logger.msg(VERBOSE, "EMIESClient was not created properly.");
       return false;
@@ -142,7 +155,13 @@ namespace Arc {
       XMLNode op = req.Child(0);
       if(!delegation(op)) {
         delete client; client = NULL;
-        return false;
+        // TODO: better way to check of retriable. 
+        if(!retry) return false; 
+        if(!reconnect()) return false; 
+        if(!delegation(op)) {
+          delete client; client = NULL;
+          return false; 
+        }
       }
     }
 
@@ -152,27 +171,34 @@ namespace Arc {
     if (!client->process(&req, &resp)) {
       logger.msg(VERBOSE, "%s request failed", req.Child(0).FullName());
       delete client; client = NULL;
-      return false;
+      if(!retry) return false; 
+      if(!reconnect()) return false; 
+      return process(req,false,response,false);
     }
 
     if (resp == NULL) {
       logger.msg(VERBOSE, "No response from %s", rurl.str());
       delete client; client = NULL;
-      return false;
+      if(!retry) return false; 
+      if(!reconnect()) return false; 
+      return process(req,false,response,false);
     }
 
     if (resp->IsFault()) {
       logger.msg(VERBOSE, "%s request to %s failed with response: %s", req.Child(0).FullName(), rurl.str(), resp->Fault()->Reason());
+      if(resp->Fault()->Code() != SOAPFault::Receiver) retry = false;
       std::string s;
       resp->GetXML(s);
       logger.msg(DEBUG, "XML response: %s", s);
       delete resp;
       delete client; client = NULL;
-      return false;
+      if(!retry) return false; 
+      if(!reconnect()) return false; 
+      return process(req,false,response,false);
     }
 
     if (!(*resp)[action + "Response"]) {
-      logger.msg(VERBOSE, "%s request to %s failed. Empty response.", action, rurl.str());
+      logger.msg(VERBOSE, "%s request to %s failed. No expected response.", action, rurl.str());
       delete resp;
       return false;
     }
