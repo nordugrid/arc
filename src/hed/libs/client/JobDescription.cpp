@@ -47,6 +47,27 @@ namespace Arc {
     }
   }
 
+  ResourcesType& ResourcesType::operator=(const ResourcesType& rt) {
+    OperatingSystem = rt.OperatingSystem;
+    Platform = rt.Platform;
+    NetworkInfo = rt.NetworkInfo;
+    IndividualPhysicalMemory = rt.IndividualPhysicalMemory;
+    IndividualVirtualMemory = rt.IndividualVirtualMemory;
+    DiskSpaceRequirement = rt.DiskSpaceRequirement;
+    SessionLifeTime = rt.SessionLifeTime;
+    SessionDirectoryAccess = rt.SessionDirectoryAccess;
+    IndividualCPUTime = rt.IndividualCPUTime;
+    TotalCPUTime = rt.TotalCPUTime;
+    IndividualWallTime = rt.IndividualWallTime;
+    NodeAccess = rt.NodeAccess;
+    CEType = rt.CEType;
+    SlotRequirement = rt.SlotRequirement;
+    ParallelEnvironment = rt.ParallelEnvironment;
+    Coprocessor = rt.Coprocessor;
+    QueueName = rt.QueueName;
+    RunTimeEnvironment = rt.RunTimeEnvironment;
+  }
+
   void JobDescription::Set(const JobDescription& j) {
     Identification = j.Identification;
     Application = j.Application;
@@ -210,7 +231,6 @@ namespace Arc {
 
       INTPRINT(out, Resources.TotalCPUTime.range.max, TotalCPUTime)
       INTPRINT(out, Resources.IndividualCPUTime.range.max, IndividualCPUTime)
-      INTPRINT(out, Resources.TotalWallTime.range.max, TotalWallTime)
       INTPRINT(out, Resources.IndividualWallTime.range.max, IndividualWallTime)
 
       STRPRINT(out, Resources.NetworkInfo, NetworkInfo)

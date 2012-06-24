@@ -361,8 +361,10 @@ namespace Arc {
       IndividualCPUTime(-1),
       TotalCPUTime(-1),
       IndividualWallTime(-1),
-      TotalWallTime(-1),
+      TotalWallTime(IndividualWallTime),
       NodeAccess(NAT_NONE) {}
+    ResourcesType& operator=(const ResourcesType&);
+
     SoftwareRequirement OperatingSystem;
     std::string Platform;
     std::string NetworkInfo;
@@ -374,7 +376,7 @@ namespace Arc {
     ScalableTime<int> IndividualCPUTime;
     ScalableTime<int> TotalCPUTime;
     ScalableTime<int> IndividualWallTime;
-    ScalableTime<int> TotalWallTime;
+    ScalableTime<int>& TotalWallTime;
     NodeAccessType NodeAccess;
     SoftwareRequirement CEType;
     SlotRequirementType SlotRequirement;
