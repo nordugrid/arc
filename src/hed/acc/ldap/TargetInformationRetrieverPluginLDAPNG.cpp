@@ -197,6 +197,9 @@ namespace Arc {
         if (queue["nordugrid-queue-defaultwalltime"]) {
           ComputingShare->DefaultWallTime = Period((std::string)queue["nordugrid-queue-defaultwalltime"], PeriodMinutes);
         }
+        if (queue["nordugrid-queue-maxtotalcputime"]) {
+          ComputingShare->MaxTotalCPUTime = Period((std::string)queue["nordugrid-queue-maxtotalcputime"], PeriodMinutes);
+        }
         if (queue["nordugrid-queue-maxcputime"]) {
           ComputingShare->MaxCPUTime = Period((std::string)queue["nordugrid-queue-maxcputime"], PeriodMinutes);
         }
