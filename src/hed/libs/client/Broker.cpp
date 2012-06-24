@@ -160,8 +160,8 @@ namespace Arc {
                              EtTimePair("MinCPUTime", (int)t.ComputingShare->MinCPUTime.GetPeriod())};
 
       typedef std::pair<std::string, const ScalableTime<int>*> JobTimePair;
-      JobTimePair jobTime[] = {JobTimePair("TotalWallTime", &j->Resources.TotalWallTime),
-                               JobTimePair("TotalCPUTime", &j->Resources.TotalCPUTime)};
+      JobTimePair jobTime[] = {JobTimePair("IndividualWallTime", &j->Resources.IndividualWallTime),
+                               JobTimePair("IndividualCPUTime", &j->Resources.IndividualCPUTime)};
 
       int i = 0;
       for (; i < 4; i++) {
@@ -221,6 +221,31 @@ namespace Arc {
           }
           // Do not drop target if it does not publish attribute.
         }
+      }
+    }
+
+    if (j->Resources.TotalCPUTime.range.min != -1) {
+      if (t.ComputingShare->MaxTotalCPUTime.GetPeriod() != -1) {
+        if (t.ComputingShare->MaxTotalCPUTime.GetPeriod() < j->Resources.TotalCPUTime.range.min) {
+          logger.msg(VERBOSE, "Matchmaking, MaxTotalCPUTime problem, ExecutionTarget: %d (MaxTotalCPUTime), JobDescription: %d (TotalCPUTime)", t.ComputingShare->MaxTotalCPUTime.GetPeriod(), j->Resources.TotalCPUTime.range.min);
+          return false;
+        }
+      }
+      else {
+        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxTotalCPUTime is not defined", t.ComputingEndpoint->URLString);
+        return false;
+      }
+    }
+    else if (j->Resources.TotalCPUTime.range.max != -1) {
+      if (t.ComputingShare->MaxTotalCPUTime.GetPeriod() != -1) {
+        if (t.ComputingShare->MaxTotalCPUTime.GetPeriod() < j->Resources.TotalCPUTime.range.max) {
+          logger.msg(VERBOSE, "Matchmaking, MaxTotalCPUTime problem, ExecutionTarget: %d (MaxTotalCPUTime), JobDescription: %d (TotalCPUTime)", t.ComputingShare->MaxTotalCPUTime.GetPeriod(), j->Resources.TotalCPUTime.range.max);
+          return false;
+        }
+      }
+      else {
+        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxTotalCPUTime is not defined", t.ComputingEndpoint->URLString);
+        return false;
       }
     }
 

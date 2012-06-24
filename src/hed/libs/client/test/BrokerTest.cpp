@@ -101,44 +101,44 @@ void BrokerTest::CPUWallTimeTest() {
   b.set(job);
 
   etl.front().ComputingShare->MaxCPUTime = 100;
-  job.Resources.TotalCPUTime.range.max = 110;
+  job.Resources.IndividualCPUTime.range.max = 110;
   CPPUNIT_ASSERT(!b.match(etl.front()));
-  job.Resources.TotalCPUTime.range.max = 100; 
+  job.Resources.IndividualCPUTime.range.max = 100; 
   CPPUNIT_ASSERT(b.match(etl.front()));
-  job.Resources.TotalCPUTime.range.max = 90;
+  job.Resources.IndividualCPUTime.range.max = 90;
   CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ComputingShare->MaxCPUTime = -1;
-  job.Resources.TotalCPUTime.range.max = -1;
+  job.Resources.IndividualCPUTime.range.max = -1;
 
   etl.front().ComputingShare->MinCPUTime = 10;
-  job.Resources.TotalCPUTime.range.min = 5;
+  job.Resources.IndividualCPUTime.range.min = 5;
   CPPUNIT_ASSERT(!b.match(etl.front()));
-  job.Resources.TotalCPUTime.range.min = 10;
+  job.Resources.IndividualCPUTime.range.min = 10;
   CPPUNIT_ASSERT(b.match(etl.front()));
-  job.Resources.TotalCPUTime.range.min = 15;
+  job.Resources.IndividualCPUTime.range.min = 15;
   CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ComputingShare->MinCPUTime = -1;
-  job.Resources.TotalCPUTime.range.min = -1;
+  job.Resources.IndividualCPUTime.range.min = -1;
 
   etl.front().ComputingShare->MaxWallTime = 100;
-  job.Resources.TotalWallTime.range.max = 110;
+  job.Resources.IndividualWallTime.range.max = 110;
   CPPUNIT_ASSERT(!b.match(etl.front()));
-  job.Resources.TotalWallTime.range.max = 100;
+  job.Resources.IndividualWallTime.range.max = 100;
   CPPUNIT_ASSERT(b.match(etl.front()));
-  job.Resources.TotalWallTime.range.max = 90;
+  job.Resources.IndividualWallTime.range.max = 90;
   CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ComputingShare->MaxWallTime = -1;
-  job.Resources.TotalWallTime.range.max = -1;
+  job.Resources.IndividualWallTime.range.max = -1;
 
   etl.front().ComputingShare->MinWallTime = 10;
-  job.Resources.TotalWallTime.range.min = 5;
+  job.Resources.IndividualWallTime.range.min = 5;
   CPPUNIT_ASSERT(!b.match(etl.front()));
-  job.Resources.TotalWallTime.range.min = 10;
+  job.Resources.IndividualWallTime.range.min = 10;
   CPPUNIT_ASSERT(b.match(etl.front()));
-  job.Resources.TotalWallTime.range.min = 15;
+  job.Resources.IndividualWallTime.range.min = 15;
   CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ComputingShare->MinWallTime = -1;
-  job.Resources.TotalWallTime.range.min = -1;
+  job.Resources.IndividualWallTime.range.min = -1;
 }
 
 void BrokerTest::BenckmarkCPUWallTimeTest() {
@@ -148,63 +148,63 @@ void BrokerTest::BenckmarkCPUWallTimeTest() {
 
   (*etl.front().Benchmarks)["TestBenchmark"] = 100.;
 
-  job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("TestBenchmark", 50.);
+  job.Resources.IndividualCPUTime.benchmark = std::pair<std::string, double>("TestBenchmark", 50.);
   etl.front().ComputingShare->MaxCPUTime = 100;
-  job.Resources.TotalCPUTime.range.max = 210;
+  job.Resources.IndividualCPUTime.range.max = 210;
   CPPUNIT_ASSERT(!b.match(etl.front()));
-  job.Resources.TotalCPUTime.range.max = 200;
+  job.Resources.IndividualCPUTime.range.max = 200;
   CPPUNIT_ASSERT(b.match(etl.front()));
-  job.Resources.TotalCPUTime.range.max = 190;
+  job.Resources.IndividualCPUTime.range.max = 190;
   CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ComputingShare->MaxCPUTime = -1;
-  job.Resources.TotalCPUTime.range.max = -1;
+  job.Resources.IndividualCPUTime.range.max = -1;
 
   etl.front().ComputingShare->MinCPUTime = 10;
-  job.Resources.TotalCPUTime.range.min = 10;
+  job.Resources.IndividualCPUTime.range.min = 10;
   CPPUNIT_ASSERT(!b.match(etl.front()));
-  job.Resources.TotalCPUTime.range.min = 20;
+  job.Resources.IndividualCPUTime.range.min = 20;
   CPPUNIT_ASSERT(b.match(etl.front()));
-  job.Resources.TotalCPUTime.range.min = 30;
+  job.Resources.IndividualCPUTime.range.min = 30;
   CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ComputingShare->MinCPUTime = -1;
-  job.Resources.TotalCPUTime.range.min = -1;
-  job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("", -1.);
+  job.Resources.IndividualCPUTime.range.min = -1;
+  job.Resources.IndividualCPUTime.benchmark = std::pair<std::string, double>("", -1.);
 
-  job.Resources.TotalWallTime.benchmark = std::pair<std::string, double>("TestBenchmark", 50.);
+  job.Resources.IndividualWallTime.benchmark = std::pair<std::string, double>("TestBenchmark", 50.);
   etl.front().ComputingShare->MaxWallTime = 100;
-  job.Resources.TotalWallTime.range.max = 210;
+  job.Resources.IndividualWallTime.range.max = 210;
   CPPUNIT_ASSERT(!b.match(etl.front()));
-  job.Resources.TotalWallTime.range.max = 200;
+  job.Resources.IndividualWallTime.range.max = 200;
   CPPUNIT_ASSERT(b.match(etl.front()));
-  job.Resources.TotalWallTime.range.max = 190;
+  job.Resources.IndividualWallTime.range.max = 190;
   CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ComputingShare->MaxWallTime = -1;
-  job.Resources.TotalWallTime.range.max = -1;
+  job.Resources.IndividualWallTime.range.max = -1;
 
   etl.front().ComputingShare->MinWallTime = 10;
-  job.Resources.TotalWallTime.range.min = 10;
+  job.Resources.IndividualWallTime.range.min = 10;
   CPPUNIT_ASSERT(!b.match(etl.front()));
-  job.Resources.TotalWallTime.range.min = 20;
+  job.Resources.IndividualWallTime.range.min = 20;
   CPPUNIT_ASSERT(b.match(etl.front()));
-  job.Resources.TotalWallTime.range.min = 30;
+  job.Resources.IndividualWallTime.range.min = 30;
   CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ComputingShare->MinWallTime = -1;
-  job.Resources.TotalWallTime.range.min = -1;
-  job.Resources.TotalWallTime.benchmark = std::pair<std::string, double>("", -1.);
+  job.Resources.IndividualWallTime.range.min = -1;
+  job.Resources.IndividualWallTime.benchmark = std::pair<std::string, double>("", -1.);
 
   etl.front().ExecutionEnvironment->CPUClockSpeed = 2500;
-  job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("clock rate", 1000.);
+  job.Resources.IndividualCPUTime.benchmark = std::pair<std::string, double>("clock rate", 1000.);
   etl.front().ComputingShare->MaxCPUTime = 100;
-  job.Resources.TotalCPUTime.range.max = 300;
+  job.Resources.IndividualCPUTime.range.max = 300;
   CPPUNIT_ASSERT(!b.match(etl.front()));
-  job.Resources.TotalCPUTime.range.max = 250;
+  job.Resources.IndividualCPUTime.range.max = 250;
   CPPUNIT_ASSERT(b.match(etl.front()));
-  job.Resources.TotalCPUTime.range.max = 200;
+  job.Resources.IndividualCPUTime.range.max = 200;
   CPPUNIT_ASSERT(b.match(etl.front()));
   etl.front().ExecutionEnvironment->CPUClockSpeed = -1;
   etl.front().ComputingShare->MaxCPUTime = -1;
-  job.Resources.TotalCPUTime.range.max = -1;
-  job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("", -1.);
+  job.Resources.IndividualCPUTime.range.max = -1;
+  job.Resources.IndividualCPUTime.benchmark = std::pair<std::string, double>("", -1.);
 }
 
 void BrokerTest::RegresssionTestMultipleDifferentJobDescriptions() {
