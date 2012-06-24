@@ -1153,6 +1153,10 @@ namespace Arc {
       return true;
     }
 
+    if (protocol == "ldap" && str[0] == '/') { // For LDAP there is no starting slash (/)
+      str.erase(0, 1);
+    }
+
     return path == str;
   }
 
