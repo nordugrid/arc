@@ -118,7 +118,7 @@ readconfigvar() {
     bname="[$2]"
     vname=$3
     value=
-    cat "$fname" | grep -e '^\[' -e "^${vname}=" | {
+    cat "$fname" | sed -e 's/\r$//' -e 's/^\r//' | grep -e '^\[' -e "^${vname}=" | {
         while true; do
             read line
             if [ ! $? = 0 ] ; then
