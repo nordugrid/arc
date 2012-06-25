@@ -74,6 +74,10 @@ sub _parse($) {
 
     while (my $line =<$fh>) {
 
+        # handle runaway LF in CRLF and LFCR
+        $line =~ s/^\r//;
+        $line =~ s/\r$//;
+
         # skip comments and empty lines
         next if $line =~/^\s*;/;
         next if $line =~/^\s*#/;
