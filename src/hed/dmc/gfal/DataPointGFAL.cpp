@@ -206,33 +206,38 @@ namespace Arc {
     if (writing) return DataStatus::IsWritingError;
     writing = true;
 
-    // Create the parent directory
-    URL parent_url = URL(url.plainstr());
-    // For SRM the path can be given as SFN HTTP option
-    if ((url.Protocol() == "srm" && !url.HTTPOption("SFN").empty())) {
-      parent_url.AddHTTPOption("SFN", Glib::path_get_dirname(url.HTTPOption("SFN")), true);
-    } else {
-      parent_url.ChangePath(Glib::path_get_dirname(url.Path()));
-    }
-
-    int mkdir_res;
-    {
-      GFALEnvLocker gfal_lock(usercfg);
-      // gfal_mkdir is always recursive
-      mkdir_res = gfal_mkdir(parent_url.plainstr().c_str(), 0700);
-    }
-    if (mkdir_res < 0) logger.msg(DEBUG, "Failed to create parent directory, continuing anyway: %s", StrError(errno));
-
     {
       GFALEnvLocker gfal_lock(usercfg);
       // Open the file
       fd = gfal_open(url.plainstr().c_str(), O_WRONLY | O_CREAT, 0600);
     }
     if (fd < 0) {
-      logger.msg(ERROR, "gfal_open failed: %s", StrError(errno));
-      log_gfal_err();
-      writing = false;
-      return DataStatus::WriteStartError;
+      // If no entry try to create parent directories
+      if (errno == ENOENT) {
+        URL parent_url = URL(url.plainstr());
+        // For SRM the path can be given as SFN HTTP option
+        if ((url.Protocol() == "srm" && !url.HTTPOption("SFN").empty())) {
+          parent_url.AddHTTPOption("SFN", Glib::path_get_dirname(url.HTTPOption("SFN")), true);
+        } else {
+          parent_url.ChangePath(Glib::path_get_dirname(url.Path()));
+        }
+
+        {
+          GFALEnvLocker gfal_lock(usercfg);
+          // gfal_mkdir is always recursive
+          if (gfal_mkdir(parent_url.plainstr().c_str(), 0700) == 0) {
+            fd = gfal_open(url.plainstr().c_str(), O_WRONLY | O_CREAT, 0600);
+          } else {
+            logger.msg(ERROR, "Failed to create parent directories: ", StrError(errno));
+          }
+        }
+      }
+      if (fd < 0) {
+        logger.msg(ERROR, "gfal_open failed: %s", StrError(errno));
+        log_gfal_err();
+        writing = false;
+        return DataStatus::WriteStartError;
+      }
     }
     
     // Remember the DataBuffer we got, the separate writing thread will use it
