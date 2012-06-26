@@ -1161,8 +1161,8 @@ create_bdii_config_files () {
 	url=${CONFIG_url}
 	echo "$unique_id $url" > "$site_config"
       # LOOP END 
-      # Create script
-      printf "#!/bin/sh\n/$ARC_LOCATION/@pkgdatasubdir@/glite-info-provider-ldap -m \"$site_bdii\" -c $site_config\n" > $site_provider
+      # Create script and make glite provider use arc directories
+      printf "#!/bin/sh\nexport GLITE_LOCATION_VAR=${bdii_tmp_dir}\n/$ARC_LOCATION/@pkgdatasubdir@/glite-info-provider-ldap -m \"$site_bdii\" -c $site_config\n" > $site_provider
       chmod +x $site_provider
     done
 
