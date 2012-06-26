@@ -358,7 +358,7 @@ namespace Arc {
 
     // XMLNode AccessControl;
     if (bool(xmlApplication["AccessControl"]))
-      xmlApplication["AccessControl"][0].New(job.Application.AccessControl);
+      xmlApplication["AccessControl"].Child().New(job.Application.AccessControl);
 
     if (bool(xmlApplication["DryRun"]) && lower((std::string)xmlApplication["DryRun"]) == "yes") {
       job.Application.DryRun = true;

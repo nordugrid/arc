@@ -34,6 +34,7 @@ class XRSLParserTest
   CPPUNIT_TEST(TestJoin);
   CPPUNIT_TEST(TestDryRun);
   CPPUNIT_TEST(TestGridTime);
+  CPPUNIT_TEST(TestAccessControl);
   CPPUNIT_TEST(TestAdditionalAttributes);
   CPPUNIT_TEST(TestMultiRSL);
   CPPUNIT_TEST(TestDisjunctRSL);
@@ -60,6 +61,7 @@ public:
   void TestJoin();
   void TestDryRun();
   void TestGridTime();
+  void TestAccessControl();
   void TestAdditionalAttributes();
   void TestMultiRSL();
   void TestDisjunctRSL();
@@ -687,6 +689,42 @@ void XRSLParserTest::TestGridTime() {
   CPPUNIT_ASSERT_EQUAL(600, OUTJOBS.front().Resources.TotalCPUTime.range.max);
   CPPUNIT_ASSERT_EQUAL((std::string)"clock rate", OUTJOBS.front().Resources.TotalCPUTime.benchmark.first);
   CPPUNIT_ASSERT_EQUAL(2800., OUTJOBS.front().Resources.TotalCPUTime.benchmark.second);
+}
+
+void XRSLParserTest::TestAccessControl() {
+  xrsl = "&(executable=/bin/echo)"
+          "(acl='<?xml version=\"1.0\"?>"
+                 "<gacl version=\"0.0.1\">"
+                   "<entry>"
+                     "<any-user></any-user>"
+                     "<allow>"
+                       "<write/>"
+                       "<read/>"
+                       "<list/>"
+                       "<admin/>"
+                     "</allow>"
+                   "</entry>"
+                "</gacl>')";
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT(OUTJOBS.front().Application.AccessControl);
+  CPPUNIT_ASSERT_EQUAL((std::string)"gacl", OUTJOBS.front().Application.AccessControl.Name());
+  CPPUNIT_ASSERT_EQUAL(1, OUTJOBS.front().Application.AccessControl.Size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"entry", OUTJOBS.front().Application.AccessControl.Child().Name());
+  
+  std::string tempjobdesc;
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "nordugrid:xrsl"));
+  OUTJOBS.clear();
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT(OUTJOBS.front().Application.AccessControl);
+  CPPUNIT_ASSERT_EQUAL((std::string)"gacl", OUTJOBS.front().Application.AccessControl.Name());
+  CPPUNIT_ASSERT_EQUAL(1, OUTJOBS.front().Application.AccessControl.Size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"entry", OUTJOBS.front().Application.AccessControl.Child().Name());
 }
 
 void XRSLParserTest::TestAdditionalAttributes() {

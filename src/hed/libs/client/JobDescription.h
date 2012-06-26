@@ -214,6 +214,7 @@ namespace Arc {
       Priority (-1),
       DryRun(false)
       {}
+    ApplicationType& operator=(const ApplicationType&);
     /// Main executable to be run
     /**
      * The Executable object specifies the main executable which should be run

@@ -991,8 +991,13 @@ namespace Arc {
         std::string acl;
         if (!SingleValue(c, acl))
           return false;
-        XMLNode node(acl);
 
+        XMLNode node(acl);
+        if (!node) {
+          logger.msg(ERROR, "The value of the acl XRSL attribute isn't valid XML.");
+          return false;
+        }
+        
         node.New(j.Application.AccessControl);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
@@ -1634,7 +1639,7 @@ namespace Arc {
     if (j.Application.AccessControl) {
       RSLList *l = new RSLList;
       std::string acl;
-      j.Application.AccessControl.GetXML(acl, true);
+      j.Application.AccessControl.GetXML(acl, false);
       l->Add(new RSLLiteral(acl));
       r.Add(new RSLCondition("acl", RSLEqual, l));
     }

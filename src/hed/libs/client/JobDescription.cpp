@@ -47,6 +47,26 @@ namespace Arc {
     }
   }
 
+  ApplicationType& ApplicationType::operator=(const ApplicationType& at) {
+    Executable = at.Executable;
+    Input = at.Input;
+    Output = at.Output;
+    Error = at.Error;
+    Environment = at.Environment;
+    PreExecutable = at.PreExecutable;
+    PostExecutable = at.PostExecutable;
+    LogDir = at.LogDir;
+    RemoteLogging = at.RemoteLogging;
+    Rerun = at.Rerun;
+    ExpirationTime = at.ExpirationTime;
+    ProcessingStartTime = at.ProcessingStartTime;
+    Priority = at.Priority;
+    Notification = at.Notification;
+    CredentialService = at.CredentialService;
+    at.AccessControl.New(AccessControl);
+    DryRun = at.DryRun;
+  }
+
   ResourcesType& ResourcesType::operator=(const ResourcesType& rt) {
     OperatingSystem = rt.OperatingSystem;
     Platform = rt.Platform;

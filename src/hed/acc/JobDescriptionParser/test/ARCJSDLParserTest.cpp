@@ -27,6 +27,7 @@ class ARCJSDLParserTest
   CPPUNIT_TEST(TestURIOptionsOutput);
   CPPUNIT_TEST(TestQueue);
   CPPUNIT_TEST(TestDryRun);
+  CPPUNIT_TEST(TestAccessControl);
   CPPUNIT_TEST(TestBasicJSDLCompliance);
   CPPUNIT_TEST(TestPOSIXCompliance);
   CPPUNIT_TEST(TestHPCCompliance);
@@ -47,6 +48,7 @@ public:
   void TestURIOptionsOutput();
   void TestQueue();
   void TestDryRun();
+  void TestAccessControl();
   void TestBasicJSDLCompliance();
   void TestPOSIXCompliance();
   void TestHPCCompliance();
@@ -384,6 +386,52 @@ void ARCJSDLParserTest::TestDryRun() {
 
   CPPUNIT_ASSERT(!OUTJOBS.front().Application.DryRun);
   CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
+}
+
+void ARCJSDLParserTest::TestAccessControl() {
+  std::string jsdl = "<?xml version=\"1.0\"?>"
+"<JobDefinition xmlns=\"http://schemas.ggf.org/jsdl/2005/11/jsdl\">"
+"<JobDescription>"
+"<Application>"
+"<Executable>"
+"<Path>executable</Path>"
+"</Executable>"
+"<AccessControl>"
+"<gacl version=\"0.0.1\">"
+"<entry>"
+"<any-user></any-user>"
+"<allow>"
+"<write/>"
+"<read/>"
+"<list/>"
+"<admin/>"
+"</allow>"
+"</entry>"
+"</gacl>"
+"</AccessControl>"
+"</Application>"
+"</JobDescription>"
+"</JobDefinition>";
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(jsdl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT(OUTJOBS.front().Application.AccessControl);
+  CPPUNIT_ASSERT_EQUAL((std::string)"gacl", OUTJOBS.front().Application.AccessControl.Name());
+  CPPUNIT_ASSERT_EQUAL(1, OUTJOBS.front().Application.AccessControl.Size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"entry", OUTJOBS.front().Application.AccessControl.Child().Name());
+  
+  std::string tempjobdesc;
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "nordugrid:jsdl"));
+  OUTJOBS.clear();
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT(OUTJOBS.front().Application.AccessControl);
+  CPPUNIT_ASSERT_EQUAL((std::string)"gacl", OUTJOBS.front().Application.AccessControl.Name());
+  CPPUNIT_ASSERT_EQUAL(1, OUTJOBS.front().Application.AccessControl.Size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"entry", OUTJOBS.front().Application.AccessControl.Child().Name());
 }
 
 void ARCJSDLParserTest::TestBasicJSDLCompliance() {
