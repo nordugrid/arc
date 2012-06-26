@@ -155,6 +155,7 @@ namespace Arc {
                          initializeCredentialsType initializeCredentials,
                          bool loadSysConfig)
     : timeout(0), keySize(0), ok(false), initializeCredentials(initializeCredentials)  {
+    setDefaults();
     if (loadSysConfig) {
 #ifndef WIN32
       if (Glib::file_test(SYSCONFIG, Glib::FILE_TEST_IS_REGULAR)) {
@@ -202,8 +203,6 @@ namespace Arc {
     }
 
     ok = true;
-
-    setDefaults();
   }
 
   UserConfig::UserConfig(const std::string& conffile, const std::string& jfile,
@@ -211,6 +210,7 @@ namespace Arc {
     : timeout(0), keySize(0), ok(false), initializeCredentials(initializeCredentials)  {
     // If job list file have been specified, try to initialize it, and
     // if it fails then this object is non-valid (ok = false).
+    setDefaults();
     if (!jfile.empty() && !JobListFile(jfile))
       return;
 
@@ -266,8 +266,6 @@ namespace Arc {
     }
 
     ok = true;
-
-    setDefaults();
   }
 
   UserConfig::UserConfig(const long int& ptraddr) { *this = *((UserConfig*)ptraddr); }
@@ -697,8 +695,8 @@ namespace Arc {
             }
           }
           if (common["brokername"]) {
-            broker = std::make_pair<std::string, std::string>(ini["common"]["brokername"],
-                                                              ini["common"]["brokerarguments"] ? ini["common"]["brokerarguments"] : "");
+            broker = std::make_pair<std::string, std::string>(common["brokername"],
+                                                              common["brokerarguments"] ? common["brokerarguments"] : "");
             common["brokername"].Destroy();
             if (common["brokername"]) {
               logger.msg(WARNING, "Multiple %s attributes in configuration file (%s)", "brokername", conffile);
