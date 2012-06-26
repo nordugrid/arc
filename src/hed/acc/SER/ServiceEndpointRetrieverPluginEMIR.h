@@ -18,6 +18,7 @@ class ServiceEndpointRetrieverPluginEMIR : public ServiceEndpointRetrieverPlugin
 public:
   ServiceEndpointRetrieverPluginEMIR(PluginArgument* parg): ServiceEndpointRetrieverPlugin(parg) {
     supportedInterfaces.push_back("org.nordugrid.emir");
+    maxEntries = 5000;
   }
   ~ServiceEndpointRetrieverPluginEMIR() {}
 
@@ -30,6 +31,7 @@ public:
 
 private:
   static Logger logger;
+  int maxEntries;
 };
 
 } // namespace Arc

@@ -29,7 +29,7 @@ namespace Arc {
     return false;
   }
 
-  static URL CreateURL(std::string service) {
+  static URL CreateURL(std::string service, int entryPerMessage, int skipOffset) {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos) {
       service = "https://" + service;
@@ -38,9 +38,24 @@ namespace Arc {
       if((proto != "http") && (proto != "https")) return URL();
     }
     // Default port other than 443?
+    /* 
+     *  URL structure and response format: 
+     *    * in JSON: http[s]://<host_name>:<port>/services?limit=<nr_of_entries_per_message>[&skip=<offset>]
+     *
+     *    * in XML:  http[s]://<host_name>:<port>/services/query.xml?limit=<nr_of_entries_per_message>[&skip=<offset>]
+     */
     std::string::size_type pos3 = service.find("/", pos1 + 3);
     if (pos3 == std::string::npos || pos3 == service.size()-1) {
-      service += "/services/query.xml";
+      service += "/services/query.xml?limit=";
+      std::stringstream ss;
+      ss << entryPerMessage;
+      service += ss.str();
+      if (skipOffset > 0) {
+        service += "&skip=";
+        std::stringstream sskip;
+        sskip << skipOffset;
+        service += sskip.str();
+      }
     }
     return service;
   }
@@ -50,46 +65,57 @@ namespace Arc {
                                                                    std::list<Endpoint>& seList,
                                                                    const EndpointQueryOptions<Endpoint>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::STARTED);
-
-    URL url(CreateURL(rEndpoint.URLString));
-    if (!url) {
-      s = EndpointQueryingStatus::FAILED;
-      return s;
-    }
-
+    
+    int currentSkip = 0;
     MCCConfig cfg;
     uc.ApplyToConfig(cfg);
-    ClientHTTP httpclient(cfg, url);
-    httpclient.RelativeURI(true);
+    while (true) {
+      URL url(CreateURL(rEndpoint.URLString, maxEntries, currentSkip));
+      if (!url) {
+        s = EndpointQueryingStatus::FAILED;
+        return s;
+      }
+      // increment the starting point of the fetched DB 
+      currentSkip += maxEntries;
 
-    PayloadRaw http_request;
-    PayloadRawInterface *http_response = NULL;
-    HTTPClientInfo http_info;
+      ClientHTTP httpclient(cfg, url);
+      httpclient.RelativeURI(true);
 
-    // send query message to the EMIRegistry
-    MCC_Status status = httpclient.process("GET", &http_request, &http_info, &http_response);
+      PayloadRaw http_request;
+      PayloadRawInterface *http_response = NULL;
+      HTTPClientInfo http_info;
 
-    if (http_info.code != 200 || !status) {
-      s = EndpointQueryingStatus::FAILED;
-      return s;
-    }
+      // send query message to the EMIRegistry
+      MCC_Status status = httpclient.process("GET", &http_request, &http_info, &http_response);
 
-    XMLNode resp_xml(http_response->Content());
-    XMLNodeList services = resp_xml.Path("Service");
-    for (XMLNodeList::const_iterator it = services.begin(); it != services.end(); ++it) {
-      if (!(*it)["Endpoint"] || !(*it)["Endpoint"]["URL"]) {
-        continue;
+      if (http_info.code != 200 || !status) {
+        s = EndpointQueryingStatus::FAILED;
+        return s;
       }
 
-      Endpoint se((std::string)(*it)["Endpoint"]["URL"]);
-      for (XMLNode n = (*it)["Endpoint"]["Capability"]; n; ++n) {
-        se.Capability.push_back((std::string)n);
+      XMLNode resp_xml(http_response->Content());
+      XMLNodeList services = resp_xml.Path("Service");
+      if (services.empty()) {
+        break;        // exit from the infinite loop, don't get more information from the EMIR server
       }
-      se.InterfaceName = (std::string)(*it)["Endpoint"]["InterfaceName"];
+      for (XMLNodeList::const_iterator it = services.begin(); it != services.end(); ++it) {
+        if (!(*it)["Endpoint"] || !(*it)["Endpoint"]["URL"]) {
+          continue;
+        }
 
-      seList.push_back(se);
+        Endpoint se((std::string)(*it)["Endpoint"]["URL"]);
+        for (XMLNode n = (*it)["Endpoint"]["Capability"]; n; ++n) {
+          se.Capability.push_back((std::string)n);
+        }
+        se.InterfaceName = (std::string)(*it)["Endpoint"]["InterfaceName"];
+
+        seList.push_back(se);
+      }
+      logger.msg(VERBOSE, "Found %u execution services from the index service at %s", resp_xml.Size(), url.str());
+      if (http_response != NULL) {
+        delete http_response;
+      }
     }
-    logger.msg(VERBOSE, "Found %u execution services from the index service at %s", resp_xml.Size(), url.str());
 
     s = EndpointQueryingStatus::SUCCESSFUL;
     return s;
