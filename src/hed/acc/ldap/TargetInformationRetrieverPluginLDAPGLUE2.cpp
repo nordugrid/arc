@@ -198,6 +198,7 @@ namespace Arc {
 
     URL url(CreateURL(ce.URLString));
     url.ChangeLDAPScope(URL::subtree);
+    url.ChangeLDAPFilter("(!(objectClass=GLUE2Activity))");
 
     if (!url) {
       return s;
