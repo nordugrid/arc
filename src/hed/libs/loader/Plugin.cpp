@@ -6,6 +6,7 @@
 
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
+#include <arc/Utils.h>
 
 #include "Plugin.h"
 
@@ -28,10 +29,74 @@ namespace Arc {
     return false;
   }
 
-  static PluginDescriptor* find_constructor(PluginDescriptor* desc,const std::string& kind,int min_version,int max_version) {
+  bool PluginsFactory::modules_t_::add(ModuleDesc* m_i, Glib::Module* m_h, PluginDescriptor* d_h) {
+    if(!(this->find(m_i->name))) return false;
+    // TODO: too many copying - reduce
+    module_t_ module;
+    module.module = m_h;
+    unsigned int sane_count = 1024;
+    // Loop through plugins in module
+    for(PluginDescriptor* p = d_h;(p->kind) && (p->name) && (p->instance);++p) {
+      if(--sane_count == 0) break;
+      if(!issane(p->kind)) break;
+      if(!issane(p->name)) break;
+      if(!issane(p->description)) break;
+      // Find matching description and prepare object to store
+      descriptor_t_ d;
+      d.desc_m = p;
+      d.desc_i.name = p->name; d.desc_i.kind = p->kind; d.desc_i.version = p->version;
+      if(p->description) d.desc_i.description = p->description;
+      d.desc_i.priority = ARC_PLUGIN_DEFAULT_PRIORITY;
+      for(std::list<PluginDesc>::iterator pd = m_i->plugins.begin();
+                         pd != m_i->plugins.end();++pd) {
+        if((pd->name == d.desc_i.name) &&
+           (pd->kind == d.desc_i.kind) &&
+           (pd->version == d.desc_i.version)) {
+          d.desc_i = *pd; break;
+        };
+      };
+      // Store obtained description
+      module.plugins.push_back(d);
+    };
+    // Store new module
+    module_t_& module_r = ((*this)[m_i->name] = module);
+
+    // Add new descriptions to plugins list sorted by priority
+    for(std::list<descriptor_t_>::iterator p = module_r.plugins.begin();
+                             p != module_r.plugins.end(); ++p) {
+      // Find place
+      std::list< std::pair<descriptor_t_*,module_t_*> >::iterator pp = plugins_.begin();
+      for(; pp != plugins_.end(); ++pp) {
+        if((*p).desc_i.priority > (*pp).first->desc_i.priority) break;
+      };
+      plugins_.insert(pp,std::pair<descriptor_t_*,module_t_*>(&(*p),&module_r));
+    };
+    return true;
+  }
+
+  bool PluginsFactory::modules_t_::remove(PluginsFactory::modules_t_::miterator& module) {
+    // Remove links from descriptors/plugins list
+    for(std::list<descriptor_t_>::iterator p = module->second.plugins.begin();
+                             p != module->second.plugins.end(); ++p) {
+      // Find it
+      for(std::list< std::pair<descriptor_t_*,module_t_*> >::iterator pp = plugins_.begin();
+                               pp != plugins_.end(); ++pp) {
+        if((*pp).first == &(*p)) { // or compare by module?
+          plugins_.erase(pp); break;
+        };
+      };
+    };
+    // Remove module itself
+    this->erase(module);
+    module = PluginsFactory::modules_t_::miterator(*this,this->end());
+    return true;
+  }
+
+  static PluginDescriptor* find_constructor(PluginDescriptor* desc,const std::string& kind,int min_version,int max_version,int dsize = -1) {
     if(!desc) return NULL;
     unsigned int sane_count = 1024;
     for(;(desc->kind) && (desc->name) && (desc->instance);++desc) {
+      if(dsize == 0) break;
       if(--sane_count == 0) break;
       if(!issane(desc->kind)) break;
       if(!issane(desc->name)) break;
@@ -41,14 +106,16 @@ namespace Arc {
           if(desc->instance) return desc;
         };
       };
+      if(dsize >= 0) --dsize;
     };
     return NULL;
   }
 
-  static PluginDescriptor* find_constructor(PluginDescriptor* desc,const std::string& kind,const std::string& name,int min_version,int max_version) {
+  static PluginDescriptor* find_constructor(PluginDescriptor* desc,const std::string& kind,const std::string& name,int min_version,int max_version,int dsize = -1) {
     if(!desc) return NULL;
     unsigned int sane_count = 1024;
     for(;(desc->kind) && (desc->name) && (desc->instance);++desc) {
+      if(dsize == 0) break;
       if(--sane_count == 0) break;
       if(!issane(desc->kind)) break;
       if(!issane(desc->name)) break;
@@ -59,10 +126,13 @@ namespace Arc {
           if(desc->instance) return desc;
         };
       };
+      if(dsize >= 0) --dsize;
     };
     return NULL;
   }
 
+  // TODO: Merge with ModuleDesc and PluginDesc. That would reduce code size and
+  // make manipulation of *.apd files exposed through API.
   class ARCModuleDescriptor {
    private:
     bool valid;
@@ -72,10 +142,13 @@ namespace Arc {
       std::string kind;
       std::string description;
       uint32_t version;
+      uint32_t priority;
       bool valid;
       ARCPluginDescriptor(std::ifstream& in):valid(false) {
         if(!in) return;
         std::string line;
+        version = 0;
+        priority = ARC_PLUGIN_DEFAULT_PRIORITY;
         // Protect against insane line length?
         while(std::getline(in,line)) {
           line = trim(line);
@@ -100,6 +173,8 @@ namespace Arc {
             description = line;
           } else if(tag == "version") {
             if(!stringto(line,version)) return;
+          } else if(tag == "priority") {
+            if(!stringto(line,priority)) return;
           }
         }
         if(name.empty()) return;
@@ -155,6 +230,7 @@ namespace Arc {
         pd.kind = desc->kind;
         pd.description = desc->description;
         pd.version = desc->version;
+        pd.priority = desc->priority;
         descs.push_back(pd);
       };
     };
@@ -249,38 +325,28 @@ namespace Arc {
   Plugin* PluginsFactory::get_instance(const std::string& kind,int min_version,int max_version,PluginArgument* arg,bool search) {
     if(arg) arg->set_factory(this);
     Glib::Mutex::Lock lock(lock_);
-    descriptors_t_::iterator i = descriptors_.begin();
-    for(;i != descriptors_.end();++i) {
-      PluginDescriptor* desc = i->second;
-      for(;;) {
-        desc=find_constructor(desc,kind,min_version,max_version);
-        if(!desc) break;
-        if(arg) {
-          modules_t_::iterator m = modules_.find(i->first);
-          if(m != modules_.end()) {
-            arg->set_module(m->second);
-          } else {
-            arg->set_module(NULL);
-          };
-        };
-        lock.release();
-        Plugin* plugin = desc->instance(arg);
-        if(plugin) return plugin;
-        lock.acquire();
-        ++desc;
+
+    modules_t_::diterator d = modules_;
+    for(;d;++d) {
+      PluginDescriptor* desc = (*d).first->desc_m;
+      desc=find_constructor(desc,kind,min_version,max_version,1);
+      if(!desc) continue;
+      if(arg) {
+        arg->set_module((*d).second->module);
       };
+      lock.release();
+      Plugin* plugin = desc->instance(arg);
+      if(plugin) return plugin;
+      lock.acquire();
     };
+    
     if(!search) return NULL;
     // Try to load module of plugin
+    // Look for *.apd first
     std::string mname = kind;
-    ARCModuleDescriptor* mdesc = probe_descriptor(mname,*this);
+    AutoPointer<ARCModuleDescriptor> mdesc(probe_descriptor(mname,*this));
     if(mdesc) {
-      if(!mdesc->contains(kind)) {
-        delete mdesc;
-        return NULL;
-      };
-      delete mdesc;
-      mdesc = NULL;
+      if(!mdesc->contains(kind)) return NULL;
     };
     // Descriptor not found or indicates presence of requested kinds.
     if(!try_load_) {
@@ -317,10 +383,11 @@ namespace Arc {
           unload_module(module,*this);
           return NULL;
         };
-        descriptors_[mname]=(PluginDescriptor*)ptr;
-        modules_[mname]=nmodule;
-        //descriptors_.push_back((PluginDescriptor*)ptr);
-        //modules_.push_back(module);
+        ModuleDesc mdesc_i;
+        mdesc_i.name = mname;
+        if(mdesc) mdesc->get(mdesc_i.plugins);
+        // TODO: handle multiple records with same mname. Is it needed?
+        modules_.add(&mdesc_i,nmodule,(PluginDescriptor*)ptr);
         return plugin;
       };
       ++desc;
@@ -340,34 +407,29 @@ namespace Arc {
   Plugin* PluginsFactory::get_instance(const std::string& kind,const std::string& name,int min_version,int max_version,PluginArgument* arg,bool search) {
     if(arg) arg->set_factory(this);
     Glib::Mutex::Lock lock(lock_);
-    descriptors_t_::iterator i = descriptors_.begin();
-    for(;i != descriptors_.end();++i) {
-      PluginDescriptor* desc = find_constructor(i->second,kind,name,min_version,max_version);
+
+    modules_t_::diterator d = modules_;
+    for(;d;++d) {
+      PluginDescriptor* desc = (*d).first->desc_m;
+      desc=find_constructor(desc,kind,name,min_version,max_version,1);
+      if(!desc) continue;
       if(arg) {
-        modules_t_::iterator m = modules_.find(i->first);
-        if(m != modules_.end()) {
-          arg->set_module(m->second);
-        } else {
-          arg->set_module(NULL);
-        };
+        arg->set_module((*d).second->module);
       };
-      if(desc) {
-        lock.release();
-        return desc->instance(arg);
-      }
+      lock.release();
+      // If both name and kind are supplied no probing is done
+      return desc->instance(arg);
     };
+
     if(!search) return NULL;
     // Try to load module - first by name of plugin
     std::string mname = name;
-    ARCModuleDescriptor* mdesc = probe_descriptor(mname,*this);
+    AutoPointer<ARCModuleDescriptor> mdesc(probe_descriptor(mname,*this));
     if(mdesc) {
       if(!mdesc->contains(kind,name)) {
-        delete mdesc;
         logger.msg(ERROR, "Loadable module %s contains no requested plugin %s of kind %s",mname,name,kind);
         return NULL;
       };
-      delete mdesc;
-      mdesc = NULL;
     };
     // Descriptor not found or indicates presence of requested kinds.
     // Now try to load module directly
@@ -378,12 +440,9 @@ namespace Arc {
       mdesc = probe_descriptor(mname,*this);
       if(mdesc) {
         if(!mdesc->contains(kind,name)) {
-          delete mdesc;
           logger.msg(ERROR, "Loadable module %s contains no requested plugin %s of kind %s",mname,name,kind);
           return NULL;
         };
-        delete mdesc;
-        mdesc = NULL;
       };
       if(!try_load_) {
         logger.msg(ERROR, "Could not find loadable module descriptor by names %s and %s",name,kind);
@@ -412,10 +471,10 @@ namespace Arc {
         unload_module(module,*this);
         return NULL;
       };
-      descriptors_[mname]=(PluginDescriptor*)ptr;
-      modules_[mname]=nmodule;
-      //descriptors_.push_back((PluginDescriptor*)ptr);
-      //modules_.push_back(module);
+      ModuleDesc mdesc_i;
+      mdesc_i.name = mname;
+      if(mdesc) mdesc->get(mdesc_i.plugins);
+      modules_.add(&mdesc_i,nmodule,(PluginDescriptor*)ptr);
       if(arg) arg->set_module(nmodule);
       lock.release();
       return desc->instance(arg);
@@ -451,7 +510,7 @@ namespace Arc {
   bool PluginsFactory::load(const std::string& name,const std::list<std::string>& kinds,const std::list<std::string>& /* pnames */) {
     // In real use-case all combinations of kinds and pnames
     // have no sense. So normally if both are defined each contains
-    // only onr item.
+    // only one item.
     if(name.empty()) return false;
     Glib::Module* module = NULL;
     PluginDescriptor* desc = NULL;
@@ -459,23 +518,21 @@ namespace Arc {
     std::string mname;
     Glib::Mutex::Lock lock(lock_);
     // Check if module already loaded
-    descriptors_t_::iterator d = descriptors_.find(name);
-    if(d != descriptors_.end()) {
-      desc = d->second;
+    modules_t_::miterator m = modules_.find(name);
+    AutoPointer<ARCModuleDescriptor> mdesc;
+    if(m) {
+      desc = m->second.get_table();
       if(!desc) return false;
     } else {
       // Try to load module by specified name
       mname = name;
       // First try to find descriptor of module
-      ARCModuleDescriptor* mdesc = probe_descriptor(mname,*this);
+      mdesc = probe_descriptor(mname,*this);
       if(mdesc) {
         if(!mdesc->contains(kinds)) {
           //logger.msg(VERBOSE, "Module %s does not contain plugin(s) of specified kind(s)",mname);
-          delete mdesc;
           return false;
         };
-        delete mdesc;
-        mdesc = NULL;
       };
       if(!try_load_) {
         logger.msg(ERROR, "Could not find loadable module descriptor by name %s",name);
@@ -516,10 +573,10 @@ namespace Arc {
         unload_module(module,*this);
         return false;
       };
-      descriptors_[mname]=(PluginDescriptor*)ptr;
-      modules_[mname]=nmodule;
-      //descriptors_.push_back((PluginDescriptor*)ptr);
-      //modules_.push_back(module);
+      ModuleDesc mdesc_i;
+      mdesc_i.name = mname;
+      if(mdesc) mdesc->get(mdesc_i.plugins);
+      modules_.add(&mdesc_i,nmodule,(PluginDescriptor*)ptr);
     };
     return true;
   }
@@ -611,22 +668,16 @@ namespace Arc {
   }
 
   void PluginsFactory::report(std::list<ModuleDesc>& descs) {
-    for(descriptors_t_::iterator ds = descriptors_.begin();
-               ds != descriptors_.end(); ++ds) {
-      PluginDescriptor* d = ds->second;
-      if(!d) continue;
+    modules_t_::miterator m = modules_;
+    for(;m;++m) {
       ModuleDesc md;
-      md.name = ds->first;
-      for(;(d->kind) && (d->name) && (d->instance);++d) {
-        PluginDesc pd;
-        pd.name = d->name;
-        pd.kind = d->kind;
-        if(d->description) pd.description = d->description;
-        pd.version = d->version;
-        md.plugins.push_back(pd);
+      md.name = m->first;
+      for(std::list<descriptor_t_>::iterator d = m->second.plugins.begin();
+                        d != m->second.plugins.end();++m) {
+        md.plugins.push_back(d->desc_i);
       };
       descs.push_back(md);
-    }
+    };
   }
 
   void PluginsFactory::FilterByKind(const std::string& kind, std::list<ModuleDesc>& mdescs) {

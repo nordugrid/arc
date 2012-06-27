@@ -18,6 +18,8 @@
 
 namespace Arc {
 
+  #define ARC_PLUGIN_DEFAULT_PRIORITY (128)
+
   class PluginsFactory;
 
   /// Base class for passing arguments to loadable ARC components.
@@ -103,6 +105,8 @@ namespace Arc {
     std::string kind;
     std::string description;
     uint32_t version;
+    uint32_t priority;
+    PluginDesc(void):version(0),priority(ARC_PLUGIN_DEFAULT_PRIORITY) { };
   };
 
   /// Description of loadable module
@@ -116,20 +120,79 @@ namespace Arc {
   /// Generic ARC plugins loader
   /** The instance of this class provides functionality
      of loading pluggable ARC components stored in shared
-     libraries. For more information please check HED
-     documentation.
-     This class is thread-safe - its methods are proceted from
-     simultatneous use form multiple threads. Current thread
+     libraries. It also makes use of Arc Plugin Description
+     (*.apd) files which contain textual plugin identfiers. 
+     Specifically it uses 'priority' attribute to sort
+     plugin description in internal lists. Please note
+     that priority affects order in which plugins tried 
+     in get_instance(...) methods. But it only works
+     for plugins which were already loaded by previous 
+     calls to load(...) and get_instance(...) methods.
+     For plugins discovered inside get_instance priority
+     in not effective.
+     For more information please check ARC HED documentation.
+     This class is thread-safe - its methods are protected from
+     simultatneous use from multiple threads. Current thread
      protection implementation is suboptimal and will be revised
      in future. */
   class PluginsFactory: public ModuleManager {
     friend class PluginArgument;
     private:
       Glib::Mutex lock_;
-      typedef std::map<std::string,PluginDescriptor*> descriptors_t_;
-      typedef std::map<std::string,Glib::Module*> modules_t_;
-      descriptors_t_ descriptors_;
+
+      // Combined convenient description of module and 
+      // its representation inside module.
+      class descriptor_t_ {
+       public:
+        PluginDesc desc_i;
+        PluginDescriptor* desc_m;
+      };
+
+      class module_t_ {
+       public:
+        // Handle of loaded module
+        Glib::Module* module;
+        // List of contained plugins. First one is also
+        // pointer to plugins table.
+        std::list<descriptor_t_> plugins;
+        PluginDescriptor* get_table(void) { return plugins.empty()?NULL:(plugins.front().desc_m); };
+      };
+
+      //typedef std::map<std::string,module_t_> modules_t_;
+      // Container for all loaded modules and their plugins
+      class modules_t_: public std::map<std::string,module_t_> {
+       public:
+        // convenience iterator for modules
+        class miterator: public std::map<std::string,module_t_>::iterator {
+         private:
+          std::map<std::string,module_t_>* ref_;
+         public:
+          miterator(std::map<std::string,module_t_>& ref, std::map<std::string,module_t_>::iterator iter):std::map<std::string,module_t_>::iterator(iter),ref_(&ref) { };
+          operator bool(void) const { return (std::map<std::string,module_t_>::iterator&)(*this) != ref_->end(); };
+          bool operator!(void) const { !(bool)(*this); };
+        }; // class miterator
+        // iterator for accessing plugins by priority
+        class diterator: public std::list< std::pair<descriptor_t_*,module_t_*> >::iterator {
+         private:
+          std::list< std::pair<descriptor_t_*,module_t_*> >* ref_;
+         public:
+          diterator(std::list< std::pair<descriptor_t_*,module_t_*> >& ref, std::list< std::pair<descriptor_t_*,module_t_*> >::iterator iter):std::list< std::pair<descriptor_t_*,module_t_*> >::iterator(iter),ref_(&ref) { };
+          operator bool(void) const { return (std::list< std::pair<descriptor_t_*,module_t_*> >::iterator&)(*this) != ref_->end(); };
+          bool operator!(void) const { !(bool)(*this); };
+        }; // class diterator
+        operator miterator(void) { return miterator(*this,this->begin()); };
+        miterator find(const std::string& name) { return miterator(*this,((std::map<std::string,module_t_>*)this)->find(name)); };
+        operator diterator(void) { return diterator(plugins_,plugins_.begin()); };
+        bool add(ModuleDesc* m_i, Glib::Module* m_h, PluginDescriptor* d_h);
+        bool remove(miterator& module);
+       private:
+        // Plugins sorted by priority
+        std::list< std::pair<descriptor_t_*,module_t_*> > plugins_;
+        // TODO: potentially other sortings like by kind can be useful.
+      };
+
       modules_t_ modules_;
+
       bool try_load_;
       static Logger logger;
       bool load(const std::string& name,const std::list<std::string>& kinds,const std::list<std::string>& pnames);
@@ -137,6 +200,12 @@ namespace Arc {
       /** Constructor - accepts  configuration (not yet used) meant to
         tune loading of modules. */
       PluginsFactory(XMLNode cfg);
+      /** Specifies if loadable module may be loaded while looking
+         for analyzing its content. If set to false only *.apd
+         files are checked. Modules without corresponding *.apd
+         will be ignored. Default is true; */
+      void TryLoad(bool v) { try_load_ = v; };
+      bool TryLoad(void) { return try_load_; };
       /** These methods load module named lib'name', locate plugin
          constructor functions of specified 'kind' and 'name' (if specified)
          and call it. Supplied argument affects way plugin instance is created
@@ -149,12 +218,6 @@ namespace Arc {
          loadable modules. Only plugins already loaded with previous calls to
          get_instance() and load() are checked.
          Returns created instance or NULL if failed. */
-      /** Specifies if loadable module may be loaded while looking
-         for analyzing its content. If set to false only *.apd
-         files are checked. Modules without corresponding *.apd
-         will be ignored. Default is true; */
-      void TryLoad(bool v) { try_load_ = v; };
-      bool TryLoad(void) { return try_load_; };
       Plugin* get_instance(const std::string& kind,PluginArgument* arg,bool search = true);
       Plugin* get_instance(const std::string& kind,int version,PluginArgument* arg,bool search = true);
       Plugin* get_instance(const std::string& kind,int min_version,int max_version,PluginArgument* arg,bool search = true);
