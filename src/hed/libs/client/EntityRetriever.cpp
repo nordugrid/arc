@@ -261,7 +261,7 @@ namespace Arc {
         if (!plugin) {
           // Should not happen since all available plugins was already loaded in the constructor.
           // Problem loading the plugin, skip it
-          logger.msg(DEBUG, "Problem loading plugin %s, skipping it..", *it);
+          logger.msg(DEBUG, "Problem loading plugin %s, skipping it.", *it);
           continue;
         }
         if (plugin->isEndpointNotSupported(a->endpoint)) {

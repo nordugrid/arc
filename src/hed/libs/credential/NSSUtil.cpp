@@ -150,7 +150,7 @@ namespace AuthN {
     else { //raw data
       num = PR_Write(outfile, data.data, data.len);
       if (num != (PRInt32) data.len) {
-        NSSUtilLogger.msg(ERROR, "Error writing raw cert");
+        NSSUtilLogger.msg(ERROR, "Error writing raw certificate");
         rv = SECFailure;
       }
       rv = SECSuccess;
@@ -231,28 +231,28 @@ namespace AuthN {
     tag_anylang = SECOID_AddEntry(&oids[1]);
     if (tag_anylang == SEC_OID_UNKNOWN) {
       rv = SECFailure;
-      NSSUtilLogger.msg(ERROR, "Failed to add any language OID");
+      NSSUtilLogger.msg(ERROR, "Failed to add anyLanguage OID");
     }
     else {
-      NSSUtilLogger.msg(DEBUG, "Succeeded to add any language OID, tag %d is returned", tag_anylang);
+      NSSUtilLogger.msg(DEBUG, "Succeeded to add anyLanguage OID, tag %d is returned", tag_anylang);
     }
 
     tag_inheritall = SECOID_AddEntry(&oids[2]);
     if (tag_inheritall == SEC_OID_UNKNOWN) {
       rv = SECFailure;
-      NSSUtilLogger.msg(ERROR, "Failed to add inhertitall OID");
+      NSSUtilLogger.msg(ERROR, "Failed to add inheritAll OID");
     }
     else {
-      NSSUtilLogger.msg(DEBUG, "Succeeded to add inheritall OID, tag %d is returned", tag_inheritall);
+      NSSUtilLogger.msg(DEBUG, "Succeeded to add inheritAll OID, tag %d is returned", tag_inheritall);
     }
 
     tag_independent = SECOID_AddEntry(&oids[3]);
     if (tag_independent == SEC_OID_UNKNOWN) {
       rv = SECFailure;
-      NSSUtilLogger.msg(ERROR, "Failed to add independent OID");
+      NSSUtilLogger.msg(ERROR, "Failed to add Independent OID");
     }
     else {
-      NSSUtilLogger.msg(DEBUG, "Succeeded to add any language OID, tag %d is returned", tag_independent);
+      NSSUtilLogger.msg(DEBUG, "Succeeded to add anyLanguage OID, tag %d is returned", tag_independent);
     }
     return rv;
   }
@@ -276,7 +276,7 @@ namespace AuthN {
     }
     if (NSS_SetDomesticPolicy() != SECSuccess ){
       NSS_Shutdown();
-      NSSUtilLogger.msg(ERROR, "NSS set domestic policy failed %s on certificate database %s", nss_error().c_str(), configdir.c_str());
+      NSSUtilLogger.msg(ERROR, "NSS set domestic policy failed (%s) on certificate database %s", nss_error().c_str(), configdir.c_str());
       return false;
     }
 
@@ -444,7 +444,7 @@ namespace AuthN {
 
     if(!p12cxt->file) {
       p12cxt->error = PR_TRUE;
-      NSSUtilLogger.msg(ERROR, "Faile to open pk12 file");
+      NSSUtilLogger.msg(ERROR, "Failed to open pk12 file");
       return PR_FALSE;
     }
 
@@ -1192,7 +1192,7 @@ loser:
 
     certlist_tmp = FindCertChain(cert);
     if(!certlist_tmp) {
-      NSSUtilLogger.msg(ERROR, "Failed to find issuer cert for proxy cert"); goto err;
+      NSSUtilLogger.msg(ERROR, "Failed to find issuer certificate for proxy certificate"); goto err;
     }
     certlist = RevertChain(certlist_tmp);
 /*
@@ -1332,12 +1332,12 @@ loser:
 
     certlist = PK11_FindCertsFromNickname(certname.c_str(), slotpw);
     if(!certlist) {
-      NSSUtilLogger.msg(ERROR, "Failed to find certs by nickname: %s", certname.c_str());
+      NSSUtilLogger.msg(ERROR, "Failed to find certificates by nickname: %s", certname.c_str());
       return false;
     }
 
     if((SECSuccess != CERT_FilterCertListForUserCerts(certlist)) || CERT_LIST_EMPTY(certlist)) {
-      NSSUtilLogger.msg(ERROR, "There is no user cert in the found by nick name %s", certname.c_str());
+      NSSUtilLogger.msg(ERROR, "No user certificate by nickname %s found", certname.c_str());
       return false;
     }
 
@@ -1357,7 +1357,7 @@ loser:
       //certificate to create the context. This is for keygen
     }
     if(!slot) {
-      NSSUtilLogger.msg(ERROR, "Cert does not have a slot");
+      NSSUtilLogger.msg(ERROR, "Certificate does not have a slot");
       goto err;
     }
 
@@ -1377,7 +1377,7 @@ loser:
     for(node = CERT_LIST_HEAD(certlist); !CERT_LIST_END(node,certlist); node = CERT_LIST_NEXT(node)) {
       CERTCertificate* cert = node->cert;
       if(!cert->slot) {
-        NSSUtilLogger.msg(ERROR, "Cert does not have a slot");
+        NSSUtilLogger.msg(ERROR, "Certificate does not have a slot");
         goto err;
       }
 
@@ -1390,7 +1390,7 @@ loser:
       }
 
       if(!certSafe || !keySafe) {
-        NSSUtilLogger.msg(ERROR, "Failed to create key or cert safe");
+        NSSUtilLogger.msg(ERROR, "Failed to create key or certificate safe");
         goto err;
       }
 
@@ -1406,7 +1406,7 @@ loser:
                 CERT_GetDefaultCertDB(), keySafe, NULL, !pwitem ? PR_FALSE : PR_TRUE, pwitem,
                 SEC_OID_PKCS12_V2_PBE_WITH_SHA1_AND_3KEY_TRIPLE_DES_CBC)
                 != SECSuccess) {
-        NSSUtilLogger.msg(ERROR, "Failed to add cert and key");
+        NSSUtilLogger.msg(ERROR, "Failed to add certificate and key");
         goto err;
       }
     }
@@ -1415,7 +1415,7 @@ loser:
 
     p12cxt = p12u_InitFile(PR_FALSE, outfile);
     if(!p12cxt) {
-      NSSUtilLogger.msg(ERROR, "Failed to initialization pkcs12 file: %s", outfile);
+      NSSUtilLogger.msg(ERROR, "Failed to initialize pkcs12 file: %s", outfile);
       goto err;
     }
     if(SEC_PKCS12Encode(p12ecx, p12u_WriteToExportFile, p12cxt)
@@ -1423,7 +1423,7 @@ loser:
       NSSUtilLogger.msg(ERROR, "Failed to encode PKCS12");
       goto err;
     }
-    NSSUtilLogger.msg(INFO, "Succeded to export PKCS12");
+    NSSUtilLogger.msg(INFO, "Succeeded to export PKCS12");
 
     p12u_DestroyExportFileInfo(&p12cxt, PR_FALSE);
     if(pwitem) SECITEM_ZfreeItem(pwitem, PR_TRUE);
@@ -1451,7 +1451,7 @@ err:
     handle = CERT_GetDefaultCertDB();
     cert = CERT_FindCertByNicknameOrEmailAddr(handle, certname);
     if(!cert) {
-      NSSUtilLogger.msg(INFO, "There is no certificate named %s found, the cert could be removed when generating CSR", certname);
+      NSSUtilLogger.msg(INFO, "There is no certificate named %s found, the certificate could be removed when generating CSR", certname);
       return SECSuccess;
     }
     rv = SEC_DeletePermCertificate(cert);
@@ -1483,7 +1483,7 @@ err:
  
     list = PK11_ListPrivKeysInSlot(slot, (char *)privkeyname, (void*)passwd);
     if(list == NULL) {
-      NSSUtilLogger.msg(INFO, "There is no private with nick name %s exists in nss db", privkeyname);
+      NSSUtilLogger.msg(INFO, "No private key with nickname %s exist in NSS database", privkeyname);
       return SECFailure;
     }
 
@@ -1516,7 +1516,7 @@ err:
         //Delete the private key and the cert related
         rv = PK11_DeleteTokenCertAndKey(cert, (void*)passwd);
         if(rv != SECSuccess) {
-          NSSUtilLogger.msg(ERROR, "Failed to delete private key and cert");
+          NSSUtilLogger.msg(ERROR, "Failed to delete private key and certificate");
           CERT_DestroyCertificate(cert); continue;
         }
         CERT_DestroyCertificate(cert);
@@ -1571,7 +1571,7 @@ err:
     }
     rv = PK11_DeleteTokenCertAndKey(cert, (void*)passwd);
     if(rv != SECSuccess) {
-      NSSUtilLogger.msg(ERROR, "Failed to delete private key that attaches to cert: %s", certname);
+      NSSUtilLogger.msg(ERROR, "Failed to delete private key that attaches to certificate: %s", certname);
     }
     CERT_DestroyCertificate(cert);
     PK11_FreeSlot(slot);
@@ -1645,7 +1645,7 @@ err:
     BIO_write(key, str.c_str(), str.length());
 
     p8info = d2i_PKCS8_PRIV_KEY_INFO_bio(key, NULL);
-    if(p8info == NULL) { NSSUtilLogger.msg(ERROR, "Failed to load privkey"); return false; }
+    if(p8info == NULL) { NSSUtilLogger.msg(ERROR, "Failed to load private key"); return false; }
     else NSSUtilLogger.msg(INFO, "Succeeded to load PrivateKeyInfo");
     if(p8info) {
       pkey = EVP_PKCS82PKEY(p8info);
@@ -1814,20 +1814,20 @@ err:
     CERT_DestroyCertificateRequest(req);
     if (encoding == NULL){
       PORT_FreeArena (arena, PR_FALSE);
-      NSSUtilLogger.msg(ERROR, "Failed to encode the cert request with DER format");
+      NSSUtilLogger.msg(ERROR, "Failed to encode the certificate request with DER format");
       return false;
     }
     //Sign the cert request
     signAlgTag = SEC_GetSignatureAlgorithmOidTag(privkey->keyType, SEC_OID_UNKNOWN);
     if (signAlgTag == SEC_OID_UNKNOWN) {
       PORT_FreeArena (arena, PR_FALSE);
-      NSSUtilLogger.msg(ERROR, "Unknow key or hash type");
+      NSSUtilLogger.msg(ERROR, "Unknown key or hash type");
       return false;
     }
     rv = SEC_DerSignData(arena, &result, encoding->data, encoding->len, privkey, signAlgTag);
     if(rv) {
       PORT_FreeArena (arena, PR_FALSE);
-      NSSUtilLogger.msg(ERROR, "Failed to sign the cert request");
+      NSSUtilLogger.msg(ERROR, "Failed to sign the certificate request");
       return false;
     }
   
@@ -1843,7 +1843,7 @@ err:
       PORT_Free(buf);
       if(num != len) {
         PORT_FreeArena (arena, PR_FALSE);
-        NSSUtilLogger.msg(ERROR, "Failed to output the cert req as ascii format");
+        NSSUtilLogger.msg(ERROR, "Failed to output the certificate request as ASCII format");
         return false;
       }
       PR_fprintf(out, "\n%s\n", NS_CERTREQ_TRAILER);
@@ -1852,7 +1852,7 @@ err:
       int num = PR_Write(out, result.data, result.len);
       if(num != (int)result.len) {
         PORT_FreeArena (arena, PR_FALSE);
-        NSSUtilLogger.msg(ERROR,"Failed to output the cert req as raw format");
+        NSSUtilLogger.msg(ERROR,"Failed to output the certificate request as RAW format");
         return false;
       }
     }
@@ -1861,7 +1861,7 @@ err:
     if (privkey) {
         SECKEY_DestroyPrivateKey(privkey);
     }
-    NSSUtilLogger.msg(INFO, "Succeeded to output the cert req into %s", outfile.c_str());
+    NSSUtilLogger.msg(INFO, "Succeeded to output the certificate request into %s", outfile.c_str());
     return true;
   }
 
@@ -1927,7 +1927,7 @@ err:
       // Convert to binary
       rv = ATOB_ConvertAsciiToItem(der, body);
       if(rv) {
-        NSSUtilLogger.msg(ERROR, "Failed to convert ascii to binary");
+        NSSUtilLogger.msg(ERROR, "Failed to convert ASCII to binary");
         PORT_Free(filedata.data);
         return SECFailure;
       }
@@ -1978,7 +1978,7 @@ err:
       SECITEM_FreeItem(&req_der, PR_FALSE);
 
     if (rv) {
-      NSSUtilLogger.msg(ERROR, "Certificate Request is invalid");
+      NSSUtilLogger.msg(ERROR, "Certificate request is invalid");
       if (arena) {
         PORT_FreeArena(arena, PR_FALSE);
       }
@@ -2209,10 +2209,10 @@ err:
       }
       proxy_certinfo->arena = arena;
       if((pathlen != 0) && (SEC_ASN1EncodeInteger(arena, &proxy_certinfo->pathlength, pathlen) == NULL)) {
-        NSSUtilLogger.msg(ERROR, "Failed to create pathlen"); goto error;
+        NSSUtilLogger.msg(ERROR, "Failed to create path length"); goto error;
       }
       if (oid == NULL || SECITEM_CopyItem(arena, &proxy_certinfo->proxypolicy.policylanguage, &oid->oid) == SECFailure) {
-        NSSUtilLogger.msg(ERROR, "Failed to create policy lang"); goto error;       
+        NSSUtilLogger.msg(ERROR, "Failed to create policy language"); goto error;       
       }
       proxy_certinfo->proxypolicy.policy.len = PORT_Strlen(policy);
       proxy_certinfo->proxypolicy.policy.data = (unsigned char*)PORT_ArenaStrdup(arena, policy);
@@ -2235,10 +2235,10 @@ err:
       }
       proxy_certinfo->arena = arena;
       if((pathlen != -1) && (SEC_ASN1EncodeInteger(arena, &proxy_certinfo->pathlength, pathlen) == NULL)) {
-        NSSUtilLogger.msg(ERROR, "Failed to create pathlen"); goto error;
+        NSSUtilLogger.msg(ERROR, "Failed to create path length"); goto error;
       }
       if (oid == NULL || SECITEM_CopyItem(arena, &proxy_certinfo->proxypolicy.policylanguage, &oid->oid) == SECFailure) {
-        NSSUtilLogger.msg(ERROR, "Failed to create policy lang"); goto error;
+        NSSUtilLogger.msg(ERROR, "Failed to create policy language"); goto error;
       }
 
       rv = SECU_EncodeAndAddExtensionValue(arena, extHandle, proxy_certinfo, PR_TRUE, tag_proxy,
@@ -2259,7 +2259,7 @@ err:
       }
       proxy_certinfo->arena = arena;
       if (oid == NULL || SECITEM_CopyItem(arena, &proxy_certinfo->proxypolicy.policylanguage, &oid->oid) == SECFailure) {
-        NSSUtilLogger.msg(ERROR, "Failed to create policy lang"); goto error;
+        NSSUtilLogger.msg(ERROR, "Failed to create policy language"); goto error;
       }
       proxy_certinfo->proxypolicy.policy.len = PORT_Strlen(policy);
       proxy_certinfo->proxypolicy.policy.data = (unsigned char*)PORT_ArenaStrdup(arena, policy);
@@ -2282,7 +2282,7 @@ err:
       }
       proxy_certinfo->arena = arena;
       if (oid == NULL || SECITEM_CopyItem(arena, &proxy_certinfo->proxypolicy.policylanguage, &oid->oid) == SECFailure) {
-        NSSUtilLogger.msg(ERROR, "Failed to create policy lang"); goto error;
+        NSSUtilLogger.msg(ERROR, "Failed to create policy language"); goto error;
       }
 
       rv = SECU_EncodeAndAddExtensionValue(arena, extHandle, proxy_certinfo, PR_TRUE, tag_proxy,
@@ -2506,11 +2506,11 @@ my_CERT_CreateCertificate(unsigned long serialNumber,
     //Extensions
     ext_handle = CERT_StartCertExtensions (cert);
     if (ext_handle == NULL) {
-      NSSUtilLogger.msg(ERROR, "Failed to start cert extension");
+      NSSUtilLogger.msg(ERROR, "Failed to start certificate extension");
       goto error;
     }
     if(AddProxyCertInfoExtension(ext_handle, pathlen, policylang, policy) != SECSuccess) {
-      NSSUtilLogger.msg(ERROR, "Failed to add proxy cert info extension");
+      NSSUtilLogger.msg(ERROR, "Failed to add proxy certificate information extension");
       goto error;
     }
     if(req->attributes != NULL &&
@@ -2542,7 +2542,7 @@ my_CERT_CreateCertificate(unsigned long serialNumber,
 
     rv = SECOID_SetAlgorithmID(arena, &cert->signature, tag_sigalg, 0);
     if(rv != SECSuccess) {
-      NSSUtilLogger.msg(ERROR, "Failed to set signature algorithm id");
+      NSSUtilLogger.msg(ERROR, "Failed to set signature algorithm ID");
       goto error;
     }
 
@@ -2614,7 +2614,7 @@ error:
 
     in = PR_Open(certfile.c_str(), PR_RDONLY, 0);
     if(in == NULL) { 
-      NSSUtilLogger.msg(ERROR, "Failed to open input cert file %s", certfile.c_str());
+      NSSUtilLogger.msg(ERROR, "Failed to open input certificate file %s", certfile.c_str());
       if(slot) PK11_FreeSlot(slot);
       return false;
     }
@@ -2644,7 +2644,7 @@ error:
       //Create a cert trust
       trust = (CERTCertTrust *)PORT_ZAlloc(sizeof(CERTCertTrust));
       if(!trust) {
-        NSSUtilLogger.msg(ERROR, "Failed to allocate cert trust");
+        NSSUtilLogger.msg(ERROR, "Failed to allocate certificate trust");
         rv = SECFailure; break;
       }
       rv = CERT_DecodeTrustString(trust, (char*)trusts);

@@ -185,7 +185,7 @@ namespace Arc {
     }
     std::string id = cn.Attribute("id");
     if(id.empty()) {
-      logger.msg(ERROR, "Component has no id attribute defined");
+      logger.msg(ERROR, "Component has no ID attribute defined");
       return NULL;
     }
     MCCPluginArgument arg(&cfg_,context_);
@@ -224,7 +224,7 @@ namespace Arc {
         if(!cnn) break;
         std::string nid = cnn.Attribute("id");
         if(nid.empty()) {
-          logger.msg(ERROR, "Component's %s(%s) next has no id "
+          logger.msg(ERROR, "Component's %s(%s) next has no ID "
                             "attribute defined", name, id);
           if(plugin) delete plugin;
           if(oldmcc) {
@@ -296,7 +296,7 @@ namespace Arc {
           if(!cnn) break;
           std::string nid = cnn.Attribute("id");
           if(nid.empty()) {
-            logger.msg(ERROR, "Plexer's (%s) next has no id "
+            logger.msg(ERROR, "Plexer's (%s) next has no ID "
                  "attribute defined", id);
             success = false;
             continue;
@@ -312,13 +312,13 @@ namespace Arc {
       if(MatchXMLName(cn, "Service")) {
         std::string name = cn.Attribute("name");
         if(name.empty()) {
-          logger.msg(ERROR, "Service has no name attribute defined");
+          logger.msg(ERROR, "Service has no Name attribute defined");
           success = false;
           continue;
         }
         std::string id = cn.Attribute("id");
         if(id.empty()) {
-          logger.msg(ERROR, "Service has no id attribute defined");
+          logger.msg(ERROR, "Service has no ID attribute defined");
           success = false;
           continue;
         }

@@ -133,7 +133,7 @@ Evaluator* EvaluatorLoader::getEvaluator(const std::string& classname) {
   //It should be the caller to free the object
   eval = (Evaluator*)(classloader->Instance(classname, &node, "__arc_evaluator_modules__"));
 
-  if(!eval) logger.msg(Arc::ERROR, "Can not load arc evaluator object: %s",classname); 
+  if(!eval) logger.msg(Arc::ERROR, "Can not load ARC evaluator object: %s",classname);
   return eval;
 }
 
@@ -184,7 +184,7 @@ Request* EvaluatorLoader::getRequest(const std::string& classname, const Source&
     req = (Request*)(classloader->Instance(classname, &reqnode, "__arc_request_modules__"));
   }
   
-  if(!req) logger.msg(Arc::ERROR, "Can not load arc request object: %s",classname); 
+  if(!req) logger.msg(Arc::ERROR, "Can not load ARC request object: %s",classname);
   return req;
 }
 
