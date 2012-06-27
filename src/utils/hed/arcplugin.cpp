@@ -11,6 +11,19 @@
 
 #include <arc/loader/Plugin.h>
 #include <arc/StringConv.h>
+#include <arc/ArcRegex.h>
+
+
+std::list< std::pair<Arc::RegularExpression,uint32_t> > priorities_map;
+
+static uint32_t map_priority(const std::string& str1, const std::string& str2) {
+  for(std::list< std::pair<Arc::RegularExpression,uint32_t> >::iterator p = priorities_map.begin();
+                         p != priorities_map.end(); ++p) {
+    if(p->first.match(str1) || p->first.match(str2)) return p->second;
+  }
+  return ARC_PLUGIN_DEFAULT_PRIORITY;
+}
+
 
 static std::string encode_for_var(uint32_t v) {
     return "\"" + Arc::tostring(v) + "\"";
@@ -94,12 +107,14 @@ static bool process_module(const std::string& plugin_filename, bool create_apd) 
         if(desc->kind == NULL) break;
         if(desc->instance == NULL) break;
         if(create_apd) {
+            uint32_t priority = map_priority(desc->name, desc->kind);
             apd << "name=" << encode_for_var(desc->name) << std::endl;
             apd << "kind=" << encode_for_var(desc->kind) << std::endl;
             if (desc->description != NULL) {
               apd << "description=" << encode_for_var(desc->description) << std::endl;
             }
             apd << "version=" << encode_for_var(desc->version) << std::endl;
+            apd << "priority=" << encode_for_var(priority) <<  std::endl;
             apd << std::endl; // end of description mark
         } else {
             std::cout << "name: " << desc->name << std::endl;
@@ -137,11 +152,36 @@ int main(int argc, char **argv)
             --argc; ++argv;
         } else if(strcmp(argv[1],"-r") == 0) {
             recursive = true;
-        } if (strcmp(argv[1],"-h") == 0) {
-            std::cout << "arcplugin [-c] [-r] [-h] plugin_path [plugin_path [...]]" << std::endl;
+            --argc; ++argv;
+        } else if(strcmp(argv[1],"-p") == 0) {
+            if(argc <= 2) {
+                std::cerr << "Missing option for -p" << std::endl;
+                return -1;
+            }
+            uint32_t priority;
+            std::string option = argv[2];
+            std::string::size_type comma = option.find(',');
+            if(comma == std::string::npos) {
+                std::cerr << "Missing , in -p option" << std::endl;
+                return -1;
+            }
+            if(!Arc::stringto(option.substr(0,comma),priority)) {
+                std::cerr << "Can't parse prority number " << option.substr(0,comma) << std::endl;
+                return -1;
+            }
+std::cerr<<"+++ "<<priority<<" - '"<<option.substr(comma+1)<<"'"<<std::endl;
+            priorities_map.push_back(std::pair<Arc::RegularExpression,uint32_t>(Arc::RegularExpression(option.substr(comma+1)),priority));
+            --argc; ++argv;
+            --argc; ++argv;
+        } else if (strcmp(argv[1],"-h") == 0) {
+            std::cout << "arcplugin [-c] [-r] [-p priority,regex] [-h] plugin_path [plugin_path [...]]" << std::endl;
             std::cout << "  -c If specified then APD file is created using same name" << std::endl;
             std::cout << "     as ARC plugin with suffix replaced with .apd." << std::endl;
             std::cout << "  -r If specified operation is fully recursive." << std::endl;
+            std::cout << "  -p Defines which priority to be assigned for each plugin." << std::endl;
+            std::cout << "     Each plugin's kind and name attributes are matched" << std::endl;
+            std::cout << "     specified regex. One which matches gets specified" << std::endl;
+            std::cout << "     This option can be specified multiple times." << std::endl;
             std::cout << "  -h prints this help and exits." << std::endl;
             std::cout << "  plugin_path is full path to ARC plugin loadable module" << std::endl;
             std::cout << "     file or directory containing such modules." << std::endl;
