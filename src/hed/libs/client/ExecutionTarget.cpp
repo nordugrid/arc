@@ -144,16 +144,16 @@ namespace Arc {
   void ExecutionTarget::SaveToStream(std::ostream& out, bool longlist) const {
 
     out << IString("Execution Target on Computing Service: %s", (!ComputingService->Name.empty() ? ComputingService->Name : ComputingService->Cluster.Host())) << std::endl;
-    if (!ComputingService->OriginalEndpoint.URLString.empty()) {
-      out << IString(" URL: %s", ComputingService->OriginalEndpoint.URLString) << std::endl;
-    } else if (ComputingService->Cluster) {
+    if (ComputingService->Cluster) {
       std::string formattedURL = ComputingService->Cluster.str();
       formattedURL.erase(std::remove(formattedURL.begin(), formattedURL.end(), ' '), formattedURL.end()); // Remove spaces.
       std::string::size_type pos = formattedURL.find("?"); // Do not output characters after the '?' character.
-      out << IString(" URL: %s", formattedURL.substr(0, pos)) << std::endl;
+      out << IString(" Local information system URL: %s", formattedURL.substr(0, pos)) << std::endl;
     }
+    if (!ComputingEndpoint->URLString.empty())
+      out << IString(" Computing endpoint URL: %s", ComputingEndpoint->URLString) << std::endl;
     if (!ComputingEndpoint->InterfaceName.empty())
-      out << IString(" Interface name: %s", ComputingEndpoint->InterfaceName) << std::endl;
+      out << IString(" Submission interface name: %s", ComputingEndpoint->InterfaceName) << std::endl;
     if (!ComputingShare->Name.empty()) {
        out << IString(" Queue: %s", ComputingShare->Name) << std::endl;
     }
