@@ -58,9 +58,7 @@ namespace Arc {
   private:
     T *object;
     void operator=(const AutoPointer<T>&) {}
-    void operator=(T*) {}
-    AutoPointer(const AutoPointer&)
-      : object(NULL) {}
+    AutoPointer(const AutoPointer&) : object(NULL) {}
   public:
     /// NULL pointer constructor
     AutoPointer(void)
@@ -70,8 +68,11 @@ namespace Arc {
       : object(o) {}
     /// Destructor destroys wrapped object using delete()
     ~AutoPointer(void) {
-      if (object)
-        delete object;
+      if (object) delete object;
+    }
+    void operator=(T* o) {
+      if (object) delete object;
+      object = o; 
     }
     /// For refering wrapped object
     T& operator*(void) const {
@@ -93,7 +94,7 @@ namespace Arc {
     T* Ptr(void) const {
       return object;
     }
-    /// Release refred object so that it can be passed to other container
+    /// Release refered object so that it can be passed to other container
     T* Release(void) {
       T* tmp = object;
       object = NULL;
