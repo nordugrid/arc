@@ -123,8 +123,8 @@ sub get_lrms_info($) {
         $queue->{mincputime}  = int 60*$queue->{mincputime}  if $queue->{mincputime};
         $queue->{maxwalltime} = int 60*$queue->{maxwalltime} if $queue->{maxwalltime};
         $queue->{maxcputime}  = int 60*$queue->{maxcputime}  if $queue->{maxcputime};
-        $queue->{defaultwalltime} = int 60*$queue->{defaultwalltime} if $queue->{defaultwalltime};
-        $queue->{defaultcputime}  = int 60*$queue->{defaultcputime}  if $queue->{defaultcputime};
+        $queue->{defaultwallt} = int 60*$queue->{defaultwallt} if $queue->{defaultwallt};
+        $queue->{defaultcput}  = int 60*$queue->{defaultcput}  if $queue->{defaultcput};
     }
 
     for my $job (values %{$lrms_info->{jobs}}) {
