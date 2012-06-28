@@ -596,11 +596,24 @@ sub queue_info ($$) {
 	    # $singledqueue check has been added for routing queue support,
 	    # also the destination queue is checked to calculate totalcpus
             # also adds correct behaviour for queue_node_string
-	    if ( ! defined $hoh_pbsnodes{$node}{'properties'} || 
-		 ($hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$qname(,[^,]+)*$/ ||
-		  $hoh_pbsnodes{$node}{"properties"} =~ m/^([^,]+,)*$$config{dedicated_node_string}(,[^,]+)*$/ ||
-		  $hoh_pbsnodes{$node}{"properties"} =~ m/^([^,]+,)*$$config{queue_node_string}(,[^,]+)*$/ ||
-		  ( defined $singledqueue && $hoh_pbsnodes{$node}{"properties"} =~ m/^([^,]+,)*$singledqueue(,[^,]+)*$/) ) ){
+	    if (
+	      ( ! defined $hoh_pbsnodes{$node}{'properties'}
+	      ) || (
+	        (   
+		    defined $qname &&
+		    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$qname(,[^,]+)*$/
+	        ) || (
+		    defined $$config{dedicated_node_string} &&
+		    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$$config{dedicated_node_string}(,[^,]+)*$/
+	        ) || (
+		    defined $$config{queue_node_string} &&
+		    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$$config{queue_node_string}(,[^,]+)*$/
+	        ) || (
+		    defined $singledqueue &&
+		    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$singledqueue(,[^,]+)*$/
+	        )
+	      )
+	    ) {
 		my $cpus;
 
 		next if $hoh_pbsnodes{$node}{'state'} =~ m/offline/;
