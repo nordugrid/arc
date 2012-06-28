@@ -224,28 +224,25 @@ namespace Arc {
       }
     }
 
-    if (j->Resources.TotalCPUTime.range.min != -1) {
-      if (t.ComputingShare->MaxTotalCPUTime.GetPeriod() != -1) {
-        if (t.ComputingShare->MaxTotalCPUTime.GetPeriod() < j->Resources.TotalCPUTime.range.min) {
-          logger.msg(VERBOSE, "Matchmaking, MaxTotalCPUTime problem, ExecutionTarget: %d (MaxTotalCPUTime), JobDescription: %d (TotalCPUTime)", t.ComputingShare->MaxTotalCPUTime.GetPeriod(), j->Resources.TotalCPUTime.range.min);
-          return false;
+    {
+      const int totalcputime = (j->Resources.TotalCPUTime.range.min > 0 ? j->Resources.TotalCPUTime.range.min : j->Resources.TotalCPUTime.range.max);
+      if (totalcputime != -1) {
+        if (t.ComputingShare->MaxTotalCPUTime.GetPeriod() != -1) {
+          if (t.ComputingShare->MaxTotalCPUTime.GetPeriod() < j->Resources.TotalCPUTime.range.min) {
+            logger.msg(VERBOSE, "Matchmaking, MaxTotalCPUTime problem, ExecutionTarget: %d (MaxTotalCPUTime), JobDescription: %d (TotalCPUTime)", t.ComputingShare->MaxTotalCPUTime.GetPeriod(), totalcputime);
+            return false;
+          }
         }
-      }
-      else {
-        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxTotalCPUTime is not defined", t.ComputingEndpoint->URLString);
-        return false;
-      }
-    }
-    else if (j->Resources.TotalCPUTime.range.max != -1) {
-      if (t.ComputingShare->MaxTotalCPUTime.GetPeriod() != -1) {
-        if (t.ComputingShare->MaxTotalCPUTime.GetPeriod() < j->Resources.TotalCPUTime.range.max) {
-          logger.msg(VERBOSE, "Matchmaking, MaxTotalCPUTime problem, ExecutionTarget: %d (MaxTotalCPUTime), JobDescription: %d (TotalCPUTime)", t.ComputingShare->MaxTotalCPUTime.GetPeriod(), j->Resources.TotalCPUTime.range.max);
-          return false;
+        else if (t.ComputingShare->MaxCPUTime.GetPeriod() != -1) {
+          const int slots = (j->Resources.SlotRequirement.SlotsPerHost > 0 ? j->Resources.SlotRequirement.SlotsPerHost : 1);
+          if (t.ComputingShare->MaxCPUTime.GetPeriod() < totalcputime/slots) {
+            logger.msg(VERBOSE, "Matchmaking, MaxTotalCPUTime problem, ExecutionTarget: %d (MaxCPUTime), JobDescription: %d (TotalCPUTime/SlotsPerHost)", t.ComputingShare->MaxTotalCPUTime.GetPeriod(), totalcputime/slots);
+            return false;
+          }
         }
-      }
-      else {
-        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxTotalCPUTime is not defined", t.ComputingEndpoint->URLString);
-        return false;
+        else {
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxTotalCPUTime or MaxCPUTime not defined, assuming no CPU time limit", t.ComputingEndpoint->URLString);
+        }
       }
     }
 
