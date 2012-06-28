@@ -109,9 +109,8 @@ namespace Arc {
     buffer = &buf;
     // StopReading will wait for this condition,
     // which will be signalled by the separate reading thread
-    transfer_condition.reset();
     // Create the separate reading thread
-    if (!CreateThreadFunction(&DataPointGFAL::read_file_start, this)) {
+    if (!CreateThreadFunction(&DataPointGFAL::read_file_start, this, &transfer_condition)) {
       logger.msg(ERROR, "Failed to create reading thread");
       if (fd != -1) {
         if (gfal_close(fd) < 0) {
@@ -172,8 +171,6 @@ namespace Arc {
       }
       fd = -1;
     }
-    // Signal that we finished reading (even if there was an error)
-    transfer_condition.signal();
   }
   
   DataStatus DataPointGFAL::StopReading() {
@@ -244,9 +241,8 @@ namespace Arc {
     buffer = &buf;
     // StopWriting will wait for this condition,
     // which will be signalled by the separate writing thread
-    transfer_condition.reset();
     // Create the separate writing thread
-    if (!CreateThreadFunction(&DataPointGFAL::write_file_start, this)) {
+    if (!CreateThreadFunction(&DataPointGFAL::write_file_start, this, &transfer_condition)) {
       logger.msg(ERROR, "Failed to create writing thread");
       if (fd != -1) {
         if (gfal_close(fd) < 0) {
@@ -323,8 +319,6 @@ namespace Arc {
       }
       fd = -1;
     }
-    // Signal that we finished writing (even if there was an error)
-    transfer_condition.signal();
   }
     
   DataStatus DataPointGFAL::StopWriting() {

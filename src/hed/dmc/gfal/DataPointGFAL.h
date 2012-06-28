@@ -48,7 +48,7 @@ namespace Arc {
     int fd;
     bool reading;
     bool writing;
-    SimpleCondition transfer_condition;
+    SimpleCounter transfer_condition;
   };
 
 } // namespace Arc
