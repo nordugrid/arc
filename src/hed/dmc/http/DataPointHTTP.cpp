@@ -9,6 +9,7 @@
 #include <stdint.h>
 #endif
 #include <unistd.h>
+#include <map>
 
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
@@ -619,6 +620,26 @@ namespace Arc {
     if(!r) return DataStatus::DeleteError;
     release_client(url,client.Release());
     if ((info.code != 200) && (info.code != 202) && (info.code != 204)) return DataStatus::DeleteError;
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointHTTP::Rename(const URL& destination) {
+    AutoPointer<ClientHTTP> client(acquire_client(url));
+    PayloadRaw request;
+    PayloadRawInterface *inbuf = NULL;
+    HTTPClientInfo info;
+    std::multimap<std::string, std::string> attributes;
+    attributes.insert(std::pair<std::string, std::string>("Destination", url.ConnectionURL() + destination.FullPathURIEncoded()));
+    MCC_Status r = client->process("MOVE", url.FullPathURIEncoded(),
+                                   attributes, &request, &info, &inbuf);
+    if (inbuf) delete inbuf;
+    if(!r) return DataStatus::RenameError;
+    release_client(url,client.Release());
+    if ((info.code != 201) && (info.code != 204)) { 
+      std::stringstream desc;
+      desc << info.code << " " << info.reason;
+      return DataStatus(DataStatus::RenameError, desc.str());
+    }
     return DataStatus::Success;
   }
 

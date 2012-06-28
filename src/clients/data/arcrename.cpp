@@ -73,7 +73,11 @@ bool arcrename(const Arc::URL& old_url,
   // Do the renaming
   Arc::DataStatus res = url->Rename(new_url);
   if (!res.Passed()) {
-    logger.msg(Arc::ERROR, "Rename failed: %s", std::string(res));
+    if (res.GetDesc().empty()) {
+      logger.msg(Arc::ERROR, "Rename failed: %s", std::string(res));
+    } else {
+      logger.msg(Arc::ERROR, "Rename failed: %s (%s)", std::string(res), res.GetDesc());
+    }
     if (res.Retryable())
       logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
     return false;
