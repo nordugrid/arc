@@ -117,6 +117,19 @@ sub set_cpucount {
     delete $job->{"Resource_List.ncpus"};
 }
 
+# Convert time from [DD:[HH:[MM:]]]SS to minutes
+sub count_time {
+    my $pbs_time = shift;
+    # split and reverse PBS time to start from seconds, then drop seconds
+    my @t = reverse split /:/, $pbs_time;
+    shift @t;
+
+    my $minutes = $t[0];
+    $minutes += $t[1]*60 if defined $t[1];
+    $minutes += $t[2]*60*24 if defined $t[2];
+    return $minutes;
+}
+
 sub count_usedcpus {
     my ($select, $nodes, $ncpus) = @_;
     return sum_over_chunks(\&cpus_in_select_chunk, $select) if defined $select;
@@ -519,8 +532,7 @@ sub queue_info ($$) {
 
     foreach my $k (keys %keywords) {
 	if ( defined $qstat{$k} ) {
-	    my @time=split(":",$qstat{$k});
-	    $lrms_queue{$keywords{$k}} = ($time[0]*60+$time[1]+($k eq 'resources_min.cput'?1:0));
+	    $lrms_queue{$keywords{$k}} = (&count_time($qstat{$k})+($k eq 'resources_min.cput'?1:0));
 	} else {
 	    $lrms_queue{$keywords{$k}} = "";
 	}
@@ -731,8 +743,7 @@ sub jobs_info ($$@) {
 		}
 	    }
 	} elsif ( defined $tkeywords{$k} ) {
-	    my ( @t ) = split ':',$v;
-	    $lrms_jobs{$jid}{$tkeywords{$k}} = $t[0]*60+$t[1];
+	    $lrms_jobs{$jid}{$tkeywords{$k}} = &count_time($v);
 	} elsif ( defined $nkeywords{$k} ) {
 	    $lrms_jobs{$jid}{$k} = $v;
 	} elsif ( $k eq 'exec_host' ) {
@@ -1000,9 +1011,7 @@ sub users_info($$@) {
 		    last;
 		}
 		if ($line =~ /(\d+).+available for\s+([\w:]+)/) {
-		    my @tmp= reverse split /:/, $2;
-		    my $minutes=$tmp[1] + 60*$tmp[2] + 24*60*$tmp[3];
-		    $maui_freecpus .= " ".$1.":".$minutes;
+		    $maui_freecpus .= " ".$1.":".&count_time($2,1);
 		}
 		if ($line =~ /(\d+).+available with no timelimit/) {  	    
 		    $maui_freecpus.= " ".$1;
