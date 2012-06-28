@@ -118,7 +118,7 @@ namespace AuthN {
       free(text);
     } 
     else
-      ret.append("unavailable nss error");
+      ret.append("unknown NSS error");
     return ret;
   }
 
@@ -1415,7 +1415,7 @@ loser:
 
     p12cxt = p12u_InitFile(PR_FALSE, outfile);
     if(!p12cxt) {
-      NSSUtilLogger.msg(ERROR, "Failed to initialize pkcs12 file: %s", outfile);
+      NSSUtilLogger.msg(ERROR, "Failed to initialize PKCS12 file: %s", outfile);
       goto err;
     }
     if(SEC_PKCS12Encode(p12ecx, p12u_WriteToExportFile, p12cxt)
@@ -1852,7 +1852,7 @@ err:
       int num = PR_Write(out, result.data, result.len);
       if(num != (int)result.len) {
         PORT_FreeArena (arena, PR_FALSE);
-        NSSUtilLogger.msg(ERROR,"Failed to output the certificate request as RAW format");
+        NSSUtilLogger.msg(ERROR,"Failed to output the certificate request as DER`` format");
         return false;
       }
     }
@@ -1927,7 +1927,7 @@ err:
       // Convert to binary
       rv = ATOB_ConvertAsciiToItem(der, body);
       if(rv) {
-        NSSUtilLogger.msg(ERROR, "Failed to convert ASCII to binary");
+        NSSUtilLogger.msg(ERROR, "Failed to convert ASCII to DER");
         PORT_Free(filedata.data);
         return SECFailure;
       }
