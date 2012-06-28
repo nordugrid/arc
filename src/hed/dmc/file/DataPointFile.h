@@ -36,7 +36,7 @@ namespace Arc {
     virtual DataStatus Rename(const URL& newurl);
     virtual bool WriteOutOfOrder();
   private:
-    SimpleCondition transfer_cond;
+    SimpleCounter transfers_started;
     unsigned int get_channel();
     static void read_file_start(void* arg);
     static void write_file_start(void* arg);

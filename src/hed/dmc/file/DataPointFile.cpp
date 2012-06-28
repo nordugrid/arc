@@ -181,7 +181,6 @@ namespace Arc {
     if(fd != -1) close(fd);
     if(fa) fa->fa_close();
     buffer->eof_read(true);
-    transfer_cond.signal();
   }
 
   void DataPointFile::write_file_start(void* arg) {
@@ -343,7 +342,6 @@ namespace Arc {
         if(*cksum) (*cksum)->end();
       }
     }
-    transfer_cond.signal();
   }
 
   DataStatus DataPointFile::Check() {
@@ -582,9 +580,8 @@ namespace Arc {
       }
     }
     buffer = &buf;
-    transfer_cond.reset();
     /* create thread to maintain reading */
-    if(!CreateThreadFunction(&DataPointFile::read_file_start,this)) {
+    if(!CreateThreadFunction(&DataPointFile::read_file_start,this,&transfers_started)) {
       if(fd != -1) close(fd);
       if(fa) { fa->fa_close(); delete fa; }
       fd = -1; fa = NULL;
@@ -601,11 +598,11 @@ namespace Arc {
     if (!buffer->eof_read()) {
       buffer->error_read(true);      /* trigger transfer error */
       if(fd != -1) close(fd);
-      if(fa) fa->fa_close();
+      if(fa) fa->fa_close(); // protect?
       fd = -1;
     }
     // buffer->wait_eof_read();
-    transfer_cond.wait();         /* wait till reading thread exited */
+    transfers_started.wait();         /* wait till reading thread exited */
     delete fa; fa = NULL;
     if (buffer->error_read()) return DataStatus::ReadError;
     return DataStatus::Success;
@@ -754,9 +751,8 @@ namespace Arc {
     }
     buffer->speed.reset();
     buffer->speed.hold(false);
-    transfer_cond.reset();
     /* create thread to maintain writing */
-    if(!CreateThreadFunction(&DataPointFile::write_file_start,this)) {
+    if(!CreateThreadFunction(&DataPointFile::write_file_start,this,&transfers_started)) {
       if(fd != -1) close(fd); fd = -1;
       if(fa) fa->fa_close(); delete fa; fa = NULL;
       buffer->error_write(true);
@@ -777,7 +773,7 @@ namespace Arc {
       fd = -1;
     }
     // buffer->wait_eof_write();
-    transfer_cond.wait();         /* wait till writing thread exited */
+    transfers_started.wait();         /* wait till writing thread exited */
 
     // clean up if transfer failed for any reason
     if (buffer->error()) {
