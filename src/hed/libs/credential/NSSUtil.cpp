@@ -1852,7 +1852,7 @@ err:
       int num = PR_Write(out, result.data, result.len);
       if(num != (int)result.len) {
         PORT_FreeArena (arena, PR_FALSE);
-        NSSUtilLogger.msg(ERROR,"Failed to output the certificate request as DER`` format");
+        NSSUtilLogger.msg(ERROR,"Failed to output the certificate request as DER format");
         return false;
       }
     }
