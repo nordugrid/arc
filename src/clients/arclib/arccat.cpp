@@ -81,7 +81,10 @@ int RUNMAIN(arccat)(int argc, char **argv) {
     return 1;
   }
 
-  std::list<std::string> selectedURLs = getSelectedURLsFromUserConfigAndCommandLine(usercfg, opt.clusters);
+  std::list<std::string> selectedURLs;
+  if (!opt.clusters.empty()) {
+    selectedURLs = getSelectedURLsFromUserConfigAndCommandLine(usercfg, opt.clusters);
+  }
   std::list<std::string> rejectManagementURLs = getRejectManagementURLsFromUserConfigAndCommandLine(usercfg, opt.rejectmanagement);
 
   std::list<Arc::Job> jobs;

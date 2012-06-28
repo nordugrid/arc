@@ -75,7 +75,10 @@ int RUNMAIN(arcresume)(int argc, char **argv) {
     return 1;
   }
 
-  std::list<std::string> selectedURLs = getSelectedURLsFromUserConfigAndCommandLine(usercfg, opt.clusters);
+  std::list<std::string> selectedURLs;
+  if (!opt.clusters.empty()) {
+    selectedURLs = getSelectedURLsFromUserConfigAndCommandLine(usercfg, opt.clusters);
+  }
   std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
 
   std::list<Arc::Job> jobs;
