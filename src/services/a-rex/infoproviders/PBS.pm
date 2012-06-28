@@ -122,11 +122,18 @@ sub count_time {
     my $pbs_time = shift;
     # split and reverse PBS time to start from seconds, then drop seconds
     my @t = reverse split /:/, $pbs_time;
-    shift @t;
+    my $minutes = 0;
 
-    my $minutes = $t[0];
-    $minutes += $t[1]*60 if defined $t[1];
-    $minutes += $t[2]*60*24 if defined $t[2];
+    if ( ! defined $t[1] ) {
+        # PBS seconds only case
+        $minutes = int( $t[0] / 60 );
+    } else {
+        # drop seconds
+        shift @t;
+        $minutes = $t[0];
+        $minutes += $t[1]*60 if defined $t[1];
+        $minutes += $t[2]*60*24 if defined $t[2];
+    }
     return $minutes;
 }
 
@@ -1011,7 +1018,7 @@ sub users_info($$@) {
 		    last;
 		}
 		if ($line =~ /(\d+).+available for\s+([\w:]+)/) {
-		    $maui_freecpus .= " ".$1.":".&count_time($2,1);
+		    $maui_freecpus .= " ".$1.":".&count_time($2);
 		}
 		if ($line =~ /(\d+).+available with no timelimit/) {  	    
 		    $maui_freecpus.= " ".$1;
