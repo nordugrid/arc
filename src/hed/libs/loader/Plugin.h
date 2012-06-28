@@ -169,7 +169,7 @@ namespace Arc {
          public:
           miterator(std::map<std::string,module_t_>& ref, std::map<std::string,module_t_>::iterator iter):std::map<std::string,module_t_>::iterator(iter),ref_(&ref) { };
           operator bool(void) const { return (std::map<std::string,module_t_>::iterator&)(*this) != ref_->end(); };
-          bool operator!(void) const { return !(bool)(*this); };
+          bool operator!(void) const { !(bool)(*this); };
         }; // class miterator
         // iterator for accessing plugins by priority
         class diterator: public std::list< std::pair<descriptor_t_*,module_t_*> >::iterator {
@@ -178,7 +178,7 @@ namespace Arc {
          public:
           diterator(std::list< std::pair<descriptor_t_*,module_t_*> >& ref, std::list< std::pair<descriptor_t_*,module_t_*> >::iterator iter):std::list< std::pair<descriptor_t_*,module_t_*> >::iterator(iter),ref_(&ref) { };
           operator bool(void) const { return (std::list< std::pair<descriptor_t_*,module_t_*> >::iterator&)(*this) != ref_->end(); };
-          bool operator!(void) const { return !(bool)(*this); };
+          bool operator!(void) const { !(bool)(*this); };
         }; // class diterator
         operator miterator(void) { return miterator(*this,this->begin()); };
         miterator find(const std::string& name) { return miterator(*this,((std::map<std::string,module_t_>*)this)->find(name)); };
