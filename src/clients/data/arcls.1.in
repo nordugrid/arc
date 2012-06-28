@@ -20,7 +20,7 @@ catalogues.
 
 .IP "\fB-l\fR, \fB--long\fR"
 long format (like ls -l). The name of the object is followed by
-these elements: filetype of  object,  size  in  bytes,  creation  time,
+these elements: filetype of  object,  size  in  bytes,  modification  time,
 validity  time,  checksum  and  (if  the  protocol  supports it) access
 latency (ONLINE or NEARLINE).
 

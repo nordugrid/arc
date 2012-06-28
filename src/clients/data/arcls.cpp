@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <list>
+#include <math.h>
 
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
@@ -21,6 +22,96 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcls");
 
+
+void print_urls(const Arc::FileInfo& file) {
+  for (std::list<Arc::URL>::const_iterator u = file.GetURLs().begin();
+       u != file.GetURLs().end(); u++)
+    std::cout << "\t" << *u << std::endl;
+}
+
+void print_meta(const Arc::FileInfo& file) {
+  std::map<std::string, std::string> md = file.GetMetaData();
+  for (std::map<std::string, std::string>::iterator mi = md.begin(); mi != md.end(); ++mi)
+    std::cout<<mi->first<<":"<<mi->second<<std::endl;
+}
+
+// formatted output of details when long list is requested
+void print_details(const std::list<Arc::FileInfo>& files, bool show_urls, bool show_meta) {
+
+  if (files.empty()) return;
+
+  unsigned int namewidth = 0;
+  unsigned int sizewidth = 0;
+  unsigned int csumwidth = 0;
+
+  // find longest length of each field to align the output
+  for (std::list<Arc::FileInfo>::const_iterator i = files.begin();
+      i != files.end(); i++) {
+    if (i->GetName().length() > namewidth) namewidth = i->GetName().length();
+    if (i->CheckSize() && i->GetSize() > 0 && // log(0) not good!
+        (unsigned int)(log10(i->GetSize()))+1 > sizewidth) sizewidth = (unsigned int)(log10(i->GetSize()))+1;
+    if (i->CheckCheckSum() && i->GetCheckSum().length() > csumwidth) csumwidth = i->GetCheckSum().length();
+  }
+  std::cout << std::setw(namewidth) << std::left << "<Name> ";
+  std::cout << "<Type>  ";
+  std::cout << std::setw(sizewidth + 4) << std::left << "<Size>     ";
+  std::cout << "<Modified>      ";
+  std::cout << "<Validity> ";
+  std::cout << "<CheckSum> ";
+  std::cout << std::setw(csumwidth) << std::right << "<Latency>";
+  std::cout << std::endl;
+
+  // set minimum widths to accommodate headers
+  if (namewidth < 7) namewidth = 7;
+  if (sizewidth < 7) sizewidth = 7;
+  if (csumwidth < 8) csumwidth = 8;
+  for (std::list<Arc::FileInfo>::const_iterator i = files.begin();
+       i != files.end(); i++) {
+    std::cout << std::setw(namewidth) << std::left << i->GetName();
+    switch (i->GetType()) {
+      case Arc::FileInfo::file_type_file:
+        std::cout << "  file";
+        break;
+
+      case Arc::FileInfo::file_type_dir:
+        std::cout << "   dir";
+        break;
+
+      default:
+        std::cout << " (n/a)";
+        break;
+    }
+    if (i->CheckSize()) {
+      std::cout << " " << std::setw(sizewidth) << std::right << Arc::tostring(i->GetSize());
+    } else {
+      std::cout << " " << std::setw(sizewidth) << std::right << "  (n/a)";
+    }
+    if (i->CheckCreated()) {
+      std::cout << " " << i->GetCreated();
+    } else {
+      std::cout << "       (n/a)        ";
+    }
+    if (i->CheckValid()) {
+      std::cout << " " << i->GetValid();
+    } else {
+      std::cout << "   (n/a)  ";
+    }
+    if (i->CheckCheckSum()) {
+      std::cout << " " << std::setw(csumwidth) << std::left << i->GetCheckSum();
+    } else {
+      std::cout << " " << std::setw(csumwidth) << std::left << "   (n/a)";
+    }
+    if (i->CheckLatency()) {
+      std::cout << "    " << i->GetLatency();
+    } else {
+      std::cout << "      (n/a)";
+    }
+    std::cout << std::endl;
+    if (show_urls) print_urls(*i);
+    if (show_meta) print_meta(*i);
+  }
+}
+
 static bool arcls(const Arc::URL& dir_url,
            Arc::UserConfig& usercfg,
            bool show_details, // longlist
@@ -31,7 +122,7 @@ static bool arcls(const Arc::URL& dir_url,
            bool check_access, // checkaccess
            int recursion,     // recursion 
            int timeout) {     // timeout
-  bool show_header = show_details;
+
   if (!dir_url) {
     logger.msg(Arc::ERROR, "Invalid URL: %s", dir_url.fullstr());
     return false;
@@ -132,74 +223,22 @@ static bool arcls(const Arc::URL& dir_url,
     logger.msg(Arc::INFO, "Warning: "
                "Failed listing files but some information is obtained");
   }
-  if (show_header && files.size()) {
-    std::cout << "<Name>";
-    if (show_details) {
-      std::cout << " <Type>";
-      std::cout << " <Size>";
-      std::cout << " <Creation>";
-      std::cout << " <Validity>";
-      std::cout << " <CheckSum>";
-      std::cout << " <Latency>";
-    }
-    std::cout << std::endl;
-  }
-  files.sort();
-  for (std::list<Arc::FileInfo>::iterator i = files.begin();
+
+  files.sort(); // Sort alphabetically by name
+  if (show_details) {
+    print_details(files, show_urls, show_meta);
+  } else {
+    for (std::list<Arc::FileInfo>::iterator i = files.begin();
        i != files.end(); i++) {
-    std::cout << i->GetName();
-    if (show_details) {
-      switch (i->GetType()) {
-      case Arc::FileInfo::file_type_file:
-        std::cout << " file";
-        break;
-
-      case Arc::FileInfo::file_type_dir:
-        std::cout << " dir";
-        break;
-
-      default:
-        std::cout << " unknown";
-        break;
-      }
-      if (i->CheckSize())
-        std::cout << " " << i->GetSize();
-      else
-        std::cout << " (n/a)";
-      if (i->CheckCreated())
-        std::cout << " " << i->GetCreated();
-      else
-        std::cout << " (n/a)";
-      if (i->CheckValid())
-        std::cout << " " << i->GetValid();
-      else
-        std::cout << " (n/a)";
-      if (i->CheckCheckSum())
-        std::cout << " " << i->GetCheckSum();
-      else
-        std::cout << " (n/a)";
-      if (i->CheckLatency())
-        std::cout << " " << i->GetLatency();
-      else
-        std::cout << " (n/a)";
-    }
-    //if(!show_meta || show_details || show_urls) std::cout << std::endl;
-    std::cout << std::endl;
-    if (show_urls) {
-      for (std::list<Arc::URL>::const_iterator u = i->GetURLs().begin();
-           u != i->GetURLs().end(); u++)
-        std::cout << "\t" << *u << std::endl;
-    }
-    if (show_meta) {
-      std::map<std::string, std::string> md = i->GetMetaData();
-      for (std::map<std::string, std::string>::iterator mi = md.begin(); mi != md.end(); ++mi)
-        std::cout<<mi->first<<":"<<mi->second<<std::endl;
+      std::cout << i->GetName() << std::endl;
+      if (show_urls) print_urls(*i);
+      if (show_meta) print_meta(*i);
     }
   }
-  for (std::list<Arc::FileInfo>::iterator i = files.begin();
+  // Do recursion. Recursion has no sense if listing is forbidden.
+  if ((recursion > 0) && (!no_list)) {
+    for (std::list<Arc::FileInfo>::iterator i = files.begin();
        i != files.end(); i++) {
-    // Do recursion. Recursion has no sense if listing is forbidden.
-    if ((recursion > 0) && (!no_list)) {
       if (i->GetType() == Arc::FileInfo::file_type_dir) {
         Arc::URL suburl = dir_url;
         if(suburl.Protocol() != "file") {

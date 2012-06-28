@@ -1,3 +1,7 @@
+2012-06-28  David Cameron  <d.g.cameron@fys.uio.no>
+
+	* Improved formatting of arcls -l by aligning columns 
+
 2012-06-20  David Cameron  <d.g.cameron@fys.uio.no>
 
 	* Add arcrename command and DataPoint::Rename() 
