@@ -1,0 +1,591 @@
+%{?mingw_package_header}
+%global __strip %{mingw_strip}
+%global __objdump %{mingw_objdump}
+%define __debug_install_post %{mingw_debug_install_post}
+%global _use_internal_dependency_generator 0
+%global __find_requires %{mingw_findrequires}
+%global __find_provides %{mingw_findprovides}
+
+%global mingw_pkg_name @PACKAGE@
+
+%global mingw_build_win32 1
+%global mingw_build_win64 1
+%global mingw_build_darwinx 0
+
+%define pkgdir arc
+
+Name: mingw-%{mingw_pkg_name}
+Version: @VERSION@
+Release: 1%{?dist}
+Summary: ARC
+Group: System Environment/Daemons
+License: ASL 2.0
+URL: http://www.nordugrid.org/
+Source: %{mingw_pkg_name}-%{version}.tar.gz
+BuildRoot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildArch: noarch
+
+# mingw32
+%if %{mingw_build_win32}
+BuildRequires: mingw32-filesystem >= 65
+BuildRequires: mingw32-binutils
+BuildRequires: mingw32-gcc
+BuildRequires: mingw32-gcc-c++
+BuildRequires: mingw32-runtime
+BuildRequires: mingw32-headers
+BuildRequires: mingw32-dlfcn
+
+BuildRequires: mingw32-gettext
+BuildRequires: mingw32-python
+BuildRequires: mingw32-glibmm24
+BuildRequires: mingw32-glib2
+BuildRequires: mingw32-libxml2
+BuildRequires: mingw32-openssl
+BuildRequires: mingw32-libgnurx
+BuildRequires: mingw32-xmlsec1
+BuildRequires: mingw32-cppunit
+#BuildRequires: mingw32-db4
+#BuildRequires: mingw32-globus-common
+#BuildRequires: mingw32-globus-ftp-client
+#BuildRequires: mingw32-globus-ftp-control
+#BuildRequires: mingw32-globus-rls-client
+%endif
+
+# mingw64
+%if %{mingw_build_win64}
+BuildRequires: mingw64-filesystem >= 65
+BuildRequires: mingw64-binutils
+BuildRequires: mingw64-gcc
+BuildRequires: mingw64-gcc-c++
+BuildRequires: mingw64-runtime
+BuildRequires: mingw64-headers
+BuildRequires: mingw64-dlfcn
+
+BuildRequires: mingw64-gettext
+#BuildRequires: mingw64-python
+BuildRequires: mingw64-glibmm24
+BuildRequires: mingw64-glib2
+BuildRequires: mingw64-libxml2
+BuildRequires: mingw64-openssl
+BuildRequires: mingw64-libgnurx
+#BuildRequires: mingw64-xmlsec1
+BuildRequires: mingw64-cppunit
+#BuildRequires: mingw64-db4
+#BuildRequires: mingw64-globus-common
+#BuildRequires: mingw64-globus-ftp-client
+#BuildRequires: mingw64-globus-ftp-control
+#BuildRequires: mingw64-globus-rls-client
+%endif
+
+BuildRequires: pkgconfig
+BuildRequires: swig
+
+%{?mingw_default_requires}
+%{?mingw_debug_package}
+
+%description
+NorduGrid ARC
+
+%if %{mingw_build_win32}
+%package -n mingw32-%{mingw_pkg_name}
+Summary: ARC core libraries
+Group: System Environment/Libraries
+
+%description -n mingw32-%{mingw_pkg_name}
+NorduGrid ARC core libraries
+
+%package -n mingw32-%{mingw_pkg_name}-client
+Summary: ARC command line interface
+Group: Applications/Internet
+Requires: mingw32-%{mingw_pkg_name} = %{version}
+Requires: mingw32-%{mingw_pkg_name}-plugins-needed = %{version}
+
+%description -n mingw32-%{mingw_pkg_name}-client
+ARC command line interface.
+
+%package -n mingw32-%{mingw_pkg_name}-hed
+Summary: ARC Hosting Environment Daemon
+Group: System Environment/Libraries
+Requires: mingw32-%{mingw_pkg_name} = %{version}
+
+%description -n mingw32-%{mingw_pkg_name}-hed
+ARC Hosting Environment Daemon (HED).
+
+%package -n mingw32-%{mingw_pkg_name}-plugins-needed
+Summary: ARC base plugins
+Group: System Environment/Libraries
+Requires: mingw32-%{mingw_pkg_name} = %{version}
+
+%description -n mingw32-%{mingw_pkg_name}-plugins-needed
+ARC base plugins. This includes the Message Chain Components (MCCs) and
+Data Manager Components (DMCs).
+
+%package -n mingw32-%{mingw_pkg_name}-plugins-globus
+Summary: ARC Globus plugins
+Group: System Environment/Libraries
+Requires: mingw32-%{mingw_pkg_name} = %{version}
+#Requires: globus_common
+#Requires: globus_ftp_client
+#Requires: globus_ftp_control
+#Requires: globus_rls_client
+#Requires: LFC-client
+
+%description -n mingw32-%{mingw_pkg_name}-plugins-globus
+ARC Globus plugins. This includes the Globus dependent Data Manager
+Components (DMCs):
+
+  libdmcgridftp.so
+  libdmclfc.so
+  libdmcrls.so
+
+%package -n mingw32-%{mingw_pkg_name}-devel
+Summary: ARC development files
+Group: Development/Libraries
+Requires: mingw32-%{mingw_pkg_name} = %{version}
+Requires: mingw32-glibmm24
+Requires: mingw32-glib2
+Requires: mingw32-libxml2
+Requires: mingw32-openssl
+
+%description -n mingw32-%{mingw_pkg_name}-devel
+Development files for ARC
+
+%package -n mingw32-%{mingw_pkg_name}-python
+Summary: ARC Python wrapper
+Group: Development/Libraries
+Requires: mingw32-%{mingw_pkg_name} = %{version}
+Requires: python
+
+%description -n mingw32-%{mingw_pkg_name}-python
+Python wrapper for ARC
+
+%endif
+
+# mingw64
+%if %{mingw_build_win64}
+%package -n mingw64-%{mingw_pkg_name}
+Summary: ARC core libraries
+Group: System Environment/Libraries
+
+%description -n mingw64-%{mingw_pkg_name}
+NorduGrid ARC core libraries
+
+%package -n mingw64-%{mingw_pkg_name}-client
+Summary: ARC command line interface
+Group: Applications/Internet
+Requires: mingw64-%{mingw_pkg_name} = %{version}
+Requires: mingw64-%{mingw_pkg_name}-plugins-needed = %{version}
+
+%description -n mingw64-%{mingw_pkg_name}-client
+ARC command line interface.
+
+%package -n mingw64-%{mingw_pkg_name}-hed
+Summary: ARC Hosting Environment Daemon
+Group: System Environment/Libraries
+Requires: mingw64-%{mingw_pkg_name} = %{version}
+
+%description -n mingw64-%{mingw_pkg_name}-hed
+ARC Hosting Environment Daemon (HED).
+
+%package -n mingw64-%{mingw_pkg_name}-plugins-needed
+Summary: ARC base plugins
+Group: System Environment/Libraries
+Requires: mingw64-%{mingw_pkg_name} = %{version}
+
+%description -n mingw64-%{mingw_pkg_name}-plugins-needed
+ARC base plugins. This includes the Message Chain Components (MCCs) and
+Data Manager Components (DMCs).
+
+%package -n mingw64-%{mingw_pkg_name}-plugins-globus
+Summary: ARC Globus plugins
+Group: System Environment/Libraries
+Requires: mingw64-%{mingw_pkg_name} = %{version}
+#Requires: globus_common
+#Requires: globus_ftp_client
+#Requires: globus_ftp_control
+#Requires: globus_rls_client
+#Requires: LFC-client
+
+%description -n mingw64-%{mingw_pkg_name}-plugins-globus
+ARC Globus plugins. This includes the Globus dependent Data Manager
+Components (DMCs):
+
+  libdmcgridftp.so
+  libdmclfc.so
+  libdmcrls.so
+
+%package -n mingw64-%{mingw_pkg_name}-devel
+Summary: ARC development files
+Group: Development/Libraries
+Requires: mingw64-%{mingw_pkg_name} = %{version}
+Requires: mingw64-glibmm24
+Requires: mingw64-glib2
+Requires: mingw64-libxml2
+Requires: mingw64-openssl
+
+%description -n mingw64-%{mingw_pkg_name}-devel
+Development files for ARC
+
+%package -n mingw64-%{mingw_pkg_name}-python
+Summary: ARC Python wrapper
+Group: Development/Libraries
+Requires: mingw64-%{mingw_pkg_name} = %{version}
+Requires: python
+
+%description -n mingw64-%{mingw_pkg_name}-python
+Python wrapper for ARC
+
+%endif
+
+%prep
+%setup -q -n %{mingw_pkg_name}-%{version}
+
+%build
+%mingw_configure \
+  --disable-java \
+  --disable-doc \
+  --disable-ws-monitor \
+  --disable-ldap-monitor \
+  --disable-static LDFLAGS=-Wl,--enable-auto-import
+
+%mingw_make %{?_smp_mflags}
+
+#make check
+
+%install
+rm -rf $RPM_BUILD_ROOT
+%mingw_make_install DESTDIR=$RPM_BUILD_ROOT
+find $RPM_BUILD_ROOT -type f -name \*.la -exec rm -fv '{}' ';'
+#mkdir -p $RPM_BUILD_ROOT/etc/init.d
+#cp -p src/hed/daemon/scripts/arched.redhat $RPM_BUILD_ROOT/etc/init.d/arched
+#chmod +x $RPM_BUILD_ROOT/etc/init.d/arched
+
+# RPM does it's own doc handling
+rm -fr $RPM_BUILD_ROOT%{mingw32_datadir}/doc/%{mingw_pkg_name}/
+rm -fr $RPM_BUILD_ROOT%{mingw64_datadir}/doc/%{mingw_pkg_name}/
+
+%mingw_find_lang %{mingw_pkg_name}
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%if %{mingw_build_win32}
+%files -n mingw32-%{mingw_pkg_name} -f mingw32-%{mingw_pkg_name}.lang
+%defattr(-,root,root,-)
+%doc README AUTHORS LICENSE ChangeLog
+%{mingw32_bindir}/lib*.dll
+%{mingw32_libdir}/%{pkgdir}/libmodcrypto.dll*
+%{mingw32_libdir}/%{pkgdir}/libmodcredential.dll*
+%{mingw32_datadir}/%{pkgdir}/schema
+%{mingw32_bindir}/ngconfigtest
+%{mingw32_libexecdir}/%{pkgdir}/arc-file-access.exe
+%doc %{mingw32_mandir}/man1/ngconfigtest.1*
+%dir %{mingw32_datadir}/%{pkgdir}/test-jobs
+%{mingw32_datadir}/%{pkgdir}/test-jobs/test-job-*
+
+%files -n mingw32-%{mingw_pkg_name}-client
+%defattr(-,root,root,-)
+%{mingw32_datadir}/%{pkgdir}/examples/client.conf
+#
+# Executables
+#
+%{mingw32_bindir}/arcecho.exe
+%{mingw32_bindir}/arcsrmping.exe
+%{mingw32_bindir}/arcinfo.exe
+%{mingw32_bindir}/arcproxy.exe
+%{mingw32_bindir}/arccat.exe
+%{mingw32_bindir}/arccp.exe
+%{mingw32_bindir}/arcls.exe
+%{mingw32_bindir}/arcrm.exe
+%{mingw32_bindir}/arcmkdir.exe
+%{mingw32_bindir}/arcrename.exe
+%{mingw32_bindir}/arcslcs.exe
+%{mingw32_bindir}/arcstat.exe
+%{mingw32_bindir}/arcsub.exe
+%{mingw32_bindir}/arcsync.exe
+%{mingw32_bindir}/arcresub.exe
+%{mingw32_bindir}/arcget.exe
+%{mingw32_bindir}/arcclean.exe
+%{mingw32_bindir}/arckill.exe
+%{mingw32_bindir}/arcmigrate.exe
+%{mingw32_bindir}/arcrenew.exe
+%{mingw32_bindir}/arcresume.exe
+%{mingw32_bindir}/arcacl.exe
+%{mingw32_bindir}/arctest.exe
+%{mingw32_bindir}/arcwsrf.exe
+%{mingw32_bindir}/perftest.exe
+%{mingw32_bindir}/saml_assertion_init.exe
+#
+%{mingw32_sysconfdir}/arc/client.conf
+%{mingw32_libexecdir}/%{pkgdir}/jura.exe
+%{mingw32_libexecdir}/%{pkgdir}/ssm_master
+%{mingw32_datadir}/%{pkgdir}/ssm/encrypt_utils.py*
+%{mingw32_datadir}/%{pkgdir}/ssm/ssm.py*
+%{mingw32_datadir}/%{pkgdir}/ssm/message_db.py*
+%{mingw32_datadir}/%{pkgdir}/ssm/ssm.cfg
+%{mingw32_datadir}/%{pkgdir}/ssm/ssm.log.cfg
+#
+# Man pages
+#
+%doc %{mingw32_mandir}/man1/arcecho.1*
+%doc %{mingw32_mandir}/man1/arcsrmping.1*
+%doc %{mingw32_mandir}/man1/arcinfo.1*
+%doc %{mingw32_mandir}/man1/arcproxy.1*
+%doc %{mingw32_mandir}/man1/arcslcs.1*
+%doc %{mingw32_mandir}/man1/arccat.1*
+%doc %{mingw32_mandir}/man1/arccp.1*
+%doc %{mingw32_mandir}/man1/arcls.1*
+%doc %{mingw32_mandir}/man1/arcrm.1*
+%doc %{mingw32_mandir}/man1/arcmkdir.1*
+%doc %{mingw32_mandir}/man1/arcrename.1*
+%doc %{mingw32_mandir}/man1/arcstat.1*
+%doc %{mingw32_mandir}/man1/arcsub.1*
+%doc %{mingw32_mandir}/man1/arcsync.1*
+%doc %{mingw32_mandir}/man1/arcresub.1*
+%doc %{mingw32_mandir}/man1/arcget.1*
+%doc %{mingw32_mandir}/man1/arcclean.1*
+%doc %{mingw32_mandir}/man1/arckill.1*
+%doc %{mingw32_mandir}/man1/arcmigrate.1*
+%doc %{mingw32_mandir}/man1/arcrenew.1*
+%doc %{mingw32_mandir}/man1/arcresume.1*
+%doc %{mingw32_mandir}/man1/arcacl.1*
+%doc %{mingw32_mandir}/man1/arctest.1*
+%doc %{mingw32_mandir}/man1/arcwsrf.1*
+%doc %{mingw32_mandir}/man1/perftest.1*
+%doc %{mingw32_mandir}/man1/saml_assertion_init.1*
+%doc %{mingw32_mandir}/man1/jura.1*
+%doc %{mingw32_datadir}/%{pkgdir}/examples/echo/echo.wsdl
+
+%files -n mingw32-%{mingw_pkg_name}-hed
+%defattr(-,root,root,-)
+%{mingw32_sbindir}/arched.exe
+%doc %{mingw32_mandir}/man8/arched.8*
+%doc %{mingw32_mandir}/man5/arc.conf.5*
+%{mingw32_datadir}/%{pkgdir}/profiles
+%{mingw32_datadir}/%{pkgdir}/examples/config
+%{mingw32_datadir}/%{pkgdir}/examples/arc.conf.template
+%{mingw32_datadir}/%{pkgdir}/examples/arc.conf.reference
+%doc %{mingw32_datadir}/%{pkgdir}/examples/echo/echo_service.xml.example
+%{mingw32_libdir}/%{pkgdir}/libecho.dll*
+%{mingw32_libexecdir}/%{pkgdir}/DataStagingDelivery.exe
+
+%files -n mingw32-%{mingw_pkg_name}-devel
+%defattr(-,root,root,-)
+%{mingw32_includedir}/%{pkgdir}
+%{mingw32_libdir}/lib*.dll.a
+%{mingw32_bindir}/wsdl2hed.exe
+%doc %{mingw32_mandir}/man1/wsdl2hed.1*
+%{mingw32_bindir}/arcplugin.exe
+%doc %{mingw32_mandir}/man1/arcplugin.1*
+%{mingw32_libdir}/pkgconfig/arcbase.pc
+
+%files -n mingw32-%{mingw_pkg_name}-plugins-needed
+%defattr(-,root,root,-)
+%{mingw32_libdir}/%{pkgdir}/libmcchttp.dll*
+%{mingw32_libdir}/%{pkgdir}/libmccmsgvalidator.dll*
+%{mingw32_libdir}/%{pkgdir}/libmccsoap.dll*
+%{mingw32_libdir}/%{pkgdir}/libmcctcp.dll*
+%{mingw32_libdir}/%{pkgdir}/libmcctls.dll*
+%{mingw32_libdir}/%{pkgdir}/libdmcfile.dll*
+%{mingw32_libdir}/%{pkgdir}/libdmchttp.dll*
+%{mingw32_libdir}/%{pkgdir}/libdmcarc.dll*
+%{mingw32_libdir}/%{pkgdir}/libdmcldap.dll*
+%{mingw32_libdir}/%{pkgdir}/libdmcsrm.dll*
+%{mingw32_libdir}/%{pkgdir}/libarcshc.dll*
+%{mingw32_libdir}/%{pkgdir}/libarcshclegacy.dll*
+%{mingw32_libdir}/%{pkgdir}/libidentitymap.dll*
+%{mingw32_libdir}/%{pkgdir}/libaccARC1.dll*
+%{mingw32_libdir}/%{pkgdir}/libaccBroker.dll*
+%{mingw32_libdir}/%{pkgdir}/libaccCREAM.dll*
+%{mingw32_libdir}/%{pkgdir}/libaccEMIES.dll*
+%{mingw32_libdir}/%{pkgdir}/libaccSER.dll*
+%{mingw32_libdir}/%{pkgdir}/libaccldap.dll*
+#%{mingw32_libdir}/%{pkgdir}/libaccUNICORE.dll*
+%{mingw32_libdir}/%{pkgdir}/libaccJobDescriptionParser.dll*
+%{mingw32_libdir}/%{pkgdir}/test/libaccTEST.dll*
+
+%files -n mingw32-%{mingw_pkg_name}-plugins-globus
+%defattr(-,root,root,-)
+##%{mingw32_libdir}/%{pkgdir}/libmccgsi.dll*
+##%{mingw32_libdir}/%{pkgdir}/libdmcgridftp.dll*
+###%{mingw32_libdir}/%{pkgdir}/libdmclfc.so
+##%{mingw32_libdir}/%{pkgdir}/libdmcrls.dll*
+##%{mingw32_libdir}/%{pkgdir}/libaccARC0.dll*
+##%{mingw32_libexecdir}/%{pkgdir}/arc-lcas.exe
+##%{mingw32_libexecdir}/%{pkgdir}/arc-lcmaps.exe
+
+%files -n mingw32-%{mingw_pkg_name}-python
+%defattr(-,root,root,-)
+%{mingw32_libdir}/python?.?/site-packages/_arc.dll*
+%{mingw32_libdir}/python?.?/site-packages/arc.py*
+%{mingw32_libdir}/python?.?/site-packages/arcom
+%{mingw32_libdir}/python?.?/site-packages/cache
+%{mingw32_libdir}/python?.?/site-packages/echo_python
+%{mingw32_libdir}/%{pkgdir}/libpythonservice.dll*
+%{mingw32_libdir}/%{pkgdir}/libaccPythonBroker.dll*
+%doc %{mingw32_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
+%endif
+
+# mingw64
+%if %{mingw_build_win64}
+%files -n mingw64-%{mingw_pkg_name} -f mingw64-%{mingw_pkg_name}.lang
+%defattr(-,root,root,-)
+%doc README AUTHORS LICENSE ChangeLog
+%{mingw64_bindir}/lib*.dll
+%{mingw64_libdir}/%{pkgdir}/libmodcrypto.dll*
+%{mingw64_libdir}/%{pkgdir}/libmodcredential.dll*
+%{mingw64_datadir}/%{pkgdir}/schema
+%{mingw64_bindir}/ngconfigtest
+%{mingw64_libexecdir}/%{pkgdir}/arc-file-access.exe
+%doc %{mingw64_mandir}/man1/ngconfigtest.1*
+%dir %{mingw64_datadir}/%{pkgdir}/test-jobs
+%{mingw64_datadir}/%{pkgdir}/test-jobs/test-job-*
+
+%files -n mingw64-%{mingw_pkg_name}-client
+%defattr(-,root,root,-)
+%{mingw64_datadir}/%{pkgdir}/examples/client.conf
+#
+# Executables
+#
+%{mingw64_bindir}/arcecho.exe
+%{mingw64_bindir}/arcsrmping.exe
+%{mingw64_bindir}/arcinfo.exe
+%{mingw64_bindir}/arcproxy.exe
+%{mingw64_bindir}/arccat.exe
+%{mingw64_bindir}/arccp.exe
+%{mingw64_bindir}/arcls.exe
+%{mingw64_bindir}/arcrm.exe
+%{mingw64_bindir}/arcmkdir.exe
+%{mingw64_bindir}/arcrename.exe
+#%{mingw64_bindir}/arcslcs.exe
+%{mingw64_bindir}/arcstat.exe
+%{mingw64_bindir}/arcsub.exe
+%{mingw64_bindir}/arcsync.exe
+%{mingw64_bindir}/arcresub.exe
+%{mingw64_bindir}/arcget.exe
+%{mingw64_bindir}/arcclean.exe
+%{mingw64_bindir}/arckill.exe
+%{mingw64_bindir}/arcmigrate.exe
+%{mingw64_bindir}/arcrenew.exe
+%{mingw64_bindir}/arcresume.exe
+%{mingw64_bindir}/arcacl.exe
+%{mingw64_bindir}/arctest.exe
+%{mingw64_bindir}/arcwsrf.exe
+%{mingw64_bindir}/perftest.exe
+#%{mingw64_bindir}/saml_assertion_init.exe
+#
+%{mingw64_sysconfdir}/arc/client.conf
+%{mingw64_libexecdir}/%{pkgdir}/jura.exe
+#%{mingw64_libexecdir}/%{pkgdir}/ssm_master
+#%{mingw64_datadir}/%{pkgdir}/ssm/encrypt_utils.py*
+#%{mingw64_datadir}/%{pkgdir}/ssm/ssm.py*
+#%{mingw64_datadir}/%{pkgdir}/ssm/message_db.py*
+#%{mingw64_datadir}/%{pkgdir}/ssm/ssm.cfg
+#%{mingw64_datadir}/%{pkgdir}/ssm/ssm.log.cfg
+#
+# Man pages
+#
+%doc %{mingw64_mandir}/man1/arcecho.1*
+%doc %{mingw64_mandir}/man1/arcsrmping.1*
+%doc %{mingw64_mandir}/man1/arcinfo.1*
+%doc %{mingw64_mandir}/man1/arcproxy.1*
+%doc %{mingw64_mandir}/man1/arcslcs.1*
+%doc %{mingw64_mandir}/man1/arccat.1*
+%doc %{mingw64_mandir}/man1/arccp.1*
+%doc %{mingw64_mandir}/man1/arcls.1*
+%doc %{mingw64_mandir}/man1/arcrm.1*
+%doc %{mingw64_mandir}/man1/arcmkdir.1*
+%doc %{mingw64_mandir}/man1/arcrename.1*
+%doc %{mingw64_mandir}/man1/arcstat.1*
+%doc %{mingw64_mandir}/man1/arcsub.1*
+%doc %{mingw64_mandir}/man1/arcsync.1*
+%doc %{mingw64_mandir}/man1/arcresub.1*
+%doc %{mingw64_mandir}/man1/arcget.1*
+%doc %{mingw64_mandir}/man1/arcclean.1*
+%doc %{mingw64_mandir}/man1/arckill.1*
+%doc %{mingw64_mandir}/man1/arcmigrate.1*
+%doc %{mingw64_mandir}/man1/arcrenew.1*
+%doc %{mingw64_mandir}/man1/arcresume.1*
+%doc %{mingw64_mandir}/man1/arcacl.1*
+%doc %{mingw64_mandir}/man1/arctest.1*
+%doc %{mingw64_mandir}/man1/arcwsrf.1*
+%doc %{mingw64_mandir}/man1/perftest.1*
+#%doc %{mingw64_mandir}/man1/saml_assertion_init.1*
+%doc %{mingw64_mandir}/man1/jura.1*
+%doc %{mingw64_datadir}/%{pkgdir}/examples/echo/echo.wsdl
+
+%files -n mingw64-%{mingw_pkg_name}-hed
+%defattr(-,root,root,-)
+%{mingw64_sbindir}/arched.exe
+%doc %{mingw64_mandir}/man8/arched.8*
+%doc %{mingw64_mandir}/man5/arc.conf.5*
+%{mingw64_datadir}/%{pkgdir}/profiles
+%{mingw64_datadir}/%{pkgdir}/examples/config
+%{mingw64_datadir}/%{pkgdir}/examples/arc.conf.template
+%{mingw64_datadir}/%{pkgdir}/examples/arc.conf.reference
+%doc %{mingw64_datadir}/%{pkgdir}/examples/echo/echo_service.xml.example
+%{mingw64_libdir}/%{pkgdir}/libecho.dll*
+%{mingw64_libexecdir}/%{pkgdir}/DataStagingDelivery.exe
+
+%files -n mingw64-%{mingw_pkg_name}-devel
+%defattr(-,root,root,-)
+%{mingw64_includedir}/%{pkgdir}
+%{mingw64_libdir}/lib*.dll.a
+%{mingw64_bindir}/wsdl2hed.exe
+%doc %{mingw64_mandir}/man1/wsdl2hed.1*
+%{mingw64_bindir}/arcplugin.exe
+%doc %{mingw64_mandir}/man1/arcplugin.1*
+%{mingw64_libdir}/pkgconfig/arcbase.pc
+
+%files -n mingw64-%{mingw_pkg_name}-plugins-needed
+%defattr(-,root,root,-)
+%{mingw64_libdir}/%{pkgdir}/libmcchttp.dll*
+%{mingw64_libdir}/%{pkgdir}/libmccmsgvalidator.dll*
+%{mingw64_libdir}/%{pkgdir}/libmccsoap.dll*
+%{mingw64_libdir}/%{pkgdir}/libmcctcp.dll*
+%{mingw64_libdir}/%{pkgdir}/libmcctls.dll*
+%{mingw64_libdir}/%{pkgdir}/libdmcfile.dll*
+%{mingw64_libdir}/%{pkgdir}/libdmchttp.dll*
+%{mingw64_libdir}/%{pkgdir}/libdmcarc.dll*
+%{mingw64_libdir}/%{pkgdir}/libdmcldap.dll*
+%{mingw64_libdir}/%{pkgdir}/libdmcsrm.dll*
+%{mingw64_libdir}/%{pkgdir}/libarcshc.dll*
+%{mingw64_libdir}/%{pkgdir}/libarcshclegacy.dll*
+%{mingw64_libdir}/%{pkgdir}/libidentitymap.dll*
+%{mingw64_libdir}/%{pkgdir}/libaccARC1.dll*
+%{mingw64_libdir}/%{pkgdir}/libaccBroker.dll*
+%{mingw64_libdir}/%{pkgdir}/libaccCREAM.dll*
+%{mingw64_libdir}/%{pkgdir}/libaccEMIES.dll*
+%{mingw64_libdir}/%{pkgdir}/libaccSER.dll*
+%{mingw64_libdir}/%{pkgdir}/libaccldap.dll*
+#%{mingw64_libdir}/%{pkgdir}/libaccUNICORE.dll*
+%{mingw64_libdir}/%{pkgdir}/libaccJobDescriptionParser.dll*
+%{mingw64_libdir}/%{pkgdir}/test/libaccTEST.dll*
+
+%files -n mingw64-%{mingw_pkg_name}-plugins-globus
+%defattr(-,root,root,-)
+##%{mingw64_libdir}/%{pkgdir}/libmccgsi.dll*
+##%{mingw64_libdir}/%{pkgdir}/libdmcgridftp.dll*
+###%{mingw64_libdir}/%{pkgdir}/libdmclfc.so
+##%{mingw64_libdir}/%{pkgdir}/libdmcrls.dll*
+##%{mingw64_libdir}/%{pkgdir}/libaccARC0.dll*
+##%{mingw64_libexecdir}/%{pkgdir}/arc-lcas.exe
+##%{mingw64_libexecdir}/%{pkgdir}/arc-lcmaps.exe
+
+%files -n mingw64-%{mingw_pkg_name}-python
+%defattr(-,root,root,-)
+%if 0
+%{mingw64_libdir}/python?.?/site-packages/_arc.dll*
+%{mingw64_libdir}/python?.?/site-packages/arc.py*
+%{mingw64_libdir}/python?.?/site-packages/arcom
+%{mingw64_libdir}/python?.?/site-packages/cache
+%{mingw64_libdir}/python?.?/site-packages/echo_python
+%{mingw64_libdir}/%{pkgdir}/libpythonservice.dll*
+%{mingw64_libdir}/%{pkgdir}/libaccPythonBroker.dll*
+%doc %{mingw64_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
+%endif
+%endif
+%changelog
+
+* @SPECDATE@ Anders Waananen <waananen@nbi.dk> - @VERSION@-1
+- Initial release
