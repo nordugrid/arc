@@ -216,6 +216,8 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
   std::list<Arc::Job> submittedJobs;
   std::map<int, std::string> notsubmitted;
 
+  int didGridFTPJobPluginLoad = 0; // 0: Haven't tried; -1: No; 1: Yes.
+
   for (std::list<Arc::JobDescription>::const_iterator itJ =
          jobdescriptionlist.begin(); itJ != jobdescriptionlist.end();
        ++itJ, ++jobnr) {
@@ -229,6 +231,10 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
         descriptionSubmitted = true;
         itET->RegisterJobSubmission(*itJ);
         break;
+      }
+      else if (didGridFTPJobPluginLoad == 0 && itET->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") { // Check if this is a org.nordugrid.gridftpjob interface, and check if the globus module is available.
+        Arc::SubmitterPluginLoader spl;
+        didGridFTPJobPluginLoad = 2*(spl.loadByInterfaceName("org.nordugrid.gridftpjob", usercfg) != NULL) - 1;
       }
     }
     if (!descriptionSubmitted && itJ->HasAlternatives()) {
@@ -244,6 +250,10 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
             itET->RegisterJobSubmission(*itJAlt);
             break;
           }
+          else if (didGridFTPJobPluginLoad == 0 && itET->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") { // Check if this is a org.nordugrid.gridftpjob interface, and check if the globus module is available.
+            Arc::SubmitterPluginLoader spl;
+            didGridFTPJobPluginLoad = 2*(spl.loadByInterfaceName("org.nordugrid.gridftpjob", usercfg) != NULL) - 1;
+          }
         }
         if (descriptionSubmitted) {
           break;
@@ -258,6 +268,14 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
       retval = 1;
     }
   } //end loop over all job descriptions
+
+  if (didGridFTPJobPluginLoad == -1) {
+    std::cerr << Arc::IString("ERROR: A computing resource using the gridftp interface was requested, but") << std::endl;
+    std::cerr << Arc::IString("       the corresponding plugin could not be loaded. Is the plugin installed?") << std::endl;
+    std::cerr << Arc::IString("       If not, please install the package 'nordugrid-arc-plugins-globus'.") << std::endl;
+    std::cerr << Arc::IString("       Depending on your type of installation the package name might differ. ") << std::endl;
+    retval = 1;
+  }
 
   if (!Arc::Job::WriteJobsToFile(usercfg.JobListFile(), submittedJobs)) {
     std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile())
