@@ -176,6 +176,12 @@ namespace Arc {
         if (!file.Sources.back()) {
           return false;
         }
+        if (file.Sources.back().Protocol() == "file") {
+          if (!Glib::file_test(file.Sources.back().Path(), Glib::FILE_TEST_IS_REGULAR)) {
+            logger.msg(ERROR, "The inputsandbox JDL attribute is referencing a non-regular file (%s).", file.Sources.back().Path());
+            return false;
+          }
+        }
         // Initializing these variables
         file.IsExecutable = false;
         job.DataStaging.InputFiles.push_back(file);
