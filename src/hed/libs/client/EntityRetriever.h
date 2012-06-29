@@ -23,18 +23,34 @@ class SimpleCounter;
 class ThreadedPointer<class Endpoint>;
 class UserConfig;
 
+/// Options controlling the query process
 template<typename T>
 class EndpointQueryOptions {
 public:
+  /// A list of preferred interface names (GLUE2) can be set
+  /** When an Endpoint does not have its interface name specified, all the supported interfaces
+      can be tried. If preferred interface names are provided here, those will be tried first.
+  */
   EndpointQueryOptions(std::list<std::string> preferredInterfaceNames = std::list<std::string>()) : preferredInterfaceNames(preferredInterfaceNames) {}
+
   std::list<std::string>& getPreferredInterfaceNames() { return preferredInterfaceNames; }
 private:
   std::list<std::string> preferredInterfaceNames;
 };
 
+/// The ServiceEndpointRetriever needs different options from the general template
 template<>
 class EndpointQueryOptions<Endpoint> {
 public:
+  /// Options for recursivity, filtering of capabilities and rejecting services
+  /**
+      \param[in] recursive Recursive query means that if a service registry is discovered
+      that will be also queried for additional services
+      \param[in] capabilityFilter Only those services will be discovered which has at least
+      one capability from this list.
+      \param[in] rejectedServices If a service's URL contains any item from this list,
+      the services will be not returned among the results.
+  */
   EndpointQueryOptions(bool recursive = false,
                        const std::list<std::string>& capabilityFilter = std::list<std::string>(),
                        const std::list<std::string>& rejectedServices = std::list<std::string>() )
@@ -83,10 +99,19 @@ protected:
   static Logger logger;
 };
 
+/// A general concept of an object which can consume entities use by the retrievers to return results
+/**
+    A class which wants to receive results from Retrievers, needs to subclass this class,
+    and implement the #addEntity method.
+*/
 template<typename T>
 class EntityConsumer {
 public:
   virtual ~EntityConsumer() {}
+  /// Send an entity to this consumer
+  /**
+      This is the method which will be called by the retrievers when a new result is available.
+  */
   virtual void addEntity(const T&) = 0;
 };
 
