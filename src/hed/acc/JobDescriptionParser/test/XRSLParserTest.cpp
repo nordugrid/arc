@@ -689,6 +689,57 @@ void XRSLParserTest::TestGridTime() {
   CPPUNIT_ASSERT_EQUAL(600, OUTJOBS.front().Resources.TotalCPUTime.range.max);
   CPPUNIT_ASSERT_EQUAL((std::string)"clock rate", OUTJOBS.front().Resources.TotalCPUTime.benchmark.first);
   CPPUNIT_ASSERT_EQUAL(2800., OUTJOBS.front().Resources.TotalCPUTime.benchmark.second);
+
+  CPPUNIT_ASSERT_EQUAL(-1, OUTJOBS.front().Resources.TotalWallTime.range.min);
+  CPPUNIT_ASSERT_EQUAL(600, OUTJOBS.front().Resources.TotalWallTime.range.max);
+  CPPUNIT_ASSERT_EQUAL((std::string)"clock rate", OUTJOBS.front().Resources.TotalWallTime.benchmark.first);
+  CPPUNIT_ASSERT_EQUAL(2800., OUTJOBS.front().Resources.TotalWallTime.benchmark.second);
+
+  OUTJOBS.clear();
+
+
+  xrsl = "&(executable=/bin/echo)(gridtime=600s)(count=1)";
+  
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(-1, OUTJOBS.front().Resources.TotalCPUTime.range.min);
+  CPPUNIT_ASSERT_EQUAL(600, OUTJOBS.front().Resources.TotalCPUTime.range.max);
+  CPPUNIT_ASSERT_EQUAL((std::string)"clock rate", OUTJOBS.front().Resources.TotalCPUTime.benchmark.first);
+  CPPUNIT_ASSERT_EQUAL(2800., OUTJOBS.front().Resources.TotalCPUTime.benchmark.second);
+
+  CPPUNIT_ASSERT_EQUAL(-1, OUTJOBS.front().Resources.TotalWallTime.range.min);
+  CPPUNIT_ASSERT_EQUAL(600, OUTJOBS.front().Resources.TotalWallTime.range.max);
+  CPPUNIT_ASSERT_EQUAL((std::string)"clock rate", OUTJOBS.front().Resources.TotalWallTime.benchmark.first);
+  CPPUNIT_ASSERT_EQUAL(2800., OUTJOBS.front().Resources.TotalWallTime.benchmark.second);
+
+  OUTJOBS.clear();
+
+
+  xrsl = "&(executable=/bin/echo)(gridtime=600s)(count=5)";
+  
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(-1, OUTJOBS.front().Resources.TotalCPUTime.range.min);
+  CPPUNIT_ASSERT_EQUAL(600, OUTJOBS.front().Resources.TotalCPUTime.range.max);
+  CPPUNIT_ASSERT_EQUAL((std::string)"clock rate", OUTJOBS.front().Resources.TotalCPUTime.benchmark.first);
+  CPPUNIT_ASSERT_EQUAL(2800., OUTJOBS.front().Resources.TotalCPUTime.benchmark.second);
+
+  CPPUNIT_ASSERT_EQUAL(-1, OUTJOBS.front().Resources.TotalWallTime.range.min);
+  CPPUNIT_ASSERT_EQUAL(3000, OUTJOBS.front().Resources.TotalWallTime.range.max);
+  CPPUNIT_ASSERT_EQUAL((std::string)"clock rate", OUTJOBS.front().Resources.TotalWallTime.benchmark.first);
+  CPPUNIT_ASSERT_EQUAL(2800., OUTJOBS.front().Resources.TotalWallTime.benchmark.second);
+
+  OUTJOBS.clear();
+
+
+  xrsl = "&(executable=/bin/echo)(gridtime=600s)(cputime=5s)";
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(xrsl, OUTJOBS));
+
+
+  xrsl = "&(executable=/bin/echo)(gridtime=600s)(walltime=42s)";
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(xrsl, OUTJOBS));
 }
 
 void XRSLParserTest::TestAccessControl() {

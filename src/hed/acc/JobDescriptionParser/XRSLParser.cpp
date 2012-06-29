@@ -187,6 +187,35 @@ namespace Arc {
     return true;
   }
 
+  bool XRSLParser::ParseGridTimeAttribute(JobDescription& j) { // Must be called after the 'count' attribute has been parsed.
+    std::map<std::string, std::string>::iterator itAtt;
+    itAtt = j.OtherAttributes.find("nordugrid:xrsl;gridtime");
+
+    if (itAtt == j.OtherAttributes.end()) {
+      return true;
+    }
+
+    if (j.Resources.TotalCPUTime.range.max != -1) {
+      logger.msg(ERROR, "The XRSL attributes gridtime and cputime cannot be specified together.");
+      return false;
+    }
+    if (j.Resources.IndividualWallTime.range.max != -1) {
+      logger.msg(ERROR, "The XRSL attributes gridtime and walltime cannot be specified together.");
+      return false;
+    }
+
+    j.Resources.TotalCPUTime.range = Period(itAtt->second, PeriodMinutes).GetPeriod();
+    j.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("clock rate", 2800);
+
+    int slots = (j.Resources.SlotRequirement.SlotsPerHost > 0 ? j.Resources.SlotRequirement.SlotsPerHost : 1);
+    j.Resources.IndividualWallTime.range = Period(itAtt->second, PeriodMinutes).GetPeriod()*slots;
+    j.Resources.IndividualWallTime.benchmark = std::pair<std::string, double>("clock rate", 2800);
+
+    j.OtherAttributes.erase(itAtt);
+    
+    return true;
+  }
+
   JobDescriptionParserResult XRSLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
     if (language != "" && !IsLanguageSupported(language)) {
       return false;
@@ -227,6 +256,9 @@ namespace Arc {
       if (dialect != "GRIDMANAGER" && !ParseJoinAttribute(jobdescs.back())) { // join is a client side attribute
         return false;
       }
+      if (dialect != "GRIDMANAGER" && !ParseGridTimeAttribute(jobdescs.back())) { // gridtime is a client side attribute
+        return false;
+      }
       for (std::list<JobDescription>::iterator itJob = jobdescs.back().GetAlternatives().begin();
            itJob != jobdescs.back().GetAlternatives().end(); itJob++) {
         if (!ParseExecutablesAttribute(*itJob)) {
@@ -239,6 +271,9 @@ namespace Arc {
           return false;
         }
         if (dialect != "GRIDMANAGER" && !ParseJoinAttribute(*itJob)) { // join is a client side attribute
+          return false;
+        }
+        if (dialect != "GRIDMANAGER" && !ParseGridTimeAttribute(*itJob)) { // gridtime is a client side attribute
           return false;
         }
       }
@@ -824,18 +859,16 @@ namespace Arc {
         std::string time;
         if (!SingleValue(c, time))
           return false;
-        if(dialect == "GRIDMANAGER") {
-          j.Resources.TotalCPUTime.range = Period(time, PeriodSeconds).GetPeriod();
-        } else {
-          j.Resources.TotalCPUTime.range = Period(time, PeriodMinutes).GetPeriod();
-          for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
-               it != j.GetAlternatives().end(); it++) {
-            it->Resources.TotalCPUTime.range = j.Resources.TotalCPUTime.range;
-            it->Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("clock rate", 2800);
-          }
+
+        /* Store value in the OtherAttributes member and set it later when all
+         * the attributes it depends on has been parsed.
+         */
+        j.OtherAttributes["nordugrid:xrsl;gridtime"] = time;
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->OtherAttributes["nordugrid:xrsl;gridtime"] = time;
         }
 
-        j.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("clock rate", 2800);
         return true;
       }
 
