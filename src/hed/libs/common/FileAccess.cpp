@@ -569,5 +569,82 @@ namespace Arc {
     do_tests = true;
   }
 
+  static FileAccessContainer fas_(0,100);
+
+  FileAccess* FileAccess::Acquire(void) {
+    return fas_.Acquire();
+  }
+
+  void FileAccess::Release(FileAccess* fa) {
+    fas_.Release(fa);
+  }
+
+  FileAccessContainer::FileAccessContainer(unsigned int minval,unsigned int maxval):min_(minval),max_(maxval) {
+    KeepRange();
+  }
+
+  FileAccessContainer::FileAccessContainer(void):min_(1),max_(10) {
+    KeepRange();
+  }
+
+  FileAccessContainer::~FileAccessContainer(void) {
+    Glib::Mutex::Lock lock(lock_);
+    for(std::list<FileAccess*>::iterator fa = fas_.begin();fa != fas_.end();++fa) {
+      delete *fa;
+    }
+  }
+
+  FileAccess* FileAccessContainer::Acquire(void) {
+    Glib::Mutex::Lock lock(lock_);
+    FileAccess* r = NULL;
+    for(std::list<FileAccess*>::iterator fa = fas_.begin();fa != fas_.end();) {
+      r = *fa; fa = fas_.erase(fa);
+      // Test if it still works
+      if(r->ping()) break;
+      // Broken proxy
+      delete r; r = NULL;
+    }
+    // If no proxies - make new
+    if(!r) r = new FileAccess;
+    KeepRange();
+    return r;
+  }
+
+  void FileAccessContainer::Release(FileAccess* fa) {
+    Glib::Mutex::Lock lock(lock_);
+    if(!fa) return;
+    fa->fa_close();
+    fa->fa_closedir();
+    if(!fa->fa_setuid(0,0)) {
+      delete fa;
+      return;
+    }
+    fas_.push_back(fa);
+    KeepRange();
+    return;
+  }
+
+  void FileAccessContainer::SetMin(unsigned int val) {
+    Glib::Mutex::Lock lock(lock_);
+    min_ = val;
+    KeepRange();
+  }
+
+  void FileAccessContainer::SetMax(unsigned int val) {
+    Glib::Mutex::Lock lock(lock_);
+    min_ = val;
+    KeepRange();
+  }
+
+  void FileAccessContainer::KeepRange(void) {
+    while(fas_.size() > ((max_>=min_)?max_:min_)) {
+      FileAccess* fa = fas_.front();
+      fas_.pop_front();
+    }
+    while(fas_.size() < ((min_<=max_)?min_:max_)) {
+      fas_.push_back(new FileAccess);
+    }
+  }
+
 }
 

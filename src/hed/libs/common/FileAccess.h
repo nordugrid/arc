@@ -2,6 +2,7 @@
 #define __ARC_FILEACCESS_H__
 
 #include <string>
+#include <list>
 
 #include <unistd.h>
 #include <sys/stat.h>
@@ -32,6 +33,10 @@ namespace Arc {
   public:
     FileAccess(void);
     ~FileAccess(void);
+    /// Constructor which takes already existing object from global cache
+    static FileAccess* Acquire(void);
+    /// Destructor which returns object into global cache
+    static void Release(FileAccess* fa);
     /// Check if communication with proxy works
     bool ping(void);
     /// Modify user uid and gid.
@@ -119,6 +124,35 @@ namespace Arc {
       unsigned int size;
       unsigned int cmd;
     } header_t;
+  };
+
+  /// Container for shared FileAccess objects
+  class FileAccessContainer {
+  public:
+    /// Creates container with number of stored objects between minval and maxval.
+    FileAccessContainer(unsigned int minval, unsigned int maxval);
+    FileAccessContainer(void);
+    /// Destroys container and all stored object
+    ~FileAccessContainer(void);
+    /// Get object from container.
+    /// Object either is taken from stored ones or new one created.
+    /// Acquired object looses its connection to container and 
+    /// can be safely destroyed or returned into other container.
+    FileAccess* Acquire(void);
+    /// Returns object into container.
+    /// It canbe any object - taken from another cotainer or created
+    /// using new.
+    void Release(FileAccess* fa);
+    /// Adjust minimal number of stored objects.
+    void SetMin(unsigned int val);
+    /// Adjust maximal number of stored objects.
+    void SetMax(unsigned int val);
+  private:
+    Glib::Mutex lock_;
+    unsigned int min_;
+    unsigned int max_;
+    std::list<FileAccess*> fas_;
+    void KeepRange(void);
   };
 
 } // namespace Arc 
