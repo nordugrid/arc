@@ -900,33 +900,33 @@ Arc::FileAccess* ARexJob::CreateFile(const std::string& filename) {
   int lname = fname.length();
   fname = config_.User()->SessionRoot(id_)+"/"+id_+"/"+fname;
   // First try to create/open file
-  Arc::FileAccess* fa = new Arc::FileAccess();
+  Arc::FileAccess* fa = Arc::FileAccess::Acquire();
   if(!*fa) {
     delete fa;
     return NULL;
   };
   if(!fa->fa_setuid(config_.User()->get_uid(),config_.User()->get_gid())) {
-    delete fa;
+    Arc::FileAccess::Release(fa);
     return NULL;
   };
   if(!fa->fa_open(fname,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR)) {
     if(fa->geterrno() != ENOENT) {
-      delete fa;
+      Arc::FileAccess::Release(fa);
       return NULL;
     };
     std::string::size_type n = fname.rfind('/');
     if((n == std::string::npos) || (n < (fname.length()-lname))) {
-      delete fa;
+      Arc::FileAccess::Release(fa);
       return NULL;
     };
     if(!fa->fa_mkdirp(fname.substr(0,n),S_IRUSR | S_IWUSR | S_IXUSR)) {
       if(fa->geterrno() != EEXIST) {
-        delete fa;
+        Arc::FileAccess::Release(fa);
         return NULL;
       };
     };
     if(!fa->fa_open(fname,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR)) {
-      delete fa;
+      Arc::FileAccess::Release(fa);
       return NULL;
     };
   };
@@ -947,7 +947,7 @@ Arc::FileAccess* ARexJob::OpenFile(const std::string& filename,bool for_read,boo
   else if(for_read) { flags=O_RDONLY; }
   else if(for_write) { flags=O_WRONLY; }
   //return Arc::FileOpen(fname,flags,config_.User()->get_uid(),config_.User()->get_gid(),0);
-  Arc::FileAccess* fa = new Arc::FileAccess();
+  Arc::FileAccess* fa = Arc::FileAccess::Acquire();
   if(*fa) {
     if(fa->fa_setuid(config_.User()->get_uid(),config_.User()->get_gid())) {
       if(fa->fa_open(fname,flags,0)) {
@@ -957,7 +957,7 @@ Arc::FileAccess* ARexJob::OpenFile(const std::string& filename,bool for_read,boo
   };
   failure_="Failed opening file - "+Arc::StrError(fa->geterrno());
   failure_type_=ARexJobInternalError;
-  delete fa;
+  Arc::FileAccess::Release(fa);
   return NULL;
 }
 
@@ -971,7 +971,7 @@ Arc::FileAccess* ARexJob::OpenDir(const std::string& dirname) {
   };
   //if(dname.empty()) return NULL;
   dname = config_.User()->SessionRoot(id_)+"/"+id_+"/"+dname;
-  Arc::FileAccess* fa = new Arc::FileAccess();
+  Arc::FileAccess* fa = Arc::FileAccess::Acquire();
   if(*fa) {
     if(fa->fa_setuid(config_.User()->get_uid(),config_.User()->get_gid())) {
       if(fa->fa_opendir(dname)) {
@@ -981,7 +981,7 @@ Arc::FileAccess* ARexJob::OpenDir(const std::string& dirname) {
   };
   failure_="Failed opening directory - "+Arc::StrError(fa->geterrno());
   failure_type_=ARexJobInternalError;
-  delete fa;
+  Arc::FileAccess::Release(fa);
   return NULL;
 }
 

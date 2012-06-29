@@ -81,13 +81,13 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
   off_t pos = stream.Pos(); 
   if(h->fa_lseek(pos,SEEK_SET) != pos) {
     std::string err = Arc::StrError();
-    h->fa_close(); delete h;
+    h->fa_close(); Arc::FileAccess::Release(h);
     logger.msg(Arc::ERROR, "Put: failed to set position of file %s for job %s to %Lu - %s", hpath, job.ID(), (unsigned long long int)pos, err);
     return Arc::MCC_Status();
   };
   char* buf = new char[bufsize];
   if(!buf) {
-    h->fa_close(); delete h;
+    h->fa_close(); Arc::FileAccess::Release(h);
     logger.msg(Arc::ERROR, "Put: failed to allocate memory for file %s in job %s", hpath, job.ID());
     return Arc::MCC_Status();
   };
@@ -99,7 +99,7 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
     if(!write_file(h,buf,size)) {
       std::string err = Arc::StrError();
       delete[] buf;
-      h->fa_close(); delete h;
+      h->fa_close(); Arc::FileAccess::Release(h);
       logger.msg(Arc::ERROR, "Put: failed to write to file %s for job %s - %s", hpath, job.ID(), err);
       return Arc::MCC_Status();
     };
@@ -107,7 +107,7 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
     pos+=size;
   };
   delete[] buf;
-  h->fa_close(); delete h;
+  h->fa_close(); Arc::FileAccess::Release(h);
   if(fc->Complete()) {
     job.ReportFileComplete(hpath);
   } else {
@@ -142,17 +142,17 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
       got_something = true;
       off_t o = h->fa_lseek(offset,SEEK_SET);
       if(o != offset) {
-        h->fa_close(); delete h;
+        h->fa_close(); Arc::FileAccess::Release(h);
         return Arc::MCC_Status();
       };
       if(!write_file(h,sbuf,size)) {
-        h->fa_close(); delete h;
+        h->fa_close(); Arc::FileAccess::Release(h);
         return Arc::MCC_Status();
       };
       if(size) fc->Add(offset,size);
     };
   };
-  h->fa_close(); delete h;
+  h->fa_close(); Arc::FileAccess::Release(h);
   if(fc->Complete()) {
     job.ReportFileComplete(hpath);
   } else {

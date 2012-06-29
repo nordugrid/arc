@@ -359,7 +359,7 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
         };
       };
       if(!info) {
-        logger_.msg(Arc::ERROR, "EMIES:GetActivityStatus: job %s - failed to retrieve Glue2 information", jobid);
+        logger_.msg(Arc::ERROR, "EMIES:GetActivityInfo: job %s - failed to retrieve Glue2 information", jobid);
         ESInternalBaseFault(item.NewChild("dummy"),"failed to retrieve Glue2 information");
       };
     };

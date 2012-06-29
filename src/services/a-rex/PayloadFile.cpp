@@ -196,7 +196,7 @@ PayloadFAFile::PayloadFAFile(Arc::FileAccess* h,Size_t start,Size_t end) {
 PayloadFAFile::~PayloadFAFile(void) {
   if(handle_ != NULL) {
     handle_->fa_close();
-    delete handle_;
+    Arc::FileAccess::Release(handle_);
   };
 }
 
