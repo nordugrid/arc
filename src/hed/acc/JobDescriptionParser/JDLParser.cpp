@@ -81,7 +81,7 @@ namespace Arc {
     return true;
   }
 
-  std::string JDLParser::simpleJDLvalue(const std::string& attributeValue) const {
+  std::string JDLParser::simpleJDLvalue(const std::string& attributeValue) {
     const std::string whitespaces(" \t\f\v\n\r");
     const size_t last_pos = attributeValue.find_last_of("\"");
 
@@ -98,7 +98,7 @@ namespace Arc {
     }
   }
 
-  std::list<std::string> JDLParser::listJDLvalue(const std::string& attributeValue, std::pair<char, char> brackets, char lineEnd) const {
+  std::list<std::string> JDLParser::listJDLvalue(const std::string& attributeValue, std::pair<char, char> brackets, char lineEnd) {
     std::list<std::string> elements;
     unsigned long first_bracket = attributeValue.find_first_of(brackets.first);
     if (first_bracket == std::string::npos) {
@@ -165,39 +165,12 @@ namespace Arc {
       job.Application.Error = simpleJDLvalue(attributeValue);
       return true;
     }
-    else if (attributeName == "inputsandbox") {
-      std::list<std::string> inputfiles = listJDLvalue(attributeValue);
-      for (std::list<std::string>::const_iterator it = inputfiles.begin();
-           it != inputfiles.end(); it++) {
-        InputFileType file;
-        const std::size_t pos = it->find_last_of('/');
-        file.Name = (pos == std::string::npos ? *it : it->substr(pos+1));
-        file.Sources.push_back(URL(*it));
-        if (!file.Sources.back()) {
-          return false;
-        }
-        if (file.Sources.back().Protocol() == "file") {
-          if (!Glib::file_test(file.Sources.back().Path(), Glib::FILE_TEST_IS_REGULAR)) {
-            logger.msg(ERROR, "The inputsandbox JDL attribute is referencing a non-regular file (%s).", file.Sources.back().Path());
-            return false;
-          }
-        }
-        // Initializing these variables
-        file.IsExecutable = false;
-        job.DataStaging.InputFiles.push_back(file);
-      }
+    else if (attributeName == "inputsandbox") { // Wait with handling this attribute till everything have been parsed
+      job.OtherAttributes["egee:jdl;inputsandbox"] = attributeValue;
       return true;
     }
-    else if (attributeName == "inputsandboxbaseuri") {
-      for (std::list<InputFileType>::iterator it = job.DataStaging.InputFiles.begin();
-           it != job.DataStaging.InputFiles.end(); it++) {
-        /* Since JDL does not have support for multiple locations the size of
-         * the Source member is exactly 1.
-         */
-        if (!it->Sources.empty() && !it->Sources.front()) {
-          it->Sources.front() = simpleJDLvalue(attributeValue);
-        }
-      }
+    else if (attributeName == "inputsandboxbaseuri") { // Wait with handling this attribute till everything have been parsed
+      job.OtherAttributes["egee:jdl;inputsandboxbaseuri"] = attributeValue;
       return true;
     }
     else if (attributeName == "outputsandbox") {
@@ -483,6 +456,63 @@ namespace Arc {
     return output.str();
   }
 
+  bool JDLParser::ParseInputSandboxAttribute(JobDescription& j) {
+    std::map<std::string, std::string>::iterator itAtt;
+
+    itAtt = j.OtherAttributes.find("egee:jdl;inputsandbox");
+    if (itAtt == j.OtherAttributes.end()) {
+      return true;
+    }
+
+    std::list<std::string> inputfiles = listJDLvalue(itAtt->second);
+
+    bool baseuriExist = false;
+    URL base;
+    itAtt = j.OtherAttributes.find("egee:jdl;inputsandboxbaseuri");
+    if (itAtt != j.OtherAttributes.end()) {
+      base = simpleJDLvalue(itAtt->second);
+      baseuriExist = true;
+      if (!base) {
+        logger.msg(ERROR, "The inputsandboxbaseuri JDL attribute specifies a invalid URL.");
+        return false;
+      }
+    }
+
+    for (std::list<std::string>::const_iterator it = inputfiles.begin();
+         it != inputfiles.end(); ++it) {
+      InputFileType file;
+      const std::size_t pos = it->find_last_of('/');
+      file.Name = (pos == std::string::npos ? *it : it->substr(pos+1));
+
+      if (baseuriExist && it->find("://") == std::string::npos) {
+        file.Sources.push_back(base);
+        if ((*it)[0] == '/') {
+          file.Sources.back().ChangePath(*it);
+        }
+        else {
+          file.Sources.back().ChangePath(file.Sources.back().Path() + '/' + *it);
+        }
+      }
+      else {
+        file.Sources.push_back(URL(*it));
+      }
+      if (!file.Sources.back()) {
+        return false;
+      }
+      if (file.Sources.back().Protocol() == "file") {
+       if (!Glib::file_test(file.Sources.back().Path(), Glib::FILE_TEST_IS_REGULAR)) {
+          logger.msg(ERROR, "The inputsandbox JDL attribute is referencing a non-regular file (%s).", file.Sources.back().Path());
+          return false;
+        }
+      }
+      // Initializing these variables
+      file.IsExecutable = false;
+      j.DataStaging.InputFiles.push_back(file);
+    }
+
+    return true;
+  }
+
   JobDescriptionParserResult JDLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
     if (language != "" && !IsLanguageSupported(language)) {
       return false;
@@ -553,6 +583,10 @@ namespace Arc {
         jobdescs.clear();
         return false;
       }
+    }
+
+    if (!ParseInputSandboxAttribute(jobdesc)) {
+      return false;
     }
 
     SourceLanguage(jobdesc) = (!language.empty() ? language : supportedLanguages.front());

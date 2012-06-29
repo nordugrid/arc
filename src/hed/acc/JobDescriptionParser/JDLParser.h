@@ -34,14 +34,15 @@ namespace Arc {
     bool handleJDLattribute(const std::string& attributeName,
                             const std::string& attributeValue,
                             JobDescription& job) const;
-    std::string simpleJDLvalue(const std::string& attributeValue) const;
-    std::list<std::string> listJDLvalue(const std::string& attributeValue,
-                                        std::pair<char, char> bracket = std::make_pair('{', '}'),
-                                        char lineEnd = ',') const;
+    static std::string simpleJDLvalue(const std::string& attributeValue);
+    static std::list<std::string> listJDLvalue(const std::string& attributeValue,
+                                               std::pair<char, char> bracket = std::make_pair('{', '}'),
+                                               char lineEnd = ',');
     std::string generateOutputList(const std::string& attribute,
                                    const std::list<std::string>& list,
                                    std::pair<char, char> bracket = std::make_pair('{', '}'),
                                    char lineEnd = ',') const;
+    static bool ParseInputSandboxAttribute(JobDescription&);
   };
 
 } // namespace Arc
