@@ -74,6 +74,8 @@ namespace Arc {
       URL jobid;
       if (activityIdentifier["ReferenceParameters"]["a-rex:JobID"]) { // Service seems to be A-REX. Extract job ID, and upload files.
         jobid = URL((std::string)(activityIdentifier["ReferenceParameters"]["JobSessionDir"]));
+        // compensate for time between request and response on slow networks
+        jobid.AddOption("threads=2",false);
     
         if (!PutFiles(preparedjobdesc, jobid)) {
           logger.msg(INFO, "Failed uploading local input files");
