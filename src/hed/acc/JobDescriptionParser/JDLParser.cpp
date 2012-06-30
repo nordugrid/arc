@@ -126,21 +126,21 @@ namespace Arc {
   bool JDLParser::handleJDLattribute(const std::string& attributeName_,
                                      const std::string& attributeValue,
                                      JobDescription& job) const {
-    // To do the attributes name case-insensitive do them lowercase and remove the quotiation marks
+    // To do the attributes name case-insensitive do them lowercase and remove the quotation marks
     std::string attributeName = lower(attributeName_);
     if (attributeName == "type") {
       std::string value = lower(simpleJDLvalue(attributeValue));
       if (value == "job")
         return true;
       if (value == "dag") {
-        logger.msg(VERBOSE, "[JDLParser] This kind of JDL decriptor is not supported yet: %s", value);
+        logger.msg(VERBOSE, "[JDLParser] This kind of JDL descriptor is not supported yet: %s", value);
         return false;  // This kind of JDL decriptor is not supported yet
       }
       if (value == "collection") {
-        logger.msg(VERBOSE, "[JDLParser] This kind of JDL decriptor is not supported yet: %s", value);
+        logger.msg(VERBOSE, "[JDLParser] This kind of JDL descriptor is not supported yet: %s", value);
         return false;  // This kind of JDL decriptor is not supported yet
       }
-      logger.msg(VERBOSE, "[JDLParser] Attribute name: %s, has unknown value: %s", attributeName, value);
+      logger.msg(VERBOSE, "[JDLParser] Attribute named %s has unknown value: %s", attributeName, value);
       return false;    // Unknown attribute value - error
     }
     else if (attributeName == "jobtype")
@@ -287,7 +287,7 @@ namespace Arc {
               trim(it->substr(equal_pos + 1))));
         }
         else {
-          logger.msg(VERBOSE, "[JDLParser] Environment variable has been defined without any equal sign.");
+          logger.msg(VERBOSE, "[JDLParser] Environment variable has been defined without any equals sign.");
           return false;
         }
       }
@@ -473,7 +473,7 @@ namespace Arc {
       base = simpleJDLvalue(itAtt->second);
       baseuriExist = true;
       if (!base) {
-        logger.msg(ERROR, "The inputsandboxbaseuri JDL attribute specifies a invalid URL.");
+        logger.msg(ERROR, "The inputsandboxbaseuri JDL attribute specifies an invalid URL.");
         return false;
       }
     }
@@ -528,7 +528,7 @@ namespace Arc {
     unsigned long first = source.find_first_of("[");
     unsigned long last = source.find_last_of("]");
     if (first == std::string::npos || last == std::string::npos || first >= last) {
-      logger.msg(VERBOSE, "[JDLParser] There is at least one necessary ruler character missing or their order incorrect. ('[' or ']')");
+      logger.msg(VERBOSE, "[JDLParser] There is at least one necessary square bracket missing or their order is incorrect. ('[' or ']')");
       jobdescs.clear();
       return false;
     }
@@ -575,7 +575,7 @@ namespace Arc {
          it != lines.end(); it++) {
       const size_t equal_pos = it->find_first_of("=");
       if (equal_pos == std::string::npos) {
-        logger.msg(VERBOSE, "[JDLParser] JDL syntax error. There is at least one equal sign missing where it would be expected.");
+        logger.msg(VERBOSE, "[JDLParser] JDL syntax error. There is at least one equals sign missing where it would be expected.");
         jobdescs.clear();
         return false;
       }
