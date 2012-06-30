@@ -526,7 +526,7 @@ namespace Arc {
                 "at default locations:\n"
                 "~/.arc/, ~/.globus/, %s/etc/arc, and ./.\n"
                 "Please manually specify the proxy or certificate/key locations, or use\n"
-                "arcproxy utility to create a proxy certificte", ArcLocation::Get()
+                "arcproxy utility to create a proxy certificate.", ArcLocation::Get()
               );
               if(require) {
                 res = false;
