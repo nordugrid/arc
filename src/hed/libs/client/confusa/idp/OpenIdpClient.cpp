@@ -83,7 +83,7 @@ namespace Arc {
 		  }
 
 		  std::string post_2_ssoservice_redirect = id_login_post_info.location;
-		  logger.msg(VERBOSE, "post_2_ssoservice_redirect url is %s", post_2_ssoservice_redirect);
+		  logger.msg(VERBOSE, "post_2_ssoservice_redirect URL is %s", post_2_ssoservice_redirect);
 
 		  if(post_2_ssoservice_redirect.empty()) {
 			  return MCC_Status(PARSING_ERROR, origin, "Could not get the id-login post location from the IdP");
@@ -234,7 +234,7 @@ namespace Arc {
 		  std::multimap<std::string, std::string> http_attributes;
 
 		  if ((*sso_pages_)["PostIdP"] == "") {
-			  return MCC_Status(GENERIC_ERROR, origin, "The post-idp page is unknown!");
+			  return MCC_Status(GENERIC_ERROR, origin, "The post-IdP page is unknown!");
 		  }
 
 		  if ((*session_cookies_)["Confusa"] == "") {

@@ -150,7 +150,7 @@ namespace Arc {
 		std::string confusa_url = (*sso_pages_)["PostIdP"];
 		std::string cookies = (*session_cookies_)["Confusa"];
 
-		logger.msg(VERBOSE, "Calling post-idp site %s with relay state %s", confusa_url, saml_post_relaystate_);
+		logger.msg(VERBOSE, "Calling post-IdP site %s with relay state %s", confusa_url, saml_post_relaystate_);
 		logger.msg(VERBOSE, "Cookies %s", cookies);
 		http_attributes.insert(std::pair<std::string,std::string>("Cookie",cookies));
 		ClientHTTP sp_asscom_client(cfg_, URL(confusa_url));
