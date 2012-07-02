@@ -346,6 +346,11 @@ namespace Arc {
       job.OtherAttributes["egee:jdl;batchsystem"] = simpleJDLvalue(attributeValue);
       return true;
     }
+    else if (attributeName == "cpunumber") {
+      if (!stringto<int>(simpleJDLvalue(attributeValue), job.Resources.SlotRequirement.NumberOfSlots)) {
+        job.Resources.SlotRequirement.NumberOfSlots = -1;
+      }
+    }
     else if (attributeName == "retrycount") {
       const int count = stringtoi(simpleJDLvalue(attributeValue));
       if (job.Application.Rerun < count)
@@ -739,6 +744,7 @@ namespace Arc {
       product += "\";\n";
     }
 
+    product += ADDJDLNUMBER(job.Resources.SlotRequirement.NumberOfSlots, "CPUNumber");
     product += ADDJDLNUMBER(job.Application.Rerun, "RetryCount");
     product += ADDJDLNUMBER(job.Application.Rerun, "ShallowRetryCount");
     product += ADDJDLNUMBER(job.Application.ExpirationTime.GetTime(), "ExpiryTime");

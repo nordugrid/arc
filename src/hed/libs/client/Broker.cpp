@@ -234,9 +234,9 @@ namespace Arc {
           }
         }
         else if (t.ComputingShare->MaxCPUTime.GetPeriod() != -1) {
-          const int slots = (j->Resources.SlotRequirement.SlotsPerHost > 0 ? j->Resources.SlotRequirement.SlotsPerHost : 1);
+          const int slots = (j->Resources.SlotRequirement.NumberOfSlots > 0 ? j->Resources.SlotRequirement.NumberOfSlots : 1);
           if (t.ComputingShare->MaxCPUTime.GetPeriod() < totalcputime/slots) {
-            logger.msg(VERBOSE, "Matchmaking, MaxTotalCPUTime problem, ExecutionTarget: %d (MaxCPUTime), JobDescription: %d (TotalCPUTime/SlotsPerHost)", t.ComputingShare->MaxTotalCPUTime.GetPeriod(), totalcputime/slots);
+            logger.msg(VERBOSE, "Matchmaking, MaxTotalCPUTime problem, ExecutionTarget: %d (MaxCPUTime), JobDescription: %d (TotalCPUTime/NumberOfSlots)", t.ComputingShare->MaxTotalCPUTime.GetPeriod(), totalcputime/slots);
             return false;
           }
         }

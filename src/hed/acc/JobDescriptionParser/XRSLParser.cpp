@@ -207,7 +207,7 @@ namespace Arc {
     j.Resources.TotalCPUTime.range = Period(itAtt->second, PeriodMinutes).GetPeriod();
     j.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("clock rate", 2800);
 
-    int slots = (j.Resources.SlotRequirement.SlotsPerHost > 0 ? j.Resources.SlotRequirement.SlotsPerHost : 1);
+    int slots = (j.Resources.SlotRequirement.NumberOfSlots > 0 ? j.Resources.SlotRequirement.NumberOfSlots : 1);
     j.Resources.IndividualWallTime.range = Period(itAtt->second, PeriodMinutes).GetPeriod()*slots;
     j.Resources.IndividualWallTime.benchmark = std::pair<std::string, double>("clock rate", 2800);
 
@@ -1188,10 +1188,10 @@ namespace Arc {
         std::string count;
         if (!SingleValue(c, count))
           return false;
-        j.Resources.SlotRequirement.SlotsPerHost = stringtoi(count);
+        j.Resources.SlotRequirement.NumberOfSlots = stringtoi(count);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
-             it != j.GetAlternatives().end(); it++) {
-          it->Resources.SlotRequirement.SlotsPerHost = j.Resources.SlotRequirement.SlotsPerHost;
+             it != j.GetAlternatives().end(); ++it) {
+          it->Resources.SlotRequirement.NumberOfSlots = j.Resources.SlotRequirement.NumberOfSlots;
         }
         return true;
       }
@@ -1645,9 +1645,9 @@ namespace Arc {
       r.Add(new RSLCondition("architecture", RSLEqual, l));
     }
 
-    if (j.Resources.SlotRequirement.SlotsPerHost > -1) {
+    if (j.Resources.SlotRequirement.NumberOfSlots > -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(tostring(j.Resources.SlotRequirement.SlotsPerHost)));
+      l->Add(new RSLLiteral(tostring(j.Resources.SlotRequirement.NumberOfSlots)));
       r.Add(new RSLCondition("count", RSLEqual, l));
     }
 
