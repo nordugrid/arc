@@ -30,7 +30,7 @@ namespace Arc {
   }
 
   bool PluginsFactory::modules_t_::add(ModuleDesc* m_i, Glib::Module* m_h, PluginDescriptor* d_h) {
-    if(!(this->find(m_i->name))) return false;
+    if(this->find(m_i->name)) return false;
     // TODO: too many copying - reduce
     module_t_ module;
     module.module = m_h;
