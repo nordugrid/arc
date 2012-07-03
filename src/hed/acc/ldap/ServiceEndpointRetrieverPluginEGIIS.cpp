@@ -31,14 +31,13 @@ namespace Arc {
     
     std::string::size_type pos2 = service.find(":", pos1 + 3);
     std::string::size_type pos3 = service.find("/", pos1 + 3);
-    if (pos3 == std::string::npos) {
-      if (pos2 == std::string::npos)
-        service += ":2135";
-      service += "/Mds-Vo-name=NorduGrid, o=Grid";
+    if (pos2 == std::string::npos && pos3 == std::string::npos) {
+      service.append(":2135");
     }
-    else if (pos2 == std::string::npos || pos2 > pos3)
+    else if (pos2 == std::string::npos || pos2 > pos3) {
       service.insert(pos3, ":2135");
-      
+    }
+
     return service;
   }
 
