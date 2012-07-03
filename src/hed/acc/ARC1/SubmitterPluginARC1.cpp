@@ -76,6 +76,7 @@ namespace Arc {
         jobid = URL((std::string)(activityIdentifier["ReferenceParameters"]["JobSessionDir"]));
         // compensate for time between request and response on slow networks
         jobid.AddOption("threads=2",false);
+        jobid.AddOption("encryption=optional",false);
     
         if (!PutFiles(preparedjobdesc, jobid)) {
           logger.msg(INFO, "Failed uploading local input files");
