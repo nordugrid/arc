@@ -48,6 +48,10 @@ int RUNMAIN(arcresume)(int argc, char **argv) {
     return 1;
   }
 
+  if (!checkproxy(usercfg)) {
+    return 1;
+  }
+
   if (opt.debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
