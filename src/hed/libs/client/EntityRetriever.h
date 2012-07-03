@@ -254,7 +254,7 @@ public:
   /** Register a new consumer which will receive results from now on.
     \param[in] consumer is a consumer object capable of consuming type T objects
   */
-  void addConsumer(EntityConsumer<T>& consumer) { consumerLock.lock(); consumers.push_back(&c); consumerLock.unlock(); };
+  void addConsumer(EntityConsumer<T>& consumer) { consumerLock.lock(); consumers.push_back(&consumer); consumerLock.unlock(); };
     
   /** Remove a previously registered consumer
     \param[in] consumer is the consumer object
