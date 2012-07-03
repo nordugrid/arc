@@ -57,6 +57,19 @@ namespace Arc {
     NoSec, TLSSec, GSISec, SSL3Sec, GSIIOSec
   };
 
+  enum EncryptionLevel {
+    NoEnc, RequireEnc, PreferEnc, OptionalEnc
+  };
+
+  class TCPSec {
+  public:
+    SecurityLayer sec;
+    EncryptionLevel enc;
+    TCPSec(void):sec(NoSec),enc(NoEnc) { };
+    TCPSec(SecurityLayer s):sec(s),enc((s==NoSec)?NoEnc:RequireEnc) { };
+    TCPSec(SecurityLayer s, EncryptionLevel e):sec(s),enc(e) { };
+  };
+
   //! Class for setting up a MCC chain for TCP communication
   /** The ClientTCP class is a specialization of the ClientInterface
    * which sets up a client MCC chain for TCP communication, and
@@ -70,7 +83,7 @@ namespace Arc {
       : tcp_entry(NULL),
         tls_entry(NULL) {}
     ClientTCP(const BaseConfig& cfg, const std::string& host, int port,
-              SecurityLayer sec, int timeout = -1, bool no_delay = false);
+              TCPSec sec, int timeout = -1, bool no_delay = false);
     virtual ~ClientTCP();
     MCC_Status process(PayloadRawInterface *request,
                        PayloadStreamInterface **response, bool tls);
@@ -78,7 +91,7 @@ namespace Arc {
       return tls_entry ? tls_entry : tcp_entry;
     }
     virtual bool Load();
-    void AddSecHandler(XMLNode handlercfg, SecurityLayer sec, const std::string& libanme = "", const std::string& libpath = "");
+    void AddSecHandler(XMLNode handlercfg, TCPSec sec, const std::string& libanme = "", const std::string& libpath = "");
   protected:
     MCC *tcp_entry;
     MCC *tls_entry;
@@ -137,7 +150,7 @@ namespace Arc {
     MCC *http_entry;
     URL default_url;
     bool relative_uri;
-    SecurityLayer sec;
+    TCPSec sec;
   };
 
   /** Class with easy interface for sending/receiving SOAP messages

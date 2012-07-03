@@ -128,7 +128,7 @@ namespace Arc {
   }
 
   ClientTCP::ClientTCP(const BaseConfig& cfg, const std::string& host,
-                       int port, SecurityLayer sec, int timeout, bool no_delay)
+                       int port, TCPSec sec, int timeout, bool no_delay)
     : ClientInterface(cfg),
       tcp_entry(NULL),
       tls_entry(NULL) {
@@ -140,40 +140,40 @@ namespace Arc {
     if(timeout >=  0) comp.NewChild("Timeout") = tostring(timeout);
     if(no_delay) comp.NewChild("NoDelay") = "true";
 
-    if ((sec == TLSSec) || (sec == SSL3Sec)) {
+    if ((sec.sec == TLSSec) || (sec.sec == SSL3Sec)) {
       comp = ConfigMakeComponent(xmlcfg["Chain"], "tls.client", "tls", "tcp");
-      if (!cfg.key.empty())
-        comp.NewChild("KeyPath") = cfg.key;
-      if (!cfg.cert.empty())
-        comp.NewChild("CertificatePath") = cfg.cert;
-      if (!cfg.proxy.empty())
-        comp.NewChild("ProxyPath") = cfg.proxy;
-      if (!cfg.cafile.empty())
-        comp.NewChild("CACertificatePath") = cfg.cafile;
-      if (!cfg.cadir.empty())
-        comp.NewChild("CACertificatesDir") = cfg.cadir;
+      if (!cfg.key.empty()) comp.NewChild("KeyPath") = cfg.key;
+      if (!cfg.cert.empty()) comp.NewChild("CertificatePath") = cfg.cert;
+      if (!cfg.proxy.empty()) comp.NewChild("ProxyPath") = cfg.proxy;
+      if (!cfg.cafile.empty()) comp.NewChild("CACertificatePath") = cfg.cafile;
+      if (!cfg.cadir.empty()) comp.NewChild("CACertificatesDir") = cfg.cadir;
       comp.NewAttribute("entry") = "tls";
-      if (sec == SSL3Sec)
-        comp.NewChild("Handshake") = "SSLv3";
+      if (sec.sec == SSL3Sec) comp.NewChild("Handshake") = "SSLv3";
     }
-    else if ((sec == GSISec) || (sec == GSIIOSec)) {
+    else if ((sec.sec == GSISec) || (sec.sec == GSIIOSec)) {
       comp = ConfigMakeComponent(xmlcfg["Chain"], "tls.client", "gsi", "tcp");
-      if (!cfg.key.empty())
-        comp.NewChild("KeyPath") = cfg.key;
-      if (!cfg.cert.empty())
-        comp.NewChild("CertificatePath") = cfg.cert;
-      if (!cfg.proxy.empty())
-        comp.NewChild("ProxyPath") = cfg.proxy;
-      if (!cfg.cafile.empty())
-        comp.NewChild("CACertificatePath") = cfg.cafile;
-      if (!cfg.cadir.empty())
-        comp.NewChild("CACertificatesDir") = cfg.cadir;
-      if (sec == GSISec) {
+      if (!cfg.key.empty()) comp.NewChild("KeyPath") = cfg.key;
+      if (!cfg.cert.empty()) comp.NewChild("CertificatePath") = cfg.cert;
+      if (!cfg.proxy.empty()) comp.NewChild("ProxyPath") = cfg.proxy;
+      if (!cfg.cafile.empty()) comp.NewChild("CACertificatePath") = cfg.cafile;
+      if (!cfg.cadir.empty()) comp.NewChild("CACertificatesDir") = cfg.cadir;
+      if (sec.sec == GSISec) {
         comp.NewChild("GSI") = "globus";
       } else {
         comp.NewChild("GSI") = "globusio";
       }
       comp.NewAttribute("entry") = "gsi";
+    }
+    if(sec.sec != NoSec) {
+      if (sec.enc == RequireEnc) {
+        comp.NewChild("Encryption") = "required";
+      } else if (sec.enc == PreferEnc) {
+        comp.NewChild("Encryption") = "prefered";
+      } else if (sec.enc == OptionalEnc) {
+        comp.NewChild("Encryption") = "optional";
+      } else if (sec.enc == NoEnc) {
+        comp.NewChild("Encryption") = "off";
+      }
     }
   }
 
@@ -226,21 +226,23 @@ namespace Arc {
     return r;
   }
 
-  void ClientTCP::AddSecHandler(XMLNode handlercfg, SecurityLayer sec, const std::string& libname, const std::string& libpath) {
-    if ((sec == TLSSec) || (sec == SSL3Sec))
+  void ClientTCP::AddSecHandler(XMLNode handlercfg, TCPSec sec, const std::string& libname, const std::string& libpath) {
+    if ((sec.sec == TLSSec) || (sec.sec == SSL3Sec)) {
       ClientInterface::AddSecHandler(
         ConfigFindComponent(xmlcfg["Chain"], "tls.client", "tls"),
         handlercfg);
-    else if ((sec == GSISec) || (sec == GSIIOSec))
+    } else if ((sec.sec == GSISec) || (sec.sec == GSIIOSec)) {
       ClientInterface::AddSecHandler(
         ConfigFindComponent(xmlcfg["Chain"], "tls.client", "gsi"),
         handlercfg);
-    else
+    } else {
       ClientInterface::AddSecHandler(
         ConfigFindComponent(xmlcfg["Chain"], "tcp.client", "tcp"),
         handlercfg);
-    for (XMLNode pl = handlercfg["Plugins"]; (bool)pl; ++pl)
+    }
+    for (XMLNode pl = handlercfg["Plugins"]; (bool)pl; ++pl) {
       AddPlugin(xmlcfg, pl["Name"]);
+    }
     AddPlugin(xmlcfg, libname, libpath);
   }
 
@@ -279,15 +281,35 @@ namespace Arc {
     return port;
   }
 
-  static SecurityLayer http_url_to_sec(const URL& url) {
+  static TCPSec http_url_to_sec(const URL& url) {
+    TCPSec sec;
     if(url.Protocol() == "https") {
-      if(url.Option("protocol") == "ssl3") return SSL3Sec;
-      return TLSSec;
+      if(url.Option("protocol") == "ssl3") {
+        sec.sec = SSL3Sec;
+      } else {
+        sec.sec = TLSSec;
+      }
     } else if(url.Protocol() == "httpg") {
-      if(url.Option("protocol") == "gsi") return GSIIOSec;
-      return GSISec;
+      if(url.Option("protocol") == "gsi") {
+        sec.sec = GSIIOSec;
+      } else {
+        sec.sec = GSISec;
+      }
+    } else {
+      sec.sec = NoSec;
+      sec.enc = NoEnc;
+      return sec;
     }
-    return NoSec;
+    sec.enc = RequireEnc;
+    if(url.Option("encryption") == "required") {
+      sec.enc = RequireEnc;
+    } else if(url.Option("encryption") == "prefered") {
+      sec.enc = PreferEnc;
+    } else if(url.Option("encryption") == "optional") {
+      sec.enc = OptionalEnc;
+    } else if(url.Option("encryption") == "off") {
+      sec.enc = NoEnc;
+    }
   }
 
   ClientHTTP::ClientHTTP(const BaseConfig& cfg, const URL& url, int timeout, const std::string& proxy_host, int proxy_port)
@@ -302,8 +324,8 @@ namespace Arc {
       relative_uri(false),
       sec(http_url_to_sec(url)) {
     XMLNode comp = ConfigMakeComponent(xmlcfg["Chain"], "http.client", "http",
-                     ((sec == TLSSec) || (sec == SSL3Sec)) ? "tls" :
-                     ((sec == GSISec) || (sec == GSIIOSec)) ? "gsi" : "tcp");
+                     ((sec.sec == TLSSec) || (sec.sec == SSL3Sec)) ? "tls" :
+                     ((sec.sec == GSISec) || (sec.sec == GSIIOSec)) ? "gsi" : "tcp");
     comp.NewAttribute("entry") = "http";
     comp.NewChild("Method") = "POST"; // Override using attributes if needed
     comp.NewChild("Endpoint") = url.str();
