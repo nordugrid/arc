@@ -45,6 +45,7 @@ namespace Arc {
     valid_url_options.insert("protocol");
     valid_url_options.insert("spacetoken");
     valid_url_options.insert("transferprotocol");
+    valid_url_options.insert("encryption");
   }
 
   DataPoint::~DataPoint() {}

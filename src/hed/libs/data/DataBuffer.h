@@ -137,8 +137,8 @@ namespace Arc {
     /// Request buffer for WRITING FROM it.
     /// \param handle returns buffer's number.
     /// \param length returns size of buffer
-    /// \param wait if true and there are no free buffers, method will wait
-    /// for one.
+    /// \param wait if true and there are no available buffers,
+    ///     method will wait for one.
     /// For python bindings pattern of this method is
     /// (bool, handle, length, offset, buffer) for_write(wait).
     /// Here buffer is string with content of buffer provided
