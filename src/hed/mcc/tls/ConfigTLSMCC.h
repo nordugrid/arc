@@ -35,6 +35,7 @@ class ConfigTLSMCC {
     noerrors_voms
   } voms_processing_;
   std::vector<std::string> vomscert_trust_dn_;
+  std::string cipher_list_;
   ConfigTLSMCC(void);
  public:
   ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client = false);

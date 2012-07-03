@@ -155,13 +155,33 @@
     <xsd:simpleType>
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
-            GSI features to instest. Currently only supports Globus 
+            GSI features to use. Currently only supports Globus 
             without delegation.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value=""/>
             <xsd:enumeration value="globus"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:element>
+
+<xsd:element name="Encryption" default="">
+    <xsd:simpleType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            Encryption level to use. Can choose from 
+              required - only ciphers with encryption are allowed (default for client),
+              prefered - ciphers with encryption prefered and without encryption allowd (default for server),
+              optional - ciphers with encryption allowed but without encryption prefered,
+              off - only ciphers without encryption are allowed.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="required"/>
+            <xsd:enumeration value="prefered"/>
+            <xsd:enumeration value="optional"/>
+            <xsd:enumeration value="off"/>
         </xsd:restriction>
     </xsd:simpleType>
 </xsd:element>

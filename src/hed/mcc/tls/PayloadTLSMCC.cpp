@@ -272,6 +272,11 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
       logger.msg(ERROR, "Can not create the SSL object");
       goto error;
    };
+   //for(int n = 0;;++n) {
+   //  const char * s = SSL_get_cipher_list(ssl_,n);
+   //  if(!s) break;
+   //  logger.msg(VERBOSE, "Allowed cipher: %s",s);
+   //};
    SSL_set_bio(ssl_,bio,bio); bio=NULL;
    //SSL_set_connect_state(ssl_);
    if((err=SSL_connect(ssl_)) != 1) {
@@ -286,6 +291,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
       logger.msg(VERBOSE, "Failed to establish SSL connection");
       goto error;
    };
+   logger.msg(VERBOSE, "Using cipher: %s",SSL_get_cipher_name(ssl_));
    // if(SSL_in_init(ssl_)){
    //handle error
    // }
@@ -352,6 +358,11 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
       logger.msg(ERROR, "Can not create the SSL object");
       goto error;
    };
+   //for(int n = 0;;++n) {
+   //  const char * s = SSL_get_cipher_list(ssl_,n);
+   //  if(!s) break;
+   //  logger.msg(VERBOSE, "Allowed cipher: %s",s);
+   //};
    SSL_set_bio(ssl_,bio,bio); bio=NULL;
    //SSL_set_accept_state(ssl_);
    if((err=SSL_accept(ssl_)) != 1) {
@@ -359,6 +370,7 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
       logger.msg(ERROR, "Failed to accept SSL connection");
       goto error;
    };
+   logger.msg(VERBOSE, "Using cipher: %s",SSL_get_cipher_name(ssl_));
    //handle error
    // if(SSL_in_init(ssl_)){
    //handle error

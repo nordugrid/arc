@@ -48,6 +48,21 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client) {
   globusio_gsi_ = (((std::string)(cfg["GSI"])) == "globusio");
   handshake_ = (cfg["Handshake"] == "SSLv3")?ssl3_handshake:tls_handshake;
   proxy_file_ = (std::string)(cfg["ProxyPath"]);
+  if(client) {
+    // Client is using safest setup by default
+    cipher_list_ = "TLSv1:SSLv3:!eNULL:!aNULL";
+  } else {
+    // Server allows client to choose. But requires authentication.
+    cipher_list_ = "TLSv1:SSLv3:eNULL:!aNULL";
+  }
+  if(cfg["Encryption"] == "required") {
+  } else if(cfg["Encryption"] == "prefered") {
+    cipher_list_ = "TLSv1:SSLv3:eNULL:!aNULL";
+  } else if(cfg["Encryption"] == "optional") {
+    cipher_list_ = "eNULL:TLSv1:SSLv3:!aNULL";
+  } else if(cfg["Encryption"] == "off") {
+    cipher_list_ = "eNULL:!aNULL";
+  }
   
   std::vector<std::string> gridSecDir (2);
   gridSecDir[0] = G_DIR_SEPARATOR_S + std::string("etc");
@@ -128,12 +143,21 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx,Logger& logger) {
       return false;
     };
   };
-  if((!key_file_.empty()) && (!cert_file_.empty()))
+  if((!key_file_.empty()) && (!cert_file_.empty())) {
     if(!(SSL_CTX_check_private_key(sslctx))) {
       logger.msg(ERROR, "Private key %s does not match certificate %s",key_file_,cert_file_);
       PayloadTLSStream::HandleError(logger);
       return false;
     };
+  };
+  if(!cipher_list_.empty()) {
+    if(!SSL_CTX_set_cipher_list(sslctx,cipher_list_.c_str())) {
+      logger.msg(ERROR, "No ciphers found to satisfy requested encryption level. "
+                        "Check if OpenSSL supports ciphers '%s'",cipher_list_);
+      PayloadTLSStream::HandleError(logger);
+      return false;
+    };
+  };
   return true;
 }
 
