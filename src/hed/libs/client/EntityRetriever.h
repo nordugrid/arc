@@ -27,9 +27,11 @@ class UserConfig;
 template<typename T>
 class EndpointQueryOptions {
 public:
-  /// A list of preferred interface names (GLUE2) can be set
+  /// Options for querying Endpoint objects
   /** When an Endpoint does not have its interface name specified, all the supported interfaces
       can be tried. If preferred interface names are provided here, those will be tried first.
+      \param[in] preferredInterfaceNames a list of the preferred InterfaceName strings
+      \see EndpointQueryOptions<Endpoint> the EntityRetriever<Endpoint> (a.k.a. #ServiceEndpointRetriever) needs different options
   */
   EndpointQueryOptions(std::list<std::string> preferredInterfaceNames = std::list<std::string>()) : preferredInterfaceNames(preferredInterfaceNames) {}
 
@@ -38,7 +40,7 @@ private:
   std::list<std::string> preferredInterfaceNames;
 };
 
-/// The ServiceEndpointRetriever needs different options from the general template
+/// The EntityRetriever<Endpoint> (a.k.a. #ServiceEndpointRetriever) needs different options
 template<>
 class EndpointQueryOptions<Endpoint> {
 public:
@@ -115,31 +117,193 @@ public:
   virtual void addEntity(const T&) = 0;
 };
 
+/// An entity consumer class storing all the consumed entities in a list.
+/**
+  This class is a concrete subclass of the EntityConsumer abstract class,
+  it also inherits from std::list, and implements the #addEntity method
+  in a way, that it stores all the consumed entities in the list (in itself).
+  
+  The retrievers return their results through entity consumer objects,
+  so this container object can be used in those places, and then the results
+  can be found in the container, which can be treated as a standard list.
+*/
 template<typename T>
 class EntityContainer : public EntityConsumer<T>, public std::list<T> {
 public:
   virtual ~EntityContainer() {}
+  /// All the consumed entities are pushed to the list.
+  /**
+    Because the EntityContainer is a standard list, it can push the entities in itself.
+  */
   virtual void addEntity(const T& t) { this->push_back(t); }
 };
+
+/// Queries Endpoint objects (using plugins in parallel) and sends the found entities to consumers
+/**
+  The EntityRetriever is a template class which queries Endpoint objects and returns 
+  entities of the template type T. The query is done by plugins (capable of 
+  retrieving type T objects from Endpoint objects), and the results are sent to the 
+  registered EntityConsumer objects (capable of consuming type T objects).
+  
+  When an Endpoint is added to the EntityRetriever, a new is 
+  started which queries the given Endpoint. Each plugin is capable of querying 
+  Endpoint objects with given interfaces (which is indicated with the InterfaceName 
+  attribute of the Endpoint). If the Endpoint has the InterfaceName specified, 
+  then the plugin capable of querying that interface will be selected. If the 
+  InterfaceName of the Endpoint is not specified, all the available plugins 
+  will be considered. If there is a preferred list of interfaces, then first 
+  the plugins supporting those interfaces will be tried, and if there are no 
+  preferred interfaces, or the preferred ones did not give any result, then all 
+  the plugins will be tried. All this happens parallel in separate threads.
+
+  Currently there are three instance classes:
+  - the #ServiceEndpointRetriever queries service registries and returns new
+    Endpoint objects
+  - the #TargetInformationRetriever queries computing elements and returns
+    ComputingServiceType objects containing the GLUE2 information about the
+    computing element
+  - the #JobListRetriever queries computing elements and returns jobs residing
+    on the computing element
+    
+  To start querying, a new EntityRetriever needs to be created with the user's 
+  credentials in the UserConfig object, then one or more consumers needs to be 
+  added with the #addConsumer method (e.g. an EntityContainer of the given T 
+  type), then the Endpoints need to be added one by one with the #addEndpoint 
+  method. Then the #wait method can be called to wait for all the results to 
+  arrive, after which we can be sure that all the retrieved entities are passed 
+  to the registered consumer objects. If we registered an EntityContainer, then 
+  we can get all the results from the container, using it as a standard list.
+  
+  It is possible to specify options in the constructor, which in case of the
+  #TargetInformationRetriever and the #JobListRetriever classes is
+  an EndpointQueryOptions object containing a list of preferred InterfaceNames.
+  When an Endpoint has not InterfaceName specified, these preferred InterfaceNames
+  will be tried first. The #ServiceEndpointRetriever has different options though:
+  the EndpointQueryOptions<Endpoint> object does not contain a preferred list
+  of InterfaceNames. It has a flag for recursivity instead and string lists
+  for filtering services by capability and rejecting them by URL.
+  
+  \see ComputingServiceRetriever which combines the #ServiceEndpointRetriever and
+    the #TargetInformationRetriever to query both the service registries and the
+    computing elements
+    
+  #ServiceEndpointRetriever example:
+  \code
+Arc::UserConfig uc;
+// create the retriever with no options
+Arc::ServiceEndpointRetriever retriever(uc);
+// create a container which will store the results
+Arc::EntityContainer<Arc::Endpoint> container;
+// add the container to the retriever
+retriever.addConsumer(container);
+// create an endpoint which will be queried
+Arc::Endpoint registry("test.nordugrid.org", Arc::Endpoint::REGISTRY);
+// start querying the endpoint
+retriever.addEndpoint(registry);
+// wait for the querying process to finish
+retriever.wait();
+// get the status of the query
+Arc::EndpointQueryingStatus status = retriever.getStatusOfEndpoint(registry);
+  \endcode
+  After #wait returns, container contains all the services found in the registry "test.nordugrid.org".
+  
+  #TargetInformationRetriever example:
+  \code
+Arc::UserConfig uc;
+// create the retriever with no options
+Arc::TargetInformationRetriever retriever(uc);
+// create a container which will store the results
+Arc::EntityContainer<Arc::ComputingServiceType> container;
+// add the container to the retriever
+retriever.addConsumer(container);
+// create an endpoint which will be queried
+Arc::Endpoint ce("test.nordugrid.org", Arc::Endpoint::COMPUTINGINFO);
+// start querying the endpoint
+retriever.addEndpoint(ce);
+// wait for the querying process to finish
+retriever.wait();
+// get the status of the query
+Arc::EndpointQueryingStatus status = retriever.getStatusOfEndpoint(ce);
+  \endcode
+  After #wait returns, container contains the ComputingServiceType object which
+  has the full GLUE2 information about the computing element.
+*/
 
 template<typename T>
 class EntityRetriever : public EntityConsumer<T> {
 public:
+  /// Needs the credentials of the user and can have some options
+  /**
+    Creating the EntityRetriever does not start any querying yet.
+    \param UserConfig with the user's credentials
+    \param options contain type T specific querying options
+  */
   EntityRetriever(const UserConfig&, const EndpointQueryOptions<T>& options = EndpointQueryOptions<T>());
   ~EntityRetriever() { common->deactivate(); }
 
+  /** This method blocks until all the results arrive. */
   void wait() const { result.wait(); };
+  
   //void waitForAll() const; // TODO: Make it possible to be nice and wait for all threads to finish.
+  
+  /** Check if the query is finished.
+    \return true if the query is finished, all the results were delivered to the consumers.
+  */
   bool isDone() const { return result.wait(0); };
 
-  void addConsumer(EntityConsumer<T>& c) { consumerLock.lock(); consumers.push_back(&c); consumerLock.unlock(); };
-  void removeConsumer(const EntityConsumer<T>&);
+  /** Register a new consumer which will receive results from now on.
+    \param[in] consumer is a consumer object capable of consuming type T objects
+  */
+  void addConsumer(EntityConsumer<T>& consumer) { consumerLock.lock(); consumers.push_back(&c); consumerLock.unlock(); };
+    
+  /** Remove a previously registered consumer
+    \param[in] consumer is the consumer object
+  */
+  void removeConsumer(const EntityConsumer<T>& consumer);
 
-  EndpointQueryingStatus getStatusOfEndpoint(const Endpoint&) const;
-  bool setStatusOfEndpoint(const Endpoint&, const EndpointQueryingStatus&, bool overwrite = true);
+  /// Get the status of the query process of a given Endpoint.
+  /**
+    \param[in] endpoint is the Endpoint whose status we want to know.
+    \return an EndpointQueryingStatus object containing the status of the query
+  */
+  EndpointQueryingStatus getStatusOfEndpoint(const Endpoint& endpoint) const;
+    
+  /// Set the status of the query process of a given Endpoint.
+  /**
+    This method should only be used by the plugins when they finished querying an Endpoint.
+  
+    \param[in] endpoint is the Endpoint whose status we want to set
+    \param[in] status is the EndpointQueryStatus object containing the status
+    \param[in] overwrite indicates if a previous status should be overwritten,
+               if not, then in case of an existing status the method returns false
+    \return true if the new status was set, false if it was not set
+      (e.g. because overwrite was false, and the status was already set previously)
+  */  
+  bool setStatusOfEndpoint(const Endpoint& endpoint, const EndpointQueryingStatus& status, bool overwrite = true);
 
-  virtual void addEntity(const T&);
-  virtual void addEndpoint(const Endpoint&);
+  /** This method should only be used by the plugins when they return their results.
+    This will send the results to all the registered consumers.
+    
+    In the case of the #ServiceEndpointRetriever, the retrieved entities are actually Endpoint objects,
+    and the #ServiceEndpointRetriever does more work here depending on the options set in
+    EndpointQueryOptions<Endpoint>:
+    - if the URL of a retrieved Endpoint is on the rejected list, the
+      Endpoint is not sent to the consumers
+    - if recursivity is turned on, and the retrieved Endpoint is
+      a service registry, then it is sent to the #addEntity method for querying
+    - if the retrieved Endpoint does not have at least one of the capabilities provided in the
+      capability filter, then the Endpoint is not sent to the consumers
+    \param[in] entity is the type T object retrieved from the endpoints
+  */
+  virtual void addEntity(const T& entity);
+  
+  /// Starts querying an Endpoint
+  /**
+    This method is used to start querying an Endpoint.
+    It starts the query process in a separate thread, and returns immediately.
+    \param[in] endpoint is the Endpoint to query
+  */
+  virtual void addEndpoint(const Endpoint& endpoint);
 
 protected:
   static void queryEndpoint(void *arg_);
@@ -242,15 +406,20 @@ protected:
   std::map<std::string, std::string> interfacePluginMap;
 };
 
-
+/// The ServiceEndpointRetriever is an EntityRetriever retrieving Endpoint objects.
+/** It queries service registries to get endpoints of registered services. */
 typedef EntityRetriever<Endpoint>             ServiceEndpointRetriever;
 typedef EntityRetrieverPlugin<Endpoint>       ServiceEndpointRetrieverPlugin;
 typedef EntityRetrieverPluginLoader<Endpoint> ServiceEndpointRetrieverPluginLoader;
 
+/// The TargetInformationRetriever is an EntityRetriever retrieving ComputingServiceType objects.
+/** It queries computing elements to get the full GLUE2 information about the resource. */
 typedef EntityRetriever<ComputingServiceType>             TargetInformationRetriever;
 typedef EntityRetrieverPlugin<ComputingServiceType>       TargetInformationRetrieverPlugin;
 typedef EntityRetrieverPluginLoader<ComputingServiceType> TargetInformationRetrieverPluginLoader;
 
+/// The JobListRetriever is an EntityRetriever retrieving Job objects.
+/** It queries computing elements to get the list of jobs residing on the resource. */
 typedef EntityRetriever<Job>             JobListRetriever;
 typedef EntityRetrieverPlugin<Job>       JobListRetrieverPlugin;
 typedef EntityRetrieverPluginLoader<Job> JobListRetrieverPluginLoader;
