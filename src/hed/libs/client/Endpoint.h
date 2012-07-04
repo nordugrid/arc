@@ -9,10 +9,35 @@ namespace Arc {
 
 class ConfigEndpoint;
   
+/// Represents an endpoint of a service with a given interface type and capabilities
+/**
+The type of the interface is described by a string called InterfaceName (from the
+GLUE2 specification).
+An Endpoint object must have a URL, and it is quite useless without capabilities
+(the system has to know if an Endpoint is a service registry or a computing element),
+but the InterfaceName is optional.
+
+The Endpoint object also contains information about the health state and quality level
+of the endpoint, and optionally the requested submission interface name,
+which will be used later if a job will be submitted to a computing element
+related to this endpoint.
+
+\see CapabilityEnum where the capabilities are listed.
+*/
 class Endpoint {
 public:
-  enum CapabilityEnum { REGISTRY, COMPUTINGINFO, JOBLIST, JOBSUBMIT, JOBMANAGEMENT, ANY };
+  /** The capabilities:
+  - REGISTRY: service registry capable of returning endpoints
+  - COMPUTINGINFO: local information system of a computing element
+                   capable of returning information about the resource
+  - JOBLIST: local information system of a computing element
+             capable of returning the list of jobs on the resource
+  - JOBSUBMIT: interface of a computing element where jobs can be submitted
+  - JOBMANAGEMENT: interface of a computing element where jobs can be managed
+  */
+  enum CapabilityEnum { REGISTRY, COMPUTINGINFO, JOBLIST, JOBSUBMIT, JOBMANAGEMENT};
   
+  /** Get the string representation of the given #CapabilityEnum. */
   static std::string GetStringForCapability(Endpoint::CapabilityEnum cap) {
     if (cap == Endpoint::REGISTRY) return "information.discovery.registry";
     if (cap == Endpoint::COMPUTINGINFO) return "information.discovery.resource";
@@ -22,37 +47,83 @@ public:
     return "";
   }
   
+  /// Create a new Endpoint with a list of capability strings
+  /**
+    \param[in] URLString is a string representing the URL of the endpoint
+    \param[in] Capability is a list of capability strings
+               specifying the capabilities of the service
+    \param[in] InterfaceName is a string specifying the type of the interface of the service
+  */
   Endpoint(const std::string& URLString = "",
            const std::list<std::string>& Capability = std::list<std::string>(),
            const std::string& InterfaceName = "")
     : URLString(URLString), InterfaceName(InterfaceName), Capability(Capability) {}
 
+  /// Create a new Endpoint with a single capability specified by the #CapabilityEnum
+  /**
+    \param[in] URLString is a string representing the URL of the endpoint
+    \param[in] cap is a #CapabilityEnum specifying the single capability of the endpoint
+    \param[in] InterfaceName is an optional string specifying the type of the interface
+  */
   Endpoint(const std::string& URLString,
            const Endpoint::CapabilityEnum cap,
            const std::string& InterfaceName = "")
     : URLString(URLString), InterfaceName(InterfaceName), Capability(std::list<std::string>(1,GetStringForCapability(cap))) {}
 
   
-  // This will call operator=
-  Endpoint(const ConfigEndpoint& e) { *this = e; }
+  /// Create a new Endpoint from a ConfigEndpoint
+  /**
+    The URL, InterfaceName and the RequestedSubmissionInterfaceName will be copied
+    from the ConfigEndpoint, and if the type of the ConfigEndpoint is REGISTRY or
+    COMPUTINGINFO, the given capability will be added to the new Endpoint object.
+    \param[in] endpoint is the ConfigEndpoint object which will be converted to an Endpoint
+
+    This will call #operator=.
+  */
+  Endpoint(const ConfigEndpoint& endpoint) { *this = endpoint; }
   
+  /** Checks if the Endpoint has the given capability specified by a CapabilityEnum
+    \param[in] cap is the specified CapabilityEnum
+    \return true if the Endpoint has the given capability
+  */
   bool HasCapability(Endpoint::CapabilityEnum cap) const;
   
-  bool HasCapability(std::string) const;
+  /** Checks if the Endpoint has the given capability specified by a string
+    \param[in] cap is a string specifying a capability
+    \return true if the Endpoint has the given capability
+  */
+  bool HasCapability(std::string cap) const;
 
+  /** Returns a string representation of the Endpoint containing the URL,
+    the main capability and the InterfaceName
+  */
   std::string str() const;
   
-  // Needed for std::map to be able to sort the keys
+  /** Needed for std::map to be able to sort the keys */
   bool operator<(const Endpoint& other) const;
   
+  /** Copy a ConfigEndpoint into the Endpoint */
   Endpoint& operator=(const ConfigEndpoint& e);
   
+  /** The string representation of the URL of the Endpoint */
   std::string URLString;
+  /** The type of the interface (GLUE2 InterfaceName) */
   std::string InterfaceName;  
+  /** GLUE2 HealthState */
   std::string HealthState;
+  /** GLUE2 HealthStateInfo */
   std::string HealthStateInfo;
+  /** GLUE2 QualityLevel */
   std::string QualityLevel;
+  /** List of GLUE2 Capability strings */
   std::list<std::string> Capability;
+  /** A GLUE2 InterfaceName requesting an InterfaceName used for job submission.
+  
+    If a user specifies an InterfaceName for submitting jobs, that information
+    will be stored here and will be used when collecting information about the
+    computing element. Only those job submission interfaces will be considered
+    which has this requested InterfaceName.
+  */
   std::string RequestedSubmissionInterfaceName;
 };
 

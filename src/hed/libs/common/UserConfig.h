@@ -22,32 +22,66 @@ namespace Arc {
     INDEX
   };
 
+  /// Represents the endpoint af service with a given type and GLUE2 InterfaceName
+  /**
+    A ConfigEndpoint can be a service registry or a local information system of a
+    computing element. It has a URL, and optionally GLUE2 InterfaceName and a
+    RequestedSubmissionInterfaceName, which will be used to filter the possible
+    job submission interfaces on a computing element.
+  */
   class ConfigEndpoint {
   public:
+    /** Types of ComputingEndpoint objects:
+        - REGISTRY: a service registry
+        - COMPUTINGINFO: a local information system of a computing element
+        - ANY: both, only used for filtering, when both types are accepted
+    */
     enum Type { REGISTRY, COMPUTINGINFO, ANY };
 
+    /// Creates a ConfigEndpoint from a URL an InterfaceName and a Type
+    /**
+      \param[in] URLString is a string containing the URL of the ConfigEndpoint
+      \param[in] InterfaceName is a string containing the type of the interface
+        based on the InterfaceName attribute in the GLUE2 specification
+      \param[in] type is either ConfigEndpoint::REGISTRY or ConfigEndpoint::COMPUTINGINFO
+    */
     ConfigEndpoint(const std::string& URLString = "", const std::string& InterfaceName = "", ConfigEndpoint::Type type = ConfigEndpoint::ANY)
       : type(type), URLString(URLString), InterfaceName(InterfaceName) {}
+      
+    /** The type of the ConfigEndpoint: REGISTRY or COMPUTINGINFO */
     Type type;
+    /** A string representing the URL of the ConfigEndpoint */
     std::string URLString;
+    /** A string representing the interface type
+        (based on the InterfaceName attribute of the GLUE2 specification)
+    */
     std::string InterfaceName;
+    /** A GLUE2 InterfaceName requesting a job submission interface.
+    
+        This will be used when collecting information about the
+        computing element. Only those job submission interfaces will be considered
+        which has this requested InterfaceName.
+    */
+    
     std::string RequestedSubmissionInterfaceName;
 
+    /** \return true if the URL is not empty */
     operator bool() const {
       return (!URLString.empty());
     }
 
+    /** \return true if the URL is empty */
     bool operator!() const {
-      return (!URLString.empty());
+      return (URLString.empty());
     }
     
+    /** \return true if the type, the URLString, the InterfaceName
+        and the RequestedSubmissionInterfaceName matches
+    */
     bool operator==(ConfigEndpoint c) const {
       return (type == c.type) && (URLString == c.URLString) && (InterfaceName == c.InterfaceName) && (RequestedSubmissionInterfaceName == c.RequestedSubmissionInterfaceName);
     }
   };
-
-  typedef std::list<std::string> ServiceList[2];
-  // Length should be number of service types
 
   std::string tostring(const ServiceType st);
 
