@@ -577,21 +577,47 @@ sub get_block_sources {
         &Logger("Found mapping source record: $source", DEBUG);
         # get optional per-source parameters
         my $ref_source_params = &get_source_params(\$source);
-	my $source_id = $source;
+        my $source_id = $source;
         # check sourcs is already in sources list
         if ( defined $ref_sources_list->{$source} ) {
             # if source parameters differ - use block_id prefix
-	    if ( &Storable::freeze($ref_source_params) ne &Storable::freeze($ref_sources_list->{$source}) ) {
-	        &Logger("  duplicate source URL with different parameters: adding block ID prefix", DEBUG);
-		$source_id = "$block_id|$source";
+            if ( &Storable::freeze($ref_source_params) ne &Storable::freeze($ref_sources_list->{$source}) ) {
+                &Logger("  duplicate source URL with different parameters: adding block ID prefix", DEBUG);
+                $source_id = "$block_id|$source";
             } else {
-	        &Logger("  source URL is already defined", DEBUG);
-	    }
+	            &Logger("  source URL is already defined", DEBUG);
+            }
         }
         # get source protocol
         my ( $protocol, $uri ) = $source =~ m/(\w+):\/\/(.*)/;
         $protocol = lc $protocol;
-        if ( $protocol =~ /^(https?|ldap|vomss?)$/i ) {
+        # process URLs depend on protocol used
+        if ( $protocol =~ /^vomss?$/i ) {
+            # special handling for voms_fqan_map
+            if ( defined $parsedconfig{$block_id}{'voms_fqan_map'} ) {
+                # FQANs defined for VOMS URL: generate URL for every FQAN
+                my @fqans = split /\[separator\]/, $parsedconfig{$block_id}{'voms_fqan_map'};
+                my ( $voms_baseid, $dummy_fqan ) = $source_id =~ m/^([^\?]+)\?(.*)$/;
+                foreach my $fqan_match ( @fqans ) {
+                    my ( $fqan, $map_id ) = $fqan_match =~ m/^([^\s]+)\s+(.*)$/;
+                    # create URL with specified FQAN
+                    my $fqan_source_id = $voms_baseid . "?" . $fqan;
+                    my ( $dummy_id, $fqan_source_url ) = $fqan_source_id =~ m/(\w+\|)?([^|]+)/;
+                    &Logger("Generating FQAN-map source URL: $fqan_source_url (mapped to $map_id)", VERBOSE);
+                    # put mapped_unixid parameter
+                    my %fqan_source_params = %$ref_source_params;
+                    $fqan_source_params{'mapped_unixid'} = $map_id;
+                    # save as [vo] block source
+                    $ref_sources_list->{$fqan_source_id} = \%fqan_source_params;
+                    push @vo_sources_list, $fqan_source_id;
+                }
+            }
+            # standalone VOMS URL: retreive and use directly as VO source
+            # FQANs before original URL to apply specific maps first
+            $ref_sources_list->{$source_id} = $ref_source_params;
+            push @vo_sources_list, $source_id;
+
+        } elsif ( $protocol =~ /^(https?|ldap)$/i ) {
             # external sources: retreive and use directly as VO source
             $ref_sources_list->{$source_id} = $ref_source_params;
             push @vo_sources_list, $source_id;
@@ -881,6 +907,11 @@ sub voms_subjects_soap {
     if ( $soap_req->fault ) {
         &Logger("SOAP request failed for URL: $url. Returned error: ".$soap_req->faultstring, ERROR);
         return (4, \%Subjects);
+    }
+
+    if ( ! @{$soap_req->result} ) {
+        &Logger("SOAP returned empty result for URL: $url", VERBOSE);
+        return (0, \%Subjects);
     }
 
     foreach my $subject ( @{$soap_req->result} ) {
