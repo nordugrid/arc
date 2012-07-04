@@ -310,6 +310,7 @@ namespace Arc {
     } else if(url.Option("encryption") == "off") {
       sec.enc = NoEnc;
     }
+    return sec;
   }
 
   ClientHTTP::ClientHTTP(const BaseConfig& cfg, const URL& url, int timeout, const std::string& proxy_host, int proxy_port)
