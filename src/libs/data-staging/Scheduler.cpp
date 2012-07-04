@@ -1095,7 +1095,9 @@ namespace DataStaging {
                 first_bulk->get_source()->GetURL().Protocol() == tmp->get_source()->GetURL().Protocol() &&
                 first_bulk->get_source()->GetURL().Host() == tmp->get_source()->GetURL().Host() &&
                 first_bulk->get_source()->CurrentLocation().Protocol() == tmp->get_source()->CurrentLocation().Protocol() &&
-                first_bulk->get_source()->CurrentLocation().Host() == tmp->get_source()->CurrentLocation().Host()) {
+                first_bulk->get_source()->CurrentLocation().Host() == tmp->get_source()->CurrentLocation().Host() &&
+                // This is because we cannot have a mix of LFNs and GUIDs when querying a catalog like LFC
+                first_bulk->get_source()->GetURL().MetaDataOption("guid").length() == tmp->get_source()->GetURL().MetaDataOption("guid").length()) {
               bulk_requests[jobid].insert(tmp);
             }
           }
