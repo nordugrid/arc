@@ -33,7 +33,7 @@ use constant {
     VERBOSE => 4,
     DEBUG   => 5,
     # nordugridmap internals
-    VERSION     => "2.0",
+    VERSION     => "2.0.1",
     USERAGENT   => "nordugridmap"
 };
 
@@ -279,7 +279,7 @@ sub get_vo_name {
     }
 }
 
-# set configuration flags based on [nordugridmap] config
+# set configuration flags in %config_flags based on [nordugridmap] parsed configuration
 sub set_configuration_flag {
     my ( $flag_name, $option_name, $value_yes, $value_no ) = @_;
     if ( defined $parsedconfig{'nordugridmap'}{$option_name} ) {
@@ -294,7 +294,7 @@ sub set_configuration_flag {
     }
 }
 
-# return numeric value of [nordugridmap] config option
+# return numeric value of [nordugridmap] parsed configuration option
 sub set_numeric_value {
     my ( $ref_var, $option_name, $value_valid ) = @_;
 
@@ -305,6 +305,19 @@ sub set_numeric_value {
             &Logger("Unrecognized value for option '$option_name' in [nordugridmap] configuration. Valid valueas are: $value_valid. Using default value: $$ref_var.", WARNING);
         }
     } 
+}
+
+# return boolean flag value in specified %options_hash
+sub get_source_flag {
+    my ( $ref_options_hash, $flag_name, $option_name, $value_yes, $value_no ) = @_;
+    if ( defined $ref_options_hash->{$option_name} ) {
+        return 1 if ( $ref_options_hash->{$option_name} eq $value_yes );
+        return 0 if ( $ref_options_hash->{$option_name} eq $value_no );
+        my $text_def = $config_flags{$flag_name} ? $value_yes : $value_no;
+        &Logger("Unrecognized value for source-specific option '$option_name'. Valid valueas are: '$value_yes' or '$value_no'. Using globaly configured value '$text_def'", WARNING);
+    }
+    return 1 if ( $config_flags{$flag_name} eq $value_yes );
+    return 0;
 }
 
 #
@@ -531,6 +544,28 @@ sub get_file_vo_sources {
     return @file_vos_list;
 }
 
+# extract optional per-source parameters from source string and return hash
+# optional parameters will be removed from passed source string
+sub get_source_params {
+    my $ref_source = shift;
+    my ( $source_str, $params_str ) = split '<', $$ref_source;
+    # trim url without optional parameters and return back
+    $source_str =~ s/^\s+//;
+    $source_str =~ s/\s+$//;
+    $$ref_source = $source_str;
+    &Logger("  source URL: $source_str", DEBUG);
+    # create source parameters hash
+    my %source_params = ();
+    if ( defined $params_str ) {
+        foreach my $param_record ( split ' ', $params_str ) {
+            next unless ( $param_record =~/^(\w+)=(.+)$/ );
+            &Logger("  source optional parameter '$1'=$2", DEBUG);
+            $source_params{$1}=$2;
+        }
+    }
+    return \%source_params;
+}
+
 # return list of block dependencied and fill external sources list
 sub get_block_sources {
     my ($block_id, $ref_sources_list) = @_;
@@ -539,36 +574,48 @@ sub get_block_sources {
     &Logger("Getting sources for VO block: $block_id", DEBUG);
     my @urls = split /\[separator\]/, $parsedconfig{$block_id}{'source'};
     foreach my $source (@urls) {
-        &Logger("Found mapping source: $source", DEBUG);
+        &Logger("Found mapping source record: $source", DEBUG);
+        # get optional per-source parameters
+        my $ref_source_params = &get_source_params(\$source);
+	my $source_id = $source;
+        # check sourcs is already in sources list
+        if ( defined $ref_sources_list->{$source} ) {
+            # if source parameters differ - use block_id prefix
+	    if ( &Storable::freeze($ref_source_params) ne &Storable::freeze($ref_sources_list->{$source}) ) {
+	        &Logger("  duplicate source URL with different parameters: adding block ID prefix", DEBUG);
+		$source_id = "$block_id|$source";
+            } else {
+	        &Logger("  source URL is already defined", DEBUG);
+	    }
+        }
         # get source protocol
         my ( $protocol, $uri ) = $source =~ m/(\w+):\/\/(.*)/;
         $protocol = lc $protocol;
         if ( $protocol =~ /^(https?|ldap|vomss?)$/i ) {
             # external sources: retreive and use directly as VO source
-            $ref_sources_list->{$source} = 1;
-            push @vo_sources_list, $source;
+            $ref_sources_list->{$source_id} = $ref_source_params;
+            push @vo_sources_list, $source_id;
         } elsif ( $protocol =~ /^file$/i ) {
             # local file: if created by nordugridmap - use [vo] blocks as VO sources
-            #             if file is independent source - retreive and use directly
+            #             if file is independent source - use directly
             my @file_vo_sources = &get_file_vo_sources($uri);
             if ( @file_vo_sources ) {
                 push @vo_sources_list, @file_vo_sources;
             } else {
                 if ( -e $uri ) {
-                    $ref_sources_list->{$source} = 1;
-                    push @vo_sources_list, $source;
+                    $ref_sources_list->{$source_id} = $ref_source_params;
+                    push @vo_sources_list, $source_id;
                 } else {
                     &Logger("File source '$uri' does not exists. Ignoring.", WARNING);
                 }
             } 
         } elsif ( $protocol =~ /^vo$/i ) {
             # [vo] block: use directly as VO source
-            push @vo_sources_list, $source;
+            push @vo_sources_list, $source_id;
         } else {
             &Logger("Unsupported protocol found: $source", WARNING);
         }
     }
-
     return \@vo_sources_list;
 }
 
@@ -583,33 +630,43 @@ sub fetch_sources {
     my $exit_code;
     my $ref_subjects;
 
-    foreach my $source (keys %$ref_sources_list) {
-        # get subjects from external URL
+    foreach my $source_id (keys %$ref_sources_list) {
+        # separate optional block_id prefix from source URL
+        my ( $block_id, $source ) = $source_id =~ m/(\w+\|)?([^|]+)/;
+        # get source parameters
         my ( $protocol, $uri ) = $source =~ m/(\w+):\/\/(.*)/;
+        my $ref_source_params = $ref_sources_list->{$source_id};
+        # check source-specific cache control
+        my $use_cache = &get_source_flag($ref_source_params, 'cache_enabled','cache_enable','yes','no');
+        # get subjects from external URL
         if ( $protocol =~ /^vomss?$/i ) {
-            ($exit_code, $ref_subjects) = &voms_subjects($source);
+            ($exit_code, $ref_subjects) = &voms_subjects($source, $ref_source_params);
         } elsif ( $protocol =~ /^https?$/i ) {
-            ($exit_code, $ref_subjects) = &http_subjects($source);
+            ($exit_code, $ref_subjects) = &http_subjects($source, $ref_source_params);
         } elsif ( $protocol =~ /^ldap$/i ) {
-            ($exit_code, $ref_subjects) = &ldap_subjects($uri);
+            ($exit_code, $ref_subjects) = &ldap_subjects($uri, $ref_source_params);
         } elsif ( $protocol =~ /^file$/i ) {
-            ($exit_code, $ref_subjects) = &read_gridmap($uri);
+            ($exit_code, $ref_subjects) = &read_gridmap($uri, $ref_source_params);
         } else {
             &Logger("Unsupported protocol to fetch: $protocol", FATAL);
         }
         # check fetch result and try to save/load cache
         unless ( $exit_code ) {
-            &write_cached_subjects($source, $ref_subjects) unless $opt_test;
+            if ( $use_cache ) {
+                &write_cached_subjects($source_id, $ref_subjects) unless $opt_test;
+            }
         } else {
             &Logger("Fail to retreive data from URL: $source", WARNING);
-            my ($err_code, $cache_ref_subjects) = &read_cached_subjects($source);
-            unless ($err_code) {
-                &Logger("Using locally cached data for URL: $source", INFO);
-                $ref_subjects = $cache_ref_subjects;
+            if ( $use_cache ) {
+                my ($err_code, $cache_ref_subjects) = &read_cached_subjects($source_id);
+                unless ($err_code) {
+                    &Logger("Using locally cached data for URL: $source", INFO);
+                    $ref_subjects = $cache_ref_subjects;
+                }
             }
         }
         # put fetched results to sources_data hash
-        $ref_sources_data->{$source} = $ref_subjects;
+        $ref_sources_data->{$source_id} = $ref_subjects;
     }
 }
 
@@ -660,9 +717,10 @@ sub get_http_url {
 
 # HTTP(S) sources: expect plain text list of "DN" "CA"
 sub http_subjects {
-    my $url = shift;
+    my ($url, $ref_source_params) = @_;
     my %Subjects = ();
    
+    # get subjects from URL specified
     &Logger("Getting subjects from source: $url", DEBUG);
     my $uri = URI->new($url);
     my $content = get_http_url($uri);
@@ -683,6 +741,10 @@ sub http_subjects {
 
         $Subjects{$subject} = { 'subject'    => $subject,
                                 'issuer'     => $issuer };
+
+        # mapped_unixid can be passed via optional parameters
+	$Subjects{$subject}{'mapuser'} = $ref_source_params->{'mapped_unixid'} if defined $ref_source_params->{'mapped_unixid'};
+
         $count++;
     }
 
@@ -692,7 +754,7 @@ sub http_subjects {
 
 # LDAP sources: expect LDAP-schema formated VO Group
 sub ldap_subjects {
-    my $hostport = shift;
+    my ($hostport, $ref_source_params) = @_;
     my %Subjects = ();
 
     &Logger("Getting subjects from source: ldap://$hostport", DEBUG);
@@ -750,25 +812,29 @@ sub ldap_subjects {
 
             $Subjects{$subj} = { 'subject' => $subj,
                                  'issuer'  => $issuer };
+
+            # mapped_unixid can be passed via optional parameters
+            $Subjects{$subj}{'mapuser'} = $ref_source_params->{'mapped_unixid'} if defined $ref_source_params->{'mapped_unixid'};
         }
     }
-
     return (0, \%Subjects);
 }
 
 # VOMS(S) methods wrapper
 sub voms_subjects {
-    my $url = shift;
-    if ( $config_flags{'voms_use_soap'} ) {
-        return &voms_subjects_soap($url);
+    my ($url, $ref_source_params) = @_;
+    my $use_soap = &get_source_flag($ref_source_params, 'voms_use_soap', 'voms_method', 'soap', 'get');
+
+    if ( $use_soap ) {
+        return &voms_subjects_soap($url, $ref_source_params);
     } else {
-        return &voms_subjects_get($url);
+        return &voms_subjects_get($url, $ref_source_params);
     }
 }
 
 # VOMS(S) sources: expect VOMS-Admin SOAP responce (SOAP:Lite implementation)
 sub voms_subjects_soap {
-    my $url = shift;
+    my ($url, $ref_source_params) = @_;
     my %Subjects = ();
 
     &Logger("Getting subjects from source: $url", DEBUG);
@@ -819,6 +885,8 @@ sub voms_subjects_soap {
 
     foreach my $subject ( @{$soap_req->result} ) {
         $Subjects{$subject} = { 'subject' => $subject };
+        # mapped_unixid can be passed via optional parameters
+        $Subjects{$subject}{'mapuser'} = $ref_source_params->{'mapped_unixid'} if defined $ref_source_params->{'mapped_unixid'};
     }
 
     return (0, \%Subjects);
@@ -826,7 +894,7 @@ sub voms_subjects_soap {
 
 # VOMS(S) sources: expect VOMS-Admin SOAP responce (GET+XML manual parser implementation)
 sub voms_subjects_get {
-    my $url = shift;
+    my ($url, $ref_source_params) = @_;
     my %Subjects = ();
 
     &Logger("Getting subjects from source: $url", DEBUG);
@@ -870,6 +938,8 @@ sub voms_subjects_get {
                 eval { $subject = $user->getFirstChild->getData };
                 if ( defined $subject ) {
                     $Subjects{$subject} = { 'subject' => $subject };
+                    # mapped_unixid can be passed via optional parameters
+                    $Subjects{$subject}{'mapuser'} = $ref_source_params->{'mapped_unixid'} if defined $ref_source_params->{'mapped_unixid'};
                 } else {
                     &Logger("Found subject that cannot be parsed from VOMS XML ($url)", ERROR);
                 }
@@ -887,7 +957,7 @@ sub voms_subjects_get {
 
 # Mapfile sources: expect local gridmap-file
 sub read_gridmap {
-    my $gridmap_file = shift;
+    my ($gridmap_file, $ref_source_params) = @_;
     my %Subjects = ();
 
     &Logger("Getting subjects from source: file://$gridmap_file", DEBUG);
@@ -907,6 +977,10 @@ sub read_gridmap {
     }
     binmode IN;
 
+    # mapped_unixid can be passed via optional parameters, overwriting is controlled by 'mapuser_processing' option
+    my $def_mapuser = ( defined $ref_source_params->{'mapped_unixid'} ) ? $ref_source_params->{'mapped_unixid'} : 0;
+    my $map_overwrite = &get_source_flag($ref_source_params, 'mapuser_processing','mapuser_processing','overwrite','keep');
+
     while (my $f = <IN>) {
         chomp($f);
 
@@ -914,22 +988,26 @@ sub read_gridmap {
             # record match: "/user/DN" mapping
             my $subject = $1;
             my $mapuser = $3;
+            $mapuser = $def_mapuser if ( $def_mapuser && $map_overwrite );
             $Subjects{$subject} = { 'subject' => $subject,
                                     'mapuser' => $mapuser };
         } elsif ($f =~ /^\s*\"((\/[^\/]+)+)\"\s*$/) {
             # record match: "/user/DN/only"
             my $subject = $1;
             $Subjects{$subject} = { 'subject' => $subject };
+            $Subjects{$subject}{'mapuser'} = $def_mapuser if ( $def_mapuser );
         } elsif ($f =~ /^\s*((\/[^\/\s]+)+)\s+([^\s]+)\s*$/) {
             # record match: /user/DN/no_spaces mapping
             my $subject = $1;
             my $mapuser = $3;
+            $mapuser = $def_mapuser if ( $def_mapuser && $map_overwrite );
             $Subjects{$subject} = { 'subject' => $subject,
                                     'mapuser' => $mapuser };
         } elsif ($f =~ /^\s*((\/[^\/\s]+)+)\s*$/) {
             # record match: /user/DN/no_spaces/only
             my $subject = $1;
             $Subjects{$subject} = { 'subject' => $subject };
+            $Subjects{$subject}{'mapuser'} = $def_mapuser if ( $def_mapuser );
         } else { 
             &Logger("Skipping missformed record '$f' in file $gridmap_file", WARNING);
         }
