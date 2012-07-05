@@ -31,7 +31,7 @@
 ##
 ## For example, to connect a computing cluster to the grid and for it to
 ## accept grid jobs you should have at least the [common], [grid-manager],
-## [gridftpd], [gridftpd/jobs], [infosys], [cluster], [queue/name]
+## [gridftpd], [gridftpd/jobs], [infosys], [cluster], [queue/queue_name]
 ## [infosys/cluster/registration/name] blocks configured.
 ##
 ## As another example we give the necessary blocks for an Index Service:
@@ -67,23 +67,34 @@
 #hostname="myhost.org"
 
 ### LRMS
-## This file shows all possible lrms options.
-## Please refer to ARC documentation for possible combinations of these
-## options.
+## ARC supports various LRMS flavours, as listed in this section. For detailed
+## description of options please refer to ARC CE sysadmin guide:
+##  http://www.nordugrid.org/documents/arc-ce-sysadm-guide.pdf
 ## ONLY ONE LRMS IS ALLOWED. MULTIPLE lrms ENTRIES WILL TRIGGER UNEXPECTED
 ## BEHAVIOUR.
 ##
-## lrms [queue] - sets the type of the Local Resource Management System
-## (queue system). Chose one from the following options: fork, sge,
-## condor, pbs, lsf, ll, slurm.  PBS has many flavours, we support
-## OpenPBS, PBSPro, ScalablePBS and Torque (the official name for
-## ScalablePBS). No need to specify the flavour or the version number
-## of the PBS, simply write 'pbs'.  <lrms> MUST be set here!  The
-## optional "queue" parameter specifies the default grid queue of the
-## LRMS.  The GM submits jobs to this queue if there is no queue set in
-## the job's XRSL.
+## lrms sets the type of the Local Resource Management System (queue system),
+## and optionally - the default queue name, separated with a blank space:
+## "lrmstype queue_name". For lrmstype, the following systems are supported
+## and can be chosen (one per server):
+##    fork   - simple forking of jobs to the same node as the server
+##    sge    - (Sun/Oracle) Grid Engine
+##    condor - Condor
+##    pbs    - PBS
+##    lsf    - LSF
+##    ll     - LoadLeveler
+##    slurm  - SLURM
+## PBS has many flavours, ARC currenly supports OpenPBS, PBSPro, ScalablePBS
+## and Torque (the official name for ScalablePBS). There is no need to specify
+## the flavour or the version number of the PBS, simply write 'pbs'. Similarly,
+## there is no need to specify (Sun/Oracle) Grid Engine versions and flavours.
+## "lrmstype" MUST be set here, it is a MANDATORY parameter!
+## The optional "queue" parameter specifies the default Grid queue of the
+## LRMS. Jobs will be submitted to this queue if they do not specify queue
+## name in job description. Queue name must match one of the [queue/queue_name]
+## block labels, see below. 
 ##
-#lrms="pbs grid"
+#lrms="pbs gridlong"
 #lrms="pbs"
 
 ## the path to the qstat,pbsnodes,qmgr etc PBS binaries, 
@@ -1690,26 +1701,31 @@
    	   
 ####################################################################
 ##
-### [queue/queuename] block ########################################
+### [queue/queue_name] block #######################################
 ##
 ## Each grid-enabled queue should have a separate queue block.
 ## The queuename should be used as a label in the block name.
-## A queue can represent a PBS queue, a SGE pool, a Condor pool or a machine
-## with a 'fork' LRMS.
+## A queue can represent a PBS/LSF/SGE/SLURM/LL queue, a SGE pool, a Condor
+## pool or a single machine in case 'fork' type of LRMS is specified in
+## the [common] block.
 ## Queues don't need to be registerd (there is no queue registration block),
-## once you configured your cluster to register to a Index Service
+## once you configured your cluster to register to an Index Service
 ## the queue entries (configured with this block) automatically will be there.
-## Please consult the Infosys manual for detailed information
-## on queue attributes.
+## Please consult the ARC Information System manual for detailed information
+## on queue attributes:
+##   http://www.nordugrid.org/documents/arc_infosys.pdf
 ##
 ## use the queue_name for labeling the block. The special name 'fork' should be
-## used for labeling the queue block of the fork LRMS.
+## used for labeling the queue block in case you specified 'fork' type of
+## LRMS in the [common] block.
 #[queue/gridlong]
 
-## The name of the grid-enabled queue,  it is also used as a queue block label 
-## [queue/queuename].
-## Use "fork" for the fork LRMS. <MUST be specified>
-#name="queuename"
+## name sets the name of the grid-enabled queue. It MUST match the queue_name
+## label of the corresponding queue block, see above.
+## Use "fork" if you specified 'fork' type of LRMS in the [common] block.
+## Queue name MUST be specified, even if the queue block is already correctly
+## labeled.
+#name="gridlong"
 
 ## fork_job_limit, the allowed number of concurrent jobs in a fork system,
 ## relevant only for a fork queue. Default is 1. The special value 'cpunumber'
@@ -1747,9 +1763,14 @@
 ## queue_node_string for that queue). This parameter should contain the "node
 ## property" string of the queue-assigned nodes. Setting the queue_node_string
 ## changes how the queue-totalcpus, user freecpus are determined for this queue.
-## Read the pbs_config.txt for more info. You shouldn't use this option unless
-## you make sure that your PBS config makes use of the above configuration.
+## Essentially, queue_node_string value is used to construct nodes= string in
+## PBS script, such as nodes=count:queue_node_string where count is taken from
+## the job description (1 if not specified). You shouldn't use this option unless
+## you are sure that your PBS configuration makes use of the above configuration.
+## Read NorduGrid PBS instructions for more information:
+##    http://www.nordugrid.org/documents/pbs-config.html
 #queue_node_string="gridlong_nodes"
+#queue_node_string="ppn=4:ib" 
 
 ## sge_jobopts - additional SGE options to be used when submitting jobs to SGE
 ## from this queue.  If in doubt, leave it commented out
