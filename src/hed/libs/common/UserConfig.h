@@ -50,19 +50,21 @@ namespace Arc {
       
     /** The type of the ConfigEndpoint: REGISTRY or COMPUTINGINFO */
     Type type;
+    
     /** A string representing the URL of the ConfigEndpoint */
     std::string URLString;
+    
     /** A string representing the interface type
         (based on the InterfaceName attribute of the GLUE2 specification)
     */
     std::string InterfaceName;
+        
     /** A GLUE2 InterfaceName requesting a job submission interface.
     
         This will be used when collecting information about the
         computing element. Only those job submission interfaces will be considered
         which has this requested InterfaceName.
     */
-    
     std::string RequestedSubmissionInterfaceName;
 
     /** \return true if the URL is not empty */
@@ -141,6 +143,8 @@ namespace Arc {
    * - storedirectory / StoreDirectory(const std::string&)
    * - jobdownloaddirectory / JobDownloadDirectory(const std::string&)
    * - idpname / IdPName(const std::string&)
+   * - submissioninterface / SubmissionInterface(const std::string&)
+   * - infointerface / InfoInterface(const std::string&)
    *
    * where the first term is the name of the attribute used in the
    * configuration file, and the second term is the associated setter
@@ -150,12 +154,30 @@ namespace Arc {
    * The configuration file should have a INI-style format and the
    * IniConfig class will thus be used to parse the file. The above
    * mentioned attributes should be placed in the common section.
-   * Another section is also valid in the configuration file, which is
-   * the alias section. Here it is possible to define aliases
-   * representing one or multiple services. These aliases can be used in
-   * the AddServices(const std::list<std::string>&, ServiceType) and
-   * AddServices(const std::list<std::string>&, const std::list<std::string>&, ServiceType)
-   * methods.
+   *
+   * Besides the options above, the configuration file can contain
+   * information about services (service registries and computing elements).
+   * Each service has to be put in its on section. Each service has
+   * an alias, which is a short name. The name of the section consists
+   * of the word `registry` for service registries and `computing` for
+   * computing elements, then contains a slash and the alias of the
+   * service. e.g. `[registry/index1]` or `[computing/testce]`
+   * In a service section the possible options are the following:
+   *  - url: is the url of the service
+   *  - default: if yes, then this service will be used if no other is specified
+   *  - group: assigns the service to a group with a given name
+   * 
+   * For computing elements the following additional options exist:
+   *  - infointerface: the GLUE2 InterfaceName of the local information system
+   *  - submissioninterface: the GLUE2 InterfaceName to the job submission interface
+   *
+   * For a service registry the following additional option exist:
+   *  - registryinterface: the GLUE2 InterfaceName of the service registry interface
+   *
+   * These services can be accessed by the #GetService, #GetServices,
+   * #GetDefaultServices, #GetServicesInGroup methods, which return ConfigEndpoint
+   * object(s). The ConfigEndpoint objects contain the URL and the InterfaceNames
+   * of the services.
    *
    * The UserConfig class also provides a method InitializeCredentials()
    * for locating user credentials by searching in different standard
@@ -365,52 +387,10 @@ namespace Arc {
      * is reported.
      *
      * The format of the configuration file should follow that of INI,
-     * and every attribute present in the file is only allowed once, if
-     * otherwise a ::WARNING will be reported. The file can contain at
-     * most two sections, one named common and the other name alias. If
-     * other sections exist a ::WARNING will be reported. Only the
-     * following attributes is allowed in the common section of the
-     * configuration file:
-     * - certificatepath (CertificatePath(const std::string&))
-     * - keypath (KeyPath(const std::string&))
-     * - proxypath (ProxyPath(const std::string&))
-     * - cacertificatesdirectory (CACertificatesDirectory(const std::string&))
-     * - cacertificatepath (CACertificatePath(const std::string&))
-     * - timeout (Timeout(int))
-     * - joblist (JobListFile(const std::string&))
-     * - verbosity (Verbosity(const std::string&))
-     * - brokername (Broker(const std::string&) or Broker(const std::string&, const std::string&))
-     * - brokerarguments (Broker(const std::string&) or Broker(const std::string&, const std::string&))
-     * - bartender (Bartender(const std::list<URL>&))
-     * - vomsserverpath (VOMSESPath(const std::string&))
-     * - username (UserName(const std::string&))
-     * - password (Password(const std::string&))
-     * - keypassword (KeyPassword(const std::string&))
-     * - keysize (KeySize(int))
-     * - certificatelifetime (CertificateLifeTime(const Period&))
-     * - slcs (SLCS(const URL&))
-     * - storedirectory (StoreDirectory(const std::string&))
-     * - jobdownloaddirectory (JobDownloadDirectory(const std::string&))
-     * - idpname (IdPName(const std::string&))
-     *
-     * where the method in parentheses is the associated setter method.
-     * If other attributes exist in the common section a ::WARNING will
-     * be reported for each of these attributes.
-     * In the alias section aliases can be defined, and should represent
-     * a selection of services. The alias can then refered to by input
-     * to the AddServices(const std::list<std::string>&, ServiceType)
-     * and AddServices(const std::list<std::string>&, const std::list<std::string>&, ServiceType)
-     * methods. An alias can not contain any of the characters '.', ':',
-     * ' ' or '\\t' and should be defined as follows:
-     * \f[ <alias\_name>=<service\_type>:<flavour>:<service\_url>|<alias\_ref> [...] \f]
-     * where \<alias_name\> is the name of the defined alias,
-     * \<service_type\> is the service type in lower case, \<flavour\>
-     * is the type of middleware plugin to use, \<service_url\> is the
-     * URL which should be used to contact the service and \<alias_ref\>
-     * is another defined alias. The parsed aliases will be stored
-     * internally and resolved when needed. If a alias already exist,
-     * and another alias with the same name is parsed then this other
-     * alias will overwrite the existing alias.
+     * and every attribute present in the file is only allowed once 
+     * (except the `rejectmanagement` and `rejectdiscovery` attributes),
+     * otherwise a ::WARNING will be reported. For the list of allowed
+     * attributes see the [general description](#details) of the class.
      *
      * @param conffile is the path to the configuration file.
      * @param ignoreJobListFile is a optional boolean which indicates
@@ -1065,34 +1045,111 @@ namespace Arc {
      */
     const User& GetUser() const { return user; };
 
+    /// Set the default local information system interface
+    /**
+      For services which does not specify a local information system
+      interface, this default will be used.
 
-    std::list<ConfigEndpoint> GetDefaultServices(ConfigEndpoint::Type type = ConfigEndpoint::ANY);
-
-    ConfigEndpoint GetService(const std::string& alias);
-
-    std::list<ConfigEndpoint> GetServices(const std::string& groupOrAlias, ConfigEndpoint::Type type = ConfigEndpoint::ANY);
-
-    std::list<ConfigEndpoint> GetServicesInGroup(const std::string& group, ConfigEndpoint::Type type = ConfigEndpoint::ANY);
-
-
-    const std::string& InfoInterface() const { return infointerface; };
-
+      If a local information system interface is given, the computing element
+      will be only queried using this interface.
+       
+      \param infointerface_ is a string specifying a GLUE2 InterfaceName
+      \return This method always returns \c true.
+    */
     bool InfoInterface(const std::string& infointerface_) {
       infointerface = infointerface_;
       return true;
     }
+    /// Get the default local information system interface
+    /**
+      \return the GLUE2 InterfaceName string specifying the default local information system interface
+      \see InfoInterface(const std::string&)
+    */
+    const std::string& InfoInterface() const { return infointerface; };
 
-
-    const std::string& SubmissionInterface() const { return submissioninterface; };
-
+    /// Set the default submission interface
+    /**
+      For services which does not specify a submission interface
+      this default submission interface will be used.
+     
+      If a submission interface is given, then all the jobs will be
+      submitted to this interface, no other job submission interfaces
+      of the computing element will be tried.
+       
+      \param submissioninterface_ is a string specifying a GLUE2 InterfaceName
+      \return This method always returns \c true.
+    */
     bool SubmissionInterface(const std::string& submissioninterface_) {
       submissioninterface = submissioninterface_;
       return true;
     }
+    /// Get the default submission interface
+    /**
+      \return the GLUE2 InterfaceName string specifying the default submission interface
+      \see SubmissionInterface(const std::string&)
+    */
+    const std::string& SubmissionInterface() const { return submissioninterface; };
 
-
+    /// Get the list of rejected service discovery URLs
+    /**
+      This list is populated by the (possibly multiple) `rejectdiscovery` configuration options.
+      A service registry should not be queried if its URL matches any string in this list.
+      \return a list of rejected service discovery URLs
+    */
     const std::list<std::string>& RejectDiscoveryURLs() const { return rejectDiscoveryURLs; };
+    /// Get the list of rejected job managmenet URLs
+    /**
+      This list is populated by the (possibly multiple) `rejectmanagement` configuration options.
+      Those jobs should not be managed, that reside on a computing element with a matching URL.
+      \return a list of rejected job management URLs
+    */
     const std::list<std::string>& RejectManagementURLs() const { return rejectManagementURLs; };
+
+
+    /// Get the ConfigEndpoint for the service with the given alias
+    /**
+      Each service in the configuration file has its own section,
+      and the name of the section contains the type of the service (`registry` or `computing`),
+      and the alias of the service (separated by a slash).
+      \param[in] alias is the alias of the service
+      \return the ConfigEndpoint generated from the service with the given alias.
+    */
+    ConfigEndpoint GetService(const std::string& alias);
+
+    /// Get the services in a given group filtered by type
+    /**
+      All services of the given group are returned if they match the type filter.
+      \param[in] group is the name of the group
+      \param[in] type is REGISTRY or COMPUTING if only those services are needed, or ANY if all
+      \return a list of ConfigEndpoint objects, the services in the group,
+        empty list if no such group, or no services matched the filter
+    */
+    std::list<ConfigEndpoint> GetServicesInGroup(const std::string& group, ConfigEndpoint::Type type = ConfigEndpoint::ANY);
+
+    /// Get the services flagged as default filtered by type
+    /**
+      Return all the services which had `default=yes` in their configuration,
+      if they have the given type.
+      \param[in] type is REGISTRY or COMPUTING if only those services are needed, or ANY if all
+      \return a list of ConfigEndpoint objects, the default services,
+        empty list if there are no default service, or no services matched the filter
+    */
+    std::list<ConfigEndpoint> GetDefaultServices(ConfigEndpoint::Type type = ConfigEndpoint::ANY);
+
+    /// Get one or more service with the given alias or in the given group filtered by type
+    /**
+      This is a convenience method for querying the configured services by both
+      the name of a group or an alias of a service. If the name is a name of a group
+      then all the services in the group will be returned (filtered by type). If
+      there is no such group, then a service with the given alias is returned
+      in a single item list (but only if it matches the filter).
+      \param[in] groupOrAlias is either a name of a group or an alias of a service
+      \param[in] type is REGISTRY or COMPUTING if only those services are needed, or ANY if all
+      \return a list of ConfigEndpoint objects, the found services,
+        empty list if no such group and no such alias or no services matched the filter
+    */
+    std::list<ConfigEndpoint> GetServices(const std::string& groupOrAlias, ConfigEndpoint::Type type = ConfigEndpoint::ANY);
+
 
 
     /// Path to ARC user home directory
