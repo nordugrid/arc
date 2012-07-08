@@ -6,3 +6,4 @@
 "atlas" "voms.cern.ch" "15001" "/DC=ch/DC=cern/OU=computers/CN=voms.cern.ch" "atlas"
 "nordugrid.org" "voms.uninett.no" "15015" "/O=Grid/O=NorduGrid/CN=host/voms.ndgf.org" "nordugrid.org"
 "playground.knowarc.eu" "arthur.hep.lu.se" "15002" "/O=Grid/O=NorduGrid/CN=host/arthur.hep.lu.se" "playground.knowarc.eu"
+"dteam" "voms.hellasgrid.gr" "15004" "/C=GR/O=HellasGrid/OU=hellasgrid.gr/CN=voms.hellasgrid.gr" "dteam"
