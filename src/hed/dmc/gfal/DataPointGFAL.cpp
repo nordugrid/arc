@@ -37,7 +37,7 @@ namespace Arc {
   class GFALEnvLocker: public CertEnvLocker {
   public:
     static Logger logger;
-    GFALEnvLocker(const UserConfig& usercfg): CertEnvLocker(usercfg) {
+    GFALEnvLocker(const UserConfig& usercfg, const std::string& lfc_host): CertEnvLocker(usercfg) {
       EnvLockUnwrap(false);
       // if root, we have to set X509_USER_CERT and X509_USER_KEY to
       // X509_USER_PROXY to force GFAL to use the proxy. If they are undefined
@@ -49,27 +49,39 @@ namespace Arc {
       logger.msg(DEBUG, "Using proxy %s", GetEnv("X509_USER_PROXY"));
       logger.msg(DEBUG, "Using key %s", GetEnv("X509_USER_KEY"));
       logger.msg(DEBUG, "Using cert %s", GetEnv("X509_USER_CERT"));
+
+      // set host name env var
+      if (!lfc_host.empty()) SetEnv("LFC_HOST", lfc_host);
+
       EnvLockWrap(false);
     }
   };
 
   Logger GFALEnvLocker::logger(Logger::getRootLogger(), "GFALEnvLocker");
 
-  static char const * const stdfds[] = {
-    "stdin",
-    "stdout",
-    "stderr"
-  };
-
   Logger DataPointGFAL::logger(Logger::getRootLogger(), "DataPoint.GFAL");
 
-  DataPointGFAL::DataPointGFAL(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
-    : DataPointDirect(url, usercfg, parg), reading(false), writing(false) {
+  DataPointGFAL::DataPointGFAL(const URL& u, const UserConfig& usercfg, PluginArgument* parg)
+    : DataPointDirect(u, usercfg, parg), fd(-1), reading(false), writing(false) {
       LogLevel loglevel = logger.getThreshold();
       if (loglevel == DEBUG)
-        gfal_set_verbose (GFAL_VERBOSE_VERBOSE | GFAL_VERBOSE_DEBUG);
+        gfal_set_verbose (GFAL_VERBOSE_VERBOSE | GFAL_VERBOSE_DEBUG | GFAL_VERBOSE_TRACE);
       if (loglevel == VERBOSE)
         gfal_set_verbose (GFAL_VERBOSE_VERBOSE);
+      // lfc:// needs to be converted to lfn:/path or guid:abcd...
+      if (url.Protocol() == "lfc") {
+        lfc_host = url.Host();
+        url.ChangeHost("");
+        url.ChangePort(-1);
+        if (url.MetaDataOption("guid").empty()) {
+          url.ChangeProtocol("lfn");
+        }
+        else {
+          url.ChangeProtocol("guid");
+          // To fix: this call forces leading / on path
+          url.ChangePath(url.MetaDataOption("guid"));
+        }
+      }
   }
 
   DataPointGFAL::~DataPointGFAL() {
@@ -83,7 +95,11 @@ namespace Arc {
       return NULL;
     if (((const URL &)(*dmcarg)).Protocol() != "rfio" &&
         ((const URL &)(*dmcarg)).Protocol() != "dcap" &&
-        ((const URL &)(*dmcarg)).Protocol() != "gsidcap")
+        ((const URL &)(*dmcarg)).Protocol() != "gsidcap" &&
+        ((const URL &)(*dmcarg)).Protocol() != "root" &&
+        ((const URL &)(*dmcarg)).Protocol() != "gsiftp" &&
+        ((const URL &)(*dmcarg)).Protocol() != "srm" &&
+        ((const URL &)(*dmcarg)).Protocol() != "lfc")
       return NULL;
     return new DataPointGFAL(*dmcarg, *dmcarg, dmcarg);
   }
@@ -95,7 +111,7 @@ namespace Arc {
     
     // Open the file
     {
-      GFALEnvLocker gfal_lock(usercfg);
+      GFALEnvLocker gfal_lock(usercfg, lfc_host);
       fd = gfal_open(url.plainstr().c_str(), O_RDONLY, 0);
     }
     if (fd < 0) {
@@ -204,7 +220,7 @@ namespace Arc {
     writing = true;
 
     {
-      GFALEnvLocker gfal_lock(usercfg);
+      GFALEnvLocker gfal_lock(usercfg, lfc_host);
       // Open the file
       fd = gfal_open(url.plainstr().c_str(), O_WRONLY | O_CREAT, 0600);
     }
@@ -220,7 +236,7 @@ namespace Arc {
         }
 
         {
-          GFALEnvLocker gfal_lock(usercfg);
+          GFALEnvLocker gfal_lock(usercfg, lfc_host);
           // gfal_mkdir is always recursive
           if (gfal_mkdir(parent_url.plainstr().c_str(), 0700) == 0) {
             fd = gfal_open(url.plainstr().c_str(), O_WRONLY | O_CREAT, 0600);
@@ -351,7 +367,7 @@ namespace Arc {
     int res;
 
     {
-      GFALEnvLocker gfal_lock(usercfg);
+      GFALEnvLocker gfal_lock(usercfg, lfc_host);
       res = gfal_stat(stat_url.plainstr().c_str(), &st);
     }
     if (res < 0) {
@@ -425,7 +441,7 @@ namespace Arc {
     struct dirent *d;
     DIR *dir;    
     {
-      GFALEnvLocker gfal_lock(usercfg);
+      GFALEnvLocker gfal_lock(usercfg, lfc_host);
       dir = gfal_opendir(url.plainstr().c_str());
     }
     if (!dir) {
@@ -474,7 +490,7 @@ namespace Arc {
 
     int res;
     {
-      GFALEnvLocker gfal_lock(usercfg);
+      GFALEnvLocker gfal_lock(usercfg, lfc_host);
 
       if (file.GetType() == FileInfo::file_type_dir) {
         res = gfal_rmdir(url.plainstr().c_str());
@@ -495,7 +511,7 @@ namespace Arc {
 
     int res;
     {
-      GFALEnvLocker gfal_lock(usercfg);
+      GFALEnvLocker gfal_lock(usercfg, lfc_host);
       // gfal_mkdir is always recursive
       res = gfal_mkdir(url.plainstr().c_str(), 0700);
     }
@@ -511,7 +527,7 @@ namespace Arc {
 
     int res;
     {
-      GFALEnvLocker gfal_lock(usercfg);
+      GFALEnvLocker gfal_lock(usercfg, lfc_host);
       res = gfal_rename(url.plainstr().c_str(), newurl.plainstr().c_str());
     }
     if (res < 0) {

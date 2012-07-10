@@ -49,6 +49,7 @@ namespace Arc {
     bool reading;
     bool writing;
     SimpleCounter transfer_condition;
+    std::string lfc_host;
   };
 
 } // namespace Arc
