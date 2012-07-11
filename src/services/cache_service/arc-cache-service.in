@@ -173,8 +173,8 @@ prepare() {
     fi
 
     if [ ! -r "$ARC_CONFIG" ]; then
-	log_warning_msg "ARC configuration not found (usually /etc/arc.conf)"
-	exit 0
+	log_failure_msg "ARC configuration not found (usually /etc/arc.conf)"
+	exit 1
     fi
 
     # Creating configuration file of arched

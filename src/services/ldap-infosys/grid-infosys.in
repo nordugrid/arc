@@ -171,9 +171,9 @@ if [ ! -r "$ARC_CONFIG" ]; then
 	echo "Fallback /etc/nordugrid.conf was found, trying to use that one"
 	ARC_CONFIG="/etc/nordugrid.conf"
     else
-	log_warning_msg "arc.conf was not found. If this file is in a non-standard place,"
-	log_warning_msg "  it can be set with the ARC_CONFIG environment variable"
-	exit 0
+	log_failure_msg "arc.conf was not found. If this file is in a non-standard place,"
+	log_failure_msg "  it can be set with the ARC_CONFIG environment variable"
+	exit 1
     fi
 fi
 
