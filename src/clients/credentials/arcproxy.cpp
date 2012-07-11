@@ -222,7 +222,14 @@ static std::string get_nssdb_path() {
 #else
   std::string home_path = Glib::get_home_dir();
 #endif
+
+#if defined(_MACOSX)
+  std::string ff_home = home_path + G_DIR_SEPARATOR_S "Library" G_DIR_SEPARATOR_S "Application Support" G_DIR_SEPARATOR_S "Firefox";
+#elif defined(WIN32)
+  std::string ff_home = home_path + G_DIR_SEPARATOR_S "AppData" G_DIR_SEPARATOR_S "Roaming" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "Firefox";
+#else
   std::string ff_home = home_path + G_DIR_SEPARATOR_S ".mozilla" G_DIR_SEPARATOR_S "firefox";
+#endif
 
   struct stat st;
   if(::stat(ff_home.c_str(),&st) != 0) return std::string();
@@ -442,7 +449,7 @@ int main(int argc, char *argv[]) {
     res = AuthN::nssInit(configdir);
     std::cout<< Arc::IString("nss db to be accesses: %s\n", configdir.c_str());
 
-    char* slotpw = NULL; //"secretpw"; 
+    char* slotpw = NULL; //"secretpw";  //TODO: Input passphrase to nss db 
     //The nss db under firefox profile seems to not be protected by any passphrase by default
     bool ascii = true;
     const char* trusts = "p,p,p";
@@ -491,6 +498,11 @@ int main(int argc, char *argv[]) {
 
     proxy_cred_str.append(proxy_privk_str).append(eec_cert_str);
     write_proxy_file(proxy_path, proxy_cred_str);
+
+    Arc::Credential proxy_cred(proxy_path, proxy_path, "", "");
+    Arc::Time left = proxy_cred.GetEndTime();
+    std::cout << Arc::IString("Proxy generation succeeded") << std::endl;
+    std::cout << Arc::IString("Your proxy is valid until: %s", left.str(Arc::UserTime)) << std::endl;
 
     return EXIT_SUCCESS;
   }
