@@ -11,12 +11,16 @@
 #include <arc/Logger.h>
 #include <arc/UserConfig.h>
 #include <arc/message/MCC.h>
+#include <arc/data/DataStatus.h>
 #include <arc/client/ClientInterface.h>
 
 #include "SRMURL.h"
 #include "SRMClientRequest.h"
 
 namespace Arc {
+
+  /// Return code of SRM operation (errno-like number)
+  typedef int SRMReturnCode;
 
   /// SRM-related file metadata
   struct SRMFileMetaData {

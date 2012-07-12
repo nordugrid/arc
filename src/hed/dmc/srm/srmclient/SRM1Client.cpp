@@ -48,14 +48,14 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("get", &request, &response);
-    if (status != SRM_OK)
-      return status;
+    if (status != 0)
+      return ECONNREFUSED;
 
     XMLNode result = (*response)["getResponse"]["Result"];
     if (!result) {
       logger.msg(INFO, "SRM did not return any information");
       delete response;
-      return SRM_ERROR_OTHER;
+      return EARCRESINVAL;
     }
 
     std::string request_state = (std::string)result["state"];
@@ -92,14 +92,13 @@ namespace Arc {
       delete response;
       response = NULL;
       status = process("getRequestStatus", &request, &response);
-      if (status != SRM_OK)
-        return status;
+      if (status != 0) return ECONNREFUSED;
 
       result = (*response)["getRequestStatusResponse"]["Result"];
       if (!result) {
         logger.msg(INFO, "SRM did not return any information");
         delete response;
-        return SRM_ERROR_OTHER;
+        return EARCRESINVAL;
       }
 
       request_state = (std::string)result["state"];
@@ -108,7 +107,7 @@ namespace Arc {
     creq.file_ids(file_ids);
     delete response;
     if (urls.empty())
-      return SRM_ERROR_OTHER;
+      return EARCRESINVAL;
     return acquire(creq, urls);
   }
 
@@ -146,14 +145,13 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("put", &request, &response);
-    if (status != SRM_OK)
-      return status;
+    if (status != 0) return status;
 
     XMLNode result = (*response)["putResponse"]["Result"];
     if (!result) {
       logger.msg(INFO, "SRM did not return any information");
       delete response;
-      return SRM_ERROR_OTHER;
+      return EARCRESINVAL;
     }
 
     std::string request_state = (std::string)result["state"];
@@ -190,14 +188,13 @@ namespace Arc {
       delete response;
       response = NULL;
       status = process("getRequestStatus", &request, &response);
-      if (status != SRM_OK)
-        return status;
+      if (status != 0) return status;
 
       result = (*response)["getRequestStatusResponse"]["Result"];
       if (!result) {
         logger.msg(INFO, "SRM did not return any information");
         delete response;
-        return SRM_ERROR_OTHER;
+        return EARCRESINVAL;
       }
 
       request_state = (std::string)result["state"];
@@ -205,8 +202,7 @@ namespace Arc {
 
     creq.file_ids(file_ids);
     delete response;
-    if (urls.empty())
-      return SRM_ERROR_OTHER;
+    if (urls.empty()) return EARCRESINVAL;
     return acquire(creq, urls);
   }
 
@@ -232,14 +228,13 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("copy", &request, &response);
-    if (status != SRM_OK)
-      return status;
+    if (status != 0) return status;
 
     XMLNode result = (*response)["copyResponse"]["Result"];
     if (!result) {
       logger.msg(INFO, "SRM did not return any information");
       delete response;
-      return SRM_ERROR_OTHER;
+      return EARCRESINVAL;
     }
 
     std::string request_state = (std::string)result["state"];
@@ -274,22 +269,20 @@ namespace Arc {
       delete response;
       response = NULL;
       status = process("getRequestStatus", &request, &response);
-      if (status != SRM_OK)
-        return status;
+      if (status != 0) return status;
 
       result = (*response)["getRequestStatusResponse"]["Result"];
       if (!result) {
         logger.msg(INFO, "SRM did not return any information");
         delete response;
-        return SRM_ERROR_OTHER;
+        return EARCRESINVAL;
       }
 
       request_state = (std::string)result["state"];
     }
 
     delete response;
-    if (file_ids.empty())
-      return SRM_ERROR_OTHER;
+    if (file_ids.empty()) return EARCRESINVAL;
     creq.file_ids(file_ids);
     return release(creq);
   }
@@ -319,14 +312,13 @@ namespace Arc {
 
       PayloadSOAP *response = NULL;
       SRMReturnCode status = process("setFileStatus", &request, &response);
-      if (status != SRM_OK)
-        return status;
+      if (status != 0) return status;
 
       XMLNode result = (*response)["setFileStatusResponse"]["Result"];
       if (!result) {
         logger.msg(INFO, "SRM did not return any information");
         delete response;
-        return SRM_ERROR_OTHER;
+        return EARCRESINVAL;
       }
 
       for (XMLNode n = result["fileStatuses"]["item"]; n; ++n) {
@@ -348,9 +340,8 @@ namespace Arc {
     }
 
     creq.file_ids(file_ids);
-    if (urls.empty())
-      return SRM_ERROR_OTHER;
-    return SRM_OK;
+    if (urls.empty()) return EARCRESINVAL;
+    return 0;
   }
 
   SRMReturnCode SRM1Client::remove(SRMClientRequest& creq) {
@@ -365,11 +356,8 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("advisoryDelete", &request, &response);
-    if (status != SRM_OK)
-      return status;
-
     delete response;
-    return SRM_OK;
+    return status;
   }
 
   SRMReturnCode SRM1Client::info(SRMClientRequest& creq,
@@ -385,15 +373,14 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("getFileMetaData", &request, &response);
-    if (status != SRM_OK)
-      return status;
+    if (status != 0) return status;
 
     XMLNode result = (*response)["getFileMetaDataResponse"]["Result"];
     if (!result) {
       logger.msg(creq.error_loglevel(),
                  "SRM did not return any information");
       delete response;
-      return SRM_ERROR_OTHER;
+      return EARCRESINVAL;
     }
 
     XMLNode mdata = result["item"];
@@ -401,7 +388,7 @@ namespace Arc {
       logger.msg(creq.error_loglevel(),
                  "SRM did not return any useful information");
       delete response;
-      return SRM_ERROR_OTHER;
+      return EARCRESINVAL;
     }
 
     struct SRMFileMetaData md;
@@ -428,16 +415,16 @@ namespace Arc {
     metadata[creq.surls().front()] = mdlist;
 
     delete response;
-    return SRM_OK;
+    return 0;
   }
 
   SRMReturnCode SRM1Client::info(SRMClientRequest& req,
                                  std::list<struct SRMFileMetaData>& metadata) {
     std::map<std::string, std::list<struct SRMFileMetaData> > metadata_map;
     SRMReturnCode res = info(req, metadata_map);
-    if (res != SRM_OK || metadata_map.find(req.surls().front()) == metadata_map.end()) return res;
+    if (res != 0 || metadata_map.find(req.surls().front()) == metadata_map.end()) return res;
     metadata = metadata_map[req.surls().front()];
-    return SRM_OK;
+    return 0;
   }
 
   SRMReturnCode SRM1Client::release(SRMClientRequest& creq) {
@@ -463,14 +450,13 @@ namespace Arc {
 
       PayloadSOAP *response = NULL;
       SRMReturnCode status = process("setFileStatus", &request, &response);
-      if (status != SRM_OK)
-        return status;
+      if (status != 0) return status;
 
       XMLNode result = (*response)["setFileStatusResponse"]["Result"];
       if (!result) {
         logger.msg(INFO, "SRM did not return any information");
         delete response;
-        return SRM_ERROR_OTHER;
+        return EARCRESINVAL;
       }
 
       for (XMLNode n = result["fileStatuses"]["item"]; n; ++n) {
@@ -488,7 +474,7 @@ namespace Arc {
     }
 
     creq.file_ids(file_ids);
-    return SRM_OK;
+    return 0;
   }
 
   SRMReturnCode SRM1Client::releaseGet(SRMClientRequest& creq) {

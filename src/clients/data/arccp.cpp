@@ -396,10 +396,7 @@ bool arccp(const Arc::URL& source_url_,
         Arc::DataStatus res = mover.Transfer(*source, *destination, cache, Arc::URLMap(),
                                              0, 0, 0, timeout);
         if (!res.Passed()) {
-          if (!res.GetDesc().empty())
-            logger.msg(Arc::INFO, "Current transfer FAILED: %s - %s", std::string(res), res.GetDesc());
-          else
-            logger.msg(Arc::INFO, "Current transfer FAILED: %s", std::string(res));
+          logger.msg(Arc::INFO, "Current transfer FAILED: %s", std::string(res));
           if (res.Retryable())
             logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
           failures = true;

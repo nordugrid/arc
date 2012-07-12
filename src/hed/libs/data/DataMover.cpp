@@ -97,6 +97,7 @@ namespace Arc {
   } transfer_struct;
 
   DataStatus DataMover::Delete(DataPoint& url, bool errcont) {
+    DataStatus res = DataStatus::Success;
     bool remove_lfn = !url.HaveLocations(); // pfn or plain url
     if (!url.Resolve(true).Passed())
       // TODO: Check if error is real or "not exist".
@@ -123,8 +124,10 @@ namespace Arc {
         }
         else {
           url.SetSecure(false);
-          if (!url.Remove()) {
+          DataStatus r = url.Remove();
+          if (!r) {
             logger.msg(INFO, "Failed to delete physical file");
+            res = r;
             if (!errcont) {
               url.NextLocation();
               continue;
@@ -136,9 +139,10 @@ namespace Arc {
         if (url.IsIndex()) {
           logger.msg(INFO, "Removing metadata in %s",
                      url.CurrentLocationMetadata());
-          DataStatus err = url.Unregister(false);
-          if (!err) {
+          DataStatus r = url.Unregister(false);
+          if (!r) {
             logger.msg(ERROR, "Failed to delete meta-information");
+            res = r;
             url.NextLocation();
           }
           else
@@ -152,21 +156,21 @@ namespace Arc {
     if (url.IsIndex()) {
       if (url.HaveLocations()) {
         logger.msg(ERROR, "Failed to remove all physical instances");
-        return DataStatus::DeleteError;
+        return res;
       }
       if (remove_lfn) {
         logger.msg(INFO, "Removing logical file from metadata %s", url.str());
-        DataStatus err = url.Unregister(true);
-        if (!err) {
+        DataStatus r = url.Unregister(true);
+        if (!r) {
           logger.msg(ERROR, "Failed to delete logical file");
-          return err;
+          return r;
         }
       }
     }
     else {
       if (!url.LocationValid()) {
         logger.msg(ERROR, "Failed to remove instance");
-        return DataStatus::DeleteError;
+        return res;
       }
     }
     return DataStatus::Success;
@@ -234,12 +238,12 @@ namespace Arc {
     if (!source) {
       logger.msg(ERROR, "Not valid source");
       source.NextTry();
-      return DataStatus::ReadAcquireError;
+      return DataStatus(DataStatus::ReadAcquireError, EINVAL, "Source is not valid");
     }
     if (!destination) {
       logger.msg(ERROR, "Not valid destination");
       destination.NextTry();
-      return DataStatus::WriteAcquireError;
+      return DataStatus(DataStatus::WriteAcquireError, EINVAL, "Destination is not valid");
     }
     // initial cache check, if the DN is cached we can exit straight away
     bool cacheable = false;
@@ -298,7 +302,7 @@ namespace Arc {
         if (source.HaveLocations())
           break;
         logger.msg(ERROR, "No locations for source found: %s", source.str());
-        dres = DataStatus::ReadResolveError;
+        dres = DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "No locations found");
       }
       else
         logger.msg(ERROR, "Failed to resolve source: %s", source.str());
@@ -315,7 +319,7 @@ namespace Arc {
           break;
         logger.msg(ERROR, "No locations for destination found: %s",
                    destination.str());
-        dres = DataStatus::WriteResolveError;
+        dres = DataStatus(DataStatus::WriteResolveError, EARCRESINVAL, "No locations found");
       }
       else
         logger.msg(ERROR, "Failed to resolve destination: %s", destination.str());
@@ -335,7 +339,7 @@ namespace Arc {
         if (!destination.HaveLocations()) {
           logger.msg(ERROR, "No locations for destination different from source "
                      "found: %s", destination.str());
-          return DataStatus::WriteResolveError;
+          return DataStatus(DataStatus::WriteResolveError, EEXIST);
         }
       }
     // Try to avoid any additional checks meant to provide
@@ -556,7 +560,7 @@ namespace Arc {
             if (is_locked) {
               logger.msg(VERBOSE, "Cached file is locked - should retry");
               source.NextTry(); /* to decrease retry counter */
-              return DataStatus::CacheErrorRetryable;
+              return DataStatus(DataStatus::CacheError, EAGAIN, "Cache file locked");
             }
             cacheable = false;
             logger.msg(INFO, "Failed to initiate cache");
@@ -620,7 +624,7 @@ namespace Arc {
               source.NextTry(); /* to decrease retry counter */
               if (is_locked) {
                 logger.msg(VERBOSE, "Cached file is locked - should retry");
-                return DataStatus::CacheErrorRetryable;
+                return DataStatus(DataStatus::CacheError, EAGAIN, "Cache file locked");
               }
               return DataStatus::CacheError;
             }
@@ -663,20 +667,22 @@ namespace Arc {
               std::string dirpath = Glib::path_get_dirname(link_name);
               if(dirpath == ".") dirpath = G_DIR_SEPARATOR_S;
               if (!DirCreate(dirpath, user.get_uid(), user.get_gid(), S_IRWXU, true) != 0) {
+                int err = errno;
                 logger.msg(ERROR, "Failed to create directory %s", dirpath);
                 source.NextLocation(); /* try another source */
                 logger.msg(VERBOSE, "source.next_location");
-                res = DataStatus::ReadStartError;
+                res = DataStatus(DataStatus::ReadStartError, err);
                 continue;
               }
             }
             // make link
             if (symlink(file_name.c_str(), link_name.c_str()) == -1) {
+              int err = errno;
               logger.msg(ERROR, "Failed to make symbolic link %s to %s : %s",
                          link_name, file_name, StrError());
               source.NextLocation(); /* try another source */
               logger.msg(VERBOSE, "source.next_location");
-              res = DataStatus::ReadStartError;
+              res = DataStatus(DataStatus::ReadStartError, err);
               continue;
             }
             User user;
@@ -720,7 +726,7 @@ namespace Arc {
           logger.msg(ERROR, "Failed to stat source %s", source_url.str());
           if (source.NextLocation())
             logger.msg(VERBOSE, "(Re)Trying next source");
-          res = DataStatus::ReadError;
+          res = r;
 #ifndef WIN32
           if (cacheable)
             cache.StopAndDelete(canonic_url);
@@ -735,7 +741,7 @@ namespace Arc {
             logger.msg(ERROR, "Meta info of source and location do not match for %s", source_url.str());
           if (source.NextLocation())
             logger.msg(VERBOSE, "(Re)Trying next source");
-          res = DataStatus::ReadError;
+          res = r;
 #ifndef WIN32
           if (cacheable)
             cache.StopAndDelete(canonic_url);
@@ -970,7 +976,7 @@ namespace Arc {
         else if (buffer.error_transfer()) {
           // Here is more complicated case - operation timeout
           // Let's first check if buffer was full
-          res = DataStatus::TransferError;
+          res = DataStatus(DataStatus::TransferError, ETIMEDOUT);
           if (!buffer.for_read()) {
             // No free buffers for 'read' side. Buffer must be full.
             res.SetDesc(destination.GetFailureReason().GetDesc());
@@ -1034,7 +1040,7 @@ namespace Arc {
 #endif
           if (!destination.Unregister(replication || destination_meta_initially_stored))
             logger.msg(WARNING, "Failed to unregister preregistered lfn, You may need to unregister it manually");
-          res = DataStatus(DataStatus::TransferError, "Checksum mismatch");
+          res = DataStatus(DataStatus::TransferError, EARCCHECKSUM);
           if (!Delete(destination, true))
             logger.msg(WARNING, "Failed to delete destination, retry may fail");
           if (destination.NextLocation())
@@ -1053,7 +1059,7 @@ namespace Arc {
             if(cacheable)
               cache.StopAndDelete(canonic_url);
 #endif
-            res = DataStatus::TransferError;
+            res = DataStatus(DataStatus::TransferError, EARCCHECKSUM);
             if (source.NextLocation())
               logger.msg(VERBOSE, "(Re)Trying next source");
             continue;
@@ -1105,7 +1111,7 @@ namespace Arc {
             logger.msg(ERROR, "Failed to unregister preregistered lfn. "
                        "You may need to unregister it manually");
           source.NextTry(); /* to decrease retry count */
-          if (is_locked) return DataStatus::CacheErrorRetryable;
+          if (is_locked) return DataStatus(DataStatus::CacheError, EAGAIN, "Cache file locked");
           return DataStatus::CacheError; // retry won't help
         }
       }

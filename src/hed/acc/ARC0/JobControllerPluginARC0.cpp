@@ -413,10 +413,7 @@ namespace Arc {
       DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
                                       0, 0, 0, usercfg.Timeout());
       if (!res.Passed()) {
-        if (!res.GetDesc().empty())
-          logger.msg(INFO, "Current transfer FAILED: %s - %s", std::string(res), res.GetDesc());
-        else
-          logger.msg(INFO, "Current transfer FAILED: %s", std::string(res));
+        logger.msg(INFO, "Current transfer FAILED: %s", std::string(res));
         mover.Delete(*destination);
         ok = false;
         IDsNotProcessed.push_back(job.JobID);

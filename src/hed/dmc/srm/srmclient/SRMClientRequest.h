@@ -10,18 +10,6 @@ namespace Arc {
     SRM_VNULL
   };
 
-  /// Return code specifying types of errors that can occur in client methods
-  enum SRMReturnCode {
-    SRM_OK,                  ///< Successful result
-    SRM_ERROR_CONNECTION,    ///< Error connecting to SRM service
-    SRM_ERROR_SOAP,          ///< SOAP error
-    // the next two only apply to valid responses from the service
-    SRM_ERROR_TEMPORARY,     ///< An error that can be retried eg SRM_INTERNAL_ERROR, SRM_FILE_BUSY
-    SRM_ERROR_PERMANENT,     ///< A permanent error, eg no such file, permission denied
-    SRM_ERROR_NOT_SUPPORTED, ///< Method not supported by this version of the protocol
-    SRM_ERROR_OTHER          ///< Any other error, eg bad input parameters, unexpected result format
-  };
-
   /// Specifies whether file is on disk or only on tape
   enum SRMFileLocality {
     SRM_ONLINE,

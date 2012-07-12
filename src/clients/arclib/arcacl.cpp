@@ -177,7 +177,7 @@ int RUNMAIN(arcacl)(int argc, char **argv) {
       res = mover.Transfer(*tmp,*obj,cache,map);
     }
     if(!res) {
-      logger.msg(Arc::ERROR, "ACL transfer FAILED: %s", res.GetDesc());
+      logger.msg(Arc::ERROR, "ACL transfer FAILED: %s", std::string(res));
       retval = -1;
       continue;
     }

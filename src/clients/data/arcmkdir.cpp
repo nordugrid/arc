@@ -58,7 +58,7 @@ bool arcmkdir(const Arc::URL& file_url,
   url->SetSecure(false);
   Arc::DataStatus res = url->CreateDirectory(with_parents);
   if (!res.Passed()) {
-    logger.msg(Arc::ERROR, "%s%s", std::string(res), (res.GetDesc().empty() ? " " : ": "+res.GetDesc()));
+    logger.msg(Arc::ERROR, std::string(res));
     if (res.Retryable())
       logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
     return false;

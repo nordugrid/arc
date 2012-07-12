@@ -5,186 +5,224 @@
 
 #include <iostream>
 #include <string>
+#include <errno.h>
 
 #include <arc/StringConv.h>
+#include <arc/Utils.h>
 
 namespace Arc {
   
 #define DataStatusRetryableBase (100)
 
+#define DataStatusErrnoBase 1000
+#define EARCTRANSFERTIMEOUT  (DataStatusErrnoBase + 1) // Transfer timed out
+#define EARCCHECKSUM         (DataStatusErrnoBase + 2) // Checksum mismatch
+#define EARCLOGIC            (DataStatusErrnoBase + 3) // Bad logic, eg calling StartWriting on a
+                                                       // DataPoint currently reading
+#define EARCRESINVAL         (DataStatusErrnoBase + 4) // All results obtained from a service are invalid
+#define EARCSVCTMP           (DataStatusErrnoBase + 5) // Temporary service error
+#define EARCSVCPERM          (DataStatusErrnoBase + 6) // Permanent service error
+#define EARCOTHER            (DataStatusErrnoBase + 7) // Other / unknown error
+
+#define DataStatusErrnoMax EARCOTHER
+
   /// Status code returned by many DataPoint methods.
   /**
-   * A class to be used for return types of all major data handling
-   * methods. It describes the outcome of the method.
+   * A class to be used for return types of all major data handling methods.
+   * It describes the outcome of the method and contains three fields:
+   * DataStatusType describes in which operation the error occurred, Errno
+   * describes why the error occurred and desc gives more detail if available.
+   * Errno is an integer corresponding to error codes defined in errno.h plus
+   * additional ARC-specific error codes defined here.
    */
   class DataStatus {
 
   public:
 
     /// Status codes
+    /** These codes describe in which operation an error occurred. Retryable
+     * error codes are deprecated - the corresponding non-retryable error code
+     * should be used with errno set to a retryable value. */
     enum DataStatusType {
+      // Order is important! Must be kept synchronised with status_string[]
 
       /// Operation completed successfully
-      Success = 0,
+      Success,
 
       /// Source is bad URL or can't be used due to some reason
-      ReadAcquireError = 1,
-      ReadAcquireErrorRetryable = DataStatusRetryableBase+ReadAcquireError,
+      ReadAcquireError,
 
       /// Destination is bad URL or can't be used due to some reason
-      WriteAcquireError = 2,
-      WriteAcquireErrorRetryable = DataStatusRetryableBase+WriteAcquireError,
+      WriteAcquireError,
 
       /// Resolving of index service URL for source failed
-      ReadResolveError = 3,
-      ReadResolveErrorRetryable = DataStatusRetryableBase+ReadResolveError,
+      ReadResolveError,
 
       /// Resolving of index service URL for destination failed
-      WriteResolveError = 4,
-      WriteResolveErrorRetryable = DataStatusRetryableBase+WriteResolveError,
+      WriteResolveError,
 
       /// Can't read from source
-      ReadStartError = 5,
-      ReadStartErrorRetryable = DataStatusRetryableBase+ReadStartError,
+      ReadStartError,
 
       /// Can't write to destination
-      WriteStartError = 6,
-      WriteStartErrorRetryable = DataStatusRetryableBase+WriteStartError,
+      WriteStartError,
 
       /// Failed while reading from source
-      ReadError = 7,
-      ReadErrorRetryable = DataStatusRetryableBase+ReadError,
+      ReadError,
 
       /// Failed while writing to destination
-      WriteError = 8,
-      WriteErrorRetryable = DataStatusRetryableBase+WriteError,
+      WriteError,
 
       /// Failed while transfering data (mostly timeout)
-      TransferError = 9,
-      TransferErrorRetryable = DataStatusRetryableBase+TransferError,
+      TransferError,
 
       /// Failed while finishing reading from source
-      ReadStopError = 10,
-      ReadStopErrorRetryable = DataStatusRetryableBase+ReadStopError,
+      ReadStopError,
 
       /// Failed while finishing writing to destination
-      WriteStopError = 11,
-      WriteStopErrorRetryable = DataStatusRetryableBase+WriteStopError,
+      WriteStopError,
 
       /// First stage of registration of index service URL failed
-      PreRegisterError = 12,
-      PreRegisterErrorRetryable = DataStatusRetryableBase+PreRegisterError,
+      PreRegisterError,
 
       /// Last stage of registration of index service URL failed
-      PostRegisterError = 13,
-      PostRegisterErrorRetryable = DataStatusRetryableBase+PostRegisterError,
+      PostRegisterError,
 
       /// Unregistration of index service URL failed
-      UnregisterError = 14,
-      UnregisterErrorRetryable = DataStatusRetryableBase+UnregisterError,
+      UnregisterError,
 
       /// Error in caching procedure
-      CacheError = 15,
-      CacheErrorRetryable = DataStatusRetryableBase+CacheError,
+      CacheError,
 
       /// Error due to provided credentials are expired
-      CredentialsExpiredError = 16,
+      CredentialsExpiredError,
 
       /// Error deleting location or URL
-      DeleteError = 17,
-      DeleteErrorRetryable = DataStatusRetryableBase+DeleteError,
+      DeleteError,
 
       /// No valid location available
-      NoLocationError = 18,
+      NoLocationError,
 
       /// No valid location available
-      LocationAlreadyExistsError = 19,
+      LocationAlreadyExistsError,
 
       /// Operation has no sense for this kind of URL
-      NotSupportedForDirectDataPointsError = 20,
+      NotSupportedForDirectDataPointsError,
 
       /// Feature is unimplemented
-      UnimplementedError = 21,
+      UnimplementedError,
 
       /// DataPoint is already reading
-      IsReadingError = 22,
+      IsReadingError,
 
       /// DataPoint is already writing
-      IsWritingError = 23,
+      IsWritingError,
 
       /// Access check failed
-      CheckError = 24,
-      CheckErrorRetryable = DataStatusRetryableBase+CheckError,
+      CheckError,
 
-      /// File listing failed
-      ListError = 25,
-      ListNonDirError = 26,
-      ListErrorRetryable = DataStatusRetryableBase+ListError,
+      /// Directory listing failed
+      ListError,
+      /// @deprecated ListError with errno set to ENOTDIR should be used instead
+      ListNonDirError,
 
       /// File/dir stating failed
-      StatError = 27,
-      StatNotPresentError = 28,
-      StatErrorRetryable = DataStatusRetryableBase+StatError,
+      StatError,
+      /// @deprecated StatError with errno set to ENOENT should be used instead
+      StatNotPresentError,
 
       /// Object initialization failed
-      NotInitializedError = 29,
+      NotInitializedError,
 
       /// Error in OS
-      SystemError = 30,
+      SystemError,
     
       /// Staging error
-      StageError = 31,
-      StageErrorRetryable = DataStatusRetryableBase+StageError,
+      StageError,
       
       /// Inconsistent metadata
-      InconsistentMetadataError = 32,
+      InconsistentMetadataError,
  
       /// Can't prepare source
-      ReadPrepareError = 32,
-      ReadPrepareErrorRetryable = DataStatusRetryableBase+ReadPrepareError,
+      ReadPrepareError,
 
       /// Wait for source to be prepared
-      ReadPrepareWait = 33,
+      ReadPrepareWait,
 
       /// Can't prepare destination
-      WritePrepareError = 34,
-      WritePrepareErrorRetryable = DataStatusRetryableBase+WritePrepareError,
+      WritePrepareError,
 
       /// Wait for destination to be prepared
-      WritePrepareWait = 35,
+      WritePrepareWait,
 
       /// Can't finish source
-      ReadFinishError = 36,
-      ReadFinishErrorRetryable = DataStatusRetryableBase+ReadFinishError,
+      ReadFinishError,
 
       /// Can't finish destination
-      WriteFinishError = 37,
-      WriteFinishErrorRetryable = DataStatusRetryableBase+WriteFinishError,
+      WriteFinishError,
 
       /// Can't create directory
-      CreateDirectoryError = 38,
-      CreateDirectoryErrorRetryable = DataStatusRetryableBase+CreateDirectoryError,
+      CreateDirectoryError,
 
       /// Can't rename URL
-      RenameError = 39,
-      RenameErrorRetryable = DataStatusRetryableBase+RenameError,
+      RenameError,
 
       /// Data was already cached
-      SuccessCached = 40,
+      SuccessCached,
       
       /// General error which doesn't fit any other error
-      GenericError = 41,
-      GenericErrorRetryable = DataStatusRetryableBase+GenericError,
+      GenericError,
 
       /// Undefined
-      UnknownError = 42
-    };
+      UnknownError,
 
+      // These Retryable error codes are deprecated but kept for backwards
+      // compatibility. They will be removed in a future major release.
+      // Instead of these codes the corresponding non-retryable code should be
+      // used with an errno, and this is used to determine whether the error is
+      // retryable.
+      ReadAcquireErrorRetryable = DataStatusRetryableBase+ReadAcquireError, ///< @deprecated
+      WriteAcquireErrorRetryable = DataStatusRetryableBase+WriteAcquireError, ///< @deprecated
+      ReadResolveErrorRetryable = DataStatusRetryableBase+ReadResolveError, ///< @deprecated
+      WriteResolveErrorRetryable = DataStatusRetryableBase+WriteResolveError, ///< @deprecated
+      ReadStartErrorRetryable = DataStatusRetryableBase+ReadStartError, ///< @deprecated
+      WriteStartErrorRetryable = DataStatusRetryableBase+WriteStartError, ///< @deprecated
+      ReadErrorRetryable = DataStatusRetryableBase+ReadError, ///< @deprecated
+      WriteErrorRetryable = DataStatusRetryableBase+WriteError, ///< @deprecated
+      TransferErrorRetryable = DataStatusRetryableBase+TransferError, ///< @deprecated
+      ReadStopErrorRetryable = DataStatusRetryableBase+ReadStopError, ///< @deprecated
+      WriteStopErrorRetryable = DataStatusRetryableBase+WriteStopError, ///< @deprecated
+      PreRegisterErrorRetryable = DataStatusRetryableBase+PreRegisterError, ///< @deprecated
+      PostRegisterErrorRetryable = DataStatusRetryableBase+PostRegisterError, ///< @deprecated
+      UnregisterErrorRetryable = DataStatusRetryableBase+UnregisterError, ///< @deprecated
+      CacheErrorRetryable = DataStatusRetryableBase+CacheError, ///< @deprecated
+      DeleteErrorRetryable = DataStatusRetryableBase+DeleteError, ///< @deprecated
+      CheckErrorRetryable = DataStatusRetryableBase+CheckError, ///< @deprecated
+      ListErrorRetryable = DataStatusRetryableBase+ListError, ///< @deprecated
+      StatErrorRetryable = DataStatusRetryableBase+StatError, ///< @deprecated
+      StageErrorRetryable = DataStatusRetryableBase+StageError, ///< @deprecated
+      ReadPrepareErrorRetryable = DataStatusRetryableBase+ReadPrepareError, ///< @deprecated
+      WritePrepareErrorRetryable = DataStatusRetryableBase+WritePrepareError, ///< @deprecated
+      ReadFinishErrorRetryable = DataStatusRetryableBase+ReadFinishError, ///< @deprecated
+      WriteFinishErrorRetryable = DataStatusRetryableBase+WriteFinishError, ///< @deprecated
+      CreateDirectoryErrorRetryable = DataStatusRetryableBase+CreateDirectoryError, ///< @deprecated
+      RenameErrorRetryable = DataStatusRetryableBase+RenameError, ///< @deprecated
+      GenericErrorRetryable = DataStatusRetryableBase+GenericError ///< @deprecated
+   };
+
+    /// Constructor to use when errno-like information is not available
     DataStatus(const DataStatusType& status, std::string desc="")
-      : status(status), desc(desc) {}
+      : status(status), Errno(0), desc(desc) {}
+
+    /// Construct a new DataStatus with errno and optional text description
+    /** If the status is an error condition then error_no must be set to a
+     * non-zero value */
+    DataStatus(const DataStatusType& status, int error_no, const std::string& desc="")
+      : status(status), Errno(error_no), desc(desc) {}
+
+    /// Construct a new DataStatus with fields initialised to success states
     DataStatus()
-      : status(Success), desc("") {}
-    ~DataStatus() {}
+      : status(Success), Errno(0), desc("") {}
 
     bool operator==(const DataStatusType& s) {
       return status == s;
@@ -199,9 +237,10 @@ namespace Arc {
     bool operator!=(const DataStatus& s) {
       return status != s.status;
     }
-  
+
     DataStatus operator=(const DataStatusType& s) {
       status = s;
+      Errno = 0;
       return *this;
     }
 
@@ -219,27 +258,43 @@ namespace Arc {
               (status == SuccessCached));
     }
   
-    /// Returns true if the error was temporary and could be retried
-    bool Retryable() const {
-      return status > 100;
+    /// Returns true if the error was temporary and could be retried.
+    /** Retryable error numbers are EAGAIN, EBUSY, ETIMEDOUT, EARCSVCTMP,
+     * EARCTRANSFERTIMEOUT and EARCCHECKSUM. */
+    bool Retryable() const;
+
+    /// Set the error number
+    void SetErrNo(int error_no) {
+      Errno = error_no;
     }
   
-    /// Set a text description of the status, removing trailing new line if present
+    /// Get the error number
+    int GetErrno() const {
+      return Errno;
+    }
+
+    /// Get text description of the error number
+    std::string GetStrErrno() const;
+
+    /// Set a detailed description of the status, removing trailing new line if present
     void SetDesc(const std::string& d) {
       desc = trim(d);
     }
     
-    /// Get a text description of the status
+    /// Get a detailed description of the status
     std::string GetDesc() const {
       return desc;
     }
 
+    /// Returns a human-friendly readable string with all error information
     operator std::string(void) const;
 
   private:
   
     /// status code
     DataStatusType status;
+    /// error number (values defined in errno.h)
+    int Errno;
     /// description of failure
     std::string desc;
 

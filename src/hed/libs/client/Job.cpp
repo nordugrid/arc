@@ -703,10 +703,7 @@ namespace Arc {
       mover.Transfer(*source, *destination, cache, URLMap(), 0, 0, 0,
                      uc.Timeout());
     if (!res.Passed()) {
-      if (!res.GetDesc().empty())
-        logger.msg(ERROR, "File download failed: %s - %s", std::string(res), res.GetDesc());
-      else
-        logger.msg(ERROR, "File download failed: %s", std::string(res));
+      logger.msg(ERROR, "File download failed: %s", std::string(res));
       // Reset connection because one can't be sure how failure
       // affects server and/or connection state.
       // TODO: Investigate/define DMC behavior in such case.

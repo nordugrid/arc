@@ -11,6 +11,47 @@ namespace Arc {
     : public SRMClient {
   private:
 
+    /// Return codes for requests and files as defined in spec
+    enum SRMStatusCode {
+      SRM_SUCCESS,
+      SRM_FAILURE,
+      SRM_AUTHENTICATION_FAILURE,
+      SRM_AUTHORIZATION_FAILURE,
+      SRM_INVALID_REQUEST,
+      SRM_INVALID_PATH,
+      SRM_FILE_LIFETIME_EXPIRED,
+      SRM_SPACE_LIFETIME_EXPIRED,
+      SRM_EXCEED_ALLOCATION,
+      SRM_NO_USER_SPACE,
+      SRM_NO_FREE_SPACE,
+      SRM_DUPLICATION_ERROR,
+      SRM_NON_EMPTY_DIRECTORY,
+      SRM_TOO_MANY_RESULTS,
+      SRM_INTERNAL_ERROR,
+      SRM_FATAL_INTERNAL_ERROR,
+      SRM_NOT_SUPPORTED,
+      SRM_REQUEST_QUEUED,
+      SRM_REQUEST_INPROGRESS,
+      SRM_REQUEST_SUSPENDED,
+      SRM_ABORTED,
+      SRM_RELEASED,
+      SRM_FILE_PINNED,
+      SRM_FILE_IN_CACHE,
+      SRM_SPACE_AVAILABLE,
+      SRM_LOWER_SPACE_GRANTED,
+      SRM_DONE,
+      SRM_PARTIAL_SUCCESS,
+      SRM_REQUEST_TIMED_OUT,
+      SRM_LAST_COPY,
+      SRM_FILE_BUSY,
+      SRM_FILE_LOST,
+      SRM_FILE_UNAVAILABLE,
+      SRM_CUSTOM_STATUS
+    };
+
+    /// Extract status code and explanation from xml result structure
+    SRMStatusCode GetStatus(XMLNode res, std::string& explanation);
+
     /**
      * Remove a file by srmRm
      */
@@ -32,6 +73,12 @@ namespace Arc {
      * Fill out status of files in the request object from the file_statuses
      */
     void fileStatus(SRMClientRequest& req, XMLNode file_statuses);
+
+    /**
+     * Convert SRM error code to errno. If file-level status is defined that
+     * will be used over request-level status.
+     */
+    int srm2errno(SRMStatusCode reqstat, SRMStatusCode filestat = SRM_SUCCESS);
 
   public:
     /**
@@ -132,7 +179,7 @@ namespace Arc {
      * Not used in this version of SRM
      */
     SRMReturnCode release(SRMClientRequest& /* req */) {
-      return SRM_ERROR_NOT_SUPPORTED;
+      return ENOTSUP;
     }
 
     /**

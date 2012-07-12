@@ -207,15 +207,15 @@ static bool arcls(const Arc::URL& dir_url,
         // If listing failed maybe simply report previous result if any.
         if(res) {
           files.push_back(file);
-        } else {
-          res = res_;
         }
+      } else {
+        res = res_;
       }
     }
   }
   if (!res) {
     if (files.empty()) {
-      logger.msg(Arc::ERROR, "Failed listing files");
+      logger.msg(Arc::ERROR, std::string(res));
       if (res.Retryable())
         logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
       return false;

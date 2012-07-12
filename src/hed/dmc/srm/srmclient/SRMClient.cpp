@@ -79,14 +79,14 @@ namespace Arc {
         srm_url.SetPort(*port);
         SRMClient *client = new SRM22Client(usercfg, srm_url);
 
-        if ((srm_error = client->ping(version, false)) == SRM_OK) {
+        if ((srm_error = client->ping(version, false)) == 0) {
           srm_file_info.port = *port;
           logger.msg(VERBOSE, "Storing port %i for %s", *port, srm_url.Host());
           info.putSRMFileInfo(srm_file_info);
           return client;
         }
         delete client;
-        if (srm_error == SRM_ERROR_TEMPORARY) {
+        if (srm_error == ETIMEDOUT) {
           // probably correct port and service is down
           // but don't want to risk storing incorrect info
           timedout = true;
@@ -109,7 +109,7 @@ namespace Arc {
                  srm_url.ShortURL());
       SRMClient *client = new SRM22Client(usercfg, srm_url);
 
-      if ((srm_error = client->ping(version, false)) == SRM_OK) {
+      if ((srm_error = client->ping(version, false)) == 0) {
         srm_file_info.port = srm_url.Port();
         logger.msg(VERBOSE, "Replacing old SRM info with new for URL %s",
                    srm_url.ShortURL());
@@ -117,7 +117,7 @@ namespace Arc {
         return client;
       }
       delete client;
-      if (srm_error == SRM_ERROR_TEMPORARY) {
+      if (srm_error == ETIMEDOUT) {
         // probably correct port and service is down
         // but don't want to risk storing incorrect info
         timedout = true;
@@ -152,11 +152,11 @@ namespace Arc {
       logger.msg(VERBOSE, "SRM Client status: %s", (std::string)status);
       if (*response) delete *response;
       *response = NULL;
-      return SRM_ERROR_SOAP;
+      return ECONNREFUSED;
     }
     if (!(*response)) {
       logger.msg(VERBOSE, "No SOAP response");
-      return SRM_ERROR_SOAP;
+      return ECONNREFUSED;
     }
 
     if (logger.getThreshold() <= DEBUG) {
@@ -169,10 +169,10 @@ namespace Arc {
       logger.msg(VERBOSE, "SOAP fault: %s", (*response)->Fault()->Reason());
       delete *response;
       *response = NULL;
-      return SRM_ERROR_SOAP;
+      return EARCSVCPERM;
     }
 
-    return SRM_OK;
+    return 0;
   }
 
 } // namespace Arc

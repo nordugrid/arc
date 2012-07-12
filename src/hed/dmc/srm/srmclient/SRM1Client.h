@@ -19,38 +19,38 @@ namespace Arc {
     // not supported in v1
     SRMReturnCode ping(std::string& /* version */,
                        bool /* report_error */ = true) {
-      return SRM_ERROR_NOT_SUPPORTED;
+      return ENOTSUP;
     }
     // not supported in v1
     SRMReturnCode getSpaceTokens(std::list<std::string>& /* tokens */,
                                  const std::string& /* description */ = "") {
-      return SRM_ERROR_NOT_SUPPORTED;
+      return ENOTSUP;
     }
     // not supported in v1
     SRMReturnCode getRequestTokens(std::list<std::string>& /* tokens */,
                                    const std::string& /* description */ = "") {
-      return SRM_ERROR_NOT_SUPPORTED;
+      return ENOTSUP;
     }
     // not supported in v1
     SRMReturnCode requestBringOnline(SRMClientRequest& /* req */) {
-      return SRM_ERROR_NOT_SUPPORTED;
+      return ENOTSUP;
     }
     // not supported in v1
     SRMReturnCode requestBringOnlineStatus(SRMClientRequest& /* req */) {
-      return SRM_ERROR_NOT_SUPPORTED;
+      return ENOTSUP;
     }
     // not supported
     SRMReturnCode mkDir(SRMClientRequest& /* req */) {
-      return SRM_ERROR_NOT_SUPPORTED;
+      return ENOTSUP;
     }
     // not supported
     SRMReturnCode rename(SRMClientRequest& /* req */,
                          const URL& /* newurl */) {
-      return SRM_ERROR_NOT_SUPPORTED;
+      return ENOTSUP;
     }
     // not supported
     SRMReturnCode checkPermissions(SRMClientRequest& /* req */) {
-      return SRM_ERROR_NOT_SUPPORTED;
+      return ENOTSUP;
     }
   
     // v1 only operates in synchronous mode
@@ -58,13 +58,13 @@ namespace Arc {
                            std::list<std::string>& urls);
     SRMReturnCode getTURLsStatus(SRMClientRequest& req,
                                  std::list<std::string>& urls) {
-      return SRM_ERROR_NOT_SUPPORTED;
+      return ENOTSUP;
     }
     SRMReturnCode putTURLs(SRMClientRequest& req,
                            std::list<std::string>& urls);
     SRMReturnCode putTURLsStatus(SRMClientRequest& req,
                                  std::list<std::string>& urls) {
-      return SRM_ERROR_NOT_SUPPORTED;
+      return ENOTSUP;
     }
 
     SRMReturnCode releaseGet(SRMClientRequest& req);

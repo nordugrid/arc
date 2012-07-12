@@ -24,44 +24,8 @@ namespace Arc {
    */
   const static unsigned int max_files_list = 999;
 
-  enum SRMStatusCode {
-    SRM_SUCCESS,
-    SRM_FAILURE,
-    SRM_AUTHENTICATION_FAILURE,
-    SRM_AUTHORIZATION_FAILURE,
-    SRM_INVALID_REQUEST,
-    SRM_INVALID_PATH,
-    SRM_FILE_LIFETIME_EXPIRED,
-    SRM_SPACE_LIFETIME_EXPIRED,
-    SRM_EXCEED_ALLOCATION,
-    SRM_NO_USER_SPACE,
-    SRM_NO_FREE_SPACE,
-    SRM_DUPLICATION_ERROR,
-    SRM_NON_EMPTY_DIRECTORY,
-    SRM_TOO_MANY_RESULTS,
-    SRM_INTERNAL_ERROR,
-    SRM_FATAL_INTERNAL_ERROR,
-    SRM_NOT_SUPPORTED,
-    SRM_REQUEST_QUEUED,
-    SRM_REQUEST_INPROGRESS,
-    SRM_REQUEST_SUSPENDED,
-    SRM_ABORTED,
-    SRM_RELEASED,
-    SRM_FILE_PINNED,
-    SRM_FILE_IN_CACHE,
-    SRM_SPACE_AVAILABLE,
-    SRM_LOWER_SPACE_GRANTED,
-    SRM_DONE,
-    SRM_PARTIAL_SUCCESS,
-    SRM_REQUEST_TIMED_OUT,
-    SRM_LAST_COPY,
-    SRM_FILE_BUSY,
-    SRM_FILE_LOST,
-    SRM_FILE_UNAVAILABLE,
-    SRM_CUSTOM_STATUS
-  };
 
-  static SRMStatusCode GetStatus(XMLNode res, std::string& explanation) {
+  SRM22Client::SRMStatusCode SRM22Client::GetStatus(XMLNode res, std::string& explanation) {
     std::string statuscode = (std::string)res["statusCode"];
     if (res["explanation"])
       explanation = (std::string)res["explanation"];
@@ -154,15 +118,14 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK)
-      return status;
+    if (status != 0) return status;
 
     XMLNode res = (*response)["srmPingResponse"]["srmPingResponse"];
 
     if (!res) {
       logger.msg(ERROR, "Could not determine version of server");
       delete response;
-      return SRM_ERROR_OTHER;
+      return EARCRESINVAL;
     }
 
     version = (std::string)res["versionInfo"];
@@ -183,7 +146,7 @@ namespace Arc {
       }
 
     delete response;
-    return SRM_OK;
+    return 0;
   }
 
   SRMReturnCode SRM22Client::getSpaceTokens(std::list<std::string>& tokens,
@@ -196,8 +159,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK)
-      return status;
+    if (status != 0) return status;
 
     XMLNode res = (*response)["srmGetSpaceTokensResponse"]
                   ["srmGetSpaceTokensResponse"];
@@ -208,7 +170,7 @@ namespace Arc {
     if (statuscode != SRM_SUCCESS) {
       logger.msg(ERROR, "%s", explanation);
       delete response;
-      return SRM_ERROR_OTHER;
+      return srm2errno(statuscode);
     }
 
     for (XMLNode n = res["arrayOfSpaceTokens"]["stringArray"]; n; ++n) {
@@ -218,7 +180,7 @@ namespace Arc {
     }
 
     delete response;
-    return SRM_OK;
+    return 0;
   }
 
   SRMReturnCode SRM22Client::getRequestTokens(std::list<std::string>& tokens,
@@ -231,8 +193,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK)
-      return status;
+    if (status != 0) return status;
 
     XMLNode res = (*response)["srmGetRequestTokensResponse"]
                   ["srmGetRequestTokensResponse"];
@@ -243,13 +204,13 @@ namespace Arc {
     if (statuscode == SRM_INVALID_REQUEST) {
       logger.msg(INFO, "No request tokens found");
       delete response;
-      return SRM_OK;
+      return 0;
     }
 
     if (statuscode != SRM_SUCCESS) {
       logger.msg(ERROR, "%s", explanation);
       delete response;
-      return SRM_ERROR_OTHER;
+      return srm2errno(statuscode);
     }
 
     for (XMLNode n = res["arrayOfRequestTokens"]["tokenArray"]; n; ++n) {
@@ -259,7 +220,7 @@ namespace Arc {
     }
 
     delete response;
-    return SRM_OK;
+    return 0;
   }
 
   SRMReturnCode SRM22Client::getTURLs(SRMClientRequest& creq,
@@ -279,7 +240,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK) {
+    if (status != 0) {
       creq.finished_error();
       return status;
     }
@@ -305,7 +266,7 @@ namespace Arc {
       if (creq.request_timeout() == 0) {
         creq.wait(sleeptime);
         delete response;
-        return SRM_OK;
+        return 0;
       }
       unsigned int request_time = 0;
       while (request_time < creq.request_timeout()) {
@@ -334,7 +295,7 @@ namespace Arc {
       logger.msg(ERROR, "PrepareToGet request timed out after %i seconds", creq.request_timeout());
       creq.finished_abort();
       delete response;
-      return SRM_ERROR_TEMPORARY;
+      return ETIMEDOUT;
   
     } // if file queued
   
@@ -346,9 +307,7 @@ namespace Arc {
       SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], explanation);
       creq.finished_error();
       delete response;
-      if (statuscode == SRM_INTERNAL_ERROR || file_statuscode == SRM_FILE_UNAVAILABLE || file_statuscode == SRM_FILE_BUSY)
-        return SRM_ERROR_TEMPORARY;
-      return SRM_ERROR_PERMANENT;
+      return srm2errno(statuscode, file_statuscode);
     }
 
     // the file is ready and pinned - we can get the TURL
@@ -359,7 +318,7 @@ namespace Arc {
     urls.push_back(turl);
     creq.finished_success();
     delete response;
-    return SRM_OK;
+    return 0;
   }
   
   SRMReturnCode SRM22Client::getTURLsStatus(SRMClientRequest& creq,
@@ -372,7 +331,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK) {
+    if (status != 0) {
       creq.finished_abort();
       return status;
     }
@@ -400,9 +359,7 @@ namespace Arc {
       SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], explanation);
       creq.finished_error();
       delete response;
-      if (statuscode == SRM_INTERNAL_ERROR || file_statuscode == SRM_FILE_UNAVAILABLE || file_statuscode == SRM_FILE_BUSY)
-        return SRM_ERROR_TEMPORARY;
-      return SRM_ERROR_PERMANENT;
+      return srm2errno(statuscode, file_statuscode);
     }
     else {
       // success, TURL is ready
@@ -414,7 +371,7 @@ namespace Arc {
       creq.finished_success();
     }
     delete response;
-    return SRM_OK;
+    return 0;
   }
 
   SRMReturnCode SRM22Client::requestBringOnline(SRMClientRequest& creq) {
@@ -446,7 +403,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK) {
+    if (status != 0) {
       creq.finished_error();
       return status;
     }
@@ -468,7 +425,7 @@ namespace Arc {
         creq.surl_statuses(*it, SRM_ONLINE);
       creq.finished_success();
       delete response;
-      return SRM_OK;
+      return 0;
     }
 
     if (statuscode == SRM_REQUEST_QUEUED) {
@@ -480,7 +437,7 @@ namespace Arc {
       if (creq.request_timeout() == 0) {
         creq.wait(sleeptime);
         delete response;
-        return SRM_OK;
+        return 0;
       }
 
       unsigned int request_time = 0;
@@ -508,7 +465,7 @@ namespace Arc {
       logger.msg(ERROR, "Bring online request timed out after %i seconds", creq.request_timeout());
       creq.finished_abort();
       delete response;
-      return SRM_ERROR_TEMPORARY;
+      return ETIMEDOUT;
     }
 
     if (statuscode == SRM_REQUEST_INPROGRESS) {
@@ -516,7 +473,7 @@ namespace Arc {
       fileStatus(creq, res["arrayOfFileStatuses"]);
       creq.wait();
       delete response;
-      return SRM_OK;
+      return 0;
     }
 
     if (statuscode == SRM_PARTIAL_SUCCESS) {
@@ -524,23 +481,24 @@ namespace Arc {
       fileStatus(creq, res["arrayOfFileStatuses"]);
       creq.finished_partial_success();
       delete response;
-      return SRM_OK;
+      return 0;
     }
 
     // here means an error code was returned and all files failed
     logger.msg(ERROR, explanation);
+    if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"])
+      logger.msg(ERROR, res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]);
+    SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], explanation);
     creq.finished_error();
     delete response;
-    if (statuscode == SRM_INTERNAL_ERROR)
-      return SRM_ERROR_TEMPORARY;
-    return SRM_ERROR_PERMANENT;
+    return srm2errno(statuscode, file_statuscode);
   }
 
   SRMReturnCode SRM22Client::requestBringOnlineStatus(SRMClientRequest& creq) {
     if (creq.request_token().empty()) {
       logger.msg(ERROR, "No request token specified!");
       creq.finished_abort();
-      return SRM_ERROR_OTHER;
+      return EINVAL;
     }
 
     PayloadSOAP request(ns);
@@ -550,7 +508,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK) {
+    if (status != 0) {
       creq.finished_abort();
       return status;
     }
@@ -566,7 +524,7 @@ namespace Arc {
       fileStatus(creq, res["arrayOfFileStatuses"]);
       creq.finished_success();
       delete response;
-      return SRM_OK;
+      return 0;
     }
 
     if (statuscode == SRM_REQUEST_QUEUED) {
@@ -577,7 +535,7 @@ namespace Arc {
                         ["estimatedWaitTime"]);
       creq.wait(sleeptime);
       delete response;
-      return SRM_OK;
+      return 0;
     }
 
     if (statuscode == SRM_REQUEST_INPROGRESS) {
@@ -589,7 +547,7 @@ namespace Arc {
                         ["estimatedWaitTime"]);
       creq.wait(sleeptime);
       delete response;
-      return SRM_OK;
+      return 0;
     }
 
     if (statuscode == SRM_PARTIAL_SUCCESS) {
@@ -597,7 +555,7 @@ namespace Arc {
       fileStatus(creq, res["arrayOfFileStatuses"]);
       creq.finished_partial_success();
       delete response;
-      return SRM_OK;
+      return 0;
     }
 
     if (statuscode == SRM_ABORTED) {
@@ -609,32 +567,33 @@ namespace Arc {
                    "Request is reported as ABORTED, but all files are done");
         creq.finished_success();
         delete response;
-        return SRM_OK;
+        return 0;
       }
       else if (explanation.find("Canceled") != std::string::npos) {
         logger.msg(VERBOSE,
                    "Request is reported as ABORTED, since it was cancelled");
         creq.cancelled();
         delete response;
-        return SRM_OK;
+        return 0;
       }
       else {
         logger.msg(VERBOSE, "Request is reported as ABORTED. Reason: %s",
                    explanation);
         creq.finished_error();
         delete response;
-        return SRM_ERROR_PERMANENT;
+        return srm2errno(statuscode);
       }
     }
 
     // here means an error code was returned and all files failed
     logger.msg(ERROR, explanation);
     fileStatus(creq, res["arrayOfFileStatuses"]);
+    if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"])
+      logger.msg(ERROR, res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]);
+    SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], explanation);
     creq.finished_error();
     delete response;
-    if (statuscode == SRM_INTERNAL_ERROR)
-      return SRM_ERROR_TEMPORARY;
-    return SRM_ERROR_PERMANENT;
+    return srm2errno(statuscode, file_statuscode);
   }
 
   void SRM22Client::fileStatus(SRMClientRequest& creq, XMLNode file_statuses) {
@@ -691,7 +650,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK) {
+    if (status != 0) {
       creq.finished_error();
       return status;
     }
@@ -718,7 +677,7 @@ namespace Arc {
       if (creq.request_timeout() == 0) {
         creq.wait(sleeptime);
         delete response;
-        return SRM_OK;
+        return 0;
       };
 
       while (request_time < creq.request_timeout()) {
@@ -747,39 +706,35 @@ namespace Arc {
       logger.msg(ERROR, "PrepareToPut request timed out after %i seconds", creq.request_timeout());
       creq.finished_abort();
       delete response;
-      return SRM_ERROR_TEMPORARY;
+      return ETIMEDOUT;
 
     } // if file queued
   
     else if (statuscode != SRM_SUCCESS) {
       std::string statusexplanation;
-      SRMStatusCode status = GetStatus(res["arrayOfFileStatuses"]
-                                       ["statusArray"]["status"],
-                                       statusexplanation);
-      if (status == SRM_INVALID_PATH) {
+      SRMStatusCode file_status = GetStatus(res["arrayOfFileStatuses"]
+                                            ["statusArray"]["status"],
+                                            statusexplanation);
+      if (file_status == SRM_INVALID_PATH) {
         // make directories
         logger.msg(VERBOSE,
                    "Path %s is invalid, creating required directories",
                    creq.surl());
         SRMReturnCode mkdirres = mkDir(creq);
         delete response;
-        if (mkdirres == SRM_OK)
-          return putTURLs(creq, urls);
+        if (mkdirres == 0) return putTURLs(creq, urls);
+
         logger.msg(ERROR, "Error creating required directories for %s",
                    creq.surl());
         creq.finished_error();
         return mkdirres;
       }
 
-      if (res["arrayOfFileStatuses"]["statusArray"]["status"])
-        logger.msg(ERROR, statusexplanation);
+      if (!statusexplanation.empty()) logger.msg(ERROR, statusexplanation);
       logger.msg(ERROR, explanation);
       creq.finished_error();
       delete response;
-      if (statuscode == SRM_INTERNAL_ERROR)
-        return SRM_ERROR_TEMPORARY;
-      return SRM_ERROR_PERMANENT;
-
+      return srm2errno(statuscode, file_status);
     }
 
     // the file is ready and pinned - we can get the TURL
@@ -790,7 +745,7 @@ namespace Arc {
     urls.push_back(turl);
     creq.finished_success();
     delete response;
-    return SRM_OK;
+    return 0;
   }
   
   SRMReturnCode SRM22Client::putTURLsStatus(SRMClientRequest& creq,
@@ -803,7 +758,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK) {
+    if (status != 0) {
       creq.finished_abort();
       return status;
     }
@@ -827,32 +782,28 @@ namespace Arc {
       // error
       // check individual file statuses
       std::string statusexplanation;
-      SRMStatusCode status = GetStatus(res["arrayOfFileStatuses"]
-                                       ["statusArray"]["status"],
-                                       statusexplanation);
-      if (status == SRM_INVALID_PATH) {
+      SRMStatusCode file_status = GetStatus(res["arrayOfFileStatuses"]
+                                            ["statusArray"]["status"],
+                                            statusexplanation);
+      if (file_status == SRM_INVALID_PATH) {
         // make directories
         logger.msg(VERBOSE,
                    "Path %s is invalid, creating required directories",
                    creq.surl());
         SRMReturnCode mkdirres = mkDir(creq);
         delete response;
-        if (mkdirres == SRM_OK)
-          return putTURLs(creq, urls);
+        if (mkdirres == 0) return putTURLs(creq, urls);
+
         logger.msg(ERROR, "Error creating required directories for %s",
                    creq.surl());
         creq.finished_error();
         return mkdirres;
       }
-      if (res["arrayOfFileStatuses"]["statusArray"]["status"])
-        logger.msg(ERROR, statusexplanation);
-
+      if (!statusexplanation.empty()) logger.msg(ERROR, statusexplanation);
       logger.msg(ERROR, explanation);
       creq.finished_error();
       delete response;
-      if (statuscode == SRM_INTERNAL_ERROR)
-        return SRM_ERROR_TEMPORARY;
-      return SRM_ERROR_PERMANENT;
+      return srm2errno(statuscode, file_status);
     }
     else {
       // success, TURL is ready
@@ -864,7 +815,7 @@ namespace Arc {
       creq.finished_success();
     }
     delete response;
-    return SRM_OK;
+    return 0;
   }
 
   SRMReturnCode SRM22Client::info(SRMClientRequest& req,
@@ -872,9 +823,9 @@ namespace Arc {
 
     std::map<std::string, std::list<struct SRMFileMetaData> > metadata_map;
     SRMReturnCode res = info(req, metadata_map);
-    if (res != SRM_OK || metadata_map.find(req.surl()) == metadata_map.end()) return res;
+    if (res != 0 || metadata_map.find(req.surl()) == metadata_map.end()) return res;
     metadata = metadata_map[req.surl()];
-    return SRM_OK;
+    return 0;
   }
 
   SRMReturnCode SRM22Client::info(SRMClientRequest& creq,
@@ -901,7 +852,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK)
+    if (status != 0)
       return status;
 
     XMLNode res = (*response)["srmLsResponse"]["srmLsResponse"];
@@ -940,7 +891,7 @@ namespace Arc {
         delete response;
         response = NULL;
         status = process("", &request, &response);
-        if (status != SRM_OK)
+        if (status != 0)
           return status;
 
         res = (*response)["srmStatusOfLsRequestResponse"]
@@ -952,7 +903,7 @@ namespace Arc {
           // we can only handle too many results if a single directory was listed
           if (surls.size() > 1) {
             logger.msg(ERROR, "Too many files in one request - please try again with fewer files");
-            return SRM_ERROR_PERMANENT;
+            return EOVERFLOW;
           }
           break;
         }
@@ -968,10 +919,9 @@ namespace Arc {
             logger.msg(creq.error_loglevel(), "%s",
                        (std::string)res["details"]["pathDetailArray"]
                        ["status"]["explanation"]);
+          SRMStatusCode file_statuscode = GetStatus(res["details"]["pathDetailArray"]["status"], explanation);
           delete response;
-          if (statuscode == SRM_INTERNAL_ERROR)
-            return SRM_ERROR_TEMPORARY;
-          return SRM_ERROR_PERMANENT;
+          return srm2errno(statuscode, file_statuscode);
         }
       }
 
@@ -981,20 +931,16 @@ namespace Arc {
                    creq.request_timeout());
         abort(creq);
         delete response;
-        return SRM_ERROR_TEMPORARY;
+        return ETIMEDOUT;
       }
     }
     else {
-      logger.msg(creq.error_loglevel(), "%s", explanation);
+      logger.msg(creq.error_loglevel(), explanation);
       // check if individual file status gives more info
-      if (res["details"]["pathDetailArray"]["status"]["explanation"])
-        logger.msg(creq.error_loglevel(), "%s",
-                   (std::string)res["details"]["pathDetailArray"]
-                   ["status"]["explanation"]);
+      SRMStatusCode file_statuscode = GetStatus(res["details"]["pathDetailArray"]["status"], explanation);
+      logger.msg(creq.error_loglevel(), explanation);
       delete response;
-      if (statuscode == SRM_INTERNAL_ERROR)
-        return SRM_ERROR_TEMPORARY;
-      return SRM_ERROR_PERMANENT;
+      return srm2errno(statuscode, file_statuscode);
     }
 
     // the request is ready - collect the details
@@ -1017,7 +963,7 @@ namespace Arc {
         list_req.count(max_files_list);
 
         SRMReturnCode infores = info(list_req, list_metadata);
-        if (infores != SRM_OK) return infores;
+        if (infores != 0) return infores;
 
         // append to metadata
         for (std::list<SRMFileMetaData>::iterator it = list_metadata.begin();
@@ -1026,7 +972,7 @@ namespace Arc {
       }
       // add to the map
       metadata[*surl] = md;
-      return SRM_OK;
+      return 0;
     }
 
     for (XMLNode details = res["details"]["pathDetailArray"]; details; ++details, ++surl) {
@@ -1092,7 +1038,7 @@ namespace Arc {
             list_req.count(max_files_list);
             list_req.recursion(creq.recursion());
             SRMReturnCode res = info(list_req, list_metadata);
-            if (res != SRM_OK) {
+            if (res != 0) {
               delete response;
               return res;
             }
@@ -1110,7 +1056,7 @@ namespace Arc {
       metadata[*surl] = md;
     }
     delete response;
-    return SRM_OK;
+    return 0;
   }
 
   SRMFileMetaData SRM22Client::fillDetails(XMLNode details, bool directory) {
@@ -1292,7 +1238,7 @@ namespace Arc {
     // Release all pins referred to by the request token in the request object
     if (creq.request_token().empty()) {
       logger.msg(ERROR, "No request token specified!");
-      return SRM_ERROR_OTHER;
+      return EINVAL;
     }
 
     PayloadSOAP request(ns);
@@ -1302,8 +1248,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK)
-      return status;
+    if (status != 0) return status;
 
     XMLNode res = (*response)["srmReleaseFilesResponse"]
                   ["srmReleaseFilesResponse"];
@@ -1314,16 +1259,14 @@ namespace Arc {
     if (statuscode != SRM_SUCCESS) {
       logger.msg(ERROR, "%s", explanation);
       delete response;
-      if (statuscode == SRM_INTERNAL_ERROR)
-        return SRM_ERROR_TEMPORARY;
-      return SRM_ERROR_PERMANENT;
+      return srm2errno(statuscode);
     }
 
     logger.msg(VERBOSE,
                "Files associated with request token %s released successfully",
                creq.request_token());
     delete response;
-    return SRM_OK;
+    return 0;
   }
 
   SRMReturnCode SRM22Client::releasePut(SRMClientRequest& creq) {
@@ -1331,7 +1274,7 @@ namespace Arc {
     // which were prepared to put to done
     if (creq.request_token().empty()) {
       logger.msg(ERROR, "No request token specified!");
-      return SRM_ERROR_OTHER;
+      return EINVAL;
     }
 
     PayloadSOAP request(ns);
@@ -1342,8 +1285,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK)
-      return status;
+    if (status != 0) return status;
 
     XMLNode res = (*response)["srmPutDoneResponse"]["srmPutDoneResponse"];
 
@@ -1353,23 +1295,21 @@ namespace Arc {
     if (statuscode != SRM_SUCCESS) {
       logger.msg(ERROR, "%s", explanation);
       delete response;
-      if (statuscode == SRM_INTERNAL_ERROR)
-        return SRM_ERROR_TEMPORARY;
-      return SRM_ERROR_PERMANENT;
+      return srm2errno(statuscode);
     }
 
     logger.msg(VERBOSE,
                "Files associated with request token %s put done successfully",
                creq.request_token());
     delete response;
-    return SRM_OK;
+    return 0;
   }
 
   SRMReturnCode SRM22Client::abort(SRMClientRequest& creq) {
     // Call srmAbortRequest on the files in the request token
     if (creq.request_token().empty()) {
       logger.msg(ERROR, "No request token specified!");
-      return SRM_ERROR_OTHER;
+      return EINVAL;
     }
 
     PayloadSOAP request(ns);
@@ -1379,8 +1319,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK)
-      return status;
+    if (status != 0) return status;
 
     XMLNode res = (*response)["srmAbortRequestResponse"]["srmAbortRequestResponse"];
 
@@ -1390,16 +1329,14 @@ namespace Arc {
     if (statuscode != SRM_SUCCESS) {
       logger.msg(ERROR, "%s", explanation);
       delete response;
-      if (statuscode == SRM_INTERNAL_ERROR)
-        return SRM_ERROR_TEMPORARY;
-      return SRM_ERROR_PERMANENT;
+      return srm2errno(statuscode);
     }
 
     logger.msg(VERBOSE,
                "Files associated with request token %s aborted successfully",
                creq.request_token());
     delete response;
-    return SRM_OK;
+    return 0;
   }
 
   SRMReturnCode SRM22Client::remove(SRMClientRequest& creq) {
@@ -1413,7 +1350,7 @@ namespace Arc {
 
     std::list<struct SRMFileMetaData> metadata;
     SRMReturnCode res = info(inforeq, metadata);
-    if (res != SRM_OK) {
+    if (res != 0) {
       logger.msg(creq.error_loglevel(),
                  "Failed to find metadata info on %s for determining file or directory delete",
                  inforeq.surl());
@@ -1430,8 +1367,8 @@ namespace Arc {
     }
 
     logger.msg(WARNING, "File type is not available, attempting file delete");
-    if (removeFile(creq) == SRM_OK)
-      return SRM_OK;
+    if (removeFile(creq) == 0) return 0;
+
     logger.msg(WARNING, "File delete failed, attempting directory delete");
     return removeDir(creq);
   }
@@ -1444,8 +1381,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK)
-      return status;
+    if (status != 0) return status;
 
     XMLNode res = (*response)["srmRmResponse"]["srmRmResponse"];
 
@@ -1455,14 +1391,12 @@ namespace Arc {
     if (statuscode != SRM_SUCCESS) {
       logger.msg(creq.error_loglevel(), "%s", explanation);
       delete response;
-      if (statuscode == SRM_INTERNAL_ERROR)
-        return SRM_ERROR_TEMPORARY;
-      return SRM_ERROR_PERMANENT;
+      return srm2errno(statuscode);
     }
 
     logger.msg(VERBOSE, "File %s removed successfully", creq.surl());
     delete response;
-    return SRM_OK;
+    return 0;
   }
 
   SRMReturnCode SRM22Client::removeDir(SRMClientRequest& creq) {
@@ -1474,8 +1408,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK)
-      return status;
+    if (status != 0) return status;
 
     XMLNode res = (*response)["srmRmdirResponse"]["srmRmdirResponse"];
 
@@ -1485,15 +1418,13 @@ namespace Arc {
     if (statuscode != SRM_SUCCESS) {
       logger.msg(creq.error_loglevel(), "%s", explanation);
       delete response;
-      if (statuscode == SRM_INTERNAL_ERROR)
-        return SRM_ERROR_TEMPORARY;
-      return SRM_ERROR_PERMANENT;
+      return srm2errno(statuscode);
     }
 
     logger.msg(VERBOSE, "Directory %s removed successfully",
                creq.surl());
     delete response;
-    return SRM_OK;
+    return 0;
   }
 
   SRMReturnCode SRM22Client::copy(SRMClientRequest& creq,
@@ -1509,8 +1440,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK)
-      return status;
+    if (status != 0) return status;
 
     XMLNode res = (*response)["srmCopyResponse"]["srmCopyResponse"];
 
@@ -1552,8 +1482,7 @@ namespace Arc {
         delete response;
         response = NULL;
         status = process("", &request, &response);
-        if (status != SRM_OK)
-          return status;
+        if (status != 0) return status;
 
         res = (*response)["srmStatusOfCopyRequestResponse"]
               ["srmStatusOfCopyRequestResponse"];
@@ -1571,9 +1500,7 @@ namespace Arc {
         else if (statuscode != SRM_SUCCESS) {
           logger.msg(ERROR, "%s", explanation);
           delete response;
-          if (statuscode == SRM_INTERNAL_ERROR)
-            return SRM_ERROR_TEMPORARY;
-          return SRM_ERROR_PERMANENT;
+          return srm2errno(statuscode);
         }
       }
 
@@ -1583,20 +1510,18 @@ namespace Arc {
                    copy_timeout);
         creq.finished_abort();
         delete response;
-        return SRM_ERROR_TEMPORARY;
+        return ETIMEDOUT;
       }
     }
     else if (statuscode != SRM_SUCCESS) {
       logger.msg(ERROR, "%s", explanation);
       delete response;
-      if (statuscode == SRM_INTERNAL_ERROR)
-        return SRM_ERROR_TEMPORARY;
-      return SRM_ERROR_PERMANENT;
+      return srm2errno(statuscode);
     }
 
     creq.finished_success();
     delete response;
-    return SRM_OK;
+    return 0;
   }
 
   SRMReturnCode SRM22Client::mkDir(SRMClientRequest& creq) {
@@ -1615,10 +1540,10 @@ namespace Arc {
       std::list<struct SRMFileMetaData> metadata;
       if (keeplisting) {
         logger.msg(VERBOSE, "Checking for existence of %s", dirname);
-        if (info(listreq, metadata) == SRM_OK) {
+        if (info(listreq, metadata) == 0) {
           if (metadata.front().fileType == SRM_FILE) {
             logger.msg(ERROR, "File already exists: %s", dirname);
-            return SRM_ERROR_PERMANENT;
+            return ENOTDIR;
           }
           slashpos = surl.find("/", slashpos + 1);
           continue;
@@ -1634,8 +1559,7 @@ namespace Arc {
 
       PayloadSOAP *response = NULL;
       SRMReturnCode status = process("", &request, &response);
-      if (status != SRM_OK)
-        return status;
+      if (status != 0) return status;
 
       XMLNode res = (*response)["srmMkdirResponse"]["srmMkdirResponse"];
 
@@ -1653,15 +1577,13 @@ namespace Arc {
         logger.msg(ERROR, "Error creating directory %s: %s", dirname,
                    explanation);
         delete response;
-        if (statuscode == SRM_INTERNAL_ERROR)
-          return SRM_ERROR_TEMPORARY;
-        return SRM_ERROR_PERMANENT;
+        return srm2errno(statuscode);
       }
 
       delete response;
     }
 
-    return SRM_OK;
+    return 0;
   }
 
   SRMReturnCode SRM22Client::rename(SRMClientRequest& creq,
@@ -1674,20 +1596,17 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK)
-      return status;
+    if (status != 0) return status;
 
     XMLNode res = (*response)["srmMvResponse"]["srmMvResponse"];
 
     std::string explanation;
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
-    if (statuscode == SRM_SUCCESS)
-      return SRM_OK;
+    if (statuscode == SRM_SUCCESS) return 0;
+
     logger.msg(ERROR, "%s", explanation);
-    if (statuscode == SRM_INTERNAL_ERROR || statuscode == SRM_FILE_UNAVAILABLE || statuscode == SRM_FILE_BUSY)
-      return SRM_ERROR_TEMPORARY;
-    return SRM_ERROR_PERMANENT;
+    return srm2errno(statuscode);
   }
 
   SRMReturnCode SRM22Client::checkPermissions(SRMClientRequest& creq) {
@@ -1698,8 +1617,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != SRM_OK)
-      return status;
+    if (status != 0) return status;
 
     XMLNode res = (*response)["srmCheckPermissionResponse"]["srmCheckPermissionResponse"];
 
@@ -1709,16 +1627,71 @@ namespace Arc {
     if (statuscode != SRM_SUCCESS) {
       logger.msg(ERROR, "%s", explanation);
       delete response;
-      if (statuscode == SRM_INTERNAL_ERROR)
-        return SRM_ERROR_TEMPORARY;
-      return SRM_ERROR_PERMANENT;
+      return srm2errno(statuscode);
     }
     // check if 'r' bit is set
     if (std::string(res["arrayOfPermissions"]["surlPermissionArray"]["permission"]).find('R') != std::string::npos) {
       delete response;
-      return SRM_OK;
+      return 0;
     }
-    return SRM_ERROR_PERMANENT;
+    return EACCES;
+  }
+
+  int SRM22Client::srm2errno(SRMStatusCode reqstat, SRMStatusCode filestat) {
+
+    // Try file-level code first, and if no detailed status is given use
+    // request-level code
+    SRMStatusCode stat = filestat;
+    if (stat == SRM_SUCCESS || stat == SRM_FAILURE) stat = reqstat;
+
+    switch(stat) {
+
+      case SRM_INVALID_PATH:
+      case SRM_FILE_LOST:
+        return ENOENT;
+
+      case SRM_AUTHENTICATION_FAILURE:
+      case SRM_AUTHORIZATION_FAILURE:
+        return EACCES;
+
+      case SRM_INVALID_REQUEST:
+        return EINVAL;
+
+      case SRM_NON_EMPTY_DIRECTORY:
+        return ENOTEMPTY;
+
+      case SRM_SPACE_LIFETIME_EXPIRED:
+      case SRM_EXCEED_ALLOCATION:
+      case SRM_NO_USER_SPACE:
+      case SRM_NO_FREE_SPACE:
+        return ENOSPC;
+
+      case SRM_DUPLICATION_ERROR:
+        return EEXIST;
+
+      case SRM_TOO_MANY_RESULTS:
+        return EOVERFLOW;
+
+      case SRM_INTERNAL_ERROR:
+      case SRM_FILE_UNAVAILABLE:
+        return EAGAIN;
+
+      case SRM_FILE_BUSY:
+        return EBUSY;
+
+      case SRM_FATAL_INTERNAL_ERROR:
+        return EARCSVCPERM;
+
+      case SRM_NOT_SUPPORTED:
+        return ENOTSUP;
+
+      case SRM_REQUEST_TIMED_OUT:
+        return ETIMEDOUT;
+
+      default:
+        // other codes are not errors or are generic failure codes
+        return EARCOTHER;
+    }
   }
 
 

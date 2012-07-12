@@ -58,12 +58,7 @@ namespace Arc {
             mover.Transfer(*source, *destination, cache, URLMap(), 0, 0, 0,
                            usercfg.Timeout());
           if (!res.Passed()) {
-            if (!res.GetDesc().empty()) {
-              logger.msg(ERROR, "Failed uploading file: %s - %s",
-                         std::string(res), res.GetDesc());
-            } else {
-              logger.msg(ERROR, "Failed uploading file: %s", std::string(res));
-            }
+            logger.msg(ERROR, "Failed uploading file: %s", std::string(res));
             return false;
           }
         }
