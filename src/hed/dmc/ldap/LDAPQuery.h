@@ -53,23 +53,25 @@ namespace Arc {
 
     /**
      * Queries the ldap server.
+     * @return 0: success, 1: timeout, -1: other error
      */
-    bool Query(const std::string& base,
-               const std::string& filter = "(objectclass=*)",
-               const std::list<std::string>& attributes =
-                 std::list<std::string>(),
-               URL::Scope scope = URL::subtree);
+    int Query(const std::string& base,
+              const std::string& filter = "(objectclass=*)",
+              const std::list<std::string>& attributes =
+                std::list<std::string>(),
+              URL::Scope scope = URL::subtree);
 
     /**
      * Retrieves the result of the query from the ldap-server.
+     * @return 0: success, 1: timeout, -1: other error
      */
-    bool Result(ldap_callback callback,
-                void *ref);
+    int Result(ldap_callback callback,
+               void *ref);
 
   private:
-    bool Connect();
+    int Connect();
     bool SetConnectionOptions(int version);
-    bool HandleResult(ldap_callback callback, void *ref);
+    int HandleResult(ldap_callback callback, void *ref);
     void HandleSearchEntry(LDAPMessage *msg,
                            ldap_callback callback,
                            void *ref);

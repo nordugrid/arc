@@ -294,7 +294,7 @@ namespace Arc {
     return lock;
   }
 
-  bool LDAPQuery::Connect() {
+  int LDAPQuery::Connect() {
 
     const int version = LDAP_VERSION3;
 
@@ -303,7 +303,7 @@ namespace Arc {
 
     if (connection) {
       logger.msg(ERROR, "LDAP connection already open to %s", host);
-      return false;
+      return -1;
     }
 
     ldap_lock()->lock();
@@ -321,13 +321,13 @@ namespace Arc {
 
     if (!connection) {
       logger.msg(ERROR, "Could not open LDAP connection to %s", host);
-      return false;
+      return -1;
     }
 
     if (!SetConnectionOptions(version)) {
       ldap_unbind_ext(connection, NULL, NULL);
       connection = NULL;
-      return false;
+      return -1;
     }
 
     ldap_bind_arg* arg = new ldap_bind_arg;
@@ -342,26 +342,26 @@ namespace Arc {
       arg->release(); arg->release();
       connection = NULL;
       logger.msg(ERROR, "Failed to create ldap bind thread (%s)", host);
-      return false;
+      return -1;
     }
 
     if (!arg->cond.wait(1000 * (timeout + 1))) {
       arg->release();
       connection = NULL;
       logger.msg(ERROR, "Ldap bind timeout (%s)", host);
-      return false;
+      return 1;
     }
 
     if (!arg->valid) {
       arg->release();
       connection = NULL;
       logger.msg(VERBOSE, "Failed to bind to ldap server (%s)", host);
-      return false;
+      return -1;
     }
     arg->connection = NULL; // keep connection up
     arg->release();
 
-    return true;
+    return 0;
   }
 
 
@@ -459,13 +459,13 @@ namespace Arc {
   }
 
 
-  bool LDAPQuery::Query(const std::string& base,
-                        const std::string& filter,
-                        const std::list<std::string>& attributes,
-                        URL::Scope scope) {
+  int LDAPQuery::Query(const std::string& base,
+                       const std::string& filter,
+                       const std::list<std::string>& attributes,
+                       URL::Scope scope) {
 
-    if (!Connect())
-      return false;
+    int res = Connect();
+    if (res != 0) return res;
 
     logger.msg(VERBOSE, "LDAPQuery: Querying %s", host);
 
@@ -524,16 +524,16 @@ namespace Arc {
       logger.msg(ERROR, "%s (%s)", ldap_err2string(ldresult), host);
       ldap_unbind_ext(connection, NULL, NULL);
       connection = NULL;
-      return false;
+      return -1;
     }
 
-    return true;
+    return 0;
   }
 
 
-  bool LDAPQuery::Result(ldap_callback callback, void *ref) {
+  int LDAPQuery::Result(ldap_callback callback, void *ref) {
 
-    bool result = HandleResult(callback, ref);
+    int result = HandleResult(callback, ref);
 
     ldap_unbind_ext(connection, NULL, NULL);
     connection = NULL;
@@ -543,13 +543,13 @@ namespace Arc {
   }
 
 
-  bool LDAPQuery::HandleResult(ldap_callback callback, void *ref) {
+  int LDAPQuery::HandleResult(ldap_callback callback, void *ref) {
 
     logger.msg(VERBOSE, "LDAPQuery: Getting results from %s", host);
 
     if (!messageid) {
       logger.msg(ERROR, "Error: no LDAP query started to %s", host);
-      return false;
+      return -1;
     }
 
     timeval tout;
@@ -589,15 +589,15 @@ namespace Arc {
 
     if (ldresult == 0) {
       logger.msg(ERROR, "LDAP query timed out: %s", host);
-      return false;
+      return 1;
     }
 
     if (ldresult == -1) {
       logger.msg(ERROR, "%s (%s)", ldap_err2string(ldresult), host);
-      return false;
+      return -1;
     }
 
-    return true;
+    return 0;
   }
 
 

@@ -97,13 +97,13 @@ namespace Arc {
   DataStatus DataPointLDAP::StartReading(DataBuffer& buf) {
     buffer = &buf;
     LDAPQuery q(url.Host(), url.Port(), usercfg.Timeout());
-    if (!q.Query(url.Path(), url.LDAPFilter(), url.LDAPAttributes(),
-                 url.LDAPScope()))
-      return DataStatus::ReadStartError;
+    int res = q.Query(url.Path(), url.LDAPFilter(), url.LDAPAttributes(),
+                      url.LDAPScope());
+    if (res != 0) return DataStatus(DataStatus::ReadStartError, (res == 1) ? ETIMEDOUT : ECONNREFUSED);
     NS ns;
     XMLNode(ns, "LDAPQueryResult").New(node);
-    if (!q.Result(CallBack, this))
-      return DataStatus::ReadStartError;
+    res = q.Result(CallBack, this);
+    if (res != 0) return DataStatus(DataStatus::ReadStartError, (res == 1) ? ETIMEDOUT : ECONNREFUSED);
     CreateThreadFunction(&ReadThread, this);
     return DataStatus::Success;
   }
