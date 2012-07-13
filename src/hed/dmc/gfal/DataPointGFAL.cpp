@@ -153,7 +153,7 @@ namespace Arc {
         }
       }
       reading = false;
-      return DataStatus(DataStatus::ReadStartError, EARCOTHER);
+      return DataStatus::ReadStartError;
     }
     return DataStatus::Success;
   }
@@ -300,7 +300,7 @@ namespace Arc {
         }
       }
       writing = false;
-      return DataStatus(DataStatus::WriteStartError, EARCOTHER);
+      return DataStatus::WriteStartError;
     }    
     return DataStatus::Success;
   }

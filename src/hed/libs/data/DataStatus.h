@@ -224,7 +224,9 @@ namespace Arc {
 
     /// Constructor to use when errno-like information is not available
     DataStatus(const DataStatusType& status, std::string desc="")
-      : status(status), Errno(0), desc(desc) {}
+      : status(status), Errno(0), desc(desc) {
+      if (!Passed()) Errno = EARCOTHER;
+    }
 
     /// Construct a new DataStatus with errno and optional text description
     /** If the status is an error condition then error_no must be set to a
@@ -253,6 +255,7 @@ namespace Arc {
     DataStatus operator=(const DataStatusType& s) {
       status = s;
       Errno = 0;
+      if (!Passed()) Errno = EARCOTHER;
       return *this;
     }
 

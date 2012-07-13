@@ -586,7 +586,7 @@ namespace Arc {
       fd = -1; fa = NULL;
       logger.msg(ERROR, "Failed to create thread");
       reading = false;
-      return DataStatus(DataStatus::ReadStartError, EARCOTHER);
+      return DataStatus::ReadStartError;
     }
     return DataStatus::Success;
   }
@@ -757,7 +757,7 @@ namespace Arc {
       buffer->error_write(true);
       buffer->eof_write(true);
       writing = false;
-      return DataStatus(DataStatus::WriteStartError, EARCOTHER);
+      return DataStatus::WriteStartError;
     }
     return DataStatus::Success;
   }

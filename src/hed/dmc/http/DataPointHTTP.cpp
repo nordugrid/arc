@@ -358,13 +358,13 @@ namespace Arc {
     HTTPClientInfo info;
     info.lastModified = (time_t)(-1);
     AutoPointer<ClientHTTP> client(acquire_client(curl));
-    if (!client) return DataStatus(DataStatus::StatError, EARCOTHER);
+    if (!client) return DataStatus::StatError;
     // Do HEAD to obtain some metadata
     MCC_Status r = client->process("HEAD", path, &request, &info, &inbuf);
     if (inbuf) delete inbuf;
     // TODO: handle redirects
     if (!r) {
-      return DataStatus(DataStatus::StatError, EARCOTHER);
+      return DataStatus::StatError;
     }
     release_client(curl,client.Release());
     if (info.code != 200) {
@@ -518,7 +518,7 @@ namespace Arc {
     if (transfers_tofinish == 0) {
       transfer_lock.unlock();
       StopReading();
-      return DataStatus(DataStatus::ReadStartError, EARCOTHER);
+      return DataStatus::ReadStartError;
     }
     transfer_lock.unlock();
     return DataStatus::Success;
@@ -564,7 +564,7 @@ namespace Arc {
     if (transfers_tofinish == 0) {
       transfer_lock.unlock();
       StopWriting();
-      return DataStatus(DataStatus::WriteStartError, EARCOTHER);
+      return DataStatus::WriteStartError;
     }
     transfer_lock.unlock();
     return DataStatus::Success;
@@ -592,7 +592,7 @@ namespace Arc {
     PayloadRawInterface *inbuf = NULL;
     HTTPClientInfo info;
     AutoPointer<ClientHTTP> client(acquire_client(url));
-    if (!client) return DataStatus(DataStatus::CheckError, EARCOTHER);
+    if (!client) return DataStatus::CheckError;
     MCC_Status r = client->process("GET", url.FullPathURIEncoded(), 0, 15,
                                   &request, &info, &inbuf);
     PayloadRawInterface::Size_t logsize = 0;
@@ -600,7 +600,7 @@ namespace Arc {
       logsize = inbuf->Size();
       delete inbuf;
     }
-    if (!r) return DataStatus(DataStatus::CheckError, EARCOTHER);
+    if (!r) return DataStatus::CheckError;
     release_client(url,client.Release());
     if ((info.code != 200) && (info.code != 206)) return DataStatus(DataStatus::CheckError, http2errno(info.code), info.reason);
     size = logsize;
@@ -618,7 +618,7 @@ namespace Arc {
     MCC_Status r = client->process("DELETE", url.FullPathURIEncoded(),
                                   &request, &info, &inbuf);
     if (inbuf) delete inbuf;
-    if(!r) return DataStatus(DataStatus::DeleteError, EARCOTHER);
+    if(!r) return DataStatus::DeleteError;
     release_client(url,client.Release());
     if ((info.code != 200) && (info.code != 202) && (info.code != 204)) {
       return DataStatus(DataStatus::DeleteError, http2errno(info.code), info.reason);
