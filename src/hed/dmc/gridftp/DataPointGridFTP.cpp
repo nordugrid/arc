@@ -351,7 +351,7 @@ namespace Arc {
       /* timeout - have to cancel operation here */
       globus_ftp_client_abort(&ftp_handle);
       cond.wait();
-      return DataStatus(DataStatus::CreateDirectoryErrorRetryable, "Timeout");
+      return DataStatus(DataStatus::CreateDirectoryError, ETIMEDOUT);
     }
     if (!callback_status)
       return callback_status;
@@ -693,7 +693,7 @@ namespace Arc {
             } else {
               logger.msg(ERROR, "Checksum mismatch between calculated checksum %s and checksum reported by server %s",
                        csum, std::string(DefaultCheckSum()+':'+cksum));
-              return DataStatus::TransferErrorRetryable;
+              return DataStatus(DataStatus::TransferError, EARCCHECKSUM);
             }
           }
         }

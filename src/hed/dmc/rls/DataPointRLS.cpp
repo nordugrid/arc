@@ -1195,8 +1195,7 @@ namespace Arc {
     // simply check that the file can be listed
     FileInfo file;
     DataStatus r = Stat(file,DataPoint::INFO_TYPE_MINIMAL);
-    if(r == DataStatus::StatErrorRetryable) r = DataStatus::CheckErrorRetryable;
-    if(r == DataStatus::StatError) r = DataStatus::CheckError;
+    if(!r) r = DataStatus(DataStatus::CheckError, r.GetErrno(), r.GetDesc());
     return r;
   }
 
