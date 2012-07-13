@@ -12,11 +12,12 @@ namespace Arc {
 
   /**
    * Provides access to the gLite Grid File Access Library through ARC's API.
-   * Only rfio:// protocol is supported at the moment.
+   * The following protocols are supported: lfc, srm, root, gsiftp, rfio, dcap
+   * and gsidcap.
    *
    * Notes on env variables:
-   *  - If LFC plugin is installed LFC_HOST must be set (lcgutils bug 322)
-   *  - If SRM is used LCG_GFAL_INFOSYS must be set to BDII host:port
+   *  - If SRM is used LCG_GFAL_INFOSYS must be set to BDII host:port unless
+   *    the full URL with port and web service path is given.
    *
    * This class is a loadable module and cannot be used directly. The DataHandle
    * class loads modules at runtime and should be used instead of this.
@@ -37,6 +38,11 @@ namespace Arc {
     virtual DataStatus Remove();
     virtual DataStatus CreateDirectory(bool with_parents=false);
     virtual DataStatus Rename(const URL& newurl);
+    // Even though this is not a DataPointIndex, it still needs to handle
+    // locations so Resolve and AddLocation must be implemented
+    virtual DataStatus Resolve(bool source = true);
+    virtual DataStatus AddLocation(const URL& url, const std::string& meta);
+
   private:
     DataStatus do_stat(const URL& stat_url, FileInfo& file);
     void log_gfal_err();
@@ -44,12 +50,15 @@ namespace Arc {
     void read_file();
     static void write_file_start(void *object);
     void write_file();
+    std::string gfal_url(const URL& u) const;
     static Logger logger;
     int fd;
     bool reading;
     bool writing;
+    int error_no;
     SimpleCounter transfer_condition;
     std::string lfc_host;
+    std::list<URLLocation> locations;
   };
 
 } // namespace Arc

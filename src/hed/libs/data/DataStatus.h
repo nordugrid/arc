@@ -22,7 +22,8 @@ namespace Arc {
 #define EARCRESINVAL         (DataStatusErrnoBase + 4) // All results obtained from a service are invalid
 #define EARCSVCTMP           (DataStatusErrnoBase + 5) // Temporary service error
 #define EARCSVCPERM          (DataStatusErrnoBase + 6) // Permanent service error
-#define EARCOTHER            (DataStatusErrnoBase + 7) // Other / unknown error
+#define EARCUIDSWITCH        (DataStatusErrnoBase + 7) // Error switching uid
+#define EARCOTHER            (DataStatusErrnoBase + 8) // Other / unknown error
 
 #define DataStatusErrnoMax EARCOTHER
 
@@ -34,6 +35,17 @@ namespace Arc {
    * describes why the error occurred and desc gives more detail if available.
    * Errno is an integer corresponding to error codes defined in errno.h plus
    * additional ARC-specific error codes defined here.
+   *
+   * For those DataPoints which natively support errno, it is safe to use code
+   * like
+   * @code
+   * DataStatus s = someMethod();
+   * if (!s) {
+   *   logger.msg(ERROR, "someMethod failed: %s", StrError(errno));
+   *   return DataStatus(DataStatus::ReadError, errno);
+   * }
+   * @endcode
+   * since logger.msg() does not call any system calls that modify errno.
    */
   class DataStatus {
 

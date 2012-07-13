@@ -345,21 +345,19 @@ namespace Arc {
   }
 
   DataStatus DataPointFile::Check() {
-    if (reading)
-      return DataStatus::IsReadingError;
-    if (writing)
-      return DataStatus::IsWritingError;
-    // check_file_access() is not always correctly evaluationg permissions.
+    if (reading) return DataStatus(DataStatus::IsReadingError, EARCLOGIC);
+    if (writing) return DataStatus(DataStatus::IsWritingError, EARCLOGIC);
+    // check_file_access() is not always correctly evaluating permissions.
     // TODO: redo
     int res = usercfg.GetUser().check_file_access(url.Path(), O_RDONLY);
     if (res != 0) {
       logger.msg(ERROR, "File is not accessible: %s", url.Path());
-      return DataStatus::CheckError;
+      return DataStatus(DataStatus::CheckError, errno);
     }
     struct stat st;
     if (!FileStat(url.Path(), &st, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid(), true)) {
       logger.msg(ERROR, "Can't stat file: %s: %s", url.Path(), StrError(errno));
-      return DataStatus::CheckError;
+      return DataStatus(DataStatus::CheckError, errno);
     }
     SetSize(st.st_size);
     SetCreated(st.st_mtime);
@@ -369,7 +367,7 @@ namespace Arc {
   static DataStatus do_stat(const std::string& path, FileInfo& file, DataPoint::DataPointInfoType verb, uid_t uid, gid_t gid) {
     struct stat st;
     if (!FileStat(path, &st, uid, gid, true)) {
-      return DataStatus(DataStatus::StatError, StrError(errno));
+      return DataStatus(DataStatus::StatError, errno);
     }
     if(S_ISREG(st.st_mode)) {
       file.SetType(FileInfo::file_type_file);
@@ -411,7 +409,7 @@ namespace Arc {
       fd = get_channel();
       if (fd == -1){
         logger.msg(ERROR, "Can't stat stdio channel %s", url.str());
-        return DataStatus::StatError;
+        return DataStatus(DataStatus::StatError, EBADF);
       }
       struct stat st;
       fstat(fd, &st);
@@ -444,8 +442,8 @@ namespace Arc {
     file.SetName(name);
     DataStatus res = do_stat(url.Path(), file, verb, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid());
     if (!res) {
-      logger.msg(ERROR, "Can't stat file: %s: %s", url.Path(), res.GetDesc());
-      return DataStatus::StatError;
+      logger.msg(ERROR, "Can't stat file: %s: %s", url.Path(), std::string(res));
+      return res;
     }
     SetSize(file.GetSize());
     SetCreated(file.GetCreated());
@@ -454,10 +452,13 @@ namespace Arc {
 
   DataStatus DataPointFile::List(std::list<FileInfo>& files, DataPointInfoType verb) {
     FileInfo file;
-    if(!Stat(file, verb)) return DataStatus::ListError;
+    DataStatus res = Stat(file, verb);
+    if (!res) {
+      return DataStatus(DataStatus::ListError, res.GetErrno());
+    }
     if(file.GetType() != FileInfo::file_type_dir) {
       logger.msg(WARNING, "%s is not a directory", url.Path());
-      return DataStatus::ListError;
+      return DataStatus(DataStatus::ListError, ENOTDIR);
     }
     try {
       Glib::Dir dir(url.Path());
@@ -472,35 +473,33 @@ namespace Arc {
       }
     } catch (Glib::FileError& e) {
       logger.msg(ERROR, "Failed to read object %s: %s", url.Path(), e.what());
-      return DataStatus::ListError;
+      return DataStatus(DataStatus::ListError, e.what());
     }
     return DataStatus::Success;
   }
 
   DataStatus DataPointFile::Remove() {
-    if (reading)
-      return DataStatus::IsReadingError;
-    if (writing)
-      return DataStatus::IsReadingError;
+    if (reading) return DataStatus(DataStatus::IsReadingError, EARCLOGIC);
+    if (writing) return DataStatus(DataStatus::IsReadingError, EARCLOGIC);
       
     std::string path(url.Path());
     struct stat st;
     if(!FileStat(path, &st, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid(), true)) {
       logger.msg(ERROR, "File is not accessible %s: %s", path, StrError(errno));
-      return DataStatus::DeleteError;
+      return DataStatus(DataStatus::DeleteError, errno);
     }
     // path is a directory
     if(S_ISDIR(st.st_mode)) {
       if (rmdir(path.c_str()) != 0) {
         logger.msg(ERROR, "Can't delete directory %s: %s", path, StrError(errno));
-        return DataStatus::DeleteError;
+        return DataStatus(DataStatus::DeleteError, errno);
       }
       return DataStatus::Success;
     }
     // path is a file
     if(!FileDelete(path) && errno != ENOENT) {
       logger.msg(ERROR, "Can't delete file %s: %s", path, StrError(errno));
-      return DataStatus::DeleteError;
+      return DataStatus(DataStatus::DeleteError, errno);
     }
     return DataStatus::Success;
   }
@@ -510,7 +509,7 @@ namespace Arc {
     if(dirpath == ".") dirpath = G_DIR_SEPARATOR_S;
 
     logger.msg(VERBOSE, "Creating directory %s", dirpath);
-    if (!DirCreate(dirpath, S_IRWXU, with_parents)) return DataStatus(DataStatus::CreateDirectoryError, StrError(errno));
+    if (!DirCreate(dirpath, S_IRWXU, with_parents)) return DataStatus(DataStatus::CreateDirectoryError, errno);
     return DataStatus::Success;
   }
 
@@ -518,7 +517,7 @@ namespace Arc {
     logger.msg(VERBOSE, "Renaming %s to %s", url.Path(), newurl.Path());
     if (rename(url.Path().c_str(), newurl.Path().c_str()) != 0) {
       logger.msg(ERROR, "Can't rename file %s: %s", url.Path(), StrError(errno));
-      return DataStatus::RenameError;
+      return DataStatus(DataStatus::RenameError, errno);
     }
     return DataStatus::Success;
   }
@@ -541,7 +540,7 @@ namespace Arc {
       fd = get_channel();
       if (fd == -1) {
         reading = false;
-        return DataStatus::ReadStartError;
+        return DataStatus(DataStatus::ReadStartError, EBADF);
       }
     }
     else if(((!uid) || (uid == getuid())) && ((!gid) || (gid == getgid()))) {
@@ -550,7 +549,7 @@ namespace Arc {
       if (fd == -1) {
         logger.msg(ERROR, "Failed to open %s for reading: %s", url.Path(), StrError(errno));
         reading = false;
-        return DataStatus(DataStatus::ReadStartError, StrError(errno));
+        return DataStatus(DataStatus::ReadStartError, errno);
       }
       /* provide some metadata */
       struct stat st;
@@ -565,13 +564,13 @@ namespace Arc {
         delete fa; fa = NULL;
         logger.msg(ERROR, "Failed to switch user id to %d/%d", (unsigned int)uid, (unsigned int)gid);
         reading = false;
-        return DataStatus(DataStatus::ReadStartError, "Failed to switch user id");
+        return DataStatus(DataStatus::ReadStartError, EARCUIDSWITCH);
       }
       if(!fa->fa_open(url.Path(), flags, 0)) {
         delete fa; fa = NULL;
         logger.msg(ERROR, "Failed to create/open file %s: %s", url.Path(), StrError(errno));
         reading = false;
-        return DataStatus(DataStatus::ReadStartError, StrError(errno));
+        return DataStatus(DataStatus::ReadStartError, errno);
       }
       struct stat st;
       if(fa->fa_fstat(st)) {
@@ -587,13 +586,13 @@ namespace Arc {
       fd = -1; fa = NULL;
       logger.msg(ERROR, "Failed to create thread");
       reading = false;
-      return DataStatus(DataStatus::ReadStartError, "Failed to create read thread");
+      return DataStatus(DataStatus::ReadStartError, EARCOTHER);
     }
     return DataStatus::Success;
   }
 
   DataStatus DataPointFile::StopReading() {
-    if (!reading) return DataStatus::ReadStopError;
+    if (!reading) return DataStatus(DataStatus::ReadStopError, EARCLOGIC, "Not reading");
     reading = false;
     if (!buffer->eof_read()) {
       buffer->error_read(true);      /* trigger transfer error */
@@ -656,7 +655,7 @@ namespace Arc {
         buffer->error_write(true);
         buffer->eof_write(true);
         writing = false;
-        return DataStatus::WriteStartError;
+        return DataStatus(DataStatus::WriteStartError, EBADF);
       }
     }
     else {
@@ -668,7 +667,7 @@ namespace Arc {
         buffer->error_write(true);
         buffer->eof_write(true);
         writing = false;
-        return DataStatus::WriteStartError;
+        return DataStatus(DataStatus::WriteStartError, EINVAL);
       }
       std::string dirpath = Glib::path_get_dirname(url.Path());
       if(dirpath == ".") dirpath = G_DIR_SEPARATOR_S; // shouldn't happen
@@ -677,7 +676,7 @@ namespace Arc {
         buffer->error_write(true);
         buffer->eof_write(true);
         writing = false;
-        return DataStatus(DataStatus::WriteStartError, "Failed to create directory "+dirpath+": "+StrError(errno));
+        return DataStatus(DataStatus::WriteStartError, errno, "Failed to create directory "+dirpath);
       }
 
       /* try to create file. Opening an existing file will cause failure */
@@ -693,7 +692,7 @@ namespace Arc {
           buffer->error_write(true);
           buffer->eof_write(true);
           writing = false;
-          return DataStatus(DataStatus::WriteStartError, StrError(errno));
+          return DataStatus(DataStatus::WriteStartError, errno);
         }
       } else {
         fd = -1;
@@ -704,7 +703,7 @@ namespace Arc {
           buffer->error_write(true);
           buffer->eof_write(true);
           writing = false;
-          return DataStatus(DataStatus::WriteStartError, "Failed to switch user id");
+          return DataStatus(DataStatus::WriteStartError, EARCUIDSWITCH);
         }
         if(!fa->fa_open(url.Path(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR)) {
           delete fa; fa = NULL;
@@ -712,7 +711,7 @@ namespace Arc {
           buffer->error_write(true);
           buffer->eof_write(true);
           writing = false;
-          return DataStatus(DataStatus::WriteStartError, StrError(errno));
+          return DataStatus(DataStatus::WriteStartError, errno);
         }
       }
 
@@ -745,7 +744,7 @@ namespace Arc {
           buffer->error_write(true);
           buffer->eof_write(true);
           writing = false;
-          return DataStatus(DataStatus::WriteStartError, "Failed to preallocate space");
+          return DataStatus(DataStatus::WriteStartError, ENOSPC, "Failed to preallocate space");
         }
       }
     }
@@ -758,13 +757,13 @@ namespace Arc {
       buffer->error_write(true);
       buffer->eof_write(true);
       writing = false;
-      return DataStatus(DataStatus::WriteStartError, "Failed to create write thread");
+      return DataStatus(DataStatus::WriteStartError, EARCOTHER);
     }
     return DataStatus::Success;
   }
 
   DataStatus DataPointFile::StopWriting() {
-    if (!writing) return DataStatus::WriteStopError;
+    if (!writing) return DataStatus(DataStatus::WriteStopError, EARCLOGIC, "Not writing");
     writing = false;
     if (!buffer->eof_write()) {
       buffer->error_write(true);      /* trigger transfer error */

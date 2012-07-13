@@ -62,26 +62,14 @@ namespace Arc {
   Logger DataPointGFAL::logger(Logger::getRootLogger(), "DataPoint.GFAL");
 
   DataPointGFAL::DataPointGFAL(const URL& u, const UserConfig& usercfg, PluginArgument* parg)
-    : DataPointDirect(u, usercfg, parg), fd(-1), reading(false), writing(false) {
+    : DataPointDirect(u, usercfg, parg), fd(-1), reading(false), writing(false), error_no(0) {
       LogLevel loglevel = logger.getThreshold();
       if (loglevel == DEBUG)
         gfal_set_verbose (GFAL_VERBOSE_VERBOSE | GFAL_VERBOSE_DEBUG | GFAL_VERBOSE_TRACE);
       if (loglevel == VERBOSE)
         gfal_set_verbose (GFAL_VERBOSE_VERBOSE);
-      // lfc:// needs to be converted to lfn:/path or guid:abcd...
-      if (url.Protocol() == "lfc") {
+      if (url.Protocol() == "lfc")
         lfc_host = url.Host();
-        url.ChangeHost("");
-        url.ChangePort(-1);
-        if (url.MetaDataOption("guid").empty()) {
-          url.ChangeProtocol("lfn");
-        }
-        else {
-          url.ChangeProtocol("guid");
-          // To fix: this call forces leading / on path
-          url.ChangePath(url.MetaDataOption("guid"));
-        }
-      }
   }
 
   DataPointGFAL::~DataPointGFAL() {
@@ -104,6 +92,37 @@ namespace Arc {
     return new DataPointGFAL(*dmcarg, *dmcarg, dmcarg);
   }
 
+  DataStatus DataPointGFAL::Resolve(bool source) {
+    // Here we just deal with getting locations from destination
+    if (source || (url.Protocol() != "lfn" && url.Protocol() != "guid")) return DataStatus::Success;
+
+    if (url.Locations().size() == 0 && locations.empty()) {
+      logger.msg(ERROR, "Locations are missing in destination LFC URL");
+      return DataStatus(DataStatus::WriteResolveError, EINVAL, "No locations specified");
+    }
+
+    for (std::list<URLLocation>::const_iterator u = url.Locations().begin(); u != url.Locations().end(); ++u) {
+      if (AddLocation(*u, url.ConnectionURL()) == DataStatus::LocationAlreadyExistsError) {
+        logger.msg(WARNING, "Duplicate replica found in LFC: %s", u->plainstr());
+      } else {
+        logger.msg(VERBOSE, "Adding location: %s - %s", url.ConnectionURL(), u->plainstr());
+      }
+    }
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointGFAL::AddLocation(const URL& url,
+                                        const std::string& meta) {
+    logger.msg(DEBUG, "Add location: url: %s", url.str());
+    logger.msg(DEBUG, "Add location: metadata: %s", meta);
+    for (std::list<URLLocation>::iterator i = locations.begin();
+         i != locations.end(); ++i)
+      if ((i->Name() == meta) && (url == (*i)))
+        return DataStatus::LocationAlreadyExistsError;
+    locations.push_back(URLLocation(url, meta));
+    return DataStatus::Success;
+  }
+
   DataStatus DataPointGFAL::StartReading(DataBuffer& buf) {
     if (reading) return DataStatus::IsReadingError;
     if (writing) return DataStatus::IsWritingError;
@@ -112,13 +131,13 @@ namespace Arc {
     // Open the file
     {
       GFALEnvLocker gfal_lock(usercfg, lfc_host);
-      fd = gfal_open(url.plainstr().c_str(), O_RDONLY, 0);
+      fd = gfal_open(gfal_url(url).c_str(), O_RDONLY, 0);
     }
     if (fd < 0) {
       logger.msg(ERROR, "gfal_open failed: %s", StrError(errno));
       log_gfal_err();
       reading = false;
-      return DataStatus::ReadStartError;
+      return DataStatus(DataStatus::ReadStartError, error_no);
     }
     
     // Remember the DataBuffer we got: the separate reading thread will use it
@@ -130,11 +149,11 @@ namespace Arc {
       logger.msg(ERROR, "Failed to create reading thread");
       if (fd != -1) {
         if (gfal_close(fd) < 0) {
-          logger.msg(WARNING, "gfal_close failed: %s", StrError(errno));
+          logger.msg(WARNING, "gfal_close failed: %s", StrError(gfal_posix_code_error()));
         }
       }
       reading = false;
-      return DataStatus::ReadStartError;
+      return DataStatus(DataStatus::ReadStartError, EARCOTHER);
     }
     return DataStatus::Success;
   }
@@ -183,14 +202,14 @@ namespace Arc {
     // Close the file
     if (fd != -1) {
       if (gfal_close(fd) < 0) {
-        logger.msg(WARNING, "gfal_close failed: %s", StrError(errno));
+        logger.msg(WARNING, "gfal_close failed: %s", StrError(gfal_posix_code_error()));
       }
       fd = -1;
     }
   }
   
   DataStatus DataPointGFAL::StopReading() {
-    if (!reading) return DataStatus::ReadStopError;
+    if (!reading) return DataStatus(DataStatus::ReadStopError, EARCLOGIC, "Not reading");
     reading = false;
     // If the reading is not finished yet trigger reading error
     if (!buffer->eof_read()) buffer->error_read(true);
@@ -203,7 +222,7 @@ namespace Arc {
     // Close the file if not already done
     if (fd != -1) {
       if (gfal_close(fd) < 0) {
-        logger.msg(WARNING, "gfal_close failed: %s", StrError(errno));
+        logger.msg(WARNING, "gfal_close failed: %s", StrError(gfal_posix_code_error()));
       }
       fd = -1;
     }
@@ -215,14 +234,30 @@ namespace Arc {
   }
   
   DataStatus DataPointGFAL::StartWriting(DataBuffer& buf, DataCallback *space_cb) {
-    if (reading) return DataStatus::IsReadingError;
-    if (writing) return DataStatus::IsWritingError;
+    if (reading) return DataStatus(DataStatus::IsReadingError, EARCLOGIC);
+    if (writing) return DataStatus(DataStatus::IsWritingError, EARCLOGIC);
     writing = true;
 
+    // if index service (eg LFC) then set the replica with extended attrs
+    if (url.Protocol() == "lfn" || url.Protocol() == "guid") {
+      if (locations.empty()) {
+        logger.msg(ERROR, "No locations defined for %s", url.str());
+        writing = false;
+        return DataStatus(DataStatus::WriteStartError, EINVAL, "No locations defined");
+      }
+      // choose first location
+      std::string location(locations.begin()->plainstr());
+      if (gfal_setxattr(gfal_url(url).c_str(), "user.replicas", location.c_str(), location.length(), 0) != 0) {
+        logger.msg(ERROR, "Failed to set LFC replicas: %s", StrError(gfal_posix_code_error()));
+        log_gfal_err();
+        writing = false;
+        return DataStatus(DataStatus::WriteStartError, error_no);
+      }
+    }
     {
       GFALEnvLocker gfal_lock(usercfg, lfc_host);
       // Open the file
-      fd = gfal_open(url.plainstr().c_str(), O_WRONLY | O_CREAT, 0600);
+      fd = gfal_open(gfal_url(url).c_str(), O_WRONLY | O_CREAT, 0600);
     }
     if (fd < 0) {
       // If no entry try to create parent directories
@@ -238,18 +273,17 @@ namespace Arc {
         {
           GFALEnvLocker gfal_lock(usercfg, lfc_host);
           // gfal_mkdir is always recursive
-          if (gfal_mkdir(parent_url.plainstr().c_str(), 0700) == 0) {
-            fd = gfal_open(url.plainstr().c_str(), O_WRONLY | O_CREAT, 0600);
-          } else {
-            logger.msg(ERROR, "Failed to create parent directories: ", StrError(errno));
+          if (gfal_mkdir(gfal_url(parent_url).c_str(), 0700) != 0 && gfal_posix_code_error() != EEXIST) {
+            logger.msg(INFO, "gfal_mkdir failed (%s), trying to write anyway", StrError(gfal_posix_code_error()));
           }
+          fd = gfal_open(gfal_url(url).c_str(), O_WRONLY | O_CREAT, 0600);
         }
       }
       if (fd < 0) {
-        logger.msg(ERROR, "gfal_open failed: %s", StrError(errno));
+        logger.msg(ERROR, "gfal_open failed: %s", StrError(gfal_posix_code_error()));
         log_gfal_err();
         writing = false;
-        return DataStatus::WriteStartError;
+        return DataStatus(DataStatus::WriteStartError, error_no);
       }
     }
     
@@ -262,11 +296,11 @@ namespace Arc {
       logger.msg(ERROR, "Failed to create writing thread");
       if (fd != -1) {
         if (gfal_close(fd) < 0) {
-          logger.msg(WARNING, "gfal_close failed: %s", StrError(errno));
+          logger.msg(WARNING, "gfal_close failed: %s", StrError(gfal_posix_code_error()));
         }
       }
       writing = false;
-      return DataStatus::WriteStartError;
+      return DataStatus(DataStatus::WriteStartError, EARCOTHER);
     }    
     return DataStatus::Success;
   }
@@ -321,7 +355,7 @@ namespace Arc {
 
       // if there was an error during writing
       if (bytes_written < 0) {
-        logger.msg(ERROR, "gfal_write failed: %s", StrError(errno));
+        logger.msg(ERROR, "gfal_write failed: %s", StrError(gfal_posix_code_error()));
         log_gfal_err();
         buffer->error_write(true);
         break;
@@ -331,14 +365,14 @@ namespace Arc {
     // Close the file
     if (fd != -1) {
       if (gfal_close(fd) < 0) {
-        logger.msg(WARNING, "gfal_close failed: %s", StrError(errno));
+        logger.msg(WARNING, "gfal_close failed: %s", StrError(gfal_posix_code_error()));
       }
       fd = -1;
     }
   }
     
   DataStatus DataPointGFAL::StopWriting() {
-    if (!writing) return DataStatus::WriteStopError;
+    if (!writing) return DataStatus(DataStatus::WriteStopError, EARCLOGIC, "Not writing");
     writing = false;
     
     // If the writing is not finished, trigger writing error
@@ -352,7 +386,7 @@ namespace Arc {
     // Close the file if not done already
     if (fd != -1) {
       if (gfal_close(fd) < 0) {
-        logger.msg(WARNING, "gfal_close failed: %s", StrError(errno));
+        logger.msg(WARNING, "gfal_close failed: %s", StrError(gfal_posix_code_error()));
       }
       fd = -1;
     }
@@ -365,15 +399,14 @@ namespace Arc {
   DataStatus DataPointGFAL::do_stat(const URL& stat_url, FileInfo& file) {
     struct stat st;
     int res;
-
     {
       GFALEnvLocker gfal_lock(usercfg, lfc_host);
-      res = gfal_stat(stat_url.plainstr().c_str(), &st);
+      res = gfal_stat(gfal_url(url).c_str(), &st);
     }
     if (res < 0) {
-      logger.msg(ERROR, "gfal_stat failed: %s", StrError(errno));
+      logger.msg(ERROR, "gfal_stat failed: %s", StrError(gfal_posix_code_error()));
       log_gfal_err();
-      return DataStatus::StatError;
+      return DataStatus(DataStatus::StatError, error_no);
     }
 
     if(S_ISREG(st.st_mode)) {
@@ -417,14 +450,14 @@ namespace Arc {
   }
 
   DataStatus DataPointGFAL::Check() {
-    if (reading) return DataStatus::IsReadingError;
-    if (writing) return DataStatus::IsWritingError;
+    if (reading) return DataStatus(DataStatus::IsReadingError, EARCLOGIC);
+    if (writing) return DataStatus(DataStatus::IsWritingError, EARCLOGIC);
     
     FileInfo file;
     DataStatus status_from_stat = do_stat(url, file);
     
-    if (status_from_stat != DataStatus::Success) {
-      return DataStatus::CheckError;
+    if (!status_from_stat) {
+      return DataStatus(DataStatus::CheckError, status_from_stat.GetErrno());
     }
     
     SetSize(file.GetSize());
@@ -442,12 +475,12 @@ namespace Arc {
     DIR *dir;    
     {
       GFALEnvLocker gfal_lock(usercfg, lfc_host);
-      dir = gfal_opendir(url.plainstr().c_str());
+      dir = gfal_opendir(gfal_url(url).c_str());
     }
     if (!dir) {
-      logger.msg(ERROR, "gfal_opendir failed: %s", StrError(errno));
+      logger.msg(ERROR, "gfal_opendir failed: %s", StrError(gfal_posix_code_error()));
       log_gfal_err();
-      return DataStatus::ListError;
+      return DataStatus(DataStatus::ListError, error_no);
     }
     
     // Loop over the content of the directory
@@ -473,36 +506,40 @@ namespace Arc {
     
     // Then close the dir
     if (gfal_closedir (dir) < 0) {
-      logger.msg(WARNING, "gfal_closedir failed: %s", StrError(errno));
-      return DataStatus::ListError;
+      logger.msg(WARNING, "gfal_closedir failed: %s", StrError(gfal_posix_code_error()));
+      return DataStatus(DataStatus::ListError, error_no);
     }
     
     return DataStatus::Success;
   }
   
   DataStatus DataPointGFAL::Remove() {
-    if (reading) return DataStatus::IsReadingError;
-    if (writing) return DataStatus::IsReadingError;
+    if (reading) return DataStatus(DataStatus::IsReadingError, EARCLOGIC);
+    if (writing) return DataStatus(DataStatus::IsWritingError, EARCLOGIC);
     FileInfo file;
     DataStatus status_from_stat = do_stat(url, file);
-    if (status_from_stat != DataStatus::Success)
-      return DataStatus::DeleteError;
+    if (!status_from_stat)
+      return DataStatus(DataStatus::DeleteError, status_from_stat.GetErrno());
 
     int res;
     {
       GFALEnvLocker gfal_lock(usercfg, lfc_host);
 
       if (file.GetType() == FileInfo::file_type_dir) {
-        res = gfal_rmdir(url.plainstr().c_str());
+        res = gfal_rmdir(gfal_url(url).c_str());
       } else {
-        res = gfal_unlink(url.plainstr().c_str());
+        res = gfal_unlink(gfal_url(url).c_str());
       }
     }
     if (res < 0) {
-      if (file.GetType() == FileInfo::file_type_dir) logger.msg(ERROR, "gfal_rmdir failed: %s", StrError(errno));
-      else logger.msg(ERROR, "gfal_unlink failed: %s", StrError(errno));
+      if (file.GetType() == FileInfo::file_type_dir) {
+        logger.msg(ERROR, "gfal_rmdir failed: %s", StrError(gfal_posix_code_error()));
+      }
+      else {
+        logger.msg(ERROR, "gfal_unlink failed: %s", StrError(gfal_posix_code_error()));
+      }
       log_gfal_err();
-      return DataStatus::DeleteError;
+      return DataStatus(DataStatus::DeleteError, error_no);
     }
     return DataStatus::Success;
   }
@@ -513,12 +550,12 @@ namespace Arc {
     {
       GFALEnvLocker gfal_lock(usercfg, lfc_host);
       // gfal_mkdir is always recursive
-      res = gfal_mkdir(url.plainstr().c_str(), 0700);
+      res = gfal_mkdir(gfal_url(url).c_str(), 0700);
     }
     if (res < 0) {
-      logger.msg(ERROR, "gfal_mkdir failed: %s", StrError(errno));
+      logger.msg(ERROR, "gfal_mkdir failed: %s", StrError(gfal_posix_code_error()));
       log_gfal_err();
-      return DataStatus::CreateDirectoryError;
+      return DataStatus(DataStatus::CreateDirectoryError, error_no);
     }
     return DataStatus::Success;    
   }
@@ -528,17 +565,27 @@ namespace Arc {
     int res;
     {
       GFALEnvLocker gfal_lock(usercfg, lfc_host);
-      res = gfal_rename(url.plainstr().c_str(), newurl.plainstr().c_str());
+      res = gfal_rename(gfal_url(url).c_str(), gfal_url(newurl).c_str());
     }
     if (res < 0) {
-      logger.msg(ERROR, "gfal_rename failed: %s", StrError(errno));
+      logger.msg(ERROR, "gfal_rename failed: %s", StrError(gfal_posix_code_error()));
       log_gfal_err();
-      return DataStatus::RenameError;
+      return DataStatus(DataStatus::RenameError, error_no);
     }
     return DataStatus::Success;
   }
 
+  std::string DataPointGFAL::gfal_url(const URL& u) const {
+    std::string gfalurl;
+    if (u.Protocol() != "lfc") gfalurl = u.plainstr();
+    else if (u.MetaDataOption("guid").empty()) gfalurl = "lfn:" + u.Path();
+    else gfalurl = "guid:" + u.MetaDataOption("guid");
+    return gfalurl;
+  }
+
   void DataPointGFAL::log_gfal_err() {
+    // Set errno before error is cleared from gfal
+    error_no = gfal_posix_code_error();
     char errbuf[2048];
     gfal_posix_strerror_r(errbuf, sizeof(errbuf));
     logger.msg(ERROR, errbuf);

@@ -63,6 +63,7 @@ namespace Arc {
     istring("All results obtained are invalid"), // EARCRESINVAL
     istring("Temporary service error"),          // EARCSVCTMP
     istring("Permanent service error"),          // EARCSVCPERM
+    istring("Error switching uid"),              // EARCUIDSWITCH
     istring("Unknown error")                     // EARCOTHER
   };
 

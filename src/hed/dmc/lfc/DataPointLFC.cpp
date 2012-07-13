@@ -86,20 +86,23 @@ namespace Arc {
 
   Logger LFCEnvLocker::logger(Logger::getRootLogger(), "LFCEnvLocker");
 
-  #define LFCLOCKINT(result,func,url) { \
+  #define LFCLOCKINT(result,func,url,err) { \
     LFCEnvLocker lfc_lock(usercfg,url); \
     result = func; \
+    err = serrno; \
   }
 
-  #define LFCLOCKVOID(func,url) { \
+  #define LFCLOCKVOID(func,url,err) { \
     LFCEnvLocker lfc_lock(usercfg,url); \
     func; \
+    err = serrno; \
   }
 
   DataPointLFC::DataPointLFC(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
     : DataPointIndex(url, usercfg, parg),
       guid(""),
-      path_for_guid(url.Path()){
+      path_for_guid(url.Path()),
+      error_no(0) {
     /*
     // set retry env variables (don't overwrite if set already)
     // connection timeout
@@ -125,7 +128,8 @@ namespace Arc {
     Glib::Module* module = dmcarg->get_module();
     PluginsFactory* factory = dmcarg->get_factory();
     if(!(factory && module)) {
-      logger.msg(ERROR, "Missing reference to factory and/or module. It is unsafe to use Globus in non-persistent mode - LFC code is disabled. Report to developers.");
+      logger.msg(ERROR, "Missing reference to factory and/or module. It is unsafe to use Globus "
+                        "in non-persistent mode - LFC code is disabled. Report to developers.");
       return NULL;
     }
     if(!persistent_initialized) {
@@ -158,11 +162,11 @@ namespace Arc {
     std::list<FileInfo> files;
     DataStatus r = ListFiles(files,INFO_TYPE_MINIMAL,false);
     if(!r) {
-      if(r == DataStatus::ListErrorRetryable) r = DataStatus::CheckErrorRetryable;
-      if(r == DataStatus::ListError) r = DataStatus::CheckError;
-      return r;
+      return DataStatus(DataStatus::CheckError, r.GetErrno(), r.GetDesc());
     }
-    if(files.empty()) return DataStatus::CheckError;
+    if(files.empty()) {
+      return DataStatus(DataStatus::CheckError, EARCRESINVAL);
+    }
     return DataStatus::Success;
   }
 
@@ -177,25 +181,25 @@ namespace Arc {
     if (source || path.empty() || path == "/") {
       path = ResolveGUIDToLFN();
       if (path.empty()) {
-        if (source) return IsTempError() ? DataStatus::ReadResolveErrorRetryable : DataStatus::ReadResolveError;
-        return IsTempError() ? DataStatus::WriteResolveErrorRetryable : DataStatus::WriteResolveError;
+        if (source) return DataStatus(DataStatus::ReadResolveError, lfc2errno());
+        return DataStatus(DataStatus::WriteResolveError, lfc2errno());
       }
     }
     if (!source && url.Locations().size() == 0 && !HaveLocations()) {
       logger.msg(ERROR, "Locations are missing in destination LFC URL");
-      return DataStatus::WriteResolveError;
+      return DataStatus(DataStatus::WriteResolveError, EINVAL, "No locations specified");
     }
 
     resolved = false;
     registered = false;
     int nbentries = 0;
     struct lfc_filereplica *entries = NULL;
-    LFCLOCKINT(lfc_r,lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries), url);
+    LFCLOCKINT(lfc_r,lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries), url, error_no);
     if(lfc_r != 0) {
       if (source || ((serrno != ENOENT) && (serrno != ENOTDIR))) {
         logger.msg(ERROR, "Error finding replicas: %s", sstrerror(serrno));
-        if (source) return IsTempError() ? DataStatus::ReadResolveErrorRetryable : DataStatus::ReadResolveError;
-        return IsTempError() ? DataStatus::WriteResolveErrorRetryable : DataStatus::WriteResolveError;
+        if (source) return DataStatus(DataStatus::ReadResolveError, lfc2errno());
+        return DataStatus(DataStatus::WriteResolveError, lfc2errno());
       }
       nbentries = 0;
       entries = NULL;
@@ -233,7 +237,7 @@ namespace Arc {
         for (int n = 0; n < nbentries; n++) {
           if (std::string(entries[n].sfn) == uloc.plainstr()) {
             logger.msg(ERROR, "Replica %s already exists for LFN %s", entries[n].sfn, url.plainstr());
-            return DataStatus::WriteResolveError;
+            return DataStatus(DataStatus::WriteResolveError, EEXIST);
           }
         }
 
@@ -254,7 +258,7 @@ namespace Arc {
       free(entries);
 
     struct lfc_filestatg st;
-    LFCLOCKINT(lfc_r,lfc_statg(path.c_str(), NULL, &st), url);
+    LFCLOCKINT(lfc_r,lfc_statg(path.c_str(), NULL, &st), url, error_no);
     if(lfc_r == 0) {
       if (st.filemode & S_IFDIR) { // directory
         return DataStatus::Success;
@@ -276,7 +280,8 @@ namespace Arc {
     }
     if (!HaveLocations()) {
       logger.msg(ERROR, "No locations found for %s", url.str());
-      return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
+      if (source) return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "No valid locations found");
+      return DataStatus(DataStatus::WriteResolveError, EINVAL, "No valid locations found");
     }
     if (CheckCheckSum()) logger.msg(VERBOSE, "meta_get_data: checksum: %s", GetCheckSum());
     if (CheckSize()) logger.msg(VERBOSE, "meta_get_data: size: %llu", GetSize());
@@ -292,24 +297,22 @@ namespace Arc {
     if (replication) { /* replicating inside same lfn */
       if (!registered) {
         logger.msg(ERROR, "LFN is missing in LFC (needed for replication)");
-        return DataStatus::PreRegisterError;
+        return DataStatus(DataStatus::PreRegisterError, ENOENT);
       }
       return DataStatus::Success;
     }
     if (registered) {
       if (!force) {
         logger.msg(ERROR, "LFN already exists in LFC");
-        return DataStatus::PreRegisterError;
+        return DataStatus(DataStatus::PreRegisterError, EEXIST);
       }
       return DataStatus::Success;
     }
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
-                      const_cast<char*>("ARC")), url);
+                      const_cast<char*>("ARC")), url, error_no);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
-      if (IsTempError())
-        return DataStatus::PreRegisterErrorRetryable;      
-      return DataStatus::PreRegisterError;
+      return DataStatus(DataStatus::PreRegisterError, lfc2errno());
     }
     if (!url.MetaDataOption("guid").empty()) {
       guid = url.MetaDataOption("guid");
@@ -319,26 +322,28 @@ namespace Arc {
       guid = UUID();
 
     LFCLOCKINT(lfc_r,lfc_creatg(url.Path().c_str(), guid.c_str(),
-                   S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP), url);
+                   S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP), url, error_no);
     if(lfc_r != 0) {
 
       // check error - if it is no such file or directory, try to create the
       // required dirs
       if (serrno == ENOENT) {
-        if (!CreateDirectory(true)) return DataStatus::PreRegisterError;
+        DataStatus r = CreateDirectory(true);
+        if (!r) return DataStatus(DataStatus::PreRegisterError, r.GetErrno());
+
         LFCLOCKINT(lfc_r,lfc_creatg(url.Path().c_str(), guid.c_str(),
-                       S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP), url);
+                       S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP), url, error_no);
         if(lfc_r != 0 && serrno != EEXIST) {
           logger.msg(ERROR, "Error creating LFC entry: %s", sstrerror(serrno));
           lfc_endsess();
-          return DataStatus::PreRegisterError;
+          return DataStatus(DataStatus::PreRegisterError, lfc2errno());
         }
       }
       // LFN may already exist, caused by 2 uploaders simultaneously uploading to the same LFN
       // ignore the error if force is true and get the previously registered guid 
       else if (serrno == EEXIST && force) {
         struct lfc_filestatg st;
-        LFCLOCKINT(lfc_r,lfc_statg(url.Path().c_str(), NULL, &st), url);
+        LFCLOCKINT(lfc_r,lfc_statg(url.Path().c_str(), NULL, &st), url, error_no);
         if(lfc_r == 0) {
           registered = true;
           guid = st.guid;
@@ -348,13 +353,13 @@ namespace Arc {
         else {
           logger.msg(ERROR, "Error finding info on LFC entry %s which should exist: %s", url.Path(), sstrerror(serrno));
           lfc_endsess();
-          return DataStatus::PreRegisterError;
+          return DataStatus(DataStatus::PreRegisterError, lfc2errno());
         }
       }
       else {
         logger.msg(ERROR, "Error creating LFC entry %s, guid %s: %s", url.Path(), guid, sstrerror(serrno));
         lfc_endsess();
-        return DataStatus::PreRegisterError;
+        return DataStatus(DataStatus::PreRegisterError, lfc2errno());
       }
     }
     if (CheckCheckSum()) {
@@ -370,12 +375,14 @@ namespace Arc {
         if (ckstype == "MD" || ckstype == "AD") {
           std::string cksumvalue = cksum.substr(p+1);
           if (CheckSize()) {
-            LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())), url);
+            LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(),
+                                           const_cast<char*>(cksumvalue.c_str())), url, error_no);
             if(lfc_r != 0)
               logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
           }
           else {
-            LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())), url);
+            LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(),
+                                           const_cast<char*>(cksumvalue.c_str())), url, error_no);
             if(lfc_r != 0)
               logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
           }
@@ -385,7 +392,7 @@ namespace Arc {
       }
     }
     else if (CheckSize()) {
-      LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL), url);
+      LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL), url, error_no);
       if(lfc_r != 0)
         logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
     }
@@ -399,20 +406,20 @@ namespace Arc {
 
     if (guid.empty()) {
       logger.msg(ERROR, "No GUID defined for LFN - probably not preregistered");
-      return DataStatus::PostRegisterError;
+      return DataStatus(DataStatus::PostRegisterError, EARCLOGIC, "No GUID defined");
     }
-    LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()), const_cast<char*>("ARC")), url);
+    LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
+               const_cast<char*>("ARC")), url, error_no);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
-      if (IsTempError())
-        return DataStatus::PostRegisterErrorRetryable;
-      return DataStatus::PostRegisterError;
+      return DataStatus(DataStatus::PostRegisterError, lfc2errno());
     }
-    LFCLOCKINT(lfc_r,lfc_addreplica(guid.c_str(), NULL, CurrentLocation().Host().c_str(), CurrentLocation().plainstr().c_str(), '-', 'P', NULL, NULL), url);
+    LFCLOCKINT(lfc_r,lfc_addreplica(guid.c_str(), NULL, CurrentLocation().Host().c_str(),
+                                    CurrentLocation().plainstr().c_str(), '-', 'P', NULL, NULL), url, error_no);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error adding replica: %s", sstrerror(serrno));
       lfc_endsess();
-      return DataStatus::PostRegisterError;
+      return DataStatus(DataStatus::PostRegisterError, lfc2errno());
     }
     if (!replication && !registered) {
       if (CheckCheckSum()) {
@@ -429,12 +436,14 @@ namespace Arc {
             std::string cksumvalue = cksum.substr(p+1);
             if (CheckSize()) {
               logger.msg(VERBOSE, "Entering checksum type %s, value %s, file size %llu", ckstype, cksumvalue, GetSize());
-              LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())), url);
+              LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(),
+                                             const_cast<char*>(cksumvalue.c_str())), url, error_no);
               if(lfc_r != 0)
                 logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
             }
             else {
-              LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())), url);
+              LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(),
+                                             const_cast<char*>(cksumvalue.c_str())), url, error_no);
               if(lfc_r != 0)
                 logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
             }
@@ -444,7 +453,7 @@ namespace Arc {
         }
       }
       else if (CheckSize()) {
-        LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL), url);
+        LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL), url, error_no);
         if(lfc_r != 0)
           logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
       }
@@ -459,24 +468,22 @@ namespace Arc {
     if (replication || registered)
       return DataStatus::Success;
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
-                      const_cast<char*>("ARC")), url);
+                      const_cast<char*>("ARC")), url, error_no);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
-      if (IsTempError())
-        return DataStatus::UnregisterErrorRetryable;
-      return DataStatus::UnregisterError;
+      return DataStatus(DataStatus::UnregisterError, lfc2errno());
     }
     std::string path = ResolveGUIDToLFN();
     if (path.empty()) {
       lfc_endsess();
       return DataStatus::UnregisterError;
     }
-    LFCLOCKINT(lfc_r,lfc_unlink(path.c_str()), url);
+    LFCLOCKINT(lfc_r,lfc_unlink(path.c_str()), url, error_no);
     if(lfc_r != 0)
       if ((serrno != ENOENT) && (serrno != ENOTDIR)) {
         logger.msg(ERROR, "Failed to remove LFN in LFC - You may need to do it by hand");
         lfc_endsess();
-        return DataStatus::UnregisterError;
+        return DataStatus(DataStatus::UnregisterError, lfc2errno());
       }
     lfc_endsess();
     return DataStatus::Success;
@@ -487,74 +494,72 @@ namespace Arc {
 
     if (!all && (!LocationValid())) {
       logger.msg(ERROR, "Location is missing");
-      return DataStatus::UnregisterError;
+      return DataStatus(DataStatus::UnregisterError, EINVAL, "No location");
     }
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
-                      const_cast<char*>("ARC")), url);
+                      const_cast<char*>("ARC")), url, error_no);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
-      if (IsTempError())
-        return DataStatus::UnregisterErrorRetryable;
-      return DataStatus::UnregisterError;
+      return DataStatus(DataStatus::UnregisterError, lfc2errno());
     }
     std::string path = ResolveGUIDToLFN();
     if (path.empty()) {
       lfc_endsess();
-      return DataStatus::UnregisterError;
+      return DataStatus(DataStatus::UnregisterError, lfc2errno());
     }
     if (all) {
       int nbentries = 0;
       struct lfc_filereplica *entries = NULL;
-      LFCLOCKINT(lfc_r,lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries), url);
+      LFCLOCKINT(lfc_r,lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries), url, error_no);
       if(lfc_r != 0) {
         lfc_endsess();
-        if (serrno == ENOTDIR) {
+        if (error_no == ENOENT) {
           registered = false;
           ClearLocations();
           return DataStatus::Success;
         }
-        logger.msg(ERROR, "Error getting replicas: %s", sstrerror(serrno));
-        return DataStatus::UnregisterError;
+        logger.msg(ERROR, "Error getting replicas: %s", sstrerror(error_no));
+        return DataStatus(DataStatus::UnregisterError, lfc2errno());
       }
       for (int n = 0; n < nbentries; n++) {
-        LFCLOCKINT(lfc_r,lfc_delreplica(guid.c_str(), NULL, entries[n].sfn), url);
+        LFCLOCKINT(lfc_r,lfc_delreplica(guid.c_str(), NULL, entries[n].sfn), url, error_no);
         if(lfc_r != 0) {
           if (serrno == ENOENT)
             continue;
           lfc_endsess();
-          logger.msg(ERROR, "Failed to remove location from LFC");
-          return DataStatus::UnregisterError;
+          logger.msg(ERROR, "Failed to remove location from LFC: %s", sstrerror(error_no));
+          return DataStatus(DataStatus::UnregisterError, lfc2errno());
         }
       }
-      LFCLOCKINT(lfc_r,lfc_unlink(path.c_str()), url);
+      LFCLOCKINT(lfc_r,lfc_unlink(path.c_str()), url, error_no);
       if(lfc_r != 0) {
         if (serrno == EPERM) { // we have a directory
-          LFCLOCKINT(lfc_r,lfc_rmdir(path.c_str()), url);
+          LFCLOCKINT(lfc_r,lfc_rmdir(path.c_str()), url, error_no);
           if(lfc_r != 0) {
             if (serrno == EEXIST) { // still files in the directory
               logger.msg(ERROR, "Failed to remove LFC directory: directory is not empty");
               lfc_endsess();
-              return DataStatus::UnregisterError;
+              return DataStatus(DataStatus::UnregisterError, ENOTEMPTY);
             }
             logger.msg(ERROR, "Failed to remove LFC directory: %s", sstrerror(serrno));
             lfc_endsess();
-            return DataStatus::UnregisterError;
+            return DataStatus(DataStatus::UnregisterError, lfc2errno());
           }
         }
         else if ((serrno != ENOENT) && (serrno != ENOTDIR)) {
           logger.msg(ERROR, "Failed to remove LFN in LFC: %s", sstrerror(serrno));
           lfc_endsess();
-          return DataStatus::UnregisterError;
+          return DataStatus(DataStatus::UnregisterError, lfc2errno());
         }
       }
       registered = false;
     }
     else {
-      LFCLOCKINT(lfc_r,lfc_delreplica(guid.c_str(), NULL, CurrentLocation().plainstr().c_str()), url);
+      LFCLOCKINT(lfc_r,lfc_delreplica(guid.c_str(), NULL, CurrentLocation().plainstr().c_str()), url, error_no);
       if(lfc_r != 0) {
         lfc_endsess();
         logger.msg(ERROR, "Failed to remove location from LFC: %s", sstrerror(serrno));
-        return DataStatus::UnregisterError;
+        return DataStatus(DataStatus::UnregisterError, lfc2errno());
       }
     }
     lfc_endsess();
@@ -566,11 +571,11 @@ namespace Arc {
     std::list<FileInfo> files;
     DataStatus r = ListFiles(files,verb,false);
     if(!r) {
-      if(r == DataStatus::ListErrorRetryable) r = DataStatus::StatErrorRetryable;
-      if(r == DataStatus::ListError) r = DataStatus::StatError;
-      return r;
+      return DataStatus(DataStatus::StatError, r.GetErrno(), r.GetDesc());
     }
-    if(files.size() < 1) return DataStatus::StatError;
+    if(files.size() < 1) {
+      return DataStatus(DataStatus::StatError, EARCRESINVAL, "No results returned");
+    }
     file = files.front();
     return DataStatus::Success;
   }
@@ -582,7 +587,7 @@ namespace Arc {
     for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
       FileInfo f;
       DataStatus res = (*i)->Stat(f, verb);
-      if (!res.Passed()) files.push_back(FileInfo());
+      if (!res.Passed()) return res;
       else files.push_back(f);
     }
     return DataStatus::Success;
@@ -596,33 +601,31 @@ namespace Arc {
     int lfc_r;
 
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
-                      const_cast<char*>("ARC")), url);
+                      const_cast<char*>("ARC")), url, error_no);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
-      if (IsTempError())
-        return DataStatus::ListErrorRetryable;
-      return DataStatus::ListError;
+      return DataStatus(DataStatus::ListError, lfc2errno());
     }
     std::string path = ResolveGUIDToLFN();
     if (path.empty()) {
       lfc_endsess();
-      return DataStatus::ListError;
+      return DataStatus(DataStatus::ListError, lfc2errno());
     }
     // first stat the url and see if it is a file or directory
     struct lfc_filestatg st;
 
-    LFCLOCKINT(lfc_r,lfc_statg(path.c_str(), NULL, &st), url);
+    LFCLOCKINT(lfc_r,lfc_statg(path.c_str(), NULL, &st), url, error_no);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error listing file or directory: %s", sstrerror(serrno));
       lfc_endsess();
-      return DataStatus::ListError;
+      return DataStatus(DataStatus::ListError, lfc2errno());
     }
 
     if (listdir) {
       if(!(st.filemode & S_IFDIR)) {
         logger.msg(ERROR, "Not a directory");
         lfc_endsess();
-        return DataStatus::ListNonDirError;
+        return DataStatus(DataStatus::ListNonDirError, ENOTDIR);
       }
       lfc_DIR *dir = NULL;
       {
@@ -631,8 +634,9 @@ namespace Arc {
       }
       if (dir == NULL) {
         logger.msg(ERROR, "Error opening directory: %s", sstrerror(serrno));
+        error_no = serrno;
         lfc_endsess();
-        return DataStatus::ListError;
+        return DataStatus(DataStatus::ListError, lfc2errno());
       }
 
       // list entries. If not long list use readdir
@@ -669,14 +673,15 @@ namespace Arc {
       }
       if (serrno) {
         logger.msg(ERROR, "Error listing directory: %s", sstrerror(serrno));
-        LFCLOCKINT(lfc_r,lfc_closedir(dir), url);
+        int err = lfc2errno();
+        LFCLOCKINT(lfc_r,lfc_closedir(dir), url, error_no);
         lfc_endsess();
-        return DataStatus::ListError;
+        return DataStatus(DataStatus::ListError, err);
       }
 
       // if we want to resolve replicas call readdirxr
       if (verb & INFO_TYPE_STRUCT) {
-        LFCLOCKVOID(lfc_rewinddir(dir), url);
+        LFCLOCKVOID(lfc_rewinddir(dir), url, error_no);
         struct lfc_direnrep *direntry;
 
         {
@@ -702,12 +707,13 @@ namespace Arc {
         }
         if (serrno) {
           logger.msg(ERROR, "Error listing directory: %s", sstrerror(serrno));
-          LFCLOCKINT(lfc_r,lfc_closedir(dir), url);
+          int err = lfc2errno();
+          LFCLOCKINT(lfc_r,lfc_closedir(dir), url, error_no);
           lfc_endsess();
-          return DataStatus::ListError;
+          return DataStatus(DataStatus::ListError, err);
         }
       }
-      LFCLOCKINT(lfc_r,lfc_closedir(dir), url);
+      LFCLOCKINT(lfc_r,lfc_closedir(dir), url, error_no);
     } // if (listdir)
     else {
       std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(path.c_str()));
@@ -736,11 +742,11 @@ namespace Arc {
         int nbentries = 0;
         struct lfc_filereplica *entries = NULL;
 
-        LFCLOCKINT(lfc_r,lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries), url);
+        LFCLOCKINT(lfc_r,lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries), url, error_no);
         if(lfc_r != 0) {
           logger.msg(ERROR, "Error listing replicas: %s", sstrerror(serrno));
           lfc_endsess();
-          return DataStatus::ListError;
+          return DataStatus(DataStatus::ListError, lfc2errno());
         }
         for (int n = 0; n < nbentries; n++)
           f->AddURL(URL(std::string(entries[n].sfn)));
@@ -750,12 +756,12 @@ namespace Arc {
       if (verb & INFO_TYPE_ACCESS) {
         if (st.uid != 0) {
           char username[256];
-          LFCLOCKINT(lfc_r,lfc_getusrbyuid(st.uid, username), url);
+          LFCLOCKINT(lfc_r,lfc_getusrbyuid(st.uid, username), url, error_no);
           if(lfc_r == 0) f->SetMetaData("owner", username);
         }
         if (st.gid != 0) {
           char groupname[256];
-          LFCLOCKINT(lfc_r,lfc_getgrpbygid(st.gid, groupname), url);
+          LFCLOCKINT(lfc_r,lfc_getgrpbygid(st.gid, groupname), url, error_no);
           if(lfc_r == 0) f->SetMetaData("group", groupname);
         }
       }
@@ -788,30 +794,30 @@ namespace Arc {
       if (dirname.empty() || dirname == url.Path()) return DataStatus::Success;
 
       logger.msg(VERBOSE, "Creating LFC directory %s", dirname);
-      LFCLOCKINT(lfc_r,lfc_mkdir(dirname.c_str(), 0775), url);
+      LFCLOCKINT(lfc_r,lfc_mkdir(dirname.c_str(), 0775), url, error_no);
       if (lfc_r == 0 || serrno == EEXIST) return DataStatus::Success;
 
       logger.msg(ERROR, "Error creating required LFC dirs: %s", sstrerror(serrno));
       lfc_endsess();
-      return DataStatus::CreateDirectoryError;
+      return DataStatus(DataStatus::CreateDirectoryError, lfc2errno());
     }
     while (slashpos != std::string::npos) {
       std::string dirname = url.Path().substr(0, slashpos);
       // list dir to see if it exists
       struct lfc_filestat statbuf;
-      LFCLOCKINT(lfc_r,lfc_stat(dirname.c_str(), &statbuf), url);
+      LFCLOCKINT(lfc_r,lfc_stat(dirname.c_str(), &statbuf), url, error_no);
       if(lfc_r == 0) {
         slashpos = url.Path().find("/", slashpos + 1);
         continue;
       }
 
       logger.msg(VERBOSE, "Creating LFC directory %s", dirname);
-      LFCLOCKINT(lfc_r,lfc_mkdir(dirname.c_str(), 0775), url);
+      LFCLOCKINT(lfc_r,lfc_mkdir(dirname.c_str(), 0775), url, error_no);
       if(lfc_r != 0)
         if (serrno != EEXIST) {
           logger.msg(ERROR, "Error creating required LFC dirs: %s", sstrerror(serrno));
           lfc_endsess();
-          return DataStatus::CreateDirectoryError;
+          return DataStatus(DataStatus::CreateDirectoryError, lfc2errno());
         }
       slashpos = url.Path().find("/", slashpos + 1);
     }
@@ -823,19 +829,19 @@ namespace Arc {
     // source can be specified by GUID, but destination must have path
     std::string path = url.Path();
     if (path.empty() || path == "/") path = ResolveGUIDToLFN();
-    if (path.empty()) return IsTempError() ? DataStatus::RenameErrorRetryable : DataStatus::RenameError;
+    if (path.empty()) return DataStatus(DataStatus::RenameError, lfc2errno());
 
     if (newurl.Path().empty() || newurl.Path() == "/") {
       logger.msg(ERROR, "Cannot rename to root directory");
-      return DataStatus::RenameError;
+      return DataStatus(DataStatus::RenameError, EINVAL);
     }
     logger.msg(VERBOSE, "Renaming %s to %s", path, newurl.Path());
 
     int lfc_r;
-    LFCLOCKINT(lfc_r, lfc_rename(path.c_str(), newurl.Path().c_str()), url);
+    LFCLOCKINT(lfc_r, lfc_rename(path.c_str(), newurl.Path().c_str()), url, error_no);
     if (lfc_r != 0) {
       logger.msg(ERROR, "Error renaming %s to %s: %s", path, newurl.Path(), sstrerror(serrno));
-      return IsTempError() ? DataStatus::RenameErrorRetryable : DataStatus::RenameError;
+      return DataStatus(DataStatus::RenameError, lfc2errno());
     }
     return DataStatus::Success;
   }
@@ -866,6 +872,7 @@ namespace Arc {
     if (!info) {
       logger.msg(ERROR, "Error finding LFN from guid %s: %s",
                  guid, sstrerror(serrno));
+      error_no = serrno;
       guid.clear();
       return "";
     }
@@ -902,7 +909,8 @@ namespace Arc {
       if ((*i)->GetURL().Protocol() != url.Protocol() ||
           (*i)->GetURL().Host() != url.Host()) {
         logger.msg(ERROR, "Mismatching protocol/host in bulk resolve!");
-        return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
+        if (source) return DataStatus(DataStatus::ReadResolveError, EINVAL);
+        return DataStatus(DataStatus::WriteResolveError, EINVAL);
       }
     }
 
@@ -926,7 +934,7 @@ namespace Arc {
           (use_guids && (*i)->GetURL().MetaDataOption("guid").empty())) {
         // cannot have a mixture of guids and LFNs
         logger.msg(ERROR, "Cannot use a mixture of GUIDs and LFNs in bulk resolve");
-        return DataStatus::ReadResolveError;
+        return DataStatus(DataStatus::ReadResolveError, EINVAL);
       }
     }
 
@@ -940,7 +948,7 @@ namespace Arc {
       for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i, ++n) {
         guids[n] = (*i)->GetURL().MetaDataOption("guid").c_str();
       }
-      LFCLOCKINT(lfc_r,lfc_getreplicas(urls.size(), guids, NULL, &nbentries, &entries), url);
+      LFCLOCKINT(lfc_r,lfc_getreplicas(urls.size(), guids, NULL, &nbentries, &entries), url, error_no);
     }
     else {
       const char * paths[urls.size()];
@@ -948,16 +956,16 @@ namespace Arc {
       for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i, ++n) {
         paths[n] = (*i)->GetURL().Path().c_str();
       }
-      LFCLOCKINT(lfc_r,lfc_getreplicasl(urls.size(), paths, NULL, &nbentries, &entries), url);
+      LFCLOCKINT(lfc_r,lfc_getreplicasl(urls.size(), paths, NULL, &nbentries, &entries), url, error_no);
     }
 
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error finding replicas: %s", sstrerror(serrno));
-      return IsTempError() ? DataStatus::ReadResolveErrorRetryable : DataStatus::ReadResolveError;
+      return DataStatus(DataStatus::ReadResolveError, lfc2errno());
     }
     if (nbentries == 0) {
       logger.msg(ERROR, "Bulk resolve returned no entries");
-      return DataStatus::ReadResolveError;
+      return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "No results returned");
     }
 
     // We assume that the order of returned GUIDs is the same as the order of
@@ -976,7 +984,7 @@ namespace Arc {
         if (++guid_count >= urls.size() || datapoint == urls.end()) {
           logger.msg(ERROR, "LFC returned more results than we asked for!");
           free(entries);
-          return DataStatus::ReadResolveError;
+          return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "More results than expected");
         }
         ++datapoint;
         dp = *datapoint;
@@ -1030,17 +1038,31 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-  bool DataPointLFC::IsTempError() const {
-    // err codes in includepath/lfc/serrno.h
-    if (serrno == SECOMERR ||     // communication error
-        serrno == ENSNACT ||      // name server not active
-        serrno == SETIMEDOUT ||   // timeout
-        serrno == SEINTERNAL ||   // internal error
-        serrno == SECONNDROP ||   // connection dropped by server
-        serrno == SEWOULDBLOCK || // temporarily unavailable
-        serrno == SESYSERR        // system error
-        ) return true;
-    return false;
+  int DataPointLFC::lfc2errno() const {
+    // serrno codes in includepath/lfc/serrno.h
+    // Not all codes are handled here
+
+    // Regular errno
+    if (error_no < SEBASEOFF) return error_no;
+
+    switch (error_no) {
+      case SECOMERR:     // communication error
+      case ENSNACT:      // name server not active
+      case SEINTERNAL:   // internal error
+      case SECONNDROP:   // connection dropped by server
+      case SEWOULDBLOCK: // temporarily unavailable
+      case SESYSERR:     // system error
+        return EARCSVCTMP;
+
+      case SETIMEDOUT:   // timeout
+        return ETIMEDOUT;
+
+      case SENOMAPFND:   // no user mapping
+        return EACCES;
+
+      default:
+        return EARCSVCPERM;
+    }
   }
 
 } // namespace Arc
