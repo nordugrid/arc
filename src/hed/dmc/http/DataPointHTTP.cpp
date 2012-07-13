@@ -358,18 +358,17 @@ namespace Arc {
     HTTPClientInfo info;
     info.lastModified = (time_t)(-1);
     AutoPointer<ClientHTTP> client(acquire_client(curl));
-    if (!client) return DataStatus::StatError;
+    if (!client) return DataStatus(DataStatus::StatError, EARCOTHER);
     // Do HEAD to obtain some metadata
     MCC_Status r = client->process("HEAD", path, &request, &info, &inbuf);
     if (inbuf) delete inbuf;
     // TODO: handle redirects
     if (!r) {
-      return DataStatus::StatError;
+      return DataStatus(DataStatus::StatError, EARCOTHER);
     }
     release_client(curl,client.Release());
     if (info.code != 200) {
-      if(info.code == 404) return DataStatus::StatNotPresentError;
-      return DataStatus::StatError;
+      return DataStatus(DataStatus::StatError, http2errno(info.code), info.reason);
     }
     // Fetch known metadata
     file.SetMetaData("path", path);
@@ -425,23 +424,24 @@ namespace Arc {
   }
 
   DataStatus DataPointHTTP::List(std::list<FileInfo>& files, DataPointInfoType verb) {
-    if (transfers_started.get() != 0) return DataStatus::ListError;
+    if (transfers_started.get() != 0) return DataStatus(DataStatus::ListError, EARCLOGIC, "Currently reading");
     URL curl = url;
-
+    DataStatus r;
     {
       FileInfo file;
-      DataStatus r = do_stat(curl.FullPathURIEncoded(), curl, file);
+      r = do_stat(curl.FullPathURIEncoded(), curl, file);
       if(r) {
         if(file.CheckSize()) size = file.GetSize();
         if(file.CheckCreated()) created = file.GetCreated();
-        if(file.GetType() != FileInfo::file_type_dir) return DataStatus::ListError;
+        if(file.GetType() != FileInfo::file_type_dir) return DataStatus(DataStatus::ListError, ENOTDIR);
       }
     }
 
     DataBuffer buffer;
 
     // TODO: Reuse connection
-    if (!StartReading(buffer)) return DataStatus::ListError;
+    r = StartReading(buffer);
+    if (!r) return DataStatus(DataStatus::ListError, r.GetErrno(), r.GetDesc());
 
     int handle;
     unsigned int length;
@@ -456,7 +456,8 @@ namespace Arc {
       }
     }
 
-    if (!StopReading()) return DataStatus::ListError;
+    r = StopReading();
+    if (!r) return DataStatus(DataStatus::ListError, r.GetErrno(), r.GetDesc());
 
     bool is_html = false;
     bool is_body = false;
@@ -495,7 +496,7 @@ namespace Arc {
   }
 
   DataStatus DataPointHTTP::StartReading(DataBuffer& buffer) {
-    if (transfers_started.get() != 0) return DataStatus::ReadStartError;
+    if (transfers_started.get() != 0) return DataStatus(DataStatus::IsReadingError, EARCLOGIC);
     int transfer_streams = 1;
     strtoint(url.Option("threads"),transfer_streams);
     if (transfer_streams < 1) transfer_streams = 1;
@@ -514,17 +515,17 @@ namespace Arc {
         ++transfers_tofinish;
       }
     }
-    if (!transfers_tofinish) {
+    if (transfers_tofinish == 0) {
       transfer_lock.unlock();
       StopReading();
-      return DataStatus::ReadStartError;
+      return DataStatus(DataStatus::ReadStartError, EARCOTHER);
     }
     transfer_lock.unlock();
     return DataStatus::Success;
   }
 
   DataStatus DataPointHTTP::StopReading() {
-    if (!buffer) return DataStatus::ReadStopError;
+    if (!buffer) return DataStatus(DataStatus::ReadStopError, EARCLOGIC, "Not reading");
     while (transfers_started.get()) {
       transfers_started.wait(10000); // Just in case
     }
@@ -541,7 +542,7 @@ namespace Arc {
 
   DataStatus DataPointHTTP::StartWriting(DataBuffer& buffer,
                                          DataCallback*) {
-    if (transfers_started.get() != 0) return DataStatus::WriteStartError;
+    if (transfers_started.get() != 0) return DataStatus(DataStatus::IsWritingError, EARCLOGIC);
     int transfer_streams = 1;
     strtoint(url.Option("threads"),transfer_streams);
     if (transfer_streams < 1) transfer_streams = 1;
@@ -560,17 +561,17 @@ namespace Arc {
         ++transfers_tofinish;
       }
     }
-    if (!transfers_tofinish) {
+    if (transfers_tofinish == 0) {
       transfer_lock.unlock();
       StopWriting();
-      return DataStatus::WriteStartError;
+      return DataStatus(DataStatus::WriteStartError, EARCOTHER);
     }
     transfer_lock.unlock();
     return DataStatus::Success;
   }
 
   DataStatus DataPointHTTP::StopWriting() {
-    if (!buffer) return DataStatus::WriteStopError;
+    if (!buffer) return DataStatus(DataStatus::WriteStopError, EARCLOGIC, "Not writing");
     while (transfers_started.get()) {
       transfers_started.wait(); // Just in case
     }
@@ -591,7 +592,7 @@ namespace Arc {
     PayloadRawInterface *inbuf = NULL;
     HTTPClientInfo info;
     AutoPointer<ClientHTTP> client(acquire_client(url));
-    if (!client) return DataStatus::CheckError;
+    if (!client) return DataStatus(DataStatus::CheckError, EARCOTHER);
     MCC_Status r = client->process("GET", url.FullPathURIEncoded(), 0, 15,
                                   &request, &info, &inbuf);
     PayloadRawInterface::Size_t logsize = 0;
@@ -599,9 +600,9 @@ namespace Arc {
       logsize = inbuf->Size();
       delete inbuf;
     }
-    if (!r) return DataStatus::CheckError;
+    if (!r) return DataStatus(DataStatus::CheckError, EARCOTHER);
     release_client(url,client.Release());
-    if ((info.code != 200) && (info.code != 206)) return DataStatus::CheckError;
+    if ((info.code != 200) && (info.code != 206)) return DataStatus(DataStatus::CheckError, http2errno(info.code), info.reason);
     size = logsize;
     logger.msg(VERBOSE, "Check: obtained size %llu", size);
     created = info.lastModified;
@@ -617,9 +618,11 @@ namespace Arc {
     MCC_Status r = client->process("DELETE", url.FullPathURIEncoded(),
                                   &request, &info, &inbuf);
     if (inbuf) delete inbuf;
-    if(!r) return DataStatus::DeleteError;
+    if(!r) return DataStatus(DataStatus::DeleteError, EARCOTHER);
     release_client(url,client.Release());
-    if ((info.code != 200) && (info.code != 202) && (info.code != 204)) return DataStatus::DeleteError;
+    if ((info.code != 200) && (info.code != 202) && (info.code != 204)) {
+      return DataStatus(DataStatus::DeleteError, http2errno(info.code), info.reason);
+    }
     return DataStatus::Success;
   }
 
@@ -636,9 +639,7 @@ namespace Arc {
     if(!r) return DataStatus::RenameError;
     release_client(url,client.Release());
     if ((info.code != 201) && (info.code != 204)) { 
-      std::stringstream desc;
-      desc << info.code << " " << info.reason;
-      return DataStatus(DataStatus::RenameError, desc.str());
+      return DataStatus(DataStatus::RenameError, http2errno(info.code), info.reason);
     }
     return DataStatus::Success;
   }
@@ -737,6 +738,8 @@ namespace Arc {
           if ((++retries) <= 10) continue;
         }
         logger.msg(VERBOSE,"HTTP failure %u - %s",transfer_info.code,transfer_info.reason);
+        std::string reason = Arc::tostring(transfer_info.code) + " - " + transfer_info.reason;
+        point.failure_code = DataStatus(DataStatus::ReadError, point.http2errno(transfer_info.code), reason);
         transfer_failure = true;
         break;
       }
@@ -896,12 +899,14 @@ namespace Arc {
           (transfer_info.code != 200) &&
           (transfer_info.code != 204)) {  // HTTP error - retry?
         point.buffer->is_notwritten(transfer_handle);
+
         if ((transfer_info.code == 500) ||
             (transfer_info.code == 503) ||
             (transfer_info.code == 504)) {
           if ((++retries) <= 10) continue;
         }
         transfer_failure = true;
+        point.failure_code = DataStatus(DataStatus::WriteError, point.http2errno(transfer_info.code), transfer_info.reason);
         break;
       }
       retries = 0;
@@ -914,7 +919,7 @@ namespace Arc {
       // TODO: process/report failure?
       point.buffer->eof_write(true);
       if ((!(point.buffer->error())) && (point.buffer->eof_position() == 0)) {
-        // Zero size data was trasfered - must send at least one empty packet
+        // Zero size data was transferred - must send at least one empty packet
         for (;;) {
           if (!client) client = point.acquire_client(client_url);
           if (!client) {
@@ -945,6 +950,7 @@ namespace Arc {
                 (transfer_info.code == 504))
               if ((++retries) <= 10) continue;
             point.buffer->error_write(true);
+            point.failure_code = DataStatus(DataStatus::WriteError, point.http2errno(transfer_info.code), transfer_info.reason);
             break;
           }
           break;
@@ -995,6 +1001,45 @@ namespace Arc {
     clients_lock.lock();
     clients.insert(std::pair<std::string,ClientHTTP*>(key,client));
     clients_lock.unlock();
+  }
+
+  int DataPointHTTP::http2errno(int http_code) const {
+    // Codes taken from RFC 2616 section 10. Only 4xx and 5xx are treated as errors
+    switch(http_code) {
+      case 400:
+      case 405:
+      case 411:
+      case 413:
+      case 414:
+      case 415:
+      case 416:
+      case 417:
+        return EINVAL;
+      case 401:
+      case 403:
+      case 407:
+        return EACCES;
+      case 404:
+      case 410:
+        return ENOENT;
+      case 406:
+      case 412:
+        return EARCRESINVAL;
+      case 408:
+        return ETIMEDOUT;
+      case 409: // Conflict. Not sure about this one.
+      case 500:
+      case 502:
+      case 503:
+      case 504:
+        return EARCSVCTMP;
+      case 501:
+      case 505:
+        return ENOTSUP;
+
+      default:
+        return EARCOTHER;
+    }
   }
 
 } // namespace Arc

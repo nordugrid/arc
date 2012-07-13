@@ -41,6 +41,8 @@ namespace Arc {
     DataStatus do_stat(const std::string& path, const URL& curl, FileInfo& file);
     ClientHTTP* acquire_client(const URL& curl);
     void release_client(const URL& curl, ClientHTTP* client);
+    /// Convert HTTP return code to errno
+    int http2errno(int http_code) const;
     static Logger logger;
     ChunkControl *chunks;
     std::multimap<std::string,ClientHTTP*> clients;
