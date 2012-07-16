@@ -217,6 +217,8 @@ namespace Arc {
         }
         EntryToInt(url, queue["nordugrid-queue-nodememory"], ComputingShare->MaxVirtualMemory) || 
           EntryToInt(url, (*it)["nordugrid-cluster-nodememory"], ComputingShare->MaxVirtualMemory);
+        EntryToInt(url, queue["nordugrid-queue-nodememory"], ComputingShare->MaxMainMemory) || 
+          EntryToInt(url, (*it)["nordugrid-cluster-nodememory"], ComputingShare->MaxMainMemory);
         EntryToInt(url, authuser["nordugrid-authuser-diskspace"], ComputingShare->MaxDiskSpace);
         if ((*it)["nordugrid-cluster-localse"]) {
           ComputingShare->DefaultStorageService = (std::string)(*it)["nordugrid-cluster-localse"];
