@@ -1683,7 +1683,7 @@ namespace Arc {
         return EARCSVCPERM;
 
       case SRM_NOT_SUPPORTED:
-        return ENOTSUP;
+        return EOPNOTSUPP;
 
       case SRM_REQUEST_TIMED_OUT:
         return ETIMEDOUT;

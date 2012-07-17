@@ -19,38 +19,38 @@ namespace Arc {
     // not supported in v1
     SRMReturnCode ping(std::string& /* version */,
                        bool /* report_error */ = true) {
-      return ENOTSUP;
+      return EOPNOTSUPP;
     }
     // not supported in v1
     SRMReturnCode getSpaceTokens(std::list<std::string>& /* tokens */,
                                  const std::string& /* description */ = "") {
-      return ENOTSUP;
+      return EOPNOTSUPP;
     }
     // not supported in v1
     SRMReturnCode getRequestTokens(std::list<std::string>& /* tokens */,
                                    const std::string& /* description */ = "") {
-      return ENOTSUP;
+      return EOPNOTSUPP;
     }
     // not supported in v1
     SRMReturnCode requestBringOnline(SRMClientRequest& /* req */) {
-      return ENOTSUP;
+      return EOPNOTSUPP;
     }
     // not supported in v1
     SRMReturnCode requestBringOnlineStatus(SRMClientRequest& /* req */) {
-      return ENOTSUP;
+      return EOPNOTSUPP;
     }
     // not supported
     SRMReturnCode mkDir(SRMClientRequest& /* req */) {
-      return ENOTSUP;
+      return EOPNOTSUPP;
     }
     // not supported
     SRMReturnCode rename(SRMClientRequest& /* req */,
                          const URL& /* newurl */) {
-      return ENOTSUP;
+      return EOPNOTSUPP;
     }
     // not supported
     SRMReturnCode checkPermissions(SRMClientRequest& /* req */) {
-      return ENOTSUP;
+      return EOPNOTSUPP;
     }
   
     // v1 only operates in synchronous mode
@@ -58,13 +58,13 @@ namespace Arc {
                            std::list<std::string>& urls);
     SRMReturnCode getTURLsStatus(SRMClientRequest& req,
                                  std::list<std::string>& urls) {
-      return ENOTSUP;
+      return EOPNOTSUPP;
     }
     SRMReturnCode putTURLs(SRMClientRequest& req,
                            std::list<std::string>& urls);
     SRMReturnCode putTURLsStatus(SRMClientRequest& req,
                                  std::list<std::string>& urls) {
-      return ENOTSUP;
+      return EOPNOTSUPP;
     }
 
     SRMReturnCode releaseGet(SRMClientRequest& req);

@@ -57,7 +57,7 @@ namespace Arc {
     // first check permissions
     SRMReturnCode res = client->checkPermissions(srm_request_tmp);
 
-    if (res != 0 && res != ENOTSUP) {
+    if (res != 0 && res != EOPNOTSUPP) {
       delete client;
       return DataStatus(DataStatus::CheckError, res);
     }
@@ -259,7 +259,7 @@ namespace Arc {
       if (transport_protocols.empty()) {
         logger.msg(ERROR, "None of the requested transfer protocols are supported");
         delete client;
-        return DataStatus(DataStatus::ReadPrepareError, ENOTSUP, "None of the requested transfer protocols are supported");
+        return DataStatus(DataStatus::ReadPrepareError, EOPNOTSUPP, "None of the requested transfer protocols are supported");
       }
       srm_request = new SRMClientRequest(CanonicSRMURL(url));
       srm_request->request_timeout(stage_timeout);
@@ -414,7 +414,7 @@ namespace Arc {
       if (transport_protocols.empty()) {
         logger.msg(ERROR, "None of the requested transfer protocols are supported");
         delete client;
-        return DataStatus(DataStatus::WritePrepareError, ENOTSUP, "None of the requested transfer protocols are supported");
+        return DataStatus(DataStatus::WritePrepareError, EOPNOTSUPP, "None of the requested transfer protocols are supported");
       }
 
       srm_request = new SRMClientRequest(CanonicSRMURL(url));

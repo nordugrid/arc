@@ -179,7 +179,7 @@ namespace Arc {
      * Not used in this version of SRM
      */
     SRMReturnCode release(SRMClientRequest& /* req */) {
-      return ENOTSUP;
+      return EOPNOTSUPP;
     }
 
     /**

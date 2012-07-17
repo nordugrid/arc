@@ -1035,7 +1035,7 @@ namespace Arc {
         return EARCSVCTMP;
       case 501:
       case 505:
-        return ENOTSUP;
+        return EOPNOTSUPP;
 
       default:
         return EARCOTHER;
