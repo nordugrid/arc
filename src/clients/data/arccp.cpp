@@ -54,6 +54,55 @@ static void progress(FILE *o, const char*, unsigned int,
   fprintf(o, "\r%llu kB                    \r", all / 1024);
 }
 
+static void transfer_cb(unsigned long long int bytes_transferred) {
+  printf("%llu transferred\n", bytes_transferred);
+}
+
+bool arctransfer(const Arc::URL& source_url,
+                 const Arc::URL& destination_url,
+                 const std::list<std::string>& locations,
+                 Arc::UserConfig& usercfg,
+                 bool secure,
+                 bool passive,
+                 bool verbose,
+                 int timeout) {
+  if (!source_url) {
+    logger.msg(Arc::ERROR, "Invalid URL: %s", source_url.str());
+    return false;
+  }
+  if (!destination_url) {
+    logger.msg(Arc::ERROR, "Invalid URL: %s", destination_url.str());
+    return false;
+  }
+  if (source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) {
+    usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials);
+    if (!Arc::Credential::IsCredentialsValid(usercfg)) {
+      logger.msg(Arc::ERROR, "Unable to transfer file %s: No valid credentials found", source_url.str());
+      return false;
+    }
+  }
+  Arc::DataHandle destination(destination_url, usercfg);
+  if (!destination) {
+    logger.msg(Arc::ERROR, "Unsupported destination url: %s",
+               destination_url.str());
+    return false;
+  }
+  destination->SetSecure(secure);
+  Arc::DataStatus res = destination->Transfer3rdParty(source_url, verbose ? &transfer_cb : NULL);
+  if (!res) {
+    if (res == Arc::DataStatus::UnimplementedError) {
+      logger.msg(Arc::ERROR, "Third party transfer is not supported for these endpoints");
+    } else {
+      logger.msg(Arc::ERROR, "Transfer FAILED: %s", std::string(res));
+    }
+    if (res.Retryable())
+      logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
+    return false;
+  }
+  return true;
+}
+
+
 bool arcregister(const Arc::URL& source_url,
                  const Arc::URL& destination_url,
                  const std::list<std::string>& locations,
@@ -375,7 +424,7 @@ bool arccp(const Arc::URL& source_url_,
           logger.msg(Arc::INFO, "Unsupported destination url: %s", d_url.str());
           continue;
         }
-        if (!locations.empty() && destination->IsIndex()) {
+        if (!locations.empty()) {
           std::string meta(destination->GetURL().Protocol()+"://"+destination->GetURL().Host());
           for (std::list<std::string>::const_iterator i = locations.begin(); i != locations.end(); ++i)
             destination->AddLocation(*i, meta);
@@ -449,7 +498,7 @@ bool arccp(const Arc::URL& source_url_,
                destination_url.str());
     return false;
   }
-  if (!locations.empty() && destination->IsIndex()) {
+  if (!locations.empty()) {
     std::string meta(destination->GetURL().Protocol()+"://"+destination->GetURL().Host());
     for (std::list<std::string>::const_iterator i = locations.begin(); i != locations.end(); ++i)
       destination->AddLocation(*i, meta);
@@ -565,6 +614,12 @@ int main(int argc, char **argv) {
                             " locations will be tried in order until one succeeds."),
                     istring("URL"), locations);
 
+  bool thirdparty = false;
+  options.AddOption('3', "thirdparty",
+                    istring("perform third party transfer, where the destination pulls"
+                            " from the source (only available with GFAL2 plugin)"),
+                    thirdparty);
+
   bool show_plugins = false;
   options.AddOption('P', "listplugins",
                     istring("list the available plugins (protocols supported)"),
@@ -647,7 +702,10 @@ int main(int argc, char **argv) {
 
   if (source == "-") source = "stdio:///stdin";
   if (destination == "-") destination = "stdio:///stdout";
-  if (nocopy) {
+  if (thirdparty) {
+    if (!arctransfer(source, destination, locations, usercfg, secure, passive, verbose, timeout))
+      return 1;
+  } else if (nocopy) {
     if(!arcregister(source, destination, locations, usercfg, secure, passive, force, timeout))
       return 1;
   } else {

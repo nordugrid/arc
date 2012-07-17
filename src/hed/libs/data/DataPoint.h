@@ -149,6 +149,9 @@ namespace Arc {
     : public Plugin {
   public:
 
+    /// Callback for use in 3rd party transfer.
+    typedef void(*Callback3rdParty)(unsigned long long int bytes_transferred);
+
     /// Describes the latency to access this URL
     /** For now this value is one of a small set specified
      *  by the enumeration. In the future with more sophisticated
@@ -375,6 +378,15 @@ namespace Arc {
      * protocols which support renaming as an atomic namespace operation.
      * \param newurl The new name for the URL */
     virtual DataStatus Rename(const URL& newurl) = 0;
+
+    /// Perform third party transfer.
+    /** Credentials are delegated to the destination and it pulls data from the
+     * source, i.e. data flows directly between source and destination instead
+     * of through the client. A callback function can be supplied to monitor
+     * progress.
+     * \param source Source URL to pull data from
+     * \param callback Optional monitoring callback */
+    virtual DataStatus Transfer3rdParty(const URL& source, Callback3rdParty callback = NULL);
 
     /// Allow/disallow DataPoint to produce scattered data during
     /// *reading* operation.

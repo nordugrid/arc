@@ -42,20 +42,19 @@ namespace Arc {
     // locations so Resolve and AddLocation must be implemented
     virtual DataStatus Resolve(bool source = true);
     virtual DataStatus AddLocation(const URL& url, const std::string& meta);
+    // 3rd party transfer (destination (this) pulls from source);
+    virtual DataStatus Transfer3rdParty(const URL& source, DataPoint::Callback3rdParty callback = NULL);
 
   private:
     DataStatus do_stat(const URL& stat_url, FileInfo& file);
-    void log_gfal_err();
     static void read_file_start(void *object);
     void read_file();
     static void write_file_start(void *object);
     void write_file();
-    std::string gfal_url(const URL& u) const;
     static Logger logger;
     int fd;
     bool reading;
     bool writing;
-    int error_no;
     SimpleCounter transfer_condition;
     std::string lfc_host;
     std::list<URLLocation> locations;

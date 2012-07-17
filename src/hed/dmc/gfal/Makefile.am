@@ -1,6 +1,8 @@
 pkglib_LTLIBRARIES = libdmcgfal.la
 
-libdmcgfal_la_SOURCES = DataPointGFAL.cpp DataPointGFAL.h
+libdmcgfal_la_SOURCES = DataPointGFAL.cpp DataPointGFAL.h \
+                        GFALTransfer3rdParty.cpp GFALTransfer3rdParty.h \
+                        GFALUtils.cpp GFALUtils.h
 libdmcgfal_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GFAL2_CFLAGS)
 libdmcgfal_la_LIBADD = \
@@ -8,5 +10,5 @@ libdmcgfal_la_LIBADD = \
 	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GFAL2_LIBS)
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GFAL2_LIBS) -lgfal_transfer # this last option will go away when gfal2 fixes pkg-config
 libdmcgfal_la_LDFLAGS = -no-undefined -avoid-version -module

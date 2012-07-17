@@ -27,6 +27,8 @@ if the destination is an indexing service and not the same as the source and the
 show progress indicator
 .IP "\fB-T\fR, \fB--notransfer\fR"
 do not transfer file, just register it - destination must be non-existing meta-url
+.IP "\fB-3\fR, \fB--thirdparty\fR"
+perform third party transfer, where the destination pulls from the source
 .IP "\fB-u\fR, \fB--secure\fR"
 use secure transfer (insecure by default)
 .IP "\fB-y\fR, \fB--cache\fR=\fIpath\fR"
@@ -80,12 +82,19 @@ In this case
 .B arccp
 performs like it were called multiple times - once for every URL.
 
+All data transfer goes through the machine of the caller of arccp, even in the
+case of two remote endpoints, unless the
+.B --thirdparty
+option is used. With this option credentials are delegated to the destination
+and it pulls the data directly from the source. Note that third-party transfer
+is only possible if the GFAL2 plugin is installed.
+
 Depending on the installed libraries (check with
 .B -P
 ), the following protocols may be used: file  (file://  prefix  may  be
 omitted), http, https, httpg, ftp, gsiftp, lfc, rls, srm. To connect 
 source or destination to standard input/output use '-' instead of URL.
- 
+
 .SH FILES
 
 .TP

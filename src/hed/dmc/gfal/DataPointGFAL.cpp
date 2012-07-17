@@ -30,6 +30,8 @@
 #include <arc/Utils.h>
 
 #include "DataPointGFAL.h"
+#include "GFALTransfer3rdParty.h"
+#include "GFALUtils.h"
 
 namespace Arc {
 
@@ -62,7 +64,7 @@ namespace Arc {
   Logger DataPointGFAL::logger(Logger::getRootLogger(), "DataPoint.GFAL");
 
   DataPointGFAL::DataPointGFAL(const URL& u, const UserConfig& usercfg, PluginArgument* parg)
-    : DataPointDirect(u, usercfg, parg), fd(-1), reading(false), writing(false), error_no(0) {
+    : DataPointDirect(u, usercfg, parg), fd(-1), reading(false), writing(false) {
       LogLevel loglevel = logger.getThreshold();
       if (loglevel == DEBUG)
         gfal_set_verbose (GFAL_VERBOSE_VERBOSE | GFAL_VERBOSE_DEBUG | GFAL_VERBOSE_TRACE);
@@ -131,11 +133,11 @@ namespace Arc {
     // Open the file
     {
       GFALEnvLocker gfal_lock(usercfg, lfc_host);
-      fd = gfal_open(gfal_url(url).c_str(), O_RDONLY, 0);
+      fd = gfal_open(GFALUtils::GFALURL(url).c_str(), O_RDONLY, 0);
     }
     if (fd < 0) {
       logger.msg(ERROR, "gfal_open failed: %s", StrError(errno));
-      log_gfal_err();
+      int error_no = GFALUtils::HandleGFALError(logger);
       reading = false;
       return DataStatus(DataStatus::ReadStartError, error_no);
     }
@@ -180,7 +182,7 @@ namespace Arc {
       // If there was an error
       if (bytes_read < 0) {
         logger.msg(ERROR, "gfal_read failed: %s", StrError(errno));
-        log_gfal_err();
+        GFALUtils::HandleGFALError(logger);
         buffer->error_read(true);
         break;
       }
@@ -247,9 +249,9 @@ namespace Arc {
       }
       // choose first location
       std::string location(locations.begin()->plainstr());
-      if (gfal_setxattr(gfal_url(url).c_str(), "user.replicas", location.c_str(), location.length(), 0) != 0) {
+      if (gfal_setxattr(GFALUtils::GFALURL(url).c_str(), "user.replicas", location.c_str(), location.length(), 0) != 0) {
         logger.msg(ERROR, "Failed to set LFC replicas: %s", StrError(gfal_posix_code_error()));
-        log_gfal_err();
+        int error_no = GFALUtils::HandleGFALError(logger);
         writing = false;
         return DataStatus(DataStatus::WriteStartError, error_no);
       }
@@ -257,7 +259,7 @@ namespace Arc {
     {
       GFALEnvLocker gfal_lock(usercfg, lfc_host);
       // Open the file
-      fd = gfal_open(gfal_url(url).c_str(), O_WRONLY | O_CREAT, 0600);
+      fd = gfal_open(GFALUtils::GFALURL(url).c_str(), O_WRONLY | O_CREAT, 0600);
     }
     if (fd < 0) {
       // If no entry try to create parent directories
@@ -273,15 +275,15 @@ namespace Arc {
         {
           GFALEnvLocker gfal_lock(usercfg, lfc_host);
           // gfal_mkdir is always recursive
-          if (gfal_mkdir(gfal_url(parent_url).c_str(), 0700) != 0 && gfal_posix_code_error() != EEXIST) {
+          if (gfal_mkdir(GFALUtils::GFALURL(parent_url).c_str(), 0700) != 0 && gfal_posix_code_error() != EEXIST) {
             logger.msg(INFO, "gfal_mkdir failed (%s), trying to write anyway", StrError(gfal_posix_code_error()));
           }
-          fd = gfal_open(gfal_url(url).c_str(), O_WRONLY | O_CREAT, 0600);
+          fd = gfal_open(GFALUtils::GFALURL(url).c_str(), O_WRONLY | O_CREAT, 0600);
         }
       }
       if (fd < 0) {
         logger.msg(ERROR, "gfal_open failed: %s", StrError(gfal_posix_code_error()));
-        log_gfal_err();
+        int error_no = GFALUtils::HandleGFALError(logger);
         writing = false;
         return DataStatus(DataStatus::WriteStartError, error_no);
       }
@@ -356,7 +358,7 @@ namespace Arc {
       // if there was an error during writing
       if (bytes_written < 0) {
         logger.msg(ERROR, "gfal_write failed: %s", StrError(gfal_posix_code_error()));
-        log_gfal_err();
+        GFALUtils::HandleGFALError(logger);
         buffer->error_write(true);
         break;
       }
@@ -401,11 +403,11 @@ namespace Arc {
     int res;
     {
       GFALEnvLocker gfal_lock(usercfg, lfc_host);
-      res = gfal_stat(gfal_url(url).c_str(), &st);
+      res = gfal_stat(GFALUtils::GFALURL(url).c_str(), &st);
     }
     if (res < 0) {
       logger.msg(ERROR, "gfal_stat failed: %s", StrError(gfal_posix_code_error()));
-      log_gfal_err();
+      int error_no = GFALUtils::HandleGFALError(logger);
       return DataStatus(DataStatus::StatError, error_no);
     }
 
@@ -475,11 +477,11 @@ namespace Arc {
     DIR *dir;    
     {
       GFALEnvLocker gfal_lock(usercfg, lfc_host);
-      dir = gfal_opendir(gfal_url(url).c_str());
+      dir = gfal_opendir(GFALUtils::GFALURL(url).c_str());
     }
     if (!dir) {
       logger.msg(ERROR, "gfal_opendir failed: %s", StrError(gfal_posix_code_error()));
-      log_gfal_err();
+      int error_no = GFALUtils::HandleGFALError(logger);
       return DataStatus(DataStatus::ListError, error_no);
     }
     
@@ -507,6 +509,7 @@ namespace Arc {
     // Then close the dir
     if (gfal_closedir (dir) < 0) {
       logger.msg(WARNING, "gfal_closedir failed: %s", StrError(gfal_posix_code_error()));
+      int error_no = GFALUtils::HandleGFALError(logger);
       return DataStatus(DataStatus::ListError, error_no);
     }
     
@@ -526,9 +529,9 @@ namespace Arc {
       GFALEnvLocker gfal_lock(usercfg, lfc_host);
 
       if (file.GetType() == FileInfo::file_type_dir) {
-        res = gfal_rmdir(gfal_url(url).c_str());
+        res = gfal_rmdir(GFALUtils::GFALURL(url).c_str());
       } else {
-        res = gfal_unlink(gfal_url(url).c_str());
+        res = gfal_unlink(GFALUtils::GFALURL(url).c_str());
       }
     }
     if (res < 0) {
@@ -538,7 +541,7 @@ namespace Arc {
       else {
         logger.msg(ERROR, "gfal_unlink failed: %s", StrError(gfal_posix_code_error()));
       }
-      log_gfal_err();
+      int error_no = GFALUtils::HandleGFALError(logger);
       return DataStatus(DataStatus::DeleteError, error_no);
     }
     return DataStatus::Success;
@@ -550,11 +553,11 @@ namespace Arc {
     {
       GFALEnvLocker gfal_lock(usercfg, lfc_host);
       // gfal_mkdir is always recursive
-      res = gfal_mkdir(gfal_url(url).c_str(), 0700);
+      res = gfal_mkdir(GFALUtils::GFALURL(url).c_str(), 0700);
     }
     if (res < 0) {
       logger.msg(ERROR, "gfal_mkdir failed: %s", StrError(gfal_posix_code_error()));
-      log_gfal_err();
+      int error_no = GFALUtils::HandleGFALError(logger);
       return DataStatus(DataStatus::CreateDirectoryError, error_no);
     }
     return DataStatus::Success;    
@@ -565,31 +568,20 @@ namespace Arc {
     int res;
     {
       GFALEnvLocker gfal_lock(usercfg, lfc_host);
-      res = gfal_rename(gfal_url(url).c_str(), gfal_url(newurl).c_str());
+      res = gfal_rename(GFALUtils::GFALURL(url).c_str(), GFALUtils::GFALURL(newurl).c_str());
     }
     if (res < 0) {
       logger.msg(ERROR, "gfal_rename failed: %s", StrError(gfal_posix_code_error()));
-      log_gfal_err();
+      int error_no = GFALUtils::HandleGFALError(logger);
       return DataStatus(DataStatus::RenameError, error_no);
     }
     return DataStatus::Success;
   }
 
-  std::string DataPointGFAL::gfal_url(const URL& u) const {
-    std::string gfalurl;
-    if (u.Protocol() != "lfc") gfalurl = u.plainstr();
-    else if (u.MetaDataOption("guid").empty()) gfalurl = "lfn:" + u.Path();
-    else gfalurl = "guid:" + u.MetaDataOption("guid");
-    return gfalurl;
-  }
+  DataStatus DataPointGFAL::Transfer3rdParty(const URL& source, DataPoint::Callback3rdParty callback) {
 
-  void DataPointGFAL::log_gfal_err() {
-    // Set errno before error is cleared from gfal
-    error_no = gfal_posix_code_error();
-    char errbuf[2048];
-    gfal_posix_strerror_r(errbuf, sizeof(errbuf));
-    logger.msg(ERROR, errbuf);
-    gfal_posix_clear_error();
+    GFALTransfer3rdParty transfer(source, url, callback);
+    return transfer.Transfer();
   }
 
 } // namespace Arc

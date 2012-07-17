@@ -107,6 +107,10 @@ namespace Arc {
     return DataStatus::Success;
   }
 
+  DataStatus DataPoint::Transfer3rdParty(const URL& source, Callback3rdParty callback) {
+    return DataStatus::UnimplementedError;
+  }
+
   DataStatus DataPoint::GetFailureReason() const {
     return failure_code;
   }
