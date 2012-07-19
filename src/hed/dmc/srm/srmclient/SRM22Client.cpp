@@ -903,7 +903,7 @@ namespace Arc {
           // we can only handle too many results if a single directory was listed
           if (surls.size() > 1) {
             logger.msg(ERROR, "Too many files in one request - please try again with fewer files");
-            return EOVERFLOW;
+            return EARCRESINVAL;
           }
           break;
         }
@@ -1670,7 +1670,7 @@ namespace Arc {
         return EEXIST;
 
       case SRM_TOO_MANY_RESULTS:
-        return EOVERFLOW;
+        return EARCRESINVAL;
 
       case SRM_INTERNAL_ERROR:
       case SRM_FILE_UNAVAILABLE:
