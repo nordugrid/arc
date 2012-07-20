@@ -276,7 +276,7 @@ sub process_dqueues($$%){
 	@dqnames=split(",",$qstat{'route_destinations'});
 	@dqueues{@dqnames}=undef;
 	foreach my $dqname ( keys %dqueues ) {
-	    debug($dqname);
+	    debug("Processing queues behind routing queue. Current queue is $dqname");
 	    my (%dqstat);
 	    unless (open QSTATOUTPUT,   "$path/qstat -Q -f $dqname 2>/dev/null |") {
 		error("Error in executing qstat: $path/qstat -Q -f $dqname");
@@ -302,7 +302,7 @@ sub process_dqueues($$%){
     # this happens only if the RQ has no data defined on PBS
     # this should solve bug #859
     $singledqueue=shift(@dqnames);
-    debug('Just one queue: '.$singledqueue);
+    debug('Just one queue behind routing queue is currently supported: '.$singledqueue);
     my @attributes=(
 	'max_running',
 	'max_user_run',
@@ -316,7 +316,9 @@ sub process_dqueues($$%){
 	'state_count'
 	);
     foreach my $rkey (@attributes) {
-	debug('with key '.$rkey.' qstat returns '.$qstat{$rkey}.' and the dest. queue has '.$dqueues{$singledqueue}{$rkey} );
+        # line to check queues under routing queue values. Undefined values generate crap in logs,
+        # so is commented out.
+	# debug('with key '.$rkey.' qstat returns '.$qstat{$rkey}.' and the dest. queue has '.$dqueues{$singledqueue}{$rkey} );
 	if (!defined $qstat{$rkey}) {${$_[0]}{$rkey}=$dqueues{$singledqueue}{$rkey};};
     }
     return %dqueues;
@@ -578,7 +580,7 @@ sub queue_info ($$) {
 	# refresh routing queue records, in case something changed on the
 	# destination queues
 	if ($qstat{queue_type} =~ /Route/) {
-	    debug("For the 2nd time, queue type is $qstat{queue_type}");
+	    debug("CPUs calculation pass. Queues are scanned a second time. Current queue is: $qstat{queue_type}");
 	    %dqueues = process_dqueues($qname,$path,\%qstat);
 	    # this variable contains the single destination queue
 	    $singledqueue = ( keys %dqueues )[0];
@@ -632,7 +634,7 @@ sub queue_info ($$) {
 	}
 	$lrms_queue{totalcpus} = $torque_totalcpus;
 
-	debug($lrms_queue{totalcpus});
+	debug("Totalcpus for all queues are: $lrms_queue{totalcpus}");
 
 	if(defined $$config{totalcpus}){
 	    if ($lrms_queue{totalcpus} eq "" or $$config{totalcpus} < $lrms_queue{totalcpus}) {
@@ -926,15 +928,12 @@ sub users_info($$@) {
 	}
         # added to support routing queues
         if (!$acl_user_enable){
-	    if ($line =~ /\s*route_destinations\s=\s(.*)$/) {
-		@dqueues=split (',',$1);
-		$singledqueue=shift(@dqueues);
-		debug('local user acl taken from destination queue: '.$singledqueue);
-		$isrouting = 1;
-	    } else {
-		undef @dqueues;
-		undef $singledqueue;
-	    }
+	      if ($line =~ /\s*route_destinations\s=\s(.*)$/) {
+		    @dqueues=split (',',$1);
+		    $singledqueue=shift(@dqueues);
+		    warning('Routing queue did not have acl information. Local user acl taken from destination queue: '.$singledqueue);
+		    $isrouting = 1;
+	      }
         }
     }
     close QSTATOUTPUT;
@@ -944,7 +943,7 @@ sub users_info($$@) {
     # we proceed same way as before but on the first
     # destination queue to propagate the info to the routing one
     if ($isrouting){
-        debug('Getting acl from destination queue');
+        debug("Getting acl from destination queue $singledqueue");
         # Check that users have access to the queue
         unless (open QSTATOUTPUT,   "$path/qstat -f -Q $singledqueue 2>/dev/null |") {
 	    error("Error in executing qstat on destination queue: $path/qstat -f -Q $singledqueue");
