@@ -1477,13 +1477,14 @@ AC_SUBST(LFC_LIBS)
 
 AC_ARG_ENABLE(gfal, AC_HELP_STRING([--enable-gfal], [enable the GFAL support, default is disable]),[enables_gfal="$enableval"],[])
 if test "x$enables_gfal" = "xyes"; then
-  PKG_CHECK_MODULES(GFAL2, gfal2, [], [enables_gfal="no"])
+  PKG_CHECK_MODULES(GFAL2, gfal_transfer, [], [enables_gfal="no"])
   AC_SUBST(GFAL2_CFLAGS)
   AC_SUBST(GFAL2_LIBS)
 
   SAVE_CPPFLAGS=$CPPFLAGS
   CPPFLAGS="$CPPFLAGS $GFAL2_CFLAGS"
   AC_CHECK_HEADER(gfal_api.h, [], [enables_gfal="no"])
+  AC_CHECK_HEADER(transfer/gfal_transfer.h, [], [enables_gfal="no"])
   CPPFLAGS=$SAVE_CPPFLAGS
 
   SAVE_LDFLAGS=$LDFLAGS

@@ -10,5 +10,5 @@ libdmcgfal_la_LIBADD = \
 	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GFAL2_LIBS) -lgfal_transfer # this last option will go away when gfal2 fixes pkg-config
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GFAL2_LIBS)
 libdmcgfal_la_LDFLAGS = -no-undefined -avoid-version -module
