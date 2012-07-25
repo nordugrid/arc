@@ -836,6 +836,11 @@ void InfoRegistrar::sendRegistrationToEMIREG() {
                     tmp_message += ",";
                 }
                 tmp_message += "{";
+                // Mandatory attributes are here: https://twiki.cern.ch/twiki/bin/view/EMI/EMIRSERDesc
+                // Service_ID
+                tmp_message += "\"Service_ID\":\"";
+                tmp_message += (std::string)node["SrcAdv"]["EPR"]["Address"];
+                tmp_message += "\"";
                 // Service_Name
                 if ( ((std::string)node["SrcAdv"]["Type"]).find("org.nordugrid.execution") != std::string::npos){
                     tmp_message += "\"Service_Name\":\"ComputingService\",";
@@ -854,9 +859,29 @@ void InfoRegistrar::sendRegistrationToEMIREG() {
                 tmp_message += "\"Service_Type\":\"";
                 tmp_message += (std::string)node["SrcAdv"]["Type"];
                 tmp_message += "\",";
+                //Service_Endpoint_ID
+                tmp_message += "\"Service_Endpoint_ID\":\"";
+                tmp_message += (std::string)node["SrcAdv"]["EPR"]["Address"];
+                tmp_message += "\"";
                 //Service_Endpoint_URL
                 tmp_message += "\"Service_Endpoint_URL\":\"";
                 tmp_message += (std::string)node["SrcAdv"]["EPR"]["Address"];
+                tmp_message += "\"";
+                //Service_Endpoint_Capability
+                tmp_message += "\"Service_Endpoint_Capability\":[\"";
+                tmp_message += "N/A";	//TODO: set capability values
+                tmp_message += "]\"";
+                //Service_Endpoint_Technology
+                tmp_message += "\"Service_Endpoint_Technology\":\"";
+                tmp_message += "N/A";	//TODO: set technology values
+                tmp_message += "\"";
+                //Service_Endpoint_InterfaceName
+                tmp_message += "\"Service_Endpoint_InterfaceName\":\"";
+                tmp_message += "N/A";	//TODO: set InterfaceName values
+                tmp_message += "\"";
+                //Service_Endpoint_InterfaceVersion
+                tmp_message += "\"Service_Endpoint_InterfaceVersion\":\"";
+                tmp_message += "N/A";	//TODO: set InterfaceVersion values
                 tmp_message += "\"";
                 if (already_registered){
                     // Service_ExpireOn
