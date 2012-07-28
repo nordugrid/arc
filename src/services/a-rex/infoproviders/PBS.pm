@@ -87,16 +87,16 @@ sub split_hostlist {
     my @nodes;
     my $err;
     for my $nodespec (split '\+', $exec_host_string) {
-	if ($nodespec =~ m{^([^/:]+)/\d+(?:\*(\d+))?$}) {  # cases (1) and (2)
-	    my ($nodename, $multiplier) = ($1, $2 || 1);
-	    push @nodes, $nodename for 1..$multiplier;
-	} elsif ($nodespec =~ m{^([^/:]+)(?::(.+))?$}) {  # cases (3) and (4)
-	    my ($nodename, $resc) = ($1, $2 || '');
-	    my $multiplier = get_ncpus($resc);
-	    push @nodes, $nodename for 1..$multiplier;
-	} else {
-	    $err = $nodespec;
-	}
+        if ($nodespec =~ m{^([^/:]+)/\d+(?:\*(\d+))?$}) {  # cases (1) and (2)
+            my ($nodename, $multiplier) = ($1, $2 || 1);
+            push @nodes, $nodename for 1..$multiplier;
+        } elsif ($nodespec =~ m{^([^/:]+)(?::(.+))?$}) {  # cases (3) and (4)
+            my ($nodename, $resc) = ($1, $2 || '');
+            my $multiplier = get_ncpus($resc);
+            push @nodes, $nodename for 1..$multiplier;
+        } else {
+            $err = $nodespec;
+        }
     }
     warning("failed counting nodes in expression: $exec_host_string") if $err;
     return @nodes;
@@ -345,23 +345,22 @@ sub cluster_info ($) {
     #determine the flavour and version of PBS"
     my $qmgr_string=`$path/qmgr -c "list server"`;
     if ( $? != 0 ) {    
-	warning("Can't run qmgr");
+        warning("Can't run qmgr");
     }
     if ($qmgr_string =~ /pbs_version = \b(\D+)_(\d\S+)\b/) {
-      $lrms_cluster{lrms_type} = $1;
-      $lrms_cluster{lrms_glue_type}=lc($1);
-      $lrms_cluster{lrms_version} = $2;
-    }
-    else {
-	$qmgr_string =~ /pbs_version = \b(\d\S+)\b/;
-	$lrms_cluster{lrms_type}="torque";
-	if (exists $$config{scheduling_policy} and
-	    lc($$config{scheduling_policy}) eq "maui") {
-	    $lrms_cluster{lrms_glue_type}="torquemaui"
-	} else {
-	    $lrms_cluster{lrms_glue_type}="torque";
-	}
-	$lrms_cluster{lrms_version}=$1;
+        $lrms_cluster{lrms_type} = $1;
+        $lrms_cluster{lrms_glue_type}=lc($1);
+        $lrms_cluster{lrms_version} = $2;
+    } else {
+        $qmgr_string =~ /pbs_version = \b(\d\S+)\b/;
+        $lrms_cluster{lrms_type}="torque";
+        if (exists $$config{scheduling_policy} and
+        lc($$config{scheduling_policy}) eq "maui") {
+            $lrms_cluster{lrms_glue_type}="torquemaui"
+        } else {
+            $lrms_cluster{lrms_glue_type}="torque";
+        }
+        $lrms_cluster{lrms_version}=$1;
     }
 
     # PBS treats cputime limit for parallel/multi-cpu jobs as job-total
@@ -378,55 +377,56 @@ sub cluster_info ($) {
     my ($number_of_running_jobs) = 0;
     $lrms_cluster{cpudistribution} = "";
     my (@cpudist) = 0;
+    my %available_nodes = ();
 
-    foreach my $node (keys %hoh_pbsnodes){
+    # loop over all available nodes 
+    foreach my $node (keys %hoh_pbsnodes) {
+        # skip nodes that does not conform dedicated_node_string filter
+        if ( exists $$config{dedicated_node_string} &&  $$config{dedicated_node_string} ne "") {
+            next unless ( $hoh_pbsnodes{$node}{"properties"} =~ 
+                m/^([^,]+,)*$$config{dedicated_node_string}(,[^,]+)*$/);
+        }
 
-	if ( exists $$config{dedicated_node_string} &&  $$config{dedicated_node_string} ne "") {
-	    unless ( $hoh_pbsnodes{$node}{"properties"} =~
-		     m/^([^,]+,)*$$config{dedicated_node_string}(,[^,]+)*$/) {
-		next;
-	    }
-	}
+        # add node to available_nodes hash
+        $available_nodes{$node} = 1;
 
-	my ($nodestate) = $hoh_pbsnodes{$node}{"state"};      
+        # get node state and number of CPUs
+        my ($nodestate) = $hoh_pbsnodes{$node}{"state"};
 
-	my $nodecpus;
+        my $nodecpus;
         if ($hoh_pbsnodes{$node}{'np'}) {
-	    $nodecpus = $hoh_pbsnodes{$node}{'np'};
+            $nodecpus = $hoh_pbsnodes{$node}{'np'};
         } elsif ($hoh_pbsnodes{$node}{'resources_available.ncpus'}) {
-	    $nodecpus = $hoh_pbsnodes{$node}{'resources_available.ncpus'};
+            $nodecpus = $hoh_pbsnodes{$node}{'resources_available.ncpus'};
         }
 
-	if ($nodestate=~/down/ or $nodestate=~/offline/) {
-	    next;
-	}
+        next if ($nodestate=~/down/ or $nodestate=~/offline/);
+
         if ($nodestate=~/(?:,|^)busy/) {
-           $lrms_cluster{totalcpus} += $nodecpus;
-	   $cpudist[$nodecpus] +=1;
-	   $number_of_running_jobs += $nodecpus;
-	   next;
+            $lrms_cluster{totalcpus} += $nodecpus;
+            $cpudist[$nodecpus] +=1;
+            $number_of_running_jobs += $nodecpus;
+            next;
         }
-	
 
-	$lrms_cluster{totalcpus} += $nodecpus;
+        $lrms_cluster{totalcpus} += $nodecpus;
+        $cpudist[$nodecpus] += 1;
 
-	$cpudist[$nodecpus] += 1;
-
-	if ($hoh_pbsnodes{$node}{"jobs"}){
-	    $number_of_running_jobs++;
-	    my ( @comma ) = ($hoh_pbsnodes{$node}{"jobs"}=~ /,/g);
-	    $number_of_running_jobs += @comma;
-	} 
+        if ($hoh_pbsnodes{$node}{"jobs"}){
+            $number_of_running_jobs++;
+            my ( @comma ) = ($hoh_pbsnodes{$node}{"jobs"}=~ /,/g);
+            $number_of_running_jobs += @comma;
+        }
     }      
 
+    # form LRMS cpudistribution string
     for (my $i=0; $i<=$#cpudist; $i++) {
-	next unless ($cpudist[$i]);  
-	$lrms_cluster{cpudistribution} .= " ".$i."cpu:".$cpudist[$i];
+        next unless ($cpudist[$i]);  
+        $lrms_cluster{cpudistribution} .= " ".$i."cpu:".$cpudist[$i];
     }
 
     # read the qstat -n information about all jobs
     # queued cpus, total number of cpus in all jobs
-
     $lrms_cluster{usedcpus} = 0;
     $lrms_cluster{queuedcpus} = 0;
     $lrms_cluster{queuedjobs} = 0;
@@ -434,18 +434,24 @@ sub cluster_info ($) {
 
     my %qstat_jobs = read_qstat_f($path);
 
-    for my $key (keys %qstat_jobs){
-	if ( $qstat_jobs{$key}{job_state} =~ /R/){
-	    $lrms_cluster{runningjobs}++;
-	    my @nodes = split_hostlist($qstat_jobs{$key}{exec_host});
-	    $lrms_cluster{usedcpus} += @nodes;
-	}
-	if ( $qstat_jobs{$key}{job_state} =~ /(W|T|Q)/){
-        $lrms_cluster{queuedjobs}++;
-        $lrms_cluster{queuedcpus}+=count_usedcpus($qstat_jobs{$key}{"Resource_List.select"},
-						  $qstat_jobs{$key}{"Resource_List.nodes"},
-						  $qstat_jobs{$key}{"Resource_List.ncpus"});
-	}
+    for my $key (keys %qstat_jobs) {
+        # usercpus (running jobs)
+        if ( $qstat_jobs{$key}{job_state} =~ /R/) {
+            $lrms_cluster{runningjobs}++;
+            my @nodes = split_hostlist($qstat_jobs{$key}{exec_host});
+            # filter using dedicated_node_string
+            foreach my $node ( @nodes ) {
+                next unless defined $available_nodes{$node};
+                $lrms_cluster{usedcpus}++;
+            }
+        }
+        # 
+        if ( $qstat_jobs{$key}{job_state} =~ /(W|T|Q)/) {
+            $lrms_cluster{queuedjobs}++;
+            $lrms_cluster{queuedcpus}+=count_usedcpus($qstat_jobs{$key}{"Resource_List.select"},
+                    $qstat_jobs{$key}{"Resource_List.nodes"},
+                    $qstat_jobs{$key}{"Resource_List.ncpus"});
+        }
     }
 
     # Names of all LRMS queues
