@@ -528,7 +528,7 @@ namespace Arc {
                 "If the proxy or certificate/key does exist, please manually specify the locations via env\n"
                 "X509_USER_CERT/X509_USER_KEY or X509_USER_PROXY, or the certificatepath/keypath or proxypath\n"
                 "item in client.conf\n"
-                "If the certificate/key does exists, and proxy is needed to be generated, please\n"
+                "If the certificate/key does exist, and proxy is needed to be generated, please\n"
                 "use arcproxy utility to create a proxy certificate.", ArcLocation::Get()
               );
               if(require) {
@@ -580,7 +580,7 @@ namespace Arc {
                         "%s/etc/certificates, %s/etc/grid-security/certificates,\n"
                         "%s/share/certificates, /etc/grid-security/certificates.\n"
                         "The certificate will not be verified.\n"
-                        "If the CA certificates directory does does exist, please manually specify the locations via env\n"
+                        "If the CA certificates directory does exist, please manually specify the locations via env\n"
                         "X509_CERT_DIR, or the cacertificatesdirectory item in client.conf\n", 
                         ArcLocation::Get(), ArcLocation::Get(), ArcLocation::Get());
                       res = false;
