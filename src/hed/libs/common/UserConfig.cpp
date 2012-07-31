@@ -525,8 +525,11 @@ namespace Arc {
                 "improper permissions/ownership and usercert.pem/userkey.pem not found\n"
                 "at default locations:\n"
                 "~/.arc/, ~/.globus/, %s/etc/arc, and ./.\n"
-                "Please manually specify the proxy or certificate/key locations, or use\n"
-                "arcproxy utility to create a proxy certificate.", ArcLocation::Get()
+                "If the proxy or certificate/key does exist, please manually specify the locations via env\n"
+                "X509_USER_CERT/X509_USER_KEY or X509_USER_PROXY, or the certificatepath/keypath or proxypath\n"
+                "item in client.conf\n"
+                "If the certificate/key does exists, and proxy is needed to be generated, please\n"
+                "use arcproxy utility to create a proxy certificate.", ArcLocation::Get()
               );
               if(require) {
                 res = false;
@@ -576,7 +579,9 @@ namespace Arc {
                         "~/.arc/certificates, ~/.globus/certificates,\n"
                         "%s/etc/certificates, %s/etc/grid-security/certificates,\n"
                         "%s/share/certificates, /etc/grid-security/certificates.\n"
-                        "The certificate will not be verified.", 
+                        "The certificate will not be verified.\n"
+                        "If the CA certificates directory does does exist, please manually specify the locations via env\n"
+                        "X509_CERT_DIR, or the cacertificatesdirectory item in client.conf\n", 
                         ArcLocation::Get(), ArcLocation::Get(), ArcLocation::Get());
                       res = false;
                     }
