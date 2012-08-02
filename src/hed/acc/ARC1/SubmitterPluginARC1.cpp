@@ -75,10 +75,11 @@ namespace Arc {
       if (activityIdentifier["ReferenceParameters"]["a-rex:JobID"]) { // Service seems to be A-REX. Extract job ID, and upload files.
         jobid = URL((std::string)(activityIdentifier["ReferenceParameters"]["JobSessionDir"]));
         // compensate for time between request and response on slow networks
-        jobid.AddOption("threads=2",false);
-        jobid.AddOption("encryption=optional",false);
+        URL sessionurl = jobid;
+        sessionurl.AddOption("threads=2",false);
+        sessionurl.AddOption("encryption=optional",false);
     
-        if (!PutFiles(preparedjobdesc, jobid)) {
+        if (!PutFiles(preparedjobdesc, sessionurl)) {
           logger.msg(INFO, "Failed uploading local input files");
           notSubmitted.push_back(&*it);
           ok = false;
@@ -91,7 +92,7 @@ namespace Arc {
           jobid = url;
         }
         Time t;
-        // Since BES doesn't specify a simple unique ID, but rather an EPR, a unique non-reproduceable (to arcsync) job ID is create below.
+        // Since BES doesn't specify a simple unique ID, but rather an EPR, a unique non-reproduceable (to arcsync) job ID is created below.
         jobid.ChangePath(jobid.Path() + "/BES" + tostring(t.GetTime()) + tostring(t.GetTimeNanosec()));
       }
     
@@ -176,7 +177,11 @@ namespace Arc {
     XMLNode xNewjobid(sNewjobid);
     URL newjobid((std::string)(xNewjobid["ReferenceParameters"]["JobSessionDir"]));
 
-    if (!PutFiles(preparedjobdesc, newjobid)) {
+    URL sessionurl = newjobid;
+    sessionurl.AddOption("threads=2",false);
+    sessionurl.AddOption("encryption=optional",false);
+
+    if (!PutFiles(preparedjobdesc, sessionurl)) {
       logger.msg(INFO, "Failed uploading local input files");
       clients.release(ac);
       return false;
