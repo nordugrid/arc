@@ -61,12 +61,24 @@ namespace Arc {
 
     for (std::map<std::string, std::list<Job*> >::iterator hostit =
            jobsbyhost.begin(); hostit != jobsbyhost.end(); ++hostit) {
-      URL infourl((*hostit->second.begin())->IDFromEndpoint);
+             
+      std::list<Job*> &jobsOnHost = hostit->second;
+      while (!jobsOnHost.empty()) {
+        logger.msg(DEBUG, "Jobs left to query: %d", jobsOnHost.size());
+        // Move the first 1000 element of jobsOnHost into batch
+        std::list<Job*> batch = std::list<Job*>();
+        for (int i = 0; i < 1000; i++) {
+          if (!jobsOnHost.empty()) {
+            batch.push_back(jobsOnHost.front());
+            jobsOnHost.pop_front();
+          }
+        }
+        logger.msg(DEBUG, "Querying batch with %d jobs", batch.size());
+      URL infourl(batch.front()->IDFromEndpoint);
 
       // merge filters
       std::string filter = "(|";
-      for (std::list<Job*>::iterator it = hostit->second.begin();
-           it != hostit->second.end(); ++it) {
+      for (std::list<Job*>::iterator it = batch.begin(); it != batch.end(); ++it) {
         filter += URL((*it)->IDFromEndpoint).LDAPFilter();
       }
       filter += ")";
@@ -102,8 +114,8 @@ namespace Arc {
       XMLNodeList jobinfolist =
         xmlresult.Path("o/Mds-Vo-name/nordugrid-cluster-name/nordugrid-queue-name/nordugrid-info-group-name/nordugrid-job-globalid");
 
-      for (std::list<Job*>::iterator jit = hostit->second.begin();
-           jit != hostit->second.end(); ++jit) {
+      for (std::list<Job*>::iterator jit = batch.begin();
+           jit != batch.end(); ++jit) {
         XMLNodeList::iterator xit = jobinfolist.begin();
         for (; xit != jobinfolist.end(); ++xit) {
           if ((std::string)(*xit)["nordugrid-job-globalid"] == (*jit)->JobID.str()) {
@@ -206,6 +218,7 @@ namespace Arc {
 
         jobinfolist.erase(xit);
         IDsProcessed.push_back((*jit)->JobID);
+        }   
       }
     }
   }
