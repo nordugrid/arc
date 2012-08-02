@@ -28,8 +28,8 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 
-int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> rejectDiscoveryURLs, const std::string& jobidfile);
-int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> rejectDiscoveryURLs);
+static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> rejectDiscoveryURLs, const std::list<std::string> requestedSubmissionInterfaces, const std::string& jobidfile);
+static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> rejectDiscoveryURLs, const std::list<std::string> requestedSubmissionInterfaces);
 
 int RUNMAIN(arcsub)(int argc, char **argv) {
 
@@ -170,21 +170,33 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
 
   std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
 
+  std::list<std::string> rsi;
+  if(!opt.requestedSubmissionInterfaceName.empty()) rsi.push_back(opt.requestedSubmissionInterfaceName);
+
   if (opt.dumpdescription) {
-    return dumpjobdescription(usercfg, jobdescriptionlist, services, rejectDiscoveryURLs);
+    return dumpjobdescription(usercfg, jobdescriptionlist, services, rejectDiscoveryURLs, rsi);
   }
 
-  return submit(usercfg, jobdescriptionlist, services, rejectDiscoveryURLs, opt.jobidoutfile);
+  return submit(usercfg, jobdescriptionlist, services, rejectDiscoveryURLs, rsi, opt.jobidoutfile);
 }
 
-void printjobid(const std::string& jobid, const std::string& jobidfile) {
+static void printjobid(const std::string& jobid, const std::string& jobidfile) {
   if (!jobidfile.empty())
     if (!Arc::Job::WriteJobIDToFile(jobid, jobidfile))
       logger.msg(Arc::WARNING, "Cannot write jobid (%s) to file (%s)", jobid, jobidfile);
   std::cout << Arc::IString("Job submitted with jobid: %s", jobid) << std::endl;
 }
 
-int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> rejectDiscoveryURLs, const std::string& jobidfile) {
+static bool match_submission_interface(const Arc::ExecutionTarget& target, const std::list<std::string>& requestedSubmissionInterfaces) {
+  if(requestedSubmissionInterfaces.empty()) return true;
+  for(std::list<std::string>::const_iterator iname = requestedSubmissionInterfaces.begin();
+                iname != requestedSubmissionInterfaces.end();++iname) {
+    if(*iname == target.ComputingEndpoint->InterfaceName) return true;
+  }
+  return false;
+}
+
+static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> rejectDiscoveryURLs, const std::list<std::string> requestedSubmissionInterfaces, const std::string& jobidfile) {
   int retval = 0;
 
   std::list<std::string> preferredInterfaceNames;
@@ -226,6 +238,7 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
     broker.set(*itJ);
     Arc::ExecutionTargetSet etSet(broker, csr);
     for (Arc::ExecutionTargetSet::iterator itET = etSet.begin(); itET != etSet.end(); ++itET) {
+      if(!match_submission_interface(*itET,requestedSubmissionInterfaces)) continue;
       if (itET->Submit(usercfg, *itJ, submittedJobs.back())) {
         printjobid(submittedJobs.back().JobID.fullstr(), jobidfile);
         descriptionSubmitted = true;
@@ -306,7 +319,7 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
   return retval;
 }
 
-int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> rejectDiscoveryURLs) {
+static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> rejectDiscoveryURLs, const std::list<std::string> requestedSubmissionInterfaces) {
   int retval = 0;
 
   std::list<std::string> preferredInterfaceNames;
@@ -352,6 +365,7 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
     
     Arc::ExecutionTargetSet::iterator itET = ets.begin();
     for (; itET != ets.end(); ++itET) {
+      if(!match_submission_interface(*itET,requestedSubmissionInterfaces)) continue;
       if (!jobdescdump.Prepare(*itET)) {
         logger.msg(Arc::INFO, "Unable to prepare job description according to needs of the target resource (%s).", itET->ComputingEndpoint->URLString); 
         continue;
