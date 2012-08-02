@@ -136,7 +136,6 @@ int RUNMAIN(arcget)(int argc, char **argv) {
   unsigned int retrieved_num = jobmaster.GetIDsProcessed().size();
   unsigned int notretrieved_num = jobmaster.GetIDsNotProcessed().size();
   unsigned int cleaned_num = 0;
-std::cerr<<"--------- "<<retrieved_num<<"  "<<notretrieved_num<<std::endl;
 
   if (!opt.keep) {
     std::list<Arc::URL> retrieved = jobmaster.GetIDsProcessed();
@@ -148,7 +147,6 @@ std::cerr<<"--------- "<<retrieved_num<<"  "<<notretrieved_num<<std::endl;
       retval = 1;
     }
     cleaned_num = jobmaster.GetIDsProcessed().size();
-std::cerr<<"--------- "<<cleaned_num<<std::endl;
 
     if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), jobmaster.GetIDsProcessed())) {
       std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
