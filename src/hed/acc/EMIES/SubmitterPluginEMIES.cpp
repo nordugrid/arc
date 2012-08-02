@@ -128,6 +128,11 @@ namespace Arc {
             continue;
           }
         }
+        // Enhance file upload performance by tuning URL
+        if((jobid.stagein.Protocol() == "https") || (jobid.stagein.Protocol() == "http")) {
+          jobid.stagein.AddOption("threads=2",false);
+          jobid.stagein.AddOption("encryption=optional",false);
+        }
         if (!PutFiles(preparedjobdesc, jobid.stagein)) {
           logger.msg(INFO, "Failed uploading local input files");
           notSubmitted.push_back(&*it);

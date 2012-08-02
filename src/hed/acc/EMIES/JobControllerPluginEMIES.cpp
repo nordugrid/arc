@@ -186,6 +186,11 @@ namespace Arc {
     default:
       break;
     }
+    if(url && ((url.Protocol() == "https") || (url.Protocol() == "http"))) {
+      url.AddOption("threads=2",false);
+      url.AddOption("encryption=optional",false);
+    }
+
     return true;
   }
 
