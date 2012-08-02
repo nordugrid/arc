@@ -1,33 +1,36 @@
+2012-08-02  Martin Skou Andersen <skou@nbi.ku.dk>
+
+  * Adding possibility to format the CE specific job state string (fixes bug
+    2847)
+
 2012-07-17  David Cameron  <d.g.cameron@fys.uio.no>
 
-	* Implement 3rd party transfer in data library and arccp using GFAL DMC
+  * Implement 3rd party transfer in data library and arccp using GFAL DMC
 
 2012-07-13  David Cameron  <d.g.cameron@fys.uio.no>
 
-	* Add errno-like field to DataStatus class
+  * Add errno-like field to DataStatus class
 
 2012-06-28  David Cameron  <d.g.cameron@fys.uio.no>
 
-	* Improved formatting of arcls -l by aligning columns 
+  * Improved formatting of arcls -l by aligning columns 
 
 2012-06-20  David Cameron  <d.g.cameron@fys.uio.no>
 
-	* Add arcrename command and DataPoint::Rename() 
+  * Add arcrename command and DataPoint::Rename() 
 
 2012-06-08  David Cameron  <d.g.cameron@fys.uio.no>
 
-	* Cache service can run in same arched as A-REX with shared DTR instance
+  * Cache service can run in same arched as A-REX with shared DTR instance
 
 2012-06-01 Weizhong Qiang <weizhong.qiang@fys.uio.no>
 
-        * arcproxy can support the contacting to voms server with RESTful interface
+  * arcproxy can support the contacting to voms server with RESTful interface
 
 2012-06-01  Anders Wäänänen  <waananen@nbi.dk>
 
-	* Remove ISIS, Janitor, Chelonia and Hopi
+  * Remove ISIS, Janitor, Chelonia and Hopi
 
 2012-04-23  Andrii Salnikov  <manf@grid.org.ua>
 
-	* nordugridmap updated to version 2.0
-
-
+  * nordugridmap updated to version 2.0

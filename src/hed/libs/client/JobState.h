@@ -48,9 +48,9 @@ namespace Arc {
 #undef JOBSTATE_X
     static const std::string StateTypeString[];
 
-    JobState() : type(UNDEFINED) {}
-
-    JobState& operator=(const JobState& newState) { type = newState.type; state = newState.state; return *this; }
+    JobState() : ssf(FormatSpecificState), type(UNDEFINED) {}
+    
+    JobState& operator=(const JobState& js) { type = js.type; state = js.state; ssf = js.ssf; return *this; }
 
     operator bool() const { return type != UNDEFINED; }
     operator StateType() const { return type; }
@@ -65,17 +65,49 @@ namespace Arc {
      **/
     bool IsFinished() const { return type == FINISHED || type == KILLED || type == FAILED || type == DELETED; }
 
+    /// Unformatted specific job state
+    /**
+     * Get the unformatted specific job state as returned by the CE.
+     * 
+     * @return job state as returned by CE
+     * @see GetSpecificState
+     * @see GetGeneralState
+     **/
     const std::string& operator()() const { return state; }
 
+    /// General string representation of job state
+    /**
+     * Get the string representation of the job state as mapped to the
+     * libarcclient job state model.
+     * 
+     * @return string representing general job state
+     * @see enum StateType
+     * @see GetSpecificState
+     **/
     const std::string& GetGeneralState() const { return StateTypeString[type]; }
+    
+    /// Specific string representation of job state
+    /**
+     * Get the string representation of the job state as returned by
+     * the CE service possibly formatted to a human readable string.
+     * 
+     * @return string representing specific, possibly formatted, job state
+     * @see GetGeneralState
+     * @see operator()
+     **/
+    std::string GetSpecificState() const { return ssf(state); }
 
     static StateType GetStateType(const std::string& state);
 
     friend class Job;
 
   protected:
-    JobState(const std::string& state, JobState::StateType (*map)(const std::string&))
-      : state(state), type((*map)(state)) {};
+    typedef std::string (*SpecificStateFormater)(const std::string&);
+    SpecificStateFormater ssf;
+    static std::string FormatSpecificState(const std::string& state) { return state; }
+    
+    JobState(const std::string& state, JobState::StateType (*map)(const std::string&), SpecificStateFormater ssf = FormatSpecificState)
+      : ssf(ssf), state(state), type((*map)(state)) {};
     std::string state;
     StateType type;
   };

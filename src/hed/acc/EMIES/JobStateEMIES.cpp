@@ -8,6 +8,24 @@
 
 namespace Arc {
 
+  std::string JobStateEMIES::FormatSpecificState(const std::string& state) {
+    EMIESJobState st_;
+    st_ = XMLNode(state);
+    
+    // Return format: <state>[:<attribute1>[,<attribute2>[...]]]
+    
+    std::string attributes;
+    if (!st_.attributes.empty()) {
+      std::list<std::string>::const_iterator it = st_.attributes.begin();
+      attributes = ":" + *it++;
+      for (; it != st_.attributes.end(); ++it) {
+        attributes += "," + *it;
+      }
+    }
+    
+    return st_.state + attributes;
+  }
+  
   JobState::StateType JobStateEMIES::StateMapS(const std::string& st) {
     EMIESJobState st_;
     st_ = st;
