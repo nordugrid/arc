@@ -415,7 +415,7 @@ namespace Arc {
       }
       if (t.ComputingShare->MaxSlotsPerJob != -1) {     // Example: 5656
         if (t.ComputingShare->MaxSlotsPerJob < j->Resources.SlotRequirement.NumberOfSlots) {
-          logger.msg(VERBOSE, "Matchmaking, MaxSlotsPerJob problem, ExecutionTarget: %d (MaxSlotsPerJob) JobDescription: %d (NumberOfProcesses)", t.ComputingManager->TotalSlots, j->Resources.SlotRequirement.NumberOfSlots);
+          logger.msg(VERBOSE, "Matchmaking, MaxSlotsPerJob problem, ExecutionTarget: %d (MaxSlotsPerJob) JobDescription: %d (NumberOfProcesses)", t.ComputingShare->MaxSlotsPerJob, j->Resources.SlotRequirement.NumberOfSlots);
           return false;
         }
       }
