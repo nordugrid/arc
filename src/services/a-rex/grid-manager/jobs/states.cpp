@@ -381,6 +381,13 @@ bool JobsList::FailedJob(const JobsList::iterator &i,bool cancel) {
   } else {
     r=false;
   };
+  // If the job failed during FINISHING then uploader or DTR deals with .output
+  // The exception is cancelling uploader since process is simply killed and
+  // does not get the chance to change .output.
+  if (i->get_state() == JOB_STATE_FINISHING && (!cancel || dtr_generator)) {
+    if (i->local) job_local_write_file(*i,*user,*(i->local));
+    return r;
+  }
   // adjust output files to failure state
   // Not good looking code
   std::string filename = user->ControlDir() + "/job." + i->get_id() + ".description";
