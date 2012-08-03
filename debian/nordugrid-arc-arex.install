@@ -11,7 +11,6 @@ debian/tmp/usr/lib/arc/uploader
 debian/tmp/usr/lib/arc/inputcheck
 debian/tmp/usr/lib/arc/arc-ur-logger
 debian/tmp/usr/lib/arc/arc-ur-registrant
-debian/tmp/usr/lib/arc/DataStagingDelivery
 debian/tmp/usr/lib/arc/arc-vomsac-check
 
 debian/tmp/usr/share/arc/DGAuthplug.py*

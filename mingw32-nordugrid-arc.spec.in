@@ -154,6 +154,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_datadir}/%{pkgdir}/schema
 %{_mingw32_bindir}/ngconfigtest
 %{_mingw32_libexecdir}/%{pkgdir}/arc-file-access.exe
+%{_mingw32_libexecdir}/%{pkgdir}/DataStagingDelivery.exe
 %doc %{_mingw32_mandir}/man1/ngconfigtest.1*
 %dir %{_mingw32_datadir}/%{pkgdir}/test-jobs
 %{_mingw32_datadir}/%{pkgdir}/test-jobs/test-job-*
@@ -252,7 +253,6 @@ rm -rf $RPM_BUILD_ROOT
 #%doc src/tests/echo/echo_service.xml.example
 %{_mingw32_libdir}/%{pkgdir}/libecho.dll*
 #%{_mingw32_libdir}/%{pkgdir}/libslcs.dll*
-%{_mingw32_libexecdir}/%{pkgdir}/DataStagingDelivery.exe
 
 %files devel
 %defattr(-,root,root,-)
