@@ -1,0 +1,56 @@
+#! /bin/sh
+# /etc/init.d/acix-index: start the ARC index server
+
+### BEGIN INIT INFO
+# Provides:             acix-index
+# Required-Start:       $network
+# Required-Stop:        $network
+# Should-Start:         $time
+# Should-Stop:          $time
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 1 6
+# Short-Description:    ARC cacheindex, index server
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+
+TACFILE=/etc/acix-index.tac
+PIDFILE=/var/run/acix-index.pid
+LOGFILE=/var/log/acix-index.log
+
+
+do_start() {
+    twistd --pidfile $PIDFILE -l $LOGFILE -y $TACFILE
+}
+
+do_stop() {
+    kill `cat $PIDFILE` || rm -f $PIDFILE
+}
+
+case "$1" in
+  start)
+    echo "Starting ARC cache index server..."
+    do_start
+    ;;
+  stop)
+    echo "Stopping ARC cache index server..."
+    do_stop
+    ;;
+  restart|reload)
+    echo "Restarting ARC cache index server..."
+    do_stop
+    # erhm...
+    sleep 1
+    do_start
+    ;;
+  status)
+    status_of_proc -p $PIDFILE "twistd" "ARC index server" && exit 0 || exit $?
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+    exit 1
+    ;;
+esac
+
+exit 0

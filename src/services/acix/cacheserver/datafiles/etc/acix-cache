@@ -1,0 +1,75 @@
+#! /bin/sh
+# /etc/init.d/acix-cache: start the ARC cache server
+# chkconfig: - 55 25
+# description:  The ARC cache server
+
+### BEGIN INIT INFO
+# Provides:             acix-cache
+# Required-Start:       $network
+# Required-Stop:        $network
+# Should-Start:         $time
+# Should-Stop:          $time
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 1 6
+# Short-Description:    ARC cacheindex, cache server
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+
+ARC_CONF=/etc/arc.conf
+CONFIG_SECTION=cacheserver
+PIDFILE=/var/run/acix-cache.pid
+DEFAULT_LOGFILE=/var/log/acix-cache.log
+
+APPSTART="from arc.cacheindex import cacheserver ; application = cacheserver.createApplication()"
+
+do_start() {
+    # read in cacheserver section from arc.conf
+    # this will put the read values into the environment, e.g., $logfile
+    eval `sed -e 's/[[:space:]]*\=[[:space:]]*/=/g' \
+              -e 's/;.*$//' \
+              -e 's/[[:space:]]*$//' \
+              -e 's/^[[:space:]]*//' \
+              -e "s/^\(.*\)=\([^\"']*\)$/\1=\"\2\"/" \
+               < $ARC_CONF \
+               | sed -n -e "/^\[$CONFIG_SECTION\]/,/^\s*\[/{/^[^;].*\=.*/p;}" `
+    LOGFILE=${logfile:-$DEFAULT_LOGFILE}
+
+    TACFILE=`mktemp` || exit 1
+    echo $APPSTART > $TACFILE
+
+    twistd --pidfile $PIDFILE -l $LOGFILE -y $TACFILE
+    rm -f $TACFILE
+}
+
+do_stop() {
+    kill `cat $PIDFILE` || rm -f $PIDFILE
+}
+
+case "$1" in
+  start)
+    echo "Starting ARC cache server..."
+    do_start
+    ;;
+  stop)
+    echo "Stopping ARC cache server..."
+    do_stop
+    ;;
+  restart|reload)
+    echo "Restarting ARC cache server..."
+    do_stop
+    # erhm...
+    sleep 1
+    do_start
+    ;;
+  status)
+    status_of_proc -p $PIDFILE "twistd" "ARC cache server" && exit 0 || exit $?
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+    exit 1
+    ;;
+esac
+
+exit 0
