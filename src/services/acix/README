@@ -1,0 +1,6 @@
+ARC Cache IndeX - allows publishing of cache contents from several sites to an
+index, which can be queried for data-aware brokering. It consists of two
+components: a cache server which runs alongside A-REX and gathers cache content
+information, and a cache index to which the server publishes the content using
+a Bloom filter to reduce the data volume. Several cache servers can publish to
+one index.

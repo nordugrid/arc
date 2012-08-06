@@ -10,9 +10,9 @@ from twisted.trial import unittest
 from twisted.internet import reactor, defer
 from twisted.web import resource, server
 
-from arc.cacheindex.core import indexclient
-from arc.cacheindex.cacheserver import cache, cacheresource
-from arc.cacheindex.indexserver import index, indexresource
+from acix.core import indexclient
+from acix.cacheserver import cache, cacheresource
+from acix.indexserver import index, indexresource
 
 
 TEST_URLS1 = [ 'srm://srm.ndgf.org/biogrid/db/uniprot/UniProt12.6/uniprot_sprot.fasta.gz',

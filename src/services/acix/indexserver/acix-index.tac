@@ -1,4 +1,4 @@
-from arc.cacheindex.indexserver import indexsetup
+from acix.indexserver import indexsetup
 
 
 URLS = [ 'https://localhost:5443/data/cache' ]

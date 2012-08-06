@@ -1,6 +1,6 @@
 from twisted.trial import unittest
 
-from arc.cacheindex.core import bloomfilter
+from acix.core import bloomfilter
 
 KEYS = ['one', 'two', 'three', 'four']
 FALSE_KEYS = ['five', 'six', 'seven' ]

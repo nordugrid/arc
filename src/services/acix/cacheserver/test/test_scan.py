@@ -3,7 +3,7 @@ import os
 from twisted.trial import unittest
 from twisted.internet import defer
 
-from arc.cacheindex.cacheserver import pscan
+from acix.cacheserver import pscan
 
 
 

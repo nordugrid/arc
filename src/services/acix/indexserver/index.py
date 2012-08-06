@@ -9,7 +9,7 @@ from twisted.python import log
 from twisted.internet import defer, task
 from twisted.application import service
 
-from arc.cacheindex.core import bloomfilter, cacheclient, ssl
+from acix.core import bloomfilter, cacheclient, ssl
 
 
 

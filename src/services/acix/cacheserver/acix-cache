@@ -22,7 +22,7 @@ CONFIG_SECTION=cacheserver
 PIDFILE=/var/run/acix-cache.pid
 DEFAULT_LOGFILE=/var/log/acix-cache.log
 
-APPSTART="from arc.cacheindex import cacheserver ; application = cacheserver.createApplication()"
+APPSTART="from acix import cacheserver ; application = cacheserver.createApplication()"
 
 do_start() {
     # read in cacheserver section from arc.conf

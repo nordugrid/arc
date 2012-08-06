@@ -1,8 +1,8 @@
 from twisted.application import internet, service
 from twisted.web import resource, server
 
-from arc.cacheindex.core import ssl
-from arc.cacheindex.indexserver import index, indexresource
+from acix.core import ssl
+from acix.indexserver import index, indexresource
 
 
 # -- constants

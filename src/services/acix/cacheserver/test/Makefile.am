@@ -1,0 +1,12 @@
+TESTSCRIPTS = test_cacheresource.py test_scan.py
+
+if ACIX_ENABLED
+TESTS_ENVIRONMENT = PYTHONPATH=../../.. $(TRIAL)
+TESTS = $(TESTSCRIPTS)
+else
+TESTS =
+endif
+
+check_SCRIPTS = $(TESTS)
+
+EXTRA_DIST = $(TESTSCRIPTS)
