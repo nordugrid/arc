@@ -59,11 +59,6 @@ class ScanTestCase(unittest.TestCase):
     @defer.inlineCallbacks
     def testScanMultipleDirs(self):
 
-        os.mkdir(self.tmpdir+'/cache2')
-        os.mkdir(self.tmpdir+'/cache2/data')
-        os.mkdir(self.tmpdir+'/cache2/data/9f')
-        os.mkdir(self.tmpdir+'/cache2/data/dc')
-
         scanner = pscan.CacheScanner([self.tmpdir+'/cache', self.tmpdir2+'/cache'])
         l = []
 
