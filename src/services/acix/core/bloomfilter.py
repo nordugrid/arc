@@ -15,7 +15,7 @@ http://www.partow.net/programming/hashfunctions/index.html
 
 import math
 
-from arc.cacheindex.core import bitvector, hashes
+from acix.core import bitvector, hashes
 
 
 # Note: These names are used to identify hashes used to generate a bloom
@@ -108,7 +108,7 @@ class BloomFilter(object):
 
 if __name__ == '__main__':
     import time
-    from arc.cacheindex.cacheserver import pscan
+    from acix.cacheserver import pscan
 
     try:
         scanner = pscan.CacheScanner()

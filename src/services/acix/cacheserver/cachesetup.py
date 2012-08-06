@@ -1,8 +1,8 @@
 from twisted.application import internet, service
 from twisted.web import resource, server
 
-from arc.cacheindex.core import ssl
-from arc.cacheindex.cacheserver import pscan, cache, cacheresource
+from acix.core import ssl
+from acix.cacheserver import pscan, cache, cacheresource
 
 
 # -- constants

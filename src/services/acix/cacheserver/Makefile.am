@@ -5,5 +5,7 @@ CACHESERVER_SCRIPT =
 endif
 initd_SCRIPTS = $(CACHESERVER_SCRIPT)
 
+sysconf_DATA = acix-cache.tac
+
 SUBDIRS = $(TEST_DIR)
 dist_SUBDIRS = test

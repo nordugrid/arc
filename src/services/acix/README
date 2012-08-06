@@ -4,3 +4,94 @@ components: a cache server which runs alongside A-REX and gathers cache content
 information, and a cache index to which the server publishes the content using
 a Bloom filter to reduce the data volume. Several cache servers can publish to
 one index.
+
+Required software:
+
+  * Python. Only 2.4, 2.5 and 2.6 have been tested.
+  * Twisted Core and twisted web (python-twisted-core and python-twisted-web)
+  * pyOpenSSL (package name python-openssl in Ubuntu)
+  * (Python 2.4 and 2.5 only) Simple JSON (python-simplejson)
+  * (Python 2.4 only) python-hashlib
+
+ACIX Cache Server:
+-----------------
+
+This is the component which runs on each CE collecting cache information.
+Usually no configuration is necessary, but it is possible to specify a custom
+logfile location by setting the logfile parameter in arc.conf, like this:
+
+---
+[cacheserver]
+logfile="/tmp/arc-cacheserver.log"
+---
+
+
+Starting instructions:
+
+/etc/init.d/acix-cache start
+
+Update your rc* catalogs accordingly.
+
+You can stop the daemon with:
+$ /etc/init.d/acix-cache stop
+
+You can inspect the log file to check that everything is running. It is located
+at /var/log/arc/acix-cache.log. An initial warning about the creation of zombie
+process is typically generated (no zombie processes from the program has been
+observed). If any zombie processes are observed, please file a bug report.
+
+Send the URL at which your cache filter is located at, to the index admins(s).
+Unless you changed anything in the configuration, this will be:
+https://HOST_FQDN:5443/data/cache
+
+This is important as the index server pulls the cache filter from your site
+(the filter doesn't get registered automatically).
+
+
+ACIX Index Server:
+-----------------
+
+This is the index of registered caches which is queried by users to discover
+locations of cached files. To configure, edit /etc/acix-cache.tac to include
+cache server URLs corresponding to the sites to be indexed.
+
+
+Starting instructions.
+
+$ /etc/init.d/acix-index start
+
+Update your rc* catalogs accordingly.
+
+You can stop the daemon with:
+$ /etc/init.d/acix-index stop
+
+A log file is at /var/log/arc/acix-index.log. By default the index server will
+listen on port 6443 (ssl+http) so you need to open this port (or the
+configured port) in the firewall.
+
+It is possible to configure port, use of ssl, and the index refresh interval.
+See the indexsetup.py file (a bit of Python understanding is required).
+
+
+Clients:
+-------
+
+To query an index server, construct a URL, like this:
+
+https://orval.grid.aau.dk:6443/data/index?url=http://www.nordugrid.org:80/data/echo.sh
+
+Here you ask the index services located at https://orval.grid.aau.dk:6443/data/index
+for the location(s) of the file http://www.nordugrid.org:80/data/echo.sh
+
+It is possible to query for multiple files by comma-seperating the files, e.g.:
+
+index?url=http://www.nordugrid.org:80/data/echo.sh,http://www.nordugrid.org:80/data/echo.sh
+
+Remember to quote/urlencode the strings when performing the get (wget and curl
+will do this automatically, but most http libraries won't)
+
+The result a JSON encoded datastructure with the top level structure being a
+dictionary/hash-table with the mapping: url -> [machines], where [machines] is
+a list of the machines of which the files is cached on. You should always use a
+JSON parser to decode the result (the string might be escaped).
+

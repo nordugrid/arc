@@ -1,5 +1,9 @@
 #! /bin/sh
-# /etc/init.d/acix-index: start the ARC index server
+# ARC cache index server
+# chkconfig: - 55 25
+# description:  The ARC cache index server collects cache information from
+#               cache servers and can be queried for the locations of cached
+#               files.
 
 ### BEGIN INIT INFO
 # Provides:             acix-index
@@ -12,40 +16,127 @@
 # Short-Description:    ARC cacheindex, index server
 ### END INIT INFO
 
-. /lib/lsb/init-functions
+# source function library
+if [ -f /etc/init.d/functions ]; then
+    . /etc/init.d/functions
+    log_success_msg() {
+        echo -n "$@"
+        success "$@"
+        echo
+    }
+    log_warning_msg() {
+        echo -n "$@"
+        warning "$@"
+        echo
+    }
+    log_failure_msg() {
+        echo -n "$@"
+        failure "$@"
+        echo
+    }
+elif [ -f /lib/lsb/init-functions ]; then
+    . /lib/lsb/init-functions
+else
+    echo "Error: Cannot source neither init.d nor lsb functions"
+    exit 1
+fi
 
 
 TACFILE=/etc/acix-index.tac
 PIDFILE=/var/run/acix-index.pid
-LOGFILE=/var/log/acix-index.log
+LOGFILE=/var/log/arc/acix-index.log
+prog=twistd
 
+if [ ! -r "$TACFILE" ]; then
+    log_failure_msg "ARC cache index configuration not found (/etc/acix-index.tac)"
+    exit 1
+fi
 
 do_start() {
+    # Check if we are already running
+    if [ -f $PIDFILE ]; then
+        read pid < $PIDFILE
+        if [ "x$pid" != "x" ]; then
+            ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null
+            if [ $? -eq 0 ] ; then
+                log_success_msg "already running (pid $pid)"
+                return 0
+            fi
+        fi
+        rm -f "$PIDFILE"
+    fi
+    
     twistd --pidfile $PIDFILE -l $LOGFILE -y $TACFILE
+    log_success_msg
 }
 
 do_stop() {
-    kill `cat $PIDFILE` || rm -f $PIDFILE
+
+    if [ -f "$PIDFILE" ]; then
+        read pid < "$PIDFILE"
+        if [ ! -z "$pid" ] ; then
+            kill "$pid"
+            RETVAL=$?
+            if [ $RETVAL -eq 0 ]; then
+                log_success_msg
+            else
+                log_failure_msg
+            fi
+      
+            timeout=2; # for stopping nicely
+            
+            while ( ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null ) && [ $timeout -ge 1 ] ; do
+                sleep 1
+                timeout=$(($timeout - 1))
+            done
+
+            [ $timeout -lt 1 ] && kill -9 "$pid" 1>/dev/null 2>&1
+            rm -f "$PIDFILE"
+        else
+            RETVAL=1
+            log_failure_msg "$prog shutdown - pidfile is empty"
+        fi
+    else
+        RETVAL=0
+        log_success_msg "$prog shutdown - already stopped"
+    fi
+    return $RETVAL
+}
+
+do_status() {
+    if [ -f "$PIDFILE" ]; then
+        read pid < "$PIDFILE"
+        if [ "$pid" != "" ]; then
+            if ps -p "$pid" > /dev/null; then
+                echo "$1 (pid $pid) is running..."
+                return 0
+            fi
+            echo "$1 stopped but pid file exists"
+            return 1
+        fi
+    fi
+    echo "$1 is stopped"
+    return 3
 }
 
 case "$1" in
   start)
-    echo "Starting ARC cache index server..."
+    echo -n "Starting ARC cache index server..."
     do_start
     ;;
   stop)
-    echo "Stopping ARC cache index server..."
+    echo -n "Stopping ARC cache index server..."
     do_stop
     ;;
   restart|reload)
-    echo "Restarting ARC cache index server..."
+    echo -n "Restarting ARC cache index server..."
     do_stop
     # erhm...
     sleep 1
     do_start
     ;;
   status)
-    status_of_proc -p $PIDFILE "twistd" "ARC index server" && exit 0 || exit $?
+    status $prog
     ;;
   *)
     echo "Usage: $0 {start|stop|restart}"

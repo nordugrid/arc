@@ -5,6 +5,7 @@ in order to avoid blocking the twisted reactor.
 This is done in a not-so-nice way, where we create a python
 in a temporary file and execute that program.
 """
+import os
 import tempfile
 
 from twisted.python import log
@@ -61,7 +62,10 @@ class ScanProtocol(protocol.ProcessProtocol):
 def getARCCacheDirs():
 
     cache_dirs = []
-    for line in file(ARC_CONF):
+    config = ARC_CONF
+    if 'ARC_CONFIG' in os.environ:
+        config = os.environ['ARC_CONFIG']
+    for line in file(config):
         if line.startswith('cachedir') or line.startswith('remotecachedir'):
             args = line.split('=', 2)[1]
             cache_dir = args.split(' ')[0].replace('"', '').strip()

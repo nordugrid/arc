@@ -1,4 +1,4 @@
-from arc.cacheindex.cacheserver import cachesetup
+from acix.cacheserver import cachesetup
 
 createApplication = cachesetup.createCacheApplication
 

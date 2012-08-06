@@ -8,7 +8,7 @@ from twisted.python import log
 from twisted.internet import task
 from twisted.application import service
 
-from arc.cacheindex.core import bloomfilter
+from acix.core import bloomfilter
 
 
 CAPACITY_CHUNK = 10000 # 10k entries is the least we bother with

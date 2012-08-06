@@ -1,4 +1,4 @@
-from arc.cacheindex.cacheserver import cachesetup
+from acix.cacheserver import cachesetup
 
 ## cache dir will by "guessed" from parsing /etc/arc.conf
 application = cachesetup.createCacheApplication()
