@@ -219,20 +219,59 @@ namespace Arc {
     statusLock.unlock();
   }
 
+
+  /* Overview of how the queryEndpoint algorithm works
+   * The queryEndpoint method is meant to be run in a separate thread, spawned
+   * by the addEndpoint method. Furthermore it is designed to call it self, when
+   * the Endpoint has no interface specified, in order to check all supported
+   * interfaces. Since the method is static, common data is reached through a
+   * Common class object, wrapped and protected by the ThreadedPointer template
+   * class.
+   * 
+   * Taking as starting point when the addEndpoint method calls the
+   * queryEndpoint method these are the steps the queryEndpoint method goes
+   * through:
+   * 1. Checks whether the Endpoint has already been queried, or is in the
+   *    process of being queried. If that is the case, it
+   *    stops. Otherwise branch a is followed if the Endpoint has a interface
+   *    specified, if not then branch b is followed.
+   * 2a. The plugin corresponding to the chosen interface is loaded and its
+   *     Query method is called passing a container used to store the result of
+   *     query. This call blocks. 
+   * 3a. When the Query call finishes the container is iterated, and each item
+   *     in the container is passed on to the EntityRetriever::addEntity method,
+   *     then status returned from the Query method is registered with the
+   *     EntityRetriever object through the setStatusOfEndpoint method, and if
+   *     status is successful the common Result object is set to be successful.
+   *     Then the method returns.
+   * 2b. The list of available plugins is looped, and plugins are loaded. If
+   *     they fail loading the loop continues. Then it is determined whether the
+   *     specific plugin supports a preferred interface as specified in the
+   *     EndpointQueryOptions object, or not. In the end of the loop a new
+   *     thread is spawned calling this method itself, but with an Endpoint with
+   *     specified interface, thus in that call going through branch a.
+   * 3b. After the loop, the wait method is called on the preferred Result
+   *     object, thus waiting for the querying of the preferred interfaces to
+   *     succeed. If any of these succeeded successfully then the status of the
+   *     Endpoint object with unspecified interface in status-map is set
+   *     accordingly. If not then the wait method on the other Result object is
+   *     called, and a similiar check and set is one. Then the method returns.
+   */
   template<typename T>
   void EntityRetriever<T>::queryEndpoint(void *arg) {
     AutoPointer<ThreadArg> a((ThreadArg*)arg);
     ThreadedPointer<Common>& common = a->common;
-    bool set = false;
+
     // Set the status of the endpoint to STARTED only if it was not set already by an other thread (overwrite = false)
+    bool set = false;
     if(!common->lockSharedIfValid()) return;
     set = (*common)->setStatusOfEndpoint(a->endpoint, EndpointQueryingStatus(EndpointQueryingStatus::STARTED), false);
     common->unlockShared();
-
     if (!set) { // The thread was not able to set the status (because it was already set by another thread)
       logger.msg(DEBUG, "Will not query endpoint (%s) because another thread is already querying it", a->endpoint.str());
       return;
     }
+    
     // If the thread was able to set the status, then this is the first (and only) thread querying this endpoint
     if (!a->pluginName.empty()) { // If the plugin was already selected
       EntityRetrieverPlugin<T>* plugin = common->load(a->pluginName);
@@ -243,10 +282,13 @@ namespace Arc {
         return;
       }
       logger.msg(DEBUG, "Calling plugin %s to query endpoint on %s", a->pluginName, a->endpoint.str());
-      std::list<T> entities;
+
       // Do the actual querying against service.
+      std::list<T> entities;
       EndpointQueryingStatus status = plugin->Query(*common, a->endpoint, entities, a->options);
-      for (typename std::list<T>::const_iterator it = entities.begin(); it != entities.end(); it++) {
+
+      // Add obtained results from querying to registered consumers (addEntity method)
+      for (typename std::list<T>::const_iterator it = entities.begin(); it != entities.end(); ++it) {
         if(!common->lockSharedIfValid()) return;
         (*common)->addEntity(*it);
         common->unlockShared();
@@ -258,11 +300,13 @@ namespace Arc {
       if (status) a->result.setSuccess(); // Successful query
     } else { // If there was no plugin selected for this endpoint, this will try all possibility
       logger.msg(DEBUG, "The interface of this endpoint (%s) is unspecified, will try all possible plugins", a->endpoint.str());
-      const std::list<std::string>& preferredInterfaceNames = a->options.getPreferredInterfaceNames();
+
       // A list for collecting the new endpoints which will be created by copying the original one
       // and setting the InterfaceName for each possible plugins
       std::list<Endpoint> preferredEndpoints;
       std::list<Endpoint> otherEndpoints;
+      const std::list<std::string>& preferredInterfaceNames = a->options.getPreferredInterfaceNames();
+      
       // A new result object is created for the sub-threads, "true" means we only want to wait for the first successful query
       Result preferredResult(true);
       Result otherResult(true);
@@ -278,9 +322,11 @@ namespace Arc {
           logger.msg(DEBUG, "The endpoint (%s) is not supported by this plugin (%s)", a->endpoint.URLString, *it);
           continue;
         }
+
         // Create a new endpoint with the same endpoint and a specified interface
         Endpoint endpoint = a->endpoint;
         ThreadArg* newArg;
+        
         // Set interface
         std::list<std::string>::const_iterator itSI = plugin->SupportedInterfaces().begin();
         for (; itSI != plugin->SupportedInterfaces().end(); ++itSI) {
@@ -291,7 +337,6 @@ namespace Arc {
             break;
           }
         }
-
         if (itSI == plugin->SupportedInterfaces().end()) {
           // We will use the first interfaceName this plugin supports
           endpoint.InterfaceName = plugin->SupportedInterfaces().front();
@@ -299,6 +344,7 @@ namespace Arc {
           otherEndpoints.push_back(endpoint);
           newArg = new ThreadArg(*a, otherResult);
         }
+        
         // Make new argument by copying old one with result report object replaced
         newArg->endpoint = endpoint;
         newArg->pluginName = *it;
@@ -313,11 +359,12 @@ namespace Arc {
         }
       }
 
-      // We wait for the preferred result object. The wait returns in two cases:
-      //   1. one sub-thread was succesful
-      //   2. all the sub-threads failed
+      /* We wait for the preferred result object. The wait returns in two cases:
+       * 1. one sub-thread was succesful
+       * 2. all the sub-threads failed
+       * Now check which case happens.
+       */
       preferredResult.wait();
-      // Check which case happened
       if(!common->lockSharedIfValid()) return;
       EndpointQueryingStatus status;
       for (typename std::list<Endpoint>::const_iterator it = preferredEndpoints.begin(); it != preferredEndpoints.end(); it++) {
