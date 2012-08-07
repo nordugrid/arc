@@ -586,6 +586,7 @@ bool PayloadHTTP::Flush(void) {
   // Computing length of Body part
   int64_t length = 0;
   std::string range_header;
+  bool use_chunked_transfer = false;
   if((method_ != "GET") && (method_ != "HEAD")) {
     int64_t start = 0;
     if(head_response_ && (code_==HTTP_OK)) {
@@ -630,7 +631,21 @@ bool PayloadHTTP::Flush(void) {
       };
       range_header="Content-Range: bytes "+range_str+"/"+length_str+"\r\n";
     };
-    range_header+="Content-Length: "+tostring(length)+"\r\n";
+    if(length > 0) {
+      range_header+="Content-Length: "+tostring(length)+"\r\n";
+    } else {
+      // If computed length is 0 that may also mean it is not known
+      // in advance. In this case either connection closing or 
+      // chunked encoding may be used. Chunked is better because it 
+      // allows to avoid reconnection.
+      // But chunked can only be used if writing to stream right now.
+      if(to_stream) {
+        range_header+="Transfer-Encoding: chunked\r\n";
+        use_chunked_transfer = true;
+      } else {
+        keep_alive_ = false;
+      };
+    };
   };
   // Starting header
   if(!method_.empty()) {
@@ -676,7 +691,7 @@ bool PayloadHTTP::Flush(void) {
       error_ = IString("Failed to write header to output stream").str();
       return false;
     };
-    if(length > 0) {
+    if((length > 0) || (use_chunked_transfer)) {
       if(sbody_) {
         // stream to stream transfer
         // TODO: choose optimal buffer size
@@ -690,6 +705,13 @@ bool PayloadHTTP::Flush(void) {
         for(;;) {
           int lbuf = tbufsize;
           if(!sbody_->Get(tbuf,lbuf)) break;
+          if(use_chunked_transfer) {
+            if(!stream_->Put(tostring(lbuf,16)+"\r\n")) {
+              error_ = IString("Failed to write body to output stream").str();
+              delete[] tbuf;
+              return false;
+            };
+          };
           if(!stream_->Put(tbuf,lbuf)) {
             error_ = IString("Failed to write body to output stream").str();
             delete[] tbuf;
@@ -697,12 +719,33 @@ bool PayloadHTTP::Flush(void) {
           };
         };
         delete[] tbuf;
+        if(use_chunked_transfer) {
+          if(!stream_->Put("0\r\n\r\n")) {
+            error_ = IString("Failed to write body to output stream").str();
+            delete[] tbuf;
+            return false;
+          };
+        };
       } else {
         for(int n=0;;++n) {
           char* tbuf = Buffer(n);
           if(tbuf == NULL) break;
           int64_t lbuf = BufferSize(n);
-          if(lbuf > 0) if(!stream_->Put(tbuf,lbuf)) {
+          if(lbuf > 0) {
+            if(use_chunked_transfer) {
+              if(!stream_->Put(tostring(lbuf,16)+"\r\n")) {
+                error_ = IString("Failed to write body to output stream").str();
+                return false;
+              };
+            };
+            if(!stream_->Put(tbuf,lbuf)) {
+              error_ = IString("Failed to write body to output stream").str();
+              return false;
+            };
+          };
+        };
+        if(use_chunked_transfer) {
+          if(!stream_->Put("0\r\n\r\n")) {
             error_ = IString("Failed to write body to output stream").str();
             return false;
           };

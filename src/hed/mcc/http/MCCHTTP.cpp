@@ -374,11 +374,15 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   // TODO: do not create new object - use or acqure same one.
   // Extracting payload
   if(!inmsg.Payload()) return make_raw_fault(outmsg,"Notihing to send");
-  PayloadRawInterface* inpayload = NULL;
+  PayloadRawInterface* inrpayload = NULL;
+  PayloadStreamInterface* inspayload = NULL;
   try {
-    inpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
+    inrpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
   } catch(std::exception& e) { };
-  if(!inpayload) return make_raw_fault(outmsg,"Notihing to send");
+  try {
+    inspayload = dynamic_cast<PayloadStreamInterface*>(inmsg.Payload());
+  } catch(std::exception& e) { };
+  if((!inrpayload) && (!inspayload)) return make_raw_fault(outmsg,"Notihing to send");
   // Making HTTP request
   // Use attributes which higher level MCC may have produced for HTTP
   std::string http_method = inmsg.Attributes()->get("HTTP:METHOD");
@@ -397,7 +401,11 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
     };
   };
   nextpayload.Attribute("User-Agent","ARC");
-  nextpayload.Body(*inpayload,false);
+  if(inrpayload) {
+    nextpayload.Body(*inrpayload,false);
+  } else {
+    nextpayload.Body(*inspayload,false);
+  };
   nextpayload.Flush();
   // Creating message to pass to next MCC and setting new payload..
   Message nextinmsg = inmsg;
