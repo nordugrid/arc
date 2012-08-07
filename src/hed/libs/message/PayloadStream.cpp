@@ -62,14 +62,6 @@ bool PayloadStream::Get(char* buf,int& size) {
   return true;
 }
 
-bool PayloadStream::Get(std::string& buf) {
-  char tbuf[1024];
-  int l = sizeof(tbuf);
-  bool result = Get(tbuf,l);
-  buf.assign(tbuf,l);
-  return result;
-}
-
 bool PayloadStream::Put(const char* buf,Size_t size) {
   ssize_t l;
   if(handle_ == -1) return false;
@@ -94,6 +86,62 @@ bool PayloadStream::Put(const char* buf,Size_t size) {
 #endif
   };  
   return true;
+}
+
+// ---------------------------------------------------------
+
+bool PayloadStreamInterface::Get(std::string& buf) {
+  char tbuf[1024];
+  int l = sizeof(tbuf);
+  bool result = Get(tbuf,l);
+  buf.assign(tbuf,l);
+  return result;
+}
+
+std::string PayloadStreamInterface::Get(void) {
+  std::string buf;
+  Get(buf);
+  return buf;
+}
+
+bool PayloadStreamInterface::Get(PayloadStreamInterface& dest,int& size) {
+  char tbuf[1024];
+  int size_ = 0;
+  bool r = false;
+  while(true) {
+    if(size == 0) { r = true; break; };
+    int l = size;
+    if((size == -1) || (l > sizeof(tbuf))) l = sizeof(tbuf);
+    if(!Get(tbuf,l)) break;
+    if(l <= 0) { r = true; break; };
+    size_ += l; if(size != -1) size -= l;
+    if(!dest.Put(tbuf,l)) break;
+  };
+  size = size_;
+  return r;
+}
+
+bool PayloadStreamInterface::Put(PayloadStreamInterface& source,Size_t size) {
+  char tbuf[1024];
+  bool r = false;
+  while(true) {
+    if(size == 0) { r = true; break; };
+    int l = size;
+    if((size == -1) || (l > sizeof(tbuf))) l = sizeof(tbuf);
+    if(!source.Get(tbuf,l)) break;
+    if(l <= 0) { r = true; break; };
+    if(!Put(tbuf,l)) break;
+    if(size != -1) size -= l;
+  };
+  return r;
+}
+
+bool PayloadStreamInterface::Put(const std::string& buf) {
+  return Put(buf.c_str(),buf.length());
+}
+
+bool PayloadStreamInterface::Put(const char* buf) {
+  return Put(buf,buf?strlen(buf):0);
 }
 
 } // namespace Arc

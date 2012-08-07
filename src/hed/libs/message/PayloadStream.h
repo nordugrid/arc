@@ -10,8 +10,7 @@ namespace Arc {
 /// Stream-like Payload for Message object.
 /** This class is a virtual interface for managing stream-like source 
  and destination.  It's supposed to be passed through MCC chain as payload 
- of Message.  It must be treated by MCCs and Services as dynamic payload. 
- This class is purely virtual. */
+ of Message.  It must be treated by MCCs and Services as dynamic payload. */
 class PayloadStreamInterface: virtual public MessagePayload {
  public:
   // Avoid defining size of int - just use biggest possible
@@ -22,19 +21,36 @@ class PayloadStreamInterface: virtual public MessagePayload {
     'size' contains number of read bytes on exit.
     Returns true in case of success. */
   virtual bool Get(char* buf,int& size) = 0;
-  /** Read as many as possible (sane amount) of bytes into buf. */
-  virtual bool Get(std::string& buf) = 0;
-  /** Read as many as possible (sane amount) of bytes. */
-  virtual std::string Get(void) = 0;
+  /** Read as many as possible (sane amount) of bytes into buf.
+     Implemented through call to Get(char*,int). */
+  virtual bool Get(std::string& buf);
+  /** Read and return as many as possible (sane amount) of bytes.
+     Implemented through call to Get(std::string&). */
+  virtual std::string Get(void);
+  /** Read up to 'size' bytes and pass them to 'dest'.
+     'size' contains number of read bytes on exit.
+     If on input 'size' contains -1 then as much as possible
+     is transfered.
+     This method is both for convenience and for making it
+     possible to have optimized implementations. */
+  virtual bool Get(PayloadStreamInterface& dest,int& size);
   /** Push 'size' bytes from 'buf' into stream. 
     Returns true on success. */
   virtual bool Put(const char* buf,Size_t size) = 0;
   /** Push information from 'buf' into stream. 
-    Returns true on success. */
-  virtual bool Put(const std::string& buf) = 0;
+    Returns true on success.
+    Implemented though call to Put(const char*,Size_t). */
+  virtual bool Put(const std::string& buf);
   /** Push null terminated information from 'buf' into stream. 
-    Returns true on success. */
-  virtual bool Put(const char* buf) = 0;
+    Returns true on success.
+    Implemented though call to Put(const char*,Size_t). */
+  virtual bool Put(const char* buf);
+  /** Push 'size' bytes from 'source' into stream.
+     If on 'size' contains -1 then as much as possible
+     is transfered.
+     This method is both for convenience and for making it
+     possible to have optimized implementations. */
+  virtual bool Put(PayloadStreamInterface& source,Size_t size);
   /** Returns true if stream is valid. */
   virtual operator bool(void) = 0;
   /** Returns true if stream is invalid. */
@@ -67,11 +83,7 @@ class PayloadStream: virtual public PayloadStreamInterface {
   /** Destructor. */
   virtual ~PayloadStream(void) { };
   virtual bool Get(char* buf,int& size);
-  virtual bool Get(std::string& buf);
-  virtual std::string Get(void) { std::string buf; Get(buf); return buf; };
   virtual bool Put(const char* buf,Size_t size);
-  virtual bool Put(const std::string& buf) { return Put(buf.c_str(),buf.length()); };
-  virtual bool Put(const char* buf) { return Put(buf,buf?strlen(buf):0); };
   virtual operator bool(void) { return (handle_ != -1); };
   virtual bool operator!(void) { return (handle_ == -1); };
   virtual int Timeout(void) const { return timeout_; };
