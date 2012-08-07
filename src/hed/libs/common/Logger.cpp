@@ -177,9 +177,17 @@ namespace Arc {
     std::ostringstream sout;
 #ifdef HAVE_GETPID
     sout << getpid() << "/"
+#ifdef WIN32
+         << (unsigned long int)GetCurrentThreadId();
+#else
          << (unsigned long int)(void*)Glib::Thread::self();
+#endif
+#else
+#ifdef WIN32
+    sout << (unsigned long int)GetCurrentThreadId();
 #else
     sout << (unsigned long int)(void*)Glib::Thread::self();
+#endif
 #endif
     return sout.str();
   }

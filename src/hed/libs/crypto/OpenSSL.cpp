@@ -90,7 +90,11 @@ namespace Arc {
   }
 
   static unsigned long ssl_id_cb(void) {
+#ifdef WIN32
+    return (unsigned long)(GetCurrentThreadId());
+#else
     return (unsigned long)(Glib::Thread::self());
+#endif
   }
 
   //static void* ssl_idptr_cb(void) {
