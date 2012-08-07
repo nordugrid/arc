@@ -109,6 +109,7 @@ namespace Arc {
   }
 
   DataStatus DataPointLDAP::StopReading() {
+    // TODO: wait for reading thread to exit
     if (!buffer)
       return DataStatus::ReadStopError;
     buffer = NULL;
