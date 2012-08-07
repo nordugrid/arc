@@ -98,6 +98,10 @@ public:
     the main capability and the InterfaceName
   */
   std::string str() const;
+
+  /** A string identifying the service exposing this endpoint.  It currently
+    extracts the host name from the URL, but this may be refined later. */
+  std::string getServiceName() const;
   
   /** Needed for std::map to be able to sort the keys */
   bool operator<(const Endpoint& other) const;

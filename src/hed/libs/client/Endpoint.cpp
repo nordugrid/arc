@@ -35,6 +35,18 @@ namespace Arc {
   bool Endpoint::HasCapability(std::string capability) const {
     return (std::find(Capability.begin(), Capability.end(), capability) != Capability.end());
   }
+
+  std::string Endpoint::getServiceName() const {
+    if (URLString.find("://") == std::string::npos)
+      return URLString;
+    else {
+      URL url(URLString);
+      if (url.Host().empty())
+	return URLString;
+      else
+	return url.Host();
+    }
+  }
   
   std::string Endpoint::str() const {
     std::string mainCapability = "<no Capability>";

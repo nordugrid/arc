@@ -281,6 +281,13 @@ public:
   */  
   bool setStatusOfEndpoint(const Endpoint& endpoint, const EndpointQueryingStatus& status, bool overwrite = true);
 
+  /// Insert into \a results the endpoint.ServiceName() of each endpoint with the given status.
+  /**
+    \param[in] status is the status of the desired endpoints
+    \param[in,out] result is a set into which the matching endpoint service names are inserted
+  */
+  void getServicesWithStatus(const EndpointQueryingStatus& status, std::set<std::string>& result);
+
   /** This method should only be used by the plugins when they return their results.
     This will send the results to all the registered consumers.
     
