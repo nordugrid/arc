@@ -4,7 +4,6 @@
 
 #include <string>
 #include <iostream>
-#include <dlfcn.h>
 #include <stdio.h>
 
 #include <arc/Logger.h>
