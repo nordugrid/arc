@@ -7,6 +7,7 @@
 #include <arc/URL.h>
 #include <arc/client/JobState.h>
 #include <string>
+#include <set>
 
 namespace Arc {
 
@@ -287,6 +288,17 @@ namespace Arc {
 
     /// Write jobs to file
     /**
+     * This method invokes
+     * WriteJobsToFile(const std::string&, const std::list<Job>&, const std::set<std::string>&, std::list<const Job*>&, unsigned, unsigned)
+     * with an empty set as the 3rd argument, meaning that all existing jobs
+     * which are not replaced, will be kept.
+     *
+     * @see WriteJobsToFile(const std::string&, const std::list<Job>&, const std::set<std::string>&, std::list<const Job*>&, unsigned, unsigned)
+     */
+    static bool WriteJobsToFile(const std::string& filename, const std::list<Job>& jobs, std::list<const Job*>& newJobs, unsigned nTries = 10, unsigned tryInterval = 500000);
+
+    /// Write jobs to file
+    /**
      * This static method will write (append) the passed list of jobs to the
      * specified file. Jobs will be written in XML format as returned by the
      * ToXML method, and each job will be contained in a element named "Job".
@@ -302,6 +314,10 @@ namespace Arc {
      *
      * @param filename is the filename of the job list to write jobs to.
      * @param jobs is the list of Job objects which should be written to file.
+     * @param prunedServices is a set of service names whose jobs should be
+     *  removed if not replaced.  This is typically the list of service names
+     *  for which at least one endpoint was successfully queried.  Passing the
+     *  empty set, all existing jobs are kept, even if outdated.
      * @param newJobs is a reference to a list of pointers to Job objects which
      *  are not duplicates.
      * @param nTries specifies the maximal number of times the method will try
@@ -316,7 +332,7 @@ namespace Arc {
      * @see FileLock
      * @see XMLNode::SaveToFile
      **/
-    static bool WriteJobsToFile(const std::string& filename, const std::list<Job>& jobs, std::list<const Job*>& newJobs, unsigned nTries = 10, unsigned tryInterval = 500000);
+    static bool WriteJobsToFile(const std::string& filename, const std::list<Job>& jobs, const std::set<std::string>& prunedServices, std::list<const Job*>& newJobs, unsigned nTries = 10, unsigned tryInterval = 500000);
 
     /// Remove job from file
     /**

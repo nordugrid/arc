@@ -78,7 +78,11 @@ public:
     }
     else {
       std::list<const Arc::Job*> newJobs;
-      if ( (jobsWritten = Arc::Job::WriteJobsToFile(uc.JobListFile(), jobs, newJobs)) ) {
+      std::set<std::string> prunedServices;
+      jlr.getServicesWithStatus(Arc::EndpointQueryingStatus::SUCCESSFUL,
+				prunedServices);
+      if ( (jobsWritten = Arc::Job::WriteJobsToFile(uc.JobListFile(), jobs,
+						    prunedServices, newJobs)) ) {
         for (std::list<const Arc::Job*>::const_iterator it = newJobs.begin();
              it != newJobs.end(); it++) {
           if (!jobsReported) {
