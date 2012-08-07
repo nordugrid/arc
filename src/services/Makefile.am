@@ -52,11 +52,19 @@ else
 DATADELIVERY_SERVICE =
 endif
 
+if ACIX_ENABLED
+ACIX = acix
+else
+ACIX =
+endif
+
 SUBDIRS = $(GRIDFTPD_SERVICE) $(AREX_SERVICE) $(LDAP_SERVICE) \
 	$(LDAP_MONITOR) $(WS_MONITOR) \
 	$(CACHE_SERVICE) \
-	$(DATADELIVERY_SERVICE) wrappers $(PYTHON_SERVICE) $(JAVA_SERVICE)
+	$(DATADELIVERY_SERVICE) \
+	$(ACIX) \
+	wrappers $(PYTHON_SERVICE) $(JAVA_SERVICE)
 DIST_SUBDIRS = gridftpd a-rex ldap-infosys \
 	ldap-monitor ws-monitor \
 	cache_service \
-	data-staging wrappers echo_python echo_java
+	data-staging wrappers echo_python echo_java acix

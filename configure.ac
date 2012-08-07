@@ -186,6 +186,8 @@ enables_unicore_client=no
 enables_emies_client=yes
 #  Documentation
 enables_doc=yes
+# ACIX cache index
+enables_acix=yes
 
 # Handle group enable/disable switches
 AC_ARG_ENABLE(all, AC_HELP_STRING([--disable-all], [disables all buildable components. Can be overwritten with --enable-* for group or specific component. It is also possible to use --enable-all to overwrite defaults.]),
@@ -221,6 +223,7 @@ enables_xmlsec1=$enableval
 enables_argus=$enableval
 enables_cppunit=$enableval
 enables_doc=$enableval
+enabled_acix=$enableval
 ],
 [])
 
@@ -257,6 +260,7 @@ enables_giis_service=$enableval
 enables_ldap_monitor=$enableval
 enables_cache_service=$enableval
 enables_datadelivery_service=$enableval
+enabled_acix=$enableval
 ],
 [])
 
@@ -1929,6 +1933,21 @@ fi
 AC_MSG_NOTICE([DataDelivery service enabled: $enables_datadelivery_service])
 AM_CONDITIONAL([DATADELIVERY_SERVICE_ENABLED],[test "x$enables_datadelivery_service" = "xyes"])
 
+# ACIX service
+AC_ARG_ENABLE(acix, AC_HELP_STRING([--disable-acix], [disable building ACIX service]),
+  [enables_acix=$enableval],[])
+AM_PATH_PYTHON([2.4], [], [enables_acix="no"])
+AC_MSG_NOTICE([ACIX enabled: $enables_acix])
+AM_CONDITIONAL([ACIX_ENABLED],[test "x$enables_acix" = "xyes"])
+
+# trial command (from python-twisted-core) is used for acix unittests
+if test "x$enables_acix" = "xyes"; then
+  AC_CHECK_PROGS(TRIAL, trial)
+  if test "x$TRIAL" = "x"; then
+    AC_MSG_NOTICE([trial not found - ACIX unit tests will be skipped])
+  fi
+fi 
+
 # Check for explicitely and implicitely disabled clients
 AC_ARG_ENABLE(arclib_client, AC_HELP_STRING([--disable-arclib-client], [disable building Arclib (job management) client tools]),
   [enables_arclib_client=$enableval],[])
@@ -2262,6 +2281,13 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/dgbridge/cancel-DGBridge-job
                  src/services/a-rex/urlogger/Makefile
                  src/services/a-rex/schema/Makefile
+                 src/services/acix/Makefile
+                 src/services/acix/cacheserver/Makefile
+                 src/services/acix/cacheserver/test/Makefile
+                 src/services/acix/core/Makefile
+                 src/services/acix/core/test/Makefile
+                 src/services/acix/indexserver/Makefile
+                 src/services/acix/indexserver/test/Makefile
                  src/services/cache_service/Makefile
                  src/services/cache_service/arc-cache-service
                  src/services/data-staging/Makefile
@@ -2414,6 +2440,7 @@ LDAP Info service:  ${enables_ldap_service}
 GIIS service:       ${enables_giis_service}
 CACHE service:      ${enables_cache_service}
 DATADELIVERY service: ${enables_datadelivery_service}
+ACIX service:       ${enables_acix}
 
 ARCLIB clients:     ${enables_arclib_client}
 DATA clients:       ${enables_data_client}

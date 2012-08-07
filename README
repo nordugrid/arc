@@ -65,7 +65,7 @@ Build:
 
 Build & runtime:
   o open-ldap client (LDAP DMC)
-  o python 2.4 or higher (bindings, APEL publisher by Jura)
+  o python 2.4 or higher (bindings, APEL publisher by Jura, ACIX)
   o java sdk 1.4 or later (bindings)
   o globus-common 4 (arclib)
   o globus-gssapi-gsi 4 (arclib)
@@ -85,6 +85,8 @@ Runtime dependencies:
   o GNU time (A-rex)
   o VOMS (LFC DMC)
   o Stomppy, m2Crypto (APEL publisher by Jura)
+  o pyOpenSSL, python-twisted-web, python-twisted-core, python-simplejson,
+    (Python 2.4 only) python-hashlib (ACIX)
 
 Please note that depending on operating system distribution to build
 ARC you may need to install development versions of mentioned packages.

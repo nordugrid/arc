@@ -1,3 +1,7 @@
+2012-08-07  David Cameron  <d.g.cameron@fys.uio.no>
+
+  * Add ACIX (ARC Cache Index) to distribution
+
 2012-08-02  Martin Skou Andersen <skou@nbi.ku.dk>
 
   * Adding possibility to format the CE specific job state string (fixes bug

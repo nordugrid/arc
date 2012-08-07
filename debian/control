@@ -221,6 +221,41 @@ Description: ARC Globus plugins
  Management Components (DMCs). These plugins are needed for most
  traditional Grid infrastructures.
 
+Package: nordugrid-arc-acix-core
+Architecture: any
+Depends: python, python-twisted-core, python-twisted-web, python-openssl, python-simplejson
+Description: ARC cache index - core components
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ Core components of the ARC Cache Index (ACIX).
+
+Package: nordugrid-arc-acix-cache
+Architecture: any
+Depends: python, python-twisted-core, python-twisted-web, python-openssl, python-simplejson, nordugrid-arc-acix-core (= ${binary:Version})
+Description: ARC cache index - cache server
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ Cache server component of the ARC Cache Index (ACIX), usually installed
+ alongside A-REX. This component collects information on the content of
+ an A-REX cache.
+
+Package: nordugrid-arc-acix-index
+Architecture: any
+Depends: python, python-twisted-core, python-twisted-web, python-openssl, python-simplejson, nordugrid-arc-acix-core (= ${binary:Version})
+Description: ARC cache index - index server
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ Index server component of the ARC Cache Index (ACIX), usually installed
+ independently of any A-REX installation. This component pulls cache content
+ from cache servers and can be queried by clients for the location of cached
+ files.
+
 Package: nordugrid-arc-dev
 Provides: nordugrid-arc-libs-devel, nordugrid-arc1-dev, nordugrid-arc-nox-dev
 Replaces: nordugrid-arc-libs-devel (<< 1.0.0~), nordugrid-arc1-dev (<< 1.0.0~), nordugrid-arc-nox-dev (<< 1.3.0~)

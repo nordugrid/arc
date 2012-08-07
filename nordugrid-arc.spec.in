@@ -453,6 +453,68 @@ Connector (ARC).
 ARC Globus plugins. This includes the Globus dependent Data Manager
 Components (DMCs).
 
+%package acix-core
+Summary:	ARC cache index - core
+Group:		System Environment/Libraries
+Requires:	python-twisted-core
+Requires:	python-twisted-web
+Requires:	pyOpenSSL
+Requires:	python-simplejson
+%if %{?rhel}%{!?rhel:0} == 5
+Requires:	python-hashlib
+%endif
+
+%description acix-core
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+Core components of the ARC Cache Index (ACIX).
+
+%package acix-cache
+Summary:	ARC cache index - cache server
+Group:		System Environment/Libraries
+Requires:	python-twisted-core
+Requires:	python-twisted-web
+Requires:	pyOpenSSL
+Requires:	python-simplejson
+%if %{?rhel}%{!?rhel:0} == 5
+Requires:	python-hashlib
+%endif
+Requires:	%{name}-acix-core = %{version}-%{release}
+
+%description acix-cache
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+Cache server component of the ARC Cache Index (ACIX), usually installed
+alongside A-REX. This component collects information on the content of
+an A-REX cache.
+
+%package acix-index
+Summary:	ARC cache index - index server
+Group:		System Environment/Libraries
+Requires:	python-twisted-core
+Requires:	python-twisted-web
+Requires:	pyOpenSSL
+Requires:	python-simplejson
+%if %{?rhel}%{!?rhel:0} == 5
+Requires:	python-hashlib
+%endif
+Requires:	%{name}-acix-core = %{version}-%{release}
+
+%description acix-index
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+Index server component of the ARC Cache Index (ACIX), usually installed
+independently of any A-REX installation. This component pulls cache content
+from cache servers and can be queried by clients for the location of cached
+files.
+
+
 %package devel
 Summary:	ARC development files
 Group:		Development/Libraries
@@ -836,6 +898,35 @@ if [ $1 -eq 0 ] ; then
 fi
 %endif
 
+%post acix-cache
+/sbin/chkconfig --add acix-cache
+
+%preun acix-cache
+if [ $1 -eq 0 ]; then
+  service acix-cache stop > /dev/null 2>&1
+  /sbin/chkconfig --del acix-cache
+fi
+
+%postun acix-cache
+if [ $1 -ge 1 ]; then
+  service acix-cache condrestart > /dev/null 2>&1
+fi
+
+%post acix-index
+/sbin/chkconfig --add acix-index
+
+%preun acix-index
+if [ $1 -eq 0 ]; then
+  service acix-index stop > /dev/null 2>&1
+  /sbin/chkconfig --del acix-index
+fi
+
+%postun acix-index
+if [ $1 -ge 1 ]; then
+  service acix-index condrestart > /dev/null 2>&1
+fi
+
+
 %if %{with_java} && %{with_gcj}
 %post java
 [ -x %{_bindir}/rebuild-gcj-db ] && %{_bindir}/rebuild-gcj-db
@@ -1094,6 +1185,23 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/ssm/ssm.cfg
 %{_datadir}/%{pkgdir}/ssm/ssm.log.cfg
 %endif
+
+%files acix-core
+%defattr(-,root,root,-)
+%{python_sitelib}/acix/__init__.py*
+%{python_sitelib}/acix/core
+
+%files acix-cache
+%defattr(-,root,root,-)
+%{python_sitelib}/acix/cacheserver
+%{_initrddir}/acix-cache
+%config(noreplace) /etc/acix-cache.tac
+
+%files acix-index
+%defattr(-,root,root,-)
+%{python_sitelib}/acix/indexserver
+%{_initrddir}/acix-index
+%config(noreplace) /etc/acix-index.tac
 
 %files devel
 %defattr(-,root,root,-)
