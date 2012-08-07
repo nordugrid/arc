@@ -4,9 +4,7 @@
 #include <config.h>
 #endif
 
-#ifndef WIN32
 #include <signal.h>
-#endif
 
 #ifdef HAVE_GLIBMM_GETENV
 #include <glibmm/miscutils.h>
@@ -352,6 +350,14 @@ namespace Arc {
 
   void EnvLockUnwrapComplete(void) {
     env_read_lock().forceReset();
+  }
+
+  CriticalScope::CriticalScope() {
+    saved_sigint_handler = signal(SIGINT, SIG_IGN);
+  }
+
+  CriticalScope::~CriticalScope() {
+    signal(SIGINT, saved_sigint_handler);
   }
 
   std::string StrError(int errnum) {

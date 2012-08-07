@@ -45,6 +45,15 @@ namespace Arc {
     ~EnvLockWrapper(void) { EnvLockUnwrap(all_); };
   };
 
+  /// Marks off a section of code which should not be interrupted.
+  class CriticalScope {
+  public:
+    CriticalScope();
+    ~CriticalScope();
+  private:
+    void (*saved_sigint_handler)(int);
+  };
+
   /// Portable function for obtaining description of last system error
   std::string StrError(int errnum = errno);
 

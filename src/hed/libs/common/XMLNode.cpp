@@ -9,6 +9,7 @@
 #include <cstring>
 
 #include "XMLNode.h"
+#include "Utils.h"
 #include <libxml/xmlschemas.h>
 
 namespace Arc {

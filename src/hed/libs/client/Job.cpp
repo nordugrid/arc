@@ -838,6 +838,7 @@ namespace Arc {
     FileLock lock(filename);
     for (int tries = (int)nTries; tries > 0; --tries) {
       if (lock.acquire()) {
+        CriticalScope dummy;
         if (!jobfile.SaveToFile(filename)) {
           lock.release();
           return false;
@@ -929,6 +930,7 @@ namespace Arc {
           newJobs.push_back(it->second);
         }
 
+        CriticalScope dummy;
         if (!jobfile.SaveToFile(filename)) {
           lock.release();
           return false;
@@ -972,6 +974,7 @@ namespace Arc {
           }
         }
 
+        CriticalScope dummy;
         if (!jobstorage.SaveToFile(filename)) {
           lock.release();
           return false;
