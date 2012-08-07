@@ -257,6 +257,7 @@ static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescri
         broker.set(*itJAlt);
         Arc::ExecutionTargetSet etSetAlt(broker, csr);
         for (Arc::ExecutionTargetSet::iterator itET = etSetAlt.begin(); itET != etSetAlt.end(); ++itET) {
+          if(!match_submission_interface(*itET,requestedSubmissionInterfaces)) continue;
           if (itET->Submit(usercfg, *itJAlt, submittedJobs.back())) {
             printjobid(submittedJobs.back().JobID.fullstr(), jobidfile);
             descriptionSubmitted = true;
