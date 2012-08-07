@@ -213,9 +213,8 @@ namespace Arc {
   void EntityRetriever<T>::getServicesWithStatus(const EndpointQueryingStatus& status, std::set<std::string>& result) {
     statusLock.lock();
     for (std::map<Endpoint, EndpointQueryingStatus>::const_iterator it = statuses.begin();
-	 it != statuses.end(); ++it) {
-      if (it->second == status)
-	result.insert(it->first.getServiceName());
+         it != statuses.end(); ++it) {
+      if (it->second == status) result.insert(it->first.getServiceName());
     }
     statusLock.unlock();
   }

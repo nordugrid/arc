@@ -41,10 +41,8 @@ namespace Arc {
       return URLString;
     else {
       URL url(URLString);
-      if (url.Host().empty())
-	return URLString;
-      else
-	return url.Host();
+      if (url.Host().empty()) return URLString;
+      else return url.Host();
     }
   }
   

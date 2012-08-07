@@ -867,10 +867,10 @@ namespace Arc {
   }
 
   bool Job::WriteJobsToFile(const std::string& filename,
-			    const std::list<Job>& jobs,
-			    const std::set<std::string>& prunedServices,
-			    std::list<const Job*>& newJobs,
-			    unsigned nTries, unsigned tryInterval) {
+                            const std::list<Job>& jobs,
+                            const std::set<std::string>& prunedServices,
+                            std::list<const Job*>& newJobs,
+                            unsigned nTries, unsigned tryInterval) {
     FileLock lock(filename);
     for (int tries = (int)nTries; tries > 0; --tries) {
       if (lock.acquire()) {
@@ -879,25 +879,27 @@ namespace Arc {
 
         // Use std::map to store job IDs to be searched for duplicates.
         std::map<std::string, XMLNode> jobIDXMLMap;
-	std::list<XMLNode> jobsToRemove;
+        std::list<XMLNode> jobsToRemove;
         for (Arc::XMLNode j = jobfile["Job"]; j; ++j) {
           if (!((std::string)j["JobID"]).empty()) {
-	    Endpoint endpoint(j["Cluster"]);
-	    std::string serviceName = endpoint.getServiceName();
-	    if (!serviceName.empty() && prunedServices.count(serviceName)) {
-	      logger.msg(DEBUG, "Will remove %s on service %s.",
-			 ((std::string)j["JobID"]).c_str(), endpoint.getServiceName().c_str());
-	      jobsToRemove.push_back(j);
-	    }
-	    else
-	      jobIDXMLMap[(std::string)j["JobID"]] = j;
+            Endpoint endpoint(j["Cluster"]);
+            std::string serviceName = endpoint.getServiceName();
+            if (!serviceName.empty() && prunedServices.count(serviceName)) {
+              logger.msg(DEBUG, "Will remove %s on service %s.",
+                         ((std::string)j["JobID"]).c_str(), endpoint.getServiceName().c_str());
+              jobsToRemove.push_back(j);
+            }
+            else {
+              jobIDXMLMap[(std::string)j["JobID"]] = j;
+            }
           }
         }
 
-	// Remove jobs which belong to our list of endpoints to prune.
-	for (std::list<XMLNode>::iterator it = jobsToRemove.begin();
-	     it != jobsToRemove.end(); ++it)
-	  it->Destroy();
+        // Remove jobs which belong to our list of endpoints to prune.
+        for (std::list<XMLNode>::iterator it = jobsToRemove.begin();
+             it != jobsToRemove.end(); ++it) {
+          it->Destroy();
+        }
 
         std::map<std::string, const Job*> newJobsMap;
         for (std::list<Job>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
