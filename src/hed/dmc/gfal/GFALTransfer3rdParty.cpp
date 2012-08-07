@@ -2,13 +2,6 @@
 
 #include "GFALTransfer3rdParty.h"
 
-// This struct is defined in gfal_transfer_internal.h, which is not included
-// in gfal2-devel. This definition can be removed when this is fixed.
-struct _gfalt_transfer_status{
-  const gfalt_hook_transfer_plugin_t* hook;
-};
-
-
 namespace Arc {
 
   Logger GFALTransfer3rdParty::logger(Logger::getRootLogger(), "Transfer3rdParty");
@@ -18,9 +11,14 @@ namespace Arc {
   void GFALTransfer3rdParty::gfal_3rd_party_callback(gfalt_transfer_status_t h, const char* src, const char* dst, gpointer user_data) {
     DataPoint::Callback3rdParty* cb = (DataPoint::Callback3rdParty*)user_data;
     if (cb && *cb) {
-      if (h && h->hook) {
-        (*(*cb))(h->hook->bytes_transfered);
+      GError * err = NULL;
+      size_t bytes = gfalt_copy_get_bytes_transfered(h, &err);
+      if (err != NULL) {
+        logger.msg(WARNING, "Failed to obtain bytes transferred: %s", err->message);
+        g_error_free(err);
+        return;
       }
+      (*(*cb))(bytes);
     }
   }
 
