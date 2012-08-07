@@ -2,6 +2,13 @@
 
 #include "GFALTransfer3rdParty.h"
 
+// This struct is defined in gfal_transfer_internal.h, which is not included
+// in gfal2-devel. This definition can be removed when this is fixed.
+struct _gfalt_transfer_status{
+  const gfalt_hook_transfer_plugin_t* hook;
+};
+
+
 namespace Arc {
 
   Logger GFALTransfer3rdParty::logger(Logger::getRootLogger(), "Transfer3rdParty");
@@ -10,10 +17,10 @@ namespace Arc {
   // info. DataPoint pointer is stored in user_data.
   void GFALTransfer3rdParty::gfal_3rd_party_callback(gfalt_transfer_status_t h, const char* src, const char* dst, gpointer user_data) {
     DataPoint::Callback3rdParty* cb = (DataPoint::Callback3rdParty*)user_data;
-    // Monitoring does not seem to be implemented yet in GFAL2 so this is a
-    // placeholder for now
-    if (cb) {
-      // cb(h->...);
+    if (cb && *cb) {
+      if (h && h->hook) {
+        (*(*cb))(h->hook->bytes_transfered);
+      }
     }
   }
 
@@ -52,7 +59,7 @@ namespace Arc {
 
     // Set our callback as the user data object so it can be called during
     // GFAL2 callback
-    gfalt_set_user_data(params, (gpointer)callback, &err);
+    gfalt_set_user_data(params, (gpointer)(&callback), &err);
     if (err != NULL) {
       logger.msg(ERROR, "Failed to set GFAL2 user data object: %s", err->message);
       g_error_free(err);

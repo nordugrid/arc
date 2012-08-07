@@ -55,7 +55,7 @@ static void progress(FILE *o, const char*, unsigned int,
 }
 
 static void transfer_cb(unsigned long long int bytes_transferred) {
-  printf("%llu transferred\n", bytes_transferred);
+  fprintf (stderr, "\r%llu kB                  \r", bytes_transferred / 1024);
 }
 
 bool arctransfer(const Arc::URL& source_url,
@@ -89,6 +89,8 @@ bool arctransfer(const Arc::URL& source_url,
   }
   destination->SetSecure(secure);
   Arc::DataStatus res = destination->Transfer3rdParty(source_url, verbose ? &transfer_cb : NULL);
+  if (verbose) std::cerr<<std::endl;
+
   if (!res) {
     if (res == Arc::DataStatus::UnimplementedError) {
       logger.msg(Arc::ERROR, "Third party transfer is not supported for these endpoints");
