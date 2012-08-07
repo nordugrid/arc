@@ -33,7 +33,7 @@ libarcclient_la_SOURCES = Broker.cpp ExecutionTarget.cpp \
 	ComputingServiceRetriever.cpp ClientInterface.cpp \
 	ClientX509Delegation.cpp $(SOURCE_WITH_XMLSEC)
 libarcclient_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CFLAGS_WITH_XMLSEC) $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+	$(CFLAGS_WITH_XMLSEC) $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS)
 libarcclient_la_LIBADD = \
 	$(ARCLIBS_WITH_XMLSEC) \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \

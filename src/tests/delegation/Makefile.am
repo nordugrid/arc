@@ -2,7 +2,7 @@ noinst_PROGRAMS = test_delegation_client test_client_with_delegation_sechandler
 
 test_delegation_client_SOURCES = test_delegation_client.cpp
 test_delegation_client_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
 test_delegation_client_LDADD = \
 	$(top_builddir)/src/hed/libs/client/libarcclient.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata2.la \
@@ -14,7 +14,7 @@ test_delegation_client_LDADD = \
 test_client_with_delegation_sechandler_SOURCES = \
 	test_client_with_delegation_sechandler.cpp
 test_client_with_delegation_sechandler_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
 test_client_with_delegation_sechandler_LDADD = \
 	$(top_builddir)/src/hed/libs/client/libarcclient.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata2.la \

@@ -10,21 +10,21 @@ CLILIBS = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
 
 arccp_SOURCES  = arccp.cpp
-arccp_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+arccp_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
 arccp_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arcls_SOURCES  = arcls.cpp
-arcls_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+arcls_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
 arcls_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arcrm_SOURCES  = arcrm.cpp
-arcrm_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+arcrm_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
 arcrm_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arcmkdir_SOURCES  = arcmkdir.cpp
-arcmkdir_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+arcmkdir_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
 arcmkdir_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arcrename_SOURCES  = arcrename.cpp
-arcrename_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+arcrename_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
 arcrename_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
