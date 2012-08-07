@@ -675,7 +675,7 @@ MCC_TCP_Client::~MCC_TCP_Client(void) {
 }
 
 MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
-    // Accepted payload is Raw
+    // Accepted payload is Raw and Stream
     // Returned payload is Stream
 
     logger.msg(DEBUG, "TCP client process called");
@@ -685,19 +685,31 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     if(!*s_) return MCC_Status(GENERIC_ERROR,"TCP",s_->GetError());
     // Extracting payload
     if(!inmsg.Payload()) return MCC_Status(GENERIC_ERROR);
-    PayloadRawInterface* inpayload = NULL;
+    PayloadRawInterface* rinpayload = NULL;
+    PayloadStreamInterface* sinpayload = NULL;
     try {
-        inpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
+        rinpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
     } catch(std::exception& e) { };
-    if(!inpayload) return MCC_Status(GENERIC_ERROR);
+    try {
+        sinpayload = dynamic_cast<PayloadStreamInterface*>(inmsg.Payload());
+    } catch(std::exception& e) { };
+    if((!rinpayload) && (!sinpayload)) return MCC_Status(GENERIC_ERROR);
     if(!ProcessSecHandlers(inmsg,"outgoing")) return MCC_Status(GENERIC_ERROR,"TCP","Auth processing failed");
     // Sending payload
-    for(int n=0;;++n) {
-        char* buf = inpayload->Buffer(n);
-        if(!buf) break;
-        int bufsize = inpayload->BufferSize(n);
-        if(!(s_->Put(buf,bufsize))) {
-            logger.msg(INFO, "Failed to send content of buffer");
+    if(rinpayload) {
+        for(int n=0;;++n) {
+            char* buf = rinpayload->Buffer(n);
+            if(!buf) break;
+            int bufsize = rinpayload->BufferSize(n);
+            if(!(s_->Put(buf,bufsize))) {
+                logger.msg(INFO, "Failed to send content of buffer");
+                return MCC_Status(GENERIC_ERROR,"TCP",s_->GetError());
+            };
+        };
+    } else {
+        int size = -1;
+        if(!sinpayload->Get(*s_,size)) {
+            logger.msg(INFO, "Failed to transfer content of stream");
             return MCC_Status(GENERIC_ERROR,"TCP",s_->GetError());
         };
     };
@@ -726,4 +738,5 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     if(!ProcessSecHandlers(outmsg,"incoming")) return MCC_Status(GENERIC_ERROR,"TCP","Auth processing failed");
     return MCC_Status(STATUS_OK);
 }
+
 } // namespace ArcMCCTCP

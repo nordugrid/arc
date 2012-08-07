@@ -463,16 +463,20 @@ MCC_TLS_Client::~MCC_TLS_Client(void) {
 }
 
 MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
-   // Accepted payload is Raw
+   // Accepted payload is Raw and Stream
    // Returned payload is Stream
    // Extracting payload
    if(!inmsg.Payload()) return MCC_Status();
    if(!stream_) return MCC_Status();
-   PayloadRawInterface* inpayload = NULL;
+   PayloadRawInterface* rinpayload = NULL;
+   PayloadStreamInterface* sinpayload = NULL;
    try {
-      inpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
+      rinpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
    } catch(std::exception& e) { };
-   if(!inpayload) return MCC_Status();
+   try {
+      sinpayload = dynamic_cast<PayloadStreamInterface*>(inmsg.Payload());
+   } catch(std::exception& e) { };
+   if((!rinpayload) && (!sinpayload)) return MCC_Status();
    // Collecting security attributes
    // TODO: keep them or redo same for incoming message
    PayloadTLSStream* tstream = dynamic_cast<PayloadTLSStream*>(stream_);
@@ -494,14 +498,22 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
       return MCC_Status();
    };
    // Sending payload
-   for(int n=0;;++n) {
-      char* buf = inpayload->Buffer(n);
-      if(!buf) break;
-      int bufsize = inpayload->BufferSize(n);
-      if(!(stream_->Put(buf,bufsize))) {
-         logger.msg(INFO, "Failed to send content of buffer");
-         return MCC_Status();
+   if(rinpayload) {
+      for(int n=0;;++n) {
+         char* buf = rinpayload->Buffer(n);
+         if(!buf) break;
+         int bufsize = rinpayload->BufferSize(n);
+         if(!(stream_->Put(buf,bufsize))) {
+            logger.msg(INFO, "Failed to send content of buffer");
+            return MCC_Status();
+         };
       };
+   } else {
+        int size = -1;
+        if(!sinpayload->Get(*stream_,size)) {
+            logger.msg(INFO, "Failed to transfer content of stream");
+            return MCC_Status();
+        };
    };
    outmsg.Payload(new PayloadTLSMCC(*stream_));
    //outmsg.Attributes(inmsg.Attributes());
