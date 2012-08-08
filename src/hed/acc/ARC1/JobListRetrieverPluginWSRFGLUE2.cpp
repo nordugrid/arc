@@ -74,9 +74,7 @@ namespace Arc {
       jobs.push_back(j);
     }
 
-    if (!files.empty()) {
-      s = EndpointQueryingStatus::SUCCESSFUL;
-    }
+    s = EndpointQueryingStatus::SUCCESSFUL;
 
     return s;
   }

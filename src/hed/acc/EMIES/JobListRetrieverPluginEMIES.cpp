@@ -69,9 +69,7 @@ namespace Arc {
       jobs.push_back(j);
     };
 
-    if (!jobids.empty()) {
-      s = EndpointQueryingStatus::SUCCESSFUL;
-    }
+    s = EndpointQueryingStatus::SUCCESSFUL;
     return s;
   }
 } // namespace Arc

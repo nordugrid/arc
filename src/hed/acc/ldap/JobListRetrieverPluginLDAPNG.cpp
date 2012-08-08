@@ -124,9 +124,7 @@ namespace Arc {
       jobs.push_back(j);
     }
 
-    if (!jobs.empty()) {
-      s = EndpointQueryingStatus::SUCCESSFUL;
-    }
+    s = EndpointQueryingStatus::SUCCESSFUL;
 
     return s;
   }
