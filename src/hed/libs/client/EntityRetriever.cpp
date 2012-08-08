@@ -325,7 +325,7 @@ namespace Arc {
 
         // Create a new endpoint with the same endpoint and a specified interface
         Endpoint endpoint = a->endpoint;
-        ThreadArg* newArg;
+        ThreadArg* newArg = NULL;
         
         // Set interface
         std::list<std::string>::const_iterator itSI = plugin->SupportedInterfaces().begin();
