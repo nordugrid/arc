@@ -1,6 +1,6 @@
 TESTSCRIPTS = test_cacheresource.py test_scan.py
 
-if ACIX_ENABLED
+if ACIX_TESTS_ENABLED
 TESTS_ENVIRONMENT = PYTHONPATH=../../.. $(TRIAL)
 TESTS = $(TESTSCRIPTS)
 else

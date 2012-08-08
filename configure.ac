@@ -1941,12 +1941,13 @@ AC_MSG_NOTICE([ACIX enabled: $enables_acix])
 AM_CONDITIONAL([ACIX_ENABLED],[test "x$enables_acix" = "xyes"])
 
 # trial command (from python-twisted-core) is used for acix unittests
-if test "x$enables_acix" = "xyes"; then
-  AC_CHECK_PROGS(TRIAL, trial)
-  if test "x$TRIAL" = "x"; then
-    AC_MSG_NOTICE([trial not found - ACIX unit tests will be skipped])
-  fi
-fi 
+AC_CHECK_PROGS(TRIAL, trial)
+if test "x$TRIAL" = "x"; then
+  AC_MSG_NOTICE([trial not found - ACIX unit tests will be skipped])
+fi
+# unit tests also require python >=2.5
+AM_CONDITIONAL([ACIX_TESTS_ENABLED], [test "x$TRIAL" != "x" && test "xPYTHON_VERSION" != "x2.4"])
+ 
 
 # Check for explicitely and implicitely disabled clients
 AC_ARG_ENABLE(arclib_client, AC_HELP_STRING([--disable-arclib-client], [disable building Arclib (job management) client tools]),
