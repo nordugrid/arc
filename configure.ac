@@ -1484,17 +1484,6 @@ if test "x$enables_gfal" = "xyes"; then
   PKG_CHECK_MODULES(GFAL2, gfal_transfer, [], [enables_gfal="no"])
   AC_SUBST(GFAL2_CFLAGS)
   AC_SUBST(GFAL2_LIBS)
-
-  SAVE_CPPFLAGS=$CPPFLAGS
-  CPPFLAGS="$CPPFLAGS $GFAL2_CFLAGS"
-  AC_CHECK_HEADER(gfal_api.h, [], [enables_gfal="no"])
-  AC_CHECK_HEADER(transfer/gfal_transfer.h, [], [enables_gfal="no"])
-  CPPFLAGS=$SAVE_CPPFLAGS
-
-  SAVE_LDFLAGS=$LDFLAGS
-  LDFLAGS="$LDFLAGS $GFAL2_LIBS"
-  AC_CHECK_LIB([gfal2], [_init], [], [enables_gfal="no"])
-  LDFLAGS=$SAVE_LDFLAGS
 fi
 
 # Check for xrootd (c++)
