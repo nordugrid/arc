@@ -49,14 +49,14 @@ namespace Arc {
     }
 
     if(!factory_->load(FinderLoader::GetLibrariesList(), "HED:BrokerPlugin", name)) {
-      logger.msg(ERROR, "Broker plugin \"%s\" not found.", name);
+      logger.msg(DEBUG, "Broker plugin \"%s\" not found.", name);
       return NULL;
     }
 
     BrokerPlugin *p = factory_->GetInstance<BrokerPlugin>("HED:BrokerPlugin", name, &arg, false);
 
     if (!p) {
-      logger.msg(ERROR, "Broker %s could not be created", name);
+      logger.msg(DEBUG, "Unable to load BrokerPlugin (%s)", name);
       return NULL;
     }
 
@@ -66,7 +66,7 @@ namespace Arc {
     if (keep_ownership) {
       plugins.push_back(p);
     }
-    logger.msg(INFO, "Loaded Broker %s", name);
+    logger.msg(INFO, "Broker %s loaded", name);
     return p;
   }
 
