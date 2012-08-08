@@ -352,12 +352,16 @@ namespace Arc {
     env_read_lock().forceReset();
   }
 
-  CriticalScope::CriticalScope() {
+  static Glib::Mutex signal_lock;
+
+  InterruptGuard::InterruptGuard() {
+    signal_lock.lock();
     saved_sigint_handler = signal(SIGINT, SIG_IGN);
   }
 
-  CriticalScope::~CriticalScope() {
+  InterruptGuard::~InterruptGuard() {
     signal(SIGINT, saved_sigint_handler);
+    signal_lock.unlock();
   }
 
   std::string StrError(int errnum) {

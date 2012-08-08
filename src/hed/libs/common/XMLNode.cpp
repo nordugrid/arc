@@ -1031,6 +1031,7 @@ namespace Arc {
   }
 
   bool XMLNode::SaveToFile(const std::string& file_name) const {
+    InterruptGuard guard;
     std::ofstream out(file_name.c_str(), std::ios::out);
     if (!out)
       return false;

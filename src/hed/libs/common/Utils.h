@@ -46,10 +46,10 @@ namespace Arc {
   };
 
   /// Marks off a section of code which should not be interrupted.
-  class CriticalScope {
+  class InterruptGuard {
   public:
-    CriticalScope();
-    ~CriticalScope();
+    InterruptGuard();
+    ~InterruptGuard();
   private:
     void (*saved_sigint_handler)(int);
   };
