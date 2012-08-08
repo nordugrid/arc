@@ -207,6 +207,7 @@ private:
 %ignore Arc::EnvLockUnwrap;
 %ignore Arc::EnvLockUnwrapComplete;
 %ignore Arc::EnvLockWrapper;
+%ignore Arc::InterruptGuard;
 %ignore Arc::StrError;
 %ignore PersistentLibraryInit;
 /* Swig tries to create functions which return a new CountedPointer object.
