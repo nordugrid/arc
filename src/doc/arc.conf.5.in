@@ -3146,6 +3146,41 @@ automatically set to 5 (DEBUG). Default is 2 (WARNING).
 .IR Example :
 debug="4"
 
+.SH ARC CACHE INDEX (ACIX) OPTIONS
+
+Options for the ACIX cache server and index server.
+
+The cache server runs alongside A-REX. It periodically scans the
+cache directories and composes a Bloom filter of cache content which
+can be pulled by an ACIX index server. ACIX cache server options are
+defined under the block
+
+.B [acix/cacheserver]
+
+.TP
+.B logfile 
+Log file location for the cache server. Default is
+/var/log/arc/acix-cache.log
+
+.IR Example:
+logfile="/tmp/acix-cache.log"
+
+.PP
+The index server component of ACIX collects cache content filters
+from a set of cache servers configured in this block. The index server
+can be queried for the location of cached files. ACIX index server
+options are defined under the block
+
+.B [acix/indexserver]
+
+.TP
+.B cacheserver
+ACIX cache server from which to pull information (can be specified
+multiple times)
+
+.IR Example:
+cacheserver="https://localhost:5443/data/cache"
+
 .SH SEE ALSO
 
 http://www.nordugrid.org/meetings/sophia-conf.jpg

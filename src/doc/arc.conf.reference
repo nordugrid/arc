@@ -1991,4 +1991,31 @@
 #fetch_timeout="15"
 
 ####################################################################
+##
+### The [acix/cacheserver] block ###################################
+##
+## The cache server component of ACIX runs alongside A-REX. It
+## periodically scans the cache directories and composes a Bloom
+## filter of cache content which can be pulled by an ACIX index
+## server.
+#[acix/cacheserver]
 
+## Log file location for the cache server. Default is
+## /var/log/arc/acix-cache.log
+#logfile="/tmp/acix-cache.log"
+
+
+####################################################################
+##
+### The [acix/indexserver] block ###################################
+##
+## The index server component of ACIX collects cache content filters
+## from a set of cache servers configured in this block. The index
+## server can be queried for the location of cached files.
+#[acix/indexserver]
+
+## ACIX cache servers from which to pull information
+#cacheserver="https://localhost:5443/data/cache"
+#cacheserver="https://another.host:5443/data/cache"
+
+####################################################################
