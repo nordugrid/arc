@@ -50,6 +50,12 @@
 %global with_python 0
 %endif
 
+%if %{?fedora}%{!?fedora:0} >= 7 || %{?rhel}%{!?rhel:0} >= 5
+%global with_acix 1
+%else
+%global with_acix 0
+%endif
+
 %global pkgdir arc
 
 Name:		@PACKAGE@
@@ -148,7 +154,7 @@ BuildRequires:	perl(Test::Harness)
 BuildRequires:	perl(Test::Simple)
 BuildRequires:	mktemp
 # Needed to run ACIX unit tests
-%if %{with_python}
+%if %{with_acix}
 BuildRequires:	python-twisted-core
 BuildRequires:	python-twisted-web
 BuildRequires:	pyOpenSSL
@@ -463,7 +469,7 @@ Connector (ARC).
 ARC Globus plugins. This includes the Globus dependent Data Manager
 Components (DMCs).
 
-%if %{with_python}
+%if %{with_acix}
 %package acix-core
 Summary:	ARC cache index - core
 Group:		System Environment/Libraries
@@ -691,6 +697,8 @@ cd -
 %endif
 %if ! %{with_python}
      --disable-python \
+%endif
+%if ! %{with_acix}
      --disable-acix \
 %endif
 %if %{?rhel}%{!?rhel:0} == 5
@@ -910,7 +918,7 @@ if [ $1 -eq 0 ] ; then
 fi
 %endif
 
-%if %{with_python}
+%if %{with_acix}
 %post acix-cache
 /sbin/chkconfig --add acix-cache
 
@@ -1199,7 +1207,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/ssm/ssm.log.cfg
 %endif
 
-%if %{with_python}
+%if %{with_acix}
 %files acix-core
 %defattr(-,root,root,-)
 %{python_sitelib}/acix/__init__.py*
