@@ -3,7 +3,7 @@ SUBDIRS = schema
 pkglib_LTLIBRARIES = libmcchttp.la
 noinst_PROGRAMS = http_test http_test_withtls
 
-libmcchttp_la_SOURCES = MCCHTTP.cpp PayloadHTTP.cpp MCCHTTP.h PayloadHTTP.h
+libmcchttp_la_SOURCES = PayloadHTTP.cpp MCCHTTP.cpp PayloadHTTP.h MCCHTTP.h
 libmcchttp_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 libmcchttp_la_LIBADD = \

@@ -35,7 +35,44 @@ static bool ParseHTTPVersion(const std::string& s,int& major,int& minor) {
   return true;
 }
 
-bool PayloadHTTP::readtbuf(void) {
+// -------------------- PayloadHTTP -----------------------------
+
+const std::string& PayloadHTTP::Attribute(const std::string& name) {
+  std::multimap<std::string,std::string>::iterator it = attributes_.find(name);
+  if(it == attributes_.end()) return empty_string;
+  return it->second;
+}
+
+const std::multimap<std::string,std::string>& PayloadHTTP::Attributes(void) {
+  return attributes_;
+}
+
+PayloadHTTP::PayloadHTTP(void):
+    valid_(false),
+    code_(0),length_(0),end_(0),offset_(0),size_(0),keep_alive_(true) {
+}
+
+PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):
+    valid_(false),
+    uri_(url),version_major_(1),version_minor_(1),method_(method),
+    code_(0),length_(0),end_(0),offset_(0),size_(0),keep_alive_(true) {
+  // TODO: encode URI properly
+}
+
+PayloadHTTP::PayloadHTTP(int code,const std::string& reason):
+    valid_(false),
+    version_major_(1),version_minor_(1),
+    code_(code),reason_(reason),
+    length_(0),end_(0),offset_(0),size_(0),keep_alive_(true) {
+  if(reason_.empty()) reason_="OK";
+}
+
+PayloadHTTP::~PayloadHTTP(void) {
+}
+
+// ------------------- PayloadHTTPIn ----------------------------
+
+bool PayloadHTTPIn::readtbuf(void) {
   int l = (sizeof(tbuf_)-1) - tbuflen_;
   if(l > 0) {
     if(stream_->Get(tbuf_+tbuflen_,l)) {
@@ -46,7 +83,7 @@ bool PayloadHTTP::readtbuf(void) {
   return (tbuflen_>0);
 }
 
-bool PayloadHTTP::readline(std::string& line) {
+bool PayloadHTTPIn::readline(std::string& line) {
   line.resize(0);
   for(;line.length()<4096;) { // keeping line size sane
     char* p = (char*)memchr(tbuf_,'\n',tbuflen_);
@@ -66,7 +103,7 @@ bool PayloadHTTP::readline(std::string& line) {
   return false;
 }
 
-bool PayloadHTTP::read(char* buf,int64_t& size) {
+bool PayloadHTTPIn::read(char* buf,int64_t& size) {
   if(tbuflen_ >= size) {
     memcpy(buf,tbuf_,size);
     memmove(tbuf_,tbuf_+size,tbuflen_-size+1);
@@ -85,7 +122,7 @@ bool PayloadHTTP::read(char* buf,int64_t& size) {
   return true;
 }
 
-bool PayloadHTTP::readline_chunked(std::string& line) {
+bool PayloadHTTPIn::readline_chunked(std::string& line) {
   if(!chunked_) return readline(line);
   line.resize(0);
   for(;line.length()<4096;) { // keeping line size sane
@@ -104,7 +141,7 @@ bool PayloadHTTP::readline_chunked(std::string& line) {
   return false;
 }
 
-bool PayloadHTTP::read_chunked(char* buf,int64_t& size) {
+bool PayloadHTTPIn::read_chunked(char* buf,int64_t& size) {
   if(!chunked_) return read(buf,size);
   int64_t bufsize = size;
   size = 0;
@@ -151,7 +188,7 @@ bool PayloadHTTP::read_chunked(char* buf,int64_t& size) {
   return (size>0);
 }
 
-bool PayloadHTTP::flush_chunked(void) {
+bool PayloadHTTPIn::flush_chunked(void) {
   if(!chunked_) return true;
   if(chunked_ == CHUNKED_EOF) return true;
   if(chunked_ == CHUNKED_ERROR) return false;
@@ -167,7 +204,7 @@ bool PayloadHTTP::flush_chunked(void) {
   return (chunked_ == CHUNKED_EOF);
 }
 
-char* PayloadHTTP::find_multipart(char* buf,int64_t size) {
+char* PayloadHTTPIn::find_multipart(char* buf,int64_t size) {
   char* p = buf;
   for(;;++p) {
     p = (char*)memchr(p,'\r',size-(p-buf));
@@ -211,7 +248,7 @@ char* PayloadHTTP::find_multipart(char* buf,int64_t size) {
   return p;
 }
 
-bool PayloadHTTP::read_multipart(char* buf,int64_t& size) {
+bool PayloadHTTPIn::read_multipart(char* buf,int64_t& size) {
   if(!multipart_) return read_chunked(buf,size);
   if(multipart_ == MULTIPART_END) return false;
   if(multipart_ == MULTIPART_EOF) return false;
@@ -247,7 +284,7 @@ bool PayloadHTTP::read_multipart(char* buf,int64_t& size) {
   };
 }
 
-bool PayloadHTTP::flush_multipart(void) {
+bool PayloadHTTPIn::flush_multipart(void) {
   if(!multipart_) return true;
   if(multipart_ == MULTIPART_ERROR) return false;
   std::string::size_type pos = 0;
@@ -288,7 +325,7 @@ bool PayloadHTTP::flush_multipart(void) {
   return true;
 }
 
-bool PayloadHTTP::read_header(void) {
+bool PayloadHTTPIn::read_header(void) {
   std::string line;
   for(;readline_chunked(line) && (!line.empty());) {
     logger.msg(Arc::DEBUG,"< %s",line);
@@ -297,11 +334,9 @@ bool PayloadHTTP::read_header(void) {
     std::string name = line.substr(0,pos);
     for(++pos;pos<line.length();++pos) if(!isspace(line[pos])) break;
     if(pos<line.length()) {
-      std::string value = line.substr(pos);
-      // for(std::string::size_type p=0;p<value.length();++p) value[p]=tolower(value[p]);
-      Attribute(name,value);
+      attributes_.insert(std::pair<std::string,std::string>(lower(name),line.substr(pos)));
     } else {
-      Attribute(name,"");
+      attributes_.insert(std::pair<std::string,std::string>(lower(name),""));
     };
   };
   std::map<std::string,std::string>::iterator it;
@@ -381,7 +416,7 @@ bool PayloadHTTP::read_header(void) {
   return true;
 }
 
-bool PayloadHTTP::parse_header(void) {
+bool PayloadHTTPIn::parse_header(void) {
   method_.resize(0);
   code_=0;
   keep_alive_=false;
@@ -449,10 +484,12 @@ bool PayloadHTTP::parse_header(void) {
   return true;
 }
 
-bool PayloadHTTP::get_body(void) {
+bool PayloadHTTPIn::get_body(void) {
   if(fetched_) return true; // Already fetched body
   fetched_=true; // Even attempt counts
   valid_=false; // But object is invalid till whole body is available
+  if(body_) free(body_);
+  body_ = NULL; body_size_ = 0;
   // TODO: Check for methods and responses which can't have body
   char* result = NULL;
   int64_t result_size = 0;
@@ -481,327 +518,56 @@ bool PayloadHTTP::get_body(void) {
   }
   result[result_size]=0;
   // Attach result to buffer exposed to user
-  PayloadRawBuf b;
-  b.data=result; b.size=result_size; b.length=result_size; b.allocated=true;
-  buf_.push_back(b);
+  body_ = result; body_size_ = result_size;
   // If size of object was not reported then try to deduce it.
   if(size_ == 0) size_=offset_+result_size;
   valid_=true;
-  // allign to and of message
+  // allign to end of message
   flush_multipart();
   flush_chunked();
   return true;
 }
 
-const std::string& PayloadHTTP::Attribute(const std::string& name) {
-  std::multimap<std::string,std::string>::iterator it = attributes_.find(name);
-  if(it == attributes_.end()) return empty_string;
-  return it->second;
-}
-
-const std::multimap<std::string,std::string>& PayloadHTTP::Attributes(void) {
-  return attributes_;
-}
-
-void PayloadHTTP::Attribute(const std::string& name,const std::string& value) {
-  attributes_.insert(std::pair<std::string,std::string>(lower(name),value));
-}
-
-PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream,bool own):
-    valid_(false),fetched_(false),stream_(&stream),stream_own_(own),
-    rbody_(NULL),sbody_(NULL),body_own_(false),
-    code_(0),length_(0),end_(0),chunked_(CHUNKED_NONE),chunk_size_(0),
-    multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
-    head_response_(false) {
+PayloadHTTPIn::PayloadHTTPIn(PayloadStreamInterface& stream,bool own):
+    fetched_(false),stream_(&stream),stream_own_(own),
+    chunked_(CHUNKED_NONE),chunk_size_(0),
+    multipart_(MULTIPART_NONE),stream_offset_(0),
+    body_(NULL),body_size_(0) {
   tbuf_[0]=0; tbuflen_=0;
   if(!parse_header()) {
     error_ = IString("Failed to parse HTTP header").str();
     return;
   }
-  // If stream_ is owned then body can be fetched later
-  // if(!stream_own_) if(!get_body()) return;
   valid_=true;
 }
 
-PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):
-    valid_(true),fetched_(true),stream_(&stream),stream_own_(false),
-    rbody_(NULL),sbody_(NULL),body_own_(false),uri_(url),method_(method),
-    code_(0),length_(0),end_(0),chunked_(CHUNKED_NONE),chunk_size_(0),
-    multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
-    head_response_(false) {
-  tbuf_[0]=0; tbuflen_=0;
-  version_major_=1; version_minor_=1;
-  // TODO: encode URI properly
-}
-
-PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream,bool head_response):
-    valid_(true),fetched_(true),stream_(&stream),stream_own_(false),
-    rbody_(NULL),sbody_(NULL),body_own_(false),
-    code_(code),length_(0),end_(0),reason_(reason),chunked_(CHUNKED_NONE),chunk_size_(0),
-    multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
-    head_response_(head_response) {
-  tbuf_[0]=0; tbuflen_=0;
-  version_major_=1; version_minor_=1;
-  if(reason_.empty()) reason_="OK";
-}
-
-PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):
-    valid_(true),fetched_(true),stream_(NULL),stream_own_(false),
-    rbody_(NULL),sbody_(NULL),body_own_(false),uri_(url),method_(method),
-    code_(0),length_(0),end_(0),chunked_(CHUNKED_NONE),chunk_size_(0),
-    multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
-    head_response_(false) {
-  tbuf_[0]=0; tbuflen_=0;
-  version_major_=1; version_minor_=1;
-  // TODO: encode URI properly
-}
-
-PayloadHTTP::PayloadHTTP(int code,const std::string& reason,bool head_response):
-    valid_(true),fetched_(true),stream_(NULL),stream_own_(false),
-    rbody_(NULL),sbody_(NULL),body_own_(false),
-    code_(code),length_(0),end_(0),reason_(reason),chunked_(CHUNKED_NONE),chunk_size_(0),
-    multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
-    head_response_(head_response) {
-  tbuf_[0]=0; tbuflen_=0;
-  version_major_=1; version_minor_=1;
-  if(reason_.empty()) reason_="OK";
-}
-
-PayloadHTTP::~PayloadHTTP(void) {
+PayloadHTTPIn::~PayloadHTTPIn(void) {
   // allign to end of message
   flush_multipart();
   flush_chunked();
-  if(rbody_ && body_own_) delete rbody_;
-  if(sbody_ && body_own_) delete sbody_;
   if(stream_ && stream_own_) delete stream_;
+  if(body_) ::free(body_);
 }
 
-bool PayloadHTTP::Flush(void) {
-  std::string header;
-  bool to_stream = (stream_ != NULL);
-  if(method_.empty() && (code_ == 0)) {
-    error_ = IString("Invalid HTTP object can't produce result").str();
-    return false;
-  };
-  // Computing length of Body part
-  int64_t length = 0;
-  std::string range_header;
-  bool use_chunked_transfer = false;
-  if((method_ != "GET") && (method_ != "HEAD")) {
-    int64_t start = 0;
-    if(head_response_ && (code_==HTTP_OK)) {
-      length = Size();
-    } else {
-      if(sbody_) {
-        if(sbody_->Limit() > sbody_->Pos()) {
-          length = sbody_->Limit() - sbody_->Pos();
-        };
-        start=sbody_->Pos();
-      } else {
-        for(int n=0;;++n) {
-          if(Buffer(n) == NULL) break;
-          length+=BufferSize(n);
-        };
-        start=BufferPos(0);
-      };
-    };
-    if(length != Size()) {
-      // Add range definition if Body represents part of logical buffer size
-      // and adjust HTTP code accordingly
-      int64_t end = start+length;
-      std::string length_str;
-      std::string range_str;
-      if(end <= Size()) {
-        length_str=tostring(Size());
-      } else {
-        length_str="*";
-      }; 
-      if(end > start) {
-        range_str=tostring(start)+"-"+tostring(end-1);
-        if(code_ == HTTP_OK) {
-          code_=HTTP_PARTIAL;
-          reason_="Partial content";
-        };
-      } else {
-        range_str="*";
-        if(code_ == HTTP_OK) {
-          code_=HTTP_RANGE_NOT_SATISFIABLE;
-          reason_="Range not satisfiable";
-        };
-      };
-      range_header="Content-Range: bytes "+range_str+"/"+length_str+"\r\n";
-    };
-    if(length > 0) {
-      range_header+="Content-Length: "+tostring(length)+"\r\n";
-    } else {
-      // If computed length is 0 that may also mean it is not known
-      // in advance. In this case either connection closing or 
-      // chunked encoding may be used. Chunked is better because it 
-      // allows to avoid reconnection.
-      // But chunked can only be used if writing to stream right now.
-      if(to_stream) {
-        range_header+="Transfer-Encoding: chunked\r\n";
-        use_chunked_transfer = true;
-      } else {
-        keep_alive_ = false;
-      };
-    };
-  };
-  // Starting header
-  if(!method_.empty()) {
-    header=method_+" "+uri_+
-           " HTTP/"+tostring(version_major_)+"."+tostring(version_minor_)+"\r\n";
-  } else if(code_ != 0) {
-    char tbuf[256]; tbuf[255]=0;
-    snprintf(tbuf,255,"HTTP/%i.%i %i",version_major_,version_minor_,code_);
-    header="HTTP/"+tostring(version_major_)+"."+tostring(version_minor_)+" "+
-           tostring(code_)+" "+reason_+"\r\n";
-  };
-  if((version_major_ == 1) && (version_minor_ == 1) && (!method_.empty())) {
-    std::map<std::string,std::string>::iterator it = attributes_.find("host");
-    if(it == attributes_.end()) {
-      std::string host;
-      if(!uri_.empty()) {
-        std::string::size_type p1 = uri_.find("://");
-        if(p1 != std::string::npos) {
-          std::string::size_type p2 = uri_.find('/',p1+3);
-          if(p2 == std::string::npos) p2 = uri_.length();
-          host=uri_.substr(p1+3,p2-p1-3);
-        };
-      };
-      header+="Host: "+host+"\r\n";
-    };
-  };
-  // Adding previously generated range specifier
-  header+=range_header;
-  bool keep_alive = false;
-  if((version_major_ == 1) && (version_minor_ == 1)) keep_alive=keep_alive_;
-  if(keep_alive) {
-    header+="Connection: keep-alive\r\n";
-  } else {
-    header+="Connection: close\r\n";
-  };
-  for(std::map<std::string,std::string>::iterator a = attributes_.begin();a!=attributes_.end();++a) {
-    header+=(a->first)+": "+(a->second)+"\r\n";
-  };
-  header+="\r\n";
-  logger.msg(Arc::DEBUG,"> %s",header);
-  if(to_stream) {
-    if(!stream_->Put(header)) {
-      error_ = IString("Failed to write header to output stream").str();
-      return false;
-    };
-    if((length > 0) || (use_chunked_transfer)) {
-      if(sbody_) {
-        // stream to stream transfer
-        // TODO: choose optimal buffer size
-        // TODO: parallel read and write for better performance
-        int tbufsize = (length>1024*1024)?(1024*1024):length;
-        char* tbuf = new char[tbufsize];
-        if(!tbuf) {
-          error_ = IString("Memory allocation error").str();
-          return false;
-        };
-        for(;;) {
-          int lbuf = tbufsize;
-          if(!sbody_->Get(tbuf,lbuf)) break;
-          if(use_chunked_transfer) {
-            if(!stream_->Put(tostring(lbuf,16)+"\r\n")) {
-              error_ = IString("Failed to write body to output stream").str();
-              delete[] tbuf;
-              return false;
-            };
-          };
-          if(!stream_->Put(tbuf,lbuf)) {
-            error_ = IString("Failed to write body to output stream").str();
-            delete[] tbuf;
-            return false;
-          };
-        };
-        delete[] tbuf;
-        if(use_chunked_transfer) {
-          if(!stream_->Put("0\r\n\r\n")) {
-            error_ = IString("Failed to write body to output stream").str();
-            delete[] tbuf;
-            return false;
-          };
-        };
-      } else {
-        for(int n=0;;++n) {
-          char* tbuf = Buffer(n);
-          if(tbuf == NULL) break;
-          int64_t lbuf = BufferSize(n);
-          if(lbuf > 0) {
-            if(use_chunked_transfer) {
-              if(!stream_->Put(tostring(lbuf,16)+"\r\n")) {
-                error_ = IString("Failed to write body to output stream").str();
-                return false;
-              };
-            };
-            if(!stream_->Put(tbuf,lbuf)) {
-              error_ = IString("Failed to write body to output stream").str();
-              return false;
-            };
-          };
-        };
-        if(use_chunked_transfer) {
-          if(!stream_->Put("0\r\n\r\n")) {
-            error_ = IString("Failed to write body to output stream").str();
-            return false;
-          };
-        };
-      };
-    };
-    //if(!keep_alive) stream_->Close();
-  } else {
-    Insert(header.c_str(),0,header.length());
-  };
-  return true;
+char PayloadHTTPIn::operator[](PayloadRawInterface::Size_t pos) const {
+  if(!((PayloadHTTPIn*)this)->get_body()) return 0;
+  if(!body_) return 0;
+  if(pos < offset_) return 0;
+  pos -= offset_;
+  if(pos >= body_size_) return 0;
+  return body_[pos];
 }
 
-void PayloadHTTP::Body(PayloadRawInterface& body,bool ownership) {
-  if(rbody_ && body_own_) delete rbody_;
-  if(sbody_ && body_own_) delete sbody_;
-  sbody_ = NULL;
-  rbody_=&body; body_own_=ownership;
-}
-
-void PayloadHTTP::Body(PayloadStreamInterface& body,bool ownership) {
-  if(rbody_ && body_own_) delete rbody_;
-  if(sbody_ && body_own_) delete sbody_;
-  rbody_ = NULL;
-  sbody_=&body; body_own_=ownership;
-}
-
-char PayloadHTTP::operator[](PayloadRawInterface::Size_t pos) const {
-  if(!((PayloadHTTP*)this)->get_body()) return 0;
-  if(pos < PayloadRaw::Size()) {
-    return PayloadRaw::operator[](pos);
-  };
-  if(rbody_) {
-    return rbody_->operator[](pos-Size());
-  };
-  if(sbody_) {
-    // Not supporting direct read from stream body
-  };
-  return 0;
-}
-
-char* PayloadHTTP::Content(PayloadRawInterface::Size_t pos) {
+char* PayloadHTTPIn::Content(PayloadRawInterface::Size_t pos) {
   if(!get_body()) return NULL;
-  if(pos < PayloadRaw::Size()) {
-    return PayloadRaw::Content(pos);
-  };
-  if(rbody_) {
-    return rbody_->Content(pos-Size());
-  };
-  if(sbody_) {
-    // Not supporting content from stream body
-  };
-  return NULL;
+  if(!body_) return 0;
+  if(pos < offset_) return NULL;
+  pos -= offset_;
+  if(pos >= body_size_) return NULL;
+  return body_+pos;
 }
 
-PayloadRawInterface::Size_t PayloadHTTP::Size(void) const {
+PayloadRawInterface::Size_t PayloadHTTPIn::Size(void) const {
   if(!valid_) return 0;
   PayloadRawInterface::Size_t size = 0;
   if(size_ > 0) {
@@ -812,128 +578,59 @@ PayloadRawInterface::Size_t PayloadHTTP::Size(void) const {
     size = offset_ + length_;
   } else {
     // Only do it if no other way of determining size worked.
-    if(!((PayloadHTTP*)this)->get_body()) return 0;
-    size = PayloadRaw::Size();
+    if(((PayloadHTTPIn*)this)->get_body()) size = body_size_;
   }
-  if(rbody_) {
-    return size + (rbody_->Size());
-  };
-  if(sbody_) {
-    return size + (sbody_->Size());
-  };
   return size;
 }
 
-char* PayloadHTTP::Insert(PayloadRawInterface::Size_t pos,PayloadRawInterface::Size_t size) {
-  if(!get_body()) return NULL;
-  return PayloadRaw::Insert(pos,size);
-}
-
-char* PayloadHTTP::Insert(const char* s,PayloadRawInterface::Size_t pos,PayloadRawInterface::Size_t size) {
-  if(!get_body()) return NULL;
-  return PayloadRaw::Insert(s,pos,size);
-}
-
-char* PayloadHTTP::Buffer(unsigned int num) {
-  if(!get_body()) return NULL;
-  if(num < buf_.size()) {
-    return PayloadRaw::Buffer(num);
-  };
-  if(rbody_) {
-    return rbody_->Buffer(num-buf_.size());
-  };
-  if(sbody_) {
-    // Not supporting buffer access to stream body
-  };
+char* PayloadHTTPIn::Insert(PayloadRawInterface::Size_t pos,PayloadRawInterface::Size_t size) {
   return NULL;
 }
 
-PayloadRawInterface::Size_t PayloadHTTP::BufferSize(unsigned int num) const {
-  if(!((PayloadHTTP*)this)->get_body()) return 0;
-  if(num < buf_.size()) {
-    return PayloadRaw::BufferSize(num);
-  };
-  if(rbody_) {
-    return rbody_->BufferSize(num-buf_.size());
-  };
-  if(sbody_) {
-    // Not supporting buffer access to stream body
-  };
-  return 0;
+char* PayloadHTTPIn::Insert(const char* s,PayloadRawInterface::Size_t pos,PayloadRawInterface::Size_t size) {
+  return NULL;
 }
 
-PayloadRawInterface::Size_t PayloadHTTP::BufferPos(unsigned int num) const {
-  if((num == 0) && (buf_.size() == 0) && (!rbody_) && (!sbody_)) {
-    return offset_;
-  }
-  if(!((PayloadHTTP*)this)->get_body()) return 0;
-  if(num < buf_.size()) {
-    return PayloadRaw::BufferPos(num);
-  };
-  if(rbody_) {
-    return rbody_->BufferPos(num-buf_.size())+PayloadRaw::BufferPos(num);
-  };
-  if(sbody_) {
-    // Not supporting buffer access to stream body
-  };
-  return PayloadRaw::BufferPos(num);
+char* PayloadHTTPIn::Buffer(unsigned int num) {
+  if(num != 0) return NULL;
+  if(!get_body()) return NULL;
+  return body_;
 }
 
-bool PayloadHTTP::Truncate(PayloadRawInterface::Size_t size) {
+PayloadRawInterface::Size_t PayloadHTTPIn::BufferSize(unsigned int num) const {
+  if(num != 0) return 0;
+  if(!((PayloadHTTPIn*)this)->get_body()) return 0;
+  return body_size_;
+}
+
+PayloadRawInterface::Size_t PayloadHTTPIn::BufferPos(unsigned int num) const {
+  if(num != 0) return 0;
+  return offset_;
+}
+
+bool PayloadHTTPIn::Truncate(PayloadRawInterface::Size_t size) {
   if(!get_body()) return false;
-  if(size < PayloadRaw::Size()) {
-    if(rbody_ && body_own_) delete rbody_;
-    if(sbody_ && body_own_) delete sbody_;
-    rbody_=NULL; sbody_=NULL;
-    return PayloadRaw::Truncate(size);
+  if(size <= offset_) {
+    if(body_) free(body_);
+    body_ = NULL; body_size_ = 0;
   };
-  if(rbody_) {
-    return rbody_->Truncate(size-Size());
-  };
-  if(sbody_) {
-    // Stream body does not support Truncate yet
+  if((size-offset_) <= body_size_) {
+    body_size_ = (size-offset_);
+    return true;
   };
   return false;
 }
 
-bool PayloadHTTP::Get(char* buf,int& size) {
+bool PayloadHTTPIn::Get(char* buf,int& size) {
   if(!valid_) return false;
   if(fetched_) {
-    // Read from buffers
-    uint64_t bo = 0;
-    for(unsigned int num = 0;num<buf_.size();++num) {
-      uint64_t bs = PayloadRaw::BufferSize(num);
-      if((bo+bs) > stream_offset_) {
-        char* p = PayloadRaw::Buffer(num);
-        p+=(stream_offset_-bo);
-        bs-=(stream_offset_-bo);
-        if(bs>size) bs=size;
-        memcpy(buf,p,bs);
-        size=bs; stream_offset_+=bs;
-        return true;
-      };
-      bo+=bs;
-    };
-    if(rbody_) {
-      for(unsigned int num = 0;;++num) {
-        char* p = PayloadRaw::Buffer(num);
-        if(!p) break;
-        uint64_t bs = PayloadRaw::BufferSize(num);
-        if((bo+bs) > stream_offset_) {
-          p+=(stream_offset_-bo);
-          bs-=(stream_offset_-bo);
-          if(bs>size) bs=size;
-          memcpy(buf,p,bs);
-          size=bs; stream_offset_+=bs;
-          return true;
-        };
-        bo+=bs;
-      };
-    } else if(sbody_) {
-      if(sbody_->Get(buf,size)) {
-        stream_offset_+=size;
-        return true;
-      };
+    // Read from buffer
+    if(stream_offset_ < body_size_) {
+      uint64_t l = body_size_ - stream_offset_;
+      if(l>size) l=size;
+      ::memcpy(buf,body_+stream_offset_,l);
+      size=l; stream_offset_+=l;
+      return true;
     };
     return false;
   };
@@ -965,53 +662,539 @@ bool PayloadHTTP::Get(char* buf,int& size) {
   return r;
 }
 
-bool PayloadHTTP::Get(std::string& buf) {
-  int l = 1024;
-  buf.resize(l);
-  bool result = Get((char*)buf.c_str(),l);
-  if(!result) l=0;
-  buf.resize(l);
-  return result;
-}
-
-std::string PayloadHTTP::Get(void) {
-  std::string s;
-  Get(s);
-  return s;
-}
-
 // Stream interface is meant to be used only
 // for reading HTTP body.
-bool PayloadHTTP::Put(const char* /* buf */,PayloadStreamInterface::Size_t /* size */) {
+bool PayloadHTTPIn::Put(const char* /* buf */,PayloadStreamInterface::Size_t /* size */) {
   return false;
 }
 
-bool PayloadHTTP::Put(const std::string& /* buf */) {
-  return false;
-}
-
-bool PayloadHTTP::Put(const char* /* buf */) {
-  return false;
-}
-
-int PayloadHTTP::Timeout(void) const {
+int PayloadHTTPIn::Timeout(void) const {
   if(!stream_) return 0;
   return stream_->Timeout();
 }
 
-void PayloadHTTP::Timeout(int to) {
+void PayloadHTTPIn::Timeout(int to) {
   if(stream_) stream_->Timeout(to);
 }
 
-PayloadStreamInterface::Size_t PayloadHTTP::Pos(void) const {
+PayloadStreamInterface::Size_t PayloadHTTPIn::Pos(void) const {
   if(!stream_) return 0;
   return offset_+stream_offset_;
 }
 
-PayloadStreamInterface::Size_t PayloadHTTP::Limit(void) const {
-  // TODO: logical size is not always same as end of body
-  return Size();
+PayloadStreamInterface::Size_t PayloadHTTPIn::Limit(void) const {
+  if(length_ >= 0) return (offset_ + length_);
+  return (offset_ + body_size_);
 }
 
-} // namespace ArcMCCHTTP
 
+// ------------------- PayloadHTTPOut ---------------------------
+
+void PayloadHTTPOut::Attribute(const std::string& name,const std::string& value) {
+  attributes_.insert(std::pair<std::string,std::string>(lower(name),value));
+}
+
+PayloadHTTPOut::PayloadHTTPOut(const std::string& method,const std::string& url):
+    PayloadHTTP(method,url),
+    rbody_(NULL),sbody_(NULL),sbody_size_(0),body_own_(false),
+    head_response_(false),
+    to_stream_(false),use_chunked_transfer_(false),
+    stream_offset_(0) {
+  valid_ = true;
+}
+
+PayloadHTTPOut::PayloadHTTPOut(int code,const std::string& reason,bool head_response):
+    PayloadHTTP(code,reason),
+    rbody_(NULL),sbody_(NULL),sbody_size_(0),body_own_(false),
+    head_response_(head_response),
+    to_stream_(false),use_chunked_transfer_(false),
+    stream_offset_(0) {
+  valid_ = true;
+}
+
+PayloadHTTPOut::~PayloadHTTPOut(void) {
+  if(rbody_ && body_own_) delete rbody_;
+  if(sbody_ && body_own_) delete sbody_;
+}
+
+PayloadHTTPOutStream::PayloadHTTPOutStream(const std::string& method,const std::string& url):
+  PayloadHTTPOut(method,url) {
+}
+
+PayloadHTTPOutStream::PayloadHTTPOutStream(int code,const std::string& reason,bool head_response):
+  PayloadHTTPOut(code,reason,head_response) {
+}
+
+PayloadHTTPOutStream::~PayloadHTTPOutStream(void) {
+}
+
+PayloadHTTPOutRaw::PayloadHTTPOutRaw(const std::string& method,const std::string& url):
+  PayloadHTTPOut(method,url) {
+}
+
+PayloadHTTPOutRaw::PayloadHTTPOutRaw(int code,const std::string& reason,bool head_response):
+  PayloadHTTPOut(code,reason,head_response) {
+}
+
+PayloadHTTPOutRaw::~PayloadHTTPOutRaw(void) {
+}
+
+PayloadRawInterface::Size_t PayloadHTTPOut::body_size(void) const {
+  if(rbody_) {
+    PayloadRawInterface::Size_t size = 0;
+    for(int n = 0;rbody_->Buffer(n);++n) {
+      size += rbody_->BufferSize(n);
+    };
+    return size;
+  } else if(sbody_) {
+    return sbody_size_;
+  };
+  return 0;
+}
+
+PayloadRawInterface::Size_t PayloadHTTPOut::data_size(void) const {
+  if(rbody_) {
+    return (rbody_->Size());
+  };
+  if(sbody_) {
+    return (sbody_->Size());
+  };
+  return 0;
+}
+
+bool PayloadHTTPOut::make_header(bool to_stream) {
+  header_.resize(0);
+  std::string header;
+  if(method_.empty() && (code_ == 0)) {
+    error_ = IString("Invalid HTTP object can't produce result").str();
+    return false;
+  };
+  // Computing length of Body part
+  int64_t length = 0;
+  std::string range_header;
+  use_chunked_transfer_ = false;
+  if((method_ != "GET") && (method_ != "HEAD")) {
+    int64_t start = 0;
+    if(head_response_ && (code_==HTTP_OK)) {
+      length = data_size();
+    } else {
+      if(sbody_) {
+        if(sbody_->Limit() > sbody_->Pos()) {
+          length = sbody_->Limit() - sbody_->Pos();
+        };
+        start = sbody_->Pos();
+      } else if(rbody_) {
+        for(int n=0;;++n) {
+          if(rbody_->Buffer(n) == NULL) break;
+          length+=rbody_->BufferSize(n);
+        };
+        start = rbody_->BufferPos(0);
+      } else {
+        length = 0;
+        start = 0;
+      };
+    };
+    if(length != data_size()) {
+      // Add range definition if Body represents part of logical buffer size
+      // and adjust HTTP code accordingly
+      int64_t end = start+length;
+      std::string length_str;
+      std::string range_str;
+      if(end <= data_size()) {
+        length_str=tostring(data_size());
+      } else {
+        length_str="*";
+      }; 
+      if(end > start) {
+        range_str=tostring(start)+"-"+tostring(end-1);
+        if(code_ == HTTP_OK) {
+          code_=HTTP_PARTIAL;
+          reason_="Partial content";
+        };
+      } else {
+        range_str="*";
+        if(code_ == HTTP_OK) {
+          code_=HTTP_RANGE_NOT_SATISFIABLE;
+          reason_="Range not satisfiable";
+        };
+      };
+      range_header="Content-Range: bytes "+range_str+"/"+length_str+"\r\n";
+    };
+    if(length > 0) {
+      range_header+="Content-Length: "+tostring(length)+"\r\n";
+    } else {
+      // If computed length is 0 that may also mean it is not known
+      // in advance. In this case either connection closing or 
+      // chunked encoding may be used. Chunked is better because it 
+      // allows to avoid reconnection.
+      // But chunked can only be used if writing to stream right now.
+      // TODO: extend it to support chunked in Raw buffer mode. It
+      // is possible by inserting small buffers with lengths.
+      if(to_stream) {
+        range_header+="Transfer-Encoding: chunked\r\n";
+        use_chunked_transfer_ = true;
+      } else {
+        keep_alive_ = false;
+      };
+    };
+  };
+  // Starting header
+  if(!method_.empty()) {
+    header=method_+" "+uri_+
+           " HTTP/"+tostring(version_major_)+"."+tostring(version_minor_)+"\r\n";
+  } else if(code_ != 0) {
+    header="HTTP/"+tostring(version_major_)+"."+tostring(version_minor_)+" "+
+           tostring(code_)+" "+reason_+"\r\n";
+  } else {
+    return false;
+  };
+  if((version_major_ == 1) && (version_minor_ == 1) && (!method_.empty())) {
+    // Adding Host attribute to request if not present.
+    std::map<std::string,std::string>::iterator it = attributes_.find("host");
+    if(it == attributes_.end()) {
+      std::string host;
+      if(!uri_.empty()) {
+        std::string::size_type p1 = uri_.find("://");
+        if(p1 != std::string::npos) {
+          std::string::size_type p2 = uri_.find('/',p1+3);
+          if(p2 == std::string::npos) p2 = uri_.length();
+          host=uri_.substr(p1+3,p2-p1-3);
+        };
+      };
+      header+="Host: "+host+"\r\n";
+    };
+  };
+  // Adding previously generated range specifier
+  header+=range_header;
+  bool keep_alive = false;
+  if((version_major_ == 1) && (version_minor_ == 1)) keep_alive=keep_alive_;
+  if(keep_alive) {
+    header+="Connection: keep-alive\r\n";
+  } else {
+    header+="Connection: close\r\n";
+  };
+  for(std::map<std::string,std::string>::iterator a = attributes_.begin();a!=attributes_.end();++a) {
+    header+=(a->first)+": "+(a->second)+"\r\n";
+  };
+  header+="\r\n";
+  logger.msg(Arc::DEBUG,"> %s",header);
+  header_ = header;
+  to_stream_ = to_stream;
+  length_ = length;
+  return true;
+}
+
+bool PayloadHTTPOut::remake_header(bool to_stream) {
+  if(header_.empty() || (to_stream_ != to_stream)) return make_header(to_stream);
+  return true;
+}
+
+bool PayloadHTTPOut::Flush(PayloadStreamInterface& stream) {
+  std::string header;
+  //bool to_stream = (stream_ != NULL);
+  //bool to_stream = true;
+  if(!make_header(true)) return false;
+  //if(to_stream) {
+    if(!stream.Put(header_)) {
+      error_ = IString("Failed to write header to output stream").str();
+      return false;
+    };
+    if((length_ > 0) || (use_chunked_transfer_)) {
+      if(sbody_) {
+        // stream to stream transfer
+        // TODO: choose optimal buffer size
+        // TODO: parallel read and write for better performance
+        int tbufsize = (length_>1024*1024)?(1024*1024):length_;
+        char* tbuf = new char[tbufsize];
+        if(!tbuf) {
+          error_ = IString("Memory allocation error").str();
+          return false;
+        };
+        for(;;) {
+          int lbuf = tbufsize;
+          if(!sbody_->Get(tbuf,lbuf)) break;
+          if(use_chunked_transfer_) {
+            if(!stream.Put(tostring(lbuf,16)+"\r\n")) {
+              error_ = IString("Failed to write body to output stream").str();
+              delete[] tbuf;
+              return false;
+            };
+          };
+          if(!stream.Put(tbuf,lbuf)) {
+            error_ = IString("Failed to write body to output stream").str();
+            delete[] tbuf;
+            return false;
+          };
+        };
+        delete[] tbuf;
+        if(use_chunked_transfer_) {
+          if(!stream.Put("0\r\n\r\n")) {
+            error_ = IString("Failed to write body to output stream").str();
+            delete[] tbuf;
+            return false;
+          };
+        };
+      } else if(rbody_) {
+        for(int n=0;;++n) {
+          char* tbuf = rbody_->Buffer(n);
+          if(tbuf == NULL) break;
+          int64_t lbuf = rbody_->BufferSize(n);
+          if(lbuf > 0) {
+            if(use_chunked_transfer_) {
+              if(!stream.Put(tostring(lbuf,16)+"\r\n")) {
+                error_ = IString("Failed to write body to output stream").str();
+                return false;
+              };
+            };
+            if(!stream.Put(tbuf,lbuf)) {
+              error_ = IString("Failed to write body to output stream").str();
+              return false;
+            };
+          };
+        };
+        if(use_chunked_transfer_) {
+          if(!stream.Put("0\r\n\r\n")) {
+            error_ = IString("Failed to write body to output stream").str();
+            return false;
+          };
+        };
+      } else {
+        if(use_chunked_transfer_) {
+          if(!stream.Put("0\r\n\r\n")) {
+            error_ = IString("Failed to write body to output stream").str();
+            return false;
+          };
+        };
+      };
+    };
+    //if(!keep_alive) stream_->Close();
+  //} else {
+  //  Insert(header_.c_str(),0,header.length());
+  //};
+  return true;
+}
+
+void PayloadHTTPOutRaw::Body(PayloadRawInterface& body,bool ownership) {
+  if(rbody_ && body_own_) delete rbody_;
+  if(sbody_ && body_own_) delete sbody_;
+  sbody_ = NULL;
+  rbody_=&body; body_own_=ownership;
+}
+
+void PayloadHTTPOutStream::Body(PayloadStreamInterface& body,bool ownership) {
+  if(rbody_ && body_own_) delete rbody_;
+  if(sbody_ && body_own_) delete sbody_;
+  rbody_ = NULL;
+  sbody_=&body; body_own_=ownership; sbody_size_ = 0;
+  PayloadStreamInterface::Size_t pos = sbody_->Pos();
+  PayloadStreamInterface::Size_t size = sbody_->Size();
+  PayloadStreamInterface::Size_t limit = sbody_->Limit();
+  if((size == 0) || (size > limit)) size = limit;
+  if(pos < size) sbody_size_ = (size-pos);
+}
+
+char PayloadHTTPOutRaw::operator[](PayloadRawInterface::Size_t pos) const {
+  if(!((PayloadHTTPOutRaw&)(*this)).remake_header(false)) return 0;
+  if(pos < header_.length()) {
+    return header_[pos];
+  };
+  pos -= header_.length();
+  if(rbody_) {
+    return rbody_->operator[](pos);
+  };
+  if(sbody_) {
+    // Not supporting direct read from stream body
+  };
+  return 0;
+}
+
+char* PayloadHTTPOutRaw::Content(PayloadRawInterface::Size_t pos) {
+  if(!remake_header(false)) return NULL;
+  if(pos < header_.length()) {
+    return (char*)(header_.c_str()+pos);
+  };
+  pos -= header_.length();
+  if(rbody_) {
+    return rbody_->Content(pos);
+  };
+  if(sbody_) {
+    // Not supporting content from stream body
+  };
+  return NULL;
+}
+
+PayloadRawInterface::Size_t PayloadHTTPOutRaw::Size(void) const {
+  if(!valid_) return 0;
+  // Here Size() of Stream and Raw are conflicting. Currently we just
+  // hope that nothing will be interested in logical size of stream.
+  // TODO: either separate Size()s or implement chunked for Raw. 
+  if(!((PayloadHTTPOutRaw&)(*this)).remake_header(false)) return 0;
+  return header_.length()+body_size();
+}
+
+char* PayloadHTTPOutRaw::Insert(PayloadRawInterface::Size_t pos,PayloadRawInterface::Size_t size) {
+  // Not allowing to manipulate body content through this interface
+  return NULL;
+}
+
+char* PayloadHTTPOutRaw::Insert(const char* s,PayloadRawInterface::Size_t pos,PayloadRawInterface::Size_t size) {
+  return NULL;
+}
+
+char* PayloadHTTPOutRaw::Buffer(unsigned int num) {
+  if(!remake_header(false)) return NULL;
+  if(num == 0) {
+    return (char*)(header_.c_str());
+  };
+  --num;
+  if(rbody_) {
+    return rbody_->Buffer(num);
+  };
+  if(sbody_) {
+    // Not supporting buffer access to stream body
+  };
+  return NULL;
+}
+
+PayloadRawInterface::Size_t PayloadHTTPOutRaw::BufferSize(unsigned int num) const {
+  if(!((PayloadHTTPOutRaw&)(*this)).remake_header(false)) return NULL;
+  if(num == 0) {
+    return header_.length();
+  };
+  --num;
+  if(rbody_) {
+    return rbody_->BufferSize(num);
+  };
+  if(sbody_) {
+    // Not supporting buffer access to stream body
+  };
+  return 0;
+}
+
+PayloadRawInterface::Size_t PayloadHTTPOutRaw::BufferPos(unsigned int num) const {
+  if(num == 0) {
+    return 0;
+  };
+  if(!((PayloadHTTPOutRaw&)(*this)).remake_header(false)) return 0;
+  PayloadRawInterface::Size_t pos = header_.length();
+  if(rbody_) {
+    --num;
+    int n = 0;
+    for(n=0;n<num;++n) {
+      if(!rbody_->Buffer(n)) break;
+      pos += rbody_->BufferSize(n);
+    };
+    return pos;
+  };
+  if(sbody_) {
+    // Not supporting buffer access to stream body
+  };
+  return pos;
+}
+
+bool PayloadHTTPOutRaw::Truncate(PayloadRawInterface::Size_t size) {
+  // TODO: Review it later. Truncate may be acting logically on *body_.
+  if(!remake_header(false)) return false;
+  if(size <= header_.length()) {
+    if(rbody_ && body_own_) delete rbody_;
+    if(sbody_ && body_own_) delete sbody_;
+    rbody_=NULL; sbody_=NULL;
+    header_.resize(size);
+    return true;
+  };
+  if(rbody_) {
+    return rbody_->Truncate(size-header_.length());
+  };
+  if(sbody_) {
+    // Stream body does not support Truncate yet
+  };
+  return false;
+}
+
+PayloadRawInterface::Size_t PayloadHTTPOutStream::Size(void) const {
+  if(!valid_) return 0;
+  // Here Size() of Stream and Raw are conflicting. Currently we just
+  // hope that nothing will be interested in logical size of stream.
+  // TODO: either separate Size()s or implement chunked for Raw. 
+  if(!((PayloadHTTPOutStream&)(*this)).remake_header(false)) return 0;
+  return header_.length()+body_size();
+}
+
+bool PayloadHTTPOutStream::Get(char* buf,int& size) {
+  if(!valid_) return false;
+  if(!remake_header(true)) return false;
+  // Read header
+  uint64_t bo = 0;
+  uint64_t bs = header_.length();
+  int l = 0;
+  if(l >= size) { size = l; return true; };
+  if((bo+bs) > stream_offset_) {
+    const char* p = header_.c_str();
+    p+=(stream_offset_-bo);
+    bs-=(stream_offset_-bo);
+    if(bs>(size-l)) bs=(size-l);
+    ::memcpy(buf+l,p,bs);
+    l+=bs; stream_offset_+=bs;
+  };
+  bo+=bs;
+  if(rbody_) {
+    for(unsigned int num = 0;;++num) {
+      if(l >= size) { size = l; return true; };
+      const char* p = rbody_->Buffer(num);
+      if(!p) break;
+      bs = rbody_->BufferSize(num);
+      if((bo+bs) > stream_offset_) {
+        p+=(stream_offset_-bo);
+        bs-=(stream_offset_-bo);
+        if(bs>(size-l)) bs=(size-l);
+        ::memcpy(buf+l,p,bs);
+        l+=bs; stream_offset_+=bs;
+      };
+      bo+=bs;
+    };
+    size = l;
+    if(l > 0) return true;
+    return false;
+  };
+  if(sbody_) {
+    if(l >= size) { size = l; return true; };
+    int s = size-l;
+    if(sbody_->Get(buf+l,s)) {
+      stream_offset_+=s; l+=s;
+      size = l;
+      return true;
+    };
+    size = l;
+    return false; 
+  };
+  size = l;
+  if(l > 0) return true;
+  return false;
+}
+
+// Stream interface is meant to be used only for reading.
+bool PayloadHTTPOutStream::Put(const char* /* buf */,PayloadStreamInterface::Size_t /* size */) {
+  return false;
+}
+
+int PayloadHTTPOutStream::Timeout(void) const {
+  if(!sbody_) return 0;
+  return sbody_->Timeout();
+}
+
+void PayloadHTTPOutStream::Timeout(int to) {
+  if(sbody_) sbody_->Timeout(to);
+}
+
+PayloadStreamInterface::Size_t PayloadHTTPOutStream::Pos(void) const {
+  return stream_offset_;
+}
+
+PayloadStreamInterface::Size_t PayloadHTTPOutStream::Limit(void) const {
+  if(!((PayloadHTTPOutStream&)(*this)).remake_header(true)) return 0;
+  return header_.length()+body_size();
+}
+
+//-------------------------------------------------------------------
+
+} // namespace ArcMCCHTTP

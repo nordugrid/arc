@@ -7,6 +7,7 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/SecAttr.h>
 #include <arc/loader/Plugin.h>
+#include <arc/Utils.h>
 
 #include "PayloadHTTP.h"
 #include "MCCHTTP.h"
@@ -46,7 +47,7 @@ class HTTPSecAttr: public SecAttr {
  friend class MCC_HTTP_Service;
  friend class MCC_HTTP_Client;
  public:
-  HTTPSecAttr(PayloadHTTP& payload);
+  HTTPSecAttr(PayloadHTTPIn& payload);
   virtual ~HTTPSecAttr(void);
   virtual operator bool(void) const;
   virtual bool Export(SecAttrFormat format,XMLNode &val) const;
@@ -57,7 +58,7 @@ class HTTPSecAttr: public SecAttr {
   virtual bool equal(const SecAttr &b) const;
 };
 
-HTTPSecAttr::HTTPSecAttr(PayloadHTTP& payload) {
+HTTPSecAttr::HTTPSecAttr(PayloadHTTPIn& payload) {
   action_=payload.Method();
   std::string path = payload.Endpoint();
   // Remove service, port and protocol - those will be provided by
@@ -154,11 +155,10 @@ static MCC_Status make_http_fault(Logger& logger,PayloadStreamInterface& stream,
     };
   };
   logger.msg(WARNING, "HTTP Error: %d %s",code,desc);
-  PayloadHTTP outpayload(code,desc,stream);
-  if(!outpayload.Flush()) return MCC_Status();
+  PayloadHTTPOut outpayload(code,desc);
+  if(!outpayload.Flush(stream)) return MCC_Status();
   // Returning empty payload because response is already sent
-  PayloadRaw* outpayload_e = new PayloadRaw;
-  outmsg.Payload(outpayload_e);
+  outmsg.Payload(new PayloadRaw);
   return MCC_Status(STATUS_OK);
 }
 
@@ -205,8 +205,8 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
     inpayload = dynamic_cast<PayloadStreamInterface*>(inmsg.Payload());
   } catch(std::exception& e) { };
   if(!inpayload) return MCC_Status();
-  // Converting stream payload to HTTP which also implements raw interface
-  PayloadHTTP nextpayload(*inpayload);
+  // Converting stream payload to HTTP which implements raw and stream interfaces
+  PayloadHTTPIn nextpayload(*inpayload);
   if(!nextpayload) {
     logger.msg(WARNING, "Cannot create http payload");
     return make_http_fault(logger,*inpayload,outmsg,HTTP_BAD_REQUEST);
@@ -276,7 +276,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
     }
   }
   if(!nextoutmsg.Payload()) {
-    logger.msg(WARNING, "next element of the chain returned empty payload");
+    logger.msg(WARNING, "next element of the chain returned no payload");
     return make_http_fault(logger,*inpayload,outmsg,HTTP_INTERNAL_ERR);
   }
   PayloadRawInterface* retpayload = NULL;
@@ -293,7 +293,8 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
     return make_http_fault(logger,*inpayload,outmsg,HTTP_INTERNAL_ERR);
   };
   if(!ProcessSecHandlers(nextinmsg,"outgoing")) {
-    delete nextoutmsg.Payload(); return make_http_fault(logger,*inpayload,outmsg,HTTP_BAD_REQUEST); // Maybe not 400 ?
+    delete nextoutmsg.Payload();
+    return make_http_fault(logger,*inpayload,outmsg,HTTP_BAD_REQUEST); // Maybe not 400 ?
   };
   // Create HTTP response from raw body content
   // Use stream payload of inmsg to send HTTP response
@@ -327,7 +328,16 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
     };
   };
 */
-  PayloadHTTP* outpayload = new PayloadHTTP(http_code,http_resp,*inpayload,request_is_head);
+  PayloadHTTPOut* outpayload = NULL;
+  PayloadHTTPOutRaw* routpayload = NULL;
+  PayloadHTTPOutStream* soutpayload = NULL;
+  if(retpayload) {
+    routpayload = new PayloadHTTPOutRaw(http_code,http_resp,request_is_head);
+    outpayload = routpayload;
+  } else {
+    soutpayload = new PayloadHTTPOutStream(http_code,http_resp,request_is_head);
+    outpayload = soutpayload;
+  };
   // Use attributes which higher level MCC may have produced for HTTP
   for(AttributeIterator i = nextoutmsg.Attributes()->getAll();i.hasMore();++i) {
     const char* key = i.key().c_str();
@@ -339,16 +349,16 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   };
   outpayload->KeepAlive(keep_alive);
   if(retpayload) {
-    outpayload->Body(*retpayload);
+    routpayload->Body(*retpayload);
   } else {
-    outpayload->Body(*strpayload);
+    soutpayload->Body(*strpayload);
   }
-  bool flush_r = outpayload->Flush();
+  bool flush_r = outpayload->Flush(*inpayload);
   delete outpayload;
   outmsg = nextoutmsg;
   // Returning empty payload because response is already sent through Flush
-  PayloadRaw* outpayload_e = new PayloadRaw;
-  outmsg.Payload(outpayload_e);
+  // TODO: add support for non-stream communication through chain.
+  outmsg.Payload(new PayloadRaw);
   if(!flush_r) {
     // If flush failed then we can't know if anything HTTPish was 
     // already sent. Hence we are just making lower level close
@@ -369,11 +379,10 @@ MCC_HTTP_Client::~MCC_HTTP_Client(void) {
 }
 
 MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
-  // Take Raw payload, add HTTP stuf by using PayloadHTTP and
-  // generate new Raw payload to pass further through chain.
-  // TODO: do not create new object - use or acqure same one.
+  // Take payload, add HTTP stuf by using PayloadHTTPOut and
+  // pass further through chain.
   // Extracting payload
-  if(!inmsg.Payload()) return make_raw_fault(outmsg,"Notihing to send");
+  if(!inmsg.Payload()) return make_raw_fault(outmsg,"Nothing to send");
   PayloadRawInterface* inrpayload = NULL;
   PayloadStreamInterface* inspayload = NULL;
   try {
@@ -389,7 +398,11 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   std::string http_endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
   if(http_method.empty()) http_method=method_;
   if(http_endpoint.empty()) http_endpoint=endpoint_;
-  PayloadHTTP nextpayload(http_method,http_endpoint);
+  AutoPointer<PayloadHTTPOut> nextpayload(
+    inrpayload?
+      (PayloadHTTPOut*)(new PayloadHTTPOutRaw(http_method,http_endpoint)):
+      (PayloadHTTPOut*)(new PayloadHTTPOutStream(http_method,http_endpoint))
+  );
   for(AttributeIterator i = inmsg.Attributes()->getAll();i.hasMore();++i) {
     const char* key = i.key().c_str();
     if(strncmp("HTTP:",key,5) == 0) {
@@ -397,19 +410,19 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
       // TODO: check for special attributes: method, code, reason, endpoint, etc.
       if(strcmp(key,"METHOD") == 0) continue;
       if(strcmp(key,"ENDPOINT") == 0) continue;
-      nextpayload.Attribute(std::string(key),*i);
+      nextpayload->Attribute(std::string(key),*i);
     };
   };
-  nextpayload.Attribute("User-Agent","ARC");
-  if(inrpayload) {
-    nextpayload.Body(*inrpayload,false);
-  } else {
-    nextpayload.Body(*inspayload,false);
-  };
-  nextpayload.Flush();
+  nextpayload->Attribute("User-Agent","ARC");
   // Creating message to pass to next MCC and setting new payload..
   Message nextinmsg = inmsg;
-  nextinmsg.Payload(&nextpayload);
+  if(inrpayload) {
+    ((PayloadHTTPOutRaw*)nextpayload.Ptr())->Body(*inrpayload,false);
+    nextinmsg.Payload((PayloadHTTPOutRaw*)nextpayload.Ptr());
+  } else {
+    ((PayloadHTTPOutStream*)nextpayload.Ptr())->Body(*inspayload,false);
+    nextinmsg.Payload((PayloadHTTPOutStream*)nextpayload.Ptr());
+  };
 
   // Call next MCC
   MCCInterface* next = Next();
@@ -430,7 +443,7 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   if(!retpayload) { delete nextoutmsg.Payload(); return make_raw_fault(outmsg,"HTTP layer got something that is not stream"); };
   // Stream retpayload becomes owned by outpayload. This is needed because
   // HTTP payload may postpone extracting information from stream till demanded.
-  PayloadHTTP* outpayload  = new PayloadHTTP(*retpayload,true);
+  PayloadHTTPIn* outpayload  = new PayloadHTTPIn(*retpayload,true);
   if(!outpayload) {
     delete retpayload;
     return make_raw_fault(outmsg,"Returned payload is not recognized as HTTP");
