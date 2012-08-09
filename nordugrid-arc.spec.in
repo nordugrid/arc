@@ -1217,13 +1217,11 @@ service fetch-crl-cron start > /dev/null 2>&1
 %defattr(-,root,root,-)
 %{python_sitelib}/acix/cacheserver
 %{_initrddir}/acix-cache
-%config(noreplace) /etc/acix-cache.tac
 
 %files acix-index
 %defattr(-,root,root,-)
 %{python_sitelib}/acix/indexserver
 %{_initrddir}/acix-index
-%config(noreplace) /etc/acix-index.tac
 %endif
 
 %files devel

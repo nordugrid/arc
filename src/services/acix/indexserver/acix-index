@@ -46,13 +46,16 @@ else
 fi
 
 
-TACFILE=/etc/acix-index.tac
 PIDFILE=/var/run/acix-index.pid
 LOGFILE=/var/log/arc/acix-index.log
 prog=twistd
 
-if [ ! -r "$TACFILE" ]; then
-    log_failure_msg "ARC cache index configuration not found (/etc/acix-index.tac)"
+# ARC_CONFIG
+if [ "x$ARC_CONFIG" = "x" ] && [ -r /etc/arc.conf ]; then
+    ARC_CONFIG=/etc/arc.conf
+fi
+if [ ! -r "$ARC_CONFIG" ]; then
+    log_failure_msg "ARC configuration not found (usually /etc/arc.conf)"
     exit 1
 fi
 
@@ -66,6 +69,8 @@ if [ `id -u` = 0 ] ; then
 else
     LOCKFILE=$HOME/acix-index.lock
 fi
+
+APPSTART="from acix import indexserver ; application = indexserver.createApplication()"
 
 do_start() {
 
@@ -84,8 +89,13 @@ do_start() {
         rm -f "$PIDFILE" "$LOCKFILE"
     fi
     
+    TACFILE=`mktemp` || exit 1
+    echo $APPSTART > $TACFILE
+        
     $prog --pidfile $PIDFILE -l $LOGFILE -y $TACFILE
     RETVAL=$?
+    rm -f $TACFILE
+    
     if [ $RETVAL -eq 0 ]; then
         touch $LOCKFILE
         log_success_msg

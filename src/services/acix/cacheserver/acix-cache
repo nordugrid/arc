@@ -43,7 +43,6 @@ else
     exit 1
 fi
 
-CONFIG_SECTION=cacheserver
 PIDFILE=/var/run/acix-cache.pid
 DEFAULT_LOGFILE=/var/log/arc/acix-cache.log
 prog=twistd
@@ -87,6 +86,7 @@ do_start() {
         rm -f "$PIDFILE" "$LOCKFILE"
     fi
 
+    CONFIG_SECTION=acix\\/cacheserver
     # read in cacheserver section from arc.conf
     # this will put the read values into the environment, e.g., $logfile
     eval `sed -e 's/[[:space:]]*\=[[:space:]]*/=/g' \

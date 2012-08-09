@@ -21,7 +21,7 @@ Usually no configuration is necessary, but it is possible to specify a custom
 logfile location by setting the logfile parameter in arc.conf, like this:
 
 ---
-[cacheserver]
+[acix/cacheserver]
 logfile="/tmp/arc-cacheserver.log"
 ---
 
@@ -52,9 +52,14 @@ ACIX Index Server:
 -----------------
 
 This is the index of registered caches which is queried by users to discover
-locations of cached files. To configure, edit /etc/acix-cache.tac to include
-cache server URLs corresponding to the sites to be indexed.
+locations of cached files. To configure, edit /etc/arc.conf to include cache
+server URLs corresponding to the sites to be indexed.
 
+---
+[acix/indexserver]
+cacheserver="https://myhost:5443/data/cache"
+cacheserver="https://anotherhost:5443/data/cache"
+---
 
 Starting instructions.
 
