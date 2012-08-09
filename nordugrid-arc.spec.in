@@ -147,6 +147,16 @@ BuildRequires:	java-gcj-compat-devel
 BuildRequires:	perl(Test::Harness)
 BuildRequires:	perl(Test::Simple)
 BuildRequires:	mktemp
+# Needed to run ACIX unit tests
+%if %{with_python}
+BuildRequires:	python-twisted-core
+BuildRequires:	python-twisted-web
+BuildRequires:	pyOpenSSL
+BuildRequires:	python-simplejson
+%if %{?rhel}%{!?rhel:0} == 5
+BuildRequires:	python-hashlib
+%endif
+%endif
 %if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 # The compilation of the selinux module fails on Fedora 5
 BuildRequires:	selinux-policy-devel
@@ -453,6 +463,7 @@ Connector (ARC).
 ARC Globus plugins. This includes the Globus dependent Data Manager
 Components (DMCs).
 
+%if %{with_python}
 %package acix-core
 Summary:	ARC cache index - core
 Group:		System Environment/Libraries
@@ -513,7 +524,7 @@ Index server component of the ARC Cache Index (ACIX), usually installed
 independently of any A-REX installation. This component pulls cache content
 from cache servers and can be queried by clients for the location of cached
 files.
-
+%endif
 
 %package devel
 Summary:	ARC development files
@@ -680,6 +691,7 @@ cd -
 %endif
 %if ! %{with_python}
      --disable-python \
+     --disable-acix \
 %endif
 %if %{?rhel}%{!?rhel:0} == 5
      --with-altpython=python26 \
@@ -898,6 +910,7 @@ if [ $1 -eq 0 ] ; then
 fi
 %endif
 
+%if %{with_python}
 %post acix-cache
 /sbin/chkconfig --add acix-cache
 
@@ -925,7 +938,7 @@ fi
 if [ $1 -ge 1 ]; then
   service acix-index condrestart > /dev/null 2>&1
 fi
-
+%endif
 
 %if %{with_java} && %{with_gcj}
 %post java
@@ -1186,6 +1199,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/ssm/ssm.log.cfg
 %endif
 
+%if %{with_python}
 %files acix-core
 %defattr(-,root,root,-)
 %{python_sitelib}/acix/__init__.py*
@@ -1202,6 +1216,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{python_sitelib}/acix/indexserver
 %{_initrddir}/acix-index
 %config(noreplace) /etc/acix-index.tac
+%endif
 
 %files devel
 %defattr(-,root,root,-)
