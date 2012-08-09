@@ -1,6 +1,6 @@
 2012-08-07  David Cameron  <d.g.cameron@fys.uio.no>
 
-  * Add ACIX (ARC Cache Index) to distribution
+  * Add ACIX (ARC Cache Index) to distribution (RHEL>=5, Fedora>=7, Debian>=4)
 
 2012-08-02  Martin Skou Andersen <skou@nbi.ku.dk>
 
