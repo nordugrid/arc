@@ -313,6 +313,8 @@ namespace Arc {
     return sec;
   }
 
+  // -------------------------------------------------------------------------
+
   ClientHTTP::ClientHTTP(const BaseConfig& cfg, const URL& url, int timeout, const std::string& proxy_host, int proxy_port)
     : ClientTCP(cfg,
                 get_http_proxy_host(url,proxy_host,proxy_port),
@@ -393,6 +395,26 @@ namespace Arc {
                          PayloadRawInterface *request,
                          HTTPClientInfo *info,
                          PayloadRawInterface **response) {
+    MessagePayload* mresp = NULL;
+    MCC_Status r = process(method,path,attributes,range_start,range_end,
+                           (MessagePayload*)request,info,&mresp);
+    if (mresp != NULL) {
+      try {
+        *response = dynamic_cast<PayloadRawInterface*>(mresp);
+      } catch (std::exception&) {
+        delete mresp;
+      }
+    }
+    return r;
+  }
+
+  MCC_Status ClientHTTP::process(const std::string& method,
+                         const std::string& path,
+                         std::multimap<std::string, std::string>& attributes,
+                         uint64_t range_start, uint64_t range_end,
+                         MessagePayload *request,
+                         HTTPClientInfo *info,
+                         MessagePayload **response) {
     *response = NULL;
     if (!Load())
       return MCC_Status();
@@ -461,12 +483,75 @@ namespace Arc {
     for(AttributeIterator i = repmsg.Attributes()->getAll("HTTP:set-cookie");
         i.hasMore();++i) info->cookies.push_back(*i);
     info->location = repmsg.Attributes()->get("HTTP:location");
-    if (repmsg.Payload() != NULL)
+    *response = repmsg.Payload();
+    return r;
+  }
+
+  MCC_Status ClientHTTP::process(const ClientHTTPAttributes &reqattr,
+                         PayloadRawInterface *request,
+                         HTTPClientInfo *info, PayloadRawInterface **response) {
+    MessagePayload* mresp = NULL;
+    MCC_Status r = process(reqattr.method_,reqattr.path_,reqattr.attributes_,
+                           reqattr.range_start_,reqattr.range_end_,
+                           (MessagePayload*)request,info,&mresp);
+    if (mresp != NULL) {
       try {
-        *response = dynamic_cast<PayloadRawInterface*>(repmsg.Payload());
+        *response = dynamic_cast<PayloadRawInterface*>(mresp);
       } catch (std::exception&) {
-        delete repmsg.Payload();
+        delete mresp;
       }
+    }
+    return r;
+  }
+
+  MCC_Status ClientHTTP::process(const ClientHTTPAttributes &reqattr,
+                         PayloadStreamInterface *request,
+                         HTTPClientInfo *info, PayloadRawInterface **response) {
+    MessagePayload* mresp = NULL;
+    MCC_Status r = process(reqattr.method_,reqattr.path_,reqattr.attributes_,
+                           reqattr.range_start_,reqattr.range_end_,
+                           (MessagePayload*)request,info,&mresp);
+    if (mresp != NULL) {
+      try {
+        *response = dynamic_cast<PayloadRawInterface*>(mresp);
+      } catch (std::exception&) {
+        delete mresp;
+      }
+    }
+    return r;
+  }
+
+  MCC_Status ClientHTTP::process(const ClientHTTPAttributes &reqattr,
+                         PayloadRawInterface *request,
+                         HTTPClientInfo *info, PayloadStreamInterface **response) {
+    MessagePayload* mresp = NULL;
+    MCC_Status r = process(reqattr.method_,reqattr.path_,reqattr.attributes_,
+                           reqattr.range_start_,reqattr.range_end_,
+                           (MessagePayload*)request,info,&mresp);
+    if (mresp != NULL) {
+      try {
+        *response = dynamic_cast<PayloadStreamInterface*>(mresp);
+      } catch (std::exception&) {
+        delete mresp;
+      }
+    }
+    return r;
+  }
+
+  MCC_Status ClientHTTP::process(const ClientHTTPAttributes &reqattr,
+                         PayloadStreamInterface *request,
+                         HTTPClientInfo *info, PayloadStreamInterface **response) {
+    MessagePayload* mresp = NULL;
+    MCC_Status r = process(reqattr.method_,reqattr.path_,reqattr.attributes_,
+                           reqattr.range_start_,reqattr.range_end_,
+                           (MessagePayload*)request,info,&mresp);
+    if (mresp != NULL) {
+      try {
+        *response = dynamic_cast<PayloadStreamInterface*>(mresp);
+      } catch (std::exception&) {
+        delete mresp;
+      }
+    }
     return r;
   }
 
@@ -478,6 +563,47 @@ namespace Arc {
       AddPlugin(xmlcfg, pl["Name"]);
     AddPlugin(xmlcfg, libname, libpath);
   }
+
+  ClientHTTPAttributes::ClientHTTPAttributes(const std::string& method):
+         method_(method),path_(default_path_),attributes_(default_attributes_),
+         range_start_(0),range_end_(UINT64_MAX) {
+  }
+
+  ClientHTTPAttributes::ClientHTTPAttributes(const std::string& method,
+                       std::multimap<std::string, std::string>& attributes):
+         method_(method),path_(default_path_),attributes_(attributes),
+         range_start_(0),range_end_(UINT64_MAX) {
+  }
+
+  ClientHTTPAttributes::ClientHTTPAttributes(const std::string& method,
+                       const std::string& path):
+         method_(method),path_(path),attributes_(default_attributes_),
+         range_start_(0),range_end_(UINT64_MAX) {
+  }
+
+  ClientHTTPAttributes::ClientHTTPAttributes(const std::string& method,
+                       const std::string& path,
+                       std::multimap<std::string, std::string>& attributes):
+         method_(method),path_(path),attributes_(attributes),
+         range_start_(0),range_end_(UINT64_MAX) {
+  }
+
+  ClientHTTPAttributes::ClientHTTPAttributes(const std::string& method,
+                       const std::string& path,
+                       uint64_t range_start, uint64_t range_end):
+         method_(method),path_(path),attributes_(default_attributes_),
+         range_start_(range_start),range_end_(range_end) {
+  }
+
+  ClientHTTPAttributes::ClientHTTPAttributes(const std::string& method,
+                       const std::string& path,
+                       std::multimap<std::string, std::string>& attributes,
+                       uint64_t range_start, uint64_t range_end):
+         method_(method),path_(path),attributes_(attributes),
+         range_start_(range_start),range_end_(range_end) {
+  }
+
+  // -------------------------------------------------------------------------
 
   ClientSOAP::ClientSOAP(const BaseConfig& cfg, const URL& url, int timeout)
     : ClientHTTP(cfg, url, timeout),
@@ -556,6 +682,8 @@ namespace Arc {
       AddPlugin(xmlcfg, pl["Name"]);
     AddPlugin(xmlcfg, libname, libpath);
   }
+
+  // -------------------------------------------------------------------------
 
   SecHandlerConfig::SecHandlerConfig(const std::string& name, const std::string& event)
     : XMLNode("<?xml version=\"1.0\"?><SecHandler/>") {

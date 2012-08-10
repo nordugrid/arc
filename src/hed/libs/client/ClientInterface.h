@@ -87,6 +87,8 @@ namespace Arc {
     virtual ~ClientTCP();
     MCC_Status process(PayloadRawInterface *request,
                        PayloadStreamInterface **response, bool tls);
+    MCC_Status process(PayloadStreamInterface *request,
+                       PayloadStreamInterface **response, bool tls);
     MCC* GetEntry() {
       return tls_entry ? tls_entry : tcp_entry;
     }
@@ -105,6 +107,35 @@ namespace Arc {
     std::string type; /// Content-type
     std::list<std::string> cookies; /// All collected cookies
     std::string location; /// Value of location attribute in HTTP response
+  };
+
+
+  class ClientHTTP;
+  //! Proxy class for handling request parameters
+  /** The purpose of this calss is to reduce number of methods
+     in ClientHTTP class. Use only for temporary variables. */
+  class ClientHTTPAttributes {
+  friend class ClientHTTP;
+  public:
+    ClientHTTPAttributes(const std::string& method);
+    ClientHTTPAttributes(const std::string& method,
+                       std::multimap<std::string, std::string>& attributes);
+    ClientHTTPAttributes(const std::string& method, const std::string& path);
+    ClientHTTPAttributes(const std::string& method, const std::string& path,
+                       std::multimap<std::string, std::string>& attributes);
+    ClientHTTPAttributes(const std::string& method, const std::string& path,
+                       uint64_t range_start, uint64_t range_end);
+    ClientHTTPAttributes(const std::string& method, const std::string& path,
+                       std::multimap<std::string, std::string>& attributes,
+                       uint64_t range_start, uint64_t range_end);
+  protected:
+    const std::string default_path_;
+    std::multimap<std::string, std::string> default_attributes_;
+    const std::string& method_;
+    const std::string& path_;
+    std::multimap<std::string, std::string>& attributes_;
+    uint64_t range_start_;
+    uint64_t range_end_;
   };
 
   //! Class for setting up a MCC chain for HTTP communication
@@ -140,6 +171,18 @@ namespace Arc {
                        uint64_t range_start, uint64_t range_end,
                        PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
+    MCC_Status process(const ClientHTTPAttributes &reqattr,
+                       PayloadRawInterface *request,
+                       HTTPClientInfo *info, PayloadRawInterface **response);
+    MCC_Status process(const ClientHTTPAttributes &reqattr,
+                       PayloadStreamInterface *request,
+                       HTTPClientInfo *info, PayloadRawInterface **response);
+    MCC_Status process(const ClientHTTPAttributes &reqattr,
+                       PayloadRawInterface *request,
+                       HTTPClientInfo *info, PayloadStreamInterface **response);
+    MCC_Status process(const ClientHTTPAttributes &reqattr,
+                       PayloadStreamInterface *request,
+                       HTTPClientInfo *info, PayloadStreamInterface **response);
     MCC* GetEntry() {
       return http_entry;
     }
@@ -151,6 +194,11 @@ namespace Arc {
     URL default_url;
     bool relative_uri;
     TCPSec sec;
+    MCC_Status process(const std::string& method, const std::string& path,
+                       std::multimap<std::string, std::string>& attributes,
+                       uint64_t range_start, uint64_t range_end,
+                       MessagePayload *request,
+                       HTTPClientInfo *info, MessagePayload **response);
   };
 
   /** Class with easy interface for sending/receiving SOAP messages
