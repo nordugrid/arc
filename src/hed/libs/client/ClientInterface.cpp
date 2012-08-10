@@ -226,6 +226,41 @@ namespace Arc {
     return r;
   }
 
+  MCC_Status ClientTCP::process(PayloadStreamInterface *request,
+                                PayloadStreamInterface **response, bool tls) {
+    *response = NULL;
+    if (!Load())
+      return MCC_Status();
+    if (tls && !tls_entry)
+      return MCC_Status();
+    if (!tls && !tcp_entry)
+      return MCC_Status();
+    MessageAttributes attributes_req;
+    MessageAttributes attributes_rep;
+    Message reqmsg;
+    Message repmsg;
+    reqmsg.Attributes(&attributes_req);
+    reqmsg.Context(&context);
+    reqmsg.Payload(request);
+    repmsg.Attributes(&attributes_rep);
+    repmsg.Context(&context);
+
+    MCC_Status r;
+    if (tls)
+      r = tls_entry->process(reqmsg, repmsg);
+    else
+      r = tcp_entry->process(reqmsg, repmsg);
+
+    if (repmsg.Payload() != NULL)
+      try {
+        *response =
+          dynamic_cast<PayloadStreamInterface*>(repmsg.Payload());
+      } catch (std::exception&) {
+        delete repmsg.Payload();
+      }
+    return r;
+  }
+
   void ClientTCP::AddSecHandler(XMLNode handlercfg, TCPSec sec, const std::string& libname, const std::string& libpath) {
     if ((sec.sec == TLSSec) || (sec.sec == SSL3Sec)) {
       ClientInterface::AddSecHandler(
