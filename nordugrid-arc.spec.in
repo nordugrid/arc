@@ -158,7 +158,6 @@ BuildRequires:	mktemp
 BuildRequires:	python-twisted-core
 BuildRequires:	python-twisted-web
 BuildRequires:	pyOpenSSL
-BuildRequires:	python-simplejson
 %if %{?rhel}%{!?rhel:0} == 5
 BuildRequires:	python-hashlib
 %endif
@@ -476,7 +475,6 @@ Group:		System Environment/Libraries
 Requires:	python-twisted-core
 Requires:	python-twisted-web
 Requires:	pyOpenSSL
-Requires:	python-simplejson
 %if %{?rhel}%{!?rhel:0} == 5
 Requires:	python-hashlib
 %endif
@@ -494,7 +492,6 @@ Group:		System Environment/Libraries
 Requires:	python-twisted-core
 Requires:	python-twisted-web
 Requires:	pyOpenSSL
-Requires:	python-simplejson
 %if %{?rhel}%{!?rhel:0} == 5
 Requires:	python-hashlib
 %endif
@@ -515,7 +512,6 @@ Group:		System Environment/Libraries
 Requires:	python-twisted-core
 Requires:	python-twisted-web
 Requires:	pyOpenSSL
-Requires:	python-simplejson
 %if %{?rhel}%{!?rhel:0} == 5
 Requires:	python-hashlib
 %endif

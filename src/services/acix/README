@@ -7,10 +7,10 @@ one index.
 
 Required software:
 
-  * Python. Only 2.4, 2.5 and 2.6 have been tested.
+  * Python. Only 2.4, 2.5 and 2.6 have been tested. Unit tests can only be run
+    on Python >= 2.6.
   * Twisted Core and twisted web (python-twisted-core and python-twisted-web)
   * pyOpenSSL (package name python-openssl in Ubuntu)
-  * (Python 2.4 and 2.5 only) Simple JSON (python-simplejson)
   * (Python 2.4 only) python-hashlib
 
 ACIX Cache Server:

@@ -1,5 +1,5 @@
 """
-Client for retrieving cache.
+Client for retrieving cache. Note that json is only available on python >= 2.6.
 """
 
 import json

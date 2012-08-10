@@ -223,7 +223,7 @@ Description: ARC Globus plugins
 
 Package: nordugrid-arc-acix-core
 Architecture: any
-Depends: python, python-twisted-core, python-twisted-web, python-openssl, python-simplejson
+Depends: python, python-twisted-core, python-twisted-web, python-openssl
 Description: ARC cache index - core components
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
@@ -233,7 +233,7 @@ Description: ARC cache index - core components
 
 Package: nordugrid-arc-acix-cache
 Architecture: any
-Depends: python, python-twisted-core, python-twisted-web, python-openssl, python-simplejson, nordugrid-arc-acix-core (= ${binary:Version})
+Depends: python, python-twisted-core, python-twisted-web, python-openssl, nordugrid-arc-acix-core (= ${binary:Version})
 Description: ARC cache index - cache server
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
@@ -245,7 +245,7 @@ Description: ARC cache index - cache server
 
 Package: nordugrid-arc-acix-index
 Architecture: any
-Depends: python, python-twisted-core, python-twisted-web, python-openssl, python-simplejson, nordugrid-arc-acix-core (= ${binary:Version})
+Depends: python, python-twisted-core, python-twisted-web, python-openssl, nordugrid-arc-acix-core (= ${binary:Version})
 Description: ARC cache index - index server
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
