@@ -552,6 +552,7 @@ PayloadHTTPIn::~PayloadHTTPIn(void) {
 char PayloadHTTPIn::operator[](PayloadRawInterface::Size_t pos) const {
   if(!((PayloadHTTPIn*)this)->get_body()) return 0;
   if(!body_) return 0;
+  if(pos == -1) pos = offset_;
   if(pos < offset_) return 0;
   pos -= offset_;
   if(pos >= body_size_) return 0;
@@ -561,6 +562,7 @@ char PayloadHTTPIn::operator[](PayloadRawInterface::Size_t pos) const {
 char* PayloadHTTPIn::Content(PayloadRawInterface::Size_t pos) {
   if(!get_body()) return NULL;
   if(!body_) return 0;
+  if(pos == -1) pos = offset_;
   if(pos < offset_) return NULL;
   pos -= offset_;
   if(pos >= body_size_) return NULL;
@@ -995,6 +997,8 @@ void PayloadHTTPOutStream::Body(PayloadStreamInterface& body,bool ownership) {
 
 char PayloadHTTPOutRaw::operator[](PayloadRawInterface::Size_t pos) const {
   if(!((PayloadHTTPOutRaw&)(*this)).remake_header(false)) return 0;
+  if(pos == -1) pos = 0;
+  if(pos < 0) return NULL;
   if(pos < header_.length()) {
     return header_[pos];
   };
@@ -1010,6 +1014,8 @@ char PayloadHTTPOutRaw::operator[](PayloadRawInterface::Size_t pos) const {
 
 char* PayloadHTTPOutRaw::Content(PayloadRawInterface::Size_t pos) {
   if(!remake_header(false)) return NULL;
+  if(pos == -1) pos = 0;
+  if(pos < 0) return NULL;
   if(pos < header_.length()) {
     return (char*)(header_.c_str()+pos);
   };
