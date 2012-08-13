@@ -709,8 +709,10 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     } else {
         int size = -1;
         if(!sinpayload->Get(*s_,size)) {
-            logger.msg(INFO, "Failed to transfer content of stream");
-            return MCC_Status(GENERIC_ERROR,"TCP",s_->GetError());
+        // Currently false may also mean that stream finihsed. 
+        // Hence it can't be used to indicate real failure.
+        //    logger.msg(INFO, "Failed to transfer content of stream");
+        //    return MCC_Status(GENERIC_ERROR,"TCP",s_->GetError());
         };
     };
     std::string host_attr,port_attr;

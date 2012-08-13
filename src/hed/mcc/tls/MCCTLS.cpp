@@ -511,8 +511,10 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
    } else {
         int size = -1;
         if(!sinpayload->Get(*stream_,size)) {
-            logger.msg(INFO, "Failed to transfer content of stream");
-            return MCC_Status();
+        // Currently false may also mean that stream finihsed. 
+        // Hence it can't be used to indicate real failure.
+        //    logger.msg(INFO, "Failed to transfer content of stream");
+        //    return MCC_Status();
         };
    };
    outmsg.Payload(new PayloadTLSMCC(*stream_));
