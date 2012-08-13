@@ -1,6 +1,6 @@
 pkglib_LTLIBRARIES = libdmchttp.la
 
-libdmchttp_la_SOURCES = DataPointHTTP.cpp DataPointHTTP.h
+libdmchttp_la_SOURCES = DataPointHTTP.cpp DataPointHTTP.h StreamBuffer.cpp StreamBuffer.h
 libdmchttp_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 libdmchttp_la_LIBADD = \

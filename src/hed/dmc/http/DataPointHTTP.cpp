@@ -19,9 +19,12 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/Utils.h>
 
+#include "StreamBuffer.h"
 #include "DataPointHTTP.h"
 
-namespace Arc {
+namespace ArcDMCHTTP {
+
+using namespace Arc;
 
   Logger DataPointHTTP::logger(Logger::getRootLogger(), "DataPoint.HTTP");
 
@@ -526,6 +529,7 @@ namespace Arc {
 
   DataStatus DataPointHTTP::StopReading() {
     if (!buffer) return DataStatus(DataStatus::ReadStopError, EARCLOGIC, "Not reading");
+    if(!buffer->eof_read()) buffer->error_read(true);
     while (transfers_started.get()) {
       transfers_started.wait(10000); // Just in case
     }
@@ -572,11 +576,13 @@ namespace Arc {
 
   DataStatus DataPointHTTP::StopWriting() {
     if (!buffer) return DataStatus(DataStatus::WriteStopError, EARCLOGIC, "Not writing");
+    if(!buffer->eof_write()) buffer->error_write(true);
     while (transfers_started.get()) {
       transfers_started.wait(); // Just in case
     }
-    if (chunks)
+    if (chunks) {
       delete chunks;
+    }
     chunks = NULL;
     transfers_tofinish = 0;
     if (buffer->error_write()) {
@@ -845,6 +851,34 @@ namespace Arc {
     point.transfer_lock.unlock();
   }
 
+  bool DataPointHTTP::write_single(void *arg) {
+    HTTPInfo_t& info = *((HTTPInfo_t*)arg);
+    DataPointHTTP& point = *(info.point);
+    URL client_url = point.url;
+    ClientHTTP *client = point.acquire_client(client_url);
+    if (!client) return false;
+    StreamBuffer request(*point.buffer);
+    HTTPClientInfo transfer_info;
+    PayloadRawInterface *response = NULL;
+    std::string path = client_url.FullPathURIEncoded();
+    // TODO: do ping to *client in order to check if connection is alive.
+    MCC_Status r = client->process(ClientHTTPAttributes("PUT", path), &request, &transfer_info,
+                                   &response);
+    if (response) delete response;
+    if (!r) {
+      // It is not clear how to retry if early chunks are not available anymore.
+      // Let it retry at higher level.
+      delete client; client = NULL;
+      return false;
+    }
+    if ((transfer_info.code != 201) &&
+        (transfer_info.code != 200) &&
+        (transfer_info.code != 204)) {  // HTTP error
+      return false;
+    }
+    return true;
+  }
+
   void DataPointHTTP::write_thread(void *arg) {
     HTTPInfo_t& info = *((HTTPInfo_t*)arg);
     DataPointHTTP& point = *(info.point);
@@ -855,6 +889,7 @@ namespace Arc {
     bool transfer_failure = false;
     int retries = 0;
     std::string path = client_url.FullPathURIEncoded();
+    bool partial_write_failure = false;
     for (;;) {
       if (!client) {
         transfer_failure = true;
@@ -875,7 +910,7 @@ namespace Arc {
       PayloadMemConst request((*point.buffer)[transfer_handle],
                               transfer_offset, transfer_size,
                               point.CheckSize() ? point.GetSize() : 0);
-      PayloadRawInterface *response;
+      PayloadRawInterface *response = NULL;
       MCC_Status r = client->process("PUT", path, &request, &transfer_info,
                                      &response);
       if (response) delete response;
@@ -905,8 +940,13 @@ namespace Arc {
             (transfer_info.code == 504)) {
           if ((++retries) <= 10) continue;
         }
-        transfer_failure = true;
-        point.failure_code = DataStatus(DataStatus::WriteError, point.http2errno(transfer_info.code), transfer_info.reason);
+        if (transfer_info.code == 501) { 
+          // Not implemented - probably means server does not accept patial PUT
+          partial_write_failure = true;
+        } else {
+          transfer_failure = true;
+          point.failure_code = DataStatus(DataStatus::WriteError, point.http2errno(transfer_info.code), transfer_info.reason);
+        }
         break;
       }
       retries = 0;
@@ -916,9 +956,16 @@ namespace Arc {
     --(point.transfers_tofinish);
     if (transfer_failure) point.buffer->error_write(true);
     if (point.transfers_tofinish == 0) {
+      if(partial_write_failure) {
+        // Writing in single chunk to be done in single thread
+        if(!write_single(arg)) {
+          transfer_failure = true;
+          point.buffer->error_write(true);
+        }
+      }
       // TODO: process/report failure?
       point.buffer->eof_write(true);
-      if ((!(point.buffer->error())) && (point.buffer->eof_position() == 0)) {
+      if ((!partial_write_failure) && (!(point.buffer->error())) && (point.buffer->eof_position() == 0)) {
         // Zero size data was transferred - must send at least one empty packet
         for (;;) {
           if (!client) client = point.acquire_client(client_url);
@@ -928,7 +975,7 @@ namespace Arc {
           }
           HTTPClientInfo transfer_info;
           PayloadMemConst request(NULL, 0, 0, 0);
-          PayloadRawInterface *response;
+          PayloadRawInterface *response = NULL;
           MCC_Status r = client->process("PUT", path, &request, &transfer_info,
                                          &response);
           if (response) delete response;
@@ -1045,6 +1092,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "http", "HED:DMC", "HTTP or HTTP over SSL (https)", 0, &Arc::DataPointHTTP::Instance },
+  { "http", "HED:DMC", "HTTP or HTTP over SSL (https)", 0, &ArcDMCHTTP::DataPointHTTP::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
