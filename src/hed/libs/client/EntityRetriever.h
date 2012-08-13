@@ -267,6 +267,15 @@ public:
     \return an EndpointQueryingStatus object containing the status of the query
   */
   EndpointQueryingStatus getStatusOfEndpoint(const Endpoint& endpoint) const;
+
+  /// Get status of all the queried Endpoint objects
+  /**
+   * This method returns a copy of the internal status map, and thus is only
+   * a snapshot. If you want the final status map, make sure to invoke the
+   * EntityRetriever::wait method before this one.
+   * \return a map with Endpoint objects as keys and status objects as values.
+   **/
+  std::map<Endpoint, EndpointQueryingStatus> getAllStatuses() const { statusLock.lock(); std::map<Endpoint, EndpointQueryingStatus> s = statuses; statusLock.unlock(); return s; }
     
   /// Set the status of the query process of a given Endpoint.
   /**

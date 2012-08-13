@@ -88,6 +88,15 @@ public:
     ExecutionTarget::GetExecutionTargets(*this, etList);
   }
 
+  /// Get status of all the queried Endpoint objects
+  /**
+   * This method returns a copy of the internal status map, and thus is only
+   * a snapshot. If you want the final status map, make sure to invoke the
+   * ComputingServiceRetriever::wait method before this one.
+   * \return a map with Endpoint objects as keys and status objects as values.
+   **/
+  std::map<Endpoint, EndpointQueryingStatus> getAllStatuses() const { std::map<Endpoint, EndpointQueryingStatus> s = ser.getAllStatuses(), t = tir.getAllStatuses(); s.insert(t.begin(), t.end()); return s; }
+
 private:
   ServiceEndpointRetriever ser;
   TargetInformationRetriever tir;
