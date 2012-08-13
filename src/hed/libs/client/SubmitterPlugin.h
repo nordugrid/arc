@@ -37,6 +37,18 @@ namespace Arc {
   public:
     virtual ~SubmitterPlugin() { delete dest_handle; }
 
+    /// Submit a single job description
+    /**
+     * Convenience method for submitting single job description, it simply calls
+     * the SubmitterPlugin::Submit method taking a list of job descriptions.
+     * \param j JobDescription object to be submitted.
+     * \param et ExecutionTarget to submit the job description to.
+     * \param jc callback object used to add Job object of newly submitted job
+     *        to.
+     * \return a bool indicating whether job submission suceeded or not.
+     **/
+    virtual bool Submit(const JobDescription& j, const ExecutionTarget& et, EntityConsumer<Job>& jc) { std::list<const JobDescription*> ns; return Submit(std::list<JobDescription>(1, j), et, jc, ns); }
+
     /// Submit job
     /**
      * This virtual method should be overridden by plugins which should
