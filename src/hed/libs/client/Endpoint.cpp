@@ -5,10 +5,23 @@
 #endif
 
 #include <arc/UserConfig.h>
+#include <arc/client/ExecutionTarget.h>
 
 #include "Endpoint.h"
 
 namespace Arc {
+
+  Endpoint::Endpoint(const ExecutionTarget& e, const std::string& rsi)
+    : URLString(e.ComputingEndpoint->URLString), InterfaceName(e.ComputingEndpoint->InterfaceName),
+      HealthState(e.ComputingEndpoint->HealthState), HealthStateInfo(e.ComputingEndpoint->HealthStateInfo),
+      QualityLevel(e.ComputingEndpoint->QualityLevel), Capability(e.ComputingEndpoint->Capability),
+      RequestedSubmissionInterfaceName(rsi) {}
+
+  Endpoint::Endpoint(const ComputingEndpointAttributes& cea, const std::string& rsi)
+    : URLString(cea.URLString), InterfaceName(cea.InterfaceName),
+      HealthState(cea.HealthState), HealthStateInfo(cea.HealthStateInfo),
+      QualityLevel(cea.QualityLevel), Capability(cea.Capability),
+      RequestedSubmissionInterfaceName(rsi) {}
 
   Endpoint& Endpoint::operator=(const ConfigEndpoint& e) {
     URLString = e.URLString;

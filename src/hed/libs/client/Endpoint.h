@@ -8,6 +8,8 @@
 namespace Arc {
 
 class ConfigEndpoint;
+class ExecutionTarget;
+class ComputingEndpointAttributes;
   
 /// Represents an endpoint of a service with a given interface type and capabilities
 /**
@@ -70,6 +72,21 @@ public:
            const std::string& InterfaceName = "")
     : URLString(URLString), InterfaceName(InterfaceName), Capability(std::list<std::string>(1,GetStringForCapability(cap))) {}
 
+  /// Create new Endpoint from ExecutionTarget object
+  /**
+   * \param e ExecutionTarget object to create new Endpoint from.
+   * \param rsi string specifying the requested submission interface if any.
+   *        Default value is the empty string.
+   **/
+  Endpoint(const ExecutionTarget& e, const std::string& rsi = "");
+
+  /// Create new Endpoint from ExecutionTarget object
+  /**
+   * \param cea ComputingEndpointAttributes object to create new Endpoint from.
+   * \param rsi string specifying the requested submission interface if any.
+   *        Default value is the empty string.
+   **/
+  Endpoint(const ComputingEndpointAttributes& cea, const std::string& rsi = "");
   
   /// Create a new Endpoint from a ConfigEndpoint
   /**
