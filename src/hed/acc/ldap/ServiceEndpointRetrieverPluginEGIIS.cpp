@@ -91,6 +91,22 @@ namespace Arc {
         if ((std::string)itMds->Child(i)["Mds-Reg-status"] == "PURGED") {
           continue;
         }
+        if (itMds->Child(i).Name() != "Mds-Vo-name" &&
+            itMds->Child(i).Name() != "nordugrid-cluster-name" &&
+            itMds->Child(i).Name() != "nordugrid-se-name") {
+          // Unknown entry
+          logger.msg(DEBUG, "Unknown entry in EGIIS (%s)", itMds->Child(i).Name());
+          continue;
+        }
+            
+        if (!itMds->Child(i)["Mds-Service-type"] ||
+            !itMds->Child(i)["Mds-Service-hn"] ||
+            !itMds->Child(i)["Mds-Service-port"] ||
+            !itMds->Child(i)["Mds-Service-Ldap-suffix"]) {
+          logger.msg(DEBUG, "Entry in EGIIS is missing one or more of the attributes 'Mds-Service-type', 'Mds-Service-hn', 'Mds-Service-port' and/or 'Mds-Service-Ldap-suffix'");
+          continue;
+        }
+        
         Endpoint se((std::string)itMds->Child(i)["Mds-Service-type"] + "://" +
                            (std::string)itMds->Child(i)["Mds-Service-hn"] + ":" +
                            (std::string)itMds->Child(i)["Mds-Service-port"] + "/" +
