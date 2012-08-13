@@ -194,6 +194,7 @@ class PayloadHTTPOut: public PayloadHTTP {
 
   std::string header_;             /** Header to be prepended to body */
   bool to_stream_;                 /** Header was generated for streaming data */
+
   bool use_chunked_transfer_;      /** Chunked transfer to be used */
 
   uint64_t stream_offset_;         /** Amount of data read read through Stream interface */
@@ -225,6 +226,12 @@ class PayloadHTTPOut: public PayloadHTTP {
 };
 
 class PayloadHTTPOutStream: public PayloadHTTPOut, public PayloadStreamInterface {
+ protected:
+  //int chunk_size_get(char* buf,int size,int l,uint64_t chunk_size);
+  //std::string chunk_size_str_;     /** Buffer to store chunk size */
+  //std::string::size_type chunk_size_offset_; /** How much of chunk_size_str_ is sent */
+  bool stream_finished_;
+
  public:
   PayloadHTTPOutStream(const std::string& method,const std::string& url);
   PayloadHTTPOutStream(int code,const std::string& reason,bool head_response = false);
@@ -240,6 +247,7 @@ class PayloadHTTPOutStream: public PayloadHTTPOut, public PayloadStreamInterface
   // PayloadStreamInterface implemented methods
   virtual PayloadStreamInterface::Size_t Size(void) const;
   virtual bool Get(char* buf,int& size);
+  virtual bool Get(PayloadStreamInterface& dest,int& size);
   virtual bool Put(const char* buf,PayloadStreamInterface::Size_t size);
   virtual int Timeout(void) const;
   virtual void Timeout(int to);

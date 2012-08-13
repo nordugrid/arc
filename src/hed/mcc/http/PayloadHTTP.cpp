@@ -433,7 +433,7 @@ bool PayloadHTTPIn::parse_header(void) {
   logger.msg(Arc::DEBUG,"< %s",line);
   // Parse request/response line
   std::string::size_type pos2 = line.find(' ');
-  if(pos2 == std::string::npos) return false;
+  if(pos2 == std::string::npos)  return false;
   std::string word1 = line.substr(0,pos2);
   // Identify request/response
   if(ParseHTTPVersion(line.substr(0,pos2),version_major_,version_minor_)) {
@@ -720,11 +720,11 @@ PayloadHTTPOut::~PayloadHTTPOut(void) {
 }
 
 PayloadHTTPOutStream::PayloadHTTPOutStream(const std::string& method,const std::string& url):
-  PayloadHTTPOut(method,url) {
+  PayloadHTTPOut(method,url),stream_finished_(false) /*,chunk_size_offset_(0)*/ {
 }
 
 PayloadHTTPOutStream::PayloadHTTPOutStream(int code,const std::string& reason,bool head_response):
-  PayloadHTTPOut(code,reason,head_response) {
+  PayloadHTTPOut(code,reason,head_response),stream_finished_(false) /*,chunk_size_offset_(0)*/ {
 }
 
 PayloadHTTPOutStream::~PayloadHTTPOutStream(void) {
@@ -906,7 +906,7 @@ bool PayloadHTTPOut::Flush(PayloadStreamInterface& stream) {
         // stream to stream transfer
         // TODO: choose optimal buffer size
         // TODO: parallel read and write for better performance
-        int tbufsize = (length_>1024*1024)?(1024*1024):length_;
+        int tbufsize = ((length_ <= 0) || (length_>1024*1024))?(1024*1024):length_;
         char* tbuf = new char[tbufsize];
         if(!tbuf) {
           error_ = IString("Memory allocation error").str();
@@ -915,8 +915,9 @@ bool PayloadHTTPOut::Flush(PayloadStreamInterface& stream) {
         for(;;) {
           int lbuf = tbufsize;
           if(!sbody_->Get(tbuf,lbuf)) break;
+          if(lbuf == 0) continue;
           if(use_chunked_transfer_) {
-            if(!stream.Put(tostring(lbuf,16)+"\r\n")) {
+            if(!stream.Put(inttostr(lbuf,16)+"\r\n")) {
               error_ = IString("Failed to write body to output stream").str();
               delete[] tbuf;
               return false;
@@ -926,6 +927,13 @@ bool PayloadHTTPOut::Flush(PayloadStreamInterface& stream) {
             error_ = IString("Failed to write body to output stream").str();
             delete[] tbuf;
             return false;
+          };
+          if(use_chunked_transfer_) {
+            if(!stream.Put("\r\n")) {
+              error_ = IString("Failed to write body to output stream").str();
+              delete[] tbuf;
+              return false;
+            };
           };
         };
         delete[] tbuf;
@@ -943,7 +951,7 @@ bool PayloadHTTPOut::Flush(PayloadStreamInterface& stream) {
           int64_t lbuf = rbody_->BufferSize(n);
           if(lbuf > 0) {
             if(use_chunked_transfer_) {
-              if(!stream.Put(tostring(lbuf,16)+"\r\n")) {
+              if(!stream.Put(inttostr(lbuf,16)+"\r\n")) {
                 error_ = IString("Failed to write body to output stream").str();
                 return false;
               };
@@ -951,6 +959,12 @@ bool PayloadHTTPOut::Flush(PayloadStreamInterface& stream) {
             if(!stream.Put(tbuf,lbuf)) {
               error_ = IString("Failed to write body to output stream").str();
               return false;
+            };
+            if(use_chunked_transfer_) {
+              if(!stream.Put("\r\n")) {
+                error_ = IString("Failed to write body to output stream").str();
+                return false;
+              };
             };
           };
         };
@@ -1126,12 +1140,31 @@ PayloadRawInterface::Size_t PayloadHTTPOutStream::Size(void) const {
   return header_.length()+body_size();
 }
 
+/*
+int PayloadHTTPOutStream::chunk_size_get(char* buf,int size,int l,uint64_t chunk_size) {
+  if (chunk_size_str_.empty()) {
+    // Generating new chunk size
+    chunk_size_str_ = inttostr(chunk_size,16)+"\r\n";
+    chunk_size_offset_ = 0;
+  };
+  if(chunk_size_offset_ < chunk_size_str_.length()) {
+    // copy chunk size
+    std::string::size_type cs = chunk_size_str_.length() - chunk_size_offset_;
+    if(cs>(size-l)) cs=(size-l);
+    ::memcpy(buf+l,chunk_size_str_.c_str()+chunk_size_offset_,cs);
+    l+=cs; chunk_size_offset_+=cs;
+  };
+  return l;
+}
+*/
+
 bool PayloadHTTPOutStream::Get(char* buf,int& size) {
   if(!valid_) return false;
   if(!remake_header(true)) return false;
+  if(stream_finished_) return false;
   // Read header
-  uint64_t bo = 0;
-  uint64_t bs = header_.length();
+  uint64_t bo = 0; // buf offset
+  uint64_t bs = header_.length(); // buf size
   int l = 0;
   if(l >= size) { size = l; return true; };
   if((bo+bs) > stream_offset_) {
@@ -1141,34 +1174,100 @@ bool PayloadHTTPOutStream::Get(char* buf,int& size) {
     if(bs>(size-l)) bs=(size-l);
     ::memcpy(buf+l,p,bs);
     l+=bs; stream_offset_+=bs;
+    //chunk_size_str_ = ""; chunk_size_offset_ = 0;
   };
   bo+=bs;
+  if(l >= size) { size = l; return true; }; // buffer is full
+  // Read data
   if(rbody_) {
+    /* This code is only needed if stream and raw are mixed.
+       Currently it is not possible hence it is not needed.
+       But code is kept for future use. Code is not tested.
     for(unsigned int num = 0;;++num) {
-      if(l >= size) { size = l; return true; };
+      if(l >= size) { size = l; return true; }; // buffer is full
       const char* p = rbody_->Buffer(num);
-      if(!p) break;
+      if(!p) {
+        // No more buffers
+        if(use_chunked_transfer_) {
+          l = chunk_size_get(buf,size,l,0);
+        };
+        break;
+      };
       bs = rbody_->BufferSize(num);
+      if(bs <= 0) continue; // Protection against empty buffers
       if((bo+bs) > stream_offset_) {
+        if((use_chunked_transfer_) && (bo == stream_offset_)) {
+          l = chunk_size_get(buf,size,l,bs);
+          if(l >= size) { size = l; return true; }; // buffer is full
+        };
         p+=(stream_offset_-bo);
         bs-=(stream_offset_-bo);
         if(bs>(size-l)) bs=(size-l);
         ::memcpy(buf+l,p,bs);
         l+=bs; stream_offset_+=bs;
+        chunk_size_str_ = ""; chunk_size_offset_ = 0;
       };
       bo+=bs;
     };
     size = l;
     if(l > 0) return true;
     return false;
+    */
+    size = 0;
+    return false;
   };
   if(sbody_) {
-    if(l >= size) { size = l; return true; };
-    int s = size-l;
-    if(sbody_->Get(buf+l,s)) {
-      stream_offset_+=s; l+=s;
-      size = l;
+    if(use_chunked_transfer_) {
+      // It is impossible to know size of chunk
+      // in advance. So first prelimnary size is
+      // is generated and later adjusted.
+      // The problem is that if supplied buffer is
+      // not enough for size and at least one
+      // byte of data that can cause infinite loop.
+      // To avoid that false is returned.
+      // So in case of very short buffer transmission
+      // will fail.
+      std::string chunk_size_str = inttostr(size,16)+"\r\n";
+      std::string::size_type cs = chunk_size_str.length();
+      if((cs+2+1) > (size-l)) {
+        // too small buffer
+        size = l;
+        return (l > 0);
+      };
+      int s = size-l-cs-2;
+      if(sbody_->Get(buf+l+cs,s)) {
+        if(s > 0) {
+          chunk_size_str = inttostr(s,16)+"\r\n";
+          if(chunk_size_str.length() > cs) { // paranoic
+            size = 0;
+            return false; 
+          };
+          ::memset(buf+l,'0',cs);
+          ::memcpy(buf+l+(cs-chunk_size_str.length()),chunk_size_str.c_str(),chunk_size_str.length()); 
+          ::memcpy(buf+l+cs+s,"\r\n",2);
+          stream_offset_+=s; l+=(cs+s+2);
+        };
+        size = l;
+        return true;
+      };
+      // Write 0 chunk size first time. Any later request must just fail.
+      if(5 > (size-l)) {
+        // too small buffer
+        size = l;
+        return (l > 0);
+      };
+      ::memcpy(buf+l,"0\r\n\r\n",5);
+      l+=5;
+      size = l; stream_finished_ = true;
       return true;
+    } else {
+      int s = size-l;
+      if(sbody_->Get(buf+l,s)) {
+        stream_offset_+=s; l+=s;
+        size = l;
+        return true;
+      };
+      stream_finished_ = true;
     };
     size = l;
     return false; 
@@ -1176,6 +1275,13 @@ bool PayloadHTTPOutStream::Get(char* buf,int& size) {
   size = l;
   if(l > 0) return true;
   return false;
+}
+
+bool PayloadHTTPOutStream::Get(PayloadStreamInterface& dest,int& size) {
+  if(stream_offset_ > 0) return PayloadStreamInterface::Get(dest,size);
+  if(size != -1) return PayloadStreamInterface::Get(dest,size);
+  Flush(dest);
+  return false; // stream finished
 }
 
 // Stream interface is meant to be used only for reading.
