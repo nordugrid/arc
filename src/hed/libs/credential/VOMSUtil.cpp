@@ -902,13 +902,15 @@ err:
       STACK_OF(X509)* certstack = certs->stackcert;
 
       if(verify) {
-        bool success = false;
+        bool trust_success = false;
         bool lsc_check = false;
         if((vomscert_trust_dn.SizeChains()==0) && (vomscert_trust_dn.SizeRegexs()==0)) {
           std::vector<std::string> voms_trustdn;
           if(!getLSC(vomsdir, voname, hostname, voms_trustdn)) {
-            CredentialLogger.msg(INFO,"VOMS: there is no constraints of trusted voms DNs, the certificates stack in AC will not be checked.");
-            success = true;
+            CredentialLogger.msg(WARNING,"VOMS: there is no constraints of trusted voms DNs, the certificates stack in AC will not be checked.");
+            trust_success = true;
+            status |= VOMSACInfo::TrustFailed;
+            status |= VOMSACInfo::LSCFailed;
           }
           else { 
             vomscert_trust_dn.AddElement(voms_trustdn);
@@ -919,24 +921,24 @@ err:
 
         //Check if the DN of those certificates in the certificate stack
         //corresponds to the trusted DN chain in the configuration 
-        if(certstack && !success) {
+        if(certstack && !trust_success) {
           for(int n = 0;n < vomscert_trust_dn.SizeChains();++n) {
             const VOMSTrustChain& chain = vomscert_trust_dn.GetChain(n);
             if(checkTrust(chain,certstack)) {
-              success = true;
+              trust_success = true;
               break;
             }
           }
-          if(!success) for(int n = 0;n < vomscert_trust_dn.SizeRegexs();++n) {
+          if(!trust_success) for(int n = 0;n < vomscert_trust_dn.SizeRegexs();++n) {
             const RegularExpression& reg = vomscert_trust_dn.GetRegex(n);
             if(checkTrust(reg,certstack)) {
-              success = true;
+              trust_success = true;
               break;
             }
           }
         }
 
-        if (!success) {
+        if (!trust_success) {
           //AC_CERTS_free(certs);
           CredentialLogger.msg(ERROR,"VOMS: unable to match certificate chain against VOMS trusted DNs");
           if(!lsc_check) status |= VOMSACInfo::TrustFailed;
