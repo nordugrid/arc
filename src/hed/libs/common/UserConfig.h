@@ -1097,6 +1097,22 @@ namespace Arc {
       \return a list of rejected service discovery URLs
     */
     const std::list<std::string>& RejectDiscoveryURLs() const { return rejectDiscoveryURLs; };
+    /// Add list of URLs to ignored at service discovery
+    /**
+     * The passed list of strings will be added to the internal reject list
+     * and they should represent URLs which should be ignored when doing service
+     * discovery.
+     * \param urls list of string representing URLs to ignore at service
+     *        discovery
+     **/
+    void AddRejectDiscoveryURLs(const std::list<std::string>& urls) { rejectDiscoveryURLs.insert(rejectDiscoveryURLs.end(), urls.begin(), urls.end()); }
+    /// Clear the rejected service discovery URLs
+    /**
+     * Clears the list of strings representing URLs which should be ignored
+     * during service discovery.
+     **/
+    void ClearRejectDiscoveryURLs() { rejectDiscoveryURLs.clear(); }
+    
     /// Get the list of rejected job managmenet URLs
     /**
       This list is populated by the (possibly multiple) `rejectmanagement` configuration options.
