@@ -10,26 +10,24 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
-#include <arc/StringConv.h>
-#include <arc/URL.h>
 #include <arc/UserConfig.h>
 #include <arc/Utils.h>
 #include <arc/client/Broker.h>
 #include <arc/client/ComputingServiceRetriever.h>
+#include <arc/client/ExecutionTarget.h>
 #include <arc/client/Job.h>
 #include <arc/client/JobDescription.h>
-#include <arc/client/SubmitterPlugin.h>
+#include <arc/client/Submitter.h>
 
 #include "utils.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 
-static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> rejectDiscoveryURLs, const std::list<std::string> requestedSubmissionInterfaces, const std::string& jobidfile);
-static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> rejectDiscoveryURLs, const std::list<std::string> requestedSubmissionInterfaces);
+static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> requestedSubmissionInterfaces, const std::string& jobidfile);
+static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> requestedSubmissionInterfaces);
 
 int RUNMAIN(arcsub)(int argc, char **argv) {
 
@@ -168,24 +166,72 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
 
   std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName);
 
-  std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
+  usercfg.AddRejectDiscoveryURLs(opt.rejectdiscovery);
 
   std::list<std::string> rsi;
   if(!opt.requestedSubmissionInterfaceName.empty()) rsi.push_back(opt.requestedSubmissionInterfaceName);
 
   if (opt.dumpdescription) {
-    return dumpjobdescription(usercfg, jobdescriptionlist, services, rejectDiscoveryURLs, rsi);
+    return dumpjobdescription(usercfg, jobdescriptionlist, services, rsi);
   }
 
-  return submit(usercfg, jobdescriptionlist, services, rejectDiscoveryURLs, rsi, opt.jobidoutfile);
+  return submit(usercfg, jobdescriptionlist, services, rsi, opt.jobidoutfile);
 }
 
-static void printjobid(const std::string& jobid, const std::string& jobidfile) {
-  if (!jobidfile.empty())
-    if (!Arc::Job::WriteJobIDToFile(jobid, jobidfile))
-      logger.msg(Arc::WARNING, "Cannot write jobid (%s) to file (%s)", jobid, jobidfile);
-  std::cout << Arc::IString("Job submitted with jobid: %s", jobid) << std::endl;
-}
+
+class HandleSubmittedJobs : public Arc::EntityConsumer<Arc::Job> {
+public:
+  HandleSubmittedJobs(const std::string& jobidfile, const std::string& joblist) : jobidfile(jobidfile), joblist(joblist), submittedJobs() {}
+
+  void addEntity(const Arc::Job& j) {
+    std::cout << Arc::IString("Job submitted with jobid: %s", j.JobID.fullstr()) << std::endl;
+    submittedJobs.push_back(j);
+  }
+  
+  void write() const {
+    if (!jobidfile.empty() && !Arc::Job::WriteJobIDsToFile(submittedJobs, jobidfile)) {
+      logger.msg(Arc::WARNING, "Cannot write jobids to file (%s)", jobidfile);
+    }
+    if (!Arc::Job::WriteJobsToFile(joblist, submittedJobs)) {
+      std::cout << Arc::IString("Warning: Failed to lock job list file %s", joblist)
+                << std::endl;
+      std::cout << Arc::IString("To recover missing jobs, run arcsync") << std::endl;
+    }
+  }
+
+  void printsummary(const std::list<Arc::JobDescription>& originalDescriptions, const std::list<const Arc::JobDescription*>& notsubmitted) const {
+    if (originalDescriptions.size() > 1) {
+      std::cout << std::endl << Arc::IString("Job submission summary:") << std::endl;
+      std::cout << "-----------------------" << std::endl;
+      std::cout << Arc::IString("%d of %d jobs were submitted", submittedJobs.size(), submittedJobs.size()+notsubmitted.size()) << std::endl;
+      if (!notsubmitted.empty()) {
+        std::cout << Arc::IString("The following %d were not submitted", notsubmitted.size()) << std::endl;
+        for (std::list<const Arc::JobDescription*>::const_iterator it = notsubmitted.begin();
+             it != notsubmitted.end(); ++it) {
+          int jobnr = 1;
+          for (std::list<Arc::JobDescription>::const_iterator itOrig = originalDescriptions.begin();
+               itOrig != originalDescriptions.end(); ++itOrig, ++jobnr) {
+            if (&(*itOrig) == *it) {
+              std::cout << Arc::IString("Job nr.") << " " << jobnr;
+              if (!(*it)->Identification.JobName.empty()) {
+                std::cout << ": " << (*it)->Identification.JobName;
+              }
+              std::cout << std::endl;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  void clearsubmittedjobs() { submittedJobs.clear(); }
+
+private:
+  const std::string jobidfile, joblist;
+  std::list<Arc::Job> submittedJobs;
+};
+
 
 static bool match_submission_interface(const Arc::ExecutionTarget& target, const std::list<std::string>& requestedSubmissionInterfaces) {
   if(requestedSubmissionInterfaces.empty()) return true;
@@ -196,131 +242,52 @@ static bool match_submission_interface(const Arc::ExecutionTarget& target, const
   return false;
 }
 
-static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> rejectDiscoveryURLs, const std::list<std::string> requestedSubmissionInterfaces, const std::string& jobidfile) {
+static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> requestedSubmissionInterfaces, const std::string& jobidfile) {
   int retval = 0;
-
-  std::list<std::string> preferredInterfaceNames;
-  if (usercfg.InfoInterface().empty()) {
-    preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
-    preferredInterfaceNames.push_back("org.ogf.emies");
-  } else {
-    preferredInterfaceNames.push_back(usercfg.InfoInterface());
-  }
-
   
-  Arc::ComputingServiceRetriever csr(usercfg, services, rejectDiscoveryURLs, preferredInterfaceNames);
-  csr.wait();
+  HandleSubmittedJobs hsj(jobidfile, usercfg.JobListFile());
+  Arc::Submitter s(usercfg);
+  s.addConsumer(hsj);
 
-  if (csr.empty()) {
-    std::cout << Arc::IString("Job submission aborted because no resource returned any information") << std::endl;
+  Arc::SubmissionStatus status = s.BrokeredSubmit(services, jobdescriptionlist, requestedSubmissionInterfaces);
+  hsj.write();
+
+  if (status.isSet(Arc::SubmissionStatus::BROKER_PLUGIN_NOT_LOADED)) {
+    std::cerr << Arc::IString("ERROR: Unable to load broker %s", usercfg.Broker().first) << std::endl;
     return 1;
   }
-
-  Arc::Broker broker(usercfg, usercfg.Broker().first);
-  if (!broker.isValid()) {
-    logger.msg(Arc::ERROR, "Unable to load broker %s", usercfg.Broker().first);
-    return 1;
+  if (status.isSet(Arc::SubmissionStatus::NO_SERVICES)) {
+   std::cerr << Arc::IString("ERROR: Job submission aborted because no resource returned any information") << std::endl;
+   return 1;
   }
-  logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
-
-  int jobnr = 1;
-  std::list<std::string> jobids;
-  std::list<Arc::Job> submittedJobs;
-  std::map<int, std::string> notsubmitted;
-
-  int didGridFTPJobPluginLoad = 0; // 0: Haven't tried; -1: No; 1: Yes.
-
-  for (std::list<Arc::JobDescription>::const_iterator itJ =
-         jobdescriptionlist.begin(); itJ != jobdescriptionlist.end();
-       ++itJ, ++jobnr) {
-    bool descriptionSubmitted = false;
-    submittedJobs.push_back(Arc::Job());
-    broker.set(*itJ);
-    Arc::ExecutionTargetSet etSet(broker, csr);
-    for (Arc::ExecutionTargetSet::iterator itET = etSet.begin(); itET != etSet.end(); ++itET) {
-      if(!match_submission_interface(*itET,requestedSubmissionInterfaces)) continue;
-      if (itET->Submit(usercfg, *itJ, submittedJobs.back())) {
-        printjobid(submittedJobs.back().JobID.fullstr(), jobidfile);
-        descriptionSubmitted = true;
-        itET->RegisterJobSubmission(*itJ);
-        break;
-      }
-      else if (didGridFTPJobPluginLoad == 0 && itET->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") { // Check if this is a org.nordugrid.gridftpjob interface, and check if the globus module is available.
-        Arc::SubmitterPluginLoader spl;
-        didGridFTPJobPluginLoad = 2*(spl.loadByInterfaceName("org.nordugrid.gridftpjob", usercfg) != NULL) - 1;
+  if (status.isSet(Arc::SubmissionStatus::SUBMITTER_PLUGIN_NOT_LOADED)) {
+    bool gridFTPJobPluginFailed = false;
+    for (std::map<Arc::Endpoint, Arc::EndpointSubmissionStatus>::const_iterator it = s.GetEndpointSubmissionStatuses().begin();
+         it != s.GetEndpointSubmissionStatuses().end(); ++it) {
+      if (it->first.InterfaceName == "org.nordugrid.gridftpjob" && it->second == Arc::EndpointSubmissionStatus::NOPLUGIN) {
+        gridFTPJobPluginFailed = true;
       }
     }
-    if (!descriptionSubmitted && itJ->HasAlternatives()) {
-      // TODO: Deal with alternative job descriptions more effective.
-      for (std::list<Arc::JobDescription>::const_iterator itJAlt = itJ->GetAlternatives().begin();
-           itJAlt != itJ->GetAlternatives().end(); ++itJAlt) {
-        broker.set(*itJAlt);
-        Arc::ExecutionTargetSet etSetAlt(broker, csr);
-        for (Arc::ExecutionTargetSet::iterator itET = etSetAlt.begin(); itET != etSetAlt.end(); ++itET) {
-          if(!match_submission_interface(*itET,requestedSubmissionInterfaces)) continue;
-          if (itET->Submit(usercfg, *itJAlt, submittedJobs.back())) {
-            printjobid(submittedJobs.back().JobID.fullstr(), jobidfile);
-            descriptionSubmitted = true;
-            itET->RegisterJobSubmission(*itJAlt);
-            break;
-          }
-          else if (didGridFTPJobPluginLoad == 0 && itET->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") { // Check if this is a org.nordugrid.gridftpjob interface, and check if the globus module is available.
-            Arc::SubmitterPluginLoader spl;
-            didGridFTPJobPluginLoad = 2*(spl.loadByInterfaceName("org.nordugrid.gridftpjob", usercfg) != NULL) - 1;
-          }
-        }
-        if (descriptionSubmitted) {
-          break;
-        }
-      }
+    if (gridFTPJobPluginFailed) {
+      std::cerr << Arc::IString("ERROR: A computing resource using the gridftp interface was requested, but") << std::endl;
+      std::cerr << Arc::IString("       the corresponding plugin could not be loaded. Is the plugin installed?") << std::endl;
+      std::cerr << Arc::IString("       If not, please install the package 'nordugrid-arc-plugins-globus'.") << std::endl;
+      std::cerr << Arc::IString("       Depending on your type of installation the package name might differ. ") << std::endl;
     }
-
-    if (!descriptionSubmitted) {
-      std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
-      submittedJobs.pop_back();
-      notsubmitted[jobnr] = itJ->Identification.JobName;
-      retval = 1;
-    }
-  } //end loop over all job descriptions
-
-  if (didGridFTPJobPluginLoad == -1) {
-    std::cerr << Arc::IString("ERROR: A computing resource using the gridftp interface was requested, but") << std::endl;
-    std::cerr << Arc::IString("       the corresponding plugin could not be loaded. Is the plugin installed?") << std::endl;
-    std::cerr << Arc::IString("       If not, please install the package 'nordugrid-arc-plugins-globus'.") << std::endl;
-    std::cerr << Arc::IString("       Depending on your type of installation the package name might differ. ") << std::endl;
+    // TODO: What to do when failing to load other plugins.
     retval = 1;
   }
-
-  if (!Arc::Job::WriteJobsToFile(usercfg.JobListFile(), submittedJobs)) {
-    std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile())
-              << std::endl;
-    std::cout << Arc::IString("To recover missing jobs, run arcsync") << std::endl;
+  if (status.isSet(Arc::SubmissionStatus::DESCRIPTION_NOT_SUBMITTED)) {
+    std::cerr << Arc::IString("ERROR: One or multiple job descriptions was not submitted.") << std::endl;
+    retval = 1;
   }
+    
+  hsj.printsummary(jobdescriptionlist, s.GetDescriptionsNotSubmitted());
 
-  if (jobdescriptionlist.size() > 1) {
-    std::cout << std::endl << Arc::IString("Job submission summary:")
-              << std::endl;
-    std::cout << "-----------------------" << std::endl;
-    std::cout << Arc::IString("%d of %d jobs were submitted",
-                              submittedJobs.size(),
-                              jobdescriptionlist.size()) << std::endl;
-    if (!notsubmitted.empty()) {
-      std::cout << Arc::IString("The following %d were not submitted",
-                                notsubmitted.size()) << std::endl;
-      std::map<int, std::string>::const_iterator it = notsubmitted.begin();
-      for (; it != notsubmitted.end(); ++it) {
-        std::cout << Arc::IString("Job nr.") << " " << it->first;
-        if (!it->second.empty()) {
-          std::cout << ": " << it->second;
-        }
-        std::cout << std::endl;
-      }
-    }
-  }
   return retval;
 }
 
-static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> rejectDiscoveryURLs, const std::list<std::string> requestedSubmissionInterfaces) {
+static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, std::list<std::string> requestedSubmissionInterfaces) {
   int retval = 0;
 
   std::list<std::string> preferredInterfaceNames;
@@ -331,7 +298,7 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
     preferredInterfaceNames.push_back(usercfg.InfoInterface());
   }
 
-  Arc::ComputingServiceRetriever csr(usercfg, services, rejectDiscoveryURLs, preferredInterfaceNames);
+  Arc::ComputingServiceRetriever csr(usercfg, services, usercfg.RejectDiscoveryURLs(), preferredInterfaceNames);
   csr.wait();
 
   if (csr.empty()) {
@@ -344,7 +311,6 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
     logger.msg(Arc::ERROR, "Dumping job description aborted: Unable to load broker %s", usercfg.Broker().first);
     return 1;
   }
-  logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
   for (std::list<Arc::JobDescription>::const_iterator itJ = jobdescriptionlist.begin();
        itJ != jobdescriptionlist.end(); ++itJ) {

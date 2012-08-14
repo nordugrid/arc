@@ -1,3 +1,10 @@
+2012-08-14  Martin Skou Andersen <skou@nbi.ku.dk>
+
+  * Submitter class extended with capability of job submission relying on
+    resource discovery and brokering, previously part of arcsub
+
+  * arcsub adapted to use rebased submission functionality 
+
 2012-08-07  David Cameron  <d.g.cameron@fys.uio.no>
 
   * Add ACIX (ARC Cache Index) to distribution (RHEL>=5, Fedora>=7, Debian>=4)
