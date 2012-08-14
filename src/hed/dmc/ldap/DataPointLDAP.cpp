@@ -110,7 +110,7 @@ namespace Arc {
 
   DataStatus DataPointLDAP::StopReading() {
     if (!buffer) return DataStatus::ReadStopError;
-    buffer->error_read(true);
+    if(!buffer->eof_read()) buffer->error_read(true);
     thread_cnt.wait();
     buffer = NULL;
     return DataStatus::Success;
