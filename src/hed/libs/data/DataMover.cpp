@@ -204,6 +204,18 @@ namespace Arc {
                                  min_average_speed, time_t max_inactivity_time,
                                  DataMover::callback cb, void *arg,
                                  const char *prefix) {
+    class DataPointStopper {
+     private:
+      DataPoint& point_;
+     public:
+      DataPointStopper(DataPoint& p):point_(p) {};
+      ~DataPointStopper(void) {
+        point_.StopReading();
+        point_.FinishReading();
+        point_.StopWriting();
+        point_.FinishWriting();
+      };
+    };
 
     if (cb != NULL) {
       logger.msg(VERBOSE, "DataMover::Transfer : starting new thread");
@@ -423,11 +435,10 @@ namespace Arc {
         /* out of tries */
         return res;
       }
-      // By putting DataBuffer here, one makes sure it will be always
-      // destroyed AFTER all DataHandle. This allows for not bothering
-      // to call stop_reading/stop_writing because they are called in
-      // destructor of DataHandle.
       DataBuffer buffer;
+      // Make sure any transfer is stopped before buffer is destroyed
+      DataPointStopper source_stop(source);
+      DataPointStopper destination_stop(destination);
       logger.msg(INFO, "Real transfer from %s to %s", source.CurrentLocation().str(), destination.CurrentLocation().str());
       /* creating handler for transfer */
       source.SetSecure(force_secure);
@@ -504,8 +515,7 @@ namespace Arc {
 
       /* create buffer and tune speed control */
       buffer.set(&crc, bufsize, bufnum);
-      if (!buffer)
-        logger.msg(INFO, "Buffer creation failed !");
+      if (!buffer) logger.msg(INFO, "Buffer creation failed !");
       buffer.speed.set_min_speed(min_speed, min_speed_time);
       buffer.speed.set_min_average_speed(min_average_speed);
       buffer.speed.set_max_inactivity_time(max_inactivity_time);
@@ -968,10 +978,11 @@ namespace Arc {
           if (destination.NextLocation())
             logger.msg(VERBOSE, "(Re)Trying next destination");
           // check for error from callbacks etc
-          if(destination.GetFailureReason() != DataStatus::UnknownError)
+          if(destination.GetFailureReason() != DataStatus::UnknownError) {
             res=destination.GetFailureReason();
-          else
+          } else {
             res=DataStatus::WriteError;
+          }
         }
         else if (buffer.error_transfer()) {
           // Here is more complicated case - operation timeout
@@ -980,14 +991,16 @@ namespace Arc {
           if (!buffer.for_read()) {
             // No free buffers for 'read' side. Buffer must be full.
             res.SetDesc(destination.GetFailureReason().GetDesc());
-            if (destination.NextLocation())
+            if (destination.NextLocation()) {
               logger.msg(VERBOSE, "(Re)Trying next destination");
+            }
           }
           else if (!buffer.for_write()) {
             // Buffer is empty
             res.SetDesc(source.GetFailureReason().GetDesc());
-            if (source.NextLocation())
+            if (source.NextLocation()) {
               logger.msg(VERBOSE, "(Re)Trying next source");
+            }
           }
           else {
             // Both endpoints were very slow? Choose randomly.
@@ -995,13 +1008,15 @@ namespace Arc {
             Glib::Rand r;
             if (r.get_int() < (RAND_MAX / 2)) {
               res.SetDesc(source.GetFailureReason().GetDesc());
-              if (source.NextLocation())
+              if (source.NextLocation()) {
                 logger.msg(VERBOSE, "(Re)Trying next source");
+              }
             }
             else {
               res.SetDesc(destination.GetFailureReason().GetDesc());
-              if (destination.NextLocation())
+              if (destination.NextLocation()) {
                 logger.msg(VERBOSE, "(Re)Trying next destination");
+              }
             }
           }
         }
@@ -1035,37 +1050,44 @@ namespace Arc {
           logger.msg(ERROR, "Checksum mismatch between checksum given as meta option (%s:%s) and calculated checksum (%s)",
               destination.GetURL().MetaDataOption("checksumtype"), destination.GetURL().MetaDataOption("checksumvalue"), calc_csum);
 #ifndef WIN32
-          if (cacheable)
+          if (cacheable) {
             cache.StopAndDelete(canonic_url);
+          }
 #endif
-          if (!destination.Unregister(replication || destination_meta_initially_stored))
+          if (!destination.Unregister(replication || destination_meta_initially_stored)) {
             logger.msg(WARNING, "Failed to unregister preregistered lfn, You may need to unregister it manually");
+          }
           res = DataStatus(DataStatus::TransferError, EARCCHECKSUM);
-          if (!Delete(destination, true))
+          if (!Delete(destination, true)) {
             logger.msg(WARNING, "Failed to delete destination, retry may fail");
-          if (destination.NextLocation())
+          }
+          if (destination.NextLocation()) {
             logger.msg(VERBOSE, "(Re)Trying next destination");
+          }
           continue;
         }
         if (source.CheckCheckSum()) {
           std::string src_csum_s(source.GetCheckSum());
-          if (src_csum_s.find(':') == src_csum_s.length() -1)
+          if (src_csum_s.find(':') == src_csum_s.length() -1) {
             logger.msg(VERBOSE, "Cannot compare empty checksum");
-          else if (calc_csum.substr(0, calc_csum.find(":")) != src_csum_s.substr(0, src_csum_s.find(":")))
+          } else if (calc_csum.substr(0, calc_csum.find(":")) != src_csum_s.substr(0, src_csum_s.find(":"))) {
             logger.msg(VERBOSE, "Checksum type of source and calculated checksum differ, cannot compare");
-          else if (calc_csum.substr(calc_csum.find(":")) != src_csum_s.substr(src_csum_s.find(":"))) {
+          } else if (calc_csum.substr(calc_csum.find(":")) != src_csum_s.substr(src_csum_s.find(":"))) {
             logger.msg(ERROR, "Checksum mismatch between calcuated checksum %s and source checksum %s", calc_csum, source.GetCheckSum());
 #ifndef WIN32
-            if(cacheable)
+            if(cacheable) {
               cache.StopAndDelete(canonic_url);
+            }
 #endif
             res = DataStatus(DataStatus::TransferError, EARCCHECKSUM);
-            if (source.NextLocation())
+            if (source.NextLocation()) {
               logger.msg(VERBOSE, "(Re)Trying next source");
+            }
             continue;
           }
-          else
+          else {
             logger.msg(VERBOSE, "Calculated transfer checksum %s matches source checksum", calc_csum);
+          }
         }
         // set the destination checksum to be what we calculated
         destination.SetCheckSum(calc_csum.c_str());
