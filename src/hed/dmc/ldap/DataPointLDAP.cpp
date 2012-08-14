@@ -104,14 +104,14 @@ namespace Arc {
     XMLNode(ns, "LDAPQueryResult").New(node);
     res = q.Result(CallBack, this);
     if (res != 0) return DataStatus(DataStatus::ReadStartError, (res == 1) ? ETIMEDOUT : ECONNREFUSED);
-    CreateThreadFunction(&ReadThread, this);
+    CreateThreadFunction(&ReadThread, this, &thread_cnt);
     return DataStatus::Success;
   }
 
   DataStatus DataPointLDAP::StopReading() {
-    // TODO: wait for reading thread to exit
-    if (!buffer)
-      return DataStatus::ReadStopError;
+    if (!buffer) return DataStatus::ReadStopError;
+    buffer->error_read(true);
+    thread_cnt.wait();
     buffer = NULL;
     return DataStatus::Success;
   }
@@ -141,9 +141,8 @@ namespace Arc {
     int transfer_handle = -1;
     do {
       unsigned int transfer_size = 0;
-      point.buffer->for_read(transfer_handle, transfer_size, true);
-      if (length < transfer_size)
-        transfer_size = length;
+      if(!point.buffer->for_read(transfer_handle, transfer_size, true)) break;
+      if (length < transfer_size) transfer_size = length;
       memcpy((*point.buffer)[transfer_handle], &text[pos], transfer_size);
       point.buffer->is_read(transfer_handle, transfer_size, pos);
       length -= transfer_size;

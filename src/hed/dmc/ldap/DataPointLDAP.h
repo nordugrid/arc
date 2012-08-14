@@ -42,6 +42,7 @@ namespace Arc {
     XMLNode node;
     XMLNode entry;
     std::map<std::string, XMLNode> dn_cache;
+    SimpleCounter thread_cnt;
     static void CallBack(const std::string& attr,
                          const std::string& value, void *arg);
     static void ReadThread(void *arg);
