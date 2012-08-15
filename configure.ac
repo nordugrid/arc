@@ -792,6 +792,26 @@ AC_SUBST(NSS_CFLAGS)
 AC_SUBST(NSS_LIBS)
 AM_CONDITIONAL([NSS_ENABLED], test x$NSS_INSTALLED = xyes)
 
+#check emi common authentiation library
+CANLXX_CFLAGS=
+CANLXX_LIBS=
+AC_ARG_ENABLE(canlxx, AC_HELP_STRING([--enable-canlxx], [enable use of EMI common authentication libraries]), [enables_canlxx="$enableval"], [])
+if test "x$enables_canlxx" = "xyes"; then
+  AC_ARG_WITH(canlxx,
+    AC_HELP_STRING([--with-canlxx=PATH], [CANL++ installation path]),
+    [
+      PKG_CONFIG_PATH="$withval/lib/pkgconfig:$PKG_CONFIG_PATH"
+    ]
+  )
+  PKG_CHECK_MODULES(CANLXX, [canl-c++], [], [
+    AC_MSG_NOTICE([Failed to find EMI common authentication libraries])
+    enables_canlxx=no
+  ])
+fi
+AC_SUBST(CANLXX_CFLAGS)
+AC_SUBST(CANLXX_LIBS)
+AM_CONDITIONAL(CANLXX_ENABLED, test "x$enables_canlxx" = "xyes")
+
 # check cppunit
 if test "$enables_hed" = "yes"; then
 AC_ARG_ENABLE(cppunit, AC_HELP_STRING([--disable-cppunit], [disable cppunit-based UNIT testing of code]),[enables_cppunit=$enableval],[])
@@ -1050,7 +1070,7 @@ if test "x$enables_argus" = "xyes"; then
   )
   PKG_CHECK_MODULES(ARGUS, [libargus-pep >= 2.0.0], [], [
     AC_MSG_NOTICE([Failed to find Argus PEP libraries with version >= 2])
-    argus_enables=no
+    enables_argus=no
   ])
 fi
 AC_SUBST(ARGUS_CFLAGS)
