@@ -2440,6 +2440,7 @@ LDAP:               ${enables_ldap}
 xmlsec1:            ${enables_xmlsec1}
 ARGUS:              ${enables_argus}
 GACL:               ${enables_gacl}
+CANL++:             ${enables_canlxx}
 
 Included components:
 HED:                ${enables_hed}
