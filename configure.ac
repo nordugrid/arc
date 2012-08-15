@@ -808,6 +808,9 @@ if test "x$enables_canlxx" = "xyes"; then
     enables_canlxx=no
   ])
 fi
+if test "x$enables_canlxx" = "xyes" ; then
+  AC_DEFINE(HAVE_CANLXX,,[define if CANL++ is enabled and available])
+fi
 AC_SUBST(CANLXX_CFLAGS)
 AC_SUBST(CANLXX_LIBS)
 AM_CONDITIONAL(CANLXX_ENABLED, test "x$enables_canlxx" = "xyes")
