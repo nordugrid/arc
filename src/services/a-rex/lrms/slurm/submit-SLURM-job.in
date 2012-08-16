@@ -104,7 +104,7 @@ i=0
 eval "var_is_set=\${joboption_nodeproperty_$i+yes}"
 while [ ! -z "${var_is_set}" ] ; do
   eval "var_value=\${joboption_nodeproperty_$i}"
-  nodes_string="${nodes_string}:${var_value}"
+  nodes_string="${nodes_string} ${var_value}"
   i=$(( $i + 1 ))
   eval "var_is_set=\${joboption_nodeproperty_$i+yes}"
 done
