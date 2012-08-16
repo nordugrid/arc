@@ -271,8 +271,10 @@ sub slurm_expand_nodes($){
 		if($element =~ /(\d*)-(\d*)/){
 		    my $start=$1;
 		    my $end=$2;
+		    my $l = length($start);
 		    for (my $i=$start;$i<=$end;$i++){
-			$enodes .= $name.$i.",";
+			# Preserve leading zeroes in sequence, if needed
+			$enodes .= sprintf("%s%0*d,", $name, $l, $i);
 		    }
 		}
 		else {
