@@ -251,7 +251,17 @@ namespace Arc {
                    VOMSTrustList& vomscert_trust_dn,
                    std::vector<VOMSACInfo>& output,
                    bool verify = true, bool reportall = false);
-  
+
+  /**Parse the certificate in string format. 
+   * @param cert_str  one certificate, or a chain of certifiate, in string format */
+  bool parseVOMSAC(const std::string& cert_str,
+                   const std::string& ca_cert_dir,
+                   const std::string& ca_cert_file,
+                   const std::string& vomsdir,
+                   VOMSTrustList& vomscert_trust_dn,
+                   std::vector<VOMSACInfo>& output,
+                   bool verify = true, bool reportall = false); 
+ 
   /**Decode the data which is encoded by voms server. Since voms code uses some specific
   * coding method (not base64 encoding), we simply copy the method from voms code to here*/
   char *VOMSDecode(const char *data, int size, int *j);

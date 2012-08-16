@@ -1694,6 +1694,46 @@ err:
     return res;
   }
 
+  bool parseVOMSAC(const std::string& cert_str,
+         const std::string& ca_cert_dir, const std::string& ca_cert_file,
+         const std::string& vomsdir, VOMSTrustList& vomscert_trust_dn,
+         std::vector<VOMSACInfo>& output, bool verify, bool reportall) {
+
+    STACK_OF(X509)* cert_chain = NULL;
+    cert_chain = sk_X509_new_null();
+    BIO* bio = BIO_new(BIO_s_mem());
+    BIO_write(bio, cert_str.c_str(), cert_str.size());
+
+    bool res = true;
+    bool found = false;
+    while(!BIO_eof(bio)) {
+      X509* tmp = NULL;
+      if(!(PEM_read_bio_X509(bio, &tmp, NULL, NULL))){
+        ERR_clear_error(); 
+        if(!found) res = false;
+        break;
+      }
+      else { found = true; }
+      if(!sk_X509_push(cert_chain, tmp)) {
+        //std::string str(X509_NAME_oneline(X509_get_subject_name(tmp),0,0));
+        X509_free(tmp);
+      }
+    }
+
+    for(int idx = 0;;++idx) {
+      if(idx >= sk_X509_num(cert_chain)) break;
+      X509* cert = sk_X509_value(cert_chain, idx);
+      bool res2 = parseVOMSAC(cert, ca_cert_dir, ca_cert_file, vomsdir,
+                             vomscert_trust_dn, output, verify, reportall);
+      if (!res2) res = res2;
+    }
+
+    sk_X509_pop_free(cert_chain, X509_free);
+    BIO_free_all(bio);
+    return res;
+  }
+
+
   static char trans2[128] = { 0,   0,  0,  0,  0,  0,  0,  0,
                             0,   0,  0,  0,  0,  0,  0,  0,
                             0,   0,  0,  0,  0,  0,  0,  0,
