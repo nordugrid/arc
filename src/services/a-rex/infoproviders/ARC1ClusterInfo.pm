@@ -1945,7 +1945,7 @@ sub collect($) {
                     $sysname = 'linux' if grep /linux/i, @{$xeconfig->{OpSys}};
                 }
 
-                $execenv->{Platform} = $machine if $machine;
+                $execenv->{Platform} = $machine ? $machine : 'UNDEFINEDVALUE'; # placeholder value
                 $execenv->{TotalInstances} = $xeinfo->{ntotal} if defined $xeinfo->{ntotal};
                 $execenv->{UsedInstances} = $xeinfo->{nbusy} if defined $xeinfo->{nbusy};
                 $execenv->{UnavailableInstances} = $xeinfo->{nunavailable} if defined $xeinfo->{nunavailable};
@@ -1969,8 +1969,10 @@ sub collect($) {
                 $execenv->{OSFamily} = $sysname || 'UNDEFINEDVALUE'; # placeholder value
                 $execenv->{OSName} = $xeconfig->{OSName} if $xeconfig->{OSName};
                 $execenv->{OSVersion} = $xeconfig->{OSVersion} if $xeconfig->{OSVersion};
-                $execenv->{ConnectivityIn} = glue2bool($xeconfig->{ConnectivityIn}) || 'undefined';
-                $execenv->{ConnectivityOut} = glue2bool($xeconfig->{ConnectivityOut}) || 'undefined';
+                # if Connectivity* not specified, assume false.
+                # this has been change due to this value to be mandatory in the LDAP schema.
+                $execenv->{ConnectivityIn} = glue2bool($xeconfig->{ConnectivityIn}) || 'FALSE'; # placeholder value
+                $execenv->{ConnectivityOut} = glue2bool($xeconfig->{ConnectivityOut}) || 'FALSE'; # placeholder value
                 $execenv->{NetworkInfo} = [ $xeconfig->{NetworkInfo} ] if $xeconfig->{NetworkInfo};
 
                 if ($callcount == 1) {
