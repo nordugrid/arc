@@ -35,10 +35,10 @@ namespace Arc {
     BrokerPlugin(BrokerPluginArgument* arg) : Plugin(arg), uc(*arg), j(NULL) {}
     virtual bool operator() (const ExecutionTarget&, const ExecutionTarget&) const { return true; };
     virtual bool match(const ExecutionTarget&) const { return true; };
-    virtual void set(const JobDescription& _j) { j = &_j; };
+    virtual void set(const JobDescription& _j) const { j = &_j; };
   protected:
     const UserConfig& uc;
-    const JobDescription* j;
+    mutable const JobDescription* j;
     
     static Logger logger;
   };
@@ -65,15 +65,16 @@ namespace Arc {
     ~Broker() {};
     
     Broker& operator=(const Broker& b) { j = b.j; proxyDN = b.proxyDN; proxyIssuerCA = b.proxyIssuerCA; p = l.copy(p.Ptr(), false); return *this; };
-    
+
     bool operator() (const ExecutionTarget& lhs, const ExecutionTarget& rhs) const { return (bool)p?(*p)(lhs, rhs):true; };
     bool match(const ExecutionTarget& et) const;
-    bool isValid() const { return (bool)p; }
-    void set(const JobDescription& _j) { if ((bool)p) { j = &_j; p->set(_j); }; };
+    bool isValid(bool alsoCheckJobDescription = true) const { return (bool)p && (!alsoCheckJobDescription || j != NULL); }
+    void set(const JobDescription& _j) const { if ((bool)p) { j = &_j; p->set(_j); }; };
+    const JobDescription& getJobDescription() const { return *j; }
     
   private:
     const UserConfig& uc;
-    const JobDescription* j;
+    mutable const JobDescription* j;
 
     std::string proxyDN;
     std::string proxyIssuerCA;
@@ -82,6 +83,51 @@ namespace Arc {
 
     static BrokerPluginLoader l;
 
+    static Logger logger;
+  };
+
+  class ExecutionTargetSorter : public EntityConsumer<ComputingServiceType> {
+  public:
+    ExecutionTargetSorter(const Broker& b, const std::list<URL>& rejectEndpoints = std::list<URL>())
+      : b(&b), rejectEndpoints(rejectEndpoints), current(targets.first.begin()) {}
+    ExecutionTargetSorter(const Broker& b, const std::list<ComputingServiceType>& csList, const std::list<URL>& rejectEndpoints = std::list<URL>())
+      : b(&b), rejectEndpoints(rejectEndpoints), current(targets.first.begin()) { addEntities(csList); }
+    virtual ~ExecutionTargetSorter() {}
+
+    void addEntity(const ExecutionTarget& et);
+    void addEntity(const ComputingServiceType& cs);
+    void addEntities(const std::list<ComputingServiceType>&);
+
+    void reset() { current = targets.first.begin(); }
+    bool next() { if (!endOfList()) { ++current; }; return !endOfList(); }
+    bool endOfList() const { return current == targets.first.end(); }
+
+    const ExecutionTarget& operator*() const { return *current; }
+    const ExecutionTarget& getCurrentTarget() const { return *current; }
+    const ExecutionTarget* operator->() const { return &*current; }
+
+    const std::list<ExecutionTarget>& getMatchingTargets() const { return targets.first; }
+    const std::list<ExecutionTarget>& getNonMatchingTargets() const { return targets.second; }
+
+    void clear() { targets.first.clear(); targets.second.clear(); }
+
+    void registerJobSubmission();
+
+    void set(const Broker& newBroker) { b = &newBroker; sort(); }
+    void set(const JobDescription& j) { b->set(j); sort(); }
+    void setRejectEndpoints(const std::list<URL> newRejectEndpoints) { rejectEndpoints = newRejectEndpoints; }
+    
+  private:
+    void sort();
+    void insert(const ExecutionTarget& et);
+    bool reject(const ExecutionTarget& et) const { return !rejectEndpoints.empty() && (std::find(rejectEndpoints.begin(), rejectEndpoints.end(), et.ComputingEndpoint->URLString) != rejectEndpoints.end() || std::find(rejectEndpoints.begin(), rejectEndpoints.end(), et.ComputingService->Cluster) != rejectEndpoints.end()); }  
+
+    const Broker* b;
+    std::list<URL> rejectEndpoints;
+  
+    std::pair< std::list<ExecutionTarget>, std::list<ExecutionTarget> > targets; // Map of ExecutionTargets. first: matching; second: unsuitable.
+    std::list<ExecutionTarget>::iterator current;
+    
     static Logger logger;
   };
   

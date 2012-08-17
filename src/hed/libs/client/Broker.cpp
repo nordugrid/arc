@@ -19,6 +19,7 @@ namespace Arc {
   Logger Broker::logger(Logger::getRootLogger(), "Broker");
   Logger BrokerPlugin::logger(Logger::getRootLogger(), "BrokerPlugin");
   Logger ExecutionTargetSet::logger(Logger::getRootLogger(), "ExecutionTargetSet");
+  Logger ExecutionTargetSorter::logger(Logger::getRootLogger(), "ExecutionTargetSet");
   
   BrokerPluginLoader Broker::l;
 
@@ -458,6 +459,109 @@ namespace Arc {
       logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s matches job description", t.ComputingEndpoint->URLString);
     }
     return plugin_match;
+  }
+
+  void ExecutionTargetSorter::addEntities(const std::list<ComputingServiceType>& csList) {
+    for (std::list<ComputingServiceType>::const_iterator it = csList.begin(); it != csList.end(); ++it) {
+      addEntity(*it);
+    }
+  }
+
+  void ExecutionTargetSorter::addEntity(const ComputingServiceType& cs) {
+    /* Get ExecutionTarget objects with
+     * ComputingServiceType::GetExecutionTargets method, but first save iterator
+     * to element before end(). Check if the new ExecutionTarget objects matches
+     * and if so insert them in the correct location.
+     */
+    std::list<ExecutionTarget>::iterator it = --targets.second.end();
+    cs.GetExecutionTargets(targets.second); // Adds ExecutionTarget objects to end of targets.second list.
+
+    if (b == NULL || !b->isValid()) {
+      logger.msg(DEBUG, "Unable to sort added jobs. Broker is NULL.");
+      return;
+    }
+
+    for (++it; it != targets.second.end();) {
+      if (!reject(*it) && b->match(*it)) {
+        insert(*it);
+        it = targets.second.erase(it);
+      }
+      else {
+        ++it;
+      }
+    }
+  }
+
+  void ExecutionTargetSorter::addEntity(const ExecutionTarget& et) {
+    if (b == NULL || !b->isValid()) {
+      logger.msg(DEBUG, "Unable to match target, marking it as not matching. Broker not valid.");
+      targets.second.push_back(et);
+      return;
+    }
+
+    if (!reject(et) && b->match(et)) {
+      insert(et);
+    }
+    else {
+      targets.second.push_back(et);
+    }
+  }
+
+  void ExecutionTargetSorter::insert(const ExecutionTarget& et) {
+    std::list<ExecutionTarget>::iterator insertPosition = targets.first.begin();
+    for (; insertPosition != targets.first.end(); ++insertPosition) {
+      if ((*b)(et, *insertPosition)) {
+        break;
+      }
+    }
+    targets.first.insert(insertPosition, et);
+  }
+
+  void ExecutionTargetSorter::sort() {
+    targets.second.insert(targets.second.end(), targets.first.begin(), targets.first.end());
+    targets.first.clear();
+
+    if (b == NULL || !b->isValid()) {
+      reset();
+      logger.msg(DEBUG, "Unable to sort ExecutionTarget objects - Invalid Broker object.");
+      return;
+    }
+    
+    for (std::list<ExecutionTarget>::iterator it = targets.second.begin();
+         it != targets.second.end();) {
+      if (!reject(*it) && b->match(*it)) {
+        insert(*it);
+        it = targets.second.erase(it);
+      }
+      else {
+        ++it;
+      }
+    }
+
+    reset();
+  }
+
+  void ExecutionTargetSorter::registerJobSubmission() {
+    if (endOfList()) {
+      return;
+    }
+
+    if (b == NULL || !b->isValid()) {
+      logger.msg(DEBUG, "Unable to register job submission. Can't get JobDescription object from Broker, Broker is invalid.");
+      return;
+    }
+
+    current->RegisterJobSubmission(b->getJobDescription());
+
+    targets.second.push_back(*current);
+    targets.first.erase(current);
+
+    if (b->match(targets.second.back())) {
+      insert(targets.second.back());
+      targets.second.pop_back();
+    }
+
+    reset();
   }
 
   void ExecutionTargetSet::addEntities(const std::list<ComputingServiceType>& csList) {
