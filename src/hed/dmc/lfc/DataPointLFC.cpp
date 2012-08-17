@@ -170,15 +170,50 @@ namespace Arc {
     return DataStatus::Success;
   }
 
+  /// Class for passing resolve arguments to separate thread function
+  class ResolveArgs {
+  public:
+    ResolveArgs(const char** lfns, const char** guids, int size, int* nbentries, struct lfc_filereplicas** entries) :
+      lfns(lfns), guids(guids), size(size), nbentries(nbentries), entries(entries), result(0), serrno_(0) {};
+    const char** lfns;
+    const char** guids;
+    int size; // size of the lfn or guid list
+    int* nbentries;
+    struct lfc_filereplicas** entries;
+    int result;
+    int serrno_;
+    SimpleCounter count;
+  };
+
+  /// Function for resolving in a separate thread
+  void do_resolve(void* arg) {
+    ResolveArgs* args = (ResolveArgs*)arg;
+    // If guid is supplied it is preferred over LFN
+    if (args->guids && *(args->guids) && **(args->guids)) {
+      args->result = lfc_getreplicas(args->size, args->guids, NULL, args->nbentries, args->entries);
+    } else {
+      args->result = lfc_getreplicasl(args->size, args->lfns, NULL, args->nbentries, args->entries);
+    }
+    args->serrno_ = serrno;
+  }
+
   DataStatus DataPointLFC::Resolve(bool source) {
-    int lfc_r;
 
     // NOTE: Sessions are not used in Resolve(), because under heavy load in A-REX
     // it can end up using all the LFC server threads. See bug 2576 for more info.
+    //
+    // Resolving is also carried out using a separate thread wrapped in a timeout
+    // in order to avoid hanging caused by misbehaving DNS, which LFC client does
+    // not (and will not) handle. See bug 2762.
 
+    int lfc_r = 0;
     std::string path = url.Path();
 
-    if (source || path.empty() || path == "/") {
+    if (source) {
+      // check for guid in the attributes
+      if (!url.MetaDataOption("guid").empty()) guid = url.MetaDataOption("guid");
+    }
+    else if (path.empty() || path == "/") {
       path = ResolveGUIDToLFN();
       if (path.empty()) {
         if (source) return DataStatus(DataStatus::ReadResolveError, lfc2errno());
@@ -193,16 +228,42 @@ namespace Arc {
     resolved = false;
     registered = false;
     int nbentries = 0;
-    struct lfc_filereplica *entries = NULL;
-    LFCLOCKINT(lfc_r,lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries), url, error_no);
-    if(lfc_r != 0) {
-      if (source || ((serrno != ENOENT) && (serrno != ENOTDIR))) {
-        logger.msg(ERROR, "Error finding replicas: %s", sstrerror(serrno));
-        if (source) return DataStatus(DataStatus::ReadResolveError, lfc2errno());
-        return DataStatus(DataStatus::WriteResolveError, lfc2errno());
+    struct lfc_filereplicas *entries = NULL;
+    {
+      const char* lfns[] = {path.c_str()};
+      const char* guids[] = {guid.c_str()};
+      ResolveArgs args(lfns, guids, 1, &nbentries, &entries);
+      LFCEnvLocker lfc_env(usercfg, url);
+      bool res = CreateThreadFunction(&do_resolve, &args, &args.count);
+      if (res) {
+        res = args.count.wait(300*1000);
       }
-      nbentries = 0;
-      entries = NULL;
+      if (!res) {
+        // error or timeout. Timeout will leave the thread hanging
+        logger.msg(WARNING, "LFC resolve timed out");
+        if (source) return DataStatus(DataStatus::ReadResolveError, ETIMEDOUT);
+        return DataStatus(DataStatus::WriteResolveError, ETIMEDOUT);
+      }
+      lfc_r = args.result;
+      serrno = args.serrno_;
+    }
+    if (lfc_r != 0) {
+      logger.msg(ERROR, "Error finding replicas: %s", sstrerror(serrno));
+      if (source) return DataStatus(DataStatus::ReadResolveError, lfc2errno());
+      return DataStatus(DataStatus::WriteResolveError, lfc2errno());
+    }
+    if (nbentries == 0 || !entries) {
+      // Even if file doesn't exist in LFC an entry should be returned
+      logger.msg(ERROR, "LFC resolve returned no entries");
+      if (entries) free(entries);
+      return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "No results returned");
+    }
+    if (entries[0].sfn[0] == '\0') {
+      if (source) {
+        logger.msg(ERROR, "File does not exist in LFC");
+        free(entries);
+        return DataStatus(DataStatus::ReadResolveError, ENOENT);
+      }
     }
     else {
       registered = true;
@@ -237,6 +298,7 @@ namespace Arc {
         for (int n = 0; n < nbentries; n++) {
           if (std::string(entries[n].sfn) == uloc.plainstr()) {
             logger.msg(ERROR, "Replica %s already exists for LFN %s", entries[n].sfn, url.plainstr());
+            free(entries);
             return DataStatus(DataStatus::WriteResolveError, EEXIST);
           }
         }
@@ -254,34 +316,30 @@ namespace Arc {
           logger.msg(VERBOSE, "Adding location: %s - %s", url.ConnectionURL(), uloc.plainstr());
       }
     }
-    if (entries)
-      free(entries);
 
-    struct lfc_filestatg st;
-    LFCLOCKINT(lfc_r,lfc_statg(path.c_str(), NULL, &st), url, error_no);
-    if(lfc_r == 0) {
-      if (st.filemode & S_IFDIR) { // directory
-        return DataStatus::Success;
-      }
-      registered = true;
-      SetSize(st.filesize);
-      SetCreated(st.mtime);
-      if (st.csumtype[0] && st.csumvalue[0]) {
-        std::string csum = st.csumtype;
+    if (!HaveLocations()) {
+      logger.msg(ERROR, "No locations found for %s", url.str());
+      free(entries);
+      if (source) return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "No valid locations found");
+      return DataStatus(DataStatus::WriteResolveError, EINVAL, "No valid locations found");
+    }
+
+    // Set meta-attributes
+    if (registered) {
+      SetSize(entries[0].filesize);
+      SetCreated(entries[0].ctime);
+      if (entries[0].csumtype[0] && entries[0].csumvalue[0]) {
+        std::string csum = entries[0].csumtype;
         if (csum == "MD")
           csum = "md5";
         else if (csum == "AD") 
           csum = "adler32";
         csum += ":";
-        csum += st.csumvalue;
+        csum += entries[0].csumvalue;
         SetCheckSum(csum);
       }
-      guid = st.guid;
-    }
-    if (!HaveLocations()) {
-      logger.msg(ERROR, "No locations found for %s", url.str());
-      if (source) return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "No valid locations found");
-      return DataStatus(DataStatus::WriteResolveError, EINVAL, "No valid locations found");
+      guid = entries[0].guid;
+      free(entries);
     }
     if (CheckCheckSum()) logger.msg(VERBOSE, "meta_get_data: checksum: %s", GetCheckSum());
     if (CheckSize()) logger.msg(VERBOSE, "meta_get_data: size: %llu", GetSize());
@@ -942,23 +1000,38 @@ namespace Arc {
     struct lfc_filereplicas *entries = NULL;
     int lfc_r;
 
+    const char * guids[urls.size()];
+    const char * paths[urls.size()];
     if (use_guids) {
-      const char * guids[urls.size()];
       unsigned int n = 0;
       for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i, ++n) {
         guids[n] = (*i)->GetURL().MetaDataOption("guid").c_str();
       }
-      LFCLOCKINT(lfc_r,lfc_getreplicas(urls.size(), guids, NULL, &nbentries, &entries), url, error_no);
+      paths[0] = NULL;
     }
     else {
-      const char * paths[urls.size()];
       unsigned int n = 0;
       for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i, ++n) {
         paths[n] = (*i)->GetURL().Path().c_str();
       }
-      LFCLOCKINT(lfc_r,lfc_getreplicasl(urls.size(), paths, NULL, &nbentries, &entries), url, error_no);
+      guids[0] = NULL;
     }
-
+    {
+      // See Resolve(bool) for explanation
+      ResolveArgs args(paths, guids, urls.size(), &nbentries, &entries);
+      LFCEnvLocker lfc_env(usercfg, url);
+      bool res = CreateThreadFunction(&do_resolve, &args, &args.count);
+      if (res) {
+        res = args.count.wait(300*1000);
+      }
+      if (!res) {
+        // error or timeout. Timeout will leave the thread hanging
+        logger.msg(WARNING, "LFC resolve timed out");
+        return DataStatus(DataStatus::ReadResolveError, ETIMEDOUT);
+      }
+      lfc_r = args.result;
+      serrno = args.serrno_;
+    }
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error finding replicas: %s", sstrerror(serrno));
       return DataStatus(DataStatus::ReadResolveError, lfc2errno());
