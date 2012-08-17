@@ -556,8 +556,8 @@ int main(int argc, char **argv) {
 
   bool passive = false;
   options.AddOption('p', "passive",
-                    istring("use passive transfer (does not work if secure "
-                            "is on, default if secure is not requested)"),
+                    istring("use passive transfer (off by default if secure "
+                            "is on, on by default if secure is not requested)"),
                     passive);
 
   bool notpassive = false;

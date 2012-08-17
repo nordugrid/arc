@@ -1224,22 +1224,21 @@ namespace Arc {
         logger.msg(VERBOSE, "globus_ftp_client_operationattr_set_authorization: error: %s", r.str());
       }
       if (force_secure || (url.Option("secure") == "yes")) {
-        globus_ftp_client_operationattr_set_mode(&ftp_opattr,
-                             GLOBUS_FTP_CONTROL_MODE_EXTENDED_BLOCK);
         globus_ftp_client_operationattr_set_data_protection(&ftp_opattr,
                                     GLOBUS_FTP_CONTROL_PROTECTION_PRIVATE);
         logger.msg(VERBOSE, "Using secure data transfer");
       }
       else {
-        if (force_passive)
-          globus_ftp_client_operationattr_set_mode(&ftp_opattr,
-                               GLOBUS_FTP_CONTROL_MODE_STREAM);
-        else
-          globus_ftp_client_operationattr_set_mode(&ftp_opattr,
-                               GLOBUS_FTP_CONTROL_MODE_EXTENDED_BLOCK);
         globus_ftp_client_operationattr_set_data_protection(&ftp_opattr,
                                     GLOBUS_FTP_CONTROL_PROTECTION_CLEAR);
         logger.msg(VERBOSE, "Using insecure data transfer");
+      }
+      if (force_passive) {
+        globus_ftp_client_operationattr_set_mode(&ftp_opattr,
+                             GLOBUS_FTP_CONTROL_MODE_STREAM);
+      } else {
+        globus_ftp_client_operationattr_set_mode(&ftp_opattr,
+                             GLOBUS_FTP_CONTROL_MODE_EXTENDED_BLOCK);
       }
       globus_ftp_client_operationattr_set_control_protection(&ftp_opattr,
                                      GLOBUS_FTP_CONTROL_PROTECTION_PRIVATE);
