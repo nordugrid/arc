@@ -130,6 +130,8 @@ void JobSupervisorTest::TestResubmit()
   Arc::TargetInformationRetrieverPluginTESTControl::targets.push_back(cs);
   Arc::TargetInformationRetrieverPluginTESTControl::status = Arc::EndpointQueryingStatus::SUCCESSFUL;
 
+  Arc::BrokerPluginTestACCControl::match = true;
+
   js = new Arc::JobSupervisor(usercfg, jobs);
 
   std::list<Arc::Endpoint> services(1, Arc::Endpoint("http://test2.nordugrid.org",  Arc::Endpoint::COMPUTINGINFO, "org.nordugrid.tirtest"));

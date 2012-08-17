@@ -369,7 +369,7 @@ namespace Arc {
 
     UserConfig resubmitUsercfg = usercfg; // UserConfig object might need to be modified.
     Broker broker(resubmitUsercfg, resubmitUsercfg.Broker().first);
-    if (!broker.isValid()) {
+    if (!broker.isValid(false)) {
       logger.msg(ERROR, "Job resubmission failed: Unable to load broker (%s)", resubmitUsercfg.Broker().first);
       for (std::list< std::list<Job*>::iterator >::iterator itJ = resubmittableJobs.begin();
            itJ != resubmittableJobs.end(); ++itJ) {
@@ -399,7 +399,6 @@ namespace Arc {
     }
 
     Submitter s(resubmitUsercfg);
-
     for (std::list< std::list<Job*>::iterator >::iterator itJ = resubmittableJobs.begin();
          itJ != resubmittableJobs.end(); ++itJ) {
       resubmittedJobs.push_back(Job());
@@ -442,18 +441,17 @@ namespace Arc {
         rejectEndpoints.push_back((**itJ)->Cluster);
       }
 
-      broker.set(jobdescs.front());
-      ExecutionTargetSet ets(broker, *csr, rejectEndpoints);
-      ExecutionTargetSet::iterator it = ets.begin();
-      for (; it != ets.end(); ++it) {
-        if (s.Submit(*it, jobdescs.front(), resubmittedJobs.back())) {
-          it->RegisterJobSubmission(jobdescs.front());
+      ExecutionTargetSorter ets(broker, *csr, rejectEndpoints);
+      ets.set(jobdescs.front());
+      for (ets.reset(); !ets.endOfList(); ets.next()) {
+        if (s.Submit(*ets, jobdescs.front(), resubmittedJobs.back())) {
+          ets.registerJobSubmission();
           processed.push_back((**itJ)->JobID);
           break;
         }
       }
       
-      if (it == ets.end()) {
+      if (ets.endOfList()) {
         resubmittedJobs.pop_back();
         notprocessed.push_back((**itJ)->JobID);
         ok = false;
@@ -523,7 +521,7 @@ namespace Arc {
     }
 
     Broker broker(usercfg, usercfg.Broker().first);
-    if (!broker.isValid()) {
+    if (!broker.isValid(false)) {
       logger.msg(ERROR, "Job migration aborted, unable to load broker (%s)", usercfg.Broker().first);
       for (std::list< std::list<Job*>::iterator >::const_iterator itJ = migratableJobs.begin();
            itJ != migratableJobs.end(); ++itJ) {
@@ -554,25 +552,24 @@ namespace Arc {
 
       migratedJobs.push_back(Job());
 
-      broker.set(jobdescs.front());
-      ExecutionTargetSet ets(broker, csr);
-      ExecutionTargetSet::iterator it = ets.begin();
-      for (; it != ets.end(); ++it) {
+      ExecutionTargetSorter ets(broker, csr);
+      ets.set(jobdescs.front());
+      for (ets.reset(); !ets.endOfList(); ets.next()) {
         if (spl == NULL) {
           spl = new SubmitterPluginLoader();
         }
-        SubmitterPlugin* sp = spl->loadByInterfaceName(it->ComputingEndpoint->InterfaceName, usercfg);
+        SubmitterPlugin* sp = spl->loadByInterfaceName(ets->ComputingEndpoint->InterfaceName, usercfg);
         if (sp == NULL) {
-          logger.msg(INFO, "Unable to load submission plugin for %s interface", it->ComputingEndpoint->InterfaceName);
+          logger.msg(INFO, "Unable to load submission plugin for %s interface", ets->ComputingEndpoint->InterfaceName);
           continue;
         }
-        if (sp->Migrate((**itJ)->JobID, jobdescs.front(), *it, forcemigration, migratedJobs.back())) {
-          it->RegisterJobSubmission(jobdescs.front());
+        if (sp->Migrate((**itJ)->JobID, jobdescs.front(), *ets, forcemigration, migratedJobs.back())) {
+          ets.registerJobSubmission();
           break;
         }
       }
 
-      if (it == ets.end()) {
+      if (ets.endOfList()) {
         logger.msg(ERROR, "Job migration failed for job (%s), no applicable targets", (**itJ)->JobID.fullstr());
         ok = false;
         migratedJobs.pop_back();
