@@ -344,7 +344,8 @@ bool arccp(const Arc::URL& source_url_,
   }
 
   if (destination_url.Path()[destination_url.Path().length() - 1] != '/') {
-    if (source_url.Path()[source_url.Path().length() - 1] == '/') {
+    if (source_url.Path()[source_url.Path().length() - 1] == '/' &&
+        source_url.MetaDataOption("guid").empty()) { // files specified by guid may have path '/'
       logger.msg(Arc::ERROR,
                  "Fileset copy to single object is not supported yet");
       return false;
