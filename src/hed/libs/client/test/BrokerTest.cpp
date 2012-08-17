@@ -71,11 +71,10 @@ void BrokerTest::LoadTest() {
 }
 
 void BrokerTest::QueueTest() {
-  Arc::Broker b(usercfg, "TEST");
-  CPPUNIT_ASSERT(b.isValid());
-
   job.Resources.QueueName = "q1";
-  b.set(job);
+
+  Arc::Broker b(usercfg, job, "TEST");
+  CPPUNIT_ASSERT(b.isValid());
 
   CPPUNIT_ASSERT(!b.match(etl.front()));
   etl.front().ComputingShare->Name = "q1";
@@ -96,9 +95,8 @@ void BrokerTest::QueueTest() {
 }
 
 void BrokerTest::CPUWallTimeTest() {
-  Arc::Broker b(usercfg, "TEST");
+  Arc::Broker b(usercfg, job, "TEST");
   CPPUNIT_ASSERT(b.isValid());
-  b.set(job);
 
   etl.front().ComputingShare->MaxCPUTime = 100;
   job.Resources.IndividualCPUTime.range.max = 110;
@@ -142,9 +140,8 @@ void BrokerTest::CPUWallTimeTest() {
 }
 
 void BrokerTest::BenckmarkCPUWallTimeTest() {
-  Arc::Broker b(usercfg, "TEST");
+  Arc::Broker b(usercfg, job, "TEST");
   CPPUNIT_ASSERT(b.isValid());
-  b.set(job);
 
   (*etl.front().Benchmarks)["TestBenchmark"] = 100.;
 
@@ -217,25 +214,25 @@ void BrokerTest::RegresssionTestMultipleDifferentJobDescriptions() {
    * a (list of) ExecutionTarget object(s).
    */
 
-  Arc::ExecutionTargetSet ets(b);
+  Arc::ExecutionTargetSorter ets(b);
   Arc::ExecutionTarget aET, bET;
   aET.ComputingEndpoint->URLString = "http://localhost/test";
   aET.ComputingEndpoint->HealthState = "ok";
   aET.ComputingShare->Name = "front";
-  ets.insert(aET);
+  ets.addEntity(aET);
   bET.ComputingEndpoint->URLString = "http://localhost/test";
   bET.ComputingEndpoint->HealthState = "ok";
   bET.ComputingShare->Name = "back";
-  ets.insert(bET);
+  ets.addEntity(bET);
+  ets.reset();
   
-  CPPUNIT_ASSERT_EQUAL(1, (int)ets.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"front", ets.begin()->ComputingShare->Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)ets.getMatchingTargets().size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"front", ets->ComputingShare->Name);
 
   job.Resources.QueueName = "back";
   ets.set(job);
-  ets.insert(aET); ets.insert(bET);
-  CPPUNIT_ASSERT_EQUAL(1, (int)ets.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"back", ets.begin()->ComputingShare->Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)ets.getMatchingTargets().size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"back", ets->ComputingShare->Name);
 }
 
 void BrokerTest::RejectTargetsTest() {
@@ -249,10 +246,10 @@ void BrokerTest::RejectTargetsTest() {
   // Rejecting no targets.
   Arc::ExecutionTarget target;
   target.ComputingEndpoint->HealthState = "ok";
-  Arc::ExecutionTargetSet ets(b);
-  target.ComputingEndpoint->URLString = "http://localhost/test1"; ets.insert(target);
-  target.ComputingEndpoint->URLString = "http://localhost/test2"; ets.insert(target);
-  CPPUNIT_ASSERT_EQUAL(2, (int)ets.size());
+  Arc::ExecutionTargetSorter ets(b);
+  target.ComputingEndpoint->URLString = "http://localhost/test1"; ets.addEntity(target);
+  target.ComputingEndpoint->URLString = "http://localhost/test2"; ets.addEntity(target);
+  CPPUNIT_ASSERT_EQUAL(2, (int)ets.getMatchingTargets().size());
   }
 
   {
@@ -264,10 +261,11 @@ void BrokerTest::RejectTargetsTest() {
   aET.ComputingEndpoint->URLString = "http://localhost/test1"; 
   bET.ComputingEndpoint->HealthState = "ok";
   bET.ComputingEndpoint->URLString = "http://localhost/test2";
-  Arc::ExecutionTargetSet ets(b, rejectTargets);
-  ets.insert(aET); ets.insert(bET);
-  CPPUNIT_ASSERT_EQUAL(1, (int)ets.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"http://localhost/test2", ets.begin()->ComputingEndpoint->URLString);
+  Arc::ExecutionTargetSorter ets(b, rejectTargets);
+  ets.addEntity(aET); ets.addEntity(bET);
+  ets.reset();
+  CPPUNIT_ASSERT_EQUAL(1, (int)ets.getMatchingTargets().size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://localhost/test2", ets->ComputingEndpoint->URLString);
   }
 
   {
@@ -280,9 +278,10 @@ void BrokerTest::RejectTargetsTest() {
   aET.ComputingEndpoint->URLString = "http://localhost/test1"; 
   bET.ComputingEndpoint->HealthState = "ok";
   bET.ComputingEndpoint->URLString = "http://localhost/test2";
-  Arc::ExecutionTargetSet ets(b, rejectTargets);
-  ets.insert(aET); ets.insert(bET);
-  CPPUNIT_ASSERT_EQUAL(0, (int)ets.size());
+  Arc::ExecutionTargetSorter ets(b, rejectTargets);
+  ets.addEntity(aET); ets.addEntity(bET);
+  ets.reset();
+  CPPUNIT_ASSERT_EQUAL(0, (int)ets.getMatchingTargets().size());
   }
 }
 
