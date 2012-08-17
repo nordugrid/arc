@@ -26,7 +26,7 @@ bool arcmkdir(const Arc::URL& file_url,
     logger.msg(Arc::ERROR, "Invalid URL: %s", file_url.str());
     return false;
   }
-  if (file_url.Protocol() == "filelist") {
+  if (file_url.Protocol() == "urllist") {
     std::list<Arc::URL> files = Arc::ReadURLList(file_url);
     if (files.empty()) {
       logger.msg(Arc::ERROR, "Can't read list of locations from file %s",
