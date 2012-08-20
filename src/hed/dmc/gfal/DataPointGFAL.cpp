@@ -52,8 +52,18 @@ namespace Arc {
       logger.msg(DEBUG, "Using key %s", GetEnv("X509_USER_KEY"));
       logger.msg(DEBUG, "Using cert %s", GetEnv("X509_USER_CERT"));
 
-      // set host name env var
-      if (!lfc_host.empty()) SetEnv("LFC_HOST", lfc_host);
+      if (!lfc_host.empty()) {
+        // set LFC retry env variables (don't overwrite if set already)
+        // connection timeout
+        SetEnv("LFC_CONNTIMEOUT", "30", false);
+        // number of retries
+        SetEnv("LFC_CONRETRY", "1", false);
+        // interval between retries
+        SetEnv("LFC_CONRETRYINT", "10", false);
+
+        // set host name env var
+        SetEnv("LFC_HOST", lfc_host);
+      }
 
       EnvLockWrap(false);
     }
