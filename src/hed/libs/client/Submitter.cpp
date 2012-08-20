@@ -129,7 +129,7 @@ namespace Arc {
     }
   
     Broker broker(uc, uc.Broker().first);
-    if (!broker.isValid()) {
+    if (!broker.isValid(false)) { // Only check if BrokerPlugin was loaded.
       for (std::list<JobDescription>::const_iterator it = descs.begin();
            it != descs.end(); ++it) {
         notsubmitted.push_back(&*it);
@@ -139,61 +139,47 @@ namespace Arc {
 
     SubmissionStatus retval;
     ConsumerWrapper cw(*this);
+    ExecutionTargetSorter ets(broker, csr);
+    std::list<JobDescription>::const_iterator itJAlt; // Iterator to use for alternative job descriptions.
     for (std::list<JobDescription>::const_iterator itJ = descs.begin();
          itJ != descs.end(); ++itJ) {
       bool descriptionSubmitted = false;
-      broker.set(*itJ);
-      ExecutionTargetSet etSet(broker, csr);
-      for (ExecutionTargetSet::iterator itET = etSet.begin(); itET != etSet.end(); ++itET) {
-        if(!match_submission_interface(*itET, requestedSubmissionInterfaces)) continue;
-        SubmitterPlugin *sp = loader.loadByInterfaceName(itET->ComputingEndpoint->InterfaceName, uc);
-        if (sp == NULL) {
-          submissionStatusMap[Endpoint(*itET)] = EndpointSubmissionStatus(EndpointSubmissionStatus::NOPLUGIN);
-          retval |= SubmissionStatus::SUBMITTER_PLUGIN_NOT_LOADED;
-          continue;
-        }
-        bool submitStatus = sp->Submit(*itJ, *itET, cw);
-        if (submitStatus) {
-          submissionStatusMap[Endpoint(*itET)] = EndpointSubmissionStatus(EndpointSubmissionStatus::SUCCESSFUL);
-  
-          descriptionSubmitted = true;
-          itET->RegisterJobSubmission(*itJ);
-          break;
-        }
-        /* TODO: Set detailed status of endpoint, in case a general error is
-         * encountered, i.e. not specific to the job description, so subsequent
-         * submissions of job descriptions can check if a particular endpoint
-         * should be avoided.
-         *submissionStatusMap[Endpoint(*itET)] = submitStatus; // Currently 'submitStatus' is only a bool, improving the detail level of it would be helpful at this point.
-         */
-      }
-      if (!descriptionSubmitted && itJ->HasAlternatives()) {
-        // TODO: Deal with alternative job descriptions more effective.
-        for (std::list<JobDescription>::const_iterator itJAlt = itJ->GetAlternatives().begin();
-             itJAlt != itJ->GetAlternatives().end(); ++itJAlt) {
-          broker.set(*itJAlt);
-          ExecutionTargetSet etSetAlt(broker, csr);
-          for (ExecutionTargetSet::iterator itET = etSetAlt.begin(); itET != etSetAlt.end(); ++itET) {
-            if(!match_submission_interface(*itET, requestedSubmissionInterfaces)) continue;
-            SubmitterPlugin *sp = loader.loadByInterfaceName(itET->ComputingEndpoint->InterfaceName, uc);
-            if (sp == NULL) {
-              submissionStatusMap[Endpoint(*itET)] = EndpointSubmissionStatus(EndpointSubmissionStatus::NOPLUGIN);
-              retval |= SubmissionStatus::SUBMITTER_PLUGIN_NOT_LOADED;
-              continue;
-            }
-            bool submitStatus = sp->Submit(*itJAlt, *itET, cw);
-            if (submitStatus) {
-              itET->RegisterJobSubmission(*itJAlt);
-              descriptionSubmitted = true;
-              break;
-            }
-            // TODO: See comment above, in the other job description loop.
+      const JobDescription* currentJobDesc = &*itJ;
+      do {
+        ets.set(*currentJobDesc);
+        for (; !ets.endOfList(); ets.next()) {
+          if(!match_submission_interface(*ets, requestedSubmissionInterfaces)) continue;
+          SubmitterPlugin *sp = loader.loadByInterfaceName(ets->ComputingEndpoint->InterfaceName, uc);
+          if (sp == NULL) {
+            submissionStatusMap[Endpoint(*ets)] = EndpointSubmissionStatus(EndpointSubmissionStatus::NOPLUGIN);
+            retval |= SubmissionStatus::SUBMITTER_PLUGIN_NOT_LOADED;
+            continue;
           }
-          if (descriptionSubmitted) {
+          bool submitStatus = sp->Submit(*currentJobDesc, *ets, cw);
+          if (submitStatus) {
+            submissionStatusMap[Endpoint(*ets)] = EndpointSubmissionStatus(EndpointSubmissionStatus::SUCCESSFUL);
+    
+            descriptionSubmitted = true;
+            ets->RegisterJobSubmission(*currentJobDesc);
             break;
           }
+          /* TODO: Set detailed status of endpoint, in case a general error is
+           * encountered, i.e. not specific to the job description, so subsequent
+           * submissions of job descriptions can check if a particular endpoint
+           * should be avoided.
+           *submissionStatusMap[Endpoint(*itET)] = submitStatus; // Currently 'submitStatus' is only a bool, improving the detail level of it would be helpful at this point.
+           */
         }
-      }
+        if (!descriptionSubmitted && itJ->HasAlternatives()) { // Alternative job descriptions.
+          if (currentJobDesc == &*itJ) {
+            itJAlt = itJ->GetAlternatives().begin();
+          }
+          else {
+            ++itJAlt;
+          }
+          currentJobDesc = &*itJAlt;
+        }
+      } while (!descriptionSubmitted && itJ->HasAlternatives() && itJAlt != itJ->GetAlternatives().end());
       if (!descriptionSubmitted) {
         notsubmitted.push_back(&*itJ);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
