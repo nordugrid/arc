@@ -30,7 +30,6 @@
 #include <arc/URL.h>
 #include <arc/FileUtils.h>
 #include <arc/credential/VOMSUtil.h>
-#include <arc/data/FileCache.h>
 #include <arc/Utils.h>
 
 #include "dtr_generator.h"
@@ -1391,20 +1390,6 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,
           finishing_job_share[i->transfer_share]--;
           /* go to next job */
         };
-        if (jcfg.use_new_data_staging) {
-          // release cache
-          try {
-            CacheConfig cache_config(user->Env());
-            Arc::FileCache cache(cache_config.getCacheDirs(),
-                                 cache_config.getRemoteCacheDirs(),
-                                 cache_config.getDrainingCacheDirs(),
-                                 i->job_id, i->job_uid, i->job_gid);
-            cache.Release();
-          }
-          catch (CacheConfigException& e) {
-            logger.msg(Arc::WARNING, "Error with cache configuration: %s. Cannot clean up files for job %s", e.what(), i->job_id);
-          }
-        }
 }
 
 static time_t prepare_cleanuptime(JobId &job_id,time_t &keep_finished,JobsList::iterator &i,JobUser &user) {

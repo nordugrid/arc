@@ -97,6 +97,9 @@ class DTRGenerator: public DataStaging::DTRCallback {
   /** Read in state left from previous process and fill recovered_files */
   void readDTRState(const std::string& dtr_log);
 
+  /** Clean up joblinks dir in caches for given job (called at the end of upload) */
+  void CleanCacheJobLinks(const GMEnvironment& env, const JobDescription& job) const;
+
   /** Check that user-uploadable file exists.
    * Returns 0 - if file exists
    *         1 - it is not proper file or other error

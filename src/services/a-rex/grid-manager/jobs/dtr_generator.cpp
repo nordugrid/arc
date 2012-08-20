@@ -530,6 +530,8 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
       if (delete_all_files(job.SessionDir(), files, true, job_uid, job_gid) == 2)
         logger.msg(Arc::WARNING, "%s: Failed to clean up session dir", jobid);
     }
+    // clean up cache joblinks
+    CleanCacheJobLinks(jobuser->Env(), job);
   }
   else if (finished_jobs.find(jobid) != finished_jobs.end() && !finished_jobs[jobid].empty()) {
     // clean all files still in input list which could be half-downloaded
@@ -735,7 +737,9 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
   job_errors_mark_put(job, *jobuser);
 
   if (files.empty()) {
-    // nothing to do so wake up GM thread and return
+    // if job is FINISHING then clean up cache joblinks
+    if (job.get_state() == JOB_STATE_FINISHING) CleanCacheJobLinks(env, job);
+    // nothing else to do so wake up GM thread and return
     lock.lock();
     finished_jobs[jobid] = "";
     lock.unlock();
@@ -836,6 +840,8 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     delete job_desc;
   }
   if (!staging) { // nothing needed staged so mark as finished
+    // if job is FINISHING then clean up cache joblinks
+    if (job.get_state() == JOB_STATE_FINISHING) CleanCacheJobLinks(env, job);
     lock.lock();
     finished_jobs[jobid] = "";
     lock.unlock();
@@ -1081,5 +1087,21 @@ void DTRGenerator::readDTRState(const std::string& dtr_log) {
                  fields.at(0), fields.at(4));
       recovered_files.push_back(fields.at(4));
     }
+  }
+}
+
+void DTRGenerator::CleanCacheJobLinks(const GMEnvironment& env, const JobDescription& job) const {
+
+  try {
+    CacheConfig cache_config(env);
+    // there is no uid switch during Release so uid/gid is not so important
+    Arc::FileCache cache(cache_config.getCacheDirs(),
+                         cache_config.getRemoteCacheDirs(),
+                         cache_config.getDrainingCacheDirs(),
+                         job.get_id(), job.get_uid(), job.get_gid());
+    cache.Release();
+  }
+  catch (CacheConfigException& e) {
+    logger.msg(Arc::WARNING, "Error with cache configuration: %s. Cannot clean up files for job %s", e.what(), job.get_id());
   }
 }
