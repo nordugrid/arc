@@ -441,8 +441,7 @@ namespace Arc {
         rejectEndpoints.push_back((**itJ)->Cluster);
       }
 
-      broker.set(jobdescs.front());
-      ExecutionTargetSorter ets(broker, *csr, rejectEndpoints);
+      ExecutionTargetSorter ets(broker, jobdescs.front(), *csr, rejectEndpoints);
       for (ets.reset(); !ets.endOfList(); ets.next()) {
         if (s.Submit(*ets, jobdescs.front(), resubmittedJobs.back())) {
           ets.registerJobSubmission();
@@ -552,8 +551,7 @@ namespace Arc {
 
       migratedJobs.push_back(Job());
 
-      ExecutionTargetSorter ets(broker, csr);
-      ets.set(jobdescs.front());
+      ExecutionTargetSorter ets(broker, jobdescs.front(), csr);
       for (ets.reset(); !ets.endOfList(); ets.next()) {
         if (spl == NULL) {
           spl = new SubmitterPluginLoader();

@@ -90,8 +90,12 @@ namespace Arc {
   public:
     ExecutionTargetSorter(const Broker& b, const std::list<URL>& rejectEndpoints = std::list<URL>())
       : b(&b), rejectEndpoints(rejectEndpoints), current(targets.first.begin()) {}
+    ExecutionTargetSorter(const Broker& b, const JobDescription& j, const std::list<URL>& rejectEndpoints = std::list<URL>())
+      : b(&b), rejectEndpoints(rejectEndpoints), current(targets.first.begin()) { set(j); }
     ExecutionTargetSorter(const Broker& b, const std::list<ComputingServiceType>& csList, const std::list<URL>& rejectEndpoints = std::list<URL>())
       : b(&b), rejectEndpoints(rejectEndpoints), current(targets.first.begin()) { addEntities(csList); }
+    ExecutionTargetSorter(const Broker& b, const JobDescription& j, const std::list<ComputingServiceType>& csList, const std::list<URL>& rejectEndpoints = std::list<URL>())
+      : b(&b), rejectEndpoints(rejectEndpoints), current(targets.first.begin()) { set(j); addEntities(csList); }
     virtual ~ExecutionTargetSorter() {}
 
     void addEntity(const ExecutionTarget& et);
