@@ -123,7 +123,7 @@ namespace DataStaging {
             request->set_cache_state(CACHE_SKIP);
             request->set_error_status(DTRErrorStatus::CACHE_ERROR,
                                   DTRErrorStatus::ERROR_DESTINATION,
-                                  "Failed to check cache permissions for " + canonic_url);
+                                  "Failed to check cache permissions for " + canonic_url + ": " + std::string(cres));
             break;
           }
           cache.AddDN(canonic_url, dn, exp_time);
@@ -188,7 +188,7 @@ namespace DataStaging {
         request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to resolve any source replicas", request->get_short_id());
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_SOURCE,
-                                  "Could not resolve any source replicas for " + request->get_source()->str());
+                                  "Could not resolve any source replicas for " + request->get_source()->str() + ": " + std::string(res));
         request->set_status(DTRStatus::RESOLVED);
         request->connect_logger();
         DTR::push(request, SCHEDULER);
@@ -212,7 +212,7 @@ namespace DataStaging {
         request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to resolve destination replicas", request->get_short_id());
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_DESTINATION,
-                                  "Could not resolve any destination replicas for " + request->get_destination()->str());
+                                  "Could not resolve any destination replicas for " + request->get_destination()->str() + ": " + std::string(res));
         request->set_status(DTRStatus::RESOLVED);
         request->connect_logger();
         DTR::push(request, SCHEDULER);
@@ -242,7 +242,7 @@ namespace DataStaging {
         request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to pre-register destination", request->get_short_id());
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_DESTINATION,
-                                  "Could not pre-register destination " + request->get_destination()->str());
+                                  "Could not pre-register destination " + request->get_destination()->str() + ": " + std::string(res));
       }
     }
     // finished with resolving - send back to scheduler
@@ -275,7 +275,7 @@ namespace DataStaging {
         request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to resolve any source replicas", request->get_short_id());
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_SOURCE,
-                                  "Could not resolve any source replicas for " + request->get_source()->str());
+                                  "Could not resolve any source replicas for " + request->get_source()->str() + ": " + std::string(res));
       }
       request->set_status(DTRStatus::RESOLVED);
       request->connect_logger();
@@ -312,7 +312,7 @@ namespace DataStaging {
       request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed checking source replica %s", request->get_short_id(), request->get_source()->CurrentLocation().str());
       request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                 DTRErrorStatus::ERROR_SOURCE,
-                                "Failed checking source replica " + request->get_source()->CurrentLocation().str());
+                                "Failed checking source replica " + request->get_source()->CurrentLocation().str() + ": " + std::string(res));
     }
     else {
       // assign metadata to destination
@@ -349,7 +349,7 @@ namespace DataStaging {
         request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed checking source replica", request->get_short_id());
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_SOURCE,
-                                  "Failed checking source replica " + request->get_source()->CurrentLocation().str());
+                                  "Failed checking source replica " + request->get_source()->CurrentLocation().str() + ": " + std::string(res));
       }
       else if (request->get_source()->IsIndex() && !request->get_source()->CompareMeta(*(request->get_source()->CurrentLocationHandle()))) {
         request->get_logger()->msg(Arc::ERROR, "DTR %s: Metadata of replica and index service differ", request->get_short_id());
@@ -431,7 +431,7 @@ namespace DataStaging {
       request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to pre-clean destination", request->get_short_id());
       request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                 DTRErrorStatus::ERROR_DESTINATION,
-                                "Failed to pre-clean destination " + request->get_destination()->str());
+                                "Failed to pre-clean destination " + request->get_destination()->str() + ": " + std::string(res));
     }
     request->set_status(DTRStatus::PRE_CLEANED);
     request->connect_logger();
@@ -458,7 +458,7 @@ namespace DataStaging {
         request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to prepare source", request->get_short_id());
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_SOURCE,
-                                  "Failed to prepare source " + request->get_source()->CurrentLocation().str());
+                                  "Failed to prepare source " + request->get_source()->CurrentLocation().str() + ": " + std::string(res));
       }
       else if (res == Arc::DataStatus::ReadPrepareWait) {
         // if timeout then don't wait - scheduler will deal with it immediately
@@ -496,7 +496,7 @@ namespace DataStaging {
         request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to prepare destination", request->get_short_id());
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_DESTINATION,
-                                  "Failed to prepare destination " + request->get_destination()->CurrentLocation().str());
+                                  "Failed to prepare destination " + request->get_destination()->CurrentLocation().str() + ": " + std::string(res));
       }
       else if (res == Arc::DataStatus::WritePrepareWait) {
         // if timeout then don't wait - scheduler will deal with it immediately
@@ -557,7 +557,7 @@ namespace DataStaging {
                                                       DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                     DTRErrorStatus::ERROR_DESTINATION,
                                     "Error with post-transfer destination handling of " +
-                                       request->get_destination()->CurrentLocation().str());
+                                       request->get_destination()->CurrentLocation().str() + ": " + std::string(res));
         }
       }
     }
@@ -594,7 +594,7 @@ namespace DataStaging {
         }
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_DESTINATION,
-                                  "Could not post-register destination " + request->get_destination()->str());
+                                  "Could not post-register destination " + request->get_destination()->str() + ": " + std::string(res));
       }
     }
     // finished with registration - send back to scheduler
