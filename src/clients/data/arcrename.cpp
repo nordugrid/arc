@@ -57,7 +57,7 @@ bool arcrename(const Arc::URL& old_url,
     logger.msg(Arc::ERROR, "Cannot rename to or from root directory");
     return false;
   }
-  if (old_path == new_path) {
+  if (old_path == new_path && old_url.FullPath() == new_url.FullPath()) {
     logger.msg(Arc::ERROR, "Cannot rename to the same URL");
     return false;
   }
