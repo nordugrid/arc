@@ -441,8 +441,8 @@ namespace Arc {
         rejectEndpoints.push_back((**itJ)->Cluster);
       }
 
+      broker.set(jobdescs.front());
       ExecutionTargetSorter ets(broker, *csr, rejectEndpoints);
-      ets.set(jobdescs.front());
       for (ets.reset(); !ets.endOfList(); ets.next()) {
         if (s.Submit(*ets, jobdescs.front(), resubmittedJobs.back())) {
           ets.registerJobSubmission();
