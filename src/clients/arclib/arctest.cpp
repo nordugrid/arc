@@ -32,8 +32,8 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 
-int test(const Arc::UserConfig& usercfg, const Arc::ExecutionTargetSet& ets, const Arc::JobDescription& testJob, const std::string& jobidfile);
-int dumpjobdescription(const Arc::UserConfig& usercfg, const Arc::ExecutionTargetSet& ets, const Arc::JobDescription& testJob);
+int test(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorter& ets, const Arc::JobDescription& testJob, const std::string& jobidfile);
+int dumpjobdescription(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorter& ets, const Arc::JobDescription& testJob);
 
 int RUNMAIN(arctest)(int argc, char **argv) {
 
@@ -165,7 +165,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     preferredInterfaceNames.push_back(usercfg.InfoInterface());
   }
 
-  Arc::ExecutionTargetSet ets(broker);
+  Arc::ExecutionTargetSorter ets(broker);
 
   std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
   Arc::ComputingServiceRetriever csr(usercfg, std::list<Arc::Endpoint>(), rejectDiscoveryURLs, preferredInterfaceNames);
@@ -184,7 +184,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     return 1;
   }
 
-  if (ets.empty()) {
+  if (ets.getMatchingTargets().empty()) {
     if (!opt.dumpdescription) {
       std::cout << Arc::IString("ERROR: Test aborted because no suitable resources were found for the test-job") << std::endl;
     } else {
@@ -206,7 +206,7 @@ void printjobid(const std::string& jobid, const std::string& jobidfile) {
   std::cout << Arc::IString("Test submitted with jobid: %s", jobid) << std::endl;
 }
 
-int test(const Arc::UserConfig& usercfg, const Arc::ExecutionTargetSet& ets, const Arc::JobDescription& testJob, const std::string& jobidfile) {
+int test(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorter& ets, const Arc::JobDescription& testJob, const std::string& jobidfile) {
   int retval = 0;
 
   std::list<std::string> jobids;
@@ -215,15 +215,14 @@ int test(const Arc::UserConfig& usercfg, const Arc::ExecutionTargetSet& ets, con
 
   submittedJobs.push_back(Arc::Job());
 
-  Arc::ExecutionTargetSet::const_iterator it = ets.begin(); 
-  for (; it != ets.end(); ++it) {
-    if (it->Submit(usercfg, testJob, submittedJobs.back())) {
+  for (ets.reset(); !ets.endOfList(); ets.next()) {
+    if (ets->Submit(usercfg, testJob, submittedJobs.back())) {
       printjobid(submittedJobs.back().JobID.fullstr(), jobidfile);
       break;
     }
   }
   
-  if (it == ets.end()) {
+  if (ets.endOfList()) {
     std::cout << Arc::IString("Test failed, no more possible targets") << std::endl;
     submittedJobs.pop_back();
     retval = 1;
@@ -238,34 +237,33 @@ int test(const Arc::UserConfig& usercfg, const Arc::ExecutionTargetSet& ets, con
   return retval;
 }
 
-int dumpjobdescription(const Arc::UserConfig& usercfg, const Arc::ExecutionTargetSet& ets, const Arc::JobDescription& testJob) {
-  Arc::ExecutionTargetSet::const_iterator it = ets.begin();
-  for (; it != ets.end(); ++it) {
+int dumpjobdescription(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorter& ets, const Arc::JobDescription& testJob) {
+  for (ets.reset(); !ets.endOfList(); ets.next()) {
     Arc::JobDescription preparedTestJob(testJob);
     std::string jobdesc;
     // Prepare the test jobdescription according to the choosen ExecutionTarget
-    if (!preparedTestJob.Prepare(*it)) {
-      logger.msg(Arc::INFO, "Unable to prepare job description according to needs of the target resource (%s).", it->ComputingEndpoint->URLString); 
+    if (!preparedTestJob.Prepare(*ets)) {
+      logger.msg(Arc::INFO, "Unable to prepare job description according to needs of the target resource (%s).", ets->ComputingEndpoint->URLString); 
       continue;
     }
   
     std::string jobdesclang = "nordugrid:jsdl";
-    if (it->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") {
+    if (ets->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") {
       jobdesclang = "nordugrid:xrsl";
     }
-    else if (it->ComputingEndpoint->InterfaceName == "org.glite.cream") {
+    else if (ets->ComputingEndpoint->InterfaceName == "org.glite.cream") {
       jobdesclang = "egee:jdl";
     }
     
     if (!preparedTestJob.UnParse(jobdesc, jobdesclang)) {
-      logger.msg(Arc::INFO, "An error occurred during the generation of job description to be sent to %s", it->ComputingEndpoint->URLString); 
+      logger.msg(Arc::INFO, "An error occurred during the generation of job description to be sent to %s", ets->ComputingEndpoint->URLString); 
       continue;
     }
   
-    std::cout << Arc::IString("Job description to be sent to %s:", it->ComputingService->Cluster.str()) << std::endl;
+    std::cout << Arc::IString("Job description to be sent to %s:", ets->ComputingService->Cluster.str()) << std::endl;
     std::cout << jobdesc << std::endl;
     break;
   }
 
-  return (it != ets.end());
+  return (!ets.endOfList());
 }

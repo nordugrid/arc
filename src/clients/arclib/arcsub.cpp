@@ -307,62 +307,62 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
   }
 
   Arc::Broker broker(usercfg, usercfg.Broker().first);
-  if (!broker.isValid()) {
+  if (!broker.isValid(false)) {
     logger.msg(Arc::ERROR, "Dumping job description aborted: Unable to load broker %s", usercfg.Broker().first);
     return 1;
   }
 
+  Arc::ExecutionTargetSorter ets(broker, csr);
+  std::list<Arc::JobDescription>::const_iterator itJAlt; // Iterator to use for alternative job descriptions.
   for (std::list<Arc::JobDescription>::const_iterator itJ = jobdescriptionlist.begin();
        itJ != jobdescriptionlist.end(); ++itJ) {
-    Arc::JobDescription jobdescdump(*itJ);
-  
-    broker.set(*itJ);
-    Arc::ExecutionTargetSet ets(broker, csr);
-    if (ets.empty() && itJ->HasAlternatives()) {
-      for (std::list<Arc::JobDescription>::const_iterator itAlt = itJ->GetAlternatives().begin();
-           itAlt != itJ->GetAlternatives().end(); ++itAlt) {
-        ets.set(*itAlt);
-        ets.addEntities(csr);
-        if (ets.empty()) {
-          jobdescdump = *itAlt;
-          break;
+    const Arc::JobDescription* currentJobDesc = &*itJ;
+    bool descriptionDumped = false;
+    do {
+      Arc::JobDescription jobdescdump(*currentJobDesc);
+      ets.set(jobdescdump);
+
+      for (ets.reset(); !ets.endOfList(); ets.next()) {
+        if(!match_submission_interface(*ets,requestedSubmissionInterfaces)) continue;
+        if (!jobdescdump.Prepare(*ets)) {
+          logger.msg(Arc::INFO, "Unable to prepare job description according to needs of the target resource (%s).", ets->ComputingEndpoint->URLString); 
+          continue;
         }
-      }
-    }
-    
-    Arc::ExecutionTargetSet::iterator itET = ets.begin();
-    for (; itET != ets.end(); ++itET) {
-      if(!match_submission_interface(*itET,requestedSubmissionInterfaces)) continue;
-      if (!jobdescdump.Prepare(*itET)) {
-        logger.msg(Arc::INFO, "Unable to prepare job description according to needs of the target resource (%s).", itET->ComputingEndpoint->URLString); 
-        continue;
-      }
-
-      std::string jobdesclang = "nordugrid:jsdl";
-      if (itET->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") {
-        jobdesclang = "nordugrid:xrsl";
-      }
-      else if (itET->ComputingEndpoint->InterfaceName == "org.glite.cream") {
-        jobdesclang = "egee:jdl";
-      }
-      else if (itET->ComputingEndpoint->InterfaceName == "org.ogf.emies") {
-        jobdesclang = "emies:adl";
-      }
-      std::string jobdesc;
-      if (!jobdescdump.UnParse(jobdesc, jobdesclang)) {
-        logger.msg(Arc::INFO, "An error occurred during the generation of job description to be sent to %s", itET->ComputingEndpoint->URLString); 
-        continue;
+  
+        std::string jobdesclang = "nordugrid:jsdl";
+        if (ets->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") {
+          jobdesclang = "nordugrid:xrsl";
+        }
+        else if (ets->ComputingEndpoint->InterfaceName == "org.glite.cream") {
+          jobdesclang = "egee:jdl";
+        }
+        else if (ets->ComputingEndpoint->InterfaceName == "org.ogf.emies") {
+          jobdesclang = "emies:adl";
+        }
+        std::string jobdesc;
+        if (!jobdescdump.UnParse(jobdesc, jobdesclang)) {
+          logger.msg(Arc::INFO, "An error occurred during the generation of job description to be sent to %s", ets->ComputingEndpoint->URLString); 
+          continue;
+        }
+  
+        std::cout << Arc::IString("Job description to be sent to %s:", ets->ComputingService->Cluster.str()) << std::endl;
+        std::cout << jobdesc << std::endl;
+        descriptionDumped = true;
+        break;
       }
 
-      std::cout << Arc::IString("Job description to be sent to %s:", itET->ComputingService->Cluster.str()) << std::endl;
-      std::cout << jobdesc << std::endl;
-      break;
-    }
+      if (!descriptionDumped && itJ->HasAlternatives()) { // Alternative job descriptions.
+        if (currentJobDesc == &*itJ) {
+          itJAlt = itJ->GetAlternatives().begin();
+        }
+        else {
+          ++itJAlt;
+        }
+        currentJobDesc = &*itJAlt;
+      }
+    } while (!descriptionDumped && itJ->HasAlternatives() && itJAlt != itJ->GetAlternatives().end());
 
-    if (ets.empty()) {
-      std::cout << Arc::IString("Unable to print job description: No matching target found.") << std::endl;
-      retval = 1;
-    } else if (itET == ets.end()) {
+    if (ets.endOfList()) {
       std::cout << Arc::IString("Unable to prepare job description according to needs of the target resource.") << std::endl;
       retval = 1;
     }
