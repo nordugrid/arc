@@ -578,8 +578,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "rfio", "HED:DMC", "RFIO plugin using the GFAL2 library", 0, &Arc::DataPointGFAL::Instance },
-  { "dcap", "HED:DMC", "DCAP plugin using the GFAL2 library", 0, &Arc::DataPointGFAL::Instance },
-  { "gsidcap", "HED:DMC", "DCAP with GSI security using the GFAL2 library", 0, &Arc::DataPointGFAL::Instance },
+  { "gfal2", "HED:DMC", "Grid File Access Library 2", 0, &Arc::DataPointGFAL::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
