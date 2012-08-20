@@ -403,7 +403,7 @@ namespace Arc {
     int res;
     {
       GFALEnvLocker gfal_lock(usercfg, lfc_host);
-      res = gfal_stat(GFALUtils::GFALURL(url).c_str(), &st);
+      res = gfal_stat(GFALUtils::GFALURL(stat_url).c_str(), &st);
     }
     if (res < 0) {
       logger.msg(ERROR, "gfal_stat failed: %s", StrError(gfal_posix_code_error()));
@@ -489,20 +489,11 @@ namespace Arc {
     while ((d = gfal_readdir (dir))) {
       // Create a new FileInfo object and add it to the list of files
       std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(d->d_name));
-      DataStatus status_from_stat = DataStatus::StatError;
-      // If information about times and access was also requested, do a stat
-      if (verb & (INFO_TYPE_TIMES | INFO_TYPE_ACCESS)) {
+      // If information about times, type or access was also requested, do a stat
+      if (verb & (INFO_TYPE_TIMES | INFO_TYPE_ACCESS | INFO_TYPE_TYPE)) {
         URL child_url = URL(url.plainstr() + '/' + d->d_name);
         logger.msg(DEBUG, "List will stat the URL %s", child_url.plainstr());
-        status_from_stat = do_stat(child_url, *f);
-      }
-      // If something was not OK with Stat (or we didn't call it), just get the type
-      if (status_from_stat != DataStatus::Success) {
-        if (d->d_type == DT_DIR) {
-          f->SetType(FileInfo::file_type_dir);
-        } else if (d->d_type == DT_REG) {
-          f->SetType(FileInfo::file_type_file);
-        }
+        do_stat(child_url, *f);
       }
     }
     
