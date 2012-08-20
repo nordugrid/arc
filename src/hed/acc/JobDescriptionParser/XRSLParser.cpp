@@ -281,6 +281,12 @@ namespace Arc {
       std::stringstream ss;
       ss << **it;
       jobdescs.back().OtherAttributes["nordugrid:xrsl;clientxrsl"] = ss.str();
+      SourceLanguage(jobdescs.back()) = (!language.empty() ? language : supportedLanguages.front());
+      for (std::list<JobDescription>::iterator itAltJob = jobdescs.back().GetAlternatives().begin();
+         itAltJob != jobdescs.back().GetAlternatives().end(); ++itAltJob) {
+        itAltJob->OtherAttributes["nordugrid:xrsl;clientxrsl"] = ss.str();
+        SourceLanguage(*itAltJob) = jobdescs.back().GetSourceLanguage();
+      }
     }
 
     if(jobdescs.empty()) {
@@ -308,8 +314,6 @@ namespace Arc {
           return false;
         }
       }
-
-      SourceLanguage(jobdescs.front()) = (!language.empty() ? language : supportedLanguages.front());
     }
     else {
       // action is not expected in client side job request
@@ -322,7 +326,6 @@ namespace Arc {
           jobdescs.clear();
           return false;
         }
-        SourceLanguage(*it) = (!language.empty() ? language : supportedLanguages.front());
       }
     }
 
