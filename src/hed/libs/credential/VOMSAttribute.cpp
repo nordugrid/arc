@@ -1005,9 +1005,25 @@ static char *norep()
   return buffer;
 }
 
-char *acseq_i2s(struct v3_ext_method*, void*)
+char *acseq_i2s(struct v3_ext_method*, void* data)
 {
-  return norep();
+  AC **aclist = NULL;
+ 
+  AC *item = NULL;
+  AC_SEQ *seq = (AC_SEQ*)data;
+  if(!seq) return NULL;
+
+  int num = sk_AC_num(seq->acs);
+  if(num > 0) aclist = (AC **)OPENSSL_malloc(num * sizeof(AC*));
+  for (int i =0; i < num; i++) {
+    item = sk_AC_value(seq->acs, i);
+    // AC itself is not duplicated
+    aclist[i] = item;
+  }
+ 
+  if(aclist == NULL) return NULL;
+  return (char *)aclist;
+  // return norep();
 }
   
 char *targets_i2s(struct v3_ext_method*, void*)
