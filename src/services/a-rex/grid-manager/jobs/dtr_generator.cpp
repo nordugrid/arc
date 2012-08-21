@@ -499,15 +499,20 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
     lock.unlock();
     return true;
   }
+  lock.unlock();
 
   // no DTRs left, clean up session dir if upload or failed download
+  lock.lock();
+  bool finished_with_error = (finished_jobs.find(jobid) != finished_jobs.end() && !finished_jobs[jobid].empty());
+  lock.unlock();
   if (dtr->get_source()->Local()) {
+    // list of files to keep in session dir
     std::list<FileData> files;
-    // if error, don't remove dynamic output files so that resume will work
     if (!job_output_read_file(jobid, *jobuser, files))
       logger.msg(Arc::WARNING, "%s: Failed to read list of output files, can't clean up session dir", jobid);
     else {
-      if (finished_jobs.find(jobid) != finished_jobs.end() && !finished_jobs[jobid].empty()) {
+      if (finished_with_error) {
+        // if error with uploads, don't remove dynamic output files so that resume will work
         for (std::list<FileData>::iterator i = files.begin(); i != files.end(); ++i) {
           if (i->pfn.size() > 1 && i->pfn[1] == '@') {
             std::string dynamic_output(session_dir+'/'+i->pfn.substr(2));
@@ -533,7 +538,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
     // clean up cache joblinks
     CleanCacheJobLinks(jobuser->Env(), job);
   }
-  else if (finished_jobs.find(jobid) != finished_jobs.end() && !finished_jobs[jobid].empty()) {
+  else if (finished_with_error) {
     // clean all files still in input list which could be half-downloaded
     std::list<FileData> files;
     if (!job_input_read_file(jobid, *jobuser, files))
@@ -542,6 +547,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
       logger.msg(Arc::WARNING, "%s: Failed to clean up session dir", jobid);
   }
   // add to finished jobs (without overwriting existing error)
+  lock.lock();
   finished_jobs[jobid] += "";
 
   // log summary to DTR log and A-REX log
