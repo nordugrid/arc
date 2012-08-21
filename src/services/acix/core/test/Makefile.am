@@ -1,7 +1,7 @@
 TESTSCRIPTS = test_bloomfilter.py
 
 if ACIX_TESTS_ENABLED
-TESTS_ENVIRONMENT = PYTHONPATH=../../.. $(TRIAL)
+TESTS_ENVIRONMENT = PYTHONPATH=$(top_srcdir)/src/services $(TRIAL)
 TESTS = $(TESTSCRIPTS)
 else
 TESTS =
