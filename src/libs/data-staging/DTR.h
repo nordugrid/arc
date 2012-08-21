@@ -316,6 +316,9 @@ namespace DataStaging {
       /// URL that is used to denote local Delivery should be used
       static const Arc::URL LOCAL_DELIVERY;
 
+      /// Log level for all DTR activity
+      static Arc::LogLevel LOG_LEVEL;
+
       /// Public empty constructor
       DTR();
       

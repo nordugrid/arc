@@ -1347,6 +1347,7 @@ namespace DataStaging {
     Arc::Logger::getRootLogger().setThreadContext();
     root_destinations = Arc::Logger::getRootLogger().getDestinations();
     Arc::Logger::getRootLogger().removeDestinations();
+    Arc::Logger::getRootLogger().setThreshold(DTR::LOG_LEVEL);
 
     while(scheduler_state != TO_STOP || !DtrList.empty()) {
       // first check for cancelled jobs

@@ -32,6 +32,7 @@ namespace DataStaging {
   }
 
   const Arc::URL DTR::LOCAL_DELIVERY("file:/local");
+  Arc::LogLevel DTR::LOG_LEVEL(Arc::WARNING);
 
   DTR::DTR(const std::string& source,
            const std::string& destination,

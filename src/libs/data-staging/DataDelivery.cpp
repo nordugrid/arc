@@ -141,6 +141,7 @@ namespace DataStaging {
     // messages are logged to per-DTR Logger
     Arc::Logger::getRootLogger().setThreadContext();
     Arc::Logger::getRootLogger().removeDestinations();
+    Arc::Logger::getRootLogger().setThreshold(DTR::LOG_LEVEL);
 
     while(delivery_state != TO_STOP){
       dtr_list_lock.lock();

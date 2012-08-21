@@ -108,6 +108,8 @@ DTRGenerator::DTRGenerator(const JobUsers& users,
   for (JobUsers::const_iterator i = users.begin(); i != users.end(); ++i) {
     jobusers[i->get_uid()] = &(*i);
   }
+  // Set log level for DTR in job.id.errors files
+  DataStaging::DTR::LOG_LEVEL = staging_conf.log_level;
 
   scheduler = DataStaging::Scheduler::getInstance();
 
@@ -795,7 +797,6 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     }
     // logger for these DTRs. LogDestinations should be deleted when DTR is received back
     DataStaging::DTRLogger dtr_log(new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging.DTR"));
-    dtr_log->setThreshold(staging_conf.get_log_level());
     Arc::LogFile * dest = new Arc::LogFile(job_errors_filename(jobid, *jobuser));
     dest->setReopen(true);
     dtr_log->addDestination(*dest);
