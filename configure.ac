@@ -1957,8 +1957,8 @@ AC_CHECK_PROGS(TRIAL, trial)
 if test "x$TRIAL" = "x"; then
   AC_MSG_NOTICE([trial not found - ACIX unit tests will be skipped])
 fi
-# unit tests also require python >=2.6 and are also disabled on Mac OS X
-AM_CONDITIONAL([ACIX_TESTS_ENABLED], [test "x$TRIAL" != "x" && test "x$PYTHON_VERSION" != "x2.4" && test "x$PYTHON_VERSION" != "x2.5" && test "x$MACOSX" = "x"])
+# unit tests also require python >=2.6
+AM_CONDITIONAL([ACIX_TESTS_ENABLED], [test "x$TRIAL" != "x" && test "x$PYTHON_VERSION" != "x2.4" && test "x$PYTHON_VERSION" != "x2.5"])
  
 
 # Check for explicitely and implicitely disabled clients
