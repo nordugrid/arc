@@ -74,8 +74,8 @@ namespace Arc {
     // Applying filter. Must be done through EndpointQueryOptions.
     url.ChangeLDAPFilter("(|(nordugrid-job-globalowner=" + escaped_dn + "))");
 
-    DataHandle handler(url, uc);
     DataBuffer buffer;
+    DataHandle handler(url, uc);
 
     if (!handler) {
       logger.msg(INFO, "Can't create information handle - is the ARC ldap DMC plugin available?");

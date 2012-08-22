@@ -85,8 +85,8 @@ namespace Arc {
 
       infourl.ChangeLDAPFilter(filter);
 
-      DataHandle handler(infourl, usercfg);
       DataBuffer buffer;
+      DataHandle handler(infourl, usercfg);
 
       if (!handler) {
         logger.msg(INFO, "Can't create information handle - is the ARC LDAP DMC plugin available?");

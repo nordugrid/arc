@@ -54,8 +54,8 @@ namespace Arc {
       return s;
     }
 
-    DataHandle handler(url, uc);
     DataBuffer buffer;
+    DataHandle handler(url, uc);
 
     if (!handler) {
       logger.msg(INFO, "Can't create information handle - "
