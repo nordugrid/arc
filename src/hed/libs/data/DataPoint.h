@@ -259,15 +259,19 @@ namespace Arc {
        operation can be performed while reading is in progress.
        \param buffer operation will use this buffer to put
        information into. Should not be destroyed before StopReading()
-       was called and returned. */
+       was called and returned. Since StopReading() may be called during
+       DataHandle destruction it is safer to ensure buffer exists for
+       the lifetime of DataHandle. */
     virtual DataStatus StartReading(DataBuffer& buffer) = 0;
 
     /// Start writing data to URL.
     /** Separate thread to transfer data will be created. No other
        operation can be performed while writing is in progress.
        \param buffer operation will use this buffer to get
-       information from. Should not be destroyed before stop_writing
-       was called and returned.
+       information from.  Should not be destroyed before StopWriting()
+       was called and returned. Since StopWriting() may be called during
+       DataHandle destruction it is safer to ensure buffer exists for
+       the lifetime of DataHandle.
        \param space_cb callback which is called if there is not
        enough space to store data. May not implemented for all
        protocols. */
