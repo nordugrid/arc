@@ -34,6 +34,9 @@
 #include <openssl/safestack.h>
 #include <openssl/err.h>
 
+#define VOMS_AC_HEADER "-----BEGIN VOMS AC-----"
+#define VOMS_AC_TRAILER "-----END VOMS AC-----"
+
 namespace ArcCredential {
 
 #define ASN1_F_D2I_AC_ATTR          5000

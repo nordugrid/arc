@@ -6,6 +6,8 @@
 
 #include "VOMSAttribute.h"
 
+#include "VOMSUtil.h"
+
 namespace ArcCredential {
 
 int i2d_AC_ATTR(AC_ATTR *a, unsigned char **pp)
@@ -1005,6 +1007,7 @@ static char *norep()
   return buffer;
 }
 
+/*
 char *acseq_i2s(struct v3_ext_method*, void* data)
 {
   AC **aclist = NULL;
@@ -1025,7 +1028,54 @@ char *acseq_i2s(struct v3_ext_method*, void* data)
   return (char *)aclist;
   // return norep();
 }
+*/
+
+char *acseq_i2s(struct v3_ext_method*, void* data)
+{
+  AC_SEQ* acseq = NULL;
+  acseq = (AC_SEQ *)data;
+  if(!acseq) return NULL;
+  std::string encoded_acseq;
+
+  AC *item = NULL;
+  int num = sk_AC_num(acseq->acs);
+  for (int i =0; i < num; i++) {
+    item = sk_AC_value(acseq->acs, i);
+    unsigned int len = i2d_AC(item, NULL);
+    unsigned char *tmp = (unsigned char *)OPENSSL_malloc(len);
+    std::string ac_str;
+    if(tmp) {
+      unsigned char *ttmp = tmp;
+      i2d_AC(item, &ttmp);
+      //ac_str = std::string((char *)tmp, len);
+      ac_str.append((const char*)tmp, len);
+      free(tmp);
+    }
+
+    // encode the AC string
+    int size;
+    char* enc = NULL;
+    std::string encodedac;
+    enc = Arc::VOMSEncode((char*)(ac_str.c_str()), ac_str.length(), &size);
+    if (enc != NULL) {
+      encodedac.append(enc, size);
+      free(enc);
+      enc = NULL;
+    }
+    encoded_acseq.append(VOMS_AC_HEADER).append("\n");
+    encoded_acseq.append(encodedac).append("\n");
+    encoded_acseq.append(VOMS_AC_TRAILER).append("\n");
+  }
   
+  char* ret = NULL;
+  int len = encoded_acseq.length();
+  if(len) {
+    ret = (char*)OPENSSL_malloc(len);
+    strncpy(ret, encoded_acseq.c_str(), len);
+  }
+  return (char *) ret;
+}
+
 char *targets_i2s(struct v3_ext_method*, void*)
 {
   return norep();
@@ -1046,6 +1096,7 @@ char *attributes_i2s(struct v3_ext_method*, void*)
   return norep();
 }
 
+/*
 void *acseq_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
 {
   AC **list = (AC **)data;
@@ -1059,6 +1110,54 @@ void *acseq_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
     sk_AC_push(a->acs, *list++);
 
   return (void *)a;
+}
+*/
+
+void *acseq_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
+{
+  AC_SEQ* acseq = NULL;
+  AC** aclist = NULL;
+  std::string acseq_str;
+  std::string ac_str;
+  if(data == NULL) return NULL;
+  acseq_str = data;
+
+  std::string::size_type pos1 = 0, pos2 = 0; 
+  while(pos1 < acseq_str.length()) {
+    pos1 = acseq_str.find(VOMS_AC_HEADER, pos1);
+    if(pos1 == std::string::npos) break;
+    pos1 = acseq_str.find_first_of("\r\n", pos1);
+    if(pos1 == std::string::npos) break;
+    pos2 = acseq_str.find(VOMS_AC_TRAILER, pos1);
+    if(pos2 == std::string::npos) break;
+    ac_str.clear();
+    ac_str = acseq_str.substr(pos1+1, (pos2-1) - (pos1+1));
+
+    pos2 = acseq_str.find_first_of("\r\n", pos2);
+    pos1 = pos2+1;
+
+    // decode the AC string
+    int size;
+    char* dec = NULL;
+    std::string decodedac;
+    dec = Arc::VOMSDecode((char*)(ac_str.c_str()), ac_str.length(), &size);
+    if (dec != NULL) {
+      decodedac.append(dec, size);
+      free(dec);
+      dec = NULL;
+    }
+    // TODO: is the ac order required?
+    std::string acorder;      
+    Arc::addVOMSAC(aclist, acorder, decodedac);
+  }
+
+  if (!aclist) return NULL;
+
+  acseq = AC_SEQ_new();
+  while (*aclist)
+    sk_AC_push(acseq->acs, *aclist++);
+
+  return (void *)acseq;
 }
 
 void *targets_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)

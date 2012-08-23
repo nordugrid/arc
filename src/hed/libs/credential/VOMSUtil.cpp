@@ -1751,6 +1751,40 @@ err:
                             15, 16, 17, 18, 19, 20, 21, 22,
                             23, 24, 25,  0,  0,  0,  0,  0};
 
+  static char *base64Encode(const char *data, int size, int *j) {
+    BIO *in = NULL;
+    BIO *b64 = NULL;
+    int len = 0;
+    char *buffer = NULL;
+
+    in  = BIO_new(BIO_s_mem());
+    b64 = BIO_new(BIO_f_base64());
+    if (!in || !b64)
+    goto err;
+
+    b64 = BIO_push(b64, in);
+
+    BIO_write(b64, data, size);
+    BIO_flush(b64);
+
+    *j = len = BIO_pending(in);
+
+    buffer = (char *)malloc(len);
+    if (!buffer)
+      goto err;
+
+    if (BIO_read(in, buffer, len) != len) {
+      free(buffer);
+      buffer = NULL;
+      goto err;
+    }
+
+  err:
+    BIO_free(b64);
+    BIO_free(in);
+    return buffer;
+  }
+
   static char *base64Decode(const char *data, int size, int *j) {
     BIO *b64 = NULL;
     BIO *in = NULL;
@@ -1814,6 +1848,11 @@ err:
       return res;
     }
     return NULL;
+  }
+
+  char *VOMSEncode(const char *data, int size, int *j) {
+    // Only base64 encoding is used here
+    return base64Encode(data, size, j);
   }
 
   char *VOMSDecode(const char *data, int size, int *j) {

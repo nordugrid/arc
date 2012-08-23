@@ -266,6 +266,9 @@ namespace Arc {
   * coding method (not base64 encoding), we simply copy the method from voms code to here*/
   char *VOMSDecode(const char *data, int size, int *j);
 
+  /**Encode the data with base64 encoding */
+  char *VOMSEncode(const char *data, int size, int *j);
+
   /**Extract the needed field from the certificate.
    * @param u  The proxy certificate which includes the voms
    *          specific formated AC.
