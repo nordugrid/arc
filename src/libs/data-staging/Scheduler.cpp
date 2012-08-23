@@ -887,7 +887,7 @@ namespace DataStaging {
       }
     }
     if (possible_delivery_services.empty()) {
-      request->get_logger()->msg(Arc::WARNING, "DTR %s: Could not find any useable service for request,"
+      request->get_logger()->msg(Arc::WARNING, "DTR %s: Could not find any useable delivery service,"
                                                " forcing local transfer", request->get_short_id());
       request->set_delivery_endpoint(DTR::LOCAL_DELIVERY);
       return;
