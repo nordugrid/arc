@@ -399,7 +399,7 @@ bool JobsList::FailedJob(const JobsList::iterator &i,bool cancel) {
   for(std::list<FileData>::iterator f = job_desc.outputdata.begin();
                                    f != job_desc.outputdata.end(); ++f) {
     if(f->has_lfn()) {
-      if(f->cred.empty()) {
+      if(f->cred.empty() || !i->local) {
         f->cred = default_cred;
       } else {
         std::string path;
@@ -414,7 +414,7 @@ bool JobsList::FailedJob(const JobsList::iterator &i,bool cancel) {
     r=false;
     logger.msg(Arc::ERROR,"%s: Failed writing list of output files: %s",i->job_id,Arc::StrError(errno));
   };
-  job_local_write_file(*i,*user,*(i->local));
+  if (i->local) job_local_write_file(*i,*user,*(i->local));
   /*
   std::list<FileData> fl;
   if(job_output_read_file(i->job_id,*user,fl)) {
