@@ -399,12 +399,12 @@ bool JobsList::FailedJob(const JobsList::iterator &i,bool cancel) {
   for(std::list<FileData>::iterator f = job_desc.outputdata.begin();
                                    f != job_desc.outputdata.end(); ++f) {
     if(f->has_lfn()) {
-      if(f->cred.empty() || !i->local) {
+      if(f->cred.empty()) {
         f->cred = default_cred;
       } else {
         std::string path;
         ARex::DelegationStores* delegs = user->Env().delegations();
-        if(delegs) path = (*delegs)[user->DelegationDir()].FindCred(f->cred,i->local->DN);
+        if(delegs && i->local) path = (*delegs)[user->DelegationDir()].FindCred(f->cred,i->local->DN);
         f->cred = path;
       };
       if(i->local) ++(i->local->uploads);
@@ -414,7 +414,7 @@ bool JobsList::FailedJob(const JobsList::iterator &i,bool cancel) {
     r=false;
     logger.msg(Arc::ERROR,"%s: Failed writing list of output files: %s",i->job_id,Arc::StrError(errno));
   };
-  if (i->local) job_local_write_file(*i,*user,*(i->local));
+  if(i->local) job_local_write_file(*i,*user,*(i->local));
   /*
   std::list<FileData> fl;
   if(job_output_read_file(i->job_id,*user,fl)) {
