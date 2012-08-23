@@ -1,7 +1,6 @@
 pythondir = $(PYTHON_SITE_LIB)/acix
 
 nobase_python_PYTHON = __init__.py \
-                       core \
                        core/__init__.py \
                        core/bitvector.py \
                        core/bloomfilter.py \
