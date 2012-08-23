@@ -1203,7 +1203,9 @@ int main(int argc, char *argv[]) {
                      (*it).first);
 
       //Contact the voms server to retrieve attribute certificate
-      ArcCredential::AC **aclist = NULL;
+      //ArcCredential::AC **aclist = NULL;
+      std::string aclist_str;
+
       std::string acorder;
       Arc::MCCConfig cfg;
       cfg.AddProxy(proxy_path);
@@ -1376,7 +1378,11 @@ int main(int argc, char *argv[]) {
             return EXIT_SUCCESS;
           }
 
-          Arc::addVOMSAC(aclist, acorder, decodedac);
+          aclist_str.append(VOMS_AC_HEADER).append("\n");
+          aclist_str.append(codedac).append("\n");
+          aclist_str.append(VOMS_AC_TRAILER).append("\n");
+
+          //Arc::addVOMSAC(aclist, acorder, decodedac);
           succeeded = true; break;
         }//end of the scanning of multiple vomses lines with the same name
         if(succeeded==false) {
@@ -1386,11 +1392,16 @@ int main(int argc, char *argv[]) {
       }
 
       //Put the returned attribute certificate into proxy certificate
+/*
       if (aclist != NULL)
         cred_request.AddExtension("acseq", (char**)aclist);
       else std::cout << Arc::IString("Failed to add voms AC extension. Your proxy may be incomplete.") << std::endl;
       if (!acorder.empty())
         cred_request.AddExtension("order", acorder);
+*/
+      if (!aclist_str.empty())
+        cred_request.AddExtension("acseq", (char**)(aclist_str.c_str()));
+      else std::cout << Arc::IString("Failed to add voms AC extension. Your proxy may be incomplete.") << std::endl;
     }
 
     if (!use_gsi_proxy) {
