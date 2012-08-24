@@ -3,7 +3,12 @@ SLCS_CLIENT_PROGRAM = arcslcs
 else
 SLCS_CLIENT_PROGRAM =
 endif
-bin_PROGRAMS = arcproxy $(SLCS_CLIENT_PROGRAM)
+if CANLXX_ENABLED
+ARCPROXYALT_PROGRAM = arcproxyalt
+else
+ARCPROXYALT_PROGRAM =
+endif
+bin_PROGRAMS = arcproxy $(SLCS_CLIENT_PROGRAM) $(ARCPROXYALT_PROGRAM)
 
 noinst_PROGRAMS = test2vomsserver test2myproxyserver_put test2myproxyserver_get
 
@@ -18,6 +23,20 @@ arcproxy_LDADD = \
 	$(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
+
+if CANLXX_ENABLED
+arcproxyalt_SOURCES = arcproxyalt.cpp
+arcproxyalt_CXXFLAGS = -I$(top_srcdir)/include \
+        $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(CANLXX_CFLAGS)
+arcproxyalt_LDADD = \
+        $(top_builddir)/src/hed/libs/credentialstore/libarccredentialstore.la \
+        $(top_builddir)/src/hed/libs/client/libarcclient.la \
+        $(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
+        $(top_builddir)/src/hed/libs/credential/libarccredential.la \
+        $(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
+        $(top_builddir)/src/hed/libs/common/libarccommon.la \
+        $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(CANLXX_LIBS)
+endif
 
 if XMLSEC_ENABLED
 arcslcs_SOURCES = arcslcs.cpp
