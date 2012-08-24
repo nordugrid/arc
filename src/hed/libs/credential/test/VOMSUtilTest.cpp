@@ -60,14 +60,26 @@ void VOMSUtilTest::VOMSTrustListTest() {
 
   std::string ac_str;
   Arc::createVOMSAC(ac_str, ac_issuer_cred, holder_cred, fqan, targets, attrs, voname, uri, 3600*12);
-  
+ 
+ 
   //
   // Create the full AC which is an ordered list of AC 
   //
 
-  ArcCredential::AC** aclist = NULL;
-  std::string acorder;
-  Arc::addVOMSAC(aclist, acorder, ac_str);
+  // encode the AC string into base64
+  int size;
+  char* enc = NULL;
+  std::string ac_str_b64;
+  enc = Arc::VOMSEncode((char*)(ac_str.c_str()), ac_str.length(), &size);
+  if (enc != NULL) {
+    ac_str_b64.append(enc, size);
+    free(enc);
+    enc = NULL;
+  }
+  std::string aclist_str;
+  aclist_str.append(VOMS_AC_HEADER).append("\n");
+  aclist_str.append(ac_str_b64).append("\n");
+  aclist_str.append(VOMS_AC_TRAILER).append("\n");
 
   std::string voms_proxy_file("voms_proxy.pem");
 
@@ -80,7 +92,7 @@ void VOMSUtilTest::VOMSTrustListTest() {
   proxy_req.GenerateRequest(proxy_req_file.c_str());
 
   //Add AC extension to proxy certificat before signing it
-  proxy_req.AddExtension("acseq", (char**) aclist);
+  proxy_req.AddExtension("acseq", (char**) (aclist_str.c_str()));
 
   //Sign the voms proxy
   issuer_cred.SignRequest(&proxy_req, voms_proxy_file.c_str());
