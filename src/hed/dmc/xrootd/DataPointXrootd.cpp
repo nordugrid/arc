@@ -166,6 +166,7 @@ namespace Arc {
     if(!CreateThreadFunction(&DataPointXrootd::read_file_start, this)) {
       client->Close();
       reading = false;
+      buffer = NULL;
       return DataStatus::ReadStartError;
     }
 
@@ -175,13 +176,17 @@ namespace Arc {
   DataStatus DataPointXrootd::StopReading() {
     if (!reading) return DataStatus::ReadStopError;
     reading = false;
+    if (!buffer) return DataStatus(DataStatus::ReadStopError, EARCLOGIC, "Not reading");
     if (!buffer->eof_read()) {
       buffer->error_read(true);      /* trigger transfer error */
       client->Close();
     }
     transfer_cond.wait();         /* wait till reading thread exited */
-    if (buffer->error_read())
+    if (buffer->error_read()) {
+      buffer = NULL;
       return DataStatus::ReadError;
+    }
+    buffer = NULL;
     return DataStatus::Success;
   }
 

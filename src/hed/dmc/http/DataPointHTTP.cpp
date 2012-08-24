@@ -585,8 +585,8 @@ using namespace Arc;
   }
 
   DataStatus DataPointHTTP::StopWriting() {
-    if (!reading) return DataStatus::ReadStopError;
-    reading = false;
+    if (!writing) return DataStatus::WriteStopError;
+    writing = false;
     if (!buffer) return DataStatus(DataStatus::WriteStopError, EARCLOGIC, "Not writing");
     if(!buffer->eof_write()) buffer->error_write(true);
     while (transfers_started.get()) {

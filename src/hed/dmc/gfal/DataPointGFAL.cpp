@@ -223,6 +223,7 @@ namespace Arc {
   DataStatus DataPointGFAL::StopReading() {
     if (!reading) return DataStatus(DataStatus::ReadStopError, EARCLOGIC, "Not reading");
     reading = false;
+    if (!buffer) return DataStatus(DataStatus::ReadStopError, EARCLOGIC, "Not reading");
     // If the reading is not finished yet trigger reading error
     if (!buffer->eof_read()) buffer->error_read(true);
 
@@ -239,9 +240,12 @@ namespace Arc {
       fd = -1;
     }
     // If there was an error (maybe we triggered it)
-    if (buffer->error_read())
+    if (buffer->error_read()) {
+      buffer = NULL;
       return DataStatus::ReadError;
+    }
     // If there was no error (the reading already finished)
+    buffer = NULL;
     return DataStatus::Success;
   }
   
@@ -386,6 +390,7 @@ namespace Arc {
   DataStatus DataPointGFAL::StopWriting() {
     if (!writing) return DataStatus(DataStatus::WriteStopError, EARCLOGIC, "Not writing");
     writing = false;
+    if (!buffer) return DataStatus(DataStatus::WriteStopError, EARCLOGIC, "Not writing");
     
     // If the writing is not finished, trigger writing error
     if (!buffer->eof_write()) buffer->error_write(true);
@@ -403,8 +408,11 @@ namespace Arc {
       fd = -1;
     }
     // If there was an error (maybe we triggered it)
-    if (buffer->error_write())
+    if (buffer->error_write()) {
+      buffer = NULL;
       return DataStatus::WriteError;
+    }
+    buffer = NULL;
     return DataStatus::Success;
   }  
   
