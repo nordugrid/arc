@@ -95,24 +95,34 @@ namespace Arc {
   }
 
   DataStatus DataPointLDAP::StartReading(DataBuffer& buf) {
+    if (buffer) return DataStatus::IsReadingError;
     buffer = &buf;
     LDAPQuery q(url.Host(), url.Port(), usercfg.Timeout());
     int res = q.Query(url.Path(), url.LDAPFilter(), url.LDAPAttributes(),
                       url.LDAPScope());
-    if (res != 0) return DataStatus(DataStatus::ReadStartError, (res == 1) ? ETIMEDOUT : ECONNREFUSED);
+    if (res != 0) {
+      buffer = NULL;
+      return DataStatus(DataStatus::ReadStartError, (res == 1) ? ETIMEDOUT : ECONNREFUSED);
+    }
     NS ns;
     XMLNode(ns, "LDAPQueryResult").New(node);
     res = q.Result(CallBack, this);
-    if (res != 0) return DataStatus(DataStatus::ReadStartError, (res == 1) ? ETIMEDOUT : ECONNREFUSED);
-    CreateThreadFunction(&ReadThread, this, &thread_cnt);
+    if (res != 0) {
+      buffer = NULL;
+      return DataStatus(DataStatus::ReadStartError, (res == 1) ? ETIMEDOUT : ECONNREFUSED);
+    }
+    if(!CreateThreadFunction(&ReadThread, this, &thread_cnt)) {
+      buffer = NULL;
+      return DataStatus(DataStatus::ReadStartError);
+    }
     return DataStatus::Success;
   }
 
   DataStatus DataPointLDAP::StopReading() {
     if (!buffer) return DataStatus::ReadStopError;
     if(!buffer->eof_read()) buffer->error_read(true);
-    thread_cnt.wait();
     buffer = NULL;
+    thread_cnt.wait();
     return DataStatus::Success;
   }
 
@@ -129,6 +139,7 @@ namespace Arc {
   }
 
   DataStatus DataPointLDAP::List(std::list<FileInfo>& file, DataPoint::DataPointInfoType verb) {
+    // TODO: Implement through Read
     return DataStatus::UnimplementedError;
   }
 

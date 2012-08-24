@@ -47,6 +47,8 @@ using namespace Arc;
     /// Convert HTTP return code to errno
     int http2errno(int http_code) const;
     static Logger logger;
+    bool reading;
+    bool writing;
     ChunkControl *chunks;
     std::multimap<std::string,ClientHTTP*> clients;
     SimpleCounter transfers_started;

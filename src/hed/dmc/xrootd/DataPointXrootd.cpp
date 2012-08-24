@@ -147,6 +147,7 @@ namespace Arc {
     // wait for open to complete
     if (!client->IsOpen_wait()) {
       logger.msg(ERROR, "Failed to open file %s", url.str());
+      reading = false;
       return DataStatus::ReadStartError;
     }
 
@@ -155,6 +156,7 @@ namespace Arc {
       FileInfo file;
       DataPointInfoType info(INFO_TYPE_CONTENT);
       if (!Stat(file, info))
+        reading = false;
         return DataStatus::ReadStartError;
     }
 

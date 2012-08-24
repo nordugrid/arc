@@ -266,6 +266,8 @@ using namespace Arc;
 
   DataPointHTTP::DataPointHTTP(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
     : DataPointDirect(url, usercfg, parg),
+      reading(false),
+      writing(false),
       chunks(NULL),
       transfers_tofinish(0) {}
 
@@ -499,7 +501,10 @@ using namespace Arc;
   }
 
   DataStatus DataPointHTTP::StartReading(DataBuffer& buffer) {
+    if (reading) return DataStatus::IsReadingError;
+    if (writing) return DataStatus::IsWritingError;
     if (transfers_started.get() != 0) return DataStatus(DataStatus::IsReadingError, EARCLOGIC);
+    reading = true;
     int transfer_streams = 1;
     strtoint(url.Option("threads"),transfer_streams);
     if (transfer_streams < 1) transfer_streams = 1;
@@ -528,6 +533,8 @@ using namespace Arc;
   }
 
   DataStatus DataPointHTTP::StopReading() {
+    if (!reading) return DataStatus::ReadStopError;
+    reading = false;
     if (!buffer) return DataStatus(DataStatus::ReadStopError, EARCLOGIC, "Not reading");
     if(!buffer->eof_read()) buffer->error_read(true);
     while (transfers_started.get()) {
@@ -546,7 +553,10 @@ using namespace Arc;
 
   DataStatus DataPointHTTP::StartWriting(DataBuffer& buffer,
                                          DataCallback*) {
+    if (reading) return DataStatus::IsReadingError;
+    if (writing) return DataStatus::IsWritingError;
     if (transfers_started.get() != 0) return DataStatus(DataStatus::IsWritingError, EARCLOGIC);
+    writing = true;
     int transfer_streams = 1;
     strtoint(url.Option("threads"),transfer_streams);
     if (transfer_streams < 1) transfer_streams = 1;
@@ -575,6 +585,8 @@ using namespace Arc;
   }
 
   DataStatus DataPointHTTP::StopWriting() {
+    if (!reading) return DataStatus::ReadStopError;
+    reading = false;
     if (!buffer) return DataStatus(DataStatus::WriteStopError, EARCLOGIC, "Not writing");
     if(!buffer->eof_write()) buffer->error_write(true);
     while (transfers_started.get()) {

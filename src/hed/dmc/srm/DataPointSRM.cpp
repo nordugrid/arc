@@ -325,6 +325,7 @@ namespace Arc {
     r_handle = new DataHandle(r_url, usercfg);
     // check if url can be handled
     if (!(*r_handle)) {
+      delete r_handle; r_handle = NULL;
       logger.msg(ERROR, "TURL %s cannot be handled", r_url.str());
       return DataStatus(DataStatus::ReadStartError, EARCRESINVAL, "Transfer URL cannot be handled");
     }
@@ -334,7 +335,12 @@ namespace Arc {
     (*r_handle)->Passive(force_passive);
 
     logger.msg(INFO, "Redirecting to new URL: %s", (*r_handle)->CurrentLocation().str());
-    return (*r_handle)->StartReading(buf);
+    DataStatus r = (*r_handle)->StartReading(buf);
+    if(!r) {
+      delete r_handle;
+      r_handle = NULL;
+    }
+    return r;
   }
 
   DataStatus DataPointSRM::StopReading() {
@@ -521,6 +527,7 @@ namespace Arc {
     r_handle = new DataHandle(r_url, usercfg);
     // check if url can be handled
     if (!(*r_handle)) {
+      delete r_handle; r_handle = NULL;
       logger.msg(ERROR, "TURL %s cannot be handled", r_url.str());
       return DataStatus(DataStatus::WriteStartError, EARCRESINVAL, "Transfer URL cannot be handled");
     }
@@ -530,7 +537,12 @@ namespace Arc {
     (*r_handle)->Passive(force_passive);
 
     logger.msg(INFO, "Redirecting to new URL: %s", (*r_handle)->CurrentLocation().str());
-    return (*r_handle)->StartWriting(buf);
+    DataStatus r = (*r_handle)->StartWriting(buf);
+    if(!r) {
+      delete r_handle;
+      r_handle = NULL;
+    }
+    return r;
   }
 
   DataStatus DataPointSRM::StopWriting() {

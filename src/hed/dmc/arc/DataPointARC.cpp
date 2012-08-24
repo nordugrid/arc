@@ -306,6 +306,7 @@ namespace Arc {
     MCC_Status status = client.process(&request, &response);
 
     if (!status) {
+      reading = false;
       logger.msg(ERROR, (std::string)status);
       if (response)
         delete response;
@@ -313,6 +314,7 @@ namespace Arc {
     }
 
     if (!response) {
+      reading = false;
       logger.msg(ERROR, "No SOAP response");
       return DataStatus::ReadError;
     }
@@ -326,6 +328,7 @@ namespace Arc {
     logger.msg(INFO, "nd:\n%s", xml);
 
     if (nd["success"] != "done" || !nd["TURL"]) {
+      reading = false;
       delete response;
       return DataStatus::ReadError;
     }
@@ -414,6 +417,7 @@ namespace Arc {
     MCC_Status status = client.process(&request, &response);
 
     if (!status) {
+      writing = false;
       logger.msg(ERROR, (std::string)status);
       if (response)
         delete response;
@@ -421,6 +425,7 @@ namespace Arc {
     }
 
     if (!response) {
+      writing = false;
       logger.msg(ERROR, "No SOAP response");
       return DataStatus::WriteError;
     }
@@ -434,6 +439,7 @@ namespace Arc {
     logger.msg(INFO, "nd:\n%s", xml);
 
     if (nd["success"] != "done" || !nd["TURL"]) {
+      writing = false;
       delete response;
       return DataStatus::WriteError;
     }
