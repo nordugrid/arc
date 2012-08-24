@@ -55,6 +55,23 @@ static void sighup_handler(int) {
     }
 }
 
+static void glib_exception_handler()
+{
+  std::cerr << "Glib exception thrown" << std::endl;
+  try {
+    throw;
+  }
+  catch(const Glib::Error& err) {
+    std::cerr << "Glib exception caught: " << err.what() << std::endl;
+  }
+  catch(const std::exception &err) {
+    std::cerr << "Exception caught: " << err.what() << std::endl;
+  }
+  catch(...) {
+    std::cerr << "Unknown exception caught" << std::endl;
+  }
+}
+
 static void merge_options_and_config(Arc::Config& cfg, Arc::ServerOptions& opt)
 {
     Arc::XMLNode srv = cfg["Server"];
@@ -267,6 +284,8 @@ int main(int argc, char **argv)
     signal(SIGTTOU,SIG_IGN);
     signal(SIGPIPE,SIG_IGN);
     signal(SIGHUP,&sighup_handler);
+    // Set up Glib exception handler
+    Glib::add_exception_handler(sigc::ptr_fun(&glib_exception_handler));
     // Temporary stderr destination for error messages
     Arc::LogStream logcerr(std::cerr);
     Arc::Logger::getRootLogger().addDestination(logcerr);
