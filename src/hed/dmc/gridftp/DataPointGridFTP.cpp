@@ -418,6 +418,7 @@ namespace Arc {
   DataStatus DataPointGridFTP::StopReading() {
     if (!reading) return DataStatus::ReadStopError;
     reading = false;
+    if (!buffer) return DataStatus(DataStatus::ReadStopError, EARCLOGIC, "Not reading");
     if (!buffer->eof_read()) {
       logger.msg(VERBOSE, "stop_reading_ftp: aborting connection");
       GlobusResult res = globus_ftp_client_abort(&ftp_handle);
@@ -436,6 +437,7 @@ namespace Arc {
     logger.msg(VERBOSE, "stop_reading_ftp: waiting for transfer to finish");
     cond.wait();
     logger.msg(VERBOSE, "stop_reading_ftp: exiting: %s", url.str());
+    buffer = NULL;
     //globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
     if (!callback_status) return DataStatus(DataStatus::ReadStopError, callback_status.GetDesc());
     return DataStatus::Success;
@@ -563,9 +565,9 @@ namespace Arc {
       it->cond.lock();
       it->failure_code = DataStatus(DataStatus::ReadStartError, trim(globus_object_to_string(error)));
       it->cond.unlock();
-      it->buffer->error_read(true);
+      if (it->buffer) it->buffer->error_read(true);
     } else {
-      it->buffer->eof_read(true); // This also reports to working threads transfer finished
+      if (it->buffer) it->buffer->eof_read(true); // This also reports to working threads transfer finished
     }
     ((CBArg*)arg)->release();
     return;
@@ -635,6 +637,7 @@ namespace Arc {
   DataStatus DataPointGridFTP::StopWriting() {
     if (!writing) return DataStatus::WriteStopError;
     writing = false;
+    if (!buffer) return DataStatus(DataStatus::WriteStopError, EARCLOGIC, "Not writing");
     if (!buffer->eof_write()) {
       logger.msg(VERBOSE, "StopWriting: aborting connection");
       GlobusResult res = globus_ftp_client_abort(&ftp_handle);
@@ -693,6 +696,7 @@ namespace Arc {
             } else {
               logger.msg(ERROR, "Checksum mismatch between calculated checksum %s and checksum reported by server %s",
                        csum, std::string(DefaultCheckSum()+':'+cksum));
+              buffer = NULL;
               return DataStatus(DataStatus::TransferError, EARCCHECKSUM);
             }
           }
@@ -700,6 +704,7 @@ namespace Arc {
       }
     }
     //globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
+    buffer = NULL;
     if (!callback_status) return DataStatus(DataStatus::WriteStopError, callback_status.GetDesc());
     return DataStatus::Success;
   }
@@ -814,11 +819,11 @@ namespace Arc {
       it->failure_code = DataStatus(DataStatus::WriteStartError, trim(globus_object_to_string(error)));
       it->cond.unlock();
       logger.msg(ERROR, trim(globus_object_to_string(error)));
-      it->buffer->error_write(true);
+      if (it->buffer) it->buffer->error_write(true);
     } else {
       logger.msg(DEBUG, "ftp_put_complete_callback: success");
       // This also reports to data transfer thread that transfer finished
-      it->buffer->eof_write(true);
+      if (it->buffer) it->buffer->eof_write(true);
     }
     ((CBArg*)arg)->release();
     return;
