@@ -348,7 +348,7 @@ int main(int argc,char* argv[]) {
     else if (!source_st) err += " : " + std::string(source_st);
     ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
                  (source_url.Protocol() != "file") ?
-                  (!source_st && source_st.Retryable() ?
+                  (((!source_st && source_st.Retryable()) || buffer.speed.transferred_size() > 0) ?
                       DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
                       DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR) :
                   DataStaging::DTRErrorStatus::LOCAL_FILE_ERROR,
@@ -364,7 +364,7 @@ int main(int argc,char* argv[]) {
     else if (!dest_st) err += " : " + std::string(dest_st);
     ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
                  (dest_url.Protocol() != "file") ?
-                  (!dest_st && dest_st.Retryable() ?
+                  (((!dest_st && dest_st.Retryable()) || buffer.speed.transferred_size() > 0) ?
                          DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
                          DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR) :
                   DataStaging::DTRErrorStatus::LOCAL_FILE_ERROR,
