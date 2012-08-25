@@ -345,7 +345,7 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
           continue;
         }
   
-        std::cout << Arc::IString("Job description to be sent to %s:", ets->ComputingService->Cluster.str()) << std::endl;
+        std::cout << Arc::IString("Job description to be sent to %s:", ets->AdminDomain->Name) << std::endl;
         std::cout << jobdesc << std::endl;
         descriptionDumped = true;
         break;
