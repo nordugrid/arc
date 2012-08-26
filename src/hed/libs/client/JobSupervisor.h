@@ -8,6 +8,7 @@
 
 #include <arc/URL.h>
 #include <arc/client/JobControllerPlugin.h>
+#include <arc/client/EntityRetriever.h>
 
 namespace Arc {
 
@@ -21,7 +22,7 @@ namespace Arc {
    * for managing Grid jobs.
    **/
 
-  class JobSupervisor {
+  class JobSupervisor : public EntityConsumer<Job> {
   public:
     /// Create a JobSupervisor
     /**
@@ -64,6 +65,8 @@ namespace Arc {
      *  message emitted with the reason.
      **/
     bool AddJob(const Job& job);
+
+    void addEntity(const Job& job) { AddJob(job); }
 
     /// Get list of managed jobs
     /**
