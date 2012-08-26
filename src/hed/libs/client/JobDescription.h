@@ -537,6 +537,8 @@ namespace Arc {
      **/
     static JobDescriptionResult Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "");
 
+    static JobDescriptionResult ParseFromFile(const std::string& filename, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "");
+
     /// Output contents in the specified language
     /**
      *

@@ -409,6 +409,26 @@ namespace Arc {
     }
   }
 
+  JobDescriptionResult JobDescription::ParseFromFile(const std::string& filename, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) {
+    std::ifstream descriptionfile(filename.c_str());
+    if (!descriptionfile) {
+      return JobDescriptionResult(false, "Can not open job description file: " + filename);
+    }
+
+    descriptionfile.seekg(0, std::ios::end);
+    std::streamsize length = descriptionfile.tellg();
+    descriptionfile.seekg(0, std::ios::beg);
+
+    char *buffer = new char[length + 1];
+    descriptionfile.read(buffer, length);
+    descriptionfile.close();
+
+    buffer[length] = '\0';
+    JobDescriptionResult r = Parse((std::string)buffer, jobdescs);
+    delete[] buffer;
+    return r;
+  }
+
   JobDescriptionResult JobDescription::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) {
     if (source.empty()) {
       logger.msg(ERROR, "Empty job description source string");
