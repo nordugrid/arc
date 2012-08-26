@@ -610,7 +610,9 @@ namespace Arc {
      * @return false is returned is file checks fails, or if unable to resolve
      *  software requirements.
      */
-    bool Prepare(const ExecutionTarget& et);
+    bool Prepare(const ExecutionTarget& et) { return Prepare(&et); }
+
+    bool Prepare() { return Prepare(NULL); }
 
     static bool GetTestJob(int testid, JobDescription& jobdescription);
 
@@ -625,6 +627,8 @@ namespace Arc {
     std::map<std::string, std::string> OtherAttributes;
 
   private:
+    bool Prepare(const ExecutionTarget* et);
+  
     void Set(const JobDescription& j);
 
     std::string sourceLanguage;

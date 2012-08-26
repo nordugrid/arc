@@ -477,7 +477,7 @@ namespace Arc {
     return JobDescriptionResult(false,"Language not recognized");
   }
 
-  bool JobDescription::Prepare(const ExecutionTarget& et) {
+  bool JobDescription::Prepare(const ExecutionTarget* et) {
     // Check for identical file names.
     // Check if executable and input is contained in the file list.
     bool executableIsAdded(false), inputIsAdded(false), outputIsAdded(false), errorIsAdded(false), logDirIsAdded(false);
@@ -575,29 +575,31 @@ namespace Arc {
       file.Name = Application.LogDir;
     }
 
-    if (!Resources.RunTimeEnvironment.empty() &&
-        !Resources.RunTimeEnvironment.selectSoftware(*et.ApplicationEnvironments)) {
-      // This error should never happen since RTE is checked in the Broker.
-      logger.msg(VERBOSE, "Unable to select runtime environment");
-      return false;
+    if (et != NULL) {
+      if (!Resources.RunTimeEnvironment.empty() &&
+          !Resources.RunTimeEnvironment.selectSoftware(*et->ApplicationEnvironments)) {
+        // This error should never happen since RTE is checked in the Broker.
+        logger.msg(VERBOSE, "Unable to select runtime environment");
+        return false;
+      }
+  
+      if (!Resources.CEType.empty() &&
+          !Resources.CEType.selectSoftware(et->ComputingEndpoint->Implementation)) {
+        // This error should never happen since Middleware is checked in the Broker.
+        logger.msg(VERBOSE, "Unable to select middleware");
+        return false;
+      }
+  
+      if (!Resources.OperatingSystem.empty() &&
+          !Resources.OperatingSystem.selectSoftware(et->ExecutionEnvironment->OperatingSystem)) {
+        // This error should never happen since OS is checked in the Broker.
+        logger.msg(VERBOSE, "Unable to select operating system.");
+        return false;
+      }
+  
+      // Set queue name to the selected ExecutionTarget
+      Resources.QueueName = et->ComputingShare->Name;
     }
-
-    if (!Resources.CEType.empty() &&
-        !Resources.CEType.selectSoftware(et.ComputingEndpoint->Implementation)) {
-      // This error should never happen since Middleware is checked in the Broker.
-      logger.msg(VERBOSE, "Unable to select middleware");
-      return false;
-    }
-
-    if (!Resources.OperatingSystem.empty() &&
-        !Resources.OperatingSystem.selectSoftware(et.ExecutionEnvironment->OperatingSystem)) {
-      // This error should never happen since OS is checked in the Broker.
-      logger.msg(VERBOSE, "Unable to select operating system.");
-      return false;
-    }
-
-    // Set queue name to the selected ExecutionTarget
-    Resources.QueueName = et.ComputingShare->Name;
 
     return true;
   }
