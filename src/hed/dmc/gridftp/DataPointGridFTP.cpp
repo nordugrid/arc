@@ -556,18 +556,16 @@ namespace Arc {
                                                    globus_object_t *error) {
     DataPointGridFTP *it = ((CBArg*)arg)->acquire();
     if(!it) return;
-    if(it->reading) {
-      /* data transfer finished */
-      if (error != GLOBUS_SUCCESS) {
-        logger.msg(INFO, "Failed to get ftp file");
-        logger.msg(ERROR, trim(globus_object_to_string(error)));
-        it->cond.lock();
-        it->failure_code = DataStatus(DataStatus::ReadStartError, trim(globus_object_to_string(error)));
-        it->cond.unlock();
-        it->buffer->error_read(true);
-      } else {
-        it->buffer->eof_read(true); // This also reports to working threads transfer finished
-      }
+    /* data transfer finished */
+    if (error != GLOBUS_SUCCESS) {
+      logger.msg(INFO, "Failed to get ftp file");
+      logger.msg(ERROR, trim(globus_object_to_string(error)));
+      it->cond.lock();
+      it->failure_code = DataStatus(DataStatus::ReadStartError, trim(globus_object_to_string(error)));
+      it->cond.unlock();
+      it->buffer->error_read(true);
+    } else {
+      it->buffer->eof_read(true); // This also reports to working threads transfer finished
     }
     ((CBArg*)arg)->release();
     return;
@@ -809,20 +807,18 @@ namespace Arc {
                                                    globus_object_t *error) {
     DataPointGridFTP *it = ((CBArg*)arg)->acquire();
     if(!it) return;
-    if(it->writing) {
-      /* data transfer finished */
-      if (error != GLOBUS_SUCCESS) {
-        logger.msg(INFO, "Failed to store ftp file");
-        it->cond.lock(); // Protect access to failure_code
-        it->failure_code = DataStatus(DataStatus::WriteStartError, trim(globus_object_to_string(error)));
-        it->cond.unlock();
-        logger.msg(ERROR, trim(globus_object_to_string(error)));
-        it->buffer->error_write(true);
-      } else {
-        logger.msg(DEBUG, "ftp_put_complete_callback: success");
-        // This also reports to data transfer thread that transfer finished
-        it->buffer->eof_write(true);
-      }
+    /* data transfer finished */
+    if (error != GLOBUS_SUCCESS) {
+      logger.msg(INFO, "Failed to store ftp file");
+      it->cond.lock(); // Protect access to failure_code
+      it->failure_code = DataStatus(DataStatus::WriteStartError, trim(globus_object_to_string(error)));
+      it->cond.unlock();
+      logger.msg(ERROR, trim(globus_object_to_string(error)));
+      it->buffer->error_write(true);
+    } else {
+      logger.msg(DEBUG, "ftp_put_complete_callback: success");
+      // This also reports to data transfer thread that transfer finished
+      it->buffer->eof_write(true);
     }
     ((CBArg*)arg)->release();
     return;
