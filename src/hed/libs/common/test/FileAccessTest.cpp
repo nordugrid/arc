@@ -72,7 +72,7 @@ void FileAccessTest::setUp() {
 }
 
 void FileAccessTest::tearDown() {
-//  Arc::DirDelete(testroot);
+  Arc::DirDelete(testroot);
 }
 
 #ifndef WIN32
