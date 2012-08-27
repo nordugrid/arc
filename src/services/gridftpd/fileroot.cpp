@@ -32,6 +32,7 @@ FileNode::FileNode(char* dirname,char* plugin,std::istream &cfile,userspec_t &us
   if(!handle) {
     logger.msg(Arc::ERROR, dlerror());
     logger.msg(Arc::ERROR, "Can't load plugin %s for access point %s", plugin, dirname);
+    return;
   };
   init=(plugin_init_t)dlsym(handle,"init");
   if(init == NULL) {
