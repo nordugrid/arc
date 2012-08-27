@@ -563,15 +563,41 @@ namespace Arc {
 
       case CRED_DER:
         CredentialLogger.msg(DEBUG,"Certificate format is DER");
+        // TODO: need to fix because of the vulnerability in d2i_X509_bio,
+        // see link: http://www.openssl.org/news/secadv_20120419.txt
+        x509 = d2i_X509_bio(certbio, NULL);
+        if(!x509){
+          throw CredentialError("Unable to read DER credential from BIO");
+        }
+        //Get the issuer chain
+        *certchain = sk_X509_new_null();
+        n = 0;
+        while(!BIO_eof(certbio)){
+          X509 * tmp = NULL;
+          if(!(tmp = d2i_X509_bio(certbio, NULL))){
+            ERR_clear_error(); break;
+          }
+          if(!sk_X509_insert(*certchain, tmp, n)) {
+            //std::string str(X509_NAME_oneline(X509_get_subject_name(tmp),0,0));
+            X509_free(tmp);
+            throw CredentialError("Can not insert cert into certificate's issuer chain");
+          }
+          ++n;
+        }
+        break;
+
+/*
         der_chr = (unsigned char*)(cert.c_str());
 #ifdef HAVE_OPENSSL_OLDRSA
         x509 = d2i_X509(NULL, (unsigned char**)&der_chr, cert.length());
 #else
         x509 = d2i_X509(NULL, (const unsigned char**)&der_chr, cert.length());
 #endif
+
         if(!x509){
           throw CredentialError("Unable to read DER credential from BIO");
         }
+*/
         //Get the issuer chain
 /*
         *certchain = sk_X509_new_null();
