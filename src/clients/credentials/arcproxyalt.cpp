@@ -533,9 +533,6 @@ int main(int argc, char *argv[]) {
   if(!proxy_path.empty())Arc::SetEnv("X509_USER_PROXY", proxy_path);
   if(!ca_dir.empty())Arc::SetEnv("X509_CERT_DIR", ca_dir);
 
-std::cout<<"===== "<<cert_path<<std::endl;
-std::cout<<"===== "<<key_path<<std::endl;
-
   // Set default, predefined or guessed credentials. Also check if they exist.
   Arc::UserConfig usercfg(conffile,
         Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
@@ -858,7 +855,7 @@ std::cout<<"===== "<<key_path<<std::endl;
   }
 
   // TODO: Myproxy
-  if (myproxy_command != "put" && myproxy_command != "PUT" && myproxy_command != "Put") {
+  if (!myproxy_command.empty() && (myproxy_command != "put" && myproxy_command != "PUT" && myproxy_command != "Put")) {
     bool res = contact_myproxy_server( myproxy_server, myproxy_command, 
       user_name, use_empty_passphrase, myproxy_period, retrievable_by_cert, 
       proxy_start, proxy_period, proxy_path, usercfg, logger);
