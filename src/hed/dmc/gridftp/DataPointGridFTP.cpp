@@ -418,7 +418,8 @@ namespace Arc {
   DataStatus DataPointGridFTP::StopReading() {
     if (!reading) return DataStatus::ReadStopError;
     reading = false;
-    if (!buffer->eof_read()) {
+    // If error in buffer then read thread will already have called abort
+    if (!buffer->eof_read() && !buffer->error()) {
       logger.msg(VERBOSE, "stop_reading_ftp: aborting connection");
       GlobusResult res = globus_ftp_client_abort(&ftp_handle);
       if(!res) {
@@ -430,7 +431,7 @@ namespace Arc {
         cond.lock();
         failure_code = DataStatus(DataStatus::ReadStopError, res.str());
         cond.unlock();
-        buffer->error_write(true);
+        buffer->error_read(true);
       }
     }
     logger.msg(VERBOSE, "stop_reading_ftp: waiting for transfer to finish");
@@ -635,7 +636,8 @@ namespace Arc {
   DataStatus DataPointGridFTP::StopWriting() {
     if (!writing) return DataStatus::WriteStopError;
     writing = false;
-    if (!buffer->eof_write()) {
+    // If error in buffer then write thread will already have called abort
+    if (!buffer->eof_write() && !buffer->error()) {
       logger.msg(VERBOSE, "StopWriting: aborting connection");
       GlobusResult res = globus_ftp_client_abort(&ftp_handle);
       if(!res) {
