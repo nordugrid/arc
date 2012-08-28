@@ -33,12 +33,16 @@ namespace Arc {
     time_t default_max_inactivity_time;
     DataSpeed::show_progress_t show_progress;
     std::string preferred_pattern;
+    bool cancelled;
+    /// For safe destruction of object, Transfer() holds this lock and
+    /// destructor waits until the lock can be obtained
+    Glib::Mutex lock_;
     static Logger logger;
   public:
     typedef void (*callback)(DataMover*, DataStatus, void*);
     /// Constructor
     DataMover();
-    /// Destructor
+    /// Destructor cancels transfer if active and waits for cancellation to finish
     ~DataMover();
     /// Initiates transfer from 'source' to 'destination'.
     /// \param source source URL.
@@ -73,6 +77,8 @@ namespace Arc {
                         const char *prefix = NULL);
     /// Delete the file at url.
     DataStatus Delete(DataPoint& url, bool errcont = false);
+    /// Cancel transfer, cleaning up any data written or registered
+    void Cancel();
     /// Check if printing information about transfer status is activated.
     bool verbose();
     /// Activate printing information about transfer status.

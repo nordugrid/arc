@@ -182,6 +182,9 @@ namespace Arc {
       /// Data was already cached
       SuccessCached,
       
+      /// Operation was cancelled successfully
+      SuccessCancelled,
+
       /// General error which doesn't fit any other error
       GenericError,
 
@@ -270,7 +273,7 @@ namespace Arc {
     bool Passed() const {
       return ((status == Success) || (status == NotSupportedForDirectDataPointsError) ||
               (status == ReadPrepareWait) || (status == WritePrepareWait) ||
-              (status == SuccessCached));
+              (status == SuccessCached) || (status == SuccessCancelled));
     }
   
     /// Returns true if the error was temporary and could be retried.

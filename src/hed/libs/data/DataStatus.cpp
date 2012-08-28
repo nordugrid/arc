@@ -51,6 +51,7 @@ namespace Arc {
     istring("Failed to create directory"),                    // CreateDirectoryError
     istring("Failed to rename URL"),                          // RenameError
     istring("Data was already cached"),                       // SuccessCached
+    istring("Operation cancelled successfully"),              // SuccessCancelled
     istring("Generic error"),                                 // GenericError
     istring("Unknown error")                                  // UnknownError
   };

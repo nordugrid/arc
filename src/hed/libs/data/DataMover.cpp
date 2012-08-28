@@ -48,9 +48,14 @@ namespace Arc {
       default_min_speed_time(0),
       default_min_average_speed(0),
       default_max_inactivity_time(300),
-      show_progress(NULL) {}
+      show_progress(NULL),
+      cancelled(false) {}
 
-  DataMover::~DataMover() {}
+  DataMover::~DataMover() {
+    Cancel();
+    // Wait for Transfer() to finish with lock
+    Glib::Mutex::Lock lock(lock_);
+  }
 
   bool DataMover::verbose() {
     return be_verbose;
@@ -422,6 +427,7 @@ namespace Arc {
     DataStatus res = DataStatus::TransferError;
     int try_num;
     for (try_num = 0;; try_num++) { /* cycle for retries */
+      Glib::Mutex::Lock lock(lock_);
       logger.msg(VERBOSE, "DataMover: cycle");
       if ((try_num != 0) && (!do_retries)) {
         logger.msg(VERBOSE, "DataMover: no retries requested - exit");
@@ -922,7 +928,8 @@ namespace Arc {
 #endif
       }
       logger.msg(VERBOSE, "Waiting for buffer");
-      for (; (!buffer.eof_read() || !buffer.eof_write()) && !buffer.error();) {
+      // cancelling will make loop exit before eof, triggering error and destinatinon cleanup
+      for (; (!buffer.eof_read() || !buffer.eof_write()) && !buffer.error() && !cancelled;) {
         buffer.wait_any();
         if (cacheable && !cache_lock.empty()) {
           // touch cache lock file regularly so it is still valid
@@ -962,6 +969,12 @@ namespace Arc {
                                        destination_meta_initially_stored).Passed())
           logger.msg(ERROR, "Failed to unregister preregistered lfn. "
                      "You may need to unregister it manually");
+
+        // Check for cancellation
+        if (cancelled) {
+          logger.msg(INFO, "Transfer cancelled successfully");
+          return DataStatus::SuccessCancelled;
+        }
         // Analyze errors
         // Easy part first - if either read or write part report error
         // go to next endpoint.
@@ -1143,6 +1156,10 @@ namespace Arc {
       break;
     }
     return DataStatus::Success;
+  }
+
+  void DataMover::Cancel() {
+    cancelled = true;
   }
 
   void DataMover::secure(bool val) {
