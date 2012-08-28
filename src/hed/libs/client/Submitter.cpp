@@ -13,6 +13,13 @@ namespace Arc {
   SubmitterPluginLoader Submitter::loader;
   Logger Submitter::logger(Logger::getRootLogger(), "Submitter");
 
+  std::string EndpointSubmissionStatus::str(EndpointSubmissionStatusType s) {
+    if      (s == UNKNOWN)     return "UNKNOWN";
+    else if (s == NOPLUGIN)    return "NOPLUGIN";
+    else if (s == SUCCESSFUL)  return "SUCCESSFUL";
+    else                       return ""; // There should be no other alternative!
+  }
+
   void Submitter::removeConsumer(EntityConsumer<Job>& jc) {
     std::list<EntityConsumer<Job>*>::iterator it = std::find(consumers.begin(), consumers.end(), &jc);
     if (it != consumers.end()) {
