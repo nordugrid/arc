@@ -112,6 +112,8 @@ namespace Arc {
 
     SubmitterPlugin* loadByInterfaceName(const std::string& name, const UserConfig& usercfg);
 
+    static std::list<std::string> getListOfPlugins();
+
   private:
     void initialiseInterfacePluginMap(const UserConfig& uc);
   
