@@ -9,6 +9,7 @@
 
 #include <unistd.h>
 #include <sys/types.h>
+#include <signal.h>
 
 #include <arc/ArcLocation.h>
 #include <arc/GUID.h>
@@ -26,6 +27,15 @@
 #include <arc/OptionParser.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arccp");
+static Arc::SimpleCondition cond;
+static bool cancelled = false;
+
+static void sig_cancel(int)
+{
+  cancelled = true;
+  cond.broadcast();
+}
+
 
 static void progress(FILE *o, const char*, unsigned int,
                      unsigned long long int all, unsigned long long int max,
@@ -56,6 +66,13 @@ static void progress(FILE *o, const char*, unsigned int,
 
 static void transfer_cb(unsigned long long int bytes_transferred) {
   fprintf (stderr, "\r%llu kB                  \r", bytes_transferred / 1024);
+}
+
+
+static void mover_callback(Arc::DataMover* mover, Arc::DataStatus status, void* arg) {
+  Arc::DataStatus* res = (Arc::DataStatus*)arg;
+  *res = status;
+  cond.broadcast();
 }
 
 bool arctransfer(const Arc::URL& source_url,
@@ -96,9 +113,10 @@ bool arctransfer(const Arc::URL& source_url,
       logger.msg(Arc::ERROR, "Third party transfer is not supported for these endpoints");
     } else {
       logger.msg(Arc::ERROR, "Transfer FAILED: %s", std::string(res));
+      if (res.Retryable()) {
+        logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
+      }
     }
-    if (res.Retryable())
-      logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
     return false;
   }
   return true;
@@ -144,9 +162,11 @@ bool arcregister(const Arc::URL& source_url,
     for (std::list<Arc::URL>::iterator source = sources.begin(),
                                        destination = destinations.begin();
          (source != sources.end()) && (destination != destinations.end());
-         source++, destination++)
-      if(!arcregister(*source, *destination, locations, usercfg, secure, passive,
-                      force_meta, timeout)) r = false;
+         source++, destination++) {
+      if (!arcregister(*source, *destination, locations, usercfg, secure, passive,
+                       force_meta, timeout)) r = false;
+      if (cancelled) return true;
+    }
     return r;
   }
   if (source_url.Protocol() == "urllist") {
@@ -158,9 +178,11 @@ bool arcregister(const Arc::URL& source_url,
     }
     bool r = true;
     for (std::list<Arc::URL>::iterator source = sources.begin();
-         source != sources.end(); source++)
-      if(!arcregister(*source, destination_url, locations, usercfg, secure, passive,
-                      force_meta, timeout)) r = false;
+         source != sources.end(); source++) {
+      if (!arcregister(*source, destination_url, locations, usercfg, secure, passive,
+                       force_meta, timeout)) r = false;
+      if (cancelled) return true;
+    }
     return r;
   }
   if (destination_url.Protocol() == "urllist") {
@@ -172,9 +194,11 @@ bool arcregister(const Arc::URL& source_url,
     }
     bool r = true;
     for (std::list<Arc::URL>::iterator destination = destinations.begin();
-         destination != destinations.end(); destination++)
-      if(!arcregister(source_url, *destination, locations, usercfg, secure, passive,
-                      force_meta, timeout)) r = false;
+         destination != destinations.end(); destination++) {
+      if (!arcregister(source_url, *destination, locations, usercfg, secure, passive,
+                       force_meta, timeout)) r = false;
+      if (cancelled) return true;
+    }
     return r;
   }
 
@@ -207,8 +231,9 @@ bool arcregister(const Arc::URL& source_url,
   }
   if (!locations.empty()) {
     std::string meta(destination->GetURL().Protocol()+"://"+destination->GetURL().Host());
-    for (std::list<std::string>::const_iterator i = locations.begin(); i != locations.end(); ++i)
+    for (std::list<std::string>::const_iterator i = locations.begin(); i != locations.end(); ++i) {
       destination->AddLocation(*i, meta);
+    }
   }
   // Obtain meta-information about source
   Arc::FileInfo fileinfo;
@@ -237,8 +262,7 @@ bool arcregister(const Arc::URL& source_url,
   // remove locations if exist
   for (destination->SetTries(1); destination->RemoveLocation();) {}
   // add new location
-  if (metaname.empty())
-    metaname = source_url.ConnectionURL();
+  if (metaname.empty()) metaname = source_url.ConnectionURL();
   if (!destination->AddLocation(source_url, metaname)) {
     destination->PreUnregister(replication);
     logger.msg(Arc::ERROR, "Failed to accept new file/destination");
@@ -255,6 +279,67 @@ bool arcregister(const Arc::URL& source_url,
     return false;
   }
   return true;
+}
+
+static Arc::DataStatus do_mover(const Arc::URL& s_url,
+                                const Arc::URL& d_url,
+                                const std::list<std::string>& locations,
+                                const std::string& cache_dir,
+                                Arc::UserConfig& usercfg,
+                                bool secure,
+                                bool passive,
+                                bool force_meta,
+                                int tries,
+                                bool verbose,
+                                int timeout) {
+
+  Arc::DataHandle source(s_url, usercfg);
+  Arc::DataHandle destination(d_url, usercfg);
+  if (!source) {
+    logger.msg(Arc::INFO, "Unsupported source url: %s", s_url.str());
+    return Arc::DataStatus::ReadAcquireError;
+  }
+  if (!destination) {
+    logger.msg(Arc::INFO, "Unsupported destination url: %s", d_url.str());
+    return Arc::DataStatus::WriteAcquireError;
+  }
+  if (!locations.empty()) {
+    std::string meta(destination->GetURL().Protocol()+"://"+destination->GetURL().Host());
+    for (std::list<std::string>::const_iterator i = locations.begin(); i != locations.end(); ++i) {
+      destination->AddLocation(*i, meta);
+    }
+  }
+  Arc::DataMover mover;
+  mover.secure(secure);
+  mover.passive(passive);
+  mover.verbose(verbose);
+  mover.force_to_meta(force_meta);
+  if (tries) {
+    mover.retry(true); // go through all locations
+    source->SetTries(tries); // try all locations "tries" times
+    destination->SetTries(tries);
+  }
+  Arc::User cache_user;
+  Arc::FileCache cache;
+  if (!cache_dir.empty()) cache = Arc::FileCache(cache_dir+" .", "", cache_user.get_uid(), cache_user.get_gid());
+  if (verbose) mover.set_progress_indicator(&progress);
+
+  Arc::DataStatus callback_res;
+  Arc::DataStatus res = mover.Transfer(*source, *destination, cache, Arc::URLMap(),
+                                       0, 0, 0, timeout, &mover_callback, &callback_res);
+  if (!res.Passed()) {
+    logger.msg(Arc::ERROR, "Current transfer FAILED: %s", std::string(res));
+    if (res.Retryable()) {
+      logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
+    }
+    return res;
+  }
+  cond.wait(); // wait for mover_callback
+
+  if (verbose) std::cerr<<std::endl;
+  if (cache) cache.Release();
+
+  return callback_res;
 }
 
 bool arccp(const Arc::URL& source_url_,
@@ -280,10 +365,8 @@ bool arccp(const Arc::URL& source_url_,
     return false;
   }
 
-  if (timeout <= 0)
-    timeout = 300; // 5 minute default
-  if (tries < 0)
-    tries = 0;
+  if (timeout <= 0) timeout = 300; // 5 minute default
+  if (tries < 0) tries = 0;
   if (source_url.Protocol() == "urllist" &&
       destination_url.Protocol() == "urllist") {
     std::list<Arc::URL> sources = Arc::ReadURLList(source_url);
@@ -307,9 +390,11 @@ bool arccp(const Arc::URL& source_url_,
     for (std::list<Arc::URL>::iterator source = sources.begin(),
                                        destination = destinations.begin();
          (source != sources.end()) && (destination != destinations.end());
-         source++, destination++)
-      if(!arccp(*source, *destination, locations, cache_dir, usercfg, secure, passive,
-                force_meta, recursion, tries, verbose, timeout)) r = false;
+         source++, destination++) {
+      if (!arccp(*source, *destination, locations, cache_dir, usercfg, secure, passive,
+                 force_meta, recursion, tries, verbose, timeout)) r = false;
+      if (cancelled) return true;
+    }
     return r;
   }
   if (source_url.Protocol() == "urllist") {
@@ -321,10 +406,11 @@ bool arccp(const Arc::URL& source_url_,
     }
     bool r = true;
     for (std::list<Arc::URL>::iterator source = sources.begin();
-         source != sources.end(); source++)
-      if(!arccp(*source, destination_url, locations, cache_dir, usercfg, secure,
-                passive, force_meta, recursion, tries, verbose, timeout))
-        r = false;
+         source != sources.end(); source++) {
+      if (!arccp(*source, destination_url, locations, cache_dir, usercfg, secure,
+                 passive, force_meta, recursion, tries, verbose, timeout)) r = false;
+      if (cancelled) return true;
+    }
     return r;
   }
   if (destination_url.Protocol() == "urllist") {
@@ -336,11 +422,20 @@ bool arccp(const Arc::URL& source_url_,
     }
     bool r = true;
     for (std::list<Arc::URL>::iterator destination = destinations.begin();
-         destination != destinations.end(); destination++)
-      if(!arccp(source_url, *destination, locations, cache_dir, usercfg, secure,
-                passive, force_meta, recursion, tries, verbose, timeout))
-        r = false;
+         destination != destinations.end(); destination++) {
+      if (!arccp(source_url, *destination, locations, cache_dir, usercfg, secure,
+                 passive, force_meta, recursion, tries, verbose, timeout)) r = false;
+      if (cancelled) return true;
+    }
     return r;
+  }
+
+  if (source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) {
+    usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials);
+    if (!Arc::Credential::IsCredentialsValid(usercfg)) {
+      logger.msg(Arc::ERROR, "Unable to copy file %s: No valid credentials found", source_url.str());
+      return false;
+    }
   }
 
   if (destination_url.Path()[destination_url.Path().length() - 1] != '/') {
@@ -379,13 +474,6 @@ bool arccp(const Arc::URL& source_url_,
                    "Fileset copy for this kind of source is not supported");
         return false;
       }
-      if (source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) {
-        usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials);
-        if (!Arc::Credential::IsCredentialsValid(usercfg)) {
-          logger.msg(Arc::ERROR, "Unable to copy file %s: No valid credentials found", source_url.str());
-          return false;
-        }
-      }
       Arc::DataHandle source(source_url, usercfg);
       if (!source) {
         logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
@@ -399,62 +487,31 @@ bool arccp(const Arc::URL& source_url_,
           return false;
         }
       }
-      else
+      else {
         if (!source->List(files, (Arc::DataPoint::DataPointInfoType)
                   (Arc::DataPoint::INFO_TYPE_NAME | Arc::DataPoint::INFO_TYPE_TYPE))) {
           logger.msg(Arc::ERROR, "Failed listing files");
           return false;
         }
+      }
       bool failures = false;
       // Handle transfer of files first (treat unknown like files)
       for (std::list<Arc::FileInfo>::iterator i = files.begin();
            i != files.end(); i++) {
         if ((i->GetType() != Arc::FileInfo::file_type_unknown) &&
-            (i->GetType() != Arc::FileInfo::file_type_file))
-          continue;
+            (i->GetType() != Arc::FileInfo::file_type_file)) continue;
+
         logger.msg(Arc::INFO, "Name: %s", i->GetName());
         Arc::URL s_url(std::string(source_url.str() + i->GetName()));
         Arc::URL d_url(std::string(destination_url.str() + i->GetName()));
         logger.msg(Arc::INFO, "Source: %s", s_url.str());
         logger.msg(Arc::INFO, "Destination: %s", d_url.str());
-        Arc::DataHandle source(s_url, usercfg);
-        Arc::DataHandle destination(d_url, usercfg);
-        if (!source) {
-          logger.msg(Arc::INFO, "Unsupported source url: %s", s_url.str());
-          continue;
-        }
-        if (!destination) {
-          logger.msg(Arc::INFO, "Unsupported destination url: %s", d_url.str());
-          continue;
-        }
-        if (!locations.empty()) {
-          std::string meta(destination->GetURL().Protocol()+"://"+destination->GetURL().Host());
-          for (std::list<std::string>::const_iterator i = locations.begin(); i != locations.end(); ++i)
-            destination->AddLocation(*i, meta);
-        }
-        Arc::DataMover mover;
-        mover.secure(secure);
-        mover.passive(passive);
-        mover.verbose(verbose);
-        mover.force_to_meta(force_meta);
-        if (tries) {
-          mover.retry(true); // go through all locations
-          source->SetTries(tries); // try all locations "tries" times
-          destination->SetTries(tries);
-        }
-        Arc::User cache_user;
-        Arc::FileCache cache;
-        if (!cache_dir.empty()) cache = Arc::FileCache(cache_dir+" .", "", cache_user.get_uid(), cache_user.get_gid());
-        Arc::DataStatus res = mover.Transfer(*source, *destination, cache, Arc::URLMap(),
-                                             0, 0, 0, timeout);
-        if (!res.Passed()) {
-          logger.msg(Arc::INFO, "Current transfer FAILED: %s", std::string(res));
-          if (res.Retryable())
-            logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
-          failures = true;
-        }
-        else
-          logger.msg(Arc::INFO, "Current transfer complete");
+
+        Arc::DataStatus res = do_mover(s_url, d_url, locations, cache_dir, usercfg, secure, passive,
+                                       force_meta, tries, verbose, timeout);
+        if (cancelled) return true;
+        if (!res.Passed()) failures = true;
+        else logger.msg(Arc::INFO, "Current transfer complete");
       }
       if (failures) {
         logger.msg(Arc::ERROR, "Some transfers failed");
@@ -466,75 +523,27 @@ bool arccp(const Arc::URL& source_url_,
         // Handle directories recursively
         for (std::list<Arc::FileInfo>::iterator i = files.begin();
              i != files.end(); i++) {
-          if (i->GetType() != Arc::FileInfo::file_type_dir)
-            continue;
-          if (verbose)
-            logger.msg(Arc::INFO, "Directory: %s", i->GetName());
+          if (i->GetType() != Arc::FileInfo::file_type_dir) continue;
+          if (verbose) logger.msg(Arc::INFO, "Directory: %s", i->GetName());
           std::string s_url(source_url.str());
           std::string d_url(destination_url.str());
           s_url += i->GetName();
           d_url += i->GetName();
           s_url += "/";
           d_url += "/";
-          if(!arccp(s_url, d_url, locations, cache_dir, usercfg, secure, passive,
-                    force_meta, recursion - 1, tries, verbose, timeout))
-            r = false;
+          if (!arccp(s_url, d_url, locations, cache_dir, usercfg, secure, passive,
+                     force_meta, recursion - 1, tries, verbose, timeout)) r = false;
+          if (cancelled) return true;
         }
       return r;
     }
   }
-  if (source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) {
-    usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials);
-    if (!Arc::Credential::IsCredentialsValid(usercfg)) {
-      logger.msg(Arc::ERROR, "Unable to copy file %s: No valid credentials found", source_url.str());
-      return false;
-    }
-  }
-  Arc::DataHandle source(source_url, usercfg);
-  Arc::DataHandle destination(destination_url, usercfg);
-  if (!source) {
-    logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
-    return false;
-  }
-  if (!destination) {
-    logger.msg(Arc::ERROR, "Unsupported destination url: %s",
-               destination_url.str());
-    return false;
-  }
-  if (!locations.empty()) {
-    std::string meta(destination->GetURL().Protocol()+"://"+destination->GetURL().Host());
-    for (std::list<std::string>::const_iterator i = locations.begin(); i != locations.end(); ++i)
-      destination->AddLocation(*i, meta);
-  }
-  Arc::DataMover mover;
-  mover.secure(secure);
-  mover.passive(passive);
-  mover.verbose(verbose);
-  mover.force_to_meta(force_meta);
-  if (tries) { // 0 means default behavior
-    mover.retry(true); // go through all locations
-    source->SetTries(tries); // try all locations "tries" times
-    destination->SetTries(tries);
-  }
-  Arc::FileCache cache;
-  Arc::User cache_user;
-  std::string job_id(Arc::UUID());
-  // always copy to destination rather than link
-  if (!cache_dir.empty()) cache = Arc::FileCache(cache_dir+" .", job_id, cache_user.get_uid(), cache_user.get_gid());
-  if (verbose)
-    mover.set_progress_indicator(&progress);
-  Arc::DataStatus res = mover.Transfer(*source, *destination, cache, Arc::URLMap(),
-                                       0, 0, 0, timeout);
-  if (verbose) std::cerr<<std::endl;
-  // clean up joblinks created during cache procedure
-  if (cache)
-    cache.Release();
-  if (!res.Passed()) {
-    logger.msg(Arc::ERROR, "Transfer FAILED: %s", std::string(res));
-    if (res.Retryable())
-      logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
-    return false;
-  }
+
+  Arc::DataStatus res = do_mover(source_url, destination_url, locations, cache_dir, usercfg, secure, passive,
+                                 force_meta, tries, verbose, timeout);
+  if (cancelled) return true;
+  if (!res.Passed()) return false;
+
   logger.msg(Arc::INFO, "Transfer complete");
   return true;
 }
@@ -542,6 +551,10 @@ bool arccp(const Arc::URL& source_url_,
 int main(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
+
+  // set signal handlers for safe cancellation
+  signal(SIGTERM, sig_cancel);
+  signal(SIGINT, sig_cancel);
 
   Arc::LogStream logcerr(std::cerr);
   logcerr.setFormat(Arc::ShortFormat);
@@ -654,8 +667,7 @@ int main(int argc, char **argv) {
   }
 
   // If debug is specified as argument, it should be set before loading the configuration.
-  if (!debug.empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+  if (!debug.empty()) Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
   if (show_plugins) {
     std::list<Arc::ModuleDesc> modules;
@@ -682,8 +694,9 @@ int main(int argc, char **argv) {
   }
   usercfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY);
 
-  if (debug.empty() && !usercfg.Verbosity().empty())
+  if (debug.empty() && !usercfg.Verbosity().empty()) {
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
+  }
 
   if (params.size() != 2) {
     logger.msg(Arc::ERROR, "Wrong number of parameters specified");
@@ -695,8 +708,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if ((!secure) && (!notpassive))
-    passive = true;
+  if ((!secure) && (!notpassive)) passive = true;
 
   std::list<std::string>::iterator it = params.begin();
   std::string source = *it;
@@ -705,16 +717,14 @@ int main(int argc, char **argv) {
 
   if (source == "-") source = "stdio:///stdin";
   if (destination == "-") destination = "stdio:///stdout";
+
   if (thirdparty) {
-    if (!arctransfer(source, destination, locations, usercfg, secure, passive, verbose, timeout))
-      return 1;
+    if (!arctransfer(source, destination, locations, usercfg, secure, passive, verbose, timeout)) return 1;
   } else if (nocopy) {
-    if(!arcregister(source, destination, locations, usercfg, secure, passive, force, timeout))
-      return 1;
+    if (!arcregister(source, destination, locations, usercfg, secure, passive, force, timeout)) return 1;
   } else {
-    if(!arccp(source, destination, locations, cache_path, usercfg, secure, passive, force,
-          recursion, retries + 1, verbose, timeout))
-      return 1;
+    if (!arccp(source, destination, locations, cache_path, usercfg, secure, passive, force,
+               recursion, retries + 1, verbose, timeout)) return 1;
   }
 
   return 0;
