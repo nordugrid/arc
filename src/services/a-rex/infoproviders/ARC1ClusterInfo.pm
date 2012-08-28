@@ -79,12 +79,130 @@ sub bes_state {
     }
 }
 
+# TODO: understand emies state mapping.
+# this sub evaluates also failure states and changes
+# emies attributes accordingly.
+sub emies_state {
+    # TODO: probably add $failure_state taken from somewhere
+    my ($gm_state,$lrms_state,$failure_state) = @_;
+    my $es_state = {
+                    'State' => '',
+                    'Attributes' => ''
+                   };
+    if      ($gm_state eq "ACCEPTED") {
+        $es_state->{State} = [ "accepted" ];
+        $es_state->{Attributes} = [ "client-stagein-possible" ];
+        return $es_state;
+    } elsif ($gm_state eq "PREPARING") {
+        $es_state->{State} = [ "preprocessing" ];
+        $es_state->{Attributes} = [ "client-stagein-possible", "server-stagein" ];
+        return $es_state;
+    } elsif ($gm_state eq "SUBMIT") {
+        $es_state->{State} = [ "processing-accepting" ];
+        return $es_state;
+    } elsif ($gm_state eq "INLRMS") {
+        # TODO: check hot to map these!
+        if (not defined $lrms_state) {
+            $es_state->{State} = [ "processing-running" ];
+            $es_state->{Attributes} = [ "app-running" ];
+            return $es_state;
+        } elsif ($lrms_state eq 'Q') {
+            $es_state->{State} = [ "processing-queued" ];
+            $es_state->{Attributes} = '';
+            return $es_state;
+        } elsif ($lrms_state eq 'R') {
+            $es_state->{State} = [ "processing-running" ];
+            $es_state->{Attributes} = [ "app-running" ];
+            return $es_state;
+        } elsif ($lrms_state eq 'EXECUTED'
+              or $lrms_state eq '') {
+            $es_state->{State} = [ "processing-running" ];
+            $es_state->{Attributes} = '';
+            return $es_state;
+        } elsif ($lrms_state eq 'S') {
+            $es_state->{State} = [ "processing-running" ];
+            $es_state->{Attributes} = [ "batch-suspend" ];
+            return $es_state;
+        } else {
+            $es_state->{State} = [ "processing-running" ];
+            $es_state->{Attributes} = '';
+            return $es_state;
+        }
+    } elsif ($gm_state eq "FINISHING") {
+            $es_state->{State} = [ "postprocessing" ];
+            $es_state->{Attributes} = [ "client-stageout-possible", "server-stageout" ];
+            return $es_state;
+    } elsif ($gm_state eq "CANCELING") {
+            $es_state->{State} = [ "processing" ];
+            $es_state->{Attributes} = [ "processing-cancel" ];
+            return $es_state;
+    } elsif ($gm_state eq "KILLED") {
+        # TODO
+        return $es_state;
+    } elsif ($gm_state eq "FAILED") {
+            $es_state->{State} = [ "terminal" ];
+            if ($failure_state eq "ACCEPTED")  {                
+                $es_state->{Attributes} = ["validation-failure"];
+                return $es_state;
+            } elsif ($failure_state eq "PREPARING") {
+                $es_state->{Attributes} = ["preprocessing-cancel","preprocessing-failure"];
+                return $es_state;
+            } elsif ($failure_state eq "SUBMIT") {
+                $es_state->{Attributes} = ["processing-cancel","processing-failure"];
+                return $es_state;
+            } elsif ($failure_state eq "INLRMS") {
+                if ( $lrms_state eq "R" ) {
+                    $es_state->{Attributes} = ["processing-cancel","processing-failure","app-failure"];
+                    return $es_state;
+                } else {
+                    $es_state->{Attributes} = ["processing-cancel","processing-failure"];
+                    return $es_state;
+                }                
+            } elsif ($failure_state eq "FINISHING") {
+                $es_state->{Attributes} = ["postprocessing-cancel","postprocessing-failure"];
+                return $es_state;
+            } elsif ($failure_state eq "FINISHED") {
+                # TODO: $es_state->{Attributes} = '';
+                return $es_state;
+            } elsif ($failure_state eq "DELETED") {
+                # TODO: $es_state->{Attributes} = '';
+                return $es_state;
+            } elsif ($failure_state eq "CANCELING") {
+                # TODO: $es_state->{Attributes} = '';
+                return $es_state;
+            } else {
+                return $es_state;
+            }
+    } elsif ($gm_state eq "FINISHED") {
+            $es_state->{State} = [ "terminal" ];
+            $es_state->{Attributes} = [ "client-stageout-possible" ];
+            return $es_state;
+    } elsif ($gm_state eq "DELETED") {
+            $es_state->{State} = [ "terminal" ];
+            $es_state->{Attributes} = [ "expired" ];
+            return $es_state;
+    } elsif ($gm_state) { # this is the "pending" case
+        $es_state->{Attributes} = ["server-paused"];
+        return $es_state;
+    } else {
+        return $es_state;
+        }
+}
+
+# input is an array with (state, lrms_state, failure_state)
 sub glueState {
     my @ng_status = @_;
     return [ "UNDEFINEDVALUE" ] unless $ng_status[0];
     my $status = [ "nordugrid:".join(':',@ng_status) ];
     my $bes_state = bes_state(@ng_status);
     push @$status, "bes:".$bes_state->[0] if @$bes_state;
+    my $emies_state = emies_state(@ng_status);
+    push @$status, "emies:".@{$emies_state->{State}}[0] if $emies_state->{State};
+    if ($emies_state->{Attributes}) {
+        foreach my $attribs (@{$emies_state->{Attributes}}) {
+            push @$status, "emiesattr:".$attribs;
+        }
+    }
     return $status;
 }
 
@@ -600,9 +718,7 @@ sub collect($) {
     
     my $csvendpointsnum = 0;
     my $csvcapabilities = {};
-    
-    my $arisendpointsnum = 0;
-    my $ariscapabilities = {};
+    my $epscapabilities = {};
 
     # sets the default slapd port if not defined in config file.
     # this is not nice, as default port might change and would be hardcoded.
@@ -611,63 +727,100 @@ sub collect($) {
     my $ldapngendpoint = '';
     my $ldapglue1endpoint = '';
     my $ldapglue2endpoint = '';
-    my $ldapepcapabilities = {'information.discovery.resource' => ''}; 
 
     my $gridftphostport = '';
 
-    # check if gridftd interface exists
+    # TODO: calculate capabilities in a more efficient way. Maybe set
+    # them here for each endpoint and then copy them later?
+    # here we run the risk of having them not in synch with the 
+    # endpoints.
+    
+    
+    ## Endpoints initialization.
+    # checks for defined paths and enabled features, sets GLUE2 capabilities.
+        
+    # for org.nordugrid.gridftpjob
     if ($config->{GridftpdEnabled} == 1) { 
 	$gridftphostport = "$hostname:$config->{GridftpdPort}";
 	$csvendpointsnum++;
-	%$csvcapabilities = map { $_ => 1 } ('executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription');
+    $epscapabilities->{'org.nordugrid.gridftpjob'} = [ 
+                'executionmanagement.jobexecution',
+                'executionmanagement.jobmanager', 
+                'executionmanagement.jobdescription' 
+                ];
     };
     
-    # check if WS interface is configured in arc.conf
-    # to show its endpoints
+    # for org.nordugrid.xbes
     my $arexhostport = '';
     if ($config->{arexhostport}) {
       $arexhostport = $config->{arexhostport};
-      $csvendpointsnum++;
-      $arisendpointsnum++;
-      %$csvcapabilities = map { $_ => 1 } ('executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription','security.delegation');  
-      %$ariscapabilities = map { $_ => 1 } ('information.discovery.resource');  
+      $csvendpointsnum = $csvendpointsnum + 2; # xbes and wsrf
+      $epscapabilities->{'org.nordugrid.xbes'} = [
+                                    'executionmanagement.jobexecution',
+                                    'executionmanagement.jobmanager',
+                                    'executionmanagement.jobdescription',
+                                    'security.delegation',
+                                    ];  
     }
     
-    # The following is for EMI-ES
+    # The following are for EMI-ES
     my $emieshostport = '';
     if ($arexhostport ne '' && $config->{enable_emies_interface}) {
         $emieshostport = $arexhostport;
-        $csvendpointsnum++;
-        $arisendpointsnum++;
-        %$csvcapabilities = map { $_ => 1 } ('executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription', 'security.delegation');
-        %$ariscapabilities = map { $_ => 1 } ('information.discovery.resource'); # more to come related to job management?
+        $csvendpointsnum = $csvendpointsnum + 5;
+        $epscapabilities->{'org.ogf.glue.emies.activitycreation'} = [
+                                                'executionmanagement.jobcreation',
+                                                'executionmanagement.jobdescription'
+                                                ];
+        $epscapabilities->{'org.ogf.glue.emies.activitymanagement'} = [
+                                                'executionmanagement.jobmanagement',
+                                                'information.lookup.job'                                                
+                                                ];
+        $epscapabilities->{'org.ogf.glue.emies.resourceinfo'} = [
+                                                'information.discovery.resource',
+                                                'information.query.xpath1'
+                                                ];
+        $epscapabilities->{'org.ogf.glue.emies.activityinfo'} = [
+                                                'information.discovery.job',
+                                                'information.lookup.job'
+                                                ];
+        $epscapabilities->{'org.ogf.glue.emies.delegation'} = [
+                                                'security.delegation'
+                                                ];
     }
 
     # The following is for the Stagein interface
     my $stageinhostport = '';
    
-    # check whether rendering is enabled and create enpoint URLs
-    # for each rendering
+    
+    # ARIS LDAP endpoints
     
     # ldapng
     if ($config->{infosys_nordugrid}) {
-        $arisendpointsnum++;
+        $csvendpointsnum++;
         $ldapngendpoint = $ldaphostport."Mds-Vo-Name=local,o=grid";
-        %$ariscapabilities = map { $_ => 1 } (keys %$ldapepcapabilities);   
+        $epscapabilities->{'org.nordugrid.ldapng'} = [ 'information.discovery.resource' ];
     }
     
     # ldapglue1
     if ($config->{infosys_glue12}) {
-        $arisendpointsnum++;
+        $csvendpointsnum++;
         $ldapglue1endpoint = $ldaphostport."Mds-Vo-Name=resource,o=grid";
-        %$ariscapabilities = map { $_ => 1 } (keys %$ldapepcapabilities);   
+        $epscapabilities->{'org.nordugrid.ldapglue1'} = [ 'information.discovery.resource' ];
     }
     
     # ldapglue2
     if ($config->{infosys_glue2_ldap}) {
-        $arisendpointsnum++;
+        $csvendpointsnum++;
         $ldapglue2endpoint = $ldaphostport."o=glue";
-        %$ariscapabilities = map { $_ => 1 } (keys %$ldapepcapabilities);   
+        $epscapabilities->{'org.nordugrid.ldapglue2'} = [ 'information.discovery.resource' ];
+    }
+
+    # Calculcate service capabilities as a union, using hash power
+    foreach my $key (keys %{$epscapabilities}) {
+        foreach my $capability (@{$epscapabilities->{$key}}) {
+            $csvcapabilities->{$capability} = '';
+            }
     }
 
     # TODO: userdomain
@@ -684,14 +837,14 @@ sub collect($) {
     # Computing Endpoints IDs
     my $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:gsiftp://$gridftphostport".$config->{GridftpdMountPoint}; # ARCGridFTPComputingEndpoint ID
     my $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:xbes:$config->{endpoint}" if $config->{endpoint}; # ARCWSComputingEndpoint ID
-    my $EMIEScepID = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $config->{endpoint}; # EMIESComputingEndpoint ID
+    my $EMIEScepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $config->{endpoint}; # EMIESComputingEndpoint ID
     my $StageincepID = "urn:ogf:ComputingEndpoint:$hostname:gridftp:$stageinhostport"; # StageinComputingEndpoint ID
     # the following is needed to publish in shares. Must be modified
     # if we support share-per-endpoint configurations.
     my @cepIDs = ();
     push(@cepIDs,$ARCgftpjobcepID) if ($config->{GridftpdEnabled} == 1);
     push(@cepIDs,$ARCWScepID) unless ($arexhostport eq '');
-    push(@cepIDs,$EMIEScepID) unless ($emieshostport eq '');
+    push(@cepIDs,$EMIEScepIDp) unless ($emieshostport eq '');
     
     my $cactIDp = "urn:ogf:ComputingActivity:$hostname"; # ComputingActivity ID prefix
     my $cshaIDp = "urn:ogf:ComputingShare:$hostname"; # ComputingShare ID prefix
@@ -707,8 +860,8 @@ sub collect($) {
     my $tseID = "urn:ogf:ToStorageElement:$hostname:storageservice"; # ToStorageElement ID prefix
     
     # Other Service IDs
-    my $ARISsvID = "urn:ogf:Service:$hostname:aris"; # ARIS service ID
-    my $ARISepIDp = "urn:ogf:Endpoint:$hostname"; # ARIS Endpoint ID
+    # my $ARISsvID = "urn:ogf:Service:$hostname:aris"; # ARIS service ID REMOVED
+    my $ARISepIDp = "urn:ogf:Endpoint:$hostname"; # ARIS Endpoint ID kept for uniqueness
     my $CacheIndexsvID = "urn:ogf:Service:$hostname:cacheindex"; # Cache-Index service ID
     my $CacheIndexepIDp = "urn:ogf:Endpoint:$hostname:cacheindex"; # Cache-Index Endpoint ID
     my $HEDControlsvID = "urn:ogf:Service:$hostname:hedcontrol"; # HED-CONTROL service ID
@@ -956,7 +1109,7 @@ sub collect($) {
               $log->warning("No local job for $jobid") if $callcount == 1;
               next;
               }
-              $cact->{State} = glueState("INLRMS", $lrmsjob->{status});
+              $cact->{State} = $gmjob->{failedstate} ? glueState("INLRMS", $lrmsjob->{status}, $gmjob->{failedstate}) : glueState("INLRMS", $lrmsjob->{status});
               $cact->{WaitingPosition} = $lrmsjob->{rank} if defined $lrmsjob->{rank};
               $cact->{ExecutionNode} = $lrmsjob->{nodes} if $lrmsjob->{nodes};
               unshift @{$cact->{OtherMessages}}, $_ for @{$lrmsjob->{comment}};
@@ -966,7 +1119,7 @@ sub collect($) {
               $cact->{UsedTotalCPUTime} = $lrmsjob->{cputime} if defined $lrmsjob->{cputime};
               $cact->{UsedMainMemory} = ceil($lrmsjob->{mem}/1024) if defined $lrmsjob->{mem};
           } else {
-              $cact->{State} = glueState($gmjob->{status});
+              $cact->{State} = $gmjob->{failedstate} ? glueState($gmjob->{status},'',$gmjob->{failedstate}) : glueState($gmjob->{status});
           }
             
           # TODO: UserDomain association, how to calculate it?
@@ -979,18 +1132,20 @@ sub collect($) {
         # Computing Endpoints ########
           
         # Here comes a list of endpoints we support.
-        # GridFTPd job execution endpoint
+        # GridFTPd job execution endpoint - org.nordugrid.gridfptjob
         # XBES A-REX WSRF job submission endpoint
-        # EMI-ES job submission endpoint
-        # EMI-ES information system endpoint
-        # EMI-ES delegation endpoint
+        # EMI-ES one endpoint per port-type
+        # LDAP endpoints one per schema
         # WS-LIDI A-REX WSRF information system endpoint
         # A-REX datastaging endpoint
 
-        # this will contain only endpoints with URLs defined
-        my @ceps = ();
+        # these will contain only endpoints with URLs defined
+        # Simple endpoints will be rendered as computingEndpoints
+        # as GLUE2 does not admin simple Endpoints within a ComputingService.
+        my $arexceps = {}; # arex computing endpoints.
+        # my $arexeps = {}; # arex plain endpoints (i.e. former aris endpoints)
 
-        # Our different ComputingEndpoints
+        # A-REX ComputingEndpoints
         
         # ARC XBES and WS-LIDI
           
@@ -1008,7 +1163,7 @@ sub collect($) {
 
             # OBS: ideally HED should be asked for the URL
             $cep->{URL} = $config->{endpoint};
-            $cep->{Capability} = [ 'executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription', 'security.delegation' ];
+            $cep->{Capability} = $epscapabilities->{'org.nordugrid.xbes'};
             $cep->{Technology} = 'webservice';
             $cep->{InterfaceName} = 'org.ogf.bes';
             $cep->{InterfaceVersion} = [ '1.0' ];
@@ -1157,9 +1312,9 @@ sub collect($) {
         };
 
         # don't publish if arex_mount_point not configured in arc.conf
-        if ($arexhostport ne '') { push(@ceps, $getARCWSComputingEndpoint); };
+        $arexceps->{ARCWSComputingEndpoint} = $getARCWSComputingEndpoint if $arexhostport ne '';
 
-            # ARC GridFTPDd job submission interface 
+        # ARC GridFTPd job submission interface 
           
         my $getARCGFTPdComputingEndpoint = sub {
 
@@ -1175,7 +1330,7 @@ sub collect($) {
 
             $cep->{URL} = "gsiftp://$gridftphostport".$config->{GridftpdMountPoint};
             $cep->{ID} = $ARCgftpjobcepID;
-            $cep->{Capability} = [ 'executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription' ];
+            $cep->{Capability} = $epscapabilities->{'org.nordugrid.gridftpjob'};
             $cep->{Technology} = 'gridftp';
             $cep->{InterfaceName} = 'org.nordugrid.gridftpjob';
             $cep->{InterfaceVersion} = [ '1.0' ];
@@ -1279,11 +1434,14 @@ sub collect($) {
         };
 
         # Don't publish if there is no endpoint URL
-            if ($gridftphostport ne '') { push(@ceps, $getARCGFTPdComputingEndpoint); };
+        $arexceps->{ARCGFRPdComputingEndpoint} = $getARCGFTPdComputingEndpoint if $gridftphostport ne '';
 
-        # Placeholder for EMI-ES interface
+        # EMI-ES port types
+        # TODO: understand if it's possible to choose only a set of portTypes to publish
 
-        my $getEMIESComputingEndpoint = sub {
+        # EMIES ActivityCreation
+
+        my $getEMIESActivityCreationComputingEndpoint = sub {
 
             # don't publish if no endpoint URL
             return undef unless $emieshostport ne '';
@@ -1293,25 +1451,26 @@ sub collect($) {
             $cep->{CreationTime} = $creation_time;
             $cep->{Validity} = $validity_ttl;
 
-            $cep->{ID} = $EMIEScepID;
+            $cep->{ID} = "$EMIEScepIDp:ac";
 
             # Name not necessary -- why? added back
-            $cep->{Name} = "EMI ES submission, delegation, information interface";
+            $cep->{Name} = "ARC CE EMI-ES ActivityCreation Port Type";
 
             # OBS: ideally HED should be asked for the URL
             $cep->{URL} = $config->{endpoint};
-            $cep->{Capability} = [ 'executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription', 'security.delegation' ];
+            # TODO: define a strategy to add data capabilites
+            $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activitycreation'};
             $cep->{Technology} = 'webservice';
-            $cep->{InterfaceName} = 'org.ogf.emies';
-            $cep->{InterfaceVersion} = [ '1.0' ];
+            $cep->{InterfaceName} = 'org.ogf.glue.emies.activitycreation';
+            $cep->{InterfaceVersion} = [ '1.14' ];
             $cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
-            # Wrong type, should be URI
-            $cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-                        "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-                          ];
+            # What is profile for EMIES?
+            #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+            #              ];
             $cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
             $cep->{Implementor} = "NorduGrid";
-            $cep->{ImplementationName} = "EMI-ES";
+            $cep->{ImplementationName} = "ARC CE";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
             $cep->{QualityLevel} = "development";
@@ -1393,6 +1552,7 @@ sub collect($) {
             } else {
               # this complicated thing here creates a specialized getComputingActivities
               # version of sub with a builtin parameter!
+              #TODO: change interfacename for jobs?
               $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.ogf.emies'); };
             }
 
@@ -1404,9 +1564,498 @@ sub collect($) {
             return $cep;
         };
 
-        # don't publish if no endpoint URL
-        if ($emieshostport ne '') {push(@ceps, $getEMIESComputingEndpoint); };
+        # don't publish if no EMIES endpoint configured
+        $arexceps->{EMIESActivityCreationComputingEndpoint} = $getEMIESActivityCreationComputingEndpoint if $emieshostport ne '';
 
+        # EMI-ES ActivityManagement port type
+        
+        my $getEMIESActivityManagementComputingEndpoint = sub {
+
+            # don't publish if no endpoint URL
+            return undef unless $emieshostport ne '';
+
+            my $cep = {};
+
+            $cep->{CreationTime} = $creation_time;
+            $cep->{Validity} = $validity_ttl;
+
+            $cep->{ID} = "$EMIEScepIDp:am";
+
+            # Name not necessary -- why? added back
+            $cep->{Name} = "ARC CE EMI-ES ActivityManagement Port Type";
+
+            # OBS: ideally HED should be asked for the URL
+            $cep->{URL} = $config->{endpoint};
+            # TODO: define a strategy to add data capabilites
+            $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activitymanagement'};
+            $cep->{Technology} = 'webservice';
+            $cep->{InterfaceName} = 'org.ogf.glue.emies.activitymanagement';
+            $cep->{InterfaceVersion} = [ '1.14' ];
+            $cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
+            # What is profile for EMIES?
+            #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+            #              ];
+            $cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
+            $cep->{Implementor} = "NorduGrid";
+            $cep->{ImplementationName} = "ARC CE";
+            $cep->{ImplementationVersion} = $config->{arcversion};
+
+            $cep->{QualityLevel} = "development";
+
+            my %healthissues;
+
+            if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
+            if (     $host_info->{hostcert_expired}
+                  or $host_info->{issuerca_expired}) {
+                push @{$healthissues{critical}}, "Host credentials expired";
+            } elsif (not $host_info->{hostcert_enddate}
+                  or not $host_info->{issuerca_enddate}) {
+                push @{$healthissues{critical}}, "Host credentials missing";
+            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
+                  or $host_info->{issuerca_enddate} - time < 48*3600) {
+                push @{$healthissues{warning}}, "Host credentials will expire soon";
+            }
+            }
+
+            if ( $host_info->{gm_alive} ne 'all' ) {
+            if ($host_info->{gm_alive} eq 'some') {
+                push @{$healthissues{warning}}, 'One or more grid managers are down';
+            } else {
+                push @{$healthissues{critical}},
+                  $config->{remotegmdirs} ? 'All grid managers are down'
+                              : 'Grid manager is down';
+            }
+            }
+
+            if (%healthissues) {
+            my @infos;
+            for my $level (qw(critical warning other)) {
+                next unless $healthissues{$level};
+                $cep->{HealthState} ||= $level;
+                push @infos, @{$healthissues{$level}};
+            }
+            $cep->{HealthStateInfo} = join "; ", @infos;
+            } else {
+            $cep->{HealthState} = 'ok';
+            }
+
+            # OBS: Do 'queueing' and 'closed' states apply for a-rex?
+            # OBS: Is there an allownew option for a-rex?
+            #if ( $config->{GridftpdAllowNew} == 0 ) {
+            #    $cep->{ServingState} = 'draining';
+            #} else {
+            #    $cep->{ServingState} = 'production';
+            #}
+            $cep->{ServingState} = 'production';
+
+            # StartTime: get it from hed
+
+            $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
+            $cep->{TrustedCA} = $host_info->{trustedcas}; # array
+
+            # TODO: Downtime, is this necessary, and how should it work?
+
+            $cep->{Staging} =  'staginginout';
+            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', 'nordugrid:xrsl', 'emies:adl' ];
+
+            $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
+
+            $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
+            $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
+            $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
+
+            $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
+                    + ( $gmtotalcount{finishing} || 0 );
+
+            $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
+
+            $cep->{AccessPolicies} = sub { &{$getAccessPolicies}($cep->{ID}) };
+            
+            $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+
+            # ComputingActivities
+            if ($nojobs) {
+              $cep->{ComputingActivities} = undef;
+            } else {
+              # this complicated thing here creates a specialized getComputingActivities
+              # version of sub with a builtin parameter!
+              #TODO: change interfacename for jobs?
+              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.ogf.emies'); };
+            }
+
+            # Associations
+
+            $cep->{ComputingShareID} = [ values %cshaIDs ];
+            $cep->{ComputingServiceID} = $csvID;
+
+            return $cep;
+        };
+
+        # don't publish if no EMIES endpoint configured
+        $arexceps->{EMIESActivityManagementComputingEndpoint} = $getEMIESActivityManagementComputingEndpoint if $emieshostport ne '';
+
+
+        # EMI-ES ResourceInfo port type
+
+        my $getEMIESResourceInfoEndpoint = sub {
+
+            my $ep = {};
+
+            $ep->{CreationTime} = $creation_time;
+            $ep->{Validity} = $validity_ttl;
+
+            # Name not necessary -- why? plan was to have it configurable.
+            $ep->{Name} = "ARC CE EMI-ES ResourceInfo Port Type";
+
+            # Configuration parser does not contain ldap port!
+            # must be updated
+            # port hardcoded for tests 
+            $ep->{URL} = $config->{endpoint};
+            # TODO: put only the port here
+            $ep->{ID} = "$EMIEScepIDp:ri";
+            $ep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.resourceinfo'};;
+            $ep->{Technology} = 'webservice';
+            $ep->{InterfaceName} = 'org.ogf.glue.emies.resourceinfo';
+            $ep->{InterfaceVersion} = [ '1.14' ];
+            # Wrong type, should be URI
+            #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+            #              ];
+            # TODO: put EMIES spec URL here
+            #$ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
+            $ep->{Implementor} = "NorduGrid";
+            $ep->{ImplementationName} = "ARC CE";
+            $ep->{ImplementationVersion} = $config->{arcversion};
+
+            $ep->{QualityLevel} = "development";
+
+            # How to calculate health for this interface?
+            # TODO: inherit health infos from arex endpoints
+            my %healthissues;
+
+            if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
+            if (     $host_info->{hostcert_expired}
+                  or $host_info->{issuerca_expired}) {
+                push @{$healthissues{critical}}, "Host credentials expired";
+            } elsif (not $host_info->{hostcert_enddate}
+                  or not $host_info->{issuerca_enddate}) {
+                push @{$healthissues{critical}}, "Host credentials missing";
+            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
+                  or $host_info->{issuerca_enddate} - time < 48*3600) {
+                push @{$healthissues{warning}}, "Host credentials will expire soon";
+            }
+            }            
+
+            # check if WS interface is actually running
+            # done with netstat but I'd like to be smarter
+            # this only works if the effective user is root
+            # TODO: find a better way to do this. Ask A-REX?
+            # changed by request of aleksandr. Only checks if it's root
+            if ($> == 0) {
+              my $netstat=`netstat -antup`;
+              if ( $? != 0 ) {
+                # push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
+                $log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume EMIES is running properly");
+              } else {
+                  # searches if arched is listed in netstat output
+                  # best way would be ask arched if its service is up...?
+                if( $netstat !~ m/arched/ ) {
+                    push @{$healthissues{critical}}, "arched A-REX endpoint not found with netstat. EMIES cannot be enabled." ;
+                }
+              }
+            } else {
+              # push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume EMIES is in ok HeathState";
+              $log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume EMIES is running properly");
+            }
+            
+            if (%healthissues) {
+            my @infos;
+            for my $level (qw(critical warning other unknown)) {
+                next unless $healthissues{$level};
+                $ep->{HealthState} ||= $level;
+                push @infos, @{$healthissues{$level}};
+            }
+            $ep->{HealthStateInfo} = join "; ", @infos;
+            } else {
+            $ep->{HealthState} = 'ok';
+            }
+
+            $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
+            $ep->{TrustedCA} = $host_info->{trustedcas}; # array
+            
+            # OBS: Do 'queueing' and 'closed' states apply for aris?
+            # OBS: Is there an allownew option for aris?
+            #if ( $config->{GridftpdAllowNew} == 0 ) {
+            #    $ep->{ServingState} = 'draining';
+            #} else {
+            #    $ep->{ServingState} = 'production';
+            #}
+            $ep->{ServingState} = 'production';
+
+            # TODO: StartTime: get it from hed?
+
+            # TODO: Downtime, is this necessary, and how should it work?
+
+            # AccessPolicies
+            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
+            
+            $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+                   
+            # Associations
+
+            $ep->{ComputingServiceID} = $csvID;
+
+            return $ep;
+        };
+        
+        $arexceps->{EMIESResourceInfoEndpoint} = $getEMIESResourceInfoEndpoint if $emieshostport ne '';
+
+        # TODO: add EMIES Delegation, ActivityInfo, ActivityManagement
+        
+        # EMI-ES ActivityInfo
+        
+        my $getEMIESActivityInfoComputingEndpoint = sub {
+
+            # don't publish if no endpoint URL
+            return undef unless $emieshostport ne '';
+
+            my $cep = {};
+
+            $cep->{CreationTime} = $creation_time;
+            $cep->{Validity} = $validity_ttl;
+
+            $cep->{ID} = "$EMIEScepIDp:ai";
+
+            # Name not necessary -- why? added back
+            $cep->{Name} = "ARC CE EMI-ES ActivtyInfo Port Type";
+
+            # OBS: ideally HED should be asked for the URL
+            $cep->{URL} = $config->{endpoint};
+            # TODO: define a strategy to add data capabilites
+            $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activityinfo'};
+            $cep->{Technology} = 'webservice';
+            $cep->{InterfaceName} = 'org.ogf.glue.emies.activityinfo';
+            $cep->{InterfaceVersion} = [ '1.14' ];
+            $cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
+            # What is profile for EMIES?
+            #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+            #              ];
+            $cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
+            $cep->{Implementor} = "NorduGrid";
+            $cep->{ImplementationName} = "ARC CE";
+            $cep->{ImplementationVersion} = $config->{arcversion};
+
+            $cep->{QualityLevel} = "development";
+
+            my %healthissues;
+
+            if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
+            if (     $host_info->{hostcert_expired}
+                  or $host_info->{issuerca_expired}) {
+                push @{$healthissues{critical}}, "Host credentials expired";
+            } elsif (not $host_info->{hostcert_enddate}
+                  or not $host_info->{issuerca_enddate}) {
+                push @{$healthissues{critical}}, "Host credentials missing";
+            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
+                  or $host_info->{issuerca_enddate} - time < 48*3600) {
+                push @{$healthissues{warning}}, "Host credentials will expire soon";
+            }
+            }
+
+            if ( $host_info->{gm_alive} ne 'all' ) {
+            if ($host_info->{gm_alive} eq 'some') {
+                push @{$healthissues{warning}}, 'One or more grid managers are down';
+            } else {
+                push @{$healthissues{critical}},
+                  $config->{remotegmdirs} ? 'All grid managers are down'
+                              : 'Grid manager is down';
+            }
+            }
+
+            if (%healthissues) {
+            my @infos;
+            for my $level (qw(critical warning other)) {
+                next unless $healthissues{$level};
+                $cep->{HealthState} ||= $level;
+                push @infos, @{$healthissues{$level}};
+            }
+            $cep->{HealthStateInfo} = join "; ", @infos;
+            } else {
+            $cep->{HealthState} = 'ok';
+            }
+
+            # OBS: Do 'queueing' and 'closed' states apply for a-rex?
+            # OBS: Is there an allownew option for a-rex?
+            #if ( $config->{GridftpdAllowNew} == 0 ) {
+            #    $cep->{ServingState} = 'draining';
+            #} else {
+            #    $cep->{ServingState} = 'production';
+            #}
+            $cep->{ServingState} = 'production';
+
+            # StartTime: get it from hed
+
+            $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
+            $cep->{TrustedCA} = $host_info->{trustedcas}; # array
+
+            # TODO: Downtime, is this necessary, and how should it work?
+
+            $cep->{Staging} =  'staginginout';
+            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', 'nordugrid:xrsl', 'emies:adl' ];
+
+            $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
+
+            $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
+            $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
+            $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
+
+            $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
+                    + ( $gmtotalcount{finishing} || 0 );
+
+            $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
+
+            $cep->{AccessPolicies} = sub { &{$getAccessPolicies}($cep->{ID}) };
+            
+            $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+
+            # ComputingActivities
+            if ($nojobs) {
+              $cep->{ComputingActivities} = undef;
+            } else {
+              # this complicated thing here creates a specialized getComputingActivities
+              # version of sub with a builtin parameter!
+              #TODO: change interfacename for jobs?
+              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.ogf.emies'); };
+            }
+
+            # Associations
+
+            $cep->{ComputingShareID} = [ values %cshaIDs ];
+            $cep->{ComputingServiceID} = $csvID;
+
+            return $cep;
+        };
+
+        # don't publish if no EMIES endpoint configured
+        $arexceps->{EMIESActivityInfoComputingEndpoint} = $getEMIESActivityInfoComputingEndpoint if $emieshostport ne '';
+        
+        
+        # EMIES Delegation port type
+        
+        my $getEMIESDelegationEndpoint = sub {
+
+            my $ep = {};
+
+            $ep->{CreationTime} = $creation_time;
+            $ep->{Validity} = $validity_ttl;
+
+            # Name not necessary -- why? plan was to have it configurable.
+            $ep->{Name} = "ARC CE EMI-ES Delegation Port Type";
+
+            $ep->{URL} = $config->{endpoint};
+            $ep->{ID} = "$EMIEScepIDp:d";
+            $ep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.delegation'};;
+            $ep->{Technology} = 'webservice';
+            $ep->{InterfaceName} = 'org.ogf.glue.emies.delegation';
+            $ep->{InterfaceVersion} = [ '1.14' ];
+            # Wrong type, should be URI
+            #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+            #              ];
+            # TODO: put EMIES spec URL here
+            #$ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
+            $ep->{Implementor} = "NorduGrid";
+            $ep->{ImplementationName} = "ARC CE";
+            $ep->{ImplementationVersion} = $config->{arcversion};
+
+            $ep->{QualityLevel} = "development";
+
+            # How to calculate health for this interface?
+            # TODO: inherit health infos from arex endpoints
+            my %healthissues;
+
+            if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
+            if (     $host_info->{hostcert_expired}
+                  or $host_info->{issuerca_expired}) {
+                push @{$healthissues{critical}}, "Host credentials expired";
+            } elsif (not $host_info->{hostcert_enddate}
+                  or not $host_info->{issuerca_enddate}) {
+                push @{$healthissues{critical}}, "Host credentials missing";
+            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
+                  or $host_info->{issuerca_enddate} - time < 48*3600) {
+                push @{$healthissues{warning}}, "Host credentials will expire soon";
+            }
+            }            
+
+            # check if WS interface is actually running
+            # done with netstat but I'd like to be smarter
+            # this only works if the effective user is root
+            # TODO: find a better way to do this. Ask A-REX?
+            # changed by request of aleksandr. Only checks if it's root
+            if ($> == 0) {
+              my $netstat=`netstat -antup`;
+              if ( $? != 0 ) {
+                # push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
+                $log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume EMIES is running properly");
+              } else {
+                  # searches if arched is listed in netstat output
+                  # best way would be ask arched if its service is up...?
+                if( $netstat !~ m/arched/ ) {
+                    push @{$healthissues{critical}}, "arched A-REX endpoint not found with netstat. EMIES cannot be enabled." ;
+                }
+              }
+            } else {
+              # push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume EMIES is in ok HeathState";
+              $log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume EMIES is running properly");
+            }
+            
+            if (%healthissues) {
+            my @infos;
+            for my $level (qw(critical warning other unknown)) {
+                next unless $healthissues{$level};
+                $ep->{HealthState} ||= $level;
+                push @infos, @{$healthissues{$level}};
+            }
+            $ep->{HealthStateInfo} = join "; ", @infos;
+            } else {
+            $ep->{HealthState} = 'ok';
+            }
+
+            $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
+            $ep->{TrustedCA} = $host_info->{trustedcas}; # array
+            
+            # OBS: Do 'queueing' and 'closed' states apply for aris?
+            # OBS: Is there an allownew option for aris?
+            #if ( $config->{GridftpdAllowNew} == 0 ) {
+            #    $ep->{ServingState} = 'draining';
+            #} else {
+            #    $ep->{ServingState} = 'production';
+            #}
+            $ep->{ServingState} = 'production';
+
+            # TODO: StartTime: get it from hed?
+
+            # TODO: Downtime, is this necessary, and how should it work?
+
+            # AccessPolicies
+            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
+            
+            $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+                   
+            # Associations
+
+            $ep->{ComputingServiceID} = $csvID;
+
+            return $ep;
+        };
+        
+        $arexceps->{EMIESDelegationEndpoint} = $getEMIESDelegationEndpoint if $emieshostport ne '';
+
+
+
+        #### Other A-REX ComputingEndpoints. these are currently disabled as I don't know how to handle them.
         # Placeholder for Stagein interface
 
         my $getStageinComputingEndpoint = sub {
@@ -1524,26 +2173,352 @@ sub collect($) {
         };
 
         # don't publish if no Endpoint URL
-        if ($stageinhostport ne '') { push(@ceps, $getStageinComputingEndpoint); };
-        
+        $arexceps->{StageinComputingEndpoint} = $getStageinComputingEndpoint if $stageinhostport ne '';
 
-        # returns the endpoints one by one
+
+        ### ARIS endpoints are now part of the A-REX service. 
+        # TODO: change ComputingService code in printers to scan for Endpoints
+
+        my $getArisLdapNGEndpoint = sub {
+
+            my $ep = {};
+
+            $ep->{CreationTime} = $creation_time;
+            $ep->{Validity} = $validity_ttl;
+
+            # Name not necessary -- why? plan was to have it configurable.
+            $ep->{Name} = "ARC CE ARIS LDAP NorduGrid Schema Local Information System";
+
+            # Configuration parser does not contain ldap port!
+            # must be updated
+            # port hardcoded for tests 
+            $ep->{URL} = $ldapngendpoint;
+            $ep->{ID} = "$ARISepIDp:ldapng:$config->{SlapdPort}";
+            $ep->{Capability} = $epscapabilities->{'org.nordugrid.ldapng'};
+            $ep->{Technology} = 'ldap';
+            $ep->{InterfaceName} = 'org.nordugrid.ldapng';
+            $ep->{InterfaceVersion} = [ '1.0' ];
+            # Wrong type, should be URI
+            #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+            #              ];
+            $ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
+            $ep->{Implementor} = "NorduGrid";
+            $ep->{ImplementationName} = "ARIS";
+            $ep->{ImplementationVersion} = $config->{arcversion};
+
+            $ep->{QualityLevel} = "production";
+
+            # How to calculate health for this interface?
+            my %healthissues;
+
+            if (%healthissues) {
+            my @infos;
+            for my $level (qw(critical warning other)) {
+                next unless $healthissues{$level};
+                $ep->{HealthState} ||= $level;
+                push @infos, @{$healthissues{$level}};
+            }
+            $ep->{HealthStateInfo} = join "; ", @infos;
+            } else {
+            $ep->{HealthState} = 'ok';
+            }
+
+            # OBS: Do 'queueing' and 'closed' states apply for aris?
+            # OBS: Is there an allownew option for aris?
+            #if ( $config->{GridftpdAllowNew} == 0 ) {
+            #    $ep->{ServingState} = 'draining';
+            #} else {
+            #    $ep->{ServingState} = 'production';
+            #}
+            $ep->{ServingState} = 'production';
+
+            # TODO: StartTime: get it from hed?
+
+            # TODO: Downtime, is this necessary, and how should it work?
+
+            # AccessPolicies
+            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
+            
+            $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+                   
+            # Associations
+
+            $ep->{ComputingServiceID} = $csvID;
+
+            return $ep;
+        };
+        
+        $arexceps->{LDAPNGEndpoint} = $getArisLdapNGEndpoint if $ldapngendpoint ne '';
+
+        my $getArisLdapGlue1Endpoint = sub {
+
+            my $ep = {};
+
+            $ep->{CreationTime} = $creation_time;
+            $ep->{Validity} = $validity_ttl;
+
+            # Name not necessary -- why? plan was to have it configurable.
+            $ep->{Name} = "ARC CE ARIS LDAP Glue 1.2/1.3 Local Information System";
+
+            # Configuration parser does not contain ldap port!
+            # must be updated
+            # port hardcoded for tests 
+            $ep->{URL} = $ldapglue1endpoint;
+            $ep->{ID} = "$ARISepIDp:ldapglue1:$config->{SlapdPort}";
+            $ep->{Capability} = $epscapabilities->{'org.nordugrid.ldapglue1'};
+            $ep->{Technology} = 'ldap';
+            $ep->{InterfaceName} = 'org.nordugrid.ldapglue1';
+            $ep->{InterfaceVersion} = [ '1.0' ];
+            # Wrong type, should be URI
+            #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+            #              ];
+            $ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
+            $ep->{Implementor} = "NorduGrid";
+            $ep->{ImplementationName} = "ARIS";
+            $ep->{ImplementationVersion} = $config->{arcversion};
+
+            $ep->{QualityLevel} = "production";
+
+            # How to calculate health for this interface?
+            my %healthissues;
+
+            if (%healthissues) {
+            my @infos;
+            for my $level (qw(critical warning other)) {
+                next unless $healthissues{$level};
+                $ep->{HealthState} ||= $level;
+                push @infos, @{$healthissues{$level}};
+            }
+            $ep->{HealthStateInfo} = join "; ", @infos;
+            } else {
+            $ep->{HealthState} = 'ok';
+            }
+
+            # OBS: Do 'queueing' and 'closed' states apply for aris?
+            # OBS: Is there an allownew option for aris?
+            #if ( $config->{GridftpdAllowNew} == 0 ) {
+            #    $ep->{ServingState} = 'draining';
+            #} else {
+            #    $ep->{ServingState} = 'production';
+            #}
+            $ep->{ServingState} = 'production';
+
+            # TODO: StartTime: get it from hed?
+
+            # TODO: Downtime, is this necessary, and how should it work?
+
+            # AccessPolicies
+            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
+            
+            $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+                   
+            # Associations
+
+            $ep->{ComputingServiceID} = $csvID;
+
+            return $ep;
+        };
+        
+        $arexceps->{LDAPGLUE1Endpoint} = $getArisLdapGlue1Endpoint if $ldapglue1endpoint ne '';
+
+        my $getArisLdapGlue2Endpoint = sub {
+
+            my $ep = {};
+
+            $ep->{CreationTime} = $creation_time;
+            $ep->{Validity} = $validity_ttl;
+
+            # Name not necessary -- why? plan was to have it configurable.
+            $ep->{Name} = "ARC CE ARIS LDAP GLUE2 Schema Local Information System";
+
+            # Configuration parser does not contain ldap port!
+            # must be updated
+            # port hardcoded for tests 
+            $ep->{URL} = $ldapglue2endpoint;
+            $ep->{ID} = "$ARISepIDp:ldapglue2:$config->{SlapdPort}";
+            $ep->{Capability} = $epscapabilities->{'org.nordugrid.ldapglue2'};
+            $ep->{Technology} = 'ldap';
+            $ep->{InterfaceName} = 'org.nordugrid.ldapglue2';
+            $ep->{InterfaceVersion} = [ '1.0' ];
+            # Wrong type, should be URI
+            #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+            #              ];
+            $ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
+            $ep->{Implementor} = "NorduGrid";
+            $ep->{ImplementationName} = "ARIS";
+            $ep->{ImplementationVersion} = $config->{arcversion};
+
+            $ep->{QualityLevel} = "production";
+
+            # How to calculate health for this interface?
+            my %healthissues;
+
+            if (%healthissues) {
+            my @infos;
+            for my $level (qw(critical warning other)) {
+                next unless $healthissues{$level};
+                $ep->{HealthState} ||= $level;
+                push @infos, @{$healthissues{$level}};
+            }
+            $ep->{HealthStateInfo} = join "; ", @infos;
+            } else {
+            $ep->{HealthState} = 'ok';
+            }
+
+            # OBS: Do 'queueing' and 'closed' states apply for aris?
+            # OBS: Is there an allownew option for aris?
+            #if ( $config->{GridftpdAllowNew} == 0 ) {
+            #    $ep->{ServingState} = 'draining';
+            #} else {
+            #    $ep->{ServingState} = 'production';
+            #}
+            $ep->{ServingState} = 'production';
+
+            # TODO: StartTime: get it from hed?
+
+            # TODO: Downtime, is this necessary, and how should it work?
+
+            # AccessPolicies
+            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
+            
+            $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+                   
+            # Associations
+
+            $ep->{ComputingServiceID} = $csvID;
+
+            return $ep;
+        };
+        
+        $arexceps->{LDAPGLUE2Endpoint} = $getArisLdapGlue2Endpoint if $ldapglue2endpoint ne '';
+
+        my $getArisWSRFGlue2Endpoint = sub {
+
+            my $ep = {};
+
+            $ep->{CreationTime} = $creation_time;
+            $ep->{Validity} = $validity_ttl;
+
+            # Name not necessary -- why? plan was to have it configurable.
+            $ep->{Name} = "ARC CE ARIS WSRF GLUE2 Local Information System";
+
+            # Configuration parser does not contain ldap port!
+            # must be updated
+            # port hardcoded for tests 
+            $ep->{URL} = $config->{endpoint};
+            # TODO: put only the port here
+            $ep->{ID} = "$ARISepIDp:wsrfglue2:$config->{endpoint}";
+            $ep->{Capability} = ['information.discovery.resource'];
+            $ep->{Technology} = 'webservice';
+            $ep->{InterfaceName} = 'org.nordugrid.wsrfglue2';
+            $ep->{InterfaceVersion} = [ '1.0' ];
+            # Wrong type, should be URI
+            #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+            #              ];
+            # TODO: put a relevant document here
+            #$ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
+            $ep->{Implementor} = "NorduGrid";
+            $ep->{ImplementationName} = "ARIS";
+            $ep->{ImplementationVersion} = $config->{arcversion};
+
+            $ep->{QualityLevel} = "production";
+
+            # How to calculate health for this interface?
+            # TODO: inherit health infos from arex endpoints
+            my %healthissues;
+
+            if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
+            if (     $host_info->{hostcert_expired}
+                  or $host_info->{issuerca_expired}) {
+                push @{$healthissues{critical}}, "Host credentials expired";
+            } elsif (not $host_info->{hostcert_enddate}
+                  or not $host_info->{issuerca_enddate}) {
+                push @{$healthissues{critical}}, "Host credentials missing";
+            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
+                  or $host_info->{issuerca_enddate} - time < 48*3600) {
+                push @{$healthissues{warning}}, "Host credentials will expire soon";
+            }
+            }            
+
+            # check if WS interface is actually running
+            # done with netstat but I'd like to be smarter
+            # this only works if the effective user is root
+            # TODO: find a better way to do this. Ask A-REX?
+            # changed by request of aleksandr. Only if root is running arex.
+            if ($> == 0) {
+              my $netstat=`netstat -antup`;
+              if ( $? != 0 ) {
+                # push @{$healthissues{ok}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
+                $log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume ARIS WSRFGLUE2 is running properly");
+              } else {
+                  # searches if arched is listed in netstat output
+                  # best way would be ask arched if its service is up...?
+                if( $netstat !~ m/arched/ ) {
+                    push @{$healthissues{critical}}, "arched A-REX endpoint not found with netstat" ;
+                }
+              }
+            } else {
+              # push @{$healthissues{ok}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume the service is in ok HealthState";
+              $log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume ARIS WSRFGLUE2 is is running properly");
+            }
+            
+            if (%healthissues) {
+            my @infos;
+            for my $level (qw(critical warning other unknown)) {
+                next unless $healthissues{$level};
+                $ep->{HealthState} ||= $level;
+                push @infos, @{$healthissues{$level}};
+            }
+            $ep->{HealthStateInfo} = join "; ", @infos;
+            } else {
+            $ep->{HealthState} = 'ok';
+            }
+
+            $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
+            $ep->{TrustedCA} = $host_info->{trustedcas}; # array
+            
+            # OBS: Do 'queueing' and 'closed' states apply for aris?
+            # OBS: Is there an allownew option for aris?
+            #if ( $config->{GridftpdAllowNew} == 0 ) {
+            #    $ep->{ServingState} = 'draining';
+            #} else {
+            #    $ep->{ServingState} = 'production';
+            #}
+            $ep->{ServingState} = 'production';
+
+            # TODO: StartTime: get it from hed?
+
+            # TODO: Downtime, is this necessary, and how should it work?
+
+            # AccessPolicies
+            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
+            
+            $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+                   
+            # Associations
+
+            $ep->{ComputingServiceID} = $csvID;
+
+            return $ep;
+        };
+        
+        $arexceps->{WSRFGLUE2Endpoint} = $getArisWSRFGlue2Endpoint if $arexhostport ne '';
+
+        
+        # Collect endpoints in the datastructure
+
+        # return ComputingEndpoints in sequence
         my $getComputingEndpoints = sub {
-            return undef unless my $endpoint = pop(@ceps);
-            #$log->verbose("this is the number of endpoints: ".@ceps);
-        return &$endpoint;
+          return undef unless my ($cep, $sub) = each %$arexceps;
+          return &$sub;
         };
 
         $csv->{ComputingEndpoints} = $getComputingEndpoints;
-
-        # Computing Activities, in the ComputingService and not in Endpoints
-
-    #    if ($nojobs) {
-    #	  $csv->{ComputingActivities} = undef;
-    #    } else {
-    #	  $csv->{ComputingActivities} = $getComputingActivities;
-    #    }
-
+        
 
         # ComputingShares: multiple shares can share the same LRMS queue
 
@@ -2149,530 +3124,10 @@ sub collect($) {
 
     my $othersv = {};
 
-    # Service:ARIS    
-
-    my $getARISService = sub {
-
-        #$callcount++;
-
-        my $sv = {};
-
-        $sv->{CreationTime} = $creation_time;
-        $sv->{Validity} = $validity_ttl;
-
-        $sv->{ID} = $ARISsvID;
-
-        $sv->{Name} = "$config->{service}{ClusterName}:Service:aris" if $config->{service}{ClusterName}; # scalar
-        $sv->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo}; # array
-        $sv->{Capability} = [keys %$ariscapabilities];
-        $sv->{Type} = 'org.nordugrid.information.aris';
-
-        # OBS: QualityLevel reflects the quality of the sotware
-        # One of: development, testing, pre-production, production
-        $sv->{QualityLevel} = 'production';
-
-        $sv->{StatusInfo} =  $config->{service}{StatusInfo} if $config->{service}{StatusInfo}; # array
-
-        # TODO: calculate endpoints based on configuration items.
-        # must be moved at the beginning.
-        $sv->{Complexity} = "endpoint=$arisendpointsnum,share=0,resource=0";
-
-        # datastructure for ARIS endpoints
-        my $arisendpoints = {};
-
-        my $getArisLdapNGEndpoint = sub {
-
-            my $ep = {};
-
-            $ep->{CreationTime} = $creation_time;
-            $ep->{Validity} = $validity_ttl;
-
-            # Name not necessary -- why? plan was to have it configurable.
-            $ep->{Name} = "ARC CE ARIS LDAP NorduGrid Schema Local Information System";
-
-            # Configuration parser does not contain ldap port!
-            # must be updated
-            # port hardcoded for tests 
-            $ep->{URL} = $ldapngendpoint;
-            $ep->{ID} = "$ARISepIDp:ldapng:$config->{SlapdPort}";
-            $ep->{Capability} = [keys %$ldapepcapabilities];
-            $ep->{Technology} = 'ldap';
-            $ep->{InterfaceName} = 'org.nordugrid.ldapng';
-            $ep->{InterfaceVersion} = [ '1.0' ];
-            # Wrong type, should be URI
-            #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-            #              ];
-            $ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
-            $ep->{Implementor} = "NorduGrid";
-            $ep->{ImplementationName} = "ARIS";
-            $ep->{ImplementationVersion} = $config->{arcversion};
-
-            $ep->{QualityLevel} = "production";
-
-            # How to calculate health for this interface?
-            my %healthissues;
-
-            if (%healthissues) {
-            my @infos;
-            for my $level (qw(critical warning other)) {
-                next unless $healthissues{$level};
-                $ep->{HealthState} ||= $level;
-                push @infos, @{$healthissues{$level}};
-            }
-            $ep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-            $ep->{HealthState} = 'ok';
-            }
-
-            # OBS: Do 'queueing' and 'closed' states apply for aris?
-            # OBS: Is there an allownew option for aris?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $ep->{ServingState} = 'draining';
-            #} else {
-            #    $ep->{ServingState} = 'production';
-            #}
-            $ep->{ServingState} = 'production';
-
-            # TODO: StartTime: get it from hed?
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            # AccessPolicies
-            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
-            
-            $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-                   
-            # Associations
-
-            $ep->{ServiceID} = $ARISsvID;
-
-            return $ep;
-        };
-        
-        $arisendpoints->{LDAPNGEndpoint} = $getArisLdapNGEndpoint if $ldapngendpoint ne '';
-
-        my $getArisLdapGlue1Endpoint = sub {
-
-            my $ep = {};
-
-            $ep->{CreationTime} = $creation_time;
-            $ep->{Validity} = $validity_ttl;
-
-            # Name not necessary -- why? plan was to have it configurable.
-            $ep->{Name} = "ARC CE ARIS LDAP Glue 1.2/1.3 Local Information System";
-
-            # Configuration parser does not contain ldap port!
-            # must be updated
-            # port hardcoded for tests 
-            $ep->{URL} = $ldapglue1endpoint;
-            $ep->{ID} = "$ARISepIDp:ldapglue1:$config->{SlapdPort}";
-            $ep->{Capability} = [keys %$ldapepcapabilities];
-            $ep->{Technology} = 'ldap';
-            $ep->{InterfaceName} = 'org.nordugrid.ldapglue1';
-            $ep->{InterfaceVersion} = [ '1.0' ];
-            # Wrong type, should be URI
-            #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-            #              ];
-            $ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
-            $ep->{Implementor} = "NorduGrid";
-            $ep->{ImplementationName} = "ARIS";
-            $ep->{ImplementationVersion} = $config->{arcversion};
-
-            $ep->{QualityLevel} = "production";
-
-            # How to calculate health for this interface?
-            my %healthissues;
-
-            if (%healthissues) {
-            my @infos;
-            for my $level (qw(critical warning other)) {
-                next unless $healthissues{$level};
-                $ep->{HealthState} ||= $level;
-                push @infos, @{$healthissues{$level}};
-            }
-            $ep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-            $ep->{HealthState} = 'ok';
-            }
-
-            # OBS: Do 'queueing' and 'closed' states apply for aris?
-            # OBS: Is there an allownew option for aris?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $ep->{ServingState} = 'draining';
-            #} else {
-            #    $ep->{ServingState} = 'production';
-            #}
-            $ep->{ServingState} = 'production';
-
-            # TODO: StartTime: get it from hed?
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            # AccessPolicies
-            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
-            
-            $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-                   
-            # Associations
-
-            $ep->{ServiceID} = $ARISsvID;
-
-            return $ep;
-        };
-        
-        $arisendpoints->{LDAPGLUE1Endpoint} = $getArisLdapGlue1Endpoint if $ldapglue1endpoint ne '';
-
-        my $getArisLdapGlue2Endpoint = sub {
-
-            my $ep = {};
-
-            $ep->{CreationTime} = $creation_time;
-            $ep->{Validity} = $validity_ttl;
-
-            # Name not necessary -- why? plan was to have it configurable.
-            $ep->{Name} = "ARC CE ARIS LDAP GLUE2 Schema Local Information System";
-
-            # Configuration parser does not contain ldap port!
-            # must be updated
-            # port hardcoded for tests 
-            $ep->{URL} = $ldapglue2endpoint;
-            $ep->{ID} = "$ARISepIDp:ldapglue2:$config->{SlapdPort}";
-            $ep->{Capability} = [keys %$ldapepcapabilities];
-            $ep->{Technology} = 'ldap';
-            $ep->{InterfaceName} = 'org.nordugrid.ldapglue2';
-            $ep->{InterfaceVersion} = [ '1.0' ];
-            # Wrong type, should be URI
-            #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-            #              ];
-            $ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
-            $ep->{Implementor} = "NorduGrid";
-            $ep->{ImplementationName} = "ARIS";
-            $ep->{ImplementationVersion} = $config->{arcversion};
-
-            $ep->{QualityLevel} = "production";
-
-            # How to calculate health for this interface?
-            my %healthissues;
-
-            if (%healthissues) {
-            my @infos;
-            for my $level (qw(critical warning other)) {
-                next unless $healthissues{$level};
-                $ep->{HealthState} ||= $level;
-                push @infos, @{$healthissues{$level}};
-            }
-            $ep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-            $ep->{HealthState} = 'ok';
-            }
-
-            # OBS: Do 'queueing' and 'closed' states apply for aris?
-            # OBS: Is there an allownew option for aris?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $ep->{ServingState} = 'draining';
-            #} else {
-            #    $ep->{ServingState} = 'production';
-            #}
-            $ep->{ServingState} = 'production';
-
-            # TODO: StartTime: get it from hed?
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            # AccessPolicies
-            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
-            
-            $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-                   
-            # Associations
-
-            $ep->{ServiceID} = $ARISsvID;
-
-            return $ep;
-        };
-        
-        $arisendpoints->{LDAPGLUE2Endpoint} = $getArisLdapGlue2Endpoint if $ldapglue2endpoint ne '';
-
-        my $getArisWSRFGlue2Endpoint = sub {
-
-            my $ep = {};
-
-            $ep->{CreationTime} = $creation_time;
-            $ep->{Validity} = $validity_ttl;
-
-            # Name not necessary -- why? plan was to have it configurable.
-            $ep->{Name} = "ARC CE ARIS WSRF GLUE2 Local Information System";
-
-            # Configuration parser does not contain ldap port!
-            # must be updated
-            # port hardcoded for tests 
-            $ep->{URL} = $config->{endpoint};
-            # TODO: put only the port here
-            $ep->{ID} = "$ARISepIDp:wsrfglue2:$config->{endpoint}";
-            $ep->{Capability} = ['information.discovery.resource'];
-            $ep->{Technology} = 'webservice';
-            $ep->{InterfaceName} = 'org.nordugrid.wsrfglue2';
-            $ep->{InterfaceVersion} = [ '1.0' ];
-            # Wrong type, should be URI
-            #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-            #              ];
-            # TODO: put a relevant document here
-            #$ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
-            $ep->{Implementor} = "NorduGrid";
-            $ep->{ImplementationName} = "ARIS";
-            $ep->{ImplementationVersion} = $config->{arcversion};
-
-            $ep->{QualityLevel} = "production";
-
-            # How to calculate health for this interface?
-            # TODO: inherit health infos from arex endpoints
-            my %healthissues;
-
-            if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
-            if (     $host_info->{hostcert_expired}
-                  or $host_info->{issuerca_expired}) {
-                push @{$healthissues{critical}}, "Host credentials expired";
-            } elsif (not $host_info->{hostcert_enddate}
-                  or not $host_info->{issuerca_enddate}) {
-                push @{$healthissues{critical}}, "Host credentials missing";
-            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-                  or $host_info->{issuerca_enddate} - time < 48*3600) {
-                push @{$healthissues{warning}}, "Host credentials will expire soon";
-            }
-            }            
-
-            # check if WS interface is actually running
-            # done with netstat but I'd like to be smarter
-            # this only works if the effective user is root
-            # TODO: find a better way to do this. Ask A-REX?
-            # changed by request of aleksandr. Only if root is running arex.
-            if ($> == 0) {
-              my $netstat=`netstat -antup`;
-              if ( $? != 0 ) {
-                # push @{$healthissues{ok}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
-                $log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume ARIS WSRFGLUE2 is running properly");
-              } else {
-                  # searches if arched is listed in netstat output
-                  # best way would be ask arched if its service is up...?
-                if( $netstat !~ m/arched/ ) {
-                    push @{$healthissues{critical}}, "arched A-REX endpoint not found with netstat" ;
-                }
-              }
-            } else {
-              # push @{$healthissues{ok}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume the service is in ok HealthState";
-              $log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume ARIS WSRFGLUE2 is is running properly");
-            }
-            
-            if (%healthissues) {
-            my @infos;
-            for my $level (qw(critical warning other unknown)) {
-                next unless $healthissues{$level};
-                $ep->{HealthState} ||= $level;
-                push @infos, @{$healthissues{$level}};
-            }
-            $ep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-            $ep->{HealthState} = 'ok';
-            }
-
-            $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
-            $ep->{TrustedCA} = $host_info->{trustedcas}; # array
-            
-            # OBS: Do 'queueing' and 'closed' states apply for aris?
-            # OBS: Is there an allownew option for aris?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $ep->{ServingState} = 'draining';
-            #} else {
-            #    $ep->{ServingState} = 'production';
-            #}
-            $ep->{ServingState} = 'production';
-
-            # TODO: StartTime: get it from hed?
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            # AccessPolicies
-            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
-            
-            $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-                   
-            # Associations
-
-            $ep->{ServiceID} = $ARISsvID;
-
-            return $ep;
-        };
-        
-        $arisendpoints->{WSRFGLUE2Endpoint} = $getArisWSRFGlue2Endpoint if $arexhostport ne '';
-
-        my $getArisEMIESEndpoint = sub {
-
-            my $ep = {};
-
-            $ep->{CreationTime} = $creation_time;
-            $ep->{Validity} = $validity_ttl;
-
-            # Name not necessary -- why? plan was to have it configurable.
-            $ep->{Name} = "ARC CE EMI-ES Local Information System";
-
-            # Configuration parser does not contain ldap port!
-            # must be updated
-            # port hardcoded for tests 
-            $ep->{URL} = $config->{endpoint};
-            # TODO: put only the port here
-            $ep->{ID} = "$ARISepIDp:emies:$config->{endpoint}";
-            $ep->{Capability} = ['information.discovery.resource'];
-            $ep->{Technology} = 'webservice';
-            $ep->{InterfaceName} = 'org.nordugrid.emies';
-            $ep->{InterfaceVersion} = [ '1.0' ];
-            # Wrong type, should be URI
-            #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-            #              ];
-            # TODO: put a relevant document here
-            #$ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
-            $ep->{Implementor} = "NorduGrid";
-            $ep->{ImplementationName} = "ARIS";
-            $ep->{ImplementationVersion} = $config->{arcversion};
-
-            $ep->{QualityLevel} = "development";
-
-            # How to calculate health for this interface?
-            # TODO: inherit health infos from arex endpoints
-            my %healthissues;
-
-            if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
-            if (     $host_info->{hostcert_expired}
-                  or $host_info->{issuerca_expired}) {
-                push @{$healthissues{critical}}, "Host credentials expired";
-            } elsif (not $host_info->{hostcert_enddate}
-                  or not $host_info->{issuerca_enddate}) {
-                push @{$healthissues{critical}}, "Host credentials missing";
-            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-                  or $host_info->{issuerca_enddate} - time < 48*3600) {
-                push @{$healthissues{warning}}, "Host credentials will expire soon";
-            }
-            }            
-
-            # check if WS interface is actually running
-            # done with netstat but I'd like to be smarter
-            # this only works if the effective user is root
-            # TODO: find a better way to do this. Ask A-REX?
-            # changed by request of aleksandr. Only checks if it's root
-            if ($> == 0) {
-              my $netstat=`netstat -antup`;
-              if ( $? != 0 ) {
-                # push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
-                $log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume EMIES is running properly");
-              } else {
-                  # searches if arched is listed in netstat output
-                  # best way would be ask arched if its service is up...?
-                if( $netstat !~ m/arched/ ) {
-                    push @{$healthissues{critical}}, "arched A-REX endpoint not found with netstat. EMIES cannot be enabled." ;
-                }
-              }
-            } else {
-              # push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume EMIES is in ok HeathState";
-              $log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume EMIES is running properly");
-            }
-            
-            if (%healthissues) {
-            my @infos;
-            for my $level (qw(critical warning other unknown)) {
-                next unless $healthissues{$level};
-                $ep->{HealthState} ||= $level;
-                push @infos, @{$healthissues{$level}};
-            }
-            $ep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-            $ep->{HealthState} = 'ok';
-            }
-
-            $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
-            $ep->{TrustedCA} = $host_info->{trustedcas}; # array
-            
-            # OBS: Do 'queueing' and 'closed' states apply for aris?
-            # OBS: Is there an allownew option for aris?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $ep->{ServingState} = 'draining';
-            #} else {
-            #    $ep->{ServingState} = 'production';
-            #}
-            $ep->{ServingState} = 'production';
-
-            # TODO: StartTime: get it from hed?
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            # AccessPolicies
-            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
-            
-            $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-                   
-            # Associations
-
-            $ep->{ServiceID} = $ARISsvID;
-
-            return $ep;
-        };
-        
-        $arisendpoints->{EMIESEndpoint} = $getArisEMIESEndpoint if $emieshostport ne '';
-
-
-        # return ARIS endpoints in sequence
-        my $getARISEndpoints = sub {
-          return undef unless my ($ep, $sub) = each %$arisendpoints;
-          return &$sub;
-        };
+    # ARIS service has been removed from the rendering.
+    # other services that follow might end up to be endpoints
     
-        
-        $sv->{Endpoints} = $getARISEndpoints;
-
-        # Location and Contact
-        if (my $lconfig = $config->{location}) {
-            my $count = 1;
-            $sv->{Location} = sub {
-                return undef if $count-- == 0;
-                my $loc = {};
-                $loc->{ID} = "urn:ogf:Location:$hostname:Service:aris";
-                for (qw(Name Address Place PostCode Country Latitude Longitude)) {
-                    $loc->{$_} = $lconfig->{$_} if defined $lconfig->{$_};
-                }
-                $loc->{ServiceForeignKey} = $sv->{ID};
-                return $loc;
-            }
-        }
-        if (my $cconfs = $config->{contacts}) {
-            my $i = 0;
-            $sv->{Contacts} = sub {
-                return undef unless $i < length @$cconfs;
-                my $cconfig = $cconfs->[$i];
-                #my $detail = $cconfig->{Detail};
-                my $cont = {};
-                $cont->{ID} = "urn:ogf:Contact:$hostname:Service:aris:con$i";
-                for (qw(Name Detail Type)) {
-                    $cont->{$_} = $cconfig->{$_} if $cconfig->{$_};
-                }
-                $cont->{ServiceForeignKey} = $sv->{ID};
-                $i++;
-                return $cont;
-            };
-        }
-
-        # Associations
-
-        $sv->{AdminDomainID} = $adID;
-
-        return $sv;
-    };
-
-    # ARIS is enabled by default. Might change in the future
-    
-    $othersv->{ARIS} = $getARISService;
+    #$othersv->{ARIS} = $getARISService;
 
     # Service:Cache-Index
 
@@ -2813,7 +3268,7 @@ sub collect($) {
     # Disabled until I find a way to know if it's configured or not.
     # $othersv->{CacheIndex} = $getCacheIndexService;
     
-    # Service: HED-Control
+    # Service: HED-Control / TODO: should be changed to HEDSHOT
 
     my $getHEDControlService = sub {
 

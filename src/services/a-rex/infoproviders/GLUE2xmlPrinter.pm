@@ -192,7 +192,6 @@ sub Services {
         # XML validation is order-sensitive.
         $self->Location($data->{Location});
         $self->Contacts($data->{Contacts});
-        # TODO: must be generalized to multiple endpoints while building the data structure
         $self->Endpoints($data->{Endpoints});
         $self->ComputingShares($data->{ComputingShares});
         $self->ComputingManager($data->{ComputingManager});
