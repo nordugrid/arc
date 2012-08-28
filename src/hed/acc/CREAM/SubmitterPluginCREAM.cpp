@@ -22,6 +22,78 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
+  bool SubmitterPluginCREAM::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted, const URL& jobInformationEndpoint) {
+    MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
+    URL url(endpoint);
+
+    bool ok = true;
+    for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
+      std::string delegationid = UUID();
+      URL delegationurl(url);
+      delegationurl.ChangePath(delegationurl.Path() + "/gridsite-delegation");
+      CREAMClient gLiteClientDelegation(delegationurl, cfg, usercfg.Timeout());
+      if (!gLiteClientDelegation.createDelegation(delegationid, usercfg.ProxyPath())) {
+        logger.msg(INFO, "Failed creating singed delegation certificate");
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
+      }
+      URL submissionurl(url);
+      submissionurl.ChangePath(submissionurl.Path() + "/CREAM2");
+      CREAMClient gLiteClientSubmission(submissionurl, cfg, usercfg.Timeout());
+      gLiteClientSubmission.setDelegationId(delegationid);
+  
+      JobDescription preparedjobdesc(*it);
+      if (!preparedjobdesc.Prepare()) {
+        logger.msg(INFO, "Failed to prepare job description to target resources");
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
+      }
+
+      std::string jobdescstring;
+      if (!preparedjobdesc.UnParse(jobdescstring, "egee:jdl")) {
+        logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "egee:jdl");
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
+      }
+  
+      creamJobInfo jobInfo;
+      if (!gLiteClientSubmission.registerJob(jobdescstring, jobInfo)) {
+        logger.msg(INFO, "Failed registering job");
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
+      }
+  
+      if (!PutFiles(preparedjobdesc, jobInfo.ISB)) {
+        logger.msg(INFO, "Failed uploading local input files");
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
+      }
+  
+      if (!gLiteClientSubmission.startJob(jobInfo.id)) {
+        logger.msg(INFO, "Failed starting job");
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
+      }
+  
+      XMLNode xIDFromEndpoint(jobInfo.ToXML());
+      xIDFromEndpoint.NewChild("delegationID") = delegationurl.str() + '/' + delegationid;
+
+      Job j;
+      AddJobDetails(preparedjobdesc, URL(submissionurl.str() + '/' + jobInfo.id), jobInformationEndpoint, j);
+      xIDFromEndpoint.GetXML(j.IDFromEndpoint);
+      jc.addEntity(j);
+    }
+
+    return ok;
+  }
+
   bool SubmitterPluginCREAM::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);

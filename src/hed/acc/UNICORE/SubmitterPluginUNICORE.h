@@ -22,6 +22,8 @@ namespace Arc {
 
     virtual bool isEndpointNotSupported(const std::string& endpoint) const;
 
+    virtual bool Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted, const URL& jobInformationEndpoint = URL());
+
     virtual bool Submit(const std::list<JobDescription>& jobdesc, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted);
   private:
     static Logger logger;

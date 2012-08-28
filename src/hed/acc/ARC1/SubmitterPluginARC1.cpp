@@ -31,6 +31,88 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
+  bool SubmitterPluginARC1::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted, const URL& jobInformationEndpoint) {
+    URL url(endpoint);
+
+    // TODO: Determine extended BES interface interface (A-REX WS)
+    bool arex_features = true; //et.ComputingService->Type == "org.nordugrid.execution.arex";
+
+    AREXClient* ac = clients.acquire(url, arex_features);
+
+    bool ok = true;
+    for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
+      JobDescription preparedjobdesc(*it);
+  
+      if (!preparedjobdesc.Prepare()) {
+        logger.msg(INFO, "Failed to prepare job description");
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
+      }
+
+      // !! TODO: For regular BES ordinary JSDL is needed - keeping nordugrid:jsdl so far
+      std::string product;
+      if (!preparedjobdesc.UnParse(product, "nordugrid:jsdl")) {
+        logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:jsdl");
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
+      }
+
+      std::string idFromEndpoint;
+      if (!ac->submit(product, idFromEndpoint, arex_features && (url.Protocol() == "https"))) {
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
+      }
+  
+      if (idFromEndpoint.empty()) {
+        logger.msg(INFO, "No job identifier returned by BES service");
+        notSubmitted.push_back(&*it);
+        ok = false;
+        continue;
+      }
+  
+      XMLNode activityIdentifier(idFromEndpoint);
+      URL jobid;
+      if (activityIdentifier["ReferenceParameters"]["a-rex:JobID"]) { // Service seems to be A-REX. Extract job ID, and upload files.
+        jobid = URL((std::string)(activityIdentifier["ReferenceParameters"]["JobSessionDir"]));
+        // compensate for time between request and response on slow networks
+        URL sessionurl = jobid;
+        sessionurl.AddOption("threads=2",false);
+        sessionurl.AddOption("encryption=optional",false);
+    
+        if (!PutFiles(preparedjobdesc, sessionurl)) {
+          logger.msg(INFO, "Failed uploading local input files");
+          notSubmitted.push_back(&*it);
+          ok = false;
+          continue;
+        }
+      } else {
+        if (activityIdentifier["Address"]) {
+          jobid = URL((std::string)activityIdentifier["Address"]);
+        } else {
+          jobid = url;
+        }
+        Time t;
+        // Since BES doesn't specify a simple unique ID, but rather an EPR, a unique non-reproduceable (to arcsync) job ID is created below.
+        jobid.ChangePath(jobid.Path() + "/BES" + tostring(t.GetTime()) + tostring(t.GetTimeNanosec()));
+      }
+    
+      Job j;
+      j.IDFromEndpoint = idFromEndpoint;
+      if (activityIdentifier["ReferenceParameters"]["a-rex:JobID"]) {
+        j.InterfaceName = "org.nordugrid.xbes";
+      }
+
+      AddJobDetails(preparedjobdesc, jobid, jobInformationEndpoint, j);
+      jc.addEntity(j);
+    }
+  
+    clients.release(ac);
+    return ok;
+  }
+
   bool SubmitterPluginARC1::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     URL url(et.ComputingEndpoint->URLString);
     bool arex_features = et.ComputingService->Type == "org.nordugrid.execution.arex";
