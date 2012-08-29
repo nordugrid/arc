@@ -32,6 +32,7 @@ static bool cancelled = false;
 
 static void sig_cancel(int)
 {
+  if (cancelled) _exit(0);
   cancelled = true;
   cond.broadcast();
 }
