@@ -32,6 +32,7 @@ namespace Arc {
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) const;
 
   private:
+    static URL GetAddressOfResource(const Job& job);
     static Logger logger;
     AREXClients clients;
   };

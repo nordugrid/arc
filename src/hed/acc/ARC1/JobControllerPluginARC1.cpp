@@ -22,6 +22,10 @@
 namespace Arc {
 
   Logger JobControllerPluginARC1::logger(Logger::getRootLogger(), "JobControllerPlugin.ARC1");
+  
+  URL JobControllerPluginARC1::GetAddressOfResource(const Job& job) {
+    return URL(XMLNode(job.IDFromEndpoint)["Address"]); 
+  }
 
   bool JobControllerPluginARC1::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
@@ -30,7 +34,7 @@ namespace Arc {
 
   void JobControllerPluginARC1::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     for (std::list<Job*>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
-      AutoPointer<AREXClient> ac(((AREXClients&)clients).acquire((*it)->Cluster, true));
+      AutoPointer<AREXClient> ac(((AREXClients&)clients).acquire(GetAddressOfResource(**it), true));
       std::string idstr;
       AREXClient::createActivityIdentifier((*it)->JobID, idstr);
       if (!ac->stat(idstr, **it)) {
@@ -48,7 +52,7 @@ namespace Arc {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
-      AutoPointer<AREXClient> ac(((AREXClients&)clients).acquire(job.Cluster, true));
+      AutoPointer<AREXClient> ac(((AREXClients&)clients).acquire(GetAddressOfResource(job), true));
       std::string idstr;
       AREXClient::createActivityIdentifier(job.JobID, idstr);
       if (!ac->clean(idstr)) {
@@ -68,7 +72,7 @@ namespace Arc {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
-      AutoPointer<AREXClient> ac(((AREXClients&)clients).acquire(job.Cluster, true));
+      AutoPointer<AREXClient> ac(((AREXClients&)clients).acquire(GetAddressOfResource(job), true));
       std::string idstr;
       AREXClient::createActivityIdentifier(job.JobID, idstr);
       if (!ac->kill(idstr)) {
@@ -105,7 +109,7 @@ namespace Arc {
   
       logger.msg(VERBOSE, "Resuming job: %s at state: %s (%s)", job.JobID.fullstr(), job.RestartState.GetGeneralState(), job.RestartState());
   
-      AutoPointer<AREXClient> ac(((AREXClients&)clients).acquire(job.Cluster, true));
+      AutoPointer<AREXClient> ac(((AREXClients&)clients).acquire(GetAddressOfResource(job), true));
       std::string idstr;
       AREXClient::createActivityIdentifier(job.JobID, idstr);
       if (!ac->resume(idstr)) {
@@ -156,7 +160,7 @@ namespace Arc {
   bool JobControllerPluginARC1::GetJobDescription(const Job& job, std::string& desc_str) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AutoPointer<AREXClient> ac(((AREXClients&)clients).acquire(job.Cluster, true));
+    AutoPointer<AREXClient> ac(((AREXClients&)clients).acquire(GetAddressOfResource(job), true));
     std::string idstr;
     AREXClient::createActivityIdentifier(job.JobID, idstr);
     if (ac->getdesc(idstr, desc_str)) {
