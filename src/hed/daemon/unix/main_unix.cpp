@@ -8,6 +8,7 @@
 #include <pwd.h>
 #include <grp.h>
 #include <signal.h>
+#include <errno.h>
 #include <glibmm/fileutils.h>
 #include <glibmm/miscutils.h>
 
@@ -48,11 +49,13 @@ static void do_shutdown(void)
 static Arc::LogFile* sighup_dest = NULL;
 
 static void sighup_handler(int) {
+    int old_errno = errno;
     if(main_daemon) main_daemon->logreopen();
     if(sighup_dest) {
         sighup_dest->setReopen(true);
         sighup_dest->setReopen(false);
     }
+    errno = old_errno;
 }
 
 static void glib_exception_handler()
