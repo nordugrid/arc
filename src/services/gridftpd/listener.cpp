@@ -91,6 +91,7 @@ static volatile int server_done = 0;
 static void (*sig_old_chld)(int) = SIG_ERR;
 
 void sig_chld(int /* signum */) {
+  int old_errno = errno;
   int status;
   for(;;) {
     int id=waitpid(-1,&status,WNOHANG);
@@ -98,10 +99,12 @@ void sig_chld(int /* signum */) {
     curr_connections--;
     if(curr_connections < -10) curr_connections=-10;
   };
+  errno = old_errno;
 }
 
 #ifdef __USE_RESURECTION__
 void sig_term(int signum) {
+  int old_errno = errno;
   if(chid == -1) return;
   if(chid == 0) {
     server_done = 1;
@@ -114,6 +117,7 @@ void sig_term(int signum) {
   else {
     kill(chid,SIGTERM);
   };
+  errno = old_errno;
 };
 
 int main_internal(int argc,char** argv);
@@ -165,11 +169,13 @@ int main(int argc,char** argv) {
 int main_internal(int argc,char** argv) {
 #else
 void sig_term_fork(int /* signum */) {
+  int old_errno = errno;
   int static passed = 0;
   if(passed) _exit(-1);
   server_done=1;
   passed=1;
   kill(0,SIGTERM);
+  errno = old_errno;
 }
 
 int main(int argc,char** argv) {
