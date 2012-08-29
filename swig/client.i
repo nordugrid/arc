@@ -127,12 +127,6 @@
 %include "../src/hed/libs/client/JobControllerPlugin.h"
 
 
-// Wrap contents of $(top_srcdir)/src/hed/libs/client/JobSupervisor.h
-%{
-#include <arc/client/JobSupervisor.h>
-%}
-%include "../src/hed/libs/client/JobSupervisor.h"
-
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/client/EndpointQueryingStatus.h
 %{
@@ -291,6 +285,18 @@
 #endif
 %include "../src/hed/libs/client/SubmitterPlugin.h"
 
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/Submitter.h
+%{
+#include <arc/client/Submitter.h>
+%}
+%template(JobDescriptionPtrList) std::list<const Arc::JobDescription *>;
+%template(EndpointQueryingStatusMap) std::map<Arc::Endpoint, Arc::EndpointQueryingStatus>;
+%template(EndpointSubmissionStatusMap) std::map<Arc::Endpoint, Arc::EndpointSubmissionStatus>;
+#ifdef SWIGJAVA
+// TODO
+#endif
+%include "../src/hed/libs/client/Submitter.h"
+
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/client/ComputingServiceRetriever.h
 %{
@@ -350,6 +356,13 @@
 %rename(compare) Arc::CountedBroker::operator()(const ExecutionTarget&, const ExecutionTarget&) const;
 #endif
 %include "../src/hed/libs/client/Broker.h"
+
+
+// Wrap contents of $(top_srcdir)/src/hed/libs/client/JobSupervisor.h
+%{
+#include <arc/client/JobSupervisor.h>
+%}
+%include "../src/hed/libs/client/JobSupervisor.h"
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/client/TestACCControl.h
