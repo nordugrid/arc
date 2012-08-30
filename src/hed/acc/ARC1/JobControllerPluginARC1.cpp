@@ -132,7 +132,8 @@ namespace Arc {
   bool JobControllerPluginARC1::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
     url = job.JobID;
     // compensate for time between request and response on slow networks
-    url.AddOption("threads=2",false);
+    // (turning on threads=2 causes strange behaviour in arcget, so disabling it now)
+    // url.AddOption("threads=2",false);
     url.AddOption("encryption=optional",false);
     switch (resource) {
     case Job::STDIN:
