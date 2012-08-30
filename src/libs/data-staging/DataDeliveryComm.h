@@ -45,7 +45,7 @@ namespace DataStaging {
       DTRStatus::DTRStatusType status;   ///< Generic status
       DTRErrorStatus::DTRErrorStatusType error; ///< Error type
       DTRErrorStatus::DTRErrorLocation error_location; ///< Where error happened
-      char error_desc[256];              ///< Error description
+      char error_desc[1024];             ///< Error description
       unsigned int streams;              ///< Number of transfer streams active
       unsigned long long int transferred;///< Number of bytes transferred
       unsigned long long int offset;     ///< Last position to which file has no missing pieces

@@ -344,8 +344,9 @@ int main(int argc,char* argv[]) {
   // Error at source or destination
   if(source_failed || !source_st) {
     std::string err("Failed reading from source: "+source->CurrentLocation().str());
-    if (source->GetFailureReason() != DataStatus::UnknownError) err += " : " + std::string(source->GetFailureReason());
-    else if (!source_st) err += " : " + std::string(source_st);
+    // If error reported in read callback, use that instead
+    if (source->GetFailureReason() != DataStatus::UnknownError) source_st = source->GetFailureReason();
+    if (!source_st) err += " : " + std::string(source_st);
     ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
                  (source_url.Protocol() != "file") ?
                   (((!source_st && source_st.Retryable()) || buffer.speed.transferred_size() > 0) ?
@@ -360,8 +361,9 @@ int main(int argc,char* argv[]) {
   };
   if(dest_failed || !dest_st) {
     std::string err("Failed writing to destination: "+dest->CurrentLocation().str());
-    if (dest->GetFailureReason() != DataStatus::UnknownError) err += " : " + std::string(dest->GetFailureReason());
-    else if (!dest_st) err += " : " + std::string(dest_st);
+    // If error reported in write callback, use that instead
+    if (dest->GetFailureReason() != DataStatus::UnknownError) dest_st = dest->GetFailureReason();
+    if (!dest_st) err += " : " + std::string(dest_st);
     ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
                  (dest_url.Protocol() != "file") ?
                   (((!dest_st && dest_st.Retryable()) || buffer.speed.transferred_size() > 0) ?
