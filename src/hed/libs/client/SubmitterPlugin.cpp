@@ -70,7 +70,7 @@ namespace Arc {
             mover.Transfer(*source, *destination, cache, URLMap(), 0, 0, 0,
                            usercfg.Timeout());
           if (!res.Passed()) {
-            logger.msg(ERROR, "Failed uploading file: %s", std::string(res));
+            logger.msg(ERROR, "Failed uploading file %s to %s: %s", source->GetURL().fullstr(), destination->GetURL().fullstr(), std::string(res));
             return false;
           }
         }
