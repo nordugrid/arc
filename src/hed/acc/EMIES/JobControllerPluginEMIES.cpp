@@ -94,6 +94,7 @@ namespace Arc {
         continue;
       }
       
+      (*it)->State = JobStateEMIES((std::string)"emies:TERMINAL");
       IDsProcessed.push_back((*it)->JobID);
       ((EMIESClients&)clients).release(ac.Release());
     }

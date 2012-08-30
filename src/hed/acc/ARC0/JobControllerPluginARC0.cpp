@@ -315,6 +315,7 @@ namespace Arc {
       }
   
       IDsProcessed.push_back(job.JobID);
+      job.State = JobStateARC0("KILLED");
       logger.msg(VERBOSE, "Job cancelling successful");
     }
 

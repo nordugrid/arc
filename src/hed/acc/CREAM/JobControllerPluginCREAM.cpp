@@ -14,6 +14,8 @@
 
 #include "CREAMClient.h"
 #include "JobControllerPluginCREAM.h"
+#include "JobStateCREAM.h"
+
 
 namespace Arc {
 
@@ -91,6 +93,7 @@ namespace Arc {
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
+      job.State = JobStateCREAM("CANCELLED");
       IDsProcessed.push_back(job.JobID);
     }
     

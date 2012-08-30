@@ -18,6 +18,7 @@
 
 #include "AREXClient.h"
 #include "JobControllerPluginARC1.h"
+#include "JobStateARC1.h"
 
 namespace Arc {
 
@@ -81,6 +82,7 @@ namespace Arc {
         ((AREXClients&)clients).release(ac.Release());
         continue;
       }
+      job.State = JobStateARC1("killed");
       IDsProcessed.push_back(job.JobID);
       ((AREXClients&)clients).release(ac.Release());
     }

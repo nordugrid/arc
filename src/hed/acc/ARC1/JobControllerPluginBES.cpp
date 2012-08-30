@@ -17,6 +17,7 @@
 
 #include "AREXClient.h"
 #include "JobControllerPluginBES.h"
+#include "JobStateBES.h"
 
 namespace Arc {
 
@@ -62,7 +63,7 @@ namespace Arc {
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
-      
+      job.State = JobStateBES("cancelled");
       IDsProcessed.push_back(job.JobID);
     }
     return ok;
