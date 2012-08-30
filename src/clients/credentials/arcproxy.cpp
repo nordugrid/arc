@@ -1288,13 +1288,15 @@ int main(int argc, char *argv[]) {
                 std::string tmp = str.substr(pos + tmp_str.size() + 1); 
                 std::cout << Arc::IString("The validity duration of VOMS AC is shortened from %s to %s, due to the validity constraint on voms server side.\n", voms_period, tmp);
               }
-              else
-              std::cout << Arc::IString("Cannot get any AC or attributes info from VOMS server: %s;\n       Returned message from VOMS server: %s\n", voms_server, str);
-              break; //since the voms servers with the same name should be looked as the same for robust reason, the other voms server should that can be reached could returned the same message. So we exists the loop, even if there are other backup voms server exist.
+              else {
+                std::cout << Arc::IString("Cannot get any AC or attributes info from VOMS server: %s;\n       Returned message from VOMS server: %s\n", voms_server, str);
+                break; //since the voms servers with the same name should be looked as the same for robust reason, the other voms server that can be reached could returned the same message. So we exists the loop, even if there are other backup voms server exist.
+              }
             }
-            else
+            else {
               std::cout << Arc::IString("Returned message from VOMS server %s is: %s\n", voms_server, ret_str);
-              break; 
+              break;
+            } 
           }
 
           //Put the return attribute certificate into proxy certificate as the extension part
@@ -1303,6 +1305,7 @@ int main(int argc, char *argv[]) {
             codedac = (std::string)(node["bitstr"]);
           else
             codedac = (std::string)(node["ac"]);
+
           std::string decodedac;
           int size;
           char *dec = NULL;
