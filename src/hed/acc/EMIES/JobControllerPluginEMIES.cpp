@@ -97,7 +97,7 @@ namespace Arc {
       IDsProcessed.push_back((*it)->JobID);
       ((EMIESClients&)clients).release(ac.Release());
     }
-    return false;
+    return ok;
   }
 
   bool JobControllerPluginEMIES::RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
