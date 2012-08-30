@@ -205,6 +205,18 @@ static std::vector<std::string> search_vomses(std::string path) {
   return vomses_files;
 }
 
+#define VOMS_LINE_NICKNAME (0)
+#define VOMS_LINE_HOST (1)
+#define VOMS_LINE_PORT (2)
+#define VOMS_LINE_SN (3)
+#define VOMS_LINE_NAME (4)
+#define VOMS_LINE_NUM (5)
+
+static bool find_matched_vomses(std::map<std::string, std::vector<std::vector<std::string> > > &matched_voms_line /*output*/,
+    std::multimap<std::string, std::string>& server_command_map /*output*/,
+    std::list<std::string>& vomses /*output*/,
+    std::list<std::string>& vomslist, std::string& vomses_path, Arc::UserConfig& usercfg, Arc::Logger& logger);
+
 static std::string tokens_to_string(std::vector<std::string> tokens) {
   std::string s;
   for(int n = 0; n<tokens.size(); ++n) {
@@ -399,6 +411,8 @@ int main(int argc, char *argv[]) {
                                                "              credential (certificate and key) is not needed in this case. \n"
                                                "              MyProxy functionality can be used together with VOMS\n"
                                                "              functionality.\n"
+                                               "              voms and vomses can be used for Get command if VOMS attributes\n"
+                                               "              is required to be included in the proxy.\n"
                                                ),
                     istring("string"), myproxy_command);
 
@@ -1018,6 +1032,38 @@ int main(int argc, char *argv[]) {
       myproxyopt["username"] = user_name;
       myproxyopt["password"] = passphrase;
       myproxyopt["lifetime"] = myproxy_period;
+      // According to the protocol of myproxy, the "Get" command can
+      // include the information about vo name, so that myproxy server
+      // can contact voms server to retrieve AC for myproxy client 
+      // See 2.4 of http://grid.ncsa.illinois.edu/myproxy/protocol/
+      // "When VONAME appears in the message, the server will generate VOMS
+      // proxy certificate using VONAME and VOMSES, or the server's VOMS server information."
+      char seq = '0';
+      for (std::list<std::string>::iterator it = vomslist.begin();
+           it != vomslist.end(); it++) {
+        size_t p;
+        std::string voms_server;
+        p = (*it).find(":");
+        voms_server = (p == std::string::npos) ? (*it) : (*it).substr(0, p);
+        myproxyopt[std::string("vomsname").append(1, seq)] = voms_server;
+        seq++;
+      }
+      seq = '0';
+      // vomses can be specified, so that myproxy server could use it to contact voms server
+      std::list<std::string> vomses;  
+      // vomses --- Store matched vomses lines, only the 
+      //vomses line that matches the specified voms name is included.
+      std::map<std::string, std::vector<std::vector<std::string> > > matched_voms_line;
+      std::multimap<std::string, std::string> server_command_map;
+      find_matched_vomses(matched_voms_line, server_command_map, vomses, vomslist, vomses_path, usercfg, logger);
+      for (std::list<std::string>::iterator it = vomses.begin();
+           it != vomses.end(); it++) {
+        std::string vomses_line;
+        vomses_line = (*it);
+        myproxyopt[std::string("vomses").append(1, seq)] = vomses_line; 
+        seq++;
+      }
+
       if(!cstore.Retrieve(myproxyopt,proxy_cred_str_pem))
         throw std::invalid_argument("Failed to retrieve proxy from MyProxy service");
       write_proxy_file(proxy_path,proxy_cred_str_pem);
@@ -1092,115 +1138,11 @@ int main(int argc, char *argv[]) {
       proxy_cert.append(private_key).append(signing_cert).append(signing_cert_chain);
       write_proxy_file(proxy_path,proxy_cert);
 
-      //Parse the voms server and command from command line
-      std::multimap<std::string, std::string> server_command_map;
-      for (std::list<std::string>::iterator it = vomslist.begin();
-           it != vomslist.end(); it++) {
-        size_t p;
-        std::string voms_server;
-        std::string command;
-        p = (*it).find(":");
-        //here user could give voms name or voms nick name
-        voms_server = (p == std::string::npos) ? (*it) : (*it).substr(0, p);
-        command = (p == std::string::npos) ? "" : (*it).substr(p + 1);
-        server_command_map.insert(std::pair<std::string, std::string>(voms_server, command));
-      }
-
-      //Parse the 'vomses' file to find configure lines corresponding to
-      //the information from the command line
-      if (vomses_path.empty())
-        vomses_path = usercfg.VOMSESPath();
-      if (vomses_path.empty()) {
-        logger.msg(Arc::ERROR, "$X509_VOMS_FILE, and $X509_VOMSES are not set;\nUser has not specify the location for vomses information;\nThere is also not vomses location information in user's configuration file;\nCannot find vomses in default locations: ~/.arc/vomses, ~/.voms/vomses, $ARC_LOCATION/etc/vomses, $ARC_LOCATION/etc/grid-security/vomses, $PWD/vomses, /etc/vomses, /etc/grid-security/vomses, and the location at the corresponding sub-directory");
-        return EXIT_FAILURE;
-      }
-
-      //the 'vomses' location could be one single files; 
-      //or it could be a directory which includes multiple files, such as 'vomses/voA', 'vomses/voB', etc.
-      //or it could be a directory which includes multiple directories that includes multiple files,
-      //such as 'vomses/atlas/voA', 'vomses/atlas/voB', 'vomses/alice/voa', 'vomses/alice/vob', 
-      //'vomses/extra/myprivatevo', 'vomses/mypublicvo'
-      std::vector<std::string> vomses_files;
-      //If the location is a file
-      if(is_file(vomses_path)) vomses_files.push_back(vomses_path);
-      //If the locaton is a directory, all the files and directories will be scanned
-      //to find the vomses information. The scanning will not stop until all of the
-      //files and directories are all scanned.
-      else {
-        std::vector<std::string> files;
-        files = search_vomses(vomses_path);
-        if(!files.empty())vomses_files.insert(vomses_files.end(), files.begin(), files.end());
-        files.clear();
-      }
-
       std::map<std::string, std::vector<std::vector<std::string> > > matched_voms_line;
-      for(std::vector<std::string>::iterator file_i = vomses_files.begin(); file_i != vomses_files.end(); file_i++) {
-        std::string vomses_file = *file_i;
-        std::ifstream in_f(vomses_file.c_str());
-        std::string voms_line;
-        while (true) {
-          voms_line.clear();
-          std::getline<char>(in_f, voms_line, '\n');
-          if (voms_line.empty())
-            break;
-          if((voms_line.size() >= 1) && (voms_line[0] == '#')) continue;
-
-          bool has_find = false; 
-          //boolean value to record if the vomses server information has been found in this vomses line
-          std::vector<std::string> voms_tokens;
-          Arc::tokenize(voms_line,voms_tokens," \t","\"");
-#define VOMS_LINE_NICKNAME (0)
-#define VOMS_LINE_HOST (1)
-#define VOMS_LINE_PORT (2)
-#define VOMS_LINE_SN (3)
-#define VOMS_LINE_NAME (4)
-#define VOMS_LINE_NUM (5)
-          if(voms_tokens.size() != VOMS_LINE_NUM) {
-            // Warning: malformed voms line
-            logger.msg(Arc::WARNING, "VOMS line contains wrong number of tokens (%u expected): \"%s\"", (unsigned int)VOMS_LINE_NUM, voms_line);
-          }
-          if(voms_tokens.size() > VOMS_LINE_NAME) {
-            std::string str = voms_tokens[VOMS_LINE_NAME];
-
-            for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
-                 it != server_command_map.end(); it++) {
-              std::string voms_server = (*it).first;
-              if (str == voms_server) {
-                matched_voms_line[voms_server].push_back(voms_tokens);
-                has_find = true;
-                break;
-              };
-            };
-          };
-
-          if(!has_find) {
-            //you can also use the nick name of the voms server
-            if(voms_tokens.size() > VOMS_LINE_NAME) {
-              std::string str1 = voms_tokens[VOMS_LINE_NAME];
-              for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
-                   it != server_command_map.end(); it++) {
-                std::string voms_server = (*it).first;
-                if (str1 == voms_server) {
-                  matched_voms_line[voms_server].push_back(voms_tokens);
-                  break;
-                };
-              };
-            };
-          };
-        };
-      };//end of scanning all of the vomses files
-
-      //Judge if we can not find any of the voms server in the command line from 'vomses' file
-      //if(matched_voms_line.empty()) {
-      //  logger.msg(Arc::ERROR, "Cannot get voms server information from file: %s", vomses_path);
-      // throw std::runtime_error("Cannot get voms server information from file: " + vomses_path);
-      //}
-      //if (matched_voms_line.size() != server_command_map.size())
-      for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
-           it != server_command_map.end(); it++)
-        if (matched_voms_line.find((*it).first) == matched_voms_line.end())
-          logger.msg(Arc::ERROR, "Cannot get VOMS server %s information from the vomses files",
-                     (*it).first);
+      std::multimap<std::string, std::string> server_command_map;
+      std::list<std::string> vomses;
+      if(!find_matched_vomses(matched_voms_line, server_command_map, vomses, vomslist, vomses_path, usercfg, logger))
+        return EXIT_FAILURE;
 
       //Contact the voms server to retrieve attribute certificate
       //ArcCredential::AC **aclist = NULL;
@@ -1509,4 +1451,117 @@ int main(int argc, char *argv[]) {
   return EXIT_SUCCESS;
 
 }
+
+
+static bool find_matched_vomses(std::map<std::string, std::vector<std::vector<std::string> > > &matched_voms_line /*output*/,
+    std::multimap<std::string, std::string>& server_command_map /*output*/,
+    std::list<std::string>& vomses /*output*/,
+    std::list<std::string>& vomslist, std::string& vomses_path, Arc::UserConfig& usercfg, Arc::Logger& logger) {
+  //Parse the voms server and command from command line
+  for (std::list<std::string>::iterator it = vomslist.begin();
+      it != vomslist.end(); it++) {
+    size_t p;
+    std::string voms_server;
+    std::string command;
+    p = (*it).find(":");
+    //here user could give voms name or voms nick name
+    voms_server = (p == std::string::npos) ? (*it) : (*it).substr(0, p);
+    command = (p == std::string::npos) ? "" : (*it).substr(p + 1);
+    server_command_map.insert(std::pair<std::string, std::string>(voms_server, command));
+  }
+
+  //Parse the 'vomses' file to find configure lines corresponding to
+  //the information from the command line
+  if (vomses_path.empty())
+    vomses_path = usercfg.VOMSESPath();
+  if (vomses_path.empty()) {
+    logger.msg(Arc::ERROR, "$X509_VOMS_FILE, and $X509_VOMSES are not set;\nUser has not specify the location for vomses information;\nThere is also not vomses location information in user's configuration file;\nCannot find vomses in default locations: ~/.arc/vomses, ~/.voms/vomses, $ARC_LOCATION/etc/vomses, $ARC_LOCATION/etc/grid-security/vomses, $PWD/vomses, /etc/vomses, /etc/grid-security/vomses, and the location at the corresponding sub-directory");
+    return false;
+  }
+
+  //the 'vomses' location could be one single files; 
+  //or it could be a directory which includes multiple files, such as 'vomses/voA', 'vomses/voB', etc.
+  //or it could be a directory which includes multiple directories that includes multiple files,
+  //such as 'vomses/atlas/voA', 'vomses/atlas/voB', 'vomses/alice/voa', 'vomses/alice/vob', 
+  //'vomses/extra/myprivatevo', 'vomses/mypublicvo'
+  std::vector<std::string> vomses_files;
+  //If the location is a file
+  if(is_file(vomses_path)) vomses_files.push_back(vomses_path);
+  //If the locaton is a directory, all the files and directories will be scanned
+  //to find the vomses information. The scanning will not stop until all of the
+  //files and directories are all scanned.
+  else {
+    std::vector<std::string> files;
+    files = search_vomses(vomses_path);
+    if(!files.empty())vomses_files.insert(vomses_files.end(), files.begin(), files.end());
+    files.clear();
+  }
+
+
+  for(std::vector<std::string>::iterator file_i = vomses_files.begin(); file_i != vomses_files.end(); file_i++) {
+    std::string vomses_file = *file_i;
+    std::ifstream in_f(vomses_file.c_str());
+    std::string voms_line;
+    while (true) {
+      voms_line.clear();
+      std::getline<char>(in_f, voms_line, '\n');
+      if (voms_line.empty())
+        break;
+      if((voms_line.size() >= 1) && (voms_line[0] == '#')) continue;
+
+      bool has_find = false; 
+      //boolean value to record if the vomses server information has been found in this vomses line
+      std::vector<std::string> voms_tokens;
+      Arc::tokenize(voms_line,voms_tokens," \t","\"");
+      if(voms_tokens.size() != VOMS_LINE_NUM) {
+        // Warning: malformed voms line
+        logger.msg(Arc::WARNING, "VOMS line contains wrong number of tokens (%u expected): \"%s\"", (unsigned int)VOMS_LINE_NUM, voms_line);
+      }
+      if(voms_tokens.size() > VOMS_LINE_NAME) {
+        std::string str = voms_tokens[VOMS_LINE_NAME];
+
+        for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
+             it != server_command_map.end(); it++) {
+          std::string voms_server = (*it).first;
+          if (str == voms_server) {
+            matched_voms_line[voms_server].push_back(voms_tokens);
+            vomses.push_back(voms_line);
+            has_find = true;
+            break;
+          };
+        };
+      };
+
+      if(!has_find) {
+        //you can also use the nick name of the voms server
+        if(voms_tokens.size() > VOMS_LINE_NAME) {
+          std::string str1 = voms_tokens[VOMS_LINE_NAME];
+          for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
+               it != server_command_map.end(); it++) {
+            std::string voms_server = (*it).first;
+            if (str1 == voms_server) {
+              matched_voms_line[voms_server].push_back(voms_tokens);
+              vomses.push_back(voms_line);
+              break;
+            };
+          };
+        };
+      };
+    };
+  };//end of scanning all of the vomses files
+
+  //Judge if we can not find any of the voms server in the command line from 'vomses' file
+  //if(matched_voms_line.empty()) {
+  //  logger.msg(Arc::ERROR, "Cannot get voms server information from file: %s", vomses_path);
+  // throw std::runtime_error("Cannot get voms server information from file: " + vomses_path);
+  //}
+  //if (matched_voms_line.size() != server_command_map.size())
+  for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
+       it != server_command_map.end(); it++)
+    if (matched_voms_line.find((*it).first) == matched_voms_line.end())
+      logger.msg(Arc::ERROR, "Cannot get VOMS server %s information from the vomses files",
+                 (*it).first);
+  return true;
+}
+
 

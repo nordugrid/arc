@@ -110,7 +110,7 @@ bool compose_msg(std::string& msg, const std::map<std::string,std::string>& opti
   if(val != options.end()) lifetime = stringto<int>(val->second);
   val = options.find("retriever_trusted");
   if(val != options.end()) trusted_retriever = val->second;
-
+ 
   if(username.empty()) return false;
   //USERNAME must be provided; PASSPHRASE could be empty 
   //if RETRIEVER_TRUSTED is provided.
@@ -140,6 +140,24 @@ bool compose_msg(std::string& msg, const std::map<std::string,std::string>& opti
   if(!trusted_retriever.empty()) {
     msg.append("RETRIEVER_TRUSTED="+trusted_retriever+"\n");
   }
+
+  for(std::map<std::string,std::string>::const_iterator it = options.begin(); it != options.end(); it++) {
+    if((*it).first.find("vomsname") != std::string::npos) {
+      std::string vomsname = (*it).second;
+      if(!vomsname.empty()) {
+        msg.append("VONAME="+vomsname+"\n");
+      }
+    }
+  }
+  for(std::map<std::string,std::string>::const_iterator it = options.begin(); it != options.end(); it++) {
+    if((*it).first.find("vomses") != std::string::npos) {
+      std::string vomses_line = (*it).second;
+      if(!vomses_line.empty()) {
+        msg.append("VOMSES="+vomses_line+"\n");
+      }
+    }
+  }
+
   msg.append("\0");
 
   return true;
