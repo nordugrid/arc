@@ -91,7 +91,8 @@ namespace Arc {
          || Errno == ETIMEDOUT
          || Errno == EARCSVCTMP
          || Errno == EARCTRANSFERTIMEOUT
-         || Errno == EARCCHECKSUM);
+         || Errno == EARCCHECKSUM
+         || Errno == EARCOTHER);
   }
 
 } // namespace Arc
