@@ -160,10 +160,10 @@ namespace Arc {
     const std::list<const JobDescription*>& GetDescriptionsNotSubmitted() const { return notsubmitted; }
     void ClearNotSubmittedDescriptions() { notsubmitted.clear(); }
 
-    const std::map<Endpoint, EndpointQueryingStatus> GetEndpointQueryingStatuses() const { return queryingStatusMap; }
+    const std::map<Endpoint, EndpointQueryingStatus>& GetEndpointQueryingStatuses() const { return queryingStatusMap; }
     void ClearEndpointQueryingStatuses() { queryingStatusMap.clear(); }
     
-    const std::map<Endpoint, EndpointSubmissionStatus> GetEndpointSubmissionStatuses() const { return submissionStatusMap; }
+    const std::map<Endpoint, EndpointSubmissionStatus>& GetEndpointSubmissionStatuses() const { return submissionStatusMap; }
     void ClearEndpointSubmissionStatuses() { submissionStatusMap.clear(); }
     
     void ClearAllStatuses() { queryingStatusMap.clear(); submissionStatusMap.clear(); }
