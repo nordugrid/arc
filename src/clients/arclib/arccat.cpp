@@ -156,7 +156,7 @@ int RUNMAIN(arccat)(int argc, char **argv) {
     }
 
     // The job-log might be available before the job has started (middleware dependent).
-    if (opt.show_joblog &&
+    if (!opt.show_joblog &&
         !it->State.IsFinished() &&
         it->State != Arc::JobState::RUNNING &&
         it->State != Arc::JobState::FINISHING) {
