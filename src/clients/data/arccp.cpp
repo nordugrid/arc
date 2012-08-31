@@ -73,6 +73,12 @@ static void transfer_cb(unsigned long long int bytes_transferred) {
 static void mover_callback(Arc::DataMover* mover, Arc::DataStatus status, void* arg) {
   Arc::DataStatus* res = (Arc::DataStatus*)arg;
   *res = status;
+  if (!res->Passed()) {
+    logger.msg(Arc::ERROR, "Current transfer FAILED: %s", std::string(*res));
+    if (res->Retryable()) {
+      logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
+    }
+  }
   cond.broadcast();
 }
 
