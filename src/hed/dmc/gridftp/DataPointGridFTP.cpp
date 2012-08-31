@@ -38,8 +38,9 @@ namespace Arc {
       it->cond.signal();
     }
     else {
-      logger.msg(VERBOSE, "ftp_complete_callback: error: %s", globus_object_to_string(error));
-      it->callback_status = DataStatus(DataStatus::GenericError, trim(globus_object_to_string(error)));
+      std::string err(trim(globus_object_to_string(error)));
+      logger.msg(VERBOSE, "ftp_complete_callback: error: %s", err);
+      it->callback_status = DataStatus(DataStatus::GenericError, globus_error_to_errno(err, EARCOTHER), err);
       it->cond.signal();
     }
     ((CBArg*)arg)->release();
@@ -206,7 +207,7 @@ namespace Arc {
     // first check for file or dir
     FileInfo f;
     DataStatus stat_res = Stat(f, DataPoint::INFO_TYPE_TYPE);
-    if (!stat_res) return DataStatus(DataStatus::DeleteError, stat_res.GetDesc());
+    if (!stat_res) return DataStatus(DataStatus::DeleteError, stat_res.GetErrno(), stat_res.GetDesc());
 
     // if file type is unknown, try file delete and then dir delete if that fails
     DataStatus rm_res;
@@ -236,8 +237,7 @@ namespace Arc {
       return DataStatus(DataStatus::DeleteError, "Timeout waiting for delete");
     }
     if (!callback_status) {
-      logger.msg(ERROR, callback_status.GetDesc());
-      return DataStatus(DataStatus::DeleteError, callback_status.GetDesc());
+      return DataStatus(DataStatus::DeleteError, callback_status.GetErrno(), callback_status.GetDesc());
     }
     return DataStatus::Success;
   }
@@ -258,8 +258,7 @@ namespace Arc {
       return DataStatus(DataStatus::DeleteError, "Timeout waiting for delete");
     }
     if (!callback_status) {
-      logger.msg(ERROR, callback_status.GetDesc());
-      return DataStatus(DataStatus::DeleteError, callback_status.GetDesc());
+      return DataStatus(DataStatus::DeleteError, callback_status.GetErrno(), callback_status.GetDesc());
     }
     return DataStatus::Success;
   }
@@ -353,8 +352,9 @@ namespace Arc {
       cond.wait();
       return DataStatus(DataStatus::CreateDirectoryError, ETIMEDOUT);
     }
-    if (!callback_status)
-      return callback_status;
+    if (!callback_status) {
+      return DataStatus(DataStatus::CreateDirectoryError, callback_status.GetErrno(), callback_status.GetDesc());
+    }
     return DataStatus::Success;
   }
 
@@ -560,9 +560,10 @@ namespace Arc {
     /* data transfer finished */
     if (error != GLOBUS_SUCCESS) {
       logger.msg(INFO, "Failed to get ftp file");
-      logger.msg(ERROR, trim(globus_object_to_string(error)));
+      std::string err(trim(globus_object_to_string(error)));
+      logger.msg(ERROR, err);
       it->cond.lock();
-      it->failure_code = DataStatus(DataStatus::ReadStartError, trim(globus_object_to_string(error)));
+      it->failure_code = DataStatus(DataStatus::ReadStartError, globus_error_to_errno(err, EARCOTHER), err);
       it->cond.unlock();
       it->buffer->error_read(true);
     } else {
@@ -812,10 +813,11 @@ namespace Arc {
     /* data transfer finished */
     if (error != GLOBUS_SUCCESS) {
       logger.msg(INFO, "Failed to store ftp file");
+      std::string err(trim(globus_object_to_string(error)));
+      logger.msg(ERROR, err);
       it->cond.lock(); // Protect access to failure_code
-      it->failure_code = DataStatus(DataStatus::WriteStartError, trim(globus_object_to_string(error)));
+      it->failure_code = DataStatus(DataStatus::WriteStartError, globus_error_to_errno(err, EARCOTHER), err);
       it->cond.unlock();
-      logger.msg(ERROR, trim(globus_object_to_string(error)));
       it->buffer->error_write(true);
     } else {
       logger.msg(DEBUG, "ftp_put_complete_callback: success");
@@ -1077,8 +1079,7 @@ namespace Arc {
       return DataStatus(DataStatus::RenameError, "Timeout");
     }
     if (!callback_status) {
-      logger.msg(ERROR, "Rename: failed to rename file");
-      return callback_status;
+      return DataStatus(DataStatus::RenameError, callback_status.GetErrno(), callback_status.GetDesc());
     }
     return DataStatus::Success;
   }

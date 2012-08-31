@@ -14,6 +14,8 @@
 namespace Arc {
 
   std::string globus_object_to_string(globus_object_t *err);
+  /// Parse error message, set errorno if possible and return it.
+  int globus_error_to_errno(const std::string& msg, int errorno);
   std::ostream& operator<<(std::ostream& o, globus_object_t *err);
 
   class GlobusResult {

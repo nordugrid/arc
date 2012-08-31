@@ -911,6 +911,7 @@ namespace Arc {
       if (sresp) {
         logger.msg(INFO, "LIST/MLST failed: %s", sresp);
         result.SetDesc(sresp);
+        result.SetErrNo(globus_error_to_errno(sresp, result.GetErrno()));
         free(sresp); sresp = NULL;
       } else {
         logger.msg(INFO, "LIST/MLST failed");
@@ -983,6 +984,7 @@ namespace Arc {
       if (sresp) {
         logger.msg(INFO, "NLST/MLSD failed: %s", sresp);
         result.SetDesc(sresp);
+        result.SetErrNo(globus_error_to_errno(sresp, result.GetErrno()));
         free(sresp);
       }
       else
