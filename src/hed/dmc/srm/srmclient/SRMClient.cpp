@@ -169,7 +169,7 @@ namespace Arc {
       logger.msg(VERBOSE, "SOAP fault: %s", (*response)->Fault()->Reason());
       delete *response;
       *response = NULL;
-      return EARCSVCPERM;
+      return EARCSVCTMP;
     }
 
     return 0;
