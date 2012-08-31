@@ -473,6 +473,8 @@ namespace Arc {
       resp_n(0),
       callback_status(CALLBACK_NOTREADY),
       data_callback_status(CALLBACK_NOTREADY),
+      close_callback_status(CALLBACK_NOTREADY),
+      list_shift(0),
       connected(false),
       pasv_set(false),
       data_activated(false),
@@ -663,8 +665,6 @@ namespace Arc {
       return result;
     }
 
-    bool reconnect = true;
-
     if (connected) {
       if ((host == url.Host()) &&
           (port == url.Port()) &&
@@ -673,9 +673,10 @@ namespace Arc {
           (userpass == url.Passwd())) {
         /* same server - check if connection alive */
         logger.msg(VERBOSE, "Reusing connection");
-        if (send_command("NOOP", NULL, true, NULL) ==
+        if (send_command("NOOP", NULL, true, NULL) !=
             GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
-          reconnect = false;
+          // Connection failed so close - we will connect again in the next step
+          close_connection();
         }
       }
     }
@@ -683,18 +684,13 @@ namespace Arc {
     path = url.Path();
     if ((path.length() != 0) && (path[path.length() - 1] == '/'))
       path.resize(path.length() - 1);
-    if (reconnect) {
-      connected = false;
+    if (!connected) {
       pasv_set = false;
       port = url.Port();
       scheme = url.Protocol();
       host = url.Host();
       username = url.Username();
       userpass = url.Passwd();
-      /*
-         !!!!!!!!!!!!!!!!!!!!!!!!!!!
-         disconnect here ???????????
-       */
       if (!(res = globus_ftp_control_connect(handle,
                                              const_cast<char*>(host.c_str()),
                                              port, &resp_callback, this))) {
