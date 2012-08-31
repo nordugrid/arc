@@ -243,6 +243,10 @@ private:
 %{
 #include <arc/UserConfig.h>
 %}
+%template(ConfigEndpointList) std::list<Arc::ConfigEndpoint>;
+#ifdef SWIGJAVA
+%template(ConfigEndpointListIteratorHandler) listiteratorhandler<Arc::ConfigEndpoint>;
+#endif
 %include "../src/hed/libs/common/UserConfig.h"
 
 
