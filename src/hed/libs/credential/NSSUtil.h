@@ -1,3 +1,5 @@
+#ifndef __ARC_NSSUTIL_H__
+#define __ARC_NSSUTIL_H__
 
 #include <string>
 
@@ -21,3 +23,5 @@ namespace AuthN {
 
   bool nssImportCert(char* slotpw, const std::string& certfile, const std::string& name, const char* trusts = NULL, bool ascii = true);
 }
+
+#endif /*__ARC_NSSUTIL_H__*/

@@ -34,7 +34,9 @@
 #include <openssl/err.h>
 
 #include <arc/Logger.h>
+
 #include "NSSUtil.h"
+#include "NSSGetPassword.h"
 #include "nssprivkeyinfocodec.h"
 
 /*********************************
@@ -123,7 +125,7 @@ namespace AuthN {
   }
 
   static char* nss_get_password(PK11SlotInfo* slot, PRBool retry, void *arg) {
-    (void)slot; /* unused */
+    (void)slot; // unused
     if(retry || NULL == arg)
       return NULL;
     else
@@ -280,7 +282,7 @@ namespace AuthN {
       return false;
     }
 
-    PK11_SetPasswordFunc(nss_get_password);
+    PK11_SetPasswordFunc(nss_get_password_from_console); //(nss_get_password);
     NSSUtilLogger.msg(INFO, "Succeeded to initialize NSS");
 
     PORT_SetUCS2_ASCIIConversionFunction(p12u_ucs2_ascii_conversion_function);

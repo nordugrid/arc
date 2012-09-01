@@ -10,8 +10,8 @@ VOMS_SOURCE = VOMSUtil.cpp
 #endif
 
 if NSS_ENABLED
-NSS_HEADER = NSSUtil.h nssprivkeyinfocodec.h
-NSS_SOURCE = NSSUtil.cpp nssprivkeyinfocodec.cpp
+NSS_HEADER = NSSUtil.h NSSGetPassword.h nssprivkeyinfocodec.h
+NSS_SOURCE = NSSUtil.cpp NSSGetPassword.cpp nssprivkeyinfocodec.cpp
 else
 NSS_HEADER =
 NSS_SOURCE =
