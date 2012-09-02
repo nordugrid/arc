@@ -13,7 +13,7 @@ namespace Arc {
     ~JobControllerPluginBES() {}
 
     static Plugin* Instance(PluginArgument *arg) {
-      JobControllerPluginPluginArgument *jcarg = dynamic_cast<JobControllerPluginPluginArgument*>(arg);
+      JobControllerPluginArgument *jcarg = dynamic_cast<JobControllerPluginArgument*>(arg);
       return jcarg ? new JobControllerPluginBES(*jcarg, arg) : NULL;
     }
 

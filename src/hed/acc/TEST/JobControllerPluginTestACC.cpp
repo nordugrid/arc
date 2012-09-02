@@ -9,7 +9,7 @@
 namespace Arc {
 
   Plugin* JobControllerPluginTestACC::GetInstance(PluginArgument *arg) {
-    JobControllerPluginPluginArgument *jcarg = dynamic_cast<JobControllerPluginPluginArgument*>(arg);
+    JobControllerPluginArgument *jcarg = dynamic_cast<JobControllerPluginArgument*>(arg);
     if (!jcarg) {
       return NULL;
     }

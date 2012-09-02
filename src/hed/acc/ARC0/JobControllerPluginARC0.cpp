@@ -36,8 +36,8 @@ namespace Arc {
   }
 
   Plugin* JobControllerPluginARC0::Instance(PluginArgument *arg) {
-    JobControllerPluginPluginArgument *jcarg =
-      dynamic_cast<JobControllerPluginPluginArgument*>(arg);
+    JobControllerPluginArgument *jcarg =
+      dynamic_cast<JobControllerPluginArgument*>(arg);
     if (!jcarg)
       return NULL;
     Glib::Module* module = jcarg->get_module();

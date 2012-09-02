@@ -83,10 +83,10 @@ namespace Arc {
     static std::map<std::string, std::string> interfacePluginMap;
   };
 
-  class JobControllerPluginPluginArgument : public PluginArgument {
+  class JobControllerPluginArgument : public PluginArgument {
   public:
-    JobControllerPluginPluginArgument(const UserConfig& usercfg) : usercfg(usercfg) {}
-    ~JobControllerPluginPluginArgument() {}
+    JobControllerPluginArgument(const UserConfig& usercfg) : usercfg(usercfg) {}
+    ~JobControllerPluginArgument() {}
     operator const UserConfig&() { return usercfg; }
   private:
     const UserConfig& usercfg;

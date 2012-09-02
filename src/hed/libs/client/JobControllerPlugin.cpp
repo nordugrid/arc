@@ -102,7 +102,7 @@ namespace Arc {
       return NULL;
     }
 
-    JobControllerPluginPluginArgument arg(uc);
+    JobControllerPluginArgument arg(uc);
     JobControllerPlugin *jobcontroller = factory_->GetInstance<JobControllerPlugin>("HED:JobControllerPlugin", name, &arg, false);
 
     if (!jobcontroller) {

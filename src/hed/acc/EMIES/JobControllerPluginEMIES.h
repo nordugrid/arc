@@ -15,7 +15,7 @@ namespace Arc {
     ~JobControllerPluginEMIES() {}
 
     static Plugin* Instance(PluginArgument *arg) {
-      JobControllerPluginPluginArgument *jcarg = dynamic_cast<JobControllerPluginPluginArgument*>(arg);
+      JobControllerPluginArgument *jcarg = dynamic_cast<JobControllerPluginArgument*>(arg);
       return jcarg ? new JobControllerPluginEMIES(*jcarg, arg) : NULL;
     }
   
