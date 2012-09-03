@@ -229,24 +229,25 @@ namespace Arc {
     registered = false;
     int nbentries = 0;
     struct lfc_filereplicas *entries = NULL;
+    const char* lfns[] = {path.c_str()};
+    const char* guids[] = {guid.c_str()};
+    ResolveArgs args(lfns, guids, 1, &nbentries, &entries);
+    bool res;
     {
-      const char* lfns[] = {path.c_str()};
-      const char* guids[] = {guid.c_str()};
-      ResolveArgs args(lfns, guids, 1, &nbentries, &entries);
       LFCEnvLocker lfc_env(usercfg, url);
-      bool res = CreateThreadFunction(&do_resolve, &args, &args.count);
+      res = CreateThreadFunction(&do_resolve, &args, &args.count);
       if (res) {
         res = args.count.wait(300*1000);
       }
-      if (!res) {
-        // error or timeout. Timeout will leave the thread hanging
-        logger.msg(WARNING, "LFC resolve timed out");
-        if (source) return DataStatus(DataStatus::ReadResolveError, ETIMEDOUT);
-        return DataStatus(DataStatus::WriteResolveError, ETIMEDOUT);
-      }
-      lfc_r = args.result;
-      serrno = args.serrno_;
     }
+    if (!res) {
+      // error or timeout. Timeout will leave the thread hanging
+      logger.msg(WARNING, "LFC resolve timed out");
+      if (source) return DataStatus(DataStatus::ReadResolveError, ETIMEDOUT);
+      return DataStatus(DataStatus::WriteResolveError, ETIMEDOUT);
+    }
+    lfc_r = args.result;
+    serrno = args.serrno_;
     if (lfc_r != 0) {
       logger.msg(ERROR, "Error finding replicas: %s", sstrerror(serrno));
       if (source) return DataStatus(DataStatus::ReadResolveError, lfc2errno());
@@ -1016,22 +1017,24 @@ namespace Arc {
       }
       guids[0] = NULL;
     }
+
+    // See Resolve(bool) for explanation
+    ResolveArgs args(paths, guids, urls.size(), &nbentries, &entries);
+    bool res;
     {
-      // See Resolve(bool) for explanation
-      ResolveArgs args(paths, guids, urls.size(), &nbentries, &entries);
       LFCEnvLocker lfc_env(usercfg, url);
-      bool res = CreateThreadFunction(&do_resolve, &args, &args.count);
+      res = CreateThreadFunction(&do_resolve, &args, &args.count);
       if (res) {
         res = args.count.wait(300*1000);
       }
-      if (!res) {
-        // error or timeout. Timeout will leave the thread hanging
-        logger.msg(WARNING, "LFC resolve timed out");
-        return DataStatus(DataStatus::ReadResolveError, ETIMEDOUT);
-      }
-      lfc_r = args.result;
-      serrno = args.serrno_;
     }
+    if (!res) {
+      // error or timeout. Timeout will leave the thread hanging
+      logger.msg(WARNING, "LFC resolve timed out");
+      return DataStatus(DataStatus::ReadResolveError, ETIMEDOUT);
+    }
+    lfc_r = args.result;
+    serrno = args.serrno_;
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error finding replicas: %s", sstrerror(serrno));
       return DataStatus(DataStatus::ReadResolveError, lfc2errno());
