@@ -289,6 +289,23 @@
 %{
 #include <arc/client/Submitter.h>
 %}
+#ifdef SWIGPYTHON
+#if SWIG_VERSION <= 0x010329
+/* Swig version 1.3.29 cannot handle mapping a template of a "const *" type, so
+ * adding a traits_from::from method taking a "const *" as taken from
+ * swig-1.3.31 makes it possible to handle such types.
+ */
+%{
+namespace swig {
+template <class Type> struct traits_from<const Type *> {
+  static PyObject *from(const Type* val) {
+    return traits_from_ptr<Type>::from(const_cast<Type*>(val), 0);
+  }
+};
+}
+%}
+#endif
+#endif
 %template(JobDescriptionPtrList) std::list<const Arc::JobDescription *>;
 %template(EndpointQueryingStatusMap) std::map<Arc::Endpoint, Arc::EndpointQueryingStatus>;
 %template(EndpointSubmissionStatusMap) std::map<Arc::Endpoint, Arc::EndpointSubmissionStatus>;
