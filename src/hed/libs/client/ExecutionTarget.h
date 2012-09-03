@@ -63,12 +63,16 @@ namespace Arc {
     std::string PostCode;
     float Latitude;
     float Longitude;
+
+    friend std::ostream& operator<<(std::ostream& out, const LocationAttributes& l);
   };
 
   class AdminDomainAttributes {
   public:
     std::string Name;
     std::string Owner;
+
+    friend std::ostream& operator<<(std::ostream& out, const AdminDomainAttributes& ad);
   };
 
   class ExecutionEnvironmentAttributes {
@@ -222,6 +226,8 @@ namespace Arc {
     int UsedSlots;
     int RequestedSlots;
     std::string ReservationPolicy;
+
+    friend std::ostream& operator<<(std::ostream& out, const ComputingShareAttributes& cs);
   };
 
   class ComputingEndpointAttributes {
@@ -257,6 +263,8 @@ namespace Arc {
     int PreLRMSWaitingJobs;
     // This is singular in the GLUE2 doc: JobDescription
     std::list<std::string> JobDescriptions;
+
+    friend std::ostream& operator<<(std::ostream& out, const ComputingEndpointAttributes& ce);
   };
 
   class ComputingServiceAttributes {
@@ -279,7 +287,9 @@ namespace Arc {
     // Other
     URL Cluster; // contains the URL of the infosys that provided the info
     Endpoint OriginalEndpoint; // this ComputingService was generated while this Endpoint was queried
-    };
+
+    friend std::ostream& operator<<(std::ostream& out, const ComputingServiceAttributes& cs);
+  };
 
   class LocationType : public GLUE2Entity<LocationAttributes> {};
 
