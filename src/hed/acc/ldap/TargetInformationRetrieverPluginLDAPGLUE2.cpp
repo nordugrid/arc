@@ -96,33 +96,18 @@ namespace Arc {
     }
 
     bool set(const std::string name, int& integer) {
-      std::string value = get(name);
-      if (!value.empty()) {
-        integer = stringtoi(value);
-        return true;
-      } else {
-        return false;
-      }
+      const std::string value = get(name);
+      return !value.empty() && stringto(value, integer);
     }
 
     bool set(const std::string name, float& number) {
       std::string value = get(name);
-      if (!value.empty()) {
-        number = stringtof(value);
-        return true;
-      } else {
-        return false;
-      }
+      return !value.empty() && stringto(value, number);
     }
 
     bool set(const std::string name, double& number) {
       std::string value = get(name);
-      if (!value.empty()) {
-        number = stringtod(value);
-        return true;
-      } else {
-        return false;
-      }
+      return !value.empty() && stringto(value, number);
     }
 
     bool set(const std::string name, URL& url) {
