@@ -552,6 +552,34 @@ namespace Arc {
     out << std::endl;
   } // end Print
 
+  bool Job::PrepareHandler(const UserConfig& uc) {
+    if (jc != NULL) return true;
+
+    // If InterfaceName is not specified then all JobControllerPlugin classes should be tried.
+    if (InterfaceName.empty()) {
+      logger.msg(VERBOSE, "Unable to handle job (%s), no interface specified.", JobID.fullstr());
+    }
+    
+    jc = loader.loadByInterfaceName(InterfaceName, uc);
+    if (!jc) {
+      logger.msg(VERBOSE, "Unable to handle job (%s), no plugin associated with the specified interface (%s)", JobID.fullstr(), InterfaceName);
+      return false;
+    }
+
+    return true; 
+  }
+
+  bool Job::Update() { if (!jc) return false; std::list<Job*> jobs(1, this); jc->UpdateJobs(jobs); return true; }
+  
+  bool Job::Clean() { return jc ? jc->CleanJobs(std::list<Job*>(1, this)) : false; }
+  
+  bool Job::Cancel() { return jc ? jc->CancelJobs(std::list<Job*>(1, this)) : false; }
+
+  bool Job::Resume() { return jc ? jc->ResumeJobs(std::list<Job*>(1, this)) : false; }
+
+  bool Job::Renew() { return jc ? jc->RenewJobs(std::list<Job*>(1, this)) : false; }
+
+
   bool Job::GetURLToResource(ResourceType resource, URL& url) const { return jc ? jc->GetURLToJobResource(*this, resource, url) : false; }
 
   bool Job::Retrieve(const UserConfig& uc, const URL& destination, bool force) const {

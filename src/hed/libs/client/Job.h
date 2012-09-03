@@ -21,9 +21,10 @@ namespace Arc {
 
   /// Job
   /**
-   * This class describe a Grid job. Most of the members contained in
-   * this class are directly linked to the ComputingActivity defined
-   * in the GLUE Specification v. 2.0 (GFD-R-P.147).
+   * This class describe a Grid job. The class contains public accessible
+   * member attributes and methods for dealing with a Grid job. Most of the
+   * member attributes contained in this class are directly linked to the
+   * ComputingActivity defined in the GLUE Specification v. 2.0 (GFD-R-P.147).
    */
   class Job {
   friend class JobSupervisor;
@@ -157,7 +158,18 @@ namespace Arc {
      * @see operator=
      **/
     void ToXML(XMLNode job) const;
+
+    bool PrepareHandler(const UserConfig& uc);
+    bool Update();
     
+    bool Clean();
+    
+    bool Cancel();
+  
+    bool Resume();
+  
+    bool Renew();
+
     bool GetURLToResource(ResourceType resource, URL& url) const;
     
     bool Retrieve(const UserConfig& uc, const URL& destination, bool force) const;
