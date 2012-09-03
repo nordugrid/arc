@@ -100,6 +100,8 @@ public:
 private:
   ServiceEndpointRetriever ser;
   TargetInformationRetriever tir;
+
+  static Logger logger;
 };
 
 } // namespace Arc

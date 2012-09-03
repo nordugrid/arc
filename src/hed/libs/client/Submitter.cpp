@@ -88,7 +88,7 @@ namespace Arc {
   SubmissionStatus Submitter::BrokeredSubmit(const std::list<std::string>& endpoints, const std::list<JobDescription>& descs, const std::list<std::string>& requestedSubmissionInterfaces) {
     std::list<Endpoint> endpointObjects;
     for (std::list<std::string>::const_iterator it = endpoints.begin(); it != endpoints.end(); ++it) {
-      endpointObjects.push_back(Endpoint(*it, Endpoint::JOBSUBMIT));
+      endpointObjects.push_back(Endpoint(*it, Endpoint::UNSPECIFIED));
     }
     return BrokeredSubmit(endpointObjects, descs, requestedSubmissionInterfaces);
   }

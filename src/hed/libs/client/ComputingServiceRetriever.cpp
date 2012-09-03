@@ -8,6 +8,8 @@
 
 namespace Arc {
 
+  Logger ComputingServiceRetriever::logger(Logger::getRootLogger(), "ComputingServiceRetriever");
+
   ComputingServiceRetriever::ComputingServiceRetriever(
     const UserConfig& uc,
     const std::list<Endpoint>& services,
@@ -27,8 +29,14 @@ namespace Arc {
   void ComputingServiceRetriever::addEndpoint(const Endpoint& service) {
     // If we got a computing element info endpoint, then we pass it to the TIR
     if (service.HasCapability(Endpoint::COMPUTINGINFO)) {
+      logger.msg(DEBUG, "Adding andpoint (%s) to TargetInformationRetriever", service.URLString);
       tir.addEndpoint(service);
     } else if (service.HasCapability(Endpoint::REGISTRY)) {
+      logger.msg(DEBUG, "Adding andpoint (%s) to ServiceEndpointRetriever", service.URLString);
+      ser.addEndpoint(service);
+    } else if (service.HasCapability(Endpoint::UNSPECIFIED)) { // Try adding endpoint to both.
+      logger.msg(DEBUG, "Adding andpoint (%s) to both ServiceEndpointRetriever and TargetInformationRetriever", service.URLString);
+      tir.addEndpoint(service);
       ser.addEndpoint(service);
     }
   }

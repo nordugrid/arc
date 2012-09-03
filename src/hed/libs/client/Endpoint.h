@@ -36,8 +36,9 @@ public:
              capable of returning the list of jobs on the resource
   - JOBSUBMIT: interface of a computing element where jobs can be submitted
   - JOBMANAGEMENT: interface of a computing element where jobs can be managed
+  - UNSPECIFIED: unspecified capability
   */
-  enum CapabilityEnum { REGISTRY, COMPUTINGINFO, JOBLIST, JOBSUBMIT, JOBMANAGEMENT};
+  enum CapabilityEnum { REGISTRY, COMPUTINGINFO, JOBLIST, JOBSUBMIT, JOBMANAGEMENT, UNSPECIFIED};
   
   /** Get the string representation of the given #CapabilityEnum. */
   static std::string GetStringForCapability(Endpoint::CapabilityEnum cap) {
