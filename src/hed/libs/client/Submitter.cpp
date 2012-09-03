@@ -77,7 +77,7 @@ namespace Arc {
   }
 
 
-  SubmissionStatus Submitter::BrokeredSubmit(const std::list<std::string>& endpoints, const std::list<JobDescription>& descs, std::list<Job> jobs, const std::list<std::string>& requestedSubmissionInterfaces) {
+  SubmissionStatus Submitter::BrokeredSubmit(const std::list<std::string>& endpoints, const std::list<JobDescription>& descs, std::list<Job>& jobs, const std::list<std::string>& requestedSubmissionInterfaces) {
     JobConsumerList jcl(jobs);
     addConsumer(jcl);
     SubmissionStatus ok = BrokeredSubmit(endpoints, descs);
@@ -93,7 +93,7 @@ namespace Arc {
     return BrokeredSubmit(endpointObjects, descs, requestedSubmissionInterfaces);
   }
 
-  SubmissionStatus Submitter::BrokeredSubmit(const std::list<Endpoint>& endpoints, const std::list<JobDescription>& descs, std::list<Job> jobs, const std::list<std::string>& requestedSubmissionInterfaces) {
+  SubmissionStatus Submitter::BrokeredSubmit(const std::list<Endpoint>& endpoints, const std::list<JobDescription>& descs, std::list<Job>& jobs, const std::list<std::string>& requestedSubmissionInterfaces) {
     JobConsumerList jcl(jobs);
     addConsumer(jcl);
     SubmissionStatus ok = BrokeredSubmit(endpoints, descs, requestedSubmissionInterfaces);

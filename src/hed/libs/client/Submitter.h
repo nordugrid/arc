@@ -150,9 +150,9 @@ namespace Arc {
     // === Brokering with service discovery (multiple endpoints) ===
     // ==== Using provided JobDescription objects for brokering ====
     SubmissionStatus BrokeredSubmit(const std::list<std::string>& endpoints, const std::list<JobDescription>& descs, const std::list<std::string>& requestedSubmissionInterfaces = std::list<std::string>());
-    SubmissionStatus BrokeredSubmit(const std::list<std::string>& endpoints, const std::list<JobDescription>& descs, std::list<Job>, const std::list<std::string>& requestedSubmissionInterfaces = std::list<std::string>());
+    SubmissionStatus BrokeredSubmit(const std::list<std::string>& endpoints, const std::list<JobDescription>& descs, std::list<Job>&, const std::list<std::string>& requestedSubmissionInterfaces = std::list<std::string>());
     SubmissionStatus BrokeredSubmit(const std::list<Endpoint>& endpoints, const std::list<JobDescription>& descs, const std::list<std::string>& requestedSubmissionInterfaces = std::list<std::string>());
-    SubmissionStatus BrokeredSubmit(const std::list<Endpoint>& endpoints, const std::list<JobDescription>& descs, std::list<Job> jobs, const std::list<std::string>& requestedSubmissionInterfaces = std::list<std::string>());
+    SubmissionStatus BrokeredSubmit(const std::list<Endpoint>& endpoints, const std::list<JobDescription>& descs, std::list<Job>& jobs, const std::list<std::string>& requestedSubmissionInterfaces = std::list<std::string>());
     // ====
     // ===
   
