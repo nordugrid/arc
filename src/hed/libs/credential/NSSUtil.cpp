@@ -200,13 +200,17 @@ namespace AuthN {
     return ret;
   }
 
-//RFC 3820 
+//RFC 3820 and VOMS AC sequence 
 #define OIDT static const unsigned char
   /* RFC 3820 Proxy OID. (1 3 6 1 5 5 7 1 14)*/
   OIDT proxy[] = { 0x2B, 6, 1, 5, 5, 7, 1, 14 };
   OIDT anyLanguage[] = { 0x2B, 6, 1, 5, 5, 7, 21, 0 };//(1.3 .6.1.5.5.7.21.0)
   OIDT inheritAll[] = { 0x2B, 6, 1, 5, 5, 7, 21, 1 }; //(1.3.6.1.5.5.7.21.1)
   OIDT Independent[] = { 0x2B, 6, 1, 5, 5, 7, 21, 2 }; //(1.3.6.1.5.5.7.21.1)
+  /* VOMS AC sequence OID. ()*/
+  OIDT VOMS_acseq[] = { 0x2B, 6, 1, 4, 1, 0xBE, 0x45, 100, 100, 5 }; //(1.3.6.1.4.1.8005.100.100.5)
+  // according to BER "Basic Encoding Ruls", 8005 is encoded as 0xBE 0x45
+
 #define OI(x) { siDEROID, (unsigned char *)x, sizeof x }
 #define ODN(oid,desc) { OI(oid), (SECOidTag)0, desc, CKM_INVALID_MECHANISM, INVALID_CERT_EXTENSION }
   static const SECOidData oids[] = {
@@ -214,10 +218,11 @@ namespace AuthN {
     ODN(anyLanguage, 	"Any language"),
     ODN(inheritAll, 	"Inherit all"),
     ODN(Independent, 	"Independent"),
+    ODN(VOMS_acseq, 	"acseq"),
   };
 
   static const unsigned int numOids = (sizeof oids) / (sizeof oids[0]);
-  SECOidTag tag_proxy, tag_anylang, tag_inheritall, tag_independent;
+  SECOidTag tag_proxy, tag_anylang, tag_inheritall, tag_independent, tag_vomsacseq;
   SECStatus RegisterDynamicOids(void) {
 
     SECStatus rv = SECSuccess;
@@ -256,6 +261,16 @@ namespace AuthN {
     else {
       NSSUtilLogger.msg(DEBUG, "Succeeded to add anyLanguage OID, tag %d is returned", tag_independent);
     }
+
+    tag_vomsacseq = SECOID_AddEntry(&oids[4]);
+    if (tag_vomsacseq == SEC_OID_UNKNOWN) {
+      rv = SECFailure;
+      NSSUtilLogger.msg(ERROR, "Failed to add VOMS AC sequence OID");
+    }
+    else {
+      NSSUtilLogger.msg(DEBUG, "Succeeded to add VOMS AC sequence OID, tag %d is returned", tag_vomsacseq);
+    }
+
     return rv;
   }
   
@@ -2297,6 +2312,28 @@ error:
     return (rv);
   }
 
+  // Add a binary into extension, specific for the VOMS AC sequence
+  static SECStatus AddVOMSACSeqExtension(void* extHandle, char* vomsacseq, int length) {
+    SECStatus rv = SECFailure;
+    SECOidData* oid = NULL;
+    SECOidTag tag;
+
+    tag = tag_vomsacseq;
+    oid = SECOID_FindOIDByTag(tag);
+
+    if(vomsacseq != NULL) {
+      SECItem encodedValue;
+
+      encodedValue.data = (unsigned char*)vomsacseq;
+      encodedValue.len = length;
+      rv = CERT_AddExtension(extHandle, tag, &encodedValue,
+                               PR_FALSE, PR_TRUE);
+    }
+
+    return (rv);
+  }
+
+
 /*
  * Find the subjectName in a DER encoded certificate
  */
@@ -2435,7 +2472,7 @@ my_CERT_CreateCertificate(unsigned long serialNumber,
 }
 
 
-  bool nssCreateCert(const std::string& csrfile, const std::string& issuername, const char* passwd, const int duration, std::string& outfile, bool ascii) {
+  bool nssCreateCert(const std::string& csrfile, const std::string& issuername, const char* passwd, const int duration, const std::string& vomsacseq, std::string& outfile, bool ascii) {
     CERTCertDBHandle* certhandle;
     CERTCertificate* issuercert = NULL;
     SECKEYPrivateKey* issuerkey = NULL;
@@ -2515,6 +2552,11 @@ my_CERT_CreateCertificate(unsigned long serialNumber,
       NSSUtilLogger.msg(ERROR, "Failed to add proxy certificate information extension");
       goto error;
     }
+    if((!vomsacseq.empty()) && (AddVOMSACSeqExtension(ext_handle, (char*)(vomsacseq.c_str()), vomsacseq.length()) != SECSuccess)) {
+      NSSUtilLogger.msg(ERROR, "Failed to add voms AC extension");
+      goto error;
+    }
+
     if(req->attributes != NULL &&
        req->attributes[0] != NULL &&
        req->attributes[0]->attrType.data != NULL &&
@@ -2559,6 +2601,7 @@ my_CERT_CreateCertificate(unsigned long serialNumber,
       NSSUtilLogger.msg(ERROR, "Failed to encode certificate");
       goto error;
     }
+
     signed_cert = (SECItem *)PORT_ArenaZAlloc(arena, sizeof(SECItem));
     if(signed_cert == NULL) {
       NSSUtilLogger.msg(ERROR, "Failed to allocate item for certificate data");

@@ -491,7 +491,8 @@ int main(int argc, char *argv[]) {
     //The name of the certificate imported in firefox is 
     //normally "Imported Certificate" by default, if name is not specified
     int duration = 12;
-    res = AuthN::nssCreateCert(proxy_csrfile, issuername, "", duration, proxy_certfile, ascii);
+    std::string vomsacseq;
+    res = AuthN::nssCreateCert(proxy_csrfile, issuername, "", duration, vomsacseq, proxy_certfile, ascii);
     if(!res) return EXIT_FAILURE;
 
     const char* proxy_certname = "proxycert";

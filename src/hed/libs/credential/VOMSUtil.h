@@ -287,6 +287,21 @@ namespace Arc {
 
   std::string VOMSFQANToFull(const std::string& vo, const std::string& fqan);
 
+  /**Encode the VOMS AC list into ASN1, so that the result can be used 
+   * to insert into X509 as extension.
+   * @param ac_seq  The input string includes a list of AC 
+                    with VOMS_AC_HEADER and VOMS_AC_TRAILER as seperator
+   * @param asn1    The encoded value as output
+  */
+  bool VOMSACSeqEncode(const std::string& ac_seq, std::string& asn1);
+
+  /**Encode the VOMS AC list into ASN1, so that the result can be used
+   * to insert into X509 as extension.
+   * @param acs     The input list includes a list of AC
+   * @param asn1    The encoded value as output
+  */
+  bool VOMSACSeqEncode(const std::list<std::string> acs, std::string& asn1);
+
 }// namespace Arc
 
 #endif /* __ARC_VOMSUTIL_H__ */

@@ -1959,5 +1959,30 @@ err:
     return fqan_;
   }
 
+  bool VOMSACSeqEncode(const std::string& ac_seq, std::string& asn1) {
+    bool ret = false;
+    X509_EXTENSION* ext = NULL;
+    if(ac_seq.empty()) return false;
+    ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid((char*)("acseq")), (char*)(ac_seq.c_str()));
+    if(ext!=NULL) {
+      asn1.clear();
+      asn1.assign((const char*)(ext->value->data), ext->value->length);
+      ret = true;
+      X509_EXTENSION_free(ext);      
+    }
+    return ret;
+  }
+
+  bool VOMSACSeqEncode(const std::list<std::string> acs, std::string& asn1) {
+    std::string ac_seq;
+    std::list<std::string>::const_iterator it;
+    for(it = acs.begin(); it != acs.end(); it++) {
+      std::string ac = (*it);
+      ac_seq.append(VOMS_AC_HEADER).append("\n");
+      ac_seq.append(ac).append("\n");
+      ac_seq.append(VOMS_AC_TRAILER).append("\n");
+    }
+    return VOMSACSeqEncode(ac_seq, asn1);
+  }
 } // namespace Arc
 

@@ -1070,8 +1070,13 @@ char *acseq_i2s(struct v3_ext_method*, void* data)
   char* ret = NULL;
   int len = encoded_acseq.length();
   if(len) {
+    ret = (char*)OPENSSL_malloc(len + 1);
+    memset(ret, 0, len + 1);
+    memcpy(ret, encoded_acseq.c_str(), len);
+/*
     ret = (char*)OPENSSL_malloc(len);
     strncpy(ret, encoded_acseq.c_str(), len);
+*/
   }
   return (char *) ret;
 }

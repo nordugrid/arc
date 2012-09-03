@@ -17,7 +17,7 @@ namespace AuthN {
 
   bool nssGenerateCSR(const std::string& privkey_name, const std::string& dn, const char* slotpw, const std::string& outfile, std::string& privk_str, bool ascii = true);
 
-  bool nssCreateCert(const std::string& csrfile, const std::string& issuername, const char* passwd, const int duration, std::string& outfile, bool ascii = true);
+  bool nssCreateCert(const std::string& csrfile, const std::string& issuername, const char* passwd, const int duration, const std::string& vomsacseq, std::string& outfile, bool ascii = true);
 
   bool nssImportCertAndPrivateKey(char* slotpw, const std::string& keyfile, const std::string& keyname, const std::string& certfile, const std::string& certname, const char* trusts = NULL, bool ascii = true);
 
