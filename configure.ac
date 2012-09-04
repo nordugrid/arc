@@ -779,6 +779,7 @@ if test "$enables_nss" = "yes"; then
   PKG_CHECK_MODULES(NSS, [nss >= 3.10], [NSS_INSTALLED=yes] , [
     AC_MSG_WARN([Cannot locate nss lib])
     NSS_INSTALLED=no
+    enables_nss=no
   ])
   if test "x$NSS_INSTALLED" = "xyes" ; then
     AC_DEFINE(HAVE_NSS,,[define if NSS is enabled and available])
@@ -2431,6 +2432,7 @@ LDAP:               ${enables_ldap}
 xmlsec1:            ${enables_xmlsec1}
 ARGUS:              ${enables_argus}
 GACL:               ${enables_gacl}
+NSS:                ${enables_nss}
 CANL++:             ${enables_canlxx}
 
 Included components:
