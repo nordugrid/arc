@@ -882,7 +882,9 @@ int DTRGenerator::checkUploadedFiles(JobDescription& job) {
   uid_t job_uid = jobuser->StrictSession() ? job.get_uid() : 0;
   uid_t job_gid = jobuser->StrictSession() ? job.get_gid() : 0;
 
-  std::string session_dir(jobuser->SessionRoot(jobid) + '/' + jobid);
+  std::string session_dir;
+  if (job.get_local() && !job.get_local()->sessiondir.empty()) session_dir = job.get_local()->sessiondir;
+  else session_dir = jobuser->SessionRoot(jobid) + '/' + jobid;
   // get input files list
   std::list<FileData> input_files;
   std::list<FileData> input_files_ = input_files;

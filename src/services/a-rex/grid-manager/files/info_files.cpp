@@ -368,7 +368,9 @@ bool job_diagnostics_mark_move(const JobDescription &desc,const JobUser &user) {
   if(h2==-1) return false;
   fix_file_owner(fname2,desc,user);
   fix_file_permissions(fname2,desc,user);
-  std::string fname1 = user.SessionRoot(desc.get_id()) + "/" + desc.get_id() + sfx_diag;
+  std::string fname1;
+  if (desc.get_local() && !desc.get_local()->sessiondir.empty()) fname1 = desc.get_local()->sessiondir + sfx_diag;
+  else fname1 = user.SessionRoot(desc.get_id()) + "/" + desc.get_id() + sfx_diag;
   if(user.StrictSession()) {
     uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
@@ -1064,6 +1066,9 @@ bool job_clean_finished(const JobId &id,const JobUser &user) {
 bool job_clean_deleted(const JobDescription &desc,const JobUser &user,std::list<std::string> cache_per_job_dirs) {
   std::string id = desc.get_id();
   job_clean_finished(id,user);
+  std::string session;
+  if(desc.get_local() && !desc.get_local()->sessiondir.empty()) session = desc.get_local()->sessiondir;
+  else session = user.SessionRoot(id)+"/"+id;
   std::string fname;
   fname = user.ControlDir()+"/job."+id+".proxy"; remove(fname.c_str());
   fname = user.ControlDir()+"/"+subdir_new+"/job."+id+sfx_restart; remove(fname.c_str());
@@ -1075,19 +1080,16 @@ bool job_clean_deleted(const JobDescription &desc,const JobUser &user,std::list<
   fname = user.ControlDir()+"/job."+id+".rte"; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".grami_log"; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".statistics"; remove(fname.c_str());
-  fname = user.SessionRoot(id)+"/"+id+sfx_lrmsoutput; remove(fname.c_str());
+  fname = session+sfx_lrmsoutput; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+sfx_outputstatus; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+sfx_inputstatus; remove(fname.c_str());
   /* remove session directory */
-  std::string dname;
-  if(desc.get_local() && !desc.get_local()->sessiondir.empty()) dname = desc.get_local()->sessiondir;
-  else dname = user.SessionRoot(id)+"/"+id;
   if(user.StrictSession()) {
     uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
-    Arc::DirDelete(dname, true, uid, gid);
+    Arc::DirDelete(session, true, uid, gid);
   } else {
-    Arc::DirDelete(dname);
+    Arc::DirDelete(session);
   }
   // remove cache per-job links, in case this failed earlier
   for (std::list<std::string>::iterator i = cache_per_job_dirs.begin(); i != cache_per_job_dirs.end(); i++) {
