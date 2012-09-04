@@ -292,7 +292,6 @@ rm -rf $RPM_BUILD_ROOT
 # Executables
 #
 %{mingw32_bindir}/arcecho.exe
-%{mingw32_bindir}/arcsrmping.exe
 %{mingw32_bindir}/arcinfo.exe
 %{mingw32_bindir}/arcproxy.exe
 %{mingw32_bindir}/arccat.exe
@@ -330,7 +329,6 @@ rm -rf $RPM_BUILD_ROOT
 # Man pages
 #
 %doc %{mingw32_mandir}/man1/arcecho.1*
-%doc %{mingw32_mandir}/man1/arcsrmping.1*
 %doc %{mingw32_mandir}/man1/arcinfo.1*
 %doc %{mingw32_mandir}/man1/arcproxy.1*
 %doc %{mingw32_mandir}/man1/arcslcs.1*
@@ -450,7 +448,6 @@ rm -rf $RPM_BUILD_ROOT
 # Executables
 #
 %{mingw64_bindir}/arcecho.exe
-%{mingw64_bindir}/arcsrmping.exe
 %{mingw64_bindir}/arcinfo.exe
 %{mingw64_bindir}/arcproxy.exe
 %{mingw64_bindir}/arccat.exe
@@ -488,7 +485,6 @@ rm -rf $RPM_BUILD_ROOT
 # Man pages
 #
 %doc %{mingw64_mandir}/man1/arcecho.1*
-%doc %{mingw64_mandir}/man1/arcsrmping.1*
 %doc %{mingw64_mandir}/man1/arcinfo.1*
 %doc %{mingw64_mandir}/man1/arcproxy.1*
 %doc %{mingw64_mandir}/man1/arcslcs.1*

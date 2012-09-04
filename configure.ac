@@ -179,7 +179,6 @@ enables_echo_client=yes
 enables_data_client=yes
 enables_jura_client=yes
 enables_saml_client=yes
-enables_srm_client=yes
 enables_wsrf_client=yes
 enables_cache_client=yes
 enables_unicore_client=no
@@ -206,7 +205,6 @@ enables_echo_client=$enableval
 enables_data_client=$enableval
 enables_jura_client=$enableval
 enables_saml_client=$enableval
-enables_srm_client=$enableval
 enables_wsrf_client=$enableval
 enables_cache_client=$enableval
 enables_unicore_client=$enableval
@@ -235,7 +233,6 @@ enables_echo_client=$enableval
 enables_data_client=$enableval
 enables_jura_client=$enableval
 enables_saml_client=$enableval
-enables_srm_client=$enableval
 enables_wsrf_client=$enableval
 enables_cache_client=$enableval
 enables_unicore_client=$enableval
@@ -247,7 +244,6 @@ enables_doc=$enableval
 AC_ARG_ENABLE(all-data-clients, AC_HELP_STRING([--disable-all-data-clients], [disables all buildable client components providing data handling abilities. Can be overwritten with --enable-* for specific component. It is also possible to use --enable-all-data-clients to overwrite defaults, --enable-all and --enable-all-clients.]),
 [
 enables_data_client=$enableval
-enables_srm_client=$enableval
 ],
 [])
 
@@ -1998,11 +1994,6 @@ fi
 AC_MSG_NOTICE([SAML client tool enabled: $enables_saml_client])
 AM_CONDITIONAL([SAML_CLIENT_ENABLED],[test "x$enables_saml_client" = "xyes"])
 
-AC_ARG_ENABLE(srm_client, AC_HELP_STRING([--disable-srm-client], [disable building client tools for communicating SRM services. This does not disable SRM DMC.]),
-  [enables_srm_client=$enableval],[])
-AC_MSG_NOTICE([SRM client tool enabled: $enables_srm_client])
-AM_CONDITIONAL([SRM_CLIENT_ENABLED],[test "x$enables_srm_client" = "xyes"])
-
 AC_ARG_ENABLE(wsrf_client, AC_HELP_STRING([--disable-wsrf-client], [disable building client tools for querying WSRF-enabled services.]),
   [enables_wsrf_client=$enableval],[])
 AC_MSG_NOTICE([WSRF client tool enabled: $enables_wsrf_client])
@@ -2041,7 +2032,6 @@ if test "$enables_hed" = "no"; then
           "$enables_data_client" = "yes" -o \
           "$enables_jura_client" = "yes" -o \
           "$enables_saml_client" = "yes" -o \
-          "$enables_srm_client" = "yes" -o \
           "$enables_wsrf_client" = "yes" -o \
           "$enables_cache_client" = "yes"; then
     AC_MSG_ERROR(HED is needed for building any of the client or service tools. Please enable HED by using --enable-hed.)
@@ -2374,8 +2364,6 @@ AC_CONFIG_FILES([Makefile
                  src/clients/arclib/arcacl.1
                  src/clients/arclib/arctest.1
                  src/clients/wsrf/arcwsrf.1
-                 src/clients/srm/Makefile
-                 src/clients/srm/arcsrmping.1
                  src/clients/jura/Makefile
                  src/clients/jura/jura.1
                  src/clients/jura/ssm/Makefile
@@ -2458,7 +2446,6 @@ ACIX service:       ${enables_acix}
 
 ARCLIB clients:     ${enables_arclib_client}
 DATA clients:       ${enables_data_client}
-SRM ping client:    ${enables_srm_client}
 CREDENTIAL clients: ${enables_credentials_client}
 ECHO client:        ${enables_echo_client}
 JURA client:        ${enables_jura_client}
