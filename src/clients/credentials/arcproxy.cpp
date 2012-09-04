@@ -45,6 +45,20 @@
 
 using namespace ArcCredential;
 
+static bool contact_voms_servers(std::list<std::string>& vomslist, std::list<std::string>& orderlist,
+      std::string& vomses_path, bool use_gsi_comm, bool use_http_comm, const std::string& voms_period, 
+      Arc::UserConfig& usercfg, Arc::Logger& logger, const std::string& tmp_proxy_path, std::string& vomsacseq);
+
+static bool contact_myproxy_server(const std::string& myproxy_server, const std::string& myproxy_command,
+      const std::string& myproxy_user_name, bool use_empty_passphrase, const std::string& myproxy_period,
+      const std::string& retrievable_by_cert, Arc::Time& proxy_start, Arc::Period& proxy_period,
+      std::list<std::string>& vomslist, std::string& vomses_path, const std::string& proxy_path, 
+      Arc::UserConfig& usercfg, Arc::Logger& logger);
+
+static void create_tmp_proxy(const std::string& tmp_proxy_path, Arc::Credential& signer);
+
+static std::string get_proxypolicy(const std::string& policy_source);
+
 static int create_proxy_file(const std::string& path) {
   int f = -1;
 
@@ -416,14 +430,14 @@ int main(int argc, char *argv[]) {
                                                ),
                     istring("string"), myproxy_command);
 
+#ifdef HAVE_NSS
+  bool use_nssdb = false;
+  options.AddOption('F', "nssdb", istring("use NSS credential db in default firefox profile"), use_nssdb);
+#endif
+
   std::list<std::string> constraintlist;
   options.AddOption('c', "constraint", istring("proxy constraints"),
                     istring("string"), constraintlist);
-
-#ifdef HAVE_NSS
-  bool use_nssdb = false;
-  options.AddOption('F', "nssdb", istring("use NSS credential db in firefox profile"), use_nssdb);
-#endif
 
   int timeout = -1;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
@@ -449,79 +463,6 @@ int main(int argc, char *argv[]) {
     std::cout << Arc::IString("%s version %s", "arcproxy", VERSION) << std::endl;
     return EXIT_SUCCESS;
   }
-
-#ifdef HAVE_NSS
-  //Using nss db dominate other option
-  if(use_nssdb) {
-    std::string nssdb_path = get_nssdb_path();
-    if(nssdb_path.empty()) {
-      std::cout << Arc::IString("The nss db can not be detected under firefox profile") << std::endl;
-      return EXIT_FAILURE;
-    }
-    bool res;
-    std::string configdir = nssdb_path;
-    res = AuthN::nssInit(configdir);
-    std::cout<< Arc::IString("nss db to be accesses: %s\n", configdir.c_str());
-
-    char* slotpw = NULL; //"secretpw";  //TODO: Input passphrase to nss db 
-    //The nss db under firefox profile seems to not be protected by any passphrase by default
-    bool ascii = true;
-    const char* trusts = "p,p,p";
-
-    std::string proxy_csrfile = "proxy.csr";
-    std::string proxy_keyname = "proxykey";
-    std::string proxy_privk_str;
-    res = AuthN::nssGenerateCSR(proxy_keyname, "CN=Test,OU=ARC,O=EMI", slotpw, proxy_csrfile, proxy_privk_str, ascii);
-    if(!res) return EXIT_FAILURE;
-
-    std::string proxy_certfile = "myproxy.pem";
-    std::string issuername = "Imported Certificate";
-    //The name of the certificate imported in firefox is 
-    //normally "Imported Certificate" by default, if name is not specified
-    int duration = 12;
-    std::string vomsacseq;
-    res = AuthN::nssCreateCert(proxy_csrfile, issuername, "", duration, vomsacseq, proxy_certfile, ascii);
-    if(!res) return EXIT_FAILURE;
-
-    const char* proxy_certname = "proxycert";
-    res = AuthN::nssImportCert(slotpw, proxy_certfile, proxy_certname, trusts, ascii);
-    if(!res) return EXIT_FAILURE;
-
-    //Compose the proxy certificate 
-    if(!proxy_path.empty())Arc::SetEnv("X509_USER_PROXY", proxy_path);
-    Arc::UserConfig usercfg(conffile,
-        Arc::initializeCredentialsType(Arc::initializeCredentialsType::NotTryCredentials));
-    if (!usercfg) {
-      logger.msg(Arc::ERROR, "Failed configuration initialization.");
-      return EXIT_FAILURE;
-    }
-    if(proxy_path.empty()) proxy_path = usercfg.ProxyPath();
-    usercfg.ProxyPath(proxy_path);
-    std::string cert_file = "cert.pem";
-    res = AuthN::nssExportCertificate(issuername, cert_file);
-    if(!res) return EXIT_FAILURE;
-
-    std::string proxy_cred_str;
-    std::ifstream proxy_s(proxy_certfile.c_str());
-    std::getline(proxy_s, proxy_cred_str,'\0');
-    proxy_s.close();
-
-    std::string eec_cert_str;
-    std::ifstream eec_s(cert_file.c_str());
-    std::getline(eec_s, eec_cert_str,'\0');
-    eec_s.close();
-
-    proxy_cred_str.append(proxy_privk_str).append(eec_cert_str);
-    write_proxy_file(proxy_path, proxy_cred_str);
-
-    Arc::Credential proxy_cred(proxy_path, proxy_path, "", "");
-    Arc::Time left = proxy_cred.GetEndTime();
-    std::cout << Arc::IString("Proxy generation succeeded") << std::endl;
-    std::cout << Arc::IString("Your proxy is valid until: %s", left.str(Arc::UserTime)) << std::endl;
-
-    return EXIT_SUCCESS;
-  }
-#endif
 
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!debug.empty())
@@ -840,6 +781,121 @@ int main(int argc, char *argv[]) {
   std::string myproxy_period = Arc::tostring(myproxyvalidityPeriod.GetPeriod());
 
 
+
+#ifdef HAVE_NSS
+  //Using nss db dominate other option
+  if(use_nssdb) {
+    std::string nssdb_path = get_nssdb_path();
+    if(nssdb_path.empty()) {
+      std::cout << Arc::IString("The nss db can not be detected under firefox profile") << std::endl;
+      return EXIT_FAILURE;
+    }
+    bool res;
+    std::string configdir = nssdb_path;
+    res = AuthN::nssInit(configdir);
+    std::cout<< Arc::IString("nss db to be accessed: %s\n", configdir.c_str());
+
+    char* slotpw = NULL; //"secretpw";  
+    //The nss db under firefox profile seems to not be protected by any passphrase by default
+    bool ascii = true;
+    const char* trusts = "c,c,c";
+
+    // Generate CSR
+    std::string proxy_csrfile = "proxy.csr";
+    std::string proxy_keyname = "proxykey";
+    std::string proxy_privk_str;
+    res = AuthN::nssGenerateCSR(proxy_keyname, "CN=Test,OU=ARC,O=EMI", slotpw, proxy_csrfile, proxy_privk_str, ascii);
+    if(!res) return EXIT_FAILURE;
+
+    // Create a temporary proxy and contact voms server
+    std::string vomsacseq;
+    if (!vomslist.empty()) {
+      std::string tmp_proxy_path;
+      tmp_proxy_path = Glib::build_filename(Glib::get_tmp_dir(), std::string("tmp_proxy.pem"));
+      std::string issuername = "Imported Certificate";
+      
+      // Create tmp proxy cert
+      int duration = 12;
+      res = AuthN::nssCreateCert(proxy_csrfile, issuername, "", duration, "", tmp_proxy_path, ascii);
+      if(!res) return EXIT_FAILURE;
+      std::string tmp_proxy_cred_str;
+      std::ifstream tmp_proxy_cert_s(tmp_proxy_path.c_str());
+      std::getline(tmp_proxy_cert_s, tmp_proxy_cred_str,'\0');
+      tmp_proxy_cert_s.close();
+
+      // Export EEC
+      std::string cert_file = "cert.pem";
+      res = AuthN::nssExportCertificate(issuername, cert_file);
+      if(!res) return EXIT_FAILURE;
+      std::string eec_cert_str;
+      std::ifstream eec_s(cert_file.c_str());
+      std::getline(eec_s, eec_cert_str,'\0');
+      eec_s.close();
+
+      // Compose tmp proxy file
+      tmp_proxy_cred_str.append(proxy_privk_str).append(eec_cert_str);
+      write_proxy_file(tmp_proxy_path, tmp_proxy_cred_str);
+
+      contact_voms_servers(vomslist, orderlist, vomses_path, use_gsi_comm,
+          use_http_comm, voms_period, usercfg, logger, tmp_proxy_path, vomsacseq);
+      remove_proxy_file(tmp_proxy_path);
+    }
+
+    // Create proxy with VOMS AC
+    std::string proxy_certfile = "myproxy.pem";
+    //The name of the certificate imported in firefox is
+    //normally "Imported Certificate" by default, if name is not specified
+    // TODO: let user to select certificates if multiple exsit
+    std::string issuername = "Imported Certificate";
+    int duration;
+    duration = validityPeriod.GetPeriod() / 3600;
+
+    std::string vomsacseq_asn1;
+    if(!vomsacseq.empty()) Arc::VOMSACSeqEncode(vomsacseq, vomsacseq_asn1);
+    res = AuthN::nssCreateCert(proxy_csrfile, issuername, "", duration, vomsacseq_asn1, proxy_certfile, ascii);
+    if(!res) return EXIT_FAILURE;
+
+    const char* proxy_certname = "proxycert";
+    res = AuthN::nssImportCert(slotpw, proxy_certfile, proxy_certname, trusts, ascii);
+    if(!res) return EXIT_FAILURE;
+
+    //Compose the proxy certificate 
+    if(!proxy_path.empty())Arc::SetEnv("X509_USER_PROXY", proxy_path);
+    Arc::UserConfig usercfg(conffile,
+        Arc::initializeCredentialsType(Arc::initializeCredentialsType::NotTryCredentials));
+    if (!usercfg) {
+      logger.msg(Arc::ERROR, "Failed configuration initialization.");
+      return EXIT_FAILURE;
+    }
+    if(proxy_path.empty()) proxy_path = usercfg.ProxyPath();
+    usercfg.ProxyPath(proxy_path);
+    std::string cert_file = "cert.pem";
+    res = AuthN::nssExportCertificate(issuername, cert_file);
+    if(!res) return EXIT_FAILURE;
+
+    std::string proxy_cred_str;
+    std::ifstream proxy_s(proxy_certfile.c_str());
+    std::getline(proxy_s, proxy_cred_str,'\0');
+    proxy_s.close();
+
+    std::string eec_cert_str;
+    std::ifstream eec_s(cert_file.c_str());
+    std::getline(eec_s, eec_cert_str,'\0');
+    eec_s.close();
+
+    proxy_cred_str.append(proxy_privk_str).append(eec_cert_str);
+    write_proxy_file(proxy_path, proxy_cred_str);
+
+    Arc::Credential proxy_cred(proxy_path, proxy_path, "", "");
+    Arc::Time left = proxy_cred.GetEndTime();
+    std::cout << Arc::IString("Proxy generation succeeded") << std::endl;
+    std::cout << Arc::IString("Your proxy is valid until: %s", left.str(Arc::UserTime)) << std::endl;
+
+    return EXIT_SUCCESS;
+  }
+#endif
+
+
   Arc::OpenSSLInit();
 
   //If the "INFO" myproxy command is given, try to get the 
@@ -1129,226 +1185,22 @@ int main(int argc, char *argv[]) {
     signer.OutputCertificate(signing_cert);
     signer.OutputCertificateChain(signing_cert_chain);
 
-    if (!vomslist.empty()) { //If we need to generate voms proxy
-
+    std::string vomsacseq;
+    if (!vomslist.empty()) {
       //Generate a temporary self-signed proxy certificate
       //to contact the voms server
-      std::string proxy_cert;
-      if (!signer.SignRequest(&cred_request, proxy_cert))
-        throw std::runtime_error("Failed to sign proxy");
-      proxy_cert.append(private_key).append(signing_cert).append(signing_cert_chain);
-      write_proxy_file(proxy_path,proxy_cert);
-
-      std::map<std::string, std::vector<std::vector<std::string> > > matched_voms_line;
-      std::multimap<std::string, std::string> server_command_map;
-      std::list<std::string> vomses;
-      if(!find_matched_vomses(matched_voms_line, server_command_map, vomses, vomslist, vomses_path, usercfg, logger))
-        return EXIT_FAILURE;
-
-      //Contact the voms server to retrieve attribute certificate
-      //ArcCredential::AC **aclist = NULL;
-      std::string aclist_str;
-
-      std::string acorder;
-      Arc::MCCConfig cfg;
-      cfg.AddProxy(proxy_path);
-      cfg.AddCADir(ca_dir);
-
-      for (std::map<std::string, std::vector<std::vector<std::string> > >::iterator it = matched_voms_line.begin();
-           it != matched_voms_line.end(); it++) {
-        std::string voms_server;
-        std::list<std::string> command_list;
-        voms_server = (*it).first;
-        std::vector<std::vector<std::string> > voms_lines = (*it).second;
-
-        bool succeeded = false; //a boolean value to indicate if there is valid message returned from voms server, by using the current voms_line  
-        for (std::vector<std::vector<std::string> >::iterator line_it = voms_lines.begin(); line_it != voms_lines.end(); line_it++) {
-          std::vector<std::string> voms_line = *line_it;
-          int count = server_command_map.count(voms_server);
-          logger.msg(Arc::DEBUG, "There are %d commands to the same VOMS server %s", count, voms_server);
-
-          std::multimap<std::string, std::string>::iterator command_it;
-          for(command_it = server_command_map.equal_range(voms_server).first; command_it!=server_command_map.equal_range(voms_server).second; ++command_it) {
-            command_list.push_back((*command_it).second);
-          }
-
-          std::string address;
-          if(voms_line.size() > VOMS_LINE_HOST) address = voms_line[VOMS_LINE_HOST];
-          if(address.empty()) {
-              logger.msg(Arc::ERROR, "Cannot get VOMS server address information from vomses line: \"%s\"", tokens_to_string(voms_line));
-              throw std::runtime_error("Cannot get VOMS server address information from vomses line: \"" + tokens_to_string(voms_line) + "\"");
-          }
-
-          std::string port;
-          if(voms_line.size() > VOMS_LINE_PORT) port = voms_line[VOMS_LINE_PORT];
-
-          std::string voms_name;
-          if(voms_line.size() > VOMS_LINE_NAME) voms_name = voms_line[VOMS_LINE_NAME];
-  
-          logger.msg(Arc::INFO, "Contacting VOMS server (named %s): %s on port: %s",
-                     voms_name, address, port);
-          std::cout << Arc::IString("Contacting VOMS server (named %s): %s on port: %s", voms_name, address, port) << std::endl;
-
-          std::string send_msg;
-          send_msg.append("<?xml version=\"1.0\" encoding = \"US-ASCII\"?><voms>");
-          std::string command;
-
-          for(std::list<std::string>::iterator c_it = command_list.begin(); c_it != command_list.end(); c_it++) {
-            std::string command_2server;
-            command = *c_it;
-            if (command.empty())
-              command_2server.append("G/").append(voms_name);
-            else if (command == "all" || command == "ALL")
-              command_2server.append("A");
-            else if (command == "list")
-              command_2server.append("N");
-            else {
-              std::string::size_type pos = command.find("/Role=");
-              if (pos == 0)
-                command_2server.append("R").append(command.substr(pos + 6));
-              else if (pos != std::string::npos && pos > 0)
-                command_2server.append("B").append(command.substr(0, pos)).append(":").append(command.substr(pos + 6));
-              else if(command[0] == '/')
-                command_2server.append("G").append(command);
-            }
-            send_msg.append("<command>").append(command_2server).append("</command>");
-          }
-
-          std::string ordering;
-          for(std::list<std::string>::iterator o_it = orderlist.begin(); o_it != orderlist.end(); o_it++) {
-            ordering.append(o_it == orderlist.begin() ? "" : ",").append(*o_it);
-          }
-          logger.msg(Arc::VERBOSE, "Try to get attribute from VOMS server with order: %s", ordering);
-          send_msg.append("<order>").append(ordering).append("</order>");
-          send_msg.append("<lifetime>").append(voms_period).append("</lifetime></voms>");
-          logger.msg(Arc::VERBOSE, "Message sent to VOMS server %s is: %s", voms_name, send_msg);
-       
-          std::string ret_str;
-          if(use_http_comm) { 
-            // Use http to contact voms server, for the RESRful interface provided by voms server
-            // The format of the URL: https://moldyngrid.org:15112/generate-ac?fqans=/testbed.univ.kiev.ua/blabla/Role=test-role&lifetime=86400
-            // fqans is composed of the voname, group name and role, i.e., the "command" for voms.
-            std::string url_str;
-            if(!command.empty()) url_str = "https://" + address + ":" + port + "/generate-ac?" + "fqans=" + command + "&lifetime=" + voms_period;
-            else url_str = "https://" + address + ":" + port + "/generate-ac?" + "lifetime=" + voms_period;
-            Arc::URL voms_url(url_str);
-            Arc::ClientHTTP client(cfg, voms_url, usercfg.Timeout());
-            client.RelativeURI(true);
-            Arc::PayloadRaw request;
-            Arc::PayloadRawInterface* response;
-            Arc::HTTPClientInfo info;
-            Arc::MCC_Status status = client.process("GET", &request, &info, &response);
-            if (!status) {
-              if (response) delete response;
-              std::cout << Arc::IString("The VOMS server with the information:\n\t%s\"\ncan not be reached, please make sure it is available", tokens_to_string(voms_line)) << std::endl;
-              continue; //There could be another voms replicated server with the same name exists
-            }
-            if (!response) {
-              logger.msg(Arc::ERROR, "No http response from VOMS server");
-              continue;
-            }
-            if(response->Content() != NULL) ret_str.append(response->Content());
-            if (response) delete response;
-            logger.msg(Arc::VERBOSE, "Returned message from VOMS server: %s", ret_str);
-          }
-          else {
-            // Use GSI or TLS to contact voms server 
-            Arc::ClientTCP client(cfg, address, atoi(port.c_str()), use_gsi_comm ? Arc::GSISec : Arc::SSL3Sec, usercfg.Timeout());
-            Arc::PayloadRaw request;
-            request.Insert(send_msg.c_str(), 0, send_msg.length());
-            Arc::PayloadStreamInterface *response = NULL;
-            Arc::MCC_Status status = client.process(&request, &response, true);
-            if (!status) {
-              //logger.msg(Arc::ERROR, (std::string)status);
-              if (response) delete response;
-              std::cout << Arc::IString("The VOMS server with the information:\n\t%s\"\ncan not be reached, please make sure it is available", tokens_to_string(voms_line)) << std::endl;
-              continue; //There could be another voms replicated server with the same name exists
-            }
-            if (!response) {
-              logger.msg(Arc::ERROR, "No stream response from VOMS server");
-              continue;
-            }
-            char ret_buf[1024];
-            int len = sizeof(ret_buf);
-            while(response->Get(ret_buf, len)) {
-              ret_str.append(ret_buf, len);
-              len = sizeof(ret_buf);
-            };
-            if (response) delete response;
-            logger.msg(Arc::VERBOSE, "Returned message from VOMS server: %s", ret_str);
-          }
-
-          Arc::XMLNode node;
-          Arc::XMLNode(ret_str).Exchange(node);
-          if((!node) || ((bool)(node["error"]))) {
-            if((bool)(node["error"])) {
-              std::string str = node["error"]["item"]["message"];
-              std::string::size_type pos;
-              std::string tmp_str = "The validity of this VOMS AC in your proxy is shortened to";
-              if((pos = str.find(tmp_str))!= std::string::npos) {
-                std::string tmp = str.substr(pos + tmp_str.size() + 1); 
-                std::cout << Arc::IString("The validity duration of VOMS AC is shortened from %s to %s, due to the validity constraint on voms server side.\n", voms_period, tmp);
-              }
-              else {
-                std::cout << Arc::IString("Cannot get any AC or attributes info from VOMS server: %s;\n       Returned message from VOMS server: %s\n", voms_server, str);
-                break; //since the voms servers with the same name should be looked as the same for robust reason, the other voms server that can be reached could returned the same message. So we exists the loop, even if there are other backup voms server exist.
-              }
-            }
-            else {
-              std::cout << Arc::IString("Returned message from VOMS server %s is: %s\n", voms_server, ret_str);
-              break;
-            } 
-          }
-
-          //Put the return attribute certificate into proxy certificate as the extension part
-          std::string codedac;
-          if (command == "list")
-            codedac = (std::string)(node["bitstr"]);
-          else
-            codedac = (std::string)(node["ac"]);
-
-          std::string decodedac;
-          int size;
-          char *dec = NULL;
-          dec = Arc::VOMSDecode((char*)(codedac.c_str()), codedac.length(), &size);
-          if (dec != NULL) {
-            decodedac.append(dec, size);
-            free(dec);
-            dec = NULL;
-          }
-
-          if (command == "list") {
-            //logger.msg(Arc::INFO, "The attribute information from voms server: %s is list as following:\n%s",
-            //           voms_server, decodedac);
-            std::cout << Arc::IString("The attribute information from VOMS server: %s is list as following:", voms_server) << std::endl << decodedac << std::endl;
-            return EXIT_SUCCESS;
-          }
-
-          aclist_str.append(VOMS_AC_HEADER).append("\n");
-          aclist_str.append(codedac).append("\n");
-          aclist_str.append(VOMS_AC_TRAILER).append("\n");
-
-          //Arc::addVOMSAC(aclist, acorder, decodedac);
-          succeeded = true; break;
-        }//end of the scanning of multiple vomses lines with the same name
-        if(succeeded==false) {
-          if(voms_lines.size() > 1) 
-            std::cout << Arc::IString("There are %d servers with the same name: %s in your vomses file, but all of them can not been reached, or can return valid message. But proxy without voms AC extension will still be generated.", voms_lines.size(), voms_server) << std::endl; 
-        }
-      }
-
-      //Put the returned attribute certificate into proxy certificate
-/*
-      if (aclist != NULL)
-        cred_request.AddExtension("acseq", (char**)aclist);
-      else std::cout << Arc::IString("Failed to add voms AC extension. Your proxy may be incomplete.") << std::endl;
-      if (!acorder.empty())
-        cred_request.AddExtension("order", acorder);
-*/
-      if (!aclist_str.empty())
-        cred_request.AddExtension("acseq", (char**)(aclist_str.c_str()));
-      else std::cout << Arc::IString("Failed to add voms AC extension. Your proxy may be incomplete.") << std::endl;
+      std::string tmp_proxy_path;
+      tmp_proxy_path = Glib::build_filename(Glib::get_tmp_dir(), std::string("tmp_proxy.pem"));
+      create_tmp_proxy(tmp_proxy_path, signer);
+      contact_voms_servers(vomslist, orderlist, vomses_path, use_gsi_comm, 
+          use_http_comm, voms_period, usercfg, logger, tmp_proxy_path, vomsacseq);
+      remove_proxy_file(tmp_proxy_path);
     }
+
+    //Put the returned attribute certificate into proxy certificate
+    if (!vomsacseq.empty())
+      cred_request.AddExtension("acseq", (char**)(vomsacseq.c_str()));
+    else std::cout << Arc::IString("Failed to add voms AC extension. Your proxy may be incomplete.") << std::endl;
 
     if (!use_gsi_proxy) {
       if(!policy.empty()) {
@@ -1456,6 +1308,574 @@ int main(int argc, char *argv[]) {
 
 }
 
+static void create_tmp_proxy(const std::string& tmp_proxy_path, Arc::Credential& signer) {
+  int keybits = 1024;
+  Arc::Time now;
+  Arc::Period period = 3600 * 12 + 300;
+  std::string req_str;
+  Arc::Credential tmp_proxyreq(now-Arc::Period(300), period, keybits);
+  tmp_proxyreq.GenerateRequest(req_str);
+
+  std::string proxy_private_key, proxy_cert, signing_cert, signing_cert_chain;
+  tmp_proxyreq.OutputPrivatekey(proxy_private_key);
+  signer.OutputCertificate(signing_cert);
+  signer.OutputCertificateChain(signing_cert_chain);
+
+  if (!signer.SignRequest(&tmp_proxyreq, proxy_cert))
+    throw std::runtime_error("Failed to sign proxy");
+  proxy_cert.append(proxy_private_key).append(signing_cert).append(signing_cert_chain);
+  write_proxy_file(tmp_proxy_path, proxy_cert);
+}
+
+static bool contact_voms_servers(std::list<std::string>& vomslist, std::list<std::string>& orderlist, 
+      std::string& vomses_path, bool use_gsi_comm, bool use_http_comm, const std::string& voms_period, 
+      Arc::UserConfig& usercfg, Arc::Logger& logger, const std::string& tmp_proxy_path, std::string& vomsacseq) {
+
+  std::string ca_dir;
+  ca_dir = usercfg.CACertificatesDirectory();
+
+  std::map<std::string, std::vector<std::vector<std::string> > > matched_voms_line;
+  std::multimap<std::string, std::string> server_command_map;
+  std::list<std::string> vomses;
+  if(!find_matched_vomses(matched_voms_line, server_command_map, vomses, vomslist, vomses_path, usercfg, logger))
+    return false;
+
+  //Contact the voms server to retrieve attribute certificate
+  Arc::MCCConfig cfg;
+  cfg.AddProxy(tmp_proxy_path);
+  cfg.AddCADir(ca_dir);
+
+  for (std::map<std::string, std::vector<std::vector<std::string> > >::iterator it = matched_voms_line.begin();
+       it != matched_voms_line.end(); it++) {
+    std::string voms_server;
+    std::list<std::string> command_list;
+    voms_server = (*it).first;
+    std::vector<std::vector<std::string> > voms_lines = (*it).second;
+
+    bool succeeded = false; 
+    //a boolean value to indicate if there is valid message returned from voms server, by using the current voms_line  
+    for (std::vector<std::vector<std::string> >::iterator line_it = voms_lines.begin(); 
+        line_it != voms_lines.end(); line_it++) {
+      std::vector<std::string> voms_line = *line_it;
+      int count = server_command_map.count(voms_server);
+      logger.msg(Arc::DEBUG, "There are %d commands to the same VOMS server %s", count, voms_server);
+
+      std::multimap<std::string, std::string>::iterator command_it;
+      for(command_it = server_command_map.equal_range(voms_server).first; 
+          command_it!=server_command_map.equal_range(voms_server).second; ++command_it) {
+        command_list.push_back((*command_it).second);
+      }
+
+      std::string address;
+      if(voms_line.size() > VOMS_LINE_HOST) address = voms_line[VOMS_LINE_HOST];
+      if(address.empty()) {
+          logger.msg(Arc::ERROR, "Cannot get VOMS server address information from vomses line: \"%s\"", tokens_to_string(voms_line));
+          throw std::runtime_error("Cannot get VOMS server address information from vomses line: \"" + tokens_to_string(voms_line) + "\"");
+      }
+
+      std::string port;
+      if(voms_line.size() > VOMS_LINE_PORT) port = voms_line[VOMS_LINE_PORT];
+
+      std::string voms_name;
+      if(voms_line.size() > VOMS_LINE_NAME) voms_name = voms_line[VOMS_LINE_NAME];
+  
+      logger.msg(Arc::INFO, "Contacting VOMS server (named %s): %s on port: %s",
+                voms_name, address, port);
+      std::cout << Arc::IString("Contacting VOMS server (named %s): %s on port: %s", voms_name, address, port) << std::endl;
+
+      std::string send_msg;
+      send_msg.append("<?xml version=\"1.0\" encoding = \"US-ASCII\"?><voms>");
+      std::string command;
+
+      for(std::list<std::string>::iterator c_it = command_list.begin(); c_it != command_list.end(); c_it++) {
+        std::string command_2server;
+        command = *c_it;
+        if (command.empty())
+          command_2server.append("G/").append(voms_name);
+        else if (command == "all" || command == "ALL")
+          command_2server.append("A");
+        else if (command == "list")
+          command_2server.append("N");
+        else {
+          std::string::size_type pos = command.find("/Role=");
+          if (pos == 0)
+            command_2server.append("R").append(command.substr(pos + 6));
+          else if (pos != std::string::npos && pos > 0)
+            command_2server.append("B").append(command.substr(0, pos)).append(":").append(command.substr(pos + 6));
+          else if(command[0] == '/')
+            command_2server.append("G").append(command);
+        }
+        send_msg.append("<command>").append(command_2server).append("</command>");
+      }
+
+      std::string ordering;
+      for(std::list<std::string>::iterator o_it = orderlist.begin(); o_it != orderlist.end(); o_it++) {
+        ordering.append(o_it == orderlist.begin() ? "" : ",").append(*o_it);
+      }
+      logger.msg(Arc::VERBOSE, "Try to get attribute from VOMS server with order: %s", ordering);
+      send_msg.append("<order>").append(ordering).append("</order>");
+      send_msg.append("<lifetime>").append(voms_period).append("</lifetime></voms>");
+      logger.msg(Arc::VERBOSE, "Message sent to VOMS server %s is: %s", voms_name, send_msg);
+       
+      std::string ret_str;
+      if(use_http_comm) { 
+        // Use http to contact voms server, for the RESRful interface provided by voms server
+        // The format of the URL: https://moldyngrid.org:15112/generate-ac?fqans=/testbed.univ.kiev.ua/blabla/Role=test-role&lifetime=86400
+        // fqans is composed of the voname, group name and role, i.e., the "command" for voms.
+        std::string url_str;
+        if(!command.empty()) url_str = "https://" + address + ":" + port + "/generate-ac?" + "fqans=" + command + "&lifetime=" + voms_period;
+        else url_str = "https://" + address + ":" + port + "/generate-ac?" + "lifetime=" + voms_period;
+        Arc::URL voms_url(url_str);
+        Arc::ClientHTTP client(cfg, voms_url, usercfg.Timeout());
+        client.RelativeURI(true);
+        Arc::PayloadRaw request;
+        Arc::PayloadRawInterface* response;
+        Arc::HTTPClientInfo info;
+        Arc::MCC_Status status = client.process("GET", &request, &info, &response);
+        if (!status) {
+          if (response) delete response;
+          std::cout << Arc::IString("The VOMS server with the information:\n\t%s\"\ncan not be reached, please make sure it is available", tokens_to_string(voms_line)) << std::endl;
+          continue; //There could be another voms replicated server with the same name exists
+        }
+        if (!response) {
+          logger.msg(Arc::ERROR, "No http response from VOMS server");
+          continue;
+        }
+        if(response->Content() != NULL) ret_str.append(response->Content());
+        if (response) delete response;
+        logger.msg(Arc::VERBOSE, "Returned message from VOMS server: %s", ret_str);
+      }
+      else {
+        // Use GSI or TLS to contact voms server 
+        Arc::ClientTCP client(cfg, address, atoi(port.c_str()), use_gsi_comm ? Arc::GSISec : Arc::SSL3Sec, usercfg.Timeout());
+        Arc::PayloadRaw request;
+        request.Insert(send_msg.c_str(), 0, send_msg.length());
+        Arc::PayloadStreamInterface *response = NULL;
+        Arc::MCC_Status status = client.process(&request, &response, true);
+        if (!status) {
+          //logger.msg(Arc::ERROR, (std::string)status);
+          if (response) delete response;
+          std::cout << Arc::IString("The VOMS server with the information:\n\t%s\"\ncan not be reached, please make sure it is available", tokens_to_string(voms_line)) << std::endl;
+          continue; //There could be another voms replicated server with the same name exists
+        }
+        if (!response) {
+          logger.msg(Arc::ERROR, "No stream response from VOMS server");
+          continue;
+        }
+        char ret_buf[1024];
+        int len = sizeof(ret_buf);
+        while(response->Get(ret_buf, len)) {
+          ret_str.append(ret_buf, len);
+          len = sizeof(ret_buf);
+        };
+        if (response) delete response;
+        logger.msg(Arc::VERBOSE, "Returned message from VOMS server: %s", ret_str);
+      }
+
+      Arc::XMLNode node;
+      Arc::XMLNode(ret_str).Exchange(node);
+      if((!node) || ((bool)(node["error"]))) {
+        if((bool)(node["error"])) {
+          std::string str = node["error"]["item"]["message"];
+          std::string::size_type pos;
+          std::string tmp_str = "The validity of this VOMS AC in your proxy is shortened to";
+          if((pos = str.find(tmp_str))!= std::string::npos) {
+            std::string tmp = str.substr(pos + tmp_str.size() + 1); 
+            std::cout << Arc::IString("The validity duration of VOMS AC is shortened from %s to %s, due to the validity constraint on voms server side.\n", voms_period, tmp);
+          }
+          else {
+            std::cout << Arc::IString("Cannot get any AC or attributes info from VOMS server: %s;\n       Returned message from VOMS server: %s\n", voms_server, str);
+            break; //since the voms servers with the same name should be looked as the same for robust reason, the other voms server that can be reached could returned the same message. So we exists the loop, even if there are other backup voms server exist.
+          }
+        }
+        else {
+          std::cout << Arc::IString("Returned message from VOMS server %s is: %s\n", voms_server, ret_str);
+          break;
+        } 
+      }
+
+      //Put the return attribute certificate into proxy certificate as the extension part
+      std::string codedac;
+      if (command == "list")
+        codedac = (std::string)(node["bitstr"]);
+      else
+        codedac = (std::string)(node["ac"]);
+      std::string decodedac;
+      int size;
+      char *dec = NULL;
+      dec = Arc::VOMSDecode((char*)(codedac.c_str()), codedac.length(), &size);
+      if (dec != NULL) {
+        decodedac.append(dec, size);
+        free(dec);
+        dec = NULL;
+      }
+
+      if (command == "list") {
+        std::cout << Arc::IString("The attribute information from VOMS server: %s is list as following:", voms_server) << std::endl << decodedac << std::endl;
+        return true;
+      }
+
+      vomsacseq.append(VOMS_AC_HEADER).append("\n");
+      vomsacseq.append(codedac).append("\n");
+      vomsacseq.append(VOMS_AC_TRAILER).append("\n");
+
+      succeeded = true; break;
+    }//end of the scanning of multiple vomses lines with the same name
+    if(succeeded == false) {
+      if(voms_lines.size() > 1) 
+        std::cout << Arc::IString("There are %d servers with the same name: %s in your vomses file, but all of them can not been reached, or can return valid message. But proxy without voms AC extension will still be generated.", voms_lines.size(), voms_server) << std::endl; 
+    }
+  }
+
+  return true;
+}
+  
+
+static std::string get_proxypolicy(const std::string& policy_source) {
+  std::string policystring;
+  if(policy_source.empty()) return std::string();
+  if(Glib::file_test(policy_source, Glib::FILE_TEST_EXISTS)) {
+    //If the argument is a location which specifies a file that
+    //includes the policy content
+    if(Glib::file_test(policy_source, Glib::FILE_TEST_IS_REGULAR)) {
+      std::ifstream fp;
+      fp.open(policy_source.c_str());
+      if(!fp) {
+        std::cout << Arc::IString("Error: can't open policy file: %s", policy_source.c_str()) << std::endl;
+        return std::string();
+      }
+      fp.unsetf(std::ios::skipws);
+      char c;
+      while(fp.get(c))
+        policystring += c;
+      fp.close();
+    }
+    else {
+      std::cout << Arc::IString("Error: policy location: %s is not a regular file", policy_source.c_str()) <<std::endl;
+      return std::string();
+    }
+  }
+  else {
+    //Otherwise the argument should include the policy content
+    policystring = policy_source;
+  }
+  return policystring;
+}
+
+static std::string get_cert_dn(const std::string& cert_file) {
+  std::string dn_str;
+  Arc::Credential cert(cert_file, "", "", "");
+  dn_str = cert.GetIdentityName();
+  return dn_str;
+}
+
+static bool contact_myproxy_server(const std::string& myproxy_server, const std::string& myproxy_command, 
+      const std::string& myproxy_user_name, bool use_empty_passphrase, const std::string& myproxy_period,
+      const std::string& retrievable_by_cert, Arc::Time& proxy_start, Arc::Period& proxy_period,
+      std::list<std::string>& vomslist, std::string& vomses_path, const std::string& proxy_path, 
+      Arc::UserConfig& usercfg, Arc::Logger& logger) {
+  
+  std::string user_name = myproxy_user_name;
+  std::string key_path, cert_path, ca_dir;
+  key_path = usercfg.KeyPath();
+  cert_path = usercfg.CertificatePath();
+  ca_dir = usercfg.CACertificatesDirectory();
+
+  //If the "INFO" myproxy command is given, try to get the 
+  //information about the existence of stored credentials 
+  //on the myproxy server.
+  try {
+    if (myproxy_command == "info" || myproxy_command == "INFO" || myproxy_command == "Info") {
+      if (myproxy_server.empty())
+        throw std::invalid_argument("URL of MyProxy server is missing");
+
+      if(user_name.empty()) {
+        user_name = get_cert_dn(proxy_path);
+      }
+      if (user_name.empty())
+        throw std::invalid_argument("Username to MyProxy server is missing");
+
+      std::string respinfo;
+
+      //if(usercfg.CertificatePath().empty()) usercfg.CertificatePath(cert_path);
+      //if(usercfg.KeyPath().empty()) usercfg.KeyPath(key_path);
+      if(usercfg.ProxyPath().empty() && !proxy_path.empty()) usercfg.ProxyPath(proxy_path);
+      else {
+        if(usercfg.CertificatePath().empty() && !cert_path.empty()) usercfg.CertificatePath(cert_path);
+        if(usercfg.KeyPath().empty() && !key_path.empty()) usercfg.KeyPath(key_path);
+      }      
+      if(usercfg.CACertificatesDirectory().empty()) usercfg.CACertificatesDirectory(ca_dir);
+
+      Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
+      std::map<std::string,std::string> myproxyopt;
+      myproxyopt["username"] = user_name;
+      if(!cstore.Info(myproxyopt,respinfo))
+        throw std::invalid_argument("Failed to get info from MyProxy service");
+
+      std::cout << Arc::IString("Succeeded to get info from MyProxy server") << std::endl;
+      std::cout << respinfo << std::endl;
+      return true;
+    }
+
+  } catch (std::exception& err) {
+    logger.msg(Arc::ERROR, err.what());
+    tls_process_error(logger);
+    return false;
+  }
+
+  //If the "NEWPASS" myproxy command is given, try to get the 
+  //information about the existence of stored credentials 
+  //on the myproxy server.
+  try {
+    if (myproxy_command == "newpass" || myproxy_command == "NEWPASS" || myproxy_command == "Newpass" || myproxy_command == "NewPass") {
+      if (myproxy_server.empty())
+        throw std::invalid_argument("URL of MyProxy server is missing");
+
+      if(user_name.empty()) {
+        user_name = get_cert_dn(proxy_path);
+      }
+      if (user_name.empty())
+        throw std::invalid_argument("Username to MyProxy server is missing");
+
+      std::string prompt1 = "MyProxy server";
+      char password[256];
+      std::string passphrase;
+      int res = input_password(password, 256, false, prompt1, "", logger);
+      if (!res)
+        throw std::invalid_argument("Error entering passphrase");
+      passphrase = password;
+     
+      std::string prompt2 = "MyProxy server";
+      char newpassword[256];
+      std::string newpassphrase;
+      res = input_password(newpassword, 256, true, prompt1, prompt2, logger);
+      if (!res)
+        throw std::invalid_argument("Error entering passphrase");
+      newpassphrase = newpassword;
+     
+      if(usercfg.ProxyPath().empty() && !proxy_path.empty()) usercfg.ProxyPath(proxy_path);
+      else {
+        if(usercfg.CertificatePath().empty() && !cert_path.empty()) usercfg.CertificatePath(cert_path);
+        if(usercfg.KeyPath().empty() && !key_path.empty()) usercfg.KeyPath(key_path);
+      }
+      if(usercfg.CACertificatesDirectory().empty()) usercfg.CACertificatesDirectory(ca_dir);
+
+      Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
+      std::map<std::string,std::string> myproxyopt;
+      myproxyopt["username"] = user_name;
+      myproxyopt["password"] = passphrase;
+      myproxyopt["newpassword"] = newpassphrase;
+      if(!cstore.ChangePassword(myproxyopt))
+        throw std::invalid_argument("Failed to change password MyProxy service");
+
+      std::cout << Arc::IString("Succeeded to change password on MyProxy server") << std::endl;
+
+      return true;
+    }
+
+  } catch (std::exception& err) {
+    logger.msg(Arc::ERROR, err.what());
+    tls_process_error(logger);
+    return false;
+  }
+
+  //If the "DESTROY" myproxy command is given, try to get the 
+  //information about the existence of stored credentials 
+  //on the myproxy server.
+  try {
+    if (myproxy_command == "destroy" || myproxy_command == "DESTROY" || myproxy_command == "Destroy") {
+      if (myproxy_server.empty())
+        throw std::invalid_argument("URL of MyProxy server is missing");
+
+      if(user_name.empty()) {
+        user_name = get_cert_dn(proxy_path);
+      }
+      if (user_name.empty())
+        throw std::invalid_argument("Username to MyProxy server is missing");
+
+      std::string prompt1 = "MyProxy server";
+      char password[256];
+      std::string passphrase;
+      int res = input_password(password, 256, false, prompt1, "", logger);
+      if (!res)
+        throw std::invalid_argument("Error entering passphrase");
+      passphrase = password;
+
+      std::string respinfo;
+
+      if(usercfg.ProxyPath().empty() && !proxy_path.empty()) usercfg.ProxyPath(proxy_path);
+      else {
+        if(usercfg.CertificatePath().empty() && !cert_path.empty()) usercfg.CertificatePath(cert_path);
+        if(usercfg.KeyPath().empty() && !key_path.empty()) usercfg.KeyPath(key_path);
+      }
+      if(usercfg.CACertificatesDirectory().empty()) usercfg.CACertificatesDirectory(ca_dir);
+
+      Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
+      std::map<std::string,std::string> myproxyopt;
+      myproxyopt["username"] = user_name;
+      myproxyopt["password"] = passphrase;
+      if(!cstore.Destroy(myproxyopt))
+        throw std::invalid_argument("Failed to destroy credential on MyProxy service");
+
+      std::cout << Arc::IString("Succeeded to destroy credential on MyProxy server") << std::endl;
+
+      return true;
+    }
+  } catch (std::exception& err) {
+    logger.msg(Arc::ERROR, err.what());
+    tls_process_error(logger);
+    return false;
+  }
+
+  //If the "GET" myproxy command is given, try to get a delegated
+  //certificate from the myproxy server.
+  //For "GET" command, certificate and key are not needed, and
+  //anonymous GSSAPI is used (GSS_C_ANON_FLAG)
+  try {
+    if (myproxy_command == "get" || myproxy_command == "GET" || myproxy_command == "Get") {
+      if (myproxy_server.empty())
+        throw std::invalid_argument("URL of MyProxy server is missing");
+
+      if(user_name.empty()) {
+        user_name = get_cert_dn(proxy_path);
+      }
+      if (user_name.empty())
+        throw std::invalid_argument("Username to MyProxy server is missing");
+
+      std::string prompt1 = "MyProxy server";
+      char password[256];
+
+      std::string passphrase = password;
+      if(!use_empty_passphrase) {
+        int res = input_password(password, 256, false, prompt1, "", logger);
+        if (!res)
+          throw std::invalid_argument("Error entering passphrase");
+        passphrase = password;
+      }
+
+      std::string proxy_cred_str_pem;
+     
+      Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
+      Arc::UserConfig usercfg_tmp(cred_type);
+      usercfg_tmp.CACertificatesDirectory(usercfg.CACertificatesDirectory());
+
+      Arc::CredentialStore cstore(usercfg_tmp,Arc::URL("myproxy://"+myproxy_server));
+      std::map<std::string,std::string> myproxyopt;
+      myproxyopt["username"] = user_name;
+      myproxyopt["password"] = passphrase;
+      myproxyopt["lifetime"] = myproxy_period;
+      // According to the protocol of myproxy, the "Get" command can
+      // include the information about vo name, so that myproxy server
+      // can contact voms server to retrieve AC for myproxy client 
+      // See 2.4 of http://grid.ncsa.illinois.edu/myproxy/protocol/
+      // "When VONAME appears in the message, the server will generate VOMS
+      // proxy certificate using VONAME and VOMSES, or the server's VOMS server information."
+      char seq = '0';
+      for (std::list<std::string>::iterator it = vomslist.begin();
+           it != vomslist.end(); it++) {
+        size_t p;
+        std::string voms_server;
+        p = (*it).find(":");
+        voms_server = (p == std::string::npos) ? (*it) : (*it).substr(0, p);
+        myproxyopt[std::string("vomsname").append(1, seq)] = voms_server;
+        seq++;
+      }
+      seq = '0';
+      // vomses can be specified, so that myproxy server could use it to contact voms server
+      std::list<std::string> vomses;  
+      // vomses --- Store matched vomses lines, only the 
+      //vomses line that matches the specified voms name is included.
+      std::map<std::string, std::vector<std::vector<std::string> > > matched_voms_line;
+      std::multimap<std::string, std::string> server_command_map;
+      find_matched_vomses(matched_voms_line, server_command_map, vomses, vomslist, vomses_path, usercfg, logger);
+      for (std::list<std::string>::iterator it = vomses.begin();
+           it != vomses.end(); it++) {
+        std::string vomses_line;
+        vomses_line = (*it);
+        myproxyopt[std::string("vomses").append(1, seq)] = vomses_line; 
+        seq++;
+      }
+
+      if(!cstore.Retrieve(myproxyopt,proxy_cred_str_pem))
+        throw std::invalid_argument("Failed to retrieve proxy from MyProxy service");
+      write_proxy_file(proxy_path,proxy_cred_str_pem);
+
+      //Assign proxy_path to cert_path and key_path,
+      //so the later voms functionality can use the proxy_path
+      //to create proxy with voms AC extension. In this
+      //case, "--cert" and "--key" is not needed.
+      cert_path = proxy_path;
+      key_path = proxy_path;
+      std::cout << Arc::IString("Succeeded to get a proxy in %s from MyProxy server %s", proxy_path, myproxy_server) << std::endl;
+
+      return true;
+    }
+
+  } catch (std::exception& err) {
+    logger.msg(Arc::ERROR, err.what());
+    tls_process_error(logger);
+    return false;
+  }
+
+  //Delegate the former self-delegated credential to
+  //myproxy server
+  try {
+    if (myproxy_command == "put" || myproxy_command == "PUT" || myproxy_command == "Put") {
+      if (myproxy_server.empty())
+        throw std::invalid_argument("URL of MyProxy server is missing");
+      if(user_name.empty()) {
+        user_name = get_cert_dn(proxy_path);
+      }
+      if (user_name.empty()) 
+        throw std::invalid_argument("Username to MyProxy server is missing");
+
+      std::string prompt1 = "MyProxy server";
+      std::string prompt2 = "MyProxy server";
+      char password[256];
+      std::string passphrase;
+      if(retrievable_by_cert.empty()) {
+        int res = input_password(password, 256, true, prompt1, prompt2, logger);
+        if (!res)
+          throw std::invalid_argument("Error entering passphrase");
+        passphrase = password;
+      }
+
+      std::string proxy_cred_str_pem;
+      std::ifstream proxy_cred_file(proxy_path.c_str());
+      if(!proxy_cred_file)
+        throw std::invalid_argument("Failed to read proxy file "+proxy_path);
+      std::getline(proxy_cred_file,proxy_cred_str_pem,'\0');
+      if(proxy_cred_str_pem.empty())
+        throw std::invalid_argument("Failed to read proxy file "+proxy_path);
+      proxy_cred_file.close();
+
+      usercfg.ProxyPath(proxy_path);
+      if(usercfg.CACertificatesDirectory().empty()) { usercfg.CACertificatesDirectory(ca_dir); }
+
+      Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
+      std::map<std::string,std::string> myproxyopt;
+      myproxyopt["username"] = user_name;
+      myproxyopt["password"] = passphrase;
+      myproxyopt["lifetime"] = myproxy_period;
+      if(!retrievable_by_cert.empty()) {
+        myproxyopt["retriever_trusted"] = retrievable_by_cert;
+      }
+      if(!cstore.Store(myproxyopt,proxy_cred_str_pem,true,proxy_start,proxy_period))
+        throw std::invalid_argument("Failed to delegate proxy to MyProxy service");
+
+      remove_proxy_file(proxy_path);
+
+      std::cout << Arc::IString("Succeeded to put a proxy onto MyProxy server") << std::endl;
+
+      return true;
+    }
+  } catch (std::exception& err) {
+    logger.msg(Arc::ERROR, err.what());
+    tls_process_error(logger);
+    remove_proxy_file(proxy_path);
+    return false;
+  }
+}
 
 static bool find_matched_vomses(std::map<std::string, std::vector<std::vector<std::string> > > &matched_voms_line /*output*/,
     std::multimap<std::string, std::string>& server_command_map /*output*/,
