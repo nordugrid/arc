@@ -471,7 +471,7 @@ namespace Arc {
       // Need to wait for callback to make sure handle destruction will work
       // Hopefully forced close should never take long time
       if(!cb->cond.wait(timeout * 1000)) {
-        logger.msg(ERROR, "Disconnect: Closing timed out after %d ms", timeout * 1000);
+        logger.msg(VERBOSE, "Disconnect: Closing timed out after %d ms", timeout * 1000);
       }
     }
 
@@ -508,7 +508,7 @@ namespace Arc {
     if(!(result = globus_ftp_control_handle_destroy(&control_handle))) {
       // This situation can't be fixed because call to globus_ftp_control_handle_destroy
       // makes handle unusable even if it fails.
-      logger.msg(ERROR, "Disconnect: Failed destroying handle: %s. Can't handle such situation.",result.str());
+      logger.msg(VERBOSE, "Disconnect: Failed destroying handle: %s. Can't handle such situation.",result.str());
       cb = NULL;
     } else if(!first_time) {
       logger.msg(VERBOSE, "Disconnect: handle destroyed.");
