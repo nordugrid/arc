@@ -813,6 +813,7 @@ int JobPlugin::close(bool eof) {
   job_desc.jobid=job_id;
   job_desc.starttime=time(NULL);
   job_desc.DN=subject;
+  job_desc.sessiondir=user->SessionRoot()+'/'+job_id;
   if(port != 0) {
     job_desc.clientname=
        Arc::tostring(host[0])+"."+Arc::tostring(host[1])+"."+

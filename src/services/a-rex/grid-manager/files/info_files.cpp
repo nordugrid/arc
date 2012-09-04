@@ -1079,7 +1079,9 @@ bool job_clean_deleted(const JobDescription &desc,const JobUser &user,std::list<
   fname = user.ControlDir()+"/job."+id+sfx_outputstatus; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+sfx_inputstatus; remove(fname.c_str());
   /* remove session directory */
-  std::string dname = user.SessionRoot(id)+"/"+id;
+  std::string dname;
+  if(desc.get_local() && !desc.get_local()->sessiondir.empty()) dname = desc.get_local()->sessiondir;
+  else dname = user.SessionRoot(id)+"/"+id;
   if(user.StrictSession()) {
     uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();

@@ -556,6 +556,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     return;
   };
   config_.User()->SetSessionRoot(sessiondir);
+  job_.sessiondir = config_.User()->SessionRoot()+"/"+id_;
   // Write local file
   JobDescription job(id_,config_.User()->SessionRoot()+"/"+id_,JOB_STATE_ACCEPTED);
   job.set_local(&job_); // need this for write_grami

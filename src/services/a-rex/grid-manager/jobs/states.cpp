@@ -76,7 +76,7 @@ bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid){
 }
 
 bool JobsList::AddJobNoCheck(const JobId &id,JobsList::iterator &i,uid_t uid,gid_t gid){
-  i=jobs.insert(jobs.end(),JobDescription(id,user->SessionRoot(id) + "/" + id));
+  i=jobs.insert(jobs.end(),JobDescription(id));
   i->keep_finished=user->KeepFinished();
   i->keep_deleted=user->KeepDeleted();
   i->set_uid(uid,gid);
@@ -87,8 +87,7 @@ bool JobsList::AddJob(const JobId &id,uid_t uid,gid_t gid){
   /* jobs should be unique */
   if(FindJob(id) != jobs.end()) return false;
   logger.msg(Arc::INFO,"%s: Added",id);
-  iterator i=jobs.insert(jobs.end(),
-         JobDescription(id,user->SessionRoot(id) + "/" + id));
+  iterator i=jobs.insert(jobs.end(), JobDescription(id));
   i->keep_finished=user->KeepFinished();
   i->keep_deleted=user->KeepDeleted();
   i->set_uid(uid,gid);
@@ -1013,6 +1012,13 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
         /* undefined means job just detected - read it's status */
         /* but first check if it's not too many jobs in system  */
         if((JOB_NUM_ACCEPTED < jcfg.max_jobs) || (jcfg.max_jobs == -1)) {
+          // read local first to get session dir
+          if (!GetLocalDescription(i)) {
+            job_error=true; i->AddFailure("Internal error: failed to read .local file");
+            return;
+          }
+          i->session_dir = i->local->sessiondir;
+          if (i->session_dir.empty()) i->session_dir = user->SessionRoot(i->job_id)+'/'+i->job_id;
           job_state_t new_state=job_state_read_file(i->job_id,*user);
           if(new_state == JOB_STATE_UNDEFINED) { /* something failed */
             logger.msg(Arc::ERROR,"%s: Reading status of new job failed",i->job_id);
@@ -1028,21 +1034,13 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
                                          recovering after failure */
           if(new_state == JOB_STATE_ACCEPTED) {
             state_changed = true; // at least that makes email notification
-            // parse request (do it here because any other processing can 
-            // read 'local' and then we never know if it was new job)
-            JobLocalDescription *job_desc;
-            job_desc = new JobLocalDescription;
-            //job_desc->headnode = user->HeadNode(); done during job creation
-            job_desc->sessiondir=i->session_dir;
             /* first phase of job - just  accepted - parse request */
             logger.msg(Arc::INFO,"%s: State: ACCEPTED: parsing job description",i->job_id);
-            if(!process_job_req(*user,*i,*job_desc)) {
+            if(!process_job_req(*user,*i,*i->local)) {
               logger.msg(Arc::ERROR,"%s: Processing job description failed",i->job_id);
               job_error=true; i->AddFailure("Could not process job description");
-              delete job_desc;
               return; /* go to next job */
             };
-            i->local=job_desc;
             // set transfer share
             if (!jcfg.use_new_data_staging && !jcfg.share_type.empty()) {
               std::string user_proxy_file = job_proxy_filename(i->get_id(), *user).c_str();
@@ -1060,9 +1058,8 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
               i->set_share(share);
               logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
             }
-            job_desc->transfershare = i->transfer_share;
-            job_local_write_file(*i,*user,*job_desc);
             i->local->transfershare=i->transfer_share;
+            job_local_write_file(*i,*user,*i->local);
             job_state_write_file(*i,*user,i->job_state);
 
             // prepare information for logger
@@ -1080,7 +1077,6 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
             job_state_write_file(*i,*user,i->job_state);
             i->retries = jcfg.max_retries;
             // set transfer share and counters
-            JobLocalDescription *job_desc = new JobLocalDescription;
             if (!jcfg.use_new_data_staging && !jcfg.share_type.empty()) {
               std::string user_proxy_file = job_proxy_filename(i->get_id(), *user).c_str();
               std::string cert_dir = "/etc/grid-security/certificates";
@@ -1097,10 +1093,8 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
               i->set_share(share);
               logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
             }
-            job_local_read_file(i->job_id, *user, *job_desc);
-            job_desc->transfershare = i->transfer_share;
-            job_local_write_file(*i,*user,*job_desc);
-            i->local=job_desc;
+            i->local->transfershare = i->transfer_share;
+            job_local_write_file(*i,*user,*i->local);
             if (new_state == JOB_STATE_PREPARING) preparing_job_share[i->transfer_share]++;
             if (new_state == JOB_STATE_FINISHING) finishing_job_share[i->transfer_share]++;
             i->Start();
@@ -1108,10 +1102,10 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
             // add to DN map
             // here we don't enforce the per-DN limit since the jobs are
             // already in the system
-            if (job_desc->DN.empty()) {
+            if (i->local->DN.empty()) {
               logger.msg(Arc::WARNING, "Failed to get DN information from .local file for job %s", i->job_id);
             };
-            jcfg.jobs_dn[job_desc->DN]++;
+            jcfg.jobs_dn[i->local->DN]++;
           };
         }; // Not doing JobPending here because that job kind of does not exist.
         return;
@@ -1413,6 +1407,7 @@ void JobsList::UnlockDelegation(JobsList::iterator &i) {
 void JobsList::ActJobFinished(JobsList::iterator &i,
                               bool& /*once_more*/,bool& /*delete_job*/,
                               bool& /*job_error*/,bool& state_changed) {
+        GetLocalDescription(i); // to get session dir. Not a problem if there is no .local
         if(job_clean_mark_check(i->job_id,*user)) {
           logger.msg(Arc::INFO,"%s: Job is requested to clean - deleting",i->job_id);
           /* delete everything */
@@ -1516,6 +1511,7 @@ void JobsList::ActJobDeleted(JobsList::iterator &i,
                              bool& /*once_more*/,bool& /*delete_job*/,
                              bool& /*job_error*/,bool& /*state_changed*/) {
         /*if(hard_job)*/ { /* try to minimize load */
+          GetLocalDescription(i);
           time_t t = -1;
           if(!job_local_read_cleanuptime(i->job_id,*user,t)) {
             /* should not happen - delete job */

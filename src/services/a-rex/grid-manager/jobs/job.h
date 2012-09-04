@@ -114,7 +114,7 @@ class JobDescription {
   */
   JobDescription(void);
   JobDescription(const JobDescription &job);
-  JobDescription(const JobId &job_id,const std::string &dir,job_state_t state = JOB_STATE_UNDEFINED);
+  JobDescription(const JobId &job_id,const std::string &dir = "",job_state_t state = JOB_STATE_UNDEFINED);
   ~JobDescription(void);
   job_state_t get_state() const { return job_state; };
   const char* get_state_name() const;
