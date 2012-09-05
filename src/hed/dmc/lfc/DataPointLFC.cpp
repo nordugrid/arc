@@ -174,7 +174,8 @@ namespace Arc {
   class ResolveArgs {
   public:
     ResolveArgs(const char** lfns, const char** guids, int size, int* nbentries, struct lfc_filereplicas** entries) :
-      lfns(lfns), guids(guids), size(size), nbentries(nbentries), entries(entries), result(0), serrno_(0) {};
+      lfns(lfns), guids(guids), size(size), nbentries(nbentries), entries(entries), result(0), serrno_(0) {}
+    ~ResolveArgs() { delete[] lfns; delete[] guids; }
     const char** lfns;
     const char** guids;
     int size; // size of the lfn or guid list
@@ -191,7 +192,7 @@ namespace Arc {
     // If guid is supplied it is preferred over LFN
     if (args->guids && *(args->guids) && **(args->guids)) {
       args->result = lfc_getreplicas(args->size, args->guids, NULL, args->nbentries, args->entries);
-    } else {
+    } else if (args->lfns && *(args->lfns) && **(args->lfns)) {
       args->result = lfc_getreplicasl(args->size, args->lfns, NULL, args->nbentries, args->entries);
     }
     args->serrno_ = serrno;
@@ -227,33 +228,39 @@ namespace Arc {
 
     resolved = false;
     registered = false;
-    int nbentries = 0;
+    int* nbentries = new int(0);
     struct lfc_filereplicas *entries = NULL;
-    const char* lfns[] = {path.c_str()};
-    const char* guids[] = {guid.c_str()};
-    ResolveArgs args(lfns, guids, 1, &nbentries, &entries);
+    const char** lfns = new const char*[1];
+    lfns[0] = path.c_str();
+    const char** guids = new const char*[1];
+    guids[0] = guid.c_str();
+    ResolveArgs* args = new ResolveArgs(lfns, guids, 1, nbentries, &entries);
     bool res;
     {
       LFCEnvLocker lfc_env(usercfg, url);
-      res = CreateThreadFunction(&do_resolve, &args, &args.count);
+      res = CreateThreadFunction(&do_resolve, args, &args->count);
       if (res) {
-        res = args.count.wait(300*1000);
+        res = args->count.wait(300*1000);
       }
     }
     if (!res) {
-      // error or timeout. Timeout will leave the thread hanging
+      // error or timeout. Timeout will leave the thread hanging, and create
+      // a memory leak since the ResolveArgs object is not deleted.
       logger.msg(WARNING, "LFC resolve timed out");
       if (source) return DataStatus(DataStatus::ReadResolveError, ETIMEDOUT);
       return DataStatus(DataStatus::WriteResolveError, ETIMEDOUT);
     }
-    lfc_r = args.result;
-    serrno = args.serrno_;
+    lfc_r = args->result;
+    serrno = args->serrno_;
+    delete args;
+    int nentries = *nbentries;
+    delete nbentries;
     if (lfc_r != 0) {
       logger.msg(ERROR, "Error finding replicas: %s", sstrerror(serrno));
       if (source) return DataStatus(DataStatus::ReadResolveError, lfc2errno());
       return DataStatus(DataStatus::WriteResolveError, lfc2errno());
     }
-    if (nbentries == 0 || !entries) {
+    if (nentries == 0 || !entries) {
       // Even if file doesn't exist in LFC an entry should be returned
       logger.msg(ERROR, "LFC resolve returned no entries");
       if (entries) free(entries);
@@ -271,7 +278,7 @@ namespace Arc {
     }
 
     if (source) { // add locations resolved above
-      for (int n = 0; n < nbentries; n++) {
+      for (int n = 0; n < nentries; n++) {
         URL uloc(entries[n].sfn);
         if (!uloc) {
           logger.msg(WARNING, "Skipping invalid location: %s - %s", url.ConnectionURL(), entries[n].sfn);
@@ -296,7 +303,7 @@ namespace Arc {
         }
 
         // check that this replica doesn't exist already
-        for (int n = 0; n < nbentries; n++) {
+        for (int n = 0; n < nentries; n++) {
           if (std::string(entries[n].sfn) == uloc.plainstr()) {
             logger.msg(ERROR, "Replica %s already exists for LFN %s", entries[n].sfn, url.plainstr());
             free(entries);
@@ -340,8 +347,8 @@ namespace Arc {
         SetCheckSum(csum);
       }
       guid = entries[0].guid;
-      free(entries);
     }
+    free(entries);
     if (CheckCheckSum()) logger.msg(VERBOSE, "meta_get_data: checksum: %s", GetCheckSum());
     if (CheckSize()) logger.msg(VERBOSE, "meta_get_data: size: %llu", GetSize());
     if (CheckCreated()) logger.msg(VERBOSE, "meta_get_data: created: %s", GetCreated().str());
@@ -997,12 +1004,12 @@ namespace Arc {
       }
     }
 
-    int nbentries = 0;
+    int* nbentries = new int(0);
     struct lfc_filereplicas *entries = NULL;
     int lfc_r;
 
-    const char * guids[urls.size()];
-    const char * paths[urls.size()];
+    const char ** guids = new const char*[urls.size()];
+    const char ** paths = new const char*[urls.size()];
     if (use_guids) {
       unsigned int n = 0;
       for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i, ++n) {
@@ -1019,27 +1026,31 @@ namespace Arc {
     }
 
     // See Resolve(bool) for explanation
-    ResolveArgs args(paths, guids, urls.size(), &nbentries, &entries);
+    ResolveArgs* args = new ResolveArgs(paths, guids, urls.size(), nbentries, &entries);
     bool res;
     {
       LFCEnvLocker lfc_env(usercfg, url);
-      res = CreateThreadFunction(&do_resolve, &args, &args.count);
+      res = CreateThreadFunction(&do_resolve, args, &args->count);
       if (res) {
-        res = args.count.wait(300*1000);
+        res = args->count.wait(300*1000);
       }
     }
     if (!res) {
-      // error or timeout. Timeout will leave the thread hanging
+      // error or timeout. Timeout will leave the thread hanging, and create
+      // a memory leak since the ResolveArgs object is not deleted.
       logger.msg(WARNING, "LFC resolve timed out");
       return DataStatus(DataStatus::ReadResolveError, ETIMEDOUT);
     }
-    lfc_r = args.result;
-    serrno = args.serrno_;
+    lfc_r = args->result;
+    serrno = args->serrno_;
+    delete args;
+    int nentries = *nbentries;
+    delete nbentries;
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error finding replicas: %s", sstrerror(serrno));
       return DataStatus(DataStatus::ReadResolveError, lfc2errno());
     }
-    if (nbentries == 0) {
+    if (nentries == 0) {
       logger.msg(ERROR, "Bulk resolve returned no entries");
       return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "No results returned");
     }
@@ -1053,7 +1064,7 @@ namespace Arc {
     std::list<DataPoint*>::const_iterator datapoint = urls.begin();
     DataPoint* dp = *datapoint;
 
-    for (int n = 0; n < nbentries; n++) {
+    for (int n = 0; n < nentries; n++) {
       logger.msg(DEBUG, "GUID %s, SFN %s", entries[n].guid, entries[n].sfn);
 
       if (previous_guid != entries[n].guid) {
