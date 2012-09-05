@@ -57,6 +57,10 @@ static bool contact_myproxy_server(const std::string& myproxy_server, const std:
 
 static void create_tmp_proxy(const std::string& tmp_proxy_path, Arc::Credential& signer);
 
+static void create_proxy(std::string& proxy_cert, Arc::Credential& signer,     
+    const std::string& proxy_policy, Arc::Time& proxy_start, Arc::Period& proxy_period, 
+    const std::string& vomsacseq, bool use_gsi_proxy, int keybits);
+
 static std::string get_proxypolicy(const std::string& policy_source);
 
 static int create_proxy_file(const std::string& path) {
@@ -898,256 +902,48 @@ int main(int argc, char *argv[]) {
 
   Arc::OpenSSLInit();
 
-  //If the "INFO" myproxy command is given, try to get the 
-  //information about the existence of stored credentials 
-  //on the myproxy server.
-  try {
-    if (myproxy_command == "info" || myproxy_command == "INFO" || myproxy_command == "Info") {
-      if (myproxy_server.empty())
-        throw std::invalid_argument("URL of MyProxy server is missing");
-
-      if(user_name.empty()) {
-        Arc::Credential proxy_cred(proxy_path, "", "", "");
-        std::string cert_dn = proxy_cred.GetIdentityName();
-        user_name = cert_dn;
-      }
-      if (user_name.empty())
-        throw std::invalid_argument("Username to MyProxy server is missing");
-
-      std::string respinfo;
-
-      //if(usercfg.CertificatePath().empty()) usercfg.CertificatePath(cert_path);
-      //if(usercfg.KeyPath().empty()) usercfg.KeyPath(key_path);
-      if(usercfg.ProxyPath().empty() && !proxy_path.empty()) usercfg.ProxyPath(proxy_path);
-      else {
-        if(usercfg.CertificatePath().empty() && !cert_path.empty()) usercfg.CertificatePath(cert_path);
-        if(usercfg.KeyPath().empty() && !key_path.empty()) usercfg.KeyPath(key_path);
-      }      
-      if(usercfg.CACertificatesDirectory().empty()) usercfg.CACertificatesDirectory(ca_dir);
-
-      Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
-      std::map<std::string,std::string> myproxyopt;
-      myproxyopt["username"] = user_name;
-      if(!cstore.Info(myproxyopt,respinfo))
-        throw std::invalid_argument("Failed to get info from MyProxy service");
-
-      std::cout << Arc::IString("Succeeded to get info from MyProxy server") << std::endl;
-      std::cout << respinfo << std::endl;
-      return EXIT_SUCCESS;
-    }
-
-  } catch (std::exception& err) {
-    logger.msg(Arc::ERROR, err.what());
-    tls_process_error(logger);
-    return EXIT_FAILURE;
-  }
-
-  //If the "NEWPASS" myproxy command is given, try to get the 
-  //information about the existence of stored credentials 
-  //on the myproxy server.
-  try {
-    if (myproxy_command == "newpass" || myproxy_command == "NEWPASS" || myproxy_command == "Newpass" || myproxy_command == "NewPass") {
-      if (myproxy_server.empty())
-        throw std::invalid_argument("URL of MyProxy server is missing");
-
-      if(user_name.empty()) {
-        Arc::Credential proxy_cred(proxy_path, "", "", "");
-        std::string cert_dn = proxy_cred.GetIdentityName();
-        user_name = cert_dn;
-      }
-      if (user_name.empty())
-        throw std::invalid_argument("Username to MyProxy server is missing");
-
-      std::string prompt1 = "MyProxy server";
-      char password[256];
-      std::string passphrase;
-      int res = input_password(password, 256, false, prompt1, "", logger);
-      if (!res)
-        throw std::invalid_argument("Error entering passphrase");
-      passphrase = password;
-     
-      std::string prompt2 = "MyProxy server";
-      char newpassword[256];
-      std::string newpassphrase;
-      res = input_password(newpassword, 256, true, prompt1, prompt2, logger);
-      if (!res)
-        throw std::invalid_argument("Error entering passphrase");
-      newpassphrase = newpassword;
-     
-      if(usercfg.ProxyPath().empty() && !proxy_path.empty()) usercfg.ProxyPath(proxy_path);
-      else {
-        if(usercfg.CertificatePath().empty() && !cert_path.empty()) usercfg.CertificatePath(cert_path);
-        if(usercfg.KeyPath().empty() && !key_path.empty()) usercfg.KeyPath(key_path);
-      }
-      if(usercfg.CACertificatesDirectory().empty()) usercfg.CACertificatesDirectory(ca_dir);
-
-      Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
-      std::map<std::string,std::string> myproxyopt;
-      myproxyopt["username"] = user_name;
-      myproxyopt["password"] = passphrase;
-      myproxyopt["newpassword"] = newpassphrase;
-      if(!cstore.ChangePassword(myproxyopt))
-        throw std::invalid_argument("Failed to change password MyProxy service");
-
-      std::cout << Arc::IString("Succeeded to change password on MyProxy server") << std::endl;
-
-      return EXIT_SUCCESS;
-    }
-
-  } catch (std::exception& err) {
-    logger.msg(Arc::ERROR, err.what());
-    tls_process_error(logger);
-    return EXIT_FAILURE;
-  }
-
-  //If the "DESTROY" myproxy command is given, try to get the 
-  //information about the existence of stored credentials 
-  //on the myproxy server.
-  try {
-    if (myproxy_command == "destroy" || myproxy_command == "DESTROY" || myproxy_command == "Destroy") {
-      if (myproxy_server.empty())
-        throw std::invalid_argument("URL of MyProxy server is missing");
-
-      if(user_name.empty()) {
-        Arc::Credential proxy_cred(proxy_path, "", "", "");
-        std::string cert_dn = proxy_cred.GetIdentityName();
-        user_name = cert_dn;
-      }
-      if (user_name.empty())
-        throw std::invalid_argument("Username to MyProxy server is missing");
-
-      std::string prompt1 = "MyProxy server";
-      char password[256];
-      std::string passphrase;
-      int res = input_password(password, 256, false, prompt1, "", logger);
-      if (!res)
-        throw std::invalid_argument("Error entering passphrase");
-      passphrase = password;
-
-      std::string respinfo;
-
-      if(usercfg.ProxyPath().empty() && !proxy_path.empty()) usercfg.ProxyPath(proxy_path);
-      else {
-        if(usercfg.CertificatePath().empty() && !cert_path.empty()) usercfg.CertificatePath(cert_path);
-        if(usercfg.KeyPath().empty() && !key_path.empty()) usercfg.KeyPath(key_path);
-      }
-      if(usercfg.CACertificatesDirectory().empty()) usercfg.CACertificatesDirectory(ca_dir);
-
-      Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
-      std::map<std::string,std::string> myproxyopt;
-      myproxyopt["username"] = user_name;
-      myproxyopt["password"] = passphrase;
-      if(!cstore.Destroy(myproxyopt))
-        throw std::invalid_argument("Failed to destroy credential on MyProxy service");
-
-      std::cout << Arc::IString("Succeeded to destroy credential on MyProxy server") << std::endl;
-
-      return EXIT_SUCCESS;
-    }
-  } catch (std::exception& err) {
-    logger.msg(Arc::ERROR, err.what());
-    tls_process_error(logger);
-    return EXIT_FAILURE;
-  }
-
-  //If the "GET" myproxy command is given, try to get a delegated
-  //certificate from the myproxy server.
-  //For "GET" command, certificate and key are not needed, and
-  //anonymous GSSAPI is used (GSS_C_ANON_FLAG)
-  try {
-    if (myproxy_command == "get" || myproxy_command == "GET" || myproxy_command == "Get") {
-      if (myproxy_server.empty())
-        throw std::invalid_argument("URL of MyProxy server is missing");
-
-      if(user_name.empty()) {
-        Arc::Credential proxy_cred(proxy_path, "", "", "");
-        std::string cert_dn = proxy_cred.GetIdentityName();
-        user_name = cert_dn;
-      }
-      if (user_name.empty())
-        throw std::invalid_argument("Username to MyProxy server is missing");
-
-      std::string prompt1 = "MyProxy server";
-      char password[256];
-
-      std::string passphrase = password;
-      if(!use_empty_passphrase) {
-        int res = input_password(password, 256, false, prompt1, "", logger);
-        if (!res)
-          throw std::invalid_argument("Error entering passphrase");
-        passphrase = password;
-      }
-
-      std::string proxy_cred_str_pem;
-     
-      Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
-      Arc::UserConfig usercfg_tmp(cred_type);
-      usercfg_tmp.CACertificatesDirectory(usercfg.CACertificatesDirectory());
-
-      Arc::CredentialStore cstore(usercfg_tmp,Arc::URL("myproxy://"+myproxy_server));
-      std::map<std::string,std::string> myproxyopt;
-      myproxyopt["username"] = user_name;
-      myproxyopt["password"] = passphrase;
-      myproxyopt["lifetime"] = myproxy_period;
-      // According to the protocol of myproxy, the "Get" command can
-      // include the information about vo name, so that myproxy server
-      // can contact voms server to retrieve AC for myproxy client 
-      // See 2.4 of http://grid.ncsa.illinois.edu/myproxy/protocol/
-      // "When VONAME appears in the message, the server will generate VOMS
-      // proxy certificate using VONAME and VOMSES, or the server's VOMS server information."
-      char seq = '0';
-      for (std::list<std::string>::iterator it = vomslist.begin();
-           it != vomslist.end(); it++) {
-        size_t p;
-        std::string voms_server;
-        p = (*it).find(":");
-        voms_server = (p == std::string::npos) ? (*it) : (*it).substr(0, p);
-        myproxyopt[std::string("vomsname").append(1, seq)] = voms_server;
-        seq++;
-      }
-      seq = '0';
-      // vomses can be specified, so that myproxy server could use it to contact voms server
-      std::list<std::string> vomses;  
-      // vomses --- Store matched vomses lines, only the 
-      //vomses line that matches the specified voms name is included.
-      std::map<std::string, std::vector<std::vector<std::string> > > matched_voms_line;
-      std::multimap<std::string, std::string> server_command_map;
-      find_matched_vomses(matched_voms_line, server_command_map, vomses, vomslist, vomses_path, usercfg, logger);
-      for (std::list<std::string>::iterator it = vomses.begin();
-           it != vomses.end(); it++) {
-        std::string vomses_line;
-        vomses_line = (*it);
-        myproxyopt[std::string("vomses").append(1, seq)] = vomses_line; 
-        seq++;
-      }
-
-      if(!cstore.Retrieve(myproxyopt,proxy_cred_str_pem))
-        throw std::invalid_argument("Failed to retrieve proxy from MyProxy service");
-      write_proxy_file(proxy_path,proxy_cred_str_pem);
-
-      //Assign proxy_path to cert_path and key_path,
-      //so the later voms functionality can use the proxy_path
-      //to create proxy with voms AC extension. In this
-      //case, "--cert" and "--key" is not needed.
-      cert_path = proxy_path;
-      key_path = proxy_path;
-      std::cout << Arc::IString("Succeeded to get a proxy in %s from MyProxy server %s", proxy_path, myproxy_server) << std::endl;
-
-      return EXIT_SUCCESS;
-    }
-
-  } catch (std::exception& err) {
-    logger.msg(Arc::ERROR, err.what());
-    tls_process_error(logger);
-    return EXIT_FAILURE;
-  }
-
   Arc::Time proxy_start = validityStart;
   Arc::Period proxy_period = validityPeriod;
   if (constraints["validityStart"].empty() && constraints["validityEnd"].empty()) {
     // If start/end is not explicitely specified then add 5 min back gap.
     proxy_start = proxy_start - Arc::Period(300);
     proxy_period.SetPeriod(proxy_period.GetPeriod() + 300);
+  }
+  std::string policy;
+  policy = constraints["proxyPolicy"].empty() ? constraints["proxyPolicyFile"] : constraints["proxyPolicy"];
+
+  if (!myproxy_command.empty() && (myproxy_command != "put" && myproxy_command != "PUT" && myproxy_command != "Put")) {
+    bool res = contact_myproxy_server(myproxy_server, myproxy_command, 
+      user_name, use_empty_passphrase, myproxy_period, retrievable_by_cert, 
+      proxy_start, proxy_period, vomslist, vomses_path, proxy_path, usercfg, logger);
+    if(res) {
+      // IF the myproxy command is "Get", and voms command is given,
+      // then we need to check if the proxy returned from myproxy server
+      // includes VOMS AC, if not, we will use the returned proxy to
+      // directly contact VOMS server to generate a proxy-on-proxy with 
+      // VOMS AC included.
+      Arc::Credential holder(proxy_path, "", "", "");
+      Arc::VOMSTrustList voms_trust_dn;
+      voms_trust_dn.AddRegex(".*");
+      std::vector<Arc::VOMSACInfo> voms_attributes;
+      bool r = parseVOMSAC(holder, ca_dir, "", voms_dir, voms_trust_dn, voms_attributes, true, true);
+      if (!r) logger.msg(Arc::ERROR, "VOMS attribute parsing failed");
+      if(voms_attributes.size() == 0) {
+        logger.msg(Arc::INFO, "Myproxy server has not responded proxy with VOMS AC included");
+        std::string vomsacseq;
+        contact_voms_servers(vomslist, orderlist, vomses_path, use_gsi_comm,
+            use_http_comm, voms_period, usercfg, logger, proxy_path, vomsacseq);
+        if(!vomsacseq.empty()) {
+          Arc::Credential signer(proxy_path, proxy_path, "", "");
+          std::string proxy_cert;
+          create_proxy(proxy_cert, signer, policy, proxy_start, proxy_period, 
+              vomsacseq, use_gsi_proxy, 1024);
+          write_proxy_file(proxy_path, proxy_cert);
+        }
+      }
+      return EXIT_SUCCESS;
+    }
+    else return EXIT_FAILURE;
   }
 
   //Create proxy or voms proxy
@@ -1173,18 +969,6 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
 
-    std::string private_key, signing_cert, signing_cert_chain;
-
-    int keybits = 1024;
-    std::string req_str;
-    std::string policy;
-    policy = constraints["proxyPolicy"].empty() ? constraints["proxyPolicyFile"] : constraints["proxyPolicy"];
-    Arc::Credential cred_request(proxy_start, proxy_period, keybits);
-    cred_request.GenerateRequest(req_str);
-    cred_request.OutputPrivatekey(private_key);
-    signer.OutputCertificate(signing_cert);
-    signer.OutputCertificateChain(signing_cert_chain);
-
     std::string vomsacseq;
     if (!vomslist.empty()) {
       //Generate a temporary self-signed proxy certificate
@@ -1192,38 +976,14 @@ int main(int argc, char *argv[]) {
       std::string tmp_proxy_path;
       tmp_proxy_path = Glib::build_filename(Glib::get_tmp_dir(), std::string("tmp_proxy.pem"));
       create_tmp_proxy(tmp_proxy_path, signer);
-      contact_voms_servers(vomslist, orderlist, vomses_path, use_gsi_comm, 
+      contact_voms_servers(vomslist, orderlist, vomses_path, use_gsi_comm,
           use_http_comm, voms_period, usercfg, logger, tmp_proxy_path, vomsacseq);
       remove_proxy_file(tmp_proxy_path);
     }
 
-    //Put the returned attribute certificate into proxy certificate
-    if (!vomsacseq.empty())
-      cred_request.AddExtension("acseq", (char**)(vomsacseq.c_str()));
-    else std::cout << Arc::IString("Failed to add voms AC extension. Your proxy may be incomplete.") << std::endl;
-
-    if (!use_gsi_proxy) {
-      if(!policy.empty()) {
-        cred_request.SetProxyPolicy("rfc", "anylanguage", policy, -1);
-      } else if(CERT_IS_LIMITED_PROXY(signer.GetType())) {
-        // Gross hack for globus. If Globus marks own proxy as limited
-        // it expects every derived proxy to be limited or at least
-        // independent. Independent proxies has little sense in Grid
-        // world. So here we make our proxy globus-limited to allow
-        // it to be used with globus code.
-        cred_request.SetProxyPolicy("rfc", "limited", policy, -1);
-      } else {
-        cred_request.SetProxyPolicy("rfc", "inheritAll", policy, -1);
-      }
-    } else {
-      cred_request.SetProxyPolicy("gsi2", "", "", -1);
-    }
-
     std::string proxy_cert;
-    if (!signer.SignRequest(&cred_request, proxy_cert))
-      throw std::runtime_error("Failed to sign proxy");
-
-    proxy_cert.append(private_key).append(signing_cert).append(signing_cert_chain);
+    create_proxy(proxy_cert, signer, policy, proxy_start, proxy_period,      
+        vomsacseq, use_gsi_proxy, 1024);
 
     //If myproxy command is "Put", then the proxy path is set to /tmp/myproxy-proxy.uid.pid 
     if (myproxy_command == "put" || myproxy_command == "PUT" || myproxy_command == "Put")
@@ -1245,63 +1005,12 @@ int main(int argc, char *argv[]) {
 
   //Delegate the former self-delegated credential to
   //myproxy server
-  try {
-    if (myproxy_command == "put" || myproxy_command == "PUT" || myproxy_command == "Put") {
-      if (myproxy_server.empty())
-        throw std::invalid_argument("URL of MyProxy server is missing");
-      if(user_name.empty()) {
-        Arc::Credential proxy_cred(proxy_path, "", "", "");
-        std::string cert_dn = proxy_cred.GetIdentityName();
-        user_name = cert_dn;
-      }
-      if (user_name.empty()) 
-        throw std::invalid_argument("Username to MyProxy server is missing");
-
-      std::string prompt1 = "MyProxy server";
-      std::string prompt2 = "MyProxy server";
-      char password[256];
-      std::string passphrase;
-      if(retrievable_by_cert.empty()) {
-        int res = input_password(password, 256, true, prompt1, prompt2, logger);
-        if (!res)
-          throw std::invalid_argument("Error entering passphrase");
-        passphrase = password;
-      }
-
-      std::string proxy_cred_str_pem;
-      std::ifstream proxy_cred_file(proxy_path.c_str());
-      if(!proxy_cred_file)
-        throw std::invalid_argument("Failed to read proxy file "+proxy_path);
-      std::getline(proxy_cred_file,proxy_cred_str_pem,'\0');
-      if(proxy_cred_str_pem.empty())
-        throw std::invalid_argument("Failed to read proxy file "+proxy_path);
-      proxy_cred_file.close();
-
-      usercfg.ProxyPath(proxy_path);
-      if(usercfg.CACertificatesDirectory().empty()) { usercfg.CACertificatesDirectory(ca_dir); }
-
-      Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
-      std::map<std::string,std::string> myproxyopt;
-      myproxyopt["username"] = user_name;
-      myproxyopt["password"] = passphrase;
-      myproxyopt["lifetime"] = myproxy_period;
-      if(!retrievable_by_cert.empty()) {
-        myproxyopt["retriever_trusted"] = retrievable_by_cert;
-      }
-      if(!cstore.Store(myproxyopt,proxy_cred_str_pem,true,proxy_start,proxy_period))
-        throw std::invalid_argument("Failed to delegate proxy to MyProxy service");
-
-      remove_proxy_file(proxy_path);
-
-      std::cout << Arc::IString("Succeeded to put a proxy onto MyProxy server") << std::endl;
-
-      return EXIT_SUCCESS;
-    }
-  } catch (std::exception& err) {
-    logger.msg(Arc::ERROR, err.what());
-    tls_process_error(logger);
-    remove_proxy_file(proxy_path);
-    return EXIT_FAILURE;
+  if (myproxy_command == "put" || myproxy_command == "PUT" || myproxy_command == "Put") {
+    bool res = contact_myproxy_server( myproxy_server, myproxy_command,
+      user_name, use_empty_passphrase, myproxy_period, retrievable_by_cert,
+      proxy_start, proxy_period, vomslist, vomses_path, proxy_path, usercfg, logger);
+    if(res) return EXIT_SUCCESS;
+    else return EXIT_FAILURE;
   }
 
   return EXIT_SUCCESS;
@@ -1325,6 +1034,49 @@ static void create_tmp_proxy(const std::string& tmp_proxy_path, Arc::Credential&
     throw std::runtime_error("Failed to sign proxy");
   proxy_cert.append(proxy_private_key).append(signing_cert).append(signing_cert_chain);
   write_proxy_file(tmp_proxy_path, proxy_cert);
+}
+
+static void create_proxy(std::string& proxy_cert, Arc::Credential& signer, 
+    const std::string& proxy_policy, Arc::Time& proxy_start, Arc::Period& proxy_period, 
+    const std::string& vomsacseq, bool use_gsi_proxy, int keybits) {
+
+  std::string private_key, signing_cert, signing_cert_chain;
+  std::string req_str;
+
+  Arc::Credential cred_request(proxy_start, proxy_period, keybits);
+  cred_request.GenerateRequest(req_str);
+  cred_request.OutputPrivatekey(private_key);
+  signer.OutputCertificate(signing_cert);
+  signer.OutputCertificateChain(signing_cert_chain);
+
+  //Put the voms attribute certificate into proxy certificate
+  if (!vomsacseq.empty()) {
+    bool r = cred_request.AddExtension("acseq", (char**)(vomsacseq.c_str()));
+    if (!r) std::cout << Arc::IString("Failed to add voms AC extension. Your proxy may be incomplete.") << std::endl;
+  }
+
+  if (!use_gsi_proxy) {
+    if(!proxy_policy.empty()) {
+      cred_request.SetProxyPolicy("rfc", "anylanguage", proxy_policy, -1);
+    } else if(CERT_IS_LIMITED_PROXY(signer.GetType())) {
+      // Gross hack for globus. If Globus marks own proxy as limited
+      // it expects every derived proxy to be limited or at least
+      // independent. Independent proxies has little sense in Grid
+      // world. So here we make our proxy globus-limited to allow
+      // it to be used with globus code.
+      cred_request.SetProxyPolicy("rfc", "limited", proxy_policy, -1);
+    } else {
+      cred_request.SetProxyPolicy("rfc", "inheritAll", proxy_policy, -1);
+    }
+  } else {
+    cred_request.SetProxyPolicy("gsi2", "", "", -1);
+  }
+
+  if (!signer.SignRequest(&cred_request, proxy_cert))
+    throw std::runtime_error("Failed to sign proxy");
+
+  proxy_cert.append(private_key).append(signing_cert).append(signing_cert_chain);
+
 }
 
 static bool contact_voms_servers(std::list<std::string>& vomslist, std::list<std::string>& orderlist, 
