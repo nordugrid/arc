@@ -8,13 +8,13 @@
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
 
-#include "JobListRetrieverPluginWSRFGLUE2.h"
+#include "JobListRetrieverPluginARC1.h"
 
 namespace Arc {
 
-  Logger JobListRetrieverPluginWSRFGLUE2::logger(Logger::getRootLogger(), "JobListRetrieverPlugin.WSRFGLUE2");
+  Logger JobListRetrieverPluginARC1::logger(Logger::getRootLogger(), "JobListRetrieverPlugin.WSRFGLUE2");
 
-  bool JobListRetrieverPluginWSRFGLUE2::isEndpointNotSupported(const Endpoint& endpoint) const {
+  bool JobListRetrieverPluginARC1::isEndpointNotSupported(const Endpoint& endpoint) const {
     const std::string::size_type pos = endpoint.URLString.find("://");
     if (pos != std::string::npos) {
       const std::string proto = lower(endpoint.URLString.substr(0, pos));
@@ -38,7 +38,7 @@ namespace Arc {
     return service;
   }
 
-  EndpointQueryingStatus JobListRetrieverPluginWSRFGLUE2::Query(const UserConfig& uc, const Endpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
+  EndpointQueryingStatus JobListRetrieverPluginARC1::Query(const UserConfig& uc, const Endpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
     URL url(CreateURL(endpoint.URLString));
@@ -69,7 +69,8 @@ namespace Arc {
       Job j;
       j.JobID = url;
       j.JobID.ChangePath(j.JobID.Path() + "/" + file->GetName());
-      j.InterfaceName = supportedInterfaces.front();
+      j.InterfaceName = "org.nordugrid.xbes";
+      j.IDFromEndpoint = "<ActivityIdentifier><Address>" + url.fullstr() + "</Address></ActivityIdentifier>";
       j.Cluster = url;
       jobs.push_back(j);
     }

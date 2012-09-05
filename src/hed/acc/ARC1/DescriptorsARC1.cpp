@@ -4,7 +4,7 @@
 #include <config.h>
 #endif
 
-#include "JobListRetrieverPluginWSRFGLUE2.h"
+#include "JobListRetrieverPluginARC1.h"
 #include "JobControllerPluginARC1.h"
 #include "SubmitterPluginARC1.h"
 #include "JobControllerPluginBES.h"
@@ -12,7 +12,7 @@
 #include "TargetInformationRetrieverPluginWSRFGLUE2.h"
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "WSRFGLUE2", "HED:JobListRetrieverPlugin", "", 0, &Arc::JobListRetrieverPluginWSRFGLUE2::Instance },
+  { "WSRFGLUE2", "HED:JobListRetrieverPlugin", "", 0, &Arc::JobListRetrieverPluginARC1::Instance },
   { "ARC1", "HED:SubmitterPlugin", "A-REX (ARC REsource coupled EXecution service)", 0, &Arc::SubmitterPluginARC1::Instance },
   { "ARC1", "HED:JobControllerPlugin", "A-REX (ARC REsource coupled EXecution service)", 0, &Arc::JobControllerPluginARC1::Instance },
   { "BES",  "HED:JobControllerPlugin", "OGSA-BES conforming execution service", 0, &Arc::JobControllerPluginBES::Instance },
