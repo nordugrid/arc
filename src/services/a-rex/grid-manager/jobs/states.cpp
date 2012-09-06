@@ -451,8 +451,9 @@ bool JobsList::GetLocalDescription(const JobsList::iterator &i) {
 bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,bool cancel) {
   JobsListConfig& jcfg = user->Env().jobs_cfg();
   if(i->child == NULL) {
-    /* no child was running yet, or recovering from fault */
-    /* write grami file for globus-script-X-submit */
+    // no child was running yet, or recovering from fault 
+    // write grami file for globus-script-X-submit 
+    // TODO: read existing grami file to check if job is already submited
     JobLocalDescription* job_desc;
     if(i->local) { job_desc=i->local; }
     else {
@@ -487,7 +488,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     if(cancel) { cmd=user->Env().nordugrid_data_loc()+"/cancel-"+job_desc->lrms+"-job"; }
     else { cmd=user->Env().nordugrid_data_loc()+"/submit-"+job_desc->lrms+"-job"; };
     if(!cancel) {
-      logger.msg(Arc::INFO,"%s: state SUBMITTING: starting child: %s",i->job_id,cmd);
+      logger.msg(Arc::INFO,"%s: state SUBMIT: starting child: %s",i->job_id,cmd);
     } else {
       if(!job_lrms_mark_check(i->job_id,*user)) {
         logger.msg(Arc::INFO,"%s: state CANCELING: starting child: %s",i->job_id,cmd);
@@ -513,30 +514,71 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     return true;
   }
   else {
-    /* child was run - check exit code */
+    // child was run - check if exited and then exit code
+    bool simulate_success = false;
     if(i->child->Running()) {
-      /* child is running - come later */
-      return true;
-    };
-    if(!cancel) {
-      logger.msg(Arc::INFO,"%s: state SUBMITTING: child exited with code %i",i->job_id,i->child->Result());
-    } else {
-      if((i->child->ExitTime() != Arc::Time::UNDEFINED) &&
-         ((Arc::Time() - i->child->ExitTime()) < (user->Env().jobs_cfg().WakeupPeriod()*2))) {
-        // not ideal solution
-        logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i",i->job_id,i->child->Result());
+      // child is running - come later
+      // Due to unknown reason sometimes child exit event is lost. 
+      // As workaround check if child is running for too long. If
+      // it does then check in grami file for generated local id
+      // or in case of cancel just assume child exited.
+      if((Arc::Time() - i->child->RunTime()) > Arc::Period(CHILD_RUN_TIME_SUSPICIOUS)) {
+        if(!cancel) {
+          // Check if local id is already obtained
+          std::string local_id=read_grami(i->job_id,*user);
+          if(local_id.length() > 0) {
+            simulate_success = true;
+            logger.msg(Arc::ERROR,"%s: Job submission to LRMS takes too long. But ID is already obtained. Pretending submission is done.",i->job_id);
+          };
+        } else {
+          // Check if diagnosticvs collection is done
+          if(job_lrms_mark_check(i->job_id,*user)) {
+            simulate_success = true;
+            logger.msg(Arc::ERROR,"%s: Job cancel takes too long. But diagnostic collection seems to be done. Pretending cancel succeeded.",i->job_id);
+          };
+        };
       };
+      if((!simulate_success) && (Arc::Time() - i->child->RunTime()) > Arc::Period(CHILD_RUN_TIME_TOO_LONG)) {
+        // In any case it is way too long. Job must fail. Otherwise it will hang forewer.
+        delete i->child; i->child=NULL;
+        if(!cancel) {
+          logger.msg(Arc::ERROR,"%s: Job submission to LRMS takes too long. Failing.",i->job_id);
+          JobFailStateRemember(i,JOB_STATE_SUBMITTING);
+          i->AddFailure("Job submission to LRMS failed");
+          // It would be nice to cancel if job finally submits. But we do not know id.
+          return false;
+        } else {
+          logger.msg(Arc::ERROR,"%s: Job cancel takes too long. Failing.",i->job_id);
+          delete i->child; i->child=NULL;
+          return false;
+        };
+      };
+      if(!simulate_success) return true;
     };
-    if(i->child->Result() != 0) { 
+    if(!simulate_success) {
+      // real processing
       if(!cancel) {
-        logger.msg(Arc::ERROR,"%s: Job submission to LRMS failed",i->job_id);
-        JobFailStateRemember(i,JOB_STATE_SUBMITTING);
+        logger.msg(Arc::INFO,"%s: state SUBMIT: child exited with code %i",i->job_id,i->child->Result());
       } else {
-        logger.msg(Arc::ERROR,"%s: Failed to cancel running job",i->job_id);
+        if((i->child->ExitTime() != Arc::Time::UNDEFINED) &&
+           ((Arc::Time() - i->child->ExitTime()) < (user->Env().jobs_cfg().WakeupPeriod()*2))) {
+          // not ideal solution
+          logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i",i->job_id,i->child->Result());
+        };
       };
-      delete i->child; i->child=NULL;
-      if(!cancel) i->AddFailure("Job submission to LRMS failed");
-      return false;
+      if(i->child->Result() != 0) { 
+        if(!cancel) {
+          logger.msg(Arc::ERROR,"%s: Job submission to LRMS failed",i->job_id);
+          JobFailStateRemember(i,JOB_STATE_SUBMITTING);
+        } else {
+          logger.msg(Arc::ERROR,"%s: Failed to cancel running job",i->job_id);
+        };
+        delete i->child; i->child=NULL;
+        if(!cancel) i->AddFailure("Job submission to LRMS failed");
+        return false;
+      };
+    } else {
+      // Just pretend everything is alright
     };
     if(!cancel) {
       delete i->child; i->child=NULL;
@@ -553,19 +595,6 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
         i->AddFailure("Internal error");
         return false;
       };   
-      /*
-      JobLocalDescription *job_desc;
-      if(i->local) { job_desc=i->local; }
-      else { job_desc=new JobLocalDescription; };
-      if(i->local == NULL) {
-        if(!job_local_read_file(i->job_id,*user,*job_desc)) {
-          logger.msg(Arc::ERROR,"%s: Failed reading local information",i->job_id);
-          i->AddFailure("Internal error");
-          delete job_desc; return false;
-        };
-        i->local=job_desc;
-      };
-      */
       i->local->localid=local_id;
       if(!job_local_write_file(*i,*user,*(i->local))) {
         i->AddFailure("Internal error");
@@ -579,7 +608,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
         if((i->child->ExitTime() != Arc::Time::UNDEFINED) &&
            ((Arc::Time() - i->child->ExitTime()) > Arc::Period(Arc::Time::HOUR))) {
           // it takes too long
-          logger.msg(Arc::INFO,"%s: state CANCELING: timeout waiting for cancelation",i->job_id);
+          logger.msg(Arc::ERROR,"%s: state CANCELING: timeout waiting for cancelation",i->job_id);
           delete i->child; i->child=NULL;
           return false;
         };
@@ -1257,7 +1286,7 @@ void JobsList::ActJobSubmitting(JobsList::iterator &i,
                                 bool& job_error,bool& state_changed) {
         /* state submitting - everything is ready for submission - 
            so run submission */
-        logger.msg(Arc::VERBOSE,"%s: State: SUBMITTING",i->job_id);
+        logger.msg(Arc::VERBOSE,"%s: State: SUBMIT",i->job_id);
         if(state_submitting(i,state_changed)) {
           if(state_changed) {
             i->job_state = JOB_STATE_INLRMS;

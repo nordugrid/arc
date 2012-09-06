@@ -41,6 +41,14 @@ class ZeroUInt {
 #define DEFAULT_DISKSPACE (200*1024L*1024L)
 /* default maximum down/upload retries */
 #define DEFAULT_MAX_RETRIES (10)
+/* max time to run submit-*-job/cancel-*-job before to
+   start looking for alternative way to detect result.
+   Only for protecting against lost child. */
+#define CHILD_RUN_TIME_SUSPICIOUS (10*60)
+/* max time to run submit-*-job/cancel-*-job before to
+   decide that it is gone.
+   Only for protecting against lost child. */
+#define CHILD_RUN_TIME_TOO_LONG (60*60)
 
 /**
  * Class to represent information read from configuration.
