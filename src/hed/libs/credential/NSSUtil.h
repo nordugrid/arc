@@ -3,7 +3,18 @@
 
 #include <string>
 
+#include <arc/DateTime.h>
+
 namespace AuthN {
+  
+  struct certInfo {
+    std::string certname;
+    std::string subject_dn;
+    std::string issuer_dn;
+    unsigned long serial;
+    Arc::Time start;
+    Arc::Time end;
+  };
 
   /**
    * Initializes pkcs11-helper library, and loads PKCS #11 provider.
@@ -16,6 +27,8 @@ namespace AuthN {
   bool nssOutputPKCS12(const std::string certname, char* outfile, char* slotpw, char* p12pw);
 
   bool nssGenerateCSR(const std::string& privkey_name, const std::string& dn, const char* slotpw, const std::string& outfile, std::string& privk_str, bool ascii = true);
+
+  void nssListUserCertificatesInfo(std::list<certInfo>& certInfolist);
 
   bool nssCreateCert(const std::string& csrfile, const std::string& issuername, const char* passwd, const int duration, const std::string& vomsacseq, std::string& outfile, bool ascii = true);
 

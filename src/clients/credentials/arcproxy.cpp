@@ -300,6 +300,39 @@ static std::string get_nssdb_path() {
 
   return nss_path; 
 } 
+
+static void get_nss_certname(std::string& certname) {
+  std::list<AuthN::certInfo> certInfolist;
+  AuthN::nssListUserCertificatesInfo(certInfolist);
+  if(certInfolist.size()) {
+    std::cout<<Arc::IString("There are %d user certificates existing under nss database", 
+      certInfolist.size())<<std::endl;
+  }
+  int n = 1;
+  std::list<AuthN::certInfo>::iterator it;
+  for(it = certInfolist.begin(); it != certInfolist.end(); it++) {
+    AuthN::certInfo cert_info = (*it);
+    std::cout<<Arc::IString("Number %d is with nickname: %s", n, cert_info.certname)<<std::endl;
+    std::cout<<Arc::IString("    certificate dn:  %s", cert_info.subject_dn)<<std::endl;
+    std::cout<<Arc::IString("    issuer dn:       %s", cert_info.issuer_dn)<<std::endl;
+    std::cout<<Arc::IString("    serial number:   %d", cert_info.serial)<<std::endl;
+    std::cout<<Arc::IString("    expiration time: %s", cert_info.end.str())<<std::endl;
+    n++;
+  }
+  char c;
+  std::cout << Arc::IString("Please choose the one you would use (1-%d): ", certInfolist.size());
+  while(true) {
+    c = getchar();
+    int num = c - '0';
+    if((num<=certInfolist.size()) && (num>=1)) {
+      it = certInfolist.begin();
+      std::advance(it, num-1);
+      certname = (*it).certname;
+      break;
+    }
+  }
+}
+
 #endif
 
 int main(int argc, char *argv[]) {
@@ -802,7 +835,7 @@ int main(int argc, char *argv[]) {
     char* slotpw = NULL; //"secretpw";  
     //The nss db under firefox profile seems to not be protected by any passphrase by default
     bool ascii = true;
-    const char* trusts = "c,c,c";
+    const char* trusts = "u,u,u";
 
     // Generate CSR
     std::string proxy_csrfile = "proxy.csr";
@@ -812,11 +845,12 @@ int main(int argc, char *argv[]) {
     if(!res) return EXIT_FAILURE;
 
     // Create a temporary proxy and contact voms server
+    std::string issuername;
     std::string vomsacseq;
     if (!vomslist.empty()) {
       std::string tmp_proxy_path;
       tmp_proxy_path = Glib::build_filename(Glib::get_tmp_dir(), std::string("tmp_proxy.pem"));
-      std::string issuername = "Imported Certificate";
+      get_nss_certname(issuername);
       
       // Create tmp proxy cert
       int duration = 12;
@@ -847,10 +881,10 @@ int main(int argc, char *argv[]) {
 
     // Create proxy with VOMS AC
     std::string proxy_certfile = "myproxy.pem";
-    //The name of the certificate imported in firefox is
-    //normally "Imported Certificate" by default, if name is not specified
-    // TODO: let user to select certificates if multiple exsit
-    std::string issuername = "Imported Certificate";
+ 
+    if(issuername.empty()) get_nss_certname(issuername);
+    std::cout<<Arc::IString("Certificate to use is: %s", issuername)<<std::endl;
+
     int duration;
     duration = validityPeriod.GetPeriod() / 3600;
 

@@ -2471,6 +2471,76 @@ my_CERT_CreateCertificate(unsigned long serialNumber,
     return 0;
 }
 
+  void nssListUserCertificatesInfo(std::list<certInfo>& certInfolist) {
+    CERTCertList* list;
+    CERTCertificate* find_cert = NULL;
+    CERTCertListNode* node;
+
+    list = PK11_ListCerts(PK11CertListAll, NULL);
+    for (node = CERT_LIST_HEAD(list); !CERT_LIST_END(node,list);
+        node = CERT_LIST_NEXT(node)) {
+      CERTCertificate* cert = node->cert;
+      const char* nickname = (const char*)node->appData;
+      if (!nickname) {
+        nickname = cert->nickname;
+      }
+      if(nickname == NULL) continue;
+      PRBool isUser = CERT_IsUserCert(cert);
+      if(!isUser) continue;
+
+      certInfo cert_info;
+      cert_info.certname = nickname;
+
+      SECStatus rv;
+      std::string subject_dn;
+      SECItem derSubject;
+      rv = my_CERT_NameFromDERCert(&cert->derCert, &derSubject);
+      if(rv == SECSuccess) {
+        char* subjectName = CERT_DerNameToAscii(&derSubject);
+        subject_dn = subjectName;
+        if(subjectName) PORT_Free(subjectName);
+        cert_info.subject_dn = subject_dn;
+      }
+
+      std::string issuer_dn;
+      SECItem derIssuer;
+      rv = CERT_IssuerNameFromDERCert(&cert->derCert, &derIssuer);
+      if(rv == SECSuccess) {
+        char* issuerName = CERT_DerNameToAscii(&derIssuer);
+        issuer_dn = issuerName;
+        if(issuerName) PORT_Free(issuerName);
+        cert_info.issuer_dn = issuer_dn;
+      }
+
+      cert_info.serial = 0;
+      std::string serial;
+      SECItem derSerial;
+      rv = CERT_SerialNumberFromDERCert (&cert->derCert, &derSerial);
+      if(rv == SECSuccess) {
+        SECItem decodedValue;
+        decodedValue.data = NULL;
+        rv = SEC_ASN1DecodeItem (NULL, &decodedValue,
+                                SEC_ASN1_GET(SEC_IntegerTemplate),
+                                &derSerial);
+        if (rv == SECSuccess) {
+          unsigned long res;
+          rv = SEC_ASN1DecodeInteger(&decodedValue, &res); 
+          if(rv == SECSuccess) cert_info.serial = res;
+        }
+      }
+
+      PRTime notBefore, notAfter;
+      rv = CERT_GetCertTimes(cert, &notBefore, &notAfter);
+      if(rv == SECSuccess) {
+        cert_info.start = Arc::Time(notBefore/1000/1000);
+        cert_info.end = Arc::Time(notAfter/1000/1000); 
+        certInfolist.push_back(cert_info);
+      }
+    }
+    if (list) {
+      CERT_DestroyCertList(list);
+    }
+  }
 
   bool nssCreateCert(const std::string& csrfile, const std::string& issuername, const char* passwd, const int duration, const std::string& vomsacseq, std::string& outfile, bool ascii) {
     CERTCertDBHandle* certhandle;
