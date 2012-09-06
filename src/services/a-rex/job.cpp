@@ -422,9 +422,12 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
       return;
     };
   };
+  // Check for NumberOfSlots is removed because in current implementation
+  // it is used to really represent number of requested cores/cpus.
+  // This must be adjusted later when full support for slots is ready.
   if((desc.Resources.SlotRequirement.ExclusiveExecution != Arc::SlotRequirementType::EE_DEFAULT) ||
-     (desc.Resources.SlotRequirement.SlotsPerHost > 1) ||
-     (desc.Resources.SlotRequirement.NumberOfSlots > 1)) {
+     (desc.Resources.SlotRequirement.SlotsPerHost > 1) /* ||
+     (desc.Resources.SlotRequirement.NumberOfSlots > 1)*/) {
     failure_="SlotRequirement is not fully supported yet";
     failure_type_=ARexJobDescriptionUnsupportedError;
     delete_job_id();
