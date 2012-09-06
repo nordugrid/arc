@@ -113,7 +113,7 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
   f<<"joboption_cputime="<<(arc_job_desc.Resources.TotalCPUTime.range.max != -1 ? Arc::tostring(arc_job_desc.Resources.TotalCPUTime.range.max):"")<<std::endl;
   f<<"joboption_walltime="<<(arc_job_desc.Resources.TotalWallTime.range.max != -1 ? Arc::tostring(arc_job_desc.Resources.TotalWallTime.range.max):"")<<std::endl;
   f<<"joboption_memory="<<(arc_job_desc.Resources.IndividualPhysicalMemory.max != -1 ? Arc::tostring(arc_job_desc.Resources.IndividualPhysicalMemory.max):"")<<std::endl;
-  f<<"joboption_count="<<(arc_job_desc.Resources.SlotRequirement.SlotsPerHost != -1 ? Arc::tostring(arc_job_desc.Resources.SlotRequirement.SlotsPerHost):"1")<<std::endl;
+  f<<"joboption_count="<<(arc_job_desc.Resources.SlotRequirement.NumberOfSlots != -1 ? Arc::tostring(arc_job_desc.Resources.SlotRequirement.NumberOfSlots):"1")<<std::endl;
 
   {
     int i = 0;
