@@ -193,7 +193,9 @@ namespace Arc {
   //! A base class for log destinations.
   /*! This class defines an interface for LogDestinations.
      LogDestination objects will typically contain synchronization
-     mechanisms and should therefore never be copied.
+     mechanisms and should therefore never be copied. If setlocale()
+     has been called with a supported locale, log messages will be
+     logged in that locale.
    */
   class LogDestination {
   public:
@@ -212,11 +214,6 @@ namespace Arc {
      */
     LogDestination();
 
-    //! Constructor with specific locale.
-    /*! This destination will use the specified locale.
-     */
-    LogDestination(const std::string& locale);
-
   private:
 
     //! Private copy constructor
@@ -233,7 +230,6 @@ namespace Arc {
 
   protected:
 
-    std::string locale;
     LogFormat format;
   };
 
@@ -259,12 +255,6 @@ namespace Arc {
        @param destination The ostream to which to erite LogMessages.
      */
     LogStream(std::ostream& destination);
-
-    //! Creates a LogStream connected to an ostream.
-    /*! Creates a LogStream connected to the specified ostream.
-       The output will be localised to the specified locale.
-     */
-    LogStream(std::ostream& destination, const std::string& locale);
 
     //! Writes a LogMessage to the stream.
     /*! This method writes a LogMessage to the ostream that is
@@ -327,13 +317,6 @@ namespace Arc {
        @param path The path to file to which to write LogMessages.
      */
     LogFile(const std::string& path);
-
-    //! Creates a LogFile connected to a file.
-    /*! Creates a LogFile connected to the file located at
-       specified path.
-       The output will be localised to the specified locale.
-     */
-    LogFile(const std::string& path, const std::string& locale);
 
     //! Set maximal allowed size of file.
     /*! Set maximal allowed size of file. This value is not

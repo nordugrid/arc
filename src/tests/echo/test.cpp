@@ -17,10 +17,8 @@ int main(void) {
   signal(SIGTTOU,SIG_IGN);
   signal(SIGTTIN,SIG_IGN);
   Arc::Logger logger(Arc::Logger::rootLogger, "Test");
-  Arc::LogStream logcerr1(std::cerr, "C");
+  Arc::LogStream logcerr1(std::cerr);
   Arc::Logger::rootLogger.addDestination(logcerr1);
-  Arc::LogStream logcerr2(std::cerr, "sv_SE.UTF8");
-  Arc::Logger::rootLogger.addDestination(logcerr2);
   // Load service chain
   logger.msg(Arc::INFO, "Creating service side chain");
   Arc::Config service_config("service.xml");

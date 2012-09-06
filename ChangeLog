@@ -1,3 +1,7 @@
+2012-09-06  David Cameron  <d.g.cameron@fys.uio.no>
+
+  * Remove ability to set locale per LogDestination
+
 2012-09-04  Weizhong Qiang <weizhong.qiang@fys.uio.no>
 
   * arcproxy supports proxy retrieval from myproxy server with VOMS AC included

@@ -236,10 +236,6 @@ namespace Arc {
   LogDestination::LogDestination()
     : format(LongFormat) {}
 
-  LogDestination::LogDestination(const std::string& locale)
-    : locale(locale),
-      format(LongFormat) {}
-
   void LogDestination::setFormat(const LogFormat& newformat) {
     format = newformat;
   }
@@ -247,22 +243,11 @@ namespace Arc {
   LogStream::LogStream(std::ostream& destination)
     : destination(destination) {}
 
-  LogStream::LogStream(std::ostream& destination,
-                       const std::string& locale)
-    : LogDestination(locale),
-      destination(destination) {}
-
   void LogStream::log(const LogMessage& message) {
     Glib::Mutex::Lock lock(mutex);
-    EnvLockWrap(true); // Protecting any setenv/getenv we do not know about
-    const char *loc = NULL;
-    if (!locale.empty()) {
-      loc = setlocale(LC_ALL, NULL);
-      setlocale(LC_ALL, locale.c_str());
-    }
+    EnvLockWrap(false); // Protecting getenv inside gettext()
     destination << LoggerFormat(format) << message << std::endl;
-    if (!locale.empty()) setlocale(LC_ALL, loc);
-    EnvLockUnwrap(true);
+    EnvLockUnwrap(false);
   }
 
   LogFile::LogFile(const std::string& path)
@@ -283,23 +268,6 @@ namespace Arc {
     }
   }
 
-  LogFile::LogFile(const std::string& path, const std::string& locale)
-    : LogDestination(locale),
-      path(path),
-      destination(),
-      maxsize(-1),
-      backups(-1),
-      reopen(false) {
-    if(path.empty()) {
-      //logger.msg(Arc::ERROR,"Log file path is not specified");
-      return;
-    }
-    destination.open(path.c_str(), std::fstream::out | std::fstream::app);
-    if(!destination.is_open()) {
-      //logger.msg(Arc::ERROR,"Failed to open log file: %s",path);
-      return;
-    }
-  }
   void LogFile::setMaxSize(int newsize) {
     maxsize = newsize;
   }
@@ -330,21 +298,15 @@ namespace Arc {
 
   void LogFile::log(const LogMessage& message) {
     Glib::Mutex::Lock lock(mutex);
-    const char *loc = NULL;
     // If requested to reopen on every write or if was closed because of error
     if (reopen || !destination.is_open()) {
       destination.open(path.c_str(), std::fstream::out | std::fstream::app);
     }
     if(!destination.is_open()) return;
-    EnvLockWrap(true); // Protecting any setenv/getenv we do not know about
-    if (!locale.empty()) {
-      loc = setlocale(LC_ALL, NULL);
-      setlocale(LC_ALL, locale.c_str());
-    }
+    EnvLockWrap(false); // Protecting getenv inside gettext()
     destination << LoggerFormat(format) << message << std::endl;
-    if (!locale.empty()) setlocale(LC_ALL, loc);
-    EnvLockUnwrap(true);
-    // Check if unrecoverwable error occured. Close if error 
+    EnvLockUnwrap(false);
+    // Check if unrecoverable error occurred. Close if error
     // and reopen on next write.
     if(destination.bad()) destination.close();
     // Before closing check if must backup
