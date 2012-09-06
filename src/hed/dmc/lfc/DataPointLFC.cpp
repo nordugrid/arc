@@ -234,12 +234,12 @@ namespace Arc {
     resolved = false;
     registered = false;
     int* nbentries = new int(0);
-    struct lfc_filereplicas *entries = NULL;
+    struct lfc_filereplicas **lfc_entries = new struct lfc_filereplicas*;
     const char** lfns = new const char*[1];
     lfns[0] = path.c_str();
     const char** guids = new const char*[1];
     guids[0] = guid.c_str();
-    ResolveArgs* args = new ResolveArgs(lfns, guids, 1, nbentries, &entries);
+    ResolveArgs* args = new ResolveArgs(lfns, guids, 1, nbentries, lfc_entries);
     bool res;
     {
       LFCEnvLocker lfc_env(usercfg, url);
@@ -260,6 +260,10 @@ namespace Arc {
     delete args;
     int nentries = *nbentries;
     delete nbentries;
+    struct lfc_filereplicas *entries = NULL;
+    if (lfc_entries) entries = *lfc_entries;
+    delete lfc_entries;
+
     if (lfc_r != 0) {
       logger.msg(ERROR, "Error finding replicas: %s", sstrerror(serrno));
       if (source) return DataStatus(DataStatus::ReadResolveError, lfc2errno());
@@ -1010,7 +1014,7 @@ namespace Arc {
     }
 
     int* nbentries = new int(0);
-    struct lfc_filereplicas *entries = NULL;
+    struct lfc_filereplicas **lfc_entries = new struct lfc_filereplicas*;
     int lfc_r;
 
     const char ** guids = new const char*[urls.size()];
@@ -1031,7 +1035,7 @@ namespace Arc {
     }
 
     // See Resolve(bool) for explanation
-    ResolveArgs* args = new ResolveArgs(paths, guids, urls.size(), nbentries, &entries);
+    ResolveArgs* args = new ResolveArgs(paths, guids, urls.size(), nbentries, lfc_entries);
     bool res;
     {
       LFCEnvLocker lfc_env(usercfg, url);
@@ -1051,11 +1055,15 @@ namespace Arc {
     delete args;
     int nentries = *nbentries;
     delete nbentries;
+    struct lfc_filereplicas *entries = NULL;
+    if (lfc_entries) entries = *lfc_entries;
+    delete lfc_entries;
+
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error finding replicas: %s", sstrerror(serrno));
       return DataStatus(DataStatus::ReadResolveError, lfc2errno());
     }
-    if (nentries == 0) {
+    if (nentries == 0 || !entries) {
       logger.msg(ERROR, "Bulk resolve returned no entries");
       return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "No results returned");
     }
