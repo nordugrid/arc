@@ -192,10 +192,15 @@ namespace Arc {
     // If guid is supplied it is preferred over LFN
     if (args->guids && *(args->guids) && **(args->guids)) {
       args->result = lfc_getreplicas(args->size, args->guids, NULL, args->nbentries, args->entries);
+      args->serrno_ = serrno;
     } else if (args->lfns && *(args->lfns) && **(args->lfns)) {
       args->result = lfc_getreplicasl(args->size, args->lfns, NULL, args->nbentries, args->entries);
+      args->serrno_ = serrno;
+    } else {
+      // this case should never happen, but just in case...
+      args->result = -1;
+      args->serrno_ = EINVAL;
     }
-    args->serrno_ = serrno;
   }
 
   DataStatus DataPointLFC::Resolve(bool source) {
