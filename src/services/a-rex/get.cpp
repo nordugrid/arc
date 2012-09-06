@@ -66,7 +66,7 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
     };
     html+="</UL>\r\n";
     // Service description access
-    html+="<A HREF=\""+config.Endpoint()+"/?info>SERVICE DESCRIPTION</A>";
+    html+="<A HREF=\""+config.Endpoint()+"/?info\">SERVICE DESCRIPTION</A>";
     html+="</BODY>\r\n</HTML>";
     Arc::PayloadRaw* buf = new Arc::PayloadRaw;
     if(buf) buf->Insert(html.c_str(),0,html.length());
