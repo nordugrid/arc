@@ -18,6 +18,7 @@ class RunTest
   CPPUNIT_TEST_SUITE(RunTest);
   CPPUNIT_TEST(TestRun0);
   CPPUNIT_TEST(TestRun255);
+  CPPUNIT_TEST(TestRunMany);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -25,6 +26,7 @@ public:
   void tearDown();
   void TestRun0();
   void TestRun255();
+  void TestRunMany();
 
 private:
   std::string srcdir;
@@ -73,6 +75,33 @@ void RunTest::TestRun255() {
   CPPUNIT_ASSERT(run.Start());
   CPPUNIT_ASSERT(run.Wait(10));
   CPPUNIT_ASSERT_EQUAL(255, run.Result());
+}
+
+class RunH {
+ public:
+  unsigned long long int cnt;
+  Arc::Run* run;
+};
+
+void RunTest::TestRunMany() {
+  std::list<RunH> runs;
+  for(int n=0;n<5000;++n) {
+    for(std::list<RunH>::iterator r = runs.begin();r != runs.end();) {
+      //std::cerr<<r->cnt<<" ";
+      if(r->run->Running()) { ++(r->cnt); ++r; continue; };
+      delete (r->run);
+      r = runs.erase(r);
+    }
+    //std::cerr<<std::endl;
+    RunH r;
+    r.cnt = 0;
+    r.run = new Arc::Run(srcdir + "/rcode 2");
+    r.run->Start();
+    runs.push_back(r);
+  }
+  for(std::list<RunH>::iterator r = runs.begin();r != runs.end();++r) {
+    CPPUNIT_ASSERT(r->run->Wait(10));
+  }
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(RunTest);
