@@ -184,7 +184,9 @@ sub translator(){
     write_cluster_entries($cluster_attributes{'nordugrid-cluster-name'},$glue_site_unique_id,$glueCEUniqueID);
 
     #write CE-SE Binding Entries
-    write_ce_se_binding_entries($cluster_attributes{'nordugrid-cluster-localse'},$glueCEUniqueID,\@storages);
+    if ( $cluster_attributes{'nordugrid-cluster-localse'} !=  0 ) {
+        write_ce_se_binding_entries($cluster_attributes{'nordugrid-cluster-localse'},$glueCEUniqueID,\@storages);
+    }
 }
 
 # Write SubCluster Entries
