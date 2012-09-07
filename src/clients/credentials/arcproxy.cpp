@@ -244,69 +244,133 @@ static std::string tokens_to_string(std::vector<std::string> tokens) {
 }
 
 #ifdef HAVE_NSS
-static void get_nssdb_path(std::vector<std::string>& nss_paths) {
-  std::string nss_path;
+static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
   const Arc::User user;
+  // The profiles.ini could exist under firefox, seamonkey and thunderbird
+  std::vector<std::string> profiles_homes;
+
 #ifndef WIN32
   std::string home_path = user.Home();
 #else
   std::string home_path = Glib::get_home_dir();
 #endif
 
+  std::string profiles_home;
+
 #if defined(_MACOSX)
-  std::string ff_home = home_path + G_DIR_SEPARATOR_S "Library" G_DIR_SEPARATOR_S "Application Support" G_DIR_SEPARATOR_S "Firefox";
+  profiles_home = home_path + G_DIR_SEPARATOR_S "Library" G_DIR_SEPARATOR_S "Application Support" G_DIR_SEPARATOR_S "Firefox";
+  profiles_homes.push_back(profiles_home);
+
+  profiles_home = home_path + G_DIR_SEPARATOR_S "Library" G_DIR_SEPARATOR_S "Application Support" G_DIR_SEPARATOR_S "SeaMonkey";
+  profiles_homes.push_back(profiles_home);
+
+  profiles_home = home_path + G_DIR_SEPARATOR_S "Library" G_DIR_SEPARATOR_S "Application Support" G_DIR_SEPARATOR_S "Thunderbird";
+  profiles_homes.push_back(profiles_home);
+
 #elif defined(WIN32)
-  std::string ff_home = home_path + G_DIR_SEPARATOR_S "AppData" G_DIR_SEPARATOR_S "Roaming" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "Firefox";
-#else
-  std::string ff_home = home_path + G_DIR_SEPARATOR_S ".mozilla" G_DIR_SEPARATOR_S "firefox";
+  //Windows Vista and Win7
+  profiles_home = home_path + G_DIR_SEPARATOR_S "AppData" G_DIR_SEPARATOR_S "Roaming" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "Firefox";
+  profiles_homes.push_back(profiles_home);
+
+  profiles_home = home_path + G_DIR_SEPARATOR_S "AppData" G_DIR_SEPARATOR_S "Roaming" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "SeaMonkey";
+  profiles_homes.push_back(profiles_home);
+
+  profiles_home = home_path + G_DIR_SEPARATOR_S "AppData" G_DIR_SEPARATOR_S "Roaming" G_DIR_SEPARATOR_S "Thunderbird";
+  profiles_homes.push_back(profiles_home);
+
+  //WinXP and Win2000
+  profiles_home = home_path + G_DIR_SEPARATOR_S "Application Data" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "Firefox";
+  profiles_homes.push_back(profiles_home);    
+
+  profiles_home = home_path + G_DIR_SEPARATOR_S "Application Data" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "SeaMonkey";
+  profiles_homes.push_back(profiles_home);
+
+  profiles_home = home_path + G_DIR_SEPARATOR_S "Application Data" G_DIR_SEPARATOR_S "Thunderbird";
+  profiles_homes.push_back(profiles_home);
+
+#else //Linux
+  profiles_home = home_path + G_DIR_SEPARATOR_S ".mozilla" G_DIR_SEPARATOR_S "firefox";
+  profiles_homes.push_back(profiles_home);
+
+  profiles_home = home_path + G_DIR_SEPARATOR_S ".mozilla" G_DIR_SEPARATOR_S "seamonkey";
+  profiles_homes.push_back(profiles_home);
+
+  profiles_home = home_path + G_DIR_SEPARATOR_S ".thunderbird";
+  profiles_homes.push_back(profiles_home);
 #endif
 
-  struct stat st;
-  if(::stat(ff_home.c_str(),&st) != 0) return;
-  if(!S_ISDIR(st.st_mode)) return; 
-  if(user.get_uid() != st.st_uid) return;
+  std::vector<std::string> pf_homes;
+  // Remove the unreachable directories
+  for(int i=0; i<profiles_homes.size(); i++) {
+    std::string pf_home;
+    pf_home = profiles_homes[i];
+    struct stat st;
+    if(::stat(pf_home.c_str(), &st) != 0) continue;
+    if(!S_ISDIR(st.st_mode)) continue; 
+    if(user.get_uid() != st.st_uid) continue;
+    pf_homes.push_back(pf_home);
+  }
 
-  std::string ff_profile = ff_home + G_DIR_SEPARATOR_S "profiles.ini";
+  // Record the profiles.ini path, and the directory it belongs to.
+  std::map<std::string, std::string> ini_home;
+  // Remove the unreachable "profiles.ini" files
+  for(int i=0; i<pf_homes.size(); i++) {
+    std::string pf_file = pf_homes[i] + G_DIR_SEPARATOR_S "profiles.ini";
+    struct stat st;
+    if(::stat(pf_file.c_str(),&st) != 0) continue; 
+    if(!S_ISREG(st.st_mode)) continue; 
+    if(user.get_uid() != st.st_uid) continue;
+    ini_home[pf_file] = pf_homes[i];
+  }
 
-  if(::stat(ff_profile.c_str(),&st) != 0) return; 
-  if(!S_ISREG(st.st_mode)) return; 
-  if(user.get_uid() != st.st_uid) return;
+  // All of the reachable profiles.ini files will be parsed to get 
+  // the nss configuration information (nss db location).
+  // All of the information about nss db location  will be 
+  // merged together for users to choose
+  std::map<std::string, std::string>::iterator it;
+  for(it = ini_home.begin(); it != ini_home.end(); it++) {
+    std::string pf_ini = (*it).first;
+    std::string pf_home = (*it).second;
 
-  std::ifstream in_f(ff_profile.c_str());
-  std::string profile_ini;
-  std::getline<char>(in_f, profile_ini, '\0');
+    std::string profiles;
+    std::ifstream in_f(pf_ini.c_str());
+    std::getline<char>(in_f, profiles, '\0');
 
-  std::list<std::string> lines;
-  Arc::tokenize(profile_ini, lines, "\n");
+    std::list<std::string> lines;
+    Arc::tokenize(profiles, lines, "\n");
 
-  for (std::list<std::string>::iterator i = lines.begin(); i != lines.end(); ++i) {
-    std::vector<std::string> inivalue;
-    Arc::tokenize(*i, inivalue, "=");
-    if((inivalue[0].find("Profile") != std::string::npos) && 
-       (inivalue[0].find("StartWithLast") == std::string::npos)) {
-      bool is_relative = false;
-      std::string path;
-      std::advance(i, 1);
-      for(; i != lines.end();) {
-        inivalue.clear();
-        Arc::tokenize(*i, inivalue, "=");   
-        if (inivalue.size() == 2) {
-          if (inivalue[0] == "IsRelative") {
-            if(inivalue[1] == "1") is_relative = true;
-            else is_relative = false;
-          }
-          if (inivalue[0] == "Path") path = inivalue[1];
-        }
-        if(inivalue[0].find("Profile") != std::string::npos) { i--; break; }
+    // Parse each [Profile]
+    for (std::list<std::string>::iterator i = lines.begin(); i != lines.end(); ++i) {
+      std::vector<std::string> inivalue;
+      Arc::tokenize(*i, inivalue, "=");
+      if((inivalue[0].find("Profile") != std::string::npos) && 
+         (inivalue[0].find("StartWithLast") == std::string::npos)) {
+        bool is_relative = false;
+        std::string path;
         std::advance(i, 1);
+        for(; i != lines.end();) {
+          inivalue.clear();
+          Arc::tokenize(*i, inivalue, "=");   
+          if (inivalue.size() == 2) {
+            if (inivalue[0] == "IsRelative") {
+              if(inivalue[1] == "1") is_relative = true;
+              else is_relative = false;
+            }
+            if (inivalue[0] == "Path") path = inivalue[1];
+          }
+          if(inivalue[0].find("Profile") != std::string::npos) { i--; break; }
+          std::advance(i, 1);
+        }
+        std::string nss_path;
+        if(is_relative) nss_path = pf_home + G_DIR_SEPARATOR_S + path;
+        else nss_path = path;
+
+        struct stat st;
+        if((::stat(nss_path.c_str(),&st) == 0) && (S_ISDIR(st.st_mode))
+            && (user.get_uid() == st.st_uid))
+          nss_paths.push_back(nss_path);
+        if(i == lines.end()) break;
       }
-      std::string nss_path;
-      if(is_relative) nss_path = ff_home + G_DIR_SEPARATOR_S + path;
-      else nss_path = path;
-      if((::stat(nss_path.c_str(),&st) == 0) && (S_ISDIR(st.st_mode))
-          && (user.get_uid() == st.st_uid))
-        nss_paths.push_back(nss_path);
-      if(i == lines.end()) break;
     }
   }
   return; 
@@ -502,7 +566,8 @@ int main(int argc, char *argv[]) {
 
 #ifdef HAVE_NSS
   bool use_nssdb = false;
-  options.AddOption('F', "nssdb", istring("use NSS credential db in default firefox profile"), use_nssdb);
+  options.AddOption('F', "nssdb", istring("use NSS credential db in default mozilla profiles, \n"
+                                          "              including firefox, seamonkey and thunderbird.\n"), use_nssdb);
 #endif
 
   std::list<std::string> constraintlist;
@@ -857,7 +922,7 @@ int main(int argc, char *argv[]) {
   if(use_nssdb) {
     // Get the nss db paths from firefox's profile.ini file
     std::vector<std::string> nssdb_paths;
-    get_nssdb_path(nssdb_paths);
+    get_default_nssdb_path(nssdb_paths);
     if(nssdb_paths.empty()) {
       std::cout << Arc::IString("The nss db can not be detected under firefox profile") << std::endl;
       return EXIT_FAILURE;
