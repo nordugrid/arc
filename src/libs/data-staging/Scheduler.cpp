@@ -1086,10 +1086,8 @@ namespace DataStaging {
             std::set<DTR_ptr> bulk_list;
             bulk_list.insert(tmp);
             bulk_requests[jobid] = bulk_list;
-            tmp->get_logger()->msg(Arc::VERBOSE, "DTR %s: Starting bulk request", tmp->get_short_id());
           } else {
             DTR_ptr first_bulk = *bulk_requests[jobid].begin();
-            tmp->get_logger()->msg(Arc::VERBOSE, "DTR %s: Adding to bulk request", tmp->get_short_id());
             // Only source bulk operations supported at the moment and limit to 100
             if (bulk_requests[jobid].size() < 100 &&
                 first_bulk->get_source()->GetURL().Protocol() == tmp->get_source()->GetURL().Protocol() &&

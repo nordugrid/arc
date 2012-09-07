@@ -702,12 +702,14 @@ namespace DataStaging {
 
     // first deal with bulk
     if (request->get_bulk_end()) { // end of bulk
+      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Adding to bulk request", request->get_short_id());
       request->set_bulk_end(false);
       bulk_list.push_back(request);
       bulk_arg = new BulkThreadArgument(this, bulk_list);
       bulk_list.clear();
     }
     else if (request->get_bulk_start() || !bulk_list.empty()) { // filling bulk list
+      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Adding to bulk request", request->get_short_id());
       bulk_list.push_back(request);
       if (request->get_bulk_start()) request->set_bulk_start(false);
     }
