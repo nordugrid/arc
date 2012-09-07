@@ -244,7 +244,7 @@ static std::string tokens_to_string(std::vector<std::string> tokens) {
 }
 
 #ifdef HAVE_NSS
-static std::string get_nssdb_path() {
+static void get_nssdb_path(std::vector<std::string>& nss_paths) {
   std::string nss_path;
   const Arc::User user;
 #ifndef WIN32
@@ -262,46 +262,57 @@ static std::string get_nssdb_path() {
 #endif
 
   struct stat st;
-  if(::stat(ff_home.c_str(),&st) != 0) return std::string();
-  if(!S_ISDIR(st.st_mode)) return std::string(); 
-  if(user.get_uid() != st.st_uid) return std::string();
+  if(::stat(ff_home.c_str(),&st) != 0) return;
+  if(!S_ISDIR(st.st_mode)) return; 
+  if(user.get_uid() != st.st_uid) return;
 
   std::string ff_profile = ff_home + G_DIR_SEPARATOR_S "profiles.ini";
 
-  if(::stat(ff_profile.c_str(),&st) != 0) return std::string(); 
-  if(!S_ISREG(st.st_mode)) return std::string(); 
-  if(user.get_uid() != st.st_uid) return std::string();
+  if(::stat(ff_profile.c_str(),&st) != 0) return; 
+  if(!S_ISREG(st.st_mode)) return; 
+  if(user.get_uid() != st.st_uid) return;
 
   std::ifstream in_f(ff_profile.c_str());
   std::string profile_ini;
-  bool is_relative = true;
-  std::string path;
   std::getline<char>(in_f, profile_ini, '\0');
 
   std::list<std::string> lines;
   Arc::tokenize(profile_ini, lines, "\n");
+
   for (std::list<std::string>::iterator i = lines.begin(); i != lines.end(); ++i) {
     std::vector<std::string> inivalue;
     Arc::tokenize(*i, inivalue, "=");
-    if (inivalue.size() == 2) {
-      if (inivalue[0] == "IsRelative") {
-        if(inivalue[1] == "1") is_relative = true;
-        else is_relative = false;
+    if((inivalue[0].find("Profile") != std::string::npos) && 
+       (inivalue[0].find("StartWithLast") == std::string::npos)) {
+      bool is_relative = false;
+      std::string path;
+      std::advance(i, 1);
+      for(; i != lines.end();) {
+        inivalue.clear();
+        Arc::tokenize(*i, inivalue, "=");   
+        if (inivalue.size() == 2) {
+          if (inivalue[0] == "IsRelative") {
+            if(inivalue[1] == "1") is_relative = true;
+            else is_relative = false;
+          }
+          if (inivalue[0] == "Path") path = inivalue[1];
+        }
+        if(inivalue[0].find("Profile") != std::string::npos) { i--; break; }
+        std::advance(i, 1);
       }
-      if (inivalue[0] == "Path") path = inivalue[1];
+      std::string nss_path;
+      if(is_relative) nss_path = ff_home + G_DIR_SEPARATOR_S + path;
+      else nss_path = path;
+      if((::stat(nss_path.c_str(),&st) == 0) && (S_ISDIR(st.st_mode))
+          && (user.get_uid() == st.st_uid))
+        nss_paths.push_back(nss_path);
+      if(i == lines.end()) break;
     }
   }
-  if(is_relative) nss_path = ff_home + G_DIR_SEPARATOR_S + path;
-  else nss_path = path;
-
-  if(::stat(nss_path.c_str(),&st) != 0) return std::string();
-  if(!S_ISDIR(st.st_mode)) return std::string();
-  if(user.get_uid() != st.st_uid) return std::string();
-
-  return nss_path; 
+  return; 
 } 
 
-static void get_nss_certname(std::string& certname) {
+static void get_nss_certname(std::string& certname, Arc::Logger& logger) {
   std::list<AuthN::certInfo> certInfolist;
   AuthN::nssListUserCertificatesInfo(certInfolist);
   if(certInfolist.size()) {
@@ -312,16 +323,38 @@ static void get_nss_certname(std::string& certname) {
   std::list<AuthN::certInfo>::iterator it;
   for(it = certInfolist.begin(); it != certInfolist.end(); it++) {
     AuthN::certInfo cert_info = (*it);
-    std::cout<<Arc::IString("Number %d is with nickname: %s", n, cert_info.certname)<<std::endl;
-    std::cout<<Arc::IString("    certificate dn:  %s", cert_info.subject_dn)<<std::endl;
-    std::cout<<Arc::IString("    issuer dn:       %s", cert_info.issuer_dn)<<std::endl;
-    std::cout<<Arc::IString("    serial number:   %d", cert_info.serial)<<std::endl;
-    std::cout<<Arc::IString("    expiration time: %s", cert_info.end.str())<<std::endl;
+    std::string sub_dn = cert_info.subject_dn;
+    std::string cn_name;
+    std::string::size_type pos1, pos2;
+    pos1 = sub_dn.find("CN=");
+    if(pos1 != std::string::npos) {
+      pos2 = sub_dn.find(",", pos1);
+      if(pos2 != std::string::npos) 
+        cn_name = " ("+sub_dn.substr(pos1+3, pos2-pos1-3) + ")";
+    }
+    std::cout<<Arc::IString("Number %d is with nickname: %s%s", n, cert_info.certname, cn_name)<<std::endl;
+    Arc::Time now;
+    std::string msg;
+    if(now > cert_info.end) msg = "(expired)";
+    else if((now + 300) > cert_info.end) msg = "(will be expired in 5 min)";
+    else if((now + 3600*24) > cert_info.end) {
+      Arc::Period left(cert_info.end - now);
+      msg = std::string("(will be expired in ") + std::string(left) + ")";
+    }
+    std::cout<<Arc::IString("    expiration time: %s ", cert_info.end.str())<<msg<<std::endl;
+    //std::cout<<Arc::IString("    certificate dn:  %s", cert_info.subject_dn)<<std::endl;
+    //std::cout<<Arc::IString("    issuer dn:       %s", cert_info.issuer_dn)<<std::endl;
+    //std::cout<<Arc::IString("    serial number:   %d", cert_info.serial)<<std::endl;
+    logger.msg(Arc::INFO, "    certificate dn:  %s", cert_info.subject_dn);
+    logger.msg(Arc::INFO, "    issuer dn:       %s", cert_info.issuer_dn);
+    logger.msg(Arc::INFO, "    serial number:   %d", cert_info.serial);
     n++;
   }
-  char c;
+
   std::cout << Arc::IString("Please choose the one you would use (1-%d): ", certInfolist.size());
-  while(true) {
+  if(certInfolist.size() == 1) { it = certInfolist.begin(); certname = (*it).certname; }
+  char c;
+  while(true && (certInfolist.size()>1)) {
     c = getchar();
     int num = c - '0';
     if((num<=certInfolist.size()) && (num>=1)) {
@@ -822,13 +855,37 @@ int main(int argc, char *argv[]) {
 #ifdef HAVE_NSS
   //Using nss db dominate other option
   if(use_nssdb) {
-    std::string nssdb_path = get_nssdb_path();
-    if(nssdb_path.empty()) {
+    // Get the nss db paths from firefox's profile.ini file
+    std::vector<std::string> nssdb_paths;
+    get_nssdb_path(nssdb_paths);
+    if(nssdb_paths.empty()) {
       std::cout << Arc::IString("The nss db can not be detected under firefox profile") << std::endl;
       return EXIT_FAILURE;
     }
+
+    // Let user to choose which profile to use
+    // if multiple profiles exist
     bool res;
-    std::string configdir = nssdb_path;
+    std::string configdir;
+    if(nssdb_paths.size()) {
+      std::cout<<Arc::IString("There are %d nss base directories where the cert, key, and module datbases live",
+        nssdb_paths.size())<<std::endl;
+    }
+    for(int i=0; i < nssdb_paths.size(); i++) {
+      std::cout<<Arc::IString("Number %d is: %s", i+1, nssdb_paths[i])<<std::endl;
+    }
+    std::cout << Arc::IString("Please choose the nss db you would use (1-%d): ", nssdb_paths.size());
+    if(nssdb_paths.size() == 1) { configdir = nssdb_paths[0]; }
+    char c;
+    while(true && (nssdb_paths.size()>1)) {
+      c = getchar();
+      int num = c - '0';
+      if((num<=nssdb_paths.size()) && (num>=1)) {
+        configdir = nssdb_paths[num-1];
+        break;
+      }
+    }
+
     res = AuthN::nssInit(configdir);
     std::cout<< Arc::IString("nss db to be accessed: %s\n", configdir.c_str());
 
@@ -850,7 +907,7 @@ int main(int argc, char *argv[]) {
     if (!vomslist.empty()) {
       std::string tmp_proxy_path;
       tmp_proxy_path = Glib::build_filename(Glib::get_tmp_dir(), std::string("tmp_proxy.pem"));
-      get_nss_certname(issuername);
+      get_nss_certname(issuername, logger);
       
       // Create tmp proxy cert
       int duration = 12;
@@ -881,8 +938,9 @@ int main(int argc, char *argv[]) {
 
     // Create proxy with VOMS AC
     std::string proxy_certfile = "myproxy.pem";
- 
-    if(issuername.empty()) get_nss_certname(issuername);
+
+    // Let user to choose which credential to use 
+    if(issuername.empty()) get_nss_certname(issuername, logger);
     std::cout<<Arc::IString("Certificate to use is: %s", issuername)<<std::endl;
 
     int duration;
