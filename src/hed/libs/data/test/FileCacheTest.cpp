@@ -267,6 +267,25 @@ void FileCacheTest::testStart() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE("Could not stat meta file " + meta_file, 0, stat(meta_file.c_str(), &fileStat));
   CPPUNIT_ASSERT(fileStat.st_size > 0);
 
+  // Use a bad cache dir
+  if (_uid != 0 && stat("/lost+found/cache", &fileStat) != 0 && errno == EACCES) {
+    std::vector<std::string> caches;
+    caches.push_back("/lost+found/cache");
+    delete _fc1;
+    _fc1 = new Arc::FileCache(caches, _jobid, _uid, _gid);
+    CPPUNIT_ASSERT(*_fc1);
+    CPPUNIT_ASSERT(!_fc1->Start(_url, available, is_locked));
+    CPPUNIT_ASSERT(!available);
+    CPPUNIT_ASSERT(!is_locked);
+    // with one good dir and one bad dir Start should succeed
+    caches.push_back(_cache_dir);
+    delete _fc1;
+    _fc1 = new Arc::FileCache(caches, _jobid, _uid, _gid);
+    CPPUNIT_ASSERT(*_fc1);
+    CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
+    CPPUNIT_ASSERT(!available);
+    CPPUNIT_ASSERT(!is_locked);
+  }
 }
 
 void FileCacheTest::testRemoteCache() {
@@ -1069,12 +1088,10 @@ void FileCacheTest::testValidityDate() {
 }
 
 void FileCacheTest::testConstructor() {
-  // permissions testing of dirs created by the constructor
+  // constructor should not create anything
   struct stat fileStat;
-  CPPUNIT_ASSERT(stat(_cache_data_dir.c_str(), &fileStat) == 0);
-  CPPUNIT_ASSERT((fileStat.st_mode & (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH)) == (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH));
-  CPPUNIT_ASSERT(stat(_cache_job_dir.c_str(), &fileStat) == 0);
-  CPPUNIT_ASSERT((fileStat.st_mode & (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH)) == (S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH));
+  CPPUNIT_ASSERT(stat(_cache_data_dir.c_str(), &fileStat) != 0);
+  CPPUNIT_ASSERT(stat(_cache_job_dir.c_str(), &fileStat) != 0);
   // create constructor with same parameters
   Arc::FileCache *fc2 = new Arc::FileCache(_cache_dir, _jobid, _uid, _gid);
   CPPUNIT_ASSERT(*_fc1 == *fc2);
@@ -1129,14 +1146,7 @@ void FileCacheTest::testConstructor() {
 }
 
 void FileCacheTest::testBadConstructor() {
-  // permission denied
-  delete _fc1;
-  struct stat fileStat;
-  if (_uid != 0 && stat("/lost+found/cache", &fileStat) != 0 && errno == EACCES) {
-    _fc1 = new Arc::FileCache("/lost+found/cache", _jobid, _uid, _gid);
-    CPPUNIT_ASSERT(!(*_fc1));
-    delete _fc1;
-  }
+
   // no cache dir
   _fc1 = new Arc::FileCache("", _jobid, _uid, _gid);
   CPPUNIT_ASSERT(!(*_fc1));
@@ -1158,14 +1168,6 @@ void FileCacheTest::testBadConstructor() {
 
   caches.clear();
   caches.push_back(_cache_dir);
-
-  // failing to create one cache is ok
-  if (_uid != 0 && stat("/lost+found/cache", &fileStat) != 0 && errno == EACCES) {
-    caches.push_back("/lost+found/cache");
-    delete _fc1;
-    _fc1 = new Arc::FileCache(caches, _jobid, _uid, _gid);
-    CPPUNIT_ASSERT(*_fc1);
-  }
   // bad remote and draining caches
   std::vector<std::string> remote_caches;
   remote_caches.push_back("");

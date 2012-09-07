@@ -102,24 +102,12 @@ namespace Arc {
         return false;
       }
       std::string cache_link_path = "";
-      if (cache.find(" ") != std::string::npos)
-        cache_link_path = cache.substr(cache.find_last_of(" ") + 1, cache.length() - cache.find_last_of(" ") + 1);
+      if (cache.find(" ") != std::string::npos) cache_link_path = cache.substr(cache.find_last_of(" ") + 1, cache.length() - cache.find_last_of(" ") + 1);
 
       // tidy up paths - take off any trailing slashes
-      if (cache_path.rfind("/") == cache_path.length() - 1)
-        cache_path = cache_path.substr(0, cache_path.length() - 1);
-      if (cache_link_path.rfind("/") == cache_link_path.length() - 1)
-        cache_link_path = cache_link_path.substr(0, cache_link_path.length() - 1);
+      if (cache_path.rfind("/") == cache_path.length() - 1) cache_path = cache_path.substr(0, cache_path.length() - 1);
+      if (cache_link_path.rfind("/") == cache_link_path.length() - 1) cache_link_path = cache_link_path.substr(0, cache_link_path.length() - 1);
 
-      // create cache dir and subdirs
-      if (!DirCreate(std::string(cache_path + "/" + CACHE_DATA_DIR), S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH, true)) {
-        logger.msg(WARNING, "Cannot create directory %s/%s for cache: %s", cache_path, CACHE_DATA_DIR, StrError(errno));
-        continue;
-      }
-      if (!DirCreate(std::string(cache_path + "/" + CACHE_JOB_DIR), S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH, true)) {
-        logger.msg(WARNING, "Cannot create directory %s/%s for cache: %s", cache_path, CACHE_JOB_DIR, StrError(errno));
-        continue;
-      }
       // add this cache to our list
       struct CacheParameters cache_params;
       cache_params.cache_path = cache_path;
@@ -183,9 +171,29 @@ namespace Arc {
     _cache_map.erase(url);
     std::string filename = File(url);
 
-    // create directory structure if required, only readable by GM user
-    if (!DirCreate(filename.substr(0, filename.rfind("/")), S_IRWXU, true))
+    // create directory structure if required, with last dir only readable by A-REX user
+    // try different caches until one succeeds
+    while (!DirCreate(filename.substr(0, filename.rfind("/")), S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH, true)) {
+      logger.msg(WARNING, "Failed to create cache directory for file %s: %s", filename, StrError(errno));
+      // remove the cache that failed from the cache list and try File() again
+      std::vector<struct CacheParameters>::iterator i = _caches.begin();
+      for (; i != _caches.end(); ++i) {
+        if (i->cache_path == _cache_map[url].cache_path) {
+          _caches.erase(i);
+          break;
+        }
+      }
+      if (_caches.empty()) {
+        logger.msg(ERROR, "Failed to create any cache directories for %s", url);
+        return false;
+      }
+      _cache_map.erase(url);
+      filename = File(url);
+    }
+    if (errno != EEXIST && chmod(filename.substr(0, filename.rfind("/")).c_str(), S_IRWXU) != 0) {
+      logger.msg(ERROR, "Failed to change permissions on %s: %s", filename.substr(0, filename.rfind("/")), StrError(errno));
       return false;
+    }
 
     // check if a lock file exists and whether it is still valid
     struct stat lockStat;
@@ -504,13 +512,19 @@ namespace Arc {
     }
 
     // create per-job hard link dir if necessary, making the final dir readable only by the job user
-    if (!DirCreate(hard_link_path, S_IRWXU, true)) {
-      logger.msg(ERROR, "Cannot create directory \"%s\" for per-job hard links", hard_link_path);
+    if (!DirCreate(hard_link_path, S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH, true)) {
+      logger.msg(ERROR, "Cannot create directory %s for per-job hard links", hard_link_path);
       return false;
     }
-    if (chown(hard_link_path.c_str(), _uid, _gid) != 0) {
-      logger.msg(ERROR, "Cannot change owner of %s: %s ", hard_link_path, StrError(errno));
-      return false;
+    if (errno != EEXIST) {
+      if (chmod(hard_link_path.c_str(), S_IRWXU) != 0) {
+        logger.msg(ERROR, "Cannot change permission of %s: %s ", hard_link_path, StrError(errno));
+        return false;
+      }
+      if (chown(hard_link_path.c_str(), _uid, _gid) != 0) {
+        logger.msg(ERROR, "Cannot change owner of %s: %s ", hard_link_path, StrError(errno));
+        return false;
+      }
     }
 
     std::string filename = dest_path.substr(dest_path.rfind("/") + 1);
@@ -658,7 +672,7 @@ namespace Arc {
 
       logger.msg(DEBUG, "Removing %s", job_dir);
       if (!DirDelete(job_dir)) {
-        logger.msg(ERROR, "Failed to remove cache per-job dir %s: %s", job_dir, StrError(errno));
+        logger.msg(WARNING, "Failed to remove cache per-job dir %s: %s", job_dir, StrError(errno));
         return false;
       }
     }
@@ -1025,7 +1039,11 @@ namespace Arc {
   
     struct statvfs info;
     if (statvfs(path.c_str(), &info) != 0) {
-      logger.msg(ERROR, "Error getting info from statvfs for the path: %s", path);
+      // if path does not exist info is undefined but the dir will be created in Start() anyway
+      if (errno != ENOENT) {
+        logger.msg(ERROR, "Error getting info from statvfs for the path %s: %s", path, StrError(errno));
+        return 0;
+      }
     }
     // return free space in GB
     float space = (float)(info.f_bfree * info.f_bsize) / (float)(1024 * 1024 * 1024);
