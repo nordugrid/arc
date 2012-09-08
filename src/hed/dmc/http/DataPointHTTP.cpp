@@ -296,49 +296,43 @@ using namespace Arc;
     for (const char *pos = html;;) {
       // Looking for tag
       const char *tag_start = strchr(pos, '<');
-      if (!tag_start)
-        break;              // No more tags
+      if (!tag_start) break;              // No more tags
       // Looking for end of tag
       const char *tag_end = strchr(tag_start + 1, '>');
-      if (!tag_end)
-        return false;            // Broken html?
+      if (!tag_end) return false;         // Broken html?
       // 'A' tag?
       if (strncasecmp(tag_start, "<A ", 3) == 0) {
         // Lookig for HREF
         const char *href = strstr(tag_start + 3, "href=");
-        if (!href)
-          href = strstr(tag_start + 3, "HREF=");
+        if (!href) href = strstr(tag_start + 3, "HREF=");
         if (href) {
           const char *url_start = href + 5;
           const char *url_end = NULL;
           if ((*url_start) == '"') {
             ++url_start;
             url_end = strchr(url_start, '"');
-            if ((!url_end) || (url_end > tag_end))
-              url_end = NULL;
+            if ((!url_end) || (url_end > tag_end)) url_end = NULL;
           }
           else if ((*url_start) == '\'') {
             ++url_start;
             url_end = strchr(url_start, '\'');
-            if ((!url_end) || (url_end > tag_end))
-              url_end = NULL;
+            if ((!url_end) || (url_end > tag_end)) url_end = NULL;
           }
           else {
             url_end = strchr(url_start, ' ');
-            if ((!url_end) || (url_end > tag_end))
-              url_end = tag_end;
+            if ((!url_end) || (url_end > tag_end)) url_end = tag_end;
           }
-          if (!url_end)
-            return false; // Broken HTML
+          if (!url_end) return false; // Broken HTML
           std::string url(url_start, url_end - url_start);
           url = uri_unencode(url);
+          if(url[0] == '/') {
+            url = base.ConnectionURL()+url;
+          }
           if (url.find("://") != std::string::npos) {
             URL u(url);
             std::string b = base.str();
-            if (b[b.size() - 1] != '/')
-              b += '/';
-            if (u.str().substr(0, b.size()) == b)
-              url = u.str().substr(b.size());
+            if (b[b.size() - 1] != '/') b += '/';
+            if (u.str().substr(0, b.size()) == b) url = u.str().substr(b.size());
           }
           if (url[0] != '?' && url[0] != '/') {
             if (url.find('/') == url.size() - 1) {
@@ -452,11 +446,14 @@ using namespace Arc;
     unsigned int length;
     unsigned long long int offset;
     std::string result;
+    unsigned long long int maxsize = (10*1024*1024); // 10MB seems reasonable limit
 
-    // TODO: limit size
     while (buffer.for_write() || !buffer.eof_read()) {
       if (buffer.for_write(handle, length, offset, true)) {
-        result.append(buffer[handle], length);
+        if(offset >= maxsize) { buffer.is_written(handle); break; };
+        if((offset+length) > maxsize) length = maxsize-offset;
+        if((offset+length) > result.size()) result.resize(offset+length,'\0');
+        result.replace(offset,length,buffer[handle], length);
         buffer.is_written(handle);
       }
     }
