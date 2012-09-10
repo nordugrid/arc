@@ -611,11 +611,13 @@ int main(int argc, char *argv[]) {
 
   // Set default, predefined or guessed credentials. Also check if they exist.
   Arc::UserConfig usercfg(conffile,
-        Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
+        Arc::initializeCredentialsType(use_nssdb ? Arc::initializeCredentialsType::NotTryCredentials 
+        : Arc::initializeCredentialsType::TryCredentials));
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization.");
     return EXIT_FAILURE;
   }
+
   // Check for needed credentials objects
   // Can proxy be used for? Could not find it in documentation.
   // Key and certificate not needed if only printing proxy information
