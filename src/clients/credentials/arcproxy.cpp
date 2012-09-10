@@ -610,9 +610,14 @@ int main(int argc, char *argv[]) {
   if(!ca_dir.empty())Arc::SetEnv("X509_CERT_DIR", ca_dir);
 
   // Set default, predefined or guessed credentials. Also check if they exist.
+#ifdef HAVE_NSS
   Arc::UserConfig usercfg(conffile,
         Arc::initializeCredentialsType(use_nssdb ? Arc::initializeCredentialsType::NotTryCredentials 
         : Arc::initializeCredentialsType::TryCredentials));
+#else
+  Arc::UserConfig usercfg(conffile,
+        Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
+#endif
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization.");
     return EXIT_FAILURE;
