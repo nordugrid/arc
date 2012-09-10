@@ -2666,7 +2666,7 @@ loser:
     CERTValidity* validity;
     CERTCertificate* cert = NULL;
     PRExplodedTime extime;
-    PRTime now, after;
+    PRTime now, start, end;
     int serialnum;
     CERTCertificateRequest* req = NULL;
     void* ext_handle; 
@@ -2674,7 +2674,7 @@ loser:
     SECOidTag tag_sigalg;
     SECOidTag tag_hashalg;
     int pathlen = -1;
-    char* policylang = "Any language"; //TODO
+    char* policylang = "Inherit all"; //TODO
     char* policy = NULL;//"test policy"; //TODO
     CERTCertExtension** exts;
     SECItem cert_der;
@@ -2700,9 +2700,12 @@ loser:
 
     now = PR_Now();
     PR_ExplodeTime(now, PR_GMTParameters, &extime);
+    extime.tm_min  -= 5;
+    start = PR_ImplodeTime(&extime);
+    extime.tm_min +=5;
     extime.tm_hour += duration;
-    after = PR_ImplodeTime (&extime);
-    validity = CERT_CreateValidity (now, after);
+    end = PR_ImplodeTime (&extime);
+    validity = CERT_CreateValidity(start, end);
 
     //Subject
     my_CERT_NameFromDERCert(&issuercert->derCert, &derSubject);
