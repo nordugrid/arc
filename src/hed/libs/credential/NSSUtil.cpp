@@ -2352,6 +2352,35 @@ const SEC_ASN1Template SEC_CertSubjectTemplate[] = {
     { 0 }
 };
 
+/*
+ * Find the issuerName in a DER encoded certificate
+ */
+const SEC_ASN1Template SEC_CertIssuerTemplate[] = {
+    { SEC_ASN1_SEQUENCE,
+          0, NULL, sizeof(SECItem) },
+    { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED |
+          SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
+          0, SEC_ASN1_SUB(SEC_SkipTemplate) },  /* version */
+    { SEC_ASN1_SKIP },          /* serial number */
+    { SEC_ASN1_SKIP },          /* signature algorithm */
+    { SEC_ASN1_ANY, 0, NULL },          /* issuer */
+    { SEC_ASN1_SKIP_REST },
+    { 0 }
+};
+
+/*
+ * Find the serialNumber in a DER encoded certificate
+ */
+const SEC_ASN1Template SEC_CertSerialNumberTemplate[] = {
+    { SEC_ASN1_SEQUENCE,
+          0, NULL, sizeof(SECItem) },
+    { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED |
+          SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
+          0, SEC_ASN1_SUB(SEC_SkipTemplate) },  /* version */
+    { SEC_ASN1_ANY, 0, NULL }, /* serial number */
+    { SEC_ASN1_SKIP_REST },
+    { 0 }
+};
 /* Extract the subject name from a DER certificate
    This is a copy from nss code, due to the "undefined reference to" compiling issue
  */
@@ -2471,6 +2500,94 @@ my_CERT_CreateCertificate(unsigned long serialNumber,
     return 0;
 }
 
+SECStatus
+my_CERT_IssuerNameFromDERCert(SECItem *derCert, SECItem *derName)
+{
+    int rv;
+    PRArenaPool *arena;
+    CERTSignedData sd;
+    void *tmpptr;
+
+    arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
+
+    if ( ! arena ) {
+        return(SECFailure);
+    }
+
+    PORT_Memset(&sd, 0, sizeof(CERTSignedData));
+    rv = SEC_QuickDERDecodeItem(arena, &sd, CERT_SignedDataTemplate, derCert);
+
+    if ( rv ) {
+        goto loser;
+    }
+
+    PORT_Memset(derName, 0, sizeof(SECItem));
+    rv = SEC_QuickDERDecodeItem(arena, derName, SEC_CertIssuerTemplate, &sd.data);
+
+    if ( rv ) {
+        goto loser;
+    }
+
+    tmpptr = derName->data;
+    derName->data = (unsigned char*)PORT_Alloc(derName->len);
+    if ( derName->data == NULL ) {
+        goto loser;
+    }
+
+    PORT_Memcpy(derName->data, tmpptr, derName->len);
+
+    PORT_FreeArena(arena, PR_FALSE);
+    return(SECSuccess);
+
+loser:
+    PORT_FreeArena(arena, PR_FALSE);
+    return(SECFailure);
+}
+
+SECStatus
+my_CERT_SerialNumberFromDERCert(SECItem *derCert, SECItem *derName)
+{
+    int rv;
+    PRArenaPool *arena;
+    CERTSignedData sd;
+    void *tmpptr;
+
+    arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
+
+    if ( ! arena ) {
+        return(SECFailure);
+    }
+
+    PORT_Memset(&sd, 0, sizeof(CERTSignedData));
+    rv = SEC_QuickDERDecodeItem(arena, &sd, CERT_SignedDataTemplate, derCert);
+
+    if ( rv ) {
+        goto loser;
+    }
+
+    PORT_Memset(derName, 0, sizeof(SECItem));
+    rv = SEC_QuickDERDecodeItem(arena, derName, SEC_CertSerialNumberTemplate, &sd.data);
+
+    if ( rv ) {
+        goto loser;
+    }
+
+    tmpptr = derName->data;
+    derName->data = (unsigned char*)PORT_Alloc(derName->len);
+    if ( derName->data == NULL ) {
+        goto loser;
+    }
+
+    PORT_Memcpy(derName->data, tmpptr, derName->len);
+
+    PORT_FreeArena(arena, PR_FALSE);
+    return(SECSuccess);
+
+loser:
+    PORT_FreeArena(arena, PR_FALSE);
+    return(SECFailure);
+}
+
   void nssListUserCertificatesInfo(std::list<certInfo>& certInfolist) {
     CERTCertList* list;
     CERTCertificate* find_cert = NULL;
@@ -2504,7 +2621,7 @@ my_CERT_CreateCertificate(unsigned long serialNumber,
 
       std::string issuer_dn;
       SECItem derIssuer;
-      rv = CERT_IssuerNameFromDERCert(&cert->derCert, &derIssuer);
+      rv = my_CERT_IssuerNameFromDERCert(&cert->derCert, &derIssuer);
       if(rv == SECSuccess) {
         char* issuerName = CERT_DerNameToAscii(&derIssuer);
         issuer_dn = issuerName;
@@ -2515,7 +2632,7 @@ my_CERT_CreateCertificate(unsigned long serialNumber,
       cert_info.serial = 0;
       std::string serial;
       SECItem derSerial;
-      rv = CERT_SerialNumberFromDERCert (&cert->derCert, &derSerial);
+      rv = my_CERT_SerialNumberFromDERCert (&cert->derCert, &derSerial);
       if(rv == SECSuccess) {
         SECItem decodedValue;
         decodedValue.data = NULL;
