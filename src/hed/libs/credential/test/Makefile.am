@@ -9,7 +9,7 @@ CredentialTest_CXXFLAGS = -I$(top_srcdir)/include \
 CredentialTest_LDADD = \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) -lcrypto
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 VOMSUtilTest_SOURCES = $(top_srcdir)/src/Test.cpp VOMSUtilTest.cpp
 VOMSUtilTest_CXXFLAGS = -I$(top_srcdir)/include \
