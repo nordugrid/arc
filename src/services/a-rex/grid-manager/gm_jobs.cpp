@@ -24,7 +24,7 @@
 #include "jobs/job_config.h"
 #include "log/job_log.h"
 
-void get_arex_xml(Arc::XMLNode& arex,GMEnvironment& env) {
+static void get_arex_xml(Arc::XMLNode& arex,GMEnvironment& env) {
   
   Arc::Config cfg(env.nordugrid_config_loc().c_str());
   if (!cfg) return;
@@ -52,7 +52,7 @@ void get_arex_xml(Arc::XMLNode& arex,GMEnvironment& env) {
 }
 
 /** Fill maps with shares taken from data staging states log */
-void get_new_data_staging_shares(const std::string& control_dir,
+static void get_new_data_staging_shares(const std::string& control_dir,
                                  const GMEnvironment& env,
                                  std::map<std::string, int>& share_preparing,
                                  std::map<std::string, int>& share_preparing_pending,
@@ -100,6 +100,17 @@ class counters_t {
 };
 
 const unsigned int counters_t::jobs_pending = 0;
+
+static bool match_list(const std::string& arg, std::list<std::string>& args, bool erase) {
+  for(std::list<std::string>::const_iterator a = args.begin();
+                                             a != args.end(); ++a) {
+    if(*a == arg) {
+      //if(erase) args.erase(a);
+      return true;
+    }
+  }
+  return false;
+}
 
 /**
  * Print info to stdout on users' jobs
@@ -159,6 +170,31 @@ int main(int argc, char* argv[]) {
   options.AddOption('w', "showservice",
 		    istring("print state of the service"),
 		    show_service);
+
+  std::list<std::string> filter_users;
+  options.AddOption('f', "filteruser",
+		    istring("show only jobs of user(s) with specified DN(s)"),
+		    istring("dn"), filter_users);
+
+  std::list<std::string> cancel_jobs;
+  options.AddOption('k', "killjob",
+                    istring("request to cancel job(s) with specified id(s)"),
+                    istring("id"), cancel_jobs);
+
+  std::list<std::string> cancel_users;
+  options.AddOption('K', "killuser",
+                    istring("request to cancel jobs belonging to user(s) with specified DN(s)"),
+                    istring("dn"), cancel_users);
+
+  std::list<std::string> clean_jobs;
+  options.AddOption('r', "remjob",
+                    istring("request to clean job(s) with specified id(s)"),
+                    istring("id"), clean_jobs);
+
+  std::list<std::string> clean_users;
+  options.AddOption('R', "remuser",
+                    istring("request to clean jobs belonging to user(s) with specified DN(s)"),
+                    istring("dn"), clean_users);
 
   std::list<std::string> params = options.Parse(argc, argv);
 
@@ -236,7 +272,9 @@ int main(int argc, char* argv[]) {
     (*jobuser)=jobs; 
   }
 
-  if((!notshow_jobs) || (!notshow_states) || (show_share)) {
+  if((!notshow_jobs) || (!notshow_states) || (show_share) ||
+     (cancel_users.size() > 0) || (clean_users.size() > 0) ||
+     (cancel_jobs.size() > 0) || (clean_jobs.size() > 0)) {
     std::cout << "Looking for current jobs" << std::endl;
   }
 
@@ -256,8 +294,12 @@ int main(int argc, char* argv[]) {
   std::map<std::string, int> share_finishing_pending;
 
   unsigned int jobs_total = 0;
+  std::list<std::pair<JobDescription*,JobUser*> > cancel_jobs_list;
+  std::list<std::pair<JobDescription*,JobUser*> > clean_jobs_list;
   for (JobUsers::iterator user = users.begin(); user != users.end(); ++user) {
-    if((!notshow_jobs) || (!notshow_states) || (show_share)) {
+    if((!notshow_jobs) || (!notshow_states) || (show_share) ||
+       (cancel_users.size() > 0) || (clean_users.size() > 0) ||
+       (cancel_jobs.size() > 0) || (clean_jobs.size() > 0)) {
       if (show_share && jobs_cfg.GetNewDataStaging()) {
         get_new_data_staging_shares(user->ControlDir(), env,
                                     share_preparing, share_preparing_pending,
@@ -265,22 +307,22 @@ int main(int argc, char* argv[]) {
       }
       user->get_jobs()->ScanAllJobs();
       for (JobsList::iterator i=user->get_jobs()->begin(); i!=user->get_jobs()->end(); ++i) {
-        if((!show_share) && (!notshow_jobs)) std::cout << "Job: "<<i->get_id();
-        jobs_total++;
+        // Collecting information
         bool pending;
         job_state_t new_state = job_state_read_file(i->get_id(), *user, pending);
+        if (new_state == JOB_STATE_UNDEFINED) {
+          std::cout<<"Job: "<<i->get_id()<<" : ERROR : Unrecognizable state"<<std::endl;
+          continue;
+        }
         Arc::Time job_time(job_state_time(i->get_id(), *user));
+        jobs_total++;
         counters[new_state]++;
         if (pending) counters_pending[new_state]++;
-        if (new_state == JOB_STATE_UNDEFINED) {
-          std::cout<<" : ERROR : Unrecognizable state"<<std::endl;
+        if (!i->GetLocalDescription(*user)) {
+          std::cout<<"Job: "<<i->get_id()<<" : ERROR : No local information."<<std::endl;
           continue;
         }
-        JobLocalDescription job_desc;
-        if (!job_local_read_file(i->get_id(), *user, job_desc)) {
-          std::cout<<" : ERROR : No local information."<<std::endl;
-          continue;
-        }
+        JobLocalDescription& job_desc = *(i->get_local());
         if (show_share && !jobs_cfg.GetNewDataStaging()) {
           if(new_state == JOB_STATE_PREPARING && !pending) share_preparing[job_desc.transfershare]++;
           else if(new_state == JOB_STATE_ACCEPTED && pending) share_preparing_pending[job_desc.transfershare]++;
@@ -290,6 +332,21 @@ int main(int argc, char* argv[]) {
             if (job_lrms_mark_check(jobid,*user)) share_finishing_pending[job_desc.transfershare]++;
           }
         }
+        if(match_list(job_desc.DN,cancel_users,false)) {
+          cancel_jobs_list.push_back(std::pair<JobDescription*,JobUser*>(&(*i),&(*user)));
+        }
+        if(match_list(i->get_id(),cancel_jobs,false)) {
+          cancel_jobs_list.push_back(std::pair<JobDescription*,JobUser*>(&(*i),&(*user)));
+        }
+        if(match_list(job_desc.DN,clean_users,false)) {
+          clean_jobs_list.push_back(std::pair<JobDescription*,JobUser*>(&(*i),&(*user)));
+        }
+        if(match_list(i->get_id(),clean_jobs,false)) {
+          clean_jobs_list.push_back(std::pair<JobDescription*,JobUser*>(&(*i),&(*user)));
+        }
+        // Printing information
+        if((filter_users.size() > 0) && (!match_list(job_desc.DN,filter_users,false))) continue;
+        if((!show_share) && (!notshow_jobs)) std::cout << "Job: "<<i->get_id();
         if(!notshow_jobs) {
           if (!long_list) {
             std::cout<<" : "<<states_all[new_state].name<<" : "<<job_desc.DN<<" : "<<job_time.str()<<std::endl;
@@ -337,41 +394,41 @@ int main(int argc, char* argv[]) {
   }
   
   if(!notshow_states) {
-  std::cout<<"Jobs total: "<<jobs_total<<std::endl;
+    std::cout<<"Jobs total: "<<jobs_total<<std::endl;
 
-  for (int i=0; i<JOB_STATE_UNDEFINED; i++) {
-    std::cout<<" "<<states_all[i].name<<": "<<counters[i]<<" ("<<counters_pending[i]<<")"<<std::endl;
-  }
-  int max;
-  int max_running;
-  int max_total;
-  int max_processing;
-  int max_processing_emergency;
-  int max_down;
-  int max_per_dn;
+    for (int i=0; i<JOB_STATE_UNDEFINED; i++) {
+      std::cout<<" "<<states_all[i].name<<": "<<counters[i]<<" ("<<counters_pending[i]<<")"<<std::endl;
+    }
+    int max;
+    int max_running;
+    int max_total;
+    int max_processing;
+    int max_processing_emergency;
+    int max_down;
+    int max_per_dn;
 
-  env.jobs_cfg().GetMaxJobs(max, max_running, max_per_dn, max_total);
-  env.jobs_cfg().GetMaxJobsLoad(max_processing, max_processing_emergency, max_down);
+    env.jobs_cfg().GetMaxJobs(max, max_running, max_per_dn, max_total);
+    env.jobs_cfg().GetMaxJobsLoad(max_processing, max_processing_emergency, max_down);
 
-//  #undef jobs_pending
-//  #define jobs_pending 0
-//  #undef jobs_num
-//  #define jobs_num counters
-  #undef jcfg
-  #define jcfg counters
-  int accepted = JOB_NUM_ACCEPTED;
-  int running = JOB_NUM_RUNNING;
-//  #undef jobs_num
-//  #define jobs_num counters_pending
-  #undef jcfg
-  #define jcfg counters_pending
-  running-=JOB_NUM_RUNNING;
-  #undef jcfg
+//    #undef jobs_pending
+//    #define jobs_pending 0
+//    #undef jobs_num
+//    #define jobs_num counters
+    #undef jcfg
+    #define jcfg counters
+    int accepted = JOB_NUM_ACCEPTED;
+    int running = JOB_NUM_RUNNING;
+//    #undef jobs_num
+//    #define jobs_num counters_pending
+    #undef jcfg
+    #define jcfg counters_pending
+    running-=JOB_NUM_RUNNING;
+    #undef jcfg
   
-  std::cout<<" Accepted: "<<accepted<<"/"<<max<<std::endl;
-  std::cout<<" Running: "<<running<<"/"<<max_running<<std::endl;
-  std::cout<<" Total: "<<jobs_total<<"/"<<max_total<<std::endl;
-  std::cout<<" Processing: "<<
+    std::cout<<" Accepted: "<<accepted<<"/"<<max<<std::endl;
+    std::cout<<" Running: "<<running<<"/"<<max_running<<std::endl;
+    std::cout<<" Total: "<<jobs_total<<"/"<<max_total<<std::endl;
+    std::cout<<" Processing: "<<
     counters[JOB_STATE_PREPARING]-counters_pending[JOB_STATE_PREPARING]<<"+"<<
     counters[JOB_STATE_FINISHING]-counters_pending[JOB_STATE_FINISHING]<<"/"<<
     max_processing<<"+"<<max_processing_emergency<<std::endl;
@@ -380,6 +437,37 @@ int main(int argc, char* argv[]) {
     std::cout<<" Service state: "<<(service_alive?"alive":"not detected")<<std::endl;
   }
   
+  if(cancel_jobs_list.size() > 0) {
+    for(std::list<std::pair<JobDescription*,JobUser*> >::iterator job = cancel_jobs_list.begin();
+                            job != cancel_jobs_list.end(); ++job) {
+      if(!job_cancel_mark_put(*(job->first),*(job->second))) {
+        std::cout<<"Job: "<<job->first->get_id()<<" : ERROR : Failed to put cancel mark"<<std::endl;
+      } else {
+        std::cout<<"Job: "<<job->first->get_id()<<" : Cancel request put"<<std::endl;
+      }
+    }
+  }
+  if(clean_jobs_list.size() > 0) {
+    for(std::list<std::pair<JobDescription*,JobUser*> >::iterator job = clean_jobs_list.begin();
+                            job != clean_jobs_list.end(); ++job) {
+      bool pending;
+      job_state_t new_state = job_state_read_file(job->first->get_id(), *(job->second), pending);
+      if((new_state == JOB_STATE_FINISHED) || (new_state == JOB_STATE_DELETED)) {
+        if(!job_clean_final(*(job->first),*(job->second))) {
+          std::cout<<"Job: "<<job->first->get_id()<<" : ERROR : Failed to clean"<<std::endl;
+        } else {
+          std::cout<<"Job: "<<job->first->get_id()<<" : Cleaned"<<std::endl;
+        }
+      } else {
+        if(!job_clean_mark_put(*(job->first),*(job->second))) {
+          std::cout<<"Job: "<<job->first->get_id()<<" : ERROR : Failed to put clean mark"<<std::endl;
+        } else {
+          std::cout<<"Job: "<<job->first->get_id()<<" : Clean request put"<<std::endl;
+        }
+      }
+    }
+  }
+
   for (JobUsers::iterator user = users.begin(); user != users.end(); ++user) {
     JobsList* jobs = user->get_jobs();
     if(jobs) delete jobs;
