@@ -493,9 +493,11 @@ sub ComputingEndpoint {
 sub ComputingEndpoints {
     LdifPrinter::Entries(@_, 'GLUE2Endpoint', 'ID', \&ComputingEndpointAttributes, sub {
         my ($self, $data) = @_;
-        $self->beginGroup("ComputingActivities");
-        $self->ComputingActivities($data->{ComputingActivities});
-        $self->end();
+        if ($data->{ComputingActivities}) {
+            $self->beginGroup("ComputingActivities");
+            $self->ComputingActivities($data->{ComputingActivities});
+            $self->end();
+        }
         $self->AccessPolicies($data->{AccessPolicies});
     });
 }
