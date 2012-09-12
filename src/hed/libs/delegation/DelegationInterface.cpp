@@ -26,7 +26,7 @@ namespace Arc {
 #define DELEGATION_NAMESPACE "http://www.nordugrid.org/schemas/delegation"
 #define GDS10_NAMESPACE "http://www.gridsite.org/ns/delegation.wsdl"
 #define GDS20_NAMESPACE "http://www.gridsite.org/namespaces/delegation-2"
-#define EMIES_NAMESPACE "http://www.eu-emi.eu/es/2010/12/delegation"
+#define EMIES_NAMESPACE "http://www.eu-emi.eu/es/2010/12/delegation/types"
 #define EMIES_TYPES_NAMESPACE "http://www.eu-emi.eu/es/2010/12/types"
 
 #define GLOBUS_LIMITED_PROXY_OID "1.3.6.1.4.1.3536.1.1.1.9"
@@ -1147,7 +1147,7 @@ bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAt
     token.NewChild("deleg:Credential")=delegation;
     PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
     if(!resp_soap) return false;
-    if(!(*resp_soap)["PutDelegationResponse"]["SUCCESS"]) {
+    if((std::string)((*resp_soap)["PutDelegationResponse"]) != "SUCCESS") {
       delete resp_soap;
       return false;
     };
@@ -1209,6 +1209,7 @@ class DelegationContainerSOAP::Consumer {
   ex.Namespaces(ns); ex.NewChild("msg") = (msg); \
 }
 
+// InternalServiceDelegationFault
 #define EMIESFAULT(out,msg) { \
   for(XMLNode old = out.Child();(bool)old;old = out.Child()) old.Destroy(); \
   XMLNode r = SOAPFault((out),SOAPFault::Receiver,"").Detail(true); \
@@ -1220,6 +1221,7 @@ class DelegationContainerSOAP::Consumer {
   /*ex.NewChild("estypes:FailureCode") = "0";*/ \
 }
 
+// UnknownDelegationIDFault
 #define EMIESIDFAULT(out,msg) { \
   XMLNode r = SOAPFault((out),SOAPFault::Receiver,"").Detail(true); \
   XMLNode ex = r.NewChild("UnknownDelegationIDFault"); \
@@ -1229,6 +1231,9 @@ class DelegationContainerSOAP::Consumer {
   /*ex.NewChild("Description") = "";*/ \
   /*ex.NewChild("FailureCode") = "0";*/ \
 }
+
+// InternalBaseFault
+// AccessControlFault
 
 DelegationContainerSOAP::DelegationContainerSOAP(void) {
   max_size_=0;         // unlimited size of container
@@ -1684,13 +1689,13 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       std::string credentials;
       if((!QueryConsumer(c,credentials)) || credentials.empty()) {
         ReleaseConsumer(c);
-        EMIESFAULT(out,"Delegated credentials missing");
+        GDS20FAULT(out,"Delegated credentials missing");
         return true;
       };
       ReleaseConsumer(c);
       cred_info_t info;
       if(!get_cred_info(credentials,info)) {
-        EMIESFAULT(out,"Delegated credentials missing");
+        GDS20FAULT(out,"Delegated credentials missing");
         return true;
       };
       if(info.valid_till == Time(Time::UNDEFINED)) info.valid_till = Time();
@@ -1713,6 +1718,17 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
     NS ns("",EMIES_NAMESPACE);
     ns["estypes"] = EMIES_TYPES_NAMESPACE;
     if(op_name == "InitDelegation") {
+      // InitDelegation
+      //   CredentialType [RFC3820]
+      //   RenewalID 0-
+      //   InitDelegationLifetime 0-
+      // InitDelegationResponse
+      //   DelegationID
+      //   CSR
+      // InternalServiceDelegationFault
+      // AccessControlFault
+      // InternalBaseFault
+      // Need  UnknownDelegationIDFault for reporting bad RenewalID
       Arc::XMLNode r = out.NewChild("InitDelegationResponse");
       r.Namespaces(ns);
       if((std::string)op["CredentialType"] != "RFC3820") {
@@ -1759,12 +1775,15 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       r.NewChild("CSR") = x509_request;
       return true;
     } else if(op_name == "PutDelegation") {
+      // PutDelegation
+      //   DelegationID
+      //   Credential
+      // PutDelegationResponse [SUCCESS]
+      // UnknownDelegationIDFault
+      // AccessControlFault
+      // InternalBaseFault
       Arc::XMLNode r = out.NewChild("PutDelegationResponse");
       r.Namespaces(ns);
-      //if((std::string)op["CredentialType"] != "RFC3820") {
-      //  EMIESFAULT(out,"Unsupported credential type requested");
-      //  return true;
-      //}
       std::string id = op["DelegationId"];
       std::string cred = op["Credential"];
       if(id.empty()) {
@@ -1793,9 +1812,18 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       };
       ReleaseConsumer(c);
       credentials = cred;
-      r.NewChild("SUCCESS");
+      r = "SUCCESS";
       return true;
     } else if(op_name == "GetDelegationInfo") {
+      // GetDelegationInfo
+      //   DelegationID
+      // GetDelegationInfoResponse
+      //   Lifetime
+      //   Issuer 0-
+      //   Subject 0-
+      // UnknownDelegationIDFault
+      // AccessControlFault
+      // InternalBaseFault
       Arc::XMLNode r = out.NewChild("GetDelegationInfoResponse");
       r.Namespaces(ns);
       std::string id = op["DelegationID"];
