@@ -70,68 +70,121 @@ namespace ARex {
     return state;
   }
 
+  //   primary:
+  //      accepted|preprocessing|
+  //      processing|processing-accepting|processing-queued|processing-running|
+  //      postprocessing|terminal 
+  //   attribute:
+  //      validating|
+  //      server-paused|
+  //      client-paused|
+  //      client-stagein-possible|
+  //      client-stageout-possible|
+  //      provisioning|
+  //      deprovisioning|
+  //      server-stagein|
+  //      server-stageout|
+  //      batch-suspend|
+  //      app-running|
+  //      preprocessing-cancel|
+  //      processing-cancel|
+  //      postprocessing-cancel|
+  //      validation-failure|
+  //      preprocessing-failure|
+  //      processing-failure|
+  //      postprocessing-failure|
+  //      app-failure|
+  //      expired 
   void convertActivityStatusES(const std::string& gm_state,std::string& primary_state,std::list<std::string>& state_attributes,bool failed,bool pending,const std::string& failedstate,const std::string& failedcause) {
     bool failed_set = false;
     bool canceled = (failedcause == "client");
     primary_state = "";
     if(gm_state == "ACCEPTED") {
-      primary_state="ACCEPTED";
-      state_attributes.push_back("CLIENT-STAGEIN-POSSIBLE");
+      primary_state="accepted";
+      state_attributes.push_back("client-stagein-possible");
     } else if(gm_state == "PREPARING") {
-      primary_state="PREPROCESSING";
-      state_attributes.push_back("CLIENT-STAGEIN-POSSIBLE");
-      state_attributes.push_back("SERVER-STAGEIN");
+      primary_state="preprocessing";
+      state_attributes.push_back("client-stagein-possible");
+      state_attributes.push_back("server-stagein");
     } else if(gm_state == "SUBMIT") {
-      primary_state="PROCESSING-ACCEPTING";
+      primary_state="processing-accepting";
     } else if(gm_state == "INLRMS") {
-      //primary_state="PROCESSING-QUEUED"; TODO
-      primary_state="PROCESSING-RUNNING";
-      state_attributes.push_back("APP-RUNNING"); // TODO
-      //state_attributes.push_back("BATCH-SUSPEND"); TODO
+      //primary_state="processing-queued"; TODO
+      primary_state="processing-running";
+      state_attributes.push_back("app-running"); // TODO
+      //state_attributes.push_back("batch-suspend"); TODO
     } else if(gm_state == "FINISHING") {
-      primary_state="POSTPROCESSING";
-      state_attributes.push_back("CLIENT-STAGEOUT-POSSIBLE");
-      state_attributes.push_back("SERVER-STAGEOUT");
+      primary_state="postprocessing";
+      state_attributes.push_back("client-stageout-possible");
+      state_attributes.push_back("server-stageout");
     } else if(gm_state == "FINISHED") {
-      primary_state="TERMINAL";
-      state_attributes.push_back("CLIENT-STAGEOUT-POSSIBLE");
+      primary_state="terminal";
+      state_attributes.push_back("client-stageout-possible");
     } else if(gm_state == "DELETED") {
-      primary_state="TERMINAL";
-      state_attributes.push_back("EXPIRED");
+      primary_state="terminal";
+      state_attributes.push_back("expired");
     } else if(gm_state == "CANCELING") {
-      primary_state="PROCESSING";
+      primary_state="processing";
     };
     if(failedstate == "ACCEPTED") {
-      state_attributes.push_back("VALIDATION-FAILURE");
+      state_attributes.push_back("validation-failure");
       failed_set = true;
     } else if(failedstate == "PREPARING") {
-      state_attributes.push_back(canceled?"PREPROCESSING-CANCEL":"PREPROCESSING-FAILURE");
+      state_attributes.push_back(canceled?"preprocessing-cancel":"preprocessing-failure");
       failed_set = true;
     } else if(failedstate == "SUBMIT") {
-      state_attributes.push_back(canceled?"PROCESSING-CANCEL":"PROCESSING-FAILURE");
+      state_attributes.push_back(canceled?"processing-cancel":"processing-failure");
       failed_set = true;
     } else if(failedstate == "INLRMS") {
-      state_attributes.push_back(canceled?"PROCESSING-CANCEL":"PROCESSING-FAILURE");
+      state_attributes.push_back(canceled?"processing-cancel":"processing-failure");
       // Or maybe APP-FAILURE
       failed_set = true;
     } else if(failedstate == "FINISHING") {
-      state_attributes.push_back(canceled?"POSTPROCESSING-CANCEL":"POSTPROCESSING-FAILURE");
+      state_attributes.push_back(canceled?"postprocessing-cancel":"postprocessing-failure");
       failed_set = true;
     } else if(failedstate == "FINISHED") {
     } else if(failedstate == "DELETED") {
     } else if(failedstate == "CANCELING") {
     };
-    if(primary_state == "TERMINAL") {
+    if(primary_state == "terminal") {
       if(failed && !failed_set) {
         // Must put something to mark job failed
-        state_attributes.push_back("APP-FAILURE");
+        state_attributes.push_back("app-failure");
       };
     };
     if(!primary_state.empty()) {
-      if(pending) state_attributes.push_back("SERVER-PAUSED");
+      if(pending) state_attributes.push_back("server-paused");
     };
   }
 
+  // ActivityStatus
+  //   Status
+  //     [accepted|preprocessing|
+  //      processing|processing-accepting|processing-queued|processing-running|
+  //      postprocessing|terminal]
+  //   Attribute 0- 
+  //     [validating|
+  //      server-paused|
+  //      client-paused|
+  //      client-stagein-possible|
+  //      client-stageout-possible|
+  //      provisioning|
+  //      deprovisioning|
+  //      server-stagein|
+  //      server-stageout|
+  //      batch-suspend|
+  //      app-running|
+  //      preprocessing-cancel|
+  //      processing-cancel|
+  //      postprocessing-cancel|
+  //      validation-failure|
+  //      preprocessing-failure|
+  //      processing-failure|
+  //      postprocessing-failure|
+  //      app-failure|
+  //      expired]
+  //   Timestamp (dateTime)
+  //   Description 0-1
   Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,const std::string& gm_state,Arc::XMLNode glue_xml,bool failed,bool pending,const std::string& failedstate,const std::string& failedcause) {
     std::string primary_state;
     std::list<std::string> state_attributes;

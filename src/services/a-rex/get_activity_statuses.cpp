@@ -125,30 +125,55 @@ static bool match_list(const std::string& item1,
 
 #define MAX_ACTIVITIES (10000)
 
+static bool match(const std::pair<std::string,std::list<std::string> >& status,const std::string& es_status, const std::list<std::string>& es_attributes) {
+  // Specs do not define how exactly to match status. Assuming
+  // exact match is needed.
+  // TODO: algorithm below will not work in case of duplicate attributes.
+  if(status.first != es_status) return false;
+  if(status.second.size() != es_attributes.size()) return false;
+  for(std::list<std::string>::const_iterator a = status.second.begin();
+                       a != status.second.end();++a) {
+    std::list<std::string>::const_iterator es_a = es_attributes.begin();
+    for(;es_a != es_attributes.end();++es_a) {
+      if((*a) == (*es_a)) break;
+    };
+    if(es_a == es_attributes.end()) return false;
+  };
+  return true;
+}
+
+static bool match(const std::list< std::pair<std::string,std::list<std::string> > >& statuses, const std::string& es_status, const std::list<std::string>& es_attributes) {
+  for(std::list< std::pair<std::string,std::list<std::string> > >::const_iterator s =
+                  statuses.begin();s != statuses.end();++s) {
+    if(match(*s,es_status,es_attributes)) return true;
+  };
+  return false;
+}
+
 Arc::MCC_Status ARexService::ESListActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
  /*
-   ListActivitiesRequest
+   ListActivities
      FromDate (xsd:dateTime) 0-1
      ToDate (xsd:dateTime) 0-1
      Limit 0-1
-     Status 0-
-     StatusAttribute 0-
+     ActivityStatus 0-
+       Status
+       Attribute 0-
 
    ListActivitiesResponse
      ActivityID 0-
      truncated (attribute) - false
 
    InvalidParameterFault
-   AccessControlFault
-   InternalBaseFault
+   estypes:AccessControlFault
+   estypes:InternalBaseFault
   */
   Arc::Time from((time_t)(-1));
   Arc::Time to((time_t)(-1));
   Arc::XMLNode node;
   unsigned int limit = MAX_ACTIVITIES;
   unsigned int offset = 0;
-  std::list<std::string> statuses;
-  std::list<std::string> attributes;
+  std::list< std::pair<std::string,std::list<std::string> > > statuses;
   bool filter_status = false;
   bool filter_time = false;
 
@@ -182,31 +207,31 @@ Arc::MCC_Status ARexService::ESListActivities(ARexGMConfig& config,Arc::XMLNode 
     };
     if(limit > MAX_ACTIVITIES) limit = MAX_ACTIVITIES;
   };
-  for(node=in["Status"];(bool)node;++node) statuses.push_back((std::string)node);
-  for(node=in["StatusAttribute"];(bool)node;++node) attributes.push_back((std::string)node);
-  filter_status = (!statuses.empty()) || (!attributes.empty());
+  for(node=in["ActivityStatus"];(bool)node;++node) {
+    std::pair<std::string,std::list<std::string> > status;
+    status.first = (std::string)(node["Status"]);
+    if(status.first.empty()) {
+      ESInvalidParameterFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
+                                 "Status in ActivityStatus is missing");
+      out.Destroy();
+      return Arc::MCC_Status(Arc::STATUS_OK);
+    };
+    for(Arc::XMLNode anode=node["Attribute"];(bool)anode;++anode) {
+      status.second.push_back((std::string)anode);
+    };
+    statuses.push_back(status);
+    filter_status = true;
+  };
   std::list<std::string> job_ids = ARexJob::Jobs(config,logger);
   unsigned int count = 0;
   for(std::list<std::string>::iterator id = job_ids.begin();id!=job_ids.end();++id) {
+    if(count >= limit) {
+      out.NewAttribute("truncated") = "true";
+      break;
+    };
     if(filter_time || filter_status) {
       ARexJob job(*id,config,logger_);
       if(!job) continue;
-      if(filter_status) {
-        bool job_pending = false;
-        std::string gm_state = job.State(job_pending);
-        bool job_failed = job.Failed();
-        std::string failed_cause;
-        std::string failed_state = job.FailedState(failed_cause);
-        std::string es_status;
-        std::list<std::string> es_attributes;
-        convertActivityStatusES(gm_state,es_status,es_attributes,job_failed,job_pending,failed_state,failed_cause);
-       if(!statuses.empty()) {
-          if(!match_list(es_status,statuses)) continue;
-        };
-        if(!attributes.empty()) {
-          if(!match_lists(es_attributes,attributes)) continue;
-        };
-      };
       if(filter_time) {
         Arc::Time t = job.Created();
         if(from.GetTime() != (time_t)(-1)) {
@@ -216,10 +241,17 @@ Arc::MCC_Status ARexService::ESListActivities(ARexGMConfig& config,Arc::XMLNode 
           if(to < t) continue;
         };
       };
-    };
-    if(count >= limit) {
-      out.NewAttribute("truncated") = "true";
-      break;
+      if(filter_status) {
+        bool job_pending = false;
+        std::string gm_state = job.State(job_pending);
+        bool job_failed = job.Failed();
+        std::string failed_cause;
+        std::string failed_state = job.FailedState(failed_cause);
+        std::string es_status;
+        std::list<std::string> es_attributes;
+        convertActivityStatusES(gm_state,es_status,es_attributes,job_failed,job_pending,failed_state,failed_cause);
+        if(!match(statuses,es_status,es_attributes)) continue;
+      };
     };
     out.NewChild("estypes:ActivityID") = *id;
     ++count;
@@ -230,22 +262,29 @@ Arc::MCC_Status ARexService::ESListActivities(ARexGMConfig& config,Arc::XMLNode 
 Arc::MCC_Status ARexService::ESGetActivityStatus(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
   /*
     GetActivityStatus
-      ActivityID 1-
+      estypes:ActivityID 1-
 
     GetActivityStatusResponse
       ActivityStatusItem 1-
-        ActivityID
+        estypes:ActivityID
         .
-          ActivityStatus
+          estypes:ActivityStatus
             Status
             Attribute 0-
-            Timestamp
+            Timestamp (dateTime)
             Description 0-1
-          InternalBaseFault
+          estypes:InternalBaseFault
+          estypes:AccessControlFault
+          UnknownActivityIDFault
+          UnableToRetrieveStatusFault
+          OperationNotPossibleFault
 
-    VectorLimitExceededFault
-    AccessControlFault
-    InternalBaseFault
+    UnknownActivityIDFault - only in ActivityManagement
+    UnableToRetrieveStatusFault - only in ActivityManagement
+    OperationNotPossibleFault - only in ActivityManagement
+    estypes:VectorLimitExceededFault
+    estypes:AccessControlFault
+    estypes:InternalBaseFault
    */
   Arc::XMLNode id = in["ActivityID"];
   unsigned int n = 0;
@@ -274,7 +313,7 @@ Arc::MCC_Status ARexService::ESGetActivityStatus(ARexGMConfig& config,Arc::XMLNo
       std::string failed_cause;
       std::string failed_state = job.FailedState(failed_cause);
       Arc::XMLNode status = addActivityStatusES(item,gm_state,Arc::XMLNode(),job_failed,job_pending,failed_state,failed_cause);
-      status.NewChild("estypes:Timestamp") = job.Modified();
+      status.NewChild("estypes:Timestamp") = job.Modified(); // no definition of meaning in specs
       //status.NewChild("estypes:Description);  TODO
     };
   };
@@ -284,18 +323,37 @@ Arc::MCC_Status ARexService::ESGetActivityStatus(ARexGMConfig& config,Arc::XMLNo
 Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
   /*
     GetActivityInfo
-      ActivityID 1-
+      estypes:ActivityID 1-
       AttributeName (xsd:QName) 0-
 
     GetActivityInfoResponse
       ActivityInfoItem 1-
         ActivityID
         .
-          ActivityInfo (glue:ComputingActivity_t)
-          InternalBaseFault
+          ActivityInfoDocument (glue:ComputingActivity_t)
+            StageInDirectory
+            StageOutDirectory
+            SessionDirectory
+            ComputingActivityHistory 0-1
+              estypes:ActivityStatus 0-  - another ActivityStatus defined in ActivityInfo
+              Operation 0-
+                RequestedOperation
+                Timestamp
+                Success
+          AttributeInfoItem 1-
+            AttributeName
+            AttributeValue
+          estypes:InternalBaseFault
+          estypes:AccessControlFault
+          UnknownActivityIDFault
+          UnknownAttributeFault
 
-    VectorLimitExceededFault
-    UnknownGlue2ActivityAttributeFault
+    estypes:VectorLimitExceededFault
+    UnknownAttributeFault
+    UnknownActivityIDFault
+    estypes:AccessControlFault
+    estypes:InternalBaseFault
+    missing OperationNotPossibleFault, why!?
    */
   Arc::XMLNode id = in["ActivityID"];
   unsigned int n = 0;
@@ -306,6 +364,12 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
       out.Destroy();
       return Arc::MCC_Status(Arc::STATUS_OK);
     };
+  };
+  if(in["AttributeName"]) {
+    ESInternalBaseFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
+                        "Selection by AttributeName is not implemented yet");
+    out.Destroy();
+    return Arc::MCC_Status(Arc::STATUS_OK);
   };
   id = in["ActivityID"];
   for(;(bool)id;++id) {
@@ -323,19 +387,20 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
       if(job_xml_read_file(jobid,*config.User(),glue_s)) {
         Arc::XMLNode glue_xml(glue_s);
         // TODO: if xml information is not ready yet create something minimal
-        // TODO: add session directory in proper way
         // TODO: filter by AttributeName
         if((bool)glue_xml) {
           std::string glue2_namespace = glue_xml.Namespace();
-          (info = item.NewChild(glue_xml)).Name("estypes:ActivityInfo");
+          (info = item.NewChild(glue_xml)).Name("esainfo:ActivityInfoDocument");
           info.Namespaces(ns_);
           std::string glue2_prefix = info.NamespacePrefix(glue2_namespace.c_str());
+          // Collecting job state
           bool job_pending = false;
           std::string gm_state = job.State(job_pending);
           bool job_failed = job.Failed();
           std::string failed_cause;
           std::string failed_state = job.FailedState(failed_cause);
           // Adding EMI ES state along with Glue state.
+          // TODO: check if not already in infosys generated xml
           Arc::XMLNode status = info.NewChild(glue2_prefix+":State",0,false);
           {
             std::string primary_state;
@@ -344,23 +409,15 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
                                     job_failed,job_pending,failed_state,failed_cause);
             status = std::string("emies:")+primary_state;
           };
-          //status = addActivityStatusES(status,gm_state,Arc::XMLNode(),
-          //                     job_failed,job_pending,failed_state,failed_cause);
-          //status.NewChild("estypes:Timestamp") = job.Modified();
-          //status.NewChild("estypes:Description);  TODO
-          Arc::XMLNode exts = info[glue2_prefix+":Extensions"];
-          if(!exts) exts = info.NewChild(glue2_prefix+":Extensions");
-          Arc::XMLNode ext;
-          ext = exts.NewChild(glue2_prefix+":Extension");
-          ext.NewChild(glue2_prefix+":LocalID") = job.ID();
-          ext.NewChild("esainfo:StageInDirectory") = config.Endpoint()+"/"+job.ID();
-          ext.NewChild("esainfo:StageOutDirectory") = config.Endpoint()+"/"+job.ID();
-          ext.NewChild("esainfo:SessionDirectory") = config.Endpoint()+"/"+job.ID();
+          info.NewChild("esainfo:StageInDirectory") = config.Endpoint()+"/"+job.ID();
+          info.NewChild("esainfo:StageOutDirectory") = config.Endpoint()+"/"+job.ID();
+          info.NewChild("esainfo:SessionDirectory") = config.Endpoint()+"/"+job.ID();
         };
       };
       if(!info) {
         logger_.msg(Arc::ERROR, "EMIES:GetActivityInfo: job %s - failed to retrieve Glue2 information", jobid);
         ESInternalBaseFault(item.NewChild("dummy"),"failed to retrieve Glue2 information");
+        // It would be good to have something like UnableToRetrieveStatusFault here
       };
     };
   };
@@ -370,20 +427,27 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
 Arc::MCC_Status ARexService::ESNotifyService(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
   /*
     NotifyService
-      NotifyRequestItem
-        ActivityID
+      NotifyRequestItem 1-
+        estypes:ActivityID
         NotifyMessage
-          CLIENT-DATAPULL-DONE
-          CLIENT-DATAPUSH-DONE
+          [CLIENT-DATAPULL-DONE|CLIENT-DATAPUSH-DONE]
 
     NotifyServiceResponse
       NotifyResponseItem
-        ActivityID
-        InternalBaseFault 0-1
+        estypes:ActivityID
+        .
+          Acknowledgement
+          estypes:InternalBaseFault
+          OperationNotPossibleFault
+          OperationNotAllowedFault
+          estypes:AccessControlFault
 
-    VectorLimitExceededFault
-    AccessControlFault
-    InternalBaseFault
+    estypes:VectorLimitExceededFault
+    estypes:AccessControlFault
+    estypes:InternalBaseFault
+    InternalNotificationFault
+    OperationNotPossibleFault
+    OperationNotAllowedFault
    */
   Arc::XMLNode item = in["NotifyRequestItem"];
   unsigned int n = 0;
@@ -405,7 +469,7 @@ Arc::MCC_Status ARexService::ESNotifyService(ARexGMConfig& config,Arc::XMLNode i
     if(!job) {
       // There is no such job
       logger_.msg(Arc::ERROR, "EMIES:NotifyService: job %s - %s", jobid, job.Failure());
-      ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
+      ESUnknownActivityIDFault(ritem.NewChild("dummy"),job.Failure());
     } else {
       if(msg == "CLIENT-DATAPULL-DONE") {
         // Client is done with job. Same as wipe request. Or should job go to deleted?
@@ -415,15 +479,16 @@ Arc::MCC_Status ARexService::ESNotifyService(ARexGMConfig& config,Arc::XMLNode i
         };
       } else if(msg == "CLIENT-DATAPUSH-DONE") {
         if(!job.ReportFilesComplete()) {
-          ESInternalBaseFault(ritem.NewChild("dummy"),"internal error");
+          ESInternalBaseFault(ritem.NewChild("dummy"),job.Failure());
         };
       } else {
         // Wrong request
-        ESInternalBaseFault(ritem.NewChild("dummy"),"unsupported message type");
+        ESInternalBaseFault(ritem.NewChild("dummy"),"Unsupported notification type "+msg);
+        // Or maybe OperationNotPossibleFault?
       };
     };
   };
-  return Arc::MCC_Status();
+  return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 } // namespace ARex

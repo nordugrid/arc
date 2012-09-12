@@ -177,18 +177,23 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
 Arc::MCC_Status ARexService::ESPauseActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
   /*
     PauseActivity
-      ActivityID 1-
+      estypes:ActivityID 1-
 
     PauseActivityResponse
-      ResponseItem 1-
-        ActivityID
+      PauseActivityResponseItem 1-
+        estypes:ActivityID
         .
           EstimatedTime 0-1
-          InternalBaseFault
+          estypes:InternalBaseFault
+          OperationNotPossibleFault
+          ActivityNotFoundFault
+          estypes:AccessControlFault
 
-    VectorLimitExceededFault
-    AccessControlFault
-    InternalBaseFault
+    estypes:VectorLimitExceededFault
+    estypes:AccessControlFault
+    OperationNotPossibleFault
+    ActivityNotFoundFault
+    estypes:InternalBaseFault
    */
   Arc::XMLNode id = in["ActivityID"];
   unsigned int n = 0;
@@ -203,7 +208,7 @@ Arc::MCC_Status ARexService::ESPauseActivity(ARexGMConfig& config,Arc::XMLNode i
   id = in["ActivityID"];
   for(;(bool)id;++id) {
     std::string jobid = id;
-    Arc::XMLNode item = out.NewChild("esmanag:ResponseItem");
+    Arc::XMLNode item = out.NewChild("esmanag:PauseActivityResponseItem");
     item.NewChild("estypes:ActivityID") = jobid;
     ARexJob job(jobid,config,logger_);
     if(!job) {
@@ -213,8 +218,7 @@ Arc::MCC_Status ARexService::ESPauseActivity(ARexGMConfig& config,Arc::XMLNode i
     } else {
       // Pause not implemented
       logger_.msg(Arc::ERROR, "EMIES:PauseActivity: job %s - %s", jobid, "pause not implemented");
-      ESOperationNotPossibleFault(item.NewChild("dummy"),"pause not implemented");
-      //  ESInvalidActivityStateFault(item.NewChild("dummy"),job.Failure());
+      ESOperationNotPossibleFault(item.NewChild("dummy"),"pause not implemented yet");
     };
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
@@ -223,18 +227,23 @@ Arc::MCC_Status ARexService::ESPauseActivity(ARexGMConfig& config,Arc::XMLNode i
 Arc::MCC_Status ARexService::ESResumeActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
   /*
     ResumeActivity
-      ActivityID 1-
+      estypes:ActivityID 1-
 
     ResumeActivityResponse
-      ResponseItem 1-
-        ActivityID
+      ResumeActivityResponseItem 1-
+        estypes:ActivityID
         .
           EstimatedTime 0-1
-          InternalBaseFault
+          estypes:InternalBaseFault
+          OperationNotPossibleFault
+          ActivityNotFoundFault
+          estypes:AccessControlFault
 
-    VectorLimitExceededFault
-    AccessControlFault
-    InternalBaseFault
+    OperationNotPossibleFault
+    ActivityNotFoundFault
+    estypes:VectorLimitExceededFault
+    estypes:AccessControlFault
+    estypes:InternalBaseFault
    */
   Arc::XMLNode id = in["ActivityID"];
   unsigned int n = 0;
@@ -249,17 +258,17 @@ Arc::MCC_Status ARexService::ESResumeActivity(ARexGMConfig& config,Arc::XMLNode 
   id = in["ActivityID"];
   for(;(bool)id;++id) {
     std::string jobid = id;
-    Arc::XMLNode item = out.NewChild("esmanag:ResponseItem");
+    Arc::XMLNode item = out.NewChild("esmanag:ResumeActivityResponseItem");
     item.NewChild("estypes:ActivityID") = jobid;
     ARexJob job(jobid,config,logger_);
     if(!job) {
       // There is no such job
-      logger_.msg(Arc::ERROR, "EMIES:ResuumeActivity: job %s - %s", jobid, job.Failure());
+      logger_.msg(Arc::ERROR, "EMIES:ResumeActivity: job %s - %s", jobid, job.Failure());
       ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
     } else {
-      // Pause not implemented hence job is never in proper state for resume
-      logger_.msg(Arc::ERROR, "EMIES:PauseActivity: job %s - %s", jobid, "pause not implemented");
-      ESInvalidActivityStateFault(item.NewChild("dummy"),"pause not implemented");
+      // Pause not implemented hence job can't be resumed too
+      logger_.msg(Arc::ERROR, "EMIES:ResumeActivity: job %s - %s", jobid, "pause not implemented");
+      ESOperationNotPossibleFault(item.NewChild("dummy"),"pause not implemented");
     };
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
@@ -268,18 +277,23 @@ Arc::MCC_Status ARexService::ESResumeActivity(ARexGMConfig& config,Arc::XMLNode 
 Arc::MCC_Status ARexService::ESCancelActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
   /*
     CancelActivity
-      ActivityID 1-
+      estypes:ActivityID 1-
 
     CancelActivityResponse
-      ResponseItem 1-
-        ActivityID
+      CancelActivityResponseItem 1-
+        estypes:ActivityID
         .
           EstimatedTime 0-1
-          InternalBaseFault
+          estypes:InternalBaseFault
+          OperationNotPossibleFault
+          OperationNotAllowedFault
+          estypes:AccessControlFault
 
-    VectorLimitExceededFault
-    AccessControlFault
-    InternalBaseFault
+    OperationNotPossibleFault
+    OperationNotAllowedFault
+    estypes:VectorLimitExceededFault
+    estypes:AccessControlFault
+    estypes:InternalBaseFault
    */
   Arc::XMLNode id = in["ActivityID"];
   unsigned int n = 0;
@@ -294,7 +308,7 @@ Arc::MCC_Status ARexService::ESCancelActivity(ARexGMConfig& config,Arc::XMLNode 
   id = in["ActivityID"];
   for(;(bool)id;++id) {
     std::string jobid = id;
-    Arc::XMLNode item = out.NewChild("esmanag:ResponseItem");
+    Arc::XMLNode item = out.NewChild("esmanag:CancelActivityResponseItem");
     item.NewChild("estypes:ActivityID") = jobid;
     ARexJob job(jobid,config,logger_);
     if(!job) {
@@ -306,7 +320,7 @@ Arc::MCC_Status ARexService::ESCancelActivity(ARexGMConfig& config,Arc::XMLNode 
         // Probably wrong current state
         logger_.msg(Arc::ERROR, "EMIES:CancelActivity: job %s - %s", jobid, job.Failure());
         // TODO: check for real reason
-        ESInvalidActivityStateFault(item.NewChild("dummy"),job.Failure());
+        ESOperationNotPossibleFault(item.NewChild("dummy"),job.Failure());
       } else {
         // It may take "wakeup period" for cancel mark to be detected.
         // And same time till result of cancel script is processed.
@@ -325,15 +339,21 @@ Arc::MCC_Status ARexService::ESWipeActivity(ARexGMConfig& config,Arc::XMLNode in
       estypes:ActivityID
 
     esmanag:WipeActivityResponse
-      esmanag:ResponseItem
+      esmanag:WipeActivityResponseItem
         estypes:ActivityID
         .
           esmanag:EstimatedTime (xsd:unsignedLong)
           estypes:InternalBaseFault
+          OperationNotPossibleFault
+          OperationNotAllowedFault
+          ActivityNotInTerminalStateFault
+          estypes:AccessControlFault
 
-    VectorLimitExceededFault
-    AccessControlFault
-    InternalBaseFault
+    estypes:VectorLimitExceededFault
+    estypes:AccessControlFault
+    estypes:InternalBaseFault
+    OperationNotPossibleFault
+    OperationNotAllowedFault
   */
   Arc::XMLNode id = in["ActivityID"];
   unsigned int n = 0;
@@ -348,7 +368,7 @@ Arc::MCC_Status ARexService::ESWipeActivity(ARexGMConfig& config,Arc::XMLNode in
   id = in["ActivityID"];
   for(;(bool)id;++id) {
     std::string jobid = id;
-    Arc::XMLNode item = out.NewChild("esmanag:ResponseItem");
+    Arc::XMLNode item = out.NewChild("esmanag:WipeActivityResponseItem");
     item.NewChild("estypes:ActivityID") = jobid;
     ARexJob job(jobid,config,logger_);
     if(!job) {
@@ -364,7 +384,7 @@ Arc::MCC_Status ARexService::ESWipeActivity(ARexGMConfig& config,Arc::XMLNode in
         // Probably wrong current state
         logger_.msg(Arc::ERROR, "EMIES:WipeActivity: job %s - %s", jobid, job.Failure());
         // TODO: check for real reason
-        ESActivityNotInTerminalStateFault(item.NewChild("dummy"),job.Failure());
+        ESOperationNotPossibleFault(item.NewChild("dummy"),job.Failure());
       } else {
         item.NewChild("esmanag:EstimatedTime") = Arc::tostring(config.User()->Env().jobs_cfg().WakeupPeriod());
       };
@@ -379,15 +399,18 @@ Arc::MCC_Status ARexService::ESRestartActivity(ARexGMConfig& config,Arc::XMLNode
       estypes:ActivityID
 
     esmanag:RestartActivityResponse
-      esmanag:ResponseItem
+      esmanag:RestartActivityResponseItem
         estypes:ActivityID
         .
           esmanag:EstimatedTime (xsd:unsignedLong)
           estypes:InternalBaseFault
+          OperationNotPossibleFault
+          estypes:AccessControlFault
 
-    VectorLimitExceededFault
-    AccessControlFault
-    InternalBaseFault
+    OperationNotPossibleFault
+    estypes:VectorLimitExceededFault
+    estypes:AccessControlFault
+    estypes:InternalBaseFault
   */
   Arc::XMLNode id = in["ActivityID"];
   unsigned int n = 0;
@@ -402,7 +425,7 @@ Arc::MCC_Status ARexService::ESRestartActivity(ARexGMConfig& config,Arc::XMLNode
   id = in["ActivityID"];
   for(;(bool)id;++id) {
     std::string jobid = id;
-    Arc::XMLNode item = out.NewChild("esmanag:ResponseItem");
+    Arc::XMLNode item = out.NewChild("esmanag:RestartActivityResponseItem");
     item.NewChild("estypes:ActivityID") = jobid;
     ARexJob job(jobid,config,logger_);
     if(!job) {
@@ -414,7 +437,7 @@ Arc::MCC_Status ARexService::ESRestartActivity(ARexGMConfig& config,Arc::XMLNode
         // Probably wrong current state
         logger_.msg(Arc::ERROR, "EMIES:RestartActivity: job %s - %s", jobid, job.Failure());
         // TODO: check for real reason
-        ESInvalidActivityStateFault(item.NewChild("dummy"),job.Failure());
+        ESOperationNotPossibleFault(item.NewChild("dummy"),job.Failure());
       } else {
         item.NewChild("esmanag:EstimatedTime") = Arc::tostring(config.User()->Env().jobs_cfg().WakeupPeriod());
       };

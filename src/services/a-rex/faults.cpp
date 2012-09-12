@@ -131,12 +131,17 @@ void ARexService::InvalidRequestMessageFault(Arc::SOAPFault& fault,const std::st
 
 // EMI ES faults
 
+//  InternalBaseFault
+//    Message
+//    Timestamp (dateTime) 0-1
+//    Description 0-1
+//    FailureCode (int) 0-1
 void ARexService::ESInternalBaseFault(Arc::XMLNode fault,const std::string& message,const std::string& desc) {
   fault.Name("estypes:InternalBaseFault");
   fault.NewChild("estypes:Message") = message;
   fault.NewChild("estypes:Timestamp") = Arc::Time().str(Arc::ISOTime);
   if(!desc.empty()) fault.NewChild("estypes:Description") = desc;
-  //fault.NewChild("estypes:FailureCode") = 0;
+  //fault.NewChild("estypes:FailureCode") = "0";
 }
 
 void ARexService::ESInternalBaseFault(Arc::SOAPFault& fault,const std::string& message,const std::string& desc) {
@@ -146,7 +151,7 @@ void ARexService::ESInternalBaseFault(Arc::SOAPFault& fault,const std::string& m
 void ARexService::ESVectorLimitExceededFault(Arc::XMLNode fault,unsigned long limit,const std::string& message,const std::string& desc) {
   ESInternalBaseFault(fault,message.empty()?"Limit of parallel requests exceeded":message,desc);
   fault.NewChild("estypes:ServerLimit") = Arc::tostring(limit);
-  fault.Name("estypes:AccessControlFault");
+  fault.Name("estypes:VectorLimitExceededFault");
 }
 
 void ARexService::ESVectorLimitExceededFault(Arc::SOAPFault& fault,unsigned long limit,const std::string& message,const std::string& desc) {
@@ -167,25 +172,33 @@ void ARexService::ES##FAULTNAME(Arc::SOAPFault& fault, \
 
 ES_SIMPLE_FAULT(AccessControlFault,estypes,"Access denied")
 
+
 ES_SIMPLE_FAULT(UnsupportedCapabilityFault,escreate,"Unsupported capability")
 
 ES_SIMPLE_FAULT(InvalidActivityDescriptionSemanticFault,escreate,"Invalid activity description semantics")
 
 ES_SIMPLE_FAULT(InvalidActivityDescriptionFault,escreate,"Invalid activity description")
 
+
+ES_SIMPLE_FAULT(NotSupportedQueryDialectFault,esrinfo,"Query language not supported")
+ES_SIMPLE_FAULT(NotValidQueryStatementFault,esrinfo,"Query is not valid for specified language")
+ES_SIMPLE_FAULT(UnknownQueryFault,esrinfo,"Query is not recognized")
 ES_SIMPLE_FAULT(InternalResourceInfoFault,esrinfo,"Internal failure retrieving resource information")
+ES_SIMPLE_FAULT(ResourceInfoNotFoundFault,esrinfo,"Resource has no requested information")
+
 
 ES_SIMPLE_FAULT(InvalidActivityIDFault,esainfo,"Invalid activity ID")
-
 ES_SIMPLE_FAULT(UnknownActivityIDFault,esainfo,"Unknown activity ID")
-
-ES_SIMPLE_FAULT(InvalidActivityStateFault,esainfo,"Invalid activity state")
-
-ES_SIMPLE_FAULT(InvalidParameterFault,esainfo,"Invalid parameter")
-
+ES_SIMPLE_FAULT(UnableToRetrieveStatusFault,esainfo,"Activity status is missing")
+ES_SIMPLE_FAULT(UnknownAttributeFault,esainfo,"Activity has no such attribute")
+ES_SIMPLE_FAULT(OperationNotAllowedFault,esainfo,"Requested operation not allowed")
+ES_SIMPLE_FAULT(ActivityNotFoundFault,esainfo,"Activity with specified ID not found")
+ES_SIMPLE_FAULT(InternalNotificationFault,esainfo,"Notofication fault")
 ES_SIMPLE_FAULT(OperationNotPossibleFault,esainfo,"Can't perform this operation")
-
+ES_SIMPLE_FAULT(InvalidActivityStateFault,esainfo,"Invalid activity state")
 ES_SIMPLE_FAULT(ActivityNotInTerminalStateFault,esainfo,"Activity not in terminal state")
+ES_SIMPLE_FAULT(InvalidActivityLimitFault,esainfo,"Invalid activity limit")
+ES_SIMPLE_FAULT(InvalidParameterFault,esainfo,"Invalid parameter")
 
 }
 

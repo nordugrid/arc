@@ -147,33 +147,42 @@ class ARexService: public Arc::Service {
   void InvalidRequestMessageFault(Arc::XMLNode fault,const std::string& element,const std::string& message);
   void InvalidRequestMessageFault(Arc::SOAPFault& fault,const std::string& element,const std::string& message);
 
+
   // EMI ES faults
-  void ESInternalBaseFault(Arc::XMLNode fault,const std::string& message,const std::string& desc = "");
-  void ESInternalBaseFault(Arc::SOAPFault& fault,const std::string& message,const std::string& desc = "");
+#define ES_MSG_FAULT_HEAD(NAME) \
+  void NAME(Arc::XMLNode fault,const std::string& message,const std::string& desc = ""); \
+  void NAME(Arc::SOAPFault& fault,const std::string& message,const std::string& desc = "");
+#define ES_SIMPLE_FAULT_HEAD(NAME) \
+  void NAME(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = ""); \
+  void NAME(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
+
+  ES_MSG_FAULT_HEAD(ESInternalBaseFault)
   void ESVectorLimitExceededFault(Arc::XMLNode fault,unsigned long limit,const std::string& message = "",const std::string& desc = "");
   void ESVectorLimitExceededFault(Arc::SOAPFault& fault,unsigned long limit,const std::string& message = "",const std::string& desc = "");
-  void ESAccessControlFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
-  void ESAccessControlFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
-  void ESUnsupportedCapabilityFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
-  void ESUnsupportedCapabilityFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
-  void ESInvalidActivityDescriptionSemanticFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
-  void ESInvalidActivityDescriptionSemanticFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
-  void ESInvalidActivityDescriptionFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
-  void ESInvalidActivityDescriptionFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
-  void ESInternalResourceInfoFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
-  void ESInternalResourceInfoFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
-  void ESInvalidActivityIDFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
-  void ESInvalidActivityIDFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
-  void ESUnknownActivityIDFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
-  void ESUnknownActivityIDFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
-  void ESInvalidActivityStateFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
-  void ESInvalidActivityStateFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
-  void ESInvalidParameterFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
-  void ESInvalidParameterFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
-  void ESOperationNotPossibleFault(Arc::XMLNode fault,const std::string& message,const std::string& desc = "");
-  void ESOperationNotPossibleFault(Arc::SOAPFault& fault,const std::string& message,const std::string& desc = "");
-  void ESActivityNotInTerminalStateFault(Arc::XMLNode fault,const std::string& message,const std::string& desc = "");
-  void ESActivityNotInTerminalStateFault(Arc::SOAPFault& fault,const std::string& message,const std::string& desc = "");
+  ES_SIMPLE_FAULT_HEAD(ESAccessControlFault);
+
+  ES_SIMPLE_FAULT_HEAD(ESUnsupportedCapabilityFault)
+  ES_SIMPLE_FAULT_HEAD(ESInvalidActivityDescriptionSemanticFault)
+  ES_SIMPLE_FAULT_HEAD(ESInvalidActivityDescriptionFault)
+
+  ES_SIMPLE_FAULT_HEAD(ESNotSupportedQueryDialectFault)
+  ES_SIMPLE_FAULT_HEAD(ESNotValidQueryStatementFault)
+  ES_SIMPLE_FAULT_HEAD(ESUnknownQueryFault)
+  ES_SIMPLE_FAULT_HEAD(ESInternalResourceInfoFault)
+  ES_SIMPLE_FAULT_HEAD(ESResourceInfoNotFoundFault)
+
+  ES_SIMPLE_FAULT_HEAD(ESInvalidActivityIDFault)
+  ES_SIMPLE_FAULT_HEAD(ESUnknownActivityIDFault)
+  ES_SIMPLE_FAULT_HEAD(ESUnableToRetrieveStatusFault)
+  ES_SIMPLE_FAULT_HEAD(ESUnknownAttributeFault)
+  ES_SIMPLE_FAULT_HEAD(ESOperationNotAllowedFault)
+  ES_SIMPLE_FAULT_HEAD(ESActivityNotFoundFault)
+  ES_SIMPLE_FAULT_HEAD(ESInternalNotificationFault)
+  ES_SIMPLE_FAULT_HEAD(ESOperationNotPossibleFault)
+  ES_SIMPLE_FAULT_HEAD(ESInvalidActivityStateFault)
+  ES_MSG_FAULT_HEAD(ESActivityNotInTerminalStateFault)
+  ES_SIMPLE_FAULT_HEAD(ESInvalidActivityLimitFault)
+  ES_SIMPLE_FAULT_HEAD(ESInvalidParameterFault)
 
  public:
   ARexService(Arc::Config *cfg,Arc::PluginArgument *parg);

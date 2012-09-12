@@ -145,20 +145,29 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
     CreateActivityResponse
       ActivityCreationResponse 1-
         types:ActivityID
-        types:ActivityManagerURI
+        types:ActivityMgmtEndpointURL (anyURI)
+        types:ResourceInfoEndpointURL (anyURI)
         types:ActivityStatus
-        types:ETNSC 0-1
-        types:StageInDirectory 0-1
-        types:SessionDirectory 0-1
-        types:StageOutDirectory 0-1
-        or types:InternalBaseFault
-        (UnsupportedCapabilityFault)
-        (InvalidActivityDescriptionSemanticFault)
-        (InvalidActivityDescriptionFault)
+        ETNSC (dateTime) 0-1
+        StageInDirectory 0-1
+          URL 1-
+        SessionDirectory 0-1
+          URL 1-
+        StageOutDirectory 0-1
+          URL 1-
+        - or -
+        types:InternalBaseFault
+        types:AccessControlFault
+        InvalidActivityDescriptionFault <- InternalBaseFault_Type
+        InvalidActivityDescriptionSemanticFault <- InternalBaseFault_Type
+        UnsupportedCapabilityFault <- InternalBaseFault_Type
 
+    types:VectorLimitExceededFault
     types:InternalBaseFault
     types:AccessControlFault
-    types:VectorLimitExceededFault
+    InvalidActivityDescriptionFault
+    InvalidActivityDescriptionSemanticFault
+    UnsupportedCapabilityFault
   */
 
   if(Arc::VERBOSE >= logger_.getThreshold()) {
@@ -192,40 +201,37 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
   };
   JobIDGeneratorES idgenerator(config.Endpoint());
   ARexJob job(adl,config,"",clientid,logger_,idgenerator);
+  // Make SOAP response
+  Arc::XMLNode resp = out.NewChild("escreate:ActivityCreationResponse");
   if(!job) {
     ARexJobFailure failure_type = job;
     std::string failure = job.Failure();
     switch(failure_type) {
       case ARexJobDescriptionUnsupportedError: {
-        Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Unsupported feature in job description");
-        ESUnsupportedCapabilityFault(fault,failure);
+        ESUnsupportedCapabilityFault(resp,failure);
       }; break;
       case ARexJobDescriptionMissingError: {
-        Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Missing needed element in job description");
-        ESInvalidActivityDescriptionSemanticFault(fault,failure);
+        ESInvalidActivityDescriptionSemanticFault(resp,failure);
       }; break;
       case ARexJobDescriptionLogicalError: {
-        Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Logical error in job description");
-        ESInvalidActivityDescriptionFault(fault,failure);
+        ESInvalidActivityDescriptionFault(resp,failure);
       }; break;
       default: {
         logger_.msg(Arc::ERROR, "ES:CreateActivity: Failed to create new job: %s",failure);
-        Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Failed to create new activity");
-        ESInternalBaseFault(fault,failure);
+        ESInternalBaseFault(resp,"Failed to create new activity. "+failure);
       };
     };
-    out.Destroy();
     return Arc::MCC_Status();
   };
-  // Make SOAP response
-  Arc::XMLNode resp = out.NewChild("escreate:ActivityCreationResponse");
   resp.NewChild("estypes:ActivityID")=job.ID();
-  resp.NewChild("estypes:ActivityManagerURI")=config.Endpoint();
+  resp.NewChild("estypes:ActivityMgmtEndpointURL")=config.Endpoint();
+  resp.NewChild("estypes:ResourceInfoEndpointURL")=config.Endpoint();
   Arc::XMLNode rstatus = addActivityStatusES(resp,"ACCEPTED",Arc::XMLNode(),false,false);
-  //resp.NewChild("estypes:ETNSC");
+  //resp.NewChild("escreate:ETNSC");
   resp.NewChild("escreate:StageInDirectory").NewChild("escreate:URL")=config.Endpoint()+"/"+job.ID();
   resp.NewChild("escreate:SessionDirectory").NewChild("escreate:URL")=config.Endpoint()+"/"+job.ID();
   resp.NewChild("escreate:StageOutDirectory").NewChild("escreate:URL")=config.Endpoint()+"/"+job.ID();
+  // TODO: move into addActivityStatusES()
   rstatus.NewChild("estypes:Timestamp")=Arc::Time().str(Arc::ISOTime);
   //rstatus.NewChild("estypes:Description")=;
   logger_.msg(Arc::VERBOSE, "EMIES:CreateActivity finished successfully");

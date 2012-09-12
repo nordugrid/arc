@@ -427,6 +427,16 @@ void OptimizedInformationContainer::Assign(const std::string& xml) {
   return Arc::MCC_Status(); \
 }
 
+// GetResourceInfo
+//
+// GetResourceInfoResponse
+//   Services
+//     glue:ComputingService 0-
+//     glue:Service 0-  - not mentioned in specs
+// InternalResourceInfoFault
+// ResourceInfoNotFoundFault
+// AccessControlFault
+// InternalBaseFault
 Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
   // WARNING. Suboptimal temporary solution.
   int h = infodoc_.OpenDocument();
@@ -460,8 +470,9 @@ Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode
   Arc::XMLNode doc(buf);
   ::free(buf); buf=NULL;
   if(!doc) {
-    ESFAULT("Failed to parse resource information file");
+    ESFAULT("Failed to parse resource information document");
   };
+  Arc::NS glueNS("glue","http://schemas.ogf.org/glue/2009/03/spec_2.0_r1");
   Arc::XMLNode service = doc["Domains"]["AdminDomain"]["Services"]["ComputingService"];
   if(!service) {
     service = doc["Domains"]["AdminDomain"]["ComputingService"];
@@ -477,22 +488,43 @@ Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode
     //};
   };
   if(service) {
-    service = out.NewChild(service);
-    service.Name("esrinfo:ComputingService");
+    for(;service;++service) {
+      // TODO: use move instead of copy
+      out.NewChild(service);
+    }
   } else {
-    service.NewChild("esrinfo:ComputingService");
+    service.NewChild("glue:ComputingService").Namespaces(glueNS);
   }
   if(manager) {
-    manager = out.NewChild(manager);
-    manager.Name("esrinfo:ActivityManager");
+    for(;manager;++manager) {
+      // TODO: use move instead of copy
+      out.NewChild(manager);
+    }
   } else {
-    service.NewChild("esrinfo:ActivityManager");
+    service.NewChild("glue:Service").Namespaces(glueNS);
   }
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
+// QueryResourceInfo
+//   QueryDialect
+//     [XPATH 1.0|XPATH 2.0|XQUERY 1.0|SQL|SPARQL] - for mandatory dialect expression must be defined
+//   QueryExpression
+//     any 0-1
+//
+// QueryResourceInfoResponse
+//   QueryResourceInfoItem 0-
+//     any 0-1
+//     anyAttribute
+// NotSupportedQueryDialectFault
+// NotValidQueryStatementFault
+// UnknownQueryFault
+// AccessControlFault
+// InternalBaseFault
 Arc::MCC_Status ARexService::ESQueryResourceInfo(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  logger_.msg(Arc::ERROR, "ES:GetResourceInfo: not implemented");
   Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
+  ESNotSupportedQueryDialectFault(fault,"Operation not implemented yet");
   out.Destroy();
   return Arc::MCC_Status();
 }
