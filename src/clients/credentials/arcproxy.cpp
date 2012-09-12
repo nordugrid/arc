@@ -1117,12 +1117,14 @@ int main(int argc, char *argv[]) {
       std::cerr << Arc::IString("Proxy generation failed: No valid certificate found.") << std::endl;
       return EXIT_FAILURE;
     }
+#ifndef WIN32
     EVP_PKEY* pkey = signer.GetPrivKey();
     if(!pkey) {
       std::cerr << Arc::IString("Proxy generation failed: No valid private key found.") << std::endl;
       return EXIT_FAILURE;
     }
     if(pkey) EVP_PKEY_free(pkey);
+#endif
     std::cout << Arc::IString("Your identity: %s", signer.GetIdentityName()) << std::endl;
     if (now > signer.GetEndTime()) {
       std::cerr << Arc::IString("Proxy generation failed: Certificate has expired.") << std::endl;
