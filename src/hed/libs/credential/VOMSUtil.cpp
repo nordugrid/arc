@@ -566,7 +566,7 @@ err:
       //codedac = std::string((char *)tmp, len);
       codedac.append((const char*)tmp, len);
     }
-    free(tmp);
+    OPENSSL_free(tmp);
 
     if(ac) AC_free(ac);
     if(issuer) X509_free(issuer);
