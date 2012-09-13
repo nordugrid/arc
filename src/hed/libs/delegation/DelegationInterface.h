@@ -122,7 +122,9 @@ class DelegationProviderSOAP: public DelegationProvider {
     GDS10RENEW,
     GDS20,
     GDS20RENEW,
-    EMIES
+    EMIES,
+    EMIDS,
+    EMIDSRENEW
   } ServiceType;
   /** Creates instance from provided credentials.
      Credentials are used to sign delegated credentials. */

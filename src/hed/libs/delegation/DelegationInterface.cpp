@@ -28,6 +28,7 @@ namespace Arc {
 #define GDS20_NAMESPACE "http://www.gridsite.org/namespaces/delegation-2"
 #define EMIES_NAMESPACE "http://www.eu-emi.eu/es/2010/12/delegation/types"
 #define EMIES_TYPES_NAMESPACE "http://www.eu-emi.eu/es/2010/12/types"
+#define EMIDS_NAMESPACE "http://www.gridsite.org/namespaces/delegation-21"
 
 #define GLOBUS_LIMITED_PROXY_OID "1.3.6.1.4.1.3536.1.1.1.9"
 
@@ -1069,6 +1070,20 @@ bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,Mes
     delete resp_soap;
     if(id_.empty() || request_.empty()) return false;
     return true;
+  } else if((stype == DelegationProviderSOAP::EMIDS) ||
+            (stype == DelegationProviderSOAP::EMIDSRENEW)) {
+    NS ns; ns["deleg"]=EMIDS_NAMESPACE;
+    PayloadSOAP req_soap(ns);
+    req_soap.NewChild("deleg:getNewProxyReq");
+    PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
+    if(!resp_soap) return false;
+    XMLNode token = (*resp_soap)["getNewProxyReqResponse"];
+    if(!token) { delete resp_soap; return false; };
+    id_=(std::string)(token["delegationID"]);
+    request_=(std::string)(token["proxyRequest"]);
+    delete resp_soap;
+    if(id_.empty() || request_.empty()) return false;
+    return true;
   } else if((stype == DelegationProviderSOAP::EMIES)) {
     NS ns; ns["deleg"]=EMIES_NAMESPACE; ns["estypes"]=EMIES_TYPES_NAMESPACE;
     PayloadSOAP req_soap(ns);
@@ -1130,6 +1145,23 @@ bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAt
     PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
     if(!resp_soap) return false;
     if(!(*resp_soap)["putProxyResponse"]) {
+      delete resp_soap;
+      return false;
+    };
+    delete resp_soap;
+    return true;
+  } else if((stype == DelegationProviderSOAP::EMIDS) ||
+            (stype == DelegationProviderSOAP::EMIDSRENEW)) {
+    std::string delegation = Delegate(request_,restrictions);
+    if(delegation.empty()) return false;
+    NS ns; ns["deleg"]=EMIDS_NAMESPACE;
+    PayloadSOAP req_soap(ns);
+    XMLNode token = req_soap.NewChild("deleg:putProxy");
+    token.NewChild("deleg:delegationID")=id_;
+    token.NewChild("deleg:proxy")=delegation;
+    PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
+    if(!resp_soap) return false;
+    if(resp_soap->Size() > 0) {
       delete resp_soap;
       return false;
     };
@@ -1203,6 +1235,13 @@ class DelegationContainerSOAP::Consumer {
 }
 
 #define GDS20FAULT(out,msg) { \
+  for(XMLNode old = out.Child();(bool)old;old = out.Child()) old.Destroy(); \
+  XMLNode r = SOAPFault((out),SOAPFault::Receiver,"").Detail(true); \
+  XMLNode ex = r.NewChild("DelegationException"); \
+  ex.Namespaces(ns); ex.NewChild("msg") = (msg); \
+}
+
+#define EMIDSFAULT(out,msg) { \
   for(XMLNode old = out.Child();(bool)old;old = out.Child()) old.Destroy(); \
   XMLNode r = SOAPFault((out),SOAPFault::Receiver,"").Detail(true); \
   XMLNode ex = r.NewChild("DelegationException"); \
@@ -1713,6 +1752,215 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       if(c) RemoveConsumer(c);
       return true;
     };
+  } else if(op_ns == EMIDS_NAMESPACE) {
+    // EMI GDS
+    NS ns("",EMIDS_NAMESPACE);
+    if(op_name == "getVersion") {
+      // getVersion
+      //
+      // getVersionResponse
+      //   getVersionReturn
+      // DelegationException
+      Arc::XMLNode r = out.NewChild("getVersionResponse");
+      r.Namespaces(ns); r.NewChild("getVersionReturn")="0";
+      return true;
+    } else if(op_name == "getInterfaceVersion") {
+      // getInterfaceVersion
+      //
+      // getInterfaceVersionResponse
+      //   getInterfaceVersionReturn
+      // DelegationException
+      Arc::XMLNode r = out.NewChild("getInterfaceVersionResponse");
+      r.Namespaces(ns); r.NewChild("getInterfaceVersionReturn")="2.1";
+      return true;
+    } else if(op_name == "getServiceMetadata") {
+      // getServiceMetadata
+      //   key
+      //
+      // getServiceMetadataResponse
+      //   getServiceMetadataReturn
+      // DelegationException
+      //Arc::XMLNode r = out.NewChild("getServiceMetadataResponse");
+      //r.Namespaces(ns);
+      EMIDSFAULT(out,"Service has no metadata");
+      return true;
+    } else if(op_name == "getProxyReq") {
+      // getProxyReq
+      //   delegationID
+      //
+      // getProxyReqResponse
+      //   getProxyReqReturn
+      // DelegationException
+      Arc::XMLNode r = out.NewChild("getProxyReqResponse");
+      r.Namespaces(ns);
+      std::string id = op["delegationID"];
+      // check if new id or id belongs to this client
+      bool found = true;
+      DelegationConsumerSOAP* c = id.empty()?NULL:FindConsumer(id,client);
+      if(!c) {
+        found = false;
+        if(!(c = AddConsumer(id,client))) {
+          EMIDSFAULT(out,"Wrong identifier"); // ?
+          return true;
+        };
+      };
+      std::string x509_request;
+      c->Request(x509_request);
+      if(x509_request.empty()) {
+        if(found) ReleaseConsumer(c);
+        else RemoveConsumer(c);
+        EMIDSFAULT(out,"Failed to generate request");
+        return true;
+      };
+      ReleaseConsumer(c);
+      r.NewChild("getProxyReqReturn") = x509_request;
+      return true;
+    } else if(op_name == "getNewProxyReq") {
+      // getNewProxyReq
+      //
+      // getNewProxyReqResponse
+      //   proxyRequest
+      //   delegationID
+      // DelegationException
+      Arc::XMLNode r = out.NewChild("getNewProxyReqResponse");
+      r.Namespaces(ns);
+      std::string id;
+      DelegationConsumerSOAP* c = AddConsumer(id,client);
+      if(!c) {
+        EMIDSFAULT(out,"Failed to generate identifier");
+        return true;
+      };
+      std::string x509_request;
+      c->Request(x509_request);
+      if(x509_request.empty()) {
+        RemoveConsumer(c);
+        EMIDSFAULT(out,"Failed to generate request");
+        return true;
+      };
+      ReleaseConsumer(c);
+      CheckConsumers();
+      r.NewChild("proxyRequest") = x509_request;
+      r.NewChild("delegationID") = id;
+      return true;
+    } else if(op_name == "putProxy") {
+      // putProxy
+      //   delegationID
+      //   proxy
+      //
+      // DelegationException
+      std::string id = op["delegationID"];
+      std::string cred = op["proxy"];
+      if(id.empty()) {
+        EMIDSFAULT(out,"Identifier is missing");
+        return true;
+      };
+      if(cred.empty()) {
+        EMIDSFAULT(out,"proxy is missing");
+        return true;
+      };
+      DelegationConsumerSOAP* c = FindConsumer(id,client);
+      if(!c) {
+        EMIDSFAULT(out,"Failed to find identifier");
+        return true;
+      };
+      if(!c->Acquire(cred)) {
+        ReleaseConsumer(c);
+        EMIDSFAULT(out,"Failed to acquire credentials");
+        return true;
+      };
+      if(!TouchConsumer(c,cred)) {
+        ReleaseConsumer(c);
+        EMIDSFAULT(out,"Failed to process credentials");
+        return true;
+      };
+      ReleaseConsumer(c);
+      credentials = cred;
+      return true;
+    } else if(op_name == "renewProxyReq") {
+      // renewProxyReq
+      //   delegationID
+      //
+      // renewProxyReqResponse
+      //   renewProxyReqReturn
+      // DelegationException
+      Arc::XMLNode r = out.NewChild("renewProxyReqResponse");
+      r.Namespaces(ns);
+      std::string id = op["delegationID"];
+      if(id.empty()) {
+        EMIDSFAULT(out,"No identifier specified");
+        return true;
+      };
+      // check if new id or id belongs to this client
+      bool found = true;
+      DelegationConsumerSOAP* c = FindConsumer(id,client);
+      if(!c) {
+        found=false;
+        if(!(c = AddConsumer(id,client))) {
+          EMIDSFAULT(out,"Wrong identifier"); // ?
+          return true;
+        };
+      };
+      std::string x509_request;
+      c->Request(x509_request);
+      if(x509_request.empty()) {
+        if(found) ReleaseConsumer(c);
+        else RemoveConsumer(c);
+        EMIDSFAULT(out,"Failed to generate request");
+        return true;
+      };
+      ReleaseConsumer(c);
+      r.NewChild("renewProxyReqReturn") = x509_request;
+      return true;
+    } else if(op_name == "getTerminationTime") {
+      // getTerminationTime
+      //   delegationID
+      //
+      // getTerminationTimeResponse
+      //   getTerminationTimeReturn (dateTime)
+      // DelegationException
+      Arc::XMLNode r = out.NewChild("getTerminationTimeResponse");
+      r.Namespaces(ns);
+      std::string id = op["delegationID"];
+      if(id.empty()) {
+        EMIDSFAULT(out,"No identifier specified");
+        return true;
+      };
+      DelegationConsumerSOAP* c = FindConsumer(id,client);
+      if(!c) {
+        EMIDSFAULT(out,"Wrong identifier");
+        return true;
+      };
+      std::string credentials;
+      if((!QueryConsumer(c,credentials)) || credentials.empty()) {
+        ReleaseConsumer(c);
+        EMIDSFAULT(out,"Delegated credentials missing");
+        return true;
+      };
+      ReleaseConsumer(c);
+      cred_info_t info;
+      if(!get_cred_info(credentials,info)) {
+        EMIDSFAULT(out,"Delegated credentials missing");
+        return true;
+      };
+      if(info.valid_till == Time(Time::UNDEFINED)) info.valid_till = Time();
+      r.NewChild("getTerminationTimeReturn") = info.valid_till.str();
+      return true;
+    } else if(op_name == "destroy") {
+      // destroy
+      //   delegationID
+      //
+      // DelegationException
+      Arc::XMLNode r = out.NewChild("destroyResponse");
+      r.Namespaces(ns);
+      std::string id = op["delegationID"];
+      if(id.empty()) {
+        EMIDSFAULT(out,"No identifier specified");
+        return true;
+      };
+      DelegationConsumerSOAP* c = FindConsumer(id,client);
+      if(c) RemoveConsumer(c);
+      return true;
+    };
   } else if(op_ns == EMIES_NAMESPACE) {
     // EMI Execution Service own delegation interface
     NS ns("",EMIES_NAMESPACE);
@@ -1865,6 +2113,7 @@ bool DelegationContainerSOAP::MatchNamespace(const SOAPEnvelope& in) {
   return ((op_ns == DELEGATION_NAMESPACE) ||
           (op_ns == GDS10_NAMESPACE) ||
           (op_ns == GDS20_NAMESPACE) ||
+          (op_ns == EMIDS_NAMESPACE) ||
           (op_ns == EMIES_NAMESPACE));
 }
 
