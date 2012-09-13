@@ -158,16 +158,10 @@ namespace Arc {
   }
 
   DataStatus DataPointLFC::Check() {
-    // simply check that the file can be listed
-    std::list<FileInfo> files;
-    DataStatus r = ListFiles(files,INFO_TYPE_MINIMAL,false);
-    if(!r) {
-      return DataStatus(DataStatus::CheckError, r.GetErrno(), r.GetDesc());
-    }
-    if(files.empty()) {
-      return DataStatus(DataStatus::CheckError, EARCRESINVAL);
-    }
-    return DataStatus::Success;
+    // simply check that the file can be resolved
+    DataStatus r = Resolve(true);
+    if (r) return r;
+    return DataStatus(DataStatus::CheckError, r.GetErrno(), r.GetDesc());
   }
 
   /// Class for passing resolve arguments to separate thread function
