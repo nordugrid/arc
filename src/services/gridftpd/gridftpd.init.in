@@ -136,6 +136,37 @@ readconfigvar() {
     }
 }
 
+check_cert() {
+  X509_USER_CERT=`readconfigvar "$ARC_CONFIG" gridftpd x509_user_cert`
+  X509_USER_KEY=`readconfigvar "$ARC_CONFIG" gridftpd x509_user_key`
+  if [ -z "$X509_USER_CERT" ] ; then
+    X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_user_cert`
+  fi
+  if [ -z "$X509_USER_KEY" ] ; then
+    X509_USER_KEY=`readconfigvar "$ARC_CONFIG" common x509_user_key`
+  fi
+  if [ -z "$X509_USER_CERT" ] ; then
+    X509_USER_CERT=/etc/grid-security/hostcert.pem
+  fi
+  if [ -z "$X509_USER_KEY" ] ; then
+    X509_USER_KEY=/etc/grid-security/hostkey.pem
+  fi
+  if [ ! -f "$X509_USER_CERT" ] ; then
+    log_failure_msg "Host certificate not found"
+    exit 1
+  fi
+  if [ ! -f "$X509_USER_KEY" ] ; then
+    log_failure_msg "Host key not found"
+    exit 1
+  fi
+  # check permissions on key
+  perms=`stat -c %a "$X509_USER_KEY"`
+  if [ "$perms" != "600" ] && [ "$perms" != "400" ] ; then
+    log_failure_msg "Host key must be readable only by user"
+    exit 1
+  fi
+}
+
 CMD="$ARC_LOCATION/sbin/$prog"
 if [ ! -x "$CMD" ]; then
     log_failure_msg "Missing executable"
@@ -210,6 +241,7 @@ start() {
         echo "and then set RUN to 'yes' in /etc/default/$prog to enable it."
         return 0
     fi
+    check_cert
 
     echo -n "Starting $prog: "
 
