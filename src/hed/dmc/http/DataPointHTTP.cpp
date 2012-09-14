@@ -351,54 +351,70 @@ using namespace Arc;
     return true;
   }
 
-  DataStatus DataPointHTTP::do_stat(const std::string& path, const URL& curl, FileInfo& file) {
+  DataStatus DataPointHTTP::do_stat(URL& rurl, FileInfo& file) {
     PayloadRaw request;
     PayloadRawInterface *inbuf = NULL;
     HTTPClientInfo info;
-    info.lastModified = (time_t)(-1);
-    AutoPointer<ClientHTTP> client(acquire_client(curl));
-    if (!client) return DataStatus::StatError;
-    // Do HEAD to obtain some metadata
-    MCC_Status r = client->process("HEAD", path, &request, &info, &inbuf);
-    if (inbuf) delete inbuf;
-    // TODO: handle redirects
-    if (!r) {
-      return DataStatus::StatError;
-    }
-    release_client(curl,client.Release());
-    if (info.code != 200) {
-      return DataStatus(DataStatus::StatError, http2errno(info.code), info.reason);
-    }
-    // Fetch known metadata
-    file.SetMetaData("path", path);
-    std::string type = info.type;
-    std::string::size_type pos = type.find(';');
-    if (pos != std::string::npos) type = type.substr(0, pos);
+    for(int redirects_max = 10;redirects_max>=0;--redirects_max) {
+      std::string path = rurl.FullPathURIEncoded();
+      info.lastModified = (time_t)(-1);
+      AutoPointer<ClientHTTP> client(acquire_client(rurl));
+      if (!client) return DataStatus::StatError;
+      // Do HEAD to obtain some metadata
+      MCC_Status r = client->process("HEAD", path, &request, &info, &inbuf);
+      if (inbuf) delete inbuf;
+      if (!r) {
+        return DataStatus::StatError;
+      }
+      release_client(rurl,client.Release());
+      if (info.code != 200) {
+        if((info.code == 301) || // permanent redirection
+           (info.code == 302) || // temporary redirection
+           (info.code == 303) || // POST to GET redirection
+           (info.code == 304)) { // redirection to cache
+          // 305 - redirection to proxy - unhandled
+          // Recreate connection now to new URL
+          rurl = info.location;
+          logger.msg(VERBOSE,"Redirecting to %s",info.location);
+          client = acquire_client(rurl);
+          if (!client) return DataStatus::StatError;
+          continue;
+        }
+        return DataStatus(DataStatus::StatError, http2errno(info.code), info.reason);
+      }
+      // Fetch known metadata
+      file.SetMetaData("path", path);
+      std::string type = info.type;
+      std::string::size_type pos = type.find(';');
+      if (pos != std::string::npos) type = type.substr(0, pos);
 
-    // Treat every html as potential directory/set of links
-    if(type == "text/html") {
-      file.SetType(FileInfo::file_type_dir);
-      file.SetMetaData("type", "dir");
-    } else {
-      file.SetType(FileInfo::file_type_file);
-      file.SetMetaData("type", "file");
+      // Treat every html as potential directory/set of links
+      if(type == "text/html") {
+        file.SetType(FileInfo::file_type_dir);
+        file.SetMetaData("type", "dir");
+      } else {
+        file.SetType(FileInfo::file_type_file);
+        file.SetMetaData("type", "file");
+      }
+      if(info.size != (uint64_t)(-1)) {
+        file.SetSize(info.size);
+        file.SetMetaData("size", tostring(info.size));
+      }
+      if(info.lastModified != (time_t)(-1)) {
+        file.SetCreated(info.lastModified);
+        file.SetMetaData("mtime", info.lastModified.str());
+      }
+      // Not sure
+      if(!info.location.empty()) file.AddURL(info.location);
+      return DataStatus::Success;
     }
-    if(info.size != (uint64_t)(-1)) {
-      file.SetSize(info.size);
-      file.SetMetaData("size", tostring(info.size));
-    }
-    if(info.lastModified != (time_t)(-1)) {
-      file.SetCreated(info.lastModified);
-      file.SetMetaData("mtime", info.lastModified.str());
-    }
-    // Not sure
-    if(!info.location.empty()) file.AddURL(info.location);
-    return DataStatus::Success;
+    return DataStatus(DataStatus::StatError,"Too many redirects");
   }
 
   DataStatus DataPointHTTP::Stat(FileInfo& file, DataPointInfoType verb) {
     // verb is not used
-    DataStatus r = do_stat(url.FullPathURIEncoded(), url, file);
+    URL curl = url;
+    DataStatus r = do_stat(curl, file);
     if(!r) return r;
     std::string name = url.FullPath();
     std::string::size_type p = name.rfind('/');
@@ -428,7 +444,7 @@ using namespace Arc;
     DataStatus r;
     {
       FileInfo file;
-      r = do_stat(curl.FullPathURIEncoded(), curl, file);
+      r = do_stat(curl, file);
       if(r) {
         if(file.CheckSize()) size = file.GetSize();
         if(file.CheckCreated()) created = file.GetCreated();
@@ -438,7 +454,9 @@ using namespace Arc;
 
     DataBuffer buffer;
 
+    // Read content of file
     // TODO: Reuse connection
+    // TODO: Reuse already redirecyed URL stored in curl
     r = StartReading(buffer);
     if (!r) return DataStatus(DataStatus::ListError, r.GetErrno(), r.GetDesc());
 
@@ -461,6 +479,7 @@ using namespace Arc;
     r = StopReading();
     if (!r) return DataStatus(DataStatus::ListError, r.GetErrno(), r.GetDesc());
 
+    // Convert obtained HTML into set of links
     bool is_html = false;
     bool is_body = false;
     std::string::size_type tagstart = 0;
@@ -489,8 +508,8 @@ using namespace Arc;
       html2list(result.c_str(), url, files);
       if(verb & (INFO_TYPE_TYPE | INFO_TYPE_TIMES | INFO_TYPE_CONTENT)) {
         for(std::list<FileInfo>::iterator f = files.begin(); f != files.end(); ++f) {
-          URL furl(url.str()+'/'+(f->GetName()));
-          do_stat(furl.FullPathURIEncoded(), curl, *f);
+          URL furl(curl.str()+'/'+(f->GetName()));
+          do_stat(furl, *f);
         }
       }
     }

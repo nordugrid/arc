@@ -41,7 +41,7 @@ using namespace Arc;
     static void read_thread(void *arg);
     static void write_thread(void *arg);
     static bool write_single(void *arg);
-    DataStatus do_stat(const std::string& path, const URL& curl, FileInfo& file);
+    DataStatus do_stat(URL& curl, FileInfo& file);
     ClientHTTP* acquire_client(const URL& curl);
     void release_client(const URL& curl, ClientHTTP* client);
     /// Convert HTTP return code to errno
