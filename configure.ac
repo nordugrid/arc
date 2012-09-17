@@ -770,8 +770,6 @@ fi
 
 #check mozilla nss
 enables_nss=no
-NSS_CFLAGS=""
-NSS_LIBS=""
 NSS_INSTALLED=no
 dnl Check if nss lib is explicitly enabled, default is disable.
 AC_ARG_ENABLE(nss, AC_HELP_STRING([--enable-nss], [enable use of the mozilla nss library]),[enables_nss="$enableval"],[])
@@ -790,8 +788,7 @@ AC_SUBST(NSS_LIBS)
 AM_CONDITIONAL([NSS_ENABLED], test x$NSS_INSTALLED = xyes)
 
 #check emi common authentiation library
-CANLXX_CFLAGS=
-CANLXX_LIBS=
+enables_canlxx=no
 AC_ARG_ENABLE(canlxx, AC_HELP_STRING([--enable-canlxx], [enable use of EMI common authentication libraries]), [enables_canlxx="$enableval"], [])
 if test "x$enables_canlxx" = "xyes"; then
   AC_ARG_WITH(canlxx,
@@ -800,6 +797,7 @@ if test "x$enables_canlxx" = "xyes"; then
       PKG_CONFIG_PATH="$withval/lib/pkgconfig:$PKG_CONFIG_PATH"
     ]
   )
+  AC_MSG_NOTICE([PKG_CONFIG_PATH for CANL++ is: $PKG_CONFIG_PATH])
   PKG_CHECK_MODULES(CANLXX, [canl-c++], [], [
     AC_MSG_NOTICE([Failed to find EMI common authentication libraries])
     enables_canlxx=no
