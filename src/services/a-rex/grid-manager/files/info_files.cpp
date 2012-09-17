@@ -2,30 +2,14 @@
 #include <config.h>
 #endif
 
-#include <string>
-#include <list>
-#include <iostream>
-#include <fstream>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <dirent.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <limits>
 
-#include <arc/StringConv.h>
-#include <arc/DateTime.h>
-#include <arc/Thread.h>
 #include <arc/FileAccess.h>
 #include <arc/FileUtils.h>
 #include <arc/FileLock.h>
 
-#include "../files/delete.h"
-#include "../misc/escaped.h"
 #include "../run/run_redirected.h"
-#include "../conf/conf.h"
-#include "info_types.h"
 
 #include "info_files.h"
 
