@@ -291,12 +291,13 @@ namespace AuthN {
       NSSUtilLogger.msg(ERROR, "NSS initialization failed on certificate database: %s", configdir.c_str());
       return false;
     }
+/* NSS_SetDomesticPolicy is not necessary, because ssl is not used 
     if (NSS_SetDomesticPolicy() != SECSuccess ){
       NSS_Shutdown();
       NSSUtilLogger.msg(ERROR, "NSS set domestic policy failed (%s) on certificate database %s", nss_error().c_str(), configdir.c_str());
       return false;
     }
-
+*/
     PK11_SetPasswordFunc(nss_get_password_from_console); //(nss_get_password);
     NSSUtilLogger.msg(INFO, "Succeeded to initialize NSS");
 
@@ -2119,7 +2120,8 @@ err:
     if(info == NULL || dest == NULL) {
       return SECFailure;
     }
-    if(SEC_ASN1EncodeItem(arena, dest, info, SEC_ASN1_GET(ProxyCertInfoTemplate1)) == NULL) {
+    //if(SEC_ASN1EncodeItem(arena, dest, info, SEC_ASN1_GET(ProxyCertInfoTemplate1)) == NULL) {
+    if(SEC_ASN1EncodeItem(arena, dest, info, ProxyCertInfoTemplate1) == NULL) {
       rv = SECFailure;
     }
     return(rv);
@@ -2132,6 +2134,7 @@ err:
     if(info == NULL || dest == NULL) {
       return SECFailure;
     }
+    //if(SEC_ASN1EncodeItem(arena, dest, info, SEC_ASN1_GET(ProxyCertInfoTemplate2)) == NULL) {
     if(SEC_ASN1EncodeItem(arena, dest, info, SEC_ASN1_GET(ProxyCertInfoTemplate2)) == NULL) {
       rv = SECFailure;
     }
@@ -2145,6 +2148,7 @@ err:
     if(info == NULL || dest == NULL) {
       return SECFailure;
     }
+    //if(SEC_ASN1EncodeItem(arena, dest, info, SEC_ASN1_GET(ProxyCertInfoTemplate3)) == NULL) {
     if(SEC_ASN1EncodeItem(arena, dest, info, SEC_ASN1_GET(ProxyCertInfoTemplate3)) == NULL) {
       rv = SECFailure;
     }
@@ -2158,6 +2162,7 @@ err:
     if(info == NULL || dest == NULL) {
       return SECFailure;
     }
+    //if(SEC_ASN1EncodeItem(arena, dest, info, SEC_ASN1_GET(ProxyCertInfoTemplate4)) == NULL) {
     if(SEC_ASN1EncodeItem(arena, dest, info, SEC_ASN1_GET(ProxyCertInfoTemplate4)) == NULL) {
       rv = SECFailure;
     }
@@ -2342,7 +2347,8 @@ const SEC_ASN1Template SEC_CertSubjectTemplate[] = {
           0, NULL, sizeof(SECItem) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED |
           SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
-          0, SEC_ASN1_SUB(SEC_SkipTemplate) },  /* version */
+          //0, SEC_ASN1_SUB(SEC_SkipTemplate) },  /* version */
+          0, SEC_SkipTemplate },  /* version */
     { SEC_ASN1_SKIP },          /* serial number */
     { SEC_ASN1_SKIP },          /* signature algorithm */
     { SEC_ASN1_SKIP },          /* issuer */
@@ -2360,7 +2366,8 @@ const SEC_ASN1Template SEC_CertIssuerTemplate[] = {
           0, NULL, sizeof(SECItem) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED |
           SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
-          0, SEC_ASN1_SUB(SEC_SkipTemplate) },  /* version */
+          //0, SEC_ASN1_SUB(SEC_SkipTemplate) },  /* version */
+          0, SEC_SkipTemplate },  /* version */
     { SEC_ASN1_SKIP },          /* serial number */
     { SEC_ASN1_SKIP },          /* signature algorithm */
     { SEC_ASN1_ANY, 0, NULL },          /* issuer */
@@ -2376,7 +2383,8 @@ const SEC_ASN1Template SEC_CertSerialNumberTemplate[] = {
           0, NULL, sizeof(SECItem) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED |
           SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
-          0, SEC_ASN1_SUB(SEC_SkipTemplate) },  /* version */
+          //0, SEC_ASN1_SUB(SEC_SkipTemplate) },  /* version */
+          0, SEC_SkipTemplate },  /* version */
     { SEC_ASN1_ANY, 0, NULL }, /* serial number */
     { SEC_ASN1_SKIP_REST },
     { 0 }
