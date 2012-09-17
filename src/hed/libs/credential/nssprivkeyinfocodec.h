@@ -15,8 +15,10 @@ namespace AuthN {
   typedef unsigned char uint8;
   typedef signed char int8;
 
+/*
   struct SECKEYPrivateKeyStr;
   struct SECKEYPublicKeyStr;
+*/
 
   class PrivateKeyInfoCodec {
   public:
