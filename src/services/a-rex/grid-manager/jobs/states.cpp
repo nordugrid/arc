@@ -1744,9 +1744,6 @@ bool JobsList::ActJob(JobsList::iterator &i) {
           // Processing to be done on state changes 
           user->Env().job_log().make_file(*i,*user);
           if(i->job_state == JOB_STATE_FINISHED) {
-            if(i->GetLocalDescription(*user)) {
-              job_stdlog_move(*i,*user,i->local->stdlog);
-            };
             job_clean_finished(i->job_id,*user);
             user->Env().job_log().finish_info(*i,*user);
             prepare_cleanuptime(i->job_id,i->keep_finished,i,*user);
@@ -1772,9 +1769,6 @@ bool JobsList::ActJob(JobsList::iterator &i) {
       job_state_write_file(*i,*user,i->job_state); 
       i->AddFailure("Serious troubles (problems during processing problems)");
       FailedJob(i,false);  /* put some marks */
-      if(i->GetLocalDescription(*user)) {
-        job_stdlog_move(*i,*user,i->local->stdlog);
-      };
       job_clean_finished(i->job_id,*user);  /* clean status files */
       once_more=true; /* to process some things in local */
     };
