@@ -64,13 +64,13 @@ job description files describing the jobs to be submitted
 \fBarcsub\fR is the key command when submitting jobs to grid enabled computing
 resources with the ARC client. As default \fBarcsub\fR is able to submit jobs to
 A-REX and CREAM computing elements (CEs), and as always for successful
-submission you need to be authenticated at the computing element. Since
+submission you need to be authenticated at the targeted computing services. Since
 \fBarcsub\fR is build on a modular library, modules can be installed which
 enables submission to other targets, e.g. the classic ARC CE Grid-Manager.
 
 Job submission can be accomplished by invoking the \fBarcsub\fR command
-with the \fB--cluster\fR option set to the target CE (URL, alias or group), and the job description
-file given as argument.
+with the \fB--cluster\fR option set to the target CE (URL, alias or group), and the
+job description file given as argument.
 Multiple CEs can be targeted for submission by specifying the
 \fB--cluster\fR option multiple times, in which case the CEs will be ranked by
 the resource broker. If no \fB--cluster\fR or \fB--index\fR (see below) options
@@ -96,7 +96,7 @@ the service is assumed to live on the root path.
 
 Job descriptions can also be specified using the \fB--jobdescrfile\fR option
 which expect the file name of the description as argument, or the
-\fB--jobdescrstring\fR option which expect as argument a the job description as
+\fB--jobdescrstring\fR option which expect as argument the job description as
 a string, and both options can be specified multiple times and one does not
 exclude the other. The default supported job description languages are XRSL,
 JSDL and JDL.
