@@ -5,6 +5,18 @@
 #include <string>
 #include <list>
 #include <iostream>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <glibmm.h>
+
+#include <arc/DateTime.h>
+#include <arc/StringConv.h>
+#include <arc/URL.h>
+#include <arc/FileUtils.h>
+#include <arc/credential/VOMSUtil.h>
+#include <arc/Utils.h>
 
 #include "../files/info_files.h"
 #include "../jobs/job_request.h"
@@ -19,26 +31,12 @@
 #include "../misc/proxy.h"
 #include "../../delegation/DelegationStores.h"
 #include "../../delegation/DelegationStore.h"
-#include <iostream>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <glibmm.h>
-#include <arc/DateTime.h>
-#include <arc/StringConv.h>
-#include <arc/URL.h>
-#include <arc/FileUtils.h>
-#include <arc/credential/VOMSUtil.h>
-#include <arc/Utils.h>
 
 #include "dtr_generator.h"
-
-static Arc::Logger& logger = Arc::Logger::getRootLogger();
-
 #include "job_config.h"
 #include "states.h"
 
+static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 #ifdef NO_GLOBUS_CODE
 ContinuationPlugins::ContinuationPlugins(void) { };
@@ -80,30 +78,20 @@ bool JobsList::AddJobNoCheck(const JobId &id,JobsList::iterator &i,uid_t uid,gid
   i->keep_finished=user->KeepFinished();
   i->keep_deleted=user->KeepDeleted();
   i->set_uid(uid,gid);
+  if (!GetLocalDescription(i)) {
+    // safest thing to do is add failure and move to FINISHED
+    i->AddFailure("Internal error");
+    i->job_state = JOB_STATE_FINISHED;
+    FailedJob(i, false);
+    if(!job_state_write_file(*i,*user,i->job_state)) {
+      logger.msg(Arc::ERROR, "%s: Failed reading .local and changing state, job and "
+                             "A-REX may be left in an inconsistent state", id);
+    }
+    return false;
+  }
+  i->session_dir = i->local->sessiondir;
+  if (i->session_dir.empty()) i->session_dir = user->SessionRoot(id)+'/'+id;
   return true;
-}
-
-bool JobsList::AddJob(const JobId &id,uid_t uid,gid_t gid){
-  /* jobs should be unique */
-  if(FindJob(id) != jobs.end()) return false;
-  logger.msg(Arc::INFO,"%s: Added",id);
-  iterator i=jobs.insert(jobs.end(), JobDescription(id));
-  i->keep_finished=user->KeepFinished();
-  i->keep_deleted=user->KeepDeleted();
-  i->set_uid(uid,gid);
-  return true;
-}
-
-bool JobsList::AddJob(JobUser &user,const JobId &id,uid_t uid,gid_t gid){
-  if((&user) != NULL) {
-    if((this->user) == NULL) { this->user = &user; }
-    else {
-      if(this->user != &user) { /* incompatible user */
-        return false;
-      };
-    };
-  };
-  return AddJob(id,uid,gid);
 }
 
 #ifndef NO_GLOBUS_CODE
@@ -1041,13 +1029,6 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
         /* undefined means job just detected - read it's status */
         /* but first check if it's not too many jobs in system  */
         if((JOB_NUM_ACCEPTED < jcfg.max_jobs) || (jcfg.max_jobs == -1)) {
-          // read local first to get session dir
-          if (!GetLocalDescription(i)) {
-            job_error=true; i->AddFailure("Internal error: failed to read .local file");
-            return;
-          }
-          i->session_dir = i->local->sessiondir;
-          if (i->session_dir.empty()) i->session_dir = user->SessionRoot(i->job_id)+'/'+i->job_id;
           job_state_t new_state=job_state_read_file(i->job_id,*user);
           if(new_state == JOB_STATE_UNDEFINED) { /* something failed */
             logger.msg(Arc::ERROR,"%s: Reading status of new job failed",i->job_id);
@@ -1436,7 +1417,6 @@ void JobsList::UnlockDelegation(JobsList::iterator &i) {
 void JobsList::ActJobFinished(JobsList::iterator &i,
                               bool& /*once_more*/,bool& /*delete_job*/,
                               bool& /*job_error*/,bool& state_changed) {
-        GetLocalDescription(i); // to get session dir. Not a problem if there is no .local
         if(job_clean_mark_check(i->job_id,*user)) {
           logger.msg(Arc::INFO,"%s: Job is requested to clean - deleting",i->job_id);
           /* delete everything */
@@ -1540,7 +1520,6 @@ void JobsList::ActJobDeleted(JobsList::iterator &i,
                              bool& /*once_more*/,bool& /*delete_job*/,
                              bool& /*job_error*/,bool& /*state_changed*/) {
         /*if(hard_job)*/ { /* try to minimize load */
-          GetLocalDescription(i);
           time_t t = -1;
           if(!job_local_read_cleanuptime(i->job_id,*user,t)) {
             /* should not happen - delete job */
@@ -1659,7 +1638,7 @@ bool JobsList::ActJob(JobsList::iterator &i) {
        ActJobDeleted(i,once_more,delete_job,job_error,state_changed);
       }; break;
       default: { // should destroy job with unknown state ?!
-      };
+      }; break;
     };
     do {
       // Process errors which happened during processing this job
@@ -1814,7 +1793,7 @@ class JobFDesc {
   uid_t uid;
   gid_t gid;
   time_t t;
-  JobFDesc(const char* s,unsigned int n):id(s,n),uid(0),gid(0),t(-1) { };
+  JobFDesc(const std::string& s):id(s),uid(0),gid(0),t(-1) { };
   bool operator<(JobFDesc &right) { return (t < right.t); };
 };
 
@@ -1888,7 +1867,7 @@ bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) {
       if(l>(4+7)) {  /* job id contains at least 1 character */
         if(!strncmp(file.c_str(),"job.",4)) {
           if(!strncmp((file.c_str())+(l-7),".status",7)) {
-            JobFDesc id((file.c_str())+4,l-7-4);
+            JobFDesc id(file.substr(4,l-7-4));
             if(FindJob(id.id) == jobs.end()) {
               std::string fname=cdir+'/'+file.c_str();
               uid_t uid;
@@ -1925,7 +1904,7 @@ bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& s
             int ll = sfx->length();
             if(l > (ll+4)) {
               if(!strncmp(file.c_str()+(l-ll),sfx->c_str(),ll)) {
-                JobFDesc id((file.c_str())+4,l-ll-4);
+                JobFDesc id(file.substr(4,l-ll-4));
                 if(FindJob(id.id) == jobs.end()) {
                   std::string fname=cdir+'/'+file.c_str();
                   uid_t uid;
@@ -1979,16 +1958,18 @@ bool JobsList::ScanNewJobs(void) {
 }
 
 bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
-  // We are going to scan a dir with a lot of
-  // files here. So we scan it in parts and limit
-  // scanning time.
+  // We are going to scan a dir with a lot of files here. So we scan it in
+  // parts and limit scanning time. Here we also use a separate temporary
+  // jobs list for processing jobs in parallel to the main list. If a finished
+  // job is to be restarted it gets added back to the main list.
+  JobsList old_jobs(*user, *plugins);
   time_t start = time(NULL);
   if(max_scan_time < 10) max_scan_time=10; // some sane number - 10s
   std::string cdir=user->ControlDir()+"/finished";
   try {
     if(!old_dir) {
       old_dir = new Glib::Dir(cdir);
-    };
+    }
     for(;;) {
       std::string file=old_dir->read_name();
       if(file.empty()) {
@@ -1996,44 +1977,49 @@ bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
         delete old_dir;
         old_dir=NULL;
         return false;
-      };
+      }
       int l=file.length();
-      if(l>(4+7)) {  /* job id contains at least 1 character */
-        if(!strncmp(file.c_str(),"job.",4)) {
-          if(!strncmp((file.c_str())+(l-7),".status",7)) {
-            JobFDesc id((file.c_str())+4,l-7-4);
-            if(FindJob(id.id) == jobs.end()) {
-              std::string fname=cdir+'/'+file.c_str();
-              uid_t uid;
-              gid_t gid;
-              time_t t;
-              if(check_file_owner(fname,*user,uid,gid,t)) {
-                /* add it to the list */
-                id.uid=uid; id.gid=gid; id.t=t;
-                job_state_t st = job_state_read_file(id.id,*user);
-                if((st == JOB_STATE_FINISHED) || (st == JOB_STATE_DELETED)) {
-                  iterator i;
-                  AddJobNoCheck(id.id,i,id.uid,id.gid);
-                  i->job_state = st;
-                  --max_scan_jobs;
-                };
-              };
-            };
-          };
-        };
-      };
+      // job id must contain at least one character
+      if(l>(4+7) && file.substr(0,4) == "job." && file.substr(l-7) == ".status") {
+        JobFDesc id(file.substr(4, l-7-4));
+        if(FindJob(id.id) == jobs.end()) {
+          std::string fname=cdir+'/'+file;
+          uid_t uid;
+          gid_t gid;
+          time_t t;
+          if(check_file_owner(fname,*user,uid,gid,t)) {
+            job_state_t st = job_state_read_file(id.id,*user);
+            if(st == JOB_STATE_FINISHED || st == JOB_STATE_DELETED) {
+              JobsList::iterator i;
+              old_jobs.AddJobNoCheck(id.id, i, uid, gid);
+              old_jobs.ActJob(i);
+              // if job moved to final state it will be deleted from list,
+              // otherwise it was restarted and kept in list. If it went back
+              // to ACCEPTED then it will be picked up automatically, but for
+              // other states we have to add it back to main list (restarts are
+              // normally handled by ScanNewMarks but can also happen here).
+              if (old_jobs.size() != 0) {
+                i = old_jobs.begin();
+                if (i->get_state() != JOB_STATE_ACCEPTED) jobs.push_back(*i);
+                old_jobs.erase(i);
+              }
+              --max_scan_jobs;
+            }
+          }
+        }
+      }
       if(((int)(time(NULL)-start)) >= max_scan_time) break;
       if(max_scan_jobs <= 0) break;
-    };
+    }
   } catch(Glib::FileError& e) {
     logger.msg(Arc::ERROR,"Failed reading control directory: %s",cdir);
     if(old_dir) {
       old_dir->close();
       delete old_dir;
       old_dir=NULL;
-    };
+    }
     return false;
-  };
+  }
   return true;
 }
 
