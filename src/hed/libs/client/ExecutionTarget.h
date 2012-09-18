@@ -132,6 +132,8 @@ namespace Arc {
     Period WorkingAreaLifeTime;
     int CacheTotal;
     int CacheFree;
+
+    void SaveToStream(std::ostream& out, bool alldetails) const;
   };
 
   class ComputingShareAttributes {
@@ -227,7 +229,7 @@ namespace Arc {
     int RequestedSlots;
     std::string ReservationPolicy;
 
-    friend std::ostream& operator<<(std::ostream& out, const ComputingShareAttributes& cs);
+    void SaveToStream(std::ostream& out, bool alldetails) const;
   };
 
   class ComputingEndpointAttributes {
@@ -264,7 +266,7 @@ namespace Arc {
     // This is singular in the GLUE2 doc: JobDescription
     std::list<std::string> JobDescriptions;
 
-    friend std::ostream& operator<<(std::ostream& out, const ComputingEndpointAttributes& ce);
+    void SaveToStream(std::ostream& out, bool alldetails) const;
   };
 
   class ComputingServiceAttributes {
@@ -334,6 +336,8 @@ namespace Arc {
     std::map<int, ComputingEndpointType> ComputingEndpoint;
     std::map<int, ComputingShareType> ComputingShare;
     std::map<int, ComputingManagerType> ComputingManager;
+
+    void SaveToStream(std::ostream& out, bool alldetails) const;
   private:
     template<typename T>
     void AddExecutionTarget(T& container, const ExecutionTarget& et) const;
