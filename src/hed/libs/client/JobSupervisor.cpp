@@ -162,21 +162,6 @@ namespace Arc {
     }
   }
 
-  std::list<Job> JobSupervisor::GetJobs(bool includeJobsWithoutStateInfo) const {
-    if (includeJobsWithoutStateInfo) {
-      return jobs;
-    }
-    std::list<Job> selectedJobs;
-    for (std::list<Job>::const_iterator itJ = jobs.begin();
-         itJ  != jobs.end(); ++itJ) {
-      if (!itJ->State) {
-        selectedJobs.push_back(*itJ);
-      }
-    }
-
-    return selectedJobs;
-  }
-
   void JobSupervisor::Update() {
     for (JobSelectionMap::iterator it = jcJobMap.begin();
          it != jcJobMap.end(); ++it) {

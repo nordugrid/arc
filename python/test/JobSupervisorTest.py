@@ -14,7 +14,7 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
         ]);
         self.expect(js.GetAllJobs()).not_to_be_empty()
 
-        jobs = js.GetJobs()
+        jobs = js.GetAllJobs()
         self.expect(jobs).to_have(2).jobs()
 
         self.expect(jobs[0].JobID.str()).to_be(id1.str())

@@ -64,9 +64,9 @@ void JobSupervisorTest::TestConstructor()
   js = new Arc::JobSupervisor(usercfg, jobs);
   CPPUNIT_ASSERT(!js->GetAllJobs().empty());
 
-  jobs = js->GetJobs();
+  jobs = js->GetAllJobs();
 
-  // JobControllerPlugin should contain 2 jobs.
+  // JobSupervisor should contain 2 jobs.
   CPPUNIT_ASSERT_EQUAL(2, (int)jobs.size());
 
   CPPUNIT_ASSERT_EQUAL(id1, jobs.front().JobID);
