@@ -21,6 +21,8 @@
 #include "../a-rex/grid-manager/conf/conf_file.h"
 #include "../a-rex/grid-manager/log/job_log.h"
 #include "../a-rex/grid-manager/jobs/job_config.h"
+#include "../a-rex/grid-manager/jobs/plugins.h"
+#include "../a-rex/grid-manager/run/run_plugin.h"
 
 #include "CacheService.h"
 
@@ -64,7 +66,9 @@ CacheService::CacheService(Arc::Config *cfg, Arc::PluginArgument* parg) :
 
   JobLog job_log;
   jcfg = new JobsListConfig;
-  gm_env = new GMEnvironment(job_log, *jcfg);
+  ContinuationPlugins plugins;
+  RunPlugin cred_plugin;
+  gm_env = new GMEnvironment(job_log, *jcfg, plugins, cred_plugin);
   gm_env->nordugrid_config_loc(arex_config);
   users = new JobUsers(*gm_env);
 
