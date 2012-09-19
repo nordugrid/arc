@@ -32,12 +32,11 @@ import ConfigParser
 # Prepend module path
 sys.path.insert(0,SSMDIR)
 
-from ssm import SecureStompMessenger, SsmException, Config, ProducerConfig, \
-    ConsumerConfig, SSM_LOGGER_ID
+import ssm
 from message_db import MessageDB
+from encrypt_utils import EncryptException
 
 log = None
-
 
 def get_basic_config(config):
     """
@@ -45,7 +44,7 @@ def get_basic_config(config):
     and return Config object to pass to the SSM.
     """
     
-    c = Config()
+    c = ssm.Config()
     # Start the logging
     c.logconf = config.get('logging', 'log-conf-file')
     c.logconf = os.path.normpath(os.path.expandvars(c.logconf))
@@ -53,7 +52,7 @@ def get_basic_config(config):
         raise Exception("Can't find or open logging config file " + c.logconf)
     logging.config.fileConfig(c.logconf)
     global log
-    log = logging.getLogger(SSM_LOGGER_ID)  
+    log = logging.getLogger(ssm.SSM_LOGGER_ID)  
     
     try:
         c.bdii = config.get('broker', 'bdii-url')
@@ -103,7 +102,7 @@ def get_consumer_config(config):
     Read SSM consumer configuration info from a ConfigParser object,
     and return ConsumerConfig object to pass to the SSM.
     """
-    c = ConsumerConfig()
+    c = ssm.ConsumerConfig()
         
     c.listen_to = config.get('consumer','topic')
     c.valid_dn = config.get('consumer','valid-dns')
@@ -112,7 +111,7 @@ def get_consumer_config(config):
         
     if not os.path.isfile(c.valid_dn):
         log.warn("Valid DN file doesn't exist: not starting the consumer")
-        raise SsmException(c.valid_dn + ' not a file.')
+        raise ssm.SsmException(c.valid_dn + ' not a file.')
     
     return c
         
@@ -122,7 +121,7 @@ def get_producer_config(config):
     Read SSM producer configuration info from a ConfigParser object,
     and return ProducerConfig object to pass to the SSM.
     """    
-    c = ProducerConfig()
+    c = ssm.ProducerConfig()
     
     try:
         c.msg_check_time = config.getint('producer', 'msg-check-time')
@@ -145,7 +144,7 @@ def get_producer_config(config):
     return c
 
 
-def run_once(ssm):
+def run_once(ssm_inst):
     """
     Given an SSM object, try to send all messages in its outgoing
     directory, then exit.
@@ -153,16 +152,20 @@ def run_once(ssm):
     log.info("Running the SSM once only.")
     try:
         try:
-            ssm.startup()
+            ssm_inst.startup()
             log.info("The SSM started successfully.")
         except Exception, err:
             print "Failed to connect: " + str(err)
             raise
-        while ssm.process_outgoing():
+        while ssm_inst.process_outgoing():
             pass
         
+        # A final ping message will contain a reack for the last 
+        # message received
+        ssm_inst._send_ping()
+        
         log.info("All outgoing messages have been processed.")
-        ssm.shutdown()
+        ssm_inst.shutdown()
         
     except Exception, e:
         error_msg = "Error processing outgoing messages: " + str(e)
@@ -170,10 +173,10 @@ def run_once(ssm):
         log.warn(error_msg)
         print "The SSM will exit"
         log.warn("The SSM will exit")
-        ssm.shutdown()
+        ssm_inst.shutdown()
      
         
-def run_as_daemon(ssm):
+def run_as_daemon(ssm_inst):
     """
     Given an SSM object, start it as a daemon process.
     """
@@ -189,7 +192,7 @@ def run_as_daemon(ssm):
         # manually.
         dc.open()
         try:
-            ssm.startup()
+            ssm_inst.startup()
         except Exception, err:
             print err
             print type(err)
@@ -201,39 +204,45 @@ def run_as_daemon(ssm):
         # A SystemExit exception will be raised if the process is killed.
         while True:
             
-            if ssm.is_dead():
-                raise ssm.get_death_exception()
+            if ssm_inst.is_dead():
+                raise ssm_inst.get_death_exception()
                 
             # Process all the messages one at a time before continuing
             try:
-                while ssm.process_outgoing():
+                while ssm_inst.process_outgoing():
                     pass
-            except SsmException, err:
+            except ssm.SsmException, err:
                 # SsmException if the message is rejected by the consumer.
+                # We can wait and try again.
                 log.error('Error in message processing: '+str(err))
+            except EncryptException, err:
+                # EncryptException if something went wrong trying to encrypt
+                # or sign. Give up.
+                log.error("Failed to encrypt or sign:" + str(err))
+                raise
                 
-            time.sleep(ssm.msg_check_time)
+            time.sleep(ssm_inst.msg_check_time)
                 
     except SystemExit, e:
         log.info("Received the shutdown signal: " + str(e))
-        ssm.shutdown()
+        ssm_inst.shutdown()
         dc.close()
-    except SsmException, e:
+    except (ssm.SsmException, EncryptException), e:
         log.error("An unrecoverable exception was thrown:")
         log.error(str(e))
         log.error("The SSM will exit.")  
-        ssm.shutdown()
+        ssm_inst.shutdown()
         dc.close()
     except Exception, e:
         log.error(type(e))
         log.error(str(e))
         log.error("Unexpected exception: " + str(e))
         log.error("The SSM will exit.")  
-        ssm.shutdown()
+        ssm_inst.shutdown()
         dc.close()
     
         
-def runprocess(config_file, daemon, host, port, topic, key, cert, cadir, message_path):
+def runprocess(config_file, asdaemon, host, port, topic, key, cert, cadir, message_path):
     """
     Retrieve the configuration from the file and start the SSM.
     """
@@ -243,9 +252,8 @@ def runprocess(config_file, daemon, host, port, topic, key, cert, cadir, message
     
     # Required basic SSM configuration, including logging
     try:
-        # SSM configuration
         config = get_basic_config(config_parser)
-        config.daemon = daemon
+        config.daemon = asdaemon
         config.host = host
         config.port = int(port)
         config.key = key
@@ -279,7 +287,7 @@ def runprocess(config_file, daemon, host, port, topic, key, cert, cadir, message
        
     try:
         messagedb = MessageDB(config.messages, config.test)
-        ssm = SecureStompMessenger(messagedb, config, producer_config, consumer_config)
+        ssm_inst = ssm.SecureStompMessenger(messagedb, config, producer_config, consumer_config)
     except Exception, err:
         print err
         print type(err)
@@ -288,10 +296,10 @@ def runprocess(config_file, daemon, host, port, topic, key, cert, cadir, message
         sys.exit(1)
         
     # Finally, as long as initial checks pass, set it going.
-    if daemon:
-        run_as_daemon(ssm)
+    if asdaemon:
+        run_as_daemon(ssm_inst)
     else:
-        run_once(ssm)
+        run_once(ssm_inst)
         
     log.info("The SSM has shut down.")
     log.info("=======================================================")

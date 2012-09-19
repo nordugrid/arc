@@ -34,6 +34,9 @@ except ImportError:
 # logging configuration
 log = logging.getLogger('SSM')
 
+class EncryptException(Exception):
+    pass
+
 
 def from_file(filename):
     '''
@@ -101,16 +104,20 @@ def sign_message(text, cert_path, key_path):
     
     Returns the signed message as an SMIME string, suitable for transmission.
     '''
-    p1 = Popen(["openssl", "smime", "-sign", "-inkey", key_path, "-signer", cert_path, "-text"],
-               stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    
-    signed_msg, error = p1.communicate(text)
-    
-    if (error != ''):
-        log.error(error)
-        print error
+    try:
+        p1 = Popen(["openssl", "smime", "-sign", "-inkey", key_path, "-signer", cert_path, "-text"],
+                   stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        
+        signed_msg, error = p1.communicate(text)
+        
+        if (error != ''):
+            log.error(error)
+            print error
 
-    return signed_msg
+        return signed_msg
+    except OSError, e:
+        log.error("Failed to sign message: %s" % e)
+        raise EncryptException("Message signing failed.  Check cert and key permissions.")
 
     # Using M2Crypto...
     # This signature code with v0.16 of m2crypto doesn't work as expected, in
@@ -200,11 +207,16 @@ def verify_message(signed_text, capath, check_crl):
 
     Returns a tuple including the signer's certificate and the plain-text of the
     message if it has been verified
-    '''
+    ''' 
+    # This ensures that openssl knows that the string is finished.
+    # It makes no difference if the signed message is correct, but 
+    # prevents it from hanging in the case of an empty string.
+    signed_text += "\n\n"
+    
     signer = get_signer_cert(signed_text)
     
     if not verify_certificate(signer, capath, check_crl):
-        raise RuntimeError("Unverified signer")
+        raise EncryptException("Unverified signer")
     
     # The -noverify flag removes the certificate verification.  The certificate 
     # is verified above; this check would also check that the certificate
@@ -410,7 +422,6 @@ def get_certificate_subject(certificate):
     '''
     Returns the certificate subject's DN.
     '''
-    
     x509 = X509.load_cert_string(certificate)
     return str(x509.get_subject())
 

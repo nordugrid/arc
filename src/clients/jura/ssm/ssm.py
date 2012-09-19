@@ -199,17 +199,11 @@ class SecureStompMessenger(object):
         
         self._fetch_brokers()
         # Connect
-        self._handle_connection()
+        self._handle_connect()
         
         # Finally, set the background thread going to run periodic checks.
         if self._daemon:
-                        
-            try:
-                f = open(self._configuration.pidfile, "w")
-                f.write(str(os.getpid()))
-                f.close()
-            except IOError, e:
-                log.warn("Failed to create pidfile %s: %s" % (self._configuration.pidfile, e))
+            self._create_pidfile()            
                 
             self._admin_thread = Thread(target = self._run_admin_thread)
             # This daemon is separate to our daemon concept.  This thread
@@ -220,47 +214,26 @@ class SecureStompMessenger(object):
             
             log.debug("Started the background thread.")
 
-                
-            
             
     def shutdown(self):
         """
-        Close the connection.  This is important because it runs 
-        in a separate thread, so it can outlive the main process 
-        if it is not ended.
-        
-        If running as a daemon, remove the pid file.
+        If running as a daemon, remove the pid file.  Then close the 
+        connection.
         
         self._admin_thread MUST be set as a daemon, and so 
         does not need to be handled here.
         """
         if self._daemon:
-            pidfile = self._configuration.pidfile
-            try:
-                if os.path.exists(pidfile):
-                    os.remove(pidfile)
-                else:
-                    log.warn("pidfile %s not found." % pidfile)
-            except IOError, e:
-                log.warn("Failed to remove pidfile %s: %e" % (pidfile, e))
-                log.warn("The SSM may not start again until it is removed.")
+            self._remove_pidfile()
             
-        try:
-            self._connection.disconnect()
-        except (stomp.exception.NotConnectedException, socket.error):
-            self._connection = None
-        except AttributeError:
-            # AttributeError if self._connection is None already
-            pass
-            
-        log.info("SSM connection ended.")
+        self._close_connection()
     
     
     def initialise_connection(self):
-        '''
+        """
         Create the self._connection object with the appropriate properties,
         but don't try to start the connection.
-        '''
+        """
         # abbreviation
         cfg = self._configuration
         ssl_key = None
@@ -295,10 +268,13 @@ class SecureStompMessenger(object):
         
     
     def start_connection(self):
-        '''
+        """
         Once self._connection exists, attempt to start it and subscribe
         to the relevant topics.
-        '''
+        
+        If the timeout is reached without receiving confirmation of 
+        connection, raise an exception.
+        """
         cfg = self._configuration
         
         if self._connection is None:
@@ -319,7 +295,6 @@ class SecureStompMessenger(object):
         if self._producer_config is not None:
             log.info("The SSM will run as a producer.")
             cfg = self._producer_config
-            
             self._connection.subscribe(destination=cfg.ack_queue, ack='auto')
             log.debug('I will be a producer, my ack queue is: '+cfg.ack_queue)
         else:
@@ -332,21 +307,37 @@ class SecureStompMessenger(object):
         while not self._is_connected:
             time.sleep(0.1)
             if i > CONNECTION_TIMEOUT * 10:
-                message = "Timed out while waiting for connection.  Check the username and password."
+                message = "Timed out while waiting for connection.  Check the connection details."
                 raise SsmException(message)
             i += 1
+    
+    
+    def _close_connection(self):
+        """
+        Close the connection.  This is important because it runs 
+        in a separate thread, so it can outlive the main process 
+        if it is not ended.
+        """
+        try:
+            self._connection.disconnect()
+        except (stomp.exception.NotConnectedException, socket.error):
+            self._connection = None
+        except AttributeError:
+            # AttributeError if self._connection is None already
+            pass
+        log.info("SSM connection ended.")
             
             
-    def _handle_connection(self):
-        '''
+    def _handle_connect(self):
+        """
         Assuming that the SSM has retrieved the details of the broker or 
         brokers it wants to connect to, connect to one.
         
         If more than one is in the list self._network_brokers, try to 
         connect to each in turn until successful.
-        '''
+        """
         # If we've got brokers from the BDII.
-        if len(self._network_brokers) > 0:
+        if self._network_brokers:
             for host, port in self._network_brokers:
                 self._broker_host = host
                 self._broker_port = port
@@ -358,7 +349,7 @@ class SecureStompMessenger(object):
                     # Exception doesn't provide a message.
                     log.warn("Failed to connect to %s:%s." % (host, port))
                 except SsmException, e:
-                    log.warn("Failed to connect to %s:%s: %s" % (host, port, e.message))
+                    log.warn("Failed to connect to %s:%s: %s" % (host, port, str(e)))
         else:  # Broker host and port specified.
             self.initialise_connection()
             try:
@@ -367,24 +358,20 @@ class SecureStompMessenger(object):
                 # Exception doesn't provide a message.
                 log.warn("Failed to connect to %s:%s." % (self._broker_host, self._broker_port))
             except SsmException, e:
-                log.error("Failed to connect to %s:%s: %s" % (self._broker_host, self._broker_port, e.message))
+                log.error("Failed to connect to %s:%s: %s" % (self._broker_host, self._broker_port, str(e)))
                 
         if not self._is_connected:
             raise SsmException("Attempts to start the SSM failed.  The system will exit.")
         
         
-    def _handle_disconnection(self):
-        '''
-        When disconnected, attempt to reconnect for a sensible period,
-        then shut down cleanly.
-        
-        There are two likely scenarios - the SSM may have a choice of brokers to 
-        connect to, retrieved via a BDII, or it may have one, specified by
-        host and port in the configuration file.
-        '''
+    def _handle_disconnect(self):
+        """
+        When disconnected, attempt to reconnect using the same method as used
+        when starting up.
+        """
         self._is_connected = False
         # Shut down properly
-        self.shutdown()
+        self._close_connection()
         
         # Sometimes the SSM will reconnect to the broker before it's properly 
         # shut down!  This prevents that.
@@ -392,7 +379,7 @@ class SecureStompMessenger(object):
         
         # Try again according to the same logic as the initial startup
         try:
-            self._handle_connection()
+            self._handle_connect()
         except SsmException:
             self._is_connected = False
             
@@ -402,46 +389,88 @@ class SecureStompMessenger(object):
             self._death_exception = SsmException(error_message)
             self._dead = True
             
+    def _create_pidfile(self):
+        """
+        Create the pidfile.
+        """
+        try:
+            f = open(self._configuration.pidfile, "w")
+            f.write(str(os.getpid()))
+            f.write("\n")
+            f.close()
+            return True
+        except IOError, e:
+            log.warn("Failed to create pidfile %s: %s" % (self._configuration.pidfile, e))
+            return False
+        
+    def _remove_pidfile(self):
+        """
+        If the pidfile exists, remove it.  If it doesn't exist, or there's 
+        a problem removing it, log the problem.
+        
+        Returns True if the pidfile is successfully removed.
+        """
+        pidfile = self._configuration.pidfile
+        try:
+            if os.path.exists(pidfile):
+                os.remove(pidfile)
+                return True
+            else:
+                log.warn("pidfile %s not found." % pidfile)
+        except IOError, e:
+            log.warn("Failed to remove pidfile %s: %e" % (pidfile, e))
+            log.warn("The SSM may not start again until it is removed.")
+        
+        return False
+            
     
     def is_dead(self):
-        '''
+        """
         Whether the 'dead' flag has been set to true.
-        '''
+        """
         return self._dead
     
     
     def get_death_exception(self):
-        '''
+        """
         If the 'dead' flag has been set, this should return the relevant 
         exception.
-        '''
+        """
         return self._death_exception
             
 
     def on_connecting(self, host_and_port):
-        '''
+        """
         Called by stomppy when a connection attempt is made.
-        '''
+        """
         log.info('Connecting: ' + str(host_and_port))
 
 
     def on_connected(self, unused_headers, unused_body):
-        '''
+        """
         Set connection tracking to connected.
         Called by stomppy when the connection is acknowledged by 
         the broker.
-        '''
+        """
         log.info('Connected')
         self._is_connected = True
     
     
-    def on_disconnected(self, unused_headers, unused_body):
-        '''
+    def on_disconnected(self, headers, body):
+        """
         Attempt to handle the disconnection.
         Called by stomppy when a disconnect frame is sent.
-        '''
+        """
         log.warn('Disconnected from broker.')
-        self._handle_disconnection()
+        log.debug(headers)
+        log.debug(body)
+        # If we were connected before, try to reconnect.  
+        # If we weren't, accept disconnection. 
+        if self._is_connected:
+            self._is_connected = False
+            self._handle_disconnect()
+        else:
+            log.warn("Broker refused connection.")
 
 
     def on_send(self, headers, body):
@@ -459,80 +488,92 @@ class SecureStompMessenger(object):
         contain a re-acknowledgement value, to let us know the producer got our
         previous ack.
         """
-        
-        log.debug('Receiving message from: ' + headers['destination'])
-        self._received = (self._received + 1) % 1000
-
-        if SSM_REACK_HEADER in headers.keys():
-
-            # we got a re-ack from the producer, so we can safely remove the
-            # ack-tracking information for the message
-
-            log.debug('Got reack ' + headers[SSM_REACK_HEADER])
-            self._messagedb.clear_message_ack(headers[SSM_REACK_HEADER])
-
-        # don't need to do anything with a ping
-        if headers[SSM_MSG_TYPE] == SSM_PING_MSG:
-            return
-
-        # handle certificate request by responding with our certificate
-        if headers[SSM_MSG_TYPE] == SSM_CERT_REQ_MSG:
-            log.debug('Certificate requested')
-            self._send_message(headers['reply-to'], SSM_CERT_RESP_MSG, 
-                               NO_MSG_ID, from_file(self._configuration.certificate))
-            
-            return
-            
-        # handle certificate response
-        if headers[SSM_MSG_TYPE] == SSM_CERT_RESP_MSG:
-            if self._consumer_certificate is None:
-                log.info('Certificate received')
+        try:
+            log.debug('Receiving message from: ' + headers['destination'])
+            self._received = (self._received + 1) % 1000
+    
+            if SSM_REACK_HEADER in headers.keys():
+    
+                # we got a re-ack from the producer, so we can safely remove the
+                # ack-tracking information for the message
+    
+                log.debug('Got reack ' + headers[SSM_REACK_HEADER])
+                self._messagedb.clear_message_ack(headers[SSM_REACK_HEADER])
+    
+            # don't need to do anything with a ping
+            if headers[SSM_MSG_TYPE] == SSM_PING_MSG:
+                return
+    
+            # handle certificate request by responding with our certificate
+            if headers[SSM_MSG_TYPE] == SSM_CERT_REQ_MSG:
+                log.debug('Certificate requested')
+                self._send_message(headers['reply-to'], SSM_CERT_RESP_MSG, 
+                                   NO_MSG_ID, from_file(self._configuration.certificate))
                 
-                try:
-                    check_crls = self._configuration.check_crls
-                    capath = self._configuration.capath
-                    if not verify_certificate(body, capath, check_crls):
-                        raise SsmException, 'Certificate failed to verify'
+                return
+                
+            # handle certificate response
+            if headers[SSM_MSG_TYPE] == SSM_CERT_RESP_MSG:
+                if self._consumer_certificate is None:
+                    log.info('Certificate received')
+                    
+                    try:
+                        check_crls = self._configuration.check_crls
+                        capath = self._configuration.capath
+                        if not verify_certificate(body, capath, check_crls):
+                            raise SsmException, 'Certificate failed to verify'
+    
+                        if self._producer_config.consumerDN != get_certificate_subject(body):
+                            log.error('Expected ' + self._producer_config.consumerDN + 
+                                      ', but got ' + get_certificate_subject(body))
+                            
+                            raise SsmException, 'Certificate does not match consumerDN configuration'
+    
+                        log.debug(get_certificate_subject(body))
+                        self._consumer_certificate = body
+                    except  Exception, err:
+                        log.warning('Certificate not verified: ' + str(err))
+    
+                else:
+                    log.warning('Unexpected certificate - ignored')
+    
+                return
+    
+            if self._producer_config is not None and headers['destination'] == self._producer_config.ack_queue:
+    
+                # message is an ack to our previous message; the message ID will be
+                # the md5sum of our previously sent message
+    
+                log.debug('Received ack for ' + headers[SSM_ID_HEADER])
+                self._last_acked = headers[SSM_ID_HEADER]
+                return
+    
+            if headers[SSM_MSG_TYPE] == SSM_NORMAL_MSG:
+                self._decrypt_verify(headers, body)
+                return
+            
+            # Finally, as it's not an expected message type, reject it:
+            log.warn("Unexpected message type received: %s", headers[SSM_MSG_TYPE])
+            log.warn("Message was ignored.")
+            
+        except KeyError:
+            log.warn("Incoming message did not have the necessary headers.")
+            log.warn("Message was ignored.")
+        except Exception, e:
+            log.error("Unexpected exception while handling incoming message:")
+            log.error("%s: %s" % (type(e), e)) 
+            log.error("Message was ignored.")
 
-                    if self._producer_config.consumerDN != get_certificate_subject(body):
-                        log.error('Expected ' + self._producer_config.consumerDN + 
-                                  ', but got ' + get_certificate_subject(body))
-                        
-                        raise SsmException, 'Certificate does not match consumerDN configuration'
 
-                    log.debug(get_certificate_subject(body))
-                    self._consumer_certificate = body
-                except  Exception, err:
-                    log.warning('Certificate not verified: ' + str(err))
-
-            else:
-                log.warning('Unexpected certificate - ignored')
-
-            return
-
-        if self._producer_config is not None and headers['destination'] == self._producer_config.ack_queue:
-
-            # message is an ack to our previous message; the message ID will be
-            # the md5sum of our previously sent message
-
-            log.debug('Received ack for ' + headers[SSM_ID_HEADER])
-            self._last_acked = headers[SSM_ID_HEADER]
-            return
-
-        if headers[SSM_MSG_TYPE] == SSM_NORMAL_MSG:
-            self._decrypt_verify(headers, body)
-            return
-        
-        # Finally, as it's not an expected message type, reject it:
-        log.warn("Unexpected message type received: %s", headers[SSM_MSG_TYPE])
-        log.warn("Message was ignored.")
-
-
-    def on_error(self, unused_headers, unused_body):
+    def on_error(self, headers, body):
         """
         Called by stomppy if an error frame is received.
         """
-        log.warning('Error frame')
+        log.warning('Error frame received.')
+        log.debug("Error frame headers:")
+        log.debug(headers)
+        log.debug(body)
+        
 
 
     def on_receipt(self, headers, unused_body):
@@ -655,7 +696,7 @@ class SecureStompMessenger(object):
             hdrs[SSM_REACK_HEADER] = self._reack
             log.debug('Sending reack '+self._reack)
             self._reack = None
-
+        
         self._connection.send(msg, headers=hdrs)
         
         # only track acks for genuine messages
@@ -681,18 +722,19 @@ class SecureStompMessenger(object):
 
 
     def _waiting_for_ack(self, msg_id):
-        '''
+        """
         Return False if the msg_id matches the self._last_acked id.
         i.e. if it's the same, we're no longer waiting for the ack.
-        ''' 
+        """ 
         return (self._last_acked != msg_id)
 
     
     def _clear_certificate(self):
-        '''Clears the stored certificate of the consumer to which we are 
+        """
+        Clears the stored certificate of the consumer to which we are 
         sending messages.  This just means that the next time we come to 
         send a message, we'll request the certificate first.
-        '''
+        """
         self._consumer_certificate = None
 
 
@@ -782,7 +824,7 @@ class SecureStompMessenger(object):
             
     
     def _run_admin_thread(self):
-        '''
+        """
         Method run by a background thread.  It does various repeating 
         tasks which need to be done periodically, but shouldn't interfere
         with the regular control flow of the SSM.  The tasks shouldn't take
@@ -791,7 +833,7 @@ class SecureStompMessenger(object):
         This method needs to be called by a threading.Thread object with 
         daemon set to true; otherwise it will hang indefinitely even if the
         python process is killed.
-        ''' 
+        """ 
         # Number of seconds per loop.
         interval = 60
         # Don't start the counter at 0 so all the methods don't get called 
@@ -817,7 +859,7 @@ class SecureStompMessenger(object):
                     if counter % self._clear_cert_interval == 0:
                         self._reset_certificate()
                     
-                counter = counter + 1 % 10080  # minutes in a week
+                counter = (counter + 1) % 10080  # minutes in a week
                 
                 time.sleep(interval)
                 
@@ -907,12 +949,15 @@ class SecureStompMessenger(object):
             self._network_brokers_lock.release()
             for item in self._network_brokers:
                 log.debug("Found broker in BDII: %s:%d" % item)
+                
+            if not self._network_brokers:
+                raise SsmException("No brokers found for URL %s and network %s" % (cfg.bdii, cfg.broker_network)) 
             
         else:
             log.info("Using broker details supplied: %s:%d" % (cfg.host, cfg.port)) 
             self._broker_host = cfg.host
             self._broker_port = cfg.port
-        
+            
 
     def _valid_sender(self, sender):
         """
