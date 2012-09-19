@@ -237,6 +237,8 @@ bool job_controldiag_mark_put(const JobDescription &desc,const JobUser &user,cha
   if(!fix_file_owner(fname,desc,user)) return false;
   if(!fix_file_permissions(fname)) return false;
   if(args == NULL) return true;
+  struct stat st;
+  if(args[0] && stat(args[0], &st) != 0) return true;
   int h = open(fname.c_str(),O_WRONLY);
   if(h == -1) return false;
   int r;
