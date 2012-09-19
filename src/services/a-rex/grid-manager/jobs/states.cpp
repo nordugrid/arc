@@ -1690,7 +1690,13 @@ bool JobsList::ActJob(JobsList::iterator &i) {
           i->AddFailure("Failed writing job status: "+Arc::StrError(errno));
           job_error=true;
         } else {
-          // talk to external plugin to ask if we can proceed
+          // Talk to external plugin to ask if we can proceed
+          // Jobs with ACCEPTED state or UNDEFINED previos state
+          // could be ignored here. But there is tiny possibility
+          // that service failed while processing ContinuationPlugins.
+          // Hence here we have duplicate call for ACCEPTED state.
+          // TODO: maybe introducing job state prefix VALIDATING:
+          // could be used to resolve this situation.
           if(plugins) {
             std::list<ContinuationPlugins::result_t> results;
             plugins->run(*i,*user,results);

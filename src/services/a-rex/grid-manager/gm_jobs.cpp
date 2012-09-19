@@ -23,6 +23,7 @@
 #include "jobs/commfifo.h"
 #include "jobs/job_config.h"
 #include "log/job_log.h"
+#include "run/run_plugin.h"
 
 static void get_arex_xml(Arc::XMLNode& arex,GMEnvironment& env) {
   
@@ -227,7 +228,9 @@ int main(int argc, char* argv[]) {
 
   JobLog job_log;
   JobsListConfig jobs_cfg;
-  GMEnvironment env(job_log,jobs_cfg);
+  ContinuationPlugins plugins;
+  RunPlugin cred_plugin;
+  GMEnvironment env(job_log,jobs_cfg,plugins,cred_plugin);
 
   if (!conf_file.empty())
     env.nordugrid_config_loc(conf_file);

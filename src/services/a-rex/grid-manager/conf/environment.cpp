@@ -16,7 +16,13 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 static bool read_env_vars(bool guess);
 
-GMEnvironment::GMEnvironment(JobLog& job_log,JobsListConfig& jcfg,bool guess):job_log_(job_log),jobs_cfg_(jcfg),delegations_(NULL) {
+GMEnvironment::GMEnvironment(JobLog& job_log,
+                             JobsListConfig& jcfg,
+                             ContinuationPlugins& plugins,
+                             RunPlugin& cred_plugin,
+                             bool guess):
+        job_log_(job_log),jobs_cfg_(jcfg),
+        plugins_(plugins),cred_plugin_(cred_plugin),delegations_(NULL) {
   valid_=read_env_vars(guess);
 }
 
@@ -296,5 +302,12 @@ void GMEnvironment::delegations(ARex::DelegationStores* deleg) {
   delegations_ = deleg;
 }
 
+ContinuationPlugins& GMEnvironment::plugins() const {
+  return plugins_;
+}
+
+RunPlugin& GMEnvironment::cred_plugin() const {
+  return cred_plugin_;
+}
 
 

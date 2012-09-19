@@ -24,6 +24,7 @@
 #include "grid-manager/conf/conf_file.h"
 #include "grid-manager/log/job_log.h"
 #include "grid-manager/jobs/job_config.h"
+#include "grid-manager/run/run_plugin.h"
 #include "arex.h"
 
 namespace ARex {
@@ -834,6 +835,8 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
               all_jobs_count_(0),
               job_log_(NULL),
               jobs_cfg_(NULL),
+              cont_plugins_(NULL),
+              cred_plugin_(NULL),
               gm_env_(NULL),
               users_(NULL),
               my_user_(NULL),
@@ -873,7 +876,9 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
   enableemies_=false;
   job_log_ = new JobLog;
   jobs_cfg_ = new JobsListConfig;
-  gm_env_ = new GMEnvironment(*job_log_,*jobs_cfg_);
+  cont_plugins_ = new ContinuationPlugins;
+  cred_plugin_ = new RunPlugin;
+  gm_env_ = new GMEnvironment(*job_log_,*jobs_cfg_,*cont_plugins_,*cred_plugin_);
   gm_env_->delegations(&delegation_stores_);
   users_ = new JobUsers(*gm_env_);
   my_user_= new JobUser(*gm_env_,getuid(),getgid());
@@ -1062,6 +1067,8 @@ ARexService::~ARexService(void) {
   if(my_user_) delete my_user_;
   if(users_) delete users_;
   if(gm_env_) delete gm_env_;
+  if(cont_plugins_) delete cont_plugins_;
+  if(cred_plugin_) delete cred_plugin_;
   if(jobs_cfg_) delete jobs_cfg_;
   if(job_log_) delete job_log_;
   if(gmconfig_temporary_) {

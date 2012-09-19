@@ -23,10 +23,6 @@
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-//JobLog job_log;
-ContinuationPlugins plugins;
-RunPlugin cred_plugin;
-
 static void check_lrms_backends(const std::string& default_lrms,GMEnvironment& env) {
   std::string tool_path;
   tool_path=env.nordugrid_data_loc()+"/cancel-"+default_lrms+"-job";
@@ -482,7 +478,7 @@ bool configure_serviced_users(JobUsers &users/*,uid_t my_uid,const std::string &
       if(options_s.length() == 0) {
         logger.msg(Arc::ERROR,"Options for plugin are missing"); goto exit;
       };
-      if(!plugins.add(state_name.c_str(),options_s.c_str(),rest.c_str())) {
+      if(!users.Env().plugins().add(state_name.c_str(),options_s.c_str(),rest.c_str())) {
         logger.msg(Arc::ERROR,"Failed to register plugin for state %s",state_name);
         goto exit;
       };
@@ -498,8 +494,8 @@ bool configure_serviced_users(JobUsers &users/*,uid_t my_uid,const std::string &
         logger.msg(Arc::ERROR,"Wrong number for timeout in plugin command");
         goto exit;
       };
-      cred_plugin = rest;
-      cred_plugin.timeout(to);
+      users.Env().cred_plugin() = rest;
+      users.Env().cred_plugin().timeout(to);
     }
     else if(command == "preferredpattern") {
       std::string preferred_pattern = config_next_arg(rest);
@@ -600,7 +596,7 @@ bool configure_serviced_users(JobUsers &users/*,uid_t my_uid,const std::string &
           if(users.HasUser(username)) { /* first is best */
             continue;
           };
-          JobUsers::iterator user=users.AddUser(username,&cred_plugin,
+          JobUsers::iterator user=users.AddUser(username,&users.Env().cred_plugin(),
                                        control_dir,&session_roots);
           if(user == users.end()) { /* bad bad user */
             logger.msg(Arc::WARNING,"Warning: creation of user \"%s\" failed",username);
@@ -644,7 +640,7 @@ bool configure_serviced_users(JobUsers &users/*,uid_t my_uid,const std::string &
             cmd_+=user->ControlDir();
             user->add_helper(cmd_);
             /* creating empty list of jobs */
-            JobsList *jobs = new JobsList(*user,plugins);
+            JobsList *jobs = new JobsList(*user,users.Env().plugins());
             (*user)=jobs; /* back-associate jobs with user :) */
           };
         };
@@ -1000,7 +996,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users/*,uid_t my_uid,co
     if(!options.empty()) options=options.substr(0,options.length()-1);
     logger.msg(Arc::DEBUG,"Registering plugin for state %s; options: %s; commnad: %s",
         state_name.c_str(),options.c_str(),command.c_str());
-    if(!plugins.add(state_name.c_str(),options.c_str(),command.c_str())) {
+    if(!users.Env().plugins().add(state_name.c_str(),options.c_str(),command.c_str())) {
       logger.msg(Arc::ERROR,"Failed to register plugin for state %s",state_name);
       return false;
     };
@@ -1029,8 +1025,8 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users/*,uid_t my_uid,co
       logger.msg(Arc::ERROR,"Timeout for localCred is incorrect number");
       return false;
     };
-    cred_plugin = command;
-    cred_plugin.timeout(to);
+    users.Env().cred_plugin() = command;
+    users.Env().cred_plugin().timeout(to);
   }
 
   /*
@@ -1126,7 +1122,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users/*,uid_t my_uid,co
         if(users.HasUser(*username)) { /* first is best */
           continue;
         };
-        JobUsers::iterator user=users.AddUser(*username,&cred_plugin,
+        JobUsers::iterator user=users.AddUser(*username,&users.Env().cred_plugin(),
                                      control_dir,&session_roots);
         if(user == users.end()) { /* bad bad user */
           logger.msg(Arc::WARNING,"Warning: creation of user \"%s\" failed",*username);
@@ -1171,7 +1167,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users/*,uid_t my_uid,co
           cmd_+=user->ControlDir();
           user->add_helper(cmd_);
           /* creating empty list of jobs */
-          JobsList *jobs = new JobsList(*user,plugins);
+          JobsList *jobs = new JobsList(*user,users.Env().plugins());
           (*user)=jobs; /* back-associate jobs with user :) */
         };
       };

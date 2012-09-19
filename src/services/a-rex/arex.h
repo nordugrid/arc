@@ -14,6 +14,8 @@
 
 class JobLog;
 class JobsListConfig;
+class ContinuationPlugins;
+class RunPlugin;
 class GMEnvironment;
 
 namespace ARex {
@@ -84,6 +86,8 @@ class ARexService: public Arc::Service {
   FileChunksList files_chunks_;
   JobLog* job_log_;
   JobsListConfig* jobs_cfg_;
+  ContinuationPlugins* cont_plugins_;
+  RunPlugin* cred_plugin_;
   GMEnvironment* gm_env_;
   JobUsers* users_;
   JobUser* my_user_;

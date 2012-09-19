@@ -10,6 +10,7 @@
 #include "../run/run_parallel.h"
 #include "../log/job_log.h"
 #include "../jobs/job_config.h"
+#include "../jobs/plugins.h"
 
 class DirectFilePlugin;
 class JobUser;
@@ -43,6 +44,8 @@ class JobPlugin: public FilePlugin {
   bool chooseControlAndSessionDir(std::string job_id, std::string& controldir, std::string& sessiondir);
   JobLog job_log;
   JobsListConfig jobs_cfg;
+  ContinuationPlugins* cont_plugins;
+  RunPlugin* cred_plugin;
   GMEnvironment env;
   JobUser *user;
   AuthUser& user_a;
@@ -60,8 +63,6 @@ class JobPlugin: public FilePlugin {
   bool rsl_opened;
   DirectFilePlugin* direct_fs;
   bool readonly;
-  ContinuationPlugins* cont_plugins;
-  RunPlugin* cred_plugin;
   static RunParallel run;
   std::vector<gm_dirs_> gm_dirs_info;
   std::vector<gm_dirs_> gm_dirs_non_draining;

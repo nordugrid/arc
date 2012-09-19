@@ -191,13 +191,7 @@ void GridManager::grid_manager(void* arg) {
 
 bool GridManager::thread() {
   logger.msg(Arc::INFO,"Starting grid-manager thread");
-  bool enable_arc = false;
-  bool enable_emies = false;
-  if(!configure_serviced_users(*users_/*,my_uid,my_username*/,*my_user_,enable_arc,enable_emies)) {
-    logger.msg(Arc::INFO,"Used configuration file %s",env_->nordugrid_config_loc());
-    logger.msg(Arc::FATAL,"Error processing configuration - EXITING");
-    return false;
-  };
+
   if(users_->size() == 0) {
     logger.msg(Arc::FATAL,"No suitable users found in configuration - EXITING");
     return false;

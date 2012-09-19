@@ -122,7 +122,7 @@ static void job_subst(std::string& str,void* arg) {
 }
 
 
-JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):env(job_log,jobs_cfg,true),user_a(user_s.user),job_map(user_s.user) {
+JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):cont_plugins(new ContinuationPlugins),cred_plugin(new RunPlugin),env(job_log,jobs_cfg,*cont_plugins,*cred_plugin,true),user_a(user_s.user),job_map(user_s.user) {
   initialized=true;
   rsl_opened=false;
   job_rsl_max_size = DEFAULT_JOB_RSL_MAX_SIZE;
@@ -130,8 +130,6 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):env(job_log,jobs_cf
   direct_fs=NULL;
   proxy_fname="";
   std::string configfile = user_s.get_config_file();
-  cont_plugins=NULL;
-  cred_plugin=NULL;
   readonly=false;
   chosenFilePlugin=NULL;
   srand(time(NULL)); 
@@ -207,8 +205,6 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):env(job_log,jobs_cf
         std::string control_dir;
         std::string default_lrms;
         std::string default_queue;
-        cont_plugins = new ContinuationPlugins;
-        cred_plugin = new RunPlugin;
         std::string allowsubmit;
         bool strict_session;
         std::string endpoint2;

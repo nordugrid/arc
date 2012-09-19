@@ -10,6 +10,8 @@
 #include "jobs/commfifo.h"
 #include "log/job_log.h"
 #include "jobs/job_config.h"
+#include "jobs/plugins.h"
+#include "run/run_plugin.h"
 
 
 int main(int argc,char* argv[]) {
@@ -20,7 +22,9 @@ int main(int argc,char* argv[]) {
     if(!S_ISREG(st.st_mode)) continue;
     JobLog job_log;
     JobsListConfig jobs_cfg;
-    GMEnvironment env(job_log,jobs_cfg);
+    ContinuationPlugins plugins;
+    RunPlugin cred_plugin;
+    GMEnvironment env(job_log,jobs_cfg,plugins,cred_plugin);
     JobUser user(env,st.st_uid,st.st_gid);
     if(!user.is_valid()) continue;
     std::string path = argv[n];

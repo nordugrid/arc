@@ -28,6 +28,7 @@
 #include "../jobs/job.h"
 #include "../jobs/job_config.h"
 #include "../jobs/users.h"
+#include "../jobs/plugins.h"
 #include "../files/info_types.h"
 #include "../files/info_files.h"
 #include "../files/delete.h"
@@ -35,6 +36,7 @@
 #include "../misc/proxy.h"
 #include "../conf/conf_map.h"
 #include "../conf/conf_cache.h"
+#include "../run/run_plugin.h"
 #include "../log/job_log.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "Uploader");
@@ -205,7 +207,9 @@ int main(int argc,char** argv) {
   std::string x509_proxy, x509_cert, x509_key, x509_cadir;
   JobLog job_log;
   JobsListConfig jobs_cfg;
-  GMEnvironment env(job_log,jobs_cfg);
+  ContinuationPlugins plugins;
+  RunPlugin cred_plugin;
+  GMEnvironment env(job_log,jobs_cfg,plugins,cred_plugin);
 
   // process optional arguments
   for(;;) {

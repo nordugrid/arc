@@ -3,10 +3,11 @@
 
 #include <string>
 
-//#include "../log/job_log.h"
-
 class JobLog;
 class JobsListConfig;
+class ContinuationPlugins;
+class RunPlugin;
+
 namespace ARex {
   class DelegationStores;
 }
@@ -15,10 +16,12 @@ class GMEnvironment {
   bool valid_;
   JobLog& job_log_;
   JobsListConfig& jobs_cfg_;
+  ContinuationPlugins& plugins_;
+  RunPlugin& cred_plugin_;
   // TODO: this should go away after proper locking in DelegationStore is implemented
   ARex::DelegationStores* delegations_;
  public:
-  GMEnvironment(JobLog& job_log,JobsListConfig& jcfg,bool guess = false);
+  GMEnvironment(JobLog& job_log,JobsListConfig& jcfg,ContinuationPlugins& plugins,RunPlugin& cred_plugin,bool guess = false);
   operator bool(void) const { return valid_; };
   bool operator!(void) const { return !valid_; };
 
@@ -66,6 +69,9 @@ class GMEnvironment {
   /// Scratch dir for job execution on node
   std::string scratch_dir() const;
   void scratch_dir(const std::string& dir);
+
+  ContinuationPlugins& plugins() const;
+  RunPlugin& cred_plugin() const;
 };
 
 ///  Read environment, check files and set variables
