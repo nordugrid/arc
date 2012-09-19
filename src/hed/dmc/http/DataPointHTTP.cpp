@@ -377,7 +377,8 @@ using namespace Arc;
           rurl = info.location;
           logger.msg(VERBOSE,"Redirecting to %s",info.location);
           client = acquire_client(rurl);
-          if (!client) return DataStatus::StatError;
+          if (!client) return DataStatus(DataStatus::StatError,
+                          "Failed to follow redirection to "+rurl.str());
           continue;
         }
         return DataStatus(DataStatus::StatError, http2errno(info.code), info.reason);
@@ -455,8 +456,7 @@ using namespace Arc;
     DataBuffer buffer;
 
     // Read content of file
-    // TODO: Reuse connection
-    // TODO: Reuse already redirecyed URL stored in curl
+    // TODO: Reuse already redirected URL stored in curl
     r = StartReading(buffer);
     if (!r) return DataStatus(DataStatus::ListError, r.GetErrno(), r.GetDesc());
 
@@ -501,11 +501,13 @@ using namespace Arc;
     } while (!is_body);
 
     std::string title;
-    if (titlestart != std::string::npos && titleend != std::string::npos)
+    if (titlestart != std::string::npos && titleend != std::string::npos) {
       title = result.substr(titlestart, titleend - titlestart + 1);
+    }
 
     if (is_body) {
-      html2list(result.c_str(), url, files);
+      // If it was redirected then links must be relative to new location. Or not?
+      html2list(result.c_str(), curl, files);
       if(verb & (INFO_TYPE_TYPE | INFO_TYPE_TIMES | INFO_TYPE_CONTENT)) {
         for(std::list<FileInfo>::iterator f = files.begin(); f != files.end(); ++f) {
           URL furl(curl.str()+'/'+(f->GetName()));
