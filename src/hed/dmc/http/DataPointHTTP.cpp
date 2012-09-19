@@ -376,9 +376,6 @@ using namespace Arc;
           // Recreate connection now to new URL
           rurl = info.location;
           logger.msg(VERBOSE,"Redirecting to %s",info.location);
-          client = acquire_client(rurl);
-          if (!client) return DataStatus(DataStatus::StatError,
-                          "Failed to follow redirection to "+rurl.str());
           continue;
         }
         return DataStatus(DataStatus::StatError, http2errno(info.code), info.reason);
