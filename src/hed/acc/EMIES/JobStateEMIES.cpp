@@ -39,31 +39,31 @@ namespace Arc {
   }
 
   JobState::StateType JobStateEMIES::StateMapInt(const EMIESJobState& st) {
-    if(st.state == "ACCEPTED") {
+    if(st.state == EMIES_STATE_ACCEPTED_S) {
       return JobState::ACCEPTED;
-    } else if(st.state == "PREPROCESSING") {
-      if(st.HasAttribute("CLIENT-STAGEIN-POSSIBLE")) return JobState::PREPARING;
+    } else if(st.state == EMIES_STATE_PREPROCESSING_S) {
+      if(st.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) return JobState::PREPARING;
       return JobState::ACCEPTED;
-    } else if(st.state == "PROCESSING") {
+    } else if(st.state == EMIES_STATE_PROCESSING_S) {
       return JobState::QUEUING;
-    } else if(st.state == "PROCESSING-ACCEPTING") {
+    } else if(st.state == EMIES_STATE_PROCESSING_ACCEPTING_S) {
       return JobState::SUBMITTING;
-    } else if(st.state == "PROCESSING-QUEUED") {
+    } else if(st.state == EMIES_STATE_PROCESSING_QUEUED_S) {
       return JobState::QUEUING;
-    } else if(st.state == "PROCESSING-RUNNING") {
+    } else if(st.state == EMIES_STATE_PROCESSING_RUNNING_S) {
       return JobState::RUNNING;
-    } else if(st.state == "POSTPROCESSING") {
-      if(st.HasAttribute("CLIENT-STAGEIN-POSSIBLE")) return JobState::FINISHING;
+    } else if(st.state == EMIES_STATE_POSTPROCESSING_S) {
+      if(st.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) return JobState::FINISHING;
       return JobState::OTHER;
-    } else if(st.state == "TERMINAL") {
-      if(st.HasAttribute("PREPROCESSING-CANCEL")) return JobState::FAILED;
-      if(st.HasAttribute("PROCESSING-CANCEL")) return JobState::FAILED;
-      if(st.HasAttribute("POSTPROCESSING-CANCEL")) return JobState::FAILED;
-      if(st.HasAttribute("VALIDATION-FAILURE")) return JobState::FAILED;
-      if(st.HasAttribute("PREPROCESSING-FAILURE")) return JobState::FAILED;
-      if(st.HasAttribute("PROCESSING-FAILURE")) return JobState::FAILED;
-      if(st.HasAttribute("POSTPROCESSING-FAILURE")) return JobState::FAILED;
-      if(st.HasAttribute("APP-FAILURE")) return JobState::FAILED;
+    } else if(st.state == EMIES_STATE_TERMINAL_S) {
+      if(st.HasAttribute(EMIES_SATTR_PREPROCESSING_CANCEL_S)) return JobState::FAILED;
+      if(st.HasAttribute(EMIES_SATTR_PROCESSING_CANCEL_S)) return JobState::FAILED;
+      if(st.HasAttribute(EMIES_SATTR_POSTPROCESSING_CANCEL_S)) return JobState::FAILED;
+      if(st.HasAttribute(EMIES_SATTR_VALIDATION_FAILURE_S)) return JobState::FAILED;
+      if(st.HasAttribute(EMIES_SATTR_PREPROCESSING_FAILURE_S)) return JobState::FAILED;
+      if(st.HasAttribute(EMIES_SATTR_PROCESSING_FAILURE_S)) return JobState::FAILED;
+      if(st.HasAttribute(EMIES_SATTR_POSTPROCESSING_FAILURE_S)) return JobState::FAILED;
+      if(st.HasAttribute(EMIES_SATTR_APP_FAILURE_S)) return JobState::FAILED;
       return JobState::FINISHED;
     } else if(st.state == "") {
       return JobState::UNDEFINED;

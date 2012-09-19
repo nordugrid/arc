@@ -19,6 +19,7 @@
 
 #include "SubmitterPluginEMIES.h"
 #include "EMIESClient.h"
+#include "JobStateEMIES.h"
 
 namespace Arc {
 
@@ -88,8 +89,9 @@ namespace Arc {
         // Wait for job to go into proper state
         for(;;) {
           // TODO: implement timeout
-          if(jobstate.HasAttribute("CLIENT-STAGEIN-POSSIBLE")) break;
-          if(jobstate.state == "TERMINAL") {
+std::cerr<<"++++ waiting stagein: "<<jobstate.state<<std::endl;
+          if(jobstate.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) break;
+          if(jobstate.state == EMIES_STATE_TERMINAL_S) {
             logger.msg(INFO, "Job failed on service side");
             notSubmitted.push_back(&*it);
             ok = false;
@@ -97,7 +99,8 @@ namespace Arc {
           }
           // If service jumped over stageable state client probably does not
           // have to send anything.
-          if((jobstate.state != "ACCEPTED") && (jobstate.state != "PREPROCESSING")) break;
+          if((jobstate.state != EMIES_STATE_ACCEPTED_S) &&
+             (jobstate.state != EMIES_STATE_PREPROCESSING_S)) break;
           sleep(5);
           if(!ac->stat(jobid, jobstate)) {
             logger.msg(INFO, "Failed to obtain state of job");
@@ -111,7 +114,7 @@ namespace Arc {
       }
         
       if(have_uploads) {
-        if(!jobstate.HasAttribute("CLIENT-STAGEIN-POSSIBLE")) {
+        if(!jobstate.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) {
           logger.msg(INFO, "Failed to wait for job to allow stage in");
           notSubmitted.push_back(&*it);
           ok = false;
@@ -220,8 +223,8 @@ namespace Arc {
         // Wait for job to go into proper state
         for(;;) {
           // TODO: implement timeout
-          if(jobstate.HasAttribute("CLIENT-STAGEIN-POSSIBLE")) break;
-          if(jobstate.state == "TERMINAL") {
+          if(jobstate.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) break;
+          if(jobstate.state == EMIES_STATE_TERMINAL_S) {
             logger.msg(INFO, "Job failed on service side");
             notSubmitted.push_back(&*it);
             ok = false;
@@ -229,7 +232,8 @@ namespace Arc {
           }
           // If service jumped over stageable state client probably does not
           // have to send anything.
-          if((jobstate.state != "ACCEPTED") && (jobstate.state != "PREPROCESSING")) break;
+          if((jobstate.state != EMIES_STATE_ACCEPTED_S) &&
+             (jobstate.state != EMIES_STATE_PREPROCESSING_S)) break;
           sleep(5);
           if(!ac->stat(jobid, jobstate)) {
             logger.msg(INFO, "Failed to obtain state of job");
@@ -243,7 +247,7 @@ namespace Arc {
       }
         
       if(have_uploads) {
-        if(!jobstate.HasAttribute("CLIENT-STAGEIN-POSSIBLE")) {
+        if(!jobstate.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) {
           logger.msg(INFO, "Failed to wait for job to allow stage in");
           notSubmitted.push_back(&*it);
           ok = false;

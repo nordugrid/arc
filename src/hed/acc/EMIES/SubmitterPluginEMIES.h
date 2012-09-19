@@ -16,7 +16,11 @@ namespace Arc {
 
   class SubmitterPluginEMIES : public SubmitterPlugin {
   public:
-    SubmitterPluginEMIES(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg),clients(this->usercfg) { supportedInterfaces.push_back("org.ogf.emies"); }
+    SubmitterPluginEMIES(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg),clients(this->usercfg) {
+      supportedInterfaces.push_back("org.ogf.glue.emies.activitycreation");
+      supportedInterfaces.push_back("org.ogf.glue.emies.delegation");
+      supportedInterfaces.push_back("org.ogf.emies");
+    }
     ~SubmitterPluginEMIES() { /*deleteAllClients();*/ }
 
     static Plugin* Instance(PluginArgument *arg) {

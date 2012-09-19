@@ -13,6 +13,8 @@ namespace Arc {
   class JobListRetrieverPluginEMIES : public JobListRetrieverPlugin {
   public:
     JobListRetrieverPluginEMIES(PluginArgument* parg): JobListRetrieverPlugin(parg) {
+      supportedInterfaces.push_back("org.ogf.glue.emies.activityinfo");
+      supportedInterfaces.push_back("org.ogf.glue.emies.activitymanagement");
       supportedInterfaces.push_back("org.ogf.emies");
     }
     virtual ~JobListRetrieverPluginEMIES() {}
