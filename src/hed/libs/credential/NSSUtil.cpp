@@ -17,6 +17,7 @@
 #include <secerr.h>
 #include <certdb.h>
 #include <secder.h>
+#include <certt.h>
 
 #include <iostream>
 #include <fstream>
@@ -291,7 +292,7 @@ namespace AuthN {
       NSSUtilLogger.msg(ERROR, "NSS initialization failed on certificate database: %s", configdir.c_str());
       return false;
     }
-/* NSS_SetDomesticPolicy is not necessary, because ssl is not used 
+/*
     if (NSS_SetDomesticPolicy() != SECSuccess ){
       NSS_Shutdown();
       NSSUtilLogger.msg(ERROR, "NSS set domestic policy failed (%s) on certificate database %s", nss_error().c_str(), configdir.c_str());
@@ -2024,6 +2025,7 @@ err:
           offsetof(ProxyPolicy1, policy) },
     { 0 }
   };
+  SEC_ASN1_CHOOSER_IMPLEMENT(ProxyPolicyTemplate1)
   const SEC_ASN1Template ProxyCertInfoTemplate1[] = {
     { SEC_ASN1_SEQUENCE,
           0, NULL, sizeof(ProxyCertInfo1) },
@@ -2031,9 +2033,10 @@ err:
           offsetof(ProxyCertInfo1, pathlength) },
     { SEC_ASN1_INLINE,
           offsetof(ProxyCertInfo1, proxypolicy),
-          ProxyPolicyTemplate1 },
+          SEC_ASN1_GET(ProxyPolicyTemplate1) },
     { 0 }
   };
+  SEC_ASN1_CHOOSER_IMPLEMENT(ProxyCertInfoTemplate1)
 
   //With pathlen and without policy
   struct ProxyPolicy2 {
@@ -2051,6 +2054,7 @@ err:
           offsetof(ProxyPolicy2, policylanguage) },
     { 0 }
   };
+  SEC_ASN1_CHOOSER_IMPLEMENT(ProxyPolicyTemplate2)
   const SEC_ASN1Template ProxyCertInfoTemplate2[] = {
     { SEC_ASN1_SEQUENCE,
           0, NULL, sizeof(ProxyCertInfo2) },
@@ -2058,9 +2062,10 @@ err:
           offsetof(ProxyCertInfo2, pathlength) },
     { SEC_ASN1_INLINE,
           offsetof(ProxyCertInfo2, proxypolicy),
-          ProxyPolicyTemplate2 },
+          SEC_ASN1_GET(ProxyPolicyTemplate2) },
     { 0 }
   };
+  SEC_ASN1_CHOOSER_IMPLEMENT(ProxyCertInfoTemplate2)
 
   //Without pathlen and with policy
   struct ProxyPolicy3 {
@@ -2080,14 +2085,16 @@ err:
           offsetof(ProxyPolicy3, policy) },
     { 0 }
   };
+  SEC_ASN1_CHOOSER_IMPLEMENT(ProxyPolicyTemplate3)
   const SEC_ASN1Template ProxyCertInfoTemplate3[] = {
     { SEC_ASN1_SEQUENCE,
           0, NULL, sizeof(ProxyCertInfo3) },
     { SEC_ASN1_INLINE,
           offsetof(ProxyCertInfo3, proxypolicy),
-          ProxyPolicyTemplate3 },
+          SEC_ASN1_GET(ProxyPolicyTemplate3) },
     { 0 }
   };
+  SEC_ASN1_CHOOSER_IMPLEMENT(ProxyCertInfoTemplate3)
 
   //Without pathlen and without policy
   struct ProxyPolicy4 {
@@ -2104,14 +2111,16 @@ err:
           offsetof(ProxyPolicy4, policylanguage) },
     { 0 }
   };
+  SEC_ASN1_CHOOSER_IMPLEMENT(ProxyPolicyTemplate4)
   const SEC_ASN1Template ProxyCertInfoTemplate4[] = {
     { SEC_ASN1_SEQUENCE,
           0, NULL, sizeof(ProxyCertInfo4) },
     { SEC_ASN1_INLINE,
           offsetof(ProxyCertInfo4, proxypolicy),
-          ProxyPolicyTemplate4 },
+          SEC_ASN1_GET(ProxyPolicyTemplate4) },
     { 0 }
   };
+  SEC_ASN1_CHOOSER_IMPLEMENT(ProxyCertInfoTemplate4)
 
   SECStatus EncodeProxyCertInfoExtension1(PRArenaPool *arena, 
                 ProxyCertInfo1* info, SECItem* dest) {
@@ -2120,8 +2129,7 @@ err:
     if(info == NULL || dest == NULL) {
       return SECFailure;
     }
-    //if(SEC_ASN1EncodeItem(arena, dest, info, SEC_ASN1_GET(ProxyCertInfoTemplate1)) == NULL) {
-    if(SEC_ASN1EncodeItem(arena, dest, info, ProxyCertInfoTemplate1) == NULL) {
+    if(SEC_ASN1EncodeItem(arena, dest, info, SEC_ASN1_GET(ProxyCertInfoTemplate1)) == NULL) {
       rv = SECFailure;
     }
     return(rv);
@@ -2134,7 +2142,6 @@ err:
     if(info == NULL || dest == NULL) {
       return SECFailure;
     }
-    //if(SEC_ASN1EncodeItem(arena, dest, info, SEC_ASN1_GET(ProxyCertInfoTemplate2)) == NULL) {
     if(SEC_ASN1EncodeItem(arena, dest, info, SEC_ASN1_GET(ProxyCertInfoTemplate2)) == NULL) {
       rv = SECFailure;
     }
@@ -2148,7 +2155,6 @@ err:
     if(info == NULL || dest == NULL) {
       return SECFailure;
     }
-    //if(SEC_ASN1EncodeItem(arena, dest, info, SEC_ASN1_GET(ProxyCertInfoTemplate3)) == NULL) {
     if(SEC_ASN1EncodeItem(arena, dest, info, SEC_ASN1_GET(ProxyCertInfoTemplate3)) == NULL) {
       rv = SECFailure;
     }
@@ -2162,7 +2168,6 @@ err:
     if(info == NULL || dest == NULL) {
       return SECFailure;
     }
-    //if(SEC_ASN1EncodeItem(arena, dest, info, SEC_ASN1_GET(ProxyCertInfoTemplate4)) == NULL) {
     if(SEC_ASN1EncodeItem(arena, dest, info, SEC_ASN1_GET(ProxyCertInfoTemplate4)) == NULL) {
       rv = SECFailure;
     }
@@ -2339,16 +2344,18 @@ error:
   }
 
 
-/*
- * Find the subjectName in a DER encoded certificate
- */
-const SEC_ASN1Template SEC_CertSubjectTemplate[] = {
+  const SEC_ASN1Template SEC_SkipTemplate[] = {
+      { SEC_ASN1_SKIP }
+  };
+  SEC_ASN1_CHOOSER_IMPLEMENT(SEC_SkipTemplate)
+
+  //Find the subjectName in a DER encoded certificate
+  const SEC_ASN1Template SEC_CertSubjectTemplate[] = {
     { SEC_ASN1_SEQUENCE,
           0, NULL, sizeof(SECItem) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED |
           SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
-          //0, SEC_ASN1_SUB(SEC_SkipTemplate) },  /* version */
-          0, SEC_SkipTemplate },  /* version */
+          0, SEC_ASN1_GET(SEC_SkipTemplate) },  /* version */
     { SEC_ASN1_SKIP },          /* serial number */
     { SEC_ASN1_SKIP },          /* signature algorithm */
     { SEC_ASN1_SKIP },          /* issuer */
@@ -2356,39 +2363,37 @@ const SEC_ASN1Template SEC_CertSubjectTemplate[] = {
     { SEC_ASN1_ANY, 0, NULL },          /* subject */
     { SEC_ASN1_SKIP_REST },
     { 0 }
-};
+  };
+  SEC_ASN1_CHOOSER_IMPLEMENT(SEC_CertSubjectTemplate)
 
-/*
- * Find the issuerName in a DER encoded certificate
- */
-const SEC_ASN1Template SEC_CertIssuerTemplate[] = {
+  //Find the issuerName in a DER encoded certificate
+  const SEC_ASN1Template SEC_CertIssuerTemplate[] = {
     { SEC_ASN1_SEQUENCE,
           0, NULL, sizeof(SECItem) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED |
           SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
-          //0, SEC_ASN1_SUB(SEC_SkipTemplate) },  /* version */
-          0, SEC_SkipTemplate },  /* version */
+          0, SEC_ASN1_GET(SEC_SkipTemplate) },  /* version */
     { SEC_ASN1_SKIP },          /* serial number */
     { SEC_ASN1_SKIP },          /* signature algorithm */
     { SEC_ASN1_ANY, 0, NULL },          /* issuer */
     { SEC_ASN1_SKIP_REST },
     { 0 }
-};
+  };
+  SEC_ASN1_CHOOSER_IMPLEMENT(SEC_CertIssuerTemplate)
 
-/*
- * Find the serialNumber in a DER encoded certificate
- */
-const SEC_ASN1Template SEC_CertSerialNumberTemplate[] = {
+  //Find the serialNumber in a DER encoded certificate
+  const SEC_ASN1Template SEC_CertSerialNumberTemplate[] = {
     { SEC_ASN1_SEQUENCE,
           0, NULL, sizeof(SECItem) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED |
           SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
-          //0, SEC_ASN1_SUB(SEC_SkipTemplate) },  /* version */
-          0, SEC_SkipTemplate },  /* version */
+          0, SEC_ASN1_GET(SEC_SkipTemplate) },  /* version */
     { SEC_ASN1_ANY, 0, NULL }, /* serial number */
     { SEC_ASN1_SKIP_REST },
     { 0 }
-};
+  };
+  SEC_ASN1_CHOOSER_IMPLEMENT(SEC_CertSerialNumberTemplate)
+
 /* Extract the subject name from a DER certificate
    This is a copy from nss code, due to the "undefined reference to" compiling issue
  */
@@ -2407,14 +2412,14 @@ my_CERT_NameFromDERCert(SECItem *derCert, SECItem *derName)
     }
 
     PORT_Memset(&sd, 0, sizeof(CERTSignedData));
-    rv = SEC_QuickDERDecodeItem(arena, &sd, CERT_SignedDataTemplate, derCert);
+    rv = SEC_QuickDERDecodeItem(arena, &sd, SEC_ASN1_GET(CERT_SignedDataTemplate), derCert);
 
     if ( rv ) {
         goto loser;
     }
 
     PORT_Memset(derName, 0, sizeof(SECItem));
-    rv = SEC_QuickDERDecodeItem(arena, derName, SEC_CertSubjectTemplate, &sd.data);
+    rv = SEC_QuickDERDecodeItem(arena, derName, SEC_ASN1_GET(SEC_CertSubjectTemplate), &sd.data);
 
     if ( rv ) {
         goto loser;
@@ -2450,11 +2455,12 @@ my_CERT_CopyValidity(PRArenaPool *arena, CERTValidity *to, CERTValidity *from)
     return rv;
 }
 
+#if 0
 CERTCertificate *
 my_CERT_CreateCertificate(unsigned long serialNumber,
                       CERTName *issuer,
                       CERTValidity *validity,
-                      CERTCertificateRequest *req, CERTName* subName)
+                      CERTCertificateRequest *req)
 {
     CERTCertificate *c;
     int rv;
@@ -2492,10 +2498,7 @@ my_CERT_CreateCertificate(unsigned long serialNumber,
     rv = my_CERT_CopyValidity(arena, &c->validity, validity);
     if (rv) goto loser;
     
-    if(subName != NULL)
-      rv = CERT_CopyName(arena, &c->subject, subName);
-    else
-      rv = CERT_CopyName(arena, &c->subject, &req->subject);
+    rv = CERT_CopyName(arena, &c->subject, &req->subject);
     if (rv) goto loser;
     rv = SECKEY_CopySubjectPublicKeyInfo(arena, &c->subjectPublicKeyInfo,
                                          &req->subjectPublicKeyInfo);
@@ -2507,6 +2510,7 @@ my_CERT_CreateCertificate(unsigned long serialNumber,
     CERT_DestroyCertificate(c);
     return 0;
 }
+#endif
 
 SECStatus
 my_CERT_IssuerNameFromDERCert(SECItem *derCert, SECItem *derName)
@@ -2523,14 +2527,14 @@ my_CERT_IssuerNameFromDERCert(SECItem *derCert, SECItem *derName)
     }
 
     PORT_Memset(&sd, 0, sizeof(CERTSignedData));
-    rv = SEC_QuickDERDecodeItem(arena, &sd, CERT_SignedDataTemplate, derCert);
+    rv = SEC_QuickDERDecodeItem(arena, &sd, SEC_ASN1_GET(CERT_SignedDataTemplate), derCert);
 
     if ( rv ) {
         goto loser;
     }
 
     PORT_Memset(derName, 0, sizeof(SECItem));
-    rv = SEC_QuickDERDecodeItem(arena, derName, SEC_CertIssuerTemplate, &sd.data);
+    rv = SEC_QuickDERDecodeItem(arena, derName, SEC_ASN1_GET(SEC_CertIssuerTemplate), &sd.data);
 
     if ( rv ) {
         goto loser;
@@ -2567,14 +2571,14 @@ my_CERT_SerialNumberFromDERCert(SECItem *derCert, SECItem *derName)
     }
 
     PORT_Memset(&sd, 0, sizeof(CERTSignedData));
-    rv = SEC_QuickDERDecodeItem(arena, &sd, CERT_SignedDataTemplate, derCert);
+    rv = SEC_QuickDERDecodeItem(arena, &sd, SEC_ASN1_GET(CERT_SignedDataTemplate), derCert);
 
     if ( rv ) {
         goto loser;
     }
 
     PORT_Memset(derName, 0, sizeof(SECItem));
-    rv = SEC_QuickDERDecodeItem(arena, derName, SEC_CertSerialNumberTemplate, &sd.data);
+    rv = SEC_QuickDERDecodeItem(arena, derName, SEC_ASN1_GET(SEC_CertSerialNumberTemplate), &sd.data);
 
     if ( rv ) {
         goto loser;
@@ -2595,6 +2599,7 @@ loser:
     PORT_FreeArena(arena, PR_FALSE);
     return(SECFailure);
 }
+//#endif
 
   void nssListUserCertificatesInfo(std::list<certInfo>& certInfolist) {
     CERTCertList* list;
@@ -2619,7 +2624,9 @@ loser:
       SECStatus rv;
       std::string subject_dn;
       SECItem derSubject;
+
       rv = my_CERT_NameFromDERCert(&cert->derCert, &derSubject);
+
       if(rv == SECSuccess) {
         char* subjectName = CERT_DerNameToAscii(&derSubject);
         subject_dn = subjectName;
@@ -2629,7 +2636,9 @@ loser:
 
       std::string issuer_dn;
       SECItem derIssuer;
+
       rv = my_CERT_IssuerNameFromDERCert(&cert->derCert, &derIssuer);
+
       if(rv == SECSuccess) {
         char* issuerName = CERT_DerNameToAscii(&derIssuer);
         issuer_dn = issuerName;
@@ -2640,7 +2649,9 @@ loser:
       cert_info.serial = 0;
       std::string serial;
       SECItem derSerial;
+
       rv = my_CERT_SerialNumberFromDERCert (&cert->derCert, &derSerial);
+
       if(rv == SECSuccess) {
         SECItem decodedValue;
         decodedValue.data = NULL;
@@ -2665,6 +2676,23 @@ loser:
     if (list) {
       CERT_DestroyCertList(list);
     }
+  }
+
+  static SECStatus copy_CERTName(CERTName* destName, CERTName* srcName) {
+    PRArenaPool* poolp = NULL;
+    SECStatus rv;
+    if (destName->arena != NULL) {
+      poolp = destName->arena;
+    } else {
+      poolp = PORT_NewArena(SEC_ASN1_DEFAULT_ARENA_SIZE);
+    }
+    if (poolp == NULL) {
+      return SECFailure;
+    }
+    destName->arena = NULL;
+    rv = CERT_CopyName(poolp, destName, srcName);
+    destName->arena = poolp;
+    return rv;
   }
 
   bool nssCreateCert(const std::string& csrfile, const std::string& issuername, const char* passwd, const int duration, const std::string& vomsacseq, std::string& outfile, bool ascii) {
@@ -2717,6 +2745,7 @@ loser:
 
     //Subject
     my_CERT_NameFromDERCert(&issuercert->derCert, &derSubject);
+
     char* subjectName = CERT_DerNameToAscii(&derSubject);
     std::string subname_str = subjectName;
 
@@ -2730,12 +2759,18 @@ loser:
     subname_str.insert(0, str.c_str(), str.length());
     NSSUtilLogger.msg(DEBUG, "Proxy subject: %s", subname_str.c_str());
     if(CN_name) free(CN_name);
-    CERTName* subName = CERT_AsciiToName((char*)(subname_str.c_str()));
+    CERTName* subName = NULL;
+    if(!subname_str.empty()) subName = CERT_AsciiToName((char*)(subname_str.c_str()));
     if(subjectName) PORT_Free(subjectName);
 
     if (validity) {
-      //cert = CERT_CreateCertificate(serialnum, &issuercert->subject, validity, req);
-      cert = my_CERT_CreateCertificate(rand(), &issuercert->subject, validity, req, subName);
+      if(subName != NULL) {
+        rv = copy_CERTName(&req->subject, subName);
+      }
+
+      //cert = my_CERT_CreateCertificate(rand(), &issuercert->subject, validity, req);
+      cert = CERT_CreateCertificate(rand(), &issuercert->subject, validity, req);
+
       CERT_DestroyValidity(validity);
       if(subName) CERT_DestroyName(subName);
     }
