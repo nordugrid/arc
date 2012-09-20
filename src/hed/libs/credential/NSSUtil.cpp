@@ -2343,6 +2343,21 @@ error:
     return (rv);
   }
 
+#if !defined(WIN32) && !defined(MACOS)
+// CERT_NameFromDERCert 
+// CERT_IssuerNameFromDERCert 
+// CERT_SerialNumberFromDERCert
+// The above nss methods which we need to use have not been exposed by
+// nss.def (the situation does not apply to MACOS, only to Win and Linux,
+// strange, maybe *.def is not used by MACOS when packaging).
+// Therefore we have two different solutions for Linux and Win.
+// For Linux, the three methods are duplicated here.
+// For Win, the code duplication does not work ( arcproxy always crashes
+// when goes to these three method, the crash is from 
+// nssutil3.dll!SECOID_GetAlgorithmTag_Util, which I don't know how 
+// to solve it for now). So the other working solution is to change the
+// nss.def file under nss source tree to add these three methods, so that
+// these methods can be exposed to external.
 
   const SEC_ASN1Template SEC_SkipTemplate[] = {
       { SEC_ASN1_SKIP }
@@ -2442,77 +2457,6 @@ loser:
 }
 
 SECStatus
-my_CERT_CopyValidity(PRArenaPool *arena, CERTValidity *to, CERTValidity *from)
-{
-    SECStatus rv;
-
-    CERT_DestroyValidity(to);
-    to->arena = arena;
-
-    rv = SECITEM_CopyItem(arena, &to->notBefore, &from->notBefore);
-    if (rv) return rv;
-    rv = SECITEM_CopyItem(arena, &to->notAfter, &from->notAfter);
-    return rv;
-}
-
-#if 0
-CERTCertificate *
-my_CERT_CreateCertificate(unsigned long serialNumber,
-                      CERTName *issuer,
-                      CERTValidity *validity,
-                      CERTCertificateRequest *req)
-{
-    CERTCertificate *c;
-    int rv;
-    PRArenaPool *arena;
-
-    arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
-
-    if ( !arena ) {
-        return(0);
-    }
-
-    c = (CERTCertificate *)PORT_ArenaZAlloc(arena, sizeof(CERTCertificate));
-   
-    if (!c) {
-        PORT_FreeArena(arena, PR_FALSE);
-        return 0;
-    }
-
-    c->referenceCount = 1;
-    c->arena = arena;
-
-    /*
-     * Default is a plain version 1.
-     * If extensions are added, it will get changed as appropriate.
-     */
-    rv = DER_SetUInteger(arena, &c->version, SEC_CERTIFICATE_VERSION_1);
-    if (rv) goto loser;
-
-    rv = DER_SetUInteger(arena, &c->serialNumber, serialNumber);
-    if (rv) goto loser;
-
-    rv = CERT_CopyName(arena, &c->issuer, issuer);
-    if (rv) goto loser;
-
-    rv = my_CERT_CopyValidity(arena, &c->validity, validity);
-    if (rv) goto loser;
-    
-    rv = CERT_CopyName(arena, &c->subject, &req->subject);
-    if (rv) goto loser;
-    rv = SECKEY_CopySubjectPublicKeyInfo(arena, &c->subjectPublicKeyInfo,
-                                         &req->subjectPublicKeyInfo);
-    if (rv) goto loser;
-
-    return c;
-
- loser:
-    CERT_DestroyCertificate(c);
-    return 0;
-}
-#endif
-
-SECStatus
 my_CERT_IssuerNameFromDERCert(SECItem *derCert, SECItem *derName)
 {
     int rv;
@@ -2599,7 +2543,7 @@ loser:
     PORT_FreeArena(arena, PR_FALSE);
     return(SECFailure);
 }
-//#endif
+#endif // #if !defined(WIN32) && !defined(MACOS)
 
   void nssListUserCertificatesInfo(std::list<certInfo>& certInfolist) {
     CERTCertList* list;
@@ -2625,7 +2569,11 @@ loser:
       std::string subject_dn;
       SECItem derSubject;
 
+#if !defined(WIN32) && !defined(MACOS)
       rv = my_CERT_NameFromDERCert(&cert->derCert, &derSubject);
+#else
+      rv = CERT_NameFromDERCert(&cert->derCert, &derSubject);
+#endif
 
       if(rv == SECSuccess) {
         char* subjectName = CERT_DerNameToAscii(&derSubject);
@@ -2637,8 +2585,11 @@ loser:
       std::string issuer_dn;
       SECItem derIssuer;
 
+#if !defined(WIN32) && !defined(MACOS)
       rv = my_CERT_IssuerNameFromDERCert(&cert->derCert, &derIssuer);
-
+#else
+      rv = CERT_IssuerNameFromDERCert(&cert->derCert, &derIssuer);
+#endif
       if(rv == SECSuccess) {
         char* issuerName = CERT_DerNameToAscii(&derIssuer);
         issuer_dn = issuerName;
@@ -2650,7 +2601,11 @@ loser:
       std::string serial;
       SECItem derSerial;
 
+#if !defined(WIN32) && !defined(MACOS)
       rv = my_CERT_SerialNumberFromDERCert (&cert->derCert, &derSerial);
+#else
+      rv = CERT_SerialNumberFromDERCert (&cert->derCert, &derSerial);
+#endif
 
       if(rv == SECSuccess) {
         SECItem decodedValue;
@@ -2744,7 +2699,11 @@ loser:
     validity = CERT_CreateValidity(start, end);
 
     //Subject
+#if !defined(WIN32) && !defined(MACOS)
     my_CERT_NameFromDERCert(&issuercert->derCert, &derSubject);
+#else
+    CERT_NameFromDERCert(&issuercert->derCert, &derSubject);
+#endif
 
     char* subjectName = CERT_DerNameToAscii(&derSubject);
     std::string subname_str = subjectName;
@@ -2767,8 +2726,6 @@ loser:
       if(subName != NULL) {
         rv = copy_CERTName(&req->subject, subName);
       }
-
-      //cert = my_CERT_CreateCertificate(rand(), &issuercert->subject, validity, req);
       cert = CERT_CreateCertificate(rand(), &issuercert->subject, validity, req);
 
       CERT_DestroyValidity(validity);
