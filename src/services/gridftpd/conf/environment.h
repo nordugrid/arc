@@ -29,10 +29,6 @@ namespace gridftpd {
     // Certificates directory location
     std::string cert_dir_loc() const;
 
-    // RTE setup scripts
-    std::string runtime_config_dir(void) const;
-    void runtime_config_dir(const std::string&);
-
     /// Email address of person responsible for this ARC installation
     /// grid.manager@hostname, it can also be set from configuration file
     std::string support_mail_address(void) const;

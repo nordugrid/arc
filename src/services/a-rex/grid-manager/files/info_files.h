@@ -185,10 +185,6 @@ bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files,
 // Return filename storing job's proxy.
 std::string job_proxy_filename(const JobId &id, const JobUser &user);
 
-// Write and read files containing list of RTEs.
-bool job_rte_write_file(const JobDescription &desc,const JobUser &user,std::list<std::string> &rtes);
-bool job_rte_read_file(const JobId &id,const JobUser &user,std::list<std::string> &rtes);
-
 // Remove all files, which should be removed after job's state becomes FINISHED
 bool job_clean_finished(const JobId &id,const JobUser &user);
 

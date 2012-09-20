@@ -26,7 +26,6 @@ const char * const sfx_diag        = ".diag";          // Diagnostic info about 
 const char * const sfx_lrmsoutput  = ".comment";       // Additional information from LRMS
 const char * const sfx_acl         = ".acl";           // ACL information for job
 const char * const sfx_proxy       = ".proxy";         // Delegated proxy
-const char * const sfx_rte         = ".rte";           // Runtime environments requested by the job
 const char * const sfx_xml         = ".xml";           // XML description of job
 const char * const sfx_input       = ".input";         // Input files required by job
 const char * const sfx_output      = ".output";        // Output files written by job
@@ -44,7 +43,6 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 static job_state_t job_state_read_file(const std::string &fname,bool &pending);
 static bool job_state_write_file(const std::string &fname,job_state_t state,bool pending = false);
-static bool job_strings_write_file(const std::string &fname,std::list<std::string> &str);
 static bool job_mark_put(Arc::FileAccess& fa, const std::string &fname);
 static bool job_dir_create(Arc::FileAccess& fa,const std::string &dname);
 static bool job_mark_remove(Arc::FileAccess& fa,const std::string &fname);
@@ -718,27 +716,6 @@ std::string job_proxy_filename(const JobId &id, const JobUser &user){
   return user.ControlDir() + "/job." + id + sfx_proxy;
 }
 
-static bool job_strings_write_file(const std::string &fname,std::list<std::string> &strs) {
-  std::ofstream f(fname.c_str(),std::ios::out | std::ios::trunc);
-  if(! f.is_open() ) return false; /* can't open file */
-  for(std::list<std::string>::iterator i=strs.begin();i!=strs.end(); ++i) {
-    f << (*i) << std::endl;
-  };
-  f.close();
-  return true;
-}
-
-/* job.ID.rte functions */
-bool job_rte_write_file(const JobDescription &desc,const JobUser &user,std::list<std::string> &rtes) {
-  std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_rte;
-  return job_strings_write_file(fname,rtes) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
-}
-
-bool job_rte_read_file(const JobId &id,const JobUser &user,std::list<std::string> &rtes) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_rte;
-  return Arc::FileRead(fname,rtes);
-}
-
 bool job_clean_finished(const JobId &id,const JobUser &user) {
   std::string fname;
   fname = user.ControlDir()+"/job."+id+".proxy.tmp"; remove(fname.c_str());
@@ -760,7 +737,6 @@ bool job_clean_deleted(const JobDescription &desc,const JobUser &user,std::list<
   fname = user.ControlDir()+"/"+subdir_new+"/job."+id+sfx_clean;  remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+sfx_output; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+sfx_input; remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+sfx_rte; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".grami_log"; remove(fname.c_str());
   fname = session+sfx_lrmsoutput; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+sfx_outputstatus; remove(fname.c_str());

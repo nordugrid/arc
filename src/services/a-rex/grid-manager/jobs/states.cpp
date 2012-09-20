@@ -1356,7 +1356,7 @@ void JobsList::ActJobFinished(JobsList::iterator &i,
                     (state_ == JOB_STATE_INLRMS)) {
             if(RecreateTransferLists(i)) {
               job_failed_mark_remove(i->job_id,*user);
-              if((i->local->downloads > 0) || (i->local->rtes > 0)) {
+              if(i->local->downloads > 0) {
                 // missing input files has to be re-downloaded
                 i->job_state = JOB_STATE_ACCEPTED;
               } else {

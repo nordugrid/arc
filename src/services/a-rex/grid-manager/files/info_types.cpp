@@ -34,14 +34,6 @@ static inline void write_str(int f,const std::string& str) {
   write_str(f,str.c_str(),str.length());
 }
 
-static inline void write_chr(int f,const char c) {
-  for(;;) {
-    ssize_t l = write(f,&c,1);
-    if((l < 0) && (errno != EINTR)) break;
-    if(l == 1) break;
-  };
-}
-
 static inline bool read_str(int f,char* buf,int size) {
   char c;
   int pos = 0;
@@ -179,14 +171,13 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   downloads = 0;
   uploads = 0;
   freestagein = false;
-  rtes = 0;
   outputdata.clear();
   inputdata.clear();
   rte.clear();
   transfershare="_default";
 
   const std::list<Arc::Software>& sw = arc_job_desc.Resources.RunTimeEnvironment.getSoftwareList();
-  for (std::list<Arc::Software>::const_iterator itSW = sw.begin(); itSW != sw.end(); ++itSW, ++rtes)
+  for (std::list<Arc::Software>::const_iterator itSW = sw.begin(); itSW != sw.end(); ++itSW)
     rte.push_back(std::string(*itSW));
 
   for (std::list<Arc::InputFileType>::const_iterator file = arc_job_desc.DataStaging.InputFiles.begin();
@@ -252,6 +243,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
             case Arc::TargetType::CFE_OVERWRITE: u.AddOption("overwrite","yes",true); break;
             case Arc::TargetType::CFE_DONTOVERWRITE: u.AddOption("overwrite","no",true); break;
             // Rest is not supported in URLs yet.
+            default: break;
           };
           u.RemoveOption("preserve");
           u.RemoveOption("mandatory"); // TODO: implement
@@ -487,7 +479,6 @@ bool JobLocalDescription::write(const std::string& fname) const {
   write_pair(f,"rerun",Arc::tostring(reruns));
   if(downloads>=0) write_pair(f,"downloads",Arc::tostring(downloads));
   if(uploads>=0) write_pair(f,"uploads",Arc::tostring(uploads));
-  if(rtes>=0) write_pair(f,"rtes",Arc::tostring(rtes));
   write_pair(f,"jobname",jobname);
   for (std::list<std::string>::const_iterator ppn=projectnames.begin();
        ppn!=projectnames.end();
@@ -572,11 +563,6 @@ bool JobLocalDescription::read(const std::string& fname) {
       std::string temp_s(buf+p); int n;
       if(!Arc::stringto(temp_s,n)) { close(f); return false; };
       uploads = n;
-    }
-    else if(name == "rtes") {
-      std::string temp_s(buf+p); int n;
-      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
-      rtes = n;
     }
     else if(name == "args") {
       exec.clear(); exec.successcode = 0;
