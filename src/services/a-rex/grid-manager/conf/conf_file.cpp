@@ -136,7 +136,9 @@ bool configure_serviced_users(JobUsers &users/*,uid_t my_uid,const std::string &
       std::string voms_trust_chains = config_next_arg(rest);
       Arc::SetEnv("VOMS_TRUST_CHAINS", voms_trust_chains.c_str());
     }
-    if(command == "joblog") { /* where to write job inforamtion */
+    if(command == "runtimedir") {
+      users.Env().runtime_config_dir(rest);
+    } else if(command == "joblog") { /* where to write job inforamtion */
       std::string fname = config_next_arg(rest);  /* empty is allowed too */
       users.Env().job_log().SetOutput(fname.c_str());
     }
@@ -953,6 +955,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users/*,uid_t my_uid,co
     };
     default_queue = (std::string)(tmp_node["defaultShare"]);
     check_lrms_backends(default_lrms,users.Env());
+    users.Env().runtime_config_dir((std::string)(tmp_node["runtimeDir"]));
     // We only want the scratch path as seen on the front-end
     if (tmp_node["sharedScratch"]) {
       users.Env().scratch_dir((std::string)tmp_node["sharedScratch"]);

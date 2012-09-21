@@ -203,6 +203,14 @@ void GMEnvironment::voms_dir_loc(const std::string& val) const {
   voms_dir_loc_=val;
 }
 
+std::string GMEnvironment::runtime_config_dir(void) const {
+  return runtime_config_dir_.str();
+}
+
+void GMEnvironment::runtime_config_dir(const std::string& val) {
+  runtime_config_dir_=val;
+}
+
 std::string GMEnvironment::support_mail_address(void) const {
   return support_mail_address_.str();
 }
