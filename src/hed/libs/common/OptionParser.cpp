@@ -7,6 +7,14 @@
 #include <cstdlib>
 #include <iostream>
 
+#ifdef HAVE_GLIBMM_OPTIONCONTEXT_GET_HELP
+#undef HAVE_GLIBMM_OPTIONCONTEXT_GET_HELP
+#endif
+
+#ifdef HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY
+#undef HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY
+#endif
+
 #ifdef HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY
 #include <glibmm/optioncontext.h>
 #ifndef HAVE_GLIBMM_OPTIONCONTEXT_GET_HELP
@@ -340,11 +348,15 @@ namespace Arc {
         std::cout << IString("Application Options:") << std::endl;
         for (std::list<OptionBase*>::iterator it = options.begin();
              it != options.end(); it++) {
-          std::cout << "  -" << (*it)->shortOpt << ", --";
+          std::cout << "  ";
+          if ((*it)->shortOpt) {
+            std::cout << "-" << (*it)->shortOpt << ", ";
+          }
+          std::cout << "--";
           if ((*it)->argDesc.empty())
-            std::cout << std::setw(20) << std::left << (*it)->longOpt;
+            std::cout << std::setw(20+4*((*it)->shortOpt == 0)) << std::left << (*it)->longOpt;
           else
-            std::cout << (*it)->longOpt << "=" << std::setw(19-((*it)->longOpt).length()) << std::left << IString((*it)->argDesc);
+            std::cout << (*it)->longOpt << "=" << std::setw(19-((*it)->longOpt).length()+(((*it)->shortOpt == 0))*4) << std::left << IString((*it)->argDesc);
           std::cout << "  " << IString((*it)->optDesc) << std::endl;
         }
         std::cout << std::endl;
