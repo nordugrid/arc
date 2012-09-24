@@ -2,11 +2,12 @@
 #include <config.h>
 #endif
 
+#include <iostream>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
-#include <iostream>
+#include <errno.h>
 
 #include <glibmm.h>
 
@@ -16,29 +17,55 @@
 
 namespace ARex {
 
-  static int dberr(const char* s, int err) {
-    //if(err != 0) std::cerr<<"DB ERROR("<<s<<"): "<<err<<std::endl;
-    return err;
+  bool FileRecord::dberr(const char* s, int err) {
+    if(err == 0) return true;
+    error_num_ = err;
+    error_str_ = std::string(s)+": "+DbEnv::strerror(err);
+    return false;
   }
 
-  FileRecord::FileRecord(const std::string& base):
+  FileRecord::FileRecord(const std::string& base, recovery recover):
       basepath_(base),
       db_rec_(NULL,DB_CXX_NO_EXCEPTIONS),
       db_lock_(NULL,DB_CXX_NO_EXCEPTIONS),
       db_locked_(NULL,DB_CXX_NO_EXCEPTIONS),
       db_link_(NULL,DB_CXX_NO_EXCEPTIONS),
+      error_num_(0),
       valid_(false) {
-    if(dberr("set 1",db_lock_.set_flags(DB_DUPSORT)) != 0) return;
-    if(dberr("set 2",db_locked_.set_flags(DB_DUPSORT)) != 0) return;
-    if(dberr("assoc1",db_link_.associate(NULL,&db_lock_,&locked_callback,0)) != 0) return;
-    if(dberr("assoc2",db_link_.associate(NULL,&db_locked_,&lock_callback,0)) != 0) return;
-    if(dberr("open 1",db_rec_.open(NULL,(basepath_+"/list").c_str(), "meta", DB_BTREE, DB_CREATE, S_IRUSR | S_IWUSR)) != 0) return;
-    if(dberr("open 2",db_link_.open(NULL,(basepath_+"/list").c_str(), "link", DB_RECNO, DB_CREATE, S_IRUSR | S_IWUSR)) != 0) return;
-    if(dberr("open 2",db_lock_.open(NULL,(basepath_+"/list").c_str(), "lock", DB_BTREE, DB_CREATE, S_IRUSR | S_IWUSR)) != 0) return;
-    if(dberr("open 3",db_locked_.open(NULL,(basepath_+"/list").c_str(), "locked", DB_BTREE, DB_CREATE, S_IRUSR | S_IWUSR)) != 0) return;
-    //if(db_rec_.associate(NULL,&db_uid_,&uid_callback,0) != 0) return;
-    //if(db_rec_.associate(NULL,&db_id_,&id_callback,0) != 0) return;
+    // db_link
+    //    |---db_lock
+    //    \---db_locked
+    if(!dberr("Error setting flag DB_DUPSORT",db_lock_.set_flags(DB_DUPSORT))) return;
+    if(!dberr("Error setting flag DB_DUPSORT",db_locked_.set_flags(DB_DUPSORT))) return;
+    if(!dberr("Error associating databases",db_link_.associate(NULL,&db_lock_,&locked_callback,0))) return;
+    if(!dberr("Error associating databases",db_link_.associate(NULL,&db_locked_,&lock_callback,0))) return;
+    int oflags = DB_CREATE;
+    std::string dbpath = basepath_+"/list";
+    if(recover == ordinary_recovery) {
+      oflags |= DB_RECOVER;
+    } else if(recover == catastrophic_recovery) {
+      oflags |= DB_RECOVER_FATAL;
+    } else if(recover == full_recovery) {
+      // Recreating all databases
+      if(::unlink(dbpath.c_str()) != 0) {
+        if(errno != ENOENT) {
+          dberr("Error wiping database",errno);
+          return;
+        };
+      };
+    };
+    if(!dberr("Error opening database 'meta'",db_rec_.open(NULL,dbpath.c_str(),   "meta",  DB_BTREE,oflags,S_IRUSR|S_IWUSR))) return;
+    if(!dberr("Error opening database 'link'",db_link_.open(NULL,dbpath.c_str(),  "link",  DB_RECNO,oflags,S_IRUSR|S_IWUSR))) return;
+    if(!dberr("Error opening database 'lock'",db_lock_.open(NULL,dbpath.c_str(),  "lock",  DB_BTREE,oflags,S_IRUSR|S_IWUSR))) return;
+    if(!dberr("Error opening database 'locked'",db_locked_.open(NULL,dbpath.c_str(),"locked",DB_BTREE,oflags,S_IRUSR|S_IWUSR))) return;
     valid_ = true;
+  }
+
+  FileRecord::~FileRecord(void) {
+    db_locked_.close(0);
+    db_lock_.close(0);
+    db_link_.close(0);
+    db_rec_.close(0);
   }
 
   static void* store_string(const std::string& str, void* buf) {
@@ -195,7 +222,7 @@ namespace ARex {
     Dbt data;
     make_key(id,owner,key);
     void* pkey = key.get_data();
-    if(dberr("find:get",db_rec_.get(NULL,&key,&data,0)) != 0) {
+    if(!dberr("find:get",db_rec_.get(NULL,&key,&data,0))) {
       ::free(pkey);
       return "";
     };
@@ -214,7 +241,7 @@ namespace ARex {
     Dbt data;
     make_key(id,owner,key);
     void* pkey = key.get_data();
-    if(dberr("modify:get",db_rec_.get(NULL,&key,&data,0)) != 0) {
+    if(!dberr("modify:get",db_rec_.get(NULL,&key,&data,0))) {
       ::free(pkey);
       return false;
     };
@@ -225,7 +252,7 @@ namespace ARex {
     parse_record(uid,id_tmp,owner_tmp,meta_tmp,key,data);
     ::free(pkey);
     make_record(uid,id,owner,meta,key,data);
-    if(dberr("modify.put",db_rec_.put(NULL,&key,&data,0)) != 0) {
+    if(!dberr("modify.put",db_rec_.put(NULL,&key,&data,0))) {
       ::free(key.get_data());
       ::free(data.get_data());
       return false;
@@ -243,11 +270,11 @@ namespace ARex {
     Dbt data;
     make_key(id,owner,key);
     void* pkey = key.get_data();
-    if(dberr("remove:get1",db_locked_.get(NULL,&key,&data,0)) == 0) {
+    if(dberr("remove:get1",db_locked_.get(NULL,&key,&data,0))) {
       ::free(pkey);
       return false; // have locks
     };
-    if(dberr("remove:get2",db_rec_.get(NULL,&key,&data,0)) != 0) {
+    if(!dberr("remove:get2",db_rec_.get(NULL,&key,&data,0))) {
       ::free(pkey);
       return ""; // No such record?
     };
@@ -277,7 +304,7 @@ namespace ARex {
     for(std::list<std::string>::const_iterator id = ids.begin(); id != ids.end(); ++id) {
       make_link(lock_id,*id,owner,data);
       void* pdata = data.get_data();
-      if(dberr("addlock:put",db_link_.put(NULL,&key,&data,DB_APPEND)) != 0) {
+      if(!dberr("addlock:put",db_link_.put(NULL,&key,&data,DB_APPEND))) {
         ::free(pdata);
         return false;
       };
@@ -296,12 +323,12 @@ namespace ARex {
     if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
     Dbc* cur = NULL;
-    if(dberr("removelock:cursor",db_lock_.cursor(NULL,&cur,0)) != 0) return false;
+    if(!dberr("removelock:cursor",db_lock_.cursor(NULL,&cur,0))) return false;
     Dbt key;
     Dbt data;
     make_string(lock_id,key);
     void* pkey = key.get_data();
-    if(dberr("removelock:get1",cur->get(&key,&data,DB_SET)) != 0) { // TODO: handle errors
+    if(!dberr("removelock:get1",cur->get(&key,&data,DB_SET))) { // TODO: handle errors
       ::free(pkey);
       cur->close(); return false;
     };
@@ -313,12 +340,12 @@ namespace ARex {
       buf = parse_string(id,buf,size);
       buf = parse_string(owner,buf,size);
       ids.push_back(std::pair<std::string,std::string>(id,owner));
-      if(dberr("removelock:del",cur->del(0)) != 0) {
+      if(!dberr("removelock:del",cur->del(0))) {
         ::free(pkey);
         cur->close(); return false;
       };
       db_lock_.sync(0);
-      if(dberr("removelock:get2",cur->get(&key,&data,DB_NEXT_DUP)) != 0) break;
+      if(!dberr("removelock:get2",cur->get(&key,&data,DB_NEXT_DUP))) break;
     };
     ::free(pkey);
     cur->close();
@@ -344,7 +371,7 @@ namespace ARex {
   }
 
   FileRecord::Iterator::Iterator(FileRecord& frec):frec_(frec),cur_(NULL) {
-    if(dberr("Iterator:cursor",frec_.db_rec_.cursor(NULL,&cur_,0)) != 0) {
+    if(!frec_.dberr("Iterator:cursor",frec_.db_rec_.cursor(NULL,&cur_,0))) {
       if(cur_) {
         cur_->close(); cur_=NULL;
       };
@@ -352,7 +379,7 @@ namespace ARex {
     };
     Dbt key;
     Dbt data;
-    if(dberr("Iterator:first",cur_->get(&key,&data,DB_FIRST)) != 0) {
+    if(!frec_.dberr("Iterator:first",cur_->get(&key,&data,DB_FIRST))) {
       cur_->close(); cur_=NULL;
       return;
     };
@@ -369,7 +396,7 @@ namespace ARex {
     if(!cur_) return *this;
     Dbt key;
     Dbt data;
-    if(dberr("Iterator:first",cur_->get(&key,&data,DB_NEXT)) != 0) {
+    if(!frec_.dberr("Iterator:first",cur_->get(&key,&data,DB_NEXT))) {
       cur_->close(); cur_=NULL;
       return *this;
     };
@@ -381,7 +408,7 @@ namespace ARex {
     if(!cur_) return *this;
     Dbt key;
     Dbt data;
-    if(dberr("Iterator:first",cur_->get(&key,&data,DB_PREV)) != 0) {
+    if(!frec_.dberr("Iterator:first",cur_->get(&key,&data,DB_PREV))) {
       cur_->close(); cur_=NULL;
       return *this;
     };

@@ -200,6 +200,7 @@ bool GridManager::thread() {
   logger.msg(Arc::INFO,"Used configuration file %s",env_->nordugrid_config_loc());
   print_serviced_users(*users_);
 
+  // Preparing various structures, dirs, etc.
   wakeup_interface_ = new CommFIFO;
   time_t hard_job_time; 
   for(JobUsers::iterator i = users_->begin();i!=users_->end();++i) {
@@ -211,6 +212,14 @@ bool GridManager::thread() {
         logger.msg(Arc::FATAL,"Error adding communication interface in %s for user %s. Maybe permissions are not suitable.",i->ControlDir(),i->UnixName());
       };
       return false;
+    };
+    ARex::DelegationStores* delegs = i->Env().delegations();
+    if(delegs) {
+      ARex::DelegationStore& deleg = (*delegs)[i->DelegationDir()];
+      if(!deleg) {
+        logger.msg(Arc::FATAL,"Error initiating delegation database in %s for user %s. Maybe permissions are not suitable. Returned error is: %s.",i->DelegationDir(),i->UnixName(),deleg.Error());
+        return false;
+      };
     };
   };
   wakeup_interface_->timeout(env_->jobs_cfg().WakeupPeriod());

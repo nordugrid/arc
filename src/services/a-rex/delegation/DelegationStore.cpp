@@ -22,16 +22,48 @@ namespace ARex {
     Arc::DirCreate(dpath,0,0,S_IXUSR|S_IRUSR|S_IWUSR,true);
   }
 
-  DelegationStore::DelegationStore(const std::string& base):fstore_(base) {
+  DelegationStore::DelegationStore(const std::string& base) {
     expiration_ = 0;
     maxrecords_ = 0;
     mtimeout_ = 0;
     mrec_ = NULL;
+    fstore_ = new FileRecord(base);
+    if(!*fstore_) {
+      // Database creation failed. Go through all levels of recovery.
+      delete fstore_;
+      fstore_ = new FileRecord(base,FileRecord::ordinary_recovery);
+      if(!*fstore_) {
+        delete fstore_;
+        fstore_ = new FileRecord(base,FileRecord::catastrophic_recovery);
+        if(!*fstore_) {
+          delete fstore_;
+          // Full recreation of database. Delete everything.
+          Glib::Dir dir(base);
+          std::string name;
+          while ((name = dir.read_name()) != "") {
+            std::string fullpath(base);
+            fullpath += G_DIR_SEPARATOR_S + name;
+            struct stat st;
+            if (::lstat(fullpath.c_str(), &st) == 0) {
+              if(S_ISDIR(st.st_mode)) {
+                Arc::DirDelete(fullpath.c_str());
+              };
+            };
+          };
+          fstore_ = new FileRecord(base,FileRecord::full_recovery);
+          if(!*fstore_) {
+            // Failure
+          } else {
+            // Database recreated.
+          };
+        };
+      };
+    };
     // TODO: Do some cleaning on startup
   }
 
   Arc::DelegationConsumerSOAP* DelegationStore::AddConsumer(std::string& id,const std::string& client) {
-    std::string path = fstore_.Add(id,client,std::list<std::string>());
+    std::string path = fstore_->Add(id,client,std::list<std::string>());
     if(path.empty()) return NULL;
     Arc::DelegationConsumerSOAP* cs = new Arc::DelegationConsumerSOAP();
     std::string key;
@@ -39,7 +71,7 @@ namespace ARex {
     if(!key.empty()) {
       make_dir_for_file(path);
       if(!Arc::FileCreate(path,key,0,0,S_IRUSR|S_IWUSR)) {
-        fstore_.Remove(id,client);
+        fstore_->Remove(id,client);
         delete cs; cs = NULL;
         return NULL;
       };
@@ -84,7 +116,7 @@ namespace ARex {
 
   Arc::DelegationConsumerSOAP* DelegationStore::FindConsumer(const std::string& id,const std::string& client) {
     std::list<std::string> meta;
-    std::string path = fstore_.Find(id,client,meta);
+    std::string path = fstore_->Find(id,client,meta);
     if(path.empty()) return NULL;
     std::string content;
     if(!Arc::FileRead(path,content)) return NULL;
@@ -149,7 +181,7 @@ namespace ARex {
     Glib::Mutex::Lock lock(lock_);
     std::map<Arc::DelegationConsumerSOAP*,Consumer>::iterator i = acquired_.find(c);
     if(i == acquired_.end()) return; // ????
-    fstore_.Remove(i->second.id,i->second.client); // TODO: Handle failure
+    fstore_->Remove(i->second.id,i->second.client); // TODO: Handle failure
     delete i->first;
     acquired_.erase(i);
   }
@@ -165,13 +197,13 @@ namespace ARex {
     time_t start = ::time(NULL);
     if(expiration_) {
       Glib::Mutex::Lock check_lock(lock_);
-      if(mrec_ == NULL) mrec_ = new FileRecord::Iterator(fstore_);
+      if(mrec_ == NULL) mrec_ = new FileRecord::Iterator(*fstore_);
       for(;(bool)(*mrec_);++(*mrec_)) {
         if(mtimeout_ && (((unsigned int)(::time(NULL) - start)) > mtimeout_)) return;
         struct stat st;
         if(::stat(mrec_->path().c_str(),&st) == 0) {
           if(((unsigned int)(::time(NULL) - st.st_mtime)) > expiration_) {
-            fstore_.Remove(mrec_->id(),mrec_->owner());
+            fstore_->Remove(mrec_->id(),mrec_->owner());
           };    
         };
       };
@@ -182,26 +214,26 @@ namespace ARex {
 
   std::string DelegationStore::FindCred(const std::string& id,const std::string& client) {
     std::list<std::string> meta;
-    return fstore_.Find(id,client,meta);
+    return fstore_->Find(id,client,meta);
   }
 
   bool DelegationStore::LockCred(const std::string& lock_id, const std::list<std::string>& ids,const std::string& client) {
-    return fstore_.AddLock(lock_id,ids,client);
+    return fstore_->AddLock(lock_id,ids,client);
   }
 
   bool DelegationStore::ReleaseCred(const std::string& lock_id, bool touch, bool remove) {
-    if((!touch) && (!remove)) return fstore_.RemoveLock(lock_id);
+    if((!touch) && (!remove)) return fstore_->RemoveLock(lock_id);
     std::list<std::pair<std::string,std::string> > ids;
-    if(!fstore_.RemoveLock(lock_id,ids)) return false;
+    if(!fstore_->RemoveLock(lock_id,ids)) return false;
     for(std::list<std::pair<std::string,std::string> >::iterator i = ids.begin();
                         i != ids.end(); ++i) {    
       if(touch) {
         std::list<std::string> meta;
-        std::string path = fstore_.Find(i->first,i->second,meta);
+        std::string path = fstore_->Find(i->first,i->second,meta);
         // TODO: in a future use meta for storing times
         if(!path.empty()) ::utime(path.c_str(),NULL);
       };
-      if(remove) fstore_.Remove(i->first,i->second);
+      if(remove) fstore_->Remove(i->first,i->second);
     };
     return true;
   }

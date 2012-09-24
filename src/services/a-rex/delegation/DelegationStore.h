@@ -21,7 +21,7 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
   };
   Glib::Mutex lock_;
   Glib::Mutex check_lock_;
-  FileRecord fstore_;
+  FileRecord* fstore_;
   std::map<Arc::DelegationConsumerSOAP*,Consumer> acquired_;
   unsigned int expiration_;
   unsigned int maxrecords_;
@@ -29,8 +29,9 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
   FileRecord::Iterator* mrec_;
  public:
   DelegationStore(const std::string& base);
-  operator bool(void) { return (bool)fstore_; };
-  bool operator!(void) { return !fstore_; };
+  operator bool(void) { return (bool)*fstore_; };
+  bool operator!(void) { return !*fstore_; };
+  std::string Error(void) { return fstore_->Error(); };
 
   void Expiration(unsigned int v = 0) { expiration_ = v; };
   void MaxRecords(unsigned int v = 0) { maxrecords_ = v; };

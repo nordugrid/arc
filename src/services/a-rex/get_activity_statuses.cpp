@@ -393,6 +393,7 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
           (info = item.NewChild(glue_xml)).Name("esainfo:ActivityInfoDocument");
           info.Namespaces(ns_);
           std::string glue2_prefix = info.NamespacePrefix(glue2_namespace.c_str());
+          /*
           // Collecting job state
           bool job_pending = false;
           std::string gm_state = job.State(job_pending);
@@ -409,9 +410,12 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
                                     job_failed,job_pending,failed_state,failed_cause);
             status = std::string("emies:")+primary_state;
           };
+          */
+          // Additional elements
           info.NewChild("esainfo:StageInDirectory") = config.Endpoint()+"/"+job.ID();
           info.NewChild("esainfo:StageOutDirectory") = config.Endpoint()+"/"+job.ID();
           info.NewChild("esainfo:SessionDirectory") = config.Endpoint()+"/"+job.ID();
+          // info.NewChild("esainfo:ComputingActivityHistory")
         };
       };
       if(!info) {
