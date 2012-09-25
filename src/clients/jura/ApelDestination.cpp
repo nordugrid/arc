@@ -16,7 +16,10 @@ namespace Arc
   ApelDestination::ApelDestination(JobLogFile& joblog):
     logger(Arc::Logger::rootLogger, "JURA.ApelDestination"),
     urn(0),
-    sequence(0)
+    sequence(0),
+    usagerecordset(Arc::NS("","http://eu-emi.eu/namespaces/2011/11/computerecord"),
+                   "UsageRecords")
+
   {
     //Get service URL, cert, key, CA path from job log file
     std::string serviceurl=joblog["loggerurl"];
@@ -87,12 +90,10 @@ namespace Arc
         joblogs.push_back(joblog);
         //Create UR if can
         Arc::XMLNode usagerecord(Arc::NS(), "");
-        joblog.createUsageRecord(usagerecord);
+        joblog.createCARUsageRecord(usagerecord);
         if (usagerecord)
           {
-            std::map<std::string, std::string> usagerecord_apel;
-            XML2KeyValue(usagerecord, usagerecord_apel);
-            usagerecordset_apel.push_back(usagerecord_apel);
+            usagerecordset.NewChild(usagerecord);
             ++urn;
           }
         else
@@ -118,14 +119,7 @@ namespace Arc
   int ApelDestination::submit_batch()
   {
     std::string urstr;
-    urstr = "APEL-individual-job-message: v0.2\n";
-    std::map<std::string,std::string>::iterator it;
-    for (int i=0; i<(int)usagerecordset_apel.size(); i++){
-        for ( it=usagerecordset_apel[i].begin() ; it != usagerecordset_apel[i].end(); it++ ){
-            urstr += (*it).first + ": " + (*it).second + "\n";
-        }
-        urstr += "%%\n";
-    }
+    usagerecordset.GetDoc(urstr,false);
 
     logger.msg(Arc::INFO, 
                "Logging UR set of %d URs.",
@@ -297,7 +291,12 @@ namespace Arc
   {
     urn=0;
     joblogs.clear();
-    usagerecordset_apel.clear();
+    usagerecordset.Replace(
+        Arc::XMLNode(Arc::NS("",
+                             "http://eu-emi.eu/namespaces/2011/11/computerecord"
+                            ),
+                     "UsageRecords")
+                    );
   }
 
   ApelDestination::~ApelDestination()

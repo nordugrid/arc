@@ -34,8 +34,8 @@ namespace Arc
     int sequence;
     /** List of copies of job logs */
     std::list<JobLogFile> joblogs;
-    /** Usage Record set map */
-    std::vector< std::map<std::string,std::string> > usagerecordset_apel;
+    /** Usage Record set XML */
+    Arc::XMLNode usagerecordset;
     
     int submit_batch();
     Arc::MCC_Status send_request(const std::string &urset);
