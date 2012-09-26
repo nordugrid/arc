@@ -26,6 +26,10 @@ my $currentqueue = undef;
 # cache info about nodes
 my $pbsnodes;
 
+# PBS type and flavour
+my $lrms_type = undef;
+my $lrms_version = undef;
+
 # Resets queue-specific global variables if
 # the queue has changed since the last call
 sub init_globals($) {
@@ -35,6 +39,29 @@ sub init_globals($) {
         %lrms_queue = ();
         %user_jobs_running = ();
         %user_jobs_queued = ();
+    }
+}
+
+# get PBS type and version
+sub get_pbs_version ($) {
+    return unless not defined $lrms_type;
+
+    # path to LRMS commands
+    my ($config) = shift;
+    my ($path) = $$config{pbs_bin_path};
+
+    # determine the flavour and version of PBS
+    my $qmgr_string=`$path/qmgr -c "list server"`;
+    if ( $? != 0 ) {    
+        warning("Can't run qmgr");
+    }
+    if ($qmgr_string =~ /pbs_version = \b(\D+)_(\d\S+)\b/) {
+        $lrms_type = $1;
+        $lrms_version = $2;
+    } else {
+        $qmgr_string =~ /pbs_version = \b(\d\S+)\b/;
+        $lrms_type = "torque";
+        $lrms_version = $1;
     }
 }
 
@@ -342,25 +369,16 @@ sub cluster_info ($) {
 
     my (%lrms_cluster);
 
-    #determine the flavour and version of PBS"
-    my $qmgr_string=`$path/qmgr -c "list server"`;
-    if ( $? != 0 ) {    
-        warning("Can't run qmgr");
-    }
-    if ($qmgr_string =~ /pbs_version = \b(\D+)_(\d\S+)\b/) {
-        $lrms_cluster{lrms_type} = $1;
-        $lrms_cluster{lrms_glue_type}=lc($1);
-        $lrms_cluster{lrms_version} = $2;
-    } else {
-        $qmgr_string =~ /pbs_version = \b(\d\S+)\b/;
-        $lrms_cluster{lrms_type}="torque";
-        if (exists $$config{scheduling_policy} and
-        lc($$config{scheduling_policy}) eq "maui") {
-            $lrms_cluster{lrms_glue_type}="torquemaui"
-        } else {
-            $lrms_cluster{lrms_glue_type}="torque";
-        }
-        $lrms_cluster{lrms_version}=$1;
+    # flavour and version of PBS
+    get_pbs_version($config);
+    $lrms_cluster{lrms_type} = $lrms_type;
+    $lrms_cluster{lrms_glue_type}=lc($lrms_type);
+    $lrms_cluster{lrms_version} = $lrms_version;
+
+    if ( $lrms_type eq "torque" and
+    exists $$config{scheduling_policy} and
+    lc($$config{scheduling_policy}) eq "maui") {
+        $lrms_cluster{lrms_glue_type}="torquemaui";
     }
 
     # PBS treats cputime limit for parallel/multi-cpu jobs as job-total
@@ -526,9 +544,26 @@ sub queue_info ($$) {
         undef $singledqueue;
     }
 
-    my (%keywords) = ( 'max_running' => 'maxrunning',
-		       'max_user_run' => 'maxuserrun',
-		       'max_queuable' => 'maxqueuable' );
+    # publish queue limits parameters
+    # general limits (publish as is)
+    my (%keywords);
+    my (%keywords_all) = ( 'max_running' => 'maxrunning',
+		           'max_user_run' => 'maxuserrun',
+		           'max_queuable' => 'maxqueuable' );
+
+    # TODO: MinSlots, etc.
+    my (%keywords_torque) = ( 'resources_max.procct' => 'MaxSlotsPerJob' );
+
+    my (%keywords_pbspro) = ( 'resources_max.ncpus' => 'MaxSlotsPerJob' );
+
+    get_pbs_version($config);
+    if ( $lrms_type eq "torque" ) {
+        %keywords = (%keywords_all, %keywords_torque);
+    } elsif ( $lrms_type eq "pbspro" ) {
+        %keywords = (%keywords_all, %keywords_pbspro);
+    } else {
+        %keywords = %keywords_all;
+    }
 
     foreach my $k (keys %keywords) {
 	if (defined $qstat{$k} ) {
@@ -538,6 +573,7 @@ sub queue_info ($$) {
 	}
     }
 
+    # queue time limits (convert to minutes)
     %keywords = ( 'resources_max.cput' => 'maxcputime',
 		  'resources_min.cput' => 'mincputime',
 		  'resources_default.cput' => 'defaultcput',
@@ -674,6 +710,9 @@ sub queue_info ($$) {
 	} else {
 	    $lrms_queue{queued}=0;
 	}
+
+        # fallback for defult values that are required for normal operation
+        $lrms_queue{MaxSlotsPerJob} = $lrms_queue{totalcpus} if $lrms_queue{MaxSlotsPerJob} eq "";
 
  	# calculate queued in case of a routing queue
         # queued jobs is the sum of jobs queued in the routing queue
