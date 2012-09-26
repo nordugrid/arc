@@ -10,7 +10,7 @@ libaccCREAM_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS)
 libaccCREAM_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/client/libarcclient.la \
-	$(top_builddir)/src/hed/libs/data/libarcdata2.la \
+	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
@@ -24,7 +24,7 @@ libaccCREAMJLR_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS)
 libaccCREAMJLR_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/client/libarcclient.la \
-	$(top_builddir)/src/hed/libs/data/libarcdata2.la \
+	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \

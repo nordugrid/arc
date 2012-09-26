@@ -7,7 +7,7 @@ downloader_LDADD = \
 	../jobs/libusers.la ../log/liblog.la ../files/libfiles.la \
 	../run/librun.la ../conf/libconf.la ../misc/libmisc.la \
 	../mail/libmail.la \
-	$(top_builddir)/src/hed/libs/data/libarcdata2.la
+	$(top_builddir)/src/hed/libs/data/libarcdata.la
 
 uploader_SOURCES = uploader.cpp
 uploader_CXXFLAGS = -I$(top_srcdir)/include \
@@ -16,4 +16,4 @@ uploader_LDADD = \
 	../jobs/libusers.la ../log/liblog.la ../files/libfiles.la \
 	../run/librun.la ../conf/libconf.la ../misc/libmisc.la \
 	../mail/libmail.la \
-	$(top_builddir)/src/hed/libs/data/libarcdata2.la
+	$(top_builddir)/src/hed/libs/data/libarcdata.la

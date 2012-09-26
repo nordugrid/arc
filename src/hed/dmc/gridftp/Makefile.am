@@ -6,7 +6,7 @@ libdmcgridftp_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_FTP_CLIENT_CFLAGS)
 libdmcgridftp_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/globusutils/libarcglobusutils.la \
-	$(top_builddir)/src/hed/libs/data/libarcdata2.la \
+	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \

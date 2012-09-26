@@ -19,7 +19,7 @@ ARCCREDENTIAL_CFLAGS='-I$(top_srcdir)/include'
 AC_SUBST(ARCCREDENTIAL_LIBS)
 AC_SUBST(ARCCREDENTIAL_CFLAGS)
 
-ARCDATA_LIBS='$(top_builddir)/src/hed/libs/data/libarcdata2.la'
+ARCDATA_LIBS='$(top_builddir)/src/hed/libs/data/libarcdata.la'
 ARCDATA_CFLAGS='-I$(top_srcdir)/include'
 AC_SUBST(ARCDATA_LIBS)
 AC_SUBST(ARCDATA_CFLAGS)

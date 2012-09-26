@@ -33,7 +33,7 @@ inputcheck_SOURCES = inputcheck.cpp
 inputcheck_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 inputcheck_LDADD = libgridmanager.la ../delegation/libdelegation.la \
-	$(top_builddir)/src/hed/libs/data/libarcdata2.la \
+	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
 
 arc_vomsac_check_SOURCES = arc_vomsac_check.cpp

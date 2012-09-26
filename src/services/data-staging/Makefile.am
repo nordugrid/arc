@@ -17,6 +17,6 @@ libdatadeliveryservice_la_LIBADD = \
   $(top_builddir)/src/hed/libs/loader/libarcloader.la \
   $(top_builddir)/src/hed/libs/common/libarccommon.la \
   $(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
-  $(top_builddir)/src/hed/libs/data/libarcdata2.la \
+  $(top_builddir)/src/hed/libs/data/libarcdata.la \
   $(GLIBMM_LIBS)
 libdatadeliveryservice_la_LDFLAGS = -no-undefined -avoid-version -module

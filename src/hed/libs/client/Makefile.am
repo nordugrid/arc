@@ -37,7 +37,7 @@ libarcclient_la_CXXFLAGS = -I$(top_srcdir)/include \
 libarcclient_la_LIBADD = \
 	$(ARCLIBS_WITH_XMLSEC) \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
-	$(top_builddir)/src/hed/libs/data/libarcdata2.la \
+	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \

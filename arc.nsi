@@ -35,7 +35,7 @@ Section "Main Components"
 	File /oname=libarcsecurity-0.dll "src\hed\libs\security\.libs\libarcsecurity-0.dll"
 	File /oname=libarcclient-0.dll "src\hed\libs\client\.libs\libarcclient-0.dll"
 	File /oname=libarcws-0.dll "src\hed\libs\ws\.libs\libarcws-0.dll"
-	File /oname=libarcdata2-0.dll "src\hed\libs\data\.libs\libarcdata2-0.dll"
+	File /oname=libarcdata-0.dll "src\hed\libs\data\.libs\libarcdata-0.dll"
     ; GLIB libs
 	File /oname=libgnurx-0.dll "${MSYSPATH}\lib\libgnurx-0.dll"
 	File /oname=libglib-2.0-0.dll "${GTKPATH}\bin\libglib-2.0-0.dll"

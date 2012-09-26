@@ -6,7 +6,7 @@ libdmcgfal_la_SOURCES = DataPointGFAL.cpp DataPointGFAL.h \
 libdmcgfal_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GFAL2_CFLAGS)
 libdmcgfal_la_LIBADD = \
-	$(top_srcdir)/src/hed/libs/data/libarcdata2.la \
+	$(top_srcdir)/src/hed/libs/data/libarcdata.la \
 	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \

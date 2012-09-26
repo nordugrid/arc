@@ -18,7 +18,7 @@ libaccEMIES_la_LIBADD = \
 libaccEMIES_la_LDFLAGS = -no-undefined -avoid-version -module
 
 #	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
-#	$(top_builddir)/src/hed/libs/data/libarcdata2.la \
+#	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 #	$(top_builddir)/src/hed/libs/ws/libarcws.la \
 #	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 #
