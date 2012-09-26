@@ -123,6 +123,10 @@ namespace Arc
                   } 
                 else
                   {
+                    // Set topic option if it is needed
+                    if ( (*logfile)["loggerurl"].substr(0,4) == "APEL" ) {
+                       (*logfile)["topic"] = (*logfile)["jobreport_option_topic"];
+                    }
                     //Pass job log file content to the appropriate 
                     //logging destination
                     dests->report(*logfile);
