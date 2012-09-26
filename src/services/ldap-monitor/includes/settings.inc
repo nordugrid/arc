@@ -56,6 +56,7 @@ array("schema" => "https",
  * > openssl pkcs12 -in keys.pfx -out keys.pem
  */
 $cert = "/var/www/ldap-monitor-svn/includes/test.pem";
+$cert_pass = 'emi';
 
 // base DNs for searches: local (GRIS), global (GIIS), VO
 if ( !defined("DN_LOCAL") ) define("DN_LOCAL","mds-vo-name=local,o=grid");

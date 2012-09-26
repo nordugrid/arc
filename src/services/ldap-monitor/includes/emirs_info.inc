@@ -154,7 +154,7 @@ function http_request($type, $url, $data, $cert, $referer='') {
       // add secure properties
       $context = stream_context_create();
       $result  = stream_context_set_option($context, 'ssl', 'local_cert', $cert);
-      $result  = stream_context_set_option($context, 'ssl', 'passphrase', 'emi');  
+      $result  = stream_context_set_option($context, 'ssl', 'passphrase', $cert_pass);  
     
       // open a secure socket connection on the given port - timeout: 30 sec
       $fp = stream_socket_client("ssl://".$host.":".$port, $errno, $errstr, 30, STREAM_CLIENT_CONNECT,$context);
