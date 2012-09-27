@@ -527,7 +527,7 @@ namespace DataStaging {
      const DTRLogger& get_logger() const { return logger; };
 
      /// Connect log destinations to logger. Only needs to be done after disconnect()
-     void connect_logger() { if (logger) logger->addDestinations(log_destinations); };
+     void connect_logger() { if (logger) logger->setDestinations(log_destinations); };
      /// Disconnect log destinations from logger.
      void disconnect_logger() { if (logger) logger->removeDestinations(); };
 

@@ -469,6 +469,11 @@ namespace Arc {
      */
     void addDestinations(const std::list<LogDestination*>& destinations);
 
+    //! Set LogDestinations.
+    /*! A safe atomic way to remove and add LogDestinations.
+     */
+    void setDestinations(const std::list<LogDestination*>& destinations);
+
     //! Obtains current LogDestinations.
     /*! Returns list of pointers to LogDestination objects. Returned result
        refers directly to internal member of Logger intance. Hence it 
