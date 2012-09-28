@@ -175,7 +175,7 @@ namespace Arc {
     bool Retrieve(const UserConfig& uc, const URL& destination, bool force) const;
     
     static bool CopyJobFile(const UserConfig& uc, const URL& src, const URL& dst);
-    static bool ListFilesRecursive(const UserConfig& uc, const URL& dir, std::list<std::string>& files, const std::string& prefix = "");
+    static bool ListFilesRecursive(const UserConfig& uc, const URL& dir, std::list<std::string>& files) { files.clear(); return ListFilesRecursive(uc, dir, files, ""); }
     
     static bool CompareJobID(const Job& a, const Job& b) { return a.JobID.fullstr().compare(b.JobID.fullstr()) < 0; }
     static bool CompareSubmissionTime(const Job& a, const Job& b) { return a.SubmissionTime < b.SubmissionTime; }
@@ -430,6 +430,8 @@ namespace Arc {
     static bool WriteJobIDsToFile(const std::list<Job>& jobs, const std::string& filename, unsigned nTries = 10, unsigned tryInterval = 500000);
 
   private:
+    static bool ListFilesRecursive(const UserConfig& uc, const URL& dir, std::list<std::string>& files, const std::string& prefix);
+
     JobControllerPlugin* jc;
 
     static JobControllerPluginLoader loader;
