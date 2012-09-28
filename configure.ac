@@ -2238,6 +2238,9 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/infoproviders/cluster.pl
                  src/services/a-rex/infoproviders/se.pl
                  src/services/a-rex/infoproviders/test/Makefile
+                 src/services/a-rex/jura/Makefile
+                 src/services/a-rex/jura/jura.1
+                 src/services/a-rex/jura/ssm/Makefile
                  src/services/a-rex/ldif/Makefile
                  src/services/a-rex/lrms/Makefile
                  src/services/a-rex/lrms/submit_common.sh
@@ -2363,9 +2366,6 @@ AC_CONFIG_FILES([Makefile
                  src/clients/arclib/arcacl.1
                  src/clients/arclib/arctest.1
                  src/clients/wsrf/arcwsrf.1
-                 src/clients/jura/Makefile
-                 src/clients/jura/jura.1
-                 src/clients/jura/ssm/Makefile
                  src/clients/wsrf/Makefile
                  src/clients/cache/Makefile
                  src/tests/Makefile

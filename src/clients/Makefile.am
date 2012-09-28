@@ -28,12 +28,6 @@ else
 SAML_CLIENT =
 endif
 
-if JURA_CLIENT_ENABLED
-JURA_CLIENT = jura
-else
-JURA_CLIENT =
-endif
-
 if WSRF_CLIENT_ENABLED
 WSRF_CLIENT = wsrf
 else
@@ -46,8 +40,8 @@ else
 CACHE_CLIENT =
 endif
 
-SUBDIRS = $(DATA_CLIENT) $(ECHO_CLIENT) $(CREDENTIALS_CLIENT) $(ARCLIB_CLIENT) $(SAML_CLIENT) $(JURA_CLIENT) $(WSRF_CLIENT) $(CACHE_CLIENT)
-DIST_SUBDIRS = data echo credentials arclib saml jura wsrf cache
+SUBDIRS = $(DATA_CLIENT) $(ECHO_CLIENT) $(CREDENTIALS_CLIENT) $(ARCLIB_CLIENT) $(SAML_CLIENT) $(WSRF_CLIENT) $(CACHE_CLIENT)
+DIST_SUBDIRS = data echo credentials arclib saml wsrf cache
 
 arcsysconfdir = $(sysconfdir)/arc
 arcsysconf_DATA = client.conf

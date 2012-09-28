@@ -1,4 +1,10 @@
-SUBDIRS = delegation grid-manager ldif infoproviders lrms urlogger schema
+if JURA_CLIENT_ENABLED
+JURA_CLIENT = jura
+else
+JURA_CLIENT =
+endif
+
+SUBDIRS = delegation grid-manager ldif infoproviders $(JURA_CLIENT) lrms urlogger schema
 
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS = test test_cache_check
