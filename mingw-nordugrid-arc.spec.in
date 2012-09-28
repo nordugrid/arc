@@ -318,13 +318,6 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw32_bindir}/saml_assertion_init.exe
 #
 %{mingw32_sysconfdir}/arc/client.conf
-%{mingw32_libexecdir}/%{pkgdir}/jura.exe
-%{mingw32_libexecdir}/%{pkgdir}/ssm_master
-%{mingw32_datadir}/%{pkgdir}/ssm/encrypt_utils.py*
-%{mingw32_datadir}/%{pkgdir}/ssm/ssm.py*
-%{mingw32_datadir}/%{pkgdir}/ssm/message_db.py*
-%{mingw32_datadir}/%{pkgdir}/ssm/ssm.cfg
-%{mingw32_datadir}/%{pkgdir}/ssm/ssm.log.cfg
 #
 # Man pages
 #
