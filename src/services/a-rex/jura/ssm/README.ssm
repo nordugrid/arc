@@ -1,0 +1,38 @@
+
+This modified Python codes are part of the SSM that developed by APEL.
+
+Changelog:
+*Wed Sep 19 2012 Gabor Szigeti <szigeti@niif.hu>
+ -update to ssm 1.2-2
+
+*Fri Mar 23 2012 Gabor Szigeti <szigeti@niif.hu>
+ -update to ssm 0.8
+ -fixed temporary location of the log and the messages 
+ -better packaging structrure
+ 
+*Thu Mar 6 2012 Gabor Szigeti <szigeti@niif.hu>
+ -add license information
+
+*Mon Dec 19 2012 Gabor Szigeti <szigeti@niif.hu> 
+ -SSM 0.7 integration
+ 
+What kind of modification happend:
+-used sources and logs: ssm_master.py SecureStompMessenger.py EncryptUtils.py message_db.py ssm.cfg ssm.log.cfg
+-SecureStompMessenger.py:
+        *commented two lines (don't send ping message, never reset the certificate)
+        *add stop method for a disconnection from the server 
+-ssm_master.py:
+        *extend the python pathes with one new path
+        *the following attributes are comming as a command line argument:
+                <hostname> <port> <topic> <key-path> <cert-path> <cadir-path> <path-to-messages-files>
+        *send every message ones
+
+Installation requirement:
+    *python 2.4.3 or later
+    *stomppy 2.0.2 or later (recommended 3.0.3)
+    *m2crypto 0.21.1 or later
+
+Package names on different platforms:
+    *Scientific Linux, Fedora: python, stomppy, m2crypto
+    *Debian 6: python, python-stompy, (python-)m2crypto
+

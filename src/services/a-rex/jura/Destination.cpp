@@ -1,0 +1,112 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <sstream>
+
+#include "Destination.h"
+#include "LutsDestination.h"
+#include "ApelDestination.h"
+#include "CARDestination.h"
+
+namespace Arc
+{
+
+  Destination* Destination::createDestination(Arc::JobLogFile &joblog)
+  {
+    std::string url=joblog["loggerurl"];
+    if (url.substr(0,3) == "CAR") {
+        return new CARDestination(joblog);
+    }
+    //TODO distinguish
+    if ( !joblog["topic"].empty() ||
+         url.substr(0,4) == "APEL"){
+        return new ApelDestination(joblog);
+    }else{
+        return new LutsDestination(joblog);
+    }
+  }
+
+  // Current time calculation and convert to the UTC time format.
+  std::string Destination::Current_Time( time_t parameter_time ){
+
+      time_t rawtime;
+      if ( parameter_time == time(NULL) ){
+          time ( &rawtime );    //current time
+      } else {
+          rawtime = parameter_time;
+      }
+      tm * ptm;
+      ptm = gmtime ( &rawtime );
+
+      std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
+      std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
+      std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
+      std::string min_prefix = (ptm->tm_min < 10)?"0":"";
+      std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
+      std::stringstream out;
+      if ( parameter_time == time(NULL) ){
+          out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec<<"+0000";
+      } else {
+          out << ptm->tm_year+1900<<mon_prefix<<ptm->tm_mon+1<<day_prefix<<ptm->tm_mday<<"."<<hour_prefix<<ptm->tm_hour<<min_prefix<<ptm->tm_min<<sec_prefix<<ptm->tm_sec;
+      }
+      return out.str();
+  }
+  
+  Arc::MCC_Status Destination::OutputFileGeneration(std::string prefix, Arc::URL url, std::string output_dir, std::string message, Arc::Logger& logger){
+      //Filename generation
+    int sequence = 0;
+    std::string output_filename = prefix+"_records_" +url.Host() + "_" + Current_Time();
+   logger.msg(Arc::DEBUG, 
+               "UR set dump: %s",
+               output_dir);
+    if (!output_dir.empty()) {
+        // local copy creation
+        std::string output_path;
+        output_path = output_dir;
+        if (output_dir[output_dir.size()-1] != '/'){
+            output_path = output_dir + "/";
+        }
+    
+    
+        output_path += output_filename;
+
+        std::ifstream ifile(output_path.c_str());
+        if (ifile) {
+            // The file exists, and create new filename
+            sequence++;
+            std::stringstream ss;
+            ss << sequence;
+            output_path += ss.str();
+            output_filename += ss.str();
+        }
+        else {
+            sequence=0;
+        }
+        ifile.close();
+
+        //Save all records into the output file.
+        const char* filename(output_path.c_str());
+        std::ofstream outputfile;
+        outputfile.open (filename);
+        if (outputfile.is_open())
+        {
+            outputfile << message;
+            outputfile.close();
+            logger.msg(Arc::DEBUG, "Backup file (%s) created.", output_filename);
+        }
+        else
+        {
+            return Arc::MCC_Status(Arc::PARSING_ERROR,
+                   prefix + "client",
+                   std::string(
+                     "Error opening file: "
+                               )+ 
+                   filename
+                   );
+        }
+    }
+    return Arc::MCC_Status(STATUS_OK);
+  }
+}
+
