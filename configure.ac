@@ -794,7 +794,11 @@ if test "x$enables_canlxx" = "xyes"; then
   AC_ARG_WITH(canlxx,
     AC_HELP_STRING([--with-canlxx=PATH], [CANL++ installation path]),
     [
-      PKG_CONFIG_PATH="$withval/lib/pkgconfig:$PKG_CONFIG_PATH"
+      if test "x$PKG_CONFIG_PATH" != "x"; then
+        PKG_CONFIG_PATH="$withval/lib/pkgconfig:$PKG_CONFIG_PATH"
+      else
+        PKG_CONFIG_PATH="$withval/lib/pkgconfig"
+      fi
     ]
   )
   AC_MSG_NOTICE([PKG_CONFIG_PATH for CANL++ is: $PKG_CONFIG_PATH])
@@ -896,7 +900,11 @@ if test "x$enables_xmlsec1" = "xyes"; then
           XMLSEC_LIBS="`$XMLSEC_CONFIG --libs`"
           XMLSEC_CFLAGS="`$XMLSEC_CONFIG --cflags`"
           #check the xmlsec1-openssl here
-          PKG_CONFIG_PATH="$with_xmlsec1/lib/pkgconfig/:$PKG_CONFIG_PATH"
+          if test "x$PKG_CONFIG_PATH" != "x"; then
+            PKG_CONFIG_PATH="$with_xmlsec1/lib/pkgconfig:$PKG_CONFIG_PATH"
+          else
+            PKG_CONFIG_PATH="$with_xmlsec1/lib/pkgconfig"
+          fi
           PKG_CHECK_MODULES(XMLSEC_OPENSSL, [xmlsec1-openssl >= $XMLSEC_OPENSSL_MIN_VERSION],
               [XMLSEC_INSTALLED=yes],[XMLSEC_INSTALLED=no])
         else
@@ -905,7 +913,11 @@ if test "x$enables_xmlsec1" = "xyes"; then
       fi
   elif test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOSX" = "xyes"; then
     #MACOSX has no "ldd" which is needed by xmlsec1-config, so here simply we use PKG_CHECK_MODULES
-    PKG_CONFIG_PATH="$with_xmlsec1/lib/pkgconfig/:$PKG_CONFIG_PATH"
+    if test "x$PKG_CONFIG_PATH" != "x"; then
+      PKG_CONFIG_PATH="$with_xmlsec1/lib/pkgconfig:$PKG_CONFIG_PATH"
+    else
+      PKG_CONFIG_PATH="$with_xmlsec1/lib/pkgconfig"
+    fi
     PKG_CHECK_MODULES(XMLSEC, [xmlsec1 >= $XMLSEC_MIN_VERSION],
         [XMLSEC_INSTALLED=yes], [XMLSEC_INSTALLED=no])
     if test "x$XMLSEC_INSTALLED" = "xyes" ; then
@@ -1063,7 +1075,11 @@ if test "x$enables_argus" = "xyes"; then
   AC_ARG_WITH(argus,
     AC_HELP_STRING([--with-argus=PATH], [ARGUS PEP installation path]),
     [
-      PKG_CONFIG_PATH="$withval/lib/pkgconfig:$PKG_CONFIG_PATH"
+      if test "x$PKG_CONFIG_PATH" != "x"; then
+        PKG_CONFIG_PATH="$withval/lib/pkgconfig:$PKG_CONFIG_PATH"
+      else
+        PKG_CONFIG_PATH="$withval/lib/pkgconfig"
+      fi
     ]
   )
   PKG_CHECK_MODULES(ARGUS, [libargus-pep >= 2.0.0], [], [
