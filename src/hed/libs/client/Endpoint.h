@@ -147,6 +147,8 @@ public:
     which has this requested InterfaceName.
   */
   std::string RequestedSubmissionInterfaceName;
+  /** The ID of the service this Endpoint belongs to */
+  std::string ServiceID;
 };
 
 } // namespace Arc
