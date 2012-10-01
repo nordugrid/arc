@@ -2033,7 +2033,7 @@ err:
           offsetof(ProxyCertInfo1, pathlength) },
     { SEC_ASN1_INLINE,
           offsetof(ProxyCertInfo1, proxypolicy),
-          SEC_ASN1_GET(ProxyPolicyTemplate1) },
+          ProxyPolicyTemplate1 },
     { 0 }
   };
   SEC_ASN1_CHOOSER_IMPLEMENT(ProxyCertInfoTemplate1)
@@ -2062,7 +2062,7 @@ err:
           offsetof(ProxyCertInfo2, pathlength) },
     { SEC_ASN1_INLINE,
           offsetof(ProxyCertInfo2, proxypolicy),
-          SEC_ASN1_GET(ProxyPolicyTemplate2) },
+          ProxyPolicyTemplate2 },
     { 0 }
   };
   SEC_ASN1_CHOOSER_IMPLEMENT(ProxyCertInfoTemplate2)
@@ -2091,7 +2091,7 @@ err:
           0, NULL, sizeof(ProxyCertInfo3) },
     { SEC_ASN1_INLINE,
           offsetof(ProxyCertInfo3, proxypolicy),
-          SEC_ASN1_GET(ProxyPolicyTemplate3) },
+          ProxyPolicyTemplate3 },
     { 0 }
   };
   SEC_ASN1_CHOOSER_IMPLEMENT(ProxyCertInfoTemplate3)
@@ -2117,7 +2117,7 @@ err:
           0, NULL, sizeof(ProxyCertInfo4) },
     { SEC_ASN1_INLINE,
           offsetof(ProxyCertInfo4, proxypolicy),
-          SEC_ASN1_GET(ProxyPolicyTemplate4) },
+          ProxyPolicyTemplate4 },
     { 0 }
   };
   SEC_ASN1_CHOOSER_IMPLEMENT(ProxyCertInfoTemplate4)
@@ -2370,7 +2370,7 @@ error:
           0, NULL, sizeof(SECItem) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED |
           SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
-          0, SEC_ASN1_GET(SEC_SkipTemplate) },  /* version */
+          0, SEC_SkipTemplate },  /* version */
     { SEC_ASN1_SKIP },          /* serial number */
     { SEC_ASN1_SKIP },          /* signature algorithm */
     { SEC_ASN1_SKIP },          /* issuer */
@@ -2387,7 +2387,7 @@ error:
           0, NULL, sizeof(SECItem) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED |
           SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
-          0, SEC_ASN1_GET(SEC_SkipTemplate) },  /* version */
+          0, SEC_SkipTemplate },  /* version */
     { SEC_ASN1_SKIP },          /* serial number */
     { SEC_ASN1_SKIP },          /* signature algorithm */
     { SEC_ASN1_ANY, 0, NULL },          /* issuer */
@@ -2402,7 +2402,7 @@ error:
           0, NULL, sizeof(SECItem) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED |
           SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
-          0, SEC_ASN1_GET(SEC_SkipTemplate) },  /* version */
+          0, SEC_SkipTemplate },  /* version */
     { SEC_ASN1_ANY, 0, NULL }, /* serial number */
     { SEC_ASN1_SKIP_REST },
     { 0 }
