@@ -13,10 +13,8 @@ ngconfigtest --printall
 The motivation behind this little script was to have a repository for
 automated tests on issues that came up on the NorduGrid developers
 mailing list. As such this script indicates directories that are not
-present or indicates that the cache directory does not reside on a file
-system that knows how to implement UNIX locking properly. The tool is
-supposed to help both the newbie and the experts to improve overall
-reliability of the grid.
+present, checks host certificates, CA certificates and CRLs, validates
+the sanity of ARC configuration and tests for clock skew.
 
 BECAUSE EVERY INSTALLATION OF ARC IS DIFFERENT THIS UTILITY ONLY SUGGESTS
 WHAT COULD BE WRONG. SOMETIMES IT IS OVERRESTRICTIVE. AND SOMETIMES IT

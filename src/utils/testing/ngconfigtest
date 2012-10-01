@@ -14,10 +14,8 @@ ngconfigtest --printall
 The motivation behind this little script was to have a repository for
 automated tests on issues that came up on the NorduGrid developers
 mailing list. As such this script indicates directories that are not
-present or indicates that the cache directory does not reside on a file
-system that knows how to implement UNIX locking properly. The tool is
-supposed to help both the newbie and the experts to improve overall
-reliability of the grid.
+present, checks host certificates, CA certificates and CRLs, validates
+the sanity of ARC configuration and tests for clock skew.
 
 BECAUSE EVERY INSTALLATION OF ARC IS DIFFERENT THIS UTILITY ONLY SUGGESTS
 WHAT COULD BE WRONG. SOMETIMES IT IS OVERRESTRICTIVE. AND SOMETIMES IT
@@ -127,6 +125,8 @@ $verbose=1 if $debug;
 
 my %introducedSections = (
 	"group" => [],
+	"gridftpd" => [],
+	"queue" => [],
 	"infosys/cluster/registration" => [],
 	"infosys/index" => [],
 	"infosys/se" => [],
@@ -183,7 +183,7 @@ sub timecheck($$) {
 
 	my $ntpdate = "/usr/sbin/ntpdate";
 	unless ( -x $ntpdate )  {
-		w("Could not spot location of 'ntpdate'.\n");
+		w("Could not find location of 'ntpdate'.\n");
 		return;
 	}
 
@@ -201,11 +201,11 @@ sub timecheck($$) {
 
 	if (defined $timeoffset) {
 		if (abs($timeoffset)>=$maxtimediff) {
-			e("Timecheck: Your time diverts more than " .
+			e("Timecheck: Your time differs by more than " .
 				"$maxtimediff seconds ($timeoffset seconds) from the " .
 				"public time server '$timeserver'\n");
 		} else {
-			w("Timecheck: Your time diverts slightly " .
+			w("Timecheck: Your time differs slightly " .
 				"$timeoffset seconds) from the public time " .
 				"server '$timeserver'.\n");
 		}
@@ -245,7 +245,7 @@ sub confchecktripel($$$) {
 	# check the certificate
 	if ($block eq "common" and $name eq "x509_user_cert") {
 		if (! -e $value) {
-			e("The host certificate '$value' is not existing or unreadable.\n");
+			e("The host certificate '$value' does not exist or is unreadable.\n");
 		} elsif (! -O $value) {
 			e("The host certificate '$value' is not owned by this user.\n");
 		} elsif (!permcheck($value,0644,0777) and !permcheck($value,0444,0777)) {
@@ -259,7 +259,7 @@ sub confchecktripel($$$) {
 	# check the key
 	elsif ($block eq "common" and $name eq "x509_user_key") {
 		if (! -e $value) {
-			e("The host key '$value' is not existing or unreadable.\n");
+			e("The host key '$value' does not exist or is unreadable.\n");
 		} elsif (! -O $value) {
 			e("The host key '$value' is not owned by this user.\n");
 		} elsif (!permcheck($value,0400,0777)) {
@@ -270,7 +270,7 @@ sub confchecktripel($$$) {
 	# check the certificate direcotry
 	elsif ($block eq "common" and $name eq "x509_cert_dir") {
 		if (! -d $value) {
-			e("$name: The certificate directory is not existing.\n");
+			e("$name: The certificate directory does not exist.\n");
 		} else {
 			my @r0s=glob($value."/*.r0");
 			if ($#r0s == -1) {
@@ -324,39 +324,22 @@ sub confchecktripel($$$) {
 		else {
 			v("$name exists.");
 		}
+		if ($name =~ /^(tmpdir)$/) {
+			if (! permcheck($value,0777,0777)) {
+				e("The tmpdir directory must be writable and have the sticky bit set (chmod +t \"$name\")\n");
+			}
+		}
 	}
 
-	# check for session and other directories dir
-	if ($name =~ /^(sessiondir|runtimedir|cachedir|tmpdir|mount)$/) {
-                if ($name =~ /^cachedir$/){
-                        my @tmp = split (/\s+/,$value);
-			# If available, second dir is on workernode.
-                        $value = $tmp[0];
-                }
+	# check for any mount dirs
+	if ($name eq "mount") {
 		if (! -d "$value") {
-			e("$value: session directory ($name) does not exist\n");
+			e("$value: directory ($name) does not exist\n");
 		}
 		else {
-			if ($name =~ /^(sessiondir|cachedir|mount)$/) {
-				if (!permcheck($value,0001,0001)) {
-					e("$value: session directory ($name) needs execute flag for the user that executes the computation, suggested is permission 705.\n");
-				}
-				elsif (!permcheck($value,0005,0005)) {
-					w("$value: session directory ($name) may need read flag for the user that executes the computation, suggested is permission 705.\n");
-				}
-				if (! (permcheck($value,0070,0070)
-					|| permcheck($value,0700,0700) )) {
-					e("$value: session directory ($name) needs the user or the group to have complete rights. Suggested is permission 705.\n");
-				}
-			}
-			if ($name =~ /^(tmpdir)$/) {
-				if (! permcheck($value,0777,0777)) {
-					e("The tmpdir directory must be writable and have the sticky bit set (chmod +t \"$name\")\n");
-				}
-			}
+			v("$name exists.");
 		}
 	}
-
 }
 
 =item configuration check
@@ -393,8 +376,8 @@ sub confcheck($) {
 			$blockname = $1;
 			$blockcontents = 0;
 
-			# blocknames must be uniq
-			# XXX but there is this special case of vo-blocks...
+			# blocknames must be unique
+			# but there is a special case of vo-blocks...
 			if ($blockname eq "vo") {
 				$blockname .= "|" . ++$vo_counter;
 			}
@@ -500,12 +483,9 @@ Return error if the presence of one value implies one of another
 sub check_completeness() {
 	my $config=shift;
 
-	my @required=("common", "grid-manager",
-		"gridftpd", "gridftpd/jobs",
-		"infosys", "cluster",
-	);
+	my @required=("common", "grid-manager", "infosys", "cluster");
 
-	my @optional=("httpsd","janitor","group","httpsd/se","vo");
+	my @optional=("gridftpd", "data-staging", "gangliarc", "group", "vo", "registration", "nordugridmap");
 
 	my @all=(@required,@optional);
 
@@ -608,31 +588,12 @@ sub check_libraries() {
 
 	return if ($prob);
 
-	my @globmes = ( $globusloc . "/bin/ng*",
-			$globusloc . "/bin/arc*",
-			$globusloc . "/bin/gm*",
-			$globusloc . "/bin/grid*",
-			$globusloc . "/bin/http*",
-			$globusloc . "/sbin/ng*",
-			$globusloc . "/sbin/arc*",
-			$globusloc . "/sbin/gm-*",
-			$globusloc . "/sbin/grid*",
-			$globusloc . "/sbin/http*"
+	my @globmes = ( $arcloc . "/bin/arc*",
+			$arcloc . "/libexec/arc/gm*",
+			$arcloc . "/sbin/arc*",
+			$arcloc . "/sbin/grid*",
 	);
 
-	push(@globmes, ($arcloc . "/bin/ng*",
-			$arcloc . "/bin/arc*",
-			$arcloc . "/bin/gm*",
-			$arcloc . "/bin/grid*",
-			$arcloc . "/bin/http*",
-			$arcloc . "/sbin/ng*",
-			$arcloc . "/sbin/arc*",
-			$arcloc . "/sbin/gm-*",
-			$arcloc . "/sbin/grid*",
-			$arcloc . "/sbin/http*"
-	));
-
-	push(@globmes, $globusloc . "/lib/*") if "/usr" ne "$globusloc"; # takes too long, little gain expected
 	push(@globmes, $arcloc . "/lib/*") if "/usr" ne "$arcloc"; # takes too long, little gain expected
 
 	my @to_check;
@@ -654,7 +615,6 @@ sub check_libraries() {
 
 		my $command = "LC_ALL=C ";
 		$command .= "LD_LIBRARY_PATH=";
-		$command .= "$globusloc/lib:" if "/usr" ne "$globusloc" and "/usr/" ne "$globusloc";
 		$command .= "$arcloc/lib:" if "/usr" ne "$arcloc" and "/usr/" ne "$arcloc";
 		$command .= "\$LD_LIBRARY_PATH ";
 		$command .= "ldd $file 2>/dev/null |";
@@ -740,31 +700,6 @@ sub check_certificates() {
 		}
 	}
 
-
-	# check of user certificate
-
-	if (!defined($usercert)) {
-		$usercert=$ENV{"HOME"}."/.globus/usercert.pem";
-	}
-	if ( -f $usercert) {
-		if (system("openssl verify -CApath $CApath $usercert | grep 'OK'")) {
-			e("verification of user cert at $usercert with $opensslpath failed.\n");
-		}
-	}
-	else {
-		if (!$skip_warnings) {
-			w("Not verifying user cert which is not present at $usercert.\n");
-		}
-	}
-}
-
-
-
-#
-# What is there to mention if the globus location is unknown?
-#
-unless (defined($globusloc)) {
-	w("Globus location not specified. That is fine, but be aware of it.\n");
 }
 
 
