@@ -523,7 +523,7 @@
 
 ## enable_cache_service yes|no - Turn on or off the cache service interface.
 ## If turned on the cache service must be installed, the A-REX WS interface
-## must be enabled via arex_mount_point and the option newdatastaging="yes"
+## must be enabled via arex_mount_point and the option enable_dtr="yes"
 ## must be set. The interface is accessible at the same host and port as given
 ## in arex_mount_point with path /cacheservice. Default is off.
 #enable_cache_service="yes" 
@@ -599,7 +599,7 @@
 ## number2 - additional reserved number of jobs being processed on frontend
 ## number3 - number of files being transferred simultaneously by jobs in
 ## PREPARING and FINISHING states. Missing number or -1 means no limit.
-## With newdatastaging="yes" options in [data-staging] should be used instead.
+## With enable_dtr="yes" options in [data-staging] should be used instead.
 #maxload="10 2 5"
 
 ## maxloadshare maxshare sharetype - specifies a sharing mechanism for data
@@ -607,7 +607,7 @@
 ## that can run per transfer share and sharetype is the scheme
 ## used to assign jobs to transfer shares. Possible values of sharetype
 ## are "dn", "voms:vo", "voms:role", and "voms:group".
-## With newdatastaging="yes" options in [data-staging] should be used instead.
+## With enable_dtr="yes" options in [data-staging] should be used instead.
 #maxloadshare="4 voms:role"
 
 ## share_limit name limit - specifies a transfer share that has a number
@@ -615,14 +615,14 @@
 ## the name of the share and limit is the number of processes for this
 ## share. In the configuration should appear after maxloadshare. Can be
 ## repeated several times for different shares.
-## With newdatastaging="yes" options in [data-staging] should be used instead.
+## With enable_dtr="yes" options in [data-staging] should be used instead.
 #share_limit="atlas:production 10"
 
-## newdatastaging yes|no - turns on and off the new data staging framework
-## which replaces the downloader and uploader for managing input and output
-## files. Options for this are set in the [data-staging] section. It is off by
-## default.
-#newdatastaging="yes"
+## enable_dtr yes|no - turns on and off the data staging framework Data
+## Transfer Reloaded (DTR) which replaces the downloader and uploader for
+## managing input and output files. Options for this are set in the
+## [data-staging] section. It is off by default.
+#enable_dtr="yes"
 
 ## wakeupperiod time - specifies how often grid-manager cheks for new
 ## jobs arrived, job state change requests, etc. That is resposivity of
@@ -821,7 +821,7 @@
 ### [data-staging] block ###########################################
 ##
 ## [data-staging] block configures data staging parameters if
-## newdatastaging="yes" is set in [grid-manager].
+## enable_dtr="yes" is set in [grid-manager].
 ##
 #[data-staging]
 

@@ -343,7 +343,7 @@
                          minOccurs="0"/>
             <xsd:element name="localTransfer" type="xsd:boolean"
                          minOccurs="0"/>
-            <xsd:element name="newDataStaging" type="xsd:boolean"
+            <xsd:element name="enableDTR" type="xsd:boolean"
                          minOccurs="0"/>
             <xsd:element name="timeouts" minOccurs="0" type="timeouts_Type"/>
             <xsd:element name="preferredPattern" type="xsd:string"/>
@@ -465,8 +465,8 @@
           </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-          <xsd:enumeration value="no">
-          <xsd:enumeration value="yes">
+          <xsd:enumeration value="no"/>
+          <xsd:enumeration value="yes"/>
         </xsd:restriction>
       </xsd:simpleType>
     </xsd:element>
@@ -480,8 +480,8 @@
           </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-          <xsd:enumeration value="no">
-          <xsd:enumeration value="yes">
+          <xsd:enumeration value="no"/>
+          <xsd:enumeration value="yes"/>
         </xsd:restriction>
       </xsd:simpleType>
     </xsd:element>
@@ -495,8 +495,8 @@
           </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-          <xsd:enumeration value="no">
-          <xsd:enumeration value="yes">
+          <xsd:enumeration value="no"/>
+          <xsd:enumeration value="yes"/>
         </xsd:restriction>
       </xsd:simpleType>
     </xsd:element>

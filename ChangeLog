@@ -1,3 +1,7 @@
+2012-10-01  David Cameron  <d.g.cameron@fys.uio.no>
+
+  * Change configuration option "newdatastaging" to "enable_dtr"
+
 2012-09-06  David Cameron  <d.g.cameron@fys.uio.no>
 
   * Remove ability to set locale per LogDestination

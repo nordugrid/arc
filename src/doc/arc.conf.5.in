@@ -761,7 +761,7 @@ of jobs being processed on frontend (PREPARING, FINISHING states). The
 second number is the additional reserved number of jobs being
 processed on frontend. The third number limits the number of files
 being transferred simultaneously by jobs in PREPARING and FINISHING
-states. Missing number or -1 means no limit. With newdatastaging="yes"
+states. Missing number or -1 means no limit. With enable_dtr="yes"
 options in [data-staging] should be used instead.
 
 .IR Example :
@@ -773,7 +773,7 @@ Specifies a sharing mechanism for data transfer. The values are an integer
 followed by a space followed by a string. The first number is the maximum
 number of processes that can run per transfer share and the string is the scheme
 used to assign jobs to transfer shares. Possible values of this string
-are "dn", "voms:vo", "voms:role", and "voms:group". With newdatastaging="yes"
+are "dn", "voms:vo", "voms:role", and "voms:group". With enable_dtr="yes"
 options in [data-staging] should be used instead.
 
 .IR Example:
@@ -785,19 +785,19 @@ Specifies a transfer share that has a number of processes different from the
 default value in maxloadshare. name is the name of the share and limit is
 the number of processes for this share. In the configuration should appear
 after maxloadshare. Can be repeated several times for different shares. With
-newdatastaging="yes" options in [data-staging] should be used instead.
+enable_dtr="yes" options in [data-staging] should be used instead.
 
 .IR Example:
 share_limit="atlas:production 10"
 
 .TP
-.B newdatastaging
-Turns on and off the new data staging framework which replaces the downloader
-and uploader for managing input and output files. Options for this are set in
-the [data-staging] section. It is off by default.
+.B enable_dtr
+Turns on and off the data staging framework Data Transfer Reloaded (DTR),
+which replaces the downloader and uploader for managing input and output files.
+Options for this are set in the [data-staging] section. It is off by default.
 
 .IR Example:
-newdatastaging="yes"
+enable_dtr="yes"
 
 .TP
 .B wakeupperiod
@@ -1389,7 +1389,7 @@ See some of the examples above for examples of use.
 .SH DATA STAGING OPTIONS
 
 The [data-staging] block configures A-REX data staging if new data staging is
-switched on with newdatastaging="yes" in the [grid-manager] section.
+switched on with enable_dtr="yes" in the [grid-manager] section.
 
 .TP
 .B debug

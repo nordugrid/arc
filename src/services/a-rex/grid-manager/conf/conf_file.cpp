@@ -504,7 +504,10 @@ bool configure_serviced_users(JobUsers &users/*,uid_t my_uid,const std::string &
       };
       jcfg.SetPreferredPattern(preferred_pattern);
     }
-    else if(command == "newdatastaging") {
+    else if(command == "newdatastaging" || command == "enable_dtr") {
+      if (command == "newdatastaging") {
+        logger.msg(Arc::WARNING, "'newdatastaging' configuration option is deprecated, 'enable_dtr' should be used instead");
+      }
       bool use_new_data_staging = false;
       std::string s = config_next_arg(rest);
       if(strcasecmp("yes",s.c_str()) == 0) {
@@ -514,7 +517,7 @@ bool configure_serviced_users(JobUsers &users/*,uid_t my_uid,const std::string &
         use_new_data_staging=false;
       }
       else {
-        logger.msg(Arc::ERROR,"Wrong option in newdatastaging"); goto exit;
+        logger.msg(Arc::ERROR,"Wrong option in %s", command); goto exit;
       };
       jcfg.SetNewDataStaging(use_new_data_staging);
     }
@@ -858,7 +861,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users/*,uid_t my_uid,co
 
   /*
   dataTransfer
-    newDataStaging
+    enableDTR
     secureTransfer
     passiveTransfer
     localTransfer
@@ -910,7 +913,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users/*,uid_t my_uid,co
     jcfg.SetSecureTransfer(use_secure_transfer);
     elementtobool(tmp_node,"localTransfer",use_local_transfer,&logger);
     jcfg.SetLocalTransfer(use_local_transfer);
-    elementtobool(tmp_node,"newDataStaging",use_new_data_staging,&logger);
+    elementtobool(tmp_node,"enableDTR",use_new_data_staging,&logger);
     jcfg.SetNewDataStaging(use_new_data_staging);
     if(elementtoint(tmp_node,"maxRetries",max_retries,&logger) && (max_retries > 0)) {
         jcfg.SetMaxRetries(max_retries);
