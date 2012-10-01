@@ -17,8 +17,8 @@ namespace AuthN {
   };
 
   /**
-   * Initializes pkcs11-helper library, and loads PKCS #11 provider.
-   * @param provider   full path to the PKCS #11 provider (e.g. /usr/lib/opensc-pkcs11.so)
+   * Initializes nss library
+   * @param configdir   full path to the nss db
    */
   bool nssInit(const std::string& configdir);  
 
