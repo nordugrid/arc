@@ -1,6 +1,5 @@
 import arc
 import time
-from arcom.security import parse_ssl_config, AuthRequest
 logger = arc.Logger(arc.Logger_getRootLogger(), 'EchoService.py'))
 
 wsrf_rp_ns = "http://docs.oasis-open.org/wsrf/rp-2"
@@ -16,14 +15,41 @@ class EchoService:
         # get the response-suffix from the config XML
         self.suffix = str(cfg.Get('suffix'))
         logger.msg(arc.DEBUG, "EchoService (python) has prefix '%s' and suffix '%s'" % (self.prefix, self.suffix))
-        self.ssl_config = parse_ssl_config(cfg)
+        self.ssl_config = self.parse_ssl_config(cfg)
         thread_test = str(cfg.Get('ThreadTest'))
         if thread_test:
             threading.Thread(target = self.infinite, args=[thread_test]).start()
         
     def __del__(self):
         logger.msg(arc.INFO, "EchoService (python) destructor called")
-        
+
+    def parse_ssl_config(self, cfg):
+        try:
+            client_ssl_node = cfg.Get('ClientSSLConfig')
+            fromFile = str(client_ssl_node.Attribute('FromFile'))
+            if fromFile:
+                try:
+                    xml_string = file(fromFile).read()
+                    client_ssl_node = arc.XMLNode(xml_string)
+                except:
+                    log.msg()
+                    pass
+            if client_ssl_node.Size() == 0:
+                return {}
+            ssl_config = {}
+            ssl_config['key_file'] = str(client_ssl_node.Get('KeyPath'))
+            ssl_config['cert_file'] = str(client_ssl_node.Get('CertificatePath'))
+            ca_file = str(client_ssl_node.Get('CACertificatePath'))
+            if ca_file:
+                ssl_config['ca_file'] = ca_file
+            else:
+                ssl_config['ca_dir'] = str(client_ssl_node.Get('CACertificatesDir'))
+            return ssl_config
+        except:
+            import traceback
+            logger.msg(arc.ERROR, traceback.format_exc())
+            return {}
+    
     def infinite(self, url):
         logger.msg(arc.INFO, "EchoService (python) thread test starting")
         i = 0
@@ -66,7 +92,7 @@ class EchoService:
         # time.sleep(10)
         # get the payload from the message
         inpayload = inmsg.Payload()
-        logger.msg(arc.VERBOSE, 'AuthRequest(inmsg) = %s' % AuthRequest(inmsg))
+        logger.msg(arc.VERBOSE, 'inmsg.Auth().Export(arc.SecAttr.ARCAuth) = %s' % inmsg.Auth().Export(arc.SecAttr.ARCAuth).GetXML())
         logger.msg(arc.VERBOSE, 'inmsg.Attributes().getAll() = %s ' % inmsg.Attributes().getAll())
         logger.msg(arc.INFO, "EchoService (python) got: %s " % inpayload.GetXML())
         # the first child of the payload should be the name of the request
