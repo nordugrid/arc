@@ -371,7 +371,9 @@ if test "$enables_java" = "yes"; then
   if test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xgcj"; then
     JAVAC_FLAGS="-C --classpath=."
   elif test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xjavac"; then
-    JAVAC_FLAGS="-cp ."
+    # Set absolute limit on Java heap size allocation instead of letting
+    # java (on Linux) allocate a quarter of the total memory.
+    JAVAC_FLAGS="-J-Xms50M -J-Xmx50M -cp ."
   fi
 
   JAVAWRAP=no
