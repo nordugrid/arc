@@ -239,6 +239,7 @@ typedef int gid_t;
 %ignore Arc::ThreadedPointer<DataStaging::DTR>::operator bool; // Clash between "operator bool" in DTR and ThreadedPointer (smart pointer wrapping).
 %template(DTRPointer) Arc::ThreadedPointer<DataStaging::DTR>;
 %template(DTRLogger) Arc::ThreadedPointer<Arc::Logger>;
+#ifdef SWIGPYTHON
 %pythoncode %{
 def datapoint_from_url(url_string, usercfg):
     url = URL(url_string)
@@ -248,3 +249,4 @@ def datapoint_from_url(url_string, usercfg):
     data_handle.thisown = False
     return data_point
 %}
+#endif
