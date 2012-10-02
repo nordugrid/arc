@@ -356,6 +356,15 @@ sub confcheck($) {
 		e("Could not open '$arcconf' for reading.\n");
 		return;
 	}
+	# parameters which are allowed more than once
+	# taken from arc.conf.reference - somehow this needs to be kept in sync
+	my @multiple = ("source", "filter", "sessiondir", "cachedir",
+		"remotecachedir", "jobreport", "share_limit", "authplugin",
+		"allowsubmit", "copyurl", "linkurl", "definedshare",
+		"deliveryservice", "unixmap", "unixgroup", "unixvo", "dir",
+		"remotegmdirs", "allowreg", "cluster_owner", "authorizedvo",
+		"clustersupport", "opsys", "benchmark", "nodeaccess",
+		"localse", "cacheserver");
 	my $blockname = undef;
 	my $blockcontents = 0;
 	my $c = 0;
@@ -444,10 +453,14 @@ sub confcheck($) {
 		#count
 		$blockcontents++;
 
-		unless ($config->{$blockname}{$name}) {
-			$config->{$blockname}{$name} = $value;
+		if ($config->{$blockname}{$name}) {
+			if (grep(/^$name$/, @multiple)) {
+				$config->{$blockname}{$name} .= ">]|sep|[<" . $value;
+			} else {
+				w("$arcconf:$c: duplicate parameter: ".$name."\n");
+			}
 		} else {
-			$config->{$blockname}{$name} .= ">]|sep|[<" . $value;
+			$config->{$blockname}{$name} = $value;
 		}
 	}
 
