@@ -1,6 +1,6 @@
-import arcom.test, arc, unittest, time
+import testutils, arc, unittest, time
 
-class ServiceEndpointRetrieverPluginTest(arcom.test.ARCClientTestCase):
+class ServiceEndpointRetrieverPluginTest(testutils.ARCClientTestCase):
 
     def test_loader_exists(self):
         self.expect(arc.ServiceEndpointRetrieverPluginLoader).to_be_an_instance_of(type)

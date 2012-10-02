@@ -1,6 +1,6 @@
-import arcom.test, arc, unittest
+import testutils, arc, unittest
 
-class JobSupervisorTest(arcom.test.ARCClientTestCase):
+class JobSupervisorTest(testutils.ARCClientTestCase):
 
     def setUp(self):
         self.usercfg = arc.UserConfig(arc.initializeCredentialsType(arc.initializeCredentialsType.SkipCredentials))

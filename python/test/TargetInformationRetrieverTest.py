@@ -1,6 +1,6 @@
-import arcom.test, arc, unittest, time
+import testutils, arc, unittest, time
 
-class TargetInformationRetrieverTest(arcom.test.ARCClientTestCase):
+class TargetInformationRetrieverTest(testutils.ARCClientTestCase):
 
     def setUp(self):
         self.usercfg = arc.UserConfig(arc.initializeCredentialsType(arc.initializeCredentialsType.SkipCredentials))

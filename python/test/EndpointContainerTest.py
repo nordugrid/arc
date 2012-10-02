@@ -1,6 +1,6 @@
-import arcom.test, arc, unittest
+import testutils, arc, unittest
 
-class EndpointContainerTest(arcom.test.ARCClientTestCase):
+class EndpointContainerTest(testutils.ARCClientTestCase):
 
     def test_the_class_exists(self):
         self.expect(arc.EndpointContainer).to_be_an_instance_of(type)
