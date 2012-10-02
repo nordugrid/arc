@@ -284,12 +284,32 @@
 ##                 Result of optional mapped unixid processing depend
 ##                 on mapuser_processing option settings.
 ##    vo://      - reference to another [vo] configuration block 
+##    edg-mkgridmap:// 
+##               - local configuration file used by edg-mkgridmap tool.
+##                 nordugridmap will parse configuration from file and 
+##                 process it as aditional [vo] block that will be refered 
+##                 authomatically in place URL specified. This allow 
+##                 easy migration from edg-mkgridmap solution without 
+##                 rewriting your previous configuration (NOTE that rarely 
+##                 used 'auth' directive and 'AUTO' mapping options are not 
+##                 supported)
 ##
 ## You can use either vo:// or file:// entries to specify dependencies
 ## between [vo] blocks, but using vo:// is a recommended way.
+##
+## For each separate source URL it is possible to override some parameters 
+## value. You can use the following syntax to perform this:
+##    source="URL < parameter1=value1 parameter2=value2"
+## You can override the following parameters:
+##    mapped_unixid       for http(s),voms(s),ldap and file URLs
+##    cache_enable        for http(s),voms(s),ldap and file URLs
+##    voms_method         for voms(s) URLs
+##    mapuser_processing  for file URLs with mapped_unixid='<unixid>' overrided 
+##                        (control mapped_unixid overriding behaviour for URL)
+
 #source="vomss://voms.ndgf.org:8443/voms/nordugrid.org"
-#source="vomss://lcg-voms.cern.ch:8443/voms/atlas?/atlas/Role=VO-Admin"
-#source="vomss://kuiken.nikhef.nl:8443/voms/gin.ggf.org"
+#source="vomss://lcg-voms.cern.ch:8443/voms/atlas?/atlas/Role=VO-Admin < mapped_unixid=atlasadmin"
+#source="vomss://kuiken.nikhef.nl:8443/voms/gin.ggf.org < voms_method=get"
 #source="http://www.nordugrid.org/developers.dn"
 #source="ldap://grid-vo.nikhef.nl/ou=lcg1,o=atlas,dc=eu-datagrid,dc=org"
 #source="file:///etc/grid-security/priviliged_users.dn"
@@ -320,6 +340,23 @@
 ##                         no mapping information provided by sources)
 ##
 #mapped_unixid="gridtest"
+
+## voms_fqan_map fqan unixid - the local UNIXID which is used to map voms(s)
+## sources with specific FQAN given.
+##
+## Several voms_fqan_map can be specified for a [vo] block.
+## For each voms(s) sources in [vo] block and every voms_fqan_map record 
+## separate source record will be authomatically generated with mapped_unixid 
+## overrided to specified one.
+##
+## Sources are generated in a given voms_fqan_map order. Original voms(s) source
+## URL are processed LAST.
+##
+## This allows to simplify configuration, especially in redundancy cases when 
+## several VOMS servers are used for the same VO.
+##
+#voms_fqan_map="/atlas/Role=VO-Admin atlasadmin"
+#voms_fqan_map="/atlas/Role=production atlasprod"
 
 ## require_issuerdn yes/no - another nordugridmap option. YES would map only
 ## those DNs obtained from the urls which have the corresponding public CA 

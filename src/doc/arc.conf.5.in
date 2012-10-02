@@ -347,7 +347,7 @@ vo="nordugrid"
 
 .TP
 .B voms
-Match a voms (virtual organisation management service) credential. The
+Match a VOMS (Virtual Organisation Management Service) credential. The
 value for this attribute should be a space separated list of voms
 attributes to be matched in the order "vo group role capability". A
 `*' can be used as a wildcard for any value.
@@ -400,7 +400,7 @@ block and all the users from those sources will be merged into the
 same file. The source URLs are processed in the given order. 
 .PP
 .RS
-Currently supported URL types are:
+Currently \fIsupported URL types\fP are:
 .TP 
 .B http(s)://
 URL to plain text file. File should contain a list of DNs with 
@@ -424,16 +424,42 @@ settings.
 .TP 
 .B vo://
 Reference to another vo configuration block
+.TP
+.B edg-mkgridmap://
+Local configuration file used by \fBedg-mkgridmap\fP tool.
+\fBnordugridmap\fP(8) will parse configuration from file and
+process it as aditional VO configuration block that will be refered
+authomatically in place URL specified.
+.PP
+For each separate source URL it is possible to 
+.IRoverride\~processing\~parameters\~value. 
+You can use the following syntax to perform this:
+.TP
+source="URL < parameter1=value1 parameter2=value2"
+.PP
+You can override the following parameters:
+.TP
+.B mapper_unixid
+for http(s), voms(s), ldap and file URLs
+.TP
+.B cache_enable
+for http(s), voms(s), ldap and file URLs
+.TP
+.B voms_method
+for voms(s) URLs
+.TP
+.B mapuser_processing
+for file URLs with \fBmapped_unixid\fP overrided
 .PP
 .IR Examples :
-
+.br
 source="http://www.nordugrid.org/developers.dn"
 .br
-source="vomss://voms.ndgf.org:8443/voms/nordugrid.org"
+source="vomss://voms.ndgf.org:8443/voms/nordugrid.org < voms_method=get"
 .br
 source="ldap://grid-vo.nikhef.nl/ou=lcg1,o=atlas,dc=eu-datagrid,dc=org"
 .br
-source="vomss://lcg-voms.cern.ch:8443/voms/atlas?/atlas/Role=VO-Admin"
+source="vomss://lcg-voms.cern.ch:8443/voms/atlas?/atlas/Role=VO-Admin < mapped_unixid=atlasadmin"
 .br
 source="file:///etc/grid-security/priviliged-users.txt"
 .br
@@ -472,6 +498,29 @@ by sources)
 .PP
 .IR Example :
 mapped_unixid="gridtest"
+.RE
+
+.TP
+.B voms_fqan_map
+the local UNIXID which is used to map voms(s) sources with specific FQAN given.
+.PP
+.RS
+Several voms_fqan_map can be specified for a [vo] block.
+For each voms(s) sources in [vo] block and every voms_fqan_map record 
+separate source record will be authomatically generated with mapped_unixid 
+overrided to specified one.
+.PP
+Sources are generated in a given voms_fqan_map order. Original voms(s) source
+URL are processed LAST.
+.PP
+This allows to simplify configuration, especially in redundancy cases when 
+several VOMS servers are used for the same VO.
+
+.IR Examples :
+.br
+voms_fqan_map="/atlas/Role=VO-Admin atlasadmin"
+.br
+voms_fqan_map="/atlas/Role=production atlasprod"
 .RE
 
 .TP

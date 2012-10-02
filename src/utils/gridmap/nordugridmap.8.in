@@ -39,6 +39,12 @@ File should contain a list of DNs with optional mapped unixid:
 .TP
 .B vo://
 Reference to another VO configuration block
+.TP
+.B edg-mkgridmap://
+Local configuration file used by \fBedg-mkgridmap\fP tool.
+\fBnordugridmap\fP(8) will parse configuration from file and 
+process it as aditional VO configuration block that will be refered 
+authomatically in place URL specified.
 .PP
 We are STRONGLY RECOMMEND TO READ tne Nordugruid ARC documentation, \fBarc.conf\fP(5) 
 manual page and/or the \fBarc.conf.reference\fP to learn all details about
