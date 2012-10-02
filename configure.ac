@@ -2250,6 +2250,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/mail/Makefile
                  src/services/a-rex/grid-manager/misc/Makefile
                  src/services/a-rex/grid-manager/run/Makefile
+                 src/services/a-rex/grid-manager/arc-config-check.1
                  src/services/a-rex/infoproviders/Makefile
                  src/services/a-rex/infoproviders/CEinfo.pl
                  src/services/a-rex/infoproviders/qju.pl
@@ -2405,8 +2406,6 @@ AC_CONFIG_FILES([Makefile
                  src/utils/gridmap/nordugridmap.cron
                  src/utils/gridmap/nordugridmap.8
                  src/utils/gridmap/Makefile
-                 src/utils/testing/ngconfigtest.1
-                 src/utils/testing/Makefile
                  src/utils/Makefile
                  src/doc/Makefile
                  src/doc/arc.conf.5

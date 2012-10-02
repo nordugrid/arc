@@ -1,12 +1,12 @@
-.TH ngconfigtest 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
+.TH arc-config-check 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
 .SH NAME
 
-ngconfigtest \- checks the arc.conf for inconsistencies, known problems
+arc-config-check \- checks the arc.conf for inconsistencies, known problems
 or (in a future development) just general bad taste.
 
 .SH SYNOPSIS
 
-ngconfigtest --printall
+arc-config-check --printall
 
 .SH DESCRIPTION
 

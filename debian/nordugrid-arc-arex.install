@@ -12,6 +12,7 @@ debian/tmp/usr/lib/arc/inputcheck
 debian/tmp/usr/lib/arc/arc-ur-logger
 debian/tmp/usr/lib/arc/arc-ur-registrant
 debian/tmp/usr/lib/arc/arc-vomsac-check
+debian/tmp/usr/lib/arc/arc-config-check
 
 debian/tmp/usr/share/arc/DGAuthplug.py*
 debian/tmp/usr/share/arc/DGBridgeDataPlugin.py*
@@ -67,6 +68,7 @@ debian/tmp/usr/share/arc/scan_common.sh
 debian/tmp/usr/share/man/man1/cache-clean.1
 debian/tmp/usr/share/man/man1/cache-list.1
 debian/tmp/usr/share/man/man1/jura.1
+debian/tmp/usr/share/man/man1/arc-config-check.1
 debian/tmp/usr/share/man/man8/arc-vomsac-check.8
 
 debian/tmp/usr/share/arc/examples/a-rex

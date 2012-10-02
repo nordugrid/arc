@@ -153,10 +153,8 @@ rm -rf $RPM_BUILD_ROOT
 # We need to have libmodcredential.dll close to libarccredential
 %{_mingw32_libdir}/%{pkgdir}/libmodcredential.dll*
 %{_mingw32_datadir}/%{pkgdir}/schema
-%{_mingw32_bindir}/ngconfigtest
 %{_mingw32_libexecdir}/%{pkgdir}/arc-file-access.exe
 %{_mingw32_libexecdir}/%{pkgdir}/DataStagingDelivery.exe
-%doc %{_mingw32_mandir}/man1/ngconfigtest.1*
 %dir %{_mingw32_datadir}/%{pkgdir}/test-jobs
 %{_mingw32_datadir}/%{pkgdir}/test-jobs/test-job-*
 
