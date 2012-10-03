@@ -1,3 +1,9 @@
+2012-10-03  David Cameron  <d.g.cameron@fys.uio.no>
+
+  * Rename ngconfigtest to arc-config-check, install to libexec instead of bin
+    and package with A-REX instead of common package. Add new "validate" option
+    to a-rex init script which calls arc-config-check.
+
 2012-10-01  David Cameron  <d.g.cameron@fys.uio.no>
 
   * Change configuration option "newdatastaging" to "enable_dtr"

@@ -638,6 +638,17 @@ prepare() {
     fi
 }
 
+validate() {
+    CHECK_CMD=$ARC_LOCATION/@pkglibexecsubdir@/arc-config-check
+    if [ ! -x $CHECK_CMD ]; then
+        log_failure_msg "Could not find or execute arc-config-check tool"
+        return 1
+    fi
+    eval "$CHECK_CMD"
+    RETVAL=$?
+    return $RETVAL
+}
+
 start() {
     if [ "$RUN" != "yes" ] ; then
         echo "a-rex disabled, please adjust the configuration to your needs "
@@ -763,8 +774,11 @@ case "$1" in
           force-kill)
         stop 1
         ;;
+    validate)
+	validate
+	;;
     *)
-        echo "Usage: $0 {start|stop|status|restart|force-reload|reload|condrestart|try-restart|force-kill}"
+        echo "Usage: $0 {start|stop|status|restart|force-reload|reload|condrestart|try-restart|force-kill|validate}"
         exit 1
         ;;
 esac
