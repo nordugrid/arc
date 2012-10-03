@@ -39,7 +39,7 @@ std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig
   if (computingelements.empty() && registries.empty()) {
     std::list<Arc::ConfigEndpoint> endpoints = usercfg.GetDefaultServices();
     for (std::list<Arc::ConfigEndpoint>::const_iterator its = endpoints.begin(); its != endpoints.end(); its++) {
-      services.push_back(Arc::Endpoint(*its));
+      services.push_back(*its);
     }
   } else {
     for (std::list<std::string>::const_iterator it = computingelements.begin(); it != computingelements.end(); it++) {
@@ -53,7 +53,13 @@ std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig
           services.push_back(service);
       } else {
         // if it was a group (or an alias), add all the services
-        services.insert(services.end(), newServices.begin(), newServices.end());
+        for (std::list<Arc::ConfigEndpoint>::iterator its = newServices.begin(); its != newServices.end(); its++) {
+          if (!requestedSubmissionInterfaceName.empty()) {
+            // if there was a submission interface requested, this overrides the one from the config
+            its->RequestedSubmissionInterfaceName = requestedSubmissionInterfaceName;    
+          }
+          services.push_back(*its);
+        }
       }
     }
     for (std::list<std::string>::const_iterator it = registries.begin(); it != registries.end(); it++) {
