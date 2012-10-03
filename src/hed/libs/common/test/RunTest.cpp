@@ -86,8 +86,9 @@ class RunH {
 void RunTest::TestRunMany() {
   std::list<RunH> runs;
   for(int n=0;n<5000;++n) {
+    //std::cerr<<time(NULL)<<": ";
     for(std::list<RunH>::iterator r = runs.begin();r != runs.end();) {
-      //std::cerr<<r->cnt<<" ";
+      //std::cerr<<r->cnt<<"/"<<r->run->getPid()<<" ";
       if(r->run->Running()) { ++(r->cnt); ++r; continue; };
       delete (r->run);
       r = runs.erase(r);
@@ -96,12 +97,13 @@ void RunTest::TestRunMany() {
     RunH r;
     r.cnt = 0;
     r.run = new Arc::Run(srcdir + "/rcode 2");
-    r.run->Start();
-    runs.push_back(r);
+    if(r.run->Start()) runs.push_back(r);
   }
+  //std::cerr<<time(NULL)<<": exiting: "<<runs.size()<<std::endl;
   for(std::list<RunH>::iterator r = runs.begin();r != runs.end();++r) {
-    CPPUNIT_ASSERT(r->run->Wait(10));
+    CPPUNIT_ASSERT(r->run->Wait(120));
   }
+  //std::cerr<<time(NULL)<<": exit"<<std::endl;
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(RunTest);
