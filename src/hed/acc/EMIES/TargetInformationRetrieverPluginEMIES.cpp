@@ -78,7 +78,7 @@ namespace Arc {
       for (std::map<int, ComputingEndpointType>::iterator ce = cs->ComputingEndpoint.begin();
            ce != cs->ComputingEndpoint.end(); ++ce) {
         if(ce->second->URLString.empty()) ce->second->URLString = url.str();
-        if(ce->second->InterfaceName.empty()) ce->second->InterfaceName = "org.ogf.emies";
+        if(ce->second->InterfaceName.empty()) ce->second->InterfaceName = "org.ogf.glue.emies.activitycreation";
       }
       if(cs->AdminDomain->Name.empty()) cs->AdminDomain->Name = url.Host();
       logger.msg(VERBOSE, "Generated EMIES target: %s", (*cs)->Cluster.str());

@@ -117,7 +117,6 @@ namespace Arc {
     if (uc.InfoInterface().empty()) {
       // Maybe defaults should be moved somewhere else.
       preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
-      preferredInterfaceNames.push_back("org.ogf.emies");
     } else {
       preferredInterfaceNames.push_back(uc.InfoInterface());
     }

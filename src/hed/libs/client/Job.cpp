@@ -253,7 +253,7 @@ namespace Arc {
       if      ((std::string)job["Flavour"] == "ARC0")  InterfaceName = "org.nordugrid.gridftpjob";
       else if ((std::string)job["Flavour"] == "BES")   InterfaceName = "org.ogf.bes";
       else if ((std::string)job["Flavour"] == "ARC1")  InterfaceName = "org.nordugrid.xbes";
-      else if ((std::string)job["Flavour"] == "EMIES") InterfaceName = "org.ogf.emies";
+      else if ((std::string)job["Flavour"] == "EMIES") InterfaceName = "org.ogf.glue.emies.activitycreation";
       else if ((std::string)job["Flavour"] == "TEST")  InterfaceName = "org.nordugrid.test";
     }
 

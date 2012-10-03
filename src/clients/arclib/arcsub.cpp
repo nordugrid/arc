@@ -293,7 +293,6 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
   std::list<std::string> preferredInterfaceNames;
   if (usercfg.InfoInterface().empty()) {
     preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
-    preferredInterfaceNames.push_back("org.ogf.emies");
   } else {
     preferredInterfaceNames.push_back(usercfg.InfoInterface());
   }
@@ -336,7 +335,7 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
         else if (ets->ComputingEndpoint->InterfaceName == "org.glite.cream") {
           jobdesclang = "egee:jdl";
         }
-        else if (ets->ComputingEndpoint->InterfaceName == "org.ogf.emies") {
+        else if (ets->ComputingEndpoint->InterfaceName == "org.ogf.glue.emies.activitycreation") {
           jobdesclang = "emies:adl";
         }
         std::string jobdesc;

@@ -112,7 +112,7 @@ class ServiceEndpointRetrieverTest(testutils.ARCClientTestCase):
         retriever.addConsumer(container)
         arc.ServiceEndpointRetrieverPluginTESTControl.endpoints = [
             arc.Endpoint("emir.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest"),
-            arc.Endpoint("ce.nordugrid.org", arc.Endpoint.REGISTRY, "org.ogf.emies"),
+            arc.Endpoint("ce.nordugrid.org", arc.Endpoint.COMPUTINGINFO, "org.ogf.glue.emies.resourceinfo"),
         ]
         registry = arc.Endpoint("test.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest")
         retriever.addEndpoint(registry)
@@ -132,7 +132,7 @@ class ServiceEndpointRetrieverTest(testutils.ARCClientTestCase):
         retriever.addConsumer(container)
         arc.ServiceEndpointRetrieverPluginTESTControl.endpoints = [
            arc.Endpoint("emir.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest"),
-           arc.Endpoint("ce.nordugrid.org", arc.Endpoint.COMPUTINGINFO, "org.ogf.emies"),
+           arc.Endpoint("ce.nordugrid.org", arc.Endpoint.COMPUTINGINFO, "org.ogf.glue.emies.resourceinfo"),
         ]
         registry = arc.Endpoint("test.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest")
         retriever.addEndpoint(registry)

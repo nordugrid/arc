@@ -361,7 +361,7 @@ ClientOptions::ClientOptions(Client_t c,
     
     AddOption('S', "submissioninterface",
               istring("only use this interface for submitting "
-                      "(e.g. org.nordugrid.gridftpjob, org.ogf.emies, org.ogf.bes)"),
+                      "(e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes)"),
               istring("InterfaceName"),
               requestedSubmissionInterfaceName);
 
@@ -400,7 +400,7 @@ ClientOptions::ClientOptions(Client_t c,
   if (c == CO_INFO) {
     AddOption('S', "submissioninterface",
               istring("only get information about executon targets which supports this job submission interface "
-                      "(e.g. org.nordugrid.gridftpjob, org.ogf.emies, org.ogf.bes)"),
+                      "(e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes)"),
               istring("InterfaceName"),
               requestedSubmissionInterfaceName);
   }
