@@ -44,9 +44,9 @@ void ARexService::InformationCollector(void) {
       logger_.msg(Arc::DEBUG,"Resource information provider: %s",cmd);
       if(!run.Start()) {
       };
-      if(!run.Wait(infoprovider_wakeup_period_*10)) {
+      if(!run.Wait(infoprovider_wakeup_period_)) {
         logger_.msg(Arc::WARNING,"Resource information provider timeout: %u seconds",
-                    infoprovider_wakeup_period_*10);
+                    infoprovider_wakeup_period_);
         run.Kill(1);
       } else {
         r = run.Result();
@@ -138,7 +138,7 @@ void ARexService::InformationCollector(void) {
         logger_.msg(Arc::ERROR,"Informational document is empty");
       };
     };
-    if(thread_count_.WaitOrCancel(infoprovider_wakeup_period_*1000)) break;
+    if(thread_count_.WaitOrCancel(infoprovider_wakeup_period_*100)) break;
   };
   thread_count_.UnregisterThread();
 }

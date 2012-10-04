@@ -350,6 +350,16 @@ prepare() {
         fi
     fi
 
+    infoproviders_timeout=`readconfigvar "$ARC_CONFIG" infosys infoproviders_timeout`
+    if [ -z "$infoproviders_timeout" ]; then
+        infoproviders_wakeup="\
+<arex:InfoproviderWakeupPeriod>600</arex:InfoproviderWakeupPeriod>"
+    else
+        infoproviders_wakeup="\
+<arex:InfoproviderWakeupPeriod>$infoproviders_timeout</arex:InfoproviderWakeupPeriod>"
+    fi
+
+
     argus_shc=""
     argus_plugin=""
     arguspep_endpoint=`readconfigvar "$ARC_CONFIG" grid-manager arguspep_endpoint`
@@ -518,6 +528,7 @@ prepare() {
   <Chain>
     <Service name=\"a-rex\" id=\"a-rex\">
       <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
+      $infoproviders_wakeup
     </Service>
   </Chain>
 </ArcConfig>
@@ -616,6 +627,7 @@ prepare() {
       $isis_registration
       <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
       <arex:InfosysInterfaceMaxClients>$MAX_INFOSYS_REQUESTS</arex:InfosysInterfaceMaxClients>
+      $infoproviders_wakeup
       <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>
       <arex:DataTransferInterfaceMaxClients>$MAX_DATA_TRANSFER_REQUESTS</arex:DataTransferInterfaceMaxClients>
     </Service>

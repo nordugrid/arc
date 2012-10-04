@@ -1190,6 +1190,14 @@
 ## version is required for GLUE2 output.
 #infosys_compat="disable"
 
+## infoprovider_timeout - this only applies to new infoproviders.
+## it changes A-REX behaviour with respect to a single infoprovider run.
+## Increase this value if you have many jobs in the controldir and
+## infoproviders need more time to process.
+## The value is in seconds.
+## Default is 600 seconds. 
+# infoproviders_timeout = "600"
+
 ## debug - sets the debug level/verbosity of the startup script {0 or 1}. 
 ## Default is 0. 
 #debug="1"
