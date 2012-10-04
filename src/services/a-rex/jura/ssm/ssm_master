@@ -281,7 +281,8 @@ def runprocess(config_file, asdaemon, host, port, topic, key, cert, cadir, messa
     # Optional producer configuration
     try:
         producer_config = get_producer_config(config_parser)
-        producer_config.send_to = topic
+        if topic:
+            producer_config.send_to = topic
     except:
         producer_config = None
        
