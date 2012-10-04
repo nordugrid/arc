@@ -2,6 +2,7 @@ pkglib_LTLIBRARIES = libaccldap.la
 
 libaccldap_la_SOURCES  = Descriptors.cpp \
 	JobListRetrieverPluginLDAPNG.cpp JobListRetrieverPluginLDAPNG.h \
+	JobListRetrieverPluginLDAPGLUE2.cpp JobListRetrieverPluginLDAPGLUE2.h \
 	TargetInformationRetrieverPluginLDAPNG.cpp TargetInformationRetrieverPluginLDAPNG.h \
 	TargetInformationRetrieverPluginLDAPGLUE1.cpp TargetInformationRetrieverPluginLDAPGLUE1.h \
 	TargetInformationRetrieverPluginLDAPGLUE2.cpp TargetInformationRetrieverPluginLDAPGLUE2.h \
