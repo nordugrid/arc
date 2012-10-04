@@ -3,7 +3,7 @@ SUBDIRS = schema
 if ARGUS_ENABLED
 pkglib_LTLIBRARIES = libidentitymap.la libarguspep.la
 else
-pkglib_LTLIBRARIES = libidentitymap.la
+pkglib_LTLIBRARIES = libidentitymap.la libarguspep2.la
 endif
 
 libidentitymap_la_SOURCES = IdentityMap.cpp SimpleMap.cpp \
@@ -30,3 +30,15 @@ libarguspep_la_LIBADD = \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(ARGUS_LIBS)
 libarguspep_la_LDFLAGS = -no-undefined -avoid-version -module
 endif
+
+libarguspep2_la_SOURCES = ArgusPEP2.cpp ArgusPEP2.h ArgusXACMLConstant.h
+libarguspep2_la_CXXFLAGS = -I$(top_srcdir)/include \
+        $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+libarguspep2_la_LIBADD = \
+        $(top_builddir)/src/hed/libs/security/libarcsecurity.la \
+        $(top_builddir)/src/hed/libs/message/libarcmessage.la \
+        $(top_builddir)/src/hed/libs/loader/libarcloader.la \
+        $(top_builddir)/src/hed/libs/common/libarccommon.la \
+        $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+libarguspep2_la_LDFLAGS = -no-undefined -avoid-version -module
+
