@@ -562,7 +562,7 @@ sub Top {
     #$self->beginGroup("grid");
     $self->AdminDomain(&$data->{AdminDomain});
     #$self->end;
-    $self->beginGroup("resource");
+    $self->beginGroup("local");
     $self->Services(&$data->{Services});
     $self->ComputingService(&$data->{ComputingService});
     $self->end;
