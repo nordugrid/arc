@@ -18,13 +18,12 @@ class ArgusPEP2 : public SecHandler {
 
     typedef enum {
       conversion_subject,
-      conversion_direct,
       conversion_cream,
       conversion_emi
     } conversion_type;
 
    
-    std::string pepdlocation;
+    std::string pdpdlocation;
     int pep_log_level;
     std::string keypath;
     std::string certpath;
@@ -35,9 +34,6 @@ class ArgusPEP2 : public SecHandler {
     bool accept_mapping;
     bool valid_; 
     static Arc::Logger logger;
-    // XACML request and response
-    // xacml_request_t * request;
-    // xacml_response_t * response;
     static int pep_log(int level, const char *fmt, va_list args);
 
   public:

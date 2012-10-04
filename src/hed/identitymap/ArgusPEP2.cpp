@@ -7,14 +7,22 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
+#include <arc/GUID.h>
 #include <arc/message/MCCLoader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/SecAttr.h>
+#include <arc/client/ClientInterface.h>
+#include <arc/credential/Credential.h>
 
 #include "ArgusPEP2.h"
 #include "ArgusXACMLConstant.h"
 
 static const char XACML_DATATYPE_FQAN[]= "http://glite.org/xacml/datatype/fqan";
+
+#define SAML_NAMESPACE "urn:oasis:names:tc:SAML:2.0:assertion"
+#define SAMLP_NAMESPACE "urn:oasis:names:tc:SAML:2.0:protocol"
+#define XACML_SAMLP_NAMESPACE "urn:oasis:xacml:2.0:saml:protocol:schema:os"
+
 
 static Arc::XMLNode xacml_create_request() {
     Arc::NS ns;
@@ -131,18 +139,16 @@ ArgusPEP2::ArgusPEP2(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHand
     valid_ = false;
     accept_mapping = false;
     logger.setThreshold(Arc::DEBUG);
-    pepdlocation = (std::string)(*cfg)["PEPD"];  
-    if(pepdlocation.empty()) {
+    pdpdlocation = (std::string)(*cfg)["PEPD"];  
+    if(pdpdlocation.empty()) {
         logger.msg(Arc::ERROR, "PEPD location is missing");
         return;
     }
-    logger.msg(Arc::DEBUG, "PEPD location: %s",pepdlocation);
+    logger.msg(Arc::DEBUG, "PEPD location: %s",pdpdlocation);
 
     std::string conversion_str = (std::string)(*cfg)["Conversion"];
-    if(conversion_str == "direct") {
-        logger.msg(Arc::DEBUG, "Conversion mode is set to DIRECT");
-        conversion = conversion_direct;
-    } else if(conversion_str == "subject") {
+
+    if(conversion_str == "subject") {
         logger.msg(Arc::DEBUG, "Conversion mode is set to SUBJECT");
         conversion = conversion_subject;
     } else if(conversion_str == "cream") {
@@ -182,14 +188,65 @@ ArgusPEP2::ArgusPEP2(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHand
 ArgusPEP2::~ArgusPEP2(void) {
 }
 
+
+static bool contact_pdp(Arc::ClientSOAP& client, const std::string& pdpdlocation, const std::string& certpath, 
+    Arc::Logger& logger, Arc::XMLNode& request, Arc::XMLNode& response) {
+
+    bool ret = false;
+
+    Arc::NS ns;
+    ns["saml"] = SAML_NAMESPACE;
+    ns["samlp"] = SAMLP_NAMESPACE;
+    ns["xacml-samlp"] = XACML_SAMLP_NAMESPACE;
+    Arc::XMLNode authz_query(ns, "xacml-samlp:XACMLAuthzDecisionQuery");
+    std::string query_id = Arc::UUID();
+    authz_query.NewAttribute("ID") = query_id;
+    Arc::Time t;
+    std::string current_time = t.str(Arc::UTCTime);
+    authz_query.NewAttribute("IssueInstant") = current_time;
+    authz_query.NewAttribute("Version") = std::string("2.0");
+
+    Arc::Credential cred(certpath, "", "", "");
+    std::string local_dn_str = cred.GetDN();
+    std::string local_dn = Arc::convert_to_rdn(local_dn_str);
+    std::string issuer_name = local_dn;
+    authz_query.NewChild("saml:Issuer") = issuer_name;
+    authz_query.NewAttribute("InputContextOnly") = std::string("false");
+    authz_query.NewAttribute("ReturnContext") = std::string("true");
+    authz_query.NewChild(request);
+
+    Arc::NS req_ns;
+    Arc::SOAPEnvelope req_env(req_ns);
+    req_env.NewChild(authz_query);
+
+    Arc::PayloadSOAP req(req_env);
+    Arc::PayloadSOAP* resp = NULL;
+    Arc::MCC_Status status = client.process(&req, &resp);
+    if(!status) {
+      logger.msg(Arc::ERROR, "Failed to contact PDP server: %s", pdpdlocation);
+    }
+    if(resp == NULL) {
+      logger.msg(Arc::ERROR,"There was no SOAP response return from PDP server: %s", pdpdlocation);
+    }
+    else {
+      std::string str;
+      resp->GetXML(str);
+      logger.msg(Arc::INFO, "Response: %s", str);
+
+      Arc::XMLNode respxml = (*resp)["samlp:Response"]["saml:Assertion"]["xacml-saml:XACMLAuthzDecisionStatement"]["xacml-context:Response"];
+      if((bool)respxml) respxml.New(response);
+      //std::string authz_res = (std::string)((*resp)["samlp:Response"]["saml:Assertion"]["xacml-saml:XACMLAuthzDecisionStatement"]["xacml-context:Response"]["xacml-context:Result"]["xacml-context:Decision"]);
+
+      delete resp;
+      ret = true;
+    }
+    return ret;
+}
+
+
 bool ArgusPEP2::Handle(Arc::Message* msg) const {
     int rc = 0;
     bool res = true;
-    //PEP* pep_handle = NULL;
-    //pep_error_t pep_rc = PEP_OK;
-    //xacml_response_t * response = NULL;
-    //xacml_request_t * request = NULL;
-    //std::list<xacml_request_t*> requests;
     Arc::XMLNode request;
     Arc::XMLNode response;
     std::list<Arc::XMLNode> requests;
@@ -197,160 +254,134 @@ bool ArgusPEP2::Handle(Arc::Message* msg) const {
     std::string subject , resource , action;
     Arc::XMLNode secattr;   
 
-/*
     try{
+      // Create a SOAP client to contact PDP server
+      logger.msg(Arc::INFO, "Creating a PDP client");
 
-        // set up the communication with the pepd host
-        pep_handle = pep_initialize();
-        if (pep_handle == NULL) throw pep_ex(std::string("Failed to initialize PEP client:"));
+      //ClientSOAP to contact PDP server
+      std::cout<<"URL: "<<pdpdlocation <<std::endl;
+      Arc::URL pdp_url(pdpdlocation);
+      Arc::MCCConfig mcc_cfg;
+      mcc_cfg.AddPrivateKey(keypath);
+      mcc_cfg.AddCertificate(certpath);
+      mcc_cfg.AddCADir(capath);
+      Arc::ClientSOAP client(mcc_cfg, pdp_url,60);
+  
 
-        pep_rc = pep_setoption(pep_handle, PEP_OPTION_LOG_LEVEL, pep_log_level);
-        if (pep_rc != PEP_OK) throw pep_ex("Failed to set PEP log level: '" + pepdlocation + "' "+ pep_strerror(pep_rc));
+      // Create xacml
+      if(conversion == conversion_subject) {
+        // Extract the user subject according to RFC2256 format
+        std::string dn = msg->Attributes()->get("TLS:IDENTITYDN"); 
+        while (dn.rfind("/") != std::string::npos) {
+          std::string s = dn.substr(dn.rfind("/")+1,dn.length()) ;
+          subject = subject + s + ",";
+          dn = dn.substr(0, dn.rfind("/")) ;
+        }; 
+        subject = subject.substr(0, subject.length()-1);
+        if(resource.empty()) resource = "ANY";
+        if(action.empty()) action = "ANY";
+        rc = create_xacml_request(request,subject.c_str(),resource.c_str(),action.c_str());
+        if((bool)request) requests.push_back(request);
+      }
+      else if(conversion == conversion_cream) {
+        std::list<Arc::MessageAuth*> auths;
+        auths.push_back(msg->Auth());
+        auths.push_back(msg->AuthContext());
+        Arc::PayloadSOAP* payload = NULL;
+        try {
+          payload = dynamic_cast<Arc::PayloadSOAP*>(msg->Payload());
+        } catch(std::exception& e) { };
+        if(!payload) throw pep_ex("No SOAP in message");
+        rc = create_xacml_request_cream(request,auths,msg->Attributes(),payload->Child(0));
+        if((bool)request) requests.push_back(request);
+      }
+      else if(conversion == conversion_emi) {
+        std::list<Arc::MessageAuth*> auths;
+        auths.push_back(msg->Auth());
+        auths.push_back(msg->AuthContext());
+        Arc::PayloadSOAP* payload = NULL;
+        try {
+          payload = dynamic_cast<Arc::PayloadSOAP*>(msg->Payload());
+        } catch(std::exception& e) { };
+        if(!payload) throw pep_ex("No SOAP in message");
+        rc = create_xacml_request_emi(request,auths,msg->Attributes(),payload->Child(0));
+        if((bool)request) requests.push_back(request);
+      } 
+      else {
+        throw pep_ex("Unsupported conversion mode " + Arc::tostring(conversion));
+      }
+      if (rc != 0) {
+        throw pep_ex("Failed to create XACML request(s): " + Arc::tostring(rc));
+      }
 
-        pep_rc = pep_setoption(pep_handle, PEP_OPTION_LOG_HANDLER, &pep_log);
-        if (pep_rc != PEP_OK) throw pep_ex("Failed to set PEP log handler: '" + pepdlocation + "' "+ pep_strerror(pep_rc));
 
-        pep_rc = pep_setoption(pep_handle, PEP_OPTION_ENDPOINT_SSL_VALIDATION, 1);
-        if (pep_rc != PEP_OK) throw pep_ex("Failed to set PEP validation: '" + pepdlocation + "' "+ pep_strerror(pep_rc));
-
-        pep_rc = pep_setoption(pep_handle, PEP_OPTION_ENDPOINT_URL, pepdlocation.c_str());
-        if (pep_rc != PEP_OK) throw pep_ex("Failed to set PEP URL: '" + pepdlocation + "' "+ pep_strerror(pep_rc));
-
-        pep_rc = pep_setoption(pep_handle, PEP_OPTION_ENABLE_OBLIGATIONHANDLERS, 0);
-        if (pep_rc != PEP_OK) throw pep_ex("Failed to set PEP obligation handling: '" + pepdlocation + "' "+ pep_strerror(pep_rc));
-
-        if(!capath.empty()) {
-            pep_rc = pep_setoption(pep_handle, PEP_OPTION_ENDPOINT_SERVER_CAPATH, capath.c_str());
-            if (pep_rc != PEP_OK) throw pep_ex("Failed to set PEP CA path: '" + pepdlocation + "' "+ pep_strerror(pep_rc));
+      // Contact PDP server
+      std::string local_id; 
+      xacml_decision_t decision = XACML_DECISION_INDETERMINATE; 
+      // Simple combining algorithm. At least one deny means deny. If none, then at 
+      // least one permit means permit. Otherwise deny. TODO: configurable.
+      logger.msg(Arc::DEBUG, "Have %i requests to process", requests.size());
+      for(std::list<Arc::XMLNode>::iterator it = requests.begin(); it != requests.end(); it++) {
+        request = *it;
+        bool res = contact_pdp(client, pdpdlocation, certpath, logger, request, response);
+        if (!res) {
+          throw pep_ex(std::string("Failed to process XACML request"));
+        }   
+        if (!response) {
+          throw pep_ex("XACML response is empty");
         }
 
-        if(!keypath.empty()) {
-            pep_rc = pep_setoption(pep_handle, PEP_OPTION_ENDPOINT_CLIENT_KEY, keypath.c_str());
-            if (pep_rc != PEP_OK) throw pep_ex("Failed to set PEP key: '" + pepdlocation + "' "+ pep_strerror(pep_rc));
-        }
+        // Extract the local user name from the response to be mapped to the GID
+        for (int cn = 0;; ++cn) {
+          Arc::XMLNode cnode = response.Child(cn);
+          if (!cnode) break;
+          std::string authz_res = (std::string)(cnode["xacml-context:Decision"]);
+          if(authz_res.empty()) break;
+          if(authz_res == "Permit") decision =  XACML_DECISION_PERMIT;
+          else if(authz_res == "Deny") decision = XACML_DECISION_DENY;
+          if(decision == XACML_DECISION_DENY) break;
 
-        if(!certpath.empty()) {
-            pep_rc = pep_setoption(pep_handle, PEP_OPTION_ENDPOINT_CLIENT_CERT, certpath.c_str());
-            if (pep_rc != PEP_OK) throw pep_ex("Failed to set PEP certificate: '" + pepdlocation + "' "+ pep_strerror(pep_rc));
-        }
+/*
+<xacml:Obligation ObligationId="http://www.example.com/" FulfillOn="Permit">
+   <xacml:AttributeAssignment DataType="http://www.example.com/" AttributeId="http://www.example.com/">
+      <!--any element-->
+   </xacml:AttributeAssignment>
+</xacml:Obligation>
+*/
+          for(int n = 0;; ++n) {
+            Arc::XMLNode scn = cnode.Child(n);
+            if(!scn) break;
+            if(!MatchXMLName(scn, "Obligation")) continue;
+            for(int m = 0;; ++m) {
+              Arc::XMLNode sscn = scn.Child(m);
+              if(!sscn) break;
+              std::string id = (std::string)sscn;
+              local_id = id.empty() ? "":id;
+            }
+          }
 
-        if(conversion == conversion_direct) {
-            msg->Auth()->Export(Arc::SecAttr::ARCAuth, secattr);
-            msg->AuthContext()->Export(Arc::SecAttr::ARCAuth, secattr);
-            rc= create_xacml_request_direct(requests,secattr);
-        } else if(conversion == conversion_subject) {
-            //resource= (std::string) secattr["RequestItem"][0]["Resource"][0];
-            //action=  (std::string) secattr["RequestItem"][0]["Action"][0];
-            // Extract the user subject according to RFC2256 format
-            std::string dn = msg->Attributes()->get("TLS:IDENTITYDN"); 
-            while (dn.rfind("/") != std::string::npos) {
-                std::string s = dn.substr(dn.rfind("/")+1,dn.length()) ;
-                subject = subject + s + ",";
-                dn = dn.substr(0, dn.rfind("/")) ;
-            }; 
-            subject = subject.substr(0, subject.length()-1);
-            if(resource.empty()) resource = "ANY";
-            if(action.empty()) action = "ANY";
-            rc = create_xacml_request(&request,subject.c_str(),resource.c_str(),action.c_str());
-            if(request != NULL) requests.push_back(request);
-            request = NULL;
-        } else if(conversion == conversion_cream) {
-            std::list<Arc::MessageAuth*> auths;
-            auths.push_back(msg->Auth());
-            auths.push_back(msg->AuthContext());
-            Arc::PayloadSOAP* payload = NULL;
-            try {
-                payload = dynamic_cast<Arc::PayloadSOAP*>(msg->Payload());
-            } catch(std::exception& e) { };
-            if(!payload) throw pep_ex("No SOAP in message");
-            rc = create_xacml_request_cream(&request,auths,msg->Attributes(),payload->Child(0));
-            if(request != NULL) requests.push_back(request);
-            request = NULL;
-        } else if(conversion == conversion_emi) {
-            std::list<Arc::MessageAuth*> auths;
-            auths.push_back(msg->Auth());
-            auths.push_back(msg->AuthContext());
-            Arc::PayloadSOAP* payload = NULL;
-            try {
-                payload = dynamic_cast<Arc::PayloadSOAP*>(msg->Payload());
-            } catch(std::exception& e) { };
-            if(!payload) throw pep_ex("No SOAP in message");
-            rc = create_xacml_request_emi(&request,auths,msg->Attributes(),payload->Child(0));
-            if(request != NULL) requests.push_back(request);
-            request = NULL;
+        }
+        if(decision == XACML_DECISION_DENY) break;
+      }
+
+      if (decision != XACML_DECISION_PERMIT ){
+        if(conversion == conversion_subject) {
+          logger.msg(Arc::INFO,"%s is not authorized to do action %s in resource %s ",
+                     subject, action, resource);
         } else {
-            throw pep_ex("Unsupported conversion mode " + Arc::tostring(conversion));
-        } 
-        if (rc != 0) {
-            throw pep_ex("Failed to create XACML request(s): " + Arc::tostring(rc));
+          logger.msg(Arc::INFO,"Not authorized");
         }
-        std::string local_id; 
-        xacml_decision_t decision = XACML_DECISION_INDETERMINATE; 
-        // Simple combining algorithm. At least one deny means deny. If none, then at 
-        // least one permit means permit. Otherwise deny. TODO: configurable.
-        logger.msg(Arc::DEBUG, "Have %i requests to process", requests.size());
-        while(requests.size() > 0) {
-            request = requests.front();
-            requests.pop_front();
-            pep_rc = pep_authorize(pep_handle,&request,&response);
-            if (pep_rc != PEP_OK) {
-                throw pep_ex(std::string("Failed to process XACML request: ")+pep_strerror(pep_rc));
-            }   
-            if (response == NULL) {
-                throw pep_ex("XACML response is empty");
-            }
-            // Extract the local user name from the response to be mapped to the GID
-            size_t results_l = xacml_response_results_length(response);
-            int i = 0;
-            for(i = 0; i<results_l; i++) {
-                xacml_result_t * result = xacml_response_getresult(response,i);        
-                if(result == NULL) break;
-                switch(xacml_result_getdecision(result)) {
-                   case XACML_DECISION_DENY: decision = XACML_DECISION_DENY; break;
-                   case XACML_DECISION_PERMIT: decision = XACML_DECISION_PERMIT; break;
-                };
-                if(decision == XACML_DECISION_DENY) break;
-                std::size_t obligations_l = xacml_result_obligations_length(result);
-                int j =0;
-                for(j = 0; j<obligations_l; j++) {
-                    xacml_obligation_t * obligation = xacml_result_getobligation(result,j);
-                    if(obligation == NULL) break;
-                    std::size_t attrs_l = xacml_obligation_attributeassignments_length(obligation);
-                    int k= 0;
-                    for (k= 0; k<attrs_l; k++) {
-                        xacml_attributeassignment_t * attr = xacml_obligation_getattributeassignment(obligation,k);
-                        if(attr == NULL) break;
-                        const char * id = xacml_attributeassignment_getvalue(attr); 
-                        local_id =  id?id:"";
-                    } 
-                }
-            } 
-            xacml_response_delete(response); response = NULL;
-            xacml_request_delete(request); request = NULL;
-            if(decision == XACML_DECISION_DENY) break;
-        }
-        if (decision != XACML_DECISION_PERMIT ){
-            if(conversion == conversion_direct) {
-                std::string xml;
-                secattr.GetXML(xml);
-                logger.msg(Arc::INFO,"Not authorized according to request:\n%s",xml);
-            } else if(conversion == conversion_subject) {
-                logger.msg(Arc::INFO,"%s is not authorized to do action %s in resource %s ",
-                           subject, action, resource);
-            } else {
-                logger.msg(Arc::INFO,"Not authorized");
-            }
-            throw pep_ex("The reached decision is: " + xacml_decision_to_string(decision));
-        }     
-        if(accept_mapping && !local_id.empty()) {
-            logger.msg(Arc::INFO,"Grid identity is mapped to local identity '%s'", local_id);
-            msg->Attributes()->set("SEC:LOCALID", local_id);
-        }
+        throw pep_ex("The reached decision is: " + xacml_decision_to_string(decision));
+      }     
+      if(accept_mapping && !local_id.empty()) {
+        logger.msg(Arc::INFO,"Grid identity is mapped to local identity '%s'", local_id);
+        msg->Attributes()->set("SEC:LOCALID", local_id);
+      }
+
     } catch (pep_ex& e) {
         logger.msg(Arc::ERROR,"%s",e.desc);
         res = false;
     }
-*/
 
     return res;
 }
