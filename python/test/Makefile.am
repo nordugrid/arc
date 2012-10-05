@@ -13,4 +13,4 @@ TESTS =
 endif
 check_SCRIPTS = $(TESTS)
 
-EXTRA_DIST = $(TESTSCRIPTS)
+EXTRA_DIST = $(TESTSCRIPTS) testutils.py
