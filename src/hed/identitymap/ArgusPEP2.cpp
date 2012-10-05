@@ -21,20 +21,19 @@ static const char XACML_DATATYPE_FQAN[]= "http://glite.org/xacml/datatype/fqan";
 
 #define SAML_NAMESPACE "urn:oasis:names:tc:SAML:2.0:assertion"
 #define SAMLP_NAMESPACE "urn:oasis:names:tc:SAML:2.0:protocol"
-#define XACML_SAMLP_NAMESPACE "urn:oasis:xacml:2.0:saml:protocol:schema:os"
+#define XACML_SAMLP_NAMESPACE "urn:oasis:names:tc:xacml:2.0:profile:saml2.0:v2:schema:protocol"
+//#define XACML_SAMLP_NAMESPACE "urn:oasis:xacml:2.0:saml:protocol:schema:os"
 
 
-static Arc::XMLNode xacml_create_request() {
+static void xacml_create_request(Arc::XMLNode& request) {
     Arc::NS ns;
     ns["xacml-ctx"]="urn:oasis:names:tc:xacml:2.0:context:schema:os";
-    Arc::XMLNode node(ns, "Request");
-    Arc::XMLNode ret;
-    node.New(ret);
-    return ret;
+    Arc::XMLNode node(ns, "xacml-ctx:Request");
+    node.New(request);
+    return;
 }
 
 static Arc::XMLNode xacml_request_add_element(Arc::XMLNode& request_node, const std::string& element_name) {
-
     std::string elm_name = "xacml-ctx:";
     elm_name.append(element_name);
     Arc::XMLNode element = request_node.NewChild(elm_name);
@@ -135,16 +134,16 @@ std::string xacml_decision_to_string(xacml_decision_t decision) {
 }
 
 /* extract the elements from the configuration file */
-ArgusPEP2::ArgusPEP2(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHandler(cfg,parg) {  
+ArgusPEP2::ArgusPEP2(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHandler(cfg,parg), client(NULL) {  
     valid_ = false;
     accept_mapping = false;
     logger.setThreshold(Arc::DEBUG);
-    pdpdlocation = (std::string)(*cfg)["PEPD"];  
+    pdpdlocation = (std::string)(*cfg)["PDPD"];  
     if(pdpdlocation.empty()) {
-        logger.msg(Arc::ERROR, "PEPD location is missing");
+        logger.msg(Arc::ERROR, "PDPD location is missing");
         return;
     }
-    logger.msg(Arc::DEBUG, "PEPD location: %s",pdpdlocation);
+    logger.msg(Arc::DEBUG, "PDPD location: %s",pdpdlocation);
 
     std::string conversion_str = (std::string)(*cfg)["Conversion"];
 
@@ -182,14 +181,25 @@ ArgusPEP2::ArgusPEP2(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHand
     std::string mapping_str = (std::string)(*cfg)["AcceptMapping"];
     if((mapping_str == "1") || (mapping_str == "true")) accept_mapping = true;
 
+    // Create a SOAP client to contact PDP server
+    logger.msg(Arc::INFO, "Creating a PDP client");
+    //ClientSOAP to contact PDP server
+    Arc::URL pdp_url(pdpdlocation);
+    Arc::MCCConfig mcc_cfg;
+    mcc_cfg.AddPrivateKey(keypath);
+    mcc_cfg.AddCertificate(certpath);
+    mcc_cfg.AddCADir(capath);
+    client = new Arc::ClientSOAP(mcc_cfg,pdp_url,60);
+
     valid_ = true;
 }
 
 ArgusPEP2::~ArgusPEP2(void) {
+  if(client) delete client;
 }
 
 
-static bool contact_pdp(Arc::ClientSOAP& client, const std::string& pdpdlocation, const std::string& certpath, 
+static bool contact_pdp(Arc::ClientSOAP* client, const std::string& pdpdlocation, const std::string& certpath, 
     Arc::Logger& logger, Arc::XMLNode& request, Arc::XMLNode& response) {
 
     bool ret = false;
@@ -221,7 +231,7 @@ static bool contact_pdp(Arc::ClientSOAP& client, const std::string& pdpdlocation
 
     Arc::PayloadSOAP req(req_env);
     Arc::PayloadSOAP* resp = NULL;
-    Arc::MCC_Status status = client.process(&req, &resp);
+    Arc::MCC_Status status = client->process(&req, &resp);
     if(!status) {
       logger.msg(Arc::ERROR, "Failed to contact PDP server: %s", pdpdlocation);
     }
@@ -230,10 +240,37 @@ static bool contact_pdp(Arc::ClientSOAP& client, const std::string& pdpdlocation
     }
     else {
       std::string str;
-      resp->GetXML(str);
-      logger.msg(Arc::INFO, "Response: %s", str);
+//      resp->GetXML(str);
+//      logger.msg(Arc::INFO, "Response: %s", str);
 
-      Arc::XMLNode respxml = (*resp)["samlp:Response"]["saml:Assertion"]["xacml-saml:XACMLAuthzDecisionStatement"]["xacml-context:Response"];
+      //The authorization query response from argus pdp server is like the following
+/*
+      <saml2p:Response xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol" ID="_2d1186642b32e202cb99bc94eb9b319c" InResponseTo="9b79bc42-555a-4029-a96a-ee4cb46be0e5" Version="2.0">
+         <saml2p:Status>
+            <saml2p:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/>
+         </saml2p:Status>
+         <saml2:Assertion xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion" ID="_4ecf88ff3971e5d7de195e600529d632" Version="2.0">
+            <saml2:Issuer Format="urn:oasis:names:tc:SAML:2.0:nameid-format:entity">http://localhost.localdomain/pdp</saml2:Issuer>
+            <saml2:Statement xmlns:xacml-saml="urn:oasis:names:tc:xacml:2.0:profile:saml2.0:v2:schema:assertion" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xacml-saml:XACMLAuthzDecisionStatementType">
+               <xacml-ctx:Request xmlns:xacml-ctx="urn:oasis:names:tc:xacml:2.0:context:schema:os">
+                 ...duplication of the request...
+               </xacml-ctx:Request>
+               <xacml-context:Response xmlns:xacml-context="urn:oasis:names:tc:xacml:2.0:context:schema:os">
+                  <xacml-context:Result ResourceId="https://127.0.0.1:60000/echo">
+                     <xacml-context:Decision>NotApplicable</xacml-context:Decision>
+                     <xacml-context:Status>
+                        <xacml-context:StatusCode Value="urn:oasis:names:tc:xacml:1.0:status:ok"/>
+                     </xacml-context:Status>
+                  </xacml-context:Result>
+               </xacml-context:Response>
+            </saml2:Statement>
+         </saml2:Assertion>
+      </saml2p:Response>
+*/
+
+
+      //Arc::XMLNode respxml = (*resp)["samlp:Response"]["saml:Assertion"]["xacml-saml:XACMLAuthzDecisionStatement"]["xacml-context:Response"];
+       Arc::XMLNode respxml = (*resp)["saml2p:Response"]["saml2:Assertion"]["saml2:Statement"]["xacml-context:Response"];
       if((bool)respxml) respxml.New(response);
       //std::string authz_res = (std::string)((*resp)["samlp:Response"]["saml:Assertion"]["xacml-saml:XACMLAuthzDecisionStatement"]["xacml-context:Response"]["xacml-context:Result"]["xacml-context:Decision"]);
 
@@ -255,18 +292,6 @@ bool ArgusPEP2::Handle(Arc::Message* msg) const {
     Arc::XMLNode secattr;   
 
     try{
-      // Create a SOAP client to contact PDP server
-      logger.msg(Arc::INFO, "Creating a PDP client");
-
-      //ClientSOAP to contact PDP server
-      std::cout<<"URL: "<<pdpdlocation <<std::endl;
-      Arc::URL pdp_url(pdpdlocation);
-      Arc::MCCConfig mcc_cfg;
-      mcc_cfg.AddPrivateKey(keypath);
-      mcc_cfg.AddCertificate(certpath);
-      mcc_cfg.AddCADir(capath);
-      Arc::ClientSOAP client(mcc_cfg, pdp_url,60);
-  
 
       // Create xacml
       if(conversion == conversion_subject) {
@@ -322,7 +347,12 @@ bool ArgusPEP2::Handle(Arc::Message* msg) const {
       // least one permit means permit. Otherwise deny. TODO: configurable.
       logger.msg(Arc::DEBUG, "Have %i requests to process", requests.size());
       for(std::list<Arc::XMLNode>::iterator it = requests.begin(); it != requests.end(); it++) {
-        request = *it;
+        Arc::XMLNode req = *it;
+
+        std::string str;
+        req.GetXML(str);
+        std::cout<<"xacml authz request: "<<str<<std::endl;
+
         bool res = contact_pdp(client, pdpdlocation, certpath, logger, request, response);
         if (!res) {
           throw pep_ex(std::string("Failed to process XACML request"));
@@ -330,6 +360,9 @@ bool ArgusPEP2::Handle(Arc::Message* msg) const {
         if (!response) {
           throw pep_ex("XACML response is empty");
         }
+
+        response.GetXML(str);
+        std::cout<<"xacml authz response: "<<str<<std::endl;
 
         // Extract the local user name from the response to be mapped to the GID
         for (int cn = 0;; ++cn) {
@@ -379,15 +412,15 @@ bool ArgusPEP2::Handle(Arc::Message* msg) const {
       }
 
     } catch (pep_ex& e) {
-        logger.msg(Arc::ERROR,"%s",e.desc);
-        res = false;
+      logger.msg(Arc::ERROR,"%s",e.desc);
+      res = false;
     }
 
     return res;
 }
 
 int ArgusPEP2::create_xacml_request(Arc::XMLNode& request,const char * subjectid, const char * resourceid, const char * actionid) const {
-    request = xacml_create_request();
+    xacml_create_request(request);
 
     Arc::XMLNode subject = xacml_request_add_element(request, "Subject");
     std::string subject_attribute = path_to_x500(subjectid);
@@ -493,7 +526,7 @@ int ArgusPEP2::create_xacml_request_cream(Arc::XMLNode& request, std::list<Arc::
       ierror(const std::string& err):desc(err) { };
     };
     try {
-      request = xacml_create_request();
+      xacml_create_request(request);
 
       // Environment
       Arc::XMLNode environment = xacml_request_add_element(request, "Environment");
@@ -529,7 +562,7 @@ int ArgusPEP2::create_xacml_request_cream(Arc::XMLNode& request, std::list<Arc::
       for(std::list<std::string>::iterator vo = vos.begin(); vo!=vos.end(); ++vo) {
         logger.msg(Arc::DEBUG,"Adding virtual-organization value: %s",*vo);
       }
-      xacml_element_add_attribute(subject, vos, XACML_DATATYPE_STRING, vo_attr_id, "");
+      if(vos.size()>0) xacml_element_add_attribute(subject, vos, XACML_DATATYPE_STRING, vo_attr_id, "");
 
       std::string fqan_attr_id = XACML_GLITE_ATTRIBUTE_FQAN; //"http://glite.org/xacml/attribute/fqan";
       std::string pfqan;
@@ -542,7 +575,7 @@ int ArgusPEP2::create_xacml_request_cream(Arc::XMLNode& request, std::list<Arc::
         flatten_fqans.push_back(fqan_str);
         logger.msg(Arc::DEBUG,"Adding fqan value: %s",fqan_str);
       }
-      xacml_element_add_attribute(subject, flatten_fqans, XACML_DATATYPE_FQAN, fqan_attr_id, "");
+      if(flatten_fqans.size()>0)xacml_element_add_attribute(subject, flatten_fqans, XACML_DATATYPE_FQAN, fqan_attr_id, "");
 
       // /voname=testers.eu-emi.eu/hostname=emitestbed07.cnaf.infn.it:15002/testers.eu-emi.eu/test3:test_ga=ciccio -> ?
       // /VO=testers.eu-emi.eu/Group=testers.eu-emi.eu/Group=test1 -> /testers.eu-emi.eu/test1
@@ -556,7 +589,7 @@ int ArgusPEP2::create_xacml_request_cream(Arc::XMLNode& request, std::list<Arc::
 
       std::string cert_attr_id = XACML_SUBJECT_KEY_INFO; //urn:oasis:names:tc:xacml:1.0:subject:key-info
       std::string cert_attr_value = get_sec_attr(auths, "TLS", "CERTIFICATE");
-      if(!cert_attr_value.empty()) throw ierror("Failed to create attribute key-info object");
+      if(cert_attr_value.empty()) throw ierror("Failed to create attribute key-info object");
       std::string chain_attr_value = get_sec_attr(auths, "TLS", "CERTIFICATECHAIN");
       chain_attr_value = cert_attr_value + "\n" + chain_attr_value;
       logger.msg(Arc::DEBUG,"Adding cert chain value: %s", chain_attr_value);
@@ -628,7 +661,7 @@ int ArgusPEP2::create_xacml_request_emi(Arc::XMLNode& request, std::list<Arc::Me
 
     try {
 
-      request = xacml_create_request();
+      xacml_create_request(request);
 
       // Environment
       Arc::XMLNode environment = xacml_request_add_element(request, "Environment");
@@ -637,8 +670,6 @@ int ArgusPEP2::create_xacml_request_emi(Arc::XMLNode& request, std::list<Arc::Me
       logger.msg(Arc::DEBUG,"Adding profile-id value: %s", env_attr_value);
       xacml_element_add_attribute(environment, env_attr_value,
           XACML_DATATYPE_ANYURI, env_attr_id, "");
-
-
 
       // Subject
       Arc::XMLNode subject = xacml_request_add_element(request, "Subject");
@@ -664,7 +695,7 @@ int ArgusPEP2::create_xacml_request_emi(Arc::XMLNode& request, std::list<Arc::Me
       for(std::list<std::string>::iterator vo = vos.begin(); vo!=vos.end(); ++vo) {
         logger.msg(Arc::DEBUG,"Adding virtual-organization value: %s",*vo);
       }
-      xacml_element_add_attribute(subject, vos, XACML_DATATYPE_STRING, vo_attr_id, "");
+      if(vos.size()>0) xacml_element_add_attribute(subject, vos, XACML_DATATYPE_STRING, vo_attr_id, "");
 
 
       std::string group_attr_id = XACML_DCISEC_ATTRIBUTE_GROUP; //"http://dci-sec.org/xacml/attribute/group";
@@ -681,7 +712,7 @@ int ArgusPEP2::create_xacml_request_emi(Arc::XMLNode& request, std::list<Arc::Me
         if(pgroup.empty()) pgroup = group;
         if(!group.empty()) groups.push_back(group);
       }
-      xacml_element_add_attribute(subject, groups, XACML_DATATYPE_STRING, group_attr_id, "");
+      if(groups.size()>0) xacml_element_add_attribute(subject, groups, XACML_DATATYPE_STRING, group_attr_id, "");
 
       if(!pgroup.empty()) {
         std::string pgroup_attr_id = XACML_DCISEC_ATTRIBUTE_GROUP_PRIMARY; //"http://dci-sec.org/xacml/attribute/group/primary"

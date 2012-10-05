@@ -24,7 +24,7 @@ class ArgusPEP2 : public SecHandler {
 
    
     std::string pdpdlocation;
-    int pep_log_level;
+    Arc::ClientSOAP* client;
     std::string keypath;
     std::string certpath;
     std::string capath;
@@ -34,7 +34,6 @@ class ArgusPEP2 : public SecHandler {
     bool accept_mapping;
     bool valid_; 
     static Arc::Logger logger;
-    static int pep_log(int level, const char *fmt, va_list args);
 
   public:
     ArgusPEP2(Arc::Config *cfg,Arc::PluginArgument* parg);

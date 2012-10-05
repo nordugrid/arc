@@ -208,6 +208,7 @@ bool PDPServiceInvoker::isPermitted(Message *msg) const {
 }
 
 PDPServiceInvoker::~PDPServiceInvoker(){
+  if(client != NULL) delete client;
 }
 
 } // namespace ArcSec
