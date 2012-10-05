@@ -1,5 +1,5 @@
-#ifndef __ARC_SEC_ARGUSPEP2_H__
-#define __ARC_SEC_ARGUSPEP2_H__
+#ifndef __ARC_SEC_ARGUSPDPCLIENT_H__
+#define __ARC_SEC_ARGUSPDPCLIENT_H__
 
 #include <arc/ArcConfig.h>
 #include <arc/XMLNode.h>
@@ -12,7 +12,7 @@
 
 namespace ArcSec {
 
-class ArgusPEP2 : public SecHandler {
+class ArgusPDPClient : public SecHandler {
  
   private:
 
@@ -36,9 +36,9 @@ class ArgusPEP2 : public SecHandler {
     static Arc::Logger logger;
 
   public:
-    ArgusPEP2(Arc::Config *cfg,Arc::PluginArgument* parg);
-    ArgusPEP2(void);
-    virtual ~ArgusPEP2(void);
+    ArgusPDPClient(Arc::Config *cfg,Arc::PluginArgument* parg);
+    ArgusPDPClient(void);
+    virtual ~ArgusPDPClient(void);
     virtual bool Handle(Arc::Message* msg) const ;
     operator bool(void) { return valid_; };
     bool operator!(void) { return !valid_; };
@@ -54,4 +54,4 @@ class ArgusPEP2 : public SecHandler {
 
 } // namespace ArcSec
 
-#endif /* __ARC_SEC_ArgusPEP2_H__ */
+#endif /* __ARC_SEC_ARGUSPDPCLIENT_H__ */

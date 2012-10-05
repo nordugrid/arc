@@ -1,9 +1,9 @@
 SUBDIRS = schema
 
 if ARGUS_ENABLED
-pkglib_LTLIBRARIES = libidentitymap.la libarguspep.la
+pkglib_LTLIBRARIES = libidentitymap.la libarguspepclient.la
 else
-pkglib_LTLIBRARIES = libidentitymap.la libarguspep2.la
+pkglib_LTLIBRARIES = libidentitymap.la libarguspdpclient.la
 endif
 
 libidentitymap_la_SOURCES = IdentityMap.cpp SimpleMap.cpp \
@@ -19,22 +19,22 @@ libidentitymap_la_LIBADD = \
 libidentitymap_la_LDFLAGS = -no-undefined -avoid-version -module
 
 if ARGUS_ENABLED
-libarguspep_la_SOURCES = ArgusPEP.cpp ArgusPEP.h
-libarguspep_la_CXXFLAGS = -I$(top_srcdir)/include \
+libarguspepclient_la_SOURCES = ArgusPEPClient.cpp ArgusPEPClient.h
+libarguspepclient_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(ARGUS_CFLAGS)
-libarguspep_la_LIBADD = \
+libarguspepclient_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(ARGUS_LIBS)
-libarguspep_la_LDFLAGS = -no-undefined -avoid-version -module
+libarguspepclient_la_LDFLAGS = -no-undefined -avoid-version -module
 endif
 
-libarguspep2_la_SOURCES = ArgusPEP2.cpp ArgusPEP2.h ArgusXACMLConstant.h
-libarguspep2_la_CXXFLAGS = -I$(top_srcdir)/include \
+libarguspdpclient_la_SOURCES = ArgusPDPClient.cpp ArgusPDPClient.h ArgusXACMLConstant.h
+libarguspdpclient_la_CXXFLAGS = -I$(top_srcdir)/include \
         $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
-libarguspep2_la_LIBADD = \
+libarguspdpclient_la_LIBADD = \
         $(top_builddir)/src/hed/libs/security/libarcsecurity.la \
         $(top_builddir)/src/hed/libs/message/libarcmessage.la \
         $(top_builddir)/src/hed/libs/loader/libarcloader.la \
@@ -42,5 +42,5 @@ libarguspep2_la_LIBADD = \
         $(top_builddir)/src/hed/libs/credential/libarccredential.la \
         $(top_builddir)/src/hed/libs/client/libarcclient.la \
         $(GLIBMM_LIBS) $(LIBXML2_LIBS)
-libarguspep2_la_LDFLAGS = -no-undefined -avoid-version -module
+libarguspdpclient_la_LDFLAGS = -no-undefined -avoid-version -module
 

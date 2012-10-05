@@ -14,7 +14,7 @@
 #include <arc/client/ClientInterface.h>
 #include <arc/credential/Credential.h>
 
-#include "ArgusPEP2.h"
+#include "ArgusPDPClient.h"
 #include "ArgusXACMLConstant.h"
 
 static const char XACML_DATATYPE_FQAN[]= "http://glite.org/xacml/datatype/fqan";
@@ -71,14 +71,14 @@ static Arc::XMLNode xacml_element_add_attribute(Arc::XMLNode& element_node, cons
 static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg) {
     ArcSec::SecHandlerPluginArgument* shcarg = arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
     if(!shcarg) return NULL;
-    ArcSec::ArgusPEP2* plugin = new ArcSec::ArgusPEP2((Arc::Config*)(*shcarg),arg);
+    ArcSec::ArgusPDPClient* plugin = new ArcSec::ArgusPDPClient((Arc::Config*)(*shcarg),arg);
     if(!plugin) return NULL;
     if(!(*plugin)) { delete plugin; return NULL;};
     return plugin;
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-    { "arguspep2.map", "HED:SHC", NULL, 0, &get_sechandler},
+    { "arguspdpclient.map", "HED:SHC", NULL, 0, &get_sechandler},
     { NULL, NULL, NULL, 0, NULL }
 }; 
 
@@ -121,7 +121,7 @@ std::string flatten_fqan(const std::string& wfqan) {
   return fqan;
 }
 
-Arc::Logger ArgusPEP2::logger(Arc::Logger::getRootLogger(), "SecHandler.Argus");
+Arc::Logger ArgusPDPClient::logger(Arc::Logger::getRootLogger(), "SecHandler.Argus");
 
 std::string xacml_decision_to_string(xacml_decision_t decision) {
     switch(decision) {
@@ -134,7 +134,7 @@ std::string xacml_decision_to_string(xacml_decision_t decision) {
 }
 
 /* extract the elements from the configuration file */
-ArgusPEP2::ArgusPEP2(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHandler(cfg,parg), client(NULL) {  
+ArgusPDPClient::ArgusPDPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHandler(cfg,parg), client(NULL) {  
     valid_ = false;
     accept_mapping = false;
     logger.setThreshold(Arc::DEBUG);
@@ -194,7 +194,7 @@ ArgusPEP2::ArgusPEP2(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHand
     valid_ = true;
 }
 
-ArgusPEP2::~ArgusPEP2(void) {
+ArgusPDPClient::~ArgusPDPClient(void) {
   if(client) delete client;
 }
 
@@ -216,7 +216,7 @@ static bool contact_pdp(Arc::ClientSOAP* client, const std::string& pdpdlocation
     authz_query.NewAttribute("IssueInstant") = current_time;
     authz_query.NewAttribute("Version") = std::string("2.0");
 
-    Arc::Credential cred(certpath, "", "", "");
+    Arc::Credential cred(certpath, keypath, capath, "");
     std::string local_dn_str = cred.GetDN();
     std::string local_dn = Arc::convert_to_rdn(local_dn_str);
     std::string issuer_name = local_dn;
@@ -281,7 +281,7 @@ static bool contact_pdp(Arc::ClientSOAP* client, const std::string& pdpdlocation
 }
 
 
-bool ArgusPEP2::Handle(Arc::Message* msg) const {
+bool ArgusPDPClient::Handle(Arc::Message* msg) const {
     int rc = 0;
     bool res = true;
     Arc::XMLNode request;
@@ -384,7 +384,7 @@ bool ArgusPEP2::Handle(Arc::Message* msg) const {
           for(int n = 0;; ++n) {
             Arc::XMLNode scn = cnode.Child(n);
             if(!scn) break;
-            if(!MatchXMLName(scn, "Obligation")) continue;
+            if(!MatchXMLName(scn, "Obligations")) continue;
             for(int m = 0;; ++m) {
               Arc::XMLNode sscn = scn.Child(m);
               if(!sscn) break;
@@ -419,7 +419,7 @@ bool ArgusPEP2::Handle(Arc::Message* msg) const {
     return res;
 }
 
-int ArgusPEP2::create_xacml_request(Arc::XMLNode& request,const char * subjectid, const char * resourceid, const char * actionid) const {
+int ArgusPDPClient::create_xacml_request(Arc::XMLNode& request,const char * subjectid, const char * resourceid, const char * actionid) const {
     xacml_create_request(request);
 
     Arc::XMLNode subject = xacml_request_add_element(request, "Subject");
@@ -517,7 +517,7 @@ static std::list<std::string> get_sec_attrs(std::list<Arc::MessageAuth*> auths, 
     return std::list<std::string>();
 }
 
-int ArgusPEP2::create_xacml_request_cream(Arc::XMLNode& request, std::list<Arc::MessageAuth*> auths,  
+int ArgusPDPClient::create_xacml_request_cream(Arc::XMLNode& request, std::list<Arc::MessageAuth*> auths,  
     Arc::MessageAttributes* attrs, Arc::XMLNode operation) const {
     logger.msg(Arc::DEBUG,"Doing CREAM request");
     class ierror {
@@ -650,7 +650,7 @@ static bool split_voms(const std::string& voms_attr, std::string& vo, std::strin
     return true;
 }
 
-int ArgusPEP2::create_xacml_request_emi(Arc::XMLNode& request, std::list<Arc::MessageAuth*> auths, Arc::MessageAttributes* attrs, Arc::XMLNode operation) const {
+int ArgusPDPClient::create_xacml_request_emi(Arc::XMLNode& request, std::list<Arc::MessageAuth*> auths, Arc::MessageAttributes* attrs, Arc::XMLNode operation) const {
     logger.msg(Arc::DEBUG,"Doing EMI request");
 
     class ierror {

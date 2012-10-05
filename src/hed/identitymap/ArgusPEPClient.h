@@ -1,5 +1,5 @@
-#ifndef __ARC_SEC_ARGUSPEP_H__
-#define __ARC_SEC_ARGUSPEP_H__
+#ifndef __ARC_SEC_ARGUSPEPCLIENT_H__
+#define __ARC_SEC_ARGUSPEPCLIENT_H__
 
 #include <arc/ArcConfig.h>
 #include <arc/XMLNode.h>
@@ -14,7 +14,7 @@
 
 namespace ArcSec {
 
-class ArgusPEP : public SecHandler {
+class ArgusPEPClient : public SecHandler {
  
   private:
 
@@ -43,9 +43,9 @@ class ArgusPEP : public SecHandler {
     static int pep_log(int level, const char *fmt, va_list args);
 
   public:
-    ArgusPEP(Arc::Config *cfg,Arc::PluginArgument* parg);
-    ArgusPEP(void);
-    virtual ~ArgusPEP(void);
+    ArgusPEPClient(Arc::Config *cfg,Arc::PluginArgument* parg);
+    ArgusPEPClient(void);
+    virtual ~ArgusPEPClient(void);
     virtual bool Handle(Arc::Message* msg) const ;
     operator bool(void) { return valid_; };
     bool operator!(void) { return !valid_; };
@@ -62,4 +62,4 @@ class ArgusPEP : public SecHandler {
 
 } // namespace ArcSec
 
-#endif /* __ARC_SEC_ArgusPEP_H__ */
+#endif /* __ARC_SEC_ARGUSPEPCLIENT_H__ */

@@ -10,21 +10,21 @@
 #include <arc/message/MCCLoader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/SecAttr.h>
-#include "ArgusPEP.h"
+#include "ArgusPEPClient.h"
 
 static const char XACML_DATATYPE_FQAN[]= "http://glite.org/xacml/datatype/fqan";
 
 static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg) {
     ArcSec::SecHandlerPluginArgument* shcarg = arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
     if(!shcarg) return NULL;
-    ArcSec::ArgusPEP* plugin = new ArcSec::ArgusPEP((Arc::Config*)(*shcarg),arg);
+    ArcSec::ArgusPEPClient* plugin = new ArcSec::ArgusPEPClient((Arc::Config*)(*shcarg),arg);
     if(!plugin) return NULL;
     if(!(*plugin)) { delete plugin; return NULL;};
     return plugin;
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-    { "arguspep.map", "HED:SHC", NULL, 0, &get_sechandler},
+    { "arguspepclient.map", "HED:SHC", NULL, 0, &get_sechandler},
     { NULL, NULL, NULL, 0, NULL }
 }; 
 
@@ -67,9 +67,9 @@ std::string flatten_fqan(const std::string& wfqan) {
   return fqan;
 }
 
-Arc::Logger ArgusPEP::logger(Arc::Logger::getRootLogger(), "SecHandler.Argus");
+Arc::Logger ArgusPEPClient::logger(Arc::Logger::getRootLogger(), "SecHandler.Argus");
 
-int ArgusPEP::pep_log(int level, const char *fmt, va_list args) {
+int ArgusPEPClient::pep_log(int level, const char *fmt, va_list args) {
     char buf[1024];
     vsnprintf(buf,sizeof(buf)-1,fmt,args);
     buf[sizeof(buf)-1] = 0;
@@ -95,7 +95,7 @@ std::string xacml_decision_to_string(xacml_decision_t decision) {
 }
 
 /* extract the elements from the configuration file */
-ArgusPEP::ArgusPEP(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHandler(cfg,parg) {  
+ArgusPEPClient::ArgusPEPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHandler(cfg,parg) {  
     valid_ = false;
     accept_mapping = false;
     logger.setThreshold(Arc::DEBUG);
@@ -157,10 +157,10 @@ ArgusPEP::ArgusPEP(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHandle
     valid_ = true;
 }
 
-ArgusPEP::~ArgusPEP(void) {
+ArgusPEPClient::~ArgusPEPClient(void) {
 }
 
-bool ArgusPEP::Handle(Arc::Message* msg) const {
+bool ArgusPEPClient::Handle(Arc::Message* msg) const {
     int rc = 0;
     bool res = true;
     PEP* pep_handle = NULL;
@@ -332,7 +332,7 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
     return res;
 }
 
-int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subjectid, const char * resourceid, const char * actionid) const {
+int ArgusPEPClient::create_xacml_request(xacml_request_t ** request,const char * subjectid, const char * resourceid, const char * actionid) const {
     xacml_subject_t * subject= xacml_subject_create();
     if (subject == NULL) {
         logger.msg(Arc::DEBUG, "Subject of request is null \n");
@@ -393,7 +393,7 @@ int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subje
     return 0;  
 }
 
-int ArgusPEP::create_xacml_request_direct(std::list<xacml_request_t*>& requests, Arc::XMLNode arcreq) const {
+int ArgusPEPClient::create_xacml_request_direct(std::list<xacml_request_t*>& requests, Arc::XMLNode arcreq) const {
     //  -- XACML --
     // Request
     //  Subject *
@@ -582,7 +582,7 @@ static std::list<std::string> get_sec_attrs(std::list<Arc::MessageAuth*> auths, 
     return std::list<std::string>();
 }
 
-int ArgusPEP::create_xacml_request_cream(xacml_request_t** request, std::list<Arc::MessageAuth*> auths,  Arc::MessageAttributes* attrs, Arc::XMLNode operation) const {
+int ArgusPEPClient::create_xacml_request_cream(xacml_request_t** request, std::list<Arc::MessageAuth*> auths,  Arc::MessageAttributes* attrs, Arc::XMLNode operation) const {
 logger.msg(Arc::DEBUG,"Doing CREAM request");
     xacml_attribute_t* attr = NULL;
     xacml_environment_t* environment = NULL;
@@ -751,7 +751,7 @@ std::string>& roles, std::list<std::string>& attrs) {
     return true;
 }
 
-int ArgusPEP::create_xacml_request_emi(xacml_request_t** request, std::list<Arc::MessageAuth*> auths,  Arc::MessageAttributes* attrs, Arc::XMLNode operation) const {
+int ArgusPEPClient::create_xacml_request_emi(xacml_request_t** request, std::list<Arc::MessageAuth*> auths,  Arc::MessageAttributes* attrs, Arc::XMLNode operation) const {
     xacml_attribute_t* attr = NULL;
     xacml_environment_t* environment = NULL;
     xacml_subject_t* subject = NULL;
