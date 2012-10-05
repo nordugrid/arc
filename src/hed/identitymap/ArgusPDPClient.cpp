@@ -216,7 +216,7 @@ static bool contact_pdp(Arc::ClientSOAP* client, const std::string& pdpdlocation
     authz_query.NewAttribute("IssueInstant") = current_time;
     authz_query.NewAttribute("Version") = std::string("2.0");
 
-    Arc::Credential cred(certpath, keypath, capath, "");
+    Arc::Credential cred(certpath, "", "", "");
     std::string local_dn_str = cred.GetDN();
     std::string local_dn = Arc::convert_to_rdn(local_dn_str);
     std::string issuer_name = local_dn;
