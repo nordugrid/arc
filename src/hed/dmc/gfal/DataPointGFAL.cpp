@@ -96,10 +96,8 @@ namespace Arc {
     if (((const URL &)(*dmcarg)).Protocol() != "rfio" &&
         ((const URL &)(*dmcarg)).Protocol() != "dcap" &&
         ((const URL &)(*dmcarg)).Protocol() != "gsidcap" &&
-        ((const URL &)(*dmcarg)).Protocol() != "root" &&
-        ((const URL &)(*dmcarg)).Protocol() != "gsiftp" &&
-        ((const URL &)(*dmcarg)).Protocol() != "srm" &&
-        ((const URL &)(*dmcarg)).Protocol() != "lfc")
+        // gfal protocol is used in 3rd party transfer to load this DMC
+        ((const URL &)(*dmcarg)).Protocol() != "gfal")
       return NULL;
     return new DataPointGFAL(*dmcarg, *dmcarg, dmcarg);
   }
@@ -587,9 +585,11 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-  DataStatus DataPointGFAL::Transfer3rdParty(const URL& source, DataPoint::Callback3rdParty callback) {
+  DataStatus DataPointGFAL::Transfer3rdParty(const URL& source, const URL& destination, DataPoint::Callback3rdParty callback) {
 
-    GFALTransfer3rdParty transfer(source, url, callback);
+    if (source.Protocol() == "lfc") lfc_host = source.Host();
+    GFALEnvLocker(usercfg, lfc_host);
+    GFALTransfer3rdParty transfer(source, destination, callback);
     return transfer.Transfer();
   }
 

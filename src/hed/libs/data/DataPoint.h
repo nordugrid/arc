@@ -180,6 +180,21 @@ namespace Arc {
       INFO_TYPE_ALL = 127     ///< All the parameters.
     };
 
+    /// Perform third party transfer.
+    /** Credentials are delegated to the destination and it pulls data from the
+     * source, i.e. data flows directly between source and destination instead
+     * of through the client. A callback function can be supplied to monitor
+     * progress. This method blocks until the transfer is complete. It is
+     * static because third party transfer requires different DMC plugins than
+     * those loaded by DataHandle for the same protocol. The third party
+     * transfer plugins are loaded internally in this method.
+     * \param source Source URL to pull data from
+     * \param destination Destination URL which pulls data to itself
+     * \param usercfg Configuration information
+     * \param callback Optional monitoring callback */
+    static DataStatus Transfer3rdParty(const URL& source, const URL& destination,
+                                       const UserConfig& usercfg, Callback3rdParty callback = NULL);
+
     /// Destructor.
     virtual ~DataPoint();
 
@@ -382,15 +397,6 @@ namespace Arc {
      * protocols which support renaming as an atomic namespace operation.
      * \param newurl The new name for the URL */
     virtual DataStatus Rename(const URL& newurl) = 0;
-
-    /// Perform third party transfer.
-    /** Credentials are delegated to the destination and it pulls data from the
-     * source, i.e. data flows directly between source and destination instead
-     * of through the client. A callback function can be supplied to monitor
-     * progress.
-     * \param source Source URL to pull data from
-     * \param callback Optional monitoring callback */
-    virtual DataStatus Transfer3rdParty(const URL& source, Callback3rdParty callback = NULL);
 
     /// Allow/disallow DataPoint to produce scattered data during
     /// *reading* operation.
@@ -679,6 +685,15 @@ namespace Arc {
      * \param usercfg User configuration object
      */
     DataPoint(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
+
+    /// Perform third party transfer.
+    /**
+     * This method is protected because the static version should be used
+     * instead to load the correct DMC plugin for third party transfer.
+     * \param source Source URL to pull data from
+     * \param destination Destination URL which pulls data to itself
+     * \param callback Optional monitoring callback */
+    virtual DataStatus Transfer3rdParty(const URL& source, const URL& destination, Callback3rdParty callback = NULL);
   };
 
   /// Class used by DataHandle to load the required DMC.

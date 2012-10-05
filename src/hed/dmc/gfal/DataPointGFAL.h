@@ -42,8 +42,10 @@ namespace Arc {
     // locations so Resolve and AddLocation must be implemented
     virtual DataStatus Resolve(bool source = true);
     virtual DataStatus AddLocation(const URL& url, const std::string& meta);
-    // 3rd party transfer (destination (this) pulls from source);
-    virtual DataStatus Transfer3rdParty(const URL& source, DataPoint::Callback3rdParty callback = NULL);
+
+  protected:
+    // 3rd party transfer (destination pulls from source)
+    virtual DataStatus Transfer3rdParty(const URL& source, const URL& destination, DataPoint::Callback3rdParty callback = NULL);
 
   private:
     DataStatus do_stat(const URL& stat_url, FileInfo& file);

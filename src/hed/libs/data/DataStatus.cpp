@@ -18,7 +18,7 @@ namespace Arc {
     istring("Can't write to destination"),                    // WriteStartError
     istring("Failed while reading from source"),              // ReadError
     istring("Failed while writing to destination"),           // WriteError
-    istring("Failed while transferring data (mostly timeout)"), // TransferError
+    istring("Failed while transferring data"),                // TransferError
     istring("Failed while finishing reading from source"),    // ReadStopError
     istring("Failed while finishing writing to destination"), // WriteStopError
     istring("First stage of registration to index service failed"), // PreRegisterError

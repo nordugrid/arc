@@ -28,7 +28,7 @@ show progress indicator
 .IP "\fB-T\fR, \fB--notransfer\fR"
 do not transfer file, just register it - destination must be non-existing meta-url
 .IP "\fB-3\fR, \fB--thirdparty\fR"
-perform third party transfer, where the destination pulls from the source
+perform third party transfer, where the destination pulls from the source (only available with GFAL plugin)
 .IP "\fB-u\fR, \fB--secure\fR"
 use secure transfer (insecure by default)
 .IP "\fB-y\fR, \fB--cache\fR=\fIpath\fR"

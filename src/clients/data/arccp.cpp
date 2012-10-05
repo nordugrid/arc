@@ -105,14 +105,8 @@ bool arctransfer(const Arc::URL& source_url,
       return false;
     }
   }
-  Arc::DataHandle destination(destination_url, usercfg);
-  if (!destination) {
-    logger.msg(Arc::ERROR, "Unsupported destination url: %s",
-               destination_url.str());
-    return false;
-  }
-  destination->SetSecure(secure);
-  Arc::DataStatus res = destination->Transfer3rdParty(source_url, verbose ? &transfer_cb : NULL);
+
+  Arc::DataStatus res = Arc::DataPoint::Transfer3rdParty(source_url, destination_url, usercfg, verbose ? &transfer_cb : NULL);
   if (verbose) std::cerr<<std::endl;
 
   if (!res) {
@@ -640,7 +634,7 @@ int main(int argc, char **argv) {
   bool thirdparty = false;
   options.AddOption('3', "thirdparty",
                     istring("perform third party transfer, where the destination pulls"
-                            " from the source (only available with GFAL2 plugin)"),
+                            " from the source (only available with GFAL plugin)"),
                     thirdparty);
 
   bool show_plugins = false;
