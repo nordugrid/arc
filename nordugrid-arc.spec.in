@@ -56,6 +56,12 @@
 %global with_acix 0
 %endif
 
+%if %{?fedora}%{!?fedora:0} >= 16 || %{?rhel}%{!?rhel:0} >= 5
+%global with_gfal 1
+%else
+%global with_gfal 0
+%endif
+
 %global pkgdir arc
 
 Name:		@PACKAGE@
@@ -128,6 +134,9 @@ BuildRequires:	lfc-devel
 BuildRequires:	gridsite-devel
 %if %{with_xrootd}
 BuildRequires:	xrootd-devel
+%endif
+%if %{with_gfal}
+BuildRequires:  gfal2-devel
 %endif
 %if %{?suse_version}%{!?suse_version:0}
 BuildRequires:	libdb-4_5-devel
@@ -468,6 +477,23 @@ Connector (ARC).
 ARC Globus plugins. This includes the Globus dependent Data Manager
 Components (DMCs).
 
+%if %{with_gfal}
+%package plugins-gfal
+
+Summary:  ARC Globus plugins
+Group:    System Environment/Libraries
+Requires: %{name} = %{version}-%{release}
+
+%description plugins-gfal
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+ARC plugins for GFAL2. This allows third-party transfer and adds support
+for several extra transfer protocols (rfio, dcap, gsidcap). Specific
+protocol support is provided by separate gfal2-plugin packages.
+%endif
+
 %if %{with_acix}
 %package acix-core
 Summary:	ARC cache index - core
@@ -696,6 +722,9 @@ cd -
 %endif
 %if ! %{with_acix}
      --disable-acix \
+%endif
+%if %{with_gfal}
+     --enable-gfal \
 %endif
 %if %{?rhel}%{!?rhel:0} == 5
      --with-altpython=python26 \
@@ -1297,6 +1326,13 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/libarcglobusutils.so.*
 %{_libexecdir}/%{pkgdir}/arc-lcas
 %{_libexecdir}/%{pkgdir}/arc-lcmaps
+
+%if %{with_gfal}
+%files plugins-gfal
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libdmcgfal.so
+%{_libdir}/%{pkgdir}/libdmcgfal.apd
+%endif
 
 %if %{with_python}
 %files python
