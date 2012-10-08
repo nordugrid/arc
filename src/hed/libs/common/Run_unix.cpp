@@ -49,7 +49,8 @@ namespace Arc {
         // was not called yet. Let's give code 1 min
         // to process lost child to be on safe side.
         if(t.GetTime() != Time::UNDEFINED) {
-          if((t-Time()) > Period(60)) {
+          if((Time()-t) > Period(60)) {
+std::cerr<<"+++ check pid: "<<p<<std::endl;
             std::cerr<<"HUGE PROBLEM: lost child process: "<<p<<std::endl;
             return false;
           }
