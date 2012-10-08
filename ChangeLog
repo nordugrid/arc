@@ -1,3 +1,9 @@
+2012-10-08 Weizhong Qiang <weizhong.qiang@fys.uio.no>
+
+  * Security plugin (Argus PDP Client) supports the contact with Argus PDP
+    server to achieve access control decision. Argus library dependency is 
+    not required for this plugin. 
+
 2012-10-03  David Cameron  <d.g.cameron@fys.uio.no>
 
   * Rename ngconfigtest to arc-config-check, install to libexec instead of bin
@@ -7,6 +13,11 @@
 2012-10-01  David Cameron  <d.g.cameron@fys.uio.no>
 
   * Change configuration option "newdatastaging" to "enable_dtr"
+
+2012-09-08  Weizhong Qiang <weizhong.qiang@fys.uio.no>
+
+  * arcproxy supports the detection of nss db from default location of
+    filefox, seamonkey and thunderbird.
 
 2012-09-06  David Cameron  <d.g.cameron@fys.uio.no>
 
