@@ -43,7 +43,7 @@ namespace Arc {
     if (pos3 == std::string::npos) {
       if (pos2 == std::string::npos)
         service += ":2135";
-      service += "/Mds-Vo-name=local, o=Grid";
+      service += "/Mds-Vo-name=local,o=Grid";
     }
     else if (pos2 == std::string::npos || pos2 > pos3)
       service.insert(pos3, ":2135");
@@ -108,6 +108,9 @@ namespace Arc {
       LocationType& Location = cs.Location;
 
       cs->Cluster = url;
+      cs->Cluster.ChangeLDAPScope(URL::base); // Reset scope
+      cs->Cluster.ChangeLDAPFilter(""); // and filter.
+
       cs->OriginalEndpoint = cie;
       // Computing Service attributes
       if ((*it)["nordugrid-cluster-name"]) {

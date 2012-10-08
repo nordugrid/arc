@@ -228,6 +228,9 @@ namespace Arc {
       LocationType& Location = cs.Location;
 
       cs->Cluster = url; // contains the URL of the infosys that provided the info
+      cs->Cluster.ChangeLDAPScope(URL::base); // Reset scope
+      cs->Cluster.ChangeLDAPFilter(""); // and filter.
+
       cs->OriginalEndpoint = ce;
 
       // GFD.147 GLUE2 5.3 Location
