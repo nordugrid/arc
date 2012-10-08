@@ -422,22 +422,38 @@ protected:
   std::map<std::string, std::string> interfacePluginMap;
 };
 
+class ServiceEndpointRetrieverPlugin : public EntityRetrieverPlugin<Endpoint> {
+protected:
+  ServiceEndpointRetrieverPlugin(PluginArgument* parg);
+  virtual ~ServiceEndpointRetrieverPlugin() {}
+};
+
+class TargetInformationRetrieverPlugin : public EntityRetrieverPlugin<ComputingServiceType> {
+protected:
+  TargetInformationRetrieverPlugin(PluginArgument* parg);
+  virtual ~TargetInformationRetrieverPlugin() {}
+};
+
+class JobListRetrieverPlugin : public EntityRetrieverPlugin<Job> {
+protected:
+  JobListRetrieverPlugin(PluginArgument* parg);
+  virtual ~JobListRetrieverPlugin() {}
+};
+
+
 /// The ServiceEndpointRetriever is an EntityRetriever retrieving Endpoint objects.
 /** It queries service registries to get endpoints of registered services. */
 typedef EntityRetriever<Endpoint>             ServiceEndpointRetriever;
-typedef EntityRetrieverPlugin<Endpoint>       ServiceEndpointRetrieverPlugin;
 typedef EntityRetrieverPluginLoader<Endpoint> ServiceEndpointRetrieverPluginLoader;
 
 /// The TargetInformationRetriever is an EntityRetriever retrieving ComputingServiceType objects.
 /** It queries computing elements to get the full GLUE2 information about the resource. */
 typedef EntityRetriever<ComputingServiceType>             TargetInformationRetriever;
-typedef EntityRetrieverPlugin<ComputingServiceType>       TargetInformationRetrieverPlugin;
 typedef EntityRetrieverPluginLoader<ComputingServiceType> TargetInformationRetrieverPluginLoader;
 
 /// The JobListRetriever is an EntityRetriever retrieving Job objects.
 /** It queries computing elements to get the list of jobs residing on the resource. */
 typedef EntityRetriever<Job>             JobListRetriever;
-typedef EntityRetrieverPlugin<Job>       JobListRetrieverPlugin;
 typedef EntityRetrieverPluginLoader<Job> JobListRetrieverPluginLoader;
 
 } // namespace Arc

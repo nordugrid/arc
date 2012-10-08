@@ -31,7 +31,7 @@ public:
 
 void ServiceEndpointRetrieverTest::PluginLoading() {
   Arc::ServiceEndpointRetrieverPluginLoader l;
-  Arc::ServiceEndpointRetrieverPlugin* p = l.load("TEST");
+  Arc::ServiceEndpointRetrieverPlugin* p = (Arc::ServiceEndpointRetrieverPlugin*)l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 }
 
@@ -43,7 +43,7 @@ void ServiceEndpointRetrieverTest::QueryTest() {
   Arc::ServiceEndpointRetrieverPluginTESTControl::status = sInitial;
 
   Arc::ServiceEndpointRetrieverPluginLoader l;
-  Arc::ServiceEndpointRetrieverPlugin* p = l.load("TEST");
+  Arc::ServiceEndpointRetrieverPlugin* p = (Arc::ServiceEndpointRetrieverPlugin*)l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 
   Arc::UserConfig uc;

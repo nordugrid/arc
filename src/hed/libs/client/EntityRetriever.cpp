@@ -399,26 +399,27 @@ namespace Arc {
     }
   }
 
+  ServiceEndpointRetrieverPlugin::ServiceEndpointRetrieverPlugin(PluginArgument* parg): EntityRetrieverPlugin<Endpoint>(parg) {};
+  TargetInformationRetrieverPlugin::TargetInformationRetrieverPlugin(PluginArgument* parg): EntityRetrieverPlugin<ComputingServiceType>(parg) {};
+  JobListRetrieverPlugin::JobListRetrieverPlugin(PluginArgument* parg): EntityRetrieverPlugin<Job>(parg) {};
+
   template class EntityRetriever<Endpoint>;
-  template class EntityRetrieverPlugin<Endpoint>;
   template class EntityRetrieverPluginLoader<Endpoint>;
   template<> Logger EntityRetriever<Endpoint>::logger(Logger::getRootLogger(), "ServiceEndpointRetriever");
-  template<> const std::string EntityRetrieverPlugin<Endpoint>::kind("HED:ServiceEndpointRetrieverPlugin");
   template<> Logger EntityRetrieverPluginLoader<Endpoint>::logger(Logger::getRootLogger(), "ServiceEndpointRetrieverPluginLoader");
 
   template class EntityRetriever<ComputingServiceType>;
-  template class EntityRetrieverPlugin<ComputingServiceType>;
   template class EntityRetrieverPluginLoader<ComputingServiceType>;
   template<> Logger EntityRetriever<ComputingServiceType>::logger(Logger::getRootLogger(), "TargetInformationRetriever");
   template<> Logger EntityRetrieverPluginLoader<ComputingServiceType>::logger(Logger::getRootLogger(), "TargetInformationRetrieverPluginLoader");
-  template<> const std::string TargetInformationRetrieverPlugin::kind("HED:TargetInformationRetrieverPlugin");
 
   template class EntityRetriever<Job>;
-  template class EntityRetrieverPlugin<Job>;
   template class EntityRetrieverPluginLoader<Job>;
   template<> Logger EntityRetriever<Job>::logger(Logger::getRootLogger(), "JobListRetriever");
-  template<> const std::string EntityRetrieverPlugin<Job>::kind("HED:JobListRetrieverPlugin");
   template<> Logger EntityRetrieverPluginLoader<Job>::logger(Logger::getRootLogger(), "JobListRetrieverPluginLoader");
 
+  template<> const std::string EntityRetrieverPlugin<Endpoint>::kind("HED:ServiceEndpointRetrieverPlugin");
+  template<> const std::string EntityRetrieverPlugin<ComputingServiceType>::kind("HED:TargetInformationRetrieverPlugin");
+  template<> const std::string EntityRetrieverPlugin<Job>::kind("HED:JobListRetrieverPlugin");
 
 } // namespace Arc

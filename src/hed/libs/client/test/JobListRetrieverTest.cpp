@@ -33,7 +33,7 @@ public:
 
 void JobListRetrieverTest::PluginLoading() {
   Arc::JobListRetrieverPluginLoader l;
-  Arc::JobListRetrieverPlugin* p = l.load("TEST");
+  Arc::JobListRetrieverPlugin* p = (Arc::JobListRetrieverPlugin*)l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 }
 
@@ -45,7 +45,7 @@ void JobListRetrieverTest::QueryTest() {
   Arc::JobListRetrieverPluginTESTControl::status = sInitial;
   
   Arc::JobListRetrieverPluginLoader l;
-  Arc::JobListRetrieverPlugin* p = l.load("TEST");
+  Arc::JobListRetrieverPlugin* p = (Arc::JobListRetrieverPlugin*)l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 
   Arc::UserConfig uc;

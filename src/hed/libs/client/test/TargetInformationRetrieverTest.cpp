@@ -37,7 +37,7 @@ public:
 
 void TargetInformationRetrieverTest::PluginLoading() {
   Arc::TargetInformationRetrieverPluginLoader l;
-  Arc::TargetInformationRetrieverPlugin* p = l.load("TEST");
+  Arc::TargetInformationRetrieverPlugin* p = (Arc::TargetInformationRetrieverPlugin*)l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 }
 
@@ -48,7 +48,7 @@ void TargetInformationRetrieverTest::QueryTest() {
   Arc::TargetInformationRetrieverPluginTESTControl::status = sInitial;
 
   Arc::TargetInformationRetrieverPluginLoader l;
-  Arc::TargetInformationRetrieverPlugin* p = l.load("TEST");
+  Arc::TargetInformationRetrieverPlugin* p = (Arc::TargetInformationRetrieverPlugin*)l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 
   Arc::UserConfig uc;
