@@ -27,8 +27,39 @@
 #include "Run.h"
 #include "Watchdog.h"
 
+#define DUAL_CHECK_LOST_CHILD
 
 namespace Arc {
+
+  // This function is hackish workaround for
+  // problem of child processes disappearing without
+  // trace and even waitpid() can't detect that.
+  static bool check_pid(pid_t p, Time& t) {
+    if(p <= 0) {
+      // Child PID is lost - memory corruption?
+      std::cerr<<"HUGE PROBLEM: lost PID of child process: "<<p<<std::endl;
+      return false;
+    }
+    if(::kill(p, 0) != 0) {
+      // ESRCH - child exited and lost
+      // EPERM - PID reused
+      if((errno == ESRCH) || (errno == EPERM)) {
+        // There is slight possibility of race condition
+        // when child already exited but waitpid for it
+        // was not called yet. Let's give code 1 min
+        // to process lost child to be on safe side.
+        if(t.GetTime() != Time::UNDEFINED) {
+          if((t-Time()) > Period(60)) {
+            std::cerr<<"HUGE PROBLEM: lost child process: "<<p<<std::endl;
+            return false;
+          }
+        } else {
+          t = Time();
+        }
+      }
+    }
+    return true;
+  }
 
 #define SAFE_DISCONNECT(CONNECTOR) { \
     try { \
@@ -148,8 +179,7 @@ namespace Arc {
       thread_ = Glib::Thread::create(sigc::mem_fun(*this, &RunPump::Pump), false);
     } catch (Glib::Exception& e) {} catch (std::exception& e) {}
     ;
-    if (thread_ == NULL)
-      return;
+    if (thread_ == NULL) return;
     // Wait for context_ to be intialized
     // TODO: what to do if context never initialized
     for (;;) {
@@ -207,18 +237,15 @@ namespace Arc {
           };
         } else {
           storm_count = 0;
-        };
-      };
+        }
+      }
     } catch (Glib::Exception& e) {} catch (std::exception& e) {};
   }
 
   void RunPump::Add(Run *r) {
-    if (!r)
-      return;
-    if (!(*r))
-      return;
-    if (!(*this))
-      return;
+    if (!r) return;
+    if (!(*r)) return;
+    if (!(*this)) return;
     // Take full control over context
     list_lock_.lock();
     while (true) {
@@ -229,14 +256,17 @@ namespace Arc {
     }
     try {
       // Add sources to context
-      if (r->stdout_str_ && !(r->stdout_keep_))
+      if (r->stdout_str_ && !(r->stdout_keep_)) {
         r->stdout_conn_ = context_->signal_io().connect(sigc::mem_fun(*r, &Run::stdout_handler), r->stdout_, Glib::IO_IN | Glib::IO_HUP);
-      if (r->stderr_str_ && !(r->stderr_keep_))
+      }
+      if (r->stderr_str_ && !(r->stderr_keep_)) {
         r->stderr_conn_ = context_->signal_io().connect(sigc::mem_fun(*r, &Run::stderr_handler), r->stderr_, Glib::IO_IN | Glib::IO_HUP);
-      if (r->stdin_str_ && !(r->stdin_keep_))
+      }
+      if (r->stdin_str_ && !(r->stdin_keep_)) {
         r->stdin_conn_ = context_->signal_io().connect(sigc::mem_fun(*r, &Run::stdin_handler), r->stdin_, Glib::IO_OUT | Glib::IO_HUP);
+      }
 #ifdef HAVE_GLIBMM_CHILDWATCH
-      r->child_conn_ = context_->signal_child_watch().connect(sigc::mem_fun(*r, &Run::child_handler), r->pid_->pid());
+//!!!!!      r->child_conn_ = context_->signal_child_watch().connect(sigc::mem_fun(*r, &Run::child_handler), r->pid_->pid());
       //if(r->child_conn_.empty()) std::cerr<<"connect for signal_child_watch failed"<<std::endl;
 #endif
     } catch (Glib::Exception& e) {} catch (std::exception& e) {}
@@ -246,12 +276,9 @@ namespace Arc {
   }
 
   void RunPump::Remove(Run *r) {
-    if (!r)
-      return;
-    if (!(*r))
-      return;
-    if (!(*this))
-      return;
+    if (!r) return;
+    if (!(*r)) return;
+    if (!(*this)) return;
     // Take full control over context
     list_lock_.lock();
     while (true) {
@@ -270,7 +297,7 @@ namespace Arc {
       abandoned_.push_back(Abandoned(r->pid_->pid(),context_->signal_child_watch().connect(sigc::mem_fun(*this,&RunPump::child_handler), r->pid_->pid())));
 #endif
       r->running_ = false;
-    };
+    }
     pump_lock_.unlock();
     list_lock_.unlock();
   }
@@ -378,12 +405,15 @@ namespace Arc {
                              stderr_keep_ ? NULL : &stderr_);
       };
       *pid_ = pid;
-      if (!stdin_keep_)
+      if (!stdin_keep_) {
         fcntl(stdin_, F_SETFL, fcntl(stdin_, F_GETFL) | O_NONBLOCK);
-      if (!stdout_keep_)
+      }
+      if (!stdout_keep_) {
         fcntl(stdout_, F_SETFL, fcntl(stdout_, F_GETFL) | O_NONBLOCK);
-      if (!stderr_keep_)
+      }
+      if (!stderr_keep_) {
         fcntl(stderr_, F_SETFL, fcntl(stderr_, F_GETFL) | O_NONBLOCK);
+      }
       run_time_ = Time();
       started_ = true;
     } catch (Glib::Exception& e) {
@@ -408,15 +438,13 @@ namespace Arc {
 #ifndef HAVE_GLIBMM_CHILDWATCH
     Wait(0);
 #endif
-    if (!running_)
-      return;
+    if (!running_) return;
     if (timeout > 0) {
       // Kill softly
       ::kill(pid_->pid(), SIGTERM);
       Wait(timeout);
     }
-    if (!running_)
-      return;
+    if (!running_) return;
     // Kill with no merci
     ::kill(pid_->pid(), SIGKILL);
   }
@@ -437,11 +465,10 @@ namespace Arc {
       if ((l == 0) || (l == -1)) {
         CloseStdout();
         return false;
-      }
-      else
+      } else {
         stdout_str_->append(buf, l);
-    }
-    else {
+      }
+    } else {
       // Event shouldn't happen if not expected
 
     }
@@ -455,11 +482,10 @@ namespace Arc {
       if ((l == 0) || (l == -1)) {
         CloseStderr();
         return false;
-      }
-      else
+      } else {
         stderr_str_->append(buf, l);
-    }
-    else {
+      }
+    } else {
       // Event shouldn't happen if not expected
 
     }
@@ -471,19 +497,17 @@ namespace Arc {
       if (stdin_str_->length() == 0) {
         CloseStdin();
         stdin_str_ = NULL;
-      }
-      else {
+      } else {
         int l = WriteStdin(0, stdin_str_->c_str(), stdin_str_->length());
         if (l == -1) {
           CloseStdin();
           return false;
-        }
-        else
+        } else {
           // Not very effective
           *stdin_str_ = stdin_str_->substr(l);
+        }
       }
-    }
-    else {
+    } else {
       // Event shouldn't happen if not expected
 
     }
@@ -491,14 +515,8 @@ namespace Arc {
   }
 
   void Run::child_handler(Glib::Pid, int result) {
-    if (stdout_str_)
-      for (;;)
-        if (!stdout_handler(Glib::IO_IN))
-          break;
-    if (stderr_str_)
-      for (;;)
-        if (!stderr_handler(Glib::IO_IN))
-          break;
+    if (stdout_str_) for (;;) if (!stdout_handler(Glib::IO_IN)) break;
+    if (stderr_str_) for (;;) if (!stderr_handler(Glib::IO_IN)) break;
     //CloseStdout();
     //CloseStderr();
     CloseStdin();
@@ -516,34 +534,29 @@ namespace Arc {
     running_ = false;
     exit_time_ = Time();
     lock_.unlock();
-    if (kicker_func_)
-      (*kicker_func_)(kicker_arg_);
+    if (kicker_func_) (*kicker_func_)(kicker_arg_);
   }
 
   void Run::CloseStdout(void) {
-    if (stdout_ != -1)
-      ::close(stdout_);
+    if (stdout_ != -1) ::close(stdout_);
     stdout_ = -1;
     SAFE_DISCONNECT(stdout_conn_);
   }
 
   void Run::CloseStderr(void) {
-    if (stderr_ != -1)
-      ::close(stderr_);
+    if (stderr_ != -1) ::close(stderr_);
     stderr_ = -1;
     SAFE_DISCONNECT(stderr_conn_);
   }
 
   void Run::CloseStdin(void) {
-    if (stdin_ != -1)
-      ::close(stdin_);
+    if (stdin_ != -1) ::close(stdin_);
     stdin_ = -1;
     SAFE_DISCONNECT(stdin_conn_);
   }
 
   int Run::ReadStdout(int timeout, char *buf, int size) {
-    if (stdout_ == -1)
-      return -1;
+    if (stdout_ == -1) return -1;
     // TODO: do it through context for timeout?
     for(;;) {
       pollfd fd;
@@ -558,8 +571,7 @@ namespace Arc {
   }
 
   int Run::ReadStderr(int timeout, char *buf, int size) {
-    if (stderr_ == -1)
-      return -1;
+    if (stderr_ == -1) return -1;
     // TODO: do it through context for timeout
     for(;;) {
       pollfd fd;
@@ -574,8 +586,7 @@ namespace Arc {
   }
 
   int Run::WriteStdin(int timeout, const char *buf, int size) {
-    if (stdin_ == -1)
-      return -1;
+    if (stdin_ == -1) return -1;
     // TODO: do it through context for timeout
     for(;;) {
       pollfd fd;
@@ -590,6 +601,15 @@ namespace Arc {
   }
 
   bool Run::Running(void) {
+#ifdef DUAL_CHECK_LOST_CHILD
+      if(running_) {
+        if(!check_pid(pid_->pid(),exit_time_)) {
+          lock_.unlock();
+          child_handler(pid_->pid(), (-1)<<8); // simulate exit
+          lock_.lock();
+        }
+      }
+#endif
 #ifdef HAVE_GLIBMM_CHILDWATCH
     return running_;
 #else
@@ -599,10 +619,8 @@ namespace Arc {
   }
 
   bool Run::Wait(int timeout) {
-    if (!started_)
-      return false;
-    if (!running_)
-      return true;
+    if (!started_) return false;
+    if (!running_) return true;
     Glib::TimeVal till;
     till.assign_current_time();
     till += timeout;
@@ -612,28 +630,35 @@ namespace Arc {
       t.assign_current_time();
       t.subtract(till);
 #ifdef HAVE_GLIBMM_CHILDWATCH
-      if (!t.negative())
-        break;
+      if (!t.negative()) break;
       cond_.timed_wait(lock_, till);
 #else
       int status;
-      int r = waitpid(pid_->pid(), &status, WNOHANG);
+      int r = ::waitpid(pid_->pid(), &status, WNOHANG);
       if (r == 0) {
-        if (!t.negative())
-          break;
+        if (!t.negative()) break;
         lock_.unlock();
         sleep(1);
         lock_.lock();
         continue;
       }
-      if (r == -1) // Child lost?
-        status = -1;
-      else
-        status = WEXITSTATUS(status);
+      if (r == -1) {
+        // Child lost?
+        status = (-1)<<8;
+      }
       // Child exited
       lock_.unlock();
-      child_handler(pid_->pid(), status << 8);
+      child_handler(pid_->pid(), status);
       lock_.lock();
+#endif
+#ifdef DUAL_CHECK_LOST_CHILD
+      if(running_) {
+        if(!check_pid(pid_->pid(),exit_time_)) {
+          lock_.unlock();
+          child_handler(pid_->pid(), (-1)<<8); // simulate exit
+          lock_.lock();
+        }
+      }
 #endif
     }
     lock_.unlock();
@@ -641,10 +666,8 @@ namespace Arc {
   }
 
   bool Run::Wait(void) {
-    if (!started_)
-      return false;
-    if (!running_)
-      return true;
+    if (!started_) return false;
+    if (!running_) return true;
     lock_.lock();
     Glib::TimeVal till;
     while (running_) {
@@ -654,21 +677,30 @@ namespace Arc {
       cond_.timed_wait(lock_, till);
 #else
       int status;
-      int r = waitpid(pid_->pid(), &status, WNOHANG);
+      int r = ::waitpid(pid_->pid(), &status, WNOHANG);
       if (r == 0) {
         lock_.unlock();
         sleep(1);
         lock_.lock();
         continue;
       }
-      if (r == -1) // Child lost?
-        status = -1;
-      else
-        status = WEXITSTATUS(status);
+      if (r == -1) {
+        // Child lost?
+        status = (-1)<<8;
+      }
       // Child exited
       lock_.unlock();
-      child_handler(pid_->pid(), status << 8);
+      child_handler(pid_->pid(), status);
       lock_.lock();
+#endif
+#ifdef DUAL_CHECK_LOST_CHILD
+      if(running_) {
+        if(!check_pid(pid_->pid(),exit_time_)) {
+          lock_.unlock();
+          child_handler(pid_->pid(), (-1)<<8); // simulate exit
+          lock_.lock();
+        }
+      }
 #endif
     }
     lock_.unlock();
@@ -692,13 +724,11 @@ namespace Arc {
   }
 
   void Run::KeepStderr(bool keep) {
-    if (!running_)
-      stderr_keep_ = keep;
+    if (!running_) stderr_keep_ = keep;
   }
 
   void Run::KeepStdin(bool keep) {
-    if (!running_)
-      stdin_keep_ = keep;
+    if (!running_) stdin_keep_ = keep;
   }
 
   void Run::AssignInitializer(void (*initializer_func)(void *arg), void *initializer_arg) {
