@@ -266,7 +266,7 @@ namespace Arc {
         r->stdin_conn_ = context_->signal_io().connect(sigc::mem_fun(*r, &Run::stdin_handler), r->stdin_, Glib::IO_OUT | Glib::IO_HUP);
       }
 #ifdef HAVE_GLIBMM_CHILDWATCH
-//!!!!!      r->child_conn_ = context_->signal_child_watch().connect(sigc::mem_fun(*r, &Run::child_handler), r->pid_->pid());
+      r->child_conn_ = context_->signal_child_watch().connect(sigc::mem_fun(*r, &Run::child_handler), r->pid_->pid());
       //if(r->child_conn_.empty()) std::cerr<<"connect for signal_child_watch failed"<<std::endl;
 #endif
     } catch (Glib::Exception& e) {} catch (std::exception& e) {}
