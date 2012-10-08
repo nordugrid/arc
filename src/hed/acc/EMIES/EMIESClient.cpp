@@ -353,7 +353,7 @@ namespace Arc {
     /* 
     esrinfo:GetResourceInfo
 
-    esrinfo:GetResourceInfoResponse">
+    esrinfo:GetResourceInfoResponse
       esrinfo:ComputingService - glue:ComputingService_t
       esrinfo:ActivityManager - glue:Service_t
     */
