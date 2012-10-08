@@ -846,7 +846,7 @@ sub collect($) {
     push(@cepIDs,$ARCWScepID) unless ($arexhostport eq '');
     push(@cepIDs,$EMIEScepIDp) unless ($emieshostport eq '');
     
-    my $cactIDp = "urn:ogf:ComputingActivity:$hostname"; # ComputingActivity ID prefix
+    my $cactIDp = "urn:caid:$hostname"; # ComputingActivity ID prefix
     my $cshaIDp = "urn:ogf:ComputingShare:$hostname"; # ComputingShare ID prefix
     my $xenvIDp = "urn:ogf:ExecutionEnvironment:$hostname"; # ExecutionEnvironment ID prefix
     my $aenvIDp = "urn:ogf:ApplicationEnvironment:$hostname:rte"; # ApplicationEnvironment ID prefix
@@ -887,7 +887,8 @@ sub collect($) {
     unless ($nojobs) {
         for my $jobid (keys %$gmjobs_info) {
             my $share = $gmjobs_info->{$jobid}{share};
-            $cactIDs{$share}{$jobid} = "$cactIDp:$jobid";
+            my $interface = $gmjobs_info->{$jobid}{'interface'};
+            $cactIDs{$share}{$jobid} = "$cactIDp:$interface:$jobid";
         }
     }
 
@@ -1041,7 +1042,7 @@ sub collect($) {
           $cact->{Type} = 'single';
           $cact->{ID} = $cactIDs{$share}{$jobid};
           # TODO: check where is this taken
-          $cact->{IDFromEndpoint} = $gmjob->{globalid} if $gmjob->{globalid};
+          $cact->{IDFromEndpoint} = "urn:idfe:$jobid" if $jobid;
           $cact->{Name} = $gmjob->{jobname} if $gmjob->{jobname};
           # TODO: properly set either ogf:jsdl:1.0 or nordugrid:xrsl
           $cact->{JobDescription} = $gmjob->{description} eq 'xml' ? "ogf:jsdl:1.0" : "nordugrid:xrsl" if $gmjob->{description};
@@ -1089,6 +1090,9 @@ sub collect($) {
           # TODO: this in not fetched by GMJobsInfo at all. .local does not contain name.
           $cact->{SubmissionClientName} = $gmjob->{clientsoftware} if $gmjob->{clientsoftware};
 
+          # Added for the client to know what was the original interface the job was submitted
+          $cact->{OtherInfo} = ["SubmittedVia=$interface"];
+
           # Computing Activity Associations
 
           # TODO: add link
@@ -1123,7 +1127,8 @@ sub collect($) {
           }
             
           # TODO: UserDomain association, how to calculate it?
-
+          
+          
           $cact->{jobXmlFileWriter} = sub { jobXmlFileWriter($config, $jobid, $gmjob, @_) };
 
           return $cact;
