@@ -348,9 +348,9 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
 
   // Get session dir from .local if possible
   std::string session_dir;
-  JobLocalDescription *job_desc = new JobLocalDescription;
-  if (job_local_read_file(jobid, *jobuser, *job_desc) && !job_desc->sessiondir.empty()) {
-    session_dir = job_desc->sessiondir;
+  JobLocalDescription job_desc;
+  if (job_local_read_file(jobid, *jobuser, job_desc) && !job_desc.sessiondir.empty()) {
+    session_dir = job_desc.sessiondir;
   } else {
     logger.msg(Arc::WARNING, "%s: Failed reading local information", jobid);
     session_dir = jobuser->SessionRoot(jobid) + '/' + jobid;
