@@ -477,6 +477,20 @@ Connector (ARC).
 ARC Globus plugins. This includes the Globus dependent Data Manager
 Components (DMCs).
 
+%if %{with_xrootd}
+%package plugins-xrootd
+Summary:  ARC xrootd plugins
+Group:    System Environment/Libraries
+Requires: %{name} = %{version}-%{release}
+
+%description plugins-xrootd
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+ARC xrootd plugins. These allow access to data through the xrootd protocol.
+%endif
+
 %if %{with_gfal}
 %package plugins-gfal
 
@@ -1315,10 +1329,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libdmclfc.so
 %{_libdir}/%{pkgdir}/libdmclfc.apd
 %endif
-%if %{with_xrootd}
-%{_libdir}/%{pkgdir}/libdmcxrootd.so
-%{_libdir}/%{pkgdir}/libdmcxrootd.apd
-%endif
 %{_libdir}/%{pkgdir}/libdmcrls.so
 %{_libdir}/%{pkgdir}/libmccgsi.so
 %{_libdir}/%{pkgdir}/libdmcrls.apd
@@ -1326,6 +1336,13 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/libarcglobusutils.so.*
 %{_libexecdir}/%{pkgdir}/arc-lcas
 %{_libexecdir}/%{pkgdir}/arc-lcmaps
+
+%if %{with_xrootd}
+%files plugins-xrootd
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libdmcxrootd.so
+%{_libdir}/%{pkgdir}/libdmcxrootd.apd
+%endif
 
 %if %{with_gfal}
 %files plugins-gfal
