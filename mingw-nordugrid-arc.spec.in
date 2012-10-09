@@ -344,7 +344,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{mingw32_mandir}/man1/arcwsrf.1*
 %doc %{mingw32_mandir}/man1/perftest.1*
 %doc %{mingw32_mandir}/man1/saml_assertion_init.1*
-%doc %{mingw32_mandir}/man1/jura.1*
 %doc %{mingw32_datadir}/%{pkgdir}/examples/echo/echo.wsdl
 
 %files -n mingw32-%{mingw_pkg_name}-hed
@@ -464,7 +463,6 @@ rm -rf $RPM_BUILD_ROOT
 #%{mingw64_bindir}/saml_assertion_init.exe
 #
 %{mingw64_sysconfdir}/arc/client.conf
-%{mingw64_libexecdir}/%{pkgdir}/jura.exe
 #%{mingw64_libexecdir}/%{pkgdir}/ssm_master
 #%{mingw64_datadir}/%{pkgdir}/ssm/encrypt_utils.py*
 #%{mingw64_datadir}/%{pkgdir}/ssm/ssm.py*
@@ -499,7 +497,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{mingw64_mandir}/man1/arcwsrf.1*
 %doc %{mingw64_mandir}/man1/perftest.1*
 #%doc %{mingw64_mandir}/man1/saml_assertion_init.1*
-%doc %{mingw64_mandir}/man1/jura.1*
 %doc %{mingw64_datadir}/%{pkgdir}/examples/echo/echo.wsdl
 
 %files -n mingw64-%{mingw_pkg_name}-hed
@@ -539,6 +536,7 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw64_libdir}/%{pkgdir}/libarcshc.dll*
 %{mingw64_libdir}/%{pkgdir}/libarcshclegacy.dll*
 %{mingw64_libdir}/%{pkgdir}/libidentitymap.dll*
+%{mingw64_libdir}/%{pkgdir}/libarguspdpclient.dll*
 %{mingw64_libdir}/%{pkgdir}/libaccARC1.dll*
 %{mingw64_libdir}/%{pkgdir}/libaccBroker.dll*
 %{mingw64_libdir}/%{pkgdir}/libaccCREAM.dll*

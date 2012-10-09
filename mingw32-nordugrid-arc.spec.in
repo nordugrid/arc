@@ -222,7 +222,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_mingw32_mandir}/man1/arcwsrf.1*
 %doc %{_mingw32_mandir}/man1/perftest.1*
 %doc %{_mingw32_mandir}/man1/saml_assertion_init.1*
-%doc %{_mingw32_mandir}/man1/jura.1*
 #%doc %{_mingw32_mandir}/man1/voms_assertion_init.1*
 #%doc %{_mingw32_mandir}/man1/arc_storage_cli.1*
 %doc %{_mingw32_datadir}/%{pkgdir}/examples/echo/echo.wsdl
