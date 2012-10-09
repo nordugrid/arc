@@ -119,6 +119,11 @@ namespace Arc {
 
   template<typename T>
   void EntityRetriever<T>::addEndpoint(const Endpoint& endpoint) {
+    if (statuses.find(endpoint) != statuses.end()) {
+      logger.msg(DEBUG, "Endpoint (%s) already added.", endpoint.str());
+      return;
+    }
+
     std::map<std::string, std::string>::const_iterator itPluginName = interfacePluginMap.end();
     if (!endpoint.InterfaceName.empty()) {
       itPluginName = interfacePluginMap.find(endpoint.InterfaceName);
