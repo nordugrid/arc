@@ -346,8 +346,17 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   uid_t job_uid = jobuser->StrictSession() ? dtr->get_local_user().get_uid() : 0;
   uid_t job_gid = jobuser->StrictSession() ? dtr->get_local_user().get_gid() : 0;
 
+  // Get session dir from .local if possible
+  std::string session_dir;
+  JobLocalDescription *job_desc = new JobLocalDescription;
+  if (job_local_read_file(jobid, *jobuser, *job_desc) && !job_desc->sessiondir.empty()) {
+    session_dir = job_desc->sessiondir;
+  } else {
+    logger.msg(Arc::WARNING, "%s: Failed reading local information", jobid);
+    session_dir = jobuser->SessionRoot(jobid) + '/' + jobid;
+  }
+
   // create JobDescription object to pass to job_..write_file methods
-  std::string session_dir(jobuser->SessionRoot(jobid) + '/' + jobid);
   JobDescription job(jobid, session_dir);
   job.set_uid(dtr->get_local_user().get_uid(), dtr->get_local_user().get_gid());
   std::string dtr_transfer_statistics;
