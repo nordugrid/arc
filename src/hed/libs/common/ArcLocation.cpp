@@ -102,4 +102,14 @@ namespace Arc {
     return plist;
   }
 
+  std::string ArcLocation::GetDataDir() {
+    if (location().empty()) Init("");
+    return location() + G_DIR_SEPARATOR_S + PKGDATASUBDIR;
+  }
+
+  std::string ArcLocation::GetToolsDir() {
+    if (location().empty()) Init("");
+    return location() + G_DIR_SEPARATOR_S + PKGLIBEXECSUBDIR;
+  }
+
 } // namespace Arc

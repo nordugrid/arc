@@ -23,6 +23,10 @@ namespace Arc {
     /** Main source is value of variable ARC_PLUGIN_PATH,
        otherwise path is derived from installation location. */
     static std::list<std::string> GetPlugins();
+    /// Returns location of ARC system data, e.g. $ARC_LOCATION/share/arc
+    static std::string GetDataDir();
+    /// Returns location of ARC system tools, e.g. $ARC_LOCATION/libexec/arc
+    static std::string GetToolsDir();
   private:
     static std::string& location(void);
   };
