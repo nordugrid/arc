@@ -68,11 +68,11 @@ $(JAVA_PATH)/*.java: arc_wrap.cpp
 $(JAVA_PATH)/arc.class: $(JAVA_PATH)/arc.java
 
 .java.class:
-	$(JAVAC) $(JAVAC_FLAGS) $(JAVA_VM_FLAGS) $<
+	$(JAVAC) $(JAVAC_FLAGS) $<
 
 arc.jar: $(JAVA_PATH)/arc.class $(subst .java,.class,$(wildcard $(JAVA_PATH)/*.java))
 	rm -f $@
-	$(JAR) cf $@ $(JAVA_PATH)/*.class $(JAVA_VM_FLAGS)
+	$(JAR) cf $@ $(JAVA_PATH)/*.class $(JAR_FLAGS)
 
 # Try not to build these objects in parallel in order to save memory
 .NOTPARALLEL: %.o %.class %.so

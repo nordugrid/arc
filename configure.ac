@@ -368,14 +368,20 @@ if test "$enables_java" = "yes"; then
     AC_CHECK_PROGS(JAR, fastjar jar)
   fi
 
+  # Set absolute limit on Java heap size allocation instead of letting
+  # java (on Linux) allocate a quarter of the total memory.
   JAVA_VM_FLAGS="-J-Xms50M -J-Xmx50M"
+
+  JAR_JFLAGS=""
+  # Old versions of fastjar does not ignore -J options
+  if test "x$JAR" != "x" && test "x`basename $JAR`" = "xjar"; then
+      JAR_JFLAGS="$JAVA_VM_FLAGS"
+  fi
 
   if test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xgcj"; then
     JAVAC_FLAGS="-C --classpath=."
   elif test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xjavac"; then
-    # Set absolute limit on Java heap size allocation instead of letting
-    # java (on Linux) allocate a quarter of the total memory.
-    JAVAC_FLAGS="-cp ."
+    JAVAC_FLAGS="$JAVA_VM_FLAGS -cp ."
   fi
 
   JAVAWRAP=no
@@ -405,7 +411,7 @@ fi
 AC_MSG_NOTICE([Java enabled: $enables_java])
 AM_CONDITIONAL([JAVA_ENABLED],[test "x$enables_java" = "xyes"])
 
-AC_SUBST(JAVA_VM_FLAGS)
+AC_SUBST(JAR_JFLAGS)
 AC_SUBST(JAVAC_FLAGS)
 AC_SUBST(JDK_CFLAGS)
 
