@@ -119,13 +119,12 @@ namespace Arc {
 
   template<typename T>
   void EntityRetriever<T>::addEndpoint(const Endpoint& endpoint) {
-    statusLock.lock();
-    if (statuses.find(endpoint) != statuses.end()) {
+    // Set the status of the endpoint to STARTED only if it was not registered already (overwrite = false)
+    if (!setStatusOfEndpoint(endpoint, EndpointQueryingStatus(EndpointQueryingStatus::STARTED), false)) {
+      // Not able to set the status (because the endpoint was already registered)
       logger.msg(DEBUG, "Ignoring endpoint (%s), it is already registered in retriever.", endpoint.str());
-      statusLock.unlock();
       return;
     }
-    statusLock.unlock();
 
     std::map<std::string, std::string>::const_iterator itPluginName = interfacePluginMap.end();
     if (!endpoint.InterfaceName.empty()) {
@@ -270,16 +269,6 @@ namespace Arc {
     AutoPointer<ThreadArg> a((ThreadArg*)arg);
     ThreadedPointer<Common>& common = a->common;
 
-    // Set the status of the endpoint to STARTED only if it was not set already by an other thread (overwrite = false)
-    bool set = false;
-    if(!common->lockSharedIfValid()) return;
-    set = (*common)->setStatusOfEndpoint(a->endpoint, EndpointQueryingStatus(EndpointQueryingStatus::STARTED), false);
-    common->unlockShared();
-    if (!set) { // The thread was not able to set the status (because it was already set by another thread)
-      logger.msg(DEBUG, "Will not query endpoint (%s) because another thread is already querying it", a->endpoint.str());
-      return;
-    }
-    
     // If the thread was able to set the status, then this is the first (and only) thread querying this endpoint
     if (!a->pluginName.empty()) { // If the plugin was already selected
       EntityRetrieverPlugin<T>* plugin = common->load(a->pluginName);
@@ -353,6 +342,16 @@ namespace Arc {
           newArg = new ThreadArg(*a, otherResult);
         }
         
+        // Set the status of the endpoint to STARTED only if it was not registered already (overwrite = false)
+        if(!common->lockSharedIfValid()) return;
+        bool set = (*common)->setStatusOfEndpoint(endpoint, EndpointQueryingStatus(EndpointQueryingStatus::STARTED), false);
+        common->unlockShared();
+        if (!set) {
+          // Not able to set the status (because the endpoint was already registered)
+          logger.msg(DEBUG, "Ignoring endpoint (%s), it is already registered in retriever.", endpoint.str());
+          return;
+        }
+
         // Make new argument by copying old one with result report object replaced
         newArg->endpoint = endpoint;
         newArg->pluginName = *it;
