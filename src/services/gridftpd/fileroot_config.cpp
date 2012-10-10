@@ -8,6 +8,7 @@
 #include <strstream>
 #endif
 
+#include <arc/ArcLocation.h>
 #include <arc/FileUtils.h>
 
 #include "conf.h"
@@ -533,8 +534,9 @@ int FileRoot::config(globus_ftp_control_auth_info_t *auth,
   if(!env)
     return 1;
 
-  std::string pluginpath=env.nordugrid_lib_loc();
-  if(pluginpath.length() == 0) pluginpath="/";
+  std::string pluginpath = "/";
+  std::list<std::string> pluginpaths = Arc::ArcLocation::GetPlugins();
+  if(!pluginpaths.empty()) pluginpath=pluginpaths.front();
   int r;
   r = config(*cf,pluginpath);
   gridftpd::config_close(cfile);

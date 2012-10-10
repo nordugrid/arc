@@ -51,7 +51,6 @@ ARexGMConfig::ARexGMConfig(const GMEnvironment& env,const std::string& uname,con
   //if((bool)job_map) uname=job_map.unix_name();
   user_=new JobUser(env,uname);
   if(!user_->is_valid()) { delete user_; user_=NULL; return; };
-  if(env.nordugrid_loc().empty()) { delete user_; user_=NULL; return; };
   /* read configuration */
   std::vector<std::string> session_roots;
   std::string control_dir;

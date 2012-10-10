@@ -25,16 +25,6 @@ class GMEnvironment {
   operator bool(void) const { return valid_; };
   bool operator!(void) const { return !valid_; };
 
-  /// ARC installation path - $ARC_LOCATION, executable path
-  std::string nordugrid_loc(void) const;
-  /// ARC system scripts - $ARC_LOCATION/share/arc, $ARC_LOCATION/share
-  std::string nordugrid_data_loc(void) const;
-  /// ARC system tools - $ARC_LOCATION/libexec/arc, $ARC_LOCATION/libexec
-  std::string nordugrid_libexec_loc(void) const;
-  // ARC libraries and plugins - $ARC_LOCATION/lib/arc, $ARC_LOCATION/lib
-  std::string nordugrid_lib_loc(void) const;
-  // ARC adminstrator tools - $ARC_LOCATION/sbin
-  std::string nordugrid_sbin_loc(void) const;
   /// ARC configuration file 
   ///   /etc/arc.conf
   ///   $ARC_LOCATION/etc/arc.conf

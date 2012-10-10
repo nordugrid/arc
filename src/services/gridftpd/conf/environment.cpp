@@ -124,14 +124,6 @@ namespace gridftpd {
     return (val1 + val2.str());
   }
 
-  // ARC installation path - $ARC_LOCATION, executable path
-  static prstring nordugrid_loc_;
-  // ARC system tools
-  static prstring nordugrid_libexec_loc_;
-  // ARC libraries and plugins
-  static prstring nordugrid_lib_loc_;
-  // ARC administrator tools
-  static prstring nordugrid_sbin_loc_;
   // ARC configuration file
   static prstring nordugrid_config_loc_;
   // Certificates directory
@@ -140,22 +132,6 @@ namespace gridftpd {
   static prstring runtime_config_dir_;
   // Email address of person responsible for this ARC installation
   static prstring support_mail_address_;
-
-  std::string GMEnvironment::nordugrid_loc(void) const {
-    return nordugrid_loc_.str();
-  }
-
-  std::string GMEnvironment::nordugrid_libexec_loc(void) const {
-    return nordugrid_libexec_loc_.str();
-  }
-
-  std::string GMEnvironment::nordugrid_lib_loc(void) const {
-    return nordugrid_lib_loc_.str();
-  }
-
-  std::string GMEnvironment::nordugrid_sbin_loc(void) const {
-    return nordugrid_sbin_loc_.str();
-  }
 
   std::string GMEnvironment::nordugrid_config_loc(void) const {
     return nordugrid_config_loc_.str();
@@ -187,14 +163,6 @@ namespace gridftpd {
 
 
   static bool read_env_vars(bool guess) {
-    if(nordugrid_loc_.empty()) {
-      nordugrid_loc_=Arc::GetEnv("ARC_LOCATION");
-      if(nordugrid_loc_.empty()) {
-        nordugrid_loc_=Arc::ArcLocation::Get();
-      };
-      nordugrid_lib_loc_=nordugrid_loc_+"/"+PKGLIBSUBDIR;
-      nordugrid_libexec_loc_=nordugrid_loc_+"/"+PKGLIBEXECSUBDIR;
-    };
 
     if(nordugrid_config_loc_.empty()) {
       std::string tmp = Arc::GetEnv("ARC_CONFIG");

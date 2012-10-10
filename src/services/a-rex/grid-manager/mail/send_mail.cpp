@@ -3,6 +3,7 @@
 #endif
 #include <string>
 
+#include <arc/ArcLocation.h>
 #include <arc/Logger.h>
 #include "../files/info_types.h"
 #include "../files/info_files.h"
@@ -44,7 +45,7 @@ bool send_mail(const JobDescription &desc,JobUser &user) {
     if(n == std::string::npos) break;
     failure_reason[n]='.';
   };
-  std::string cmd(user.Env().nordugrid_libexec_loc()+"/smtp-send.sh");
+  std::string cmd(Arc::ArcLocation::GetToolsDir()+"/smtp-send.sh");
   std::string from_addr = user.Env().support_mail_address();
   char* args[11] ={ /* max 3 mail addresses */
        (char*)cmd.c_str(),

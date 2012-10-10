@@ -4,6 +4,7 @@
 
 /* write essential information about job started/finished */
 #include <fstream>
+#include <arc/ArcLocation.h>
 #include <arc/StringConv.h>
 #include <arc/DateTime.h>
 #include "../files/info_types.h"
@@ -184,7 +185,7 @@ bool JobLog::RunReporter(JobUsers &users) {
   if(users.size() <= 0) return true; // no users to report
   const char** args = (const char**)malloc(sizeof(char*)*(users.size()+6)); 
   if(args == NULL) return false;
-  std::string cmd = users.Env().nordugrid_libexec_loc()+"/"+logger;
+  std::string cmd = Arc::ArcLocation::GetToolsDir()+"/"+logger;
   int argc=0; args[argc++]=(char*)cmd.c_str();
   std::string ex_str = Arc::tostring(ex_period);
   if(ex_period) {

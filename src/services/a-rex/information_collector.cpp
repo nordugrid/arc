@@ -13,6 +13,7 @@
 
 #include <glibmm.h>
 
+#include <arc/ArcLocation.h>
 #include <arc/Run.h>
 #include <arc/wsrf/WSResourceProperties.h>
 #include <arc/message/PayloadSOAP.h>
@@ -34,7 +35,7 @@ void ARexService::InformationCollector(void) {
     int r = -1;
     {
       std::string cmd;
-      cmd=gm_env_->nordugrid_data_loc()+"/CEinfo.pl --nonordugrid --splitjobs --config "+gm_env_->nordugrid_config_loc();
+      cmd=Arc::ArcLocation::GetDataDir()+"/CEinfo.pl --nonordugrid --splitjobs --config "+gm_env_->nordugrid_config_loc();
       std::string stdin_str;
       std::string stderr_str;
       Arc::Run run(cmd);

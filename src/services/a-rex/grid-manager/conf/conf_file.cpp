@@ -5,6 +5,7 @@
 #include <iostream>
 #include <pwd.h>
 
+#include <arc/ArcLocation.h>
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
@@ -25,15 +26,15 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 static void check_lrms_backends(const std::string& default_lrms,GMEnvironment& env) {
   std::string tool_path;
-  tool_path=env.nordugrid_data_loc()+"/cancel-"+default_lrms+"-job";
+  tool_path=Arc::ArcLocation::GetDataDir()+"/cancel-"+default_lrms+"-job";
   if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
     logger.msg(Arc::WARNING,"Missing cancel-%s-job - job cancelation may not work",default_lrms);
   };
-  tool_path=env.nordugrid_data_loc()+"/submit-"+default_lrms+"-job";
+  tool_path=Arc::ArcLocation::GetDataDir()+"/submit-"+default_lrms+"-job";
   if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
     logger.msg(Arc::WARNING,"Missing submit-%s-job - job submission to LRMS may not work",default_lrms);
   };
-  tool_path=env.nordugrid_data_loc()+"/scan-"+default_lrms+"-job";
+  tool_path=Arc::ArcLocation::GetDataDir()+"/scan-"+default_lrms+"-job";
   if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
     logger.msg(Arc::WARNING,"Missing scan-%s-job - may miss when job finished executing",default_lrms);
   };
@@ -632,7 +633,7 @@ bool configure_serviced_users(JobUsers &users/*,uid_t my_uid,const std::string &
               goto exit;
             }
             /* add helper to poll for finished jobs */
-            std::string cmd_ = users.Env().nordugrid_data_loc();
+            std::string cmd_ = Arc::ArcLocation::GetDataDir();
             cmd_+="/scan-"+default_lrms+"-job";
             cmd_ = Arc::escape_chars(cmd_, " \\", '\\', false);
             if(!users.Env().nordugrid_config_loc().empty()) {
@@ -1159,7 +1160,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users/*,uid_t my_uid,co
             return false;
           }
           /* add helper to poll for finished jobs */
-          std::string cmd_ = users.Env().nordugrid_data_loc();
+          std::string cmd_ = Arc::ArcLocation::GetDataDir();
           cmd_+="/scan-"+default_lrms+"-job";
           cmd_ = Arc::escape_chars(cmd_, " \\", '\\', false);
           if(!users.Env().nordugrid_config_loc().empty()) {

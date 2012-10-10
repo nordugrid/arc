@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <sys/time.h>
 
+#include <arc/ArcLocation.h>
 #include <arc/FileUtils.h>
 #include <arc/Logger.h>
 #include <arc/Run.h>
@@ -108,7 +109,7 @@ static void cache_func(void* arg) {
       }
 
       // do cache-clean -h for explanation of options
-      std::string cmd = users->Env().nordugrid_libexec_loc() + "/cache-clean";
+      std::string cmd = Arc::ArcLocation::GetToolsDir() + "/cache-clean";
       cmd += " -m " + minfreespace;
       cmd += " -M " + maxfreespace;
       if (!cachelifetime.empty()) cmd += " -E " + cachelifetime;
@@ -341,7 +342,7 @@ bool GridManager::thread() {
       user->get_jobs()->ScanNewMarks();
       /* look for new jobs */
       user->get_jobs()->ScanNewJobs();
-      /* slowly scan throug old jobs for deleting them in time */
+      /* slowly scan through old jobs for deleting them in time */
       if(hard_job || scan_old) {
         int max,max_running,max_per_dn,max_total;
         env_->jobs_cfg().GetMaxJobs(max,max_running,max_per_dn,max_total);

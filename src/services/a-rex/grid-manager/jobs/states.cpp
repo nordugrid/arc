@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <arc/ArcLocation.h>
 #include <arc/credential/VOMSUtil.h>
 
 #include "../files/info_files.h"
@@ -433,8 +434,8 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     }
     // submit/cancel job to LRMS using submit/cancel-X-job
     std::string cmd;
-    if(cancel) { cmd=user->Env().nordugrid_data_loc()+"/cancel-"+job_desc->lrms+"-job"; }
-    else { cmd=user->Env().nordugrid_data_loc()+"/submit-"+job_desc->lrms+"-job"; }
+    if(cancel) { cmd=Arc::ArcLocation::GetDataDir()+"/cancel-"+job_desc->lrms+"-job"; }
+    else { cmd=Arc::ArcLocation::GetDataDir()+"/submit-"+job_desc->lrms+"-job"; }
     if(!cancel) {
       logger.msg(Arc::INFO,"%s: state SUBMIT: starting child: %s",i->job_id,cmd);
     } else {
@@ -625,8 +626,8 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       // run it anyway and exit code will give more inforamtion
       bool switch_user = (user->CachePrivate() || user->StrictSession());
       std::string cmd;
-      if(up) { cmd=user->Env().nordugrid_libexec_loc()+"/uploader"; }
-      else { cmd=user->Env().nordugrid_libexec_loc()+"/downloader"; }
+      if(up) { cmd=Arc::ArcLocation::GetToolsDir()+"/uploader"; }
+      else { cmd=Arc::ArcLocation::GetToolsDir()+"/downloader"; }
       uid_t user_id = user->get_uid();
       if(user_id == 0) user_id=i->get_uid();
       std::string user_id_s = Arc::tostring(user_id);
@@ -1102,7 +1103,7 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,
         // gather some frontend specific information for user, do it only once
         // Runs user-supplied executable placed at "frontend-info-collector"
         if(state_changed && i->retries == jcfg.max_retries) {
-          std::string cmd = user->Env().nordugrid_libexec_loc()+"/frontend-info-collector";
+          std::string cmd = Arc::ArcLocation::GetToolsDir()+"/frontend-info-collector";
           char const * const args[2] = { cmd.c_str(), NULL };
           job_controldiag_mark_put(*i,*user,args);
         }
