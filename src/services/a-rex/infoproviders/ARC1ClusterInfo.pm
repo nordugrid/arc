@@ -1045,7 +1045,20 @@ sub collect($) {
           $cact->{IDFromEndpoint} = "urn:idfe:$jobid" if $jobid;
           $cact->{Name} = $gmjob->{jobname} if $gmjob->{jobname};
           # TODO: properly set either ogf:jsdl:1.0 or nordugrid:xrsl
-          $cact->{JobDescription} = $gmjob->{description} eq 'xml' ? "ogf:jsdl:1.0" : "nordugrid:xrsl" if $gmjob->{description};
+          # Set job specification language based on description
+          if ($gmjob->{description}) {
+                if ($gmjob->{description} eq 'adl') { 
+                    $cact->{JobDescription} = 'emies:adl';
+                } elsif ($gmjob->{description} eq 'jsdl') {
+                    # TODO: Supported version might be more accurate if needed.
+                    $cact->{JobDescription} = 'ogf:jsdl:1.0'; 
+                }
+                else {
+                    $cact->{JobDescription} = 'nordugrid:xrsl';
+                }
+          } else {
+             $cact->{JobDescription} = 'UNDEFINEDVALUE';
+          }
           # TODO: understand this below
           $cact->{RestartState} = glueState($gmjob->{failedstate}) if $gmjob->{failedstate};
           $cact->{ExitCode} = $gmjob->{exitcode} if defined $gmjob->{exitcode};

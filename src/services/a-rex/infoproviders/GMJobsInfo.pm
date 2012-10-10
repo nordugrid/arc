@@ -30,7 +30,7 @@ our $j = { 'jobID' => {
             fullaccess         => '*',
             lifetime           => '*', # seconds
             jobreport          => '*',
-            interface          => '*',  # added for GLUE2, the interface the job was submitted. If missing, gridftp
+            interface          => '*', # added for GLUE2, the interface the job was submitted. If missing, gridftp
             # from .description
             description        => '', # rsl or xml
             # from .grami -- not kept when the job is deleted
@@ -305,9 +305,12 @@ sub get_gmjobs {
             while (my $line = <GMJOB_DESCRIPTION>) {
                 chomp $line;
                 next unless $line;
-                if ($line =~ m/^\s*<\?xml/) { $job->{description} = 'xml'; last }
-                if ($line =~ m/^\s*<!--/)   { $job->{description} = 'xml'; last }
                 if ($line =~ m/^\s*[&+|(]/) { $job->{description} = 'rsl'; last }
+                if ($line =~ m/http\:\/\/www.eu-emi.eu\/es\/2010\/12\/adl/) { $job->{description} = 'adl'; last }
+                if ($line =~ m/http\:\/\/schemas.ggf.org\/jsdl\/2005\/11\/jsdl/)   { $job->{description} = 'jsdl'; last }
+                my $nextline = <GMJOB_DESCRIPTION>;
+                if ($nextline =~ m/http\:\/\/www.eu-emi.eu\/es\/2010\/12\/adl/) { $job->{description} = 'adl'; last }
+                if ($nextline =~ m/http\:\/\/schemas.ggf.org\/jsdl\/2005\/11\/jsdl/)   { $job->{description} = 'jsdl'; last }
                 $log->warning("Job $ID: Can't identify job description language");
                 last;
             }
