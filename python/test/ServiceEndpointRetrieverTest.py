@@ -44,7 +44,6 @@ class ServiceEndpointRetrieverTest(testutils.ARCClientTestCase):
         arc.ServiceEndpointRetrieverPluginTESTControl.delay = 1.0
         registry = arc.Endpoint("test.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest")
         retriever.addEndpoint(registry)
-        time.sleep(0.8)
         status = retriever.getStatusOfEndpoint(registry)
         self.expect(status).to_be(arc.EndpointQueryingStatus.STARTED)
         retriever.wait()
