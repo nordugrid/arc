@@ -72,7 +72,7 @@ $(JAVA_PATH)/arc.class: $(JAVA_PATH)/arc.java
 
 arc.jar: $(JAVA_PATH)/arc.class $(subst .java,.class,$(wildcard $(JAVA_PATH)/*.java))
 	rm -f $@
-	$(JAR) cf $@ $(JAVA_PATH)/*.class $(JAR_FLAGS)
+	$(JAR) cf $@ $(JAVA_PATH)/*.class $(JAR_JFLAGS)
 
 # Try not to build these objects in parallel in order to save memory
 .NOTPARALLEL: %.o %.class %.so
