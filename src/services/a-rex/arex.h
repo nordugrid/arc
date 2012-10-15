@@ -175,8 +175,6 @@ class ARexService: public Arc::Service {
   ES_SIMPLE_FAULT_HEAD(ESInternalResourceInfoFault)
   ES_SIMPLE_FAULT_HEAD(ESResourceInfoNotFoundFault)
 
-  ES_SIMPLE_FAULT_HEAD(ESInvalidActivityIDFault)
-  ES_SIMPLE_FAULT_HEAD(ESUnknownActivityIDFault)
   ES_SIMPLE_FAULT_HEAD(ESUnableToRetrieveStatusFault)
   ES_SIMPLE_FAULT_HEAD(ESUnknownAttributeFault)
   ES_SIMPLE_FAULT_HEAD(ESOperationNotAllowedFault)
@@ -184,7 +182,6 @@ class ARexService: public Arc::Service {
   ES_SIMPLE_FAULT_HEAD(ESInternalNotificationFault)
   ES_SIMPLE_FAULT_HEAD(ESOperationNotPossibleFault)
   ES_SIMPLE_FAULT_HEAD(ESInvalidActivityStateFault)
-  ES_MSG_FAULT_HEAD(ESActivityNotInTerminalStateFault)
   ES_SIMPLE_FAULT_HEAD(ESInvalidActivityLimitFault)
   ES_SIMPLE_FAULT_HEAD(ESInvalidParameterFault)
 

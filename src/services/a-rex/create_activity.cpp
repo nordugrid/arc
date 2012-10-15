@@ -11,6 +11,8 @@
 
 namespace ARex {
 
+// TODO: configurable
+#define MAX_ACTIVITIES (10)
 
 static bool max_jobs_reached(const JobsListConfig& jobs_cfg, unsigned int all_jobs) {
   // Apply limit on total number of jobs.
@@ -158,16 +160,13 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
         - or -
         types:InternalBaseFault
         types:AccessControlFault
-        InvalidActivityDescriptionFault <- InternalBaseFault_Type
-        InvalidActivityDescriptionSemanticFault <- InternalBaseFault_Type
-        UnsupportedCapabilityFault <- InternalBaseFault_Type
+        InvalidActivityDescriptionFault
+        InvalidActivityDescriptionSemanticFault
+        UnsupportedCapabilityFault
 
     types:VectorLimitExceededFault
     types:InternalBaseFault
     types:AccessControlFault
-    InvalidActivityDescriptionFault
-    InvalidActivityDescriptionSemanticFault
-    UnsupportedCapabilityFault
   */
 
   if(Arc::VERBOSE >= logger_.getThreshold()) {
@@ -176,19 +175,21 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
     logger_.msg(Arc::VERBOSE, "EMIES:CreateActivity: request = \n%s", s);
   };
   Arc::XMLNode adl = in["ActivityDescription"];
+  unsigned int n = 0;
+  for(;(bool)adl;++adl) {
+    if((++n) > MAX_ACTIVITIES) {
+      logger_.msg(Arc::ERROR, "EMIES:CreateActivity: too many activity descriptions");
+      ESVectorLimitExceededFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,"Too many activity descriptions"),MAX_ACTIVITIES,"Too many activity descriptions");
+      out.Destroy();
+      return Arc::MCC_Status(Arc::STATUS_OK);
+    };
+  };
+  adl = in["ActivityDescription"];
   if(!adl) {
     // Wrongly formated request
     logger_.msg(Arc::ERROR, "EMIES:CreateActivity: no job description found");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"ActivityDescription element is missing");
     ESInternalBaseFault(fault,"ActivityDescription element is missing");
-    out.Destroy();
-    return Arc::MCC_Status();
-  };
-  Arc::XMLNode adl2 = adl; ++adl2;
-  if((bool)adl2) {
-    logger_.msg(Arc::ERROR, "EMIES:CreateActivity: too many job descriptions found");
-    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Too many ActivityDescription elements");
-    ESVectorLimitExceededFault(fault,1,"Too many ActivityDescription elements");
     out.Destroy();
     return Arc::MCC_Status();
   };
@@ -199,46 +200,49 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
     out.Destroy();
     return Arc::MCC_Status();
   };
-  JobIDGeneratorES idgenerator(config.Endpoint());
-  ARexJob job(adl,config,"",clientid,logger_,idgenerator);
-  // Make SOAP response
-  Arc::XMLNode resp = out.NewChild("escreate:ActivityCreationResponse");
-  if(!job) {
-    ARexJobFailure failure_type = job;
-    std::string failure = job.Failure();
-    switch(failure_type) {
-      case ARexJobDescriptionUnsupportedError: {
-        ESUnsupportedCapabilityFault(resp,failure);
-      }; break;
-      case ARexJobDescriptionMissingError: {
-        ESInvalidActivityDescriptionSemanticFault(resp,failure);
-      }; break;
-      case ARexJobDescriptionLogicalError: {
-        ESInvalidActivityDescriptionFault(resp,failure);
-      }; break;
-      default: {
-        logger_.msg(Arc::ERROR, "ES:CreateActivity: Failed to create new job: %s",failure);
-        ESInternalBaseFault(resp,"Failed to create new activity. "+failure);
+  for(;(bool)adl;++adl) {
+    JobIDGeneratorES idgenerator(config.Endpoint());
+    ARexJob job(adl,config,"",clientid,logger_,idgenerator);
+    // Make SOAP response
+    Arc::XMLNode resp = out.NewChild("escreate:ActivityCreationResponse");
+    if(!job) {
+      Arc::XMLNode fault = resp.NewChild("dummy");
+      ARexJobFailure failure_type = job;
+      std::string failure = job.Failure();
+      switch(failure_type) {
+        case ARexJobDescriptionUnsupportedError: {
+          ESUnsupportedCapabilityFault(fault,failure);
+        }; break;
+        case ARexJobDescriptionMissingError: {
+          ESInvalidActivityDescriptionSemanticFault(fault,failure);
+        }; break;
+        case ARexJobDescriptionLogicalError: {
+          ESInvalidActivityDescriptionFault(fault,failure);
+        }; break;
+        default: {
+          logger_.msg(Arc::ERROR, "ES:CreateActivity: Failed to create new job: %s",failure);
+          ESInternalBaseFault(fault,"Failed to create new activity. "+failure);
+        };
       };
+    } else {
+      resp.NewChild("estypes:ActivityID")=job.ID();
+      resp.NewChild("estypes:ActivityMgmtEndpointURL")=config.Endpoint();
+      resp.NewChild("estypes:ResourceInfoEndpointURL")=config.Endpoint();
+      Arc::XMLNode rstatus = addActivityStatusES(resp,"ACCEPTED",Arc::XMLNode(),false,false);
+      //resp.NewChild("escreate:ETNSC");
+      resp.NewChild("escreate:StageInDirectory").NewChild("escreate:URL")=config.Endpoint()+"/"+job.ID();
+      resp.NewChild("escreate:SessionDirectory").NewChild("escreate:URL")=config.Endpoint()+"/"+job.ID();
+      resp.NewChild("escreate:StageOutDirectory").NewChild("escreate:URL")=config.Endpoint()+"/"+job.ID();
+      // TODO: move into addActivityStatusES()
+      rstatus.NewChild("estypes:Timestamp")=Arc::Time().str(Arc::ISOTime);
+      //rstatus.NewChild("estypes:Description")=;
+      logger_.msg(Arc::VERBOSE, "EMIES:CreateActivity finished successfully");
+      if(Arc::VERBOSE >= logger_.getThreshold()) {
+        std::string s;
+        out.GetXML(s);
+        logger_.msg(Arc::VERBOSE, "EMIES:CreateActivity: response = \n%s", s);
+      }; 
     };
-    return Arc::MCC_Status();
-  };
-  resp.NewChild("estypes:ActivityID")=job.ID();
-  resp.NewChild("estypes:ActivityMgmtEndpointURL")=config.Endpoint();
-  resp.NewChild("estypes:ResourceInfoEndpointURL")=config.Endpoint();
-  Arc::XMLNode rstatus = addActivityStatusES(resp,"ACCEPTED",Arc::XMLNode(),false,false);
-  //resp.NewChild("escreate:ETNSC");
-  resp.NewChild("escreate:StageInDirectory").NewChild("escreate:URL")=config.Endpoint()+"/"+job.ID();
-  resp.NewChild("escreate:SessionDirectory").NewChild("escreate:URL")=config.Endpoint()+"/"+job.ID();
-  resp.NewChild("escreate:StageOutDirectory").NewChild("escreate:URL")=config.Endpoint()+"/"+job.ID();
-  // TODO: move into addActivityStatusES()
-  rstatus.NewChild("estypes:Timestamp")=Arc::Time().str(Arc::ISOTime);
-  //rstatus.NewChild("estypes:Description")=;
-  logger_.msg(Arc::VERBOSE, "EMIES:CreateActivity finished successfully");
-  if(Arc::VERBOSE >= logger_.getThreshold()) {
-    std::string s;
-    out.GetXML(s);
-    logger_.msg(Arc::VERBOSE, "EMIES:CreateActivity: response = \n%s", s);
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
