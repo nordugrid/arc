@@ -344,14 +344,13 @@ int main(int argc,char** argv) {
 
   //read_env_vars();
   // prepare Job and User descriptions (needed for substitutions in cache dirs)
-  JobDescription desc(id,session_dir);
   uid_t uid;
   gid_t gid;
   if(file_owner != 0) { uid=file_owner; }
   else { uid= getuid(); };
   if(file_group != 0) { gid=file_group; }
   else { gid= getgid(); };
-  desc.set_uid(uid,gid);
+  JobDescription desc(id,Arc::User(uid),session_dir);
   JobUser user(env,uid,gid);
   user.SetControlDir(control_dir);
   user.SetSessionRoot(session_dir);

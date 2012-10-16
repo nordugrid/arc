@@ -5,10 +5,12 @@
 #include <list>
 
 #include "job.h"
+#include "../conf/GMConfig.h"
+
+#include "job_config.h"
 
 class JobUser;
 class ContinuationPlugins;
-class JobsListConfig;
 class JobFDesc;
 class DTRGenerator;
 
@@ -38,6 +40,12 @@ class JobsList {
   Glib::Dir* old_dir;
   // Generator for handling data staging
   DTRGenerator* dtr_generator;
+  // number of jobs for every state
+  int jobs_num[JOB_STATE_NUM];
+  // map of number of active jobs for each DN
+  std::map<std::string, ZeroUInt> jobs_dn;
+  // number of jobs currently in pending state
+  int jobs_pending;
 
   // Add job into list without checking if it is already there.
   // 'i' will be set to iterator pointing at new job

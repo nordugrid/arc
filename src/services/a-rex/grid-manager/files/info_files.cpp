@@ -80,8 +80,8 @@ bool fix_file_permissions_in_session(const std::string &fname,const JobDescripti
   mode_t mode = S_IRUSR | S_IWUSR;
   if(executable) { mode |= S_IXUSR; };
   if(user.StrictSession()) {
-    uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
-    uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
+    uid_t uid = getuid()==0?desc.get_uid():getuid();
+    uid_t gid = getgid()==0?desc.get_gid():getgid();
     Arc::FileAccess fa;
     if(!fa.fa_setuid(uid,gid)) return false;
     return fa.fa_chmod(fname,mode);

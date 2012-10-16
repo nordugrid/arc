@@ -560,7 +560,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   config_.User()->SetSessionRoot(sessiondir);
   job_.sessiondir = config_.User()->SessionRoot()+"/"+id_;
   // Write local file
-  JobDescription job(id_,config_.User()->SessionRoot()+"/"+id_,JOB_STATE_ACCEPTED);
+  JobDescription job(id_,Arc::User(config_.User()->get_uid()),config_.User()->SessionRoot()+"/"+id_,JOB_STATE_ACCEPTED);
   job.set_local(&job_); // need this for write_grami
   if(!job_local_write_file(job,*config_.User(),job_)) {
     delete_job_id();
@@ -686,14 +686,14 @@ bool ARexJob::GetDescription(Arc::XMLNode& jsdl) {
 
 bool ARexJob::Cancel(void) {
   if(id_.empty()) return false;
-  JobDescription job_desc(id_,"");
+  JobDescription job_desc(id_,Arc::User(config_.User()->get_uid()));
   if(!job_cancel_mark_put(job_desc,*config_.User())) return false;
   return true;
 }
 
 bool ARexJob::Clean(void) {
   if(id_.empty()) return false;
-  JobDescription job_desc(id_,"");
+  JobDescription job_desc(id_,Arc::User(config_.User()->get_uid()));
   if(!job_clean_mark_put(job_desc,*config_.User())) return false;
   return true;
 }
@@ -708,7 +708,7 @@ bool ARexJob::Resume(void) {
     // Job run out of number of allowed retries.
     return false;
   };
-  if(!job_restart_mark_put(JobDescription(id_,""),*config_.User())) {
+  if(!job_restart_mark_put(JobDescription(id_,Arc::User(config_.User()->get_uid())),*config_.User())) {
     // Failed to report restart request.
     return false;
   };
@@ -753,7 +753,7 @@ Arc::Time ARexJob::Modified(void) {
 bool ARexJob::UpdateCredentials(const std::string& credentials) {
   if(id_.empty()) return false;
   if(!update_credentials(credentials)) return false;
-  JobDescription job(id_,config_.User()->SessionRoot(id_)+"/"+id_,JOB_STATE_ACCEPTED);
+  JobDescription job(id_,Arc::User(config_.User()->get_uid()),config_.User()->SessionRoot(id_)+"/"+id_,JOB_STATE_ACCEPTED);
   if(!job_local_write_file(job,*config_.User(),job_)) return false;
   return true;
 }
@@ -832,7 +832,7 @@ bool ARexJob::make_job_id(void) {
 bool ARexJob::delete_job_id(void) {
   if(!config_) return true;
   if(!id_.empty()) {
-    job_clean_final(JobDescription(id_,
+    job_clean_final(JobDescription(id_,Arc::User(config_.User()->get_uid()),
                 config_.User()->SessionRoot(id_)+"/"+id_),*config_.User());
     id_="";
   };
@@ -1025,12 +1025,12 @@ bool ARexJob::ReportFileComplete(const std::string& filename) {
   if(id_.empty()) return "";
   std::string fname = filename;
   if(!normalize_filename(fname)) return false;
-  return job_input_status_add_file(JobDescription(id_,""),*config_.User(),"/"+fname);
+  return job_input_status_add_file(JobDescription(id_,Arc::User(config_.User()->get_uid())),*config_.User(),"/"+fname);
 }
 
 bool ARexJob::ReportFilesComplete(void) {
   if(id_.empty()) return "";
-  return job_input_status_add_file(JobDescription(id_,""),*config_.User(),"/");
+  return job_input_status_add_file(JobDescription(id_,Arc::User(config_.User()->get_uid())),*config_.User(),"/");
 }
 
 std::string ARexJob::GetLogFilePath(const std::string& name) {

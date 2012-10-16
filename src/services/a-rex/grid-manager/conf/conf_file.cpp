@@ -10,18 +10,17 @@
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
 #include "../jobs/plugins.h"
-#include "conf.h"
-#include "conf_sections.h"
 #include "../run/run_plugin.h"
 #include "../misc/escaped.h"
 #include "../log/job_log.h"
 #include "../jobs/states.h"
-#include "conf_cache.h"
 
+#include "conf.h"
+#include "conf_sections.h"
+#include "conf_cache.h"
 #include "GMConfig.h"
 
 #include "conf_file.h"
-
 
 Arc::Logger CoreConfig::logger(Arc::Logger::getRootLogger(), "CoreConfig");
 
@@ -30,15 +29,15 @@ void CoreConfig::CheckLRMSBackends(const std::string& default_lrms) {
   tool_path=Arc::ArcLocation::GetDataDir()+"/cancel-"+default_lrms+"-job";
   if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
     logger.msg(Arc::WARNING,"Missing cancel-%s-job - job cancelation may not work",default_lrms);
-  };
+  }
   tool_path=Arc::ArcLocation::GetDataDir()+"/submit-"+default_lrms+"-job";
   if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
     logger.msg(Arc::WARNING,"Missing submit-%s-job - job submission to LRMS may not work",default_lrms);
-  };
+  }
   tool_path=Arc::ArcLocation::GetDataDir()+"/scan-"+default_lrms+"-job";
   if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
     logger.msg(Arc::WARNING,"Missing scan-%s-job - may miss when job finished executing",default_lrms);
-  };
+  }
 }
 
 bool CoreConfig::CheckYesNoCommand(bool& config_param, const std::string& name, std::string& rest) {
@@ -397,6 +396,9 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
         logger.msg(Arc::ERROR, "Wrong option in fixdirectories"); return false;
       }
     }
+    else if (command == "allowsubmit") { // Note: not available in xml
+      config.allow_submit += " " + config_next_arg(rest);
+    }
     else if (command == "enable_arc_interface") {
       if (!CheckYesNoCommand(config.enable_arc_interface, command, rest)) return false;
     }
@@ -410,6 +412,10 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       }
       if (rest.length() != 0 && rest != "drain") {
         logger.msg(Arc::ERROR, "Junk in sessiondir command"); return false;
+      }
+      if (session_root == "*") {
+        // special value which uses each user's home area
+        session_root = "%H/.jobs";
       }
       config.session_roots.push_back(session_root);
     }
@@ -752,6 +758,10 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
       return false;
     }
     if (session_root.find(' ') != std::string::npos) session_root = session_root.substr(0, session_root.find(' '));
+    if (session_root == "*") {
+      // special value which uses each user's home area
+      session_root = "%H/.jobs";
+    }
     config.session_roots.push_back(session_root);
   }
   JobUser::fixdir_t fixdir = JobUser::fixdir_always;

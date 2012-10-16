@@ -147,7 +147,7 @@ void GMConfig::SetSessionRoot(const std::vector<std::string> &dirs) {
   }
 }
 
-const std::string & GMConfig::SessionRoot(const std::string& job_id) const {
+std::string GMConfig::SessionRoot(const std::string& job_id) const {
   if (session_roots.empty()) return empty_string;
   if (session_roots.size() == 1 || job_id.empty()) return session_roots[0];
   // search for this jobid's session dir

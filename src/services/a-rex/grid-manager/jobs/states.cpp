@@ -25,6 +25,15 @@
 #include "job_config.h"
 #include "states.h"
 
+/* max time to run submit-*-job/cancel-*-job before to
+   start looking for alternative way to detect result.
+   Only for protecting against lost child. */
+#define CHILD_RUN_TIME_SUSPICIOUS (10*60)
+/* max time to run submit-*-job/cancel-*-job before to
+   decide that it is gone.
+   Only for protecting against lost child. */
+#define CHILD_RUN_TIME_TOO_LONG (60*60)
+
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 #ifdef NO_GLOBUS_CODE
@@ -58,10 +67,9 @@ bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid){
 }
 
 bool JobsList::AddJobNoCheck(const JobId &id,JobsList::iterator &i,uid_t uid,gid_t gid){
-  i=jobs.insert(jobs.end(),JobDescription(id));
+  i=jobs.insert(jobs.end(),JobDescription(id, Arc::User(uid)));
   i->keep_finished=user->KeepFinished();
   i->keep_deleted=user->KeepDeleted();
-  i->set_uid(uid,gid);
   if (!GetLocalDescription(i)) {
     // safest thing to do is add failure and move to FINISHED
     i->AddFailure("Internal error");

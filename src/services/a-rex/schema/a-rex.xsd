@@ -392,7 +392,6 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="username" type="xsd:string" minOccurs="0"/>
             <xsd:element name="controlDir" type="xsd:string"/>
             <xsd:element name="sessionRootDir" type="xsd:string"
                          maxOccurs="unbounded"/>

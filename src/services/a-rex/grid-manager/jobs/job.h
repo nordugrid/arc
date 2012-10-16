@@ -5,6 +5,7 @@
 #include <string>
 
 #include <arc/Run.h>
+#include <arc/User.h>
 
 class JobsList;
 class JobLocalDescription;
@@ -90,9 +91,8 @@ class JobDescription {
   /* pointer to object containing most important parameters of job,
      loaded when needed. */
   JobLocalDescription* local;
-  /* uid and gid of job's owner */
-  uid_t job_uid;
-  gid_t job_gid;
+  /* job's owner */
+  Arc::User user;
   /* reties left (should be reset for each state change) */
   int retries;
   /* time to perform the next retry */
@@ -114,7 +114,7 @@ class JobDescription {
   */
   JobDescription(void);
   JobDescription(const JobDescription &job);
-  JobDescription(const JobId &job_id,const std::string &dir = "",job_state_t state = JOB_STATE_UNDEFINED);
+  JobDescription(const JobId &job_id,const Arc::User& user,const std::string &dir = "",job_state_t state = JOB_STATE_UNDEFINED);
   ~JobDescription(void);
   job_state_t get_state() const { return job_state; };
   const char* get_state_name() const;
@@ -133,12 +133,10 @@ class JobDescription {
   bool operator==(const JobDescription& job) const { return (job_id == job.job_id); };
   bool operator==(const JobId &id) const { return (job_id == id); };
   bool operator!=(const JobId &id) const { return (job_id != id); };
-  void set_uid(uid_t uid,gid_t gid) {
-    if(uid != (uid_t)(-1)) { job_uid=uid; };
-    if(gid != (uid_t)(-1)) { job_gid=gid; };
-  };
-  uid_t get_uid(void) const { return job_uid; };
-  gid_t get_gid(void) const { return job_gid; };
+  void set_user(const Arc::User& u) { user = u; }
+  const Arc::User& get_user() const { return user;}
+  uid_t get_uid(void) const { return user.get_uid(); };
+  gid_t get_gid(void) const { return user.get_gid(); };
   void set_share(std::string share);
   /* force 'local' to be created and read from file if not already available */
   bool GetLocalDescription(const JobUser &user);

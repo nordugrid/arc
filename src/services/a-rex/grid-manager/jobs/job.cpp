@@ -72,7 +72,6 @@ JobDescription::JobDescription(void) {
   job_pending=false;
   child=NULL;
   local=NULL;
-  job_uid=0; job_gid=0;
   start_time=time(NULL);
 }
 
@@ -86,14 +85,14 @@ JobDescription::JobDescription(const JobDescription &job) {
   keep_deleted=job.keep_deleted;
   child=NULL;
   local=job.local;
-  job_uid=job.job_uid; job_gid=job.job_gid;
+  user=job.user;
   retries=job.retries;
   next_retry=job.next_retry;
   transfer_share=job.transfer_share;
   start_time=job.start_time;
 }
 
-JobDescription::JobDescription(const JobId &id,const std::string &dir,job_state_t state) {
+JobDescription::JobDescription(const JobId &id,const Arc::User& u,const std::string &dir,job_state_t state) {
   job_state=state;
   job_pending=false;
   job_id=id;
@@ -102,7 +101,7 @@ JobDescription::JobDescription(const JobId &id,const std::string &dir,job_state_
   keep_deleted=DEFAULT_KEEP_DELETED;
   child=NULL;
   local=NULL;
-  job_uid=0; job_gid=0;
+  user=u;
   retries=0;
   next_retry=time(NULL);
   transfer_share=JobLocalDescription::transfersharedefault;

@@ -357,8 +357,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   }
 
   // create JobDescription object to pass to job_..write_file methods
-  JobDescription job(jobid, session_dir);
-  job.set_uid(dtr->get_local_user().get_uid(), dtr->get_local_user().get_gid());
+  JobDescription job(jobid, dtr->get_local_user(), session_dir);
   std::string dtr_transfer_statistics;
   
   if (dtr->error() && dtr->get_status() != DataStaging::DTRStatus::CANCELLED) {
@@ -813,7 +812,7 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     // create DTR and send to Scheduler
     DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, usercfg, jobid, job.get_uid(), dtr_log));
     // set retry count (tmp errors only)
-    dtr->set_tries_left(jobuser->Env().jobs_cfg().MaxRetries());
+    dtr->set_tries_left(staging_conf.max_retries);
     // allow the same file to be uploaded to multiple locations with same LFN
     dtr->set_force_registration(replication);
     // set sub-share for download or upload
@@ -824,6 +823,8 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     // set whether to use A-REX host certificate for remote delivery services
     dtr->host_cert_for_remote_delivery(staging_conf.use_host_cert_for_remote_delivery);
 
+    // TODO substitute cache paths
+    // CacheParams cp(config.CacheParams()); cp.substitute(config, Arc::User(job.get_uid()));
     DataStaging::DTRCacheParameters cache_parameters;
     cache_parameters.cache_dirs = jobuser->CacheParams().getCacheDirs();
     cache_parameters.remote_cache_dirs = jobuser->CacheParams().getRemoteCacheDirs();

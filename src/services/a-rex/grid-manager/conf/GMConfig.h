@@ -104,10 +104,10 @@ public:
   void SetSessionRoot(const std::string &dir);
   /// Set multiple session root dirs
   void SetSessionRoot(const std::vector<std::string> &dirs);
-  /// Set cache configuration
-  void SetCacheParams(CacheConfig& params);
   /// Set uid and gids used by other process sharing information with A-REX
   void SetShareID(const Arc::User& share_user);
+  /// Set default queue
+  void SetDefaultQueue(const std::string& queue) { default_queue = queue; }
 
   /// Certificates directory location
   const std::string& CertDir() const { return cert_dir; }
@@ -131,14 +131,14 @@ public:
   ARex::DelegationStores* Delegations() const { return delegations; }
 
   /// Control directory
-  const std::string & ControlDir() const { return control_dir; }
+  std::string ControlDir() const { return control_dir; }
   /// Session root directory corresponding to given job ID. If the session
   /// dir corresponding to job_id is not found an empty string is returned.
-  const std::string & SessionRoot(const std::string& job_id) const;
+  std::string SessionRoot(const std::string& job_id) const;
   /// Session directories
-  const std::vector<std::string> & SessionRoots() const { return session_roots; }
+  std::vector<std::string> SessionRoots() const { return session_roots; }
   /// Base scratch directory for job execution on node
-  const std::string& ScratchDir() const { return scratch_dir; }
+  std::string ScratchDir() const { return scratch_dir; }
   /// Whether access to session dir must be performed under mapped uid
   bool StrictSession() const { return strict_session; }
 
@@ -155,6 +155,9 @@ public:
 
   /// Username of user running A-REX
   const std::string & UnixName() const { return gm_user.Name(); }
+
+  /// Groups allowed to submit when general job submission is disabled
+  const std::string AllowSubmit() const { return allow_submit; }
 
   /// Length of time to keep session dir after job finishes
   time_t KeepFinished() const { return keep_finished; }
@@ -266,6 +269,8 @@ private:
   int reruns;
   /// Maximum time for A-REX to wait between each loop processing jobs
   unsigned int wakeup_period;
+  /// Groups allowed to submit while job submission is disabled
+  std::string allow_submit;
   /// List of associated external processes
   std::list<ExternalHelper> helpers;
   /// List of jobs (filled by external functions)

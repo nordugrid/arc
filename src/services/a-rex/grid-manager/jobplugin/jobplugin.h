@@ -46,8 +46,8 @@ class JobPlugin: public FilePlugin {
   JobsListConfig jobs_cfg;
   ContinuationPlugins* cont_plugins;
   RunPlugin* cred_plugin;
-  GMEnvironment env;
-  JobUser *user;
+  Arc::User user;
+  GMConfig config;
   AuthUser& user_a;
   UnixMap job_map;
   std::list<std::string> avail_queues;
