@@ -43,7 +43,7 @@ class EndpointTest(testutils.ARCClientTestCase):
         
     def test_string_representation(self):
         registry = arc.Endpoint("test.nordugrid.org", ["information.discovery.registry"], "org.nordugrid.sertest")
-        self.expect(registry.str()).to_be("test.nordugrid.org (registry, sertest)")
+        self.expect(registry.str()).to_be("test.nordugrid.org (information.discovery.registry, org.nordugrid.sertest)")
         
               
 if __name__ == '__main__':
