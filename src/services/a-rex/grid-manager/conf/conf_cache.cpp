@@ -442,3 +442,15 @@ void CacheConfig::parseXMLConf(std::string username, Arc::XMLNode cfg) {
   }
 }
 
+void CacheConfig::substitute(const GMConfig& config, const Arc::User& user) {
+  for (std::vector<std::string>::iterator i = _cache_dirs.begin(); i != _cache_dirs.end(); ++i) {
+    config.Substitute(*i, user);
+  }
+  for (std::vector<std::string>::iterator i = _remote_cache_dirs.begin(); i != _remote_cache_dirs.end(); ++i) {
+    config.Substitute(*i, user);
+  }
+  for (std::vector<std::string>::iterator i = _draining_cache_dirs.begin(); i != _draining_cache_dirs.end(); ++i) {
+    config.Substitute(*i, user);
+  }
+}
+

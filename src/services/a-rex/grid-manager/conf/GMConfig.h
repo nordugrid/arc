@@ -31,6 +31,11 @@ namespace ARex {
  */
 class GMConfig {
 
+  // Main job loop which heavily uses this class
+  friend class JobsList;
+  // Configuration parser which sets values for members of this class
+  friend class CoreConfig;
+
 public:
 
   /// Different options for fixing directories
@@ -47,6 +52,13 @@ public:
    * $ARC_LOCATION/etc/arc.conf. The configuration data will be read in as a
    * string, but not parsed. Load() should be used to parse the configuration
    * and fill member variables.
+   *
+   * Substitutions are not done while parsing the configuration, as
+   * substitution variables can change depending on the job. Therefore paths
+   * are stored in their raw format, unsubstituted. The exception is the
+   * control directory which cannot change and is substituted during parsing,
+   * and helper options. Substitution of other variables should be done as
+   * necessary using Substitute().
    * @param conffile Path to configuration file, will be guessed if empty
    */
   GMConfig(const std::string& conffile="");
@@ -54,14 +66,8 @@ public:
   GMConfig(const Arc::XMLNode& node);
 
   /// Load configuration from file or XML node into members of this object.
-  /**
-   * An optional user can be given which allows substitutions of certain
-   * parameter values based on the user. For example session directories may be
-   * allocated based on a dynamically mapped user. This object is not valid if
-   * fatal errors are found during parsing.
-   * @param user Optional user which allows substitutions
-   */
-  bool Load(const Arc::User& username=Arc::User());
+  /// This object is not valid if fatal errors are found during parsing.
+  bool Load();
   /// Print a summary of configuration to stderr
   void Print();
 
@@ -100,8 +106,8 @@ public:
   void SetSessionRoot(const std::vector<std::string> &dirs);
   /// Set cache configuration
   void SetCacheParams(CacheConfig& params);
-  /// Set uid used by other process sharing information with A-REX
-  void SetShareID(uid_t suid);
+  /// Set uid and gids used by other process sharing information with A-REX
+  void SetShareID(const Arc::User& share_user);
 
   /// Certificates directory location
   const std::string& CertDir() const { return cert_dir; }
@@ -210,8 +216,6 @@ private:
   std::string conffile;
   /// Whether configuration file is temporary
   bool conffile_is_temp;
-  /// The configuration file as a string, read in during the constructor
-  std::string conffile_data;
   /// Configuration passed as an XMLNode
   Arc::XMLNode xml_cfg;
   /// For logging job information to external logging service

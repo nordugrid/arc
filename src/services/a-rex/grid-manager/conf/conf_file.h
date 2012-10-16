@@ -1,34 +1,29 @@
-#ifndef __GM_CONFIG_FILE_H__
-#define __GM_CONFIG_FILE_H__
+#ifndef __GM_CORE_CONFIG_H__
+#define __GM_CORE_CONFIG_H__
 
-#include <string>
+#include <arc/Logger.h>
 
-#include <arc/XMLNode.h>
+class GMConfig;
+namespace Arc {
+  class XMLNode;
+}
 
-#include "../jobs/users.h"
-#include "../jobs/states.h"
-//#include "../log/job_log.h"
-//#include "../conf/daemon.h"
-#include "environment.h"
+/// Parses configuration and fills GMConfig with information
+class CoreConfig {
+public:
+  /// Parse config, either ini-style or XML
+  static bool ParseConf(GMConfig& config);
+private:
+  /// Parse ini-style config from stream cfile
+  static bool ParseConfINI(GMConfig& config, std::ifstream& cfile);
+  /// Parse config from XML node
+  static bool ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg);
+  /// Function to check that LRMS scripts are available
+  static void CheckLRMSBackends(const std::string& default_lrms);
+  /// Function handle yes/no config commands
+  static bool CheckYesNoCommand(bool& config_param, const std::string& name, std::string& rest);
+  /// Logger
+  static Arc::Logger logger;
+};
 
-//extern JobLog job_log;
-
-/*
-  Functionality:
-    Reads configuration file and creates list of users serviced by
-    grid-manager.
-  Accepts:
-    my_uid - uid of user, owner of the grid-manager process. If it is
-      0 (root), all users mentioned in configuration will be put into
-      'users'. Otherwise only matching user.
-    my_username - username of that user.
-  Returns:
-    users - list of users to service.
-    my_user - special user to run special helper programs (see 
-      configuration template).
-*/
-bool configure_serviced_users(JobUsers &users/*,uid_t my_uid,const std::string &my_username*/,JobUser &my_user,bool& enable_arc_interface,bool& enable_emies_interface);
-bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users/*,uid_t my_uid,const std::string &my_username*/,JobUser &my_user,bool& enable_arc_interface,bool& enable_emies_interface);
-bool print_serviced_users(const JobUsers &users);
- 
-#endif // __GM_CONFIG_FILE_H__
+#endif // __GM_CORE_CONFIG_H__

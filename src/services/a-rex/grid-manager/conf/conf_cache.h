@@ -5,12 +5,15 @@
 #include <fstream>
 
 #include <arc/StringConv.h>
+#include <arc/User.h>
 #include <arc/XMLNode.h>
 
 #include "conf.h"
 #include "environment.h"
 #include "gridmap.h"
 #include "conf_sections.h"
+
+class GMConfig;
 
 /**
  * Exception thrown by constructor caused by bad cache params in conf file
@@ -95,7 +98,9 @@ class CacheConfig {
    */
   void setCacheDirs(std::vector<std::string> cache_dirs) { _cache_dirs = cache_dirs; };
   void setRemoteCacheDirs(std::vector<std::string> remote_cache_dirs) { _remote_cache_dirs = remote_cache_dirs; };
-  void setDrainingCacheDirs(std::vector<std::string> draining_cache_dirs) { _draining_cache_dirs = draining_cache_dirs; }; 
+  void setDrainingCacheDirs(std::vector<std::string> draining_cache_dirs) { _draining_cache_dirs = draining_cache_dirs; };
+  /// Substitute all paths, with information given in user if necessary
+  void substitute(const GMConfig& config, const Arc::User& user);
   int getCacheMax() const { return _cache_max; };
   int getCacheMin() const { return _cache_min; };
   bool cleanCache() const { return (_cache_max > 0 && _cache_max < 100); };

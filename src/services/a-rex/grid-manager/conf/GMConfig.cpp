@@ -11,7 +11,9 @@
 #include <arc/FileUtils.h>
 #include <arc/XMLNode.h>
 
+#include "conf_file.h"
 #include "../run/run_parallel.h"
+
 #include "GMConfig.h"
 
 // Defaults
@@ -82,23 +84,44 @@ void GMConfig::SetDefaults() {
   enable_emies_interface = false;
 }
 
-bool GMConfig::Load(const Arc::User& user) {
+bool GMConfig::Load() {
   // Call CoreConfig (conf_file.h) to fill values in this object
-  bool result = false;
-  config_file_type type = config_detect(conffile);
-  if (xml_cfg || type == config_file_XML) {
-    result = CoreConfig::parseConf(&this, xml_cfg, user);
-  }
-  else if (type == config_file_INI && !conffile_data.empty()) {
-    result = CoreConfig::parseConf(&this, conffile_data, user);
-  }
-  else {
-    logger.msg(Arc::ERROR, "Could not determine configuration type or configuration is empty");
+  if (!CoreConfig::ParseConf(*this)) {
+    valid = false;
     return false;
   }
-  return false;
+  return true;
 }
 
+void GMConfig::Print() {
+  for(std::vector<std::string>::const_iterator i = session_roots.begin(); i != session_roots.end(); ++i)
+    logger.msg(Arc::INFO, "\tSession root dir : %s", *i);
+  logger.msg(Arc::INFO, "\tControl dir      : %s", control_dir);
+  logger.msg(Arc::INFO, "\tdefault LRMS     : %s", default_lrms);
+  logger.msg(Arc::INFO, "\tdefault queue    : %s", default_queue);
+  logger.msg(Arc::INFO, "\tdefault ttl      : %u", keep_finished);
+
+  std::vector<std::string> conf_caches = cache_params.getCacheDirs();
+  std::vector<std::string> remote_conf_caches = cache_params.getRemoteCacheDirs();
+  if(conf_caches.empty()) {
+    logger.msg(Arc::INFO,"No valid caches found in configuration, caching is disabled");
+    return;
+  }
+  // list each cache
+  for (std::vector<std::string>::iterator i = conf_caches.begin(); i != conf_caches.end(); i++) {
+    logger.msg(Arc::INFO, "\tCache            : %s", (*i).substr(0, (*i).find(" ")));
+    if ((*i).find(" ") != std::string::npos)
+      logger.msg(Arc::INFO, "\tCache link dir   : %s", (*i).substr((*i).find_last_of(" ")+1, (*i).length()-(*i).find_last_of(" ")+1));
+  }
+  // list each remote cache
+  for (std::vector<std::string>::iterator i = remote_conf_caches.begin(); i != remote_conf_caches.end(); i++) {
+    logger.msg(Arc::INFO, "\tRemote cache     : %s", (*i).substr(0, (*i).find(" ")));
+    if ((*i).find(" ") != std::string::npos)
+      logger.msg(Arc::INFO, "\tRemote cache link: %s", (*i).substr((*i).find_last_of(" ")+1, (*i).length()-(*i).find_last_of(" ")+1));
+  }
+  if (cache_params.cleanCache()) logger.msg(Arc::INFO, "\tCache cleaning enabled");
+  else logger.msg(Arc::INFO, "\tCache cleaning disabled");
+}
 
 void GMConfig::SetControlDir(const std::string &dir) {
   if (dir.empty()) control_dir = gm_user.Home() + "/.jobstatus";
@@ -251,10 +274,10 @@ bool GMConfig::Substitute(std::string& param, const Arc::User& user) const {
   return true;
 }
 
-void GMConfig::SetShareID(uid_t suid) {
-  share_uid = suid;
+void GMConfig::SetShareID(const Arc::User& share_user) {
+  share_uid = share_user.get_uid();
   share_gids.clear();
-  if (suid <= 0) return;
+  if (share_uid <= 0) return;
   struct passwd pwd_buf;
   struct passwd* pwd = NULL;
 #ifdef _SC_GETPW_R_SIZE_MAX
@@ -265,7 +288,7 @@ void GMConfig::SetShareID(uid_t suid) {
 #endif
   char* buf = (char*)malloc(buflen);
   if (!buf) return;
-  if (getpwuid_r(suid, &pwd_buf, buf, buflen, &pwd) == 0) {
+  if (getpwuid_r(share_uid, &pwd_buf, buf, buflen, &pwd) == 0) {
     if (pwd) {
 #ifdef HAVE_GETGROUPLIST
 #ifdef _MACOSX
@@ -339,7 +362,7 @@ bool GMConfig::ExternalHelper::run(const GMConfig& config) {
   args[n] = NULL;
   logger.msg(Arc::VERBOSE, "Starting helper process: %s", command);
   std::string helper_id = "helper.";
-  bool started = RunParallel::run(config, helper_id.c_str(), args, &proc);
+  bool started = true;// RunParallel::run(config, helper_id.c_str(), args, &proc);
   for (n=0; n<99; n++) {
     if (args[n] == NULL) break;
     free(args[n]);
