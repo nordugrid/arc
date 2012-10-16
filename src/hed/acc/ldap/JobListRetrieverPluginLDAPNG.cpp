@@ -72,7 +72,7 @@ namespace Arc {
     url.ChangeLDAPScope(URL::subtree);
 
     // Applying filter. Must be done through EndpointQueryOptions.
-    url.ChangeLDAPFilter("(|(nordugrid-job-globalowner=" + escaped_dn + "))");
+    url.ChangeLDAPFilter("(|(nordugrid-job-globalowner=" + escaped_dn + ")(objectClass=nordugrid-cluster))");
 
     DataBuffer buffer;
     DataHandle handler(url, uc);
@@ -102,6 +102,8 @@ namespace Arc {
     }
 
     XMLNode xmlresult(result);
+    XMLNodeList xContactStrings = xmlresult.XPathLookup("//nordugrid-cluster-contactstring", NS());
+    std::string ContactString = (std::string)xContactStrings.front();
     XMLNodeList xJobs = xmlresult.XPathLookup("//nordugrid-job-globalid[objectClass='nordugrid-job']", NS());
     for (XMLNodeList::iterator it = xJobs.begin(); it != xJobs.end(); ++it) {
       Job j;
@@ -120,6 +122,17 @@ namespace Arc {
                                     escape_chars((std::string)(*it)["nordugrid-job-globalid"],filter_esc,'\\',false,escape_hex) + ")");
       infoEndpoint.ChangeLDAPScope(URL::subtree);
       j.IDFromEndpoint = infoEndpoint.fullstr();
+
+      // Proposed mandatory attributes for ARC 3.0
+      j.ID = j.JobID.fullstr();
+      j.ResourceInfoURL = url;
+      j.ResourceInfoURL.ChangeLDAPFilter("");
+      j.ResourceInfoInterfaceName = "org.nordugrid.ldapng";
+      j.ActivityInfoURL = infoEndpoint;
+      j.ActivityInfoInterfaceName = "org.nordugrid.ldapng";
+      j.ActivityManagerURL = URL(ContactString);
+      j.ActivityManagerInterfaceName = "org.nordugrid.gridftpjob";
+      j.ActivityID = j.ID.substr(ContactString.length()+1);
 
       jobs.push_back(j);
     }

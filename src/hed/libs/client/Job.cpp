@@ -163,11 +163,21 @@ namespace Arc {
   Job& Job::operator=(const Job& j) {
     jc = j.jc;
 
+    // Proposed mandatory attributes for ARC 3.0
+    ID = j.ID;
+    ActivityID = j.ActivityID;
+    Name = j.Name;
+    ResourceInfoURL = j.ResourceInfoURL;
+    ResourceInfoInterfaceName = j.ResourceInfoInterfaceName;
+    ActivityInfoURL = j.ActivityInfoURL;
+    ActivityInfoInterfaceName = j.ActivityInfoInterfaceName;
+    ActivityManagerURL = j.ActivityManagerURL;
+    ActivityManagerInterfaceName = j.ActivityManagerInterfaceName;
+
     JobID = j.JobID;
     Cluster = j.Cluster;
     InterfaceName = j.InterfaceName;
 
-    Name = j.Name;
     Type = j.Type;
     IDFromEndpoint = j.IDFromEndpoint;
     LocalIDFromManager = j.LocalIDFromManager;
@@ -384,8 +394,20 @@ namespace Arc {
   }
 
   void Job::ToXML(XMLNode node) const {
-    URLTOXML(JobID)
+
+    // Proposed mandatory attributes for ARC 3.0
+    STRINGTOXML(ID)
+    STRINGTOXML(ActivityID)
     STRINGTOXML(Name)
+    URLTOXML(ResourceInfoURL)
+    STRINGTOXML(ResourceInfoInterfaceName)
+    URLTOXML(ActivityInfoURL)
+    STRINGTOXML(ActivityInfoInterfaceName)
+    URLTOXML(ActivityManagerURL)
+    STRINGTOXML(ActivityManagerInterfaceName)
+
+
+    URLTOXML(JobID)
     URLTOXML(Cluster)
     STRINGTOXML(InterfaceName)
     STRINGTOXML(Type)

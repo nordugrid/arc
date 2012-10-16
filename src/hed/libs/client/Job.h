@@ -40,6 +40,17 @@ namespace Arc {
     Job(const Job& job);
     Job(XMLNode job);
 
+    // Proposed mandatory attributes for ARC 3.0
+    std::string ID;
+    std::string ActivityID;
+    std::string Name;
+    URL ResourceInfoURL;
+    std::string ResourceInfoInterfaceName;
+    URL ActivityInfoURL;
+    std::string ActivityInfoInterfaceName;
+    URL ActivityManagerURL;
+    std::string ActivityManagerInterfaceName;
+
     // Attributes not part of ComputingActivity entity in GLUE2
     // These are used for central functionality in the library
     URL JobID;
@@ -47,7 +58,6 @@ namespace Arc {
     std::string InterfaceName;
 
 
-    std::string Name;
     std::string Type;
     std::string IDFromEndpoint;
     std::string LocalIDFromManager;
