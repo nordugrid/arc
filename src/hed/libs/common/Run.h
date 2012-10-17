@@ -87,7 +87,10 @@ namespace Arc {
     bool Wait(int timeout);
     /** Wait till execution finished */
     bool Wait(void);
-    /** Returns exit code of execution. */
+    /** Returns exit code of execution.
+       If child process was killed then exit code is -1.
+       If code is compiled with support for detecting lost child 
+       process this code is -1 also if track of child was lost. */
     int Result(void) {
       return result_;
     }

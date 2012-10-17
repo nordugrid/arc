@@ -526,6 +526,11 @@ namespace Arc {
     // as returned by waitpid. It is not clear how it works for
     // windows but atleast for *nix we can use waitpid related
     // macros.
+#ifdef DUAL_CHECK_LOST_CHILD
+    if(result == -1) { // special value to indicate lost child
+      result_ = -1;
+    } else
+#endif
     if(WIFEXITED(result)) {
       result_ = WEXITSTATUS(result);
     } else {
@@ -605,7 +610,7 @@ namespace Arc {
       if(running_) {
         if(!check_pid(pid_->pid(),exit_time_)) {
           lock_.unlock();
-          child_handler(pid_->pid(), (-1)<<8); // simulate exit
+          child_handler(pid_->pid(), -1); // simulate exit
           lock_.lock();
         }
       }
@@ -655,7 +660,7 @@ namespace Arc {
       if(running_) {
         if(!check_pid(pid_->pid(),exit_time_)) {
           lock_.unlock();
-          child_handler(pid_->pid(), (-1)<<8); // simulate exit
+          child_handler(pid_->pid(), -1); // simulate exit
           lock_.lock();
         }
       }
@@ -697,7 +702,7 @@ namespace Arc {
       if(running_) {
         if(!check_pid(pid_->pid(),exit_time_)) {
           lock_.unlock();
-          child_handler(pid_->pid(), (-1)<<8); // simulate exit
+          child_handler(pid_->pid(), -1); // simulate exit
           lock_.lock();
         }
       }
