@@ -378,6 +378,11 @@ sub collect($) {
                 $j->{rerunable} = $gmjob->{failedstate} ? $gmjob->{failedstate} : 'none'
                     if $gmjob->{status} eq "FAILED";
                 $j->{comment} = [ $gmjob->{comment} ] if $gmjob->{comment};
+                # added to record which was the submission interface
+                if ( $gmjob->{interface} ) {
+                        my $submittedstring = 'SubmittedVia='.$gmjob->{interface};
+                        push(@{$j->{comment}}, $submittedstring);
+                };
                 $j->{reqcputime} = int $gmjob->{reqcputime}/60 if $gmjob->{reqcputime};
                 $j->{reqwalltime} = int $gmjob->{reqwalltime}/60 if $gmjob->{reqwalltime};
 
