@@ -514,7 +514,10 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
         logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i",i->job_id,i->child->Result());
       }
     }
-    if(i->child->Result() != 0) {
+    // Another workaround in Run class may also detect lost child.
+    // It then sets exit code to -1. This value is also set in
+    // case child was killed. So it is worth to check grami anyway.
+    if((i->child->Result() != 0) && (i->child->Result() != -1)) {
       if(!cancel) {
         logger.msg(Arc::ERROR,"%s: Job submission to LRMS failed",i->job_id);
         JobFailStateRemember(i,JOB_STATE_SUBMITTING);
