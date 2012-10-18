@@ -180,6 +180,8 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):
         logger.msg(Arc::ERROR, "Wrong number in maxjobdesc");
         initialized=false;
       };
+    } else if(command == "endpoint") {
+      endpoint = config_next_arg(rest);
     } else if(command == "end") {
       break; /* end of section */
     } else {
@@ -191,32 +193,38 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):
     initialized = false;
   }
   else {
-    if(configfile.length()) config.ConfigFile(configfile);
+    if(configfile.length()) config.SetConfigFile(configfile);
+    config.SetCredPlugin(cred_plugin);
+    config.SetContPlugins(cont_plugins);
     std::string uname = user_s.get_uname();
     std::string ugroup = user_s.get_gname();
     if((bool)job_map) {
       uname=job_map.unix_name();
       ugroup=job_map.unix_group();
     };
-    user = Arc::User(uname);
-
-    /* read configuration */
-    if(!config.Load()) {
+    user = Arc::User(uname, ugroup);
+    if (!user) {
+      logger.msg(Arc::ERROR, "Mapped user:group (%s:%s) not found", uname, ugroup);
+      initialized = false;
+    } else if(!config.Load()) { // read configuration
       logger.msg(Arc::ERROR, "Failed processing grid-manager configuration");
       initialized=false;
     } else if (gm_dirs_info.size() > 0 && config.SessionRoots().size() > 1) {
       logger.msg(Arc::ERROR, "Cannot use multiple session directories and remotegmdirs at the same time");
       initialized=false;
     } else {
-      // do substitutions in control and session dirs based on mapped user
-      std::string control(config.ControlDir());
-      config.Substitute(control, user);
-      config.SetControlDir(control);
+      // do substitutions in session dirs based on mapped user
       session_dirs = config.SessionRoots();
       for (std::vector<std::string>::iterator session = session_dirs.begin(); session != session_dirs.end(); ++session) {
         config.Substitute(*session, user);
       }
+      session_dirs_non_draining = config.SessionRootsNonDraining();
+      for (std::vector<std::string>::iterator session = session_dirs_non_draining.begin();
+           session != session_dirs_non_draining.end(); ++session) {
+        config.Substitute(*session, user);
+      }
 
+      avail_queues = config.Queues();
       if(config.DefaultQueue().empty() && (avail_queues.size() == 1)) {
         config.SetDefaultQueue(*(avail_queues.begin()));
       };

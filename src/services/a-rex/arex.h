@@ -12,11 +12,7 @@
 //#include "delegation/DelegationStore.h"
 #include "delegation/DelegationStores.h"
 
-class JobLog;
-class JobsListConfig;
-class ContinuationPlugins;
-class RunPlugin;
-class GMEnvironment;
+class GMConfig;
 
 namespace ARex {
 
@@ -69,8 +65,6 @@ class ARexService: public Arc::Service {
   CountedResource beslimit_;
   CountedResource datalimit_;
   std::string endpoint_;
-  bool enablearc_;
-  bool enableemies_;
   bool publishstaticinfo_;
   std::string uname_;
   std::string gmconfig_;
@@ -84,13 +78,7 @@ class ARexService: public Arc::Service {
   //Glib::Mutex glue_states_lock_;
   //std::map<std::string,std::string> glue_states_;
   FileChunksList files_chunks_;
-  JobLog* job_log_;
-  JobsListConfig* jobs_cfg_;
-  ContinuationPlugins* cont_plugins_;
-  RunPlugin* cred_plugin_;
-  GMEnvironment* gm_env_;
-  JobUsers* users_;
-  JobUser* my_user_;
+  GMConfig config_;
   GridManager* gm_;
   ARexConfigContext* get_configuration(Arc::Message& inmsg);
 

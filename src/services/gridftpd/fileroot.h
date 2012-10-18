@@ -101,6 +101,8 @@ class FilePlugin { /* this is the base class for plugins */
   int release(void);
   virtual ~FilePlugin(void) { /* dlclose is done externally - yet */
   };
+ protected:
+  std::string endpoint; // endpoint (URL) corresponding to plugin
 };
 
 /* this is the only exported C function from plugin */

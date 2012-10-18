@@ -42,8 +42,6 @@ class JobPlugin: public FilePlugin {
   std::string getSessionDir(std::string id);
   /** Pick new control and session dirs according to algorithm */
   bool chooseControlAndSessionDir(std::string job_id, std::string& controldir, std::string& sessiondir);
-  JobLog job_log;
-  JobsListConfig jobs_cfg;
   ContinuationPlugins* cont_plugins;
   RunPlugin* cred_plugin;
   Arc::User user;
@@ -52,9 +50,8 @@ class JobPlugin: public FilePlugin {
   UnixMap job_map;
   std::list<std::string> avail_queues;
   std::string subject;
-  unsigned short int port;
-  int host[4];
-  std::string endpoint;
+  unsigned short int port; // port client used for data channel
+  int host[4]; // client host
   std::string proxy_fname; /* name of proxy file passed by client */
   std::string job_id;
   unsigned int job_rsl_max_size;

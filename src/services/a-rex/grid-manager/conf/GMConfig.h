@@ -79,11 +79,11 @@ public:
   /// Get path to configuration file
   const std::string& ConfigFile() const { return conffile; }
   /// Set path to configuration file
-  void ConfigFile(const std::string& file) { conffile = file; }
+  void SetConfigFile(const std::string& file) { conffile = file; }
   /// Returns true if configuration file is temporary
   bool ConfigIsTemp() const { return conffile_is_temp; }
   /// Sets whether configuration file is temporary
-  void ConfigIsTemp(bool temp) { conffile_is_temp = temp; }
+  void SetConfigIsTemp(bool temp) { conffile_is_temp = temp; }
 
   /// Create control structure and session directories with correct permissions
   bool CreateDirectories();
@@ -121,6 +121,14 @@ public:
   /// email address of person responsible for this ARC installation
   const std::string& SupportMailAddress() const { return support_email_address; }
 
+  /// Set JobLog object
+  void SetJobLog(JobLog* log) { job_log = log; }
+  /// Set ContinuationPlugins (plugins run at state transitions)
+  void SetContPlugins(ContinuationPlugins* plugins) { cont_plugins = plugins; }
+  /// Set RunPlugin (plugin used to acquire local credentials)
+  void SetCredPlugin(RunPlugin* plugin) { cred_plugin = plugin; }
+  /// Set DelegationStores object
+  void SetDelegations(ARex::DelegationStores* stores) { delegations = stores; }
   /// JobLog object
   JobLog* GetJobLog() const { return job_log; }
   /// Plugins run at state transitions
@@ -137,6 +145,8 @@ public:
   std::string SessionRoot(const std::string& job_id) const;
   /// Session directories
   std::vector<std::string> SessionRoots() const { return session_roots; }
+  /// Session directories that can be used for new jobs
+  std::vector<std::string> SessionRootsNonDraining() const { return session_roots_non_draining; }
   /// Base scratch directory for job execution on node
   std::string ScratchDir() const { return scratch_dir; }
   /// Whether access to session dir must be performed under mapped uid
@@ -147,17 +157,27 @@ public:
 
   /// URL of cluster's headnode
   const std::string & HeadNode() const { return headnode; }
+  /// Whether ARC (BES) WS-interface is enabled
+  bool ARCInterfaceEnabled() const { return enable_arc_interface; }
+  /// Whether EMI-ES interface is enabled
+  bool EMIESInterfaceEnabled() const { return enable_emies_interface; }
+  /// GridFTP job interface endpoint
+  const std::string & GridFTPEndpoint() const { return gridftp_endpoint; }
+  /// A-REX WS-interface job submission endpoint
+  const std::string & AREXEndpoint() const { return arex_endpoint; }
 
   /// Default LRMS
   const std::string & DefaultLRMS() const { return default_lrms; }
   /// Default queue
   const std::string & DefaultQueue() const { return default_queue; }
+  /// All configured queues
+  std::list<std::string> Queues() const { return queues; }
 
   /// Username of user running A-REX
   const std::string & UnixName() const { return gm_user.Name(); }
 
   /// Groups allowed to submit when general job submission is disabled
-  const std::string AllowSubmit() const { return allow_submit; }
+  const std::string & AllowSubmit() const { return allow_submit; }
 
   /// Length of time to keep session dir after job finishes
   time_t KeepFinished() const { return keep_finished; }
@@ -246,6 +266,8 @@ private:
   std::string control_dir;
   /// Directories where directories used to run jobs are created
   std::vector<std::string> session_roots;
+  /// Session directories allowed for new jobs (i.e. not draining)
+  std::vector<std::string> session_roots_non_draining;
   /// Cache information
   CacheConfig cache_params;
   /// URL of the cluster's headnode
@@ -253,6 +275,8 @@ private:
   /// Default LRMS and queue to use
   std::string default_lrms;
   std::string default_queue;
+  /// All configured queues
+  std::list<std::string> queues;
   /// User running A-REX
   Arc::User gm_user;
   /// uid and gid(s) running other ARC processes that share files with A-REX
@@ -326,6 +350,10 @@ private:
   bool enable_arc_interface;
   /// Whether EMI-ES interface is enabled
   bool enable_emies_interface;
+  /// GridFTP job endpoint
+  std::string gridftp_endpoint;
+  /// WS-interface endpoint
+  std::string arex_endpoint;
 
   /// Logger object
   static Arc::Logger logger;

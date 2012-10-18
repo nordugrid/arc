@@ -7,11 +7,12 @@
 #include <arc/XMLNode.h>
 #include <arc/FileAccess.h>
 #include <arc/message/MessageAuth.h>
-#include "grid-manager/jobs/users.h"
 #include "grid-manager/files/info_types.h"
 #include "grid-manager/jobs/job.h"
 #include "grid-manager/jobs/plugins.h"
 #include "tools.h"
+
+class GMConfig;
 
 namespace ARex {
 
@@ -22,31 +23,30 @@ namespace ARex {
 
 class ARexGMConfig {
  private:
-  JobUser *user_;
+  const GMConfig& config_;
+  Arc::User user_;
   bool readonly_;
-  std::list<std::string> queues_;
   std::string grid_name_; // temporary solution
   std::string service_endpoint_; // temporary solution
   std::list<Arc::MessageAuth*> auths_;
-  ContinuationPlugins cont_plugins_;
+  // Separate lists outside GMConfig as they can be substituted per user
+  std::vector<std::string> session_roots_;
   std::vector<std::string> session_roots_non_draining_;
  public:
-  ARexGMConfig(const GMEnvironment& env,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint);
-  ~ARexGMConfig(void);
-  operator bool(void) const { return (user_ != NULL); };
-  bool operator!(void) const { return (user_ == NULL); };
-  JobUser* User(void) { return user_; };
+  ARexGMConfig(const GMConfig& config,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint);
+  operator bool(void) const { return (bool)user_; };
+  bool operator!(void) const { return !(bool)user_; };
+  const Arc::User& User(void) const { return user_; };
+  const GMConfig& GmConfig() const { return config_; };
   bool ReadOnly(void) const { return readonly_; };
   const std::string& GridName(void) const { return grid_name_; };
   const std::string& Endpoint(void) const { return service_endpoint_; };
-  const std::list<std::string>& Queues(void) const { return queues_; };
-  //static bool InitEnvironment(const std::string& configfile);
   void AddAuth(Arc::MessageAuth* auth) { auths_.push_back(auth); };
   void ClearAuths(void) { auths_.clear(); };
   std::list<Arc::MessageAuth*>::iterator beginAuth(void) { return auths_.begin(); };
   std::list<Arc::MessageAuth*>::iterator endAuth(void) { return auths_.end(); };
-  ContinuationPlugins& Plugins(void) { return cont_plugins_; };
   std::vector<std::string> SessionRootsNonDraining(void) { return session_roots_non_draining_; };
+  std::vector<std::string> SessionRoots(void) { return session_roots_; };
 };
 
 

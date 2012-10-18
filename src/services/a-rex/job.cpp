@@ -41,80 +41,27 @@
 
 using namespace ARex;
 
-ARexGMConfig::~ARexGMConfig(void) {
-  if(user_) delete user_;
-}
-
-ARexGMConfig::ARexGMConfig(const GMEnvironment& env,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):user_(NULL),readonly_(false),grid_name_(grid_name),service_endpoint_(service_endpoint) {
+ARexGMConfig::ARexGMConfig(const GMConfig& config,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):
+    config_(config),user_(uname),readonly_(false),grid_name_(grid_name),service_endpoint_(service_endpoint) {
   //if(!InitEnvironment(configfile)) return;
   // const char* uname = user_s.get_uname();
   //if((bool)job_map) uname=job_map.unix_name();
-  user_=new JobUser(env,uname);
-  if(!user_->is_valid()) { delete user_; user_=NULL; return; };
-  /* read configuration */
-  std::vector<std::string> session_roots;
-  std::string control_dir;
-  std::string default_lrms;
-  std::string default_queue;
-  RunPlugin* cred_plugin = new RunPlugin;
-  std::string allowsubmit;
-  bool strict_session;
-  std::string gridftp_endpoint; // for gridftp interface
-  std::string arex_endpoint; // our interface
-  std::string username = uname;
-  bool enable_arc;
-  bool enable_emies;
-  std::string::size_type p =username.find(':');
-  if(p != std::string::npos) username.resize(p);
-  if(!configure_user_dirs(username,control_dir,session_roots,
-                          session_roots_non_draining_,
-                          default_lrms,default_queue,queues_,
-                          cont_plugins_,*cred_plugin,
-                          allowsubmit,strict_session,
-                          gridftp_endpoint,arex_endpoint,
-                          enable_arc,enable_emies,env)
-                          || control_dir.empty() ) {
-    // olog<<"Failed processing grid-manager configuration"<<std::endl;
-    delete user_; user_=NULL; delete cred_plugin; return;
-  };
-  delete cred_plugin;
-  if(default_queue.empty() && (queues_.size() == 1)) {
-    default_queue=*(queues_.begin());
-  };
-  if(!arex_endpoint.empty()) service_endpoint_ = arex_endpoint;
-  user_->SetControlDir(control_dir);
-  user_->SetSessionRoot(session_roots);
-  user_->SetLRMS(default_lrms,default_queue);
-  user_->SetStrictSession(strict_session);
-  //for(;allowsubmit.length();) {
-  //  std::string group = config_next_arg(allowsubmit);
-  //  if(group.length()) readonly=true;
-  //  if(user_a.check_group(group)) { readonly=false; break; };
-  //};
-  //if(readonly) olog<<"This user is denied to submit new jobs"<<std::endl;
-  /*
-          * link to the class for direct file access *
-          std::string direct_config = "mount "+session_root+"\n";
-          direct_config+="dir / nouser read cd dirlist delete append overwrite";          direct_config+=" create "+
-             inttostring(user->get_uid())+":"+inttostring(user->get_gid())+
-             " 600:600";
-          direct_config+=" mkdir "+
-             inttostring(user->get_uid())+":"+inttostring(user->get_gid())+
-             " 700:700\n";
-          direct_config+="end\n";
-#ifdef HAVE_SSTREAM
-          std::stringstream fake_cfile(direct_config);
-#else
-          std::strstream fake_cfile;
-          fake_cfile<<direct_config;
-#endif
-          direct_fs = new DirectFilePlugin(fake_cfile,user_s);
-          if((bool)job_map) {
-            olog<<"Job submission user: "<<uname<<
-                  " ("<<user->get_uid()<<":"<<user->get_gid()<<")"<<std::endl;
-  */
+  if(!user_) return;
+  // Do substitutions on session dirs
+  session_roots_ = config_.SessionRoots();
+  for (std::vector<std::string>::iterator session = session_roots_.begin();
+       session != session_roots_.end(); ++session) {
+    config_.Substitute(*session, user_);
+  }
+  session_roots_non_draining_ = config_.SessionRootsNonDraining();
+  for (std::vector<std::string>::iterator session = session_roots_non_draining_.begin();
+       session != session_roots_non_draining_.end(); ++session) {
+    config_.Substitute(*session, user_);
+  }
+  if(!config_.AREXEndpoint().empty()) service_endpoint_ = config_.AREXEndpoint();
 }
 
+// TODO: use Arc::AutoPointer??
 template <typename T> class AutoPointer {
  private:
   T* object;
@@ -157,7 +104,7 @@ bool ARexJob::is_allowed(bool fast) {
   // Do fine-grained authorization requested by job's owner
   if(config_.beginAuth() == config_.endAuth()) return true;
   std::string acl;
-  if(!job_acl_read_file(id_,*config_.User(),acl)) return true; // safe to ignore
+  if(!job_acl_read_file(id_,config_.User(),acl)) return true; // safe to ignore
   if(acl.empty()) return true; // No policy defiled - only owner allowed
   // Identify and parse policy
   ArcSec::EvaluatorLoader eval_loader;
@@ -282,7 +229,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
   if(id_.empty()) return;
   if(!config_) { id_.clear(); return; };
   // Reading essential information about job
-  if(!job_local_read_file(id_,*config_.User(),job_)) { id_.clear(); return; };
+  if(!job_local_read_file(id_,config_.User(),job_)) { id_.clear(); return; };
   // Checking if user is allowed to do anything with that job
   if(!is_allowed(fast_auth_check)) { id_.clear(); return; };
   if(!(allowed_to_see_ || allowed_to_maintain_)) { id_.clear(); return; };
@@ -290,7 +237,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
 
 ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid, Arc::Logger& logger, JobIDGenerator& idgenerator,  Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
   if(!config_) return;
-  DelegationStores* deleg = config_.User()->Env().delegations();
+  DelegationStores* deleg = config_.GmConfig().Delegations();
   // New job is created here
   // First get and acquire new id
   if(!make_job_id()) return;
@@ -303,14 +250,14 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     jsdldoc.GetDoc(job_desc_str);
   };
   // Store description
-  std::string fname = config_.User()->ControlDir() + "/job." + id_ + ".description";
+  std::string fname = config_.GmConfig().ControlDir() + "/job." + id_ + ".description";
   if(!job_description_write_file(fname,job_desc_str)) {
     delete_job_id();
     failure_="Failed to store job RSL description";
     failure_type_=ARexJobInternalError;
     return;
   };
-  // Analyze job descrption (checking, substituting, etc)
+  // Analyze job description (checking, substituting, etc)
   std::string acl("");
   Arc::JobDescription desc;
   if((failure_type_=setfail(parse_job_req(fname.c_str(),job_,desc,&acl,&failure_))) != ARexJobNoError) {
@@ -330,8 +277,8 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   // Check for proper LRMS name in request. If there is no LRMS name
   // in user configuration that means service is opaque frontend and
   // accepts any LRMS in request.
-  if((!job_.lrms.empty()) && (!config_.User()->DefaultLRMS().empty())) {
-    if(job_.lrms != config_.User()->DefaultLRMS()) {
+  if((!job_.lrms.empty()) && (!config_.GmConfig().DefaultLRMS().empty())) {
+    if(job_.lrms != config_.GmConfig().DefaultLRMS()) {
       failure_="Requested LRMS is not supported by this service";
       failure_type_=ARexJobInternalError;
       //failure_type_=ARexJobDescriptionLogicalError;
@@ -339,18 +286,18 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
       return;
     };
   };
-  if(job_.lrms.empty()) job_.lrms=config_.User()->DefaultLRMS();
+  if(job_.lrms.empty()) job_.lrms=config_.GmConfig().DefaultLRMS();
   // Check for proper queue in request.
-  if(job_.queue.empty()) job_.queue=config_.User()->DefaultQueue();
+  if(job_.queue.empty()) job_.queue=config_.GmConfig().DefaultQueue();
   if(job_.queue.empty()) {
     failure_="Request has no queue defined";
     failure_type_=ARexJobDescriptionMissingError;
     delete_job_id();
     return;
   };
-  if(config_.Queues().size() > 0) { // If no queues configured - service takes any
-    for(std::list<std::string>::const_iterator q = config_.Queues().begin();;++q) {
-      if(q == config_.Queues().end()) {
+  if(!config_.GmConfig().Queues().empty()) { // If no queues configured - service takes any
+    for(std::list<std::string>::const_iterator q = config_.GmConfig().Queues().begin();;++q) {
+      if(q == config_.GmConfig().Queues().end()) {
         failure_="Requested queue "+job_.queue+" does not match any of available queues";
         //failure_type_=ARexJobDescriptionLogicalError;
         failure_type_=ARexJobInternalError;
@@ -466,7 +413,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
                                                    f != desc.DataStaging.OutputFiles.end();++f) {
         for(std::list<Arc::TargetType>::iterator t = f->Targets.begin();t != f->Targets.end();++t) {
           if(!(t->DelegationID.empty())) {
-            std::string path = (*deleg)[config_.User()->DelegationDir()].
+            std::string path = (*deleg)[config_.GmConfig().DelegationDir()].
                                       FindCred(t->DelegationID,config_.GridName());
             if(!path.empty()) {
               std::ifstream fcred(path.c_str());
@@ -485,7 +432,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
                                                   f != desc.DataStaging.InputFiles.end();++f) {
         for(std::list<Arc::SourceType>::iterator t = f->Sources.begin();t != f->Sources.end();++t) {
           if(!(t->DelegationID.empty())) {
-            std::string path = (*deleg)[config_.User()->DelegationDir()].
+            std::string path = (*deleg)[config_.GmConfig().DelegationDir()].
                                       FindCred(t->DelegationID,config_.GridName());
             if(!path.empty()) {
               std::ifstream fcred(path.c_str());
@@ -557,12 +504,12 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     failure_type_=ARexJobInternalError;
     return;
   };
-  config_.User()->SetSessionRoot(sessiondir);
-  job_.sessiondir = config_.User()->SessionRoot()+"/"+id_;
+  //config_.GmConfig().SetSessionRoot(sessiondir);
+  job_.sessiondir = sessiondir+"/"+id_;
   // Write local file
-  JobDescription job(id_,Arc::User(config_.User()->get_uid()),config_.User()->SessionRoot()+"/"+id_,JOB_STATE_ACCEPTED);
+  JobDescription job(id_,Arc::User(config_.User().get_uid()),job_.sessiondir,JOB_STATE_ACCEPTED);
   job.set_local(&job_); // need this for write_grami
-  if(!job_local_write_file(job,*config_.User(),job_)) {
+  if(!job_local_write_file(job,config_.GmConfig(),job_)) {
     delete_job_id();
     failure_="Failed to create job description";
     failure_type_=ARexJobInternalError;
@@ -581,7 +528,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     };
   };
   // Write grami file
-  if(!write_grami(desc,job,*config_.User(),NULL)) {
+  if(!write_grami(desc,job,config_.GmConfig(),NULL)) {
     delete_job_id();
     failure_="Failed to create grami file";
     failure_type_=ARexJobInternalError;
@@ -589,7 +536,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   };
   // Write ACL file
   if(!acl.empty()) {
-    if(!job_acl_write_file(id_,*config.User(),acl)) {
+    if(!job_acl_write_file(id_,config.GmConfig(),acl)) {
       delete_job_id();
       failure_="Failed to process/store job ACL";
       failure_type_=ARexJobInternalError;
@@ -600,7 +547,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   {
     // talk to external plugin to ask if we can proceed
     std::list<ContinuationPlugins::result_t> results;
-    config_.Plugins().run(job,*config_.User(),results);
+    config_.GmConfig().ContPlugins()->run(job,config_.GmConfig(),results);
     std::list<ContinuationPlugins::result_t>::iterator result = results.begin();
     while(result != results.end()) {
       // analyze results
@@ -651,7 +598,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   };
 */
   // Create session directory
-  if(!job_session_create(job,*config_.User())) {
+  if(!job_session_create(job,config_.GmConfig())) {
     delete_job_id();
     failure_="Failed to create session directory";
     failure_type_=ARexJobInternalError;
@@ -659,25 +606,25 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   };
   // Create input status file to tell downloader we
   // are handling input in clever way.
-  job_input_status_add_file(job,*config_.User());
+  job_input_status_add_file(job,config_.GmConfig());
   // Create status file (do it last so GM picks job up here)
-  if(!job_state_write_file(job,*config_.User(),JOB_STATE_ACCEPTED)) {
+  if(!job_state_write_file(job,config_.GmConfig(),JOB_STATE_ACCEPTED)) {
     delete_job_id();
     failure_="Failed registering job in grid-manager";
     failure_type_=ARexJobInternalError;
     return;
   };
   // Put lock on delegated credentials
-  if(deleg) (*deleg)[config_.User()->DelegationDir()].LockCred(id_,deleg_ids,config_.GridName());
+  if(deleg) (*deleg)[config_.GmConfig().DelegationDir()].LockCred(id_,deleg_ids,config_.GridName());
 
-  SignalFIFO(*config_.User());
+  SignalFIFO(config_.GmConfig());
   return;
 }
 
 bool ARexJob::GetDescription(Arc::XMLNode& jsdl) {
   if(id_.empty()) return false;
   std::string sdesc;
-  if(!job_description_read_file(id_,*config_.User(),sdesc)) return false;
+  if(!job_description_read_file(id_,config_.GmConfig(),sdesc)) return false;
   Arc::XMLNode xdesc(sdesc);
   if(!xdesc) return false;
   jsdl.Replace(xdesc);
@@ -686,15 +633,15 @@ bool ARexJob::GetDescription(Arc::XMLNode& jsdl) {
 
 bool ARexJob::Cancel(void) {
   if(id_.empty()) return false;
-  JobDescription job_desc(id_,Arc::User(config_.User()->get_uid()));
-  if(!job_cancel_mark_put(job_desc,*config_.User())) return false;
+  JobDescription job_desc(id_,Arc::User(config_.User().get_uid()));
+  if(!job_cancel_mark_put(job_desc,config_.GmConfig())) return false;
   return true;
 }
 
 bool ARexJob::Clean(void) {
   if(id_.empty()) return false;
-  JobDescription job_desc(id_,Arc::User(config_.User()->get_uid()));
-  if(!job_clean_mark_put(job_desc,*config_.User())) return false;
+  JobDescription job_desc(id_,Arc::User(config_.User().get_uid()));
+  if(!job_clean_mark_put(job_desc,config_.GmConfig())) return false;
   return true;
 }
 
@@ -708,7 +655,7 @@ bool ARexJob::Resume(void) {
     // Job run out of number of allowed retries.
     return false;
   };
-  if(!job_restart_mark_put(JobDescription(id_,Arc::User(config_.User()->get_uid())),*config_.User())) {
+  if(!job_restart_mark_put(JobDescription(id_,Arc::User(config_.User().get_uid())),config_.GmConfig())) {
     // Failed to report restart request.
     return false;
   };
@@ -722,30 +669,30 @@ std::string ARexJob::State(void) {
 
 std::string ARexJob::State(bool& job_pending) {
   if(id_.empty()) return "";
-  job_state_t state = job_state_read_file(id_,*config_.User(),job_pending);
+  job_state_t state = job_state_read_file(id_,config_.GmConfig(),job_pending);
   if(state > JOB_STATE_UNDEFINED) state=JOB_STATE_UNDEFINED;
   return states_all[state].name;
 }
 
 bool ARexJob::Failed(void) {
   if(id_.empty()) return false;
-  return job_failed_mark_check(id_,*config_.User());
+  return job_failed_mark_check(id_,config_.GmConfig());
 }
 
 std::string ARexJob::FailedState(std::string& cause) {
   std::string state;
-  job_local_read_failed(id_,*config_.User(),state,cause);
+  job_local_read_failed(id_,config_.GmConfig(),state,cause);
   return state;
 }
 
 Arc::Time ARexJob::Created(void) {
-  time_t t = job_description_time(id_,*config_.User());
+  time_t t = job_description_time(id_,config_.GmConfig());
   if(t == 0) return Arc::Time(); // ???
   return Arc::Time(t);
 }
 
 Arc::Time ARexJob::Modified(void) {
-  time_t t = job_state_time(id_,*config_.User());
+  time_t t = job_state_time(id_,config_.GmConfig());
   if(t == 0) return Arc::Time(); // ???
   return Arc::Time(t);
 }
@@ -753,18 +700,18 @@ Arc::Time ARexJob::Modified(void) {
 bool ARexJob::UpdateCredentials(const std::string& credentials) {
   if(id_.empty()) return false;
   if(!update_credentials(credentials)) return false;
-  JobDescription job(id_,Arc::User(config_.User()->get_uid()),config_.User()->SessionRoot(id_)+"/"+id_,JOB_STATE_ACCEPTED);
-  if(!job_local_write_file(job,*config_.User(),job_)) return false;
+  JobDescription job(id_,Arc::User(config_.User().get_uid()),config_.GmConfig().SessionRoot(id_)+"/"+id_,JOB_STATE_ACCEPTED);
+  if(!job_local_write_file(job,config_.GmConfig(),job_)) return false;
   return true;
 }
 
 bool ARexJob::update_credentials(const std::string& credentials) {
   if(credentials.empty()) return true;
-  std::string fname=config_.User()->ControlDir()+"/job."+id_+".proxy";
+  std::string fname=config_.GmConfig().ControlDir()+"/job."+id_+".proxy";
   ::unlink(fname.c_str());
   int h=::open(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,0600);
   if(h == -1) return false;
-  fix_file_owner(fname,*config_.User());
+  fix_file_owner(fname,config_.User());
   const char* s = credentials.c_str();
   int ll = credentials.length();
   int l = 0;
@@ -807,7 +754,7 @@ bool ARexJob::make_job_id(void) {
     //    Arc::tostring((unsigned int)time(NULL))+
     //    Arc::tostring(rand(),1);
     Arc::GUID(id_);
-    std::string fname=config_.User()->ControlDir()+"/job."+id_+".description";
+    std::string fname=config_.GmConfig().ControlDir()+"/job."+id_+".description";
     struct stat st;
     if(stat(fname.c_str(),&st) == 0) continue;
     int h = ::open(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
@@ -816,15 +763,15 @@ bool ARexJob::make_job_id(void) {
     int err = errno;
     if(h == -1) {
       if(err == EEXIST) continue;
-      logger_.msg(Arc::ERROR, "Failed to create file in %s", config_.User()->ControlDir());
+      logger_.msg(Arc::ERROR, "Failed to create file in %s", config_.GmConfig().ControlDir());
       id_="";
       return false;
     };
-    fix_file_owner(fname,*config_.User());
+    fix_file_owner(fname,config_.User());
     close(h);
     return true;
   };
-  logger_.msg(Arc::ERROR, "Out of tries while allocating new job ID in %s", config_.User()->ControlDir());
+  logger_.msg(Arc::ERROR, "Out of tries while allocating new job ID in %s", config_.GmConfig().ControlDir());
   id_="";
   return false;
 }
@@ -832,8 +779,8 @@ bool ARexJob::make_job_id(void) {
 bool ARexJob::delete_job_id(void) {
   if(!config_) return true;
   if(!id_.empty()) {
-    job_clean_final(JobDescription(id_,Arc::User(config_.User()->get_uid()),
-                config_.User()->SessionRoot(id_)+"/"+id_),*config_.User());
+    job_clean_final(JobDescription(id_,Arc::User(config_.User().get_uid()),
+                config_.GmConfig().SessionRoot(id_)+"/"+id_),config_.GmConfig());
     id_="";
   };
   return true;
@@ -861,7 +808,7 @@ std::list<std::string> ARexJob::Jobs(ARexGMConfig& config,Arc::Logger& logger) {
 
 std::string ARexJob::SessionDir(void) {
   if(id_.empty()) return "";
-  return config_.User()->SessionRoot(id_)+"/"+id_;
+  return config_.GmConfig().SessionRoot(id_)+"/"+id_;
 }
 
 std::string ARexJob::LogDir(void) {
@@ -901,14 +848,14 @@ Arc::FileAccess* ARexJob::CreateFile(const std::string& filename) {
     return NULL;
   };
   int lname = fname.length();
-  fname = config_.User()->SessionRoot(id_)+"/"+id_+"/"+fname;
+  fname = config_.GmConfig().SessionRoot(id_)+"/"+id_+"/"+fname;
   // First try to create/open file
   Arc::FileAccess* fa = Arc::FileAccess::Acquire();
   if(!*fa) {
     delete fa;
     return NULL;
   };
-  if(!fa->fa_setuid(config_.User()->get_uid(),config_.User()->get_gid())) {
+  if(!fa->fa_setuid(config_.User().get_uid(),config_.User().get_gid())) {
     Arc::FileAccess::Release(fa);
     return NULL;
   };
@@ -944,15 +891,15 @@ Arc::FileAccess* ARexJob::OpenFile(const std::string& filename,bool for_read,boo
     failure_type_=ARexJobInternalError;
     return NULL;
   };
-  fname = config_.User()->SessionRoot(id_)+"/"+id_+"/"+fname;
+  fname = config_.GmConfig().SessionRoot(id_)+"/"+id_+"/"+fname;
   int flags = 0;
   if(for_read && for_write) { flags=O_RDWR; }
   else if(for_read) { flags=O_RDONLY; }
   else if(for_write) { flags=O_WRONLY; }
-  //return Arc::FileOpen(fname,flags,config_.User()->get_uid(),config_.User()->get_gid(),0);
+  //return Arc::FileOpen(fname,flags,config_.User().get_uid(),config_.User().get_gid(),0);
   Arc::FileAccess* fa = Arc::FileAccess::Acquire();
   if(*fa) {
-    if(fa->fa_setuid(config_.User()->get_uid(),config_.User()->get_gid())) {
+    if(fa->fa_setuid(config_.User().get_uid(),config_.User().get_gid())) {
       if(fa->fa_open(fname,flags,0)) {
         return fa;
       };
@@ -973,10 +920,10 @@ Arc::FileAccess* ARexJob::OpenDir(const std::string& dirname) {
     return NULL;
   };
   //if(dname.empty()) return NULL;
-  dname = config_.User()->SessionRoot(id_)+"/"+id_+"/"+dname;
+  dname = config_.GmConfig().SessionRoot(id_)+"/"+id_+"/"+dname;
   Arc::FileAccess* fa = Arc::FileAccess::Acquire();
   if(*fa) {
-    if(fa->fa_setuid(config_.User()->get_uid(),config_.User()->get_gid())) {
+    if(fa->fa_setuid(config_.User().get_uid(),config_.User().get_gid())) {
       if(fa->fa_opendir(dname)) {
         return fa;
       };
@@ -991,14 +938,14 @@ Arc::FileAccess* ARexJob::OpenDir(const std::string& dirname) {
 int ARexJob::OpenLogFile(const std::string& name) {
   if(id_.empty()) return -1;
   if(strchr(name.c_str(),'/')) return -1;
-  std::string fname = config_.User()->ControlDir() + "/job." + id_ + "." + name;
+  std::string fname = config_.GmConfig().ControlDir() + "/job." + id_ + "." + name;
   return ::open(fname.c_str(),O_RDONLY);
 }
 
 std::list<std::string> ARexJob::LogFiles(void) {
   std::list<std::string> logs;
   if(id_.empty()) return logs;
-  std::string dname = config_.User()->ControlDir();
+  std::string dname = config_.GmConfig().ControlDir();
   std::string prefix = "job." + id_ + ".";
   // TODO: scanning is performace bottleneck. Use matching instead.
   Glib::Dir* dir = new Glib::Dir(dname);
@@ -1017,25 +964,25 @@ std::string ARexJob::GetFilePath(const std::string& filename) {
   if(id_.empty()) return "";
   std::string fname = filename;
   if(!normalize_filename(fname)) return "";
-  if(fname.empty()) config_.User()->SessionRoot(id_)+"/"+id_;
-  return config_.User()->SessionRoot(id_)+"/"+id_+"/"+fname;
+  if(fname.empty()) config_.GmConfig().SessionRoot(id_)+"/"+id_;
+  return config_.GmConfig().SessionRoot(id_)+"/"+id_+"/"+fname;
 }
 
 bool ARexJob::ReportFileComplete(const std::string& filename) {
   if(id_.empty()) return "";
   std::string fname = filename;
   if(!normalize_filename(fname)) return false;
-  return job_input_status_add_file(JobDescription(id_,Arc::User(config_.User()->get_uid())),*config_.User(),"/"+fname);
+  return job_input_status_add_file(JobDescription(id_,Arc::User(config_.User().get_uid())),config_.GmConfig(),"/"+fname);
 }
 
 bool ARexJob::ReportFilesComplete(void) {
   if(id_.empty()) return "";
-  return job_input_status_add_file(JobDescription(id_,Arc::User(config_.User()->get_uid())),*config_.User(),"/");
+  return job_input_status_add_file(JobDescription(id_,Arc::User(config_.User().get_uid())),config_.GmConfig(),"/");
 }
 
 std::string ARexJob::GetLogFilePath(const std::string& name) {
   if(id_.empty()) return "";
-  return config_.User()->ControlDir() + "/job." + id_ + "." + name;
+  return config_.GmConfig().ControlDir() + "/job." + id_ + "." + name;
 }
 
 bool ARexJob::ChooseSessionDir(const std::string& /* jobid */, std::string& sessiondir) {

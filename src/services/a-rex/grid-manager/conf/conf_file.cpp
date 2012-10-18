@@ -98,6 +98,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
   cf.AddSection("common");
   cf.AddSection("grid-manager");
   cf.AddSection("infosys");
+  cf.AddSection("queue");
   // process configuration information here
   for(;;) {
     std::string rest;
@@ -119,6 +120,16 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       }
       continue;
     }
+    if (cf.SectionNum() == 3) { // queue
+      if (cf.SectionNew()) {
+        std::string name = cf.SubSection();
+        if (name.empty()) {
+          logger.msg(Arc::ERROR, "No queue name given in queue block name"); return false;
+        }
+        config.queues.push_back(name);
+      }
+      continue;
+    }
     if (command.empty()) { // EOF
       break;
     }
@@ -129,6 +140,9 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       // the value is set as environment variables.
       Arc::SetEnv("VOMS_PROCESSING", voms_processing);
     }
+    else if(command == "arex_mount_point") {
+       config.arex_endpoint = config_next_arg(rest);
+    }
     else if (command == "voms_trust_chains") {
       std::string voms_trust_chains = config_next_arg(rest);
       Arc::SetEnv("VOMS_TRUST_CHAINS", voms_trust_chains.c_str());
@@ -137,12 +151,12 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       config.rte_dir = rest;
     }
     else if (command == "joblog") { // where to write job information
-      if (!config.job_log) config.job_log = new JobLog();
+      if (!config.job_log) continue;
       std::string fname = config_next_arg(rest);  // empty is allowed too
       config.job_log->SetOutput(fname.c_str());
     }
     else if (command == "jobreport") { // service to report information to
-      if (!config.job_log) config.job_log = new JobLog();
+      if (!config.job_log) continue;
       for(;;) {
         std::string url = config_next_arg(rest);
         if (url.empty()) break;
@@ -155,7 +169,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       }
     }
     else if (command == "jobreport_publisher") { // Name of the publisher: e.g. jura, arc-ur-logger
-      if (!config.job_log) config.job_log = new JobLog();
+      if (!config.job_log) continue;
       std::string publisher = config_next_arg(rest);
       if (publisher.empty()) {
         publisher = "jura";
@@ -163,14 +177,14 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       config.job_log->SetLogger(publisher.c_str());
     }
     else if (command == "jobreport_credentials") {
-      if (!config.job_log) config.job_log = new JobLog();
+      if (!config.job_log) continue;
       std::string jobreport_key = config_next_arg(rest);
       std::string jobreport_cert = config_next_arg(rest);
       std::string jobreport_cadir = config_next_arg(rest);
       config.job_log->set_credentials(jobreport_key, jobreport_cert, jobreport_cadir);
     }
     else if (command == "jobreport_options") { // e.g. for SGAS, interpreted by usage reporter
-      if (!config.job_log) config.job_log = new JobLog();
+      if (!config.job_log) continue;
       std::string accounting_options = config_next_arg(rest);
       config.job_log->set_options(accounting_options);
     }
@@ -349,6 +363,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       CheckLRMSBackends(default_lrms);
     }
     else if (command == "authplugin") { // set plugin to be called on state changes
+      if (!config.cont_plugins) continue;
       std::string state_name = config_next_arg(rest);
       if (state_name.empty()) {
         logger.msg(Arc::ERROR, "State name for plugin is missing"); return false;
@@ -357,18 +372,17 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       if (options_s.empty()) {
         logger.msg(Arc::ERROR, "Options for plugin are missing"); return false;
       }
-      if (!config.cont_plugins) config.cont_plugins = new ContinuationPlugins();
       if (!config.cont_plugins->add(state_name.c_str(), options_s.c_str(), rest.c_str())) {
         logger.msg(Arc::ERROR, "Failed to register plugin for state %s", state_name); return false;
       }
     }
     else if (command == "localcred") {
+      if (!config.cred_plugin) continue;
       std::string timeout_s = config_next_arg(rest);
       int timeout;
       if (!Arc::stringto(timeout_s, timeout)){
         logger.msg(Arc::ERROR, "Wrong number for timeout in plugin command"); return false;
       }
-      if (!config.cred_plugin) config.cred_plugin = new RunPlugin(rest);
       config.cred_plugin->timeout(timeout);
     }
     else if (command == "preferredpattern") {
@@ -418,6 +432,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
         session_root = "%H/.jobs";
       }
       config.session_roots.push_back(session_root);
+      if (rest != "drain") config.session_roots_non_draining.push_back(session_root);
     }
     else if (command == "controldir") {
       std::string control_dir = config_next_arg(rest);
@@ -511,16 +526,14 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     }
   }
   tmp_node = cfg["jobLogPath"];
-  if (tmp_node) {
-    if (!config.job_log) config.job_log = new JobLog();
+  if (tmp_node && config.job_log) {
     std::string fname = tmp_node;
     config.job_log->SetOutput(fname.c_str());
   }
   tmp_node = cfg["jobReport"];
-  if (tmp_node) {
+  if (tmp_node && config.job_log) {
     std::string url = tmp_node["destination"];
     if (!url.empty()) {
-      if (!config.job_log) config.job_log = new JobLog();
       // destination is required
       config.job_log->SetReporter(url.c_str());
       std::string publisher = tmp_node["publisher"];
@@ -662,7 +675,7 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     command
   */
   tmp_node = cfg["authPlugin"];
-  for (; tmp_node; ++tmp_node) {
+  if (config.cont_plugins) for (; tmp_node; ++tmp_node) {
     std::string state_name = tmp_node["state"];
     if (state_name.empty()) {
       logger.msg(Arc::ERROR, "State name for authPlugin is missing");
@@ -686,7 +699,6 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     if (!options.empty()) options = options.substr(0, options.length()-1);
     logger.msg(Arc::DEBUG, "Registering plugin for state %s; options: %s; command: %s",
         state_name, options, command);
-    if (!config.cont_plugins) config.cont_plugins = new ContinuationPlugins();
     if (!config.cont_plugins->add(state_name.c_str(), options.c_str(), command.c_str())) {
       logger.msg(Arc::ERROR, "Failed to register plugin for state %s", state_name);
       return false;
@@ -698,7 +710,7 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     command
   */
   tmp_node = cfg["localCred"];
-  if (tmp_node) {
+  if (tmp_node && config.cred_plugin) {
     std::string command = tmp_node["command"];
     if (command.empty()) {
       logger.msg(Arc::ERROR, "Command for localCred is missing");
@@ -716,7 +728,6 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
       logger.msg(Arc::ERROR, "Timeout for localCred is incorrect number");
       return false;
     }
-    if (!config.cred_plugin) config.cred_plugin = new RunPlugin();
     *(config.cred_plugin) = command;
     config.cred_plugin->timeout(to);
   }
@@ -757,7 +768,12 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
       logger.msg(Arc::ERROR,"sessionRootDir is missing");
       return false;
     }
-    if (session_root.find(' ') != std::string::npos) session_root = session_root.substr(0, session_root.find(' '));
+    if (session_root.find(' ') != std::string::npos) {
+      session_root = session_root.substr(0, session_root.find(' '));
+      if (session_root.substr(session_root.find(' ')+1) != "drain") {
+        config.session_roots_non_draining.push_back(session_root);
+      }
+    }
     if (session_root == "*") {
       // special value which uses each user's home area
       session_root = "%H/.jobs";
