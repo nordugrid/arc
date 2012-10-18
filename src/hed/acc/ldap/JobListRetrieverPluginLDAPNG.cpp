@@ -112,7 +112,6 @@ namespace Arc {
         std::string submittedvia = "SubmittedVia=";
         if (comment.compare(0, submittedvia.length(), submittedvia) == 0) {
           std::string interfacename = comment.substr(submittedvia.length());
-          std::cout << "HELLOKA! " << interfacename << std::endl;
           if (interfacename != "org.nordugrid.gridftpjob") {
             logger.msg(DEBUG, "Skipping retrieved job (%s) because it was submitted via another interface (%s).", (std::string)(*it)["nordugrid-job-globalid"], interfacename);
             continue;
