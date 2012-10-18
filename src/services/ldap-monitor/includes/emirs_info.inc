@@ -101,7 +101,7 @@ function emirs_info($emirslist,$element,$errors,$gentries,$debug="0",$cert)
         $curstat = (($curhstat == "ok")&&($cursstat == "production")) ? "VALID": "healt state: '".$curhstate."', serving state: '".$cursstate."'";
         if ( $curstat != "VALID" ) {
           if ( $debug ) dbgmsg("<div align=\"left\"><font color=\"red\"><b>$curstat".$errors["121"]."$fakedn</b></font></div>\n");
-          //continue;
+          continue;
         }
 
         $entries[$counter]["host"] = $url["host"];
