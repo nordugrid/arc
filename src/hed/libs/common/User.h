@@ -2,13 +2,14 @@
 
 #ifndef __ARC_USER_H__
 #define __ARC_USER_H__
-/** Platform independent represnetation of system user */
+
 #include <string>
 
 struct passwd;
 
 namespace Arc {
 
+  /// Platform independent representation of system user
   class User {
   private:
     /* local name, home directory, uid and gid of this user */
@@ -16,13 +17,26 @@ namespace Arc {
     std::string home;
     int uid;
     int gid;
-    void set(const struct passwd*);
+    bool valid;
+    bool set(const struct passwd*);
 
   public:
-    // get current user
+    /// Construct user from current process owner
     User();
-    User(const std::string& name);
-    User(int uid);
+    /// Construct user from username and optional group name. If group is not
+    /// specified it is determined automatically.
+    User(const std::string& name, const std::string& group="");
+    /// Construct user from uid and optional gid. If gid is not specified it
+    /// is determined automatically.
+    User(int uid, int gid=-1);
+    /// Returns true if this is a valid user
+    operator bool() const {
+      return valid;
+    }
+    /// Returns true is this is not a valid user
+    bool operator !() const {
+      return !valid;
+    }
     const std::string& Name(void) const {
       return name;
     }

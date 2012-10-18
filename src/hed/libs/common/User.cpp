@@ -42,45 +42,56 @@ static Glib::Mutex suid_lock;
     return getgid();
   }
 
-  void User::set(const struct passwd *pwd_p) {
+  bool User::set(const struct passwd *pwd_p) {
     if (pwd_p == NULL)
-      return;
+      return false;
     home = GetEnv("HOME");
     name = pwd_p->pw_name;
     if (home.empty())
       home = pwd_p->pw_dir;
     uid = pwd_p->pw_uid;
     gid = pwd_p->pw_gid;
+    return true;
   }
 
-  User::User(void) {
+  User::User(void): valid(false) {
     uid = get_user_id();
     gid = get_group_id();
     struct passwd pwd;
     char pwdbuf[2048];
     struct passwd *pwd_p;
-    getpwuid_r(uid, &pwd, pwdbuf, sizeof(pwdbuf), &pwd_p);
-    set(pwd_p);
+    if (getpwuid_r(uid, &pwd, pwdbuf, sizeof(pwdbuf), &pwd_p) != 0) return;
+    if (!set(pwd_p)) return;
+    valid = true;
   }
 
   // Unix implementation
-  User::User(const std::string& name) {
+  User::User(const std::string& name, const std::string& group): valid(false) {
     this->name = name;
     struct passwd pwd;
     char pwdbuf[2048];
     struct passwd *pwd_p;
-    getpwnam_r(name.c_str(), &pwd, pwdbuf, sizeof(pwdbuf), &pwd_p);
-    set(pwd_p);
+    if (getpwnam_r(name.c_str(), &pwd, pwdbuf, sizeof(pwdbuf), &pwd_p) != 0) return;
+    if (!set(pwd_p)) return;
+    if (!group.empty()) {
+      // override gid with given group
+      struct group* gr = getgrnam(group.c_str());
+      if (!gr) return;
+      gid = gr->gr_gid;
+    }
+    valid = true;
   }
 
-  User::User(int uid) {
+  User::User(int uid, int gid): valid(false) {
     this->uid = uid;
-    this->gid = -1;
+    this->gid = gid;
     struct passwd pwd;
     char pwdbuf[2048];
     struct passwd *pwd_p;
-    getpwuid_r(uid, &pwd, pwdbuf, sizeof(pwdbuf), &pwd_p);
-    set(pwd_p);
+    if (getpwuid_r(uid, &pwd, pwdbuf, sizeof(pwdbuf), &pwd_p) != 0) return;
+    if (set(pwd_p)) return;
+    // override what is found in passwd with given gid
+    if (gid != -1) this->gid = gid;
   }
 
   bool User::RunAs(std::string) {
@@ -163,16 +174,17 @@ static Glib::Mutex suid_lock;
     return 0; // TODO: The user id is not used on windows for file permissions etc.
   }
 
-  void User::set(const struct passwd *pwd_p) {
+  bool User::set(const struct passwd *pwd_p) {
     if (pwd_p == NULL)
-      return;
+      return false;
     name = pwd_p->pw_name;
     home = pwd_p->pw_dir;
     uid = pwd_p->pw_uid;
     gid = pwd_p->pw_gid;
+    return true;
   }
 
-  User::User(void) {
+  User::User(void): valid(false) {
     int uid = get_user_id();
     int gid = get_group_id();
     bool found;
@@ -190,12 +202,14 @@ static Glib::Mutex suid_lock;
     pwd_p.pw_dir = const_cast<char*>(home.c_str());
 
     set(&pwd_p);
+    valid = true;
   }
 
-  User::User(const std::string& name) {
+  User::User(const std::string& name, const std::string& group): valid(false) {
     this->name = name;
     int uid = get_user_id();
     int gid = get_group_id();
+    // TODO: get gid from group
 
     struct passwd pwd_p;
 
@@ -207,11 +221,13 @@ static Glib::Mutex suid_lock;
     pwd_p.pw_dir = const_cast<char*>(home.c_str());
 
     set(&pwd_p);
+    valid = true;
   }
 
-  User::User(int uid) {
+  User::User(int uid, int gid): valid(false) {
     this->uid = uid;
-    this->gid = 0;
+    this->gid = gid;
+    if (this->gid == -1) this->gid = 0;
 
     bool found;
 
@@ -228,6 +244,7 @@ static Glib::Mutex suid_lock;
     pwd_p.pw_dir = const_cast<char*>(home.c_str());
 
     set(&pwd_p);
+    valid = true;
   }
   bool User::RunAs(std::string cmd) {
     // XXX NOP
