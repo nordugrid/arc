@@ -107,6 +107,18 @@ namespace Arc {
     XMLNodeList xJobs = xmlresult.XPathLookup("//nordugrid-job-globalid[objectClass='nordugrid-job']", NS());
     for (XMLNodeList::iterator it = xJobs.begin(); it != xJobs.end(); ++it) {
       Job j;
+      if ((*it)["nordugrid-job-comment"]) {
+        std::string comment = (std::string)(*it)["nordugrid-job-comment"];
+        std::string submittedvia = "SubmittedVia=";
+        if (comment.compare(0, submittedvia.length(), submittedvia) == 0) {
+          std::string interfacename = comment.substr(submittedvia.length());
+          std::cout << "HELLOKA! " << interfacename << std::endl;
+          if (interfacename != "org.nordugrid.gridftpjob") {
+            logger.msg(DEBUG, "Skipping retrieved job (%s) because it was submitted via another interface (%s).", (std::string)(*it)["nordugrid-job-globalid"], interfacename);
+            continue;
+          }
+        }
+      }
       if ((*it)["nordugrid-job-globalid"])
         j.JobID = (std::string)(*it)["nordugrid-job-globalid"];
       if ((*it)["nordugrid-job-jobname"])
