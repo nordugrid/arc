@@ -60,6 +60,7 @@ $cert_pass = 'emi';
 
 // base DNs for searches: local (GRIS), global (GIIS), VO
 if ( !defined("DN_LOCAL") ) define("DN_LOCAL","mds-vo-name=local,o=grid");
+if ( !defined("DN_GLUE") )  define("DN_GLUE","o=glue");
 if ( !defined("DN_GLOBL") ) define("DN_GLOBL","mds-vo-name=NorduGrid,o=grid");
 if ( !defined("DN_VIORG") ) define("DN_VIORG","dc=nordugrid,dc=org");
 if ( !defined("DN_PEOPL") ) define("DN_PEOPL","ou=people,dc=nordugrid,dc=org");
@@ -70,6 +71,7 @@ if ( !defined("DN_RECAT") ) define("DN_RECAT","rc=NorduGrid,dc=nordugrid,dc=org"
 
 // Information system classes and attributes namespace prefix, "nordugrid"
 if ( !defined("IS_PREFX") ) define("IS_PREFX","nordugrid");
+if ( !defined("IS_PREFXG") ) define("IS_PREFXG","glue2");
 
 // Cache location (use ../htdata when installing directly in ./htdocs)
 if ( !defined("CACHE_LOCATION") ) define("CACHE_LOCATION","cache");
@@ -87,6 +89,17 @@ if ( !defined("OBJ_STEL") ) define("OBJ_STEL",IS_PREFX."-se");
 if ( !defined("OBJ_QUEU") ) define("OBJ_QUEU",IS_PREFX."-queue");
 if ( !defined("OBJ_AJOB") ) define("OBJ_AJOB",IS_PREFX."-job");
 if ( !defined("OBJ_USER") ) define("OBJ_USER",IS_PREFX."-authuser");
+
+//GLUE2
+if ( !defined("GOBJ_CLUS") ) define("GOBJ_CLUS",IS_PREFXG."ComputingService");
+if ( !defined("GOBJ_STEL") ) define("GOBJ_STEL",IS_PREFXG."-se");
+if ( !defined("GOBJ_QUEU") ) define("GOBJ_QUEU",IS_PREFXG."ComputingShare");
+if ( !defined("GOBJ_AJOB") ) define("GOBJ_AJOB",IS_PREFXG."ComputingActivity");
+if ( !defined("GOBJ_USER") ) define("GOBJ_USER",IS_PREFXG."-authuser");
+if ( !defined("GOBJ_LOC") ) define("GOBJ_LOC",IS_PREFXG."Location");
+if ( !defined("GOBJ_MAN") ) define("GOBJ_MAN",IS_PREFXG."Manager");
+if ( !defined("GOBJ_CON") ) define("GOBJ_CON",IS_PREFXG."Contact");
+
 if ( !defined("OBJ_PERS") ) define("OBJ_PERS","organizationalPerson");
 if ( !defined("OBJ_RCOL") ) define("OBJ_RCOL","GlobusReplicaLogicalCollection");  /* RC Logical Collection object */
 if ( !defined("OBJ_RFIL") ) define("OBJ_RFIL","GlobusReplicaLogicalFile");        /* RC Logical File object */
@@ -94,6 +107,7 @@ if ( !defined("OBJ_RFIN") ) define("OBJ_RFIN","GlobusReplicaFileInfo");         
 if ( !defined("OBJ_RSEL") ) define("OBJ_RSEL","GlobusReplicaInfo");               /* RC Info object */
 
 // attributes
+//NG
 if ( !defined("CLU_NAME") ) define("CLU_NAME",IS_PREFX."-cluster-name");
 if ( !defined("CLU_ANAM") ) define("CLU_ANAM",IS_PREFX."-cluster-aliasname");
 if ( !defined("CLU_ZIPC") ) define("CLU_ZIPC",IS_PREFX."-cluster-location");
@@ -142,6 +156,56 @@ if ( !defined("USR_USSN") ) define("USR_USSN",IS_PREFX."-authuser-sn");
 if ( !defined("USR_CPUS") ) define("USR_CPUS",IS_PREFX."-authuser-freecpus");
 if ( !defined("USR_QUEU") ) define("USR_QUEU",IS_PREFX."-authuser-queuelength");
 if ( !defined("USR_DISK") ) define("USR_DISK",IS_PREFX."-authuser-diskspace");
+
+//GLUE2
+if ( !defined("GCLU_NAME") ) define("GCLU_NAME",IS_PREFXG."entityname");
+if ( !defined("GCLU_ANAM") ) define("GCLU_ANAM",IS_PREFXG."entityname");
+if ( !defined("GCLU_ZIPC") ) define("GCLU_ZIPC",IS_PREFXG."locationpostcode");
+if ( !defined("GCLU_TCPU") ) define("GCLU_TCPU",IS_PREFXG."computingmanagertotallogicalcpus");
+if ( !defined("GCLU_UCPU") ) define("GCLU_UCPU",IS_PREFXG."-cluster-usedcpus");
+if ( !defined("GCLU_TJOB") ) define("GCLU_TJOB",IS_PREFXG."computingservicetotaljobs");
+if ( !defined("GCLU_QJOB") ) define("GCLU_QJOB",IS_PREFXG."-cluster-queuedjobs"); /* deprecated since 0.5.38 */
+if ( !defined("GCLU_OWNR") ) define("GCLU_OWNR",IS_PREFXG."-cluster-owner");
+if ( !defined("GCLU_SUPP") ) define("GCLU_SUPP",IS_PREFXG."-cluster-support");
+if ( !defined("GCLU_PQUE") ) define("GCLU_PQUE",IS_PREFXG."computingserviceprelrmswaitingjobs"); /* new since 0.5.38 */
+if ( !defined("GSEL_NAME") ) define("GSEL_NAME",IS_PREFXG."-se-name");
+if ( !defined("GSEL_BURL") ) define("GSEL_BURL",IS_PREFXG."-se-baseurl"); /* gone since 0.5.26 */
+if ( !defined("GSEL_CURL") ) define("GSEL_CURL",IS_PREFXG."-se-url"); /* in place since 0.5.26 */
+if ( !defined("GSEL_ANAM") ) define("GSEL_ANAM",IS_PREFXG."-se-aliasname");
+if ( !defined("GSEL_TYPE") ) define("GSEL_TYPE",IS_PREFXG."-se-type");
+if ( !defined("GSEL_FREE") ) define("GSEL_FREE",IS_PREFXG."-se-freespace");
+if ( !defined("GSEL_TOTA") ) define("GSEL_TOTA",IS_PREFXG."-se-totalspace");
+if ( !defined("GSEL_USER") ) define("GSEL_USER",IS_PREFXG."-se-authuser");
+if ( !defined("GQUE_NAME") ) define("GQUE_NAME",IS_PREFXG."entityname");
+if ( !defined("GQUE_STAT") ) define("GQUE_STAT",IS_PREFXG."computingshareservingstate");
+if ( !defined("GQUE_RUNG") ) define("GQUE_RUNG",IS_PREFXG."computingsharelocalrunningjobs");
+if ( !defined("GQUE_GRUN") ) define("GQUE_GRUN",IS_PREFXG."computingsharerunningjobs");
+if ( !defined("GQUE_MAXR") ) define("GQUE_MAXR",IS_PREFXG."computingsharemaxrunningjobs");
+if ( !defined("GQUE_QUED") ) define("GQUE_QUED",IS_PREFXG."-queue-queued"); /* deprecated since 0.5.38 */
+if ( !defined("GQUE_LQUE") ) define("GQUE_LQUE",IS_PREFXG."computingsharelocalwaitingjobs"); /* new since 0.5.38 */
+if ( !defined("GQUE_PQUE") ) define("GQUE_PQUE",IS_PREFXG."computingshareprelrmswaitingjobs"); /* new since 0.5.38 */
+if ( !defined("GQUE_GQUE") ) define("GQUE_GQUE",IS_PREFXG."computingsharewaitingjobs");
+if ( !defined("GQUE_MAXQ") ) define("GQUE_MAXQ",IS_PREFXG."-queue-maxqueuable");
+if ( !defined("GQUE_ASCP") ) define("GQUE_ASCP",IS_PREFXG."-queue-totalcpus");
+if ( !defined("GQUE_MINT") ) define("GQUE_MINT",IS_PREFXG."-queue-mincputime");
+if ( !defined("GQUE_MAXT") ) define("GQUE_MAXT",IS_PREFXG."-queue-maxcputime");
+if ( !defined("GJOB_GLID") ) define("GJOB_GLID",IS_PREFXG."-job-globalid");
+if ( !defined("GJOB_NAME") ) define("GJOB_NAME",IS_PREFXG."-job-jobname");
+if ( !defined("GJOB_STAT") ) define("GJOB_STAT",IS_PREFXG."-job-status");
+if ( !defined("GJOB_EQUE") ) define("GJOB_EQUE",IS_PREFXG."-job-execqueue");
+if ( !defined("GJOB_ECLU") ) define("GJOB_ECLU",IS_PREFXG."-job-execcluster");
+if ( !defined("GJOB_GOWN") ) define("GJOB_GOWN",IS_PREFXG."-job-globalowner");
+if ( !defined("GJOB_USET") ) define("GJOB_USET",IS_PREFXG."-job-usedcputime");
+if ( !defined("GJOB_USEM") ) define("GJOB_USEM",IS_PREFXG."-job-usedmem");
+if ( !defined("GJOB_SUBM") ) define("GJOB_SUBM",IS_PREFXG."-job-submissiontime");
+if ( !defined("GJOB_COMP") ) define("GJOB_COMP",IS_PREFXG."-job-completiontime");
+if ( !defined("GJOB_ERRS") ) define("GJOB_ERRS",IS_PREFXG."-job-errors");
+if ( !defined("GJOB_CPUS") ) define("GJOB_CPUS",IS_PREFXG."-job-cpucount");
+if ( !defined("GUSR_NAME") ) define("GUSR_NAME",IS_PREFXG."-authuser-name");
+if ( !defined("GUSR_USSN") ) define("GUSR_USSN",IS_PREFXG."-authuser-sn");
+if ( !defined("GUSR_CPUS") ) define("GUSR_CPUS",IS_PREFXG."-authuser-freecpus");
+if ( !defined("GUSR_QUEU") ) define("GUSR_QUEU",IS_PREFXG."-authuser-queuelength");
+if ( !defined("GUSR_DISK") ) define("GUSR_DISK",IS_PREFXG."-authuser-diskspace");
 if ( !defined("VO_USCN" ) ) define("VO_USCN" ,"cn");
 if ( !defined("VO_USSN" ) ) define("VO_USSN" ,"sn");
 if ( !defined("VO_DESC" ) ) define("VO_DESC" ,"description");

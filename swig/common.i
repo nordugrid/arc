@@ -232,6 +232,7 @@ private:
 %{
 #include <arc/User.h>
 %}
+%ignore Arc::User::operator!;
 %include "../src/hed/libs/common/User.h"
 
 

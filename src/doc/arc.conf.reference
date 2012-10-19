@@ -1190,7 +1190,7 @@
 ## version is required for GLUE2 output.
 #infosys_compat="disable"
 
-## infoprovider_timeout - this only applies to new infoproviders.
+## infoproviders_timeout - this only applies to new infoproviders.
 ## it changes A-REX behaviour with respect to a single infoprovider run.
 ## Increase this value if you have many jobs in the controldir and
 ## infoproviders need more time to process.

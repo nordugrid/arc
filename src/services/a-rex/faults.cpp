@@ -187,8 +187,6 @@ ES_SIMPLE_FAULT(InternalResourceInfoFault,esrinfo,"Internal failure retrieving r
 ES_SIMPLE_FAULT(ResourceInfoNotFoundFault,esrinfo,"Resource has no requested information")
 
 
-ES_SIMPLE_FAULT(InvalidActivityIDFault,esainfo,"Invalid activity ID")
-ES_SIMPLE_FAULT(UnknownActivityIDFault,esainfo,"Unknown activity ID")
 ES_SIMPLE_FAULT(UnableToRetrieveStatusFault,esainfo,"Activity status is missing")
 ES_SIMPLE_FAULT(UnknownAttributeFault,esainfo,"Activity has no such attribute")
 ES_SIMPLE_FAULT(OperationNotAllowedFault,esainfo,"Requested operation not allowed")
@@ -196,7 +194,6 @@ ES_SIMPLE_FAULT(ActivityNotFoundFault,esainfo,"Activity with specified ID not fo
 ES_SIMPLE_FAULT(InternalNotificationFault,esainfo,"Notofication fault")
 ES_SIMPLE_FAULT(OperationNotPossibleFault,esainfo,"Can't perform this operation")
 ES_SIMPLE_FAULT(InvalidActivityStateFault,esainfo,"Invalid activity state")
-ES_SIMPLE_FAULT(ActivityNotInTerminalStateFault,esainfo,"Activity not in terminal state")
 ES_SIMPLE_FAULT(InvalidActivityLimitFault,esainfo,"Invalid activity limit")
 ES_SIMPLE_FAULT(InvalidParameterFault,esainfo,"Invalid parameter")
 

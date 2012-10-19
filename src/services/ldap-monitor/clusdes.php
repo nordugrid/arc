@@ -26,6 +26,7 @@ require_once('ldap_nice_dump.inc');
 $host   = @( $_GET["host"] )   ? $_GET["host"]   : "quark.hep.lu.se";
 $port   = @( $_GET["port"] )   ? $_GET["port"]   : 2135;
 $isse   = @( $_GET["isse"] )   ? $_GET["isse"]   : 0;
+$schema = @( $_GET["schema"] ) ? $_GET["schema"] : "NG";
 $debug  = @( $_GET["debug"] )  ? $_GET["debug"]  : 0;
 $lang   = @$_GET["lang"];
 if ( !$lang )  $lang    = "default"; // browser language
@@ -52,7 +53,16 @@ $qlim = array( QUE_NAME, QUE_QUED, QUE_GQUE, QUE_PQUE, QUE_LQUE, QUE_RUNG, QUE_G
    
 $qfilter = "(objectclass=".OBJ_QUEU.")";
 $dn      = DN_LOCAL;
-   
+if ($schema == "GLUE2") {
+    $qlim = array( GQUE_NAME, GQUE_QUED, GQUE_GQUE, GQUE_PQUE, GQUE_LQUE, GQUE_RUNG, GQUE_GRUN,
+               GQUE_ASCP, GQUE_MAXT, GQUE_MINT, GQUE_STAT );
+
+    // ldapsearch filter strings for cluster and queues
+
+    $qfilter = "(objectclass=".GOBJ_QUEU.")";
+    $dn      = DN_GLUE;
+}
+
 if ( $debug ) {
   ob_end_flush();
   ob_implicit_flush();
@@ -74,9 +84,17 @@ if ($ds) {
   $ts1 = time();
   if ( $isse ) {
     $exclude = array(SEL_USER);
-    $thisdn = ldap_nice_dump($strings,$ds,SEL_NAME."=".$host.",".$dn,$exclude);
+    if ( $dn == DN_LOCAL ) $thisdn = ldap_nice_dump($strings,$ds,SEL_NAME."=".$host.",".$dn,$exclude);
+    if ( $dn == DN_GLUE ) {
+        $querydn = SEL_NAME."=".$host.":arex,GLUE2GroupID=resource,".DN_GLUE;//TODO: change SEL_NAME
+        $thisdn = ldap_nice_dump($strings,$ds,$querydn,$exclude);
+    }
   } else {
-    $thisdn = ldap_nice_dump($strings,$ds,CLU_NAME."=".$host.",".$dn);
+    if ( $dn == DN_LOCAL ) $thisdn = ldap_nice_dump($strings,$ds,CLU_NAME."=".$host.",".$dn);
+    if ( $dn == DN_GLUE  ) {
+        $querydn = "GLUE2ServiceID=urn:ogf:ComputingService:".$host.":arex,GLUE2GroupID=resource,".DN_GLUE;
+        $thisdn = ldap_nice_dump($strings,$ds,$querydn);
+    }
   }
   $ts2 = time(); if($debug) dbgmsg("<br><b>".$errors["109"]." (".($ts2-$ts1).$errors["104"].")</b><br>");
   if ( strlen($thisdn) < 4 && $debug ) dbgmsg("<div align=\"left\"><i>".$errors["129"].$thisdn."</i></div><br>");
@@ -112,20 +130,36 @@ if ($ds) {
       define("CMPKEY",QUE_MAXT);
       usort($qentries,"quetcmp");
       for ($k=1; $k<$nqueues+1; $k++) {
-	$qname   =  $qentries[$k][QUE_NAME][0];
-	$qstatus =  $qentries[$k][QUE_STAT][0];
-	//	$queued  =  @$qentries[$k][QUE_QUED][0];
-       	$queued  = @($qentries[$k][QUE_QUED][0]) ? ($entries[$k][QUE_QUED][0]) : 0; /* deprecated since 0.5.38 */
-	$locque  = @($qentries[$k][QUE_LQUE][0]) ? ($qentries[$k][QUE_LQUE][0]) : 0; /* new since 0.5.38 */
-	$run     = @($qentries[$k][QUE_RUNG][0]) ? ($qentries[$k][QUE_RUNG][0]) : 0;
-	$cpumin  = @($qentries[$k][QUE_MINT][0]) ? $qentries[$k][QUE_MINT][0] : "0";
-	$cpumax  = @($qentries[$k][QUE_MAXT][0]) ? $qentries[$k][QUE_MAXT][0] : "&gt;";
-	$cpu     = @($qentries[$k][QUE_ASCP][0]) ? $qentries[$k][QUE_ASCP][0] : "N/A";
-	$gridque = @($qentries[$k][QUE_GQUE][0]) ? $qentries[$k][QUE_GQUE][0] : "0";
-	$gmque   = @($qentries[$k][QUE_PQUE][0]) ? ($qentries[$k][QUE_PQUE][0]) : 0; /* new since 0.5.38 */
-	$gridrun = @($qentries[$k][QUE_GRUN][0]) ? $qentries[$k][QUE_GRUN][0] : "0";
-	$quewin  = popup("quelist.php?host=$host&port=$port&qname=$qname",750,430,6,$lang,$debug);
-
+        if ( $dn == DN_LOCAL ) {
+	    $qname   =  $qentries[$k][QUE_NAME][0];
+	    $qstatus =  $qentries[$k][QUE_STAT][0];
+	    //	$queued  =  @$qentries[$k][QUE_QUED][0];
+       	    $queued  = @($qentries[$k][QUE_QUED][0]) ? ($entries[$k][QUE_QUED][0]) : 0; /* deprecated since 0.5.38 */
+	    $locque  = @($qentries[$k][QUE_LQUE][0]) ? ($qentries[$k][QUE_LQUE][0]) : 0; /* new since 0.5.38 */
+	    $run     = @($qentries[$k][QUE_RUNG][0]) ? ($qentries[$k][QUE_RUNG][0]) : 0;
+	    $cpumin  = @($qentries[$k][QUE_MINT][0]) ? $qentries[$k][QUE_MINT][0] : "0";
+	    $cpumax  = @($qentries[$k][QUE_MAXT][0]) ? $qentries[$k][QUE_MAXT][0] : "&gt;";
+	    $cpu     = @($qentries[$k][QUE_ASCP][0]) ? $qentries[$k][QUE_ASCP][0] : "N/A";
+	    $gridque = @($qentries[$k][QUE_GQUE][0]) ? $qentries[$k][QUE_GQUE][0] : "0";
+	    $gmque   = @($qentries[$k][QUE_PQUE][0]) ? ($qentries[$k][QUE_PQUE][0]) : 0; /* new since 0.5.38 */
+	    $gridrun = @($qentries[$k][QUE_GRUN][0]) ? $qentries[$k][QUE_GRUN][0] : "0";
+	    $quewin  = popup("quelist.php?host=$host&port=$port&qname=$qname",750,430,6,$lang,$debug);
+        }
+        if ( $dn == DN_GLUE ) {
+            $qname   =  $qentries[$k][GQUE_NAME][0];
+            $qstatus =  $qentries[$k][GQUE_STAT][0];
+            //  $queued  =  @$qentries[$k][GQUE_QUED][0];
+            $queued  = @($qentries[$k][GQUE_QUED][0]) ? ($entries[$k][GQUE_QUED][0]) : 0; /* deprecated since 0.5.38 */
+            $locque  = @($qentries[$k][GQUE_LQUE][0]) ? ($qentries[$k][GQUE_LQUE][0]) : 0; /* new since 0.5.38 */
+            $run     = @($qentries[$k][GQUE_RUNG][0]) ? ($qentries[$k][GQUE_RUNG][0]) : 0;
+            $cpumin  = @($qentries[$k][GQUE_MINT][0]) ? $qentries[$k][GQUE_MINT][0] : "0";
+            $cpumax  = @($qentries[$k][GQUE_MAXT][0]) ? $qentries[$k][GQUE_MAXT][0] : "&gt;";
+            $cpu     = @($qentries[$k][GQUE_ASCP][0]) ? $qentries[$k][GQUE_ASCP][0] : "N/A";
+            $gridque = @($qentries[$k][GQUE_GQUE][0]) ? $qentries[$k][GQUE_GQUE][0] : "0";
+            $gmque   = @($qentries[$k][GQUE_PQUE][0]) ? ($qentries[$k][GQUE_PQUE][0]) : 0; /* new since 0.5.38 */
+            $gridrun = @($qentries[$k][GQUE_GRUN][0]) ? $qentries[$k][GQUE_GRUN][0] : "0";
+            $quewin  = popup("quelist.php?host=$host&port=$port&qname=$qname",750,430,6,$lang,$debug);
+        }
 	$gridque = $gridque + $gmque;
 	if ( $queued == 0 ) $queued = $locque + $gridque;
 

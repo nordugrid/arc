@@ -87,7 +87,7 @@ namespace Arc
     }
 
     // Seek "<jobnumber>.<randomstring>" files.
-    Arc::RegularExpression logfilepattern("^[0-9]+\\.[^.]+$");
+    Arc::RegularExpression logfilepattern("^[0-9A-Za-z]+\\.[^.]+$");
     errno = 0;
     while ((entp = readdir(dirp)) != NULL)
       {

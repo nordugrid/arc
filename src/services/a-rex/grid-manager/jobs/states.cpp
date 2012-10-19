@@ -517,7 +517,10 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
         logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i",i->job_id,i->child->Result());
       }
     }
-    if(i->child->Result() != 0) {
+    // Another workaround in Run class may also detect lost child.
+    // It then sets exit code to -1. This value is also set in
+    // case child was killed. So it is worth to check grami anyway.
+    if((i->child->Result() != 0) && (i->child->Result() != -1)) {
       if(!cancel) {
         logger.msg(Arc::ERROR,"%s: Job submission to LRMS failed",i->job_id);
         JobFailStateRemember(i,JOB_STATE_SUBMITTING);
@@ -1821,10 +1824,11 @@ bool JobsList::ScanNewJobs(void) {
 
 bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
   // We are going to scan a dir with a lot of files here. So we scan it in
-  // parts and limit scanning time. Here we also use a separate temporary
-  // jobs list for processing jobs in parallel to the main list. If a finished
-  // job is to be restarted it gets added back to the main list.
-  JobsList old_jobs(*user, *plugins);
+  // parts and limit scanning time. A finished job is added to the job list
+  // and acted on straight away. If it remains finished or is deleted then it
+  // will be removed again from the list. If it is restarted it will be kept in
+  // the list and processed as normal in the next processing loop. Restarts
+  // are normally processed in ScanNewMarks but can also happen here.
   time_t start = time(NULL);
   if(max_scan_time < 10) max_scan_time=10; // some sane number - 10s
   std::string cdir=config.control_dir+"/finished";
@@ -1853,18 +1857,8 @@ bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
             job_state_t st = job_state_read_file(id.id,config);
             if(st == JOB_STATE_FINISHED || st == JOB_STATE_DELETED) {
               JobsList::iterator i;
-              old_jobs.AddJobNoCheck(id.id, i, uid, gid);
-              old_jobs.ActJob(i);
-              // if job moved to final state it will be deleted from list,
-              // otherwise it was restarted and kept in list. If it went back
-              // to ACCEPTED then it will be picked up automatically, but for
-              // other states we have to add it back to main list (restarts are
-              // normally handled by ScanNewMarks but can also happen here).
-              if (old_jobs.size() != 0) {
-                i = old_jobs.begin();
-                if (i->get_state() != JOB_STATE_ACCEPTED) jobs.push_back(*i);
-                old_jobs.erase(i);
-              }
+              AddJobNoCheck(id.id, i, uid, gid);
+              ActJob(i);
               --max_scan_jobs;
             }
           }

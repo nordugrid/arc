@@ -38,6 +38,7 @@ $port   = @( $_GET["port"] )   ? $_GET["port"]   : 2135;
 $status = @( $_GET["status"] ) ? $_GET["status"] : "Running";
 $jobdn  = @( $_GET["jobdn"] )  ? $_GET["jobdn"]  : "all";
 $debug  = @( $_GET["debug"] )  ? $_GET["debug"]  : 0;
+$schema = @( $_GET["schema"] ) ? $_GET["schema"] : "NG";
 $lang   = @$_GET["lang"];
 if ( !$lang )    $lang    = "default"; // browser language
 define("FORCE_LANG",$lang);
@@ -74,6 +75,11 @@ $lim = array( "dn", JOB_NAME, JOB_EQUE, JOB_GOWN, JOB_STAT, JOB_USET, JOB_SUBM, 
 // ldapsearch filter string for jobs
 
 $filstr="(objectclass=".OBJ_AJOB.")";
+
+if ( $schema == "GLUE2") {
+  $lim = array( "dn", GJOB_NAME, GJOB_EQUE, GJOB_GOWN, GJOB_STAT, GJOB_USET, GJOB_SUBM, GJOB_CPUS );
+  $filstr="(objectclass=".GOBJ_AJOB.")";
+}
 
 if ( $debug ) {
   ob_end_flush();

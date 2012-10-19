@@ -91,7 +91,7 @@ function emirs_info($emirslist,$element,$errors,$gentries,$debug="0",$cert)
          */
         // Introduce "fake" DN for tagging purpose - helps skipping sites registering twice
         $fakedn  = "hn=".$url["host"].", ".$url["base"];
-        if ( @$tag[$fakedn] ) continue;
+        //if ( @$tag[$fakedn] ) continue; // Note: We need all enpoint about a service!!!
 
         if ( @$blacklist[$curhost] ) {
           if ( $debug>0 ) dbgmsg("<div align=\"left\"><font color=\"red\"><b>".$errors["122"]."$curhost</b></font></div>\n");
@@ -106,7 +106,7 @@ function emirs_info($emirslist,$element,$errors,$gentries,$debug="0",$cert)
 
         $entries[$counter]["host"] = $url["host"];
         $entries[$counter]["port"] = $url["port"];
-        $entries[$counter]["base"] = $url["path"];
+        $entries[$counter]["base"] = substr($url["path"],1);
         if ( $debug == 2 ) dbgmsg("<div align=\"left\">".$errors["123"]."$base: <i>$fakedn</i></div>\n");
         $tag[$fakedn] = 1;
         $counter++;
@@ -120,7 +120,7 @@ function emirs_info($emirslist,$element,$errors,$gentries,$debug="0",$cert)
   // Some debugging printout
   if ( $debug == 2 ) {
     dbgmsg("<div align=\"center\"><br><u>".$errors["119"].$element.": ".$counter."</u><br></div>");
-    foreach ( $entries as $num=>$val ) dbgmsg($val["host"].":".$val["base"]."<br>");
+    foreach ( $entries as $num=>$val ) dbgmsg($val["host"].":".$val["port"]."/".$val["base"]."<br>");
   }
 
   return $entries;

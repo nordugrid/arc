@@ -61,13 +61,12 @@ class TargetInformationRetrieverTest(testutils.ARCClientTestCase):
         self.expect(status).to_be(arc.EndpointQueryingStatus.SUCCESSFUL)
         self.expect(status.getDescription()).to_be("TEST")
 
-    def test_the_status_is_STARTED_first(self):
+    def test_the_status_is_started_first(self):
         retriever = arc.TargetInformationRetriever(self.usercfg)
         container = arc.ComputingServiceContainer()
         retriever.addConsumer(container)
         arc.TargetInformationRetrieverPluginTESTControl.delay = 0.1
         retriever.addEndpoint(self.ce)
-        time.sleep(0.08)
         status = retriever.getStatusOfEndpoint(self.ce)
         self.expect(status).to_be(arc.EndpointQueryingStatus.STARTED)
         retriever.wait()

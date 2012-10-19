@@ -293,7 +293,6 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %{_mingw32_libdir}/python?.?/site-packages/_arc.dll*
 %{_mingw32_libdir}/python?.?/site-packages/arc.py*
-%{_mingw32_libdir}/python?.?/site-packages/arcom
 %{_mingw32_libdir}/python?.?/site-packages/cache
 %{_mingw32_libdir}/python?.?/site-packages/echo_python
 %{_mingw32_libdir}/%{pkgdir}/libpythonservice.dll*

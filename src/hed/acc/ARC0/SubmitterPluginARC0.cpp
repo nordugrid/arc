@@ -131,6 +131,7 @@ namespace Arc {
       }
   
       URL jobid(url);
+      URL ContactString(url);
       jobid.ChangePath(jobid.Path() + '/' + jobnumber);
   
       if (!PutFiles(preparedjobdesc, jobid)) {
@@ -149,6 +150,17 @@ namespace Arc {
       if (infoendpoint) {
         j.IDFromEndpoint = infoendpoint.fullstr();
       }
+
+      // Proposed mandatory attributes for ARC 3.0
+      j.ID = jobid.fullstr();
+      j.ResourceInfoURL = infoendpoint;
+      j.ResourceInfoURL.ChangeLDAPFilter("");
+      j.ResourceInfoInterfaceName = "org.nordugrid.ldapng";
+      j.ActivityInfoURL = infoendpoint;
+      j.ActivityInfoInterfaceName = "org.nordugrid.ldapng";
+      j.ActivityManagerURL = ContactString;
+      j.ActivityManagerInterfaceName = "org.nordugrid.gridftpjob";
+      j.ActivityID = jobnumber;
 
       AddJobDetails(preparedjobdesc, jobid, jobInformationEndpoint, j);
       jc.addEntity(j);
@@ -240,6 +252,7 @@ namespace Arc {
       }
   
       URL jobid(url);
+      URL ContactString(url);
       jobid.ChangePath(jobid.Path() + '/' + jobnumber);
   
       if (!PutFiles(preparedjobdesc, jobid)) {
@@ -262,6 +275,18 @@ namespace Arc {
   
       Job j;
       j.IDFromEndpoint = infoendpoint.fullstr();
+      
+      // Proposed mandatory attributes for ARC 3.0
+      j.ID = jobid.fullstr();
+      j.ResourceInfoURL = infoendpoint;
+      j.ResourceInfoURL.ChangeLDAPFilter("");
+      j.ResourceInfoInterfaceName = "org.nordugrid.ldapng";
+      j.ActivityInfoURL = infoendpoint;
+      j.ActivityInfoInterfaceName = "org.nordugrid.ldapng";
+      j.ActivityManagerURL = ContactString;
+      j.ActivityManagerInterfaceName = "org.nordugrid.gridftpjob";
+      j.ActivityID = jobnumber;
+      
       AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, j);
       jc.addEntity(j);
     }

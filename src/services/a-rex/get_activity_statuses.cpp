@@ -278,10 +278,8 @@ Arc::MCC_Status ARexService::ESGetActivityStatus(ARexGMConfig& config,Arc::XMLNo
           UnknownActivityIDFault
           UnableToRetrieveStatusFault
           OperationNotPossibleFault
+          OperationNotAllowedFault
 
-    UnknownActivityIDFault - only in ActivityManagement
-    UnableToRetrieveStatusFault - only in ActivityManagement
-    OperationNotPossibleFault - only in ActivityManagement
     estypes:VectorLimitExceededFault
     estypes:AccessControlFault
     estypes:InternalBaseFault
@@ -305,7 +303,7 @@ Arc::MCC_Status ARexService::ESGetActivityStatus(ARexGMConfig& config,Arc::XMLNo
     if(!job) {
       // There is no such job
       logger_.msg(Arc::ERROR, "EMIES:GetActivityStatus: job %s - %s", jobid, job.Failure());
-      ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
+      ESActivityNotFoundFault(item.NewChild("dummy"),job.Failure());
     } else {
       bool job_pending = false;
       std::string gm_state = job.State(job_pending);
@@ -343,17 +341,18 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
           AttributeInfoItem 1-
             AttributeName
             AttributeValue
-          estypes:InternalBaseFault
-          estypes:AccessControlFault
-          UnknownActivityIDFault
+          InternalBaseFault
+          AccessControlFault
+          ActivityNotFoundFault
           UnknownAttributeFault
+          UnableToRetrieveStatusFault
+          OperationNotPossibleFault
+          OperationNotAllowedFault
 
     estypes:VectorLimitExceededFault
     UnknownAttributeFault
-    UnknownActivityIDFault
     estypes:AccessControlFault
     estypes:InternalBaseFault
-    missing OperationNotPossibleFault, why!?
    */
   Arc::XMLNode id = in["ActivityID"];
   unsigned int n = 0;
@@ -365,8 +364,12 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
       return Arc::MCC_Status(Arc::STATUS_OK);
     };
   };
-  if(in["AttributeName"]) {
-    ESInternalBaseFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
+  std::list<std::string> attributes;
+  for(Arc::XMLNode anode = in["AttributeName"];(bool)anode;++anode) {
+    attributes.push_back((std::string)anode);
+  };
+  if(!attributes.empty()) {
+    ESUnknownAttributeFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
                         "Selection by AttributeName is not implemented yet");
     out.Destroy();
     return Arc::MCC_Status(Arc::STATUS_OK);
@@ -380,8 +383,13 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
     if(!job) {
       // There is no such job
       logger_.msg(Arc::ERROR, "EMIES:GetActivityStatus: job %s - %s", jobid, job.Failure());
-      ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
+      ESActivityNotFoundFault(item.NewChild("dummy"),job.Failure());
     } else {
+      //  ActivityInfoDocument (glue:ComputingActivity_t)
+      //    StageInDirectory 0-
+      //    StageOutDirectory 0-
+      //    SessionDirectory 0-
+      //    ComputingActivityHistory 0-1
       std::string glue_s;
       Arc::XMLNode info;
       if(job_xml_read_file(jobid,config.GmConfig(),glue_s)) {
@@ -419,8 +427,8 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
         };
       };
       if(!info) {
-        logger_.msg(Arc::ERROR, "EMIES:GetActivityInfo: job %s - failed to retrieve Glue2 information", jobid);
-        ESInternalBaseFault(item.NewChild("dummy"),"failed to retrieve Glue2 information");
+        logger_.msg(Arc::ERROR, "EMIES:GetActivityInfo: job %s - failed to retrieve GLUE2 information", jobid);
+        ESInternalBaseFault(item.NewChild("dummy"),"Failed to retrieve GLUE2 information");
         // It would be good to have something like UnableToRetrieveStatusFault here
       };
     };
@@ -434,24 +442,23 @@ Arc::MCC_Status ARexService::ESNotifyService(ARexGMConfig& config,Arc::XMLNode i
       NotifyRequestItem 1-
         estypes:ActivityID
         NotifyMessage
-          [CLIENT-DATAPULL-DONE|CLIENT-DATAPUSH-DONE]
+          [client-datapull-done|client-datapush-done]
 
     NotifyServiceResponse
-      NotifyResponseItem
+      NotifyResponseItem 1-
         estypes:ActivityID
         .
           Acknowledgement
-          estypes:InternalBaseFault
           OperationNotPossibleFault
           OperationNotAllowedFault
-          estypes:AccessControlFault
+          InternalNotificationFault
+          ActivityNotFoundFault
+          AccessControlFault
+          InternalBaseFault
 
     estypes:VectorLimitExceededFault
     estypes:AccessControlFault
     estypes:InternalBaseFault
-    InternalNotificationFault
-    OperationNotPossibleFault
-    OperationNotAllowedFault
    */
   Arc::XMLNode item = in["NotifyRequestItem"];
   unsigned int n = 0;
@@ -473,21 +480,24 @@ Arc::MCC_Status ARexService::ESNotifyService(ARexGMConfig& config,Arc::XMLNode i
     if(!job) {
       // There is no such job
       logger_.msg(Arc::ERROR, "EMIES:NotifyService: job %s - %s", jobid, job.Failure());
-      ESUnknownActivityIDFault(ritem.NewChild("dummy"),job.Failure());
+      ESActivityNotFoundFault(ritem.NewChild("dummy"),job.Failure());
     } else {
-      if(msg == "CLIENT-DATAPULL-DONE") {
+      if(msg == "client-datapull-done") {
         // Client is done with job. Same as wipe request. Or should job go to deleted?
         if(!job.Clean()) {
           // Failure is not fatal here
           logger_.msg(Arc::ERROR, "EMIES:NotifyService: job %s - %s", jobid, job.Failure());
         };
-      } else if(msg == "CLIENT-DATAPUSH-DONE") {
+        item.NewChild("esmanag:Acknowledgement");
+      } else if(msg == "client-datapush-done") {
         if(!job.ReportFilesComplete()) {
           ESInternalBaseFault(ritem.NewChild("dummy"),job.Failure());
+        } else {
+          item.NewChild("esmanag:Acknowledgement");
         };
       } else {
         // Wrong request
-        ESInternalBaseFault(ritem.NewChild("dummy"),"Unsupported notification type "+msg);
+        ESInternalNotificationFault(ritem.NewChild("dummy"),"Unsupported notification type "+msg);
         // Or maybe OperationNotPossibleFault?
       };
     };
