@@ -313,9 +313,15 @@ namespace Arc
       }
     
     //MachineName
-    if (find("nodename")!=end())
+    if (find("headnode")!=end())
       {
-        ur.NewChild("MachineName")=mainnode;
+        std::string machinename=(*this)["headnode"];
+        size_t first = machinename.find(":");
+        size_t last = machinename.find(":", first+1);
+        if (last == std::string::npos) {
+            last=machinename.length();
+        }
+        ur.NewChild("MachineName")=machinename.substr(first+3,last-first-3);
       }
     
     //Host

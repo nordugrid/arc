@@ -5,7 +5,6 @@ OGF-UR property      CAR property             A-REX log entry          ARC-UR pr
 RecordIdentity:*     RecordIdentity*          nodename, ngjobid 
                                               (hyphen-separated, 
                                                with custom prefix)
-                     Host                     nodename
 GlobalJobId:         GlobalJobId              globalid                 globaljobid
 LocalJobId:          LocalJobId*              localjobid               localjobid             LocalJobId
 ProcessId:                                    [MISSING]                processid
@@ -21,11 +20,10 @@ CpuDuration: (ISO)   CpuDuration* (ISO) all   usedcputime (sec)        usedcputi
     system              system                usedkernelcputime (sec)
 StartTime: (UTC)     StartTime* (UTC)         submissiontime           submissiontime         StartTime
 EndTime: (UTC)       EndTime* (UTC)           endtime                  endtime                EndTime
-MachineName:                                  nodename                 nodename               Site
-Host:                                         nodename
+Host:                Host                     nodename                 nodename               Site
 SubmitHost:                                   clienthost               submithost
                                               (port number removed)
-                     MachineName, SubmitHost* headnode                                        SubmitHost
+MachineName:         MachineName, SubmitHost* headnode                                        SubmitHost
                       Site*
                      Infrastructure* (desc.)  lrms
 Queue:               Queue*                   queue                    queue (lrms)
