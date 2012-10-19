@@ -162,6 +162,16 @@ static Glib::Mutex suid_lock;
     return 0;
   }
 
+  bool User::SwitchUser() const {
+    // set proper umask
+    umask(0077);
+    if (getuid() != 0 && uid != 0 && getuid() != uid) return false;
+    if (uid != 0) {
+      setgid(gid); // this is not an error if group failed, not a big deal
+      if (setuid(uid) != 0) return false;
+    }
+    return true;
+  }
 
 #else
   // Win32 implementation
@@ -254,6 +264,11 @@ static Glib::Mutex suid_lock;
   int User::check_file_access(const std::string& path, int flags) const {
     // XXX NOP
     return 0;
+  }
+
+  bool User::SwitchUser(bool su) const {
+    // XXX NOP
+    return false;
   }
 #endif
 
