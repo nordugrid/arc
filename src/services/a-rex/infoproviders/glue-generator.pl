@@ -5,6 +5,8 @@
 # Merged with adjusted bdii-update (David Groep, L.Field, M.Litmaath) by L.Field and M.Flechl (2006-08-21)
 # ARC GIIS traversal and some sanity checks for failing GRISes by Mattias Wadenstein (2007-07-03)
 # Updated to work at a resource bdii-level by Daniel (2009-2010)
+# Now we can generate the CEUniqueID correctly with the queue name by Pekka Kaitaniemi (2012-04-19)
+#
 # $Id: glite-info-provider-ndgf,v 1.1 2006/08/30 12:13:15 lfield Exp $ 
 
 use strict;
@@ -13,6 +15,14 @@ use POSIX;
 use IO::Handle;
 
 sub translator;
+
+sub build_glueCEUniqueID
+{
+    my $cluster_name = shift;
+    my $cluster_lrms_type = shift;
+    my $queue_name = shift;
+    return $cluster_name . ":" . "2811" . "/nordugrid-". $cluster_lrms_type . "-" . $queue_name;
+}
 
 # Global variables for translator
 use vars qw($DEFAULT); $DEFAULT = 0;
@@ -116,7 +126,6 @@ sub translator(){
 
     @envs = split / /, $cluster_attributes{'nordugrid-cluster-runtimeenvironment'};
     my @storages = split / /, $cluster_attributes{'nordugrid-cluster-localse'};
-    my $glueCEUniqueID = '';
     
     $outbIP = "FALSE";
     $inbIP = "FALSE";
@@ -174,18 +183,15 @@ sub translator(){
 	WriteSubCluster();
     }
 
-    # Get the CE Unique ID
-    $glueCEUniqueID = $cluster_attributes{'nordugrid-cluster-name'} . ":" . "2811" . "/nordugrid-". $cluster_attributes{'nordugrid-cluster-lrms-type'} . "-" . "arc"; #$queue_attributes{'nordugrid-queue-name'};
-
     #Do GlueCE entry for each nordugrid queue
-    write_gluece_entries(\@ldif, $glueCEUniqueID);
+    write_gluece_entries(\@ldif);
 
     # Write Cluster Entries
-    write_cluster_entries($cluster_attributes{'nordugrid-cluster-name'},$glue_site_unique_id,$glueCEUniqueID);
+    write_cluster_entries($cluster_attributes{'nordugrid-cluster-name'},$glue_site_unique_id);
 
     #write CE-SE Binding Entries
-    if ( $cluster_attributes{'nordugrid-cluster-localse'} !=  0 ) {
-        write_ce_se_binding_entries($cluster_attributes{'nordugrid-cluster-localse'},$glueCEUniqueID,\@storages);
+    if ( $cluster_attributes{'nordugrid-cluster-localse'} ) {
+        write_ce_se_binding_entries($cluster_attributes{'nordugrid-cluster-localse'},\@storages);
     }
 }
 
@@ -322,7 +328,6 @@ GlueSchemaVersionMinor: 2
 sub write_gluece_entries(){
     my $s_ldif=shift;
     my @ldif = @{$s_ldif};
-    my $ce_unique_id=shift;
     my $is_queue="false";
     my @tmp_queue;
 
@@ -429,6 +434,10 @@ sub write_gluece_entries(){
         }
 	    $worstRespTime = $estRespTime + 2000;
 	    my @vos= split / /, $cluster_attributes{'nordugrid-cluster-acl'};
+        
+        my $ce_unique_id=build_glueCEUniqueID($cluster_attributes{'nordugrid-cluster-name'},
+						  $cluster_attributes{'nordugrid-cluster-lrms-type'},
+						  $queue_attributes{'nordugrid-queue-name'});
 
 	    # Write CE Entries
 	    
@@ -516,7 +525,9 @@ GlueCEStateFreeJobSlots: $freeSlots
 sub write_cluster_entries(){
     my $cluster_name=shift;
     my $site_unique_id=shift;
-    my $ce_unique_id=shift;
+    my $ce_unique_id=build_glueCEUniqueID($cluster_attributes{'nordugrid-cluster-name'},
+					  $cluster_attributes{'nordugrid-cluster-lrms-type'},
+					  $queue_attributes{'nordugrid-queue-name'});
     print "
 dn: GlueClusterUniqueID=$cluster_name,mds-vo-name=resource,o=grid
 objectClass: GlueClusterTop
@@ -537,7 +548,9 @@ GlueSchemaVersionMinor: 2
 
 sub write_ce_se_binding_entries(){
     my $localse=shift;
-    my $ce_unique_id=shift;
+    my $ce_unique_id=build_glueCEUniqueID($cluster_attributes{'nordugrid-cluster-name'},
+					  $cluster_attributes{'nordugrid-cluster-lrms-type'},
+					  $queue_attributes{'nordugrid-queue-name'});
     my $s_storages=shift;
     my @storages=@{$s_storages};
     
