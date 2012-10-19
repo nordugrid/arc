@@ -60,7 +60,6 @@ class JobPlugin: public FilePlugin {
   bool rsl_opened;
   DirectFilePlugin* direct_fs;
   bool readonly;
-  static RunParallel run;
   std::vector<gm_dirs_> gm_dirs_info;
   std::vector<gm_dirs_> gm_dirs_non_draining;
   std::vector<std::string> session_dirs;

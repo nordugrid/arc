@@ -297,8 +297,6 @@ private:
   std::string allow_submit;
   /// List of associated external processes
   std::list<ExternalHelper> helpers;
-  /// List of jobs (filled by external functions)
-  JobsList* jobs;
 
   /// Whether to use secure (encrypted) data transfer
   bool use_secure_transfer;

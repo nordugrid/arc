@@ -15,7 +15,7 @@
 #include "run_parallel.h"
 
 typedef struct {
-  const JobUser* user;
+  const GMConfig* config;
   const JobDescription* job;
   const char* reason;
 } job_subst_t;
@@ -43,29 +43,20 @@ static void job_subst(std::string& str,void* arg) {
       p+=2;
     };
   };
-  subs->user->substitute(str);
+  subs->config->Substitute(str, subs->job->get_user());
 }
 
-bool RunParallel::run(const JobUser& user,const JobDescription& desc,const char *const args[],Arc::Run** ere,bool su) {
-  RunPlugin* cred = user.CredPlugin();
-  job_subst_t subs; subs.user=&user; subs.job=&desc; subs.reason="external";
+bool RunParallel::run(const GMConfig& config,const JobDescription& desc,const char *const args[],Arc::Run** ere,bool su) {
+  RunPlugin* cred = config.CredPlugin();
+  job_subst_t subs; subs.config=&config; subs.job=&desc; subs.reason="external";
   if((!cred) || (!(*cred))) { cred=NULL; };
-  //RunPlugin* cred = NULL;
-  if(user.get_uid() == 0) {
-    JobUser tmp_user(user.Env(),desc.get_uid(),desc.get_gid());
-    if(!tmp_user.is_valid()) return false;
-    tmp_user.SetControlDir(user.ControlDir());
-    tmp_user.SetSessionRoot(user.SessionRoot(desc.get_id()));
-    return run(tmp_user,desc.get_id().c_str(),args,ere,su,
-                                        true,cred,&job_subst,&subs);
-  };
-  return run(user,desc.get_id().c_str(),args,ere,su,
-                                      true,cred,&job_subst,&subs);
+  return run(config,desc.get_user(),desc.get_id().c_str(),args,ere,su,
+                                    true,cred,&job_subst,&subs);
 }
 
 /* fork & execute child process with stderr redirected 
    to job.ID.errors, stdin and stdout to /dev/null */
-bool RunParallel::run(const JobUser& user,const char* jobid,const char *const args[],Arc::Run** ere,bool su,bool job_proxy,RunPlugin* cred,RunPlugin::substitute_t subst,void* subst_arg) {
+bool RunParallel::run(const GMConfig& config,const Arc::User& user,const char* jobid,const char *const args[],Arc::Run** ere,bool su,bool job_proxy,RunPlugin* cred,RunPlugin::substitute_t subst,void* subst_arg) {
   *ere=NULL;
   std::list<std::string> args_;
   for(int n = 0;args[n];++n) args_.push_back(std::string(args[n]));
@@ -76,7 +67,7 @@ bool RunParallel::run(const JobUser& user,const char* jobid,const char *const ar
     return false;
   };
   if(kicker_func_) re->AssignKicker(kicker_func_,kicker_arg_);
-  RunParallel* rp = new RunParallel(user,jobid,su,job_proxy,cred,subst,subst_arg);
+  RunParallel* rp = new RunParallel(config,user,jobid,su,job_proxy,cred,subst,subst_arg);
   if((!rp) || (!(*rp))) {
     if(rp) delete rp;
     delete re;
@@ -106,9 +97,14 @@ void RunParallel::initializer(void* arg) {
   if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; }
   else { max_files=4096; };
   // change user
-  if(!(it->user_.SwitchUser(it->su_))) {
-    logger.msg(Arc::ERROR,"%s: Failed switching user",it->jobid_); sleep(10); exit(1);
-  };
+  if(it->su_) {
+    if(!(it->user_.SwitchUser())) {
+      logger.msg(Arc::ERROR,"%s: Failed switching user",it->jobid_); sleep(10); exit(1);
+    };
+  } else {
+    // just set good umask
+    umask(0077);
+  }
   if(it->cred_) {
     // run external plugin to acquire non-unix local credentials
     if(!it->cred_->run(it->subst_,it->subst_arg_)) {
@@ -129,7 +125,7 @@ void RunParallel::initializer(void* arg) {
   if(h != 1) { if(dup2(h,1) != 1) { sleep(10); exit(1); }; close(h); };
   std::string errlog;
   if(!(it->jobid_.empty())) { 
-    errlog = it->user_.ControlDir() + "/job." + it->jobid_ + ".errors";
+    errlog = it->config_.ControlDir() + "/job." + it->jobid_ + ".errors";
     h=::open(errlog.c_str(),O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
     if(h==-1) { h=::open("/dev/null",O_WRONLY); };
   }
@@ -143,7 +139,7 @@ void RunParallel::initializer(void* arg) {
     Arc::UnsetEnv("X509_RUN_AS_SERVER");
     Arc::UnsetEnv("X509_CERT_DIR");
     if(!(it->jobid_.empty())) {
-      std::string proxy = it->user_.ControlDir() + "/job." + it->jobid_ + ".proxy";
+      std::string proxy = it->config_.ControlDir() + "/job." + it->jobid_ + ".proxy";
       Arc::SetEnv("X509_USER_PROXY",proxy);
       // for Globus 2.2 set fake cert and key, or else it takes 
       // those from host in case of root user.
@@ -156,9 +152,9 @@ void RunParallel::initializer(void* arg) {
       Arc::SetEnv("X509_USER_KEY",proxy);
       Arc::SetEnv("X509_USER_CERT",proxy);
 #endif
-      std::string cert_dir = it->user_.Env().cert_dir_loc();
+      std::string cert_dir = it->config_.CertDir();
       if(!cert_dir.empty()) Arc::SetEnv("X509_CERT_DIR",cert_dir);
-      std::string voms_dir = it->user_.Env().voms_dir_loc();
+      std::string voms_dir = it->config_.VomsDir();
       if(!voms_dir.empty()) Arc::SetEnv("X509_VOMS_DIR",voms_dir);
     };
   };

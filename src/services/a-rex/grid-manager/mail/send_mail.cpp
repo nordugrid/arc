@@ -87,7 +87,7 @@ bool send_mail(const JobDescription &desc,JobUser &user) {
   for(mail_n--;mail_n>=0;mail_n--) {
     args[7+mail_n]=(char*)(mails[mail_n].c_str());
   };
-  if(!RunParallel::run(user,desc,args,&child)) {
+  if(!RunParallel::run(config,desc,args,&child)) {
     logger.msg(Arc::ERROR,"Failed running mailer");
     return false;
   };

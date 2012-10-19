@@ -198,7 +198,7 @@ bool JobLog::RunReporter(JobUsers &users) {
   args[argc]=NULL;
   JobUser user(users.Env(),getuid(),getgid());
   user.SetControlDir(users.begin()->ControlDir());
-  bool res = RunParallel::run(user,"logger",args,&proc,false,false);
+  bool res = RunParallel::run(config,Arc::User(),"logger",args,&proc,false,false);
   free(args);
   return res;
 }

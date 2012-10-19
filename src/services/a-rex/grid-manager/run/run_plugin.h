@@ -8,6 +8,7 @@
 #include <list>
 #include <pthread.h>
 
+/// Run external process for acquiring local credentials.
 class RunPlugin {
  private:
   std::list<std::string> args_;

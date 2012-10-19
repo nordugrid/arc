@@ -5,14 +5,12 @@
 #include <list>
 
 #include "job.h"
-#include "../conf/GMConfig.h"
-
-#include "job_config.h"
 
 class JobUser;
 class ContinuationPlugins;
 class JobFDesc;
 class DTRGenerator;
+class GMConfig;
 
 // List of jobs. This object is cross-linked to JobUser object, which
 // represents owner of these jobs. This class contains the main job management
@@ -30,10 +28,10 @@ class JobsList {
   // current max share for preparing/finishing
   std::map<std::string, int> preparing_max_share;
   std::map<std::string, int> finishing_max_share;
-  // User who owns these jobs
-  JobUser *user;
+  // GM configuration
+  const GMConfig& config;
   // Plugins configured to run at certain state changes
-  ContinuationPlugins *plugins;
+//  ContinuationPlugins *plugins;
   // Dir containing finished/deleted jobs which is scanned in ScanOldJobs.
   // Since this can happen over multiple calls a pointer is kept as a member
   // variable so scanning picks up where it finished last time.
@@ -65,7 +63,7 @@ class JobsList {
   bool state_loading(const iterator &i,bool &state_changed,bool up,bool &retry);
   // Check if job is allowed to progress to a staging state. up is true
   // for uploads (FINISHING) and false for downloads (PREPARING).
-  bool CanStage(const JobsList::iterator &i, const JobsListConfig& jcfg, bool up);
+  bool CanStage(const JobsList::iterator &i, bool up);
   // Returns true if job is waiting on some condition or limit before
   // progressing to the next state
   bool JobPending(JobsList::iterator &i);
@@ -85,7 +83,7 @@ class JobsList {
   // restarting state
   bool RestartJobs(const std::string& cdir,const std::string& odir);
   // Choose the share for a new job (for old staging only)
-  void ChooseShare(JobsList::iterator& i, const JobsListConfig& jcfg, JobUser* user);
+  void ChooseShare(JobsList::iterator& i);
   // Calculate share information for data staging (downloader/uploader staging
   // only), in DTR this is done internally
   void CalculateShares();
@@ -118,8 +116,8 @@ class JobsList {
   void ActJobDeleted(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
 
  public:
-  // Constructor. 'user' contains associated user
-  JobsList(JobUser &user,ContinuationPlugins &plugins);
+  // Constructor.
+  JobsList(const GMConfig& config);
   // std::list methods for using JobsList like a regular list
   iterator begin(void) { return jobs.begin(); };
   iterator end(void) { return jobs.end(); };

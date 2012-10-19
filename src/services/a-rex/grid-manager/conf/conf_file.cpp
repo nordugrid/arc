@@ -472,10 +472,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
   cmd += " " + config.control_dir;
   config.helpers.push_back(cmd);
 
-  // creating empty list of jobs
-  JobsList *jobs = new JobsList(*user,*config.cont_plugins);
-  config.jobs = jobs; // back-associate jobs with user :)
-
   // Get cache parameters
   try {
     CacheConfig cache_config = CacheConfig(config.conffile);
@@ -840,10 +836,6 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
   if (!config.conffile.empty()) cmd += " --config " + config.conffile;
   cmd += " " + config.control_dir;
   config.helpers.push_back(cmd);
-
-  // creating empty list of jobs
-  JobsList *jobs = new JobsList(*user,*config.cont_plugins);
-  config.jobs = jobs; // back-associate jobs with user :)
 
   return true;
 }

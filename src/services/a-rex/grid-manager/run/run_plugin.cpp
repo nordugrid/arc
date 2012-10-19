@@ -8,7 +8,6 @@
 
 #include <arc/Run.h>
 
-#include "../conf/environment.h"
 #include "../conf/conf.h"
 #include "run_plugin.h"
 
