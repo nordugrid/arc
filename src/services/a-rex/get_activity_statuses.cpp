@@ -79,7 +79,7 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
     Arc::XMLNode glue_xml;
     if(status_verbosity != VerbBES) {
       std::string glue_s;
-      if(job_xml_read_file(jobid,*config.User(),glue_s)) {
+      if(job_xml_read_file(jobid,config.GmConfig(),glue_s)) {
         Arc::XMLNode glue_xml_tmp(glue_s);
         glue_xml.Exchange(glue_xml_tmp);
       };
@@ -89,7 +89,7 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
 //    glue_states_lock_.unlock();
     if(status_verbosity == VerbFull) {
       std::string glue_s;
-      if(job_xml_read_file(jobid,*config.User(),glue_s)) {
+      if(job_xml_read_file(jobid,config.GmConfig(),glue_s)) {
         Arc::XMLNode glue_xml(glue_s);
         if((bool)glue_xml) {
           st.NewChild(glue_xml);
@@ -384,7 +384,7 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
     } else {
       std::string glue_s;
       Arc::XMLNode info;
-      if(job_xml_read_file(jobid,*config.User(),glue_s)) {
+      if(job_xml_read_file(jobid,config.GmConfig(),glue_s)) {
         Arc::XMLNode glue_xml(glue_s);
         // TODO: if xml information is not ready yet create something minimal
         // TODO: filter by AttributeName

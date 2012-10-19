@@ -26,8 +26,7 @@
 #include <arc/credential/Credential.h>
 #include <arc/ws-addressing/WSA.h>
 
-#include "grid-manager/conf/environment.h"
-#include "grid-manager/conf/conf_pre.h"
+#include "grid-manager/conf/GMConfig.h"
 #include "grid-manager/jobs/job.h"
 #include "grid-manager/jobs/plugins.h"
 #include "grid-manager/jobs/job_request.h"

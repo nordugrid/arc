@@ -11,8 +11,7 @@
 #include "grid-manager/grid_manager.h"
 //#include "delegation/DelegationStore.h"
 #include "delegation/DelegationStores.h"
-
-class GMConfig;
+#include "grid-manager/conf/GMConfig.h"
 
 namespace ARex {
 

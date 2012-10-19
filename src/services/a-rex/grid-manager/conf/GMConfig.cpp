@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <grp.h>
 #include <pwd.h>
+#include <unistd.h>
 #include <sys/stat.h>
 
 #include <arc/ArcLocation.h>
@@ -178,8 +179,8 @@ static bool fix_directory(const std::string& path, GMConfig::fixdir_t fixmode, m
   // GMConfig::fixdir_always
   if (!Arc::DirCreate(path, mode, true)) return false;
   // Only can switch owner if running as root
-  if (::getuid() == 0) ::chown(path.c_str(), uid, gid);
-  ::chmod(path.c_str(), mode);
+  if (getuid() == 0) if (chown(path.c_str(), uid, gid) != 0) return false;
+  if (chmod(path.c_str(), mode) != 0) return false;
   return true;
 }
 

@@ -21,9 +21,7 @@
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
 #include "job.h"
-#include "grid-manager/conf/GMConfig.h"
 #include "grid-manager/log/job_log.h"
-#include "grid-manager/jobs/job_config.h"
 #include "grid-manager/run/run_plugin.h"
 #include "arex.h"
 
@@ -710,7 +708,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         inpayload->Namespaces(ns_);
         CountedResourceLock cl_lock(beslimit_);
         std::string credentials;
-        if(!delegation_stores_.Process(config->User()->DelegationDir(),*inpayload,*outpayload,config->GridName(),credentials)) {
+        if(!delegation_stores_.Process(config->GmConfig().DelegationDir(),*inpayload,*outpayload,config->GridName(),credentials)) {
           delete outpayload;
           return make_soap_fault(outmsg);
         };

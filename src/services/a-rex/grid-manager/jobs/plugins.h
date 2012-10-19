@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "job.h"
+
 class ContinuationPlugins {
  public:
   typedef enum {
