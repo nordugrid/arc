@@ -32,14 +32,17 @@ namespace Arc {
   void JobControllerPluginEMIES::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
     for (std::list<Job*>::iterator it = jobs.begin();
          it != jobs.end(); ++it) {
+      bool job_ok = false;
       EMIESJob job;
       job = (*it)->IDFromEndpoint;
       AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(job.manager));
       if (!ac->info(job, **it)) {
         logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID.fullstr());
-        IDsNotProcessed.push_back((*it)->JobID);
-        ((EMIESClients&)clients).release(ac.Release());
-        continue;
+        //IDsNotProcessed.push_back((*it)->JobID);
+        //((EMIESClients&)clients).release(ac.Release());
+        //continue;
+      } else {
+        job_ok = true;
       }
       // Going for more detailed state
       XMLNode jst;
@@ -47,8 +50,13 @@ namespace Arc {
       } else {
         JobStateEMIES jst_ = jst;
         if(jst_) (*it)->State = jst_;
+        job_ok = true;
       }
-      IDsProcessed.push_back((*it)->JobID);
+      if(job_ok) {
+        IDsProcessed.push_back((*it)->JobID);
+      } else {
+        IDsNotProcessed.push_back((*it)->JobID);
+      }
       ((EMIESClients&)clients).release(ac.Release());
     }
   }

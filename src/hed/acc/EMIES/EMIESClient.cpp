@@ -834,7 +834,7 @@ namespace Arc {
     item.NewChild("ResourceInfoEndpointURL") = resource.fullstr();
     for(std::list<URL>::const_iterator s = stagein.begin();
                     s!=stagein.end();++s) item.NewChild("StageInDirectory") = s->fullstr();
-    for(std::list<URL>::const_iterator s = stagein.begin();
+    for(std::list<URL>::const_iterator s = session.begin();
                     s!=session.end();++s) item.NewChild("SessionDirectory") = s->fullstr();
     for(std::list<URL>::const_iterator s = stageout.begin();
                     s!=stageout.end();++s) item.NewChild("StageOutDirectory") = s->fullstr();
