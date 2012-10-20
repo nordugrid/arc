@@ -26,6 +26,8 @@ skip the service with the given URL during service discovery
 only use this interface for submitting (e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes)
 .IP "\fB-J\fR \fIjobid\fR, \fB--jobid\fR=\fIjobid\fR"
 submits testjob given by the jobid.
+.IP "\fB-r\fR \fItime\fR, \fB--runtime\fR=\fItime\fR"
+test job runtime specified in case of the 1st test job.
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
 the file storing information about active jobs (default ~/.arc/jobs.xml)
 .IP "\fB-o\fR, \fB--jobids-to-file\fR=\fIfilename\fR"

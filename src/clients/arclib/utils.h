@@ -126,6 +126,7 @@ public:
   bool forcedownload;
 
   int testjobid;
+  int runtime;
   int timeout;
 
   std::string joblist;
