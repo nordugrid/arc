@@ -55,11 +55,11 @@ namespace Arc {
     int check_file_access(const std::string& path, int flags) const;
     /* Run command as behalf of this user */
     bool RunAs(std::string cmd);
-    /// Switch user in single-threaded environment or right after fork. Calls
-    /// setuid() and setgid() with this User's values. This can be used in the
-    /// initializer of Arc::Run to switch the owner of a child process just
-    /// after fork(). In a multi-threaded environment UserSwitch must be used
-    /// instead. Returns true if switch succeeded.
+    /// Calls setuid() and setgid() with this User's values to change the owner
+    /// of the current process. This can be used in the initializer of Arc::Run
+    /// to switch the owner of a child process just after fork(). To
+    /// temporarily change owner of a thread in a multi-threaded environment
+    /// UserSwitch should be used instead. Returns true if switch succeeded.
     bool SwitchUser() const;
   }; // class User
 
