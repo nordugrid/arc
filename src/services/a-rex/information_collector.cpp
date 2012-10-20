@@ -488,21 +488,14 @@ Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode
     //  ESFAULT("Missing Service in resource information");
     //};
   };
-  if(service) {
-    for(;service;++service) {
-      // TODO: use move instead of copy
-      out.NewChild(service);
-    }
-  } else {
-    service.NewChild("glue:ComputingService").Namespaces(glueNS);
+  Arc::XMLNode services = out.NewChild(":Services");
+  for(;service;++service) {
+    // TODO: use move instead of copy
+    services.NewChild(service);
   }
-  if(manager) {
-    for(;manager;++manager) {
-      // TODO: use move instead of copy
-      out.NewChild(manager);
-    }
-  } else {
-    service.NewChild("glue:Service").Namespaces(glueNS);
+  for(;manager;++manager) {
+    // TODO: use move instead of copy
+    services.NewChild(manager);
   }
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
