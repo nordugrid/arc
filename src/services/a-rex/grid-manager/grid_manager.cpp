@@ -65,7 +65,7 @@ class cache_st {
 };
 
 static void cache_func(void* arg) {
-  GMConfig* config = ((cache_st*)arg)->config;
+  const GMConfig* config = ((cache_st*)arg)->config;
   Arc::SimpleCondition& to_exit = ((cache_st*)arg)->to_exit;
   
   // run cache cleaning periodically forever
@@ -274,7 +274,7 @@ bool GridManager::thread() {
     }
   }
   // Start new job list
-  JobsList jobs = new JobsList(config_);
+  JobsList jobs(config_);
   logger.msg(Arc::INFO,"Picking up left jobs");
   jobs.RestartJobs();
 
@@ -341,12 +341,11 @@ bool GridManager::thread() {
   return true;
 }
 
-GridManager::GridManager(const GMConfig& config):tostop_(false), config_(config) {
+GridManager::GridManager(GMConfig& config):tostop_(false), config_(config) {
   sleep_cond_ = new Arc::SimpleCondition;
   wakeup_interface_ = NULL;
   wakeup_ = NULL;
   dtr_generator_ = NULL;
-  void* arg = (void*)this;
   if(!Arc::CreateThreadFunction(&grid_manager,(void*)this,&active_)) { };
 }
 

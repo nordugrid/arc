@@ -18,7 +18,7 @@
 #include "../conf/GMConfig.h"
 
 #include "job_request.h"
-#include "job.h"
+#include "job_desc.h"
 #include "plugins.h"
 #include "dtr_generator.h"
 #include "states.h"
@@ -1315,7 +1315,7 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,
         } else {
           state_changed=true; // to send mail
           once_more=true;
-          if(i->GetFailure(config)empty())
+          if(i->GetFailure(config).empty())
             i->AddFailure("uploader failed (post-processing)");
           job_error=true;
           finishing_job_share[i->transfer_share]--;
@@ -1387,7 +1387,7 @@ void JobsList::ActJobFinished(JobsList::iterator &i,
             CacheConfig cache_config;
             std::list<std::string> cache_per_job_dirs;
             try {
-              cache_config = CacheConfig(user->Env());
+              cache_config = CacheConfig(config);
             }
             catch (CacheConfigException& e) {
               logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
@@ -1396,6 +1396,7 @@ void JobsList::ActJobFinished(JobsList::iterator &i,
               state_changed=true;
               return;
             }
+            cache_config.substitute(config, i->user);
             std::vector<std::string> conf_caches = cache_config.getCacheDirs();
             // add each dir to our list
             for (std::vector<std::string>::iterator it = conf_caches.begin(); it != conf_caches.end(); it++) {
@@ -1435,7 +1436,6 @@ void JobsList::ActJobDeleted(JobsList::iterator &i,
 }
 
 bool JobsList::ActJob(JobsList::iterator &i) {
-  JobsListConfig& jcfg = user->Env().jobs_cfg();
   bool once_more     = true;
   bool delete_job    = false;
   bool job_error     = false;
@@ -1454,7 +1454,7 @@ bool JobsList::ActJob(JobsList::iterator &i) {
        (i->job_state != JOB_STATE_DELETED) &&
        (i->job_state != JOB_STATE_SUBMITTING)) {
       if(job_cancel_mark_check(i->job_id,config)) {
-        logger.msg(Arc::INFO,"%s: Canceling job (%s) because of user request",i->job_id,user->UnixName());
+        logger.msg(Arc::INFO,"%s: Canceling job because of user request",i->job_id);
         if (config.use_new_data_staging && dtr_generator &&
             (i->job_state == JOB_STATE_PREPARING || i->job_state == JOB_STATE_FINISHING)) {
           dtr_generator->cancelJob(*i);
@@ -1702,7 +1702,7 @@ bool JobsList::RestartJobs(const std::string& cdir,const std::string& odir) {
         time_t t;
         std::string fname=cdir+'/'+file.c_str();
         std::string oname=odir+'/'+file.c_str();
-        if(check_file_owner(fname,config,uid,gid,t)) {
+        if(check_file_owner(fname,uid,gid,t)) {
           if(::rename(fname.c_str(),oname.c_str()) != 0) {
             logger.msg(Arc::ERROR,"Failed to move file %s to %s",fname,oname);
             res=false;
@@ -1743,7 +1743,7 @@ bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) {
           uid_t uid;
           gid_t gid;
           time_t t;
-          if(check_file_owner(fname,config,uid,gid,t)) {
+          if(check_file_owner(fname,uid,gid,t)) {
             // add it to the list
             id.uid=uid; id.gid=gid; id.t=t;
             ids.push_back(id);
@@ -1777,7 +1777,7 @@ bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& s
               uid_t uid;
               gid_t gid;
               time_t t;
-              if(check_file_owner(fname,config,uid,gid,t)) {
+              if(check_file_owner(fname,uid,gid,t)) {
                 // add it to the list
                 id.uid=uid; id.gid=gid; id.t=t;
                 ids.push_back(id);
@@ -1853,7 +1853,7 @@ bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
           uid_t uid;
           gid_t gid;
           time_t t;
-          if(check_file_owner(fname,config,uid,gid,t)) {
+          if(check_file_owner(fname,uid,gid,t)) {
             job_state_t st = job_state_read_file(id.id,config);
             if(st == JOB_STATE_FINISHED || st == JOB_STATE_DELETED) {
               JobsList::iterator i;

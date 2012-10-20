@@ -8,10 +8,12 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
+#include <arc/StringConv.h>
 #include <arc/ArcLocation.h>
 #include <arc/FileUtils.h>
 #include <arc/XMLNode.h>
 
+#include "conf.h"
 #include "conf_file.h"
 #include "../run/run_parallel.h"
 
@@ -58,7 +60,6 @@ void GMConfig::SetDefaults() {
   fixdir = fixdir_always;
   reruns = DEFAULT_JOB_RERUNS;
   wakeup_period = DEFAULT_WAKE_UP;
-  jobs = NULL;
 
   use_secure_transfer = false;
   use_passive_transfer = false;
@@ -94,7 +95,7 @@ bool GMConfig::Load() {
   return true;
 }
 
-void GMConfig::Print() {
+void GMConfig::Print() const {
   for(std::vector<std::string>::const_iterator i = session_roots.begin(); i != session_roots.end(); ++i)
     logger.msg(Arc::INFO, "\tSession root dir : %s", *i);
   logger.msg(Arc::INFO, "\tControl dir      : %s", control_dir);
@@ -184,7 +185,7 @@ static bool fix_directory(const std::string& path, GMConfig::fixdir_t fixmode, m
   return true;
 }
 
-bool GMConfig::CreateDirectories() {
+bool GMConfig::CreateDirectories() const {
   bool res = true;
   if (!control_dir.empty()) {
     mode_t mode = 0;
@@ -208,7 +209,7 @@ bool GMConfig::CreateDirectories() {
     std::string deleg_dir = DelegationDir();
     if (!fix_directory(deleg_dir, fixdir_always, S_IRWXU, gm_user.get_uid(), gm_user.get_gid())) res = false;
   }
-  for (std::vector<std::string>::iterator i = session_roots.begin(); i != session_roots.end(); ++i) {
+  for (std::vector<std::string>::const_iterator i = session_roots.begin(); i != session_roots.end(); ++i) {
     mode_t mode = 0;
     if (gm_user.get_uid() == 0) {
       if (strict_session) {
@@ -325,7 +326,7 @@ bool GMConfig::RunHelpers() {
   return started;
 }
 
-void GMConfig::PrepareToDestroy() {
+void GMConfig::PrepareToDestroy() const {
   // TODO: send signals to helpers and stop started threads
 }
 

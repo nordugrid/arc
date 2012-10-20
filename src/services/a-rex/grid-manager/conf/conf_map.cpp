@@ -15,11 +15,11 @@
 
 static Arc::Logger& glogger = Arc::Logger::getRootLogger();
 
-UrlMapConfig::UrlMapConfig(GMEnvironment& env) {
+UrlMapConfig::UrlMapConfig(const GMConfig& config) {
   std::ifstream cfile;
   ConfigSections* cf = NULL;
   //if(nordugrid_config_loc().empty()) read_env_vars(true);
-  if(!config_open(cfile,env)) {
+  if(!config_open(cfile,config.ConfigFile())) {
     glogger.msg(Arc::ERROR,"Can't open configuration file");
     return;
   };

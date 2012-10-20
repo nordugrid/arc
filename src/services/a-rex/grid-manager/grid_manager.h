@@ -21,12 +21,12 @@ class GridManager {
   GMConfig& config_;
   sleep_st* wakeup_;
   DTRGenerator* dtr_generator_;
-  GridManager(void) { };
-  GridManager(const GridManager&) { };
+  GridManager();
+  GridManager(const GridManager&);
   static void grid_manager(void* arg);
   bool thread(void);
  public:
-  GridManager(const GMConfig& config);
+  GridManager(GMConfig& config);
   ~GridManager(void);
   operator bool(void) { return (active_.get()>0); };
 };

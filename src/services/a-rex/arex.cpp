@@ -867,7 +867,7 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
   } else {
     publishstaticinfo_=false;
   }
-  config_.Delegations() = &delegation_stores_;
+  config_.SetDelegations(&delegation_stores_);
   if(gmconfig_.empty()) {
     // No external configuration file means configuration is
     // directly embedded into this configuration node.

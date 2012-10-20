@@ -20,7 +20,7 @@ libgridmanager_la_LIBADD = \
 	run/librun.la misc/libmisc.la mail/libmail.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS) -lpthread
 
-gm_kick_SOURCES = gm_kick.cpp jobs/users.cpp
+gm_kick_SOURCES = gm_kick.cpp
 gm_kick_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 gm_kick_LDADD = libgridmanager.la

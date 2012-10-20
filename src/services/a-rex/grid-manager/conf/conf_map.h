@@ -3,7 +3,7 @@
 
 #include <arc/data/URLMap.h>
 
-#include "environment.h"
+#include "GMConfig.h"
 
 /*
   Look URLMap.h for functionality.
@@ -12,7 +12,7 @@
 */
 class UrlMapConfig: public Arc::URLMap {
  public:
-  UrlMapConfig(GMEnvironment& env);
+  UrlMapConfig(const GMConfig& config);
   ~UrlMapConfig(void);
 };
 

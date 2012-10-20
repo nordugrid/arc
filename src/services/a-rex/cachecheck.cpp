@@ -14,6 +14,7 @@
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
 
+#include "job.h"
 #include "arex.h"
 
 #define CACHE_CHECK_SESSION_DIR_ID "9999999999999999999999999999999"
@@ -25,7 +26,7 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
   std::vector<std::string> caches;
   // use cache dir(s) from conf file
   try {
-    CacheConfig cache_config = CacheConfig(config.GmConfig().ConfigFile());
+    CacheConfig cache_config = CacheConfig(config.GmConfig());
     cache_config.substitute(config.GmConfig(), config.User());
     caches = cache_config.getCacheDirs();
   }

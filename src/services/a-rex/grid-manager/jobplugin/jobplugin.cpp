@@ -834,7 +834,7 @@ int JobPlugin::close(bool eof) {
       error_description="Failed to read credentials.";
       return 1;
     };
-    fix_file_owner(fname,user);
+    fix_file_owner(fname,job);
     int l,ll;
     const char* s;
     char buf[256]; 
@@ -890,7 +890,7 @@ int JobPlugin::close(bool eof) {
    *********************************************** */
   /* talk to external plugin to ask if we can proceed */
   std::list<ContinuationPlugins::result_t> results;
-  cont_plugins->run(job,config,user,results);
+  cont_plugins->run(job,config,results);
   // analyze results
   std::list<ContinuationPlugins::result_t>::iterator result = results.begin();
   for(;result != results.end();++result) {
@@ -919,7 +919,7 @@ int JobPlugin::close(bool eof) {
    ************************************************************ */
   if(cred_plugin && (*cred_plugin)) {
     job_subst_t subst_arg;
-    subst_arg.user=user;
+    subst_arg.user=&user;
     subst_arg.job=&job_id;
     subst_arg.reason="new";
     // run external plugin to acquire non-unix local credentials
@@ -958,7 +958,7 @@ int JobPlugin::close(bool eof) {
   if((getuid()==0) && config.StrictSession()) {
     RESET_USER_UID;
   } else {
-    fix_file_owner(dir,user);
+    fix_file_owner(dir,job);
   }
   /* **********************************************************
    * Create status file (do it last so GM picks job up here)  *
@@ -978,7 +978,7 @@ int JobPlugin::close(bool eof) {
   // delegations.
   ARex::DelegationStore(config.DelegationDir()).LockCred(job_id,deleg_ids,subject);
 
-  SignalFIFO(config);
+  SignalFIFO(config.ControlDir());
   job_id.resize(0);
   chosenFilePlugin = NULL;
   return 0;
@@ -1461,7 +1461,7 @@ bool JobPlugin::is_allowed(const char* name,int perm,bool /* locked */,bool* spe
     if(job_desc.DN != subject) {
       // Not an owner. Check acl.
 #ifdef HAVE_GACL
-      std::string acl_file = user->ControlDir()+"/job."+id+".acl";
+      std::string acl_file = config.ControlDir()+"/job."+id+".acl";
       struct stat st;
       if(stat(acl_file.c_str(),&st) == 0) {
         if(S_ISREG(st.st_mode)) {
@@ -1634,11 +1634,10 @@ std::string JobPlugin::getControlDir(std::string id) {
   }
   // check for existence of job.id.description file (the first created)
   for (unsigned int i = 0; i < gm_dirs_info.size(); i++) {
-    JobUser u(*user);
-    u.SetControlDir(gm_dirs_info.at(i).control_dir);
+    config.SetControlDir(gm_dirs_info.at(i).control_dir);
     JobId jobid(id);
     std::string rsl;
-    if (job_description_read_file(jobid, u, rsl))
+    if (job_description_read_file(jobid, config, rsl))
       return gm_dirs_info.at(i).control_dir;
   }
   // no control info found

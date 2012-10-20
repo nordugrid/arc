@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include <arc/Logger.h>
 #include <arc/Run.h>
 #include <arc/User.h>
 #include <arc/XMLNode.h>
@@ -35,6 +36,8 @@ class GMConfig {
   friend class JobsList;
   // Configuration parser which sets values for members of this class
   friend class CoreConfig;
+  // Parser of data-staging configuration which uses this class' values as default
+  friend class StagingConfig;
 
 public:
 
@@ -69,7 +72,7 @@ public:
   /// This object is not valid if fatal errors are found during parsing.
   bool Load();
   /// Print a summary of configuration to stderr
-  void Print();
+  void Print() const;
 
   /// Returns true if configuration is found and/or valid
   operator bool() const { return valid; }
@@ -86,7 +89,7 @@ public:
   void SetConfigIsTemp(bool temp) { conffile_is_temp = temp; }
 
   /// Create control structure and session directories with correct permissions
-  bool CreateDirectories();
+  bool CreateDirectories() const;
 
   /// Start/restart all helper processes
   bool RunHelpers();
@@ -96,7 +99,7 @@ public:
   bool Substitute(std::string& param, const Arc::User& user=Arc::User()) const;
 
   /// Send signals to helpers to shut them down cleanly (not implemented yet)
-  void PrepareToDestroy();
+  void PrepareToDestroy() const;
 
   /// Set control directory
   void SetControlDir(const std::string &dir);

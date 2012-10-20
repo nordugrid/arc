@@ -11,9 +11,9 @@
 #include "../log/job_log.h"
 #include "../jobs/job_config.h"
 #include "../jobs/plugins.h"
+#include "../conf/GMConfig.h"
 
 class DirectFilePlugin;
-class JobUser;
 class ContinuationPlugins;
 
 /*

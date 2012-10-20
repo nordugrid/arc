@@ -40,7 +40,7 @@ class ContinuationPlugins {
   bool add(const char* state,unsigned int timeout,const char* command);
   bool add(job_state_t state,const char* options,const char* command);
   bool add(const char* state,const char* options,const char* command);
-  void run(const JobDescription &job,const JobUser& user,std::list<result_t>& results);
+  void run(const JobDescription &job,const GMConfig& config,std::list<result_t>& results);
 };
 
 #endif

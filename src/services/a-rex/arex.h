@@ -6,6 +6,7 @@
 #include <arc/infosys/InformationInterface.h>
 #include <arc/infosys/InfoRegister.h>
 #include <arc/Thread.h>
+#include <arc/StringConv.h>
 
 #include "FileChunks.h"
 #include "grid-manager/grid_manager.h"

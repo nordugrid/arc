@@ -8,10 +8,6 @@
 #include "../misc/escaped.h"
 #include "environment.h"
 
-bool config_open(std::ifstream &cfile,const GMEnvironment& env) {
-  return config_open(cfile,env.nordugrid_config_loc());
-}
-
 bool config_open(std::ifstream &cfile,const std::string &name) {
   cfile.open(name.c_str(),std::ifstream::in);
   return cfile.is_open();

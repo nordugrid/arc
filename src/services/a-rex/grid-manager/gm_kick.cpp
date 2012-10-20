@@ -6,13 +6,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "jobs/users.h"
 #include "jobs/commfifo.h"
-#include "log/job_log.h"
-#include "jobs/job_config.h"
-#include "jobs/plugins.h"
-#include "run/run_plugin.h"
-
 
 int main(int argc,char* argv[]) {
   // All input arguments are supposed to contain path to status files
@@ -20,23 +14,15 @@ int main(int argc,char* argv[]) {
     struct stat st;
     if(lstat(argv[n],&st) != 0) continue;
     if(!S_ISREG(st.st_mode)) continue;
-    JobLog job_log;
-    JobsListConfig jobs_cfg;
-    ContinuationPlugins plugins;
-    RunPlugin cred_plugin;
-    GMEnvironment env(job_log,jobs_cfg,plugins,cred_plugin);
-    JobUser user(env,st.st_uid,st.st_gid);
-    if(!user.is_valid()) continue;
     std::string path = argv[n];
     if(path[0] != '/') {
-      char buf[BUFSIZ];
-      if(getcwd(buf,BUFSIZ) != NULL) path=std::string(buf)+"/"+path;
+      char buf[1024];
+      if(getcwd(buf,1024) != NULL) path=std::string(buf)+"/"+path;
     };
     std::string::size_type l = path.rfind('/');
     if(l == std::string::npos) continue;
     path.resize(l); 
-    user.SetControlDir(path);
-    SignalFIFO(user);
+    SignalFIFO(path);
   };
   return 0;
 }

@@ -8,49 +8,6 @@
 class JobsList;
 
 /**
- * ZeroUInt is a wrapper around unsigned int. It provides a consistent
- * default value, as int type variables have no predefined value
- * assigned upon creation. It also protects from potential counter
- * underflow, to stop counter jumping to MAX_INT.
-*/
-class ZeroUInt {
- private:
-  unsigned int value_;
- public:
-  ZeroUInt(void):value_(0) { };
-  ZeroUInt(unsigned int v):value_(v) { };
-  ZeroUInt(const ZeroUInt& v):value_(v.value_) { };
-  ZeroUInt& operator=(unsigned int v) { value_=v; return *this; };
-  ZeroUInt& operator=(const ZeroUInt& v) { value_=v.value_; return *this; };
-  ZeroUInt& operator++(void) { ++value_; return *this; };
-  ZeroUInt operator++(int) { ZeroUInt temp(value_); ++value_; return temp; };
-  ZeroUInt& operator--(void) { if(value_) --value_; return *this; };
-  ZeroUInt operator--(int) { ZeroUInt temp(value_); if(value_) --value_; return temp; };
-  operator unsigned int(void) const { return value_; };
-};
-
-/* default job ttl after finished - 1 week */
-#define DEFAULT_KEEP_FINISHED (7*24*60*60)
-/* default job ttr after deleted - 1 month */
-#define DEFAULT_KEEP_DELETED (30*24*60*60)
-/* default maximum number of jobs in download/upload */
-#define DEFAULT_MAX_LOAD (10)
-/* default maximal allowed amount of reruns */
-#define DEFAULT_JOB_RERUNS (5)
-/* not used */
-#define DEFAULT_DISKSPACE (200*1024L*1024L)
-/* default maximum down/upload retries */
-#define DEFAULT_MAX_RETRIES (10)
-/* max time to run submit-*-job/cancel-*-job before to
-   start looking for alternative way to detect result.
-   Only for protecting against lost child. */
-#define CHILD_RUN_TIME_SUSPICIOUS (10*60)
-/* max time to run submit-*-job/cancel-*-job before to
-   decide that it is gone.
-   Only for protecting against lost child. */
-#define CHILD_RUN_TIME_TOO_LONG (60*60)
-
-/**
  * Class to represent information read from configuration.
  */
 class JobsListConfig {

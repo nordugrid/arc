@@ -4,12 +4,11 @@
 #include <arc/data-staging/DTR.h>
 #include <arc/data-staging/Scheduler.h>
 
-#include "../files/info_files.h"
 #include "../conf/conf_staging.h"
 
-#include "job.h"
-#include "job_config.h"
-
+class GMConfig;
+class FileData;
+class JobDescription;
 
 /**
  * DTRInfo passes state information from data staging to A-REX
@@ -20,13 +19,11 @@
  */
 class DTRInfo: public DataStaging::DTRCallback {
  private:
-  /** Job users. Map of UID to JobUser pointer, used to map a DTR or job to a JobUser. */
-  std::map<uid_t, const JobUser*> jobusers;
+  const GMConfig& config;
   static Arc::Logger logger;
  public:
   /** JobUsers is needed to find the correct control dir */
-  DTRInfo(const JobUsers& users);
-  DTRInfo() {};
+  DTRInfo(const GMConfig& config);
   virtual void receiveDTR(DataStaging::DTR_ptr dtr);
 };
 
@@ -59,8 +56,8 @@ class DTRGenerator: public DataStaging::DTRCallback {
   Arc::SimpleCondition run_condition;
   /** State of Generator */
   DataStaging::ProcessState generator_state;
-  /** Job users. Map of UID to JobUser pointer, used to map a DTR or job to a JobUser. */
-  std::map<uid_t, const JobUser*> jobusers;
+  /** Grid manager configuration */
+  const GMConfig& config;
   /** A list of files left mid-transfer from a previous process */
   std::list<std::string> recovered_files;
   /** logger to a-rex log */
@@ -81,7 +78,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
   void* kicker_arg;
 
   /** Private constructors */
-  DTRGenerator(const DTRGenerator& generator) {};
+  DTRGenerator(const DTRGenerator& generator);
 
   /** run main thread */
   static void main_thread(void* arg);
@@ -98,7 +95,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
   void readDTRState(const std::string& dtr_log);
 
   /** Clean up joblinks dir in caches for given job (called at the end of upload) */
-  void CleanCacheJobLinks(const GMEnvironment& env, const JobDescription& job) const;
+  void CleanCacheJobLinks(const GMConfig& config, const JobDescription& job) const;
 
   /** Check that user-uploadable file exists.
    * Returns 0 - if file exists
@@ -120,11 +117,11 @@ class DTRGenerator: public DataStaging::DTRCallback {
  public:
   /**
    * Start up Generator.
-   * @param user JobUsers for this Generator.
+   * @param user Grid manager configuration.
    * @param kicker_func Function to call on completion of all DTRs for a job
    * @param kicker_arg Argument to kicker function
    */
-  DTRGenerator(const JobUsers& users,
+  DTRGenerator(const GMConfig& config,
                void (*kicker_func)(void*) = NULL,
                void* kicker_arg = NULL);
   /**

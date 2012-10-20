@@ -31,6 +31,7 @@
 #include "grid-manager/jobs/plugins.h"
 #include "grid-manager/jobs/job_request.h"
 #include "grid-manager/jobs/commfifo.h"
+#include "grid-manager/jobs/states.h"
 #include "grid-manager/run/run_plugin.h"
 #include "grid-manager/files/info_files.h"
 #include "delegation/DelegationStores.h"
@@ -103,7 +104,7 @@ bool ARexJob::is_allowed(bool fast) {
   // Do fine-grained authorization requested by job's owner
   if(config_.beginAuth() == config_.endAuth()) return true;
   std::string acl;
-  if(!job_acl_read_file(id_,config_.User(),acl)) return true; // safe to ignore
+  if(!job_acl_read_file(id_,config_.GmConfig(),acl)) return true; // safe to ignore
   if(acl.empty()) return true; // No policy defiled - only owner allowed
   // Identify and parse policy
   ArcSec::EvaluatorLoader eval_loader;
@@ -228,7 +229,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
   if(id_.empty()) return;
   if(!config_) { id_.clear(); return; };
   // Reading essential information about job
-  if(!job_local_read_file(id_,config_.User(),job_)) { id_.clear(); return; };
+  if(!job_local_read_file(id_,config_.GmConfig(),job_)) { id_.clear(); return; };
   // Checking if user is allowed to do anything with that job
   if(!is_allowed(fast_auth_check)) { id_.clear(); return; };
   if(!(allowed_to_see_ || allowed_to_maintain_)) { id_.clear(); return; };
@@ -616,7 +617,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   // Put lock on delegated credentials
   if(deleg) (*deleg)[config_.GmConfig().DelegationDir()].LockCred(id_,deleg_ids,config_.GridName());
 
-  SignalFIFO(config_.GmConfig());
+  SignalFIFO(config_.GmConfig().ControlDir());
   return;
 }
 
@@ -787,7 +788,7 @@ bool ARexJob::delete_job_id(void) {
 
 int ARexJob::TotalJobs(ARexGMConfig& config,Arc::Logger& /* logger */) {
   ContinuationPlugins plugins;
-  JobsList jobs(*config.User(),plugins);
+  JobsList jobs(config.GmConfig());
   jobs.ScanAllJobs();
   return jobs.size();
 }
@@ -795,7 +796,7 @@ int ARexJob::TotalJobs(ARexGMConfig& config,Arc::Logger& /* logger */) {
 std::list<std::string> ARexJob::Jobs(ARexGMConfig& config,Arc::Logger& logger) {
   std::list<std::string> jlist;
   ContinuationPlugins plugins;
-  JobsList jobs(*config.User(),plugins);
+  JobsList jobs(config.GmConfig());
   jobs.ScanAllJobs();
   JobsList::iterator i = jobs.begin();
   for(;i!=jobs.end();++i) {

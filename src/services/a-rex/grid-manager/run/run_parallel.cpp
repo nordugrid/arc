@@ -11,7 +11,7 @@
 #include <arc/Utils.h>
 #include <arc/FileUtils.h>
 
-#include "../conf/environment.h"
+#include "../conf/GMConfig.h"
 #include "run_parallel.h"
 
 typedef struct {

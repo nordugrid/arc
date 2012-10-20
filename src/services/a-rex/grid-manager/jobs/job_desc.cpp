@@ -11,8 +11,9 @@
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
 
-#include "job_desc.h"
 #include "../files/info_files.h"
+#include "../conf/GMConfig.h"
+#include "job_desc.h"
 
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
@@ -52,16 +53,16 @@ static bool write_grami_executable(std::ofstream& f, const std::string& name, co
   return true;
 }
 
-bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& job_desc, const JobUser& user, const char* opt_add) {
+bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& job_desc, const GMConfig& config, const char* opt_add) {
   if(job_desc.get_local() == NULL) return false;
   const std::string session_dir = job_desc.SessionDir();
-  const std::string control_dir = user.ControlDir();
+  const std::string control_dir = config.ControlDir();
   JobLocalDescription& job_local_desc = *(job_desc.get_local());
   const std::string fgrami = control_dir + "/job." + job_desc.get_id() + ".grami";
   std::ofstream f(fgrami.c_str(),std::ios::out | std::ios::trunc);
   if(!f.is_open()) return false;
-  if(!fix_file_permissions(fgrami,job_desc,user)) return false;
-  if(!fix_file_owner(fgrami,job_desc,user)) return false;
+  if(!fix_file_permissions(fgrami,job_desc,config)) return false;
+  if(!fix_file_owner(fgrami,job_desc)) return false;
 
   f<<"joboption_directory='"<<session_dir<<"'"<<std::endl;
   f<<"joboption_controldir='"<<control_dir<<"'"<<std::endl;
@@ -185,7 +186,7 @@ JobReqResult get_acl(const Arc::JobDescription& arc_job_desc, std::string& acl, 
   return JobReqSuccess;
 }
 
-bool set_execs(const Arc::JobDescription& desc, const JobDescription& job_desc, const JobUser& user) {
+bool set_execs(const Arc::JobDescription& desc, const JobDescription& job_desc, const GMConfig& config) {
   std::string session_dir = job_desc.SessionDir();
   if (desc.Application.Executable.Path[0] != '/' && desc.Application.Executable.Path[0] != '$') {
     std::string executable = desc.Application.Executable.Path;
@@ -193,7 +194,7 @@ bool set_execs(const Arc::JobDescription& desc, const JobDescription& job_desc, 
       logger.msg(Arc::ERROR, "Bad name for executable: ", executable);
       return false;
     }
-    fix_file_permissions_in_session(session_dir+"/"+executable,job_desc,user,true);
+    fix_file_permissions_in_session(session_dir+"/"+executable,job_desc,config,true);
   }
 
   // TOOD: Support for PreExecutable and PostExecutable
@@ -207,7 +208,7 @@ bool set_execs(const Arc::JobDescription& desc, const JobDescription& job_desc, 
         logger.msg(Arc::ERROR, "Bad name for executable: %s", executable);
         return false;
       }
-      fix_file_permissions_in_session(session_dir+"/"+executable,job_desc,user,true);
+      fix_file_permissions_in_session(session_dir+"/"+executable,job_desc,config,true);
     }
   }
 

@@ -8,14 +8,14 @@
 #include "../files/info_types.h"
 #include "../files/info_files.h"
 #include "../run/run_parallel.h"
-#include "../conf/environment.h"
+#include "../conf/GMConfig.h"
 #include "send_mail.h"
 
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 /* check if have to send mail and initiate sending */
-bool send_mail(const JobDescription &desc,JobUser &user) {
+bool send_mail(const JobDescription &desc,const GMConfig& config) {
   char flag = states_all[desc.get_state()].mail_flag;
   if(flag == ' ') return true;
   std::string notify = "";
@@ -23,7 +23,7 @@ bool send_mail(const JobDescription &desc,JobUser &user) {
   JobLocalDescription *job_desc = desc.get_local();
   if(job_desc == NULL) {
     job_desc = new JobLocalDescription;
-    if(!job_local_read_file(desc.get_id(),user,*job_desc)) {
+    if(!job_local_read_file(desc.get_id(),config,*job_desc)) {
       logger.msg(Arc::ERROR,"Failed reading local information");
       delete job_desc; job_desc=NULL;
     };
@@ -36,8 +36,8 @@ bool send_mail(const JobDescription &desc,JobUser &user) {
 //  job_local_read_notify(desc.get_id(),user,notify);
   if(notify.length() == 0) return true; /* save some time */
   Arc::Run* child = NULL;
-  std::string failure_reason=desc.GetFailure(user);
-  if(job_failed_mark_check(desc.get_id(),user)) {
+  std::string failure_reason=desc.GetFailure(config);
+  if(job_failed_mark_check(desc.get_id(),config)) {
     if(failure_reason.length() == 0) failure_reason="<unknown>";
   };
   for(std::string::size_type n=0;;) {
@@ -46,12 +46,12 @@ bool send_mail(const JobDescription &desc,JobUser &user) {
     failure_reason[n]='.';
   };
   std::string cmd(Arc::ArcLocation::GetToolsDir()+"/smtp-send.sh");
-  std::string from_addr = user.Env().support_mail_address();
+  std::string from_addr = config.SupportMailAddress();
   char* args[11] ={ /* max 3 mail addresses */
        (char*)cmd.c_str(),
        (char*)states_all[desc.get_state()].name,
        (char*)desc.get_id().c_str(),
-       (char*)user.ControlDir().c_str(),
+       (char*)config.ControlDir().c_str(),
        (char*)from_addr.c_str(),
        (char*)jobname.c_str(),
        (char*)failure_reason.c_str(),

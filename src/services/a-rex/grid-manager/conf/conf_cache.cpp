@@ -2,21 +2,27 @@
 #include <config.h>
 #endif
 
-#include <arc/XMLNode.h>
+#include <string>
+#include <fstream>
+
+#include <arc/StringConv.h>
+
+#include "GMConfig.h"
+#include "conf.h"
+#include "conf_sections.h"
 
 #include "conf_cache.h"
 
-CacheConfig::CacheConfig(const GMEnvironment& env,std::string username):
-                                                _cache_max(100),
-                                                _cache_min(100),
-                                                _log_file("/var/log/arc/cache-clean.log"),
-                                                _log_level("INFO") ,
-                                                _lifetime("0"),
-                                                _clean_timeout(0) {
-  // open conf file
+CacheConfig::CacheConfig(const GMConfig& config):
+    _cache_max(100),
+    _cache_min(100),
+    _log_file("/var/log/arc/cache-clean.log"),
+    _log_level("INFO") ,
+    _lifetime("0"),
+    _clean_timeout(0) {
+  // Load conf file
   std::ifstream cfile;
-  //if(nordugrid_config_loc().empty()) read_env_vars(true);
-  if(!config_open(cfile,env)) throw CacheConfigException("Can't open configuration file");
+  if(!config_open(cfile,config.ConfigFile())) throw CacheConfigException("Can't open configuration file");
   
   /* detect type of file */
   switch(config_detect(cfile)) {
@@ -28,22 +34,20 @@ CacheConfig::CacheConfig(const GMEnvironment& env,std::string username):
       };
       config_close(cfile);
       try {
-        parseXMLConf(username, cfg);
+        parseXMLConf(cfg);
       } catch (CacheConfigException& e) {
         config_close(cfile);
         throw;
       }
     }; break;
     case config_file_INI: {
-      ConfigSections* cf = new ConfigSections(cfile);
+      ConfigSections cf(cfile);
       try {
-        parseINIConf(username, cf);
+        parseINIConf(cf);
       } catch (CacheConfigException& e) {
-        delete cf;
         config_close(cfile);
         throw;
       }
-      delete cf;
     }; break;
     default: {
       config_close(cfile);
@@ -53,27 +57,27 @@ CacheConfig::CacheConfig(const GMEnvironment& env,std::string username):
   config_close(cfile);
 }
 
-CacheConfig::CacheConfig(Arc::XMLNode cfg,std::string username):
-                                                _cache_max(100),
-                                                _cache_min(100),
-                                                _log_file("/var/log/arc/cache-clean.log"),
-                                                _log_level("INFO") ,
-                                                _lifetime("0"),
-                                                _clean_timeout(0) {
-  parseXMLConf(username, cfg);
+CacheConfig::CacheConfig(const Arc::XMLNode& cfg):
+    _cache_max(100),
+    _cache_min(100),
+    _log_file("/var/log/arc/cache-clean.log"),
+    _log_level("INFO") ,
+    _lifetime("0"),
+    _clean_timeout(0) {
+  parseXMLConf(cfg);
 }
 
-void CacheConfig::parseINIConf(std::string username, ConfigSections* cf) {
+void CacheConfig::parseINIConf(ConfigSections& cf) {
   
-  cf->AddSection("common");
-  cf->AddSection("grid-manager");
+  cf.AddSection("common");
+  cf.AddSection("grid-manager");
   
   for(;;) {
     std::string rest;
     std::string command;
-    cf->ReadNext(command,rest);
+    cf.ReadNext(command,rest);
 
-    if(command.length() == 0) break;
+    if(command.length() == 0) break; // EOF
     
     else if(command == "remotecachedir") {
       std::string cache_dir = config_next_arg(rest);
@@ -82,17 +86,6 @@ void CacheConfig::parseINIConf(std::string username, ConfigSections* cf) {
        
       // take off leading slashes
       if (cache_dir.rfind("/") == cache_dir.length()-1) cache_dir = cache_dir.substr(0, cache_dir.length()-1);
-
-      // if there are substitutions, check username is defined
-      if (username.empty() &&
-          (cache_dir.find("%U") != std::string::npos ||
-              cache_dir.find("%u") != std::string::npos ||
-              cache_dir.find("%g") != std::string::npos ||
-              cache_dir.find("%H") != std::string::npos ||
-              cache_link_dir.find("%U") != std::string::npos ||  
-              cache_link_dir.find("%u") != std::string::npos ||
-              cache_link_dir.find("%g") != std::string::npos ||
-              cache_link_dir.find("%H") != std::string::npos )) continue; 
       // add this cache to our list
       std::string cache = cache_dir;
       // check if the cache dir needs to be drained 
@@ -123,18 +116,6 @@ void CacheConfig::parseINIConf(std::string username, ConfigSections* cf) {
         if (cache_link_dir[0] != '/') throw CacheConfigException("Cache link path must start with '/'");
         if (cache_link_dir.find("..") != std::string::npos) throw CacheConfigException("Cache link path cannot contain '..'");
       }
-      
-      // if there are substitutions, check username is defined
-      if (username.empty() &&
-          (cache_dir.find("%U") != std::string::npos ||
-              cache_dir.find("%u") != std::string::npos ||
-              cache_dir.find("%g") != std::string::npos ||
-              cache_dir.find("%H") != std::string::npos ||
-              cache_link_dir.find("%U") != std::string::npos ||  
-              cache_link_dir.find("%u") != std::string::npos ||
-              cache_link_dir.find("%g") != std::string::npos ||
-              cache_link_dir.find("%H") != std::string::npos )) continue;
-
       // add this cache to our list
       std::string cache = cache_dir;
       bool isDrainingCache = false;
@@ -222,39 +203,12 @@ void CacheConfig::parseINIConf(std::string username, ConfigSections* cf) {
       if(!Arc::stringto(timeout, _clean_timeout))
         throw CacheConfigException("bad number in cachecleantimeout parameter");
     }
-    else if(command == "control") {
-      // if the user specified here matches the one given, exit the loop
-      config_next_arg(rest);
-      bool usermatch = false;
-      std::string user = config_next_arg(rest);
-      while (user != "") {
-        if(user == "*") {  /* add all gridmap users */
-           throw CacheConfigException("Gridmap user list feature is not supported anymore. Plase use @filename to specify user list.");
-        }
-        else if (user[0] == '@') {
-           std::string filename = user.substr(1);
-           if(!file_user_list(filename,rest)) throw CacheConfigException("Can't read users in specified file " + filename);
-        }
-        else if (user == username || user == ".") {
-          usermatch = true;
-          break;
-        }
-        user = config_next_arg(rest);
-      }
-      if (usermatch) break;
-      _cache_dirs.clear();
-      _cache_max = 100;
-      _cache_min = 100;
-      _lifetime = "0";
-      _clean_timeout = 0;
-    }
   }
 }
 
-void CacheConfig::parseXMLConf(std::string username, Arc::XMLNode cfg) { 
+void CacheConfig::parseXMLConf(const Arc::XMLNode& cfg) {
   /*
   control
-    username
     controlDir
     sessionRootDir
     cache
@@ -275,170 +229,126 @@ void CacheConfig::parseXMLConf(std::string username, Arc::XMLNode cfg) {
     maxReruns
     noRootPower
   */
-  bool match_user = false;
   Arc::XMLNode control_node = cfg;
   if(control_node.Name() != "control") {
     control_node = cfg["control"];
-    match_user = true;
   }
-  while (control_node) {
-    if(match_user) {
-      // does this match our username?
-      Arc::XMLNode user_node = control_node["username"];
-      while (user_node) {
-        std::string user = user_node;
-        if ((user != username) && (user != ".")) {
-          ++user_node;
-          continue;
-        }
-        break;
-      }
-      if (!user_node) {
-        ++control_node;
-        continue;
-      }
-      break;
+  if (!control_node) throw CacheConfigException("No control element found in configuration");
+
+  Arc::XMLNode cache_node = control_node["cache"];
+  if (!cache_node) return; // no cache configured
+
+  Arc::XMLNode location_node = cache_node["location"];
+  for(;location_node;++location_node) {
+    std::string cache_dir = location_node["path"];
+    std::string cache_link_dir = location_node["link"];
+    if(cache_dir.length() == 0)
+      throw CacheConfigException("Missing path in cache location element");
+
+    // validation of paths
+    while (cache_dir.length() > 1 && cache_dir.rfind("/") == cache_dir.length()-1) cache_dir = cache_dir.substr(0, cache_dir.length()-1);
+    if (cache_dir[0] != '/') throw CacheConfigException("Cache path must start with '/'");
+    if (cache_dir.find("..") != std::string::npos) throw CacheConfigException("Cache path cannot contain '..'");
+    if (!cache_link_dir.empty() && cache_link_dir != "." && cache_link_dir != "drain") {
+      while (cache_link_dir.rfind("/") == cache_link_dir.length()-1) cache_link_dir = cache_link_dir.substr(0, cache_link_dir.length()-1);
+      if (cache_link_dir[0] != '/') throw CacheConfigException("Cache link path must start with '/'");
+      if (cache_link_dir.find("..") != std::string::npos) throw CacheConfigException("Cache link path cannot contain '..'");
     }
-    Arc::XMLNode cache_node = control_node["cache"];
-    if(cache_node) {
-      Arc::XMLNode location_node = cache_node["location"];
-      for(;location_node;++location_node) {
-        std::string cache_dir = location_node["path"];
-        std::string cache_link_dir = location_node["link"];
-        if(cache_dir.length() == 0) 
-          throw CacheConfigException("Missing path in cache location element");
 
-        // validation of paths
-        while (cache_dir.length() > 1 && cache_dir.rfind("/") == cache_dir.length()-1) cache_dir = cache_dir.substr(0, cache_dir.length()-1);
-        if (cache_dir[0] != '/') throw CacheConfigException("Cache path must start with '/'");
-        if (cache_dir.find("..") != std::string::npos) throw CacheConfigException("Cache path cannot contain '..'");
-        if (!cache_link_dir.empty() && cache_link_dir != "." && cache_link_dir != "drain") {
-          while (cache_link_dir.rfind("/") == cache_link_dir.length()-1) cache_link_dir = cache_link_dir.substr(0, cache_link_dir.length()-1);
-          if (cache_link_dir[0] != '/') throw CacheConfigException("Cache link path must start with '/'");
-          if (cache_link_dir.find("..") != std::string::npos) throw CacheConfigException("Cache link path cannot contain '..'");
-        }
-      
-        // if there are user substitutions, check username is defined
-        if (username.empty() &&
-            (cache_dir.find("%U") != std::string::npos ||
-                cache_dir.find("%u") != std::string::npos ||
-                cache_dir.find("%g") != std::string::npos ||
-                cache_dir.find("%H") != std::string::npos ||
-                cache_link_dir.find("%U") != std::string::npos ||  
-                cache_link_dir.find("%u") != std::string::npos ||
-                cache_link_dir.find("%g") != std::string::npos ||
-                cache_link_dir.find("%H") != std::string::npos )) continue;
-        
-        // add this cache to our list
-        std::string cache = cache_dir;
-        bool isDrainingCache = false;
-        // check if the cache dir needs to be drained 
-        if (cache_link_dir == "drain") {
-          cache = cache_dir.substr(0, cache_dir.find (" "));
-          cache_link_dir = "";
-          isDrainingCache = true;
-        }
-  
-        if (!cache_link_dir.empty())
-          cache += " "+cache_link_dir;
-
-        // TODO: handle paths with spaces
-        if(isDrainingCache)
-          _draining_cache_dirs.push_back(cache); 
-        else
-          _cache_dirs.push_back(cache);
-      }
-      Arc::XMLNode high_node = cache_node["highWatermark"];
-      Arc::XMLNode low_node = cache_node["lowWatermark"];
-      if (high_node && !low_node) {
-        throw CacheConfigException("missing lowWatermark parameter");
-      } else if (low_node && !high_node) {
-        throw CacheConfigException("missing highWatermark parameter");
-      } else if (low_node && high_node) {
-        off_t max_i;
-        if(!Arc::stringto((std::string)high_node,max_i))
-          throw CacheConfigException("bad number in highWatermark parameter");
-        if (max_i > 100)
-          throw CacheConfigException("number is too high in highWatermark parameter");
-        _cache_max = max_i;
-
-        off_t min_i;
-        if(!Arc::stringto((std::string)low_node,min_i))
-          throw CacheConfigException("bad number in lowWatermark parameter");
-        if (min_i > 100)
-          throw CacheConfigException("number is too high in lowWatermark parameter");
-        if (min_i >= max_i)
-          throw CacheConfigException("highWatermark must be greater than lowWatermark");
-        _cache_min = min_i;
-      }
-      std::string cache_log_file = cache_node["cacheLogFile"];
-      if (!cache_log_file.empty()) {
-        if (cache_log_file.length() < 2 || cache_log_file[0] != '/' || cache_log_file[cache_log_file.length()-1] == '/')
-          throw CacheConfigException("Bad filename in cachelogfile parameter");
-        _log_file = cache_log_file;
-      }
-      std::string cache_log_level = cache_node["cacheLogLevel"];
-      if (!cache_log_level.empty())
-        _log_level = cache_log_level;
-      std::string cache_lifetime = cache_node["cacheLifetime"];
-      if (!cache_lifetime.empty())
-        _lifetime = cache_lifetime;
-      std::string clean_timeout = cache_node["cacheCleanTimeout"];
-      if (!clean_timeout.empty()) {
-        if(!Arc::stringto(clean_timeout, _clean_timeout))
-          throw CacheConfigException("bad number in cacheCleanTimeout parameter");
-      }
-      Arc::XMLNode remote_location_node = cache_node["remotelocation"];
-      for(;remote_location_node;++remote_location_node) {
-        std::string cache_dir = remote_location_node["path"];
-        std::string cache_link_dir = remote_location_node["link"];
-        if(cache_dir.length() == 0) 
-          throw CacheConfigException("Missing path in remote cache location element");
-
-        // validation of paths
-        while (cache_dir.length() > 1 && cache_dir.rfind("/") == cache_dir.length()-1) cache_dir = cache_dir.substr(0, cache_dir.length()-1);
-        if (cache_dir[0] != '/') throw CacheConfigException("Remote cache path must start with '/'");
-        if (cache_dir.find("..") != std::string::npos) throw CacheConfigException("Remote cache path cannot contain '..'");
-        if (!cache_link_dir.empty() && cache_link_dir != "." && cache_link_dir != "drain" && cache_link_dir != "replicate") {
-          while (cache_link_dir.rfind("/") == cache_link_dir.length()-1) cache_link_dir = cache_link_dir.substr(0, cache_link_dir.length()-1);
-          if (cache_link_dir[0] != '/') throw CacheConfigException("Remote cache link path must start with '/'");
-          if (cache_link_dir.find("..") != std::string::npos) throw CacheConfigException("Remote cache link path cannot contain '..'");
-        }
-      
-        // if there are user substitutions, check username is defined
-        if (username.empty() &&
-            (cache_dir.find("%U") != std::string::npos ||
-                cache_dir.find("%u") != std::string::npos ||
-                cache_dir.find("%g") != std::string::npos ||
-                cache_dir.find("%H") != std::string::npos ||
-                cache_link_dir.find("%U") != std::string::npos ||  
-                cache_link_dir.find("%u") != std::string::npos ||
-                cache_link_dir.find("%g") != std::string::npos ||
-                cache_link_dir.find("%H") != std::string::npos )) continue;
-        
-        // add this cache to our list
-        std::string cache = cache_dir;
-        bool isDrainingCache = false;
-        // check if the cache dir needs to be drained 
-        if (cache_link_dir == "drain") {
-          cache = cache_dir.substr(0, cache_dir.find (" "));
-          cache_link_dir = "";
-          isDrainingCache = true;
-        }
-  
-        if (!cache_link_dir.empty())
-          cache += " "+cache_link_dir;
-
-        // TODO: handle paths with spaces
-        if(isDrainingCache)
-          _draining_cache_dirs.push_back(cache); 
-        else
-          _remote_cache_dirs.push_back(cache);
-      }
-    } else {
-      // cache is disabled
+    // add this cache to our list
+    std::string cache = cache_dir;
+    bool isDrainingCache = false;
+    // check if the cache dir needs to be drained
+    if (cache_link_dir == "drain") {
+      cache = cache_dir.substr(0, cache_dir.find (" "));
+      cache_link_dir = "";
+      isDrainingCache = true;
     }
-    break; // looping is done at beginning
+
+    if (!cache_link_dir.empty())
+      cache += " "+cache_link_dir;
+
+    // TODO: handle paths with spaces
+    if(isDrainingCache)
+      _draining_cache_dirs.push_back(cache);
+    else
+      _cache_dirs.push_back(cache);
+  }
+  Arc::XMLNode high_node = cache_node["highWatermark"];
+  Arc::XMLNode low_node = cache_node["lowWatermark"];
+  if (high_node && !low_node) {
+    throw CacheConfigException("missing lowWatermark parameter");
+  } else if (low_node && !high_node) {
+    throw CacheConfigException("missing highWatermark parameter");
+  } else if (low_node && high_node) {
+    off_t max_i;
+    if(!Arc::stringto((std::string)high_node,max_i))
+      throw CacheConfigException("bad number in highWatermark parameter");
+    if (max_i > 100)
+      throw CacheConfigException("number is too high in highWatermark parameter");
+    _cache_max = max_i;
+
+    off_t min_i;
+    if(!Arc::stringto((std::string)low_node,min_i))
+      throw CacheConfigException("bad number in lowWatermark parameter");
+    if (min_i > 100)
+      throw CacheConfigException("number is too high in lowWatermark parameter");
+    if (min_i >= max_i)
+      throw CacheConfigException("highWatermark must be greater than lowWatermark");
+    _cache_min = min_i;
+  }
+  std::string cache_log_file = cache_node["cacheLogFile"];
+  if (!cache_log_file.empty()) {
+    if (cache_log_file.length() < 2 || cache_log_file[0] != '/' || cache_log_file[cache_log_file.length()-1] == '/')
+      throw CacheConfigException("Bad filename in cachelogfile parameter");
+    _log_file = cache_log_file;
+  }
+  std::string cache_log_level = cache_node["cacheLogLevel"];
+  if (!cache_log_level.empty())
+    _log_level = cache_log_level;
+  std::string cache_lifetime = cache_node["cacheLifetime"];
+  if (!cache_lifetime.empty())
+    _lifetime = cache_lifetime;
+  std::string clean_timeout = cache_node["cacheCleanTimeout"];
+  if (!clean_timeout.empty()) {
+    if(!Arc::stringto(clean_timeout, _clean_timeout))
+      throw CacheConfigException("bad number in cacheCleanTimeout parameter");
+  }
+  Arc::XMLNode remote_location_node = cache_node["remotelocation"];
+  for(;remote_location_node;++remote_location_node) {
+    std::string cache_dir = remote_location_node["path"];
+    std::string cache_link_dir = remote_location_node["link"];
+    if(cache_dir.length() == 0)
+      throw CacheConfigException("Missing path in remote cache location element");
+
+    // validation of paths
+    while (cache_dir.length() > 1 && cache_dir.rfind("/") == cache_dir.length()-1) cache_dir = cache_dir.substr(0, cache_dir.length()-1);
+    if (cache_dir[0] != '/') throw CacheConfigException("Remote cache path must start with '/'");
+    if (cache_dir.find("..") != std::string::npos) throw CacheConfigException("Remote cache path cannot contain '..'");
+    if (!cache_link_dir.empty() && cache_link_dir != "." && cache_link_dir != "drain" && cache_link_dir != "replicate") {
+      while (cache_link_dir.rfind("/") == cache_link_dir.length()-1) cache_link_dir = cache_link_dir.substr(0, cache_link_dir.length()-1);
+      if (cache_link_dir[0] != '/') throw CacheConfigException("Remote cache link path must start with '/'");
+      if (cache_link_dir.find("..") != std::string::npos) throw CacheConfigException("Remote cache link path cannot contain '..'");
+    }
+
+    // add this cache to our list
+    std::string cache = cache_dir;
+    bool isDrainingCache = false;
+    // check if the cache dir needs to be drained
+    if (cache_link_dir == "drain") {
+      cache = cache_dir.substr(0, cache_dir.find (" "));
+      cache_link_dir = "";
+      isDrainingCache = true;
+    }
+
+    if (!cache_link_dir.empty())
+      cache += " "+cache_link_dir;
+
+    // TODO: handle paths with spaces
+    if(isDrainingCache)
+      _draining_cache_dirs.push_back(cache);
+    else
+      _remote_cache_dirs.push_back(cache);
   }
 }
 

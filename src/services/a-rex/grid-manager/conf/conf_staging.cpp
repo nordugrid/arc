@@ -1,6 +1,5 @@
 #include <arc/StringConv.h>
 
-#include "../jobs/job_config.h"
 #include "conf.h"
 #include "conf_sections.h"
 
@@ -8,7 +7,7 @@
 
 Arc::Logger StagingConfig::logger(Arc::Logger::getRootLogger(), "StagingConfig");
 
-StagingConfig::StagingConfig(const GMEnvironment& env):
+StagingConfig::StagingConfig(const GMConfig& config):
   max_delivery(-1),
   max_processor(-1),
   max_emergency(-1),
@@ -28,12 +27,11 @@ StagingConfig::StagingConfig(const GMEnvironment& env):
 
   // For ini-style, use [data-staging] section, for xml use <dataTransfer> node
 
-  // Fill from JobsListConfig, then override those values with values
-  // in data-staging conf
-  fillFromJobsListConfig(env.jobs_cfg());
+  // Fill from GMConfig, then override those values with values in data-staging conf
+  fillFromGMConfig(config);
 
   std::ifstream cfile;
-  if (!config_open(cfile, env)) {
+  if (!config_open(cfile, config.ConfigFile())) {
     logger.msg(Arc::ERROR, "Can't read configuration file");
     valid = false;
     return;
@@ -67,21 +65,23 @@ StagingConfig::StagingConfig(const GMEnvironment& env):
   config_close(cfile);
 }
 
-void StagingConfig::fillFromJobsListConfig(const JobsListConfig& jcfg) {
+void StagingConfig::fillFromGMConfig(const GMConfig& config) {
 
-  int max_files;
-  jcfg.GetMaxJobsLoad(max_delivery, max_emergency, max_files);
-  if (max_delivery > 0 && max_files > 0) max_delivery *= max_files;
+  max_delivery = config.max_jobs_staging;
+  max_emergency = config.max_jobs_staging_emergency;
+  if (max_delivery > 0 && config.max_downloads > 0) max_delivery *= config.max_downloads;
   max_processor = max_delivery;
-  if (max_emergency > 0 && max_files > 0) max_emergency *= max_files;
-  jcfg.GetSpeedControl(min_speed, min_speed_time, min_average_speed, max_inactivity_time);
-  passive = jcfg.GetPassiveTransfer();
-  secure = jcfg.GetSecureTransfer();
-  max_retries = jcfg.MaxRetries();
-  preferred_pattern = jcfg.GetPreferredPattern();
-  share_type = jcfg.GetShareType();
-  defined_shares = jcfg.GetLimitedShares();
-  delivery_services = jcfg.GetDeliveryServices();
+  if (max_emergency > 0 && config.max_downloads > 0) max_emergency *= config.max_downloads;
+  min_speed = config.min_speed;
+  min_speed_time = config.min_speed_time;
+  min_average_speed = config.min_average_speed;
+  max_inactivity_time = config.max_inactivity_time;
+  passive = config.use_passive_transfer;
+  secure = config.use_secure_transfer;
+  max_retries = config.max_retries;
+  preferred_pattern = config.preferred_pattern;
+  share_type = config.share_type;
+  defined_shares = config.limited_share;
 }
 
 bool StagingConfig::readStagingConf(std::ifstream& cfile) {

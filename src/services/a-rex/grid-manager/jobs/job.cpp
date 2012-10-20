@@ -2,20 +2,11 @@
 #include <config.h>
 #endif
 
-/*
-  Filename: states.cc
-  keeps list of states
-  acts on states
-*/
-
 #include <string>
 #include <cstring>
 
-//# #include "../run/run.h"
 #include "../files/info_types.h"
 #include "../files/info_files.h"
-#include "job_config.h"
-#include "users.h"
 #include "job.h"
 
 
@@ -97,8 +88,8 @@ JobDescription::JobDescription(const JobId &id,const Arc::User& u,const std::str
   job_pending=false;
   job_id=id;
   session_dir=dir;
-  keep_finished=DEFAULT_KEEP_FINISHED;
-  keep_deleted=DEFAULT_KEEP_DELETED;
+  keep_finished=-1;
+  keep_deleted=-1;
   child=NULL;
   local=NULL;
   user=u;
@@ -117,11 +108,11 @@ JobDescription::~JobDescription(void){
   }
 }
 
-bool JobDescription::GetLocalDescription(const JobUser &user) {
+bool JobDescription::GetLocalDescription(const GMConfig& config) {
   if(local) return true;
   JobLocalDescription* job_desc;
   job_desc=new JobLocalDescription;
-  if(!job_local_read_file(job_id,user,*job_desc)) {
+  if(!job_local_read_file(job_id,config,*job_desc)) {
     delete job_desc;
     return false;
   };
@@ -129,8 +120,8 @@ bool JobDescription::GetLocalDescription(const JobUser &user) {
   return true;
 }
 
-std::string JobDescription::GetFailure(const JobUser &user) const {
-  std::string reason = job_failed_mark_read(job_id,user);
+std::string JobDescription::GetFailure(const GMConfig& config) const {
+  std::string reason = job_failed_mark_read(job_id,config);
   if(!failure_reason.empty()) {
     reason+=failure_reason; reason+="\n";
   };

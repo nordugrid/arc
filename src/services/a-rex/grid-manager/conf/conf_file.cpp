@@ -5,6 +5,7 @@
 #include <iostream>
 #include <pwd.h>
 
+#include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
@@ -69,14 +70,38 @@ bool CoreConfig::ParseConf(GMConfig& config) {
     // detect type of file
     config_file_type type = config_detect(cfile);
     if (type == config_file_XML) {
-      Arc::XMLNode cfg;
-      if (!cfg.ReadFromStream(cfile)) {
+      Arc::XMLNode xml_cfg;
+      if (!xml_cfg.ReadFromStream(cfile)) {
         config_close(cfile);
         logger.msg(Arc::ERROR, "Can't interpret configuration file %s as XML", config.conffile);
         return false;
       }
       config_close(cfile);
-      return ParseConfXML(config, cfg);
+      // Pick out the A-REX service node
+      Arc::XMLNode arex;
+      Arc::Config cfg(xml_cfg);
+      if (!cfg) return false;
+
+      if (cfg.Name() == "Service") {
+        if (cfg.Attribute("name") == "a-rex") {
+          cfg.New(arex);
+        }
+      }
+      else if (cfg.Name() == "ArcConfig") {
+        for (int i=0;; i++) {
+          Arc::XMLNode node = cfg["Chain"];
+          node = node["Service"][i];
+          if (!node) return false; // no a-rex node found
+          if (node.Attribute("name") == "a-rex") {
+            node.New(arex);
+            break;
+          }
+        }
+      }
+      else { // malformed xml
+        return false;
+      }
+      return ParseConfXML(config, arex);
     }
     if (type == config_file_INI) {
       bool result = ParseConfINI(config, cfile);
@@ -474,7 +499,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
 
   // Get cache parameters
   try {
-    CacheConfig cache_config = CacheConfig(config.conffile);
+    CacheConfig cache_config = CacheConfig(config);
     config.cache_params = cache_config;
   }
   catch (CacheConfigException& e) {
@@ -776,7 +801,7 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     }
     config.session_roots.push_back(session_root);
   }
-  JobUser::fixdir_t fixdir = JobUser::fixdir_always;
+  GMConfig::fixdir_t fixdir = GMConfig::fixdir_always;
   const char* fixdir_opts[] = { "yes", "missing", "no", NULL };
   int n;
   if (!elementtoenum(tmp_node, "fixDirectories", n=(int)fixdir, fixdir_opts, &logger)) return false;

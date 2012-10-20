@@ -8,8 +8,8 @@
 
 #include <arc/Run.h>
 
-#include "../jobs/job.h"
-#include "../jobs/users.h"
+class JobDescription;
+class GMConfig;
 
 ///  Put short information into log when every job starts/finishes.
 ///  And store more detailed information for Reporter.
@@ -32,14 +32,14 @@ class JobLog {
   /* chose name of log file */
   void SetOutput(const char* fname);
   /* log job start information */
-  bool start_info(JobDescription &job,const JobUser &user);
+  bool start_info(JobDescription &job,const GMConfig &config);
   /* log job finish iformation */
-  bool finish_info(JobDescription &job,const JobUser &user);
+  bool finish_info(JobDescription &job,const GMConfig& config);
   /* read information stored by start_info and finish_info */
   static bool read_info(std::fstream &i,bool &processed,bool &jobstart,struct tm &t,JobId &jobid,JobLocalDescription &job_desc,std::string &failure);
   bool is_reporting(void) { return (!urls.empty()); };
   /* Run external utility to report gathered information to logger service */
-  bool RunReporter(JobUsers& users);
+  bool RunReporter(const GMConfig& config);
   /* Set name of the accounting reporter */
   bool SetLogger(const char* fname);
   /* Set url of service and local name to use */
@@ -48,7 +48,7 @@ class JobLog {
   /* Set after which too old logger information is removed */
   void SetExpiration(time_t period = 0);
   /* Create data file for Reporter */
-  bool make_file(JobDescription &job,JobUser &user);
+  bool make_file(JobDescription &job,const GMConfig &config);
   /* Set credential file names for accessing logging service */
   void set_credentials(std::string &key_path,std::string &certificate_path,std::string &ca_certificates_dir);
   /* Set accounting options (e.g. batch size for SGAS LUTS) */

@@ -9,7 +9,7 @@
 
 class JobsList;
 class JobLocalDescription;
-class JobUser;
+class GMConfig;
 
 typedef enum {
   JOB_STATE_ACCEPTED   = 0,
@@ -126,7 +126,7 @@ class JobDescription {
     //if(failure_reason.length()) failure_reason+="\n";
     failure_reason+=reason; failure_reason+="\n";
   };
-  std::string GetFailure(const JobUser &user) const;
+  std::string GetFailure(const GMConfig& config) const;
   JobLocalDescription* get_local(void) const { return local; };
   void set_local(JobLocalDescription* desc) { local=desc; };
 //  void set_state(job_state_t state) { job_state=state; };
@@ -139,7 +139,7 @@ class JobDescription {
   gid_t get_gid(void) const { return user.get_gid(); };
   void set_share(std::string share);
   /* force 'local' to be created and read from file if not already available */
-  bool GetLocalDescription(const JobUser &user);
+  bool GetLocalDescription(const GMConfig& config);
   void Start() { start_time = time(NULL); };
   time_t GetStartTime() const { return start_time; };
   void PrepareToDestroy(void);

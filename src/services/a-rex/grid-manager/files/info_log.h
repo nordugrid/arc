@@ -4,11 +4,10 @@
 #include <string>
 #include <list>
 
-#include "../jobs/job.h"
-#include "../jobs/users.h"
-#include "info_types.h"
+class JobDescription;
+class GMConfig;
 
-bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::string &url,std::list<std::string> &report_config);
+bool job_log_make_file(const JobDescription &desc,const GMConfig& config,const std::string &url,std::list<std::string> &report_config);
 
 #endif
 

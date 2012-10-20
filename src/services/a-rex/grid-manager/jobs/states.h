@@ -6,16 +6,34 @@
 
 #include "job.h"
 
-class JobUser;
-class ContinuationPlugins;
 class JobFDesc;
 class DTRGenerator;
 class GMConfig;
 
-// List of jobs. This object is cross-linked to JobUser object, which
-// represents owner of these jobs. This class contains the main job management
-// logic which moves jobs through the state machine. New jobs found through
-// Scan methods are held in memory until reaching FINISHED state.
+/// ZeroUInt is a wrapper around unsigned int. It provides a consistent default
+/// value, as int type variables have no predefined value assigned upon
+/// creation. It also protects from potential counter underflow, to stop
+/// counter jumping to MAX_INT. TODO: move to common lib?
+class ZeroUInt {
+private:
+ unsigned int value_;
+public:
+ ZeroUInt(void):value_(0) { };
+ ZeroUInt(unsigned int v):value_(v) { };
+ ZeroUInt(const ZeroUInt& v):value_(v.value_) { };
+ ZeroUInt& operator=(unsigned int v) { value_=v; return *this; };
+ ZeroUInt& operator=(const ZeroUInt& v) { value_=v.value_; return *this; };
+ ZeroUInt& operator++(void) { ++value_; return *this; };
+ ZeroUInt operator++(int) { ZeroUInt temp(value_); ++value_; return temp; };
+ ZeroUInt& operator--(void) { if(value_) --value_; return *this; };
+ ZeroUInt operator--(int) { ZeroUInt temp(value_); if(value_) --value_; return temp; };
+ operator unsigned int(void) const { return value_; };
+};
+
+
+/// List of jobs. This class contains the main job management logic which moves
+/// jobs through the state machine. New jobs found through Scan methods are
+/// held in memory until reaching FINISHED state.
 class JobsList {
  public:
   typedef std::list<JobDescription>::iterator iterator;
@@ -30,8 +48,6 @@ class JobsList {
   std::map<std::string, int> finishing_max_share;
   // GM configuration
   const GMConfig& config;
-  // Plugins configured to run at certain state changes
-//  ContinuationPlugins *plugins;
   // Dir containing finished/deleted jobs which is scanned in ScanOldJobs.
   // Since this can happen over multiple calls a pointer is kept as a member
   // variable so scanning picks up where it finished last time.
@@ -126,6 +142,9 @@ class JobsList {
 
   // Return iterator to object matching given id or jobs.end() if not found
   iterator FindJob(const JobId &id);
+  // Information about jobs for external utilities
+  int AcceptedJobs() const { return JOB_NUM_ACCEPTED; }
+  int RunningJobs() const { return JOB_NUM_RUNNING; }
 
   // Set DTR Generator for data staging
   void SetDataGenerator(DTRGenerator* generator) { dtr_generator = generator; };

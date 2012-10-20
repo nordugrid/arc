@@ -15,13 +15,6 @@
 
 /*
   Open/assign configuration file to provided cfile.
-  Returns:
-    true - success
-    false - error
-*/
-bool config_open(std::ifstream &cfile,const GMEnvironment& env);
-/*
-  Same as previous, but filename is given by 'name'.
 */
 bool config_open(std::ifstream &cfile,const std::string &name);
 /*
