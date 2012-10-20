@@ -7,6 +7,7 @@
 #include <arc/client/ClientInterface.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/client/Job.h>
+#include <arc/StringConv.h>
 #include "JobStateEMIES.h"
 
 #include "EMIESClient.h"
@@ -88,34 +89,34 @@ namespace Arc {
     const std::string& key  = (!cfg.proxy.empty() ? cfg.proxy : cfg.key);
 
     if (key.empty() || cert.empty()) {
-      logger.msg(VERBOSE, "Failed locating credentials.");
+      lfailure = "Failed locating credentials for delagating.";
       return false;
     }
 
     if(!client->Load()) {
-      logger.msg(VERBOSE, "Failed initiate client connection.");
+      lfailure = "Failed to initiate client connection.";
       return false;
     }
 
     MCC* entry = client->GetEntry();
     if(!entry) {
-      logger.msg(VERBOSE, "Client connection has no entry point.");
+      lfailure = "Client connection has no entry point.";
       return false;
     }
 
     DelegationProviderSOAP deleg(cert, key);
     logger.msg(VERBOSE, "Initiating delegation procedure");
-    if (!deleg.DelegateCredentialsInit(*entry,&(client->GetContext()),DelegationProviderSOAP::EMIES)) {
-      logger.msg(VERBOSE, "Failed to initiate delegation credentials");
+    if (!deleg.DelegateCredentialsInit(*entry,&(client->GetContext()),DelegationProviderSOAP::EMIDS)) {
+      lfailure = "Failed to initiate delegation credentials";
       return false;
     }
     std::string delegation_id = deleg.ID();
     if(delegation_id.empty()) {
-      logger.msg(VERBOSE, "Failed to obtain delegation identifier");
+      lfailure = "Failed to obtain delegation identifier";
       return false;
     };
-    if (!deleg.UpdateCredentials(*entry,&(client->GetContext()),DelegationRestrictions(),DelegationProviderSOAP::EMIES)) {
-      logger.msg(VERBOSE, "Failed to pass delegated credentials");
+    if (!deleg.UpdateCredentials(*entry,&(client->GetContext()),DelegationRestrictions(),DelegationProviderSOAP::EMIDS)) {
+      lfailure = "Failed to pass delegated credentials";
       return false;
     }
 
@@ -136,7 +137,7 @@ namespace Arc {
     logger.msg(DEBUG, "Re-creating an EMI ES client");
     client = new ClientSOAP(cfg, rurl, timeout);
     if (!client) {
-      logger.msg(VERBOSE, "Unable to create SOAP client used by EMIESClient.");
+      lfailure = "Unable to create SOAP client used by EMIESClient.";
       return false;
     }
     set_namespaces(ns);
@@ -145,7 +146,7 @@ namespace Arc {
 
   bool EMIESClient::process(PayloadSOAP& req, bool delegate, XMLNode& response, bool retry) {
     if (!client) {
-      logger.msg(VERBOSE, "EMIESClient was not created properly.");
+      lfailure = "EMIESClient was not created properly.";
       return false;
     }
 
@@ -170,6 +171,7 @@ namespace Arc {
     PayloadSOAP* resp = NULL;
     if (!client->process(&req, &resp)) {
       logger.msg(VERBOSE, "%s request failed", req.Child(0).FullName());
+      lfailure = "Failed processing request";
       delete client; client = NULL;
       if(!retry) return false; 
       if(!reconnect()) return false; 
@@ -178,6 +180,7 @@ namespace Arc {
 
     if (resp == NULL) {
       logger.msg(VERBOSE, "No response from %s", rurl.str());
+      lfailure = "No response received";
       delete client; client = NULL;
       if(!retry) return false; 
       if(!reconnect()) return false; 
@@ -186,10 +189,14 @@ namespace Arc {
 
     if (resp->IsFault()) {
       logger.msg(VERBOSE, "%s request to %s failed with response: %s", req.Child(0).FullName(), rurl.str(), resp->Fault()->Reason());
+      lfailure = "Fault response received: "+resp->Fault()->Reason();
+      // Trying to check if it is EMI ES fault
       if(resp->Fault()->Code() != SOAPFault::Receiver) retry = false;
-      std::string s;
-      resp->GetXML(s);
-      logger.msg(DEBUG, "XML response: %s", s);
+      {
+        std::string s;
+        resp->GetXML(s);
+        logger.msg(DEBUG, "XML response: %s", s);
+      };
       delete resp;
       delete client; client = NULL;
       if(!retry) return false; 
@@ -198,11 +205,13 @@ namespace Arc {
     }
 
     if (!(*resp)[action + "Response"]) {
-      logger.msg(VERBOSE, "%s request to %s failed. No expected response.", action, rurl.str());
+      logger.msg(VERBOSE, "%s request to %s failed. Unexpected response: %s.", action, rurl.str(), resp->Child(0).Name());
+      lfailure = "Unexpected response received";
       delete resp;
       return false;
     }
 
+    // TODO: switch instead of copy
     (*resp)[action + "Response"].New(response);
     delete resp;
     return true;
@@ -220,18 +229,25 @@ namespace Arc {
        escreate:CreateActivityResponse
          escreate:ActivityCreationResponse
            estypes:ActivityID
-           estypes:ActivityManagerURI
+           estypes:ActivityMgmtEndpointURL
+           estypes:ResourceInfoEndpointURL
            estypes:ActivityStatus
            escreate:ETNSC
            escreate:StageInDirectory
            escreate:SessionDirectory
            escreate:StageOutDirectory
+           or
+           estypes:InternalBaseFault
+           estypes:AccessControlFault
+           escreate:InvalidActivityDescriptionFault
+           escreate:InvalidActivityDescriptionSemanticFault
+           escreate:UnsupportedCapabilityFault
      */
 
     PayloadSOAP req(ns);
     XMLNode op = req.NewChild("escreate:" + action);
     XMLNode act_doc = op.NewChild(XMLNode(jobdesc));
-    act_doc.Name("esadl:ActivityDescription"); // Pretending it is ADL
+    act_doc.Name("esadl:ActivityDescription"); // In case it had different top element
 
     logger.msg(DEBUG, "Job description to be sent: %s", jobdesc);
 
@@ -240,11 +256,25 @@ namespace Arc {
 
     response.Namespaces(ns);
     XMLNode item = response.Child(0);
-    if(!MatchXMLName(item,"escreate:ActivityCreationResponse")) return false;
+    if(!MatchXMLName(item,"escreate:ActivityCreationResponse")) {
+      lfailure = "Response is not ActivityCreationResponse";
+      return false;
+    }
+    EMIESFault fault; fault = item;
+    if(fault) {
+      lfailure = "Service responded with fault: "+fault.message+" - "+fault.description;
+      return false;
+    };
     job = item;
-    if(!job) return false;
+    if(!job) {
+      lfailure = "Response is not valid ActivityCreationResponse";
+      return false;
+    };
     state = item["estypes:ActivityStatus"];
-    if(!state) return false;
+    if(!state) {
+      lfailure = "Response does not contain valid ActivityStatus";
+      return false;
+    };
     return true;
   }
 
@@ -252,7 +282,10 @@ namespace Arc {
     XMLNode st;
     if(!stat(job,st)) return false;
     state = st;
-    if(!state) return false;
+    if(!state) {
+      lfailure = "Response does not contain valid ActivityStatus";
+      return false;
+    };
     return true;
   }
 
@@ -264,8 +297,15 @@ namespace Arc {
       esainfo:GetActivityStatusResponse
         esainfo:ActivityStatusItem
           estypes:ActivityID
+
           estypes:ActivityStatus
+          or
           estypes:InternalBaseFault
+          AccessControlFault
+          ActivityNotFoundFault
+          UnableToRetrieveStatusFault
+          OperationNotPossibleFault
+          OperationNotAllowedFault
     */
 
     std::string action = "GetActivityStatus";
@@ -279,9 +319,24 @@ namespace Arc {
 
     response.Namespaces(ns);
     XMLNode item = response.Child(0);
-    if(!MatchXMLName(item,"esainfo:ActivityStatusItem")) return false;
-    if((std::string)(item["estypes:ActivityID"]) != job.id) return false;
+    if(!MatchXMLName(item,"esainfo:ActivityStatusItem")) {
+      lfailure = "Response is not ActivityStatusItem";
+      return false;
+    };
+    if((std::string)(item["estypes:ActivityID"]) != job.id) {
+      lfailure = "Response contains wrong or not ActivityID";
+      return false;
+    };
+    EMIESFault fault; fault = item;
+    if(fault) {
+      lfailure = "Service responded with fault: "+fault.message+" - "+fault.description;
+      return false;
+    };
     XMLNode status = item["estypes:ActivityStatus"];
+    if(!status) {
+      lfailure = "Response does not contain ActivityStatus";
+      return false;
+    };
     status.New(state);
     return true;
   }
@@ -295,8 +350,17 @@ namespace Arc {
       esainfo:GetActivityInfoResponse
         esainfo:ActivityInfoItem
           estypes:ActivityID
-          estypes:ActivityInfo (glue:ComputingActivity_t)
+          esainfo:ActivityInfoDocument (glue:ComputingActivity_t)
+          or
+          esainfo:AttributeInfoItem
+          or
           estypes:InternalBaseFault
+          AccessControlFault
+          ActivityNotFoundFault
+          UnknownAttributeFault
+          UnableToRetrieveStatusFault
+          OperationNotPossibleFault
+          OperationNotAllowedFault
     */
 
     std::string action = "GetActivityInfo";
@@ -310,38 +374,42 @@ namespace Arc {
 
     response.Namespaces(ns);
     XMLNode item = response.Child(0);
-    if(!MatchXMLName(item,"esainfo:ActivityInfoItem")) return false;
-    if((std::string)(item["estypes:ActivityID"]) != job.id) return false;
+    if(!MatchXMLName(item,"esainfo:ActivityInfoItem")) {
+      lfailure = "Response is not ActivityInfoItem";
+      return false;
+    };
+    if((std::string)(item["estypes:ActivityID"]) != job.id) {
+      lfailure = "Response contains wrong or not ActivityID";
+      return false;
+    };
+    EMIESFault fault; fault = item;
+    if(fault) {
+      lfailure = "Service responded with fault: "+fault.message+" - "+fault.description;
+      return false;
+    };
+    XMLNode infodoc = item["estypes:ActivityInfoDocument"];
+    if(!infodoc) {
+      lfailure = "Response does not contain ActivityInfoDocument";
+      return false;
+    };
     // Processing generic GLUE2 information
-    info.Update(item["estypes:ActivityInfo"]);
+    info.Update(infodoc);
     // Looking for EMI ES specific state
-    XMLNode state = item["estypes:ActivityInfo"]["State"];
-    for(;(bool)state;++state) {
-      JobStateEMIES st((std::string)state);
-      if(!st) continue;
-      info.State = st;
-      break;
-    }
-    XMLNode rstate = item["estypes:ActivityInfo"]["RestartState"];
-    for(;(bool)state;++state) {
-      JobStateEMIES st((std::string)state);
-      if(!st) continue;
-      info.RestartState = st;
-      break;
-    }
-    XMLNode ext = item["estypes:ActivityInfo"]["Extensions"]["Extension"];
-    
-    for(;(bool)ext;++ext) {
-      bool nodeFound = false;
-      XMLNode s;
-      s = ext["esainfo:StageInDirectory"];
-      if(s) { job.stagein = (std::string)s; nodeFound = true; }
-      s = ext["esainfo:StageOutDirectory"];
-      if(s) { job.stageout = (std::string)s; nodeFound = true; }
-      s = ext["esainfo:SessionDirectory"];
-      if(s) { job.session = (std::string)s; nodeFound = true; }
-      if(nodeFound) break;
-    }
+    XMLNode state = infodoc["State"];
+    EMIESJobState st;
+    for(;(bool)state;++state) st = (std::string)state;
+    if(st) info.State = JobStateEMIES(st);
+    EMIESJobState rst;
+    XMLNode rstate = infodoc["RestartState"];
+    for(;(bool)rstate;++rstate) rst = (std::string)rstate;
+    info.RestartState = JobStateEMIES(rst);
+    XMLNode ext;
+    ext  = infodoc["esainfo:StageInDirectory"];
+    for(;(bool)ext;++ext) job.stagein.push_back((std::string)ext);
+    ext  = infodoc["esainfo:StageOutDirectory"];
+    for(;(bool)ext;++ext) job.stagein.push_back((std::string)ext);
+    ext  = infodoc["esainfo:SessionDirectory"];
+    for(;(bool)ext;++ext) job.stagein.push_back((std::string)ext);
     // Making EMI ES specific job id
     // URL-izing job id
     info.JobID = URL(job.manager.str() + "/" + job.id);
@@ -354,29 +422,38 @@ namespace Arc {
     esrinfo:GetResourceInfo
 
     esrinfo:GetResourceInfoResponse
-      esrinfo:ComputingService - glue:ComputingService_t
-      esrinfo:ActivityManager - glue:Service_t
+      esrinfo:Services
+        glue:ComputingService
+        glue:Service
     */
     std::string action = "GetResourceInfo";
     logger.msg(VERBOSE, "Creating and sending service information query request to %s", rurl.str());
 
     PayloadSOAP req(ns);
     XMLNode op = req.NewChild("esrinfo:" + action);
+    XMLNode res;
 
-    if (!process(req, false, response)) return false;
+    if (!process(req, false, res)) return false;
 
-    response.Namespaces(ns);
-    XMLNode service = response["ComputingService"]; // esrinfo:ComputingService
-    XMLNode manager = response["ActivityManager"];  // esrinfo:ActivityManager
-    if(!service) {
-      logger.msg(VERBOSE, "Missing ComputingService in response from %s", rurl.str());
+    res.Namespaces(ns);
+    XMLNode services = response["Services"];
+    if(!services) {
+      lfailure = "Missing Services in response";
       return false;
     }
-    if(!manager) {
-      logger.msg(VERBOSE, "Missing ActivityManager in response from %s", rurl.str());
-      return false;
-    }
+    services.Move(response);
+    //XMLNode service = services["ComputingService"];
+    //if(!service) {
+    //  lfailure = "Missing ComputingService in response";
+    //  return false;
+    //}
+    //XMLNode manager = services["Service"];
+    //if(!manager) {
+    //  lfailure = "Missing Service in response";
+    //  return false;
+    //}
     // Converting elements to glue2 namespace so it canbe used by any glue2 parser
+    /*
     std::string prefix;
     for(int n = 0;;++n) {
       XMLNode c = service.Child(n);
@@ -393,6 +470,7 @@ namespace Arc {
     if(prefix.empty()) prefix="glue2";
     service.Name(prefix+":ComputingService");
     manager.Name(prefix+":ActivityManager");
+    */
     return true;
   }
 
@@ -402,11 +480,15 @@ namespace Arc {
         estypes:ActivityID
 
       esmanag:CancelActivityResponse
-        esmanag:ResponseItem
+        esmanag:CancelActivityResponseItem
           estypes:ActivityID
-          {
           esmang:EstimatedTime (xsd:unsignedLong)
+          or
           estypes:InternalBaseFault
+          OperationNotPossibleFault
+          OperationNotAllowedFault
+          ActivityNotFoundFault
+          AccessControlFault
     */
     std::string action = "CancelActivity";
     logger.msg(VERBOSE, "Creating and sending job clean request to %s", rurl.str());
@@ -419,11 +501,15 @@ namespace Arc {
         estypes:ActivityID
 
       esmanag:WipeActivityResponse
-        esmanag:ResponseItem
+        esmanag:WipeActivityResponseItem
           estypes:ActivityID
-          {
           esmang:EstimatedTime (xsd:unsignedLong)
+          or
           estypes:InternalBaseFault
+          OperationNotPossibleFault
+          OperationNotAllowedFault
+          ActivityNotFoundFault
+          AccessControlFault
     */
     std::string action = "WipeActivity";
     logger.msg(VERBOSE, "Creating and sending job clean request to %s", rurl.str());
@@ -436,11 +522,15 @@ namespace Arc {
         estypes:ActivityID
 
       esmanag:PauseActivityResponse
-        esmanag:ResponseItem
+        esmanag:PauseActivityResponseItem
           estypes:ActivityID
-          {
           esmang:EstimatedTime (xsd:unsignedLong)
+          or
           estypes:InternalBaseFault
+          OperationNotPossibleFault
+          OperationNotAllowedFault
+          ActivityNotFoundFault
+          AccessControlFault
     */
     std::string action = "PauseActivity";
     logger.msg(VERBOSE, "Creating and sending job suspend request to %s", rurl.str());
@@ -453,11 +543,15 @@ namespace Arc {
         estypes:ActivityID
 
       esmanag:ResumeActivityResponse
-        esmanag:ResponseItem
+        esmanag:ResumeActivityResponseItem
           estypes:ActivityID
-          {
           esmang:EstimatedTime (xsd:unsignedLong)
+          or
           estypes:InternalBaseFault
+          OperationNotPossibleFault
+          OperationNotAllowedFault
+          ActivityNotFoundFault
+          AccessControlFault
     */
     std::string action = "ResumeActivity";
     logger.msg(VERBOSE, "Creating and sending job resume request to %s", rurl.str());
@@ -470,11 +564,15 @@ namespace Arc {
         estypes:ActivityID
 
       esmanag:RestartActivityResponse
-        esmanag:ResponseItem
+        esmanag:RestartActivityResponseItem
           estypes:ActivityID
-          {
           esmang:EstimatedTime (xsd:unsignedLong)
+          or
           estypes:InternalBaseFault
+          OperationNotPossibleFault
+          OperationNotAllowedFault
+          ActivityNotFoundFault
+          AccessControlFault
     */
     std::string action = "RestartActivity";
     logger.msg(VERBOSE, "Creating and sending job restart request to %s", rurl.str());
@@ -491,16 +589,23 @@ namespace Arc {
     if (!process(req, false, response)) return false;
 
     response.Namespaces(ns);
-    XMLNode item = response["ResponseItem"];
-    if(!item) return false;
-    if((std::string)item["ActivityID"] != id) return false;
+    XMLNode item = response[action+"ResponseItem"];
+    if(!item) {
+      lfailure = "Response does not contain "+action+"ResponseItem";
+      return false;
+    };
+    if((std::string)item["ActivityID"] != id) {
+      lfailure = "Response contains wrong or not ActivityID";
+      return false;
+    };
+    EMIESFault fault; fault = item;
+    if(fault) {
+      lfailure = "Service responded with fault: "+fault.message+" - "+fault.description;
+      return false;
+    };
     if((bool)item["EstimatedTime"]) {
       // time till operation is complete
       // TODO: do something for non-0 time. Maybe pull status.
-    } else {
-      // Check if fault is present
-      // TODO: more strict check
-      if(item.Size() > 1) return false;
     }
     return true;
   }
@@ -511,14 +616,20 @@ namespace Arc {
       esmanag:NotifyRequestItem
         estypes:ActivityID
         esmanag:NotifyMessage
-          CLIENT-DATAPULL-DONE
-          CLIENT-DATAPUSH-DONE
-
+          client-datapull-done
+          client-datapush-done
 
     esmanag:NotifyServiceResponse
       esmang:NotifyResponseItem"
         estypes:ActivityID
+        Acknowledgement
+        or
         estypes:InternalBaseFault
+        OperationNotPossibleFault
+        OperationNotAllowedFault
+        InternalNotificationFault
+        ActivityNotFoundFault
+        AccessControlFault
     */
     std::string action = "NotifyService";
     logger.msg(VERBOSE, "Creating and sending job notify request to %s", rurl.str());
@@ -526,7 +637,7 @@ namespace Arc {
     XMLNode op = req.NewChild("esmanag:" + action);
     XMLNode ritem = op.NewChild("esmanag:NotifyRequestItem");
     ritem.NewChild("estypes:ActivityID") = job.id;
-    ritem.NewChild("esmanag:NotifyMessage") = "CLIENT-DATAPUSH-DONE";
+    ritem.NewChild("esmanag:NotifyMessage") = "client-datapush-done";
 
     // Send request
     XMLNode response;
@@ -534,22 +645,38 @@ namespace Arc {
 
     response.Namespaces(ns);
     XMLNode item = response["NotifyResponseItem"];
-    if(item.Size() != 1) return false;
-    if((std::string)item["ActivityID"] != job.id) return false;
+    if(!item) {
+      lfailure = "Response does not contain NotifyResponseItem";
+      return false;
+    };
+    if((std::string)item["ActivityID"] != job.id) {
+      lfailure = "Response contains wrong or not ActivityID";
+      return false;
+    };
+    EMIESFault fault; fault = item;
+    if(fault) {
+      lfailure = "Service responded with fault: "+fault.message+" - "+fault.description;
+      return false;
+    };
+    if(!item["Acknowledgement"]) {
+      lfailure = "Response does not contain Acknowledgement";
+      return false;
+    };
     return true;
   }
 
   bool EMIESClient::list(std::list<EMIESJob>& jobs) {
     /*
-    ListActivitiesRequest
-     FromDate (xsd:dateTime) 0-1
-     ToDate (xsd:dateTime) 0-1
-     Limit 0-1
-     Status 0-
-     StatusAttribute 0-
+    esainfo:ListActivities
+     esainfo:FromDate (xsd:dateTime) 0-1
+     esainfo:ToDate (xsd:dateTime) 0-1
+     esaonfo:Limit 0-1
+     esainfo:ActivityStatus
+       esainfo:Status 0-
+       esainfo:Attribute 0-
 
-    ListActivitiesResponse
-     ActivityID 0-
+    esainfo:ListActivitiesResponse
+     esmain:ActivityID 0-
      truncated (attribute) - false
 
     InvalidTimeIntervalFault
@@ -576,12 +703,16 @@ namespace Arc {
   }
 
   EMIESJobState& EMIESJobState::operator=(const std::string& st) {
-    state.clear();
-    attributes.clear();
-    timestamp = Time();
-    description.clear();
-    if(strncmp("emies:",st.c_str(),6) != 0) return *this;
-    state = st.substr(6);
+    // From GLUE2 states
+    //state.clear();
+    //attributes.clear();
+    //timestamp = Time();
+    //description.clear();
+    if(::strncmp("emies:",st.c_str(),6) == 0) {
+      state = st.substr(6);
+    } else if(::strncmp("emiesattr:",st.c_str(),10) == 0) {
+      attributes.push_back(st.substr(10));
+    }
     return *this;
   }
 
@@ -589,26 +720,35 @@ namespace Arc {
     /*
     estypes:ActivityStatus
       estypes:Status
+        accepted
+        preprocessing
+        processing
+        processing-accepting
+        processing-queued
+        processing-running
+        postprocessing
+        terminal
       estypes:Attribute
-        VALIDATING
-        SERVER-PAUSED
-        CLIENT-PAUSED
-        CLIENT-STAGEIN-POSSIBLE
-        CLIENT-STAGEOUT-POSSIBLE
-        PROVISIONING
-        DEPROVISIONING
-        SERVER-STAGEIN
-        SERVER-STAGEOUT
-        BATCH-SUSPEND
-        APP-RUNNING
-        PREPROCESSING-CANCEL
-        PROCESSING-CANCEL
-        POSTPROCESSING-CANCEL
-        VALIDATION-FAILURE
-        PREPROCESSING-FAILURE
-        PROCESSING-FAILURE
-        POSTPROCESSING-FAILURE
-        APP-FAILURE
+        validating
+        server-paused
+        client-paused
+        client-stagein-possible
+        client-stageout-possible
+        provisioning
+        deprovisioning
+        server-stagein
+        server-stageout
+        batch-suspend
+        app-running
+        preprocessing-cancel
+        processing-cancel
+        postprocessing-cancel
+        validation-failure
+        preprocessing-failure
+        processing-failure
+        postprocessing-failure
+        app-failure
+        expired
       estypes:Timestamp (xsd:dateTime)
       estypes:Description
     */
@@ -628,6 +768,15 @@ namespace Arc {
       }
     }
     return *this;
+  }
+
+  std::string EMIESJobState::ToXML(void) const {
+    XMLNode xml("<ActivityStatus/>");
+    xml.NewChild("Status") = state;
+    for(std::list<std::string>::const_iterator attr = attributes.begin();
+               attr != attributes.end();++attr) {
+      xml.NewChild("Attribute") = *attr;
+    };
   }
 
   bool EMIESJobState::operator!(void) {
@@ -650,46 +799,107 @@ namespace Arc {
   EMIESJob& EMIESJob::operator=(XMLNode job) {
     /*
     estypes:ActivityID
-    estypes:ActivityManagerURI
+    estypes:ActivityMgmtEndpointURL
+    estypes:ResourceInfoEndpointURL
     escreate:StageInDirectory
     escreate:SessionDirectory
     escreate:StageOutDirectory
     */
+    stagein.clear();
+    session.clear();
+    stageout.clear();
     id = (std::string)job["ActivityID"];
-    manager = (std::string)job["ActivityManagerURI"];
-    stagein = (std::string)job["StageInDirectory"]["URL"];
-    session = (std::string)job["SessionDirectory"]["URL"];
-    stageout = (std::string)job["StageOutDirectory"]["URL"];
+    manager = (std::string)job["ActivityMgmtEndpointURL"];
+    resource = (std::string)job["ResourceInfoEndpointURL"];
+    for(XMLNode u = job["StageInDirectory"]["URL"];(bool)u;++u) stagein.push_back((std::string)u);
+    for(XMLNode u = job["SessionDirectory"]["URL"];(bool)u;++u) session.push_back((std::string)u);
+    for(XMLNode u = job["StageOutDirectory"]["URL"];(bool)u;++u) stageout.push_back((std::string)u);
     return *this;
   }
 
-  XMLNode EMIESJob::ToXML() const {
+  std::string EMIESJob::ToXML() const {
     /*
     estypes:ActivityID
-    estypes:ActivityManagerURI
+    estypes:ActivityMgmtEndpointURL
+    estypes:ResourceInfoEndpointURL
     escreate:StageInDirectory
     escreate:SessionDirectory
     escreate:StageOutDirectory
     */
-    // TODO: Add namespace;
-    return XMLNode("<ActivityIdentifier>"
-                     "<ActivityID>"+id+"</ActivityID>"
-                     "<ActivityManagerURI>"+manager.fullstr()+"</ActivityManagerURI>"
-                     "<StageInDirectory>"
-                      "<URL>"+stagein.fullstr()+"</URL>"
-                     "</StageInDirectory>"
-                     "<SessionDirectory>"
-                      "<URL>"+session.fullstr()+"</URL>"
-                     "</SessionDirectory>"
-                     "<StageOutDirectory>"
-                      "<URL>"+stageout.fullstr()+"</URL>"
-                     "</StageOutDirectory>"
-                   "</ActivityIdentifier>");
+    // TODO: Add namespace; Currently it is not needed because
+    // this XML used only internally.
+    XMLNode item("<ActivityIdentifier/>");
+    item.NewChild("ActivityID") = id;
+    item.NewChild("ActivityMgmtEndpointURL") = manager.fullstr();
+    item.NewChild("ResourceInfoEndpointURL") = resource.fullstr();
+    for(std::list<URL>::const_iterator s = stagein.begin();
+                    s!=stagein.end();++s) item.NewChild("StageInDirectory") = s->fullstr();
+    for(std::list<URL>::const_iterator s = stagein.begin();
+                    s!=session.end();++s) item.NewChild("SessionDirectory") = s->fullstr();
+    for(std::list<URL>::const_iterator s = stageout.begin();
+                    s!=stageout.end();++s) item.NewChild("StageOutDirectory") = s->fullstr();
+    std::string str;
+    item.GetXML(str);
+    return str;
   }
 
   bool EMIESJob::operator!(void) {
     return id.empty();
   }
+
+  EMIESJob::operator bool(void) {
+    return !id.empty();
+  }
+
+  EMIESFault& EMIESFault::operator=(SOAPFault* fault) {
+    type = "";
+    if(!fault) return *this;
+    XMLNode detail = fault->Detail();
+    if(!detail) return *this;
+    return operator=(detail);
+  }
+
+  EMIESFault& EMIESFault::operator=(XMLNode item) {
+    code = 0;
+    XMLNode fault;
+    if((fault = item["InternalBaseFault"]) ||
+       (fault = item["VectorLimitExceededFault"]) ||
+       (fault = item["AccessControlFault"]) ||
+       (fault = item["InvalidActivityDescriptionFault"]) ||
+       (fault = item["InvalidActivityDescriptionSemanticFault"]) ||
+       (fault = item["UnsupportedCapabilityFault"]) ||
+       (fault = item["ActivityNotFoundFault"]) ||
+       (fault = item["UnableToRetrieveStatusFault"]) ||
+       (fault = item["OperationNotPossibleFault"]) ||
+       (fault = item["OperationNotAllowedFault"]) ||
+       (fault = item["ActivityNotFoundFault"]) ||
+       (fault = item["UnknownAttributeFault"]) ||
+       (fault = item["InternalNotificationFault"]) ||
+       (fault = item["InvalidActivityStateFault"]) ||
+       (fault = item["InvalidParameterFault"]) ||
+       (fault = item["NotSupportedQueryDialectFault"]) ||
+       (fault = item["NotValidQueryStatementFault"]) ||
+       (fault = item["UnknownQueryFault"]) ||
+       (fault = item["InternalResourceInfoFault"]) ||
+       (fault = item["ResourceInfoNotFoundFault"])) {
+      type = fault.Name();
+      description = (std::string)fault["Description"];
+      message = (std::string)fault["Message"];
+      if((bool)fault["FailureCode"]) strtoint((std::string)fault["FailureCode"],code);
+      if((bool)fault["Timestamp"]) timestamp = (std::string)fault["Timestamp"];
+    } else {
+      type = "";
+    };
+  }
+
+  bool EMIESFault::operator!(void) {
+    return type.empty();
+  }
+
+  EMIESFault::operator bool(void) {
+    return !type.empty();
+  }
+
 
 // -----------------------------------------------------------------------------
 

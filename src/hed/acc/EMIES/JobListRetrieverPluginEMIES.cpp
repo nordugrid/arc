@@ -63,7 +63,7 @@ namespace Arc {
       if(!jobid->manager) jobid->manager = url;
       j.InterfaceName = supportedInterfaces.front();
       j.Cluster = jobid->manager;
-      jobid->ToXML().GetXML(j.IDFromEndpoint);
+      j.IDFromEndpoint = jobid->ToXML();
       // URL-izing job id
       j.JobID = URL(jobid->manager.str() + "/" + jobid->id);
       jobs.push_back(j);

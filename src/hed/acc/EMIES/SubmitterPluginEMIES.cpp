@@ -39,6 +39,8 @@ namespace Arc {
 
     bool ok = true;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
+      bool job_ok = true;
+
       JobDescription preparedjobdesc(*it);
   
       if (!preparedjobdesc.Prepare()) {
@@ -89,12 +91,10 @@ namespace Arc {
         // Wait for job to go into proper state
         for(;;) {
           // TODO: implement timeout
-std::cerr<<"++++ waiting stagein: "<<jobstate.state<<std::endl;
           if(jobstate.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) break;
           if(jobstate.state == EMIES_STATE_TERMINAL_S) {
             logger.msg(INFO, "Job failed on service side");
-            notSubmitted.push_back(&*it);
-            ok = false;
+            job_ok = false;
             break;
           }
           // If service jumped over stageable state client probably does not
@@ -104,40 +104,64 @@ std::cerr<<"++++ waiting stagein: "<<jobstate.state<<std::endl;
           sleep(5);
           if(!ac->stat(jobid, jobstate)) {
             logger.msg(INFO, "Failed to obtain state of job");
-            notSubmitted.push_back(&*it);
-            ok = false;
+            job_ok = false;
             break;
           }
         }
-        
-        if (!ok) continue;
+        if (!job_ok) {
+          notSubmitted.push_back(&*it);
+          ok = false;
+          continue;
+        }
       }
         
       if(have_uploads) {
+        // Upload input files
         if(!jobstate.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) {
           logger.msg(INFO, "Failed to wait for job to allow stage in");
           notSubmitted.push_back(&*it);
           ok = false;
           continue;
         }
-        if(!jobid.stagein) {
+        if(jobid.stagein.empty()) {
           // Try to obtain it from job info
           Job tjob;
           if((!ac->info(jobid, tjob)) ||
-             (!jobid.stagein)) {
-            logger.msg(INFO, "Failed to obtain valid stagein URL for input files: %s", jobid.stagein.fullstr());
+             (jobid.stagein.empty())) {
+            job_ok = false;
+          } else {
+            job_ok = false;
+            for(std::list<URL>::iterator stagein = jobid.stagein.begin();
+                         stagein != jobid.stagein.end();++stagein) {
+              if(*stagein) {
+                job_ok = true;
+                break;
+              }
+            }
+          }
+          if(!job_ok) {
+            logger.msg(INFO, "Failed to obtain valid stagein URL for input files");
             notSubmitted.push_back(&*it);
             ok = false;
             continue;
           }
         }
-        // Enhance file upload performance by tuning URL
-        if((jobid.stagein.Protocol() == "https") || (jobid.stagein.Protocol() == "http")) {
-          jobid.stagein.AddOption("threads=2",false);
-          jobid.stagein.AddOption("encryption=optional",false);
+        job_ok = false;
+        for(std::list<URL>::iterator stagein = jobid.stagein.begin();
+                       stagein != jobid.stagein.end();++stagein) {
+          if(!*stagein) continue;
+          // Enhance file upload performance by tuning URL
+          if((stagein->Protocol() == "https") || (stagein->Protocol() == "http")) {
+            stagein->AddOption("threads=2",false);
+            stagein->AddOption("encryption=optional",false);
+          }
+          if (!PutFiles(preparedjobdesc, *stagein)) {
+            logger.msg(INFO, "Failed uploading local input files to %s",stagein->str());
+          } else {
+            job_ok = true;
+          }
         }
-        if (!PutFiles(preparedjobdesc, jobid.stagein)) {
-          logger.msg(INFO, "Failed uploading local input files");
+        if (!job_ok) {
           notSubmitted.push_back(&*it);
           ok = false;
           continue;
@@ -155,7 +179,7 @@ std::cerr<<"++++ waiting stagein: "<<jobstate.state<<std::endl;
       URL jobidu(jobid.manager.str() + "/" + jobid.id);
 
       Job j;
-      jobid.ToXML().GetXML(j.IDFromEndpoint);
+      j.IDFromEndpoint = jobid.ToXML();
       AddJobDetails(preparedjobdesc, jobidu, jobInformationEndpoint, j);
       jc.addEntity(j);
     }
@@ -173,6 +197,8 @@ std::cerr<<"++++ waiting stagein: "<<jobstate.state<<std::endl;
 
     bool ok = true;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
+      bool job_ok = true;
+
       JobDescription preparedjobdesc(*it);
   
       if (!preparedjobdesc.Prepare(et)) {
@@ -226,8 +252,7 @@ std::cerr<<"++++ waiting stagein: "<<jobstate.state<<std::endl;
           if(jobstate.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) break;
           if(jobstate.state == EMIES_STATE_TERMINAL_S) {
             logger.msg(INFO, "Job failed on service side");
-            notSubmitted.push_back(&*it);
-            ok = false;
+            job_ok = false;
             break;
           }
           // If service jumped over stageable state client probably does not
@@ -237,13 +262,15 @@ std::cerr<<"++++ waiting stagein: "<<jobstate.state<<std::endl;
           sleep(5);
           if(!ac->stat(jobid, jobstate)) {
             logger.msg(INFO, "Failed to obtain state of job");
-            notSubmitted.push_back(&*it);
-            ok = false;
+            job_ok = false;
             break;
           }
         }
-        
-        if (!ok) continue;
+        if (!job_ok) {
+          notSubmitted.push_back(&*it);
+          ok = false;
+          continue;
+        }
       }
         
       if(have_uploads) {
@@ -253,24 +280,46 @@ std::cerr<<"++++ waiting stagein: "<<jobstate.state<<std::endl;
           ok = false;
           continue;
         }
-        if(!jobid.stagein) {
+        if(jobid.stagein.empty()) {
           // Try to obtain it from job info
           Job tjob;
           if((!ac->info(jobid, tjob)) ||
-             (!jobid.stagein)) {
-            logger.msg(INFO, "Failed to obtain valid stagein URL for input files: %s", jobid.stagein.fullstr());
+             (jobid.stagein.empty())) {
+            job_ok = false;
+          } else {
+            job_ok = false;
+            for(std::list<URL>::iterator stagein = jobid.stagein.begin();
+                         stagein != jobid.stagein.end();++stagein) {
+              if(*stagein) {
+                job_ok = true;
+                break;
+              }
+            }
+          }
+          if(!job_ok) {
+            logger.msg(INFO, "Failed to obtain valid stagein URL for input files");
             notSubmitted.push_back(&*it);
             ok = false;
             continue;
           }
         }
-        // Enhance file upload performance by tuning URL
-        if((jobid.stagein.Protocol() == "https") || (jobid.stagein.Protocol() == "http")) {
-          jobid.stagein.AddOption("threads=2",false);
-          jobid.stagein.AddOption("encryption=optional",false);
+
+        job_ok = false;
+        for(std::list<URL>::iterator stagein = jobid.stagein.begin();
+                       stagein != jobid.stagein.end();++stagein) {
+          if(!*stagein) continue;
+          // Enhance file upload performance by tuning URL
+          if((stagein->Protocol() == "https") || (stagein->Protocol() == "http")) {
+            stagein->AddOption("threads=2",false);
+            stagein->AddOption("encryption=optional",false);
+          }
+          if (!PutFiles(preparedjobdesc, *stagein)) {
+            logger.msg(INFO, "Failed uploading local input files to %s",stagein->str());
+          } else {
+            job_ok = true;
+          }
         }
-        if (!PutFiles(preparedjobdesc, jobid.stagein)) {
-          logger.msg(INFO, "Failed uploading local input files");
+        if (!job_ok) {
           notSubmitted.push_back(&*it);
           ok = false;
           continue;
@@ -289,7 +338,7 @@ std::cerr<<"++++ waiting stagein: "<<jobstate.state<<std::endl;
       URL jobidu(jobid.manager.str() + "/" + jobid.id);
       
       Job j;
-      jobid.ToXML().GetXML(j.IDFromEndpoint);
+      j.IDFromEndpoint = jobid.ToXML();
       AddJobDetails(preparedjobdesc, jobidu, et.ComputingService->Cluster, j);
       jc.addEntity(j);
     }

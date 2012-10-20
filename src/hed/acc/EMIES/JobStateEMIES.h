@@ -26,6 +26,7 @@ namespace Arc {
 #define EMIES_SATTR_POSTPROCESSING_FAILURE_S "postprocessing-failure"
 #define EMIES_SATTR_VALIDATION_FAILURE_S "validation-failure"
 #define EMIES_SATTR_APP_FAILURE_S "app-failure"
+#define EMIES_SATTR_EXPIRED_S "expired"
 
   class JobStateEMIES
     : public JobState {
@@ -33,6 +34,7 @@ namespace Arc {
     JobStateEMIES(const std::string& state): JobState(state, &StateMapS, FormatSpecificState) {}
     // TODO: extremely suboptimal
     JobStateEMIES(XMLNode state): JobState(xml_to_string(state), &StateMapX, FormatSpecificState) {}
+    JobStateEMIES(const EMIESJobState& state): JobState(state.ToXML(), &StateMapX, FormatSpecificState) {}
     static JobState::StateType StateMapS(const std::string& state);
     static JobState::StateType StateMapX(const std::string& state);
     static JobState::StateType StateMapInt(const EMIESJobState& st);

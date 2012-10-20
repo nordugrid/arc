@@ -125,10 +125,29 @@ namespace Arc {
     // Obtain information about staging urls
     EMIESJob ejob;
     ejob = job.IDFromEndpoint;
+    URL stagein;
+    URL stageout;
+    URL session;
+    // TODO: currently using first valid URL. Need support for multiple.
+    for(std::list<URL>::iterator s = ejob.stagein.begin();s!=ejob.stagein.end();++s) {
+      if(*s) {
+        stagein = *s; break;
+      }
+    }
+    for(std::list<URL>::iterator s = ejob.stageout.begin();s!=ejob.stageout.end();++s) {
+      if(*s) {
+        stageout = *s; break;
+      }
+    }
+    for(std::list<URL>::iterator s = ejob.session.begin();s!=ejob.session.end();++s) {
+      if(*s) {
+        session = *s; break;
+      }
+    }
 
-    if ((resource != Job::STAGEINDIR  || !ejob.stagein)  &&
-        (resource != Job::STAGEOUTDIR || !ejob.stageout) &&
-        (resource != Job::SESSIONDIR  || !ejob.session)) {
+    if ((resource != Job::STAGEINDIR  || !stagein)  &&
+        (resource != Job::STAGEOUTDIR || !stageout) &&
+        (resource != Job::SESSIONDIR  || !session)) {
       MCCConfig cfg;
       usercfg.ApplyToConfig(cfg);
       Job tjob;
@@ -141,23 +160,24 @@ namespace Arc {
       // Choose url by state
       // TODO: maybe this method should somehow know what is purpose of URL
       // TODO: state attributes would be more suitable
+      // TODO: library need to be etended to allow for multiple URLs
       if((tjob.State == JobState::ACCEPTED) ||
          (tjob.State == JobState::PREPARING)) {
-        url = ejob.stagein;
+        url = stagein;
       } else if((tjob.State == JobState::DELETED) ||
                 (tjob.State == JobState::FAILED) ||
                 (tjob.State == JobState::KILLED) ||
                 (tjob.State == JobState::FINISHED) ||
                 (tjob.State == JobState::FINISHING)) {
-        url = ejob.stageout;
+        url = stageout;
       } else {
-        url = ejob.session;
+        url = session;
       }
       // If no url found by state still try to get something
       if(!url) {
-        if(ejob.session)  url = ejob.session;
-        if(ejob.stagein)  url = ejob.stagein;
-        if(ejob.stageout) url = ejob.stageout;
+        if(session)  url = session;
+        if(stagein)  url = stagein;
+        if(stageout) url = stageout;
       }
       ((EMIESClients&)clients).release(ac.Release());
     }
@@ -176,13 +196,13 @@ namespace Arc {
       url.ChangePath(url.Path() + "/" + job.LogDir + "/errors");
       break;
     case Job::STAGEINDIR:
-      url = ejob.stagein;
+      url = stagein;
       break;
     case Job::STAGEOUTDIR:
-      url = ejob.stageout;
+      url = stageout;
       break;
     case Job::SESSIONDIR:
-      url = ejob.session;
+      url = session;
       break;
     default:
       break;
