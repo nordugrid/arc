@@ -17,13 +17,6 @@
 #include <arc/message/PayloadStream.h>
 #include <arc/message/PayloadSOAP.h>
 
-// A-REX includes for configuration
-#include "../a-rex/grid-manager/conf/conf_file.h"
-#include "../a-rex/grid-manager/log/job_log.h"
-#include "../a-rex/grid-manager/jobs/job_config.h"
-#include "../a-rex/grid-manager/jobs/plugins.h"
-#include "../a-rex/grid-manager/run/run_plugin.h"
-
 #include "CacheService.h"
 
 namespace Cache {
@@ -44,9 +37,6 @@ Arc::Logger CacheService::logger(Arc::Logger::rootLogger, "CacheService");
 
 CacheService::CacheService(Arc::Config *cfg, Arc::PluginArgument* parg) :
                                                RegisteredService(cfg,parg),
-                                               users(NULL),
-                                               gm_env(NULL),
-                                               jcfg(NULL),
                                                dtr_generator(NULL) {
   valid = false;
   // read configuration information
@@ -64,56 +54,35 @@ CacheService::CacheService(Arc::Config *cfg, Arc::PluginArgument* parg) :
   std::string arex_config = (std::string)(*cfg)["cache"]["config"];
   logger.msg(Arc::INFO, "Using A-REX config file %s", arex_config);
 
-  JobLog job_log;
-  jcfg = new JobsListConfig;
-  ContinuationPlugins plugins;
-  RunPlugin cred_plugin;
-  gm_env = new GMEnvironment(job_log, *jcfg, plugins, cred_plugin);
-  gm_env->nordugrid_config_loc(arex_config);
-  users = new JobUsers(*gm_env);
-
-  // read A-REX config
-  // user running this service
-  Arc::User u;
-  JobUser my_user(*gm_env, u.Name());
-  bool enable_arc = false;
-  bool enable_emies = false;
-  if (!configure_serviced_users(*users, my_user, enable_arc, enable_emies)) {
-    logger.msg(Arc::ERROR, "Failed to process A-REX configuration in %s", gm_env->nordugrid_config_loc());
+  config.SetConfigFile(arex_config);
+  if (!config.Load()) {
+    logger.msg(Arc::ERROR, "Failed to process A-REX configuration in %s", arex_config);
     return;
   }
-  print_serviced_users(*users);
+  config.Print();
+  if (config.CacheParams().getCacheDirs().empty()) { // do we care about remote caches?
+    logger.msg(Arc::ERROR, "No caches defined in configuration");
+    return;
+  }
 
   // check if we are running along with A-REX or standalone
   bool with_arex = false;
   if ((*cfg)["cache"]["witharex"] && (std::string)(*cfg)["cache"]["witharex"] == "true") with_arex = true;
 
   // start Generator for data staging
-  dtr_generator = new CacheServiceGenerator(*users, with_arex);
+  dtr_generator = new CacheServiceGenerator(config, with_arex);
 
   valid = true;
 }
 
 CacheService::~CacheService(void) {
-  if (users) {
-    delete users;
-    users = NULL;
-  }
-  if (gm_env) {
-    delete gm_env;
-    gm_env = NULL;
-  }
-  if (jcfg) {
-    delete jcfg;
-    jcfg = NULL;
-  }
   if (dtr_generator) {
     delete dtr_generator;
     dtr_generator = NULL;
   }
 }
 
-Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, const JobUser& user) {
+Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, const Arc::User& mapped_user) {
   /*
    Accepts:
    <CacheCheck>
@@ -136,8 +105,10 @@ Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, cons
    </CacheCheckResponse>
    */
 
-  // create cache
-  Arc::FileCache cache(user.CacheParams().getCacheDirs(), "0", user.get_uid(), user.get_gid());
+  // substitute cache paths according to mapped user
+  CacheConfig cache_params(config.CacheParams());
+  cache_params.substitute(config, mapped_user);
+  Arc::FileCache cache(cache_params.getCacheDirs(), "0", mapped_user.get_uid(), mapped_user.get_gid());
   if (!cache) {
     logger.msg(Arc::ERROR, "Error creating cache");
     return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheCheck", "Server error with cache");
@@ -188,8 +159,7 @@ Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, cons
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
-                                        const JobUser& user, const Arc::User& mapped_user) {
+Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const Arc::User& mapped_user) {
   /*
    Accepts:
    <CacheLink>
@@ -256,7 +226,14 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
   }
 
   // check job id and session dir are ok
-  std::string session_root = user.SessionRoot(jobid);
+  // substitute session dirs and use tmp configuration to find the one for this job
+  std::vector<std::string> sessions = config.SessionRoots();
+  for (std::vector<std::string>::iterator session = sessions.begin(); session != sessions.end(); ++session) {
+    config.Substitute(*session, mapped_user);
+  }
+  GMConfig tmp_config;
+  tmp_config.SetSessionRoot(sessions);
+  std::string session_root = tmp_config.SessionRoot(jobid);
   if (session_root.empty()) {
     logger.msg(Arc::ERROR, "No session directory found");
     return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheLink", "No session directory found for supplied Job ID");
@@ -279,13 +256,13 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
   // TODO: use credentials of caller of this service. For now use the
   // proxy of the specified job in the control dir
 
-  std::string proxy_path = user.ControlDir() + "/job." + jobid + ".proxy";
+  std::string proxy_path = config.ControlDir() + "/job." + jobid + ".proxy";
   if (!Arc::FileStat(proxy_path, &fileStat, true)) {
     logger.msg(Arc::ERROR, "Failed to access proxy of given job id at %s", proxy_path);
     return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheLink", "Failed to access proxy");
   }
   Arc::UserConfig usercfg;
-  usercfg.UtilsDirPath(user.ControlDir());
+  usercfg.UtilsDirPath(config.ControlDir());
   usercfg.ProxyPath(proxy_path);
   usercfg.InitializeCredentials(Arc::initializeCredentialsType::NotTryCredentials);
   std::string dn;
@@ -301,7 +278,10 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
   logger.msg(Arc::INFO, "DN is %s", dn);
 
   // create cache
-  Arc::FileCache cache(user.CacheParams().getCacheDirs(), jobid, mapped_user.get_uid(), mapped_user.get_gid());
+  // substitute cache paths according to mapped user
+  CacheConfig cache_params(config.CacheParams());
+  cache_params.substitute(config, mapped_user);
+  Arc::FileCache cache(cache_params.getCacheDirs(), jobid, mapped_user.get_uid(), mapped_user.get_gid());
   if (!cache) {
     logger.msg(Arc::ERROR, "Error with cache configuration");
     return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheCheck", "Server error with cache");
@@ -390,8 +370,8 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
       continue;
     }
     // Successfully linked to session - move to scratch if necessary
-    if (!user.Env().scratch_dir().empty()) {
-      std::string scratch_file(user.Env().scratch_dir()+'/'+jobid+'/'+filename);
+    if (!config.ScratchDir().empty()) {
+      std::string scratch_file(config.ScratchDir()+'/'+jobid+'/'+filename);
       // Access session and scratch under mapped uid
       Arc::FileAccess fa;
       if (!fa.fa_setuid(mapped_user.get_uid(), mapped_user.get_gid()) ||
@@ -436,7 +416,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
     }
 
     logger.msg(Arc::VERBOSE, "Starting new DTR for %s", i->first);
-    if (!dtr_generator->addNewRequest(user, i->first, i->second, usercfg, jobid, mapped_user.get_uid(), priority)) {
+    if (!dtr_generator->addNewRequest(mapped_user, i->first, i->second, usercfg, jobid, priority)) {
       logger.msg(Arc::ERROR, "Failed to start new DTR for %s", i->first);
       resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::DownloadError);
       resultelement.NewChild("ReturnCodeExplanation") = "Failed to start data staging";
@@ -526,29 +506,6 @@ Arc::MCC_Status CacheService::process(Arc::Message &inmsg, Arc::Message &outmsg)
   }
   Arc::User mapped_user(mapped_username);
 
-  // temporary user created for this call
-  // we don't care about validity of this user, it is just a place to store
-  // config information
-  JobUser jobuser(*gm_env);
-  if (users->find(mapped_username) != users->end()) {
-    jobuser.SetCacheParams(users->find(mapped_username)->CacheParams());
-    jobuser.SetControlDir(users->find(mapped_username)->ControlDir());
-    jobuser.SetSessionRoot(users->find(mapped_username)->SessionRoots());
-  } else if (users->find("") != users->end()) {
-    jobuser.SetCacheParams(users->find("")->CacheParams());
-    jobuser.SetControlDir(users->find("")->ControlDir());
-    jobuser.SetSessionRoot(users->find("")->SessionRoots());
-  } else {
-    logger.msg(Arc::ERROR, "No configuration found for user %s in A-REX configuration", mapped_username);
-    return make_soap_fault(outmsg, "Server configuration error");
-  }
-
-  std::vector<std::string> caches = jobuser.CacheParams().getCacheDirs();
-  if (caches.empty()) {
-    logger.msg(Arc::ERROR, "No caches configured for user %s", jobuser.UnixName());
-    return make_soap_fault(outmsg, "No caches configured for local user");
-  }
-
   if(method == "POST") {
     logger.msg(Arc::VERBOSE, "process: POST");
     logger.msg(Arc::INFO, "Identity is %s", inmsg.Attributes()->get("TLS:PEERDN"));
@@ -583,10 +540,10 @@ Arc::MCC_Status CacheService::process(Arc::Message &inmsg, Arc::Message &outmsg)
     Arc::MCC_Status result(Arc::STATUS_OK);
     // choose operation
     if (MatchXMLName(op,"CacheCheck")) {
-      result = CacheCheck(*inpayload, *outpayload, jobuser);
+      result = CacheCheck(*inpayload, *outpayload, mapped_user);
     }
     else if (MatchXMLName(op, "CacheLink")) {
-      result = CacheLink(*inpayload, *outpayload, jobuser, mapped_user);
+      result = CacheLink(*inpayload, *outpayload, mapped_user);
     }
     else if (MatchXMLName(op, "CacheLinkQuery")) {
       result = CacheLinkQuery(*inpayload, *outpayload);
