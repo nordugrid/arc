@@ -11,13 +11,3 @@ libjobs_la_LIBADD = \
 	$(top_builddir)/src/libs/data-staging/libarcdatastaging.la \
 	$(top_builddir)/src/hed/libs/client/libarcclient.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
-
-#libusers_la_SOURCES = \
-#	users.cpp job_config.cpp job.cpp plugins.cpp commfifo.cpp \
-#	job_request.cpp job_desc.cpp \
-#	users.h   job_config.h   job.h   plugins.h   commfifo.h   \
-#	job_request.h   job_desc.h
-#libusers_la_CXXFLAGS = -I$(top_srcdir)/include \
-#	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
-#libusers_la_LIBADD = \
-#	$(top_builddir)/src/hed/libs/common/libarccommon.la

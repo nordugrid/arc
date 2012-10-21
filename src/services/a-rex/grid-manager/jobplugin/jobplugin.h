@@ -9,7 +9,6 @@
 #include "../../../gridftpd/userspec.h"
 #include "../run/run_parallel.h"
 #include "../log/job_log.h"
-#include "../jobs/job_config.h"
 #include "../jobs/plugins.h"
 #include "../conf/GMConfig.h"
 

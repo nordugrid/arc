@@ -6,7 +6,6 @@
 
 #include "conf.h"
 #include "../misc/escaped.h"
-#include "environment.h"
 
 bool config_open(std::ifstream &cfile,const std::string &name) {
   cfile.open(name.c_str(),std::ifstream::in);

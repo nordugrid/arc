@@ -30,8 +30,6 @@
 #include "../jobs/job.h"
 #include "../jobs/commfifo.h"
 #include "../jobs/plugins.h"
-#include "../conf/environment.h"
-#include "../conf/conf_pre.h"
 #include "../files/info_types.h"
 #include "../files/info_files.h"
 #include "../jobs/job_request.h"

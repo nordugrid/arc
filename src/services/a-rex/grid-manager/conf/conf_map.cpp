@@ -8,7 +8,6 @@
 #include <arc/Logger.h>
 
 #include "conf_sections.h"
-#include "environment.h"
 #include "conf.h"
 
 #include "conf_map.h"

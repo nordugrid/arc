@@ -9,8 +9,6 @@
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 
-#include "environment.h"
-
 //extern char* config_file;
 
 /*
