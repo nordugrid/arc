@@ -176,7 +176,7 @@ namespace Cache {
     dtr->set_sub_share("cache-service-download");
 
     // substitute cache paths based on user
-    CacheConfig cache_params = config.CacheParams();
+    CacheConfig cache_params(config.CacheParams());
     cache_params.substitute(config, user);
     DataStaging::DTRCacheParameters cache_parameters;
     cache_parameters.cache_dirs = cache_params.getCacheDirs();
