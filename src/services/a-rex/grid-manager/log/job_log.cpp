@@ -171,8 +171,6 @@ bool JobLog::read_info(std::fstream &i,bool &processed,bool &jobstart,struct tm 
   return true;
 }
 
-#ifndef NO_GLOBUS_CODE
-
 bool JobLog::RunReporter(const GMConfig &config) {
   //if(!is_reporting()) return true;
   if(proc != NULL) {
@@ -197,8 +195,6 @@ bool JobLog::RunReporter(const GMConfig &config) {
   free(args);
   return res;
 }
-
-#endif // NO_GLOBUS_CODE
 
 bool JobLog::SetLogger(const char* fname) {
   if(fname) logger = (std::string(fname));
@@ -249,12 +245,10 @@ void JobLog::set_credentials(std::string &key_path,std::string &certificate_path
 }
 
 JobLog::~JobLog(void) {
-#ifndef NO_GLOBUS_CODE
   if(proc != NULL) {
     if(proc->Running()) proc->Kill(0);
     delete proc;
     proc=NULL;
   };
-#endif // NO_GLOBUS_CODE
 }
 

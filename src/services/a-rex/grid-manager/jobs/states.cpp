@@ -34,18 +34,6 @@
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-#ifdef NO_GLOBUS_CODE
-ContinuationPlugins::ContinuationPlugins(void) { }
-ContinuationPlugins::~ContinuationPlugins(void) { }
-bool ContinuationPlugins::add(const char* state,unsigned int timeout,const char* command) { return true; }
-bool ContinuationPlugins::add(job_state_t state,unsigned int timeout,const char* command) { return true; }
-bool ContinuationPlugins::add(const char* state,const char* options,const char* command) { return true; }
-bool ContinuationPlugins::add(job_state_t state,const char* options,const char* command) { return true; }
-void ContinuationPlugins::run(const JobDescription &job,const JobUser& user,std::list<ContinuationPlugins::result_t>& results) { }
-void RunPlugin::set(const std::string& cmd) { }
-void RunPlugin::set(char const * const * args) { }
-#endif
-
 JobsList::JobsList(const GMConfig& config) :
     config(config), old_dir(NULL), dtr_generator(NULL), jobs_pending(0) {
   jobs.clear();
@@ -83,8 +71,6 @@ bool JobsList::AddJobNoCheck(const JobId &id,JobsList::iterator &i,uid_t uid,gid
   if (i->session_dir.empty()) i->session_dir = config.SessionRoot(id)+'/'+id;
   return true;
 }
-
-#ifndef NO_GLOBUS_CODE
 
 void JobsList::ChooseShare(JobsList::iterator& i) {
   // only applies to old staging
@@ -1674,8 +1660,6 @@ bool JobsList::ActJob(JobsList::iterator &i) {
   }
   return true;
 }
-
-#endif //  NO_GLOBUS_CODE
 
 class JobFDesc {
  public:

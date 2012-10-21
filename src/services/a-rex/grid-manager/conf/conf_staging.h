@@ -15,7 +15,7 @@ class DTRGenerator;
 class StagingConfig {
   friend class DTRGenerator;
 public:
-  /// Load config from configuration file. Information from JobsListConfig is
+  /// Load config from configuration file. Information from GMConfig is
   /// used first, then it is overwritten by parameters in [data-staging] (for
   /// ini style) or new staging parameters in <dataTransfer> (for xml style).
   StagingConfig(const GMConfig& config);

@@ -22,7 +22,6 @@ class DTRInfo: public DataStaging::DTRCallback {
   const GMConfig& config;
   static Arc::Logger logger;
  public:
-  /** JobUsers is needed to find the correct control dir */
   DTRInfo(const GMConfig& config);
   virtual void receiveDTR(DataStaging::DTR_ptr dtr);
 };

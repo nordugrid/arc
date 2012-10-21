@@ -189,19 +189,19 @@ CommFIFO::CommFIFO(void) {
 CommFIFO::~CommFIFO(void) {
 }
 
-JobUser* CommFIFO::wait(int timeout) {
+void CommFIFO::wait(int timeout) {
   return NULL;
 }
 
-bool CommFIFO::add(JobUser& user) {
-  retrn add_error;
+CommFIFO::add_result CommFIFO::add(const std::string& dir_path) {
+  return add_error;
 }
 
-bool SignalFIFO(const JobUser& user) {
+bool SignalFIFO(const std::string& dir_path) {
   return false;
 }
 
-bool PingFIFO(const JobUser& user) {
+bool PingFIFO(const std::string& dir_path) {
   return false;
 }
 
