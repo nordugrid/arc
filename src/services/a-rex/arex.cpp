@@ -829,7 +829,6 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
               logger_(Arc::Logger::rootLogger, "A-REX"),
               infodoc_(true),
               inforeg_(NULL),
-              gmconfig_temporary_(false),
               infoprovider_wakeup_period_(0),
               all_jobs_count_(0),
               gm_(NULL) {
@@ -861,146 +860,53 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
 
   endpoint_=(std::string)((*cfg)["endpoint"]);
   uname_=(std::string)((*cfg)["usermap"]["defaultLocalName"]);
-  gmconfig_=(std::string)((*cfg)["gmconfig"]);
   if (Arc::lower((std::string)((*cfg)["publishStaticInfo"])) == "yes") {
     publishstaticinfo_=true;
   } else {
     publishstaticinfo_=false;
   }
   config_.SetDelegations(&delegation_stores_);
-  if(gmconfig_.empty()) {
+  // Check if GM configuration is in a separate file
+  std::string gmconfig=(std::string)((*cfg)["gmconfig"]);
+  if (gmconfig.empty()) {
     // No external configuration file means configuration is
     // directly embedded into this configuration node.
-    // TODO: merge external and internal configuration elements
-    // Configuration is stored into temporary file and file is 
-    // deleted in destructor. File is created in one of configured
-    // control directories. There is still a problem if destructor
-    // is not called. So code must be changed to use 
-    // some better approach - maybe like creating file with service
-    // id in its name.
-    try {
-      std::string tmp_dir = Glib::get_tmp_dir();
-      std::string tmp_path = Glib::build_filename(tmp_dir,"arexcfgXXXXXX");
-      int h = Glib::mkstemp(tmp_path);
-      if(h == -1) {
-        logger_.msg(Arc::DEBUG, "Failed to create temporary file in %s - %s",tmp_dir,Arc::StrError(errno));
-        throw Glib::FileError(Glib::FileError::FAILED,"Failed to create temporary file in "+tmp_dir);
-      };
-      gmconfig_ = tmp_path;
-      ::chmod(gmconfig_.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-      logger_.msg(Arc::DEBUG, "Storing configuration into temporary file - %s",gmconfig_);
-      Arc::XMLNode gmxml;
-      cfg->New(gmxml);
-      // Storing configuration into temporary file
-      // Maybe XMLNode needs method SaveToHandle ?
-      std::string gmstr;
-      gmxml.GetDoc(gmstr);
-      // Candidate for common function ?
-      for(int p = 0;p<gmstr.length();) {
-        int l = write(h,gmstr.c_str()+p,gmstr.length()-p);
-        if(l == -1) throw Glib::FileError(Glib::FileError::IO_ERROR,""); // TODO: process error
-        p+=l;
-      };
-      close(h); h = -1;
-      gmconfig_temporary_=true;
-      config_.SetConfigFile(gmconfig_);
-      config_.SetConfigIsTemp(true);
-      // Read in GM configuration
-      if(!config_.Load()) {
-        logger_.msg(Arc::ERROR, "Failed to process service configuration");
-        return;
-      }
-      // Check for mandatory commands in configuration
-      if (config_.ControlDir().empty()) {
-        logger.msg(Arc::ERROR, "No control directory set in configuration");
-        return;
-      }
-      if (config_.SessionRoots().empty()) {
-        logger.msg(Arc::ERROR, "No session directory set in configuration");
-        return;
-      }
-      if (config_.DefaultLRMS().empty()) {
-        logger.msg(Arc::ERROR, "No LRMS set in configuration");
-        return;
-      }
-
-      // create control and session directories if not yet done
-      if(!config_.CreateDirectories()) {
-        logger_.msg(Arc::ERROR, "Failed to create control (%s) or session directories",config_.ControlDir());
-        return;
-      }
-      /*
-      // create control and session directories if not yet done
-      // extract control directories to be used for temp configuration
-      std::list<std::string> tmp_dirs;
-      for(JobUsers::iterator user = users_->begin();user != users_->end();++user) {
-        std::string tmp_dir = user->ControlDir();
-        std::list<std::string>::iterator t = tmp_dirs.begin();
-        for(;t != tmp_dirs.end();++t) {
-          if(*t == tmp_dir) break;
-        };
-        if(t == tmp_dirs.end()) {
-          tmp_dirs.push_back(tmp_dir);
-        };
-        if(!user->CreateDirectories()) {
-          logger_.msg(Arc::ERROR, "Failed to create control (%s) or session (%s) directories",user->ControlDir(),user->SessionRoot());
-          return;
-        };
-      };
-      if(tmp_dirs.size() <= 0) {
-        throw Glib::FileError(Glib::FileError::FAILED,"Failed to find control directories in configuration");
-      };
-      int h = -1;
-      for(std::list<std::string>::iterator t = tmp_dirs.begin();
-                                         t != tmp_dirs.end();++t) {
-        std::string tmp_path = Glib::build_filename(*t,"arexcfgXXXXXX");
-        h = Glib::mkstemp(tmp_path);
-        if(h != -1) {
-          gmconfig_ = tmp_path;
-          ::chmod(gmconfig_.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-          break;
-        };
-        logger_.msg(Arc::DEBUG, "Failed to create temporary file in %s - %s",*t,Arc::StrError(errno));
-      };
-      if(h == -1) {
-        throw Glib::FileError(Glib::FileError::FAILED,"Failed to create temporary file in any of control directories");
-      };
-      logger_.msg(Arc::DEBUG, "Storing configuration into temporary file - %s",gmconfig_);
-      Arc::XMLNode gmxml;
-      cfg->New(gmxml);
-      // Storing configuration into temporary file
-      // Maybe XMLNode needs method SaveToHandle ?
-      std::string gmstr;
-      gmxml.GetDoc(gmstr);
-      // Candidate for common function ?
-      for(int p = 0;p<gmstr.length();) {
-        int l = write(h,gmstr.c_str()+p,gmstr.length()-p);
-        if(l == -1) throw Glib::FileError(Glib::FileError::IO_ERROR,""); // TODO: process error
-        p+=l;
-      };
-      close(h);
-      gmconfig_temporary_=true;
-      gm_env_->nordugrid_config_loc(gmconfig_);
-      */
-    } catch(Glib::FileError& e) {
-      logger_.msg(Arc::ERROR, "Failed to store configuration into temporary file: %s",e.what());
-      if(!gmconfig_.empty()) {
-        ::unlink(gmconfig_.c_str());
-        gmconfig_.resize(0);
-      };
-      return; // GM configuration file is required
-    };
-  } else {
-    // External configuration file
-    config_.SetConfigFile(gmconfig_);
-    if(!config_.Load()) {
-      logger_.msg(Arc::ERROR, "Failed to process configuration in %s",gmconfig_);
-    }
-    // create control and session directories if not yet done
-    if(!config_.CreateDirectories()) {
-      logger_.msg(Arc::ERROR, "Failed to create/detect control (%s) or session directories",config_.ControlDir());
+    config_.SetXMLNode(*cfg);
+    // Even though GM config can be taken directly from the node, the original
+    // filename of this config is still needed for external GM processes
+    config_.SetConfigFile(cfg->getFileName());
+    if (!config_.Load()) {
+      logger_.msg(Arc::ERROR, "Failed to process service configuration");
+      return;
     }
   }
+  else {
+     // External configuration file
+     config_.SetConfigFile(gmconfig);
+     if (!config_.Load()) {
+       logger_.msg(Arc::ERROR, "Failed to process configuration in %s", gmconfig);
+     }
+  }
+  // Check for mandatory commands in configuration
+  if (config_.ControlDir().empty()) {
+    logger.msg(Arc::ERROR, "No control directory set in configuration");
+    return;
+  }
+  if (config_.SessionRoots().empty()) {
+    logger.msg(Arc::ERROR, "No session directory set in configuration");
+    return;
+  }
+  if (config_.DefaultLRMS().empty()) {
+    logger.msg(Arc::ERROR, "No LRMS set in configuration");
+    return;
+  }
+
+  // create control and session directories if not yet done
+  if(!config_.CreateDirectories()) {
+    logger_.msg(Arc::ERROR, "Failed to create control (%s) or session directories",config_.ControlDir());
+    return;
+  }
+
   // Set default queue if none given
   if(config_.DefaultQueue().empty() && (config_.Queues().size() == 1)) {
     config_.SetDefaultQueue(config_.Queues().front());
@@ -1066,9 +972,6 @@ ARexService::~ARexService(void) {
   if(config_.CredPlugin()) delete config_.CredPlugin();
   if(config_.ContPlugins()) delete config_.ContPlugins();
   if(config_.GetJobLog()) delete config_.GetJobLog();
-  if(gmconfig_temporary_) {
-    if(!gmconfig_.empty()) unlink(gmconfig_.c_str());
-  };
   thread_count_.WaitForExit(); // Here A-REX threads are waited for
 }
 

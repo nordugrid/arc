@@ -14,7 +14,6 @@
 class JobLog;
 class ContinuationPlugins;
 class RunPlugin;
-class JobsList;
 namespace ARex {
   class DelegationStores;
 }
@@ -76,10 +75,8 @@ public:
   const std::string& ConfigFile() const { return conffile; }
   /// Set path to configuration file
   void SetConfigFile(const std::string& file) { conffile = file; }
-  /// Returns true if configuration file is temporary
-  bool ConfigIsTemp() const { return conffile_is_temp; }
-  /// Sets whether configuration file is temporary
-  void SetConfigIsTemp(bool temp) { conffile_is_temp = temp; }
+  /// Set XML node with configuration (corresponding to <Service name="a-rex">)
+  void SetXMLNode(const Arc::XMLNode& node) { xml_cfg = node; }
 
   /// Create control structure and session directories with correct permissions
   bool CreateDirectories() const;
@@ -230,8 +227,6 @@ private:
   };
   /// Configuration file
   std::string conffile;
-  /// Whether configuration file is temporary
-  bool conffile_is_temp;
   /// Configuration passed as an XMLNode
   Arc::XMLNode xml_cfg;
   /// For logging job information to external logging service

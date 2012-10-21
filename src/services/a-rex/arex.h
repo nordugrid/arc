@@ -67,8 +67,6 @@ class ARexService: public Arc::Service {
   std::string endpoint_;
   bool publishstaticinfo_;
   std::string uname_;
-  std::string gmconfig_;
-  bool gmconfig_temporary_;
   std::string common_name_;
   std::string long_description_;
   std::string lrms_name_;

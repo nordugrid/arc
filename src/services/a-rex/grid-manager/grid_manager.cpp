@@ -70,7 +70,7 @@ static void cache_func(void* arg) {
   
   // run cache cleaning periodically forever
   for(;;) {
-    CacheConfig cache_info = config->CacheParams();
+    CacheConfig cache_info(config->CacheParams());
     if (!cache_info.cleanCache()) return;
 
     // get the cache dirs
@@ -308,8 +308,6 @@ bool GridManager::thread() {
     } else {
       close(r); r = -1;
     };
-    // touch temporary configuration so /tmp cleaner does not erase it
-    if(config_.ConfigIsTemp()) ::utimes(config_.ConfigFile().c_str(), NULL);
     wd.Kick();
     /* check for new marks and activate related jobs */
     jobs.ScanNewMarks();
