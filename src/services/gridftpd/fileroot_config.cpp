@@ -369,7 +369,7 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
           };
           logger.msg(Arc::INFO, "Registering directory: %s with plugin: %s", plugin_path, plugin_name);
           plugin_name=pluginpath+'/'+plugin_name;
-          plugin_config+="endpoint=gsiftp://"+hostname+":"+port+"/"+plugin_path+"\n";
+          plugin_config+="endpoint gsiftp://"+hostname+":"+port+"/"+plugin_path+"\n";
           plugin_config+="end\n";
 #ifdef HAVE_SSTREAM
           std::stringstream fake_cfile(plugin_config);
