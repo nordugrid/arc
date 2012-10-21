@@ -68,20 +68,40 @@ static void cache_func(void* arg) {
   const GMConfig* config = ((cache_st*)arg)->config;
   Arc::SimpleCondition& to_exit = ((cache_st*)arg)->to_exit;
   
+  CacheConfig cache_info(config->CacheParams());
+  if (!cache_info.cleanCache()) return;
+  // Note: per-user substitutions do not work here. If they are used
+  // cache-clean must be run manually eg via cron
+  cache_info.substitute(*config, Arc::User());
+
+  // get the cache dirs
+  std::vector<std::string> cache_info_dirs = cache_info.getCacheDirs();
+  if (cache_info_dirs.empty()) return;
+
+  // in arc.conf % of used space is given, but cache-clean uses % of free space
+  std::string minfreespace = Arc::tostring(100-cache_info.getCacheMax());
+  std::string maxfreespace = Arc::tostring(100-cache_info.getCacheMin());
+  std::string cachelifetime = cache_info.getLifeTime();
+  std::string logfile = cache_info.getLogFile();
+
+  // do cache-clean -h for explanation of options
+  std::string cmd = Arc::ArcLocation::GetToolsDir() + "/cache-clean";
+  cmd += " -m " + minfreespace;
+  cmd += " -M " + maxfreespace;
+  if (!cachelifetime.empty()) cmd += " -E " + cachelifetime;
+  cmd += " -D " + cache_info.getLogLevel();
+  std::vector<std::string> cache_dirs;
+  for (std::vector<std::string>::iterator i = cache_info_dirs.begin(); i != cache_info_dirs.end(); i++) {
+    cmd += " " + (i->substr(0, i->find(" ")));
+  }
+
+  // use large timeout, as disk scan can take a long time
+  // blocks until command finishes or timeout
+  int clean_timeout = cache_info.getCleanTimeout();
+  if (clean_timeout == 0) clean_timeout = CACHE_CLEAN_TIMEOUT;
+
   // run cache cleaning periodically forever
   for(;;) {
-    CacheConfig cache_info(config->CacheParams());
-    if (!cache_info.cleanCache()) return;
-
-    // get the cache dirs
-    std::vector<std::string> cache_info_dirs = cache_info.getCacheDirs();
-    if (cache_info_dirs.empty()) return;
-
-    // in arc.conf % of used space is given, but cache-clean uses % of free space
-    std::string minfreespace = Arc::tostring(100-cache_info.getCacheMax());
-    std::string maxfreespace = Arc::tostring(100-cache_info.getCacheMin());
-    std::string cachelifetime = cache_info.getLifeTime();
-    std::string logfile = cache_info.getLogFile();
 
     int h = open(logfile.c_str(), O_WRONLY | O_APPEND);
     if (h < 0) {
@@ -99,21 +119,7 @@ static void cache_func(void* arg) {
       }
     }
 
-    // do cache-clean -h for explanation of options
-    std::string cmd = Arc::ArcLocation::GetToolsDir() + "/cache-clean";
-    cmd += " -m " + minfreespace;
-    cmd += " -M " + maxfreespace;
-    if (!cachelifetime.empty()) cmd += " -E " + cachelifetime;
-    cmd += " -D " + cache_info.getLogLevel();
-    std::vector<std::string> cache_dirs;
-    for (std::vector<std::string>::iterator i = cache_info_dirs.begin(); i != cache_info_dirs.end(); i++) {
-      cmd += " " + (i->substr(0, i->find(" ")));
-    }
     logger.msg(Arc::DEBUG, "Running command %s", cmd);
-    // use large timeout, as disk scan can take a long time
-    // blocks until command finishes or timeout
-    int clean_timeout = cache_info.getCleanTimeout();
-    if (clean_timeout == 0) clean_timeout = CACHE_CLEAN_TIMEOUT;
     int result = RunRedirected::run(Arc::User(), "cache-clean", -1, h, h, cmd.c_str(), clean_timeout);
     close(h);
     if (result != 0) {
