@@ -1060,17 +1060,12 @@ void DTRGenerator::readDTRState(const std::string& dtr_log) {
 
 void DTRGenerator::CleanCacheJobLinks(const GMConfig& config, const JobDescription& job) const {
 
-  try {
-    CacheConfig cache_config(config);
-    cache_config.substitute(config, job.get_user());
-    // there is no uid switch during Release so uid/gid is not so important
-    Arc::FileCache cache(cache_config.getCacheDirs(),
-                         cache_config.getRemoteCacheDirs(),
-                         cache_config.getDrainingCacheDirs(),
-                         job.get_id(), job.get_uid(), job.get_gid());
-    cache.Release();
-  }
-  catch (CacheConfigException& e) {
-    logger.msg(Arc::WARNING, "Error with cache configuration: %s. Cannot clean up files for job %s", e.what(), job.get_id());
-  }
+  CacheConfig cache_config(config.CacheParams());
+  cache_config.substitute(config, job.get_user());
+  // there is no uid switch during Release so uid/gid is not so important
+  Arc::FileCache cache(cache_config.getCacheDirs(),
+                       cache_config.getRemoteCacheDirs(),
+                       cache_config.getDrainingCacheDirs(),
+                       job.get_id(), job.get_uid(), job.get_gid());
+  cache.Release();
 }
