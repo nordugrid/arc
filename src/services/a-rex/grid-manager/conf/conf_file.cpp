@@ -143,7 +143,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       } else if(command == "x509_voms_dir") {
         config.voms_dir = rest;
       }
-      continue;
+      // no continue since some options can be in common or grid-manager
     }
     if (cf.SectionNum() == 3) { // queue
       if (cf.SectionNew()) {
@@ -491,11 +491,13 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
   }
 
   // Add helper to poll for finished LRMS jobs
-  std::string cmd = Arc::ArcLocation::GetDataDir() + "/scan-"+config.default_lrms+"-job";
-  cmd = Arc::escape_chars(cmd, " \\", '\\', false);
-  if (!config.conffile.empty()) cmd += " --config " + config.conffile;
-  cmd += " " + config.control_dir;
-  config.helpers.push_back(cmd);
+  if (!config.default_lrms.empty() && !config.control_dir.empty()) {
+    std::string cmd = Arc::ArcLocation::GetDataDir() + "/scan-"+config.default_lrms+"-job";
+    cmd = Arc::escape_chars(cmd, " \\", '\\', false);
+    if (!config.conffile.empty()) cmd += " --config " + config.conffile;
+    cmd += " " + config.control_dir;
+    config.helpers.push_back(cmd);
+  }
 
   // Get cache parameters
   try {

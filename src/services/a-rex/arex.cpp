@@ -910,6 +910,20 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
         logger_.msg(Arc::ERROR, "Failed to process service configuration");
         return;
       }
+      // Check for mandatory commands in configuration
+      if (config_.ControlDir().empty()) {
+        logger.msg(Arc::ERROR, "No control directory set in configuration");
+        return;
+      }
+      if (config_.SessionRoots().empty()) {
+        logger.msg(Arc::ERROR, "No session directory set in configuration");
+        return;
+      }
+      if (config_.DefaultLRMS().empty()) {
+        logger.msg(Arc::ERROR, "No LRMS set in configuration");
+        return;
+      }
+
       // create control and session directories if not yet done
       if(!config_.CreateDirectories()) {
         logger_.msg(Arc::ERROR, "Failed to create control (%s) or session directories",config_.ControlDir());
