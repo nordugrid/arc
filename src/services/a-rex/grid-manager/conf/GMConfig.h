@@ -29,6 +29,13 @@ namespace ARex {
  * should be instantiated once when the grid-manager is initialised and only
  * destroyed with the GM has finished. Ideally this would be a singleton but
  * that would prevent running multiple A-REXes in the same container.
+ *
+ * Substitutions are not done while parsing the configuration, as
+ * substitution variables can change depending on the job. Therefore paths
+ * are stored in their raw format, unsubstituted. The exception is the
+ * control directory which cannot change and is substituted during parsing,
+ * and helper options. Substitution of other variables should be done as
+ * necessary using Substitute().
  */
 class GMConfig {
 
@@ -48,20 +55,11 @@ public:
    fixdir_never
   };
 
-  /// Checks for configuration file but does not parse it.
+  /// Use given (or guessed if not given) configuration file.
   /**
-   * This object will be valid if the configuration file supplied or guessed
-   * exists. Guessing uses the default location /etc/arc.conf, $ARC_CONFIG or
-   * $ARC_LOCATION/etc/arc.conf. The configuration data will be read in as a
-   * string, but not parsed. Load() should be used to parse the configuration
-   * and fill member variables.
-   *
-   * Substitutions are not done while parsing the configuration, as
-   * substitution variables can change depending on the job. Therefore paths
-   * are stored in their raw format, unsubstituted. The exception is the
-   * control directory which cannot change and is substituted during parsing,
-   * and helper options. Substitution of other variables should be done as
-   * necessary using Substitute().
+   * Guessing uses $ARC_CONFIG $ARC_LOCATION/etc/arc.conf or the default
+   * location /etc/arc.conf. Load() should then be used to parse the
+   * configuration and fill member variables.
    * @param conffile Path to configuration file, will be guessed if empty
    */
   GMConfig(const std::string& conffile="");
@@ -69,15 +67,10 @@ public:
   GMConfig(const Arc::XMLNode& node);
 
   /// Load configuration from file or XML node into members of this object.
-  /// This object is not valid if fatal errors are found during parsing.
+  /// Returns false if errors are found during parsing.
   bool Load();
   /// Print a summary of configuration to stderr
   void Print() const;
-
-  /// Returns true if configuration is found and/or valid
-  operator bool() const { return valid; }
-  /// Returns true if configuration is not found and/or valid
-  bool operator!() const { return !valid; }
 
   /// Get path to configuration file
   const std::string& ConfigFile() const { return conffile; }
@@ -235,9 +228,6 @@ private:
     /// Start process if it is not running yet
     bool run(const GMConfig& config);
   };
-
-  /// True if configuration was loaded successfully
-  bool valid;
   /// Configuration file
   std::string conffile;
   /// Whether configuration file is temporary

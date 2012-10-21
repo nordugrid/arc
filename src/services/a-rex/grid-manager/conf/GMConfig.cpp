@@ -37,13 +37,11 @@
 Arc::Logger GMConfig::logger(Arc::Logger::getRootLogger(), "GMConfig");
 static std::string empty_string("");
 
-GMConfig::GMConfig(const std::string& conffile):
-  valid(false) {
+GMConfig::GMConfig(const std::string& conffile) {
   SetDefaults();
 }
 
-GMConfig::GMConfig(const Arc::XMLNode& node):
-  valid(false) {
+GMConfig::GMConfig(const Arc::XMLNode& node) {
   SetDefaults();
 }
 
@@ -88,11 +86,7 @@ void GMConfig::SetDefaults() {
 
 bool GMConfig::Load() {
   // Call CoreConfig (conf_file.h) to fill values in this object
-  if (!CoreConfig::ParseConf(*this)) {
-    valid = false;
-    return false;
-  }
-  return true;
+  return CoreConfig::ParseConf(*this);
 }
 
 void GMConfig::Print() const {

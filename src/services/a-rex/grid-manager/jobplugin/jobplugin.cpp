@@ -186,114 +186,108 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):
       logger.msg(Arc::WARNING, "Unsupported configuration command: %s", command);
     };
   };
-  if(!config) {
-    logger.msg(Arc::ERROR, "Configuration file not found");
-    initialized = false;
-  }
-  else {
-    if(configfile.length()) config.SetConfigFile(configfile);
-    config.SetCredPlugin(cred_plugin);
-    config.SetContPlugins(cont_plugins);
-    std::string uname = user_s.get_uname();
-    std::string ugroup = user_s.get_gname();
-    if((bool)job_map) {
-      uname=job_map.unix_name();
-      ugroup=job_map.unix_group();
-    };
-    user = Arc::User(uname, ugroup);
-    if (!user) {
-      logger.msg(Arc::ERROR, "Mapped user:group (%s:%s) not found", uname, ugroup);
-      initialized = false;
-    } else if(!config.Load()) { // read configuration
-      logger.msg(Arc::ERROR, "Failed processing grid-manager configuration");
-      initialized=false;
-    } else if (gm_dirs_info.size() > 0 && config.SessionRoots().size() > 1) {
-      logger.msg(Arc::ERROR, "Cannot use multiple session directories and remotegmdirs at the same time");
-      initialized=false;
-    } else {
-      // do substitutions in session dirs based on mapped user
-      session_dirs = config.SessionRoots();
-      for (std::vector<std::string>::iterator session = session_dirs.begin(); session != session_dirs.end(); ++session) {
-        config.Substitute(*session, user);
-      }
-      session_dirs_non_draining = config.SessionRootsNonDraining();
-      for (std::vector<std::string>::iterator session = session_dirs_non_draining.begin();
-           session != session_dirs_non_draining.end(); ++session) {
-        config.Substitute(*session, user);
-      }
-
-      avail_queues = config.Queues();
-      if(config.DefaultQueue().empty() && (avail_queues.size() == 1)) {
-        config.SetDefaultQueue(*(avail_queues.begin()));
-      };
-      for(std::string allowsubmit = config.AllowSubmit(); !allowsubmit.empty();) {
-        std::string group = config_next_arg(allowsubmit);
-        if(user_a.check_group(group)) { readonly=false; break; };
-      };
-      if(readonly) logger.msg(Arc::WARNING, "This user is denied to submit new jobs.");
-      if (!config.ControlDir().empty() && !session_dirs.empty()) {
-        struct gm_dirs_ dirs;
-        dirs.control_dir = config.ControlDir();
-        dirs.session_dir = session_dirs.front();
-        gm_dirs_info.push_back(dirs);
-        gm_dirs_non_draining.push_back(dirs); // can't drain main control dir
-      }
-      if (gm_dirs_info.empty()) {
-        logger.msg(Arc::ERROR, "No control or remote control directories defined in configuration");
-        initialized = false;
-      }
-
-      /* link to the class for direct file access - creating one object per set of GM dirs */
-      // choose whether to use multiple session dirs or remote GM dirs
-      if (session_dirs.size() > 1) {
-        for (std::vector<std::string>::iterator i = session_dirs.begin(); i != session_dirs.end(); i++) {
-          std::string direct_config = "";
-          direct_config += "mount "+(*i)+"\n";
-          direct_config+="dir / nouser read cd dirlist delete append overwrite";
-          direct_config+=" create "+
-              Arc::tostring(user.get_uid())+":"+Arc::tostring(user.get_gid())+
-              " 600:600";
-          direct_config+=" mkdir "+
-              Arc::tostring(user.get_uid())+":"+Arc::tostring(user.get_gid())+
-              " 700:700\n";
-          direct_config+="end\n";
-#ifdef HAVE_SSTREAM
-          std::stringstream fake_cfile(direct_config);
-#else
-          std::strstream fake_cfile;
-          fake_cfile<<direct_config;
-#endif
-          DirectFilePlugin * direct_fs = new DirectFilePlugin(fake_cfile,user_s);
-          file_plugins.push_back(direct_fs);
-        }
-      }
-      else {
-        for (std::vector<struct gm_dirs_>::iterator i = gm_dirs_info.begin(); i != gm_dirs_info.end(); i++) {
-          std::string direct_config = "";
-          direct_config += "mount "+(*i).session_dir+"\n";
-          direct_config+="dir / nouser read cd dirlist delete append overwrite";
-          direct_config+=" create "+
-              Arc::tostring(user.get_uid())+":"+Arc::tostring(user.get_gid())+
-              " 600:600";
-          direct_config+=" mkdir "+
-              Arc::tostring(user.get_uid())+":"+Arc::tostring(user.get_gid())+
-              " 700:700\n";
-          direct_config+="end\n";
-#ifdef HAVE_SSTREAM
-          std::stringstream fake_cfile(direct_config);
-#else
-          std::strstream fake_cfile;
-          fake_cfile<<direct_config;
-#endif
-          DirectFilePlugin * direct_fs = new DirectFilePlugin(fake_cfile,user_s);
-          file_plugins.push_back(direct_fs);
-        }
-      }
-      if((bool)job_map) {
-        logger.msg(Arc::INFO, "Job submission user: %s (%i:%i)", uname, user.get_uid(), user.get_gid());
-      };
-    }
+  if(configfile.length()) config.SetConfigFile(configfile);
+  config.SetCredPlugin(cred_plugin);
+  config.SetContPlugins(cont_plugins);
+  std::string uname = user_s.get_uname();
+  std::string ugroup = user_s.get_gname();
+  if((bool)job_map) {
+    uname=job_map.unix_name();
+    ugroup=job_map.unix_group();
   };
+  user = Arc::User(uname, ugroup);
+  if (!user) {
+    logger.msg(Arc::ERROR, "Mapped user:group (%s:%s) not found", uname, ugroup);
+    initialized = false;
+  } else if(!config.Load()) { // read configuration
+    logger.msg(Arc::ERROR, "Failed processing grid-manager configuration");
+    initialized=false;
+  } else if (gm_dirs_info.size() > 0 && config.SessionRoots().size() > 1) {
+    logger.msg(Arc::ERROR, "Cannot use multiple session directories and remotegmdirs at the same time");
+    initialized=false;
+  } else {
+    // do substitutions in session dirs based on mapped user
+    session_dirs = config.SessionRoots();
+    for (std::vector<std::string>::iterator session = session_dirs.begin(); session != session_dirs.end(); ++session) {
+      config.Substitute(*session, user);
+    }
+    session_dirs_non_draining = config.SessionRootsNonDraining();
+    for (std::vector<std::string>::iterator session = session_dirs_non_draining.begin();
+         session != session_dirs_non_draining.end(); ++session) {
+      config.Substitute(*session, user);
+    }
+
+    avail_queues = config.Queues();
+    if(config.DefaultQueue().empty() && (avail_queues.size() == 1)) {
+      config.SetDefaultQueue(*(avail_queues.begin()));
+    };
+    for(std::string allowsubmit = config.AllowSubmit(); !allowsubmit.empty();) {
+      std::string group = config_next_arg(allowsubmit);
+      if(user_a.check_group(group)) { readonly=false; break; };
+    };
+    if(readonly) logger.msg(Arc::WARNING, "This user is denied to submit new jobs.");
+    if (!config.ControlDir().empty() && !session_dirs.empty()) {
+      struct gm_dirs_ dirs;
+      dirs.control_dir = config.ControlDir();
+      dirs.session_dir = session_dirs.front();
+      gm_dirs_info.push_back(dirs);
+      gm_dirs_non_draining.push_back(dirs); // can't drain main control dir
+    }
+    if (gm_dirs_info.empty()) {
+      logger.msg(Arc::ERROR, "No control or remote control directories defined in configuration");
+      initialized = false;
+    }
+
+    /* link to the class for direct file access - creating one object per set of GM dirs */
+    // choose whether to use multiple session dirs or remote GM dirs
+    if (session_dirs.size() > 1) {
+      for (std::vector<std::string>::iterator i = session_dirs.begin(); i != session_dirs.end(); i++) {
+        std::string direct_config = "";
+        direct_config += "mount "+(*i)+"\n";
+        direct_config+="dir / nouser read cd dirlist delete append overwrite";
+        direct_config+=" create "+
+            Arc::tostring(user.get_uid())+":"+Arc::tostring(user.get_gid())+
+            " 600:600";
+        direct_config+=" mkdir "+
+            Arc::tostring(user.get_uid())+":"+Arc::tostring(user.get_gid())+
+            " 700:700\n";
+        direct_config+="end\n";
+#ifdef HAVE_SSTREAM
+        std::stringstream fake_cfile(direct_config);
+#else
+        std::strstream fake_cfile;
+        fake_cfile<<direct_config;
+#endif
+        DirectFilePlugin * direct_fs = new DirectFilePlugin(fake_cfile,user_s);
+        file_plugins.push_back(direct_fs);
+      }
+    }
+    else {
+      for (std::vector<struct gm_dirs_>::iterator i = gm_dirs_info.begin(); i != gm_dirs_info.end(); i++) {
+        std::string direct_config = "";
+        direct_config += "mount "+(*i).session_dir+"\n";
+        direct_config+="dir / nouser read cd dirlist delete append overwrite";
+        direct_config+=" create "+
+            Arc::tostring(user.get_uid())+":"+Arc::tostring(user.get_gid())+
+            " 600:600";
+        direct_config+=" mkdir "+
+            Arc::tostring(user.get_uid())+":"+Arc::tostring(user.get_gid())+
+            " 700:700\n";
+        direct_config+="end\n";
+#ifdef HAVE_SSTREAM
+        std::stringstream fake_cfile(direct_config);
+#else
+        std::strstream fake_cfile;
+        fake_cfile<<direct_config;
+#endif
+        DirectFilePlugin * direct_fs = new DirectFilePlugin(fake_cfile,user_s);
+        file_plugins.push_back(direct_fs);
+      }
+    }
+    if((bool)job_map) {
+      logger.msg(Arc::INFO, "Job submission user: %s (%i:%i)", uname, user.get_uid(), user.get_gid());
+    };
+  }
   if(!initialized) {
     logger.msg(Arc::ERROR, "Job plugin was not initialised");
   }
