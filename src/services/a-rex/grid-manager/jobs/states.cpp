@@ -36,6 +36,7 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 JobsList::JobsList(const GMConfig& config) :
     config(config), old_dir(NULL), dtr_generator(NULL), jobs_pending(0) {
+  for(int n = 0;n<JOB_STATE_NUM;n++) jobs_num[n]=0;
   jobs.clear();
 }
  
