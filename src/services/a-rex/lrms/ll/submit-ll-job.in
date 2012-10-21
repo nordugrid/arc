@@ -110,6 +110,8 @@ fi
 set_req_mem
 
 # There are soft and hard limits for virtual memory consumption in LL
+# The limits are interpreted by LoadLeveler as per process in a 
+# parallel job. There is no need to recalculate the mem limit.
 
 if [ -n "$joboption_memory" ] ; then
   joboption_memory_hard=$(( $joboption_memory * $memory_hardlimit_ratio ))

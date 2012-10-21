@@ -148,6 +148,9 @@ fi
 
 set_req_mem
 
+#pmem and pvmem are per process, so no need to modify based on count.
+#valid for both PBS and Torque
+
 if [ ! -z "$joboption_memory" ] ; then
   echo "#PBS -l pvmem=${joboption_memory}mb" >> $LRMS_JOB_SCRIPT
   echo "#PBS -l pmem=${joboption_memory}mb" >> $LRMS_JOB_SCRIPT

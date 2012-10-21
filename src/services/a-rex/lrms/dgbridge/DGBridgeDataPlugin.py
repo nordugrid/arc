@@ -60,7 +60,7 @@ print("attic type files\n")
 f=open(locfile,'a')
 outstr=""
 for elem in locelements:
-  outstr=outstr + elem.Name+ " " + elem.Source[0].str() + "\n"
+  outstr=outstr + elem.Name+ " " + elem.Sources[0].str() + "\n"
 
 print(outstr)
 f.write(outstr)
