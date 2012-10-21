@@ -1371,18 +1371,8 @@ void JobsList::ActJobFinished(JobsList::iterator &i,
           UnlockDelegation(i);
           if(i->keep_deleted) {
             // here we have to get the cache per-job dirs to be deleted
-            CacheConfig cache_config;
             std::list<std::string> cache_per_job_dirs;
-            try {
-              cache_config = CacheConfig(config);
-            }
-            catch (CacheConfigException& e) {
-              logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
-              job_clean_deleted(*i,config);
-              i->job_state = JOB_STATE_DELETED;
-              state_changed=true;
-              return;
-            }
+            CacheConfig cache_config(config.cache_params);
             cache_config.substitute(config, i->user);
             std::vector<std::string> conf_caches = cache_config.getCacheDirs();
             // add each dir to our list

@@ -26,7 +26,7 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
   std::vector<std::string> caches;
   // use cache dir(s) from conf file
   try {
-    CacheConfig cache_config = CacheConfig(config.GmConfig());
+    CacheConfig cache_config(config.GmConfig().CacheParams());
     cache_config.substitute(config.GmConfig(), config.User());
     caches = cache_config.getCacheDirs();
   }
