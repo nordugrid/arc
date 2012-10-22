@@ -3,9 +3,10 @@ package GLUE2ldifPrinter;
 use base LdifPrinter;
 
 sub new {
-    my ($this, $handle, $splitjobs) =  @_;
+    my ($this, $handle, $splitjobs, $glue2schemaversion) =  @_;
     my $self = $this->SUPER::new($handle);
     $self->{splitjobs} = $splitjobs;
+    $self->{glue2schemaversion} = $glue2schemaversion ? $glue2schemaversion : 1;
     return $self;
 }
 
@@ -67,6 +68,7 @@ sub AdminDomainAttributes {
     $self->DomainAttributes($data);
     $self->attribute(objectClass => "GLUE2AdminDomain");
     $self->attributes($data, "GLUE2AdminDomain", qw( Distributed Owner ));
+    if ($self->{glue2schemaversion} == 2) { $self->attribute(GLUE2AdminDomainID => $data->{ID}) };
     $self->attribute(GLUE2AdminDomainAdminDomainForeignKey => $data->{AdminDomainID});
 }
 
@@ -75,6 +77,7 @@ sub UserDomainAttributes {
     $self->DomainAttributes($data);
     $self->attribute(objectClass => "GLUE2UserDomain");
     $self->attributes($data, "GLUE2UserDomain", qw( Level UserManager Member ));
+    if ($self->{glue2schemaversion} == 2) { $self->attribute(GLUE2UserDomainID => $data->{ID}) };
     $self->attribute(GLUE2UserDomainUserDomainForeignKey => $data->{UserDomainID});
 }
 
@@ -174,6 +177,7 @@ sub AccessPolicyAttributes {
     my ($self, $data) = @_;
     $self->PolicyAttributes($data);
     $self->attribute(objectClass => "GLUE2AccessPolicy");
+    if ($self->{glue2schemaversion} == 2) { $self->attribute(GLUE2AccessPolicyID => $data->{ID}) };
     $self->attribute(GLUE2AccessPolicyEndpointForeignKey => $data->{EndpointID});
 }
 
@@ -181,6 +185,7 @@ sub MappingPolicyAttributes {
     my ($self, $data) = @_;
     $self->PolicyAttributes($data);
     $self->attribute(objectClass => "GLUE2MappingPolicy");
+    if ($self->{glue2schemaversion} == 2) { $self->attribute(GLUE2MappingPolicyID => $data->{ID}) };
     $self->attribute(GLUE2MappingPolicyShareForeignKey => $data->{ShareID});
 }
 
@@ -194,6 +199,7 @@ sub ComputingServiceAttributes {
                                                           StagingJobs
                                                           SuspendedJobs
                                                           PreLRMSWaitingJobs ));
+    if ($self->{glue2schemaversion} == 2) { $self->attribute(GLUE2ComputingServiceID => $data->{ID}) };
 }
 
 sub ComputingEndpointAttributes {
@@ -210,6 +216,7 @@ sub ComputingEndpointAttributes {
                                                            StagingJobs
                                                            SuspendedJobs
                                                            PreLRMSWaitingJobs ));
+    if ($self->{glue2schemaversion} == 2) { $self->attribute(GLUE2ComputingEndpointID => $data->{ID}) };
     $self->attribute(GLUE2ComputingEndpointComputingServiceForeignKey => $data->{ComputingServiceID});
 }
 
@@ -260,7 +267,8 @@ sub ComputingShareAttributes {
                                                         UsedSlots
                                                         RequestedSlots
                                                         ReservationPolicy
-                                                        Tag ));                                                    
+                                                        Tag ));
+    if ($self->{glue2schemaversion} == 2) { $self->attribute(GLUE2ComputingShareID => $data->{ID}) };
     $self->attribute(GLUE2ComputingShareComputingServiceForeignKey => $data->{ComputingServiceID}); # Mandatory by schema
     $self->attribute(GLUE2ComputingShareComputingEndpointForeignKey => $data->{ComputingEndpointID});
     $self->attribute(GLUE2ComputingShareExecutionEnvironmentForeignKey => $data->{ExecutionEnvironmentID});
@@ -294,6 +302,7 @@ sub ComputingManagerAttributes {
                                                           TmpDir
                                                           ScratchDir
                                                           ApplicationDir ));
+    if ($self->{glue2schemaversion} == 2) { $self->attribute(GLUE2ComputingManagerID => $data->{ID}) };
     $self->attribute(GLUE2ComputingManagerComputingServiceForeignKey => $data->{ComputingServiceID});
 }
 
@@ -333,6 +342,7 @@ sub ExecutionEnvironmentAttributes {
                                                               ConnectivityIn
                                                               ConnectivityOut
                                                               NetworkInfo ));
+    if ($self->{glue2schemaversion} == 2) { $self->attribute(GLUE2ExecutionEnvironmentID => $data->{ID}) };
     $self->attribute(GLUE2ExecutionEnvironmentComputingManagerForeignKey => $data->{ComputingManagerID});
 }
 
@@ -411,6 +421,7 @@ sub ComputingActivityAttributes {
                                                            SubmissionHost
                                                            SubmissionClientName
                                                            OtherMessages ));
+    if ($self->{glue2schemaversion} == 2) { $self->attribute(GLUE2ComputingActivityID => $data->{ID}) };
     $self->attribute(GLUE2ActivityShareForeignKey => $data->{ComputingShareID});
     $self->attribute(GLUE2ActivityResourceForeignKey => $data->{ExecutionEnvironmentID});
     $self->attribute(GLUE2ActivityActivityForeignKey => $data->{ActivityID});
