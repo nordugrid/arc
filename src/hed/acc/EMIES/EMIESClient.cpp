@@ -234,8 +234,11 @@ namespace Arc {
            estypes:ActivityStatus
            escreate:ETNSC
            escreate:StageInDirectory
+             URL
            escreate:SessionDirectory
+             URL
            escreate:StageOutDirectory
+             URL
            or
            estypes:InternalBaseFault
            estypes:AccessControlFault
@@ -832,12 +835,24 @@ namespace Arc {
     item.NewChild("ActivityID") = id;
     item.NewChild("ActivityMgmtEndpointURL") = manager.fullstr();
     item.NewChild("ResourceInfoEndpointURL") = resource.fullstr();
-    for(std::list<URL>::const_iterator s = stagein.begin();
-                    s!=stagein.end();++s) item.NewChild("StageInDirectory") = s->fullstr();
-    for(std::list<URL>::const_iterator s = session.begin();
-                    s!=session.end();++s) item.NewChild("SessionDirectory") = s->fullstr();
-    for(std::list<URL>::const_iterator s = stageout.begin();
-                    s!=stageout.end();++s) item.NewChild("StageOutDirectory") = s->fullstr();
+    if(!stagein.empty()) {
+      XMLNode si = item.NewChild("StageInDirectory");
+      for(std::list<URL>::const_iterator s = stagein.begin();s!=stagein.end();++s) {
+        si.NewChild("URL") = s->fullstr();
+      }
+    }
+    if(!session.empty()) {
+      XMLNode si = item.NewChild("SessionDirectory");
+      for(std::list<URL>::const_iterator s = session.begin();s!=session.end();++s) {
+        si.NewChild("URL") = s->fullstr();
+      }
+    }
+    if(!stageout.empty()) {
+      XMLNode si = item.NewChild("StageOutDirectory");
+      for(std::list<URL>::const_iterator s = stageout.begin();s!=stageout.end();++s) {
+        si.NewChild("URL") = s->fullstr();
+      }
+    }
     std::string str;
     item.GetXML(str);
     return str;
