@@ -92,6 +92,7 @@ static Glib::Mutex suid_lock;
     if (set(pwd_p)) return;
     // override what is found in passwd with given gid
     if (gid != -1) this->gid = gid;
+    valid = true;
   }
 
   bool User::RunAs(std::string) {
