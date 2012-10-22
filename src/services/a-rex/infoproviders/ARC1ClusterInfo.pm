@@ -529,8 +529,7 @@ sub collect($) {
     my $gmjobs_info = $data->{gmjobs_info};
     my $lrms_info = $data->{lrms_info};
     my $nojobs = $data->{nojobs};
-    my $splitjobs = $data->{splitjobs};
-    
+
     my $creation_time = timenow();
     my $validity_ttl = $config->{ttl};
     my $hostname = $config->{hostname} || $host_info->{hostname};
@@ -1312,7 +1311,7 @@ sub collect($) {
 
             # ComputingActivities
             
-            if ( $nojobs || $splitjobs ) {
+            if ($nojobs) {
               $cep->{ComputingActivities} = undef;
             } else {
               # this complicated thing here creates a specialized getComputingActivities
@@ -1436,7 +1435,7 @@ sub collect($) {
             $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
 
             # ComputingActivities
-            if ($nojobs || $splitjobs ) {
+            if ($nojobs) {
               $cep->{ComputingActivities} = undef;
             } else {
               # this complicated thing here creates a specialized getComputingActivities
@@ -1566,7 +1565,7 @@ sub collect($) {
             $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
 
             # ComputingActivities
-            if ($nojobs || $splitjobs ) {
+            if ($nojobs) {
               $cep->{ComputingActivities} = undef;
             } else {
               # this complicated thing here creates a specialized getComputingActivities
@@ -1694,7 +1693,7 @@ sub collect($) {
             $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
 
             # ComputingActivities
-            if ($nojobs || $splitjobs ) {
+            if ($nojobs) {
               $cep->{ComputingActivities} = undef;
             } else {
               # this complicated thing here creates a specialized getComputingActivities
@@ -1940,7 +1939,7 @@ sub collect($) {
             $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
 
             # ComputingActivities
-            if ($nojobs || $splitjobs ) {
+            if ($nojobs) {
               $cep->{ComputingActivities} = undef;
             } else {
               # this complicated thing here creates a specialized getComputingActivities

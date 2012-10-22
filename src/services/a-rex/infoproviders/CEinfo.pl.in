@@ -112,7 +112,6 @@ sub main {
 
     my $data = timed 'all info collectors', sub { CEInfo::collect($config) };
     $data->{nojobs} = $nojobs;
-    $data->{splitjobs} = $splitjobs;
 
     # Print GLUE2 XML
     my $glue2data = timed 'ARC1ClusterInfo', sub { ARC1ClusterInfo::collect($data) };
