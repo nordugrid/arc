@@ -2650,6 +2650,36 @@ loser:
     return rv;
   }
 
+  static SECStatus AddKeyUsageExtension (void* extHandle, CERTCertificate* issuercert) {
+    SECStatus rv;
+    SECItem bitStringValue;
+    PRBool isCriticalExt = PR_TRUE;
+    SECItem keyUsageValue = {siBuffer, NULL, 0};
+    unsigned char ku_value;
+
+    rv = CERT_FindKeyUsageExtension(issuercert, &keyUsageValue);
+    if(rv == SECFailure) {
+      rv = (PORT_GetError () == SEC_ERROR_EXTENSION_NOT_FOUND) ?
+        SECSuccess : SECFailure;
+      return rv;
+    } 
+    else {
+      ku_value = keyUsageValue.data[0];
+      // mask off the key usage that should not be allowed for proxy
+      if(ku_value & KU_NON_REPUDIATION) ku_value &=(~KU_NON_REPUDIATION);
+      if(ku_value & KU_KEY_CERT_SIGN) ku_value &=(~KU_KEY_CERT_SIGN);
+      if(ku_value & KU_CRL_SIGN) ku_value &=(~KU_CRL_SIGN);
+    }
+    PORT_Free (keyUsageValue.data);
+
+    bitStringValue.data = &ku_value;
+    bitStringValue.len = 1;
+
+    return (CERT_EncodeAndAddBitStrExtension
+            (extHandle, SEC_OID_X509_KEY_USAGE, &bitStringValue,
+             isCriticalExt));
+  }
+
   bool nssCreateCert(const std::string& csrfile, const std::string& issuername, const char* passwd, const int duration, const std::string& vomsacseq, std::string& outfile, bool ascii) {
     CERTCertDBHandle* certhandle;
     CERTCertificate* issuercert = NULL;
@@ -2738,6 +2768,12 @@ loser:
       NSSUtilLogger.msg(ERROR, "Failed to start certificate extension");
       goto error;
     }
+
+    if(AddKeyUsageExtension(ext_handle, issuercert) != SECSuccess) {
+      NSSUtilLogger.msg(ERROR, "Failed to add key usage extension");
+      goto error;
+    }
+
     if(AddProxyCertInfoExtension(ext_handle, pathlen, policylang, policy) != SECSuccess) {
       NSSUtilLogger.msg(ERROR, "Failed to add proxy certificate information extension");
       goto error;

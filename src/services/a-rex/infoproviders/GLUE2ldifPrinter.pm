@@ -2,6 +2,13 @@ package GLUE2ldifPrinter;
 
 use base LdifPrinter;
 
+sub new {
+    my ($this, $handle, $splitjobs) =  @_;
+    my $self = $this->SUPER::new($handle);
+    $self->{splitjobs} = $splitjobs;
+    return $self;
+}
+
 # bools come in lowecase, must be uppercased for LDAP
 # In the XML schema allowed values are: true, false, undefined
 # In the LDAP schema allowed values are: TRUE, FALSE
@@ -493,7 +500,7 @@ sub ComputingEndpoint {
 sub ComputingEndpoints {
     LdifPrinter::Entries(@_, 'GLUE2Endpoint', 'ID', \&ComputingEndpointAttributes, sub {
         my ($self, $data) = @_;
-        if ($data->{ComputingActivities}) {
+        if (!($self->{splitjobs}) && $data->{ComputingActivities}) {
             $self->beginGroup("ComputingActivities");
             $self->ComputingActivities($data->{ComputingActivities});
             $self->end();
@@ -553,7 +560,7 @@ sub ToStorageServices {
 }
 
 sub Top {
-    my ($self, $data) = @_;
+    my ($self, $data ) = @_;
     $self->begin(o => "glue");
     #$self->attribute(objectClass => "top");
     #$self->attribute(objectClass => "organization");

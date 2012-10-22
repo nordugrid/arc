@@ -66,6 +66,12 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     return 0;
   }
 
+  if ((opt.testjobid == 1) && (!opt.runtime)) {
+    std::cout << Arc::IString("For the 1st test job"
+        "you also have to specify a runtime value with -r (--runtime) option.");
+    return 0;
+  }
+
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!opt.debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(opt.debug));
@@ -147,6 +153,16 @@ int RUNMAIN(arctest)(int argc, char **argv) {
   if (!Arc::JobDescription::GetTestJob(opt.testjobid, testJob)) {
     std::cout << Arc::IString("No test-job, with ID \"%d\"", opt.testjobid) << std::endl;
     return 1;
+  }
+
+  // Set user input variables into job description
+  if (opt.testjobid == 1) {
+    for ( std::map<std::string, std::string>::iterator iter = testJob.OtherAttributes.begin();
+      iter != testJob.OtherAttributes.end(); ++iter ) {
+        char buffer [iter->second.length()+255];
+        sprintf(buffer, iter->second.c_str(), opt.runtime+1, opt.runtime+3);
+        iter->second = (std::string) buffer;
+      }
   }
 
   Arc::Broker broker(usercfg, testJob, usercfg.Broker().first);

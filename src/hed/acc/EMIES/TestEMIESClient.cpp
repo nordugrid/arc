@@ -33,9 +33,15 @@ static void usage(void) {
 void print(const EMIESJob& job) {
   std::cout<<"ID:        "<<job.id<<std::endl;
   std::cout<<"manager:   "<<job.manager.fullstr()<<std::endl;
-  std::cout<<"stagein:   "<<job.stagein.fullstr()<<std::endl;
-  std::cout<<"session:   "<<job.session.fullstr()<<std::endl;
-  std::cout<<"stageout:  "<<job.stageout.fullstr()<<std::endl;
+  for(std::list<URL>::const_iterator s = job.stagein.begin();s!=job.stagein.end();++s) {
+    std::cout<<"stagein:   "<<s->fullstr()<<std::endl;
+  }
+  for(std::list<URL>::const_iterator s = job.session.begin();s!=job.session.end();++s) {
+    std::cout<<"session:   "<<s->fullstr()<<std::endl;
+  }
+  for(std::list<URL>::const_iterator s = job.stageout.begin();s!=job.stageout.end();++s) {
+    std::cout<<"stageout:  "<<s->fullstr()<<std::endl;
+  }
 }
 
 void print(const EMIESJobState& state) {
@@ -123,9 +129,15 @@ int main(int argc, char* argv[]) {
       return 1;
     };
     print(job);
-    std::cout<<"stagein:   "<<job.stagein.fullstr()<<std::endl;
-    std::cout<<"session:   "<<job.session.fullstr()<<std::endl;
-    std::cout<<"stageout:  "<<job.stageout.fullstr()<<std::endl;
+    for(std::list<URL>::const_iterator s = job.stagein.begin();s!=job.stagein.end();++s) {
+      std::cout<<"stagein:   "<<s->fullstr()<<std::endl;
+    }
+    for(std::list<URL>::const_iterator s = job.session.begin();s!=job.session.end();++s) {
+      std::cout<<"session:   "<<s->fullstr()<<std::endl;
+    }
+    for(std::list<URL>::const_iterator s = job.stageout.begin();s!=job.stageout.end();++s) {
+      std::cout<<"stageout:  "<<s->fullstr()<<std::endl;
+    }
   } else if(command == "clean") {
     EMIESJob job;
     FillJob(job,argc,argv);

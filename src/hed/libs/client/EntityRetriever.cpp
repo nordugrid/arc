@@ -120,7 +120,7 @@ namespace Arc {
   template<typename T>
   void EntityRetriever<T>::addEndpoint(const Endpoint& endpoint) {
     // Set the status of the endpoint to STARTED only if it was not registered already (overwrite = false)
-    if (!setStatusOfEndpoint(endpoint, EndpointQueryingStatus(EndpointQueryingStatus::STARTED), false)) {
+    if (!setStatusOfEndpoint(endpoint, EndpointQueryingStatus::STARTED, false)) {
       // Not able to set the status (because the endpoint was already registered)
       logger.msg(DEBUG, "Ignoring endpoint (%s), it is already registered in retriever.", endpoint.str());
       return;
@@ -131,7 +131,7 @@ namespace Arc {
       itPluginName = interfacePluginMap.find(endpoint.InterfaceName);
       if (itPluginName == interfacePluginMap.end()) {
         //logger.msg(DEBUG, "Unable to find TargetInformationRetrieverPlugin plugin to query interface \"%s\" on \"%s\"", endpoint.InterfaceName, endpoint.URLString);
-        setStatusOfEndpoint(endpoint, EndpointQueryingStatus(EndpointQueryingStatus::NOPLUGIN));
+        setStatusOfEndpoint(endpoint, EndpointQueryingStatus::NOPLUGIN);
         return;
       }
     }
@@ -142,10 +142,10 @@ namespace Arc {
     if (itPluginName != interfacePluginMap.end()) {
       arg->pluginName = itPluginName->second;
     }
-    logger.msg(Arc::DEBUG, "Starting thread to query the endpoint on %s", arg->endpoint.str());
+    logger.msg(DEBUG, "Starting thread to query the endpoint on %s", arg->endpoint.str());
     if (!CreateThreadFunction(&queryEndpoint, arg)) {
-      logger.msg(Arc::ERROR, "Failed to start querying the endpoint on %s", arg->endpoint.str() + " (unable to create thread)");
-      setStatusOfEndpoint(endpoint, EndpointQueryingStatus(EndpointQueryingStatus::FAILED));
+      logger.msg(ERROR, "Failed to start querying the endpoint on %s", arg->endpoint.str() + " (unable to create thread)");
+      setStatusOfEndpoint(endpoint, EndpointQueryingStatus::FAILED);
       delete arg;
     }
   }
@@ -274,7 +274,7 @@ namespace Arc {
       EntityRetrieverPlugin<T>* plugin = common->load(a->pluginName);
       if (!plugin) {
         if(!common->lockSharedIfValid()) return;
-        (*common)->setStatusOfEndpoint(a->endpoint, EndpointQueryingStatus(EndpointQueryingStatus::FAILED));
+        (*common)->setStatusOfEndpoint(a->endpoint, EndpointQueryingStatus::FAILED);
         common->unlockShared();
         return;
       }
@@ -344,7 +344,7 @@ namespace Arc {
         
         // Set the status of the endpoint to STARTED only if it was not registered already (overwrite = false)
         if(!common->lockSharedIfValid()) return;
-        bool set = (*common)->setStatusOfEndpoint(endpoint, EndpointQueryingStatus(EndpointQueryingStatus::STARTED), false);
+        bool set = (*common)->setStatusOfEndpoint(endpoint, EndpointQueryingStatus::STARTED);
         common->unlockShared();
         if (!set) {
           // Not able to set the status (because the endpoint was already registered)
@@ -360,7 +360,7 @@ namespace Arc {
           logger.msg(ERROR, "Failed to start querying the endpoint on %s (unable to create sub-thread)", endpoint.str());
           delete newArg;
           if(!common->lockSharedIfValid()) return;
-          (*common)->setStatusOfEndpoint(endpoint, EndpointQueryingStatus(EndpointQueryingStatus::FAILED));
+          (*common)->setStatusOfEndpoint(endpoint, EndpointQueryingStatus::FAILED);
           common->unlockShared();
           continue;
         }
@@ -397,7 +397,7 @@ namespace Arc {
            * picking the most suitable failure message among the used
            * plugins.
            */
-          status = EndpointQueryingStatus(EndpointQueryingStatus::FAILED);
+          status = EndpointQueryingStatus::FAILED;
         }
       }
 

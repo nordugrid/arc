@@ -488,12 +488,12 @@ Arc::MCC_Status ARexService::ESNotifyService(ARexGMConfig& config,Arc::XMLNode i
           // Failure is not fatal here
           logger_.msg(Arc::ERROR, "EMIES:NotifyService: job %s - %s", jobid, job.Failure());
         };
-        item.NewChild("esmanag:Acknowledgement");
+        ritem.NewChild("esmanag:Acknowledgement");
       } else if(msg == "client-datapush-done") {
         if(!job.ReportFilesComplete()) {
           ESInternalBaseFault(ritem.NewChild("dummy"),job.Failure());
         } else {
-          item.NewChild("esmanag:Acknowledgement");
+          ritem.NewChild("esmanag:Acknowledgement");
         };
       } else {
         // Wrong request

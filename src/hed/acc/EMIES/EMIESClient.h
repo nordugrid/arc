@@ -10,6 +10,7 @@
 #include <arc/DateTime.h>
 #include <arc/message/MCC.h>
 #include <arc/UserConfig.h>
+#include <arc/message/SOAPEnvelope.h>
 /*
 #include <utility>
 
@@ -36,36 +37,37 @@ namespace Arc {
   class EMIESJobState {
   public:
     /*
-        ACCEPTED
-        PREPROCESSING
-        PROCESSING
-        PROCESSING-ACCEPTING
-        PROCESSING-QUEUED
-        PROCESSING-RUNNING
-        POSTPROCESSING
-        TERMINAL
+        accepted
+        preprocessing
+        processing
+        processing-accepting
+        processing-queued
+        processing-running
+        postprocessing
+        terminal
      */
     std::string state;
     /*
-        VALIDATING
-        SERVER-PAUSED
-        CLIENT-PAUSED
-        CLIENT-STAGEIN-POSSIBLE
-        CLIENT-STAGEOUT-POSSIBLE
-        PROVISIONING
-        DEPROVISIONING
-        SERVER-STAGEIN
-        SERVER-STAGEOUT
-        BATCH-SUSPEND
-        APP-RUNNING
-        PREPROCESSING-CANCEL
-        PROCESSING-CANCEL
-        POSTPROCESSING-CANCEL
-        VALIDATION-FAILURE
-        PREPROCESSING-FAILURE
-        PROCESSING-FAILURE
-        POSTPROCESSING-FAILURE
-        APP-FAILURE
+        validating
+        server-paused
+        client-paused
+        client-stagein-possible
+        client-stageout-possible
+        provisioning
+        deprovisioning
+        server-stagein
+        server-stageout
+        batch-suspend
+        app-running
+        preprocessing-cancel
+        processing-cancel
+        postprocessing-cancel
+        validation-failure
+        preprocessing-failure
+        processing-failure
+        postprocessing-failure
+        app-failure
+        expired
      */
     std::list<std::string> attributes;
     std::string description;
@@ -75,19 +77,35 @@ namespace Arc {
     bool operator!(void);
     operator bool(void);
     bool HasAttribute(const std::string& attr) const;
+    std::string ToXML(void) const;
   };
 
   class EMIESJob {
   public:
     std::string id;
     URL manager;
-    URL stagein;
-    URL session;
-    URL stageout;
+    URL resource;
+    std::list<URL> stagein;
+    std::list<URL> session;
+    std::list<URL> stageout;
     EMIESJob& operator=(XMLNode job);
     EMIESJob& operator=(const std::string& s) { XMLNode n(s); return operator=(n); }
-    XMLNode ToXML() const;
+    std::string ToXML(void) const;
     bool operator!(void);
+    operator bool(void);
+  };
+
+  class EMIESFault {
+  public:
+    std::string type;
+    std::string message;
+    std::string description;
+    Time timestamp;
+    int code;
+    EMIESFault& operator=(XMLNode item);
+    EMIESFault& operator=(SOAPFault* fault);
+    bool operator!(void);
+    operator bool(void);
   };
 
   //! A client class for the EMI ES service.
@@ -210,6 +228,10 @@ namespace Arc {
       return rurl;
     }
 
+    const std::string& failure(void) {
+      return lfailure;
+    }
+
     bool delegation(XMLNode& operation);
 
   private:
@@ -231,6 +253,8 @@ namespace Arc {
     const MCCConfig cfg;
 
     int timeout;
+
+    std::string lfailure;
 
     //! A logger for the A-REX client.
     /*! This is a logger to which all logging messages from the EMI ES

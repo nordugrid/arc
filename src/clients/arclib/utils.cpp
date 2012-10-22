@@ -200,6 +200,7 @@ ClientOptions::ClientOptions(Client_t c,
     usejobname(false),
     forcedownload(false),
     testjobid(-1),
+    runtime(5),
     timeout(-1)
 {
   bool cIsJobMan = (c == CO_CAT || c == CO_CLEAN || c == CO_GET || c == CO_KILL || c == CO_RENEW || c == CO_RESUME || c == CO_STAT || c == CO_ACL);
@@ -320,6 +321,10 @@ ClientOptions::ClientOptions(Client_t c,
               istring("submit test job given by the number"),
               istring("int"),
               testjobid);
+    AddOption('r', "runtime",
+              istring("test job runtime specified by the number"),
+              istring("int"),
+              runtime);
   }
 
   if (cIsJobMan || c == CO_RESUB) {
