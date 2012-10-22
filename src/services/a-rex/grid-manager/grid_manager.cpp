@@ -314,6 +314,8 @@ bool GridManager::thread() {
     } else {
       close(r); r = -1;
     };
+    // touch temporary configuration so /tmp cleaner does not erase it
+    if(config_.ConfigIsTemp()) ::utimes(config_.ConfigFile().c_str(), NULL);
     wd.Kick();
     /* check for new marks and activate related jobs */
     jobs.ScanNewMarks();

@@ -19,6 +19,7 @@
 #include <arc/ws-addressing/WSA.h>
 #include <arc/Thread.h>
 #include <arc/StringConv.h>
+#include <arc/FileUtils.h>
 #include <arc/Utils.h>
 #include "job.h"
 #include "grid-manager/log/job_log.h"
@@ -860,32 +861,39 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
 
   endpoint_=(std::string)((*cfg)["endpoint"]);
   uname_=(std::string)((*cfg)["usermap"]["defaultLocalName"]);
+  std::string gmconfig=(std::string)((*cfg)["gmconfig"]);
   if (Arc::lower((std::string)((*cfg)["publishStaticInfo"])) == "yes") {
     publishstaticinfo_=true;
   } else {
     publishstaticinfo_=false;
   }
   config_.SetDelegations(&delegation_stores_);
-  // Check if GM configuration is in a separate file
-  std::string gmconfig=(std::string)((*cfg)["gmconfig"]);
-  if (gmconfig.empty()) {
+  if(gmconfig.empty()) {
     // No external configuration file means configuration is
     // directly embedded into this configuration node.
     config_.SetXMLNode(*cfg);
-    // Even though GM config can be taken directly from the node, the original
-    // filename of this config is still needed for external GM processes
-    config_.SetConfigFile(cfg->getFileName());
+    // Create temporary file with this <Service> node. This is mainly for
+    // external GM processes such as infoproviders and LRMS scripts so that in
+    // the case of multiple A-REXes in one HED they know which one to serve. In
+    // future hopefully this can be replaced by passing the service id to those
+    // scripts instead. The temporary file is deleted in this destructor.
+    Arc::TmpFileCreate(gmconfig, "", getuid(), getgid(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    logger.msg(Arc::DEBUG, "Storing configuration in temporary file %s", gmconfig);
+    cfg->SaveToFile(gmconfig);
+    config_.SetConfigFile(gmconfig);
+    config_.SetConfigIsTemp(true);
     if (!config_.Load()) {
       logger_.msg(Arc::ERROR, "Failed to process service configuration");
       return;
     }
   }
   else {
-     // External configuration file
-     config_.SetConfigFile(gmconfig);
-     if (!config_.Load()) {
-       logger_.msg(Arc::ERROR, "Failed to process configuration in %s", gmconfig);
-     }
+    // External configuration file
+    config_.SetConfigFile(gmconfig);
+    if (!config_.Load()) {
+      logger_.msg(Arc::ERROR, "Failed to process configuration in %s", gmconfig);
+      return;
+    }
   }
   // Check for mandatory commands in configuration
   if (config_.ControlDir().empty()) {
@@ -972,6 +980,7 @@ ARexService::~ARexService(void) {
   if(config_.CredPlugin()) delete config_.CredPlugin();
   if(config_.ContPlugins()) delete config_.ContPlugins();
   if(config_.GetJobLog()) delete config_.GetJobLog();
+  if(config_.ConfigIsTemp()) unlink(config_.ConfigFile().c_str());
   thread_count_.WaitForExit(); // Here A-REX threads are waited for
 }
 
@@ -981,4 +990,3 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
     { "a-rex", "HED:SERVICE", NULL, 0, &ARex::get_service },
     { NULL, NULL, NULL, 0, NULL }
 };
-
