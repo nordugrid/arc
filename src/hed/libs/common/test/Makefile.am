@@ -6,7 +6,7 @@ endif
 
 check_PROGRAMS = URLTest LoggerTest RunTest XMLNodeTest FileAccessTest FileUtilsTest \
         ProfileTest ArcRegexTest ThreadTest FileLockTest EnvTest UserConfigTest \
-        StringConvTest CheckSumTest WatchdogTest $(MYSQL_WRAPPER_TEST)
+        StringConvTest CheckSumTest WatchdogTest UserTest $(MYSQL_WRAPPER_TEST)
 
 TESTS = $(filter-out ThreadTest,$(check_PROGRAMS))
 TESTS_ENVIRONMENT = srcdir=$(srcdir)
@@ -113,6 +113,13 @@ WatchdogTest_SOURCES = $(top_srcdir)/src/Test.cpp WatchdogTest.cpp
 WatchdogTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS)
 WatchdogTest_LDADD = \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS)
+
+UserTest_SOURCES = $(top_srcdir)/src/Test.cpp UserTest.cpp
+UserTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS)
+UserTest_LDADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS)
 

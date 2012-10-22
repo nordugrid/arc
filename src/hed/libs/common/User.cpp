@@ -89,7 +89,7 @@ static Glib::Mutex suid_lock;
     char pwdbuf[2048];
     struct passwd *pwd_p;
     if (getpwuid_r(uid, &pwd, pwdbuf, sizeof(pwdbuf), &pwd_p) != 0) return;
-    if (set(pwd_p)) return;
+    if (!set(pwd_p)) return;
     // override what is found in passwd with given gid
     if (gid != -1) this->gid = gid;
     valid = true;
@@ -267,7 +267,7 @@ static Glib::Mutex suid_lock;
     return 0;
   }
 
-  bool User::SwitchUser(bool su) const {
+  bool User::SwitchUser() const {
     // XXX NOP
     return false;
   }
