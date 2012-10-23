@@ -100,6 +100,7 @@ class StaticPropertyWrapper(object):
 
 namespace std {
     template<class T> class list {
+      class iterator;
       public:
         typedef size_t size_type;
         typedef T value_type;
@@ -112,8 +113,8 @@ namespace std {
         void clear();
         %rename(add) push_back;
         void push_back(const value_type& x);
-        std::list<value_type>::iterator begin();
-        std::list<value_type>::iterator end();
+        iterator begin();
+        iterator end();
     };
 }
 
