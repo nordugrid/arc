@@ -106,11 +106,7 @@ bool job_diagnostics_mark_move(const JobDescription &desc,const GMConfig &config
 // information about reason of job failure.
 bool job_lrmsoutput_mark_put(const JobDescription &desc,const GMConfig &config);
 
-// Create session directory for job
-bool job_session_create(const JobDescription &desc,const GMConfig &config);
-
 // Common purpose functions, used by previous functions.
-bool job_dir_create(const std::string &dname);
 std::string job_mark_read_s(const std::string &fname);
 long int job_mark_read_i(const std::string &fname);
 bool job_mark_write_s(const std::string &fname,const std::string &content);

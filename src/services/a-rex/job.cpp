@@ -598,7 +598,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   };
 */
   // Create session directory
-  if(!job_session_create(job,config_.GmConfig())) {
+  if(!config_.GmConfig().CreateSessionDirectory(job.SessionDir(), job.get_user())) {
     delete_job_id();
     failure_="Failed to create session directory";
     failure_type_=ARexJobInternalError;

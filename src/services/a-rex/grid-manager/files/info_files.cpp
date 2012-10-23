@@ -46,7 +46,6 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 static job_state_t job_state_read_file(const std::string &fname,bool &pending);
 static bool job_state_write_file(const std::string &fname,job_state_t state,bool pending = false);
 static bool job_mark_put(Arc::FileAccess& fa, const std::string &fname);
-static bool job_dir_create(Arc::FileAccess& fa,const std::string &dname);
 static bool job_mark_remove(Arc::FileAccess& fa,const std::string &fname);
 
 
@@ -286,16 +285,6 @@ bool job_lrmsoutput_mark_put(const JobDescription &desc,const GMConfig &config) 
   return job_mark_put(fname) & fix_file_owner(fname,desc) & fix_file_permissions(fname);
 }
 
-bool job_session_create(const JobDescription &desc,const GMConfig &config) {
-  std::string dname = desc.SessionDir();
-  if(config.StrictSession()) {
-    Arc::FileAccess fa;
-    if(!fa.fa_setuid(desc.get_user().get_uid(),desc.get_user().get_gid())) return false;
-    return job_dir_create(fa,dname) & fix_file_permissions(fa,dname,true);
-  };
-  return job_dir_create(dname) & fix_file_owner(dname,desc) & fix_file_permissions(dname,true);
-}
-
 bool job_lrmsoutput_mark_remove(const JobDescription &desc,const GMConfig &config) {
   std::string fname = desc.SessionDir() + sfx_lrmsoutput;
   if(config.StrictSession()) {
@@ -304,16 +293,6 @@ bool job_lrmsoutput_mark_remove(const JobDescription &desc,const GMConfig &confi
     return job_mark_remove(fa,fname);
   };
   return job_mark_remove(fname);
-}
-
-
-bool job_dir_create(const std::string &dname) {
-  int err=mkdir(dname.c_str(),S_IRUSR | S_IWUSR | S_IXUSR);
-  return (err==0);
-}
-
-static bool job_dir_create(Arc::FileAccess& fa,const std::string &dname) {
-  return fa.fa_mkdir(dname,S_IRUSR | S_IWUSR | S_IXUSR);
 }
 
 std::string job_mark_read_s(const std::string &fname) {

@@ -156,8 +156,6 @@ std::string GMConfig::SessionRoot(const std::string& job_id) const {
   return empty_string; // not found
 }
 
-
-
 static bool fix_directory(const std::string& path, GMConfig::fixdir_t fixmode, mode_t mode, uid_t uid, gid_t gid) {
   if (fixmode == GMConfig::fixdir_never) {
     struct stat st;
@@ -179,7 +177,7 @@ static bool fix_directory(const std::string& path, GMConfig::fixdir_t fixmode, m
   return true;
 }
 
-bool GMConfig::CreateDirectories() const {
+bool GMConfig::CreateControlDirectory() const {
   bool res = true;
   if (!control_dir.empty()) {
     mode_t mode = 0;
@@ -203,24 +201,45 @@ bool GMConfig::CreateDirectories() const {
     std::string deleg_dir = DelegationDir();
     if (!fix_directory(deleg_dir, fixdir_always, S_IRWXU, gm_user.get_uid(), gm_user.get_gid())) res = false;
   }
-  for (std::vector<std::string>::const_iterator i = session_roots.begin(); i != session_roots.end(); ++i) {
-    mode_t mode = 0;
-    if (gm_user.get_uid() == 0) {
-      if (strict_session) {
-        // For multiple users creating immediate subdirs using own account
-        // dangerous permissions, but there is no other option
-        mode = S_IRWXU | S_IRWXG | S_IRWXO | S_ISVTX;
-      } else {
-        // For multiple users not creating immediate subdirs using own account
-        mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
-      }
-    } else {
-      // For single user
-      mode = S_IRWXU;
-    }
-    if (!fix_directory(*i, fixdir, mode, gm_user.get_uid(), gm_user.get_gid())) res = false;
-  }
   return res;
+}
+
+bool GMConfig::CreateSessionDirectory(const std::string& dir, const Arc::User& user) const {
+  // First just try to create per-job dir, assuming session root already exists
+  if (gm_user.get_uid() != 0) {
+    if (Arc::DirCreate(dir, S_IRWXU, false)) return true;
+  } else if (strict_session) {
+    if (Arc::DirCreate(dir, user.get_uid(), user.get_gid(), S_IRWXU, false)) return true;
+  } else {
+    if (Arc::DirCreate(dir, S_IRWXU, false)) return (chown(dir.c_str(), user.get_uid(), user.get_gid()) == 0);
+  }
+  // Creation failed so try to create session root and try again
+  std::string session_root(dir.substr(0, dir.rfind('/')));
+  if (session_root.empty()) return false;
+  mode_t mode = 0;
+  if (gm_user.get_uid() == 0) {
+    if (strict_session) {
+      // For multiple users creating immediate subdirs using own account
+      // dangerous permissions, but there is no other option
+      mode = S_IRWXU | S_IRWXG | S_IRWXO | S_ISVTX;
+    } else {
+      // For multiple users not creating immediate subdirs using own account
+      mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
+    }
+  } else {
+    // For single user
+    mode = S_IRWXU;
+  }
+  if (!fix_directory(session_root, fixdir, mode, gm_user.get_uid(), gm_user.get_gid())) return false;
+  // Try per-job dir again
+  if (gm_user.get_uid() != 0) {
+    return Arc::DirCreate(dir, S_IRWXU, false);
+  } else if (strict_session) {
+    return Arc::DirCreate(dir, user.get_uid(), user.get_gid(), S_IRWXU, false);
+  } else {
+    if (!Arc::DirCreate(dir, S_IRWXU, false)) return false;
+    return (chown(dir.c_str(), user.get_uid(), user.get_gid()) == 0);
+  }
 }
 
 std::string GMConfig::DelegationDir() const {
@@ -357,7 +376,7 @@ bool GMConfig::ExternalHelper::run(const GMConfig& config) {
   }
   args[n] = NULL;
   logger.msg(Arc::VERBOSE, "Starting helper process: %s", command);
-  std::string helper_id = "helper.";
+  std::string helper_id = "helper";
   bool started = RunParallel::run(config, Arc::User(), helper_id.c_str(), args, &proc);
   for (n=0; n<99; n++) {
     if (args[n] == NULL) break;

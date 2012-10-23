@@ -206,6 +206,11 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):
     logger.msg(Arc::ERROR, "Cannot use multiple session directories and remotegmdirs at the same time");
     initialized=false;
   } else {
+    avail_queues = config.Queues();
+    // set default queue if not given explicitly
+    if(config.DefaultQueue().empty() && (avail_queues.size() == 1)) {
+      config.SetDefaultQueue(*(avail_queues.begin()));
+    }
     // do substitutions in session dirs based on mapped user
     session_dirs = config.SessionRoots();
     for (std::vector<std::string>::iterator session = session_dirs.begin(); session != session_dirs.end(); ++session) {
@@ -217,10 +222,6 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):
       config.Substitute(*session, user);
     }
 
-    avail_queues = config.Queues();
-    if(config.DefaultQueue().empty() && (avail_queues.size() == 1)) {
-      config.SetDefaultQueue(*(avail_queues.begin()));
-    };
     for(std::string allowsubmit = config.AllowSubmit(); !allowsubmit.empty();) {
       std::string group = config_next_arg(allowsubmit);
       if(user_a.check_group(group)) { readonly=false; break; };
@@ -780,7 +781,8 @@ int JobPlugin::close(bool eof) {
       if(*q == job_desc.queue) break; 
     };
   };
-  JobDescription job(job_id,user,"",JOB_STATE_ACCEPTED);
+  std::string session_dir(config.SessionRoot(job_id) + '/' + job_id);
+  JobDescription job(job_id,user,session_dir,JOB_STATE_ACCEPTED);
   if(!process_job_req(config, job, job_desc)) {
     error_description="Failed to preprocess job description.";
     logger.msg(Arc::ERROR, "%s", error_description);
@@ -931,26 +933,11 @@ int JobPlugin::close(bool eof) {
   /* *******************************************
    * Create session directory                  *
    ******************************************* */
-  std::string dir=config.SessionRoot(job_id)+"/"+job_id;
-  if((getuid()==0) && config.StrictSession()) {
-    SET_USER_UID;
-  };
-  // if fail to create, create parents and try again
-  if(!Arc::DirCreate(dir, 0700, false) &&
-     (!Arc::DirCreate(config.SessionRoot(job_id), 0755, true) ||
-      !Arc::DirCreate(dir, 0700, false))) {
-    if((getuid()==0) && config.StrictSession()) {
-      RESET_USER_UID;
-    };
-    logger.msg(Arc::ERROR, "Failed to create session directory");
+  if (!config.CreateSessionDirectory(job.SessionDir(), job.get_user())) {
+    logger.msg(Arc::ERROR, "Failed to create session directory %s", job.SessionDir());
     delete_job_id();
     error_description="Failed to create session directory.";
     return 1;
-  };
-  if((getuid()==0) && config.StrictSession()) {
-    RESET_USER_UID;
-  } else {
-    fix_file_owner(dir,job);
   }
   /* **********************************************************
    * Create status file (do it last so GM picks job up here)  *

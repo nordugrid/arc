@@ -82,8 +82,13 @@ public:
   /// Set XML node with configuration (corresponding to <Service name="a-rex">)
   void SetXMLNode(const Arc::XMLNode& node) { xml_cfg = node; }
 
-  /// Create control structure and session directories with correct permissions
-  bool CreateDirectories() const;
+  /// Create control structure with permissions depending on fixdir_t value.
+  /// Typically called at A-REX service creation.
+  bool CreateControlDirectory() const;
+  /// Create session directory with correct permissions. Typically called when
+  /// a new job is created and after all substitutions have been done. Creates
+  /// session root if it does not already exist.
+  bool CreateSessionDirectory(const std::string& dir, const Arc::User& user) const;
 
   /// Start/restart all helper processes
   bool RunHelpers();
