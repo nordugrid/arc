@@ -43,7 +43,7 @@ bool JobLog::start_info(JobDescription &job,const GMConfig &config) {
   if(filename.length()==0) return true;
     std::ofstream o;
     if(!open_stream(o)) return false;
-    o<<"Started - job id: "<<job.get_id()<<", unix user: "<<job.get_uid()<<":"<<job.get_gid()<<", ";
+    o<<"Started - job id: "<<job.get_id()<<", unix user: "<<job.get_user().get_uid()<<":"<<job.get_user().get_gid()<<", ";
     if(job.GetLocalDescription(config)) {
       JobLocalDescription *job_desc = job.get_local();
       std::string tmps;
@@ -64,7 +64,7 @@ bool JobLog::finish_info(JobDescription &job,const GMConfig &config) {
   if(filename.length()==0) return true;
     std::ofstream o;
     if(!open_stream(o)) return false;
-    o<<"Finished - job id: "<<job.get_id()<<", unix user: "<<job.get_uid()<<":"<<job.get_gid()<<", ";
+    o<<"Finished - job id: "<<job.get_id()<<", unix user: "<<job.get_user().get_uid()<<":"<<job.get_user().get_gid()<<", ";
     std::string tmps;
     if(job.GetLocalDescription(config)) {
       JobLocalDescription *job_desc = job.get_local();

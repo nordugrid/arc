@@ -63,8 +63,8 @@ static bool fix_file_permissions(Arc::FileAccess& fa,const std::string &fname,bo
 
 bool fix_file_permissions(const std::string &fname,const JobDescription &desc,const GMConfig& config) {
   mode_t mode = S_IRUSR | S_IWUSR;
-  uid_t uid = desc.get_uid();
-  gid_t gid = desc.get_gid();
+  uid_t uid = desc.get_user().get_uid();
+  gid_t gid = desc.get_user().get_gid();
   if(!config.MatchShareUid(uid)) {
     mode |= S_IRGRP;
     if(!config.MatchShareGid(gid)) {
@@ -78,8 +78,8 @@ bool fix_file_permissions_in_session(const std::string &fname,const JobDescripti
   mode_t mode = S_IRUSR | S_IWUSR;
   if(executable) { mode |= S_IXUSR; };
   if(config.StrictSession()) {
-    uid_t uid = getuid()==0?desc.get_uid():getuid();
-    uid_t gid = getgid()==0?desc.get_gid():getgid();
+    uid_t uid = getuid()==0?desc.get_user().get_uid():getuid();
+    uid_t gid = getgid()==0?desc.get_user().get_gid():getgid();
     Arc::FileAccess fa;
     if(!fa.fa_setuid(uid,gid)) return false;
     return fa.fa_chmod(fname,mode);

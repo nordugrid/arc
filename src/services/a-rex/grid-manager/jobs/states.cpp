@@ -1020,7 +1020,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
             job_state_write_file(*i,config,i->job_state);
           } else {
             logger.msg(Arc::INFO,"%s: %s: New job belongs to %i/%i",i->job_id.c_str(),
-                JobDescription::get_state_name(new_state),i->get_uid(),i->get_gid());
+                JobDescription::get_state_name(new_state),i->get_user().get_uid(),i->get_user().get_gid());
             // Make it clean state after restart
             job_state_write_file(*i,config,i->job_state);
             i->retries = config.max_retries;

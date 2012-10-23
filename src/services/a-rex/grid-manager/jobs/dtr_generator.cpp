@@ -559,8 +559,8 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
   logger.msg(Arc::VERBOSE, "%s: Received data staging request to %s files", jobid,
              (job.get_state() == JOB_STATE_PREPARING ? "download" : "upload"));
 
-  uid_t job_uid = config.StrictSession() ? job.get_uid() : 0;
-  uid_t job_gid = config.StrictSession() ? job.get_gid() : 0;
+  uid_t job_uid = config.StrictSession() ? job.get_user().get_uid() : 0;
+  uid_t job_gid = config.StrictSession() ? job.get_user().get_gid() : 0;
   
   // Create a file for the transfer statistics and fix its permissions
   std::string fname = config.ControlDir() + "/job." + jobid + ".statistics";
@@ -770,7 +770,7 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     dtr_log->addDestination(*dest);
 
     // create DTR and send to Scheduler
-    DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, usercfg, jobid, job.get_uid(), dtr_log));
+    DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, usercfg, jobid, job.get_user().get_uid(), dtr_log));
     // set retry count (tmp errors only)
     dtr->set_tries_left(staging_conf.max_retries);
     // allow the same file to be uploaded to multiple locations with same LFN
@@ -838,8 +838,8 @@ bool DTRGenerator::processCancelledJob(const std::string& jobid) {
 int DTRGenerator::checkUploadedFiles(JobDescription& job) {
 
   JobId jobid(job.get_id());
-  uid_t job_uid = config.StrictSession() ? job.get_uid() : 0;
-  uid_t job_gid = config.StrictSession() ? job.get_gid() : 0;
+  uid_t job_uid = config.StrictSession() ? job.get_user().get_uid() : 0;
+  uid_t job_gid = config.StrictSession() ? job.get_user().get_gid() : 0;
 
   std::string session_dir;
   if (job.get_local() && !job.get_local()->sessiondir.empty()) session_dir = job.get_local()->sessiondir;
@@ -1066,6 +1066,6 @@ void DTRGenerator::CleanCacheJobLinks(const GMConfig& config, const JobDescripti
   Arc::FileCache cache(cache_config.getCacheDirs(),
                        cache_config.getRemoteCacheDirs(),
                        cache_config.getDrainingCacheDirs(),
-                       job.get_id(), job.get_uid(), job.get_gid());
+                       job.get_id(), job.get_user().get_uid(), job.get_user().get_gid());
   cache.Release();
 }

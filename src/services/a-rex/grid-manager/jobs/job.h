@@ -135,8 +135,6 @@ class JobDescription {
   bool operator!=(const JobId &id) const { return (job_id != id); };
   void set_user(const Arc::User& u) { user = u; }
   const Arc::User& get_user() const { return user;}
-  uid_t get_uid(void) const { return user.get_uid(); };
-  gid_t get_gid(void) const { return user.get_gid(); };
   void set_share(std::string share);
   /* force 'local' to be created and read from file if not already available */
   bool GetLocalDescription(const GMConfig& config);
