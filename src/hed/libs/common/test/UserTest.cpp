@@ -34,6 +34,7 @@ void UserTest::OwnUserTest() {
   bool found;
   std::string username = Glib::getenv("USERNAME", found);
   CPPUNIT_ASSERT(found);
+  std::string home = g_get_user_config_dir();
 #else
   uid_t uid_ = getuid();
   gid_t gid_ = getgid();
@@ -45,6 +46,7 @@ void UserTest::OwnUserTest() {
   int uid = (int)uid_;
   int gid = (int)gid_;
   std::string username = pwd_p->pw_name;
+  std::string home = pwd_p->pw_dir;
 #endif
 
   // User using this user's uid
@@ -53,6 +55,7 @@ void UserTest::OwnUserTest() {
   CPPUNIT_ASSERT_EQUAL(uid, user.get_uid());
   CPPUNIT_ASSERT_EQUAL(gid, user.get_gid());
   CPPUNIT_ASSERT_EQUAL(username, user.Name());
+  CPPUNIT_ASSERT_EQUAL(home, user.Home());
 
   // User with specified uid and gid
   Arc::User user2(uid, gid);
@@ -60,6 +63,7 @@ void UserTest::OwnUserTest() {
   CPPUNIT_ASSERT_EQUAL(uid, user2.get_uid());
   CPPUNIT_ASSERT_EQUAL(gid, user2.get_gid());
   CPPUNIT_ASSERT_EQUAL(username, user2.Name());
+  CPPUNIT_ASSERT_EQUAL(home, user2.Home());
 
   // User with specified username
   Arc::User user3(username);
@@ -67,6 +71,7 @@ void UserTest::OwnUserTest() {
   CPPUNIT_ASSERT_EQUAL(uid, user3.get_uid());
   CPPUNIT_ASSERT_EQUAL(gid, user3.get_gid());
   CPPUNIT_ASSERT_EQUAL(username, user3.Name());
+  CPPUNIT_ASSERT_EQUAL(home, user3.Home());
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(UserTest);
