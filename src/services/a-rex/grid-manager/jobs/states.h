@@ -143,8 +143,16 @@ class JobsList {
   // Return iterator to object matching given id or jobs.end() if not found
   iterator FindJob(const JobId &id);
   // Information about jobs for external utilities
-  int AcceptedJobs() const { return JOB_NUM_ACCEPTED; }
-  int RunningJobs() const { return JOB_NUM_RUNNING; }
+  // No of jobs in all active states from ACCEPTED and FINISHING
+  int AcceptedJobs() const;
+  // No of jobs in batch system or in process of submission to batch system
+  int RunningJobs() const;
+  // No of jobs in data staging
+  int ProcessingJobs() const;
+  // No of jobs staging in data before job execution
+  int PreparingJobs() const;
+  // No of jobs staging out data after job execution
+  int FinishingJobs() const;
 
   // Set DTR Generator for data staging
   void SetDataGenerator(DTRGenerator* generator) { dtr_generator = generator; };

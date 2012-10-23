@@ -73,6 +73,33 @@ bool JobsList::AddJobNoCheck(const JobId &id,JobsList::iterator &i,uid_t uid,gid
   return true;
 }
 
+int JobsList::AcceptedJobs() const {
+  return jobs_num[JOB_STATE_ACCEPTED] +
+         jobs_num[JOB_STATE_PREPARING] +
+         jobs_num[JOB_STATE_SUBMITTING] +
+         jobs_num[JOB_STATE_INLRMS] +
+         jobs_num[JOB_STATE_FINISHING] +
+         jobs_pending;
+}
+
+int JobsList::RunningJobs() const {
+  return jobs_num[JOB_STATE_SUBMITTING] +
+         jobs_num[JOB_STATE_INLRMS];
+}
+
+int JobsList::ProcessingJobs() const {
+  return jobs_num[JOB_STATE_PREPARING] +
+         jobs_num[JOB_STATE_FINISHING];
+}
+
+int JobsList::PreparingJobs() const {
+  return jobs_num[JOB_STATE_PREPARING];
+}
+
+int JobsList::FinishingJobs() const {
+  return jobs_num[JOB_STATE_FINISHING];
+}
+
 void JobsList::ChooseShare(JobsList::iterator& i) {
   // only applies to old staging
   if (config.use_new_data_staging || config.share_type.empty()) return;
@@ -246,10 +273,10 @@ bool JobsList::ActJobs(void) {
   if (!(config.use_new_data_staging && dtr_generator)) {
     if((config.max_jobs_staging != -1) &&
        (!config.use_local_transfer) &&
-       ((JOB_NUM_PROCESSING*3) > (config.max_jobs_staging*2))) {
-      if(JOB_NUM_PREPARING > JOB_NUM_FINISHING) { 
+       ((ProcessingJobs()*3) > (config.max_jobs_staging*2))) {
+      if(PreparingJobs() > FinishingJobs()) {
         postpone_preparing=true; 
-      } else if(JOB_NUM_PREPARING < JOB_NUM_FINISHING) {
+      } else if(PreparingJobs() < FinishingJobs()) {
         postpone_finishing=true;
       }
     }
@@ -824,16 +851,16 @@ bool JobsList::CanStage(const JobsList::iterator &i, bool up) {
   if (config.max_jobs_staging == -1) return true;
   if (!up) {
     // limits on downloads
-    if (((JOB_NUM_PROCESSING < config.max_jobs_staging) ||
-        ((JOB_NUM_FINISHING >= config.max_jobs_staging) &&
-         (JOB_NUM_PREPARING < config.max_jobs_staging_emergency))) &&
+    if (((ProcessingJobs() < config.max_jobs_staging) ||
+        ((FinishingJobs() >= config.max_jobs_staging) &&
+         (PreparingJobs() < config.max_jobs_staging_emergency))) &&
         (config.share_type.empty() ||
          preparing_job_share[i->transfer_share] < preparing_max_share[i->transfer_share])) return true;
   } else {
     // limits on uploads
-    if (((JOB_NUM_PROCESSING < config.max_jobs_staging) ||
-        ((JOB_NUM_PREPARING >= config.max_jobs_staging) &&
-         (JOB_NUM_FINISHING < config.max_jobs_staging_emergency))) &&
+    if (((ProcessingJobs() < config.max_jobs_staging) ||
+        ((PreparingJobs() >= config.max_jobs_staging) &&
+         (FinishingJobs() < config.max_jobs_staging_emergency))) &&
         (config.share_type.empty() ||
          finishing_job_share[i->transfer_share] < finishing_max_share[i->transfer_share])) return true;
   }
@@ -984,7 +1011,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
                                bool& job_error,bool& state_changed) {
         // new job - read its status from status file, but first check if it is
         // under the limit of maximum jobs allowed in the system
-        if((JOB_NUM_ACCEPTED < config.max_jobs) || (config.max_jobs == -1)) {
+        if((AcceptedJobs() < config.max_jobs) || (config.max_jobs == -1)) {
           job_state_t new_state=job_state_read_file(i->job_id,config);
           if(new_state == JOB_STATE_UNDEFINED) { // something failed
             logger.msg(Arc::ERROR,"%s: Reading status of new job failed",i->job_id);
@@ -1132,7 +1159,7 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,
               state_changed=false;
               JobPending(i);
             } else if(i->local->exec.size() > 0) {
-              if((config.max_jobs_running==-1) || (JOB_NUM_RUNNING<config.max_jobs_running)) {
+              if((config.max_jobs_running==-1) || (RunningJobs()<config.max_jobs_running)) {
                 i->job_state = JOB_STATE_SUBMITTING;
                 state_changed=true; once_more=true;
                 i->retries = config.max_retries;
