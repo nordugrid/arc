@@ -6,6 +6,12 @@ javasharedir = $(libdir)/java
 javalib_LTLIBRARIES = libjarc.la
 javashare_DATA = arc.jar
 
+if MACOSX
+SHREXT = -shrext .dylib
+else
+SHREXT =
+endif
+
 libjarc_la_SOURCES = arc_init.cpp arc_jni.h
 nodist_libjarc_la_SOURCES = arc_wrap.cpp
 libjarc_la_CXXFLAGS = -I$(top_srcdir)/include \
@@ -22,7 +28,7 @@ libjarc_la_LIBADD = \
 	$(top_builddir)/src/libs/data-staging/libarcdatastaging.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
-libjarc_la_LDFLAGS = -no-undefined -avoid-version -module
+libjarc_la_LDFLAGS = -no-undefined -avoid-version -module $(SHREXT)
 
 SWIG_OUTPUTS = arc_wrap.cpp $(JAVA_PATH)/*.java
 
