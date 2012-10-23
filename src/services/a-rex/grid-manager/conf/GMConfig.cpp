@@ -251,7 +251,7 @@ bool GMConfig::Substitute(std::string& param, const Arc::User& user) const {
     switch (param[pos]) {
       case 'R': to_put = SessionRoot(""); break; // First session dir will be used if there are multiple
       case 'C': to_put = ControlDir(); break;
-      case 'U': to_put = UnixName(); break;
+      case 'U': to_put = user.Name(); break;
       case 'H': to_put = user.Home(); break;
       case 'Q': to_put = DefaultQueue(); break;
       case 'L': to_put = DefaultLRMS(); break;
