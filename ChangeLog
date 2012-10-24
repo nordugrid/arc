@@ -1,3 +1,6 @@
+2012-10-17  Anders Waananen <waananen@nbi.dk>
+  * Obsolete the python utility module arcom
+
 2012-10-09  David Cameron  <d.g.cameron@fys.uio.no>
 
   * Move xrootd DMC out of plugins-globus package and into a new package
