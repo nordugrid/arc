@@ -85,9 +85,12 @@ bool CoreConfig::ParseConf(GMConfig& config) {
       if (cfg.Name() == "Service") {
         if (cfg.Attribute("name") == "a-rex") {
           cfg.New(arex);
+          return ParseConfXML(config, arex);
         }
+        return false; // not a-rex service
       }
-      else if (cfg.Name() == "ArcConfig") {
+      if (cfg.Name() == "ArcConfig") {
+        // In the case of multiple A-REX services defined, we parse the first one
         for (int i=0;; i++) {
           Arc::XMLNode node = cfg["Chain"];
           node = node["Service"][i];
@@ -97,11 +100,11 @@ bool CoreConfig::ParseConf(GMConfig& config) {
             break;
           }
         }
+        if (!arex) return false;
+        return ParseConfXML(config, arex);
       }
-      else { // malformed xml
-        return false;
-      }
-      return ParseConfXML(config, arex);
+      // malformed xml
+      return false;
     }
     if (type == config_file_INI) {
       bool result = ParseConfINI(config, cfile);

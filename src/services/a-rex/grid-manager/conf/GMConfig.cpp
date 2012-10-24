@@ -11,6 +11,7 @@
 #include <arc/StringConv.h>
 #include <arc/ArcLocation.h>
 #include <arc/FileUtils.h>
+#include <arc/Utils.h>
 #include <arc/XMLNode.h>
 
 #include "conf.h"
@@ -37,11 +38,31 @@
 Arc::Logger GMConfig::logger(Arc::Logger::getRootLogger(), "GMConfig");
 static std::string empty_string("");
 
-GMConfig::GMConfig(const std::string& conffile) {
+GMConfig::GMConfig(const std::string& conf): conffile(conf) {
   SetDefaults();
+  // If no config file was given, guess it. The order to try is
+  // $ARC_CONFIG, $ARC_LOCATION/etc/arc.conf, /etc/arc.conf
+  struct stat st;
+  if (conffile.empty()) {
+    std::string file = Arc::GetEnv("ARC_CONFIG");
+    if (Arc::FileStat(file, &st, true)) {
+      conffile = file;
+      return;
+    }
+    file = Arc::ArcLocation::Get() + "/etc/arc.conf";
+    if (Arc::FileStat(file, &st, true)) {
+      conffile = file;
+      return;
+    }
+    file = "/etc/arc.conf";
+    if (Arc::FileStat(file, &st, true)) {
+      conffile = file;
+      return;
+    }
+  }
 }
 
-GMConfig::GMConfig(const Arc::XMLNode& node) {
+GMConfig::GMConfig(const Arc::XMLNode& node): xml_cfg(node) {
   SetDefaults();
 }
 
@@ -82,6 +103,9 @@ void GMConfig::SetDefaults() {
 
   enable_arc_interface = false;
   enable_emies_interface = false;
+
+  cert_dir = Arc::GetEnv("X509_CERT_DIR");
+  voms_dir = Arc::GetEnv("X509_VOMS_DIR");
 }
 
 bool GMConfig::Load() {
