@@ -420,12 +420,20 @@ void OptimizedInformationContainer::Assign(const std::string& xml) {
   };
 }
 
-#define ESFAULT(MSG) { \
+#define ESINFOFAULT(MSG) { \
   logger_.msg(Arc::ERROR, std::string("ES:GetResourceInfo: ")+(MSG)); \
   Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,(MSG)); \
   ESInternalResourceInfoFault(fault,(MSG)); \
   out.Destroy(); \
-  return Arc::MCC_Status(); \
+  return Arc::MCC_Status(Arc::STATUS_OK); \
+}
+
+#define ESFAULT(MSG) { \
+  logger_.msg(Arc::ERROR, std::string("ES:QueryResourceInfo: ")+(MSG)); \
+  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,(MSG)); \
+  ESInternalBaseFault(fault,(MSG)); \
+  out.Destroy(); \
+  return Arc::MCC_Status(Arc::STATUS_OK); \
 }
 
 // GetResourceInfo
@@ -439,6 +447,106 @@ void OptimizedInformationContainer::Assign(const std::string& xml) {
 // AccessControlFault
 // InternalBaseFault
 Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  // WARNING. Suboptimal temporary solution.
+  int h = infodoc_.OpenDocument();
+  if(h == -1) ESINFOFAULT("Failed to open resource information file");
+  ::lseek(h,0,SEEK_SET);
+  struct stat st;
+  if((::fstat(h,&st) != 0) || (st.st_size == 0)) {
+    ::close(h);
+    ESINFOFAULT("Failed to stat resource information file");
+  };
+  char* buf = (char*)::malloc(st.st_size+1);
+  if(!buf) {
+    ::close(h);
+    ESINFOFAULT("Failed to allocate memory for resoure information");
+  };
+  off_t p = 0;
+  for(;p<st.st_size;) {
+    ssize_t l = ::read(h,buf+p,st.st_size-p);
+    if(l == 0) break;
+    if(l == -1) {
+      if(errno != EAGAIN) {
+        ::free(buf);
+        ::close(h);
+        ESINFOFAULT("Failed to read resource information file");
+      };
+    };
+    p+=l;
+  };
+  buf[p] = 0;
+  ::close(h);
+  Arc::XMLNode doc(buf);
+  ::free(buf); buf=NULL;
+  if(!doc) {
+    ESINFOFAULT("Failed to parse resource information document");
+  };
+  //Arc::NS glueNS("glue","http://schemas.ogf.org/glue/2009/03/spec_2.0_r1");
+  Arc::XMLNode service = doc["Domains"]["AdminDomain"]["Services"]["ComputingService"];
+  if(!service) {
+    service = doc["Domains"]["AdminDomain"]["ComputingService"];
+    //if(!service) {
+    //  ESINFOFAULT("Missing ComputingService in resource information");
+    //};
+  };
+  Arc::XMLNode manager = doc["Domains"]["AdminDomain"]["Services"]["Service"];
+  if(!manager) {
+    manager = doc["Domains"]["AdminDomain"]["Service"];
+    //if(!manager) {
+    //  ESINFOFAULT("Missing Service in resource information");
+    //};
+  };
+  Arc::XMLNode services = out.NewChild("esrinfo:Services");
+  for(;service;++service) {
+    // TODO: use move instead of copy
+    services.NewChild(service);
+  }
+  for(;manager;++manager) {
+    // TODO: use move instead of copy
+    services.NewChild(manager);
+  }
+  return Arc::MCC_Status(Arc::STATUS_OK);
+}
+
+// QueryResourceInfo
+//   QueryDialect
+//     [XPATH 1.0|XPATH 2.0|XQUERY 1.0|SQL|SPARQL]
+//   QueryExpression
+//     any 0-1
+//
+// QueryResourceInfoResponse
+//   QueryResourceInfoItem 0-
+//     any 0-1
+//     anyAttribute
+// NotSupportedQueryDialectFault
+// NotValidQueryStatementFault
+// UnknownQueryFault
+// AccessControlFault
+// InternalBaseFault
+Arc::MCC_Status ARexService::ESQueryResourceInfo(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  std::string dialect = (std::string)in["QueryDialect"];
+  if(dialect.empty()) {
+    ESNotSupportedQueryDialectFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
+                                    "Query dialect not defined");
+    out.Destroy();
+    return Arc::MCC_Status(Arc::STATUS_OK);
+  }
+  if(dialect != "XPATH 1.0") {
+    ESNotSupportedQueryDialectFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
+                                    "Only XPATH 1.0 is supported");
+    out.Destroy();
+    return Arc::MCC_Status(Arc::STATUS_OK);
+  }
+  // It is not clearly defined how xpath string is put into QueryExpression
+  Arc::XMLNode expression = in["QueryExpression"];
+  if(expression.Size() > 0) expression = expression.Child(0);
+  std::string xpath = (std::string)expression;
+  if(xpath.empty()) {
+    ESNotValidQueryStatementFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
+                                    "Could not extract xpath query from request");
+    out.Destroy();
+    return Arc::MCC_Status(Arc::STATUS_OK);
+  }
   // WARNING. Suboptimal temporary solution.
   int h = infodoc_.OpenDocument();
   if(h == -1) ESFAULT("Failed to open resource information file");
@@ -470,57 +578,17 @@ Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode
   ::close(h);
   Arc::XMLNode doc(buf);
   ::free(buf); buf=NULL;
-  if(!doc) {
+  Arc::XMLNode rdoc = doc["Domains"]["AdminDomain"];
+  if((!doc) || (!rdoc)) {
     ESFAULT("Failed to parse resource information document");
   };
-  Arc::NS glueNS("glue","http://schemas.ogf.org/glue/2009/03/spec_2.0_r1");
-  Arc::XMLNode service = doc["Domains"]["AdminDomain"]["Services"]["ComputingService"];
-  if(!service) {
-    service = doc["Domains"]["AdminDomain"]["ComputingService"];
-    //if(!service) {
-    //  ESFAULT("Missing ComputingService in resource information");
-    //};
-  };
-  Arc::XMLNode manager = doc["Domains"]["AdminDomain"]["Services"]["Service"];
-  if(!manager) {
-    manager = doc["Domains"]["AdminDomain"]["Service"];
-    //if(!manager) {
-    //  ESFAULT("Missing Service in resource information");
-    //};
-  };
-  Arc::XMLNode services = out.NewChild(":Services");
-  for(;service;++service) {
-    // TODO: use move instead of copy
-    services.NewChild(service);
-  }
-  for(;manager;++manager) {
-    // TODO: use move instead of copy
-    services.NewChild(manager);
+
+  //Arc::NS glueNS("glue","http://schemas.ogf.org/glue/2009/03/spec_2.0_r1");
+  Arc::XMLNodeList ritems = rdoc.XPathLookup(xpath,Arc::NS());
+  for(Arc::XMLNodeList::iterator ritem = ritems.begin(); ritem != ritems.end(); ++ritem) {
+    out.NewChild("esrinfo:QueryResourceInfoItem").NewChild(*ritem);
   }
   return Arc::MCC_Status(Arc::STATUS_OK);
-}
-
-// QueryResourceInfo
-//   QueryDialect
-//     [XPATH 1.0|XPATH 2.0|XQUERY 1.0|SQL|SPARQL] - for mandatory dialect expression must be defined
-//   QueryExpression
-//     any 0-1
-//
-// QueryResourceInfoResponse
-//   QueryResourceInfoItem 0-
-//     any 0-1
-//     anyAttribute
-// NotSupportedQueryDialectFault
-// NotValidQueryStatementFault
-// UnknownQueryFault
-// AccessControlFault
-// InternalBaseFault
-Arc::MCC_Status ARexService::ESQueryResourceInfo(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
-  logger_.msg(Arc::ERROR, "ES:GetResourceInfo: not implemented");
-  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
-  ESNotSupportedQueryDialectFault(fault,"Operation not implemented yet");
-  out.Destroy();
-  return Arc::MCC_Status();
 }
 
 }
