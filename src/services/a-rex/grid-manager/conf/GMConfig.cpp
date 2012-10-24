@@ -101,7 +101,7 @@ void GMConfig::SetDefaults() {
   max_staging_share = 0;
   max_retries = DEFAULT_MAX_RETRIES;
 
-  enable_arc_interface = false;
+  enable_arc_interface = true;
   enable_emies_interface = false;
 
   cert_dir = Arc::GetEnv("X509_CERT_DIR");
