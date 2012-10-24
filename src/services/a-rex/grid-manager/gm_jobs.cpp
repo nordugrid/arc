@@ -174,6 +174,7 @@ int main(int argc, char* argv[]) {
   if (!conf_file.empty())
     config.SetConfigFile(conf_file);
   
+  std::cout << "Using configuration at " << config.ConfigFile() << std::endl;
   if(!config.Load()) exit(1);
   
   if (!control_dir.empty()) config.SetControlDir(control_dir);
