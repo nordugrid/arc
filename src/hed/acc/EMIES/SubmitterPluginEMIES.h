@@ -36,6 +36,8 @@ namespace Arc {
   private:
     EMIESClients clients;
 
+    bool submit(const JobDescription& preparedjobdesc, const URL& url, const URL& iurl, URL& durl, EMIESJob& jobid);
+
     static Logger logger;
   };
 
