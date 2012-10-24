@@ -15,15 +15,15 @@
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 /* check if have to send mail and initiate sending */
-bool send_mail(const JobDescription &desc,const GMConfig& config) {
-  char flag = states_all[desc.get_state()].mail_flag;
+bool send_mail(const GMJob &job,const GMConfig& config) {
+  char flag = states_all[job.get_state()].mail_flag;
   if(flag == ' ') return true;
   std::string notify = "";
   std::string jobname = "";
-  JobLocalDescription *job_desc = desc.get_local();
+  JobLocalDescription *job_desc = job.get_local();
   if(job_desc == NULL) {
     job_desc = new JobLocalDescription;
-    if(!job_local_read_file(desc.get_id(),config,*job_desc)) {
+    if(!job_local_read_file(job.get_id(),config,*job_desc)) {
       logger.msg(Arc::ERROR,"Failed reading local information");
       delete job_desc; job_desc=NULL;
     };
@@ -31,13 +31,13 @@ bool send_mail(const JobDescription &desc,const GMConfig& config) {
   if(job_desc != NULL) {
     jobname=job_desc->jobname;
     notify=job_desc->notify;
-    if(desc.get_local() == NULL) { delete job_desc; };
+    if(job.get_local() == NULL) { delete job_desc; };
   };
-//  job_local_read_notify(desc.get_id(),user,notify);
+//  job_local_read_notify(job.get_id(),user,notify);
   if(notify.length() == 0) return true; /* save some time */
   Arc::Run* child = NULL;
-  std::string failure_reason=desc.GetFailure(config);
-  if(job_failed_mark_check(desc.get_id(),config)) {
+  std::string failure_reason=job.GetFailure(config);
+  if(job_failed_mark_check(job.get_id(),config)) {
     if(failure_reason.length() == 0) failure_reason="<unknown>";
   };
   for(std::string::size_type n=0;;) {
@@ -49,8 +49,8 @@ bool send_mail(const JobDescription &desc,const GMConfig& config) {
   std::string from_addr = config.SupportMailAddress();
   char* args[11] ={ /* max 3 mail addresses */
        (char*)cmd.c_str(),
-       (char*)states_all[desc.get_state()].name,
-       (char*)desc.get_id().c_str(),
+       (char*)states_all[job.get_state()].name,
+       (char*)job.get_id().c_str(),
        (char*)config.ControlDir().c_str(),
        (char*)from_addr.c_str(),
        (char*)jobname.c_str(),
@@ -87,7 +87,7 @@ bool send_mail(const JobDescription &desc,const GMConfig& config) {
   for(mail_n--;mail_n>=0;mail_n--) {
     args[7+mail_n]=(char*)(mails[mail_n].c_str());
   };
-  if(!RunParallel::run(config,desc,args,&child)) {
+  if(!RunParallel::run(config,job,args,&child)) {
     logger.msg(Arc::ERROR,"Failed running mailer");
     return false;
   };

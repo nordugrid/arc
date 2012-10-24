@@ -29,7 +29,7 @@ void DTRInfo::receiveDTR(DataStaging::DTR_ptr dtr) {
 
 Arc::Logger DTRGenerator::logger(Arc::Logger::getRootLogger(), "Generator");
 
-bool compare_job_description(JobDescription first, JobDescription second) {
+bool compare_job_description(GMJob first, GMJob second) {
   return first.get_local()->priority > second.get_local()->priority;
 }
 
@@ -71,7 +71,7 @@ void DTRGenerator::thread() {
     }
 
     // finally new jobs
-    std::list<JobDescription>::iterator it_jobs = jobs_received.begin();
+    std::list<GMJob>::iterator it_jobs = jobs_received.begin();
     // it can happen that the list grows faster than the jobs are processed
     // so here we only process for a small time to avoid blocking other
     // jobs finishing
@@ -183,7 +183,7 @@ void DTRGenerator::receiveDTR(DataStaging::DTR_ptr dtr) {
   event_lock.unlock();
 }
 
-void DTRGenerator::receiveJob(const JobDescription& job) {
+void DTRGenerator::receiveJob(const GMJob& job) {
 
   if (generator_state != DataStaging::RUNNING) {
     logger.msg(Arc::WARNING, "DTRGenerator is not running!");
@@ -196,7 +196,7 @@ void DTRGenerator::receiveJob(const JobDescription& job) {
   event_lock.unlock();
 }
 
-void DTRGenerator::cancelJob(const JobDescription& job) {
+void DTRGenerator::cancelJob(const GMJob& job) {
 
   if (generator_state != DataStaging::RUNNING) {
     logger.msg(Arc::WARNING, "DTRGenerator is not running!");
@@ -207,14 +207,14 @@ void DTRGenerator::cancelJob(const JobDescription& job) {
   event_lock.unlock();
 }
 
-bool DTRGenerator::queryJobFinished(JobDescription& job) {
+bool DTRGenerator::queryJobFinished(GMJob& job) {
 
   // Data staging is finished if the job is in finished_jobs and
   // not in active_dtrs or jobs_received.
 
   // check if this job is still in the received jobs queue
   event_lock.lock();
-  for (std::list<JobDescription>::iterator i = jobs_received.begin(); i != jobs_received.end(); ++i) {
+  for (std::list<GMJob>::iterator i = jobs_received.begin(); i != jobs_received.end(); ++i) {
     if (*i == job) {
       event_lock.unlock();
       return false;
@@ -238,11 +238,11 @@ bool DTRGenerator::queryJobFinished(JobDescription& job) {
   return true;
 }
 
-bool DTRGenerator::hasJob(const JobDescription& job) {
+bool DTRGenerator::hasJob(const GMJob& job) {
 
   // check if this job is still in the received jobs queue
   event_lock.lock();
-  for (std::list<JobDescription>::iterator i = jobs_received.begin(); i != jobs_received.end(); ++i) {
+  for (std::list<GMJob>::iterator i = jobs_received.begin(); i != jobs_received.end(); ++i) {
     if (*i == job) {
       event_lock.unlock();
       return true;
@@ -268,11 +268,11 @@ bool DTRGenerator::hasJob(const JobDescription& job) {
   return false;
 }
 
-void DTRGenerator::removeJob(const JobDescription& job) {
+void DTRGenerator::removeJob(const GMJob& job) {
 
   // check if this job is still in the received jobs queue
   event_lock.lock();
-  for (std::list<JobDescription>::iterator i = jobs_received.begin(); i != jobs_received.end(); ++i) {
+  for (std::list<GMJob>::iterator i = jobs_received.begin(); i != jobs_received.end(); ++i) {
     if (*i == job) {
       event_lock.unlock();
       logger.msg(Arc::WARNING, "%s: Trying to remove job from data staging which is still active", job.get_id());
@@ -332,7 +332,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   }
 
   // create JobDescription object to pass to job_..write_file methods
-  JobDescription job(jobid, dtr->get_local_user(), session_dir);
+  GMJob job(jobid, dtr->get_local_user(), session_dir);
   std::string dtr_transfer_statistics;
   
   if (dtr->error() && dtr->get_status() != DataStaging::DTRStatus::CANCELLED) {
@@ -553,7 +553,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
 }
 
 
-bool DTRGenerator::processReceivedJob(const JobDescription& job) {
+bool DTRGenerator::processReceivedJob(const GMJob& job) {
 
   JobId jobid(job.get_id());
   logger.msg(Arc::VERBOSE, "%s: Received data staging request to %s files", jobid,
@@ -835,7 +835,7 @@ bool DTRGenerator::processCancelledJob(const std::string& jobid) {
   return true;
 }
 
-int DTRGenerator::checkUploadedFiles(JobDescription& job) {
+int DTRGenerator::checkUploadedFiles(GMJob& job) {
 
   JobId jobid(job.get_id());
   uid_t job_uid = config.StrictSession() ? job.get_user().get_uid() : 0;
@@ -1058,7 +1058,7 @@ void DTRGenerator::readDTRState(const std::string& dtr_log) {
   }
 }
 
-void DTRGenerator::CleanCacheJobLinks(const GMConfig& config, const JobDescription& job) const {
+void DTRGenerator::CleanCacheJobLinks(const GMConfig& config, const GMJob& job) const {
 
   CacheConfig cache_config(config.CacheParams());
   cache_config.substitute(config, job.get_user());

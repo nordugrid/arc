@@ -39,7 +39,7 @@ bool JobLog::open_stream(std::ofstream &o) {
     return true;
 }
 
-bool JobLog::start_info(JobDescription &job,const GMConfig &config) {
+bool JobLog::start_info(GMJob &job,const GMConfig &config) {
   if(filename.length()==0) return true;
     std::ofstream o;
     if(!open_stream(o)) return false;
@@ -60,7 +60,7 @@ bool JobLog::start_info(JobDescription &job,const GMConfig &config) {
     return true;
 }
 
-bool JobLog::finish_info(JobDescription &job,const GMConfig &config) {
+bool JobLog::finish_info(GMJob &job,const GMConfig &config) {
   if(filename.length()==0) return true;
     std::ofstream o;
     if(!open_stream(o)) return false;
@@ -206,7 +206,7 @@ bool JobLog::SetReporter(const char* destination) {
   return true;
 }
 
-bool JobLog::make_file(JobDescription &job, const GMConfig& config) {
+bool JobLog::make_file(GMJob &job, const GMConfig& config) {
   //if(!is_reporting()) return true;
   if((job.get_state() != JOB_STATE_ACCEPTED) &&
      (job.get_state() != JOB_STATE_FINISHED)) return true;

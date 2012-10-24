@@ -361,7 +361,7 @@ int JobPlugin::removefile(std::string &name) {
       return 1;
     };
     if(!is_allowed(name.c_str(),IS_ALLOWED_WRITE)) return 1;  /* owner of the job */
-    JobId id(name); JobDescription job_desc(id, user);
+    JobId id(name); GMJob job(id, user);
     std::string controldir = getControlDir(id);
     if (controldir.empty()) {
       error_description="No control information found for this job.";
@@ -369,7 +369,7 @@ int JobPlugin::removefile(std::string &name) {
     }
     config.SetControlDir(controldir);
     logger.msg(Arc::INFO, "Cancelling job %s", id);
-    if(job_cancel_mark_put(job_desc,config)) return 0;
+    if(job_cancel_mark_put(job,config)) return 0;
   };
   const char* logname;
   std::string id;
@@ -422,12 +422,12 @@ int JobPlugin::removedir(std::string &dname) {
     logger.msg(Arc::INFO, "Cleaning job %s", id);
     if((status == JOB_STATE_FINISHED) ||
        (status == JOB_STATE_DELETED)) { /* remove files */
-      if(job_clean_final(JobDescription(id,user,sessiondir+"/"+id),config)) return 0;
+      if(job_clean_final(GMJob(id,user,sessiondir+"/"+id),config)) return 0;
     }
     else { /* put marks */
-      JobDescription job_desc(id,user);
-      bool res = job_cancel_mark_put(job_desc,config);
-      res &= job_clean_mark_put(job_desc,config);
+      GMJob job(id,user);
+      bool res = job_cancel_mark_put(job,config);
+      res &= job_clean_mark_put(job,config);
       if(res) return 0;
     };
     error_description="Failed to clean job.";
@@ -682,7 +682,7 @@ int JobPlugin::close(bool eof) {
       logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
-    if(!job_restart_mark_put(JobDescription(id,user),config)) {
+    if(!job_restart_mark_put(GMJob(id,user),config)) {
       error_description="Failed to report restart request.";
       logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
@@ -782,7 +782,7 @@ int JobPlugin::close(bool eof) {
     };
   };
   std::string session_dir(config.SessionRoot(job_id) + '/' + job_id);
-  JobDescription job(job_id,user,session_dir,JOB_STATE_ACCEPTED);
+  GMJob job(job_id,user,session_dir,JOB_STATE_ACCEPTED);
   if(!process_job_req(config, job, job_desc)) {
     error_description="Failed to preprocess job description.";
     logger.msg(Arc::ERROR, "%s", error_description);
@@ -1195,7 +1195,7 @@ int JobPlugin::checkdir(std::string &dirname) {
       if(renew_proxy(old_proxy_fname.c_str(),proxy_fname.c_str()) == 0) {
         fix_file_owner(old_proxy_fname,user);
         logger.msg(Arc::INFO, "New proxy expires at %s", Arc::TimeStamp(Arc::Time(new_proxy_expires), Arc::UserTime));
-        JobDescription job(id,user,"",JOB_STATE_ACCEPTED);
+        GMJob job(id,user,"",JOB_STATE_ACCEPTED);
         job_desc.expiretime=new_proxy_expires;
         if(!job_local_write_file(job,config,job_desc)) {
           logger.msg(Arc::ERROR, "Failed to write 'local' information");
@@ -1207,13 +1207,13 @@ int JobPlugin::checkdir(std::string &dirname) {
            because of expired proxy */
         if((old_proxy_expires < Arc::Time()) && (
             (job_desc.failedstate ==
-                  JobDescription::get_state_name(JOB_STATE_PREPARING)) ||
+                  GMJob::get_state_name(JOB_STATE_PREPARING)) ||
             (job_desc.failedstate ==
-                  JobDescription::get_state_name(JOB_STATE_FINISHING))
+                  GMJob::get_state_name(JOB_STATE_FINISHING))
            )
           ) {
           logger.msg(Arc::INFO, "Job could have died due to expired proxy: restarting");
-          if(!job_restart_mark_put(JobDescription(id,user),config)) {
+          if(!job_restart_mark_put(GMJob(id,user),config)) {
             logger.msg(Arc::ERROR, "Failed to report renewed proxy to job");
           };
         };
@@ -1304,7 +1304,7 @@ bool JobPlugin::delete_job_id(void) {
       sessiondir = config.SessionRoots().at(0);
     }    
     config.SetSessionRoot(sessiondir);
-    job_clean_final(JobDescription(job_id,user,sessiondir+"/"+job_id),config);
+    job_clean_final(GMJob(job_id,user,sessiondir+"/"+job_id),config);
     job_id="";
   };
   return true;

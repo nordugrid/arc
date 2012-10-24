@@ -314,7 +314,7 @@ int main(int argc,char** argv) {
   if(!session_dir) { logger.msg(Arc::ERROR, "Missing session directory"); return 1; };
 
   config.SetControlDir(control_dir);
-  JobDescription desc(id,user,session_dir);
+  GMJob job(id,user,session_dir);
   Arc::FileCache * cache = NULL;
 
   if (use_conf_cache) {
@@ -395,7 +395,7 @@ int main(int argc,char** argv) {
   std::map<std::string, std::list<FileData> > dynamic_outputs;
   
   // get the list of output files
-  if(!job_output_read_file(desc.get_id(),config,job_files_)) {
+  if(!job_output_read_file(job.get_id(),config,job_files_)) {
     failure_reason+="Internal error in uploader\n";
     logger.msg(Arc::ERROR, "Can't read list of output files"); res=1; goto exit;
   }
@@ -457,7 +457,7 @@ int main(int argc,char** argv) {
     job_files.push_back(*i);
   };
 
-  if(!desc.GetLocalDescription(config)) {
+  if(!job.GetLocalDescription(config)) {
     logger.msg(Arc::ERROR, "Can't read job local description"); res=1; goto exit;
   };
 
@@ -479,7 +479,7 @@ int main(int argc,char** argv) {
         if(i->pair == NULL) {
           /* define place to store */
           std::string stdlog;
-          JobLocalDescription* local = desc.get_local();
+          JobLocalDescription* local = job.get_local();
           if(local) stdlog=local->stdlog;
           if(stdlog.length() > 0) stdlog="/"+stdlog+"/";
           if((stdlog.length() > 0) &&
@@ -553,7 +553,7 @@ int main(int argc,char** argv) {
     for(FileDataEx::iterator i=processed_files.begin();i!=processed_files.end();++i) {
       logger.msg(Arc::INFO, "Uploaded %s", i->lfn);
       struct stat st;
-      Arc::FileStat(desc.SessionDir() + i->pfn, &st, true);
+      Arc::FileStat(job.SessionDir() + i->pfn, &st, true);
       transfer_parameters = "outputfile:";
       transfer_parameters += "url=" + i->lfn + ',';
       transfer_parameters += "size=" + Arc::tostring(st.st_size) + ',';
@@ -563,7 +563,7 @@ int main(int argc,char** argv) {
       job_files_uploaded.push_back(*i);
     };
     
-    std::string fname = config.ControlDir() + "/job." + desc.get_id() + ".statistics";
+    std::string fname = config.ControlDir() + "/job." + job.get_id() + ".statistics";
     std::ofstream f(fname.c_str(),std::ios::out | std::ios::app);
     if(f.is_open() ) {
       for (std::list<std::string>::iterator it=transfer_stats.begin();
@@ -571,10 +571,10 @@ int main(int argc,char** argv) {
         f << *it << std::endl;
       };
       f.close();
-      fix_file_owner(fname,desc);
+      fix_file_owner(fname,job);
     };
    
-    if(!job_output_status_write_file(desc,config,job_files_uploaded)) {
+    if(!job_output_status_write_file(job,config,job_files_uploaded)) {
       logger.msg(Arc::WARNING, "Failed writing output status file");
     };
   }
@@ -631,7 +631,7 @@ int main(int argc,char** argv) {
   if(!userfiles_only) {
     job_files_.clear();
     for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
-    if(!job_output_write_file(desc,config,job_files_)) {
+    if(!job_output_write_file(job,config,job_files_)) {
       logger.msg(Arc::WARNING, "Failed writing changed output file");
     };
     // clean uploaded files here 
@@ -642,7 +642,7 @@ exit:
   cache->Release();
   delete cache;
   if(res != 0 && res != 4) {
-    job_failed_mark_add(desc,config,failure_reason);
+    job_failed_mark_add(job,config,failure_reason);
   };
   logger.msg(Arc::INFO, "Leaving uploader (%i)", res);
   return res;

@@ -402,7 +402,7 @@ int main(int argc,char** argv) {
   if(!session_dir) { logger.msg(Arc::ERROR, "Missing session directory"); return 1; };
 
   config.SetControlDir(control_dir);
-  JobDescription desc(id,user,session_dir);
+  GMJob job(id,user,session_dir);
   Arc::FileCache * cache = NULL;
 
   if (use_conf_cache) {
@@ -482,7 +482,7 @@ int main(int argc,char** argv) {
   bool credentials_expired = false;
   std::list<FileData> output_files;
 
-  if(!job_input_read_file(desc.get_id(),config,job_files_)) {
+  if(!job_input_read_file(job.get_id(),config,job_files_)) {
     failure_reason+="Internal error in downloader\n";
     logger.msg(Arc::ERROR, "Can't read list of input files"); res=1; goto exit;
   };
@@ -498,7 +498,7 @@ int main(int argc,char** argv) {
     }
   }
   // check if any input files are also output files (bug 1387 and 2793)
-  if(job_output_read_file(desc.get_id(),config,output_files)) {
+  if(job_output_read_file(job.get_id(),config,output_files)) {
     for (std::list<FileData>::iterator j = output_files.begin(); j != output_files.end(); j++) {
       for (std::list<FileData>::iterator i = job_files_.begin(); i != job_files_.end(); i++) {
         if (i->pfn == j->pfn && i->lfn.find(':') != std::string::npos) {
@@ -525,7 +525,7 @@ int main(int argc,char** argv) {
     job_files.push_back(*i);
   };
 
-  if(!desc.GetLocalDescription(config)) {
+  if(!job.GetLocalDescription(config)) {
     failure_reason+="Internal error in downloader\n";
     logger.msg(Arc::ERROR, "Can't read job local description"); res=1; goto exit;
   };
@@ -601,7 +601,7 @@ int main(int argc,char** argv) {
     for(FileDataEx::iterator i=processed_files.begin();i!=processed_files.end();++i) {
       logger.msg(Arc::INFO, "Downloaded %s", i->lfn);
       struct stat st;
-      Arc::FileStat(desc.SessionDir() + i->pfn, &st, true);
+      Arc::FileStat(job.SessionDir() + i->pfn, &st, true);
       transfer_parameters = "inputfile:";
       transfer_parameters += "url=" + i->lfn + ',';
       transfer_parameters += "size=" + Arc::tostring(st.st_size) + ',';
@@ -614,7 +614,7 @@ int main(int argc,char** argv) {
       };
     };
 
-    std::string fname = config.ControlDir() + "/job." + desc.get_id() + ".statistics";
+    std::string fname = config.ControlDir() + "/job." + job.get_id() + ".statistics";
     std::ofstream f(fname.c_str(),std::ios::out | std::ios::app);
     if(f.is_open() ) {
   	  for (std::list<std::string>::iterator it=transfer_stats.begin(); it != transfer_stats.end(); ++it)
@@ -645,7 +645,7 @@ int main(int argc,char** argv) {
   if(res == 4) logger.msg(Arc::INFO, "Some downloads failed, but may be retried");
   job_files_.clear();
   for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
-  if(!job_input_write_file(desc,config,job_files_)) {
+  if(!job_input_write_file(job,config,job_files_)) {
     logger.msg(Arc::WARNING, "Failed writing changed input file");
   };
   // check for user uploadable files
@@ -654,7 +654,7 @@ int main(int argc,char** argv) {
     not_uploaded=false;
     std::list<std::string> uploaded_files;
     std::list<std::string>* uploaded_files_ = NULL;
-    if(job_input_status_read_file(desc.get_id(),config,uploaded_files)) uploaded_files_=&uploaded_files;
+    if(job_input_status_read_file(job.get_id(),config,uploaded_files)) uploaded_files_=&uploaded_files;
     for(FileDataEx::iterator i=job_files.begin();i!=job_files.end();) {
       if(i->lfn.find(":") == std::string::npos) { /* is it lfn ? */
         /* process user uploadable file */
@@ -668,7 +668,7 @@ int main(int argc,char** argv) {
           i=job_files.erase(i);
           job_files_.clear();
           for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
-          if(!job_input_write_file(desc,config,job_files_)) {
+          if(!job_input_write_file(job,config,job_files_)) {
             logger.msg(Arc::WARNING, "Failed writing changed input file.");
           };
         }
@@ -701,34 +701,34 @@ int main(int argc,char** argv) {
   };
   job_files_.clear();
   for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
-  if(!job_input_write_file(desc,config,job_files_)) {
+  if(!job_input_write_file(job,config,job_files_)) {
     logger.msg(Arc::WARNING, "Failed writing changed input file.");
   };
 
   // Job migration functionality
   if (res == 0) {
-    if(desc.get_local()->migrateactivityid != "") {
+    if(job.get_local()->migrateactivityid != "") {
       // Complete the migration.
-      const size_t found = desc.get_local()->migrateactivityid.rfind("/");
+      const size_t found = job.get_local()->migrateactivityid.rfind("/");
 
       if (found != std::string::npos) {
-        Arc::Job job;
-        job.JobID = Arc::URL(desc.get_local()->migrateactivityid);
-        job.Cluster = Arc::URL(desc.get_local()->migrateactivityid.substr(0, found));
-        std::list<Arc::Job*> jobs(1, &job);
+        Arc::Job arc_job;
+        arc_job.JobID = Arc::URL(job.get_local()->migrateactivityid);
+        arc_job.Cluster = Arc::URL(job.get_local()->migrateactivityid.substr(0, found));
+        std::list<Arc::Job*> jobs(1, &arc_job);
 
-        Arc::UserConfig usercfg(job.Cluster.Protocol() == "https" ?
+        Arc::UserConfig usercfg(arc_job.Cluster.Protocol() == "https" ?
                                 Arc::initializeCredentialsType() :
                                 Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
-        if (job.Cluster.Protocol() != "https" ||
-            (job.Cluster.Protocol() == "https" && usercfg.CredentialsFound())) {
+        if (arc_job.Cluster.Protocol() != "https" ||
+            (arc_job.Cluster.Protocol() == "https" && usercfg.CredentialsFound())) {
           Arc::JobControllerPluginLoader loader;
           Arc::JobControllerPlugin *jobctrl = loader.load("ARC1", usercfg);
           if (jobctrl) {
             jobctrl->UpdateJobs(jobs);
-            if ((job.State != Arc::JobState::QUEUING || !jobctrl->CancelJobs(jobs)) && !desc.get_local()->forcemigration) {
+            if ((arc_job.State != Arc::JobState::QUEUING || !jobctrl->CancelJobs(jobs)) && !job.get_local()->forcemigration) {
               res = 1;
-              failure_reason = "FATAL ERROR: Migration failed attempting to kill old job \"" + desc.get_local()->migrateactivityid + "\".";
+              failure_reason = "FATAL ERROR: Migration failed attempting to kill old job \"" + job.get_local()->migrateactivityid + "\".";
             }
           }
           else {
@@ -755,7 +755,7 @@ exit:
   };
   delete cache;
   if(res != 0 && res != 4) {
-    job_failed_mark_add(desc,config,failure_reason);
+    job_failed_mark_add(job,config,failure_reason);
   };
   logger.msg(Arc::INFO, "Leaving downloader (%i)", res);
   return res;

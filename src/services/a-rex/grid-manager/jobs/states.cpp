@@ -54,7 +54,7 @@ bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid){
 }
 
 bool JobsList::AddJobNoCheck(const JobId &id,JobsList::iterator &i,uid_t uid,gid_t gid){
-  i=jobs.insert(jobs.end(),JobDescription(id, Arc::User(uid)));
+  i=jobs.insert(jobs.end(),GMJob(id, Arc::User(uid)));
   i->keep_finished=config.keep_finished;
   i->keep_deleted=config.keep_deleted;
   if (!GetLocalDescription(i)) {
@@ -1047,7 +1047,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
             job_state_write_file(*i,config,i->job_state);
           } else {
             logger.msg(Arc::INFO,"%s: %s: New job belongs to %i/%i",i->job_id.c_str(),
-                JobDescription::get_state_name(new_state),i->get_user().get_uid(),i->get_user().get_gid());
+                GMJob::get_state_name(new_state),i->get_user().get_uid(),i->get_user().get_gid());
             // Make it clean state after restart
             job_state_write_file(*i,config,i->job_state);
             i->retries = config.max_retries;
@@ -1568,8 +1568,8 @@ bool JobsList::ActJob(JobsList::iterator &i) {
         if(old_reported_state != JOB_STATE_UNDEFINED) {
           // Report state change into log
           logger.msg(Arc::INFO,"%s: State: %s from %s",
-                i->job_id.c_str(),JobDescription::get_state_name(i->job_state),
-                JobDescription::get_state_name(old_reported_state));
+                i->job_id.c_str(),GMJob::get_state_name(i->job_state),
+                GMJob::get_state_name(old_reported_state));
         }
         old_reported_state=i->job_state;
       }

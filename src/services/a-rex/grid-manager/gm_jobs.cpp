@@ -202,8 +202,8 @@ int main(int argc, char* argv[]) {
   std::map<std::string, int> share_finishing_pending;
   JobsList jobs(config);
   unsigned int jobs_total = 0;
-  std::list<JobDescription*> cancel_jobs_list;
-  std::list<JobDescription*> clean_jobs_list;
+  std::list<GMJob*> cancel_jobs_list;
+  std::list<GMJob*> clean_jobs_list;
 
   if((!notshow_jobs) || (!notshow_states) || (show_share) ||
      (cancel_users.size() > 0) || (clean_users.size() > 0) ||
@@ -319,7 +319,7 @@ int main(int argc, char* argv[]) {
   }
   
   if(cancel_jobs_list.size() > 0) {
-    for(std::list<JobDescription*>::iterator job = cancel_jobs_list.begin();
+    for(std::list<GMJob*>::iterator job = cancel_jobs_list.begin();
                             job != cancel_jobs_list.end(); ++job) {
       if(!job_cancel_mark_put(**job, config)) {
         std::cout<<"Job: "<<(*job)->get_id()<<" : ERROR : Failed to put cancel mark"<<std::endl;
@@ -329,7 +329,7 @@ int main(int argc, char* argv[]) {
     }
   }
   if(clean_jobs_list.size() > 0) {
-    for(std::list<JobDescription*>::iterator job = clean_jobs_list.begin();
+    for(std::list<GMJob*>::iterator job = clean_jobs_list.begin();
                             job != clean_jobs_list.end(); ++job) {
       bool pending;
       job_state_t new_state = job_state_read_file((*job)->get_id(), config, pending);

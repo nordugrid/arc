@@ -43,11 +43,11 @@ class JobReqResult {
  * @return false if job description could not be read or parsed, true on success.
  */
 Arc::JobDescriptionResult get_arc_job_description(const std::string& fname, Arc::JobDescription& desc);
-bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& job_desc, const GMConfig& config, const char* opt_add);
+bool write_grami(const Arc::JobDescription& arc_job_desc, const GMJob& job, const GMConfig& config, const char* opt_add);
 JobReqResult get_acl(const Arc::JobDescription& arc_job_desc, std::string& acl, std::string* failure
  = NULL);
 bool check(const Arc::JobDescription& arc_job_desc);
-bool set_execs(const Arc::JobDescription& desc, const JobDescription& job_desc, const GMConfig& config);
+bool set_execs(const Arc::JobDescription& desc, const GMJob& job, const GMConfig& config);
 
 class value_for_shell {
  friend std::ostream& operator<<(std::ostream&,const value_for_shell&);

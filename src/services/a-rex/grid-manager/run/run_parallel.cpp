@@ -16,7 +16,7 @@
 
 typedef struct {
   const GMConfig* config;
-  const JobDescription* job;
+  const GMJob* job;
   const char* reason;
 } job_subst_t;
 
@@ -46,11 +46,11 @@ static void job_subst(std::string& str,void* arg) {
   subs->config->Substitute(str, subs->job->get_user());
 }
 
-bool RunParallel::run(const GMConfig& config,const JobDescription& desc,const char *const args[],Arc::Run** ere,bool su) {
+bool RunParallel::run(const GMConfig& config,const GMJob& job,const char *const args[],Arc::Run** ere,bool su) {
   RunPlugin* cred = config.CredPlugin();
-  job_subst_t subs; subs.config=&config; subs.job=&desc; subs.reason="external";
+  job_subst_t subs; subs.config=&config; subs.job=&job; subs.reason="external";
   if((!cred) || (!(*cred))) { cred=NULL; };
-  return run(config,desc.get_user(),desc.get_id().c_str(),args,ere,su,
+  return run(config,job.get_user(),job.get_id().c_str(),args,ere,su,
                                     true,cred,&job_subst,&subs);
 }
 

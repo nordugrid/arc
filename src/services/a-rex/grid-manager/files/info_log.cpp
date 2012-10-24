@@ -61,8 +61,8 @@ static bool string_to_number(std::string& s,unsigned int& n) {
 
 // Create multiple files for sending to logger
 // TODO - make it SOAP XML so that they could be sent directly
-bool job_log_make_file(const JobDescription &desc,const GMConfig& config,const std::string &url,std::list<std::string> &report_config) {
-  std::string fname_dst = config.ControlDir()+"/logs/"+desc.get_id()+".XXXXXX";
+bool job_log_make_file(const GMJob &job,const GMConfig& config,const std::string &url,std::list<std::string> &report_config) {
+  std::string fname_dst = config.ControlDir()+"/logs/"+job.get_id()+".XXXXXX";
   std::string fname_src;
   std::string status;
   int h_dst;
@@ -73,7 +73,7 @@ bool job_log_make_file(const JobDescription &desc,const GMConfig& config,const s
     return false;
   };
   (void)chmod(fname_dst.c_str(),S_IRUSR | S_IWUSR);
-  fix_file_owner(fname_dst,desc);
+  fix_file_owner(fname_dst,job);
   fix_file_permissions(fname_dst,false);
   std::ofstream o_dst(fname_dst.c_str());
   close(h_dst);
@@ -90,7 +90,7 @@ bool job_log_make_file(const JobDescription &desc,const GMConfig& config,const s
     }
   // Copy job description
   {
-  fname_src = config.ControlDir() + "/job." + desc.get_id() + sfx_rsl;
+  fname_src = config.ControlDir() + "/job." + job.get_id() + sfx_rsl;
   int h_src=open(fname_src.c_str(),O_RDONLY);
   if(h_src==-1) goto error;
   o_dst<<"description=";
@@ -119,11 +119,11 @@ bool job_log_make_file(const JobDescription &desc,const GMConfig& config,const s
   // Start time and identifier
   t = job_mark_time(fname_src);
   o_dst<<"submissiontime="<<Arc::Time(t).str(Arc::MDSTime)<<std::endl;
-  o_dst<<"ngjobid="<<desc.get_id()<<std::endl;
+  o_dst<<"ngjobid="<<job.get_id()<<std::endl;
   if(o_dst.fail()) goto error;
   // Analyze job.ID.local and store relevant information
   {
-  fname_src = config.ControlDir() + "/job." + desc.get_id() + sfx_local;
+  fname_src = config.ControlDir() + "/job." + job.get_id() + sfx_local;
   std::ifstream i_src(fname_src.c_str());
   for(;;) {
     if(i_src.fail()) goto error;
@@ -146,7 +146,7 @@ bool job_log_make_file(const JobDescription &desc,const GMConfig& config,const s
   // Copy public part of user certificate chain incl. proxy
   {
     std::string user_cert;
-    fname_src = config.ControlDir() + "/job." + desc.get_id() + sfx_proxy;
+    fname_src = config.ControlDir() + "/job." + job.get_id() + sfx_proxy;
     std::ifstream proxy_src(fname_src.c_str());
     bool in_private=false;
     for(;;) {
@@ -181,7 +181,7 @@ bool job_log_make_file(const JobDescription &desc,const GMConfig& config,const s
 
   // Extract requested resources
   {
-    fname_src = config.ControlDir() + "/job." + desc.get_id() + sfx_rsl;
+    fname_src = config.ControlDir() + "/job." + job.get_id() + sfx_rsl;
     std::string job_desc_str;
     if (!job_description_read_file(fname_src, job_desc_str)) goto error;
     Arc::JobDescription arc_job_desc;
@@ -209,7 +209,7 @@ bool job_log_make_file(const JobDescription &desc,const GMConfig& config,const s
   };
   // Analyze diagnostics and store relevant information
   {
-  fname_src = config.ControlDir() + "/job." + desc.get_id() + sfx_diag;
+  fname_src = config.ControlDir() + "/job." + job.get_id() + sfx_diag;
   std::ifstream i_src(fname_src.c_str());
   if(!i_src.fail()) {
     std::string nodenames;
@@ -265,13 +265,13 @@ bool job_log_make_file(const JobDescription &desc,const GMConfig& config,const s
   };
   };
   // Endtime and failure reason
-  if(desc.get_state() == JOB_STATE_FINISHED) {
+  if(job.get_state() == JOB_STATE_FINISHED) {
     status="completed";
-    t = job_state_time(desc.get_id(),config);
+    t = job_state_time(job.get_id(),config);
     if(t == 0) t=::time(NULL);
     o_dst<<"endtime="<<Arc::Time(t).str(Arc::MDSTime)<<std::endl;
-    if(job_failed_mark_check(desc.get_id(),config)) {
-      std::string failure = job_failed_mark_read(desc.get_id(),config);
+    if(job_failed_mark_check(job.get_id(),config)) {
+      std::string failure = job_failed_mark_read(job.get_id(),config);
       o_dst<<"failurestring="<<failure<<std::endl;
       status="failed";
     };

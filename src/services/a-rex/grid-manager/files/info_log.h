@@ -4,10 +4,10 @@
 #include <string>
 #include <list>
 
-class JobDescription;
+class GMJob;
 class GMConfig;
 
-bool job_log_make_file(const JobDescription &desc,const GMConfig& config,const std::string &url,std::list<std::string> &report_config);
+bool job_log_make_file(const GMJob &job,const GMConfig& config,const std::string &url,std::list<std::string> &report_config);
 
 #endif
 

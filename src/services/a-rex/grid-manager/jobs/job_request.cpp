@@ -49,21 +49,21 @@ bool parse_job_req_for_action(const char* fname,
   return false;
 }
 
-bool process_job_req(const GMConfig &config,const JobDescription &desc,JobLocalDescription &job_desc) {
+bool process_job_req(const GMConfig &config,const GMJob &job,JobLocalDescription &job_desc) {
   /* read local first to get some additional info pushed here by script */
-  job_local_read_file(desc.get_id(),config,job_desc);
+  job_local_read_file(job.get_id(),config,job_desc);
   /* some default values */
   job_desc.lrms=config.DefaultLRMS();
   job_desc.queue=config.DefaultQueue();
   job_desc.lifetime=Arc::tostring(config.KeepFinished());
   std::string filename;
-  filename = config.ControlDir() + "/job." + desc.get_id() + ".description";
+  filename = config.ControlDir() + "/job." + job.get_id() + ".description";
   if(parse_job_req(filename,job_desc) != JobReqSuccess) return false;
   if(job_desc.reruns>config.Reruns()) job_desc.reruns=config.Reruns();
-  if(!job_local_write_file(desc,config,job_desc)) return false;
+  if(!job_local_write_file(job,config,job_desc)) return false;
   // Convert delegation ids to credential paths.
   // Add default credentials for file which have no own assigned.
-  std::string default_cred = config.ControlDir() + "/job." + desc.get_id() + ".proxy";
+  std::string default_cred = config.ControlDir() + "/job." + job.get_id() + ".proxy";
   for(std::list<FileData>::iterator f = job_desc.inputdata.begin();
                                    f != job_desc.inputdata.end(); ++f) {
     if(f->has_lfn()) {
@@ -90,8 +90,8 @@ bool process_job_req(const GMConfig &config,const JobDescription &desc,JobLocalD
       };
     };
   };
-  if(!job_input_write_file(desc,config,job_desc.inputdata)) return false;
-  if(!job_output_write_file(desc,config,job_desc.outputdata,job_output_success)) return false;
+  if(!job_input_write_file(job,config,job_desc.inputdata)) return false;
+  if(!job_output_write_file(job,config,job_desc.outputdata,job_output_success)) return false;
   return true;
 }
 
@@ -125,21 +125,21 @@ JobReqResult parse_job_req(const std::string &fname,JobLocalDescription &job_des
 }
 
 /* parse job description and set specified file permissions to executable */
-bool set_execs(const JobDescription &desc,const GMConfig &config) {
-  std::string fname = config.ControlDir() + "/job." + desc.get_id() + ".description";
+bool set_execs(const GMJob &job,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/job." + job.get_id() + ".description";
   Arc::JobDescription arc_job_desc;
   if (!get_arc_job_description(fname, arc_job_desc)) return false;
 
-  return set_execs(arc_job_desc, desc, config);
+  return set_execs(arc_job_desc, job, config);
 }
 
-bool write_grami(const JobDescription &desc,const GMConfig &config,const char *opt_add) {
-  const std::string fname = config.ControlDir() + "/job." + desc.get_id() + ".description";
+bool write_grami(const GMJob &job,const GMConfig &config,const char *opt_add) {
+  const std::string fname = config.ControlDir() + "/job." + job.get_id() + ".description";
 
   Arc::JobDescription arc_job_desc;
   if (!get_arc_job_description(fname, arc_job_desc)) return false;
 
-  return write_grami(arc_job_desc, desc, config, opt_add);
+  return write_grami(arc_job_desc, job, config, opt_add);
 }
 
 /* extract joboption_jobid from grami file */

@@ -36,10 +36,10 @@ public:
 /// held in memory until reaching FINISHED state.
 class JobsList {
  public:
-  typedef std::list<JobDescription>::iterator iterator;
+  typedef std::list<GMJob>::iterator iterator;
  private:
   // List of jobs currently tracked in memory
-  std::list<JobDescription> jobs;
+  std::list<GMJob> jobs;
   // counters of share for preparing/finishing states
   std::map<std::string, int> preparing_job_share;
   std::map<std::string, int> finishing_job_share;
