@@ -514,9 +514,9 @@ sub ComputingActivities {
                 open $memhandle, '>', \$xmlstring;
                 return undef unless defined $memhandle;
                 my $memprinter = XmlPrinter->new($memhandle);
-                $data->{xmlns} = "http://schemas.ogf.org/glue/2009/03/spec/2/0";
+                $data->{xmlns} = "http://schemas.ogf.org/glue/2009/03/spec_2.0_r1";
                 # Todo: fix a-rex, client to handle correct namespace
-                $data->{xmlns} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
+                $data->{xmlns} = "http://schemas.ogf.org/glue/2009/03/spec_2.0_r1";
                 $data->{BaseType} = "Activity";
                 $memprinter->begin('ComputingActivity', $data, qw(xmlns BaseType CreationTime Validity ));
                 $memprinter->properties($data, qw(ID Name OtherInfo));

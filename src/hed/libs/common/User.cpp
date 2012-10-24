@@ -45,12 +45,12 @@ static Glib::Mutex suid_lock;
   bool User::set(const struct passwd *pwd_p) {
     if (pwd_p == NULL)
       return false;
-    home = GetEnv("HOME");
     name = pwd_p->pw_name;
-    if (home.empty())
-      home = pwd_p->pw_dir;
     uid = pwd_p->pw_uid;
     gid = pwd_p->pw_gid;
+    home = GetEnv("HOME");
+    // don't use HOME if user is different from current user
+    if (home.empty() || uid != get_user_id()) home = pwd_p->pw_dir;
     return true;
   }
 

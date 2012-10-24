@@ -128,8 +128,30 @@ sub main {
 
         my $print_ldif = sub {
             my ($fh) = @_;
-            if ($config->{infosys_glue2_ldap}) {
-                my $ldifPrinter = GLUE2ldifPrinter->new($fh, $splitjobs);
+            if ($config->{infosys_glue2_ldap}) {                
+               # introduced to find GLUE2 LDAP schema version
+                my $glue2schemaversion;
+                unless (open (GLUE2_SCHEMA, "</etc/ldap/schema/GLUE20.schema")) {
+                    $log->warning("CEinfo.pl didn't find GLUE20.schema in standard location. Will create LDIF in compatibitity mode.");
+                } else {
+                     my $linecnt=0;
+                     while (my $line = <GLUE2_SCHEMA>) {
+                        chomp $line;
+                        next unless $line;
+                        if ($line =~ m/# Schema Version: (\d).*/) {
+                            $glue2schemaversion = $1; 
+                            $log->warning("GLUE2 schema version major identified. It is: $glue2schemaversion");
+                            last
+                        }
+                        if ($linecnt > 25) {
+                            $log->warning("Can't identify GLUE2 schema version. Will create LDIF in compatibility mode");
+                            last
+                        }
+                        $linecnt++;
+                    }
+                close GLUE2_SCHEMA;
+                }
+                my $ldifPrinter = GLUE2ldifPrinter->new($fh, $splitjobs, $glue2schemaversion);
                 timed 'GLUE2ldif', sub { $ldifPrinter->Top($glue2data) };
             }
             if ($config->{infosys_nordugrid} or $config->{infosys_glue12}) {

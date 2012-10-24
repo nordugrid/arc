@@ -390,7 +390,7 @@ namespace Arc {
       lfailure = "Service responded with fault: "+fault.message+" - "+fault.description;
       return false;
     };
-    XMLNode infodoc = item["estypes:ActivityInfoDocument"];
+    XMLNode infodoc = item["esainfo:ActivityInfoDocument"];
     if(!infodoc) {
       lfailure = "Response does not contain ActivityInfoDocument";
       return false;
@@ -780,6 +780,9 @@ namespace Arc {
                attr != attributes.end();++attr) {
       xml.NewChild("Attribute") = *attr;
     };
+    std::string str;
+    xml.GetXML(str);
+    return str;
   }
 
   bool EMIESJobState::operator!(void) {
