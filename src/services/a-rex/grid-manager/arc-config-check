@@ -130,6 +130,7 @@ my %introducedSections = (
 	"infosys/cluster/registration" => [],
 	"infosys/index" => [],
 	"infosys/se" => [],
+	"infosys/site" => [],
 	"janitor" => [],
 	"queue" => [],
 	"se" => []
@@ -502,7 +503,7 @@ sub check_completeness() {
 
 	my @required=("common", "grid-manager", "infosys", "cluster");
 
-	my @optional=("gridftpd", "data-staging", "gangliarc", "group", "vo", "registration", "nordugridmap");
+	my @optional=("gridftpd", "data-staging", "gangliarc", "group", "vo", "registration/isis", "registration/emir", "nordugridmap", "infosys/glue12", "infosys/admindomain", "acix/cacheserver", "acix/indexserver");
 
 	my @all=(@required,@optional);
 
