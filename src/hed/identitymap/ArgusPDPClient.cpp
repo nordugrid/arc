@@ -137,6 +137,7 @@ std::string xacml_decision_to_string(xacml_decision_t decision) {
 ArgusPDPClient::ArgusPDPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHandler(cfg,parg), client(NULL) {  
     valid_ = false;
     accept_mapping = false;
+    accept_notapplicable = false;
     logger.setThreshold(Arc::DEBUG);
     pdpdlocation = (std::string)(*cfg)["PDPD"];  
     if(pdpdlocation.empty()) {
@@ -180,6 +181,9 @@ ArgusPDPClient::ArgusPDPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSe
 
     std::string mapping_str = (std::string)(*cfg)["AcceptMapping"];
     if((mapping_str == "1") || (mapping_str == "true")) accept_mapping = true;
+
+    std::string notapplicable_str = (std::string)(*cfg)["AcceptNotApplicable"];
+    if((notapplicable_str == "1") || (notapplicable_str == "true")) accept_notapplicable = true;
 
     // Create a SOAP client to contact PDP server
     logger.msg(Arc::INFO, "Creating a PDP client");
@@ -240,8 +244,8 @@ static bool contact_pdp(Arc::ClientSOAP* client, const std::string& pdpdlocation
     }
     else {
       std::string str;
-//      resp->GetXML(str);
-//      logger.msg(Arc::INFO, "Response: %s", str);
+      resp->GetXML(str);
+      logger.msg(Arc::DEBUG, "SOAP response: %s", str);
 
       //The authorization query response from argus pdp server is like the following
 /*
@@ -268,11 +272,8 @@ static bool contact_pdp(Arc::ClientSOAP* client, const std::string& pdpdlocation
       </saml2p:Response>
 */
 
-
-      //Arc::XMLNode respxml = (*resp)["samlp:Response"]["saml:Assertion"]["xacml-saml:XACMLAuthzDecisionStatement"]["xacml-context:Response"];
-       Arc::XMLNode respxml = (*resp)["saml2p:Response"]["saml2:Assertion"]["saml2:Statement"]["xacml-context:Response"];
+      Arc::XMLNode respxml = (*resp)["saml2p:Response"]["saml2:Assertion"]["saml2:Statement"]["xacml-context:Response"];
       if((bool)respxml) respxml.New(response);
-      //std::string authz_res = (std::string)((*resp)["samlp:Response"]["saml:Assertion"]["xacml-saml:XACMLAuthzDecisionStatement"]["xacml-context:Response"]["xacml-context:Result"]["xacml-context:Decision"]);
 
       delete resp;
       ret = true;
@@ -351,7 +352,7 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
 
         std::string str;
         req.GetXML(str);
-        std::cout<<"xacml authz request: "<<str<<std::endl;
+        logger.msg(Arc::DEBUG, "xacml authz request: %s", str);
 
         bool res = contact_pdp(client, pdpdlocation, certpath, logger, request, response);
         if (!res) {
@@ -362,7 +363,7 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
         }
 
         response.GetXML(str);
-        std::cout<<"xacml authz response: "<<str<<std::endl;
+        logger.msg(Arc::DEBUG, "xacml authz response: %s", str);
 
         // Extract the local user name from the response to be mapped to the GID
         for (int cn = 0;; ++cn) {
@@ -372,6 +373,7 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
           if(authz_res.empty()) break;
           if(authz_res == "Permit") decision =  XACML_DECISION_PERMIT;
           else if(authz_res == "Deny") decision = XACML_DECISION_DENY;
+          else if(authz_res == "NotApplicable") decision = XACML_DECISION_NOT_APPLICABLE;
           if(decision == XACML_DECISION_DENY) break;
 
 /*
@@ -397,7 +399,9 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
         if(decision == XACML_DECISION_DENY) break;
       }
 
-      if (decision != XACML_DECISION_PERMIT ){
+
+      if ((decision != XACML_DECISION_PERMIT) && 
+          (decision != XACML_DECISION_NOT_APPLICABLE)) {
         if(conversion == conversion_subject) {
           logger.msg(Arc::INFO,"%s is not authorized to do action %s in resource %s ",
                      subject, action, resource);
@@ -405,7 +409,12 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
           logger.msg(Arc::INFO,"Not authorized");
         }
         throw pep_ex("The reached decision is: " + xacml_decision_to_string(decision));
-      }     
+      }
+      else if((decision == XACML_DECISION_NOT_APPLICABLE) && (accept_notapplicable == false)) {
+        logger.msg(Arc::INFO,"Not authorized");
+        throw pep_ex("The reached decision is: " + xacml_decision_to_string(decision) + ". But this service will treat NotAcceptable decision as reason to deny request");
+      }
+     
       if(accept_mapping && !local_id.empty()) {
         logger.msg(Arc::INFO,"Grid identity is mapped to local identity '%s'", local_id);
         msg->Attributes()->set("SEC:LOCALID", local_id);

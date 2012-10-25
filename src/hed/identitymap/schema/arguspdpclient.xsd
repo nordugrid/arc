@@ -91,4 +91,13 @@
     </xsd:annotation>
   </xsd:element>
 
+  <xsd:element name="AcceptNotApplicable" type="xsd:boolean">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Specify if the "NotApplicable" decision returned by Argus 
+        PDP is treated as reason to deny request.
+        Default is false, which treats "NotApplicable" as reson to deny request.
+    </xsd:annotation>
+  </xsd:element>
+
 </xsd:schema>

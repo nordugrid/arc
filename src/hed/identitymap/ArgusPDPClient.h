@@ -32,6 +32,7 @@ class ArgusPDPClient : public SecHandler {
     std::list<std::string> reject_attrs;
     conversion_type conversion;
     bool accept_mapping;
+    bool accept_notapplicable;
     bool valid_; 
     static Arc::Logger logger;
 
