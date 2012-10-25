@@ -5,7 +5,7 @@
 
 #include <arc/loader/Loader.h>
 #include <arc/ArcConfig.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/security/PDP.h>
 
 namespace ArcSec {

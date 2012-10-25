@@ -17,7 +17,7 @@
 #include <arc/UserConfig.h>
 #include <arc/infosys/InformationInterface.h>
 #include <arc/message/MCC.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 
 using namespace Arc;
 #ifdef TEST

@@ -19,9 +19,10 @@ endif
 # order is important!
 SUBDIRS = common loader message crypto cryptomod \
 	credential credentialmod data delegation security \
-	ws-addressing $(XMLSEC_DIR) ws-security wsrf client $(DBXML_DIR) \
-	infosys ws $(GLOBUSUTILS_DIR) credentialstore
+	ws-addressing $(XMLSEC_DIR) ws-security wsrf communication \
+	client $(DBXML_DIR) infosys ws $(GLOBUSUTILS_DIR) \
+	credentialstore
 DIST_SUBDIRS = common loader message crypto cryptomod \
 	credential credentialmod data delegation security \
-	ws-addressing xmlsec ws-security wsrf client dbxml \
-	infosys ws globusutils credentialstore
+	ws-addressing xmlsec ws-security wsrf communication \
+	client dbxml infosys ws globusutils credentialstore

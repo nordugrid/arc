@@ -252,6 +252,7 @@ std::ostream& getStdout() { return std::cout; }
 %include "common.i"
 %include "loader.i"
 %include "message.i"
+%include "communication.i"
 %include "client.i"
 %include "credential.i"
 %include "data.i"

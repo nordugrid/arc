@@ -6,7 +6,7 @@
 #include <arc/client/SubmitterPlugin.h>
 #include <arc/XMLNode.h>
 #include <arc/loader/Loader.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 
 namespace Arc {
 

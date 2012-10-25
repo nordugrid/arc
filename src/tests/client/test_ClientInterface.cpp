@@ -12,7 +12,7 @@
 #include <arc/URL.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/MCC.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 
 int main(void) {
   signal(SIGTTOU,SIG_IGN);

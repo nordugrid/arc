@@ -15,7 +15,7 @@
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/MCC.h>
 #include <arc/message/MCCLoader.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/credential/VOMSAttribute.h>
 #include <arc/credential/VOMSUtil.h>
 #include <arc/credential/Credential.h>

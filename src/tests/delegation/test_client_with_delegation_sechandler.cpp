@@ -12,7 +12,7 @@
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/MCC.h>
 #include <arc/message/MCCLoader.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 
 static Arc::Logger& logger = Arc::Logger::rootLogger;
 

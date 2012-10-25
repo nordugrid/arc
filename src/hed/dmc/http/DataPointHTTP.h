@@ -4,7 +4,7 @@
 #define __ARCDMCHTTP_DATAPOINTHTTP_H__
 
 #include <arc/Thread.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/data/DataPointDirect.h>
 
 namespace ArcDMCHTTP {

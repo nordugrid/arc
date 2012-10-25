@@ -16,6 +16,7 @@ libaccARC1_la_CXXFLAGS = -I$(top_srcdir)/include \
 libaccARC1_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/ws/libarcws.la \
 	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
@@ -32,6 +33,7 @@ libaccJLRWSRFBES_la_CXXFLAGS = -I$(top_srcdir)/include \
 libaccJLRWSRFBES_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/ws/libarcws.la \
 	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
@@ -47,6 +49,7 @@ libaccJLRWSRFBES_la_LDFLAGS = -no-undefined -avoid-version -module
 #libarexclient_la_LIBADD = \
 #	$(top_builddir)/src/hed/libs/ws/libarcws.la \
 #	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+#	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 #	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 #	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
 #	$(top_builddir)/src/hed/libs/message/libarcmessage.la \

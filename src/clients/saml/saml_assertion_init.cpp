@@ -13,7 +13,7 @@
 #include <arc/GUID.h>
 #include <arc/StringConv.h>
 #include <arc/message/MCC.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/credential/Credential.h>
 
 #include <arc/ArcLocation.h>

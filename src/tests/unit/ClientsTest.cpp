@@ -3,7 +3,7 @@
 #endif
 
 #include "ClientsTest.h"
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 
 #define TEST
 #include "../../clients/wsrf/arcwsrf.cpp"

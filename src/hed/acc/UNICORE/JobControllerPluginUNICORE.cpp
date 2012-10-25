@@ -7,7 +7,7 @@
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
 #include <arc/XMLNode.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/message/MCC.h>
 #include <arc/ws-addressing/WSA.h>
 

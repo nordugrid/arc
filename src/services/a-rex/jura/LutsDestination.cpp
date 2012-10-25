@@ -6,7 +6,7 @@
 
 #include "jura.h"
 #include <arc/Utils.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <sstream>
 
 namespace Arc

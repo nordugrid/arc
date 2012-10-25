@@ -28,7 +28,7 @@
 #include <arc/User.h>
 #include <arc/Utils.h>
 #include <arc/UserConfig.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/credential/VOMSAttribute.h>
 #include <arc/credential/VOMSUtil.h>
 //#include <arc/credential/Credential.h>

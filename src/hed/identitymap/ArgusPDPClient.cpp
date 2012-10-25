@@ -11,7 +11,7 @@
 #include <arc/message/MCCLoader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/SecAttr.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/credential/Credential.h>
 
 #include "ArgusPDPClient.h"

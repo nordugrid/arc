@@ -13,7 +13,7 @@
 #include <arc/message/MCC.h>
 #include <arc/message/MCCLoader.h>
 #include <arc/URL.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 
 int main(void) {
 

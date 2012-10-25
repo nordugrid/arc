@@ -2,15 +2,15 @@ TESTS = AREXClientTest
 check_PROGRAMS = $(TESTS)
 
 AREXClientTest_SOURCES = $(top_srcdir)/src/Test.cpp \
-	../../../libs/client/test/SimulatorClasses.h \
-	../../../libs/client/test/SimulatorClasses.cpp \
+	../../../libs/communication/test/SimulatorClasses.h \
+	../../../libs/communication/test/SimulatorClasses.cpp \
 	AREXClientTest.cpp ../AREXClient.cpp \
 	../JobStateARC1.cpp ../JobStateBES.cpp
 AREXClientTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -DCPPUNITTEST
 AREXClientTest_LDADD = \
 	$(top_builddir)/src/hed/libs/ws/libarcws.la \
-	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \

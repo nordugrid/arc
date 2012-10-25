@@ -8,7 +8,7 @@
 #include <vector>
 #include <map>
 #include <arc/XMLNode.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/message/MCC.h>
 #include <arc/message/MCCLoader.h>
 #include <arc/message/Message.h>

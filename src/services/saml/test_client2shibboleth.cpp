@@ -22,7 +22,7 @@
 
 #include <arc/message/MCC.h>
 #include <arc/message/PayloadRaw.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 
 #include "../../hed/libs/xmlsec/XmlSecUtils.h"
 #include "../../hed/libs/xmlsec/XMLSecNode.h"

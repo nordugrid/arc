@@ -18,7 +18,7 @@
 #include <arc/DateTime.h>
 #include <arc/GUID.h>
 #include <arc/credential/Credential.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/URL.h>
 
 #include "../../hed/libs/xmlsec/XmlSecUtils.h"

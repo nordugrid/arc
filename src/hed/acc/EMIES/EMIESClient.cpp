@@ -4,7 +4,7 @@
 #include <config.h>
 #endif
 
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/client/Job.h>
 #include <arc/StringConv.h>

@@ -11,7 +11,7 @@
 #include <arc/URL.h>
 #include <arc/message/MCC_Status.h>
 #include <arc/message/PayloadRaw.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include "ConfusaParserUtils.h"
 
 namespace Arc {
