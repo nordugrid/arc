@@ -51,7 +51,7 @@ before the compilation:
   export GLOBUS_LOCATION="/opt/globus"
   export GPT_LOCATION="/opt/globus"
 
-  ./configure --with-dbcxx-include="/opt/local/include/db44" LDFLAGS="-L/opt/local/lib/db44"
+  ./configure --with-dbcxx-include="/opt/local/include/db44" --with-db4-library-path="/opt/local/lib/db44"
 
 4. Building the software:
 

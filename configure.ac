@@ -1129,6 +1129,23 @@ AC_ARG_WITH(dbcxx-include,
    ]
 )
 
+#
+# Allow the user to specify DB4 library location (we will still check though)
+#
+
+db4_library_path=
+AC_ARG_WITH(db4-library-path,
+   [  --with-db4-library-path=PATH   Specify path to DB4 library],
+   [
+  if test "x$withval" = "xyes" ; then
+    AC_MSG_ERROR([--with-db4-library-path requires PATH argument])
+  fi
+  if test "x$withval" != "xno" ; then
+    db4_library_path=$withval
+  fi
+   ]
+)
+
 AC_LANG_SAVE
 AC_LANG_CPLUSPLUS
 
@@ -1172,6 +1189,11 @@ then
 fi
 AC_SUBST(DBCXX_CPPFLAGS)
 
+if test "x$db4_library_path" != "x"
+then
+  db4_library_path="-L$db4_library_path"
+fi
+
 if test "$HAVE_DBCXX" = no
 then
   DBCXX_LIBS=""
@@ -1189,12 +1211,14 @@ else
       ;;
   esac
 
-  AC_CHECK_LIB(db_cxx,main,DBCXX_LIBS="-ldb_cxx",DBCXX_LIBS="")
+  LDFLAGS="$LDFLAGS $db4_library_path"
+
+  AC_CHECK_LIB(db_cxx,main,DBCXX_LIBS="$db4_library_path -ldb_cxx",DBCXX_LIBS="")
 
   if test "$DBCXX_LIBS" = ""
   then
     AC_MSG_WARN([BerkeleyDB library libdb_cxx was not found!])
-    AC_CHECK_LIB(db_cxx-4.2,main,DBCXX_LIBS="-ldb_cxx-4.2",DBCXX_LIBS="")
+    AC_CHECK_LIB(db_cxx-4.2,main,DBCXX_LIBS="$db4_library_path -ldb_cxx-4.2",DBCXX_LIBS="")
   fi
 
   if test "$DBCXX_LIBS" = ""
@@ -1205,7 +1229,7 @@ else
   if test "$DBCXX_LIBS" = ""
   then
     AC_MSG_WARN([BerkeleyDB library libdb_cxx was not found!])
-    AC_CHECK_LIB(db_cxx-4.7,main,DBCXX_LIBS="-ldb_cxx-4.7",DBCXX_LIBS="")
+    AC_CHECK_LIB(db_cxx-4.7,main,DBCXX_LIBS="$db4_library_path -ldb_cxx-4.7",DBCXX_LIBS="")
   fi
 
   if test "$DBCXX_LIBS" = ""
