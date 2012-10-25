@@ -120,7 +120,8 @@ my $ldap_infosys_options = {
     infosys_nordugrid => '*',
     infosys_glue12 => '*',
     infosys_glue2_ldap => '*',
-    bdii_update_pid_file => '*'
+    bdii_update_pid_file => '*',
+    infosys_glue2_ldap_showactivities => '*'
 };
 my $gridftpd_options = {
     GridftpdEnabled => '*',
@@ -225,7 +226,7 @@ my $config_schema = {
 my $allbools = [ qw(
                  PublishNordugrid Homogeneous VirtualMachine
                  ConnectivityIn ConnectivityOut Preemption
-                 infosys_compat infosys_nordugrid infosys_glue12 infosys_glue2_ldap
+                 infosys_compat infosys_nordugrid infosys_glue12 infosys_glue2_ldap infosys_glue2_ldap_showactivities
                  GridftpdEnabled GridftpdAllowNew use_janitor Distributed ) ];
 
 ############################ Generic functions ###########################

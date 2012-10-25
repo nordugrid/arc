@@ -32,6 +32,14 @@ mkdir -p /var/run/arc/infosys
 echo "Creating fake bdii pidfile"
 touch /tmp/bdii-update.pid
 
+# create fake gridftpd pid file
+echo "Creating fake gridftpd pidfile"
+touch /tmp/gridftpd.pid
+
+# create fake gridmanager pid file
+echo "Creating fake gridftpd pidfile"
+touch /tmp/grid-manager.pid
+
 # chmod for normal user to run CEinfo.pl and read ldif-script.sh
 echo "Chmodding dirs for normal user to access..."
 chmod -R 777 /tmp/run/arc/bdii
@@ -39,4 +47,5 @@ chmod -R 777 /var/run/arc/infosys
 chmod -R 777 /tmp/tmp/arc/bdii
 
 echo "please see ldif-print-test-arc.conf and pass it to CEinfo.pl"
-echo " sudo ./CEinfo.pl --config test/ldif-print-test-arc.conf  "
+echo "AREX call:  sudo ./CEinfo.pl --nonordugrid --splitjobs --config test/ldif-print-test-arc.conf"
+echo "Simple execution that includes jobs in XML and LDIF: sudo ./CEinfo.pl --nonordugrid --splitjobs --config test/ldif-print-test-arc.conf" 
