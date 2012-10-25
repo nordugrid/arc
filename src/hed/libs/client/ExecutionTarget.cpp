@@ -8,7 +8,6 @@
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
 #include <arc/client/Broker.h>
-#include <arc/client/ClientInterface.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Submitter.h>
 #include <arc/UserConfig.h>
