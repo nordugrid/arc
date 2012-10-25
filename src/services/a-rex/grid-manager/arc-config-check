@@ -370,6 +370,10 @@ sub confcheck($) {
 	my $c = 0;
 	my $vo_counter = 0;
 	while (my $line = <CONFIGFILE>) {
+		if ($line =~ m/^<\?xml version=.*\?>$/) {
+			w("XML configuration can not yet be validated\n");
+			return;
+		}
 		$c++;
 
 		next if $line =~ m/^#/;
