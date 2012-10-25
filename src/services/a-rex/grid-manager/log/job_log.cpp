@@ -181,19 +181,10 @@ bool JobLog::RunReporter(const GMConfig &config) {
   };
   if(time(NULL) < (last_run+3600)) return true; // once per hour
   last_run=time(NULL);
-  const char** args = (const char**)malloc(sizeof(char*)*(7));
-  if(args == NULL) return false;
   std::string cmd = Arc::ArcLocation::GetToolsDir()+"/"+logger;
-  int argc=0; args[argc++]=(char*)cmd.c_str();
-  std::string ex_str = Arc::tostring(ex_period);
-  if(ex_period) {
-    args[argc++]="-E";
-    args[argc++]=(char*)ex_str.c_str();
-  };
-  args[argc++]=(char*)(config.ControlDir().c_str());
-  args[argc]=NULL;
-  bool res = RunParallel::run(config,Arc::User(),"logger",args,&proc,false,false);
-  free(args);
+  if(ex_period) cmd += " -E " + Arc::tostring(ex_period);
+  cmd += " " + config.ControlDir();
+  bool res = RunParallel::run(config,Arc::User(),"logger",cmd,&proc,false,false);
   return res;
 }
 

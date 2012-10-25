@@ -390,24 +390,10 @@ bool GMConfig::ExternalHelper::run(const GMConfig& config) {
     proc = NULL;
   }
   // start/restart
-  if (command.length() == 0) return true;  // has anything to run ?
-  char* args[100]; // up to 98 arguments should be enough
-  std::string args_s = command;
-  std::string arg_s;
-  int n;
-  for (n=0; n<99; n++) {
-    arg_s = config_next_arg(args_s);
-    if (arg_s.length() == 0) break;
-    args[n] = strdup(arg_s.c_str());
-  }
-  args[n] = NULL;
+  if (command.empty()) return true;  // has anything to run ?
   logger.msg(Arc::VERBOSE, "Starting helper process: %s", command);
   std::string helper_id = "helper";
-  bool started = RunParallel::run(config, Arc::User(), helper_id.c_str(), args, &proc);
-  for (n=0; n<99; n++) {
-    if (args[n] == NULL) break;
-    free(args[n]);
-  }
+  bool started = RunParallel::run(config, Arc::User(), helper_id.c_str(), command, &proc);
   if (started) return true;
   if (proc && (*proc)) return true;
   if (proc) { delete proc; proc = NULL; };

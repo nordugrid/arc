@@ -48,7 +48,7 @@ static void job_subst(std::string& str,void* arg) {
   subs->config->Substitute(str, subs->job->get_user());
 }
 
-bool RunParallel::run(const GMConfig& config,const GMJob& job,const char *const args[],Arc::Run** ere,bool su) {
+bool RunParallel::run(const GMConfig& config,const GMJob& job,const std::string& args,Arc::Run** ere,bool su) {
   RunPlugin* cred = config.CredPlugin();
   job_subst_t subs; subs.config=&config; subs.job=&job; subs.reason="external";
   if((!cred) || (!(*cred))) { cred=NULL; };
@@ -58,11 +58,9 @@ bool RunParallel::run(const GMConfig& config,const GMJob& job,const char *const 
 
 /* fork & execute child process with stderr redirected 
    to job.ID.errors, stdin and stdout to /dev/null */
-bool RunParallel::run(const GMConfig& config,const Arc::User& user,const char* jobid,const char *const args[],Arc::Run** ere,bool su,bool job_proxy,RunPlugin* cred,RunPlugin::substitute_t subst,void* subst_arg) {
+bool RunParallel::run(const GMConfig& config,const Arc::User& user,const char* jobid,const std::string& args,Arc::Run** ere,bool su,bool job_proxy,RunPlugin* cred,RunPlugin::substitute_t subst,void* subst_arg) {
   *ere=NULL;
-  std::list<std::string> args_;
-  for(int n = 0;args[n];++n) args_.push_back(std::string(args[n]));
-  Arc::Run* re = new Arc::Run(args_);
+  Arc::Run* re = new Arc::Run(args);
   if((!re) || (!(*re))) {
     if(re) delete re;
     logger.msg(Arc::ERROR,"%s: Failure creating slot for child process",jobid?jobid:"");

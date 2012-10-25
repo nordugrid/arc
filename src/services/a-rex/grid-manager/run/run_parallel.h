@@ -29,8 +29,8 @@ class RunParallel {
  public:
   operator bool(void) const { return true; };
   bool operator!(void) const { return false; };
-  static bool run(const GMConfig& config,const Arc::User& user,const char* jobid,const char *const args[],Arc::Run**,bool su = true,bool job_proxy = true, RunPlugin* cred = NULL, RunPlugin::substitute_t subst = NULL, void* subst_arg = NULL);
-  static bool run(const GMConfig& config,const GMJob& job,const char *const args[],Arc::Run**,bool su = true);
+  static bool run(const GMConfig& config,const Arc::User& user,const char* jobid,const std::string& args,Arc::Run**,bool su = true,bool job_proxy = true, RunPlugin* cred = NULL, RunPlugin::substitute_t subst = NULL, void* subst_arg = NULL);
+  static bool run(const GMConfig& config,const GMJob& job,const std::string& args,Arc::Run**,bool su = true);
   static void kicker(void (*kicker_func)(void*),void* kicker_arg) {
     kicker_arg_=kicker_arg;
     kicker_func_=kicker_func;

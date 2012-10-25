@@ -47,23 +47,16 @@ bool send_mail(const GMJob &job,const GMConfig& config) {
     failure_reason[n]='.';
   };
   std::string cmd(Arc::ArcLocation::GetToolsDir()+"/smtp-send.sh");
-  std::string from_addr = config.SupportMailAddress();
-  char* args[11] ={ /* max 3 mail addresses */
-       (char*)cmd.c_str(),
-       (char*)states_all[job.get_state()].name,
-       (char*)job.get_id().c_str(),
-       (char*)config.ControlDir().c_str(),
-       (char*)from_addr.c_str(),
-       (char*)jobname.c_str(),
-       (char*)failure_reason.c_str(),
-       NULL,
-       NULL,
-       NULL,
-       NULL
-  };
+  cmd += " " + std::string(states_all[job.get_state()].name);
+  cmd += " " + job.get_id();
+  cmd += " " + config.ControlDir();
+  cmd += " " + config.SupportMailAddress();
+  cmd += " " + jobname;
+  cmd += " " + failure_reason;
   /* go through mail addresses and flags */
   std::string::size_type pos=0;
   std::string::size_type pos_s=0;
+  /* max 3 mail addresses */
   std::string mails[3];
   int mail_n=0;
   bool right_flag = false;
@@ -86,9 +79,9 @@ bool send_mail(const GMJob &job,const GMConfig& config) {
   };
   if(mail_n == 0) return true; /* not sending to anyone */
   for(mail_n--;mail_n>=0;mail_n--) {
-    args[7+mail_n]=(char*)(mails[mail_n].c_str());
+    cmd += " " + mails[mail_n];
   };
-  if(!RunParallel::run(config,job,args,&child)) {
+  if(!RunParallel::run(config,job,cmd,&child)) {
     logger.msg(Arc::ERROR,"Failed running mailer");
     return false;
   };

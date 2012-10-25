@@ -467,10 +467,9 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
       }
     }
     std::string grami = config.control_dir+"/job."+(*i).job_id+".grami";
-    std::string cfg_path = config.conffile;
-    char const * args[5] ={ cmd.c_str(), "--config", cfg_path.c_str(), grami.c_str(), NULL };
+    cmd += " --config " + config.conffile + " " + grami;
     job_errors_mark_put(*i,config);
-    if(!RunParallel::run(config,*i,args,&(i->child))) {
+    if(!RunParallel::run(config,*i,cmd,&(i->child))) {
       if(!cancel) {
         i->AddFailure("Failed initiating job submission to LRMS");
         logger.msg(Arc::ERROR,"%s: Failed running submission process",i->job_id);
@@ -645,102 +644,53 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       logger.msg(Arc::INFO,"%s: state: %s: starting new child",i->job_id,up?"FINISHING":"PREPARING");
       // no child was running yet, or recovering from fault
       // run it anyway and exit code will give more inforamtion
-      std::string cmd;
-      if(up) { cmd=Arc::ArcLocation::GetToolsDir()+"/uploader"; }
-      else { cmd=Arc::ArcLocation::GetToolsDir()+"/downloader"; }
-      std::string user_id_s = Arc::tostring(i->get_user().get_uid());
-      std::string max_files_s;
-      std::string min_speed_s;
-      std::string min_speed_time_s;
-      std::string min_average_speed_s;
-      std::string max_inactivity_time_s;
-      int argn=4;
-      const char* args[] = {
-        cmd.c_str(),
-        "-U",
-        user_id_s.c_str(),
-        "-f",
-        NULL, // -n
-        NULL, // (-n)
-        NULL, // -c
-        NULL, // -p
-        NULL, // -l
-        NULL, // -s
-        NULL, // (-s)
-        NULL, // -S
-        NULL, // (-S)
-        NULL, // -a
-        NULL, // (-a)
-        NULL, // -i
-        NULL, // (-i)
-        NULL, // -d
-        NULL, // (-d)
-        NULL, // -C
-        NULL, // (-C)
-        NULL, // -r
-        NULL, // (-r)
-        NULL, // id
-        NULL, // control
-        NULL, // session
-        NULL,
-        NULL
-      };
+      std::string cmd_name;
+      if(up) { cmd_name=Arc::ArcLocation::GetToolsDir()+"/uploader"; }
+      else { cmd_name=Arc::ArcLocation::GetToolsDir()+"/downloader"; }
+      std::string user_id = Arc::tostring(i->get_user().get_uid());
+      std::string cmd = cmd_name + " -U " + user_id + " -f";
       if(config.max_downloads > 0) {
-        max_files_s=Arc::tostring(config.max_downloads);
-        args[argn]="-n"; argn++;
-        args[argn]=(char*)(max_files_s.c_str()); argn++;
+        cmd += " -n " + Arc::tostring(config.max_downloads);
       }
       if(!config.use_secure_transfer) {
-        args[argn]="-c"; argn++;
+        cmd += " -c";
       }
       if(config.use_passive_transfer) {
-        args[argn]="-p"; argn++;
+        cmd += " -p";
       }
       if(config.use_local_transfer) {
-        args[argn]="-l"; argn++;
+        cmd += " -l";
       }
       if(config.min_speed) {
-        min_speed_s=Arc::tostring(config.min_speed);
-        min_speed_time_s=Arc::tostring(config.min_speed_time);
-        args[argn]="-s"; argn++;
-        args[argn]=(char*)(min_speed_s.c_str()); argn++;
-        args[argn]="-S"; argn++;
-        args[argn]=(char*)(min_speed_time_s.c_str()); argn++;
+        cmd += " -s " + Arc::tostring(config.min_speed);
+        cmd += " -S " + Arc::tostring(config.min_speed_time);
       }
       if(config.min_average_speed) {
-        min_average_speed_s=Arc::tostring(config.min_average_speed);
-        args[argn]="-a"; argn++;
-        args[argn]=(char*)(min_average_speed_s.c_str()); argn++;
+        cmd += " -a " + Arc::tostring(config.min_average_speed);
       }
       if(config.max_inactivity_time) {
-        max_inactivity_time_s=Arc::tostring(config.max_inactivity_time);
-        args[argn]="-i"; argn++;
-        args[argn]=(char*)(max_inactivity_time_s.c_str()); argn++;
+        cmd += " -i " + Arc::tostring(config.max_inactivity_time);
       }
       std::string debug_level = Arc::level_to_string(Arc::Logger::getRootLogger().getThreshold());
-      std::string cfg_path = config.conffile;
       if (!debug_level.empty()) {
-        args[argn]="-d"; argn++;
-        args[argn]=(char*)(debug_level.c_str()); argn++;
+        cmd += " -d " + debug_level;
       }
       if (!config.conffile.empty()) {
-        args[argn]="-C"; argn++;
-        args[argn]=(char*)(cfg_path.c_str()); argn++;
+        cmd += " -C " + config.conffile;
       }
       if(!config.preferred_pattern.empty()) {
-        args[argn]="-r"; argn++;
-        args[argn]=(char*)(config.preferred_pattern.c_str()); argn++;
+        cmd += " -r " + config.preferred_pattern;
       }
-      args[argn]=(char*)(i->job_id.c_str()); argn++;
-      args[argn]=(char*)(config.control_dir.c_str()); argn++;
-      args[argn]=(char*)(i->SessionDir().c_str()); argn++;
+      cmd += " " + i->job_id;
+      cmd += " " + config.control_dir;
+      cmd += " " + i->session_dir;
 
-      logger.msg(Arc::INFO,"%s: State %s: starting child: %s",i->job_id,up?"FINISHING":"PREPARING",args[0]);
+      logger.msg(Arc::INFO,"%s: State %s: starting child: %s",i->job_id,up?"FINISHING":"PREPARING",cmd);
       job_errors_mark_put(*i,config);
       // Remove restart mark because restart point may change. Keep it if we are
       // already processing failed job.
       if(!job_failed_mark_check(i->job_id,config)) job_restart_mark_remove(i->job_id,config);
-      if(!RunParallel::run(config,*i,(char**)args,&(i->child),config.strict_session)) {
+      if(!RunParallel::run(config,*i,cmd,&(i->child),config.strict_session)) {
         if(up) {
           logger.msg(Arc::ERROR,"%s: Failed to run uploader process",i->job_id);
           i->AddFailure("Failed to run uploader (post-processing)");
