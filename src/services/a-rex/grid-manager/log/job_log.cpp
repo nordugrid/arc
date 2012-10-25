@@ -15,6 +15,7 @@
 #include "../run/run_parallel.h"
 #include "job_log.h"
 
+namespace ARex {
 
 JobLog::JobLog(void):filename(""),proc(NULL),last_run(0),ex_period(0) {
 }
@@ -252,3 +253,4 @@ JobLog::~JobLog(void) {
   };
 }
 
+} // namespace ARex

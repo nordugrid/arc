@@ -4,6 +4,8 @@
 #include <arc/Run.h>
 #include <arc/User.h>
 
+namespace ARex {
+
 /// Run child process with stdin, stdout and stderr redirected to specified handles
 class RunRedirected {
  private:
@@ -21,5 +23,7 @@ class RunRedirected {
   static int run(const Arc::User& user,const char* cmdname,int in,int out,int err,char *const args[],int timeout);
   static int run(const Arc::User& user,const char* cmdname,int in,int out,int err,const char* cmd,int timeoutd);
 };
+
+} // namespace ARex
 
 #endif

@@ -10,13 +10,13 @@
 
 #include "conf_cache.h"
 
+namespace ARex {
+
 // Forward declarations for classes for which this is just a container
 class JobLog;
 class ContinuationPlugins;
 class RunPlugin;
-namespace ARex {
-  class DelegationStores;
-}
+class DelegationStores;
 
 /// Configuration information related to the grid manager part of A-REX.
 /**
@@ -363,5 +363,6 @@ private:
   GMConfig(const GMConfig& conf);
 };
 
+} // namespace ARex
 
 #endif /* GMCONFIG_H_ */

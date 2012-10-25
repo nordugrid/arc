@@ -6,6 +6,8 @@
 
 #include "../conf/conf_staging.h"
 
+namespace ARex {
+
 class GMConfig;
 class FileData;
 class GMJob;
@@ -191,5 +193,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
    */
   int checkUploadedFiles(GMJob& job);
 };
+
+} // namespace ARex
 
 #endif /* DTR_GENERATOR_H_ */

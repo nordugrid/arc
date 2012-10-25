@@ -21,6 +21,8 @@
 
 #include "info_log.h"
 
+namespace ARex {
+
 const char * const sfx_local       = ".local";
 const char * const sfx_rsl         = ".description";
 const char * const sfx_diag        = ".diag";
@@ -291,3 +293,4 @@ error:
   return false;
 }
 
+} // namespace ARex

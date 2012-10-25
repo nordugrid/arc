@@ -29,7 +29,7 @@ int main(int argc,char* argv[]) {
   std::string control_dir;
   if (params.empty()) {
     // Read from config
-    GMConfig config(conf_file);
+    ARex::GMConfig config(conf_file);
     if (!config.Load()) {
       std::cerr << "Could not load configuration from " << config.ConfigFile() << std::endl;
       return 1;
@@ -49,7 +49,7 @@ int main(int argc,char* argv[]) {
     control_dir = control_dir.substr(0, control_dir.rfind('/'));
   }
 
-  SignalFIFO(control_dir);
+  ARex::SignalFIFO(control_dir);
   return 0;
 }
 

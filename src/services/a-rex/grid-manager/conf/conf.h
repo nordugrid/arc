@@ -9,7 +9,7 @@
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 
-//extern char* config_file;
+namespace ARex {
 
 /*
   Open/assign configuration file to provided cfile.
@@ -56,5 +56,7 @@ bool elementtoint(Arc::XMLNode pnode,const char* ename,time_t& val,Arc::Logger* 
 bool elementtoint(Arc::XMLNode pnode,const char* ename,unsigned int& val,Arc::Logger* logger = NULL);
 bool elementtoint(Arc::XMLNode pnode,const char* ename,unsigned long long int& val,Arc::Logger* logger = NULL);
 bool elementtoenum(Arc::XMLNode pnode,const char* ename,int& val,const char* const opts[],Arc::Logger* logger = NULL);
+
+} // namespace ARex
 
 #endif // __GM_CONF_H__

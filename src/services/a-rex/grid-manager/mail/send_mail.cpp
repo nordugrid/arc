@@ -11,6 +11,7 @@
 #include "../conf/GMConfig.h"
 #include "send_mail.h"
 
+namespace ARex {
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
@@ -95,3 +96,5 @@ bool send_mail(const GMJob &job,const GMConfig& config) {
   delete child;
   return true;
 }
+
+} // namespace ARex

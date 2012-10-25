@@ -98,18 +98,18 @@ int main(int argc,char* argv[]) {
   std::string rsl = argv[optind];
   const char* proxy = NULL;
   if((optind+1) < argc) proxy=argv[optind+1];
-  JobLocalDescription job;
+  ARex::JobLocalDescription job;
 
-  if(parse_job_req(rsl,job) != JobReqSuccess) return 1;
+  if(ARex::parse_job_req(rsl,job) != ARex::JobReqSuccess) return 1;
 
   if(proxy) {
     Arc::SetEnv("X509_USER_PROXY",proxy,true);
     Arc::SetEnv("X509_USER_CERT",proxy,true);
     Arc::SetEnv("X509_USER_KEY",proxy,true);
   };
-  prepare_proxy();
+  ARex::prepare_proxy();
   
-  std::list<FileData>::iterator file;
+  std::list<ARex::FileData>::iterator file;
   bool has_lfns = false;
   std::list<lfn_t*> lfns;
   for(file=job.inputdata.begin();file!=job.inputdata.end();++file) {
@@ -126,7 +126,7 @@ int main(int argc,char* argv[]) {
     for(std::list<lfn_t*>::iterator l = lfns.begin();l!=lfns.end();++l) {
       if((*l)->done) {
         if((*l)->failed) {
-          remove_proxy();
+          ARex::remove_proxy();
           exit(1);
         };
       } else {
@@ -134,7 +134,7 @@ int main(int argc,char* argv[]) {
       };
     };
   };
-  remove_proxy();
+  ARex::remove_proxy();
   exit(0);
 }
 

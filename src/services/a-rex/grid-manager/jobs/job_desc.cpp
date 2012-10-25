@@ -16,6 +16,8 @@
 #include "job_desc.h"
 
 
+namespace ARex {
+
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 
@@ -232,3 +234,4 @@ std::ostream& operator<<(std::ostream &o,const numvalue_for_shell &s) {
   return o;
 }
 
+} // namespace ARex

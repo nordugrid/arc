@@ -11,6 +11,8 @@
 
 #include "plugins.h"
 
+namespace ARex {
+
 /*
   Substitution:
    %I - job id
@@ -213,3 +215,4 @@ void ContinuationPlugins::run(const GMJob &job,const GMConfig& config,std::list<
   };
 }
 
+} // namespace ARex

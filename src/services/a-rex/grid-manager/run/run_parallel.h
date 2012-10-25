@@ -6,6 +6,8 @@
 #include "../jobs/states.h"
 #include "run_plugin.h"
 
+namespace ARex {
+
 /// Run child process in parallel with stderr redirected to job.jobid.errors
 class RunParallel {
  private:
@@ -34,5 +36,7 @@ class RunParallel {
     kicker_func_=kicker_func;
   };
 };
+
+} // namespace ARex
 
 #endif

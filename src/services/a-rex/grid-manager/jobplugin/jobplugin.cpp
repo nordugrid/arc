@@ -49,6 +49,8 @@
 
 #include "jobplugin.h"
 
+using namespace ARex;
+
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"JobPlugin");
 
 typedef struct {

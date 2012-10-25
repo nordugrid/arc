@@ -23,6 +23,8 @@
 
 #include "conf_file.h"
 
+namespace ARex {
+
 Arc::Logger CoreConfig::logger(Arc::Logger::getRootLogger(), "CoreConfig");
 
 void CoreConfig::CheckLRMSBackends(const std::string& default_lrms) {
@@ -869,3 +871,5 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
 
   return true;
 }
+
+} // namespace ARex

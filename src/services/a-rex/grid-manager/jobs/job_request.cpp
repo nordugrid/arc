@@ -22,6 +22,8 @@
 
 // TODO: move to using process_job_req as much as possible
 
+namespace ARex {
+
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 typedef enum {
@@ -164,3 +166,5 @@ std::string read_grami(const JobId &job_id,const GMConfig &config) {
   f.close();
   return id;
 }
+
+} // namespace ARex

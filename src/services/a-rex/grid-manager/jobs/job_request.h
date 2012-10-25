@@ -7,12 +7,16 @@
 #include "job_desc.h"
 #include "job.h"
 
+namespace ARex {
+
 JobReqResult parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::string* acl = NULL, std::string* failure = NULL);
 JobReqResult parse_job_req(const std::string &fname,JobLocalDescription &job_desc,Arc::JobDescription& arc_job_desc,std::string* acl = NULL, std::string* failure = NULL);
 bool process_job_req(const GMConfig &config,const GMJob &job,JobLocalDescription &job_desc);
 bool write_grami(const GMJob &job,const GMConfig &config,const char *opt_add = NULL);
 std::string read_grami(const JobId &job_id,const GMConfig &config);
 bool set_execs(const GMJob &job,const GMConfig &config);
+
+} // namespace ARex
 
 #endif
 

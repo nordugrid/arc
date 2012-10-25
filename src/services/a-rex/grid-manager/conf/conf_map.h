@@ -5,6 +5,8 @@
 
 #include "GMConfig.h"
 
+namespace ARex {
+
 /*
   Look URLMap.h for functionality.
   This object automatically reads configuration file
@@ -15,5 +17,7 @@ class UrlMapConfig: public Arc::URLMap {
   UrlMapConfig(const GMConfig& config);
   ~UrlMapConfig(void);
 };
+
+} // namespace ARex
 
 #endif // __GM_CONFIG_MAP_H__

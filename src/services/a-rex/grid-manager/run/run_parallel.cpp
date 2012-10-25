@@ -14,6 +14,8 @@
 #include "../conf/GMConfig.h"
 #include "run_parallel.h"
 
+namespace ARex {
+
 typedef struct {
   const GMConfig* config;
   const GMJob* job;
@@ -161,3 +163,4 @@ void RunParallel::initializer(void* arg) {
 #endif
 }
 
+} // namespace ARex

@@ -13,6 +13,8 @@
 
 #include "conf_cache.h"
 
+namespace ARex {
+
 CacheConfig::CacheConfig(const GMConfig& config):
     _cache_max(100),
     _cache_min(100),
@@ -364,3 +366,4 @@ void CacheConfig::substitute(const GMConfig& config, const Arc::User& user) {
   }
 }
 
+} // namespace ARex

@@ -7,6 +7,8 @@
 
 #include "job.h"
 
+namespace ARex {
+
 class GMConfig;
 
 typedef enum {
@@ -75,5 +77,7 @@ std::ostream& operator<<(std::ostream &o,const numvalue_for_shell &s);
 #define NG_RSL_DEFAULT_STDIN      const_cast<char*>("/dev/null")
 #define NG_RSL_DEFAULT_STDOUT     const_cast<char*>("/dev/null")
 #define NG_RSL_DEFAULT_STDERR     const_cast<char*>("/dev/null")
+
+} // namespace ARex
 
 #endif

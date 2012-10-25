@@ -37,6 +37,8 @@
 #include "../conf/conf_cache.h"
 #include "../conf/GMConfig.h"
 
+using namespace ARex;
+
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "Downloader");
 
 /* check for user uploaded files every 60 seconds */

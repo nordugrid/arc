@@ -3,10 +3,13 @@
 
 #include <arc/Logger.h>
 
-class GMConfig;
 namespace Arc {
   class XMLNode;
 }
+
+namespace ARex {
+
+class GMConfig;
 
 /// Parses configuration and fills GMConfig with information
 class CoreConfig {
@@ -25,5 +28,7 @@ private:
   /// Logger
   static Arc::Logger logger;
 };
+
+} // namespace ARex
 
 #endif // __GM_CORE_CONFIG_H__

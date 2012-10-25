@@ -7,6 +7,8 @@
 #include <arc/Run.h>
 #include <arc/User.h>
 
+namespace ARex {
+
 class JobsList;
 class JobLocalDescription;
 class GMConfig;
@@ -107,4 +109,7 @@ class GMJob {
   time_t GetStartTime() const { return start_time; };
   void PrepareToDestroy(void);
 };
+
+} // namespace ARex
+
 #endif

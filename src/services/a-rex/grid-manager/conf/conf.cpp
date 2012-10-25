@@ -7,6 +7,8 @@
 #include "conf.h"
 #include "../misc/escaped.h"
 
+namespace ARex {
+
 bool config_open(std::ifstream &cfile,const std::string &name) {
   cfile.open(name.c_str(),std::ifstream::in);
   return cfile.is_open();
@@ -120,3 +122,5 @@ bool elementtoenum(Arc::XMLNode pnode,const char* ename,int& val,const char* con
   }; 
   return false;
 }
+
+} // namespace ARex

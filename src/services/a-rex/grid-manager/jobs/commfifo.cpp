@@ -12,6 +12,7 @@
 
 #include "commfifo.h"
 
+namespace ARex {
 
 #ifndef WIN32
 
@@ -207,3 +208,4 @@ bool PingFIFO(const std::string& dir_path) {
 
 #endif
 
+} // namespace ARex

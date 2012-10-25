@@ -19,6 +19,8 @@
 #include "jobs/commfifo.h"
 #include "jobs/states.h"
 
+using namespace ARex;
+
 /** Fill maps with shares taken from data staging states log */
 static void get_new_data_staging_shares(const GMConfig& config,
                                         std::map<std::string, int>& share_preparing,

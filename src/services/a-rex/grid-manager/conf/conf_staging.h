@@ -9,6 +9,8 @@
 
 #include "GMConfig.h"
 
+namespace ARex {
+
 class DTRGenerator;
 
 /// Represents configuration of DTR data staging
@@ -107,5 +109,6 @@ private:
 
 };
 
+} // namespace ARex
 
 #endif /* GM_CONF_STAGING_H_ */

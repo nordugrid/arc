@@ -7,10 +7,9 @@
 #include <list>
 
 #include "conf.h"
-
-
 #include "conf_sections.h"
 
+namespace ARex {
 
 ConfigSections::~ConfigSections(void) {
   if(fin && open) {
@@ -118,3 +117,4 @@ const char* ConfigSections::SubSectionMatch(const char* name) {
   return NULL;
 }
 
+} // namespace ARex

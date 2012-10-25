@@ -12,6 +12,8 @@
 
 #include "conf_map.h"
 
+namespace ARex {
+
 static Arc::Logger& glogger = Arc::Logger::getRootLogger();
 
 UrlMapConfig::UrlMapConfig(const GMConfig& config) {
@@ -104,3 +106,4 @@ UrlMapConfig::UrlMapConfig(const GMConfig& config) {
 UrlMapConfig::~UrlMapConfig(void) {
 }
 
+} // namespace ARex

@@ -18,6 +18,8 @@
 
 #include "dtr_generator.h"
 
+namespace ARex {
+
 Arc::Logger DTRInfo::logger(Arc::Logger::getRootLogger(), "DTRInfo");
 
 DTRInfo::DTRInfo(const GMConfig& config): config(config) {
@@ -1069,3 +1071,5 @@ void DTRGenerator::CleanCacheJobLinks(const GMConfig& config, const GMJob& job) 
                        job.get_id(), job.get_user().get_uid(), job.get_user().get_gid());
   cache.Release();
 }
+
+} // namespace ARex

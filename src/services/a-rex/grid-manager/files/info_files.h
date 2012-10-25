@@ -8,6 +8,8 @@
 
 #include "info_types.h"
 
+namespace ARex {
+
 class GMConfig;
 class GMJob;
 
@@ -192,5 +194,7 @@ bool job_clean_deleted(const GMJob &job,const GMConfig &config, std::list<std::s
 
 // Remove all job's files.
 bool job_clean_final(const GMJob &job,const GMConfig &config);
+
+} // namespace ARex
 
 #endif

@@ -12,6 +12,8 @@
 
 #include "run_redirected.h"
 
+namespace ARex {
+
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 int RunRedirected::run(const Arc::User& user,const char* cmdname,int in,int out,int err,char *const args[],int timeout) {
@@ -98,3 +100,4 @@ void RunRedirected::initializer(void* arg) {
 #endif
 }
 
+} // namespace ARex

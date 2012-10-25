@@ -1,15 +1,17 @@
+#ifndef GRID_MANAGER_H
+#define GRID_MANAGER_H
+
 #include <string>
 #include <list>
 
 #include <arc/XMLNode.h>
 #include <arc/Thread.h>
 
+namespace ARex {
+
 class DTRGenerator;
 class CommFIFO;
 class GMConfig;
-
-namespace ARex {
-
 class sleep_st;
 
 class GridManager {
@@ -31,5 +33,6 @@ class GridManager {
   operator bool(void) { return (active_.get()>0); };
 };
 
-}
+} // namespace ARex
 
+#endif // GRID_MANAGER_H

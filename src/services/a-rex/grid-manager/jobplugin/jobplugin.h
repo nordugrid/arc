@@ -7,13 +7,11 @@
 #include <iostream>
 #include "../../../gridftpd/fileroot.h"
 #include "../../../gridftpd/userspec.h"
-#include "../run/run_parallel.h"
-#include "../log/job_log.h"
-#include "../jobs/plugins.h"
 #include "../conf/GMConfig.h"
 
+using namespace ARex;
+
 class DirectFilePlugin;
-class ContinuationPlugins;
 
 /*
  * Store per-GM information

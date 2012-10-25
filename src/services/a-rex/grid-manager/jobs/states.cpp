@@ -23,6 +23,8 @@
 #include "dtr_generator.h"
 #include "states.h"
 
+namespace ARex {
+
 /* max time to run submit-*-job/cancel-*-job before to
    start looking for alternative way to detect result.
    Only for protecting against lost child. */
@@ -1935,3 +1937,5 @@ bool JobsList::ScanAllJobs(void) {
   }
   return true;
 }
+
+} // namespace ARex

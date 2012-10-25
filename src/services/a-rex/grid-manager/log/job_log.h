@@ -8,6 +8,8 @@
 
 #include <arc/Run.h>
 
+namespace ARex {
+
 class GMJob;
 class GMConfig;
 
@@ -54,5 +56,7 @@ class JobLog {
   /* Set accounting options (e.g. batch size for SGAS LUTS) */
   void set_options(std::string &options) { report_config.push_back(std::string("accounting_options=")+options); }
 };
+
+} // namespace ARex
 
 #endif

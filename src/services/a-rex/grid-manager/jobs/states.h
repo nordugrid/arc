@@ -6,6 +6,8 @@
 
 #include "job.h"
 
+namespace ARex {
+
 class JobFDesc;
 class DTRGenerator;
 class GMConfig;
@@ -174,5 +176,7 @@ class JobsList {
   // Send signals to external processes to shut down nicely (not implemented)
   void PrepareToDestroy(void);
 };
+
+} // namespace ARex
 
 #endif

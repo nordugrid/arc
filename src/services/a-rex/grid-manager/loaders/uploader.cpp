@@ -34,6 +34,8 @@
 #include "../conf/conf_map.h"
 #include "../conf/conf_cache.h"
 
+using namespace ARex;
+
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "Uploader");
 
 /* maximum number of retries (for every source/destination) */

@@ -15,6 +15,8 @@
 
 #include "info_files.h"
 
+namespace ARex {
+
 // Files in control dir, job.id.sfx
 const char * const sfx_failed      = ".failed";        // Description of failure
 const char * const sfx_cancel      = ".cancel";        // Mark to tell A-REX to cancel job
@@ -730,3 +732,5 @@ bool job_clean_final(const GMJob &job,const GMConfig &config) {
   fname = config.ControlDir()+"/job."+id+sfx_xml; remove(fname.c_str());
   return true;
 }
+
+} // namespace ARex

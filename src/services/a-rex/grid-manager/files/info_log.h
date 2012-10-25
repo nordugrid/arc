@@ -4,10 +4,14 @@
 #include <string>
 #include <list>
 
+namespace ARex {
+
 class GMJob;
 class GMConfig;
 
 bool job_log_make_file(const GMJob &job,const GMConfig& config,const std::string &url,std::list<std::string> &report_config);
+
+} // namespace ARex
 
 #endif
 

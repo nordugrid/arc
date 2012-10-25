@@ -9,6 +9,7 @@
 #include "../files/info_files.h"
 #include "job.h"
 
+namespace ARex {
 
 const char* state_names[JOB_STATE_NUM] = {
  "ACCEPTED",
@@ -134,3 +135,4 @@ void GMJob::PrepareToDestroy(void) {
   // So we will simply wait for them to finish in destructor.
 }
 
+} // namespace ARex

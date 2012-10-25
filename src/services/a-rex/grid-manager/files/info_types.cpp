@@ -19,6 +19,8 @@
 #include "../misc/escaped.h"
 #include "info_types.h"
 
+namespace ARex {
+
 static Glib::Mutex local_lock;
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
@@ -667,3 +669,4 @@ bool JobLocalDescription::read_var(const std::string &fname,const std::string &v
   return found;
 }
 
+} // namespace ARex

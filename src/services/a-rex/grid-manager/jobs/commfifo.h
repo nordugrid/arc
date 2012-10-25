@@ -1,6 +1,11 @@
+#ifndef GM_COMMFIFO_H
+#define GM_COMMFIFO_H
+
 #include <list>
 
 #include <arc/Thread.h>
+
+namespace ARex {
 
 class CommFIFO {
  private:
@@ -33,3 +38,6 @@ class CommFIFO {
 bool SignalFIFO(const std::string& dir_path);
 bool PingFIFO(const std::string& dir_path);
 
+} // namespace ARex
+
+#endif // GM_COMMFIFO_H

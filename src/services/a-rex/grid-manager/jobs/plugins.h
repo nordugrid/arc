@@ -5,6 +5,8 @@
 
 #include "job.h"
 
+namespace ARex {
+
 class ContinuationPlugins {
  public:
   typedef enum {
@@ -42,5 +44,7 @@ class ContinuationPlugins {
   bool add(const char* state,const char* options,const char* command);
   void run(const GMJob &job,const GMConfig& config,std::list<result_t>& results);
 };
+
+} // namespace ARex
 
 #endif

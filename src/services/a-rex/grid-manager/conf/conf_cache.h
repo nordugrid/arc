@@ -4,6 +4,8 @@
 #include <arc/User.h>
 #include <arc/XMLNode.h>
 
+namespace ARex {
+
 class ConfigSections;
 class GMConfig;
 
@@ -89,5 +91,7 @@ class CacheConfig {
   std::string getLifeTime() const { return _lifetime; };
   int getCleanTimeout() const { return _clean_timeout; };
 };
+
+} // namespace ARex
 
 #endif /*__GM_CONFIG_CACHE_H__*/

@@ -5,6 +5,8 @@
 
 #include "conf_staging.h"
 
+namespace ARex {
+
 Arc::Logger StagingConfig::logger(Arc::Logger::getRootLogger(), "StagingConfig");
 
 StagingConfig::StagingConfig(const GMConfig& config):
@@ -263,3 +265,5 @@ bool StagingConfig::paramToInt(const std::string& param, int& value) {
   value = i;
   return true;
 }
+
+} // namespace ARex

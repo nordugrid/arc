@@ -20,6 +20,8 @@
 
 #include "GMConfig.h"
 
+namespace ARex {
+
 // Defaults
 // default job ttl after finished - 1 week
 #define DEFAULT_KEEP_FINISHED (7*24*60*60)
@@ -413,3 +415,5 @@ bool GMConfig::ExternalHelper::run(const GMConfig& config) {
   // start failed, doing nothing - maybe in the future
   return false;
 }
+
+} // namespace ARex
