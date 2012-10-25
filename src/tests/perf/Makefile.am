@@ -94,21 +94,13 @@ perftest_deleg_bydelegclient_LDADD = \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 perftest_cmd_duration_SOURCES = perftest_cmd_duration.cpp
-perftest_cmd_duration_CXXFLAGS = -I$(top_srcdir)/include \
+perftest_cmd_duration_CXXFLAGS = \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
 perftest_cmd_duration_LDADD = \
-	$(top_builddir)/src/hed/libs/client/libarcclient.la \
-	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
-	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
-	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 perftest_cmd_times_SOURCES = perftest_cmd_times.cpp
-perftest_cmd_times_CXXFLAGS = -I$(top_srcdir)/include \
+perftest_cmd_times_CXXFLAGS = \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
 perftest_cmd_times_LDADD = \
-	$(top_builddir)/src/hed/libs/client/libarcclient.la \
-	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
-	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
-	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
