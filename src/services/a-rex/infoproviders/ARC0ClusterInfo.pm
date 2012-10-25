@@ -203,6 +203,8 @@ sub collect($) {
         $c->{name} = $hostname;
         $c->{aliasname} = $config->{service}{ClusterAlias} if $config->{service}{ClusterAlias};
         $c->{comment} = $config->{service}{ClusterComment} if $config->{service}{ClusterComment};
+        # added to help client to match GLUE2 services on the same machine
+        $c->{comment} = $c->{comment} ? $c->{comment}."; GLUE2ServiceID=urn:ogf:ComputingService:$hostname:arex" : "GLUE2ServiceID=urn:ogf:ComputingService:$hostname:arex"; # GLUE2ComputingService ID
         $c->{owner} = $config->{service}{ClusterOwner} if $config->{service}{ClusterOwner};
         $c->{acl} = [ @authorizedvos ] if @authorizedvos;
         $c->{location} = $config->{location}{PostCode} if $config->{location}{PostCode};
