@@ -777,8 +777,12 @@ int ArgusPDPClient::create_xacml_request_emi(Arc::XMLNode& request, std::list<Ar
       Arc::XMLNode action = xacml_request_add_element(request, "Action");
       std::string act_attr_id = XACML_ACTION_ID; //"urn:oasis:names:tc:xacml:1.0:action:action-id";
       //"http://dci-sec.org/xacml/action/arc/arex/"+operation.Name
-      std::string act_attr_value = get_sec_attr(auths, "AREX", "NAMESPACE") + "/" + get_sec_attr(auths, "AREX", "ACTION");
-      if(act_attr_value.empty()) throw ierror("Failed to generate action name");
+      std::string arex_ns = get_sec_attr(auths, "AREX", "NAMESPACE");
+      std::string arex_action = get_sec_attr(auths, "AREX", "ACTION");
+      std::string act_attr_value;
+      if(!arex_ns.empty()) act_attr_value = arex_ns + "/" + arex_action;
+
+      if(act_attr_value.empty()) act_attr_value = "http://dci-sec.org/xacml/action/ANY"; //throw ierror("Failed to generate action name");
       logger.msg(Arc::DEBUG,"Adding action-id value: %s", act_attr_value);
       xacml_element_add_attribute(action, act_attr_value, XACML_DATATYPE_STRING, act_attr_id, "");
 
