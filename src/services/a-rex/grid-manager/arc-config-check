@@ -535,24 +535,33 @@ sub check_completeness() {
 			e("Missing group identifier '$k'\n");
 		}
 	}
-
-	if (exists($config->{common})) {
-	    my $hn=`hostname -f`;
-	    chomp($hn);
-	    if (!exists($config->{common}{lrms})) {
-		e("The entry lrms must not be missed.\n");
-	    }
-	    if (!exists($config->{common}{hostname})) {
-		e("The entry hostname must not be missed.\n");
-	    }
-	    elsif ($config->{common}{hostname} ne "$hn") {
-		e("The entry of the full hostname (".$config->{common}{hostname}
+	# hostname
+	my $hn=`hostname -f`;
+	chomp($hn);
+	my $hn_conf;
+	if (exists($config->{common}{hostname})) {
+		$hn_conf = $config->{common}{hostname};
+	}
+	elsif (exists($config->{cluster}{hostname})) {
+		$hn_conf = $config->{cluster}{hostname};
+	}
+	if ($hn_conf) {
+		if ($hn_conf ne "$hn") {
+			e("The entry of the full hostname (".$hn_conf
 			                      . ") is better\n"
 		            ."   equal to `hostname -f` ($hn).\n"
 		            ."   Also test reverse lookup of the hostname.\n");
-	    }
-
+		}
 	}
+	else {
+		e("The entry hostname must not be missed.\n");
+	}
+
+	# lrms
+	if (!exists($config->{common}{lrms}) && !exists($config->{"grid-manager"}{lrms})) {
+		e("The entry lrms must not be missed.\n");
+	}
+
 }
 
 =item check of applications
