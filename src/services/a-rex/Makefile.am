@@ -32,7 +32,7 @@ libarex_la_SOURCES  = arex.cpp job.cpp \
 	information_collector.cpp gacl.cpp cachecheck.cpp tools.cpp \
 	arex.h job.h PayloadFile.h FileChunks.h gacl.h tools.h
 libarex_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(DBCXX_CPPFLAGS) 
 # Needs real cleaning in respect to dependencies
 libarex_la_LIBADD = \
 	ldif/libldif.la \

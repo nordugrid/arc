@@ -12,7 +12,7 @@ pkglib_LTLIBRARIES = jobplugin.la
 
 jobplugin_la_SOURCES = jobplugin.cpp jobplugin.h init.cpp
 jobplugin_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(DBCXX_CPPFLAGS) \
 	$(GLOBUS_FTP_CLIENT_CFLAGS) $(GACL_CFLAGS) $(GRIDSITE_CFLAGS)
 jobplugin_la_LDFLAGS = -no-undefined -avoid-version -module
 
@@ -26,4 +26,6 @@ jobplugin_la_LIBADD = \
 	../jobs/libusers.la ../mail/libmail.la ../conf/libenv.la \
 	../log/liblog.la ../files/libfiles.la ../run/librun.la \
 	../../delegation/libdelegation.la \
-	$(GLOBUS_JOBPLUGIN_LIBS) -lpthread
+	$(top_builddir)/src/hed/libs/data/libarcdata.la \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(DBCXX_LIBS) $(GLOBUS_JOBPLUGIN_LIBS) -lpthread
