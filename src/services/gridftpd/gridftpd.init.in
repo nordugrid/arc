@@ -160,7 +160,7 @@ check_cert() {
     exit 1
   fi
   # check permissions on key
-  perms=`stat -c %a "$X509_USER_KEY"`
+  perms=`stat -L -c %a "$X509_USER_KEY"`
   if [ "$perms" != "600" ] && [ "$perms" != "400" ] ; then
     log_failure_msg "Host key must be readable only by user"
     exit 1
