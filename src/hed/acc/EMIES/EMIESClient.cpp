@@ -729,10 +729,10 @@ namespace Arc {
       lfailure = "Service responded with fault: "+fault.message+" - "+fault.description;
       return false;
     };
-    if(!item["Acknowledgement"]) {
-      lfailure = "Response does not contain Acknowledgement";
-      return false;
-    };
+    //if(!item["Acknowledgement"]) {
+    //  lfailure = "Response does not contain Acknowledgement";
+    //  return false;
+    //};
     return true;
   }
 

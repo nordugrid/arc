@@ -247,13 +247,18 @@ namespace Arc {
         }
       }
   
+      clients.release(ac.Release());
+
       // It is not clear how service is implemented. So notifying should not harm.
-      if (!ac->notify(jobid)) {
+      // Notification must be sent to manager URL.
+      AutoPointer<EMIESClient> mac(clients.acquire(jobid.manager));
+      if (!mac->notify(jobid)) {
         logger.msg(INFO, "Failed to notify service");
+        // TODO: Maybe job should be killed in this case?
         return false;
       }
+      clients.release(mac.Release());
   
-    clients.release(ac.Release());
     return true;
   }
 
