@@ -236,6 +236,7 @@ namespace Arc {
             stagein->AddOption("threads=2",false);
             stagein->AddOption("encryption=optional",false);
           }
+          stagein->AddOption("checksum=no",false);
           if (!PutFiles(preparedjobdesc, *stagein)) {
             logger.msg(INFO, "Failed uploading local input files to %s",stagein->str());
           } else {
