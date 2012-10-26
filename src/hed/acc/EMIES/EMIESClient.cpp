@@ -13,7 +13,7 @@
 #include "EMIESClient.h"
 
 #ifdef CPPUNITTEST
-#include "../../libs/client/test/SimulatorClasses.h"
+#include "../../libs/communication/test/SimulatorClasses.h"
 #define DelegationProviderSOAP DelegationProviderSOAPTest
 #endif
 
@@ -422,9 +422,9 @@ namespace Arc {
     ext  = infodoc["esainfo:StageInDirectory"];
     for(;(bool)ext;++ext) job.stagein.push_back((std::string)ext);
     ext  = infodoc["esainfo:StageOutDirectory"];
-    for(;(bool)ext;++ext) job.stagein.push_back((std::string)ext);
+    for(;(bool)ext;++ext) job.stageout.push_back((std::string)ext);
     ext  = infodoc["esainfo:SessionDirectory"];
-    for(;(bool)ext;++ext) job.stagein.push_back((std::string)ext);
+    for(;(bool)ext;++ext) job.session.push_back((std::string)ext);
     // Making EMI ES specific job id
     // URL-izing job id
     info.JobID = URL(job.manager.str() + "/" + job.id);
