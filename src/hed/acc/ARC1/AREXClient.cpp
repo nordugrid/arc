@@ -16,7 +16,7 @@
 #include "AREXClient.h"
 
 #ifdef CPPUNITTEST
-#include "../../libs/client/test/SimulatorClasses.h"
+#include "../../libs/communication/test/SimulatorClasses.h"
 #define DelegationProviderSOAP DelegationProviderSOAPTest
 #endif
 
