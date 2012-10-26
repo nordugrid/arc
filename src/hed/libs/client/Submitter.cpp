@@ -155,7 +155,6 @@ namespace Arc {
         ets.set(*currentJobDesc);
         for (; !ets.endOfList(); ets.next()) {
           if(!match_submission_interface(*ets, requestedSubmissionInterfaces)) continue;
-std::cerr<<"loadByInterfaceName: "<<ets->ComputingEndpoint->InterfaceName<<std::endl;
           SubmitterPlugin *sp = loader.loadByInterfaceName(ets->ComputingEndpoint->InterfaceName, uc);
           if (sp == NULL) {
             submissionStatusMap[Endpoint(*ets)] = EndpointSubmissionStatus(EndpointSubmissionStatus::NOPLUGIN);
