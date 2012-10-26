@@ -21,6 +21,22 @@ namespace Arc {
   template<typename T>
   void ComputingServiceType::GetExecutionTargets(T& container) const {
     // TODO: Currently assuming only one ComputingManager and one ExecutionEnvironment.
+    CountedPointer<ComputingManagerAttributes> computingManager(
+      ComputingManager.empty()?
+        new ComputingManagerAttributes:
+        ComputingManager.begin()->second.Attributes);
+    CountedPointer<ExecutionEnvironmentAttributes> executionEnvironment(
+      (ComputingManager.empty() || ComputingManager.begin()->second.ExecutionEnvironment.empty())?
+        new ExecutionEnvironmentAttributes:
+        ComputingManager.begin()->second.ExecutionEnvironment.begin()->second.Attributes);
+    CountedPointer< std::map<std::string, double> > benchmarks(
+      ComputingManager.empty()?
+        new std::map<std::string, double>:
+        ComputingManager.begin()->second.Benchmarks);
+    CountedPointer< std::list<ApplicationEnvironment> > applicationEnvironments(
+      ComputingManager.empty()?
+        new std::list<ApplicationEnvironment>:
+        ComputingManager.begin()->second.ApplicationEnvironments);
     for (std::map<int, ComputingEndpointType>::const_iterator itCE = ComputingEndpoint.begin();
          itCE != ComputingEndpoint.end(); ++itCE) {
       if (!Attributes->OriginalEndpoint.RequestedSubmissionInterfaceName.empty()) {
@@ -36,26 +52,47 @@ namespace Arc {
         for (std::set<int>::const_iterator itCSIDs = itCE->second.ComputingShareIDs.begin();
              itCSIDs != itCE->second.ComputingShareIDs.end(); ++itCSIDs) {
           std::map<int, ComputingShareType>::const_iterator itCS = ComputingShare.find(*itCSIDs);
-          if (itCS != ComputingShare.end() && !ComputingManager.empty() && !ComputingManager.begin()->second.ExecutionEnvironment.empty()) {
+          if (itCS != ComputingShare.end()) {
             AddExecutionTarget<T>(container, ExecutionTarget(Location.Attributes, AdminDomain.Attributes,
                                                              Attributes, itCE->second.Attributes,
-                                                             itCS->second.Attributes, ComputingManager.begin()->second.Attributes,
-                                                             ComputingManager.begin()->second.ExecutionEnvironment.begin()->second.Attributes, ComputingManager.begin()->second.Benchmarks,
-                                                             ComputingManager.begin()->second.ApplicationEnvironments));
+                                                             itCS->second.Attributes, computingManager,
+                                                             executionEnvironment, benchmarks,
+                                                             applicationEnvironments));
           }
         }
       }
-      else {
+      else if (!ComputingShare.empty()) {
         for (std::map<int, ComputingShareType>::const_iterator itCS = ComputingShare.begin();
              itCS != ComputingShare.end(); ++itCS) {
-          if (!ComputingManager.empty() && !ComputingManager.begin()->second.ExecutionEnvironment.empty()) {
-            AddExecutionTarget<T>(container, ExecutionTarget(Location.Attributes, AdminDomain.Attributes,
-                                                             Attributes, itCE->second.Attributes,
-                                                             itCS->second.Attributes, ComputingManager.begin()->second.Attributes,
-                                                             ComputingManager.begin()->second.ExecutionEnvironment.begin()->second.Attributes, ComputingManager.begin()->second.Benchmarks,
-                                                             ComputingManager.begin()->second.ApplicationEnvironments));
+          AddExecutionTarget<T>(container, ExecutionTarget(Location.Attributes, AdminDomain.Attributes,
+                                                           Attributes, itCE->second.Attributes,
+                                                           itCS->second.Attributes, computingManager,
+                                                           executionEnvironment, benchmarks,
+                                                           applicationEnvironments));
+        }
+      } else {
+        // No ComputingShares and no associations. Either it is not computing service
+        // or it does not bother to specify its share or does not split resources
+        // by shares.
+        // Check if it is computing endpoint at all
+        for (std::list<std::string>::const_iterator itCap = itCE->second.Attributes->Capability.begin();
+                    itCap != itCE->second.Attributes->Capability.end(); ++itCap) {
+          if(*itCap == "executionmanagement.jobcreation") {
+            // Creating generic target
+            CountedPointer<ComputingShareAttributes> computingShare(new ComputingShareAttributes);
+            AddExecutionTarget<T>(container,
+                                  ExecutionTarget(Location.Attributes, AdminDomain.Attributes,
+                                                  Attributes, itCE->second.Attributes,
+                                                  computingShare,
+                                                  computingManager,
+                                                  executionEnvironment,
+                                                  benchmarks,
+                                                  applicationEnvironments));
+            break;
           }
         }
+
+
       }
     }
   }
