@@ -17,8 +17,6 @@
 #include "../../delegation/DelegationStore.h"
 #include "../conf/GMConfig.h"
 
-#include "job_request.h"
-#include "job_desc.h"
 #include "plugins.h"
 #include "dtr_generator.h"
 #include "states.h"
@@ -37,7 +35,7 @@ namespace ARex {
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 JobsList::JobsList(const GMConfig& config) :
-    config(config), old_dir(NULL), dtr_generator(NULL), jobs_pending(0) {
+    config(config), old_dir(NULL), dtr_generator(NULL), job_desc_handler(config), jobs_pending(0) {
   for(int n = 0;n<JOB_STATE_NUM;n++) jobs_num[n]=0;
   jobs.clear();
 }
@@ -380,9 +378,8 @@ bool JobsList::FailedJob(const JobsList::iterator &i,bool cancel) {
   }
   // adjust output files to failure state
   // Not good looking code
-  std::string filename = config.control_dir + "/job." + i->get_id() + ".description";
   JobLocalDescription job_desc;
-  if(parse_job_req(filename,job_desc) != JobReqSuccess) {
+  if(job_desc_handler.parse_job_req(i->get_id(),job_desc) != JobReqSuccess) {
     r = false;
   }
   // Convert delegation ids to credential paths.
@@ -439,11 +436,11 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
       if(config.use_local_transfer) {
         local_transfer_s="joboption_localtransfer=yes";
       }
-      if(!write_grami(*i,config,local_transfer_s)) {
+      if(!job_desc_handler.write_grami(*i,local_transfer_s)) {
         logger.msg(Arc::ERROR,"%s: Failed creating grami file",i->job_id);
         return false;
       }
-      if(!set_execs(*i,config)) {
+      if(!job_desc_handler.set_execs(*i)) {
         logger.msg(Arc::ERROR,"%s: Failed setting executable permissions",i->job_id);
         return false;
       }
@@ -491,7 +488,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     if((Arc::Time() - i->child->RunTime()) > Arc::Period(CHILD_RUN_TIME_SUSPICIOUS)) {
       if(!cancel) {
         // Check if local id is already obtained
-        std::string local_id=read_grami(i->job_id,config);
+        std::string local_id=job_desc_handler.get_local_id(i->job_id);
         if(local_id.length() > 0) {
           simulate_success = true;
           logger.msg(Arc::ERROR,"%s: Job submission to LRMS takes too long. But ID is already obtained. Pretending submission is done.",i->job_id);
@@ -552,7 +549,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
   if(!cancel) {
     delete i->child; i->child=NULL;
     // success code - get LRMS job id
-    std::string local_id=read_grami(i->job_id,config);
+    std::string local_id=job_desc_handler.get_local_id(i->job_id);
     if(local_id.length() == 0) {
       logger.msg(Arc::ERROR,"%s: Failed obtaining lrms id",i->job_id);
       i->AddFailure("Failed extracting LRMS ID due to some internal error");
@@ -864,7 +861,7 @@ bool JobsList::RecreateTransferLists(const JobsList::iterator &i) {
   job_output_status_read_file(i->job_id,config,output_files_done);
   // recreate lists by reprocessing job description
   JobLocalDescription job_desc; // placeholder
-  if(!process_job_req(config,*i,job_desc)) {
+  if(!job_desc_handler.process_job_req(*i,job_desc)) {
     logger.msg(Arc::ERROR,"%s: Reprocessing RSL failed",i->job_id);
     return false;
   }
@@ -980,7 +977,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
             state_changed = true; // to trigger email notification
             // first phase of job - just  accepted - parse request
             logger.msg(Arc::INFO,"%s: State: ACCEPTED: parsing job description",i->job_id);
-            if(!process_job_req(config,*i,*i->local)) {
+            if(!job_desc_handler.process_job_req(*i,*i->local)) {
               logger.msg(Arc::ERROR,"%s: Processing job description failed",i->job_id);
               job_error=true;
               i->AddFailure("Could not process job description");

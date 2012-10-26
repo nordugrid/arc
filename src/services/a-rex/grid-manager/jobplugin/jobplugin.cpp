@@ -616,10 +616,11 @@ int JobPlugin::close(bool eof) {
    * store RSL (description)                         *
    ************************************************* */
   std::string rsl_fname=config.ControlDir()+"/job."+job_id+".description";
-  std::string acl("");
   /* analyze rsl (checking, substituting, etc)*/
+  JobDescriptionHandler job_desc_handler(config);
   JobLocalDescription job_desc;
-  if(parse_job_req(rsl_fname.c_str(),job_desc,&acl) != JobReqSuccess) {
+  JobReqResult parse_result = job_desc_handler.parse_job_req(job_id,job_desc,true);
+  if (parse_result != JobReqSuccess) {
     error_description="Failed to parse job/action description.";
     logger.msg(Arc::ERROR, "%s", error_description);
     delete_job_id();
@@ -785,7 +786,7 @@ int JobPlugin::close(bool eof) {
   };
   std::string session_dir(config.SessionRoot(job_id) + '/' + job_id);
   GMJob job(job_id,user,session_dir,JOB_STATE_ACCEPTED);
-  if(!process_job_req(config, job, job_desc)) {
+  if(!job_desc_handler.process_job_req(job, job_desc)) {
     error_description="Failed to preprocess job description.";
     logger.msg(Arc::ERROR, "%s", error_description);
     delete_job_id(); 
@@ -861,8 +862,8 @@ int JobPlugin::close(bool eof) {
   /* ******************************************
    * Write access policy                      *
    ****************************************** */
-  if(acl.length() != 0) {
-    if(!job_acl_write_file(job_id,config,acl)) {
+  if(!parse_result.acl.empty()) {
+    if(!job_acl_write_file(job_id,config,parse_result.acl)) {
       logger.msg(Arc::ERROR, "Failed writing ACL");
       delete_job_id(); 
       error_description="Failed to process/store job ACL.";

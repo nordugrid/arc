@@ -80,7 +80,7 @@ template <typename T> class AutoPointer {
 };
 
 static ARexJobFailure setfail(JobReqResult res) {
-  switch(res) {
+  switch(res.result_type) {
     case JobReqSuccess: return ARexJobNoError;
     case JobReqInternalFailure: return ARexJobInternalError;
     case JobReqSyntaxFailure: return ARexJobDescriptionSyntaxError;
@@ -258,9 +258,11 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     return;
   };
   // Analyze job description (checking, substituting, etc)
-  std::string acl("");
+  JobDescriptionHandler job_desc_handler(config.GmConfig());
   Arc::JobDescription desc;
-  if((failure_type_=setfail(parse_job_req(fname.c_str(),job_,desc,&acl,&failure_))) != ARexJobNoError) {
+  JobReqResult parse_result = job_desc_handler.parse_job_req(id_,job_,desc,true);
+  if((failure_type_=setfail(parse_result)) != ARexJobNoError) {
+    failure_ = parse_result.failure;
     if(failure_.empty()) {
       failure_="Failed to parse job description";
       failure_type_=ARexJobInternalError;
@@ -268,6 +270,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     delete_job_id();
     return;
   };
+  std::string acl(parse_result.acl);
   if((!job_.action.empty()) && (job_.action != "request")) {
     failure_="Wrong action in job request: "+job_.action;
     failure_type_=ARexJobInternalError;
@@ -528,7 +531,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     };
   };
   // Write grami file
-  if(!write_grami(desc,job,config_.GmConfig(),NULL)) {
+  if(!job_desc_handler.write_grami(desc,job,NULL)) {
     delete_job_id();
     failure_="Failed to create grami file";
     failure_type_=ARexJobInternalError;

@@ -5,6 +5,7 @@
 #include <list>
 
 #include "job.h"
+#include "job_request.h"
 
 namespace ARex {
 
@@ -56,6 +57,8 @@ class JobsList {
   Glib::Dir* old_dir;
   // Generator for handling data staging
   DTRGenerator* dtr_generator;
+  // Job description handler
+  JobDescriptionHandler job_desc_handler;
   // number of jobs for every state
   int jobs_num[JOB_STATE_NUM];
   // map of number of active jobs for each DN

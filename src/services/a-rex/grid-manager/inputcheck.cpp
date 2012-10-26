@@ -12,6 +12,7 @@
 #include <arc/UserConfig.h>
 #include <arc/data/DataHandle.h>
 
+#include "conf/GMConfig.h"
 #include "files/info_types.h"
 #include "jobs/job_request.h"
 #include "misc/proxy.h"
@@ -34,6 +35,7 @@ void check_url(void *arg) {
 
   Arc::UserConfig usercfg;
   Arc::DataHandle source(Arc::URL(lfn->lfn),usercfg);
+  source->SetSecure(false);
   if(!source) {
     logger.msg(Arc::ERROR,"Failed to acquire source: %s",lfn->lfn);
     lfn->failed=true; lfn->done=true; cond.signal();
@@ -98,9 +100,16 @@ int main(int argc,char* argv[]) {
   std::string rsl = argv[optind];
   const char* proxy = NULL;
   if((optind+1) < argc) proxy=argv[optind+1];
-  ARex::JobLocalDescription job;
 
-  if(ARex::parse_job_req(rsl,job) != ARex::JobReqSuccess) return 1;
+  // TODO It would be better to use Arc::JobDescription::Parse(rsl)
+  ARex::GMConfig config;
+  // Assume job description is in control dir
+  config.SetControlDir(rsl.substr(0, rsl.rfind('/')));
+  ARex::JobDescriptionHandler job_desc_handler(config);
+  ARex::JobLocalDescription job;
+  Arc::JobDescription arc_job_desc;
+
+  if(job_desc_handler.parse_job_req(job,arc_job_desc,rsl) != ARex::JobReqSuccess) return 1;
 
   if(proxy) {
     Arc::SetEnv("X509_USER_PROXY",proxy,true);
