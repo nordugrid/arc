@@ -46,6 +46,9 @@ bool send_mail(const GMJob &job,const GMConfig& config) {
     if(n == std::string::npos) break;
     failure_reason[n]='.';
   };
+  // mail script expects a parameter so use dummy value if no failure
+  if(failure_reason.empty()) failure_reason = "<none>";
+  else failure_reason = '"' + failure_reason + '"';
   std::string cmd(Arc::ArcLocation::GetToolsDir()+"/smtp-send.sh");
   cmd += " " + std::string(states_all[job.get_state()].name);
   cmd += " " + job.get_id();

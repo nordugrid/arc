@@ -57,7 +57,7 @@ while true ; do
   if [ ! -z "$cluster_name" ] ; then
     job_name="${job_name} at ${cluster_name}"
   fi
-  if [ ! -z "$failure_reason" ] ; then
+  if [ ! -z "$failure_reason" -a "$failure_reason" != "<none>" ] ; then
     echo "Job $job_name state is $status. Job FAILED with reason:"
     echo "$failure_reason"
     if [ "$status" = FINISHED ] ; then
