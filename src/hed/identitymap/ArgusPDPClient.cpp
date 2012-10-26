@@ -618,7 +618,7 @@ int ArgusPDPClient::create_xacml_request_cream(Arc::XMLNode& request, std::list<
       Arc::XMLNode action = xacml_request_add_element(request, "Action");
       std::string act_attr_id = XACML_ACTION_ID; //"urn:oasis:names:tc:xacml:1.0:action:action-id";
       std::string act_attr_value = get_cream_action(operation,logger);
-      if(act_attr_value.empty()) throw ierror("Failed to generate action name");
+      if(act_attr_value.empty()) act_attr_value = "http://glite.org/xacml/action/ANY"; // throw ierror("Failed to generate action name");
       logger.msg(Arc::DEBUG,"Adding action-id value: %s", act_attr_value);
       xacml_element_add_attribute(action, act_attr_value, XACML_DATATYPE_STRING, act_attr_id, "");
 
