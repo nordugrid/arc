@@ -719,18 +719,24 @@ int ArgusPDPClient::create_xacml_request_emi(Arc::XMLNode& request, std::list<Ar
         std::list<std::string> attrs;
         if(!split_voms(*fqan,vo,group,roles,attrs)) throw ierror("Failed to convert voms fqan");
         if(pgroup.empty()) pgroup = group;
-        if(!group.empty()) groups.push_back(group);
+        if(!group.empty()) {
+          groups.push_back(group);
+        }
+      }
+      groups.unique();
+      for(std::list<std::string>::iterator g = groups.begin(); g!=groups.end(); ++g) {
+        logger.msg(Arc::DEBUG,"Adding voms group value: %s", *g);
       }
       if(groups.size()>0) xacml_element_add_attribute(subject, groups, XACML_DATATYPE_STRING, group_attr_id, "");
 
       if(!pgroup.empty()) {
         std::string pgroup_attr_id = XACML_DCISEC_ATTRIBUTE_GROUP_PRIMARY; //"http://dci-sec.org/xacml/attribute/group/primary"
+        logger.msg(Arc::DEBUG,"Adding voms primary group value: %s", pgroup);
         xacml_element_add_attribute(subject, pgroup, XACML_DATATYPE_STRING, pgroup_attr_id, "");
       }
 
       std::string prole;
       pgroup.resize(0);
-      std::list<std::string> roles;
       for(std::list<std::string>::iterator fqan = fqans.begin(); fqan!=fqans.end(); ++fqan) {
         std::string vo;
         std::string group;
@@ -740,18 +746,17 @@ int ArgusPDPClient::create_xacml_request_emi(Arc::XMLNode& request, std::list<Ar
 
         std::string role_attr_id = XACML_DCISEC_ATTRIBUTE_ROLE; //"http://dci-sec.org/xacml/attribute/role"
 
-
         // TODO: handle no roles
         for(std::list<std::string>::iterator role = roles.begin(); role!=roles.end(); ++role) {
-            if(role->empty()) continue;
-            if(prole.empty()) { prole = *role; pgroup = group; }
-            roles.push_back(*role);
+          if(role->empty()) { roles.erase(role); continue; }
+          if(prole.empty()) { prole = *role; pgroup = group; }
+          logger.msg(Arc::DEBUG,"Adding voms role value: %s", *role);
         }
-
-        xacml_element_add_attribute(subject, roles, XACML_DATATYPE_STRING, role_attr_id, group);
+        if(roles.size()>0) xacml_element_add_attribute(subject, roles, XACML_DATATYPE_STRING, role_attr_id, group);
       }
       if(!prole.empty()) {
         std::string prole_attr_id = XACML_DCISEC_ATTRIBUTE_ROLE_PRIMARY; //"http://dci-sec.org/xacml/attribute/role/primary"
+        logger.msg(Arc::DEBUG,"Adding voms primary role value: %s", prole);
         xacml_element_add_attribute(subject, prole, XACML_DATATYPE_STRING, prole_attr_id, pgroup);
       }
 
