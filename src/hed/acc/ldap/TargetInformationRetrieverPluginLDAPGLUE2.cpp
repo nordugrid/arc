@@ -253,6 +253,7 @@ namespace Arc {
 
       // GFD.147 GLUE2 6.2 ComputingEndpoint
       std::list<Extractor> endpoints = Extractor::All(service, "ComputingEndpoint");
+      std::list<Endpoint> OtherEndpoints;
       int endpointID = 0;
       for (std::list<Extractor>::iterator ite = endpoints.begin(); ite != endpoints.end(); ++ite) {
         Extractor& endpoint = *ite;
@@ -280,6 +281,12 @@ namespace Arc {
         endpoint.set("JobDescription", ComputingEndpoint->JobDescriptions);
 
         cs.ComputingEndpoint.insert(std::pair<int, ComputingEndpointType>(endpointID++, ComputingEndpoint));
+        OtherEndpoints.push_back(*ComputingEndpoint.Attributes);
+      }
+      
+      // For each endpoint add a list of all the endpoints which may be needed later by the Submitter and JobListRetriever plugins
+      for (std::map<int, ComputingEndpointType>::iterator itCE = cs.ComputingEndpoint.begin(); itCE != cs.ComputingEndpoint.end(); ++itCE) {
+        itCE->second->OtherEndpoints = OtherEndpoints;
       }
 
       // GFD.147 GLUE2 6.3 Computing Share

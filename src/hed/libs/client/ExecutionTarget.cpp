@@ -251,6 +251,13 @@ namespace Arc {
       for (std::list<std::string>::const_iterator it = JobDescriptions.begin();
            it != JobDescriptions.end(); ++it) out << "  " << *it << std::endl;
     }
+    
+    if (!OtherEndpoints.empty()) {
+                                   out << IString(" Other endpoints on the same service:") << std::endl;
+      for (std::list<Endpoint>::const_iterator it = OtherEndpoints.begin();
+           it != OtherEndpoints.end(); ++it) out << "  " << it->str() << std::endl;
+    }
+    
   }
 
   void ComputingShareAttributes::SaveToStream(std::ostream& out, bool alldetails) const {
