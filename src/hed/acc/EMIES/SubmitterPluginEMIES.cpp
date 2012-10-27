@@ -156,109 +156,113 @@ namespace Arc {
       return false;
     }
   
-      if (!jobid) {
-        logger.msg(INFO, "No valid job identifier returned by EMI ES");
-        return false;
-      }
+    if (!jobid) {
+      logger.msg(INFO, "No valid job identifier returned by EMI ES");
+      return false;
+    }
   
       if(!jobid.manager) jobid.manager = url;
   
-      // Check if we have anything to upload. Otherwise there is no need to wait.
-      bool have_uploads = false;
-      for(std::list<InputFileType>::const_iterator itIF =
-            preparedjobdesc.DataStaging.InputFiles.begin();
-            itIF != preparedjobdesc.DataStaging.InputFiles.end(); ++itIF) {
-        if((!itIF->Sources.empty()) && (itIF->Sources.front().Protocol() == "file")) {
-          have_uploads = true;
-          break;
-        };
+    // Check if we have anything to upload. Otherwise there is no need to wait.
+    bool have_uploads = false;
+    for(std::list<InputFileType>::const_iterator itIF =
+          preparedjobdesc.DataStaging.InputFiles.begin();
+          itIF != preparedjobdesc.DataStaging.InputFiles.end(); ++itIF) {
+      if((!itIF->Sources.empty()) && (itIF->Sources.front().Protocol() == "file")) {
+        have_uploads = true;
+        break;
       };
+    };
   
-      if(have_uploads) {
-        // Wait for job to go into proper state
-        for(;;) {
-          // TODO: implement timeout
-          if(jobstate.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) break;
-          if(jobstate.state == EMIES_STATE_TERMINAL_S) {
-            logger.msg(INFO, "Job failed on service side");
-            job_ok = false;
-            break;
-          }
-          // If service jumped over stageable state client probably does not
-          // have to send anything.
-          if((jobstate.state != EMIES_STATE_ACCEPTED_S) &&
-             (jobstate.state != EMIES_STATE_PREPROCESSING_S)) break;
-          sleep(5);
-          if(!ac->stat(jobid, jobstate)) {
-            logger.msg(INFO, "Failed to obtain state of job");
-            job_ok = false;
-            break;
-          }
+    if(have_uploads) {
+      // Wait for job to go into proper state
+      for(;;) {
+        // TODO: implement timeout
+        if(jobstate.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) break;
+        if(jobstate.state == EMIES_STATE_TERMINAL_S) {
+          logger.msg(INFO, "Job failed on service side");
+          job_ok = false;
+          break;
         }
-        if (!job_ok) {
-          return false;
+        // If service jumped over stageable state client probably does not
+        // have to send anything.
+        if((jobstate.state != EMIES_STATE_ACCEPTED_S) &&
+           (jobstate.state != EMIES_STATE_PREPROCESSING_S)) break;
+        sleep(5);
+        if(!ac->stat(jobid, jobstate)) {
+          logger.msg(INFO, "Failed to obtain state of job");
+          job_ok = false;
+          break;
         }
       }
-        
-      if(have_uploads) {
-        if(!jobstate.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) {
-          logger.msg(INFO, "Failed to wait for job to allow stage in");
-          return false;
-        }
-        if(jobid.stagein.empty()) {
-          // Try to obtain it from job info
-          Job tjob;
-          if((!ac->info(jobid, tjob)) ||
-             (jobid.stagein.empty())) {
-            job_ok = false;
-          } else {
-            job_ok = false;
-            for(std::list<URL>::iterator stagein = jobid.stagein.begin();
-                         stagein != jobid.stagein.end();++stagein) {
-              if(*stagein) {
-                job_ok = true;
-                break;
-              }
-            }
-          }
-          if(!job_ok) {
-            logger.msg(INFO, "Failed to obtain valid stagein URL for input files");
-            return false;
-          }
-        }
-
-        job_ok = false;
-        for(std::list<URL>::iterator stagein = jobid.stagein.begin();
-                       stagein != jobid.stagein.end();++stagein) {
-          if(!*stagein) continue;
-          // Enhance file upload performance by tuning URL
-          if((stagein->Protocol() == "https") || (stagein->Protocol() == "http")) {
-            stagein->AddOption("threads=2",false);
-            stagein->AddOption("encryption=optional",false);
-          }
-          stagein->AddOption("checksum=no",false);
-          if (!PutFiles(preparedjobdesc, *stagein)) {
-            logger.msg(INFO, "Failed uploading local input files to %s",stagein->str());
-          } else {
-            job_ok = true;
-          }
-        }
-        if (!job_ok) {
-          return false;
-        }
-      }
-  
-      clients.release(ac.Release());
-
-      // It is not clear how service is implemented. So notifying should not harm.
-      // Notification must be sent to manager URL.
-      AutoPointer<EMIESClient> mac(clients.acquire(jobid.manager));
-      if (!mac->notify(jobid)) {
-        logger.msg(INFO, "Failed to notify service");
-        // TODO: Maybe job should be killed in this case?
+      if (!job_ok) {
         return false;
       }
+    }
+        
+    if(have_uploads) {
+      if(!jobstate.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) {
+        logger.msg(INFO, "Failed to wait for job to allow stage in");
+        return false;
+      }
+      if(jobid.stagein.empty()) {
+        // Try to obtain it from job info
+        Job tjob;
+        if((!ac->info(jobid, tjob)) ||
+           (jobid.stagein.empty())) {
+          job_ok = false;
+        } else {
+          job_ok = false;
+          for(std::list<URL>::iterator stagein = jobid.stagein.begin();
+                       stagein != jobid.stagein.end();++stagein) {
+            if(*stagein) {
+              job_ok = true;
+              break;
+            }
+          }
+        }
+        if(!job_ok) {
+          logger.msg(INFO, "Failed to obtain valid stagein URL for input files");
+          return false;
+        }
+      }
+
+      job_ok = false;
+      for(std::list<URL>::iterator stagein = jobid.stagein.begin();
+                     stagein != jobid.stagein.end();++stagein) {
+        if(!*stagein) continue;
+        // Enhance file upload performance by tuning URL
+        if((stagein->Protocol() == "https") || (stagein->Protocol() == "http")) {
+          stagein->AddOption("threads=2",false);
+          stagein->AddOption("encryption=optional",false);
+        }
+        stagein->AddOption("checksum=no",false);
+        if (!PutFiles(preparedjobdesc, *stagein)) {
+          logger.msg(INFO, "Failed uploading local input files to %s",stagein->str());
+        } else {
+          job_ok = true;
+        }
+      }
+      if (!job_ok) {
+        return false;
+      }
+    }
+  
+    clients.release(ac.Release());
+
+    // It is not clear how service is implemented. So notifying should not harm.
+    // Notification must be sent to manager URL.
+    AutoPointer<EMIESClient> mac(clients.acquire(jobid.manager));
+    if (!mac->notify(jobid)) {
+      logger.msg(INFO, "Failed to notify service");
+      // TODO: exact logic still requires clarification of specs.
+      // TODO: Maybe job should be killed in this case?
+      // So far assume if there are no files to upload 
+      // activity can survive without notification.
+      if(have_uploads) return false;
+    } else {
       clients.release(mac.Release());
+    }
   
     return true;
   }
