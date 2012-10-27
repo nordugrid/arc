@@ -441,7 +441,7 @@ namespace Arc {
     if (!ComputingEndpoint->URLString.empty())
       out << IString(" Computing endpoint URL: %s", ComputingEndpoint->URLString) << std::endl;
     if (!ComputingEndpoint->InterfaceName.empty())
-      out << IString(" Submission interface name: %s", ComputingEndpoint->InterfaceName) << std::endl;
+      out << IString(" Computing endpoint interface name: %s", ComputingEndpoint->InterfaceName) << std::endl;
     if (!ComputingShare->Name.empty()) {
        out << IString(" Queue: %s", ComputingShare->Name) << std::endl;
     }
