@@ -60,15 +60,18 @@ namespace Arc {
   }
   
   std::string Endpoint::str() const {
-    std::string mainCapability = "<no Capability>";
+    std::string capabilities = "";
     if (!Capability.empty()) {
-      mainCapability = Capability.front();
+      capabilities = ", capabilities:";
+      for (std::list<std::string>::const_iterator it = Capability.begin(); it != Capability.end(); it++) {
+        capabilities = capabilities + " " + *it;        
+      }
     }
     std::string interfaceNameToPrint = "<empty InterfaceName>";
     if (!InterfaceName.empty()) {
       interfaceNameToPrint = InterfaceName;
     }
-    return URLString + " (" + mainCapability + ", " + interfaceNameToPrint + ")";
+    return URLString + " (" + interfaceNameToPrint + capabilities + ")";
   }
   
   bool Endpoint::operator<(const Endpoint& other) const {
