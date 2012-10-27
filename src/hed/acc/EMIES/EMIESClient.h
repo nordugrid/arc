@@ -149,7 +149,7 @@ namespace Arc {
        @param state The current state of submitted job.
        @return true on success
      */
-    bool submit(const std::string& jobdesc, EMIESJob& job, EMIESJobState& state,
+    bool submit(XMLNode jobdesc, EMIESJob& job, EMIESJobState& state,
                 const std::string delegation_id = "");
 
     //! Query the status of a job.

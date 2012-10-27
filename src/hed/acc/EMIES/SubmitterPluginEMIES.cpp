@@ -118,10 +118,40 @@ namespace Arc {
   bool SubmitterPluginEMIES::submit(const JobDescription& preparedjobdesc, const URL& url, const URL& iurl, URL& durl, EMIESJob& jobid) {
 
     bool job_ok = true;
-    std::string product;
-    if (!preparedjobdesc.UnParse(product, "emies:adl")) {
-      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "emies:adl");
-      return false;
+
+    Arc::XMLNode product;
+    {
+      std::string jstr;
+      if (!preparedjobdesc.UnParse(jstr, "emies:adl")) {
+        logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "emies:adl");
+        return false;
+      }
+      XMLNode(jstr).Move(product);
+      if(!product) {
+        logger.msg(INFO, "Unable to submit job. Job description is not valid XML");
+        return false;
+      }
+    }
+
+    bool have_uploads = false;
+    for(std::list<InputFileType>::const_iterator itIF =
+          preparedjobdesc.DataStaging.InputFiles.begin();
+          itIF != preparedjobdesc.DataStaging.InputFiles.end(); ++itIF) {
+      if((!itIF->Sources.empty()) && (itIF->Sources.front().Protocol() == "file")) {
+        have_uploads = true;
+        break;
+      }
+    }
+
+    if(have_uploads) {
+      // At least CREAM expects to have ClientDataPush for any input file
+      std::string prefix = product.Prefix();
+      Arc::XMLNode stage = product["DataStaging"];
+      Arc::XMLNode flag = stage["ClientDataPush"];
+      // Following 2 are for satisfying inner paranoic feeling
+      if(!stage) stage = product.NewChild(prefix+":DataStaging");
+      if(!flag) flag = stage.NewChild(prefix+":ClientDataPush",0,true);
+      flag = "true";
     }
 
     if(iurl && !durl) {
@@ -161,19 +191,9 @@ namespace Arc {
       return false;
     }
   
-      if(!jobid.manager) jobid.manager = url;
+    if(!jobid.manager) jobid.manager = url;
   
     // Check if we have anything to upload. Otherwise there is no need to wait.
-    bool have_uploads = false;
-    for(std::list<InputFileType>::const_iterator itIF =
-          preparedjobdesc.DataStaging.InputFiles.begin();
-          itIF != preparedjobdesc.DataStaging.InputFiles.end(); ++itIF) {
-      if((!itIF->Sources.empty()) && (itIF->Sources.front().Protocol() == "file")) {
-        have_uploads = true;
-        break;
-      };
-    };
-  
     if(have_uploads) {
       // Wait for job to go into proper state
       for(;;) {

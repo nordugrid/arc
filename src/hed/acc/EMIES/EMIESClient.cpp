@@ -218,7 +218,7 @@ namespace Arc {
     return true;
   }
 
-  bool EMIESClient::submit(const std::string& jobdesc, EMIESJob& job, EMIESJobState& state, const std::string delegation_id) {
+  bool EMIESClient::submit(XMLNode jobdesc, EMIESJob& job, EMIESJobState& state, const std::string delegation_id) {
     std::string action = "CreateActivity";
     logger.msg(VERBOSE, "Creating and sending job submit request to %s", rurl.str());
 
@@ -250,7 +250,7 @@ namespace Arc {
 
     PayloadSOAP req(ns);
     XMLNode op = req.NewChild("escreate:" + action);
-    XMLNode act_doc = op.NewChild(XMLNode(jobdesc));
+    XMLNode act_doc = op.NewChild(jobdesc);
     act_doc.Name("esadl:ActivityDescription"); // In case it had different top element
 
     if(!delegation_id.empty()) {
@@ -264,7 +264,11 @@ namespace Arc {
         item->NewChild("esadl:DelegationID") = delegation_id;
       };
     };
-    logger.msg(DEBUG, "Job description to be sent: %s", jobdesc);
+    {
+      std::string s;
+      jobdesc.GetXML(s);
+      logger.msg(DEBUG, "Job description to be sent: %s", s);
+    };
 
     XMLNode response;
     if (!process(req, response)) return false;
