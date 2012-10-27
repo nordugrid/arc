@@ -14,6 +14,11 @@ namespace Arc {
 class ComputingServiceUniq : public EntityConsumer<ComputingServiceType> {
 public:
   void addEntity(const ComputingServiceType& service);
+  std::list<ComputingServiceType> getServices() { return services; }
+private:
+  std::list<ComputingServiceType> services;
+  
+  static Logger logger;
 };
 
 /// Retrieves information about computing elements by querying service registries and CE information systems

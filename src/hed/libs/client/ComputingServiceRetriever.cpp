@@ -9,9 +9,21 @@
 namespace Arc {
 
   Logger ComputingServiceRetriever::logger(Logger::getRootLogger(), "ComputingServiceRetriever");
+  Logger ComputingServiceUniq::logger(Logger::getRootLogger(), "ComputingServiceUniq");
 
   void ComputingServiceUniq::addEntity(const ComputingServiceType& service) {
-    std::cout << "Got service:" << std::endl; service.SaveToStream(std::cout, false);
+    bool sameIDFound = false;
+    for (std::list<ComputingServiceType>::const_iterator it = services.begin(); it != services.end(); it++) {
+      if ((*it)->ID == service->ID) {
+        sameIDFound = true;
+        break;
+      }
+    }
+    if (!sameIDFound) {
+      services.push_back(service);      
+    } else {
+      logger.msg(INFO, "Ignoring service because a previous one with the same ID was already found: %s", service->ID);
+    }
   }
     
   
