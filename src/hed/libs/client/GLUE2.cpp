@@ -36,6 +36,9 @@ namespace Arc {
     for (; GLUEService; ++GLUEService) {
       ComputingServiceType cs;
 
+      if (GLUEService["ID"]) {
+        cs->ID = (std::string)GLUEService["ID"];
+      }
       if (GLUEService["Name"]) {
         cs->Name = (std::string)GLUEService["Name"];
       }

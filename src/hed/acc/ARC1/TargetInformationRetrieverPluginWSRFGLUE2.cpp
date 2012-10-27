@@ -157,6 +157,9 @@ namespace Arc {
         if (xmlCENode["HealthStateInfo"]) {
           ComputingEndpoint->HealthStateInfo = (std::string)xmlCENode["HealthStateInfo"];
         }
+        if (GLUEService["ID"]) {
+          cs->ID = (std::string)GLUEService["ID"];
+        }
         if (GLUEService["Name"]) {
           cs->Name = (std::string)GLUEService["Name"];
         }

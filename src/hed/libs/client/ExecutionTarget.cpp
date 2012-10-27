@@ -384,6 +384,7 @@ namespace Arc {
 
   void ComputingServiceType::SaveToStream(std::ostream& out, bool alldetails) const {
     out << IString("Computing resource:") << std::endl;
+    out << IString(" Service ID: %s", (*this)->ID) << std::endl;
     out << **this;
     if ((**this).Cluster) out << IString(" Information endpoint: %s", (**this).Cluster.plainstr()) << std::endl;
     out << std::endl;

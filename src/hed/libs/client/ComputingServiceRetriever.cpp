@@ -10,6 +10,11 @@ namespace Arc {
 
   Logger ComputingServiceRetriever::logger(Logger::getRootLogger(), "ComputingServiceRetriever");
 
+  void ComputingServiceUniq::addEntity(const ComputingServiceType& service) {
+    std::cout << "Got service:" << std::endl; service.SaveToStream(std::cout, false);
+  }
+    
+  
   ComputingServiceRetriever::ComputingServiceRetriever(
     const UserConfig& uc,
     const std::list<Endpoint>& services,

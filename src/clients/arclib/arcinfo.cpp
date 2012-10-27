@@ -81,7 +81,12 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
 
   std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
 
-  Arc::ComputingServiceRetriever csr(usercfg, endpoints, rejectDiscoveryURLs, preferredInterfaceNames);
+  Arc::ComputingServiceUniq csu;
+  Arc::ComputingServiceRetriever csr(usercfg, std::list<Arc::Endpoint>(), rejectDiscoveryURLs, preferredInterfaceNames);
+  csr.addConsumer(csu);
+  for (std::list<Arc::Endpoint>::const_iterator it = endpoints.begin(); it != endpoints.end(); it++) {
+    csr.addEndpoint(*it);
+  }
   csr.wait();
   std::list<Arc::ExecutionTarget> etList;
   Arc::ExecutionTarget::GetExecutionTargets(csr, etList);

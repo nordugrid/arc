@@ -10,6 +10,11 @@
 #include <arc/client/ExecutionTarget.h>
 
 namespace Arc {
+  
+class ComputingServiceUniq : public EntityConsumer<ComputingServiceType> {
+public:
+  void addEntity(const ComputingServiceType& service);
+};
 
 /// Retrieves information about computing elements by querying service registries and CE information systems
 /** The ComputingServiceRetriever queries service registries and local information systems

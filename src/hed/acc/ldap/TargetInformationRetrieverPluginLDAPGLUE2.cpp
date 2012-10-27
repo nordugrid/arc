@@ -250,6 +250,7 @@ namespace Arc {
       // GFD.147 GLUE2 6.1 Computing Service
       service.set("EntityName", cs->Name);
       service.set("ServiceType", cs->Type);
+      service.set("ServiceID", cs->ID);
 
       // GFD.147 GLUE2 6.2 ComputingEndpoint
       std::list<Extractor> endpoints = Extractor::All(service, "ComputingEndpoint");
