@@ -666,7 +666,7 @@ namespace Arc {
         if(additional_checks) {
           // list checksum and compare
           // note: not all implementations support checksum
-          logger.msg(DEBUG, "list_files_ftp: "
+          logger.msg(DEBUG, "StopWriting: "
                             "looking for checksum of %s", url.str());
           char cksum[256];
           std::string cksumtype(upper(DefaultCheckSum()));
