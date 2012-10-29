@@ -22,7 +22,7 @@ namespace Arc
 
   {
     //Get service URL, cert, key, CA path from job log file
-    std::string serviceurl=joblog["loggerurl"];
+    std::string serviceurl=joblog["loggerurl"].substr(5);
     topic=joblog["topic"];
     output_dir=joblog["outputdir"];
     std::string certfile=joblog["certificate_path"];
