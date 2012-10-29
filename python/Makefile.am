@@ -25,7 +25,7 @@ endif
 
 ARCLIBS = \
 	$(top_builddir)/src/hed/libs/credentialstore/libarccredentialstore.la \
-	$(top_builddir)/src/hed/libs/client/libarccommunication.la \
+	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/client/libarcclient.la \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
