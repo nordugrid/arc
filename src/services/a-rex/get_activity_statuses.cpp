@@ -311,7 +311,7 @@ Arc::MCC_Status ARexService::ESGetActivityStatus(ARexGMConfig& config,Arc::XMLNo
       std::string failed_cause;
       std::string failed_state = job.FailedState(failed_cause);
       Arc::XMLNode status = addActivityStatusES(item,gm_state,Arc::XMLNode(),job_failed,job_pending,failed_state,failed_cause);
-      status.NewChild("estypes:Timestamp") = job.Modified(); // no definition of meaning in specs
+      status.NewChild("estypes:Timestamp") = job.Modified().str(Arc::ISOTime); // no definition of meaning in specs
       //status.NewChild("estypes:Description);  TODO
     };
   };
@@ -368,12 +368,12 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
   for(Arc::XMLNode anode = in["AttributeName"];(bool)anode;++anode) {
     attributes.push_back((std::string)anode);
   };
-  if(!attributes.empty()) {
-    ESUnknownAttributeFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
-                        "Selection by AttributeName is not implemented yet");
-    out.Destroy();
-    return Arc::MCC_Status(Arc::STATUS_OK);
-  };
+  //if(!attributes.empty()) {
+  //  ESUnknownAttributeFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
+  //                      "Selection by AttributeName is not implemented yet");
+  //  out.Destroy();
+  //  return Arc::MCC_Status(Arc::STATUS_OK);
+  //};
   id = in["ActivityID"];
   for(;(bool)id;++id) {
     std::string jobid = id;
@@ -391,42 +391,79 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
       //    SessionDirectory 0-
       //    ComputingActivityHistory 0-1
       std::string glue_s;
-      Arc::XMLNode info;
+      bool response_generated = false;
       if(job_xml_read_file(jobid,*config.User(),glue_s)) {
         Arc::XMLNode glue_xml(glue_s);
         // TODO: if xml information is not ready yet create something minimal
         // TODO: filter by AttributeName
         if((bool)glue_xml) {
-          std::string glue2_namespace = glue_xml.Namespace();
-          (info = item.NewChild(glue_xml)).Name("esainfo:ActivityInfoDocument");
-          info.Namespaces(ns_);
-          std::string glue2_prefix = info.NamespacePrefix(glue2_namespace.c_str());
-          /*
-          // Collecting job state
-          bool job_pending = false;
-          std::string gm_state = job.State(job_pending);
-          bool job_failed = job.Failed();
-          std::string failed_cause;
-          std::string failed_state = job.FailedState(failed_cause);
-          // Adding EMI ES state along with Glue state.
-          // TODO: check if not already in infosys generated xml
-          Arc::XMLNode status = info.NewChild(glue2_prefix+":State",0,false);
-          {
-            std::string primary_state;
-            std::list<std::string> state_attributes;
-            convertActivityStatusES(gm_state,primary_state,state_attributes,
-                                    job_failed,job_pending,failed_state,failed_cause);
-            status = std::string("emies:")+primary_state;
+          if(attributes.empty()) {
+            Arc::XMLNode info;
+            std::string glue2_namespace = glue_xml.Namespace();
+            (info = item.NewChild(glue_xml)).Name("esainfo:ActivityInfoDocument");
+            info.Namespaces(ns_);
+            std::string glue2_prefix = info.NamespacePrefix(glue2_namespace.c_str());
+            /*
+            // Collecting job state
+            bool job_pending = false;
+            std::string gm_state = job.State(job_pending);
+            bool job_failed = job.Failed();
+            std::string failed_cause;
+            std::string failed_state = job.FailedState(failed_cause);
+            // Adding EMI ES state along with Glue state.
+            // TODO: check if not already in infosys generated xml
+            Arc::XMLNode status = info.NewChild(glue2_prefix+":State",0,false);
+            {
+              std::string primary_state;
+              std::list<std::string> state_attributes;
+              convertActivityStatusES(gm_state,primary_state,state_attributes,
+                                      job_failed,job_pending,failed_state,failed_cause);
+              status = std::string("emies:")+primary_state;
+            };
+            */
+            // Additional elements
+            info.NewChild("esainfo:StageInDirectory") = config.Endpoint()+"/"+job.ID();
+            info.NewChild("esainfo:StageOutDirectory") = config.Endpoint()+"/"+job.ID();
+            info.NewChild("esainfo:SessionDirectory") = config.Endpoint()+"/"+job.ID();
+            // info.NewChild("esainfo:ComputingActivityHistory")
+            response_generated = true;
+          } else {
+            // Attributes request
+            // AttributeInfoItem 1-
+            //   AttributeName
+            //   AttributeValue
+            // UnknownAttributeFault
+            bool attribute_added = false;
+            for(std::list<std::string>::iterator attr = attributes.begin();
+                                      attr != attributes.end(); ++attr) {
+              Arc::XMLNode axml = glue_xml[*attr];
+              for(;axml;++axml) {
+                Arc::XMLNode aitem = item.NewChild("esainfo:AttributeInfoItem");
+                aitem.NewChild("esainfo:AttributeName") = *attr;
+                aitem.NewChild("esainfo:AttributeValue") = (std::string)axml;
+                attribute_added = true;
+              };
+              if((*attr == "StageInDirectory") ||
+                 (*attr == "StageOutDirectory") ||
+                 (*attr == "SessionDirectory")) {
+                Arc::XMLNode aitem = item.NewChild("esainfo:AttributeInfoItem");
+                aitem.NewChild("esainfo:AttributeName") = *attr;
+                aitem.NewChild("esainfo:AttributeValue") = config.Endpoint()+"/"+job.ID();
+                attribute_added = true;
+              };
+            };
+            // It is not clear if UnknownAttributeFault must be
+            // used if any or all attributes not found. Probably
+            // it is more useful to do that only if nothing was
+            // found.
+            if(!attribute_added) {
+              ESUnknownAttributeFault(item.NewChild("dummy"),"None of specified attributes is available");
+            };
+            response_generated = true;
           };
-          */
-          // Additional elements
-          info.NewChild("esainfo:StageInDirectory") = config.Endpoint()+"/"+job.ID();
-          info.NewChild("esainfo:StageOutDirectory") = config.Endpoint()+"/"+job.ID();
-          info.NewChild("esainfo:SessionDirectory") = config.Endpoint()+"/"+job.ID();
-          // info.NewChild("esainfo:ComputingActivityHistory")
         };
       };
-      if(!info) {
+      if(!response_generated) {
         logger_.msg(Arc::ERROR, "EMIES:GetActivityInfo: job %s - failed to retrieve GLUE2 information", jobid);
         ESInternalBaseFault(item.NewChild("dummy"),"Failed to retrieve GLUE2 information");
         // It would be good to have something like UnableToRetrieveStatusFault here
