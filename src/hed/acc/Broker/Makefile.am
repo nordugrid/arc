@@ -5,7 +5,8 @@ libaccBroker_la_SOURCES = \
 	RandomBrokerPlugin.h \
 	DescriptorsBroker.cpp \
 	BenchmarkBrokerPlugin.cpp BenchmarkBrokerPlugin.h \
-	DataBrokerPlugin.cpp DataBrokerPlugin.h 
+	DataBrokerPlugin.cpp DataBrokerPlugin.h \
+	NullBrokerPlugin.h
 libaccBroker_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 libaccBroker_la_LIBADD = \
