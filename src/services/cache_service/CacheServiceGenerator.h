@@ -23,9 +23,9 @@ namespace Cache {
     /// Whether we are running with A-REX or we manage the Scheduler ourselves
     bool run_with_arex;
     /// A-REX configuration
-    const GMConfig& config;
+    const ARex::GMConfig& config;
     /// Staging configuration
-    StagingConfig staging_conf;
+    ARex::StagingConfig staging_conf;
 
     /// Map of job id to DTRs
     std::multimap<std::string, DataStaging::DTR_ptr> processing_dtrs;
@@ -50,7 +50,7 @@ namespace Cache {
      * @param with_arex If true then we assume A-REX starts the scheduler, if
      * false then we start and stop it.
      */
-    CacheServiceGenerator(const GMConfig& config, bool with_arex);
+    CacheServiceGenerator(const ARex::GMConfig& config, bool with_arex);
 
     /// Stop Scheduler if we are not running with A-REX
     ~CacheServiceGenerator();

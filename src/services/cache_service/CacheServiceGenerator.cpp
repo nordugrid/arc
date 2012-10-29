@@ -9,7 +9,7 @@ namespace Cache {
 
   Arc::Logger CacheServiceGenerator::logger(Arc::Logger::rootLogger, "CacheServiceGenerator");
 
-  CacheServiceGenerator::CacheServiceGenerator(const GMConfig& conf, bool with_arex) :
+  CacheServiceGenerator::CacheServiceGenerator(const ARex::GMConfig& conf, bool with_arex) :
       generator_state(DataStaging::INITIATED),
       use_host_cert(false),
       scratch_dir(conf.ScratchDir()),
@@ -52,7 +52,7 @@ namespace Cache {
     scheduler->SetTransferParameters(transfer_limits);
 
     // URL mappings
-    UrlMapConfig url_map(config);
+    ARex::UrlMapConfig url_map(config);
     scheduler->SetURLMapping(url_map);
 
     // Preferred pattern
@@ -176,7 +176,7 @@ namespace Cache {
     dtr->set_sub_share("cache-service-download");
 
     // substitute cache paths based on user
-    CacheConfig cache_params(config.CacheParams());
+    ARex::CacheConfig cache_params(config.CacheParams());
     cache_params.substitute(config, user);
     DataStaging::DTRCacheParameters cache_parameters;
     cache_parameters.cache_dirs = cache_params.getCacheDirs();

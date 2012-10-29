@@ -106,7 +106,7 @@ Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, cons
    */
 
   // substitute cache paths according to mapped user
-  CacheConfig cache_params(config.CacheParams());
+  ARex::CacheConfig cache_params(config.CacheParams());
   cache_params.substitute(config, mapped_user);
   Arc::FileCache cache(cache_params.getCacheDirs(), "0", mapped_user.get_uid(), mapped_user.get_gid());
   if (!cache) {
@@ -231,7 +231,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const
   for (std::vector<std::string>::iterator session = sessions.begin(); session != sessions.end(); ++session) {
     config.Substitute(*session, mapped_user);
   }
-  GMConfig tmp_config;
+  ARex::GMConfig tmp_config;
   tmp_config.SetSessionRoot(sessions);
   std::string session_root = tmp_config.SessionRoot(jobid);
   if (session_root.empty()) {
@@ -279,7 +279,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const
 
   // create cache
   // substitute cache paths according to mapped user
-  CacheConfig cache_params(config.CacheParams());
+  ARex::CacheConfig cache_params(config.CacheParams());
   cache_params.substitute(config, mapped_user);
   Arc::FileCache cache(cache_params.getCacheDirs(), jobid, mapped_user.get_uid(), mapped_user.get_gid());
   if (!cache) {

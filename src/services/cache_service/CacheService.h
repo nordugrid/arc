@@ -48,7 +48,7 @@ class CacheService: public Arc::RegisteredService {
   /** CacheService namespace */
   Arc::NS ns;
   /** A-REX configuration */
-  GMConfig config;
+  ARex::GMConfig config;
   /** Generator to handle data staging */
   CacheServiceGenerator* dtr_generator;
   /** Logger object */
