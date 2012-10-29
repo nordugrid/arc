@@ -176,6 +176,10 @@ namespace Arc {
     if(durl) {
       AutoPointer<EMIESClient> ac(clients.acquire(durl));
       delegation_id = ac->delegation();
+      if(delegation_id.empty()) {
+        logger.msg(INFO, "Failed to delegate credentials to server");
+        return false;
+      }
       clients.release(ac.Release());
     }
 

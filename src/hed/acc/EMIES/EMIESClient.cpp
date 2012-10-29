@@ -116,7 +116,10 @@ namespace Arc {
 
     DelegationProviderSOAP deleg(cert, key);
     logger.msg(VERBOSE, "Initiating delegation procedure");
-    if (!deleg.DelegateCredentialsInit(*entry,&(client->GetContext()),DelegationProviderSOAP::EMIDS)) {
+    MessageAttributes attrout;
+    MessageAttributes attrin;
+    attrout.set("SOAP:ENDPOINT",rurl.str());
+    if (!deleg.DelegateCredentialsInit(*entry,&attrout,&attrin,&(client->GetContext()),DelegationProviderSOAP::EMIDS)) {
       lfailure = "Failed to initiate delegation credentials";
       return "";
     }
