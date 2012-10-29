@@ -13,10 +13,12 @@ namespace Arc {
 
   void ComputingServiceUniq::addEntity(const ComputingServiceType& service) {
     bool sameIDFound = false;
-    for (std::list<ComputingServiceType>::const_iterator it = services.begin(); it != services.end(); it++) {
-      if ((*it)->ID == service->ID) {
-        sameIDFound = true;
-        break;
+    if (!service->ID.empty()) {
+      for (std::list<ComputingServiceType>::const_iterator it = services.begin(); it != services.end(); it++) {
+        if ((*it)->ID == service->ID) {
+          sameIDFound = true;
+          break;
+        }
       }
     }
     if (!sameIDFound) {
