@@ -88,11 +88,12 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
     csr.addEndpoint(*it);
   }
   csr.wait();
+
   std::list<Arc::ComputingServiceType> services = csu.getServices();
-  std::list<Arc::ExecutionTarget> etList;
-  Arc::ExecutionTarget::GetExecutionTargets(services, etList);
-  for (std::list<Arc::ExecutionTarget>::const_iterator it = etList.begin(); it != etList.end(); ++it) {
+  for (std::list<Arc::ComputingServiceType>::const_iterator it = services.begin();
+       it != services.end(); ++it) {
     it->SaveToStream(std::cout, opt.longlist);
   }
+
   return 0;
 }
