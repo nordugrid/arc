@@ -24,7 +24,7 @@ class ArgusPDPClient : public SecHandler {
 
    
     std::string pdpdlocation;
-    //Arc::ClientSOAP* client;
+    Arc::ClientSOAP* client;
     std::string keypath;
     std::string certpath;
     std::string capath;

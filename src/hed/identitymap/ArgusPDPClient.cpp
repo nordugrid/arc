@@ -134,7 +134,7 @@ std::string xacml_decision_to_string(xacml_decision_t decision) {
 }
 
 /* extract the elements from the configuration file */
-ArgusPDPClient::ArgusPDPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHandler(cfg,parg) /*, client(NULL)*/ {  
+ArgusPDPClient::ArgusPDPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHandler(cfg,parg) , client(NULL) {  
     valid_ = false;
     accept_mapping = false;
     accept_notapplicable = false;
@@ -186,7 +186,6 @@ ArgusPDPClient::ArgusPDPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSe
     if((notapplicable_str == "1") || (notapplicable_str == "true")) accept_notapplicable = true;
 
     // Create a SOAP client to contact PDP server
-/*
     logger.msg(Arc::INFO, "Creating a PDP client");
     Arc::URL pdp_url(pdpdlocation);
     Arc::MCCConfig mcc_cfg;
@@ -194,13 +193,12 @@ ArgusPDPClient::ArgusPDPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSe
     mcc_cfg.AddCertificate(certpath);
     mcc_cfg.AddCADir(capath);
     client = new Arc::ClientSOAP(mcc_cfg,pdp_url,60);
-*/
 
     valid_ = true;
 }
 
 ArgusPDPClient::~ArgusPDPClient(void) {
-//  if(client) delete client;
+  if(client) delete client;
 }
 
 
@@ -292,7 +290,6 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
 
     std::string subject , resource , action;
     Arc::XMLNode secattr;   
-    Arc::ClientSOAP* client = NULL;
 
     try{
 
@@ -341,15 +338,6 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
       if (rc != 0) {
         throw pep_ex("Failed to create XACML request(s): " + Arc::tostring(rc));
       }
-
-
-      logger.msg(Arc::INFO, "Creating a PDP client");
-      Arc::URL pdp_url(pdpdlocation);
-      Arc::MCCConfig mcc_cfg;
-      mcc_cfg.AddPrivateKey(keypath);
-      mcc_cfg.AddCertificate(certpath);
-      mcc_cfg.AddCADir(capath);
-      client = new Arc::ClientSOAP(mcc_cfg,pdp_url,60);
 
       // Contact PDP server
       std::string local_id; 
@@ -434,8 +422,6 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
       logger.msg(Arc::ERROR,"%s",e.desc);
       res = false;
     }
-
-    if(client) { delete client; client = NULL; }
 
     return res;
 }
