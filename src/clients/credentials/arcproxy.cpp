@@ -264,7 +264,7 @@ static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
   profiles_home = home_path + G_DIR_SEPARATOR_S "Library" G_DIR_SEPARATOR_S "Application Support" G_DIR_SEPARATOR_S "SeaMonkey";
   profiles_homes.push_back(profiles_home);
 
-  profiles_home = home_path + G_DIR_SEPARATOR_S "Library" G_DIR_SEPARATOR_S "Application Support" G_DIR_SEPARATOR_S "Thunderbird";
+  profiles_home = home_path + G_DIR_SEPARATOR_S "Library" G_DIR_SEPARATOR_S "Thunderbird";
   profiles_homes.push_back(profiles_home);
 
 #elif defined(WIN32)
