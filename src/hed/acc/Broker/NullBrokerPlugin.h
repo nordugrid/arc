@@ -19,7 +19,7 @@ namespace Arc {
       return brokerarg ? new NullBrokerPlugin(brokerarg) : NULL;
     }
 
-    virtual bool match(ExecutionTarget& et) const { return true; }
+    virtual bool match(const ExecutionTarget& et) const { return true; }
     
     virtual bool operator()(const ExecutionTarget&, const ExecutionTarget&) const { return true; }
   };

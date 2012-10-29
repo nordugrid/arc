@@ -19,7 +19,7 @@ namespace Arc {
       return brokerarg ? new RandomBrokerPlugin(brokerarg) : NULL;
     }
 
-    virtual bool match(ExecutionTarget& et) const { return BrokerPlugin::match(et); }
+    virtual bool match(const ExecutionTarget& et) const { return BrokerPlugin::match(et); }
     
     virtual bool operator()(const ExecutionTarget&, const ExecutionTarget&) const { return (bool)(std::rand()%2); }
   };
