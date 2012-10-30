@@ -248,6 +248,10 @@ namespace Arc
     // Ubuntu/Debian: /usr/lib/arc/ssm_master
     ssm_pathes.push_back("/usr/lib/arc/"+exec_cmd);
     ssm_pathes.push_back("/usr/local/lib/arc/"+exec_cmd);
+
+    // If you don't use non-statndard prefix for a compilation you can 
+    // add here your extra location.
+    //ssm_pathes.push_back("<your_prefix>/libexec/arc/"+exec_cmd);
     
     // Find the location of the ssm_master
     std::string ssm_command = "./ssm/"+exec_cmd;
