@@ -251,6 +251,15 @@ namespace Arc {
       service.set("EntityName", cs->Name);
       service.set("ServiceType", cs->Type);
       service.set("ServiceID", cs->ID);
+      service.set("ServiceQualityLevel", cs->QualityLevel);
+      service.set("ServiceCapability", cs->Capability);
+      
+      service.set("ComputingServiceTotalJobs", cs->TotalJobs);
+      service.set("ComputingServiceRunningJobs", cs->RunningJobs);
+      service.set("ComputingServiceWaitingJobs", cs->WaitingJobs);
+      service.set("ComputingServiceStagingJobs", cs->StagingJobs);
+      service.set("ComputingServiceSuspendedJobs", cs->SuspendedJobs);
+      service.set("ComputingServicePreLRMSWaitingJobs", cs->PreLRMSWaitingJobs);
 
       // GFD.147 GLUE2 6.2 ComputingEndpoint
       std::list<Extractor> endpoints = Extractor::All(service, "ComputingEndpoint");
