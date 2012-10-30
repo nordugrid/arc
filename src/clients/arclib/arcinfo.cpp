@@ -92,7 +92,32 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
   std::list<Arc::ComputingServiceType> services = csu.getServices();
   for (std::list<Arc::ComputingServiceType>::const_iterator it = services.begin();
        it != services.end(); ++it) {
-    it->SaveToStream(std::cout, opt.longlist);
+    if (opt.longlist) {
+      std::cout << *it << std::endl;
+    }
+    else {
+      std::cout << "Computing resource:" << std::endl;
+      std::cout << "  Name: " << (**it).Name;
+      if (!(**it).QualityLevel.empty()) {
+        std::cout << " (" << (**it).QualityLevel << ")";
+      }
+      std::cout << std::endl;
+      std::cout << "  Information endpoint: " << (**it).Cluster.str() << std::endl;
+      for (std::map<int, Arc::ComputingEndpointType>::const_iterator itCE = it->ComputingEndpoint.begin();
+           itCE != it->ComputingEndpoint.end(); ++itCE) {
+        if (itCE->second->Capability.empty()) {
+          std::cout << "  Submission endpoint: " << itCE->second->URLString << " (status: " << itCE->second->HealthState << ")" << std::endl;
+        }
+        else {
+          for (std::list<std::string>::const_iterator itC = itCE->second->Capability.begin();
+               itC != itCE->second->Capability.end(); ++itC) {
+            if (*itC == "executionmanagement.jobexecution") {
+              std::cout << "  Submission endpoint: " << itCE->second->URLString << " (status: " << itCE->second->HealthState << ")" << std::endl;
+            }
+          }
+        }
+      }
+    }
   }
 
   return 0;

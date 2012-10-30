@@ -105,6 +105,8 @@ namespace Arc {
 
     bool ConnectivityIn;
     bool ConnectivityOut;
+    
+    friend std::ostream& operator<<(std::ostream&, const ExecutionEnvironmentAttributes&);
   };
 
   class ComputingManagerAttributes {
@@ -133,7 +135,7 @@ namespace Arc {
     int CacheTotal;
     int CacheFree;
 
-    void SaveToStream(std::ostream& out, bool alldetails) const;
+    friend std::ostream& operator<<(std::ostream&, const ComputingManagerAttributes&);
   };
 
   class ComputingShareAttributes {
@@ -229,7 +231,7 @@ namespace Arc {
     int RequestedSlots;
     std::string ReservationPolicy;
 
-    void SaveToStream(std::ostream& out, bool alldetails) const;
+    friend std::ostream& operator<<(std::ostream&, const ComputingShareAttributes&);
   };
 
   class ComputingEndpointAttributes {
@@ -268,7 +270,7 @@ namespace Arc {
     
     std::list<Endpoint> OtherEndpoints;
 
-    void SaveToStream(std::ostream& out, bool alldetails) const;
+    friend std::ostream& operator<<(std::ostream&, const ComputingEndpointAttributes&);
   };
 
   class ComputingServiceAttributes {
@@ -339,7 +341,7 @@ namespace Arc {
     std::map<int, ComputingShareType> ComputingShare;
     std::map<int, ComputingManagerType> ComputingManager;
 
-    void SaveToStream(std::ostream& out, bool alldetails) const;
+    friend std::ostream& operator<<(std::ostream&, const ComputingServiceType&);
   private:
     template<typename T>
     void AddExecutionTarget(T& container, const ExecutionTarget& et) const;
@@ -438,14 +440,15 @@ namespace Arc {
      **/
     void RegisterJobSubmission(const JobDescription& jobdesc) const;
 
-    /// Print the ExecutionTarget information to a std::ostream object
+    /// Print the ExecutionTarget information
     /**
      * Method to print the ExecutionTarget attributes to a std::ostream object.
      *
      * @param out is the std::ostream to print the attributes to.
-     * @param longlist should be set to true for printing a long list.
+     * @param 
+     * @return the input ostream object is returned.
      **/
-    void SaveToStream(std::ostream& out, bool longlist) const;
+    friend std::ostream& operator<<(std::ostream&, const ExecutionTarget&);
 
     static void GetExecutionTargets(const std::list<ComputingServiceType>& csList, std::list<ExecutionTarget>& etList);
 
