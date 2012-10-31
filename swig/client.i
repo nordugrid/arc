@@ -197,7 +197,6 @@
 %include "../src/hed/libs/client/ExecutionTarget.h"
 %extend Arc::ComputingServiceType {
   %template(GetExecutionTargetsFromList) GetExecutionTargets< std::list<Arc::ExecutionTarget> >;
-  %template(GetExecutionTargetsFromSet) GetExecutionTargets<Arc::ExecutionTargetSet>;
 };
 
 
@@ -299,28 +298,9 @@ template <class Type> struct traits_from<const Type *> {
 %ignore Arc::Broker::operator=(const Broker&);
 %ignore Arc::BrokerPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
 %ignore Arc::BrokerPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
-/* Currently the CountedBroker cannot be wrapped since a default
- * constructor (no arguments) for the CountedBroker and Broker classes
- * is required when wrapping. More investigation is needed.
- */
-%ignore Arc::CountedBroker;
-%warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) Arc::CountedBroker;
-%ignore Arc::ExecutionTargetSet;
-%warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) Arc::ExecutionTargetSet;
-//%template() Arc::CountedPointer<Arc::Broker>;
-#ifdef SWIGPYTHON
-//%template() std::set<Arc::ExecutionTarget, Arc::CountedBroker>;
-%ignore Arc::ExecutionTargetSet::ExecutionTargetSet(const Broker&, const std::list<ComputingServiceType>&); // Use Arc::ExecutionTargetSet::ExecutionTargetSet(const Broker&, const std::list<ComputingServiceType>&, const std::list<URL>& rejectEndpoints) with empty list instead.
-#endif
 #ifdef SWIGJAVA
-/* For java, swig doesn't provide means for wrapping a std::set, thus a
- * interface must be made before the Arc::ExecutionTargetSet class can
- * be wrapped.
- */
-%warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) Arc::ExecutionTargetSet;
 %rename(compare) Arc::Broker::operator()(const ExecutionTarget&, const ExecutionTarget&) const;
 %rename(compare) Arc::BrokerPlugin::operator()(const ExecutionTarget&, const ExecutionTarget&) const;
-%rename(compare) Arc::CountedBroker::operator()(const ExecutionTarget&, const ExecutionTarget&) const;
 #endif
 %include "../src/hed/libs/client/Broker.h"
 

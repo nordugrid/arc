@@ -18,8 +18,7 @@ namespace Arc {
 
   Logger Broker::logger(Logger::getRootLogger(), "Broker");
   Logger BrokerPlugin::logger(Logger::getRootLogger(), "BrokerPlugin");
-  Logger ExecutionTargetSet::logger(Logger::getRootLogger(), "ExecutionTargetSet");
-  Logger ExecutionTargetSorter::logger(Logger::getRootLogger(), "ExecutionTargetSet");
+  Logger ExecutionTargetSorter::logger(Logger::getRootLogger(), "ExecutionTargetSorter");
 
   bool BrokerPlugin::operator() (const ExecutionTarget&, const ExecutionTarget&) const {
     return true;
@@ -638,11 +637,5 @@ namespace Arc {
     }
 
     reset();
-  }
-
-  void ExecutionTargetSet::addEntities(const std::list<ComputingServiceType>& csList) {
-    for (std::list<ComputingServiceType>::const_iterator it = csList.begin(); it != csList.end(); ++it) {
-      addEntity(*it);
-    }
   }
 } // namespace Arc

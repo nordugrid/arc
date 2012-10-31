@@ -98,7 +98,6 @@ namespace Arc {
   }
 
   template void ComputingServiceType::GetExecutionTargets< std::list<ExecutionTarget> >(std::list<ExecutionTarget>&) const;
-  template void ComputingServiceType::GetExecutionTargets<ExecutionTargetSet>(ExecutionTargetSet&) const;
 
   template<typename T>
   void ComputingServiceType::AddExecutionTarget(T&, const ExecutionTarget&) const {}
@@ -108,11 +107,6 @@ namespace Arc {
     etList.push_back(et);
   }
   
-  template<>
-  void ComputingServiceType::AddExecutionTarget<ExecutionTargetSet>(ExecutionTargetSet& etSet, const ExecutionTarget& et) const {
-    etSet.insert(et);
-  }
-
   bool ExecutionTarget::Submit(const UserConfig& ucfg, const JobDescription& jobdesc, Job& job) const {
     return Submitter(ucfg).Submit(*this, jobdesc, job);
   }

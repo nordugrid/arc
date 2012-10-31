@@ -136,34 +136,6 @@ namespace Arc {
     static Logger logger;
   };
   
-  class CountedBroker : public CountedPointer<Broker> {
-  public:
-    CountedBroker(Broker* b) : CountedPointer<Broker>(b) {}
-    CountedBroker(const CountedBroker& b) : CountedPointer<Broker>(b) {}
-    bool operator()(const ExecutionTarget& lhs,const ExecutionTarget& rhs) const { return Ptr()->operator()(lhs, rhs); }
-  };
-  
-  class ExecutionTargetSet : public std::set<ExecutionTarget, CountedBroker>, public EntityConsumer<ComputingServiceType> {
-  private:
-    template<typename InputIterator> void insert(InputIterator first, InputIterator last) { return; };
-    
-  public:
-    ExecutionTargetSet(const Broker& b, const std::list<URL>& rejectEndpoints = std::list<URL>()) : std::set<ExecutionTarget, CountedBroker>(CountedBroker(new Broker(b))), rejectEndpoints(rejectEndpoints) {}
-    ExecutionTargetSet(const Broker& b, const std::list<ComputingServiceType>& csList, const std::list<URL>& rejectEndpoints = std::list<URL>()) : std::set<ExecutionTarget, CountedBroker>(new Broker(b)), rejectEndpoints(rejectEndpoints) { addEntities(csList); }
-    
-    std::pair<ExecutionTargetSet::iterator, bool> insert(const ExecutionTarget& et) { logger.msg(VERBOSE, "ExecutionTarget %s added to ExecutionTargetSet", et.ComputingEndpoint->URLString); if (!reject(et) && key_comp()->match(et)) { return std::set<ExecutionTarget, CountedBroker>::insert(et); }; return std::pair<ExecutionTargetSet::iterator, bool>(end(), false); };
-    ExecutionTargetSet::iterator insert(ExecutionTargetSet::iterator it, const ExecutionTarget& et) { if (!reject(et) && key_comp()->match(et)) { logger.msg(VERBOSE, "ExecutionTarget %s added to ExecutionTargetSet", et.ComputingEndpoint->URLString); return std::set<ExecutionTarget, CountedBroker>::insert(it, et); }; return end(); };
-    void addEntity(const ComputingServiceType& cs) { cs.GetExecutionTargets(*this); }
-    void addEntities(const std::list<ComputingServiceType>&);
-    void set(const JobDescription& j) { clear(); key_comp()->set(j);}
-  private:
-    bool reject(const ExecutionTarget& et) const { return !rejectEndpoints.empty() && (std::find(rejectEndpoints.begin(), rejectEndpoints.end(), et.ComputingEndpoint->URLString) != rejectEndpoints.end() || std::find(rejectEndpoints.begin(), rejectEndpoints.end(), et.ComputingService->Cluster) != rejectEndpoints.end()); }
-  
-    std::list<URL> rejectEndpoints;
-    
-    static Logger logger;
-  };
-  
 } // namespace Arc
 
 #endif // __ARC_BROKER_H__
