@@ -81,7 +81,7 @@ std::list<std::string> getRejectManagementURLsFromUserConfigAndCommandLine(Arc::
   \param[in] computingelements is a list of strings containing aliases, group names, or URLs of computing elements
   \return a list of Endpoint objects containing the services corresponding the given strings or the default services.
 */
-std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> registries, std::list<std::string> computingelements, std::string requestedSubmissionInterfaceName = "");
+std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> registries, std::list<std::string> computingelements, std::string requestedSubmissionInterfaceName = "", std::string infointerface = "");
 
 void showplugins(const std::string& program, const std::list<std::string>& types, Arc::Logger& logger, const std::string& chosenBroker = "");
 
@@ -138,6 +138,7 @@ public:
   std::string rsort;
   std::string downloaddir;
   std::string requestedSubmissionInterfaceName;
+  std::string infointerface;
 
   std::list<std::string> clusters;
   std::list<std::string> qlusters;

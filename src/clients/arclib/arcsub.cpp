@@ -164,7 +164,7 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     }
   }
 
-  std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName);
+  std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
 
   usercfg.AddRejectDiscoveryURLs(opt.rejectdiscovery);
 
