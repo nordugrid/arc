@@ -1,3 +1,6 @@
+2012-10-31  Anders Waananen <waananen@nbi.dk>
+  * Add NSS as a dependency. Currently used only by arcproxy
+
 2012-10-17  Anders Waananen <waananen@nbi.dk>
   * Obsolete the python utility module arcom
 

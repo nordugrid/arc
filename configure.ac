@@ -780,10 +780,10 @@ fi
 fi
 
 #check mozilla nss
-enables_nss=no
+enables_nss=yes
 NSS_INSTALLED=no
 dnl Check if nss lib is explicitly enabled, default is disable.
-AC_ARG_ENABLE(nss, AC_HELP_STRING([--enable-nss], [enable use of the mozilla nss library]),[enables_nss="$enableval"],[])
+AC_ARG_ENABLE(nss, AC_HELP_STRING([--disable-nss], [disable use of the mozilla nss library]),[enables_nss="$enableval"],[])
 if test "$enables_nss" = "yes"; then
   PKG_CHECK_MODULES(NSS, [nss >= 3.10], [NSS_INSTALLED=yes] , [
     AC_MSG_WARN([Cannot locate nss lib])
