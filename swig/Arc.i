@@ -92,6 +92,17 @@ class StaticPropertyWrapper(object):
 #include <iterator>
 %}
 
+%pragma(java) jniclasscode=%{
+  static {
+    try {
+        System.loadLibrary("jarc");
+    } catch (UnsatisfiedLinkError e) {
+      System.err.println("Unable to load native code library (jarc), which provides Java interface to the ARC C++ libraries. \n" + e);
+      System.exit(1);
+    }
+  }
+%}
+
 /* Swig does not offer any bindings of the std::list template class, so
  * below a implementation is done which offers basic looping and element
  * access support, i.e. through the std::list and listiteratorhandler
