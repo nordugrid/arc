@@ -992,7 +992,7 @@ sub collect($) {
         
         $csv->{Name} = $config->{service}{ClusterName} if $config->{service}{ClusterName}; # scalar
         $csv->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo}; # array
-        $csv->{Type} = 'org.nordugrid.execution.arex';
+        $csv->{Type} = 'org.nordugrid.arex';
 
         # OBS: QualityLevel reflects the quality of the sotware
         # One of: development, testing, pre-production, production
