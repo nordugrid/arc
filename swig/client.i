@@ -13,8 +13,8 @@
 #ifdef SWIGJAVA
 %ignore Arc::Software::operator();
 %ignore Arc::SoftwareRequirement::getComparisonOperatorList() const;
-%template(SoftwareListIteratorHandler) listiteratorhandler<Arc::Software>;
-%template(SoftwareRequirementListIteratorHandler) listiteratorhandler<Arc::SoftwareRequirement>;
+%template(SoftwareListIterator) listiterator<Arc::Software>;
+%template(SoftwareRequirementListIterator) listiterator<Arc::SoftwareRequirement>;
 #endif
 %include "../src/hed/libs/client/Software.h"
 
@@ -26,7 +26,7 @@
 %ignore Arc::Endpoint::operator=(const ConfigEndpoint&);
 %template(EndpointList) std::list<Arc::Endpoint>;
 #ifdef SWIGJAVA
-%template(EndpointListIteratorHandler) listiteratorhandler<Arc::Endpoint>;
+%template(EndpointListIterator) listiterator<Arc::Endpoint>;
 #endif
 %include "../src/hed/libs/client/Endpoint.h"
 
@@ -42,7 +42,7 @@
 %rename(GetNativeState) Arc::JobState::operator();
 %template(JobStateList) std::list<Arc::JobState>;
 #ifdef SWIGJAVA
-%template(JobStateListIteratorHandler) listiteratorhandler<Arc::JobState>;
+%template(JobStateListIterator) listiterator<Arc::JobState>;
 #endif
 %include "../src/hed/libs/client/JobState.h"
 
@@ -58,7 +58,7 @@
 %ignore Arc::Job::WriteJobIDsToFile(const std::list<Job>&, const std::string&, unsigned = 10, unsigned = 500000); // Clash. It is sufficient to wrap only WriteJobIDsToFile(cosnt std::list<URL>&, ...);
 #endif
 #ifdef SWIGJAVA
-%template(JobListIteratorHandler) listiteratorhandler<Arc::Job>;
+%template(JobListIterator) listiterator<Arc::Job>;
 #endif
 %include "../src/hed/libs/client/Job.h"
 
@@ -72,7 +72,7 @@
 %template(JobControllerPluginList) std::list<Arc::JobControllerPlugin *>;
 %template(JobControllerPluginMap) std::map<std::string, Arc::JobControllerPlugin *>;
 #ifdef SWIGJAVA
-%template(JobControllerPluginListIteratorHandler) listiteratorhandler<Arc::JobControllerPlugin *>;
+%template(JobControllerPluginListIterator) listiterator<Arc::JobControllerPlugin *>;
 #endif
 %include "../src/hed/libs/client/JobControllerPlugin.h"
 
@@ -122,11 +122,11 @@
 %clear std::string& product;
 #endif
 #ifdef SWIGJAVA
-%template(JobDescriptionListIteratorHandler) listiteratorhandler<Arc::JobDescription>;
-%template(InputFileTypeListIteratorHandler) listiteratorhandler<Arc::InputFileType>;
-%template(OutputFileTypeListIteratorHandler) listiteratorhandler<Arc::OutputFileType>;
-%template(SourceTypeListIteratorHandler) listiteratorhandler<Arc::SourceType>;
-%template(TargetTypeListIteratorHandler) listiteratorhandler<Arc::TargetType>;
+%template(JobDescriptionListIterator) listiterator<Arc::JobDescription>;
+%template(InputFileTypeListIterator) listiterator<Arc::InputFileType>;
+%template(OutputFileTypeListIterator) listiterator<Arc::OutputFileType>;
+%template(SourceTypeListIterator) listiterator<Arc::SourceType>;
+%template(TargetTypeListIterator) listiterator<Arc::TargetType>;
 #endif
 
 
@@ -190,9 +190,9 @@
 %template(GLUE2EntityComputingServiceAttributes) Arc::GLUE2Entity<Arc::ComputingServiceAttributes>;
 %template(CPComputingServiceAttributes) Arc::CountedPointer<Arc::ComputingServiceAttributes>;
 #ifdef SWIGJAVA
-%template(ExecutionTargetListIteratorHandler) listiteratorhandler<Arc::ExecutionTarget>;
-%template(ApplicationEnvironmentListIteratorHandler) listiteratorhandler<Arc::ApplicationEnvironment>;
-%template(ComputingServiceListIteratorHandler) listiteratorhandler<Arc::ComputingServiceType>;
+%template(ExecutionTargetListIterator) listiterator<Arc::ExecutionTarget>;
+%template(ApplicationEnvironmentListIterator) listiterator<Arc::ApplicationEnvironment>;
+%template(ComputingServiceListIterator) listiterator<Arc::ComputingServiceType>;
 #endif
 %include "../src/hed/libs/client/ExecutionTarget.h"
 %extend Arc::ComputingServiceType {
@@ -230,7 +230,7 @@
 %ignore Arc::SubmitterPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
 %template(SubmitterPluginList) std::list<Arc::SubmitterPlugin*>;
 #ifdef SWIGJAVA
-%template(SubmitterPluginListIteratorHandler) listiteratorhandler<Arc::SubmitterPlugin*>;
+%template(SubmitterPluginListIterator) listiterator<Arc::SubmitterPlugin*>;
 #endif
 %include "../src/hed/libs/client/SubmitterPlugin.h"
 

@@ -88,6 +88,7 @@ class StaticPropertyWrapper(object):
 
 %{
 #include <list>
+#include <set>
 #include <stdexcept>
 #include <iterator>
 %}
@@ -109,56 +110,96 @@ class StaticPropertyWrapper(object):
  * classes.
  */
 
-namespace std {
-    template<class T> class list {
-      class iterator;
-      public:
-        typedef size_t size_type;
-        typedef T value_type;
-        typedef const value_type& const_reference;
-        list();
-        list(size_type n);
-        size_type size() const;
-        %rename(isEmpty) empty;
-        bool empty() const;
-        void clear();
-        %rename(add) push_back;
-        void push_back(const value_type& x);
-        iterator begin();
-        iterator end();
-    };
-}
-
-
-%define specialize_std_list(T)
-#warning "specialize_std_list - specialization for type T no longer needed"
-%enddef
-
-template <class T>
-class listiteratorhandler
-{
+template <typename T>
+class listiterator {
   private:
     typename std::list<T>::iterator it;
   public:
-    listiteratorhandler(typename std::list<T>::iterator it);
+    listiterator(typename std::list<T>::iterator it);
     T pointer();
     void next();
-    bool equal(typename std::list<T>::iterator ita);
+    bool equal(const listiterator<T>& ita);
 };
-%{
-template <class T>
-class listiteratorhandler
-{
+
+template <typename T>
+class setiterator {
   private:
-    typename std::list<T>::iterator it;
+    typename std::set<T>::iterator it;
   public:
-    listiteratorhandler(typename std::list<T>::iterator it) : it(it) {}
-
-    T pointer() { return it.operator*(); };
-    void next() { it.operator++(); };
-    bool equal(typename std::list<T>::iterator ita) { return it.operator==(ita); };
+    setiterator(typename std::set<T>::iterator it);
+    T pointer();
+    void next();
+    bool equal(const setiterator<T>& ita);
 };
 
+namespace std {
+  template<class T> class list {
+  public:
+    typedef size_t size_type;
+    typedef T value_type;
+    typedef const value_type& const_reference;
+    list();
+    list(size_type n);
+    %rename(size_impl) size;
+    size_type size() const;
+    %rename(isEmpty) empty;
+    bool empty() const;
+    void clear();
+    %rename(add) push_back;
+    void push_back(const value_type& x);
+    %extend {
+      listiterator<T> begin() { return listiterator<T>(self->begin()); }
+    }
+    %extend {
+      listiterator<T> end() { return listiterator<T>(self->end()); }
+    }
+  };
+
+  template<class T> class set {
+  public:
+    typedef size_t size_type;
+    typedef T value_type;
+    typedef const value_type& const_reference;
+    set();
+    %rename(size_impl) size;
+    size_type size() const;
+    %rename(isEmpty) empty;
+    bool empty() const;
+    void clear();
+    void insert(const value_type& x);
+    %extend {
+      setiterator<T> begin() { return setiterator<T>(self->begin()); }
+    }
+    %extend {
+      setiterator<T> end() { return setiterator<T>(self->end()); }
+    }
+  };
+}
+
+%{
+template <typename T>
+class listiterator {
+private:
+  typename std::list<T>::iterator it;
+public:
+  listiterator(typename std::list<T>::iterator it) : it(it) {}
+
+  T pointer() { return it.operator*(); };
+  void next() { it.operator++(); };
+  bool equal(const listiterator<T>& ita) { return it.operator==(ita.it); };
+};
+
+template <typename T>
+class setiterator {
+private:
+  typename std::set<T>::iterator it;
+public:
+  setiterator(typename std::set<T>::iterator it) : it(it) {}
+
+  T pointer() { return it.operator*(); };
+  void next() { it.operator++(); };
+  bool equal(const setiterator<T>& ita) { return it.operator==(ita.it); };
+};
 %}
 
 
@@ -251,9 +292,11 @@ std::ostream& getStdout() { return std::cout; }
 #endif
 
 %template(StringPair) std::pair<std::string, std::string>;
+%template(StringSet) std::set<std::string>;
 %template(StringList) std::list<std::string>;
 #ifdef SWIGJAVA
-%template(StringListIteratorHandler) listiteratorhandler<std::string>;
+%template(StringListIterator) listiterator<std::string>;
+%template(StringSetIterator) setiterator<std::string>;
 #endif
 %template(StringVector) std::vector<std::string>;
 %template(StringStringMap) std::map<std::string, std::string>;
