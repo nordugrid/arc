@@ -109,7 +109,7 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
           std::cout << "  Submission endpoint: " << itCE->second->URLString << " (status: " << itCE->second->HealthState << ")" << std::endl;
         }
         else {
-          for (std::list<std::string>::const_iterator itC = itCE->second->Capability.begin();
+          for (std::set<std::string>::const_iterator itC = itCE->second->Capability.begin();
                itC != itCE->second->Capability.end(); ++itC) {
             if (*itC == "executionmanagement.jobexecution") {
               std::cout << "  Submission endpoint: " << itCE->second->URLString << " (status: " << itCE->second->HealthState << ")" << std::endl;

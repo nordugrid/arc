@@ -75,7 +75,7 @@ namespace Arc {
         // or it does not bother to specify its share or does not split resources
         // by shares.
         // Check if it is computing endpoint at all
-        for (std::list<std::string>::const_iterator itCap = itCE->second.Attributes->Capability.begin();
+        for (std::set<std::string>::const_iterator itCap = itCE->second.Attributes->Capability.begin();
                     itCap != itCE->second.Attributes->Capability.end(); ++itCap) {
           if(*itCap == "executionmanagement.jobcreation") {
             // Creating generic target
@@ -209,7 +209,7 @@ namespace Arc {
     }
     if (!ce.Capability.empty()) {
                                    out << IString(" Capabilities:") << std::endl;
-      for (std::list<std::string>::const_iterator it = ce.Capability.begin();
+      for (std::set<std::string>::const_iterator it = ce.Capability.begin();
            it != ce.Capability.end(); ++it) out << "  " << *it << std::endl;
     }
     if (!ce.Technology.empty())       out << IString(" Technology: %s", ce.Technology) << std::endl;

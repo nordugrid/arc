@@ -147,6 +147,23 @@ namespace Arc {
       return true;
     }
 
+    bool set(const std::string name, std::set<std::string>& list) {
+      XMLNodeList nodelist = node.Path("GLUE2" + prefix + name);
+      if (nodelist.empty()) {
+        nodelist = node.Path("GLUE2" + name);
+      }
+      if (nodelist.empty()) {
+        return false;
+      }
+      list.clear();
+      for(XMLNodeList::iterator it = nodelist.begin(); it != nodelist.end(); it++) {
+        std::string value = *it;
+        list.insert(value);
+        if (logger) logger->msg(DEBUG, "Extractor (%s): %s contains %s", prefix, name, value);
+      }
+      return true;
+    }
+
     static Extractor First(XMLNode& node, const std::string objectClass, Logger* logger = NULL) {
       XMLNodeList objects = node.XPathLookup("//*[objectClass='GLUE2" + objectClass + "']", NS());
       if(objects.empty()) return Extractor();

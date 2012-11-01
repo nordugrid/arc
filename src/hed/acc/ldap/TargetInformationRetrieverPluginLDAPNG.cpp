@@ -131,8 +131,8 @@ namespace Arc {
       }
 
       ComputingEndpointType ComputingEndpoint;
-      ComputingEndpoint->Capability.push_back("executionmanagement.jobexecution");
-      ComputingEndpoint->Capability.push_back("executionmanagement.jobmanager");
+      ComputingEndpoint->Capability.insert("executionmanagement.jobexecution");
+      ComputingEndpoint->Capability.insert("executionmanagement.jobmanager");
       ComputingEndpoint->Technology = "gridftp";
       ComputingEndpoint->InterfaceName = "org.nordugrid.gridftpjob";
 

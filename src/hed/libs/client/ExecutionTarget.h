@@ -246,7 +246,7 @@ namespace Arc {
     std::string HealthState;
     std::string HealthStateInfo;
     std::string QualityLevel;
-    std::list<std::string> Capability;
+    std::set<std::string> Capability;
     std::string Technology;
     std::list<std::string> InterfaceVersion;
     std::list<std::string> InterfaceExtension;
@@ -281,7 +281,7 @@ namespace Arc {
     std::string ID;
     std::string Name;
     std::string Type;
-    std::list<std::string> Capability;
+    std::set<std::string> Capability;
     std::string QualityLevel;
     int TotalJobs;
     int RunningJobs;

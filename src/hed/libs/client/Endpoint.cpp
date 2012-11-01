@@ -31,10 +31,10 @@ namespace Arc {
     Capability.clear();
     switch (e.type) {
     case ConfigEndpoint::REGISTRY:
-      Capability.push_back(GetStringForCapability(Endpoint::REGISTRY));
+      Capability.insert(GetStringForCapability(Endpoint::REGISTRY));
       break;
     case ConfigEndpoint::COMPUTINGINFO:
-      Capability.push_back(GetStringForCapability(Endpoint::COMPUTINGINFO));
+      Capability.insert(GetStringForCapability(Endpoint::COMPUTINGINFO));
       break;
     }
     
@@ -45,8 +45,8 @@ namespace Arc {
     return HasCapability(GetStringForCapability(cap));
   }
   
-  bool Endpoint::HasCapability(std::string capability) const {
-    return (std::find(Capability.begin(), Capability.end(), capability) != Capability.end());
+  bool Endpoint::HasCapability(const std::string& capability) const {
+    return Capability.count(capability);
   }
 
   std::string Endpoint::getServiceName() const {
@@ -63,7 +63,7 @@ namespace Arc {
     std::string capabilities = "";
     if (!Capability.empty()) {
       capabilities = ", capabilities:";
-      for (std::list<std::string>::const_iterator it = Capability.begin(); it != Capability.end(); it++) {
+      for (std::set<std::string>::const_iterator it = Capability.begin(); it != Capability.end(); it++) {
         capabilities = capabilities + " " + *it;        
       }
     }

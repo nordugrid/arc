@@ -89,7 +89,7 @@ namespace Arc {
 
       if (GLUEService["Capability"]) {
         for (XMLNode n = GLUEService["Capability"]; n; ++n) {
-          cs->Capability.push_back((std::string)n);
+          cs->Capability.insert((std::string)n);
         }
       }
       if (GLUEService["Type"]) {
@@ -165,7 +165,7 @@ namespace Arc {
         }
         if (xmlCENode["Capability"]) {
           for (XMLNode n = xmlCENode["Capability"]; n; ++n) {
-            ComputingEndpoint->Capability.push_back((std::string)n);
+            ComputingEndpoint->Capability.insert((std::string)n);
           }
         }
         if (xmlCENode["QualityLevel"]) {
