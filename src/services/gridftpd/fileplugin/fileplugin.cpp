@@ -468,10 +468,8 @@ int DirectFilePlugin::open(const char* name,open_modes mode,unsigned long long i
     };
     return 1;
   }
-  else {
-    logger.msg(Arc::WARNING, "Unknown open mode %s",  mode);
-    return 1;
-  };
+  logger.msg(Arc::WARNING, "Unknown open mode %s",  mode);
+  return 1;
 }
 
 int DirectFilePlugin::close(bool eof) {
@@ -510,10 +508,8 @@ int DirectFilePlugin::open_direct(const char* name,open_modes mode) {
     chmod(fname.c_str(),S_IRUSR | S_IWUSR);
     return 0;
   }
-  else {
-    logger.msg(Arc::WARNING, "Unknown open mode %s",  mode);
-    return 1;
-  };
+  logger.msg(Arc::WARNING, "Unknown open mode %s",  mode);
+  return 1;
 }
 
 int DirectFilePlugin::read(unsigned char *buf,unsigned long long int offset,unsigned long long int *size) {

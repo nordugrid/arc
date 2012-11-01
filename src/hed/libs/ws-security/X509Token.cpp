@@ -268,7 +268,7 @@ bool X509Token::Authenticate(const std::string& cafile, const std::string& capat
 }
 
 
-X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, X509TokenType token_type) : SOAPEnvelope (soap), tokentype(token_type) {
+X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, X509TokenType token_type) : SOAPEnvelope (soap), signature_nd(NULL), tokentype(token_type) {
 
   //if(!init_xmlsec()) return;
 

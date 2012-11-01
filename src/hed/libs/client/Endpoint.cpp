@@ -36,6 +36,8 @@ namespace Arc {
     case ConfigEndpoint::COMPUTINGINFO:
       Capability.insert(GetStringForCapability(Endpoint::COMPUTINGINFO));
       break;
+    case ConfigEndpoint::ANY:
+      break;
     }
     
     return *this;

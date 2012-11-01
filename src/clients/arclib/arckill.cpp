@@ -115,7 +115,6 @@ int RUNMAIN(arckill)(int argc, char **argv) {
 
   unsigned int selected_num = jobmaster.GetSelectedJobs().size();
   unsigned int canceled_num = jobmaster.GetIDsProcessed().size();
-  unsigned int notcanceled_num = jobmaster.GetIDsNotProcessed().size();
   unsigned int cleaned_num = 0;
 
   if (!opt.keep) {

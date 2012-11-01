@@ -313,7 +313,7 @@ std::string subst_user_spec(std::string &in,userspec_t *spec) {
         case '%': { out+='%'; last=i+1; }; break;
         default: {
           logger.msg(Arc::WARNING, "Undefined control sequence: %%%s", in[i]);
-        };
+        }; break;
       };
     };
   };

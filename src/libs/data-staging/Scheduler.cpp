@@ -662,7 +662,7 @@ namespace DataStaging {
         case DTRStatus::REQUEST_RELEASED: ProcessDTRREQUEST_RELEASED(request); continue;
         case DTRStatus::REPLICA_REGISTERED: ProcessDTRREPLICA_REGISTERED(request); continue;
         case DTRStatus::CACHE_PROCESSED: ProcessDTRCACHE_PROCESSED(request); continue;
-        default: ; //DoNothing
+        default: break; //DoNothing
       }
     }
 
@@ -728,7 +728,7 @@ namespace DataStaging {
           // resume and the post-processor will take care of clean up
         }
         break;
-      default: ; //Do Nothing
+      default: break; //Do Nothing
     }
   }
   
@@ -775,7 +775,7 @@ namespace DataStaging {
           request->set_status(DTRStatus::CACHE_PROCESSED);
         }
         break;
-      default: ; // Unexpected state - do nothing
+      default: break; // Unexpected state - do nothing
     }
   }
 

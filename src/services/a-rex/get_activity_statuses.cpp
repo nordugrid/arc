@@ -172,7 +172,6 @@ Arc::MCC_Status ARexService::ESListActivities(ARexGMConfig& config,Arc::XMLNode 
   Arc::Time to((time_t)(-1));
   Arc::XMLNode node;
   unsigned int limit = MAX_ACTIVITIES;
-  unsigned int offset = 0;
   std::list< std::pair<std::string,std::list<std::string> > > statuses;
   bool filter_status = false;
   bool filter_time = false;

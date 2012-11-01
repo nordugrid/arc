@@ -42,7 +42,7 @@ class Source {
 class SourceFile: public Source {
  private:
   std::ifstream* stream;
-  SourceFile(void):Source(std::string("")) {};
+  SourceFile(void):Source(std::string("")),stream(NULL) {};
  public:
   /// See corresponding constructor of Source class
   SourceFile(const SourceFile& s):Source(s),stream(NULL) {};
@@ -57,7 +57,7 @@ class SourceFile: public Source {
 class SourceURL: public Source {
  private:
   Arc::URL* url;
-  SourceURL(void):Source(std::string("")) {};
+  SourceURL(void):Source(std::string("")),url(NULL) {};
  public:
   /// See corresponding constructor of Source class
   SourceURL(const SourceURL& s):Source(s),url(NULL) {};

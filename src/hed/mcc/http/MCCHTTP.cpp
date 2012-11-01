@@ -151,7 +151,7 @@ static MCC_Status make_http_fault(Logger& logger,PayloadStreamInterface& stream,
       case HTTP_NOT_FOUND:    desc="Not Found"; break;
       case HTTP_INTERNAL_ERR: desc="Internal error"; break;
       case HTTP_NOT_IMPLEMENTED: desc="Not Implemented"; break;
-      default: desc="Something went wrong";
+      default: desc="Something went wrong"; break;
     };
   };
   logger.msg(WARNING, "HTTP Error: %d %s",code,desc);

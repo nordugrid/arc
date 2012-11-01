@@ -65,6 +65,7 @@ namespace Arc {
     CredentialService = at.CredentialService;
     at.AccessControl.New(AccessControl);
     DryRun = at.DryRun;
+    return *this;
   }
 
   ResourcesType& ResourcesType::operator=(const ResourcesType& rt) {
@@ -86,6 +87,7 @@ namespace Arc {
     Coprocessor = rt.Coprocessor;
     QueueName = rt.QueueName;
     RunTimeEnvironment = rt.RunTimeEnvironment;
+    return *this;
   }
 
   void JobDescription::Set(const JobDescription& j) {

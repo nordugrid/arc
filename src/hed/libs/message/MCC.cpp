@@ -114,7 +114,7 @@ namespace Arc {
           //}
         }
       }
-      catch (Glib::FileError) {}
+      catch (Glib::FileError&) {}
     }
     return mm;
   }

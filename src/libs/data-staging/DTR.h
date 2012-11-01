@@ -310,6 +310,8 @@ namespace DataStaging {
       /// Private and not implemented because DTR_ptr should always be used.
       DTR& operator=(const DTR& dtr);
       DTR(const DTR& dtr);
+      DTR();
+
 
     public:
       
@@ -319,9 +321,6 @@ namespace DataStaging {
       /// Log level for all DTR activity
       static Arc::LogLevel LOG_LEVEL;
 
-      /// Public empty constructor
-      DTR();
-      
       /// Normal constructor.
       /** Construct a new DTR.
        * @param source Endpoint from which to read data

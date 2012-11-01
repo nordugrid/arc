@@ -274,7 +274,6 @@ int main(int argc,char** argv) {
   Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
   int res=0;
   bool not_uploaded;
-  time_t start_time=time(NULL);
   time_t files_changed = 0;
   bool first_loop = true;
   int n_threads = 1;
@@ -421,7 +420,7 @@ int main(int argc,char** argv) {
       default: {
         logger.msg(Arc::ERROR, "Undefined processing error");
         exit(1);
-      };
+      }; break;
     };
   };
   // process required arguments

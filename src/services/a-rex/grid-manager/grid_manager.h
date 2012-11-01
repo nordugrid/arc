@@ -27,8 +27,8 @@ class GridManager {
   bool users_owned_;
   sleep_st* wakeup_;
   DTRGenerator* dtr_generator_;
-  GridManager(void) { };
-  GridManager(const GridManager&) { };
+  GridManager(void);
+  GridManager(const GridManager&);
   static void grid_manager(void* arg);
   bool thread(void);
  public:

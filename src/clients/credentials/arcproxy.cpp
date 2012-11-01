@@ -1793,6 +1793,7 @@ static bool contact_myproxy_server(const std::string& myproxy_server, const std:
     remove_proxy_file(proxy_path);
     return false;
   }
+  return true;
 }
 
 static bool find_matched_vomses(std::map<std::string, std::vector<std::vector<std::string> > > &matched_voms_line /*output*/,

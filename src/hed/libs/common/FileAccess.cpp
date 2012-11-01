@@ -638,7 +638,6 @@ namespace Arc {
 
   void FileAccessContainer::KeepRange(void) {
     while(fas_.size() > ((max_>=min_)?max_:min_)) {
-      FileAccess* fa = fas_.front();
       fas_.pop_front();
     }
     while(fas_.size() < ((min_<=max_)?min_:max_)) {

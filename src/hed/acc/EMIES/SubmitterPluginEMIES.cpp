@@ -39,7 +39,6 @@ namespace Arc {
 
     bool ok = true;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
-      bool job_ok = true;
 
       JobDescription preparedjobdesc(*it);
   
@@ -84,7 +83,6 @@ namespace Arc {
 
     bool ok = true;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
-      bool job_ok = true;
 
       JobDescription preparedjobdesc(*it);
   

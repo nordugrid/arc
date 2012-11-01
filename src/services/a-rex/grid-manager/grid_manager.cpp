@@ -408,7 +408,6 @@ GridManager::GridManager(JobUsers& users, JobUser& my_user):tostop_(false) {
   my_user_ = &my_user; my_user_owned_ = false;
   users_ = &users; users_owned_ = false;
   dtr_generator_ = NULL;
-  void* arg = (void*)this;
   if(!Arc::CreateThreadFunction(&grid_manager,(void*)this,&active_)) { };
 }
 

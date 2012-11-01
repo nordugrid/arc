@@ -123,7 +123,7 @@ Evaluator* EvaluatorLoader::getEvaluator(const std::string& classname) {
           plugcfg.NewAttribute("Name")=name;
           plugcfg.NewChild("Plugin").NewAttribute("Name")="__arc_evaluator_modules__";
         };
-      } catch (Glib::FileError) {};
+      } catch (Glib::FileError&) {};
     }
     cfg.New(node);
   }
@@ -264,7 +264,7 @@ Policy* EvaluatorLoader::getPolicy(const Source& policysource) {
         plugcfg.NewChild("Plugin").NewAttribute("Name")="__arc_policy_modules__";
         // ?? plugcfg["Plugin"]="policy"; ??
       };
-    } catch (Glib::FileError) {};
+    } catch (Glib::FileError&) {};
   };
 
   Arc::Config modulecfg(cfg);
@@ -312,7 +312,7 @@ Request* EvaluatorLoader::getRequest(const Source& requestsource) {
         plugcfg.NewChild("Plugin").NewAttribute("Name")="__arc_request_modules__";
         // ?? plugcfg["Plugin"]="request"; ??
       };
-    } catch (Glib::FileError) {};
+    } catch (Glib::FileError&) {};
   };
 
   Arc::Config modulecfg(cfg);

@@ -983,6 +983,7 @@ namespace Arc {
     } else {
       type = "";
     };
+    return *this;
   }
 
   bool EMIESFault::operator!(void) {

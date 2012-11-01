@@ -1093,6 +1093,7 @@ namespace Arc {
       writing(false),
       ftp_eof_flag(false),
       check_received_length(0),
+      data_error(false),
       lister(NULL) {
     //globus_module_activate(GLOBUS_FTP_CLIENT_MODULE);
     //if (!proxy_initialized)

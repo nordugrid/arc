@@ -100,6 +100,7 @@ XmlContainer::put(const std::string &name, const std::string &content)
             return false;
         }
     }
+    return true;
 }
 
 std::string
@@ -141,6 +142,7 @@ XmlContainer::get(const std::string &name)
             return "";
         }
     }
+    return "";
 }
 
 void
@@ -238,6 +240,7 @@ XmlContainer::get_doc_names()
             return empty_result;
         }
     }
+    return empty_result;
 }
 
 void

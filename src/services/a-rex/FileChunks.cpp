@@ -178,7 +178,7 @@ bool FileChunks::Complete(void) {
   return r;
 }
 
-FileChunksList::FileChunksList(void):timeout(600) {
+FileChunksList::FileChunksList(void):timeout(600), last_timeout(time(NULL)) {
 }
 
 FileChunksList::~FileChunksList(void) {

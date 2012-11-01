@@ -19,7 +19,6 @@ public:
   /// used first, then it is overwritten by parameters in [data-staging] (for
   /// ini style) or new staging parameters in <dataTransfer> (for xml style).
   StagingConfig(const GMEnvironment& env);
-  StagingConfig() : valid(false) {};
 
   operator bool() const { return valid; };
   bool operator!() const { return !valid; };
@@ -105,6 +104,7 @@ private:
   /// Convert parameter to integer with mimimum value of -1
   bool paramToInt(const std::string& param, int& value);
 
+  StagingConfig();
 };
 
 

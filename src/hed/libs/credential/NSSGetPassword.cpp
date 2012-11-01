@@ -96,6 +96,7 @@ namespace AuthN {
       }
       return (char*) PORT_Strdup(phrase);
     }
+    return NULL;
   }
 
   static PRBool CheckPassword(char *cp) {

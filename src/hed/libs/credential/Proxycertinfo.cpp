@@ -148,6 +148,7 @@ int i2d_PROXYPOLICY(PROXYPOLICY * policy, unsigned char ** pp)  {
     M_ASN1_I2D_put(policy->policy, i2d_ASN1_OCTET_STRING);
   }
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 PROXYPOLICY * d2i_PROXYPOLICY(PROXYPOLICY ** a, unsigned char ** pp, long length) {
@@ -358,6 +359,7 @@ int i2d_PROXYCERTINFO_v3(PROXYCERTINFO * proxycertinfo, unsigned char ** pp) {
   M_ASN1_I2D_put(proxycertinfo->proxypolicy, i2d_PROXYPOLICY);
   M_ASN1_I2D_put_EXP_opt(proxycertinfo->path_length, i2d_ASN1_INTEGER, 1, v1);
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 int i2d_PROXYCERTINFO_v4(PROXYCERTINFO * proxycertinfo, unsigned char ** pp) {
@@ -372,6 +374,7 @@ int i2d_PROXYCERTINFO_v4(PROXYCERTINFO * proxycertinfo, unsigned char ** pp) {
   }
   M_ASN1_I2D_put(proxycertinfo->proxypolicy, i2d_PROXYPOLICY);
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 int i2d_PROXYCERTINFO(PROXYCERTINFO * proxycertinfo, unsigned char ** pp) {
@@ -388,6 +391,7 @@ int i2d_PROXYCERTINFO(PROXYCERTINFO * proxycertinfo, unsigned char ** pp) {
     return -1;
     break;
   }
+  return 0;
 }
 
 PROXYCERTINFO * d2i_PROXYCERTINFO_v3(PROXYCERTINFO ** cert_info, unsigned char ** pp, long length) {

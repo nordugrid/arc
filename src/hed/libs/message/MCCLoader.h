@@ -87,7 +87,7 @@ namespace Arc {
     ChainContext* context_;
 
    public:
-    MCCLoader():valid_(false) {};
+    MCCLoader():valid_(false), context_(NULL) {};
     /** Constructor that takes whole XML configuration and creates
        component chains */
     MCCLoader(Config& cfg);

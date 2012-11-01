@@ -224,6 +224,7 @@ XMLNode WSAHeader::ReferenceParameter(int num) {
     if(strcasecmp("true",((std::string)a).c_str()) != 0) continue;
     if((num--) <= 0) return n;
   };
+  return XMLNode(); // to keep compiler happy
 }
 
 XMLNode WSAHeader::ReferenceParameter(const std::string& name) {
@@ -236,6 +237,7 @@ XMLNode WSAHeader::ReferenceParameter(const std::string& name) {
     if(strcasecmp("true",((std::string)a).c_str()) != 0) continue;
     return n;
   };
+  return XMLNode(); // to keep compiler happy
 }
 
 XMLNode WSAHeader::NewReferenceParameter(const std::string& name) {

@@ -341,14 +341,14 @@ bool DelegationSH::Handle(Arc::Message* msg) const {
         return true;     
       }
 
-    } catch(std::exception) {
+    } catch(std::exception&) {
       logger.msg(ERROR,"Incoming Message is not SOAP");
       return false;
     }  
   } else if(delegation_type_ == delegation_saml) {
     try {
       dynamic_cast<PayloadSOAP*>(msg->Payload());
-    } catch(std::exception) {
+    } catch(std::exception&) {
       logger.msg(ERROR,"Outgoing Message is not SOAP");
       return false;
     }

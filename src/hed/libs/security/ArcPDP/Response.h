@@ -15,7 +15,7 @@ typedef std::list<Policy*> Policies;
 /**Include the RequestTuple, related XMLNode, the set of policy objects which give positive evaluation result, and the related XMLNode*/
 class ResponseItem {
 public:
-  ResponseItem():reqtp(NULL){};
+  ResponseItem():reqtp(NULL),res(DECISION_DENY){};
 public:
   //TODO: Convertion method to decrease memory consumption
   RequestTuple* reqtp;

@@ -179,7 +179,7 @@ namespace Arc {
               gid_t job_gid);
 
     /// Default constructor. Invalid cache.
-    FileCache() {
+    FileCache(): _uid(0),_gid(0) {
       _caches.clear();
     }
 

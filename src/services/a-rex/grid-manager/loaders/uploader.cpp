@@ -331,7 +331,7 @@ int main(int argc,char** argv) {
       default: {
         logger.msg(Arc::ERROR, "Undefined processing error");
         exit(1);
-      };
+      }; break;
     };
   };
   // process required arguments

@@ -56,7 +56,7 @@ namespace Arc {
      descendants of this class or be wrapped by its offspring. */
   class Plugin {
     private:
-      Plugin(void) {};
+      Plugin(void);
       Plugin& operator=(const Plugin&) { return *this; };
     protected:
       PluginsFactory* factory_;

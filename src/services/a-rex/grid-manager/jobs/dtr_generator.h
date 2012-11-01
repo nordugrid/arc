@@ -81,7 +81,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
   void* kicker_arg;
 
   /** Private constructors */
-  DTRGenerator(const DTRGenerator& generator) {};
+  DTRGenerator(const DTRGenerator& generator);
 
   /** run main thread */
   static void main_thread(void* arg);

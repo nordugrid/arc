@@ -702,7 +702,7 @@ namespace Arc {
               continue;
             }
             User user;
-            (lchown(link_name.c_str(), user.get_uid(), user.get_gid()) != 0);
+            lchown(link_name.c_str(), user.get_uid(), user.get_gid());
             return DataStatus::Success;
             // Leave after making a link. Rest moves data.
           }

@@ -376,8 +376,8 @@ SOAPFault::SOAPFaultCode SOAPFault::Code(void) {
       return Sender;
     if(FaultCodeMatch("Server",c.c_str())) 
       return Receiver;
-    return unknown;
   };
+  return unknown;
 }
 
 void SOAPFault::Code(SOAPFaultCode c) {
@@ -391,7 +391,7 @@ void SOAPFault::Code(SOAPFaultCode c) {
       case DataEncodingUnknown: value=value.Prefix()+":DataEncodingUnknown"; break;
       case Sender: value=value.Prefix()+":Sender"; break;
       case Receiver: value=value.Prefix()+":Receiver"; break;
-      default: value="";
+      default: value=""; break;
     };
   } else {
     if(!code) code=fault.NewChild(fault.Prefix()+":faultcode");
@@ -400,7 +400,7 @@ void SOAPFault::Code(SOAPFaultCode c) {
       case MustUnderstand: code=code.Prefix()+":MustUnderstand"; break;
       case Sender: code=code.Prefix()+":Client"; break;
       case Receiver: code=code.Prefix()+":Server"; break;
-      default: code="";
+      default: code=""; break;
     };
   };
 }

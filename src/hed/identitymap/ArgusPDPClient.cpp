@@ -620,12 +620,11 @@ int ArgusPDPClient::create_xacml_request_cream(Arc::XMLNode& request, std::list<
       logger.msg(Arc::DEBUG,"Adding action-id value: %s", act_attr_value);
       xacml_element_add_attribute(action, act_attr_value, XACML_DATATYPE_STRING, act_attr_id, "");
 
-      return 0;
-
-    } catch(ierror err) {
+    } catch(ierror& err) {
       logger.msg(Arc::DEBUG,"CREAM request generation failed: %s",err.desc);
       return 1;
     }
+    return 0;
 }
 
 static bool split_voms(const std::string& voms_attr, std::string& vo, std::string& group, 
@@ -789,12 +788,11 @@ int ArgusPDPClient::create_xacml_request_emi(Arc::XMLNode& request, std::list<Ar
       logger.msg(Arc::DEBUG,"Adding action-id value: %s", act_attr_value);
       xacml_element_add_attribute(action, act_attr_value, XACML_DATATYPE_STRING, act_attr_id, "");
 
-      return 0;
-
-    } catch(ierror err) {
+    } catch(ierror& err) {
       logger.msg(Arc::DEBUG,"EMI request generation failed: %s",err.desc);
       return 1;
     }
+    return 0;
 }
 
 }  // namespace ArcSec

@@ -599,11 +599,9 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
     };
     return chosenFilePlugin->open(name,mode,size);
   }
-  else {
-    logger.msg(Arc::ERROR, "Unknown open mode %i", mode);
-    error_description="Unknown/unsupported request.";
-    return 1;
-  };
+  logger.msg(Arc::ERROR, "Unknown open mode %i", mode);
+  error_description="Unknown/unsupported request.";
+  return 1;
 }
 
 int JobPlugin::close(bool eof) {
@@ -628,12 +626,12 @@ int JobPlugin::close(bool eof) {
    * store RSL (description)                         *
    ************************************************* */
   std::string rsl_fname=user->ControlDir()+"/job."+job_id+".description";
-  std::string acl("");
+  std::string acl, failure;
   /* analyze rsl (checking, substituting, etc)*/
   JobLocalDescription job_desc;
-  if(parse_job_req(rsl_fname.c_str(),job_desc,&acl) != JobReqSuccess) {
+  if(parse_job_req(rsl_fname.c_str(),job_desc,&acl,&failure) != JobReqSuccess) {
     error_description="Failed to parse job/action description.";
-    logger.msg(Arc::ERROR, "%s", error_description);
+    logger.msg(Arc::ERROR, "%s: %s", error_description, failure);
     delete_job_id();
     return 1;
   };
@@ -856,7 +854,7 @@ int JobPlugin::close(bool eof) {
     try {
       Arc::Credential ci(proxy_fname, proxy_fname, env.cert_dir_loc(), "");
       job_desc.expiretime = ci.GetEndTime();
-    } catch (std::exception) {
+    } catch (std::exception&) {
       job_desc.expiretime = time(NULL);
     };
   };
@@ -1212,11 +1210,11 @@ int JobPlugin::checkdir(std::string &dirname) {
     try {
       Arc::Credential new_ci(proxy_fname, proxy_fname, env.cert_dir_loc(), "");
       new_proxy_expires = new_ci.GetEndTime();
-    } catch (std::exception) { };
+    } catch (std::exception&) { };
     try {
       Arc::Credential old_ci(old_proxy_fname, old_proxy_fname, env.cert_dir_loc(), "");
       old_proxy_expires = old_ci.GetEndTime();
-    } catch (std::exception) { };
+    } catch (std::exception&) { };
     if(new_proxy_expires > old_proxy_expires) {
       /* try to renew proxy */
       logger.msg(Arc::INFO, "Renewing proxy for job %s", id);
