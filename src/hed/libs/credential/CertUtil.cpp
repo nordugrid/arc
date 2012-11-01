@@ -133,6 +133,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       * certificate in the chain we will check the chain.
       */
       logger.msg(Arc::DEBUG,"X509_V_ERR_PATH_LENGTH_EXCEEDED");
+      ok = 1;
       break;
 
 #if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
