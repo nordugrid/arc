@@ -140,8 +140,9 @@ namespace std {
     typedef const value_type& const_reference;
     list();
     list(size_type n);
-    %rename(size_impl) size;
-    size_type size() const;
+    %extend {
+      int size() const { return (int)self->size(); }
+    }
     %rename(isEmpty) empty;
     bool empty() const;
     void clear();
@@ -149,8 +150,6 @@ namespace std {
     void push_back(const value_type& x);
     %extend {
       listiterator<T> begin() { return listiterator<T>(self->begin()); }
-    }
-    %extend {
       listiterator<T> end() { return listiterator<T>(self->end()); }
     }
   };
@@ -158,19 +157,20 @@ namespace std {
   template<class T> class set {
   public:
     typedef size_t size_type;
+    typedef T key_type;
     typedef T value_type;
     typedef const value_type& const_reference;
     set();
-    %rename(size_impl) size;
-    size_type size() const;
+    %extend {
+      int size() const { return (int)self->size(); }
+    }
     %rename(isEmpty) empty;
     bool empty() const;
     void clear();
     void insert(const value_type& x);
     %extend {
+      int count(const key_type& k) const { return (int)self->count(k); }
       setiterator<T> begin() { return setiterator<T>(self->begin()); }
-    }
-    %extend {
       setiterator<T> end() { return setiterator<T>(self->end()); }
     }
   };
