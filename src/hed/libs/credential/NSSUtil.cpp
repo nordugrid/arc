@@ -2198,7 +2198,8 @@ err:
     return ss.str();
   }
 
-  static SECStatus AddProxyCertInfoExtension(void* extHandle, int pathlen, char* policylang, char* policy) {
+  static SECStatus AddProxyCertInfoExtension(void* extHandle, int pathlen, 
+    const char* policylang, const char* policy) {
     PRArenaPool *arena = NULL;
     SECStatus rv = SECSuccess;
     SECOidData* oid = NULL;
@@ -2684,8 +2685,8 @@ loser:
     SECOidTag tag_sigalg;
     SECOidTag tag_hashalg;
     int pathlen = -1;
-    char* policylang = "Inherit all"; //TODO
-    char* policy = NULL;//"test policy"; //TODO
+    const char* policylang = "Inherit all"; //TODO
+    const char* policy = NULL;//"test policy"; //TODO
     CERTCertExtension** exts;
     SECItem cert_der;
     SECItem derSubject;
