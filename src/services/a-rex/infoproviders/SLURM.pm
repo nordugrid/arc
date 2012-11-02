@@ -93,8 +93,9 @@ sub slurm_read_partitions($){
 	my %part;
 	my $string = $_;
 	my $PartitionName = get_variable("PartitionName",$string);
+	$PartitionName =~ s/\*$//;
 	#Fetch data from sinfo
-	$part{PartitionName} = get_variable("PartitionName",$string);
+	$part{PartitionName} = $PartitionName;
 	my $totalcpus = get_variable("TotalCPUs",$string);
 	$part{TotalNodes} = get_variable("TotalNodes",$string);
 	$part{MaxTime} = get_variable("MaxTime",$string);
