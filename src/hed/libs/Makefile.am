@@ -23,6 +23,6 @@ SUBDIRS = common loader message crypto cryptomod \
 	communication client $(DBXML_DIR) infosys ws $(GLOBUSUTILS_DIR) \
 	credentialstore
 DIST_SUBDIRS = common loader message crypto cryptomod \
-	credential credentialmod data delegation security \
+	credential credentialmod data security \
 	ws-addressing xmlsec ws-security wsrf delegation \
 	communication client dbxml infosys ws globusutils credentialstore
