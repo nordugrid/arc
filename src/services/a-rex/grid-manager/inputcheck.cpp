@@ -78,17 +78,17 @@ int main(int argc,char* argv[]) {
 
   while((n=getopt(argc,argv,"hd:")) != -1) {
     switch(n) {
-      case ':': { logger.msg(Arc::ERROR,"Missing argument"); return -1; }; break;
-      case '?': { logger.msg(Arc::ERROR,"Unrecognized option"); return -1; }; break;
-      case '.': { return -1; }; break;
+      case ':': { logger.msg(Arc::ERROR,"Missing argument"); return -1; };
+      case '?': { logger.msg(Arc::ERROR,"Unrecognized option"); return -1; };
+      case '.': { return -1; };
       case 'h': {
         usage();
         return 0;
-      }; break;
+      };
       case 'd': {
         Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(optarg));
       }; break;
-      default: { logger.msg(Arc::ERROR,"Option processing error"); return -1; }; break;
+      default: { logger.msg(Arc::ERROR,"Option processing error"); return -1; };
     };
   };
   if(optind >= argc) {

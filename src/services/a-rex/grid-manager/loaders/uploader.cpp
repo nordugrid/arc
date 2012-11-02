@@ -224,7 +224,7 @@ int main(int argc,char** argv) {
         std::cerr<<"          [-d debug_level] job_id control_directory"<<std::endl;
         std::cerr<<"          session_directory [cache options]"<<std::endl; 
         exit(1);
-      }; break;
+      };
       case 'c': {
         secure=false;
       }; break;
@@ -323,15 +323,15 @@ int main(int argc,char** argv) {
       case '?': {
         logger.msg(Arc::ERROR, "Unsupported option: %c", (char)optopt);
         exit(1);
-      }; break;
+      };
       case ':': {
         logger.msg(Arc::ERROR, "Missing parameter for option %c", (char)optopt);
         exit(1);
-      }; break;
+      };
       default: {
         logger.msg(Arc::ERROR, "Undefined processing error");
         exit(1);
-      }; break;
+      };
     };
   };
   // process required arguments

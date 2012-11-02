@@ -210,13 +210,13 @@ int main(int argc,char** argv) {
 
   while((n=daemon.getopt(argc,argv,"hp:c:n:b:B:")) != -1) {
     switch(n) {
-      case '.': { return 1; }; break;
-      case ':': { logger.msg(Arc::ERROR, "Missing argument"); return 1; }; break;
-      case '?': { logger.msg(Arc::ERROR, "Unknown option"); return 1; }; break;
+      case '.': { return 1; };
+      case ':': { logger.msg(Arc::ERROR, "Missing argument"); return 1; };
+      case '?': { logger.msg(Arc::ERROR, "Unknown option"); return 1; };
       case 'h': {
         fprintf(stdout,"gridftpd [-p port_to_listen] [-c config_file] [-n maximal_connections] [-b default_buffer_size] [-B maximal_buffer_size] %s.\n",daemon.short_help()); 
          return 0;
-      }; break;
+      };
       case 'p': {
         if(sscanf(optarg,"%hu",&server_port) != 1) {
           logger.msg(Arc::ERROR, "Wrong port number");

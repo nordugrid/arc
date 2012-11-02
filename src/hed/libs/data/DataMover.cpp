@@ -702,7 +702,9 @@ namespace Arc {
               continue;
             }
             User user;
-            lchown(link_name.c_str(), user.get_uid(), user.get_gid());
+            if (lchown(link_name.c_str(), user.get_uid(), user.get_gid()) == -1) {
+              logger.msg(WARNING, "Failed to change owner of symbolic link %s to %i", link_name, user.get_uid());
+            }
             return DataStatus::Success;
             // Leave after making a link. Rest moves data.
           }
