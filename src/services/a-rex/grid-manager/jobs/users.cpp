@@ -125,8 +125,8 @@ static bool fix_directory(const std::string& path, JobUser::fixdir_t fixmode, mo
   // JobUser::fixdir_always
   if(!Arc::DirCreate(path,mode,true)) return false;
   // Only can switch owner if running as root
-  if(::getuid() == 0) (::chown(path.c_str(),uid,gid) != 0);
-  (::chmod(path.c_str(),mode) != 0);
+  if(::getuid() == 0) chown(path.c_str(),uid,gid);
+  chmod(path.c_str(),mode);
   return true;
 }
 
@@ -229,7 +229,7 @@ bool JobUser::substitute(std::string& param) const {
       case 'G': 
         logger.msg(Arc::ERROR,"Globus location variable substitution is not supported anymore. Please specify path directly.");
         break;
-      default: to_put=param.substr(pos-1,2);
+      default: to_put=param.substr(pos-1,2); break;
     };
     curpos=pos+1+(to_put.length() - 2);
     param.replace(pos-1,2,to_put);
@@ -262,7 +262,7 @@ bool JobUsers::substitute(std::string& param) const {
     switch(param[pos]) {
       case 'r': to_put=session_roots; break;
       case 'c': to_put=control_dirs; break;
-      default: to_put=param.substr(pos-1,2);
+      default: to_put=param.substr(pos-1,2); break;
     };
     curpos=pos+1+(to_put.length() - 2);
     param.replace(pos-1,2,to_put);

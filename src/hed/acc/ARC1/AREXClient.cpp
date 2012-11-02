@@ -6,7 +6,7 @@
 
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
 #include <arc/ws-addressing/WSA.h>
@@ -16,7 +16,7 @@
 #include "AREXClient.h"
 
 #ifdef CPPUNITTEST
-#include "../../libs/client/test/SimulatorClasses.h"
+#include "../../libs/communication/test/SimulatorClasses.h"
 #define DelegationProviderSOAP DelegationProviderSOAPTest
 #endif
 

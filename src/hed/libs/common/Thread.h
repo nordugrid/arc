@@ -327,7 +327,7 @@ namespace Arc {
     unsigned int cnt_;
     void *ptr_;
     bool released_;
-    ThreadedPointerBase(ThreadedPointerBase&) {};
+    ThreadedPointerBase(ThreadedPointerBase&);
     ~ThreadedPointerBase(void);
   public:
     ThreadedPointerBase(void *p);

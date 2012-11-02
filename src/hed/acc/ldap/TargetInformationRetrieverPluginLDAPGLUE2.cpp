@@ -147,6 +147,23 @@ namespace Arc {
       return true;
     }
 
+    bool set(const std::string name, std::set<std::string>& list) {
+      XMLNodeList nodelist = node.Path("GLUE2" + prefix + name);
+      if (nodelist.empty()) {
+        nodelist = node.Path("GLUE2" + name);
+      }
+      if (nodelist.empty()) {
+        return false;
+      }
+      list.clear();
+      for(XMLNodeList::iterator it = nodelist.begin(); it != nodelist.end(); it++) {
+        std::string value = *it;
+        list.insert(value);
+        if (logger) logger->msg(DEBUG, "Extractor (%s): %s contains %s", prefix, name, value);
+      }
+      return true;
+    }
+
     static Extractor First(XMLNode& node, const std::string objectClass, Logger* logger = NULL) {
       XMLNodeList objects = node.XPathLookup("//*[objectClass='GLUE2" + objectClass + "']", NS());
       if(objects.empty()) return Extractor();
@@ -250,9 +267,20 @@ namespace Arc {
       // GFD.147 GLUE2 6.1 Computing Service
       service.set("EntityName", cs->Name);
       service.set("ServiceType", cs->Type);
+      service.set("ServiceID", cs->ID);
+      service.set("ServiceQualityLevel", cs->QualityLevel);
+      service.set("ServiceCapability", cs->Capability);
+      
+      service.set("ComputingServiceTotalJobs", cs->TotalJobs);
+      service.set("ComputingServiceRunningJobs", cs->RunningJobs);
+      service.set("ComputingServiceWaitingJobs", cs->WaitingJobs);
+      service.set("ComputingServiceStagingJobs", cs->StagingJobs);
+      service.set("ComputingServiceSuspendedJobs", cs->SuspendedJobs);
+      service.set("ComputingServicePreLRMSWaitingJobs", cs->PreLRMSWaitingJobs);
 
       // GFD.147 GLUE2 6.2 ComputingEndpoint
       std::list<Extractor> endpoints = Extractor::All(service, "ComputingEndpoint");
+      std::list<Endpoint> OtherEndpoints;
       int endpointID = 0;
       for (std::list<Extractor>::iterator ite = endpoints.begin(); ite != endpoints.end(); ++ite) {
         Extractor& endpoint = *ite;
@@ -280,6 +308,12 @@ namespace Arc {
         endpoint.set("JobDescription", ComputingEndpoint->JobDescriptions);
 
         cs.ComputingEndpoint.insert(std::pair<int, ComputingEndpointType>(endpointID++, ComputingEndpoint));
+        OtherEndpoints.push_back(*ComputingEndpoint.Attributes);
+      }
+      
+      // For each endpoint add a list of all the endpoints which may be needed later by the Submitter and JobListRetriever plugins
+      for (std::map<int, ComputingEndpointType>::iterator itCE = cs.ComputingEndpoint.begin(); itCE != cs.ComputingEndpoint.end(); ++itCE) {
+        itCE->second->OtherEndpoints = OtherEndpoints;
       }
 
       // GFD.147 GLUE2 6.3 Computing Share

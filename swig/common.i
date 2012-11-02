@@ -1,3 +1,10 @@
+#ifdef SWIGPYTHON
+%module common
+
+%include "Arc.i"
+#endif
+
+
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/XMLNode.h
 %{
 #include <arc/XMLNode.h>
@@ -42,7 +49,7 @@
 %clear std::string& out_xml_str;
 #endif
 #ifdef SWIGJAVA
-%template(XMLNodePListIteratorHandler) listiteratorhandler<Arc::XMLNode*>;
+%template(XMLNodePListIterator) listiterator<Arc::XMLNode*>;
 #endif
 
 
@@ -148,7 +155,7 @@ private:
 %include "../src/hed/libs/common/Logger.h"
 %template(LogDestinationList) std::list<Arc::LogDestination*>;
 #ifdef SWIGJAVA
-%template(LogDestinationListIteratorHandler) listiteratorhandler<Arc::LogDestination*>;
+%template(LogDestinationListIterator) listiterator<Arc::LogDestination*>;
 #endif
 
 
@@ -187,7 +194,7 @@ private:
 %template(URLListMap) std::map< std::string, std::list<Arc::URL> >;
 %template(URLLocationList) std::list<Arc::URLLocation>;
 #ifdef SWIGJAVA
-%template(URLLocationListIteratorHandler) listiteratorhandler<Arc::URLLocation>;
+%template(URLLocationListIterator) listiterator<Arc::URLLocation>;
 #endif
 
 
@@ -246,7 +253,7 @@ private:
 %}
 %template(ConfigEndpointList) std::list<Arc::ConfigEndpoint>;
 #ifdef SWIGJAVA
-%template(ConfigEndpointListIteratorHandler) listiteratorhandler<Arc::ConfigEndpoint>;
+%template(ConfigEndpointListIterator) listiterator<Arc::ConfigEndpoint>;
 #endif
 %include "../src/hed/libs/common/UserConfig.h"
 

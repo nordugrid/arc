@@ -39,6 +39,7 @@ int i2d_AC_ATTR(AC_ATTR *a, unsigned char **pp)
   M_ASN1_I2D_put_SET_type(AC_IETFATTR,a->ietfattr, (int (*)())i2d_AC_IETFATTR);
 #endif
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 AC_ATTR *d2i_AC_ATTR(AC_ATTR **a, SSLCONST unsigned char **pp, long length)
@@ -107,6 +108,7 @@ int i2d_AC_IETFATTR(AC_IETFATTR *a, unsigned char **pp)
   M_ASN1_I2D_put_SEQUENCE(a->values,  (int (*)())i2d_AC_IETFATTRVAL);
 #endif
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 AC_IETFATTR *d2i_AC_IETFATTR(AC_IETFATTR **a, SSLCONST unsigned char **pp, long length)
@@ -194,6 +196,7 @@ int i2d_AC_DIGEST(AC_DIGEST *a, unsigned char **pp)
   M_ASN1_I2D_put(a->algor,        i2d_X509_ALGOR);
   M_ASN1_I2D_put(a->digest,       i2d_ASN1_BIT_STRING);
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 AC_DIGEST *d2i_AC_DIGEST(AC_DIGEST **a, SSLCONST unsigned char **pp, long length)
@@ -247,6 +250,7 @@ int i2d_AC_IS(AC_IS *a, unsigned char **pp)
   M_ASN1_I2D_put(a->serial,      i2d_ASN1_INTEGER);
   M_ASN1_I2D_put_IMP_opt(a->uid, i2d_ASN1_BIT_STRING, V_ASN1_BIT_STRING);
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 AC_IS *d2i_AC_IS(AC_IS **a, SSLCONST unsigned char **pp, long length)
@@ -297,6 +301,7 @@ int i2d_AC_FORM(AC_FORM *a, unsigned char **pp)
   M_ASN1_I2D_put_IMP_opt(a->is,     i2d_AC_IS, 0);
   M_ASN1_I2D_put_IMP_opt(a->digest, i2d_AC_DIGEST, 1);
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 AC_FORM *d2i_AC_FORM(AC_FORM **a, SSLCONST unsigned char **pp, long length)
@@ -343,6 +348,7 @@ int i2d_AC_ACI(AC_ACI *a, unsigned char **pp)
 
   M_ASN1_I2D_put_IMP_opt(a->form, i2d_AC_FORM, 0);
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 AC_ACI *d2i_AC_ACI(AC_ACI **a, SSLCONST unsigned char **pp, long length)
@@ -387,6 +393,7 @@ int i2d_AC_HOLDER(AC_HOLDER *a, unsigned char **pp)
   M_ASN1_I2D_put_IMP_opt(a->name, i2d_GENERAL_NAMES, 1);
   M_ASN1_I2D_put_IMP_opt(a->digest, i2d_AC_DIGEST, 2);
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 AC_HOLDER *d2i_AC_HOLDER(AC_HOLDER **a, SSLCONST unsigned char **pp, long length)
@@ -451,6 +458,7 @@ int i2d_AC_VAL(AC_VAL *a, unsigned char **pp)
   M_ASN1_I2D_put(a->notAfter,  i2d_ASN1_GENERALIZEDTIME);
 
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 AC_VAL *d2i_AC_VAL(AC_VAL **a, SSLCONST unsigned char **pp, long length)
@@ -522,6 +530,7 @@ int i2d_AC_INFO(AC_INFO *a, unsigned char **pp)
   M_ASN1_I2D_put_SEQUENCE_opt(a->exts, (int(*)())i2d_X509_EXTENSION);
 #endif
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 AC_INFO *d2i_AC_INFO(AC_INFO **a, SSLCONST unsigned char **pp, long length)
@@ -596,6 +605,7 @@ int i2d_AC(AC *a, unsigned char **pp)
   M_ASN1_I2D_put(a->signature, i2d_ASN1_BIT_STRING);
 
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 AC *d2i_AC(AC **a, SSLCONST unsigned char **pp, long length)
@@ -651,6 +661,7 @@ int i2d_AC_SEQ(AC_SEQ *a, unsigned char **pp)
   M_ASN1_I2D_put_SEQUENCE(a->acs, (int (*)())i2d_AC);
 #endif
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 AC_SEQ *d2i_AC_SEQ(AC_SEQ **a, SSLCONST unsigned char **pp, long length)
@@ -703,6 +714,7 @@ int i2d_AC_TARGETS(AC_TARGETS *a, unsigned char **pp)
   M_ASN1_I2D_put_SEQUENCE(a->targets, (int (*)())i2d_AC_TARGET);
 #endif
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 AC_TARGETS *d2i_AC_TARGETS(AC_TARGETS **a, SSLCONST unsigned char **pp, long length)
@@ -751,6 +763,7 @@ int i2d_AC_TARGET(AC_TARGET *a, unsigned char **pp)
   M_ASN1_I2D_put_EXP_opt(a->group, i2d_GENERAL_NAME, 1, v2);
   M_ASN1_I2D_put_EXP_opt(a->cert, i2d_AC_IS, 2, v3);
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 AC_TARGET *d2i_AC_TARGET(AC_TARGET **a, SSLCONST unsigned char **pp, long length)
@@ -801,6 +814,7 @@ int i2d_AC_CERTS(AC_CERTS *a, unsigned char **pp)
   M_ASN1_I2D_put_SEQUENCE(a->stackcert, (int (*)())i2d_X509);
 #endif
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 AC_CERTS *d2i_AC_CERTS(AC_CERTS **a, SSLCONST unsigned char **pp, long length)
@@ -846,6 +860,7 @@ int i2d_AC_ATTRIBUTE(AC_ATTRIBUTE *a, unsigned char **pp)
   M_ASN1_I2D_put(a->qualifier, i2d_ASN1_OCTET_STRING);
 
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 AC_ATTRIBUTE *d2i_AC_ATTRIBUTE(AC_ATTRIBUTE **a, SSLCONST unsigned char **pp, long length)
@@ -906,6 +921,7 @@ int i2d_AC_ATT_HOLDER(AC_ATT_HOLDER *a, unsigned char **pp)
   M_ASN1_I2D_put_SEQUENCE(a->attributes, (int(*)())i2d_AC_ATTRIBUTE);
 #endif
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 AC_ATT_HOLDER *d2i_AC_ATT_HOLDER(AC_ATT_HOLDER **a, SSLCONST unsigned char **pp, long length)
@@ -962,6 +978,7 @@ int i2d_AC_FULL_ATTRIBUTES(AC_FULL_ATTRIBUTES *a, unsigned char **pp)
   M_ASN1_I2D_put_SEQUENCE(a->providers, (int (*)())i2d_AC_ATT_HOLDER);
 #endif
   M_ASN1_I2D_finish();
+  return 0;
 }
 
 AC_FULL_ATTRIBUTES *d2i_AC_FULL_ATTRIBUTES(AC_FULL_ATTRIBUTES **a, SSLCONST unsigned char **pp, long length)

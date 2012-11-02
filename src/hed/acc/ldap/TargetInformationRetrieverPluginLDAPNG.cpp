@@ -131,8 +131,8 @@ namespace Arc {
       }
 
       ComputingEndpointType ComputingEndpoint;
-      ComputingEndpoint->Capability.push_back("executionmanagement.jobexecution");
-      ComputingEndpoint->Capability.push_back("executionmanagement.jobmanager");
+      ComputingEndpoint->Capability.insert("executionmanagement.jobexecution");
+      ComputingEndpoint->Capability.insert("executionmanagement.jobmanager");
       ComputingEndpoint->Technology = "gridftp";
       ComputingEndpoint->InterfaceName = "org.nordugrid.gridftpjob";
 
@@ -164,6 +164,16 @@ namespace Arc {
       ComputingEndpoint->JobDescriptions.push_back("ogf:jsdl:1.0");
 
       cs.ComputingEndpoint.insert(std::pair<int, ComputingEndpointType>(0, ComputingEndpoint));
+      
+      ComputingEndpointType InformationEndpoint;
+      InformationEndpoint->URLString = cie.URLString;
+      InformationEndpoint->InterfaceName = cie.InterfaceName;
+      InformationEndpoint->HealthState = cie.HealthState;
+      InformationEndpoint->HealthStateInfo = cie.HealthStateInfo;
+      InformationEndpoint->QualityLevel = cie.QualityLevel;
+      InformationEndpoint->Capability = cie.Capability;
+      
+      cs.ComputingEndpoint.insert(std::pair<int, ComputingEndpointType>(1, InformationEndpoint));
 
       int shareID = 0;
       for (XMLNode queue = (*it)["nordugrid-queue-name"]; (bool)queue; ++queue) {

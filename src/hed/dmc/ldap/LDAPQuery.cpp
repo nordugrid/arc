@@ -71,7 +71,7 @@ namespace Arc {
     bool valid;
     bool anonymous;
     std::string usersn;
-    ldap_bind_arg(void):connection(NULL), valid(false), anonymous(true), count(2) { };
+    ldap_bind_arg(void):connection(NULL), loglevel(WARNING), valid(false), anonymous(true), count(2) { };
     bool release(void) {
       bool freeit = false;
       cond.lock();

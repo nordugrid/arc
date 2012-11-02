@@ -126,15 +126,6 @@ namespace DataStaging {
     DTR_ID = Arc::UUID();
   }	
 
-  DTR::DTR():
-    DTR_ID(""), // empty means invalid DTR
-    source_endpoint(Arc::URL(),Arc::UserConfig()),
-    destination_endpoint(Arc::URL(),Arc::UserConfig()),
-    logger(NULL)
-  {  
-
-  }
-
   void DTR::registerCallback(DTRCallback* cb, StagingProcesses owner) {
     lock.lock();
     proc_callback[owner].push_back(cb);

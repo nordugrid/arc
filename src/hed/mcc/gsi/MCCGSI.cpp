@@ -114,7 +114,9 @@ using namespace Arc;
     : ctx(GSS_C_NO_CONTEXT),
       cred(proxyPath, certificatePath, keyPath),
       client(GSS_C_NO_NAME),
+      ret_flags(0),
       oid(GSS_C_NO_OID),
+      time_req(0),
       delegated_cred(GSS_C_NO_CREDENTIAL),
       completed(false),
       logger(logger) {}
@@ -285,8 +287,8 @@ using namespace Arc;
     if (!ProcessSecHandlers(outmsg, "outgoinging")) {
       logger.msg(ERROR,
                  "Security check failed in GSI MCC for outgoing message");
-      return MCC_Status();
     }
+    return MCC_Status();
   }
 
   MCC_GSI_Client::MCC_GSI_Client(Config& cfg, PluginArgument& parg)
@@ -549,7 +551,7 @@ using namespace Arc;
           logger.msg(VERBOSE, "Transfer protocol is TLS or SSL3");
         else if (readbuf[0] == 26)
           logger.msg(VERBOSE, "Transfer protocol is GLOBUS SSL");
-        else if (readbuf[0] & 0x80 && readbuf[0] <= 23)
+        else if ((readbuf[0] & 0x80) && readbuf[0] <= 23)
           logger.msg(VERBOSE, "Transfer protocol is SSL2");
         else
           logger.msg(VERBOSE, "Transfer protocol is GSI");

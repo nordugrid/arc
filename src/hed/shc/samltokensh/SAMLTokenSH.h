@@ -18,10 +18,6 @@ class SAMLTokenSH : public SecHandler {
     process_extract,
     process_generate
   } process_type_;
-  enum {
-    signature,
-    encryption
-  } usage_type_;
   std::string cert_file_;
   std::string key_file_;
   std::string ca_file_;

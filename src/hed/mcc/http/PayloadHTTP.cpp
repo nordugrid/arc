@@ -48,14 +48,14 @@ const std::multimap<std::string,std::string>& PayloadHTTP::Attributes(void) {
 }
 
 PayloadHTTP::PayloadHTTP(void):
-    valid_(false),
-    code_(0),length_(0),end_(0),offset_(0),size_(0),keep_alive_(true) {
+    valid_(false),version_major_(1),version_minor_(1),
+    code_(0),length_(0),offset_(0),size_(0),end_(0),keep_alive_(true) {
 }
 
 PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):
     valid_(false),
     uri_(url),version_major_(1),version_minor_(1),method_(method),
-    code_(0),length_(0),end_(0),offset_(0),size_(0),keep_alive_(true) {
+    code_(0),length_(0),offset_(0),size_(0),end_(0),keep_alive_(true) {
   // TODO: encode URI properly
 }
 
@@ -63,7 +63,7 @@ PayloadHTTP::PayloadHTTP(int code,const std::string& reason):
     valid_(false),
     version_major_(1),version_minor_(1),
     code_(code),reason_(reason),
-    length_(0),end_(0),offset_(0),size_(0),keep_alive_(true) {
+    length_(0),offset_(0),size_(0),end_(0),keep_alive_(true) {
   if(reason_.empty()) reason_="OK";
 }
 
@@ -282,6 +282,7 @@ bool PayloadHTTPIn::read_multipart(char* buf,int64_t& size) {
     // TODO: check if it is last tag
     multipart_ = MULTIPART_END;
   };
+  return true;
 }
 
 bool PayloadHTTPIn::flush_multipart(void) {
@@ -320,7 +321,7 @@ bool PayloadHTTPIn::flush_multipart(void) {
     ++pos;
     if(multipart_buf_[pos] != '-') continue;
     // end tag found
-    multipart_ == MULTIPART_EOF;
+    multipart_ = MULTIPART_EOF;
   };
   return true;
 }
@@ -529,10 +530,9 @@ bool PayloadHTTPIn::get_body(void) {
 }
 
 PayloadHTTPIn::PayloadHTTPIn(PayloadStreamInterface& stream,bool own):
-    fetched_(false),stream_(&stream),stream_own_(own),
     chunked_(CHUNKED_NONE),chunk_size_(0),
-    multipart_(MULTIPART_NONE),stream_offset_(0),
-    body_(NULL),body_size_(0) {
+    multipart_(MULTIPART_NONE),stream_(&stream),stream_offset_(0),
+    stream_own_(own),fetched_(false),body_(NULL),body_size_(0) {
   tbuf_[0]=0; tbuflen_=0;
   if(!parse_header()) {
     error_ = IString("Failed to parse HTTP header").str();
@@ -698,18 +698,16 @@ void PayloadHTTPOut::Attribute(const std::string& name,const std::string& value)
 
 PayloadHTTPOut::PayloadHTTPOut(const std::string& method,const std::string& url):
     PayloadHTTP(method,url),
-    rbody_(NULL),sbody_(NULL),sbody_size_(0),body_own_(false),
-    head_response_(false),
-    to_stream_(false),use_chunked_transfer_(false),
+    head_response_(false),rbody_(NULL),sbody_(NULL),sbody_size_(0),
+    body_own_(false),to_stream_(false),use_chunked_transfer_(false),
     stream_offset_(0) {
   valid_ = true;
 }
 
 PayloadHTTPOut::PayloadHTTPOut(int code,const std::string& reason,bool head_response):
     PayloadHTTP(code,reason),
-    rbody_(NULL),sbody_(NULL),sbody_size_(0),body_own_(false),
-    head_response_(head_response),
-    to_stream_(false),use_chunked_transfer_(false),
+    head_response_(head_response),rbody_(NULL),sbody_(NULL),sbody_size_(0),
+    body_own_(false),to_stream_(false),use_chunked_transfer_(false),
     stream_offset_(0) {
   valid_ = true;
 }

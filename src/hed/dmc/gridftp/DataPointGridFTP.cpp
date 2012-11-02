@@ -666,7 +666,7 @@ namespace Arc {
         if(additional_checks) {
           // list checksum and compare
           // note: not all implementations support checksum
-          logger.msg(DEBUG, "list_files_ftp: "
+          logger.msg(DEBUG, "StopWriting: "
                             "looking for checksum of %s", url.str());
           char cksum[256];
           std::string cksumtype(upper(DefaultCheckSum()));
@@ -1093,6 +1093,7 @@ namespace Arc {
       writing(false),
       ftp_eof_flag(false),
       check_received_length(0),
+      data_error(false),
       lister(NULL) {
     //globus_module_activate(GLOBUS_FTP_CLIENT_MODULE);
     //if (!proxy_initialized)

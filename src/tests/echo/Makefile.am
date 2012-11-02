@@ -22,7 +22,7 @@ test_SOURCES = test.cpp
 test_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
 test_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 test_LDADD = \
-	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
@@ -42,7 +42,7 @@ test_clientinterface_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
 test_clientinterface_LDFLAGS = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 test_clientinterface_LDADD = \
-	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \

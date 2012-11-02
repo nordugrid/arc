@@ -100,7 +100,7 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
         logger_.msg(Arc::ERROR, "CreateActivity: Failed to create new job");
         Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,("Failed to create new activity: "+failure).c_str());
         GenericFault(fault);
-      };
+      }; break;
     };
     out.Destroy();
     return Arc::MCC_Status();
@@ -204,7 +204,7 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
         default: {
           logger_.msg(Arc::ERROR, "ES:CreateActivity: Failed to create new job: %s",failure);
           ESInternalBaseFault(fault,"Failed to create new activity. "+failure);
-        };
+        }; break;
       };
     } else {
       resp.NewChild("estypes:ActivityID")=job.ID();

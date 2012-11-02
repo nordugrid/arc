@@ -123,6 +123,11 @@ BuildRequires:	openssl
 BuildRequires:	openssl-devel
 BuildRequires:	xmlsec1-devel >= 1.2.4
 BuildRequires:	xmlsec1-openssl-devel >= 1.2.4
+%if %{?fedora}%{!?fedora:0} <= 4
+BuildRequires:	mozilla-nss-devel
+%else
+BuildRequires:	nss-devel
+%endif
 BuildRequires:	openldap-devel
 BuildRequires:	globus-common-devel
 BuildRequires:	globus-ftp-client-devel
@@ -174,6 +179,7 @@ BuildRequires:	python-hashlib
 %if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 # The compilation of the selinux module fails on Fedora 5
 BuildRequires:	selinux-policy-devel
+BuildRequires:	checkpolicy
 %endif
 BuildRequires:	swig
 %if %{?fedora}%{!?fedora:0} >= 4 || %{?rhel}%{!?rhel:0} >= 5
@@ -1005,6 +1011,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %files -f %{name}.lang
 %defattr(-,root,root,-)
 %{_libdir}/libarcclient.so.*
+%{_libdir}/libarccommunication.so.*
 %{_libdir}/libarccommon.so.*
 %{_libdir}/libarccredential.so.*
 %{_libdir}/libarccredentialstore.so.*

@@ -587,11 +587,9 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
     };
     return chosenFilePlugin->open(name,mode,size);
   }
-  else {
-    logger.msg(Arc::ERROR, "Unknown open mode %i", mode);
-    error_description="Unknown/unsupported request.";
-    return 1;
-  };
+  logger.msg(Arc::ERROR, "Unknown open mode %i", mode);
+  error_description="Unknown/unsupported request.";
+  return 1;
 }
 
 int JobPlugin::close(bool eof) {
@@ -622,7 +620,7 @@ int JobPlugin::close(bool eof) {
   JobReqResult parse_result = job_desc_handler.parse_job_req(job_id,job_desc,true);
   if (parse_result != JobReqSuccess) {
     error_description="Failed to parse job/action description.";
-    logger.msg(Arc::ERROR, "%s", error_description);
+    logger.msg(Arc::ERROR, "%s: %s", error_description, parse_result.failure);
     delete_job_id();
     return 1;
   };

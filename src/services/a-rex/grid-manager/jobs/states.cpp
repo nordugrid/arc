@@ -974,7 +974,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
           // processed immediately.
           i->job_state = new_state; // this can be any state, after A-REX restart
           if(new_state == JOB_STATE_ACCEPTED) {
-            state_changed = true; // to trigger email notification
+            state_changed = true; // to trigger email notification, etc.
             // first phase of job - just  accepted - parse request
             logger.msg(Arc::INFO,"%s: State: ACCEPTED: parsing job description",i->job_id);
             if(!job_desc_handler.process_job_req(*i,*i->local)) {
@@ -987,7 +987,9 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
             ChooseShare(i);
             job_state_write_file(*i,config,i->job_state);
             // prepare information for logger
-            config.job_log->make_file(*i,config);
+            // This call is not needed here because at higher level make_file()
+            // is called for every state change
+            //config.job_log->make_file(*i,config);
           } else if(new_state == JOB_STATE_FINISHED) {
             once_more=true;
             job_state_write_file(*i,config,i->job_state);

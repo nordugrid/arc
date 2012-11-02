@@ -149,8 +149,8 @@ namespace Arc {
        @param state The current state of submitted job.
        @return true on success
      */
-    bool submit(const std::string& jobdesc, EMIESJob& job, EMIESJobState& state,
-                bool delegate = false);
+    bool submit(XMLNode jobdesc, EMIESJob& job, EMIESJobState& state,
+                const std::string delegation_id = "");
 
     //! Query the status of a job.
     /*! This method queries the EMI ES service about the status of a
@@ -207,11 +207,22 @@ namespace Arc {
     bool notify(const EMIESJob& job);
 
     //! Query the status of a service.
-    /*! This method queries the EMI ES service about it's status.
+    /*! This method queries the EMI ES service about its status.
        @param status The XML document representing status of the service.
        @return true on success
      */
     bool sstat(XMLNode& status);
+
+    //! Query the endpoints of a service.
+    /*! This method queries the EMI ES service about its avaialble endpoints.
+       @return true on success
+     */
+
+    bool sstat(std::list<URL>& activitycreation,
+               std::list<URL>& activitymanagememt,
+               std::list<URL>& activityinfo,
+               std::list<URL>& resourceinfo,
+               std::list<URL>& delegation);
 
     //! List jobs on a service.
     /*! This method queries the EMI ES service about current list of jobs.
@@ -232,12 +243,14 @@ namespace Arc {
       return lfailure;
     }
 
-    bool delegation(XMLNode& operation);
+    std::string delegation(void);
 
   private:
-    bool process(PayloadSOAP& req, bool delegate, XMLNode& response, bool retry = true);
+    bool process(PayloadSOAP& req, XMLNode& response, bool retry = true);
 
-    bool reconnect();
+    std::string dodelegation(void);
+
+    bool reconnect(void);
 
     bool dosimple(const std::string& action, const std::string& id);
 

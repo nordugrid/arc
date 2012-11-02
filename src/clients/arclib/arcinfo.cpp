@@ -70,7 +70,7 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
   if (opt.timeout > 0)
     usercfg.Timeout(opt.timeout);
 
-  std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName);
+  std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
 
   std::list<std::string> preferredInterfaceNames;
   if (usercfg.InfoInterface().empty()) {
@@ -81,12 +81,44 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
 
   std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
 
-  Arc::ComputingServiceRetriever csr(usercfg, endpoints, rejectDiscoveryURLs, preferredInterfaceNames);
-  csr.wait();
-  std::list<Arc::ExecutionTarget> etList;
-  Arc::ExecutionTarget::GetExecutionTargets(csr, etList);
-  for (std::list<Arc::ExecutionTarget>::const_iterator it = etList.begin(); it != etList.end(); ++it) {
-    it->SaveToStream(std::cout, opt.longlist);
+  Arc::ComputingServiceUniq csu;
+  Arc::ComputingServiceRetriever csr(usercfg, std::list<Arc::Endpoint>(), rejectDiscoveryURLs, preferredInterfaceNames);
+  csr.addConsumer(csu);
+  for (std::list<Arc::Endpoint>::const_iterator it = endpoints.begin(); it != endpoints.end(); it++) {
+    csr.addEndpoint(*it);
   }
+  csr.wait();
+
+  std::list<Arc::ComputingServiceType> services = csu.getServices();
+  for (std::list<Arc::ComputingServiceType>::const_iterator it = services.begin();
+       it != services.end(); ++it) {
+    if (opt.longlist) {
+      std::cout << *it << std::endl;
+    }
+    else {
+      std::cout << "Computing resource:" << std::endl;
+      std::cout << "  Name: " << (**it).Name;
+      if (!(**it).QualityLevel.empty()) {
+        std::cout << " (" << (**it).QualityLevel << ")";
+      }
+      std::cout << std::endl;
+      std::cout << "  Information endpoint: " << (**it).Cluster.str() << std::endl;
+      for (std::map<int, Arc::ComputingEndpointType>::const_iterator itCE = it->ComputingEndpoint.begin();
+           itCE != it->ComputingEndpoint.end(); ++itCE) {
+        if (itCE->second->Capability.empty()) {
+          std::cout << "  Submission endpoint: " << itCE->second->URLString << " (status: " << itCE->second->HealthState << ")" << std::endl;
+        }
+        else {
+          for (std::set<std::string>::const_iterator itC = itCE->second->Capability.begin();
+               itC != itCE->second->Capability.end(); ++itC) {
+            if (*itC == "executionmanagement.jobexecution") {
+              std::cout << "  Submission endpoint: " << itCE->second->URLString << " (status: " << itCE->second->HealthState << ")" << std::endl;
+            }
+          }
+        }
+      }
+    }
+  }
+
   return 0;
 }

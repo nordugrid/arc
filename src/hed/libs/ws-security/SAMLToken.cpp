@@ -210,7 +210,7 @@ bool SAMLToken::Authenticate(const std::string& cafile, const std::string& capat
 }
 
 SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std::string& keyfile, 
-  SAMLVersion saml_version, XMLNode saml_assertion) : SOAPEnvelope (soap), samlversion(saml_version) {
+  SAMLVersion saml_version, XMLNode saml_assertion) : SOAPEnvelope (soap), assertion_signature_nd(NULL), wsse_signature_nd(NULL), samlversion(saml_version) {
   //if(!init_xmlsec()) return;
   if(samlversion == SAML2) {
     // Apply predefined namespace prefix

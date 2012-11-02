@@ -708,9 +708,7 @@ logger.msg(Arc::DEBUG,"Doing CREAM request");
     xacml_request_addresource(*request,resource); resource = NULL;
     xacml_request_setaction(*request,action); action = NULL;
 
-    return 0;
-
-    } catch(ierror err) {
+    } catch(ierror& err) {
     logger.msg(Arc::DEBUG,"CREAM request generation failed: %s",err.desc);
     if(attr) xacml_attribute_delete(attr);
     if(environment) xacml_environment_delete(environment);
@@ -720,6 +718,7 @@ logger.msg(Arc::DEBUG,"Doing CREAM request");
     *request = NULL;
     return 1;
     }
+    return 0;
 }
 
 static bool split_voms(const std::string& voms_attr, std::string& vo, std::string& group, std::list<
@@ -890,9 +889,7 @@ int ArgusPEPClient::create_xacml_request_emi(xacml_request_t** request, std::lis
     xacml_request_addresource(*request,resource); resource = NULL;
     xacml_request_setaction(*request,action); action = NULL;
 
-    return 0;
-
-    } catch(ierror err) {
+    } catch(ierror& err) {
     if(attr) xacml_attribute_delete(attr);
     if(environment) xacml_environment_delete(environment);
     if(subject) xacml_subject_delete(subject);
@@ -900,6 +897,7 @@ int ArgusPEPClient::create_xacml_request_emi(xacml_request_t** request, std::lis
     if(*request) xacml_request_delete(*request);
     return 1;
     }
+    return 0;
 }
 
 }  // namespace ArcSec

@@ -448,6 +448,7 @@ namespace Arc {
       return RSLBoolError;
       break;
     }
+    return RSLBoolError; // to keep compiler happy
   }
 
   RSLRelOp RSLParser::ParseRelOp() {
@@ -487,6 +488,7 @@ namespace Arc {
       return RSLRelError;
       break;
     }
+    return RSLRelError; // to keep compiler happy
   }
 
   std::string RSLParser::ParseString(int& status) {
@@ -659,7 +661,6 @@ namespace Arc {
         }
         concat = nextconcat;
       } while (left || right);
-      return values;
     } catch (std::exception& e) {
       if (values)
         delete values;
@@ -669,6 +670,7 @@ namespace Arc {
         delete right;
       return NULL;
     }
+    return values;
   }
 
   RSL* RSLParser::ParseRSL() {

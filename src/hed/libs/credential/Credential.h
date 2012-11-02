@@ -139,7 +139,7 @@ class Credential {
   private:
 
     /** Credential object so far is not supposed to be copied */
-    Credential(const Credential& /* cred */) { };
+    Credential(const Credential&);
 
     void InitCredential(const std::string& cert, const std::string& key, const std::string& cadir,
                const std::string& cafile, const std::string& passphrase4key, const bool is_file);

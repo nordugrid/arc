@@ -85,14 +85,14 @@ void XACMLRequest::make_request(){
 
 }
 
-XACMLRequest::XACMLRequest (const Source& req, Arc::PluginArgument* parg) : Request(req,parg) {
+XACMLRequest::XACMLRequest (const Source& req, Arc::PluginArgument* parg) : Request(req,parg), attrfactory(NULL) {
   req.Get().New(reqnode);
   NS ns;
   ns["ra"]="urn:oasis:names:tc:xacml:2.0:context:schema:os";
   reqnode.Namespaces(ns);
 }
 
-XACMLRequest::XACMLRequest (Arc::PluginArgument* parg) : Request(parg) {
+XACMLRequest::XACMLRequest (Arc::PluginArgument* parg) : Request(parg), attrfactory(NULL) {
   NS ns;
   ns["ra"]="urn:oasis:names:tc:xacml:2.0:context:schema:os";
   XMLNode request(ns,"ra:Request");

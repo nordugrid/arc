@@ -182,7 +182,7 @@ Arc::MCC_Status ARexService::MigrateActivity(ARexGMConfig& config,Arc::XMLNode i
         logger_.msg(Arc::ERROR, "MigrateActivity: Failed to migrate new job");
         Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,("Failed to migrate new activity: "+failure).c_str());
         GenericFault(fault);
-      };
+      }; break;
     };
     out.Destroy();
     return Arc::MCC_Status();

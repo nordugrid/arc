@@ -272,6 +272,7 @@ namespace Arc {
         break;
         default:
           ++p;
+        break;
       };
     }
     return out;
@@ -295,6 +296,7 @@ namespace Arc {
         break;
         default:
           ++p;
+        break;
       }
     }
     return out;

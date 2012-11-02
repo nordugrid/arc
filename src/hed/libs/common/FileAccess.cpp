@@ -640,6 +640,7 @@ namespace Arc {
     while(fas_.size() > ((max_>=min_)?max_:min_)) {
       FileAccess* fa = fas_.front();
       fas_.pop_front();
+      delete fa;
     }
     while(fas_.size() < ((min_<=max_)?min_:max_)) {
       fas_.push_back(new FileAccess);

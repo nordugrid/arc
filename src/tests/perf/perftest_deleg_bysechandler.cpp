@@ -17,7 +17,7 @@
 #include <arc/URL.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/MCC.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 
 // Some global shared variables...
 Glib::Mutex* mutex;

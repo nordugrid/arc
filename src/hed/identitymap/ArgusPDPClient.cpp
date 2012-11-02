@@ -11,7 +11,7 @@
 #include <arc/message/MCCLoader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/SecAttr.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/credential/Credential.h>
 
 #include "ArgusPDPClient.h"
@@ -134,9 +134,10 @@ std::string xacml_decision_to_string(xacml_decision_t decision) {
 }
 
 /* extract the elements from the configuration file */
-ArgusPDPClient::ArgusPDPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHandler(cfg,parg), client(NULL) {  
+ArgusPDPClient::ArgusPDPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHandler(cfg,parg) , client(NULL) {  
     valid_ = false;
     accept_mapping = false;
+    accept_notapplicable = false;
     logger.setThreshold(Arc::DEBUG);
     pdpdlocation = (std::string)(*cfg)["PDPD"];  
     if(pdpdlocation.empty()) {
@@ -181,9 +182,11 @@ ArgusPDPClient::ArgusPDPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSe
     std::string mapping_str = (std::string)(*cfg)["AcceptMapping"];
     if((mapping_str == "1") || (mapping_str == "true")) accept_mapping = true;
 
+    std::string notapplicable_str = (std::string)(*cfg)["AcceptNotApplicable"];
+    if((notapplicable_str == "1") || (notapplicable_str == "true")) accept_notapplicable = true;
+
     // Create a SOAP client to contact PDP server
     logger.msg(Arc::INFO, "Creating a PDP client");
-    //ClientSOAP to contact PDP server
     Arc::URL pdp_url(pdpdlocation);
     Arc::MCCConfig mcc_cfg;
     mcc_cfg.AddPrivateKey(keypath);
@@ -240,8 +243,8 @@ static bool contact_pdp(Arc::ClientSOAP* client, const std::string& pdpdlocation
     }
     else {
       std::string str;
-//      resp->GetXML(str);
-//      logger.msg(Arc::INFO, "Response: %s", str);
+      resp->GetXML(str);
+      logger.msg(Arc::DEBUG, "SOAP response: %s", str);
 
       //The authorization query response from argus pdp server is like the following
 /*
@@ -268,11 +271,8 @@ static bool contact_pdp(Arc::ClientSOAP* client, const std::string& pdpdlocation
       </saml2p:Response>
 */
 
-
-      //Arc::XMLNode respxml = (*resp)["samlp:Response"]["saml:Assertion"]["xacml-saml:XACMLAuthzDecisionStatement"]["xacml-context:Response"];
-       Arc::XMLNode respxml = (*resp)["saml2p:Response"]["saml2:Assertion"]["saml2:Statement"]["xacml-context:Response"];
+      Arc::XMLNode respxml = (*resp)["saml2p:Response"]["saml2:Assertion"]["saml2:Statement"]["xacml-context:Response"];
       if((bool)respxml) respxml.New(response);
-      //std::string authz_res = (std::string)((*resp)["samlp:Response"]["saml:Assertion"]["xacml-saml:XACMLAuthzDecisionStatement"]["xacml-context:Response"]["xacml-context:Result"]["xacml-context:Decision"]);
 
       delete resp;
       ret = true;
@@ -339,7 +339,6 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
         throw pep_ex("Failed to create XACML request(s): " + Arc::tostring(rc));
       }
 
-
       // Contact PDP server
       std::string local_id; 
       xacml_decision_t decision = XACML_DECISION_INDETERMINATE; 
@@ -351,7 +350,7 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
 
         std::string str;
         req.GetXML(str);
-        std::cout<<"xacml authz request: "<<str<<std::endl;
+        logger.msg(Arc::DEBUG, "xacml authz request: %s", str);
 
         bool res = contact_pdp(client, pdpdlocation, certpath, logger, request, response);
         if (!res) {
@@ -362,7 +361,7 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
         }
 
         response.GetXML(str);
-        std::cout<<"xacml authz response: "<<str<<std::endl;
+        logger.msg(Arc::DEBUG, "xacml authz response: %s", str);
 
         // Extract the local user name from the response to be mapped to the GID
         for (int cn = 0;; ++cn) {
@@ -372,6 +371,7 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
           if(authz_res.empty()) break;
           if(authz_res == "Permit") decision =  XACML_DECISION_PERMIT;
           else if(authz_res == "Deny") decision = XACML_DECISION_DENY;
+          else if(authz_res == "NotApplicable") decision = XACML_DECISION_NOT_APPLICABLE;
           if(decision == XACML_DECISION_DENY) break;
 
 /*
@@ -397,7 +397,9 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
         if(decision == XACML_DECISION_DENY) break;
       }
 
-      if (decision != XACML_DECISION_PERMIT ){
+
+      if ((decision != XACML_DECISION_PERMIT) && 
+          (decision != XACML_DECISION_NOT_APPLICABLE)) {
         if(conversion == conversion_subject) {
           logger.msg(Arc::INFO,"%s is not authorized to do action %s in resource %s ",
                      subject, action, resource);
@@ -405,7 +407,12 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
           logger.msg(Arc::INFO,"Not authorized");
         }
         throw pep_ex("The reached decision is: " + xacml_decision_to_string(decision));
-      }     
+      }
+      else if((decision == XACML_DECISION_NOT_APPLICABLE) && (accept_notapplicable == false)) {
+        logger.msg(Arc::INFO,"Not authorized");
+        throw pep_ex("The reached decision is: " + xacml_decision_to_string(decision) + ". But this service will treat NotAcceptable decision as reason to deny request");
+      }
+     
       if(accept_mapping && !local_id.empty()) {
         logger.msg(Arc::INFO,"Grid identity is mapped to local identity '%s'", local_id);
         msg->Attributes()->set("SEC:LOCALID", local_id);
@@ -609,16 +616,15 @@ int ArgusPDPClient::create_xacml_request_cream(Arc::XMLNode& request, std::list<
       Arc::XMLNode action = xacml_request_add_element(request, "Action");
       std::string act_attr_id = XACML_ACTION_ID; //"urn:oasis:names:tc:xacml:1.0:action:action-id";
       std::string act_attr_value = get_cream_action(operation,logger);
-      if(act_attr_value.empty()) throw ierror("Failed to generate action name");
+      if(act_attr_value.empty()) act_attr_value = "http://glite.org/xacml/action/ANY"; // throw ierror("Failed to generate action name");
       logger.msg(Arc::DEBUG,"Adding action-id value: %s", act_attr_value);
       xacml_element_add_attribute(action, act_attr_value, XACML_DATATYPE_STRING, act_attr_id, "");
 
-      return 0;
-
-    } catch(ierror err) {
+    } catch(ierror& err) {
       logger.msg(Arc::DEBUG,"CREAM request generation failed: %s",err.desc);
       return 1;
     }
+    return 0;
 }
 
 static bool split_voms(const std::string& voms_attr, std::string& vo, std::string& group, 
@@ -710,18 +716,24 @@ int ArgusPDPClient::create_xacml_request_emi(Arc::XMLNode& request, std::list<Ar
         std::list<std::string> attrs;
         if(!split_voms(*fqan,vo,group,roles,attrs)) throw ierror("Failed to convert voms fqan");
         if(pgroup.empty()) pgroup = group;
-        if(!group.empty()) groups.push_back(group);
+        if(!group.empty()) {
+          groups.push_back(group);
+        }
+      }
+      groups.unique();
+      for(std::list<std::string>::iterator g = groups.begin(); g!=groups.end(); ++g) {
+        logger.msg(Arc::DEBUG,"Adding voms group value: %s", *g);
       }
       if(groups.size()>0) xacml_element_add_attribute(subject, groups, XACML_DATATYPE_STRING, group_attr_id, "");
 
       if(!pgroup.empty()) {
         std::string pgroup_attr_id = XACML_DCISEC_ATTRIBUTE_GROUP_PRIMARY; //"http://dci-sec.org/xacml/attribute/group/primary"
+        logger.msg(Arc::DEBUG,"Adding voms primary group value: %s", pgroup);
         xacml_element_add_attribute(subject, pgroup, XACML_DATATYPE_STRING, pgroup_attr_id, "");
       }
 
       std::string prole;
       pgroup.resize(0);
-      std::list<std::string> roles;
       for(std::list<std::string>::iterator fqan = fqans.begin(); fqan!=fqans.end(); ++fqan) {
         std::string vo;
         std::string group;
@@ -731,18 +743,17 @@ int ArgusPDPClient::create_xacml_request_emi(Arc::XMLNode& request, std::list<Ar
 
         std::string role_attr_id = XACML_DCISEC_ATTRIBUTE_ROLE; //"http://dci-sec.org/xacml/attribute/role"
 
-
         // TODO: handle no roles
         for(std::list<std::string>::iterator role = roles.begin(); role!=roles.end(); ++role) {
-            if(role->empty()) continue;
-            if(prole.empty()) { prole = *role; pgroup = group; }
-            roles.push_back(*role);
+          if(role->empty()) { roles.erase(role); continue; }
+          if(prole.empty()) { prole = *role; pgroup = group; }
+          logger.msg(Arc::DEBUG,"Adding voms role value: %s", *role);
         }
-
-        xacml_element_add_attribute(subject, roles, XACML_DATATYPE_STRING, role_attr_id, group);
+        if(roles.size()>0) xacml_element_add_attribute(subject, roles, XACML_DATATYPE_STRING, role_attr_id, group);
       }
       if(!prole.empty()) {
         std::string prole_attr_id = XACML_DCISEC_ATTRIBUTE_ROLE_PRIMARY; //"http://dci-sec.org/xacml/attribute/role/primary"
+        logger.msg(Arc::DEBUG,"Adding voms primary role value: %s", prole);
         xacml_element_add_attribute(subject, prole, XACML_DATATYPE_STRING, prole_attr_id, pgroup);
       }
 
@@ -768,17 +779,20 @@ int ArgusPDPClient::create_xacml_request_emi(Arc::XMLNode& request, std::list<Ar
       Arc::XMLNode action = xacml_request_add_element(request, "Action");
       std::string act_attr_id = XACML_ACTION_ID; //"urn:oasis:names:tc:xacml:1.0:action:action-id";
       //"http://dci-sec.org/xacml/action/arc/arex/"+operation.Name
-      std::string act_attr_value = get_sec_attr(auths, "AREX", "NAMESPACE") + "/" + get_sec_attr(auths, "AREX", "ACTION");
-      if(act_attr_value.empty()) throw ierror("Failed to generate action name");
+      std::string arex_ns = get_sec_attr(auths, "AREX", "NAMESPACE");
+      std::string arex_action = get_sec_attr(auths, "AREX", "ACTION");
+      std::string act_attr_value;
+      if(!arex_ns.empty()) act_attr_value = arex_ns + "/" + arex_action;
+
+      if(act_attr_value.empty()) act_attr_value = "http://dci-sec.org/xacml/action/ANY"; //throw ierror("Failed to generate action name");
       logger.msg(Arc::DEBUG,"Adding action-id value: %s", act_attr_value);
       xacml_element_add_attribute(action, act_attr_value, XACML_DATATYPE_STRING, act_attr_id, "");
 
-      return 0;
-
-    } catch(ierror err) {
+    } catch(ierror& err) {
       logger.msg(Arc::DEBUG,"EMI request generation failed: %s",err.desc);
       return 1;
     }
+    return 0;
 }
 
 }  // namespace ArcSec

@@ -244,11 +244,10 @@ Arc::MessagePayload* newFileRead(int h,Arc::PayloadRawInterface::Size_t start,Ar
     PayloadBigFile* f = new PayloadBigFile(h,start,end);
     if(!*f) { delete f; return NULL; };
     return f;
-  } else {
-    PayloadFile* f = new PayloadFile(h,start,end);
-    if(!*f) { delete f; return NULL; };
-    return f;
-  };
+  }
+  PayloadFile* f = new PayloadFile(h,start,end);
+  if(!*f) { delete f; return NULL; };
+  return f;
 #else
   PayloadBigFile* f = new PayloadBigFile(h,start,end);
   if(!*f) { delete f; return NULL; };

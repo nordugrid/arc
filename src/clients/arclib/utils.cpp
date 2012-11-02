@@ -34,7 +34,7 @@ std::list<std::string> getRejectManagementURLsFromUserConfigAndCommandLine(Arc::
 }
 
 
-std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> registries, std::list<std::string> computingelements, std::string requestedSubmissionInterfaceName) {
+std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> registries, std::list<std::string> computingelements, std::string requestedSubmissionInterfaceName, std::string infointerface) {
   std::list<Arc::Endpoint> services;
   if (computingelements.empty() && registries.empty()) {
     std::list<Arc::ConfigEndpoint> endpoints = usercfg.GetDefaultServices();
@@ -48,7 +48,10 @@ std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig
       if (newServices.empty()) {
           // if it was not an alias or a group, then it should be the URL
           Arc::Endpoint service(*it);
-          service.Capability.push_back(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO));
+          service.Capability.insert(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO));
+          if (!infointerface.empty()) {
+            service.InterfaceName = infointerface;            
+          }
           service.RequestedSubmissionInterfaceName = requestedSubmissionInterfaceName;
           services.push_back(service);
       } else {
@@ -68,7 +71,7 @@ std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig
       if (newServices.empty()) {
           // if it was not an alias or a group, then it should be the URL
           Arc::Endpoint service(*it);
-          service.Capability.push_back(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::REGISTRY));
+          service.Capability.insert(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::REGISTRY));
           services.push_back(service);
       } else {
         // if it was a group (or an alias), add all the services
@@ -210,6 +213,14 @@ ClientOptions::ClientOptions(Client_t c,
                     "name can be an alias for a single CE, a group of CEs or a URL"),
             istring("name"),
             clusters);
+  
+  AddOption('I', "infointerface",
+            istring("the computing element specified by URL at the command line "
+                    "should be queried using this information interface "
+                    "(possible options: org.nordugrid.ldapng, org.nordugrid.ldapglue2, "
+                    "org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo)"),
+            istring("interfacename"),
+            infointerface);
 
   if (c == CO_RESUB || c == CO_MIGRATE) {
     AddOption('q', "qluster",

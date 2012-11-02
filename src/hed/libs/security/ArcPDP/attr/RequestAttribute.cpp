@@ -53,7 +53,7 @@ RequestAttribute::RequestAttribute(XMLNode& node, AttributeFactory* attrfactory)
 */
 }
 
-RequestAttribute::RequestAttribute() {
+RequestAttribute::RequestAttribute(): attrval(NULL), attrfactory(NULL) {
 
 }
 

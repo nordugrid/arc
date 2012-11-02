@@ -13,7 +13,7 @@
 #include <arc/message/MCC_Status.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadSOAP.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 
 namespace Arc {
 

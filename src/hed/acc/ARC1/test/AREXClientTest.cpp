@@ -12,12 +12,12 @@
 #define __STDC_LIMIT_MACROS
 #include <stdlib.h>
 
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/message/MCC.h>
 
 #include "../JobStateARC1.h"
 #include "../AREXClient.h"
-#include "../../../libs/client/test/SimulatorClasses.h"
+#include "../../../libs/communication/test/SimulatorClasses.h"
 
 #define BES_FACTORY_ACTIONS_BASE_URL "http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/"
 

@@ -28,7 +28,7 @@
 #include <arc/User.h>
 #include <arc/Utils.h>
 #include <arc/UserConfig.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/credential/VOMSAttribute.h>
 #include <arc/credential/VOMSUtil.h>
 //#include <arc/credential/Credential.h>
@@ -1568,6 +1568,7 @@ static bool contact_myproxy_server(const std::string& myproxy_server, const std:
     remove_proxy_file(proxy_path);
     return false;
   }
+  return false;
 }
 
 static bool find_matched_vomses(std::map<std::string, std::vector<std::vector<std::string> > > &matched_voms_line /*output*/,

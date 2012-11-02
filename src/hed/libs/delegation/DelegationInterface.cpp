@@ -18,6 +18,7 @@
 #include <arc/DateTime.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/crypto/OpenSSL.h>
+#include <arc/ws-addressing/WSA.h>
 
 #include "DelegationInterface.h"
 
@@ -1020,6 +1021,11 @@ bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,Mes
 static PayloadSOAP* do_process(MCCInterface& interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context,PayloadSOAP* in) {
   Message req;
   Message resp;
+  WSAHeader header(*in);
+  if(attributes_in && (attributes_in->count("SOAP:ACTION") > 0)) {
+    header.Action(attributes_in->get("SOAP:ACTION"));
+    header.To(attributes_in->get("SOAP:ENDPOINT"));
+  }
   req.Attributes(attributes_in);
   req.Context(context);
   req.Payload(in);
@@ -1075,6 +1081,7 @@ bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,Mes
     NS ns; ns["deleg"]=EMIDS_NAMESPACE;
     PayloadSOAP req_soap(ns);
     req_soap.NewChild("deleg:getNewProxyReq");
+    if(attributes_in) attributes_in->set("SOAP:ACTION","");
     PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
     if(!resp_soap) return false;
     XMLNode token = (*resp_soap)["getNewProxyReqResponse"];
@@ -1159,6 +1166,7 @@ bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAt
     XMLNode token = req_soap.NewChild("deleg:putProxy");
     token.NewChild("deleg:delegationID")=id_;
     token.NewChild("deleg:proxy")=delegation;
+    if(attributes_in) attributes_in->set("SOAP:ACTION","");
     PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
     if(!resp_soap) return false;
     if(resp_soap->Size() > 0) {

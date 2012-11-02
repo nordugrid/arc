@@ -1,50 +1,52 @@
-// Wrap contents of $(top_srcdir)/src/hed/libs/client/ClientInterface.h
-%{
-#include <arc/client/ClientInterface.h>
-%}
 #ifdef SWIGPYTHON
-/* These typemaps tells SWIG that we don't want to use the
- * 'PayloadSOAP ** response' argument from the target language, but we
- * need a temporary PayloadSOAP for internal use, and we want this
- * argument to point to this temporary 'PayloadSOAP *' variable (in).
- * Then after the method finished: we want to return a python tuple (a
- * list) with two members, the first member will be the '*response' and
- * the second member is the original return value, the MCC_Status
- * (argout).
+%module client
+
+%include "Arc.i"
+
+%import "../src/hed/libs/common/ArcConfig.h"
+%import "../src/hed/libs/common/URL.h"
+%import "../src/hed/libs/common/XMLNode.h"
+%import "../src/hed/libs/common/DateTime.h"
+%import "../src/hed/libs/message/PayloadSOAP.h"
+%import "../src/hed/libs/message/PayloadRaw.h"
+%import "../src/hed/libs/message/PayloadStream.h"
+%import "../src/hed/libs/message/MCC_Status.h"
+%import "../src/hed/libs/message/Message.h"
+
+%ignore Arc::AutoPointer::operator!;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Arc::CountedPointer::Base;
+%ignore Arc::CountedPointer::operator!;
+%ignore Arc::CountedPointer::operator=(T*);
+%ignore Arc::CountedPointer::operator=(const CountedPointer<T>&);
+// Ignoring functions from Utils.h since swig thinks they are methods of the CountedPointer class, and thus compilation fails.
+%ignore Arc::GetEnv;
+%ignore Arc::SetEnv;
+%ignore Arc::UnsetEnv;
+%ignore Arc::EnvLockAcquire;
+%ignore Arc::EnvLockRelease;
+%ignore Arc::EnvLockWrap;
+%ignore Arc::EnvLockUnwrap;
+%ignore Arc::EnvLockUnwrapComplete;
+%ignore Arc::EnvLockWrapper;
+%ignore Arc::InterruptGuard;
+%ignore Arc::StrError;
+%ignore PersistentLibraryInit;
+/* Swig tries to create functions which return a new CountedPointer object.
+ * Those functions takes no arguments, and since there is no default
+ * constructor for the CountedPointer compilation fails.
+ * Adding a "constructor" (used as a function in the cpp file) which
+ * returns a new CountedPointer object with newed T object created
+ * Ts default constructor. Thus if T has no default constructor,
+ * another work around is needed in order to map that CountedPointer
+ * wrapped class with swig.
  */
-%typemap(in, numinputs=0) Arc::PayloadSOAP ** response (Arc::PayloadSOAP *temp) {
-  $1 = &temp;
+%extend Arc::CountedPointer {
+  CountedPointer() { return new Arc::CountedPointer<T>(new T());}
 }
-%typemap(argout) Arc::PayloadSOAP ** response {
-  $result = PyTuple_Pack(2, SWIG_NewPointerObj(*$1, SWIGTYPE_p_Arc__PayloadSOAP, SWIG_POINTER_OWN | 0 ), $result);
-} /* applies to:
- * MCC_Status ClientSOAP::process(PayloadSOAP *request, PayloadSOAP **response);
- * MCC_Status ClientSOAP::process(const std::string& action, PayloadSOAP *request, PayloadSOAP **response);
- */
-#endif
-%include "../src/hed/libs/client/ClientInterface.h"
-#ifdef SWIGPYTHON
-%clear Arc::PayloadSOAP ** response;
-#endif
-
-
-// Wrap contents of $(top_srcdir)/src/hed/libs/client/ClientX509Delegation.h
 %{
-#include <arc/client/ClientX509Delegation.h>
+#include <arc/Utils.h>
 %}
-#ifdef SWIGPYTHON
-%apply std::string& TUPLEOUTPUTSTRING { std::string& delegation_id };
-/* Currently applies to:
- * bool ClientX509Delegation::createDelegation(DelegationType deleg, std::string& delegation_id);
- * bool ClientX509Delegation::acquireDelegation(DelegationType deleg, std::string& delegation_cred, std::string& delegation_id,
-                                                const std::string cred_identity = "", const std::string cred_delegator_ip = "",
-                                                const std::string username = "", const std::string password = "");
- * Look in Arc.i for a description of the OUTPUT typemap.
- */
-#endif
-%include "../src/hed/libs/client/ClientX509Delegation.h"
-#ifdef SWIGPYTHON
-%clear std::string& delegation_id;
+%include "../src/hed/libs/common/Utils.h"
 #endif
 
 
@@ -63,8 +65,8 @@
 #ifdef SWIGJAVA
 %ignore Arc::Software::operator();
 %ignore Arc::SoftwareRequirement::getComparisonOperatorList() const;
-%template(SoftwareListIteratorHandler) listiteratorhandler<Arc::Software>;
-%template(SoftwareRequirementListIteratorHandler) listiteratorhandler<Arc::SoftwareRequirement>;
+%template(SoftwareListIterator) listiterator<Arc::Software>;
+%template(SoftwareRequirementListIterator) listiterator<Arc::SoftwareRequirement>;
 #endif
 %include "../src/hed/libs/client/Software.h"
 
@@ -76,7 +78,7 @@
 %ignore Arc::Endpoint::operator=(const ConfigEndpoint&);
 %template(EndpointList) std::list<Arc::Endpoint>;
 #ifdef SWIGJAVA
-%template(EndpointListIteratorHandler) listiteratorhandler<Arc::Endpoint>;
+%template(EndpointListIterator) listiterator<Arc::Endpoint>;
 #endif
 %include "../src/hed/libs/client/Endpoint.h"
 
@@ -92,7 +94,7 @@
 %rename(GetNativeState) Arc::JobState::operator();
 %template(JobStateList) std::list<Arc::JobState>;
 #ifdef SWIGJAVA
-%template(JobStateListIteratorHandler) listiteratorhandler<Arc::JobState>;
+%template(JobStateListIterator) listiterator<Arc::JobState>;
 #endif
 %include "../src/hed/libs/client/JobState.h"
 
@@ -108,7 +110,7 @@
 %ignore Arc::Job::WriteJobIDsToFile(const std::list<Job>&, const std::string&, unsigned = 10, unsigned = 500000); // Clash. It is sufficient to wrap only WriteJobIDsToFile(cosnt std::list<URL>&, ...);
 #endif
 #ifdef SWIGJAVA
-%template(JobListIteratorHandler) listiteratorhandler<Arc::Job>;
+%template(JobListIterator) listiterator<Arc::Job>;
 #endif
 %include "../src/hed/libs/client/Job.h"
 
@@ -122,7 +124,7 @@
 %template(JobControllerPluginList) std::list<Arc::JobControllerPlugin *>;
 %template(JobControllerPluginMap) std::map<std::string, Arc::JobControllerPlugin *>;
 #ifdef SWIGJAVA
-%template(JobControllerPluginListIteratorHandler) listiteratorhandler<Arc::JobControllerPlugin *>;
+%template(JobControllerPluginListIterator) listiterator<Arc::JobControllerPlugin *>;
 #endif
 %include "../src/hed/libs/client/JobControllerPlugin.h"
 
@@ -172,11 +174,11 @@
 %clear std::string& product;
 #endif
 #ifdef SWIGJAVA
-%template(JobDescriptionListIteratorHandler) listiteratorhandler<Arc::JobDescription>;
-%template(InputFileTypeListIteratorHandler) listiteratorhandler<Arc::InputFileType>;
-%template(OutputFileTypeListIteratorHandler) listiteratorhandler<Arc::OutputFileType>;
-%template(SourceTypeListIteratorHandler) listiteratorhandler<Arc::SourceType>;
-%template(TargetTypeListIteratorHandler) listiteratorhandler<Arc::TargetType>;
+%template(JobDescriptionListIterator) listiterator<Arc::JobDescription>;
+%template(InputFileTypeListIterator) listiterator<Arc::InputFileType>;
+%template(OutputFileTypeListIterator) listiterator<Arc::OutputFileType>;
+%template(SourceTypeListIterator) listiterator<Arc::SourceType>;
+%template(TargetTypeListIterator) listiterator<Arc::TargetType>;
 #endif
 
 
@@ -240,14 +242,13 @@
 %template(GLUE2EntityComputingServiceAttributes) Arc::GLUE2Entity<Arc::ComputingServiceAttributes>;
 %template(CPComputingServiceAttributes) Arc::CountedPointer<Arc::ComputingServiceAttributes>;
 #ifdef SWIGJAVA
-%template(ExecutionTargetListIteratorHandler) listiteratorhandler<Arc::ExecutionTarget>;
-%template(ApplicationEnvironmentListIteratorHandler) listiteratorhandler<Arc::ApplicationEnvironment>;
-%template(ComputingServiceListIteratorHandler) listiteratorhandler<Arc::ComputingServiceType>;
+%template(ExecutionTargetListIterator) listiterator<Arc::ExecutionTarget>;
+%template(ApplicationEnvironmentListIterator) listiterator<Arc::ApplicationEnvironment>;
+%template(ComputingServiceListIterator) listiterator<Arc::ComputingServiceType>;
 #endif
 %include "../src/hed/libs/client/ExecutionTarget.h"
 %extend Arc::ComputingServiceType {
   %template(GetExecutionTargetsFromList) GetExecutionTargets< std::list<Arc::ExecutionTarget> >;
-  %template(GetExecutionTargetsFromSet) GetExecutionTargets<Arc::ExecutionTargetSet>;
 };
 
 
@@ -281,7 +282,7 @@
 %ignore Arc::SubmitterPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
 %template(SubmitterPluginList) std::list<Arc::SubmitterPlugin*>;
 #ifdef SWIGJAVA
-%template(SubmitterPluginListIteratorHandler) listiteratorhandler<Arc::SubmitterPlugin*>;
+%template(SubmitterPluginListIterator) listiterator<Arc::SubmitterPlugin*>;
 #endif
 %include "../src/hed/libs/client/SubmitterPlugin.h"
 
@@ -349,28 +350,9 @@ template <class Type> struct traits_from<const Type *> {
 %ignore Arc::Broker::operator=(const Broker&);
 %ignore Arc::BrokerPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
 %ignore Arc::BrokerPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
-/* Currently the CountedBroker cannot be wrapped since a default
- * constructor (no arguments) for the CountedBroker and Broker classes
- * is required when wrapping. More investigation is needed.
- */
-%ignore Arc::CountedBroker;
-%warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) Arc::CountedBroker;
-%ignore Arc::ExecutionTargetSet;
-%warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) Arc::ExecutionTargetSet;
-//%template() Arc::CountedPointer<Arc::Broker>;
-#ifdef SWIGPYTHON
-//%template() std::set<Arc::ExecutionTarget, Arc::CountedBroker>;
-%ignore Arc::ExecutionTargetSet::ExecutionTargetSet(const Broker&, const std::list<ComputingServiceType>&); // Use Arc::ExecutionTargetSet::ExecutionTargetSet(const Broker&, const std::list<ComputingServiceType>&, const std::list<URL>& rejectEndpoints) with empty list instead.
-#endif
 #ifdef SWIGJAVA
-/* For java, swig doesn't provide means for wrapping a std::set, thus a
- * interface must be made before the Arc::ExecutionTargetSet class can
- * be wrapped.
- */
-%warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) Arc::ExecutionTargetSet;
 %rename(compare) Arc::Broker::operator()(const ExecutionTarget&, const ExecutionTarget&) const;
 %rename(compare) Arc::BrokerPlugin::operator()(const ExecutionTarget&, const ExecutionTarget&) const;
-%rename(compare) Arc::CountedBroker::operator()(const ExecutionTarget&, const ExecutionTarget&) const;
 #endif
 %include "../src/hed/libs/client/Broker.h"
 

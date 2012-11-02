@@ -14,7 +14,7 @@ class MessageAuth {
   private:
     std::map<std::string,SecAttr*> attrs_;
     bool attrs_created_;
-    MessageAuth(const MessageAuth&) { };
+    MessageAuth(const MessageAuth&);
   public:
     MessageAuth(void);
     ~MessageAuth(void);

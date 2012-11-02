@@ -9,7 +9,7 @@
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
 #include <arc/message/PayloadSOAP.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/StringConv.h>
 #include "InfoRegister.h"
 

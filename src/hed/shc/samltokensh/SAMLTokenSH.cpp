@@ -14,7 +14,7 @@
 #include <arc/xmlsec/XmlSecUtils.h>
 #include <arc/xmlsec/XMLSecNode.h>
 #include <arc/credential/Credential.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/message/PayloadSOAP.h>
 
 #include "SAMLTokenSH.h"
@@ -216,7 +216,7 @@ bool SAMLTokenSH::Handle(Arc::Message* msg) const {
       SAMLAssertionSecAttr* sattr = new SAMLAssertionSecAttr(assertion_nd);
       msg->Auth()->set("SAMLAssertion", sattr);
 
-    } catch(std::exception) {
+    } catch(std::exception&) {
       logger.msg(ERROR,"Incoming Message is not SOAP");
       return false;
     } 
@@ -337,7 +337,7 @@ bool SAMLTokenSH::Handle(Arc::Message* msg) const {
       };
       //Reset the soap message
       (*soap) = st;
-    } catch(std::exception) {
+    } catch(std::exception&) {
       logger.msg(ERROR,"Outgoing Message is not SOAP");
       return false;
     }

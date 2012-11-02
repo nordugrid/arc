@@ -408,7 +408,7 @@ namespace Arc {
       std::list<URL> rejectEndpoints;
       if (destination == 1) { // Jobs should be resubmitted to same target.
         std::list<Endpoint> sametarget(1, Endpoint((**itJ)->Cluster.fullstr()));
-        sametarget.front().Capability.push_back(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO));
+        sametarget.front().Capability.insert(Endpoint::GetStringForCapability(Endpoint::COMPUTINGINFO));
 
         csr = new ComputingServiceRetriever(resubmitUsercfg, sametarget, rejectedURLs);
         csr->wait();

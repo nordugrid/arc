@@ -1,3 +1,16 @@
+#ifdef SWIGPYTHON
+%module delegation
+
+%include "Arc.i"
+
+%import "../src/hed/libs/common/XMLNode.h"
+%import "../src/hed/libs/message/SOAPEnvelope.h"
+%import "../src/hed/libs/message/MCC.h"
+%import "../src/hed/libs/message/Message.h"
+%import "../src/hed/libs/message/MessageAttributes.h"
+#endif
+
+
 // Wrap contents of $(top_srcdir)/src/hed/libs/delegation/DelegationInterface.h
 %{
 #include <arc/delegation/DelegationInterface.h>

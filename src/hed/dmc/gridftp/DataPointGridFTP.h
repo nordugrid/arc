@@ -33,8 +33,8 @@ namespace Arc {
     private:
       Glib::Mutex lock;
       DataPointGridFTP* arg;
-      CBArg(void) {};
-      CBArg(const CBArg&) {};
+      CBArg(void);
+      CBArg(const CBArg&);
     public:
       CBArg(DataPointGridFTP* a);
       ~CBArg(void) {};

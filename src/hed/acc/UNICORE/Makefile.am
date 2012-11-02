@@ -11,6 +11,7 @@ libaccUNICORE_la_CXXFLAGS = -I$(top_srcdir)/include \
 libaccUNICORE_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/ws/libarcws.la \
 	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \

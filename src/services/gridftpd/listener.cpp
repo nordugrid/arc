@@ -86,7 +86,6 @@ void serv_stop_callback(void* /* arg */,globus_ftp_control_server_t* /* handle *
   logger.msg(Arc::INFO, "Server stopped");
 }
 
-static volatile int chid = -1;
 static volatile int server_done = 0;
 static void (*sig_old_chld)(int) = SIG_ERR;
 
@@ -200,7 +199,6 @@ int main(int argc,char** argv) {
   };
 
   std::list<int> handles;
-  struct sockaddr_in myaddr;
 #else
   globus_ftp_control_server_t handle;
   /* initiate random number generator */
@@ -218,7 +216,7 @@ int main(int argc,char** argv) {
       case 'h': {
         fprintf(stdout,"gridftpd [-p port_to_listen] [-c config_file] [-n maximal_connections] [-b default_buffer_size] [-B maximal_buffer_size] %s.\n",daemon.short_help()); 
          return 0;
-      }; 
+      };
       case 'p': {
         if(sscanf(optarg,"%hu",&server_port) != 1) {
           logger.msg(Arc::ERROR, "Wrong port number");

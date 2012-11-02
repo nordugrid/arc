@@ -656,7 +656,7 @@ validate() {
         log_failure_msg "Could not find or execute arc-config-check tool"
         return 1
     fi
-    eval "$CHECK_CMD"
+    eval "$CHECK_CMD --config $ARC_CONFIG"
     RETVAL=$?
     return $RETVAL
 }

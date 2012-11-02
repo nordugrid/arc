@@ -126,7 +126,7 @@ class FileNode {
   /* following two constructors should be used only for copying in list */
   FileNode(const FileNode &node) { 
     point=node.point; plugname=node.plugname;
-    plug=node.plug; handle=node.handle;
+    plug=node.plug; handle=node.handle; init=NULL;
     if(plug) plug->acquire();
   };
   FileNode& operator= (const FileNode &node);

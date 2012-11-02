@@ -18,8 +18,20 @@ namespace Arc {
 
   Logger Broker::logger(Logger::getRootLogger(), "Broker");
   Logger BrokerPlugin::logger(Logger::getRootLogger(), "BrokerPlugin");
-  Logger ExecutionTargetSet::logger(Logger::getRootLogger(), "ExecutionTargetSet");
-  Logger ExecutionTargetSorter::logger(Logger::getRootLogger(), "ExecutionTargetSet");
+  Logger ExecutionTargetSorter::logger(Logger::getRootLogger(), "ExecutionTargetSorter");
+
+  bool BrokerPlugin::operator() (const ExecutionTarget&, const ExecutionTarget&) const {
+    return true;
+  }
+
+  bool BrokerPlugin::match(const ExecutionTarget& et) const {
+    if(!j) return false;
+    return Broker::genericMatch(et,*j,uc);
+  }
+
+  void BrokerPlugin::set(const JobDescription& _j) const {
+    j = &_j;
+  }
   
   BrokerPluginLoader Broker::l;
 
@@ -30,6 +42,27 @@ namespace Arc {
          it != plugins.end(); ++it) {
       delete *it;
     }
+  }
+
+  BrokerPlugin* BrokerPluginLoader::load(const UserConfig& uc, const std::string& name, bool keep_ownerskip) {
+    return load(uc, NULL, name, keep_ownerskip);
+  }
+
+  BrokerPlugin* BrokerPluginLoader::load(const UserConfig& uc, const JobDescription& j, const std::string& name, bool keep_ownerskip) {
+    return load(uc, &j, name, keep_ownerskip);
+  }
+
+  BrokerPlugin* BrokerPluginLoader::copy(const BrokerPlugin* p, bool keep_ownerskip) {
+    if (p) {
+      BrokerPlugin* bp = new BrokerPlugin(*p);
+      if (bp) {
+        if (keep_ownerskip) {
+          plugins.push_back(bp);
+        };
+        return bp;
+      };
+    };
+    return NULL;
   }
   
   BrokerPlugin* BrokerPluginLoader::load(const UserConfig& uc, const JobDescription* j, const std::string& name, bool keep_ownership) {
@@ -83,8 +116,54 @@ namespace Arc {
     proxyIssuerCA = credential.GetCAName();
   }
 
+  Broker::Broker(const Broker& b) : uc(b.uc), j(b.j), proxyDN(b.proxyDN), proxyIssuerCA(b.proxyIssuerCA), p(b.p) {
+    p = l.copy(p.Ptr(), false);
+  }
+
+  Broker::~Broker() {
+  }
+
+  Broker& Broker::operator=(const Broker& b) {
+    j = b.j;
+    proxyDN = b.proxyDN;
+    proxyIssuerCA = b.proxyIssuerCA;
+    p = l.copy(p.Ptr(), false);
+    return *this;
+  }
+
+  bool Broker::operator() (const ExecutionTarget& lhs, const ExecutionTarget& rhs) const {
+    return (bool)p?(*p)(lhs, rhs):true;
+  }
+
+  bool Broker::isValid(bool alsoCheckJobDescription) const {
+    return (bool)p && (!alsoCheckJobDescription || j != NULL);
+  }
+
+  void Broker::set(const JobDescription& _j) const {
+    if ((bool)p) { j = &_j; p->set(_j); };
+  }
+
   bool Broker::match(const ExecutionTarget& t) const {
     logger.msg(VERBOSE, "Performing matchmaking against target (%s).", t.ComputingEndpoint->URLString);
+
+    bool plugin_match = false;
+    if(!p) {
+      if(j) plugin_match = Broker::genericMatch(t,*j,uc);
+    } else {
+      plugin_match = p->match(t);
+    }
+
+    if (plugin_match) {
+      logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s matches job description", t.ComputingEndpoint->URLString);
+    }
+    return plugin_match;
+  }
+
+  bool Broker::genericMatch(const ExecutionTarget& t, const JobDescription& j, const UserConfig& uc) {
+    // Maybe Credential can be passed to plugins through one more set()
+    Credential credential(uc);
+    std::string proxyDN = credential.GetDN();
+    std::string proxyIssuerCA = credential.GetCAName();
 
     if ( !(t.ComputingEndpoint->TrustedCA.empty()) && (find(t.ComputingEndpoint->TrustedCA.begin(), t.ComputingEndpoint->TrustedCA.end(), proxyIssuerCA)
             == t.ComputingEndpoint->TrustedCA.end()) ){
@@ -93,7 +172,7 @@ namespace Arc {
     }
 
     std::map<std::string, std::string>::const_iterator itAtt;
-    if ((itAtt = j->OtherAttributes.find("nordugrid:broker;reject_queue")) != j->OtherAttributes.end()) {
+    if ((itAtt = j.OtherAttributes.find("nordugrid:broker;reject_queue")) != j.OtherAttributes.end()) {
       if (t.ComputingShare->Name.empty()) {
         logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", t.ComputingEndpoint->URLString);
         return false;
@@ -105,22 +184,22 @@ namespace Arc {
       }
     }
 
-    if (!j->Resources.QueueName.empty()) {
+    if (!j.Resources.QueueName.empty()) {
       if (t.ComputingShare->Name.empty()) {
         logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", t.ComputingEndpoint->URLString);
         return false;
       }
 
-      if (t.ComputingShare->Name != j->Resources.QueueName) {
-        logger.msg(VERBOSE, "ComputingShare (%s) does not match selected queue (%s)", t.ComputingShare->Name, j->Resources.QueueName);
+      if (t.ComputingShare->Name != j.Resources.QueueName) {
+        logger.msg(VERBOSE, "ComputingShare (%s) does not match selected queue (%s)", t.ComputingShare->Name, j.Resources.QueueName);
         return false;
       }
     }
 
-    if ((int)j->Application.ProcessingStartTime.GetTime() != -1) {
+    if ((int)j.Application.ProcessingStartTime.GetTime() != -1) {
       if ((int)t.ComputingEndpoint->DowntimeStarts.GetTime() != -1 && (int)t.ComputingEndpoint->DowntimeEnds.GetTime() != -1) {
-        if (t.ComputingEndpoint->DowntimeStarts <= j->Application.ProcessingStartTime && j->Application.ProcessingStartTime <= t.ComputingEndpoint->DowntimeEnds) {
-          logger.msg(VERBOSE, "ProcessingStartTime (%s) specified in job description is inside the targets downtime period [ %s - %s ].", (std::string)j->Application.ProcessingStartTime, (std::string)t.ComputingEndpoint->DowntimeStarts, (std::string)t.ComputingEndpoint->DowntimeEnds);
+        if (t.ComputingEndpoint->DowntimeStarts <= j.Application.ProcessingStartTime && j.Application.ProcessingStartTime <= t.ComputingEndpoint->DowntimeEnds) {
+          logger.msg(VERBOSE, "ProcessingStartTime (%s) specified in job description is inside the targets downtime period [ %s - %s ].", (std::string)j.Application.ProcessingStartTime, (std::string)t.ComputingEndpoint->DowntimeStarts, (std::string)t.ComputingEndpoint->DowntimeEnds);
           return false;
         }
       }
@@ -140,9 +219,9 @@ namespace Arc {
       return false;
     }
 
-    if (!j->Resources.CEType.empty()) {
+    if (!j.Resources.CEType.empty()) {
       if (!t.ComputingEndpoint->Implementation().empty()) {
-        if (!j->Resources.CEType.isSatisfied(t.ComputingEndpoint->Implementation)) {
+        if (!j.Resources.CEType.isSatisfied(t.ComputingEndpoint->Implementation)) {
           logger.msg(VERBOSE, "Matchmaking, Computing endpoint requirement not satisfied. ExecutionTarget: %s", (std::string)t.ComputingEndpoint->Implementation);
           return false;
         }
@@ -161,8 +240,8 @@ namespace Arc {
                              EtTimePair("MinCPUTime", (int)t.ComputingShare->MinCPUTime.GetPeriod())};
 
       typedef std::pair<std::string, const ScalableTime<int>*> JobTimePair;
-      JobTimePair jobTime[] = {JobTimePair("IndividualWallTime", &j->Resources.IndividualWallTime),
-                               JobTimePair("IndividualCPUTime", &j->Resources.IndividualCPUTime)};
+      JobTimePair jobTime[] = {JobTimePair("IndividualWallTime", &j.Resources.IndividualWallTime),
+                               JobTimePair("IndividualCPUTime", &j.Resources.IndividualCPUTime)};
 
       int i = 0;
       for (; i < 4; i++) {
@@ -226,16 +305,16 @@ namespace Arc {
     }
 
     {
-      const int totalcputime = (j->Resources.TotalCPUTime.range.min > 0 ? j->Resources.TotalCPUTime.range.min : j->Resources.TotalCPUTime.range.max);
+      const int totalcputime = (j.Resources.TotalCPUTime.range.min > 0 ? j.Resources.TotalCPUTime.range.min : j.Resources.TotalCPUTime.range.max);
       if (totalcputime != -1) {
         if (t.ComputingShare->MaxTotalCPUTime.GetPeriod() != -1) {
-          if (t.ComputingShare->MaxTotalCPUTime.GetPeriod() < j->Resources.TotalCPUTime.range.min) {
+          if (t.ComputingShare->MaxTotalCPUTime.GetPeriod() < j.Resources.TotalCPUTime.range.min) {
             logger.msg(VERBOSE, "Matchmaking, MaxTotalCPUTime problem, ExecutionTarget: %d (MaxTotalCPUTime), JobDescription: %d (TotalCPUTime)", t.ComputingShare->MaxTotalCPUTime.GetPeriod(), totalcputime);
             return false;
           }
         }
         else if (t.ComputingShare->MaxCPUTime.GetPeriod() != -1) {
-          const int slots = (j->Resources.SlotRequirement.NumberOfSlots > 0 ? j->Resources.SlotRequirement.NumberOfSlots : 1);
+          const int slots = (j.Resources.SlotRequirement.NumberOfSlots > 0 ? j.Resources.SlotRequirement.NumberOfSlots : 1);
           if (t.ComputingShare->MaxCPUTime.GetPeriod() < totalcputime/slots) {
             logger.msg(VERBOSE, "Matchmaking, MaxTotalCPUTime problem, ExecutionTarget: %d (MaxCPUTime), JobDescription: %d (TotalCPUTime/NumberOfSlots)", t.ComputingShare->MaxTotalCPUTime.GetPeriod(), totalcputime/slots);
             return false;
@@ -247,16 +326,16 @@ namespace Arc {
       }
     }
 
-    if (j->Resources.IndividualPhysicalMemory != -1) {
+    if (j.Resources.IndividualPhysicalMemory != -1) {
       if (t.ExecutionEnvironment->MainMemorySize != -1) {     // Example: 678
-        if (t.ExecutionEnvironment->MainMemorySize < j->Resources.IndividualPhysicalMemory) {
-          logger.msg(VERBOSE, "Matchmaking, MainMemorySize problem, ExecutionTarget: %d (MainMemorySize), JobDescription: %d (IndividualPhysicalMemory)", t.ExecutionEnvironment->MainMemorySize, j->Resources.IndividualPhysicalMemory.max);
+        if (t.ExecutionEnvironment->MainMemorySize < j.Resources.IndividualPhysicalMemory) {
+          logger.msg(VERBOSE, "Matchmaking, MainMemorySize problem, ExecutionTarget: %d (MainMemorySize), JobDescription: %d (IndividualPhysicalMemory)", t.ExecutionEnvironment->MainMemorySize, j.Resources.IndividualPhysicalMemory.max);
           return false;
         }
       }
       else if (t.ComputingShare->MaxMainMemory != -1) {     // Example: 678
-        if (t.ComputingShare->MaxMainMemory < j->Resources.IndividualPhysicalMemory) {
-          logger.msg(VERBOSE, "Matchmaking, MaxMainMemory problem, ExecutionTarget: %d (MaxMainMemory), JobDescription: %d (IndividualPhysicalMemory)", t.ComputingShare->MaxMainMemory, j->Resources.IndividualPhysicalMemory.max);
+        if (t.ComputingShare->MaxMainMemory < j.Resources.IndividualPhysicalMemory) {
+          logger.msg(VERBOSE, "Matchmaking, MaxMainMemory problem, ExecutionTarget: %d (MaxMainMemory), JobDescription: %d (IndividualPhysicalMemory)", t.ComputingShare->MaxMainMemory, j.Resources.IndividualPhysicalMemory.max);
           return false;
         }
       }
@@ -266,10 +345,10 @@ namespace Arc {
       }
     }
 
-    if (j->Resources.IndividualVirtualMemory != -1) {
+    if (j.Resources.IndividualVirtualMemory != -1) {
       if (t.ComputingShare->MaxVirtualMemory != -1) {     // Example: 678
-        if (t.ComputingShare->MaxVirtualMemory < j->Resources.IndividualVirtualMemory) {
-          logger.msg(VERBOSE, "Matchmaking, MaxVirtualMemory problem, ExecutionTarget: %d (MaxVirtualMemory), JobDescription: %d (IndividualVirtualMemory)", t.ComputingShare->MaxVirtualMemory, j->Resources.IndividualVirtualMemory.max);
+        if (t.ComputingShare->MaxVirtualMemory < j.Resources.IndividualVirtualMemory) {
+          logger.msg(VERBOSE, "Matchmaking, MaxVirtualMemory problem, ExecutionTarget: %d (MaxVirtualMemory), JobDescription: %d (IndividualVirtualMemory)", t.ComputingShare->MaxVirtualMemory, j.Resources.IndividualVirtualMemory.max);
           return false;
         }
       }
@@ -279,10 +358,10 @@ namespace Arc {
       }
     }
 
-    if (!j->Resources.Platform.empty()) {
+    if (!j.Resources.Platform.empty()) {
       if (!t.ExecutionEnvironment->Platform.empty()) {    // Example: i386
-        if (t.ExecutionEnvironment->Platform != j->Resources.Platform) {
-          logger.msg(VERBOSE, "Matchmaking, Platform problem, ExecutionTarget: %s (Platform) JobDescription: %s (Platform)", t.ExecutionEnvironment->Platform, j->Resources.Platform);
+        if (t.ExecutionEnvironment->Platform != j.Resources.Platform) {
+          logger.msg(VERBOSE, "Matchmaking, Platform problem, ExecutionTarget: %s (Platform) JobDescription: %s (Platform)", t.ExecutionEnvironment->Platform, j.Resources.Platform);
           return false;
         }
       }
@@ -292,9 +371,9 @@ namespace Arc {
       }
     }
 
-    if (!j->Resources.OperatingSystem.empty()) {
+    if (!j.Resources.OperatingSystem.empty()) {
       if (!t.ExecutionEnvironment->OperatingSystem.empty()) {
-        if (!j->Resources.OperatingSystem.isSatisfied(t.ExecutionEnvironment->OperatingSystem)) {
+        if (!j.Resources.OperatingSystem.isSatisfied(t.ExecutionEnvironment->OperatingSystem)) {
           logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, OperatingSystem requirements not satisfied", t.ComputingEndpoint->URLString);
           return false;
         }
@@ -305,9 +384,9 @@ namespace Arc {
       }
     }
 
-    if (!j->Resources.RunTimeEnvironment.empty()) {
+    if (!j.Resources.RunTimeEnvironment.empty()) {
       if (!t.ApplicationEnvironments->empty()) {
-        if (!j->Resources.RunTimeEnvironment.isSatisfied(*t.ApplicationEnvironments)) {
+        if (!j.Resources.RunTimeEnvironment.isSatisfied(*t.ApplicationEnvironments)) {
           logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, RunTimeEnvironment requirements not satisfied", t.ComputingEndpoint->URLString);
           return false;
         }
@@ -318,11 +397,11 @@ namespace Arc {
       }
     }
 
-    if (!j->Resources.NetworkInfo.empty())
+    if (!j.Resources.NetworkInfo.empty())
       if (!t.ComputingManager->NetworkInfo.empty()) {    // Example: infiniband
         if (std::find(t.ComputingManager->NetworkInfo.begin(), t.ComputingManager->NetworkInfo.end(),
-                      j->Resources.NetworkInfo) == t.ComputingManager->NetworkInfo.end()) {
-          logger.msg(VERBOSE, "Matchmaking, NetworkInfo demand not fulfilled, ExecutionTarget do not support %s, specified in the JobDescription.", j->Resources.NetworkInfo);
+                      j.Resources.NetworkInfo) == t.ComputingManager->NetworkInfo.end()) {
+          logger.msg(VERBOSE, "Matchmaking, NetworkInfo demand not fulfilled, ExecutionTarget do not support %s, specified in the JobDescription.", j.Resources.NetworkInfo);
           return false;
         }
         else {
@@ -331,17 +410,17 @@ namespace Arc {
         }
       }
 
-    if (j->Resources.DiskSpaceRequirement.SessionDiskSpace > -1) {
+    if (j.Resources.DiskSpaceRequirement.SessionDiskSpace > -1) {
       if (t.ComputingShare->MaxDiskSpace > -1) {     // Example: 5656
-        if (t.ComputingShare->MaxDiskSpace*1024 < j->Resources.DiskSpaceRequirement.SessionDiskSpace) {
-          logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (SessionDiskSpace)", t.ComputingShare->MaxDiskSpace*1024, j->Resources.DiskSpaceRequirement.SessionDiskSpace);
+        if (t.ComputingShare->MaxDiskSpace*1024 < j.Resources.DiskSpaceRequirement.SessionDiskSpace) {
+          logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (SessionDiskSpace)", t.ComputingShare->MaxDiskSpace*1024, j.Resources.DiskSpaceRequirement.SessionDiskSpace);
           return false;
         }
       }
 
       if (t.ComputingManager->WorkingAreaFree > -1) {     // Example: 5656
-        if (t.ComputingManager->WorkingAreaFree*1024 < j->Resources.DiskSpaceRequirement.SessionDiskSpace) {
-          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree problem, ExecutionTarget: %d MB (WorkingAreaFree); JobDescription: %d MB (SessionDiskSpace)", t.ComputingManager->WorkingAreaFree*1024, j->Resources.DiskSpaceRequirement.SessionDiskSpace);
+        if (t.ComputingManager->WorkingAreaFree*1024 < j.Resources.DiskSpaceRequirement.SessionDiskSpace) {
+          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree problem, ExecutionTarget: %d MB (WorkingAreaFree); JobDescription: %d MB (SessionDiskSpace)", t.ComputingManager->WorkingAreaFree*1024, j.Resources.DiskSpaceRequirement.SessionDiskSpace);
           return false;
         }
       }
@@ -352,17 +431,17 @@ namespace Arc {
       }
     }
 
-    if (j->Resources.DiskSpaceRequirement.DiskSpace.max > -1 && j->Resources.DiskSpaceRequirement.CacheDiskSpace > -1) {
+    if (j.Resources.DiskSpaceRequirement.DiskSpace.max > -1 && j.Resources.DiskSpaceRequirement.CacheDiskSpace > -1) {
       if (t.ComputingShare->MaxDiskSpace > -1) {     // Example: 5656
-        if (t.ComputingShare->MaxDiskSpace*1024 < j->Resources.DiskSpaceRequirement.DiskSpace.max - j->Resources.DiskSpaceRequirement.CacheDiskSpace) {
-          logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace*1024 >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace), %d MB (CacheDiskSpace)", t.ComputingShare->MaxDiskSpace*1024, j->Resources.DiskSpaceRequirement.DiskSpace.max, j->Resources.DiskSpaceRequirement.CacheDiskSpace);
+        if (t.ComputingShare->MaxDiskSpace*1024 < j.Resources.DiskSpaceRequirement.DiskSpace.max - j.Resources.DiskSpaceRequirement.CacheDiskSpace) {
+          logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace*1024 >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace), %d MB (CacheDiskSpace)", t.ComputingShare->MaxDiskSpace*1024, j.Resources.DiskSpaceRequirement.DiskSpace.max, j.Resources.DiskSpaceRequirement.CacheDiskSpace);
           return false;
         }
       }
 
       if (t.ComputingManager->WorkingAreaFree > -1) {     // Example: 5656
-        if (t.ComputingManager->WorkingAreaFree*1024 < j->Resources.DiskSpaceRequirement.DiskSpace.max - j->Resources.DiskSpaceRequirement.CacheDiskSpace) {
-          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree*1024 >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace), %d MB (CacheDiskSpace)", t.ComputingManager->WorkingAreaFree*1024, j->Resources.DiskSpaceRequirement.DiskSpace.max, j->Resources.DiskSpaceRequirement.CacheDiskSpace);
+        if (t.ComputingManager->WorkingAreaFree*1024 < j.Resources.DiskSpaceRequirement.DiskSpace.max - j.Resources.DiskSpaceRequirement.CacheDiskSpace) {
+          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree*1024 >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace), %d MB (CacheDiskSpace)", t.ComputingManager->WorkingAreaFree*1024, j.Resources.DiskSpaceRequirement.DiskSpace.max, j.Resources.DiskSpaceRequirement.CacheDiskSpace);
           return false;
         }
       }
@@ -373,17 +452,17 @@ namespace Arc {
       }
     }
 
-    if (j->Resources.DiskSpaceRequirement.DiskSpace.max > -1) {
+    if (j.Resources.DiskSpaceRequirement.DiskSpace.max > -1) {
       if (t.ComputingShare->MaxDiskSpace > -1) {     // Example: 5656
-        if (t.ComputingShare->MaxDiskSpace*1024 < j->Resources.DiskSpaceRequirement.DiskSpace.max) {
-          logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace)", t.ComputingShare->MaxDiskSpace*1024, j->Resources.DiskSpaceRequirement.DiskSpace.max);
+        if (t.ComputingShare->MaxDiskSpace*1024 < j.Resources.DiskSpaceRequirement.DiskSpace.max) {
+          logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace)", t.ComputingShare->MaxDiskSpace*1024, j.Resources.DiskSpaceRequirement.DiskSpace.max);
           return false;
         }
       }
 
       if (t.ComputingManager->WorkingAreaFree > -1) {     // Example: 5656
-        if (t.ComputingManager->WorkingAreaFree*1024 < j->Resources.DiskSpaceRequirement.DiskSpace.max) {
-          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree problem, ExecutionTarget: %d MB (WorkingAreaFree); JobDescription: %d MB (DiskSpace)", t.ComputingManager->WorkingAreaFree*1024, j->Resources.DiskSpaceRequirement.DiskSpace.max);
+        if (t.ComputingManager->WorkingAreaFree*1024 < j.Resources.DiskSpaceRequirement.DiskSpace.max) {
+          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree problem, ExecutionTarget: %d MB (WorkingAreaFree); JobDescription: %d MB (DiskSpace)", t.ComputingManager->WorkingAreaFree*1024, j.Resources.DiskSpaceRequirement.DiskSpace.max);
           return false;
         }
       }
@@ -394,10 +473,10 @@ namespace Arc {
       }
     }
 
-    if (j->Resources.DiskSpaceRequirement.CacheDiskSpace > -1) {
+    if (j.Resources.DiskSpaceRequirement.CacheDiskSpace > -1) {
       if (t.ComputingManager->CacheTotal > -1) {     // Example: 5656
-        if (t.ComputingManager->CacheTotal*1024 < j->Resources.DiskSpaceRequirement.CacheDiskSpace) {
-          logger.msg(VERBOSE, "Matchmaking, CacheTotal problem, ExecutionTarget: %d MB (CacheTotal); JobDescription: %d MB (CacheDiskSpace)", t.ComputingManager->CacheTotal*1024, j->Resources.DiskSpaceRequirement.CacheDiskSpace);
+        if (t.ComputingManager->CacheTotal*1024 < j.Resources.DiskSpaceRequirement.CacheDiskSpace) {
+          logger.msg(VERBOSE, "Matchmaking, CacheTotal problem, ExecutionTarget: %d MB (CacheTotal); JobDescription: %d MB (CacheDiskSpace)", t.ComputingManager->CacheTotal*1024, j.Resources.DiskSpaceRequirement.CacheDiskSpace);
           return false;
         }
       }
@@ -407,16 +486,16 @@ namespace Arc {
       }
     }
 
-    if (j->Resources.SlotRequirement.NumberOfSlots != -1) {
+    if (j.Resources.SlotRequirement.NumberOfSlots != -1) {
       if (t.ComputingManager->TotalSlots != -1) {     // Example: 5656
-        if (t.ComputingManager->TotalSlots < j->Resources.SlotRequirement.NumberOfSlots) {
-          logger.msg(VERBOSE, "Matchmaking, TotalSlots problem, ExecutionTarget: %d (TotalSlots) JobDescription: %d (NumberOfProcesses)", t.ComputingManager->TotalSlots, j->Resources.SlotRequirement.NumberOfSlots);
+        if (t.ComputingManager->TotalSlots < j.Resources.SlotRequirement.NumberOfSlots) {
+          logger.msg(VERBOSE, "Matchmaking, TotalSlots problem, ExecutionTarget: %d (TotalSlots) JobDescription: %d (NumberOfProcesses)", t.ComputingManager->TotalSlots, j.Resources.SlotRequirement.NumberOfSlots);
           return false;
         }
       }
       if (t.ComputingShare->MaxSlotsPerJob != -1) {     // Example: 5656
-        if (t.ComputingShare->MaxSlotsPerJob < j->Resources.SlotRequirement.NumberOfSlots) {
-          logger.msg(VERBOSE, "Matchmaking, MaxSlotsPerJob problem, ExecutionTarget: %d (MaxSlotsPerJob) JobDescription: %d (NumberOfProcesses)", t.ComputingShare->MaxSlotsPerJob, j->Resources.SlotRequirement.NumberOfSlots);
+        if (t.ComputingShare->MaxSlotsPerJob < j.Resources.SlotRequirement.NumberOfSlots) {
+          logger.msg(VERBOSE, "Matchmaking, MaxSlotsPerJob problem, ExecutionTarget: %d (MaxSlotsPerJob) JobDescription: %d (NumberOfProcesses)", t.ComputingShare->MaxSlotsPerJob, j.Resources.SlotRequirement.NumberOfSlots);
           return false;
         }
       }
@@ -427,10 +506,10 @@ namespace Arc {
       }
     }
 
-    if ((int)j->Resources.SessionLifeTime.GetPeriod() != -1) {
+    if ((int)j.Resources.SessionLifeTime.GetPeriod() != -1) {
       if ((int)t.ComputingManager->WorkingAreaLifeTime.GetPeriod() != -1) {     // Example: 123
-        if (t.ComputingManager->WorkingAreaLifeTime < j->Resources.SessionLifeTime) {
-          logger.msg(VERBOSE, "Matchmaking, WorkingAreaLifeTime problem, ExecutionTarget: %s (WorkingAreaLifeTime) JobDescription: %s (SessionLifeTime)", (std::string)t.ComputingManager->WorkingAreaLifeTime, (std::string)j->Resources.SessionLifeTime);
+        if (t.ComputingManager->WorkingAreaLifeTime < j.Resources.SessionLifeTime) {
+          logger.msg(VERBOSE, "Matchmaking, WorkingAreaLifeTime problem, ExecutionTarget: %s (WorkingAreaLifeTime) JobDescription: %s (SessionLifeTime)", (std::string)t.ComputingManager->WorkingAreaLifeTime, (std::string)j.Resources.SessionLifeTime);
           return false;
         }
       }
@@ -440,25 +519,21 @@ namespace Arc {
       }
     }
 
-    if ((j->Resources.NodeAccess == NAT_INBOUND ||
-         j->Resources.NodeAccess == NAT_INOUTBOUND) &&
+    if ((j.Resources.NodeAccess == NAT_INBOUND ||
+         j.Resources.NodeAccess == NAT_INOUTBOUND) &&
         !t.ExecutionEnvironment->ConnectivityIn) {     // Example: false (boolean)
-      logger.msg(VERBOSE, "Matchmaking, ConnectivityIn problem, ExecutionTarget: %s (ConnectivityIn) JobDescription: %s (InBound)", (j->Resources.NodeAccess == NAT_INBOUND ? "INBOUND" : "INOUTBOUND"), (t.ExecutionEnvironment->ConnectivityIn ? "true" : "false"));
+      logger.msg(VERBOSE, "Matchmaking, ConnectivityIn problem, ExecutionTarget: %s (ConnectivityIn) JobDescription: %s (InBound)", (j.Resources.NodeAccess == NAT_INBOUND ? "INBOUND" : "INOUTBOUND"), (t.ExecutionEnvironment->ConnectivityIn ? "true" : "false"));
       return false;
     }
 
-    if ((j->Resources.NodeAccess == NAT_OUTBOUND ||
-         j->Resources.NodeAccess == NAT_INOUTBOUND) &&
+    if ((j.Resources.NodeAccess == NAT_OUTBOUND ||
+         j.Resources.NodeAccess == NAT_INOUTBOUND) &&
         !t.ExecutionEnvironment->ConnectivityOut) {     // Example: false (boolean)
-      logger.msg(VERBOSE, "Matchmaking, ConnectivityOut problem, ExecutionTarget: %s (ConnectivityOut) JobDescription: %s (OutBound)", (j->Resources.NodeAccess == NAT_OUTBOUND ? "OUTBOUND" : "INOUTBOUND"), (t.ExecutionEnvironment->ConnectivityIn ? "true" : "false"));
+      logger.msg(VERBOSE, "Matchmaking, ConnectivityOut problem, ExecutionTarget: %s (ConnectivityOut) JobDescription: %s (OutBound)", (j.Resources.NodeAccess == NAT_OUTBOUND ? "OUTBOUND" : "INOUTBOUND"), (t.ExecutionEnvironment->ConnectivityIn ? "true" : "false"));
       return false;
     }
 
-    bool plugin_match = p?p->match(t):true;
-    if (plugin_match) {
-      logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s matches job description", t.ComputingEndpoint->URLString);
-    }
-    return plugin_match;
+    return true;
   }
 
   void ExecutionTargetSorter::addEntities(const std::list<ComputingServiceType>& csList) {
@@ -562,11 +637,5 @@ namespace Arc {
     }
 
     reset();
-  }
-
-  void ExecutionTargetSet::addEntities(const std::list<ComputingServiceType>& csList) {
-    for (std::list<ComputingServiceType>::const_iterator it = csList.begin(); it != csList.end(); ++it) {
-      addEntity(*it);
-    }
   }
 } // namespace Arc

@@ -12,4 +12,5 @@ fileplugin_la_LIBADD = \
 	../libgridftpd_la-misc.lo ../libgridftpd_la-userspec.lo \
 	../libgridftpd_la-names.lo ../auth/libmap.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(GLOBUS_FILEPLUGIN_LIBS)

@@ -2,7 +2,7 @@
 #define __ARC_ENDPOINT_H__
 
 #include <string>
-#include <list>
+#include <set>
 #include <algorithm>
 
 namespace Arc {
@@ -58,7 +58,7 @@ public:
     \param[in] InterfaceName is a string specifying the type of the interface of the service
   */
   Endpoint(const std::string& URLString = "",
-           const std::list<std::string>& Capability = std::list<std::string>(),
+           const std::set<std::string>& Capability = std::set<std::string>(),
            const std::string& InterfaceName = "")
     : URLString(URLString), InterfaceName(InterfaceName), Capability(Capability) {}
 
@@ -71,7 +71,7 @@ public:
   Endpoint(const std::string& URLString,
            const Endpoint::CapabilityEnum cap,
            const std::string& InterfaceName = "")
-    : URLString(URLString), InterfaceName(InterfaceName), Capability(std::list<std::string>(1,GetStringForCapability(cap))) {}
+    : URLString(URLString), InterfaceName(InterfaceName), Capability() { Capability.insert(GetStringForCapability(cap)); }
 
   /// Create new Endpoint from ExecutionTarget object
   /**
@@ -110,7 +110,7 @@ public:
     \param[in] cap is a string specifying a capability
     \return true if the Endpoint has the given capability
   */
-  bool HasCapability(std::string cap) const;
+  bool HasCapability(const std::string& cap) const;
 
   /** Returns a string representation of the Endpoint containing the URL,
     the main capability and the InterfaceName
@@ -137,8 +137,8 @@ public:
   std::string HealthStateInfo;
   /** GLUE2 QualityLevel */
   std::string QualityLevel;
-  /** List of GLUE2 Capability strings */
-  std::list<std::string> Capability;
+  /** Set of GLUE2 Capability strings */
+  std::set<std::string> Capability;
   /** A GLUE2 InterfaceName requesting an InterfaceName used for job submission.
   
     If a user specifies an InterfaceName for submitting jobs, that information

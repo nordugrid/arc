@@ -215,7 +215,7 @@ namespace Arc {
     BIO* bio_;
    public:
     AutoBIO(BIO* bio):bio_(bio) { };
-    ~AutoBIO(void) { if(bio_) { (BIO_set_close(bio_,BIO_CLOSE) == 1); BIO_free_all(bio_); } };
+    ~AutoBIO(void) { if(bio_) { BIO_set_close(bio_,BIO_CLOSE); BIO_free_all(bio_); } };
     operator bool(void) { return (bio_ != NULL); };
     operator BIO*(void) { return bio_; };
     BIO& operator*(void) const { return *bio_; };
@@ -533,7 +533,7 @@ namespace Arc {
       *certchain = NULL;
     }
 
-    unsigned char* der_chr;
+    //unsigned char* der_chr;
     unsigned char* pkcs_chr;
 
     switch(format) {
@@ -689,7 +689,6 @@ namespace Arc {
 
     //Read key
     Credformat format;
-    PKCS12* pkcs12 = NULL;
 
     if(!keybio) return;
     format = getFormat_str(key);

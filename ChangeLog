@@ -1,4 +1,14 @@
+2012-10-31  Martin Skou Andersen <skou@nbi.dk>
+
+  * [Java] Transparently load native ARC JNI-C++ library when using ARC Java
+    bindings. Thus making it redundant to call 'System.loadLibrary("jarc")'.
+  
+2012-10-31  Anders Waananen <waananen@nbi.dk>
+
+  * Add NSS as a dependency. Currently used only by arcproxy
+
 2012-10-17  Anders Waananen <waananen@nbi.dk>
+
   * Obsolete the python utility module arcom
 
 2012-10-09  David Cameron  <d.g.cameron@fys.uio.no>
@@ -42,13 +52,13 @@
 
   * Remove arcsrmping (fixes bug #2902)
 
-2012-08-17  Martin Skou Andersen <skou@nbi.ku.dk>
+2012-08-17  Martin Skou Andersen <skou@nbi.dk>
 
   * Introducing new class ExecutionTargetSorter for sorting ExecutionTarget
     objects. It is to replace the ExecutionTargetSet class which isn't working
     as intended.
 
-2012-08-14  Martin Skou Andersen <skou@nbi.ku.dk>
+2012-08-14  Martin Skou Andersen <skou@nbi.dk>
 
   * Submitter class extended with capability of job submission relying on
     resource discovery and brokering, previously part of arcsub
@@ -59,7 +69,7 @@
 
   * Add ACIX (ARC Cache Index) to distribution (RHEL>=5, Fedora>=7, Debian>=4)
 
-2012-08-02  Martin Skou Andersen <skou@nbi.ku.dk>
+2012-08-02  Martin Skou Andersen <skou@nbi.dk>
 
   * Adding possibility to format the CE specific job state string (fixes bug
     2847)

@@ -26,15 +26,10 @@ namespace Arc {
     bool ctrl;
     bool close;
     CBArg(void);
-    ~CBArg(void);
     std::string Response();
   };
 
-  FTPControl::CBArg::CBArg(void) {
-  }
-
-  FTPControl::CBArg::~CBArg(void) {
-  }
+  FTPControl::CBArg::CBArg(void): responseok(true), data(true), ctrl(true), close(true) {}
 
   std::string FTPControl::CBArg::Response() {
     cond.lock();

@@ -2,7 +2,7 @@
 #define DATADELIVERYREMOTECOMM_H_
 
 #include <arc/XMLNode.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 
 #include "DataDeliveryComm.h"
 

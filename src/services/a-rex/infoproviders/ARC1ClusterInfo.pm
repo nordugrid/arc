@@ -992,7 +992,7 @@ sub collect($) {
         
         $csv->{Name} = $config->{service}{ClusterName} if $config->{service}{ClusterName}; # scalar
         $csv->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo}; # array
-        $csv->{Type} = 'org.nordugrid.execution.arex';
+        $csv->{Type} = 'org.nordugrid.arex';
 
         # OBS: QualityLevel reflects the quality of the sotware
         # One of: development, testing, pre-production, production
@@ -1480,7 +1480,7 @@ sub collect($) {
             $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activitycreation'};
             $cep->{Technology} = 'webservice';
             $cep->{InterfaceName} = 'org.ogf.glue.emies.activitycreation';
-            $cep->{InterfaceVersion} = [ '1.14' ];
+            $cep->{InterfaceVersion} = [ '1.15' ];
             $cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
             # What is profile for EMIES?
             #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
@@ -1608,7 +1608,7 @@ sub collect($) {
             $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activitymanagement'};
             $cep->{Technology} = 'webservice';
             $cep->{InterfaceName} = 'org.ogf.glue.emies.activitymanagement';
-            $cep->{InterfaceVersion} = [ '1.14' ];
+            $cep->{InterfaceVersion} = [ '1.15' ];
             $cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
             # What is profile for EMIES?
             #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
@@ -1735,7 +1735,7 @@ sub collect($) {
             $ep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.resourceinfo'};;
             $ep->{Technology} = 'webservice';
             $ep->{InterfaceName} = 'org.ogf.glue.emies.resourceinfo';
-            $ep->{InterfaceVersion} = [ '1.14' ];
+            $ep->{InterfaceVersion} = [ '1.15' ];
             # Wrong type, should be URI
             #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
             #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
@@ -1854,7 +1854,7 @@ sub collect($) {
             $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activityinfo'};
             $cep->{Technology} = 'webservice';
             $cep->{InterfaceName} = 'org.ogf.glue.emies.activityinfo';
-            $cep->{InterfaceVersion} = [ '1.14' ];
+            $cep->{InterfaceVersion} = [ '1.15' ];
             $cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
             # What is profile for EMIES?
             #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
@@ -1977,7 +1977,7 @@ sub collect($) {
             $ep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.delegation'};;
             $ep->{Technology} = 'webservice';
             $ep->{InterfaceName} = 'org.ogf.glue.emies.delegation';
-            $ep->{InterfaceVersion} = [ '1.14' ];
+            $ep->{InterfaceVersion} = [ '1.15' ];
             # Wrong type, should be URI
             #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
             #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP

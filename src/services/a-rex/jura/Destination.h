@@ -3,7 +3,7 @@
 
 
 #include "JobLogFile.h"
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/message/MCC.h>
 
 namespace Arc

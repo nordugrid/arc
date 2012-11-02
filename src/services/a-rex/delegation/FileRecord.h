@@ -27,7 +27,7 @@ class FileRecord {
    private:
     FileRecord& frec_;
     Dbc* cur_;
-    Iterator(const Iterator&):frec_(*(FileRecord*)NULL) { };
+    Iterator(const Iterator&);
     std::string uid_;
     std::string id_;
     std::string owner_;

@@ -101,7 +101,6 @@ static int delete_all_recur(const std::string &dir_base,
         if(!Arc::FileStat(fname.c_str(),&f_st,uid,gid,false)) { files++; }
         else if(S_ISDIR(f_st.st_mode)) {
           if(fl_cur != NULL) { /* MUST delete it */
-            FL_p* e = NULL;
             if(!Arc::DirDelete(fname, true, uid, gid)) { files++; };
           }
           else { /* CAN delete if empty, and maybe files inside */

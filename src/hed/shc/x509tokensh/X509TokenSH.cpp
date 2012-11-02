@@ -90,7 +90,7 @@ bool X509TokenSH::Handle(Arc::Message* msg) const {
         return false;
       };
       logger.msg(INFO, "Succeeded to authenticate X509Token");
-    } catch(std::exception) {
+    } catch(std::exception&) {
       logger.msg(ERROR,"Incoming Message is not SOAP");
       return false;
     }  
@@ -104,7 +104,7 @@ bool X509TokenSH::Handle(Arc::Message* msg) const {
       };
       //Reset the soap message
       (*soap) = xt;
-    } catch(std::exception) {
+    } catch(std::exception&) {
       logger.msg(ERROR,"Outgoing Message is not SOAP");
       return false;
     }

@@ -12,7 +12,7 @@
 #include <arc/UserConfig.h>
 #include <arc/message/MCC.h>
 #include <arc/data/DataStatus.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 
 #include "SRMURL.h"
 #include "SRMClientRequest.h"

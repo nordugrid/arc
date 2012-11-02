@@ -730,8 +730,9 @@ namespace Arc {
             }
           }
           if(fd != -1) {
-            lseek(fd, 0, SEEK_SET); (ftruncate(fd, 0) != 0);
-            close(fd); fd = -1;
+            (lseek(fd, 0, SEEK_SET) == -1);
+            (ftruncate(fd, 0) != 0);
+            (close(fd) != -1); fd = -1;
           }
           if(fa) {
             fa->fa_lseek(0, SEEK_SET);

@@ -8,7 +8,7 @@
 
 #include "jura.h"
 #include <arc/Utils.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <sstream>
 
 namespace Arc
@@ -22,7 +22,7 @@ namespace Arc
 
   {
     //Get service URL, cert, key, CA path from job log file
-    std::string serviceurl=joblog["loggerurl"];
+    std::string serviceurl=joblog["loggerurl"].substr(5);
     topic=joblog["topic"];
     output_dir=joblog["outputdir"];
     std::string certfile=joblog["certificate_path"];
@@ -248,6 +248,10 @@ namespace Arc
     // Ubuntu/Debian: /usr/lib/arc/ssm_master
     ssm_pathes.push_back("/usr/lib/arc/"+exec_cmd);
     ssm_pathes.push_back("/usr/local/lib/arc/"+exec_cmd);
+
+    // If you don't use non-statndard prefix for a compilation you can 
+    // add here your extra location.
+    //ssm_pathes.push_back("<your_prefix>/libexec/arc/"+exec_cmd);
     
     // Find the location of the ssm_master
     std::string ssm_command = "./ssm/"+exec_cmd;

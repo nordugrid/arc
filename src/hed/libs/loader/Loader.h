@@ -31,7 +31,7 @@ namespace Arc {
     ~Loader();
 
    private:
-    Loader(const Loader&) { };
+    Loader(const Loader&);
     Loader& operator=(const Loader&) { return *this; };
  };
 

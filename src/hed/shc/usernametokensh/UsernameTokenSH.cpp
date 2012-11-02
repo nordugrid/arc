@@ -97,7 +97,7 @@ bool UsernameTokenSH::Handle(Arc::Message* msg) const {
       };
       logger.msg(INFO, "Succeeded to authenticate UsernameToken");
       stream.close();
-    } catch(std::exception) {
+    } catch(std::exception&) {
       logger.msg(ERROR,"Incoming Message is not SOAP");
       return false;
     }  
@@ -119,7 +119,7 @@ bool UsernameTokenSH::Handle(Arc::Message* msg) const {
         logger.msg(ERROR,"Failed to generate Username Token for outgoing SOAP");
         return false;
       };
-    } catch(std::exception) {
+    } catch(std::exception&) {
       logger.msg(ERROR,"Outgoing Message is not SOAP");
       return false;
     }

@@ -516,7 +516,6 @@ namespace AuthN {
 
   static CERTCertificate* FindIssuerCert(CERTCertificate* cert) {
     CERTCertificate* issuercert = NULL;
-    SECStatus rv;
     issuercert = CERT_FindCertByName(cert->dbhandle, &cert->derIssuer);
     return issuercert;
   }
@@ -526,7 +525,6 @@ namespace AuthN {
     CERTCertListNode* newnd;
     CERTCertListNode* head;
     CERTCertList* certlist = NULL;
-    SECStatus rv;
     certlist = CERT_NewCertList();
 
     for (node = CERT_LIST_HEAD(chain) ; !CERT_LIST_END(node, chain); node= CERT_LIST_NEXT(node)) {
@@ -542,7 +540,6 @@ namespace AuthN {
   static CERTCertList* FindCertChain(CERTCertificate* cert) {
     CERTCertificate* issuercert = NULL;
     CERTCertList* certlist = NULL;
-    SECStatus rv;
     certlist = CERT_NewCertList();
     //certlist = CERT_CertListFromCert(issuercert);
     //cert = CERT_DupCertificate(cert);
@@ -1341,7 +1338,6 @@ loser:
     p12uContext *p12cxt = NULL;
     CERTCertList* certlist = NULL;
     CERTCertListNode* node = NULL;
-    CERTCertificate* issuercert = NULL;
 
     slot = PK11_GetInternalKeySlot();
     if (PK11_Authenticate(slot, PR_TRUE, slotpw) != SECSuccess) {
@@ -1349,7 +1345,7 @@ loser:
       goto err;
     }
 
-    certlist = PK11_FindCertsFromNickname(certname.c_str(), slotpw);
+    certlist = PK11_FindCertsFromNickname((char*)(certname.c_str()), (void*)slotpw);
     if(!certlist) {
       NSSUtilLogger.msg(ERROR, "Failed to find certificates by nickname: %s", certname.c_str());
       return false;
@@ -1468,7 +1464,7 @@ err:
     CERTCertDBHandle* handle;
 
     handle = CERT_GetDefaultCertDB();
-    cert = CERT_FindCertByNicknameOrEmailAddr(handle, certname);
+    cert = CERT_FindCertByNicknameOrEmailAddr(handle, (char*)certname);
     if(!cert) {
       NSSUtilLogger.msg(INFO, "There is no certificate named %s found, the certificate could be removed when generating CSR", certname);
       return SECSuccess;
@@ -1583,7 +1579,7 @@ err:
         return SECFailure;
       }
     }
-    cert = PK11_FindCertFromNickname(certname, (void*)passwd);
+    cert = PK11_FindCertFromNickname((char*)certname, (void*)passwd);
     if(!cert) {
       PK11_FreeSlot(slot);
       return SECFailure;
@@ -1598,7 +1594,6 @@ err:
   }
 
   static bool InputPrivateKey(std::vector<uint8>& output, const std::string& privk_in) {
-    PKCS8_PRIV_KEY_INFO* p8info = NULL;
     EVP_PKEY* pkey=NULL;
 
     BIO* in = NULL;
@@ -1691,7 +1686,6 @@ err:
   }
 
   static bool ImportDERPrivateKey(PK11SlotInfo* slot, const std::vector<uint8>& input, const std::string& name) {
-    SECKEYPrivateKey* privKey;
     SECItem der_private_key_info;
     SECStatus rv;
     der_private_key_info.data = const_cast<unsigned char*>(&input.front());
@@ -1719,7 +1713,6 @@ err:
     PK11RSAGenParams rsaParams;
     rsaParams.keySizeInBits = keysize;
     rsaParams.pe = 0x10001;
-    SECStatus rv;
 
     PK11SlotInfo* slot = NULL;
     slot = PK11_GetInternalKeySlot();
@@ -2205,7 +2198,8 @@ err:
     return ss.str();
   }
 
-  static SECStatus AddProxyCertInfoExtension(void* extHandle, int pathlen, char* policylang, char* policy) {
+  static SECStatus AddProxyCertInfoExtension(void* extHandle, int pathlen, 
+    const char* policylang, const char* policy) {
     PRArenaPool *arena = NULL;
     SECStatus rv = SECSuccess;
     SECOidData* oid = NULL;
@@ -2223,7 +2217,6 @@ err:
 
     if((policy != NULL) && (pathlen != -1)) {
       ProxyCertInfo1* proxy_certinfo = NULL;
-      ProxyPolicy1* proxy_policy = NULL;
     
       arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
       if (!arena ) {
@@ -2249,7 +2242,6 @@ err:
     }
     else if((policy == NULL) && (pathlen != -1)) {
       ProxyCertInfo2* proxy_certinfo = NULL;
-      ProxyPolicy2* proxy_policy = NULL;
 
       arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
       if (!arena ) {
@@ -2273,7 +2265,6 @@ err:
     }
     else if((policy != NULL) && (pathlen == -1)) {
       ProxyCertInfo3* proxy_certinfo = NULL;
-      ProxyPolicy3* proxy_policy = NULL;
 
       arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
       if (!arena ) {
@@ -2296,7 +2287,6 @@ err:
     }
     else {
       ProxyCertInfo4* proxy_certinfo = NULL;
-      ProxyPolicy4* proxy_policy = NULL;
 
       arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
       if (!arena ) {
@@ -2695,8 +2685,8 @@ loser:
     SECOidTag tag_sigalg;
     SECOidTag tag_hashalg;
     int pathlen = -1;
-    char* policylang = "Inherit all"; //TODO
-    char* policy = NULL;//"test policy"; //TODO
+    const char* policylang = "Inherit all"; //TODO
+    const char* policy = NULL;//"test policy"; //TODO
     CERTCertExtension** exts;
     SECItem cert_der;
     SECItem derSubject;
@@ -2713,7 +2703,7 @@ loser:
     }
     
     certhandle = CERT_GetDefaultCertDB();
-    issuercert = CERT_FindCertByNicknameOrEmailAddr(certhandle, issuername.c_str());
+    issuercert = CERT_FindCertByNicknameOrEmailAddr(certhandle, (char*)(issuername.c_str()));
     if(!issuercert) {
       NSSUtilLogger.msg(ERROR, "Can not find certificate with name %s", issuername.c_str());
       return false;
@@ -2925,14 +2915,14 @@ error:
       }
     
       //Import the certificate
-      rv = PK11_ImportCert(slot, cert, CK_INVALID_HANDLE, name.c_str(), PR_FALSE);
+      rv = PK11_ImportCert(slot, cert, CK_INVALID_HANDLE, (char*)(name.c_str()), PR_FALSE);
       if(rv != SECSuccess) {
         if(PORT_GetError() == SEC_ERROR_TOKEN_NOT_LOGGED_IN) {
           if(PK11_Authenticate(slot, PR_TRUE, slotpw) != SECSuccess) {
             NSSUtilLogger.msg(ERROR, "Failed to authenticate to token %s", PK11_GetTokenName(slot));
             rv = SECFailure; break;
           }
-          rv = PK11_ImportCert(slot, cert, CK_INVALID_HANDLE, name.c_str(), PR_FALSE);
+          rv = PK11_ImportCert(slot, cert, CK_INVALID_HANDLE, (char*)(name.c_str()), PR_FALSE);
           if(rv != SECSuccess) {
             NSSUtilLogger.msg(ERROR, "Failed to add certificate to token or database");
             break;

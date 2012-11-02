@@ -6,7 +6,7 @@
 
 #include <arc/StringConv.h>
 #include <arc/URL.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/client/ExecutionTarget.h>
 
 #include "DataBrokerPlugin.h"
@@ -43,6 +43,7 @@ namespace Arc {
   }
 
   bool DataBrokerPlugin::match(const ExecutionTarget& et) const {
+    if(!BrokerPlugin::match(et)) return false;
     // Remove targets which are not A-REX (>= ARC-1).
     if (et.ComputingEndpoint->Implementation < Software("ARC", "1")) {
       return false;

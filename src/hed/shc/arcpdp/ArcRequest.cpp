@@ -151,14 +151,14 @@ const char* ArcRequest::getName() const{
   return "arc.request";
 }
 
-ArcRequest::ArcRequest (const Source& req,Arc::PluginArgument* parg) : Request(req,parg) {
+ArcRequest::ArcRequest (const Source& req,Arc::PluginArgument* parg) : Request(req,parg), attrfactory(NULL) {
   req.Get().New(reqnode);
   NS ns;
   ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
   reqnode.Namespaces(ns);
 }
 
-ArcRequest::ArcRequest (Arc::PluginArgument* parg) : Request(parg) {
+ArcRequest::ArcRequest (Arc::PluginArgument* parg) : Request(parg), attrfactory(NULL) {
   NS ns;
   ns["ra"]="http://www.nordugrid.org/schemas/request-arc";
   XMLNode request(ns,"ra:Request");

@@ -62,7 +62,7 @@ static bool get_proxy_policy(X509* cert,DelegationMultiSecAttr* sattr) {
       } else {
         logger.msg(DEBUG,"Proxy with unknown policy  - fail on unrecognized policy");
       };
-    };
+    }; break;
     default: {
       // Unsupported policy - fail
     }; break;

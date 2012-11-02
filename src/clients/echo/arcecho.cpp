@@ -14,7 +14,7 @@
 #include <arc/OptionParser.h>
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/message/MCC.h>
 
 int main(int argc, char **argv) {

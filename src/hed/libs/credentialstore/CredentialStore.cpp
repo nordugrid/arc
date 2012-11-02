@@ -7,7 +7,7 @@
 #include <arc/Logger.h>
 #include <arc/ArcConfig.h>
 #include <arc/UserConfig.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/credential/Credential.h>
 
 #include "CredentialStore.h"

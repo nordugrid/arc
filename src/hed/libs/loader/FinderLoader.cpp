@@ -43,7 +43,7 @@ namespace Arc {
             std::string name = *file;
             if(name_is_plugin(name)) names.push_back(name);
           }
-        } catch (Glib::FileError) {}
+        } catch (Glib::FileError&) {}
       }
     }
     return names;

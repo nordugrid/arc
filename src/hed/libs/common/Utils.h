@@ -126,7 +126,7 @@ namespace Arc {
     template<typename P>
     class Base {
     private:
-      Base(Base<P>&) {}
+      Base(Base<P>&);
     public:
       int cnt;
       P *ptr;

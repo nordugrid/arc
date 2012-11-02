@@ -151,6 +151,8 @@ sub main {
                     }
                 close GLUE2_SCHEMA;
                 }
+                # override splitjobs for ldap if option specified in arc.conf
+                if ( $config->{infosys_glue2_ldap_showactivities} ) { $splitjobs = 0 };
                 my $ldifPrinter = GLUE2ldifPrinter->new($fh, $splitjobs, $glue2schemaversion);
                 timed 'GLUE2ldif', sub { $ldifPrinter->Top($glue2data) };
             }

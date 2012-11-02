@@ -47,7 +47,7 @@ private:
 };
 
 
-JobSupervisorTest::JobSupervisorTest() : usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)) {
+JobSupervisorTest::JobSupervisorTest() : usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)), js(NULL) {
   j.InterfaceName = "org.nordugrid.test";
   j.Cluster = Arc::URL("http://test.nordugrid.org");
 }

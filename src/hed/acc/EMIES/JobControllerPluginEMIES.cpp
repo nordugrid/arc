@@ -138,24 +138,19 @@ namespace Arc {
     URL session;
     // TODO: currently using first valid URL. Need support for multiple.
     for(std::list<URL>::iterator s = ejob.stagein.begin();s!=ejob.stagein.end();++s) {
-      if(*s) {
-        stagein = *s; break;
-      }
+      if(*s) { stagein = *s; break; }
     }
     for(std::list<URL>::iterator s = ejob.stageout.begin();s!=ejob.stageout.end();++s) {
-      if(*s) {
-        stageout = *s; break;
-      }
+      if(*s) { stageout = *s; break; }
     }
     for(std::list<URL>::iterator s = ejob.session.begin();s!=ejob.session.end();++s) {
-      if(*s) {
-        session = *s; break;
-      }
+      if(*s) { session = *s; break; }
     }
 
     if ((resource != Job::STAGEINDIR  || !stagein)  &&
         (resource != Job::STAGEOUTDIR || !stageout) &&
         (resource != Job::SESSIONDIR  || !session)) {
+      // If there is no needed URL provided try to fetch it from server
       MCCConfig cfg;
       usercfg.ApplyToConfig(cfg);
       Job tjob;
@@ -164,6 +159,15 @@ namespace Arc {
         ((EMIESClients&)clients).release(ac.Release());
         logger.msg(INFO, "Failed retrieving information for job: %s", job.JobID.fullstr());
         return false;
+      }
+      for(std::list<URL>::iterator s = ejob.stagein.begin();s!=ejob.stagein.end();++s) {
+        if(*s) { stagein = *s; break; }
+      }
+      for(std::list<URL>::iterator s = ejob.stageout.begin();s!=ejob.stageout.end();++s) {
+        if(*s) { stageout = *s; break; }
+      }
+      for(std::list<URL>::iterator s = ejob.session.begin();s!=ejob.session.end();++s) {
+        if(*s) { session = *s; break; }
       }
       // Choose url by state
       // TODO: maybe this method should somehow know what is purpose of URL
@@ -204,13 +208,13 @@ namespace Arc {
       url.ChangePath(url.Path() + "/" + job.LogDir + "/errors");
       break;
     case Job::STAGEINDIR:
-      url = stagein;
+      if(stagein) url = stagein;
       break;
     case Job::STAGEOUTDIR:
-      url = stageout;
+      if(stageout) url = stageout;
       break;
     case Job::SESSIONDIR:
-      url = session;
+      if(session) url = session;
       break;
     default:
       break;

@@ -28,7 +28,7 @@
 #include <arc/User.h>
 #include <arc/Utils.h>
 #include <arc/UserConfig.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/credential/VOMSAttribute.h>
 #include <arc/credential/VOMSUtil.h>
 #include <arc/credential/Credential.h>
@@ -264,7 +264,7 @@ static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
   profiles_home = home_path + G_DIR_SEPARATOR_S "Library" G_DIR_SEPARATOR_S "Application Support" G_DIR_SEPARATOR_S "SeaMonkey";
   profiles_homes.push_back(profiles_home);
 
-  profiles_home = home_path + G_DIR_SEPARATOR_S "Library" G_DIR_SEPARATOR_S "Application Support" G_DIR_SEPARATOR_S "Thunderbird";
+  profiles_home = home_path + G_DIR_SEPARATOR_S "Library" G_DIR_SEPARATOR_S "Thunderbird";
   profiles_homes.push_back(profiles_home);
 
 #elif defined(WIN32)
@@ -1793,6 +1793,7 @@ static bool contact_myproxy_server(const std::string& myproxy_server, const std:
     remove_proxy_file(proxy_path);
     return false;
   }
+  return true;
 }
 
 static bool find_matched_vomses(std::map<std::string, std::vector<std::vector<std::string> > > &matched_voms_line /*output*/,

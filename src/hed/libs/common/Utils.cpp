@@ -81,7 +81,7 @@ namespace Arc {
     char* ptr_;
     unsigned int size_; // max value to fit into allocated space
     bool unset_;
-    TrickEnvRecord(void) { };
+    TrickEnvRecord(void);
     TrickEnvRecord(const std::string& name);
   public:
     bool Set(const std::string& value);

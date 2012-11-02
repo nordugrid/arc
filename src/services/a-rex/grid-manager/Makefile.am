@@ -14,11 +14,11 @@ man_MANS = arc-vomsac-check.8 arc-config-check.1
 
 libgridmanager_la_SOURCES = grid_manager.cpp grid_manager.h
 libgridmanager_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(DBCXX_CPPFLAGS)
 libgridmanager_la_LIBADD = \
 	jobs/libjobs.la conf/libconf.la log/liblog.la files/libfiles.la \
 	run/librun.la misc/libmisc.la mail/libmail.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS) -lpthread
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DBCXX_LIBS) -lpthread
 
 gm_kick_SOURCES = gm_kick.cpp
 gm_kick_CXXFLAGS = -I$(top_srcdir)/include \

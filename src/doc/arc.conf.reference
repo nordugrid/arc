@@ -1299,6 +1299,11 @@
 ## Enables GLUE2 schema
 #infosys_glue2_ldap="disable"
 
+## Enables GLUE2 ComputingActivities to appear in the LDAP rendering
+## they're currently disabled by default.
+#infosys_glue2_ldap_showactivities="disable"
+
+
 ## This variable disables/enables an ldap-database containing
 ## information about the ldap database itself on "o=infosys"
 #infosys_debug="disable"

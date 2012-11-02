@@ -213,7 +213,7 @@ std::cerr<<"+++ "<<priority<<" - '"<<option.substr(comma+1)<<"'"<<std::endl;
             if(name == "..") continue;
             paths.push_back(Glib::build_filename(*path, name));
           }
-        } catch (Glib::FileError) {
+        } catch (Glib::FileError&) {
           if(path->length() <= modsuffix.length()) continue;
           if(path->substr(path->length()-modsuffix.length()) != modsuffix) continue;
           process_module(*path, create_apd);

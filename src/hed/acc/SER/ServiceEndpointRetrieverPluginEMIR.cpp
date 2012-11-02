@@ -8,7 +8,7 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/message/MCC.h>
 #include <arc/message/MCC_Status.h>
 #include <arc/message/PayloadRaw.h>
@@ -105,7 +105,7 @@ namespace Arc {
 
         Endpoint se((std::string)(*it)["Endpoint"]["URL"]);
         for (XMLNode n = (*it)["Endpoint"]["Capability"]; n; ++n) {
-          se.Capability.push_back((std::string)n);
+          se.Capability.insert((std::string)n);
         }
         se.InterfaceName = (std::string)(*it)["Endpoint"]["InterfaceName"];
 

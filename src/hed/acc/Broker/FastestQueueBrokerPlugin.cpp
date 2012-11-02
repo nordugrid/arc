@@ -18,6 +18,7 @@ namespace Arc {
   }
 
   bool FastestQueueBrokerPlugin::match(const ExecutionTarget& et) const {
+    if(!BrokerPlugin::match(et)) return false;
     if (et.ComputingShare->WaitingJobs <= -1 || et.ComputingManager->TotalSlots <= -1 || et.ComputingShare->FreeSlots <= -1) {
       if (et.ComputingShare->WaitingJobs <= -1) {
         logger.msg(VERBOSE, "Target %s removed by FastestQueueBroker, doesn't report number of waiting jobs", et.AdminDomain->Name);

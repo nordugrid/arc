@@ -73,7 +73,7 @@ int make_list_string(const DirEntry &entr,GridFTP_Commands::list_mode_t mode,
       str=prefix+entr.name;
     }; break;
     default: {
-    };
+    }; break;
   };
   int len = str.length();
   if(len > (size-3)) { str.resize(size-6); str+="..."; len=size-3; };

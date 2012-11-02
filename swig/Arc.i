@@ -4,7 +4,15 @@
  * "%include" dependencies.
  */
 
-%module arc
+/* For the Java bindings the approach of one single SWIG generated C++ file is
+ * used, while for Python one SWIG C++ file is generated for each mapped ARC
+ * library. Therefore for Python each of the specialised SWIG files (.i) is
+ * passed to SWIG, while for Java only this file is passed.
+ */
+
+#ifdef SWIGJAVA
+%module arc 
+#endif
 
 %include <stl.i>
 %include <std_vector.i>
@@ -88,8 +96,20 @@ class StaticPropertyWrapper(object):
 
 %{
 #include <list>
+#include <set>
 #include <stdexcept>
 #include <iterator>
+%}
+
+%pragma(java) jniclasscode=%{
+  static {
+    try {
+        System.loadLibrary("jarc");
+    } catch (UnsatisfiedLinkError e) {
+      System.err.println("Unable to load native code library (jarc), which provides Java interface to the ARC C++ libraries. \n" + e);
+      System.exit(1);
+    }
+  }
 %}
 
 /* Swig does not offer any bindings of the std::list template class, so
@@ -98,56 +118,96 @@ class StaticPropertyWrapper(object):
  * classes.
  */
 
-namespace std {
-    template<class T> class list {
-      class iterator;
-      public:
-        typedef size_t size_type;
-        typedef T value_type;
-        typedef const value_type& const_reference;
-        list();
-        list(size_type n);
-        size_type size() const;
-        %rename(isEmpty) empty;
-        bool empty() const;
-        void clear();
-        %rename(add) push_back;
-        void push_back(const value_type& x);
-        iterator begin();
-        iterator end();
-    };
-}
-
-
-%define specialize_std_list(T)
-#warning "specialize_std_list - specialization for type T no longer needed"
-%enddef
-
-template <class T>
-class listiteratorhandler
-{
+template <typename T>
+class listiterator {
   private:
     typename std::list<T>::iterator it;
   public:
-    listiteratorhandler(typename std::list<T>::iterator it);
+    listiterator(typename std::list<T>::iterator it);
     T pointer();
     void next();
-    bool equal(typename std::list<T>::iterator ita);
+    bool equal(const listiterator<T>& ita);
 };
-%{
-template <class T>
-class listiteratorhandler
-{
+
+template <typename T>
+class setiterator {
   private:
-    typename std::list<T>::iterator it;
+    typename std::set<T>::iterator it;
   public:
-    listiteratorhandler(typename std::list<T>::iterator it) : it(it) {}
-
-    T pointer() { return it.operator*(); };
-    void next() { it.operator++(); };
-    bool equal(typename std::list<T>::iterator ita) { return it.operator==(ita); };
+    setiterator(typename std::set<T>::iterator it);
+    T pointer();
+    void next();
+    bool equal(const setiterator<T>& ita);
 };
 
+namespace std {
+  template<class T> class list {
+  public:
+    typedef size_t size_type;
+    typedef T value_type;
+    typedef const value_type& const_reference;
+    list();
+    list(size_type n);
+    %extend {
+      int size() const { return (int)self->size(); }
+    }
+    %rename(isEmpty) empty;
+    bool empty() const;
+    void clear();
+    %rename(add) push_back;
+    void push_back(const value_type& x);
+    %extend {
+      listiterator<T> begin() { return listiterator<T>(self->begin()); }
+      listiterator<T> end() { return listiterator<T>(self->end()); }
+    }
+  };
+
+  template<class T> class set {
+  public:
+    typedef size_t size_type;
+    typedef T key_type;
+    typedef T value_type;
+    typedef const value_type& const_reference;
+    set();
+    %extend {
+      int size() const { return (int)self->size(); }
+    }
+    %rename(isEmpty) empty;
+    bool empty() const;
+    void clear();
+    void insert(const value_type& x);
+    %extend {
+      int count(const key_type& k) const { return (int)self->count(k); }
+      setiterator<T> begin() { return setiterator<T>(self->begin()); }
+      setiterator<T> end() { return setiterator<T>(self->end()); }
+    }
+  };
+}
+
+%{
+template <typename T>
+class listiterator {
+private:
+  typename std::list<T>::iterator it;
+public:
+  listiterator(typename std::list<T>::iterator it) : it(it) {}
+
+  T pointer() { return it.operator*(); };
+  void next() { it.operator++(); };
+  bool equal(const listiterator<T>& ita) { return it.operator==(ita.it); };
+};
+
+template <typename T>
+class setiterator {
+private:
+  typename std::set<T>::iterator it;
+public:
+  setiterator(typename std::set<T>::iterator it) : it(it) {}
+
+  T pointer() { return it.operator*(); };
+  void next() { it.operator++(); };
+  bool equal(const setiterator<T>& ita) { return it.operator==(ita.it); };
+};
 %}
 
 
@@ -240,22 +300,24 @@ std::ostream& getStdout() { return std::cout; }
 #endif
 
 %template(StringPair) std::pair<std::string, std::string>;
+%template(StringSet) std::set<std::string>;
 %template(StringList) std::list<std::string>;
 #ifdef SWIGJAVA
-%template(StringListIteratorHandler) listiteratorhandler<std::string>;
+%template(StringListIterator) listiterator<std::string>;
+%template(StringSetIterator) setiterator<std::string>;
 #endif
 %template(StringVector) std::vector<std::string>;
 %template(StringStringMap) std::map<std::string, std::string>;
 %template(StringDoubleMap) std::map<std::string, double>;
 
 
+#ifdef SWIGJAVA
 %include "common.i"
 %include "loader.i"
 %include "message.i"
+%include "communication.i"
 %include "client.i"
 %include "credential.i"
 %include "data.i"
 %include "delegation.i"
-#ifdef SWIGPYTHON
-%include "security.i"
 #endif

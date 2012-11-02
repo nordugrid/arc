@@ -11,7 +11,7 @@
 #include <arc/XMLNode.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/credential/Credential.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 
 #include <arc/xmlsec/XmlSecUtils.h>
 #include <arc/xmlsec/XMLSecNode.h>

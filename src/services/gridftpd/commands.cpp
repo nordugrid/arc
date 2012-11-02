@@ -970,7 +970,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
         logger.msg(Arc::VERBOSE, "Raw command: %s", command->base.raw_command);
         it->send_response("500 Do not understand\r\n");
       };
-    };
+    } break;
   };
 }
 
@@ -1143,16 +1143,26 @@ GridFTP_Commands::GridFTP_Commands(int n,unsigned int* f) {
   data_buffer=NULL;
   data_buffer_size=default_data_buffer_size;
   data_buffer_num=3;
+  data_buf_count=0;
+  data_callbacks=0;
+  data_offset=0;
   globus_ftp_control_handle_init(&handle);
   data_dcau.mode=GLOBUS_FTP_CONTROL_DCAU_DEFAULT;
   data_dcau.subject.subject=NULL;
   data_conn_type=GRIDFTP_CONNECT_NONE;
   virt_offset=0;
+  virt_size=0;
   virt_restrict=false;
+  time_spent_disc=0;
+  time_spent_network=0;
   transfer_mode=false;
   transfer_abort=false;
+  data_eof=false;
+  delegated_cred=NULL;
   file_size=0;
   last_action_time=time(NULL);
+  list_offset=NULL;
+  list_mode=list_mlsd_mode;
   /* harmless race condition here */
   if(!timeouter) {
     GridFTP_Commands_timeout* t = new GridFTP_Commands_timeout;

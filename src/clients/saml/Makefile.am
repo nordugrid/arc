@@ -3,7 +3,7 @@ bin_PROGRAMS = saml_assertion_init
 man_MANS = saml_assertion_init.1 
 
 CLILIBS = \
-	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \

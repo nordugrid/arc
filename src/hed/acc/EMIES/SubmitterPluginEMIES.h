@@ -7,7 +7,7 @@
 #include <arc/XMLNode.h>
 #include <arc/URL.h>
 #include <arc/loader/Loader.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 
 #include "EMIESClient.h"
 
@@ -35,6 +35,8 @@ namespace Arc {
 
   private:
     EMIESClients clients;
+
+    bool submit(const JobDescription& preparedjobdesc, const URL& url, const URL& iurl, URL& durl, EMIESJob& jobid);
 
     static Logger logger;
   };

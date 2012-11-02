@@ -126,23 +126,20 @@ bool job_log_make_file(const GMJob &job,const GMConfig& config,const std::string
   // Analyze job.ID.local and store relevant information
   {
   fname_src = config.ControlDir() + "/job." + job.get_id() + sfx_local;
-  std::ifstream i_src(fname_src.c_str());
-  for(;;) {
-    if(i_src.fail()) goto error;
-    if(o_dst.fail()) goto error;
-    if(i_src.eof()) break;
-    std::string value;
-    std::string key = config_read_line(i_src,value,'=');
-    if(key=="subject") { o_dst<<"usersn="<<value<<std::endl; }
-    else if(key=="headnode") { o_dst<<"headnode="<<value<<std::endl; }
-    else if(key=="lrms") { o_dst<<"lrms="<<value<<std::endl; }
-    else if(key=="queue") { o_dst<<"queue="<<value<<std::endl; }
-    else if(key=="localid") { o_dst<<"localjobid="<<value<<std::endl; }
-    else if(key=="jobname") { o_dst<<"jobname="<<value<<std::endl; }
-    else if(key=="globalid") { o_dst<<"globalid="<<value<<std::endl; }
-    else if(key=="projectname") { o_dst<<"projectname="<<value<<std::endl; }
-    else if(key=="clientname") { o_dst<<"clienthost="<<value<<std::endl; }
+  JobLocalDescription local;
+  if(!local.read(fname_src)) goto error;
+  if(!local.DN.empty()) { o_dst<<"usersn="<<local.DN<<std::endl; }
+  if(!local.headnode.empty()) { o_dst<<"headnode="<<local.headnode<<std::endl; }
+  if(!local.lrms.empty()) { o_dst<<"lrms="<<local.lrms<<std::endl; }
+  if(!local.queue.empty()) { o_dst<<"queue="<<local.queue<<std::endl; }
+  if(!local.localid.empty()) { o_dst<<"localid="<<local.localid<<std::endl; }
+  if(!local.jobname.empty()) { o_dst<<"jobname="<<local.jobname<<std::endl; }
+  if(!local.globalid.empty()) { o_dst<<"globalid="<<local.globalid<<std::endl; }
+  for(std::list<std::string>::const_iterator projectname = local.projectnames.begin();
+                      projectname != local.projectnames.end(); ++projectname) {
+    o_dst<<"projectname="<<*projectname<<std::endl;
   };
+  if(!local.clientname.empty()) { o_dst<<"clienthost="<<local.clientname<<std::endl; }
   };
 
   // Copy public part of user certificate chain incl. proxy
@@ -218,11 +215,12 @@ bool job_log_make_file(const GMJob &job,const GMConfig& config,const std::string
     int nodecount = 0;
     float cputime = 0;
     for(;;) {
-      if(i_src.fail()) goto error;
+      // if(i_src.fail()) goto error; - it is better to provide something than nothing
       if(o_dst.fail()) goto error;
-      if(i_src.eof()) break;
+      // if(i_src.eof()) break; - config_read_line handles that
       std::string value;
       std::string key = config_read_line(i_src,value,'=');
+      if(key.empty()) break; // only case config_read_line returns "" is then can't read anymore
       if(key=="nodename") {
         if(nodecount) nodenames+=":"; nodenames+=value;
         nodecount++;

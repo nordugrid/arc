@@ -30,6 +30,7 @@ namespace gridftpd {
         voname=""; vofile="";
       };
     };
+    return 0;
   }
 
   int config_vo(std::list<AuthVO>& vos,ConfigSections& sect,std::string& cmd,std::string& rest) {
@@ -53,6 +54,7 @@ namespace gridftpd {
         voname=""; vofile="";
       };
     };
+    return 0;
   }
 
   // vo name filename etc.

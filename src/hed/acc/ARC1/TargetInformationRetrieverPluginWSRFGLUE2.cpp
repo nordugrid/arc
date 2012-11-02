@@ -89,7 +89,7 @@ namespace Arc {
 
       if (GLUEService["Capability"]) {
         for (XMLNode n = GLUEService["Capability"]; n; ++n) {
-          cs->Capability.push_back((std::string)n);
+          cs->Capability.insert((std::string)n);
         }
       }
       if (GLUEService["Type"]) {
@@ -123,6 +123,7 @@ namespace Arc {
       logger.msg(VERBOSE, "Generating A-REX target: %s", cs->Cluster.str());
 
       int endpointID = 0;
+      std::list<Endpoint> OtherEndpoints;
       for(XMLNode xmlCENode = GLUEService["ComputingEndpoint"]; (bool)xmlCENode; ++xmlCENode) {
         if ((xmlCENode["InterfaceName"] == "XBES") ||
             (xmlCENode["InterfaceName"] == "BES") ||
@@ -156,12 +157,15 @@ namespace Arc {
         if (xmlCENode["HealthStateInfo"]) {
           ComputingEndpoint->HealthStateInfo = (std::string)xmlCENode["HealthStateInfo"];
         }
+        if (GLUEService["ID"]) {
+          cs->ID = (std::string)GLUEService["ID"];
+        }
         if (GLUEService["Name"]) {
           cs->Name = (std::string)GLUEService["Name"];
         }
         if (xmlCENode["Capability"]) {
           for (XMLNode n = xmlCENode["Capability"]; n; ++n) {
-            ComputingEndpoint->Capability.push_back((std::string)n);
+            ComputingEndpoint->Capability.insert((std::string)n);
           }
         }
         if (xmlCENode["QualityLevel"]) {
@@ -253,6 +257,12 @@ namespace Arc {
         //}
 
         cs.ComputingEndpoint.insert(std::pair<int, ComputingEndpointType>(endpointID++, ComputingEndpoint));
+        OtherEndpoints.push_back(*ComputingEndpoint.Attributes);
+      }
+
+      // For each endpoint add a list of all the endpoints which may be needed later by the Submitter and JobListRetriever plugins
+      for (std::map<int, ComputingEndpointType>::iterator itCE = cs.ComputingEndpoint.begin(); itCE != cs.ComputingEndpoint.end(); ++itCE) {
+        itCE->second->OtherEndpoints = OtherEndpoints;
       }
 
       int shareID = 0;

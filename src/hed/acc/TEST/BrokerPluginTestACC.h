@@ -18,7 +18,7 @@ public:
   ~BrokerPluginTestACC() {}
 
   virtual bool operator()(const ExecutionTarget&, const ExecutionTarget&) const { return BrokerPluginTestACCControl::less; }
-  virtual bool match(const ExecutionTarget&) const { return BrokerPluginTestACCControl::match; }
+  virtual bool match(const ExecutionTarget& t) const { return BrokerPlugin::match(t)?BrokerPluginTestACCControl::match:false; }
   static Plugin* GetInstance(PluginArgument *arg) { 
     BrokerPluginArgument *bparg = dynamic_cast<BrokerPluginArgument*>(arg);
     return bparg ? new BrokerPluginTestACC(bparg) : NULL;

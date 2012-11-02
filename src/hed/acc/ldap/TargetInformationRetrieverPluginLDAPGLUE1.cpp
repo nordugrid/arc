@@ -92,8 +92,8 @@ namespace Arc {
       XMLNode VOView(*it);
 
       ComputingServiceType cs;
-      AdminDomainType& AdminDomain = cs.AdminDomain;
-      LocationType& Location = cs.Location;
+      //AdminDomainType& AdminDomain = cs.AdminDomain;
+      //LocationType& Location = cs.Location;
 
       cs->Cluster = url;
 

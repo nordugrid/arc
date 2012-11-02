@@ -13,6 +13,7 @@ gaclplugin_la_LIBADD = ../libgridftpd_la-misc.lo \
 	../libgridftpd_la-userspec.lo ../libgridftpd_la-names.lo \
 	../auth/libmap.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(GLOBUS_IO_LIBS) $(GLOBUS_GSSAPI_GSI_LIBS) \
 	$(GLOBUS_GSI_CERT_UTILS_LIBS) $(GLOBUS_GSI_CREDENTIAL_LIBS) \
 	$(GLOBUS_COMMON_LIBS)

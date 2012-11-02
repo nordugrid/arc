@@ -1,3 +1,14 @@
+#ifdef SWIGPYTHON
+%module data
+
+%include "Arc.i"
+
+%import "../src/hed/libs/common/DateTime.h"
+%import "../src/hed/libs/common/URL.h"
+%import "../src/hed/libs/common/UserConfig.h"
+#endif
+
+
 // Wrap contents of $(top_srcdir)/src/hed/libs/data/DataStatus.h
 %{
 #include <arc/data/DataStatus.h>

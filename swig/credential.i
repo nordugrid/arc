@@ -1,3 +1,15 @@
+#ifdef SWIGPYTHON
+%module credential
+
+%include "Arc.i"
+
+%import "../src/hed/libs/common/UserConfig.h"
+%import "../src/hed/libs/common/DateTime.h"
+%import "../src/hed/libs/common/URL.h"
+%import "../src/hed/libs/common/Logger.h"
+#endif
+
+
 /* STACK_OF, which is used in 'Credential.h' and 'VOMSUtil.h' is not
  * known to swig. Providing definition below. If definition is not
  * provided swig encounters a syntax error.

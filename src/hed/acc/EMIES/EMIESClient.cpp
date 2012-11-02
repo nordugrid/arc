@@ -4,7 +4,7 @@
 #include <config.h>
 #endif
 
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/client/Job.h>
 #include <arc/StringConv.h>
@@ -13,7 +13,7 @@
 #include "EMIESClient.h"
 
 #ifdef CPPUNITTEST
-#include "../../libs/client/test/SimulatorClasses.h"
+#include "../../libs/communication/test/SimulatorClasses.h"
 #define DelegationProviderSOAP DelegationProviderSOAPTest
 #endif
 
@@ -84,52 +84,56 @@ namespace Arc {
     if(client) delete client;
   }
 
-  bool EMIESClient::delegation(XMLNode& op) {
+
+  
+  std::string EMIESClient::delegation(void) {
+    std::string id = dodelegation();
+    if(!id.empty()) return id;
+    delete client; client = NULL;
+    if(!reconnect()) return id;
+    return dodelegation();
+  }
+
+  std::string EMIESClient::dodelegation(void) {
     const std::string& cert = (!cfg.proxy.empty() ? cfg.proxy : cfg.cert);
     const std::string& key  = (!cfg.proxy.empty() ? cfg.proxy : cfg.key);
 
     if (key.empty() || cert.empty()) {
       lfailure = "Failed locating credentials for delagating.";
-      return false;
+      return "";
     }
 
     if(!client->Load()) {
       lfailure = "Failed to initiate client connection.";
-      return false;
+      return "";
     }
 
     MCC* entry = client->GetEntry();
     if(!entry) {
       lfailure = "Client connection has no entry point.";
-      return false;
+      return "";
     }
 
     DelegationProviderSOAP deleg(cert, key);
     logger.msg(VERBOSE, "Initiating delegation procedure");
-    if (!deleg.DelegateCredentialsInit(*entry,&(client->GetContext()),DelegationProviderSOAP::EMIDS)) {
+    MessageAttributes attrout;
+    MessageAttributes attrin;
+    attrout.set("SOAP:ENDPOINT",rurl.str());
+    if (!deleg.DelegateCredentialsInit(*entry,&attrout,&attrin,&(client->GetContext()),DelegationProviderSOAP::EMIDS)) {
       lfailure = "Failed to initiate delegation credentials";
-      return false;
+      return "";
     }
     std::string delegation_id = deleg.ID();
     if(delegation_id.empty()) {
       lfailure = "Failed to obtain delegation identifier";
-      return false;
+      return "";
     };
     if (!deleg.UpdateCredentials(*entry,&(client->GetContext()),DelegationRestrictions(),DelegationProviderSOAP::EMIDS)) {
       lfailure = "Failed to pass delegated credentials";
-      return false;
+      return "";
     }
 
-    // Inserting delegation id into job desription - ADL specific
-    XMLNodeList sources = op.Path("ActivityDescription/DataStaging/InputFile/Source");
-    for(XMLNodeList::iterator item = sources.begin();item!=sources.end();++item) {
-      item->NewChild("esadl:DelegationID") = delegation_id;
-    };
-    XMLNodeList targets = op.Path("ActivityDescription/DataStaging/OutputFile/Target");
-    for(XMLNodeList::iterator item = targets.begin();item!=targets.end();++item) {
-      item->NewChild("esadl:DelegationID") = delegation_id;
-    };
-    return true;
+    return delegation_id;
   }
 
    bool EMIESClient::reconnect(void) { 
@@ -144,7 +148,7 @@ namespace Arc {
     return true; 
   } 
 
-  bool EMIESClient::process(PayloadSOAP& req, bool delegate, XMLNode& response, bool retry) {
+  bool EMIESClient::process(PayloadSOAP& req, XMLNode& response, bool retry) {
     if (!client) {
       lfailure = "EMIESClient was not created properly.";
       return false;
@@ -152,19 +156,19 @@ namespace Arc {
 
     logger.msg(VERBOSE, "Processing a %s request", req.Child(0).FullName());
 
-    if (delegate) {
-      XMLNode op = req.Child(0);
-      if(!delegation(op)) {
-        delete client; client = NULL;
-        // TODO: better way to check of retriable. 
-        if(!retry) return false; 
-        if(!reconnect()) return false; 
-        if(!delegation(op)) {
-          delete client; client = NULL;
-          return false; 
-        }
-      }
-    }
+    //if (delegate) {
+    //  XMLNode op = req.Child(0);
+    //  if(!delegation(op)) {
+    //    delete client; client = NULL;
+    //    // TODO: better way to check of retriable. 
+    //    if(!retry) return false; 
+    //    if(!reconnect()) return false; 
+    //    if(!delegation(op)) {
+    //      delete client; client = NULL;
+    //      return false; 
+    //    }
+    //  }
+    //}
 
     std::string action = req.Child(0).Name();
 
@@ -175,7 +179,7 @@ namespace Arc {
       delete client; client = NULL;
       if(!retry) return false; 
       if(!reconnect()) return false; 
-      return process(req,false,response,false);
+      return process(req,response,false);
     }
 
     if (resp == NULL) {
@@ -184,7 +188,7 @@ namespace Arc {
       delete client; client = NULL;
       if(!retry) return false; 
       if(!reconnect()) return false; 
-      return process(req,false,response,false);
+      return process(req,response,false);
     }
 
     if (resp->IsFault()) {
@@ -201,7 +205,7 @@ namespace Arc {
       delete client; client = NULL;
       if(!retry) return false; 
       if(!reconnect()) return false; 
-      return process(req,false,response,false);
+      return process(req,response,false);
     }
 
     if (!(*resp)[action + "Response"]) {
@@ -217,7 +221,7 @@ namespace Arc {
     return true;
   }
 
-  bool EMIESClient::submit(const std::string& jobdesc, EMIESJob& job, EMIESJobState& state, bool delegate) {
+  bool EMIESClient::submit(XMLNode jobdesc, EMIESJob& job, EMIESJobState& state, const std::string delegation_id) {
     std::string action = "CreateActivity";
     logger.msg(VERBOSE, "Creating and sending job submit request to %s", rurl.str());
 
@@ -249,13 +253,28 @@ namespace Arc {
 
     PayloadSOAP req(ns);
     XMLNode op = req.NewChild("escreate:" + action);
-    XMLNode act_doc = op.NewChild(XMLNode(jobdesc));
+    XMLNode act_doc = op.NewChild(jobdesc);
     act_doc.Name("esadl:ActivityDescription"); // In case it had different top element
 
-    logger.msg(DEBUG, "Job description to be sent: %s", jobdesc);
+    if(!delegation_id.empty()) {
+      // Inserting delegation id into job desription - ADL specific
+      XMLNodeList sources = op.Path("ActivityDescription/DataStaging/InputFile/Source");
+      for(XMLNodeList::iterator item = sources.begin();item!=sources.end();++item) {
+        item->NewChild("esadl:DelegationID") = delegation_id;
+      };
+      XMLNodeList targets = op.Path("ActivityDescription/DataStaging/OutputFile/Target");
+      for(XMLNodeList::iterator item = targets.begin();item!=targets.end();++item) {
+        item->NewChild("esadl:DelegationID") = delegation_id;
+      };
+    };
+    {
+      std::string s;
+      jobdesc.GetXML(s);
+      logger.msg(DEBUG, "Job description to be sent: %s", s);
+    };
 
     XMLNode response;
-    if (!process(req, delegate, response)) return false;
+    if (!process(req, response)) return false;
 
     response.Namespaces(ns);
     XMLNode item = response.Child(0);
@@ -318,7 +337,7 @@ namespace Arc {
     req.NewChild("esainfo:" + action).NewChild("estypes:ActivityID") = job.id;
 
     XMLNode response;
-    if (!process(req, false, response)) return false;
+    if (!process(req, response)) return false;
 
     response.Namespaces(ns);
     XMLNode item = response.Child(0);
@@ -373,7 +392,7 @@ namespace Arc {
     req.NewChild("esainfo:" + action).NewChild("estypes:ActivityID") = job.id;
 
     XMLNode response;
-    if (!process(req, false, response)) return false;
+    if (!process(req, response)) return false;
 
     response.Namespaces(ns);
     XMLNode item = response.Child(0);
@@ -410,14 +429,70 @@ namespace Arc {
     ext  = infodoc["esainfo:StageInDirectory"];
     for(;(bool)ext;++ext) job.stagein.push_back((std::string)ext);
     ext  = infodoc["esainfo:StageOutDirectory"];
-    for(;(bool)ext;++ext) job.stagein.push_back((std::string)ext);
+    for(;(bool)ext;++ext) job.stageout.push_back((std::string)ext);
     ext  = infodoc["esainfo:SessionDirectory"];
-    for(;(bool)ext;++ext) job.stagein.push_back((std::string)ext);
+    for(;(bool)ext;++ext) job.session.push_back((std::string)ext);
     // Making EMI ES specific job id
     // URL-izing job id
     info.JobID = URL(job.manager.str() + "/" + job.id);
     //if(!info) return false;
     return true;
+  }
+
+  static bool add_urls(std::list<URL>& urls, XMLNode source, const URL& match) {
+    bool matched = false;
+    for(;(bool)source;++source) {
+      URL url((std::string)source);
+      if(!url) continue;
+      if(match && (match == url)) matched = true;
+      urls.push_back(url);
+    };
+    return matched;
+  }
+
+  bool EMIESClient::sstat(std::list<URL>& activitycreation,
+                          std::list<URL>& activitymanagememt,
+                          std::list<URL>& activityinfo,
+                          std::list<URL>& resourceinfo,
+                          std::list<URL>& delegation) {
+    activitycreation.clear();
+    activitymanagememt.clear();
+    activityinfo.clear();
+    resourceinfo.clear();
+    delegation.clear();
+    XMLNode info;
+    if(!sstat(info)) return false;
+    XMLNode service = info["ComputingService"];
+    for(;(bool)service;++service) {
+      bool service_matched = false;
+      XMLNode endpoint = service["ComputingEndpoint"];
+      for(;(bool)endpoint;++endpoint) {
+        XMLNode name = endpoint["InterfaceName"];
+        for(;(bool)name;++name) {
+          std::string iname = (std::string)name;
+          if(iname == "org.ogf.glue.emies.activitycreation") {
+            add_urls(activitycreation,endpoint["URL"],URL());
+          } else if(iname == "org.ogf.glue.emies.activitymanagememt") {
+            add_urls(activitymanagememt,endpoint["URL"],URL());
+          } else if(iname == "org.ogf.glue.emies.activityinfo") {
+            add_urls(activityinfo,endpoint["URL"],URL());
+          } else if(iname == "org.ogf.glue.emies.resourceinfo") {
+            if(add_urls(resourceinfo,endpoint["URL"],rurl)) {
+              service_matched = true;
+            };
+          } else if(iname == "org.ogf.glue.emies.delegation") {
+            add_urls(delegation,endpoint["URL"],URL());
+          };
+        };
+      };
+      if(service_matched) return true;
+      activitycreation.clear();
+      activitymanagememt.clear();
+      activityinfo.clear();
+      resourceinfo.clear();
+      delegation.clear();
+    };
+    return false;
   }
 
   bool EMIESClient::sstat(XMLNode& response) {
@@ -436,10 +511,10 @@ namespace Arc {
     XMLNode op = req.NewChild("esrinfo:" + action);
     XMLNode res;
 
-    if (!process(req, false, res)) return false;
+    if (!process(req, res)) return false;
 
     res.Namespaces(ns);
-    XMLNode services = response["Services"];
+    XMLNode services = res["Services"];
     if(!services) {
       lfailure = "Missing Services in response";
       return false;
@@ -589,7 +664,7 @@ namespace Arc {
 
     // Send request
     XMLNode response;
-    if (!process(req, false, response)) return false;
+    if (!process(req, response)) return false;
 
     response.Namespaces(ns);
     XMLNode item = response[action+"ResponseItem"];
@@ -644,7 +719,7 @@ namespace Arc {
 
     // Send request
     XMLNode response;
-    if (!process(req, false, response)) return false;
+    if (!process(req, response)) return false;
 
     response.Namespaces(ns);
     XMLNode item = response["NotifyResponseItem"];
@@ -661,10 +736,10 @@ namespace Arc {
       lfailure = "Service responded with fault: "+fault.message+" - "+fault.description;
       return false;
     };
-    if(!item["Acknowledgement"]) {
-      lfailure = "Response does not contain Acknowledgement";
-      return false;
-    };
+    //if(!item["Acknowledgement"]) {
+    //  lfailure = "Response does not contain Acknowledgement";
+    //  return false;
+    //};
     return true;
   }
 
@@ -693,7 +768,7 @@ namespace Arc {
 
     // Send request
     XMLNode response;
-    if (!process(req, false, response)) return false;
+    if (!process(req, response)) return false;
 
     response.Namespaces(ns);
     XMLNode id = response["ActivityID"];
@@ -908,6 +983,7 @@ namespace Arc {
     } else {
       type = "";
     };
+    return *this;
   }
 
   bool EMIESFault::operator!(void) {

@@ -18,7 +18,7 @@
 #include <arc/URL.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/MCC.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/communication/ClientInterface.h>
 
 #include <arc/credential/Credential.h>
 #include <arc/xmlsec/XmlSecUtils.h>

@@ -68,7 +68,7 @@ test_client2shibboleth_SOURCES = test_client2shibboleth.cpp
 test_client2shibboleth_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS)
 test_client2shibboleth_LDADD = \
-	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
@@ -80,7 +80,7 @@ test_client2voms_saml_service_SOURCES = test_client2voms_saml_service.cpp
 test_client2voms_saml_service_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS)
 test_client2voms_saml_service_LDADD = \
-	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
