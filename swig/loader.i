@@ -1,3 +1,13 @@
+#ifdef SWIGPYTHON
+%module loader
+
+%include "Arc.i"
+
+%import "../src/hed/libs/common/XMLNode.h"
+%import "../src/hed/libs/common/Logger.h"
+#endif
+
+
 // Wrap contents of $(top_srcdir)/src/hed/libs/loader/ModuleManager.h
 /* The 'operator Glib::Module*' method cannot be wrapped. If it is
  * needed in the bindings, it should be renamed.

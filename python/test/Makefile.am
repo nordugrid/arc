@@ -11,6 +11,11 @@ TESTS = $(TESTSCRIPTS)
 else
 TESTS =
 endif
-check_SCRIPTS = $(TESTS)
+check_SCRIPTS = ../arc.py $(TESTS)
+
+../arc.py : $(top_srcdir)/python/__init__.py
+	cp $< $@
+
+CLEANFILES = ../arc.py ../arc.pyc
 
 EXTRA_DIST = $(TESTSCRIPTS) testutils.py

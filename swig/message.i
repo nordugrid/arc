@@ -1,3 +1,14 @@
+#ifdef SWIGPYTHON
+%module message
+
+%include "Arc.i"
+
+%import "../src/hed/libs/common/XMLNode.h"
+%import "../src/hed/libs/common/ArcConfig.h"
+%import "../src/hed/libs/loader/Plugin.h"
+#endif
+
+
 // Wrap contents of $(top_srcdir)/src/hed/libs/message/MCC_Status.h
 %{
 #include <arc/message/MCC_Status.h>

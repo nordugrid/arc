@@ -1,3 +1,20 @@
+#ifdef SWIGPYTHON
+%module communication
+
+%include "Arc.i"
+
+%import "../src/hed/libs/common/ArcConfig.h"
+%import "../src/hed/libs/common/DateTime.h"
+%import "../src/hed/libs/common/URL.h"
+%import "../src/hed/libs/common/XMLNode.h"
+%import "../src/hed/libs/message/Message.h"
+%import "../src/hed/libs/message/PayloadRaw.h"
+%import "../src/hed/libs/message/PayloadSOAP.h"
+%import "../src/hed/libs/message/PayloadStream.h"
+%import "../src/hed/libs/message/MCC_Status.h"
+#endif
+
+
 // Wrap contents of $(top_srcdir)/src/hed/libs/client/ClientInterface.h
 %{
 #include <arc/communication/ClientInterface.h>

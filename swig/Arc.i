@@ -4,7 +4,15 @@
  * "%include" dependencies.
  */
 
-%module arc
+/* For the Java bindings the approach of one single SWIG generated C++ file is
+ * used, while for Python one SWIG C++ file is generated for each mapped ARC
+ * library. Therefore for Python each of the specialised SWIG files (.i) is
+ * passed to SWIG, while for Java only this file is passed.
+ */
+
+#ifdef SWIGJAVA
+%module arc 
+#endif
 
 %include <stl.i>
 %include <std_vector.i>
@@ -303,6 +311,7 @@ std::ostream& getStdout() { return std::cout; }
 %template(StringDoubleMap) std::map<std::string, double>;
 
 
+#ifdef SWIGJAVA
 %include "common.i"
 %include "loader.i"
 %include "message.i"
@@ -311,6 +320,4 @@ std::ostream& getStdout() { return std::cout; }
 %include "credential.i"
 %include "data.i"
 %include "delegation.i"
-#ifdef SWIGPYTHON
-%include "security.i"
 #endif

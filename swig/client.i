@@ -1,3 +1,55 @@
+#ifdef SWIGPYTHON
+%module client
+
+%include "Arc.i"
+
+%import "../src/hed/libs/common/ArcConfig.h"
+%import "../src/hed/libs/common/URL.h"
+%import "../src/hed/libs/common/XMLNode.h"
+%import "../src/hed/libs/common/DateTime.h"
+%import "../src/hed/libs/message/PayloadSOAP.h"
+%import "../src/hed/libs/message/PayloadRaw.h"
+%import "../src/hed/libs/message/PayloadStream.h"
+%import "../src/hed/libs/message/MCC_Status.h"
+%import "../src/hed/libs/message/Message.h"
+
+%ignore Arc::AutoPointer::operator!;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Arc::CountedPointer::Base;
+%ignore Arc::CountedPointer::operator!;
+%ignore Arc::CountedPointer::operator=(T*);
+%ignore Arc::CountedPointer::operator=(const CountedPointer<T>&);
+// Ignoring functions from Utils.h since swig thinks they are methods of the CountedPointer class, and thus compilation fails.
+%ignore Arc::GetEnv;
+%ignore Arc::SetEnv;
+%ignore Arc::UnsetEnv;
+%ignore Arc::EnvLockAcquire;
+%ignore Arc::EnvLockRelease;
+%ignore Arc::EnvLockWrap;
+%ignore Arc::EnvLockUnwrap;
+%ignore Arc::EnvLockUnwrapComplete;
+%ignore Arc::EnvLockWrapper;
+%ignore Arc::InterruptGuard;
+%ignore Arc::StrError;
+%ignore PersistentLibraryInit;
+/* Swig tries to create functions which return a new CountedPointer object.
+ * Those functions takes no arguments, and since there is no default
+ * constructor for the CountedPointer compilation fails.
+ * Adding a "constructor" (used as a function in the cpp file) which
+ * returns a new CountedPointer object with newed T object created
+ * Ts default constructor. Thus if T has no default constructor,
+ * another work around is needed in order to map that CountedPointer
+ * wrapped class with swig.
+ */
+%extend Arc::CountedPointer {
+  CountedPointer() { return new Arc::CountedPointer<T>(new T());}
+}
+%{
+#include <arc/Utils.h>
+%}
+%include "../src/hed/libs/common/Utils.h"
+#endif
+
+
 // Wrap contents of $(top_srcdir)/src/hed/libs/client/Software.h
 %{
 #include <arc/client/Software.h>

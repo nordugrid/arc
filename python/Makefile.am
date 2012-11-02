@@ -1,14 +1,19 @@
-pythondir = $(PYTHON_SITE_ARCH)
+pythondir = $(PYTHON_SITE_ARCH)/arc
+
+ARCSWIGLIBS = common loader message communication client credential data delegation security
+ARCPYLIBS = $(ARCSWIGLIBS:=.py)
+ARCWRAPPERS = $(ARCSWIGLIBS:=_wrap.cpp)
+ARCWRAPDEPS = $(foreach module, $(ARCSWIGLIBS), ./$(DEPDIR)/$(module)_wrap.deps)
 
 if PYTHON_ENABLED
-python_DATA = arc.py
+python_DATA = __init__.py $(ARCPYLIBS)
 python_LTLIBRARIES = _arc.la
 endif
 
 altpythondir = $(ALTPYTHON_SITE_ARCH)
 
 if ALTPYTHON_ENABLED
-altpython_DATA = arc.py
+altpython_DATA = __init__.py $(ARCPYLIBS)
 altpython_LTLIBRARIES = alt/_arc.la
 endif
 
@@ -36,8 +41,8 @@ ARCLIBS = \
 	$(top_builddir)/src/libs/data-staging/libarcdatastaging.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
 
-_arc_la_SOURCES = arc_init.cpp
-nodist__arc_la_SOURCES = arc_wrap.cpp
+_arc_la_SOURCES = swigmodulesinit_wrap.cpp
+nodist__arc_la_SOURCES = $(ARCWRAPPERS)
 _arc_la_CXXFLAGS = -include ../config.h -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(PYTHON_CFLAGS) \
 	-fno-strict-aliasing -DSWIG_COBJECT_TYPES
@@ -45,8 +50,8 @@ _arc_la_LIBADD = \
 	$(ARCLIBS) $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(PYTHON_LIBS)
 _arc_la_LDFLAGS = -no-undefined -avoid-version -module
 
-alt__arc_la_SOURCES = arc_init.cpp
-nodist_alt__arc_la_SOURCES = arc_wrap.cpp
+alt__arc_la_SOURCES = swigmodulesinit_wrap.cpp
+nodist_alt__arc_la_SOURCES = $(ARCWRAPPERS)
 alt__arc_la_CXXFLAGS = -include ../config.h -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(ALTPYTHON_CFLAGS) \
 	-fno-strict-aliasing -DSWIG_COBJECT_TYPES
@@ -54,50 +59,50 @@ alt__arc_la_LIBADD = \
 	$(ARCLIBS) $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(ALTPYTHON_LIBS)
 alt__arc_la_LDFLAGS = -no-undefined -avoid-version -module
 
-SWIG_OUTPUTS = arc_wrap.cpp arc.py
+SWIG_OUTPUTS = $(ARCWRAPPERS) $(ARCPYLIBS)
 
 EXTRA_DIST = Doxyfile.api doxy2swig.py pydoxygen.i
 
-CLEANFILES = $(SWIG_OUTPUTS) arc.pyc api
+CLEANFILES = $(SWIG_OUTPUTS) api $(ARCPYLIBS:.py=.pyc)
 
 MAINTAINERCLEANFILES = pydoxygen.i
 
-@AMDEP_TRUE@include ./$(DEPDIR)/arc_wrap.deps
+@AMDEP_TRUE@-include $(ARCWRAPDEPS)
 
-arc.py: arc_wrap.cpp
+$(ARCPYLIBS): %.py: %_wrap.cpp
 
-arc_wrap.cpp: $(SWIG_INPUTS)
+$(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i
 	mkdir -p $(DEPDIR)
-	grep -h '^#' $(SWIG_INPUTS) | \
-	$(CXXCOMPILE) $(_arc_la_CXXFLAGS) -M -MT arc_wrap.cpp -MT arc.py -MP -MF "$(DEPDIR)/arc_wrap.deps" -x c++ -
-	$(SWIG) -v -c++ -python -threads -module arc -o arc_wrap.cpp \
+	grep -h '^#' $(top_srcdir)/swig/$*.i | \
+	$(CXXCOMPILE) $(_arc_la_CXXFLAGS) -M -MT $*_wrap.cpp -MT arc_$*.py -MP -MF "$(DEPDIR)/$*_wrap.deps" -x c++ -
+	$(SWIG) -v -c++ -python -threads -o $*_wrap.cpp \
 		-I/usr/include -I$(top_srcdir)/include \
-		$(PYDOXFLAGS) $(AM_CPPFLAGS) $(OPENSSL_CFLAGS) $(top_srcdir)/swig/Arc.i
+		$(PYDOXFLAGS) $(AM_CPPFLAGS) $(OPENSSL_CFLAGS) $(top_srcdir)/swig/$*.i
 # Workaround for RHEL5 swig + EPEL5 python26
-	sed 's/\(^\s*char \*.*\) = \(.*ml_doc\)/\1 = (char *)\2/' arc_wrap.cpp > arc_wrap.cpp.new
-	mv arc_wrap.cpp.new arc_wrap.cpp
+	sed 's/\(^\s*char \*.*\) = \(.*ml_doc\)/\1 = (char *)\2/' $*_wrap.cpp > $*_wrap.cpp.new
+	mv $*_wrap.cpp.new $*_wrap.cpp
 # Ditto - for 64 bit
-	sed 's/^\(\s*char \*cstr;\) int len;/#if PY_VERSION_HEX < 0x02050000 \&\& !defined(PY_SSIZE_T_MIN)\n&\n#else\n\1 Py_ssize_t len;\n#endif/' arc_wrap.cpp > arc_wrap.cpp.new
-	mv arc_wrap.cpp.new arc_wrap.cpp
+	sed 's/^\(\s*char \*cstr;\) int len;/#if PY_VERSION_HEX < 0x02050000 \&\& !defined(PY_SSIZE_T_MIN)\n&\n#else\n\1 Py_ssize_t len;\n#endif/' $*_wrap.cpp > $*_wrap.cpp.new
+	mv $*_wrap.cpp.new $*_wrap.cpp
 # Dont allow threading when deleting SwigPyIterator objects
-	sed '/*_wrap_delete_@SWIG_PYTHON_NAMING@Iterator/,/SWIG_PYTHON_THREAD_END/ s/.*SWIG_PYTHON_THREAD_[A-Z]*_ALLOW.*//' arc_wrap.cpp > arc_wrap.cpp.new
-	mv arc_wrap.cpp.new arc_wrap.cpp
+	sed '/*_wrap_delete_@SWIG_PYTHON_NAMING@Iterator/,/SWIG_PYTHON_THREAD_END/ s/.*SWIG_PYTHON_THREAD_[A-Z]*_ALLOW.*//' $*_wrap.cpp > $*_wrap.cpp.new
+	mv $*_wrap.cpp.new $*_wrap.cpp
 # Dont allow threading when handling SWIG Python iterators (see bug
 # 2683). Fixed in SWIG version 2.
 	if test "x@SWIG2@" != "xyes"; then \
-    sed '/*_wrap_@SWIG_PYTHON_NAMING@Iterator_/,/SWIG_PYTHON_THREAD_END/ s/.*SWIG_PYTHON_THREAD_[A-Z]*_ALLOW.*//' arc_wrap.cpp > arc_wrap.cpp.new; \
-    mv arc_wrap.cpp.new arc_wrap.cpp; \
+    sed '/*_wrap_@SWIG_PYTHON_NAMING@Iterator_/,/SWIG_PYTHON_THREAD_END/ s/.*SWIG_PYTHON_THREAD_[A-Z]*_ALLOW.*//' $*_wrap.cpp > $*_wrap.cpp.new; \
+    mv $*_wrap.cpp.new $*_wrap.cpp; \
   fi
 # When mapping a template with a template class no space is inserted
 # between the two right angle brackets.
-	sed 's/>>(new/> >(new/g' arc_wrap.cpp > arc_wrap.cpp.new
-	mv arc_wrap.cpp.new arc_wrap.cpp
+	sed 's/>>(new/> >(new/g' $*_wrap.cpp > $*_wrap.cpp.new
+	mv $*_wrap.cpp.new $*_wrap.cpp
 # When mapping a template with another template class as argument, and
 # that template class takes two classes as argument, then older swigs
 # put parentheses around the two class arguments, e.g. T<(A,B)>, not
 # valid syntax should be T<A,B> instead.
-	sed 's/<(\([,:[:alnum:]]*\))>/<\1>/g' arc_wrap.cpp > arc_wrap.cpp.tmp
-	mv arc_wrap.cpp.tmp arc_wrap.cpp
+	sed 's/<(\([,:[:alnum:]]*\))>/<\1>/g' $*_wrap.cpp > $*_wrap.cpp.tmp
+	mv $*_wrap.cpp.tmp $*_wrap.cpp
 
 pydoxygen.i: $(srcdir)/Doxyfile.api
 	doxygen $(srcdir)/Doxyfile.api
@@ -117,4 +122,3 @@ install-data-hook:
 DIST_SUBDIRS = test
 SUBDIRS = $(TEST_DIR)
 
-.NOTPARALLEL: %.lo %.o

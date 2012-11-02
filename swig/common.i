@@ -1,3 +1,10 @@
+#ifdef SWIGPYTHON
+%module common
+
+%include "Arc.i"
+#endif
+
+
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/XMLNode.h
 %{
 #include <arc/XMLNode.h>
