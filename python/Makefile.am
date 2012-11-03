@@ -61,9 +61,9 @@ alt__arc_la_LDFLAGS = -no-undefined -avoid-version -module
 
 SWIG_OUTPUTS = $(ARCWRAPPERS) $(ARCPYLIBS)
 
-EXTRA_DIST = Doxyfile.api doxy2swig.py pydoxygen.i
+EXTRA_DIST = Doxyfile.api.in doxy2swig.py pydoxygen.i __init__.py
 
-CLEANFILES = $(SWIG_OUTPUTS) api $(ARCPYLIBS:.py=.pyc)
+CLEANFILES = $(SWIG_OUTPUTS) api Doxyfile.api $(ARCPYLIBS:.py=.pyc)
 
 MAINTAINERCLEANFILES = pydoxygen.i
 
@@ -71,7 +71,7 @@ MAINTAINERCLEANFILES = pydoxygen.i
 
 $(ARCPYLIBS): %.py: %_wrap.cpp
 
-$(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i
+$(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i pydoxygen.i
 	mkdir -p $(DEPDIR)
 	grep -h '^#' $(top_srcdir)/swig/$*.i | \
 	$(CXXCOMPILE) $(_arc_la_CXXFLAGS) -M -MT $*_wrap.cpp -MT arc_$*.py -MP -MF "$(DEPDIR)/$*_wrap.deps" -x c++ -
@@ -104,10 +104,11 @@ $(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i
 	sed 's/<(\([,:[:alnum:]]*\))>/<\1>/g' $*_wrap.cpp > $*_wrap.cpp.tmp
 	mv $*_wrap.cpp.tmp $*_wrap.cpp
 
-pydoxygen.i: $(srcdir)/Doxyfile.api
-	doxygen $(srcdir)/Doxyfile.api
+pydoxygen.i: $(srcdir)/Doxyfile.api.in
+	sed "s/TOP_SOURCE_DIR/$(subst /,\/,$(top_srcdir))/g" $< > Doxyfile.api
+	doxygen Doxyfile.api
 	python $(srcdir)/doxy2swig.py api/xml/index.xml $@
-	rm -rf api
+	rm -rf api Doxyfile.api
 
 install-data-hook:
 	if test -n "$(PYTHON_SOABI)" ; then \
