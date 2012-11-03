@@ -9,7 +9,7 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/communication/ClientInterface.h>
-#include <arc/client/JobDescription.h>
+#include <arc/compute/JobDescription.h>
 #include <arc/credential/Credential.h>
 #include <arc/message/MCC.h>
 

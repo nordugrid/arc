@@ -5,8 +5,8 @@ import _arc
 from common import *
 from loader import *
 from message import *
+from compute import *
 from communication import *
-from client import *
 from credential import *
 from data import *
 from delegation import *

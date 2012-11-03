@@ -7,7 +7,7 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/communication/ClientInterface.h>
-#include <arc/client/ExecutionTarget.h>
+#include <arc/compute/ExecutionTarget.h>
 
 #include "DataBrokerPlugin.h"
 

@@ -3,7 +3,7 @@
 #ifndef __ARC_SUBMITTERPLUGINARC1_H__
 #define __ARC_SUBMITTERPLUGINARC1_H__
 
-#include <arc/client/SubmitterPlugin.h>
+#include <arc/compute/SubmitterPlugin.h>
 #include <arc/XMLNode.h>
 #include <arc/URL.h>
 #include <arc/loader/Loader.h>

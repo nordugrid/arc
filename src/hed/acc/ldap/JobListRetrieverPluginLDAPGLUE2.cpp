@@ -5,7 +5,7 @@
 #endif
 
 #include <arc/StringConv.h>
-#include <arc/client/ComputingServiceRetriever.h>
+#include <arc/compute/ComputingServiceRetriever.h>
 
 #include "JobListRetrieverPluginLDAPGLUE2.h"
 

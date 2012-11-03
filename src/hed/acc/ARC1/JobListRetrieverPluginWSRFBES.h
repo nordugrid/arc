@@ -3,8 +3,8 @@
 #ifndef __ARC_JOBLISTRETRIEVERPLUGINWSRFBES_H__
 #define __ARC_JOBLISTRETRIEVERPLUGINWSRFBES_H__
 
-#include <arc/client/Job.h>
-#include <arc/client/EntityRetriever.h>
+#include <arc/compute/Job.h>
+#include <arc/compute/EntityRetriever.h>
 
 namespace Arc {
 

@@ -316,7 +316,7 @@ std::ostream& getStdout() { return std::cout; }
 %include "loader.i"
 %include "message.i"
 %include "communication.i"
-%include "client.i"
+%include "compute.i"
 %include "credential.i"
 %include "data.i"
 %include "delegation.i"

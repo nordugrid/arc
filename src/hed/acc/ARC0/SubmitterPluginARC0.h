@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #endif
 
-#include <arc/client/SubmitterPlugin.h>
+#include <arc/compute/SubmitterPlugin.h>
 
 namespace Arc {
 

@@ -6,7 +6,7 @@
 #include <map>
 
 #include <arc/UserConfig.h>
-#include <arc/client/Broker.h>
+#include <arc/compute/Broker.h>
 #include <arc/message/MCC.h>
 #include <arc/message/PayloadSOAP.h>
 

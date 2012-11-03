@@ -5,8 +5,8 @@
 
 #include <cstdlib>
 
-#include <arc/client/Broker.h>
-#include <arc/client/ExecutionTarget.h>
+#include <arc/compute/Broker.h>
+#include <arc/compute/ExecutionTarget.h>
 
 namespace Arc {
 

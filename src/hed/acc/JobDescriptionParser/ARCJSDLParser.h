@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include <arc/client/JobDescriptionParser.h>
+#include <arc/compute/JobDescriptionParser.h>
 
 /** ARCJSDLParser
  * The ARCJSDLParser class, derived from the JobDescriptionParser class, is

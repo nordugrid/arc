@@ -15,12 +15,12 @@
 #include <arc/Logger.h>
 #include <arc/UserConfig.h>
 #include <arc/Utils.h>
-#include <arc/client/Broker.h>
-#include <arc/client/ComputingServiceRetriever.h>
-#include <arc/client/ExecutionTarget.h>
-#include <arc/client/Job.h>
-#include <arc/client/JobDescription.h>
-#include <arc/client/Submitter.h>
+#include <arc/compute/Broker.h>
+#include <arc/compute/ComputingServiceRetriever.h>
+#include <arc/compute/ExecutionTarget.h>
+#include <arc/compute/Job.h>
+#include <arc/compute/JobDescription.h>
+#include <arc/compute/Submitter.h>
 
 #include "utils.h"
 

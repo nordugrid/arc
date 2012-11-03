@@ -15,7 +15,7 @@
 #endif
 
 
-// Wrap contents of $(top_srcdir)/src/hed/libs/client/ClientInterface.h
+// Wrap contents of $(top_srcdir)/src/hed/libs/compute/ClientInterface.h
 %{
 #include <arc/communication/ClientInterface.h>
 %}
@@ -45,7 +45,7 @@
 #endif
 
 
-// Wrap contents of $(top_srcdir)/src/hed/libs/client/ClientX509Delegation.h
+// Wrap contents of $(top_srcdir)/src/hed/libs/compute/ClientX509Delegation.h
 %{
 #include <arc/communication/ClientX509Delegation.h>
 %}

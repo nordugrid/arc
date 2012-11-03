@@ -1,7 +1,7 @@
 #ifndef __ARC_JOBLISTRETRIEVERPLUGINTEST_H__
 #define __ARC_JOBLISTRETRIEVERPLUGINTEST_H__
 
-#include <arc/client/EntityRetriever.h>
+#include <arc/compute/EntityRetriever.h>
 
 namespace Arc {
 

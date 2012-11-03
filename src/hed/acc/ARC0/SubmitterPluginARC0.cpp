@@ -13,9 +13,9 @@
 #include <arc/Logger.h>
 #include <arc/UserConfig.h>
 #include <arc/StringConv.h>
-#include <arc/client/ExecutionTarget.h>
-#include <arc/client/Job.h>
-#include <arc/client/JobDescription.h>
+#include <arc/compute/ExecutionTarget.h>
+#include <arc/compute/Job.h>
+#include <arc/compute/JobDescription.h>
 
 #include "SubmitterPluginARC0.h"
 #include "FTPControl.h"
@@ -92,7 +92,7 @@ namespace Arc {
   
       preparedjobdesc.OtherAttributes["nordugrid:xrsl;action"] = "request";
       preparedjobdesc.OtherAttributes["nordugrid:xrsl;savestate"] = "yes";
-      preparedjobdesc.OtherAttributes["nordugrid:xrsl;clientsoftware"] = "libarcclient-" VERSION;
+      preparedjobdesc.OtherAttributes["nordugrid:xrsl;clientsoftware"] = "libarccompute-" VERSION;
   #ifdef HAVE_GETHOSTNAME
       char hostname[1024];
       gethostname(hostname, 1024);
@@ -213,7 +213,7 @@ namespace Arc {
   
       preparedjobdesc.OtherAttributes["nordugrid:xrsl;action"] = "request";
       preparedjobdesc.OtherAttributes["nordugrid:xrsl;savestate"] = "yes";
-      preparedjobdesc.OtherAttributes["nordugrid:xrsl;clientsoftware"] = "libarcclient-" VERSION;
+      preparedjobdesc.OtherAttributes["nordugrid:xrsl;clientsoftware"] = "libarccompute-" VERSION;
   #ifdef HAVE_GETHOSTNAME
       char hostname[1024];
       gethostname(hostname, 1024);

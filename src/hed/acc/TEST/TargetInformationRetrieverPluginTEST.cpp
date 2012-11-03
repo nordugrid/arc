@@ -4,9 +4,9 @@
 #include <config.h>
 #endif
 
-#include <arc/client/EndpointQueryingStatus.h>
-#include <arc/client/ExecutionTarget.h>
-#include <arc/client/TestACCControl.h>
+#include <arc/compute/EndpointQueryingStatus.h>
+#include <arc/compute/ExecutionTarget.h>
+#include <arc/compute/TestACCControl.h>
 
 #include "TargetInformationRetrieverPluginTEST.h"
 

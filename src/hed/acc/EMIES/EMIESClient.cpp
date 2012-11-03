@@ -6,7 +6,7 @@
 
 #include <arc/communication/ClientInterface.h>
 #include <arc/delegation/DelegationInterface.h>
-#include <arc/client/Job.h>
+#include <arc/compute/Job.h>
 #include <arc/StringConv.h>
 #include "JobStateEMIES.h"
 

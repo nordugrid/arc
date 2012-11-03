@@ -31,7 +31,7 @@ libarcshc_la_LIBADD = \
 	arcauthzsh/libarcauthzsh.la usernametokensh/libusernametokensh.la \
 	$(LIBS_WITH_XMLSEC) \
 	delegationsh/libdelegationsh.la \
-	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \

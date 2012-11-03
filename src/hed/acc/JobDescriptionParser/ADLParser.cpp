@@ -12,7 +12,7 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
-#include <arc/client/JobDescription.h>
+#include <arc/compute/JobDescription.h>
 
 #include "ADLParser.h"
 

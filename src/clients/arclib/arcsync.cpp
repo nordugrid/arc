@@ -11,14 +11,14 @@
 #include <unistd.h>
 
 #include <arc/ArcLocation.h>
-#include <arc/client/Endpoint.h>
+#include <arc/compute/Endpoint.h>
 #include <arc/DateTime.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
-#include <arc/client/EntityRetriever.h>
-#include <arc/client/Job.h>
+#include <arc/compute/EntityRetriever.h>
+#include <arc/compute/Job.h>
 
 class JobSynchronizer : public Arc::EntityConsumer<Arc::Endpoint> {
 public:

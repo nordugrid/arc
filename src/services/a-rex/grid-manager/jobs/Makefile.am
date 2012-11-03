@@ -9,7 +9,7 @@ libjobs_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(DBCXX_CPPFLAGS)
 libjobs_la_LIBADD = \
 	$(top_builddir)/src/libs/data-staging/libarcdatastaging.la \
-	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(DBCXX_LIBS)
 

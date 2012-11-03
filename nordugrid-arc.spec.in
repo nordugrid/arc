@@ -1010,7 +1010,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
-%{_libdir}/libarcclient.so.*
+%{_libdir}/libarccompute.so.*
 %{_libdir}/libarccommunication.so.*
 %{_libdir}/libarccommon.so.*
 %{_libdir}/libarccredential.so.*

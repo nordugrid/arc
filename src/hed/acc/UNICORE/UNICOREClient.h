@@ -8,7 +8,7 @@
 
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
-#include <arc/client/JobDescription.h>
+#include <arc/compute/JobDescription.h>
 
 namespace Arc {
 

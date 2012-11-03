@@ -10,7 +10,7 @@
 #include <arc/XMLNode.h>
 #include <arc/URL.h>
 #include <arc/Logger.h>
-#include <arc/client/JobDescription.h>
+#include <arc/compute/JobDescription.h>
 
 #include "JDLParser.h"
 

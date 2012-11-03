@@ -1,4 +1,4 @@
-debian/tmp/usr/lib/libarcclient.so.*
+debian/tmp/usr/lib/libarccompute.so.*
 debian/tmp/usr/lib/libarccommunication.so.*
 debian/tmp/usr/lib/libarccommon.so.*
 debian/tmp/usr/lib/libarccredential.so.*

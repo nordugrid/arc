@@ -1,0 +1,22 @@
+libarccompute - library for writing command line interface (client)
+
+This folder contains the framework for building command line interfaces. 
+The following classes/files are present:
+
+o ClientInterface - Sets up client side mcc chain
+o Broker - Base class for Broker
+o ExecutionTarget - Generic execution target (flattened glue2 structure)
+o JobControllerPlugin - Base class for specialization (see src/hed/acc)
+o Job - Generic representation of a job
+o JobSupervisor - Responsible for loading JobControllerPlugins
+o Submitter - Base class for specialization (see src/hed/acc)
+
+Several of the above listed classes are base classes for ARC Client 
+Components (ACCs) which are available in:
+
+src/hed/acc
+
+For command line interfaces built upon functionality contained within 
+this library see
+
+src/clients/arclib/

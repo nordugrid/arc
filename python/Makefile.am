@@ -1,6 +1,6 @@
 pythondir = $(PYTHON_SITE_ARCH)/arc
 
-ARCSWIGLIBS = common loader message communication client credential data delegation security
+ARCSWIGLIBS = common loader message communication compute credential data delegation security
 ARCPYLIBS = $(ARCSWIGLIBS:=.py)
 ARCWRAPPERS = $(ARCSWIGLIBS:=_wrap.cpp)
 ARCWRAPDEPS = $(foreach module, $(ARCSWIGLIBS), ./$(DEPDIR)/$(module)_wrap.deps)
@@ -31,7 +31,7 @@ endif
 ARCLIBS = \
 	$(top_builddir)/src/hed/libs/credentialstore/libarccredentialstore.la \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
-	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \

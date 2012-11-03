@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include <arc/DateTime.h>
-#include <arc/client/JobDescription.h>
+#include <arc/compute/JobDescription.h>
 
 /* 
   Defines few data types used by grid-manager to store information

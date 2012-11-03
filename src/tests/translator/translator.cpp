@@ -3,7 +3,7 @@
 #endif
 
 #include <iostream>
-#include <arc/client/JobDescription.h>
+#include <arc/compute/JobDescription.h>
 
 int main() {
   std::cout << " [ JobDescription tester ] " << std::endl;

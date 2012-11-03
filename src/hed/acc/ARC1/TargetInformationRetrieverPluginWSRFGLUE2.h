@@ -5,7 +5,7 @@
 
 #include <list>
 
-#include <arc/client/EntityRetriever.h>
+#include <arc/compute/EntityRetriever.h>
 
 namespace Arc {
 

@@ -9,12 +9,12 @@
 #include <string>
 
 #include <arc/ArcLocation.h>
-#include <arc/client/Endpoint.h>
+#include <arc/compute/Endpoint.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
-#include <arc/client/ComputingServiceRetriever.h>
+#include <arc/compute/ComputingServiceRetriever.h>
 
 #include "utils.h"
 

@@ -10,7 +10,7 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
-#include <arc/client/JobDescription.h>
+#include <arc/compute/JobDescription.h>
 #include <arc/Utils.h>
 
 

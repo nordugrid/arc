@@ -20,7 +20,7 @@ extern "C" void init_common(void);
 extern "C" void init_loader(void);
 extern "C" void init_message(void);
 extern "C" void init_communication(void);
-extern "C" void init_client(void);
+extern "C" void init_compute(void);
 extern "C" void init_credential(void);
 extern "C" void init_data(void);
 extern "C" void init_delegation(void);
@@ -61,7 +61,7 @@ SWIGEXPORT void init_arc(void) {
   init_extension_module(package, "_loader", init_loader);
   init_extension_module(package, "_message", init_message);
   init_extension_module(package, "_communication", init_communication);
-  init_extension_module(package, "_client", init_client);
+  init_extension_module(package, "_compute", init_compute);
   init_extension_module(package, "_credential", init_credential);
   init_extension_module(package, "_data", init_data);
   init_extension_module(package, "_delegation", init_delegation);

@@ -4,7 +4,7 @@
 #include <config.h>
 #endif
 
-#include <arc/client/EndpointQueryingStatus.h>
+#include <arc/compute/EndpointQueryingStatus.h>
 #include <arc/loader/Plugin.h>
 
 #include "ServiceEndpointRetrieverPluginEMIR.h"

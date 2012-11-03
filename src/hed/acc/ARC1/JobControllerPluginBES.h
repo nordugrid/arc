@@ -3,7 +3,7 @@
 #ifndef __ARC_JOBCONTROLLERBES_H__
 #define __ARC_JOBCONTROLLERBES_H__
 
-#include <arc/client/JobControllerPlugin.h>
+#include <arc/compute/JobControllerPlugin.h>
 
 namespace Arc {
 

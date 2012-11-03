@@ -3,8 +3,8 @@
 #ifndef __ARC_JOBLISTRETRIEVERPLUGINLDAPGLUE2_H__
 #define __ARC_JOBLISTRETRIEVERPLUGINLDAPGLUE2_H__
 
-#include <arc/client/Job.h>
-#include <arc/client/EntityRetriever.h>
+#include <arc/compute/Job.h>
+#include <arc/compute/EntityRetriever.h>
 
 namespace Arc {
 
