@@ -1361,8 +1361,17 @@ service fetch-crl-cron start > /dev/null 2>&1
 %if %{with_python}
 %files python
 %defattr(-,root,root,-)
-%{python_sitearch}/_arc*.so
-%{python_sitearch}/arc.py*
+%{python_sitearch}/arc/_arc*.so
+%{python_sitearch}/arc/__init__.py*
+%{python_sitearch}/arc/common.py*
+%{python_sitearch}/arc/loader.py*
+%{python_sitearch}/arc/message.py*
+%{python_sitearch}/arc/communication.py*
+%{python_sitearch}/arc/compute.py*
+%{python_sitearch}/arc/credential.py*
+%{python_sitearch}/arc/data.py*
+%{python_sitearch}/arc/delegation.py*
+%{python_sitearch}/arc/security.py*
 %{python_sitelib}/cache
 %{python_sitelib}/echo_python
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
