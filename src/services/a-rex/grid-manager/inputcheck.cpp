@@ -4,8 +4,8 @@
 
 #include <string>
 #include <list>
-#include <unistd.h>
 
+#include <arc/OptionParser.h>
 #include <arc/Thread.h>
 #include <arc/Logger.h>
 #include <arc/Utils.h>
@@ -18,15 +18,14 @@
 #include "misc/proxy.h"
 
 static Arc::SimpleCondition cond;
-
 static Arc::Logger logger(Arc::Logger::rootLogger, "inputcheck");
 
 class lfn_t {
  public:
-  const char* lfn;
+  std::string lfn;
   bool done;
   bool failed;
-  lfn_t(const char* l):lfn(l),done(false),failed(false) { };
+  lfn_t(const std::string& l):lfn(l),done(false),failed(false) { };
 };
 
 void check_url(void *arg) {
@@ -52,7 +51,7 @@ void check_url(void *arg) {
   bool check_passed = false;
   if(source->HaveLocations()) {
     do {
-      if(source->Check().Passed()) {
+      if(source->CurrentLocationHandle()->Check().Passed()) {
         check_passed=true;
         break;
       }
@@ -67,51 +66,41 @@ void check_url(void *arg) {
   return;
 }
 
-static void usage(void) {
-  logger.msg(Arc::INFO,"Usage: inputcheck [-h] [-d debug_level] RSL_file [proxy_file]");
-}
-
 int main(int argc,char* argv[]) {
-  unsigned int n;
 
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
 
-  while((n=getopt(argc,argv,"hd:")) != -1) {
-    switch(n) {
-      case ':': { logger.msg(Arc::ERROR,"Missing argument"); return -1; };
-      case '?': { logger.msg(Arc::ERROR,"Unrecognized option"); return -1; };
-      case '.': { return -1; };
-      case 'h': {
-        usage();
-        return 0;
-      };
-      case 'd': {
-        Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(optarg));
-      }; break;
-      default: { logger.msg(Arc::ERROR,"Option processing error"); return -1; };
-    };
-  };
-  if(optind >= argc) {
-    usage();
+  Arc::OptionParser options(istring("job_description_file [proxy_file]"),
+                            istring("inputcheck checks that input files specified "
+                                "in the job description are available and accessible "
+                                "using the credentials in the given proxy file."));
+  std::string debug;
+  options.AddOption('d', "debug",
+                    istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
+                    istring("debuglevel"), debug);
+
+  std::list<std::string> params = options.Parse(argc, argv);
+
+  if (!debug.empty()) Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+  if (params.size() != 1 && params.size() != 2) {
+    logger.msg(Arc::ERROR, "Wrong number of arguments given");
     return -1;
-  };
-  std::string rsl = argv[optind];
-  const char* proxy = NULL;
-  if((optind+1) < argc) proxy=argv[optind+1];
+  }
+  std::string rsl = params.front();
+  std::string proxy;
+  if (params.size() == 2) proxy = params.back();
 
   // TODO It would be better to use Arc::JobDescription::Parse(rsl)
   ARex::GMConfig config;
-  // Assume job description is in control dir
-  config.SetControlDir(rsl.substr(0, rsl.rfind('/')));
   ARex::JobDescriptionHandler job_desc_handler(config);
   ARex::JobLocalDescription job;
   Arc::JobDescription arc_job_desc;
 
   if(job_desc_handler.parse_job_req(job,arc_job_desc,rsl) != ARex::JobReqSuccess) return 1;
 
-  if(proxy) {
+  if(!proxy.empty()) {
     Arc::SetEnv("X509_USER_PROXY",proxy,true);
     Arc::SetEnv("X509_USER_CERT",proxy,true);
     Arc::SetEnv("X509_USER_KEY",proxy,true);
@@ -123,7 +112,7 @@ int main(int argc,char* argv[]) {
   std::list<lfn_t*> lfns;
   for(file=job.inputdata.begin();file!=job.inputdata.end();++file) {
     if(file->has_lfn()) {
-      lfn_t* lfn = new lfn_t(file->lfn.c_str());
+      lfn_t* lfn = new lfn_t(file->lfn);
       lfns.push_back(lfn);
       Arc::CreateThreadFunction(&check_url,lfn);
       has_lfns=true;
@@ -146,5 +135,3 @@ int main(int argc,char* argv[]) {
   ARex::remove_proxy();
   exit(0);
 }
-
-
