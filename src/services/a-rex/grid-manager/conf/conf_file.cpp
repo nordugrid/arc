@@ -471,6 +471,9 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       }
       config.control_dir = control_dir;
     }
+    else if (command == "control") {
+      logger.msg(Arc::WARNING, "'control' configuration option is no longer supported, please use 'controldir' instead");
+    }
     else if (command == "helper") {
       std::string helper_user = config_next_arg(rest);
       if (helper_user.empty()) {
