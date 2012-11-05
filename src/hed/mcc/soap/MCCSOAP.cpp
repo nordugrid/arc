@@ -330,7 +330,7 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   if(soap_action_defined) {
     soap_action=inmsg.Attributes()->get("SOAP:ACTION");
   } else {
-    soap_action_defined=WSAHeader(*inpayload).hasAction();
+    soap_action_defined=true; //WSAHeader(*inpayload).hasAction(); - SOAPAction must be always present
     soap_action=WSAHeader(*inpayload).Action();
   };
   if(inpayload->Version() == SOAPEnvelope::Version_1_2) {
@@ -339,7 +339,7 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
     nextinmsg.Attributes()->set("HTTP:Content-Type",mime_type);
   } else {
     nextinmsg.Attributes()->set("HTTP:Content-Type","text/xml");
-    if(soap_action_defined) nextinmsg.Attributes()->set("HTTP:SOAPAction",soap_action);
+    if(soap_action_defined) nextinmsg.Attributes()->set("HTTP:SOAPAction","\""+soap_action+"\"");
   };
   // Call next MCC 
   MCCInterface* next = Next();
