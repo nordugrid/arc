@@ -90,11 +90,6 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
   csr.wait();
 
   std::list<Arc::ComputingServiceType> services = csu.getServices();
-  std::list<Arc::ExecutionTarget> targets;
-  Arc::ExecutionTarget::GetExecutionTargets(services, targets);
-  for (std::list<Arc::ExecutionTarget>::const_iterator it = targets.begin(); it != targets.end(); it++) {
-    std::cout << *it << std::endl;
-  }
   for (std::list<Arc::ComputingServiceType>::const_iterator it = services.begin();
        it != services.end(); ++it) {
     if (opt.longlist) {
