@@ -119,6 +119,7 @@ void JobSupervisorTest::TestResubmit()
   Arc::ComputingEndpointType ce;
   ce->URLString = "http://test2.nordugrid.org";
   ce->InterfaceName = "org.nordugrid.test";
+  ce->Capability.insert(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::JOBSUBMIT));
   ce->HealthState = "ok";
 
   cs.ComputingEndpoint.insert(std::pair<int, Arc::ComputingEndpointType>(0, ce));

@@ -90,6 +90,11 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
   csr.wait();
 
   std::list<Arc::ComputingServiceType> services = csu.getServices();
+  std::list<Arc::ExecutionTarget> targets;
+  Arc::ExecutionTarget::GetExecutionTargets(services, targets);
+  for (std::list<Arc::ExecutionTarget>::const_iterator it = targets.begin(); it != targets.end(); it++) {
+    std::cout << *it << std::endl;
+  }
   for (std::list<Arc::ComputingServiceType>::const_iterator it = services.begin();
        it != services.end(); ++it) {
     if (opt.longlist) {
@@ -105,17 +110,12 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
       std::cout << "  Information endpoint: " << (**it).Cluster.str() << std::endl;
       for (std::map<int, Arc::ComputingEndpointType>::const_iterator itCE = it->ComputingEndpoint.begin();
            itCE != it->ComputingEndpoint.end(); ++itCE) {
-        if (itCE->second->Capability.empty()) {
-          std::cout << "  Submission endpoint: " << itCE->second->URLString << " (status: " << itCE->second->HealthState << ")" << std::endl;
-        }
-        else {
-          for (std::set<std::string>::const_iterator itC = itCE->second->Capability.begin();
-               itC != itCE->second->Capability.end(); ++itC) {
-            if (*itC == "executionmanagement.jobexecution") {
-              std::cout << "  Submission endpoint: " << itCE->second->URLString << " (status: " << itCE->second->HealthState << ")" << std::endl;
-            }
-          }
-        }
+         if (itCE->second->Capability.empty() ||
+             itCE->second->Capability.count(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::JOBSUBMIT)) ||
+             itCE->second->Capability.count(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::JOBCREATION)))
+         {
+           std::cout << "  Submission endpoint: " << itCE->second->URLString << " (status: " << itCE->second->HealthState << ", interface: " << itCE->second->InterfaceName << ")" << std::endl;           
+         }
       }
     }
   }

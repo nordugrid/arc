@@ -39,6 +39,10 @@ namespace Arc {
         ComputingManager.begin()->second.ApplicationEnvironments);
     for (std::map<int, ComputingEndpointType>::const_iterator itCE = ComputingEndpoint.begin();
          itCE != ComputingEndpoint.end(); ++itCE) {
+           if (!itCE->second->Capability.count(Endpoint::GetStringForCapability(Endpoint::JOBSUBMIT)) &&
+               !itCE->second->Capability.count(Endpoint::GetStringForCapability(Endpoint::JOBCREATION))) {
+             continue;
+           }
       if (!Attributes->OriginalEndpoint.RequestedSubmissionInterfaceName.empty()) {
         // If this endpoint has a non-preferred job interface, we skip it
         if (itCE->second->InterfaceName != Attributes->OriginalEndpoint.RequestedSubmissionInterfaceName) {
