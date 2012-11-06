@@ -163,19 +163,8 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
     if (command.empty()) { // EOF
       break;
     }
-    if (command == "voms_processing") {
-      std::string voms_processing = config_next_arg(rest);
-      // Since the voms_processing could not only be used by gridmanager,
-      // but also used by other services (e.g., gridftp service),
-      // the value is set as environment variables.
-      Arc::SetEnv("VOMS_PROCESSING", voms_processing);
-    }
-    else if(command == "arex_mount_point") {
+    if(command == "arex_mount_point") {
        config.arex_endpoint = config_next_arg(rest);
-    }
-    else if (command == "voms_trust_chains") {
-      std::string voms_trust_chains = config_next_arg(rest);
-      Arc::SetEnv("VOMS_TRUST_CHAINS", voms_trust_chains.c_str());
     }
     else if (command == "runtimedir") {
       config.rte_dir = rest;
