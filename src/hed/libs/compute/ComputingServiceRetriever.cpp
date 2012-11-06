@@ -12,23 +12,32 @@ namespace Arc {
   Logger ComputingServiceUniq::logger(Logger::getRootLogger(), "ComputingServiceUniq");
 
   void ComputingServiceUniq::addEntity(const ComputingServiceType& service) {
-    bool sameIDFound = false;
     if (!service->ID.empty()) {
-      for (std::list<ComputingServiceType>::const_iterator it = services.begin(); it != services.end(); it++) {
+      // We check all the previously added services
+      for(std::list<ComputingServiceType>::iterator it = services.begin(); it != services.end(); it++) {
+        // We take the first one which has the same ID
         if ((*it)->ID == service->ID) {
-          sameIDFound = true;
-          break;
+          std::map<std::string, int> priority;
+          priority["org.nordugrid.ldapglue2"] = 3;
+          priority["org.ogf.glue.emies.resourceinfo"] = 2;
+          priority["org.nordugrid.wsrfglue2"] = 1;
+          // If the new service has higher priority, we replace the previous one with the same ID, otherwise we ignore it
+          if (priority[service->OriginalEndpoint.InterfaceName] > priority[(*it)->OriginalEndpoint.InterfaceName]) {
+            logger.msg(DEBUG, "Uniq is replacing service coming from %s with service coming from %s", (*it)->OriginalEndpoint.str(), service->OriginalEndpoint.str());
+            (*it) = service;
+            return;
+          } else {
+            logger.msg(DEBUG, "Uniq is ignoring service coming from %s", service->OriginalEndpoint.str());
+            return;
+          }
         }
-      }
+      }      
     }
-    if (!sameIDFound) {
-      services.push_back(service);      
-    } else {
-      logger.msg(INFO, "Ignoring service because a previous one with the same ID was already found: %s", service->ID);
-    }
+    // If none of the previously added services have the same ID, then we add this one as a new service
+    logger.msg(DEBUG, "Uniq is adding service coming from %s", service->OriginalEndpoint.str());
+    services.push_back(service);
   }
-    
-  
+
   ComputingServiceRetriever::ComputingServiceRetriever(
     const UserConfig& uc,
     const std::list<Endpoint>& services,
