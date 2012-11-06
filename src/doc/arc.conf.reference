@@ -715,7 +715,10 @@
 ## to check if input files requested in job's RSL are accessible 
 ## from this machine. It is better to run it before job enters cluster.
 ## It accepts 2 arguments: names of files containing RSL and credentials'
-## proxy.
+## proxy. This plugin is only guaranteed to work for job submitted through
+## the legacy GridFTP interface, as this is the only interface for which
+## credentials in the form of proxy certificate files are guaranteed to
+## exist.
 #authplugin="ACCEPTED 60 /usr/libexec/arc/inputcheck %C/job.%I.description %C/job.%I.proxy"
 
 ## The second plugin in ARC is a UR generator. Its purpose is to create
