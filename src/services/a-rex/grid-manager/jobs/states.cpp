@@ -105,16 +105,9 @@ void JobsList::ChooseShare(JobsList::iterator& i) {
   if (config.use_new_data_staging || config.share_type.empty()) return;
   std::string user_proxy_file = job_proxy_filename(i->get_id(), config);
   std::string cert_dir = "/etc/grid-security/certificates";
-  std::string voms_dir = "/etc/grid-security/vomsdir";
-  std::string v;
-  v = config.cert_dir; if(!v.empty()) cert_dir = v;
-  v = config.voms_dir; if(!v.empty()) voms_dir = v;
+  if (!config.cert_dir.empty()) cert_dir = config.cert_dir;
   Arc::Credential u(user_proxy_file,"",cert_dir,"");
-  std::string voms_trust_chains = Arc::GetEnv("VOMS_TRUST_CHAINS");
-  std::vector<std::string> vomstrustlist;
-  Arc::tokenize(voms_trust_chains, vomstrustlist, "\n");
-  const std::string share = getCredentialProperty(u,config.share_type,
-                                        cert_dir,"",voms_dir,vomstrustlist);
+  const std::string share = getCredentialProperty(u,config.share_type);
   i->set_share(share);
   logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
   i->local->transfershare = i->transfer_share;
