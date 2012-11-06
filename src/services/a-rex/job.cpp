@@ -41,12 +41,17 @@
 
 using namespace ARex;
 
+Arc::Logger ARexGMConfig::logger(Arc::Logger::getRootLogger(), "ARexGMConfig");
+
 ARexGMConfig::ARexGMConfig(const GMConfig& config,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):
     config_(config),user_(uname),readonly_(false),grid_name_(grid_name),service_endpoint_(service_endpoint) {
   //if(!InitEnvironment(configfile)) return;
   // const char* uname = user_s.get_uname();
   //if((bool)job_map) uname=job_map.unix_name();
-  if(!user_) return;
+  if(!user_) {
+    logger.msg(Arc::WARNING, "Cannot handle local user %s", uname);
+    return;
+  }
   // Do substitutions on session dirs
   session_roots_ = config_.SessionRoots();
   for (std::vector<std::string>::iterator session = session_roots_.begin();

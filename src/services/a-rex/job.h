@@ -32,6 +32,7 @@ class ARexGMConfig {
   // Separate lists outside GMConfig as they can be substituted per user
   std::vector<std::string> session_roots_;
   std::vector<std::string> session_roots_non_draining_;
+  static Arc::Logger logger;
  public:
   ARexGMConfig(const GMConfig& config,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint);
   operator bool(void) const { return (bool)user_; };
