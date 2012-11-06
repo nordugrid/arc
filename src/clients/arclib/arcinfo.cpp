@@ -96,8 +96,7 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
       std::cout << *it << std::endl;
     }
     else {
-      std::cout << "Computing resource:" << std::endl;
-      std::cout << "  Name: " << (**it).Name;
+      std::cout << "Computing service: " << (**it).Name;
       if (!(**it).QualityLevel.empty()) {
         std::cout << " (" << (**it).QualityLevel << ")";
       }
