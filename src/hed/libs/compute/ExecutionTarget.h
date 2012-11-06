@@ -381,21 +381,25 @@ namespace Arc {
      **/
     ExecutionTarget(const ExecutionTarget& t) :
       Location(t.Location), AdminDomain(t.AdminDomain), ComputingService(t.ComputingService),
-      ComputingEndpoint(t.ComputingEndpoint), ComputingShare(t.ComputingShare), ComputingManager(t.ComputingManager),
-      ExecutionEnvironment(t.ExecutionEnvironment), Benchmarks(t.Benchmarks), ApplicationEnvironments(t.ApplicationEnvironments) {}
+      ComputingEndpoint(t.ComputingEndpoint), OtherEndpoints(t.OtherEndpoints),
+      ComputingShare(t.ComputingShare), ComputingManager(t.ComputingManager),
+      ExecutionEnvironment(t.ExecutionEnvironment),
+      Benchmarks(t.Benchmarks), ApplicationEnvironments(t.ApplicationEnvironments) {}
 
     ExecutionTarget(const CountedPointer<LocationAttributes>& l,
-                    const CountedPointer<AdminDomainAttributes>& a,
-                    const CountedPointer<ComputingServiceAttributes>& cse,
-                    const CountedPointer<ComputingEndpointAttributes>& ce,
-                    const CountedPointer<ComputingShareAttributes>& csh,
-                    const CountedPointer<ComputingManagerAttributes>& cm,
-                    const CountedPointer<ExecutionEnvironmentAttributes>& ee,
-                    const CountedPointer< std::map<std::string, double> >& b,
-                    const CountedPointer< std::list<ApplicationEnvironment> >& ae) :
+                      const CountedPointer<AdminDomainAttributes>& a,
+                      const CountedPointer<ComputingServiceAttributes>& cse,
+                      const CountedPointer<ComputingEndpointAttributes>& ce,
+                      const std::list< CountedPointer<ComputingEndpointAttributes> >& oe,
+                      const CountedPointer<ComputingShareAttributes>& csh,
+                      const CountedPointer<ComputingManagerAttributes>& cm,
+                      const CountedPointer<ExecutionEnvironmentAttributes>& ee,
+                      const CountedPointer< std::map<std::string, double> >& b,
+                      const CountedPointer< std::list<ApplicationEnvironment> >& ae) :
       Location(l), AdminDomain(a), ComputingService(cse),
-      ComputingEndpoint(ce), ComputingShare(csh), ComputingManager(cm),
-      ExecutionEnvironment(ee), Benchmarks(b), ApplicationEnvironments(ae) {}
+      ComputingEndpoint(ce), OtherEndpoints(oe), ComputingShare(csh),
+      ComputingManager(cm), ExecutionEnvironment(ee),
+      Benchmarks(b), ApplicationEnvironments(ae) {}
 
     /// Create an ExecutionTarget
     /**
@@ -409,6 +413,7 @@ namespace Arc {
       AdminDomain((*(ExecutionTarget*)addrptr).AdminDomain),
       ComputingService((*(ExecutionTarget*)addrptr).ComputingService),
       ComputingEndpoint((*(ExecutionTarget*)addrptr).ComputingEndpoint),
+      OtherEndpoints((*(ExecutionTarget*)addrptr).OtherEndpoints),
       ComputingShare((*(ExecutionTarget*)addrptr).ComputingShare),
       ComputingManager((*(ExecutionTarget*)addrptr).ComputingManager),
       ExecutionEnvironment((*(ExecutionTarget*)addrptr).ExecutionEnvironment),
@@ -418,8 +423,9 @@ namespace Arc {
 
     ExecutionTarget& operator=(const ExecutionTarget& et) {
       Location = et.Location; AdminDomain = et.AdminDomain; ComputingService = et.ComputingService;
-      ComputingEndpoint = et.ComputingEndpoint; ComputingShare = et.ComputingShare; ComputingManager = et.ComputingManager;
-      Benchmarks = et.Benchmarks; ExecutionEnvironment = et.ExecutionEnvironment; ApplicationEnvironments = et.ApplicationEnvironments;
+      ComputingEndpoint = et.ComputingEndpoint; ComputingEndpoint = et.ComputingEndpoint; ComputingShare = et.ComputingShare;
+      ComputingManager = et.ComputingManager; Benchmarks = et.Benchmarks;
+      ExecutionEnvironment = et.ExecutionEnvironment; ApplicationEnvironments = et.ApplicationEnvironments;
       return *this;
     }
 
@@ -456,6 +462,7 @@ namespace Arc {
     CountedPointer<AdminDomainAttributes> AdminDomain;
     CountedPointer<ComputingServiceAttributes> ComputingService;
     CountedPointer<ComputingEndpointAttributes> ComputingEndpoint;
+    std::list< CountedPointer<ComputingEndpointAttributes> > OtherEndpoints;
     CountedPointer<ComputingShareAttributes> ComputingShare;
     CountedPointer<ComputingManagerAttributes> ComputingManager;
     CountedPointer<ExecutionEnvironmentAttributes> ExecutionEnvironment;

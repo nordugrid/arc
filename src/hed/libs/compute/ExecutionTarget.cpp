@@ -37,12 +37,13 @@ namespace Arc {
       ComputingManager.empty()?
         new std::list<ApplicationEnvironment>:
         ComputingManager.begin()->second.ApplicationEnvironments);
+
     for (std::map<int, ComputingEndpointType>::const_iterator itCE = ComputingEndpoint.begin();
          itCE != ComputingEndpoint.end(); ++itCE) {
-           if (!itCE->second->Capability.count(Endpoint::GetStringForCapability(Endpoint::JOBSUBMIT)) &&
-               !itCE->second->Capability.count(Endpoint::GetStringForCapability(Endpoint::JOBCREATION))) {
-             continue;
-           }
+      if (!itCE->second->Capability.count(Endpoint::GetStringForCapability(Endpoint::JOBSUBMIT)) &&
+          !itCE->second->Capability.count(Endpoint::GetStringForCapability(Endpoint::JOBCREATION))) {
+        continue;
+      }
       if (!Attributes->OriginalEndpoint.RequestedSubmissionInterfaceName.empty()) {
         // If this endpoint has a non-preferred job interface, we skip it
         if (itCE->second->InterfaceName != Attributes->OriginalEndpoint.RequestedSubmissionInterfaceName) {
@@ -52,16 +53,27 @@ namespace Arc {
           continue;
         }
       }
+      
+      // Create list of other endpoints.
+      std::list< CountedPointer<ComputingEndpointAttributes> > OtherEndpoints;
+      for (std::map<int, ComputingEndpointType>::const_iterator itOE = ComputingEndpoint.begin();
+           itOE != ComputingEndpoint.end(); ++itOE) {
+        if (itOE == itCE) { // Dont include the current endpoint in the list of other endpoints.
+          continue;
+        }
+        OtherEndpoints.push_back(itOE->second.Attributes);
+      }
+      
       if (!itCE->second.ComputingShareIDs.empty()) {
         for (std::set<int>::const_iterator itCSIDs = itCE->second.ComputingShareIDs.begin();
              itCSIDs != itCE->second.ComputingShareIDs.end(); ++itCSIDs) {
           std::map<int, ComputingShareType>::const_iterator itCS = ComputingShare.find(*itCSIDs);
           if (itCS != ComputingShare.end()) {
             AddExecutionTarget<T>(container, ExecutionTarget(Location.Attributes, AdminDomain.Attributes,
-                                                             Attributes, itCE->second.Attributes,
-                                                             itCS->second.Attributes, computingManager,
-                                                             executionEnvironment, benchmarks,
-                                                             applicationEnvironments));
+                                                               Attributes, itCE->second.Attributes,
+                                                               OtherEndpoints, itCS->second.Attributes,
+                                                               computingManager, executionEnvironment,
+                                                               benchmarks, applicationEnvironments));
           }
         }
       }
@@ -69,10 +81,10 @@ namespace Arc {
         for (std::map<int, ComputingShareType>::const_iterator itCS = ComputingShare.begin();
              itCS != ComputingShare.end(); ++itCS) {
           AddExecutionTarget<T>(container, ExecutionTarget(Location.Attributes, AdminDomain.Attributes,
-                                                           Attributes, itCE->second.Attributes,
-                                                           itCS->second.Attributes, computingManager,
-                                                           executionEnvironment, benchmarks,
-                                                           applicationEnvironments));
+                                                             Attributes, itCE->second.Attributes,
+                                                             OtherEndpoints, itCS->second.Attributes,
+                                                             computingManager, executionEnvironment,
+                                                             benchmarks, applicationEnvironments));
         }
       } else {
         // No ComputingShares and no associations. Either it is not computing service
@@ -87,6 +99,7 @@ namespace Arc {
             AddExecutionTarget<T>(container,
                                   ExecutionTarget(Location.Attributes, AdminDomain.Attributes,
                                                   Attributes, itCE->second.Attributes,
+                                                  OtherEndpoints,
                                                   computingShare,
                                                   computingManager,
                                                   executionEnvironment,
