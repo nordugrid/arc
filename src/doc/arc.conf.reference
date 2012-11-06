@@ -223,7 +223,7 @@
 ## and [gridftpd] blocks.
 ## This variable should be used together with voms_processing.
 ## This variable will overwrite the information in *.lsc if *.lsc exists. 
-# voms_trust_chains = "
+#voms_trust_chains = "
 #       /O=Grid/O=NorduGrid/CN=host/arthur.hep.lu.se
 #       /O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority
 #       ----NEXT CHAIN---
@@ -1199,7 +1199,7 @@
 ## infoproviders need more time to process.
 ## The value is in seconds.
 ## Default is 600 seconds. 
-# infoproviders_timeout = "600"
+#infoproviders_timeout = "600"
 
 ## debug - sets the debug level/verbosity of the startup script {0 or 1}. 
 ## Default is 0. 
@@ -1367,7 +1367,7 @@
 ## This option was introduced to solve bug #2032, to reduce the number 
 ## of log files produced by BDII. It is usually not needed, but if BDII produces
 ## large logs and huge number of files, try to enable it.
-# slapd_cron_checkpoint="enable"
+#slapd_cron_checkpoint="enable"
 
 
 ####################################################################
@@ -1436,7 +1436,7 @@
 ## do not affect neither glue12 or nordugrid renderings.
 ## If the whole block is not specified, will default to an AdminDomain
 ## called UNDEFINEDVALUE.
-# [infosys/admindomain]
+#[infosys/admindomain]
 
 ## name - the Name attribute for the domain. This will show
 ## in top-BDII to group the resources belonging to this cluster.
