@@ -593,6 +593,33 @@ preferred to use common session directories.
 sessiondir="/scratch/grid"
 
 .TP
+.B scratchdir
+Path on computing node to move session directory to before execution. If
+defined should contain the path to the directory on the computing node which
+can be used to store a job’s files during execution. Sets the environment
+variable RUNTIME_LOCAL_SCRATCH_DIR. Default is not to move session directory
+before execution.
+
+.IR Example :
+scratchdir="/local/scratch/"
+
+.TP
+.B shared_scratch
+Path on frontend where scratchdir can be found. If defined should contain the
+path corresponding to that set in scratchdir as seen on the frontend machine.
+Sets the environment variable RUNTIME_FRONTEND_SEES_NODE.
+
+.IR Example :
+shared_scratch="/mnt/scratch"
+
+.TP
+.B nodename
+Command to obtain hostname of computing node.
+
+.IR Example :
+nodename="/bin/hostname"
+
+.TP
 .B runtimedir
 The directory which holds the runtime environment scripts, should be
 available on the nodes as well. The runtime environments are
@@ -1518,12 +1545,12 @@ URL to a data delivery service which can perform remote data staging
 deliveryservice="https://myhost.org:60003/datadeliveryservice"
 
 .TP
-.B localtransfer
+.B localdelivery
 If any deliveryservice is defined, this option determines whether local data
 transfer is also performed. Default is no.
 
 .IR Example :
-localtransfer="yes"
+localdelivery="yes"
 
 .TP
 .B remotesizelimit

@@ -511,6 +511,22 @@
 ## automatically detected and advertised in the information system.
 #runtimedir="/SOFTWARE/runtime"
 
+## scratchdir path - path on computing node to move session directory to before
+## execution. If defined should contain the path to the directory on the
+## computing node which can be used to store a job’s files during execution.
+## Sets the environment variable RUNTIME_LOCAL_SCRATCH_DIR. Default is not to
+## move session directory before execution.
+#scratchdir="/local/scratch/"
+
+## shared_scratch path - path on frontend where scratchdir can be found. If
+## defined should contain the path corresponding to that set in scratchdir as
+## seen on the frontend machine. Sets the environment variable
+## RUNTIME_FRONTEND_SEES_NODE.
+#shared_scratch="/mnt/scratch"
+
+## nodename path - command to obtain hostname of computing node.
+#nodename="/bin/hostname"
+
 ## cachedir cache_path [link_path] - specifies a directory to store cached
 ## data. Multiple cache directories may be specified by specifying multiple
 ## cachedir commands. Cached data will be distributed evenly over the caches.
