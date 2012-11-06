@@ -909,9 +909,9 @@
 ## data staging
 #deliveryservice="https://myhost.org:60003/datadeliveryservice"
 
-## localtransfer - If any deliveryservice is defined, this option determines
+## localdelivery - If any deliveryservice is defined, this option determines
 ## whether local data transfer is also performed. Default is no.
-#localtransfer="yes"
+#localdelivery="yes"
 
 ## remotesizelimit - Lower limit on file size (in bytes) of files that remote
 ## hosts should transfer. Can be used to increase performance by transferring
