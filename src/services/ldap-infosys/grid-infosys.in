@@ -637,14 +637,15 @@ create_arc_slapd_conf () {
 	#bdii specific schemas
 	include ${bdii_schema}
 
-	#nordugrid specific schemas
-	include ${ARC_LOCATION}/@pkgdatasubdir@/ldap-schema/nordugrid.schema
 	#glue schemas
 	include ${glueschemadir}/Glue-CORE.schema
 	include ${glueschemadir}/Glue-CE.schema
 	include ${glueschemadir}/Glue-CESEBind.schema
+	include ${glueschemadir}/Glue-MDS.schema
 	#glue2 schema
 	include ${glueschemadir}/GLUE20.schema
+	#nordugrid specific schemas
+	include ${ARC_LOCATION}/@pkgdatasubdir@/ldap-schema/nordugrid.schema
 
 	$slapd_modulepath
 	$slapd_moduleload
