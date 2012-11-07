@@ -15,7 +15,7 @@
 #include <utility>
 
 #include <arc/UserConfig.h>
-#include <arc/client/Job.h>
+#include <arc/compute/Job.h>
 */
 
 namespace Arc {

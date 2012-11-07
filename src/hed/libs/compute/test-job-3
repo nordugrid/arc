@@ -1,0 +1,8 @@
+&(executable = '/bin/cp')
+ (arguments = 'in.html' 'out.html')
+ (stdout = 'stdout')
+ (stderr = 'stderr')
+ (inputfiles = ('in.html' 'http://www.nordugrid.org/data/in.html') )
+ (outputfiles = ('out.html' '') )
+ (jobname = 'arctest3')
+ (gmlog = 'gmlog')

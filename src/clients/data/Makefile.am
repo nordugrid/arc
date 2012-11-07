@@ -3,7 +3,7 @@ bin_PROGRAMS = arccp arcls arcrm arcmkdir arcrename
 man_MANS = arccp.1 arcls.1 arcrm.1 arcmkdir.1 arcrename.1
 
 CLILIBS = \
-	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \

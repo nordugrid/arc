@@ -10,8 +10,8 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
-#include <arc/client/EndpointQueryingStatus.h>
-#include <arc/client/ExecutionTarget.h>
+#include <arc/compute/EndpointQueryingStatus.h>
+#include <arc/compute/ExecutionTarget.h>
 #include <arc/credential/Credential.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
@@ -115,6 +115,17 @@ namespace Arc {
       // Computing Service attributes
       if ((*it)["nordugrid-cluster-name"]) {
         cs->Name = (std::string)(*it)["nordugrid-cluster-name"];
+      }
+      if ((*it)["nordugrid-cluster-comment"]) {
+        std::string comment = (std::string)(*it)["nordugrid-cluster-comment"];
+        std::string prefix = "GLUE2ServiceID=";
+        std::string::size_type pos = comment.find(prefix);
+        if (pos != std::string::npos) {
+          // assuming that if there is any space, everything after that is not part of the ID anymore
+          std::string::size_type spacePos = comment.find(" ", pos);
+          if (spacePos != std::string::npos) spacePos -= pos + prefix.size();
+          cs->ID = comment.substr(pos + prefix.size(), spacePos);
+        }
       }
       cs->Type = "org.nordugrid.arc-classic";
 

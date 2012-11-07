@@ -4,7 +4,7 @@
 #include <arc/Logger.h>
 #include <arc/UserConfig.h>
 #include <arc/OptionParser.h>
-#include <arc/client/Endpoint.h>
+#include <arc/compute/Endpoint.h>
 
 #ifdef TEST
 #define RUNMAIN(X) test_##X##_main

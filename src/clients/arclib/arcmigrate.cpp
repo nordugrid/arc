@@ -13,8 +13,8 @@
 #include <arc/Logger.h>
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
-#include <arc/client/Job.h>
-#include <arc/client/JobSupervisor.h>
+#include <arc/compute/Job.h>
+#include <arc/compute/JobSupervisor.h>
 
 #include "utils.h"
 

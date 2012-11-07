@@ -4,7 +4,7 @@
 #include <config.h>
 #endif
 
-#include <arc/client/TestACCControl.h>
+#include <arc/compute/TestACCControl.h>
 
 #include "JobListRetrieverPluginTEST.h"
 

@@ -10,7 +10,7 @@ libaccARC0_la_CXXFLAGS = -I$(top_srcdir)/include \
 libaccARC0_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
 	$(top_builddir)/src/hed/libs/globusutils/libarcglobusutils.la \
-	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \

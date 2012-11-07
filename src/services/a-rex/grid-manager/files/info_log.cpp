@@ -13,7 +13,7 @@
 
 #include <arc/StringConv.h>
 #include <arc/DateTime.h>
-#include <arc/client/JobDescription.h>
+#include <arc/compute/JobDescription.h>
 #include "../jobs/job.h"
 #include "info_files.h"
 #include "../conf/GMConfig.h"

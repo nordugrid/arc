@@ -6,7 +6,7 @@
 
 #include <string.h>
 
-#include <arc/client/ExecutionTarget.h>
+#include <arc/compute/ExecutionTarget.h>
 
 #include "BenchmarkBrokerPlugin.h"
 

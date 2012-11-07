@@ -14,9 +14,9 @@
 #include <arc/CheckSum.h>
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
-#include <arc/client/ExecutionTarget.h>
-#include <arc/client/Job.h>
-#include <arc/client/JobDescription.h>
+#include <arc/compute/ExecutionTarget.h>
+#include <arc/compute/Job.h>
+#include <arc/compute/JobDescription.h>
 #include <arc/message/MCC.h>
 
 #include "SubmitterPluginARC1.h"

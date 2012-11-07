@@ -2142,8 +2142,8 @@ AH_BOTTOM([#ifdef WIN32
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/hed/Makefile
-                 src/hed/libs/client/Makefile
-                 src/hed/libs/client/test/Makefile
+                 src/hed/libs/compute/Makefile
+                 src/hed/libs/compute/test/Makefile
                  src/hed/libs/common/Makefile
                  src/hed/libs/common/test/Makefile
                  src/hed/libs/communication/Makefile

@@ -86,13 +86,13 @@ if ($ds) {
     $exclude = array(SEL_USER);
     if ( $dn == DN_LOCAL ) $thisdn = ldap_nice_dump($strings,$ds,SEL_NAME."=".$host.",".$dn,$exclude);
     if ( $dn == DN_GLUE ) {
-        $querydn = SEL_NAME."=".$host.":arex,GLUE2GroupID=resource,".DN_GLUE;//TODO: change SEL_NAME
+        $querydn = SEL_NAME."=".$host.":arex,GLUE2GroupID=services,".DN_GLUE;//TODO: change SEL_NAME
         $thisdn = ldap_nice_dump($strings,$ds,$querydn,$exclude);
     }
   } else {
     if ( $dn == DN_LOCAL ) $thisdn = ldap_nice_dump($strings,$ds,CLU_NAME."=".$host.",".$dn);
     if ( $dn == DN_GLUE  ) {
-        $querydn = "GLUE2ServiceID=urn:ogf:ComputingService:".$host.":arex,GLUE2GroupID=resource,".DN_GLUE;
+        $querydn = "GLUE2ServiceID=urn:ogf:ComputingService:".$host.":arex,GLUE2GroupID=services,".DN_GLUE;
         $thisdn = ldap_nice_dump($strings,$ds,$querydn);
     }
   }

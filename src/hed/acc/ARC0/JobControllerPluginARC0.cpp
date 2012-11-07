@@ -8,7 +8,7 @@
 #include <map>
 #include <glibmm.h>
 
-#include <arc/client/JobDescription.h>
+#include <arc/compute/JobDescription.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>

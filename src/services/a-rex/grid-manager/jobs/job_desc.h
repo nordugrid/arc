@@ -3,7 +3,7 @@
 #include <string>
 #include <iostream>
 
-#include <arc/client/JobDescription.h>
+#include <arc/compute/JobDescription.h>
 
 #include "job.h"
 

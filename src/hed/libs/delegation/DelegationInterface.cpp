@@ -687,7 +687,12 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
     return "";
   };
 
-  in = BIO_new_mem_buf((void*)(request.c_str()),request.length());
+  // Unify format of request
+  std::string prequest = request;
+  strip_PEM_request(prequest);
+  wrap_PEM_request(prequest);
+
+  in = BIO_new_mem_buf((void*)(prequest.c_str()),prequest.length());
   if(!in) goto err;
 
   if((!PEM_read_bio_X509_REQ(in,&req,NULL,NULL)) || (!req)) goto err;
@@ -1081,7 +1086,8 @@ bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,Mes
     NS ns; ns["deleg"]=EMIDS_NAMESPACE;
     PayloadSOAP req_soap(ns);
     req_soap.NewChild("deleg:getNewProxyReq");
-    if(attributes_in) attributes_in->set("SOAP:ACTION","");
+    // Axis2 wants this. No idea why.
+    //if(attributes_in) attributes_in->set("SOAP:ACTION",std::string(EMIDS_NAMESPACE)+"/Delegation/getNewProxyReqRequest");
     PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
     if(!resp_soap) return false;
     XMLNode token = (*resp_soap)["getNewProxyReqResponse"];
@@ -1160,13 +1166,15 @@ bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAt
   } else if((stype == DelegationProviderSOAP::EMIDS) ||
             (stype == DelegationProviderSOAP::EMIDSRENEW)) {
     std::string delegation = Delegate(request_,restrictions);
+    //strip_PEM_cert(delegation);
     if(delegation.empty()) return false;
     NS ns; ns["deleg"]=EMIDS_NAMESPACE;
     PayloadSOAP req_soap(ns);
     XMLNode token = req_soap.NewChild("deleg:putProxy");
-    token.NewChild("deleg:delegationID")=id_;
-    token.NewChild("deleg:proxy")=delegation;
-    if(attributes_in) attributes_in->set("SOAP:ACTION","");
+    token.NewChild("delegationID")=id_; // unqualified
+    token.NewChild("proxy")=delegation; // unqualified
+    // Axis2 wants this. No idea why.
+    //if(attributes_in) attributes_in->set("SOAP:ACTION",std::string(EMIDS_NAMESPACE)+"/Delegation/putProxyRequest");
     PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
     if(!resp_soap) return false;
     if(resp_soap->Size() > 0) {
@@ -1252,7 +1260,7 @@ class DelegationContainerSOAP::Consumer {
 #define EMIDSFAULT(out,msg) { \
   for(XMLNode old = out.Child();(bool)old;old = out.Child()) old.Destroy(); \
   XMLNode r = SOAPFault((out),SOAPFault::Receiver,"").Detail(true); \
-  XMLNode ex = r.NewChild("DelegationException"); \
+  XMLNode ex = r.NewChild("deleg:DelegationException"); \
   ex.Namespaces(ns); ex.NewChild("msg") = (msg); \
 }
 
@@ -1762,14 +1770,14 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
     };
   } else if(op_ns == EMIDS_NAMESPACE) {
     // EMI GDS
-    NS ns("",EMIDS_NAMESPACE);
+    NS ns("deleg",EMIDS_NAMESPACE);
     if(op_name == "getVersion") {
       // getVersion
       //
       // getVersionResponse
       //   getVersionReturn
       // DelegationException
-      Arc::XMLNode r = out.NewChild("getVersionResponse");
+      Arc::XMLNode r = out.NewChild("deleg:getVersionResponse");
       r.Namespaces(ns); r.NewChild("getVersionReturn")="0";
       return true;
     } else if(op_name == "getInterfaceVersion") {
@@ -1778,7 +1786,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       // getInterfaceVersionResponse
       //   getInterfaceVersionReturn
       // DelegationException
-      Arc::XMLNode r = out.NewChild("getInterfaceVersionResponse");
+      Arc::XMLNode r = out.NewChild("deleg:getInterfaceVersionResponse");
       r.Namespaces(ns); r.NewChild("getInterfaceVersionReturn")="2.1";
       return true;
     } else if(op_name == "getServiceMetadata") {
@@ -1799,7 +1807,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       // getProxyReqResponse
       //   getProxyReqReturn
       // DelegationException
-      Arc::XMLNode r = out.NewChild("getProxyReqResponse");
+      Arc::XMLNode r = out.NewChild("deleg:getProxyReqResponse");
       r.Namespaces(ns);
       std::string id = op["delegationID"];
       // check if new id or id belongs to this client
@@ -1830,7 +1838,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       //   proxyRequest
       //   delegationID
       // DelegationException
-      Arc::XMLNode r = out.NewChild("getNewProxyReqResponse");
+      Arc::XMLNode r = out.NewChild("deleg:getNewProxyReqResponse");
       r.Namespaces(ns);
       std::string id;
       DelegationConsumerSOAP* c = AddConsumer(id,client);
@@ -1891,7 +1899,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       // renewProxyReqResponse
       //   renewProxyReqReturn
       // DelegationException
-      Arc::XMLNode r = out.NewChild("renewProxyReqResponse");
+      Arc::XMLNode r = out.NewChild("deleg:renewProxyReqResponse");
       r.Namespaces(ns);
       std::string id = op["delegationID"];
       if(id.empty()) {
@@ -1926,7 +1934,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       // getTerminationTimeResponse
       //   getTerminationTimeReturn (dateTime)
       // DelegationException
-      Arc::XMLNode r = out.NewChild("getTerminationTimeResponse");
+      Arc::XMLNode r = out.NewChild("deleg:getTerminationTimeResponse");
       r.Namespaces(ns);
       std::string id = op["delegationID"];
       if(id.empty()) {
@@ -1958,7 +1966,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       //   delegationID
       //
       // DelegationException
-      Arc::XMLNode r = out.NewChild("destroyResponse");
+      Arc::XMLNode r = out.NewChild("deleg:destroyResponse");
       r.Namespaces(ns);
       std::string id = op["delegationID"];
       if(id.empty()) {

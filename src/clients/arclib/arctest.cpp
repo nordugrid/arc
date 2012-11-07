@@ -20,13 +20,13 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/Utils.h>
-#include <arc/client/ComputingServiceRetriever.h>
-#include <arc/client/Job.h>
-#include <arc/client/SubmitterPlugin.h>
-#include <arc/client/JobDescription.h>
+#include <arc/compute/ComputingServiceRetriever.h>
+#include <arc/compute/Job.h>
+#include <arc/compute/SubmitterPlugin.h>
+#include <arc/compute/JobDescription.h>
 #include <arc/credential/Credential.h>
 #include <arc/UserConfig.h>
-#include <arc/client/Broker.h>
+#include <arc/compute/Broker.h>
 
 #include "utils.h"
 

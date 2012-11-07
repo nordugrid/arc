@@ -6,7 +6,7 @@
 #include <string>
 
 #include <arc/XMLNode.h>
-#include <arc/client/Job.h>
+#include <arc/compute/Job.h>
 
 namespace Arc {
 

@@ -9,7 +9,7 @@
 
 #include <arc/ArcLocation.h>
 #include <arc/StringConv.h>
-#include <arc/client/JobDescription.h>
+#include <arc/compute/JobDescription.h>
 
 #include "../XRSLParser.h"
 

@@ -9,8 +9,8 @@
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
 #include <arc/XMLNode.h>
-#include <arc/client/EndpointQueryingStatus.h>
-#include <arc/client/ExecutionTarget.h>
+#include <arc/compute/EndpointQueryingStatus.h>
+#include <arc/compute/ExecutionTarget.h>
 #include <arc/message/MCC.h>
 
 #include "JobStateBES.h"

@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include <arc/DateTime.h>
-#include <arc/client/JobDescription.h>
+#include <arc/compute/JobDescription.h>
 
 namespace ARex {
 

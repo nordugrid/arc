@@ -3,7 +3,7 @@
 #ifndef __ARC_JOBCONTROLLERARC1_H__
 #define __ARC_JOBCONTROLLERARC1_H__
 
-#include <arc/client/JobControllerPlugin.h>
+#include <arc/compute/JobControllerPlugin.h>
 
 #include "AREXClient.h"
 

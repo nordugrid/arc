@@ -5,8 +5,8 @@
 #include <list>
 
 #include <arc/UserConfig.h>
-#include <arc/client/Broker.h>
-#include <arc/client/TestACCControl.h>
+#include <arc/compute/Broker.h>
+#include <arc/compute/TestACCControl.h>
 
 namespace Arc {
 

@@ -4,7 +4,7 @@
 #
 
 AC_DEFUN([ARC_API], [
-ARCCLIENT_LIBS='$(top_builddir)/src/hed/libs/client/libarcclient.la'
+ARCCLIENT_LIBS='$(top_builddir)/src/hed/libs/compute/libarccompute.la'
 ARCCLIENT_CFLAGS='-I$(top_srcdir)/include'
 AC_SUBST(ARCCLIENT_LIBS)
 AC_SUBST(ARCCLIENT_CFLAGS)

@@ -5,7 +5,7 @@ Test_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 Test_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 Test_LDADD    = \
 	$(top_builddir)/src/hed/libs/ws/libarcws.la \
-	$(top_builddir)/src/hed/libs/communication/libarcclient.la \
+	$(top_builddir)/src/hed/libs/communication/libarccompute.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \

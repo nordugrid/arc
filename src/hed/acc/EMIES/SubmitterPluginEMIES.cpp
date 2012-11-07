@@ -12,9 +12,9 @@
 
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
-#include <arc/client/ExecutionTarget.h>
-#include <arc/client/Job.h>
-#include <arc/client/JobDescription.h>
+#include <arc/compute/ExecutionTarget.h>
+#include <arc/compute/Job.h>
+#include <arc/compute/JobDescription.h>
 #include <arc/message/MCC.h>
 
 #include "SubmitterPluginEMIES.h"
@@ -132,12 +132,25 @@ namespace Arc {
     }
 
     bool have_uploads = false;
+    bool need_delegation = false;
     for(std::list<InputFileType>::const_iterator itIF =
           preparedjobdesc.DataStaging.InputFiles.begin();
           itIF != preparedjobdesc.DataStaging.InputFiles.end(); ++itIF) {
-      if((!itIF->Sources.empty()) && (itIF->Sources.front().Protocol() == "file")) {
-        have_uploads = true;
-        break;
+      if(need_delegation && have_uploads)  break;
+      if(!itIF->Sources.empty()) {
+        if(itIF->Sources.front().Protocol() == "file") {
+          have_uploads = true;
+        } else {
+          need_delegation = true;
+        }
+      }
+    }
+    for(std::list<OutputFileType>::const_iterator itOF =
+          preparedjobdesc.DataStaging.OutputFiles.begin();
+          itOF != preparedjobdesc.DataStaging.OutputFiles.end(); ++itOF) {
+      if(need_delegation)  break;
+      if(!itOF->Targets.empty()) {
+        need_delegation = true;
       }
     }
 
@@ -152,7 +165,7 @@ namespace Arc {
       flag = "true";
     }
 
-    if(iurl && !durl) {
+    if(iurl && !durl && need_delegation) {
       AutoPointer<EMIESClient> ac(clients.acquire(iurl));
       std::list<URL> activitycreation;
       std::list<URL> activitymanagememt;
@@ -171,11 +184,15 @@ namespace Arc {
     }
 
     std::string delegation_id;
-    if(durl) {
+    if(need_delegation) {
+      if(!durl) {
+        logger.msg(INFO, "Failed to delegate credentials to server - no delegation interface found");
+        return false;
+      }
       AutoPointer<EMIESClient> ac(clients.acquire(durl));
       delegation_id = ac->delegation();
       if(delegation_id.empty()) {
-        logger.msg(INFO, "Failed to delegate credentials to server");
+        logger.msg(INFO, "Failed to delegate credentials to server - %s",ac->failure());
         return false;
       }
       clients.release(ac.Release());

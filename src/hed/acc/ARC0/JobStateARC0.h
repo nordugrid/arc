@@ -1,7 +1,7 @@
 #ifndef __ARC_JOBSTATEARC0_H__
 #define __ARC_JOBSTATEARC0_H__
 
-#include <arc/client/JobState.h>
+#include <arc/compute/JobState.h>
 
 namespace Arc {
 

@@ -5,7 +5,7 @@
 
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
-#include <arc/client/Broker.h>
+#include <arc/compute/Broker.h>
 
 namespace Arc {
 

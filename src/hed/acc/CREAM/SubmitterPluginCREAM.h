@@ -3,7 +3,7 @@
 #ifndef __ARC_SUBMITTERPLUGINCREAM_H__
 #define __ARC_SUBMITTERPLUGINCREAM_H__
 
-#include <arc/client/SubmitterPlugin.h>
+#include <arc/compute/SubmitterPlugin.h>
 
 namespace Arc {
 

@@ -3,7 +3,7 @@
 #ifndef __ARC_SUBMITTERPLUGINUNICORE_H__
 #define __ARC_SUBMITTERPLUGINUNICORE_H__
 
-#include <arc/client/SubmitterPlugin.h>
+#include <arc/compute/SubmitterPlugin.h>
 #include <arc/XMLNode.h>
 #include <arc/loader/Loader.h>
 #include <arc/communication/ClientInterface.h>

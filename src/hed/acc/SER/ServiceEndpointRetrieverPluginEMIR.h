@@ -7,7 +7,7 @@
 
 #include <arc/UserConfig.h>
 
-#include <arc/client/EntityRetriever.h>
+#include <arc/compute/EntityRetriever.h>
 
 namespace Arc {
 

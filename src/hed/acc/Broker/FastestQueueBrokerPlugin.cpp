@@ -4,7 +4,7 @@
 #include <config.h>
 #endif
 
-#include <arc/client/ExecutionTarget.h>
+#include <arc/compute/ExecutionTarget.h>
 
 #include "FastestQueueBrokerPlugin.h"
 

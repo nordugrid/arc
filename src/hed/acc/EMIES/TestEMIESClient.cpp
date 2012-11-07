@@ -4,7 +4,7 @@
 #endif
 
 #include <arc/UserConfig.h>
-#include <arc/client/Job.h>
+#include <arc/compute/Job.h>
 #include "EMIESClient.h"
 
 /*

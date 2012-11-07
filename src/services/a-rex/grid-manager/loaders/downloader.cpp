@@ -14,8 +14,8 @@
 #include <errno.h>
 
 #include <arc/XMLNode.h>
-#include <arc/client/Job.h>
-#include <arc/client/JobControllerPlugin.h>
+#include <arc/compute/Job.h>
+#include <arc/compute/JobControllerPlugin.h>
 #include <arc/UserConfig.h>
 #include <arc/CheckSum.h>
 #include <arc/data/FileCache.h>

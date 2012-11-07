@@ -406,8 +406,17 @@ rm -rf $RPM_BUILD_ROOT
 
 %files -n mingw32-%{mingw_pkg_name}-python
 %defattr(-,root,root,-)
-%{mingw32_libdir}/python?.?/site-packages/_arc.dll*
-%{mingw32_libdir}/python?.?/site-packages/arc.py*
+%{mingw32_libdir}/python?.?/site-packages/arc/_arc.dll*
+%{mingw32_libdir}/python?.?/site-packages/arc/__init__.py*
+%{mingw32_libdir}/python?.?/site-packages/arc/common.py*
+%{mingw32_libdir}/python?.?/site-packages/arc/loader.py*
+%{mingw32_libdir}/python?.?/site-packages/arc/message.py*
+%{mingw32_libdir}/python?.?/site-packages/arc/communication.py*
+%{mingw32_libdir}/python?.?/site-packages/arc/compute.py*
+%{mingw32_libdir}/python?.?/site-packages/arc/credential.py*
+%{mingw32_libdir}/python?.?/site-packages/arc/data.py*
+%{mingw32_libdir}/python?.?/site-packages/arc/delegation.py*
+%{mingw32_libdir}/python?.?/site-packages/arc/security.py*
 %{mingw32_libdir}/python?.?/site-packages/cache
 %{mingw32_libdir}/python?.?/site-packages/echo_python
 %{mingw32_libdir}/%{pkgdir}/libpythonservice.dll*

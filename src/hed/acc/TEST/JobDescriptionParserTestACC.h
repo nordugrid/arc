@@ -1,9 +1,9 @@
 #ifndef __ARC_JOBDESCRIPTIONPARSERTESTACC_H__
 #define __ARC_JOBDESCRIPTIONPARSERTESTACC_H__
 
-#include <arc/client/JobDescription.h>
-#include <arc/client/JobDescriptionParser.h>
-#include <arc/client/TestACCControl.h>
+#include <arc/compute/JobDescription.h>
+#include <arc/compute/JobDescriptionParser.h>
+#include <arc/compute/TestACCControl.h>
 
 namespace Arc {
 

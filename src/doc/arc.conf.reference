@@ -223,7 +223,7 @@
 ## and [gridftpd] blocks.
 ## This variable should be used together with voms_processing.
 ## This variable will overwrite the information in *.lsc if *.lsc exists. 
-# voms_trust_chains = "
+#voms_trust_chains = "
 #       /O=Grid/O=NorduGrid/CN=host/arthur.hep.lu.se
 #       /O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority
 #       ----NEXT CHAIN---
@@ -511,6 +511,22 @@
 ## automatically detected and advertised in the information system.
 #runtimedir="/SOFTWARE/runtime"
 
+## scratchdir path - path on computing node to move session directory to before
+## execution. If defined should contain the path to the directory on the
+## computing node which can be used to store a job’s files during execution.
+## Sets the environment variable RUNTIME_LOCAL_SCRATCH_DIR. Default is not to
+## move session directory before execution.
+#scratchdir="/local/scratch/"
+
+## shared_scratch path - path on frontend where scratchdir can be found. If
+## defined should contain the path corresponding to that set in scratchdir as
+## seen on the frontend machine. Sets the environment variable
+## RUNTIME_FRONTEND_SEES_NODE.
+#shared_scratch="/mnt/scratch"
+
+## nodename path - command to obtain hostname of computing node.
+#nodename="/bin/hostname"
+
 ## cachedir cache_path [link_path] - specifies a directory to store cached
 ## data. Multiple cache directories may be specified by specifying multiple
 ## cachedir commands. Cached data will be distributed evenly over the caches.
@@ -715,7 +731,10 @@
 ## to check if input files requested in job's RSL are accessible 
 ## from this machine. It is better to run it before job enters cluster.
 ## It accepts 2 arguments: names of files containing RSL and credentials'
-## proxy.
+## proxy. This plugin is only guaranteed to work for job submitted through
+## the legacy GridFTP interface, as this is the only interface for which
+## credentials in the form of proxy certificate files are guaranteed to
+## exist.
 #authplugin="ACCEPTED 60 /usr/libexec/arc/inputcheck %C/job.%I.description %C/job.%I.proxy"
 
 ## The second plugin in ARC is a UR generator. Its purpose is to create
@@ -906,9 +925,9 @@
 ## data staging
 #deliveryservice="https://myhost.org:60003/datadeliveryservice"
 
-## localtransfer - If any deliveryservice is defined, this option determines
+## localdelivery - If any deliveryservice is defined, this option determines
 ## whether local data transfer is also performed. Default is no.
-#localtransfer="yes"
+#localdelivery="yes"
 
 ## remotesizelimit - Lower limit on file size (in bytes) of files that remote
 ## hosts should transfer. Can be used to increase performance by transferring
@@ -1196,7 +1215,7 @@
 ## infoproviders need more time to process.
 ## The value is in seconds.
 ## Default is 600 seconds. 
-# infoproviders_timeout = "600"
+#infoproviders_timeout = "600"
 
 ## debug - sets the debug level/verbosity of the startup script {0 or 1}. 
 ## Default is 0. 
@@ -1364,7 +1383,7 @@
 ## This option was introduced to solve bug #2032, to reduce the number 
 ## of log files produced by BDII. It is usually not needed, but if BDII produces
 ## large logs and huge number of files, try to enable it.
-# slapd_cron_checkpoint="enable"
+#slapd_cron_checkpoint="enable"
 
 
 ####################################################################
@@ -1433,7 +1452,7 @@
 ## do not affect neither glue12 or nordugrid renderings.
 ## If the whole block is not specified, will default to an AdminDomain
 ## called UNDEFINEDVALUE.
-# [infosys/admindomain]
+#[infosys/admindomain]
 
 ## name - the Name attribute for the domain. This will show
 ## in top-BDII to group the resources belonging to this cluster.

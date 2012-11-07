@@ -3,7 +3,7 @@
 #ifndef __ARC_FASTESTQUEUEBROKERPLUGIN_H__
 #define __ARC_FASTESTQUEUEBROKERPLUGIN_H__
 
-#include <arc/client/Broker.h>
+#include <arc/compute/Broker.h>
 
 namespace Arc {
 

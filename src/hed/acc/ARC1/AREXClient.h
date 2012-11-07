@@ -9,7 +9,7 @@
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
 #include <arc/XMLNode.h>
-#include <arc/client/Job.h>
+#include <arc/compute/Job.h>
 #include <arc/message/MCC.h>
 
 namespace Arc {

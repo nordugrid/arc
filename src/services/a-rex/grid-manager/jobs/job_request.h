@@ -2,7 +2,7 @@
 #define __ARC_GM_JOB_REQUEST_H__
 
 #include <string>
-#include <arc/client/JobDescription.h>
+#include <arc/compute/JobDescription.h>
 
 #include "job.h"
 

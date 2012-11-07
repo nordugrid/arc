@@ -829,8 +829,8 @@ sub collect($) {
     # Global IDs
     # ARC choices are as follows:
     # 
-    my $adID = "urn:ogf:AdminDomain:$admindomain"; # AdminDomain ID
-    my $udID = "urn:ogf:UserDomain:$userdomain" ; # UserDomain ID;
+    my $adID = "urn:ad:$admindomain"; # AdminDomain ID
+    my $udID = "urn:ud:$userdomain" ; # UserDomain ID;
     my $csvID = "urn:ogf:ComputingService:$hostname:arex"; # ComputingService ID
     my $cmgrID = "urn:ogf:ComputingManager:$hostname:$lrmsname"; # ComputingManager ID
     
@@ -3492,14 +3492,14 @@ sub collect($) {
     };
 
 
-    # returns the two branches for =grid and =resource GroupID.
+    # returns the two branches for =grid and =services GroupName.
     # It's not optimal but it doesn't break recursion
-    # GLUE2XMLprinter is affected buy that but it has been fixed.
     my $GLUE2InfoTreeRoot = sub {
-        my $treeroot = { AdminDomain => $getAdminDomain,
-			 UserDomain => $getUserDomain,
-                         ComputingService => $getComputingService,
-                         Services => $getServices
+        my $treeroot = { 
+                        AdminDomain => $getAdminDomain,
+                        UserDomain => $getUserDomain,
+                        ComputingService => $getComputingService,
+                        Services => $getServices
                        };
         return $treeroot;
     };

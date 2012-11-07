@@ -27,5 +27,5 @@ jobplugin_la_LIBADD = \
 	../log/liblog.la ../files/libfiles.la ../run/librun.la \
 	../../delegation/libdelegation.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
-	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(DBCXX_LIBS) $(GLOBUS_JOBPLUGIN_LIBS) -lpthread

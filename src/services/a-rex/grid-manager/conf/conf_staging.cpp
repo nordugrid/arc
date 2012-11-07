@@ -120,9 +120,9 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
         return false;
       }
     }
-    else if (command == "maxretries") {
+    else if (command == "maxtransfertries") {
       if (!paramToInt(config_next_arg(rest), max_retries)) {
-        logger.msg(Arc::ERROR, "Bad number in maxretries");
+        logger.msg(Arc::ERROR, "Bad number in maxtransfertries");
         return false;
       }
     }

@@ -1,7 +1,7 @@
 #ifndef __ARC_TARGETINFORMATIONRETRIEVERPLUGINTEST_H__
 #define __ARC_TARGETINFORMATIONRETRIEVERPLUGINTEST_H__
 
-#include <arc/client/EntityRetriever.h>
+#include <arc/compute/EntityRetriever.h>
 #include <arc/loader/Plugin.h>
 
 namespace Arc {

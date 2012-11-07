@@ -6,7 +6,7 @@
 #include <list>
 #include <string>
 
-#include <arc/client/JobDescriptionParser.h>
+#include <arc/compute/JobDescriptionParser.h>
 
 /** XRSLParser
  * The XRSLParser class, derived from the JobDescriptionParser class, is a

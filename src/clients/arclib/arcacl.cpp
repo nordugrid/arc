@@ -11,14 +11,14 @@
 #include <arc/ArcLocation.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
-#include <arc/client/JobControllerPlugin.h>
+#include <arc/compute/JobControllerPlugin.h>
 #include <arc/UserConfig.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/URLMap.h>
 /*
 #include <arc/StringConv.h>
-#include <arc/client/JobSupervisor.h>
+#include <arc/compute/JobSupervisor.h>
 */
 
 #include "utils.h"

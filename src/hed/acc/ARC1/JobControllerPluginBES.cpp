@@ -9,7 +9,7 @@
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
 #include <arc/XMLNode.h>
-#include <arc/client/JobDescription.h>
+#include <arc/compute/JobDescription.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/URLMap.h>

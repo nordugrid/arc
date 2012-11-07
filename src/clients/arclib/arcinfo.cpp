@@ -9,12 +9,12 @@
 #include <string>
 
 #include <arc/ArcLocation.h>
-#include <arc/client/Endpoint.h>
+#include <arc/compute/Endpoint.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
-#include <arc/client/ComputingServiceRetriever.h>
+#include <arc/compute/ComputingServiceRetriever.h>
 
 #include "utils.h"
 
@@ -96,8 +96,7 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
       std::cout << *it << std::endl;
     }
     else {
-      std::cout << "Computing resource:" << std::endl;
-      std::cout << "  Name: " << (**it).Name;
+      std::cout << "Computing service: " << (**it).Name;
       if (!(**it).QualityLevel.empty()) {
         std::cout << " (" << (**it).QualityLevel << ")";
       }
@@ -105,17 +104,12 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
       std::cout << "  Information endpoint: " << (**it).Cluster.str() << std::endl;
       for (std::map<int, Arc::ComputingEndpointType>::const_iterator itCE = it->ComputingEndpoint.begin();
            itCE != it->ComputingEndpoint.end(); ++itCE) {
-        if (itCE->second->Capability.empty()) {
-          std::cout << "  Submission endpoint: " << itCE->second->URLString << " (status: " << itCE->second->HealthState << ")" << std::endl;
-        }
-        else {
-          for (std::set<std::string>::const_iterator itC = itCE->second->Capability.begin();
-               itC != itCE->second->Capability.end(); ++itC) {
-            if (*itC == "executionmanagement.jobexecution") {
-              std::cout << "  Submission endpoint: " << itCE->second->URLString << " (status: " << itCE->second->HealthState << ")" << std::endl;
-            }
-          }
-        }
+         if (itCE->second->Capability.empty() ||
+             itCE->second->Capability.count(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::JOBSUBMIT)) ||
+             itCE->second->Capability.count(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::JOBCREATION)))
+         {
+           std::cout << "  Submission endpoint: " << itCE->second->URLString << " (status: " << itCE->second->HealthState << ", interface: " << itCE->second->InterfaceName << ")" << std::endl;           
+         }
       }
     }
   }

@@ -1,0 +1,15 @@
+&(executable=run.sh)
+ (arguments=%d)
+ (inputfiles=
+    ('run.sh' 'http://www.nordugrid.org;cache=no/data/run.sh')
+    ('Makefile' 'ftp://ftp.nordugrid.org;cache=no/applications/test/Makefile')
+    ('prime.cpp' 'ftp://ftp.nordugrid.org;cache=no/applications/test/prime.cpp')
+ )
+ (stderr=primenumbers)
+ (outputfiles=
+    ('primenumbers' '')
+ )
+ (jobname='arctest1')
+ (stdout=stdout)
+ (gmlog=gmlog)
+ (CPUTime=%d)

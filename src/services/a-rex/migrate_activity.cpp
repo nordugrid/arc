@@ -5,7 +5,7 @@
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/ws-addressing/WSA.h>
 // #include "../../hed/acc/ARC1/AREXClient.h"
-#include "../../hed/libs/client/JobDescription.h"
+#include "../../hed/libs/compute/JobDescription.h"
 #include "job.h"
 
 #include "arex.h"

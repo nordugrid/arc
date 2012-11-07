@@ -8,8 +8,8 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
-#include <arc/client/ExecutionTarget.h>
-#include <arc/client/EndpointQueryingStatus.h>
+#include <arc/compute/ExecutionTarget.h>
+#include <arc/compute/EndpointQueryingStatus.h>
 
 #include "TargetInformationRetrieverPluginBES.h"
 

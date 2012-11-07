@@ -14,6 +14,13 @@ noinst_PROGRAMS = perftest \
 endif
 endif
 
+if WIN32
+# On WIN32 the win32.h header file is needed.
+include_arc_headers_win32 = -I$(top_srcdir)/include
+else
+include_arc_headers_win32 = 
+endif
+
 perftest_SOURCES = perftest.cpp
 perftest_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
 perftest_LDADD = \
@@ -94,13 +101,13 @@ perftest_deleg_bydelegclient_LDADD = \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 perftest_cmd_duration_SOURCES = perftest_cmd_duration.cpp
-perftest_cmd_duration_CXXFLAGS = \
+perftest_cmd_duration_CXXFLAGS = $(include_arc_headers_win32) \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
 perftest_cmd_duration_LDADD = \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 perftest_cmd_times_SOURCES = perftest_cmd_times.cpp
-perftest_cmd_times_CXXFLAGS = \
+perftest_cmd_times_CXXFLAGS = $(include_arc_headers_win32) \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
 perftest_cmd_times_LDADD = \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)

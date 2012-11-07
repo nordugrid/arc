@@ -7,7 +7,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include "../BenchmarkBrokerPlugin.cpp"
-#include <arc/client/ExecutionTarget.h>
+#include <arc/compute/ExecutionTarget.h>
 
 class BenchmarkBrokerTest
   : public CppUnit::TestFixture {
