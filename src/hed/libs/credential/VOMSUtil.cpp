@@ -820,13 +820,13 @@ err:
       if(!current) return false;
       std::string sub_name = x509name2ascii(X509_get_subject_name(current));
       if(chain[n] != sub_name) {
-        CredentialLogger.msg(ERROR,"VOMS: the DN in certificate: %s does not match that in trusted DN list: %s",
+        CredentialLogger.msg(INFO,"VOMS: the DN in certificate: %s does not match that in trusted DN list: %s",
           sub_name, chain[n]);
         return false;
       }
       std::string iss_name = x509name2ascii(X509_get_issuer_name(current));
       if(chain[n+1] != iss_name) {
-        CredentialLogger.msg(ERROR,"VOMS: the Issuer identity in certificate: %s does not match that in trusted DN list: %s",
+        CredentialLogger.msg(INFO,"VOMS: the Issuer identity in certificate: %s does not match that in trusted DN list: %s",
           iss_name, chain[n+1]);
         return false;
       }
