@@ -297,10 +297,17 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
     preferredInterfaceNames.push_back(usercfg.InfoInterface());
   }
 
-  Arc::ComputingServiceRetriever csr(usercfg, services, usercfg.RejectDiscoveryURLs(), preferredInterfaceNames);
+  Arc::ComputingServiceUniq csu;
+  Arc::ComputingServiceRetriever csr(usercfg, std::list<Arc::Endpoint>(), usercfg.RejectDiscoveryURLs(), preferredInterfaceNames);
+  csr.addConsumer(csu);
+  for (std::list<Arc::Endpoint>::const_iterator it = services.begin(); it != services.end(); it++) {
+    csr.addEndpoint(*it);
+  }
   csr.wait();
+  std::list<Arc::ComputingServiceType> CEs = csu.getServices();
 
-  if (csr.empty()) {
+
+  if (CEs.empty()) {
     std::cout << Arc::IString("Dumping job description aborted because no resource returned any information") << std::endl;
     return 1;
   }
@@ -311,7 +318,7 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
     return 1;
   }
 
-  Arc::ExecutionTargetSorter ets(broker, csr);
+  Arc::ExecutionTargetSorter ets(broker, CEs);
   std::list<Arc::JobDescription>::const_iterator itJAlt; // Iterator to use for alternative job descriptions.
   for (std::list<Arc::JobDescription>::const_iterator itJ = jobdescriptionlist.begin();
        itJ != jobdescriptionlist.end(); ++itJ) {

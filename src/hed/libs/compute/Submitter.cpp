@@ -121,12 +121,19 @@ namespace Arc {
       preferredInterfaceNames.push_back(uc.InfoInterface());
     }
 
-    ComputingServiceRetriever csr(uc, endpoints, uc.RejectDiscoveryURLs(), preferredInterfaceNames);
+    Arc::ComputingServiceUniq csu;
+    Arc::ComputingServiceRetriever csr(uc, std::list<Arc::Endpoint>(), uc.RejectDiscoveryURLs(), preferredInterfaceNames);
+    csr.addConsumer(csu);
+    for (std::list<Arc::Endpoint>::const_iterator it = endpoints.begin(); it != endpoints.end(); it++) {
+      csr.addEndpoint(*it);
+    }
     csr.wait();
+
+    std::list<Arc::ComputingServiceType> services = csu.getServices();
 
     queryingStatusMap = csr.getAllStatuses();
   
-    if (csr.empty()) {
+    if (services.empty()) {
       for (std::list<JobDescription>::const_iterator it = descs.begin();
            it != descs.end(); ++it) {
         notsubmitted.push_back(&*it);
@@ -145,7 +152,7 @@ namespace Arc {
 
     SubmissionStatus retval;
     ConsumerWrapper cw(*this);
-    ExecutionTargetSorter ets(broker, csr);
+    ExecutionTargetSorter ets(broker, services);
     std::list<JobDescription>::const_iterator itJAlt; // Iterator to use for alternative job descriptions.
     for (std::list<JobDescription>::const_iterator itJ = descs.begin();
          itJ != descs.end(); ++itJ) {
