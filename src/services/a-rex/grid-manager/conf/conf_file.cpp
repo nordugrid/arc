@@ -132,10 +132,13 @@ bool configure_serviced_users(JobUsers &users/*,uid_t my_uid,const std::string &
       //but also used by other services (e.g., gridftp service),
       //the value is set as environment variables.
       Arc::SetEnv("VOMS_PROCESSING", voms_processing.c_str());
-    }
-    if(command == "voms_trust_chains") {
-      std::string voms_trust_chains = config_next_arg(rest);
-      Arc::SetEnv("VOMS_TRUST_CHAINS", voms_trust_chains.c_str());
+    } else if(command == "voms_trust_chain") {
+      // There could be multiple "voms_trust_chain" for multiple voms servers
+      std::string voms_trust_chains = Arc::GetEnv("VOMS_TRUST_CHAINS");
+      std::string voms_trust_chain = config_next_arg(rest);
+      if(!voms_trust_chains.empty()) voms_trust_chains.append("\n").append(voms_trust_chain);
+      else voms_trust_chains = voms_trust_chain;
+      Arc::SetEnv("VOMS_TRUST_CHAINS",voms_trust_chains.c_str());
     }
     if(command == "runtimedir") {
       users.Env().runtime_config_dir(rest);

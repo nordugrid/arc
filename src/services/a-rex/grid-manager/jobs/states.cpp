@@ -90,9 +90,40 @@ void JobsList::ChooseShare(JobsList::iterator& i, const JobsListConfig& jcfg, Jo
   v = user->Env().cert_dir_loc(); if(!v.empty()) cert_dir = v;
   v = user->Env().voms_dir_loc(); if(!v.empty()) voms_dir = v;
   Arc::Credential u(user_proxy_file,"",cert_dir,"");
+
   std::string voms_trust_chains = Arc::GetEnv("VOMS_TRUST_CHAINS");
+  logger.msg(Arc::INFO, "VOMS trust chains: %s", voms_trust_chains);
+
   std::vector<std::string> vomstrustlist;
-  Arc::tokenize(voms_trust_chains, vomstrustlist, "\n");
+
+  std::vector<std::string> vomstrustchains;
+  Arc::tokenize(voms_trust_chains, vomstrustchains, "\n");
+  for(size_t j=0; j<vomstrustchains.size(); j++) {
+    std::vector<std::string> vomstrust_dns;
+    std::string trust_chain = vomstrustchains[j];
+    std::string::size_type p1, p2=0;
+    while(1) {
+      p1 = trust_chain.find("\"", p2);
+      if(p1!=std::string::npos) {
+        p2 = trust_chain.find("\"", p1+1);
+        if(p2!=std::string::npos) {
+          std::string str = trust_chain.substr(p1+1, p2-p1-1);
+          vomstrust_dns.push_back(str);
+          p2++; if(trust_chain[p2] == '\n') break;
+        }
+      }
+      if((p1==std::string::npos) || (p2==std::string::npos)) break;
+    }
+    if(!vomstrust_dns.empty()) {
+      if(vomstrustlist.empty())
+        vomstrustlist.insert(vomstrustlist.begin(), vomstrust_dns.begin(), vomstrust_dns.end());
+      else {
+        vomstrustlist.push_back("----NEXT CHAIN---");
+        vomstrustlist.insert(vomstrustlist.end(), vomstrust_dns.begin(), vomstrust_dns.end());
+      }
+    }
+  }
+
   const std::string share = getCredentialProperty(u,jcfg.share_type,
                                         cert_dir,"",voms_dir,vomstrustlist);
   i->set_share(share);
