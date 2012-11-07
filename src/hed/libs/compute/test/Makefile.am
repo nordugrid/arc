@@ -2,7 +2,7 @@ TESTS = SoftwareTest JobTest JobStateTest BrokerTest JobDescriptionTest \
 	JobControllerPluginTest JobDescriptionParserTest SubmitterTest SubmitterPluginTest \
 	JobSupervisorTest TargetInformationRetrieverTest \
 	ServiceEndpointRetrieverTest JobListRetrieverTest \
-	ExecutionTargetTest
+	ExecutionTargetTest ComputingServiceUniqTest
 
 check_PROGRAMS = $(TESTS)
 
@@ -130,4 +130,12 @@ ExecutionTargetTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+
+ComputingServiceUniqTest_SOURCES = $(top_srcdir)/src/Test.cpp \
+	ComputingServiceUniqTest.cpp
+ComputingServiceUniqTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+ComputingServiceUniqTest_LDADD = \
+	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
