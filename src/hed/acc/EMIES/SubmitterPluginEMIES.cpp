@@ -74,7 +74,7 @@ namespace Arc {
     // separate service. Currently existing framework does not provide possibility
     // to collect this information. So service is re-queried again here.
     URL iurl;
-    iurl = et.ComputingService->OriginalEndpoint.URLString;
+    iurl = et.ComputingService->InformationOriginEndpoint.URLString;
     if(!iurl) iurl = et.ComputingService->Cluster;
     
     URL durl;

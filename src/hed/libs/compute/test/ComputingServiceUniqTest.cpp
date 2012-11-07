@@ -61,13 +61,13 @@ void ComputingServiceUniqTest::KeepHigherPriorityService() {
   cs1->Type = "lower";
   Arc::Endpoint origin1;
   origin1.InterfaceName = "org.nordugrid.ldapng";
-  cs1->OriginalEndpoint = origin1;
+  cs1->InformationOriginEndpoint = origin1;
   Arc::ComputingServiceType cs2;
   cs2->ID = "ID";
   cs2->Type = "higher";
   Arc::Endpoint origin2;
   origin2.InterfaceName = "org.nordugrid.ldapglue2";
-  cs2->OriginalEndpoint = origin2;
+  cs2->InformationOriginEndpoint = origin2;
   Arc::ComputingServiceUniq csu;
   csu.addEntity(cs1);
   csu.addEntity(cs2);

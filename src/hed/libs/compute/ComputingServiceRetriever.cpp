@@ -22,19 +22,19 @@ namespace Arc {
           priority["org.ogf.glue.emies.resourceinfo"] = 2;
           priority["org.nordugrid.wsrfglue2"] = 1;
           // If the new service has higher priority, we replace the previous one with the same ID, otherwise we ignore it
-          if (priority[service->OriginalEndpoint.InterfaceName] > priority[(*it)->OriginalEndpoint.InterfaceName]) {
-            logger.msg(DEBUG, "Uniq is replacing service coming from %s with service coming from %s", (*it)->OriginalEndpoint.str(), service->OriginalEndpoint.str());
+          if (priority[service->InformationOriginEndpoint.InterfaceName] > priority[(*it)->InformationOriginEndpoint.InterfaceName]) {
+            logger.msg(DEBUG, "Uniq is replacing service coming from %s with service coming from %s", (*it)->InformationOriginEndpoint.str(), service->InformationOriginEndpoint.str());
             (*it) = service;
             return;
           } else {
-            logger.msg(DEBUG, "Uniq is ignoring service coming from %s", service->OriginalEndpoint.str());
+            logger.msg(DEBUG, "Uniq is ignoring service coming from %s", service->InformationOriginEndpoint.str());
             return;
           }
         }
       }      
     }
     // If none of the previously added services have the same ID, then we add this one as a new service
-    logger.msg(DEBUG, "Uniq is adding service coming from %s", service->OriginalEndpoint.str());
+    logger.msg(DEBUG, "Uniq is adding service coming from %s", service->InformationOriginEndpoint.str());
     services.push_back(service);
   }
 

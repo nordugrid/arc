@@ -44,12 +44,12 @@ namespace Arc {
           !itCE->second->Capability.count(Endpoint::GetStringForCapability(Endpoint::JOBCREATION))) {
         continue;
       }
-      if (!Attributes->OriginalEndpoint.RequestedSubmissionInterfaceName.empty()) {
+      if (!Attributes->InformationOriginEndpoint.RequestedSubmissionInterfaceName.empty()) {
         // If this endpoint has a non-preferred job interface, we skip it
-        if (itCE->second->InterfaceName != Attributes->OriginalEndpoint.RequestedSubmissionInterfaceName) {
+        if (itCE->second->InterfaceName != Attributes->InformationOriginEndpoint.RequestedSubmissionInterfaceName) {
           logger.msg(INFO,
             "Skipping ComputingEndpoint '%s', because it has '%s' interface instead of the requested '%s'.",
-            itCE->second->URLString, itCE->second->InterfaceName, Attributes->OriginalEndpoint.RequestedSubmissionInterfaceName);
+            itCE->second->URLString, itCE->second->InterfaceName, Attributes->InformationOriginEndpoint.RequestedSubmissionInterfaceName);
           continue;
         }
       }

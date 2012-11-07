@@ -248,7 +248,7 @@ namespace Arc {
       cs->Cluster.ChangeLDAPScope(URL::base); // Reset scope
       cs->Cluster.ChangeLDAPFilter(""); // and filter.
 
-      cs->OriginalEndpoint = ce;
+      cs->InformationOriginEndpoint = ce;
 
       // GFD.147 GLUE2 5.3 Location
       Extractor location = Extractor::First(service, "Location");

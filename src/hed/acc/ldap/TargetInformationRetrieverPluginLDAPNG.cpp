@@ -111,7 +111,7 @@ namespace Arc {
       cs->Cluster.ChangeLDAPScope(URL::base); // Reset scope
       cs->Cluster.ChangeLDAPFilter(""); // and filter.
 
-      cs->OriginalEndpoint = cie;
+      cs->InformationOriginEndpoint = cie;
       // Computing Service attributes
       if ((*it)["nordugrid-cluster-name"]) {
         cs->Name = (std::string)(*it)["nordugrid-cluster-name"];

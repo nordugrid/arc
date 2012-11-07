@@ -292,7 +292,7 @@ namespace Arc {
 
     // Other
     URL Cluster; // contains the URL of the infosys that provided the info
-    Endpoint OriginalEndpoint; // this ComputingService was generated while this Endpoint was queried
+    Endpoint InformationOriginEndpoint; // this ComputingService was generated while this Endpoint was queried
 
     friend std::ostream& operator<<(std::ostream& out, const ComputingServiceAttributes& cs);
   };
