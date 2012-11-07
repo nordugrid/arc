@@ -764,20 +764,32 @@ int main(int argc, char *argv[]) {
         std::cout << "VO        : "<<voms_attributes[n].voname << std::endl;
         std::cout << "subject   : "<<voms_attributes[n].holder << std::endl;
         std::cout << "issuer    : "<<voms_attributes[n].issuer << std::endl;
+        bool found_uri = false;
         for(int i = 0; i < voms_attributes[n].attributes.size(); i++) {
           std::string attr = voms_attributes[n].attributes[i];
           std::string::size_type pos;
-          if((pos = attr.find("role")) != std::string::npos) {
-            std::string str = attr.substr(pos+5);
-            std::cout << "attribute : role = " << str << " (" << voms_attributes[n].voname << ")"<<std::endl; 
-          }
-          else if((pos = attr.find("hostname")) != std::string::npos) {
+          if((pos = attr.find("hostname=")) != std::string::npos) {
+            if(found_uri) continue;
             std::string str = attr.substr(pos+9);
+            std::string::size_type pos1 = str.find("/");
+            if(pos1 != std::string::npos) str = str.substr(0, pos1);
             std::cout << "uri       : " << str <<std::endl;
+            found_uri = true;
           }
-          else
-            std::cout << "attribute : " << attr <<std::endl;
- 
+          else {
+            if(attr.find("Role=") == std::string::npos)
+              std::cout << "attribute : " << attr <<"/Role=NULL/Capability=NULL" <<std::endl;
+            else if(attr.find("Capability=") == std::string::npos)
+              std::cout << "attribute : " << attr <<"/Capability=NULL" <<std::endl;
+            else
+              std::cout << "attribute : " << attr <<std::endl;
+          }
+
+          if((pos = attr.find("Role=")) != std::string::npos) {
+            std::string str = attr.substr(pos+5);
+            std::cout << "attribute : role = " << str << " (" << voms_attributes[n].voname << ")"<<std::endl;
+          }
+
           //std::cout << "attribute : "<<voms_attributes[n].attributes[i]<<std::endl;
           //do not display those attributes that have already been displayed 
           //(this can happen when there are multiple voms server )
