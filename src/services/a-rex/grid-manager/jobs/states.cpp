@@ -1880,4 +1880,30 @@ bool JobsList::ScanAllJobs(void) {
   return true;
 }
 
+bool JobsList::AddJob(const JobId& id) {
+  if(FindJob(id) != jobs.end()) return true;
+  std::list<std::string> subdirs;
+  subdirs.push_back("/restarting"); // For picking up jobs after service restart
+  subdirs.push_back("/accepting");  // For new jobs
+  subdirs.push_back("/processing"); // For active jobs
+  subdirs.push_back("/finished");   // For done jobs
+  for(std::list<std::string>::iterator subdir = subdirs.begin();
+                               subdir != subdirs.end();++subdir) {
+    std::string cdir=config.control_dir;
+    std::list<JobFDesc> ids;
+    std::string odir=cdir+(*subdir);
+    std::string fname=odir+'/'+"job."+id+".status";
+    uid_t uid;
+    gid_t gid;
+    time_t t;
+    if(check_file_owner(fname,uid,gid,t)) {
+      // add it to the list
+      iterator i;
+      AddJobNoCheck(id,uid,gid);
+      return true;
+    }
+  }
+  return false;
+}
+
 } // namespace ARex

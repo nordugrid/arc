@@ -18,6 +18,8 @@
 #include "files/info_files.h"
 #include "jobs/commfifo.h"
 #include "jobs/states.h"
+#include "../delegation/DelegationStore.h"
+#include "../delegation/DelegationStores.h"
 
 using namespace ARex;
 
@@ -70,7 +72,7 @@ class counters_t {
 
 const unsigned int counters_t::jobs_pending = 0;
 
-static bool match_list(const std::string& arg, std::list<std::string>& args, bool erase) {
+static bool match_list(const std::string& arg, std::list<std::string>& args, bool erase = false) {
   for(std::list<std::string>::const_iterator a = args.begin();
                                              a != args.end(); ++a) {
     if(*a == arg) {
@@ -142,7 +144,7 @@ int main(int argc, char* argv[]) {
 
   std::list<std::string> filter_users;
   options.AddOption('f', "filteruser",
-		    istring("show only jobs of user(s) with specified DN(s)"),
+		    istring("show only jobs of user(s) with specified subject name(s)"),
 		    istring("dn"), filter_users);
 
   std::list<std::string> cancel_jobs;
@@ -152,7 +154,7 @@ int main(int argc, char* argv[]) {
 
   std::list<std::string> cancel_users;
   options.AddOption('K', "killuser",
-                    istring("request to cancel jobs belonging to user(s) with specified DN(s)"),
+                    istring("request to cancel jobs belonging to user(s) with specified subject name(s)"),
                     istring("dn"), cancel_users);
 
   std::list<std::string> clean_jobs;
@@ -162,8 +164,24 @@ int main(int argc, char* argv[]) {
 
   std::list<std::string> clean_users;
   options.AddOption('R', "remuser",
-                    istring("request to clean jobs belonging to user(s) with specified DN(s)"),
+                    istring("request to clean jobs belonging to user(s) with specified subject name(s)"),
                     istring("dn"), clean_users);
+
+  std::list<std::string> filter_jobs;
+  options.AddOption('j', "filterjob",
+                    istring("show only jobs with specified id(s)"),
+                    istring("id"), filter_jobs);
+
+  bool show_delegs = false;
+  options.AddOption('e', "listdelegs",
+		    istring("print list of available delegation ids"),
+		    show_delegs);
+
+  std::list<std::string> show_deleg_ids;
+  options.AddOption('E', "showdeleg",
+                    istring("print delegation token of specified id(s)"),
+                    istring("id"), show_deleg_ids);
+
 
   std::list<std::string> params = options.Parse(argc, argv);
 
@@ -214,7 +232,13 @@ int main(int argc, char* argv[]) {
       get_new_data_staging_shares(config, share_preparing, share_preparing_pending,
                                   share_finishing, share_finishing_pending);
     }
-    jobs.ScanAllJobs();
+    if(filter_jobs.size() > 0) {
+      for(std::list<std::string>::iterator id = filter_jobs.begin(); id != filter_jobs.end(); ++id) {
+        jobs.AddJob(*id);
+      }
+    } else {
+      jobs.ScanAllJobs();
+    }
     for (JobsList::iterator i=jobs.begin(); i!=jobs.end(); ++i) {
       // Collecting information
       bool pending;
@@ -241,20 +265,20 @@ int main(int argc, char* argv[]) {
           if (job_lrms_mark_check(jobid,config)) share_finishing_pending[job_desc.transfershare]++;
         }
       }
-      if(match_list(job_desc.DN,cancel_users,false)) {
+      if(match_list(job_desc.DN,cancel_users)) {
         cancel_jobs_list.push_back(&(*i));
       }
-      if(match_list(i->get_id(),cancel_jobs,false)) {
+      if(match_list(i->get_id(),cancel_jobs)) {
         cancel_jobs_list.push_back(&(*i));
       }
-      if(match_list(job_desc.DN,clean_users,false)) {
+      if(match_list(job_desc.DN,clean_users)) {
         clean_jobs_list.push_back(&(*i));
       }
-      if(match_list(i->get_id(),clean_jobs,false)) {
+      if(match_list(i->get_id(),clean_jobs)) {
         clean_jobs_list.push_back(&(*i));
       }
       // Printing information
-      if((filter_users.size() > 0) && (!match_list(job_desc.DN,filter_users,false))) continue;
+      if((filter_users.size() > 0) && (!match_list(job_desc.DN,filter_users))) continue;
       if((!show_share) && (!notshow_jobs)) std::cout << "Job: "<<i->get_id();
       if(!notshow_jobs) {
         if (!long_list) {
@@ -274,6 +298,7 @@ int main(int argc, char* argv[]) {
           std::cout<<"\tName: "<<job_desc.jobname<<std::endl;
         if (!job_desc.clientname.empty())
           std::cout<<"\tFrom: "<<job_desc.clientname<<std::endl;
+        // TODO: print whole local
       }
     }
   }
@@ -315,6 +340,33 @@ int main(int argc, char* argv[]) {
     counters[JOB_STATE_PREPARING]-counters_pending[JOB_STATE_PREPARING]<<"+"<<
     counters[JOB_STATE_FINISHING]-counters_pending[JOB_STATE_FINISHING]<<"/"<<
     config.MaxJobsStaging()<<"+"<<config.MaxStagingEmergency()<<std::endl;
+  }
+
+  if(show_delegs || (show_deleg_ids.size() > 0)) {
+    ARex::DelegationStores dstores;
+    ARex::DelegationStore& dstore = dstores[config.ControlDir()+"/delegations"];
+    std::list<std::pair<std::string,std::string> > creds = dstore.ListCredIDs();
+    for(std::list<std::pair<std::string,std::string> >::iterator cred = creds.begin();
+                                     cred != creds.end(); ++cred) {
+      if((filter_users.size() > 0) && (!match_list(cred->second,filter_users))) continue;
+      if(show_delegs) {
+        std::cout<<"Delegation: "<<cred->first<<std::endl;
+        std::cout<<"\tUser: "<<cred->second<<std::endl;
+      }
+      if(show_deleg_ids.size() > 0) {
+        // TODO: optimize to avoid full scanning.
+        if(match_list(cred->first,show_deleg_ids)) {
+          std::string tokenpath = dstore.FindCred(cred->first,cred->second);
+          if(!tokenpath.empty()) {
+            std::string token;
+            if(Arc::FileRead(tokenpath,token) && (!token.empty())) {
+              std::cout<<"Delegation: "<<cred->first<<", "<<cred->second<<std::endl;
+              std::cout<<token<<std::endl;
+            }
+          }
+        }
+      }
+    }
   }
   if(show_service) {
     std::cout<<" Service state: "<<(service_alive?"alive":"not detected")<<std::endl;
