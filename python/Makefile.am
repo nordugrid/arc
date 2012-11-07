@@ -41,7 +41,7 @@ ARCLIBS = \
 	$(top_builddir)/src/libs/data-staging/libarcdatastaging.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
 
-_arc_la_SOURCES = swigmodulesinit_wrap.cpp
+_arc_la_SOURCES = swigmodulesinit_wrap.cpp arc_init.cpp
 nodist__arc_la_SOURCES = $(ARCWRAPPERS)
 _arc_la_CXXFLAGS = -include ../config.h -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(PYTHON_CFLAGS) \
@@ -50,7 +50,7 @@ _arc_la_LIBADD = \
 	$(ARCLIBS) $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(PYTHON_LIBS)
 _arc_la_LDFLAGS = -no-undefined -avoid-version -module
 
-alt__arc_la_SOURCES = swigmodulesinit_wrap.cpp
+alt__arc_la_SOURCES = swigmodulesinit_wrap.cpp arc_init.cpp
 nodist_alt__arc_la_SOURCES = $(ARCWRAPPERS)
 alt__arc_la_CXXFLAGS = -include ../config.h -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(ALTPYTHON_CFLAGS) \
