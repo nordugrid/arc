@@ -10,37 +10,33 @@
 
 #include "../files/info_files.h"
 #include "../run/run_parallel.h"
-#include "../conf/environment.h"
 #include "../mail/send_mail.h"
 #include "../log/job_log.h"
 #include "../misc/proxy.h"
 #include "../../delegation/DelegationStores.h"
 #include "../../delegation/DelegationStore.h"
+#include "../conf/GMConfig.h"
 
-#include "job_request.h"
-#include "users.h"
-#include "job.h"
 #include "plugins.h"
 #include "dtr_generator.h"
-#include "job_config.h"
 #include "states.h"
+
+namespace ARex {
+
+/* max time to run submit-*-job/cancel-*-job before to
+   start looking for alternative way to detect result.
+   Only for protecting against lost child. */
+#define CHILD_RUN_TIME_SUSPICIOUS (10*60)
+/* max time to run submit-*-job/cancel-*-job before to
+   decide that it is gone.
+   Only for protecting against lost child. */
+#define CHILD_RUN_TIME_TOO_LONG (60*60)
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-#ifdef NO_GLOBUS_CODE
-ContinuationPlugins::ContinuationPlugins(void) { }
-ContinuationPlugins::~ContinuationPlugins(void) { }
-bool ContinuationPlugins::add(const char* state,unsigned int timeout,const char* command) { return true; }
-bool ContinuationPlugins::add(job_state_t state,unsigned int timeout,const char* command) { return true; }
-bool ContinuationPlugins::add(const char* state,const char* options,const char* command) { return true; }
-bool ContinuationPlugins::add(job_state_t state,const char* options,const char* command) { return true; }
-void ContinuationPlugins::run(const JobDescription &job,const JobUser& user,std::list<ContinuationPlugins::result_t>& results) { }
-void RunPlugin::set(const std::string& cmd) { }
-void RunPlugin::set(char const * const * args) { }
-#endif
-
-JobsList::JobsList(JobUser &user,ContinuationPlugins &plugins) :
-    user(&user), plugins(&plugins), old_dir(NULL), dtr_generator(NULL) {
+JobsList::JobsList(const GMConfig& config) :
+    config(config), old_dir(NULL), dtr_generator(NULL), job_desc_handler(config), jobs_pending(0) {
+  for(int n = 0;n<JOB_STATE_NUM;n++) jobs_num[n]=0;
   jobs.clear();
 }
  
@@ -58,78 +54,64 @@ bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid){
 }
 
 bool JobsList::AddJobNoCheck(const JobId &id,JobsList::iterator &i,uid_t uid,gid_t gid){
-  i=jobs.insert(jobs.end(),JobDescription(id));
-  i->keep_finished=user->KeepFinished();
-  i->keep_deleted=user->KeepDeleted();
-  i->set_uid(uid,gid);
+  i=jobs.insert(jobs.end(),GMJob(id, Arc::User(uid)));
+  i->keep_finished=config.keep_finished;
+  i->keep_deleted=config.keep_deleted;
   if (!GetLocalDescription(i)) {
     // safest thing to do is add failure and move to FINISHED
     i->AddFailure("Internal error");
     i->job_state = JOB_STATE_FINISHED;
     FailedJob(i, false);
-    if(!job_state_write_file(*i,*user,i->job_state)) {
+    if(!job_state_write_file(*i,config,i->job_state)) {
       logger.msg(Arc::ERROR, "%s: Failed reading .local and changing state, job and "
                              "A-REX may be left in an inconsistent state", id);
     }
     return false;
   }
   i->session_dir = i->local->sessiondir;
-  if (i->session_dir.empty()) i->session_dir = user->SessionRoot(id)+'/'+id;
+  if (i->session_dir.empty()) i->session_dir = config.SessionRoot(id)+'/'+id;
   return true;
 }
 
-#ifndef NO_GLOBUS_CODE
+int JobsList::AcceptedJobs() const {
+  return jobs_num[JOB_STATE_ACCEPTED] +
+         jobs_num[JOB_STATE_PREPARING] +
+         jobs_num[JOB_STATE_SUBMITTING] +
+         jobs_num[JOB_STATE_INLRMS] +
+         jobs_num[JOB_STATE_FINISHING] +
+         jobs_pending;
+}
 
-void JobsList::ChooseShare(JobsList::iterator& i, const JobsListConfig& jcfg, JobUser* user) {
+int JobsList::RunningJobs() const {
+  return jobs_num[JOB_STATE_SUBMITTING] +
+         jobs_num[JOB_STATE_INLRMS];
+}
+
+int JobsList::ProcessingJobs() const {
+  return jobs_num[JOB_STATE_PREPARING] +
+         jobs_num[JOB_STATE_FINISHING];
+}
+
+int JobsList::PreparingJobs() const {
+  return jobs_num[JOB_STATE_PREPARING];
+}
+
+int JobsList::FinishingJobs() const {
+  return jobs_num[JOB_STATE_FINISHING];
+}
+
+void JobsList::ChooseShare(JobsList::iterator& i) {
   // only applies to old staging
-  if (jcfg.use_new_data_staging || jcfg.share_type.empty()) return;
-  std::string user_proxy_file = job_proxy_filename(i->get_id(), *user).c_str();
+  if (config.use_new_data_staging || config.share_type.empty()) return;
+  std::string user_proxy_file = job_proxy_filename(i->get_id(), config);
   std::string cert_dir = "/etc/grid-security/certificates";
-  std::string voms_dir = "/etc/grid-security/vomsdir";
-  std::string v;
-  v = user->Env().cert_dir_loc(); if(!v.empty()) cert_dir = v;
-  v = user->Env().voms_dir_loc(); if(!v.empty()) voms_dir = v;
+  if (!config.cert_dir.empty()) cert_dir = config.cert_dir;
   Arc::Credential u(user_proxy_file,"",cert_dir,"");
-
-  std::string voms_trust_chains = Arc::GetEnv("VOMS_TRUST_CHAINS");
-  logger.msg(Arc::INFO, "VOMS trust chains: %s", voms_trust_chains);
-
-  std::vector<std::string> vomstrustlist;
-
-  std::vector<std::string> vomstrustchains;
-  Arc::tokenize(voms_trust_chains, vomstrustchains, "\n");
-  for(size_t j=0; j<vomstrustchains.size(); j++) {
-    std::vector<std::string> vomstrust_dns;
-    std::string trust_chain = vomstrustchains[j];
-    std::string::size_type p1, p2=0;
-    while(1) {
-      p1 = trust_chain.find("\"", p2);
-      if(p1!=std::string::npos) {
-        p2 = trust_chain.find("\"", p1+1);
-        if(p2!=std::string::npos) {
-          std::string str = trust_chain.substr(p1+1, p2-p1-1);
-          vomstrust_dns.push_back(str);
-          p2++; if(trust_chain[p2] == '\n') break;
-        }
-      }
-      if((p1==std::string::npos) || (p2==std::string::npos)) break;
-    }
-    if(!vomstrust_dns.empty()) {
-      if(vomstrustlist.empty())
-        vomstrustlist.insert(vomstrustlist.begin(), vomstrust_dns.begin(), vomstrust_dns.end());
-      else {
-        vomstrustlist.push_back("----NEXT CHAIN---");
-        vomstrustlist.insert(vomstrustlist.end(), vomstrust_dns.begin(), vomstrust_dns.end());
-      }
-    }
-  }
-
-  const std::string share = getCredentialProperty(u,jcfg.share_type,
-                                        cert_dir,"",voms_dir,vomstrustlist);
+  const std::string share = getCredentialProperty(u,config.share_type);
   i->set_share(share);
   logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
   i->local->transfershare = i->transfer_share;
-  job_local_write_file(*i,*user,*i->local);
+  job_local_write_file(*i,config,*i->local);
 }
 
 void JobsList::CalculateShares(){
@@ -139,7 +121,6 @@ void JobsList::CalculateShares(){
   // don't have an overview of all jobs. In those methods we check the share to
   // see if each job can proceed. This method is only used for old
   // (down/uploader) data staging. With DTR it is handled internally.
-  JobsListConfig& jcfg = user->Env().jobs_cfg();
   // clear shares with 0 count
   std::map<std::string, int> preparing_job_share_copy = preparing_job_share;
   std::map<std::string, int> finishing_job_share_copy = finishing_job_share;
@@ -168,7 +149,7 @@ void JobsList::CalculateShares(){
     }
     else if (i->job_state == JOB_STATE_INLRMS) {
       // is job ready to move to finishing?
-      if ((job_lrms_mark_check(i->job_id,*user) || i->job_pending) && i->next_retry <= time(NULL)) {
+      if ((job_lrms_mark_check(i->job_id,config) || i->job_pending) && i->next_retry <= time(NULL)) {
         pre_finishing_job_share[i->transfer_share]++;
       }
     }
@@ -183,7 +164,7 @@ void JobsList::CalculateShares(){
   int privileged_jobs_processing = 0;
   int privileged_preparing_job_share = 0;
   int privileged_finishing_job_share = 0;
-  std::map<std::string, int> limited_shares = jcfg.limited_share;
+  std::map<std::string, int> limited_shares = config.limited_share;
   for (std::map<std::string, int>::iterator i = limited_shares.begin(); i != limited_shares.end(); i++) {
     if (pre_preparing_job_share.find(i->first) != pre_preparing_job_share.end()) {
       privileged_preparing_job_share++;
@@ -196,7 +177,7 @@ void JobsList::CalculateShares(){
       privileged_total_pre_finishing += pre_finishing_job_share[i->first];
     }
   }
-  int unprivileged_jobs_processing = jcfg.max_jobs_processing - privileged_jobs_processing;
+  int unprivileged_jobs_processing = config.max_jobs_staging - privileged_jobs_processing;
 
   // calculate the number of slots that can be allocated per unprivileged share
   // count the total number of unprivileged jobs (pre)preparing
@@ -208,12 +189,12 @@ void JobsList::CalculateShares(){
   }
   // exclude privileged jobs
   total_pre_preparing -= privileged_total_pre_preparing;
-  if (jcfg.max_jobs_processing == -1 || unprivileged_preparing_job_share <= (unprivileged_jobs_processing / jcfg.max_processing_share))
-    unprivileged_preparing_limit = jcfg.max_processing_share;
+  if (config.max_jobs_staging == -1 || unprivileged_preparing_job_share <= (unprivileged_jobs_processing / config.max_staging_share))
+    unprivileged_preparing_limit = config.max_staging_share;
   else if (unprivileged_preparing_job_share > unprivileged_jobs_processing || unprivileged_preparing_job_share <= 0)
     unprivileged_preparing_limit = 1;
   else if (total_pre_preparing <= unprivileged_jobs_processing)
-    unprivileged_preparing_limit = jcfg.max_processing_share;
+    unprivileged_preparing_limit = config.max_staging_share;
   else
     unprivileged_preparing_limit = unprivileged_jobs_processing / unprivileged_preparing_job_share;
 
@@ -226,22 +207,22 @@ void JobsList::CalculateShares(){
   }
   // exclude privileged jobs
   total_pre_finishing -= privileged_total_pre_finishing;
-  if (jcfg.max_jobs_processing == -1 || unprivileged_finishing_job_share <= (unprivileged_jobs_processing / jcfg.max_processing_share))
-    unprivileged_finishing_limit = jcfg.max_processing_share;
+  if (config.max_jobs_staging == -1 || unprivileged_finishing_job_share <= (unprivileged_jobs_processing / config.max_staging_share))
+    unprivileged_finishing_limit = config.max_staging_share;
   else if (unprivileged_finishing_job_share > unprivileged_jobs_processing || unprivileged_finishing_job_share <= 0)
     unprivileged_finishing_limit = 1;
   else if (total_pre_finishing <= unprivileged_jobs_processing)
-    unprivileged_finishing_limit = jcfg.max_processing_share;
+    unprivileged_finishing_limit = config.max_staging_share;
   else
     unprivileged_finishing_limit = unprivileged_jobs_processing / unprivileged_finishing_job_share;
 
   // if there are queued jobs for both preparing and finishing, split the share between the two states
-  if (jcfg.max_jobs_processing > 0 && total_pre_preparing > unprivileged_jobs_processing/2 && total_pre_finishing > unprivileged_jobs_processing/2) {
+  if (config.max_jobs_staging > 0 && total_pre_preparing > unprivileged_jobs_processing/2 && total_pre_finishing > unprivileged_jobs_processing/2) {
     unprivileged_preparing_limit = unprivileged_preparing_limit < 2 ? 1 : unprivileged_preparing_limit/2;
     unprivileged_finishing_limit = unprivileged_finishing_limit < 2 ? 1 : unprivileged_finishing_limit/2;
   }
 
-  if (jcfg.max_jobs_processing > 0 && privileged_total_pre_preparing > privileged_jobs_processing/2 && privileged_total_pre_finishing > privileged_jobs_processing/2) {
+  if (config.max_jobs_staging > 0 && privileged_total_pre_preparing > privileged_jobs_processing/2 && privileged_total_pre_finishing > privileged_jobs_processing/2) {
     for (std::map<std::string, int>::iterator i = limited_shares.begin(); i != limited_shares.end(); i++) {
       i->second = i->second < 2 ? 1 : i->second/2;
     }
@@ -270,12 +251,11 @@ void JobsList::PrepareToDestroy(void) {
 }
 
 bool JobsList::ActJobs(void) {
-  JobsListConfig& jcfg = user->Env().jobs_cfg();
 
   // Need to calculate the shares here here because in the ActJob* methods we
   // don't have an overview of all jobs. In those methods we check the share
   // to see if each job can proceed.
-  if (!jcfg.share_type.empty() && jcfg.max_processing_share > 0) {
+  if (!config.share_type.empty() && config.max_staging_share > 0) {
     CalculateShares();
   }
 
@@ -283,13 +263,13 @@ bool JobsList::ActJobs(void) {
   bool once_more = false;
   bool postpone_preparing = false;
   bool postpone_finishing = false;
-  if (!(jcfg.use_new_data_staging && dtr_generator)) {
-    if((jcfg.max_jobs_processing != -1) && 
-       (!jcfg.use_local_transfer) && 
-       ((JOB_NUM_PROCESSING*3) > (jcfg.max_jobs_processing*2))) {
-      if(JOB_NUM_PREPARING > JOB_NUM_FINISHING) { 
+  if (!(config.use_new_data_staging && dtr_generator)) {
+    if((config.max_jobs_staging != -1) &&
+       (!config.use_local_transfer) &&
+       ((ProcessingJobs()*3) > (config.max_jobs_staging*2))) {
+      if(PreparingJobs() > FinishingJobs()) {
         postpone_preparing=true; 
-      } else if(JOB_NUM_PREPARING < JOB_NUM_FINISHING) {
+      } else if(PreparingJobs() < FinishingJobs()) {
         postpone_finishing=true;
       }
     }
@@ -308,7 +288,7 @@ bool JobsList::ActJobs(void) {
   // Recalculation of the shares before the second pass to update the shares
   // that appeared as a result of moving some jobs to ACCEPTED during the first
   // pass.
-  if (!jcfg.share_type.empty() && jcfg.max_processing_share > 0) {
+  if (!config.share_type.empty() && config.max_staging_share > 0) {
     CalculateShares();
   }
 
@@ -318,8 +298,8 @@ bool JobsList::ActJobs(void) {
   }
 
   // debug info on jobs per DN
-  logger.msg(Arc::VERBOSE, "Current jobs in system (PREPARING to FINISHING) per-DN (%i entries)", jcfg.jobs_dn.size());
-  for (std::map<std::string, ZeroUInt>::iterator it = jcfg.jobs_dn.begin(); it != jcfg.jobs_dn.end(); ++it)
+  logger.msg(Arc::VERBOSE, "Current jobs in system (PREPARING to FINISHING) per-DN (%i entries)", jobs_dn.size());
+  for (std::map<std::string, ZeroUInt>::iterator it = jobs_dn.begin(); it != jobs_dn.end(); ++it)
     logger.msg(Arc::VERBOSE, "%s: %i", it->first, (unsigned int)(it->second));
 
   return res;
@@ -329,10 +309,10 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
   logger.msg(Arc::INFO,"%s: Destroying",i->job_id);
   job_state_t new_state=i->job_state;
   if(new_state == JOB_STATE_UNDEFINED) {
-    if((new_state=job_state_read_file(i->job_id,*user))==JOB_STATE_UNDEFINED) {
+    if((new_state=job_state_read_file(i->job_id,config))==JOB_STATE_UNDEFINED) {
       logger.msg(Arc::ERROR,"%s: Can't read state - no comments, just cleaning",i->job_id);
       UnlockDelegation(i);
-      job_clean_final(*i,*user);
+      job_clean_final(*i,config);
       if(i->local) delete i->local;
       i=jobs.erase(i);
       return true;
@@ -342,10 +322,10 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
   if((new_state == JOB_STATE_FINISHED) && (!finished)) { ++i; return true; }
   if(!active) { ++i; return true; }
   if((new_state != JOB_STATE_INLRMS) || 
-     (job_lrms_mark_check(i->job_id,*user))) {
+     (job_lrms_mark_check(i->job_id,config))) {
     logger.msg(Arc::INFO,"%s: Cleaning control and session directories",i->job_id);
     UnlockDelegation(i);
-    job_clean_final(*i,*user);
+    job_clean_final(*i,config);
     if(i->local) delete i->local;
     i=jobs.erase(i);
     return true;
@@ -355,7 +335,7 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
   if(!state_submitting(i,state_changed,true)) {
     logger.msg(Arc::WARNING,"%s: Cancelation failed (probably job finished) - cleaning anyway",i->job_id);
     UnlockDelegation(i);
-    job_clean_final(*i,*user);
+    job_clean_final(*i,config);
     if(i->local) delete i->local;
     i=jobs.erase(i);
     return true;
@@ -363,7 +343,7 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
   if(!state_changed) { ++i; return false; } // child still running
   logger.msg(Arc::INFO,"%s: Cancelation probably succeeded - cleaning",i->job_id);
   UnlockDelegation(i);
-  job_clean_final(*i,*user);
+  job_clean_final(*i,config);
   if(i->local) delete i->local;
   i=jobs.erase(i);
   return true;
@@ -372,7 +352,7 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
 bool JobsList::FailedJob(const JobsList::iterator &i,bool cancel) {
   bool r = true;
   // add failure mark
-  if(job_failed_mark_add(*i,*user,i->failure_reason)) {
+  if(job_failed_mark_add(*i,config,i->failure_reason)) {
     i->failure_reason = "";
   } else {
     r = false;
@@ -386,18 +366,17 @@ bool JobsList::FailedJob(const JobsList::iterator &i,bool cancel) {
   // The exception is cancelling uploader since process is simply killed and
   // does not get the chance to change .output.
   if (i->get_state() == JOB_STATE_FINISHING && (!cancel || dtr_generator)) {
-    if (i->local) job_local_write_file(*i,*user,*(i->local));
+    if (i->local) job_local_write_file(*i,config,*(i->local));
     return r;
   }
   // adjust output files to failure state
   // Not good looking code
-  std::string filename = user->ControlDir() + "/job." + i->get_id() + ".description";
   JobLocalDescription job_desc;
-  if(parse_job_req(filename,job_desc) != JobReqSuccess) {
+  if(job_desc_handler.parse_job_req(i->get_id(),job_desc) != JobReqSuccess) {
     r = false;
   }
   // Convert delegation ids to credential paths.
-  std::string default_cred = user->ControlDir() + "/job." + i->get_id() + ".proxy";
+  std::string default_cred = config.control_dir + "/job." + i->get_id() + ".proxy";
   for(std::list<FileData>::iterator f = job_desc.outputdata.begin();
                                    f != job_desc.outputdata.end(); ++f) {
     if(f->has_lfn()) {
@@ -405,23 +384,23 @@ bool JobsList::FailedJob(const JobsList::iterator &i,bool cancel) {
         f->cred = default_cred;
       } else {
         std::string path;
-        ARex::DelegationStores* delegs = user->Env().delegations();
-        if(delegs && i->local) path = (*delegs)[user->DelegationDir()].FindCred(f->cred,i->local->DN);
+        ARex::DelegationStores* delegs = config.delegations;
+        if(delegs && i->local) path = (*delegs)[config.DelegationDir()].FindCred(f->cred,i->local->DN);
         f->cred = path;
       }
       if(i->local) ++(i->local->uploads);
     }
   }
-  if(!job_output_write_file(*i,*user,job_desc.outputdata,cancel?job_output_cancel:job_output_failure)) {
+  if(!job_output_write_file(*i,config,job_desc.outputdata,cancel?job_output_cancel:job_output_failure)) {
     r=false;
     logger.msg(Arc::ERROR,"%s: Failed writing list of output files: %s",i->job_id,Arc::StrError(errno));
   }
-  if(i->local) job_local_write_file(*i,*user,*(i->local));
+  if(i->local) job_local_write_file(*i,config,*(i->local));
   return r;
 }
 
 bool JobsList::GetLocalDescription(const JobsList::iterator &i) {
-  if(!i->GetLocalDescription(*user)) {
+  if(!i->GetLocalDescription(config)) {
     logger.msg(Arc::ERROR,"%s: Failed reading local information",i->job_id);
     return false;
   }
@@ -429,7 +408,6 @@ bool JobsList::GetLocalDescription(const JobsList::iterator &i) {
 }
 
 bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,bool cancel) {
-  JobsListConfig& jcfg = user->Env().jobs_cfg();
   if(i->child == NULL) {
     // no child was running yet, or recovering from fault 
     // write grami file for submit-X-job
@@ -438,7 +416,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     if(i->local) { job_desc=i->local; }
     else {
       job_desc=new JobLocalDescription;
-      if(!job_local_read_file(i->job_id,*user,*job_desc)) {
+      if(!job_local_read_file(i->job_id,config,*job_desc)) {
         logger.msg(Arc::ERROR,"%s: Failed reading local information",i->job_id);
         if(!cancel) i->AddFailure("Internal error: can't read local file");
         delete job_desc;
@@ -448,20 +426,20 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     }
     if(!cancel) {  // in case of cancel all preparations are already done
       const char *local_transfer_s = NULL;
-      if(jcfg.use_local_transfer) { 
+      if(config.use_local_transfer) {
         local_transfer_s="joboption_localtransfer=yes";
       }
-      if(!write_grami(*i,*user,local_transfer_s)) {
+      if(!job_desc_handler.write_grami(*i,local_transfer_s)) {
         logger.msg(Arc::ERROR,"%s: Failed creating grami file",i->job_id);
         return false;
       }
-      if(!set_execs(*i,*user)) {
+      if(!job_desc_handler.set_execs(*i)) {
         logger.msg(Arc::ERROR,"%s: Failed setting executable permissions",i->job_id);
         return false;
       }
       // precreate file to store diagnostics from lrms
-      job_diagnostics_mark_put(*i,*user);
-      job_lrmsoutput_mark_put(*i,*user);
+      job_diagnostics_mark_put(*i,config);
+      job_lrmsoutput_mark_put(*i,config);
     }
     // submit/cancel job to LRMS using submit/cancel-X-job
     std::string cmd;
@@ -470,7 +448,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     if(!cancel) {
       logger.msg(Arc::INFO,"%s: state SUBMIT: starting child: %s",i->job_id,cmd);
     } else {
-      if(!job_lrms_mark_check(i->job_id,*user)) {
+      if(!job_lrms_mark_check(i->job_id,config)) {
         logger.msg(Arc::INFO,"%s: state CANCELING: starting child: %s",i->job_id,cmd);
       } else {
         logger.msg(Arc::INFO,"%s: Job has completed already. No action taken to cancel",i->job_id);
@@ -478,11 +456,10 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
         return true;
       }
     }
-    std::string grami = user->ControlDir()+"/job."+(*i).job_id+".grami";
-    std::string cfg_path = user->Env().nordugrid_config_loc();
-    char const * args[5] ={ cmd.c_str(), "--config", cfg_path.c_str(), grami.c_str(), NULL };
-    job_errors_mark_put(*i,*user);
-    if(!RunParallel::run(*user,*i,args,&(i->child))) {
+    std::string grami = config.control_dir+"/job."+(*i).job_id+".grami";
+    cmd += " --config " + config.conffile + " " + grami;
+    job_errors_mark_put(*i,config);
+    if(!RunParallel::run(config,*i,cmd,&(i->child))) {
       if(!cancel) {
         i->AddFailure("Failed initiating job submission to LRMS");
         logger.msg(Arc::ERROR,"%s: Failed running submission process",i->job_id);
@@ -504,14 +481,14 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     if((Arc::Time() - i->child->RunTime()) > Arc::Period(CHILD_RUN_TIME_SUSPICIOUS)) {
       if(!cancel) {
         // Check if local id is already obtained
-        std::string local_id=read_grami(i->job_id,*user);
+        std::string local_id=job_desc_handler.get_local_id(i->job_id);
         if(local_id.length() > 0) {
           simulate_success = true;
           logger.msg(Arc::ERROR,"%s: Job submission to LRMS takes too long. But ID is already obtained. Pretending submission is done.",i->job_id);
         }
       } else {
         // Check if diagnostics collection is done
-        if(job_lrms_mark_check(i->job_id,*user)) {
+        if(job_lrms_mark_check(i->job_id,config)) {
           simulate_success = true;
           logger.msg(Arc::ERROR,"%s: Job cancel takes too long. But diagnostic collection seems to be done. Pretending cancel succeeded.",i->job_id);
         }
@@ -540,7 +517,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
       logger.msg(Arc::INFO,"%s: state SUBMIT: child exited with code %i",i->job_id,i->child->Result());
     } else {
       if((i->child->ExitTime() != Arc::Time::UNDEFINED) &&
-         ((Arc::Time() - i->child->ExitTime()) < (user->Env().jobs_cfg().WakeupPeriod()*2))) {
+         ((Arc::Time() - i->child->ExitTime()) < (config.wakeup_period*2))) {
         // not ideal solution
         logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i",i->job_id,i->child->Result());
       }
@@ -565,7 +542,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
   if(!cancel) {
     delete i->child; i->child=NULL;
     // success code - get LRMS job id
-    std::string local_id=read_grami(i->job_id,*user);
+    std::string local_id=job_desc_handler.get_local_id(i->job_id);
     if(local_id.length() == 0) {
       logger.msg(Arc::ERROR,"%s: Failed obtaining lrms id",i->job_id);
       i->AddFailure("Failed extracting LRMS ID due to some internal error");
@@ -578,14 +555,14 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
       return false;
     }
     i->local->localid=local_id;
-    if(!job_local_write_file(*i,*user,*(i->local))) {
+    if(!job_local_write_file(*i,config,*(i->local))) {
       i->AddFailure("Internal error");
       logger.msg(Arc::ERROR,"%s: Failed writing local information: %s",i->job_id,Arc::StrError(errno));
       return false;
     }
   } else {
     // job diagnostics collection done in background (scan-*-job script)
-    if(!job_lrms_mark_check(i->job_id,*user)) {
+    if(!job_lrms_mark_check(i->job_id,config)) {
       // job diag not yet collected - come later
       if((i->child->ExitTime() != Arc::Time::UNDEFINED) &&
          ((Arc::Time() - i->child->ExitTime()) > Arc::Period(Arc::Time::HOUR))) {
@@ -598,7 +575,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     } else {
       logger.msg(Arc::INFO,"%s: state CANCELING: job diagnostics collected",i->job_id);
       delete i->child; i->child=NULL;
-      job_diagnostics_mark_move(*i,*user);
+      job_diagnostics_mark_move(*i,config);
     }
   }
   // move to next state
@@ -607,9 +584,8 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
 }
 
 bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,bool up,bool &retry) {
-  JobsListConfig& jcfg = user->Env().jobs_cfg();
 
-  if (jcfg.use_new_data_staging && dtr_generator) {  /***** new data staging ******/
+  if (config.use_new_data_staging && dtr_generator) {  /***** new data staging ******/
 
     // first check if job is already in the system
     if (!dtr_generator->hasJob(*i)) {
@@ -622,7 +598,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       bool result = true;
 
       // check for failure
-      if (!i->GetFailure(*user).empty()) {
+      if (!i->GetFailure(config).empty()) {
         JobFailStateRemember(i, (up ? JOB_STATE_FINISHING : JOB_STATE_PREPARING));
         result = false;
       }
@@ -658,105 +634,53 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       logger.msg(Arc::INFO,"%s: state: %s: starting new child",i->job_id,up?"FINISHING":"PREPARING");
       // no child was running yet, or recovering from fault
       // run it anyway and exit code will give more inforamtion
-      bool switch_user = (user->CachePrivate() || user->StrictSession());
-      std::string cmd;
-      if(up) { cmd=Arc::ArcLocation::GetToolsDir()+"/uploader"; }
-      else { cmd=Arc::ArcLocation::GetToolsDir()+"/downloader"; }
-      uid_t user_id = user->get_uid();
-      if(user_id == 0) user_id=i->get_uid();
-      std::string user_id_s = Arc::tostring(user_id);
-      std::string max_files_s;
-      std::string min_speed_s;
-      std::string min_speed_time_s;
-      std::string min_average_speed_s;
-      std::string max_inactivity_time_s;
-      int argn=4;
-      const char* args[] = {
-        cmd.c_str(),
-        "-U",
-        user_id_s.c_str(),
-        "-f",
-        NULL, // -n
-        NULL, // (-n)
-        NULL, // -c
-        NULL, // -p
-        NULL, // -l
-        NULL, // -s
-        NULL, // (-s)
-        NULL, // -S
-        NULL, // (-S)
-        NULL, // -a
-        NULL, // (-a)
-        NULL, // -i
-        NULL, // (-i)
-        NULL, // -d
-        NULL, // (-d)
-        NULL, // -C
-        NULL, // (-C)
-        NULL, // -r
-        NULL, // (-r)
-        NULL, // id
-        NULL, // control
-        NULL, // session
-        NULL,
-        NULL
-      };
-      if(jcfg.max_downloads > 0) {
-        max_files_s=Arc::tostring(jcfg.max_downloads);
-        args[argn]="-n"; argn++;
-        args[argn]=(char*)(max_files_s.c_str()); argn++;
+      std::string cmd_name;
+      if(up) { cmd_name=Arc::ArcLocation::GetToolsDir()+"/uploader"; }
+      else { cmd_name=Arc::ArcLocation::GetToolsDir()+"/downloader"; }
+      std::string user_id = Arc::tostring(i->get_user().get_uid());
+      std::string cmd = cmd_name + " -U " + user_id + " -f";
+      if(config.max_downloads > 0) {
+        cmd += " -n " + Arc::tostring(config.max_downloads);
       }
-      if(!jcfg.use_secure_transfer) {
-        args[argn]="-c"; argn++;
+      if(!config.use_secure_transfer) {
+        cmd += " -c";
       }
-      if(jcfg.use_passive_transfer) {
-        args[argn]="-p"; argn++;
+      if(config.use_passive_transfer) {
+        cmd += " -p";
       }
-      if(jcfg.use_local_transfer) {
-        args[argn]="-l"; argn++;
+      if(config.use_local_transfer) {
+        cmd += " -l";
       }
-      if(jcfg.min_speed) {
-        min_speed_s=Arc::tostring(jcfg.min_speed);
-        min_speed_time_s=Arc::tostring(jcfg.min_speed_time);
-        args[argn]="-s"; argn++;
-        args[argn]=(char*)(min_speed_s.c_str()); argn++;
-        args[argn]="-S"; argn++;
-        args[argn]=(char*)(min_speed_time_s.c_str()); argn++;
+      if(config.min_speed) {
+        cmd += " -s " + Arc::tostring(config.min_speed);
+        cmd += " -S " + Arc::tostring(config.min_speed_time);
       }
-      if(jcfg.min_average_speed) {
-        min_average_speed_s=Arc::tostring(jcfg.min_average_speed);
-        args[argn]="-a"; argn++;
-        args[argn]=(char*)(min_average_speed_s.c_str()); argn++;
+      if(config.min_average_speed) {
+        cmd += " -a " + Arc::tostring(config.min_average_speed);
       }
-      if(jcfg.max_inactivity_time) {
-        max_inactivity_time_s=Arc::tostring(jcfg.max_inactivity_time);
-        args[argn]="-i"; argn++;
-        args[argn]=(char*)(max_inactivity_time_s.c_str()); argn++;
+      if(config.max_inactivity_time) {
+        cmd += " -i " + Arc::tostring(config.max_inactivity_time);
       }
       std::string debug_level = Arc::level_to_string(Arc::Logger::getRootLogger().getThreshold());
-      std::string cfg_path = user->Env().nordugrid_config_loc();
       if (!debug_level.empty()) {
-        args[argn]="-d"; argn++;
-        args[argn]=(char*)(debug_level.c_str()); argn++;
+        cmd += " -d " + debug_level;
       }
-      if (!user->Env().nordugrid_config_loc().empty()) {
-        args[argn]="-C"; argn++;
-        args[argn]=(char*)(cfg_path.c_str()); argn++;
+      if (!config.conffile.empty()) {
+        cmd += " -C " + config.conffile;
       }
-      if(!jcfg.preferred_pattern.empty()) {
-        args[argn]="-r"; argn++;
-        args[argn]=(char*)(jcfg.preferred_pattern.c_str()); argn++;
+      if(!config.preferred_pattern.empty()) {
+        cmd += " -r " + config.preferred_pattern;
       }
-      args[argn]=(char*)(i->job_id.c_str()); argn++;
-      args[argn]=(char*)(user->ControlDir().c_str()); argn++;
-      args[argn]=(char*)(i->SessionDir().c_str()); argn++;
+      cmd += " " + i->job_id;
+      cmd += " " + config.control_dir;
+      cmd += " " + i->session_dir;
 
-      logger.msg(Arc::INFO,"%s: State %s: starting child: %s",i->job_id,up?"FINISHING":"PREPARING",args[0]);
-      job_errors_mark_put(*i,*user);
+      logger.msg(Arc::INFO,"%s: State %s: starting child: %s",i->job_id,up?"FINISHING":"PREPARING",cmd);
+      job_errors_mark_put(*i,config);
       // Remove restart mark because restart point may change. Keep it if we are
       // already processing failed job.
-      if(!job_failed_mark_check(i->job_id,*user)) job_restart_mark_remove(i->job_id,*user);
-      if(!RunParallel::run(*user,*i,(char**)args,&(i->child),switch_user)) {
+      if(!job_failed_mark_check(i->job_id,config)) job_restart_mark_remove(i->job_id,config);
+      if(!RunParallel::run(config,*i,cmd,&(i->child),config.strict_session)) {
         if(up) {
           logger.msg(Arc::ERROR,"%s: Failed to run uploader process",i->job_id);
           i->AddFailure("Failed to run uploader (post-processing)");
@@ -795,7 +719,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
           // Because we have no information (anymore) if failure happened
           // due to expired credentials let's just check them
           std::string old_proxy_file =
-                      user->ControlDir()+"/job."+i->job_id+".proxy";
+                      config.control_dir+"/job."+i->job_id+".proxy";
           Arc::Credential cred(old_proxy_file,"","","");
           // TODO: check if cred is at all there
           if(cred.GetEndTime() < Arc::Time()) {
@@ -805,8 +729,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
             // from credentials server - so far myproxy only
             if(GetLocalDescription(i)) {
               if(i->local->credentialserver.length()) {
-                std::string new_proxy_file =
-                        user->ControlDir()+"/job."+i->job_id+".proxy.tmp";
+                std::string new_proxy_file = config.control_dir+"/job."+i->job_id+".proxy.tmp";
                 remove(new_proxy_file.c_str());
                 int h = ::open(new_proxy_file.c_str(),
                         O_WRONLY | O_CREAT | O_EXCL,S_IRUSR | S_IWUSR);
@@ -817,7 +740,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
                           i->local->credentialserver.c_str())) {
                     renew_proxy(old_proxy_file.c_str(),new_proxy_file.c_str());
                     // imitate rerun request
-                    job_restart_mark_put(*i,*user);
+                    job_restart_mark_put(*i,config);
                   } else {
                     logger.msg(Arc::ERROR,"%s: State: %s: failed to renew credentials",i->job_id,up?"FINISHING":"PREPARING");
                   }
@@ -855,32 +778,32 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
   return true;
 }
 
-bool JobsList::CanStage(const JobsList::iterator &i, const JobsListConfig& jcfg, bool up) {
+bool JobsList::CanStage(const JobsList::iterator &i, bool up) {
 
   // new data staging - all jobs can proceed immediately
-  if (jcfg.use_new_data_staging && dtr_generator) return true;
+  if (config.use_new_data_staging && dtr_generator) return true;
   // transfer is done on worker nodes
-  if (jcfg.use_local_transfer) return true;
+  if (config.use_local_transfer) return true;
   // nothing to stage
   if (!up && (i->local->downloads == 0)) return true;
   if (up && (i->local->uploads == 0)) return true;
   // before checking limits, check the retry time
   if (i->next_retry > time(NULL)) return false;
   // no limit on staging jobs
-  if (jcfg.max_jobs_processing == -1) return true;
+  if (config.max_jobs_staging == -1) return true;
   if (!up) {
     // limits on downloads
-    if (((JOB_NUM_PROCESSING < jcfg.max_jobs_processing) ||
-        ((JOB_NUM_FINISHING >= jcfg.max_jobs_processing) &&
-         (JOB_NUM_PREPARING < jcfg.max_jobs_processing_emergency))) &&
-        (jcfg.share_type.empty() ||
+    if (((ProcessingJobs() < config.max_jobs_staging) ||
+        ((FinishingJobs() >= config.max_jobs_staging) &&
+         (PreparingJobs() < config.max_jobs_staging_emergency))) &&
+        (config.share_type.empty() ||
          preparing_job_share[i->transfer_share] < preparing_max_share[i->transfer_share])) return true;
   } else {
     // limits on uploads
-    if (((JOB_NUM_PROCESSING < jcfg.max_jobs_processing) ||
-        ((JOB_NUM_PREPARING >= jcfg.max_jobs_processing) &&
-         (JOB_NUM_FINISHING < jcfg.max_jobs_processing_emergency))) &&
-        (jcfg.share_type.empty() ||
+    if (((ProcessingJobs() < config.max_jobs_staging) ||
+        ((PreparingJobs() >= config.max_jobs_staging) &&
+         (FinishingJobs() < config.max_jobs_staging_emergency))) &&
+        (config.share_type.empty() ||
          finishing_job_share[i->transfer_share] < finishing_max_share[i->transfer_share])) return true;
   }
   return false;
@@ -889,7 +812,7 @@ bool JobsList::CanStage(const JobsList::iterator &i, const JobsListConfig& jcfg,
 bool JobsList::JobPending(JobsList::iterator &i) {
   if(i->job_pending) return true;
   i->job_pending=true; 
-  return job_state_write_file(*i,*user,i->job_state,true);
+  return job_state_write_file(*i,config,i->job_state,true);
 }
 
 job_state_t JobsList::JobFailStateGet(const JobsList::iterator &i) {
@@ -901,20 +824,20 @@ job_state_t JobsList::JobFailStateGet(const JobsList::iterator &i) {
     if(i->local->failedstate == states_all[n].name) {
       if(i->local->reruns <= 0) {
         logger.msg(Arc::ERROR,"%s: Job is not allowed to be rerun anymore",i->job_id);
-        job_local_write_file(*i,*user,*(i->local));
+        job_local_write_file(*i,config,*(i->local));
         return JOB_STATE_UNDEFINED;
       }
       i->local->failedstate="";
       i->local->failedcause="";
       i->local->reruns--;
-      job_local_write_file(*i,*user,*(i->local));
+      job_local_write_file(*i,config,*(i->local));
       return states_all[n].id;
     }
   }
   logger.msg(Arc::ERROR,"%s: Job failed in unknown state. Won't rerun.",i->job_id);
   i->local->failedstate="";
   i->local->failedcause="";
-  job_local_write_file(*i,*user,*(i->local));
+  job_local_write_file(*i,config,*(i->local));
   return JOB_STATE_UNDEFINED;
 }
 
@@ -928,21 +851,21 @@ bool JobsList::RecreateTransferLists(const JobsList::iterator &i) {
   // keep local info
   if(!GetLocalDescription(i)) return false;
   // get output files already done
-  job_output_status_read_file(i->job_id,*user,output_files_done);
+  job_output_status_read_file(i->job_id,config,output_files_done);
   // recreate lists by reprocessing job description
   JobLocalDescription job_desc; // placeholder
-  if(!process_job_req(*user,*i,job_desc)) {
+  if(!job_desc_handler.process_job_req(*i,job_desc)) {
     logger.msg(Arc::ERROR,"%s: Reprocessing RSL failed",i->job_id);
     return false;
   }
   // Restore 'local'
-  if(!job_local_write_file(*i,*user,*(i->local))) return false;
+  if(!job_local_write_file(*i,config,*(i->local))) return false;
   // Read new lists
-  if(!job_output_read_file(i->job_id,*user,output_files)) {
+  if(!job_output_read_file(i->job_id,config,output_files)) {
     logger.msg(Arc::ERROR,"%s: Failed to read reprocessed list of output files",i->job_id);
     return false;
   }
-  if(!job_input_read_file(i->job_id,*user,input_files)) {
+  if(!job_input_read_file(i->job_id,config,input_files)) {
     logger.msg(Arc::ERROR,"%s: Failed to read reprocessed list of input files",i->job_id);
     return false;
   }
@@ -965,7 +888,7 @@ bool JobsList::RecreateTransferLists(const JobsList::iterator &i) {
     }
     i_new=output_files.erase(i_new);
   }
-  if(!job_output_write_file(*i,*user,output_files)) return false;
+  if(!job_output_write_file(*i,config,output_files)) return false;
   // remove already downloaded files
   i->local->downloads=0;
   for(std::list<FileData>::iterator i_new = input_files.begin();
@@ -979,14 +902,14 @@ bool JobsList::RecreateTransferLists(const JobsList::iterator &i) {
       i_new=input_files.erase(i_new);
     }
   }
-  if(!job_input_write_file(*i,*user,input_files)) return false;
+  if(!job_input_write_file(*i,config,input_files)) return false;
   return true;
 }
 
 bool JobsList::JobFailStateRemember(const JobsList::iterator &i,job_state_t state,bool internal) {
   if(!(i->local)) {
     JobLocalDescription *job_desc = new JobLocalDescription;
-    if(!job_local_read_file(i->job_id,*user,*job_desc)) {
+    if(!job_local_read_file(i->job_id,config,*job_desc)) {
       logger.msg(Arc::ERROR,"%s: Failed reading local information",i->job_id);
       delete job_desc; return false;
     }
@@ -997,12 +920,12 @@ bool JobsList::JobFailStateRemember(const JobsList::iterator &i,job_state_t stat
   if(state == JOB_STATE_UNDEFINED) {
     i->local->failedstate="";
     i->local->failedcause=internal?"internal":"client";
-    return job_local_write_file(*i,*user,*(i->local));
+    return job_local_write_file(*i,config,*(i->local));
   }
   if(i->local->failedstate.empty()) {
     i->local->failedstate=states_all[state].name;
     i->local->failedcause=internal?"internal":"client";
-    return job_local_write_file(*i,*user,*(i->local));
+    return job_local_write_file(*i,config,*(i->local));
   }
   return true;
 }
@@ -1011,28 +934,27 @@ time_t JobsList::PrepareCleanupTime(JobsList::iterator &i,time_t& keep_finished)
   JobLocalDescription job_desc;
   time_t t = -1;
   // read lifetime - if empty it wont be overwritten
-  job_local_read_file(i->job_id,*user,job_desc);
+  job_local_read_file(i->job_id,config,job_desc);
   if(!Arc::stringto(job_desc.lifetime,t)) t = keep_finished;
   if(t > keep_finished) t = keep_finished;
-  time_t last_changed=job_state_time(i->job_id,*user);
+  time_t last_changed=job_state_time(i->job_id,config);
   t=last_changed+t; job_desc.cleanuptime=t;
-  job_local_write_file(*i,*user,job_desc);
+  job_local_write_file(*i,config,job_desc);
   return t;
 }
 
 void JobsList::UnlockDelegation(JobsList::iterator &i) {
-  ARex::DelegationStores* delegs = user->Env().delegations();
-  if(delegs) (*delegs)[user->DelegationDir()].ReleaseCred(i->job_id,true,false);
+  ARex::DelegationStores* delegs = config.delegations;
+  if(delegs) (*delegs)[config.DelegationDir()].ReleaseCred(i->job_id,true,false);
 }
 
 void JobsList::ActJobUndefined(JobsList::iterator &i,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& state_changed) {
-        JobsListConfig& jcfg = user->Env().jobs_cfg();
         // new job - read its status from status file, but first check if it is
         // under the limit of maximum jobs allowed in the system
-        if((JOB_NUM_ACCEPTED < jcfg.max_jobs) || (jcfg.max_jobs == -1)) {
-          job_state_t new_state=job_state_read_file(i->job_id,*user);
+        if((AcceptedJobs() < config.max_jobs) || (config.max_jobs == -1)) {
+          job_state_t new_state=job_state_read_file(i->job_id,config);
           if(new_state == JOB_STATE_UNDEFINED) { // something failed
             logger.msg(Arc::ERROR,"%s: Reading status of new job failed",i->job_id);
             job_error=true; i->AddFailure("Failed reading status of the job");
@@ -1048,33 +970,33 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
             state_changed = true; // to trigger email notification, etc.
             // first phase of job - just  accepted - parse request
             logger.msg(Arc::INFO,"%s: State: ACCEPTED: parsing job description",i->job_id);
-            if(!process_job_req(*user,*i,*i->local)) {
+            if(!job_desc_handler.process_job_req(*i,*i->local)) {
               logger.msg(Arc::ERROR,"%s: Processing job description failed",i->job_id);
               job_error=true;
               i->AddFailure("Could not process job description");
               return; // go to next job
             }
             // set transfer share
-            ChooseShare(i, jcfg, user);
-            job_state_write_file(*i,*user,i->job_state);
+            ChooseShare(i);
+            job_state_write_file(*i,config,i->job_state);
             // prepare information for logger
             // This call is not needed here because at higher level make_file()
             // is called for every state change
-            //user->Env().job_log().make_file(*i,*user);
+            //config.job_log->make_file(*i,config);
           } else if(new_state == JOB_STATE_FINISHED) {
             once_more=true;
-            job_state_write_file(*i,*user,i->job_state);
+            job_state_write_file(*i,config,i->job_state);
           } else if(new_state == JOB_STATE_DELETED) {
             once_more=true;
-            job_state_write_file(*i,*user,i->job_state);
+            job_state_write_file(*i,config,i->job_state);
           } else {
             logger.msg(Arc::INFO,"%s: %s: New job belongs to %i/%i",i->job_id.c_str(),
-                JobDescription::get_state_name(new_state),i->get_uid(),i->get_gid());
+                GMJob::get_state_name(new_state),i->get_user().get_uid(),i->get_user().get_gid());
             // Make it clean state after restart
-            job_state_write_file(*i,*user,i->job_state);
-            i->retries = jcfg.max_retries;
+            job_state_write_file(*i,config,i->job_state);
+            i->retries = config.max_retries;
             // set transfer share and counters
-            ChooseShare(i, jcfg, user);
+            ChooseShare(i);
             if (new_state == JOB_STATE_PREPARING) preparing_job_share[i->transfer_share]++;
             if (new_state == JOB_STATE_FINISHING) finishing_job_share[i->transfer_share]++;
             i->Start();
@@ -1085,7 +1007,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
             if (i->local->DN.empty()) {
               logger.msg(Arc::WARNING, "Failed to get DN information from .local file for job %s", i->job_id);
             }
-            jcfg.jobs_dn[i->local->DN]++;
+            jobs_dn[i->local->DN]++;
           }
         } // Not doing JobPending here because that job kind of does not exist.
         return;
@@ -1094,7 +1016,6 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
 void JobsList::ActJobAccepted(JobsList::iterator &i,
                               bool& once_more,bool& /*delete_job*/,
                               bool& job_error,bool& state_changed) {
-        JobsListConfig& jcfg = user->Env().jobs_cfg();
         // accepted state - job was just accepted by A-REX and we already
         // know that it is accepted - now we are analyzing/parsing request,
         // or it can also happen we are waiting for user specified time
@@ -1111,12 +1032,12 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,
           return; // go to next job
         }
         // check per-DN limit on processing jobs
-        if (jcfg.max_jobs_per_dn > 0 && jcfg.jobs_dn[i->local->DN] >= jcfg.max_jobs_per_dn) {
+        if (config.max_jobs_per_dn > 0 && jobs_dn[i->local->DN] >= config.max_jobs_per_dn) {
           JobPending(i);
           return;
         }
         // check other limits on staging
-        if (!CanStage(i, jcfg, false)) {
+        if (!CanStage(i, false)) {
           JobPending(i);
           return;
         }
@@ -1127,28 +1048,27 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,
           return;
         }
         // job can progress to PREPARING - add to per-DN job list
-        jcfg.jobs_dn[i->local->DN]++;
+        jobs_dn[i->local->DN]++;
         logger.msg(Arc::INFO,"%s: State: ACCEPTED: moving to PREPARING",i->job_id);
         state_changed=true; once_more=true;
         i->job_state = JOB_STATE_PREPARING;
         // if first pass then reset retries
-        if (i->retries == 0) i->retries = jcfg.max_retries;
+        if (i->retries == 0) i->retries = config.max_retries;
         preparing_job_share[i->transfer_share]++;
         i->Start();
 
         // gather some frontend specific information for user, do it only once
         // Runs user-supplied executable placed at "frontend-info-collector"
-        if(state_changed && i->retries == jcfg.max_retries) {
+        if(state_changed && i->retries == config.max_retries) {
           std::string cmd = Arc::ArcLocation::GetToolsDir()+"/frontend-info-collector";
           char const * const args[2] = { cmd.c_str(), NULL };
-          job_controldiag_mark_put(*i,*user,args);
+          job_controldiag_mark_put(*i,config,args);
         }
 }
 
 void JobsList::ActJobPreparing(JobsList::iterator &i,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& state_changed) {
-        JobsListConfig& jcfg = user->Env().jobs_cfg();
         // preparing state - job is in data staging system, so check if it has
         // finished and whether all user uploadable files have been uploaded.
         logger.msg(Arc::VERBOSE,"%s: State: PREPARING",i->job_id);
@@ -1167,7 +1087,7 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,
             if(i->local->freestagein) {
               stagein_complete = false;
               std::list<std::string> ifiles;
-              if(job_input_status_read_file(i->job_id,*user,ifiles)) {
+              if(job_input_status_read_file(i->job_id,config,ifiles)) {
                 for(std::list<std::string>::iterator ifile = ifiles.begin();
                                    ifile != ifiles.end(); ++ifile) {
                   if(*ifile == "/") {
@@ -1183,18 +1103,18 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,
               state_changed=false;
               JobPending(i);
             } else if(i->local->exec.size() > 0) {
-              if((jcfg.max_jobs_running==-1) || (JOB_NUM_RUNNING<jcfg.max_jobs_running)) {
+              if((config.max_jobs_running==-1) || (RunningJobs()<config.max_jobs_running)) {
                 i->job_state = JOB_STATE_SUBMITTING;
                 state_changed=true; once_more=true;
-                i->retries = jcfg.max_retries;
+                i->retries = config.max_retries;
               } else {
                 state_changed=false;
                 JobPending(i);
               }
-            } else if(CanStage(i, jcfg, true)) {
+            } else if(CanStage(i, true)) {
               i->job_state = JOB_STATE_FINISHING;
               state_changed=true; once_more=true;
-              i->retries = jcfg.max_retries;
+              i->retries = config.max_retries;
               finishing_job_share[i->transfer_share]++;
             } else {
               JobPending(i);
@@ -1212,20 +1132,19 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,
             // set next retry time
             //  exponential back-off algorithm - wait 10s, 40s, 90s, 160s,...
             // with a bit of randomness thrown in - vary by up to 50% of wait_time
-            int wait_time = 10 * (jcfg.max_retries - i->retries) * (jcfg.max_retries - i->retries);
+            int wait_time = 10 * (config.max_retries - i->retries) * (config.max_retries - i->retries);
             int randomness = (rand() % wait_time) - (wait_time/2);
             wait_time += randomness;
             i->next_retry = time(NULL) + wait_time;
             logger.msg(Arc::ERROR,"%s: Download failed. %d retries left. Will wait for %ds before retrying",i->job_id,i->retries,wait_time);
             // set back to ACCEPTED
             i->job_state = JOB_STATE_ACCEPTED;
-            if (--(jcfg.jobs_dn[i->local->DN]) <= 0)
-              jcfg.jobs_dn.erase(i->local->DN);
+            if (--(jobs_dn[i->local->DN]) <= 0) jobs_dn.erase(i->local->DN);
             state_changed = true;
           }
         } 
         else {
-          if(i->GetFailure(*user).length() == 0)
+          if(i->GetFailure(config).empty())
             i->AddFailure("Data staging failed (pre-processing)");
           job_error=true;
           preparing_job_share[i->transfer_share]--;
@@ -1267,7 +1186,6 @@ void JobsList::ActJobCanceling(JobsList::iterator &i,
 void JobsList::ActJobInlrms(JobsList::iterator &i,
                             bool& once_more,bool& /*delete_job*/,
                             bool& job_error,bool& state_changed) {
-        JobsListConfig& jcfg = user->Env().jobs_cfg();
         // Job is currently running in LRMS, check if it has finished
         logger.msg(Arc::VERBOSE,"%s: State: INLRMS",i->job_id);
         if(!GetLocalDescription(i)) {
@@ -1276,12 +1194,12 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,
           return; // go to next job
         }
         // only check lrms job status on first pass
-        if(i->retries == 0 || i->retries == jcfg.max_retries) {
-          if(i->job_pending || job_lrms_mark_check(i->job_id,*user)) {
+        if(i->retries == 0 || i->retries == config.max_retries) {
+          if(i->job_pending || job_lrms_mark_check(i->job_id,config)) {
             if(!i->job_pending) {
               logger.msg(Arc::INFO,"%s: Job finished",i->job_id);
-              job_diagnostics_mark_move(*i,*user);
-              LRMSResult ec = job_lrms_mark_read(i->job_id,*user);
+              job_diagnostics_mark_move(*i,config);
+              LRMSResult ec = job_lrms_mark_read(i->job_id,config);
               if(ec.code() != i->local->exec.successcode) {
                 logger.msg(Arc::INFO,"%s: State: INLRMS: exit message is %i %s",i->job_id,ec.code(),ec.description());
                 i->AddFailure("LRMS error: ("+
@@ -1294,15 +1212,15 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,
                 return;
               }
             }
-            if (CanStage(i, jcfg, true)) {
+            if (CanStage(i, true)) {
               state_changed=true; once_more=true;
               i->job_state = JOB_STATE_FINISHING;
               // if first pass then reset retries
-              if (i->retries == 0) i->retries = jcfg.max_retries;
+              if (i->retries == 0) i->retries = config.max_retries;
               finishing_job_share[i->transfer_share]++;
             } else JobPending(i);
           }
-        } else if (CanStage(i, jcfg, true)) {
+        } else if (CanStage(i, true)) {
           state_changed=true; once_more=true;
           i->job_state = JOB_STATE_FINISHING;
           finishing_job_share[i->transfer_share]++;
@@ -1314,7 +1232,6 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,
 void JobsList::ActJobFinishing(JobsList::iterator &i,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& state_changed) {
-        JobsListConfig& jcfg = user->Env().jobs_cfg();
         // Batch job has finished and now ready to upload output files, or
         // upload is already on-going
         logger.msg(Arc::VERBOSE,"%s: State: FINISHING",i->job_id);
@@ -1332,7 +1249,7 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,
             // set next retry time
             // exponential back-off algorithm - wait 10s, 40s, 90s, 160s,...
             // with a bit of randomness thrown in - vary by up to 50% of wait_time
-            int wait_time = 10 * (jcfg.max_retries - i->retries) * (jcfg.max_retries - i->retries);
+            int wait_time = 10 * (config.max_retries - i->retries) * (config.max_retries - i->retries);
             int randomness = (rand() % wait_time) - (wait_time/2);
             wait_time += randomness;
             i->next_retry = time(NULL) + wait_time;
@@ -1346,8 +1263,7 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,
             finishing_job_share[i->transfer_share]--;
             i->job_state = JOB_STATE_FINISHED;
             if(GetLocalDescription(i)) {
-              if (--(jcfg.jobs_dn[i->local->DN]) <= 0)
-                jcfg.jobs_dn.erase(i->local->DN);
+              if (--(jobs_dn[i->local->DN]) <= 0) jobs_dn.erase(i->local->DN);
             }
             once_more=true;
           }
@@ -1357,7 +1273,7 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,
         } else {
           state_changed=true; // to send mail
           once_more=true;
-          if(i->GetFailure(*user).length() == 0)
+          if(i->GetFailure(config).empty())
             i->AddFailure("uploader failed (post-processing)");
           job_error=true;
           finishing_job_share[i->transfer_share]--;
@@ -1369,22 +1285,22 @@ void JobsList::ActJobFinished(JobsList::iterator &i,
                               bool& /*job_error*/,bool& state_changed) {
         // Job has completely finished, check for user requests to restart or
         // clean up job, and if it is time to move to DELETED
-        if(job_clean_mark_check(i->job_id,*user)) {
+        if(job_clean_mark_check(i->job_id,config)) {
           // request to clean job
           logger.msg(Arc::INFO,"%s: Job is requested to clean - deleting",i->job_id);
           UnlockDelegation(i);
           // delete everything
-          job_clean_final(*i,*user);
+          job_clean_final(*i,config);
           return;
         }
-        if(job_restart_mark_check(i->job_id,*user)) {
-           job_restart_mark_remove(i->job_id,*user);
+        if(job_restart_mark_check(i->job_id,config)) {
+           job_restart_mark_remove(i->job_id,config);
           // request to rerun job - check if we can
           // Get information about failed state and forget it
           job_state_t state_ = JobFailStateGet(i);
           if(state_ == JOB_STATE_PREPARING) {
             if(RecreateTransferLists(i)) {
-              job_failed_mark_remove(i->job_id,*user);
+              job_failed_mark_remove(i->job_id,config);
               i->job_state = JOB_STATE_ACCEPTED;
               JobPending(i); // make it go to end of state immediately
               return;
@@ -1392,7 +1308,7 @@ void JobsList::ActJobFinished(JobsList::iterator &i,
           } else if((state_ == JOB_STATE_SUBMITTING) ||
                     (state_ == JOB_STATE_INLRMS)) {
             if(RecreateTransferLists(i)) {
-              job_failed_mark_remove(i->job_id,*user);
+              job_failed_mark_remove(i->job_id,config);
               if(i->local->downloads > 0) {
                 // missing input files has to be re-downloaded
                 i->job_state = JOB_STATE_ACCEPTED;
@@ -1404,7 +1320,7 @@ void JobsList::ActJobFinished(JobsList::iterator &i,
             }
           } else if(state_ == JOB_STATE_FINISHING) {
             if(RecreateTransferLists(i)) {
-              job_failed_mark_remove(i->job_id,*user);
+              job_failed_mark_remove(i->job_id,config);
               i->job_state = JOB_STATE_INLRMS;
               JobPending(i); // make it go to end of state immediately
               return;
@@ -1416,7 +1332,7 @@ void JobsList::ActJobFinished(JobsList::iterator &i,
           }
         }
         time_t t = -1;
-        if(!job_local_read_cleanuptime(i->job_id,*user,t)) {
+        if(!job_local_read_cleanuptime(i->job_id,config,t)) {
           // must be first time - create cleanuptime
           t=PrepareCleanupTime(i,i->keep_finished);
         }
@@ -1426,18 +1342,9 @@ void JobsList::ActJobFinished(JobsList::iterator &i,
           UnlockDelegation(i);
           if(i->keep_deleted) {
             // here we have to get the cache per-job dirs to be deleted
-            CacheConfig cache_config;
             std::list<std::string> cache_per_job_dirs;
-            try {
-              cache_config = CacheConfig(user->Env());
-            }
-            catch (CacheConfigException& e) {
-              logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
-              job_clean_deleted(*i,*user);
-              i->job_state = JOB_STATE_DELETED;
-              state_changed=true;
-              return;
-            }
+            CacheConfig cache_config(config.cache_params);
+            cache_config.substitute(config, i->user);
             std::vector<std::string> conf_caches = cache_config.getCacheDirs();
             // add each dir to our list
             for (std::vector<std::string>::iterator it = conf_caches.begin(); it != conf_caches.end(); it++) {
@@ -1453,12 +1360,12 @@ void JobsList::ActJobFinished(JobsList::iterator &i,
             for (std::vector<std::string>::iterator it = draining_caches.begin(); it != draining_caches.end(); it++) {
               cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
             }
-            job_clean_deleted(*i,*user,cache_per_job_dirs);
+            job_clean_deleted(*i,config,cache_per_job_dirs);
             i->job_state = JOB_STATE_DELETED;
             state_changed=true;
           } else {
             // delete everything
-            job_clean_final(*i,*user);
+            job_clean_final(*i,config);
           }
         }
 }
@@ -1469,15 +1376,14 @@ void JobsList::ActJobDeleted(JobsList::iterator &i,
         // Job only has a few control files left, check if is it time to
         // remove all traces
         time_t t = -1;
-        if(!job_local_read_cleanuptime(i->job_id,*user,t) || ((time(NULL)-(t+i->keep_deleted)) >= 0)) {
+        if(!job_local_read_cleanuptime(i->job_id,config,t) || ((time(NULL)-(t+i->keep_deleted)) >= 0)) {
           logger.msg(Arc::INFO,"%s: Job is ancient - delete rest of information",i->job_id);
           // delete everything
-          job_clean_final(*i,*user);
+          job_clean_final(*i,config);
         }
 }
 
 bool JobsList::ActJob(JobsList::iterator &i) {
-  JobsListConfig& jcfg = user->Env().jobs_cfg();
   bool once_more     = true;
   bool delete_job    = false;
   bool job_error     = false;
@@ -1495,9 +1401,9 @@ bool JobsList::ActJob(JobsList::iterator &i) {
        (i->job_state != JOB_STATE_FINISHED) &&
        (i->job_state != JOB_STATE_DELETED) &&
        (i->job_state != JOB_STATE_SUBMITTING)) {
-      if(job_cancel_mark_check(i->job_id,*user)) {
-        logger.msg(Arc::INFO,"%s: Canceling job (%s) because of user request",i->job_id,user->UnixName());
-        if (jcfg.use_new_data_staging && dtr_generator &&
+      if(job_cancel_mark_check(i->job_id,config)) {
+        logger.msg(Arc::INFO,"%s: Canceling job because of user request",i->job_id);
+        if (config.use_new_data_staging && dtr_generator &&
             (i->job_state == JOB_STATE_PREPARING || i->job_state == JOB_STATE_FINISHING)) {
           dtr_generator->cancelJob(*i);
         }
@@ -1522,19 +1428,18 @@ bool JobsList::ActJob(JobsList::iterator &i) {
         }
         // if new data staging we wait to get back all DTRs
         else if(i->job_state == JOB_STATE_FINISHING) {
-          if (!jcfg.use_new_data_staging) {
+          if (!config.use_new_data_staging) {
             i->job_state = JOB_STATE_FINISHED;
             if(GetLocalDescription(i)) {
-              if (--(jcfg.jobs_dn[i->local->DN]) <= 0)
-                jcfg.jobs_dn.erase(i->local->DN);
+              if (--(jobs_dn[i->local->DN]) <= 0) jobs_dn.erase(i->local->DN);
             }
           }
         }
-        else if (!jcfg.use_new_data_staging || i->job_state != JOB_STATE_PREPARING) {
+        else if (!config.use_new_data_staging || i->job_state != JOB_STATE_PREPARING) {
           i->job_state = JOB_STATE_FINISHING;
           finishing_job_share[i->transfer_share]++;
         }
-        job_cancel_mark_remove(i->job_id,*user);
+        job_cancel_mark_remove(i->job_id,config);
         state_changed=true;
         once_more=true;
       }
@@ -1589,8 +1494,7 @@ bool JobsList::ActJob(JobsList::iterator &i) {
             // No matter if FINISHING fails - it still goes to FINISHED
             i->job_state = JOB_STATE_FINISHED;
             if(GetLocalDescription(i)) {
-              if (--(jcfg.jobs_dn[i->local->DN]) <= 0)
-                jcfg.jobs_dn.erase(i->local->DN);
+              if (--(jobs_dn[i->local->DN]) <= 0) jobs_dn.erase(i->local->DN);
             }
             state_changed=true;
             once_more=true;
@@ -1608,15 +1512,15 @@ bool JobsList::ActJob(JobsList::iterator &i) {
         if(old_reported_state != JOB_STATE_UNDEFINED) {
           // Report state change into log
           logger.msg(Arc::INFO,"%s: State: %s from %s",
-                i->job_id.c_str(),JobDescription::get_state_name(i->job_state),
-                JobDescription::get_state_name(old_reported_state));
+                i->job_id.c_str(),GMJob::get_state_name(i->job_state),
+                GMJob::get_state_name(old_reported_state));
         }
         old_reported_state=i->job_state;
       }
       if(state_changed) {
         state_changed=false;
         i->job_pending=false;
-        if(!job_state_write_file(*i,*user,i->job_state)) {
+        if(!job_state_write_file(*i,config,i->job_state)) {
           i->AddFailure("Failed writing job status: "+Arc::StrError(errno));
           job_error=true;
         } else {
@@ -1627,9 +1531,9 @@ bool JobsList::ActJob(JobsList::iterator &i) {
           // Hence here we have duplicate call for ACCEPTED state.
           // TODO: maybe introducing job state prefix VALIDATING:
           // could be used to resolve this situation.
-          if(plugins) {
+          if(config.cont_plugins) {
             std::list<ContinuationPlugins::result_t> results;
-            plugins->run(*i,*user,results);
+            config.cont_plugins->run(*i,config,results);
             std::list<ContinuationPlugins::result_t>::iterator result = results.begin();
             while(result != results.end()) {
               // analyze results
@@ -1657,33 +1561,32 @@ bool JobsList::ActJob(JobsList::iterator &i) {
             }
           }
           // Processing to be done on state changes 
-          user->Env().job_log().make_file(*i,*user);
+          config.job_log->make_file(*i,config);
           if(i->job_state == JOB_STATE_FINISHED) {
-            job_clean_finished(i->job_id,*user);
-            user->Env().job_log().finish_info(*i,*user);
+            job_clean_finished(i->job_id,config);
+            config.job_log->finish_info(*i,config);
             PrepareCleanupTime(i,i->keep_finished);
           } else if(i->job_state == JOB_STATE_PREPARING) {
-            user->Env().job_log().start_info(*i,*user);
+            config.job_log->start_info(*i,config);
           }
         }
         // send mail after error and change are processed
         // do not send if something really wrong happened to avoid email DoS
-        if(!delete_job) send_mail(*i,*user);
+        if(!delete_job) send_mail(*i,config);
       }
       // Keep repeating till error goes out
     } while(job_error);
     if(delete_job) { 
       logger.msg(Arc::ERROR,"%s: Delete request due to internal problems",i->job_id);
       i->job_state = JOB_STATE_FINISHED; // move to finished in order to remove from list
-      if(i->GetLocalDescription(*user)) {
-        if (--(jcfg.jobs_dn[i->local->DN]) == 0)
-          jcfg.jobs_dn.erase(i->local->DN);
+      if(i->GetLocalDescription(config)) {
+        if (--(jobs_dn[i->local->DN]) == 0) jobs_dn.erase(i->local->DN);
       }
       i->job_pending=false;
-      job_state_write_file(*i,*user,i->job_state); 
+      job_state_write_file(*i,config,i->job_state);
       i->AddFailure("Serious troubles (problems during processing problems)");
       FailedJob(i,false);  // put some marks
-      job_clean_finished(i->job_id,*user);  // clean status files
+      job_clean_finished(i->job_id,config);  // clean status files
       once_more=true; // to process some things in local
     }
   }
@@ -1696,9 +1599,9 @@ bool JobsList::ActJob(JobsList::iterator &i) {
     // this is the ONLY place where jobs are removed from memory
     // update counters
     if(!old_pending) {
-      jcfg.jobs_num[old_state]--;
+      jobs_num[old_state]--;
     } else {
-      jcfg.jobs_pending--;
+      jobs_pending--;
     }
     if(i->local) { delete i->local; }
     i=jobs.erase(i);
@@ -1706,21 +1609,19 @@ bool JobsList::ActJob(JobsList::iterator &i) {
   else {
     // update counters
     if(!old_pending) {
-      jcfg.jobs_num[old_state]--;
+      jobs_num[old_state]--;
     } else {
-      jcfg.jobs_pending--;
+      jobs_pending--;
     }
     if(!i->job_pending) {
-      jcfg.jobs_num[i->job_state]++;
+      jobs_num[i->job_state]++;
     } else {
-      jcfg.jobs_pending++;
+      jobs_pending++;
     }
     ++i;
   }
   return true;
 }
-
-#endif //  NO_GLOBUS_CODE
 
 class JobFDesc {
  public:
@@ -1747,7 +1648,7 @@ bool JobsList::RestartJobs(const std::string& cdir,const std::string& odir) {
         time_t t;
         std::string fname=cdir+'/'+file.c_str();
         std::string oname=odir+'/'+file.c_str();
-        if(check_file_owner(fname,*user,uid,gid,t)) {
+        if(check_file_owner(fname,uid,gid,t)) {
           if(::rename(fname.c_str(),oname.c_str()) != 0) {
             logger.msg(Arc::ERROR,"Failed to move file %s to %s",fname,oname);
             res=false;
@@ -1765,7 +1666,7 @@ bool JobsList::RestartJobs(const std::string& cdir,const std::string& odir) {
 
 // This code is run at service restart
 bool JobsList::RestartJobs(void) {
-  std::string cdir=user->ControlDir();
+  std::string cdir=config.control_dir;
   // Jobs from old version
   bool res1 = RestartJobs(cdir,cdir+"/restarting");
   // Jobs after service restart
@@ -1788,7 +1689,7 @@ bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) {
           uid_t uid;
           gid_t gid;
           time_t t;
-          if(check_file_owner(fname,*user,uid,gid,t)) {
+          if(check_file_owner(fname,uid,gid,t)) {
             // add it to the list
             id.uid=uid; id.gid=gid; id.t=t;
             ids.push_back(id);
@@ -1797,7 +1698,7 @@ bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) {
       }
     }
   } catch(Glib::FileError& e) {
-    logger.msg(Arc::ERROR,"Failed reading control directory: %s: %s",user->ControlDir(), e.what());
+    logger.msg(Arc::ERROR,"Failed reading control directory: %s: %s",config.control_dir, e.what());
     return false;
   }
   return true;
@@ -1822,7 +1723,7 @@ bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& s
               uid_t uid;
               gid_t gid;
               time_t t;
-              if(check_file_owner(fname,*user,uid,gid,t)) {
+              if(check_file_owner(fname,uid,gid,t)) {
                 // add it to the list
                 id.uid=uid; id.gid=gid; id.t=t;
                 ids.push_back(id);
@@ -1834,7 +1735,7 @@ bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& s
       }
     }
   } catch(Glib::FileError& e) {
-    logger.msg(Arc::ERROR,"Failed reading control directory: %s",user->ControlDir());
+    logger.msg(Arc::ERROR,"Failed reading control directory: %s",config.control_dir);
     return false;
   }
   return true;
@@ -1842,7 +1743,7 @@ bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& s
 
 // find new jobs - sort by date to implement FIFO
 bool JobsList::ScanNewJobs(void) {
-  std::string cdir=user->ControlDir();
+  std::string cdir=config.control_dir;
   std::list<JobFDesc> ids;
   // For picking up jobs after service restart
   std::string odir=cdir+"/restarting";
@@ -1876,7 +1777,7 @@ bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
   // are normally processed in ScanNewMarks but can also happen here.
   time_t start = time(NULL);
   if(max_scan_time < 10) max_scan_time=10; // some sane number - 10s
-  std::string cdir=user->ControlDir()+"/finished";
+  std::string cdir=config.control_dir+"/finished";
   try {
     if(!old_dir) {
       old_dir = new Glib::Dir(cdir);
@@ -1898,8 +1799,8 @@ bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
           uid_t uid;
           gid_t gid;
           time_t t;
-          if(check_file_owner(fname,*user,uid,gid,t)) {
-            job_state_t st = job_state_read_file(id.id,*user);
+          if(check_file_owner(fname,uid,gid,t)) {
+            job_state_t st = job_state_read_file(id.id,config);
             if(st == JOB_STATE_FINISHED || st == JOB_STATE_DELETED) {
               JobsList::iterator i;
               AddJobNoCheck(id.id, i, uid, gid);
@@ -1925,7 +1826,7 @@ bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
 }
 
 bool JobsList::ScanNewMarks(void) {
-  std::string cdir=user->ControlDir();
+  std::string cdir=config.control_dir;
   std::string ndir=cdir+"/"+subdir_new;
   std::list<JobFDesc> ids;
   std::list<std::string> sfx;
@@ -1938,12 +1839,12 @@ bool JobsList::ScanNewMarks(void) {
   for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
     if(id->id == last_id) continue; // already processed
     last_id = id->id;
-    job_state_t st = job_state_read_file(id->id,*user);
+    job_state_t st = job_state_read_file(id->id,config);
     if((st == JOB_STATE_UNDEFINED) || (st == JOB_STATE_DELETED)) {
       // Job probably does not exist anymore
-      job_clean_mark_remove(id->id,*user);
-      job_restart_mark_remove(id->id,*user);
-      job_cancel_mark_remove(id->id,*user);
+      job_clean_mark_remove(id->id,config);
+      job_restart_mark_remove(id->id,config);
+      job_cancel_mark_remove(id->id,config);
     }
     // Check if such job finished and add it to list.
     if(st == JOB_STATE_FINISHED) {
@@ -1965,7 +1866,7 @@ bool JobsList::ScanAllJobs(void) {
   subdirs.push_back("/finished");   // For done jobs
   for(std::list<std::string>::iterator subdir = subdirs.begin();
                                subdir != subdirs.end();++subdir) {
-    std::string cdir=user->ControlDir();
+    std::string cdir=config.control_dir;
     std::list<JobFDesc> ids;
     std::string odir=cdir+(*subdir);
     if(!ScanJobs(odir,ids)) return false;
@@ -1988,14 +1889,14 @@ bool JobsList::AddJob(const JobId& id) {
   subdirs.push_back("/finished");   // For done jobs
   for(std::list<std::string>::iterator subdir = subdirs.begin();
                                subdir != subdirs.end();++subdir) {
-    std::string cdir=user->ControlDir();
+    std::string cdir=config.control_dir;
     std::list<JobFDesc> ids;
     std::string odir=cdir+(*subdir);
     std::string fname=odir+'/'+"job."+id+".status";
     uid_t uid;
     gid_t gid;
     time_t t;
-    if(check_file_owner(fname,*user,uid,gid,t)) {
+    if(check_file_owner(fname,uid,gid,t)) {
       // add it to the list
       iterator i;
       AddJobNoCheck(id,uid,gid);
@@ -2005,3 +1906,4 @@ bool JobsList::AddJob(const JobId& id) {
   return false;
 }
 
+} // namespace ARex

@@ -18,6 +18,8 @@
 #include "../files/info_types.h"
 #include "delete.h"
 
+namespace ARex {
+
 struct FL_p {
   const char* s;
   FL_p* next;
@@ -158,3 +160,4 @@ int delete_all_files(const std::string &dir_base,const std::list<FileData> &file
   return res;
 }
 
+} // namespace ARex

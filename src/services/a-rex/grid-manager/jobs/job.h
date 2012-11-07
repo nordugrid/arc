@@ -5,12 +5,16 @@
 #include <string>
 
 #include <arc/Run.h>
+#include <arc/User.h>
+
+namespace ARex {
 
 class JobsList;
 class JobLocalDescription;
-class JobUser;
+class GMConfig;
 
-typedef enum {
+/// Possible job states
+enum job_state_t {
   JOB_STATE_ACCEPTED   = 0,
   JOB_STATE_PREPARING  = 1,
   JOB_STATE_SUBMITTING = 2,
@@ -20,130 +24,92 @@ typedef enum {
   JOB_STATE_DELETED    = 6,
   JOB_STATE_CANCELING  = 7,
   JOB_STATE_UNDEFINED  = 8
-} job_state_t;
+};
 
-typedef struct {
+struct job_state_rec_t {
   job_state_t id;
   const char* name;
   char mail_flag;
-} job_state_rec_t;
+};
 
+/// Maps job state to state name and flag for email at that state
 extern job_state_rec_t states_all[JOB_STATE_UNDEFINED+1];
 
+/// Number of job states
 #define JOB_STATE_NUM (JOB_STATE_UNDEFINED+1)
 
-/* all states under control - not nice */
-#define JOB_NUM_ACCEPTED (\
-  jcfg.jobs_num[JOB_STATE_ACCEPTED] + \
-  jcfg.jobs_num[JOB_STATE_PREPARING] + \
-  jcfg.jobs_num[JOB_STATE_SUBMITTING] + \
-  jcfg.jobs_num[JOB_STATE_INLRMS] + \
-  jcfg.jobs_num[JOB_STATE_FINISHING] + \
-  jcfg.jobs_pending \
-)
-
-/* states running something heavy on frontend */
-#define JOB_NUM_PROCESSING (\
-  jcfg.jobs_num[JOB_STATE_PREPARING] + \
-  jcfg.jobs_num[JOB_STATE_FINISHING] \
-)
-
-#define JOB_NUM_PREPARING (\
-  jcfg.jobs_num[JOB_STATE_PREPARING] \
-)
-
-#define JOB_NUM_FINISHING (\
-  jcfg.jobs_num[JOB_STATE_FINISHING] \
-)
-
-/* states doing their job mostly on computing nodes */
-#define JOB_NUM_RUNNING (\
-  jcfg.jobs_num[JOB_STATE_SUBMITTING] + \
-  jcfg.jobs_num[JOB_STATE_INLRMS] \
-)
-
-/*
-  Jobs identifier. Stored as string. Normally is a big number.
-*/
+/// Jobs identifier. Stored as string. Normally is a random string of
+/// numbers and letters.
 typedef std::string JobId;
 
-/*
-  Object to represent job in memory.
-*/
-class JobDescription {
+/// Represents a job in memory as it passes through the JobsList state machine.
+class GMJob {
  friend class JobsList;
  private:
-  /* state of the job (state machine) */
+  // State of the job (state machine)
   job_state_t job_state;
-  /* flag to indicate job stays at this stage due to limits imposed
-     such jobs are not counted in couters */
+  // Flag to indicate job stays at this stage due to limits imposed.
+  // Such jobs are not counted in counters
   bool job_pending; 
-  /* identifier */
+  // Job identifier
   JobId job_id;
-  /* directory to run job in */
+  // Directory to run job in
   std::string session_dir;
-  /* explanation of job's failure */
+  // Explanation of job's failure
   std::string failure_reason;
-  /* how long job is kept on cluster after it finished */
+  // How long job is kept on cluster after it finished
   time_t keep_finished;
   time_t keep_deleted;
-  /* pointer to object containing most important parameters of job,
-     loaded when needed. */
+  // Pointer to object containing most important parameters of job,
+  // loaded when needed.
   JobLocalDescription* local;
-  /* uid and gid of job's owner */
-  uid_t job_uid;
-  gid_t job_gid;
-  /* reties left (should be reset for each state change) */
+  // Job's owner
+  Arc::User user;
+  // Reties left (should be reset for each state change)
   int retries;
-  /* time to perform the next retry */
+  // Time to perform the next retry
   time_t next_retry;
-  /* used to determine data transfer share (eg DN, VOMS VO) */
+  // Used to determine data transfer share (eg DN, VOMS VO)
   std::string transfer_share;
-  /* start time of job i.e. when it first moves to PREPARING */
+  // Start time of job i.e. when it first moves to PREPARING
   time_t start_time;
  public:
-  /* external utility beeing run to perform tasks like stage-in/our, 
-     submit/cancel. (todo - move to private) */
+  // external utility being run to perform tasks like stage-in/out,
+  //   submit/cancel. (todo - move to private)
   Arc::Run* child;
-  /* 
-    Constructors and destructor.
-    Accepts:
-      job_id - identifier
-      dir - session_dir of job
-      state - initial state of job
-  */
-  JobDescription(void);
-  JobDescription(const JobDescription &job);
-  JobDescription(const JobId &job_id,const std::string &dir = "",job_state_t state = JOB_STATE_UNDEFINED);
-  ~JobDescription(void);
+  // Constructors and destructor.
+  //  Accepts:
+  //    job_id - identifier
+  //    user - owner of job
+  //    dir - session_dir of job
+  //    state - initial state of job
+  GMJob(const JobId &job_id,const Arc::User& user,const std::string &dir = "",job_state_t state = JOB_STATE_UNDEFINED);
+  GMJob(void);
+  GMJob(const GMJob &job);
+  ~GMJob(void);
   job_state_t get_state() const { return job_state; };
   const char* get_state_name() const;
   static const char* get_state_name(job_state_t st);
   static job_state_t get_state(const char* state);
   const JobId& get_id() const { return job_id; };
   std::string SessionDir(void) const { return session_dir; };
-  void AddFailure(const std::string &reason) {
-    //if(failure_reason.length()) failure_reason+="\n";
-    failure_reason+=reason; failure_reason+="\n";
-  };
-  std::string GetFailure(const JobUser &user) const;
+  void AddFailure(const std::string &reason) { failure_reason+=reason; failure_reason+="\n"; };
+  std::string GetFailure(const GMConfig& config) const;
   JobLocalDescription* get_local(void) const { return local; };
   void set_local(JobLocalDescription* desc) { local=desc; };
-//  void set_state(job_state_t state) { job_state=state; };
-  bool operator==(const JobDescription& job) const { return (job_id == job.job_id); };
+  bool operator==(const GMJob& job) const { return (job_id == job.job_id); };
   bool operator==(const JobId &id) const { return (job_id == id); };
   bool operator!=(const JobId &id) const { return (job_id != id); };
-  void set_uid(uid_t uid,gid_t gid) {
-    if(uid != (uid_t)(-1)) { job_uid=uid; };
-    if(gid != (uid_t)(-1)) { job_gid=gid; };
-  };
-  uid_t get_uid(void) const { return job_uid; };
-  gid_t get_gid(void) const { return job_gid; };
+  void set_user(const Arc::User& u) { user = u; }
+  const Arc::User& get_user() const { return user;}
   void set_share(std::string share);
-  /* force 'local' to be created and read from file if not already available */
-  bool GetLocalDescription(const JobUser &user);
+  // Force 'local' to be created and read from file if not already available
+  bool GetLocalDescription(const GMConfig& config);
   void Start() { start_time = time(NULL); };
   time_t GetStartTime() const { return start_time; };
   void PrepareToDestroy(void);
 };
+
+} // namespace ARex
+
 #endif

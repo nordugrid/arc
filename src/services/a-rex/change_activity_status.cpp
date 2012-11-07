@@ -5,8 +5,6 @@
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/ws-addressing/WSA.h>
 #include "job.h"
-#include "grid-manager/jobs/job_config.h"
-
 #include "arex.h"
 
 namespace ARex {
@@ -84,7 +82,7 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   std::string delegation;
   Arc::XMLNode delegated_token = new_state["arcdeleg:DelegatedToken"];
   if(delegated_token) {
-    if(!delegation_stores_.DelegatedToken(config.User()->DelegationDir(),delegated_token,config.GridName(),delegation)) {
+    if(!delegation_stores_.DelegatedToken(config.GmConfig().DelegationDir(),delegated_token,config.GridName(),delegation)) {
       // Failed to accept delegation (report as bad request)
       logger_.msg(Arc::ERROR, "ChangeActivityStatus: Failed to accept delegation");
       Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Failed to accept delegation");
@@ -323,7 +321,7 @@ Arc::MCC_Status ARexService::ESCancelActivity(ARexGMConfig& config,Arc::XMLNode 
         // And same time till result of cancel script is processed.
         // Currently it is not possible to estimate how long canceling
         // would happen.
-        item.NewChild("esmanag:EstimatedTime") = Arc::tostring(config.User()->Env().jobs_cfg().WakeupPeriod()*2);
+        item.NewChild("esmanag:EstimatedTime") = Arc::tostring(config.GmConfig().WakeupPeriod()*2);
       };
     };
   };
@@ -381,7 +379,7 @@ Arc::MCC_Status ARexService::ESWipeActivity(ARexGMConfig& config,Arc::XMLNode in
         // TODO: check for real reason
         ESOperationNotAllowedFault(item.NewChild("dummy"),job.Failure());
       } else {
-        item.NewChild("esmanag:EstimatedTime") = Arc::tostring(config.User()->Env().jobs_cfg().WakeupPeriod());
+        item.NewChild("esmanag:EstimatedTime") = Arc::tostring(config.GmConfig().WakeupPeriod());
       };
     };
   };
@@ -435,7 +433,7 @@ Arc::MCC_Status ARexService::ESRestartActivity(ARexGMConfig& config,Arc::XMLNode
         // TODO: check for real reason
         ESOperationNotAllowedFault(item.NewChild("dummy"),job.Failure());
       } else {
-        item.NewChild("esmanag:EstimatedTime") = Arc::tostring(config.User()->Env().jobs_cfg().WakeupPeriod());
+        item.NewChild("esmanag:EstimatedTime") = Arc::tostring(config.GmConfig().WakeupPeriod());
       };
     };
   };

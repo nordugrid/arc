@@ -5,8 +5,11 @@
 
 #include <arc/compute/JobDescription.h>
 
-#include "users.h"
 #include "job.h"
+
+namespace ARex {
+
+class GMConfig;
 
 typedef enum {
   JobReqSuccess,
@@ -42,11 +45,11 @@ class JobReqResult {
  * @return false if job description could not be read or parsed, true on success.
  */
 Arc::JobDescriptionResult get_arc_job_description(const std::string& fname, Arc::JobDescription& desc);
-bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& job_desc, const JobUser& user, const char* opt_add);
+bool write_grami(const Arc::JobDescription& arc_job_desc, const GMJob& job, const GMConfig& config, const char* opt_add);
 JobReqResult get_acl(const Arc::JobDescription& arc_job_desc, std::string& acl, std::string* failure
  = NULL);
 bool check(const Arc::JobDescription& arc_job_desc);
-bool set_execs(const Arc::JobDescription& desc, const JobDescription& job_desc, const JobUser& user);
+bool set_execs(const Arc::JobDescription& desc, const GMJob& job, const GMConfig& config);
 
 class value_for_shell {
  friend std::ostream& operator<<(std::ostream&,const value_for_shell&);
@@ -74,5 +77,7 @@ std::ostream& operator<<(std::ostream &o,const numvalue_for_shell &s);
 #define NG_RSL_DEFAULT_STDIN      const_cast<char*>("/dev/null")
 #define NG_RSL_DEFAULT_STDOUT     const_cast<char*>("/dev/null")
 #define NG_RSL_DEFAULT_STDERR     const_cast<char*>("/dev/null")
+
+} // namespace ARex
 
 #endif

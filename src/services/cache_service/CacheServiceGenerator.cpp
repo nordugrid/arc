@@ -2,8 +2,6 @@
 #include <arc/Utils.h>
 
 #include "../a-rex/grid-manager/conf/conf_map.h"
-#include "../a-rex/grid-manager/conf/conf_staging.h"
-#include "../a-rex/grid-manager/jobs/job_config.h"
 
 #include "CacheServiceGenerator.h"
 
@@ -11,11 +9,13 @@ namespace Cache {
 
   Arc::Logger CacheServiceGenerator::logger(Arc::Logger::rootLogger, "CacheServiceGenerator");
 
-  CacheServiceGenerator::CacheServiceGenerator(const JobUsers& users, bool with_arex) :
+  CacheServiceGenerator::CacheServiceGenerator(const ARex::GMConfig& conf, bool with_arex) :
       generator_state(DataStaging::INITIATED),
       use_host_cert(false),
-      scratch_dir(users.Env().scratch_dir()),
-      run_with_arex(with_arex) {
+      scratch_dir(conf.ScratchDir()),
+      run_with_arex(with_arex),
+      config(conf),
+      staging_conf(config) {
 
     scheduler = DataStaging::Scheduler::getInstance();
 
@@ -25,7 +25,6 @@ namespace Cache {
       return;
     }
 
-    StagingConfig staging_conf(users.Env());
     if (!staging_conf) return;
 
     // Convert A-REX configuration values to DTR configuration
@@ -53,7 +52,7 @@ namespace Cache {
     scheduler->SetTransferParameters(transfer_limits);
 
     // URL mappings
-    UrlMapConfig url_map(users.Env());
+    ARex::UrlMapConfig url_map(config);
     scheduler->SetURLMapping(url_map);
 
     // Preferred pattern
@@ -141,12 +140,11 @@ namespace Cache {
     }
   }
 
-  bool CacheServiceGenerator::addNewRequest(const JobUser& jobuser,
+  bool CacheServiceGenerator::addNewRequest(const Arc::User& user,
                                             const std::string& source,
                                             const std::string& destination,
                                             const Arc::UserConfig& usercfg,
                                             const std::string& jobid,
-                                            uid_t uid,
                                             int priority) {
 
     if (generator_state != DataStaging::RUNNING) return false;
@@ -161,7 +159,7 @@ namespace Cache {
     log->removeDestinations();
     log->addDestination(*output);
 
-    DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, usercfg, jobid, uid, log));
+    DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, usercfg, jobid, user.get_uid(), log));
 
     if (!(*dtr)) {
       logger.msg(Arc::ERROR, "Invalid DTR for source %s, destination %s", source, destination);
@@ -169,7 +167,7 @@ namespace Cache {
       return false;
     }
     // set retry count (tmp errors only)
-    dtr->set_tries_left(jobuser.Env().jobs_cfg().MaxRetries());
+    dtr->set_tries_left(staging_conf.get_max_retries());
     // set priority
     dtr->set_priority(priority);
     // set whether to use A-REX host certificate for remote delivery services
@@ -177,9 +175,12 @@ namespace Cache {
     // use a separate share from A-REX downloads
     dtr->set_sub_share("cache-service-download");
 
+    // substitute cache paths based on user
+    ARex::CacheConfig cache_params(config.CacheParams());
+    cache_params.substitute(config, user);
     DataStaging::DTRCacheParameters cache_parameters;
-    cache_parameters.cache_dirs = jobuser.CacheParams().getCacheDirs();
-    cache_parameters.remote_cache_dirs = jobuser.CacheParams().getRemoteCacheDirs();
+    cache_parameters.cache_dirs = cache_params.getCacheDirs();
+    // we are definitely going to download so remote caches are not useful here
     dtr->set_cache_parameters(cache_parameters);
     dtr->registerCallback(this, DataStaging::GENERATOR);
     dtr->registerCallback(scheduler, DataStaging::SCHEDULER);

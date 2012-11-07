@@ -4,12 +4,13 @@
 #include <arc/data-staging/DTR.h>
 #include <arc/data-staging/Scheduler.h>
 
-#include "../files/info_files.h"
 #include "../conf/conf_staging.h"
 
-#include "job.h"
-#include "job_config.h"
+namespace ARex {
 
+class GMConfig;
+class FileData;
+class GMJob;
 
 /**
  * DTRInfo passes state information from data staging to A-REX
@@ -20,13 +21,10 @@
  */
 class DTRInfo: public DataStaging::DTRCallback {
  private:
-  /** Job users. Map of UID to JobUser pointer, used to map a DTR or job to a JobUser. */
-  std::map<uid_t, const JobUser*> jobusers;
+  const GMConfig& config;
   static Arc::Logger logger;
  public:
-  /** JobUsers is needed to find the correct control dir */
-  DTRInfo(const JobUsers& users);
-  DTRInfo() {};
+  DTRInfo(const GMConfig& config);
   virtual void receiveDTR(DataStaging::DTR_ptr dtr);
 };
 
@@ -49,7 +47,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
   /** DTRs received */
   std::list<DataStaging::DTR_ptr> dtrs_received;
   /** Jobs received */
-  std::list<JobDescription> jobs_received;
+  std::list<GMJob> jobs_received;
   /** Jobs cancelled. List of Job IDs. */
   std::list<std::string> jobs_cancelled;
   /** Lock for events */
@@ -59,8 +57,8 @@ class DTRGenerator: public DataStaging::DTRCallback {
   Arc::SimpleCondition run_condition;
   /** State of Generator */
   DataStaging::ProcessState generator_state;
-  /** Job users. Map of UID to JobUser pointer, used to map a DTR or job to a JobUser. */
-  std::map<uid_t, const JobUser*> jobusers;
+  /** Grid manager configuration */
+  const GMConfig& config;
   /** A list of files left mid-transfer from a previous process */
   std::list<std::string> recovered_files;
   /** logger to a-rex log */
@@ -90,7 +88,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
   /** Process a received DTR */
   bool processReceivedDTR(DataStaging::DTR_ptr dtr);
   /** Process a received job */
-  bool processReceivedJob(const JobDescription& job);
+  bool processReceivedJob(const GMJob& job);
   /** Process a cancelled job */
   bool processCancelledJob(const std::string& jobid);
 
@@ -98,7 +96,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
   void readDTRState(const std::string& dtr_log);
 
   /** Clean up joblinks dir in caches for given job (called at the end of upload) */
-  void CleanCacheJobLinks(const GMEnvironment& env, const JobDescription& job) const;
+  void CleanCacheJobLinks(const GMConfig& config, const GMJob& job) const;
 
   /** Check that user-uploadable file exists.
    * Returns 0 - if file exists
@@ -120,11 +118,11 @@ class DTRGenerator: public DataStaging::DTRCallback {
  public:
   /**
    * Start up Generator.
-   * @param user JobUsers for this Generator.
+   * @param user Grid manager configuration.
    * @param kicker_func Function to call on completion of all DTRs for a job
    * @param kicker_arg Argument to kicker function
    */
-  DTRGenerator(const JobUsers& users,
+  DTRGenerator(const GMConfig& config,
                void (*kicker_func)(void*) = NULL,
                void* kicker_arg = NULL);
   /**
@@ -149,7 +147,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * sends them to the Scheduler.
    * @param job Job description object.
    */
-  void receiveJob(const JobDescription& job);
+  void receiveJob(const GMJob& job);
 
   /**
    * This method is used by A-REX to cancel on-going DTRs. A cancel request
@@ -157,7 +155,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * asychronously deals with cancelling the DTRs.
    * @param job The job which is being cancelled
    */
-  void cancelJob(const JobDescription& job);
+  void cancelJob(const GMJob& job);
 
   /**
    * Query status of DTRs in job. If all DTRs are finished, returns true,
@@ -168,14 +166,14 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * reason.
    * @return True if all DTRs in the job are finished, false otherwise.
    */
-  bool queryJobFinished(JobDescription& job);
+  bool queryJobFinished(GMJob& job);
 
   /**
    * Query whether the Generator has a record of this job.
    * @param job Job to query.
    * @return True if the job is active or finished.
    */
-  bool hasJob(const JobDescription& job);
+  bool hasJob(const GMJob& job);
 
   /**
    * Remove the job from the Generator. Only finished jobs will be removed,
@@ -183,7 +181,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * method should be called after A-REX has finished PREPARING or FINISHING.
    * @param job The job to remove.
    */
-  void removeJob(const JobDescription& job);
+  void removeJob(const GMJob& job);
 
   /**
    * Utility method to check that all files the user was supposed to
@@ -193,7 +191,9 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * @return 0 if file exists, 1 if it is not a proper file or other error,
    * 2 if the file not there yet
    */
-  int checkUploadedFiles(JobDescription& job);
+  int checkUploadedFiles(GMJob& job);
 };
+
+} // namespace ARex
 
 #endif /* DTR_GENERATOR_H_ */

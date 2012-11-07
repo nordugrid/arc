@@ -5,16 +5,18 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/resource.h>
 #include <fcntl.h>
 
 #include <arc/Logger.h>
 
-#include "../conf/environment.h"
 #include "run_redirected.h"
+
+namespace ARex {
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-int RunRedirected::run(JobUser& user,const char* cmdname,int in,int out,int err,char *const args[],int timeout) {
+int RunRedirected::run(const Arc::User& user,const char* cmdname,int in,int out,int err,char *const args[],int timeout) {
   std::list<std::string> args_;
   for(int n = 0;args[n];++n) args_.push_back(std::string(args[n]));
   Arc::Run re(args_);
@@ -45,7 +47,7 @@ int RunRedirected::run(JobUser& user,const char* cmdname,int in,int out,int err,
   return re.Result();
 }
 
-int RunRedirected::run(JobUser& user,const char* cmdname,int in,int out,int err,const char* cmd,int timeout) {
+int RunRedirected::run(const Arc::User& user,const char* cmdname,int in,int out,int err,const char* cmd,int timeout) {
   Arc::Run re(cmd);
   if(!re) {
     logger.msg(Arc::ERROR,"%s: Failure creating slot for child process",cmdname?cmdname:"");
@@ -85,7 +87,7 @@ void RunRedirected::initializer(void* arg) {
   if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; }
   else { max_files=4096; };
   // change user
-  if(!(it->user_.SwitchUser(true))) {
+  if(!(it->user_.SwitchUser())) {
     logger.msg(Arc::ERROR,"%s: Failed switching user",it->cmdname_); sleep(10); exit(1);
   };
   // set up stdin,stdout and stderr
@@ -98,3 +100,4 @@ void RunRedirected::initializer(void* arg) {
 #endif
 }
 
+} // namespace ARex

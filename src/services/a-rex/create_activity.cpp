@@ -4,7 +4,6 @@
 
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/ws-addressing/WSA.h>
-#include "grid-manager/jobs/job_config.h"
 #include "job.h"
 
 #include "arex.h"
@@ -13,23 +12,6 @@ namespace ARex {
 
 // TODO: configurable
 #define MAX_ACTIVITIES (10)
-
-static bool max_jobs_reached(const JobsListConfig& jobs_cfg, unsigned int all_jobs) {
-  // Apply limit on total number of jobs.
-  //  Using collected glue states to evaluate number of jobs. - Not anymore
-//!!  glue_states_lock_.lock();
-//!!  int jobs_total = glue_states_.size();
-//!!  glue_states_lock_.unlock();
-  int jobs_total = all_jobs;
-  int max_active;
-  int max_running;
-  int max_per_dn;
-  int max_total;
-  jobs_cfg.GetMaxJobs(max_active,max_running,max_per_dn,max_total);
-  if(max_total > 0 && jobs_total >= max_total) return true;
-  return false;
-};
- 
 
 Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& clientid) {
   /*
@@ -62,7 +44,7 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
     return Arc::MCC_Status();
   };
 
-  if(max_jobs_reached(*jobs_cfg_,all_jobs_count_)) {
+  if(config.GmConfig().MaxTotal() > 0 && all_jobs_count_ >= config.GmConfig().MaxTotal()) {
     logger_.msg(Arc::ERROR, "CreateActivity: max jobs total limit reached");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Reached limit of total allowed jobs");
     GenericFault(fault);
@@ -79,7 +61,7 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
   Arc::XMLNode delegated_token = in["arcdeleg:DelegatedToken"];
   if(delegated_token) {
     // Client wants to delegate credentials
-    if(!delegation_stores_.DelegatedToken(config.User()->DelegationDir(),delegated_token,config.GridName(),delegation)) {
+    if(!delegation_stores_.DelegatedToken(config.GmConfig().DelegationDir(),delegated_token,config.GridName(),delegation)) {
       // Failed to accept delegation (report as bad request)
       logger_.msg(Arc::ERROR, "CreateActivity: Failed to accept delegation");
       Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Failed to accept delegation");
@@ -193,7 +175,7 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
     out.Destroy();
     return Arc::MCC_Status();
   };
-  if(max_jobs_reached(*jobs_cfg_,all_jobs_count_)) {
+  if(config.GmConfig().MaxTotal() > 0 && all_jobs_count_ >= config.GmConfig().MaxTotal()) {
     logger_.msg(Arc::ERROR, "EMIES:CreateActivity: max jobs total limit reached");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Reached limit of total allowed jobs");
     ESInternalBaseFault(fault,"Reached limit of total allowed jobs");

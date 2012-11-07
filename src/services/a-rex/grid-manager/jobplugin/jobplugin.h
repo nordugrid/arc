@@ -7,14 +7,11 @@
 #include <iostream>
 #include "../../../gridftpd/fileroot.h"
 #include "../../../gridftpd/userspec.h"
-#include "../run/run_parallel.h"
-#include "../log/job_log.h"
-#include "../jobs/job_config.h"
-#include "../jobs/plugins.h"
+#include "../conf/GMConfig.h"
+
+using namespace ARex;
 
 class DirectFilePlugin;
-class JobUser;
-class ContinuationPlugins;
 
 /*
  * Store per-GM information
@@ -42,19 +39,16 @@ class JobPlugin: public FilePlugin {
   std::string getSessionDir(std::string id);
   /** Pick new control and session dirs according to algorithm */
   bool chooseControlAndSessionDir(std::string job_id, std::string& controldir, std::string& sessiondir);
-  JobLog job_log;
-  JobsListConfig jobs_cfg;
   ContinuationPlugins* cont_plugins;
   RunPlugin* cred_plugin;
-  GMEnvironment env;
-  JobUser *user;
+  Arc::User user;
+  GMConfig config;
   AuthUser& user_a;
   UnixMap job_map;
   std::list<std::string> avail_queues;
   std::string subject;
-  unsigned short int port;
-  int host[4];
-  std::string endpoint;
+  unsigned short int port; // port client used for data channel
+  int host[4]; // client host
   std::string proxy_fname; /* name of proxy file passed by client */
   std::string job_id;
   unsigned int job_rsl_max_size;
@@ -63,7 +57,6 @@ class JobPlugin: public FilePlugin {
   bool rsl_opened;
   DirectFilePlugin* direct_fs;
   bool readonly;
-  static RunParallel run;
   std::vector<gm_dirs_> gm_dirs_info;
   std::vector<gm_dirs_> gm_dirs_non_draining;
   std::vector<std::string> session_dirs;

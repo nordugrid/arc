@@ -19,11 +19,10 @@
 #include <arc/ws-addressing/WSA.h>
 #include <arc/Thread.h>
 #include <arc/StringConv.h>
+#include <arc/FileUtils.h>
 #include <arc/Utils.h>
 #include "job.h"
-#include "grid-manager/conf/conf_file.h"
 #include "grid-manager/log/job_log.h"
-#include "grid-manager/jobs/job_config.h"
 #include "grid-manager/run/run_plugin.h"
 #include "arex.h"
 
@@ -322,7 +321,8 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
 
 class ARexConfigContext:public Arc::MessageContextElement, public ARexGMConfig {
  public:
-  ARexConfigContext(const GMEnvironment& env,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):ARexGMConfig(env,uname,grid_name,service_endpoint) { };
+  ARexConfigContext(GMConfig& config,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):
+    ARexGMConfig(config,uname,grid_name,service_endpoint) { };
   virtual ~ARexConfigContext(void) { };
 };
 
@@ -468,7 +468,7 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
     };
     endpoint+=GetPath(http_endpoint);
   };
-  config=new ARexConfigContext(*gm_env_,uname,grid_name,endpoint);
+  config=new ARexConfigContext(config_,uname,grid_name,endpoint);
   if(config) {
     if(*config) {
       inmsg.Context()->Add("arex.gmconfig",config);
@@ -591,7 +591,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       Arc::PayloadSOAP& res = *outpayload;
       // Preparing known namespaces
       outpayload->Namespaces(ns_);
-      if(enablearc_ && MatchXMLNamespace(op,BES_FACTORY_NAMESPACE)) {
+      if(config_.ARCInterfaceEnabled() && MatchXMLNamespace(op,BES_FACTORY_NAMESPACE)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"CreateActivity")) {
@@ -612,7 +612,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         } else {
           SOAP_NOT_SUPPORTED;
         }
-      } else if(enablearc_ && MatchXMLNamespace(op,BES_MANAGEMENT_NAMESPACE)) {
+      } else if(config_.ARCInterfaceEnabled() && MatchXMLNamespace(op,BES_MANAGEMENT_NAMESPACE)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"StopAcceptingNewActivities")) {
@@ -624,7 +624,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         } else {
           SOAP_NOT_SUPPORTED;
         }
-      } else if(enableemies_ && MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
+      } else if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"CreateActivity")) {
@@ -633,7 +633,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         } else {
           SOAP_NOT_SUPPORTED;
         }
-      } else if(enableemies_ && MatchXMLNamespace(op,ES_RINFO_NAMESPACE)) {
+      } else if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_RINFO_NAMESPACE)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"GetResourceInfo")) {
@@ -645,7 +645,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         } else {
           SOAP_NOT_SUPPORTED;
         }
-      } else if(enableemies_ && MatchXMLNamespace(op,ES_MANAG_NAMESPACE)) {
+      } else if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_MANAG_NAMESPACE)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"PauseActivity")) {
@@ -675,7 +675,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         } else {
           SOAP_NOT_SUPPORTED;
         }
-      } else if(enableemies_ && MatchXMLNamespace(op,ES_AINFO_NAMESPACE)) {
+      } else if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_AINFO_NAMESPACE)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"ListActivities")) {
@@ -690,7 +690,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         } else {
           SOAP_NOT_SUPPORTED;
         }
-      } else if(enablearc_ && MatchXMLNamespace(op,BES_ARC_NAMESPACE)) {
+      } else if(config_.ARCInterfaceEnabled() && MatchXMLNamespace(op,BES_ARC_NAMESPACE)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"ChangeActivityStatus")) {
@@ -709,7 +709,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         inpayload->Namespaces(ns_);
         CountedResourceLock cl_lock(beslimit_);
         std::string credentials;
-        if(!delegation_stores_.Process(config->User()->DelegationDir(),*inpayload,*outpayload,config->GridName(),credentials)) {
+        if(!delegation_stores_.Process(config->GmConfig().DelegationDir(),*inpayload,*outpayload,config->GridName(),credentials)) {
           delete outpayload;
           return make_soap_fault(outmsg);
         };
@@ -717,7 +717,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           // Only ARC delegation is done per job
           UpdateCredentials(*config,op,outpayload->Child(),credentials);
         };
-      } else if(enablearc_ && MatchXMLNamespace(op,WSRF_NAMESPACE)) {
+      } else if(config_.ARCInterfaceEnabled() && MatchXMLNamespace(op,WSRF_NAMESPACE)) {
         CountedResourceLock cl_lock(infolimit_);
         /*
         Arc::SOAPEnvelope* out_ = infodoc_.Arc::InformationInterface::Process(*inpayload);
@@ -830,18 +830,13 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
               logger_(Arc::Logger::rootLogger, "A-REX"),
               infodoc_(true),
               inforeg_(NULL),
-              gmconfig_temporary_(false),
               infoprovider_wakeup_period_(0),
               all_jobs_count_(0),
-              job_log_(NULL),
-              jobs_cfg_(NULL),
-              cont_plugins_(NULL),
-              cred_plugin_(NULL),
-              gm_env_(NULL),
-              users_(NULL),
-              my_user_(NULL),
               gm_(NULL) {
   valid = false;
+  config_.SetJobLog(new JobLog());
+  config_.SetContPlugins(new ContinuationPlugins());
+  config_.SetCredPlugin(new RunPlugin());
   // logger_.addDestination(logcerr);
   // Define supported namespaces
   ns_[BES_ARC_NPREFIX]=BES_ARC_NAMESPACE;
@@ -866,145 +861,63 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
 
   endpoint_=(std::string)((*cfg)["endpoint"]);
   uname_=(std::string)((*cfg)["usermap"]["defaultLocalName"]);
-  gmconfig_=(std::string)((*cfg)["gmconfig"]);
+  std::string gmconfig=(std::string)((*cfg)["gmconfig"]);
   if (Arc::lower((std::string)((*cfg)["publishStaticInfo"])) == "yes") {
     publishstaticinfo_=true;
   } else {
     publishstaticinfo_=false;
   }
-  enablearc_=true;
-  enableemies_=false;
-  job_log_ = new JobLog;
-  jobs_cfg_ = new JobsListConfig;
-  cont_plugins_ = new ContinuationPlugins;
-  cred_plugin_ = new RunPlugin;
-  gm_env_ = new GMEnvironment(*job_log_,*jobs_cfg_,*cont_plugins_,*cred_plugin_);
-  gm_env_->delegations(&delegation_stores_);
-  users_ = new JobUsers(*gm_env_);
-  my_user_= new JobUser(*gm_env_,getuid(),getgid());
-  if(gmconfig_.empty()) {
+  config_.SetDelegations(&delegation_stores_);
+  if(gmconfig.empty()) {
     // No external configuration file means configuration is
     // directly embedded into this configuration node.
-    // TODO: merge external and internal configuration elements
-    // Configuration is stored into temporary file and file is 
-    // deleted in destructor. File is created in one of configured
-    // control directories. There is still a problem if destructor
-    // is not called. So code must be changed to use 
-    // some better approach - maybe like creating file with service
-    // id in its name.
-    try {
-      std::string tmp_dir = Glib::get_tmp_dir();
-      std::string tmp_path = Glib::build_filename(tmp_dir,"arexcfgXXXXXX");
-      int h = Glib::mkstemp(tmp_path);
-      if(h == -1) {
-        logger_.msg(Arc::DEBUG, "Failed to create temporary file in %s - %s",tmp_dir,Arc::StrError(errno));
-        throw Glib::FileError(Glib::FileError::FAILED,"Failed to create temporary file in "+tmp_dir);
-      };
-      gmconfig_ = tmp_path;
-      ::chmod(gmconfig_.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-      logger_.msg(Arc::DEBUG, "Storing configuration into temporary file - %s",gmconfig_);
-      Arc::XMLNode gmxml;
-      cfg->New(gmxml);
-      // Storing configuration into temporary file
-      // Maybe XMLNode needs method SaveToHandle ?
-      std::string gmstr;
-      gmxml.GetDoc(gmstr);
-      // Candidate for common function ?
-      for(int p = 0;p<gmstr.length();) {
-        int l = write(h,gmstr.c_str()+p,gmstr.length()-p);
-        if(l == -1) throw Glib::FileError(Glib::FileError::IO_ERROR,""); // TODO: process error
-        p+=l;
-      };
-      close(h); h = -1;
-      gmconfig_temporary_=true;
-      gm_env_->nordugrid_config_loc(gmconfig_);
-      gm_env_->nordugrid_config_is_temp(true);
-      // Configure all users and associated objects
-      if(!configure_serviced_users(*cfg,*users_,*my_user_,enablearc_,enableemies_)) {
-        logger_.msg(Arc::ERROR, "Failed to process service configuration");
-        return;
-      }
-      // create control and session directories if not yet done
-      for(JobUsers::iterator user = users_->begin();user != users_->end();++user) {
-        if(!user->CreateDirectories()) {
-          logger_.msg(Arc::ERROR, "Failed to create control (%s) or session (%s) directories",user->ControlDir(),user->SessionRoot());
-          return;
-        };
-      };
-      /*
-      // create control and session directories if not yet done
-      // extract control directories to be used for temp configuration
-      std::list<std::string> tmp_dirs;
-      for(JobUsers::iterator user = users_->begin();user != users_->end();++user) {
-        std::string tmp_dir = user->ControlDir();
-        std::list<std::string>::iterator t = tmp_dirs.begin();
-        for(;t != tmp_dirs.end();++t) {
-          if(*t == tmp_dir) break;
-        };
-        if(t == tmp_dirs.end()) {
-          tmp_dirs.push_back(tmp_dir);
-        };
-        if(!user->CreateDirectories()) {
-          logger_.msg(Arc::ERROR, "Failed to create control (%s) or session (%s) directories",user->ControlDir(),user->SessionRoot());
-          return;
-        };
-      };
-      if(tmp_dirs.size() <= 0) {
-        throw Glib::FileError(Glib::FileError::FAILED,"Failed to find control directories in configuration");
-      };
-      int h = -1;
-      for(std::list<std::string>::iterator t = tmp_dirs.begin();
-                                         t != tmp_dirs.end();++t) {
-        std::string tmp_path = Glib::build_filename(*t,"arexcfgXXXXXX");
-        h = Glib::mkstemp(tmp_path);
-        if(h != -1) {
-          gmconfig_ = tmp_path;
-          ::chmod(gmconfig_.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-          break;
-        };
-        logger_.msg(Arc::DEBUG, "Failed to create temporary file in %s - %s",*t,Arc::StrError(errno));
-      };
-      if(h == -1) {
-        throw Glib::FileError(Glib::FileError::FAILED,"Failed to create temporary file in any of control directories");
-      };
-      logger_.msg(Arc::DEBUG, "Storing configuration into temporary file - %s",gmconfig_);
-      Arc::XMLNode gmxml;
-      cfg->New(gmxml);
-      // Storing configuration into temporary file
-      // Maybe XMLNode needs method SaveToHandle ?
-      std::string gmstr;
-      gmxml.GetDoc(gmstr);
-      // Candidate for common function ?
-      for(int p = 0;p<gmstr.length();) {
-        int l = write(h,gmstr.c_str()+p,gmstr.length()-p);
-        if(l == -1) throw Glib::FileError(Glib::FileError::IO_ERROR,""); // TODO: process error
-        p+=l;
-      };
-      close(h);
-      gmconfig_temporary_=true;
-      gm_env_->nordugrid_config_loc(gmconfig_);
-      */
-    } catch(Glib::FileError& e) {
-      logger_.msg(Arc::ERROR, "Failed to store configuration into temporary file: %s",e.what());
-      if(!gmconfig_.empty()) {
-        ::unlink(gmconfig_.c_str());
-        gmconfig_.resize(0);
-      };
-      return; // GM configuration file is required
-    };
-  } else {
-    // External configuration file
-    gm_env_->nordugrid_config_loc(gmconfig_);
-    if(!configure_serviced_users(*users_,*my_user_,enablearc_,enableemies_)) {
-      logger_.msg(Arc::ERROR, "Failed to process configuration in %s",gmconfig_);
+    config_.SetXMLNode(*cfg);
+    // Create temporary file with this <Service> node. This is mainly for
+    // external GM processes such as infoproviders and LRMS scripts so that in
+    // the case of multiple A-REXes in one HED they know which one to serve. In
+    // future hopefully this can be replaced by passing the service id to those
+    // scripts instead. The temporary file is deleted in this destructor.
+    Arc::TmpFileCreate(gmconfig, "", getuid(), getgid(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    logger.msg(Arc::DEBUG, "Storing configuration in temporary file %s", gmconfig);
+    cfg->SaveToFile(gmconfig);
+    config_.SetConfigFile(gmconfig);
+    config_.SetConfigIsTemp(true);
+    if (!config_.Load()) {
+      logger_.msg(Arc::ERROR, "Failed to process service configuration");
+      return;
     }
-    // create control and session directories if not yet done
-    for(JobUsers::iterator user = users_->begin();user != users_->end();++user) {
-      if(!user->CreateDirectories()) {
-        logger_.msg(Arc::ERROR, "Failed to create/detect control (%s) or session (%s) directories",user->ControlDir(),user->SessionRoot());
-      };
-    };
-  };
+  }
+  else {
+    // External configuration file
+    config_.SetConfigFile(gmconfig);
+    if (!config_.Load()) {
+      logger_.msg(Arc::ERROR, "Failed to process configuration in %s", gmconfig);
+      return;
+    }
+  }
+  // Check for mandatory commands in configuration
+  if (config_.ControlDir().empty()) {
+    logger.msg(Arc::ERROR, "No control directory set in configuration");
+    return;
+  }
+  if (config_.SessionRoots().empty()) {
+    logger.msg(Arc::ERROR, "No session directory set in configuration");
+    return;
+  }
+  if (config_.DefaultLRMS().empty()) {
+    logger.msg(Arc::ERROR, "No LRMS set in configuration");
+    return;
+  }
+  // create control directory if not yet done
+  if(!config_.CreateControlDirectory()) {
+    logger_.msg(Arc::ERROR, "Failed to create control directory %s", config_.ControlDir());
+    return;
+  }
+
+  // Set default queue if none given
+  if(config_.DefaultQueue().empty() && (config_.Queues().size() == 1)) {
+    config_.SetDefaultQueue(config_.Queues().front());
+  }
   std::string gmrun_ = (std::string)((*cfg)["gmrun"]);
   common_name_ = (std::string)((*cfg)["commonName"]);
   long_description_ = (std::string)((*cfg)["longDescription"]);
@@ -1048,8 +961,7 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
 
   // Run grid-manager in thread
   if((gmrun_.empty()) || (gmrun_ == "internal")) {
-    //gm_=new GridManager(*gm_env_);
-    gm_=new GridManager(*users_,*my_user_);
+    gm_=new GridManager(config_);
     if(!(*gm_)) {
       logger_.msg(Arc::ERROR, "Failed to run Grid Manager thread");
       delete gm_; gm_=NULL; return;
@@ -1064,16 +976,10 @@ ARexService::~ARexService(void) {
   if(inforeg_) delete inforeg_;
   thread_count_.RequestCancel();
   if(gm_) delete gm_; // This should stop all GM-related threads too
-  if(my_user_) delete my_user_;
-  if(users_) delete users_;
-  if(gm_env_) delete gm_env_;
-  if(cont_plugins_) delete cont_plugins_;
-  if(cred_plugin_) delete cred_plugin_;
-  if(jobs_cfg_) delete jobs_cfg_;
-  if(job_log_) delete job_log_;
-  if(gmconfig_temporary_) {
-    if(!gmconfig_.empty()) unlink(gmconfig_.c_str());
-  };
+  if(config_.CredPlugin()) delete config_.CredPlugin();
+  if(config_.ContPlugins()) delete config_.ContPlugins();
+  if(config_.GetJobLog()) delete config_.GetJobLog();
+  if(config_.ConfigIsTemp()) unlink(config_.ConfigFile().c_str());
   thread_count_.WaitForExit(); // Here A-REX threads are waited for
 }
 
@@ -1083,4 +989,3 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
     { "a-rex", "HED:SERVICE", NULL, 0, &ARex::get_service },
     { NULL, NULL, NULL, 0, NULL }
 };
-

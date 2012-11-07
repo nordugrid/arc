@@ -1,16 +1,13 @@
 #ifndef __GM_CONFIG_CACHE_H__
 #define __GM_CONFIG_CACHE_H__
 
-#include <string>
-#include <fstream>
-
-#include <arc/StringConv.h>
+#include <arc/User.h>
 #include <arc/XMLNode.h>
 
-#include "conf.h"
-#include "environment.h"
-#include "gridmap.h"
-#include "conf_sections.h"
+namespace ARex {
+
+class ConfigSections;
+class GMConfig;
 
 /**
  * Exception thrown by constructor caused by bad cache params in conf file
@@ -64,25 +61,19 @@ class CacheConfig {
   /**
    * Parsers for the two different conf styles
    */
-  void parseINIConf(std::string username, ConfigSections* cf);
-  void parseXMLConf(std::string username, Arc::XMLNode cfg);
+  void parseINIConf(ConfigSections& cf);
+  void parseXMLConf(const Arc::XMLNode& cfg);
  public:
    /**
     * Create a new CacheConfig instance. Read the config file and fill in
-    * private member variables with cache parameters. If different users are
-    * defined in the conf file, use the cache parameters for the given username.
+    * private member variables with cache parameters.
     */
-  CacheConfig(const GMEnvironment& env,std::string username = "");
+  CacheConfig(const GMConfig& config);
    /**
     * Create a new CacheConfig instance. Read the XML config tree and fill in
-    * private member variables with cache parameters. If cfg points to parent
-    * node of <control> elements then all <control> elements are checked for
-    * user matching specified username. Any username matches "." in configuration
-    * tree. If cfg corresponds to <control> element then this element is used
-    * without performing matching. Cache parameters of the matched user
-    * are used for filling internal variables.
+    * private member variables with cache parameters.
     */
-  CacheConfig(Arc::XMLNode cfg,std::string username = "");
+  CacheConfig(const Arc::XMLNode& cfg);
   /**
    * Empty CacheConfig
    */
@@ -90,12 +81,8 @@ class CacheConfig {
   std::vector<std::string> getCacheDirs() const { return _cache_dirs; };
   std::vector<std::string> getRemoteCacheDirs() const { return _remote_cache_dirs; };
   std::vector<std::string> getDrainingCacheDirs() const { return _draining_cache_dirs; };
-  /**
-   * To allow for substitutions done during configuration
-   */
-  void setCacheDirs(std::vector<std::string> cache_dirs) { _cache_dirs = cache_dirs; };
-  void setRemoteCacheDirs(std::vector<std::string> remote_cache_dirs) { _remote_cache_dirs = remote_cache_dirs; };
-  void setDrainingCacheDirs(std::vector<std::string> draining_cache_dirs) { _draining_cache_dirs = draining_cache_dirs; }; 
+  /// Substitute all cache paths, with information given in user if necessary
+  void substitute(const GMConfig& config, const Arc::User& user);
   int getCacheMax() const { return _cache_max; };
   int getCacheMin() const { return _cache_min; };
   bool cleanCache() const { return (_cache_max > 0 && _cache_max < 100); };
@@ -104,5 +91,7 @@ class CacheConfig {
   std::string getLifeTime() const { return _lifetime; };
   int getCleanTimeout() const { return _clean_timeout; };
 };
+
+} // namespace ARex
 
 #endif /*__GM_CONFIG_CACHE_H__*/

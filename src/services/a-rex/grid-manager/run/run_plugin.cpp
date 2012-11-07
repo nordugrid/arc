@@ -8,9 +8,10 @@
 
 #include <arc/Run.h>
 
-#include "../conf/environment.h"
 #include "../conf/conf.h"
 #include "run_plugin.h"
+
+namespace ARex {
 
 void free_args(char** args) {
   if(args == NULL) return;
@@ -251,3 +252,4 @@ bool RunPlugins::run(RunPlugin::substitute_t subst,void* arg) {
   return true;
 }
 
+} // namespace ARex

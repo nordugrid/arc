@@ -6,17 +6,13 @@
 #include <arc/infosys/InformationInterface.h>
 #include <arc/infosys/InfoRegister.h>
 #include <arc/Thread.h>
+#include <arc/StringConv.h>
 
 #include "FileChunks.h"
 #include "grid-manager/grid_manager.h"
 //#include "delegation/DelegationStore.h"
 #include "delegation/DelegationStores.h"
-
-class JobLog;
-class JobsListConfig;
-class ContinuationPlugins;
-class RunPlugin;
-class GMEnvironment;
+#include "grid-manager/conf/GMConfig.h"
 
 namespace ARex {
 
@@ -69,12 +65,8 @@ class ARexService: public Arc::Service {
   CountedResource beslimit_;
   CountedResource datalimit_;
   std::string endpoint_;
-  bool enablearc_;
-  bool enableemies_;
   bool publishstaticinfo_;
   std::string uname_;
-  std::string gmconfig_;
-  bool gmconfig_temporary_;
   std::string common_name_;
   std::string long_description_;
   std::string lrms_name_;
@@ -84,13 +76,7 @@ class ARexService: public Arc::Service {
   //Glib::Mutex glue_states_lock_;
   //std::map<std::string,std::string> glue_states_;
   FileChunksList files_chunks_;
-  JobLog* job_log_;
-  JobsListConfig* jobs_cfg_;
-  ContinuationPlugins* cont_plugins_;
-  RunPlugin* cred_plugin_;
-  GMEnvironment* gm_env_;
-  JobUsers* users_;
-  JobUser* my_user_;
+  GMConfig config_;
   GridManager* gm_;
   ARexConfigContext* get_configuration(Arc::Message& inmsg);
 

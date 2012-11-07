@@ -10,8 +10,12 @@
 #include <arc/FileLock.h>
 
 #include "../run/run_redirected.h"
+#include "../conf/GMConfig.h"
+#include "../jobs/job.h"
 
 #include "info_files.h"
+
+namespace ARex {
 
 // Files in control dir, job.id.sfx
 const char * const sfx_failed      = ".failed";        // Description of failure
@@ -44,7 +48,6 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 static job_state_t job_state_read_file(const std::string &fname,bool &pending);
 static bool job_state_write_file(const std::string &fname,job_state_t state,bool pending = false);
 static bool job_mark_put(Arc::FileAccess& fa, const std::string &fname);
-static bool job_dir_create(Arc::FileAccess& fa,const std::string &dname);
 static bool job_mark_remove(Arc::FileAccess& fa,const std::string &fname);
 
 
@@ -60,28 +63,25 @@ static bool fix_file_permissions(Arc::FileAccess& fa,const std::string &fname,bo
   return fa.fa_chmod(fname.c_str(),mode);
 }
 
-bool fix_file_permissions(const std::string &fname,const JobDescription &desc,const JobUser &user) {
+bool fix_file_permissions(const std::string &fname,const GMJob &job,const GMConfig& config) {
   mode_t mode = S_IRUSR | S_IWUSR;
-  uid_t uid = desc.get_uid();
-  gid_t gid = desc.get_gid();
-  if( uid == 0 ) {
-    uid=user.get_uid(); gid=user.get_gid();
-  };
-  if(!user.match_share_uid(uid)) {
+  uid_t uid = job.get_user().get_uid();
+  gid_t gid = job.get_user().get_gid();
+  if(!config.MatchShareUid(uid)) {
     mode |= S_IRGRP;
-    if(!user.match_share_gid(gid)) {
+    if(!config.MatchShareGid(gid)) {
       mode |= S_IROTH;
     };
   };
   return (chmod(fname.c_str(),mode) == 0);
 }
 
-bool fix_file_permissions_in_session(const std::string &fname,const JobDescription &desc,const JobUser &user,bool executable) {
+bool fix_file_permissions_in_session(const std::string &fname,const GMJob &job,const GMConfig &config,bool executable) {
   mode_t mode = S_IRUSR | S_IWUSR;
   if(executable) { mode |= S_IXUSR; };
-  if(user.StrictSession()) {
-    uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
-    uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
+  if(config.StrictSession()) {
+    uid_t uid = getuid()==0?job.get_user().get_uid():getuid();
+    uid_t gid = getgid()==0?job.get_user().get_gid():getgid();
     Arc::FileAccess fa;
     if(!fa.fa_setuid(uid,gid)) return false;
     return fa.fa_chmod(fname,mode);
@@ -89,7 +89,11 @@ bool fix_file_permissions_in_session(const std::string &fname,const JobDescripti
   return (chmod(fname.c_str(),mode) == 0);
 }
 
-bool fix_file_owner(const std::string &fname,const JobUser &user) {
+bool fix_file_owner(const std::string &fname,const GMJob& job) {
+  return fix_file_owner(fname, job.get_user());
+}
+
+bool fix_file_owner(const std::string &fname,const Arc::User& user) {
   if(getuid() == 0) {
     if(lchown(fname.c_str(),user.get_uid(),user.get_gid()) == -1) {
       logger.msg(Arc::ERROR,"Failed setting file owner: %s",fname);
@@ -99,34 +103,19 @@ bool fix_file_owner(const std::string &fname,const JobUser &user) {
   return true;
 }
 
-bool fix_file_owner(const std::string &fname,const JobDescription &desc,const JobUser &user) {
-  if(getuid() == 0) {
-    uid_t uid = desc.get_uid();
-    gid_t gid = desc.get_gid();
-    if( uid == 0 ) {
-      uid=user.get_uid(); gid=user.get_gid();
-    };
-    if(lchown(fname.c_str(),uid,gid) == -1) {
-      logger.msg(Arc::ERROR,"Failed setting file owner: %s",fname);
-      return false;
-    };
-  };
-  return true;
-}
-
-bool check_file_owner(const std::string &fname,const JobUser &user) {
+bool check_file_owner(const std::string &fname) {
   uid_t uid;
   gid_t gid;
   time_t t;
-  return check_file_owner(fname,user,uid,gid,t);
+  return check_file_owner(fname,uid,gid,t);
 }
 
-bool check_file_owner(const std::string &fname,const JobUser &user,uid_t &uid,gid_t &gid) {
+bool check_file_owner(const std::string &fname,uid_t &uid,gid_t &gid) {
   time_t t;
-  return check_file_owner(fname,user,uid,gid,t);
+  return check_file_owner(fname,uid,gid,t);
 }
 
-bool check_file_owner(const std::string &fname,const JobUser &user,uid_t &uid,gid_t &gid,time_t &t) {
+bool check_file_owner(const std::string &fname,uid_t &uid,gid_t &gid,time_t &t) {
   struct stat st;
   if(lstat(fname.c_str(),&st) != 0) return false;
   if(!S_ISREG(st.st_mode)) return false;
@@ -134,105 +123,105 @@ bool check_file_owner(const std::string &fname,const JobUser &user,uid_t &uid,gi
   /* superuser can't run jobs */
   if(uid == 0) return false;
   /* accept any file if superuser */
-  if(user.get_uid() != 0) {
-    if(uid != user.get_uid()) return false;
+  if(getuid() != 0) {
+    if(uid != getuid()) return false;
   };
   return true;
 }
 
-bool job_lrms_mark_check(const JobId &id,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/job." + id + ".lrms_done";
+bool job_lrms_mark_check(const JobId &id,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/job." + id + ".lrms_done";
   return job_mark_check(fname);
 }
 
-bool job_lrms_mark_remove(const JobId &id,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/job." + id + ".lrms_done";
+bool job_lrms_mark_remove(const JobId &id,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/job." + id + ".lrms_done";
   return job_mark_remove(fname);
 }
 
-LRMSResult job_lrms_mark_read(const JobId &id,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/job." + id + ".lrms_done";
+LRMSResult job_lrms_mark_read(const JobId &id,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/job." + id + ".lrms_done";
   LRMSResult r("-1 Internal error");
   std::ifstream f(fname.c_str()); if(! f.is_open() ) return r;
   f>>r;
   return r;
 }
 
-bool job_cancel_mark_put(const JobDescription &desc,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + desc.get_id() + sfx_cancel;
-  return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
+bool job_cancel_mark_put(const GMJob &job,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/" + subdir_new + "/job." + job.get_id() + sfx_cancel;
+  return job_mark_put(fname) & fix_file_owner(fname,job) & fix_file_permissions(fname);
 }
 
-bool job_cancel_mark_check(const JobId &id,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_cancel;
+bool job_cancel_mark_check(const JobId &id,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/" + subdir_new + "/job." + id + sfx_cancel;
   return job_mark_check(fname);
 }
 
-bool job_cancel_mark_remove(const JobId &id,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_cancel;
+bool job_cancel_mark_remove(const JobId &id,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/" + subdir_new + "/job." + id + sfx_cancel;
   return job_mark_remove(fname);
 }
 
-bool job_restart_mark_put(const JobDescription &desc,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + desc.get_id() + sfx_restart;
-  return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
+bool job_restart_mark_put(const GMJob &job,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/" + subdir_new + "/job." + job.get_id() + sfx_restart;
+  return job_mark_put(fname) & fix_file_owner(fname,job) & fix_file_permissions(fname);
 }
 
-bool job_restart_mark_check(const JobId &id,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_restart;
+bool job_restart_mark_check(const JobId &id,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/" + subdir_new + "/job." + id + sfx_restart;
   return job_mark_check(fname);
 }
 
-bool job_restart_mark_remove(const JobId &id,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_restart;
+bool job_restart_mark_remove(const JobId &id,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/" + subdir_new + "/job." + id + sfx_restart;
   return job_mark_remove(fname);
 }
 
-bool job_clean_mark_put(const JobDescription &desc,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + desc.get_id() + sfx_clean;
-  return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
+bool job_clean_mark_put(const GMJob &job,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/" + subdir_new + "/job." + job.get_id() + sfx_clean;
+  return job_mark_put(fname) & fix_file_owner(fname,job) & fix_file_permissions(fname);
 }
 
-bool job_clean_mark_check(const JobId &id,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_clean;
+bool job_clean_mark_check(const JobId &id,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/" + subdir_new + "/job." + id + sfx_clean;
   return job_mark_check(fname);
 }
 
-bool job_clean_mark_remove(const JobId &id,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_clean;
+bool job_clean_mark_remove(const JobId &id,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/" + subdir_new + "/job." + id + sfx_clean;
   return job_mark_remove(fname);
 }
 
-bool job_failed_mark_put(const JobDescription &desc,const JobUser &user,const std::string &content) {
-  std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_failed;
+bool job_failed_mark_put(const GMJob &job,const GMConfig &config,const std::string &content) {
+  std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_failed;
   if(job_mark_size(fname) > 0) return true;
-  return job_mark_write_s(fname,content) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname,desc,user);
+  return job_mark_write_s(fname,content) & fix_file_owner(fname,job) & fix_file_permissions(fname,job,config);
 }
 
-bool job_failed_mark_add(const JobDescription &desc,const JobUser &user,const std::string &content) {
-  std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_failed;
-  return job_mark_add_s(fname,content) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname,desc,user);
+bool job_failed_mark_add(const GMJob &job,const GMConfig &config,const std::string &content) {
+  std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_failed;
+  return job_mark_add_s(fname,content) & fix_file_owner(fname,job) & fix_file_permissions(fname,job,config);
 }
 
-bool job_failed_mark_check(const JobId &id,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_failed;
+bool job_failed_mark_check(const JobId &id,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_failed;
   return job_mark_check(fname);
 }
 
-bool job_failed_mark_remove(const JobId &id,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_failed;
+bool job_failed_mark_remove(const JobId &id,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_failed;
   return job_mark_remove(fname);
 }
 
-std::string job_failed_mark_read(const JobId &id,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_failed;
+std::string job_failed_mark_read(const JobId &id,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_failed;
   return job_mark_read_s(fname);
 }
 
-bool job_controldiag_mark_put(const JobDescription &desc,const JobUser &user,char const * const args[]) {
-  std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_diag;
+bool job_controldiag_mark_put(const GMJob &job,const GMConfig &config,char const * const args[]) {
+  std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_diag;
   if(!job_mark_put(fname)) return false;
-  if(!fix_file_owner(fname,desc,user)) return false;
+  if(!fix_file_owner(fname,job)) return false;
   if(!fix_file_permissions(fname)) return false;
   if(args == NULL) return true;
   struct stat st;
@@ -241,102 +230,71 @@ bool job_controldiag_mark_put(const JobDescription &desc,const JobUser &user,cha
   if(h == -1) return false;
   int r;
   int t = 10;
-  JobUser tmp_user(user.Env(),(uid_t)0,(gid_t)0);
-  r=RunRedirected::run(tmp_user,"job_controldiag_mark_put",-1,h,-1,(char**)args,t);
+  r=RunRedirected::run(job.get_user(),"job_controldiag_mark_put",-1,h,-1,(char**)args,t);
   close(h);
   if(r != 0) return false;
   return true;
 }
 
-bool job_diagnostics_mark_put(const JobDescription &desc,const JobUser &user) {
-  std::string fname = desc.SessionDir() + sfx_diag;
-  if(user.StrictSession()) {
-    uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
-    uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
+bool job_diagnostics_mark_put(const GMJob &job,const GMConfig &config) {
+  std::string fname = job.SessionDir() + sfx_diag;
+  if(config.StrictSession()) {
     Arc::FileAccess fa;
-    if(!fa.fa_setuid(uid,gid)) return false;
+    if(!fa.fa_setuid(job.get_user().get_uid(),job.get_user().get_gid())) return false;
     return job_mark_put(fa,fname) & fix_file_permissions(fa,fname);
   };
-  return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
+  return job_mark_put(fname) & fix_file_owner(fname,job) & fix_file_permissions(fname);
 }
 
-bool job_diagnostics_mark_remove(const JobDescription &desc,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_diag;
+bool job_diagnostics_mark_remove(const GMJob &job,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_diag;
   bool res1 = job_mark_remove(fname);
-  fname = desc.SessionDir() + sfx_diag;
-  if(user.StrictSession()) {
-    uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
-    uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
+  fname = job.SessionDir() + sfx_diag;
+  if(config.StrictSession()) {
     Arc::FileAccess fa;
-    if(!fa.fa_setuid(uid,gid)) return res1;
+    if(!fa.fa_setuid(job.get_user().get_uid(),job.get_user().get_gid())) return res1;
     return (res1 | job_mark_remove(fa,fname));
   };
   return (res1 | job_mark_remove(fname));
 }
 
-bool job_diagnostics_mark_move(const JobDescription &desc,const JobUser &user) {
+bool job_diagnostics_mark_move(const GMJob &job,const GMConfig &config) {
   std::string fname1;
-  if (desc.get_local() && !desc.get_local()->sessiondir.empty()) fname1 = desc.get_local()->sessiondir + sfx_diag;
-  else fname1 = user.SessionRoot(desc.get_id()) + "/" + desc.get_id() + sfx_diag;
-  std::string fname2 = user.ControlDir() + "/job." + desc.get_id() + sfx_diag;
+  if (job.get_local() && !job.get_local()->sessiondir.empty()) fname1 = job.get_local()->sessiondir + sfx_diag;
+  else fname1 = job.SessionDir() + "/" + job.get_id() + sfx_diag;
+  std::string fname2 = config.ControlDir() + "/job." + job.get_id() + sfx_diag;
 
   std::string data;
-  uid_t uid = getuid();
-  gid_t gid = getgid();
-  if(user.StrictSession()) {
-    uid = user.get_uid()==0?desc.get_uid():user.get_uid();
-    gid = user.get_uid()==0?desc.get_gid():user.get_gid();
+  if(config.StrictSession()) {
+    Arc::FileRead(fname1, data, job.get_user().get_uid(), job.get_user().get_gid());
+    Arc::FileDelete(fname1, job.get_user().get_uid(), job.get_user().get_gid());
   }
-  Arc::FileRead(fname1, data, uid, gid);
-  Arc::FileDelete(fname1, uid, gid);
+  else {
+    Arc::FileRead(fname1, data);
+    Arc::FileDelete(fname1);
+  }
   // behaviour is to create file in control dir even if reading fails
-  return Arc::FileCreate(fname2, data) & fix_file_owner(fname2,desc,user) & fix_file_permissions(fname2,desc,user);
+  return Arc::FileCreate(fname2, data) & fix_file_owner(fname2,job) & fix_file_permissions(fname2,job,config);
 }
 
-bool job_lrmsoutput_mark_put(const JobDescription &desc,const JobUser &user) {
-  std::string fname = desc.SessionDir() + sfx_lrmsoutput;
-  if(user.StrictSession()) {
-    uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
-    uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
+bool job_lrmsoutput_mark_put(const GMJob &job,const GMConfig &config) {
+  std::string fname = job.SessionDir() + sfx_lrmsoutput;
+  if(config.StrictSession()) {
     Arc::FileAccess fa;
-    if(!fa.fa_setuid(uid,gid)) return false;
+    if(!fa.fa_setuid(job.get_user().get_uid(),job.get_user().get_gid())) return false;
     return job_mark_put(fa,fname) & fix_file_permissions(fa,fname);
   };
-  return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
+  return job_mark_put(fname) & fix_file_owner(fname,job) & fix_file_permissions(fname);
 }
 
-bool job_session_create(const JobDescription &desc,const JobUser &user) {
-  std::string dname = desc.SessionDir();
-  if(user.StrictSession()) {
-    uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
-    uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
+bool job_lrmsoutput_mark_remove(const GMJob &job,const GMConfig &config) {
+  std::string fname = job.SessionDir() + sfx_lrmsoutput;
+  if(config.StrictSession()) {
     Arc::FileAccess fa;
-    if(!fa.fa_setuid(uid,gid)) return false;
-    return job_dir_create(fa,dname) & fix_file_permissions(fa,dname,true);
-  };
-  return job_dir_create(dname) & fix_file_owner(dname,desc,user) & fix_file_permissions(dname,true);
-}
-
-bool job_lrmsoutput_mark_remove(const JobDescription &desc,const JobUser &user) {
-  std::string fname = desc.SessionDir() + sfx_lrmsoutput;
-  if(user.StrictSession()) {
-    uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
-    uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
-    Arc::FileAccess fa;
-    if(!fa.fa_setuid(uid,gid)) return false;
+    if(!fa.fa_setuid(job.get_user().get_uid(),job.get_user().get_gid())) return false;
     return job_mark_remove(fa,fname);
   };
   return job_mark_remove(fname);
-}
-
-
-bool job_dir_create(const std::string &dname) {
-  int err=mkdir(dname.c_str(),S_IRUSR | S_IWUSR | S_IXUSR);
-  return (err==0);
-}
-
-static bool job_dir_create(Arc::FileAccess& fa,const std::string &dname) {
-  return fa.fa_mkdir(dname,S_IRUSR | S_IWUSR | S_IXUSR);
 }
 
 std::string job_mark_read_s(const std::string &fname) {
@@ -409,77 +367,77 @@ long int job_mark_size(const std::string &fname) {
   return st.st_size;
 }
 
-bool job_errors_mark_put(const JobDescription &desc,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_errors;
-  return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
+bool job_errors_mark_put(const GMJob &job,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_errors;
+  return job_mark_put(fname) & fix_file_owner(fname,job) & fix_file_permissions(fname);
 }
 
-std::string job_errors_filename(const JobId &id, const JobUser &user) {
-  return user.ControlDir() + "/job." + id + sfx_errors;
+std::string job_errors_filename(const JobId &id, const GMConfig &config) {
+  return config.ControlDir() + "/job." + id + sfx_errors;
 }
 
 
-time_t job_state_time(const JobId &id,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_status;
+time_t job_state_time(const JobId &id,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_status;
   time_t t = job_mark_time(fname);
   if(t != 0) return t;
-  fname = user.ControlDir() + "/" + subdir_cur + "/job." + id + sfx_status;
+  fname = config.ControlDir() + "/" + subdir_cur + "/job." + id + sfx_status;
   t = job_mark_time(fname);
   if(t != 0) return t;
-  fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_status;
+  fname = config.ControlDir() + "/" + subdir_new + "/job." + id + sfx_status;
   t = job_mark_time(fname);
   if(t != 0) return t;
-  fname = user.ControlDir() + "/" + subdir_rew + "/job." + id + sfx_status;
+  fname = config.ControlDir() + "/" + subdir_rew + "/job." + id + sfx_status;
   t = job_mark_time(fname);
   if(t != 0) return t;
-  fname = user.ControlDir() + "/" + subdir_old + "/job." + id + sfx_status;
+  fname = config.ControlDir() + "/" + subdir_old + "/job." + id + sfx_status;
   return job_mark_time(fname);
 }
 
-job_state_t job_state_read_file(const JobId &id,const JobUser &user) {
+job_state_t job_state_read_file(const JobId &id,const GMConfig &config) {
   bool pending;
-  return job_state_read_file(id, user, pending);
+  return job_state_read_file(id, config, pending);
 }
 
-job_state_t job_state_read_file(const JobId &id,const JobUser &user,bool& pending) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_status;
+job_state_t job_state_read_file(const JobId &id,const GMConfig &config,bool& pending) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_status;
   job_state_t st = job_state_read_file(fname,pending);
   if(st != JOB_STATE_DELETED) return st;
-  fname = user.ControlDir() + "/" + subdir_cur + "/job." + id + sfx_status;
+  fname = config.ControlDir() + "/" + subdir_cur + "/job." + id + sfx_status;
   st = job_state_read_file(fname,pending);
   if(st != JOB_STATE_DELETED) return st;
-  fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_status;
+  fname = config.ControlDir() + "/" + subdir_new + "/job." + id + sfx_status;
   st = job_state_read_file(fname,pending);
   if(st != JOB_STATE_DELETED) return st;
-  fname = user.ControlDir() + "/" + subdir_rew + "/job." + id + sfx_status;
+  fname = config.ControlDir() + "/" + subdir_rew + "/job." + id + sfx_status;
   st = job_state_read_file(fname,pending);
   if(st != JOB_STATE_DELETED) return st;
-  fname = user.ControlDir() + "/" + subdir_old + "/job." + id + sfx_status;
+  fname = config.ControlDir() + "/" + subdir_old + "/job." + id + sfx_status;
   return job_state_read_file(fname,pending);
 }
 
-bool job_state_write_file(const JobDescription &desc,const JobUser &user,job_state_t state,bool pending) {
+bool job_state_write_file(const GMJob &job,const GMConfig &config,job_state_t state,bool pending) {
   std::string fname;
   if(state == JOB_STATE_ACCEPTED) { 
-    fname = user.ControlDir() + "/" + subdir_old + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
-    fname = user.ControlDir() + "/" + subdir_cur + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
-    fname = user.ControlDir() + "/" + subdir_rew + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
-    fname = user.ControlDir() + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
-    fname = user.ControlDir() + "/" + subdir_new + "/job." + desc.get_id() + sfx_status;
+    fname = config.ControlDir() + "/" + subdir_old + "/job." + job.get_id() + sfx_status; remove(fname.c_str());
+    fname = config.ControlDir() + "/" + subdir_cur + "/job." + job.get_id() + sfx_status; remove(fname.c_str());
+    fname = config.ControlDir() + "/" + subdir_rew + "/job." + job.get_id() + sfx_status; remove(fname.c_str());
+    fname = config.ControlDir() + "/job." + job.get_id() + sfx_status; remove(fname.c_str());
+    fname = config.ControlDir() + "/" + subdir_new + "/job." + job.get_id() + sfx_status;
   } else if((state == JOB_STATE_FINISHED) || (state == JOB_STATE_DELETED)) {
-    fname = user.ControlDir() + "/" + subdir_new + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
-    fname = user.ControlDir() + "/" + subdir_cur + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
-    fname = user.ControlDir() + "/" + subdir_rew + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
-    fname = user.ControlDir() + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
-    fname = user.ControlDir() + "/" + subdir_old + "/job." + desc.get_id() + sfx_status;
+    fname = config.ControlDir() + "/" + subdir_new + "/job." + job.get_id() + sfx_status; remove(fname.c_str());
+    fname = config.ControlDir() + "/" + subdir_cur + "/job." + job.get_id() + sfx_status; remove(fname.c_str());
+    fname = config.ControlDir() + "/" + subdir_rew + "/job." + job.get_id() + sfx_status; remove(fname.c_str());
+    fname = config.ControlDir() + "/job." + job.get_id() + sfx_status; remove(fname.c_str());
+    fname = config.ControlDir() + "/" + subdir_old + "/job." + job.get_id() + sfx_status;
   } else {
-    fname = user.ControlDir() + "/" + subdir_new + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
-    fname = user.ControlDir() + "/" + subdir_old + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
-    fname = user.ControlDir() + "/" + subdir_rew + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
-    fname = user.ControlDir() + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
-    fname = user.ControlDir() + "/" + subdir_cur + "/job." + desc.get_id() + sfx_status;
+    fname = config.ControlDir() + "/" + subdir_new + "/job." + job.get_id() + sfx_status; remove(fname.c_str());
+    fname = config.ControlDir() + "/" + subdir_old + "/job." + job.get_id() + sfx_status; remove(fname.c_str());
+    fname = config.ControlDir() + "/" + subdir_rew + "/job." + job.get_id() + sfx_status; remove(fname.c_str());
+    fname = config.ControlDir() + "/job." + job.get_id() + sfx_status; remove(fname.c_str());
+    fname = config.ControlDir() + "/" + subdir_cur + "/job." + job.get_id() + sfx_status;
   };
-  return job_state_write_file(fname,state,pending) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname,desc,user);
+  return job_state_write_file(fname,state,pending) & fix_file_owner(fname,job) & fix_file_permissions(fname,job,config);
 }
 
 static job_state_t job_state_read_file(const std::string &fname,bool &pending) {
@@ -511,13 +469,13 @@ static bool job_state_write_file(const std::string &fname,job_state_t state,bool
   return Arc::FileCreate(fname, data);
 }
 
-time_t job_description_time(const JobId &id,const JobUser &user) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_rsl;
+time_t job_description_time(const JobId &id,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_rsl;
   return job_mark_time(fname);
 }
 
-bool job_description_read_file(const JobId &id,const JobUser &user,std::string &rsl) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_rsl;
+bool job_description_read_file(const JobId &id,const GMConfig &config,std::string &rsl) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_rsl;
   return job_description_read_file(fname,rsl);
 }
 
@@ -531,37 +489,37 @@ bool job_description_write_file(const std::string &fname,const std::string &rsl)
   return Arc::FileCreate(fname, rsl);
 }
 
-bool job_acl_read_file(const JobId &id,const JobUser &user,std::string &acl) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_acl;
+bool job_acl_read_file(const JobId &id,const GMConfig &config,std::string &acl) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_acl;
   return job_description_read_file(fname,acl);
 }
 
-bool job_acl_write_file(const JobId &id,const JobUser &user,const std::string &acl) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_acl;
+bool job_acl_write_file(const JobId &id,const GMConfig &config,const std::string &acl) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_acl;
   return job_description_write_file(fname,acl);
 }
 
-bool job_xml_read_file(const JobId &id,const JobUser &user,std::string &xml) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_xml;
+bool job_xml_read_file(const JobId &id,const GMConfig &config,std::string &xml) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_xml;
   return job_description_read_file(fname,xml);
 }
 
-bool job_xml_write_file(const JobId &id,const JobUser &user,const std::string &xml) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_xml;
+bool job_xml_write_file(const JobId &id,const GMConfig &config,const std::string &xml) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_xml;
   return job_description_write_file(fname,xml);
 }
 
-bool job_local_write_file(const JobDescription &desc,const JobUser &user,const JobLocalDescription &job_desc) {
-  std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_local;
-  return job_local_write_file(fname,job_desc) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname,desc,user);
+bool job_local_write_file(const GMJob &job,const GMConfig &config,const JobLocalDescription &job_desc) {
+  std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_local;
+  return job_local_write_file(fname,job_desc) & fix_file_owner(fname,job) & fix_file_permissions(fname,job,config);
 }
 
 bool job_local_write_file(const std::string &fname,const JobLocalDescription &job_desc) {
   return job_desc.write(fname);
 }
 
-bool job_local_read_file(const JobId &id,const JobUser &user,JobLocalDescription &job_desc) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_local;
+bool job_local_read_file(const JobId &id,const GMConfig &config,JobLocalDescription &job_desc) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_local;
   return job_local_read_file(fname,job_desc);
 }
 
@@ -573,18 +531,18 @@ bool job_local_read_var(const std::string &fname,const std::string &vnam,std::st
   return JobLocalDescription::read_var(fname,vnam,value);
 }
 
-bool job_local_read_cleanuptime(const JobId &id,const JobUser &user,time_t &cleanuptime) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_local;
+bool job_local_read_cleanuptime(const JobId &id,const GMConfig &config,time_t &cleanuptime) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_local;
   std::string str;
   if(!job_local_read_var(fname,"cleanuptime",str)) return false;
   cleanuptime=Arc::Time(str).GetTime();
   return true;
 }
 
-bool job_local_read_failed(const JobId &id,const JobUser &user,std::string &state,std::string &cause) {
+bool job_local_read_failed(const JobId &id,const GMConfig &config,std::string &state,std::string &cause) {
   state = "";
   cause = "";
-  std::string fname = user.ControlDir() + "/job." + id + sfx_local;
+  std::string fname = config.ControlDir() + "/job." + id + sfx_local;
   job_local_read_var(fname,"failedstate",state);
   job_local_read_var(fname,"failedcause",cause);
   return true;
@@ -592,21 +550,21 @@ bool job_local_read_failed(const JobId &id,const JobUser &user,std::string &stat
 
 /* job.ID.input functions */
 
-bool job_input_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData> &files) {
-  std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_input;
-  return job_Xput_write_file(fname,files) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
+bool job_input_write_file(const GMJob &job,const GMConfig &config,std::list<FileData> &files) {
+  std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_input;
+  return job_Xput_write_file(fname,files) & fix_file_owner(fname,job) & fix_file_permissions(fname);
 }
 
-bool job_input_read_file(const JobId &id,const JobUser &user,std::list<FileData> &files) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_input;
+bool job_input_read_file(const JobId &id,const GMConfig &config,std::list<FileData> &files) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_input;
   return job_Xput_read_file(fname,files);
 }
 
-bool job_input_status_add_file(const JobDescription &desc,const JobUser &user,const std::string& file) {
+bool job_input_status_add_file(const GMJob &job,const GMConfig &config,const std::string& file) {
   // 1. lock
   // 2. add
   // 3. unlock
-  std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_inputstatus;
+  std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_inputstatus;
   Arc::FileLock lock(fname);
   for (int i = 10; !lock.acquire() && i >= 0; --i)  {
     if (i == 0) return false;
@@ -622,11 +580,11 @@ bool job_input_status_add_file(const JobDescription &desc,const JobUser &user,co
   data += line.str();
   bool r = Arc::FileCreate(fname, data);
   lock.release();
-  return r & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
+  return r & fix_file_owner(fname,job) & fix_file_permissions(fname);
 }
 
-bool job_input_status_read_file(const JobId &id,const JobUser &user,std::list<std::string>& files) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_inputstatus;
+bool job_input_status_read_file(const JobId &id,const GMConfig &config,std::list<std::string>& files) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_inputstatus;
   Arc::FileLock lock(fname);
   for (int i = 10; !lock.acquire() && i >= 0; --i) {
     if (i == 0) return false;
@@ -638,34 +596,34 @@ bool job_input_status_read_file(const JobId &id,const JobUser &user,std::list<st
 }
 
 /* job.ID.output functions */
-bool job_output_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData> &files,job_output_mode mode) {
-  std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_output;
-  return job_Xput_write_file(fname,files,mode) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
+bool job_output_write_file(const GMJob &job,const GMConfig &config,std::list<FileData> &files,job_output_mode mode) {
+  std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_output;
+  return job_Xput_write_file(fname,files,mode) & fix_file_owner(fname,job) & fix_file_permissions(fname);
 }
 
-bool job_output_read_file(const JobId &id,const JobUser &user,std::list<FileData> &files) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_output;
+bool job_output_read_file(const JobId &id,const GMConfig &config,std::list<FileData> &files) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_output;
   return job_Xput_read_file(fname,files);
 }
 
-bool job_output_status_add_file(const JobDescription &desc,const JobUser &user,const FileData& file) {
+bool job_output_status_add_file(const GMJob &job,const GMConfig &config,const FileData& file) {
   // Not using lock here because concurrent read/write is not expected
-  std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_outputstatus;
+  std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_outputstatus;
   std::string data;
   if (!Arc::FileRead(fname, data) && errno != ENOENT) return false;
   std::ostringstream line;
   line<<file<<"\n";
   data += line.str();
-  return Arc::FileCreate(fname, data) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
+  return Arc::FileCreate(fname, data) & fix_file_owner(fname,job) & fix_file_permissions(fname);
 }
 
-bool job_output_status_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData> &files) {
-  std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_outputstatus;
-  return job_Xput_write_file(fname,files) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
+bool job_output_status_write_file(const GMJob &job,const GMConfig &config,std::list<FileData> &files) {
+  std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_outputstatus;
+  return job_Xput_write_file(fname,files) & fix_file_owner(fname,job) & fix_file_permissions(fname);
 }
 
-bool job_output_status_read_file(const JobId &id,const JobUser &user,std::list<FileData> &files) {
-  std::string fname = user.ControlDir() + "/job." + id + sfx_outputstatus;
+bool job_output_status_read_file(const JobId &id,const GMConfig &config,std::list<FileData> &files) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_outputstatus;
   return job_Xput_read_file(fname,files);
 }
 
@@ -712,41 +670,39 @@ bool job_Xput_read_file(const std::string &fname,std::list<FileData> &files, uid
   return true;
 }
 
-std::string job_proxy_filename(const JobId &id, const JobUser &user){
-  return user.ControlDir() + "/job." + id + sfx_proxy;
+std::string job_proxy_filename(const JobId &id, const GMConfig &config){
+  return config.ControlDir() + "/job." + id + sfx_proxy;
 }
 
-bool job_clean_finished(const JobId &id,const JobUser &user) {
+bool job_clean_finished(const JobId &id,const GMConfig &config) {
   std::string fname;
-  fname = user.ControlDir()+"/job."+id+".proxy.tmp"; remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+".lrms_done"; remove(fname.c_str());
+  fname = config.ControlDir()+"/job."+id+".proxy.tmp"; remove(fname.c_str());
+  fname = config.ControlDir()+"/job."+id+".lrms_done"; remove(fname.c_str());
   return true;
 }
 
-bool job_clean_deleted(const JobDescription &desc,const JobUser &user,std::list<std::string> cache_per_job_dirs) {
-  std::string id = desc.get_id();
-  job_clean_finished(id,user);
+bool job_clean_deleted(const GMJob &job,const GMConfig &config,std::list<std::string> cache_per_job_dirs) {
+  std::string id = job.get_id();
+  job_clean_finished(id,config);
   std::string session;
-  if(desc.get_local() && !desc.get_local()->sessiondir.empty()) session = desc.get_local()->sessiondir;
-  else session = user.SessionRoot(id)+"/"+id;
+  if(job.get_local() && !job.get_local()->sessiondir.empty()) session = job.get_local()->sessiondir;
+  else session = job.SessionDir()+"/"+id;
   std::string fname;
-  fname = user.ControlDir()+"/job."+id+sfx_proxy; remove(fname.c_str());
-  fname = user.ControlDir()+"/"+subdir_new+"/job."+id+sfx_restart; remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+sfx_errors; remove(fname.c_str());
-  fname = user.ControlDir()+"/"+subdir_new+"/job."+id+sfx_cancel; remove(fname.c_str());
-  fname = user.ControlDir()+"/"+subdir_new+"/job."+id+sfx_clean;  remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+sfx_output; remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+sfx_input; remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+".grami_log"; remove(fname.c_str());
+  fname = config.ControlDir()+"/job."+id+sfx_proxy; remove(fname.c_str());
+  fname = config.ControlDir()+"/"+subdir_new+"/job."+id+sfx_restart; remove(fname.c_str());
+  fname = config.ControlDir()+"/job."+id+sfx_errors; remove(fname.c_str());
+  fname = config.ControlDir()+"/"+subdir_new+"/job."+id+sfx_cancel; remove(fname.c_str());
+  fname = config.ControlDir()+"/"+subdir_new+"/job."+id+sfx_clean;  remove(fname.c_str());
+  fname = config.ControlDir()+"/job."+id+sfx_output; remove(fname.c_str());
+  fname = config.ControlDir()+"/job."+id+sfx_input; remove(fname.c_str());
+  fname = config.ControlDir()+"/job."+id+".grami_log"; remove(fname.c_str());
   fname = session+sfx_lrmsoutput; remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+sfx_outputstatus; remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+sfx_inputstatus; remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+sfx_statistics; remove(fname.c_str());
+  fname = config.ControlDir()+"/job."+id+sfx_outputstatus; remove(fname.c_str());
+  fname = config.ControlDir()+"/job."+id+sfx_inputstatus; remove(fname.c_str());
+  fname = config.ControlDir()+"/job."+id+sfx_statistics; remove(fname.c_str());
   /* remove session directory */
-  if(user.StrictSession()) {
-    uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
-    uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
-    Arc::DirDelete(session, true, uid, gid);
+  if(config.StrictSession()) {
+    Arc::DirDelete(session, true, job.get_user().get_uid(), job.get_user().get_gid());
   } else {
     Arc::DirDelete(session);
   }
@@ -757,22 +713,24 @@ bool job_clean_deleted(const JobDescription &desc,const JobUser &user,std::list<
   return true;
 }
 
-bool job_clean_final(const JobDescription &desc,const JobUser &user) {
-  std::string id = desc.get_id();
-  job_clean_finished(id,user);
-  job_clean_deleted(desc,user);
+bool job_clean_final(const GMJob &job,const GMConfig &config) {
+  std::string id = job.get_id();
+  job_clean_finished(id,config);
+  job_clean_deleted(job,config);
   std::string fname;
-  fname = user.ControlDir()+"/job."+id+sfx_local;  remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+".grami"; remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+sfx_failed; remove(fname.c_str());
-  job_diagnostics_mark_remove(desc,user);
-  job_lrmsoutput_mark_remove(desc,user);
-  fname = user.ControlDir()+"/job."+id+sfx_status; remove(fname.c_str());
-  fname = user.ControlDir()+"/"+subdir_new+"/job."+id+sfx_status; remove(fname.c_str());
-  fname = user.ControlDir()+"/"+subdir_cur+"/job."+id+sfx_status; remove(fname.c_str());
-  fname = user.ControlDir()+"/"+subdir_old+"/job."+id+sfx_status; remove(fname.c_str());
-  fname = user.ControlDir()+"/"+subdir_rew+"/job."+id+sfx_status; remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+sfx_rsl; remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+sfx_xml; remove(fname.c_str());
+  fname = config.ControlDir()+"/job."+id+sfx_local;  remove(fname.c_str());
+  fname = config.ControlDir()+"/job."+id+".grami"; remove(fname.c_str());
+  fname = config.ControlDir()+"/job."+id+sfx_failed; remove(fname.c_str());
+  job_diagnostics_mark_remove(job,config);
+  job_lrmsoutput_mark_remove(job,config);
+  fname = config.ControlDir()+"/job."+id+sfx_status; remove(fname.c_str());
+  fname = config.ControlDir()+"/"+subdir_new+"/job."+id+sfx_status; remove(fname.c_str());
+  fname = config.ControlDir()+"/"+subdir_cur+"/job."+id+sfx_status; remove(fname.c_str());
+  fname = config.ControlDir()+"/"+subdir_old+"/job."+id+sfx_status; remove(fname.c_str());
+  fname = config.ControlDir()+"/"+subdir_rew+"/job."+id+sfx_status; remove(fname.c_str());
+  fname = config.ControlDir()+"/job."+id+sfx_rsl; remove(fname.c_str());
+  fname = config.ControlDir()+"/job."+id+sfx_xml; remove(fname.c_str());
   return true;
 }
+
+} // namespace ARex

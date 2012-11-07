@@ -20,7 +20,6 @@
 #include <arc/FileUtils.h>
 
 #include "ldif/LDIFtoXML.h"
-#include "grid-manager/conf/environment.h"
 #include "grid-manager/files/info_files.h"
 #include "job.h"
 #include "arex.h"
@@ -35,7 +34,7 @@ void ARexService::InformationCollector(void) {
     int r = -1;
     {
       std::string cmd;
-      cmd=Arc::ArcLocation::GetDataDir()+"/CEinfo.pl --nonordugrid --splitjobs --config "+gm_env_->nordugrid_config_loc();
+      cmd=Arc::ArcLocation::GetDataDir()+"/CEinfo.pl --nonordugrid --splitjobs --config "+config_.ConfigFile();
       std::string stdin_str;
       std::string stderr_str;
       Arc::Run run(cmd);

@@ -1,13 +1,15 @@
 #ifndef GRID_MANAGER_RUN_PLUGIN_H
 #define GRID_MANAGER_RUN_PLUGIN_H
 
-//@ #include "../std.h"
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <string>
 #include <list>
 #include <pthread.h>
 
+namespace ARex {
+
+/// Run external process for acquiring local credentials.
 class RunPlugin {
  private:
   std::list<std::string> args_;
@@ -54,5 +56,7 @@ class RunPlugins {
 
 void free_args(char** args);
 char** string_to_args(const std::string& command);
+
+} // namespace ARex
 
 #endif // GRID_MANAGER_RUN_PLUGIN_H

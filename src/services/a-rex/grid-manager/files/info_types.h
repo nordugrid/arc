@@ -8,6 +8,8 @@
 #include <arc/DateTime.h>
 #include <arc/compute/JobDescription.h>
 
+namespace ARex {
+
 /* 
   Defines few data types used by grid-manager to store information
   about jobs.
@@ -158,5 +160,7 @@ class LRMSResult {
 };
 std::istream& operator>>(std::istream& i,LRMSResult &r);
 std::ostream& operator<<(std::ostream& i,const LRMSResult &r);
+
+} // namespace ARex
 
 #endif

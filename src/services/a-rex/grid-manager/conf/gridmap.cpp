@@ -7,7 +7,6 @@
 
 #include <arc/StringConv.h>
 
-#include "environment.h"
 #include "conf.h"
 #include "gridmap.h"
 

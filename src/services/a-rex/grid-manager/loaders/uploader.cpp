@@ -26,18 +26,15 @@
 #include <arc/FileUtils.h>
 
 #include "../jobs/job.h"
-#include "../jobs/job_config.h"
-#include "../jobs/users.h"
-#include "../jobs/plugins.h"
 #include "../files/info_types.h"
 #include "../files/info_files.h"
 #include "../files/delete.h"
-#include "../conf/environment.h"
+#include "../conf/GMConfig.h"
 #include "../misc/proxy.h"
 #include "../conf/conf_map.h"
 #include "../conf/conf_cache.h"
-#include "../run/run_plugin.h"
-#include "../log/job_log.h"
+
+using namespace ARex;
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "Uploader");
 
@@ -192,9 +189,7 @@ int main(int argc,char** argv) {
   int n_threads = 1;
   int n_files = MAX_UPLOADS;
   /* used to find caches used by this user */
-  std::string file_owner_username = "";
-  uid_t file_owner = 0;
-  gid_t file_group = 0;
+  Arc::User user;
   bool use_conf_cache = false;
   unsigned long long int min_speed = 0;
   time_t min_speed_time = 300;
@@ -205,11 +200,7 @@ int main(int argc,char** argv) {
   bool passive = false;
   std::string failure_reason("");
   std::string x509_proxy, x509_cert, x509_key, x509_cadir;
-  JobLog job_log;
-  JobsListConfig jobs_cfg;
-  ContinuationPlugins plugins;
-  RunPlugin cred_plugin;
-  GMEnvironment env(job_log,jobs_cfg,plugins,cred_plugin);
+  GMConfig config;
 
   // process optional arguments
   for(;;) {
@@ -229,7 +220,7 @@ int main(int argc,char** argv) {
         secure=false;
       }; break;
       case 'C': {
-        env.nordugrid_config_loc(optarg);
+        config.SetConfigFile(optarg);
       }; break;
       case 'f': {
         use_conf_cache=true;
@@ -263,32 +254,14 @@ int main(int argc,char** argv) {
         if(!Arc::stringto(std::string(optarg),tuid)) {
           logger.msg(Arc::ERROR, "Bad number: %s", optarg); exit(1);
         };
-        struct passwd pw_;
-        struct passwd *pw;
-        char buf[BUFSIZ];
-        getpwuid_r(tuid,&pw_,buf,BUFSIZ,&pw);
-        if(pw == NULL) {
-          logger.msg(Arc::ERROR, "Wrong user name"); exit(1);
-        };
-        file_owner=pw->pw_uid;
-        file_group=pw->pw_gid;
-        if(pw->pw_name) file_owner_username=pw->pw_name;
-        if((getuid() != 0) && (getuid() != file_owner)) {
+        user = Arc::User(tuid);
+        if(!user) {
           logger.msg(Arc::ERROR, "Specified user can't be handled"); exit(1);
         };
       }; break;
       case 'u': {
-        struct passwd pw_;
-        struct passwd *pw;
-        char buf[BUFSIZ];
-        getpwnam_r(optarg,&pw_,buf,BUFSIZ,&pw);
-        if(pw == NULL) {
-          logger.msg(Arc::ERROR, "Wrong user name"); exit(1);
-        };
-        file_owner=pw->pw_uid;
-        file_group=pw->pw_gid;
-        if(pw->pw_name) file_owner_username=pw->pw_name;
-        if((getuid() != 0) && (getuid() != file_owner)) {
+        user = Arc::User(optarg);
+        if(!user) {
           logger.msg(Arc::ERROR, "Specified user can't be handled"); exit(1);
         };
       }; break;
@@ -342,43 +315,19 @@ int main(int argc,char** argv) {
   char* session_dir = argv[optind+2];
   if(!session_dir) { logger.msg(Arc::ERROR, "Missing session directory"); return 1; };
 
-  //read_env_vars();
-  // prepare Job and User descriptions (needed for substitutions in cache dirs)
-  JobDescription desc(id,session_dir);
-  uid_t uid;
-  gid_t gid;
-  if(file_owner != 0) { uid=file_owner; }
-  else { uid= getuid(); };
-  if(file_group != 0) { gid=file_group; }
-  else { gid= getgid(); };
-  desc.set_uid(uid,gid);
-  JobUser user(env,uid,gid);
-  user.SetControlDir(control_dir);
-  user.SetSessionRoot(session_dir);
-  
-  // if u or U option not set, use our username
-  if (file_owner_username == "") {
-    struct passwd pw_;
-    struct passwd *pw;
-    char buf[BUFSIZ];
-    getpwuid_r(getuid(),&pw_,buf,BUFSIZ,&pw);
-    if(pw == NULL) {
-      logger.msg(Arc::ERROR, "Wrong user name"); exit(1);
-    }
-    if(pw->pw_name) file_owner_username=pw->pw_name;
-  }
-  
+  config.SetControlDir(control_dir);
+  GMJob job(id,user,session_dir);
   Arc::FileCache * cache = NULL;
 
   if (use_conf_cache) {
     try {
-      CacheConfig cache_config(env,std::string(file_owner_username));
-      user.SetCacheParams(cache_config);
-      cache = new Arc::FileCache(user.CacheParams().getCacheDirs(),
-                                 user.CacheParams().getRemoteCacheDirs(),
-                                 user.CacheParams().getDrainingCacheDirs(),
-                                 std::string(id), uid, gid);
-      if (!(user.CacheParams().getCacheDirs().size() == 0) && !(*cache)) {
+      CacheConfig cache_config(config);
+      cache_config.substitute(config, user);
+      cache = new Arc::FileCache(cache_config.getCacheDirs(),
+                                 cache_config.getRemoteCacheDirs(),
+                                 cache_config.getDrainingCacheDirs(),
+                                 std::string(id), user.get_uid(), user.get_gid());
+      if (!(cache_config.getCacheDirs().empty()) && !(*cache)) {
         logger.msg(Arc::ERROR, "Error creating cache");
         delete cache;
         exit(1);
@@ -394,7 +343,7 @@ int main(int argc,char** argv) {
     std::string cache_path = argv[optind+3];
     if(argv[optind+4])
       cache_path += " "+std::string(argv[optind+4]);
-    cache = new Arc::FileCache(cache_path, std::string(id), uid, gid);
+    cache = new Arc::FileCache(cache_path, std::string(id), user.get_uid(), user.get_gid());
     if (!(*cache)) {
       logger.msg(Arc::ERROR, "Error creating cache");
       delete cache;
@@ -420,13 +369,13 @@ int main(int argc,char** argv) {
     n_threads=10;
   };
 
-  UrlMapConfig url_map(env);
+  UrlMapConfig url_map(config);
   logger.msg(Arc::INFO, "Uploader started");
 
   Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
   Arc::UserConfig usercfg(cred_type);
   usercfg.UtilsDirPath(control_dir);
-  usercfg.SetUser(Arc::User(uid));
+  usercfg.SetUser(user);
   usercfg.CACertificatesDirectory(x509_cadir);
 
   Arc::DataMover mover;
@@ -448,7 +397,7 @@ int main(int argc,char** argv) {
   std::map<std::string, std::list<FileData> > dynamic_outputs;
   
   // get the list of output files
-  if(!job_output_read_file(desc.get_id(),user,job_files_)) {
+  if(!job_output_read_file(job.get_id(),config,job_files_)) {
     failure_reason+="Internal error in uploader\n";
     logger.msg(Arc::ERROR, "Can't read list of output files"); res=1; goto exit;
   }
@@ -510,7 +459,7 @@ int main(int argc,char** argv) {
     job_files.push_back(*i);
   };
 
-  if(!desc.GetLocalDescription(user)) {
+  if(!job.GetLocalDescription(config)) {
     logger.msg(Arc::ERROR, "Can't read job local description"); res=1; goto exit;
   };
 
@@ -532,7 +481,7 @@ int main(int argc,char** argv) {
         if(i->pair == NULL) {
           /* define place to store */
           std::string stdlog;
-          JobLocalDescription* local = desc.get_local();
+          JobLocalDescription* local = job.get_local();
           if(local) stdlog=local->stdlog;
           if(stdlog.length() > 0) stdlog="/"+stdlog+"/";
           if((stdlog.length() > 0) &&
@@ -606,7 +555,7 @@ int main(int argc,char** argv) {
     for(FileDataEx::iterator i=processed_files.begin();i!=processed_files.end();++i) {
       logger.msg(Arc::INFO, "Uploaded %s", i->lfn);
       struct stat st;
-      Arc::FileStat(desc.SessionDir() + i->pfn, &st, true);
+      Arc::FileStat(job.SessionDir() + i->pfn, &st, true);
       transfer_parameters = "outputfile:";
       transfer_parameters += "url=" + i->lfn + ',';
       transfer_parameters += "size=" + Arc::tostring(st.st_size) + ',';
@@ -616,7 +565,7 @@ int main(int argc,char** argv) {
       job_files_uploaded.push_back(*i);
     };
     
-    std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".statistics";
+    std::string fname = config.ControlDir() + "/job." + job.get_id() + ".statistics";
     std::ofstream f(fname.c_str(),std::ios::out | std::ios::app);
     if(f.is_open() ) {
       for (std::list<std::string>::iterator it=transfer_stats.begin();
@@ -624,10 +573,10 @@ int main(int argc,char** argv) {
         f << *it << std::endl;
       };
       f.close();
-      fix_file_owner(fname,desc,user);
+      fix_file_owner(fname,job);
     };
    
-    if(!job_output_status_write_file(desc,user,job_files_uploaded)) {
+    if(!job_output_status_write_file(job,config,job_files_uploaded)) {
       logger.msg(Arc::WARNING, "Failed writing output status file");
     };
   }
@@ -684,7 +633,7 @@ int main(int argc,char** argv) {
   if(!userfiles_only) {
     job_files_.clear();
     for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
-    if(!job_output_write_file(desc,user,job_files_)) {
+    if(!job_output_write_file(job,config,job_files_)) {
       logger.msg(Arc::WARNING, "Failed writing changed output file");
     };
     // clean uploaded files here 
@@ -695,7 +644,7 @@ exit:
   cache->Release();
   delete cache;
   if(res != 0 && res != 4) {
-    job_failed_mark_add(desc,user,failure_reason);
+    job_failed_mark_add(job,config,failure_reason);
   };
   logger.msg(Arc::INFO, "Leaving uploader (%i)", res);
   return res;

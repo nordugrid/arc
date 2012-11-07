@@ -4,6 +4,8 @@
 #include <list>
 #include "../files/info_types.h"
 
+namespace ARex {
+
 /**
   Delete all files and subdirectories in 'dir_base' which are or are not
   present in 'files' list.
@@ -19,5 +21,7 @@
 */
 int delete_all_files(const std::string &dir_base, const std::list<FileData> &files,
                      bool excl, uid_t uid = 0, gid_t gid = 0);
+
+} // namespace ARex
 
 #endif 

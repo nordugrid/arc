@@ -4,17 +4,18 @@
 
 /* write essential information about job started/finished */
 #include <fstream>
+#include <unistd.h>
 #include <arc/ArcLocation.h>
 #include <arc/StringConv.h>
 #include <arc/DateTime.h>
 #include "../files/info_types.h"
 #include "../files/info_log.h"
-#include "../conf/environment.h"
+#include "../conf/GMConfig.h"
 #include "../misc/escaped.h"
 #include "../run/run_parallel.h"
 #include "job_log.h"
-#include <unistd.h>
 
+namespace ARex {
 
 JobLog::JobLog(void):filename(""),proc(NULL),last_run(0),ex_period(0) {
 }
@@ -39,12 +40,12 @@ bool JobLog::open_stream(std::ofstream &o) {
     return true;
 }
 
-bool JobLog::start_info(JobDescription &job,const JobUser &user) {
+bool JobLog::start_info(GMJob &job,const GMConfig &config) {
   if(filename.length()==0) return true;
     std::ofstream o;
     if(!open_stream(o)) return false;
-    o<<"Started - job id: "<<job.get_id()<<", unix user: "<<job.get_uid()<<":"<<job.get_gid()<<", ";
-    if(job.GetLocalDescription(user)) {
+    o<<"Started - job id: "<<job.get_id()<<", unix user: "<<job.get_user().get_uid()<<":"<<job.get_user().get_gid()<<", ";
+    if(job.GetLocalDescription(config)) {
       JobLocalDescription *job_desc = job.get_local();
       std::string tmps;
       tmps=job_desc->jobname;
@@ -60,13 +61,13 @@ bool JobLog::start_info(JobDescription &job,const JobUser &user) {
     return true;
 }
 
-bool JobLog::finish_info(JobDescription &job,const JobUser &user) {
+bool JobLog::finish_info(GMJob &job,const GMConfig &config) {
   if(filename.length()==0) return true;
     std::ofstream o;
     if(!open_stream(o)) return false;
-    o<<"Finished - job id: "<<job.get_id()<<", unix user: "<<job.get_uid()<<":"<<job.get_gid()<<", ";
+    o<<"Finished - job id: "<<job.get_id()<<", unix user: "<<job.get_user().get_uid()<<":"<<job.get_user().get_gid()<<", ";
     std::string tmps;
-    if(job.GetLocalDescription(user)) {
+    if(job.GetLocalDescription(config)) {
       JobLocalDescription *job_desc = job.get_local();
       tmps=job_desc->jobname;
       tmps = Arc::escape_chars(tmps, "\"\\", '\\', false);
@@ -77,7 +78,7 @@ bool JobLog::finish_info(JobDescription &job,const JobUser &user) {
       o<<"lrms: "<<job_desc->lrms<<", queue: "<<job_desc->queue;
       if(job_desc->localid.length() >0) o<<", lrmsid: "<<job_desc->localid;
     };
-    tmps = job.GetFailure(user);
+    tmps = job.GetFailure(config);
     if(tmps.length()) {
       for(std::string::size_type i=0;;) {
         i=tmps.find('\n',i);
@@ -171,9 +172,7 @@ bool JobLog::read_info(std::fstream &i,bool &processed,bool &jobstart,struct tm 
   return true;
 }
 
-#ifndef NO_GLOBUS_CODE
-
-bool JobLog::RunReporter(JobUsers &users) {
+bool JobLog::RunReporter(const GMConfig &config) {
   //if(!is_reporting()) return true;
   if(proc != NULL) {
     if(proc->Running()) return true; /* running */
@@ -182,28 +181,12 @@ bool JobLog::RunReporter(JobUsers &users) {
   };
   if(time(NULL) < (last_run+3600)) return true; // once per hour
   last_run=time(NULL);
-  if(users.size() <= 0) return true; // no users to report
-  const char** args = (const char**)malloc(sizeof(char*)*(users.size()+6)); 
-  if(args == NULL) return false;
   std::string cmd = Arc::ArcLocation::GetToolsDir()+"/"+logger;
-  int argc=0; args[argc++]=(char*)cmd.c_str();
-  std::string ex_str = Arc::tostring(ex_period);
-  if(ex_period) {
-    args[argc++]="-E";
-    args[argc++]=(char*)ex_str.c_str();
-  };
-  for(JobUsers::iterator i = users.begin();i != users.end();++i) {
-    args[argc++]=(char*)(i->ControlDir().c_str());
-  };
-  args[argc]=NULL;
-  JobUser user(users.Env(),getuid(),getgid());
-  user.SetControlDir(users.begin()->ControlDir());
-  bool res = RunParallel::run(user,"logger",args,&proc,false,false);
-  free(args);
+  if(ex_period) cmd += " -E " + Arc::tostring(ex_period);
+  cmd += " " + config.ControlDir();
+  bool res = RunParallel::run(config,Arc::User(),"logger",cmd,&proc,false,false);
   return res;
 }
-
-#endif // NO_GLOBUS_CODE
 
 bool JobLog::SetLogger(const char* fname) {
   if(fname) logger = (std::string(fname));
@@ -215,18 +198,18 @@ bool JobLog::SetReporter(const char* destination) {
   return true;
 }
 
-bool JobLog::make_file(JobDescription &job,JobUser &user) {
+bool JobLog::make_file(GMJob &job, const GMConfig& config) {
   //if(!is_reporting()) return true;
   if((job.get_state() != JOB_STATE_ACCEPTED) &&
      (job.get_state() != JOB_STATE_FINISHED)) return true;
   bool result = true;
   // for configured loggers
   for(std::list<std::string>::iterator u = urls.begin();u!=urls.end();u++) {
-    if(u->length()) result = job_log_make_file(job,user,*u,report_config) && result;
+    if(u->length()) result = job_log_make_file(job,config,*u,report_config) && result;
   };
   // for user's logger
   JobLocalDescription* local;
-  if(!job.GetLocalDescription(user)) {
+  if(!job.GetLocalDescription(config)) {
     result=false;
   } else if((local=job.get_local()) == NULL) { 
     result=false;
@@ -236,7 +219,7 @@ bool JobLog::make_file(JobDescription &job,JobUser &user) {
       for (std::list<std::string>::iterator v = local->jobreport.begin();
 	   v!=local->jobreport.end(); v++)
 	{
-	  result = job_log_make_file(job,user,*v,report_config) && result;
+	  result = job_log_make_file(job,config,*v,report_config) && result;
 	}
     };
   };
@@ -254,12 +237,11 @@ void JobLog::set_credentials(std::string &key_path,std::string &certificate_path
 }
 
 JobLog::~JobLog(void) {
-#ifndef NO_GLOBUS_CODE
   if(proc != NULL) {
     if(proc->Running()) proc->Kill(0);
     delete proc;
     proc=NULL;
   };
-#endif // NO_GLOBUS_CODE
 }
 
+} // namespace ARex

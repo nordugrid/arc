@@ -22,8 +22,8 @@ jobplugin_la_LIBADD = \
 	../../../gridftpd/libgridftpd_la-names.lo \
 	../../../gridftpd/libgridftpd_la-misc.lo \
 	../../../gridftpd/auth/libmap.la \
-	../misc/libmisc.la \
-	../jobs/libusers.la ../mail/libmail.la ../conf/libenv.la \
+	../conf/libconf.la ../misc/libmisc.la \
+	../jobs/libjobs.la ../mail/libmail.la \
 	../log/liblog.la ../files/libfiles.la ../run/librun.la \
 	../../delegation/libdelegation.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \

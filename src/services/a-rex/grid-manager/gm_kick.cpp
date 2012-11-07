@@ -6,38 +6,50 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "jobs/users.h"
-#include "jobs/commfifo.h"
-#include "log/job_log.h"
-#include "jobs/job_config.h"
-#include "jobs/plugins.h"
-#include "run/run_plugin.h"
+#include <arc/OptionParser.h>
+#include <arc/StringConv.h>
 
+#include "conf/GMConfig.h"
+#include "jobs/commfifo.h"
 
 int main(int argc,char* argv[]) {
-  // All input arguments are supposed to contain path to status files
-  for(int n = 1;n<argc;n++) {
-    struct stat st;
-    if(lstat(argv[n],&st) != 0) continue;
-    if(!S_ISREG(st.st_mode)) continue;
-    JobLog job_log;
-    JobsListConfig jobs_cfg;
-    ContinuationPlugins plugins;
-    RunPlugin cred_plugin;
-    GMEnvironment env(job_log,jobs_cfg,plugins,cred_plugin);
-    JobUser user(env,st.st_uid,st.st_gid);
-    if(!user.is_valid()) continue;
-    std::string path = argv[n];
-    if(path[0] != '/') {
-      char buf[BUFSIZ];
-      if(getcwd(buf,BUFSIZ) != NULL) path=std::string(buf)+"/"+path;
-    };
-    std::string::size_type l = path.rfind('/');
-    if(l == std::string::npos) continue;
-    path.resize(l); 
-    user.SetControlDir(path);
-    SignalFIFO(user);
-  };
+
+  Arc::OptionParser options("[control_file]",
+                            istring("gm-kick wakes up the A-REX corresponding to the given "
+                                    "control file. If no file is given it uses the control directory "
+                                    "found in the configuration file."));
+
+  std::string conf_file;
+  options.AddOption('c', "conffile",
+                    istring("use specified configuration file"),
+                    istring("file"), conf_file);
+
+  std::list<std::string> params = options.Parse(argc, argv);
+
+  std::string control_dir;
+  if (params.empty()) {
+    // Read from config
+    ARex::GMConfig config(conf_file);
+    if (!config.Load()) {
+      std::cerr << "Could not load configuration from " << config.ConfigFile() << std::endl;
+      return 1;
+    }
+    if (config.ControlDir().empty()) {
+      std::cerr << "No control dir found in configuration file " << config.ConfigFile() << std::endl;
+      return 1;
+    }
+    control_dir = config.ControlDir();
+  }
+  else {
+    control_dir = params.front();
+    if (control_dir[0] != '/') {
+      char buf[1024];
+      if (getcwd(buf, 1024) != NULL) control_dir = std::string(buf) + "/" + control_dir;
+    }
+    control_dir = control_dir.substr(0, control_dir.rfind('/'));
+  }
+
+  ARex::SignalFIFO(control_dir);
   return 0;
 }
 

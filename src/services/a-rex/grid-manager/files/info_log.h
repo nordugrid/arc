@@ -4,11 +4,14 @@
 #include <string>
 #include <list>
 
-#include "../jobs/job.h"
-#include "../jobs/users.h"
-#include "info_types.h"
+namespace ARex {
 
-bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::string &url,std::list<std::string> &report_config);
+class GMJob;
+class GMConfig;
+
+bool job_log_make_file(const GMJob &job,const GMConfig& config,const std::string &url,std::list<std::string> &report_config);
+
+} // namespace ARex
 
 #endif
 

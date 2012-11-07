@@ -7,7 +7,9 @@
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
 
-#include "environment.h"
+#include "GMConfig.h"
+
+namespace ARex {
 
 class DTRGenerator;
 
@@ -15,10 +17,10 @@ class DTRGenerator;
 class StagingConfig {
   friend class DTRGenerator;
 public:
-  /// Load config from configuration file. Information from JobsListConfig is
+  /// Load config from configuration file. Information from GMConfig is
   /// used first, then it is overwritten by parameters in [data-staging] (for
   /// ini style) or new staging parameters in <dataTransfer> (for xml style).
-  StagingConfig(const GMEnvironment& env);
+  StagingConfig(const GMConfig& config);
 
   operator bool() const { return valid; };
   bool operator!() const { return !valid; };
@@ -95,8 +97,8 @@ private:
   /// Logger object
   static Arc::Logger logger;
 
-  /// Fill parameters from info in JobsListConfig object
-  void fillFromJobsListConfig(const JobsListConfig& jcfg);
+  /// Fill parameters from info in GMConfig object
+  void fillFromGMConfig(const GMConfig& jcfg);
   /// Read in params from XML config
   bool readStagingConf(const Arc::XMLNode& cfg);
   /// Read in params from ini config
@@ -107,5 +109,6 @@ private:
   StagingConfig();
 };
 
+} // namespace ARex
 
 #endif /* GM_CONF_STAGING_H_ */

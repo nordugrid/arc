@@ -30,8 +30,6 @@
 #include "../jobs/job.h"
 #include "../jobs/commfifo.h"
 #include "../jobs/plugins.h"
-#include "../conf/environment.h"
-#include "../conf/conf_pre.h"
 #include "../files/info_types.h"
 #include "../files/info_files.h"
 #include "../jobs/job_request.h"
@@ -51,10 +49,13 @@
 
 #include "jobplugin.h"
 
+using namespace ARex;
+
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"JobPlugin");
 
 typedef struct {
-  const JobUser* user;
+  const GMConfig* config;
+  const Arc::User* user;
   const std::string* job;
   const char* reason;
 } job_subst_t;
@@ -76,7 +77,7 @@ typedef struct {
 
 // Not sure how this will affect other threads. Most probably 
 // not in a best way. Anyway this option is not for linux.
-#define SET_USER_UID { setegid(user->get_gid()); seteuid(user->get_uid()); }
+#define SET_USER_UID { setegid(user.get_gid()); seteuid(user.get_uid()); }
 #define RESET_USER_UID { seteuid(getuid()); setegid(getgid()); }
 
 #endif
@@ -99,15 +100,16 @@ static void job_subst(std::string& str,void* arg) {
       p+=2;
     };
   };
-  if(subs->user) subs->user->substitute(str);
+  if(subs->user && subs->config) subs->config->Substitute(str, *(subs->user));
 }
 
 // run external plugin to acquire non-unix local credentials
-// U - user, J - job, O - reason
-#define ApplyLocalCred(U,J,O) {                              \
+// U - user, C - config, J - job, O - reason
+#define ApplyLocalCred(U,C,J,O) {                            \
   if(cred_plugin && (*cred_plugin)) {                        \
     job_subst_t subst_arg;                                   \
-    subst_arg.user=U;                                        \
+    subst_arg.user=&U;                                        \
+    subst_arg.config=&C;                                      \
     subst_arg.job=J;                                         \
     subst_arg.reason=O;                                      \
     if(!cred_plugin->run(job_subst,&subst_arg)) {            \
@@ -122,11 +124,14 @@ static void job_subst(std::string& str,void* arg) {
 }
 
 
-JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):cont_plugins(new ContinuationPlugins),cred_plugin(new RunPlugin),env(job_log,jobs_cfg,*cont_plugins,*cred_plugin,true),user_a(user_s.user),job_map(user_s.user) {
+JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):
+    cont_plugins(new ContinuationPlugins),
+    cred_plugin(new RunPlugin),
+    user_a(user_s.user),
+    job_map(user_s.user) {
   initialized=true;
   rsl_opened=false;
   job_rsl_max_size = DEFAULT_JOB_RSL_MAX_SIZE;
-  user=NULL;
   direct_fs=NULL;
   proxy_fname="";
   std::string configfile = user_s.get_config_file();
@@ -175,135 +180,119 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):cont_plugins(new Co
         logger.msg(Arc::ERROR, "Wrong number in maxjobdesc");
         initialized=false;
       };
+    } else if(command == "endpoint") {
+      endpoint = config_next_arg(rest);
     } else if(command == "end") {
       break; /* end of section */
     } else {
       logger.msg(Arc::WARNING, "Unsupported configuration command: %s", command);
     };
   };
-  if(!env) {
-    logger.msg(Arc::ERROR, "Environment could not be set up");
+  if(configfile.length()) config.SetConfigFile(configfile);
+  config.SetCredPlugin(cred_plugin);
+  config.SetContPlugins(cont_plugins);
+  std::string uname = user_s.get_uname();
+  std::string ugroup = user_s.get_gname();
+  if((bool)job_map) {
+    uname=job_map.unix_name();
+    ugroup=job_map.unix_group();
+  };
+  user = Arc::User(uname, ugroup);
+  if (!user) {
+    logger.msg(Arc::ERROR, "Mapped user:group (%s:%s) not found", uname, ugroup);
     initialized = false;
-  }
-  else {
-    if(configfile.length()) env.nordugrid_config_loc(configfile);
-    std::string uname = user_s.get_uname();
-    std::string ugroup = user_s.get_gname();
-    if((bool)job_map) {
-      uname=job_map.unix_name();
-      ugroup=job_map.unix_group();
+  } else if(!config.Load()) { // read configuration
+    logger.msg(Arc::ERROR, "Failed processing grid-manager configuration");
+    initialized=false;
+  } else if (gm_dirs_info.size() > 0 && config.SessionRoots().size() > 1) {
+    logger.msg(Arc::ERROR, "Cannot use multiple session directories and remotegmdirs at the same time");
+    initialized=false;
+  } else {
+    avail_queues = config.Queues();
+    // set default queue if not given explicitly
+    if(config.DefaultQueue().empty() && (avail_queues.size() == 1)) {
+      config.SetDefaultQueue(*(avail_queues.begin()));
+    }
+    // do substitutions in session dirs based on mapped user
+    session_dirs = config.SessionRoots();
+    for (std::vector<std::string>::iterator session = session_dirs.begin(); session != session_dirs.end(); ++session) {
+      config.Substitute(*session, user);
+    }
+    session_dirs_non_draining = config.SessionRootsNonDraining();
+    for (std::vector<std::string>::iterator session = session_dirs_non_draining.begin();
+         session != session_dirs_non_draining.end(); ++session) {
+      config.Substitute(*session, user);
+    }
+
+    for(std::string allowsubmit = config.AllowSubmit(); !allowsubmit.empty();) {
+      std::string group = config_next_arg(allowsubmit);
+      if(user_a.check_group(group)) { readonly=false; break; };
     };
-    user=new JobUser(env, uname+":"+ugroup);
-    if(!user->is_valid()) {
-      logger.msg(Arc::ERROR, "User %s is not valid", uname);
-      initialized=false;
+    if(readonly) logger.msg(Arc::WARNING, "This user is denied to submit new jobs.");
+    if (!config.ControlDir().empty() && !session_dirs.empty()) {
+      struct gm_dirs_ dirs;
+      dirs.control_dir = config.ControlDir();
+      dirs.session_dir = session_dirs.front();
+      gm_dirs_info.push_back(dirs);
+      gm_dirs_non_draining.push_back(dirs); // can't drain main control dir
+    }
+    if (gm_dirs_info.empty()) {
+      logger.msg(Arc::ERROR, "No control or remote control directories defined in configuration");
+      initialized = false;
+    }
+
+    /* link to the class for direct file access - creating one object per set of GM dirs */
+    // choose whether to use multiple session dirs or remote GM dirs
+    if (session_dirs.size() > 1) {
+      for (std::vector<std::string>::iterator i = session_dirs.begin(); i != session_dirs.end(); i++) {
+        std::string direct_config = "";
+        direct_config += "mount "+(*i)+"\n";
+        direct_config+="dir / nouser read cd dirlist delete append overwrite";
+        direct_config+=" create "+
+            Arc::tostring(user.get_uid())+":"+Arc::tostring(user.get_gid())+
+            " 600:600";
+        direct_config+=" mkdir "+
+            Arc::tostring(user.get_uid())+":"+Arc::tostring(user.get_gid())+
+            " 700:700\n";
+        direct_config+="end\n";
+#ifdef HAVE_SSTREAM
+        std::stringstream fake_cfile(direct_config);
+#else
+        std::strstream fake_cfile;
+        fake_cfile<<direct_config;
+#endif
+        DirectFilePlugin * direct_fs = new DirectFilePlugin(fake_cfile,user_s);
+        file_plugins.push_back(direct_fs);
+      }
     }
     else {
-      /* read configuration */
-      if(env.nordugrid_config_loc().length() != 0) {
-        std::vector<std::string> session_roots;
-        std::string control_dir;
-        std::string default_lrms;
-        std::string default_queue;
-        std::string allowsubmit;
-        bool strict_session;
-        std::string endpoint2;
-        bool enable_arc;
-        bool enable_emies;
-        if(!configure_user_dirs(uname,
-          control_dir,session_roots,
-          session_dirs_non_draining,
-          default_lrms,default_queue,avail_queues,*cont_plugins,*cred_plugin,
-          allowsubmit,strict_session,endpoint,endpoint2,enable_arc,enable_emies,env)) {
-          logger.msg(Arc::ERROR, "Failed processing grid-manager configuration");
-          initialized=false;
-        } else if (gm_dirs_info.size() > 0 && session_roots.size() > 1) {
-          logger.msg(Arc::ERROR, "Cannot use multiple session directories and remotegmdirs at the same time");
-          initialized=false;
-        } else {                  
-          if(default_queue.empty() && (avail_queues.size() == 1)) {
-            default_queue=*(avail_queues.begin());
-          };
-          user->SetControlDir(control_dir);
-          user->SetSessionRoot(session_roots);
-          user->SetLRMS(default_lrms,default_queue);
-          user->SetStrictSession(strict_session);
-          for(;allowsubmit.length();) {
-            std::string group = config_next_arg(allowsubmit);
-            if(user_a.check_group(group)) { readonly=false; break; };
-          };
-          if(readonly) logger.msg(Arc::ERROR, "This user is denied to submit new jobs.");
-          if (!control_dir.empty()) {
-            struct gm_dirs_ dirs;
-            dirs.control_dir = user->ControlDir();
-            dirs.session_dir = user->SessionRoot();
-            gm_dirs_info.push_back(dirs);
-            gm_dirs_non_draining.push_back(dirs); // can't drain main control dir
-          }
-          if (gm_dirs_info.empty()) {
-            logger.msg(Arc::ERROR, "No control or remote control directories defined in configuration");
-            initialized = false;
-          }
-          session_dirs = user->SessionRoots();
-          /* link to the class for direct file access - creating one object per set of GM dirs */
-          // choose whether to use multiple session dirs or remote GM dirs
-          if (session_dirs.size() > 1) {
-            for (std::vector<std::string>::iterator i = session_dirs.begin(); i != session_dirs.end(); i++) {
-              std::string direct_config = "";
-              direct_config += "mount "+(*i)+"\n";
-              direct_config+="dir / nouser read cd dirlist delete append overwrite";
-              direct_config+=" create "+
-                  Arc::tostring(user->get_uid())+":"+Arc::tostring(user->get_gid())+
-                  " 600:600";
-              direct_config+=" mkdir "+
-                  Arc::tostring(user->get_uid())+":"+Arc::tostring(user->get_gid())+
-                  " 700:700\n";
-              direct_config+="end\n";
-  #ifdef HAVE_SSTREAM
-              std::stringstream fake_cfile(direct_config);
-  #else
-              std::strstream fake_cfile;
-              fake_cfile<<direct_config;
-  #endif
-              DirectFilePlugin * direct_fs = new DirectFilePlugin(fake_cfile,user_s);
-              file_plugins.push_back(direct_fs);
-            }
-          }
-          else {
-            for (std::vector<struct gm_dirs_>::iterator i = gm_dirs_info.begin(); i != gm_dirs_info.end(); i++) {
-              std::string direct_config = "";
-              direct_config += "mount "+(*i).session_dir+"\n";
-              direct_config+="dir / nouser read cd dirlist delete append overwrite";
-              direct_config+=" create "+
-                  Arc::tostring(user->get_uid())+":"+Arc::tostring(user->get_gid())+
-                  " 600:600";
-              direct_config+=" mkdir "+
-                  Arc::tostring(user->get_uid())+":"+Arc::tostring(user->get_gid())+
-                  " 700:700\n";
-              direct_config+="end\n";
-  #ifdef HAVE_SSTREAM
-              std::stringstream fake_cfile(direct_config);
-  #else
-              std::strstream fake_cfile;
-              fake_cfile<<direct_config;
-  #endif
-              DirectFilePlugin * direct_fs = new DirectFilePlugin(fake_cfile,user_s);
-              file_plugins.push_back(direct_fs);
-            }
-          }
-          if((bool)job_map) {
-            logger.msg(Arc::INFO, "Job submission user: %s (%i:%i)", uname, user->get_uid(), user->get_gid());
-          };
-        };
-      } else {
-        logger.msg(Arc::ERROR, "No configuration file found");
-        initialized=false;
-      };
+      for (std::vector<struct gm_dirs_>::iterator i = gm_dirs_info.begin(); i != gm_dirs_info.end(); i++) {
+        std::string direct_config = "";
+        direct_config += "mount "+(*i).session_dir+"\n";
+        direct_config+="dir / nouser read cd dirlist delete append overwrite";
+        direct_config+=" create "+
+            Arc::tostring(user.get_uid())+":"+Arc::tostring(user.get_gid())+
+            " 600:600";
+        direct_config+=" mkdir "+
+            Arc::tostring(user.get_uid())+":"+Arc::tostring(user.get_gid())+
+            " 700:700\n";
+        direct_config+="end\n";
+#ifdef HAVE_SSTREAM
+        std::stringstream fake_cfile(direct_config);
+#else
+        std::strstream fake_cfile;
+        fake_cfile<<direct_config;
+#endif
+        DirectFilePlugin * direct_fs = new DirectFilePlugin(fake_cfile,user_s);
+        file_plugins.push_back(direct_fs);
+      }
+    }
+    if((bool)job_map) {
+      logger.msg(Arc::INFO, "Job submission user: %s (%i:%i)", uname, user.get_uid(), user.get_gid());
     };
-  };
+  }
   if(!initialized) {
     logger.msg(Arc::ERROR, "Job plugin was not initialised");
-    if(user) { delete user; user=NULL; };
   }
   if((!user_a.is_proxy()) ||
      (user_a.proxy() == NULL) || (user_a.proxy()[0] == 0)) {
@@ -352,10 +341,10 @@ int JobPlugin::makedir(std::string &dname) {
     error_description="Can't create subdirectory in a special directory.";
     return 1;
   };
-  ApplyLocalCred(user,&id,"write");
+  ApplyLocalCred(user,config,&id,"write");
   DirectFilePlugin * fp = selectFilePlugin(id);
   int r;
-  if((getuid()==0) && (user) && (user->StrictSession())) {
+  if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID;
     r=fp->makedir(dname);
     RESET_USER_UID;
@@ -374,15 +363,15 @@ int JobPlugin::removefile(std::string &name) {
       return 1;
     };
     if(!is_allowed(name.c_str(),IS_ALLOWED_WRITE)) return 1;  /* owner of the job */
-    JobId id(name); JobDescription job_desc(id,"");
+    JobId id(name); GMJob job(id, user);
     std::string controldir = getControlDir(id);
     if (controldir.empty()) {
       error_description="No control information found for this job.";
       return 1;
     }
-    user->SetControlDir(controldir);
+    config.SetControlDir(controldir);
     logger.msg(Arc::INFO, "Cancelling job %s", id);
-    if(job_cancel_mark_put(job_desc,*user)) return 0;
+    if(job_cancel_mark_put(job,config)) return 0;
   };
   const char* logname;
   std::string id;
@@ -395,10 +384,10 @@ int JobPlugin::removefile(std::string &name) {
     error_description="Special directory can't be mangled.";
     return 1; /* can delete status directory */
   };
-  ApplyLocalCred(user,&id,"write");
+  ApplyLocalCred(user,config,&id,"write");
   DirectFilePlugin * fp = selectFilePlugin(id);
   int r;
-  if((getuid()==0) && (user) && (user->StrictSession())) {
+  if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID;
     r=fp->removefile(name);
     RESET_USER_UID;
@@ -424,24 +413,23 @@ int JobPlugin::removedir(std::string &dname) {
       error_description="No control information found for this job.";
       return 1;
     }
-    user->SetControlDir(controldir);
+    config.SetControlDir(controldir);
     std::string sessiondir = getSessionDir(id);
     if (sessiondir.empty()) {
       // session dir could have already been cleaned, so set to first in list
-      sessiondir = user->SessionRoots().at(0);
+      sessiondir = config.SessionRoots().at(0);
     }
-    user->SetSessionRoot(sessiondir);
-    job_state_t status=job_state_read_file(id,*user);
+    config.SetSessionRoot(sessiondir);
+    job_state_t status=job_state_read_file(id,config);
     logger.msg(Arc::INFO, "Cleaning job %s", id);
     if((status == JOB_STATE_FINISHED) ||
        (status == JOB_STATE_DELETED)) { /* remove files */
-      if(job_clean_final(JobDescription(id,user->SessionRoot()+"/"+id),
-                         *user)) return 0;
+      if(job_clean_final(GMJob(id,user,sessiondir+"/"+id),config)) return 0;
     }
     else { /* put marks */
-      JobDescription job_desc(id,"");
-      bool res = job_cancel_mark_put(job_desc,*user);
-      res &= job_clean_mark_put(job_desc,*user);
+      GMJob job(id,user);
+      bool res = job_cancel_mark_put(job,config);
+      res &= job_clean_mark_put(job,config);
       if(res) return 0;
     };
     error_description="Failed to clean job.";
@@ -454,10 +442,10 @@ int JobPlugin::removedir(std::string &dname) {
     error_description="Special directory can't be mangled.";
     return 1;
   };
-  ApplyLocalCred(user,&id,"write");
+  ApplyLocalCred(user,config,&id,"write");
   DirectFilePlugin * fp = selectFilePlugin(id);
   int r;
-  if((getuid()==0) && (user) && (user->StrictSession())) {
+  if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID;
     r=fp->removedir(dname);
     RESET_USER_UID;
@@ -495,7 +483,7 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
       error_description="No control information found for this job.";
       return 1;
     }
-    user->SetControlDir(controldir);
+    config.SetControlDir(controldir);
     chosenFilePlugin = selectFilePlugin(fname);
     if(logname) {
       if((*logname) != 0) {
@@ -504,7 +492,7 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
           chosenFilePlugin = NULL;
           return 1;
         };
-        fname=user->ControlDir()+"/job."+fname+"."+logname;
+        fname=config.ControlDir()+"/job."+fname+"."+logname;
         logger.msg(Arc::INFO, "Retrieving file %s", fname);
         return chosenFilePlugin->open_direct(fname.c_str(),mode);
       };
@@ -513,8 +501,8 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
       error_description="Special directory can't be mangled.";
       return 1;
     };
-    ApplyLocalCred(user,&fname,"read");
-    if((getuid()==0) && (user) && (user->StrictSession())) {
+    ApplyLocalCred(user,config,&fname,"read");
+    if((getuid()==0) && config.StrictSession()) {
       SET_USER_UID;
       int r=chosenFilePlugin->open(name,mode);
       RESET_USER_UID;
@@ -542,8 +530,8 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
           error_description="No control and/or session directory available.";
           return 1;
         };
-        user->SetControlDir(controldir);
-        user->SetSessionRoot(sessiondir);
+        config.SetControlDir(controldir);
+        config.SetSessionRoot(sessiondir);
         if(job_id.length() == 0) {
           //if(readonly) {
           //  error_description="You are not allowed to submit new jobs to this service.";
@@ -573,16 +561,16 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
         error_description="No control and/or session directory available.";
         return 1;
       }
-      user->SetSessionRoot(sessiondir);
+      config.SetSessionRoot(sessiondir);
     }
-    user->SetControlDir(controldir);
+    config.SetControlDir(controldir);
     chosenFilePlugin = selectFilePlugin(id);
     logger.msg(Arc::INFO, "Storing file %s", name);
     if(spec_dir) {
       // It is allowed to modify ACL
       if(logname) {
         if(strcmp(logname,"acl") == 0) {
-          std::string fname=user->ControlDir()+"/job."+id+"."+logname;
+          std::string fname=config.ControlDir()+"/job."+id+"."+logname;
           return chosenFilePlugin->open_direct(fname.c_str(),mode);
         };
       };
@@ -590,8 +578,8 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
       chosenFilePlugin = NULL;
       return 1;
     };
-    ApplyLocalCred(user,&id,"write");
-    if((getuid()==0) && (user) && (user->StrictSession())) {
+    ApplyLocalCred(user,config,&id,"write");
+    if((getuid()==0) && config.StrictSession()) {
       SET_USER_UID;
       int r=chosenFilePlugin->open(name,mode,size);
       RESET_USER_UID;
@@ -607,7 +595,7 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
 int JobPlugin::close(bool eof) {
   if(!initialized || chosenFilePlugin == NULL) return 1;
   if(!rsl_opened) {
-    if((getuid()==0) && (user) && (user->StrictSession())) {
+    if((getuid()==0) && config.StrictSession()) {
       SET_USER_UID;
       int r=chosenFilePlugin->close(eof);
       RESET_USER_UID;
@@ -625,13 +613,14 @@ int JobPlugin::close(bool eof) {
   /* *************************************************
    * store RSL (description)                         *
    ************************************************* */
-  std::string rsl_fname=user->ControlDir()+"/job."+job_id+".description";
-  std::string acl, failure;
+  std::string rsl_fname=config.ControlDir()+"/job."+job_id+".description";
   /* analyze rsl (checking, substituting, etc)*/
+  JobDescriptionHandler job_desc_handler(config);
   JobLocalDescription job_desc;
-  if(parse_job_req(rsl_fname.c_str(),job_desc,&acl,&failure) != JobReqSuccess) {
+  JobReqResult parse_result = job_desc_handler.parse_job_req(job_id,job_desc,true);
+  if (parse_result != JobReqSuccess) {
     error_description="Failed to parse job/action description.";
-    logger.msg(Arc::ERROR, "%s: %s", error_description, failure);
+    logger.msg(Arc::ERROR, "%s: %s", error_description, parse_result.failure);
     delete_job_id();
     return 1;
   };
@@ -679,7 +668,7 @@ int JobPlugin::close(bool eof) {
       return 1;
     };
     JobLocalDescription job_desc;
-    if(!job_local_read_file(id,*user,job_desc)) {
+    if(!job_local_read_file(id,config,job_desc)) {
       error_description="Job is probably corrupted: can't read internal information.";
       logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
@@ -694,7 +683,7 @@ int JobPlugin::close(bool eof) {
       logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
-    if(!job_restart_mark_put(JobDescription(id,""),*user)) {
+    if(!job_restart_mark_put(GMJob(id,user),config)) {
       error_description="Failed to report restart request.";
       logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
@@ -732,7 +721,7 @@ int JobPlugin::close(bool eof) {
       logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
-    rsl_fname=user->ControlDir()+"/job."+job_id+".description";
+    rsl_fname=config.ControlDir()+"/job."+job_id+".description";
     {
       int l = -1;
       if(h_old != -1) {
@@ -765,17 +754,17 @@ int JobPlugin::close(bool eof) {
   // Check for proper LRMS name in request. If there is no LRMS name 
   // in user configuration that means service is opaque frontend and
   // accepts any LRMS in request.
-  if((!job_desc.lrms.empty()) && (!user->DefaultLRMS().empty())) {
-    if(job_desc.lrms != user->DefaultLRMS()) {
+  if((!job_desc.lrms.empty()) && (!config.DefaultLRMS().empty())) {
+    if(job_desc.lrms != config.DefaultLRMS()) {
       error_description="Request for LRMS "+job_desc.lrms+" is not allowed.";
       logger.msg(Arc::ERROR, "%s", error_description);
       delete_job_id(); 
       return 1;
     };
   };
-  if(job_desc.lrms.empty()) job_desc.lrms=user->DefaultLRMS();
+  if(job_desc.lrms.empty()) job_desc.lrms=config.DefaultLRMS();
   // Check for proper queue in request. 
-  if(job_desc.queue.empty()) job_desc.queue=user->DefaultQueue();
+  if(job_desc.queue.empty()) job_desc.queue=config.DefaultQueue();
   if(job_desc.queue.empty()) {
     error_description="Request has no queue defined.";
     logger.msg(Arc::ERROR, "%s", error_description);
@@ -793,8 +782,9 @@ int JobPlugin::close(bool eof) {
       if(*q == job_desc.queue) break; 
     };
   };
-  JobDescription job(job_id,"",JOB_STATE_ACCEPTED);
-  if(!process_job_req(*user, job, job_desc)) {
+  std::string session_dir(config.SessionRoot(job_id) + '/' + job_id);
+  GMJob job(job_id,user,session_dir,JOB_STATE_ACCEPTED);
+  if(!job_desc_handler.process_job_req(job, job_desc)) {
     error_description="Failed to preprocess job description.";
     logger.msg(Arc::ERROR, "%s", error_description);
     delete_job_id(); 
@@ -807,7 +797,7 @@ int JobPlugin::close(bool eof) {
   job_desc.jobid=job_id;
   job_desc.starttime=time(NULL);
   job_desc.DN=subject;
-  job_desc.sessiondir=user->SessionRoot()+'/'+job_id;
+  job_desc.sessiondir=config.SessionRoot(job_id)+'/'+job_id;
   if(port != 0) {
     job_desc.clientname=
        Arc::tostring(host[0])+"."+Arc::tostring(host[1])+"."+
@@ -826,7 +816,7 @@ int JobPlugin::close(bool eof) {
    * Try to create proxy                           *
    *********************************************** */
   if(proxy_fname.length() != 0) {
-    std::string fname=user->ControlDir()+"/job."+job_id+".proxy";
+    std::string fname=config.ControlDir()+"/job."+job_id+".proxy";
     int h=::open(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,0600);
     if(h == -1) {
       error_description="Failed to store credentials.";
@@ -839,7 +829,7 @@ int JobPlugin::close(bool eof) {
       error_description="Failed to read credentials.";
       return 1;
     };
-    fix_file_owner(fname,*user);
+    fix_file_owner(fname,job);
     int l,ll;
     const char* s;
     char buf[256]; 
@@ -852,7 +842,7 @@ int JobPlugin::close(bool eof) {
     ::close(h);
     ::close(hh);
     try {
-      Arc::Credential ci(proxy_fname, proxy_fname, env.cert_dir_loc(), "");
+      Arc::Credential ci(proxy_fname, proxy_fname, config.CertDir(), "");
       job_desc.expiretime = ci.GetEndTime();
     } catch (std::exception&) {
       job_desc.expiretime = time(NULL);
@@ -861,7 +851,7 @@ int JobPlugin::close(bool eof) {
   /* ******************************************
    * Write local file                         *
    ****************************************** */
-  if(!job_local_write_file(job,*user,job_desc)) {
+  if(!job_local_write_file(job,config,job_desc)) {
     logger.msg(Arc::ERROR, "Failed writing local description");
     delete_job_id(); 
     error_description="Failed to create job description.";
@@ -870,8 +860,8 @@ int JobPlugin::close(bool eof) {
   /* ******************************************
    * Write access policy                      *
    ****************************************** */
-  if(acl.length() != 0) {
-    if(!job_acl_write_file(job_id,*user,acl)) {
+  if(!parse_result.acl.empty()) {
+    if(!job_acl_write_file(job_id,config,parse_result.acl)) {
       logger.msg(Arc::ERROR, "Failed writing ACL");
       delete_job_id(); 
       error_description="Failed to process/store job ACL.";
@@ -895,7 +885,7 @@ int JobPlugin::close(bool eof) {
    *********************************************** */
   /* talk to external plugin to ask if we can proceed */
   std::list<ContinuationPlugins::result_t> results;
-  cont_plugins->run(job,*user,results);
+  cont_plugins->run(job,config,results);
   // analyze results
   std::list<ContinuationPlugins::result_t>::iterator result = results.begin();
   for(;result != results.end();++result) {
@@ -924,7 +914,7 @@ int JobPlugin::close(bool eof) {
    ************************************************************ */
   if(cred_plugin && (*cred_plugin)) {
     job_subst_t subst_arg;
-    subst_arg.user=user;
+    subst_arg.user=&user;
     subst_arg.job=&job_id;
     subst_arg.reason="new";
     // run external plugin to acquire non-unix local credentials
@@ -944,31 +934,16 @@ int JobPlugin::close(bool eof) {
   /* *******************************************
    * Create session directory                  *
    ******************************************* */
-  std::string dir=user->SessionRoot()+"/"+job_id;
-  if((getuid()==0) && (user) && (user->StrictSession())) {
-    SET_USER_UID;
-  };
-  // if fail to create, create parents and try again
-  if(!Arc::DirCreate(dir, 0700, false) &&
-     (!Arc::DirCreate(user->SessionRoot(), 0755, true) ||
-      !Arc::DirCreate(dir, 0700, false))) {
-    if((getuid()==0) && (user) && (user->StrictSession())) {
-      RESET_USER_UID;
-    };
-    logger.msg(Arc::ERROR, "Failed to create session directory");
+  if (!config.CreateSessionDirectory(job.SessionDir(), job.get_user())) {
+    logger.msg(Arc::ERROR, "Failed to create session directory %s", job.SessionDir());
     delete_job_id();
     error_description="Failed to create session directory.";
     return 1;
-  };
-  if((getuid()==0) && (user) && (user->StrictSession())) {
-    RESET_USER_UID;
-  } else {
-    fix_file_owner(dir,*user);
   }
   /* **********************************************************
    * Create status file (do it last so GM picks job up here)  *
    ********************************************************** */
-  if(!job_state_write_file(job,*user,JOB_STATE_ACCEPTED)) {
+  if(!job_state_write_file(job,config,JOB_STATE_ACCEPTED)) {
     logger.msg(Arc::ERROR, "Failed writing status");
     delete_job_id(); 
     error_description="Failed registering job in grid-manager.";
@@ -981,9 +956,9 @@ int JobPlugin::close(bool eof) {
   // still needs investigation. But in current situation it should not happen
   // because job description sent over gridftp does not contain per-file
   // delegations.
-  ARex::DelegationStore(user->DelegationDir()).LockCred(job_id,deleg_ids,subject);
+  ARex::DelegationStore(config.DelegationDir()).LockCred(job_id,deleg_ids,subject);
 
-  SignalFIFO(*user);
+  SignalFIFO(config.ControlDir());
   job_id.resize(0);
   chosenFilePlugin = NULL;
   return 0;
@@ -995,7 +970,7 @@ int JobPlugin::read(unsigned char *buf,unsigned long long int offset,unsigned lo
     return 1;
   };
   error_description="Failed to read from disc.";
-  if((getuid()==0) && (user) && (user->StrictSession())) {
+  if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID;
     int r=chosenFilePlugin->read(buf,offset,size);
     RESET_USER_UID;
@@ -1011,7 +986,7 @@ int JobPlugin::write(unsigned char *buf,unsigned long long int offset,unsigned l
   };
   error_description="Failed to write to disc.";
   if(!rsl_opened) {
-    if((getuid()==0) && (user) && (user->StrictSession())) {
+    if((getuid()==0) && config.StrictSession()) {
       SET_USER_UID;
       int r=chosenFilePlugin->write(buf,offset,size);
       RESET_USER_UID;
@@ -1028,7 +1003,7 @@ int JobPlugin::write(unsigned char *buf,unsigned long long int offset,unsigned l
     error_description="Job description is too big.";
     return 1;
   };
-  std::string rsl_fname=user->ControlDir()+"/job."+job_id+".description";
+  std::string rsl_fname=config.ControlDir()+"/job."+job_id+".description";
   int h=::open(rsl_fname.c_str(),O_WRONLY|O_CREAT,0600);
   if(h == -1) {
     error_description="Failed to open job description file " + rsl_fname;
@@ -1048,10 +1023,10 @@ int JobPlugin::write(unsigned char *buf,unsigned long long int offset,unsigned l
     };
     size-=l; buf+=l;
   };
-  fix_file_owner(rsl_fname,*user);
+  fix_file_owner(rsl_fname,user);
   ::close(h);
   // remove desc file used to claim job id, if different from this one
-  if (user->ControlDir() != gm_dirs_info.at(0).control_dir) {
+  if (config.ControlDir() != gm_dirs_info.at(0).control_dir) {
     rsl_fname=gm_dirs_info.at(0).control_dir+"/job."+job_id+".description";
     remove(rsl_fname.c_str());
   }
@@ -1112,11 +1087,11 @@ int JobPlugin::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::
       error_description="No control information found for this job.";
       return 1;
     }
-    user->SetControlDir(controldir);
+    config.SetControlDir(controldir);
     if((*logname) != 0) {
       if(strchr(logname,'/') != NULL) return 1; /* no subdirs */
       if(strncmp(logname,"proxy",5) == 0) return 1;
-      id=user->ControlDir()+"/job."+id+"."+logname;
+      id=config.ControlDir()+"/job."+id+"."+logname;
       struct stat st;
       if(::stat(id.c_str(),&st) != 0) return 1;
       if(!S_ISREG(st.st_mode)) return 1;
@@ -1125,7 +1100,7 @@ int JobPlugin::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::
       dir_list.push_back(dent);
       return -1;
     };
-    Glib::Dir* d=new Glib::Dir(user->ControlDir());
+    Glib::Dir* d=new Glib::Dir(config.ControlDir());
     if(d == NULL) { return 1; }; /* maybe return ? */
     id="job."+id+".";
     std::string file_name;
@@ -1148,9 +1123,9 @@ int JobPlugin::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::
     };
   };
   /* allowed - pass to file system */
-  ApplyLocalCred(user,&id,"read");
+  ApplyLocalCred(user,config,&id,"read");
   chosenFilePlugin = selectFilePlugin(id);
-  if((getuid()==0) && (user) && (user->StrictSession())) {
+  if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID;
     int r=chosenFilePlugin->readdir(name,dir_list,mode);
     RESET_USER_UID;
@@ -1188,7 +1163,7 @@ int JobPlugin::checkdir(std::string &dirname) {
     error_description="No control information found for this job.";
     return 1;
   }
-  user->SetControlDir(controldir);
+  config.SetControlDir(controldir);
   if(logname) {
     if((*logname) != 0) {
       error_description="There is no such special subdirectory.";
@@ -1198,48 +1173,48 @@ int JobPlugin::checkdir(std::string &dirname) {
   };
   if((dirname == id) && (proxy_fname.length())) {  /* cd to session directory - renew proxy request */
     JobLocalDescription job_desc;
-    if(!job_local_read_file(id,*user,job_desc)) {
+    if(!job_local_read_file(id,config,job_desc)) {
       error_description="Job is probably corrupted: can't read internal information.";
       logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
     /* check if new proxy is better than old one */
-    std::string old_proxy_fname=user->ControlDir()+"/job."+id+".proxy";
+    std::string old_proxy_fname=config.ControlDir()+"/job."+id+".proxy";
     Arc::Time new_proxy_expires;
     Arc::Time old_proxy_expires;
     try {
-      Arc::Credential new_ci(proxy_fname, proxy_fname, env.cert_dir_loc(), "");
+      Arc::Credential new_ci(proxy_fname, proxy_fname, config.CertDir(), "");
       new_proxy_expires = new_ci.GetEndTime();
     } catch (std::exception&) { };
     try {
-      Arc::Credential old_ci(old_proxy_fname, old_proxy_fname, env.cert_dir_loc(), "");
+      Arc::Credential old_ci(old_proxy_fname, old_proxy_fname, config.CertDir(), "");
       old_proxy_expires = old_ci.GetEndTime();
     } catch (std::exception&) { };
     if(new_proxy_expires > old_proxy_expires) {
       /* try to renew proxy */
       logger.msg(Arc::INFO, "Renewing proxy for job %s", id);
       if(renew_proxy(old_proxy_fname.c_str(),proxy_fname.c_str()) == 0) {
-        fix_file_owner(old_proxy_fname,*user);
+        fix_file_owner(old_proxy_fname,user);
         logger.msg(Arc::INFO, "New proxy expires at %s", Arc::TimeStamp(Arc::Time(new_proxy_expires), Arc::UserTime));
-        JobDescription job(id,"",JOB_STATE_ACCEPTED);
+        GMJob job(id,user,"",JOB_STATE_ACCEPTED);
         job_desc.expiretime=new_proxy_expires;
-        if(!job_local_write_file(job,*user,job_desc)) {
+        if(!job_local_write_file(job,config,job_desc)) {
           logger.msg(Arc::ERROR, "Failed to write 'local' information");
         };
         error_description="Applying external credentials locally failed.";
-        ApplyLocalCred(user,&id,"renew");
+        ApplyLocalCred(user,config,&id,"renew");
         error_description="";
         /* Cause restart of job if it potentially failed
            because of expired proxy */
         if((old_proxy_expires < Arc::Time()) && (
             (job_desc.failedstate ==
-                  JobDescription::get_state_name(JOB_STATE_PREPARING)) ||
+                  GMJob::get_state_name(JOB_STATE_PREPARING)) ||
             (job_desc.failedstate ==
-                  JobDescription::get_state_name(JOB_STATE_FINISHING))
+                  GMJob::get_state_name(JOB_STATE_FINISHING))
            )
           ) {
           logger.msg(Arc::INFO, "Job could have died due to expired proxy: restarting");
-          if(!job_restart_mark_put(JobDescription(id,""),*user)) {
+          if(!job_restart_mark_put(GMJob(id,user),config)) {
             logger.msg(Arc::ERROR, "Failed to report renewed proxy to job");
           };
         };
@@ -1250,9 +1225,9 @@ int JobPlugin::checkdir(std::string &dirname) {
       logger.msg(Arc::WARNING, "New proxy expiry time is not later than old proxy, not renewing proxy");
     };
   };
-  ApplyLocalCred(user,&id,"read");
+  ApplyLocalCred(user,config,&id,"read");
   chosenFilePlugin = selectFilePlugin(id);
-  if((getuid()==0) && (user) && (user->StrictSession())) {
+  if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID;
     int r=chosenFilePlugin->checkdir(dirname);
     RESET_USER_UID;
@@ -1279,7 +1254,7 @@ int JobPlugin::checkfile(std::string &name,DirEntry &info,DirEntry::object_info_
     error_description="No control information found for this job.";
     return 1;
   }
-  user->SetControlDir(controldir);
+  config.SetControlDir(controldir);
   if(logname) {
     if((*logname) == 0) { /* directory itself */
       info.is_file=false; info.name=""; info.may_dirlist=true;
@@ -1289,7 +1264,7 @@ int JobPlugin::checkfile(std::string &name,DirEntry &info,DirEntry::object_info_
         error_description="There is no such special file.";
         return 1;
       };
-      id=user->ControlDir()+"/job."+id+"."+logname;
+      id=config.ControlDir()+"/job."+id+"."+logname;
       logger.msg(Arc::INFO, "Checking file %s", id);
       struct stat st;
       if(::stat(id.c_str(),&st) != 0) {
@@ -1305,9 +1280,9 @@ int JobPlugin::checkfile(std::string &name,DirEntry &info,DirEntry::object_info_
     };
     return 0;
   };
-  ApplyLocalCred(user,&id,"read");
+  ApplyLocalCred(user,config,&id,"read");
   chosenFilePlugin = selectFilePlugin(id);
-  if((getuid()==0) && (user) && (user->StrictSession())) {
+  if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID;
     int r=chosenFilePlugin->checkfile(name,info,mode);
     RESET_USER_UID;
@@ -1323,14 +1298,14 @@ bool JobPlugin::delete_job_id(void) {
       error_description="No control information found for this job.";
       return false;
     }    
-    user->SetControlDir(controldir);
+    config.SetControlDir(controldir);
     std::string sessiondir = getSessionDir(job_id);
     if (sessiondir.empty()) {
       // session dir could have already been cleaned, so set to first in list
-      sessiondir = user->SessionRoots().at(0);
+      sessiondir = config.SessionRoots().at(0);
     }    
-    user->SetSessionRoot(sessiondir);
-    job_clean_final(JobDescription(job_id,user->SessionRoot()+"/"+job_id),*user);
+    config.SetSessionRoot(sessiondir);
+    job_clean_final(GMJob(job_id,user,sessiondir+"/"+job_id),config);
     job_id="";
   };
   return true;
@@ -1361,7 +1336,7 @@ bool JobPlugin::make_job_id(const std::string &id) {
       return false;
     }
   }
-  fix_file_owner(fname,*user);
+  fix_file_owner(fname,user);
   close(h);
   delete_job_id();
   job_id=id;
@@ -1405,7 +1380,7 @@ bool JobPlugin::make_job_id(void) {
     }
     // safe to use this id
     job_id = id;
-    fix_file_owner(fname,*user);
+    fix_file_owner(fname,user);
     close(h);
     break;
   };
@@ -1458,15 +1433,15 @@ bool JobPlugin::is_allowed(const char* name,int perm,bool /* locked */,bool* spe
       error_description="No control information found for this job.";
       return false;
     }    
-    user->SetControlDir(controldir);
-    if(!job_local_read_file(id,*user,job_desc)) {
+    config.SetControlDir(controldir);
+    if(!job_local_read_file(id,config,job_desc)) {
       error_description = "Not allowed for this job: "+Arc::StrError(errno);
       return false;
     }
     if(job_desc.DN != subject) {
       // Not an owner. Check acl.
 #ifdef HAVE_GACL
-      std::string acl_file = user->ControlDir()+"/job."+id+".acl";
+      std::string acl_file = config.ControlDir()+"/job."+id+".acl";
       struct stat st;
       if(stat(acl_file.c_str(),&st) == 0) {
         if(S_ISREG(st.st_mode)) {
@@ -1503,9 +1478,9 @@ bool JobPlugin::is_allowed(const char* name,int perm,bool /* locked */,bool* spe
     error_description="No control information found for this job.";
     return false;
   }    
-  user->SetControlDir(controldir);
-  if(!job_local_read_file(id,*user,job_desc)) {
-    logger.msg(Arc::ERROR, "Failed to read job's local description for job %s from %s", id, user->ControlDir());
+  config.SetControlDir(controldir);
+  if(!job_local_read_file(id,config,job_desc)) {
+    logger.msg(Arc::ERROR, "Failed to read job's local description for job %s from %s", id, config.ControlDir());
     if (errno == ENOENT) error_description="No such job";
     else error_description=Arc::StrError(errno);
     return false;
@@ -1538,7 +1513,7 @@ bool JobPlugin::is_allowed(const char* name,int perm,bool /* locked */,bool* spe
   } else {
     // Not an owner. Check acl.
 #ifdef HAVE_GACL
-    std::string acl_file = user->ControlDir()+"/job."+id+".acl";
+    std::string acl_file = config.ControlDir()+"/job."+id+".acl";
     struct stat st;
     if(stat(acl_file.c_str(),&st) == 0) {
       if(S_ISREG(st.st_mode)) {
@@ -1560,7 +1535,7 @@ bool JobPlugin::is_allowed(const char* name,int perm,bool /* locked */,bool* spe
               res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
           };
         } else {
-          logger.msg(Arc::ERROR, "Failed to read job's ACL for job %s from %s", id, user->ControlDir());
+          logger.msg(Arc::ERROR, "Failed to read job's ACL for job %s from %s", id, config.ControlDir());
         };
       };
     };
@@ -1639,11 +1614,10 @@ std::string JobPlugin::getControlDir(std::string id) {
   }
   // check for existence of job.id.description file (the first created)
   for (unsigned int i = 0; i < gm_dirs_info.size(); i++) {
-    JobUser u(*user);
-    u.SetControlDir(gm_dirs_info.at(i).control_dir);
+    config.SetControlDir(gm_dirs_info.at(i).control_dir);
     JobId jobid(id);
     std::string rsl;
-    if (job_description_read_file(jobid, u, rsl))
+    if (job_description_read_file(jobid, config, rsl))
       return gm_dirs_info.at(i).control_dir;
   }
   // no control info found

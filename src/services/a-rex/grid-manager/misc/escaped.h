@@ -3,6 +3,8 @@
 
 #include <string>
 
+namespace ARex {
+
 /*
   Reads keyword from string at 'buf' separated by 'separator' and
   stores it in 'str'. Each couple of characters starting from \ is
@@ -16,6 +18,8 @@ int input_escaped_string(const char* buf,std::string &str,char separator = ' ',c
 */
 char* make_unescaped_string(char* str,char e = 0);
 void make_unescaped_string(std::string &str);
+
+} // namespace ARex
 
 #endif
 

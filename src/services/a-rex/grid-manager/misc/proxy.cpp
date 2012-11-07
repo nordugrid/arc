@@ -19,6 +19,8 @@
 #include <arc/credential/Credential.h>
 #include <arc/credentialstore/CredentialStore.h>
 
+namespace ARex {
+
 int prepare_proxy(void) {
   int h = -1;
   off_t len;
@@ -194,4 +196,4 @@ bool myproxy_renew(const char* old_proxy_file,const char* new_proxy_file,const c
   return true;
 }
 
-
+} // namespace ARex

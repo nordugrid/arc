@@ -7,9 +7,11 @@
 #include <arc/Run.h>
 #include "../jobs/job.h"
 #include "../jobs/states.h"
-#include "../jobs/users.h"
+#include "../conf/GMConfig.h"
 
 #include "plugins.h"
+
+namespace ARex {
 
 /*
   Substitution:
@@ -42,7 +44,7 @@ bool ContinuationPlugins::add(job_state_t state,unsigned int timeout,const char*
 }
 
 bool ContinuationPlugins::add(const char* state,unsigned int timeout,const char* command) {
-  job_state_t i = JobDescription::get_state(state);
+  job_state_t i = GMJob::get_state(state);
   if(i != JOB_STATE_UNDEFINED) {
     return add(i,timeout,command);
   };
@@ -137,14 +139,14 @@ bool ContinuationPlugins::add(job_state_t state,const char* options,const char* 
 }
 
 bool ContinuationPlugins::add(const char* state,const char* options,const char* command) {
-  job_state_t i = JobDescription::get_state(state);
+  job_state_t i = GMJob::get_state(state);
   if(i != JOB_STATE_UNDEFINED) {
     return add(i,options,command);
   };
   return false;
 }
 
-void ContinuationPlugins::run(const JobDescription &job,const JobUser& user,std::list<result_t>& results) {
+void ContinuationPlugins::run(const GMJob &job,const GMConfig& config,std::list<result_t>& results) {
   job_state_t state = job.get_state();
   for(std::list<command_t>::iterator command = commands[state].begin();
                      command != commands[state].end();++command) {
@@ -167,7 +169,7 @@ void ContinuationPlugins::run(const JobDescription &job,const JobUser& user,std:
         p+=2;
       };
     };
-    if(!user.substitute(cmd)) {
+    if(!config.Substitute(cmd, job.get_user())) {
       results.push_back(result_t(act_undefined));
       continue; // or break ?
     };
@@ -213,3 +215,4 @@ void ContinuationPlugins::run(const JobDescription &job,const JobUser& user,std:
   };
 }
 
+} // namespace ARex

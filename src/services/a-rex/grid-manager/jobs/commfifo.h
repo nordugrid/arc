@@ -1,16 +1,17 @@
+#ifndef GM_COMMFIFO_H
+#define GM_COMMFIFO_H
+
 #include <list>
 
 #include <arc/Thread.h>
-#include "users.h"
 
-class CommFIFOListener;
+namespace ARex {
 
 class CommFIFO {
  private:
   class elem_t {
    public:
-    elem_t(void):user(NULL),fd(-1),fd_keep(-1) { };
-    JobUser* user;
+    elem_t(void):fd(-1),fd_keep(-1) { };
     int fd;
     int fd_keep;
   };
@@ -28,12 +29,15 @@ class CommFIFO {
   } add_result;
   CommFIFO(void);
   ~CommFIFO(void);
-  add_result add(JobUser& user);
-  JobUser* wait(int timeout);
-  JobUser* wait(void) { return wait(timeout_); };
+  add_result add(const std::string& dir_path);
+  void wait(int timeout);
+  void wait(void) { wait(timeout_); };
   void timeout(int t) { timeout_=t; };
 };
 
-bool SignalFIFO(const JobUser& user);
-bool PingFIFO(const JobUser& user);
+bool SignalFIFO(const std::string& dir_path);
+bool PingFIFO(const std::string& dir_path);
 
+} // namespace ARex
+
+#endif // GM_COMMFIFO_H

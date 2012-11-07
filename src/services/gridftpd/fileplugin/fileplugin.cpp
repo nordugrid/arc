@@ -176,6 +176,9 @@ DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t &user) {
       };
       logger.msg(Arc::INFO, "Mount point %s", mount);
     }
+    else if(command == "endpoint") {
+      endpoint=gridftpd::config_next_arg(rest);
+    }
     else if(command == "end") {
       break; /* end of section */
     }

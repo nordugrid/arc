@@ -125,7 +125,10 @@ GACLPlugin::GACLPlugin(std::istream &cfile,userspec_t &u) {
         } else if(((p-command)==4) && (strncmp(command,"gacl",4)==0)) {
           for(;*p;p++) if(!isspace(*p)) break;
           xml=p;
-        };
+        } else if(((p-command)==8) && (strncmp(command,"endpoint",8)==0)) {
+          for(;*p;p++) if(!isspace(*p)) break;
+          endpoint=p;
+        }
         line = gridftpd::config_read_line(cfile);
       };
       if(basepath.length() == 0) {

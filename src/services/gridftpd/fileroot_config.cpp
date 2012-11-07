@@ -314,6 +314,13 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
   std::string plugin_config;
   std::string plugin_name;
   std::string plugin_path;
+  // for telling plugin its own endpoint
+  // hostname can be overridden in configuration
+  std::string hostname;
+  char hostn[256];
+  if (gethostname(hostn, sizeof(hostn)) != 0) logger.msg(Arc::WARNING, "Could not determine hostname from gethostname()");
+  else hostname = hostn;
+  std::string port = "2811"; // Hard-coded, but it is standard default
   for(;;) {
     std::string rest;
     std::string command;
@@ -362,6 +369,7 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
           };
           logger.msg(Arc::INFO, "Registering directory: %s with plugin: %s", plugin_path, plugin_name);
           plugin_name=pluginpath+'/'+plugin_name;
+          plugin_config+="endpoint gsiftp://"+hostname+":"+port+"/"+plugin_path+"\n";
           plugin_config+="end\n";
 #ifdef HAVE_SSTREAM
           std::stringstream fake_cfile(plugin_config);
@@ -442,7 +450,10 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
           if(!right_group) continue;
           pluginpath=gridftpd::config_next_arg(rest);
           if(pluginpath.length() == 0) pluginpath="/";
+        } else if(command == "hostname") { // should be in [common]
+          hostname=gridftpd::config_next_arg(rest);
         } else if(command == "port") {
+          port=gridftpd::config_next_arg(rest);
         } else if(command == "unixmap") {  /* map to local unix user */
           if(!user.mapped()) user.mapname(rest.c_str());
         } else if(command == "unixgroup") {  /* map to local unix user */

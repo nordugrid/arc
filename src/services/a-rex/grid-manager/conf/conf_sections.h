@@ -5,6 +5,7 @@
 #include <string>
 #include <list>
 
+namespace ARex {
 
 class ConfigSections {
  private:
@@ -39,5 +40,7 @@ class ConfigSections {
   };   
   const char* SubSectionMatch(const char* name);
 };
+
+} // namespace ARex
 
 #endif // __GM_CONFIG_SECTIONS_H__

@@ -6,11 +6,8 @@
 
 #include "conf.h"
 #include "../misc/escaped.h"
-#include "environment.h"
 
-bool config_open(std::ifstream &cfile,const GMEnvironment& env) {
-  return config_open(cfile,env.nordugrid_config_loc());
-}
+namespace ARex {
 
 bool config_open(std::ifstream &cfile,const std::string &name) {
   cfile.open(name.c_str(),std::ifstream::in);
@@ -101,6 +98,22 @@ bool elementtoint(Arc::XMLNode pnode,const char* ename,int& val,Arc::Logger* log
   return false;
 }
 
+bool elementtoint(Arc::XMLNode pnode,const char* ename,time_t& val,Arc::Logger* logger) {
+  std::string v = ename?pnode[ename]:pnode;
+  if(v.empty()) return true; // default
+  if(Arc::stringto(v,val)) return true;
+  if(logger && ename) logger->msg(Arc::ERROR,"wrong number in %s: %s",ename,v.c_str());
+  return false;
+}
+
+bool elementtoint(Arc::XMLNode pnode,const char* ename,unsigned long long int& val,Arc::Logger* logger) {
+  std::string v = ename?pnode[ename]:pnode;
+  if(v.empty()) return true; // default
+  if(Arc::stringto(v,val)) return true;
+  if(logger && ename) logger->msg(Arc::ERROR,"wrong number in %s: %s",ename,v.c_str());
+  return false;
+}
+
 bool elementtoenum(Arc::XMLNode pnode,const char* ename,int& val,const char* const opts[],Arc::Logger* logger) {
   std::string v = ename?pnode[ename]:pnode;
   if(v.empty()) return true; // default
@@ -109,3 +122,5 @@ bool elementtoenum(Arc::XMLNode pnode,const char* ename,int& val,const char* con
   }; 
   return false;
 }
+
+} // namespace ARex

@@ -7,6 +7,8 @@
 
 #include "escaped.h"
 
+namespace ARex {
+
 // TODO: not all functions can handle tabs and other non-space spaces.
 
 static int hextoint(unsigned char c) {
@@ -128,3 +130,4 @@ int input_escaped_string(const char* buf,std::string &str,char separator,char qu
   return i;
 }
 
+} // namespace ARex

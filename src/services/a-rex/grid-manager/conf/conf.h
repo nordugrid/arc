@@ -9,19 +9,10 @@
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 
-#include "environment.h"
-
-//extern char* config_file;
+namespace ARex {
 
 /*
   Open/assign configuration file to provided cfile.
-  Returns:
-    true - success
-    false - error
-*/
-bool config_open(std::ifstream &cfile,const GMEnvironment& env);
-/*
-  Same as previous, but filename is given by 'name'.
 */
 bool config_open(std::ifstream &cfile,const std::string &name);
 /*
@@ -61,7 +52,11 @@ typedef enum {
 config_file_type config_detect(std::istream& in);
 bool elementtobool(Arc::XMLNode pnode,const char* ename,bool& val,Arc::Logger* logger = NULL);
 bool elementtoint(Arc::XMLNode pnode,const char* ename,int& val,Arc::Logger* logger = NULL);
+bool elementtoint(Arc::XMLNode pnode,const char* ename,time_t& val,Arc::Logger* logger = NULL);
 bool elementtoint(Arc::XMLNode pnode,const char* ename,unsigned int& val,Arc::Logger* logger = NULL);
+bool elementtoint(Arc::XMLNode pnode,const char* ename,unsigned long long int& val,Arc::Logger* logger = NULL);
 bool elementtoenum(Arc::XMLNode pnode,const char* ename,int& val,const char* const opts[],Arc::Logger* logger = NULL);
+
+} // namespace ARex
 
 #endif // __GM_CONF_H__

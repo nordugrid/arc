@@ -5,39 +5,66 @@
 #include <list>
 
 #include "job.h"
+#include "job_request.h"
 
-class JobUser;
-class ContinuationPlugins;
-class JobsListConfig;
+namespace ARex {
+
 class JobFDesc;
 class DTRGenerator;
+class GMConfig;
 
-// List of jobs. This object is cross-linked to JobUser object, which
-// represents owner of these jobs. This class contains the main job management
-// logic which moves jobs through the state machine. New jobs found through
-// Scan methods are held in memory until reaching FINISHED state.
+/// ZeroUInt is a wrapper around unsigned int. It provides a consistent default
+/// value, as int type variables have no predefined value assigned upon
+/// creation. It also protects from potential counter underflow, to stop
+/// counter jumping to MAX_INT. TODO: move to common lib?
+class ZeroUInt {
+private:
+ unsigned int value_;
+public:
+ ZeroUInt(void):value_(0) { };
+ ZeroUInt(unsigned int v):value_(v) { };
+ ZeroUInt(const ZeroUInt& v):value_(v.value_) { };
+ ZeroUInt& operator=(unsigned int v) { value_=v; return *this; };
+ ZeroUInt& operator=(const ZeroUInt& v) { value_=v.value_; return *this; };
+ ZeroUInt& operator++(void) { ++value_; return *this; };
+ ZeroUInt operator++(int) { ZeroUInt temp(value_); ++value_; return temp; };
+ ZeroUInt& operator--(void) { if(value_) --value_; return *this; };
+ ZeroUInt operator--(int) { ZeroUInt temp(value_); if(value_) --value_; return temp; };
+ operator unsigned int(void) const { return value_; };
+};
+
+
+/// List of jobs. This class contains the main job management logic which moves
+/// jobs through the state machine. New jobs found through Scan methods are
+/// held in memory until reaching FINISHED state.
 class JobsList {
  public:
-  typedef std::list<JobDescription>::iterator iterator;
+  typedef std::list<GMJob>::iterator iterator;
  private:
   // List of jobs currently tracked in memory
-  std::list<JobDescription> jobs;
+  std::list<GMJob> jobs;
   // counters of share for preparing/finishing states
   std::map<std::string, int> preparing_job_share;
   std::map<std::string, int> finishing_job_share;
   // current max share for preparing/finishing
   std::map<std::string, int> preparing_max_share;
   std::map<std::string, int> finishing_max_share;
-  // User who owns these jobs
-  JobUser *user;
-  // Plugins configured to run at certain state changes
-  ContinuationPlugins *plugins;
+  // GM configuration
+  const GMConfig& config;
   // Dir containing finished/deleted jobs which is scanned in ScanOldJobs.
   // Since this can happen over multiple calls a pointer is kept as a member
   // variable so scanning picks up where it finished last time.
   Glib::Dir* old_dir;
   // Generator for handling data staging
   DTRGenerator* dtr_generator;
+  // Job description handler
+  JobDescriptionHandler job_desc_handler;
+  // number of jobs for every state
+  int jobs_num[JOB_STATE_NUM];
+  // map of number of active jobs for each DN
+  std::map<std::string, ZeroUInt> jobs_dn;
+  // number of jobs currently in pending state
+  int jobs_pending;
 
   // Add job into list without checking if it is already there.
   // 'i' will be set to iterator pointing at new job
@@ -57,7 +84,7 @@ class JobsList {
   bool state_loading(const iterator &i,bool &state_changed,bool up,bool &retry);
   // Check if job is allowed to progress to a staging state. up is true
   // for uploads (FINISHING) and false for downloads (PREPARING).
-  bool CanStage(const JobsList::iterator &i, const JobsListConfig& jcfg, bool up);
+  bool CanStage(const JobsList::iterator &i, bool up);
   // Returns true if job is waiting on some condition or limit before
   // progressing to the next state
   bool JobPending(JobsList::iterator &i);
@@ -77,7 +104,7 @@ class JobsList {
   // restarting state
   bool RestartJobs(const std::string& cdir,const std::string& odir);
   // Choose the share for a new job (for old staging only)
-  void ChooseShare(JobsList::iterator& i, const JobsListConfig& jcfg, JobUser* user);
+  void ChooseShare(JobsList::iterator& i);
   // Calculate share information for data staging (downloader/uploader staging
   // only), in DTR this is done internally
   void CalculateShares();
@@ -110,8 +137,8 @@ class JobsList {
   void ActJobDeleted(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
 
  public:
-  // Constructor. 'user' contains associated user
-  JobsList(JobUser &user,ContinuationPlugins &plugins);
+  // Constructor.
+  JobsList(const GMConfig& config);
   // std::list methods for using JobsList like a regular list
   iterator begin(void) { return jobs.begin(); };
   iterator end(void) { return jobs.end(); };
@@ -120,6 +147,17 @@ class JobsList {
 
   // Return iterator to object matching given id or jobs.end() if not found
   iterator FindJob(const JobId &id);
+  // Information about jobs for external utilities
+  // No of jobs in all active states from ACCEPTED and FINISHING
+  int AcceptedJobs() const;
+  // No of jobs in batch system or in process of submission to batch system
+  int RunningJobs() const;
+  // No of jobs in data staging
+  int ProcessingJobs() const;
+  // No of jobs staging in data before job execution
+  int PreparingJobs() const;
+  // No of jobs staging out data after job execution
+  int FinishingJobs() const;
 
   // Set DTR Generator for data staging
   void SetDataGenerator(DTRGenerator* generator) { dtr_generator = generator; };
@@ -144,5 +182,7 @@ class JobsList {
   // Send signals to external processes to shut down nicely (not implemented)
   void PrepareToDestroy(void);
 };
+
+} // namespace ARex
 
 #endif
