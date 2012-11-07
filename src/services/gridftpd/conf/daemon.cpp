@@ -111,6 +111,12 @@ namespace gridftpd {
       Arc::SetEnv("ARC_HTTP_PROXY",rest.c_str()); return 0;
     } else if(cmd == "voms_processing") {
       Arc::SetEnv("VOMS_PROCESSING",rest.c_str()); return 0;
+    } else if(cmd == "voms_trust_chain") {
+      // There could be multiple "voms_trust_chain" for multiple voms servers
+      std::string voms_trust_chains = Arc::GetEnv("VOMS_TRUST_CHAINS");
+      if(!voms_trust_chains.empty()) voms_trust_chains.append("\n").append(rest);
+      else voms_trust_chains = rest;
+      Arc::SetEnv("VOMS_TRUST_CHAINS",voms_trust_chains.c_str()); return 0;
     };
     if(cmd == "daemon") {
       if(daemon_) {
