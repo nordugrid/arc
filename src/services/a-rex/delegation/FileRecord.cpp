@@ -276,7 +276,7 @@ namespace ARex {
     };
     if(!dberr("remove:get2",db_rec_.get(NULL,&key,&data,0))) {
       ::free(pkey);
-      return ""; // No such record?
+      return false; // No such record?
     };
     std::string uid;
     std::string id_tmp;

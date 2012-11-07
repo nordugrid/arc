@@ -217,6 +217,25 @@ namespace ARex {
     return fstore_->Find(id,client,meta);
   }
 
+  std::list<std::string> DelegationStore::ListCredIDs(const std::string& client) {
+    std::list<std::string> res;
+    FileRecord::Iterator rec(*fstore_);
+    for(;(bool)rec;++rec) {
+      if(rec.owner() == client) res.push_back(rec.id());
+    };
+    return res;
+  }
+
+  std::list<std::pair<std::string,std::string> > DelegationStore::ListCredIDs(void) {
+    std::list<std::pair<std::string,std::string> > res;
+    FileRecord::Iterator rec(*fstore_);
+    for(;(bool)rec;++rec) {
+      res.push_back(std::pair<std::string,std::string>(rec.id(),rec.owner()));
+    };
+    return res;
+  }
+
+
   bool DelegationStore::LockCred(const std::string& lock_id, const std::list<std::string>& ids,const std::string& client) {
     return fstore_->AddLock(lock_id,ids,client);
   }

@@ -46,6 +46,8 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
   virtual void CheckConsumers(void);
   void PeriodicCheckConsumers(void);
   std::string FindCred(const std::string& id,const std::string& client);
+  std::list<std::string> ListCredIDs(const std::string& client);
+  std::list<std::pair<std::string,std::string> > ListCredIDs(void);
 
   bool LockCred(const std::string& lock_id, const std::list<std::string>& ids,const std::string& client);
   bool ReleaseCred(const std::string& lock_id, bool touch = false, bool remove = false);

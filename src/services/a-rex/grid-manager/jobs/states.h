@@ -136,6 +136,9 @@ class JobsList {
   // can be limited in the time it can run for and number of jobs it can scan.
   // It returns false if failed or scanning finished.
   bool ScanOldJobs(int max_scan_time,int max_scan_jobs);
+  // Add job with specified id. 
+  // Returns true if job was found and added.
+  bool AddJob(const JobId& id);
   // Rearrange status files on service restart
   bool RestartJobs(void);
   // Send signals to external processes to shut down nicely (not implemented)
