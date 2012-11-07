@@ -811,6 +811,9 @@ err:
     }
 #endif
 
+    for(int i = 0; i< chain.size(); i++)
+      CredentialLogger.msg(INFO, "VOMS: trust chain to check: %s ", chain[i]);
+
     for(;n < sk_X509_num(certstack);++n) {
       if((n+1) >= chain.size()) return true;
       current = sk_X509_value(certstack,n);
