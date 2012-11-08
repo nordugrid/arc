@@ -711,6 +711,11 @@ namespace Arc {
       if(srm_metadata.createdAtTime > 0) {
         (*dp)->SetCreated(Time(srm_metadata.createdAtTime));
       }
+      if(srm_metadata.fileLocality == SRM_ONLINE) {
+        (*dp)->SetAccessLatency(ACCESS_LATENCY_SMALL);
+      } else if(srm_metadata.fileLocality == SRM_NEARLINE) {
+        (*dp)->SetAccessLatency(ACCESS_LATENCY_LARGE);
+      }
       FillFileInfo(files, srm_metadata);
     }
     return DataStatus::Success;
@@ -759,7 +764,11 @@ namespace Arc {
     if(srm_metadata.front().createdAtTime > 0) {
       SetCreated(Time(srm_metadata.front().createdAtTime));
     }
-
+    if(srm_metadata.front().fileLocality == SRM_ONLINE) {
+      SetAccessLatency(ACCESS_LATENCY_SMALL);
+    } else if(srm_metadata.front().fileLocality == SRM_NEARLINE) {
+      SetAccessLatency(ACCESS_LATENCY_LARGE);
+    }
     // set FileInfo attributes for surl requested and any files within a dir
     for (std::list<struct SRMFileMetaData>::const_iterator i = srm_metadata.begin();
          i != srm_metadata.end(); ++i) {
