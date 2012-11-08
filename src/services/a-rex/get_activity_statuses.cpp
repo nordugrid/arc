@@ -5,7 +5,7 @@
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/ws-addressing/WSA.h>
 #include "job.h"
-#include "grid-manager/files/info_files.h"
+#include "grid-manager/files/ControlFileHandling.h"
 
 #include "arex.h"
 

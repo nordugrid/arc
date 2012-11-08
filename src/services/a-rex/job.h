@@ -7,7 +7,7 @@
 #include <arc/XMLNode.h>
 #include <arc/FileAccess.h>
 #include <arc/message/MessageAuth.h>
-#include "grid-manager/files/info_types.h"
+#include "grid-manager/files/ControlFileContent.h"
 #include "grid-manager/jobs/job.h"
 #include "grid-manager/jobs/plugins.h"
 #include "tools.h"

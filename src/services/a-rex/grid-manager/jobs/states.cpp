@@ -8,7 +8,7 @@
 #include <arc/ArcLocation.h>
 #include <arc/credential/VOMSUtil.h>
 
-#include "../files/info_files.h"
+#include "../files/ControlFileHandling.h"
 #include "../run/run_parallel.h"
 #include "../mail/send_mail.h"
 #include "../log/job_log.h"

@@ -15,8 +15,8 @@
 
 #include <arc/FileUtils.h>
 
-#include "../files/info_types.h"
-#include "delete.h"
+#include "../files/ControlFileContent.h"
+#include "Delete.h"
 
 namespace ARex {
 

@@ -6,7 +6,7 @@
 
 #include "../jobs/job.h"
 
-#include "info_types.h"
+#include "ControlFileContent.h"
 
 namespace ARex {
 

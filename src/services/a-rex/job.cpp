@@ -33,7 +33,7 @@
 #include "grid-manager/jobs/commfifo.h"
 #include "grid-manager/jobs/states.h"
 #include "grid-manager/run/run_plugin.h"
-#include "grid-manager/files/info_files.h"
+#include "grid-manager/files/ControlFileHandling.h"
 #include "delegation/DelegationStores.h"
 #include "delegation/DelegationStore.h"
 

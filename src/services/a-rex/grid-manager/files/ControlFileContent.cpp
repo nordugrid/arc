@@ -17,7 +17,7 @@
 #include <arc/FileUtils.h>
 
 #include "../misc/escaped.h"
-#include "info_types.h"
+#include "ControlFileContent.h"
 
 namespace ARex {
 

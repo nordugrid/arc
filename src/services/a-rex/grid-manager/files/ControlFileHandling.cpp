@@ -14,7 +14,7 @@
 #include "../conf/GMConfig.h"
 #include "../jobs/job.h"
 
-#include "info_files.h"
+#include "ControlFileHandling.h"
 
 namespace ARex {
 

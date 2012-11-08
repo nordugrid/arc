@@ -5,8 +5,8 @@
 
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
-#include "../files/info_types.h"
-#include "../files/info_files.h"
+#include "../files/ControlFileContent.h"
+#include "../files/ControlFileHandling.h"
 #include "../run/run_parallel.h"
 #include "../conf/GMConfig.h"
 #include "send_mail.h"

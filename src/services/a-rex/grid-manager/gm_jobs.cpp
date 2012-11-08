@@ -15,7 +15,7 @@
 
 #include "conf/GMConfig.h"
 #include "conf/StagingConfig.h"
-#include "files/info_files.h"
+#include "files/ControlFileHandling.h"
 #include "jobs/commfifo.h"
 #include "jobs/states.h"
 #include "../delegation/DelegationStore.h"

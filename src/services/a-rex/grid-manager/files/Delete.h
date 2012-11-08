@@ -2,7 +2,7 @@
 #define __ARC_GM_DELETE_H__
 #include <string>
 #include <list>
-#include "../files/info_types.h"
+#include "../files/ControlFileContent.h"
 
 namespace ARex {
 

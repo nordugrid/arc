@@ -15,11 +15,11 @@
 #include <arc/DateTime.h>
 #include <arc/compute/JobDescription.h>
 #include "../jobs/job.h"
-#include "info_files.h"
+#include "ControlFileHandling.h"
 #include "../conf/GMConfig.h"
 #include "../conf/ConfigUtils.h"
 
-#include "info_log.h"
+#include "JobLogFile.h"
 
 namespace ARex {
 

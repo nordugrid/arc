@@ -29,9 +29,9 @@
 #include <arc/FileUtils.h>
 
 #include "../jobs/job.h"
-#include "../files/info_types.h"
-#include "../files/info_files.h"
-#include "../files/delete.h"
+#include "../files/ControlFileContent.h"
+#include "../files/ControlFileHandling.h"
+#include "../files/Delete.h"
 #include "../misc/proxy.h"
 #include "../conf/UrlMapConfig.h"
 #include "../conf/CacheConfig.h"

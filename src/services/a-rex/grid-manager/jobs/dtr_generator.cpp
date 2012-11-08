@@ -9,9 +9,9 @@
 #include <arc/FileAccess.h>
 #include <arc/data/FileCache.h>
 
-#include "../files/delete.h"
+#include "../files/Delete.h"
 #include "../conf/UrlMapConfig.h"
-#include "../files/info_files.h"
+#include "../files/ControlFileHandling.h"
 #include "../conf/StagingConfig.h"
 
 #include "job.h"

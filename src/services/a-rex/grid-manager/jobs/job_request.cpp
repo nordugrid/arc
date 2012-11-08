@@ -13,7 +13,7 @@
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
 
-#include "../files/info_files.h"
+#include "../files/ControlFileHandling.h"
 #include "../conf/GMConfig.h"
 #include "../../delegation/DelegationStore.h"
 #include "../../delegation/DelegationStores.h"

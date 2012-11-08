@@ -13,7 +13,7 @@
 #include <arc/data/DataHandle.h>
 
 #include "conf/GMConfig.h"
-#include "files/info_types.h"
+#include "files/ControlFileContent.h"
 #include "jobs/job_request.h"
 #include "misc/proxy.h"
 

@@ -8,8 +8,8 @@
 #include <arc/ArcLocation.h>
 #include <arc/StringConv.h>
 #include <arc/DateTime.h>
-#include "../files/info_types.h"
-#include "../files/info_log.h"
+#include "../files/ControlFileContent.h"
+#include "../files/JobLogFile.h"
 #include "../conf/GMConfig.h"
 #include "../misc/escaped.h"
 #include "../run/run_parallel.h"

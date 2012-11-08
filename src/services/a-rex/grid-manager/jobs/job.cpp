@@ -5,8 +5,8 @@
 #include <string>
 #include <cstring>
 
-#include "../files/info_types.h"
-#include "../files/info_files.h"
+#include "../files/ControlFileContent.h"
+#include "../files/ControlFileHandling.h"
 #include "job.h"
 
 namespace ARex {
