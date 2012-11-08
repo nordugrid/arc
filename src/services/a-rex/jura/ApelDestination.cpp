@@ -17,7 +17,7 @@ namespace Arc
     logger(Arc::Logger::rootLogger, "JURA.ApelDestination"),
     urn(0),
     sequence(0),
-    usagerecordset(Arc::NS("","http://eu-emi.eu/namespaces/2011/11/computerecord"),
+    usagerecordset(Arc::NS("","http://eu-emi.eu/namespaces/2012/10/computerecord"),
                    "UsageRecords")
 
   {
@@ -297,7 +297,7 @@ namespace Arc
     joblogs.clear();
     usagerecordset.Replace(
         Arc::XMLNode(Arc::NS("",
-                             "http://eu-emi.eu/namespaces/2011/11/computerecord"
+                             "http://eu-emi.eu/namespaces/2012/10/computerecord"
                             ),
                      "UsageRecords")
                     );

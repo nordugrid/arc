@@ -263,7 +263,11 @@ namespace Arc
     if (find("usedwalltime")!=end())
       {
         Arc::Period walldur((*this)["usedwalltime"],Arc::PeriodSeconds);
-        ur.NewChild("WallDuration")=(std::string)walldur;
+        std::string walld = (std::string)walldur;
+        if (walld == "P"){
+          walld = "PT0S";
+        }
+        ur.NewChild("WallDuration")=walld;
       }
     
     //CpuDuration
@@ -459,9 +463,9 @@ namespace Arc
 
     Arc::NS ns_ur;
     
-    //Namespaces defined by OGF 2.0 (CAR 1.0)
-    ns_ur[""]="http://eu-emi.eu/namespaces/2011/11/computerecord";
-    ns_ur["urf"]="http://eu-emi.eu/namespaces/2011/11/computerecord";
+    //Namespaces defined by OGF 2.0 (CAR 1.1)
+    ns_ur[""]="http://eu-emi.eu/namespaces/2012/10/computerecord";
+    ns_ur["urf"]="http://eu-emi.eu/namespaces/2012/10/computerecord";
     ns_ur["xsd"]="http://www.w3.org/2001/XMLSchema";
     ns_ur["xsi"]="http://www.w3.org/2001/XMLSchema-instance";
 
@@ -509,11 +513,22 @@ namespace Arc
      * MachineName
      * Host
      * SubmitHost
-     * Queue
      * Site
      * Infrastructure
      */
 
+    /** Differentiated Record Properties
+     * 
+     * Queue
+     * Middleware
+     * Memory
+     * Swap
+     * NodeCount
+     * Processors
+     * TimeInstant
+     * ServiceLevel
+     */
+     
     //Fill this Usage Record
     //UsageRecord
     Arc::XMLNode ur(ns_ur,"UsageRecord");
@@ -557,13 +572,27 @@ namespace Arc
       return;
     }
 
+    //ProcessId
+    if (find("???")!=end()) //TODO: not present in the AREX accounting log
+      {
+         if (!ur["JobIdentity"])
+           ur.NewChild("JobIdentity");
+
+         Arc::XMLNode pid = 
+           ur["JobIdentity"].NewChild("ProcessId")=
+            (*this)["???"];
+         pid.NewAttribute("urf:Host")=(*this)["nodename"];
+       }
+
     //UserIdentity
     Arc::XMLNode useridentity = ur.NewChild("UserIdentity");
     //GlobalUserName
     if (find("usersn")!=end())
       {
-        useridentity.NewChild("GlobalUserName")=
-          (*this)["usersn"];
+        Arc::XMLNode globalusername =
+          useridentity.NewChild("GlobalUserName")=
+            (*this)["usersn"];
+        globalusername.NewAttribute("urf:type")="opensslCompat";
       }
 
     //LocalUserId
@@ -573,6 +602,7 @@ namespace Arc
           (*this)["localuser"];
       }
 
+    //LocalGroup
     //Group
     //GroupAttribute
     
@@ -609,6 +639,7 @@ namespace Arc
         usagerecord.Destroy();
         return;
       }
+
     // ExitStatus
     if (find("exitcode")!=end())
       {
@@ -624,14 +655,33 @@ namespace Arc
     }
     infran.NewAttribute("urf:type")=type;
 
+    //Middleware
+    Arc::XMLNode middleware =
+          ur.NewChild("Middleware")="";
+    middleware.NewAttribute("urf:name")="arc";
+    middleware.NewAttribute("urf:version")=VERSION;
+    middleware.NewAttribute("urf:description")=PACKAGE_STRING;
+
     // WallDuration (EndTime-StartTime)
     if (find("usedwalltime")!=end())
       {
         Arc::Period walldur((*this)["usedwalltime"],Arc::PeriodSeconds);
-        ur.NewChild("WallDuration")=(std::string)walldur;
+        std::string walld = (std::string)walldur;
+        if (walld == "P"){
+          walld = "PT0S";
+        }
+        ur.NewChild("WallDuration")=walld;
       }
 
     // CpuDuration
+    /* TODO: This element contains the CPU time consumed. If the job ran
+     *  on many cores/processors/nodes/sites, all separate consumptions
+     *  shall be aggregated in this value. This as an impact on MPI jobs,
+     *  where the consumption of all the 'nodes' of the MPI job get
+     *  aggregated into this CPU consumption. This is the way LRMS
+     *  accounting work on the batch systems underlying the avaialble
+     *  CE implementations.
+     */
     if (find("usedusercputime")!=end() && find("usedkernelcputime")!=end())
       {
         Arc::Period udur((*this)["usedusercputime"],Arc::PeriodSeconds);
@@ -671,18 +721,10 @@ namespace Arc
         alln.NewAttribute("urf:usageType")="all";
       }
 
-    /* Differentiated Record Properties
-     * Memory
-     * Swap
-     * NodeCount
-     * Processors
-     * TimeInstant
-     * ServiceLevel
-     */
-
     //ServiceLevel
-    Arc::XMLNode sleveln = ur.NewChild("ServiceLevel")="1";  //TODO
+    Arc::XMLNode sleveln = ur.NewChild("ServiceLevel")="1.0"; //TODO
     sleveln.NewAttribute("urf:type")="Si2K";
+    sleveln.NewAttribute("urf:description")="";
 
     //Memory
     if (find("usedmemory")!=end() && (*this)["usedmemory"] != "0")
@@ -734,7 +776,6 @@ namespace Arc
         ur.NewChild("StartTime")=starttime.str(Arc::UTCTime);
       }
 
-
     //MachineName
     if (find("headnode")!=end())
       {
@@ -746,13 +787,14 @@ namespace Arc
     if (find("headnode")!=end())
       {
         Arc::XMLNode submitn = ur.NewChild("SubmitHost")=(*this)["headnode"];
-        submitn.NewAttribute("urf:type")="CE-ID";
       }
 
     //Queue
     if (find("queue")!=end())
       {
-        ur.NewChild("Queue")=(*this)["queue"];
+        Arc::XMLNode queue =
+          ur.NewChild("Queue")=(*this)["queue"];
+        queue.NewAttribute("urf:description")="execution";
       }
 
     //Site
@@ -798,13 +840,22 @@ namespace Arc
      * Month
      * Year
      * UserIdentity
+     * MachineName
+     * SubmitHost
+     * Host
+     * Queue
+     * Infrastructure
+     * Middleware
      * EarliestEndTime
      * LatestEndTime
      * WallDuration
      * CpuDuration
-     * NormalisedWallDuration
-     * NormalisedCpuDuration
+     * ServiceLevel
      * NumberOfJobs
+     * Memory
+     * Swap
+     * NodeCoutn
+     * Processors
      */
 
     //***
