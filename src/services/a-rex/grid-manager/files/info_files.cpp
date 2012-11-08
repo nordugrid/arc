@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <iostream>
 #include <fcntl.h>
 #include <errno.h>
 
