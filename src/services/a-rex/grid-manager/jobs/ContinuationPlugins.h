@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "job.h"
+#include "GMJob.h"
 
 namespace ARex {
 

@@ -4,7 +4,7 @@
 #include <string>
 #include <arc/compute/JobDescription.h>
 
-#include "job.h"
+#include "GMJob.h"
 
 namespace ARex {
 

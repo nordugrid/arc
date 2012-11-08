@@ -14,7 +14,7 @@
 #include <arc/StringConv.h>
 #include <arc/DateTime.h>
 #include <arc/compute/JobDescription.h>
-#include "../jobs/job.h"
+#include "../jobs/GMJob.h"
 #include "ControlFileHandling.h"
 #include "../conf/GMConfig.h"
 #include "../conf/ConfigUtils.h"

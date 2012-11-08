@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "commfifo.h"
+#include "CommFIFO.h"
 
 namespace ARex {
 

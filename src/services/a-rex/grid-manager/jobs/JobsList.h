@@ -4,8 +4,8 @@
 #include <sys/types.h>
 #include <list>
 
-#include "job.h"
-#include "job_request.h"
+#include "GMJob.h"
+#include "JobDescriptionHandler.h"
 
 namespace ARex {
 

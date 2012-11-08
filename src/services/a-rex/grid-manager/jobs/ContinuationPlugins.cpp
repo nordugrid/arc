@@ -5,11 +5,11 @@
 #include <cstring>
 
 #include <arc/Run.h>
-#include "../jobs/job.h"
-#include "../jobs/states.h"
+#include "../jobs/GMJob.h"
+#include "../jobs/JobsList.h"
 #include "../conf/GMConfig.h"
 
-#include "plugins.h"
+#include "ContinuationPlugins.h"
 
 namespace ARex {
 

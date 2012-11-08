@@ -10,11 +10,11 @@
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
-#include "../jobs/plugins.h"
+#include "../jobs/ContinuationPlugins.h"
 #include "../run/run_plugin.h"
 #include "../misc/escaped.h"
 #include "../log/job_log.h"
-#include "../jobs/states.h"
+#include "../jobs/JobsList.h"
 
 #include "ConfigUtils.h"
 #include "ConfigSections.h"

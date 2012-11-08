@@ -27,11 +27,11 @@
 #include <arc/ws-addressing/WSA.h>
 
 #include "grid-manager/conf/GMConfig.h"
-#include "grid-manager/jobs/job.h"
-#include "grid-manager/jobs/plugins.h"
-#include "grid-manager/jobs/job_request.h"
-#include "grid-manager/jobs/commfifo.h"
-#include "grid-manager/jobs/states.h"
+#include "grid-manager/jobs/GMJob.h"
+#include "grid-manager/jobs/ContinuationPlugins.h"
+#include "grid-manager/jobs/JobDescriptionHandler.h"
+#include "grid-manager/jobs/CommFIFO.h"
+#include "grid-manager/jobs/JobsList.h"
 #include "grid-manager/run/run_plugin.h"
 #include "grid-manager/files/ControlFileHandling.h"
 #include "delegation/DelegationStores.h"

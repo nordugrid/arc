@@ -28,7 +28,7 @@
 #include <arc/Utils.h>
 #include <arc/FileUtils.h>
 
-#include "../jobs/job.h"
+#include "../jobs/GMJob.h"
 #include "../files/ControlFileContent.h"
 #include "../files/ControlFileHandling.h"
 #include "../files/Delete.h"

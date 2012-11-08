@@ -17,9 +17,9 @@
 #include "../../delegation/DelegationStore.h"
 #include "../conf/GMConfig.h"
 
-#include "plugins.h"
-#include "dtr_generator.h"
-#include "states.h"
+#include "ContinuationPlugins.h"
+#include "DTRGenerator.h"
+#include "JobsList.h"
 
 namespace ARex {
 

@@ -10,7 +10,7 @@
 #include <arc/StringConv.h>
 
 #include "conf/GMConfig.h"
-#include "jobs/commfifo.h"
+#include "jobs/CommFIFO.h"
 
 int main(int argc,char* argv[]) {
 

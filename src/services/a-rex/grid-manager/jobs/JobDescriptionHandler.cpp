@@ -18,7 +18,7 @@
 #include "../../delegation/DelegationStore.h"
 #include "../../delegation/DelegationStores.h"
 
-#include "job_request.h"
+#include "JobDescriptionHandler.h"
 
 // TODO: move to using process_job_req as much as possible
 

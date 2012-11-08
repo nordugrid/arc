@@ -3,7 +3,7 @@
 
 #include <arc/Run.h>
 
-#include "../jobs/states.h"
+#include "../jobs/JobsList.h"
 #include "run_plugin.h"
 
 namespace ARex {

@@ -7,7 +7,7 @@
 
 #include "../files/ControlFileContent.h"
 #include "../files/ControlFileHandling.h"
-#include "job.h"
+#include "GMJob.h"
 
 namespace ARex {
 

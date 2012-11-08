@@ -14,9 +14,9 @@
 #include "../files/ControlFileHandling.h"
 #include "../conf/StagingConfig.h"
 
-#include "job.h"
+#include "GMJob.h"
 
-#include "dtr_generator.h"
+#include "DTRGenerator.h"
 
 namespace ARex {
 

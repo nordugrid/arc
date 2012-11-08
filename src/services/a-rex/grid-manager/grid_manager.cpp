@@ -21,15 +21,15 @@
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
 #include <arc/Watchdog.h>
-#include "jobs/states.h"
-#include "jobs/commfifo.h"
+#include "jobs/JobsList.h"
+#include "jobs/CommFIFO.h"
 #include "conf/CoreConfig.h"
 #include "files/ControlFileContent.h"
 #include "files/Delete.h"
 #include "log/job_log.h"
 #include "run/run_redirected.h"
 #include "run/run_parallel.h"
-#include "jobs/dtr_generator.h"
+#include "jobs/DTRGenerator.h"
 #include "../delegation/DelegationStore.h"
 #include "../delegation/DelegationStores.h"
 

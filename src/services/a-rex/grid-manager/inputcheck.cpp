@@ -14,7 +14,7 @@
 
 #include "conf/GMConfig.h"
 #include "files/ControlFileContent.h"
-#include "jobs/job_request.h"
+#include "jobs/JobDescriptionHandler.h"
 #include "misc/proxy.h"
 
 static Arc::SimpleCondition cond;

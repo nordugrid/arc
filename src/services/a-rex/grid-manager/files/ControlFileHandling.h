@@ -4,7 +4,7 @@
 #include <string>
 #include <list>
 
-#include "../jobs/job.h"
+#include "../jobs/GMJob.h"
 
 #include "ControlFileContent.h"
 

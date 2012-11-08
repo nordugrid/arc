@@ -8,8 +8,8 @@
 #include <arc/FileAccess.h>
 #include <arc/message/MessageAuth.h>
 #include "grid-manager/files/ControlFileContent.h"
-#include "grid-manager/jobs/job.h"
-#include "grid-manager/jobs/plugins.h"
+#include "grid-manager/jobs/GMJob.h"
+#include "grid-manager/jobs/ContinuationPlugins.h"
 #include "tools.h"
 
 class GMConfig;

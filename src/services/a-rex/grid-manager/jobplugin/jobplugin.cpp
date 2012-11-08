@@ -27,12 +27,12 @@
 #include <arc/credential/Credential.h>
 
 #include "../conf/ConfigUtils.h"
-#include "../jobs/job.h"
-#include "../jobs/commfifo.h"
-#include "../jobs/plugins.h"
+#include "../jobs/GMJob.h"
+#include "../jobs/CommFIFO.h"
+#include "../jobs/ContinuationPlugins.h"
 #include "../files/ControlFileContent.h"
 #include "../files/ControlFileHandling.h"
-#include "../jobs/job_request.h"
+#include "../jobs/JobDescriptionHandler.h"
 #include "../misc/escaped.h"
 #include "../misc/proxy.h"
 #include "../run/run_parallel.h"

@@ -12,7 +12,7 @@
 
 #include "../run/run_redirected.h"
 #include "../conf/GMConfig.h"
-#include "../jobs/job.h"
+#include "../jobs/GMJob.h"
 
 #include "ControlFileHandling.h"
 
