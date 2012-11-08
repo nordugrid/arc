@@ -249,9 +249,11 @@ namespace Arc
     ssm_pathes.push_back("/usr/lib/arc/"+exec_cmd);
     ssm_pathes.push_back("/usr/local/lib/arc/"+exec_cmd);
 
-    // If you don't use non-statndard prefix for a compilation you can 
-    // add here your extra location.
-    //ssm_pathes.push_back("<your_prefix>/libexec/arc/"+exec_cmd);
+    // If you don't use non-statndard prefix for a compilation you will 
+    // use this extra location.
+    std::ostringstream prefix;
+    prefix << INSTPREFIX << "/" << PKGLIBEXECSUBDIR;
+    ssm_pathes.push_back(prefix.str()+exec_cmd);
     
     // Find the location of the ssm_master
     std::string ssm_command = "./ssm/"+exec_cmd;
