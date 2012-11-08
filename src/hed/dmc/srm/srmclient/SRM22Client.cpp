@@ -408,8 +408,8 @@ namespace Arc {
       return status;
     }
 
-    XMLNode res = (*response)["srmPrepareToGetResponse"]
-                  ["srmPrepareToGetResponse"];
+    XMLNode res = (*response)["srmBringOnlineResponse"]
+                  ["srmBringOnlineResponse"];
 
     std::string explanation;
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
