@@ -1,7 +1,7 @@
 SUBDIRS = schema
 
 if ARGUS_ENABLED
-pkglib_LTLIBRARIES = libidentitymap.la libarguspepclient.la
+pkglib_LTLIBRARIES = libidentitymap.la libarguspdpclient.la libarguspepclient.la
 else
 pkglib_LTLIBRARIES = libidentitymap.la libarguspdpclient.la
 endif
