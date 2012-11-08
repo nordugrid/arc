@@ -115,7 +115,8 @@ namespace Arc {
 
   bool SubmitterPluginARC1::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     URL url(et.ComputingEndpoint->URLString);
-    bool arex_features = et.ComputingService->Type == "org.nordugrid.execution.arex";
+    bool arex_features = (et.ComputingService->Type == "org.nordugrid.execution.arex") ||
+                         (et.ComputingService->Type == "org.nordugrid.arex");
     AREXClient* ac = clients.acquire(url, arex_features);
 
     bool ok = true;
