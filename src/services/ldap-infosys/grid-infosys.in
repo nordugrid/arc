@@ -437,6 +437,24 @@ if [ -z "$slapd_cmd" ] || [ ! -x "$slapd_cmd" ]; then
 fi
 
 
+# OpenLDAP > v2.4.XX relay modules
+slapd_relay_modules="
+moduleload      rwm
+moduleload      back_relay
+"
+# try to discover slapd version and create strings for relay
+slapd_cmd_version_minor=`$slapd_cmd -VV 2>&1 | awk -F"/openldap-" '{if (NR==2) print $2}' | awk -F"." '{print $2}'`
+
+# fix for OpenLDAP 2.3 relay modules, when is possible to find version
+if [ "$slapd_cmd_version_minor" = "3" ]; then
+   # find openldap modules
+   relay_module_path=$(find /usr/lib* -name "rwm-2.3.so.0" -printf "%h\n" 2>/dev/null)
+   slapd_relay_modules="moduleload              $relay_module_path/rwm.la"
+   elif [ "$slapd_cmd_version_minor" = "" ]; then
+        log_warning_msg "Cannot identify slapd version. Supposed to be > v2.4.XX"
+fi
+
+
 # If gris modules are not compiled into slapd, we will need to add variables to the config-file.
 if [ $(grep -Ec "${bdii_database}_db_init|${bdii_database}_back_db_init" "$slapd_cmd") -eq 0 ]; then
 
@@ -556,6 +574,29 @@ if [ "x$infosys_glue12" = "xenable" ]; then
 
 fi
 
+# setup relay to show in top-BDII if slapd supports it.
+relay_strings=""
+
+if [ "$slapd_relay_modules" != "" ]; then
+   # Parse AdminDomain information
+   if ! config_match_section infosys/admindomain ; then
+        log_warning_msg "[infosys/admindomain] configuration block missing. Default to urn:ad:UNDEFINEDVALUE"
+   fi
+   admindomain="UNDEFINEDVALUE"
+
+   config_import_section infosys/admindomain
+
+   admindomain="urn:ad:${CONFIG_name:-$admindomain}"
+
+   relay_strings="
+# Relay to allow top-bdii to parse info as the CE was a site-bdii.
+database        relay
+suffix          \"GLUE2GroupID=services,GLUE2DomainID=$admindomain,o=glue\"
+overlay         rwm
+suffixmassage   \"GLUE2GroupID=services,o=glue\""
+fi
+
+
 # bdii.conf is put into nordugrid runtime directory
 # together with other temporary files, needs to be exported so bdii can start
 BDII_CONF=${CONFIG_bdii_conf:-${arc_runtime_config}/bdii.conf}
@@ -652,6 +693,8 @@ create_arc_slapd_conf () {
 	$slapd_moduleload_index1
 	$slapd_moduleload_index2
 
+	$slapd_relay_modules
+
 	allow bind_v2
 
 	pidfile         $bdii_run_dir/db/slapd.pid
@@ -683,6 +726,8 @@ add_info_service () {
 	rootdn          "$rootdn"
 	rootpw          secret
 	directory       $bdii_var_dir/db/arc
+    
+    $relay_strings
 
 	# ${bdii_database} database definitions for o=glue
 	database        ${bdii_database}
