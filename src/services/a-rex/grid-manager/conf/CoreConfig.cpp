@@ -13,7 +13,7 @@
 #include "../jobs/ContinuationPlugins.h"
 #include "../run/run_plugin.h"
 #include "../misc/escaped.h"
-#include "../log/job_log.h"
+#include "../log/JobLog.h"
 #include "../jobs/JobsList.h"
 
 #include "ConfigUtils.h"

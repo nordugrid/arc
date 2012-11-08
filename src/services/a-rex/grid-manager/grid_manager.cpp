@@ -26,7 +26,7 @@
 #include "conf/CoreConfig.h"
 #include "files/ControlFileContent.h"
 #include "files/Delete.h"
-#include "log/job_log.h"
+#include "log/JobLog.h"
 #include "run/run_redirected.h"
 #include "run/run_parallel.h"
 #include "jobs/DTRGenerator.h"

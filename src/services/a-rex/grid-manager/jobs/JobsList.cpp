@@ -11,7 +11,7 @@
 #include "../files/ControlFileHandling.h"
 #include "../run/run_parallel.h"
 #include "../mail/send_mail.h"
-#include "../log/job_log.h"
+#include "../log/JobLog.h"
 #include "../misc/proxy.h"
 #include "../../delegation/DelegationStores.h"
 #include "../../delegation/DelegationStore.h"

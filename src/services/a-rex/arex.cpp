@@ -22,7 +22,7 @@
 #include <arc/FileUtils.h>
 #include <arc/Utils.h>
 #include "job.h"
-#include "grid-manager/log/job_log.h"
+#include "grid-manager/log/JobLog.h"
 #include "grid-manager/run/run_plugin.h"
 #include "arex.h"
 
