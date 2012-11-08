@@ -37,13 +37,13 @@ Arc::Plugin* ArcSec::XACMLPolicy::get_policy(Arc::PluginArgument* arg) {
 using namespace Arc;
 using namespace ArcSec;
 
-XACMLPolicy::XACMLPolicy(Arc::PluginArgument* parg) : Policy(parg), comalg(NULL), algfactory(NULL), evaluatorctx(NULL), target(NULL) {
+XACMLPolicy::XACMLPolicy(Arc::PluginArgument* parg) : Policy(parg), comalg(NULL), evaluatorctx(NULL), algfactory(NULL), target(NULL) {
   Arc::XMLNode newpolicy(policyns,"policy:Policy");
   newpolicy.New(policynode);
   policytop=policynode;
 }
 
-XACMLPolicy::XACMLPolicy(const XMLNode node, Arc::PluginArgument* parg) : Policy(node,parg), comalg(NULL), target(NULL), algfactory(NULL), evaluatorctx(NULL) {
+XACMLPolicy::XACMLPolicy(const XMLNode node, Arc::PluginArgument* parg) : Policy(node,parg), comalg(NULL), evaluatorctx(NULL), algfactory(NULL), target(NULL) {
   if((!node) || (node.Size() == 0)) {
     logger.msg(ERROR,"Policy is empty");
     return;
