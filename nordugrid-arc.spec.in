@@ -1361,17 +1361,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %if %{with_python}
 %files python
 %defattr(-,root,root,-)
-%{python_sitearch}/arc/_arc*.so
-%{python_sitearch}/arc/__init__.py*
-%{python_sitearch}/arc/common.py*
-%{python_sitearch}/arc/loader.py*
-%{python_sitearch}/arc/message.py*
-%{python_sitearch}/arc/communication.py*
-%{python_sitearch}/arc/compute.py*
-%{python_sitearch}/arc/credential.py*
-%{python_sitearch}/arc/data.py*
-%{python_sitearch}/arc/delegation.py*
-%{python_sitearch}/arc/security.py*
+%{python_sitearch}/arc
 %{python_sitelib}/cache
 %{python_sitelib}/echo_python
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
@@ -1384,15 +1374,13 @@ service fetch-crl-cron start > /dev/null 2>&1
 %if %{?rhel}%{!?rhel:0} == 5
 %files python26
 %defattr(-,root,root,-)
-%{python26_sitearch}/_arc*.so
-%{python26_sitearch}/arc.py*
+%{python26_sitearch}/arc
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 13
 %files python3
 %defattr(-,root,root,-)
-%{python3_sitearch}/_arc*.so
-%{python3_sitearch}/arc.py*
+%{python3_sitearch}/arc
 %if %{?fedora}%{!?fedora:0} >= 15
 %{python3_sitearch}/__pycache__/arc*
 %endif
