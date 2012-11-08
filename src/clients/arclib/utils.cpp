@@ -202,6 +202,7 @@ ClientOptions::ClientOptions(Client_t c,
     show_joblog(false),
     usejobname(false),
     forcedownload(false),
+    list_configured_services(false),
     testjobid(-1),
     runtime(5),
     timeout(-1)
@@ -256,6 +257,9 @@ ClientOptions::ClientOptions(Client_t c,
     AddOption('l', "long",
               istring("long format (more information)"),
               longlist);
+    AddOption('L', "list-configured-services",
+              istring("print a list of services configured in the client.conf"),
+              list_configured_services);
   }
 
   if (c == CO_CAT) {

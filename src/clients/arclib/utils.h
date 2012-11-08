@@ -124,6 +124,7 @@ public:
   bool show_joblog;
   bool usejobname;
   bool forcedownload;
+  bool list_configured_services;
 
   int testjobid;
   int runtime;

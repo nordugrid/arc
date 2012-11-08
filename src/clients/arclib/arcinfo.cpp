@@ -57,11 +57,40 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
     showplugins("arcinfo", types, logger);
     return 0;
   }
-
+  
   Arc::UserConfig usercfg(opt.conffile);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
+  }
+  
+  if (opt.list_configured_services) {
+    std::map<std::string, Arc::ConfigEndpoint> allServices = usercfg.GetAllConfiguredServices();
+    std::cout << "Configured registries:" << std::endl;
+    for (std::map<std::string, Arc::ConfigEndpoint>::const_iterator it = allServices.begin(); it != allServices.end(); it++) {
+      if (it->second.type == Arc::ConfigEndpoint::REGISTRY) {
+        std::cout << "  " << it->first << ": " << it->second.URLString;
+        if (!it->second.InterfaceName.empty()) {
+          std::cout << " (" << it->second.InterfaceName << ")";
+        }
+        std::cout << std::endl;
+      }
+    }
+    std::cout << "Configured computing elements:" << std::endl;
+    for (std::map<std::string, Arc::ConfigEndpoint>::const_iterator it = allServices.begin(); it != allServices.end(); it++) {
+      if (it->second.type == Arc::ConfigEndpoint::COMPUTINGINFO) {
+        std::cout << "  " << it->first << ": " << it->second.URLString;
+        if (!it->second.InterfaceName.empty() || !it->second.RequestedSubmissionInterfaceName.empty()) {
+          std::cout << " (" << it->second.InterfaceName;
+          if (!it->second.InterfaceName.empty() && !it->second.RequestedSubmissionInterfaceName.empty()) {
+            std::cout << " / ";
+          }
+          std::cout << it->second.RequestedSubmissionInterfaceName + ")";
+        }
+        std::cout << std::endl;
+      }
+    }
+    return 0;
   }
 
   if (opt.debug.empty() && !usercfg.Verbosity().empty())

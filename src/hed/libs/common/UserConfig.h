@@ -1166,6 +1166,7 @@ namespace Arc {
     */
     std::list<ConfigEndpoint> GetServices(const std::string& groupOrAlias, ConfigEndpoint::Type type = ConfigEndpoint::ANY);
 
+    std::map<std::string, ConfigEndpoint> GetAllConfiguredServices() { return allServices; }
 
 
     /// Path to ARC user home directory
