@@ -102,16 +102,6 @@ int main(int argc, char* argv[]) {
                     istring("display more information on each job"),
                     long_list);
 
-  std::string my_username;
-  options.AddOption('U', "username",
-                    istring("pretend utility is run by user with given name"),
-                    istring("name"), my_username);
-  
-  int my_uid = getuid();
-  options.AddOption('u', "userid",
-                    istring("pretend utility is run by user with given UID"),
-                    istring("uid"), my_uid);
-  
   std::string conf_file;
   options.AddOption('c', "conffile",
                     istring("use specified configuration file"),
