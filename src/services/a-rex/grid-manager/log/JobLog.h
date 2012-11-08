@@ -8,10 +8,12 @@
 
 #include <arc/Run.h>
 
+#include "../jobs/GMJob.h"
+
 namespace ARex {
 
-class GMJob;
 class GMConfig;
+class JobLocalDescription;
 
 ///  Put short information into log when every job starts/finishes.
 ///  And store more detailed information for Reporter.

@@ -24,6 +24,7 @@
 #include "job.h"
 #include "grid-manager/log/JobLog.h"
 #include "grid-manager/run/RunPlugin.h"
+#include "grid-manager/jobs/ContinuationPlugins.h"
 #include "arex.h"
 
 namespace ARex {

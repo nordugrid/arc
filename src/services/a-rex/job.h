@@ -4,17 +4,16 @@
 #include <string>
 #include <list>
 
+#include <arc/User.h>
 #include <arc/XMLNode.h>
 #include <arc/FileAccess.h>
 #include <arc/message/MessageAuth.h>
 #include "grid-manager/files/ControlFileContent.h"
-#include "grid-manager/jobs/GMJob.h"
-#include "grid-manager/jobs/ContinuationPlugins.h"
 #include "tools.h"
 
-class GMConfig;
-
 namespace ARex {
+
+class GMConfig;
 
 #define JOB_POLICY_OPERATION_URN "http://www.nordugrid.org/schemas/policy-arc/types/a-rex/joboperation"
 #define JOB_POLICY_OPERATION_CREATE "Create"

@@ -2,13 +2,6 @@
 #include <config.h>
 #endif
 
-#include <iostream>
-#include <sys/types.h>
-#include <pwd.h>
-#include <string>
-#include <cstdio>
-#include <fstream>
-#include <list>
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/time.h>
@@ -16,16 +9,9 @@
 #include <arc/ArcLocation.h>
 #include <arc/FileUtils.h>
 #include <arc/Logger.h>
-#include <arc/Run.h>
-#include <arc/Thread.h>
-#include <arc/StringConv.h>
-#include <arc/Utils.h>
 #include <arc/Watchdog.h>
 #include "jobs/JobsList.h"
 #include "jobs/CommFIFO.h"
-#include "conf/CoreConfig.h"
-#include "files/ControlFileContent.h"
-#include "files/Delete.h"
 #include "log/JobLog.h"
 #include "run/RunRedirected.h"
 #include "run/RunParallel.h"

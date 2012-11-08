@@ -1,10 +1,6 @@
 #ifndef GRID_MANAGER_H
 #define GRID_MANAGER_H
 
-#include <string>
-#include <list>
-
-#include <arc/XMLNode.h>
 #include <arc/Thread.h>
 
 namespace ARex {
