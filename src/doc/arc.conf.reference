@@ -632,7 +632,7 @@
 
 ## jobreport options [name:value, ...]- specifies additional parameters for 
 ## the jobreporter.
-#jobreport_options="urbatch:50,archiving:/tmp/archive"
+#jobreport_options="urbatch:50,archiving:/tmp/archive,topic:/topic/global.accounting.cpu.central"
 
 ## maxjobs number1 number2 number3 number4 - specifies maximum allowed number of jobs.
 ## number1 - jobs which are not in FINISHED state (jobs tracked in RAM)
