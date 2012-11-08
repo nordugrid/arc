@@ -366,6 +366,12 @@ prepare() {
     arguspep_endpoint=`readconfigvar "$ARC_CONFIG" grid-manager arguspep_endpoint`
     if [ ! -z "$arguspep_endpoint" ]; then
       argus_plugin="${argus_plugin}<Plugins><Name>arguspepclient</Name></Plugins>"
+      if [ ! -f "$ARC_LOCATION/lib/arc/libarguspepclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/li
+barguspepclient.so" ]; then
+        log_failure_msg "Plugin arguspepclient(libarguspepclient.so) not found"
+        log_failure_msg "You may need to install corresponding package"
+        exit 1
+      fi
       arguspep_profile=`readconfigvar "$ARC_CONFIG" grid-manager arguspep_profile`
       if [ -z "$arguspep_profile" ]; then arguspep_profile="emi"; fi
       arguspep_usermap=`readconfigvar "$ARC_CONFIG" grid-manager arguspep_usermap`
@@ -387,6 +393,12 @@ prepare() {
     arguspdp_endpoint=`readconfigvar "$ARC_CONFIG" grid-manager arguspdp_endpoint`
     if [ ! -z "$arguspep_endpoint" ]; then
       argus_plugin="${argus_plugin}<Plugins><Name>arguspdpclient</Name></Plugins>"
+      if [ ! -f "$ARC_LOCATION/lib/arc/libarguspdpclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/li
+barguspdpclient.so" ]; then
+        log_failure_msg "Plugin arguspdpclient(libarguspdpclient.so) not found"
+        log_failure_msg "You may need to install corresponding package"
+        exit 1
+      fi
       arguspdp_profile=`readconfigvar "$ARC_CONFIG" grid-manager arguspdp_profile`
       if [ -z "$arguspdp_profile" ]; then arguspdp_profile="emi"; fi
       arguspdp_usermap=`readconfigvar "$ARC_CONFIG" grid-manager arguspdp_usermap`
@@ -395,7 +407,7 @@ prepare() {
       if [ "$arguspdp_usermap" = "no" ]; then arguspdp_usermap="false"; fi
       argus_shc="${argus_shc}
 <!-- Perform client authorization and mapping according to Argus through PDP service -->
-<SecHandler name=\"arguspdpclient.map\" id=\"arguspep\" event=\"incoming\">
+<SecHandler name=\"arguspdpclient.map\" id=\"arguspdp\" event=\"incoming\">
   <PDPD>$arguspdp_endpoint</PDPD>
   <Conversion>$arguspdp_profile</Conversion>
   <KeyPath>$X509_USER_KEY</KeyPath>
