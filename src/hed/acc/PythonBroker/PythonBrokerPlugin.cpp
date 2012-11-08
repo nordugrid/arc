@@ -4,9 +4,13 @@
 #include <config.h>
 #endif
 
+// Include order is like this to avoid blind redefinition of _POSIX_C_SOURCE
+// in Python.h. In features.h included from ExecutionTarget.h there is
+// protection against redefinition.
+#include "PythonBrokerPlugin.h"
+
 #include <arc/compute/ExecutionTarget.h>
 
-#include "PythonBrokerPlugin.h"
 
 extern "C" {
 typedef struct {
