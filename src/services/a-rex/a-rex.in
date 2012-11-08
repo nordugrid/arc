@@ -362,24 +362,46 @@ prepare() {
 
     argus_shc=""
     argus_plugin=""
+
     arguspep_endpoint=`readconfigvar "$ARC_CONFIG" grid-manager arguspep_endpoint`
     if [ ! -z "$arguspep_endpoint" ]; then
-      argus_plugin="<Plugins><Name>arguspep</Name></Plugins>"
+      argus_plugin="${argus_plugin}<Plugins><Name>arguspepclient</Name></Plugins>"
       arguspep_profile=`readconfigvar "$ARC_CONFIG" grid-manager arguspep_profile`
-      if [ -z "$arguspep_profile" ]; then arguspep_profile="cream"; fi
+      if [ -z "$arguspep_profile" ]; then arguspep_profile="emi"; fi
       arguspep_usermap=`readconfigvar "$ARC_CONFIG" grid-manager arguspep_usermap`
       if [ -z "$arguspep_usermap" ]; then arguspep_usermap="false"; fi
       if [ "$arguspep_usermap" = "yes" ]; then arguspep_usermap="true"; fi
       if [ "$arguspep_usermap" = "no" ]; then arguspep_usermap="false"; fi
-      argus_shc="\
-<!-- Perform client authorization and mapping according to Argus -->
-<SecHandler name=\"arguspep.map\" id=\"argus\" event=\"incoming\">
+      argus_shc="${argus_shc}
+<!-- Perform client authorization and mapping according to Argus through PEP service -->
+<SecHandler name=\"arguspepclient.map\" id=\"arguspep\" event=\"incoming\">
   <PEPD>$arguspep_endpoint</PEPD>
   <Conversion>$arguspep_profile</Conversion>
   <KeyPath>$X509_USER_KEY</KeyPath>
   <CertificatePath>$X509_USER_CERT</CertificatePath>
   <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>
   <AcceptMapping>$arguspep_usermap</AcceptMapping>
+</SecHandler>"
+    fi
+
+    arguspdp_endpoint=`readconfigvar "$ARC_CONFIG" grid-manager arguspdp_endpoint`
+    if [ ! -z "$arguspep_endpoint" ]; then
+      argus_plugin="${argus_plugin}<Plugins><Name>arguspdpclient</Name></Plugins>"
+      arguspdp_profile=`readconfigvar "$ARC_CONFIG" grid-manager arguspdp_profile`
+      if [ -z "$arguspdp_profile" ]; then arguspdp_profile="emi"; fi
+      arguspdp_usermap=`readconfigvar "$ARC_CONFIG" grid-manager arguspdp_usermap`
+      if [ -z "$arguspdp_usermap" ]; then arguspdp_usermap="false"; fi
+      if [ "$arguspdp_usermap" = "yes" ]; then arguspdp_usermap="true"; fi
+      if [ "$arguspdp_usermap" = "no" ]; then arguspdp_usermap="false"; fi
+      argus_shc="${argus_shc}
+<!-- Perform client authorization and mapping according to Argus through PDP service -->
+<SecHandler name=\"arguspdpclient.map\" id=\"arguspep\" event=\"incoming\">
+  <PDPD>$arguspdp_endpoint</PDPD>
+  <Conversion>$arguspdp_profile</Conversion>
+  <KeyPath>$X509_USER_KEY</KeyPath>
+  <CertificatePath>$X509_USER_CERT</CertificatePath>
+  <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>
+  <AcceptMapping>$arguspdp_usermap</AcceptMapping>
 </SecHandler>"
     fi
     
