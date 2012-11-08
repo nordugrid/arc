@@ -12,7 +12,7 @@ dist_pkglibexec_SCRIPTS = arc-config-check
 
 man_MANS = arc-vomsac-check.8 arc-config-check.1
 
-libgridmanager_la_SOURCES = grid_manager.cpp grid_manager.h
+libgridmanager_la_SOURCES = GridManager.cpp GridManager.h
 libgridmanager_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(DBCXX_CPPFLAGS)
 libgridmanager_la_LIBADD = \

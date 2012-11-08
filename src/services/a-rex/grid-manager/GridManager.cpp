@@ -33,7 +33,7 @@
 #include "../delegation/DelegationStore.h"
 #include "../delegation/DelegationStores.h"
 
-#include "grid_manager.h"
+#include "GridManager.h"
 
 namespace ARex {
 

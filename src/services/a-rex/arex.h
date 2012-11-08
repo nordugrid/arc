@@ -9,7 +9,7 @@
 #include <arc/StringConv.h>
 
 #include "FileChunks.h"
-#include "grid-manager/grid_manager.h"
+#include "grid-manager/GridManager.h"
 //#include "delegation/DelegationStore.h"
 #include "delegation/DelegationStores.h"
 #include "grid-manager/conf/GMConfig.h"
