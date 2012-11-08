@@ -2013,21 +2013,21 @@ err:
     { SEC_ASN1_SEQUENCE,
           0, NULL, sizeof(ProxyPolicy1) },
     { SEC_ASN1_OBJECT_ID,
-          offsetof(ProxyPolicy1, policylanguage) },
+          offsetof(ProxyPolicy1, policylanguage), NULL, 0 },
     { SEC_ASN1_OCTET_STRING,
-          offsetof(ProxyPolicy1, policy) },
-    { 0 }
+          offsetof(ProxyPolicy1, policy), NULL, 0 },
+    { 0, 0, NULL, 0 }
   };
   SEC_ASN1_CHOOSER_IMPLEMENT(ProxyPolicyTemplate1)
   const SEC_ASN1Template ProxyCertInfoTemplate1[] = {
     { SEC_ASN1_SEQUENCE,
           0, NULL, sizeof(ProxyCertInfo1) },
     { SEC_ASN1_INTEGER,
-          offsetof(ProxyCertInfo1, pathlength) },
+          offsetof(ProxyCertInfo1, pathlength), NULL, 0 },
     { SEC_ASN1_INLINE,
           offsetof(ProxyCertInfo1, proxypolicy),
-          ProxyPolicyTemplate1 },
-    { 0 }
+          ProxyPolicyTemplate1, 0 },
+    { 0, 0, NULL, 0 }
   };
   SEC_ASN1_CHOOSER_IMPLEMENT(ProxyCertInfoTemplate1)
 
@@ -2044,19 +2044,19 @@ err:
     { SEC_ASN1_SEQUENCE,
           0, NULL, sizeof(ProxyPolicy2) },
     { SEC_ASN1_OBJECT_ID,
-          offsetof(ProxyPolicy2, policylanguage) },
-    { 0 }
+          offsetof(ProxyPolicy2, policylanguage), NULL, 0 },
+    { 0, 0, NULL, 0 }
   };
   SEC_ASN1_CHOOSER_IMPLEMENT(ProxyPolicyTemplate2)
   const SEC_ASN1Template ProxyCertInfoTemplate2[] = {
     { SEC_ASN1_SEQUENCE,
           0, NULL, sizeof(ProxyCertInfo2) },
     { SEC_ASN1_INTEGER,
-          offsetof(ProxyCertInfo2, pathlength) },
+          offsetof(ProxyCertInfo2, pathlength), NULL, 0 },
     { SEC_ASN1_INLINE,
           offsetof(ProxyCertInfo2, proxypolicy),
-          ProxyPolicyTemplate2 },
-    { 0 }
+          ProxyPolicyTemplate2, 0 },
+    { 0, 0, NULL, 0 }
   };
   SEC_ASN1_CHOOSER_IMPLEMENT(ProxyCertInfoTemplate2)
 
@@ -2073,10 +2073,10 @@ err:
     { SEC_ASN1_SEQUENCE,
           0, NULL, sizeof(ProxyPolicy3) },
     { SEC_ASN1_OBJECT_ID,
-          offsetof(ProxyPolicy3, policylanguage) },
+          offsetof(ProxyPolicy3, policylanguage), NULL, 0 },
     { SEC_ASN1_OCTET_STRING,
-          offsetof(ProxyPolicy3, policy) },
-    { 0 }
+          offsetof(ProxyPolicy3, policy), NULL, 0 },
+    { 0, 0, NULL, 0 }
   };
   SEC_ASN1_CHOOSER_IMPLEMENT(ProxyPolicyTemplate3)
   const SEC_ASN1Template ProxyCertInfoTemplate3[] = {
@@ -2084,8 +2084,8 @@ err:
           0, NULL, sizeof(ProxyCertInfo3) },
     { SEC_ASN1_INLINE,
           offsetof(ProxyCertInfo3, proxypolicy),
-          ProxyPolicyTemplate3 },
-    { 0 }
+          ProxyPolicyTemplate3, 0 },
+    { 0, 0, NULL, 0 }
   };
   SEC_ASN1_CHOOSER_IMPLEMENT(ProxyCertInfoTemplate3)
 
@@ -2101,8 +2101,8 @@ err:
     { SEC_ASN1_SEQUENCE,
           0, NULL, sizeof(ProxyPolicy4) },
     { SEC_ASN1_OBJECT_ID,
-          offsetof(ProxyPolicy4, policylanguage) },
-    { 0 }
+          offsetof(ProxyPolicy4, policylanguage), NULL, 0 },
+    { 0, 0, NULL, 0 }
   };
   SEC_ASN1_CHOOSER_IMPLEMENT(ProxyPolicyTemplate4)
   const SEC_ASN1Template ProxyCertInfoTemplate4[] = {
@@ -2110,8 +2110,8 @@ err:
           0, NULL, sizeof(ProxyCertInfo4) },
     { SEC_ASN1_INLINE,
           offsetof(ProxyCertInfo4, proxypolicy),
-          ProxyPolicyTemplate4 },
-    { 0 }
+          ProxyPolicyTemplate4, 0 },
+    { 0, 0, NULL, 0 }
   };
   SEC_ASN1_CHOOSER_IMPLEMENT(ProxyCertInfoTemplate4)
 
@@ -2350,7 +2350,7 @@ error:
 // these methods can be exposed to external.
 
   const SEC_ASN1Template SEC_SkipTemplate[] = {
-      { SEC_ASN1_SKIP }
+      { SEC_ASN1_SKIP, 0, NULL, 0 }
   };
   SEC_ASN1_CHOOSER_IMPLEMENT(SEC_SkipTemplate)
 
@@ -2360,14 +2360,14 @@ error:
           0, NULL, sizeof(SECItem) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED |
           SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
-          0, SEC_SkipTemplate },  /* version */
-    { SEC_ASN1_SKIP },          /* serial number */
-    { SEC_ASN1_SKIP },          /* signature algorithm */
-    { SEC_ASN1_SKIP },          /* issuer */
-    { SEC_ASN1_SKIP },          /* validity */
-    { SEC_ASN1_ANY, 0, NULL },          /* subject */
-    { SEC_ASN1_SKIP_REST },
-    { 0 }
+          0, SEC_SkipTemplate, 0 },  /* version */
+    { SEC_ASN1_SKIP, 0, NULL, 0 },          /* serial number */
+    { SEC_ASN1_SKIP, 0, NULL, 0 },          /* signature algorithm */
+    { SEC_ASN1_SKIP, 0, NULL, 0 },          /* issuer */
+    { SEC_ASN1_SKIP, 0, NULL, 0 },          /* validity */
+    { SEC_ASN1_ANY, 0, NULL, 0 },          /* subject */
+    { SEC_ASN1_SKIP_REST, 0, NULL, 0 },
+    { 0, 0, NULL, 0 }
   };
   SEC_ASN1_CHOOSER_IMPLEMENT(SEC_CertSubjectTemplate)
 
@@ -2377,12 +2377,12 @@ error:
           0, NULL, sizeof(SECItem) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED |
           SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
-          0, SEC_SkipTemplate },  /* version */
-    { SEC_ASN1_SKIP },          /* serial number */
-    { SEC_ASN1_SKIP },          /* signature algorithm */
-    { SEC_ASN1_ANY, 0, NULL },          /* issuer */
-    { SEC_ASN1_SKIP_REST },
-    { 0 }
+          0, SEC_SkipTemplate, 0 },  /* version */
+    { SEC_ASN1_SKIP, 0, NULL, 0 },          /* serial number */
+    { SEC_ASN1_SKIP, 0, NULL, 0 },          /* signature algorithm */
+    { SEC_ASN1_ANY, 0, NULL, 0 },          /* issuer */
+    { SEC_ASN1_SKIP_REST, 0, NULL, 0 },
+    { 0, 0, NULL, 0 }
   };
   SEC_ASN1_CHOOSER_IMPLEMENT(SEC_CertIssuerTemplate)
 
@@ -2392,10 +2392,10 @@ error:
           0, NULL, sizeof(SECItem) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED |
           SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
-          0, SEC_SkipTemplate },  /* version */
-    { SEC_ASN1_ANY, 0, NULL }, /* serial number */
-    { SEC_ASN1_SKIP_REST },
-    { 0 }
+          0, SEC_SkipTemplate, 0 },  /* version */
+    { SEC_ASN1_ANY, 0, NULL, 0 }, /* serial number */
+    { SEC_ASN1_SKIP_REST, 0, NULL, 0 },
+    { 0, 0, NULL, 0 }
   };
   SEC_ASN1_CHOOSER_IMPLEMENT(SEC_CertSerialNumberTemplate)
 
