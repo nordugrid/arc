@@ -8,7 +8,7 @@
 
 #include <arc/Run.h>
 
-#include "../conf/conf.h"
+#include "../conf/ConfigUtils.h"
 #include "run_plugin.h"
 
 namespace ARex {

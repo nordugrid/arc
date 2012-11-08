@@ -31,8 +31,8 @@
 #include "../files/delete.h"
 #include "../conf/GMConfig.h"
 #include "../misc/proxy.h"
-#include "../conf/conf_map.h"
-#include "../conf/conf_cache.h"
+#include "../conf/UrlMapConfig.h"
+#include "../conf/CacheConfig.h"
 
 using namespace ARex;
 

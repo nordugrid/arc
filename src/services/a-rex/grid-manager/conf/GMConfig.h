@@ -8,7 +8,7 @@
 #include <arc/User.h>
 #include <arc/XMLNode.h>
 
-#include "conf_cache.h"
+#include "CacheConfig.h"
 
 namespace ARex {
 

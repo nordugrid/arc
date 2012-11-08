@@ -4,7 +4,7 @@
 #include <arc/data-staging/DTR.h>
 #include <arc/data-staging/Scheduler.h>
 
-#include "../a-rex/grid-manager/conf/conf_staging.h"
+#include "../a-rex/grid-manager/conf/StagingConfig.h"
 
 namespace Cache {
 

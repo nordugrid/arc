@@ -33,8 +33,8 @@
 #include "../files/info_files.h"
 #include "../files/delete.h"
 #include "../misc/proxy.h"
-#include "../conf/conf_map.h"
-#include "../conf/conf_cache.h"
+#include "../conf/UrlMapConfig.h"
+#include "../conf/CacheConfig.h"
 #include "../conf/GMConfig.h"
 
 using namespace ARex;

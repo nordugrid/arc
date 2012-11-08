@@ -1,7 +1,7 @@
 #include <arc/FileAccess.h>
 #include <arc/Utils.h>
 
-#include "../a-rex/grid-manager/conf/conf_map.h"
+#include "../a-rex/grid-manager/conf/UrlMapConfig.h"
 
 #include "CacheServiceGenerator.h"
 

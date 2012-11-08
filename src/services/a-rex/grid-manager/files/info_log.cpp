@@ -17,7 +17,7 @@
 #include "../jobs/job.h"
 #include "info_files.h"
 #include "../conf/GMConfig.h"
-#include "../conf/conf.h"
+#include "../conf/ConfigUtils.h"
 
 #include "info_log.h"
 

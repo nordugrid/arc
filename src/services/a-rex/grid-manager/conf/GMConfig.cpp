@@ -14,8 +14,8 @@
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
 
-#include "conf.h"
-#include "conf_file.h"
+#include "ConfigUtils.h"
+#include "CoreConfig.h"
 #include "../run/run_parallel.h"
 
 #include "GMConfig.h"
@@ -111,7 +111,7 @@ void GMConfig::SetDefaults() {
 }
 
 bool GMConfig::Load() {
-  // Call CoreConfig (conf_file.h) to fill values in this object
+  // Call CoreConfig (CoreConfig.h) to fill values in this object
   return CoreConfig::ParseConf(*this);
 }
 

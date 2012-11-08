@@ -26,7 +26,7 @@
 #include <arc/GUID.h>
 #include <arc/credential/Credential.h>
 
-#include "../conf/conf.h"
+#include "../conf/ConfigUtils.h"
 #include "../jobs/job.h"
 #include "../jobs/commfifo.h"
 #include "../jobs/plugins.h"

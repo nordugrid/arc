@@ -16,12 +16,12 @@
 #include "../log/job_log.h"
 #include "../jobs/states.h"
 
-#include "conf.h"
-#include "conf_sections.h"
-#include "conf_cache.h"
+#include "ConfigUtils.h"
+#include "ConfigSections.h"
+#include "CacheConfig.h"
 #include "GMConfig.h"
 
-#include "conf_file.h"
+#include "CoreConfig.h"
 
 namespace ARex {
 

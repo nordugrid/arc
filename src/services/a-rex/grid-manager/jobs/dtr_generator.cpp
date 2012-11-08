@@ -10,9 +10,9 @@
 #include <arc/data/FileCache.h>
 
 #include "../files/delete.h"
-#include "../conf/conf_map.h"
+#include "../conf/UrlMapConfig.h"
 #include "../files/info_files.h"
-#include "../conf/conf_staging.h"
+#include "../conf/StagingConfig.h"
 
 #include "job.h"
 

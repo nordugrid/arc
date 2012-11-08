@@ -14,7 +14,7 @@
 #include <arc/StringConv.h>
 
 #include "conf/GMConfig.h"
-#include "conf/conf_staging.h"
+#include "conf/StagingConfig.h"
 #include "files/info_files.h"
 #include "jobs/commfifo.h"
 #include "jobs/states.h"

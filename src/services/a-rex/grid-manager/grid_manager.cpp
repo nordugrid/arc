@@ -23,7 +23,7 @@
 #include <arc/Watchdog.h>
 #include "jobs/states.h"
 #include "jobs/commfifo.h"
-#include "conf/conf_file.h"
+#include "conf/CoreConfig.h"
 #include "files/info_types.h"
 #include "files/delete.h"
 #include "log/job_log.h"

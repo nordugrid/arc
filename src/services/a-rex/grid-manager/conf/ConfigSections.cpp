@@ -6,8 +6,8 @@
 #include <string>
 #include <list>
 
-#include "conf.h"
-#include "conf_sections.h"
+#include "ConfigUtils.h"
+#include "ConfigSections.h"
 
 namespace ARex {
 

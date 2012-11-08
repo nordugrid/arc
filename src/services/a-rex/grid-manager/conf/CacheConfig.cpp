@@ -8,10 +8,10 @@
 #include <arc/StringConv.h>
 
 #include "GMConfig.h"
-#include "conf.h"
-#include "conf_sections.h"
+#include "ConfigUtils.h"
+#include "ConfigSections.h"
 
-#include "conf_cache.h"
+#include "CacheConfig.h"
 
 namespace ARex {
 

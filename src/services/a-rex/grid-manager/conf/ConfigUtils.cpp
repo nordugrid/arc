@@ -4,7 +4,7 @@
 
 #include <arc/StringConv.h>
 
-#include "conf.h"
+#include "ConfigUtils.h"
 #include "../misc/escaped.h"
 
 namespace ARex {

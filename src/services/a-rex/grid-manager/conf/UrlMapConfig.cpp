@@ -7,10 +7,10 @@
 
 #include <arc/Logger.h>
 
-#include "conf_sections.h"
-#include "conf.h"
+#include "ConfigSections.h"
+#include "ConfigUtils.h"
 
-#include "conf_map.h"
+#include "UrlMapConfig.h"
 
 namespace ARex {
 

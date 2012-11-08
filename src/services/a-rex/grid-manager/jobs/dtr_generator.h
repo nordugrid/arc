@@ -4,7 +4,7 @@
 #include <arc/data-staging/DTR.h>
 #include <arc/data-staging/Scheduler.h>
 
-#include "../conf/conf_staging.h"
+#include "../conf/StagingConfig.h"
 
 namespace ARex {
 
