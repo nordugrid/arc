@@ -10,7 +10,7 @@
 
 #include <arc/Logger.h>
 
-#include "run_redirected.h"
+#include "RunRedirected.h"
 
 namespace ARex {
 

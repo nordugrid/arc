@@ -12,7 +12,7 @@
 #include "../files/JobLogFile.h"
 #include "../conf/GMConfig.h"
 #include "../misc/escaped.h"
-#include "../run/run_parallel.h"
+#include "../run/RunParallel.h"
 #include "JobLog.h"
 
 namespace ARex {

@@ -16,7 +16,7 @@
 
 #include "ConfigUtils.h"
 #include "CoreConfig.h"
-#include "../run/run_parallel.h"
+#include "../run/RunParallel.h"
 
 #include "GMConfig.h"
 

@@ -10,7 +10,7 @@
 #include <arc/FileUtils.h>
 #include <arc/FileLock.h>
 
-#include "../run/run_redirected.h"
+#include "../run/RunRedirected.h"
 #include "../conf/GMConfig.h"
 #include "../jobs/GMJob.h"
 

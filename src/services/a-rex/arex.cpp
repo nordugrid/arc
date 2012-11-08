@@ -23,7 +23,7 @@
 #include <arc/Utils.h>
 #include "job.h"
 #include "grid-manager/log/JobLog.h"
-#include "grid-manager/run/run_plugin.h"
+#include "grid-manager/run/RunPlugin.h"
 #include "arex.h"
 
 namespace ARex {

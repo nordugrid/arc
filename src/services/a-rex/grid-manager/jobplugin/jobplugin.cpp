@@ -35,7 +35,7 @@
 #include "../jobs/JobDescriptionHandler.h"
 #include "../misc/escaped.h"
 #include "../misc/proxy.h"
-#include "../run/run_parallel.h"
+#include "../run/RunParallel.h"
 #include "../../../gridftpd/userspec.h"
 #include "../../../gridftpd/names.h"
 #include "../../../gridftpd/misc.h"

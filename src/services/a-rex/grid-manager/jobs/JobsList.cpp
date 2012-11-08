@@ -9,7 +9,7 @@
 #include <arc/credential/VOMSUtil.h>
 
 #include "../files/ControlFileHandling.h"
-#include "../run/run_parallel.h"
+#include "../run/RunParallel.h"
 #include "../mail/send_mail.h"
 #include "../log/JobLog.h"
 #include "../misc/proxy.h"

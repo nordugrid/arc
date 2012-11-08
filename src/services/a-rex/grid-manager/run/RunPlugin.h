@@ -42,21 +42,6 @@ class RunPlugin {
   operator bool(void) const { return !args_.empty(); };
 };
 
-class RunPlugins {
- private:
-  std::list<RunPlugin*> plugins_;
-  int result_;
- public:
-  RunPlugins(void):result_(0) { };
-  void add(const std::string& cmd);
-  bool run(void);
-  bool run(RunPlugin::substitute_t subst,void* arg);
-  int result(void) const { return result_; };
-};
-
-void free_args(char** args);
-char** string_to_args(const std::string& command);
-
 } // namespace ARex
 
 #endif // GRID_MANAGER_RUN_PLUGIN_H

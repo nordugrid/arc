@@ -9,17 +9,17 @@
 #include <arc/Run.h>
 
 #include "../conf/ConfigUtils.h"
-#include "run_plugin.h"
+#include "RunPlugin.h"
 
 namespace ARex {
 
-void free_args(char** args) {
+static void free_args(char** args) {
   if(args == NULL) return;
   for(int i=0;args[i];i++) free(args[i]);
   free(args);
 }
 
-char** string_to_args(const std::string& command) {
+static char** string_to_args(const std::string& command) {
   if(command.length() == 0) return NULL;
   int n = 100;
   char** args = (char**)malloc(n*sizeof(char**));
@@ -218,37 +218,6 @@ bool RunPlugin::run(substitute_t subst,void* arg) {
 #endif
   };
   free(args);
-  return true;
-}
-
-void RunPlugins::add(const std::string& cmd) {
-  RunPlugin* r = new RunPlugin(cmd);
-  if(!r) return;
-  if(!(*r)) return;
-  plugins_.push_back(r);
-}
-
-bool RunPlugins::run(void) {
-  for(std::list<RunPlugin*>::iterator r = plugins_.begin();
-                                  r != plugins_.end();++r) {
-    if(!(*r)->run()) return false;
-    if((*r)->result() != 0) {
-      result_=result(); return true;
-    };
-  };
-  result_=0;
-  return true;
-}
-
-bool RunPlugins::run(RunPlugin::substitute_t subst,void* arg) {
-  for(std::list<RunPlugin*>::iterator r = plugins_.begin();
-                                  r != plugins_.end();++r) {
-    if(!(*r)->run(subst,arg)) return false;
-    if((*r)->result() != 0) {
-      result_=result(); return true;
-    };
-  };
-  result_=0;
   return true;
 }
 

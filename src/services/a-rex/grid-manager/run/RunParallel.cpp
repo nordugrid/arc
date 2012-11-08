@@ -12,7 +12,7 @@
 #include <arc/FileUtils.h>
 
 #include "../conf/GMConfig.h"
-#include "run_parallel.h"
+#include "RunParallel.h"
 
 namespace ARex {
 

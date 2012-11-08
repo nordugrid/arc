@@ -7,7 +7,7 @@
 #include <arc/Logger.h>
 #include "../files/ControlFileContent.h"
 #include "../files/ControlFileHandling.h"
-#include "../run/run_parallel.h"
+#include "../run/RunParallel.h"
 #include "../conf/GMConfig.h"
 #include "send_mail.h"
 

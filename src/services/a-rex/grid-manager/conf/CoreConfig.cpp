@@ -11,7 +11,7 @@
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
 #include "../jobs/ContinuationPlugins.h"
-#include "../run/run_plugin.h"
+#include "../run/RunPlugin.h"
 #include "../misc/escaped.h"
 #include "../log/JobLog.h"
 #include "../jobs/JobsList.h"

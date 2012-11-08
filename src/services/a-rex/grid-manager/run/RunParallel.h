@@ -4,7 +4,7 @@
 #include <arc/Run.h>
 
 #include "../jobs/JobsList.h"
-#include "run_plugin.h"
+#include "RunPlugin.h"
 
 namespace ARex {
 
