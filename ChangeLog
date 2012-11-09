@@ -1,3 +1,8 @@
+2012-11-08  David Cameron  <d.g.cameron@fys.uio.no>
+
+  * Remove support for per-user control directories in A-REX. Add support
+    for substitutions in configuration based on dynamically mapped local user.
+
 2012-10-31  Martin Skou Andersen <skou@nbi.dk>
 
   * [Java] Transparently load native ARC JNI-C++ library when using ARC Java
