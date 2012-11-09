@@ -675,7 +675,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       cmd += " " + config.control_dir;
       cmd += " " + i->session_dir;
 
-      logger.msg(Arc::INFO,"%s: State %s: starting child: %s",i->job_id,up?"FINISHING":"PREPARING",cmd);
+      logger.msg(Arc::INFO,"%s: State %s: starting child: %s",i->job_id,up?"FINISHING":"PREPARING",cmd_name);
       job_errors_mark_put(*i,config);
       // Remove restart mark because restart point may change. Keep it if we are
       // already processing failed job.
