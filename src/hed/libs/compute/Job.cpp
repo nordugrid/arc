@@ -236,7 +236,17 @@ namespace Arc {
 
   Job& Job::operator=(XMLNode job) {
     jc = NULL;
-
+    // Proposed mandatory attributes for ARC 3.0
+    JXMLTOSTRING(ID)
+    JXMLTOSTRING(ActivityID)
+    JXMLTOSTRING(Name)
+    if (job["ResourceInfoURL"]) ResourceInfoURL = URL((std::string)job["ResourceInfoURL"]);
+    JXMLTOSTRING(ResourceInfoInterfaceName)
+    if (job["ActivityInfoURL"]) ActivityInfoURL = URL((std::string)job["ActivityInfoURL"]);
+    JXMLTOSTRING(ActivityInfoInterfaceName)
+    if (job["ActivityManagerURL"]) ActivityManagerURL = URL((std::string)job["ActivityManagerURL"]);
+    JXMLTOSTRING(ActivityManagerInterfaceName)
+      
     // Information specific to how job is stored in jobs list
     if (job["JobID"]) {
       JobID = URL((std::string)job["JobID"]);
@@ -569,6 +579,16 @@ namespace Arc {
 
       out << IString(" Cluster: %s", Cluster.fullstr()) << std::endl;
       out << IString(" Management Interface: %s", InterfaceName) << std::endl;
+      
+      // Proposed mandatory attributes for ARC 3.0
+      out << IString("   ID: %s", ID) << std::endl;
+      out << IString("   ResourceInfoURL: %s", ResourceInfoURL.fullstr()) << std::endl;
+      out << IString("   ResourceInfoInterfaceName: %s", ResourceInfoInterfaceName) << std::endl;
+      out << IString("   ActivityInfoURL: %s", ActivityInfoURL.fullstr()) << std::endl;
+      out << IString("   ActivityInfoInterfaceName: %s", ActivityInfoInterfaceName) << std::endl;
+      out << IString("   ActivityManagerURL: %s", ActivityManagerURL.fullstr()) << std::endl;
+      out << IString("   ActivityManagerInterfaceName: %s", ActivityManagerInterfaceName) << std::endl;
+      out << IString("   ActivityID: %s", ActivityID) << std::endl;      
     }
 
     out << std::endl;
