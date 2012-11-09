@@ -91,7 +91,6 @@ namespace Arc {
 
       XMLNode xmlCENode = GLUEService["ComputingEndpoint"];
       int endpointID = 0;
-      std::list<Endpoint> OtherEndpoints;
       for(;(bool)xmlCENode;++xmlCENode) {
         ComputingEndpointType ComputingEndpoint;
         if (xmlCENode["URL"]) {
@@ -221,12 +220,6 @@ namespace Arc {
         //}
 
         cs.ComputingEndpoint.insert(std::pair<int, ComputingEndpointType>(endpointID++, ComputingEndpoint));
-        OtherEndpoints.push_back(*ComputingEndpoint.Attributes);
-      }
-
-      // For each endpoint add a list of all the endpoints which may be needed later by the Submitter and JobListRetriever plugins
-      for (std::map<int, ComputingEndpointType>::iterator itCE = cs.ComputingEndpoint.begin(); itCE != cs.ComputingEndpoint.end(); ++itCE) {
-        itCE->second->OtherEndpoints = OtherEndpoints;
       }
 
       XMLNode xComputingShare = GLUEService["ComputingShare"];

@@ -123,7 +123,6 @@ namespace Arc {
       logger.msg(VERBOSE, "Generating A-REX target: %s", cs->Cluster.str());
 
       int endpointID = 0;
-      std::list<Endpoint> OtherEndpoints;
       for(XMLNode xmlCENode = GLUEService["ComputingEndpoint"]; (bool)xmlCENode; ++xmlCENode) {
         if ((xmlCENode["InterfaceName"] == "XBES") ||
             (xmlCENode["InterfaceName"] == "BES") ||
@@ -257,13 +256,8 @@ namespace Arc {
         //}
 
         cs.ComputingEndpoint.insert(std::pair<int, ComputingEndpointType>(endpointID++, ComputingEndpoint));
-        OtherEndpoints.push_back(*ComputingEndpoint.Attributes);
       }
 
-      // For each endpoint add a list of all the endpoints which may be needed later by the Submitter and JobListRetriever plugins
-      for (std::map<int, ComputingEndpointType>::iterator itCE = cs.ComputingEndpoint.begin(); itCE != cs.ComputingEndpoint.end(); ++itCE) {
-        itCE->second->OtherEndpoints = OtherEndpoints;
-      }
 
       int shareID = 0;
       for (XMLNode xmlCSNode = GLUEService["ComputingShare"]; (bool)xmlCSNode; ++xmlCSNode) {

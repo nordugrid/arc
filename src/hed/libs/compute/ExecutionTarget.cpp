@@ -255,13 +255,7 @@ namespace Arc {
       for (std::list<std::string>::const_iterator it = ce.JobDescriptions.begin();
            it != ce.JobDescriptions.end(); ++it) out << "  " << *it << std::endl;
     }
-    
-    if (!ce.OtherEndpoints.empty()) {
-                                   out << IString(" Other endpoints on the same service:") << std::endl;
-      for (std::list<Endpoint>::const_iterator it = ce.OtherEndpoints.begin();
-           it != ce.OtherEndpoints.end(); ++it) out << "  " << it->str() << std::endl;
-    }
-    
+        
     return out;
   }
 

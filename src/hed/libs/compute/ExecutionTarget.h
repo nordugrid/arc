@@ -268,8 +268,6 @@ namespace Arc {
     // This is singular in the GLUE2 doc: JobDescription
     std::list<std::string> JobDescriptions;
     
-    std::list<Endpoint> OtherEndpoints;
-
     friend std::ostream& operator<<(std::ostream&, const ComputingEndpointAttributes&);
   };
 
