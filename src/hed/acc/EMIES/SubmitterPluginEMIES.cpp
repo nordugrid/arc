@@ -104,6 +104,24 @@ namespace Arc {
       URL jobidu(jobid.manager.str() + "/" + jobid.id);
       
       Job j;
+      
+      
+      
+      // Proposed mandatory attributes for ARC 3.0
+      j.ID = jobid.id;
+      j.ResourceInfoURL = jobid.resource;
+      j.ResourceInfoInterfaceName = "org.ogf.glue.emies.resourceinfo";
+      j.ActivityInfoInterfaceName = "org.ogf.glue.emies.activityinfo";
+      j.ActivityManagerURL = jobid.manager;
+      j.ActivityManagerInterfaceName = "org.ogf.glue.emies.activitymanager";
+      j.ActivityID = jobid.id;
+
+      for (std::list< CountedPointer<ComputingEndpointAttributes> >::const_iterator it = et.OtherEndpoints.begin(); it != et.OtherEndpoints.end(); it++) {
+        if ((*it)->InterfaceName == j.ActivityInfoInterfaceName) {
+          j.ActivityInfoURL = URL((*it)->URLString);
+        }
+      }
+      
       j.IDFromEndpoint = jobid.ToXML();
       AddJobDetails(preparedjobdesc, jobidu, et.ComputingService->Cluster, j);
       jc.addEntity(j);

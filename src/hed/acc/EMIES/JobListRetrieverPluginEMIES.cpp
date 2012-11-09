@@ -66,6 +66,17 @@ namespace Arc {
       j.IDFromEndpoint = jobid->ToXML();
       // URL-izing job id
       j.JobID = URL(jobid->manager.str() + "/" + jobid->id);
+      
+      // Proposed mandatory attributes for ARC 3.0
+      j.ID = jobid->id;
+      j.ResourceInfoURL = url.fullstr();
+      j.ResourceInfoInterfaceName = "org.ogf.glue.emies.resourceinfo";
+      j.ActivityInfoURL = jobid->manager; // This is not valid, we should figure out the real ActivityInfo URL
+      j.ActivityInfoInterfaceName = "org.ogf.glue.emies.activityinfo";
+      j.ActivityManagerURL = jobid->manager;
+      j.ActivityManagerInterfaceName = "org.ogf.glue.emies.activitymanager";
+      j.ActivityID = jobid->id;
+      
       jobs.push_back(j);
     };
 
