@@ -1381,9 +1381,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %files python3
 %defattr(-,root,root,-)
 %{python3_sitearch}/arc
-%if %{?fedora}%{!?fedora:0} >= 15
-%{python3_sitearch}/__pycache__/arc*
-%endif
 %endif
 
 %if %{with_java}

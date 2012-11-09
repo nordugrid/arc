@@ -10,7 +10,7 @@ python_DATA = __init__.py $(ARCPYLIBS)
 python_LTLIBRARIES = _arc.la
 endif
 
-altpythondir = $(ALTPYTHON_SITE_ARCH)
+altpythondir = $(ALTPYTHON_SITE_ARCH)/arc
 
 if ALTPYTHON_ENABLED
 altpython_DATA = __init__.py $(ARCPYLIBS)
@@ -123,3 +123,4 @@ install-data-hook:
 DIST_SUBDIRS = test
 SUBDIRS = $(TEST_DIR)
 
+.NOTPARALLEL: %.lo %.o
