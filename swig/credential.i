@@ -14,7 +14,10 @@
  * known to swig. Providing definition below. If definition is not
  * provided swig encounters a syntax error.
  */
-#define STACK_OF(A) void
+#ifdef STACK_OF
+#undef STACK_OF
+#endif
+#define STACK_OF( A ) void
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/crypto/OpenSSL.h
 %{
