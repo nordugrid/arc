@@ -12,7 +12,7 @@ namespace Arc {
     GLUE2Entity() : Attributes(new T) {}
 
     T       *       operator->()       { return &(*Attributes); }
-    T const * const operator->() const { return &(*Attributes); }
+    T const *       operator->() const { return &(*Attributes); }
     T       &       operator*()        { return *Attributes; }
     T const &       operator*()  const { return *Attributes; }
 
