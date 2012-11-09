@@ -41,5 +41,3 @@ man_MANS =
 else
 man_MANS = cache-clean.1 cache-list.1
 endif
-
-EXTRA_DIST = cache-clean cache-list

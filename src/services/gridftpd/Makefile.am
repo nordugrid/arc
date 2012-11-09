@@ -6,7 +6,6 @@ GRIDFTPD_SCRIPT = gridftpd.init
 else
 GRIDFTPD_SCRIPT =
 endif
-EXTRA_DIST = $(GRIDFTPD_SCRIPT)
 
 if SYSV_SCRIPTS_ENABLED
 # Not using initd_SCRIPTS due to rename.

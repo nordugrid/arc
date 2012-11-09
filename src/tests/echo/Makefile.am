@@ -5,7 +5,8 @@ noinst_PROGRAMS = test test_client test_clientinterface test_service
 bin_PROGRAMS = perftest
 
 exampledir = $(pkgdatadir)/examples/echo
-example_DATA = echo_service.xml.example echo.wsdl
+example_DATA = echo_service.xml.example
+dist_example_DATA = echo.wsdl
 
 libecho_la_SOURCES = echo.cpp echo.h
 libecho_la_CXXFLAGS = -I$(top_srcdir)/include \
@@ -64,7 +65,5 @@ perftest_LDADD = \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
-
-EXTRA_DIST = $(example_DATA)
 
 man_MANS = perftest.1

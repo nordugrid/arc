@@ -1,7 +1,8 @@
-pkgdata_SCRIPTS = CEinfo.pl cluster.pl qju.pl se.pl glue-generator.pl \
+pkgdata_SCRIPTS = CEinfo.pl cluster.pl qju.pl se.pl
+dist_pkgdata_SCRIPTS = glue-generator.pl \
 	grid-info-soft-register glite-info-provider-ldap
 
-pkgdata_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm DGBridge.pm \
+dist_pkgdata_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm DGBridge.pm \
 	LL.pm LSF.pm Condor.pm condor_env.pm SLURM.pm GridFactory.pm \
 	IniParser.pm LogUtils.pm Sysinfo.pm \
 	LRMSInfo.pm GMJobsInfo.pm HostInfo.pm RTEInfo.pm \
@@ -13,8 +14,6 @@ pkgdata_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm DGBridge.pm \
 	NGldifPrinter.pm InfosysHelper.pm
 
 arcldapschemadir = $(pkgdatadir)/ldap-schema
-arcldapschema_DATA = schema/nordugrid.schema
-
-EXTRA_DIST = $(pkgdata_SCRIPTS) $(pkgdata_DATA) $(arcldapschema_DATA)
+dist_arcldapschema_DATA = schema/nordugrid.schema
 
 SUBDIRS = test

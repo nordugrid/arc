@@ -7,7 +7,6 @@ profile_DATA = profiles/general/general.xml
 
 profileexampledir = $(pkgdatadir)/examples/config
 profileexample_DATA = profiles/*/*.xml
-#profiles/*/*.ini profiles/*/*.conf profiles/*/*.txt
 
 install-profileexampleDATA: $(profile_DATA)
 	for i in profiles/*; do \
@@ -23,5 +22,3 @@ uninstall-profileexampleDATA:
 	    p=`echo $$p | sed 's|^\(.*/\)\?profiles/||'`; \
 	    rm -f "$(DESTDIR)$(profileexampledir)/$$p"; \
 	done
-
-EXTRA_DIST = profiles/*/*

@@ -1,4 +1,4 @@
-sbin_SCRIPTS = nordugridmap
+dist_sbin_SCRIPTS = nordugridmap
 
 cronddir = @cronddir@
 
@@ -11,4 +11,4 @@ install-exec-local:
 uninstall-local:
 	rm -f $(DESTDIR)$(cronddir)/nordugridmap
 
-EXTRA_DIST = $(sbin_SCRIPTS) nordugridmap.conf nordugridmap.cron
+EXTRA_DIST = nordugridmap.conf

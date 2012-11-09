@@ -5,5 +5,3 @@ HED_SCRIPT =
 endif
 
 initd_SCRIPTS = $(HED_SCRIPT)
-
-EXTRA_DIST = arched

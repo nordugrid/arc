@@ -67,5 +67,3 @@ test_cache_check_LDADD = \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
-
-EXTRA_DIST = $(example_DATA)
