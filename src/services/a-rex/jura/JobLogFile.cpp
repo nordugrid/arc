@@ -463,9 +463,9 @@ namespace Arc
 
     Arc::NS ns_ur;
     
-    //Namespaces defined by OGF 2.0 (CAR 1.1)
-    ns_ur[""]="http://eu-emi.eu/namespaces/2012/10/computerecord";
-    ns_ur["urf"]="http://eu-emi.eu/namespaces/2012/10/computerecord";
+    //Namespaces defined by OGF 2.0 (CAR 1.2)
+    ns_ur[""]="http://eu-emi.eu/namespaces/2012/11/computerecord";
+    ns_ur["urf"]="http://eu-emi.eu/namespaces/2012/11/computerecord";
     ns_ur["xsd"]="http://www.w3.org/2001/XMLSchema";
     ns_ur["xsi"]="http://www.w3.org/2001/XMLSchema-instance";
 
@@ -595,6 +595,14 @@ namespace Arc
         globalusername.NewAttribute("urf:type")="opensslCompat";
       }
 
+    //Group
+    //GroupAttribute  
+    if (find("projectname")!=end())
+      {
+        Arc::XMLNode project=useridentity.NewChild("GroupAttribute")=(*this)["projectname"];
+        project.NewAttribute("urf:type")="ProjectName";
+      }
+
     //LocalUserId
     if (find("localuser")!=end())
       {
@@ -603,15 +611,6 @@ namespace Arc
       }
 
     //LocalGroup
-    //Group
-    //GroupAttribute
-    
-    //ProjectName
-    if (find("projectname")!=end())
-      {
-        Arc::XMLNode project=useridentity.NewChild("GroupAttribute")=(*this)["projectname"];
-        project.NewAttribute("urf:type")="ProjectName";
-      }
 
     //JobName
     if (find("jobname")!=end())
