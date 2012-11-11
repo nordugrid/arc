@@ -2359,7 +2359,13 @@ AC_CONFIG_FILES([Makefile
                  src/services/gridftpd/fileplugin/Makefile
                  src/services/gridftpd/gaclplugin/Makefile
                  src/services/ldap-infosys/Makefile
-                 src/services/ldap-infosys/grid-infosys
+                 src/services/ldap-infosys/create-bdii-config
+                 src/services/ldap-infosys/create-inforeg-config
+                 src/services/ldap-infosys/create-slapd-config
+                 src/services/ldap-infosys/nordugrid-arc-bdii
+                 src/services/ldap-infosys/nordugrid-arc-egiis
+                 src/services/ldap-infosys/nordugrid-arc-inforeg
+                 src/services/ldap-infosys/nordugrid-arc-slapd
                  src/services/ldap-infosys/giis/Makefile
                  src/services/ldap-infosys/giis/arc-infoindex-relay.8
                  src/services/ldap-infosys/giis/arc-infoindex-server.8

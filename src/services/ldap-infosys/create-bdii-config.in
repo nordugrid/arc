@@ -1,0 +1,484 @@
+#!/bin/bash
+
+# Create bdii config for the NorduGrid/ARC information system
+
+ARC_LOCATION=${ARC_LOCATION:-@prefix@}
+if [ ! -d "$ARC_LOCATION" ]; then
+    echo "ARC_LOCATION ($ARC_LOCATION) not found"
+    exit 1
+fi
+
+# Source the config parsing routines
+if [ -r "$ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh" ]; then
+    . $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh || exit $?
+else
+    echo "Could not find $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh"
+    exit 1
+fi
+
+ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
+if [ ! -r "$ARC_CONFIG" ]; then
+    echo "ARC configuration file ($ARC_CONFIG) not found"
+    echo "If this file is in a non-standard place it can be set with the"
+    echo "  ARC_CONFIG environment variable"
+    exit 1
+fi
+
+# Read arc.conf
+config_parse_file $ARC_CONFIG || exit $?
+
+# Check for infosys-block
+if ! config_match_section infosys; then
+    echo "Missing infosys configuration block"
+    exit 1
+fi
+
+config_hide_all
+config_import_section common
+
+# These options need to come from the infosys-block, not from common
+unset CONFIG_logfile
+unset CONFIG_user
+unset CONFIG_port
+
+config_import_section infosys
+
+# Get ldap user from passwd
+ldap_user=`getent passwd | grep ldap | sed 's/\([az]*\):.*/\1/g'`
+if [ ! "xldap" = "x$ldap_user" ] && [ ! "xopenldap" = "x$ldap_user" ]; then
+    echo "Could not find ldap or openldap user, using root"
+    ldap_user=root
+fi
+bdii_user=${CONFIG_user:-$ldap_user}
+
+# These values may be set in arc.conf, otherwise use sensible defaults
+hostname_f=$(hostname -f)
+hostname=${CONFIG_hostname:-$hostname_f}
+providerlog=${CONFIG_providerlog:-/var/log/arc/infoprovider.log}
+
+bdii_location=${CONFIG_bdii_location:-/usr}
+bdii_update_cmd=${CONFIG_bdii_update_cmd:-${bdii_location}/sbin/bdii-update}
+if [ ! -e $bdii_update_cmd ]; then
+    echo "Can not find bdii-update command at: $bdii_update_cmd."
+    echo "Please set bdii_update_cmd in arc.conf"
+    exit 1
+fi
+
+arc_runtime_config=/var/run/arc/infosys
+mkdir -p ${arc_runtime_config}
+chown ${bdii_user} ${arc_runtime_config}
+
+bdii_debug_level=${CONFIG_bdii_debug_level:-ERROR}
+
+bdii_tmp_dir=${CONFIG_bdii_tmp_dir:-/var/tmp/arc/bdii}
+if grep -q BDII_PID_FILE $bdii_update_cmd ; then
+    bdii_var_dir=${CONFIG_bdii_var_dir:-/var/lib/arc/bdii}
+    bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
+else
+    bdii_var_dir=${CONFIG_bdii_var_dir:-/var/run/arc/bdii}
+    bdii_run_dir=$bdii_var_dir
+fi
+bdii_log_dir=${CONFIG_bdii_log_dir:-/var/log/arc/bdii}
+bdii_log_file="${bdii_log_dir}/bdii-update.log"
+
+bdii_slapd_conf=$bdii_run_dir/bdii-slapd.conf
+
+bdii_default_ldif=${bdii_tmp_dir}/provider/arc-default.ldif.pl
+bdii_ldif_dir=${bdii_tmp_dir}/ldif
+bdii_provider_dir=${bdii_tmp_dir}/provider
+bdii_plugin_dir=${bdii_tmp_dir}/plugin
+
+bdii_port=${CONFIG_port:-2135}
+
+# Using uppercase characters in bdii_bind will break infosys.
+bdii_bind="o=grid"
+
+infosys_compat=${CONFIG_infosys_compat:-"disable"}
+infosys_nordugrid=${CONFIG_infosys_nordugrid:-"enable"}
+infosys_glue12=${CONFIG_infosys_glue12:-"disable"}
+infosys_glue2_ldap=${CONFIG_infosys_glue2_ldap:-"disable"}
+
+provider_timeout=${CONFIG_provider_timeout:-300}
+gm_wakeupperiod=$(config_print_option grid-manager wakeupperiod)
+gm_wakeupperiod=${gm_wakeupperiod:-120}
+
+if [ "x$infosys_compat" = "xenable" ]; then
+    bdii_breathe_time=${CONFIG_bdii_breathe_time:-120}
+    bdii_read_timeout=${CONFIG_bdii_read_timeout:-300}
+else
+    # The infoprovider does the waiting, no need for BDII to do it too.  Use
+    # some small timeout to protect the system in case there is a problem with
+    # the provier
+    bdii_breathe_time=${CONFIG_bdii_breathe_time:-10}
+
+    # $provider_timeout refers to a-rex's infoprovider. BDII must also include
+    # the wait time till the next info collection cycle of a-rex.
+    max_cycle=$(( $provider_timeout + $gm_wakeupperiod ))
+    bdii_read_timeout=${CONFIG_bdii_read_timeout:-$max_cycle}
+fi
+bdii_delete_delay=${CONFIG_bdii_delete_delay:-0}
+
+update_pid_file=${CONFIG_bdii_update_pid_file:-$bdii_run_dir/bdii-update.pid}
+
+# Debian does not have /var/lock/subsys
+if [ -d /var/lock/subsys ]; then
+    update_lock_file=${update_lock_file:-/var/lock/subsys/arc-bdii-update}
+else
+    update_lock_file=${update_lock_file:-/var/lock/arc-bdii-update}
+fi
+
+# Check directories and permissions
+mkdir -p `dirname $providerlog`
+touch ${providerlog}
+chown ${bdii_user} ${providerlog}
+
+mkdir -p $bdii_log_dir
+chown ${bdii_user} ${bdii_log_dir}
+
+# If the new code path is selected...
+if [ "x$infosys_nordugrid" = "xenable" ] || \
+   [ "x$infosys_glue12" = "xenable" ] || \
+   [ "x$infosys_glue2_ldap" = "xenable" ]; then
+    if [ "x$infosys_compat" != "xenable" ] && \
+       [ ! -f "$ARC_LOCATION/@pkgdatasubdir@/InfosysHelper.pm" ]; then
+	echo "A-REX is not installed"
+	echo "For operation without A-REX, disable publishing of cluster information"
+	echo "(infosys_nordugrid, infosys_glue12 and infosys_glue2_ldap)"
+	echo "or enable infosys_compat in configuration"
+	exit 1
+    fi
+fi
+
+if [ "x$infosys_compat" = "xenable" ]; then
+    if [ "x$infosys_glue2_ldap" = "xenable" ]; then
+	echo "GLUE2 cannot be published when infosys_compat=enable"
+	exit 1
+    fi
+fi
+
+BDII_CONF=${CONFIG_bdii_conf:-${arc_runtime_config}/bdii.conf}
+
+resource_location=""
+resource_latitude=""
+resource_longitude=""
+cpuscalingreferencesi00=""
+processorotherdescription=""
+gluesiteweb=""
+gluesiteuniqueid=""
+provide_glue_site_info="true"
+
+if [ "x$infosys_glue12" = "xenable" ]; then
+
+    if ! config_match_section infosys/glue12 ; then
+	echo "infosys_glue12 is set to enable, but infosys/glue12 block is missing"
+	exit 1
+    fi
+
+    config_import_section infosys/glue12
+    resource_location=${CONFIG_resource_location}
+    resource_latitude=${CONFIG_resource_latitude}
+    resource_longitude=${CONFIG_resource_longitude}
+    cpuscalingreferencesi00=${CONFIG_cpu_scaling_reference_si00}
+    processorotherdescription=${CONFIG_processor_other_description}
+    gluesiteweb=${CONFIG_glue_site_web}
+    gluesiteuniqueid=${CONFIG_glue_site_unique_id}
+    provide_glue_site_info=${CONFIG_provide_glue_site_info:-$provide_glue_site_info}
+
+    if [ "x$resource_location" = "x" ]; then
+	echo "If infosys_glue12 is enabled, then resource_location must be set."
+	echo "It should be set to a free-form string describing the location,"
+	echo "for example: 'Kastrup, Denmark'"
+	exit 1
+    fi
+    if [[ "x$resource_location" =~ "/" ]]; then
+	echo "WARNING: wrong location format. Please do NOT use slashes / ."
+	echo "It should be set to a free-form string describing the location,"
+	echo "for example: 'Kastrup, Denmark'"
+	exit 1
+    fi
+    if [ "x$resource_latitude" = "x" ]; then
+	echo "If infosys_glue12 is enabled, then resource_latitude must be set."
+	echo "It should be set to the latitude for the location,"
+	echo "for example: '55.75000'"
+	exit 1
+    fi
+    if [ "x$resource_longitude" = "x" ]; then
+	echo "If infosys_glue12 is enabled, then resource_longitude must be set."
+	echo "It should be set to the longitude for the location,"
+	echo "for example: '12.41670'"
+	exit 1
+    fi
+    if [ "x$cpuscalingreferencesi00" = "x" ]; then
+	echo "If infosys_glue12 is enabled, then cpu_scaling_reference_si00 must be set."
+	echo "It should be set to the SI00 value,"
+	echo "for example: '2400'"
+	exit 1
+    fi
+    if [ "x$processorotherdescription" = "x" ]; then
+	echo "If infosys_glue12 is enabled, then processor_other_description must be set."
+	echo "It should be set to a value like in the example,where cores is the average number"
+	echo "of cores in the machine"
+	echo "for example: 'Cores=3,Benchmark=9.8-HEP-SPEC06'"
+	exit 1
+    fi
+    if [ "x$gluesiteweb" = "x" ]; then
+	echo "If infosys_glue12 is enabled, then glue_site_web must be set."
+	echo "It should be set to a url for the website belonging to the institution holding the resource,"
+	echo "for example: 'http://www.ndgf.org'"
+	exit 1
+    fi
+    if [ "x$gluesiteuniqueid" = "x" ]; then
+	echo "If infosys_glue12 is enabled, then glue_site_unique_id must be set."
+	echo "It should be set to a unique id to the resource, this should be entered into the GocDb"
+	echo "for example: 'NDGF-T1'"
+	exit 1
+    fi
+fi
+
+
+# Create directories for storing temporary scripts and check permissions etc
+mkdir -p $bdii_var_dir
+mkdir -p $bdii_tmp_dir
+mkdir -p $bdii_tmp_dir/ldif
+mkdir -p $bdii_tmp_dir/provider
+mkdir -p $bdii_tmp_dir/plugin
+
+# Generate bdii configuration
+
+rm -f ${BDII_CONF}
+cat <<-EOF >> ${BDII_CONF}
+	# This file was automatically generated by $0
+	# Do not modify
+
+	BDII_LOG_FILE=$bdii_log_file
+	BDII_PID_FILE=$update_pid_file
+	BDII_LOG_LEVEL=$bdii_debug_level
+	BDII_LDIF_DIR=$bdii_ldif_dir
+	BDII_PROVIDER_DIR=$bdii_provider_dir
+	BDII_PLUGIN_DIR=$bdii_plugin_dir
+	BDII_PORT=$bdii_port
+	BDII_BREATHE_TIME=$bdii_breathe_time
+	BDII_READ_TIMEOUT=$bdii_read_timeout
+	BDII_ARCHIVE_SIZE=$bdii_archive_size
+	BDII_DELETE_DELAY=$bdii_delete_delay
+	BDII_USER=$bdii_user
+	BDII_VAR_DIR=$bdii_var_dir
+	BDII_BIND=$bdii_bind
+	SLAPD_CONF=$bdii_slapd_conf
+	EOF
+}
+
+# Generate default ldif
+
+cat <<-EOF > $bdii_default_ldif
+	#!/usr/bin/perl
+
+	# This file was automatically generated by $0
+	# Do not modify
+
+	use POSIX;
+
+	print "\n";
+	print "dn: o=Grid\n";
+	print "objectClass: organization\n";
+	print "o: Grid\n";
+	print "\n";
+
+	print "dn: Mds-Vo-name=local,o=Grid\n";
+	print "objectClass: Mds\n";
+	print "objectClass: MdsVo\n";
+	print "Mds-Vo-name: local\n";
+	print "Mds-validfrom: " . strftime("%Y%m%d%H%M%SZ\n", gmtime());
+	print "Mds-validto: " . strftime("%Y%m%d%H%M%SZ\n", gmtime(time() + 3600));
+	print "\n";
+
+	print "dn: Mds-Vo-name=resource,o=Grid\n";
+	print "objectClass: Mds\n";
+	print "objectClass: MdsVo\n";
+	print "Mds-Vo-name: resource\n";
+	print "Mds-validfrom: " . strftime("%Y%m%d%H%M%SZ\n", gmtime());
+	print "Mds-validto: " . strftime("%Y%m%d%H%M%SZ\n", gmtime(time() + 3600));
+	print "\n";
+
+	print "dn: o=glue\n";
+	print "objectClass: top\n";
+	print "objectClass: organization\n";
+	print "o: glue\n";
+	EOF
+
+    chmod +x $bdii_default_ldif
+}
+
+# Create ARC ldif generator file
+
+if [ "x$infosys_compat" = "xenable" ]; then
+
+    if [ "x$infosys_nordugrid" = "xenable" ]; then
+
+	ldif_generator_file=${bdii_tmp_dir}/arc-nordugrid-bdii-ldif
+	rm -f ${ldif_generator_file}
+	touch ${ldif_generator_file}
+
+	cat <<-EOF > ${ldif_generator_file}
+		# This file was automatically generated by $0
+		# Do not modify
+
+		EOF
+
+	if config_match_section cluster; then
+	    (
+		config_import_section cluster
+		cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
+
+		cat <<-EOF >> ${ldif_generator_file}
+			$ARC_LOCATION/@pkgdatasubdir@/cluster.pl --valid-to $cachetime --config $ARC_CONFIG --loglevel $CONFIG_provider_loglevel --dn nordugrid-cluster-name=$hostname,Mds-Vo-name=local,o=Grid 2>> "$providerlog"
+			EOF
+
+		# Create entries for all queues
+		for queue in `config_subsections queue`; do
+		    (
+			config_import_section queue/$queue
+			cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
+
+			cat <<-EOF >> ${ldif_generator_file}
+				$ARC_LOCATION/@pkgdatasubdir@/qju.pl --valid-to $cachetime --config $ARC_CONFIG --loglevel $CONFIG_provider_loglevel --dn nordugrid-queue-name=$queue,nordugrid-cluster-name=$hostname,Mds-Vo-name=local,o=Grid --queue $queue 2>> "$providerlog"
+				EOF
+		    )
+		done
+	    )
+	fi
+
+	for se in `config_subsections se`; do
+	    (
+		config_import_section se/$se
+		cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
+
+		cat <<-EOF >> ${ldif_generator_file}
+			$ARC_LOCATION/@pkgdatasubdir@/se.pl -valid-to $cachetime -config $ARC_CONFIG -dn nordugrid-se-name=$se:$hostname,Mds-Vo-name=local,o=Grid -se $se 2>> "$providerlog"
+			EOF
+	    )
+	done
+
+	chmod +x ${ldif_generator_file}
+
+    fi
+
+    if [ "x$infosys_glue12" = "xenable" ]; then
+
+	ldif_generator_file_ng=${bdii_tmp_dir}/provider/arc-nordugrid-bdii-ldif
+	ldif_generator_file_glue=${bdii_tmp_dir}/provider/arc-glue-bdii-ldif
+
+	rm -f ${ldif_generator_file_glue}
+	touch ${ldif_generator_file_glue}
+
+	# We use , instead of / here to allow for / in path
+	# resource_location though, can contain commas..
+	sed "s,\$LDIF_GENERATOR_FILE_NG,$ldif_generator_file_ng,g;
+	 s/\$LOC/\"$resource_location\"/g;
+	 s/\$LAT/$resource_latitude/g;
+	 s/\$LONG/$resource_longitude/g;
+	 s/\$CPUSCALINGREFERENCESI00/$cpuscalingreferencesi00/g;
+	 s/\$PROCESSOROTHERDESCRIPTION/$processorotherdescription/g;
+	 s,\$GLUESITEWEB,$gluesiteweb,g;
+	 s,\$BDIIPORT,$bdii_port,g;
+	 s,\$GLUESITEUNIQUEID,$gluesiteuniqueid,g;
+	 s,\$PROVIDE_GLUE_SITE_INFO,$provide_glue_site_info,g;
+	" $ARC_LOCATION/@pkgdatasubdir@/glue-generator.pl > ${ldif_generator_file_glue}
+
+	chmod +x ${ldif_generator_file_glue}
+
+    fi
+
+else
+
+    ldif_generator_file=${bdii_tmp_dir}/provider/arc-nordugrid-bdii-ldif
+    rm -f ${ldif_generator_file}
+    touch ${ldif_generator_file}
+
+    ldif_glue12_generator=${arc_runtime_config}/arc-glue-bdii-ldif
+    ldif_script="$arc_runtime_config/ldif-provider.sh"
+
+    cat <<-EOF > ${ldif_generator_file}
+	#!/usr/bin/perl
+
+	# This file was automatically generated by the $0
+	# Do not modify
+	EOF
+
+    for se in `config_subsections se`; do
+	(
+	    config_import_section se/$se
+	    cachetime=${CONFIG_cachetime:-$max_cycle}
+
+	    cat <<-EOF >> ${ldif_generator_file}
+
+		BEGIN {
+		    print "\n";
+		    system('$ARC_LOCATION/@pkgdatasubdir@/se.pl -valid-to $cachetime -config $ARC_CONFIG -dn nordugrid-se-name=$se:$hostname,Mds-Vo-name=local,o=Grid -se $se 2>> "$providerlog"');
+		}
+		EOF
+	)
+    done
+
+    # NG and GLUE2 come directly from a-rex infoprovider
+    cat <<-EOF >> ${ldif_generator_file}
+
+	BEGIN { unshift @INC, '$ARC_LOCATION/@pkgdatasubdir@'; }
+	use InfosysHelper;
+	exit 1 unless InfosysHelper::ldifIsReady('$arc_runtime_config', '$max_cycle');
+	EOF
+
+    if [ "x$infosys_nordugrid" = "xenable" ] || \
+       [ "x$infosys_glue2_ldap" = "xenable" ]; then
+	echo "system('$ldif_script');" >> ${ldif_generator_file}
+    fi
+
+    if [ "x$infosys_glue12" = "xenable" ]; then
+	ldif_generator_file_ng=${bdii_tmp_dir}/provider/arc-nordugrid-bdii-ldif
+	ldif_generator_file_glue=${bdii_tmp_dir}/provider/arc-glue-bdii-ldif
+
+	rm -f ${ldif_generator_file_glue}
+	touch ${ldif_generator_file_glue}
+
+	# We use , instead of / here to allow for / in path
+	# resource_location though, can contain commas..
+	sed "s,\$LDIF_GENERATOR_FILE_NG,$ldif_generator_file_ng,g;
+	 s/\$LOC/\"$resource_location\"/g;
+	 s/\$LAT/$resource_latitude/g;
+	 s/\$LONG/$resource_longitude/g;
+	 s/\$CPUSCALINGREFERENCESI00/$cpuscalingreferencesi00/g;
+	 s/\$PROCESSOROTHERDESCRIPTION/$processorotherdescription/g;
+	 s,\$GLUESITEWEB,$gluesiteweb,g;
+	 s,\$BDIIPORT,$bdii_port,g;
+	 s,\$GLUESITEUNIQUEID,$gluesiteuniqueid,g;
+	 s,\$PROVIDE_GLUE_SITE_INFO,$provide_glue_site_info,g;
+	" $ARC_LOCATION/@pkgdatasubdir@/glue-generator.pl > ${ldif_generator_file_glue}
+
+	chmod +x ${ldif_generator_file_glue}
+
+	echo "system('$ldif_glue12_generator');" >> ${ldif_generator_file}
+    fi
+
+    chmod +x ${ldif_generator_file}
+
+fi
+
+# Site BDII
+
+for site_bdii in `config_subsections infosys/site`; do
+    (
+	config_import_section infosys/site/$site_bdii
+	unique_id=${CONFIG_unique_id:-$site_bdii}
+	site_config="${bdii_tmp_dir}/${site_bdii}.conf"
+	site_provider="$bdii_provider_dir/site_${site_bdii}.sh"
+	url=${CONFIG_url}
+	echo "$unique_id $url" > "$site_config"
+	# Create script and make glite provider use arc directories
+	cat <<-EOF > $site_provider
+		#!/bin/sh
+		export GLITE_LOCATION_VAR=${bdii_tmp_dir}
+		$ARC_LOCATION/@pkgdatasubdir@/glite-info-provider-ldap -m "$site_bdii" -c $site_config" > $site_provider
+		EOF
+	chmod +x $site_provider
+    )
+done

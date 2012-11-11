@@ -1,0 +1,230 @@
+#!/bin/bash
+#
+# Init file for the NorduGrid/ARC LDAP based Information System
+#
+# chkconfig: 2345 55 25
+# description: NorduGrid/ARC Information system
+#
+# config: /etc/sysconfig/nordugrid
+# config: /etc/sysconfig/nordugrid-arc-slapd
+# config: /etc/arc.conf
+#
+######################################################################
+
+### BEGIN INIT INFO
+# Provides:          nordugrid-arc-slapd
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: NorduGrid/ARC Information system
+# Description:       NorduGrid/ARC LDAP based Information System
+### END INIT INFO
+
+# Helper functions
+if [ -r /etc/init.d/functions ]; then
+    . /etc/init.d/functions
+    log_success_msg() {
+	echo -n "$@"
+	success "$@"
+	echo
+    }
+    log_warning_msg() {
+	echo -n "$@"
+	warning "$@"
+	echo
+    }
+    log_failure_msg() {
+	echo -n "$@"
+	failure "$@"
+	echo
+    }
+elif [ -r /lib/lsb/init-functions ]; then
+    . /lib/lsb/init-functions
+else
+    echo "Error: Cannot source neither init.d nor lsb functions"
+    exit 1
+fi
+
+RETVAL=0
+prog=nordugrid-arc-slapd
+RUN=yes
+
+# sysconfig files
+if [ -r /etc/sysconfig/nordugrid ]; then
+    . /etc/sysconfig/nordugrid
+elif [ -r /etc/default/nordugrid ]; then
+    . /etc/default/nordugrid
+fi
+if [ -r /etc/sysconfig/$prog ]; then
+    . /etc/sysconfig/$prog
+elif [ -r /etc/default/$prog ]; then
+    . /etc/default/$prog
+fi
+
+if [ "x$RUN" != "xyes" ]; then
+    log_warning_msg "$prog disabled, please adjust the configuration to your"
+    log_warning_msg "needs and then set RUN to 'yes' in /etc/default/$prog to enable it."
+    exit 0
+fi
+
+[ -n "$ARC_LOCATION" ] && export ARC_LOCATION
+[ -n "$ARC_CONFIG" ]   && export ARC_CONFIG
+
+ARC_LOCATION=${ARC_LOCATION:-@prefix@}
+if [ ! -d "$ARC_LOCATION" ]; then
+    log_failure_msg "ARC_LOCATION ($ARC_LOCATION) not found"
+    exit 1
+fi
+
+bdii_run_dir=/var/run/arc/bdii
+slapd_pid_file=$bdii_run_dir/db/slapd.pid
+
+# Debian does not have /var/lock/subsys
+if [ -d /var/lock/subsys ]; then
+    slapd_lock_file=${slapd_lock_file:-/var/lock/subsys/$prog}
+else
+    slapd_lock_file=${slapd_lock_file:-/var/lock/$prog}
+fi
+
+start () {
+    if [ -r "${slapd_lock_file}" ]; then
+	log_success_msg "$prog already started"
+	RETVAL=0
+	return ${RETVAL}
+    fi
+
+    ${ARC_LOCATION}/@pkgdatasubdir/create-slapd-config
+    if [ ! $? = 0 ]; then
+	log_failure_msg "Failed to create configration for $prog"
+	exit 1
+    fi
+    /var/run/arc/infosys/bdii-slapd.cmd
+
+    touch ${slapd_lock_file}
+
+    iterlimit=30
+    while [ $iterlimit -ge 0 ] && ! [ -r ${slapd_pid_file} ]; do
+	sleep 1
+	iterlimit=$(expr $iterlimit - 1)
+    done
+
+    if ! [ -r "${slapd_pid_file}" ]; then
+	log_failure_msg "$prog failed to start"
+	rm -f ${slapd_lock_file}
+	RETVAL=1
+	return ${RETVAL}
+    fi
+
+    log_success_msg "$prog started"
+}
+
+stop () {
+    if [ ! -r "${slapd_lock_file}" ]; then
+	log_success_msg "$prog already stopped"
+	RETVAL=0
+	return ${RETVAL}
+    fi
+
+    if [ -r "${slapd_pid_file}" ]; then
+	slapd_pid=$(cat ${slapd_pid_file})
+	ps ${slapd_pid} >/dev/null 2>&1
+	if [ ! $? = 0 ]; then
+	    log_failure_msg "$prog pid file exists but the process died"
+	    RETVAL=1
+	    return ${RETVAL}
+	fi
+    else
+	log_failure_msg "$prog process has no pid file"
+	RETVAL=1
+	return ${RETVAL}
+    fi
+
+    if [ -n "${slapd_pid}" ]; then
+	kill -15 ${slapd_pid} 2>/dev/null
+	ps ${slapd_pid} >/dev/null 2>&1
+	if [ $? = 0 ]; then
+	    sleep 2
+	    ps ${slapd_pid} >/dev/null 2>&1
+	    if [ $? = 0 ]; then
+		kill -9 ${slapd_pid} 2>/dev/null
+		sleep 2
+		ps ${slapd_pid} >/dev/null 2>&1
+		if [ $? = 0 ]; then
+		    RETVAL=2
+		else
+		    rm -f {slapd_pid_file}
+		fi
+	    fi
+	fi
+    fi
+
+    if [ ${RETVAL} = 2 ];  then
+	log_failure_msg "Could not stop $prog with pid: $slapd_pid"
+    else
+	rm -f ${slapd_lock_file}
+	log_success_msg "$prog stopped"
+    fi
+
+    return ${RETVAL}
+}
+
+status ()  {
+    if [ ! -r "${slapd_lock_file}" ]; then
+	log_success_msg "$prog is stopped"
+	RETVAL=3
+	return ${RETVAL}
+    fi
+
+    if [ -r ${slapd_pid_file} ]; then
+	ps $(cat ${slapd_pid_file}) >/dev/null 2>&1
+	if [ ! $? = 0 ]; then
+	    log_failure_msg "$prog pid file exists but the process died"
+	    RETVAL=1
+	    return ${RETVAL}
+	fi
+    else
+	log_failure_msg "$prog process has no pid file"
+	RETVAL=1
+	return ${RETVAL}
+    fi
+
+    log_success_msg "$prog is running"
+
+    RETVAL=0
+    return ${RETVAL}
+}
+
+case "$1" in
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    restart | force-reload)
+	stop
+	# avoid race
+	sleep 3
+	start
+	;;
+    reload)
+	;;
+    status)
+	status
+	;;
+    condrestart | try-restart)
+	if [ -r ${slapd_lock_file} ]; then
+	    stop
+	    # avoid race
+	    sleep 3
+	    start
+	fi
+	;;
+    *)
+	echo "Usage: $0 {start|stop|restart|force-reload|reload|condrestart|try-restart|status}"
+	exit 1
+	;;
+esac
+
+exit $RETVAL

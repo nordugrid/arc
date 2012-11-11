@@ -903,7 +903,9 @@ if [ $1 -ge 1 ]; then
 fi
 
 %post aris
-/sbin/chkconfig --add grid-infosys
+/sbin/chkconfig --add nordugrid-arc-bdii
+/sbin/chkconfig --add nordugrid-arc-slapd
+/sbin/chkconfig --add nordugrid-arc-inforeg
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 semanage port -a -t ldap_port_t -p tcp 2135 2>/dev/null || :
 semanage fcontext -a -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
@@ -911,33 +913,22 @@ semanage fcontext -a -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null
 # Remove selinux labels for old arc bdii var dir
 semanage fcontext -d -t slapd_db_t "/var/run/arc/bdii(/.*)?" 2>/dev/null || :
 %endif
-# Move files to new locations so that the condrestart in postun works
-if [ -r /var/lock/subsys/grid-infosys ] && \
-   [ ! -r /var/lock/subsys/arc-bdii-update ] ; then
-   [ -r /var/lock/subsys/bdii-update ] && \
-   mv /var/lock/subsys/bdii-update /var/lock/subsys/arc-bdii-update
-   [ -r /var/lock/subsys/bdii-slapd ] && \
-   mv /var/lock/subsys/bdii-slapd /var/lock/subsys/arc-bdii-slapd
-   [ -d /var/run/bdii ] && [ ! -d /var/run/arc/bdii ] && \
-   mkdir -p /var/run/arc && mv /var/run/bdii /var/run/arc/bdii || :
-   [ -d /var/tmp/bdii ] && [ ! -d /var/tmp/arc/bdii ] && \
-   mkdir -p /var/tmp/arc && mv /var/tmp/bdii /var/tmp/arc/bdii || :
-   [ -d /var/log/bdii ] && [ ! -d /var/log/arc/bdii ] && \
-   mkdir -p /var/log/arc && mv /var/log/bdii /var/log/arc/bdii || :
-   [ -r /var/run/bdii-update.pid ] && \
-   mkdir -p /var/run/arc/bdii && \
-   mv /var/run/bdii-update.pid /var/run/arc/bdii/bdii-update.pid || :
-fi
 
 %preun aris
 if [ $1 -eq 0 ]; then
-  service grid-infosys stop > /dev/null 2>&1
-  /sbin/chkconfig --del grid-infosys
+  service nordugrid-arc-bdii stop > /dev/null 2>&1
+  service nordugrid-arc-slapd stop > /dev/null 2>&1
+  service nordugrid-arc-inforeg stop > /dev/null 2>&1
+  /sbin/chkconfig --del service nordugrid-arc-bdii
+  /sbin/chkconfig --del nordugrid-arc-slapd
+  /sbin/chkconfig --del nordugrid-arc-inforeg
 fi
 
 %postun aris
 if [ $1 -ge 1 ]; then
-  service grid-infosys condrestart > /dev/null 2>&1
+  service nordugrid-arc-bdii condrestart > /dev/null 2>&1
+  service nordugrid-arc-slapd condrestart > /dev/null 2>&1
+  service nordugrid-arc-inforeg condrestart > /dev/null 2>&1
 fi
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 if [ $1 -eq 0 ]; then
@@ -948,7 +939,7 @@ fi
 %endif
 
 %triggerun aris -- bdii
-service grid-infosys condrestart > /dev/null 2>&1
+service nordugrid-arc-bdii condrestart > /dev/null 2>&1
 
 %post egiis
 %if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
@@ -1123,7 +1114,12 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files aris
 %defattr(-,root,root,-)
-%{_initrddir}/grid-infosys
+%{_initrddir}/nordugrid-arc-bdii
+%{_initrddir}/nordugrid-arc-slapd
+%{_initrddir}/nordugrid-arc-inforeg
+%{_datadir}/%{pkgdir}/create-bdii-config
+%{_datadir}/%{pkgdir}/create-slapd-config
+%{_datadir}/%{pkgdir}/create-inforeg-config
 %{_datadir}/%{pkgdir}/glue-generator.pl
 %{_datadir}/%{pkgdir}/glite-info-provider-ldap
 %{_datadir}/%{pkgdir}/ldap-schema
@@ -1139,6 +1135,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files egiis
 %defattr(-,root,root,-)
+%{_initrddir}/nordugrid-arc-egiis
 %{_sbindir}/arc-infoindex-relay
 %{_sbindir}/arc-infoindex-server
 %{_mandir}/man8/arc-infoindex-relay.8*
