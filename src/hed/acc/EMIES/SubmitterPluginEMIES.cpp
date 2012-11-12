@@ -108,7 +108,7 @@ namespace Arc {
       
       
       // Proposed mandatory attributes for ARC 3.0
-      j.ID = jobid.id;
+      j.ID = jobid.manager.str() + "/" + jobid.id;
       j.ResourceInfoURL = jobid.resource;
       j.ResourceInfoInterfaceName = "org.ogf.glue.emies.resourceinfo";
       j.ActivityInfoInterfaceName = "org.ogf.glue.emies.activityinfo";
