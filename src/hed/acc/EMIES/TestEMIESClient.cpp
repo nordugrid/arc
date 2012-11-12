@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     adl.GetDoc(adls);
     EMIESJob job;
     EMIESJobState state;
-    if(!ac.submit(adls,job,state,false)) {
+    if(!ac.submit(adls,job,state)) {
       logger.msg(ERROR,"Submission failed");
       return 1;
     };

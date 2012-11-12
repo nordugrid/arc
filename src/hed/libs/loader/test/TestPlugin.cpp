@@ -34,6 +34,6 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
         0,                    /* version */
         Test::get_instance    /* get_instance function */
     },
-    { NULL, NULL, 0, NULL }
+    { NULL, NULL, NULL, 0, NULL }
 };
 

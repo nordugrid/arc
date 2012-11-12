@@ -1010,7 +1010,7 @@ void PayloadHTTPOutStream::Body(PayloadStreamInterface& body,bool ownership) {
 char PayloadHTTPOutRaw::operator[](PayloadRawInterface::Size_t pos) const {
   if(!((PayloadHTTPOutRaw&)(*this)).remake_header(false)) return 0;
   if(pos == -1) pos = 0;
-  if(pos < 0) return NULL;
+  if(pos < 0) return 0;
   if(pos < header_.length()) {
     return header_[pos];
   };
@@ -1075,7 +1075,7 @@ char* PayloadHTTPOutRaw::Buffer(unsigned int num) {
 }
 
 PayloadRawInterface::Size_t PayloadHTTPOutRaw::BufferSize(unsigned int num) const {
-  if(!((PayloadHTTPOutRaw&)(*this)).remake_header(false)) return NULL;
+  if(!((PayloadHTTPOutRaw&)(*this)).remake_header(false)) return 0;
   if(num == 0) {
     return header_.length();
   };

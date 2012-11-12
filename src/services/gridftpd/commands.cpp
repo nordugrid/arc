@@ -1161,7 +1161,7 @@ GridFTP_Commands::GridFTP_Commands(int n,unsigned int* f) {
   delegated_cred=NULL;
   file_size=0;
   last_action_time=time(NULL);
-  list_offset=NULL;
+  list_offset=0;
   list_mode=list_mlsd_mode;
   /* harmless race condition here */
   if(!timeouter) {
