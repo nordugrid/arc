@@ -109,7 +109,7 @@ int RUNMAIN(arcmigrate)(int argc, char **argv) {
   Arc::JobSupervisor jobmaster(usercfg, jobs);
   jobmaster.Update();
   jobmaster.SelectValid();
-  jobmaster.SelectByStatus(std::list<std::string>(1, "Queing"));
+  jobmaster.SelectByStatus(std::list<std::string>(1, "Queuing"));
   if (jobmaster.GetSelectedJobs().empty()) {
     std::cout << Arc::IString("No jobs") << std::endl;
     return 1;
