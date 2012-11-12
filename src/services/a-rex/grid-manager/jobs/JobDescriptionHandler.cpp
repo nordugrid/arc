@@ -211,6 +211,9 @@ bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc,
   f<<"joboption_walltime="<<(arc_job_desc.Resources.TotalWallTime.range.max != -1 ? Arc::tostring(arc_job_desc.Resources.TotalWallTime.range.max):"")<<std::endl;
   f<<"joboption_memory="<<(arc_job_desc.Resources.IndividualPhysicalMemory.max != -1 ? Arc::tostring(arc_job_desc.Resources.IndividualPhysicalMemory.max):"")<<std::endl;
   f<<"joboption_count="<<(arc_job_desc.Resources.SlotRequirement.NumberOfSlots != -1 ? Arc::tostring(arc_job_desc.Resources.SlotRequirement.NumberOfSlots):"1")<<std::endl;
+  f<<"joboption_countpernode="<<Arc::tostring(arc_job_desc.Resources.SlotRequirement.SlotsPerHost)<<std::endl;
+  f<<"joboption_exclusivenode="<<Arc::tostring(arc_job_desc.Resources.SlotRequirement.ExclusiveExecution)<<std::endl;
+
 
   {
     int i = 0;
