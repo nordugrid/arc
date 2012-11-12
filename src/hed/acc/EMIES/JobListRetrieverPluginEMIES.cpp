@@ -57,6 +57,19 @@ namespace Arc {
     if (!ac.list(jobids)) {
       return s;
     }
+    
+    URL ActivityInfoURL;
+    // Requery the EMIES for the ActivityInfo URL
+    std::list<URL> activitycreation;
+    std::list<URL> activitymanagememt;
+    std::list<URL> activityinfo;
+    std::list<URL> resourceinfo;
+    std::list<URL> delegation;
+    if(ac.sstat(activitycreation,activitymanagememt,activityinfo,resourceinfo,delegation)) {
+      if (!activityinfo.empty()) {
+        ActivityInfoURL = activityinfo.front();
+      }
+    }
 
     for(std::list<EMIESJob>::iterator jobid = jobids.begin(); jobid != jobids.end(); ++jobid) {
       Job j;
@@ -68,10 +81,10 @@ namespace Arc {
       j.JobID = URL(jobid->manager.str() + "/" + jobid->id);
       
       // Proposed mandatory attributes for ARC 3.0
-      j.ID = jobid->id;
+      j.ID = jobid->manager.str() + "/" + jobid->id;
       j.ResourceInfoURL = url.fullstr();
       j.ResourceInfoInterfaceName = "org.ogf.glue.emies.resourceinfo";
-      j.ActivityInfoURL = jobid->manager; // This is not valid, we should figure out the real ActivityInfo URL
+      j.ActivityInfoURL = ActivityInfoURL;
       j.ActivityInfoInterfaceName = "org.ogf.glue.emies.activityinfo";
       j.ActivityManagerURL = jobid->manager;
       j.ActivityManagerInterfaceName = "org.ogf.glue.emies.activitymanager";
