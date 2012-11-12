@@ -5,9 +5,9 @@ GIIS_SERVICE =
 endif
 
 if SYSV_SCRIPTS_ENABLED
-GRID_INFOSYS_SCRIPT = 
-else
 GRID_INFOSYS_SCRIPT = nordugrid-arc-bdii nordugrid-arc-egiis nordugrid-arc-inforeg nordugrid-arc-slapd
+else
+GRID_INFOSYS_SCRIPT = 
 endif
 
 initd_SCRIPTS = $(GRID_INFOSYS_SCRIPT)
