@@ -37,14 +37,13 @@ void UserTest::OwnUserTest() {
   std::string home = g_get_user_config_dir();
 #else
   uid_t uid_ = getuid();
-  gid_t gid_ = getgid();
   // My username
   struct passwd pwd;
   char pwdbuf[2048];
   struct passwd *pwd_p;
   CPPUNIT_ASSERT_EQUAL(0, getpwuid_r(uid_, &pwd, pwdbuf, sizeof(pwdbuf), &pwd_p));
   int uid = (int)uid_;
-  int gid = (int)gid_;
+  int gid = pwd_p->pw_gid;
   std::string username = pwd_p->pw_name;
   std::string home = pwd_p->pw_dir;
 #endif
