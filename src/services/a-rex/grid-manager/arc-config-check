@@ -384,7 +384,7 @@ sub confcheck($) {
 	}
 	# parameters which are allowed more than once
 	# taken from arc.conf.reference - somehow this needs to be kept in sync
-	my @multiple = ("source", "filter", "sessiondir", "cachedir",
+	my @multiple = ("voms_trust_chain", "source", "filter", "sessiondir", "cachedir",
 		"remotecachedir", "jobreport", "share_limit", "authplugin",
 		"allowsubmit", "copyurl", "linkurl", "definedshare",
 		"deliveryservice", "unixmap", "unixgroup", "unixvo", "dir",
