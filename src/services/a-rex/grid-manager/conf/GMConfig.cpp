@@ -365,8 +365,10 @@ bool GMConfig::RunHelpers() {
   return started;
 }
 
-void GMConfig::PrepareToDestroy() const {
-  // TODO: send signals to helpers and stop started threads
+void GMConfig::PrepareToDestroy() {
+  for (std::list<ExternalHelper>::iterator i = helpers.begin(); i != helpers.end(); ++i) {
+    i->stop();
+  }
 }
 
 GMConfig::ExternalHelper::ExternalHelper(const std::string &cmd) {
@@ -400,6 +402,13 @@ bool GMConfig::ExternalHelper::run(const GMConfig& config) {
   logger.msg(Arc::ERROR, "Helper process start failed: %s", command);
   // start failed, doing nothing - maybe in the future
   return false;
+}
+
+void GMConfig::ExternalHelper::stop() {
+  if (proc && proc->Running()) {
+    logger.msg(Arc::VERBOSE, "Stopping helper process %s", command);
+    proc->Kill(1);
+  }
 }
 
 } // namespace ARex

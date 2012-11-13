@@ -97,8 +97,8 @@ public:
   /// optional User can be specified for the user-related substitutions.
   bool Substitute(std::string& param, const Arc::User& user=Arc::User()) const;
 
-  /// Send signals to helpers to shut them down cleanly (not implemented yet)
-  void PrepareToDestroy() const;
+  /// Send signals to helpers to shut them down cleanly
+  void PrepareToDestroy();
 
   /// Set control directory
   void SetControlDir(const std::string &dir);
@@ -233,6 +233,8 @@ private:
     ~ExternalHelper();
     /// Start process if it is not running yet
     bool run(const GMConfig& config);
+    /// Stop process if it is running
+    void stop();
   };
   /// Configuration file
   std::string conffile;
