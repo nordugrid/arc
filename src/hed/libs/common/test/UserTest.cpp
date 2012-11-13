@@ -12,6 +12,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <arc/User.h>
+#include <arc/Utils.h>
 
 class UserTest
   : public CppUnit::TestFixture {
@@ -45,7 +46,8 @@ void UserTest::OwnUserTest() {
   int uid = (int)uid_;
   int gid = pwd_p->pw_gid;
   std::string username = pwd_p->pw_name;
-  std::string home = pwd_p->pw_dir;
+  std::string home = Arc::GetEnv("HOME");
+  if (home.empty()) pwd_p->pw_dir;
 #endif
 
   // User using this user's uid
