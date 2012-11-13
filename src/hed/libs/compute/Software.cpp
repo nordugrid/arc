@@ -219,6 +219,8 @@ bool SoftwareRequirement::isSatisfiedSelect(const std::list<Software>& swList, S
     }
 
     logger.msg(VERBOSE, "Requirement \"%s %s\" satisfied by \"%s\".", Software::toString(*itSWC), (std::string)*itSW, (std::string)(currentSelectedSoftware == NULL ? *itSWList : *currentSelectedSoftware));
+    // Keep options from requirement
+    if(currentSelectedSoftware != NULL) currentSelectedSoftware->addOptions(itSW->getOptions());
   }
 
   logger.msg(VERBOSE, "All requirements satisfied.");

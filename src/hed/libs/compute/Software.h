@@ -268,6 +268,8 @@ namespace Arc {
 
     void addOption(const std::string& opt) { option.push_back(opt); }
 
+    void addOptions(const std::list<std::string>& opts) { option.insert(option.end(),opts.begin(),opts.end()); }
+
     /// Convert Software::ComparisonOperator to a string.
     /**
      * This method is not available in language bindings created by
