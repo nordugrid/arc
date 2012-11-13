@@ -32,6 +32,7 @@ require_once('ldap_nice_dump.inc');
 $host   = ( $_GET["host"] )  ? $_GET["host"]  : "quark.hep.lu.se";
 $port   = ( $_GET["port"] )  ? $_GET["port"]  : 2135;
 $qname  = $_GET["qname"];
+$schema = ( $_GET["schema"] )  ? $_GET["schema"]  : "";
 $debug  = ( $_GET["debug"] ) ? $_GET["debug"] : 0;
 $lang   = @$_GET["lang"];
 if ( !$lang )    $lang    = "default"; // browser language
@@ -45,13 +46,16 @@ $module   = &$toppage->module;
 $strings  = &$toppage->strings;
 $errors   = &$toppage->errors;
 
-$clstring = popup("clusdes.php?host=$host&port=$port",700,620,1,$lang,$debug);
+$clstring = popup("clusdes.php?host=$host&port=$port&schema=$schema",700,620,1,$lang,$debug);
 
 // Header table
 
 $toppage->tabletop("","<b><i>".$toptitle." ".$qname." (<a href=\"$clstring\">".$host."</a>)</i></b>");
 
 $lim = array( "dn", JOB_NAME, JOB_GOWN, JOB_SUBM, JOB_STAT, JOB_COMP, JOB_USET, JOB_USEM, JOB_ERRS, JOB_CPUS, JOB_EQUE );
+if ( $schema == "GLUE2") {
+  $lim = array( "dn", GJOB_NAME, GJOB_GOWN, GJOB_SUBM, GJOB_STAT, GJOB_COMP, GJOB_USET, GJOB_USEM, GJOB_ERRS, GJOB_CPUS, GJOB_EQUE );
+}
   
 if ( $debug ) {
   ob_end_flush();
@@ -67,6 +71,10 @@ if( $debug ) dbgmsg("<div align=\"left\"><i>:::&gt; ".$errors["101"].$tlim.$erro
 $filstr = "(objectclass=".OBJ_AJOB.")";
 $dn     = DN_LOCAL;
 $topdn  = DN_GLOBL;
+if ( $schema == "GLUE2") {
+  $filstr = "(objectclass=".GOBJ_AJOB.")";
+  $dn     = "GLUE2GroupID=services,".DN_GLUE;
+}
   
 // Establish connection to the requested LDAP server
   
@@ -77,6 +85,12 @@ if ($ds) {
     
   $basedn = QUE_NAME."=".$qname.",".CLU_NAME."=".$host.",";
   $locdn  = $basedn.$dn;
+  if ( $schema == "GLUE2") {
+    $basedn = GQUE_NAME."=".$qname.",".GCLU_NAME."=".$host.",";
+    $basedn = "GLUE2ShareID=urn:ogf:ComputingShare:".$host.":".$qname.",GLUE2ServiceID=urn:ogf:ComputingService:".$host.":arex,";
+    $locdn  = $basedn.$dn;
+  }
+
   $aaa = ldap_nice_dump($strings,$ds,$locdn);
   echo "<br>";    
     
@@ -93,6 +107,7 @@ if ($ds) {
       $njobs   = $entries["count"];
         
       define("CMPKEY",JOB_SUBM);
+      if ( $schema == "GLUE2") define("CMPKEY",GJOB_SUBM);
       usort($entries,"ldap_entry_comp");
         
       // HTML table initialisation
@@ -103,38 +118,74 @@ if ($ds) {
         
       $nj = 0;
       for ($i=1; $i<$njobs+1; $i++) {
-	$equeue  = $entries[$i][JOB_EQUE][0];
-	if ( $equeue !== $qname ) {
-	  if ( $debug == 2 ) dbgmsg($equeue." != ".$qname);
-	  continue;
-	}
-	$jobdn   = rawurlencode($entries[$i]["dn"]);
-	$curstat = $entries[$i][JOB_STAT][0];
-	$stahead = substr($curstat,0,12);
-	$ftime = "";
-	if ($stahead=="FINISHED at:") {
-	  $ftime = substr(strrchr($curstat, " "), 1);
-        } elseif ($curstat=="FINISHED") {
-	  $ftime = $entries[$i][JOB_COMP][0];
-	}
-	if ( $ftime ) {
-	  $ftime   = cnvtime($ftime);
-	  $curstat = "FINISHED at: ".$ftime;
-	}
-	$uname    = $entries[$i][JOB_GOWN][0];
-	$encuname = rawurlencode($uname);
-	$family   = cnvname($uname, 2);
+        if ( $schema == "GLUE2") {
+	  $equeue  = $entries[$i][GJOB_EQUE][0];
+	  if ( $equeue !== $qname ) {
+	    if ( $debug == 2 ) dbgmsg($equeue." != ".$qname);
+	    continue;
+	  }
+	  $jobdn   = rawurlencode($entries[$i]["dn"]);
+	  $curstat = $entries[$i][GJOB_STAT][0];
+	  $stahead = substr($curstat,0,12);
+	  $ftime = "";
+	  if ($stahead=="FINISHED at:") {
+	    $ftime = substr(strrchr($curstat, " "), 1);
+          } elseif ($curstat=="FINISHED") {
+	    $ftime = $entries[$i][GJOB_COMP][0];
+	  }
+	  if ( $ftime ) {
+	    $ftime   = cnvtime($ftime);
+	    $curstat = "FINISHED at: ".$ftime;
+	  }
+	  $uname    = $entries[$i][GJOB_GOWN][0];
+	  $encuname = rawurlencode($uname);
+	  $family   = cnvname($uname, 2);
           
-	$jname   = htmlentities($entries[$i][JOB_NAME][0]);
-	$jobname = ($entries[$i][JOB_NAME][0]) ? $jname : "<font color=\"red\">N/A</font>";
-	$time    = ($entries[$i][JOB_USET][0]) ? $entries[$i][JOB_USET][0] : "";
-	$memory  = ($entries[$i][JOB_USEM][0]) ? $entries[$i][JOB_USEM][0] : "";
-	$ncpus   = ($entries[$i][JOB_CPUS][0]) ? $entries[$i][JOB_CPUS][0] : "";
-	$error   = ($entries[$i][JOB_ERRS][0]);
-	if ( $error ) $error = ( preg_match("/user/i",$error) ) ? "X" : "!";
-	$status  = "All";
-	$newwin  = popup("jobstat.php?host=$host&port=$port&status=$status&jobdn=$jobdn",750,430,4,$lang,$debug);
-	$usrwin  = popup("userlist.php?bdn=$topdn&owner=$encuname",700,500,5,$lang,$debug);
+	  $jname   = htmlentities($entries[$i][GJOB_NAME][0]);
+	  $jobname = ($entries[$i][GJOB_NAME][0]) ? $jname : "<font color=\"red\">N/A</font>";
+	  $time    = ($entries[$i][GJOB_USET][0]) ? $entries[$i][GJOB_USET][0] : "";
+	  $memory  = ($entries[$i][GJOB_USEM][0]) ? $entries[$i][GJOB_USEM][0] : "";
+	  $ncpus   = ($entries[$i][GJOB_CPUS][0]) ? $entries[$i][GJOB_CPUS][0] : "";
+	  $error   = ($entries[$i][GJOB_ERRS][0]);
+	  if ( $error ) $error = ( preg_match("/user/i",$error) ) ? "X" : "!";
+	  $status  = "All";
+	  $newwin  = popup("jobstat.php?host=$host&port=$port&status=$status&jobdn=$jobdn&schema=$schema",750,430,4,$lang,$debug);
+	  $usrwin  = popup("userlist.php?bdn=$topdn&owner=$encuname&schema=$schema",700,500,5,$lang,$debug);
+        } else {
+          //NG schema parse
+          $equeue  = $entries[$i][JOB_EQUE][0];
+          if ( $equeue !== $qname ) {
+            if ( $debug == 2 ) dbgmsg($equeue." != ".$qname);
+            continue;
+          }
+          $jobdn   = rawurlencode($entries[$i]["dn"]);
+          $curstat = $entries[$i][JOB_STAT][0];
+          $stahead = substr($curstat,0,12);
+          $ftime = "";
+          if ($stahead=="FINISHED at:") {
+            $ftime = substr(strrchr($curstat, " "), 1);
+          } elseif ($curstat=="FINISHED") {
+            $ftime = $entries[$i][JOB_COMP][0];
+          }
+          if ( $ftime ) {
+            $ftime   = cnvtime($ftime);
+            $curstat = "FINISHED at: ".$ftime;
+          }
+          $uname    = $entries[$i][JOB_GOWN][0];
+          $encuname = rawurlencode($uname);
+          $family   = cnvname($uname, 2);
+
+          $jname   = htmlentities($entries[$i][JOB_NAME][0]);
+          $jobname = ($entries[$i][JOB_NAME][0]) ? $jname : "<font color=\"red\">N/A</font>";
+          $time    = ($entries[$i][JOB_USET][0]) ? $entries[$i][JOB_USET][0] : "";
+          $memory  = ($entries[$i][JOB_USEM][0]) ? $entries[$i][JOB_USEM][0] : "";
+          $ncpus   = ($entries[$i][JOB_CPUS][0]) ? $entries[$i][JOB_CPUS][0] : "";
+          $error   = ($entries[$i][JOB_ERRS][0]);
+          if ( $error ) $error = ( preg_match("/user/i",$error) ) ? "X" : "!";
+          $status  = "All";
+          $newwin  = popup("jobstat.php?host=$host&port=$port&status=$status&jobdn=$jobdn",750,430,4,$lang,$debug);
+          $usrwin  = popup("userlist.php?bdn=$topdn&owner=$encuname",700,500,5,$lang,$debug);
+        }
           
 	// filling the table
           
