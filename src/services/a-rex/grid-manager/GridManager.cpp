@@ -122,12 +122,14 @@ class sleep_st {
  public:
   Arc::SimpleCondition* sleep_cond;
   CommFIFO* timeout;
+  std::string control_dir;
   bool to_exit; // tells thread to exit
   bool exited;  // set by thread while exiting
-  sleep_st(void):sleep_cond(NULL),timeout(NULL),to_exit(false),exited(false) {
+  sleep_st(const std::string& control):sleep_cond(NULL),timeout(NULL),control_dir(control),to_exit(false),exited(false) {
   };
   ~sleep_st(void) {
     to_exit = true;
+    SignalFIFO(control_dir);
     while(!exited) sleep(1);
   };
 };
@@ -175,10 +177,9 @@ bool GridManager::thread() {
   config_.Print();
 
   // Preparing various structures, dirs, etc.
-  std::string gm_fifo = config_.ControlDir();
   wakeup_interface_ = new CommFIFO;
   time_t hard_job_time; 
-  CommFIFO::add_result r = wakeup_interface_->add(gm_fifo);
+  CommFIFO::add_result r = wakeup_interface_->add(config_.ControlDir());
   if(r != CommFIFO::add_success) {
     if(r == CommFIFO::add_busy) {
       logger.msg(Arc::FATAL,"Error adding communication interface in %s. "
@@ -201,7 +202,7 @@ bool GridManager::thread() {
   wakeup_interface_->timeout(config_.WakeupPeriod());
 
   /* start timer thread - wake up every 2 minutes */
-  wakeup_ = new sleep_st;
+  wakeup_ = new sleep_st(config_.ControlDir());
   wakeup_->sleep_cond=sleep_cond_;
   wakeup_->timeout=wakeup_interface_;
   if(!Arc::CreateThreadFunction(wakeup_func,wakeup_)) {
