@@ -178,8 +178,8 @@ shift higher than a maximally allowed maxtimediff results in an error.
 
 =cut
 
-sub timecheck($$) {
-	my ($timeserver, $maxtimediff) = @_;
+sub timecheck($$$) {
+	my ($timeserver, $maxtimediff, $maxtimediffwarn) = @_;
 	my $timeoffset = undef;
 
 	my $ntpdate = "/usr/sbin/ntpdate";
@@ -205,9 +205,9 @@ sub timecheck($$) {
 			e("Timecheck: Your time differs by more than " .
 				"$maxtimediff seconds ($timeoffset seconds) from the " .
 				"public time server '$timeserver'\n");
-		} else {
+		} elsif (abs($timeoffset)>=$maxtimediffwarn) {
 			w("Timecheck: Your time differs slightly " .
-				"$timeoffset seconds) from the public time " .
+				"($timeoffset seconds) from the public time " .
 				"server '$timeserver'.\n");
 		}
 	} else {
@@ -763,7 +763,7 @@ sub check_certificates() {
 }
 
 
-timecheck($timeserver, 0.2);
+timecheck($timeserver, 0.2, 0.01);
 confcheck($conffile);
 check_applications();
 check_libraries();
