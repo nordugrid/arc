@@ -175,7 +175,6 @@ namespace Arc {
     JobManagementInterfaceName = j.JobManagementInterfaceName;
 
     JobID = j.JobID;
-    Cluster = j.Cluster;
     InterfaceName = j.InterfaceName;
 
     Type = j.Type;
@@ -265,7 +264,6 @@ namespace Arc {
     }
 
     JXMLTOSTRING(Name)
-    JXMLTOSTRING(Cluster)
     if (job["InterfaceName"]) {
       JXMLTOSTRING(InterfaceName)
     }
@@ -418,7 +416,6 @@ namespace Arc {
 
 
     URLTOXML(JobID)
-    URLTOXML(Cluster)
     STRINGTOXML(InterfaceName)
     STRINGTOXML(Type)
     STRINGTOXML(IDFromEndpoint)
@@ -577,7 +574,6 @@ namespace Arc {
         }
       }
 
-      out << IString(" Cluster: %s", Cluster.fullstr()) << std::endl;
       out << IString(" Management Interface: %s", InterfaceName) << std::endl;
       
       // Proposed mandatory attributes for ARC 3.0
@@ -849,7 +845,7 @@ namespace Arc {
         // Check if the job (itJ) is selected by endpoints.
         std::list<std::string>::const_iterator itC = endpoints.begin();
         for (; itC != endpoints.end(); ++itC) {
-          if (itJ->Cluster.StringMatches(*itC)) {
+          if (itJ->ServiceInformationURL.StringMatches(*itC)) {
             break;
           }
         }
@@ -871,7 +867,7 @@ namespace Arc {
     for (std::list<std::string>::const_iterator itC = rEndpoints.begin();
          itC != rEndpoints.end(); ++itC) {
       for (std::list<Arc::Job>::iterator itJ = jobs.begin(); itJ != jobs.end();) {
-        if (itJ->Cluster.StringMatches(*itC)) {
+        if (itJ->ServiceInformationURL.StringMatches(*itC)) {
           itJ = jobs.erase(itJ);
         }
         else {
@@ -949,7 +945,7 @@ namespace Arc {
         std::list<XMLNode> jobsToRemove;
         for (Arc::XMLNode j = jobfile["Job"]; j; ++j) {
           if (!((std::string)j["JobID"]).empty()) {
-            Endpoint endpoint(j["Cluster"]);
+            Endpoint endpoint(j["ServiceInformationURL"]);
             std::string serviceName = endpoint.getServiceName();
             if (!serviceName.empty() && prunedServices.count(serviceName)) {
               logger.msg(DEBUG, "Will remove %s on service %s.",

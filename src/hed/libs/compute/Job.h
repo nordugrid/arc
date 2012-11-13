@@ -54,7 +54,6 @@ namespace Arc {
     // Attributes not part of ComputingActivity entity in GLUE2
     // These are used for central functionality in the library
     URL JobID;
-    URL Cluster;
     std::string InterfaceName;
 
 

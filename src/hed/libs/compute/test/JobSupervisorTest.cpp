@@ -49,7 +49,10 @@ private:
 
 JobSupervisorTest::JobSupervisorTest() : usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)), js(NULL) {
   j.InterfaceName = "org.nordugrid.test";
-  j.Cluster = Arc::URL("http://test.nordugrid.org");
+  j.JobStatusURL = Arc::URL("http://test.nordugrid.org");
+  j.JobStatusInterfaceName = "org.nordugrid.test";
+  j.JobManagementURL = Arc::URL("http://test.nordugrid.org");
+  j.JobManagementInterfaceName = "org.nordugrid.test";
 }
 
 void JobSupervisorTest::TestConstructor()

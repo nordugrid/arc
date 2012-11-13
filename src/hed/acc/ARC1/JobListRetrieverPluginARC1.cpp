@@ -71,7 +71,6 @@ namespace Arc {
       j.JobID.ChangePath(j.JobID.Path() + "/" + file->GetName());
       j.InterfaceName = "org.nordugrid.xbes";
       j.IDFromEndpoint = "<ActivityIdentifier><Address>" + url.fullstr() + "</Address></ActivityIdentifier>";
-      j.Cluster = url;
       
       // Proposed mandatory attributes for ARC 3.0
       j.ID = j.JobID.fullstr();

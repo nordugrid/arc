@@ -88,7 +88,6 @@ namespace Arc {
     if (job.InterfaceName.empty() && !supportedInterfaces.empty()) {
       job.InterfaceName = supportedInterfaces.front();
     }
-    job.Cluster = cluster;
     job.LocalSubmissionTime = Arc::Time().str(UTCTime);
 
     job.ActivityOldID = jobdesc.Identification.ActivityOldID;

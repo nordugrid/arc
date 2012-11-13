@@ -126,7 +126,6 @@ namespace Arc {
         j.LocalSubmissionTime = (std::string)(*it)["nordugrid-job-submissiontime"];
 
       j.InterfaceName = "org.nordugrid.gridftpjob";
-      j.Cluster = url;
 
       URL infoEndpoint(url);
       infoEndpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" +

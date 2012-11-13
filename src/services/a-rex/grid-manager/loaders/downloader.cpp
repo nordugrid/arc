@@ -716,14 +716,14 @@ int main(int argc,char** argv) {
       if (found != std::string::npos) {
         Arc::Job arc_job;
         arc_job.JobID = Arc::URL(job.get_local()->migrateactivityid);
-        arc_job.Cluster = Arc::URL(job.get_local()->migrateactivityid.substr(0, found));
+        arc_job.JobManagementURL = Arc::URL(job.get_local()->migrateactivityid.substr(0, found));
         std::list<Arc::Job*> jobs(1, &arc_job);
 
-        Arc::UserConfig usercfg(arc_job.Cluster.Protocol() == "https" ?
+        Arc::UserConfig usercfg(arc_job.JobManagementURL.Protocol() == "https" ?
                                 Arc::initializeCredentialsType() :
                                 Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
-        if (arc_job.Cluster.Protocol() != "https" ||
-            (arc_job.Cluster.Protocol() == "https" && usercfg.CredentialsFound())) {
+        if (arc_job.JobManagementURL.Protocol() != "https" ||
+            (arc_job.JobManagementURL.Protocol() == "https" && usercfg.CredentialsFound())) {
           Arc::JobControllerPluginLoader loader;
           Arc::JobControllerPlugin *jobctrl = loader.load("ARC1", usercfg);
           if (jobctrl) {

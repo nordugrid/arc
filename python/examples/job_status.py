@@ -14,7 +14,8 @@ def example():
     job = arc.Job()
     job.JobID = arc.URL("https://piff.hep.lu.se:443/arex/1QuMDmRwvUfn5h5iWqkutBwoABFKDmABFKDmIpHKDmXBFKDmIuAean")
     job.Flavour = "ARC1"
-    job.Cluster = arc.URL("https://piff.hep.lu.se:443/arex")
+    job.JobManagementURL = arc.URL("https://piff.hep.lu.se:443/arex")
+    job.JobStatusURL = arc.URL("https://piff.hep.lu.se:443/arex")
     
     print "Job object before update:"
     job.SaveToStream(arc.CPyOstream(sys.stdout), True)

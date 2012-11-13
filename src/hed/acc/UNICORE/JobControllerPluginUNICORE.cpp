@@ -29,7 +29,7 @@ namespace Arc {
     usercfg.ApplyToConfig(cfg);
 
     for (std::list<Job*>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
-      URL url((*it)->Cluster);
+      URL url((*it)->JobStatusURL);
       XMLNode id((*it)->IDFromEndpoint);
       ClientSOAP client(cfg, url, usercfg.Timeout());
       logger.msg(INFO, "Creating and sending a status request");

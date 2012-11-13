@@ -33,7 +33,7 @@ namespace Arc {
     usercfg.ApplyToConfig(cfg);
 
     for (std::list<Job*>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
-      AREXClient ac((*it)->Cluster, cfg, usercfg.Timeout(),false);
+      AREXClient ac((*it)->JobStatusURL, cfg, usercfg.Timeout(),false);
       if (!ac.stat((*it)->IDFromEndpoint, **it)) {
         logger.msg(INFO, "Failed retrieving job status information");
         IDsNotProcessed.push_back((*it)->JobID);
@@ -57,7 +57,7 @@ namespace Arc {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
-      AREXClient ac(job.Cluster, cfg, usercfg.Timeout(), false);
+      AREXClient ac(job.JobManagementURL, cfg, usercfg.Timeout(), false);
       if (!ac.kill(job.IDFromEndpoint)) {
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
@@ -88,7 +88,7 @@ namespace Arc {
   bool JobControllerPluginBES::GetJobDescription(const Job& job, std::string& desc_str) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(job.Cluster, cfg, usercfg.Timeout(), false);
+    AREXClient ac(job.JobManagementURL, cfg, usercfg.Timeout(), false);
     if (ac.getdesc(job.IDFromEndpoint, desc_str)) {
       std::list<JobDescription> descs;
       if (JobDescription::Parse(desc_str, descs) && !descs.empty()) {

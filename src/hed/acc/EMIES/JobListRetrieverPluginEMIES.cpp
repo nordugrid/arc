@@ -62,7 +62,6 @@ namespace Arc {
       Job j;
       if(!jobid->manager) jobid->manager = url;
       j.InterfaceName = "org.ogf.glue.emies.activitymanagement";
-      j.Cluster = jobid->manager;
       j.IDFromEndpoint = jobid->ToXML();
       // URL-izing job id
       j.JobID = URL(jobid->manager.str() + "/" + jobid->id);

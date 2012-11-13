@@ -42,8 +42,8 @@ namespace Arc {
       return false;
     }
 
-    if (!job.Cluster) {
-      logger.msg(VERBOSE, "Ignoring job (%s), the resource URL is not a valid URL", job.JobID.fullstr());
+    if (!job.JobManagementURL) {
+      logger.msg(VERBOSE, "Ignoring job (%s), the job managemenet URL is unknown", job.JobID.fullstr());
       return false;
     }
 
@@ -407,13 +407,13 @@ namespace Arc {
 
       std::list<URL> rejectEndpoints;
       if (destination == 1) { // Jobs should be resubmitted to same target.
-        std::list<Endpoint> sametarget(1, Endpoint((**itJ)->Cluster.fullstr()));
+        std::list<Endpoint> sametarget(1, Endpoint((**itJ)->ServiceInformationURL.fullstr()));
         sametarget.front().Capability.insert(Endpoint::GetStringForCapability(Endpoint::COMPUTINGINFO));
 
         csr = new ComputingServiceRetriever(resubmitUsercfg, sametarget, rejectedURLs);
         csr->wait();
         if (csr->empty()) {
-          logger.msg(ERROR, "Unable to resubmit job (%s), target information retrieval failed for target: %s", (**itJ)->JobID.fullstr(), (**itJ)->Cluster.str());
+          logger.msg(ERROR, "Unable to resubmit job (%s), target information retrieval failed for target: %s", (**itJ)->JobID.fullstr(), (**itJ)->ServiceInformationURL.str());
           delete csr;
           resubmittedJobs.pop_back();
           notprocessed.push_back((**itJ)->JobID);
@@ -423,7 +423,7 @@ namespace Arc {
         }
       }
       else if (destination == 2) { // Jobs should NOT be resubmitted to same target.
-        rejectEndpoints.push_back((**itJ)->Cluster);
+        rejectEndpoints.push_back((**itJ)->ServiceInformationURL);
       }
 
       ExecutionTargetSorter ets(broker, jobdescs.front(), *csr, rejectEndpoints);
