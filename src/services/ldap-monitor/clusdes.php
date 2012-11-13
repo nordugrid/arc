@@ -123,7 +123,7 @@ if ($ds) {
         
       // HTML table initialisation
          
-      $qtable = new LmTableSp($module,$toppage->$module);
+      $qtable = new LmTableSp($module,$toppage->$module,$schema);
         
       // loop on the rest of attributes
 
@@ -143,7 +143,7 @@ if ($ds) {
 	    $gridque = @($qentries[$k][QUE_GQUE][0]) ? $qentries[$k][QUE_GQUE][0] : "0";
 	    $gmque   = @($qentries[$k][QUE_PQUE][0]) ? ($qentries[$k][QUE_PQUE][0]) : 0; /* new since 0.5.38 */
 	    $gridrun = @($qentries[$k][QUE_GRUN][0]) ? $qentries[$k][QUE_GRUN][0] : "0";
-	    $quewin  = popup("quelist.php?host=$host&port=$port&qname=$qname",750,430,6,$lang,$debug);
+	    $quewin  = popup("quelist.php?host=$host&port=$port&qname=$qname&schema=$schema",750,430,6,$lang,$debug);
         }
         if ( $dn == DN_GLUE ) {
             $qname   =  $qentries[$k][GQUE_NAME][0];
@@ -158,7 +158,7 @@ if ($ds) {
             $gridque = @($qentries[$k][GQUE_GQUE][0]) ? $qentries[$k][GQUE_GQUE][0] : "0";
             $gmque   = @($qentries[$k][GQUE_PQUE][0]) ? ($qentries[$k][GQUE_PQUE][0]) : 0; /* new since 0.5.38 */
             $gridrun = @($qentries[$k][GQUE_GRUN][0]) ? $qentries[$k][GQUE_GRUN][0] : "0";
-            $quewin  = popup("quelist.php?host=$host&port=$port&qname=$qname",750,430,6,$lang,$debug);
+            $quewin  = popup("quelist.php?host=$host&port=$port&qname=$qname&schema=$schema",750,430,6,$lang,$debug);
         }
 	$gridque = $gridque + $gmque;
 	if ( $queued == 0 ) $queued = $locque + $gridque;

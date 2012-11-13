@@ -50,7 +50,7 @@ class LmTable {
    * @param locset array
    * @desc Starts an HTML table
    */
-  function LmTable( $wintyp, $locset ) {
+  function LmTable( $wintyp, $locset, $schema = "NG") {
     /*
      * Initialisation of a table: 
      * definition of colors
@@ -84,6 +84,9 @@ class LmTable {
       $this->ncols ++;
       $colnr++;
       $value = $colnam;
+      if (  $schema == "GLUE2" && $value == "Queue") {
+        $value = "Share Name";
+      }
       // Specific sorting links for the front module
       if ( $wintyp == "loadmon" ) {
 	// Keep old arguments, if any, except of order
