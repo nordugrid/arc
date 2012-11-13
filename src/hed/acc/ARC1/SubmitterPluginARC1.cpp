@@ -106,6 +106,17 @@ namespace Arc {
       }
 
       AddJobDetails(preparedjobdesc, jobid, jobInformationEndpoint, j);
+      
+      // Proposed mandatory attributes for ARC 3.0
+      j.ID = jobid.fullstr();
+      j.ServiceInformationURL = url;
+      j.ServiceInformationInterfaceName = "org.nordugrid.wsrfglue2";
+      j.JobStatusURL = url;
+      j.JobStatusInterfaceName = "org.nordugrid.xbes";
+      j.JobManagementURL = url;
+      j.JobManagementInterfaceName = "org.nordugrid.xbes";
+      j.IDOnService = (std::string)activityIdentifier["ReferenceParameters"]["a-rex:JobID"];
+      
       jc.addEntity(j);
     }
   
@@ -185,6 +196,17 @@ namespace Arc {
         j.InterfaceName = "org.nordugrid.xbes";
       }
       AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, j);
+      
+      // Proposed mandatory attributes for ARC 3.0
+      j.ID = jobid.fullstr();
+      j.ServiceInformationURL = url;
+      j.ServiceInformationInterfaceName = "org.nordugrid.wsrfglue2";
+      j.JobStatusURL = url;
+      j.JobStatusInterfaceName = "org.nordugrid.xbes";
+      j.JobManagementURL = url;
+      j.JobManagementInterfaceName = "org.nordugrid.xbes";
+      j.IDOnService = (std::string)activityIdentifier["ReferenceParameters"]["a-rex:JobID"];
+      
       jc.addEntity(j);
     }
   
@@ -271,6 +293,16 @@ namespace Arc {
     }
 
     AddJobDetails(preparedjobdesc, newjobid, et.ComputingService->Cluster, job);
+    
+    // Proposed mandatory attributes for ARC 3.0
+    job.ID = newjobid;
+    job.ServiceInformationURL = url;
+    job.ServiceInformationInterfaceName = "org.nordugrid.wsrfglue2";
+    job.JobStatusURL = url;
+    job.JobStatusInterfaceName = "org.nordugrid.xbes";
+    job.JobManagementURL = url;
+    job.JobManagementInterfaceName = "org.nordugrid.xbes";
+    job.IDOnService = (std::string)xNewjobid["ReferenceParameters"]["a-rex:JobID"];
 
     clients.release(ac);
     return true;

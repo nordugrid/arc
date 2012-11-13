@@ -58,23 +58,10 @@ namespace Arc {
       return s;
     }
     
-    URL ActivityInfoURL;
-    // Requery the EMIES for the ActivityInfo URL
-    std::list<URL> activitycreation;
-    std::list<URL> activitymanagememt;
-    std::list<URL> activityinfo;
-    std::list<URL> resourceinfo;
-    std::list<URL> delegation;
-    if(ac.sstat(activitycreation,activitymanagememt,activityinfo,resourceinfo,delegation)) {
-      if (!activityinfo.empty()) {
-        ActivityInfoURL = activityinfo.front();
-      }
-    }
-
     for(std::list<EMIESJob>::iterator jobid = jobids.begin(); jobid != jobids.end(); ++jobid) {
       Job j;
       if(!jobid->manager) jobid->manager = url;
-      j.InterfaceName = supportedInterfaces.front();
+      j.InterfaceName = "org.ogf.glue.emies.activitymanagement";
       j.Cluster = jobid->manager;
       j.IDFromEndpoint = jobid->ToXML();
       // URL-izing job id
@@ -82,13 +69,13 @@ namespace Arc {
       
       // Proposed mandatory attributes for ARC 3.0
       j.ID = jobid->manager.str() + "/" + jobid->id;
-      j.ResourceInfoURL = url.fullstr();
-      j.ResourceInfoInterfaceName = "org.ogf.glue.emies.resourceinfo";
-      j.ActivityInfoURL = ActivityInfoURL;
-      j.ActivityInfoInterfaceName = "org.ogf.glue.emies.activityinfo";
-      j.ActivityManagerURL = jobid->manager;
-      j.ActivityManagerInterfaceName = "org.ogf.glue.emies.activitymanager";
-      j.ActivityID = jobid->id;
+      j.ServiceInformationURL = url.fullstr();
+      j.ServiceInformationInterfaceName = "org.ogf.glue.emies.resourceinfo";
+      j.JobStatusURL = jobid->manager;
+      j.JobStatusInterfaceName = "org.ogf.glue.emies.activitymanagement";
+      j.JobManagementURL = jobid->manager;
+      j.JobManagementInterfaceName = "org.ogf.glue.emies.activitymanagement";
+      j.IDOnService = jobid->id;
       
       jobs.push_back(j);
     };

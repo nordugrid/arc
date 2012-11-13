@@ -78,6 +78,12 @@ namespace Arc {
     if(!iurl) iurl = et.ComputingService->Cluster;
     
     URL durl;
+    
+    for (std::list< CountedPointer<ComputingEndpointAttributes> >::const_iterator it = et.OtherEndpoints.begin(); it != et.OtherEndpoints.end(); it++) {
+      if ((*it)->InterfaceName == "org.ogf.glue.emies.delegation") {
+        durl = URL((*it)->URLString);
+      }
+    }
 
     URL url(et.ComputingEndpoint->URLString);
 
@@ -105,25 +111,20 @@ namespace Arc {
       
       Job j;
       
-      
-      
       // Proposed mandatory attributes for ARC 3.0
       j.ID = jobid.manager.str() + "/" + jobid.id;
-      j.ResourceInfoURL = jobid.resource;
-      j.ResourceInfoInterfaceName = "org.ogf.glue.emies.resourceinfo";
-      j.ActivityInfoInterfaceName = "org.ogf.glue.emies.activityinfo";
-      j.ActivityManagerURL = jobid.manager;
-      j.ActivityManagerInterfaceName = "org.ogf.glue.emies.activitymanager";
-      j.ActivityID = jobid.id;
+      j.ServiceInformationURL = jobid.resource;
+      j.ServiceInformationInterfaceName = "org.ogf.glue.emies.resourceinfo";
+      j.JobStatusURL = jobid.manager;
+      j.JobStatusInterfaceName = "org.ogf.glue.emies.activitymanagement";
+      j.JobManagementURL = jobid.manager;
+      j.JobManagementInterfaceName = "org.ogf.glue.emies.activitymanagement";
+      j.IDOnService = jobid.id;
 
-      for (std::list< CountedPointer<ComputingEndpointAttributes> >::const_iterator it = et.OtherEndpoints.begin(); it != et.OtherEndpoints.end(); it++) {
-        if ((*it)->InterfaceName == j.ActivityInfoInterfaceName) {
-          j.ActivityInfoURL = URL((*it)->URLString);
-        }
-      }
       
       j.IDFromEndpoint = jobid.ToXML();
       AddJobDetails(preparedjobdesc, jobidu, et.ComputingService->Cluster, j);
+      j.InterfaceName = "org.ogf.glue.emies.activitymanagement";
       jc.addEntity(j);
     }
 

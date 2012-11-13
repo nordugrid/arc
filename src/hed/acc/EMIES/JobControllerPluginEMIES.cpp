@@ -37,7 +37,8 @@ namespace Arc {
       job = (*it)->IDFromEndpoint;
       AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(job.manager));
       if (!ac->info(job, **it)) {
-        logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID.fullstr());
+        // do nothing because the following stat() may succeed
+        
         //IDsNotProcessed.push_back((*it)->JobID);
         //((EMIESClients&)clients).release(ac.Release());
         //continue;
@@ -55,6 +56,7 @@ namespace Arc {
       if(job_ok) {
         IDsProcessed.push_back((*it)->JobID);
       } else {
+        logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID.fullstr());
         IDsNotProcessed.push_back((*it)->JobID);
       }
       ((EMIESClients&)clients).release(ac.Release());

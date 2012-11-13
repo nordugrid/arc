@@ -42,14 +42,14 @@ namespace Arc {
 
     // Proposed mandatory attributes for ARC 3.0
     std::string ID;
-    std::string ActivityID;
+    std::string IDOnService;
     std::string Name;
-    URL ResourceInfoURL;
-    std::string ResourceInfoInterfaceName;
-    URL ActivityInfoURL;
-    std::string ActivityInfoInterfaceName;
-    URL ActivityManagerURL;
-    std::string ActivityManagerInterfaceName;
+    URL ServiceInformationURL;
+    std::string ServiceInformationInterfaceName;
+    URL JobStatusURL;
+    std::string JobStatusInterfaceName;
+    URL JobManagementURL;
+    std::string JobManagementInterfaceName;
 
     // Attributes not part of ComputingActivity entity in GLUE2
     // These are used for central functionality in the library

@@ -52,14 +52,14 @@ namespace Arc {
       JobControllerPlugin *jc = Job::loader.loadByInterfaceName(job.InterfaceName, usercfg);
       currentJC = loadedJCs.insert(std::pair<std::string, JobControllerPlugin*>(job.InterfaceName, jc)).first;
       if (!jc) {
-        logger.msg(VERBOSE, "Ignoring job (%s), unable to load JobControllerPlugin", job.JobID.fullstr());
+        logger.msg(VERBOSE, "Ignoring job (%s), unable to load JobControllerPlugin for %s", job.JobID.fullstr(), job.InterfaceName);
         return false;
       }
       jcJobMap[jc] = std::pair< std::list<Job *>, std::list<Job*> >();
     }
     else if (!currentJC->second) {
       // Already tried to load JobControllerPlugin, and it failed.
-      logger.msg(VERBOSE, "Ignoring job (%s), unable to load JobControllerPlugin", job.JobID.fullstr());
+      logger.msg(VERBOSE, "Ignoring job (%s), already tried and were unable to load JobControllerPlugin", job.JobID.fullstr());
       return false;
     }
 

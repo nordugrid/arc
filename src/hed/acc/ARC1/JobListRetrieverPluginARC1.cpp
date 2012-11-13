@@ -72,6 +72,17 @@ namespace Arc {
       j.InterfaceName = "org.nordugrid.xbes";
       j.IDFromEndpoint = "<ActivityIdentifier><Address>" + url.fullstr() + "</Address></ActivityIdentifier>";
       j.Cluster = url;
+      
+      // Proposed mandatory attributes for ARC 3.0
+      j.ID = j.JobID.fullstr();
+      j.ServiceInformationURL = url;
+      j.ServiceInformationInterfaceName = "org.nordugrid.wsrfglue2";
+      j.JobStatusURL = url;
+      j.JobStatusInterfaceName = "org.nordugrid.xbes";
+      j.JobManagementURL = url;
+      j.JobManagementInterfaceName = "org.nordugrid.xbes";
+      j.IDOnService = file->GetName();
+      
       jobs.push_back(j);
     }
 

@@ -153,14 +153,14 @@ namespace Arc {
 
       // Proposed mandatory attributes for ARC 3.0
       j.ID = jobid.fullstr();
-      j.ResourceInfoURL = infoendpoint;
-      j.ResourceInfoURL.ChangeLDAPFilter("");
-      j.ResourceInfoInterfaceName = "org.nordugrid.ldapng";
-      j.ActivityInfoURL = infoendpoint;
-      j.ActivityInfoInterfaceName = "org.nordugrid.ldapng";
-      j.ActivityManagerURL = ContactString;
-      j.ActivityManagerInterfaceName = "org.nordugrid.gridftpjob";
-      j.ActivityID = jobnumber;
+      j.ServiceInformationURL = infoendpoint;
+      j.ServiceInformationURL.ChangeLDAPFilter("");
+      j.ServiceInformationInterfaceName = "org.nordugrid.ldapng";
+      j.JobStatusURL = infoendpoint;
+      j.JobStatusInterfaceName = "org.nordugrid.ldapng";
+      j.JobManagementURL = ContactString;
+      j.JobManagementInterfaceName = "org.nordugrid.gridftpjob";
+      j.IDOnService = jobnumber;
 
       AddJobDetails(preparedjobdesc, jobid, jobInformationEndpoint, j);
       jc.addEntity(j);
@@ -278,14 +278,14 @@ namespace Arc {
       
       // Proposed mandatory attributes for ARC 3.0
       j.ID = jobid.fullstr();
-      j.ResourceInfoURL = infoendpoint;
-      j.ResourceInfoURL.ChangeLDAPFilter("");
-      j.ResourceInfoInterfaceName = "org.nordugrid.ldapng";
-      j.ActivityInfoURL = infoendpoint;
-      j.ActivityInfoInterfaceName = "org.nordugrid.ldapng";
-      j.ActivityManagerURL = ContactString;
-      j.ActivityManagerInterfaceName = "org.nordugrid.gridftpjob";
-      j.ActivityID = jobnumber;
+      j.ServiceInformationURL = infoendpoint;
+      j.ServiceInformationURL.ChangeLDAPFilter("");
+      j.ServiceInformationInterfaceName = "org.nordugrid.ldapng";
+      j.JobStatusURL = infoendpoint;
+      j.JobStatusInterfaceName = "org.nordugrid.ldapng";
+      j.JobManagementURL = ContactString;
+      j.JobManagementInterfaceName = "org.nordugrid.gridftpjob";
+      j.IDOnService = jobnumber;
       
       AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, j);
       jc.addEntity(j);

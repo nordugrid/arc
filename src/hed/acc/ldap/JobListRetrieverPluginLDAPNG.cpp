@@ -136,14 +136,14 @@ namespace Arc {
 
       // Proposed mandatory attributes for ARC 3.0
       j.ID = j.JobID.fullstr();
-      j.ResourceInfoURL = url;
-      j.ResourceInfoURL.ChangeLDAPFilter("");
-      j.ResourceInfoInterfaceName = "org.nordugrid.ldapng";
-      j.ActivityInfoURL = infoEndpoint;
-      j.ActivityInfoInterfaceName = "org.nordugrid.ldapng";
-      j.ActivityManagerURL = URL(ContactString);
-      j.ActivityManagerInterfaceName = "org.nordugrid.gridftpjob";
-      j.ActivityID = j.ID.substr(ContactString.length()+1);
+      j.ServiceInformationURL = url;
+      j.ServiceInformationURL.ChangeLDAPFilter("");
+      j.ServiceInformationInterfaceName = "org.nordugrid.ldapng";
+      j.JobStatusURL = infoEndpoint;
+      j.JobStatusInterfaceName = "org.nordugrid.ldapng";
+      j.JobManagementURL = URL(ContactString);
+      j.JobManagementInterfaceName = "org.nordugrid.gridftpjob";
+      j.IDOnService = j.ID.substr(ContactString.length()+1);
 
       jobs.push_back(j);
     }

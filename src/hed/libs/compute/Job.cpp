@@ -165,14 +165,14 @@ namespace Arc {
 
     // Proposed mandatory attributes for ARC 3.0
     ID = j.ID;
-    ActivityID = j.ActivityID;
+    IDOnService = j.IDOnService;
     Name = j.Name;
-    ResourceInfoURL = j.ResourceInfoURL;
-    ResourceInfoInterfaceName = j.ResourceInfoInterfaceName;
-    ActivityInfoURL = j.ActivityInfoURL;
-    ActivityInfoInterfaceName = j.ActivityInfoInterfaceName;
-    ActivityManagerURL = j.ActivityManagerURL;
-    ActivityManagerInterfaceName = j.ActivityManagerInterfaceName;
+    ServiceInformationURL = j.ServiceInformationURL;
+    ServiceInformationInterfaceName = j.ServiceInformationInterfaceName;
+    JobStatusURL = j.JobStatusURL;
+    JobStatusInterfaceName = j.JobStatusInterfaceName;
+    JobManagementURL = j.JobManagementURL;
+    JobManagementInterfaceName = j.JobManagementInterfaceName;
 
     JobID = j.JobID;
     Cluster = j.Cluster;
@@ -238,14 +238,14 @@ namespace Arc {
     jc = NULL;
     // Proposed mandatory attributes for ARC 3.0
     JXMLTOSTRING(ID)
-    JXMLTOSTRING(ActivityID)
+    JXMLTOSTRING(IDOnService)
     JXMLTOSTRING(Name)
-    if (job["ResourceInfoURL"]) ResourceInfoURL = URL((std::string)job["ResourceInfoURL"]);
-    JXMLTOSTRING(ResourceInfoInterfaceName)
-    if (job["ActivityInfoURL"]) ActivityInfoURL = URL((std::string)job["ActivityInfoURL"]);
-    JXMLTOSTRING(ActivityInfoInterfaceName)
-    if (job["ActivityManagerURL"]) ActivityManagerURL = URL((std::string)job["ActivityManagerURL"]);
-    JXMLTOSTRING(ActivityManagerInterfaceName)
+    if (job["ServiceInformationURL"]) ServiceInformationURL = URL((std::string)job["ServiceInformationURL"]);
+    JXMLTOSTRING(ServiceInformationInterfaceName)
+    if (job["JobStatusURL"]) JobStatusURL = URL((std::string)job["JobStatusURL"]);
+    JXMLTOSTRING(JobStatusInterfaceName)
+    if (job["JobManagementURL"]) JobManagementURL = URL((std::string)job["JobManagementURL"]);
+    JXMLTOSTRING(JobManagementInterfaceName)
       
     // Information specific to how job is stored in jobs list
     if (job["JobID"]) {
@@ -407,14 +407,14 @@ namespace Arc {
 
     // Proposed mandatory attributes for ARC 3.0
     STRINGTOXML(ID)
-    STRINGTOXML(ActivityID)
+    STRINGTOXML(IDOnService)
     STRINGTOXML(Name)
-    URLTOXML(ResourceInfoURL)
-    STRINGTOXML(ResourceInfoInterfaceName)
-    URLTOXML(ActivityInfoURL)
-    STRINGTOXML(ActivityInfoInterfaceName)
-    URLTOXML(ActivityManagerURL)
-    STRINGTOXML(ActivityManagerInterfaceName)
+    URLTOXML(ServiceInformationURL)
+    STRINGTOXML(ServiceInformationInterfaceName)
+    URLTOXML(JobStatusURL)
+    STRINGTOXML(JobStatusInterfaceName)
+    URLTOXML(JobManagementURL)
+    STRINGTOXML(JobManagementInterfaceName)
 
 
     URLTOXML(JobID)
@@ -582,13 +582,10 @@ namespace Arc {
       
       // Proposed mandatory attributes for ARC 3.0
       out << IString("   ID: %s", ID) << std::endl;
-      out << IString("   ResourceInfoURL: %s", ResourceInfoURL.fullstr()) << std::endl;
-      out << IString("   ResourceInfoInterfaceName: %s", ResourceInfoInterfaceName) << std::endl;
-      out << IString("   ActivityInfoURL: %s", ActivityInfoURL.fullstr()) << std::endl;
-      out << IString("   ActivityInfoInterfaceName: %s", ActivityInfoInterfaceName) << std::endl;
-      out << IString("   ActivityManagerURL: %s", ActivityManagerURL.fullstr()) << std::endl;
-      out << IString("   ActivityManagerInterfaceName: %s", ActivityManagerInterfaceName) << std::endl;
-      out << IString("   ActivityID: %s", ActivityID) << std::endl;      
+      out << IString("   ID on service: %s", IDOnService) << std::endl;
+      out << IString("   Service information URL: %s (%s)", ServiceInformationURL.fullstr(), ServiceInformationInterfaceName) << std::endl;
+      out << IString("   Job status URL: %s (%s)", JobStatusURL.fullstr(), JobStatusInterfaceName) << std::endl;
+      out << IString("   Job management URL: %s (%s)", JobManagementURL.fullstr(), JobManagementInterfaceName) << std::endl;
     }
 
     out << std::endl;
