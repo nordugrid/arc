@@ -366,16 +366,6 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   // TODO: TotalWallTime;
   // TODO: NodeAccess;
   // TODO: CEType;
-  for(std::list<Arc::Software>::const_iterator rte =
-                    desc.Resources.RunTimeEnvironment.getSoftwareList().begin();
-                    rte != desc.Resources.RunTimeEnvironment.getSoftwareList().end();++rte) {
-    if(!rte->getOptions().empty()) {
-      failure_="Options in RTE not supported yet";
-      failure_type_=ARexJobDescriptionUnsupportedError;
-      delete_job_id();
-      return;
-    };
-  };
   // Check that the SlotRequirements make sense.
   // I.e. that SlotsPerHost do not exceed total Slots
   // and that SlotsPerHost is a divisor of total Slots

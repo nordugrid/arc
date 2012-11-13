@@ -225,10 +225,17 @@ bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc,
         logger.msg(Arc::ERROR, "Bad name for runtime environment: %s", (std::string)*itSW);
         return false;
       }
-      f<<"joboption_runtime_"<<i++<<"="<<value_for_shell((std::string)*itSW,true)<<std::endl;
+      f<<"joboption_runtime_"<<i<<"="<<value_for_shell((std::string)*itSW,true)<<std::endl;
+      const std::list<std::string>& opts = itSW->getOptions();
+      int n = 1;
+      for(std::list<std::string>::const_iterator opt = opts.begin();
+                            opt != opts.end();++opt) {
+        f<<"joboption_runtime_"<<i<<"_"<<n<<"="<<value_for_shell(*opt,true)<<std::endl;
+        ++n;
+      }
+      ++i;
     }
   }
-
   f<<"joboption_jobname="<<value_for_shell(job_local_desc.jobname,true)<<std::endl;
   f<<"joboption_queue="<<value_for_shell(job_local_desc.queue,true)<<std::endl;
   f<<"joboption_starttime="<<(job_local_desc.exectime != -1?job_local_desc.exectime.str(Arc::MDSTime):"")<<std::endl;
