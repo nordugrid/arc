@@ -202,7 +202,18 @@ RTE_stage0 () {
    while [ ! -z "${var_is_set}" ] ; do
       eval "var_value=\${joboption_runtime_$joboption_num}"
       if [ -r "$RUNTIME_CONFIG_DIR/${var_value}" ] ; then
-         . "$RUNTIME_CONFIG_DIR/${var_value}" 0 1>&2
+         arg_num=1
+         args_value="0 "
+         eval "arg_is_set=\${joboption_runtime_${joboption_num}_${arg_num}+yes}"
+         while [ ! -z "${arg_is_set}" ] ; do
+            eval "arg_value=\${joboption_runtime_${joboption_num}_${arg_num}}"
+            # Use -- to avoid echo eating arguments it understands
+            arg_value=`echo -- "$arg_value" |cut -f2- -d' '| sed 's/\\\\/\\\\\\\\/g' | sed 's/"/\\\"/g'`
+            args_value="$args_value \"${arg_value}\""
+            arg_num=$(( $arg_num + 1 ))
+            eval "arg_is_set=\${joboption_runtime_${joboption_num}_${arg_num}+yes}"
+         done
+         eval ". \"$RUNTIME_CONFIG_DIR/${var_value}\" $args_value" 1>&2
          if [ $? -ne '0' ] ; then
             echo "ERROR: runtime script ${var_value} failed" 1>&2
             exit 1
@@ -298,7 +309,18 @@ RTE_stage1 () {
       eval "var_value=\"\${joboption_runtime_$i}\""
       echo "  if [ -r \"\${RUNTIME_CONFIG_DIR}/${var_value}\" ] ; then" >> $LRMS_JOB_SCRIPT
       echo "    runtimeenvironments=\"\${runtimeenvironments}${var_value};\"" >> $LRMS_JOB_SCRIPT
-      echo "    . \${RUNTIME_CONFIG_DIR}/${var_value} 1 " >> $LRMS_JOB_SCRIPT
+      arg_num=1
+      args_value="1 "
+      eval "arg_is_set=\${joboption_runtime_${i}_${arg_num}+yes}"
+      while [ ! -z "${arg_is_set}" ] ; do
+         eval "arg_value=\${joboption_runtime_${i}_${arg_num}}"
+         # Use -- to avoid echo eating arguments it understands
+         arg_value=`echo -- "$arg_value" |cut -f2- -d' '| sed 's/\\\\/\\\\\\\\/g' | sed 's/"/\\\"/g'`
+         args_value="$args_value \"${arg_value}\""
+         arg_num=$(( $arg_num + 1 ))
+         eval "arg_is_set=\${joboption_runtime_${i}_${arg_num}+yes}"
+      done
+      echo "    . \${RUNTIME_CONFIG_DIR}/${var_value} $args_value " >> $LRMS_JOB_SCRIPT
       echo "    if [ \$? -ne '0' ] ; then " >> $LRMS_JOB_SCRIPT
       echo "      echo \"Runtime ${var_value} script failed \" 1>&2 " >> $LRMS_JOB_SCRIPT
       echo "      echo \"Runtime ${var_value} script failed \" 1>\"\$RUNTIME_JOB_DIAG\" " >> $LRMS_JOB_SCRIPT
