@@ -392,7 +392,7 @@ int main(int argc, char **argv)
       logger.msg(Arc::ERROR, error.what());
     }
 
-    exit_code = -1;
+    if (!req_shutdown) exit_code = -1;
     do_shutdown();
     return exit_code;
 }
