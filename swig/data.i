@@ -74,6 +74,8 @@
 #ifdef SWIGPYTHON
 %clear std::list<Arc::FileInfo>& files;
 #endif
+%wraplist(FileInfo, Arc::FileInfo);
+%wraplist(DataPointP, Arc::DataPoint*);
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/data/DataHandle.h
@@ -221,6 +223,7 @@ typedef int gid_t;
 %}
 %ignore DataStaging::DTR::operator!;
 %include "../src/libs/data-staging/DTR.h"
+%wraplist(DTRCallbackP, DataStaging::DTRCallback*);
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/data-staging/TransferShares.h

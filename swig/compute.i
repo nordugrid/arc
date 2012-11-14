@@ -97,7 +97,9 @@
 %}
 %ignore Arc::Job::operator=(XMLNode);
 %ignore Arc::Job::operator=(const Job&);
-%wraplist(JobList, Arc::Job);
+%wraplist(Job, Arc::Job);
+%wraplist(JobP, Arc::Job*);
+%wraplist(JobConstP, Arc::Job const *);
 #ifdef SWIGPYTHON
 %ignore Arc::Job::WriteJobIDsToFile(const std::list<Job>&, const std::string&, unsigned = 10, unsigned = 500000); // Clash. It is sufficient to wrap only WriteJobIDsToFile(cosnt std::list<URL>&, ...);
 #endif
@@ -149,6 +151,10 @@
 #endif
 %include "../src/hed/libs/compute/JobDescription.h"
 %wraplist(JobDescription, Arc::JobDescription);
+%wraplist(StringPair, std::pair<std::string, std::string>);
+%wraplist(ExecutableType, Arc::ExecutableType);
+%wraplist(RemoteLoggingType, Arc::RemoteLoggingType);
+%wraplist(NotificationType, Arc::NotificationType);
 %wraplist(InputFileType, Arc::InputFileType);
 %wraplist(OutputFileType, Arc::OutputFileType);
 %wraplist(SourceType, Arc::SourceType);
@@ -200,6 +206,7 @@
 %wraplist(ApplicationEnvironment, Arc::ApplicationEnvironment);
 %wraplist(ExecutionTarget, Arc::ExecutionTarget);
 %wraplist(ComputingService, Arc::ComputingServiceType);
+%wraplist(SharedComputingEndpointAttributes, Arc::CountedPointer<Arc::ComputingEndpointAttributes>);
 %template(ComputingEndpointMap) std::map<int, Arc::ComputingEndpointType>;
 %template(ComputingShareMap) std::map<int, Arc::ComputingShareType>;
 %template(ComputingManagerMap) std::map<int, Arc::ComputingManagerType>;

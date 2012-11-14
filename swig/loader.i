@@ -33,6 +33,8 @@
 #include <arc/loader/Plugin.h>
 %}
 %include "../src/hed/libs/loader/Plugin.h"
+%wraplist(ModuleDesc, Arc::ModuleDesc);
+%wraplist(PluginDesc, Arc::PluginDesc);
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/loader/Loader.h

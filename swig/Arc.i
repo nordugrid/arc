@@ -300,13 +300,13 @@ std::ostream& getStdout() { return std::cout; }
 #endif
 
 #ifndef SWIGJAVA
-%define %wraplist(X, Y)
-%template(X##List) std::list<Y>;
+%define %wraplist(X, Y...)
+%template(X ## List) std::list< Y >;
 %enddef
 #else
-%define %wraplist(X, Y)
-%template(X ## List) std::list<Y>;
-%template(X ## ListIterator) listiterator<Y>;
+%define %wraplist(X, Y...)
+%template(X ## List) std::list< Y >;
+%template(X ## ListIterator) listiterator< Y >;
 %enddef
 #endif
 

@@ -55,6 +55,10 @@ arc_wrap.cpp: $(top_srcdir)/swig/*.i
 # inserted between the two right angle brackets.
 	sed 's/>>(new/> >(new/g' arc_wrap.cpp > arc_wrap.cpp.tmp
 	mv arc_wrap.cpp.tmp arc_wrap.cpp 
+# When mapping a template with a template class argument no space is
+# inserted between the two right angle brackets.
+	sed 's/>>(self->/> >(self->/g' arc_wrap.cpp > arc_wrap.cpp.tmp
+	mv arc_wrap.cpp.tmp arc_wrap.cpp 
 # When mapping a template with another template class as argument, and
 # that template class takes two classes as argument, then older swigs
 # put parentheses around the two class arguments, e.g. T<(A,B)>, not
