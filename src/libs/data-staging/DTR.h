@@ -307,6 +307,10 @@ namespace DataStaging {
       /// Change modification time
       void mark_modification () { last_modified.SetTime(time(NULL)); };
 
+      /// Get the list of callbacks for this owner. Protected by lock.
+      std::list<DTRCallback*> get_callbacks(const std::map<StagingProcesses, std::list<DTRCallback*> >& proc_callback,
+                                            StagingProcesses owner);
+
       /// Private and not implemented because DTR_ptr should always be used.
       DTR& operator=(const DTR& dtr);
       DTR(const DTR& dtr);
@@ -357,10 +361,6 @@ namespace DataStaging {
       * The callback method of these objects will then be called when the DTR
       * is passed to the specified owner. Protected by lock. */
      void registerCallback(DTRCallback* cb, StagingProcesses owner);
-
-     /// Get the list of callbacks for this owner. Protected by lock.
-     std::list<DTRCallback*> get_callbacks(const std::map<StagingProcesses, std::list<DTRCallback*> >& proc_callback,
-                                           StagingProcesses owner);
 
      /// Reset information held on this DTR, such as resolved replicas, error state etc.
      /** Useful when a failed DTR is to be retried. */
