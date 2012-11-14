@@ -252,3 +252,10 @@ private:
 #include <arc/GUID.h>
 %}
 %include "../src/hed/libs/common/GUID.h"
+
+
+// Wrap contents of $(top_srcdir)/src/hed/libs/common/CheckSum.h
+%{
+#include <arc/CheckSum.h>
+%}
+%include "../src/hed/libs/common/CheckSum.h"

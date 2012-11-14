@@ -3,6 +3,7 @@
 
 %include "Arc.i"
 
+%import "../src/hed/libs/common/CheckSum.h"
 %import "../src/hed/libs/common/DateTime.h"
 %import "../src/hed/libs/common/URL.h"
 %import "../src/hed/libs/common/UserConfig.h"
