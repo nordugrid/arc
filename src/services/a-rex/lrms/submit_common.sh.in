@@ -469,7 +469,18 @@ configure_runtime () {
     fi
     eval "var_value=\"\${joboption_runtime_$i}\""
     echo "  if [ -r \"\${RUNTIME_CONFIG_DIR}/${var_value}\" ] ; then" >> $LRMS_JOB_SCRIPT
-    echo "    . \${RUNTIME_CONFIG_DIR}/${var_value} 2 " >> $LRMS_JOB_SCRIPT
+    arg_num=1
+    args_value="2 "
+    eval "arg_is_set=\${joboption_runtime_${i}_${arg_num}+yes}"
+    while [ ! -z "${arg_is_set}" ] ; do
+      eval "arg_value=\${joboption_runtime_${i}_${arg_num}}"
+      # Use -- to avoid echo eating arguments it understands
+      arg_value=`echo -- "$arg_value" |cut -f2- -d' '| sed 's/\\\\/\\\\\\\\/g' | sed 's/"/\\\"/g'`
+      args_value="$args_value \"${arg_value}\""
+      arg_num=$(( $arg_num + 1 ))
+      eval "arg_is_set=\${joboption_runtime_${i}_${arg_num}+yes}"
+    done
+    echo "    . \${RUNTIME_CONFIG_DIR}/${var_value} $args_value " >> $LRMS_JOB_SCRIPT
     echo "  fi" >> $LRMS_JOB_SCRIPT
     i=$(( $i + 1 ))
     eval "var_is_set=\${joboption_runtime_$i+yes}"

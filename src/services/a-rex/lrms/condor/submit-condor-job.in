@@ -143,11 +143,16 @@ sub run_rte0 {
         $sep .= $chars[rand(@chars)] for 1..16;
         $sep .= "----";
 
+        my $r_args = '0';
+        for (my $n = 1; my $r_arg = $grami{"joboption_runtime_$i_$n"}; $n++) {
+            $r_args = "$r_args \"$r_arg"\"";
+        }
+
         # initialize joboption_* variables
         $script .= "$_=\Q$grami{$_}\E\n" for (grep /^joboption_[A-Za-z0-9_]+$/, keys %grami);
 
         # source RTE script
-        $script .= ". \Q$ENV{RUNTIME_CONFIG_DIR}/$r\E 0 1>&2\n";
+        $script .= ". \Q$ENV{RUNTIME_CONFIG_DIR}/$r\E 0 $r_args>&2\n";
         $script .= "ret=\$?\n";
 
         # print joboption_* variables to stdout. First export them, then use perl for printing.
@@ -225,8 +230,12 @@ sub create_shell_wrapper {
     my ($setrte1, $setrte2) = ('', '');
     if (notnull($grami{joboption_runtime_0})) {
         for (my $i = 0; notnull(my $r = $grami{"joboption_runtime_$i"}); $i++) {
-            $setrte1 .= qq{. "\$RUNTIME_CONFIG_DIR/$r" 1\n};
-            $setrte2 .= qq{. "\$RUNTIME_CONFIG_DIR/$r" 2\n};
+            my $r_args = '';
+            for (my $n = 1; my $r_arg = $grami{"joboption_runtime_$i_$n"}; $n++) {
+                $r_args = "$r_args \"$r_arg"\"";
+            }
+            $setrte1 .= qq{. "\$RUNTIME_CONFIG_DIR/$r" 1 $r_args\n};
+            $setrte2 .= qq{. "\$RUNTIME_CONFIG_DIR/$r" 2 $r_args\n};
         }
     }
 
