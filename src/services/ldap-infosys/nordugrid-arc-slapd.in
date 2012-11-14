@@ -94,7 +94,7 @@ start () {
 	return ${RETVAL}
     fi
 
-    ${ARC_LOCATION}/@pkgdatasubdir/create-slapd-config
+    ${ARC_LOCATION}/@pkgdatasubdir@/create-slapd-config
     if [ ! $? = 0 ]; then
 	log_failure_msg "Failed to create configration for $prog"
 	exit 1
