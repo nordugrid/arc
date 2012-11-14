@@ -155,7 +155,7 @@ namespace Arc {
     };
     Base<T> *object;
   public:
-    CountedPointer(T *p)
+    CountedPointer(T *p = NULL)
       : object(new Base<T>(p)) {}
     CountedPointer(const CountedPointer<T>& p)
       : object(p.object->add()) {}
