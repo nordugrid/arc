@@ -54,7 +54,7 @@ $qlim = array( QUE_NAME, QUE_QUED, QUE_GQUE, QUE_PQUE, QUE_LQUE, QUE_RUNG, QUE_G
 $qfilter = "(objectclass=".OBJ_QUEU.")";
 $dn      = DN_LOCAL;
 if ($schema == "GLUE2") {
-    $qlim = array( GQUE_NAME, GQUE_QUED, GQUE_GQUE, GQUE_PQUE, GQUE_LQUE, GQUE_RUNG, GQUE_GRUN,
+    $qlim = array( GQUE_NAME, GQUE_MAPQ, GQUE_QUED, GQUE_GQUE, GQUE_PQUE, GQUE_LQUE, GQUE_RUNG, GQUE_GRUN,
                GQUE_ASCP, GQUE_MAXT, GQUE_MINT, GQUE_STAT );
 
     // ldapsearch filter strings for cluster and queues
@@ -147,6 +147,7 @@ if ($ds) {
         }
         if ( $dn == DN_GLUE ) {
             $qname   =  $qentries[$k][GQUE_NAME][0];
+            $mapque  =  $qentries[$k][GQUE_MAPQ][0];
             $qstatus =  $qentries[$k][GQUE_STAT][0];
             //  $queued  =  @$qentries[$k][GQUE_QUED][0];
             $queued  = @($qentries[$k][GQUE_QUED][0]) ? ($entries[$k][GQUE_QUED][0]) : 0; /* deprecated since 0.5.38 */
@@ -166,6 +167,9 @@ if ($ds) {
 	// filling the table
 
 	$qrowcont[] = "<a href=\"$quewin\">$qname</a>";
+        if ( $mapque ) {
+          $qrowcont[] = "$mapque";
+        }
 	$qrowcont[] = "$qstatus";
 	$qrowcont[] = "$cpumin &ndash; $cpumax";
 	$qrowcont[] = "$cpu";

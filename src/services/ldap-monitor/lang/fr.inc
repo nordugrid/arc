@@ -133,6 +133,7 @@ $message = array (
                                                 </div>
 ",
                                       "File d'attente"               => 0,
+                                      "Mapping Queue"                => 0,
                                       "Statut"                       => 0,
                                       "Limites (min)"                => 0,
                                       "CPU"                          => 0,

@@ -101,6 +101,7 @@ $message = array (
                                                 </dl>
                                                 </div>",
                                       "Rada"                         => 0,
+                                      "Mapping Queue"                => 0,
                                       "Stav"                         => 0,
                                       "Trvanie (min)"                => 0,
                                       "Počet CPU"                    => 0,

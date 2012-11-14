@@ -121,6 +121,7 @@ nedre grensen, den andre den øvre. Hvis ingen grenser er definert, dvs. alle jo
                                                 </div>
 ",
                                       "Kø"                             => 0,
+                                      "Mapping Queue"                  => 0,
                                       "Status"                         => 0,
                                       "Tidsgrenser (min)"              => 0,
                                       "CPU-er"                         => 0,

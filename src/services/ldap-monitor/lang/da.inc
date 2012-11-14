@@ -119,6 +119,7 @@ $message = array (
                                                 </div>
 ",
                                       "K&oslash;"                        => 0,
+                                      "Mapping Queue"                => 0,
                                       "Status"                       => 0,
                                       "Gr&aelig;nse (min)"                 => 0,
                                       "CPU-er"                         => 0,

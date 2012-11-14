@@ -177,6 +177,7 @@ if ( !defined("GSEL_FREE") ) define("GSEL_FREE",IS_PREFXG."-se-freespace");
 if ( !defined("GSEL_TOTA") ) define("GSEL_TOTA",IS_PREFXG."-se-totalspace");
 if ( !defined("GSEL_USER") ) define("GSEL_USER",IS_PREFXG."-se-authuser");
 if ( !defined("GQUE_NAME") ) define("GQUE_NAME",IS_PREFXG."entityname");
+if ( !defined("GQUE_MAPQ") ) define("GQUE_MAPQ",IS_PREFXG."computingsharemappingqueue");
 if ( !defined("GQUE_STAT") ) define("GQUE_STAT",IS_PREFXG."computingshareservingstate");
 if ( !defined("GQUE_RUNG") ) define("GQUE_RUNG",IS_PREFXG."computingsharelocalrunningjobs");
 if ( !defined("GQUE_GRUN") ) define("GQUE_GRUN",IS_PREFXG."computingsharerunningjobs");

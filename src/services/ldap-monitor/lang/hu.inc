@@ -101,6 +101,7 @@ $message = array (
                                                 </div>
 ",
                                       "Várakozósor"                        => 0,
+                                      "LRMS várakozósor"              => 0,
                                       "Állapot"                       => 0,
                                       "Korlátok (min)"                 => 0,
                                       "CPU-k"                         => 0,

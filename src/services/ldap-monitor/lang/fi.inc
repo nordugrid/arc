@@ -111,6 +111,7 @@ $message = array (
                                                 </div>
 ",
                                       "Jono"                        => 0,
+                                      "Mapping Queue"                => 0,
                                       "Tila"                       => 0,
                                       "Rajoitukset (min)"                 => 0,
                                       "Prosessoreita"                         => 0,

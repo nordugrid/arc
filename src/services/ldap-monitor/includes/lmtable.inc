@@ -79,6 +79,11 @@ class LmTable {
     echo "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" bgcolor=\"".$this->color_bg."\">\n";
     echo "<tr bgcolor=\"".$this->color_header."\">\n";
     $colnr = 0;
+    if ( $wintyp == "clusdes" && $schema != "GLUE2" ) {
+      $position = 3;
+      $keys = array_keys($locset);
+      unset($locset[$keys[$position]]);
+    }
     foreach ( $locset as $colnam => $colwid) {
       if ( $colnam == "0" || $colnam == "help" ) continue;
       $this->ncols ++;
