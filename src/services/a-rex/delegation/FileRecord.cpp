@@ -308,9 +308,9 @@ namespace ARex {
         ::free(pdata);
         return false;
       };
-      db_link_.sync(0);
       ::free(pdata);
     };
+    db_link_.sync(0);
     return true;
   }
 
@@ -344,9 +344,9 @@ namespace ARex {
         ::free(pkey);
         cur->close(); return false;
       };
-      db_lock_.sync(0);
       if(!dberr("removelock:get2",cur->get(&key,&data,DB_NEXT_DUP))) break;
     };
+    db_lock_.sync(0);
     ::free(pkey);
     cur->close();
     return true;
