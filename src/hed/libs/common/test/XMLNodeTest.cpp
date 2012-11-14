@@ -119,6 +119,15 @@ void XMLNodeTest::TestExchange() {
   delete xml1;
   delete xml2;
 
+  // Exchanging ordinary and empty node
+  xml1 = new Arc::XMLNode(xml1_str);
+  xml2 = new Arc::XMLNode;
+  node1 = (*xml1)["child2"];
+  node1.Exchange(*xml2);
+  CPPUNIT_ASSERT_EQUAL(std::string("child2"),xml2->Name());
+  CPPUNIT_ASSERT(!node1);
+  delete xml1;
+  delete xml2;
 }
 
 void XMLNodeTest::TestMove() {

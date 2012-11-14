@@ -113,7 +113,7 @@ namespace Arc {
     void New(XMLNode& node) const;
     /** Exchanges XML (sub)trees.
      Following conbinations are possible
-       * If either this or node are refering owned XML tree (top level
+       * If both this and node are refering owned XML tree (top level
          node) then references are simply exchanged. This operation is fast.
        * If both this and node are refering to XML (sub)tree of different
          documents then (sub)trees are exchahed between documments.
@@ -123,7 +123,7 @@ namespace Arc {
      one XML document inside another.
      One should take into account that if any of exchanged nodes is top
      level it must be also owner of document. Otherwise method will fail.
-     If both nodes are top level owners and/or invlaid nodes then this
+     If both nodes are top level owners and/or invalid nodes then this
      method is identical to Swap(). */
     void Exchange(XMLNode& node);
     /** Moves content of this XML (sub)tree to node

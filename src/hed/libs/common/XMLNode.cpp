@@ -710,13 +710,15 @@ namespace Arc {
   }
 
   void XMLNode::Exchange(XMLNode& node) {
-    if(((node_ == NULL) || is_owner_) &&
-       ((node.node_ == NULL) || node.is_owner_)) {
+    xmlNodePtr node1 = node_;
+    xmlNodePtr node2 = node.node_;
+    bool owner1 = is_owner_;
+    bool owner2 = node.is_owner_;
+    if(((node1 == NULL) || owner1) &&
+       ((node2 == NULL) || owner2)) {
       Swap(node); // ?
       return;
     }
-    xmlNodePtr node1 = node_;
-    xmlNodePtr node2 = node.node_;
     if(node1 && (node1->type != XML_ELEMENT_NODE)) return;
     if(node2 && (node2->type != XML_ELEMENT_NODE)) return;
     node_ = NULL; node.node_ = NULL;
@@ -728,33 +730,61 @@ namespace Arc {
     xmlDocPtr doc2 = node2?(node2->doc):NULL;
     // In current implementation it is dangerous to move
     // top level element if node is not owning document
-    if((parent1 == NULL) && (!is_owner_)) return;
-    if((parent2 == NULL) && (!node.is_owner_)) return;
-    xmlUnlinkNode(node1);
-    xmlUnlinkNode(node2);
-    if(parent1) {
-      if(neighb1) {
-        xmlAddPrevSibling(neighb1,node2);
+    if(node1 && (parent1 == NULL) && (!owner1)) return;
+    if(node2 && (parent2 == NULL) && (!owner2)) return;
+    if(node1) xmlUnlinkNode(node1);
+    if(node2) xmlUnlinkNode(node2);
+    if(node2) {
+      if(parent1) {
+        if(neighb1) {
+          xmlAddPrevSibling(neighb1,node2);
+        } else {
+          xmlAddChild(parent1,node2);
+        }
+      } else if(doc1) {
+        xmlDocSetRootElement(doc1,node2);
       } else {
-        xmlAddChild(parent1,node2);
+        // Make document to store node
+        doc1 = xmlNewDoc((const xmlChar*)"1.0");
+        if(doc1) {
+          xmlDocSetRootElement(doc1,node2);
+          is_owner_ = true;
+        } else {
+          // Should not happen
+          xmlFreeNode(node2); node2 = NULL;
+        }
       }
-    } else if(doc1) {
-      xmlDocSetRootElement(doc1,node2);
     } else {
-      // Should not happen
-      xmlFreeNode(node2); node2 = NULL;
+      // Prevent memleaking document
+      if(doc1 && !parent1) {
+        xmlFreeDoc(doc1);
+      }
     }
-    if(parent2) {
-      if(neighb2) {
-        xmlAddPrevSibling(neighb2,node1);
+    if(node1) {
+      if(parent2) {
+        if(neighb2) {
+          xmlAddPrevSibling(neighb2,node1);
+        } else {
+          xmlAddChild(parent2,node1);
+        }
+      } else if(doc2) {
+        xmlDocSetRootElement(doc2,node1);
       } else {
-        xmlAddChild(parent2,node1);
+        // Make document to store node
+        doc2 = xmlNewDoc((const xmlChar*)"1.0");
+        if(doc2) {
+          xmlDocSetRootElement(doc2,node1);
+          node.is_owner_ = true;
+        } else {
+          // Should not happen
+          xmlFreeNode(node1); node1 = NULL;
+        }
       }
-    } else if(doc2) {
-      xmlDocSetRootElement(doc2,node1);
     } else {
-      // Should not happen
-      xmlFreeNode(node1); node1 = NULL;
+      // Prevent memleaking document
+      if(doc2 && !parent2) {
+        xmlFreeDoc(doc2);
+      }
     }
     node_ = node2;
     node.node_ = node1;
