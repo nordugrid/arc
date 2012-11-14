@@ -110,6 +110,7 @@ my $gmcommon_options = {
     scratchdir => '*',
     use_janitor => '*',
     enable_emies_interface => '*',
+    enable_arc_interface => '*',
 };
 my $ldap_infosys_options = {
     SlapdPort => '*',

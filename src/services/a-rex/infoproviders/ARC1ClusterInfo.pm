@@ -752,7 +752,7 @@ sub collect($) {
     
     # for org.nordugrid.xbes
     my $arexhostport = '';
-    if ($config->{arexhostport}) {
+    if ($config->{arexhostport} && !($config->{enable_arc_interface} && ($config->{enable_arc_interface} eq "no"))) {
       $arexhostport = $config->{arexhostport};
       $csvendpointsnum = $csvendpointsnum + 2; # xbes and wsrf
       $epscapabilities->{'org.nordugrid.xbes'} = [
@@ -765,8 +765,8 @@ sub collect($) {
     
     # The following are for EMI-ES
     my $emieshostport = '';
-    if ($arexhostport ne '' && $config->{enable_emies_interface}) {
-        $emieshostport = $arexhostport;
+    if ($config->{arexhostport} && $config->{enable_emies_interface} && ($config->{enable_emies_interface} == "yes")) {
+        $emieshostport = $config->{arexhostport};
         $csvendpointsnum = $csvendpointsnum + 5;
         $epscapabilities->{'org.ogf.glue.emies.activitycreation'} = [
                                                 'executionmanagement.jobcreation',
