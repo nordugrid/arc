@@ -236,9 +236,13 @@ NS SOAPEnvelope::Namespaces(void) {
 void SOAPEnvelope::GetXML(std::string& out_xml_str,bool user_friendly) const {
   if(header.Size() == 0) {
     SOAPEnvelope& it = *(SOAPEnvelope*)this;
-    it.header.Destroy();
+    // Moving header outside tree and then back.
+    // This fully recovers initial tree and allows this methof to be const
+    XMLNode tmp_header;
+    it.header.Move(tmp_header);
     envelope.GetXML(out_xml_str,user_friendly);
-    it.header=it.envelope.NewChild("soap-env:Header",0,true);
+    it.header=it.envelope.NewChild("soap-env:Header",0,true); // It can be any dummy
+    it.header.Exchange(tmp_header);
     return;
   };
   envelope.GetXML(out_xml_str,user_friendly);
