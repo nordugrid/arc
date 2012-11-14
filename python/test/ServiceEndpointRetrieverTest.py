@@ -4,9 +4,6 @@ class ServiceEndpointRetrieverTest(testutils.ARCClientTestCase):
 
     def setUp(self):
         self.usercfg = arc.UserConfig(arc.initializeCredentialsType(arc.initializeCredentialsType.SkipCredentials))
-        arc.ServiceEndpointRetrieverPluginTESTControl.delay = 0
-        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints = [arc.Endpoint()]
-        arc.ServiceEndpointRetrieverPluginTESTControl.status = arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL)
 
     def test_the_class_exists(self):
         self.expect(arc.ServiceEndpointRetriever).to_be_an_instance_of(type)
@@ -16,6 +13,9 @@ class ServiceEndpointRetrieverTest(testutils.ARCClientTestCase):
         self.expect(retriever).to_be_an_instance_of(arc.ServiceEndpointRetriever)
     
     def test_getting_the_endpoints(self):
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints.push_back([arc.Endpoint()])
+        arc.ServiceEndpointRetrieverPluginTESTControl.status.push_back(arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL))
+        
         retriever = arc.ServiceEndpointRetriever(self.usercfg)
         container = arc.EndpointContainer()
         retriever.addConsumer(container)
@@ -26,10 +26,12 @@ class ServiceEndpointRetrieverTest(testutils.ARCClientTestCase):
         self.expect(container).to_have(1).endpoint()
     
     def test_getting_status(self):
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints.push_back([arc.Endpoint()])
+        arc.ServiceEndpointRetrieverPluginTESTControl.status.push_back(arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.FAILED))
+
         retriever = arc.ServiceEndpointRetriever(self.usercfg)
         container = arc.EndpointContainer()
         retriever.addConsumer(container)
-        arc.ServiceEndpointRetrieverPluginTESTControl.status = arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.FAILED)        
         registry = arc.Endpoint("test.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest")
         retriever.addEndpoint(registry)
         retriever.wait()
@@ -38,31 +40,48 @@ class ServiceEndpointRetrieverTest(testutils.ARCClientTestCase):
         self.expect(status).to_be(arc.EndpointQueryingStatus.FAILED)
     
     def test_the_status_is_started_first(self):
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints.push_back([arc.Endpoint()])
+        arc.ServiceEndpointRetrieverPluginTESTControl.status.push_back(arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL))
+        condition = arc.SimpleCondition()
+        arc.ServiceEndpointRetrieverPluginTESTControl.condition.push_back(condition)
+
         retriever = arc.ServiceEndpointRetriever(self.usercfg)
         container = arc.EndpointContainer()
         retriever.addConsumer(container)
-        arc.ServiceEndpointRetrieverPluginTESTControl.delay = 1.0
         registry = arc.Endpoint("test.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest")
         retriever.addEndpoint(registry)
         status = retriever.getStatusOfEndpoint(registry)
         self.expect(status).to_be(arc.EndpointQueryingStatus.STARTED)
+        condition.signal()
         retriever.wait()
         status = retriever.getStatusOfEndpoint(registry)
-        self.expect(status).to_be(arc.EndpointQueryingStatus.SUCCESSFUL)        
+        self.expect(status).to_be(arc.EndpointQueryingStatus.SUCCESSFUL)
         
     def test_constructor_returns_immediately(self):
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints.push_back([arc.Endpoint()])
+        arc.ServiceEndpointRetrieverPluginTESTControl.status.push_back(arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL))
+        condition = arc.SimpleCondition()
+        arc.ServiceEndpointRetrieverPluginTESTControl.condition.push_back(condition)
+      
         retriever = arc.ServiceEndpointRetriever(self.usercfg)
         container = arc.EndpointContainer()
         retriever.addConsumer(container)
-        arc.ServiceEndpointRetrieverPluginTESTControl.delay = 0.01
         registry = arc.Endpoint("test.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest")
         retriever.addEndpoint(registry)
         # the endpoint should not arrive yet
         self.expect(container).to_have(0).endpoints()
+        condition.signal()
         # we are not interested in it anymore
         retriever.removeConsumer(container)
-        
+        # we must wait until retriever is done otherwise 'condition' will go out of scope while being used.
+        retriever.wait()
+
     def test_same_endpoint_is_not_queried_twice(self):
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints.push_back([arc.Endpoint()])
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints.push_back([arc.Endpoint()])
+        arc.ServiceEndpointRetrieverPluginTESTControl.status.push_back(arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL))
+        arc.ServiceEndpointRetrieverPluginTESTControl.status.push_back(arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL))
+
         retriever = arc.ServiceEndpointRetriever(self.usercfg)
         container = arc.EndpointContainer()
         retriever.addConsumer(container)
@@ -73,11 +92,24 @@ class ServiceEndpointRetrieverTest(testutils.ARCClientTestCase):
         self.expect(container).to_have(1).endpoint()
         
     def test_filtering(self):
-        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints = [
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints.push_back([
             arc.Endpoint("test1.nordugrid.org", ["cap1","cap2"]),
             arc.Endpoint("test2.nordugrid.org", ["cap3","cap4"]),
             arc.Endpoint("test3.nordugrid.org", ["cap1","cap3"])
-        ]
+        ])
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints.push_back([
+            arc.Endpoint("test1.nordugrid.org", ["cap1","cap2"]),
+            arc.Endpoint("test2.nordugrid.org", ["cap3","cap4"]),
+            arc.Endpoint("test3.nordugrid.org", ["cap1","cap3"])
+        ])
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints.push_back([
+            arc.Endpoint("test1.nordugrid.org", ["cap1","cap2"]),
+            arc.Endpoint("test2.nordugrid.org", ["cap3","cap4"]),
+            arc.Endpoint("test3.nordugrid.org", ["cap1","cap3"])
+        ])
+        arc.ServiceEndpointRetrieverPluginTESTControl.status.push_back(arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL))
+        arc.ServiceEndpointRetrieverPluginTESTControl.status.push_back(arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL))
+        arc.ServiceEndpointRetrieverPluginTESTControl.status.push_back(arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL))
         registry = arc.Endpoint("test.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest")
 
         options = arc.ServiceEndpointQueryOptions(False, ["cap1"])
@@ -105,14 +137,21 @@ class ServiceEndpointRetrieverTest(testutils.ARCClientTestCase):
         self.expect(container).to_have(0).endpoints()
     
     def test_recursivity(self):
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints.push_back([
+            arc.Endpoint("emir.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest"),
+            arc.Endpoint("ce.nordugrid.org", arc.Endpoint.COMPUTINGINFO, "org.ogf.glue.emies.resourceinfo"),
+        ])
+        arc.ServiceEndpointRetrieverPluginTESTControl.status.push_back(arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL))
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints.push_back([
+            arc.Endpoint("emir.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest"),
+            arc.Endpoint("ce.nordugrid.org", arc.Endpoint.COMPUTINGINFO, "org.ogf.glue.emies.resourceinfo"),
+        ])
+        arc.ServiceEndpointRetrieverPluginTESTControl.status.push_back(arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL))
+
         options = arc.ServiceEndpointQueryOptions(True)
         retriever = arc.ServiceEndpointRetriever(self.usercfg, options)
         container = arc.EndpointContainer()
         retriever.addConsumer(container)
-        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints = [
-            arc.Endpoint("emir.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest"),
-            arc.Endpoint("ce.nordugrid.org", arc.Endpoint.COMPUTINGINFO, "org.ogf.glue.emies.resourceinfo"),
-        ]
         registry = arc.Endpoint("test.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest")
         retriever.addEndpoint(registry)
         retriever.wait()
@@ -125,14 +164,21 @@ class ServiceEndpointRetrieverTest(testutils.ARCClientTestCase):
         self.expect(ces).to_have(2).endpoints()
 
     def test_recursivity_with_filtering(self):
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints.push_back([
+           arc.Endpoint("emir.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest"),
+           arc.Endpoint("ce.nordugrid.org", arc.Endpoint.COMPUTINGINFO, "org.ogf.glue.emies.resourceinfo"),
+        ])
+        arc.ServiceEndpointRetrieverPluginTESTControl.status.push_back(arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL))
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints.push_back([
+           arc.Endpoint("emir.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest"),
+           arc.Endpoint("ce.nordugrid.org", arc.Endpoint.COMPUTINGINFO, "org.ogf.glue.emies.resourceinfo"),
+        ])
+        arc.ServiceEndpointRetrieverPluginTESTControl.status.push_back(arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL))
+
         options = arc.ServiceEndpointQueryOptions(True, ["information.discovery.resource"])
         retriever = arc.ServiceEndpointRetriever(self.usercfg, options)
         container = arc.EndpointContainer()
         retriever.addConsumer(container)
-        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints = [
-           arc.Endpoint("emir.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest"),
-           arc.Endpoint("ce.nordugrid.org", arc.Endpoint.COMPUTINGINFO, "org.ogf.glue.emies.resourceinfo"),
-        ]
         registry = arc.Endpoint("test.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest")
         retriever.addEndpoint(registry)
         retriever.wait()
@@ -147,15 +193,17 @@ class ServiceEndpointRetrieverTest(testutils.ARCClientTestCase):
     def test_rejected_services(self):
         rejected = "http://test.nordugrid.org"
         not_rejected = "http://test2.nordugrid.org"
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints.push_back([
+            arc.Endpoint(rejected),
+            arc.Endpoint(not_rejected)
+        ])
+        arc.ServiceEndpointRetrieverPluginTESTControl.status.push_back(arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL))
+
         options = arc.ServiceEndpointQueryOptions(False, [], [rejected])
         retriever = arc.ServiceEndpointRetriever(self.usercfg, options)
         container = arc.EndpointContainer()
         retriever.addConsumer(container)
         
-        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints = [
-            arc.Endpoint(rejected),
-            arc.Endpoint(not_rejected)
-        ]
         registry = arc.Endpoint("registry.nordugrid.org", arc.Endpoint.REGISTRY)
         retriever.addEndpoint(registry)
         retriever.wait()
@@ -163,6 +211,9 @@ class ServiceEndpointRetrieverTest(testutils.ARCClientTestCase):
         self.expect(container[0].URLString).to_be(not_rejected)
     
     def test_empty_registry_type(self):
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints.push_back(arc.EndpointList())
+        arc.ServiceEndpointRetrieverPluginTESTControl.status.push_back(arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL))
+
         retriever = arc.ServiceEndpointRetriever(self.usercfg)
         container = arc.EndpointContainer()
         retriever.addConsumer(container)
@@ -170,10 +221,13 @@ class ServiceEndpointRetrieverTest(testutils.ARCClientTestCase):
         retriever.addEndpoint(registry)
         retriever.wait()
         # it should fill the empty type with the available plugins:
-        # among them the TEST plugin which returns one endpoint
-        self.expect(container).to_have(1).endpoint()
+        # among them the TEST plugin which doesn't return any endpoint
+        self.expect(container).to_have(0).endpoint()
     
     def test_status_of_typeless_registry(self):
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints.push_back(arc.EndpointList())
+        arc.ServiceEndpointRetrieverPluginTESTControl.status.push_back(arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL))
+
         retriever = arc.ServiceEndpointRetriever(self.usercfg)
         container = arc.EndpointContainer()
         retriever.addConsumer(container)
@@ -184,11 +238,13 @@ class ServiceEndpointRetrieverTest(testutils.ARCClientTestCase):
         self.expect(status).to_be(arc.EndpointQueryingStatus.SUCCESSFUL)
         
     def test_deleting_the_consumer_before_the_retriever(self):
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints.push_back(arc.EndpointList())
+        arc.ServiceEndpointRetrieverPluginTESTControl.status.push_back(arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL))
+
         retriever = arc.ServiceEndpointRetriever(self.usercfg)
         container = arc.EndpointContainer()
         retriever.addConsumer(container)
         registry = arc.Endpoint("test.nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.sertest")
-        arc.ServiceEndpointRetrieverPluginTESTControl.delay = 0.01
         retriever.addEndpoint(registry)
         retriever.removeConsumer(container)
         del container

@@ -39,8 +39,7 @@ void ServiceEndpointRetrieverTest::PluginLoading() {
 void ServiceEndpointRetrieverTest::QueryTest() {
   Arc::EndpointQueryingStatus sInitial(Arc::EndpointQueryingStatus::SUCCESSFUL);
 
-  Arc::ServiceEndpointRetrieverPluginTESTControl::delay = 1;
-  Arc::ServiceEndpointRetrieverPluginTESTControl::status = sInitial;
+  Arc::ServiceEndpointRetrieverPluginTESTControl::status.push_back(sInitial);
 
   Arc::ServiceEndpointRetrieverPluginLoader l;
   Arc::ServiceEndpointRetrieverPlugin* p = (Arc::ServiceEndpointRetrieverPlugin*)l.load("TEST");
@@ -61,9 +60,8 @@ void ServiceEndpointRetrieverTest::BasicServiceRetrieverTest() {
   retriever.addConsumer(container);
   CPPUNIT_ASSERT(container.empty());
 
-  Arc::ServiceEndpointRetrieverPluginTESTControl::delay = 0;
-  Arc::ServiceEndpointRetrieverPluginTESTControl::endpoints.push_back(Arc::Endpoint());
-  Arc::ServiceEndpointRetrieverPluginTESTControl::status = Arc::EndpointQueryingStatus(Arc::EndpointQueryingStatus::SUCCESSFUL);
+  Arc::ServiceEndpointRetrieverPluginTESTControl::endpoints.push_back(std::list<Arc::Endpoint>(1, Arc::Endpoint()));
+  Arc::ServiceEndpointRetrieverPluginTESTControl::status.push_back(Arc::EndpointQueryingStatus::SUCCESSFUL);
   Arc::Endpoint registry("test.nordugrid.org", Arc::Endpoint::REGISTRY, "org.nordugrid.sertest");
   retriever.addEndpoint(registry);
   retriever.wait();

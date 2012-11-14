@@ -7,6 +7,7 @@
 %import "../src/hed/libs/common/URL.h"
 %import "../src/hed/libs/common/XMLNode.h"
 %import "../src/hed/libs/common/DateTime.h"
+%import "../src/hed/libs/common/Thread.h"
 %import "../src/hed/libs/message/PayloadSOAP.h"
 %import "../src/hed/libs/message/PayloadRaw.h"
 %import "../src/hed/libs/message/PayloadStream.h"
@@ -248,15 +249,15 @@
 %rename(_wait) Arc::EntityRetriever::wait;
 #endif
 %include "../src/hed/libs/compute/EntityRetriever.h"
-%template() Arc::EntityConsumer<Arc::Endpoint>;
+%template(EndpointConsumer) Arc::EntityConsumer<Arc::Endpoint>;
 %template(EndpointContainer) Arc::EntityContainer<Arc::Endpoint>;
 %template(ServiceEndpointQueryOptions) Arc::EndpointQueryOptions<Arc::Endpoint>;
 %template(ServiceEndpointRetriever) Arc::EntityRetriever<Arc::Endpoint>;
-%template() Arc::EntityConsumer<Arc::ComputingServiceType>;
+%template(ComputingServiceConsumer) Arc::EntityConsumer<Arc::ComputingServiceType>;
 %template(ComputingServiceContainer) Arc::EntityContainer<Arc::ComputingServiceType>;
 %template(ComputingServiceQueryOptions) Arc::EndpointQueryOptions<Arc::ComputingServiceType>;
 %template(TargetInformationRetriever) Arc::EntityRetriever<Arc::ComputingServiceType>;
-%template() Arc::EntityConsumer<Arc::Job>;
+%template(JobConsumer) Arc::EntityConsumer<Arc::Job>;
 %template(JobContainer) Arc::EntityContainer<Arc::Job>;
 %template(JobListQueryOptions) Arc::EndpointQueryOptions<Arc::Job>;
 %template(JobListRetriever) Arc::EntityRetriever<Arc::Job>;
@@ -361,6 +362,9 @@ template <class Type> struct traits_from<const Type *> {
 %rename(_TargetInformationRetrieverPluginTESTControl) Arc::TargetInformationRetrieverPluginTESTControl;
 #endif
 %include "../src/hed/libs/compute/TestACCControl.h"
+%template(SimpleConditionList) std::list<Arc::SimpleCondition*>;
+%template(EndpointListList) std::list< std::list<Arc::Endpoint> >;
+%template(EndpointQueryingStatusList) std::list<Arc::EndpointQueryingStatus>;
 #ifdef SWIGPYTHON
 %pythoncode %{
 BrokerPluginTestACCControl = StaticPropertyWrapper(_BrokerPluginTestACCControl)

@@ -5,6 +5,7 @@
 #include <string>
 
 #include <arc/compute/Endpoint.h>
+#include <arc/Thread.h>
 #include <arc/URL.h>
 #include <arc/compute/EndpointQueryingStatus.h>
 #include <arc/compute/ExecutionTarget.h>
@@ -67,9 +68,9 @@ public:
 
 class ServiceEndpointRetrieverPluginTESTControl {
 public:
-  static float delay;
-  static EndpointQueryingStatus status;
-  static std::list<Endpoint> endpoints;
+  static std::list<SimpleCondition*> condition;
+  static std::list<EndpointQueryingStatus> status;
+  static std::list< std::list<Endpoint> > endpoints;
 };
 
 class TargetInformationRetrieverPluginTESTControl {

@@ -246,13 +246,8 @@ typedef int gid_t;
 
 %ignore Arc::ThreadedPointer::operator=(const ThreadedPointer<T>&);
 %ignore Arc::ThreadedPointer::operator=(T*);
-#ifdef SWIGJAVA
-%rename(_wait) Arc::SimpleCondition::wait;
-%rename(_wait) Arc::SimpleCounter::wait;
-%rename(_wait) Arc::ThreadedPointerBase::wait;
-#endif
 %ignore Arc::ThreadedPointer::operator!;
-%include "../src/hed/libs/common/Thread.h"
+%import "../src/hed/libs/common/Thread.h"
 %ignore Arc::ThreadedPointer<DataStaging::DTR>::operator bool; // Clash between "operator bool" in DTR and ThreadedPointer (smart pointer wrapping).
 %template(DTRPointer) Arc::ThreadedPointer<DataStaging::DTR>;
 %template(DTRLogger) Arc::ThreadedPointer<Arc::Logger>;

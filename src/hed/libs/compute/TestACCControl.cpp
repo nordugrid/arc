@@ -34,9 +34,9 @@ float TargetInformationRetrieverPluginTESTControl::delay = 0;
 std::list<ComputingServiceType> TargetInformationRetrieverPluginTESTControl::targets;
 EndpointQueryingStatus TargetInformationRetrieverPluginTESTControl::status;
 
-float ServiceEndpointRetrieverPluginTESTControl::delay = 0;
-EndpointQueryingStatus ServiceEndpointRetrieverPluginTESTControl::status;
-std::list<Endpoint> ServiceEndpointRetrieverPluginTESTControl::endpoints = std::list<Endpoint>();
+std::list<SimpleCondition*> ServiceEndpointRetrieverPluginTESTControl::condition;
+std::list<EndpointQueryingStatus> ServiceEndpointRetrieverPluginTESTControl::status;
+std::list< std::list<Endpoint> > ServiceEndpointRetrieverPluginTESTControl::endpoints;
 
 float JobListRetrieverPluginTESTControl::delay = 0;
 EndpointQueryingStatus JobListRetrieverPluginTESTControl::status;

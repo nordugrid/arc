@@ -18,9 +18,23 @@ EndpointQueryingStatus ServiceEndpointRetrieverPluginTEST::Query(const UserConfi
                                                           const Endpoint& registry,
                                                           std::list<Endpoint>& endpoints,
                                                           const EndpointQueryOptions<Endpoint>&) const {
-  Glib::usleep(ServiceEndpointRetrieverPluginTESTControl::delay*1000000);
-  endpoints = ServiceEndpointRetrieverPluginTESTControl::endpoints;
-  return ServiceEndpointRetrieverPluginTESTControl::status;
+  if (!ServiceEndpointRetrieverPluginTESTControl::condition.empty()) {
+    SimpleCondition* c = ServiceEndpointRetrieverPluginTESTControl::condition.front();
+    ServiceEndpointRetrieverPluginTESTControl::condition.pop_front();
+    if (c != NULL) {
+      c->wait();
+    }
+  }
+  if (!ServiceEndpointRetrieverPluginTESTControl::endpoints.empty()) {
+    endpoints = ServiceEndpointRetrieverPluginTESTControl::endpoints.front();
+    ServiceEndpointRetrieverPluginTESTControl::endpoints.pop_front();
+  }
+  if (!ServiceEndpointRetrieverPluginTESTControl::status.empty()) {
+    EndpointQueryingStatus s = ServiceEndpointRetrieverPluginTESTControl::status.front();
+    ServiceEndpointRetrieverPluginTESTControl::status.pop_front();
+    return s;
+  }
+  return EndpointQueryingStatus::UNKNOWN;
 };
 
 

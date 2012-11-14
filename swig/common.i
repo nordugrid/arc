@@ -259,3 +259,15 @@ private:
 #include <arc/CheckSum.h>
 %}
 %include "../src/hed/libs/common/CheckSum.h"
+
+
+// Wrap contents of $(top_srcdir)/src/hed/libs/common/Thread.h
+%{
+#include <arc/Thread.h>
+%}
+#ifdef SWIGJAVA
+%rename(_wait) Arc::SimpleCondition::wait;
+%rename(_wait) Arc::SimpleCounter::wait;
+%rename(_wait) Arc::ThreadedPointerBase::wait;
+#endif
+%include "../src/hed/libs/common/Thread.h"
