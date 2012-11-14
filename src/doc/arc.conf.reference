@@ -1317,6 +1317,13 @@
 ## they're currently disabled by default.
 #infosys_glue2_ldap_showactivities="disable"
 
+## Allows a sysadmin to define a different GLUE2 QualityLevel for A-REX.
+## This can be used for operations.
+## default: production
+## Allowed value is one of: production, pre-production, testing, development
+## Refer to GLUE2 documentation for the meaning of these strings.
+#infosys_glue2_service_qualitylevel="production"
+
 
 ## This variable disables/enables an ldap-database containing
 ## information about the ldap database itself on "o=infosys"
