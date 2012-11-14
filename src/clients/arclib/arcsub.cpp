@@ -290,11 +290,11 @@ static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescri
 static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, std::list<std::string> requestedSubmissionInterfaces) {
   int retval = 0;
 
-  std::list<std::string> preferredInterfaceNames;
+  std::set<std::string> preferredInterfaceNames;
   if (usercfg.InfoInterface().empty()) {
-    preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
+    preferredInterfaceNames.insert("org.nordugrid.ldapglue2");
   } else {
-    preferredInterfaceNames.push_back(usercfg.InfoInterface());
+    preferredInterfaceNames.insert(usercfg.InfoInterface());
   }
 
   Arc::ComputingServiceUniq csu;

@@ -101,11 +101,11 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
 
   std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
 
-  std::list<std::string> preferredInterfaceNames;
+  std::set<std::string> preferredInterfaceNames;
   if (usercfg.InfoInterface().empty()) {
-    preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
+    preferredInterfaceNames.insert("org.nordugrid.ldapglue2");
   } else {
-    preferredInterfaceNames.push_back(usercfg.InfoInterface());
+    preferredInterfaceNames.insert(usercfg.InfoInterface());
   }
 
   std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);

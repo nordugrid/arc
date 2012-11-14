@@ -302,7 +302,7 @@ namespace Arc {
       // and setting the InterfaceName for each possible plugins
       std::list<Endpoint> preferredEndpoints;
       std::list<Endpoint> otherEndpoints;
-      const std::list<std::string>& preferredInterfaceNames = a->options.getPreferredInterfaceNames();
+      const std::set<std::string>& preferredInterfaceNames = a->options.getPreferredInterfaceNames();
       
       // A new result object is created for the sub-threads, "true" means we only want to wait for the first successful query
       Result preferredResult(true);
@@ -327,7 +327,7 @@ namespace Arc {
         // Set interface
         std::list<std::string>::const_iterator itSI = plugin->SupportedInterfaces().begin();
         for (; itSI != plugin->SupportedInterfaces().end(); ++itSI) {
-          if (std::find(preferredInterfaceNames.begin(), preferredInterfaceNames.end(), *itSI) != preferredInterfaceNames.end()) {
+          if (preferredInterfaceNames.count(*itSI)) {
             endpoint.InterfaceName = *itSI; // TODO: *itSI must not be empty.
             preferredEndpoints.push_back(endpoint);
             newArg = new ThreadArg(*a, preferredResult);

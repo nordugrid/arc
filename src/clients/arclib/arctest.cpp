@@ -173,11 +173,11 @@ int RUNMAIN(arctest)(int argc, char **argv) {
   logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
   std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
-  std::list<std::string> preferredInterfaceNames;
+  std::set<std::string> preferredInterfaceNames;
   if (usercfg.InfoInterface().empty()) {
-    preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
+    preferredInterfaceNames.insert("org.nordugrid.ldapglue2");
   } else {
-    preferredInterfaceNames.push_back(usercfg.InfoInterface());
+    preferredInterfaceNames.insert(usercfg.InfoInterface());
   }
 
   Arc::ExecutionTargetSorter ets(broker);

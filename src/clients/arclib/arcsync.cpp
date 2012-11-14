@@ -26,7 +26,7 @@ public:
     const Arc::UserConfig& uc,
     const std::list<Arc::Endpoint>& services,
     const std::list<std::string>& rejectedServices = std::list<std::string>(),  
-    const std::list<std::string>& preferredInterfaceNames = std::list<std::string>(),
+    const std::set<std::string>& preferredInterfaceNames = std::set<std::string>(),
     const std::list<std::string>& capabilityFilter = std::list<std::string>(1, Arc::Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO))
   ) : uc(uc), ser(uc, Arc::EndpointQueryOptions<Arc::Endpoint>(true, capabilityFilter, rejectedServices)),
       jlr(uc, Arc::EndpointQueryOptions<Arc::Job>(preferredInterfaceNames))
@@ -195,11 +195,11 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
   }
 
 
-  std::list<std::string> preferredInterfaceNames;
+  std::set<std::string> preferredInterfaceNames;
   if (usercfg.InfoInterface().empty()) {
-    preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
+    preferredInterfaceNames.insert("org.nordugrid.ldapglue2");
   } else {
-    preferredInterfaceNames.push_back(usercfg.InfoInterface());
+    preferredInterfaceNames.insert(usercfg.InfoInterface());
   }
 
   JobSynchronizer js(usercfg, endpoints, rejectDiscoveryURLs, preferredInterfaceNames);

@@ -113,12 +113,12 @@ namespace Arc {
   SubmissionStatus Submitter::BrokeredSubmit(const std::list<Endpoint>& endpoints, const std::list<JobDescription>& descs, const std::list<std::string>& requestedSubmissionInterfaces) {
     ClearAll();
 
-    std::list<std::string> preferredInterfaceNames;
+    std::set<std::string> preferredInterfaceNames;
     if (uc.InfoInterface().empty()) {
       // Maybe defaults should be moved somewhere else.
-      preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
+      preferredInterfaceNames.insert("org.nordugrid.ldapglue2");
     } else {
-      preferredInterfaceNames.push_back(uc.InfoInterface());
+      preferredInterfaceNames.insert(uc.InfoInterface());
     }
 
     Arc::ComputingServiceUniq csu;

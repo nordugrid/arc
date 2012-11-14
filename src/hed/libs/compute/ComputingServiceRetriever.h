@@ -46,7 +46,7 @@ public:
     const UserConfig& uc,
     const std::list<Endpoint>& services = std::list<Endpoint>(),
     const std::list<std::string>& rejectedServices = std::list<std::string>(),
-    const std::list<std::string>& preferredInterfaceNames = std::list<std::string>(),
+    const std::set<std::string>& preferredInterfaceNames = std::set<std::string>(),
     const std::list<std::string>& capabilityFilter = std::list<std::string>(1, Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO))
   );
 

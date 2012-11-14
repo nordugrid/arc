@@ -42,7 +42,7 @@ namespace Arc {
     const UserConfig& uc,
     const std::list<Endpoint>& services,
     const std::list<std::string>& rejectedServices,
-    const std::list<std::string>& preferredInterfaceNames,
+    const std::set<std::string>& preferredInterfaceNames,
     const std::list<std::string>& capabilityFilter
   ) : ser(uc, EndpointQueryOptions<Endpoint>(true, capabilityFilter, rejectedServices)),
       tir(uc, EndpointQueryOptions<ComputingServiceType>(preferredInterfaceNames))

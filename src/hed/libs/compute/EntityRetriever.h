@@ -33,11 +33,11 @@ public:
       \param[in] preferredInterfaceNames a list of the preferred InterfaceName strings
       \see EndpointQueryOptions<Endpoint> the EntityRetriever<Endpoint> (a.k.a. #ServiceEndpointRetriever) needs different options
   */
-  EndpointQueryOptions(std::list<std::string> preferredInterfaceNames = std::list<std::string>()) : preferredInterfaceNames(preferredInterfaceNames) {}
+  EndpointQueryOptions(const std::set<std::string>& preferredInterfaceNames = std::set<std::string>()) : preferredInterfaceNames(preferredInterfaceNames) {}
 
-  std::list<std::string>& getPreferredInterfaceNames() { return preferredInterfaceNames; }
+  const std::set<std::string>& getPreferredInterfaceNames() const { return preferredInterfaceNames; }
 private:
-  std::list<std::string> preferredInterfaceNames;
+  std::set<std::string> preferredInterfaceNames;
 };
 
 /// The EntityRetriever<Endpoint> (a.k.a. #ServiceEndpointRetriever) needs different options
@@ -55,19 +55,21 @@ public:
   */
   EndpointQueryOptions(bool recursive = false,
                        const std::list<std::string>& capabilityFilter = std::list<std::string>(),
-                       const std::list<std::string>& rejectedServices = std::list<std::string>() )
-    : recursive(recursive), capabilityFilter(capabilityFilter), rejectedServices(rejectedServices) {}
+                       const std::list<std::string>& rejectedServices = std::list<std::string>(),
+                       const std::set<std::string>& preferredInterfaceNames = std::set<std::string>() )
+    : recursive(recursive), capabilityFilter(capabilityFilter), rejectedServices(rejectedServices),
+      preferredInterfaceNames(preferredInterfaceNames) {}
 
   bool recursiveEnabled() const { return recursive; }
   const std::list<std::string>& getCapabilityFilter() const { return capabilityFilter; }
   const std::list<std::string>& getRejectedServices() const { return rejectedServices; }
-  std::list<std::string>& getPreferredInterfaceNames() { return preferredInterfaceNames; }
+  const std::set<std::string>& getPreferredInterfaceNames() const { return preferredInterfaceNames; }
 
 private:
   bool recursive;
   std::list<std::string> capabilityFilter;
   std::list<std::string> rejectedServices;
-  std::list<std::string> preferredInterfaceNames;
+  std::set<std::string> preferredInterfaceNames;
 };
 
 template<typename T>
