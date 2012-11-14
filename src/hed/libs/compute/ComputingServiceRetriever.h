@@ -105,7 +105,7 @@ public:
    * ComputingServiceRetriever::wait method before this one.
    * \return a map with Endpoint objects as keys and status objects as values.
    **/
-  std::map<Endpoint, EndpointQueryingStatus> getAllStatuses() const { std::map<Endpoint, EndpointQueryingStatus> s = ser.getAllStatuses(), t = tir.getAllStatuses(); s.insert(t.begin(), t.end()); return s; }
+  EndpointStatusMap getAllStatuses() const { EndpointStatusMap s = ser.getAllStatuses(), t = tir.getAllStatuses(); s.insert(t.begin(), t.end()); return s; }
 
 private:
   ServiceEndpointRetriever ser;

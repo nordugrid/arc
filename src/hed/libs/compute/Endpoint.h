@@ -4,13 +4,30 @@
 #include <string>
 #include <set>
 #include <algorithm>
+#include <map>
+
+#include <arc/URL.h>
+#include <arc/compute/EndpointQueryingStatus.h>
 
 namespace Arc {
 
 class ConfigEndpoint;
 class ExecutionTarget;
+class Endpoint;
+class EndpointQueryingStatus;
 class ComputingEndpointAttributes;
   
+typedef bool (*EndpointCompareFn)(const Endpoint&, const Endpoint&);
+
+class Endpoint;
+class EndpointStatusMap : public std::map<Endpoint, EndpointQueryingStatus, EndpointCompareFn> {
+public:
+  EndpointStatusMap();
+  EndpointStatusMap(EndpointCompareFn fn) : std::map<Endpoint, EndpointQueryingStatus, EndpointCompareFn>(fn) {}
+  EndpointStatusMap(const EndpointStatusMap& m) : std::map<Endpoint, EndpointQueryingStatus, EndpointCompareFn>(m) {}
+  ~EndpointStatusMap() {}
+};
+
 /// Represents an endpoint of a service with a given interface type and capabilities
 /**
 The type of the interface is described by a string called InterfaceName (from the
@@ -124,6 +141,8 @@ public:
   /** Needed for std::map to be able to sort the keys */
   bool operator<(const Endpoint& other) const;
   
+  static bool ServiceIDCompare(const Endpoint& a, const Endpoint& b);
+
   /** Copy a ConfigEndpoint into the Endpoint */
   Endpoint& operator=(const ConfigEndpoint& e);
   
@@ -149,6 +168,8 @@ public:
   std::string RequestedSubmissionInterfaceName;
   /** The ID of the service this Endpoint belongs to */
   std::string ServiceID;
+
+  static std::pair<EndpointStatusMap::const_iterator, EndpointStatusMap::const_iterator> getServiceEndpoints(const Endpoint&, const EndpointStatusMap&);
 };
 
 } // namespace Arc

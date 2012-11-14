@@ -277,7 +277,7 @@ public:
    * EntityRetriever::wait method before this one.
    * \return a map with Endpoint objects as keys and status objects as values.
    **/
-  std::map<Endpoint, EndpointQueryingStatus> getAllStatuses() const { statusLock.lock(); std::map<Endpoint, EndpointQueryingStatus> s = statuses; statusLock.unlock(); return s; }
+  EndpointStatusMap getAllStatuses() const { statusLock.lock(); EndpointStatusMap s = statuses; statusLock.unlock(); return s; }
     
   /// Set the status of the query process of a given Endpoint.
   /**
@@ -325,6 +325,8 @@ public:
 
 protected:
   static void queryEndpoint(void *arg_);
+
+  void checkSuspendedAndStart(const Endpoint& e);
 
   // Common configuration part
   class Common : public EntityRetrieverPluginLoader<T> {
@@ -412,12 +414,12 @@ protected:
     EndpointQueryOptions<T> options;
   };
 
-  std::map<Endpoint, EndpointQueryingStatus> statuses;
+  EndpointStatusMap statuses;
 
   static Logger logger;
   const UserConfig& uc;
   std::list< EntityConsumer<T>* > consumers;
-  EndpointQueryOptions<T> options;
+  const EndpointQueryOptions<T> options;
 
   mutable SimpleCondition consumerLock;
   mutable SimpleCondition statusLock;

@@ -17,6 +17,7 @@ public:
   /** The possible states: */
   enum EndpointQueryingStatusType {
     UNKNOWN, /**< the state is unknown */
+    SUSPENDED_NOTREQUIRED, /**< Querying of the endpoint is suspended since querying it is not required. */
     STARTED, /**< the query process was started */
     FAILED, /**< the query process failed */
     NOPLUGIN, /**< there is no plugin for the given Endpoint InterfaceName (so the query process was not even started) */
@@ -30,15 +31,15 @@ public:
   EndpointQueryingStatus(EndpointQueryingStatusType status = UNKNOWN, const std::string& description = "") : status(status), description(description) {};
 
   /** This EndpointQueryingStatus object equals to an enum #EndpointQueryingStatusType if it contains the same state */
-  bool operator==(EndpointQueryingStatusType s)    { return status == s; };
+  bool operator==(EndpointQueryingStatusType s) const { return status == s; };
   /** This EndpointQueryingStatus object equals to another EndpointQueryingStatus object, if their state equals.
     The description doesn't matter.
   */
-  bool operator==(const EndpointQueryingStatus& s) { return status == s.status; };
+  bool operator==(const EndpointQueryingStatus& s) const { return status == s.status; };
   /** Inequality. \see operator==(EndpointQueryingStatusType) */
-  bool operator!=(EndpointQueryingStatusType s)    { return status != s; };
+  bool operator!=(EndpointQueryingStatusType s) const { return status != s; };
   /** Inequality. \see operator==(const EndpointQueryingStatus&) */
-  bool operator!=(const EndpointQueryingStatus& s) { return status != s.status; };
+  bool operator!=(const EndpointQueryingStatus& s) const { return status != s.status; };
   /** \return true if the status is not successful */
   bool operator!() const { return status != SUCCESSFUL; };
   /** \return true if the status is successful */
@@ -62,10 +63,14 @@ public:
   */
   std::string str() const { return str(status); };
 
+  friend bool operator==(EndpointQueryingStatusType, const EndpointQueryingStatus&);
+
 private:
   EndpointQueryingStatusType status;
   std::string description;
 };
+
+inline bool operator==(EndpointQueryingStatus::EndpointQueryingStatusType eqst, const EndpointQueryingStatus& eqs) { return eqs == eqst; }
 
 } // namespace Arc
 

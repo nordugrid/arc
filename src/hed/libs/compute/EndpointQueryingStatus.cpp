@@ -14,6 +14,7 @@ namespace Arc {
     else if (s == FAILED)      return "FAILED";
     else if (s == NOPLUGIN)    return "NOPLUGIN";
     else if (s == SUCCESSFUL)  return "SUCCESSFUL";
+    else if (s == SUSPENDED_NOTREQUIRED)  return "SUSPENDED_NOTREQUIRED";
     else                       return ""; // There should be no other alternative!
   }
 

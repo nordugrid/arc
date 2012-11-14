@@ -4,12 +4,17 @@
 #include <config.h>
 #endif
 
+#include <utility>
+
 #include <arc/UserConfig.h>
+#include <arc/compute/EndpointQueryingStatus.h>
 #include <arc/compute/ExecutionTarget.h>
 
 #include "Endpoint.h"
 
 namespace Arc {
+
+  EndpointStatusMap::EndpointStatusMap() : std::map<Endpoint, EndpointQueryingStatus, EndpointCompareFn>(&Endpoint::ServiceIDCompare) {}
 
   Endpoint::Endpoint(const ExecutionTarget& e, const std::string& rsi)
     : URLString(e.ComputingEndpoint->URLString), InterfaceName(e.ComputingEndpoint->InterfaceName),
@@ -78,6 +83,26 @@ namespace Arc {
   
   bool Endpoint::operator<(const Endpoint& other) const {
     return str() < other.str();
+  }
+
+  bool Endpoint::ServiceIDCompare(const Endpoint& a, const Endpoint& b) {
+    if (a.ServiceID != b.ServiceID) {
+      return a.ServiceID < b.ServiceID;
+    }
+    
+    if (a.URLString != b.URLString) {
+      return a.URLString < b.URLString;
+    }
+    
+    return a.InterfaceName < b.InterfaceName;
+  }
+
+  std::pair<EndpointStatusMap::const_iterator, EndpointStatusMap::const_iterator> Endpoint::getServiceEndpoints(const Endpoint& e, const EndpointStatusMap& m) {
+    Endpoint _e(e);
+    EndpointStatusMap::const_iterator first  = m.lower_bound(_e);
+    _e.ServiceID[_e.ServiceID.size()-1]++;
+    EndpointStatusMap::const_iterator second = m.upper_bound(_e);
+    return make_pair(first, second);
   }
 
 } // namespace Arc

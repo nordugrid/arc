@@ -16,6 +16,7 @@ class ServiceEndpointRetrieverTest
   CPPUNIT_TEST(PluginLoading);
   CPPUNIT_TEST(QueryTest);
   CPPUNIT_TEST(BasicServiceRetrieverTest);
+  CPPUNIT_TEST(SuspendedEndpointTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -27,6 +28,7 @@ public:
   void PluginLoading();
   void QueryTest();
   void BasicServiceRetrieverTest();
+  void SuspendedEndpointTest();
 };
 
 void ServiceEndpointRetrieverTest::PluginLoading() {
@@ -67,6 +69,31 @@ void ServiceEndpointRetrieverTest::BasicServiceRetrieverTest() {
   retriever.wait();
 
   CPPUNIT_ASSERT_EQUAL(1, (int)container.size());
+}
+
+void ServiceEndpointRetrieverTest::SuspendedEndpointTest() {
+  Arc::UserConfig uc;
+  Arc::ServiceEndpointRetriever retriever(uc);
+
+  Arc::SimpleCondition c;
+  Arc::ServiceEndpointRetrieverPluginTESTControl::condition.push_back(&c); // Block the first instance of the ServiceEndpointRetrieverPluginTEST::Query method
+  Arc::ServiceEndpointRetrieverPluginTESTControl::status.push_back(Arc::EndpointQueryingStatus::FAILED); // First invocation should fail
+  Arc::ServiceEndpointRetrieverPluginTESTControl::status.push_back(Arc::EndpointQueryingStatus::SUCCESSFUL); // Second should succeed
+
+  Arc::Endpoint e1("test1.nordugrid.org", Arc::Endpoint::REGISTRY, "org.nordugrid.sertest");
+  e1.ServiceID = "1234567890";
+  Arc::Endpoint e2("test2.nordugrid.org", Arc::Endpoint::REGISTRY, "org.nordugrid.sertest");
+  e2.ServiceID = "1234567890";
+  
+  retriever.addEndpoint(e1);
+  retriever.addEndpoint(e2);
+  CPPUNIT_ASSERT(Arc::EndpointQueryingStatus(Arc::EndpointQueryingStatus::STARTED) == retriever.getStatusOfEndpoint(e1));
+  CPPUNIT_ASSERT(Arc::EndpointQueryingStatus(Arc::EndpointQueryingStatus::SUSPENDED_NOTREQUIRED) == retriever.getStatusOfEndpoint(e2));
+
+  c.signal(); // Remove block on the first query invocation
+  retriever.wait();
+  CPPUNIT_ASSERT(Arc::EndpointQueryingStatus(Arc::EndpointQueryingStatus::FAILED) == retriever.getStatusOfEndpoint(e1));
+  CPPUNIT_ASSERT(Arc::EndpointQueryingStatus(Arc::EndpointQueryingStatus::SUCCESSFUL) == retriever.getStatusOfEndpoint(e2));
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ServiceEndpointRetrieverTest);

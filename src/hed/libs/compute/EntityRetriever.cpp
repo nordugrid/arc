@@ -67,6 +67,7 @@ namespace Arc {
   EntityRetriever<T>::EntityRetriever(const UserConfig& uc, const EndpointQueryOptions<T>& options)
     : common(new Common(this, uc)),
       result(),
+      statuses(&Endpoint::ServiceIDCompare),
       uc(uc),
       options(options)
   {
@@ -119,13 +120,6 @@ namespace Arc {
 
   template<typename T>
   void EntityRetriever<T>::addEndpoint(const Endpoint& endpoint) {
-    // Set the status of the endpoint to STARTED only if it was not registered already (overwrite = false)
-    if (!setStatusOfEndpoint(endpoint, EndpointQueryingStatus::STARTED, false)) {
-      // Not able to set the status (because the endpoint was already registered)
-      logger.msg(DEBUG, "Ignoring endpoint (%s), it is already registered in retriever.", endpoint.str());
-      return;
-    }
-
     std::map<std::string, std::string>::const_iterator itPluginName = interfacePluginMap.end();
     if (!endpoint.InterfaceName.empty()) {
       itPluginName = interfacePluginMap.find(endpoint.InterfaceName);
@@ -135,6 +129,60 @@ namespace Arc {
         return;
       }
     }
+
+    /* Check if endpoint belongs to service which is being or has been queried.
+     * If that is the case, then only start querying this endpoint if it is
+     * a preferred one, and the other endpoint which is querying or has queried
+     * the service is NOT a preferred one.
+     */
+    // Compare by Endpoint::ServiceID if it is set.
+    if (!endpoint.ServiceID.empty()) {
+      Endpoint endpointServiceID;
+      endpointServiceID.ServiceID = endpoint.ServiceID;
+      bool isPreferredInterface = options.getPreferredInterfaceNames().count(endpoint.InterfaceName);
+      logger.msg(DEBUG, "Interface on endpoint (%s) %s.", endpoint.str(), isPreferredInterface ? "IS preferred" : "is NOT preferred");
+
+      statusLock.lock();
+      // First check if endpoint is already registered.
+      if (statuses.find(endpoint) != statuses.end()) {
+        // Ignore endpoint, it has already been registered
+        logger.msg(DEBUG, "Ignoring endpoint (%s), it is already registered in retriever.", endpoint.str());
+        statusLock.unlock();
+        return;
+      }
+
+      
+      std::pair<EndpointStatusMap::const_iterator, EndpointStatusMap::const_iterator> servicesIT = Endpoint::getServiceEndpoints(endpointServiceID, statuses);
+      for (EndpointStatusMap::const_iterator it = servicesIT.first;
+           it != servicesIT.second; ++it) {
+        logger.msg(DEBUG, "Service Loop: Endpoint %s", it->first.str());
+        if (it->second == EndpointQueryingStatus::STARTED || it->second == EndpointQueryingStatus::SUCCESSFUL) {
+          logger.msg(DEBUG, "  This endpoint (%s) is STARTED or SUCCESSFUL", it->first.str());
+          if (!isPreferredInterface || options.getPreferredInterfaceNames().count(it->first.InterfaceName)) {
+            // This interface is not a preferred one, so put this interface on SUSPENDED_NOTREQUIRED.
+            logger.msg(DEBUG, "Suspending querying of endpoint (%s) since the service at the endpoint is already being queried, or has been queried.", endpoint.str());
+            statuses[endpoint] = EndpointQueryingStatus::SUSPENDED_NOTREQUIRED;
+            statusLock.unlock();
+            return;
+          }
+        }
+        else {
+          logger.msg(DEBUG, "  Status of endpoint (%s) is %s", it->first.str(), it->second.str());
+        }
+      }
+
+      logger.msg(DEBUG, "Setting status (STARTED) for endpoint: %s", endpoint.str());
+      statuses[endpoint] = EndpointQueryingStatus::STARTED;
+      statusLock.unlock();
+    }
+    // Set the status of the endpoint to STARTED only if it was not registered already (overwrite = false)
+    else if (!setStatusOfEndpoint(endpoint, EndpointQueryingStatus::STARTED, false)) {
+      // Not able to set the status (because the endpoint was already registered)
+      logger.msg(DEBUG, "Ignoring endpoint (%s), it is already registered in retriever.", endpoint.str());
+      return;
+    }
+
+
     // common will be copied into the thread arg,
     // which means that all threads will have a new
     // instance of the ThreadedPointer pointing to the same object
@@ -195,7 +243,7 @@ namespace Arc {
   EndpointQueryingStatus EntityRetriever<T>::getStatusOfEndpoint(const Endpoint& endpoint) const {
     statusLock.lock();
     EndpointQueryingStatus status(EndpointQueryingStatus::UNKNOWN);
-    typename std::map<Endpoint, EndpointQueryingStatus>::const_iterator it = statuses.find(endpoint);
+    typename EndpointStatusMap::const_iterator it = statuses.find(endpoint);
     if (it != statuses.end()) {
       status = it->second;
     }
@@ -219,13 +267,80 @@ namespace Arc {
   template<typename T>
   void EntityRetriever<T>::getServicesWithStatus(const EndpointQueryingStatus& status, std::set<std::string>& result) {
     statusLock.lock();
-    for (std::map<Endpoint, EndpointQueryingStatus>::const_iterator it = statuses.begin();
+    for (EndpointStatusMap::const_iterator it = statuses.begin();
          it != statuses.end(); ++it) {
       if (it->second == status) result.insert(it->first.getServiceName());
     }
     statusLock.unlock();
   }
 
+  template<typename T>
+  void EntityRetriever<T>::checkSuspendedAndStart(const Endpoint& e) {
+    logger.msg(DEBUG, "Checking for suspended endpoints which should be started.");
+    
+    Endpoint const * suspended = NULL, *startedOrDone = NULL;
+    statusLock.lock();
+    std::pair<EndpointStatusMap::const_iterator, EndpointStatusMap::const_iterator> endpointsIT = Endpoint::getServiceEndpoints(e, statuses);
+    for (EndpointStatusMap::const_iterator it = endpointsIT.first; it != endpointsIT.second; ++it) {
+      logger.msg(DEBUG, "  Status of endpoint (%s) is %s", it->first.str(), it->second.str());
+      switch (it->second.getStatus()) {
+      case EndpointQueryingStatus::STARTED:
+      case EndpointQueryingStatus::SUCCESSFUL:
+        logger.msg(DEBUG, "Found started or successful endpoint (%s)", it->first.str());
+        if (options.getPreferredInterfaceNames().count(it->first.InterfaceName)) {
+          // Preferred interface is running or done. Dont start a suspended one.
+          statusLock.unlock();
+          return;
+        }
+        if (startedOrDone == NULL) {
+          startedOrDone = &it->first;
+        }
+        break;
+      case EndpointQueryingStatus::SUSPENDED_NOTREQUIRED:
+        if (suspended == NULL || options.getPreferredInterfaceNames().count(it->first.InterfaceName)) {
+          logger.msg(DEBUG, "Found suspended endpoint (%s)", it->first.str());
+          suspended = &it->first;
+        }
+        break;
+      default:
+        break;
+      }
+    }
+    statusLock.unlock();
+    
+    if (suspended != NULL && (startedOrDone == NULL || options.getPreferredInterfaceNames().count(suspended->InterfaceName))) {
+      logger.msg(DEBUG, "Trying to start suspended endpoint (%s)", suspended->str());
+      std::map<std::string, std::string>::const_iterator itPluginName = interfacePluginMap.end();
+      if (!suspended->InterfaceName.empty()) {
+        itPluginName = interfacePluginMap.find(suspended->InterfaceName);
+        if (itPluginName == interfacePluginMap.end()) {
+          //logger.msg(DEBUG, "Unable to find TargetInformationRetrieverPlugin plugin to query interface \"%s\" on \"%s\"", suspended->InterfaceName, suspended->URLString);
+          setStatusOfEndpoint(*suspended, EndpointQueryingStatus::NOPLUGIN);
+          // Starting this suspended endpoint failed, check if there are another one and start that one.
+          checkSuspendedAndStart(*suspended);
+          return;
+        }
+      }
+
+      // common will be copied into the thread arg,
+      // which means that all threads will have a new
+      // instance of the ThreadedPointer pointing to the same object
+      ThreadArg *arg = new ThreadArg(common, result, *suspended, options);
+      if (itPluginName != interfacePluginMap.end()) {
+        arg->pluginName = itPluginName->second;
+      }
+      logger.msg(DEBUG, "Starting querying of suspended endpoint (%s) - no other endpoints for this service is being queried or has been queried succesfully.", suspended->str());
+      statusLock.lock();
+      statuses[*suspended] = EndpointQueryingStatus::STARTED;
+      statusLock.unlock();
+      if (!CreateThreadFunction(&queryEndpoint, arg)) {
+        logger.msg(ERROR, "Failed to start querying the endpoint on %s", arg->endpoint.str() + " (unable to create thread)");
+        setStatusOfEndpoint(*suspended, EndpointQueryingStatus::FAILED);
+        delete arg;
+        checkSuspendedAndStart(*suspended);
+      }
+    }
+  }
 
   /* Overview of how the queryEndpoint algorithm works
    * The queryEndpoint method is meant to be run in a separate thread, spawned
@@ -293,6 +408,10 @@ namespace Arc {
 
       if(!common->lockSharedIfValid()) return;
       (*common)->setStatusOfEndpoint(a->endpoint, status);
+      if (!status) {
+        // Note: The checkSuspendedAndStart operation might take lot of time, consequently making the common object inaccessible in this time.
+        (*common)->checkSuspendedAndStart(a->endpoint);
+      }
       common->unlockShared();
       if (status) a->result.setSuccess(); // Successful query
     } else { // If there was no plugin selected for this endpoint, this will try all possibility
@@ -402,6 +521,10 @@ namespace Arc {
       }
 
       (*common)->setStatusOfEndpoint(a->endpoint, status);
+      if (!status) {
+        // Note: The checkSuspendedAndStart operation might take lot of time, consequently making the common object inaccessible in this time.
+        (*common)->checkSuspendedAndStart(a->endpoint);
+      }
       common->unlockShared();
     }
   }
