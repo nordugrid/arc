@@ -244,6 +244,7 @@ private:
 %}
 %wraplist(ConfigEndpoint, Arc::ConfigEndpoint);
 %include "../src/hed/libs/common/UserConfig.h"
+%template(ConfigEndpointMap) std::map<std::string, Arc::ConfigEndpoint>;
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/GUID.h

@@ -162,9 +162,11 @@
 %template(ScalableTimeInt) Arc::ScalableTime<int>;
 %template(RangeInt) Arc::Range<int>;
 %template(StringOptIn) Arc::OptIn<std::string>;
+%template(BoolIntPair) std::pair<bool, int>;
 #ifdef SWIGPYTHON
 %clear std::string& product;
 #endif
+%template(StringDoublePair) std::pair<std::string, double>;
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/compute/ExecutionTarget.h
@@ -207,6 +209,7 @@
 %wraplist(ExecutionTarget, Arc::ExecutionTarget);
 %wraplist(ComputingService, Arc::ComputingServiceType);
 %wraplist(SharedComputingEndpointAttributes, Arc::CountedPointer<Arc::ComputingEndpointAttributes>);
+%template(PeriodIntMap) std::map<Arc::Period, int>;
 %template(ComputingEndpointMap) std::map<int, Arc::ComputingEndpointType>;
 %template(ComputingShareMap) std::map<int, Arc::ComputingShareType>;
 %template(ComputingManagerMap) std::map<int, Arc::ComputingManagerType>;
@@ -227,6 +230,10 @@
 %template(CPComputingEndpointAttributes) Arc::CountedPointer<Arc::ComputingEndpointAttributes>;
 %template(GLUE2EntityComputingServiceAttributes) Arc::GLUE2Entity<Arc::ComputingServiceAttributes>;
 %template(CPComputingServiceAttributes) Arc::CountedPointer<Arc::ComputingServiceAttributes>;
+%template(IntSet) std::set<int>;
+#ifdef SWIGJAVA
+%template(IntSetIterator) setiterator<int>;
+#endif
 %include "../src/hed/libs/compute/ExecutionTarget.h"
 %extend Arc::ComputingServiceType {
   %template(GetExecutionTargetsFromList) GetExecutionTargets< std::list<Arc::ExecutionTarget> >;

@@ -215,6 +215,7 @@ typedef int gid_t;
 %ignore DataStaging::DTRStatus::operator=(const DTRStatusType&);
 %ignore DataStaging::DTRErrorStatus::operator=(const DTRErrorStatusType&);
 %include "../src/libs/data-staging/DTRStatus.h"
+%template(DTRStatusTypeVector) std::vector<DataStaging::DTRStatus::DTRStatusType>;  
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/data-staging/DTR.h
@@ -232,6 +233,7 @@ typedef int gid_t;
 %}
 %ignore DataStaging::TransferShares::operator=(const TransferShares&);
 %include "../src/libs/data-staging/TransferShares.h"
+%template(StringIntMap) std::map<std::string, int>;
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/data-staging/Scheduler.h

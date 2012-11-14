@@ -56,6 +56,7 @@
 %}
 %include "../src/hed/libs/credential/VOMSUtil.h"
 %template(VOMSACInfoVector) std::vector<Arc::VOMSACInfo>;
+%template(StringVectorVector) std::vector< std::vector<std::string> >;
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/credentialstore/CredentialStore.h
