@@ -138,4 +138,5 @@ ComputingServiceUniqTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 ComputingServiceUniqTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
