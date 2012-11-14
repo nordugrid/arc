@@ -299,11 +299,21 @@ std::ostream& getStdout() { return std::cout; }
 %}
 #endif
 
+#ifndef SWIGJAVA
+%define %wraplist(X, Y)
+%template(X##List) std::list<Y>;
+%enddef
+#else
+%define %wraplist(X, Y)
+%template(X ## List) std::list<Y>;
+%template(X ## ListIterator) listiterator<Y>;
+%enddef
+#endif
+
 %template(StringPair) std::pair<std::string, std::string>;
+%wraplist(String, std::string)
 %template(StringSet) std::set<std::string>;
-%template(StringList) std::list<std::string>;
 #ifdef SWIGJAVA
-%template(StringListIterator) listiterator<std::string>;
 %template(StringSetIterator) setiterator<std::string>;
 #endif
 %template(StringVector) std::vector<std::string>;

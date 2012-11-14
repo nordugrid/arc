@@ -60,13 +60,11 @@
 %ignore operator<<(std::ostream&, const Software&);
 %ignore Arc::SoftwareRequirement::SoftwareRequirement(const Software& sw, Software::ComparisonOperator swComOp);
 %ignore Arc::SoftwareRequirement::add(const Software& sw, Software::ComparisonOperator swComOp);
-%template(SoftwareList) std::list<Arc::Software>;
-%template(SoftwareRequirementList) std::list<Arc::SoftwareRequirement>;
+%wraplist(Software, Arc::Software);
+%wraplist(SoftwareRequirement, Arc::SoftwareRequirement);
 #ifdef SWIGJAVA
 %ignore Arc::Software::operator();
 %ignore Arc::SoftwareRequirement::getComparisonOperatorList() const;
-%template(SoftwareListIterator) listiterator<Arc::Software>;
-%template(SoftwareRequirementListIterator) listiterator<Arc::SoftwareRequirement>;
 #endif
 %include "../src/hed/libs/compute/Software.h"
 
@@ -76,10 +74,7 @@
 #include <arc/compute/Endpoint.h>
 %}
 %ignore Arc::Endpoint::operator=(const ConfigEndpoint&);
-%template(EndpointList) std::list<Arc::Endpoint>;
-#ifdef SWIGJAVA
-%template(EndpointListIterator) listiterator<Arc::Endpoint>;
-#endif
+%wraplist(Endpoint, Arc::Endpoint);
 %include "../src/hed/libs/compute/Endpoint.h"
 
 
@@ -92,10 +87,7 @@
 %rename(GetType) Arc::JobState::operator StateType; // works with swig 1.3.40, and higher...
 %rename(GetType) Arc::JobState::operator Arc::JobState::StateType; // works with swig 1.3.29
 %rename(GetNativeState) Arc::JobState::operator();
-%template(JobStateList) std::list<Arc::JobState>;
-#ifdef SWIGJAVA
-%template(JobStateListIterator) listiterator<Arc::JobState>;
-#endif
+%wraplist(JobState, Arc::JobState);
 %include "../src/hed/libs/compute/JobState.h"
 
 
@@ -105,12 +97,9 @@
 %}
 %ignore Arc::Job::operator=(XMLNode);
 %ignore Arc::Job::operator=(const Job&);
-%template(JobList) std::list<Arc::Job>;
+%wraplist(JobList, Arc::Job);
 #ifdef SWIGPYTHON
 %ignore Arc::Job::WriteJobIDsToFile(const std::list<Job>&, const std::string&, unsigned = 10, unsigned = 500000); // Clash. It is sufficient to wrap only WriteJobIDsToFile(cosnt std::list<URL>&, ...);
-#endif
-#ifdef SWIGJAVA
-%template(JobListIterator) listiterator<Arc::Job>;
 #endif
 %include "../src/hed/libs/compute/Job.h"
 
@@ -121,11 +110,8 @@
 %}
 %ignore Arc::JobControllerPluginPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
 %ignore Arc::JobControllerPluginPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
-%template(JobControllerPluginList) std::list<Arc::JobControllerPlugin *>;
+%wraplist(JobControllerPlugin, Arc::JobControllerPlugin *);
 %template(JobControllerPluginMap) std::map<std::string, Arc::JobControllerPlugin *>;
-#ifdef SWIGJAVA
-%template(JobControllerPluginListIterator) listiterator<Arc::JobControllerPlugin *>;
-#endif
 %include "../src/hed/libs/compute/JobControllerPlugin.h"
 
 
@@ -162,23 +148,16 @@
 %ignore Arc::JobDescription::GetAlternatives() const;
 #endif
 %include "../src/hed/libs/compute/JobDescription.h"
-%template(JobDescriptionList) std::list<Arc::JobDescription>;
-%template(InputFileTypeList) std::list<Arc::InputFileType>;
-%template(OutputFileTypeList) std::list<Arc::OutputFileType>;
-%template(SourceTypeList) std::list<Arc::SourceType>;
-%template(TargetTypeList) std::list<Arc::TargetType>;
+%wraplist(JobDescription, Arc::JobDescription);
+%wraplist(InputFileType, Arc::InputFileType);
+%wraplist(OutputFileType, Arc::OutputFileType);
+%wraplist(SourceType, Arc::SourceType);
+%wraplist(TargetType, Arc::TargetType);
 %template(ScalableTimeInt) Arc::ScalableTime<int>;
 %template(RangeInt) Arc::Range<int>;
 %template(StringOptIn) Arc::OptIn<std::string>;
 #ifdef SWIGPYTHON
 %clear std::string& product;
-#endif
-#ifdef SWIGJAVA
-%template(JobDescriptionListIterator) listiterator<Arc::JobDescription>;
-%template(InputFileTypeListIterator) listiterator<Arc::InputFileType>;
-%template(OutputFileTypeListIterator) listiterator<Arc::OutputFileType>;
-%template(SourceTypeListIterator) listiterator<Arc::SourceType>;
-%template(TargetTypeListIterator) listiterator<Arc::TargetType>;
 #endif
 
 
@@ -218,9 +197,9 @@
 %ignore Arc::GLUE2Entity<Arc::ComputingServiceAttributes>::operator*() const;
 #endif
 %include "../src/hed/libs/compute/GLUE2Entity.h" // Contains declaration of the GLUE2Entity template, used in ExecutionTarget.h file.
-%template(ApplicationEnvironmentList) std::list<Arc::ApplicationEnvironment>;
-%template(ExecutionTargetList) std::list<Arc::ExecutionTarget>;
-%template(ComputingServiceList) std::list<Arc::ComputingServiceType>;
+%wraplist(ApplicationEnvironment, Arc::ApplicationEnvironment);
+%wraplist(ExecutionTarget, Arc::ExecutionTarget);
+%wraplist(ComputingService, Arc::ComputingServiceType);
 %template(ComputingEndpointMap) std::map<int, Arc::ComputingEndpointType>;
 %template(ComputingShareMap) std::map<int, Arc::ComputingShareType>;
 %template(ComputingManagerMap) std::map<int, Arc::ComputingManagerType>;
@@ -241,11 +220,6 @@
 %template(CPComputingEndpointAttributes) Arc::CountedPointer<Arc::ComputingEndpointAttributes>;
 %template(GLUE2EntityComputingServiceAttributes) Arc::GLUE2Entity<Arc::ComputingServiceAttributes>;
 %template(CPComputingServiceAttributes) Arc::CountedPointer<Arc::ComputingServiceAttributes>;
-#ifdef SWIGJAVA
-%template(ExecutionTargetListIterator) listiterator<Arc::ExecutionTarget>;
-%template(ApplicationEnvironmentListIterator) listiterator<Arc::ApplicationEnvironment>;
-%template(ComputingServiceListIterator) listiterator<Arc::ComputingServiceType>;
-#endif
 %include "../src/hed/libs/compute/ExecutionTarget.h"
 %extend Arc::ComputingServiceType {
   %template(GetExecutionTargetsFromList) GetExecutionTargets< std::list<Arc::ExecutionTarget> >;
@@ -280,10 +254,7 @@
 %}
 %ignore Arc::SubmitterPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
 %ignore Arc::SubmitterPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
-%template(SubmitterPluginList) std::list<Arc::SubmitterPlugin*>;
-#ifdef SWIGJAVA
-%template(SubmitterPluginListIterator) listiterator<Arc::SubmitterPlugin*>;
-#endif
+%wraplist(SubmitterPlugin, Arc::SubmitterPlugin*);
 %include "../src/hed/libs/compute/SubmitterPlugin.h"
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/compute/Submitter.h
@@ -307,12 +278,9 @@ template <class Type> struct traits_from<const Type *> {
 %}
 #endif
 #endif
-%template(JobDescriptionPtrList) std::list<const Arc::JobDescription *>;
+%wraplist(JobDescriptionPtr, const Arc::JobDescription *);
 %template(EndpointQueryingStatusMap) std::map<Arc::Endpoint, Arc::EndpointQueryingStatus>;
 %template(EndpointSubmissionStatusMap) std::map<Arc::Endpoint, Arc::EndpointSubmissionStatus>;
-#ifdef SWIGJAVA
-// TODO
-#endif
 %include "../src/hed/libs/compute/Submitter.h"
 
 

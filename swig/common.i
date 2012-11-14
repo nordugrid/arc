@@ -43,13 +43,10 @@
 %ignore Arc::XMLNode::operator==(const char*); // Arc::XMLNode::operator==(const std::string&) is wrapped instead which is equivalent to this.
 #endif
 %include "../src/hed/libs/common/XMLNode.h"
-%template(XMLNodeList) std::list<Arc::XMLNode>;
-%template(XMLNodePList) std::list<Arc::XMLNode*>;
+%wraplist(XMLNode, Arc::XMLNode);
+%wraplist(XMLNodeP, Arc::XMLNode*);
 #ifdef SWIGPYTHON
 %clear std::string& out_xml_str;
-#endif
-#ifdef SWIGJAVA
-%template(XMLNodePListIterator) listiterator<Arc::XMLNode*>;
 #endif
 
 
@@ -153,10 +150,7 @@ private:
 }
 #endif
 %include "../src/hed/libs/common/Logger.h"
-%template(LogDestinationList) std::list<Arc::LogDestination*>;
-#ifdef SWIGJAVA
-%template(LogDestinationListIterator) listiterator<Arc::LogDestination*>;
-#endif
+%wraplist(LogDestination, Arc::LogDestination*);
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/DateTime.h
@@ -189,13 +183,10 @@ private:
 %ignore Arc::PathIterator::operator--();
 %ignore operator<<(std::ostream&, const URL&);
 %include "../src/hed/libs/common/URL.h"
-%template(URLList) std::list<Arc::URL>;
+%wraplist(URL, Arc::URL);
 %template(URLVector) std::vector<Arc::URL>;
 %template(URLListMap) std::map< std::string, std::list<Arc::URL> >;
-%template(URLLocationList) std::list<Arc::URLLocation>;
-#ifdef SWIGJAVA
-%template(URLLocationListIterator) listiterator<Arc::URLLocation>;
-#endif
+%wraplist(URLLocation, Arc::URLLocation);
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/Utils.h
@@ -251,10 +242,7 @@ private:
 %{
 #include <arc/UserConfig.h>
 %}
-%template(ConfigEndpointList) std::list<Arc::ConfigEndpoint>;
-#ifdef SWIGJAVA
-%template(ConfigEndpointListIterator) listiterator<Arc::ConfigEndpoint>;
-#endif
+%wraplist(ConfigEndpoint, Arc::ConfigEndpoint);
 %include "../src/hed/libs/common/UserConfig.h"
 
 
