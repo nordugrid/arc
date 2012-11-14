@@ -122,7 +122,8 @@ my $ldap_infosys_options = {
     infosys_glue12 => '*',
     infosys_glue2_ldap => '*',
     bdii_update_pid_file => '*',
-    infosys_glue2_ldap_showactivities => '*'
+    infosys_glue2_ldap_showactivities => '*',
+    infosys_glue2_service_qualitylevel => '*'
 };
 my $gridftpd_options = {
     GridftpdEnabled => '*',

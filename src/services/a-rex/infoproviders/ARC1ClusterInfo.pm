@@ -994,9 +994,9 @@ sub collect($) {
         $csv->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo}; # array
         $csv->{Type} = 'org.nordugrid.arex';
 
-        # OBS: QualityLevel reflects the quality of the sotware
+        # OBS: Service QualityLevel used to state the purpose of the service. Can be set by sysadmins.
         # One of: development, testing, pre-production, production
-        $csv->{QualityLevel} = 'pre-production';
+        $csv->{QualityLevel} = $config->{infosys_glue2_service_qualitylevel};
 
         $csv->{StatusInfo} =  $config->{service}{StatusInfo} if $config->{service}{StatusInfo}; # array
 
