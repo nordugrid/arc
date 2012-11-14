@@ -56,7 +56,7 @@ $errors   = &$toppage->errors;
 $titles   = explode(":",$toptitle); // two alternative titles, separated by column
 
 if ($jobdn=="all") {
-  $clstring = popup("clusdes.php?host=$host&port=$port",700,620,1,$lang,$debug);
+  $clstring = popup("clusdes.php?host=$host&port=$port&schema=$schema",700,620,1,$lang,$debug);
   $gtitle   = "<b><i>".$titles[0]." <a href=\"$clstring\">$host</a></i></b>";
 } else {
   $jobdn     = rawurldecode($jobdn);
@@ -95,6 +95,10 @@ if( $debug ) dbgmsg("<div align=\"left\"><i>:::&gt; ".$errors["101"].$tlim.$erro
 $ds    = ldap_connect($host,$port);
 $bdn   = DN_LOCAL;
 $topdn = DN_GLOBL;
+if ( $schema == "GLUE2") {
+  $bdn   = DN_GLUE;
+  if ($jobdn != "all") $bdn = "";
+}
 if ($ds) {
   
   // Single job info dump and quit
@@ -131,6 +135,7 @@ if ($ds) {
       $njobs   = $entries["count"];
 
       define("CMPKEY",JOB_SUBM);
+      if ( $schema == "GLUE2")  define("CMPKEY",GJOB_SUBM);
       usort($entries,"ldap_entry_comp");
         
       // loop on jobs
@@ -139,6 +144,9 @@ if ($ds) {
       for ($i=1; $i<$njobs+1; $i++) {
 	$jdn     = rawurlencode($entries[$i]["dn"]);
 	$curstat = $entries[$i][JOB_STAT][0];
+        if ( $schema == "GLUE2") {
+          $curstat = $entries[$i][GJOB_STAT][0];
+        }
           
 	/*
 	 * The following flags may need an adjustment, 
@@ -172,19 +180,35 @@ if ($ds) {
           
 	$flagact = ($flagrun || $flagque)?1:0;
 	if ($flagact == 1 || $status == "All" ) {
-	  $uname    = $entries[$i][JOB_GOWN][0];
-	  $encuname = rawurlencode($uname);
-	  $uname    = addslashes($uname); // In case $uname contains escape characters
-	  $family   = cnvname($uname, 2);
+          if ( $schema == "GLUE2") {
+	    $uname    = $entries[$i][GJOB_GOWN][0];
+	    $encuname = rawurlencode($uname);
+	    $uname    = addslashes($uname); // In case $uname contains escape characters
+	    $family   = cnvname($uname, 2);
 
-	  $jname   = htmlentities($entries[$i][JOB_NAME][0]);
-	  $jobname = ($entries[$i][JOB_NAME][0]) ? $jname : "<font color=\"red\">N/A</font>";
-	  $queue   = ($entries[$i][JOB_EQUE][0]) ? $entries[$i][JOB_EQUE][0] : "";
-	  $time    = ($entries[$i][JOB_USET][0]) ? $entries[$i][JOB_USET][0] : "";
-	  $ncpus   = ($entries[$i][JOB_CPUS][0]) ? $entries[$i][JOB_CPUS][0] : "";
-	  $newwin  = popup("jobstat.php?host=$host&port=$port&status=$status&jobdn=$jdn",750,430,4,$lang,$debug);
-	  $quewin  = popup("quelist.php?host=$host&port=$port&qname=$queue",750,430,6,$lang,$debug);
-	  $usrwin  = popup("userlist.php?bdn=$topdn&owner=$encuname",700,500,5,$lang,$debug);
+	    $jname   = htmlentities($entries[$i][JOB_NAME][0]);
+	    $jobname = ($entries[$i][GJOB_NAME][0]) ? $jname : "<font color=\"red\">N/A</font>";
+	    $queue   = ($entries[$i][GJOB_EQUE][0]) ? $entries[$i][GJOB_EQUE][0] : "";
+	    $time    = ($entries[$i][GJOB_USET][0]) ? $entries[$i][GJOB_USET][0] : "";
+	    $ncpus   = ($entries[$i][GJOB_CPUS][0]) ? $entries[$i][GJOB_CPUS][0] : "";
+	    $newwin  = popup("jobstat.php?host=$host&port=$port&status=$status&jobdn=$jdn&schema=$schema",750,430,4,$lang,$debug);
+	    $quewin  = popup("quelist.php?host=$host&port=$port&qname=$queue&schema=$schema",750,430,6,$lang,$debug);
+	    $usrwin  = popup("userlist.php?bdn=$topdn&owner=$encuname&schema=$schema",700,500,5,$lang,$debug);
+          } else {
+            $uname    = $entries[$i][JOB_GOWN][0];
+            $encuname = rawurlencode($uname);
+            $uname    = addslashes($uname); // In case $uname contains escape characters
+            $family   = cnvname($uname, 2);
+
+            $jname   = htmlentities($entries[$i][JOB_NAME][0]);
+            $jobname = ($entries[$i][JOB_NAME][0]) ? $jname : "<font color=\"red\">N/A</font>";
+            $queue   = ($entries[$i][JOB_EQUE][0]) ? $entries[$i][JOB_EQUE][0] : "";
+            $time    = ($entries[$i][JOB_USET][0]) ? $entries[$i][JOB_USET][0] : "";
+            $ncpus   = ($entries[$i][JOB_CPUS][0]) ? $entries[$i][JOB_CPUS][0] : "";
+            $newwin  = popup("jobstat.php?host=$host&port=$port&status=$status&jobdn=$jdn",750,430,4,$lang,$debug);
+            $quewin  = popup("quelist.php?host=$host&port=$port&qname=$queue",750,430,6,$lang,$debug);
+            $usrwin  = popup("userlist.php?bdn=$topdn&owner=$encuname",700,500,5,$lang,$debug);
+          }
 
 	  $jcount++;
 
