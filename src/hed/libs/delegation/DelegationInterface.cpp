@@ -26,10 +26,12 @@ namespace Arc {
 
 #define DELEGATION_NAMESPACE "http://www.nordugrid.org/schemas/delegation"
 #define GDS10_NAMESPACE "http://www.gridsite.org/ns/delegation.wsdl"
-#define GDS20_NAMESPACE "http://www.gridsite.org/namespaces/delegation-2"
+//#define GDS20_NAMESPACE "http://www.gridsite.org/namespaces/delegation-2"
 #define EMIES_NAMESPACE "http://www.eu-emi.eu/es/2010/12/delegation/types"
 #define EMIES_TYPES_NAMESPACE "http://www.eu-emi.eu/es/2010/12/types"
-#define EMIDS_NAMESPACE "http://www.gridsite.org/namespaces/delegation-21"
+//#define EMIDS_NAMESPACE "http://www.gridsite.org/namespaces/delegation-21"
+// GDS 2.1 was made on wire compatible with GDS 2.0 - so they use same namespace
+#define EMIDS_NAMESPACE "http://www.gridsite.org/namespaces/delegation-2"
 
 #define GLOBUS_LIMITED_PROXY_OID "1.3.6.1.4.1.3536.1.1.1.9"
 
@@ -1066,7 +1068,8 @@ bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,Mes
     return true;
   } else if((stype == DelegationProviderSOAP::GDS10) ||
             (stype == DelegationProviderSOAP::GDS10RENEW)) {
-    // No implemented yet due to problems with id
+    // Not implemented yet due to problems with id
+  /*
   } else if((stype == DelegationProviderSOAP::GDS20) ||
             (stype == DelegationProviderSOAP::GDS20RENEW)) {
     NS ns; ns["deleg"]=GDS20_NAMESPACE;
@@ -1081,13 +1084,14 @@ bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,Mes
     delete resp_soap;
     if(id_.empty() || request_.empty()) return false;
     return true;
-  } else if((stype == DelegationProviderSOAP::EMIDS) ||
+  */
+  } else if((stype == DelegationProviderSOAP::GDS20) ||
+            (stype == DelegationProviderSOAP::GDS20RENEW) ||
+            (stype == DelegationProviderSOAP::EMIDS) ||
             (stype == DelegationProviderSOAP::EMIDSRENEW)) {
     NS ns; ns["deleg"]=EMIDS_NAMESPACE;
     PayloadSOAP req_soap(ns);
     req_soap.NewChild("deleg:getNewProxyReq");
-    // Axis2 wants this. No idea why.
-    //if(attributes_in) attributes_in->set("SOAP:ACTION",std::string(EMIDS_NAMESPACE)+"/Delegation/getNewProxyReqRequest");
     PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
     if(!resp_soap) return false;
     XMLNode token = (*resp_soap)["getNewProxyReqResponse"];
@@ -1146,6 +1150,7 @@ bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAt
   } else if((stype == DelegationProviderSOAP::GDS10) ||
             (stype == DelegationProviderSOAP::GDS10RENEW)) {
     // No implemented yet due to problems with id
+  /*
   } else if((stype == DelegationProviderSOAP::GDS20) ||
             (stype == DelegationProviderSOAP::GDS20RENEW)) {
     std::string delegation = Delegate(request_,restrictions);
@@ -1163,7 +1168,10 @@ bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAt
     };
     delete resp_soap;
     return true;
-  } else if((stype == DelegationProviderSOAP::EMIDS) ||
+  */
+  } else if((stype == DelegationProviderSOAP::GDS20) ||
+            (stype == DelegationProviderSOAP::GDS20RENEW) ||
+            (stype == DelegationProviderSOAP::EMIDS) ||
             (stype == DelegationProviderSOAP::EMIDSRENEW)) {
     std::string delegation = Delegate(request_,restrictions);
     //strip_PEM_cert(delegation);
@@ -1173,8 +1181,6 @@ bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAt
     XMLNode token = req_soap.NewChild("deleg:putProxy");
     token.NewChild("delegationID")=id_; // unqualified
     token.NewChild("proxy")=delegation; // unqualified
-    // Axis2 wants this. No idea why.
-    //if(attributes_in) attributes_in->set("SOAP:ACTION",std::string(EMIDS_NAMESPACE)+"/Delegation/putProxyRequest");
     PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
     if(!resp_soap) return false;
     if(resp_soap->Size() > 0) {
@@ -1601,6 +1607,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       credentials = cred;
       return true;
     };
+  /*
   } else if(op_ns == GDS20_NAMESPACE) {
     // Glite GDS
     NS ns("",GDS20_NAMESPACE);
@@ -1768,8 +1775,9 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       if(c) RemoveConsumer(c);
       return true;
     };
+  */
   } else if(op_ns == EMIDS_NAMESPACE) {
-    // EMI GDS
+    // EMI GDS == gLite GDS
     NS ns("deleg",EMIDS_NAMESPACE);
     if(op_name == "getVersion") {
       // getVersion
@@ -2128,7 +2136,7 @@ bool DelegationContainerSOAP::MatchNamespace(const SOAPEnvelope& in) {
   std::string op_ns = op.Namespace();
   return ((op_ns == DELEGATION_NAMESPACE) ||
           (op_ns == GDS10_NAMESPACE) ||
-          (op_ns == GDS20_NAMESPACE) ||
+          /*(op_ns == GDS20_NAMESPACE) ||*/
           (op_ns == EMIDS_NAMESPACE) ||
           (op_ns == EMIES_NAMESPACE));
 }
