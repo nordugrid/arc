@@ -3,6 +3,11 @@
   * Remove support for per-user control directories in A-REX. Add support
     for substitutions in configuration based on dynamically mapped local user.
 
+2012-11-03  Martin Skou Andersen <skou@nbi.dk>
+
+  * Moving ClientInterface classes to new libarccommunication library.
+    Renaming libarcclient library to libarccompute.
+
 2012-10-31  Martin Skou Andersen <skou@nbi.dk>
 
   * [Java] Transparently load native ARC JNI-C++ library when using ARC Java
