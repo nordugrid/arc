@@ -100,7 +100,6 @@ if ! config_match_section infosys; then
 fi
 
 config_hide_all
-config_set_defaults
 config_import_section common
 
 # These options need to come from the infosys-block, not from common
@@ -191,9 +190,17 @@ chown ${bdii_user} ${bdii_log_dir}
 arc_runtime_config="/var/run/arc/infosys"
 
 start () {
-    create_bdii_config_files
+    if [ -r "${update_lock_file}" ]; then
+	log_success_msg "$prog already started"
+	RETVAL=0
+	return ${RETVAL}
+    fi
 
-    # Start BDII
+    ${ARC_LOCATION}/@pkgdatasubdir@/create-bdii-config
+    if [ ! $? = 0 ]; then
+	log_failure_msg "Failed to create configration for $prog"
+	exit 1
+    fi
 
     $RUNUSER -s "$USERSHELL" -c "${bdii_update_cmd} -c ${BDII_CONF} -d" ${bdii_user}
     touch ${update_lock_file}

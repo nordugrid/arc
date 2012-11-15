@@ -25,6 +25,21 @@
 # Helper functions
 if [ -r /etc/init.d/functions ]; then
     . /etc/init.d/functions
+    log_success_msg() {
+	echo -n "$@"
+	success "$@"
+	echo
+    }
+    log_warning_msg() {
+	echo -n "$@"
+	warning "$@"
+	echo
+    }
+    log_failure_msg() {
+	echo -n "$@"
+	failure "$@"
+	echo
+    }
 elif [ -f /lib/lsb/init-functions ]; then
     . /lib/lsb/init-functions
 else
@@ -56,7 +71,7 @@ fi
 
 ARC_LOCATION=${ARC_LOCATION:-@prefix@}
 if [ ! -d "$ARC_LOCATION" ]; then
-    failure "ARC_LOCATION ($ARC_LOCATION) not found"
+    log_failure_msg "ARC_LOCATION ($ARC_LOCATION) not found"
     exit 1
 fi
 
@@ -64,7 +79,7 @@ fi
 if [ -r "$ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh" ]; then
     . $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh || exit $?
 else
-    failure "Could not find $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh"
+    log_failure_msg "Could not find $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh"
     exit 1
 fi
 
@@ -99,7 +114,7 @@ fi
 # If missing, we have a problem
 USERSHELL=${USERSHELL:-"/bin/sh"}
 if [ ! -x ${USERSHELL} ]; then
-    failure "Could not find /bin/sh"
+    log_failure_msg "Could not find /bin/sh"
     exit 1
 fi
 
@@ -129,21 +144,45 @@ check_ownership ${arc_runtime_config} ${bdii_user}
 giis_fifo=${CONFIG_giis_fifo:-$arc_runtime_config/giis-fifo}
 
 start () {
-    # If index-server configured, start it
-    if [ "`config_subsections infosys/index`" ]; then
-	$RUNUSER -s "$USERSHELL" -c "${giis_location}/sbin/arc-infoindex-server -c $ARC_CONFIG -f $giis_fifo" ${bdii_user}
+    if [ -r "${lockfile}" ]; then
+	log_success_msg "$prog already started"
+	RETVAL=0
+	return ${RETVAL}
     fi
-    success
+
+    if [ ! "`config_subsections infosys/index`" ]; then
+	log_failure_msg "No $prog defined if $ARC_CONFIG"
+	exit 1
+    fi
+
+    $RUNUSER -s "$USERSHELL" -c "${giis_location}/sbin/arc-infoindex-server -c $ARC_CONFIG -f $giis_fifo" ${bdii_user}
+
+    touch ${lockfile}
+
+    log_success_msg "$prog started"
 }
 
 stop () {
-    # Stop GIIS
+    if [ ! -r "${lockfile}" ]; then
+	log_success_msg "$prog already stopped"
+	RETVAL=0
+	return ${RETVAL}
+    fi
+
     [ -p $giis_fifo ] && echo STOP > $giis_fifo
 
-    success
+    rm -f ${lockfile}
+    log_success_msg "$prog stopped"
 }
 
 status ()  {
+    if [ ! -r "${lockfile}" ]; then
+	log_success_msg "$prog is stopped"
+	RETVAL=3
+	return ${RETVAL}
+    fi
+
+    log_success_msg "$prog is running"
     RETVAL=0
     return ${RETVAL}
 }
@@ -167,7 +206,7 @@ case "$1" in
 	status
 	;;
     condrestart | try-restart)
-	if [ -f ${slapd_lock_file} ] || [ -f ${update_lock_file} ]; then
+	if [ -f ${lockfile} ]; then
 	    stop
 	    # avoid race
 	    sleep 3
