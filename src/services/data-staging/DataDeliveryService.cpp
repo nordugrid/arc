@@ -565,6 +565,8 @@ namespace DataStaging {
     }
     // Set restrictive umask
     umask(0077);
+    // Set log level for DTR
+    DataStaging::DTR::LOG_LEVEL = Arc::Logger::getRootLogger().getThreshold();
     // Start new DataDelivery
     delivery.start();
     valid = true;

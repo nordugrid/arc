@@ -31,6 +31,9 @@ namespace Cache {
 
     // TODO find location for DTR state log, should be different from A-REX's
 
+    // Log level for DTR
+    DataStaging::DTR::LOG_LEVEL = staging_conf.get_log_level();
+
     // Processing limits
     scheduler->SetSlots(staging_conf.get_max_processor(),
                         staging_conf.get_max_processor(),
