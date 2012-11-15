@@ -131,6 +131,22 @@ namespace DataStaging {
     return res;
   }
 
+  // Delete DTR destination, called after losing contact with delivery process
+  static void delete_dtr_destination(DTR_ptr dtr) {
+    Arc::URL dest(dtr->get_destination()->CurrentLocation());
+    // Check for TURL
+    if (!dtr->get_destination()->TransferLocations().empty()) {
+      dest = dtr->get_destination()->TransferLocations().front();
+    }
+    // Check for cache file
+    if ((dtr->get_cache_state() == CACHEABLE) && !dtr->get_cache_file().empty()) {
+      dest = dtr->get_cache_file();
+    }
+    dtr->get_logger()->msg(Arc::VERBOSE, "Cleaning up after failure: deleting %s", dest.str());
+    Arc::DataHandle h(dest, dtr->get_usercfg());
+    if (h) h->Remove();
+  }
+
   void DataDelivery::main_thread (void* arg) {
     DataDelivery* it = (DataDelivery*)arg;
     it->main_thread();
@@ -213,17 +229,22 @@ namespace DataStaging {
            (status.commstatus == DataDeliveryComm::CommClosed) ||
            (status.commstatus == DataDeliveryComm::CommFailed)) {
           // Transfer finished - either successfully or with error
-          // comm.GetError()
           dtr_list_lock.lock();
           d = dtr_list.erase(d);
           dtr_list_lock.unlock();
-          if((status.commstatus == DataDeliveryComm::CommFailed) ||
-             (status.error != DTRErrorStatus::NONE_ERROR)) {
-            if(status.error == DTRErrorStatus::NONE_ERROR)
+
+          if ((status.commstatus == DataDeliveryComm::CommFailed) ||
+              (status.error != DTRErrorStatus::NONE_ERROR)) {
+
+            if (status.error == DTRErrorStatus::NONE_ERROR) {
+              // Lost track of process - delete destination so it can be tried again
+              delete_dtr_destination(dp->dtr);
               status.error = DTRErrorStatus::INTERNAL_PROCESS_ERROR;
+            }
             dp->dtr->set_error_status(status.error,status.error_location,
                      status.error_desc[0]?status.error_desc:dp->comm->GetError().c_str());
-          } else if (status.checksum) {
+          }
+          else if (status.checksum) {
             dp->dtr->get_destination()->SetCheckSum(status.checksum);
           }
           dp->dtr->get_logger()->msg(Arc::INFO, "DTR %s: Transfer finished: %llu bytes transferred %s",
@@ -263,6 +284,8 @@ namespace DataStaging {
           }
           else {
             if (comm_err.empty()) comm_err = "Connection with delivery process lost";
+            // delete destination so it can be tried again
+            delete_dtr_destination(dp->dtr);
             dp->dtr->set_error_status(DTRErrorStatus::INTERNAL_PROCESS_ERROR,
                                       DTRErrorStatus::ERROR_TRANSFER,
                                       comm_err);

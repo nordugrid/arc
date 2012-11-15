@@ -380,7 +380,6 @@ namespace DataStaging {
 
         logger.msg(Arc::ERROR, "No such DTR %s", dtrid);
         resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
-        resultelement.NewChild("ErrorStatus") = Arc::tostring(DTRErrorStatus::ERROR_TRANSFER);
         resultelement.NewChild("ErrorDescription") = "No such DTR";
         continue;
       }
