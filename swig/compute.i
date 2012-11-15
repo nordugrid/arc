@@ -263,6 +263,13 @@
 %template(JobListRetriever) Arc::EntityRetriever<Arc::Job>;
 
 
+// Wrap contents of $(top_srcdir)/src/hed/libs/compute/SubmissionStatus.h
+%{
+#include <arc/compute/SubmissionStatus.h>
+%}
+%include "../src/hed/libs/compute/SubmissionStatus.h"
+
+
 // Wrap contents of $(top_srcdir)/src/hed/libs/compute/SubmitterPlugin.h
 %{
 #include <arc/compute/SubmitterPlugin.h>
@@ -271,6 +278,7 @@
 %ignore Arc::SubmitterPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
 %wraplist(SubmitterPlugin, Arc::SubmitterPlugin*);
 %include "../src/hed/libs/compute/SubmitterPlugin.h"
+
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/compute/Submitter.h
 %{

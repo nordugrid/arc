@@ -3,7 +3,7 @@ noinst_PROGRAMS = test_jobdescription
 
 libarccompute_ladir = $(pkgincludedir)/client
 libarccompute_la_HEADERS = Broker.h ExecutionTarget.h \
-	Submitter.h SubmitterPlugin.h GLUE2Entity.h \
+	Submitter.h SubmitterPlugin.h GLUE2Entity.h SubmissionStatus.h \
 	JobState.h Job.h JobControllerPlugin.h JobSupervisor.h \
 	JobDescription.h JobDescriptionParser.h Software.h \
 	GLUE2.h EndpointQueryingStatus.h TestACCControl.h \

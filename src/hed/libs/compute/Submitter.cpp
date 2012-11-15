@@ -6,6 +6,7 @@
 
 #include <arc/compute/Broker.h>
 #include <arc/compute/ComputingServiceRetriever.h>
+#include <arc/compute/SubmissionStatus.h>
 #include <arc/compute/Submitter.h>
 
 namespace Arc {
