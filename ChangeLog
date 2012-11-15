@@ -8,6 +8,10 @@
   * Moving ClientInterface classes to new libarccommunication library.
     Renaming libarcclient library to libarccompute.
 
+2012-11-02  Martin Skou Andersen <skou@nbi.dk>
+
+  * [Python] Splitting python bindings into multiple modules (fixes bug 2934).
+
 2012-10-31  Martin Skou Andersen <skou@nbi.dk>
 
   * [Java] Transparently load native ARC JNI-C++ library when using ARC Java
