@@ -68,8 +68,14 @@ namespace DataStaging {
     Arc::DelegationContainerSOAP delegation;
     /// Directory in which to store temporary delegated proxies
     std::string tmp_proxy_dir;
+    /// Root logger destinations, to use when logging messages in methods
+    /// called from Delivery layer where root logger is disabled
+    std::list<Arc::LogDestination*> root_destinations;
     /// Logger object
     static Arc::Logger logger;
+
+    /// Log a message to root destinations
+    void LogToRootLogger(Arc::LogLevel level, const std::string& message);
 
     /// Static version of ArchivalThread, used when thread is created
     static void ArchivalThread(void* arg);

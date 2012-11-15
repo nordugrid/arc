@@ -99,15 +99,21 @@ namespace DataStaging {
     return true;
   }
 
+  void DataDeliveryService::LogToRootLogger(Arc::LogLevel level, const std::string& message) {
+    Arc::Logger::getRootLogger().addDestinations(root_destinations);
+    logger.msg(level, message);
+    Arc::Logger::getRootLogger().removeDestinations();
+  }
+
   void DataDeliveryService::receiveDTR(DTR_ptr dtr) {
-    // note: logger doesn't work here - to fix
-    logger.msg(Arc::INFO, "Received DTR %s in state %s", dtr->get_id(), dtr->get_status().str());
+
+    LogToRootLogger(Arc::INFO, "Received DTR "+dtr->get_id()+" from Delivery in state "+dtr->get_status().str());
 
     // delete temp proxy file
     std::string proxy_file(tmp_proxy_dir+"/DTR."+dtr->get_id()+".proxy");
-    logger.msg(Arc::DEBUG, "Removing temp proxy %s", proxy_file);
+    LogToRootLogger(Arc::DEBUG, "Removing temp proxy "+proxy_file);
     if (unlink(proxy_file.c_str()) && errno != ENOENT) {
-      logger.msg(Arc::WARNING, "Failed to remove temporary proxy %s: %s", proxy_file, Arc::StrError(errno));
+      LogToRootLogger(Arc::WARNING, "Failed to remove temporary proxy "+proxy_file+": "+Arc::StrError(errno));
     }
     --current_processes;
   }
@@ -567,6 +573,7 @@ namespace DataStaging {
     umask(0077);
     // Set log level for DTR
     DataStaging::DTR::LOG_LEVEL = Arc::Logger::getRootLogger().getThreshold();
+    root_destinations = Arc::Logger::getRootLogger().getDestinations();
     // Start new DataDelivery
     delivery.start();
     valid = true;
