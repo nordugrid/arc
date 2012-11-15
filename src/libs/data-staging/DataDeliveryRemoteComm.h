@@ -3,6 +3,7 @@
 
 #include <arc/XMLNode.h>
 #include <arc/communication/ClientInterface.h>
+#include <arc/message/MCC.h>
 
 #include "DataDeliveryComm.h"
 
@@ -30,6 +31,17 @@ namespace DataStaging {
     Arc::ClientSOAP* client;
     /// Full DTR ID
     std::string dtr_full_id;
+    /// Retries allowed after failing to query transfer status, so that a
+    /// transfer is not lost due to temporary communication problem. If a
+    /// transfer fails to start it is handled by the normal DTR retries.
+    int query_retries;
+    /// MCC configuration for connecting to service
+    Arc::MCCConfig cfg;
+    /// Endpoint of remote delivery service
+    Arc::URL endpoint;
+    /// Connection timeout
+    int timeout;
+
     /// Flag to say whether transfer is running and service is still up
     bool valid;
     /// Logger object (main log, not DTR's log)
@@ -44,6 +56,9 @@ namespace DataStaging {
 
     /// Set up delegation so the credentials can be used by the service
     bool SetupDelegation(Arc::XMLNode& op, const Arc::UserConfig& usercfg);
+
+    /// Handle a fault during query of service. Attempts to reconnect
+    void HandleQueryFault(const std::string& err="");
 
   };
 
