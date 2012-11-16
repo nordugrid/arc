@@ -264,17 +264,16 @@ public:
   return ret;
 }
 
-// Do not apply memory management to the get method of the wrapped std::map<std::string, double> class.
-%typemap(javaout) double& get {
-  return new $javaclassname($jnicall, $owner);
-}
-
-/* On CentOS the following is needed in order for java bindings to be compiled
- * successfully.
+/* With Swig 1.3.29 the memory management introduced above is applied to the get
+ * method in the wrapped std::map template classes where the value parameter is
+ * a "basic" type (int, double, string, etc.), however the management is not
+ * applied to the 'SWIGTYPE_p_<basice-type>' wrapped class. So don't memory
+ * management to these std::map classes.
  */
-%typemap(javaout) std::string& get {
-  return new $javaclassname($jnicall, $owner);
-}
+%typemap(javaout) double& get      { return new $javaclassname($jnicall, $owner); }
+%typemap(javaout) int& get         { return new $javaclassname($jnicall, $owner); }
+%typemap(javaout) std::string& get { return new $javaclassname($jnicall, $owner); }
+
 
 %rename(toBool) operator bool;
 %rename(toString) operator std::string;
