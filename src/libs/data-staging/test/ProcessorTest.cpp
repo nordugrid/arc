@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
+#include <arc/ArcLocation.h>
 #include <arc/FileUtils.h>
 #include <arc/GUID.h>
 #include <arc/credential/Credential.h>
@@ -38,12 +39,13 @@ public:
   void tearDown();
 
 private:
-  Arc::Logger * logger;
+  DataStaging::DTRLogger logger;
   Arc::UserConfig * cfg;
   bool valid_proxy;
 };
 
 void ProcessorTest::setUp() {
+  Arc::ArcLocation::Init("");
   logger = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStagingTest");
   // a valid proxy is needed for some tests - check whether one exists
   valid_proxy = false;
@@ -56,8 +58,6 @@ void ProcessorTest::setUp() {
 void ProcessorTest::tearDown() {
   delete cfg;
   cfg = NULL;
-  delete logger;
-  logger = NULL;
 }
 
 void ProcessorTest::TestPreClean() {
@@ -106,7 +106,7 @@ void ProcessorTest::TestPreClean() {
   now = Arc::Time();
   while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::PRE_CLEANED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
     Glib::usleep(100);
-  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR, dtr->get_error_status().GetErrorStatus());
+  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR, dtr->get_error_status().GetErrorStatus());
   // PRE_CLEANED is the correct status even after an error
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::PRE_CLEANED, dtr->get_status().GetStatus());
 }

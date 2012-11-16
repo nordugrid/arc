@@ -4,6 +4,7 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
+#include <arc/ArcLocation.h>
 #include "../DTR.h"
 
 class DTRTest
@@ -22,16 +23,15 @@ public:
   void tearDown();
 
 private:
-  Arc::Logger * logger;
+  DataStaging::DTRLogger logger;
 };
 
 void DTRTest::setUp() {
+  Arc::ArcLocation::Init("");
   logger = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStagingTest");
 }
 
 void DTRTest::tearDown() {
-  delete logger;
-  logger = NULL;
 }
 
 void DTRTest::TestDTRConstructor() {

@@ -3,6 +3,7 @@
 #endif
 
 #include <iostream>
+#include <arc/ArcLocation.h>
 
 #include "../DTR.h"
 
@@ -12,6 +13,7 @@
  */
 int main() {
 
+  Arc::ArcLocation::Init("");
   std::string jobid("123456789");
   std::string source("http://localhost/file1");
   std::string destination("/tmp/file1");
@@ -23,7 +25,7 @@ int main() {
   time_t start = time(NULL);
 
   DataStaging::DTR_ptr dtrs[no_dtrs];
-  Arc::Logger * log = NULL;
+  DataStaging::DTRLogger log = NULL;
   for(int i = 0; i<no_dtrs; ++i) {
     dtrs[i] = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), log);
   }
