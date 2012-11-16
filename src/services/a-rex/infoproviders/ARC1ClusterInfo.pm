@@ -723,7 +723,7 @@ sub collect($) {
     # sets the default slapd port if not defined in config file.
     # this is not nice, as default port might change and would be hardcoded.
     # grid-infosys script sets the defaults so there is no smarter way of doing this now.
-    my $ldaphostport = defined($config->{SlapdPort}) ? "ldap://$hostname:$config->{SlapdPort}/" : "ldap://$hostname:2135/";;
+    my $ldaphostport = defined($config->{SlapdPort}) ? "ldap://$hostname:$config->{SlapdPort}/" : "ldap://$hostname:2135/";
     my $ldapngendpoint = '';
     my $ldapglue1endpoint = '';
     my $ldapglue2endpoint = '';
@@ -735,6 +735,24 @@ sub collect($) {
     # here we run the risk of having them not in synch with the 
     # endpoints.
     
+    # data push/pull capabilities.
+    # TODO: scan datalib patch to searc for .apd
+    $epscapabilities->{'common'} = [
+                    'data.transfer.cepull.ftp',
+                    'data.transfer.cepull.http',
+                    'data.transfer.cepull.https',
+                    'data.transfer.cepull.httpg',
+                    'data.transfer.cepull.gridftp',
+                    'data.transfer.cepull.srm',
+                    'data.transfer.cepull.lfc',
+                    'data.transfer.cepush.ftp',
+                    'data.transfer.cepush.http',
+                    'data.transfer.cepush.https',
+                    'data.transfer.cepush.httpg',
+                    'data.transfer.cepush.gridftp',
+                    'data.transfer.cepush.srm',
+                    'data.transfer.cepush.lfc'
+                    ];
     
     ## Endpoints initialization.
     # checks for defined paths and enabled features, sets GLUE2 capabilities.
@@ -746,7 +764,15 @@ sub collect($) {
     $epscapabilities->{'org.nordugrid.gridftpjob'} = [ 
                 'executionmanagement.jobexecution',
                 'executionmanagement.jobmanager', 
-                'executionmanagement.jobdescription' 
+                'executionmanagement.jobdescription'
+                ];
+    $epscapabilities->{'common'} = [ 
+                @{$epscapabilities->{'common'}},
+                (
+                'data.access.sessiondir.gridftp',
+                'data.access.stageindir.gridftp',
+                'data.access.stageoutdir.gridftp'
+                )
                 ];
     };
     
@@ -759,13 +785,21 @@ sub collect($) {
                                     'executionmanagement.jobexecution',
                                     'executionmanagement.jobmanager',
                                     'executionmanagement.jobdescription',
-                                    'security.delegation',
+                                    'security.delegation'
                                     ];  
-    }
-    
+      $epscapabilities->{'common'} = [
+                @{$epscapabilities->{'common'}},
+                (
+                'data.access.sessiondir.https',
+                'data.access.stageindir.https',
+                'data.access.stageoutdir.https'
+                )
+                ];
+    };
+        
     # The following are for EMI-ES
     my $emieshostport = '';
-    if ($config->{arexhostport} && $config->{enable_emies_interface} && ($config->{enable_emies_interface} == "yes")) {
+    if ($config->{arexhostport} && $config->{enable_emies_interface} && ($config->{enable_emies_interface} eq "yes")) {
         $emieshostport = $config->{arexhostport};
         $csvendpointsnum = $csvendpointsnum + 5;
         $epscapabilities->{'org.ogf.glue.emies.activitycreation'} = [
@@ -1181,7 +1215,7 @@ sub collect($) {
 
             # OBS: ideally HED should be asked for the URL
             $cep->{URL} = $config->{endpoint};
-            $cep->{Capability} = $epscapabilities->{'org.nordugrid.xbes'};
+            $cep->{Capability} = [ @{$epscapabilities->{'org.nordugrid.xbes'}}, @{$epscapabilities->{'common'}} ];
             $cep->{Technology} = 'webservice';
             $cep->{InterfaceName} = 'org.ogf.bes';
             $cep->{InterfaceVersion} = [ '1.0' ];
@@ -1348,7 +1382,7 @@ sub collect($) {
 
             $cep->{URL} = "gsiftp://$gridftphostport".$config->{GridftpdMountPoint};
             $cep->{ID} = $ARCgftpjobcepID;
-            $cep->{Capability} = $epscapabilities->{'org.nordugrid.gridftpjob'};
+            $cep->{Capability} = [ @{$epscapabilities->{'org.nordugrid.gridftpjob'}}, @{$epscapabilities->{'common'}} ];
             $cep->{Technology} = 'gridftp';
             $cep->{InterfaceName} = 'org.nordugrid.gridftpjob';
             $cep->{InterfaceVersion} = [ '1.0' ];
@@ -1605,7 +1639,7 @@ sub collect($) {
             # OBS: ideally HED should be asked for the URL
             $cep->{URL} = $config->{endpoint};
             # TODO: define a strategy to add data capabilites
-            $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activitymanagement'};
+            $cep->{Capability} = [ @{$epscapabilities->{'org.ogf.glue.emies.activitymanagement'}}, @{$epscapabilities->{'common'}} ];
             $cep->{Technology} = 'webservice';
             $cep->{InterfaceName} = 'org.ogf.glue.emies.activitymanagement';
             $cep->{InterfaceVersion} = [ '1.15' ];
