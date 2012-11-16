@@ -11,7 +11,7 @@
 namespace DataStaging {
 
   // Check if needed and create copy of proxy with suitable ownership
-  static std::string prepare_proxy(const std::string& proxy_path, int child_uid, int child_gid, Arc::Logger& logger) {
+  static std::string prepare_proxy(const std::string& proxy_path, int child_uid, int child_gid) {
 #ifdef WIN32
     return "";
 #else
@@ -86,7 +86,7 @@ namespace DataStaging {
       }
       // If child is going to be run under different user ID
       // we must ensure it will be able to read credentials.
-      tmp_proxy_ = prepare_proxy(dtr->get_usercfg().ProxyPath(), child_uid, child_gid, *logger_);
+      tmp_proxy_ = prepare_proxy(dtr->get_usercfg().ProxyPath(), child_uid, child_gid);
       args.push_back("--surl");
       args.push_back(surl);
       args.push_back("--durl");
