@@ -370,7 +370,6 @@ template <class Type> struct traits_from<const Type *> {
 %rename(_TargetInformationRetrieverPluginTESTControl) Arc::TargetInformationRetrieverPluginTESTControl;
 #endif
 %include "../src/hed/libs/compute/TestACCControl.h"
-%template(SimpleConditionList) std::list<Arc::SimpleCondition*>;
 %template(EndpointListList) std::list< std::list<Arc::Endpoint> >;
 %template(EndpointQueryingStatusList) std::list<Arc::EndpointQueryingStatus>;
 #ifdef SWIGPYTHON

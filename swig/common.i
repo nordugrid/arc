@@ -271,3 +271,4 @@ private:
 %rename(_wait) Arc::ThreadedPointerBase::wait;
 #endif
 %include "../src/hed/libs/common/Thread.h"
+%template(SimpleConditionList) std::list<Arc::SimpleCondition*>;
