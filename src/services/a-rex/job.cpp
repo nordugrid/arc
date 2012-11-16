@@ -66,24 +66,6 @@ ARexGMConfig::ARexGMConfig(const GMConfig& config,const std::string& uname,const
   if(!config_.AREXEndpoint().empty()) service_endpoint_ = config_.AREXEndpoint();
 }
 
-// TODO: use Arc::AutoPointer??
-template <typename T> class AutoPointer {
- private:
-  T* object;
-  void operator=(const AutoPointer<T>&) { };
-  void operator=(T*) { };
-  AutoPointer(const AutoPointer&):object(NULL) { };
- public:
-  AutoPointer(void):object(NULL) { };
-  AutoPointer(T* o):object(o) { }
-  ~AutoPointer(void) { if(object) delete object; };
-  T& operator*(void) const { return *object; };
-  T* operator->(void) const { return object; };
-  operator bool(void) const { return (object!=NULL); };
-  bool operator!(void) const { return (object==NULL); };
-  operator T*(void) const { return object; };
-};
-
 static ARexJobFailure setfail(JobReqResult res) {
   switch(res.result_type) {
     case JobReqSuccess: return ARexJobNoError;
@@ -113,12 +95,12 @@ bool ARexJob::is_allowed(bool fast) {
   if(acl.empty()) return true; // No policy defiled - only owner allowed
   // Identify and parse policy
   ArcSec::EvaluatorLoader eval_loader;
-  AutoPointer<ArcSec::Policy> policy(eval_loader.getPolicy(ArcSec::Source(acl)));
+  Arc::AutoPointer<ArcSec::Policy> policy(eval_loader.getPolicy(ArcSec::Source(acl)));
   if(!policy) {
     logger_.msg(Arc::VERBOSE, "%s: Failed to parse user policy", id_);
     return true;
   };
-  AutoPointer<ArcSec::Evaluator> eval(eval_loader.getEvaluator(policy));
+  Arc::AutoPointer<ArcSec::Evaluator> eval(eval_loader.getEvaluator(policy.Ptr()));
   if(!eval) {
     logger_.msg(Arc::VERBOSE, "%s: Failed to load evaluator for user policy ", id_);
     return true;
@@ -158,7 +140,7 @@ bool ARexJob::is_allowed(bool fast) {
     action=JOB_POLICY_OPERATION_MODIFY; action.NewAttribute("Type")="string";
     action.NewAttribute("AttributeId")=JOB_POLICY_OPERATION_URN;
     // Evaluating policy
-    ArcSec::Response *resp = eval->evaluate(request,policy);
+    ArcSec::Response *resp = eval->evaluate(request,policy.Ptr());
     // Analyzing response in order to understand which operations are allowed
     if(!resp) return true; // Not authorized
     // Following should be somehow made easier
@@ -199,7 +181,7 @@ bool ARexJob::is_allowed(bool fast) {
       entry.NewChild("allow").NewChild("read");
     };
     ArcSec::Response *resp;
-    resp=eval->evaluate(request,policy);
+    resp=eval->evaluate(request,policy.Ptr());
     if(resp) {
       ArcSec::ResponseList& rlist = resp->getResponseItems();
       for(int n = 0; n<rlist.size(); ++n) {
@@ -213,7 +195,7 @@ bool ARexJob::is_allowed(bool fast) {
       entry["allow"].Destroy();
       entry.NewChild("allow").NewChild("write");
     };
-    resp=eval->evaluate(request,policy);
+    resp=eval->evaluate(request,policy.Ptr());
     if(resp) {
       ArcSec::ResponseList& rlist = resp->getResponseItems();
       for(int n = 0; n<rlist.size(); ++n) {
