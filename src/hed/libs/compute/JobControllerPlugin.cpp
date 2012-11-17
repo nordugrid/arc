@@ -29,27 +29,27 @@ namespace Arc {
   std::map<std::string, std::string> JobControllerPluginLoader::interfacePluginMap;
 
   void JobControllerPlugin::UpdateJobs(std::list<Job*>& jobs, bool isGrouped) const {
-    std::list<URL> idsProcessed, idsNotProcessed;
+    std::list<std::string> idsProcessed, idsNotProcessed;
     return UpdateJobs(jobs, idsProcessed, idsNotProcessed, isGrouped);
   };
 
   bool JobControllerPlugin::CleanJobs(const std::list<Job*>& jobs, bool isGrouped) const {
-    std::list<URL> idsProcessed, idsNotProcessed;
+    std::list<std::string> idsProcessed, idsNotProcessed;
     return CleanJobs(jobs, idsProcessed, idsNotProcessed, isGrouped);
   }
   
   bool JobControllerPlugin::CancelJobs(const std::list<Job*>& jobs, bool isGrouped) const {
-    std::list<URL> idsProcessed, idsNotProcessed;
+    std::list<std::string> idsProcessed, idsNotProcessed;
     return CancelJobs(jobs, idsProcessed, idsNotProcessed, isGrouped);
   }
   
   bool JobControllerPlugin::RenewJobs(const std::list<Job*>& jobs, bool isGrouped) const {
-    std::list<URL> idsProcessed, idsNotProcessed;
+    std::list<std::string> idsProcessed, idsNotProcessed;
     return RenewJobs(jobs, idsProcessed, idsNotProcessed, isGrouped);
   }
   
   bool JobControllerPlugin::ResumeJobs(const std::list<Job*>& jobs, bool isGrouped) const {
-    std::list<URL> idsProcessed, idsNotProcessed;
+    std::list<std::string> idsProcessed, idsNotProcessed;
     return ResumeJobs(jobs, idsProcessed, idsNotProcessed, isGrouped);
   }
 

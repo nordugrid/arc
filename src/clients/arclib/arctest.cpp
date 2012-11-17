@@ -232,7 +232,7 @@ int test(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorter& ets, const 
 
   for (ets.reset(); !ets.endOfList(); ets.next()) {
     if (ets->Submit(usercfg, testJob, submittedJobs.back())) {
-      printjobid(submittedJobs.back().JobID.fullstr(), jobidfile);
+      printjobid(submittedJobs.back().JobID, jobidfile);
       break;
     }
   }

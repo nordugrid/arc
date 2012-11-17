@@ -79,14 +79,10 @@ namespace Arc {
     return true;
   }
 
-  void SubmitterPlugin::AddJobDetails(const JobDescription& jobdesc, const URL& jobid,
+  void SubmitterPlugin::AddJobDetails(const JobDescription& jobdesc,
                                       const URL& cluster, Job& job) const {
-    job.JobID = jobid;
     if (!jobdesc.Identification.JobName.empty()) {
       job.Name = jobdesc.Identification.JobName;
-    }
-    if (job.InterfaceName.empty() && !supportedInterfaces.empty()) {
-      job.InterfaceName = supportedInterfaces.front();
     }
     job.LocalSubmissionTime = Arc::Time().str(UTCTime);
 
@@ -103,7 +99,7 @@ namespace Arc {
     }
   }
 
-  bool SubmitterPlugin::Migrate(const URL& /*jobid*/, const JobDescription& /*jobdesc*/, const ExecutionTarget& et,
+  bool SubmitterPlugin::Migrate(const std::string& /*jobid*/, const JobDescription& /*jobdesc*/, const ExecutionTarget& et,
                                 bool /*forcemigration*/, Job& /*job*/) {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a %s interface is not supported.", et.ComputingEndpoint->URLString, !supportedInterfaces.empty() ? supportedInterfaces.front() : "<unknown>");
     return false;

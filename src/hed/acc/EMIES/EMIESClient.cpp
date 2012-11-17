@@ -434,7 +434,7 @@ namespace Arc {
     for(;(bool)ext;++ext) job.session.push_back((std::string)ext);
     // Making EMI ES specific job id
     // URL-izing job id
-    info.JobID = URL(job.manager.str() + "/" + job.id);
+    info.JobID = job.manager.str() + "/" + job.id;
     //if(!info) return false;
     return true;
   }
@@ -896,6 +896,38 @@ namespace Arc {
     for(XMLNode u = job["SessionDirectory"]["URL"];(bool)u;++u) session.push_back((std::string)u);
     for(XMLNode u = job["StageOutDirectory"]["URL"];(bool)u;++u) stageout.push_back((std::string)u);
     return *this;
+  }
+  
+  EMIESJob& EMIESJob::operator=(Job job) {
+    stagein.clear();
+    if (job.StageInDir) stagein.push_back(job.StageInDir);
+    if (job.StageOutDir) stageout.push_back(job.StageOutDir);
+    if (job.SessionDir) session.push_back(job.SessionDir);
+    session.clear();
+    stageout.clear();
+    id = job.IDFromEndpoint;
+    manager = job.JobManagementURL;
+    resource = job.ServiceInformationURL;
+    return *this;
+  }
+  
+  Job EMIESJob::ToJob() const {
+    Job j;
+    
+    // Proposed mandatory attributes for ARC 3.0
+    j.JobID = manager.str() + "/" + id;
+    j.ServiceInformationURL = resource;
+    j.ServiceInformationInterfaceName = "org.ogf.glue.emies.resourceinfo";
+    j.JobStatusURL = manager;
+    j.JobStatusInterfaceName = "org.ogf.glue.emies.activitymanagement";
+    j.JobManagementURL = manager;
+    j.JobManagementInterfaceName = "org.ogf.glue.emies.activitymanagement";
+    j.IDFromEndpoint = id;
+    if (!stagein.empty()) j.StageInDir = stagein.front();
+    if (!stageout.empty()) j.StageInDir = stageout.front();
+    if (!session.empty()) j.StageInDir = session.front();
+    
+    return j;
   }
 
   std::string EMIESJob::ToXML() const {

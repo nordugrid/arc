@@ -344,12 +344,12 @@ namespace Arc {
 
     void SelectValid();
     void SelectByStatus(const std::list<std::string>& status);
-    void SelectByID(const std::list<URL>& ids);
+    void SelectByID(const std::list<std::string>& ids);
 
     void ClearSelection();
     
-    const std::list<URL>& GetIDsProcessed() const { return processed; }
-    const std::list<URL>& GetIDsNotProcessed() const { return notprocessed; }
+    const std::list<std::string>& GetIDsProcessed() const { return processed; }
+    const std::list<std::string>& GetIDsNotProcessed() const { return notprocessed; }
 
   private:
     const UserConfig& usercfg;
@@ -360,7 +360,7 @@ namespace Arc {
     JobSelectionMap jcJobMap;
     std::map<std::string, JobControllerPlugin*> loadedJCs;
 
-    std::list<URL> processed, notprocessed;
+    std::list<std::string> processed, notprocessed;
 
     JobControllerPluginLoader loader;
 

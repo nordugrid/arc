@@ -29,12 +29,12 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
   
-  void JobControllerPluginEMIES::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  void JobControllerPluginEMIES::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     for (std::list<Job*>::iterator it = jobs.begin();
          it != jobs.end(); ++it) {
       bool job_ok = false;
       EMIESJob job;
-      job = (*it)->IDFromEndpoint;
+      job = **it;
       AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(job.manager));
       if (!ac->info(job, **it)) {
         // do nothing because the following stat() may succeed
@@ -56,14 +56,14 @@ namespace Arc {
       if(job_ok) {
         IDsProcessed.push_back((*it)->JobID);
       } else {
-        logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID.fullstr());
+        logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID);
         IDsNotProcessed.push_back((*it)->JobID);
       }
       ((EMIESClients&)clients).release(ac.Release());
     }
   }
 
-  bool JobControllerPluginEMIES::CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginEMIES::CleanJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
@@ -71,7 +71,7 @@ namespace Arc {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
       EMIESJob ejob;
-      ejob = job.IDFromEndpoint;
+      ejob = job;
       AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(ejob.manager));
       if (!ac->clean(ejob)) {
         ok = false;
@@ -87,7 +87,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerPluginEMIES::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginEMIES::CancelJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
@@ -95,7 +95,7 @@ namespace Arc {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
       EMIESJob ejob;
-      ejob = job.IDFromEndpoint;
+      ejob = job;
       AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(ejob.manager));
       if(!ac->kill(ejob)) {
         ok = false;
@@ -111,7 +111,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerPluginEMIES::RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginEMIES::RenewJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       logger.msg(INFO, "Renewal of EMI ES jobs is not supported");
       IDsNotProcessed.push_back((*it)->JobID);
@@ -119,7 +119,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerPluginEMIES::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginEMIES::ResumeJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       logger.msg(INFO, "Resume of EMI ES jobs is not supported");
       IDsNotProcessed.push_back((*it)->JobID);
@@ -134,7 +134,7 @@ namespace Arc {
     
     // Obtain information about staging urls
     EMIESJob ejob;
-    ejob = job.IDFromEndpoint;
+    ejob = job;
     URL stagein;
     URL stageout;
     URL session;
@@ -159,7 +159,7 @@ namespace Arc {
       AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(ejob.manager));
       if (!ac->info(ejob, tjob)) {
         ((EMIESClients&)clients).release(ac.Release());
-        logger.msg(INFO, "Failed retrieving information for job: %s", job.JobID.fullstr());
+        logger.msg(INFO, "Failed retrieving information for job: %s", job.JobID);
         return false;
       }
       for(std::list<URL>::iterator s = ejob.stagein.begin();s!=ejob.stagein.end();++s) {

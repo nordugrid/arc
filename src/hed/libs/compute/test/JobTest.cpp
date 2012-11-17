@@ -107,7 +107,7 @@ void JobTest::XMLToJobTest() {
   Arc::Job job;
   job = xmlJob;
 
-  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce01.niif.hu:60000/arex/123456"), job.JobID);
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://ce01.niif.hu:60000/arex/123456", job.JobID);
   CPPUNIT_ASSERT_EQUAL((std::string)"mc08.1050.J7", job.Name);
   CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce01.niif.hu:60000/arex/"), job.ServiceInformationURL);
   CPPUNIT_ASSERT_EQUAL((std::string)"single", job.Type);
@@ -271,7 +271,7 @@ void JobTest::CurrentFormatTest() {
   Arc::XMLNode xml(
   "<ComputingActivity>"
     "<JobID>https://example-ce.com:443/arex/3456789101112</JobID>"
-    "<InterfaceName>org.nordugrid.xbes</InterfaceName>"
+    "<JobManagementInterfaceName>org.nordugrid.xbes</JobManagementInterfaceName>"
     "<ServiceInformationURL>https://example-ce.com:443/arex</ServiceInformationURL>"
     "<IDFromEndpoint>&lt;?xml version=\"1.0\"?&gt;&lt;ActivityIdentifier&gt;&lt;Address&gt;https://ce01.niif.hu:60000&lt;/Address&gt;&lt;ReferenceParameters&gt;&lt;CustomID&gt;123456&lt;/CustomID&gt;&lt;/ReferenceParameters&gt;&lt;/ActivityIdentifier&gt;</IDFromEndpoint>"
     "<LocalSubmissionTime>2010-09-24 16:17:46</LocalSubmissionTime>"
@@ -293,8 +293,8 @@ void JobTest::CurrentFormatTest() {
   Arc::Job job;
   job = xml;
 
-  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://example-ce.com:443/arex/3456789101112"), job.JobID);
-  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.xbes", job.InterfaceName);
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://example-ce.com:443/arex/3456789101112", job.JobID);
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.xbes", job.JobManagementInterfaceName);
   CPPUNIT_ASSERT_EQUAL(Arc::URL("https://example-ce.com:443/arex"), job.ServiceInformationURL);
 
   Arc::XMLNode xIDFromEndpoint(job.IDFromEndpoint);
@@ -350,8 +350,8 @@ void JobTest::FromOldFormatTest() {
   Arc::Job job;
   job = xml;
 
-  CPPUNIT_ASSERT_EQUAL(Arc::URL("gsiftp://grid.example.com:2811/jobs/1234567890"), job.JobID);
-  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.gridftpjob", job.InterfaceName);
+  CPPUNIT_ASSERT_EQUAL((std::string)"gsiftp://grid.example.com:2811/jobs/1234567890", job.JobID);
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.gridftpjob", job.JobManagementInterfaceName);
   CPPUNIT_ASSERT_EQUAL(Arc::URL("ldap://grid.example.com:2135/Mds-Vo-name=local, o=Grid??sub?(|(objectclass=nordugrid-cluster)(objectclass=nordugrid-queue)(nordugrid-authuser-sn=somedn))").fullstr(), job.ServiceInformationURL.fullstr());
   CPPUNIT_ASSERT_EQUAL(Arc::URL("ldap://grid.example.com:2135/Mds-Vo-name=local, o=Grid??sub?(nordugrid-job-globalid=gsiftp:\\2f\\2fgrid.example.com:2811\\2fjobs\\2f1234567890)").fullstr(), Arc::URL(job.IDFromEndpoint).fullstr());
   CPPUNIT_ASSERT_EQUAL(Arc::Time("2010-09-24 16:17:46"), job.LocalSubmissionTime);
@@ -396,8 +396,8 @@ void JobTest::FromOldFormatTest() {
   Arc::Job job;
   job = xml;
 
-  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://example-ce.com:443/arex/3456789101112"), job.JobID);
-  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.xbes", job.InterfaceName);
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://example-ce.com:443/arex/3456789101112", job.JobID);
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.xbes", job.JobManagementInterfaceName);
   CPPUNIT_ASSERT_EQUAL(Arc::URL("https://example-ce.com:443/arex"), job.ServiceInformationURL);
   CPPUNIT_ASSERT_EQUAL((std::string)"", job.IDFromEndpoint);
   CPPUNIT_ASSERT_EQUAL(Arc::Time("2010-09-24 16:17:46"), job.LocalSubmissionTime);
@@ -423,10 +423,10 @@ void JobTest::FileTest() {
 
   inJobs.push_back(xmlJob);
   inJobs.back().Name = "Job1";
-  inJobs.back().JobID = Arc::URL("https://ce01.niif.hu:60000/arex/job1");
+  inJobs.back().JobID = "https://ce01.niif.hu:60000/arex/job1";
   inJobs.push_back(xmlJob);
   inJobs.back().Name = "Job2";
-  inJobs.back().JobID = Arc::URL("https://ce01.niif.hu:60000/arex/job2");
+  inJobs.back().JobID = "https://ce01.niif.hu:60000/arex/job2";
 
   // Write and read jobs.
   CPPUNIT_ASSERT(Arc::Job::WriteJobsToTruncatedFile(jobfile, inJobs));
@@ -439,7 +439,7 @@ void JobTest::FileTest() {
 
   inJobs.push_back(xmlJob);
   inJobs.back().Name = "Job3";
-  inJobs.back().JobID = Arc::URL("https://ce01.niif.hu:60000/arex/job3");
+  inJobs.back().JobID = "https://ce01.niif.hu:60000/arex/job3";
 
   // Check that pointers to new jobs are added to the list
   std::list<const Arc::Job*> newJobs;
@@ -466,11 +466,11 @@ void JobTest::FileTest() {
 
   inJobs.push_back(xmlJob);
   inJobs.back().Name = "Job4";
-  inJobs.back().JobID = Arc::URL("https://ce01.niif.hu:60000/arex/job4");
+  inJobs.back().JobID = "https://ce01.niif.hu:60000/arex/job4";
 
   inJobs.push_back(xmlJob);
   inJobs.back().Name = "Job5";
-  inJobs.back().JobID = Arc::URL("https://ce01.niif.hu:60000/arex/job5");
+  inJobs.back().JobID = "https://ce01.niif.hu:60000/arex/job5";
 
   inJobs.push_back(inJobs.back());
   inJobs.back().Name = "Job5New";
@@ -501,9 +501,9 @@ void JobTest::FileTest() {
   CPPUNIT_ASSERT_EQUAL(inJobs.front().IDFromEndpoint, outJobs.front().IDFromEndpoint);
   CPPUNIT_ASSERT_EQUAL(inJobs.back().IDFromEndpoint, outJobs.back().IDFromEndpoint);
 
-  std::list<Arc::URL> toberemoved;
-  toberemoved.push_back(Arc::URL("https://ce01.niif.hu:60000/arex/job3"));
-  toberemoved.push_back(Arc::URL("https://ce01.niif.hu:60000/arex/job4"));
+  std::list<std::string> toberemoved;
+  toberemoved.push_back("https://ce01.niif.hu:60000/arex/job3");
+  toberemoved.push_back("https://ce01.niif.hu:60000/arex/job4");
 
   // Check whether jobs are removed correctly.
   CPPUNIT_ASSERT(Arc::Job::RemoveJobsFromFile(jobfile, toberemoved));
@@ -535,22 +535,22 @@ void JobTest::ReadJobsFromFileTest() {
   {
     inJobs.push_back(Arc::Job());
     inJobs.back().Name = "foo-job-1";
-    inJobs.back().JobID = Arc::URL("https://ce.grid.org/1234567890-foo-job-1");
+    inJobs.back().JobID = "https://ce.grid.org/1234567890-foo-job-1";
     inJobs.back().ServiceInformationURL = Arc::URL("https://ce.grid.org/");
 
     inJobs.push_back(Arc::Job());
     inJobs.back().Name = "foo-job-2";
-    inJobs.back().JobID = Arc::URL("https://ce.grid.org/1234567890-foo-job-2");
+    inJobs.back().JobID = "https://ce.grid.org/1234567890-foo-job-2";
     inJobs.back().ServiceInformationURL = Arc::URL("https://ce.grid.org/");
 
     inJobs.push_back(Arc::Job());
     inJobs.back().Name = "foo-job-2";
-    inJobs.back().JobID = Arc::URL("https://ce.grid.org/0987654321-foo-job-2");
+    inJobs.back().JobID = "https://ce.grid.org/0987654321-foo-job-2";
     inJobs.back().ServiceInformationURL = Arc::URL("https://ce.grid.org/");
 
     inJobs.push_back(Arc::Job());
     inJobs.back().Name = "foo-job-3";
-    inJobs.back().JobID = Arc::URL("https://ce.grid.org/1234567890-foo-job-3");
+    inJobs.back().JobID = "https://ce.grid.org/1234567890-foo-job-3";
     inJobs.back().ServiceInformationURL = Arc::URL("https://ce.grid.org/");
 
     CPPUNIT_ASSERT(Arc::Job::WriteJobsToTruncatedFile(jobfilename, inJobs));
@@ -564,13 +564,13 @@ void JobTest::ReadJobsFromFileTest() {
     CPPUNIT_ASSERT_EQUAL(3, (int)outJobs.size());
     std::list<Arc::Job>::const_iterator itJ = outJobs.begin();
     CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-1", itJ->Name);
-    CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce.grid.org/1234567890-foo-job-1"), itJ->JobID);
+    CPPUNIT_ASSERT_EQUAL((std::string)"https://ce.grid.org/1234567890-foo-job-1", itJ->JobID);
     ++itJ;
     CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-2", itJ->Name);
-    CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce.grid.org/1234567890-foo-job-2"), itJ->JobID);
+    CPPUNIT_ASSERT_EQUAL((std::string)"https://ce.grid.org/1234567890-foo-job-2", itJ->JobID);
     ++itJ;
     CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-2", itJ->Name);
-    CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce.grid.org/0987654321-foo-job-2"), itJ->JobID);
+    CPPUNIT_ASSERT_EQUAL((std::string)"https://ce.grid.org/0987654321-foo-job-2", itJ->JobID);
 
     CPPUNIT_ASSERT_EQUAL(1, (int)jobIdentifiers.size());
     CPPUNIT_ASSERT_EQUAL((std::string)"nonexistent-job", jobIdentifiers.front());
@@ -583,22 +583,22 @@ void JobTest::ReadJobsFromFileTest() {
 
     inJobs.push_back(Arc::Job());
     inJobs.back().Name = "foo-job-1";
-    inJobs.back().JobID = Arc::URL("https://ce1.grid.org/1234567890-foo-job-1");
+    inJobs.back().JobID = "https://ce1.grid.org/1234567890-foo-job-1";
     inJobs.back().ServiceInformationURL = Arc::URL("https://ce1.grid.org/");
 
     inJobs.push_back(Arc::Job());
     inJobs.back().Name = "foo-job-2";
-    inJobs.back().JobID = Arc::URL("https://ce2.grid.org/1234567890-foo-job-2");
+    inJobs.back().JobID = "https://ce2.grid.org/1234567890-foo-job-2";
     inJobs.back().ServiceInformationURL = Arc::URL("https://ce2.grid.org/");
 
     inJobs.push_back(Arc::Job());
     inJobs.back().Name = "foo-job-3";
-    inJobs.back().JobID = Arc::URL("https://ce2.grid.org/1234567890-foo-job-3");
+    inJobs.back().JobID = "https://ce2.grid.org/1234567890-foo-job-3";
     inJobs.back().ServiceInformationURL = Arc::URL("https://ce2.grid.org/");
 
     inJobs.push_back(Arc::Job());
     inJobs.back().Name = "foo-job-4";
-    inJobs.back().JobID = Arc::URL("https://ce3.grid.org/1234567890-foo-job-4");
+    inJobs.back().JobID = "https://ce3.grid.org/1234567890-foo-job-4";
     inJobs.back().ServiceInformationURL = Arc::URL("https://ce3.grid.org/");
 
     CPPUNIT_ASSERT(Arc::Job::WriteJobsToTruncatedFile(jobfilename, inJobs));
@@ -610,9 +610,9 @@ void JobTest::ReadJobsFromFileTest() {
     CPPUNIT_ASSERT_EQUAL(2, (int)outJobs.size());
 
     CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-2", outJobs.front().Name);
-    CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce2.grid.org/1234567890-foo-job-2"), outJobs.front().JobID);
+    CPPUNIT_ASSERT_EQUAL((std::string)"https://ce2.grid.org/1234567890-foo-job-2", outJobs.front().JobID);
     CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-3", outJobs.back().Name);
-    CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce2.grid.org/1234567890-foo-job-3"), outJobs.back().JobID);
+    CPPUNIT_ASSERT_EQUAL((std::string)"https://ce2.grid.org/1234567890-foo-job-3", outJobs.back().JobID);
 
     outJobs.clear();
     endpoints.clear();
@@ -622,9 +622,9 @@ void JobTest::ReadJobsFromFileTest() {
     CPPUNIT_ASSERT_EQUAL(2, (int)outJobs.size());
 
     CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-1", outJobs.front().Name);
-    CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce1.grid.org/1234567890-foo-job-1"), outJobs.front().JobID);
+    CPPUNIT_ASSERT_EQUAL((std::string)"https://ce1.grid.org/1234567890-foo-job-1", outJobs.front().JobID);
     CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-4", outJobs.back().Name);
-    CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce3.grid.org/1234567890-foo-job-4"), outJobs.back().JobID);
+    CPPUNIT_ASSERT_EQUAL((std::string)"https://ce3.grid.org/1234567890-foo-job-4", outJobs.back().JobID);
   }
 }
 

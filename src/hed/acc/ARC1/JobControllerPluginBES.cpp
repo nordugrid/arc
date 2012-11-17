@@ -28,7 +28,7 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  void JobControllerPluginBES::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  void JobControllerPluginBES::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
@@ -43,7 +43,7 @@ namespace Arc {
     }
   }
 
-  bool JobControllerPluginBES::CleanJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+  bool JobControllerPluginBES::CleanJobs(const std::list<Job*>& jobs, std::list<std::string>&, std::list<std::string>& IDsNotProcessed, bool) const {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       logger.msg(INFO, "Cleaning of BES jobs is not supported");
       IDsNotProcessed.push_back((*it)->JobID);
@@ -51,7 +51,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerPluginBES::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginBES::CancelJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     bool ok = true;
@@ -69,7 +69,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerPluginBES::RenewJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+  bool JobControllerPluginBES::RenewJobs(const std::list<Job*>& jobs, std::list<std::string>&, std::list<std::string>& IDsNotProcessed, bool) const {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       logger.msg(INFO, "Renewal of BES jobs is not supported");
       IDsNotProcessed.push_back((*it)->JobID);
@@ -77,7 +77,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerPluginBES::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+  bool JobControllerPluginBES::ResumeJobs(const std::list<Job*>& jobs, std::list<std::string>&, std::list<std::string>& IDsNotProcessed, bool) const {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       logger.msg(INFO, "Resuming BES jobs is not supported");
       IDsNotProcessed.push_back((*it)->JobID);
@@ -96,7 +96,7 @@ namespace Arc {
       }
     }
 
-    logger.msg(ERROR, "Failed retrieving job description for job: %s", job.JobID.fullstr());
+    logger.msg(ERROR, "Failed retrieving job description for job: %s", job.JobID);
     return false;
   }
 

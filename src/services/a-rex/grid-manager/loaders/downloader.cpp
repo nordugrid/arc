@@ -715,7 +715,7 @@ int main(int argc,char** argv) {
 
       if (found != std::string::npos) {
         Arc::Job arc_job;
-        arc_job.JobID = Arc::URL(job.get_local()->migrateactivityid);
+        arc_job.JobID = job.get_local()->migrateactivityid;
         arc_job.JobManagementURL = Arc::URL(job.get_local()->migrateactivityid.substr(0, found));
         std::list<Arc::Job*> jobs(1, &arc_job);
 

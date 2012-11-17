@@ -28,16 +28,16 @@ namespace Arc {
     virtual ~JobControllerPlugin() {}
 
     virtual void UpdateJobs(std::list<Job*>& jobs, bool isGrouped = false) const;
-    virtual void UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const = 0;
+    virtual void UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped = false) const = 0;
 
     virtual bool CleanJobs(const std::list<Job*>& jobs, bool isGrouped = false) const;
-    virtual bool CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const = 0;
+    virtual bool CleanJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped = false) const = 0;
     virtual bool CancelJobs(const std::list<Job*>& jobs, bool isGrouped = false) const;
-    virtual bool CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const = 0;
+    virtual bool CancelJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped = false) const = 0;
     virtual bool RenewJobs(const std::list<Job*>& jobs, bool isGrouped = false) const;
-    virtual bool RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const = 0;
+    virtual bool RenewJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped = false) const = 0;
     virtual bool ResumeJobs(const std::list<Job*>& jobs, bool isGrouped = false) const;
-    virtual bool ResumeJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped = false) const = 0;
+    virtual bool ResumeJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped = false) const = 0;
 
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) const = 0;
     virtual bool GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const = 0;

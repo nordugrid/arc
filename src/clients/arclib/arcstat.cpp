@@ -146,7 +146,7 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
       it->SaveToStream(std::cout, opt.longlist);
     }
     else {
-      std::cout << it->JobID.fullstr() << std::endl;
+      std::cout << it->JobID << std::endl;
     }
   }
 

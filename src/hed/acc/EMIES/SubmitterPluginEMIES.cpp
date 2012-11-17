@@ -56,11 +56,10 @@ namespace Arc {
         continue;
       }
  
-      URL jobidu(jobid.manager.str() + "/" + jobid.id);
+      Job j = jobid.ToJob();
 
-      Job j;
-      j.IDFromEndpoint = jobid.ToXML();
-      AddJobDetails(preparedjobdesc, jobidu, jobInformationEndpoint, j);
+      AddJobDetails(preparedjobdesc, jobInformationEndpoint, j);
+    
       jc.addEntity(j);
     }
 
@@ -105,26 +104,10 @@ namespace Arc {
         ok = false;
         continue;
       }
-  
-      // URL-izing job id
-      URL jobidu(jobid.manager.str() + "/" + jobid.id);
       
-      Job j;
+      Job j = jobid.ToJob();
       
-      // Proposed mandatory attributes for ARC 3.0
-      j.ID = jobid.manager.str() + "/" + jobid.id;
-      j.ServiceInformationURL = jobid.resource;
-      j.ServiceInformationInterfaceName = "org.ogf.glue.emies.resourceinfo";
-      j.JobStatusURL = jobid.manager;
-      j.JobStatusInterfaceName = "org.ogf.glue.emies.activitymanagement";
-      j.JobManagementURL = jobid.manager;
-      j.JobManagementInterfaceName = "org.ogf.glue.emies.activitymanagement";
-      j.IDOnService = jobid.id;
-
-      
-      j.IDFromEndpoint = jobid.ToXML();
-      AddJobDetails(preparedjobdesc, jobidu, et.ComputingService->Cluster, j);
-      j.InterfaceName = "org.ogf.glue.emies.activitymanagement";
+      AddJobDetails(preparedjobdesc, et.ComputingService->Cluster, j);
       jc.addEntity(j);
     }
 

@@ -12,7 +12,7 @@ def example():
     
     # Create a new job object with a given JobID
     job = arc.Job()
-    job.JobID = arc.URL("https://piff.hep.lu.se:443/arex/hYDLDmyxvUfn5h5iWqkutBwoABFKDmABFKDmIpHKDmYBFKDmtRy9En")
+    job.JobID = "https://piff.hep.lu.se:443/arex/hYDLDmyxvUfn5h5iWqkutBwoABFKDmABFKDmIpHKDmYBFKDmtRy9En"
     job.Flavour = "ARC1"
     job.ServiceInformationURL = job.JobStatusURL = job.JobManagementURL arc.URL("https://piff.hep.lu.se:443/arex")
     

@@ -114,8 +114,8 @@ int RUNMAIN(arcclean)(int argc, char **argv) {
 
   int retval = (int)!jobmaster.Clean();
 
-  std::list<Arc::URL> cleaned = jobmaster.GetIDsProcessed();
-  const std::list<Arc::URL>& notcleaned = jobmaster.GetIDsNotProcessed();
+  std::list<std::string> cleaned = jobmaster.GetIDsProcessed();
+  const std::list<std::string>& notcleaned = jobmaster.GetIDsNotProcessed();
 
   if ((!opt.status.empty() && std::find(opt.status.begin(), opt.status.end(), "Undefined") != opt.status.end()) || opt.forceclean) {
     std::string response = "";

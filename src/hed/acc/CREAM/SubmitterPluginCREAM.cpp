@@ -86,7 +86,8 @@ namespace Arc {
       xIDFromEndpoint.NewChild("delegationID") = delegationurl.str() + '/' + delegationid;
 
       Job j;
-      AddJobDetails(preparedjobdesc, URL(submissionurl.str() + '/' + jobInfo.id), jobInformationEndpoint, j);
+      j.JobID = submissionurl.str() + '/' + jobInfo.id;
+      AddJobDetails(preparedjobdesc, jobInformationEndpoint, j);
       xIDFromEndpoint.GetXML(j.IDFromEndpoint);
       jc.addEntity(j);
     }
@@ -167,7 +168,8 @@ namespace Arc {
       xIDFromEndpoint.NewChild("delegationID") = delegationurl.str() + '/' + delegationid;
 
       Job j;
-      AddJobDetails(preparedjobdesc, URL(submissionurl.str() + '/' + jobInfo.id), et.ComputingService->Cluster, j);
+      j.JobID = submissionurl.str() + '/' + jobInfo.id;
+      AddJobDetails(preparedjobdesc, et.ComputingService->Cluster, j);
       xIDFromEndpoint.GetXML(j.IDFromEndpoint);
       jc.addEntity(j);
     }

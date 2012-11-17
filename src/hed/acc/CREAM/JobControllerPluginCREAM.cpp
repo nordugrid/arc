@@ -26,7 +26,7 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  void JobControllerPluginCREAM::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  void JobControllerPluginCREAM::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     for (std::list<Job*>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
@@ -35,7 +35,7 @@ namespace Arc {
       url.ChangePath(*pi);
       CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
       if (!gLiteClient.stat(pi.Rest(), (**it))) {
-        logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID.fullstr());
+        logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID);
         IDsNotProcessed.push_back((*it)->JobID);
         continue;
       }
@@ -43,7 +43,7 @@ namespace Arc {
     }
   }
 
-  bool JobControllerPluginCREAM::CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginCREAM::CleanJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     bool ok = true;
@@ -54,7 +54,7 @@ namespace Arc {
       url.ChangePath(*pi);
       CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
       if (!gLiteClient.purge(pi.Rest())) {
-        logger.msg(INFO, "Failed cleaning job: %s", job.JobID.fullstr());
+        logger.msg(INFO, "Failed cleaning job: %s", job.JobID);
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
@@ -67,7 +67,7 @@ namespace Arc {
       url2.ChangePath(*pi2);
       CREAMClient gLiteClient2(url2, cfg, usercfg.Timeout());
       if (!gLiteClient2.destroyDelegation(pi2.Rest())) {
-        logger.msg(INFO, "Failed destroying delegation credentials for job: %s", job.JobID.fullstr());
+        logger.msg(INFO, "Failed destroying delegation credentials for job: %s", job.JobID);
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
@@ -77,7 +77,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerPluginCREAM::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginCREAM::CancelJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     bool ok = true;
@@ -88,7 +88,7 @@ namespace Arc {
       url.ChangePath(*pi);
       CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
       if (!gLiteClient.cancel(pi.Rest())) {
-        logger.msg(INFO, "Failed canceling job: %s", job.JobID.fullstr());
+        logger.msg(INFO, "Failed canceling job: %s", job.JobID);
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
@@ -100,7 +100,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerPluginCREAM::RenewJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+  bool JobControllerPluginCREAM::RenewJobs(const std::list<Job*>& jobs, std::list<std::string>&, std::list<std::string>& IDsNotProcessed, bool) const {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       logger.msg(INFO, "Renewal of CREAM jobs is not supported");
       IDsNotProcessed.push_back((*it)->JobID);
@@ -108,7 +108,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerPluginCREAM::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>&, std::list<URL>& IDsNotProcessed, bool) const {
+  bool JobControllerPluginCREAM::ResumeJobs(const std::list<Job*>& jobs, std::list<std::string>&, std::list<std::string>& IDsNotProcessed, bool) const {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       logger.msg(INFO, "Resumation of CREAM jobs is not supported");
       IDsNotProcessed.push_back((*it)->JobID);

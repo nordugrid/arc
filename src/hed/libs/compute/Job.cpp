@@ -164,8 +164,6 @@ namespace Arc {
     jc = j.jc;
 
     // Proposed mandatory attributes for ARC 3.0
-    ID = j.ID;
-    IDOnService = j.IDOnService;
     Name = j.Name;
     ServiceInformationURL = j.ServiceInformationURL;
     ServiceInformationInterfaceName = j.ServiceInformationInterfaceName;
@@ -174,8 +172,11 @@ namespace Arc {
     JobManagementURL = j.JobManagementURL;
     JobManagementInterfaceName = j.JobManagementInterfaceName;
 
+    StageInDir = j.StageInDir;
+    StageOutDir = j.StageOutDir;
+    SessionDir = j.SessionDir;
+
     JobID = j.JobID;
-    InterfaceName = j.InterfaceName;
 
     Type = j.Type;
     IDFromEndpoint = j.IDFromEndpoint;
@@ -236,8 +237,6 @@ namespace Arc {
   Job& Job::operator=(XMLNode job) {
     jc = NULL;
     // Proposed mandatory attributes for ARC 3.0
-    JXMLTOSTRING(ID)
-    JXMLTOSTRING(IDOnService)
     JXMLTOSTRING(Name)
     if (job["ServiceInformationURL"]) ServiceInformationURL = URL((std::string)job["ServiceInformationURL"]);
     JXMLTOSTRING(ServiceInformationInterfaceName)
@@ -245,12 +244,16 @@ namespace Arc {
     JXMLTOSTRING(JobStatusInterfaceName)
     if (job["JobManagementURL"]) JobManagementURL = URL((std::string)job["JobManagementURL"]);
     JXMLTOSTRING(JobManagementInterfaceName)
+
+    if (job["StageInDir"]) StageInDir = URL((std::string)job["StageInDir"]);
+    if (job["StageOutDir"]) StageOutDir = URL((std::string)job["StageOutDir"]);
+    if (job["SessionDir"]) SessionDir = URL((std::string)job["SessionDir"]);
       
     // Information specific to how job is stored in jobs list
     if (job["JobID"]) {
-      JobID = URL((std::string)job["JobID"]);
+      JobID = (std::string)job["JobID"];
     } else if (job["IDFromEndpoint"]) { // Backwardscompatibility: Pre 2.0.0 format.
-      JobID = URL((std::string)job["IDFromEndpoint"]);
+      JobID = (std::string)job["IDFromEndpoint"];
     }
     if (job["IDFromEndpoint"]
         /* If this is pre 2.0.0 format then JobID element would not
@@ -264,15 +267,12 @@ namespace Arc {
     }
 
     JXMLTOSTRING(Name)
-    if (job["InterfaceName"]) {
-      JXMLTOSTRING(InterfaceName)
-    }
     else if (job["Flavour"]) {
-      if      ((std::string)job["Flavour"] == "ARC0")  InterfaceName = "org.nordugrid.gridftpjob";
-      else if ((std::string)job["Flavour"] == "BES")   InterfaceName = "org.ogf.bes";
-      else if ((std::string)job["Flavour"] == "ARC1")  InterfaceName = "org.nordugrid.xbes";
-      else if ((std::string)job["Flavour"] == "EMIES") InterfaceName = "org.ogf.glue.emies.activitycreation";
-      else if ((std::string)job["Flavour"] == "TEST")  InterfaceName = "org.nordugrid.test";
+      if      ((std::string)job["Flavour"] == "ARC0")  JobManagementInterfaceName = "org.nordugrid.gridftpjob";
+      else if ((std::string)job["Flavour"] == "BES")   JobManagementInterfaceName = "org.ogf.bes";
+      else if ((std::string)job["Flavour"] == "ARC1")  JobManagementInterfaceName = "org.nordugrid.xbes";
+      else if ((std::string)job["Flavour"] == "EMIES") JobManagementInterfaceName = "org.ogf.glue.emies.activitycreation";
+      else if ((std::string)job["Flavour"] == "TEST")  JobManagementInterfaceName = "org.nordugrid.test";
     }
 
     if (job["InfoEndpoint"] && job["Flavour"] && (std::string)job["Flavour"] == "ARC0") {
@@ -404,8 +404,6 @@ namespace Arc {
   void Job::ToXML(XMLNode node) const {
 
     // Proposed mandatory attributes for ARC 3.0
-    STRINGTOXML(ID)
-    STRINGTOXML(IDOnService)
     STRINGTOXML(Name)
     URLTOXML(ServiceInformationURL)
     STRINGTOXML(ServiceInformationInterfaceName)
@@ -414,9 +412,11 @@ namespace Arc {
     URLTOXML(JobManagementURL)
     STRINGTOXML(JobManagementInterfaceName)
 
+    URLTOXML(StageInDir)
+    URLTOXML(StageOutDir)
+    URLTOXML(SessionDir)
 
-    URLTOXML(JobID)
-    STRINGTOXML(InterfaceName)
+    STRINGTOXML(JobID)
     STRINGTOXML(Type)
     STRINGTOXML(IDFromEndpoint)
     STRINGTOXML(LocalIDFromManager)
@@ -482,7 +482,7 @@ namespace Arc {
   }
 
   void Job::SaveToStream(std::ostream& out, bool longlist) const {
-    out << IString("Job: %s", JobID.fullstr()) << std::endl;
+    out << IString("Job: %s", JobID) << std::endl;
     if (!Name.empty())
       out << IString(" Name: %s", Name) << std::endl;
     if (!State().empty())
@@ -573,15 +573,15 @@ namespace Arc {
           out << "  " << *it << std::endl;
         }
       }
-
-      out << IString(" Management Interface: %s", InterfaceName) << std::endl;
       
       // Proposed mandatory attributes for ARC 3.0
-      out << IString("   ID: %s", ID) << std::endl;
-      out << IString("   ID on service: %s", IDOnService) << std::endl;
-      out << IString("   Service information URL: %s (%s)", ServiceInformationURL.fullstr(), ServiceInformationInterfaceName) << std::endl;
-      out << IString("   Job status URL: %s (%s)", JobStatusURL.fullstr(), JobStatusInterfaceName) << std::endl;
-      out << IString("   Job management URL: %s (%s)", JobManagementURL.fullstr(), JobManagementInterfaceName) << std::endl;
+      out << IString(" ID on service: %s", IDFromEndpoint) << std::endl;
+      out << IString(" Service information URL: %s (%s)", ServiceInformationURL.fullstr(), ServiceInformationInterfaceName) << std::endl;
+      out << IString(" Job status URL: %s (%s)", JobStatusURL.fullstr(), JobStatusInterfaceName) << std::endl;
+      out << IString(" Job management URL: %s (%s)", JobManagementURL.fullstr(), JobManagementInterfaceName) << std::endl;
+      if (StageInDir) out << IString(" Stagein directory URL: %s", StageInDir.fullstr()) << std::endl;
+      if (StageOutDir) out << IString(" Stageout directory URL: %s", StageOutDir.fullstr()) << std::endl;
+      if (SessionDir) out << IString(" Session directory URL: %s", SessionDir.fullstr()) << std::endl;
     }
 
     out << std::endl;
@@ -591,13 +591,13 @@ namespace Arc {
     if (jc != NULL) return true;
 
     // If InterfaceName is not specified then all JobControllerPlugin classes should be tried.
-    if (InterfaceName.empty()) {
-      logger.msg(VERBOSE, "Unable to handle job (%s), no interface specified.", JobID.fullstr());
+    if (JobManagementInterfaceName.empty()) {
+      logger.msg(VERBOSE, "Unable to handle job (%s), no interface specified.", JobID);
     }
     
-    jc = loader.loadByInterfaceName(InterfaceName, uc);
+    jc = loader.loadByInterfaceName(JobManagementInterfaceName, uc);
     if (!jc) {
-      logger.msg(VERBOSE, "Unable to handle job (%s), no plugin associated with the specified interface (%s)", JobID.fullstr(), InterfaceName);
+      logger.msg(VERBOSE, "Unable to handle job (%s), no plugin associated with the specified interface (%s)", JobID, JobManagementInterfaceName);
       return false;
     }
 
@@ -624,15 +624,15 @@ namespace Arc {
     }
     
     if (jc == NULL) {
-      logger.msg(DEBUG, "Unable to download job (%s), no JobControllerPlugin plugin was set to handle the job.", JobID.str());
+      logger.msg(DEBUG, "Unable to download job (%s), no JobControllerPlugin plugin was set to handle the job.", JobID);
       return false;
     }
 
-    logger.msg(VERBOSE, "Downloading job: %s", JobID.str());
+    logger.msg(VERBOSE, "Downloading job: %s", JobID);
     
     URL src, dst(destination);
     if (!jc->GetURLToJobResource(*this, STAGEOUTDIR, src)) {
-      logger.msg(ERROR, "Cant retrieve job files for job (%s) - unable to determine URL of stage out directory", JobID.fullstr());
+      logger.msg(ERROR, "Cant retrieve job files for job (%s) - unable to determine URL of stage out directory", JobID);
       return false;
     }
 
@@ -648,7 +648,7 @@ namespace Arc {
 
     std::list<std::string> files;
     if (!ListFilesRecursive(uc, src, files)) {
-      logger.msg(ERROR, "Unable to retrieve list of job files to download for job %s", JobID.fullstr());
+      logger.msg(ERROR, "Unable to retrieve list of job files to download for job %s", JobID);
       return false;
     }
 
@@ -827,7 +827,7 @@ namespace Arc {
       std::list<std::string>::iterator itJIdentifier = jobIdentifiers.begin();
       for (;itJIdentifier != jobIdentifiers.end(); ++itJIdentifier) {
         if ((!itJ->Name.empty() && itJ->Name == *itJIdentifier) ||
-            (itJ->JobID.fullstr() == URL(*itJIdentifier).fullstr())) {
+            (itJ->JobID == URL(*itJIdentifier).fullstr())) {
           break;
         }
       }
@@ -886,11 +886,11 @@ namespace Arc {
     std::map<std::string, XMLNode> jobIDXMLMap;
     for (std::list<Job>::const_iterator it = jobs.begin();
          it != jobs.end(); it++) {
-      std::map<std::string, XMLNode>::iterator itJobXML = jobIDXMLMap.find(it->JobID.fullstr());
+      std::map<std::string, XMLNode>::iterator itJobXML = jobIDXMLMap.find(it->JobID);
       if (itJobXML == jobIDXMLMap.end()) {
         XMLNode xJob = jobfile.NewChild("Job");
         it->ToXML(xJob);
-        jobIDXMLMap[it->JobID.fullstr()] = xJob;
+        jobIDXMLMap[it->JobID] = xJob;
       }
       else {
         itJobXML->second.Replace(XMLNode(NS(), "Job"));
@@ -966,12 +966,12 @@ namespace Arc {
 
         std::map<std::string, const Job*> newJobsMap;
         for (std::list<Job>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
-          std::map<std::string, XMLNode>::iterator itJobXML = jobIDXMLMap.find(it->JobID.fullstr());
+          std::map<std::string, XMLNode>::iterator itJobXML = jobIDXMLMap.find(it->JobID);
           if (itJobXML == jobIDXMLMap.end()) {
             XMLNode xJob = jobfile.NewChild("Job");
             it->ToXML(xJob);
-            jobIDXMLMap[it->JobID.fullstr()] = xJob;
-            newJobsMap[it->JobID.fullstr()] = &(*it);
+            jobIDXMLMap[it->JobID] = xJob;
+            newJobsMap[it->JobID] = &(*it);
           }
           else {
             // Duplicate found, replace it.
@@ -979,7 +979,7 @@ namespace Arc {
             it->ToXML(itJobXML->second);
 
             // Only add to newJobsMap if this is a new job, i.e. not previous present in jobfile.
-            std::map<std::string, const Job*>::iterator itNewJobsMap = newJobsMap.find(it->JobID.fullstr());
+            std::map<std::string, const Job*>::iterator itNewJobsMap = newJobsMap.find(it->JobID);
             if (itNewJobsMap != newJobsMap.end()) {
               itNewJobsMap->second = &(*it);
             }
@@ -1010,7 +1010,7 @@ namespace Arc {
     return false;
   }
 
-  bool Job::RemoveJobsFromFile(const std::string& filename, const std::list<URL>& jobids, unsigned nTries, unsigned tryInterval) {
+  bool Job::RemoveJobsFromFile(const std::string& filename, const std::list<std::string>& jobids, unsigned nTries, unsigned tryInterval) {
     if (jobids.empty()) {
       return true;
     }
@@ -1025,10 +1025,10 @@ namespace Arc {
         }
 
         XMLNodeList xmlJobs = jobstorage.Path("Job");
-        for (std::list<URL>::const_iterator it = jobids.begin(); it != jobids.end(); ++it) {
+        for (std::list<std::string>::const_iterator it = jobids.begin(); it != jobids.end(); ++it) {
           for (XMLNodeList::iterator xJIt = xmlJobs.begin(); xJIt != xmlJobs.end(); ++xJIt) {
-            if ((*xJIt)["JobID"] == it->fullstr() ||
-                (*xJIt)["IDFromEndpoint"] == it->fullstr() // Included for backwards compatibility.
+            if ((*xJIt)["JobID"] == *it ||
+                (*xJIt)["IDFromEndpoint"] == *it // Included for backwards compatibility.
                 ) {
               xJIt->Destroy(); // Do not break, since for some reason there might be multiple identical jobs in the file.
             }
@@ -1086,7 +1086,7 @@ namespace Arc {
     return false;
   }
 
-  bool Job::WriteJobIDToFile(const URL& jobid, const std::string& filename, unsigned nTries, unsigned tryInterval) {
+  bool Job::WriteJobIDToFile(const std::string& jobid, const std::string& filename, unsigned nTries, unsigned tryInterval) {
     if (Glib::file_test(filename, Glib::FILE_TEST_IS_DIR)) return false;
 
     FileLock lock(filename);
@@ -1098,7 +1098,7 @@ namespace Arc {
           lock.release();
           return false;
         }
-        os << jobid.fullstr() << std::endl;
+        os << jobid << std::endl;
         bool good = os.good();
         os.close();
         lock.release();
@@ -1115,7 +1115,7 @@ namespace Arc {
     return false;
   }
 
-  bool Job::WriteJobIDsToFile(const std::list<URL>& jobids, const std::string& filename, unsigned nTries, unsigned tryInterval) {
+  bool Job::WriteJobIDsToFile(const std::list<std::string>& jobids, const std::string& filename, unsigned nTries, unsigned tryInterval) {
     if (Glib::file_test(filename, Glib::FILE_TEST_IS_DIR)) return false;
     FileLock lock(filename);
     for (int tries = (int)nTries; tries > 0; --tries) {
@@ -1126,9 +1126,9 @@ namespace Arc {
           lock.release();
           return false;
         }
-        for (std::list<URL>::const_iterator it = jobids.begin();
+        for (std::list<std::string>::const_iterator it = jobids.begin();
              it != jobids.end(); ++it) {
-          os << it->fullstr() << std::endl;
+          os << *it << std::endl;
         }
 
         bool good = os.good();
@@ -1161,7 +1161,7 @@ namespace Arc {
         }
         for (std::list<Job>::const_iterator it = jobs.begin();
              it != jobs.end(); ++it) {
-          os << it->JobID.fullstr() << std::endl;
+          os << it->JobID << std::endl;
         }
 
         bool good = os.good();

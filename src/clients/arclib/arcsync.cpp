@@ -67,10 +67,10 @@ public:
             jobsReported = true;
           }
           if (!it->Name.empty()) {
-            std::cout << it->Name << " (" << it->JobID.fullstr() << ")" << std::endl;
+            std::cout << it->Name << " (" << it->JobID << ")" << std::endl;
           }
           else {
-            std::cout << it->JobID.fullstr() << std::endl;
+            std::cout << it->JobID << std::endl;
           }
         }
         std::cout << Arc::IString("Total number of jobs found: ") << jobs.size() << std::endl;
@@ -90,10 +90,10 @@ public:
             jobsReported = true;
           }
           if (!(*it)->Name.empty()) {
-            std::cout << (*it)->Name << " (" << (*it)->JobID.fullstr() << ")" << std::endl;
+            std::cout << (*it)->Name << " (" << (*it)->JobID << ")" << std::endl;
           }
           else {
-            std::cout << (*it)->JobID.fullstr() << std::endl;
+            std::cout << (*it)->JobID << std::endl;
           }
         }
         std::cout << Arc::IString("Total number of new jobs found: ") << newJobs.size() << std::endl;

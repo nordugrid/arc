@@ -50,11 +50,11 @@ namespace Arc {
     return new JobControllerPluginARC0(*jcarg, arg);
   }
 
-  void JobControllerPluginARC0::UpdateJobs(std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  void JobControllerPluginARC0::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     std::map<std::string, std::list<Job*> > jobsbyhost;
     for (std::list<Job*>::iterator it = jobs.begin();
          it != jobs.end(); ++it) {
-      URL infoEndpoint((*it)->IDFromEndpoint);
+      URL infoEndpoint = (*it)->JobStatusURL;
       jobsbyhost[infoEndpoint.ConnectionURL() +
                  infoEndpoint.Path()].push_back(*it);
     }
@@ -74,12 +74,12 @@ namespace Arc {
           }
         }
         logger.msg(DEBUG, "Querying batch with %d jobs", batch.size());
-      URL infourl(batch.front()->IDFromEndpoint);
+      URL infourl = batch.front()->JobStatusURL;
 
       // merge filters
       std::string filter = "(|";
       for (std::list<Job*>::iterator it = batch.begin(); it != batch.end(); ++it) {
-        filter += URL((*it)->IDFromEndpoint).LDAPFilter();
+        filter += (*it)->JobStatusURL.LDAPFilter();
       }
       filter += ")";
 
@@ -118,13 +118,13 @@ namespace Arc {
            jit != batch.end(); ++jit) {
         XMLNodeList::iterator xit = jobinfolist.begin();
         for (; xit != jobinfolist.end(); ++xit) {
-          if ((std::string)(*xit)["nordugrid-job-globalid"] == (*jit)->JobID.str()) {
+          if ((std::string)(*xit)["nordugrid-job-globalid"] == (*jit)->JobID) {
             break;
           }
         }
 
         if (xit == jobinfolist.end()) {
-          logger.msg(WARNING, "Job information not found in the information system: %s", (*jit)->JobID.fullstr());
+          logger.msg(WARNING, "Job information not found in the information system: %s", (*jit)->JobID);
           if (Time() - (*jit)->LocalSubmissionTime < 90)
             logger.msg(WARNING, "This job was very recently "
                        "submitted and might not yet "
@@ -223,15 +223,15 @@ namespace Arc {
     }
   }
 
-  bool JobControllerPluginARC0::CleanJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginARC0::CleanJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
       
-      logger.msg(VERBOSE, "Cleaning job: %s", job.JobID.str());
+      logger.msg(VERBOSE, "Cleaning job: %s", job.JobID);
   
       FTPControl ctrl;
-      if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
+      if (!ctrl.Connect(URL(job.JobID), usercfg.ProxyPath(), usercfg.CertificatePath(),
                         usercfg.KeyPath(), usercfg.Timeout())) {
         logger.msg(INFO, "Failed to connect for job cleaning");
         ok = false;
@@ -239,7 +239,7 @@ namespace Arc {
         continue;
       }
   
-      std::string path = job.JobID.Path();
+      std::string path = URL(job.JobID).Path();
       std::string::size_type pos = path.rfind('/');
       std::string jobpath = path.substr(0, pos);
       std::string jobidnum = path.substr(pos + 1);
@@ -272,15 +272,15 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerPluginARC0::CancelJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginARC0::CancelJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
 
-      logger.msg(VERBOSE, "Cancelling job: %s", job.JobID.str());
+      logger.msg(VERBOSE, "Cancelling job: %s", job.JobID);
   
       FTPControl ctrl;
-      if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
+      if (!ctrl.Connect(URL(job.JobID), usercfg.ProxyPath(), usercfg.CertificatePath(),
                         usercfg.KeyPath(), usercfg.Timeout())) {
         logger.msg(INFO, "Failed to connect for job cancelling");
         ok = false;
@@ -288,7 +288,7 @@ namespace Arc {
         continue;
       }
   
-      std::string path = job.JobID.Path();
+      std::string path = URL(job.JobID).Path();
       std::string::size_type pos = path.rfind('/');
       std::string jobpath = path.substr(0, pos);
       std::string jobidnum = path.substr(pos + 1);
@@ -322,15 +322,15 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerPluginARC0::RenewJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginARC0::RenewJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
   
-      logger.msg(VERBOSE, "Renewing credentials for job: %s", job.JobID.str());
+      logger.msg(VERBOSE, "Renewing credentials for job: %s", job.JobID);
   
       FTPControl ctrl;
-      if (!ctrl.Connect(job.JobID, usercfg.ProxyPath(), usercfg.CertificatePath(),
+      if (!ctrl.Connect(URL(job.JobID), usercfg.ProxyPath(), usercfg.CertificatePath(),
                         usercfg.KeyPath(), usercfg.Timeout())) {
         logger.msg(INFO, "Failed to connect for credential renewal");
         ok = false;
@@ -338,7 +338,7 @@ namespace Arc {
         continue;
       }
   
-      std::string path = job.JobID.Path();
+      std::string path = URL(job.JobID).Path();
       std::string::size_type pos = path.rfind('/');
       std::string jobpath = path.substr(0, pos);
       std::string jobidnum = path.substr(pos + 1);
@@ -370,23 +370,23 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerPluginARC0::ResumeJobs(const std::list<Job*>& jobs, std::list<URL>& IDsProcessed, std::list<URL>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginARC0::ResumeJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
   
       if (!job.RestartState) {
-        logger.msg(INFO, "Job %s does not report a resumable state", job.JobID.str());
+        logger.msg(INFO, "Job %s does not report a resumable state", job.JobID);
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
   
       // dump rsl into temporary file
-      std::string urlstr = job.JobID.str();
+      std::string urlstr = job.JobID;
       std::string::size_type pos = urlstr.rfind('/');
       if (pos == std::string::npos || pos == 0) {
-        logger.msg(INFO, "Illegal jobID specified (%s)", job.JobID.str());
+        logger.msg(INFO, "Illegal jobID specified (%s)", job.JobID);
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
@@ -448,7 +448,7 @@ namespace Arc {
   }
 
   bool JobControllerPluginARC0::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
-    url = job.JobID;
+    url = URL(job.JobID);
     switch (resource) {
     case Job::STDIN:
       url.ChangePath(url.Path() + '/' + job.StdIn);
@@ -476,7 +476,7 @@ namespace Arc {
 
   bool JobControllerPluginARC0::GetJobDescription(const Job& job,
                                             std::string& desc_str) const {
-    std::string jobid = job.JobID.str();
+    std::string jobid = job.JobID;
     logger.msg(VERBOSE, "Trying to retrieve job description of %s from "
                "computing resource", jobid);
 

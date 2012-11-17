@@ -39,7 +39,7 @@ void SubmitterTest::SubmissionToExecutionTargetTest() {
   Arc::Submitter submitter(usercfg);
   // Prepare to job which will be returned by the test ACC
   Arc::Job testJob;
-  testJob.JobID = Arc::URL("http://test.nordugrid.org/testjob");
+  testJob.JobID = "http://test.nordugrid.org/testjob";
   Arc::SubmitterPluginTestACCControl::submitJob = testJob;
   
   Arc::JobDescription desc;
@@ -57,7 +57,7 @@ void SubmitterTest::SubmissionToExecutionTargetWithConsumerTest() {
   Arc::Submitter submitter(usercfg);
   // Prepare to job which will be returned by the test ACC
   Arc::Job testJob;
-  testJob.JobID = Arc::URL("http://test.nordugrid.org/testjob");
+  testJob.JobID = "http://test.nordugrid.org/testjob";
   Arc::SubmitterPluginTestACCControl::submitJob = testJob;
   
   Arc::JobDescription desc;

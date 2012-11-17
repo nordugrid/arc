@@ -48,7 +48,6 @@ private:
 
 
 JobSupervisorTest::JobSupervisorTest() : usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)), js(NULL) {
-  j.InterfaceName = "org.nordugrid.test";
   j.JobStatusURL = Arc::URL("http://test.nordugrid.org");
   j.JobStatusInterfaceName = "org.nordugrid.test";
   j.JobManagementURL = Arc::URL("http://test.nordugrid.org");
@@ -58,7 +57,8 @@ JobSupervisorTest::JobSupervisorTest() : usercfg(Arc::initializeCredentialsType(
 void JobSupervisorTest::TestConstructor()
 {
   std::list<Arc::Job> jobs;
-  Arc::URL id1("http://test.nordugrid.org/1234567890test1"), id2("http://test.nordugrid.org/1234567890test2");
+  std::string id1 = "http://test.nordugrid.org/1234567890test1";
+  std::string id2 = "http://test.nordugrid.org/1234567890test2";
   j.JobID = id1;
   jobs.push_back(j);
   j.JobID = id2;
@@ -83,15 +83,15 @@ void JobSupervisorTest::TestAddJob()
   js = new Arc::JobSupervisor(usercfg, std::list<Arc::Job>());
   CPPUNIT_ASSERT(js->GetAllJobs().empty());
 
-  j.JobID = Arc::URL("http://test.nordugrid.org/1234567890test1");
+  j.JobID = "http://test.nordugrid.org/1234567890test1";
   CPPUNIT_ASSERT(js->AddJob(j));
   CPPUNIT_ASSERT(!js->GetAllJobs().empty());
 
-  j.InterfaceName = "";
+  j.JobManagementInterfaceName = "";
   CPPUNIT_ASSERT(!js->AddJob(j));
   CPPUNIT_ASSERT_EQUAL(1, (int)js->GetAllJobs().size());
 
-  j.InterfaceName = "non.existent.interface";
+  j.JobManagementInterfaceName = "non.existent.interface";
   CPPUNIT_ASSERT(!js->AddJob(j));
   CPPUNIT_ASSERT_EQUAL(1, (int)js->GetAllJobs().size());
 
@@ -149,10 +149,10 @@ void JobSupervisorTest::TestResubmit()
 void JobSupervisorTest::TestCancel()
 {
   std::list<Arc::Job> jobs;
-  Arc::URL id1("http://test.nordugrid.org/1234567890test1"),
-           id2("http://test.nordugrid.org/1234567890test2"),
-           id3("http://test.nordugrid.org/1234567890test3"),
-           id4("http://test.nordugrid.org/1234567890test4");
+  std::string id1 = "http://test.nordugrid.org/1234567890test1";
+  std::string id2 = "http://test.nordugrid.org/1234567890test2";
+  std::string id3 = "http://test.nordugrid.org/1234567890test3";
+  std::string id4 = "http://test.nordugrid.org/1234567890test4";
 
   j.State = Arc::JobStateTEST(Arc::JobState::RUNNING);
   j.JobID = id1;
@@ -227,8 +227,8 @@ void JobSupervisorTest::TestCancel()
 void JobSupervisorTest::TestClean()
 {
   std::list<Arc::Job> jobs;
-  Arc::URL id1("http://test.nordugrid.org/1234567890test1"),
-           id2("http://test.nordugrid.org/1234567890test2");
+  std::string id1 = "http://test.nordugrid.org/1234567890test1";
+  std::string id2 = "http://test.nordugrid.org/1234567890test2";
 
   j.State = Arc::JobStateTEST(Arc::JobState::FINISHED, "Finished");
   j.JobID = id1;

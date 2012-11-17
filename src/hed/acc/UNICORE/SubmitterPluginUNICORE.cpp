@@ -47,7 +47,8 @@ namespace Arc {
   
       Job j;
       id.GetDoc(j.IDFromEndpoint);
-      AddJobDetails(*it, (std::string)id["Address"], et.ComputingService->Cluster, j);
+      j.JobID = (std::string)id["Address"];
+      AddJobDetails(*it, et.ComputingService->Cluster, j);
       jc.addEntity(j);
     }
   

@@ -32,34 +32,34 @@ namespace Arc {
   }
 
   bool JobSupervisor::AddJob(const Job& job) {
-    if (!job.JobID) {
-      logger.msg(VERBOSE, "Ignoring job (%s), the job ID (%s) is not a valid URL", job.JobID.fullstr(), job.JobID.fullstr());
+    if (job.JobID.empty()) {
+      logger.msg(VERBOSE, "Ignoring job, the job ID is empty");
       return false;
     }
 
-    if (job.InterfaceName.empty()) {
-      logger.msg(VERBOSE, "Ignoring job (%s), the Job::InterfaceName attribute must be specified", job.JobID.fullstr());
+    if (job.JobManagementInterfaceName.empty()) {
+      logger.msg(VERBOSE, "Ignoring job (%s), the management interface name is unknown", job.JobID);
       return false;
     }
 
     if (!job.JobManagementURL) {
-      logger.msg(VERBOSE, "Ignoring job (%s), the job managemenet URL is unknown", job.JobID.fullstr());
+      logger.msg(VERBOSE, "Ignoring job (%s), the job management URL is unknown", job.JobID);
       return false;
     }
 
-    std::map<std::string, JobControllerPlugin*>::iterator currentJC = loadedJCs.find(job.InterfaceName);
+    std::map<std::string, JobControllerPlugin*>::iterator currentJC = loadedJCs.find(job.JobManagementInterfaceName);
     if (currentJC == loadedJCs.end()) {
-      JobControllerPlugin *jc = Job::loader.loadByInterfaceName(job.InterfaceName, usercfg);
-      currentJC = loadedJCs.insert(std::pair<std::string, JobControllerPlugin*>(job.InterfaceName, jc)).first;
+      JobControllerPlugin *jc = Job::loader.loadByInterfaceName(job.JobManagementInterfaceName, usercfg);
+      currentJC = loadedJCs.insert(std::pair<std::string, JobControllerPlugin*>(job.JobManagementInterfaceName, jc)).first;
       if (!jc) {
-        logger.msg(VERBOSE, "Ignoring job (%s), unable to load JobControllerPlugin for %s", job.JobID.fullstr(), job.InterfaceName);
+        logger.msg(VERBOSE, "Ignoring job (%s), unable to load JobControllerPlugin for %s", job.JobID, job.JobManagementInterfaceName);
         return false;
       }
       jcJobMap[jc] = std::pair< std::list<Job *>, std::list<Job*> >();
     }
     else if (!currentJC->second) {
       // Already tried to load JobControllerPlugin, and it failed.
-      logger.msg(VERBOSE, "Ignoring job (%s), already tried and were unable to load JobControllerPlugin", job.JobID.fullstr());
+      logger.msg(VERBOSE, "Ignoring job (%s), already tried and were unable to load JobControllerPlugin", job.JobID);
       return false;
     }
 
@@ -118,25 +118,19 @@ namespace Arc {
     }
   }
 
-  void JobSupervisor::SelectByID(const std::list<URL>& ids) {
+  void JobSupervisor::SelectByID(const std::list<std::string>& ids) {
     processed.clear();
     notprocessed.clear();
 
     if (ids.empty()) {
       return;
     }
-
-    // For better performance on big lists
-    std::list<std::string> ids_str;
-    for(std::list<URL>::const_iterator id = ids.begin(); id != ids.end(); ++id) {
-      ids_str.push_back(id->fullstr());
-    }
-
+    
     for (JobSelectionMap::iterator it = jcJobMap.begin();
          it != jcJobMap.end(); ++it) {
       for (std::list<Job*>::iterator itJ = it->second.first.begin();
            itJ != it->second.first.end();) {
-        if (std::find(ids_str.begin(), ids_str.end(), (*itJ)->JobID.fullstr()) == ids_str.end()) {
+        if (std::find(ids.begin(), ids.end(), (*itJ)->JobID) == ids.end()) {
           notprocessed.push_back((*itJ)->JobID);
           it->second.second.push_back(*itJ);
           itJ = it->second.first.erase(itJ);
@@ -202,7 +196,7 @@ namespace Arc {
         if (usejobname && !(*itJ)->Name.empty()) {
           downloaddirname = (*itJ)->Name;
         } else {
-          std::string path = (*itJ)->JobID.Path();
+          std::string path = URL((*itJ)->JobID).Path();
           std::string::size_type pos = path.rfind('/');
           downloaddirname = path.substr(pos + 1);
         }
@@ -391,7 +385,7 @@ namespace Arc {
       std::list<JobDescription> jobdescs;
       if (!JobDescription::Parse((**itJ)->JobDescriptionDocument, jobdescs) || jobdescs.empty()) {
         std::cout << (**itJ)->JobDescriptionDocument << std::endl;
-        logger.msg(ERROR, "Unable to resubmit job (%s), unable to parse obtained job description", (**itJ)->JobID.fullstr());
+        logger.msg(ERROR, "Unable to resubmit job (%s), unable to parse obtained job description", (**itJ)->JobID);
         resubmittedJobs.pop_back();
         notprocessed.push_back((**itJ)->JobID);
         ok = false;
@@ -400,7 +394,7 @@ namespace Arc {
         continue;
       }
       jobdescs.front().Identification.ActivityOldID = (**itJ)->ActivityOldID;
-      jobdescs.front().Identification.ActivityOldID.push_back((**itJ)->JobID.fullstr());
+      jobdescs.front().Identification.ActivityOldID.push_back((**itJ)->JobID);
 
       // remove the queuename which was added during the original submission of the job
       jobdescs.front().Resources.QueueName = "";
@@ -413,7 +407,7 @@ namespace Arc {
         csr = new ComputingServiceRetriever(resubmitUsercfg, sametarget, rejectedURLs);
         csr->wait();
         if (csr->empty()) {
-          logger.msg(ERROR, "Unable to resubmit job (%s), target information retrieval failed for target: %s", (**itJ)->JobID.fullstr(), (**itJ)->ServiceInformationURL.str());
+          logger.msg(ERROR, "Unable to resubmit job (%s), target information retrieval failed for target: %s", (**itJ)->JobID, (**itJ)->ServiceInformationURL.str());
           delete csr;
           resubmittedJobs.pop_back();
           notprocessed.push_back((**itJ)->JobID);
@@ -439,7 +433,7 @@ namespace Arc {
         resubmittedJobs.pop_back();
         notprocessed.push_back((**itJ)->JobID);
         ok = false;
-        logger.msg(ERROR, "Unable to resubmit job (%s), no targets applicable for submission", (**itJ)->JobID.fullstr());
+        logger.msg(ERROR, "Unable to resubmit job (%s), no targets applicable for submission", (**itJ)->JobID);
         jcJobMap[(**itJ)->jc].second.push_back(**itJ);
         jcJobMap[(**itJ)->jc].first.erase(*itJ);
       }
@@ -474,7 +468,7 @@ namespace Arc {
 
         // If job description is not set, then try to fetch it from execution service.
         if ((*itJ)->JobDescriptionDocument.empty() && !it->first->GetJobDescription((**itJ), (*itJ)->JobDescriptionDocument)) {
-          logger.msg(ERROR, "Unable to migrate job (%s), job description could not be retrieved remotely", (*itJ)->JobID.fullstr());
+          logger.msg(ERROR, "Unable to migrate job (%s), job description could not be retrieved remotely", (*itJ)->JobID);
           notprocessed.push_back((*itJ)->JobID);
           ok = false;
           it->second.second.push_back(*itJ);
@@ -522,14 +516,14 @@ namespace Arc {
          itJ != migratableJobs.end(); ++itJ) {
       std::list<JobDescription> jobdescs;
       if (!JobDescription::Parse((**itJ)->JobDescriptionDocument, jobdescs) || jobdescs.empty()) {
-        logger.msg(ERROR, "Unable to migrate job (%s), unable to parse obtained job description", (**itJ)->JobID.fullstr());
+        logger.msg(ERROR, "Unable to migrate job (%s), unable to parse obtained job description", (**itJ)->JobID);
         notprocessed.push_back((**itJ)->JobID);
         jcJobMap[(**itJ)->jc].second.push_back(**itJ);
         jcJobMap[(**itJ)->jc].first.erase(*itJ);
         continue;
       }
       jobdescs.front().Identification.ActivityOldID = (**itJ)->ActivityOldID;
-      jobdescs.front().Identification.ActivityOldID.push_back((**itJ)->JobID.fullstr());
+      jobdescs.front().Identification.ActivityOldID.push_back((**itJ)->JobID);
 
       // remove the queuename which was added during the original submission of the job
       jobdescs.front().Resources.QueueName = "";
@@ -553,7 +547,7 @@ namespace Arc {
       }
 
       if (ets.endOfList()) {
-        logger.msg(ERROR, "Job migration failed for job (%s), no applicable targets", (**itJ)->JobID.fullstr());
+        logger.msg(ERROR, "Job migration failed for job (%s), no applicable targets", (**itJ)->JobID);
         ok = false;
         migratedJobs.pop_back();
         notprocessed.push_back((**itJ)->JobID);

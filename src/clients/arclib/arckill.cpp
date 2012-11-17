@@ -118,7 +118,7 @@ int RUNMAIN(arckill)(int argc, char **argv) {
   unsigned int cleaned_num = 0;
 
   if (!opt.keep) {
-    std::list<Arc::URL> canceled = jobmaster.GetIDsProcessed();
+    std::list<std::string> canceled = jobmaster.GetIDsProcessed();
     // No need to clean selection because retrieved is subset of selected
     jobmaster.SelectByID(canceled);
     if(!jobmaster.Clean()) {

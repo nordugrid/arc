@@ -67,20 +67,21 @@ namespace Arc {
     for (std::list<FileInfo>::const_iterator file = files.begin();
          file != files.end(); file++) {
       Job j;
-      j.JobID = url;
-      j.JobID.ChangePath(j.JobID.Path() + "/" + file->GetName());
-      j.InterfaceName = "org.nordugrid.xbes";
-      j.IDFromEndpoint = "<ActivityIdentifier><Address>" + url.fullstr() + "</Address></ActivityIdentifier>";
+      URL jobIDURL = url;
+      jobIDURL.ChangePath(jobIDURL.Path() + "/" + file->GetName());
       
       // Proposed mandatory attributes for ARC 3.0
-      j.ID = j.JobID.fullstr();
+      j.JobID = jobIDURL.fullstr();
       j.ServiceInformationURL = url;
       j.ServiceInformationInterfaceName = "org.nordugrid.wsrfglue2";
       j.JobStatusURL = url;
       j.JobStatusInterfaceName = "org.nordugrid.xbes";
       j.JobManagementURL = url;
       j.JobManagementInterfaceName = "org.nordugrid.xbes";
-      j.IDOnService = file->GetName();
+      j.IDFromEndpoint = file->GetName();
+      j.StageInDir = jobIDURL;
+      j.StageOutDir = jobIDURL;
+      j.SessionDir = jobIDURL;
       
       jobs.push_back(j);
     }

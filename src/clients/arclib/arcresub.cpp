@@ -133,7 +133,7 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
 
   for (std::list<Arc::Job>::const_iterator it = resubmittedJobs.begin();
        it != resubmittedJobs.end(); ++it) {
-    std::cout << Arc::IString("Job submitted with jobid: %s", it->JobID.fullstr()) << std::endl;
+    std::cout << Arc::IString("Job submitted with jobid: %s", it->JobID) << std::endl;
   }
 
   if (!resubmittedJobs.empty() && !Arc::Job::WriteJobsToFile(usercfg.JobListFile(), resubmittedJobs)) {
@@ -147,23 +147,23 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
     retval = 1;
   }
 
-  std::list<Arc::URL> notresubmitted = jobmaster.GetIDsNotProcessed();
+  std::list<std::string> notresubmitted = jobmaster.GetIDsNotProcessed();
 
   if (!jobmaster.Cancel()) {
     retval = 1;
   }
-  for (std::list<Arc::URL>::const_iterator it = jobmaster.GetIDsNotProcessed().begin();
+  for (std::list<std::string>::const_iterator it = jobmaster.GetIDsNotProcessed().begin();
        it != jobmaster.GetIDsNotProcessed().end(); ++it) {
-    logger.msg(Arc::WARNING, "Resubmission of job (%s) succeeded, but killing the job failed - it will still appear in the job list", it->fullstr());
+    logger.msg(Arc::WARNING, "Resubmission of job (%s) succeeded, but killing the job failed - it will still appear in the job list", *it);
   }
 
   if (!opt.keep) {
     if (!jobmaster.Clean()) {
       retval = 1;
     }
-    for (std::list<Arc::URL>::const_iterator it = jobmaster.GetIDsNotProcessed().begin();
+    for (std::list<std::string>::const_iterator it = jobmaster.GetIDsNotProcessed().begin();
          it != jobmaster.GetIDsNotProcessed().end(); ++it) {
-      logger.msg(Arc::WARNING, "Resubmission of job (%s) succeeded, but cleaning the job failed - it will still appear in the job list", it->fullstr());
+      logger.msg(Arc::WARNING, "Resubmission of job (%s) succeeded, but cleaning the job failed - it will still appear in the job list", *it);
     }
 
     if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), jobmaster.GetIDsProcessed())) {
@@ -179,9 +179,9 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
     std::cout << Arc::IString("%d of %d jobs were resubmitted", resubmittedJobs.size(), resubmittedJobs.size() + notresubmitted.size()) << std::endl;
     if (!notresubmitted.empty()) {
       std::cout << Arc::IString("The following %d were not resubmitted", notresubmitted.size()) << std::endl;
-      for (std::list<Arc::URL>::const_iterator it = notresubmitted.begin();
+      for (std::list<std::string>::const_iterator it = notresubmitted.begin();
            it != notresubmitted.end(); ++it) {
-        std::cout << it->fullstr() << std::endl;
+        std::cout << *it << std::endl;
       }
     }
   }

@@ -185,7 +185,7 @@ public:
   HandleSubmittedJobs(const std::string& jobidfile, const std::string& joblist) : jobidfile(jobidfile), joblist(joblist), submittedJobs() {}
 
   void addEntity(const Arc::Job& j) {
-    std::cout << Arc::IString("Job submitted with jobid: %s", j.JobID.fullstr()) << std::endl;
+    std::cout << Arc::IString("Job submitted with jobid: %s", j.JobID) << std::endl;
     submittedJobs.push_back(j);
   }
   

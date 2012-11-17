@@ -81,7 +81,7 @@ namespace Arc {
      * This method should return the URL of the migrated job. In case
      * migration fails an empty URL should be returned.
      */
-    virtual bool Migrate(const URL& jobid, const JobDescription& jobdesc,
+    virtual bool Migrate(const std::string& jobid, const JobDescription& jobdesc,
                          const ExecutionTarget& et,
                          bool forcemigration, Job& job);
 
@@ -89,7 +89,7 @@ namespace Arc {
 
   protected:
     bool PutFiles(const JobDescription& jobdesc, const URL& url) const;
-    void AddJobDetails(const JobDescription& jobdesc, const URL& jobid,
+    void AddJobDetails(const JobDescription& jobdesc,
                        const URL& cluster, Job& job) const;
 
     const UserConfig& usercfg;

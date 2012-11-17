@@ -138,7 +138,7 @@ int RUNMAIN(arcget)(int argc, char **argv) {
   unsigned int cleaned_num = 0;
 
   if (!opt.keep) {
-    std::list<Arc::URL> retrieved = jobmaster.GetIDsProcessed();
+    std::list<std::string> retrieved = jobmaster.GetIDsProcessed();
     // No need to clean selection because retrieved is subset of selected
     jobmaster.SelectByID(retrieved);
     if(!jobmaster.Clean()) {

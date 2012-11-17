@@ -122,11 +122,11 @@ int RUNMAIN(arcmigrate)(int argc, char **argv) {
   std::list<Arc::Job> migratedJobs;
   int retval = (int)!jobmaster.Migrate(opt.forcemigration, services, migratedJobs, rejectDiscoveryURLs);
 
-  std::list<Arc::URL> notmigrated = jobmaster.GetIDsNotProcessed();
+  std::list<std::string> notmigrated = jobmaster.GetIDsNotProcessed();
 
   for (std::list<Arc::Job>::const_iterator it = migratedJobs.begin();
        it != migratedJobs.end(); ++it) {
-    std::cout << Arc::IString("Job submitted with jobid: %s", it->JobID.fullstr()) << std::endl;
+    std::cout << Arc::IString("Job submitted with jobid: %s", it->JobID) << std::endl;
   }
 
   if (!migratedJobs.empty() && !Arc::Job::WriteJobsToFile(usercfg.JobListFile(), migratedJobs)) {
@@ -143,18 +143,18 @@ int RUNMAIN(arcmigrate)(int argc, char **argv) {
   if (!jobmaster.Cancel()) {
     retval = 1;
   }
-  for (std::list<Arc::URL>::const_iterator it = jobmaster.GetIDsNotProcessed().begin();
+  for (std::list<std::string>::const_iterator it = jobmaster.GetIDsNotProcessed().begin();
        it != jobmaster.GetIDsNotProcessed().end(); ++it) {
-    logger.msg(Arc::WARNING, "Migration of job (%s) succeeded, but killing the job failed - it will still appear in the job list", it->fullstr());
+    logger.msg(Arc::WARNING, "Migration of job (%s) succeeded, but killing the job failed - it will still appear in the job list", *it);
   }
 
   if (!opt.keep) {
     if (!jobmaster.Clean()) {
       retval = 1;
     }
-    for (std::list<Arc::URL>::const_iterator it = jobmaster.GetIDsNotProcessed().begin();
+    for (std::list<std::string>::const_iterator it = jobmaster.GetIDsNotProcessed().begin();
          it != jobmaster.GetIDsNotProcessed().end(); ++it) {
-      logger.msg(Arc::WARNING, "Migration of job (%s) succeeded, but cleaning the job failed - it will still appear in the job list", it->fullstr());
+      logger.msg(Arc::WARNING, "Migration of job (%s) succeeded, but cleaning the job failed - it will still appear in the job list", *it);
     }
 
     if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), jobmaster.GetIDsProcessed())) {
@@ -170,9 +170,9 @@ int RUNMAIN(arcmigrate)(int argc, char **argv) {
     std::cout << Arc::IString("%d of %d jobs were migrated", migratedJobs.size(), migratedJobs.size() + notmigrated.size()) << std::endl;
     if (!notmigrated.empty()) {
       std::cout << Arc::IString("The following %d were not migrated", notmigrated.size()) << std::endl;
-      for (std::list<Arc::URL>::const_iterator it = notmigrated.begin();
+      for (std::list<std::string>::const_iterator it = notmigrated.begin();
            it != notmigrated.end(); ++it) {
-        std::cout << it->fullstr() << std::endl;
+        std::cout << *it << std::endl;
       }
     }
   }

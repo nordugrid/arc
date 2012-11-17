@@ -150,7 +150,7 @@ int RUNMAIN(arccat)(int argc, char **argv) {
     }
 
     if (it->State == Arc::JobState::DELETED) {
-      logger.msg(Arc::WARNING, "Job deleted: %s", it->JobID.fullstr());
+      logger.msg(Arc::WARNING, "Job deleted: %s", it->JobID);
       retval = 1;
       continue;
     }
@@ -160,7 +160,7 @@ int RUNMAIN(arccat)(int argc, char **argv) {
         !it->State.IsFinished() &&
         it->State != Arc::JobState::RUNNING &&
         it->State != Arc::JobState::FINISHING) {
-      logger.msg(Arc::WARNING, "Job has not started yet: %s", it->JobID.fullstr());
+      logger.msg(Arc::WARNING, "Job has not started yet: %s", it->JobID);
       retval = 1;
       continue;
     }
@@ -168,7 +168,7 @@ int RUNMAIN(arccat)(int argc, char **argv) {
     if ((opt.show_joblog && it->LogDir.empty()) ||
         (!opt.show_joblog && opt.show_stderr && it->StdErr.empty()) ||
         (!opt.show_joblog && !opt.show_stderr && it->StdOut.empty())) {
-      logger.msg(Arc::ERROR, "Cannot determine the %s location: %s", resourceName, it->JobID.fullstr());
+      logger.msg(Arc::ERROR, "Cannot determine the %s location: %s", resourceName, it->JobID);
       retval = 1;
       continue;
     }
@@ -176,7 +176,7 @@ int RUNMAIN(arccat)(int argc, char **argv) {
     Arc::URL src;
     it->GetURLToResource(resource, src);
     if (!src) {
-      logger.msg(Arc::ERROR, "Cannot create output of %s for job (%s): Invalid source %s", resourceName, it->JobID.fullstr(), src.str());
+      logger.msg(Arc::ERROR, "Cannot create output of %s for job (%s): Invalid source %s", resourceName, it->JobID, src.str());
       retval = 1;
       continue;
     }
@@ -186,7 +186,7 @@ int RUNMAIN(arccat)(int argc, char **argv) {
       continue;
     }
 
-    logger.msg(Arc::VERBOSE, "Catting %s for job %s", resourceName, it->JobID.fullstr());
+    logger.msg(Arc::VERBOSE, "Catting %s for job %s", resourceName, it->JobID);
 
     std::ifstream is(filename.c_str());
     char c;

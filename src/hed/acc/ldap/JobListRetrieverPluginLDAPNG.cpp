@@ -118,23 +118,18 @@ namespace Arc {
           }
         }
       }
-      if ((*it)["nordugrid-job-globalid"])
-        j.JobID = (std::string)(*it)["nordugrid-job-globalid"];
       if ((*it)["nordugrid-job-jobname"])
         j.Name = (std::string)(*it)["nordugrid-job-jobname"];
       if ((*it)["nordugrid-job-submissiontime"])
         j.LocalSubmissionTime = (std::string)(*it)["nordugrid-job-submissiontime"];
 
-      j.InterfaceName = "org.nordugrid.gridftpjob";
-
       URL infoEndpoint(url);
       infoEndpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" +
                                     escape_chars((std::string)(*it)["nordugrid-job-globalid"],filter_esc,'\\',false,escape_hex) + ")");
       infoEndpoint.ChangeLDAPScope(URL::subtree);
-      j.IDFromEndpoint = infoEndpoint.fullstr();
 
       // Proposed mandatory attributes for ARC 3.0
-      j.ID = j.JobID.fullstr();
+      j.JobID = (std::string)(*it)["nordugrid-job-globalid"];
       j.ServiceInformationURL = url;
       j.ServiceInformationURL.ChangeLDAPFilter("");
       j.ServiceInformationInterfaceName = "org.nordugrid.ldapng";
@@ -142,7 +137,10 @@ namespace Arc {
       j.JobStatusInterfaceName = "org.nordugrid.ldapng";
       j.JobManagementURL = URL(ContactString);
       j.JobManagementInterfaceName = "org.nordugrid.gridftpjob";
-      j.IDOnService = j.ID.substr(ContactString.length()+1);
+      j.IDFromEndpoint = j.JobID.substr(ContactString.length()+1);
+      j.StageInDir = URL(j.JobID);
+      j.StageOutDir = URL(j.JobID);
+      j.SessionDir = URL(j.JobID);
 
       jobs.push_back(j);
     }

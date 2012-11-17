@@ -41,8 +41,7 @@ namespace Arc {
     Job(XMLNode job);
 
     // Proposed mandatory attributes for ARC 3.0
-    std::string ID;
-    std::string IDOnService;
+    std::string JobID;
     std::string Name;
     URL ServiceInformationURL;
     std::string ServiceInformationInterfaceName;
@@ -50,12 +49,10 @@ namespace Arc {
     std::string JobStatusInterfaceName;
     URL JobManagementURL;
     std::string JobManagementInterfaceName;
-
-    // Attributes not part of ComputingActivity entity in GLUE2
-    // These are used for central functionality in the library
-    URL JobID;
-    std::string InterfaceName;
-
+    
+    URL StageInDir;
+    URL StageOutDir;
+    URL SessionDir;
 
     std::string Type;
     std::string IDFromEndpoint;
@@ -186,7 +183,7 @@ namespace Arc {
     static bool CopyJobFile(const UserConfig& uc, const URL& src, const URL& dst);
     static bool ListFilesRecursive(const UserConfig& uc, const URL& dir, std::list<std::string>& files) { files.clear(); return ListFilesRecursive(uc, dir, files, ""); }
     
-    static bool CompareJobID(const Job& a, const Job& b) { return a.JobID.fullstr().compare(b.JobID.fullstr()) < 0; }
+    static bool CompareJobID(const Job& a, const Job& b) { return a.JobID.compare(b.JobID) < 0; }
     static bool CompareSubmissionTime(const Job& a, const Job& b) { return a.SubmissionTime < b.SubmissionTime; }
     static bool CompareJobName(const Job& a, const Job& b) { return a.Name.compare(b.Name) < 0; }
 
@@ -378,7 +375,7 @@ namespace Arc {
      * @see XMLNode::ReadFromFile
      * @see XMLNode::SaveToFile
      **/
-    static bool RemoveJobsFromFile(const std::string& filename, const std::list<URL>& jobids, unsigned nTries = 10, unsigned tryInterval = 500000);
+    static bool RemoveJobsFromFile(const std::string& filename, const std::list<std::string>& jobids, unsigned nTries = 10, unsigned tryInterval = 500000);
 
     /// Read a list of Job IDs from a file, and append them to a list
     /**
@@ -416,7 +413,7 @@ namespace Arc {
      *  attempt to acquire a lock.
      * @return true in case of success, otherwise false.
      **/
-    static bool WriteJobIDToFile(const URL& jobid, const std::string& filename, unsigned nTries = 10, unsigned tryInterval = 500000);
+    static bool WriteJobIDToFile(const std::string& jobid, const std::string& filename, unsigned nTries = 10, unsigned tryInterval = 500000);
 
     /// Append list of URLs to a file
     /**
@@ -434,7 +431,7 @@ namespace Arc {
      *  attempt to acquire a lock.
      * @return true in case of success, otherwise false.
      **/
-    static bool WriteJobIDsToFile(const std::list<URL>& jobids, const std::string& filename, unsigned nTries = 10, unsigned tryInterval = 500000);
+    static bool WriteJobIDsToFile(const std::list<std::string>& jobids, const std::string& filename, unsigned nTries = 10, unsigned tryInterval = 500000);
 
     static bool WriteJobIDsToFile(const std::list<Job>& jobs, const std::string& filename, unsigned nTries = 10, unsigned tryInterval = 500000);
 

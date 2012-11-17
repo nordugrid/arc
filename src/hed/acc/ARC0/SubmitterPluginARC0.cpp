@@ -147,12 +147,9 @@ namespace Arc {
       URL infoendpoint(jobInformationEndpoint);
       infoendpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" + escape_chars(jobid.str(),filter_esc,'\\',false,escape_hex) + ")");
       infoendpoint.ChangeLDAPScope(URL::subtree);
-      if (infoendpoint) {
-        j.IDFromEndpoint = infoendpoint.fullstr();
-      }
 
       // Proposed mandatory attributes for ARC 3.0
-      j.ID = jobid.fullstr();
+      j.JobID = jobid.fullstr();
       j.ServiceInformationURL = infoendpoint;
       j.ServiceInformationURL.ChangeLDAPFilter("");
       j.ServiceInformationInterfaceName = "org.nordugrid.ldapng";
@@ -160,9 +157,12 @@ namespace Arc {
       j.JobStatusInterfaceName = "org.nordugrid.ldapng";
       j.JobManagementURL = ContactString;
       j.JobManagementInterfaceName = "org.nordugrid.gridftpjob";
-      j.IDOnService = jobnumber;
+      j.IDFromEndpoint = jobnumber;
+      j.StageInDir = jobid;
+      j.StageOutDir = jobid;
+      j.SessionDir = jobid;
 
-      AddJobDetails(preparedjobdesc, jobid, jobInformationEndpoint, j);
+      AddJobDetails(preparedjobdesc, jobInformationEndpoint, j);
       jc.addEntity(j);
     }
 
@@ -274,10 +274,9 @@ namespace Arc {
       }
   
       Job j;
-      j.IDFromEndpoint = infoendpoint.fullstr();
       
       // Proposed mandatory attributes for ARC 3.0
-      j.ID = jobid.fullstr();
+      j.JobID = jobid.fullstr();
       j.ServiceInformationURL = infoendpoint;
       j.ServiceInformationURL.ChangeLDAPFilter("");
       j.ServiceInformationInterfaceName = "org.nordugrid.ldapng";
@@ -285,9 +284,12 @@ namespace Arc {
       j.JobStatusInterfaceName = "org.nordugrid.ldapng";
       j.JobManagementURL = ContactString;
       j.JobManagementInterfaceName = "org.nordugrid.gridftpjob";
-      j.IDOnService = jobnumber;
+      j.IDFromEndpoint = jobnumber;
+      j.StageInDir = jobid;
+      j.StageOutDir = jobid;
+      j.SessionDir = jobid;
       
-      AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, j);
+      AddJobDetails(preparedjobdesc, et.ComputingService->Cluster, j);
       jc.addEntity(j);
     }
 

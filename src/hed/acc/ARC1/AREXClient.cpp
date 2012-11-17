@@ -266,7 +266,7 @@ namespace Arc {
         }
       }
       if (!job.State) {
-        logger.msg(VERBOSE, "Unable to retrieve status of job (%s)", job.JobID.fullstr());
+        logger.msg(VERBOSE, "Unable to retrieve status of job (%s)", job.JobID);
         return false;
       }
       return true;
@@ -309,7 +309,7 @@ namespace Arc {
       }
     }
     if (!job.State) {
-      logger.msg(VERBOSE, "Unable to retrieve status of job (%s)", job.JobID.fullstr());
+      logger.msg(VERBOSE, "Unable to retrieve status of job (%s)", job.JobID);
     }
 
     return (bool)job.State;

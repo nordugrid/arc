@@ -100,22 +100,18 @@ namespace Arc {
       }
     
       Job j;
-      j.IDFromEndpoint = idFromEndpoint;
-      if (activityIdentifier["ReferenceParameters"]["a-rex:JobID"]) {
-        j.InterfaceName = "org.nordugrid.xbes";
-      }
-
-      AddJobDetails(preparedjobdesc, jobid, jobInformationEndpoint, j);
+      
+      AddJobDetails(preparedjobdesc, jobInformationEndpoint, j);
       
       // Proposed mandatory attributes for ARC 3.0
-      j.ID = jobid.fullstr();
+      j.JobID = jobid.fullstr();
       j.ServiceInformationURL = url;
       j.ServiceInformationInterfaceName = "org.nordugrid.wsrfglue2";
       j.JobStatusURL = url;
       j.JobStatusInterfaceName = "org.nordugrid.xbes";
       j.JobManagementURL = url;
       j.JobManagementInterfaceName = "org.nordugrid.xbes";
-      j.IDOnService = (std::string)activityIdentifier["ReferenceParameters"]["a-rex:JobID"];
+      j.IDFromEndpoint = (std::string)activityIdentifier["ReferenceParameters"]["a-rex:JobID"];
       
       jc.addEntity(j);
     }
@@ -191,21 +187,20 @@ namespace Arc {
       }
     
       Job j;
-      j.IDFromEndpoint = idFromEndpoint;
-      if (activityIdentifier["ReferenceParameters"]["a-rex:JobID"]) {
-        j.InterfaceName = "org.nordugrid.xbes";
-      }
-      AddJobDetails(preparedjobdesc, jobid, et.ComputingService->Cluster, j);
+      AddJobDetails(preparedjobdesc, et.ComputingService->Cluster, j);
       
       // Proposed mandatory attributes for ARC 3.0
-      j.ID = jobid.fullstr();
+      j.JobID = jobid.fullstr();
       j.ServiceInformationURL = url;
       j.ServiceInformationInterfaceName = "org.nordugrid.wsrfglue2";
       j.JobStatusURL = url;
       j.JobStatusInterfaceName = "org.nordugrid.xbes";
       j.JobManagementURL = url;
       j.JobManagementInterfaceName = "org.nordugrid.xbes";
-      j.IDOnService = (std::string)activityIdentifier["ReferenceParameters"]["a-rex:JobID"];
+      j.IDFromEndpoint = (std::string)activityIdentifier["ReferenceParameters"]["a-rex:JobID"];
+      j.StageInDir = jobid;
+      j.StageOutDir = jobid;
+      j.SessionDir = jobid;
       
       jc.addEntity(j);
     }
@@ -214,7 +209,7 @@ namespace Arc {
     return ok;
   }
 
-  bool SubmitterPluginARC1::Migrate(const URL& jobid, const JobDescription& jobdesc,
+  bool SubmitterPluginARC1::Migrate(const std::string& jobid, const JobDescription& jobdesc,
                              const ExecutionTarget& et,
                              bool forcemigration, Job& job) {
     URL url(et.ComputingEndpoint->URLString);
@@ -230,7 +225,7 @@ namespace Arc {
     for (std::list<InputFileType>::iterator it = preparedjobdesc.DataStaging.InputFiles.begin();
          it != preparedjobdesc.DataStaging.InputFiles.end(); it++) {
       if (!it->Sources.front() || it->Sources.front().Protocol() == "file") {
-        it->Sources.front() = URL(jobid.str() + "/" + it->Name);
+        it->Sources.front() = URL(jobid + "/" + it->Name);
       }
       else {
         // URL is valid, and not a local file. Check if the source reside at a
@@ -243,7 +238,7 @@ namespace Arc {
         for (std::list<std::string>::const_iterator itAOID = preparedjobdesc.Identification.ActivityOldID.begin();
              itAOID != preparedjobdesc.Identification.ActivityOldID.end(); itAOID++) {
           if (uriPath == *itAOID) {
-            it->Sources.front() = URL(jobid.str() + "/" + it->Name);
+            it->Sources.front() = URL(jobid + "/" + it->Name);
             break;
           }
         }
@@ -257,7 +252,7 @@ namespace Arc {
     }
 
     // Add ActivityOldID.
-    preparedjobdesc.Identification.ActivityOldID.push_back(jobid.str());
+    preparedjobdesc.Identification.ActivityOldID.push_back(jobid);
 
     std::string product;
     if (!preparedjobdesc.UnParse(product, "nordugrid:jsdl")) {
@@ -292,17 +287,20 @@ namespace Arc {
       return false;
     }
 
-    AddJobDetails(preparedjobdesc, newjobid, et.ComputingService->Cluster, job);
+    AddJobDetails(preparedjobdesc, et.ComputingService->Cluster, job);
     
     // Proposed mandatory attributes for ARC 3.0
-    job.ID = newjobid;
+    job.JobID = newjobid;
     job.ServiceInformationURL = url;
     job.ServiceInformationInterfaceName = "org.nordugrid.wsrfglue2";
     job.JobStatusURL = url;
     job.JobStatusInterfaceName = "org.nordugrid.xbes";
     job.JobManagementURL = url;
     job.JobManagementInterfaceName = "org.nordugrid.xbes";
-    job.IDOnService = (std::string)xNewjobid["ReferenceParameters"]["a-rex:JobID"];
+    job.IDFromEndpoint = (std::string)xNewjobid["ReferenceParameters"]["a-rex:JobID"];
+    job.StageInDir = sessionurl;
+    job.StageOutDir = sessionurl;
+    job.SessionDir = sessionurl;
 
     clients.release(ac);
     return true;

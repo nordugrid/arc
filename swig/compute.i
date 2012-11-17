@@ -102,7 +102,7 @@
 %wraplist(JobP, Arc::Job*);
 %wraplist(JobConstP, Arc::Job const *);
 #ifdef SWIGPYTHON
-%ignore Arc::Job::WriteJobIDsToFile(const std::list<Job>&, const std::string&, unsigned = 10, unsigned = 500000); // Clash. It is sufficient to wrap only WriteJobIDsToFile(cosnt std::list<URL>&, ...);
+%ignore Arc::Job::WriteJobIDsToFile(const std::list<Job>&, const std::string&, unsigned = 10, unsigned = 500000); // Clash. It is sufficient to wrap only WriteJobIDsToFile(cosnt std::list<std::string>&, ...);
 #endif
 %include "../src/hed/libs/compute/Job.h"
 
