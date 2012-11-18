@@ -10,11 +10,13 @@ python_DATA = __init__.py $(ARCPYLIBS)
 python_LTLIBRARIES = _arc.la
 endif
 
-altpythondir = $(ALTPYTHON_SITE_ARCH)/arc
 
 if ALTPYTHON_ENABLED
 altpython_DATA = __init__.py $(ARCPYLIBS)
 altpython_LTLIBRARIES = alt/_arc.la
+altpythondir = $(ALTPYTHON_SITE_ARCH)/arc
+else
+altpythondir =
 endif
 
 if WIN32
