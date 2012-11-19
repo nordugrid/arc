@@ -25,14 +25,15 @@
 ##
 ## The arc.conf configures all the ARC services, and enabling an ARC service on 
 ## a resource requires the presence of the appropriate configuration blocks. 
-## The ARC services are the following: gridftpd, grid-manager, infosys,
-## infosys registration. The nordugridmap utility is also configured by the
-## [nordugridmap] and [vo] block(s) of this file.
+## The ARC services are the following: gridftpd, A-REX (grid-manager block),
+## infosys, infosys registration. The nordugridmap utility is also configured by
+## the [nordugridmap] and [vo] block(s) of this file.
 ##
 ## For example, to connect a computing cluster to the grid and for it to
 ## accept grid jobs you should have at least the [common], [grid-manager],
-## [gridftpd], [gridftpd/jobs], [infosys], [cluster], [queue/queue_name]
-## [infosys/cluster/registration/name] blocks configured.
+## [infosys], [cluster], [queue/queue_name], [infosys/cluster/registration/name]
+## blocks configured. For classic setup with GridFTP interface [gridftpd] and
+## [gridftpd/jobs] section are also necessary.
 ##
 ## As another example we give the necessary blocks for an Index Service:
 ## [infosys], [infosys/index/name], [infosys/index/name/registration/name]
@@ -175,7 +176,7 @@
 ## These variable are similar to the Globus enviroment variables:
 ## GLOBUS_TCP_PORT_RANGE and GLOBUS_UDP_PORT_RANGE.
 ## These variables are not limited to [common], but can be set individually
-## for each service: [grid-manager], [gridftpd], [httpsd]
+## for each service in corresponding section: [grid-manager], [gridftpd], [httpsd]
 ## Example:
 #globus_tcp_port_range="9000,12000"
 #globus_udp_port_range="9000,12000"
@@ -186,14 +187,14 @@
 ## These variables are similar to the GSI enviroment variables:
 ## X509_USER_KEY and X509_USER_CERT
 ## These variables are not limited to [common], but can be set individually
-## for each service: [grid-manager], [gridftpd], [nordugridmap]
+## for each service in corresponding section: [grid-manager], [gridftpd], [nordugridmap]
 #x509_user_key="/etc/grid-security/hostkey.pem"
 #x509_user_cert="/etc/grid-security/hostcert.pem"
 
 ## x509_cert_dir - Location of trusted CA certificates
 ## This variable is similar to the GSI enviroment variable: X509_CERT_DIR
 ## This variable is not limited to [common], but can be set individually
-## for each service: [grid-manager], [gridftpd], [httpsd]
+## for each service in corresponding section: [grid-manager], [gridftpd], [httpsd]
 #x509_cert_dir="/etc/grid-security/certificates"
 
 
@@ -201,7 +202,7 @@
 ## gridmap - The gridmap file location
 ## This variable is similar to the GSI enviroment variable: GRIDMAP
 ## This variable is not limited to [common], but can be set individually
-## for each service: [grid-manager], [gridftpd], [httpsd]
+## for each service in corresponding section: [grid-manager], [gridftpd], [httpsd]
 ## The default is /etc/grid-security/grid-mapfile
 #gridmap="/etc/grid-security/grid-mapfile"
 
@@ -484,12 +485,15 @@
 
 
 ### The [grid-manager] block #########################################
-## The [grid-manager] block configures the grid-manager process taking care of
-## the grid tasks on the frontend (stagein/stageout, LRMS job submission,
-## caching, etc..)
+## The [grid-manager] block configures the part of A-REX service hosted 
+## in *arched* contained and taking care of the grid tasks on the frontend
+## (stagein/stageout, LRMS job submission, caching, etc..). Name of this
+## block is historical and comes from times then this functionality was
+## handled by separate process called grid-manager. This section also 
+## configures WS interfaces of A-REX service.
 #[grid-manager]
 
-## controldir path - The directory of the grid-manager's internal job log files, 
+## controldir path - The directory of the A-REX's internal job log files, 
 ## not needed on the nodes. <must be set>
 #controldir="/var/spool/nordugrid/jobstatus"
 
@@ -508,7 +512,7 @@
 
 ## scratchdir path - path on computing node to move session directory to before
 ## execution. If defined should contain the path to the directory on the
-## computing node which can be used to store a job’s files during execution.
+## computing node which can be used to store a jobs' files during execution.
 ## Sets the environment variable RUNTIME_LOCAL_SCRATCH_DIR. Default is not to
 ## move session directory before execution.
 #scratchdir="/local/scratch/"
@@ -580,8 +584,8 @@
 ## Use with caution.
 #user="grid"
 
-## debug debuglevel - Set debug level of the grid-manager daemon, between
-## 0 (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
+## debug debuglevel - Set debug level of the arched daemon hosting A-REX service,
+## between 0 (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
 #debug="2"
 
 ## logfile path - Specify log file location. This file is opened/created
@@ -595,6 +599,11 @@
 ##  logfile.1, etc. up to 'number' logfiles. Don't set logsize if you don't
 ##  want to enable the ARC logrotation because another logrotation tool is used.
 #logsize="100000 2"
+
+## logreopen yes|no - Specifies if log file must be closed after each record is
+## added. By default arched keeps log file open. This option can be used to
+## make behavior of arched compatible with external log rotation utilities.
+#logreopen="no"
 
 ## pidfile path - Specify location of file containing PID of daemon process.
 ##  This is useful for automatic start/stop scripts. 
@@ -672,13 +681,15 @@
 ## [data-staging] section. It is off by default.
 #enable_dtr="yes"
 
-## wakeupperiod time - specifies how often grid-manager cheks for new
-## jobs arrived, job state change requests, etc. That is resposivity of
-## grid-manager. 'time' is time period in seconds. Default is 3 minutes.
-## Usually this command is not needed.
+## wakeupperiod time - specifies how often A-REX cheks for new jobs
+## arrived, job state change requests, etc. That is resposivity of
+## A-REX. 'time' is time period in seconds. Default is 3 minutes.
+## Usually this command is not needed because important state changes
+## are also trigering out-of-schedule checks.
 ## NOTE: This parameter does not affect responsivity of backend scripts -
-## especially scan-*-job. That means that time for detecting job finished
-## executing is sum of responsivity of backend script + wakeupperiod.
+## especially scan-*-job. That means that upper estimation of time for
+## detecting job finished executing is sum of responsivity of backend
+## script + wakeupperiod.
 #wakeupperiod="180"
 
 ## securetransfer yes|no - if data connection allows to choose use 
@@ -763,7 +774,7 @@
 ## helper user executable arguments - allows to run additional
 ## executables on behalf of users. Every time this executable finishes it
 ## will be started again. This helper plugin mechanism can be used as the
-## grid-manager's alternative for the /etc/init.d or cron to (re)start 
+## A-REX's alternative for the /etc/init.d or cron to (re)start
 ## external processes.
 ## If user is '*' - it's applied to all specified users.
 ## if user is '.' - it is run unrelated to any specified user.
@@ -797,7 +808,7 @@
 #linkurl="gsiftp://somewhere.org/data /data"
 #linkurl="gsiftp://example.org:2811/data/  /scratch/data/"
 
-## tmpdir - used by the grid-manager, default is /tmp
+## tmpdir - used by the A-REX, default is /tmp
 #tmpdir="/tmp"
 
 ## maxrerun -  specifies how many times job can be rerun if it failed in LRMS.
@@ -1178,8 +1189,8 @@
 
 ## remotegmdirs controldir sessiondir - Specifies control
 ## and session directories to which jobs can be submitted but which are
-## under the control of another GM. The corresponding controldir and
-## sessiondir parameters must be defined in another grid-manager's
+## under the control of another A-REX. The corresponding controldir and
+## sessiondir parameters must be defined in another A-REX's
 ## configuration. Multiple remotegmdirs can be specified.
 #remotegmdirs="/mnt/host1/control /mnt/host1/session"
 
@@ -1188,6 +1199,12 @@
 ## limited.
 #maxjobdesc="5242880"
 
+## configfile service_configuration_path - If [gridftpd] and [grid-manager]
+## configuration parts are located in separate files this configuration
+## option allows to link them. The service_configuration_path points
+## to configuration file containing [grid-manager] section.
+## Use this option only if You really know what You are doing.
+#configfile="/etc/arc.conf"
 
 ####################################################################
 ##
@@ -1272,10 +1289,10 @@
 ## user unix_user - the unix user running the infosys processes such as 
 ## the slapd, the registrations and infoprovider scripts. 
 ## By default the ldap-user is used, you can run it as root if you wish. 
-## In case of non-root value you must make sure that the grid-manager 
+## In case of non-root value you must make sure that the A-REX 
 ## directories and their content are readable by the 'user' and the 'user' 
 ## has access to the full LRMS information including jobs submitted by
-## other users. The grid-manager directories (controldir, sessiondir
+## other users. The A-REX directories (controldir, sessiondir
 ## runtimedir, cachedir) are specified in the [grid-manager] block
 #user="root"
 
