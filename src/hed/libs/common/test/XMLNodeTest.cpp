@@ -17,6 +17,7 @@ class XMLNodeTest
   CPPUNIT_TEST(TestParsing);
   CPPUNIT_TEST(TestExchange);
   CPPUNIT_TEST(TestMove);
+  CPPUNIT_TEST(TestQuery);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -25,6 +26,7 @@ public:
   void TestParsing();
   void TestExchange();
   void TestMove();
+  void TestQuery();
 
 };
 
@@ -148,6 +150,49 @@ void XMLNodeTest::TestMove() {
   CPPUNIT_ASSERT_EQUAL(std::string("root1"),xml1.Name());
   CPPUNIT_ASSERT_EQUAL(std::string("value1"),(std::string)(xml1["child1"]));
   CPPUNIT_ASSERT(!(xml1["child2"]));
+}
+
+void XMLNodeTest::TestQuery() {
+  std::string xml_str1(
+     "<root1>"
+      "<child1>value1</child1>"
+      "<child2>"
+       "<child3>value3</child3>"
+      "</child2>"
+     "</root1>"
+  );
+  std::string xml_str2(
+     "<ns1:root1 xmlns:ns1=\"http://host/path1\" xmlns:ns2=\"http://host/path2\" >"
+      "<ns1:child1>value1</ns1:child1>"
+      "<ns2:child2>"
+       "<ns2:child3>value3</ns2:child3>"
+      "</ns2:child2>"
+     "</ns1:root1>"
+  );
+  Arc::XMLNode xml1(xml_str1);
+  Arc::XMLNode xml2(xml_str2);
+  Arc::NS ns;
+  ns["ns1"] = "http://host/path1";
+  ns["ns2"] = "http://host/path2";
+  Arc::XMLNodeList list1 = xml1.XPathLookup("/root1/child2",Arc::NS());
+  CPPUNIT_ASSERT_EQUAL(1,(int)list1.size());
+  
+  Arc::XMLNodeList list2 = xml1.XPathLookup("/ns1:root1/ns2:child2",ns);
+  CPPUNIT_ASSERT_EQUAL(0,(int)list2.size());
+
+  Arc::XMLNodeList list3 = xml2.XPathLookup("/root1/child2",Arc::NS());
+  CPPUNIT_ASSERT_EQUAL(0,(int)list3.size());
+
+  Arc::XMLNodeList list4 = xml2.XPathLookup("/ns1:root1/ns2:child2",ns);
+  CPPUNIT_ASSERT_EQUAL(1,(int)list4.size());
+
+  Arc::XMLNodeList list5 = xml2.XPathLookup("/ns1:root1/ns1:child1",ns);
+  CPPUNIT_ASSERT_EQUAL(1,(int)list5.size());
+
+  xml2.StripNamespace(-1);
+  Arc::XMLNodeList list6 = xml2.XPathLookup("/root1/child1",Arc::NS());
+  CPPUNIT_ASSERT_EQUAL(1,(int)list6.size());
+
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(XMLNodeTest);

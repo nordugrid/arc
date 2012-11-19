@@ -233,6 +233,13 @@ namespace Arc {
     }
     /** Returns namespace URI of XML node */
     std::string Namespace(void) const;
+    /** Assigns namespace prefix to XML node(s).
+       The 'recursion' allows to assign prefixes recursively.
+       Setting it to -1 allows for unlimited recursion. And 0
+       limits it to this node. */
+    void Prefix(const std::string& prefix, int recursion = 0);
+    /** Removes namespace prefix from XML node(s). */
+    void StripNamespace(int recursion = 0);
     /** Assigns new name to XML node */
     void Name(const char *name);
     /** Assigns new name to XML node */

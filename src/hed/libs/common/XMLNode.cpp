@@ -14,6 +14,32 @@
 
 namespace Arc {
 
+  static void SetName(xmlNodePtr node, const char *name, const char *prefix) {
+    if (!node) return;
+    xmlNsPtr ns = NULL;
+    if (prefix != NULL) {
+      // ns element is located at same place in Node and Attr elements
+      ns = xmlSearchNs(node->doc, node, (const xmlChar*)prefix);
+      if (ns) node->ns = ns;
+    }
+    xmlNodeSetName(node, (const xmlChar*)name);
+  }
+
+  static void SetPrefix(xmlNodePtr node, const char *prefix, int recursion) {
+    if (!node) return;
+    if ((node->type != XML_ELEMENT_NODE) && (node->type != XML_ATTRIBUTE_NODE)) return;
+    if(!prefix) {
+      node->ns = NULL;
+    } else {
+      xmlNsPtr ns = xmlSearchNs(node->doc, node, (const xmlChar*)prefix);
+      if(ns) node->ns = ns;
+    }
+    if (recursion == 0) return;
+    for (xmlNodePtr node_ = node->children; node_; node_ = node_->next) {
+      SetPrefix(node_, prefix, (recursion>0)?(recursion-1):(-1));
+    }
+  }
+
   static xmlNsPtr GetNamespace(xmlNodePtr node) {
     if (node == NULL) return NULL;
     xmlNsPtr ns_ = NULL;
@@ -166,8 +192,9 @@ namespace Arc {
     }
     if(recursion == 0) return;
     if(recursion > 0) --recursion;
-    for (xmlNodePtr node_ = node->children; node_; node_ = node_->next)
+    for (xmlNodePtr node_ = node->children; node_; node_ = node_->next) {
       ReassignNamespace(ns, node_, keep, recursion);
+    }
   }
 
   // Adds new 'namespaces' to namespace definitions of 'node_'.
@@ -490,6 +517,14 @@ namespace Arc {
     return (const char*)(ns->prefix);
   }
 
+  void XMLNode::Prefix(const std::string& prefix, int recursion) {
+    SetPrefix(node_, prefix.c_str(), recursion);
+  }
+
+  void XMLNode::StripNamespace(int recursion) {
+    SetPrefix(node_, NULL, recursion);
+  }
+
   std::string XMLNode::Namespace(void) const {
     if (!node_)
       return "";
@@ -502,21 +537,16 @@ namespace Arc {
   }
 
   void XMLNode::Name(const char *name) {
-    if (!node_)
-      return;
+    if (!node_) return;
     const char *name_ = strchr(name, ':');
     xmlNsPtr ns = NULL;
     if (name_ != NULL) {
       std::string ns_(name, name_ - name);
-      // ns element is located at same place in Node and Attr elements
-      ns = xmlSearchNs(node_->doc, node_, (const xmlChar*)(ns_.c_str()));
-      ++name_;
+      SetName(node_, name_+1, ns_.c_str());
     }
-    else
-      name_ = name;
-    xmlNodeSetName(node_, (const xmlChar*)name_);
-    if (ns)
-      node_->ns = ns;
+    else {
+      SetName(node_, name, NULL);
+    }
   }
 
   XMLNode XMLNode::Child(int n) {
@@ -903,12 +933,9 @@ namespace Arc {
     if (doc == NULL)
       return retlist;
     xmlXPathContextPtr xpathCtx = xmlXPathNewContext(doc);
-
     for (NS::const_iterator ns = nsList.begin(); ns != nsList.end(); ++ns)
       xmlXPathRegisterNs(xpathCtx, (xmlChar*)ns->first.c_str(), (xmlChar*)ns->second.c_str());
-
     xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression((const xmlChar*)(xpathExpr.c_str()), xpathCtx);
-
     if (xpathObj && xpathObj->nodesetval && xpathObj->nodesetval->nodeNr) {
       xmlNodeSetPtr nodes = xpathObj->nodesetval;
       int size = nodes->nodeNr;
