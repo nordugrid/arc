@@ -785,15 +785,13 @@
 #allowsubmit="mygroup"
 #allowsubmit="yourgroup"
 
-## helper user executable arguments - allows to run additional
-## executables on behalf of users. Every time this executable finishes it
-## will be started again. This helper plugin mechanism can be used as the
-## A-REX's alternative for the /etc/init.d or cron to (re)start
-## external processes.
-## If user is '*' - it's applied to all specified users.
-## if user is '.' - it is run unrelated to any specified user.
-## an example:
-#helper=" . /usr/local/bin/myutility"
+## helper user executable arguments - associates an external program with
+## A-REX. This program will be kept running under the account of the user
+## specified by username. Currently only ’.’ is supported as username,
+## corresponding to the user running A-REX. Every time this executable finishes
+## it will be started again. This helper plugin mechanism can be used as an
+## alternative to /etc/init.d or cron to (re)start external processes.
+#helper=". /usr/local/bin/myutility"
 
 ## preferredpattern pattern - specifies a preferred pattern on which
 ## to sort multiple replicas of an input file. It consists of one or

@@ -1028,13 +1028,12 @@ allowsubmit="admins"
 
 .TP
 .B helper
-Allows to run additional executables on behalf of users. Every time
-this executable finishes it will be started again. This helper plugin
-mechanism can be used as the grid-manager's alternative for the
-/etc/init.d or cron to (re)start external processes. The value should
-be given as "user executable arguments". If user is `*' one instance
-is run for every specified user. If user is `.' one instance is run
-unrelated to any specified user.
+Associates an external program with A-REX. This program will be kept running
+under the account of the user specified by username. Currently only ’.’ is
+supported as username, corresponding to the user running A-REX. Every time this
+executable finishes it will be started again. This helper plugin mechanism can
+be used as an alternative to /etc/init.d or cron to (re)start external
+processes.
 
 .IR Example :
 helper=". /usr/local/bin/myutility"
