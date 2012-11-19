@@ -1,5 +1,8 @@
 // -*- indent-tabs-mode: nil -*-
 
+#ifndef __ARC_SUBMISSIONSTATUS_H__
+#define __ARC_SUBMISSIONSTATUS_H__
+
 namespace Arc {
   
   class SubmissionStatus {
@@ -23,22 +26,22 @@ namespace Arc {
     SubmissionStatus& operator|=(const SubmissionStatus& s) { status |= s.status; return *this; }
     SubmissionStatus& operator|=(unsigned int s) { status |= (s & maxValue); return *this; }
 
-    SubmissionStatus operator|(SubmissionStatusType s) { return (status | s); }
-    SubmissionStatus operator|(const SubmissionStatus& s) { return (status | s.status); }
-    SubmissionStatus operator|(unsigned int s) { return (status | (s & maxValue)); }
+    SubmissionStatus operator|(SubmissionStatusType s) const { return (status | s); }
+    SubmissionStatus operator|(const SubmissionStatus& s) const { return (status | s.status); }
+    SubmissionStatus operator|(unsigned int s) const { return (status | (s & maxValue)); }
     
     SubmissionStatus& operator&=(SubmissionStatusType s) { status &= s; return *this; }
     SubmissionStatus& operator&=(const SubmissionStatus& s) { status &= s.status; return *this; }
     SubmissionStatus& operator&=(unsigned int s) { status &= s; return *this; }
 
-    SubmissionStatus operator&(SubmissionStatusType s) { return (status & s); }
-    SubmissionStatus operator&(const SubmissionStatus& s) { return (status & s.status); }
-    SubmissionStatus operator&(unsigned int s) { return (status & s); }
+    SubmissionStatus operator&(SubmissionStatusType s) const { return (status & s); }
+    SubmissionStatus operator&(const SubmissionStatus& s) const { return (status & s.status); }
+    SubmissionStatus operator&(unsigned int s) const { return (status & s); }
 
     SubmissionStatus& operator=(SubmissionStatusType s) { status = s; return *this; }
     SubmissionStatus& operator=(unsigned int s) { status = (s & maxValue); return *this; }
 
-    operator bool() const { return (status & NONE) == NONE; }
+    operator bool() const { return status == NONE; }
     
     bool operator==(const SubmissionStatus& s) const { return status == s.status; }
     bool operator==(SubmissionStatusType s) const { return status == (unsigned)s; }
@@ -56,3 +59,5 @@ namespace Arc {
   };
 
 }
+
+#endif // __ARC_SUBMISSIONSTATUS_H__
