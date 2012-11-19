@@ -799,12 +799,8 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
     lock.lock();
     active_dtrs.insert(std::pair<std::string, std::string>(jobid, dtr->get_id()));
     lock.unlock();
-
-    // Avoid logging when possible during scheduler submission because it gets
-    // blocked by LFC calls locking the environment
-    Arc::Logger::getRootLogger().setThreshold(Arc::ERROR);
+    // send to Scheduler
     DataStaging::DTR::push(dtr, DataStaging::SCHEDULER);
-    Arc::Logger::getRootLogger().setThreshold(log_level);
 
     // update .local with transfer share
     JobLocalDescription *job_desc = new JobLocalDescription;
