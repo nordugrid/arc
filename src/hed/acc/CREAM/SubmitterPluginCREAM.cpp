@@ -34,7 +34,7 @@ namespace Arc {
       delegationurl.ChangePath(delegationurl.Path() + "/gridsite-delegation");
       CREAMClient gLiteClientDelegation(delegationurl, cfg, usercfg.Timeout());
       if (!gLiteClientDelegation.createDelegation(delegationid, usercfg.ProxyPath())) {
-        logger.msg(INFO, "Failed creating singed delegation certificate");
+        logger.msg(INFO, "Failed creating signed delegation certificate");
         notSubmitted.push_back(&*it);
         ok = false;
         continue;
