@@ -24,7 +24,7 @@ bool JobControllerPluginTestACCControl::resourceExist = true;
 URL JobControllerPluginTestACCControl::resourceURL = URL();
 URL JobControllerPluginTestACCControl::createURL = URL();
 
-bool SubmitterPluginTestACCControl::submitStatus = true;
+SubmissionStatus SubmitterPluginTestACCControl::submitStatus;
 bool SubmitterPluginTestACCControl::migrateStatus = true;
 bool SubmitterPluginTestACCControl::modifyStatus = true;
 Job SubmitterPluginTestACCControl::submitJob = Job();

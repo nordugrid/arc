@@ -26,16 +26,16 @@ namespace Arc {
 
   std::map<std::string, std::string> SubmitterPluginLoader::interfacePluginMap;
 
-  bool SubmitterPlugin::Submit(const std::list<JobDescription>& jobdescs,
-                               const std::string& endpoint,
-                               EntityConsumer<Job>& jc,
-                               std::list<const JobDescription*>& notSubmitted,
-                               const URL& jobInformationEndpoint) {
+  SubmissionStatus SubmitterPlugin::Submit(const std::list<JobDescription>& jobdescs,
+                                           const std::string& endpoint,
+                                           EntityConsumer<Job>& jc,
+                                           std::list<const JobDescription*>& notSubmitted,
+                                           const URL& jobInformationEndpoint) {
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin();
          it != jobdescs.end(); ++it) {
       notSubmitted.push_back(&*it);
     }
-    return false;
+    return SubmissionStatus::NOT_IMPLEMENTED | SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
   }
 
   bool SubmitterPlugin::PutFiles(const JobDescription& job, const URL& url) const {

@@ -6,15 +6,19 @@
 namespace Arc {
   
   class SubmissionStatus {
+  private:
+    static const unsigned int maxValue = (1 << 8) - 1;
   public:
     enum SubmissionStatusType {
       NONE = 0,
-      NO_SERVICES = 1 << 0,
-      ENDPOINT_NOT_QUERIED = 1 << 1,
-      BROKER_PLUGIN_NOT_LOADED = 1 << 2,
-      DESCRIPTION_NOT_SUBMITTED = 1 << 3,
-      SUBMITTER_PLUGIN_NOT_LOADED = 1 << 4, 
-      ERROR_FROM_ENDPOINT = 1 << 5
+      NOT_IMPLEMENTED = 1 << 0,
+      NO_SERVICES = 1 << 1,
+      ENDPOINT_NOT_QUERIED = 1 << 2,
+      BROKER_PLUGIN_NOT_LOADED = 1 << 3,
+      DESCRIPTION_NOT_SUBMITTED = 1 << 4,
+      SUBMITTER_PLUGIN_NOT_LOADED = 1 << 5, 
+      AUTHENTICATION_ERROR = 1 << 6,
+      ERROR_FROM_ENDPOINT = 1 << 7
     };
 
     SubmissionStatus() : status(NONE) {}
@@ -54,7 +58,6 @@ namespace Arc {
     bool isSet(SubmissionStatusType s) const { return (s & status) == (unsigned)s; }
     
   private:
-    static const unsigned int maxValue = (1 << 6) - 1;
     unsigned int status;
   };
 

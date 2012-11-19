@@ -124,7 +124,7 @@ namespace Arc {
     etList.push_back(et);
   }
   
-  bool ExecutionTarget::Submit(const UserConfig& ucfg, const JobDescription& jobdesc, Job& job) const {
+  SubmissionStatus ExecutionTarget::Submit(const UserConfig& ucfg, const JobDescription& jobdesc, Job& job) const {
     return Submitter(ucfg).Submit(*this, jobdesc, job);
   }
 

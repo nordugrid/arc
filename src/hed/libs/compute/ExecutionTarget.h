@@ -15,6 +15,7 @@
 #include <arc/compute/GLUE2Entity.h>
 #include <arc/compute/JobDescription.h>
 #include <arc/compute/Software.h>
+#include <arc/compute/SubmissionStatus.h>
 
 namespace Arc {
 
@@ -429,7 +430,7 @@ namespace Arc {
 
     ~ExecutionTarget() {};
 
-    bool Submit(const UserConfig& ucfg, const JobDescription& jobdesc, Job& job) const;
+    SubmissionStatus Submit(const UserConfig& ucfg, const JobDescription& jobdesc, Job& job) const;
 
     /// Update ExecutionTarget after succesful job submission
     /**

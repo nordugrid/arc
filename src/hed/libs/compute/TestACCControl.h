@@ -11,6 +11,7 @@
 #include <arc/compute/ExecutionTarget.h>
 #include <arc/compute/Job.h>
 #include <arc/compute/JobState.h>
+#include <arc/compute/SubmissionStatus.h>
 
 
 namespace Arc {
@@ -44,7 +45,7 @@ class JobControllerPluginTestACCControl {
 
 class SubmitterPluginTestACCControl {
   public:
-    static bool submitStatus;
+    static SubmissionStatus submitStatus;
     static bool migrateStatus;
     static bool modifyStatus;
     static Job submitJob;

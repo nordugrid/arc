@@ -118,7 +118,6 @@
 %include "../src/hed/libs/compute/JobControllerPlugin.h"
 
 
-
 // Wrap contents of $(top_srcdir)/src/hed/libs/compute/EndpointQueryingStatus.h
 %{
 #include <arc/compute/EndpointQueryingStatus.h>
@@ -168,6 +167,13 @@
 %clear std::string& product;
 #endif
 %template(StringDoublePair) std::pair<std::string, double>;
+
+
+// Wrap contents of $(top_srcdir)/src/hed/libs/compute/SubmissionStatus.h
+%{
+#include <arc/compute/SubmissionStatus.h>
+%}
+%include "../src/hed/libs/compute/SubmissionStatus.h"
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/compute/ExecutionTarget.h
@@ -261,13 +267,6 @@
 %template(JobContainer) Arc::EntityContainer<Arc::Job>;
 %template(JobListQueryOptions) Arc::EndpointQueryOptions<Arc::Job>;
 %template(JobListRetriever) Arc::EntityRetriever<Arc::Job>;
-
-
-// Wrap contents of $(top_srcdir)/src/hed/libs/compute/SubmissionStatus.h
-%{
-#include <arc/compute/SubmissionStatus.h>
-%}
-%include "../src/hed/libs/compute/SubmissionStatus.h"
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/compute/SubmitterPlugin.h

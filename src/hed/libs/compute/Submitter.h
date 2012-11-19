@@ -84,12 +84,12 @@ namespace Arc {
     // === No brokering ===
     // ==== Submission to single configuration (adaption of job description) ====
     // ===== Single job =====
-    bool Submit(const ExecutionTarget& et,   const JobDescription& desc) { return Submit(et, std::list<JobDescription>(1, desc)); }
-    bool Submit(const ExecutionTarget& et,   const JobDescription& desc, Job& job);
+    SubmissionStatus Submit(const ExecutionTarget& et, const JobDescription& desc) { return Submit(et, std::list<JobDescription>(1, desc)); }
+    SubmissionStatus Submit(const ExecutionTarget& et, const JobDescription& desc, Job& job);
     // =====
     // ===== Multiple jobs =====
-    bool Submit(const ExecutionTarget& et,   const std::list<JobDescription>& descs);
-    bool Submit(const ExecutionTarget& et,   const std::list<JobDescription>& descs, std::list<Job>& jobs);
+    SubmissionStatus Submit(const ExecutionTarget& et, const std::list<JobDescription>& descs);
+    SubmissionStatus Submit(const ExecutionTarget& et, const std::list<JobDescription>& descs, std::list<Job>& jobs);
     // =====
     // ====
     // ===

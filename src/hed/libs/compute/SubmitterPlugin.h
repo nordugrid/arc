@@ -13,6 +13,7 @@
 #include <arc/compute/EntityRetriever.h>
 #include <arc/compute/Job.h>
 #include <arc/compute/JobDescription.h>
+#include <arc/compute/SubmissionStatus.h>
 #include <arc/data/DataHandle.h>
 
 namespace Arc {
@@ -47,7 +48,7 @@ namespace Arc {
      *        to.
      * \return a bool indicating whether job submission suceeded or not.
      **/
-    virtual bool Submit(const JobDescription& j, const ExecutionTarget& et, EntityConsumer<Job>& jc) { std::list<const JobDescription*> ns; return Submit(std::list<JobDescription>(1, j), et, jc, ns); }
+    virtual SubmissionStatus Submit(const JobDescription& j, const ExecutionTarget& et, EntityConsumer<Job>& jc) { std::list<const JobDescription*> ns; return Submit(std::list<JobDescription>(1, j), et, jc, ns); }
 
     /// Submit job
     /**
@@ -58,15 +59,15 @@ namespace Arc {
      * This method should return the URL of the submitted job. In case
      * submission fails an empty URL should be returned.
      */
-    virtual bool Submit(const std::list<JobDescription>& jobdesc,
-                        const ExecutionTarget& et,
-                        EntityConsumer<Job>& jc,
-                        std::list<const JobDescription*>& notSubmitted) = 0;
-    virtual bool Submit(const std::list<JobDescription>& jobdesc,
-                        const std::string& endpoint,
-                        EntityConsumer<Job>& jc,
-                        std::list<const JobDescription*>& notSubmitted,
-                        const URL& jobInformationEndpoint = URL());
+    virtual SubmissionStatus Submit(const std::list<JobDescription>& jobdesc,
+                                    const ExecutionTarget& et,
+                                    EntityConsumer<Job>& jc,
+                                    std::list<const JobDescription*>& notSubmitted) = 0;
+    virtual SubmissionStatus Submit(const std::list<JobDescription>& jobdesc,
+                                    const std::string& endpoint,
+                                    EntityConsumer<Job>& jc,
+                                    std::list<const JobDescription*>& notSubmitted,
+                                    const URL& jobInformationEndpoint = URL());
 
 
     /// Migrate job

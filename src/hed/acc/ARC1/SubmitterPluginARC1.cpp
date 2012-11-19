@@ -17,6 +17,7 @@
 #include <arc/compute/ExecutionTarget.h>
 #include <arc/compute/Job.h>
 #include <arc/compute/JobDescription.h>
+#include <arc/compute/SubmissionStatus.h>
 #include <arc/message/MCC.h>
 
 #include "SubmitterPluginARC1.h"
@@ -31,7 +32,7 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  bool SubmitterPluginARC1::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted, const URL& jobInformationEndpoint) {
+  SubmissionStatus SubmitterPluginARC1::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted, const URL& jobInformationEndpoint) {
     URL url(endpoint);
 
     // TODO: Determine extended BES interface interface (A-REX WS)
@@ -39,14 +40,14 @@ namespace Arc {
 
     AREXClient* ac = clients.acquire(url, arex_features);
 
-    bool ok = true;
+    SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
       JobDescription preparedjobdesc(*it);
   
       if (!preparedjobdesc.Prepare()) {
         logger.msg(INFO, "Failed to prepare job description");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
 
@@ -55,21 +56,23 @@ namespace Arc {
       if (!preparedjobdesc.UnParse(product, "nordugrid:jsdl")) {
         logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:jsdl");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
 
       std::string idFromEndpoint;
       if (!ac->submit(product, idFromEndpoint, arex_features && (url.Protocol() == "https"))) {
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
       if (idFromEndpoint.empty()) {
         logger.msg(INFO, "No job identifier returned by BES service");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
@@ -85,7 +88,8 @@ namespace Arc {
         if (!PutFiles(preparedjobdesc, sessionurl)) {
           logger.msg(INFO, "Failed uploading local input files");
           notSubmitted.push_back(&*it);
-          ok = false;
+          retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+          retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
           continue;
         }
       } else {
@@ -117,23 +121,23 @@ namespace Arc {
     }
   
     clients.release(ac);
-    return ok;
+    return retval;
   }
 
-  bool SubmitterPluginARC1::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
+  SubmissionStatus SubmitterPluginARC1::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     URL url(et.ComputingEndpoint->URLString);
     bool arex_features = (et.ComputingService->Type == "org.nordugrid.execution.arex") ||
                          (et.ComputingService->Type == "org.nordugrid.arex");
     AREXClient* ac = clients.acquire(url, arex_features);
 
-    bool ok = true;
+    SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
       JobDescription preparedjobdesc(*it);
   
       if (arex_features && !preparedjobdesc.Prepare(et)) {
         logger.msg(INFO, "Failed to prepare job description to target resources");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
   
@@ -142,21 +146,23 @@ namespace Arc {
       if (!preparedjobdesc.UnParse(product, "nordugrid:jsdl")) {
         logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:jsdl");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
 
       std::string idFromEndpoint;
       if (!ac->submit(product, idFromEndpoint, arex_features && (url.Protocol() == "https"))) {
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
       if (idFromEndpoint.empty()) {
         logger.msg(INFO, "No job identifier returned by BES service");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
@@ -172,7 +178,8 @@ namespace Arc {
         if (!PutFiles(preparedjobdesc, sessionurl)) {
           logger.msg(INFO, "Failed uploading local input files");
           notSubmitted.push_back(&*it);
-          ok = false;
+          retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+          retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
           continue;
         }
       } else {
@@ -206,7 +213,7 @@ namespace Arc {
     }
   
     clients.release(ac);
-    return ok;
+    return retval;
   }
 
   bool SubmitterPluginARC1::Migrate(const std::string& jobid, const JobDescription& jobdesc,

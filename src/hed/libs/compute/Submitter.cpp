@@ -44,23 +44,23 @@ namespace Arc {
     std::list<Job>& joblist;
   };
 
-  bool Submitter::Submit(const ExecutionTarget& et, const JobDescription& desc, Job& job) {
+  SubmissionStatus Submitter::Submit(const ExecutionTarget& et, const JobDescription& desc, Job& job) {
     JobConsumerSingle jcs(job);
     addConsumer(jcs);
-    bool ok = Submit(et, std::list<JobDescription>(1, desc));
+    SubmissionStatus ok = Submit(et, std::list<JobDescription>(1, desc));
     removeConsumer(jcs);
     return ok;
   }
 
-  bool Submitter::Submit(const ExecutionTarget& et, const std::list<JobDescription>& descs, std::list<Job>& jobs) {
+  SubmissionStatus Submitter::Submit(const ExecutionTarget& et, const std::list<JobDescription>& descs, std::list<Job>& jobs) {
     JobConsumerList jcl(jobs);
     addConsumer(jcl);
-    bool ok = Submit(et, descs);
+    SubmissionStatus ok = Submit(et, descs);
     removeConsumer(jcl);
     return ok;
   }
 
-  bool Submitter::Submit(const ExecutionTarget& et, const std::list<JobDescription>& descs) {
+  SubmissionStatus Submitter::Submit(const ExecutionTarget& et, const std::list<JobDescription>& descs) {
     ClearAll();
 
     ConsumerWrapper cw(*this);
@@ -71,7 +71,7 @@ namespace Arc {
       for (std::list<JobDescription>::const_iterator it = descs.begin(); it != descs.end(); ++it) {
         notsubmitted.push_back(&*it);
       }
-      return false;
+      return SubmissionStatus::SUBMITTER_PLUGIN_NOT_LOADED;
     }
     
     return sp->Submit(descs, et, cw, notsubmitted);
@@ -169,7 +169,7 @@ namespace Arc {
             retval |= SubmissionStatus::SUBMITTER_PLUGIN_NOT_LOADED;
             continue;
           }
-          bool submitStatus = sp->Submit(*currentJobDesc, *ets, cw);
+          SubmissionStatus submitStatus = sp->Submit(*currentJobDesc, *ets, cw);
           if (submitStatus) {
             submissionStatusMap[Endpoint(*ets)] = EndpointSubmissionStatus(EndpointSubmissionStatus::SUCCESSFUL);
     

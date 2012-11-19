@@ -16,6 +16,7 @@
 #include <arc/compute/ExecutionTarget.h>
 #include <arc/compute/Job.h>
 #include <arc/compute/JobDescription.h>
+#include <arc/compute/SubmissionStatus.h>
 
 #include "SubmitterPluginARC0.h"
 #include "FTPControl.h"
@@ -48,18 +49,19 @@ namespace Arc {
   }
 
 
-  bool SubmitterPluginARC0::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted, const URL& jobInformationEndpoint) {
+  SubmissionStatus SubmitterPluginARC0::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted, const URL& jobInformationEndpoint) {
     FTPControl ctrl;
     URL url(endpoint);
     
-    bool ok = true;
+    SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
       if (!ctrl.Connect(url,
                         usercfg.ProxyPath(), usercfg.CertificatePath(),
                         usercfg.KeyPath(), usercfg.Timeout())) {
         logger.msg(INFO, "Submit: Failed to connect");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
@@ -67,7 +69,8 @@ namespace Arc {
         logger.msg(INFO, "Submit: Failed sending CWD command");
         ctrl.Disconnect(usercfg.Timeout());
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
@@ -77,7 +80,8 @@ namespace Arc {
         logger.msg(INFO, "Submit: Failed sending CWD new command");
         ctrl.Disconnect(usercfg.Timeout());
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
@@ -103,7 +107,7 @@ namespace Arc {
         logger.msg(INFO, "Failed to prepare job description.");
         ctrl.Disconnect(usercfg.Timeout());
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
 
@@ -111,7 +115,7 @@ namespace Arc {
       if (!preparedjobdesc.UnParse(jobdescstring, "nordugrid:xrsl", "GRIDMANAGER")) {
         logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:xrsl");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
   
@@ -119,14 +123,16 @@ namespace Arc {
         logger.msg(INFO, "Submit: Failed sending job description");
         ctrl.Disconnect(usercfg.Timeout());
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
       if (!ctrl.Disconnect(usercfg.Timeout())) {
         logger.msg(INFO, "Submit: Failed to disconnect after submission");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
@@ -137,7 +143,8 @@ namespace Arc {
       if (!PutFiles(preparedjobdesc, jobid)) {
         logger.msg(INFO, "Submit: Failed uploading local input files");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
 
@@ -166,21 +173,22 @@ namespace Arc {
       jc.addEntity(j);
     }
 
-    return ok;
+    return retval;
   }
 
-  bool SubmitterPluginARC0::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
+  SubmissionStatus SubmitterPluginARC0::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     FTPControl ctrl;
     URL url(et.ComputingEndpoint->URLString);
     
-    bool ok = true;
+    SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
       if (!ctrl.Connect(url,
                         usercfg.ProxyPath(), usercfg.CertificatePath(),
                         usercfg.KeyPath(), usercfg.Timeout())) {
         logger.msg(INFO, "Submit: Failed to connect");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
@@ -188,7 +196,8 @@ namespace Arc {
         logger.msg(INFO, "Submit: Failed sending CWD command");
         ctrl.Disconnect(usercfg.Timeout());
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
@@ -198,7 +207,8 @@ namespace Arc {
         logger.msg(INFO, "Submit: Failed sending CWD new command");
         ctrl.Disconnect(usercfg.Timeout());
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
@@ -224,7 +234,7 @@ namespace Arc {
         logger.msg(INFO, "Failed to prepare job description to target resources.");
         ctrl.Disconnect(usercfg.Timeout());
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
   
@@ -232,7 +242,7 @@ namespace Arc {
       if (!preparedjobdesc.UnParse(jobdescstring, "nordugrid:xrsl", "GRIDMANAGER")) {
         logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:xrsl");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
   
@@ -240,14 +250,16 @@ namespace Arc {
         logger.msg(INFO, "Submit: Failed sending job description");
         ctrl.Disconnect(usercfg.Timeout());
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
       if (!ctrl.Disconnect(usercfg.Timeout())) {
         logger.msg(INFO, "Submit: Failed to disconnect after submission");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
@@ -258,7 +270,8 @@ namespace Arc {
       if (!PutFiles(preparedjobdesc, jobid)) {
         logger.msg(INFO, "Submit: Failed uploading local input files");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
 
@@ -293,6 +306,6 @@ namespace Arc {
       jc.addEntity(j);
     }
 
-    return ok;
+    return retval;
   }
 } // namespace Arc

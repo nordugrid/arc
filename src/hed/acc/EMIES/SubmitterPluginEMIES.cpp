@@ -15,6 +15,7 @@
 #include <arc/compute/ExecutionTarget.h>
 #include <arc/compute/Job.h>
 #include <arc/compute/JobDescription.h>
+#include <arc/compute/SubmissionStatus.h>
 #include <arc/message/MCC.h>
 
 #include "SubmitterPluginEMIES.h"
@@ -30,14 +31,14 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
   
-  bool SubmitterPluginEMIES::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted, const URL& jobInformationEndpoint) {
+  SubmissionStatus SubmitterPluginEMIES::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted, const URL& jobInformationEndpoint) {
     // TODO: this is multi step process. So having retries would be nice.
 
     URL iurl;
     URL durl;
     URL url(endpoint);
 
-    bool ok = true;
+    SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
 
       JobDescription preparedjobdesc(*it);
@@ -45,14 +46,15 @@ namespace Arc {
       if (!preparedjobdesc.Prepare()) {
         logger.msg(INFO, "Failed preparing job description");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
 
       EMIESJob jobid;
       if(!SubmitterPluginEMIES::submit(preparedjobdesc,url,iurl,durl,jobid)) {
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
  
@@ -63,10 +65,10 @@ namespace Arc {
       jc.addEntity(j);
     }
 
-    return ok;
+    return retval;
   }
 
-  bool SubmitterPluginEMIES::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
+  SubmissionStatus SubmitterPluginEMIES::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     // TODO: this is multi step process. So having retries would be nice.
 
     // Submission to EMI ES involves delegation. Delegation may happen through 
@@ -86,7 +88,7 @@ namespace Arc {
 
     URL url(et.ComputingEndpoint->URLString);
 
-    bool ok = true;
+    SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
 
       JobDescription preparedjobdesc(*it);
@@ -94,14 +96,15 @@ namespace Arc {
       if (!preparedjobdesc.Prepare(et)) {
         logger.msg(INFO, "Failed preparing job description to target resources");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
   
       EMIESJob jobid;
       if(!SubmitterPluginEMIES::submit(preparedjobdesc,url,iurl,durl,jobid)) {
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
       
@@ -111,7 +114,7 @@ namespace Arc {
       jc.addEntity(j);
     }
 
-    return ok;
+    return retval;
   }
 
 

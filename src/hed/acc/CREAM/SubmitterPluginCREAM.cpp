@@ -10,6 +10,7 @@
 #include <arc/compute/ExecutionTarget.h>
 #include <arc/compute/Job.h>
 #include <arc/compute/JobDescription.h>
+#include <arc/compute/SubmissionStatus.h>
 #include <arc/message/MCC.h>
 
 #include "CREAMClient.h"
@@ -22,12 +23,12 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  bool SubmitterPluginCREAM::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted, const URL& jobInformationEndpoint) {
+  SubmissionStatus SubmitterPluginCREAM::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted, const URL& jobInformationEndpoint) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     URL url(endpoint);
 
-    bool ok = true;
+    SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
       std::string delegationid = UUID();
       URL delegationurl(url);
@@ -36,7 +37,8 @@ namespace Arc {
       if (!gLiteClientDelegation.createDelegation(delegationid, usercfg.ProxyPath())) {
         logger.msg(INFO, "Failed creating signed delegation certificate");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::AUTHENTICATION_ERROR;
         continue;
       }
       URL submissionurl(url);
@@ -48,7 +50,7 @@ namespace Arc {
       if (!preparedjobdesc.Prepare()) {
         logger.msg(INFO, "Failed to prepare job description to target resources");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
 
@@ -56,7 +58,7 @@ namespace Arc {
       if (!preparedjobdesc.UnParse(jobdescstring, "egee:jdl")) {
         logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "egee:jdl");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
   
@@ -64,21 +66,24 @@ namespace Arc {
       if (!gLiteClientSubmission.registerJob(jobdescstring, jobInfo)) {
         logger.msg(INFO, "Failed registering job");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
       if (!PutFiles(preparedjobdesc, jobInfo.ISB)) {
         logger.msg(INFO, "Failed uploading local input files");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
       if (!gLiteClientSubmission.startJob(jobInfo.id)) {
         logger.msg(INFO, "Failed starting job");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
@@ -92,15 +97,15 @@ namespace Arc {
       jc.addEntity(j);
     }
 
-    return ok;
+    return retval;
   }
 
-  bool SubmitterPluginCREAM::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
+  SubmissionStatus SubmitterPluginCREAM::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     URL url(et.ComputingEndpoint->URLString);
 
-    bool ok = true;
+    SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
       std::string delegationid = UUID();
       URL delegationurl(url);
@@ -109,7 +114,8 @@ namespace Arc {
       if (!gLiteClientDelegation.createDelegation(delegationid, usercfg.ProxyPath())) {
         logger.msg(INFO, "Failed creating singed delegation certificate");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::AUTHENTICATION_ERROR;
         continue;
       }
       URL submissionurl(url);
@@ -121,7 +127,7 @@ namespace Arc {
       if (!preparedjobdesc.Prepare(et)) {
         logger.msg(INFO, "Failed to prepare job description to target resources");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
   
@@ -138,7 +144,7 @@ namespace Arc {
       if (!preparedjobdesc.UnParse(jobdescstring, "egee:jdl")) {
         logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "egee:jdl");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
   
@@ -146,21 +152,24 @@ namespace Arc {
       if (!gLiteClientSubmission.registerJob(jobdescstring, jobInfo)) {
         logger.msg(INFO, "Failed registering job");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
       if (!PutFiles(preparedjobdesc, jobInfo.ISB)) {
         logger.msg(INFO, "Failed uploading local input files");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
       if (!gLiteClientSubmission.startJob(jobInfo.id)) {
         logger.msg(INFO, "Failed starting job");
         notSubmitted.push_back(&*it);
-        ok = false;
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
   
@@ -174,6 +183,6 @@ namespace Arc {
       jc.addEntity(j);
     }
 
-    return ok;
+    return retval;
   }
 } // namespace Arc
