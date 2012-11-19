@@ -30,7 +30,7 @@ class PayloadTCPSocket: public PayloadStreamInterface {
     handle_(s),acquired_(false),timeout_(timeout),logger(logger) { };
   /** Copy constructor - inherits socket of copied object.
     Socket is NOT closed in destructor. */
-  PayloadTCPSocket(PayloadTCPSocket& s):
+  PayloadTCPSocket(PayloadTCPSocket& s): PayloadStreamInterface(void),
     handle_(s.handle_),acquired_(false),timeout_(s.timeout_),logger(s.logger) { };
   /** Copy constructor - inherits handle of copied object.
     Handle is NOT closed in destructor. */
