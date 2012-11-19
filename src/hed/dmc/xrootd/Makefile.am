@@ -2,7 +2,7 @@ pkglib_LTLIBRARIES = libdmcxrootd.la
 
 libdmcxrootd_la_SOURCES = DataPointXrootd.cpp DataPointXrootd.h
 libdmcxrootd_la_CXXFLAGS = -I$(top_srcdir)/include $(XROOTD_CPPFLAGS) \
-  $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+  $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 libdmcxrootd_la_LIBADD = \
   $(top_builddir)/src/hed/libs/data/libarcdata.la \
   $(top_builddir)/src/hed/libs/message/libarcmessage.la \

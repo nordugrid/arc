@@ -7,7 +7,7 @@ pkglib_LTLIBRARIES = libaa.la libsaml2sp.la
 libaa_la_SOURCES = aaservice.cpp aaservice.h
 libaa_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) \
-	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) $(MYSQL_CFLAGS)
+	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) $(MYSQL_CFLAGS) $(AM_CXXFLAGS)
 libaa_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
@@ -21,7 +21,7 @@ libaa_la_LDFLAGS = -no-undefined -avoid-version -module
 libsaml2sp_la_SOURCES = SPService.cpp SPService.h
 libsaml2sp_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) \
-	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)
+	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) $(AM_CXXFLAGS)
 libsaml2sp_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/ws/libarcws.la \
 	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
@@ -38,7 +38,7 @@ pkglib_LTLIBRARIES = libsaml2sp.la
 libsaml2sp_la_SOURCES = SPService.cpp SPService.h
 libsaml2sp_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) \
-	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)
+	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) $(AM_CXXFLAGS)
 libsaml2sp_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/ws/libarcws.la \
 	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
@@ -55,7 +55,7 @@ noinst_PROGRAMS = test_service test_client \
 
 test_client_SOURCES = test_client.cpp
 test_client_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS) $(AM_CXXFLAGS)
 test_client_LDADD = \
 	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
@@ -66,7 +66,7 @@ test_client_LDADD = \
 
 test_client2shibboleth_SOURCES = test_client2shibboleth.cpp
 test_client2shibboleth_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS) $(AM_CXXFLAGS)
 test_client2shibboleth_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
@@ -78,7 +78,7 @@ test_client2shibboleth_LDADD = \
 
 test_client2voms_saml_service_SOURCES = test_client2voms_saml_service.cpp
 test_client2voms_saml_service_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS) $(AM_CXXFLAGS)
 test_client2voms_saml_service_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
@@ -90,7 +90,7 @@ test_client2voms_saml_service_LDADD = \
 
 test_service_SOURCES = test_service.cpp
 test_service_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 test_service_LDADD = \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \

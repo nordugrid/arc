@@ -6,7 +6,7 @@ libmccgsi_la_SOURCES  = MCCGSI.cpp PayloadGSIStream.cpp \
                         MCCGSI.h   PayloadGSIStream.h
 
 libmccgsi_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(GLOBUS_GSSAPI_GSI_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(GLOBUS_GSSAPI_GSI_CFLAGS) $(AM_CXXFLAGS)
 
 libmccgsi_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/globusutils/libarcglobusutils.la \

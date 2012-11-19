@@ -18,14 +18,14 @@ endif
 
 libgridftpd_la_SOURCES = userspec.cpp names.cpp misc.cpp
 libgridftpd_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLOBUS_FTP_CLIENT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLOBUS_FTP_CLIENT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 
 gridftpd_SOURCES = commands.cpp config.cpp fileroot.cpp listener.cpp \
 	dataread.cpp datawrite.cpp datalist.cpp fileroot_config.cpp \
 	commands.h conf.h fileroot.h misc.h names.h userspec.h
 
 gridftpd_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLOBUS_FTP_CLIENT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLOBUS_FTP_CLIENT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 
 gridftpd_LDADD = libgridftpd.la conf/libconf.la run/librun.la \
 	misc/libmisc.la auth/libauth.la auth/libmap.la \

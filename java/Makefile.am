@@ -16,7 +16,7 @@ libjarc_la_SOURCES = arc_init.cpp arc_jni.h
 nodist_libjarc_la_SOURCES = arc_wrap.cpp
 libjarc_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(JDK_CFLAGS) $(ZLIB_CFLAGS) \
-	-fno-strict-aliasing
+	-fno-strict-aliasing $(AM_CXXFLAGS)
 libjarc_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/credentialstore/libarccredentialstore.la \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \

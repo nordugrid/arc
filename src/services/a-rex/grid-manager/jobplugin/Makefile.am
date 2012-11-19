@@ -13,7 +13,7 @@ pkglib_LTLIBRARIES = jobplugin.la
 jobplugin_la_SOURCES = jobplugin.cpp jobplugin.h init.cpp
 jobplugin_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(DBCXX_CPPFLAGS) \
-	$(GLOBUS_FTP_CLIENT_CFLAGS) $(GACL_CFLAGS) $(GRIDSITE_CFLAGS)
+	$(GLOBUS_FTP_CLIENT_CFLAGS) $(GACL_CFLAGS) $(GRIDSITE_CFLAGS) $(AM_CXXFLAGS)
 jobplugin_la_LDFLAGS = -no-undefined -avoid-version -module
 
 jobplugin_la_LIBADD = \

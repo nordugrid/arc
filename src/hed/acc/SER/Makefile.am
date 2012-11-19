@@ -3,7 +3,7 @@ pkglib_LTLIBRARIES = libaccSER.la
 libaccSER_la_SOURCES  = DescriptorsSER.cpp \
 	ServiceEndpointRetrieverPluginEMIR.cpp ServiceEndpointRetrieverPluginEMIR.h
 libaccSER_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 libaccSER_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \

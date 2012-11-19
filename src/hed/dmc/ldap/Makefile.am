@@ -3,7 +3,7 @@ pkglib_LTLIBRARIES = libdmcldap.la
 libdmcldap_la_SOURCES = DataPointLDAP.cpp LDAPQuery.cpp \
                         DataPointLDAP.h   LDAPQuery.h
 libdmcldap_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 
 if WIN32
 THR_LIBS =

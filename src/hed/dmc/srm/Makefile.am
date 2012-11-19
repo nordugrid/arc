@@ -4,7 +4,7 @@ SUBDIRS = srmclient
 
 libdmcsrm_la_SOURCES = DataPointSRM.cpp DataPointSRM.h
 libdmcsrm_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 libdmcsrm_la_LIBADD = \
 	srmclient/libsrmclient.la \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \

@@ -13,57 +13,71 @@ CLILIBS = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
 
 arcsub_SOURCES  = arcsub.cpp utils.cpp utils.h
-arcsub_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+arcsub_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arcsub_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arctest_SOURCES  = arctest.cpp utils.cpp utils.h
-arctest_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+arctest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arctest_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arcget_SOURCES  = arcget.cpp utils.cpp utils.h
-arcget_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+arcget_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arcget_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arcstat_SOURCES  = arcstat.cpp utils.cpp utils.h
-arcstat_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+arcstat_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arcstat_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arcinfo_SOURCES  = arcinfo.cpp utils.cpp utils.h
-arcinfo_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+arcinfo_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arcinfo_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arckill_SOURCES  = arckill.cpp utils.cpp utils.h
-arckill_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+arckill_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arckill_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arcclean_SOURCES  = arcclean.cpp utils.cpp utils.h
-arcclean_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+arcclean_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arcclean_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arccat_SOURCES  = arccat.cpp utils.cpp utils.h
-arccat_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+arccat_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arccat_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arcsync_SOURCES  = arcsync.cpp utils.cpp utils.h
-arcsync_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+arcsync_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arcsync_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arcresub_SOURCES  = arcresub.cpp utils.cpp utils.h
-arcresub_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+arcresub_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arcresub_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arcmigrate_SOURCES  = arcmigrate.cpp utils.cpp utils.h
-arcmigrate_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+arcmigrate_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arcmigrate_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arcrenew_SOURCES  = arcrenew.cpp utils.cpp utils.h
-arcrenew_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+arcrenew_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arcrenew_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arcresume_SOURCES  = arcresume.cpp utils.cpp utils.h
-arcresume_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+arcresume_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arcresume_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arcacl_SOURCES  = arcacl.cpp utils.cpp utils.h
-arcacl_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+arcacl_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arcacl_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)

@@ -2,7 +2,7 @@ pkglibexec_PROGRAMS = downloader uploader
 
 downloader_SOURCES = downloader.cpp
 downloader_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 downloader_LDADD = \
 	../conf/libconf.la ../jobs/libjobs.la ../log/liblog.la \
 	../files/libfiles.la ../run/librun.la ../misc/libmisc.la \
@@ -12,7 +12,7 @@ downloader_LDADD = \
 
 uploader_SOURCES = uploader.cpp
 uploader_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 uploader_LDADD = \
 	../conf/libconf.la ../jobs/libjobs.la ../log/liblog.la \
 	../files/libfiles.la ../run/librun.la ../misc/libmisc.la \

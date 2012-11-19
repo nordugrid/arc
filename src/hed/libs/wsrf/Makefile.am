@@ -5,7 +5,7 @@ libwsrf_ladir = $(pkgincludedir)/wsrf
 libwsrf_la_HEADERS = WSRF.h   WSRFBaseFault.h   WSResourceProperties.h
 libwsrf_la_SOURCES = WSRF.cpp WSRFBaseFault.cpp WSResourceProperties.cpp 
 libwsrf_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 libwsrf_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/ws-addressing/libwsaddressing.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
@@ -13,7 +13,8 @@ libwsrf_la_LIBADD = \
 	$(LIBXML2_LIBS)
 
 #test_SOURCES = WSRF.cpp WSRFBaseFault.cpp WSResourceProperties.cpp
-#test_CXXFLAGS = -I$(top_srcdir)/include $(LIBXML2_CFLAGS)
+#test_CXXFLAGS = -I$(top_srcdir)/include \
+#	$(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 #test_LDADD = \
 #	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 #	$(top_builddir)/src/libs/common/libarccommon.la \

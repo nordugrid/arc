@@ -18,7 +18,8 @@ libarccommunication_ladir = $(pkgincludedir)/communication
 libarccommunication_la_HEADERS = ClientInterface.h ClientX509Delegation.h $(HEADER_WITH_XMLSEC)
 libarccommunication_la_SOURCES = ClientInterface.cpp ClientX509Delegation.cpp $(SOURCE_WITH_XMLSEC)
 libarccommunication_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CFLAGS_WITH_XMLSEC) $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS)
+	$(CFLAGS_WITH_XMLSEC) $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) \
+	$(AM_CXXFLAGS)
 libarccommunication_la_LIBADD = \
 	$(ARCLIBS_WITH_XMLSEC) \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \

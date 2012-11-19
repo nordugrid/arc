@@ -12,5 +12,5 @@ CLILIBS = \
 
 saml_assertion_init_SOURCES = saml_assertion_init.cpp
 saml_assertion_init_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS) $(AM_CXXFLAGS)
 saml_assertion_init_LDADD = $(CLILIBS) $(GLIBMM_LIBS)

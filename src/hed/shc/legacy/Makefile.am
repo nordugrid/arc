@@ -19,7 +19,7 @@ libarcshclegacy_la_SOURCES = auth_file.cpp auth_subject.cpp \
                              LegacyMap.cpp LegacyMap.h \
                              plugin.cpp
 libarcshclegacy_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 libarcshclegacy_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
@@ -33,7 +33,7 @@ libarcshclegacy_la_LDFLAGS = -no-undefined -avoid-version -module
 arc_lcas_SOURCES  = arc_lcas.cpp
 arc_lcas_CXXFLAGS = -I$(top_srcdir)/include \
         $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) \
-        $(OPENSSL_CFLAGS) $(LCAS_CFLAGS) $(GLOBUS_GSSAPI_GSI_CFLAGS)
+        $(OPENSSL_CFLAGS) $(LCAS_CFLAGS) $(GLOBUS_GSSAPI_GSI_CFLAGS) $(AM_CXXFLAGS)
 arc_lcas_LDADD    = \
 	$(top_builddir)/src/hed/libs/globusutils/libarcglobusutils.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
@@ -42,7 +42,7 @@ arc_lcas_LDADD    = \
 arc_lcmaps_SOURCES  = arc_lcmaps.cpp
 arc_lcmaps_CXXFLAGS = -I$(top_srcdir)/include \
         $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) \
-        $(OPENSSL_CFLAGS) $(LCMAPS_CFLAGS) $(GLOBUS_GSSAPI_GSI_CFLAGS)
+        $(OPENSSL_CFLAGS) $(LCMAPS_CFLAGS) $(GLOBUS_GSSAPI_GSI_CFLAGS) $(AM_CXXFLAGS)
 arc_lcmaps_LDADD    = \
 	$(top_builddir)/src/hed/libs/globusutils/libarcglobusutils.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \

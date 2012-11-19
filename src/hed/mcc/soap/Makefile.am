@@ -2,7 +2,7 @@ pkglib_LTLIBRARIES = libmccsoap.la
 
 libmccsoap_la_SOURCES = MCCSOAP.cpp MCCSOAP.h
 libmccsoap_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 libmccsoap_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/ws/libarcws.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \

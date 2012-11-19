@@ -22,7 +22,8 @@ include_arc_headers_win32 =
 endif
 
 perftest_SOURCES = perftest.cpp
-perftest_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+perftest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 perftest_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
@@ -32,7 +33,7 @@ perftest_LDADD = \
 
 perftest_msgsize_SOURCES = perftest_msgsize.cpp
 perftest_msgsize_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 perftest_msgsize_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
@@ -44,7 +45,7 @@ if XMLSEC_ENABLED
 perftest_samlaa_SOURCES = perftest_samlaa.cpp
 perftest_samlaa_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) \
-	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)
+	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) $(AM_CXXFLAGS)
 perftest_samlaa_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
@@ -57,7 +58,7 @@ perftest_samlaa_LDADD = \
 perftest_saml2sso_SOURCES = perftest_saml2sso.cpp
 perftest_saml2sso_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) \
-	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)
+	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) $(AM_CXXFLAGS)
 perftest_saml2sso_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
@@ -69,7 +70,7 @@ perftest_saml2sso_LDADD = \
 perftest_slcs_SOURCES = perftest_slcs.cpp
 perftest_slcs_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) \
-	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)
+	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) $(AM_CXXFLAGS)
 perftest_slcs_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
@@ -82,7 +83,7 @@ endif
 
 perftest_deleg_bysechandler_SOURCES = perftest_deleg_bysechandler.cpp
 perftest_deleg_bysechandler_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 perftest_deleg_bysechandler_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
@@ -92,7 +93,7 @@ perftest_deleg_bysechandler_LDADD = \
 
 perftest_deleg_bydelegclient_SOURCES = perftest_deleg_bydelegclient.cpp
 perftest_deleg_bydelegclient_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 perftest_deleg_bydelegclient_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
@@ -102,12 +103,12 @@ perftest_deleg_bydelegclient_LDADD = \
 
 perftest_cmd_duration_SOURCES = perftest_cmd_duration.cpp
 perftest_cmd_duration_CXXFLAGS = $(include_arc_headers_win32) \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 perftest_cmd_duration_LDADD = \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 perftest_cmd_times_SOURCES = perftest_cmd_times.cpp
 perftest_cmd_times_CXXFLAGS = $(include_arc_headers_win32) \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 perftest_cmd_times_LDADD = \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)

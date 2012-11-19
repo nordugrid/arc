@@ -7,7 +7,7 @@ libaccUNICORE_la_SOURCES = \
 	DescriptorsUNICORE.cpp \
 	JobStateUNICORE.cpp JobStateUNICORE.h
 libaccUNICORE_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 libaccUNICORE_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/ws/libarcws.la \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \

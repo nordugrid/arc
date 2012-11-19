@@ -13,7 +13,7 @@ libarcmessage_la_SOURCES = SOAPEnvelope.cpp PayloadRaw.cpp PayloadSOAP.cpp \
 	MessageAttributes.cpp Message.cpp SOAPMessage.cpp MessageAuth.cpp \
 	SecAttr.cpp MCCLoader.cpp SecHandler.cpp
 libarcmessage_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 libarcmessage_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \

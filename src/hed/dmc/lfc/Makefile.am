@@ -3,7 +3,7 @@ pkglib_LTLIBRARIES = libdmclfc.la
 libdmclfc_la_SOURCES = DataPointLFC.cpp DataPointLFC.h
 libdmclfc_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLOBUS_GSSAPI_GSI_CFLAGS) $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
-	$(LFC_CFLAGS)
+	$(LFC_CFLAGS) $(AM_CXXFLAGS)
 libdmclfc_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/globusutils/libarcglobusutils.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \

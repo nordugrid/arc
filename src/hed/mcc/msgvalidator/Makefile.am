@@ -4,7 +4,7 @@ pkglib_LTLIBRARIES = libmccmsgvalidator.la
 
 libmccmsgvalidator_la_SOURCES = MCCMsgValidator.cpp MCCMsgValidator.h
 libmccmsgvalidator_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 libmccmsgvalidator_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/ws/libarcws.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \

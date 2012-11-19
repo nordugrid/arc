@@ -47,7 +47,7 @@ _arc_la_SOURCES = swigmodulesinit_wrap.cpp arc_init.cpp
 nodist__arc_la_SOURCES = $(ARCWRAPPERS)
 _arc_la_CXXFLAGS = -include ../config.h -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(PYTHON_CFLAGS) $(ZLIB_CFLAGS) \
-	-fno-strict-aliasing -DSWIG_COBJECT_TYPES
+	-fno-strict-aliasing -DSWIG_COBJECT_TYPES $(AM_CXXFLAGS)
 _arc_la_LIBADD = \
 	$(ARCLIBS) $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(PYTHON_LIBS) $(ZLIB_LIBS)
 _arc_la_LDFLAGS = -no-undefined -avoid-version -module
@@ -56,7 +56,7 @@ alt__arc_la_SOURCES = swigmodulesinit_wrap.cpp arc_init.cpp
 nodist_alt__arc_la_SOURCES = $(ARCWRAPPERS)
 alt__arc_la_CXXFLAGS = -include ../config.h -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(ALTPYTHON_CFLAGS) $(ZLIB_CFLAGS) \
-	-fno-strict-aliasing -DSWIG_COBJECT_TYPES
+	-fno-strict-aliasing -DSWIG_COBJECT_TYPES $(AM_CXXFLAGS)
 alt__arc_la_LIBADD = \
 	$(ARCLIBS) $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(ALTPYTHON_LIBS) $(ZLIB_LIBS)
 alt__arc_la_LDFLAGS = -no-undefined -avoid-version -module

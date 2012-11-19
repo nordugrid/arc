@@ -4,7 +4,7 @@ libdmcgfal_la_SOURCES = DataPointGFAL.cpp DataPointGFAL.h \
                         GFALTransfer3rdParty.cpp GFALTransfer3rdParty.h \
                         GFALUtils.cpp GFALUtils.h
 libdmcgfal_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GFAL2_CFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GFAL2_CFLAGS) $(AM_CXXFLAGS)
 libdmcgfal_la_LIBADD = \
 	$(top_srcdir)/src/hed/libs/data/libarcdata.la \
 	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \

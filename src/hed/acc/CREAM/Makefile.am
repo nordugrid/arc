@@ -7,7 +7,7 @@ libaccCREAM_la_SOURCES = DescriptorsCREAM.cpp \
 	CREAMClient.cpp CREAMClient.h \
 	JobStateCREAM.cpp JobStateCREAM.h
 libaccCREAM_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 libaccCREAM_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
@@ -22,7 +22,7 @@ libaccCREAM_la_LDFLAGS = -no-undefined -avoid-version -module
 libaccCREAMJLR_la_SOURCES = \
 	JobListRetrieverPluginWSRFCREAM.cpp JobListRetrieverPluginWSRFCREAM.h
 libaccCREAMJLR_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 libaccCREAMJLR_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \

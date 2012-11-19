@@ -7,4 +7,4 @@ smtp_send_LDADD = $(LIBRESOLV) $(SOCKET_LIBS)
 
 libmail_la_SOURCES = send_mail.cpp send_mail.h
 libmail_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)

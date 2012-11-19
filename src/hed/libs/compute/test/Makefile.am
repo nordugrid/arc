@@ -10,7 +10,7 @@ TESTS_ENVIRONMENT = env ARC_PLUGIN_PATH=$(top_builddir)/src/hed/acc/TEST/.libs
 
 SoftwareTest_SOURCES = $(top_srcdir)/src/Test.cpp SoftwareTest.cpp
 SoftwareTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 SoftwareTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
@@ -18,7 +18,7 @@ SoftwareTest_LDADD = \
 
 JobTest_SOURCES = $(top_srcdir)/src/Test.cpp JobTest.cpp
 JobTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 JobTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
@@ -26,7 +26,7 @@ JobTest_LDADD = \
 
 JobDescriptionTest_SOURCES = $(top_srcdir)/src/Test.cpp JobDescriptionTest.cpp
 JobDescriptionTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 JobDescriptionTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
@@ -34,7 +34,7 @@ JobDescriptionTest_LDADD = \
 
 JobStateTest_SOURCES = $(top_srcdir)/src/Test.cpp JobStateTest.cpp
 JobStateTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 JobStateTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
@@ -42,7 +42,7 @@ JobStateTest_LDADD = \
 
 BrokerTest_SOURCES = $(top_srcdir)/src/Test.cpp BrokerTest.cpp
 BrokerTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 BrokerTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
@@ -51,7 +51,7 @@ BrokerTest_LDADD = \
 
 JobControllerPluginTest_SOURCES = $(top_srcdir)/src/Test.cpp JobControllerPluginTest.cpp
 JobControllerPluginTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 JobControllerPluginTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
@@ -60,7 +60,7 @@ JobControllerPluginTest_LDADD = \
 JobSupervisorTest_SOURCES = $(top_srcdir)/src/Test.cpp \
 	JobSupervisorTest.cpp
 JobSupervisorTest_CXXFLAGS = -I$(top_srcdir)/include\
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 JobSupervisorTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
@@ -69,7 +69,7 @@ JobSupervisorTest_LDADD = \
 JobDescriptionParserTest_SOURCES = $(top_srcdir)/src/Test.cpp \
 	JobDescriptionParserTest.cpp
 JobDescriptionParserTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 JobDescriptionParserTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
@@ -77,7 +77,7 @@ JobDescriptionParserTest_LDADD = \
 
 SubmitterTest_SOURCES = $(top_srcdir)/src/Test.cpp SubmitterTest.cpp
 SubmitterTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 SubmitterTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
@@ -86,7 +86,7 @@ SubmitterTest_LDADD = \
 
 SubmitterPluginTest_SOURCES = $(top_srcdir)/src/Test.cpp SubmitterPluginTest.cpp
 SubmitterPluginTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 SubmitterPluginTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
@@ -95,7 +95,7 @@ SubmitterPluginTest_LDADD = \
 ServiceEndpointRetrieverTest_SOURCES = $(top_srcdir)/src/Test.cpp \
 	ServiceEndpointRetrieverTest.cpp
 ServiceEndpointRetrieverTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 ServiceEndpointRetrieverTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
@@ -105,7 +105,7 @@ ServiceEndpointRetrieverTest_LDADD = \
 TargetInformationRetrieverTest_SOURCES = $(top_srcdir)/src/Test.cpp \
 	TargetInformationRetrieverTest.cpp
 TargetInformationRetrieverTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 TargetInformationRetrieverTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
@@ -115,7 +115,7 @@ TargetInformationRetrieverTest_LDADD = \
 JobListRetrieverTest_SOURCES = $(top_srcdir)/src/Test.cpp \
 	JobListRetrieverTest.cpp
 JobListRetrieverTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 JobListRetrieverTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
@@ -125,7 +125,7 @@ JobListRetrieverTest_LDADD = \
 ExecutionTargetTest_SOURCES = $(top_srcdir)/src/Test.cpp \
 	ExecutionTargetTest.cpp
 ExecutionTargetTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 ExecutionTargetTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
@@ -135,8 +135,19 @@ ExecutionTargetTest_LDADD = \
 ComputingServiceUniqTest_SOURCES = $(top_srcdir)/src/Test.cpp \
 	ComputingServiceUniqTest.cpp
 ComputingServiceUniqTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 ComputingServiceUniqTest_LDADD = \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+
+#~ EndpointTest_SOURCES = $(top_srcdir)/src/Test.cpp \
+	#~ EndpointTest.cpp
+#~ EndpointTest_CXXFLAGS = -I$(top_srcdir)/include \
+	#~ $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
+#~ EndpointTest_LDADD = \
+	#~ $(top_builddir)/src/hed/libs/compute/libarcclient.la \
+	#~ $(top_builddir)/src/hed/libs/common/libarccommon.la \
+	#~ $(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	#~ $(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)

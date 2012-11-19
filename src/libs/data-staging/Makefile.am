@@ -14,7 +14,7 @@ libarcdatastaging_la_SOURCES = DataDelivery.cpp DataDeliveryComm.cpp \
   DTRStatus.cpp Processor.cpp Scheduler.cpp TransferShares.cpp
 
 libarcdatastaging_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 libarcdatastaging_la_LIBADD = \
   $(top_builddir)/src/hed/libs/common/libarccommon.la \
   $(top_builddir)/src/hed/libs/credential/libarccredential.la \
@@ -28,7 +28,8 @@ libarcdatastaging_la_LDFLAGS = -version-info 2:0:0
 noinst_PROGRAMS = generator
 
 generator_SOURCES = generator-main.cpp Generator.h Generator.cpp
-generator_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+generator_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 generator_LDADD = libarcdatastaging.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
@@ -39,7 +40,7 @@ pkglibexec_PROGRAMS = DataStagingDelivery
 
 DataStagingDelivery_SOURCES = DataStagingDelivery.cpp
 DataStagingDelivery_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 DataStagingDelivery_LDADD = \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \

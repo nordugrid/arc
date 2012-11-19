@@ -12,7 +12,7 @@ libxacmlpdp_la_SOURCES = XACMLEvaluationCtx.cpp XACMLEvaluationCtx.h \
 	XACMLAttributeFactory.h XACMLFnFactory.cpp XACMLFnFactory.h \
 	XACMLAlgFactory.cpp XACMLAlgFactory.h XACMLPDP.cpp XACMLPDP.h 
 libxacmlpdp_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 libxacmlpdp_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \

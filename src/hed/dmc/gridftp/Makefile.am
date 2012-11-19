@@ -3,7 +3,7 @@ pkglib_LTLIBRARIES = libdmcgridftp.la
 libdmcgridftp_la_SOURCES = DataPointGridFTP.cpp Lister.cpp \
                            DataPointGridFTP.h   Lister.h
 libdmcgridftp_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_FTP_CLIENT_CFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_FTP_CLIENT_CFLAGS) $(AM_CXXFLAGS)
 libdmcgridftp_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/globusutils/libarcglobusutils.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \

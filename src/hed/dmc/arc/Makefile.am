@@ -2,7 +2,7 @@ pkglib_LTLIBRARIES = libdmcarc.la
 
 libdmcarc_la_SOURCES = DataPointARC.cpp DataPointARC.h
 libdmcarc_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 libdmcarc_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \

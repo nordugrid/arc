@@ -16,7 +16,7 @@ libarccredentialstore_la_LDFLAGS  = -version-info 2:0:0
 
 #test_SOURCES = test.cpp
 #test_CXXFLAGS = -I$(top_srcdir)/include \
-#	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+#	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 #test_LDADD = \
 #	libarccredentialstore.la \
 #	$(top_builddir)/src/hed/libs/common/libarccommon.la \

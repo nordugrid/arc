@@ -12,7 +12,7 @@ libaccARC1_la_SOURCES  = SubmitterPluginARC1.cpp SubmitterPluginARC1.h \
 	JobControllerPluginBES.cpp JobControllerPluginBES.h \
 	JobStateBES.cpp JobStateBES.h
 libaccARC1_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 libaccARC1_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/ws/libarcws.la \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
@@ -29,7 +29,7 @@ libaccARC1_la_LDFLAGS = -no-undefined -avoid-version -module
 libaccJLRWSRFBES_la_SOURCES  = \
 	JobListRetrieverPluginWSRFBES.cpp JobListRetrieverPluginWSRFBES.h
 libaccJLRWSRFBES_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 libaccJLRWSRFBES_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/ws/libarcws.la \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
@@ -45,7 +45,7 @@ libaccJLRWSRFBES_la_LDFLAGS = -no-undefined -avoid-version -module
 
 #libarexclient_la_SOURCES = AREXClient.cpp AREXClient.h
 #libarexclient_la_CXXFLAGS = -I$(top_srcdir)/include \
-#	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+#	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 #libarexclient_la_LIBADD = \
 #	$(top_builddir)/src/hed/libs/ws/libarcws.la \
 #	$(top_builddir)/src/hed/libs/compute/libarccompute.la \

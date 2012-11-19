@@ -11,7 +11,7 @@ libinfosys_la_HEADERS = InformationInterface.h InfoCache.h \
 libinfosys_la_SOURCES = InformationInterface.cpp InfoCache.cpp \
 	InfoRegister.cpp InfoFilter.cpp RegisteredService.cpp BootstrapISIS.cpp
 libinfosys_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 libinfosys_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/wsrf/libwsrf.la \
@@ -26,10 +26,10 @@ libinfosys_la_LIBADD = \
 
 #test_cache_SOURCES = test_cache.cpp
 #test_cache_CXXFLAGS = -I$(top_srcdir)/include \
-#	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+#	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 #test_cache_LDADD = libinfosys.la $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 #test_register_SOURCES = test_register.cpp
 #test_register_CXXFLAGS = -I$(top_srcdir)/include \
-#	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+#	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 #test_register_LDADD = libinfosys.la $(GLIBMM_LIBS) $(LIBXML2_LIBS) 

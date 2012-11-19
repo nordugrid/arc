@@ -6,7 +6,7 @@ libarcsecurity_ladir = $(pkgincludedir)/security
 libarcsecurity_la_HEADERS = PDP.h   Security.h   ClassLoader.h
 libarcsecurity_la_SOURCES = PDP.cpp Security.cpp ClassLoader.cpp
 libarcsecurity_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 libarcsecurity_la_LIBADD = \
 	ArcPDP/libarcpdp.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \

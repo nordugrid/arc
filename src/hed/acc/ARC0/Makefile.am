@@ -6,7 +6,7 @@ libaccARC0_la_SOURCES = \
 	JobControllerPluginARC0.cpp JobControllerPluginARC0.h \
 	FTPControl.cpp FTPControl.h JobStateARC0.cpp JobStateARC0.h
 libaccARC0_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_FTP_CONTROL_CFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_FTP_CONTROL_CFLAGS) $(AM_CXXFLAGS)
 libaccARC0_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
 	$(top_builddir)/src/hed/libs/globusutils/libarcglobusutils.la \

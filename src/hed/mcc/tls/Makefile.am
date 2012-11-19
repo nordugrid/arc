@@ -12,7 +12,7 @@ libmcctls_la_SOURCES = PayloadTLSStream.cpp MCCTLS.cpp \
                        DelegationCollector.h   GlobusHack.h \
                        BIOMCC.h   BIOGSIMCC.h
 libmcctls_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 libmcctls_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/crypto/libarccrypto.la \

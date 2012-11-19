@@ -8,7 +8,8 @@ libaccEMIES_la_SOURCES  = EMIESClient.cpp EMIESClient.h \
 	JobListRetrieverPluginEMIES.cpp JobListRetrieverPluginEMIES.h \
 	TargetInformationRetrieverPluginEMIES.cpp TargetInformationRetrieverPluginEMIES.h \
 	DescriptorsEMIES.cpp
-libaccEMIES_la_CXXFLAGS = -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+libaccEMIES_la_CXXFLAGS = -I$(top_srcdir)/include \
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 libaccEMIES_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \

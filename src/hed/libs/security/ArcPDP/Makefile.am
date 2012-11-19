@@ -8,7 +8,7 @@ libarcpdp_la_HEADERS = Source.h EvaluationCtx.h Evaluator.h Response.h \
 libarcpdp_la_SOURCES = Source.cpp Evaluator.cpp EvaluatorLoader.cpp \
 	PolicyParser.cpp PolicyStore.cpp
 libarcpdp_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 libarcpdp_la_LIBADD = \
 	attr/libarcattr.la fn/libarcfn.la \
 	policy/libarcpolicy.la alg/libarcalg.la \

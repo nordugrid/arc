@@ -7,4 +7,4 @@ libsrmclient_la_SOURCES = SRMClient.cpp   SRMClient.h   \
                           SRMInfo.cpp     SRMInfo.h     \
                           SRMClientRequest.h
 libsrmclient_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)

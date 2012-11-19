@@ -9,7 +9,7 @@ initd_SCRIPTS = $(DATA_DELIVERY_SCRIPT)
 
 libdatadeliveryservice_la_SOURCES = DataDeliveryService.h DataDeliveryService.cpp
 libdatadeliveryservice_la_CXXFLAGS = -I$(top_srcdir)/include \
-  $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+  $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 libdatadeliveryservice_la_LIBADD = \
   $(top_builddir)/src/libs/data-staging/libarcdatastaging.la \
   $(top_builddir)/src/hed/libs/ws/libarcws.la \

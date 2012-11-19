@@ -9,4 +9,4 @@ libconf_la_SOURCES = \
   CacheConfig.cpp CacheConfig.h \
   StagingConfig.cpp StagingConfig.h
 libconf_la_CXXFLAGS = -I$(top_srcdir)/include \
-  $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+  $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)

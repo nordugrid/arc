@@ -21,7 +21,7 @@ pkglib_LTLIBRARIES = libarcshc.la
 
 libarcshc_la_SOURCES = SecHandlerPlugin.cpp
 libarcshc_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 libarcshc_la_LIBADD = \
 	allowpdp/liballowpdp.la denypdp/libdenypdp.la \
 	simplelistpdp/libsimplelistpdp.la arcpdp/libarcpdp.la \
@@ -41,7 +41,8 @@ libarcshc_la_LIBADD = \
 libarcshc_la_LDFLAGS = -no-undefined -avoid-version -module
 
 test_SOURCES = test.cpp
-test_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+test_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 test_LDADD = \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
@@ -51,7 +52,7 @@ test_LDADD = \
 
 testinterface_arc_SOURCES = testinterface_arc.cpp
 testinterface_arc_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 testinterface_arc_LDADD = \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
@@ -61,7 +62,7 @@ testinterface_arc_LDADD = \
 
 testinterface_xacml_SOURCES = testinterface_xacml.cpp
 testinterface_xacml_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 testinterface_xacml_LDADD = \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
@@ -71,7 +72,7 @@ testinterface_xacml_LDADD = \
 
 #classload_test_SOURCES = classload_test.cpp
 #classload_test_CXXFLAGS = -I$(top_srcdir)/include \
-#	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+#	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 #classload_test_LDADD = \
 #	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 #	$(top_builddir)/src/hed/libs/message/libarcmessage.la \

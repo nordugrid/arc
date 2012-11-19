@@ -1,7 +1,8 @@
 bin_PROGRAMS = Test
 
 Test_SOURCES  = Test.cpp ClientsTest.h ClientsTest.cpp
-Test_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+Test_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 Test_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 Test_LDADD    = \
 	$(top_builddir)/src/hed/libs/ws/libarcws.la \
