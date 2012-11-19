@@ -568,6 +568,8 @@ sub collect($) {
     $totallcpus ||= $lrms_info->{cluster}{totalcpus};
 
     my $authorizedvos = $config->{service}{AuthorizedVO};
+    # add VO: suffix to each authorized VO
+    @{$authorizedvos} = map { "vo:".$_ } @{$authorizedvos};
 
     # # # # # # # # # # # # # # # # # # #
     # # # # # Job statistics  # # # # # #
