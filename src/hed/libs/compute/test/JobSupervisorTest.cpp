@@ -101,9 +101,9 @@ void JobSupervisorTest::TestAddJob()
 void JobSupervisorTest::TestResubmit()
 {
   std::list<Arc::Job> jobs;
-  Arc::URL id1("http://test.nordugrid.org/1234567890test1"),
-           id2("http://test.nordugrid.org/1234567890test2"),
-           id3("http://test.nordugrid.org/1234567890test3");
+  std::string id1("http://test.nordugrid.org/1234567890test1"),
+              id2("http://test.nordugrid.org/1234567890test2"),
+              id3("http://test.nordugrid.org/1234567890test3");
 
   j.State = Arc::JobStateTEST(Arc::JobState::FAILED);
   j.JobID = id1;
