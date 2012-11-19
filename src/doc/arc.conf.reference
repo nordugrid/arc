@@ -643,6 +643,20 @@
 ## the jobreporter.
 #jobreport_options="urbatch:50,archiving:/tmp/archive,topic:/topic/global.accounting.cpu.central"
 
+## max_job_control_requests number - max number of simultaneously processed job management
+## requests over WS interface - like job submission, cancel, status check etc. 
+## Default value is 100.
+#max_job_control_requests="100"
+
+## max_infosys_requests number - max number of simultaneously processed resource info
+## requests over WS interface. Default value is 1.
+#max_infosys_requests="1"
+
+## max_data_transfer_requests number - max number of simultaneously processed data transfer
+## requests over WS interface - like data staging. 
+## Default value is 100.
+#max_data_transfer_requests="100"
+
 ## maxjobs number1 number2 number3 number4 - specifies maximum allowed number of jobs.
 ## number1 - jobs which are not in FINISHED state (jobs tracked in RAM)
 ## number2 - jobs being run (SUBMITTING, INLRMS states)
@@ -872,7 +886,7 @@
 #arguspep_usermap="no"
 
 ## watchdog - specifies if additinal watchdog processes is spawned to restart
-## main proces if it is stuck or dies. Possible values are 'yes' and 'no'.
+## main process if it is stuck or dies. Possible values are 'yes' and 'no'.
 ## Default is 'no'.
 #watchdog="no"
 
