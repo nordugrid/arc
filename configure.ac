@@ -260,6 +260,17 @@ enabled_acix=$enableval
 ],
 [])
 
+
+# Be pedantic about compiler warnings.
+AC_ARG_ENABLE(pedantic-compile, AC_HELP_STRING([--enable-pedantic-compile], [add pedantic compiler flags]),
+[enables_pedantic_compile="yes"], [enables_pedantic_compile="no"])
+if test "x$enables_pedantic_compile" = "xyes"; then
+  AM_CXXFLAGS="-Wall -Wextra -Werror -Wno-sign-compare -Wno-unused -Wno-unused-result"
+  AC_SUBST(AM_CXXFLAGS)
+fi
+AM_CONDITIONAL([PEDANTIC_COMPILE], [test "x$enables_pedantic_compile" = "xyes"])
+
+
 # Enable/disable switches for third-party.
 
 #  Swig

@@ -2,6 +2,10 @@ pkglib_LTLIBRARIES = gaclplugin.la
 
 GACL_LOCATION = $(top_srcdir)/src/services/gridftpd/external/gacl
 
+if PEDANTIC_COMPILE
+AM_CXXFLAGS += -Wno-deprecated-declarations
+endif
+
 gaclplugin_la_SOURCES = init.cpp util.cpp util.h util++.cpp util++.h \
 	gaclplugin.cpp gaclplugin.h
 gaclplugin_la_CXXFLAGS = -I$(top_srcdir)/include \
