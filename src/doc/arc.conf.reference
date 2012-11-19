@@ -1924,12 +1924,6 @@
 #benchmark="SPECINT2000  222"
 #benchmark="SPECFP2000 333" 
 
-## gridmap - can be used to specify an alternative file holding the list of
-## grid SNs for this queue. The information system parses the list of
-## users from this file and advertises them as authorized users for this queue.
-## Beware that this list is not actually used by gridftpd for authorization.
-#gridmap="/etc/grid-security/queuename-gridmap"
-
 ## LDAP parameters of the queue+jobs+users.pl (old) infoprovider, use the defaults,
 ## do NOT change them unless you know what you are doing
 #cachetime="30"
