@@ -1197,7 +1197,7 @@ loser:
                   CERTCertDBHandle* certDb, SECItem* keyId) {
     sec_PKCS12CertBag *certBag;
     sec_PKCS12SafeBag *safeBag;
-    void *mark;
+    void *mark = NULL;
     CERTCertListNode* node;
     CERTCertList* certlist_tmp = NULL;
     CERTCertList* certlist = NULL;
