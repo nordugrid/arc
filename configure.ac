@@ -265,7 +265,27 @@ enabled_acix=$enableval
 AC_ARG_ENABLE(pedantic-compile, AC_HELP_STRING([--enable-pedantic-compile], [add pedantic compiler flags]),
 [enables_pedantic_compile="yes"], [enables_pedantic_compile="no"])
 if test "x$enables_pedantic_compile" = "xyes"; then
-  AM_CXXFLAGS="-Wall -Wextra -Werror -Wno-sign-compare -Wno-unused -Wno-unused-result"
+  # This check need to be enhanced. It won't work in case of cross-compilation
+  # and if path to compiler is explicitely specified.
+  if test x"$CXX" = x"g++"; then
+    # GNU C/C++ flags
+    AM_CXXFLAGS="-Wall -Wextra -Werror -Wno-sign-compare -Wno-unused"
+    SAVE_CPPFLAGS=$CPPFLAGS
+    AC_LANG_SAVE
+    AC_LANG_CPLUSPLUS
+    CPPFLAGS="$CPPFLAGS -Wno-unused-result"
+    AC_TRY_COMPILE([],[], [
+        AM_CXXFLAGS="$AM_CXXFLAGS -Wno-unused-result"
+      ], [
+        AC_MSG_NOTICE([compilation flag -Wno-unused-result is not supported])
+      ]
+    )
+    AC_LANG_RESTORE
+    CPPFLAGS=$SAVE_CPPFLAGS
+  else 
+    # TODO: set generic flags for generic compiler
+    AM_CXXFLAGS=""
+  fi
   AC_SUBST(AM_CXXFLAGS)
 fi
 AM_CONDITIONAL([PEDANTIC_COMPILE], [test "x$enables_pedantic_compile" = "xyes"])
