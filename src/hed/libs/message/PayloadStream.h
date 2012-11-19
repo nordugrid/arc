@@ -15,7 +15,7 @@ class PayloadStreamInterface: virtual public MessagePayload {
  public:
   // Avoid defining size of int - just use biggest possible
   typedef signed long long int Size_t;
-  PayloadStreamInterface(void) : MessagePayload() { };
+  PayloadStreamInterface(void) { };
   virtual ~PayloadStreamInterface(void) { };
   /** Extracts information from stream up to 'size' bytes. 
     'size' contains number of read bytes on exit.
