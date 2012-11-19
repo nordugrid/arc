@@ -385,7 +385,6 @@ error:
 }
 
 PayloadTLSMCC::PayloadTLSMCC(PayloadTLSMCC& stream):
-    PayloadStreamInterface::MessagePayload(),
     PayloadTLSStream(stream), config_(stream.config_), flags_(0) {
    master_=false;
    sslctx_=stream.sslctx_;

@@ -61,7 +61,7 @@ PayloadTLSStream::PayloadTLSStream(Logger& logger,SSL* ssl):timeout_(0),ssl_(ssl
   return;
 }
 
-PayloadTLSStream::PayloadTLSStream(PayloadTLSStream& stream): PayloadStreamInterface::MessagePayload(), PayloadStreamInterface(), timeout_(stream.timeout_),ssl_(stream.ssl_),logger_(stream.logger_) {
+PayloadTLSStream::PayloadTLSStream(PayloadTLSStream& stream):timeout_(stream.timeout_),ssl_(stream.ssl_),logger_(stream.logger_) {
 }
 
 PayloadTLSStream::~PayloadTLSStream(void) {
