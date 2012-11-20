@@ -926,7 +926,7 @@ std::list<std::string> ARexJob::LogFiles(void) {
   if(id_.empty()) return logs;
   std::string dname = config_.GmConfig().ControlDir();
   std::string prefix = "job." + id_ + ".";
-  // TODO: scanning is performace bottleneck. Use matching instead.
+  // TODO: scanning is performance bottleneck. Use matching instead.
   Glib::Dir* dir = new Glib::Dir(dname);
   if(!dir) return logs;
   for(;;) {

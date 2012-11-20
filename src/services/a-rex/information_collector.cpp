@@ -582,10 +582,15 @@ Arc::MCC_Status ARexService::ESQueryResourceInfo(ARexGMConfig& config,Arc::XMLNo
     ESFAULT("Failed to parse resource information document");
   };
 
+  Arc::NS glue_ns;
+  glue_ns[rdoc.Prefix()] = rdoc.Namespace();
+  rdoc.StripNamespace(); // to ignore namespace in XPathLookup
   //Arc::NS glueNS("glue","http://schemas.ogf.org/glue/2009/03/spec_2.0_r1");
   Arc::XMLNodeList ritems = rdoc.XPathLookup(xpath,Arc::NS());
   for(Arc::XMLNodeList::iterator ritem = ritems.begin(); ritem != ritems.end(); ++ritem) {
-    out.NewChild("esrinfo:QueryResourceInfoItem").NewChild(*ritem);
+    Arc::XMLNode i = out.NewChild("esrinfo:QueryResourceInfoItem").NewChild(*ritem);
+    i.Namespaces(glue_ns);
+    i.Prefix(glue_ns.begin()->first,-1);
   }
   return Arc::MCC_Status(Arc::STATUS_OK);
 }

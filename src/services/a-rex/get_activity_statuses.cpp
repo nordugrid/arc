@@ -353,6 +353,20 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
     estypes:AccessControlFault
     estypes:InternalBaseFault
    */
+  static const char* job_xml_template = "\
+    <ComputingActivity xmlns=\"http://schemas.ogf.org/glue/2009/03/spec_2.0_r1\"\n\
+                       BaseType=\"Activity\" CreationTime=\"\" Validity=\"60\">\n\
+      <ID></ID>\n\
+      <OtherInfo>SubmittedVia=org.ogf.emies</OtherInfo>\n\
+      <Type>single</Type>\n\
+      <IDFromEndpoint></IDFromEndpoint>\n\
+      <JobDescription>emies:adl</JobDescription>\n\
+      <State></State>\n\
+      <Owner></Owner>\n\
+      <Associations>\n\
+        <ComputingShareID></ComputingShareID>\n\
+      </Associations>\n\
+    </ComputingActivity>";
   Arc::XMLNode id = in["ActivityID"];
   unsigned int n = 0;
   for(;(bool)id;++id) {
@@ -391,12 +405,37 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
       //    ComputingActivityHistory 0-1
       std::string glue_s;
       bool response_generated = false;
-      if(job_xml_read_file(jobid,config.GmConfig(),glue_s)) {
-        Arc::XMLNode glue_xml(glue_s);
+
+      Arc::XMLNode glue_xml(job_xml_read_file(jobid,config.GmConfig(),glue_s)?glue_s:"");
+      if(!glue_xml) {
         // TODO: if xml information is not ready yet create something minimal
-        // TODO: filter by AttributeName
-        if((bool)glue_xml) {
-          if(attributes.empty()) {
+        Arc::XMLNode(job_xml_template).New(glue_xml);
+        Arc::URL headnode(config.GmConfig().HeadNode());
+        glue_xml["ID"] = std::string("urn:caid:")+headnode.Host()+":org.ogf.emies:"+jobid;
+        glue_xml["IDFromEndpoint"] = "urn:idfe:"+id;
+        {
+          // Collecting job state
+          bool job_pending = false;
+          std::string gm_state = job.State(job_pending);
+          bool job_failed = job.Failed();
+          std::string failed_cause;
+          std::string failed_state = job.FailedState(failed_cause);
+          std::string primary_state;
+          std::list<std::string> state_attributes;
+          convertActivityStatusES(gm_state,primary_state,state_attributes,
+                                  job_failed,job_pending,failed_state,failed_cause);
+          glue_xml["State"] = "emies:"+primary_state;;
+          std::string prefix = glue_xml["State"].Prefix();
+          for(std::list<std::string>::iterator attr = state_attributes.begin();
+                    attr != state_attributes.end(); ++attr) {
+            glue_xml.NewChild(prefix+":State") = "emiesattr:"+(*attr);
+          };
+        };
+        glue_xml["Owner"] = config.GridName();
+        glue_xml.Attribute("CreationTime") = job.Created().str(Arc::ISOTime);
+      };
+      if((bool)glue_xml) {
+        if(attributes.empty()) {
             Arc::XMLNode info;
             std::string glue2_namespace = glue_xml.Namespace();
             (info = item.NewChild(glue_xml)).Name("esainfo:ActivityInfoDocument");
@@ -426,7 +465,7 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
             info.NewChild("esainfo:SessionDirectory") = config.Endpoint()+"/"+job.ID();
             // info.NewChild("esainfo:ComputingActivityHistory")
             response_generated = true;
-          } else {
+        } else {
             // Attributes request
             // AttributeInfoItem 1-
             //   AttributeName
@@ -459,7 +498,6 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
               ESUnknownAttributeFault(item.NewChild("dummy"),"None of specified attributes is available");
             };
             response_generated = true;
-          };
         };
       };
       if(!response_generated) {
