@@ -49,11 +49,9 @@ echo "" >> $LRMS_JOB_SCRIPT
 ##############################################################
 # non-parallel jobs
 ##############################################################
-if [ -z "$joboption_count" ] ; then 
-  joboption_count=1
-elif [ "$joboption_count" -le 0 ] ; then
-  joboption_count=1
-fi  
+
+set_count
+
 
 ##############################################################
 # Execution times (obtained in seconds)

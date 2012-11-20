@@ -79,9 +79,8 @@ echo "SGE jobname: $jobname" 1>&2
 ##############################################################
 # (non-)parallel jobs
 ##############################################################
-if [ -z "$joboption_count" ] || [ "$joboption_count" -le 1 ] ; then
-  joboption_count=1
-fi
+
+set_count
 
 ##############################################################
 # parallel jobs
