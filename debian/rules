@@ -58,7 +58,10 @@ clean:
 	rm -f debian/nordugrid-arc-cache-service.arc-cache-service.init
 	rm -f debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.init
 	rm -f debian/nordugrid-arc-gridftpd.gridftpd.init
-	rm -f debian/nordugrid-arc-aris.grid-infosys.init
+	rm -f debian/nordugrid-arc-aris.nordugrid-arc-bdii.init
+	rm -f debian/nordugrid-arc-aris.nordugrid-arc-slapd.init
+	rm -f debian/nordugrid-arc-aris.nordugrid-arc-inforeg.init
+	rm -f debian/nordugrid-arc-egiis.nordugrid-arc-egiis.init
 	rm -f debian/nordugrid-arc-acix-cache.acix-cache.init
 	rm -f debian/nordugrid-arc-acix-index.acix-index.init
 
@@ -87,8 +90,14 @@ install: build-stamp
 	   debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.init
 	mv debian/tmp/etc/init.d/gridftpd \
 	   debian/nordugrid-arc-gridftpd.gridftpd.init
-	mv debian/tmp/etc/init.d/grid-infosys \
-	   debian/nordugrid-arc-aris.grid-infosys.init
+	mv debian/tmp/etc/init.d/nordugrid-arc-bdii \
+	   debian/nordugrid-arc-aris.nordugrid-arc-bdii.init
+	mv debian/tmp/etc/init.d/nordugrid-arc-slapd \
+	   debian/nordugrid-arc-aris.nordugrid-arc-slapd.init
+	mv debian/tmp/etc/init.d/nordugrid-arc-inforeg \
+	   debian/nordugrid-arc-aris.nordugrid-arc-inforeg.init
+	mv debian/tmp/etc/init.d/nordugrid-arc-egiis \
+	   debian/nordugrid-arc-aris.nordugrid-arc-egiis.init
 	mv debian/tmp/etc/init.d/acix-cache \
 	   debian/nordugrid-arc-acix-cache.acix-cache.init
 	mv debian/tmp/etc/init.d/acix-index \
@@ -152,7 +161,10 @@ binary-indep: install
 	dh_install -i --fail-missing ; \
 	fi
 	dh_installchangelogs -i
-	dh_installinit -p nordugrid-arc-aris --name grid-infosys
+	dh_installinit -p nordugrid-arc-aris --name nordugrid-arc-bdii
+	dh_installinit -p nordugrid-arc-aris --name nordugrid-arc-slapd
+	dh_installinit -p nordugrid-arc-aris --name nordugrid-arc-inforeg
+	dh_installinit -p nordugrid-arc-egiis --name nordugrid-arc-egiis
 	dh_perl -i
 	[ -x /usr/bin/dh_python2 ] && dh_python2 -i || dh_pysupport -i
 	[ -x /usr/bin/dh_lintian ] && dh_lintian -i || :
