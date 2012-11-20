@@ -25,6 +25,21 @@
 # Helper functions
 if [ -f /etc/init.d/functions ]; then
     . /etc/init.d/functions
+    log_success_msg() {
+	echo -n "$@"
+	success "$@"
+	echo
+    }
+    log_warning_msg() {
+	echo -n "$@"
+	warning "$@"
+	echo
+    }
+    log_failure_msg() {
+	echo -n "$@"
+	failure "$@"
+	echo
+    }
 elif [ -f /lib/lsb/init-functions ]; then
     . /lib/lsb/init-functions
 else
