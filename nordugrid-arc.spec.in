@@ -62,6 +62,12 @@
 %global with_gfal 0
 %endif
 
+%if %{?fedora}%{!?fedora:0} >= 8
+%global with_canl %{!?_without_canl:1}%{?_without_canl:0}
+%else
+%global with_canl 0
+%endif
+
 %global pkgdir arc
 
 Name:		@PACKAGE@
@@ -137,6 +143,9 @@ BuildRequires:	globus-rls-client-devel
 BuildRequires:	lfc-devel
 %endif
 BuildRequires:	gridsite-devel
+%if %{with_canl}
+BuildRequires:	canl-c++-devel
+%endif
 %if %{with_xrootd}
 BuildRequires:	xrootd-devel
 %endif
@@ -483,6 +492,20 @@ Connector (ARC).
 ARC Globus plugins. This includes the Globus dependent Data Manager
 Components (DMCs).
 
+%if %{with_canl}
+%package canl 
+Summary:  ARC proxy client based on canl
+Group:    Applications/Internet
+Requires: %{name} = %{version}-%{release}
+
+%description canl
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package includes a preview of the arcproxy command based on canl.
+%endif
+
 %if %{with_xrootd}
 %package plugins-xrootd
 Summary:  ARC xrootd plugins
@@ -751,6 +774,9 @@ cd -
 %endif
 %if %{?fedora}%{!?fedora:0} >= 13
      --with-altpython=python3 \
+%endif
+%if %{with_canl}
+     --enable-canlxx \
 %endif
 %if ! %{with_xrootd}
      --disable-xrootd \
@@ -1340,6 +1366,11 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/libarcglobusutils.so.*
 %{_libexecdir}/%{pkgdir}/arc-lcas
 %{_libexecdir}/%{pkgdir}/arc-lcmaps
+
+%if %{with_canl}
+%files canl
+%{_bindir}/arcproxyalt
+%endif
 
 %if %{with_xrootd}
 %files plugins-xrootd
