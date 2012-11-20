@@ -1,4 +1,9 @@
 if GACL_ENABLED
+
+if PEDANTIC_COMPILE
+AM_CXXFLAGS += -Wno-deprecated-declarations
+endif
+
 GACL_CFLAGS = -I$(top_srcdir)/src/services/gridftpd/external/gacl $(GRIDSITE_CFLAGS)
 GACL_LIB = ../external/gacl/libgacl.la
 GACL_SOURCES = identity_gacl.cpp identity_gacl.h \
