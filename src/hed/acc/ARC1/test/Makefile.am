@@ -9,7 +9,7 @@ AREXClientTest_SOURCES = $(top_srcdir)/src/Test.cpp \
 AREXClientTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -DCPPUNITTEST $(AM_CXXFLAGS)
 AREXClientTest_LDADD = \
-	$(top_builddir)/src/hed/libs/ws/libarcws.la \
+	$(top_builddir)/src/hed/libs/infosys/libarcinfosys.la \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
