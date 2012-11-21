@@ -753,6 +753,9 @@ sub check_certificates() {
 		if (system("$opensslpath verify -CApath $CApath $hostcert | grep 'OK'")) {
 			e("Verification of host cert at $hostcert with $opensslpath failed.\n");
 		}
+		if (!system("$opensslpath verify -CApath $CApath $hostcert | grep 'expired'")) {
+			e("Host certificate $hostcert has expired.\n");
+		}
 	}
 	else {
 		if (!$skip_warnings) {
