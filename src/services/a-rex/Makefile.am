@@ -37,6 +37,7 @@ libarex_la_CXXFLAGS = -I$(top_srcdir)/include \
 libarex_la_LIBADD = \
 	ldif/libldif.la \
 	$(GRIDMANAGER_LIBS) \
+	$(top_builddir)/src/hed/libs/infosys/libarcinfosys.la \
 	$(top_builddir)/src/hed/libs/ws/libarcws.la \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
@@ -51,6 +52,7 @@ test_SOURCES = test.cpp
 test_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 test_LDADD = \
+	$(top_builddir)/src/hed/libs/infosys/libarcinfosys.la \
 	$(top_builddir)/src/hed/libs/ws/libarcws.la \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \

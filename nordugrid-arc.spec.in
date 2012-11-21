@@ -1040,6 +1040,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/libarcloader.so.*
 %{_libdir}/libarcmessage.so.*
 %{_libdir}/libarcsecurity.so.*
+%{_libdir}/libarcinfosys.so.*
 %{_libdir}/libarcws.so.*
 %{_libdir}/libarcwssecurity.so.*
 %{_libdir}/libarcxmlsec.so.*

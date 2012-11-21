@@ -2,23 +2,23 @@ TEST_DIR = test
 DIST_SUBDIRS = test schema
 SUBDIRS = schema $(TEST_DIR)
 
-noinst_LTLIBRARIES = libinfosys.la
+lib_LTLIBRARIES = libarcinfosys.la
 #noinst_PROGRAMS = test test_cache # test_register
 
-libinfosys_ladir = $(pkgincludedir)/infosys
-libinfosys_la_HEADERS = InformationInterface.h InfoCache.h \
+libarcinfosys_ladir = $(pkgincludedir)/infosys
+libarcinfosys_la_HEADERS = InformationInterface.h InfoCache.h \
 	InfoRegister.h InfoFilter.h RegisteredService.h
-libinfosys_la_SOURCES = InformationInterface.cpp InfoCache.cpp \
+libarcinfosys_la_SOURCES = InformationInterface.cpp InfoCache.cpp \
 	InfoRegister.cpp InfoFilter.cpp RegisteredService.cpp BootstrapISIS.cpp
-libinfosys_la_CXXFLAGS = -I$(top_srcdir)/include \
+libarcinfosys_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
-libinfosys_la_LIBADD = \
+libarcinfosys_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
-	$(top_builddir)/src/hed/libs/wsrf/libwsrf.la \
+	$(top_builddir)/src/hed/libs/ws/libarcws.la \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 #test_SOURCES = test.cpp
 #test_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)

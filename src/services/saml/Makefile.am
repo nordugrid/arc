@@ -23,7 +23,7 @@ libsaml2sp_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) \
 	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) $(AM_CXXFLAGS)
 libsaml2sp_la_LIBADD = \
-	$(top_builddir)/src/hed/libs/ws/libarcws.la \
+	$(top_builddir)/src/hed/libs/infosys/libarcinfosys.la \
 	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
@@ -40,7 +40,7 @@ libsaml2sp_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) \
 	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) $(AM_CXXFLAGS)
 libsaml2sp_la_LIBADD = \
-	$(top_builddir)/src/hed/libs/ws/libarcws.la \
+	$(top_builddir)/src/hed/libs/infosys/libarcinfosys.la \
 	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
