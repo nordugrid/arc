@@ -5,6 +5,31 @@
     ServiceInformation, JobManagement and JobStatus URL and InterfaceName
     attributes, and StageIn, StageOut and SessionDir attributes.
 
+2012-11-14  Florido Paganelli   <florido.paganelli@hep.lu.se>
+
+  * Finalized GLUE2 rendering:
+    * Removes ARIS service. All endpoints are now shown inside
+      the A-REX org.nordugrid.arex ComputingService.
+    * Removed ComputingActivities from LDAP rendering. Can be enabled with
+      infosys_glue2_ldap_showactivities new option.
+    * Finalized EMI-ES rendering, one Endpoint per port-type
+      including data capabilities.
+    * added infosys_glue2_service_qualitylevel option for the sysadmin
+      to set manually GLUE2 QualityLevel, useful for operations within
+      EGI.
+  * Implemented a solution for client to match GLUE2 Service ID even if
+    looking at data from nordugrid schema.
+  * Implemented a solution for the client to know which interface the 
+    job was submitted both in GLUE2 and Nordugrid schema.
+  * Introduced a relay backend in ldap configuration for interoperability
+    with GLUE2 top-bdii. Now an ARC CE can directly be aggregated by
+    a top-bdii if ARIS ldap URL is configured correctly in GOCDB.
+  * Changed the top element of glue1 schema to match the needs of 
+    Glue1 top-bdii; now ARC CE can directly be aggregated by top-bdii if
+    ARIS ldap URL is configured correctly in GOCDB
+  * Added several fixes to Glue1 schema thanks from contributions
+    by Finnish partners: localse, queue names.
+
 2012-11-08  David Cameron  <d.g.cameron@fys.uio.no>
 
   * Remove support for per-user control directories in A-REX. Add support
