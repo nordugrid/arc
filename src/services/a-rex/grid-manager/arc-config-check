@@ -290,7 +290,7 @@ sub confchecktripel($$$) {
 					if ($t < $mtime ) {
 						e("$r0: mtime in future\n");
 					} elsif ($t > $mtime + $maxdiffsecs) {
-						w("$r0: Older than $maxdiffsecs seconds. rerun grid-update-crls\n");
+						w("$r0: Older than $maxdiffsecs seconds. rerun fetch-crls\n");
 					}
 				}
 			}
