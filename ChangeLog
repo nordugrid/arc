@@ -1,3 +1,10 @@
+2012-11-17  Zsombor Nagy  <zsombor@niif.hu>
+
+  * Changing the main attributes of the Job class: remove the Cluster and
+    the InterfaceName attributes, change the JobID from URL to string, add
+    ServiceInformation, JobManagement and JobStatus URL and InterfaceName
+    attributes, and StageIn, StageOut and SessionDir attributes.
+
 2012-11-08  David Cameron  <d.g.cameron@fys.uio.no>
 
   * Remove support for per-user control directories in A-REX. Add support
