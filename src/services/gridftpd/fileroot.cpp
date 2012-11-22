@@ -39,7 +39,7 @@ FileNode::FileNode(char* dirname,char* plugin,std::istream &cfile,userspec_t &us
     logger.msg(Arc::ERROR, "Plugin %s for access point %s is broken.", plugin, dirname);
     dlclose(handle); handle=NULL; return;
   };
-  if((plug=init(cfile,user)) == NULL) {
+  if((plug=init(cfile,user,*this)) == NULL) {
     logger.msg(Arc::ERROR, "Plugin %s for access point %s is broken.", plugin, dirname);
     dlclose(handle); handle=NULL; init=NULL; return;
   };

@@ -105,8 +105,10 @@ class FilePlugin { /* this is the base class for plugins */
   std::string endpoint; // endpoint (URL) corresponding to plugin
 };
 
+class FileNode;
+
 /* this is the only exported C function from plugin */
-typedef FilePlugin* (*plugin_init_t)(std::istream &cfile,userspec_t &user);
+typedef FilePlugin* (*plugin_init_t)(std::istream &cfile,userspec_t &user,FileNode &node);
 
 class FileNode {
  public:
@@ -143,6 +145,9 @@ class FileNode {
   ~FileNode(void);
 
   bool has_plugin(void) const { return (plug != NULL); };
+  FilePlugin* get_plugin(void) const { return plug; };
+  const std::string& get_plugin_path(void) const { return plugname; };
+ 
   static bool compare(const FileNode &left,const FileNode &right) { return (left.point.length() > right.point.length()); };
   bool operator> (const FileNode &right) const { return (point.length() > right.point.length()); };
   bool operator< (const FileNode &right) const { return (point.length() < right.point.length()); };

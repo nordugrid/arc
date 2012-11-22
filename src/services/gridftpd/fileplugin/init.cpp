@@ -14,7 +14,7 @@ static FilePlugin* init_cpp(std::istream &cfile,userspec_t &user) {
 }
 
 extern "C" {
-  FilePlugin* init(std::istream &cfile,userspec_t &user) {
+  FilePlugin* init(std::istream &cfile,userspec_t &user,FileNode &node) {
     return init_cpp(cfile,user);
   }
 }
