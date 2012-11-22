@@ -363,28 +363,7 @@ namespace Arc {
     return true;
   }
 
-  bool EMIESClient::info(EMIESJob& job, Job& info) {
-    /*
-      esainfo:GetActivityInfo
-        estypes:ActivityID
-        esainfo:AttributeName (xsd:QName)
-
-      esainfo:GetActivityInfoResponse
-        esainfo:ActivityInfoItem
-          estypes:ActivityID
-          esainfo:ActivityInfoDocument (glue:ComputingActivity_t)
-          or
-          esainfo:AttributeInfoItem
-          or
-          estypes:InternalBaseFault
-          AccessControlFault
-          ActivityNotFoundFault
-          UnknownAttributeFault
-          UnableToRetrieveStatusFault
-          OperationNotPossibleFault
-          OperationNotAllowedFault
-    */
-
+  bool EMIESClient::info(EMIESJob& job, XMLNode& info) {
     std::string action = "GetActivityInfo";
     logger.msg(VERBOSE, "Creating and sending job information query request to %s", rurl.str());
 
@@ -414,17 +393,45 @@ namespace Arc {
       lfailure = "Response does not contain ActivityInfoDocument";
       return false;
     };
+    infodoc.New(info);
+    return true;
+  }
+
+  bool EMIESClient::info(EMIESJob& job, Job& arcjob) {
+    /*
+      esainfo:GetActivityInfo
+        estypes:ActivityID
+        esainfo:AttributeName (xsd:QName)
+
+      esainfo:GetActivityInfoResponse
+        esainfo:ActivityInfoItem
+          estypes:ActivityID
+          esainfo:ActivityInfoDocument (glue:ComputingActivity_t)
+          or
+          esainfo:AttributeInfoItem
+          or
+          estypes:InternalBaseFault
+          AccessControlFault
+          ActivityNotFoundFault
+          UnknownAttributeFault
+          UnableToRetrieveStatusFault
+          OperationNotPossibleFault
+          OperationNotAllowedFault
+    */
+
+    XMLNode infodoc;
+    if (!info(job, infodoc)) return false;
     // Processing generic GLUE2 information
-    info.Update(infodoc);
+    arcjob.Update(infodoc);
     // Looking for EMI ES specific state
     XMLNode state = infodoc["State"];
     EMIESJobState st;
     for(;(bool)state;++state) st = (std::string)state;
-    if(st) info.State = JobStateEMIES(st);
+    if(st) arcjob.State = JobStateEMIES(st);
     EMIESJobState rst;
     XMLNode rstate = infodoc["RestartState"];
     for(;(bool)rstate;++rstate) rst = (std::string)rstate;
-    info.RestartState = JobStateEMIES(rst);
+    arcjob.RestartState = JobStateEMIES(rst);
     XMLNode ext;
     ext  = infodoc["esainfo:StageInDirectory"];
     for(;(bool)ext;++ext) job.stagein.push_back((std::string)ext);
@@ -434,8 +441,8 @@ namespace Arc {
     for(;(bool)ext;++ext) job.session.push_back((std::string)ext);
     // Making EMI ES specific job id
     // URL-izing job id
-    info.JobID = job.manager.str() + "/" + job.id;
-    //if(!info) return false;
+    arcjob.JobID = job.manager.str() + "/" + job.id;
+    //if(!arcjob) return false;
     return true;
   }
 

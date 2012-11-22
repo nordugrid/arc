@@ -163,6 +163,7 @@ namespace Arc {
      */
     bool stat(const EMIESJob& job, XMLNode& state);
     bool stat(const EMIESJob& job, EMIESJobState& state);
+    bool info(EMIESJob& job, XMLNode &state);
     bool info(EMIESJob& job, Job& info);
 
     //! Terminates a job.
