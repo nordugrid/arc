@@ -59,6 +59,23 @@ namespace Arc {
     }
     
     for(std::list<EMIESJob>::iterator jobid = jobids.begin(); jobid != jobids.end(); ++jobid) {
+      XMLNode infoxml;
+      ac.info(*jobid, infoxml);
+      bool submittedviaother = false;
+      while (infoxml["OtherInfo"]) {
+        std::string otherinfo = (std::string)infoxml["OtherInfo"];
+        std::string submittedvia = "SubmittedVia=";
+        if (otherinfo.compare(0, submittedvia.length(), submittedvia) == 0) {
+          std::string interfacename = otherinfo.substr(submittedvia.length());
+          if (interfacename != "org.ogf.emies") {
+            logger.msg(DEBUG, "Skipping retrieved job (%s) because it was submitted via another interface (%s).", url.fullstr() + "/" + jobid->id, interfacename);
+            submittedviaother = true;
+          }
+        }
+        infoxml["OtherInfo"].Destroy();
+      }
+      if (submittedviaother) continue;
+      
       Job j;
       if(!jobid->manager) jobid->manager = url;
       // Proposed mandatory attributes for ARC 3.0
