@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <errno.h>
+#include <dlfcn.h>
 
 #include <arc/StringConv.h>
 #include <arc/FileUtils.h>
@@ -124,11 +125,15 @@ static void job_subst(std::string& str,void* arg) {
 }
 
 
-JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):
+JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
     cont_plugins(new ContinuationPlugins),
     cred_plugin(new RunPlugin),
     user_a(user_s.user),
     job_map(user_s.user) {
+
+  // Because this plugin can load own plugins it's symbols need to 
+  // become available in order to avoid duplicate resolution.
+  phandle = dlopen(node.get_plugin_path().c_str(),RTLD_NOW | RTLD_GLOBAL);
   initialized=true;
   rsl_opened=false;
   job_rsl_max_size = DEFAULT_JOB_RSL_MAX_SIZE;
@@ -323,6 +328,7 @@ JobPlugin::~JobPlugin(void) {
   for (unsigned int i = 0; i < file_plugins.size(); i++) {
     if (file_plugins.at(i)) delete file_plugins.at(i);
   }
+  if(phandle) dlclose(phandle);
 }
  
 std::string JobPlugin::get_error_description() const {

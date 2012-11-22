@@ -39,6 +39,7 @@ class JobPlugin: public FilePlugin {
   std::string getSessionDir(std::string id);
   /** Pick new control and session dirs according to algorithm */
   bool chooseControlAndSessionDir(std::string job_id, std::string& controldir, std::string& sessiondir);
+  void* phandle;
   ContinuationPlugins* cont_plugins;
   RunPlugin* cred_plugin;
   Arc::User user;
@@ -64,7 +65,7 @@ class JobPlugin: public FilePlugin {
   std::vector<DirectFilePlugin *> file_plugins;
   DirectFilePlugin * chosenFilePlugin;
  public:
-  JobPlugin(std::istream &cfile,userspec_t &user);
+  JobPlugin(std::istream &cfile,userspec_t &user,FileNode &node);
   ~JobPlugin(void);
   virtual std::string get_error_description() const;
   virtual int open(const char* name,open_modes mode,unsigned long long int size = 0);

@@ -8,14 +8,14 @@
 #include "jobplugin.h"
 
 
-static FilePlugin* init_cpp(std::istream &cfile,userspec_t &user) {
-  JobPlugin* arg = new JobPlugin(cfile,user);
+static FilePlugin* init_cpp(std::istream &cfile,userspec_t &user,FileNode &node) {
+  JobPlugin* arg = new JobPlugin(cfile,user,node);
   return arg;
 }
 
 extern "C" {
-  FilePlugin* init(std::istream &cfile,userspec_t &user) {
-    return init_cpp(cfile,user);
+  FilePlugin* init(std::istream &cfile,userspec_t &user,FileNode &node) {
+    return init_cpp(cfile,user,node);
   }
 }
 
