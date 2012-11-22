@@ -74,14 +74,13 @@ namespace Arc {
     logger.msg(VERBOSE, "Generating EMIES targets");
     GLUE2::ParseExecutionTargets(response, csList);
     for(std::list<ComputingServiceType>::iterator cs = csList.begin(); cs != csList.end(); ++cs) {
-      if(!((*cs)->Cluster)) (*cs)->Cluster = url;
       for (std::map<int, ComputingEndpointType>::iterator ce = cs->ComputingEndpoint.begin();
            ce != cs->ComputingEndpoint.end(); ++ce) {
         if(ce->second->URLString.empty()) ce->second->URLString = url.str();
         if(ce->second->InterfaceName.empty()) ce->second->InterfaceName = "org.ogf.glue.emies.activitycreation";
       }
       if(cs->AdminDomain->Name.empty()) cs->AdminDomain->Name = url.Host();
-      logger.msg(VERBOSE, "Generated EMIES target: %s", (*cs)->Cluster.str());
+      logger.msg(VERBOSE, "Generated EMIES target: %s", cs->AdminDomain->Name);
     }
   }
 

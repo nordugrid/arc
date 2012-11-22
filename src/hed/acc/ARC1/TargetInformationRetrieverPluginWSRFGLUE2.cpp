@@ -84,7 +84,6 @@ namespace Arc {
       ComputingServiceType cs;
       AdminDomainType& AdminDomain = cs.AdminDomain;
 
-      cs->Cluster = url;
       AdminDomain->Name = url.Host();
 
       if (GLUEService["Capability"]) {
@@ -120,7 +119,7 @@ namespace Arc {
       //}
 
 
-      logger.msg(VERBOSE, "Generating A-REX target: %s", cs->Cluster.str());
+      logger.msg(VERBOSE, "Generating A-REX target: %s", AdminDomain->Name);
 
       int endpointID = 0;
       for(XMLNode xmlCENode = GLUEService["ComputingEndpoint"]; (bool)xmlCENode; ++xmlCENode) {

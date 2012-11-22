@@ -379,7 +379,6 @@ namespace Arc {
     out << IString("Computing resource:") << std::endl;
     out << IString(" Service ID: %s", cst->ID) << std::endl;
     out << *cst << std::endl;
-    out << IString(" Information endpoint: %s", cst->Cluster.plainstr()) << std::endl;
     out << std::endl;
     
     out << std::endl << *cst.Location;
@@ -426,13 +425,7 @@ namespace Arc {
 
 
   std::ostream& operator<<(std::ostream& out, const ExecutionTarget& et) {
-    out << IString("Execution Target on Computing Service: %s", (!et.ComputingService->Name.empty() ? et.ComputingService->Name : et.ComputingService->Cluster.Host())) << std::endl;
-    if (et.ComputingService->Cluster) {
-      std::string formattedURL = et.ComputingService->Cluster.str();
-      formattedURL.erase(std::remove(formattedURL.begin(), formattedURL.end(), ' '), formattedURL.end()); // Remove spaces.
-      std::string::size_type pos = formattedURL.find("?"); // Do not output characters after the '?' character.
-      out << IString(" Local information system URL: %s", formattedURL.substr(0, pos)) << std::endl;
-    }
+    out << IString("Execution Target on Computing Service: %s", et.ComputingService->Name) << std::endl;
     if (!et.ComputingEndpoint->URLString.empty())
       out << IString(" Computing endpoint URL: %s", et.ComputingEndpoint->URLString) << std::endl;
     if (!et.ComputingEndpoint->InterfaceName.empty())

@@ -244,10 +244,6 @@ namespace Arc {
       AdminDomainType& AdminDomain = cs.AdminDomain;
       LocationType& Location = cs.Location;
 
-      cs->Cluster = url; // contains the URL of the infosys that provided the info
-      cs->Cluster.ChangeLDAPScope(URL::base); // Reset scope
-      cs->Cluster.ChangeLDAPFilter(""); // and filter.
-
       cs->InformationOriginEndpoint = ce;
 
       // GFD.147 GLUE2 5.3 Location

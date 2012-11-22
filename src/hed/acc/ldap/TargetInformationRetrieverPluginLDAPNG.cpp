@@ -107,10 +107,6 @@ namespace Arc {
       AdminDomainType& AdminDomain = cs.AdminDomain;
       LocationType& Location = cs.Location;
 
-      cs->Cluster = url;
-      cs->Cluster.ChangeLDAPScope(URL::base); // Reset scope
-      cs->Cluster.ChangeLDAPFilter(""); // and filter.
-
       cs->InformationOriginEndpoint = cie;
       // Computing Service attributes
       if ((*it)["nordugrid-cluster-name"]) {
@@ -177,7 +173,10 @@ namespace Arc {
       cs.ComputingEndpoint.insert(std::pair<int, ComputingEndpointType>(0, ComputingEndpoint));
       
       ComputingEndpointType InformationEndpoint;
-      InformationEndpoint->URLString = cie.URLString;
+      URL InformationEndpointURL = url;
+      InformationEndpointURL.ChangeLDAPFilter("");
+      InformationEndpointURL.ChangeLDAPScope(URL::base);
+      InformationEndpoint->URLString = InformationEndpointURL.fullstr();
       InformationEndpoint->InterfaceName = cie.InterfaceName;
       InformationEndpoint->HealthState = cie.HealthState;
       InformationEndpoint->HealthStateInfo = cie.HealthStateInfo;

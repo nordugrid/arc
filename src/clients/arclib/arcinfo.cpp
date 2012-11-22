@@ -130,7 +130,6 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
         std::cout << " (" << (**it).QualityLevel << ")";
       }
       std::cout << std::endl;
-      std::cout << "  Information endpoint: " << (**it).Cluster.str() << std::endl;
       for (std::map<int, Arc::ComputingEndpointType>::const_iterator itCE = it->ComputingEndpoint.begin();
            itCE != it->ComputingEndpoint.end(); ++itCE) {
          if (itCE->second->Capability.empty() ||

@@ -105,7 +105,7 @@ namespace Arc {
     
       Job j;
       
-      AddJobDetails(preparedjobdesc, jobInformationEndpoint, j);
+      AddJobDetails(preparedjobdesc, j);
       
       // Proposed mandatory attributes for ARC 3.0
       j.JobID = jobid.fullstr();
@@ -194,7 +194,7 @@ namespace Arc {
       }
     
       Job j;
-      AddJobDetails(preparedjobdesc, et.ComputingService->Cluster, j);
+      AddJobDetails(preparedjobdesc, j);
       
       // Proposed mandatory attributes for ARC 3.0
       j.JobID = jobid.fullstr();
@@ -294,7 +294,7 @@ namespace Arc {
       return false;
     }
 
-    AddJobDetails(preparedjobdesc, et.ComputingService->Cluster, job);
+    AddJobDetails(preparedjobdesc, job);
     
     // Proposed mandatory attributes for ARC 3.0
     job.JobID = newjobid;

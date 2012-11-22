@@ -95,8 +95,6 @@ namespace Arc {
       //AdminDomainType& AdminDomain = cs.AdminDomain;
       //LocationType& Location = cs.Location;
 
-      cs->Cluster = url;
-
       std::string key;
       std::string::size_type pos = std::string::npos;
 

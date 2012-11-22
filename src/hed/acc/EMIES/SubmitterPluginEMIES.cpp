@@ -60,7 +60,7 @@ namespace Arc {
  
       Job j = jobid.ToJob();
 
-      AddJobDetails(preparedjobdesc, jobInformationEndpoint, j);
+      AddJobDetails(preparedjobdesc, j);
     
       jc.addEntity(j);
     }
@@ -76,7 +76,6 @@ namespace Arc {
     // to collect this information. So service is re-queried again here.
     URL iurl;
     iurl = et.ComputingService->InformationOriginEndpoint.URLString;
-    if(!iurl) iurl = et.ComputingService->Cluster;
     
     URL durl;
     
@@ -110,7 +109,7 @@ namespace Arc {
       
       Job j = jobid.ToJob();
       
-      AddJobDetails(preparedjobdesc, et.ComputingService->Cluster, j);
+      AddJobDetails(preparedjobdesc, j);
       jc.addEntity(j);
     }
 

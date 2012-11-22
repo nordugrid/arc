@@ -169,7 +169,7 @@ namespace Arc {
       j.StageOutDir = jobid;
       j.SessionDir = jobid;
 
-      AddJobDetails(preparedjobdesc, jobInformationEndpoint, j);
+      AddJobDetails(preparedjobdesc, j);
       jc.addEntity(j);
     }
 
@@ -276,16 +276,14 @@ namespace Arc {
       }
 
       // Prepare contact url for information about this job
-      URL infoendpoint(et.ComputingService->Cluster);
-      infoendpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" + escape_chars(jobid.str(),filter_esc,'\\',false,escape_hex) + ")");
-      infoendpoint.ChangeLDAPScope(URL::subtree);
-      std::size_t ogluepos = infoendpoint.Path().find("o=glue");
-      if (ogluepos != std::string::npos) {
-        std::string newpath = infoendpoint.Path();
-        newpath.replace(ogluepos, 6, "o=grid");
-        infoendpoint.ChangePath(newpath);
+      URL infoendpoint;
+      for (std::list< CountedPointer<ComputingEndpointAttributes> >::const_iterator it = et.OtherEndpoints.begin(); it != et.OtherEndpoints.end(); it++) {
+        if ((*it)->InterfaceName == "org.nordugrid.ldapng") {
+          infoendpoint = URL((*it)->URLString);
+          infoendpoint.ChangeLDAPScope(URL::subtree);
+        }
       }
-  
+
       Job j;
       
       // Proposed mandatory attributes for ARC 3.0
@@ -294,6 +292,7 @@ namespace Arc {
       j.ServiceInformationURL.ChangeLDAPFilter("");
       j.ServiceInformationInterfaceName = "org.nordugrid.ldapng";
       j.JobStatusURL = infoendpoint;
+      j.JobStatusURL.ChangeLDAPFilter("(nordugrid-job-globalid=" + escape_chars(jobid.str(),filter_esc,'\\',false,escape_hex) + ")");
       j.JobStatusInterfaceName = "org.nordugrid.ldapng";
       j.JobManagementURL = ContactString;
       j.JobManagementInterfaceName = "org.nordugrid.gridftpjob";
@@ -302,7 +301,7 @@ namespace Arc {
       j.StageOutDir = jobid;
       j.SessionDir = jobid;
       
-      AddJobDetails(preparedjobdesc, et.ComputingService->Cluster, j);
+      AddJobDetails(preparedjobdesc, j);
       jc.addEntity(j);
     }
 

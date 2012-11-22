@@ -591,6 +591,13 @@ namespace Arc {
     }
     targets.first.insert(insertPosition, et);
   }
+  
+  bool ExecutionTargetSorter::reject(const ExecutionTarget& et) {
+    for (std::list<URL>::const_iterator it = rejectEndpoints.begin(); it != rejectEndpoints.end(); ++it) {
+      if (it->StringMatches(et.ComputingEndpoint->URLString)) return true;
+    }
+    return false;
+  }
 
   void ExecutionTargetSorter::sort() {
     targets.second.insert(targets.second.end(), targets.first.begin(), targets.first.end());

@@ -125,8 +125,8 @@ namespace Arc {
   private:
     void sort();
     void insert(const ExecutionTarget& et);
-    bool reject(const ExecutionTarget& et) const { return !rejectEndpoints.empty() && (std::find(rejectEndpoints.begin(), rejectEndpoints.end(), et.ComputingEndpoint->URLString) != rejectEndpoints.end() || std::find(rejectEndpoints.begin(), rejectEndpoints.end(), et.ComputingService->Cluster) != rejectEndpoints.end()); }  
-
+    bool reject(const ExecutionTarget& et);
+    
     const Broker* b;
     std::list<URL> rejectEndpoints;
   

@@ -59,7 +59,6 @@ namespace Arc {
 
 
     ComputingServiceType cs;
-    cs->Cluster = url;
     cs.AdminDomain->Name = url.Host();
 
     ComputingEndpointType ComputingEndpoint;

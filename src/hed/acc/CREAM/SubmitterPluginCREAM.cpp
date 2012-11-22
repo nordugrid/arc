@@ -92,7 +92,7 @@ namespace Arc {
 
       Job j;
       j.JobID = submissionurl.str() + '/' + jobInfo.id;
-      AddJobDetails(preparedjobdesc, jobInformationEndpoint, j);
+      AddJobDetails(preparedjobdesc, j);
       xIDFromEndpoint.GetXML(j.IDFromEndpoint);
       jc.addEntity(j);
     }
@@ -178,7 +178,7 @@ namespace Arc {
 
       Job j;
       j.JobID = submissionurl.str() + '/' + jobInfo.id;
-      AddJobDetails(preparedjobdesc, et.ComputingService->Cluster, j);
+      AddJobDetails(preparedjobdesc, j);
       xIDFromEndpoint.GetXML(j.IDFromEndpoint);
       jc.addEntity(j);
     }

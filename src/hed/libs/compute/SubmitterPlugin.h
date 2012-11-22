@@ -90,8 +90,7 @@ namespace Arc {
 
   protected:
     bool PutFiles(const JobDescription& jobdesc, const URL& url) const;
-    void AddJobDetails(const JobDescription& jobdesc,
-                       const URL& cluster, Job& job) const;
+    void AddJobDetails(const JobDescription& jobdesc, Job& job) const;
 
     const UserConfig& usercfg;
     std::list<std::string> supportedInterfaces;
