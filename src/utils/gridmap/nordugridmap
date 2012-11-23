@@ -324,8 +324,7 @@ sub get_source_flag {
         my $text_def = $config_flags{$flag_name} ? $value_yes : $value_no;
         &Logger("Unrecognized value for source-specific option '$option_name'. Valid valueas are: '$value_yes' or '$value_no'. Using globaly configured value '$text_def'", WARNING);
     }
-    return 1 if ( $config_flags{$flag_name} eq $value_yes );
-    return 0;
+    return $config_flags{$flag_name};
 }
 
 # return parsed edg-mkgridmap configuration hash 
