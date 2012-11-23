@@ -683,7 +683,7 @@ sub get_block_sources {
             if ( defined $ref_confighash->{$block_id}{'voms_fqan_map'} ) {
                 # FQANs defined for VOMS URL: generate URL for every FQAN
                 my @fqans = split /\[separator\]/, $ref_confighash->{$block_id}{'voms_fqan_map'};
-                my ( $voms_baseid, $dummy_fqan ) = $source_id =~ m/^([^\?]+)\?(.*)$/;
+                my ( $voms_baseid, $dummy_fqan ) = $source_id =~ m/^([^\?]+)\??(.*)$/;
                 foreach my $fqan_match ( @fqans ) {
                     my ( $fqan, $map_id ) = $fqan_match =~ m/^([^\s]+)\s+(.*)$/;
                     # create URL with specified FQAN
