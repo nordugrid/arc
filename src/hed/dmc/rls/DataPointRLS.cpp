@@ -263,6 +263,10 @@ namespace Arc {
                    i != url.CommonLocOptions().end(); i++) {
                 pfn.AddOption(i->first, i->second, false);
               }
+              for (std::map<std::string, std::string>::const_iterator i = url.Options().begin();
+                   i != url.Options().end(); i++) {
+                pfn.AddOption(i->first, i->second, false);
+              }
               URL pfn_ = AddPFN(pfn,source);
               if (!pfn_) {
                 logger.msg(WARNING, "Skipping invalid location %s - %s", rlsurl.str(), pfn.plainstr());
@@ -282,6 +286,10 @@ namespace Arc {
             for (std::map<std::string, std::string>::const_iterator i =
                    url.CommonLocOptions().begin();
               i != url.CommonLocOptions().end(); i++) {
+              pfn_.AddOption(i->first, i->second, false);
+            }
+            for (std::map<std::string, std::string>::const_iterator i = url.Options().begin();
+                 i != url.Options().end(); i++) {
               pfn_.AddOption(i->first, i->second, false);
             }
             pfn_ = AddPFN(pfn_,source);
