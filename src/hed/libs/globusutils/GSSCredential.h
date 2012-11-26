@@ -9,6 +9,11 @@ namespace Arc {
 
   class Logger;
 
+  /// Class for converting credentials stored in file 
+  /// in PEM format into Globus structire.
+  /// It works only for full credentials containing 
+  /// private key. This limitation is due to limited
+  /// API of Globus.
   class GSSCredential {
   public:
     GSSCredential(const std::string& proxyPath,
