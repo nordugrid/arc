@@ -2,6 +2,8 @@
 
   * Change recursion options for arccp and arcls. -r specifies infinite
     recursion and -D is used for a specific level or recursion.
+  * Change A-REX default data staging mechanism to DTR. The old system can
+    still be used by setting enable_dtr="no" in arc.conf.
   
 2012-11-17  Zsombor Nagy  <zsombor@niif.hu>
 

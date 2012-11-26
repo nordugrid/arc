@@ -212,7 +212,7 @@ public:
   int MaxDownloads() const { return max_downloads; }
 
   /// Whether to use new data staging (DTR)
-  bool NewDataStaging() const { return use_new_data_staging; }
+  bool UseDTR() const { return use_dtr; }
 
   /// Returns true if the shared uid matches the given uid
   bool MatchShareUid(uid_t suid) const { return ((share_uid==0) || (share_uid==suid)); };
@@ -306,7 +306,7 @@ private:
   /// Whether to do staging on the worker node instead of frontend
   bool use_local_transfer;
   /// Whether to use the new data staging framework (DTR)
-  bool use_new_data_staging;
+  bool use_dtr;
   /// Pattern defining the preferred choice of replica
   std::string preferred_pattern;
 

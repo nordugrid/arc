@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
   if((!notshow_jobs) || (!notshow_states) || (show_share) ||
      (cancel_users.size() > 0) || (clean_users.size() > 0) ||
      (cancel_jobs.size() > 0) || (clean_jobs.size() > 0)) {
-    if (show_share && config.NewDataStaging()) {
+    if (show_share && config.UseDTR()) {
       get_new_data_staging_shares(config, share_preparing, share_preparing_pending,
                                   share_finishing, share_finishing_pending);
     }
@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
         continue;
       }
       JobLocalDescription& job_desc = *(i->get_local());
-      if (show_share && !config.NewDataStaging()) {
+      if (show_share && !config.UseDTR()) {
         if(new_state == JOB_STATE_PREPARING && !pending) share_preparing[job_desc.transfershare]++;
         else if(new_state == JOB_STATE_ACCEPTED && pending) share_preparing_pending[job_desc.transfershare]++;
         else if(new_state == JOB_STATE_FINISHING) share_finishing[job_desc.transfershare]++;
@@ -297,7 +297,7 @@ int main(int argc, char* argv[]) {
   }
   
   if(show_share) {
-    std::cout<<"\n Preparing/Pending "<<(config.NewDataStaging() ? "files" : "jobs ")<<"\tTransfer share"<<std::endl;
+    std::cout<<"\n Preparing/Pending "<<(config.UseDTR() ? "files" : "jobs ")<<"\tTransfer share"<<std::endl;
     for (std::map<std::string, int>::iterator i = share_preparing.begin(); i != share_preparing.end(); i++) {
       std::cout<<"         "<<i->second<<"/"<<share_preparing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
     }
@@ -305,7 +305,7 @@ int main(int argc, char* argv[]) {
       if (share_preparing[i->first] == 0)
         std::cout<<"         0/"<<share_preparing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
     }
-    std::cout<<"\n Finishing/Pending "<<(config.NewDataStaging() ? "files" : "jobs ")<<"\tTransfer share"<<std::endl;
+    std::cout<<"\n Finishing/Pending "<<(config.UseDTR() ? "files" : "jobs ")<<"\tTransfer share"<<std::endl;
     for (std::map<std::string, int>::iterator i = share_finishing.begin(); i != share_finishing.end(); i++) {
       std::cout<<"         "<<i->second<<"/"<<share_finishing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
     }

@@ -412,7 +412,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       if (command == "newdatastaging") {
         logger.msg(Arc::WARNING, "'newdatastaging' configuration option is deprecated, 'enable_dtr' should be used instead");
       }
-      if (!CheckYesNoCommand(config.use_new_data_staging, command, rest)) return false;
+      if (!CheckYesNoCommand(config.use_dtr, command, rest)) return false;
     }
     else if (command == "fixdirectories") {
       std::string s = config_next_arg(rest);
@@ -647,7 +647,7 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     if (!elementtobool(tmp_node, "passiveTransfer", config.use_passive_transfer, &logger)) return false;
     if (!elementtobool(tmp_node, "secureTransfer", config.use_secure_transfer, &logger)) return false;
     if (!elementtobool(tmp_node, "localTransfer", config.use_local_transfer, &logger)) return false;
-    if (!elementtobool(tmp_node, "enableDTR", config.use_new_data_staging, &logger)) return false;
+    if (!elementtobool(tmp_node, "enableDTR", config.use_dtr, &logger)) return false;
     if (!elementtoint(tmp_node, "maxRetries", config.max_retries, &logger)) return false;
     if (tmp_node["preferredPattern"]) config.preferred_pattern = (std::string)(tmp_node["preferredPattern"]);
   }

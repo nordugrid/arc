@@ -102,7 +102,7 @@ int JobsList::FinishingJobs() const {
 
 void JobsList::ChooseShare(JobsList::iterator& i) {
   // only applies to old staging
-  if (config.use_new_data_staging || config.share_type.empty()) return;
+  if (config.use_dtr || config.share_type.empty()) return;
   std::string user_proxy_file = job_proxy_filename(i->get_id(), config);
   std::string cert_dir = "/etc/grid-security/certificates";
   if (!config.cert_dir.empty()) cert_dir = config.cert_dir;
@@ -263,7 +263,7 @@ bool JobsList::ActJobs(void) {
   bool once_more = false;
   bool postpone_preparing = false;
   bool postpone_finishing = false;
-  if (!(config.use_new_data_staging && dtr_generator)) {
+  if (!(config.use_dtr && dtr_generator)) {
     if((config.max_jobs_staging != -1) &&
        (!config.use_local_transfer) &&
        ((ProcessingJobs()*3) > (config.max_jobs_staging*2))) {
@@ -585,7 +585,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
 
 bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,bool up,bool &retry) {
 
-  if (config.use_new_data_staging && dtr_generator) {  /***** new data staging ******/
+  if (config.use_dtr && dtr_generator) {  /***** new data staging ******/
 
     // first check if job is already in the system
     if (!dtr_generator->hasJob(*i)) {
@@ -781,7 +781,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
 bool JobsList::CanStage(const JobsList::iterator &i, bool up) {
 
   // new data staging - all jobs can proceed immediately
-  if (config.use_new_data_staging && dtr_generator) return true;
+  if (config.use_dtr && dtr_generator) return true;
   // transfer is done on worker nodes
   if (config.use_local_transfer) return true;
   // nothing to stage
@@ -1403,7 +1403,7 @@ bool JobsList::ActJob(JobsList::iterator &i) {
        (i->job_state != JOB_STATE_SUBMITTING)) {
       if(job_cancel_mark_check(i->job_id,config)) {
         logger.msg(Arc::INFO,"%s: Canceling job because of user request",i->job_id);
-        if (config.use_new_data_staging && dtr_generator &&
+        if (config.use_dtr && dtr_generator &&
             (i->job_state == JOB_STATE_PREPARING || i->job_state == JOB_STATE_FINISHING)) {
           dtr_generator->cancelJob(*i);
         }
@@ -1428,14 +1428,14 @@ bool JobsList::ActJob(JobsList::iterator &i) {
         }
         // if new data staging we wait to get back all DTRs
         else if(i->job_state == JOB_STATE_FINISHING) {
-          if (!config.use_new_data_staging) {
+          if (!config.use_dtr) {
             i->job_state = JOB_STATE_FINISHED;
             if(GetLocalDescription(i)) {
               if (--(jobs_dn[i->local->DN]) <= 0) jobs_dn.erase(i->local->DN);
             }
           }
         }
-        else if (!config.use_new_data_staging || i->job_state != JOB_STATE_PREPARING) {
+        else if (!config.use_dtr || i->job_state != JOB_STATE_PREPARING) {
           i->job_state = JOB_STATE_FINISHING;
           finishing_job_share[i->transfer_share]++;
         }

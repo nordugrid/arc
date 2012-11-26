@@ -272,7 +272,7 @@ bool GridManager::thread() {
   jobs.RestartJobs();
 
   hard_job_time = time(NULL) + HARD_JOB_PERIOD;
-  if (config_.NewDataStaging()) {
+  if (config_.UseDTR()) {
     logger.msg(Arc::INFO, "Starting data staging threads");
     DTRGenerator* dtr_generator = new DTRGenerator(config_, &kick_func, wakeup_);
     if (!(*dtr_generator)) {

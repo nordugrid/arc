@@ -85,7 +85,7 @@ void GMConfig::SetDefaults() {
   use_secure_transfer = false;
   use_passive_transfer = false;
   use_local_transfer = false;
-  use_new_data_staging = false;
+  use_dtr = true;
 
   max_jobs_running = -1;
   max_jobs_total = -1;
