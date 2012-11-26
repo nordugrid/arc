@@ -236,18 +236,6 @@ namespace Arc {
 
   Job& Job::operator=(XMLNode job) {
     jc = NULL;
-    // Proposed mandatory attributes for ARC 3.0
-    JXMLTOSTRING(Name)
-    if (job["ServiceInformationURL"]) ServiceInformationURL = URL((std::string)job["ServiceInformationURL"]);
-    JXMLTOSTRING(ServiceInformationInterfaceName)
-    if (job["JobStatusURL"]) JobStatusURL = URL((std::string)job["JobStatusURL"]);
-    JXMLTOSTRING(JobStatusInterfaceName)
-    if (job["JobManagementURL"]) JobManagementURL = URL((std::string)job["JobManagementURL"]);
-    JXMLTOSTRING(JobManagementInterfaceName)
-
-    if (job["StageInDir"]) StageInDir = URL((std::string)job["StageInDir"]);
-    if (job["StageOutDir"]) StageOutDir = URL((std::string)job["StageOutDir"]);
-    if (job["SessionDir"]) SessionDir = URL((std::string)job["SessionDir"]);
       
     // Information specific to how job is stored in jobs list
     if (job["JobID"]) {
@@ -275,9 +263,38 @@ namespace Arc {
       else if ((std::string)job["Flavour"] == "TEST")  JobManagementInterfaceName = "org.nordugrid.test";
     }
 
-    if (job["InfoEndpoint"] && job["Flavour"] && (std::string)job["Flavour"] == "ARC0") {
-      IDFromEndpoint = (std::string)job["InfoEndpoint"];
+    // Proposed mandatory attributes for ARC 3.0
+    if (job["ServiceInformationURL"]) {
+      ServiceInformationURL = URL((std::string)job["ServiceInformationURL"]);
+    } else {
+      ServiceInformationURL = URL((std::string)job["Cluster"]);
     }
+    JXMLTOSTRING(ServiceInformationInterfaceName)
+
+    if (job["JobStatusURL"]) JobStatusURL = URL((std::string)job["JobStatusURL"]);
+    JXMLTOSTRING(JobStatusInterfaceName)
+
+    if (job["JobManagementURL"]) {
+      JobManagementURL = URL((std::string)job["JobManagementURL"]);
+    } else {
+      JobManagementURL = URL(JobID);
+      StageInDir = JobManagementURL;
+      StageOutDir = JobManagementURL;
+      SessionDir = JobManagementURL;
+      
+      std::string path = JobManagementURL.Path();
+      std::size_t slashpos = path.rfind("/");
+      path = path.substr(0, slashpos);
+      JobManagementURL.ChangePath(path);
+    }
+    JXMLTOSTRING(JobManagementInterfaceName)
+    if (JobManagementInterfaceName.empty()) {
+      JobManagementInterfaceName = (std::string)job["InterfaceName"];
+    }
+
+    if (job["StageInDir"]) StageInDir = URL((std::string)job["StageInDir"]);
+    if (job["StageOutDir"]) StageOutDir = URL((std::string)job["StageOutDir"]);
+    if (job["SessionDir"]) SessionDir = URL((std::string)job["SessionDir"]);
 
     if (job["JobDescription"]) {
       const std::string sjobdesc = job["JobDescription"];

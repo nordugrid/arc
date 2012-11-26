@@ -912,7 +912,12 @@ namespace Arc {
     if (job.SessionDir) session.push_back(job.SessionDir);
     session.clear();
     stageout.clear();
-    id = job.IDFromEndpoint;
+    XMLNode IDFromEndpointXML(job.IDFromEndpoint);
+    if (IDFromEndpointXML) {
+      id = (std::string)IDFromEndpointXML["ReferenceParameters"]["CustomID"];
+    } else {
+      id = job.IDFromEndpoint;        
+    }
     manager = job.JobManagementURL;
     resource = job.ServiceInformationURL;
     return *this;

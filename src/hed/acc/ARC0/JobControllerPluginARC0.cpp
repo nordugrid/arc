@@ -52,8 +52,10 @@ namespace Arc {
 
   void JobControllerPluginARC0::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     std::map<std::string, std::list<Job*> > jobsbyhost;
-    for (std::list<Job*>::iterator it = jobs.begin();
-         it != jobs.end(); ++it) {
+    for (std::list<Job*>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      if (!(*it)->JobStatusURL) {
+        (*it)->JobStatusURL = (*it)->ServiceInformationURL;
+      }
       URL infoEndpoint = (*it)->JobStatusURL;
       jobsbyhost[infoEndpoint.ConnectionURL() +
                  infoEndpoint.Path()].push_back(*it);

@@ -19,8 +19,9 @@ class JobTest
   CPPUNIT_TEST(XMLToJobTest);
   CPPUNIT_TEST(JobToXMLTest);
   CPPUNIT_TEST(XMLToJobStateTest);
-  CPPUNIT_TEST(CurrentFormatTest);
-  CPPUNIT_TEST(FromOldFormatTest);
+  CPPUNIT_TEST(VersionTwoFormatTest);
+  CPPUNIT_TEST(VersionOneFormatTest);
+  CPPUNIT_TEST(VersionNoxFormatTest);
   //CPPUNIT_TEST(FileTest);
   //CPPUNIT_TEST(ReadJobsFromFileTest);
   CPPUNIT_TEST_SUITE_END();
@@ -32,8 +33,9 @@ public:
   void XMLToJobTest();
   void JobToXMLTest();
   void XMLToJobStateTest();
-  void CurrentFormatTest();
-  void FromOldFormatTest();
+  void VersionTwoFormatTest();
+  void VersionOneFormatTest();
+  void VersionNoxFormatTest();
   void FileTest();
   void ReadJobsFromFileTest();
 
@@ -42,11 +44,19 @@ private:
 };
 
 JobTest::JobTest() : xmlJob(Arc::XMLNode("<ComputingActivity>"
-    "<JobID>https://ce01.niif.hu:60000/arex/123456</JobID>"
+    "<ServiceInformationURL>https://testbed-emi4.grid.upjs.sk:60000/arex</ServiceInformationURL>"
+    "<ServiceInformationInterfaceName>org.ogf.glue.emies.resourceinfo</ServiceInformationInterfaceName>"
+    "<JobStatusURL>https://testbed-emi4.grid.upjs.sk:60000/arex</JobStatusURL>"
+    "<JobStatusInterfaceName>org.ogf.glue.emies.activitymanagement</JobStatusInterfaceName>"
+    "<JobManagementURL>https://testbed-emi4.grid.upjs.sk:60000/arex</JobManagementURL>"
+    "<JobManagementInterfaceName>org.ogf.glue.emies.activitymanagement</JobManagementInterfaceName>"
+    "<JobID>https://testbed-emi4.grid.upjs.sk:60000/arex/HiqNDmAiivgnIfnhppWRvMapABFKDmABFKDmQhJKDmCBFKDmmdhHxm</JobID>"
+    "<IDFromEndpoint>HiqNDmAiivgnIfnhppWRvMapABFKDmABFKDmQhJKDmCBFKDmmdhHxm</IDFromEndpoint>"
+    "<StageInDir>https://testbed-emi4.grid.upjs.sk:60000/arex</StageInDir>"
+    "<StageOutDir>https://testbed-emi4.grid.upjs.sk:60000/arex</StageOutDir>"
+    "<SessionDir>https://testbed-emi4.grid.upjs.sk:60000/arex</SessionDir>"
     "<Name>mc08.1050.J7</Name>"
-    "<ServiceInformationURL>https://ce01.niif.hu:60000/arex/</ServiceInformationURL>"
     "<Type>single</Type>"
-    "<IDFromEndpoint>&lt;?xml version=\"1.0\"?&gt;&lt;ActivityIdentifier&gt;&lt;Address&gt;https://ce01.niif.hu:60000&lt;/Address&gt;&lt;ReferenceParameters&gt;&lt;CustomID&gt;123456&lt;/CustomID&gt;&lt;/ReferenceParameters&gt;&lt;/ActivityIdentifier&gt;</IDFromEndpoint>"
     "<LocalIDFromManager>345.ce01</LocalIDFromManager>"
     "<JobDescription>nordugrid:xrsl</JobDescription>"
     "<JobDescriptionDocument>&amp;(executable=\"helloworld.sh\")(arguments=\"random.dat\")(inputfiles=(\"helloworld.sh\")(\"random.dat\"))(stdout=\"helloworld.out\")(join=\"yes\")</JobDescriptionDocument>"
@@ -107,20 +117,18 @@ void JobTest::XMLToJobTest() {
   Arc::Job job;
   job = xmlJob;
 
-  CPPUNIT_ASSERT_EQUAL((std::string)"https://ce01.niif.hu:60000/arex/123456", job.JobID);
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://testbed-emi4.grid.upjs.sk:60000/arex/HiqNDmAiivgnIfnhppWRvMapABFKDmABFKDmQhJKDmCBFKDmmdhHxm", job.JobID);
   CPPUNIT_ASSERT_EQUAL((std::string)"mc08.1050.J7", job.Name);
-  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce01.niif.hu:60000/arex/"), job.ServiceInformationURL);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://testbed-emi4.grid.upjs.sk:60000/arex"), job.ServiceInformationURL);
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.ogf.glue.emies.resourceinfo", job.ServiceInformationInterfaceName);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://testbed-emi4.grid.upjs.sk:60000/arex"), job.JobStatusURL);
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.ogf.glue.emies.activitymanagement", job.JobStatusInterfaceName);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://testbed-emi4.grid.upjs.sk:60000/arex"), job.JobManagementURL);
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.ogf.glue.emies.activitymanagement", job.JobManagementInterfaceName);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://testbed-emi4.grid.upjs.sk:60000/arex"), job.StageInDir);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://testbed-emi4.grid.upjs.sk:60000/arex"), job.StageOutDir);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://testbed-emi4.grid.upjs.sk:60000/arex"), job.SessionDir);
   CPPUNIT_ASSERT_EQUAL((std::string)"single", job.Type);
-  
-  Arc::XMLNode xIDFromEndpoint(job.IDFromEndpoint);
-  CPPUNIT_ASSERT_EQUAL(2, xIDFromEndpoint.Size());
-  CPPUNIT_ASSERT(xIDFromEndpoint["Address"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"https://ce01.niif.hu:60000", (std::string)xIDFromEndpoint["Address"]);
-  CPPUNIT_ASSERT(xIDFromEndpoint["ReferenceParameters"]);
-  CPPUNIT_ASSERT_EQUAL(1, xIDFromEndpoint["ReferenceParameters"].Size());
-  CPPUNIT_ASSERT(xIDFromEndpoint["ReferenceParameters"]["CustomID"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"123456", (std::string)xIDFromEndpoint["ReferenceParameters"]["CustomID"]);
-  
   CPPUNIT_ASSERT_EQUAL((std::string)"345.ce01", job.LocalIDFromManager);
   CPPUNIT_ASSERT_EQUAL((std::string)"nordugrid:xrsl", job.JobDescription);
   CPPUNIT_ASSERT_EQUAL((std::string)"&(executable=\"helloworld.sh\")(arguments=\"random.dat\")(inputfiles=(\"helloworld.sh\")(\"random.dat\"))(stdout=\"helloworld.out\")(join=\"yes\")", job.JobDescriptionDocument);
@@ -186,9 +194,17 @@ void JobTest::JobToXMLTest() {
 
   job.ToXML(xmlOut);
 
-  CPPUNIT_ASSERT_EQUAL((std::string)"https://ce01.niif.hu:60000/arex/123456", (std::string)xmlOut["JobID"]); xmlOut["JobID"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://testbed-emi4.grid.upjs.sk:60000/arex/HiqNDmAiivgnIfnhppWRvMapABFKDmABFKDmQhJKDmCBFKDmmdhHxm", (std::string)xmlOut["JobID"]); xmlOut["JobID"].Destroy();
   CPPUNIT_ASSERT_EQUAL((std::string)"mc08.1050.J7", (std::string)xmlOut["Name"]); xmlOut["Name"].Destroy();
-  CPPUNIT_ASSERT_EQUAL((std::string)"https://ce01.niif.hu:60000/arex/", (std::string)xmlOut["ServiceInformationURL"]); xmlOut["ServiceInformationURL"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://testbed-emi4.grid.upjs.sk:60000/arex", (std::string)xmlOut["ServiceInformationURL"]); xmlOut["ServiceInformationURL"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.ogf.glue.emies.resourceinfo", (std::string)xmlOut["ServiceInformationInterfaceName"]); xmlOut["ServiceInformationInterfaceName"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://testbed-emi4.grid.upjs.sk:60000/arex", (std::string)xmlOut["JobStatusURL"]); xmlOut["JobStatusURL"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.ogf.glue.emies.activitymanagement", (std::string)xmlOut["JobStatusInterfaceName"]); xmlOut["JobStatusInterfaceName"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://testbed-emi4.grid.upjs.sk:60000/arex", (std::string)xmlOut["JobManagementURL"]); xmlOut["JobManagementURL"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.ogf.glue.emies.activitymanagement", (std::string)xmlOut["JobManagementInterfaceName"]); xmlOut["JobManagementInterfaceName"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://testbed-emi4.grid.upjs.sk:60000/arex", (std::string)xmlOut["StageInDir"]); xmlOut["StageInDir"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://testbed-emi4.grid.upjs.sk:60000/arex", (std::string)xmlOut["StageOutDir"]); xmlOut["StageOutDir"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://testbed-emi4.grid.upjs.sk:60000/arex", (std::string)xmlOut["SessionDir"]); xmlOut["SessionDir"].Destroy();
   CPPUNIT_ASSERT_EQUAL((std::string)"single", (std::string)xmlOut["Type"]); xmlOut["Type"].Destroy();
   CPPUNIT_ASSERT(xmlOut["IDFromEndpoint"]); xmlOut["IDFromEndpoint"].Destroy();
   CPPUNIT_ASSERT_EQUAL((std::string)"345.ce01", (std::string)xmlOut["LocalIDFromManager"]); xmlOut["LocalIDFromManager"].Destroy();
@@ -266,13 +282,12 @@ void JobTest::XMLToJobStateTest() {
   CPPUNIT_ASSERT_EQUAL((std::string)"Preparing", job.State.GetGeneralState());
 }
 
-void JobTest::CurrentFormatTest() {
-  { // Format for version 1.1.1 and earlier (new format introduced in version 2.0.0 - revision 24405)
+void JobTest::VersionTwoFormatTest() {
   Arc::XMLNode xml(
   "<ComputingActivity>"
     "<JobID>https://example-ce.com:443/arex/3456789101112</JobID>"
-    "<JobManagementInterfaceName>org.nordugrid.xbes</JobManagementInterfaceName>"
-    "<ServiceInformationURL>https://example-ce.com:443/arex</ServiceInformationURL>"
+    "<InterfaceName>org.nordugrid.xbes</InterfaceName>"
+    "<Cluster>https://example-ce.com:443/arex</Cluster>"
     "<IDFromEndpoint>&lt;?xml version=\"1.0\"?&gt;&lt;ActivityIdentifier&gt;&lt;Address&gt;https://ce01.niif.hu:60000&lt;/Address&gt;&lt;ReferenceParameters&gt;&lt;CustomID&gt;123456&lt;/CustomID&gt;&lt;/ReferenceParameters&gt;&lt;/ActivityIdentifier&gt;</IDFromEndpoint>"
     "<LocalSubmissionTime>2010-09-24 16:17:46</LocalSubmissionTime>"
     "<JobDescription>&amp;(executable=\"helloworld.sh\")(arguments=\"random.dat\")(inputfiles=(\"helloworld.sh\")(\"random.dat\"))(stdout=\"helloworld.out\")(join=\"yes\")</JobDescription>"
@@ -320,16 +335,14 @@ void JobTest::CurrentFormatTest() {
   itFiles++;
   CPPUNIT_ASSERT_EQUAL((std::string)"random.dat", itFiles->first);
   CPPUNIT_ASSERT_EQUAL((std::string)"e52b14b10b967d9135c198fd11b9b8bc", itFiles->second);
-  }  
 }
 
-void JobTest::FromOldFormatTest() {
-  { // Format for version 1.1.1 and earlier (new format introduced in version 2.0.0 - revision 24405)
+void JobTest::VersionOneFormatTest() {
   Arc::XMLNode xml(
   "<ComputingActivity>"
     "<IDFromEndpoint>gsiftp://grid.example.com:2811/jobs/1234567890</IDFromEndpoint>"
     "<Flavour>ARC0</Flavour>"
-    "<ServiceInformationURL>ldap://grid.example.com:2135/Mds-Vo-name=local, o=Grid??sub?(|(objectclass=nordugrid-cluster)(objectclass=nordugrid-queue)(nordugrid-authuser-sn=somedn))</ServiceInformationURL>"
+    "<Cluster>ldap://grid.example.com:2135/Mds-Vo-name=local, o=Grid??sub?(|(objectclass=nordugrid-cluster)(objectclass=nordugrid-queue)(nordugrid-authuser-sn=somedn))</Cluster>"
     "<InfoEndpoint>ldap://grid.example.com:2135/Mds-Vo-name=local, o=Grid??sub?(nordugrid-job-globalid=gsiftp:\\2f\\2fgrid.example.com:2811\\2fjobs\\2f1234567890)</InfoEndpoint>"
     "<LocalSubmissionTime>2010-09-24 16:17:46</LocalSubmissionTime>"
     "<JobDescription>&amp;(executable=\"helloworld.sh\")(arguments=\"random.dat\")(inputfiles=(\"helloworld.sh\")(\"random.dat\"))(stdout=\"helloworld.out\")(join=\"yes\")</JobDescription>"
@@ -353,7 +366,6 @@ void JobTest::FromOldFormatTest() {
   CPPUNIT_ASSERT_EQUAL((std::string)"gsiftp://grid.example.com:2811/jobs/1234567890", job.JobID);
   CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.gridftpjob", job.JobManagementInterfaceName);
   CPPUNIT_ASSERT_EQUAL(Arc::URL("ldap://grid.example.com:2135/Mds-Vo-name=local, o=Grid??sub?(|(objectclass=nordugrid-cluster)(objectclass=nordugrid-queue)(nordugrid-authuser-sn=somedn))").fullstr(), job.ServiceInformationURL.fullstr());
-  CPPUNIT_ASSERT_EQUAL(Arc::URL("ldap://grid.example.com:2135/Mds-Vo-name=local, o=Grid??sub?(nordugrid-job-globalid=gsiftp:\\2f\\2fgrid.example.com:2811\\2fjobs\\2f1234567890)").fullstr(), Arc::URL(job.IDFromEndpoint).fullstr());
   CPPUNIT_ASSERT_EQUAL(Arc::Time("2010-09-24 16:17:46"), job.LocalSubmissionTime);
   CPPUNIT_ASSERT_EQUAL((std::string)"&(executable=\"helloworld.sh\")(arguments=\"random.dat\")(inputfiles=(\"helloworld.sh\")(\"random.dat\"))(stdout=\"helloworld.out\")(join=\"yes\")", job.JobDescriptionDocument);
 
@@ -368,14 +380,14 @@ void JobTest::FromOldFormatTest() {
   itFiles++;
   CPPUNIT_ASSERT_EQUAL((std::string)"random.dat", itFiles->first);
   CPPUNIT_ASSERT_EQUAL((std::string)"e52b14b10b967d9135c198fd11b9b8bc", itFiles->second);
-  }
+}
 
-  { // Format for version nox-1.2.0 and earlier (new format introduced in version nox-1.2.1 - revision 19421)
+void JobTest::VersionNoxFormatTest() {
   Arc::XMLNode xml(
   "<ComputingActivity>"
     "<JobID>https://example-ce.com:443/arex/3456789101112</JobID>"
     "<Flavour>ARC1</Flavour>"
-    "<ServiceInformationURL>https://example-ce.com:443/arex</ServiceInformationURL>"
+    "<Cluster>https://example-ce.com:443/arex</Cluster>"
     "<InfoEndpoint>https://example-ce.com:443/arex/3456789101112</InfoEndpoint>"
     "<LocalSubmissionTime>2010-09-24 16:17:46</LocalSubmissionTime>"
     "<JobDescription>&amp;(executable=\"helloworld.sh\")(arguments=\"random.dat\")(inputfiles=(\"helloworld.sh\")(\"random.dat\"))(stdout=\"helloworld.out\")(join=\"yes\")</JobDescription>"
@@ -414,7 +426,6 @@ void JobTest::FromOldFormatTest() {
   itFiles++;
   CPPUNIT_ASSERT_EQUAL((std::string)"random.dat", itFiles->first);
   CPPUNIT_ASSERT_EQUAL((std::string)"e52b14b10b967d9135c198fd11b9b8bc", itFiles->second);
-  }
 }
 
 void JobTest::FileTest() {
