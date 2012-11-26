@@ -1,11 +1,11 @@
 2012-11-17  Zsombor Nagy  <zsombor@niif.hu>
 
-  * Changing the main attributes of the Job class, also in the jobs.xml,
-    which makes the clients not understand the previous versions of the
-    jobs.xml: remove the Cluster and the InterfaceName attributes, change
-    the JobID from URL to string, add ServiceInformation, JobManagement and
+  * Changing the main attributes of the Job class, also in the jobs.xml:
+    remove the Cluster and the InterfaceName attributes, change the JobID
+    from URL to string, add ServiceInformation, JobManagement and
     JobStatus URL and InterfaceName attributes, and StageIn, StageOut and
-    SessionDir attributes.
+    SessionDir attributes. (Hopefully it can still understand the previous
+    versions of the jobs.xml.)
 
 2012-11-14  Florido Paganelli   <florido.paganelli@hep.lu.se>
 
