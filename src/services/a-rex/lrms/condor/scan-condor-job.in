@@ -497,7 +497,7 @@ scan_main() {
                     exit 1 unless opendir(DIR,"processing");
                     while (my $fname = readdir DIR) {
                         my ($gridid, $lrmsid, $status);
-                        ($gridid) = ($fname =~ m/^job\.(\d+)\.status$/);
+                        ($gridid) = ($fname =~ m/^job\.(\w+)\.status$/);
                         next unless defined $gridid;
                         next unless open(STATUS,"< processing/$fname");
                         $status = <STATUS>;
