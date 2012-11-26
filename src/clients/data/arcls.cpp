@@ -160,7 +160,7 @@ static bool arcls(const Arc::URL& dir_url,
 
   if(check_access) {
     std::cout << dir_url << " - ";
-    if(url->Check()) {
+    if(url->Check(false)) {
       std::cout << "passed" << std::endl;
       return true;
     } else {

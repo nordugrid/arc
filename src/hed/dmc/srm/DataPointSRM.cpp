@@ -44,7 +44,7 @@ namespace Arc {
     return new DataPointSRM(*dmcarg, *dmcarg, dmcarg);
   }
 
-  DataStatus DataPointSRM::Check() {
+  DataStatus DataPointSRM::Check(bool check_meta) {
 
     bool timedout;
     SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
@@ -61,39 +61,40 @@ namespace Arc {
       delete client;
       return DataStatus(DataStatus::CheckError, res);
     }
+    if (check_meta) {
+      logger.msg(VERBOSE, "Check: looking for metadata: %s", CurrentLocation().str());
+      srm_request_tmp.long_list(true);
+      std::list<struct SRMFileMetaData> metadata;
 
-    logger.msg(VERBOSE, "Check: looking for metadata: %s", CurrentLocation().str());
-    srm_request_tmp.long_list(true);
-    std::list<struct SRMFileMetaData> metadata;
+      res = client->info(srm_request_tmp, metadata);
+      delete client;
+      client = NULL;
 
-    res = client->info(srm_request_tmp, metadata);
-    delete client;
-    client = NULL;
+      if (res != 0) return DataStatus(DataStatus::CheckError, res);
 
-    if (res != 0) return DataStatus(DataStatus::CheckError, res);
-
-    if (metadata.empty()) return DataStatus(DataStatus::CheckError, EARCRESINVAL, "No results returned");
-    if (metadata.front().size > 0) {
-      logger.msg(INFO, "Check: obtained size: %lli", metadata.front().size);
-      SetSize(metadata.front().size);
-    }
-    if (metadata.front().checkSumValue.length() > 0 &&
-        metadata.front().checkSumType.length() > 0) {
-      std::string csum(metadata.front().checkSumType + ":" + metadata.front().checkSumValue);
-      logger.msg(INFO, "Check: obtained checksum: %s", csum);
-      SetCheckSum(csum);
-    }
-    if (metadata.front().createdAtTime > 0) {
-      logger.msg(INFO, "Check: obtained creation date: %s", Time(metadata.front().createdAtTime).str());
-      SetCreated(Time(metadata.front().createdAtTime));
-    }
-    if (metadata.front().fileLocality == SRM_ONLINE) {
-      logger.msg(INFO, "Check: obtained access latency: low (ONLINE)");
-      SetAccessLatency(ACCESS_LATENCY_SMALL);
-    }
-    else if (metadata.front().fileLocality == SRM_NEARLINE) {
-      logger.msg(INFO, "Check: obtained access latency: high (NEARLINE)");
-      SetAccessLatency(ACCESS_LATENCY_LARGE);
+      if (metadata.empty()) return DataStatus(DataStatus::CheckError, EARCRESINVAL, "No results returned");
+      if (metadata.front().size > 0) {
+        logger.msg(INFO, "Check: obtained size: %lli", metadata.front().size);
+        SetSize(metadata.front().size);
+      }
+      if (metadata.front().checkSumValue.length() > 0 &&
+          metadata.front().checkSumType.length() > 0) {
+        std::string csum(metadata.front().checkSumType + ":" + metadata.front().checkSumValue);
+        logger.msg(INFO, "Check: obtained checksum: %s", csum);
+        SetCheckSum(csum);
+      }
+      if (metadata.front().createdAtTime > 0) {
+        logger.msg(INFO, "Check: obtained creation date: %s", Time(metadata.front().createdAtTime).str());
+        SetCreated(Time(metadata.front().createdAtTime));
+      }
+      if (metadata.front().fileLocality == SRM_ONLINE) {
+        logger.msg(INFO, "Check: obtained access latency: low (ONLINE)");
+        SetAccessLatency(ACCESS_LATENCY_SMALL);
+      }
+      else if (metadata.front().fileLocality == SRM_NEARLINE) {
+        logger.msg(INFO, "Check: obtained access latency: high (NEARLINE)");
+        SetAccessLatency(ACCESS_LATENCY_LARGE);
+      }
     }
 
     return DataStatus::Success;

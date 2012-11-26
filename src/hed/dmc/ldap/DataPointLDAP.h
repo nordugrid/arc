@@ -32,7 +32,7 @@ namespace Arc {
                                     DataCallback *space_cb = NULL);
     virtual DataStatus StopReading();
     virtual DataStatus StopWriting();
-    virtual DataStatus Check();
+    virtual DataStatus Check(bool check_meta);
     virtual DataStatus Remove();
     virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus::UnimplementedError; };
     virtual DataStatus Rename(const URL& newurl) { return DataStatus::UnimplementedError; };

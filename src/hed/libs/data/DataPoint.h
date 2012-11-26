@@ -322,10 +322,14 @@ namespace Arc {
     virtual DataStatus FinishWriting(bool error = false);
 
     /// Query the DataPoint to check if object is accessible.
-    /** If possible this method will also try to provide meta
-       information about the object. It returns positive response
-       if object's content can be retrieved. */
-    virtual DataStatus Check() = 0;
+    /** If check_meta is true this method will also try to provide meta
+       information about the object. Note that for many protocols an access
+       check also provides meta information and so check_meta may have no
+       effect. This method returns a positive response if the object is
+       accessible by the caller.
+       \param check_meta If true then the method will try to retrieve meta data
+       during the check. */
+    virtual DataStatus Check(bool check_meta) = 0;
 
     /// Remove/delete object at URL.
     virtual DataStatus Remove() = 0;

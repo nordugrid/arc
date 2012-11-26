@@ -39,7 +39,7 @@ namespace Arc {
     virtual DataStatus StopReading();
     virtual DataStatus FinishReading(bool error);
     virtual DataStatus FinishWriting(bool error);
-    virtual DataStatus Check();
+    virtual DataStatus Check(bool check_meta);
     virtual DataStatus Remove();
     virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus Stat(std::list<FileInfo>& files,

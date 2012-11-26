@@ -541,7 +541,7 @@ namespace Arc {
     return ret;
   }
 
-  DataStatus DataPointARC::Check() {
+  DataStatus DataPointARC::Check(bool check_meta) {
     if (!url.Host().empty()){
       logger.msg(ERROR, "Hostname is not implemented for arc protocol");
       return DataStatus::CheckError;

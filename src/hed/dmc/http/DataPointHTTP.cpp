@@ -620,7 +620,7 @@ using namespace Arc;
     return DataStatus::Success;
   }
 
-  DataStatus DataPointHTTP::Check() {
+  DataStatus DataPointHTTP::Check(bool check_meta) {
     PayloadRaw request;
     PayloadRawInterface *inbuf = NULL;
     HTTPClientInfo info;

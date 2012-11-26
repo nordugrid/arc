@@ -201,7 +201,7 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-  DataStatus DataPointXrootd::Check() {
+  DataStatus DataPointXrootd::Check(bool check_meta) {
     // check if file can be opened for reading
     {
       CertEnvLocker env(usercfg);

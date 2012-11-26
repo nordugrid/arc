@@ -344,7 +344,7 @@ namespace Arc {
     }
   }
 
-  DataStatus DataPointFile::Check() {
+  DataStatus DataPointFile::Check(bool check_meta) {
     if (reading) return DataStatus(DataStatus::IsReadingError, EARCLOGIC);
     if (writing) return DataStatus(DataStatus::IsWritingError, EARCLOGIC);
     // check_file_access() is not always correctly evaluating permissions.
@@ -354,13 +354,15 @@ namespace Arc {
       logger.msg(ERROR, "File is not accessible: %s", url.Path());
       return DataStatus(DataStatus::CheckError, errno);
     }
-    struct stat st;
-    if (!FileStat(url.Path(), &st, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid(), true)) {
-      logger.msg(ERROR, "Can't stat file: %s: %s", url.Path(), StrError(errno));
-      return DataStatus(DataStatus::CheckError, errno);
+    if (check_meta) {
+      struct stat st;
+      if (!FileStat(url.Path(), &st, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid(), true)) {
+        logger.msg(ERROR, "Can't stat file: %s: %s", url.Path(), StrError(errno));
+        return DataStatus(DataStatus::CheckError, errno);
+      }
+      SetSize(st.st_size);
+      SetCreated(st.st_mtime);
     }
-    SetSize(st.st_size);
-    SetCreated(st.st_mtime);
     return DataStatus::Success;
   }
 

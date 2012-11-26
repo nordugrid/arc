@@ -35,7 +35,7 @@ namespace Arc {
     DataPointARC(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
     virtual ~DataPointARC();
     static Plugin* Instance(PluginArgument *arg);
-    virtual DataStatus Check();
+    virtual DataStatus Check(bool check_meta);
     virtual DataStatus Remove();
     virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus::UnimplementedError; };
     virtual DataStatus Stat(FileInfo& file, DataPoint::DataPointInfoType verb);

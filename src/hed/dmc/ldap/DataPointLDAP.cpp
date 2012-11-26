@@ -44,7 +44,7 @@ namespace Arc {
     return new DataPointLDAP(*dmcarg, *dmcarg, dmcarg);
   }
 
-  DataStatus DataPointLDAP::Check() {
+  DataStatus DataPointLDAP::Check(bool check_meta) {
     return DataStatus::Success;
   }
 

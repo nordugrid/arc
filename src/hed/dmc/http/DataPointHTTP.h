@@ -27,7 +27,7 @@ using namespace Arc;
     virtual ~DataPointHTTP();
     static Plugin* Instance(PluginArgument *arg);
     virtual bool SetURL(const URL& url);
-    virtual DataStatus Check();
+    virtual DataStatus Check(bool check_meta);
     virtual DataStatus Remove();
     virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus::UnimplementedError; };
     virtual DataStatus Rename(const URL& url);

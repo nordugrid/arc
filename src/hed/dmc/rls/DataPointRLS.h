@@ -33,7 +33,7 @@ namespace Arc {
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus Resolve(bool source);
     virtual DataStatus Resolve(bool source, const std::list<DataPoint*>& urls);
-    virtual DataStatus Check();
+    virtual DataStatus Check(bool check_meta);
     virtual DataStatus PreRegister(bool replication, bool force = false);
     virtual DataStatus PostRegister(bool replication);
     virtual DataStatus PreUnregister(bool replication);

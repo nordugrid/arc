@@ -51,7 +51,7 @@ void check_url(void *arg) {
   bool check_passed = false;
   if(source->HaveLocations()) {
     do {
-      if(source->CurrentLocationHandle()->Check().Passed()) {
+      if(source->CurrentLocationHandle()->Check(false).Passed()) {
         check_passed=true;
         break;
       }

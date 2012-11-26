@@ -467,7 +467,7 @@ namespace Arc {
     return DataStatus::Success;    
   }
 
-  DataStatus DataPointGFAL::Check() {
+  DataStatus DataPointGFAL::Check(bool check_meta) {
     if (reading) return DataStatus(DataStatus::IsReadingError, EARCLOGIC);
     if (writing) return DataStatus(DataStatus::IsWritingError, EARCLOGIC);
     

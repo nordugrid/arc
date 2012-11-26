@@ -342,7 +342,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const
     resultelement.NewChild("FileURL") = fileurl;
     // file is in cache - check permissions
     if (!cache.CheckDN(url, dn)) {
-      Arc::DataStatus res = d->Check();
+      Arc::DataStatus res = d->Check(false);
       if (!res.Passed()) {
         logger.msg(Arc::ERROR, "Permission checking failed: %s", url);
         resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::PermissionError);

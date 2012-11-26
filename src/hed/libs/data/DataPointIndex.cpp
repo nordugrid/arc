@@ -370,10 +370,10 @@ namespace Arc {
     return (*h)->TransferLocations();
   }
 
-  DataStatus DataPointIndex::Check() {
+  DataStatus DataPointIndex::Check(bool check_meta) {
     if (!h || !*h)
       return DataStatus::NoLocationError;
-    return (*h)->Check();
+    return (*h)->Check(check_meta);
   }
 
   long long int DataPointIndex::BufSize() const {

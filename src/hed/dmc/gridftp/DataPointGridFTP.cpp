@@ -95,7 +95,7 @@ namespace Arc {
     return;
   }
 
-  DataStatus DataPointGridFTP::Check() {
+  DataStatus DataPointGridFTP::Check(bool check_meta) {
     if (!ftp_active)
       return DataStatus::NotInitializedError;
     if (reading)
@@ -107,43 +107,45 @@ namespace Arc {
     globus_abstime_t gl_modify_time;
     time_t modify_time;
     set_attributes();
-    res = globus_ftp_client_size(&ftp_handle, url.str().c_str(), &ftp_opattr,
-                                 &size, &ftp_complete_callback, cbarg);
-    if (!res) {
-      logger.msg(VERBOSE, "check_ftp: globus_ftp_client_size failed");
-      logger.msg(INFO, "Globus error: %s", res.str());
-    }
-    else if (!cond.wait(1000*usercfg.Timeout())) {
-      logger.msg(INFO, "check_ftp: timeout waiting for size");
-      globus_ftp_client_abort(&ftp_handle);
-      cond.wait();
-    }
-    else if (!callback_status)
-      logger.msg(INFO, "check_ftp: failed to get file's size");
-    else {
-      SetSize(size);
-      logger.msg(VERBOSE, "check_ftp: obtained size: %lli", GetSize());
-    }
-    res = globus_ftp_client_modification_time(&ftp_handle, url.str().c_str(),
-                                              &ftp_opattr, &gl_modify_time,
-                                              &ftp_complete_callback, cbarg);
-    if (!res) {
-      logger.msg(VERBOSE,
-                 "check_ftp: globus_ftp_client_modification_time failed");
-      logger.msg(INFO, "Globus error: %s", res.str());
-    }
-    else if (!cond.wait(1000*usercfg.Timeout())) {
-      logger.msg(INFO, "check_ftp: timeout waiting for modification_time");
-      globus_ftp_client_abort(&ftp_handle);
-      cond.wait();
-    }
-    else if (!callback_status)
-      logger.msg(INFO, "check_ftp: failed to get file's modification time");
-    else {
-      int modify_utime;
-      GlobusTimeAbstimeGet(gl_modify_time, modify_time, modify_utime);
-      SetCreated(modify_time);
-      logger.msg(VERBOSE, "check_ftp: obtained creation date: %s", GetCreated().str());
+    if (check_meta) {
+      res = globus_ftp_client_size(&ftp_handle, url.str().c_str(), &ftp_opattr,
+                                   &size, &ftp_complete_callback, cbarg);
+      if (!res) {
+        logger.msg(VERBOSE, "check_ftp: globus_ftp_client_size failed");
+        logger.msg(INFO, "Globus error: %s", res.str());
+      }
+      else if (!cond.wait(1000*usercfg.Timeout())) {
+        logger.msg(INFO, "check_ftp: timeout waiting for size");
+        globus_ftp_client_abort(&ftp_handle);
+        cond.wait();
+      }
+      else if (!callback_status)
+        logger.msg(INFO, "check_ftp: failed to get file's size");
+      else {
+        SetSize(size);
+        logger.msg(VERBOSE, "check_ftp: obtained size: %lli", GetSize());
+      }
+      res = globus_ftp_client_modification_time(&ftp_handle, url.str().c_str(),
+                                                &ftp_opattr, &gl_modify_time,
+                                                &ftp_complete_callback, cbarg);
+      if (!res) {
+        logger.msg(VERBOSE,
+                   "check_ftp: globus_ftp_client_modification_time failed");
+        logger.msg(INFO, "Globus error: %s", res.str());
+      }
+      else if (!cond.wait(1000*usercfg.Timeout())) {
+        logger.msg(INFO, "check_ftp: timeout waiting for modification_time");
+        globus_ftp_client_abort(&ftp_handle);
+        cond.wait();
+      }
+      else if (!callback_status)
+        logger.msg(INFO, "check_ftp: failed to get file's modification time");
+      else {
+        int modify_utime;
+        GlobusTimeAbstimeGet(gl_modify_time, modify_time, modify_utime);
+        SetCreated(modify_time);
+        logger.msg(VERBOSE, "check_ftp: obtained creation date: %s", GetCreated().str());
+      }
     }
     // check if file or directory - can't do a get on a directory
     FileInfo fileinfo;

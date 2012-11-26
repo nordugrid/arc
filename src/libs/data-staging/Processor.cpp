@@ -114,10 +114,12 @@ namespace DataStaging {
                    request->get_short_id(), canonic_url, cache.File(canonic_url));
         // check the list of cached DNs
         bool have_permission = false;
+        // don't request metadata from source if user says not to
+        bool check_meta = (request->get_source()->GetURL().Option("cache") != "invariant");
         if (request->get_source()->GetURL().Option("cache") != "check" && cache.CheckDN(canonic_url, dn))
           have_permission = true;
         else {
-          Arc::DataStatus cres = request->get_source()->Check();
+          Arc::DataStatus cres = request->get_source()->Check(check_meta);
           if (!cres.Passed()) {
             request->get_logger()->msg(Arc::ERROR, "DTR %s: Permission checking failed", request->get_short_id());
             request->set_cache_state(CACHE_SKIP);
@@ -131,7 +133,7 @@ namespace DataStaging {
         request->get_logger()->msg(Arc::INFO, "DTR %s: Permission checking passed", request->get_short_id());
         // check if file is fresh enough
         bool outdated = true;
-        if (have_permission)
+        if (have_permission || !check_meta)
           outdated = false; // cached DN means don't check creation date
         if (request->get_source()->CheckCreated() && cache.CheckCreated(canonic_url)) {
           Arc::Time sourcetime = request->get_source()->GetCreated();

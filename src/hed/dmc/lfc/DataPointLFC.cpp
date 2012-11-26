@@ -157,7 +157,7 @@ namespace Arc {
     return new DataPointLFC(*dmcarg, *dmcarg, arg);
   }
 
-  DataStatus DataPointLFC::Check() {
+  DataStatus DataPointLFC::Check(bool check_meta) {
     // simply check that the file can be resolved
     DataStatus r = Resolve(true);
     if (r) return r;

@@ -32,7 +32,7 @@ namespace Arc {
     virtual DataStatus StopReading();
     virtual DataStatus StartWriting(DataBuffer& buffer, DataCallback *space_cb = NULL);
     virtual DataStatus StopWriting();
-    virtual DataStatus Check();
+    virtual DataStatus Check(bool check_meta);
     virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus Remove();

@@ -4,6 +4,8 @@
     recursion and -D is used for a specific level or recursion.
   * Change A-REX default data staging mechanism to DTR. The old system can
     still be used by setting enable_dtr="no" in arc.conf.
+  * Change DataPoint API - Check() now takes a bool parameter to determine
+    whether metadata information should be obtained during permission check.
   
 2012-11-17  Zsombor Nagy  <zsombor@niif.hu>
 

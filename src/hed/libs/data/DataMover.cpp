@@ -589,10 +589,12 @@ namespace Arc {
                        canonic_url, cache.File(canonic_url));
             // check the list of cached DNs
             bool have_permission = false;
+            // don't request metadata from source if user says not to
+            bool check_meta = (source.GetURL().Option("cache") != "invariant");
             if (source.GetURL().Option("cache") != "check" && cache.CheckDN(canonic_url, dn))
               have_permission = true;
             else {
-              DataStatus cres = source.Check();
+              DataStatus cres = source.Check(check_meta);
               if (!cres.Passed()) {
                 logger.msg(ERROR, "Permission checking failed: %s", canonic_url);
                 source.NextLocation(); /* try another source */
@@ -605,7 +607,7 @@ namespace Arc {
             logger.msg(INFO, "Permission checking passed");
             /* check if file is fresh enough */
             bool outdated = true;
-            if (have_permission)
+            if (have_permission || !check_meta)
               outdated = false; // cached DN means don't check creation date
             if (source.CheckCreated() && cache.CheckCreated(canonic_url)) {
               Time sourcetime = source.GetCreated();
@@ -659,7 +661,7 @@ namespace Arc {
           /* check permissions first */
           logger.msg(INFO, "URL is mapped to local access - "
                      "checking permissions on original URL");
-          DataStatus cres =  source.Check();
+          DataStatus cres =  source.Check(false);
           if (!cres.Passed()) {
             logger.msg(ERROR, "Permission checking on original URL failed: %s",
                        source.str());

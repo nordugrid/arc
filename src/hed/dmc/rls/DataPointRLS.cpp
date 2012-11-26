@@ -1199,7 +1199,7 @@ namespace Arc {
     return true;
   }
 
-  DataStatus DataPointRLS::Check() {
+  DataStatus DataPointRLS::Check(bool check_meta) {
     // simply check that the file can be listed
     FileInfo file;
     DataStatus r = Stat(file,DataPoint::INFO_TYPE_MINIMAL);
