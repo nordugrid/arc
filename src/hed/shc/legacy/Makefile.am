@@ -33,17 +33,25 @@ libarcshclegacy_la_LDFLAGS = -no-undefined -avoid-version -module
 arc_lcas_SOURCES  = arc_lcas.cpp
 arc_lcas_CXXFLAGS = -I$(top_srcdir)/include \
         $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) \
-        $(OPENSSL_CFLAGS) $(LCAS_CFLAGS) $(GLOBUS_GSSAPI_GSI_CFLAGS) $(AM_CXXFLAGS)
+        $(OPENSSL_CFLAGS) $(LCAS_CFLAGS) \
+        $(GLOBUS_GSSAPI_GSI_CFLAGS) $(GLOBUS_GSI_CREDENTIAL_CFLAGS) \
+        $(GLOBUS_GSI_CERT_UTILS_CFLAGS) $(AM_CXXFLAGS)
 arc_lcas_LDADD    = \
-	$(top_builddir)/src/hed/libs/globusutils/libarcglobusutils.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS)
+	$(GLIBMM_LIBS) $(OPENSSL_LIBS) \
+	$(GLOBUS_GSSAPI_GSI_LIBS) $(GLOBUS_GSI_CREDENTIAL_LIBS) \
+	$(GLOBUS_GSI_CERT_UTILS_LIBS)
 
 arc_lcmaps_SOURCES  = arc_lcmaps.cpp
 arc_lcmaps_CXXFLAGS = -I$(top_srcdir)/include \
         $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) \
-        $(OPENSSL_CFLAGS) $(LCMAPS_CFLAGS) $(GLOBUS_GSSAPI_GSI_CFLAGS) $(AM_CXXFLAGS)
+        $(OPENSSL_CFLAGS) $(LCAS_CFLAGS) \
+        $(GLOBUS_GSSAPI_GSI_CFLAGS) $(GLOBUS_GSI_CREDENTIAL_CFLAGS) \
+        $(GLOBUS_GSI_CERT_UTILS_CFLAGS) $(AM_CXXFLAGS)
 arc_lcmaps_LDADD    = \
-	$(top_builddir)/src/hed/libs/globusutils/libarcglobusutils.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS)
+	$(GLIBMM_LIBS) $(OPENSSL_LIBS) \
+	$(GLOBUS_GSSAPI_GSI_LIBS) $(GLOBUS_GSI_CREDENTIAL_LIBS) \
+	$(GLOBUS_GSI_CERT_UTILS_LIBS)

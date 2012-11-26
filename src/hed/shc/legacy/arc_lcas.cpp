@@ -4,11 +4,17 @@
 
 #include <glibmm.h>
 
+#include <openssl/x509.h>
+#include <openssl/evp.h>
+
 #include <gssapi.h>
+#include <globus_gsi_credential.h>
+#include <globus_gsi_cert_utils.h>
 
 #include <arc/Logger.h>
 #include <arc/Utils.h>
-#include <arc/globusutils/GSSCredential.h>
+//#include <arc/globusutils/GSSCredential.h>
+#include <arc/credential/Credential.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"LCAS");
 
@@ -42,6 +48,22 @@ typedef int (*lcas_get_fabric_authorization_t)(char *user_dn_tmp,gss_cred_id_t u
 }
 #endif
 
+extern "C" {
+
+// Definitions taken from gssapi_openssl.h
+
+typedef struct gss_cred_id_desc_struct {
+    globus_gsi_cred_handle_t            cred_handle;
+    gss_name_t                          globusid;
+    gss_cred_usage_t                    cred_usage;
+    SSL_CTX *                           ssl_context;
+} gss_cred_id_desc;
+
+extern gss_OID_desc * gss_nt_x509;
+#define GLOBUS_GSS_C_NT_X509 gss_nt_x509
+
+};
+
 static std::string lcas_db_file_old;
 static std::string lcas_dir_old;
 
@@ -63,6 +85,55 @@ void recover_lcas_env(void) {
   } else {
     Arc::SetEnv("LCAS_DIR",lcas_dir_old,true);
   };
+}
+
+gss_cred_id_t read_globus_credentials(const std::string& filename) {
+  Arc::Credential cred(filename, filename, "", "", "", true);
+  X509* cert = cred.GetCert();
+  STACK_OF(X509)* cchain = cred.GetCertChain();
+  EVP_PKEY* key = cred.GetPrivKey();
+  globus_gsi_cred_handle_t chandle;
+  globus_gsi_cred_handle_init(&chandle, NULL);
+  if(cert) globus_gsi_cred_set_cert(chandle, cert);
+  if(key) globus_gsi_cred_set_key(chandle, key);
+  if(cchain) globus_gsi_cred_set_cert_chain(chandle, cchain);
+
+  gss_cred_id_desc* ccred = (gss_cred_id_desc*)::malloc(sizeof(gss_cred_id_desc));
+  if(ccred) {
+    ::memset(ccred,0,sizeof(gss_cred_id_desc));
+    ccred->cred_handle = chandle; chandle = NULL;
+    // cred_usage
+    // ssl_context
+    X509* identity_cert = NULL;
+    if(cert) {
+      globus_gsi_cert_utils_cert_type_t ctype = GLOBUS_GSI_CERT_UTILS_TYPE_DEFAULT;
+      globus_gsi_cert_utils_get_cert_type(cert,&ctype);
+      if(ctype == GLOBUS_GSI_CERT_UTILS_TYPE_EEC) {
+        identity_cert = cert;
+      }
+    }
+    if(!identity_cert && cchain) {
+      globus_gsi_cert_utils_get_identity_cert(cchain,&identity_cert);
+    }
+    gss_buffer_desc peer_buffer;
+    peer_buffer.value = identity_cert;
+    peer_buffer.length = identity_cert?sizeof(X509):0;
+    OM_uint32 majstat, minstat;
+    majstat = gss_import_name(&minstat, &peer_buffer,
+                              GLOBUS_GSS_C_NT_X509, &ccred->globusid);
+    if (GSS_ERROR(majstat)) {
+      logger.msg(Arc::ERROR, "Failed to convert GSI credential to "
+         "GSS credential (major: %d, minor: %d)", majstat, minstat);
+      majstat = gss_release_cred(&minstat, &ccred);
+    }
+  } else {
+    ccred = GSS_C_NO_CREDENTIAL;
+  };
+  if(cert) X509_free(cert);
+  if(key) EVP_PKEY_free(key);
+  if(cchain) sk_X509_pop_free(cchain, X509_free);
+  if(chandle) globus_gsi_cred_handle_destroy(chandle);
+  return ccred;
 }
 
 int main(int argc,char* argv[]) {
@@ -127,8 +198,13 @@ int main(int argc,char* argv[]) {
     logger.msg(Arc::ERROR, "Failed to initialize LCAS");
     return -1;
   };
+  // In case anything is not initialized yet
+  globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
+  globus_module_activate(GLOBUS_GSI_CREDENTIAL_MODULE);
+  globus_module_activate(GLOBUS_GSI_CERT_UTILS_MODULE);
   // User without credentials is useless for LCAS ?
-  Arc::GSSCredential cred(filename,"","");
+  //Arc::GSSCredential cred(filename,"","");
+  gss_cred_id_t cred = read_globus_credentials(filename);
   int res = 1;
   if((*lcas_get_fabric_authorization_f)((char*)(subject.c_str()),(gss_cred_id_t)cred,(char*)"") == 0) {
     res=0;
@@ -136,6 +212,13 @@ int main(int argc,char* argv[]) {
   if((*lcas_term_f)() != 0) {
     logger.msg(Arc::WARNING, "Failed to terminate LCAS");
   };
+  if(cred != GSS_C_NO_CREDENTIAL) {
+    OM_uint32 majstat, minstat;
+    majstat = gss_release_cred(&minstat, &cred);
+  };
   recover_lcas_env();
+  globus_module_deactivate(GLOBUS_GSI_CERT_UTILS_MODULE);
+  globus_module_deactivate(GLOBUS_GSI_CREDENTIAL_MODULE);
+  globus_module_deactivate(GLOBUS_GSI_GSSAPI_MODULE);
   return res;
 }
