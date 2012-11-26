@@ -291,8 +291,13 @@ int main(int argc, char **argv) {
   options.AddOption('m', "metadata", istring("display all available metadata"),
         metadata);
 
-  int recursion = 0;
+  bool infinite_recursion = false;
   options.AddOption('r', "recursive",
+                    istring("operate recursively"),
+                    infinite_recursion);
+
+  int recursion = 0;
+  options.AddOption('D', "depth",
                     istring("operate recursively up to specified level"),
                     istring("level"), recursion);
 
@@ -386,6 +391,7 @@ int main(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Requesting recursion and --nolist has no sense");
     return 1;
   }
+  if(infinite_recursion) recursion = INT_MAX;
 
   std::list<std::string>::iterator it = params.begin();
 

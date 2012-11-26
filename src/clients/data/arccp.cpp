@@ -613,8 +613,13 @@ int main(int argc, char **argv) {
                     istring("path to local cache (use to put file into cache)"),
                     istring("path"), cache_path);
 
-  int recursion = 0;
+  bool infinite_recursion = false;
   options.AddOption('r', "recursive",
+                    istring("operate recursively"),
+                    infinite_recursion);
+
+  int recursion = 0;
+  options.AddOption('D', "depth",
                     istring("operate recursively up to specified level"),
                     istring("level"), recursion);
 
@@ -710,6 +715,7 @@ int main(int argc, char **argv) {
   }
 
   if ((!secure) && (!notpassive)) passive = true;
+  if (infinite_recursion) recursion = INT_MAX;
 
   std::list<std::string>::iterator it = params.begin();
   std::string source = *it;

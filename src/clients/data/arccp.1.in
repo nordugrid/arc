@@ -33,7 +33,9 @@ perform third party transfer, where the destination pulls from the source (only 
 use secure transfer (insecure by default)
 .IP "\fB-y\fR, \fB--cache\fR=\fIpath\fR"
 path to local cache (use to put file into cache)
-.IP "\fB-r\fR, \fB--recursive\fR=\fIlevel\fR"
+.IP "\fB-r\fR, \fB--recursive\fR"
+operate recursively
+.IP "\fB-D\fR, \fB--depth\fR=\fIlevel\fR"
 operate recursively up to specified level
 .IP "\fB-R\fR, \fB--retries\fR=\fInumber\fR"
 number of retries before failing file transfer
@@ -69,8 +71,7 @@ also be used to register files in file index catalogues, either
 automatically as the result of a file transfer, or by using the
 .B --notransfer
 option. For more information on ARC URL syntax please read "Protocols, Uniform
-Resource Locators (URL) and Extensions Supported in ARC" [NORDUGRID-TECH-7]
-
+Resource Locators (URL) and Extensions Supported in ARC" [NORDUGRID-TECH-7].
 
 If
 .B source
@@ -81,6 +82,13 @@ path to a local file containing a list of URLs, one per line.
 In this case
 .B arccp
 performs like it were called multiple times - once for every URL.
+
+When copying directories both the source and destination must end with the
+directory separator character and a recursion option
+.B -r
+or
+.B -D
+must be specified.
 
 All data transfer goes through the machine of the caller of arccp, even in the
 case of two remote endpoints, unless the

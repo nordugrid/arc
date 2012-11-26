@@ -1,3 +1,8 @@
+2012-11-26  David Cameron  <d.g.cameron@fys.uio.no>
+
+  * Change recursion options for arccp and arcls. -r specifies infinite
+    recursion and -D is used for a specific level or recursion.
+  
 2012-11-17  Zsombor Nagy  <zsombor@niif.hu>
 
   * Changing the main attributes of the Job class, also in the jobs.xml:
