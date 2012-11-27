@@ -2,7 +2,7 @@
 
 ACLOCAL_AMFLAGS = -I m4 `test -d /opt/local/share/aclocal && echo -I /opt/local/share/aclocal`
 
-if JAVA_ENABLED 
+if JAVA_SWIG_ENABLED 
 JAVA_SD = java 
 endif
 if SWIG_ENABLED

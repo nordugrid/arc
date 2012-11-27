@@ -5,7 +5,7 @@ ARCPYLIBS = $(ARCSWIGLIBS:=.py)
 ARCWRAPPERS = $(ARCSWIGLIBS:=_wrap.cpp)
 ARCWRAPDEPS = $(foreach module, $(ARCSWIGLIBS), ./$(DEPDIR)/$(module)_wrap.deps)
 
-if PYTHON_ENABLED
+if PYTHON_SWIG_ENABLED
 python_DATA = __init__.py $(ARCPYLIBS)
 python_LTLIBRARIES = _arc.la
 endif

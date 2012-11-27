@@ -145,7 +145,8 @@ fi
 #  Features
 enables_ldap=yes
 enables_mysql=no
-enables_swig=yes
+enables_swig_python=yes
+enables_swig_java=yes
 # Features directly related to components
 enables_cppunit=yes
 enables_java=yes
@@ -294,9 +295,14 @@ AM_CONDITIONAL([PEDANTIC_COMPILE], [test "x$enables_pedantic_compile" = "xyes"])
 # Enable/disable switches for third-party.
 
 #  Swig
+AC_ARG_ENABLE(swig-python, AC_HELP_STRING([--disable-swig-python], [disable SWIG python bindings]),
+[enables_swig_python=$enableval],[])
+AC_ARG_ENABLE(swig-java, AC_HELP_STRING([--disable-swig-java], [disable SWIG java bindings]),
+[enables_swig_java=$enableval],[])
 AC_ARG_ENABLE(swig, AC_HELP_STRING([--disable-swig], [disable all bindings through SWIG]),
-[enables_swig=$enableval],[])
-if test "$enables_swig" = "yes"; then
+[enables_swig_python=$enableval
+ enables_swig_java=$enableval],[])
+if test "$enables_swig_python" = "yes" || test "$enables_swig_java" = "yes"; then
   AC_CHECK_PROGS(SWIG, swig)
   if test "x$SWIG" = "x"; then
     enables_swig="no"
@@ -341,8 +347,9 @@ dnl Check if Java is explicitly disabled.
 if test "$enables_hed" = "yes"; then
 JAVAC_FLAGS=
 JDK_CFLAGS=
-AC_ARG_ENABLE(java, AC_HELP_STRING([--disable-java], [disable the Java binding]),
-[enables_java=$enableval],[])
+AC_ARG_ENABLE(java, AC_HELP_STRING([--disable-java], [disable Java components]),
+[enables_java=$enableval
+ enables_swig_java=$enableval],[])
 if test "$enables_java" = "yes"; then
   AC_ARG_WITH(jdk, AC_HELP_STRING([--with-jdk=(JDK)], [path to JDK. If unset the system JDK will be used]))
 
@@ -415,32 +422,34 @@ if test "$enables_java" = "yes"; then
     JAVAC_FLAGS="$JAVA_VM_FLAGS -cp ."
   fi
 
-  JAVAWRAP=no
-  if test -f java/arc_wrap.cpp || test "x$enables_swig" = "xyes" ; then
-    JAVAWRAP=yes
-  fi
-
   if test "x$JAVAC" = "x"; then
-    AC_MSG_NOTICE([Missing Java compiler - skipping Java bindings])
+    AC_MSG_NOTICE([Missing Java compiler - skipping Java components])
     enables_java="no"
   elif test "x$JAR" = "x"; then
-    AC_MSG_NOTICE([Missing Java archiver - skipping Java bindings])
+    AC_MSG_NOTICE([Missing Java archiver - skipping Java components])
     enables_java="no"
   elif test "x$jni_h" != "xyes"; then
-    AC_MSG_NOTICE([Missing Java headers - skipping Java bindings])
-    enables_java="no"
-  elif test "x$JAVAWRAP" != "xyes"; then
-    AC_MSG_NOTICE([Missing pre-compiled Java wrapper or SWIG - skipping Java bindings])
+    AC_MSG_NOTICE([Missing Java headers - skipping Java components])
     enables_java="no"
   else
     AC_MSG_NOTICE([Java available: $JAVAC])
+  fi
+
+  if test "x$enables_java" != "xyes"; then
+    AC_MSG_NOTICE([Missing Java - skipping Java bindings])
+    enables_swig_java="no"
+  elif ! test -f java/arc_wrap.cpp && test "x$enables_swig_java" != "xyes"; then
+    AC_MSG_NOTICE([Missing pre-compiled Java wrapper and SWIG - skipping Java bindings])
+    enables_swig_java="no"
   fi
 
 fi
 fi
 
 AC_MSG_NOTICE([Java enabled: $enables_java])
+AC_MSG_NOTICE([Java SWIG binding enabled: $enables_swig_java])
 AM_CONDITIONAL([JAVA_ENABLED],[test "x$enables_java" = "xyes"])
+AM_CONDITIONAL([JAVA_SWIG_ENABLED],[test "x$enables_swig_java" = "xyes"])
 
 AC_SUBST(JAR_JFLAGS)
 AC_SUBST(JAVAC_FLAGS)
@@ -449,8 +458,9 @@ AC_SUBST(JDK_CFLAGS)
 # Python
 if test "$enables_hed" = "yes"; then
 AC_ARG_ENABLE(python,
-  AC_HELP_STRING([--disable-python], [disable Python binding]),
-  [enables_python=$enableval], [])
+  AC_HELP_STRING([--disable-python], [disable Python components]),
+  [enables_python=$enableval
+   enables_swig_python=$enableval], [])
 
 if test "$enables_python" = "yes"; then
   AC_ARG_WITH(python, AC_HELP_STRING([--with-python=(PYTHON)],
@@ -539,35 +549,38 @@ if test "$enables_python" = "yes"; then
     CPPFLAGS=$SAVE_CPPFLAGS
   fi
 
-  PYTHONWRAP=no
-  if test -f python/arc_wrap.cpp || test "x$enables_swig" = "xyes" ; then
-    PYTHONWRAP=yes
-  fi
-
   if test "X$PYTHON" = "X"; then
-    AC_MSG_NOTICE([Missing Python - skipping Python bindings])
+    AC_MSG_NOTICE([Missing Python - skipping Python components])
     enables_python=no
   elif test "X$PYTHON_LIBS" = "X"; then
-    AC_MSG_NOTICE([Missing Python library - skipping Python bindings])
+    AC_MSG_NOTICE([Missing Python library - skipping Python components])
     enables_python=no
   elif test "X$pythonh" != "Xyes"; then
-    AC_MSG_NOTICE([Missing Python header - skipping Python bindings])
-    enables_python=no
-  elif test "X$PYTHONWRAP" != "Xyes"; then
-    AC_MSG_NOTICE([Missing pre-compiled Python wrapper and SWIG - skipping Python bindings])
+    AC_MSG_NOTICE([Missing Python header - skipping Python components])
     enables_python=no
   elif test "X$PYTHON_SITE_ARCH" = "X" || test "X$PYTHON_SITE_LIB" = "X"; then
-    AC_MSG_NOTICE([Missing python site packages location - skipping Python bindings])
+    AC_MSG_NOTICE([Missing python site packages location - skipping Python components])
     enables_python=no
   else
     AC_MSG_NOTICE([Python available: $PYTHON_VERSION])
   fi
+
+  if test "x$enables_python" != "xyes"; then
+    AC_MSG_NOTICE([Missing Python - skipping Python bindings])
+    enables_swig_python=no
+  elif ! test -f python/arc_wrap.cpp && test "x$enables_swig_python" != "xyes"; then
+    AC_MSG_NOTICE([Missing pre-compiled Python wrapper and SWIG - skipping Python bindings])
+    enables_swig_python=no
+  fi
+  
 fi
 fi
 
 AC_MSG_NOTICE([Python enabled: $enables_python])
+AC_MSG_NOTICE([Python SWIG bindings enabled: $enables_swig_python])
 
 AM_CONDITIONAL([PYTHON_ENABLED],[test "x$enables_python" = "xyes"])
+AM_CONDITIONAL([PYTHON_SWIG_ENABLED],[test "x$enables_swig_python" = "xyes"])
 AM_CONDITIONAL([PYTHON_SERVICE],[test "x$enables_python" = "xyes" &&
                                  test "x$enables_python_service" = "xyes"])
 
@@ -637,29 +650,31 @@ if test "$enables_altpython" = "yes"; then
     CPPFLAGS=$SAVE_CPPFLAGS
   fi
 
-  ALTPYTHONWRAP=no
-  if test -f python/arc_wrap.cpp || test "x$enables_swig" = "xyes" ; then
-    ALTPYTHONWRAP=yes
-  fi
-
   if test "X$ALTPYTHON" = "X"; then
-    AC_MSG_NOTICE([Missing Python - skipping Python bindings])
+    AC_MSG_NOTICE([Missing alternative Python - skipping alternative Python])
     enables_altpython=no
   elif test "X$ALTPYTHON_LIBS" = "X"; then
-    AC_MSG_NOTICE([Missing Python library - skipping Python bindings])
+    AC_MSG_NOTICE([Missing alternative Python library - skipping alternative Python bindings])
     enables_altpython=no
   elif test "X$altpythonh" != "Xyes"; then
-    AC_MSG_NOTICE([Missing Python header - skipping Python bindings])
+    AC_MSG_NOTICE([Missing alternative Python header - skipping alternative Python bindings])
     enables_altpython=no
-  elif test "X$ALTPYTHONWRAP" != "Xyes"; then
-    AC_MSG_NOTICE([Missing pre-compiled Python wrapper and SWIG - skipping Python bindings])
-    enables_altpython=no
+
   elif test "X$ALTPYTHON_SITE_ARCH" = "X" || test "X$ALTPYTHON_SITE_LIB" = "X"; then
     AC_MSG_NOTICE([Missing python site packages location - skipping Python bindings])
     enables_altpython=no
   else
     AC_MSG_NOTICE([Alternative Python available: $ALTPYTHON_VERSION])
   fi
+
+  if test "x$enables_altpython" != "xyes"; then
+    AC_MSG_NOTICE([Missing alternative Python - skipping alternative Python bindings])
+    enables_altpython=no
+  elif ! test -f python/arc_wrap.cpp && test "x$enables_swig_python" != "xyes"; then
+    AC_MSG_NOTICE([Missing pre-compiled Python wrapper and SWIG - skipping alternative Python bindings])
+    enables_altpython=no
+  fi
+
 fi
 fi
 
@@ -2025,6 +2040,9 @@ AM_CONDITIONAL([DATADELIVERY_SERVICE_ENABLED],[test "x$enables_datadelivery_serv
 # ACIX service
 AC_ARG_ENABLE(acix, AC_HELP_STRING([--disable-acix], [disable building ACIX service]),
   [enables_acix=$enableval],[])
+if test "$enables_python" != "yes"; then
+  enables_acix="no"
+fi
 AM_PATH_PYTHON([2.4], [], [enables_acix="no"])
 AC_MSG_NOTICE([ACIX enabled: $enables_acix])
 AM_CONDITIONAL([ACIX_ENABLED],[test "x$enables_acix" = "xyes"])
@@ -2036,7 +2054,6 @@ if test "x$TRIAL" = "x"; then
 fi
 # unit tests also require python >=2.6
 AM_CONDITIONAL([ACIX_TESTS_ENABLED], [test "x$TRIAL" != "x" && test "x$PYTHON_VERSION" != "x2.4" && test "x$PYTHON_VERSION" != "x2.5"])
- 
 
 # Check for explicitely and implicitely disabled clients
 AC_ARG_ENABLE(arclib_client, AC_HELP_STRING([--disable-arclib-client], [disable building Arclib (job management) client tools]),
@@ -2498,8 +2515,8 @@ AC_OUTPUT
 
 AC_MSG_RESULT([
 Unit testing:       ${enables_cppunit}
-Java binding:       ${enables_java}
-Python binding:     ${enables_python} ($PYTHON_VERSION)
+Java binding:       ${enables_swig_java}
+Python binding:     ${enables_swig_python} ($PYTHON_VERSION)
 Alt.Python binding: ${enables_altpython} ($ALTPYTHON_VERSION)
 
 Available third-party features:
