@@ -259,7 +259,7 @@ if [ $? -eq 0 ]; then
    #write EDGI monitor log
    msg="dt=$dato event=job_submission bridge_id=$DG_Endpoint job_id=$joboption_gridid job_id_bridge=\"$jobid\" status=Submitted"
    flock -w 10 $edgilog -c "echo $msg >> $edgilog"
-   if [ $? == 1 ]; then
+   if [ $? = 1 ]; then
      echo "Failed to log monitor data to: $edgilog" 1>&2
    fi
    # write output to arg file
@@ -276,7 +276,7 @@ fi
 msg="dt=$dato event=job_submission bridge_id=$DG_Endpoint job_id=$joboption_gridid status=Failed"
 echo "monitor: $msg"
 flock -w 10 $edgilog -c "echo $msg >> $edgilog"
-if [ $? == 1 ]; then
+if [ $? = 1 ]; then
   echo "Failed to log monitor data to: $edgilog" 1>&2
 fi
 

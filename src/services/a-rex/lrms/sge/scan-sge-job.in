@@ -439,7 +439,7 @@ for ctr_dir in $control_dirs ; do
 
       # Add accounting info to $diagfile
       add_accounting_to_diag "$diagfile" "$diagfile_acct" "$diagfile_tmp" "$errorsfile" "$uid" "$commentfile" "$ctr_dir"
-      if [ $? == 0 ]; then
+      if [ $? = 0 ]; then
 	  continue
       fi
     fi # session directory exists
