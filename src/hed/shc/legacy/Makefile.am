@@ -40,6 +40,7 @@ arc_lcas_LDADD    = \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(OPENSSL_LIBS) \
+	$(GLOBUS_COMMON_LIBS) \
 	$(GLOBUS_GSSAPI_GSI_LIBS) $(GLOBUS_GSI_CREDENTIAL_LIBS) \
 	$(GLOBUS_GSI_CERT_UTILS_LIBS)
 
@@ -53,5 +54,6 @@ arc_lcmaps_LDADD    = \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(OPENSSL_LIBS) \
+	$(GLOBUS_COMMON_LIBS) \
 	$(GLOBUS_GSSAPI_GSI_LIBS) $(GLOBUS_GSI_CREDENTIAL_LIBS) \
 	$(GLOBUS_GSI_CERT_UTILS_LIBS)
