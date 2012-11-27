@@ -16,6 +16,10 @@
     SessionDir attributes. (Hopefully it can still understand the previous
     versions of the jobs.xml.)
 
+2012-11-14  Gabor Szigeti <szigeti@niif.hu>
+
+  * [ldap-monitor] Add new cloumn to the Queue table by GLUE2 rendering.
+
 2012-11-14  Florido Paganelli   <florido.paganelli@hep.lu.se>
 
   * Finalized GLUE2 rendering:
@@ -41,6 +45,19 @@
   * Added several fixes to Glue1 schema thanks from contributions
     by Finnish partners: localse, queue names.
 
+2012-11-10  Gabor Szigeti <szigeti@niif.hu>
+
+  * Update the CAR accounting message version to 1.2. 
+
+2012-11-08  Gabor Szigeti <szigeti@niif.hu>
+
+  * Set the non-standard compilation prefix by ssm_master location.
+
+2012-11-08  Gabor Szigeti <szigeti@niif.hu>
+
+  * Send CAR 1.1 accounting message to the APEL destionation. 
+
+
 2012-11-08  David Cameron  <d.g.cameron@fys.uio.no>
 
   * Remove support for per-user control directories in A-REX. Add support
@@ -63,6 +80,23 @@
 2012-10-31  Anders Waananen <waananen@nbi.dk>
 
   * Add NSS as a dependency. Currently used only by arcproxy
+
+2012-10-29  Gabor Szigeti <szigeti@niif.hu>
+
+  * Fixed the logger url by the APEL destination. (fixes bug 2971)
+
+2012-10-19  Gabor Szigeti <szigeti@niif.hu>
+
+  * Fixed the published MachineName attribute by JURA. (fixes bug 2959)
+
+2012-10-18  Gabor Szigeti <szigeti@niif.hu>
+
+  * Update the regexp for a new type of JobID. (fixes bug 2958)
+
+2012-10-18  Gabor Szigeti <szigeti@niif.hu>
+
+  * Enabled GLUE2 schema rendering together with the old nordugrid schema
+    in the ldap-monitor.
 
 2012-10-17  Anders Waananen <waananen@nbi.dk>
 
@@ -88,6 +122,18 @@
 2012-10-01  David Cameron  <d.g.cameron@fys.uio.no>
 
   * Change configuration option "newdatastaging" to "enable_dtr"
+
+2012-09-26  Gabor Szigeti <szigeti@niif.hu>
+
+  * Parse the configured (optional) topic value from the server configuration.
+
+2012-09-25  Gabor Szigeti <szigeti@niif.hu>
+
+  * Send CAR records to the APEL.
+
+2012-09-19  Gabor Szigeti <szigeti@niif.hu>
+
+  * Use 1.2-2 version of SSM to the message sending.
 
 2012-09-08  Weizhong Qiang <weizhong.qiang@fys.uio.no>
 
