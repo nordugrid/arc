@@ -21,7 +21,6 @@ debian/tmp/usr/share/arc/DGLog2XML.py*
 debian/tmp/usr/share/arc/cancel-*-job
 debian/tmp/usr/share/arc/scan-*-job
 debian/tmp/usr/share/arc/submit-*-job
-debian/tmp/usr/share/arc/finish-condor-job
 
 debian/tmp/usr/lib/arc/libarex.so
 debian/tmp/usr/lib/arc/libarex.apd

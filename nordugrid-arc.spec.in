@@ -1216,7 +1216,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/cancel-*-job
 %{_datadir}/%{pkgdir}/scan-*-job
 %{_datadir}/%{pkgdir}/submit-*-job
-%{_datadir}/%{pkgdir}/finish-condor-job
 %{_datadir}/%{pkgdir}/DGAuthplug.py*
 %{_datadir}/%{pkgdir}/DGBridgeDataPlugin.py*
 %{_datadir}/%{pkgdir}/DGLog2XML.py*
