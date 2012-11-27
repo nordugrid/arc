@@ -152,7 +152,12 @@ long as 'configure' passes without errors. But in case of problems
 during configure or compilation, collect them and present while 
 reporting problems.
 
-If the previous commands finish without errors, compile and install ARC
+If the previous commands finish without errors, do
+
+  touch src/doxygen/*.pdf
+
+in order to get around an issue with timestamps and then compile and
+install ARC:
 
   make
   make install
