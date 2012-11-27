@@ -62,7 +62,7 @@
 %global with_gfal 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 8
+%if %{?fedora}%{!?fedora:0} >= 8 || %{?rhel}%{!?rhel:0} >= 4
 %global with_canl %{!?_without_canl:1}%{?_without_canl:0}
 %else
 %global with_canl 0
