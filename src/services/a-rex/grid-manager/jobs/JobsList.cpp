@@ -391,6 +391,20 @@ bool JobsList::FailedJob(const JobsList::iterator &i,bool cancel) {
       if(i->local) ++(i->local->uploads);
     }
   }
+  // Add user-uploaded input files so that they are not deleted during
+  // FINISHING and so resume will work. Credentials are not necessary for
+  // these files. The real output list will be recreated from the job
+  // description if the job is restarted.
+  if (!cancel && job_desc.reruns > 0) {
+    for(std::list<FileData>::iterator f = job_desc.inputdata.begin();
+                                      f != job_desc.inputdata.end(); ++f) {
+      if (f->lfn.find(':') == std::string::npos) {
+        FileData fd(f->pfn, "");
+        fd.iffailure = true; // make sure to keep file
+        job_desc.outputdata.push_back(fd);
+      }
+    }
+  }
   if(!job_output_write_file(*i,config,job_desc.outputdata,cancel?job_output_cancel:job_output_failure)) {
     r=false;
     logger.msg(Arc::ERROR,"%s: Failed writing list of output files: %s",i->job_id,Arc::StrError(errno));
