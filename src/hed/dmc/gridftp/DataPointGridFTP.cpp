@@ -1154,6 +1154,11 @@ namespace Arc {
         ftp_active = false;
         return;
       }
+      if (!(res = globus_ftp_client_operationattr_set_allow_ipv6(&ftp_opattr, GLOBUS_TRUE))) {
+        logger.msg(WARNING, "init_handle: "
+                   "globus_ftp_client_operationattr_set_allow_ipv6 failed");
+        logger.msg(WARNING, "Globus error: %s", res.str());
+      }
     }
     ftp_active = true;
     ftp_threads = 1;
