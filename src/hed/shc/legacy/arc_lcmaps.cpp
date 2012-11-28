@@ -104,7 +104,7 @@ void recover_lcmaps_env(void) {
 }
 
 gss_cred_id_t read_globus_credentials(const std::string& filename) {
-  Arc::Credential cred(filename, filename, "", "", "", true);
+  Arc::Credential cred(filename, "", "", "", "", true);
   X509* cert = cred.GetCert();
   STACK_OF(X509)* cchain = cred.GetCertChain();
   EVP_PKEY* key = cred.GetPrivKey();
@@ -126,22 +126,35 @@ gss_cred_id_t read_globus_credentials(const std::string& filename) {
       globus_gsi_cert_utils_get_cert_type(cert,&ctype);
       if(ctype == GLOBUS_GSI_CERT_UTILS_TYPE_EEC) {
         identity_cert = cert;
-      }
-    }
+      };
+    };
     if(!identity_cert && cchain) {
-      globus_gsi_cert_utils_get_identity_cert(cchain,&identity_cert);
-    }
+      // For compatibility with older globus not using
+      //globus_gsi_cert_utils_get_identity_cert(cchain,&identity_cert);
+      for(int n = 0; n < sk_X509_num(cchain); ++n) {
+        X509* tmp_cert = sk_X509_value(cchain, n);
+        if(tmp_cert) {
+          globus_gsi_cert_utils_cert_type_t ctype = GLOBUS_GSI_CERT_UTILS_TYPE_DEFAULT;
+          globus_gsi_cert_utils_get_cert_type(tmp_cert,&ctype);
+          if(ctype == GLOBUS_GSI_CERT_UTILS_TYPE_EEC) {
+            identity_cert = tmp_cert;
+            break;
+          };
+        };
+      };
+    };
     gss_buffer_desc peer_buffer;
     peer_buffer.value = identity_cert;
     peer_buffer.length = identity_cert?sizeof(X509):0;
     OM_uint32 majstat, minstat;
     majstat = gss_import_name(&minstat, &peer_buffer,
-                              GLOBUS_GSS_C_NT_X509, &ccred->globusid);
+                              identity_cert?GLOBUS_GSS_C_NT_X509:GSS_C_NT_ANONYMOUS,
+                              &ccred->globusid);
     if (GSS_ERROR(majstat)) {
       logger.msg(Arc::ERROR, "Failed to convert GSI credential to "
          "GSS credential (major: %d, minor: %d)", majstat, minstat);
       majstat = gss_release_cred(&minstat, &ccred);
-    }
+    };
   } else {
     ccred = GSS_C_NO_CREDENTIAL;
   };
