@@ -52,7 +52,7 @@ Description: ARC command line interface
  retrieve results. Basic Grid file manipulation tools are
  also offered.
 
-Package: nordugrid-arc-canl
+Package: nordugrid-arc-arcproxyalt
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
 Description: ARC command line interface

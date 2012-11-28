@@ -493,12 +493,12 @@ ARC Globus plugins. This includes the Globus dependent Data Manager
 Components (DMCs).
 
 %if %{with_canl}
-%package canl 
+%package arcproxyalt
 Summary:  ARC proxy client based on canl
 Group:    Applications/Internet
 Requires: %{name} = %{version}-%{release}
 
-%description canl
+%description arcproxyalt
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
@@ -1368,7 +1368,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libexecdir}/%{pkgdir}/arc-lcmaps
 
 %if %{with_canl}
-%files canl
+%files arcproxyalt
 %{_bindir}/arcproxyalt
 %endif
 
