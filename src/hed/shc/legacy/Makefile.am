@@ -47,7 +47,7 @@ arc_lcas_LDADD    = \
 arc_lcmaps_SOURCES  = arc_lcmaps.cpp
 arc_lcmaps_CXXFLAGS = -I$(top_srcdir)/include \
         $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) \
-        $(OPENSSL_CFLAGS) $(LCAS_CFLAGS) \
+        $(OPENSSL_CFLAGS) $(LCMAPS_CFLAGS) \
         $(GLOBUS_GSSAPI_GSI_CFLAGS) $(GLOBUS_GSI_CREDENTIAL_CFLAGS) \
         $(GLOBUS_GSI_CERT_UTILS_CFLAGS) $(AM_CXXFLAGS)
 arc_lcmaps_LDADD    = \
