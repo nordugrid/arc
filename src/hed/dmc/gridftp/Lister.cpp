@@ -505,6 +505,10 @@ namespace Arc {
       handle = NULL;
       return;
     }
+    if (globus_ftp_control_ipv6_allow(handle,GLOBUS_TRUE)  != GLOBUS_SUCCESS) {
+      logger.msg(WARNING, "Failed to enable IPv6");
+    }
+
     inited = true;
   }
 
