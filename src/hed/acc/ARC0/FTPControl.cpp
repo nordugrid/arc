@@ -145,6 +145,11 @@ namespace Arc {
       return false;
     }
 
+    result = globus_ftp_control_ipv6_allow(&control_handle, GLOBUS_TRUE);
+    if (!result) {
+      logger.msg(VERBOSE, "Failed to enable IPv6: %s", result.str());
+    }
+
     cb->ctrl = false;
     connected = true;
     result = globus_ftp_control_connect(&control_handle,
