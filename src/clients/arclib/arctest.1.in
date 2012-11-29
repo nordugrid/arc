@@ -67,7 +67,12 @@ and
 
 The test jobs available in this version of arctest are:
 
-Test job 1: a classical hello World job
+Test job 1: This test-job calculates prime-numbers for a number of minutes given by
+.B -r
+(default 5) and outputs the list to stderr. The source-code for the prime-number
+program, the Makefile and the executable are downloaded to the cluster from HTTP
+and FTP servers and the program is compiled before running. In this way, the test
+job constitutes a fairly comprehensive test of the basic setup of a grid cluster.
 
 Test job 2: attempts to list all environment variables at the remote site
 
