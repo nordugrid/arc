@@ -670,7 +670,8 @@
 ## number2 - additional reserved number of jobs being processed on frontend
 ## number3 - number of files being transferred simultaneously by jobs in
 ## PREPARING and FINISHING states. Missing number or -1 means no limit.
-## With enable_dtr="yes" options in [data-staging] should be used instead.
+## Options in [data-staging] should be used instead of this unless DTR is 
+## disabled with enable_dtr=no
 #maxload="10 2 5"
 
 ## maxloadshare maxshare sharetype - specifies a sharing mechanism for data
@@ -678,7 +679,8 @@
 ## that can run per transfer share and sharetype is the scheme
 ## used to assign jobs to transfer shares. Possible values of sharetype
 ## are "dn", "voms:vo", "voms:role", and "voms:group".
-## With enable_dtr="yes" options in [data-staging] should be used instead.
+## Options in [data-staging] should be used instead of this unless DTR is 
+## disabled with enable_dtr=no
 #maxloadshare="4 voms:role"
 
 ## share_limit name limit - specifies a transfer share that has a number
@@ -686,13 +688,14 @@
 ## the name of the share and limit is the number of processes for this
 ## share. In the configuration should appear after maxloadshare. Can be
 ## repeated several times for different shares.
-## With enable_dtr="yes" options in [data-staging] should be used instead.
+## Options in [data-staging] should be used instead of this unless DTR is 
+## disabled with enable_dtr=no
 #share_limit="atlas:production 10"
 
 ## enable_dtr yes|no - turns on and off the data staging framework Data
 ## Transfer Reloaded (DTR) which replaces the downloader and uploader for
-## managing input and output files. Options for this are set in the
-## [data-staging] section. It is off by default.
+## managing input and output files. Options for DTR are set in the
+## [data-staging] section. It is on by default.
 #enable_dtr="yes"
 
 ## wakeupperiod time - specifies how often A-REX cheks for new jobs
@@ -894,8 +897,8 @@
 
 ### [data-staging] block ###########################################
 ##
-## [data-staging] block configures data staging parameters if
-## enable_dtr="yes" is set in [grid-manager].
+## [data-staging] block configures DTR data staging parameters unless
+## enable_dtr="no" is set in [grid-manager].
 ##
 #[data-staging]
 

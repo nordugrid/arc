@@ -837,8 +837,8 @@ of jobs being processed on frontend (PREPARING, FINISHING states). The
 second number is the additional reserved number of jobs being
 processed on frontend. The third number limits the number of files
 being transferred simultaneously by jobs in PREPARING and FINISHING
-states. Missing number or -1 means no limit. With enable_dtr="yes"
-options in [data-staging] should be used instead.
+states. Missing number or -1 means no limit. Options in [data-staging]
+should be used instead of this unless DTR is disabled with enable_dtr=no.
 
 .IR Example :
 maxload="10 2 5"
@@ -849,8 +849,8 @@ Specifies a sharing mechanism for data transfer. The values are an integer
 followed by a space followed by a string. The first number is the maximum
 number of processes that can run per transfer share and the string is the scheme
 used to assign jobs to transfer shares. Possible values of this string
-are "dn", "voms:vo", "voms:role", and "voms:group". With enable_dtr="yes"
-options in [data-staging] should be used instead.
+are "dn", "voms:vo", "voms:role", and "voms:group". Options in [data-staging]
+should be used instead of this unless DTR is disabled with enable_dtr=no.
 
 .IR Example:
 maxloadshare="4 voms:role"
@@ -860,8 +860,9 @@ maxloadshare="4 voms:role"
 Specifies a transfer share that has a number of processes different from the
 default value in maxloadshare. name is the name of the share and limit is
 the number of processes for this share. In the configuration should appear
-after maxloadshare. Can be repeated several times for different shares. With
-enable_dtr="yes" options in [data-staging] should be used instead.
+after maxloadshare. Can be repeated several times for different shares.
+Options in [data-staging] should be used instead of this unless DTR is disabled
+with enable_dtr=no.
 
 .IR Example:
 share_limit="atlas:production 10"
@@ -870,7 +871,7 @@ share_limit="atlas:production 10"
 .B enable_dtr
 Turns on and off the data staging framework Data Transfer Reloaded (DTR),
 which replaces the downloader and uploader for managing input and output files.
-Options for this are set in the [data-staging] section. It is off by default.
+Options for this are set in the [data-staging] section. It is on by default.
 
 .IR Example:
 enable_dtr="yes"
@@ -1463,8 +1464,8 @@ See some of the examples above for examples of use.
 
 .SH DATA STAGING OPTIONS
 
-The [data-staging] block configures A-REX data staging if new data staging is
-switched on with enable_dtr="yes" in the [grid-manager] section.
+The [data-staging] block configures A-REX DTR data staging unless
+enable_dtr="no" is set in the [grid-manager] section.
 
 .TP
 .B debug
