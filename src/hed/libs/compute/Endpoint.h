@@ -55,7 +55,7 @@ public:
   - JOBCREATION: interface of a computing element where jobs can be created
   - UNSPECIFIED: unspecified capability
   */
-  enum CapabilityEnum { REGISTRY, COMPUTINGINFO, JOBLIST, JOBSUBMIT, JOBCREATION, UNSPECIFIED};
+  enum CapabilityEnum { REGISTRY, COMPUTINGINFO, JOBLIST, JOBSUBMIT, JOBCREATION, JOBMANAGEMENT, UNSPECIFIED};
   
   /** Get the string representation of the given #CapabilityEnum. */
   static std::string GetStringForCapability(Endpoint::CapabilityEnum cap) {
@@ -64,6 +64,7 @@ public:
     if (cap == Endpoint::JOBLIST) return "information.discovery.resource";
     if (cap == Endpoint::JOBSUBMIT) return "executionmanagement.jobexecution";
     if (cap == Endpoint::JOBCREATION) return "executionmanagement.jobcreation";
+    if (cap == Endpoint::JOBMANAGEMENT) return "executionmanagement.jobmanager";
     return "";
   }
   
