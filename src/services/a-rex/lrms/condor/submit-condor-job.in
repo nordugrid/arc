@@ -144,8 +144,8 @@ sub run_rte0 {
         $sep .= "----";
 
         my $r_args = '0';
-        for (my $n = 1; my $r_arg = $grami{"joboption_runtime_$i_$n"}; $n++) {
-            $r_args = "$r_args \"$r_arg"\"";
+        for (my $n = 1; my $r_arg = $grami{"joboption_runtime_${i}_$n"}; $n++) {
+            $r_args = "$r_args \"$r_arg\"";
         }
 
         # initialize joboption_* variables
@@ -231,8 +231,8 @@ sub create_shell_wrapper {
     if (notnull($grami{joboption_runtime_0})) {
         for (my $i = 0; notnull(my $r = $grami{"joboption_runtime_$i"}); $i++) {
             my $r_args = '';
-            for (my $n = 1; my $r_arg = $grami{"joboption_runtime_$i_$n"}; $n++) {
-                $r_args = "$r_args \"$r_arg"\"";
+            for (my $n = 1; my $r_arg = $grami{"joboption_runtime_${i}_$n"}; $n++) {
+                $r_args = "$r_args \"$r_arg\"";
             }
             $setrte1 .= qq{. "\$RUNTIME_CONFIG_DIR/$r" 1 $r_args\n};
             $setrte2 .= qq{. "\$RUNTIME_CONFIG_DIR/$r" 2 $r_args\n};
