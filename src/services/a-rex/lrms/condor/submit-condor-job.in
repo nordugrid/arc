@@ -410,13 +410,13 @@ sub create_condor_job_description {
     }
 
     # Option to force Condor to transfer of input and output files by itself
-    if ($config{shared_filesystem} =~ /^no/i && notnull($grami{joboption_rsl_inputfiles})) {
-        chomp($grami{joboption_rsl_inputfiles});
-        my @tmp = split / /, $grami{joboption_rsl_inputfiles};
+    if ($config{shared_filesystem} =~ /^no/i && notnull($grami{joboption_inputfile_0})) { 
         $output .= "Transfer_input_files = ";
-        for (my $i = 0; $i < @tmp; $i += 2) {
+        my $i;
+        for ($i = 0; notnull($grami{"joboption_inputfile_$i"}); $i++) {
             $output .= ',' if $i > 0;
-            $output .= $tmp[$i];
+            $output .= $grami{"joboption_directory"};
+            $output .= $grami{"joboption_inputfile_$i"};
         }
         $output .= "\n";
         $output .= "should_transfer_files = YES\n";
