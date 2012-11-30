@@ -304,7 +304,17 @@ done
 	suffix          "GLUE2GroupID=services,GLUE2DomainID=$admindomain,o=glue"
 	overlay         rwm
 	suffixmassage   "GLUE2GroupID=services,o=glue"
-	EOF
+
+    database        relay
+    suffix          \"GLUE2GroupID=resource,GLUE2DomainID=$admindomain,o=glue\"
+    overlay         rwm
+    suffixmassage   \"GLUE2GroupID=services,o=glue\"
+
+    database        relay
+    suffix          \"GLUE2GroupID=resource,o=glue\"
+    overlay         rwm
+    suffixmassage   \"GLUE2GroupID=services,o=glue\"
+    EOF
 )
 
 cat <<-EOF >> $bdii_slapd_conf
