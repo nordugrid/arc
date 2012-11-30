@@ -27,7 +27,7 @@ class LoadableModuleDescription {
   LoadableModuleDescription(void):module(NULL),count(0),usage_count(0) { };
   LoadableModuleDescription(Glib::Module* m):module(m),count(0),usage_count(0) { };
   LoadableModuleDescription& operator=(Glib::Module* m) {
-    module=m; count=0; usage_count=0;
+    module=m;
     return *this;
   };
   LoadableModuleDescription& operator=(const LoadableModuleDescription& d) {
