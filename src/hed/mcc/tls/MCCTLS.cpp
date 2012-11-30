@@ -560,7 +560,7 @@ static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
     return new ArcMCCTLS::MCC_TLS_Client(*(Arc::Config*)(*mccarg),mccarg);
 }
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
     { "tls.service", "HED:MCC", NULL, 0, &get_mcc_service },
     { "tls.client",  "HED:MCC", NULL, 0, &get_mcc_client  },
     { "delegation.collector", "HED:SHC", NULL, 0, &ArcMCCTLSSec::DelegationCollector::get_sechandler},

@@ -1262,7 +1262,16 @@ namespace Arc {
 
 } // namespace Arc
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
   { "rls", "HED:DMC", "Globus Replica Location Service", 0, &Arc::DataPointRLS::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
+
+extern "C" {
+  void ARC_MODULE_CONSTRUCTOR_NAME(Glib::Module* module, Arc::ModuleManager* manager) {
+    if(manager && module) {
+      manager->makePersistent(module);
+    };
+  }
+}
+

@@ -45,7 +45,9 @@ extern int Cthread_init(); /* from <Cthread_api.h> */
 
 #include "DataPointLFC.h"
 
-namespace Arc {
+namespace ArcDMCLFC {
+
+using namespace Arc;
 
   static bool proxy_initialized = false;
   static bool persistent_initialized = false;
@@ -1167,7 +1169,17 @@ namespace Arc {
 
 } // namespace Arc
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "lfc", "HED:DMC", "LCG File Catalog", 0, &Arc::DataPointLFC::Instance },
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+  { "lfc", "HED:DMC", "LCG File Catalog", 0, &ArcDMCLFC::DataPointLFC::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
+
+extern "C" {
+  void ARC_MODULE_CONSTRUCTOR_NAME(Glib::Module* module, Arc::ModuleManager* manager) {
+    if(manager && module) {
+      manager->makePersistent(module);
+      ArcDMCLFC::persistent_initialized = true;
+    };
+  }
+}
+

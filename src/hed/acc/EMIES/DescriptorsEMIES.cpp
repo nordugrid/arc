@@ -11,7 +11,7 @@
 #include "JobListRetrieverPluginEMIES.h"
 #include "TargetInformationRetrieverPluginEMIES.h"
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
   { "EMIES", "HED:SubmitterPlugin", "EMI-ES conforming execution service", 0, &Arc::SubmitterPluginEMIES::Instance },
   { "EMIES", "HED:JobControllerPlugin", "EMI-ES conforming execution service", 0, &Arc::JobControllerPluginEMIES::Instance },
   { "EMIES", "HED:TargetInformationRetrieverPlugin", "EMI-ES conforming execution service", 0, &Arc::TargetInformationRetrieverPluginEMIES::Instance },

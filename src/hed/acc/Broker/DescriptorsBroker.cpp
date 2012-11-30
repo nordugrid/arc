@@ -10,7 +10,7 @@
 #include "DataBrokerPlugin.h"
 #include "NullBrokerPlugin.h"
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
   { "FastestQueue", "HED:BrokerPlugin", istring("Sorting according to free slots in queue"), 0, &Arc::FastestQueueBrokerPlugin::Instance },
   { "Random", "HED:BrokerPlugin", istring("Random sorting"), 0, &Arc::RandomBrokerPlugin::Instance },
   { "Benchmark", "HED:BrokerPlugin", istring("Sorting according to specified benchmark (default \"specint2000\")"), 0, &Arc::BenchmarkBrokerPlugin::Instance },

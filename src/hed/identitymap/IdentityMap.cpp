@@ -23,7 +23,7 @@ static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg) {
   return plugin;
 }
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
     { "identity.map", "HED:SHC", NULL, 0, &get_sechandler},
     { NULL, NULL, NULL, 0, NULL }
 };

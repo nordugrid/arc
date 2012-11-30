@@ -1118,7 +1118,7 @@ using namespace Arc;
 
 } // namespace Arc
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
   { "http", "HED:DMC", "HTTP or HTTP over SSL (https)", 0, &ArcDMCHTTP::DataPointHTTP::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

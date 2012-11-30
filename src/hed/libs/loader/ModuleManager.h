@@ -11,49 +11,25 @@
 
 namespace Arc {
 
-class LoadableModuleDescription {
- private:
-  Glib::Module* module;
-  int count;
-  int usage_count;
-  std::string path;
-  void check_unload(void) {
-    if((count <= 0) && (usage_count <= 0) && module) {
-      delete module;
-      module=NULL;
-    }
-  };
- public:
-  LoadableModuleDescription(void):module(NULL),count(0),usage_count(0) { };
-  LoadableModuleDescription(Glib::Module* m):module(m),count(0),usage_count(0) { };
-  LoadableModuleDescription& operator=(Glib::Module* m) {
-    module=m;
-    return *this;
-  };
-  LoadableModuleDescription& operator=(const LoadableModuleDescription& d) {
-    module=d.module; count=d.count; usage_count=d.usage_count;
-    return *this;
-  };
-  operator Glib::Module*(void) { return module; };
-  operator bool(void) { return (module != NULL); };
-  bool operator!(void) { return (module == NULL); };
-  bool operator==(Glib::Module* m) { return (module==m); };
-  int load(void) { ++count; return count; };
-  int unload(void) {
-    if(count > 0) --count;
-    check_unload();
-    return count;
-  };
-  int use(void) { ++usage_count; return usage_count; };
-  int unuse(void) {
-    if(usage_count > 0) --usage_count;
-    //check_unload(); - not unloading code because it is needed at least to do return.
-    return usage_count;
-  };
-  int usage(void) { return usage_count; };
-  void makePersistent(void) { if(module) module->make_resident(); };
-};
-typedef std::map<std::string, LoadableModuleDescription> plugin_cache_t;
+class ModuleManager;
+
+/// If found in loadable module this function is called
+/// right after module is loaded. It provides functionality
+/// similar to constructor attribute of GCC, but is independent
+/// of compiler and gives access to manager and module objects.
+#define ARC_MODULE_CONSTRUCTOR_NAME __arc_module_constructor__
+#define ARC_MODULE_CONSTRUCTOR_SYMB "__arc_module_constructor__"
+typedef void (*arc_module_constructor_func)(Glib::Module*, ModuleManager*);
+
+/// If found in loadable module this function is called
+/// right before module is unloaded. It provides functionality
+/// similar to constructor attribute of GCC, but is independent
+/// of compiler and gives access to manager and module objects.
+/// If module was set as persistent this function is still called
+/// although module is not actually unloaded.
+#define ARC_MODULE_DESTRUCTOR_NAME __arc_module_destructor__
+#define ARC_MODULE_DESTRUCTOR_SYMB "__arc_module_destructor__"
+typedef void (*arc_module_destructor_func)(Glib::Module*, ModuleManager*);
 
 /// Manager of shared libraries
 /** This class loads shared libraries/modules.
@@ -63,6 +39,38 @@ typedef std::map<std::string, LoadableModuleDescription> plugin_cache_t;
 class ModuleManager
 {
     private:
+
+        class LoadableModuleDescription {
+         private:
+          Glib::Module* module;
+          int count;
+          int usage_count;
+          std::string path;
+          void check_unload(ModuleManager* manager);
+         public:
+          LoadableModuleDescription(void);
+          LoadableModuleDescription(Glib::Module* m);
+          LoadableModuleDescription& operator=(Glib::Module* m);
+          LoadableModuleDescription& operator=(const LoadableModuleDescription& d);
+          operator Glib::Module*(void) { return module; };
+          operator bool(void) { return (module != NULL); };
+          bool operator!(void) { return (module == NULL); };
+          bool operator==(Glib::Module* m) { return (module==m); };
+          int load(void);
+          int unload(ModuleManager* manager);
+          int use(void) { ++usage_count; return usage_count; };
+          int unuse(void) {
+            if(usage_count > 0) --usage_count;
+            //check_unload(); - not unloading code because it is needed at least to do return.
+            return usage_count;
+          };
+          int usage(void) { return usage_count; };
+          void makePersistent(void) { if(module) module->make_resident(); };
+        };
+        friend class LoadableModuleDescription;
+
+        typedef std::map<std::string, LoadableModuleDescription> plugin_cache_t;
+
         Glib::Mutex mlock;
         static Logger logger;
         std::list<std::string> plugin_dir; /** collection of path to directory for modules */

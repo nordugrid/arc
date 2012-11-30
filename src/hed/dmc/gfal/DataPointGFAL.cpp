@@ -595,7 +595,7 @@ namespace Arc {
 
 } // namespace Arc
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
   { "gfal2", "HED:DMC", "Grid File Access Library 2", 0, &Arc::DataPointGFAL::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

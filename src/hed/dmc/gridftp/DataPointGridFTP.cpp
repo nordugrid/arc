@@ -1359,7 +1359,16 @@ namespace Arc {
 
 } // namespace Arc
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
   { "gsiftp", "HED:DMC", "FTP or FTP with GSI security", 0, &Arc::DataPointGridFTP::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
+
+extern "C" {
+  void ARC_MODULE_CONSTRUCTOR_NAME(Glib::Module* module, Arc::ModuleManager* manager) {
+    if(manager && module) {
+      manager->makePersistent(module);
+    };
+  }
+}
+

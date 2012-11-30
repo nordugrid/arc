@@ -33,7 +33,7 @@ static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
     return new ArcMCCSOAP::MCC_SOAP_Client((Arc::Config*)(*mccarg),mccarg);
 }
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
     { "soap.service", "HED:MCC", NULL, 0, &get_mcc_service },
     { "soap.client",  "HED:MCC", NULL, 0, &get_mcc_client  },
     { NULL, NULL, NULL, 0, NULL }

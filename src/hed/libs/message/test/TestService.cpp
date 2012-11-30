@@ -28,7 +28,7 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     return new TestService((Arc::Config*)(*servicearg),arg);
 }
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
     { "testservice", "HED:SERVICE", NULL, 0, &get_service },
     { NULL, NULL, NULL, 0, NULL }
 };

@@ -38,7 +38,7 @@ static Arc::Plugin* get_mcc(Arc::PluginArgument* arg) {
     return new TestMCC((Arc::Config*)(*mccarg),arg);
 }
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
     { "testmcc", "HED:MCC", NULL, 0, &get_mcc },
     { NULL, NULL, NULL, 0, NULL }
 };

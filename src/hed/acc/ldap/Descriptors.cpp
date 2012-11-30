@@ -14,7 +14,7 @@
 #include "TargetInformationRetrieverPluginLDAPNG.h"
 #include "ServiceEndpointRetrieverPluginEGIIS.h"
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
   { "LDAPNG", "HED:JobListRetrieverPlugin", "Classic NorduGrid LDAP Job List", 0, &Arc::JobListRetrieverPluginLDAPNG::Instance },
   { "LDAPGLUE2", "HED:JobListRetrieverPlugin", "GLUE2 LDAP Job List", 0, &Arc::JobListRetrieverPluginLDAPGLUE2::Instance },
   { "LDAPGLUE1", "HED:TargetInformationRetrieverPlugin", "GLUE1.x LDAP Local Information", 0, &Arc::TargetInformationRetrieverPluginLDAPGLUE1::Instance },

@@ -76,8 +76,8 @@ namespace Arc {
      element with all components set to NULL. */
   extern const char* plugins_table_name;
 
-  #define PLUGINS_TABLE_NAME __arc_plugins_table__
-  #define PLUGINS_TABLE_SYMB "__arc_plugins_table__"
+  #define ARC_PLUGINS_TABLE_NAME __arc_plugins_table__
+  #define ARC_PLUGINS_TABLE_SYMB "__arc_plugins_table__"
 
   /// Constructor function of ARC lodable component
   /** This function is called with plugin-specific argument and

@@ -5,11 +5,11 @@
 
 #include <list>
 
+#include <arc/Logger.h>
+#include <arc/URL.h>
 #include <arc/data/DataPointIndex.h>
 
-namespace Arc {
-  class Logger;
-  class URL;
+namespace ArcDMCLFC {
 
   /**
    * The LCG File Catalog (LFC) is a replica catalog developed by CERN. It
@@ -20,38 +20,38 @@ namespace Arc {
    * class loads modules at runtime and should be used instead of this.
    */
   class DataPointLFC
-    : public DataPointIndex {
+    : public Arc::DataPointIndex {
   public:
-    DataPointLFC(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
+    DataPointLFC(const Arc::URL& url, const Arc::UserConfig& usercfg, Arc::PluginArgument* parg);
     ~DataPointLFC();
-    static Plugin* Instance(PluginArgument *arg);
-    virtual DataStatus Resolve(bool source);
-    virtual DataStatus Resolve(bool source, const std::list<DataPoint*>& urls);
-    virtual DataStatus Check(bool check_meta);
-    virtual DataStatus PreRegister(bool replication, bool force = false);
-    virtual DataStatus PostRegister(bool replication);
-    virtual DataStatus PreUnregister(bool replication);
-    virtual DataStatus Unregister(bool all);
-    virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
-    virtual DataStatus Stat(std::list<FileInfo>& files,
-                            const std::list<DataPoint*>& urls,
-                            DataPointInfoType verb = INFO_TYPE_ALL);
-    virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
-    virtual DataStatus CreateDirectory(bool with_parents=false);
-    virtual DataStatus Rename(const URL& newurl);
-    //virtual DataStatus ListFiles(std::list<FileInfo>& files, bool long_list = false, bool resolve = false, bool metadata = false);
+    static Plugin* Instance(Arc::PluginArgument *arg);
+    virtual Arc::DataStatus Resolve(bool source);
+    virtual Arc::DataStatus Resolve(bool source, const std::list<DataPoint*>& urls);
+    virtual Arc::DataStatus Check(bool check_meta);
+    virtual Arc::DataStatus PreRegister(bool replication, bool force = false);
+    virtual Arc::DataStatus PostRegister(bool replication);
+    virtual Arc::DataStatus PreUnregister(bool replication);
+    virtual Arc::DataStatus Unregister(bool all);
+    virtual Arc::DataStatus Stat(Arc::FileInfo& file, Arc::DataPoint::DataPointInfoType verb = INFO_TYPE_ALL);
+    virtual Arc::DataStatus Stat(std::list<Arc::FileInfo>& files,
+                            const std::list<Arc::DataPoint*>& urls,
+                            Arc::DataPoint::DataPointInfoType verb = INFO_TYPE_ALL);
+    virtual Arc::DataStatus List(std::list<Arc::FileInfo>& files, Arc::DataPoint::DataPointInfoType verb = INFO_TYPE_ALL);
+    virtual Arc::DataStatus CreateDirectory(bool with_parents=false);
+    virtual Arc::DataStatus Rename(const Arc::URL& newurl);
+    //virtual Arc::DataStatus ListFiles(std::list<FileInfo>& files, bool long_list = false, bool resolve = false, bool metadata = false);
     virtual const std::string DefaultCheckSum() const;
     virtual std::string str() const;
   protected:
-    static Logger logger;
+    static Arc::Logger logger;
     std::string guid;
     std::string path_for_guid;
   private:
     std::string ResolveGUIDToLFN();
     int error_no;
-    /// Convert serrno to DataStatus errno
+    /// Convert serrno to Arc::DataStatus errno
     int lfc2errno() const;
-    DataStatus ListFiles(std::list<FileInfo>& files, DataPointInfoType verb, bool listdir);
+    Arc::DataStatus ListFiles(std::list<Arc::FileInfo>& files, Arc::DataPoint::DataPointInfoType verb, bool listdir);
 
   };
 

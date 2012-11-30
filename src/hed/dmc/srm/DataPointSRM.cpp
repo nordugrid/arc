@@ -911,7 +911,7 @@ namespace Arc {
 
 } // namespace Arc
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
   { "srm", "HED:DMC", "Storage Resource Manager", 0, &Arc::DataPointSRM::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

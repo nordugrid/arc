@@ -164,7 +164,16 @@ namespace Arc {
 
 } // namespace Arc
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
   { "ldap", "HED:DMC", "Lightweight Directory Access Protocol", 0, &Arc::DataPointLDAP::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
+
+extern "C" {
+  void ARC_MODULE_CONSTRUCTOR_NAME(Glib::Module* module, Arc::ModuleManager* manager) {
+    if(manager && module) {
+      manager->makePersistent(module);
+    };
+  }
+}
+

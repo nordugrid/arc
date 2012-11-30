@@ -579,7 +579,7 @@ using namespace Arc;
 
 } // namespace ArcMCCGSI
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
   { "gsi.service", "HED:MCC", NULL, 0, &ArcMCCGSI::get_mcc_service },
   { "gsi.client", "HED:MCC", NULL, 0, &ArcMCCGSI::get_mcc_client },
   { NULL, NULL, NULL, 0, NULL }

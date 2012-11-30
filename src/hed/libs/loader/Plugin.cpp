@@ -294,7 +294,7 @@ namespace Arc {
 //    manager.unload(module);
 //  }
 
-  const char* plugins_table_name = PLUGINS_TABLE_SYMB;
+  const char* plugins_table_name = ARC_PLUGINS_TABLE_SYMB;
 
   Logger PluginsFactory::logger(Logger::rootLogger, "Plugin");
 

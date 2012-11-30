@@ -815,7 +815,7 @@ namespace Arc {
 
 } // namespace Arc
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
   { "file", "HED:DMC", "Regular local file", 0, &Arc::DataPointFile::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

@@ -80,7 +80,7 @@ static bool process_module(const std::string& plugin_filename, bool create_apd) 
     std::cout << std::endl;
 
     void *ptr = NULL;
-    if(!module->get_symbol(PLUGINS_TABLE_SYMB,ptr)) {
+    if(!module->get_symbol(ARC_PLUGINS_TABLE_SYMB,ptr)) {
         std::cerr << "Module " << plugin_filename << " is not an ARC plugin: " << Glib::Module::get_last_error() << std::endl;
         if(create_apd) {
           std::cerr << "Dummy descriptor file will be created to avoid loading this module at all" << std::endl;

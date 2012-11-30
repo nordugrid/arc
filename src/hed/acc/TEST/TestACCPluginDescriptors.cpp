@@ -10,7 +10,7 @@
 #include "ServiceEndpointRetrieverPluginTEST.h"
 #include "JobListRetrieverPluginTEST.h"
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
   { "TEST", "HED:BrokerPlugin", "", 0, &Arc::BrokerPluginTestACC::GetInstance },
   { "TEST", "HED:JobControllerPlugin", "", 0, &Arc::JobControllerPluginTestACC::GetInstance },
   { "TEST", "HED:JobDescriptionParser", "", 0, &Arc::JobDescriptionParserTestACC::GetInstance },

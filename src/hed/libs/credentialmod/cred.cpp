@@ -10,7 +10,7 @@
 // persistent in compatible way.
 
 // Adding plugin descriptor to avoid warning messages from loader
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
     { NULL, NULL, NULL, 0, NULL }
 };
 

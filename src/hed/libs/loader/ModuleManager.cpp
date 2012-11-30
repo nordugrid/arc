@@ -45,7 +45,7 @@ ModuleManager::~ModuleManager(void)
   // Try to unload all modules
   // Remove unloaded plugins from cache
   for(plugin_cache_t::iterator i = plugin_cache.begin(); i != plugin_cache.end();) {
-    while(i->second.unload() > 0) { };
+    while(i->second.unload(this) > 0) { };
     if(i->second) {
       // module is on unloaded only if it is in use according to usage counter
       ++i;
@@ -66,7 +66,7 @@ ModuleManager::~ModuleManager(void)
     // Check again
     // Just in case something called load() - unloading them again
     for(plugin_cache_t::iterator i = plugin_cache.begin(); i != plugin_cache.end();) {
-      while(i->second.unload() > 0) { };
+      while(i->second.unload(this) > 0) { };
       if(i->second) {
         ++i;
       } else {
@@ -104,7 +104,7 @@ void ModuleManager::unload(Glib::Module *module)
   for(plugin_cache_t::iterator p = plugin_cache.begin();
                                p!=plugin_cache.end();++p) {
     if(p->second == module) {
-      p->second.unload();
+      p->second.unload(this);
       if(!(p->second)) plugin_cache.erase(p);
       break;
     }
@@ -116,7 +116,7 @@ void ModuleManager::unload(const std::string& name)
   Glib::Mutex::Lock lock(mlock);
   plugin_cache_t::iterator p = plugin_cache.find(name);
   if (p != plugin_cache.end()) {
-    p->second.unload();
+    p->second.unload(this);
     if(!(p->second)) plugin_cache.erase(p);
   }
 }
@@ -188,6 +188,15 @@ Glib::Module* ModuleManager::load(const std::string& name,bool probe)
   }
   ModuleManager::logger.msg(DEBUG, "Loaded %s", path);
   (plugin_cache[name] = module).load();
+  void* func = NULL;
+  if(!module->get_symbol(ARC_MODULE_CONSTRUCTOR_SYMB,func)) func = NULL;
+  if(func) {
+    plugin_cache[name].use();
+    lock.release(); // Avoid deadlock if manager called from module constructor
+    (*(arc_module_constructor_func)func)(module,this);
+    lock.acquire();
+    plugin_cache[name].unuse();
+  }
   return module;
 }
 
@@ -270,6 +279,52 @@ bool ModuleManager::makePersistent(Glib::Module* module) {
   }
   ModuleManager::logger.msg(DEBUG, "Specified module not found in cache");
   return false;
+}
+
+
+ModuleManager::LoadableModuleDescription::LoadableModuleDescription(void):
+                                            module(NULL),count(0),usage_count(0) {
+}
+
+ModuleManager::LoadableModuleDescription::LoadableModuleDescription(Glib::Module* m):
+                                            module(m),count(0),usage_count(0) {
+}
+
+void ModuleManager::LoadableModuleDescription::check_unload(ModuleManager* manager) {
+  if((count <= 0) && (usage_count <= 0) && module) {
+    void* func = NULL;
+    if(!module->get_symbol(ARC_MODULE_DESTRUCTOR_SYMB,func)) func = NULL;
+    if(func && manager) {
+      use();
+      manager->mlock.unlock();
+      (*(arc_module_destructor_func)func)(module,manager);
+      manager->mlock.lock();
+      unuse();
+    }
+    delete module;
+    module=NULL;
+  }
+}
+
+ModuleManager::LoadableModuleDescription& ModuleManager::LoadableModuleDescription::operator=(Glib::Module* m) {
+  module=m;
+  return *this;
+}
+
+ModuleManager::LoadableModuleDescription& ModuleManager::LoadableModuleDescription::operator=(const LoadableModuleDescription& d) {
+  module=d.module; count=d.count; usage_count=d.usage_count;
+  return *this;
+}
+
+int ModuleManager::LoadableModuleDescription::load(void) {
+  ++count;
+  return count;
+}
+
+int ModuleManager::LoadableModuleDescription::unload(ModuleManager* manager) {
+  if(count > 0) --count;
+  check_unload(manager);
+  return count;
 }
 
 } // namespace Arc

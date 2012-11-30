@@ -8,7 +8,7 @@
 #include "LegacyPDP.h"
 #include "LegacyMap.h"
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
     { "arclegacy.handler", "HED:SHC", NULL, 0,
                   &ArcSHCLegacy::LegacySecHandler::get_sechandler},
     { "arclegacy.pdp", "HED:PDP", NULL, 0,

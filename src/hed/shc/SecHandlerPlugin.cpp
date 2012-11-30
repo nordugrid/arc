@@ -41,7 +41,7 @@
 
 using namespace ArcSec;
 
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
     { "simplelist.pdp", "HED:PDP", NULL, 0,
                   &ArcSec::SimpleListPDP::get_simplelist_pdp},
     { "arc.pdp", "HED:PDP", NULL, 0,
