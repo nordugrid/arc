@@ -120,8 +120,8 @@ sub collect_jobids($$) {
     local *LOCAL;
     open(LOCAL, "$cmd |");
     while (<LOCAL>) {
-       m#/job\.(\d{10,})\.local:queue=(\S+)# && ($pairs{$1}{queue} = $2);
-       m#/job\.(\d{10,})\.local:localid=(\S+)# && ($pairs{$1}{id} = $2);
+       m#/job\.(\w{10,})\.local:queue=(\S+)# && ($pairs{$1}{queue} = $2);
+       m#/job\.(\w{10,})\.local:localid=(\S+)# && ($pairs{$1}{id} = $2);
     }
     close LOCAL;
     foreach my $pair (values %pairs) {
