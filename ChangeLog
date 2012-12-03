@@ -232,14 +232,36 @@
 
   * Cache service can run in same arched as A-REX with shared DTR instance
 
+2012-06-05  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+
+  * Janitor component removed from source tree.
+
+2012-06-05  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+
+  * Client files stage in performance enhanced by decreasing number of
+    reconnections during one submission cycle.
+
 2012-06-01 Weizhong Qiang <weizhong.qiang@fys.uio.no>
 
-  * arcproxy can support the contacting to voms server with RESTful interface
+  * arcproxy can support the contacting to voms server wiuth RESTful interface
 
 2012-06-01  Anders Wäänänen  <waananen@nbi.dk>
 
   * Remove ISIS, Janitor, Chelonia and Hopi
 
+2012-05-25  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+
+  * Watchdog implemented for arched container and used in A-REX.
+
 2012-04-23  Andrii Salnikov  <manf@grid.org.ua>
 
   * nordugridmap updated to version 2.0
+
+2012-04-02  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+
+  * Handle out-of-band data at TCP layer.
+
+2012-03-30  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+
+  * Communication with ARGUS PEP is implemented and integerated into A-REX.
+
