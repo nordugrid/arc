@@ -150,7 +150,7 @@
 
 2012-11-19  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
 
-  * HTTP implementation in data plugin enchaced to support redirection and
+  * HTTP implementation in data plugin enhanced to support redirection and
     chunked transfers for all functions.
 
 2012-09-19  Gabor Szigeti <szigeti@niif.hu>
@@ -243,7 +243,7 @@
 
 2012-06-01 Weizhong Qiang <weizhong.qiang@fys.uio.no>
 
-  * arcproxy can support the contacting to voms server wiuth RESTful interface
+  * arcproxy can support the contacting to voms server with RESTful interface
 
 2012-06-01  Anders Wäänänen  <waananen@nbi.dk>
 
