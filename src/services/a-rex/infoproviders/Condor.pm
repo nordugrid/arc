@@ -542,6 +542,7 @@ sub jobs_info ($$@) {
                 $lrms_jobs{$id}{mem} = '';
                 $lrms_jobs{$id}{walltime} = '';
                 $lrms_jobs{$id}{cputime} = '';
+                $lrms_jobs{$id}{nodes} = [];
             }
         } else {
             # Job probably already finished
