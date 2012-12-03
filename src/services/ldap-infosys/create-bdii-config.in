@@ -286,7 +286,6 @@ cat <<-EOF > $bdii_default_ldif
 
 	print "dn: Mds-Vo-name=local,o=Grid\n";
 	print "objectClass: Mds\n";
-	print "objectClass: MdsVo\n";
 	print "Mds-Vo-name: local\n";
 	print "Mds-validfrom: " . strftime("%Y%m%d%H%M%SZ\n", gmtime());
 	print "Mds-validto: " . strftime("%Y%m%d%H%M%SZ\n", gmtime(time() + 3600));
@@ -294,7 +293,6 @@ cat <<-EOF > $bdii_default_ldif
 
 	print "dn: Mds-Vo-name=resource,o=Grid\n";
 	print "objectClass: Mds\n";
-	print "objectClass: MdsVo\n";
 	print "Mds-Vo-name: resource\n";
 	print "Mds-validfrom: " . strftime("%Y%m%d%H%M%SZ\n", gmtime());
 	print "Mds-validto: " . strftime("%Y%m%d%H%M%SZ\n", gmtime(time() + 3600));
