@@ -49,7 +49,7 @@
   * Added several fixes to Glue1 schema thanks from contributions
     by Finnish partners: localse, queue names.
 
-2012-11-13  Aleksandr Konstatntinov <aleksandr.konstantinov@fys.uio.no>
+2012-11-13  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
 
   * EMI ES interface implemented in ARC client tools.
 
@@ -57,7 +57,7 @@
 
   * Update the CAR accounting message version to 1.2. 
 
-2012-11-09  Aleksandr Konstatntinov <aleksandr.konstantinov@fys.uio.no>
+2012-11-09  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
 
   * Communication with ARGUS PDP is implemented and integerated into A-REX.
 
@@ -75,7 +75,7 @@
   * Remove support for per-user control directories in A-REX. Add support
     for substitutions in configuration based on dynamically mapped local user.
 
-2012-11-07  Aleksandr Konstatntinov <aleksandr.konstantinov@fys.uio.no>
+2012-11-07  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
 
   * Administrator utility gm-jobs is extended to provide information about delegated
     tokens and filter jobs by identifier.
@@ -148,9 +148,18 @@
 
   * Send CAR records to the APEL.
 
+2012-11-19  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+
+  * HTTP implementation in data plugin enchaced to support redirection and
+    chunked transfers for all functions.
+
 2012-09-19  Gabor Szigeti <szigeti@niif.hu>
 
   * Use 1.2-2 version of SSM to the message sending.
+
+2012-09-11  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+
+  * Administrator utility gm-jobs is extended to cancel and clean jobs.
 
 2012-09-08  Weizhong Qiang <weizhong.qiang@fys.uio.no>
 
@@ -201,6 +210,11 @@
 2012-07-13  David Cameron  <d.g.cameron@fys.uio.no>
 
   * Add errno-like field to DataStatus class
+
+2012-09-11  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+
+  * Increase performance of client file staging to/from HTTPS interface
+    of A-REX service by turning off encryption.
 
 2012-06-28  David Cameron  <d.g.cameron@fys.uio.no>
 
