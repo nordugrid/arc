@@ -385,7 +385,7 @@ if [ -n "${set_cachesize_line}" ]; then
 	memsize=$(grep MemFree /proc/meminfo | awk '{print $2 * 1000}')
 	default_set_cachesize=$(echo ${set_cachesize_line} | awk '{print $2 * 1073741824 + $3}')
 	half_memsize=$(( ${memsize} / 2 ))
-	if [ $bdii_default_set_cachesize -ge $half_memsize ]; then
+	if [ $default_set_cachesize -ge $half_memsize ]; then
 	    echo "The system does not fulfill BDII optimal memory requirements"
 	    echo "ARC will try to fix it anyway..."
 	    new_set_cachesize=$(( $memsize / 16 ))
