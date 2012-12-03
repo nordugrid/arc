@@ -211,7 +211,7 @@
 
   * Add errno-like field to DataStatus class
 
-2012-09-11  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+2012-07-03  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
 
   * Increase performance of client file staging to/from HTTPS interface
     of A-REX service by turning off encryption.
@@ -219,6 +219,10 @@
 2012-06-28  David Cameron  <d.g.cameron@fys.uio.no>
 
   * Improved formatting of arcls -l by aligning columns 
+
+2012-06-27  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+
+  * Support for plugin priorities added.
 
 2012-06-20  David Cameron  <d.g.cameron@fys.uio.no>
 
