@@ -81,7 +81,7 @@ fi
 bdii_log_dir=${CONFIG_bdii_log_dir:-/var/log/arc/bdii}
 bdii_log_file="${bdii_log_dir}/bdii-update.log"
 
-bdii_slapd_conf=$bdii_run_dir/bdii-slapd.conf
+bdii_slapd_conf=$arc_runtime_config/bdii-slapd.conf
 
 bdii_default_ldif=${bdii_tmp_dir}/provider/arc-default.ldif.pl
 bdii_ldif_dir=${bdii_tmp_dir}/ldif
