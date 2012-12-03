@@ -1,0 +1,28 @@
+The NorduGrid ARC LDAP based information system
+-----------------------------------------------
+
+To start a local information system (ARIS) do:
+
+ - start nordugrid-arc-slapd
+ - start nordugird-arc-bdii
+
+To start a information index server (EGIIS) do:
+
+ - start nordugrid-arc-slapd
+ - start nordugrid-arc-egiis
+
+If you are running both an ARIS and an EGIIS you should only start the
+nordugrid-arc-slapd service once.
+
+To start the information registration process to other EGIIS services do:
+
+ - start nordugrid-arc-inforeg
+
+TODO
+----
+
+ - More clever service dependencies
+ - Systemd support
+ - AppArmor support
+ - Packaging clean-up
+ - Documentation
