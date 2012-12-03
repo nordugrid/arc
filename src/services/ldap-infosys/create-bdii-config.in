@@ -474,7 +474,7 @@ for site_bdii in `config_subsections infosys/site`; do
 	cat <<-EOF > $site_provider
 		#!/bin/sh
 		export GLITE_LOCATION_VAR=${bdii_tmp_dir}
-		$ARC_LOCATION/@pkgdatasubdir@/glite-info-provider-ldap -m "$site_bdii" -c $site_config" > $site_provider
+		$ARC_LOCATION/@pkgdatasubdir@/glite-info-provider-ldap -m "$site_bdii" -c $site_config
 		EOF
 	chmod +x $site_provider
     )
