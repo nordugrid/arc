@@ -54,6 +54,7 @@ bdii_user=${CONFIG_user:-$ldap_user}
 # These values may be set in arc.conf, otherwise use sensible defaults
 slapd_loglevel=${CONFIG_slapd_loglevel:-0}
 slapd_hostnamebind=${CONFIG_slapd_hostnamebind:-"*"}
+slapd_port=${CONFIG_port:-2135}
 threads=${CONFIG_threads:-32}
 
 bdii_location=${CONFIG_bdii_location:-/usr}
@@ -77,7 +78,6 @@ fi
 
 bdii_db_config=${CONFIG_bdii_db_config:-"/etc/bdii/DB_CONFIG"}
 bdii_database=${CONFIG_bdii_database:-"hdb"}
-bdii_archive_size=${CONFIG_bdii_archive_size:-0}
 
 # Check for existance of core ldap schema
 coreschema=$(find /etc/openldap /etc/ldap -name core.schema \
@@ -305,16 +305,16 @@ done
 	overlay         rwm
 	suffixmassage   "GLUE2GroupID=services,o=glue"
 
-    database        relay
-    suffix          \"GLUE2GroupID=resource,GLUE2DomainID=$admindomain,o=glue\"
-    overlay         rwm
-    suffixmassage   \"GLUE2GroupID=services,o=glue\"
+	database        relay
+	suffix          "GLUE2GroupID=resource,GLUE2DomainID=$admindomain,o=glue"
+	overlay         rwm
+	suffixmassage   "GLUE2GroupID=services,o=glue"
 
-    database        relay
-    suffix          \"GLUE2GroupID=resource,o=glue\"
-    overlay         rwm
-    suffixmassage   \"GLUE2GroupID=services,o=glue\"
-    EOF
+	database        relay
+	suffix          "GLUE2GroupID=resource,o=glue"
+	overlay         rwm
+	suffixmassage   "GLUE2GroupID=services,o=glue"
+	EOF
 )
 
 cat <<-EOF >> $bdii_slapd_conf
@@ -350,12 +350,13 @@ cat <<-EOF >> $bdii_slapd_conf
 	directory       $bdii_var_dir/db/stats
 	EOF
 
+chown $bdii_user:$bdii_user $bdii_slapd_conf
 [ -x /sbin/restorecon ] && /sbin/restorecon $bdii_slapd_conf
 
 if [ "x$slapd_hostnamebind" = "x*" ]; then
-    echo ${slapd_env} ${slapd_cmd} -f ${bdii_slapd_conf} -h \"ldap://${slapd_hostnamebind}:${bdii_port}\" -u ${bdii_user} > ${bdii_slapd_cmd}
+    echo ${slapd_env} ${slapd_cmd} -f ${bdii_slapd_conf} -h \"ldap://${slapd_hostnamebind}:${slapd_port}\" -u ${bdii_user} > ${bdii_slapd_cmd}
 else
-    echo ${slapd_env} ${slapd_cmd} -f ${bdii_slapd_conf} -h \"ldap://localhost:${bdii_port} ldap://${slapd_hostnamebind}:${bdii_port}\" -u ${bdii_user} > ${bdii_slapd_cmd}
+    echo ${slapd_env} ${slapd_cmd} -f ${bdii_slapd_conf} -h \"ldap://localhost:${slapd_port} ldap://${slapd_hostnamebind}:${slapd_port}\" -u ${bdii_user} > ${bdii_slapd_cmd}
 fi
 chmod +x ${bdii_slapd_cmd}
 

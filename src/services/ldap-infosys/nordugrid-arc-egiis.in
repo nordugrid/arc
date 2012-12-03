@@ -6,14 +6,14 @@
 # description: NorduGrid/ARC Grid Information Index Server
 #
 # config: /etc/sysconfig/nordugrid
-# config: /etc/sysconfig/grid-infosys
+# config: /etc/sysconfig/nordugrid-arc-egiis
 # config: /etc/arc.conf
 #
 ######################################################################
 
 ### BEGIN INIT INFO
 # Provides:          nordugrid-arc-egiis
-# Required-Start:    $remote_fs $syslog nordugrid-arc-aris
+# Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
@@ -40,7 +40,7 @@ if [ -r /etc/init.d/functions ]; then
 	failure "$@"
 	echo
     }
-elif [ -f /lib/lsb/init-functions ]; then
+elif [ -r /lib/lsb/init-functions ]; then
     . /lib/lsb/init-functions
 else
     echo "Error: Cannot source neither init.d nor lsb functions"
@@ -57,17 +57,20 @@ if [ -r /etc/sysconfig/nordugrid ]; then
 elif [ -r /etc/default/nordugrid ]; then
     . /etc/default/nordugrid
 fi
-if [ -r /etc/sysconfig/grid-infosys ]; then
-    . /etc/sysconfig/grid-infosys
-elif [ -r /etc/default/grid-infosys ]; then
-    . /etc/default/grid-infosys
+if [ -r /etc/sysconfig/$prog ]; then
+    . /etc/sysconfig/$prog
+elif [ -r /etc/default/$prog ]; then
+    . /etc/default/$prog
 fi
 
 if [ "x$RUN" != "xyes" ]; then
-    echo "$prog disabled, please adjust the configuration to your needs "
-    echo "and then set RUN to 'yes' in /etc/default/$prog to enable it."
+    log_warning_msg "$prog disabled, please adjust the configuration to your"
+    log_warning_msg "needs and then set RUN to 'yes' in /etc/default/$prog to enable it."
     exit 0
 fi
+
+[ -n "$ARC_LOCATION" ] && export ARC_LOCATION
+[ -n "$ARC_CONFIG" ]   && export ARC_CONFIG
 
 ARC_LOCATION=${ARC_LOCATION:-@prefix@}
 if [ ! -d "$ARC_LOCATION" ]; then
@@ -75,7 +78,7 @@ if [ ! -d "$ARC_LOCATION" ]; then
     exit 1
 fi
 
-# source the config parsing routines
+# Source the config parsing routines
 if [ -r "$ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh" ]; then
     . $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh || exit $?
 else
@@ -85,9 +88,8 @@ fi
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 if [ ! -r "$ARC_CONFIG" ]; then
-    echo "ARC configuration file arc.conf was not found (usually /etc/arc.conf)"
-    echo "arc.conf was not found. If this file is in a non-standard place,"
-    echo "  it can be set with the ARC_CONFIG environment variable"
+    log_failure_msg "arc.conf was not found. If this file is in a non-standard place,"
+    log_failure_msg "  it can be set with the ARC_CONFIG environment variable"
     exit 1
 fi
 
@@ -102,7 +104,21 @@ fi
 
 config_hide_all
 config_import_section common
+
+# These options need to come from the infosys-block, not from common
+unset CONFIG_logfile
+unset CONFIG_user
+unset CONFIG_port
+
 config_import_section infosys
+
+ldap_user=`getent passwd | grep ldap | sed 's/\([az]*\):.*/\1/g'`
+if [ ! "xldap" = "x$ldap_user" ] && [ ! "xopenldap" = "x$ldap_user" ]; then
+    log_warning_msg "Warning, could not find ldap or openldap user"
+    log_warning_msg "resorting to using the root user."
+    ldap_user=root
+fi
+bdii_user=${CONFIG_user:-$ldap_user}
 
 # Use this command to change user
 if [ -x /sbin/runuser ]; then
@@ -120,15 +136,6 @@ fi
 
 giis_location=${CONFIG_giis_location:-$ARC_LOCATION}
 
-bdii_tmp_dir=${CONFIG_bdii_tmp_dir:-/var/tmp/arc/bdii}
-if grep -q BDII_PID_FILE $bdii_update_cmd ; then
-bdii_var_dir=${CONFIG_bdii_var_dir:-/var/lib/arc/bdii}
-bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
-else
-bdii_var_dir=${CONFIG_bdii_var_dir:-/var/run/arc/bdii}
-bdii_run_dir=$bdii_var_dir
-fi
-
 # Debian does not have /var/lock/subsys
 if [ -d /var/lock/subsys ]; then
     lockfile=/var/lock/subsys/$prog
@@ -139,7 +146,6 @@ fi
 arc_runtime_config="/var/run/arc/infosys"
 mkdir -p ${arc_runtime_config}
 chown ${bdii_user} ${arc_runtime_config}
-check_ownership ${arc_runtime_config} ${bdii_user}
 
 giis_fifo=${CONFIG_giis_fifo:-$arc_runtime_config/giis-fifo}
 
@@ -206,7 +212,7 @@ case "$1" in
 	status
 	;;
     condrestart | try-restart)
-	if [ -f ${lockfile} ]; then
+	if [ -r ${lockfile} ]; then
 	    stop
 	    # avoid race
 	    sleep 3

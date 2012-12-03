@@ -117,7 +117,7 @@ fi
 # If missing, we have a problem
 USERSHELL=${USERSHELL:-"/bin/sh"}
 if [ ! -x ${USERSHELL} ]; then
-    error_echo "Could not find /bin/sh"
+    log_failure_msg "Could not find /bin/sh"
     exit 1
 fi
 
@@ -144,7 +144,7 @@ start () {
 	    -log $registrationlog -f $registrationconf \
 	    -p $pid >/dev/null 2>&1 &
     fi
-    log_success_msg
+    log_success_msg "$prog started"
 }
 
 stop () {
@@ -187,7 +187,7 @@ stop () {
 	rm -f $lockfile
     fi
 
-    log_success_msg
+    log_success_msg "$prog stopped"
     return ${RETVAL}
 }
 
