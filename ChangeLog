@@ -6,7 +6,11 @@
     still be used by setting enable_dtr="no" in arc.conf.
   * Change DataPoint API - Check() now takes a bool parameter to determine
     whether metadata information should be obtained during permission check.
-  
+
+2012-11-20  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+
+  * Support for EMI ES interface version 1.16 implemented in A-REX service.
+
 2012-11-17  Zsombor Nagy  <zsombor@niif.hu>
 
   * Changing the main attributes of the Job class, also in the jobs.xml:
@@ -45,9 +49,17 @@
   * Added several fixes to Glue1 schema thanks from contributions
     by Finnish partners: localse, queue names.
 
+2012-11-13  Aleksandr Konstatntinov <aleksandr.konstantinov@fys.uio.no>
+
+  * EMI ES interface implemented in ARC client tools.
+
 2012-11-10  Gabor Szigeti <szigeti@niif.hu>
 
   * Update the CAR accounting message version to 1.2. 
+
+2012-11-09  Aleksandr Konstatntinov <aleksandr.konstantinov@fys.uio.no>
+
+  * Communication with ARGUS PDP is implemented and integerated into A-REX.
 
 2012-11-08  Gabor Szigeti <szigeti@niif.hu>
 
@@ -62,6 +74,11 @@
 
   * Remove support for per-user control directories in A-REX. Add support
     for substitutions in configuration based on dynamically mapped local user.
+
+2012-11-07  Aleksandr Konstatntinov <aleksandr.konstantinov@fys.uio.no>
+
+  * Administrator utility gm-jobs is extended to provide information about delegated
+    tokens and filter jobs by identifier.
 
 2012-11-03  Martin Skou Andersen <skou@nbi.dk>
 
