@@ -48,19 +48,22 @@ namespace Arc {
     operator bool() const { return status == NONE; }
     
     bool operator==(const SubmissionStatus& s) const { return status == s.status; }
-    bool operator==(SubmissionStatusType s) const { return status == (unsigned)s; }
+    bool operator==(SubmissionStatusType s) const { return status == (unsigned int)s; }
     bool operator==(unsigned int s) const { return status == s; }
+    friend bool operator==(SubmissionStatusType a, const SubmissionStatus& b);
 
     bool operator!=(const SubmissionStatus& s) const { return !operator==(s); }
     bool operator!=(SubmissionStatusType s) const { return !operator==(s); }
     bool operator!=(unsigned int s) const { return !operator==(s); }
     
-    bool isSet(SubmissionStatusType s) const { return (s & status) == (unsigned)s; }
+    bool isSet(SubmissionStatusType s) const { return (s & status) == (unsigned int)s; }
+    void unset(SubmissionStatusType s) { status &= (~s); }
     
   private:
     unsigned int status;
   };
-
+    
+  inline bool operator==(SubmissionStatus::SubmissionStatusType a, const SubmissionStatus& b) { return (unsigned int)a == b.status; }
 }
 
 #endif // __ARC_SUBMISSIONSTATUS_H__
