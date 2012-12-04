@@ -2,7 +2,7 @@ TESTS = SoftwareTest JobTest JobStateTest BrokerTest JobDescriptionTest \
 	JobControllerPluginTest JobDescriptionParserTest SubmitterTest SubmitterPluginTest \
 	JobSupervisorTest TargetInformationRetrieverTest \
 	ServiceEndpointRetrieverTest JobListRetrieverTest \
-	ExecutionTargetTest ComputingServiceUniqTest
+	ExecutionTargetTest ComputingServiceUniqTest SubmissionStatusTest
 
 check_PROGRAMS = $(TESTS)
 
@@ -137,6 +137,16 @@ ComputingServiceUniqTest_SOURCES = $(top_srcdir)/src/Test.cpp \
 ComputingServiceUniqTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 ComputingServiceUniqTest_LDADD = \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+
+SubmissionStatusTest_SOURCES = $(top_srcdir)/src/Test.cpp \
+	SubmissionStatusTest.cpp
+SubmissionStatusTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
+SubmissionStatusTest_LDADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
