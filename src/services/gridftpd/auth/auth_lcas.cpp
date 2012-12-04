@@ -22,7 +22,7 @@ int AuthUser::match_lcas(const char* line) {
   // TODO: hardcoded 300s timeout
   std::string lcas_plugin = "300 \""+
     Arc::ArcLocation::Get()+G_DIR_SEPARATOR_S+PKGLIBEXECSUBDIR+
-    G_DIR_SEPARATOR_S+"arc-lcas\" \""+DN()+"\" \""+proxy()+"\" ";
+    G_DIR_SEPARATOR_S+"arc-lcas\" ";
   lcas_plugin+=std::string("\"")+DN()+"\" ";
   lcas_plugin+=std::string("\"")+proxy()+"\" ";
   lcas_plugin+=line;
