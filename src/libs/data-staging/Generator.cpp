@@ -15,23 +15,38 @@ namespace DataStaging {
   Arc::Logger Generator::logger(Arc::Logger::getRootLogger(), "DataStaging.Generator");
   Arc::SimpleCondition Generator::cond;
 
-  void Generator::shutdown(int sig) {
-    logger.msg(Arc::INFO, "Cancelling all DTRs");
-    cond.signal();
+  Generator::Generator() {
+    // Set up logging
+    root_destinations = Arc::Logger::getRootLogger().getDestinations();
+    DTR::LOG_LEVEL = Arc::Logger::getRootLogger().getThreshold();
+  }
+
+  Generator::~Generator() {
+    logger.msg(Arc::INFO, "Shutting down scheduler");
+    scheduler.stop();
+    logger.msg(Arc::INFO, "Scheduler stopped, exiting");
   }
 
   void Generator::receiveDTR(DTR_ptr dtr) {
-    logger.msg(Arc::INFO, "Received DTR %s back from scheduler", dtr->get_id());
+    // root logger is disabled in Scheduler thread so need to add it here
+    Arc::Logger::getRootLogger().addDestinations(root_destinations);
+    logger.msg(Arc::INFO, "Received DTR %s back from scheduler in state %s", dtr->get_id(), dtr->get_status().str());
+    Arc::Logger::getRootLogger().removeDestinations();
     // DTR logger destinations can be destroyed when DTR has finished
     dtr->get_logger()->deleteDestinations();
     dtrs.push_back(dtr);
-    cond.signal();
+    counter.dec();
+  }
+
+  void Generator::start() {
+    // Starting scheduler with default configuration
+    logger.msg(Arc::INFO, "Generator started");
+    logger.msg(Arc::INFO, "Starting DTR threads");
+    scheduler.SetDumpLocation("/tmp/dtr.log");
+    scheduler.start();
   }
 
   void Generator::run(const std::string& source, const std::string& destination) {
-
-    logger.msg(Arc::INFO, "Generator started");
-    signal(SIGINT, shutdown);
 
     std::string job_id = Arc::UUID();
     Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::TryCredentials);
@@ -45,37 +60,22 @@ namespace DataStaging {
 
     cfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY);
 
-    // Scheduler instance
-    Scheduler scheduler;
-    //std::vector<Arc::URL> endpoints;
-    //endpoints.push_back(Arc::URL("https://localhost:60002/datadeliveryservice"));
-    //scheduler.SetDeliveryServices(endpoints);
-    // Starting scheduler with default configuration
-    scheduler.start();
+    DTRLogger log(new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging"));
+    Arc::LogDestination * dest = new Arc::LogStream(std::cerr);
+    log->addDestination(*dest);
 
-    {
-      DTRLogger log(new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging"));
-      Arc::LogDestination * dest = new Arc::LogStream(std::cerr);
-      log->addDestination(*dest);
-
-      // Free DTR immediately after passing to scheduler
-      DTR_ptr dtr(new DTR(source, destination, cfg, job_id,  Arc::User().get_uid(), log));
-      if (!(*dtr)) {
-        logger.msg(Arc::ERROR, "Problem creating dtr (source %s, destination %s)", source, destination);
-        return;
-      }
-      // register callback with DTR
-      dtr->registerCallback(this,GENERATOR);
-      dtr->registerCallback(&scheduler,SCHEDULER);
-      dtr->set_tries_left(5);
-      DTR::push(dtr, SCHEDULER);
+    // Free DTR immediately after passing to scheduler
+    DTR_ptr dtr(new DTR(source, destination, cfg, job_id,  Arc::User().get_uid(), log));
+    if (!(*dtr)) {
+      logger.msg(Arc::ERROR, "Problem creating dtr (source %s, destination %s)", source, destination);
+      return;
     }
-    
-    cond.wait();
-    if (!dtrs.empty()) logger.msg(Arc::INFO, "Received back DTR %s", dtrs.front()->get_id());
-    logger.msg(Arc::INFO, "Generator finished, shutting down scheduler");
-    scheduler.stop();
-    logger.msg(Arc::INFO, "Scheduler stopped, exiting");
+    // register callback with DTR
+    dtr->registerCallback(this,GENERATOR);
+    dtr->registerCallback(&scheduler,SCHEDULER);
+    dtr->set_tries_left(5);
+    DTR::push(dtr, SCHEDULER);
+    counter.inc();
   }
 
 } // namespace DataStaging

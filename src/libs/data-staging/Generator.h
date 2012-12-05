@@ -4,7 +4,7 @@
 #include <arc/Thread.h>
 #include <arc/Logger.h>
 
-#include "DTR.h"
+#include "Scheduler.h"
 
 namespace DataStaging {
 
@@ -22,6 +22,8 @@ namespace DataStaging {
     /// Condition to wait on until DTR has finished
     static Arc::SimpleCondition cond;
 
+    /// DTR Scheduler
+    Scheduler scheduler;
     std::list<DTR_ptr> dtrs;
 
     /// Interrupt signal handler
@@ -29,8 +31,18 @@ namespace DataStaging {
 
     /// Logger object
     static Arc::Logger logger;
+    /// Root LogDestinations to be used in receiveDTR
+    std::list<Arc::LogDestination*> root_destinations;
 
    public:
+
+    /// Counter for main to know how many DTRs are in the system
+    Arc::SimpleCounter counter;
+
+    /// Create a new Generator
+    Generator();
+    /// Stop Generator and DTR threads
+    ~Generator();
 
     /// Implementation of callback from DTRCallback
     /**
@@ -40,6 +52,9 @@ namespace DataStaging {
      * calling this method.
      */
     virtual void receiveDTR(DTR_ptr dtr);
+
+    /// Start Generator and DTR threads
+    void start();
 
     /// Submit a DTR with given source and destination
     void run(const std::string& source, const std::string& destination);
