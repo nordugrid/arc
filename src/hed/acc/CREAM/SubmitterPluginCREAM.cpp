@@ -92,6 +92,8 @@ namespace Arc {
 
       Job j;
       j.JobID = submissionurl.str() + '/' + jobInfo.id;
+      j.StageInDir = jobInfo.ISB;
+      j.StageOutDir = jobInfo.OSB;
       AddJobDetails(preparedjobdesc, j);
       xIDFromEndpoint.GetXML(j.IDFromEndpoint);
       jc.addEntity(j);
@@ -178,6 +180,8 @@ namespace Arc {
 
       Job j;
       j.JobID = submissionurl.str() + '/' + jobInfo.id;
+      j.StageInDir = jobInfo.ISB;
+      j.StageOutDir = jobInfo.OSB;
       AddJobDetails(preparedjobdesc, j);
       xIDFromEndpoint.GetXML(j.IDFromEndpoint);
       jc.addEntity(j);

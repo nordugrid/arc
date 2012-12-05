@@ -114,16 +114,12 @@ namespace Arc {
       return false;
       break;
     case Job::STAGEINDIR:
-      if (info.ISB.empty()) {
-        return false;
-      }
-      url = info.ISB;
+      if (!job.StageInDir) return false;
+      url = job.StageInDir;
       break;
     case Job::STAGEOUTDIR:
-      if (info.OSB.empty()) {
-        return false;
-      }
-      url = info.OSB;
+      if (!job.StageOutDir) return false;
+      url = job.StageOutDir;
       break;
     case Job::SESSIONDIR:
     case Job::JOBLOG:
