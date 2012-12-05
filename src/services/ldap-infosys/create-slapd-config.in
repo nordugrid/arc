@@ -363,9 +363,13 @@ chmod +x ${bdii_slapd_cmd}
 # Initialize the database directories
 
 mkdir -p $bdii_run_dir/db
+mkdir -p $bdii_run_dir/archive
 chown $bdii_user:$bdii_user $bdii_run_dir
 chown $bdii_user:$bdii_user $bdii_run_dir/db
+chown $bdii_user:$bdii_user $bdii_run_dir/archive
 [ -x /sbin/restorecon ] && /sbin/restorecon -R $bdii_run_dir/db
+[ -x /sbin/restorecon ] && /sbin/restorecon -R $bdii_run_dir/archive
+mkdir -p $bdii_var_dir/archive
 mkdir -p $bdii_var_dir/db/arc
 mkdir -p $bdii_var_dir/db/glue2
 mkdir -p $bdii_var_dir/db/stats
@@ -373,10 +377,12 @@ rm -f $bdii_var_dir/db/arc/* 2>/dev/null
 rm -f $bdii_var_dir/db/glue2/* 2>/dev/null
 rm -f $bdii_var_dir/db/stats/* 2>/dev/null
 chown $bdii_user:$bdii_user $bdii_var_dir/db
+chown $bdii_user:$bdii_user $bdii_var_dir/archive
 chown $bdii_user:$bdii_user $bdii_var_dir/db/arc
 chown $bdii_user:$bdii_user $bdii_var_dir/db/glue2
 chown $bdii_user:$bdii_user $bdii_var_dir/db/stats
 [ -x /sbin/restorecon ] && /sbin/restorecon -R $bdii_var_dir/db
+[ -x /sbin/restorecon ] && /sbin/restorecon -R $bdii_var_dir/archive
 
 # Workaround for BDII DB_CONFIG cachesize bigger than actual memory
 set_cachesize_line=`egrep '^[[:space:]]*'set_cachesize ${bdii_db_config}`
