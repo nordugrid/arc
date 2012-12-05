@@ -503,24 +503,4 @@ namespace Arc {
 
     return true;
   }
-
-  bool CREAMClient::destroyDelegation(const std::string& delegation_id) {
-    logger.msg(VERBOSE, "Creating delegation");
-
-    action = "destroy";
-
-    PayloadSOAP req(cream_ns);
-    req.NewChild("deleg:" + action).NewChild("delegationID") = delegation_id;
-
-    XMLNode response;
-    if (!process(req, response))
-      return false;
-
-    if (!response) {
-      logger.msg(VERBOSE, "Empty response");
-      return false;
-    }
-
-    return true;
-  }
 } // namespace Arc

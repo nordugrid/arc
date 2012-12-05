@@ -59,19 +59,6 @@ namespace Arc {
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
-      
-      creamJobInfo info;
-      info = XMLNode(job.IDFromEndpoint);
-      URL url2(info.delegationID);
-      PathIterator pi2(url2.Path(), true);
-      url2.ChangePath(*pi2);
-      CREAMClient gLiteClient2(url2, cfg, usercfg.Timeout());
-      if (!gLiteClient2.destroyDelegation(pi2.Rest())) {
-        logger.msg(INFO, "Failed destroying delegation credentials for job: %s", job.JobID);
-        ok = false;
-        IDsNotProcessed.push_back(job.JobID);
-        continue;
-      }
       IDsProcessed.push_back(job.JobID);
     }
     return ok;
