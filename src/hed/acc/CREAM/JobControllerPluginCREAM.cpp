@@ -104,9 +104,6 @@ namespace Arc {
   }
 
   bool JobControllerPluginCREAM::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
-    creamJobInfo info;
-    info = XMLNode(job.IDFromEndpoint);
-    
     switch (resource) {
     case Job::STDIN:
     case Job::STDOUT:
