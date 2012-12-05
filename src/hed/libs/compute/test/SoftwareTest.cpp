@@ -354,8 +354,8 @@ void SoftwareTest::RequirementsLessThanOrEqualTest() {
 
 void SoftwareTest::ApplicationEnvironmentCastTest() {
   std::list<Arc::ApplicationEnvironment> appEnvs(1, Arc::ApplicationEnvironment("TEST", "1.0"));
-  const std::list<Arc::Software>& sw = reinterpret_cast< const std::list<SV>& >(appEnvs);
-  CPPUNIT_ASSERT_EQUAL(static_cast<SV>(appEnvs.front()), sw.front());
+  const std::list<Arc::Software>* sw = reinterpret_cast< const std::list<SV>* >(&appEnvs);
+  CPPUNIT_ASSERT_EQUAL(static_cast<SV>(appEnvs.front()), sw->front());
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(SoftwareTest);
