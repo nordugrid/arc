@@ -218,7 +218,7 @@ attributes depending on how the mapping should be done.
           <arex:useHostCert inisections="arex/data-staging" initag="usehostcert" inidefaultvalue="false"/>
           <arex:dtrLog inisections="arex/data-staging" initag="dtrlog"/>
         </arex:DTR>
-        <arex:maxRetries inisections="arex" initag="maxtranfertries" inidefaultvalue="10"/>
+        <arex:maxRetries inisections="arex" initag="maxtransfertries" inidefaultvalue="10"/>
         <arex:mapURL initype="multisection" inisections="arex/urlmap">
           <link initype="attribute" inisections="#this" initag="link"/>
           <arex:from inisections="#this" initag="from"/>
