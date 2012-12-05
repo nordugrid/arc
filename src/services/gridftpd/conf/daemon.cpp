@@ -109,6 +109,8 @@ namespace gridftpd {
       Arc::SetEnv("X509_CERT_DIR",rest.c_str()); return 0;
     } else if(cmd == "http_proxy") {
       Arc::SetEnv("ARC_HTTP_PROXY",rest.c_str()); return 0;
+    } else if(cmd == "x509_voms_dir") {
+      Arc::SetEnv("X509_VOMS_DIR",rest.c_str()); return 0;
     } else if(cmd == "voms_processing") {
       Arc::SetEnv("VOMS_PROCESSING",rest.c_str()); return 0;
     } else if(cmd == "voms_trust_chain") {
