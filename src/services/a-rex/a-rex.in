@@ -146,6 +146,64 @@ readconfigvar() {
     }
 }
 
+readconfigvars() {
+    fname=$1
+    if [ ! -r "$fname" ]; then
+        return
+    fi
+    bname="[$2]"
+    vname=$3
+    value=
+    cat "$fname" | sed -e 's/\r$//' -e 's/^\r//' | grep -e '^\[' -e "^${vname}=" | {
+        while true; do
+            read line
+            if [ ! $? = 0 ] ; then
+                return
+            fi
+            if [ "$line" = "$bname" ] ; then
+                while true ; do
+                    read line
+                    if [ ! $? = 0 ] ; then
+                        return
+                    fi
+                    lstart=`echo "$line" | head -c 1`
+                    if [ "$lstart" = '[' ] ; then
+                        return
+                    fi
+                    vlname=`echo "$line" | sed 's/=.*//;t;s/.*//'`
+                    if [ "$vlname" = "$vname" ] ; then
+                        val=`echo "$line" | sed 's/[^=]*=//'`
+                        echo "$val"
+                    fi
+                done
+            fi
+        done
+    }
+}
+
+tokenize() {
+    line="$1"
+    prefix="$2"
+    suffix="$3"
+    while true; do
+        if [ -z "$line" ]; then break; fi
+        token=`echo "$line" | sed 's/^"\([^"]*\)" *.*/\1/;t exit;s/^\([^ ]*\)  *.*/\1/;:exit'`
+        line=`echo "$line" | sed 's/^"[^"]*" *\(.*\)/\1/;t exit;s/^[^ ]*  *\(.*\)/\1/;t exit;s/.*//;:exit'`
+        echo "${prefix}${token}${suffix}"
+    done
+}
+
+voms_trust_to_xml() {
+    xml=""
+    while true; do
+        read line
+        if [ $? -ne '0' ]; then break; fi
+        if [ -z "$line" ]; then continue; fi
+        xmlchain=`tokenize "$line" "<VOMSCertTrustDN>" "</VOMSCertTrustDN>"`
+        echo "<VOMSCertTrustDNChain>${xmlchain}</VOMSCertTrustDNChain>"
+    done
+}
+
 # ARC_CONFIG
 if [ "x$ARC_CONFIG" = "x" ]; then
     if [ -r $ARC_LOCATION/etc/arc.conf ]; then
@@ -209,6 +267,7 @@ prepare() {
     GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_tcp_port_range`
     GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_udp_port_range`
     VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" grid-manager voms_processing`
+    VOMS_TRUST_CHAINS=`readconfigvars "$ARC_CONFIG" grid-manager voms_trust_chain | voms_trust_to_xml`
     MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_job_control_requests`
     MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_infosys_requests`
     MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_data_transfer_requests`
@@ -234,6 +293,7 @@ prepare() {
     if [ -z "$VOMS_PROCESSING" ] ; then
         VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" common voms_processing`
     fi
+    VOMS_TRUST_CHAINS="$VOMS_TRUST_CHAINS"`readconfigvars "$ARC_CONFIG" common voms_trust_chain | voms_trust_to_xml`
 
     # Exporting collected variables
     if [ ! -z "$X509_USER_CERT" ] ; then export X509_USER_CERT ; fi
@@ -530,7 +590,6 @@ barguspdpclient.so" ]; then
     MAX_JOB_CONTROL_REQUESTS=${MAX_JOB_CONTROL_REQUESTS:-100}
     MAX_INFOSYS_REQUESTS=${MAX_INFOSYS_REQUESTS:-1}
     MAX_DATA_TRANSFER_REQUESTS=${MAX_DATA_TRANSFER_REQUESTS:-100}
-
     if [ ! -z "$USERNAME" ] ; then
         CMD="$CMD -u '$USERNAME'"
     fi
@@ -608,9 +667,7 @@ barguspdpclient.so" ]; then
       <KeyPath>$X509_USER_KEY</KeyPath>
       <CertificatePath>$X509_USER_CERT</CertificatePath>
       <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>
-      <VOMSCertTrustDNChain>
-        <VOMSCertTrustRegex>.*</VOMSCertTrustRegex>
-      </VOMSCertTrustDNChain>
+      $VOMS_TRUST_CHAINS
       <VOMSProcessing>$VOMS_PROCESSING</VOMSProcessing>
       $gridmapmatch
       <!-- Do initial identity mappping by gridmap file -->
