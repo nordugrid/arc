@@ -20,5 +20,5 @@ if GFAL_ENABLED
 GFAL_SD=gfal
 endif
 
-SUBDIRS = http file arc $(LDAP_SD) $(GRIDFTP_SD) $(RLS_SD) $(LFC_SD) $(SRM_SD) $(XROOTD_SD) $(GFAL_SD)
-DIST_SUBDIRS = http file arc ldap gridftp rls lfc srm xrootd gfal
+SUBDIRS = mock http file arc $(LDAP_SD) $(GRIDFTP_SD) $(RLS_SD) $(LFC_SD) $(SRM_SD) $(XROOTD_SD) $(GFAL_SD)
+DIST_SUBDIRS = mock http file arc ldap gridftp rls lfc srm xrootd gfal
