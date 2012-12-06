@@ -243,8 +243,6 @@ namespace Arc {
     }
     if (ISVALID(lastStatusNode["exitCode"]))
       job.ExitCode = stringtoi((std::string)lastStatusNode["exitCode"]);
-    if (job.State() == "DONE-FAILED")
-      job.Error.push_back((std::string)lastStatusNode["failureReason"]);
     if (ISVALID(jobInfoNode["delegationProxyInfo"])) {
       std::string delegationProxy = (std::string)jobInfoNode["delegationProxyInfo"];
       std::list<std::string> splited_proxy;
