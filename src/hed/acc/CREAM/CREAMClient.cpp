@@ -195,8 +195,6 @@ namespace Arc {
 
     PayloadSOAP req(cream_ns);
     XMLNode jobStatusRequest = req.NewChild("types:" + action + "Request").NewChild("types:jobId").NewChild("types:id") = jobid;
-    if (!delegationId.empty())
-      jobStatusRequest.NewChild("types:delegationProxyId") = delegationId;
 
     XMLNode response;
     if (!process(req, response))
