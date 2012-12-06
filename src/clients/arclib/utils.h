@@ -125,6 +125,7 @@ public:
   bool usejobname;
   bool forcedownload;
   bool list_configured_services;
+  bool direct_submission;
 
   int testjobid;
   int runtime;

@@ -27,7 +27,7 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 
-static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> requestedSubmissionInterfaces, const std::string& jobidfile);
+static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> requestedSubmissionInterfaces, const std::string& jobidfile, bool direct_submission);
 static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> requestedSubmissionInterfaces);
 
 int RUNMAIN(arcsub)(int argc, char **argv) {
@@ -167,7 +167,9 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
 
   std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
 
-  usercfg.AddRejectDiscoveryURLs(opt.rejectdiscovery);
+  if (!opt.direct_submission) {
+    usercfg.AddRejectDiscoveryURLs(opt.rejectdiscovery);
+  }
 
   std::list<std::string> rsi;
   if(!opt.requestedSubmissionInterfaceName.empty()) rsi.push_back(opt.requestedSubmissionInterfaceName);
@@ -176,7 +178,7 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     return dumpjobdescription(usercfg, jobdescriptionlist, services, rsi);
   }
 
-  return submit(usercfg, jobdescriptionlist, services, rsi, opt.jobidoutfile);
+  return submit(usercfg, jobdescriptionlist, services, rsi, opt.jobidoutfile, opt.direct_submission);
 }
 
 
@@ -243,14 +245,20 @@ static bool match_submission_interface(const Arc::ExecutionTarget& target, const
   return false;
 }
 
-static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> requestedSubmissionInterfaces, const std::string& jobidfile) {
+static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> requestedSubmissionInterfaces, const std::string& jobidfile, bool direct_submission) {
   int retval = 0;
   
   HandleSubmittedJobs hsj(jobidfile, usercfg.JobListFile());
   Arc::Submitter s(usercfg);
   s.addConsumer(hsj);
 
-  Arc::SubmissionStatus status = s.BrokeredSubmit(services, jobdescriptionlist, requestedSubmissionInterfaces);
+  Arc::SubmissionStatus status;
+  if (!direct_submission) {
+    status = s.BrokeredSubmit(services, jobdescriptionlist, requestedSubmissionInterfaces);
+  }
+  else {
+    status = s.Submit(services, jobdescriptionlist);
+  }
   hsj.write();
 
   if (status.isSet(Arc::SubmissionStatus::BROKER_PLUGIN_NOT_LOADED)) {

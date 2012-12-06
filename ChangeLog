@@ -3,6 +3,8 @@
   * Significant fixes and cleanup in the CREAM job plugin.
   * Added submitting convenience methods to Submitter class which only takes
     endpoints and job descriptions as arguments.
+  * Extended arcsub to be able to submit directly to submission endpoints (no
+    resource discovery and matchmaking).
 
 2012-11-26  David Cameron  <d.g.cameron@fys.uio.no>
 

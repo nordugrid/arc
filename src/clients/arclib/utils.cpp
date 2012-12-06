@@ -411,6 +411,9 @@ ClientOptions::ClientOptions(Client_t c,
     AddOption('D', "dryrun", istring("submit jobs as dry run (no submission to batch system)"),
               dryrun);
 
+    AddOption(0, "direct", istring("submit directly - no resource discovery or matchmaking"),
+              direct_submission);
+
     AddOption('x', "dumpdescription",
               istring("do not submit - dump job description "
                       "in the language accepted by the target"),
