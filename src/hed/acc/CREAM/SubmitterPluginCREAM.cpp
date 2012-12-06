@@ -87,15 +87,16 @@ namespace Arc {
         continue;
       }
   
-      XMLNode xIDFromEndpoint(jobInfo.ToXML());
-      xIDFromEndpoint.NewChild("delegationID") = delegationurl.str() + '/' + delegationid;
-
       Job j;
       j.JobID = submissionurl.str() + '/' + jobInfo.id;
+      j.JobStatusURL = url;
+      j.JobStatusInterfaceName = "org.glite.cream";
+      j.JobManagementURL = url;
+      j.JobManagementInterfaceName = "org.glite.cream";
       j.StageInDir = jobInfo.ISB;
       j.StageOutDir = jobInfo.OSB;
       AddJobDetails(preparedjobdesc, j);
-      xIDFromEndpoint.GetXML(j.IDFromEndpoint);
+      j.IDFromEndpoint = jobInfo.id;
       jc.addEntity(j);
     }
 
@@ -175,15 +176,16 @@ namespace Arc {
         continue;
       }
   
-      XMLNode xIDFromEndpoint(jobInfo.ToXML());
-      xIDFromEndpoint.NewChild("delegationID") = delegationurl.str() + '/' + delegationid;
-
       Job j;
       j.JobID = submissionurl.str() + '/' + jobInfo.id;
+      j.JobStatusURL = url;
+      j.JobStatusInterfaceName = "org.glite.cream";
+      j.JobManagementURL = url;
+      j.JobManagementInterfaceName = "org.glite.cream";
       j.StageInDir = jobInfo.ISB;
       j.StageOutDir = jobInfo.OSB;
       AddJobDetails(preparedjobdesc, j);
-      xIDFromEndpoint.GetXML(j.IDFromEndpoint);
+      j.IDFromEndpoint = jobInfo.id;
       jc.addEntity(j);
     }
 

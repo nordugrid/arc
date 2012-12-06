@@ -30,11 +30,9 @@ namespace Arc {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     for (std::list<Job*>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
-      URL url((*it)->JobID);
-      PathIterator pi(url.Path(), true);
-      url.ChangePath(*pi);
-      CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
-      if (!gLiteClient.stat(pi.Rest(), (**it))) {
+      Job& job = **it;
+      CREAMClient gLiteClient(job.JobStatusURL.str() + "/CREAM2", cfg, usercfg.Timeout());
+      if (!gLiteClient.stat(job.IDFromEndpoint, job)) {
         logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID);
         IDsNotProcessed.push_back((*it)->JobID);
         continue;
@@ -49,11 +47,8 @@ namespace Arc {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
-      URL url(job.JobID);
-      PathIterator pi(url.Path(), true);
-      url.ChangePath(*pi);
-      CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
-      if (!gLiteClient.purge(pi.Rest())) {
+      CREAMClient gLiteClient(job.JobManagementURL.str() + "/CREAM2", cfg, usercfg.Timeout());
+      if (!gLiteClient.purge(job.IDFromEndpoint)) {
         logger.msg(INFO, "Failed cleaning job: %s", job.JobID);
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
@@ -70,11 +65,8 @@ namespace Arc {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
-      URL url(job.JobID);
-      PathIterator pi(url.Path(), true);
-      url.ChangePath(*pi);
-      CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
-      if (!gLiteClient.cancel(pi.Rest())) {
+      CREAMClient gLiteClient(job.JobManagementURL.str() + "/CREAM2", cfg, usercfg.Timeout());
+      if (!gLiteClient.cancel(job.IDFromEndpoint)) {
         logger.msg(INFO, "Failed canceling job: %s", job.JobID);
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
