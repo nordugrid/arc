@@ -3,6 +3,8 @@
 
 #include "DataPointMock.h"
 
+#include <unistd.h>
+
 namespace Arc {
 
   DataPointMock::DataPointMock(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
