@@ -121,11 +121,10 @@ namespace Arc {
 
     SubmitterPlugin* loadByInterfaceName(const std::string& name, const UserConfig& usercfg);
 
-    static std::list<std::string> getListOfPlugins();
+    void initialiseInterfacePluginMap(const UserConfig& uc);
+    const std::map<std::string, std::string>& getInterfacePluginMap() const { return interfacePluginMap; }
 
   private:
-    void initialiseInterfacePluginMap(const UserConfig& uc);
-  
     std::multimap<std::string, SubmitterPlugin*> submitters;
     static std::map<std::string, std::string> interfacePluginMap;
   };

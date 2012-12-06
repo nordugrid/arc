@@ -114,6 +114,10 @@ namespace Arc {
   }
 
   void SubmitterPluginLoader::initialiseInterfacePluginMap(const UserConfig& uc) {
+    if (!interfacePluginMap.empty()) {
+      return;
+    }
+    
     std::list<ModuleDesc> modules;
     PluginsFactory factory(BaseConfig().MakeConfig(Config()).Parent());
     factory.scan(FinderLoader::GetLibrariesList(), modules);
@@ -145,7 +149,7 @@ namespace Arc {
   }
 
   SubmitterPlugin* SubmitterPluginLoader::load(const std::string& name,
-                                   const UserConfig& usercfg) {
+                                               const UserConfig& usercfg) {
     if (name.empty())
       return NULL;
 
@@ -189,17 +193,4 @@ namespace Arc {
     return NULL;
   }
 
-  std::list<std::string> SubmitterPluginLoader::getListOfPlugins() {
-    std::list<ModuleDesc> modules;
-    PluginsFactory factory(BaseConfig().MakeConfig(Config()).Parent());
-    factory.scan(FinderLoader::GetLibrariesList(), modules);
-    PluginsFactory::FilterByKind("HED:SubmitterPlugin", modules);
-    std::list<std::string> names;
-    for (std::list<ModuleDesc>::const_iterator it = modules.begin(); it != modules.end(); ++it) {
-      for (std::list<PluginDesc>::const_iterator it2 = it->plugins.begin(); it2 != it->plugins.end(); ++it2) {
-        names.push_back(it2->name);
-      }
-    }
-    return names;
-  }
 } // namespace Arc
