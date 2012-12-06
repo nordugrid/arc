@@ -209,9 +209,13 @@ namespace Arc {
 
     XMLNode lastStatusNode = jobInfoNode.Path("status").back();
 
-    if (lastStatusNode["name"])
+    if (lastStatusNode["name"]) {
       job.State = JobStateCREAM((std::string)lastStatusNode["name"]);
-
+    }
+    if (lastStatusNode["failureReason"]) {
+      job.Error.push_back((std::string)lastStatusNode["failureReason"]);
+    }
+    
     if (!job.State) {
       logger.msg(VERBOSE, "Unable to retrieve job status.");
       return false;
