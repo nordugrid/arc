@@ -82,6 +82,14 @@ namespace Arc {
     // ===
 
     // === No brokering ===
+
+    SubmissionStatus Submit(const Endpoint& endpoint, const JobDescription& desc) { return Submit(endpoint, std::list<JobDescription>(1, desc)); }
+    SubmissionStatus Submit(const Endpoint& endpoint, const JobDescription& desc, Job& job);
+    SubmissionStatus Submit(const Endpoint& endpoint, const std::list<JobDescription>& descs);
+    SubmissionStatus Submit(const Endpoint& endpoint, const std::list<JobDescription>& descs, std::list<Job>& jobs);
+    SubmissionStatus Submit(const std::list<Endpoint>& endpoint, const std::list<JobDescription>& descs);
+    SubmissionStatus Submit(const std::list<Endpoint>& endpoint, const std::list<JobDescription>& descs, std::list<Job>& jobs);
+    
     // ==== Submission to single configuration (adaption of job description) ====
     // ===== Single job =====
     SubmissionStatus Submit(const ExecutionTarget& et, const JobDescription& desc) { return Submit(et, std::list<JobDescription>(1, desc)); }
@@ -129,6 +137,8 @@ namespace Arc {
     private:
       Submitter& s;
     };
+
+    SubmissionStatus SubmitNoClear(const Endpoint& endpoint, const std::list<JobDescription>& descs);
 
     const UserConfig& uc;
 
