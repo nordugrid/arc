@@ -152,6 +152,7 @@ enables_cppunit=yes
 enables_java=yes
 enables_python=yes
 enables_altpython=yes
+enables_mock_dmc=no
 enables_lfc=yes
 enables_gfal=no
 enables_xrootd=yes
@@ -215,6 +216,7 @@ enables_java=$enableval
 enables_python=$enableval
 enables_altpython=$enableval
 enables_gacl=$enableval
+enables_mock_dmc=$enableval
 enables_lfc=$enableval
 enables_gfal=$enableval
 enables_xrootd=$enableval
@@ -1560,6 +1562,9 @@ if test "x$LCMAPS_LOCATION" != "x"; then
   AC_SUBST(LCMAPS_LIBS)
 fi
 
+# Check if mock DMC is enabled
+AC_ARG_ENABLE(mock-dmc, AC_HELP_STRING([--enable-mock-dmc], [enable mock DMC, default is disable]),[enables_mock_dmc="$enableval"],[])
+
 # Check for LFC
 AC_ARG_ENABLE(lfc, AC_HELP_STRING([--disable-lfc], [disable the LFC support, default is enable]),[enables_lfc="$enableval"],[])
 if test "x$enables_lfc" = "xyes"; then
@@ -1639,6 +1644,7 @@ AC_LANG_RESTORE
 AM_CONDITIONAL([GLOBUSUTILS_ENABLED], test -n "$GLOBUS_COMMON_VERSION")
 AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
 AM_CONDITIONAL([GRIDFTP_ENABLED], test -n "$GLOBUS_FTP_CLIENT_VERSION")
+AM_CONDITIONAL([MOCK_DMC_ENABLED], test x$enables_mock_dmc = xyes)
 AM_CONDITIONAL([LFC_ENABLED], test x$enables_lfc = xyes)
 AM_CONDITIONAL([GFAL_ENABLED], test x$enables_gfal = xyes)
 AM_CONDITIONAL([XROOTD_ENABLED], test x$enables_xrootd = xyes)

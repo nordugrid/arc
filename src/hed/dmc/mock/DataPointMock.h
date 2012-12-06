@@ -9,8 +9,8 @@ namespace Arc {
   /**
    * If the URL protocol is mock:// then each method returns
    * DataStatus::Success. If it is fail:// then each method returns an error.
-   * Since this plugin is not installed, it can only be used by setting
-   * ARC_PLUGIN_PATH to builddir/src/hed/dmc/mock/.libs
+   * This plugin is not built by default - to build it the option
+   * --enable-mock-dmc must be passed to configure.
    */
   class DataPointMock: public DataPointDirect {
   public:

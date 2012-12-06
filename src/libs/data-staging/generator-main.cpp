@@ -18,7 +18,7 @@ static void do_shutdown(int) {
 static void usage() {
   std::cout << "Usage: generator [num mock transfers]" << std::endl;
   std::cout << "       generator source destination" << std::endl;
-  std::cout << "To use mock transfers set ARC_PLUGIN_PATH to builddir/src/hed/dmc/mock/.libs" << std::endl;
+  std::cout << "To use mock transfers ARC must be built with configure --enable-mock-dmc" << std::endl;
   std::cout << "The default number of mock transfers is 10" << std::endl;
 }
 
