@@ -34,8 +34,6 @@ namespace Arc {
   SubmissionStatus SubmitterPluginEMIES::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted, const URL& jobInformationEndpoint) {
     // TODO: this is multi step process. So having retries would be nice.
 
-    URL iurl;
-    URL durl;
     URL url(endpoint);
 
     SubmissionStatus retval;
@@ -51,7 +49,7 @@ namespace Arc {
       }
 
       EMIESJob jobid;
-      if(!SubmitterPluginEMIES::submit(preparedjobdesc,url,iurl,durl,jobid)) {
+      if(!SubmitterPluginEMIES::submit(preparedjobdesc,url,URL(),URL(),jobid)) {
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
@@ -59,9 +57,7 @@ namespace Arc {
       }
  
       Job j = jobid.ToJob();
-
       AddJobDetails(preparedjobdesc, j);
-    
       jc.addEntity(j);
     }
 
@@ -117,7 +113,7 @@ namespace Arc {
   }
 
 
-  bool SubmitterPluginEMIES::submit(const JobDescription& preparedjobdesc, const URL& url, const URL& iurl, URL& durl, EMIESJob& jobid) {
+  bool SubmitterPluginEMIES::submit(const JobDescription& preparedjobdesc, const URL& url, const URL& iurl, URL durl, EMIESJob& jobid) {
 
     bool job_ok = true;
 
