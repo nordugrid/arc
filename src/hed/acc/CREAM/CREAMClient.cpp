@@ -194,7 +194,9 @@ namespace Arc {
     action = "JobInfo";
 
     PayloadSOAP req(cream_ns);
-    XMLNode jobStatusRequest = req.NewChild("types:" + action + "Request").NewChild("types:jobId").NewChild("types:id") = jobid;
+    XMLNode xjobId = req.NewChild("types:" + action + "Request").NewChild("types:jobId");
+    xjobId.NewChild("types:id") = jobid;
+    xjobId.NewChild("types:creamURL") = client->GetURL().str();
 
     XMLNode response;
     if (!process(req, response))
@@ -343,7 +345,9 @@ namespace Arc {
     action = "JobCancel";
 
     PayloadSOAP req(cream_ns);
-    req.NewChild("types:J" + action + "Request").NewChild("types:jobId").NewChild("types:id") = jobid;
+    XMLNode xjobId = req.NewChild("types:" + action + "Request").NewChild("types:jobId");
+    xjobId.NewChild("types:id") = jobid;
+    xjobId.NewChild("types:creamURL") = client->GetURL().str();
 
     XMLNode response;
     if (!process(req, response))
@@ -363,7 +367,9 @@ namespace Arc {
     action = "JobPurge";
 
     PayloadSOAP req(cream_ns);
-    req.NewChild("types:" + action + "Request").NewChild("types:jobId").NewChild("types:id") = jobid;
+    XMLNode xjobId = req.NewChild("types:" + action + "Request").NewChild("types:jobId");
+    xjobId.NewChild("types:id") = jobid;
+    xjobId.NewChild("types:creamURL") = client->GetURL().str();
 
     XMLNode response;
     if (!process(req, response))
@@ -416,9 +422,9 @@ namespace Arc {
 
     PayloadSOAP req(cream_ns);
     XMLNode jobStartRequest = req.NewChild("types:" + action + "Request");
-    jobStartRequest.NewChild("types:jobId").NewChild("types:id") = jobid;
-    if (!delegationId.empty())
-      jobStartRequest.NewChild("types:delegationId") = delegationId;
+    XMLNode xjobId = jobStartRequest.NewChild("types:jobId");
+    xjobId.NewChild("types:id") = jobid;
+    xjobId.NewChild("types:creamURL") = client->GetURL().str();
 
     XMLNode response;
     if (!process(req, response))
