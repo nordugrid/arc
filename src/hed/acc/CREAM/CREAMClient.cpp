@@ -224,8 +224,6 @@ namespace Arc {
     if (ISVALID(jobInfoNode["jobId"]["id"]) && ISVALID(jobInfoNode["jobId"]["creamURL"])) {
       job.IDFromEndpoint = URL((std::string)jobInfoNode["jobId"]["creamURL"] + "/" + (std::string)jobInfoNode["jobId"]["id"]);
     }
-    if (ISVALID(jobInfoNode["jobId"]["id"]))
-      job.LocalIDFromManager = (std::string)jobInfoNode["jobId"]["id"];
     if (ISVALID(jobInfoNode["type"]))
       job.Type = (std::string)jobInfoNode["type"];
     if (ISVALID(jobInfoNode["JDL"])) {
