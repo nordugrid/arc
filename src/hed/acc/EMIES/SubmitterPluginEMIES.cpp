@@ -31,10 +31,26 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
   
+  static URL CreateURL(std::string str) {
+    std::string::size_type pos1 = str.find("://");
+    if (pos1 == std::string::npos) {
+      str = "https://" + str;
+      pos1 = 5;
+    } else {
+      if(lower(str.substr(0,pos1)) != "https" && lower(str.substr(0,pos1)) != "http" ) return URL();
+    }
+    std::string::size_type pos2 = str.find(":", pos1 + 3);
+    std::string::size_type pos3 = str.find("/", pos1 + 3);
+    if (pos3 == std::string::npos && pos2 == std::string::npos)  str += ":443";
+    else if (pos2 == std::string::npos || pos2 > pos3) str.insert(pos3, ":443");
+
+    return str;
+  }
+  
   SubmissionStatus SubmitterPluginEMIES::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted, const URL& jobInformationEndpoint) {
     // TODO: this is multi step process. So having retries would be nice.
 
-    URL url(endpoint);
+    URL url = CreateURL(endpoint);
 
     SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {

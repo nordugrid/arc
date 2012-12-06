@@ -32,6 +32,48 @@ namespace Arc {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "gsiftp";
   }
+
+  static URL CreateURL(std::string str) {
+    std::string::size_type pos1 = str.find("://");
+    if (pos1 == std::string::npos) {
+      str = "gsiftp://" + str;
+      pos1 = 6;
+    } else {
+      if(lower(str.substr(0,pos1)) != "gsiftp") return URL();
+    }
+    std::string::size_type pos2 = str.find(":", pos1 + 3);
+    std::string::size_type pos3 = str.find("/", pos1 + 3);
+    if (pos3 == std::string::npos) {
+      if (pos2 == std::string::npos)
+        str += ":2811";
+      str += "/jobs";
+    }
+    else if (pos2 == std::string::npos || pos2 > pos3)
+      str.insert(pos3, ":2811");
+
+    return str;
+  }
+  
+  static URL CreateInfoURL(std::string str) {
+    std::string::size_type pos1 = str.find("://");
+    if (pos1 == std::string::npos) {
+      str = "ldap://" + str;
+      pos1 = 4;
+    } else {
+      if(lower(str.substr(0,pos1)) != "ldap") return URL();
+    }
+    std::string::size_type pos2 = str.find(":", pos1 + 3);
+    std::string::size_type pos3 = str.find("/", pos1 + 3);
+    if (pos3 == std::string::npos) {
+      if (pos2 == std::string::npos)
+        str += ":2135";
+      str += "/Mds-Vo-name=local,o=Grid";
+    }
+    else if (pos2 == std::string::npos || pos2 > pos3)
+      str.insert(pos3, ":2135");
+
+    return str;
+  }
   
   Plugin* SubmitterPluginARC0::Instance(PluginArgument *arg) {
     SubmitterPluginArgument *subarg =
@@ -51,7 +93,8 @@ namespace Arc {
 
   SubmissionStatus SubmitterPluginARC0::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted, const URL& jobInformationEndpoint) {
     FTPControl ctrl;
-    URL url(endpoint);
+    URL url = CreateURL(endpoint);
+    URL infoURL = CreateInfoURL(url.Host());
     
     SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
@@ -151,7 +194,7 @@ namespace Arc {
       Job j;
 
       // Prepare contact url for information about this job
-      URL infoendpoint(jobInformationEndpoint);
+      URL infoendpoint(infoURL);
       infoendpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" + escape_chars(jobid.str(),filter_esc,'\\',false,escape_hex) + ")");
       infoendpoint.ChangeLDAPScope(URL::subtree);
 
