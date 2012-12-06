@@ -91,7 +91,7 @@ namespace Arc {
   }
 
 
-  SubmissionStatus SubmitterPluginARC0::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted, const URL& jobInformationEndpoint) {
+  SubmissionStatus SubmitterPluginARC0::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     FTPControl ctrl;
     URL url = CreateURL(endpoint);
     URL infoURL = CreateInfoURL(url.Host());

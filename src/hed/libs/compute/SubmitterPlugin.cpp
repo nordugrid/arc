@@ -29,8 +29,7 @@ namespace Arc {
   SubmissionStatus SubmitterPlugin::Submit(const std::list<JobDescription>& jobdescs,
                                            const std::string& endpoint,
                                            EntityConsumer<Job>& jc,
-                                           std::list<const JobDescription*>& notSubmitted,
-                                           const URL& jobInformationEndpoint) {
+                                           std::list<const JobDescription*>& notSubmitted) {
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin();
          it != jobdescs.end(); ++it) {
       notSubmitted.push_back(&*it);

@@ -29,8 +29,7 @@ namespace Arc {
   SubmissionStatus SubmitterPluginTestACC::Submit(const std::list<JobDescription>& jobdescs,
                                                   const std::string& endpoint,
                                                   EntityConsumer<Job>& jc,
-                                                  std::list<const JobDescription*>& notSubmitted,
-                                                  const URL& jobInformationEndpoint) {
+                                                  std::list<const JobDescription*>& notSubmitted) {
     SubmissionStatus retval = SubmitterPluginTestACCControl::submitStatus;
     if (retval) {
       jc.addEntity(SubmitterPluginTestACCControl::submitJob);

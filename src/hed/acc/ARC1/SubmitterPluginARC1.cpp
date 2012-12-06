@@ -53,7 +53,7 @@ namespace Arc {
     return str;
   }
 
-  SubmissionStatus SubmitterPluginARC1::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted, const URL& jobInformationEndpoint) {
+  SubmissionStatus SubmitterPluginARC1::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     URL url = CreateURL(endpoint);
 
     // TODO: Determine extended BES interface interface (A-REX WS)

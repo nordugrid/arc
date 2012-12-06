@@ -66,8 +66,7 @@ namespace Arc {
     virtual SubmissionStatus Submit(const std::list<JobDescription>& jobdesc,
                                     const std::string& endpoint,
                                     EntityConsumer<Job>& jc,
-                                    std::list<const JobDescription*>& notSubmitted,
-                                    const URL& jobInformationEndpoint = URL());
+                                    std::list<const JobDescription*>& notSubmitted);
 
 
     /// Migrate job
