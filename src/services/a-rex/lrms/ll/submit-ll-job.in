@@ -80,9 +80,18 @@ fi
 set_count
 
 if [ $joboption_count -gt 1 ] ; then
-  #we only support serial jobs on LL
-  echo 'ERROR: No support for parallel jobs' 1>&2
+  echo "# @ job_type = parallel" >> $LRMS_JOB_SCRIPT
+  echo "# @ node = $joboption_numnodes" >> $LRMS_JOB_SCRIPT
+  echo "# @ total_tasks = $joboption_count" >> $LRMS_JOB_SCRIPT
+#  echo "# @ task_per_node = $joboption_countpernode" >> $LRMS_JOB_SCRIPT
 fi
+
+#set node to exclusive
+
+if [ ! -z $joboption_exclusive && $joboption_exclusive = 'yes' ]
+  echo "# @ node_usage = not_shared " >> $LRMS_JOB_SCRIPT
+fi
+
 
 ##############################################################
 # Execution times (obtained in seconds)
