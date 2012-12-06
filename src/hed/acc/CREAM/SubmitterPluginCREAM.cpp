@@ -175,9 +175,21 @@ namespace Arc {
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
-  
+
+      // Prepare contact url for information about this job
+      URL infoendpoint;
+      for (std::list< CountedPointer<ComputingEndpointAttributes> >::const_iterator it = et.OtherEndpoints.begin(); it != et.OtherEndpoints.end(); it++) {
+        if ((*it)->InterfaceName == "org.nordugrid.ldapglue1") {
+          infoendpoint = URL((*it)->URLString);
+          infoendpoint.ChangeLDAPScope(URL::subtree);
+        }
+      }
+
       Job j;
       j.JobID = submissionurl.str() + '/' + jobInfo.id;
+      j.ServiceInformationURL = infoendpoint;
+      j.ServiceInformationURL.ChangeLDAPFilter("");
+      j.ServiceInformationInterfaceName = "org.nordugrid.ldapglue1";
       j.JobStatusURL = url;
       j.JobStatusInterfaceName = "org.glite.cream";
       j.JobManagementURL = url;
