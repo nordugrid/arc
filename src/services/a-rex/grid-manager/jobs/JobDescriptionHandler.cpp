@@ -210,9 +210,31 @@ bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc,
   f<<"joboption_cputime="<<(arc_job_desc.Resources.TotalCPUTime.range.max != -1 ? Arc::tostring(arc_job_desc.Resources.TotalCPUTime.range.max):"")<<std::endl;
   f<<"joboption_walltime="<<(arc_job_desc.Resources.TotalWallTime.range.max != -1 ? Arc::tostring(arc_job_desc.Resources.TotalWallTime.range.max):"")<<std::endl;
   f<<"joboption_memory="<<(arc_job_desc.Resources.IndividualPhysicalMemory.max != -1 ? Arc::tostring(arc_job_desc.Resources.IndividualPhysicalMemory.max):"")<<std::endl;
-  f<<"joboption_count="<<(arc_job_desc.Resources.SlotRequirement.NumberOfSlots != -1 ? Arc::tostring(arc_job_desc.Resources.SlotRequirement.NumberOfSlots):"1")<<std::endl;
-  f<<"joboption_countpernode="<<Arc::tostring(arc_job_desc.Resources.SlotRequirement.SlotsPerHost)<<std::endl;
-  f<<"joboption_exclusivenode="<<Arc::tostring(arc_job_desc.Resources.SlotRequirement.ExclusiveExecution)<<std::endl;
+
+  //calculate the number of nodes/hosts needed
+  {
+    int count= arc_job_desc.Resources.SlotRequirement.NumberOfSlots;
+    if (count != -1) {
+      int count_per_node = arc_job_desc.Resources.SlotRequirement.SlotsPerHost;
+      f<<"joboption_count="<<Arc::tostring(count)<<std::endl;
+      f<<"joboption_countpernode="<<Arc::tostring(count_per_node)<<std::endl;
+      if (count_per_node > 0) {
+        int num_nodes = count / count_per_node;
+        if ((count % count_per_node) > 0) num_nodes++;
+        f<<"joboption_numnodes="<<Arc::tostring(num_nodes)<<std::endl;
+      }
+      f<<"joboption_penv_type="<<Arc::tostring(arc_job_desc.Resources.ParallelEnvironment.Type)<<std::endl;
+      f<<"joboption_penv_version="<<Arc::tostring(arc_job_desc.Resources.ParallelEnvironment.Version)<<std::endl;
+
+    }else{
+      f<<"joboption_count=1"<<std::endl;
+    } 
+  }
+
+  if (arc_job_desc.Resources.SlotRequirement.ExclusiveExecution == Arc::SlotRequirementType::EE_TRUE){
+    f<<"joboption_exclusivenode=true"<<std::endl;
+  }
+
 
 
   {
