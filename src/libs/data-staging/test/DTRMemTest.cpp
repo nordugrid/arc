@@ -3,7 +3,6 @@
 #endif
 
 #include <iostream>
-#include <arc/ArcLocation.h>
 
 #include "../DTR.h"
 
@@ -13,10 +12,9 @@
  */
 int main() {
 
-  Arc::ArcLocation::Init("");
   std::string jobid("123456789");
-  std::string source("http://localhost/file1");
-  std::string destination("/tmp/file1");
+  std::string source("mock://mocksrc/1");
+  std::string destination("mock://mockdest/1");
   Arc::UserConfig cfg;
 
   const int no_dtrs = 10000;

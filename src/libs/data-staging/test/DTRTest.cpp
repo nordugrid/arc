@@ -4,7 +4,6 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <arc/ArcLocation.h>
 #include "../DTR.h"
 
 class DTRTest
@@ -24,10 +23,10 @@ public:
 
 private:
   DataStaging::DTRLogger logger;
+  Arc::UserConfig cfg;
 };
 
 void DTRTest::setUp() {
-  Arc::ArcLocation::Init("");
   logger = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStagingTest");
 }
 
@@ -36,9 +35,8 @@ void DTRTest::tearDown() {
 
 void DTRTest::TestDTRConstructor() {
   std::string jobid("123456789");
-  std::string source("http://localhost/file1");
-  std::string destination("/tmp/file1");
-  Arc::UserConfig cfg;
+  std::string source("mock://mocksrc/1");
+  std::string destination("mock://mockdest/1");
   DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger));
   CPPUNIT_ASSERT(*dtr);
   CPPUNIT_ASSERT(!dtr->get_id().empty());
@@ -58,26 +56,29 @@ void DTRTest::TestDTRConstructor() {
     DataStaging::DTR_ptr dtr3(dtr);
     CPPUNIT_ASSERT(*dtr3);
   }
-  CPPUNIT_ASSERT_EQUAL(std::string("http://localhost:80/file1"), dtr->get_source()->str());
+  CPPUNIT_ASSERT_EQUAL(std::string("mock://mocksrc/1"), dtr->get_source()->str());
 
   // make a bad DTR
   source = "myprocotol://blabla/file1";
   DataStaging::DTR_ptr dtr4(new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger));
   CPPUNIT_ASSERT(!(*dtr4));
+
+  // bad DTR copying to itself
+  DataStaging::DTR_ptr dtr5(new DataStaging::DTR(source, source, cfg, jobid, Arc::User().get_uid(), logger));
+  CPPUNIT_ASSERT(!(*dtr5));
 }
 
 void DTRTest::TestDTREndpoints() {
   std::string jobid("123456789");
-  std::string source("http://localhost/file1");
-  std::string destination("/tmp/file1");
-  Arc::UserConfig cfg;
+  std::string source("mock://mocksrc/1");
+  std::string destination("mock://mockdest/1");
   DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger));
   CPPUNIT_ASSERT(*dtr);
-  CPPUNIT_ASSERT_EQUAL(std::string("http://localhost:80/file1"), dtr->get_source()->str());
-  CPPUNIT_ASSERT_EQUAL(std::string("file:/tmp/file1"), dtr->get_destination()->str());
+  CPPUNIT_ASSERT_EQUAL(std::string("mock://mocksrc/1"), dtr->get_source()->str());
+  CPPUNIT_ASSERT_EQUAL(std::string("mock://mockdest/1"), dtr->get_destination()->str());
 
   // create a bad url
-  source = "http:/file1";
+  source = "mock:/file1";
   DataStaging::DTR_ptr dtrbad(new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger));
   CPPUNIT_ASSERT(!dtrbad->get_source()->GetURL());
 

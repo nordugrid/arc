@@ -8,15 +8,11 @@
 
 #include <arc/ArcLocation.h>
 #include <arc/FileUtils.h>
-#include <arc/GUID.h>
-#include <arc/credential/Credential.h>
 #include <arc/UserConfig.h>
 
 #include "../DTRStatus.h"
 #include "../DTR.h"
 #include "../DataDelivery.h"
-
-#define CONNECTION_TIMEOUT 20
 
 class DeliveryTest
   : public CppUnit::TestFixture {
@@ -35,31 +31,32 @@ public:
   void tearDown();
 
 private:
-  std::string dest_file;
   DataStaging::DTRLogger logger;
+  Arc::UserConfig cfg;
 };
 
 void DeliveryTest::setUp() {
-  Arc::ArcLocation::Init("");
-  remove(dest_file.c_str());
+  // Hack to make sure DataStagingDelivery executable in the parent dir is used
+  // A fake ARC location is used and a symlink is created in the libexec subdir
+  // to the DataStagingDelivery in the parent dir. TODO: maybe put a test flag
+  // in DTR code which tells it to use this local executable.
+  Arc::DirCreate(std::string("../tmp/")+std::string(PKGLIBEXECSUBDIR), S_IRWXU, true);
+  Arc::ArcLocation::Init("../tmp/x/x");
+  Arc::FileLink("../../../DataStagingDelivery", std::string("../tmp/")+std::string(PKGLIBEXECSUBDIR)+std::string("/DataStagingDelivery"), true);
   logger = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStagingTest");
 }
 
 void DeliveryTest::tearDown() {
-  remove(dest_file.c_str());
+  Arc::DirDelete("../tmp");
 }
 
 void DeliveryTest::TestDeliverySimple() {
 
-  // Fake environment
-  Arc::UserConfig cfg;
+  std::string source("mock://mocksrc/1");
+  std::string destination("mock://mockdest/1");
   std::string jobid("1234");
-
-  // Remote source, local destination
-  std::string source("http://www.nordugrid.org");
-  dest_file = "/tmp/file1";
-  std::string destination("file:" + dest_file);
   DataStaging::DTR_ptr dtr(new DataStaging::DTR(source,destination,cfg,jobid,Arc::User().get_uid(),logger));
+  CPPUNIT_ASSERT(*dtr);
 
   // Pass DTR to Delivery
   DataStaging::DataDelivery delivery;
@@ -80,24 +77,20 @@ void DeliveryTest::TestDeliverySimple() {
     } else {
       break;
     }
-    CPPUNIT_ASSERT(cnt < 100);
+    CPPUNIT_ASSERT(cnt < 300); // 30s limit on transfer time
     Glib::usleep(100000);
   }
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::TRANSFERRED, status.GetStatus());
-  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(dtr->get_error_status().GetDesc(), DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
 }
 
 void DeliveryTest::TestDeliveryFailure() {
 
-  // Fake environment
-  Arc::UserConfig cfg;
+  std::string source("fail://mocksrc/1");
+  std::string destination("fail://mockdest/1");
   std::string jobid("1234");
-
-  // Remote source, local destination
-  std::string source("http://www.nordugrid.org/no_such_file.html");
-  dest_file = "/tmp/file2";
-  std::string destination("file:" + dest_file);
   DataStaging::DTR_ptr dtr(new DataStaging::DTR(source,destination,cfg,jobid,Arc::User().get_uid(),logger));
+  CPPUNIT_ASSERT(*dtr);
 
   // Pass DTR to Delivery
   DataStaging::DataDelivery delivery;
@@ -118,24 +111,20 @@ void DeliveryTest::TestDeliveryFailure() {
     } else {
       break;
     }
-    CPPUNIT_ASSERT(cnt < 100);
+    CPPUNIT_ASSERT(cnt < 200); // 20s limit on transfer time
     Glib::usleep(100000);
   }
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::TRANSFERRED, status.GetStatus());
-  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR, dtr->get_error_status().GetErrorStatus());
+  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR, dtr->get_error_status().GetErrorStatus());
 }
 
 void DeliveryTest::TestDeliveryUnsupported() {
 
-  // Fake environment
-  Arc::UserConfig cfg;
-  std::string jobid("1234");
-
-  // Remote source, local destination
   std::string source("proto://host/file");
-  dest_file = "/tmp/file2";
-  std::string destination("file:" + dest_file);
+  std::string destination("mock://mockdest/1");
+  std::string jobid("1234");
   DataStaging::DTR_ptr dtr(new DataStaging::DTR(source,destination,cfg,jobid,Arc::User().get_uid(),logger));
+  CPPUNIT_ASSERT(!(*dtr));
 
   // Pass DTR to Delivery
   DataStaging::DataDelivery delivery;

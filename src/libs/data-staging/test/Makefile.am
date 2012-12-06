@@ -1,9 +1,13 @@
-# These tests are currently disabled since they require binaries to be installed outside build tree. A new make target might be needed.
-#TESTS = DTRTest ProcessorTest DeliveryTest
-#check_PROGRAMS = $(TESTS)
+# Tests require mock DMC which can be enabled via configure --enable-mock-dmc
+if MOCK_DMC_ENABLED
+TESTS = DTRTest ProcessorTest DeliveryTest
+else
+TESTS =
+endif
+check_PROGRAMS = $(TESTS)
 
-# Since the above lines are commented, the tests below will be tried compiled even if CPPUnit is not installed. Thus put them in a if block.
-if CPPUNIT_ENABLED
+TESTS_ENVIRONMENT = env ARC_PLUGIN_PATH=$(top_builddir)/src/hed/dmc/mock/.libs:$(top_builddir)/src/hed/dmc/file/.libs
+
 DTRTest_SOURCES = $(top_srcdir)/src/Test.cpp DTRTest.cpp
 DTRTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
@@ -28,7 +32,7 @@ DeliveryTest_LDADD = ../libarcdatastaging.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS)
 
-noinst_PROGRAMS = DTRMemTest DTRTest ProcessorTest DeliveryTest
+noinst_PROGRAMS = DTRMemTest
 
 DTRMemTest_SOURCES = DTRMemTest.cpp
 DTRMemTest_CXXFLAGS = -I$(top_srcdir)/include \
@@ -37,4 +41,3 @@ DTRMemTest_LDADD = ../libarcdatastaging.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS)
-endif
