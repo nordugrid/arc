@@ -51,8 +51,7 @@ namespace DataStaging {
       status_pos_ = 0;
       // Generate options for child
       std::list<std::string> args;
-      // maybe just nordugrid_libexec_loc_?
-      std::string execpath = Arc::ArcLocation::Get()+G_DIR_SEPARATOR_S+PKGLIBEXECSUBDIR+G_DIR_SEPARATOR_S+"DataStagingDelivery";
+      std::string execpath = Arc::ArcLocation::GetToolsDir()+G_DIR_SEPARATOR_S+"DataStagingDelivery";
       args.push_back(execpath);
 
       // check for alternative source or destination eg cache, mapped URL, TURL
