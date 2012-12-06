@@ -386,9 +386,9 @@ namespace Arc {
     PayloadSOAP req(cream_ns);
     XMLNode act_job = req.NewChild("types:" + action + "Request").NewChild("types:jobDescriptionList");
     act_job.NewChild("types:JDL") = jdl_text;
-    act_job.NewChild("types:autoStart") = "false";
     if (!delegationId.empty())
       act_job.NewChild("types:delegationId") = delegationId;
+    act_job.NewChild("types:autoStart") = "false";
 
     XMLNode response;
     if (!process(req, response))
