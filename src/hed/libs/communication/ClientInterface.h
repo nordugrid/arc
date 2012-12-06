@@ -189,6 +189,7 @@ namespace Arc {
     void AddSecHandler(XMLNode handlercfg, const std::string& libanme = "", const std::string& libpath = "");
     virtual bool Load();
     void RelativeURI(bool val) { relative_uri=val; };
+    const URL& GetURL() const { return default_url; };
   protected:
     MCC *http_entry;
     URL default_url;
