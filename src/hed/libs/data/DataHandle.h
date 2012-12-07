@@ -23,7 +23,8 @@ namespace Arc {
    * This class is main way to access remote data items and
    * obtain information about them. Below is an example of
    * accessing last 512 bytes of files stored at GridFTP
-   * server.
+   * server. To simply copy a whole file DataMover::Transfer() can
+   * be used.
    *
    * \code
    * #include <iostream>

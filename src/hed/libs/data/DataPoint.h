@@ -1,36 +1,43 @@
 // -*- indent-tabs-mode: nil -*-
 
 // Summary page for doxygen docs on libarcdata
-
+// Enclosed in Arc namespace so automatic linking to other classes works
+namespace Arc {
 /**
  * \mainpage Summary of libarcdata
  *
- * libarcdata is a library for data access. It provides a uniform interface
- * to several types of grid storage and catalogs using various protocols. See
- * the DataPoint inheritance diagram for a list of currently supported
- * protocols. The interface can be used to read, write, list, transfer and
- * delete data to and from storage systems and catalogs.
+ * libarcdata is a library for access to data on the Grid. It provides a
+ * uniform interface to several types of Grid storage and catalogs using
+ * various protocols. The protocols useable on a given system depend on the
+ * packages installed. The interface can be used to read, write, list, transfer
+ * and delete data to and from storage systems and catalogs.
  *
  * The library uses ARC's dynamic plugin mechanism to load plugins for
  * specific protocols only when required at runtime. These plugins are
- * called Data Manager Components (DMCs). The DataHandle class should be used
- * to automatically load the required DMC at runtime. To create a new DMC for
- * a protocol which is not yet supported see the instruction and examples in
- * the DataPoint class documentation. This documentation also gives a complete
- * overview of the interface.
+ * called Data Manager Components (DMCs). The DataHandle class takes care of
+ * automatically loading the required DMC at runtime to create a DataPoint object
+ * representing a resource accessible through a given protocol. DataHandle
+ * should always be used instead of DataPoint directly.
+ *
+ * DataMover provides a simple high-level interface to copy files. For more
+ * fine-grained control over data transfer see the examples in DataHandle.
+ *
+ * To create a new DMC for a protocol which is not yet supported see the
+ * instruction and examples in the DataPoint class documentation. This
+ * documentation also gives a complete overview of the interface.
  *
  * The following protocols are currently supported in standard distributions
- * of ARC (except XRootd, which is not yet distributed).
+ * of ARC.
  *
  * ARC (arc://) - Protocol to access the Chelonia storage system developed by
  * ARC.
  *
- * File (file://) - Regular local file system.
+ * File (%file://) - Regular local file system.
  *
  * GridFTP (gsiftp://) - GridFTP is essentially the FTP protocol with GSI
  * security. Regular FTP can also be used.
  *
- * HTTP(S/G) (http://) - Hypertext Transfer Protocol. HTTP over SSL (HTTPS)
+ * HTTP(S/G) (%http://) - Hypertext Transfer Protocol. HTTP over SSL (HTTPS)
  * and HTTP over GSI (HTTPG) are also supported.
  *
  * LDAP (ldap://) - Lightweight Directory Access Protocol. LDAP is used in
@@ -52,6 +59,7 @@
  * XRootd (root://) - Protocol for data access across large scale storage
  * clusters. More information can be found at http://xrootd.slac.stanford.edu/
  */
+} // namespace Arc
 
 #ifndef __ARC_DATAPOINT_H__
 #define __ARC_DATAPOINT_H__
