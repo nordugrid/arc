@@ -253,8 +253,9 @@ typedef int gid_t;
 %template(DTRLogger) Arc::ThreadedPointer<Arc::Logger>;
 #ifdef SWIGPYTHON
 %pythoncode %{
-def datapoint_from_url(url_string, usercfg):
-    url = URL(url_string)
+from arc import common
+def datapoint_from_url(url_string, usercfg=common.UserConfig()):
+    url = common.URL(url_string)
     data_handle = DataHandle(url, usercfg)
     data_point = data_handle.__ref__()
     url.thisown = False
