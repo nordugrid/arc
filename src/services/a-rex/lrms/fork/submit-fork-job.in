@@ -84,11 +84,6 @@ echo "umask 077" >> $LRMS_JOB_SCRIPT
 add_user_env
 
 ##############################################################
-#  Runtime configuration
-##############################################################
-RTE_stage1 
-
-##############################################################
 # Check for existance of executable,
 ##############################################################
 if [ -z "${joboption_arg_0}" ] ; then
@@ -128,11 +123,17 @@ download_input_files
 
 echo "" >> $LRMS_JOB_SCRIPT
 
+echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
+
+##############################################################
+#  Runtime configuration
+##############################################################
+RTE_stage1 
+echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+
 #####################################################
 #  Go to working dir and start job
 #####################################################
-echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
-echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
 cd_and_run
 echo "fi" >> $LRMS_JOB_SCRIPT
 
