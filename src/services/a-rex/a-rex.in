@@ -483,9 +483,9 @@ barguspdpclient.so" ]; then
     use_cache_service=`readconfigvar "$ARC_CONFIG" grid-manager enable_cache_service`
     if [ "$use_cache_service" = "yes" ]; then
         
-        use_new_staging=`readconfigvar "$ARC_CONFIG" grid-manager newdatastaging`
-        if [ -z "$arex_mount_point" -o "$use_new_staging" != "yes" ]; then
-            log_failure_msg "New data staging and A-REX WS interface must be turned on to use cache service"
+        use_dtr=`readconfigvar "$ARC_CONFIG" grid-manager enable_dtr`
+        if [ -z "$arex_mount_point" -o "$use_dtr" = "no" ]; then
+            log_failure_msg "Both DTR and A-REX WS interface must be turned on to use cache service"
             exit 1
         fi
         
