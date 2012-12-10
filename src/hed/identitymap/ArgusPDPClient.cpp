@@ -134,7 +134,7 @@ std::string xacml_decision_to_string(xacml_decision_t decision) {
 }
 
 /* extract the elements from the configuration file */
-ArgusPDPClient::ArgusPDPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHandler(cfg,parg) , client(NULL) {  
+ArgusPDPClient::ArgusPDPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHandler(cfg,parg) , client(NULL), conversion(conversion_emi) {  
     valid_ = false;
     accept_mapping = false;
     accept_notapplicable = false;
@@ -157,9 +157,8 @@ ArgusPDPClient::ArgusPDPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSe
     } else if(conversion_str == "emi") {
         logger.msg(Arc::DEBUG, "Conversion mode is set to EMI");
         conversion = conversion_emi;
-    } else {
+    } else if(!conversion_str.empty()) {
         logger.msg(Arc::INFO, "Unknown conversion mode %s, using default", conversion_str);
-        conversion = conversion_subject;
     }
 
     Arc::XMLNode filter = (*cfg)["Filter"];
