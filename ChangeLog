@@ -35,12 +35,15 @@
 2012-11-14  Florido Paganelli   <florido.paganelli@hep.lu.se>
 
   * Finalized GLUE2 rendering:
-    * Removes ARIS service. All endpoints are now shown inside
-      the A-REX org.nordugrid.arex ComputingService.
+    * Removed ARIS service. All endpoints are now shown inside
+      the A-REX org.nordugrid.arex ComputingService. This makes the GLUE2
+      rendering backward incompatible with previous versions of ARC.
     * Removed ComputingActivities from LDAP rendering. Can be enabled with
       infosys_glue2_ldap_showactivities new option.
     * Finalized EMI-ES rendering, one Endpoint per port-type
-      including data capabilities.
+      including data capabilities. This obsoletes the experimental 12.05
+      EMI-ES GLUE2 rendering and therefore makes this change backward 
+      incompatible.
     * added infosys_glue2_service_qualitylevel option for the sysadmin
       to set manually GLUE2 QualityLevel, useful for operations within
       EGI.
