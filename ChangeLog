@@ -221,7 +221,8 @@
 
 2012-07-17  David Cameron  <d.g.cameron@fys.uio.no>
 
-  * Implement 3rd party transfer in data library and arccp using GFAL DMC
+  * Implement 3rd party transfer in data library (new method 
+    DataPoint::Transfer3rdPaty()) and arccp (new option -3) using GFAL DMC
 
 2012-07-13  David Cameron  <d.g.cameron@fys.uio.no>
 
