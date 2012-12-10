@@ -35,7 +35,34 @@ typedef void (*arc_module_destructor_func)(Glib::Module*, ModuleManager*);
 /** This class loads shared libraries/modules.
    There supposed to be created one instance of it per executable.
   In such circumstances it would cache handles to loaded modules
-  and not load them multiple times. */
+  and not load them multiple times. But creating multiple instances
+  is not prohibited.
+   Instance of this class handles loading of shared libraries through
+  call to load() method. All loaded libraries are remembered internally 
+  and by default are unloaded when instance of this class is destroyed.
+  Sometimes it is not safe to unload library. In such case makePersistent()
+  for this library must be called.
+   Upon first load() of library ModuleManager looks for function called
+  __arc_module_constructor__ and calls it. This makes it possible for
+  library to do some preparations. Currently it is used to make some
+  libraries persistent in memory.
+   Before unloading library from memory __arc_module_destructor__ is
+  called if present.
+   Every loaded library has load counter associated. Each call to 
+  load() for specific library increases that counter and unload() decreases
+  it. Library is unloaded when counter reaches zero. When instance of 
+  ModuleManager is destroyed all load counters are reset to 0 and libraries
+  are unloaded unless claimed to stay persistent in memory.
+   Each library also has usage counter associated. Those counters are increased
+  and decreased by use() and unuse() methods. This counter is used to claim usage
+  of code provided by loaded library. It is automatically increased and decreased 
+  in constructor and destructor of Plugin class. Having non-zero usage counter 
+  prevents library from being unloaded. 
+   Please note that destructor of ModuleManager waits for all usage counters to
+  reach zero. This is especially useful in multithreaded environements. To avoid
+  dealocks make sure Plugins loaded by instance of ModuleManager are destroyed
+  before destroying ModuleManager or in independent threads.
+ */
 class ModuleManager
 {
     private:

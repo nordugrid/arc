@@ -12,7 +12,8 @@ namespace Arc {
   /** This class processes XML configration and loads specified plugins.
      Accepted configuration is defined by XML schema mcc.xsd.
     "Plugins" elements are parsed by this class and corresponding libraries
-     are loaded. */
+     are loaded.
+     Main functionality is provided by class PluginsFactory. */
   class Loader {
    public:
     static Logger logger;

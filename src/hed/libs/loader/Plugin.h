@@ -122,7 +122,13 @@ namespace Arc {
      of loading pluggable ARC components stored in shared
      libraries. It also makes use of Arc Plugin Description
      (*.apd) files which contain textual plugin identfiers. 
-     Specifically it uses 'priority' attribute to sort
+     Arc Plugin Description files contain attributes 
+     describing pluggable components stored in corresponding
+     shared libraries. Using those files allows to save 
+     on actually loading and resolving libraries while
+     looking for specific component.
+
+     Specifically this class uses 'priority' attribute to sort
      plugin description in internal lists. Please note
      that priority affects order in which plugins tried 
      in get_instance(...) methods. But it only works
@@ -130,11 +136,20 @@ namespace Arc {
      calls to load(...) and get_instance(...) methods.
      For plugins discovered inside get_instance priority
      in not effective.
-     For more information please check ARC HED documentation.
+
+     This class mostly handles tasks of finding, identifying,
+     fitering and sorting ARC pluggable components. For loading
+     shared libraries it uses functionality of ModuleManager class.
+     So it is important to see documentation of ModuleManager in
+     order to understand how this class works.
+
+     For more information also please check ARC HED documentation.
+
      This class is thread-safe - its methods are protected from
      simultatneous use from multiple threads. Current thread
      protection implementation is suboptimal and will be revised
-     in future. */
+     in future.
+   */
   class PluginsFactory: public ModuleManager {
     friend class PluginArgument;
     private:
