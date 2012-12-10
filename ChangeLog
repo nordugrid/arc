@@ -138,6 +138,11 @@
     server to achieve access control decision. Argus library dependency is 
     not required for this plugin. 
 
+2012-10-05  David Cameron  <d.g.cameron@fys.uio.no>
+
+  * Add new package nordugrid-arc-plugins-gfal which contains the GFAL DMC and
+    depends on gfal2 (RHEL/Fedora only)
+
 2012-10-03  David Cameron  <d.g.cameron@fys.uio.no>
 
   * Rename ngconfigtest to arc-config-check, install to libexec instead of bin
