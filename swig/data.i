@@ -253,7 +253,13 @@ typedef int gid_t;
 %template(DTRLogger) Arc::ThreadedPointer<Arc::Logger>;
 #ifdef SWIGPYTHON
 %pythoncode %{
-from arc import common
+# for unit tests the install structure is not set up. common is in cwd
+# TODO better solution
+try:
+    from arc import common
+except:
+    import common
+
 def datapoint_from_url(url_string, usercfg=common.UserConfig()):
     url = common.URL(url_string)
     data_handle = DataHandle(url, usercfg)
