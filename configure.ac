@@ -319,6 +319,10 @@ if test "$enables_swig_python" = "yes" || test "$enables_swig_java" = "yes"; the
       AC_MSG_NOTICE([swig is too old (< 1.3.25)])
       SWIG=""
       enables_swig="no"
+    elif test $swigver1 -eq 1 && test $swigver2 -eq 3 && test $swigver3 -eq 38 ; then
+      AC_MSG_NOTICE([swig version 1.3.38 has bug which prevents it from being used for this software. Please upgrade or downgrade.])
+      SWIG=""
+      enables_swig="no"
     else
       SWIG2="no"
       if test $swigver1 -ge 2
