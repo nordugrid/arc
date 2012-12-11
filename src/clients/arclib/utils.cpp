@@ -257,6 +257,9 @@ ClientOptions::ClientOptions(Client_t c,
     AddOption('l', "long",
               istring("long format (more information)"),
               longlist);
+  }
+
+  if (c == CO_INFO) {
     AddOption('L', "list-configured-services",
               istring("print a list of services configured in the client.conf"),
               list_configured_services);
