@@ -110,6 +110,15 @@ set_count
 ##############################################################
 echo "#BSUB -n $joboption_count" >> $LRMS_JOB_SCRIPT
 
+# parallel structure
+if [ ! -z $joboption_countpernode && $joboption_countpernode != '-1' ] ; then
+ echo "#BSUB -R span[ptile=$joboption_countpernode]" >> $LRMS_JOB_SCRIPT
+fi 
+# exclusive execution 
+if [ ! -z $joboption_exclusivenode && $joboption_exclusivenode = 'true' ] ; then
+  echo "#BSUB -x" >> $LRMS_JOB_SCRIPT
+fi
+
 ##############################################################
 # Execution times (obtained in seconds)
 ##############################################################
