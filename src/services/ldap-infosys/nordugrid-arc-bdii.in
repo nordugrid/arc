@@ -2,7 +2,7 @@
 #
 # Init file for the NorduGrid/ARC LDAP based local resource information system
 #
-# chkconfig: 2345 55 25
+# chkconfig: 2345 56 44
 # description: NorduGrid/ARC local resource information system
 #
 # config: /etc/sysconfig/nordugrid
@@ -13,8 +13,8 @@
 
 ### BEGIN INIT INFO
 # Provides:          nordugrid-arc-bdii
-# Required-Start:    $remote_fs $syslog
-# Required-Stop:     $remote_fs $syslog
+# Required-Start:    $remote_fs $syslog nordugrid-arc-slapd
+# Required-Stop:     $remote_fs $syslog nordugrid-arc-slapd
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: NorduGrid/ARC local resource information system
