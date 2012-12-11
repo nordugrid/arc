@@ -156,6 +156,10 @@
 
   * Change configuration option "newdatastaging" to "enable_dtr"
 
+2012-09-26  Mattias Ellert  <mattias.ellert@fysast.uu.se>
+
+  * Rename libarcdata2 to libarcdata
+
 2012-09-26  Gabor Szigeti <szigeti@niif.hu>
 
   * Parse the configured (optional) topic value from the server configuration.
