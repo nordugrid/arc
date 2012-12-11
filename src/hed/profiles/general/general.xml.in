@@ -392,21 +392,6 @@ attributes depending on how the mapping should be done.
         <lrms:slurm_wakeupperiod inisections="lrms/slurm" initag="wakeupperiod"/>
       </arex:LRMS>
 
-      <arex:LRMSName initokenenables="lrms/gridfactory">gridfactory</arex:LRMSName>
-      <arex:LRMS initokenenables="lrms/gridfactory">
-        <arex:type>gridfactory</arex:type>
-        <arex:defaultShare inisections="lrms/gridfactory" initag="defaultshare"/>
-
-        <arex:sharedFilesystem inisections="lrms/gridfactory" initag="sharedfilesystem"/>
-        <arex:sharedScratch inisections="lrms/gridfactory" initag="sharedscratch"/>
-        <arex:scratchDir inisections="lrms/gridfactory" initag="scratchdirectory"/>
-        <arex:runtimeDir inisections="lrms/gridfactory" initag="runtimedirectory"/>
-        <arex:GNUTimeUtility inisections="lrms/gridfactory" initag="gnutime"/>
-
-        <lrms:gridfactory_bin_path inisections="lrms/gridfactory" initag="bin_path"/>
-        <lrms:gridfactory_job_limit inisections="lrms/gridfactory" initag="job_limit"/>
-      </arex:LRMS>
-
       <arex:InfoproviderWakeupPeriod inisections="arex/info" initag="wakeupperiod" inidefaultvalue="30"/>
       <arex:InfoProvider>
         <arex:debugLevel inisections="arex/info" initag="loglevel" inidefaultvalue="INFO"/>
