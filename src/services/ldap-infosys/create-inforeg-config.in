@@ -35,6 +35,7 @@ fi
 
 config_hide_all
 config_import_section common
+config_import_section cluster
 
 # These options need to come from the infosys-block, not from common
 unset CONFIG_logfile
@@ -91,6 +92,7 @@ echo >> $registrationconf
 (
     config_hide_all
     config_import_section common
+    config_import_section cluster
     config_import_section infosys
 
     # Cluster registration blocks
