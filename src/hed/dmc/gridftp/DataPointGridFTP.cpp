@@ -663,7 +663,7 @@ namespace Arc {
       char buf[100];
       calc_sum->print(buf,100);
       std::string csum(buf);
-      if (csum.substr(0, csum.find(':')) == DefaultCheckSum()) {
+      if (csum.find(':') != std::string::npos && csum.substr(0, csum.find(':')) == DefaultCheckSum()) {
         logger.msg(VERBOSE, "StopWriting: Calculated checksum %s", csum);
         if(additional_checks) {
           // list checksum and compare
@@ -692,7 +692,10 @@ namespace Arc {
           }
           else {
             logger.msg(VERBOSE, "list_files_ftp: checksum %s", cksum);
-            if (csum.substr(csum.find(':')+1) == std::string(cksum)) {
+            if (csum.substr(csum.find(':')+1).length() != std::string(cksum).length()) {
+              // Some buggy Globus servers return a different type of checksum to the one requested
+              logger.msg(WARNING, "Checksum type returned by server is different to requested type, cannot compare");
+            } else if (csum.substr(csum.find(':')+1) == std::string(cksum)) {
               logger.msg(INFO, "Calculated checksum %s matches checksum reported by server", csum);
               SetCheckSum(csum);
             } else {
