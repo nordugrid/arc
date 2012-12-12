@@ -39,6 +39,8 @@ attributes depending on how the mapping should be done.
     profile, based on the presence of a specific section or the presence of
     a specific tag (optional) with a specific value (optional) in a specific 
     section. The format of this attribute is: '<section>[#<tag>[=<value>]]'.
+ * initokendisables: Opposite of initokenenables. The element is enabled unless
+    the specific tag is present. The format is the same as initokenenables.
 -->
 <ArcConfig
     xmlns="http://www.nordugrid.org/schemas/loader/2009/08"
@@ -77,7 +79,7 @@ attributes depending on how the mapping should be done.
   </ModuleManager>
   <Plugins>
     <Name>mcctcp</Name>
-    <Name>mcctls</Name>
+    <Name initokendisables="common#secure=no">mcctls</Name>
     <Name>mcchttp</Name>
     <Name>mccsoap</Name>
     <Name>arcshc</Name>
@@ -89,14 +91,15 @@ attributes depending on how the mapping should be done.
   </Plugins>
   <Chain>
     <Component name="tcp.service" id="tcp">
-      <next id="tls"/>
+      <next initokendisables="common#secure=no" id="tls"/>
+      <next initokenenables="common#secure=no" id="http"/>
       <tcp:Listen>
         <tcp:Interface inisections="common" initag="interface" inidefaultvalue="localhost"/>
         <tcp:Port inisections="common" initag="port" inidefaultvalue="443"/>
         <tcp:Version inisections="common" initag="ipversion" inidefaultvalue="4"/>
       </tcp:Listen>
     </Component>
-    <Component name="tls.service" id="tls">
+    <Component initokendisables="common#secure=no" name="tls.service" id="tls">
       <next id="http"/>
       <SecHandler name="identity.map" id="map" event="incoming" initokenenables="common#identitymap">
         <!-- identitymap=path in [common] enables mapping of user DN to local username -->
