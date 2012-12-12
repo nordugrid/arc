@@ -92,7 +92,7 @@ class ARCClientTestCase(ExpectationalTestCase):
                         job_description = "non-empty"):
         job = arc.Job()
         job.JobID = job_id
-        job.JobManagementInterfaceName = "org.nordugrid.test"
+        job.ServiceInformationInterfaceName = job.JobStatusInterfaceName = job.JobManagementInterfaceName = "org.nordugrid.test"
         job.ServiceInformationURL = job.JobStatusURL = job.JobManagementURL = arc.URL(cluster)
         if state_text is None:
             job.State = arc.JobStateTEST(state)
