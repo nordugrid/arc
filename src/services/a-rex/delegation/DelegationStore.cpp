@@ -8,6 +8,7 @@
 #include <utime.h>
 #include <time.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <arc/FileUtils.h>
 
@@ -63,14 +64,18 @@ namespace ARex {
   }
 
   Arc::DelegationConsumerSOAP* DelegationStore::AddConsumer(std::string& id,const std::string& client) {
+std::cerr<<"TMPPDEBUG: A-REX: AddConsumer: id = "<<id<<", client = "<<client<<std::endl;
     std::string path = fstore_->Add(id,client,std::list<std::string>());
     if(path.empty()) return NULL;
     Arc::DelegationConsumerSOAP* cs = new Arc::DelegationConsumerSOAP();
     std::string key;
     cs->Backup(key);
+std::cerr<<"TMPPDEBUG: A-REX: AddConsumer: key = "<<key<<std::endl;
     if(!key.empty()) {
       make_dir_for_file(path);
+std::cerr<<"TMPPDEBUG: A-REX: AddConsumer: path = "<<path<<std::endl;
       if(!Arc::FileCreate(path,key,0,0,S_IRUSR|S_IWUSR)) {
+std::cerr<<"TMPPDEBUG: A-REX: AddConsumer: FileCreate failed: "<<errno<<std::endl;
         fstore_->Remove(id,client);
         delete cs; cs = NULL;
         failure_ = "Local error - failed to store credentials";
@@ -79,6 +84,7 @@ namespace ARex {
     };
     Glib::Mutex::Lock lock(lock_);
     acquired_.insert(std::pair<Arc::DelegationConsumerSOAP*,Consumer>(cs,Consumer(id,client,path)));
+std::cerr<<"TMPPDEBUG: A-REX: AddConsumer: success"<<std::endl;
     return cs;
   }
 
