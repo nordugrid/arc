@@ -30,7 +30,7 @@
 
 2012-11-14  Gabor Szigeti <szigeti@niif.hu>
 
-  * [ldap-monitor] Add new cloumn to the Queue table by GLUE2 rendering.
+  * [ldap-monitor] Add new column to the Queue table by GLUE2 rendering.
 
 2012-11-14  Florido Paganelli   <florido.paganelli@hep.lu.se>
 
@@ -62,7 +62,8 @@
 
 2012-11-13  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
 
-  * EMI ES interface implemented in ARC client tools.
+  * EMI ES interface implemented in ARC client tools. See documentation
+    and man pages for new interface names.
 
 2012-11-10  Gabor Szigeti <szigeti@niif.hu>
 
@@ -71,6 +72,7 @@
 2012-11-09  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
 
   * Communication with ARGUS PDP is implemented and integerated into A-REX.
+    See documentation for new configuration options.
 
 2012-11-08  Gabor Szigeti <szigeti@niif.hu>
 
@@ -78,18 +80,20 @@
 
 2012-11-08  Gabor Szigeti <szigeti@niif.hu>
 
-  * Send CAR 1.1 accounting message to the APEL destionation. 
-
+  * Send CAR 1.1 accounting message to the APEL destination. See documentation
+    for configuration options.
 
 2012-11-08  David Cameron  <d.g.cameron@fys.uio.no>
 
   * Remove support for per-user control directories in A-REX. Add support
     for substitutions in configuration based on dynamically mapped local user.
+    See documentation for changes in configuration options.
 
 2012-11-07  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
 
   * Administrator utility gm-jobs is extended to provide information about delegated
-    tokens and filter jobs by identifier.
+    tokens and filter jobs by identifier. See documentation and man pages for new
+    options.
 
 2012-11-03  Martin Skou Andersen <skou@nbi.dk>
 
@@ -138,8 +142,8 @@
 2012-10-08 Weizhong Qiang <weizhong.qiang@fys.uio.no>
 
   * Security plugin (Argus PDP Client) supports the contact with Argus PDP
-    server to achieve access control decision. Argus library dependency is 
-    not required for this plugin. 
+    server to achieve access control decision. Argus library dependency is
+    not required for this plugin.
 
 2012-10-05  David Cameron  <d.g.cameron@fys.uio.no>
 
@@ -179,7 +183,8 @@
 
 2012-09-11  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
 
-  * Administrator utility gm-jobs is extended to cancel and clean jobs.
+  * Administrator utility gm-jobs is extended to cancel and clean jobs. See
+    documentation and man pages for new options.
 
 2012-09-08  Weizhong Qiang <weizhong.qiang@fys.uio.no>
 
@@ -216,7 +221,8 @@
 
 2012-08-07  David Cameron  <d.g.cameron@fys.uio.no>
 
-  * Add ACIX (ARC Cache Index) to distribution (RHEL>=5, Fedora>=7, Debian>=4)
+  * Add ACIX (ARC Cache Index) to distribution (RHEL>=5, Fedora>=7, Debian>=4).
+    See documentation for configuration options.
 
 2012-08-02  Martin Skou Andersen <skou@nbi.dk>
 
@@ -247,7 +253,8 @@
 
 2012-06-20  David Cameron  <d.g.cameron@fys.uio.no>
 
-  * Add arcrename command and DataPoint::Rename() 
+  * Add arcrename command and DataPoint::Rename()  See documentation and
+    man pages for functionality and possible options.
 
 2012-06-08  David Cameron  <d.g.cameron@fys.uio.no>
 
@@ -264,7 +271,8 @@
 
 2012-06-01 Weizhong Qiang <weizhong.qiang@fys.uio.no>
 
-  * arcproxy can support the contacting to voms server with RESTful interface
+  * arcproxy can support the contacting to voms server with RESTful interface.
+    See documentation and man pages for options.
 
 2012-06-01  Anders Wäänänen  <waananen@nbi.dk>
 
@@ -272,11 +280,13 @@
 
 2012-05-25  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
 
-  * Watchdog implemented for arched container and used in A-REX.
+  * Watchdog implemented for arched container and used in A-REX. See
+    documentation for configuration options.
 
 2012-04-23  Andrii Salnikov  <manf@grid.org.ua>
 
-  * nordugridmap updated to version 2.0
+  * nordugridmap updated to version 2.0. See documentation for configuration
+    options.
 
 2012-04-02  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
 
@@ -285,4 +295,5 @@
 2012-03-30  Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
 
   * Communication with ARGUS PEP is implemented and integerated into A-REX.
+    See documentation for configuration options.
 
