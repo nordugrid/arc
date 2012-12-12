@@ -2383,11 +2383,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/slurm/submit-SLURM-job
                  src/services/a-rex/lrms/slurm/scan-SLURM-job
                  src/services/a-rex/lrms/slurm/cancel-SLURM-job
-                 src/services/a-rex/lrms/gridfactory/Makefile
-                 src/services/a-rex/lrms/gridfactory/cancel-gridfactory-job
-                 src/services/a-rex/lrms/gridfactory/configure-gridfactory-env.sh
-                 src/services/a-rex/lrms/gridfactory/scan-gridfactory-job
-                 src/services/a-rex/lrms/gridfactory/submit-gridfactory-job
                  src/services/a-rex/lrms/dgbridge/Makefile
                  src/services/a-rex/lrms/dgbridge/submit-DGBridge-job
                  src/services/a-rex/lrms/dgbridge/scan-DGBridge-job

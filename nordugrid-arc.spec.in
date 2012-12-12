@@ -1232,7 +1232,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/PBS.pm
 %{_datadir}/%{pkgdir}/Condor.pm
 %{_datadir}/%{pkgdir}/SLURM.pm
-%{_datadir}/%{pkgdir}/GridFactory.pm
 %{_datadir}/%{pkgdir}/DGBridge.pm
 %{_datadir}/%{pkgdir}/XmlPrinter.pm
 %{_datadir}/%{pkgdir}/InfosysHelper.pm
