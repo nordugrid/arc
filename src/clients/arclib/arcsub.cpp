@@ -33,6 +33,7 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
 int RUNMAIN(arcsub)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
+std::cerr<<"++++ mainstart"<<std::endl;
 
   Arc::LogStream logcerr(std::cerr);
   logcerr.setFormat(Arc::ShortFormat);
@@ -237,9 +238,11 @@ private:
 
 
 static bool match_submission_interface(const Arc::ExecutionTarget& target, const std::list<std::string>& requestedSubmissionInterfaces) {
+std::cerr<<"+++++ match_submission_interface: enter: "<<target.ComputingEndpoint->InterfaceName<<std::endl;
   if(requestedSubmissionInterfaces.empty()) return true;
   for(std::list<std::string>::const_iterator iname = requestedSubmissionInterfaces.begin();
                 iname != requestedSubmissionInterfaces.end();++iname) {
+std::cerr<<"+++++ match_submission_interface: "<<*iname<<std::endl;
     if(*iname == target.ComputingEndpoint->InterfaceName) return true;
   }
   return false;
@@ -247,6 +250,7 @@ static bool match_submission_interface(const Arc::ExecutionTarget& target, const
 
 static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> requestedSubmissionInterfaces, const std::string& jobidfile, bool direct_submission) {
   int retval = 0;
+std::cerr<<"++++ submit"<<std::endl;
   
   HandleSubmittedJobs hsj(jobidfile, usercfg.JobListFile());
   Arc::Submitter s(usercfg);
@@ -254,9 +258,11 @@ static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescri
 
   Arc::SubmissionStatus status;
   if (!direct_submission) {
+std::cerr<<"++++ brokered submit"<<std::endl;
     status = s.BrokeredSubmit(services, jobdescriptionlist, requestedSubmissionInterfaces);
   }
   else {
+std::cerr<<"++++ direct submit"<<std::endl;
     status = s.Submit(services, jobdescriptionlist);
   }
   hsj.write();
@@ -327,17 +333,20 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
     return 1;
   }
 
+std::cerr<<"+++++ alternative enter"<<std::endl;
   Arc::ExecutionTargetSorter ets(broker, CEs);
   std::list<Arc::JobDescription>::const_iterator itJAlt; // Iterator to use for alternative job descriptions.
   for (std::list<Arc::JobDescription>::const_iterator itJ = jobdescriptionlist.begin();
        itJ != jobdescriptionlist.end(); ++itJ) {
     const Arc::JobDescription* currentJobDesc = &*itJ;
     bool descriptionDumped = false;
+std::cerr<<"+++++ alternative"<<std::endl;
     do {
       Arc::JobDescription jobdescdump(*currentJobDesc);
       ets.set(jobdescdump);
 
       for (ets.reset(); !ets.endOfList(); ets.next()) {
+std::cerr<<"+++++ alternative 2"<<std::endl;
         if(!match_submission_interface(*ets,requestedSubmissionInterfaces)) continue;
         if (!jobdescdump.Prepare(*ets)) {
           logger.msg(Arc::INFO, "Unable to prepare job description according to needs of the target resource (%s).", ets->ComputingEndpoint->URLString); 

@@ -203,6 +203,7 @@ ClientOptions::ClientOptions(Client_t c,
     usejobname(false),
     forcedownload(false),
     list_configured_services(false),
+    direct_submission(false),
     testjobid(-1),
     runtime(5),
     timeout(-1)
