@@ -35,7 +35,8 @@ namespace Arc {
     for (std::list<ComputingServiceType>::const_iterator it = csr.begin(); it != csr.end(); ++it) {
       for (std::map<int, ComputingEndpointType>::const_iterator ite = it->ComputingEndpoint.begin(); ite != it->ComputingEndpoint.end(); ite++) {
         Endpoint e(*(ite->second));
-        if (e.InterfaceName != "org.nordugrid.ldapglue2" &&
+        if (e.HasCapability(Endpoint::JOBLIST) &&
+            e.InterfaceName != "org.nordugrid.ldapglue2" &&
           // the wsrfglue2 job list retriever is not prepared to coexist with the others, so rather skip it
             e.InterfaceName != "org.nordugrid.wsrfglue2") jlr.addEndpoint(e);
       }
