@@ -54,6 +54,7 @@ namespace ARex {
           fstore_ = new FileRecord(base,FileRecord::full_recovery);
           if(!*fstore_) {
             // Failure
+            failure_ = "Failed to re-create database. " + fstore_->Error();
           } else {
             // Database recreated.
           };
@@ -66,7 +67,10 @@ namespace ARex {
   Arc::DelegationConsumerSOAP* DelegationStore::AddConsumer(std::string& id,const std::string& client) {
 std::cerr<<"TMPPDEBUG: A-REX: AddConsumer: id = "<<id<<", client = "<<client<<std::endl;
     std::string path = fstore_->Add(id,client,std::list<std::string>());
-    if(path.empty()) return NULL;
+    if(path.empty()) {
+      failure_ = "Local error - failed to create slot for delegation. "+fstore_->Error();
+      return NULL;
+    }
     Arc::DelegationConsumerSOAP* cs = new Arc::DelegationConsumerSOAP();
     std::string key;
     cs->Backup(key);
@@ -125,7 +129,7 @@ std::cerr<<"TMPPDEBUG: A-REX: AddConsumer: success"<<std::endl;
     std::list<std::string> meta;
     std::string path = fstore_->Find(id,client,meta);
     if(path.empty()) {
-      failure_ = "Identifier not found for client";
+      failure_ = "Identifier not found for client. "+fstore_->Error();
       return NULL;
     };
     std::string content;

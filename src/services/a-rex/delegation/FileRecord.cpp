@@ -205,7 +205,7 @@ namespace ARex {
     make_record(uid,(id.empty())?uid:id,owner,meta,key,data);
     void* pkey = key.get_data();
     void* pdata = data.get_data();
-    if(db_rec_.put(NULL,&key,&data,DB_NOOVERWRITE) != 0) {
+    if(!dberr("Failed to add record to database",db_rec_.put(NULL,&key,&data,DB_NOOVERWRITE))) {
       ::free(pkey); ::free(pdata);
       return "";
     };
@@ -222,7 +222,7 @@ namespace ARex {
     Dbt data;
     make_key(id,owner,key);
     void* pkey = key.get_data();
-    if(!dberr("find:get",db_rec_.get(NULL,&key,&data,0))) {
+    if(!dberr("Failed to retrieve record from database",db_rec_.get(NULL,&key,&data,0))) {
       ::free(pkey);
       return "";
     };
@@ -241,7 +241,7 @@ namespace ARex {
     Dbt data;
     make_key(id,owner,key);
     void* pkey = key.get_data();
-    if(!dberr("modify:get",db_rec_.get(NULL,&key,&data,0))) {
+    if(!dberr("Failed to retrieve record from database",db_rec_.get(NULL,&key,&data,0))) {
       ::free(pkey);
       return false;
     };
@@ -252,7 +252,7 @@ namespace ARex {
     parse_record(uid,id_tmp,owner_tmp,meta_tmp,key,data);
     ::free(pkey);
     make_record(uid,id,owner,meta,key,data);
-    if(!dberr("modify.put",db_rec_.put(NULL,&key,&data,0))) {
+    if(!dberr("Failed to store record to database",db_rec_.put(NULL,&key,&data,0))) {
       ::free(key.get_data());
       ::free(data.get_data());
       return false;
@@ -270,11 +270,12 @@ namespace ARex {
     Dbt data;
     make_key(id,owner,key);
     void* pkey = key.get_data();
-    if(dberr("remove:get1",db_locked_.get(NULL,&key,&data,0))) {
+    if(dberr("",db_locked_.get(NULL,&key,&data,0))) {
       ::free(pkey);
+      error_str_ = "Record has active locks";
       return false; // have locks
     };
-    if(!dberr("remove:get2",db_rec_.get(NULL,&key,&data,0))) {
+    if(!dberr("Failed to retrieve record from database",db_rec_.get(NULL,&key,&data,0))) {
       ::free(pkey);
       return false; // No such record?
     };
@@ -286,7 +287,7 @@ namespace ARex {
     if(!uid.empty()) {
       ::unlink(uid_to_path(uid).c_str()); // TODO: handle error
     };
-    if(db_rec_.del(NULL,&key,0) != 0) {
+    if(!dberr("Failed to delete record from database",db_rec_.del(NULL,&key,0))) {
       // TODO: handle error
       ::free(pkey);
       return false;
