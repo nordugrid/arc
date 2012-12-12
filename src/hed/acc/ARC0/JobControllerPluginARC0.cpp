@@ -57,6 +57,10 @@ namespace Arc {
         (*it)->JobStatusURL = (*it)->ServiceInformationURL;
       }
       URL infoEndpoint = (*it)->JobStatusURL;
+      if (!infoEndpoint) {
+        logger.msg(VERBOSE, "Unable to query job information (%s), invalid URL provided (%s)", (*it)->JobID, infoEndpoint.fullstr());
+        continue;
+      }
       jobsbyhost[infoEndpoint.ConnectionURL() +
                  infoEndpoint.Path()].push_back(*it);
     }

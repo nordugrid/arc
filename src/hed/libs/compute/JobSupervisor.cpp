@@ -47,6 +47,16 @@ namespace Arc {
       return false;
     }
 
+    if (job.JobStatusInterfaceName.empty()) {
+      logger.msg(VERBOSE, "Ignoring job (%s), the status interface name is unknown", job.JobID);
+      return false;
+    }
+
+    if (!job.JobStatusURL) {
+      logger.msg(VERBOSE, "Ignoring job (%s), the job status URL is unknown", job.JobID);
+      return false;
+    }
+
     std::map<std::string, JobControllerPlugin*>::iterator currentJC = loadedJCs.find(job.JobManagementInterfaceName);
     if (currentJC == loadedJCs.end()) {
       JobControllerPlugin *jc = Job::loader.loadByInterfaceName(job.JobManagementInterfaceName, usercfg);
