@@ -22,7 +22,7 @@ class ExpectationalTestCase(unittest.TestCase):
             self.testcase.assertEqual(len(self.actual), 0, "%s was expected to be empty" % (self.actual,))
 
         def not_to_be_empty(self):
-            self.testcase.assertNotEqual(len(self.actual), 0, "%s was expected to be empty" % (self.actual,))
+            self.testcase.assertNotEqual(len(self.actual), 0, "%s was expected not to be empty" % (self.actual,))
 
         def to_be_an_instance_of(self, class_):
             self.testcase.assertTrue(isinstance(self.actual, class_), "%s was expected to be an instance of %s" % (self.actual, class_))
