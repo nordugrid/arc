@@ -19,44 +19,71 @@ namespace Arc {
   Profile::~Profile() {}
 
   /*
-   * This function parses the initokenenables attribute and returns a boolean
-   * acoording to the following.
+   * This function parses the initokenenables and initokendisables attributes and
+   * returns a boolean acoording to the following.
    * With the initokenenables attribute elements in a profile can be
    * enabled/disabled from INI either by specifying/not specifying a given
-   * section or a INI tag/value pair in a given section.
+   * section or a INI tag/value pair in a given section. With initokendisables
+   * the opposite applies, i.e. an element is enabled unless the ini tag/value
+   * is present.
    * The format is: <section>[#<tag>[=<value>]]
    * So either a section, or a section/tag or a section/tag/value can be specified.
-   * If specified set is found in IniConfig then true is returned, otherwise false.
-   * Also section and tag (if requested) must be non-empty otherwise false is returned.
+   * With initokenenables, if the specified set is found in IniConfig then true
+   * is returned, otherwise false. Also section and tag (if requested) must be
+   * non-empty otherwise false is returned. The opposite applies to initokendisables.
    */
   static bool isenabled(XMLNode node, IniConfig ini) {
-    if (!node.Attribute("initokenenables")) {
-      return true;
-    }
-    const std::string initokenenables = node.Attribute("initokenenables");
     std::string::size_type pos;
     std::string section = "", tag = "", value = "";
-    pos = initokenenables.find('#');
-    section = initokenenables.substr(0, pos);
+    if (node.Attribute("initokenenables")) {
+      const std::string initokenenables = node.Attribute("initokenenables");
+      pos = initokenenables.find('#');
+      section = initokenenables.substr(0, pos);
 
-    if (section.empty()) {
-      return false;
-    }
-
-    if (pos != std::string::npos) {
-      tag = initokenenables.substr(pos+1);
-      pos = tag.find('=');
-      if (pos != std::string::npos) {
-        value = tag.substr(pos+1);
-        tag.resize(pos);
-        return ((!tag.empty()) &&
-                (bool)ini[section][tag] && 
-                ((std::string)ini[section][tag] == value));
+      if (section.empty()) {
+        return false;
       }
-      return ((!tag.empty()) && 
-              (bool)ini[section][tag]);
+
+      if (pos != std::string::npos) {
+        tag = initokenenables.substr(pos+1);
+        pos = tag.find('=');
+        if (pos != std::string::npos) {
+          value = tag.substr(pos+1);
+          tag.resize(pos);
+          return ((!tag.empty()) &&
+                  (bool)ini[section][tag] &&
+                  ((std::string)ini[section][tag] == value));
+        }
+        return ((!tag.empty()) &&
+                (bool)ini[section][tag]);
+      }
+      return (bool)ini[section];
     }
-    return (bool)ini[section];
+    if (node.Attribute("initokendisables")) {
+      const std::string initokendisables = node.Attribute("initokendisables");
+      pos = initokendisables.find('#');
+      section = initokendisables.substr(0, pos);
+
+      if (section.empty()) {
+        return true;
+      }
+
+      if (pos != std::string::npos) {
+        tag = initokendisables.substr(pos+1);
+        pos = tag.find('=');
+        if (pos != std::string::npos) {
+          value = tag.substr(pos+1);
+          tag.resize(pos);
+          return !((!tag.empty()) &&
+                  (bool)ini[section][tag] &&
+                  ((std::string)ini[section][tag] == value));
+        }
+        return !((!tag.empty()) &&
+                (bool)ini[section][tag]);
+      }
+      return !(bool)ini[section];
+    }
+    return true;
   }
 
   /* From the space separated list of sections 'sections' this function sets the
@@ -367,6 +394,9 @@ namespace Arc {
     }
     if (n.Attribute("initokenenables")) {
       n.Attribute("initokenenables").Destroy();
+    }
+    if (n.Attribute("initokendisables")) {
+      n.Attribute("initokendisables").Destroy();
     }
 
     XMLNode sections = n.Attribute("inisections");
