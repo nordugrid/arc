@@ -187,6 +187,16 @@ prepare() {
         log_failure_msg "Data delivery service not defined in configuration"
         exit 1
     fi
+    
+    # check that if service is insecure no allowed_dns are defined
+    SECURE=`readconfigvar "$ARC_CONFIG" common secure`
+    ALLOWEDDN=`readconfigvar "$ARC_CONFIG" datadelivery-service allowed_dn`
+    if [ "$SECURE" = "no" ]; then
+        if [ "x$ALLOWEDDN" != "x" ]; then
+            log_failure_msg "allowed_dn cannot be used with secure=no"
+            exit 1
+        fi
+    fi
 
     # Assuming ini style config
     CMD="$CMD -i '$ARC_CONFIG' -p '$PID_FILE' -l '$LOG_FILE'"
