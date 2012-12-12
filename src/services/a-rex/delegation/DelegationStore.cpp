@@ -73,6 +73,7 @@ namespace ARex {
       if(!Arc::FileCreate(path,key,0,0,S_IRUSR|S_IWUSR)) {
         fstore_->Remove(id,client);
         delete cs; cs = NULL;
+        failure_ = "Local error - failed to store credentials";
         return NULL;
       };
     };
@@ -117,9 +118,15 @@ namespace ARex {
   Arc::DelegationConsumerSOAP* DelegationStore::FindConsumer(const std::string& id,const std::string& client) {
     std::list<std::string> meta;
     std::string path = fstore_->Find(id,client,meta);
-    if(path.empty()) return NULL;
+    if(path.empty()) {
+      failure_ = "Identifier not found for client";
+      return NULL;
+    };
     std::string content;
-    if(!Arc::FileRead(path,content)) return NULL;
+    if(!Arc::FileRead(path,content)) {
+      failure_ = "Local error - failed to read credentials";
+      return NULL;
+    };
     Arc::DelegationConsumerSOAP* cs = new Arc::DelegationConsumerSOAP();
     if(!content.empty()) {
       std::string key = extract_key(content);
@@ -136,10 +143,16 @@ namespace ARex {
     if(!c) return false;
     Glib::Mutex::Lock lock(lock_);
     std::map<Arc::DelegationConsumerSOAP*,Consumer>::iterator i = acquired_.find(c);
-    if(i == acquired_.end()) return false;
+    if(i == acquired_.end()) {
+      failure_ = "Delegation not found";
+      return false;
+    };
     if(!credentials.empty()) {
       make_dir_for_file(i->second.path);
-      if(!Arc::FileCreate(i->second.path,credentials,0,0,S_IRUSR|S_IWUSR)) return false;
+      if(!Arc::FileCreate(i->second.path,credentials,0,0,S_IRUSR|S_IWUSR)) {
+        failure_ = "Local error - failed to create storage for delegation";
+        return false;
+      };
     };
     return true;
   }
@@ -148,7 +161,7 @@ namespace ARex {
     if(!c) return false;
     Glib::Mutex::Lock lock(lock_);
     std::map<Arc::DelegationConsumerSOAP*,Consumer>::iterator i = acquired_.find(c);
-    if(i == acquired_.end()) return false;
+    if(i == acquired_.end()) { failure_ = "Delegation not found"; return false; };
     Arc::FileRead(i->second.path,credentials);
     return true;
   }
