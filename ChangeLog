@@ -1,3 +1,10 @@
+2012-12-12 Christian Søttrup <soettrup@nbi.dk>
+ 
+  * Removed GridFactory back-end
+  * Added GRAMI support for EMI-ES parallel specification
+  * Added parallel support in the LoadLeveler back-end
+  * Fixed bug in DGBridge back-end
+
 2012-12-12  Dmytro Karpenko  <dmytrok@fys.uio.no>
   
   * Added support for GLUE2 in SLURM infoprovider (fixes bug 2904)
