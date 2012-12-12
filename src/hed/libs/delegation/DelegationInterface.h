@@ -162,6 +162,7 @@ class DelegationProviderSOAP: public DelegationProvider {
   const std::string& ID(void) { return id_;};
 };
 
+// Implementaion of the container for delegation credentials
 /** Manages multiple delegated credentials.
    Delegation consumers are created automatically with DelegateCredentialsInit method
   up to max_size_ and assigned unique identifier. It's methods are similar to those
@@ -169,8 +170,9 @@ class DelegationProviderSOAP: public DelegationProvider {
   execution to one of managed DelegationConsumerSOAP instances. */
 class DelegationContainerSOAP {
  protected:
-  // Implementaion of the box for delegation credentials
   Glib::Mutex lock_;
+  /// Stores description of last error. Derived classes should store their errors here.
+  std::string failure_;
   class Consumer;
   typedef std::map<std::string,Consumer> ConsumerMap;
   typedef ConsumerMap::iterator ConsumerIterator;
@@ -225,7 +227,11 @@ class DelegationContainerSOAP {
 
   bool Process(const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client = "");
   bool Process(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client = "");
+  /** Match namespace of SOAP request against supported interfaces.
+     Returns true if namespace is supported. */
   bool MatchNamespace(const SOAPEnvelope& in);
+  /** Returns textual description of last failure. */
+  std::string GetFailure(void);
 };
 
 } // namespace Arc
