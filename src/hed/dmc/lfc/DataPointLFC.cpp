@@ -102,8 +102,6 @@ using namespace Arc;
 
   DataPointLFC::DataPointLFC(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
     : DataPointIndex(url, usercfg, parg),
-      guid(""),
-      path_for_guid(url.Path()),
       error_no(0) {
     /*
     // set retry env variables (don't overwrite if set already)
@@ -925,19 +923,17 @@ using namespace Arc;
 
   std::string DataPointLFC::ResolveGUIDToLFN() {
 
-    // check if guid is already defined
-    if (!guid.empty()) {
-      if (path_for_guid.empty()) return "/";
-      return path_for_guid;
-    }
+    // check if path is already defined
+    if (!path_for_guid.empty()) return path_for_guid;
 
     // check for guid in the attributes
-    if (url.MetaDataOption("guid").empty()) {
-      if (url.Path().empty()) return "/";
-      return url.Path();
+    if (guid.empty()) {
+      if (url.MetaDataOption("guid").empty()) {
+        if (url.Path().empty()) return "/";
+        return url.Path();
+      }
+      guid = url.MetaDataOption("guid");
     }
-
-    guid = url.MetaDataOption("guid");
 
     lfc_list listp;
     struct lfc_linkinfo *info = NULL;
@@ -950,7 +946,6 @@ using namespace Arc;
       logger.msg(ERROR, "Error finding LFN from guid %s: %s",
                  guid, sstrerror(serrno));
       error_no = serrno;
-      guid.clear();
       return "";
     }
 
