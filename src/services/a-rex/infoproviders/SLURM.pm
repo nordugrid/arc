@@ -9,7 +9,8 @@ use POSIX qw(ceil floor);
 @EXPORT_OK = ('cluster_info',
               'queue_info',
               'jobs_info',
-              'users_info');
+              'users_info',
+              'nodes_info');
 
 use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
 use strict;
@@ -149,21 +150,29 @@ sub slurm_read_nodes($){
     my ($path) = ($$config{slurm_bin_path} or $$config{SLURM_bin_path} or "/usr/bin");
     # get SLURM nodes, store dictionary in scont_nodes
     my %scont_nodes;
-    open (SCPIPE,"$path/sinfo -e -a -h -o \"NodeList=%N CPUs=%c RealMemory=%m\"|");
+    open (SCPIPE,"$path/scontrol show node --oneliner|");
     while(<SCPIPE>){
 	my %record;
 	my $string = $_;
 
-	$record{NodeList} = get_variable("NodeList",$string);
-	$record{CPUs} = get_variable("CPUs",$string);
+	my $node = get_variable("NodeName",$string);
+	# We have to keep CPUs key name for not to break other
+	# functions that use this key
+	$record{CPUs} = get_variable("CPUTot",$string);
 	$record{RealMemory} = get_variable("RealMemory",$string);
 
-	foreach my $node (split(",", slurm_expand_nodes($record{NodeList}))) {
-	    my %tmp;
-	    $tmp{CPUs} = $record{CPUs};
-	    $tmp{RealMemory} = slurm_parse_number($record{RealMemory});
-	    $scont_nodes{$node}= \%tmp;
-	}
+	my $StateName = get_variable("State",$string);
+	# Node status can be followed by different symbols
+	# according to it being unresponsive, powersaving, etc.
+	# Get rid of them
+	$StateName =~ s/[\*~#\+]$//;
+	$record{State} = $StateName;
+
+	$record{Sockets} = get_variable("Sockets",$string);
+	$record{SysName} = get_variable("OS",$string);
+	$record{Arch} = get_variable("Arch",$string);
+
+	$scont_nodes{$node} = \%record;
 
     }
     close(SCPIPE);
@@ -531,6 +540,33 @@ sub users_info($$@) {
         $lrms_users{$u}{queuelength} = 0;
     }
     return %lrms_users;
+}
+
+sub nodes_info($) {
+
+    my $config = shift;
+    my %hoh_slurmnodes = slurm_read_nodes($config);
+
+    my %nodes;
+    for my $host (keys %hoh_slurmnodes) {
+        my ($isfree, $isavailable) = (0,0);
+        $isavailable = 1 unless $hoh_slurmnodes{$host}{State} =~ /DOWN|DRAIN|FAIL|MAINT|UNK/;
+        $isfree = 1 if $hoh_slurmnodes{$host}{State} =~ /IDLE|MIXED/;
+        $nodes{$host} = {isfree => $isfree, isavailable => $isavailable};
+
+        my $np = $hoh_slurmnodes{$host}{CPUs};
+        my $nsock = $hoh_slurmnodes{$host}{Sockets};
+        my $rmem = $hoh_slurmnodes{$host}{RealMemory};
+        $nodes{$host}{lcpus} = int $np if $np;
+        $nodes{$host}{slots} = int $np if $np;
+        $nodes{$host}{pmem} = int $rmem if $rmem;
+        $nodes{$host}{pcpus} = int $nsock if $nsock;
+
+        $nodes{$host}{sysname} = $hoh_slurmnodes{$host}{SysName};
+        $nodes{$host}{machine} = $hoh_slurmnodes{$host}{Arch};
+
+    }
+    return %nodes;
 }
 
 1;
