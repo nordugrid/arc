@@ -1268,7 +1268,6 @@ class DelegationContainerSOAP::Consumer {
   XMLNode r = SOAPFault((out),SOAPFault::Receiver,"").Detail(true); \
   XMLNode ex = r.NewChild("deleg:DelegationException"); \
   ex.Namespaces(ns); ex.NewChild("msg") = (failure_); \
-std::cerr<<"TMPPDEBUG: DELEG: EMIDS: Fault at "<<__LINE__<<std::endl; \
 }
 
 // InternalServiceDelegationFault
@@ -1788,7 +1787,6 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
   */
   } else if(op_ns == EMIDS_NAMESPACE) {
     // EMI GDS == gLite GDS
-std::cerr<<"TMPPDEBUG: DELEG: EMIDS: op = "<<op_name<<std::endl;
     NS ns("deleg",EMIDS_NAMESPACE);
     if(op_name == "getVersion") {
       // getVersion
@@ -1862,7 +1860,6 @@ std::cerr<<"TMPPDEBUG: DELEG: EMIDS: op = "<<op_name<<std::endl;
       std::string id;
       DelegationConsumerSOAP* c = AddConsumer(id,client);
       if(!c) {
-std::cerr<<"TMPPDEBUG: DELEG: EMIDS: AddConsumer failed: "<<failure_<<std::endl;
         EMIDSFAULT(out);
         return true;
       };
