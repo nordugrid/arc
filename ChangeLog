@@ -1,3 +1,8 @@
+2012-12-12  David Cameron  <d.g.cameron@fys.uio.no>
+
+  * Add ability to run DataDelivery service without the need for a host
+    certificate. See documentation for configuration details.
+
 2012-12-12 Christian Søttrup <soettrup@nbi.dk>
  
   * Removed GridFactory back-end
