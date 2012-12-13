@@ -1328,32 +1328,17 @@
 ## If giis_location is not set, ARC_LOCATION will be used instead.
 #giis_location="/usr/"
 
-
-### BDII specific
-## Nordugrid ARC works together with both BDII4 and BDII5.
-## BDII related variables, when using the nordugrid-packaged bdii, these
-## variables have sensible defaults and can be omitted. The only
-## variables that system administrators may want to change is
-## infosys_nordugrid and infosys_glue12. These two variables specify
-## what format the output should be in, default is
-## infosys_nordugrid=enable, infosys_glue12=disable. If infosys_glue12
-## is enabled, then resource_location, resource_latitude and
-## resource_longitude need to be set in the [infosys/glue12] block. These
-## variables do not have default values. The rest of the variables
-## defaults are showcased here.
-
-## The installation directory for the BDII. The gLite supplied BDII4 installs
-## into /opt/bdii. nordugrid supplied BDII4 installs into /usr. BDII5 installs
-## into /usr. If installed in /usr you do not need this variable.
-#bdii_location="/usr"
-
 ## These three variables decide which schema should be used for
 ## publishing data. They can all be enabled at the same time. Default is to
 ## enable nordugrid mds and disable glue.  
 ## Enables NorduGrid schema
 #infosys_nordugrid="enable"
 
-## Enables glue1.2/1.3 schema
+## Enable glue1.2/1.3 schema
+## If infosys_glue12 is enabled, then resource_location, resource_latitude and
+## resource_longitude need to be set in the [infosys/glue12] block. These
+## variables do not have default values. The rest of the variables
+## defaults are showcased here.
 #infosys_glue12="disable"
 
 ## Enables GLUE2 schema
@@ -1370,48 +1355,7 @@
 ## Refer to GLUE2 documentation for the meaning of these strings.
 #infosys_glue2_service_qualitylevel="production"
 
-
-## This variable disables/enables an ldap-database containing
-## information about the ldap database itself on "o=infosys"
-#infosys_debug="disable"
-
-## BDII4 will use these directories internally
-#bdii_tmp_dir="/var/tmp/bdii4"
-#bdii_var_dir="/var/run/bdii4"
-#bdii_log_dir="/var/log/arc/bdii4"
-
-## BDII5 uses these variables. Defaults are shown.
-## For values to be assigned to those variables,
-## consult BDII manual.
-#bdii_var_dir="/var/run/arc/bdii"
-#bdii_log_dir="/var/log/arc/bdii"
-#bdii_tmp_dir="/var/tmp/bdii"
-#bdii_update_pid_file="/var/run/arc/bdii-update.pid"
-#slapd_pid_file="$bdii_var_dir/db/slapd.pid"
-## set the following to DEBUG to check bdii errors in the logs
-## useful not to enable slapd logs
-#bdii_debug_level="ERROR"
-
-## If installed in gLite default location or somewhere else, set these variables
-## these are unnecessary if installed from nordugrid packages or if bdii5 is used.
-#bdii_cmd="/etc/init.d/bdii4"
-#bdii_update_cmd="/usr/sbin/bdii4-update"
-
-## BDII4 specific variables 
-#bdii_search_timeout=30
-#bdii_breathe_time=30
-#bdii_auto_update=no
-#bdii_auto_modify=no
-#bdii_modify_dn=no
-#bdii_is_cache=yes
-#bdii_update_url="http://"
-#bdii_update_ldif="http://"
-#bdii_update_conf="/var/run/nordugrid/bdii-update.conf"
-#bdii_conf="/var/run/nordugrid/bdii.conf"
-
-## Configure what ldap database backend should be used, default is:
-## bdb
-#bdii_database="bdb"
+### Slapd specific
 
 ## Configure where the slapd command is located, default is:
 ## /usr/sbin/slapd
@@ -1420,6 +1364,70 @@
 ## Configure where the slapadd command is located, default is:
 ## /usr/sbin/slapadd
 #slapadd="/usr/sbin/slapadd"
+
+
+### BDII specific
+## Starting from 11.05, Nordugrid ARC only supports BDII5.
+## These variables are usually automatically set by ARC, and
+## are here mostly for debug purposes and to tweak exotic
+## BDII5 installations. In general, a sysadmin should not set these.
+
+## set the following to DEBUG to check bdii errors in the logs
+## useful not to enable slapd logs
+#bdii_debug_level="ERROR"
+
+## The installation directory for the BDII.
+## Default is /usr
+#bdii_location="/usr"
+
+## This variable disables/enables an ldap-database containing
+## information about the ldap database itself on "o=infosys"
+## it is very useful for debugging. Default is enabled.
+#infosys_debug="disable"
+
+## BDII5 uses these variables. These might change depending on BDII version.
+## ARC sets them by inspecting distributed bdii configuration files.
+## DO NOT CHANGE UNLESS YOU KNOW WHAT YOU'RE DOING
+
+## Contains BDII pid files and slapd pid files
+#bdii_var_dir="/var/run/arc/bdii"
+
+## Contains infosys logs
+#bdii_log_dir="/var/log/arc/bdii"
+
+## Contains provider scripts
+#bdii_tmp_dir="/var/tmp/arc/bdii"
+
+## Contains slapd databases
+#bdii_lib_dir="/var/lib/arc/bdii"
+
+## Allows to change bdii-update and slapd filename and location
+#bdii_update_pid_file="/var/run/arc/bdii-update.pid"
+#slapd_pid_file="$bdii_var_dir/db/slapd.pid"
+
+## Configure what ldap database backend should be used, default is:
+## bdb
+#bdii_database="bdb"
+
+
+## The following options are for tweaking only. Usually one should not
+## configure them. They change the BDII configuration file generated
+## by ARC.
+## Please consult BDII manual for details.
+#bdii_archive_size
+#bdii_db_config
+#bdii_delete_delay
+#bdii_read_timeout
+#bdii_run_dir
+#bindmethod
+#cachettl
+#db_archive
+#db_checkpoint
+
+# giis_fifo
+#provider_timeout
+#slapd_cron_checkpoint
+#timeout
 
 ## LDAP parameters of the cluster.pl (old) infoprovider, use the defaults, 
 ## do NOT change them unless you know what you are doing
