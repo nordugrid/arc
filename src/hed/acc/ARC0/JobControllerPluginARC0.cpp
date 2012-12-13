@@ -80,151 +80,149 @@ namespace Arc {
           }
         }
         logger.msg(DEBUG, "Querying batch with %d jobs", batch.size());
-      URL infourl = batch.front()->JobStatusURL;
-
-      // merge filters
-      std::string filter = "(|";
-      for (std::list<Job*>::iterator it = batch.begin(); it != batch.end(); ++it) {
-        filter += (*it)->JobStatusURL.LDAPFilter();
-      }
-      filter += ")";
-
-      infourl.ChangeLDAPFilter(filter);
-
-      DataBuffer buffer;
-      DataHandle handler(infourl, usercfg);
-
-      if (!handler) {
-        logger.msg(INFO, "Can't create information handle - is the ARC LDAP DMC plugin available?");
-        return;
-      }
-
-      if (!handler->StartReading(buffer))
-        continue;
-
-      int handle;
-      unsigned int length;
-      unsigned long long int offset;
-      std::string result;
-
-      while (buffer.for_write() || !buffer.eof_read())
-        if (buffer.for_write(handle, length, offset, true)) {
-          result.append(buffer[handle], length);
-          buffer.is_written(handle);
+        URL infourl = batch.front()->JobStatusURL;
+  
+        // merge filters
+        std::string filter = "(|";
+        for (std::list<Job*>::iterator it = batch.begin(); it != batch.end(); ++it) {
+          filter += (*it)->JobStatusURL.LDAPFilter();
         }
-
-      if (!handler->StopReading())
-        continue;
-
-      XMLNode xmlresult(result);
-      XMLNodeList jobinfolist =
-        xmlresult.Path("o/Mds-Vo-name/nordugrid-cluster-name/nordugrid-queue-name/nordugrid-info-group-name/nordugrid-job-globalid");
-
-      for (std::list<Job*>::iterator jit = batch.begin();
-           jit != batch.end(); ++jit) {
-        XMLNodeList::iterator xit = jobinfolist.begin();
-        for (; xit != jobinfolist.end(); ++xit) {
-          if ((std::string)(*xit)["nordugrid-job-globalid"] == (*jit)->JobID) {
-            break;
+        filter += ")";
+  
+        infourl.ChangeLDAPFilter(filter);
+  
+        DataBuffer buffer;
+        DataHandle handler(infourl, usercfg);
+  
+        if (!handler) {
+          logger.msg(INFO, "Can't create information handle - is the ARC LDAP DMC plugin available?");
+          return;
+        }
+  
+        if (!handler->StartReading(buffer)) continue;
+  
+        int handle;
+        unsigned int length;
+        unsigned long long int offset;
+        std::string result;
+  
+        while (buffer.for_write() || !buffer.eof_read())
+          if (buffer.for_write(handle, length, offset, true)) {
+            result.append(buffer[handle], length);
+            buffer.is_written(handle);
           }
-        }
 
-        if (xit == jobinfolist.end()) {
-          logger.msg(WARNING, "Job information not found in the information system: %s", (*jit)->JobID);
-          if (Time() - (*jit)->LocalSubmissionTime < 90)
-            logger.msg(WARNING, "This job was very recently "
-                       "submitted and might not yet "
-                       "have reached the information system");
-          IDsNotProcessed.push_back((*jit)->JobID);
-          continue;
-        }
-
-        if ((*xit)["nordugrid-job-status"])
-          (*jit)->State = JobStateARC0((std::string)(*xit)["nordugrid-job-status"]);
-        if ((*xit)["nordugrid-job-globalowner"])
-          (*jit)->Owner = (std::string)(*xit)["nordugrid-job-globalowner"];
-        if ((*xit)["nordugrid-job-execqueue"])
-          (*jit)->Queue = (std::string)(*xit)["nordugrid-job-execqueue"];
-        if ((*xit)["nordugrid-job-submissionui"])
-          (*jit)->SubmissionHost =
-            (std::string)(*xit)["nordugrid-job-submissionui"];
-        if ((*xit)["nordugrid-job-submissiontime"])
-          (*jit)->SubmissionTime =
-            (std::string)(*xit)["nordugrid-job-submissiontime"];
-        if ((*xit)["nordugrid-job-sessiondirerasetime"])
-          (*jit)->WorkingAreaEraseTime =
-            (std::string)(*xit)["nordugrid-job-sessiondirerasetime"];
-        if ((*xit)["nordugrid-job-proxyexpirationtime"])
-          (*jit)->ProxyExpirationTime =
-            (std::string)(*xit)["nordugrid-job-proxyexpirationtime"];
-        if ((*xit)["nordugrid-job-completiontime"])
-          (*jit)->EndTime =
-            (std::string)(*xit)["nordugrid-job-completiontime"];
-        if ((*xit)["nordugrid-job-cpucount"])
-          (*jit)->RequestedSlots = stringtoi((*xit)["nordugrid-job-cpucount"]);
-        if ((*xit)["nordugrid-job-usedcputime"])
-          (*jit)->UsedTotalCPUTime =
-            Period((std::string)(*xit)["nordugrid-job-usedcputime"],
-                   PeriodMinutes);
-        if ((*xit)["nordugrid-job-usedwalltime"])
-          (*jit)->UsedTotalWallTime =
-            Period((std::string)(*xit)["nordugrid-job-usedwalltime"],
-                   PeriodMinutes);
-        if ((*xit)["nordugrid-job-exitcode"])
-          (*jit)->ExitCode = stringtoi((*xit)["nordugrid-job-exitcode"]);
-        if ((*xit)["Mds-validfrom"]) {
-          (*jit)->CreationTime = (std::string)((*xit)["Mds-validfrom"]);
-          if ((*xit)["Mds-validto"]) {
-            Time Validto = (std::string)((*xit)["Mds-validto"]);
-            (*jit)->Validity = Validto - (*jit)->CreationTime;
+        if (!handler->StopReading()) continue;
+  
+        XMLNode xmlresult(result);
+        XMLNodeList jobinfolist =
+          xmlresult.Path("o/Mds-Vo-name/nordugrid-cluster-name/nordugrid-queue-name/nordugrid-info-group-name/nordugrid-job-globalid");
+  
+        for (std::list<Job*>::iterator jit = batch.begin();
+             jit != batch.end(); ++jit) {
+          XMLNodeList::iterator xit = jobinfolist.begin();
+          for (; xit != jobinfolist.end(); ++xit) {
+            if ((std::string)(*xit)["nordugrid-job-globalid"] == (*jit)->JobID) {
+              break;
+            }
           }
+  
+          if (xit == jobinfolist.end()) {
+            logger.msg(WARNING, "Job information not found in the information system: %s", (*jit)->JobID);
+            if (Time() - (*jit)->LocalSubmissionTime < 90)
+              logger.msg(WARNING, "This job was very recently "
+                         "submitted and might not yet "
+                         "have reached the information system");
+            IDsNotProcessed.push_back((*jit)->JobID);
+            continue;
+          }
+  
+          if ((*xit)["nordugrid-job-status"])
+            (*jit)->State = JobStateARC0((std::string)(*xit)["nordugrid-job-status"]);
+          if ((*xit)["nordugrid-job-globalowner"])
+            (*jit)->Owner = (std::string)(*xit)["nordugrid-job-globalowner"];
+          if ((*xit)["nordugrid-job-execqueue"])
+            (*jit)->Queue = (std::string)(*xit)["nordugrid-job-execqueue"];
+          if ((*xit)["nordugrid-job-submissionui"])
+            (*jit)->SubmissionHost =
+              (std::string)(*xit)["nordugrid-job-submissionui"];
+          if ((*xit)["nordugrid-job-submissiontime"])
+            (*jit)->SubmissionTime =
+              (std::string)(*xit)["nordugrid-job-submissiontime"];
+          if ((*xit)["nordugrid-job-sessiondirerasetime"])
+            (*jit)->WorkingAreaEraseTime =
+              (std::string)(*xit)["nordugrid-job-sessiondirerasetime"];
+          if ((*xit)["nordugrid-job-proxyexpirationtime"])
+            (*jit)->ProxyExpirationTime =
+              (std::string)(*xit)["nordugrid-job-proxyexpirationtime"];
+          if ((*xit)["nordugrid-job-completiontime"])
+            (*jit)->EndTime =
+              (std::string)(*xit)["nordugrid-job-completiontime"];
+          if ((*xit)["nordugrid-job-cpucount"])
+            (*jit)->RequestedSlots = stringtoi((*xit)["nordugrid-job-cpucount"]);
+          if ((*xit)["nordugrid-job-usedcputime"])
+            (*jit)->UsedTotalCPUTime =
+              Period((std::string)(*xit)["nordugrid-job-usedcputime"],
+                     PeriodMinutes);
+          if ((*xit)["nordugrid-job-usedwalltime"])
+            (*jit)->UsedTotalWallTime =
+              Period((std::string)(*xit)["nordugrid-job-usedwalltime"],
+                     PeriodMinutes);
+          if ((*xit)["nordugrid-job-exitcode"])
+            (*jit)->ExitCode = stringtoi((*xit)["nordugrid-job-exitcode"]);
+          if ((*xit)["Mds-validfrom"]) {
+            (*jit)->CreationTime = (std::string)((*xit)["Mds-validfrom"]);
+            if ((*xit)["Mds-validto"]) {
+              Time Validto = (std::string)((*xit)["Mds-validto"]);
+              (*jit)->Validity = Validto - (*jit)->CreationTime;
+            }
+          }
+          if ((*xit)["nordugrid-job-stdout"])
+            (*jit)->StdOut = (std::string)((*xit)["nordugrid-job-stdout"]);
+          if ((*xit)["nordugrid-job-stderr"])
+            (*jit)->StdErr = (std::string)((*xit)["nordugrid-job-stderr"]);
+          if ((*xit)["nordugrid-job-stdin"])
+            (*jit)->StdIn = (std::string)((*xit)["nordugrid-job-stdin"]);
+          if ((*xit)["nordugrid-job-reqcputime"])
+            (*jit)->RequestedTotalCPUTime =
+              Period((std::string)((*xit)["nordugrid-job-reqcputime"]),
+                     PeriodMinutes);
+          if ((*xit)["nordugrid-job-reqwalltime"])
+            (*jit)->RequestedTotalWallTime =
+              Period((std::string)((*xit)["nordugrid-job-reqwalltime"]),
+                     PeriodMinutes);
+          if ((*xit)["nordugrid-job-rerunable"])
+            (*jit)->RestartState =
+              JobStateARC0((std::string)((*xit)["nordugrid-job-rerunable"]));
+          if ((*xit)["nordugrid-job-queuerank"])
+            (*jit)->WaitingPosition =
+              stringtoi((*xit)["nordugrid-job-queuerank"]);
+          if ((*xit)["nordugrid-job-comment"])
+            (*jit)->OtherMessages.push_back(
+              (std::string)((*xit)["nordugrid-job-comment"]));
+          if ((*xit)["nordugrid-job-usedmem"])
+            (*jit)->UsedMainMemory =
+              stringtoi((*xit)["nordugrid-job-usedmem"]);
+          if ((*xit)["nordugrid-job-errors"])
+            for (XMLNode n = (*xit)["nordugrid-job-errors"]; n; ++n)
+              (*jit)->Error.push_back((std::string)n);
+          if ((*xit)["nordugrid-job-jobname"])
+            (*jit)->Name = (std::string)((*xit)["nordugrid-job-jobname"]);
+          if ((*xit)["nordugrid-job-gmlog"])
+            (*jit)->LogDir = (std::string)((*xit)["nordugrid-job-gmlog"]);
+          if ((*xit)["nordugrid-job-clientsofware"])
+            (*jit)->SubmissionClientName =
+              (std::string)((*xit)["nordugrid-job-clientsoftware"]);
+          if ((*xit)["nordugrid-job-executionnodes"])
+            for (XMLNode n = (*xit)["nordugrid-job-executionnodes"]; n; ++n)
+              (*jit)->ExecutionNode.push_back((std::string)n);
+          if ((*xit)["nordugrid-job-runtimeenvironment"])
+            for (XMLNode n = (*xit)["nordugrid-job-runtimeenvironment"]; n; ++n)
+              (*jit)->RequestedApplicationEnvironment.push_back((std::string)n);
+  
+          jobinfolist.erase(xit);
+          IDsProcessed.push_back((*jit)->JobID);
         }
-        if ((*xit)["nordugrid-job-stdout"])
-          (*jit)->StdOut = (std::string)((*xit)["nordugrid-job-stdout"]);
-        if ((*xit)["nordugrid-job-stderr"])
-          (*jit)->StdErr = (std::string)((*xit)["nordugrid-job-stderr"]);
-        if ((*xit)["nordugrid-job-stdin"])
-          (*jit)->StdIn = (std::string)((*xit)["nordugrid-job-stdin"]);
-        if ((*xit)["nordugrid-job-reqcputime"])
-          (*jit)->RequestedTotalCPUTime =
-            Period((std::string)((*xit)["nordugrid-job-reqcputime"]),
-                   PeriodMinutes);
-        if ((*xit)["nordugrid-job-reqwalltime"])
-          (*jit)->RequestedTotalWallTime =
-            Period((std::string)((*xit)["nordugrid-job-reqwalltime"]),
-                   PeriodMinutes);
-        if ((*xit)["nordugrid-job-rerunable"])
-          (*jit)->RestartState =
-            JobStateARC0((std::string)((*xit)["nordugrid-job-rerunable"]));
-        if ((*xit)["nordugrid-job-queuerank"])
-          (*jit)->WaitingPosition =
-            stringtoi((*xit)["nordugrid-job-queuerank"]);
-        if ((*xit)["nordugrid-job-comment"])
-          (*jit)->OtherMessages.push_back(
-            (std::string)((*xit)["nordugrid-job-comment"]));
-        if ((*xit)["nordugrid-job-usedmem"])
-          (*jit)->UsedMainMemory =
-            stringtoi((*xit)["nordugrid-job-usedmem"]);
-        if ((*xit)["nordugrid-job-errors"])
-          for (XMLNode n = (*xit)["nordugrid-job-errors"]; n; ++n)
-            (*jit)->Error.push_back((std::string)n);
-        if ((*xit)["nordugrid-job-jobname"])
-          (*jit)->Name = (std::string)((*xit)["nordugrid-job-jobname"]);
-        if ((*xit)["nordugrid-job-gmlog"])
-          (*jit)->LogDir = (std::string)((*xit)["nordugrid-job-gmlog"]);
-        if ((*xit)["nordugrid-job-clientsofware"])
-          (*jit)->SubmissionClientName =
-            (std::string)((*xit)["nordugrid-job-clientsoftware"]);
-        if ((*xit)["nordugrid-job-executionnodes"])
-          for (XMLNode n = (*xit)["nordugrid-job-executionnodes"]; n; ++n)
-            (*jit)->ExecutionNode.push_back((std::string)n);
-        if ((*xit)["nordugrid-job-runtimeenvironment"])
-          for (XMLNode n = (*xit)["nordugrid-job-runtimeenvironment"]; n; ++n)
-            (*jit)->RequestedApplicationEnvironment.push_back((std::string)n);
-
-        jobinfolist.erase(xit);
-        IDsProcessed.push_back((*jit)->JobID);
-        }   
       }
     }
   }
