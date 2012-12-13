@@ -1423,8 +1423,11 @@
 
 ## LDAP parameters of the cluster.pl (old) infoprovider, use the defaults, 
 ## do NOT change them unless you know what you are doing
+
+## cachetime affects old infoproviders, and forces the validity time of the record.
 #cachetime="30"
-#timelimit="30"
+
+## sizelimit affects registration to egiis
 #sizelimit="10"
 
 ## LDAP checkpoint enable/disable
@@ -1943,8 +1946,11 @@
 
 ## LDAP parameters of the queue+jobs+users.pl (old) infoprovider, use the defaults,
 ## do NOT change them unless you know what you are doing
+
+## this affects old infoproviders, and forces the validity time of the record.
 #cachetime="30"
-#timelimit="30"
+
+## sizelimit affects registration to EGIIS
 #sizelimit="5000"
 
 
