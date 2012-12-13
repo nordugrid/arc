@@ -57,6 +57,7 @@ namespace Arc {
           URL dst(url);
           dst.ChangePath(dst.Path() + '/' + it->Name);
           dst.AddOption("blocksize=1048576",false);
+          dst.AddOption("checksum=no",false);
           DataHandle source(src, usercfg);
           if ((!dest_handle) || (!*dest_handle) || (!(*dest_handle)->SetURL(dst))) {
             if(dest_handle) delete dest_handle;
