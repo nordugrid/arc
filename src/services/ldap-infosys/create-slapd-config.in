@@ -56,6 +56,7 @@ slapd_loglevel=${CONFIG_slapd_loglevel:-0}
 slapd_hostnamebind=${CONFIG_slapd_hostnamebind:-"*"}
 slapd_port=${CONFIG_port:-2135}
 threads=${CONFIG_threads:-32}
+timelimit=${CONFIG_timelimit:-2400}
 
 bdii_location=${CONFIG_bdii_location:-/usr}
 bdii_update_cmd=${CONFIG_bdii_update_cmd:-${bdii_location}/sbin/bdii-update}
@@ -269,7 +270,7 @@ cat <<-EOF >> $bdii_slapd_conf
 	threads         $threads
 	idletimeout     120
 	sizelimit       unlimited
-	timelimit       2400
+	timelimit       $timelimit
 	EOF
 
 for vo in `config_subsections infosys/index`; do
