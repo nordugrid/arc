@@ -204,6 +204,8 @@ namespace Arc {
       j.ServiceInformationURL.ChangeLDAPFilter("");
       j.ServiceInformationInterfaceName = "org.nordugrid.ldapng";
       j.JobStatusURL = infoendpoint;
+      j.JobStatusURL.ChangeLDAPFilter("(nordugrid-job-globalid=" + escape_chars(jobid.str(),filter_esc,'\\',false,escape_hex) + ")");
+      j.JobStatusURL.ChangeLDAPScope(URL::subtree);
       j.JobStatusInterfaceName = "org.nordugrid.ldapng";
       j.JobManagementURL = ContactString;
       j.JobManagementInterfaceName = "org.nordugrid.gridftpjob";
@@ -327,6 +329,10 @@ namespace Arc {
         }
       }
 
+      if (!infoendpoint) {
+        infoendpoint = CreateInfoURL(ContactString.Host());
+      }
+
       Job j;
       
       // Proposed mandatory attributes for ARC 3.0
@@ -336,6 +342,7 @@ namespace Arc {
       j.ServiceInformationInterfaceName = "org.nordugrid.ldapng";
       j.JobStatusURL = infoendpoint;
       j.JobStatusURL.ChangeLDAPFilter("(nordugrid-job-globalid=" + escape_chars(jobid.str(),filter_esc,'\\',false,escape_hex) + ")");
+      j.JobStatusURL.ChangeLDAPScope(URL::subtree);
       j.JobStatusInterfaceName = "org.nordugrid.ldapng";
       j.JobManagementURL = ContactString;
       j.JobManagementInterfaceName = "org.nordugrid.gridftpjob";
