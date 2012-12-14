@@ -1087,7 +1087,12 @@ namespace Arc {
           std::string src_csum_s(source.GetCheckSum());
           if (src_csum_s.find(':') == src_csum_s.length() -1) {
             logger.msg(VERBOSE, "Cannot compare empty checksum");
-          } else if (calc_csum.substr(0, calc_csum.find(":")) != src_csum_s.substr(0, src_csum_s.find(":"))) {
+          }
+          // Check the checksum types match. Some buggy GridFTP servers return a
+          // different checksum type than requested so also check that the checksum
+          // length matches before comparing.
+          else if (calc_csum.substr(0, calc_csum.find(":")) != src_csum_s.substr(0, src_csum_s.find(":")) ||
+                   calc_csum.substr(calc_csum.find(":")).length() != src_csum_s.substr(src_csum_s.find(":")).length()) {
             logger.msg(VERBOSE, "Checksum type of source and calculated checksum differ, cannot compare");
           } else if (calc_csum.substr(calc_csum.find(":")) != src_csum_s.substr(src_csum_s.find(":"))) {
             logger.msg(ERROR, "Checksum mismatch between calcuated checksum %s and source checksum %s", calc_csum, source.GetCheckSum());

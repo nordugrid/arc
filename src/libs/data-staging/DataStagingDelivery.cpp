@@ -409,7 +409,11 @@ int main(int argc,char* argv[]) {
 
     // compare calculated to any checksum given as an option
     if (source->CheckCheckSum()) {
-      if (calc_csum.substr(0, calc_csum.find(":")) != checksum_type) {
+      // Check the checksum types match. Some buggy GridFTP servers return a
+      // different checksum type than requested so also check that the checksum
+      // length matches before comparing.
+      if (calc_csum.substr(0, calc_csum.find(":")) != checksum_type ||
+          calc_csum.substr(calc_csum.find(":")+1).length() != checksum_value.length()) {
         logger.msg(INFO, "Checksum type of source and calculated checksum differ, cannot compare");
       } else if (calc_csum.substr(calc_csum.find(":")+1) != checksum_value) {
         logger.msg(ERROR, "Checksum mismatch between calcuated checksum %s and source checksum %s", calc_csum, source->GetCheckSum());
