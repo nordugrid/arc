@@ -100,7 +100,7 @@ is only possible if the GFAL2 plugin is installed.
 Depending on the installed libraries (check with
 .B -P
 ), the following protocols may be used: file  (file://  prefix  may  be
-omitted), http, https, httpg, ftp, gsiftp, lfc, rls, srm. To connect 
+omitted), http, https, httpg, ftp, gsiftp, lfc, srm, root. To connect 
 source or destination to standard input/output use '-' instead of URL.
 
 .SH FILES

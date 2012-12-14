@@ -19,10 +19,10 @@ catalogues.
 .SH OPTIONS
 
 .IP "\fB-l\fR, \fB--long\fR"
-long format (like ls -l). The name of the object is followed by
-these elements: filetype of  object,  size  in  bytes,  modification  time,
-validity  time,  checksum  and  (if  the  protocol  supports it) access
-latency (ONLINE or NEARLINE).
+long format (like ls -l). The name of the object is followed by these
+elements: filetype of object, size in bytes, modification time,
+validity time, checksum and access latency (ONLINE or NEARLINE). The
+elements for which information is available is protocol-dependent.
 .IP "\fB-L\fR, \fB--locations\fR"
 show URLs of file locations (replicas) registered in index services.
 .IP "\fB-m\fR, \fB--metadata\fR"
@@ -33,6 +33,8 @@ operate recursively
 operate recursively up to specified level
 .IP "\fB-n\fR, \fB--nolist\fR"
 show only description of requested object, do not list content of directories (like ls -d).
+.IP "\fB-f\fR, \fB--forcelist\fR"
+treat requested object as directory and always try to list content
 .IP "\fB-c\fR, \fB--checkaccess\fR"
 check readability of object. Retrieving and showing information about object is supressed.
 .IP "\fB-P\fR, \fB--listplugins\fR"
@@ -62,10 +64,12 @@ command lists files and directories on grid storage elements and in
 file index catalogues. Depending on the installed libraries (check with
 .B -P
 ), the following protocols may be used: file  (file://  prefix  may  be
-omitted), http, https, httpg, ftp, gsiftp, lfc, rls, srm.
+omitted), http, https, httpg, ftp, gsiftp, lfc, srm, root.
  
 In the case of a directory/fileset, attributes of objects belonging
-to it will be retrieved.
+to it will be retrieved, unless
+.B --nolist
+is specified.
 
 If url starts from '@', the remainder should be a path to a local file
 containing list of URLs, one per line. Then arcls acts as if it was

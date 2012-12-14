@@ -62,7 +62,7 @@ Resource Locators (URL) and Extensions Supported in ARC" [NORDUGRID-TECH-7]
 Depending on the installed libraries (check with
 .B -P
 ), the following protocols may be used: file  (file://  prefix  may  be
-omitted), http, https, httpg, ftp, gsiftp, lfc, rls, srm, xrootd. However
+omitted), http, https, httpg, ftp, gsiftp, lfc, srm, root. However
 renaming is not supported or implemented for some of those protocols.
 
 .SH FILES
