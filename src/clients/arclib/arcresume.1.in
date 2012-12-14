@@ -9,8 +9,8 @@ arcresume \- ARC Resume
 
 The
 .B arcresume
-command is used for resuming a job that have been submitted
-to grid enabled resources. The job will be resumed at the
+command is used for resuming a job that was submitted to grid enabled
+resources and then subsequently failed. The job will be resumed at the
 last ok state reported by the cluster.
 
 .SH SYNOPSIS
@@ -27,10 +27,13 @@ the file storing information about active jobs (default ~/.arc/jobs.xml)
 a file containing a list of jobIDs
 .IP "\fB-c\fR, \fB--cluster\fR=\fIname\fR"
 select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
+.IP "\fB-I\fR, \fB--infointerface\fR=\fIInterfaceName\fR"
+the computing element specified by URL at the command line should be
+queried using this information interface (possible options:
+org.nordugrid.ldapng, org.nordugrid.ldapglue2,
+org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo)
 .IP "\fB-r\fR, \fB--rejectmanagement\fR=\fIURL\fR"
 skip jobs which are on a computing element with a given URL
-.IP "\fB-R\fR, \fB--rejectdiscovery\fR=\fIURL\fR"
-skip the service with the given URL during service discovery
 .IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"
 only select jobs whose status is statusstr
 .IP "\fB-P\fR, \fB--listplugins\fR"

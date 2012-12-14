@@ -20,6 +20,11 @@ grid.
 
 .IP "\fB-c\fR, \fB--cluster\fR=\fIname\fR"
 select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
+.IP "\fB-I\fR, \fB--infointerface\fR=\fIInterfaceName\fR"
+the computing element specified by URL at the command line should be
+queried using this information interface (possible options:
+org.nordugrid.ldapng, org.nordugrid.ldapglue2,
+org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo)
 .IP "\fB-g\fR, \fB--index\fR=\fIname\fR"
 select one or more registries: \fIname\fR can be an alias for a single registry, a group of registries or a URL
 .IP "\fB-R\fR, \fB--rejectdiscovery\fR=\fIURL\fR"
@@ -28,6 +33,8 @@ skip the service with the given URL during service discovery
 only get information about executon targets which supports this job submission interface (e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.nordugrid.xbes)
 .IP "\fB-l\fR, \fB--long\fR"
 long format (more information)
+.IP "\fB-L\fR, \fB--list-configured-services\fR"
+print a list of services configured in the client.conf
 .IP "\fB-P\fR, \fB--listplugins\fR"
 list the available plugins
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
@@ -66,8 +73,8 @@ flag.
 When specifying the
 .B --index
 flag, the information about the computing services registered at the
-index server will queried rather than the status of the index server it
-self. Currently no command exist to query a index server.
+index server will be queried rather than the status of the index
+server itself. Currently no command exists to query a index server.
 
 .SH FILES
 

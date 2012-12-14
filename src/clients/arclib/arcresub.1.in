@@ -37,6 +37,11 @@ skip jobs which are on a computing element with a given URL
 skip the service with the given URL during service discovery
 .IP "\fB-S\fR, \fB--submissioninterface\fR=\fIInterfaceName\fR"
 only use this interface for submitting (e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes)
+.IP "\fB-I\fR, \fB--infointerface\fR=\fIInterfaceName\fR"
+the computing element specified by URL at the command line should be
+queried using this information interface (possible options:
+org.nordugrid.ldapng, org.nordugrid.ldapglue2,
+org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo)
 .IP "\fB-k\fR, \fB--keep\fR"
 keep the files on the server (do not clean)
 .IP "\fB-m\fR, \fB--same\fR"

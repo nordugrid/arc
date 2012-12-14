@@ -24,6 +24,11 @@ select one or more registries: \fIname\fR can be an alias for a single registry,
 skip the service with the given URL during service discovery
 .IP "\fB-S\fR, \fB--submissioninterface\fR=\fIInterfaceName\fR"
 only use this interface for submitting (e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes)
+.IP "\fB-I\fR, \fB--infointerface\fR=\fIInterfaceName\fR"
+the computing element specified by URL at the command line should be
+queried using this information interface (possible options:
+org.nordugrid.ldapng, org.nordugrid.ldapglue2,
+org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo)
 .IP "\fB-J\fR \fIjobid\fR, \fB--jobid\fR=\fIjobid\fR"
 submits testjob given by the jobid.
 .IP "\fB-r\fR \fItime\fR, \fB--runtime\fR=\fItime\fR"
@@ -34,6 +39,8 @@ the file storing information about active jobs (default ~/.arc/jobs.xml)
 the IDs of the submitted jobs will be appended to this file
 .IP "\fB-D\fR, \fB--dryrun\fR"
 submit jobs as dry run (no submission to batch system)
+.IP "\fB    --direct\fR"
+submit directly - no resource discovery or matchmaking
 .IP "\fB-x\fR, \fB--dumpdescription\fR"
 do not submit - dump job description in the language accepted by the target
 .IP "\fB-E\fR, \fB--certificate\fR"

@@ -10,8 +10,7 @@ arcstat \- ARC Status
 The
 .B arcstat
 command is used for obtaining the status of jobs that have been
-submitted to grid enabled resources and the status of the clusters in
-the grid.
+submitted to grid enabled resources.
 
 .SH SYNOPSIS
 
@@ -27,6 +26,11 @@ the file storing information about active jobs (default ~/.arc/jobs.xml)
 a file containing a list of jobIDs
 .IP "\fB-c\fR, \fB--cluster\fR=\fIname\fR"
 select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
+.IP "\fB-I\fR, \fB--infointerface\fR=\fIInterfaceName\fR"
+the computing element specified by URL at the command line should be
+queried using this information interface (possible options:
+org.nordugrid.ldapng, org.nordugrid.ldapglue2,
+org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo)
 .IP "\fB-r\fR, \fB--rejectmanagement\fR=\fIURL\fR"
 skip jobs which are on a computing element with a given URL
 .IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"

@@ -10,7 +10,8 @@ arcmigrate \- ARC Migration
 The
 .B arcmigrate
 command is used for migrating queued jobs from one cluster to another
-cluster. Currently migration only works between clusters running A-REX.
+cluster. Currently migration only works between clusters running the
+A-REX BES interface.
 
 .SH SYNOPSIS
 
@@ -30,6 +31,11 @@ skip jobs which are on a computing element with a given URL
 skip the service with the given URL during service discovery
 .IP "\fB-S\fR, \fB--submissioninterface\fR=\fIInterfaceName\fR"
 only use this interface for submitting (e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes)
+.IP "\fB-I\fR, \fB--infointerface\fR=\fIInterfaceName\fR"
+the computing element specified by URL at the command line should be
+queried using this information interface (possible options:
+org.nordugrid.ldapng, org.nordugrid.ldapglue2,
+org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo)
 .IP "\fB-k\fR, \fB--keep\fR"
 keep the files on the server (do not clean)
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
@@ -37,7 +43,11 @@ the file storing information about active jobs (default ~/.arc/jobs.xml)
 .IP "\fB-i\fR, \fB--jobids-from-file\fR=\fIfilename\fR"
 a file containing a list of jobIDs
 .IP "\fB-a\fR, \fB--all\fR"
-all jobs specified in the jobfile will be tried migrated
+migration will be attempted all jobs specified in the jobfile
+.IP "\fB-o\fR, \fB--jobids-to-file=filename\fR"
+the IDs of the submitted jobs will be appended to this file
+.IP "\fB-i\fR, \fB--jobids-from-file=filename\fR"
+a file containing a list of jobIDs
 .IP "\fB-f\fR, \fB--force\fR"
 force migration, ignore kill failure
 .IP "\fB-P\fR, \fB--listplugins\fR"
@@ -67,9 +77,9 @@ id of a queued job which should be migrated
 The
 .B arcmigrate
 command is used for migrating jobs which are queuing in the batch
-system. Currently only jobs having status Queuing
-can be migrated, and the command is only supported for migration
-between clusters running A-REX.
+system. Currently only jobs having status Queuing can be migrated, and
+the command is only supported for migration between clusters running
+the A-REX BES interface.
 
 The
 .B --qluster

@@ -9,7 +9,14 @@ arcacl \- ARC Access Control
 
 The
 .B arcacl
-command retrieves/sets permisions (ACL) of data or computing object.
+command retrieves/sets permisions (ACL) of data or computing
+objects. Currently only GACL-enabled GridFTP storage elements are
+supported, where this command allows viewing and changing .gacl
+files.
+.B arcacl get
+writes the ACL to stdout and
+.B arcacl put
+reads the ACL from stdin.
 
 .SH SYNOPSIS
 
@@ -24,7 +31,13 @@ the file storing information about active jobs (default ~/.arc/jobs.xml)
 .IP "\fB-i\fR, \fB--jobids-from-file\fR=\fIfilename\fR"
 a file containing a list of jobIDs
 .IP "\fB-c\fR, \fB--cluster\fR=\fIname\fR"
-select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
+select one or more computing elements: \fIname\fR can be an alias for
+a single CE, a group of CEs or a URL
+.IP "\fB-I\fR, \fB--infointerface\fR=\fIInterfaceName\fR"
+the computing element specified by URL at the command line should be
+queried using this information interface (possible options:
+org.nordugrid.ldapng, org.nordugrid.ldapglue2,
+org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo)
 .IP "\fB-r\fR, \fB--rejectmanagement\fR=\fIURL\fR"
 skip jobs which are on a computing element with a given URL
 .IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"
@@ -46,14 +59,8 @@ print help
 .SH ARGUMENTS
 
 .IP "\fBobject\fR ..."
-list of jobids and/or jobnames and/or URLs of data objects
+list of URLs of data objects
 .LP
-
-.SH EXTENDED DESCRIPTION
-
-The
-.B arcacl
-blah-blah.
 
 .SH FILES
 
