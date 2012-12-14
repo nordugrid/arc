@@ -1085,7 +1085,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_bindir}/arcsync
 %{_bindir}/arctest
 %{_bindir}/arcwsrf
-%{_bindir}/perftest
 %{_bindir}/saml_assertion_init
 %{_bindir}/ngclient2arc
 %config(noreplace) %{_sysconfdir}/%{pkgdir}/client.conf
@@ -1113,7 +1112,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/arcsync.1*
 %doc %{_mandir}/man1/arctest.1*
 %doc %{_mandir}/man1/arcwsrf.1*
-%doc %{_mandir}/man1/perftest.1.gz
 %doc %{_mandir}/man1/saml_assertion_init.1*
 %doc %{_mandir}/man1/ngclient2arc.1*
 

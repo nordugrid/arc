@@ -1,8 +1,7 @@
 SUBDIRS = schema
 
 pkglib_LTLIBRARIES = libecho.la
-noinst_PROGRAMS = test test_client test_clientinterface test_service
-bin_PROGRAMS = perftest
+noinst_PROGRAMS = test test_client test_clientinterface test_service perftest
 
 exampledir = $(pkgdatadir)/examples/echo
 example_DATA = echo_service.xml.example
@@ -67,5 +66,3 @@ perftest_LDADD = \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
-
-man_MANS = perftest.1
