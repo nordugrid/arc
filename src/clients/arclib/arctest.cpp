@@ -157,10 +157,12 @@ int RUNMAIN(arctest)(int argc, char **argv) {
 
   // Set user input variables into job description
   if (opt.testjobid == 1) {
+    testJob.Application.Executable.Argument.back() = Arc::tostring(opt.runtime);
+    testJob.Resources.TotalCPUTime = (opt.runtime+3)*60;
     for ( std::map<std::string, std::string>::iterator iter = testJob.OtherAttributes.begin();
       iter != testJob.OtherAttributes.end(); ++iter ) {
         char buffer [iter->second.length()+255];
-        sprintf(buffer, iter->second.c_str(), opt.runtime+1, opt.runtime+3);
+        sprintf(buffer, iter->second.c_str(), opt.runtime, opt.runtime+3);
         iter->second = (std::string) buffer;
       }
   }
