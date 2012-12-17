@@ -11,10 +11,11 @@ class FileRecord {
  private:
   Glib::Mutex lock_; // TODO: use DB locking
   std::string basepath_;
-  Db    db_rec_;
-  Db    db_lock_;
-  Db    db_locked_;
-  Db    db_link_;
+  DbEnv* db_env_;
+  Db*    db_rec_;
+  Db*    db_lock_;
+  Db*    db_locked_;
+  Db*    db_link_;
   int error_num_;
   std::string error_str_;
   bool valid_;
@@ -22,6 +23,8 @@ class FileRecord {
   static int lock_callback(Db *, const Dbt *, const Dbt *, Dbt * result);
   std::string uid_to_path(const std::string& uid);
   bool dberr(const char* s, int err);
+  bool open(void);
+  void close();
  public:
   class Iterator {
    private:
@@ -44,18 +47,13 @@ class FileRecord {
     const std::list<std::string>& meta(void) const { return meta_; };
     const std::string path(void) const { return frec_.uid_to_path(uid_); };
   };
-  enum recovery {
-    no_recovery = 0,
-    ordinary_recovery = 1,
-    catastrophic_recovery = 2,
-    full_recovery = 3
-  };
   friend class FileRecord::Iterator;
-  FileRecord(const std::string& base, recovery recover = no_recovery);
+  FileRecord(const std::string& base);
   ~FileRecord(void);
   operator bool(void) { return valid_; };
   bool operator!(void) { return !valid_; };
   std::string Error(void) { return error_str_; };
+  bool Recover(void);
   std::string Add(std::string& id, const std::string& owner, const std::list<std::string>& meta);
   std::string Find(const std::string& id, const std::string& owner, std::list<std::string>& meta);
   bool Modify(const std::string& id, const std::string& owner, const std::list<std::string>& meta);

@@ -11,11 +11,32 @@
 
 #include <glibmm.h>
 
+#include <arc/FileUtils.h>
+
 #include "uid.h"
 
 #include "FileRecord.h"
 
 namespace ARex {
+
+  #define FR_DB_NAME "list"
+
+  void db_env_clean(const std::string& base) {
+    Glib::Dir dir(base);
+    std::string name;
+    while ((name = dir.read_name()) != "") {
+      std::string fullpath(base);
+      fullpath += G_DIR_SEPARATOR_S + name;
+      struct stat st;
+      if (::lstat(fullpath.c_str(), &st) == 0) {
+        if(!S_ISDIR(st.st_mode)) {
+          if(name != FR_DB_NAME) {
+            Arc::FileDelete(fullpath.c_str());
+          };
+        };
+      };
+    };
+  }
 
   bool FileRecord::dberr(const char* s, int err) {
     if(err == 0) return true;
@@ -24,48 +45,76 @@ namespace ARex {
     return false;
   }
 
-  FileRecord::FileRecord(const std::string& base, recovery recover):
+  FileRecord::FileRecord(const std::string& base):
       basepath_(base),
-      db_rec_(NULL,DB_CXX_NO_EXCEPTIONS),
-      db_lock_(NULL,DB_CXX_NO_EXCEPTIONS),
-      db_locked_(NULL,DB_CXX_NO_EXCEPTIONS),
-      db_link_(NULL,DB_CXX_NO_EXCEPTIONS),
+      db_rec_(NULL),
+      db_lock_(NULL),
+      db_locked_(NULL),
+      db_link_(NULL),
       error_num_(0),
       valid_(false) {
-    // db_link
-    //    |---db_lock
-    //    \---db_locked
-    if(!dberr("Error setting flag DB_DUPSORT",db_lock_.set_flags(DB_DUPSORT))) return;
-    if(!dberr("Error setting flag DB_DUPSORT",db_locked_.set_flags(DB_DUPSORT))) return;
-    if(!dberr("Error associating databases",db_link_.associate(NULL,&db_lock_,&locked_callback,0))) return;
-    if(!dberr("Error associating databases",db_link_.associate(NULL,&db_locked_,&lock_callback,0))) return;
-    int oflags = DB_CREATE;
-    std::string dbpath = basepath_+"/list";
-    if(recover == ordinary_recovery) {
-      oflags |= DB_RECOVER;
-    } else if(recover == catastrophic_recovery) {
-      oflags |= DB_RECOVER_FATAL;
-    } else if(recover == full_recovery) {
-      // Recreating all databases
-      if(::unlink(dbpath.c_str()) != 0) {
-        if(errno != ENOENT) {
-          dberr("Error wiping database",errno);
-          return;
-        };
-      };
-    };
-    if(!dberr("Error opening database 'meta'",db_rec_.open(NULL,dbpath.c_str(),   "meta",  DB_BTREE,oflags,S_IRUSR|S_IWUSR))) return;
-    if(!dberr("Error opening database 'link'",db_link_.open(NULL,dbpath.c_str(),  "link",  DB_RECNO,oflags,S_IRUSR|S_IWUSR))) return;
-    if(!dberr("Error opening database 'lock'",db_lock_.open(NULL,dbpath.c_str(),  "lock",  DB_BTREE,oflags,S_IRUSR|S_IWUSR))) return;
-    if(!dberr("Error opening database 'locked'",db_locked_.open(NULL,dbpath.c_str(),"locked",DB_BTREE,oflags,S_IRUSR|S_IWUSR))) return;
-    valid_ = true;
+    valid_ = open();
   }
 
   FileRecord::~FileRecord(void) {
-    db_locked_.close(0);
-    db_lock_.close(0);
-    db_link_.close(0);
-    db_rec_.close(0);
+    close();
+  }
+
+  bool FileRecord::open(void) {
+    int oflags = DB_CREATE;
+    int eflags = DB_CREATE | DB_INIT_CDB | DB_INIT_MPOOL;
+    int mode = S_IRUSR|S_IWUSR;
+
+    db_env_ = new DbEnv(DB_CXX_NO_EXCEPTIONS);
+    if(!dberr("Error opening database environment",
+          db_env_->open(basepath_.c_str(),eflags,mode))) {
+      delete db_env_; db_env_ = NULL;
+      db_env_clean(basepath_);
+      db_env_ = new DbEnv(DB_CXX_NO_EXCEPTIONS);
+      if(!dberr("Error opening database environment",
+            db_env_->open(basepath_.c_str(),eflags,mode))) {
+        return false;
+      };
+    };
+
+    std::string dbpath = FR_DB_NAME;
+    Db db_test(db_env_,DB_CXX_NO_EXCEPTIONS);
+    if(!dberr("Error verifying database",db_test.verify(dbpath.c_str(),NULL,NULL,0))) {
+      if(error_num_ != ENOENT) return false;
+    };
+    // db_link
+    //    |---db_lock
+    //    \---db_locked
+    db_rec_ = new Db(db_env_,DB_CXX_NO_EXCEPTIONS);
+    db_lock_ = new Db(db_env_,DB_CXX_NO_EXCEPTIONS);
+    db_locked_ = new Db(db_env_,DB_CXX_NO_EXCEPTIONS);
+    db_link_ = new Db(db_env_,DB_CXX_NO_EXCEPTIONS);
+    if(!dberr("Error setting flag DB_DUPSORT",db_lock_->set_flags(DB_DUPSORT))) return false;
+    if(!dberr("Error setting flag DB_DUPSORT",db_locked_->set_flags(DB_DUPSORT))) return false;
+    if(!dberr("Error associating databases",db_link_->associate(NULL,db_lock_,&locked_callback,0))) return false;
+    if(!dberr("Error associating databases",db_link_->associate(NULL,db_locked_,&lock_callback,0))) return false;
+    if(!dberr("Error opening database 'meta'",
+          db_rec_->open(NULL,dbpath.c_str(),   "meta",  DB_BTREE,oflags,mode))) return false;
+    if(!dberr("Error opening database 'link'",
+          db_link_->open(NULL,dbpath.c_str(),  "link",  DB_RECNO,oflags,mode))) return false;
+    if(!dberr("Error opening database 'lock'",
+          db_lock_->open(NULL,dbpath.c_str(),  "lock",  DB_BTREE,oflags,mode))) return false;
+    if(!dberr("Error opening database 'locked'",
+          db_locked_->open(NULL,dbpath.c_str(),"locked",DB_BTREE,oflags,mode))) return false;
+    return true;
+  }
+
+  void FileRecord::close(void) {
+    valid_ = false;
+    if(db_locked_) db_locked_->close(0);
+    if(db_lock_) db_lock_->close(0);
+    if(db_link_) db_link_->close(0);
+    if(db_rec_) db_rec_->close(0);
+    if(db_env_) db_env_->close(0);
+    delete db_locked_; db_locked_ = NULL;
+    delete db_lock_; db_lock_ = NULL;
+    delete db_link_; db_link_ = NULL;
+    delete db_env_; db_env_ = NULL;
   }
 
   static void* store_string(const std::string& str, void* buf) {
@@ -185,6 +234,12 @@ namespace ARex {
     return 0;
   }
 
+  bool FileRecord::Recover(void) {
+    // Real recovery not implemented yet.
+    close();
+    return false;
+  }
+
   int FileRecord::lock_callback(Db * secondary, const Dbt * key, const Dbt * data, Dbt * result) {
     const void* p = data->get_data();
     uint32_t size = data->get_size();
@@ -205,11 +260,11 @@ namespace ARex {
     make_record(uid,(id.empty())?uid:id,owner,meta,key,data);
     void* pkey = key.get_data();
     void* pdata = data.get_data();
-    if(!dberr("Failed to add record to database",db_rec_.put(NULL,&key,&data,DB_NOOVERWRITE))) {
+    if(!dberr("Failed to add record to database",db_rec_->put(NULL,&key,&data,DB_NOOVERWRITE))) {
       ::free(pkey); ::free(pdata);
       return "";
     };
-    db_rec_.sync(0);
+    db_rec_->sync(0);
     ::free(pkey); ::free(pdata);
     if(id.empty()) id = uid;
     return uid_to_path(uid);
@@ -222,7 +277,7 @@ namespace ARex {
     Dbt data;
     make_key(id,owner,key);
     void* pkey = key.get_data();
-    if(!dberr("Failed to retrieve record from database",db_rec_.get(NULL,&key,&data,0))) {
+    if(!dberr("Failed to retrieve record from database",db_rec_->get(NULL,&key,&data,0))) {
       ::free(pkey);
       return "";
     };
@@ -241,7 +296,7 @@ namespace ARex {
     Dbt data;
     make_key(id,owner,key);
     void* pkey = key.get_data();
-    if(!dberr("Failed to retrieve record from database",db_rec_.get(NULL,&key,&data,0))) {
+    if(!dberr("Failed to retrieve record from database",db_rec_->get(NULL,&key,&data,0))) {
       ::free(pkey);
       return false;
     };
@@ -252,12 +307,12 @@ namespace ARex {
     parse_record(uid,id_tmp,owner_tmp,meta_tmp,key,data);
     ::free(pkey);
     make_record(uid,id,owner,meta,key,data);
-    if(!dberr("Failed to store record to database",db_rec_.put(NULL,&key,&data,0))) {
+    if(!dberr("Failed to store record to database",db_rec_->put(NULL,&key,&data,0))) {
       ::free(key.get_data());
       ::free(data.get_data());
       return false;
     };
-    db_rec_.sync(0);
+    db_rec_->sync(0);
     ::free(key.get_data());
     ::free(data.get_data());
     return true;
@@ -270,12 +325,12 @@ namespace ARex {
     Dbt data;
     make_key(id,owner,key);
     void* pkey = key.get_data();
-    if(dberr("",db_locked_.get(NULL,&key,&data,0))) {
+    if(dberr("",db_locked_->get(NULL,&key,&data,0))) {
       ::free(pkey);
       error_str_ = "Record has active locks";
       return false; // have locks
     };
-    if(!dberr("Failed to retrieve record from database",db_rec_.get(NULL,&key,&data,0))) {
+    if(!dberr("Failed to retrieve record from database",db_rec_->get(NULL,&key,&data,0))) {
       ::free(pkey);
       return false; // No such record?
     };
@@ -287,12 +342,12 @@ namespace ARex {
     if(!uid.empty()) {
       ::unlink(uid_to_path(uid).c_str()); // TODO: handle error
     };
-    if(!dberr("Failed to delete record from database",db_rec_.del(NULL,&key,0))) {
+    if(!dberr("Failed to delete record from database",db_rec_->del(NULL,&key,0))) {
       // TODO: handle error
       ::free(pkey);
       return false;
     };
-    db_rec_.sync(0);
+    db_rec_->sync(0);
     ::free(pkey);
     return true;
   }
@@ -305,13 +360,13 @@ namespace ARex {
     for(std::list<std::string>::const_iterator id = ids.begin(); id != ids.end(); ++id) {
       make_link(lock_id,*id,owner,data);
       void* pdata = data.get_data();
-      if(!dberr("addlock:put",db_link_.put(NULL,&key,&data,DB_APPEND))) {
+      if(!dberr("addlock:put",db_link_->put(NULL,&key,&data,DB_APPEND))) {
         ::free(pdata);
         return false;
       };
       ::free(pdata);
     };
-    db_link_.sync(0);
+    db_link_->sync(0);
     return true;
   }
 
@@ -324,7 +379,7 @@ namespace ARex {
     if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
     Dbc* cur = NULL;
-    if(!dberr("removelock:cursor",db_lock_.cursor(NULL,&cur,0))) return false;
+    if(!dberr("removelock:cursor",db_lock_->cursor(NULL,&cur,0))) return false;
     Dbt key;
     Dbt data;
     make_string(lock_id,key);
@@ -347,7 +402,7 @@ namespace ARex {
       };
       if(!dberr("removelock:get2",cur->get(&key,&data,DB_NEXT_DUP))) break;
     };
-    db_lock_.sync(0);
+    db_lock_->sync(0);
     ::free(pkey);
     cur->close();
     return true;
@@ -357,7 +412,7 @@ namespace ARex {
     if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
     Dbc* cur = NULL;
-    if(db_lock_.cursor(NULL,&cur,0)) return false;
+    if(db_lock_->cursor(NULL,&cur,0)) return false;
     for(;;) {
       Dbt key;
       Dbt data;
@@ -372,7 +427,7 @@ namespace ARex {
   }
 
   FileRecord::Iterator::Iterator(FileRecord& frec):frec_(frec),cur_(NULL) {
-    if(!frec_.dberr("Iterator:cursor",frec_.db_rec_.cursor(NULL,&cur_,0))) {
+    if(!frec_.dberr("Iterator:cursor",frec_.db_rec_->cursor(NULL,&cur_,0))) {
       if(cur_) {
         cur_->close(); cur_=NULL;
       };

@@ -30,34 +30,30 @@ namespace ARex {
     mrec_ = NULL;
     fstore_ = new FileRecord(base);
     if(!*fstore_) {
-      // Database creation failed. Go through all levels of recovery.
-      delete fstore_;
-      fstore_ = new FileRecord(base,FileRecord::ordinary_recovery);
-      if(!*fstore_) {
-        delete fstore_;
-        fstore_ = new FileRecord(base,FileRecord::catastrophic_recovery);
-        if(!*fstore_) {
-          delete fstore_;
-          // Full recreation of database. Delete everything.
-          Glib::Dir dir(base);
-          std::string name;
-          while ((name = dir.read_name()) != "") {
-            std::string fullpath(base);
-            fullpath += G_DIR_SEPARATOR_S + name;
-            struct stat st;
-            if (::lstat(fullpath.c_str(), &st) == 0) {
-              if(S_ISDIR(st.st_mode)) {
-                Arc::DirDelete(fullpath.c_str());
-              };
+      // Database creation failed. Try recovery.
+      if(!fstore_->Recover()) {
+        delete fstore_; fstore_ = NULL;
+        // Full recreation of database. Delete everything.
+        Glib::Dir dir(base);
+        std::string name;
+        while ((name = dir.read_name()) != "") {
+          std::string fullpath(base);
+          fullpath += G_DIR_SEPARATOR_S + name;
+          struct stat st;
+          if (::lstat(fullpath.c_str(), &st) == 0) {
+            if(S_ISDIR(st.st_mode)) {
+              Arc::DirDelete(fullpath.c_str());
+            } else {
+              Arc::FileDelete(fullpath.c_str());
             };
           };
-          fstore_ = new FileRecord(base,FileRecord::full_recovery);
-          if(!*fstore_) {
-            // Failure
-            failure_ = "Failed to re-create database. " + fstore_->Error();
-          } else {
-            // Database recreated.
-          };
+        };
+        fstore_ = new FileRecord(base);
+        if(!*fstore_) {
+          // Failure
+          failure_ = "Failed to re-create database. " + fstore_->Error();
+        } else {
+          // Database recreated.
         };
       };
     };
