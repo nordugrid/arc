@@ -166,18 +166,17 @@ moduleload_bdii="${ldapmodule}"
 database=relay
 find_ldap_database_module
 if [ -z "${database}" ]; then
-    echo "Could not find ldap relay database module"
-    exit 1
+    echo "Could not find ldap relay database module, top-bdii integration is disabled."
 fi
 moduleload_relay="${ldapmodule}"
 
 overlay=rwm
 find_ldap_overlay_module
 if [ -z "$overlay" ]; then
-    echo "Could not find ldap rwm overlay module"
-    exit 1
+    echo "Could not find ldap rwm overlay module, top-bdii integration is disabled."
 fi
 moduleload_rwm="${ldapmodule}"
+
 
 if [ "$(config_subsections infosys/index)" ]; then
     database=shell
@@ -213,7 +212,7 @@ else
 fi
 
 ldapdirs=`sed 's/^://' <<< $ldapdirs`
-if [ -n "$$ldapdirs" ]; then
+if [ -n "$ldapdirs" ]; then
     modulepath="modulepath      $ldapdirs"
 else
     modulepath=
@@ -292,7 +291,8 @@ for vo in `config_subsections infosys/index`; do
     )
 done
 
-(
+if [ -n "${moduleload_rwm}" ]; then 
+    (
     admindomain="UNDEFINEDVALUE"
     CONFIG_name=
     config_import_section infosys/admindomain
@@ -316,7 +316,8 @@ done
 	overlay         rwm
 	suffixmassage   "GLUE2GroupID=services,o=glue"
 	EOF
-)
+    )
+fi
 
 cat <<-EOF >> $bdii_slapd_conf
 

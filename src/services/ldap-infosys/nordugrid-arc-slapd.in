@@ -96,7 +96,7 @@ start () {
 
     ${ARC_LOCATION}/@pkgdatasubdir@/create-slapd-config
     if [ ! $? = 0 ]; then
-	log_failure_msg "Failed to create configration for $prog"
+	log_failure_msg "Failed to create configuration for $prog"
 	exit 1
     fi
     /var/run/arc/infosys/bdii-slapd.cmd
