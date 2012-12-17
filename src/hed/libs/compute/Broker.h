@@ -120,7 +120,7 @@ namespace Arc {
 
     void set(const Broker& newBroker) { b = &newBroker; sort(); }
     void set(const JobDescription& j) { b->set(j); sort(); }
-    void setRejectEndpoints(const std::list<URL> newRejectEndpoints) { rejectEndpoints = newRejectEndpoints; }
+    void setRejectEndpoints(const std::list<URL>& newRejectEndpoints) { rejectEndpoints = newRejectEndpoints; }
     
   private:
     void sort();
