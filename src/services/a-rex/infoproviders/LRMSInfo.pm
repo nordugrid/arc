@@ -48,7 +48,7 @@ use InfoChecker;
 # The usage of these schemas is described in InfoChecker.pm
 #
 #    $lrms_options_schema - for checking $options hash. This is just a minimal
-#                           schema, LRMS plugins may use an extend version
+#                           schema, LRMS plugins may use an extended version
 #    $lrms_info_schema - for checking data returned by LRMS modules
 
 my $lrms_options_schema = {
@@ -79,7 +79,7 @@ my $lrms_info_schema = {
             'status'       => '',
             'maxrunning'   => '',  # the max number of jobs allowed to run in this queue
             'maxqueuable'  => '*', # the max number of jobs allowed to be queued
-            'maxuserrun'   => '*', # the max number of jobs that a singele user can run
+            'maxuserrun'   => '*', # the max number of jobs that a single user can run
             'maxcputime'   => '*', # units: seconds (per-slot)
             'maxtotalcputime' => '*', # units: seconds
             'mincputime'   => '*', # units: seconds
