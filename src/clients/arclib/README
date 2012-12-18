@@ -7,10 +7,8 @@ Description
 -----------
 
 This is a command line user interface (client) for computational job
-submission and management to ARC and gLite computing services. For
-ARC, both Grid Manager (gridftp interface) and A-REX (BES-like
-interface) compute elements are supported. For gLite, only CREAM
-compute element is supported.
+submission and management to ARC, CREAM and EMI ES enabled computing services.
+For ARC, both Grid Manager (GridFTP) and A-REX compute elements are supported.
 
 The following commands are implemented:
 
@@ -32,15 +30,17 @@ The following commands are implemented:
 Implementation notes
 --------------------
 
-The commands are built upon the "arclib" library located in
+The commands are built upon the ARC SDK, in particular the libarccompute library
+with source code located in
 
-  src/hed/libs/client
+  src/hed/libs/compute
 
 which in turn makes use of ARC Client Components (ACC) located in
 
   src/hed/acc
 
 In addition, job management client requires data handling methods from
+the libarcdata library with source code located in
 
   src/hed/libs/data
 
