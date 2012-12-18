@@ -22,5 +22,4 @@ o Data
   based on the A-REX file cache checking. There is a CacheCheck interface inside the A-REX which can be
   used to query whether files in question are present or not in the cache directory.
 
-See src/clients/arclib/arcsub.cpp for implementation examples and 
-src/doc/clients for documentation.
+See src/hed/libs/compute/Submitter.cpp for implementation examples.
