@@ -382,6 +382,20 @@ namespace DataStaging {
        cache_dirs(caches),
        remote_cache_dirs(remote_caches),
        drain_cache_dirs(drain_caches) {
-}
+  }
+
+  DTR_ptr createDTRPtr(const std::string& source,
+                       const std::string& destination,
+                       const Arc::UserConfig& usercfg,
+                       const std::string& jobid,
+                       const uid_t& uid,
+                       DTRLogger log) {
+    return DTR_ptr(new DTR(source, destination, usercfg, jobid, uid, log));
+  }
+
+  DTRLogger createDTRLogger(Arc::Logger& parent,
+                            const std::string& subdomain) {
+    return DTRLogger(new Arc::Logger(parent, subdomain));
+  }
 
 } // namespace DataStaging

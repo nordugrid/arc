@@ -558,5 +558,17 @@ namespace DataStaging {
      bool is_in_final_state() const;
   };
   
+  /// Helper method to create smart pointer, only for swig bindings
+  DTR_ptr createDTRPtr(const std::string& source,
+                       const std::string& destination,
+                       const Arc::UserConfig& usercfg,
+                       const std::string& jobid,
+                       const uid_t& uid,
+                       DTRLogger log);
+
+  /// Helper method to create smart pointer, only for swig bindings
+  DTRLogger createDTRLogger(Arc::Logger& parent,
+                            const std::string& subdomain);
+
 } // namespace DataStaging
 #endif /*DTR_H_*/
