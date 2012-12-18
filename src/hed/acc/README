@@ -17,5 +17,5 @@ submission executable directly.
 
 See also:
 
-src/clients/arclib (command line interface)
+src/clients/compute (command line interface)
 src/doc/client (client documentation)

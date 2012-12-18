@@ -1,0 +1,200 @@
+.\" -*- nroff -*-
+.TH ARCMIGRATE 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
+.SH NAME
+
+arcmigrate \- ARC Migration
+
+.SH DESCRIPTION
+
+The
+.B arcmigrate
+command is used for migrating queued jobs from one cluster to another
+cluster. Currently migration only works between clusters running A-REX.
+
+.SH SYNOPSIS
+
+.B arcmigrate [options] [jobid ...]
+
+.SH OPTIONS
+
+.IP "\fB-c\fR, \fB--cluster\fR=\fIname\fR"
+select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
+.IP "\fB-q\fR, \fB--qluster\fR=\fIname\fR"
+select one or more computing elements for the new jobs: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
+.IP "\fB-g\fR, \fB--index\fR=\fIname\fR"
+select one or more registries: \fIname\fR can be an alias for a single registry, a group of registries or a URL
+.IP "\fB-r\fR, \fB--rejectmanagement\fR=\fIURL\fR"
+skip jobs which are on a computing element with a given URL
+.IP "\fB-R\fR, \fB--rejectdiscovery\fR=\fIURL\fR"
+skip the service with the given URL during service discovery
+.IP "\fB-S\fR, \fB--submissioninterface\fR=\fIInterfaceName\fR"
+only use this interface for submitting (e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes)
+.IP "\fB-k\fR, \fB--keep\fR"
+keep the files on the server (do not clean)
+.IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
+the file storing information about active jobs (default ~/.arc/jobs.xml)
+.IP "\fB-i\fR, \fB--jobids-from-file\fR=\fIfilename\fR"
+a file containing a list of jobIDs
+.IP "\fB-a\fR, \fB--all\fR"
+all jobs specified in the jobfile will be tried migrated
+.IP "\fB-f\fR, \fB--force\fR"
+force migration, ignore kill failure
+.IP "\fB-P\fR, \fB--listplugins\fR"
+list the available plugins
+.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
+timeout in seconds (default 20)
+.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
+configuration file (default ~/.arc/client.conf)
+.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
+FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
+.IP "\fB-b\fR, \fB--broker\fR=\fIbroker\fR"
+selected broker: Random (default), FastestQueue or custom
+.IP "\fB-v\fR, \fB--version\fR"
+print version information
+.IP "\fB-?\fR, \fB--help\fR"
+print help
+.LP
+
+.SH ARGUMENTS
+
+.IP "\fBjobid\fR ..."
+id of a queued job which should be migrated
+.LP
+
+.SH EXTENDED DESCRIPTION
+
+The
+.B arcmigrate
+command is used for migrating jobs which are queuing in the batch
+system. Currently only jobs having status Queuing
+can be migrated, and the command is only supported for migration
+between clusters running A-REX.
+
+The
+.B --qluster
+option can be used to force the job to be migrated to a particular
+cluster, or to reject migration to a particular cluster. The
+.B --qluster
+option can be repeated several times. The name of the cluster should
+be given in the format
+
+.B [ARC1:][protocol://]hostname[:port]/path
+
+.IR Examples :
+.IP "\fBarcmigrate -q example.org:60000/arex ..."
+will migrate the job  to example.org.
+.IP "\fBarcmigrate -q -example.org:60000/arex ..."
+will migrate the job to some other cluster than interop.grid.niif.hu.
+.LP
+
+Jobs to be migrated can be specified in serveral ways. Job IDs can be
+specified as arguments on the command line, clusters holding queued
+jobs can be specified with the
+.B --cluster
+option, and to migrate all jobs in the jobfile the
+.B --all
+option can be given.
+
+If the job(s) is successfully migrated a jobid(s) is printed to
+stdout. This jobid uniquely identifies the job while it is being
+executed.
+
+Information about active jobs, including the old job id of the
+migrated job, are stored in a local joblist file. By using the
+.B --joblist
+option a customized location for this file can be defined. If this
+option is used when migrating a job using
+.BR arcmigrate ,
+the same joblist
+file must be specified using the
+.B --joblist
+option for all subsequent handling of the job using
+.BR arcstat (1),
+.BR arcget (1),
+etc.
+
+The
+.B arcmigrate
+command locates the available clusters by querying information index
+servers. Which servers to query can be specified by giving the
+.B --index
+option to the command. The name of the index server should be given in
+the format
+
+.B Flavor:protocol://hostname[:port]/path
+
+.IR Example :
+.IP "\fBarcmigrate -g index1.nordugrid.org ..."
+use the NorduGrid index at index1.nordugrid.org
+.IP "\fBarcmigrate -g -grid.tsl.uu.se ..."
+do not use the Sweden index at grid.tsl.uu.se
+
+.SH FILES
+
+.TP
+.B ~/.arc/client.conf
+Some options can be given default values by specifying them in the
+ARC client configuration file. By using the
+.B --conffile
+option a different configuration file can be used than the default.
+
+.TP
+.B ~/.arc/jobs.xml
+This a local list of the user's active jobs. When a job is
+successfully migrated the old jobid is removed and the new is added
+to this list. This list is used as the list of all active jobs when
+the user specifies the
+.B --all
+option to the various NorduGrid ARC user interface commands. By using the
+.B --joblist
+option a different file can be used than the default.
+
+.SH ENVIRONMENT VARIABLES
+
+.TP
+.B X509_USER_PROXY
+The location of the user's grid proxy file. Shouldn't be set unless
+the proxy is in a non-standard location.
+
+.TP
+.B ARC_LOCATION
+The location where ARC is installed can be specified by this variable. If not
+specified the install location will be determined from the path to the
+command being executed, and if this fails a WARNING will be given stating the
+location which will be used.
+
+.TP
+.B ARC_PLUGIN_PATH
+The location of ARC plugins can be specified by this variable. Multiple
+locations can be specified by separating them by : (; in Windows). The
+default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
+
+.SH COPYRIGHT
+
+APACHE LICENSE Version 2.0
+
+.SH AUTHOR
+
+Mattias Ellert <mattias.ellert@fysast.uu.se>
+
+.SH SEE ALSO
+
+.BR arccat (1),
+.BR arcclean (1),
+.BR arccp (1),
+.BR arcget (1),
+.BR arcinfo (1),
+.BR arckill (1),
+.BR arcls (1),
+.BR arcmkdir (1),
+.BR arcproxy (1),
+.BR arcrenew (1),
+.BR arcresub (1),
+.BR arcresume (1),
+.BR arcrm (1),
+.BR arcstat (1),
+.BR arcsub (1),
+.BR arcsync (1),
+.BR arctest (1)
+

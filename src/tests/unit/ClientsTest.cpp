@@ -7,18 +7,18 @@
 
 #define TEST
 #include "../../clients/wsrf/arcwsrf.cpp"
-#include "../../clients/arclib/arccat.cpp"
-#include "../../clients/arclib/arcinfo.cpp"
-#include "../../clients/arclib/arcrenew.cpp"
-#include "../../clients/arclib/arcstat.cpp"
-#include "../../clients/arclib/arcclean.cpp"
-#include "../../clients/arclib/arckill.cpp"
-#include "../../clients/arclib/arcresub.cpp"
-#include "../../clients/arclib/arcsub.cpp"
-#include "../../clients/arclib/arcget.cpp"
-#include "../../clients/arclib/arcmigrate.cpp"
-#include "../../clients/arclib/arcresume.cpp"
-#include "../../clients/arclib/arcsync.cpp"
+#include "../../clients/compute/arccat.cpp"
+#include "../../clients/compute/arcinfo.cpp"
+#include "../../clients/compute/arcrenew.cpp"
+#include "../../clients/compute/arcstat.cpp"
+#include "../../clients/compute/arcclean.cpp"
+#include "../../clients/compute/arckill.cpp"
+#include "../../clients/compute/arcresub.cpp"
+#include "../../clients/compute/arcsub.cpp"
+#include "../../clients/compute/arcget.cpp"
+#include "../../clients/compute/arcmigrate.cpp"
+#include "../../clients/compute/arcresume.cpp"
+#include "../../clients/compute/arcsync.cpp"
 #undef TEST
 
 

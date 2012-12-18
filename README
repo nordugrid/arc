@@ -60,20 +60,20 @@ Optional dependencies
 ---------------------
 Build:
   o CppUnit for unit testing
-  o Grid Packaging Tools (GPT) (arclib)
+  o Grid Packaging Tools (GPT) (compute client)
   o swig version 1.3.28 or later (bindings)
 
 Build & runtime:
   o open-ldap client (LDAP DMC)
   o python 2.4 or higher (bindings, APEL publisher by Jura, ACIX)
   o java sdk 1.4 or later (bindings)
-  o globus-common 4 (arclib)
-  o globus-gssapi-gsi 4 (arclib)
-  o globus-rls-client 4 (arclib)
-  o globus-ftp-client 4 (arclib)
-  o globus-ftp-control 4 (arclib)
-  o globus-io  4 (arclib)
-  o globus-openssl (arclib)
+  o globus-common 4 (compute client)
+  o globus-gssapi-gsi 4 (compute client)
+  o globus-rls-client 4 (compute client)
+  o globus-ftp-client 4 (compute client)
+  o globus-ftp-control 4 (compute client)
+  o globus-io  4 (compute client)
+  o globus-openssl (compute client)
   o LHC File Catalog (LFC DMC)
   o Berkeley DB C++ interface (Delegation)
   o xmlsec1 1.2.4 or higher (Security)

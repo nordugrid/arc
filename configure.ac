@@ -175,7 +175,7 @@ enables_datadelivery_service=yes
 enables_ldap_monitor=yes
 enables_ws_monitor=yes
 #  Clients
-enables_arclib_client=yes
+enables_compute_client=yes
 enables_credentials_client=yes
 enables_echo_client=yes
 enables_data_client=yes
@@ -201,7 +201,7 @@ enables_ldap_monitor=$enableval
 enables_ws_monitor=$enableval
 enables_cache_service=$enableval
 enables_datadelivery_service=$enableval
-enables_arclib_client=$enableval
+enables_compute_client=$enableval
 enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
@@ -230,7 +230,7 @@ enabled_acix=$enableval
 
 AC_ARG_ENABLE(all-clients, AC_HELP_STRING([--disable-all-clients], [disables all buildable client components. Can be overwritten with --enable-* for specific component. It is also possible to use --enable-all-clients to overwrite defaults and --enable-all.]),
 [
-enables_arclib_client=$enableval
+enables_compute_client=$enableval
 enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
@@ -2066,10 +2066,10 @@ fi
 AM_CONDITIONAL([ACIX_TESTS_ENABLED], [test "x$TRIAL" != "x" && test "x$PYTHON_VERSION" != "x2.4" && test "x$PYTHON_VERSION" != "x2.5"])
 
 # Check for explicitely and implicitely disabled clients
-AC_ARG_ENABLE(arclib_client, AC_HELP_STRING([--disable-arclib-client], [disable building Arclib (job management) client tools]),
-  [enables_arclib_client=$enableval],[])
-AC_MSG_NOTICE([Arclib client tools enabled: $enables_arclib_client])
-AM_CONDITIONAL([ARCLIB_CLIENT_ENABLED],[test "x$enables_arclib_client" = "xyes"])
+AC_ARG_ENABLE(compute_client, AC_HELP_STRING([--disable-compute-client], [disable building compute (job management) client tools]),
+  [enables_compute_client=$enableval],[])
+AC_MSG_NOTICE([Compute client tools enabled: $enables_compute_client])
+AM_CONDITIONAL([COMPUTE_CLIENT_ENABLED],[test "x$enables_compute_client" = "xyes"])
 
 AC_ARG_ENABLE(credentials_client, AC_HELP_STRING([--disable-credentials-client], [disable building client tools for handling X.509 credentials]),
   [enables_credentials_client=$enableval],[])
@@ -2134,7 +2134,7 @@ if test "$enables_hed" = "no"; then
   if test "$enables_a_rex_service" = "yes" -o \
           "$enables_cache_service" = "yes" -o \
           "$enables_datadelivery_service" = "yes" -o \
-          "$enables_arclib_client" = "yes" -o \
+          "$enables_compute_client" = "yes" -o \
           "$enables_credentials_client" = "yes" -o \
           "$enables_echo_client" = "yes" -o \
           "$enables_data_client" = "yes" -o \
@@ -2459,21 +2459,21 @@ AC_CONFIG_FILES([Makefile
                  src/clients/credentials/arcslcs.1
                  src/clients/saml/Makefile
                  src/clients/saml/saml_assertion_init.1
-                 src/clients/arclib/Makefile
-                 src/clients/arclib/arcstat.1
-                 src/clients/arclib/arcinfo.1
-                 src/clients/arclib/arcsub.1
-                 src/clients/arclib/arcclean.1
-                 src/clients/arclib/arckill.1
-                 src/clients/arclib/arcget.1
-                 src/clients/arclib/arccat.1
-                 src/clients/arclib/arcresub.1
-                 src/clients/arclib/arcmigrate.1
-                 src/clients/arclib/arcsync.1
-                 src/clients/arclib/arcrenew.1
-                 src/clients/arclib/arcresume.1
-                 src/clients/arclib/arcacl.1
-                 src/clients/arclib/arctest.1
+                 src/clients/compute/Makefile
+                 src/clients/compute/arcstat.1
+                 src/clients/compute/arcinfo.1
+                 src/clients/compute/arcsub.1
+                 src/clients/compute/arcclean.1
+                 src/clients/compute/arckill.1
+                 src/clients/compute/arcget.1
+                 src/clients/compute/arccat.1
+                 src/clients/compute/arcresub.1
+                 src/clients/compute/arcmigrate.1
+                 src/clients/compute/arcsync.1
+                 src/clients/compute/arcrenew.1
+                 src/clients/compute/arcresume.1
+                 src/clients/compute/arcacl.1
+                 src/clients/compute/arctest.1
                  src/clients/wsrf/arcwsrf.1
                  src/clients/wsrf/Makefile
                  src/clients/cache/Makefile
@@ -2551,7 +2551,7 @@ CACHE service:      ${enables_cache_service}
 DATADELIVERY service: ${enables_datadelivery_service}
 ACIX service:       ${enables_acix}
 
-ARCLIB clients:     ${enables_arclib_client}
+COMPUTE clients:     ${enables_compute_client}
 DATA clients:       ${enables_data_client}
 CREDENTIAL clients: ${enables_credentials_client}
 ECHO client:        ${enables_echo_client}

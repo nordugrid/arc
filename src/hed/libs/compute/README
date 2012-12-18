@@ -19,4 +19,4 @@ src/hed/acc
 For command line interfaces built upon functionality contained within 
 this library see
 
-src/clients/arclib/
+src/clients/compute/

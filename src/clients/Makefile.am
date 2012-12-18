@@ -16,10 +16,10 @@ else
 CREDENTIALS_CLIENT =
 endif
 
-if ARCLIB_CLIENT_ENABLED
-ARCLIB_CLIENT = arclib
+if COMPUTE_CLIENT_ENABLED
+COMPUTE_CLIENT = compute
 else
-ARCLIB_CLIENT =
+COMPUTE_CLIENT =
 endif
 
 if SAML_CLIENT_ENABLED
@@ -40,8 +40,8 @@ else
 CACHE_CLIENT =
 endif
 
-SUBDIRS = $(DATA_CLIENT) $(ECHO_CLIENT) $(CREDENTIALS_CLIENT) $(ARCLIB_CLIENT) $(SAML_CLIENT) $(WSRF_CLIENT) $(CACHE_CLIENT)
-DIST_SUBDIRS = data echo credentials arclib saml wsrf cache
+SUBDIRS = $(DATA_CLIENT) $(ECHO_CLIENT) $(CREDENTIALS_CLIENT) $(COMPUTE_CLIENT) $(SAML_CLIENT) $(WSRF_CLIENT) $(CACHE_CLIENT)
+DIST_SUBDIRS = data echo credentials compute saml wsrf cache
 
 arcsysconfdir = $(sysconfdir)/arc
 arcsysconf_DATA = client.conf
