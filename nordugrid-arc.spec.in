@@ -322,13 +322,9 @@ Connector (ARC).
 
 This package contains the ARC data delivery service.
 
-%package aris
+%package ldap-infosys
 Summary:	ARC LDAP information service
 Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	bdii
-Provides:	%{name}-infoindex = %{version}-%{release}
-Obsoletes:	%{name}-infoindex < 0.8.2-1
 Provides:	%{name}-infosys-ldap = %{version}-%{release}
 Obsoletes:	%{name}-infosys-ldap < 1.0.0
 Provides:	nordugrid-arc-nox-ldap-infosys = 1.3.0
@@ -351,6 +347,36 @@ Requires(postun):	policycoreutils-python
 %endif
 %endif
 
+%description ldap-infosys
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains the LDAP based information system for ARC.
+This package is not self-contained. it should be pulled in by either
+nordugrid-arc-arex to be a part of a local information system or by
+nordugrid-arc-egiis to be a part of a EGIIS service.
+
+%package aris
+Summary:	ARC local information system
+Group:		System Environment/Libraries
+Requires:	%{name}-ldap-infosys = %{version}-%{release}
+Requires:	bdii
+Provides:	%{name}-infoindex = %{version}-%{release}
+Obsoletes:	%{name}-infoindex < 0.8.2-1
+Provides:	%{name}-infosys-ldap = %{version}-%{release}
+Obsoletes:	%{name}-infosys-ldap < 1.0.0
+Provides:	nordugrid-arc-nox-ldap-infosys = 1.3.0
+Obsoletes:	nordugrid-arc-nox-ldap-infosys < 1.3.0
+%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
+BuildArch:	noarch
+%endif
+
+Requires(post):		chkconfig
+Requires(preun):	chkconfig
+Requires(preun):	initscripts
+Requires(postun):	initscripts
+
 %description aris
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
@@ -364,8 +390,9 @@ nordugrid-arc-egiis to be a part of a EGIIS service.
 %package egiis
 Summary:	ARC EGIIS service
 Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-aris = %{version}-%{release}
+Requires:	%{name}-ldap-infosys = %{version}-%{release}
+Provides:	%{name}-infoindex = %{version}-%{release}
+Obsoletes:	%{name}-infoindex < 0.8.2-1
 Provides:	nordugrid-arc-nox-giis = 1.3.0
 Obsoletes:	nordugrid-arc-nox-giis < 1.3.0
 
@@ -928,12 +955,35 @@ if [ $1 -ge 1 ]; then
   service arc-datadelivery-service condrestart > /dev/null 2>&1
 fi
 
-%post aris
-/sbin/chkconfig --add nordugrid-arc-bdii
+%post ldap-infosys
 /sbin/chkconfig --add nordugrid-arc-slapd
 /sbin/chkconfig --add nordugrid-arc-inforeg
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 semanage port -a -t ldap_port_t -p tcp 2135 2>/dev/null || :
+%endif
+
+%preun ldap-infosys
+if [ $1 -eq 0 ]; then
+  service nordugrid-arc-slapd stop > /dev/null 2>&1
+  service nordugrid-arc-inforeg stop > /dev/null 2>&1
+  /sbin/chkconfig --del nordugrid-arc-slapd
+  /sbin/chkconfig --del nordugrid-arc-inforeg
+fi
+
+%postun ldap-infosys
+if [ $1 -ge 1 ]; then
+  service nordugrid-arc-slapd condrestart > /dev/null 2>&1
+  service nordugrid-arc-inforeg condrestart > /dev/null 2>&1
+fi
+%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
+if [ $1 -eq 0 ]; then
+  semanage port -d -t ldap_port_t -p tcp 2135 2>/dev/null || :
+fi
+%endif
+
+%post aris
+/sbin/chkconfig --add nordugrid-arc-bdii
+%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 semanage fcontext -a -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
 semanage fcontext -a -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null || :
 # Remove selinux labels for old arc bdii var dir
@@ -943,22 +993,15 @@ semanage fcontext -d -t slapd_db_t "/var/run/arc/bdii(/.*)?" 2>/dev/null || :
 %preun aris
 if [ $1 -eq 0 ]; then
   service nordugrid-arc-bdii stop > /dev/null 2>&1
-  service nordugrid-arc-slapd stop > /dev/null 2>&1
-  service nordugrid-arc-inforeg stop > /dev/null 2>&1
   /sbin/chkconfig --del service nordugrid-arc-bdii
-  /sbin/chkconfig --del nordugrid-arc-slapd
-  /sbin/chkconfig --del nordugrid-arc-inforeg
 fi
 
 %postun aris
 if [ $1 -ge 1 ]; then
   service nordugrid-arc-bdii condrestart > /dev/null 2>&1
-  service nordugrid-arc-slapd condrestart > /dev/null 2>&1
-  service nordugrid-arc-inforeg condrestart > /dev/null 2>&1
 fi
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 if [ $1 -eq 0 ]; then
-  semanage port -d -t ldap_port_t -p tcp 2135 2>/dev/null || :
   semanage fcontext -d -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
   semanage fcontext -d -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null || :
 fi
@@ -1137,25 +1180,28 @@ service fetch-crl-cron start > /dev/null 2>&1
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
 %doc %{_mandir}/man8/gridftpd.8*
 
+%files ldap-infosys
+%defattr(-,root,root,-)
+%{_initrddir}/nordugrid-arc-slapd
+%{_initrddir}/nordugrid-arc-inforeg
+%{_datadir}/%{pkgdir}/create-slapd-config
+%{_datadir}/%{pkgdir}/create-inforeg-config
+%{_datadir}/%{pkgdir}/config_parser_compat.sh
+%{_datadir}/%{pkgdir}/grid-info-soft-register
+%{_datadir}/%{pkgdir}/ldap-schema
+
 %files aris
 %defattr(-,root,root,-)
 %{_initrddir}/nordugrid-arc-bdii
-%{_initrddir}/nordugrid-arc-slapd
-%{_initrddir}/nordugrid-arc-inforeg
 %{_datadir}/%{pkgdir}/create-bdii-config
-%{_datadir}/%{pkgdir}/create-slapd-config
-%{_datadir}/%{pkgdir}/create-inforeg-config
 %{_datadir}/%{pkgdir}/glue-generator.pl
 %{_datadir}/%{pkgdir}/glite-info-provider-ldap
-%{_datadir}/%{pkgdir}/ldap-schema
-%{_datadir}/%{pkgdir}/grid-info-soft-register
 %{_datadir}/%{pkgdir}/qju.pl
 %{_datadir}/%{pkgdir}/cluster.pl
 %{_datadir}/%{pkgdir}/se.pl
 %{_datadir}/%{pkgdir}/LRMS.pm
 %{_datadir}/%{pkgdir}/Shared.pm
 %{_datadir}/%{pkgdir}/ConfigParser.pm
-%{_datadir}/%{pkgdir}/config_parser_compat.sh
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-aris
 
 %files egiis
