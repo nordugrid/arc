@@ -1416,6 +1416,7 @@
 ## Please consult BDII manual for details.
 #bdii_archive_size
 #bdii_db_config
+#bdii_breathe_time
 #bdii_delete_delay
 #bdii_read_timeout
 #bdii_run_dir
@@ -1426,7 +1427,6 @@
 
 # giis_fifo
 #provider_timeout
-#slapd_cron_checkpoint
 #timeout
 
 ## LDAP parameters of the cluster.pl (old) infoprovider, use the defaults, 
