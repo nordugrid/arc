@@ -122,11 +122,11 @@ template <typename T>
 class listiterator {
   private:
     typename std::list<T>::iterator it;
+    const std::list<T>& origList;
   public:
-    listiterator(typename std::list<T>::iterator it);
-    T pointer();
-    void next();
-    bool equal(const listiterator<T>& ita);
+    listiterator(typename std::list<T>::iterator it, const std::list<T>& origList);
+    T next();
+    bool hasNext();
 };
 
 template <typename T>
@@ -157,8 +157,9 @@ namespace std {
     %rename(add) push_back;
     void push_back(const value_type& x);
     %extend {
-      listiterator<T> begin() { return listiterator<T>(self->begin()); }
-      listiterator<T> end() { return listiterator<T>(self->end()); }
+      listiterator<T> iterator() { return listiterator<T>(self->begin(), *self); }
+      listiterator<T> begin() { return listiterator<T>(self->begin(), *self); }
+      listiterator<T> end() { return listiterator<T>(self->end(), *self); }
     }
   };
 
@@ -185,16 +186,17 @@ namespace std {
 }
 
 %{
+#include <stdexcept>
 template <typename T>
 class listiterator {
 private:
   typename std::list<T>::iterator it;
+  const std::list<T>& origList;
 public:
-  listiterator(typename std::list<T>::iterator it) : it(it) {}
+  listiterator(typename std::list<T>::iterator it, const std::list<T>& origList) : it(it), origList(origList) {}
 
-  T pointer() { return it.operator*(); };
-  void next() { it.operator++(); };
-  bool equal(const listiterator<T>& ita) { return it.operator==(ita.it); };
+  T next() throw (std::out_of_range) { if (!hasNext()) { throw std::out_of_range(""); }; return (it++).operator*(); };
+  bool hasNext() { return it != origList.end(); };
 };
 
 template <typename T>
@@ -209,6 +211,19 @@ public:
   bool equal(const setiterator<T>& ita) { return it.operator==(ita.it); };
 };
 %}
+%typemap(javaimports) listiterator "import java.util.Iterator; import java.util.NoSuchElementException;"
+%typemap(javacode) listiterator %{
+  public void remove() throws UnsupportedOperationException { throw new UnsupportedOperationException(); }
+%}
+%javaexception("java.util.NoSuchElementException") listiterator::next {
+  try {
+    $action
+  } catch (std::out_of_range &e) {
+    jclass clazz = jenv->FindClass("java/util/NoSuchElementException");
+    jenv->ThrowNew(clazz, "Range error");
+    return $null;
+  }
+}
 
 
 /* For non-static methods in the ARC library which returns a reference to an
@@ -304,6 +319,8 @@ std::ostream& getStdout() { return std::cout; }
 %enddef
 #else
 %define %wraplist(X, Y...)
+%typemap(javainterfaces) listiterator< Y > %{Iterator< X >%}
+%typemap(javainterfaces) std::list< Y > %{Iterable< X >%}
 %template(X ## List) std::list< Y >;
 %template(X ## ListIterator) listiterator< Y >;
 %enddef

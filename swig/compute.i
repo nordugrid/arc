@@ -99,8 +99,6 @@
 %ignore Arc::Job::operator=(XMLNode);
 %ignore Arc::Job::operator=(const Job&);
 %wraplist(Job, Arc::Job);
-%wraplist(JobP, Arc::Job*);
-%wraplist(JobConstP, Arc::Job const *);
 #ifdef SWIGPYTHON
 %ignore Arc::Job::WriteJobIDsToFile(const std::list<Job>&, const std::string&, unsigned = 10, unsigned = 500000); // Clash. It is sufficient to wrap only WriteJobIDsToFile(cosnt std::list<std::string>&, ...);
 #endif
@@ -151,6 +149,12 @@
 #endif
 %include "../src/hed/libs/compute/JobDescription.h"
 %wraplist(JobDescription, Arc::JobDescription);
+%template(JobDescriptionConstList) std::list< Arc::JobDescription const * >;
+#ifdef SWIGJAVA
+%template(JobDescriptionConstListIterator) listiterator< Arc::JobDescription const * >;
+%typemap(javainterfaces) listiterator< Arc::JobDescription const * > %{Iterator< JobDescription >%}
+%typemap(javainterfaces) std::list< Arc::JobDescription const * > %{Iterable< JobDescription >%}
+#endif
 %wraplist(StringPair, std::pair<std::string, std::string>);
 %wraplist(ExecutableType, Arc::ExecutableType);
 %wraplist(RemoteLoggingType, Arc::RemoteLoggingType);
@@ -214,8 +218,8 @@
 %include "../src/hed/libs/compute/GLUE2Entity.h" // Contains declaration of the GLUE2Entity template, used in ExecutionTarget.h file.
 %wraplist(ApplicationEnvironment, Arc::ApplicationEnvironment);
 %wraplist(ExecutionTarget, Arc::ExecutionTarget);
-%wraplist(ComputingService, Arc::ComputingServiceType);
-%wraplist(SharedComputingEndpointAttributes, Arc::CountedPointer<Arc::ComputingEndpointAttributes>);
+%wraplist(ComputingServiceType, Arc::ComputingServiceType);
+%wraplist(CPComputingEndpointAttributes, Arc::CountedPointer<Arc::ComputingEndpointAttributes>);
 %template(PeriodIntMap) std::map<Arc::Period, int>;
 %template(ComputingEndpointMap) std::map<int, Arc::ComputingEndpointType>;
 %template(ComputingShareMap) std::map<int, Arc::ComputingShareType>;
@@ -300,7 +304,6 @@ template <class Type> struct traits_from<const Type *> {
 %}
 #endif
 #endif
-%wraplist(JobDescriptionPtr, const Arc::JobDescription *);
 %template(EndpointQueryingStatusMap) std::map<Arc::Endpoint, Arc::EndpointQueryingStatus>;
 %template(EndpointSubmissionStatusMap) std::map<Arc::Endpoint, Arc::EndpointSubmissionStatus>;
 %include "../src/hed/libs/compute/Submitter.h"

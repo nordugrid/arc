@@ -44,7 +44,6 @@
 #endif
 %include "../src/hed/libs/common/XMLNode.h"
 %wraplist(XMLNode, Arc::XMLNode);
-%wraplist(XMLNodeP, Arc::XMLNode*);
 #ifdef SWIGPYTHON
 %clear std::string& out_xml_str;
 #endif
