@@ -15,7 +15,7 @@ from acix.cacheserver import cache, cacheresource
 from acix.indexserver import index, indexresource
 
 
-TEST_URLS1 = [ 'srm://srm.ndgf.org/biogrid/db/uniprot/UniProt12.6/uniprot_sprot.fasta.gz',
+TEST_URLS1 = [ 'srm://srm.ndgf.org/pnfs/ndgf.org/data/ops/sam-test/testfile',
                'gsiftp://grid.tsl.uu.se:2811/storage/sam/testfile']
 
 TEST_URLS2 = [ 'lfc://lfc1.ndgf.org//grid/ops.ndgf.org/sam/testfile',
@@ -100,13 +100,13 @@ class SystemTest(unittest.TestCase):
     @defer.inlineCallbacks
     def testIndexQuery(self):
 
-        urls1 = [ TEST_URLS1[0] ]
+        urls1 = [ TEST_URLS1[1] ]
         result = yield indexclient.queryIndex(self.index_url, urls1)
         self.failUnlessIn(urls1[0], result)
         locations = result[urls1[0]]
         self.failUnlessEqual(locations, [u'localhost'])
 
-        urls2 = [ TEST_URLS1[2] ]
+        urls2 = [ TEST_URLS1[0] ]
         result = yield indexclient.queryIndex(self.index_url, urls2)
         self.failUnlessIn(urls2[0], result)
         locations = result[urls2[0]]
@@ -119,7 +119,7 @@ class SystemTest(unittest.TestCase):
         self.failUnlessIn(urls3[0], result)
         self.failUnlessEqual(result, {urls3[0]: []})
 
-        urls4 = [ TEST_URLS2[1] ]
+        urls4 = [ TEST_URLS2[0] ]
         result = yield indexclient.queryIndex(self.index_url, urls4)
         self.failUnlessIn(urls4[0], result)
         locations = result[urls4[0]]
