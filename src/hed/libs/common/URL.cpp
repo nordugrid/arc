@@ -200,7 +200,7 @@ namespace Arc {
       pos2 = url.find("@", pos);
       if (pos2 != std::string::npos) {
 
-        if (protocol == "rc" || protocol == "rls" ||
+        if (protocol == "rc" ||
             protocol == "fireman" || protocol == "lfc") {
           // Indexing protocols may contain locations
 
@@ -329,8 +329,6 @@ namespace Arc {
     if (port == -1) {
       if (protocol == "rc")
         port = RC_DEFAULT_PORT;
-      if (protocol == "rls")
-        port = RLS_DEFAULT_PORT;
       if (protocol == "http")
         port = HTTP_DEFAULT_PORT;
       if (protocol == "https")
@@ -447,7 +445,6 @@ namespace Arc {
            protocol == "https" ||
            protocol == "httpg" ||
            protocol == "rc" ||
-           protocol == "rls" ||
            protocol == "srm" ||
            protocol == "arc" ||
            protocol == "fireman" ||

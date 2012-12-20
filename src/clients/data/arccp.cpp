@@ -463,7 +463,6 @@ bool arccp(const Arc::URL& source_url_,
       // Fileset copy
       // Find out if source can be listed (TODO - through datapoint)
       if ((source_url.Protocol() != "rc") &&
-          (source_url.Protocol() != "rls") &&
           (source_url.Protocol() != "fireman") &&
           (source_url.Protocol() != "file") &&
           (source_url.Protocol() != "se") &&

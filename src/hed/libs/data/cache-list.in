@@ -37,7 +37,6 @@ EOH
 # so check with default port no if none given
 my %ports = (
     'rc'    => '389',
-    'rls'   => '39281',
     'http'  => '80',
     'https' => '443',
     'httpg' => '8443',

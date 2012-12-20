@@ -16,11 +16,9 @@ from acix.indexserver import index, indexresource
 
 
 TEST_URLS1 = [ 'srm://srm.ndgf.org/biogrid/db/uniprot/UniProt12.6/uniprot_sprot.fasta.gz',
-               'gsiftp://grid.tsl.uu.se:2811/storage/sam/testfile',
-               'rls://grid.tsl.uu.se:39281/sam-testfile']
+               'gsiftp://grid.tsl.uu.se:2811/storage/sam/testfile']
 
-TEST_URLS2 = [ 'rls://grid.tsl.uu.se:39281/sam-testfile',
-               'lfc://lfc1.ndgf.org//grid/ops.ndgf.org/sam/testfile',
+TEST_URLS2 = [ 'lfc://lfc1.ndgf.org//grid/ops.ndgf.org/sam/testfile',
                'srm://srm.ndgf.org/pnfs/ndgf.org/data/ops/sam-test/testfile']
 
 

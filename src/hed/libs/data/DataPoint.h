@@ -48,10 +48,6 @@ namespace Arc {
  * by CERN. It consists of a hierarchical namespace of grid files and each
  * filename can be associated with one or more physical locations.
  *
- * RLS (rls://) - The Replica Location Service (RLS) is a replica catalog
- * developed by Globus. It maps filenames in a flat namespace to one or
- * more physical locations, and can also store meta-information on each file.
- *
  * SRM (srm://) - The Storage Resource Manager (SRM) protocol allows access
  * to data distributed across physical storage through a unified namespace
  * and management interface.

@@ -11,7 +11,6 @@
 
 /** Default ports for different protocols */
 #define RC_DEFAULT_PORT 389
-#define RLS_DEFAULT_PORT 39281
 #define HTTP_DEFAULT_PORT 80
 #define HTTPS_DEFAULT_PORT 443
 #define HTTPG_DEFAULT_PORT 8443

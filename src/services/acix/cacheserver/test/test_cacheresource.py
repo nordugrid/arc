@@ -8,8 +8,7 @@ from acix.cacheserver import cache, cacheresource
 
 
 TEST_URLS1 = [ 'srm://srm.ndgf.org/biogrid/db/uniprot/UniProt12.6/uniprot_sprot.fasta.gz',
-               'gsiftp://grid.tsl.uu.se:2811/storage/sam/testfile',
-               'rls://grid.tsl.uu.se:39281/sam-testfile']
+               'gsiftp://grid.tsl.uu.se:2811/storage/sam/testfile']
 
 
 class TestScanner:
