@@ -461,38 +461,17 @@ bool arccp(const Arc::URL& source_url_,
     }
     else {
       // Fileset copy
-      // Find out if source can be listed (TODO - through datapoint)
-      if ((source_url.Protocol() != "rc") &&
-          (source_url.Protocol() != "fireman") &&
-          (source_url.Protocol() != "file") &&
-          (source_url.Protocol() != "se") &&
-          (source_url.Protocol() != "srm") &&
-          (source_url.Protocol() != "lfc") &&
-          (source_url.Protocol() != "gsiftp") &&
-          (source_url.Protocol() != "ftp")) {
-        logger.msg(Arc::ERROR,
-                   "Fileset copy for this kind of source is not supported");
-        return false;
-      }
       Arc::DataHandle source(source_url, usercfg);
       if (!source) {
         logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
         return false;
       }
       std::list<Arc::FileInfo> files;
-      if (source->IsIndex()) {
-        if (!source->List(files, (Arc::DataPoint::DataPointInfoType)
-                  (Arc::DataPoint::INFO_TYPE_NAME | Arc::DataPoint::INFO_TYPE_TYPE))) {
-          logger.msg(Arc::ERROR, "Failed listing metafiles");
-          return false;
-        }
-      }
-      else {
-        if (!source->List(files, (Arc::DataPoint::DataPointInfoType)
-                  (Arc::DataPoint::INFO_TYPE_NAME | Arc::DataPoint::INFO_TYPE_TYPE))) {
-          logger.msg(Arc::ERROR, "Failed listing files");
-          return false;
-        }
+      Arc::DataStatus result = source->List(files, (Arc::DataPoint::DataPointInfoType)
+                                           (Arc::DataPoint::INFO_TYPE_NAME | Arc::DataPoint::INFO_TYPE_TYPE));
+      if (!result.Passed()) {
+        logger.msg(Arc::ERROR, "%s. Cannot copy fileset", std::string(result));
+        return false;
       }
       bool failures = false;
       // Handle transfer of files first (treat unknown like files)
