@@ -11,7 +11,7 @@
  */
 
 #ifdef SWIGJAVA
-%module arc 
+%module(directors="1") arc 
 #endif
 
 %include <stl.i>
