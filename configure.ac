@@ -423,9 +423,12 @@ if test "$enables_java" = "yes"; then
   fi
 
   if test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xgcj"; then
-    JAVAC_FLAGS="-C --classpath=. -1.5"
+    JAVAC_FLAGS="-C --classpath=."
   elif test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xjavac"; then
     JAVAC_FLAGS="$JAVA_VM_FLAGS -cp ."
+    if ${JAVAC} -version 2>&1 | grep -q "Eclipse Java Compiler"; then
+      JAVAC_FLAGS="${JAVAC_FLAGS} -1.5"
+    fi
   fi
 
   if test "x$JAVAC" = "x"; then
