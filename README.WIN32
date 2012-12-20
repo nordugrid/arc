@@ -136,7 +136,7 @@ Configure setup:
    
     LDFLAGS="-L/usr/local/BerkeleyDB.4.7/bin"  --with-dbcxx-include="/usr/local/BerkeleyDB.4.7/include
 
-Globus Toolkit (GridFTP DMC, RSL, RLS DMC, GSI MCC using this):
+Globus Toolkit (GridFTP DMC, RSL, DMC, GSI MCC using this):
 
 Installation package:
 

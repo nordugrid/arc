@@ -47,7 +47,6 @@ HED/DMC/File           Done          Not needed                Mattias          
 HED/DMC/(Grid)FTP      Done          Not needed                Mattias                  -
 HED/DMC/HTTP(S)        Usable        Not needed                Mattias & Aleksandr      -         Not well tested. Would be nice to have HTTPg as well.
 HED/DMC/LFC            Usable        Not needed                Mattias                  -         Porting of David's enhanced LFC code from ARC0 would be useful.
-HED/DMC/RLS            Done          Not needed                Mattias                  -
 HED/Security framework Done          Available, incomplete     Weizhong                 -         Continuously being modified/adapted.
 HED/PDC/SimpleList     Done          None                      Weizhong                 -
 HED/PDC/ARC Policy     Done          None                      Weizhong                 -

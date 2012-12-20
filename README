@@ -69,7 +69,6 @@ Build & runtime:
   o java sdk 1.4 or later (bindings)
   o globus-common 4 (compute client)
   o globus-gssapi-gsi 4 (compute client)
-  o globus-rls-client 4 (compute client)
   o globus-ftp-client 4 (compute client)
   o globus-ftp-control 4 (compute client)
   o globus-io  4 (compute client)

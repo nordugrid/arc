@@ -39,7 +39,6 @@ BuildRequires: mingw32-db4
 BuildRequires: mingw32-globus-common
 BuildRequires: mingw32-globus-ftp-client
 BuildRequires: mingw32-globus-ftp-control
-BuildRequires: mingw32-globus-rls-client
 BuildRequires: swig
 
 %description
@@ -78,7 +77,6 @@ Requires: %{name} = %{version}
 #Requires: globus_common
 #Requires: globus_ftp_client
 #Requires: globus_ftp_control
-#Requires: globus_rls_client
 #Requires: LFC-client
 
 %description plugins-globus
@@ -87,7 +85,6 @@ Components (DMCs):
 
   libdmcgridftp.so
   libdmclfc.so
-  libdmcrls.so
 
 %package devel
 Summary: ARC development files
@@ -282,7 +279,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_libdir}/%{pkgdir}/libmccgsi.dll*
 %{_mingw32_libdir}/%{pkgdir}/libdmcgridftp.dll*
 #%{_mingw32_libdir}/%{pkgdir}/libdmclfc.so
-%{_mingw32_libdir}/%{pkgdir}/libdmcrls.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccARC0.dll*
 %{_mingw32_libexecdir}/%{pkgdir}/arc-lcas.exe
 %{_mingw32_libexecdir}/%{pkgdir}/arc-lcmaps.exe

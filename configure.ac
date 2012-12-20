@@ -1343,13 +1343,6 @@ GPT_PKG(globus_gsi_callback)
 AC_SUBST(GLOBUS_GSI_CALLBACK_CFLAGS)
 AC_SUBST(GLOBUS_GSI_CALLBACK_LIBS)
 
-PKG_CHECK_MODULES(GLOBUS_RLS_CLIENT, [globus-rls-client], [
-GLOBUS_RLS_CLIENT_VERSION=`$PKG_CONFIG --modversion globus-rls-client`], [
-GPT_PKG(globus_rls_client)
-])
-AC_SUBST(GLOBUS_RLS_CLIENT_CFLAGS)
-AC_SUBST(GLOBUS_RLS_CLIENT_LIBS)
-
 PKG_CHECK_MODULES(GLOBUS_FTP_CLIENT, [globus-ftp-client], [
 GLOBUS_FTP_CLIENT_VERSION=`$PKG_CONFIG --modversion globus-ftp-client`], [
 GPT_PKG(globus_ftp_client)
@@ -1425,13 +1418,11 @@ if test "x$globus_openssl_detected" = "xyes" ; then
 AC_MSG_RESULT([
 Globus own OpenSSL library detected.
 In order to avoid runtime conflicts following components will be disabled:
-RLS DMC,
 GridFTP DMC,
 SRM DMC,
 GSI MCC.
 To enable these components use Globus compiled for system OpenSSL.
 ])
-GLOBUS_RLS_CLIENT_VERSION=
 GLOBUS_FTP_CLIENT_VERSION=
 GLOBUS_FTP_CONTROL_VERSION=
 GLOBUS_IO_VERSION=
@@ -1646,7 +1637,6 @@ AC_LANG_RESTORE
 
 # Setup conditionals
 AM_CONDITIONAL([GLOBUSUTILS_ENABLED], test -n "$GLOBUS_COMMON_VERSION")
-AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
 AM_CONDITIONAL([GRIDFTP_ENABLED], test -n "$GLOBUS_FTP_CLIENT_VERSION")
 AM_CONDITIONAL([MOCK_DMC_ENABLED], test x$enables_mock_dmc = xyes)
 AM_CONDITIONAL([LFC_ENABLED], test x$enables_lfc = xyes)
@@ -1682,9 +1672,6 @@ AM_CONDITIONAL([GSI_MCC_ENABLED],[test "x$enables_gsi_mcc" = "xyes"])
 if test -n "$GLOBUS_COMMON_VERSION"; then
     AC_DEFINE(HAVE_GLOBUS,,[define if GLOBUS is available])
 fi
-if test -n "$GLOBUS_RLS_CLIENT_VERSION"; then
-    AC_DEFINE(HAVE_GLOBUS_RLS_CLIENT,,[define if GLOBUS RLS client package is available])
-fi
 if test x"$OPENSSL_PROXY" = xyes; then
     AC_DEFINE(HAVE_OPENSSL_PROXY,,[define if OPENSSL has PROXY capabilities])
 fi
@@ -1699,8 +1686,6 @@ if test x"$XMLSEC_INSTALLED" = xyes; then
 fi
 
 # Setup messages for reporting
-enables_rls=no
-if test -n "$GLOBUS_RLS_CLIENT_VERSION" ; then enables_rls=yes; fi
 enables_gridftp=no
 if test -n "$GLOBUS_FTP_CLIENT_VERSION" ; then enables_gridftp=yes; fi
 
@@ -2284,7 +2269,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/srm/srmclient/Makefile
                  src/hed/dmc/lfc/Makefile
                  src/hed/dmc/gfal/Makefile
-                 src/hed/dmc/rls/Makefile
                  src/hed/dmc/xrootd/Makefile
                  src/hed/dmc/mock/Makefile
                  src/hed/profiles/general/general.xml
@@ -2527,7 +2511,6 @@ Alt.Python binding: ${enables_altpython} ($ALTPYTHON_VERSION)
 
 Available third-party features:
 
-RLS:                ${enables_rls}
 GridFTP:            ${enables_gridftp}
 LFC:                ${enables_lfc}
 GFAL:               ${enables_gfal}

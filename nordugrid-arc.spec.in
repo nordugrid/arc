@@ -138,7 +138,6 @@ BuildRequires:	openldap-devel
 BuildRequires:	globus-common-devel
 BuildRequires:	globus-ftp-client-devel
 BuildRequires:	globus-ftp-control-devel
-BuildRequires:	globus-rls-client-devel
 %if %{with_lfc}
 BuildRequires:	lfc-devel
 %endif
@@ -1402,9 +1401,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libdmclfc.so
 %{_libdir}/%{pkgdir}/libdmclfc.apd
 %endif
-%{_libdir}/%{pkgdir}/libdmcrls.so
 %{_libdir}/%{pkgdir}/libmccgsi.so
-%{_libdir}/%{pkgdir}/libdmcrls.apd
 %{_libdir}/%{pkgdir}/libmccgsi.apd
 %{_libdir}/libarcglobusutils.so.*
 %{_libexecdir}/%{pkgdir}/arc-lcas

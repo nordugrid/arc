@@ -48,7 +48,6 @@ BuildRequires: mingw32-cppunit
 #BuildRequires: mingw32-globus-common
 #BuildRequires: mingw32-globus-ftp-client
 #BuildRequires: mingw32-globus-ftp-control
-#BuildRequires: mingw32-globus-rls-client
 %endif
 
 # mingw64
@@ -74,7 +73,6 @@ BuildRequires: mingw64-cppunit
 #BuildRequires: mingw64-globus-common
 #BuildRequires: mingw64-globus-ftp-client
 #BuildRequires: mingw64-globus-ftp-control
-#BuildRequires: mingw64-globus-rls-client
 %endif
 
 BuildRequires: pkgconfig
@@ -127,7 +125,6 @@ Requires: mingw32-%{mingw_pkg_name} = %{version}
 #Requires: globus_common
 #Requires: globus_ftp_client
 #Requires: globus_ftp_control
-#Requires: globus_rls_client
 #Requires: LFC-client
 
 %description -n mingw32-%{mingw_pkg_name}-plugins-globus
@@ -136,7 +133,6 @@ Components (DMCs):
 
   libdmcgridftp.so
   libdmclfc.so
-  libdmcrls.so
 
 %package -n mingw32-%{mingw_pkg_name}-devel
 Summary: ARC development files
@@ -203,7 +199,6 @@ Requires: mingw64-%{mingw_pkg_name} = %{version}
 #Requires: globus_common
 #Requires: globus_ftp_client
 #Requires: globus_ftp_control
-#Requires: globus_rls_client
 #Requires: LFC-client
 
 %description -n mingw64-%{mingw_pkg_name}-plugins-globus
@@ -212,7 +207,6 @@ Components (DMCs):
 
   libdmcgridftp.so
   libdmclfc.so
-  libdmcrls.so
 
 %package -n mingw64-%{mingw_pkg_name}-devel
 Summary: ARC development files
@@ -397,7 +391,6 @@ rm -rf $RPM_BUILD_ROOT
 ##%{mingw32_libdir}/%{pkgdir}/libmccgsi.dll*
 ##%{mingw32_libdir}/%{pkgdir}/libdmcgridftp.dll*
 ###%{mingw32_libdir}/%{pkgdir}/libdmclfc.so
-##%{mingw32_libdir}/%{pkgdir}/libdmcrls.dll*
 ##%{mingw32_libdir}/%{pkgdir}/libaccARC0.dll*
 ##%{mingw32_libexecdir}/%{pkgdir}/arc-lcas.exe
 ##%{mingw32_libexecdir}/%{pkgdir}/arc-lcmaps.exe
@@ -556,7 +549,6 @@ rm -rf $RPM_BUILD_ROOT
 ##%{mingw64_libdir}/%{pkgdir}/libmccgsi.dll*
 ##%{mingw64_libdir}/%{pkgdir}/libdmcgridftp.dll*
 ###%{mingw64_libdir}/%{pkgdir}/libdmclfc.so
-##%{mingw64_libdir}/%{pkgdir}/libdmcrls.dll*
 ##%{mingw64_libdir}/%{pkgdir}/libaccARC0.dll*
 ##%{mingw64_libexecdir}/%{pkgdir}/arc-lcas.exe
 ##%{mingw64_libexecdir}/%{pkgdir}/arc-lcmaps.exe
