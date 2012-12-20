@@ -12,6 +12,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <glibmm/fileutils.h>
+
 #include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/DateTime.h>
@@ -94,43 +96,30 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     return 0;
   }
 
-  if (!checkproxy(usercfg)) {
-    return 1;
-  }
-
   if (opt.debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
-  if (opt.timeout > 0)
-    usercfg.Timeout(opt.timeout);
-
-  if (!opt.broker.empty())
-    usercfg.Broker(opt.broker);
-
   if (opt.show_credentials) {
-    std::string proxy_path = usercfg.ProxyPath();
-    std::string cert_path = usercfg.CertificatePath();
-    std::string key_path = usercfg.KeyPath();
-    std::string ca_dir = usercfg.CACertificatesDirectory();
-
     const Arc::Time now;
 
     std::cout << Arc::IString("Certificate information:") << std::endl << std::endl;
 
-    if (cert_path.empty() || key_path.empty()) {
+    std::string certificate_issuer = "";
+    if (usercfg.CertificatePath().empty()) {
       std::cout << Arc::IString("No user-certificate found") << std::endl << std::endl;
     } else {
-      Arc::Credential holder(cert_path, "", ca_dir, "");
-      std::cout << Arc::IString("Certificate: %s", cert_path) << std::endl;
+      Arc::Credential holder(usercfg.CertificatePath(), "", usercfg.CACertificatesDirectory(), "");
+      std::cout << Arc::IString("Certificate: %s", usercfg.CertificatePath()) << std::endl;
       std::cout << Arc::IString("Subject name: %s", holder.GetDN()) << std::endl;
       std::cout << Arc::IString("Valid until: %s", (std::string) holder.GetEndTime() ) << std::endl << std::endl;
+      certificate_issuer = holder.GetIssuerName();
     }
 
-    if (proxy_path.empty()) {
+    if (usercfg.ProxyPath().empty()) {
       std::cout << Arc::IString("No proxy found") << std::endl << std::endl;
     } else {
-      Arc::Credential holder(proxy_path, "", ca_dir, "");
-      std::cout << Arc::IString("Proxy: %s", proxy_path) << std::endl;
+      Arc::Credential holder(usercfg.ProxyPath(), "", usercfg.CACertificatesDirectory(), "");
+      std::cout << Arc::IString("Proxy: %s", usercfg.ProxyPath()) << std::endl;
       std::cout << Arc::IString("Proxy-subject: %s", holder.GetDN()) << std::endl;
       if (holder.GetEndTime() < now) {
         std::cout << Arc::IString("Valid for: Proxy expired") << std::endl << std::endl;
@@ -141,13 +130,36 @@ int RUNMAIN(arctest)(int argc, char **argv) {
       }
     }
 
-    if (!cert_path.empty() && !key_path.empty()) {
-      Arc::Credential holder(cert_path, "", ca_dir, "");
-      std::cout << Arc::IString("Certificate issuer: %s", holder.GetIssuerName()) << std::endl << std::endl; //TODO
+    if (!certificate_issuer.empty()) {
+      std::cout << Arc::IString("Certificate issuer: %s", certificate_issuer) << std::endl << std::endl;
+    }
+    
+    std::cout << Arc::IString("CA-certificates installed:") << std::endl;
+    Glib::Dir cadir(usercfg.CACertificatesDirectory());
+    for (Glib::DirIterator it = cadir.begin(); it != cadir.end(); ++it) {
+      std::string cafile = Glib::build_filename(usercfg.CACertificatesDirectory(), *it);
+      if (Glib::file_test(cafile, Glib::FILE_TEST_IS_REGULAR) && (*it)[(*it).size()-2] == '.' &&
+          ((*it)[(*it).size()-1] == '0' || (*it)[(*it).size()-1] == '1' || (*it)[(*it).size()-1] == '2')) {
+        
+        std::string dn = Arc::Credential(cafile, "", "", "").GetDN();
+        if (!dn.empty()) {
+          std::cout << "  " << dn << std::endl;
+        }
+      }
     }
 
     return EXIT_SUCCESS;
   }
+
+  if (!checkproxy(usercfg)) {
+    return 1;
+  }
+
+  if (opt.timeout > 0)
+    usercfg.Timeout(opt.timeout);
+
+  if (!opt.broker.empty())
+    usercfg.Broker(opt.broker);
 
   Arc::JobDescription testJob;
   if (!Arc::JobDescription::GetTestJob(opt.testjobid, testJob)) {
