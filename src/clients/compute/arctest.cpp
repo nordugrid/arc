@@ -102,31 +102,37 @@ int RUNMAIN(arctest)(int argc, char **argv) {
   if (opt.show_credentials) {
     const Arc::Time now;
 
-    std::cout << Arc::IString("Certificate information:") << std::endl << std::endl;
+    std::cout << Arc::IString("Certificate information:") << std::endl;
 
     std::string certificate_issuer = "";
     if (usercfg.CertificatePath().empty()) {
-      std::cout << Arc::IString("No user-certificate found") << std::endl << std::endl;
+      std::cout << "  " << Arc::IString("No user-certificate found") << std::endl << std::endl;
     } else {
       Arc::Credential holder(usercfg.CertificatePath(), "", usercfg.CACertificatesDirectory(), "");
-      std::cout << Arc::IString("Certificate: %s", usercfg.CertificatePath()) << std::endl;
-      std::cout << Arc::IString("Subject name: %s", holder.GetDN()) << std::endl;
-      std::cout << Arc::IString("Valid until: %s", (std::string) holder.GetEndTime() ) << std::endl << std::endl;
-      certificate_issuer = holder.GetIssuerName();
+      std::cout << "  " << Arc::IString("Certificate: %s", usercfg.CertificatePath()) << std::endl;
+      if (!holder.GetDN().empty()) {
+        std::cout << "  " << Arc::IString("Subject name: %s", holder.GetDN()) << std::endl;
+        std::cout << "  " << Arc::IString("Valid until: %s", (std::string) holder.GetEndTime() ) << std::endl << std::endl;
+        certificate_issuer = holder.GetIssuerName();
+      }
+      else {
+        std::cout << "  " << Arc::IString("Unable to determine certificate information") << std::endl << std::endl;
+      }
     }
 
+    std::cout << Arc::IString("Proxy certificate information:") << std::endl;
     if (usercfg.ProxyPath().empty()) {
-      std::cout << Arc::IString("No proxy found") << std::endl << std::endl;
+      std::cout << "  " << Arc::IString("No proxy found") << std::endl << std::endl;
     } else {
       Arc::Credential holder(usercfg.ProxyPath(), "", usercfg.CACertificatesDirectory(), "");
-      std::cout << Arc::IString("Proxy: %s", usercfg.ProxyPath()) << std::endl;
-      std::cout << Arc::IString("Proxy-subject: %s", holder.GetDN()) << std::endl;
+      std::cout << "  " << Arc::IString("Proxy: %s", usercfg.ProxyPath()) << std::endl;
+      std::cout << "  " << Arc::IString("Proxy-subject: %s", holder.GetDN()) << std::endl;
       if (holder.GetEndTime() < now) {
-        std::cout << Arc::IString("Valid for: Proxy expired") << std::endl << std::endl;
+        std::cout << "  " << Arc::IString("Valid for: Proxy expired") << std::endl << std::endl;
       } else if (!holder.GetVerification()) {
-        std::cout << Arc::IString("Valid for: Proxy not valid") << std::endl << std::endl;
+        std::cout << "  " << Arc::IString("Valid for: Proxy not valid") << std::endl << std::endl;
       } else {
-        std::cout << Arc::IString("Valid for: %s", (holder.GetEndTime() - now).istr()) << std::endl << std::endl;
+        std::cout << "  " << Arc::IString("Valid for: %s", (holder.GetEndTime() - now).istr()) << std::endl << std::endl;
       }
     }
 
@@ -134,6 +140,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
       std::cout << Arc::IString("Certificate issuer: %s", certificate_issuer) << std::endl << std::endl;
     }
     
+    bool issuer_certificate_found = false;
     std::cout << Arc::IString("CA-certificates installed:") << std::endl;
     Glib::Dir cadir(usercfg.CACertificatesDirectory());
     for (Glib::DirIterator it = cadir.begin(); it != cadir.end(); ++it) {
@@ -143,9 +150,19 @@ int RUNMAIN(arctest)(int argc, char **argv) {
         
         std::string dn = Arc::Credential(cafile, "", "", "").GetDN();
         if (!dn.empty()) {
+          if (dn == certificate_issuer) {
+            issuer_certificate_found = true;
+          }
           std::cout << "  " << dn << std::endl;
         }
       }
+    }
+    
+    if (certificate_issuer.empty()) {
+      std::cout << std::endl << Arc::IString("Unable to detect if issuer certificate is installed.") << std::endl;
+    }
+    else if (!issuer_certificate_found) {
+      logger.msg(Arc::WARNING, "Your issuer's certificate is not installed");
     }
 
     return EXIT_SUCCESS;
