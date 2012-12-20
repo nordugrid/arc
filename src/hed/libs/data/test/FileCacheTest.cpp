@@ -99,7 +99,7 @@ void FileCacheTest::setUp() {
   _cache_job_dir = _cache_dir + "/joblinks";
   _session_dir = _testroot + "/session";
 
-  _url = "rls://rls1.ndgf.org/file1";
+  _url = "http://host.org/file1";
   _uid = getuid();
   _gid = getgid();
   _jobid = "1";
@@ -237,8 +237,6 @@ void FileCacheTest::testStart() {
   // put different url in meta file
   _createFile(_fc1->File(_url) + ".meta", "http://badfile");
   CPPUNIT_ASSERT(!_fc1->Start(_url, available, is_locked));
-  _createFile(_fc1->File(_url) + ".meta", "rls://rls1.ndgf.org/file1.bad");
-  CPPUNIT_ASSERT(!_fc1->Start(_url, available, is_locked));
   CPPUNIT_ASSERT_EQUAL(0, remove(std::string(_fc1->File(_url)+".meta").c_str()));
 
   // put old validity format in meta file and check it is changed to new
@@ -297,9 +295,9 @@ void FileCacheTest::testRemoteCache() {
   
   caches.push_back(_cache_dir);
   std::string remote_cache_dir = _testroot + "/remotecache";
-  std::string remote_cache_file(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac");
-  std::string remote_cache_meta(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac.meta");
-  std::string remote_cache_lock(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac.lock");
+  std::string remote_cache_file(remote_cache_dir+"/data/8a/929b8384300813ba1dd2d661c42835b80691a2");
+  std::string remote_cache_meta(remote_cache_dir+"/data/8a/929b8384300813ba1dd2d661c42835b80691a2.meta");
+  std::string remote_cache_lock(remote_cache_dir+"/data/8a/929b8384300813ba1dd2d661c42835b80691a2.lock");
   remote_caches.push_back(remote_cache_dir);
   delete _fc1;
   _fc1 = new Arc::FileCache(caches, remote_caches, draining_caches, _jobid, _uid, _gid);
@@ -389,8 +387,8 @@ void FileCacheTest::testRemoteCacheValidLock() {
   
   caches.push_back(_cache_dir);
   std::string remote_cache_dir = _testroot + "/remotecache";
-  std::string remote_cache_file(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac");
-  std::string remote_cache_lock(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac.lock");
+  std::string remote_cache_file(remote_cache_dir+"/data/8a/929b8384300813ba1dd2d661c42835b80691a2");
+  std::string remote_cache_lock(remote_cache_dir+"/data/8a/929b8384300813ba1dd2d661c42835b80691a2.lock");
   remote_caches.push_back(remote_cache_dir);
   delete _fc1;
   _fc1 = new Arc::FileCache(caches, remote_caches, draining_caches, _jobid, _uid, _gid);
@@ -433,8 +431,8 @@ void FileCacheTest::testRemoteCacheInvalidLock() {
 
   caches.push_back(_cache_dir);
   std::string remote_cache_dir = _testroot + "/remotecache";
-  std::string remote_cache_file(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac");
-  std::string remote_cache_lock(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac.lock");
+  std::string remote_cache_file(remote_cache_dir+"/data/8a/929b8384300813ba1dd2d661c42835b80691a2");
+  std::string remote_cache_lock(remote_cache_dir+"/data/8a/929b8384300813ba1dd2d661c42835b80691a2.lock");
   remote_caches.push_back(remote_cache_dir);
   delete _fc1;
   _fc1 = new Arc::FileCache(caches, remote_caches, draining_caches, _jobid, _uid, _gid);
@@ -469,8 +467,8 @@ void FileCacheTest::testRemoteCacheReplication() {
 
   caches.push_back(_cache_dir);
   std::string remote_cache_dir(_testroot + "/remotecache replicate");
-  std::string remote_cache_file(_testroot + "/remotecache/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac");
-  std::string remote_cache_lock(_testroot + "/remotecache/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac.lock");
+  std::string remote_cache_file(_testroot + "/remotecache/data/8a/929b8384300813ba1dd2d661c42835b80691a2");
+  std::string remote_cache_lock(_testroot + "/remotecache/data/8a/929b8384300813ba1dd2d661c42835b80691a2.lock");
   remote_caches.push_back(remote_cache_dir);
   delete _fc1;
   _fc1 = new Arc::FileCache(caches, remote_caches, draining_caches, _jobid, _uid, _gid);
@@ -779,7 +777,7 @@ void FileCacheTest::testCopyFile() {
 
 void FileCacheTest::testFile() {
   // test hash returned
-  std::string hash = "/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac";
+  std::string hash = "/8a/929b8384300813ba1dd2d661c42835b80691a2";
   CPPUNIT_ASSERT_EQUAL(std::string(_cache_data_dir + hash), _fc1->File(_url));
 
   // set up two caches
@@ -921,7 +919,7 @@ void FileCacheTest::testTwoCaches() {
   std::string cache_dir2 = _cache_dir + "2";
   caches.push_back(cache_dir2);
 
-  std::string url2 = "rls://rls1.ndgf.org/file2";
+  std::string url2 = "http://host.org/file2";
 
   Arc::FileCache *fc2 = new Arc::FileCache(caches, "1", _uid, _gid);
   // create cache
@@ -1140,7 +1138,7 @@ void FileCacheTest::testConstructor() {
   CPPUNIT_ASSERT(*fc8);
 
   // file should be in main cache
-  std::string hash = "/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac";
+  std::string hash = "/8a/929b8384300813ba1dd2d661c42835b80691a2";
   CPPUNIT_ASSERT_EQUAL(std::string(_cache_data_dir + hash), fc8->File(_url));
   delete fc8;
 }

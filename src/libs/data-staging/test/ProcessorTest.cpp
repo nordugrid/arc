@@ -222,10 +222,8 @@ void ProcessorTest::TestResolve() {
 
   /* This part can be uncommented if a mock index DataPoint exists
   // pre-register a good destination
-  std::string filename = Arc::UUID();
-  CPPUNIT_ASSERT(!filename.empty());
-  source = "/tmp/file1";
-  destination = "rls://gsiftp://some.host:2811/some/path@rls.nordugrid.org/" + filename;
+  source = "mock://mocksrc/1";
+  destination = "mockindex://mock://mockdest/1@mockindexdest/1";
 
   dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
@@ -241,21 +239,16 @@ void ProcessorTest::TestResolve() {
 
   // check that it added the destination replica
   CPPUNIT_ASSERT(dtr->get_destination()->HaveLocations());
-  CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://some.host:2811/some/path/"+filename), dtr->get_destination()->CurrentLocation().str());
-
-  // would like check the LFN exists in the index service
-  // but RLS doesn't support LFN without PFN so we'll check this in
-  // the test for REGISTER_REPLICA
+  CPPUNIT_ASSERT_EQUAL(std::string("mock://mockdest/1"), dtr->get_destination()->CurrentLocation().str());
 
   std::list<Arc::FileInfo> files;
   CPPUNIT_ASSERT(dtr->get_destination()->List(files));
   CPPUNIT_ASSERT_EQUAL(1, (int)files.size());
-  CPPUNIT_ASSERT_EQUAL(std::string("rls://rls.nordugrid.org/"+filename), files.front().GetName());
-
+  CPPUNIT_ASSERT_EQUAL(std::string("mockindex://mockindexdest/1"), files.front().GetName());
 
   // test replication
-  source = "rls://rls.nordugrid.org/ABCDE";
-  destination = "rls://gsiftp://some.host:2811/some/path@rls.nordugrid.org/ABCDE";
+  source = "mockindex://mockdestindex/ABCDE";
+  destination = "mockindex://mock://mockdest/ABCDE@mockindexdest/ABCDE";
   dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
@@ -274,11 +267,11 @@ void ProcessorTest::TestResolve() {
 
   // check that it added the destination replica
   CPPUNIT_ASSERT(dtr->get_destination()->HaveLocations());
-  CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://some.host:2811/some/path/ABCDE"), dtr->get_destination()->CurrentLocation().str());
+  CPPUNIT_ASSERT_EQUAL(std::string("mock://mockdest/ABCDE"), dtr->get_destination()->CurrentLocation().str());
 
   // copy to an existing LFN from a different LFN
-  source = "/tmp/1.1";
-  destination = "rls://gsiftp://some.host:2811/some/path@rls.nordugrid.org/ABCDE";
+  source = "mock://mocksrc/2";
+  destination = "mockindex://mock://mockdest/2@mockindexdest/ABCDE";
 
   dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
@@ -308,24 +301,7 @@ void ProcessorTest::TestResolve() {
 
   // check that it added the destination replica
   CPPUNIT_ASSERT(dtr->get_destination()->HaveLocations());
-  CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://some.host:2811/some/path/ABCDE"), dtr->get_destination()->CurrentLocation().str());
-
-  // source and destination same file - should fail
-  source = "rls://rls.nordugrid.org/ABCDE";
-  destination = "rls://https://knowarc1.grid.niif.hu:8001/se@rls.nordugrid.org/ABCDE";
-
-  dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
-  CPPUNIT_ASSERT(dtr);
-  CPPUNIT_ASSERT(*dtr);
-  dtr->set_status(DataStaging::DTRStatus::RESOLVE);
-  DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
-  processor.receiveDTR(dtr);
-
-  // sleep while thread resolves
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) Glib::usleep(100);
-  // will fail with self-replication error
-  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::SELF_REPLICATION_ERROR, dtr->get_error_status().GetErrorStatus());
-  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
+  CPPUNIT_ASSERT_EQUAL(std::string("mock://mockdest/2"), dtr->get_destination()->CurrentLocation().str());
   */
 }
 
@@ -368,34 +344,6 @@ void ProcessorTest::TestQueryReplica() {
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::REPLICA_QUERIED, dtr->get_status().GetStatus());
 
-  // index file with inconsistent metadata - needs mock index DMC
-  /*
-  source = "rls://rls.nordugrid.org/processor_test_inconsistent_metadata";
-  dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
-  CPPUNIT_ASSERT(dtr);
-  CPPUNIT_ASSERT(*dtr);
-
-  dtr->reset_error_status();
-
-  // first resolve replicas
-  dtr->set_status(DataStaging::DTRStatus::RESOLVE);
-  DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
-  processor.receiveDTR(dtr);
-
-  // sleep while replicas are resolved
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) Glib::usleep(100);
-
-  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
-  dtr->set_status(DataStaging::DTRStatus::QUERY_REPLICA);
-  DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
-  processor.receiveDTR(dtr);
-
-  // sleep while replica is queried
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::REPLICA_QUERIED) Glib::usleep(100);
-
-  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR, dtr->get_error_status().GetErrorStatus());
-  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::REPLICA_QUERIED, dtr->get_status().GetStatus());
-  */
 }
 
 void ProcessorTest::TestReplicaRegister() {
@@ -404,13 +352,11 @@ void ProcessorTest::TestReplicaRegister() {
   DataStaging::Processor processor;
   processor.start();
 
-  std::string filename = Arc::UUID();
-  CPPUNIT_ASSERT(!filename.empty());
   std::string jobid("123456789");
 
   // register a file
-  std::string source("/tmp/file1");
-  std::string destination("rls://gsiftp://some.host:2811/some/path@rls.nordugrid.org/" + filename);
+  std::string source("mock://mocksrc/1");
+  std::string destination("mockindex://mock://mockdest/1@mockindexdest/1");
 
   DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
@@ -419,11 +365,10 @@ void ProcessorTest::TestReplicaRegister() {
   // have to resolve first
   CPPUNIT_ASSERT(dtr->get_destination()->Resolve(false).Passed());
   CPPUNIT_ASSERT(dtr->get_destination()->HaveLocations());
-  CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://some.host:2811/some/path/"+filename), dtr->get_destination()->CurrentLocation().str());
+  CPPUNIT_ASSERT_EQUAL(std::string("mock://mockdest/1"), dtr->get_destination()->CurrentLocation().str());
 
   // pre-register
   CPPUNIT_ASSERT(dtr->get_destination()->PreRegister(false, false).Passed());
-  // with RLS this doesn't add LFN so we can't check existence yet
 
   // post-register
   dtr->set_status(DataStaging::DTRStatus::REGISTER_REPLICA);
@@ -441,13 +386,10 @@ void ProcessorTest::TestReplicaRegister() {
   CPPUNIT_ASSERT(dtr->get_destination()->Stat(file, verb).Passed());
   std::list<Arc::URL> replicas = file.GetURLs();
   CPPUNIT_ASSERT_EQUAL(1, (int)replicas.size());
-  CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://some.host:2811/some/path/"+filename), replicas.front().str());
+  CPPUNIT_ASSERT_EQUAL(std::string("mock://mockdest/1"), replicas.front().str());
 
   // clean up
   CPPUNIT_ASSERT(dtr->get_destination()->Unregister(true).Passed());
-
-  // can't check request error condition with RLS - unregistering file has no effect
-  // neither does registering a file that wasn't pre-registered
   */
 }
 

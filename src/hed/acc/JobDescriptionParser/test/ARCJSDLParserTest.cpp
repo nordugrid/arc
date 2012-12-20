@@ -238,7 +238,7 @@ void ARCJSDLParserTest::TestURIOptionsOutput() {
     "<DataStaging>"
       "<FileName>test.file</FileName>"
       "<Target>"
-        "<URI>rls://example.com/test.file</URI>"
+        "<URI>lfc://example.com/test.file</URI>"
         "<URIOption>checksum=md5</URIOption>"
         "<Location>"
           "<URI>gsiftp://example.com/test.file</URI>"
@@ -260,7 +260,7 @@ void ARCJSDLParserTest::TestURIOptionsOutput() {
   const Arc::OutputFileType f(OUTJOBS.front().DataStaging.OutputFiles.front());
 
   CPPUNIT_ASSERT_EQUAL(std::string("test.file"), f.Name);
-  CPPUNIT_ASSERT_EQUAL(std::string("rls://example.com:39281/test.file"), f.Targets.front().str());
+  CPPUNIT_ASSERT_EQUAL(std::string("lfc://example.com:5010/test.file"), f.Targets.front().str());
   CPPUNIT_ASSERT_EQUAL(std::string("md5"), f.Targets.front().Option("checksum"));
 
   const std::list<Arc::URLLocation> locations(f.Targets.front().Locations());

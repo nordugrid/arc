@@ -273,7 +273,7 @@ void XRSLParserTest::TestURIOptionsInput() {
 
 void XRSLParserTest::TestURIOptionsOutput() {
   xrsl = "&(executable=/bin/true)"
-         "(outputfiles=(\"out1\" \"rls://example.com/in1\" \"checksum=md5\" \"location=gsiftp://example.com/in1\" \"threads=5\" \"location=gsiftp://example2.com/in1\" \"threads=10\"))";
+         "(outputfiles=(\"out1\" \"lfc://example.com/in1\" \"checksum=md5\" \"location=gsiftp://example.com/in1\" \"threads=5\" \"location=gsiftp://example2.com/in1\" \"threads=10\"))";
 
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
