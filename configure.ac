@@ -423,7 +423,7 @@ if test "$enables_java" = "yes"; then
   fi
 
   if test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xgcj"; then
-    JAVAC_FLAGS="-C --classpath=."
+    JAVAC_FLAGS="-C --classpath=. -1.5"
   elif test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xjavac"; then
     JAVAC_FLAGS="$JAVA_VM_FLAGS -cp ."
   fi
