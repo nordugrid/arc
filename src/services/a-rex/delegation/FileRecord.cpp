@@ -58,6 +58,29 @@ namespace ARex {
     valid_ = open();
   }
 
+  bool FileRecord::verify(void) {
+    // Performing various kinds of verifications
+    std::string dbpath = basepath_ + G_DIR_SEPARATOR_S + FR_DB_NAME;
+    {
+      Db db_test(NULL,DB_CXX_NO_EXCEPTIONS);
+      if(!dberr("Error verifying databases",
+                db_test.verify(dbpath.c_str(),NULL,NULL,DB_NOORDERCHK))) {
+        if(error_num_ != ENOENT) return false;
+      };
+    };
+    {
+      Db db_test(NULL,DB_CXX_NO_EXCEPTIONS);
+      if(!dberr("Error verifying database 'meta'",
+                db_test.verify(dbpath.c_str(),"meta",NULL,DB_ORDERCHKONLY))) {
+        if(error_num_ != ENOENT) return false;
+      };
+    };
+    // Skip 'link' - it is not of btree kind
+    // Skip 'lock' - for unknown reason it returns DB_NOTFOUND
+    // Skip 'lock' - for unknown reason it returns DB_NOTFOUND
+    return true;
+  }
+
   FileRecord::~FileRecord(void) {
     close();
   }
@@ -80,10 +103,7 @@ namespace ARex {
     };
 
     std::string dbpath = FR_DB_NAME;
-    Db db_test(db_env_,DB_CXX_NO_EXCEPTIONS);
-    if(!dberr("Error verifying database",db_test.verify(dbpath.c_str(),NULL,NULL,0))) {
-      if(error_num_ != ENOENT) return false;
-    };
+    if(!verify()) return false;
     // db_link
     //    |---db_lock
     //    \---db_locked
@@ -239,6 +259,8 @@ namespace ARex {
   bool FileRecord::Recover(void) {
     // Real recovery not implemented yet.
     close();
+    error_num_ = -1;
+    error_str_ = "Recovery not implemented yet.";
     return false;
   }
 

@@ -24,7 +24,8 @@ class FileRecord {
   std::string uid_to_path(const std::string& uid);
   bool dberr(const char* s, int err);
   bool open(void);
-  void close();
+  void close(void);
+  bool verify(void);
  public:
   class Iterator {
    private:

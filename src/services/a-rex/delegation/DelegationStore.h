@@ -3,6 +3,7 @@
 #include <map>
 
 #include <arc/delegation/DelegationInterface.h>
+#include <arc/Logger.h>
 
 #include "FileRecord.h"
 
@@ -27,11 +28,12 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
   unsigned int maxrecords_;
   unsigned int mtimeout_;
   FileRecord::Iterator* mrec_;
+  Arc::Logger logger_;
  public:
   DelegationStore(const std::string& base);
-  operator bool(void) { return (bool)*fstore_; };
-  bool operator!(void) { return !*fstore_; };
-  std::string Error(void) { return fstore_->Error(); };
+  operator bool(void) { return ((bool)fstore_ && (bool)*fstore_); };
+  bool operator!(void) { return !((bool)fstore_ && (bool)*fstore_); };
+  std::string Error(void) { return fstore_?fstore_->Error():std::string(""); };
 
   void Expiration(unsigned int v = 0) { expiration_ = v; };
   void MaxRecords(unsigned int v = 0) { maxrecords_ = v; };

@@ -23,15 +23,21 @@ namespace ARex {
     Arc::DirCreate(dpath,0,0,S_IXUSR|S_IRUSR|S_IWUSR,true);
   }
 
-  DelegationStore::DelegationStore(const std::string& base) {
+  DelegationStore::DelegationStore(const std::string& base):
+           logger_(Arc::Logger::rootLogger, "Delegation Storage") {
     expiration_ = 0;
     maxrecords_ = 0;
     mtimeout_ = 0;
     mrec_ = NULL;
     fstore_ = new FileRecord(base);
     if(!*fstore_) {
+      failure_ = "Failed to initialize storage. " + fstore_->Error();
+      logger_.msg(Arc::WARNING,"%s",failure_);
       // Database creation failed. Try recovery.
       if(!fstore_->Recover()) {
+        failure_ = "Failed to recover storage. " + fstore_->Error();
+        logger_.msg(Arc::WARNING,"%s",failure_);
+        logger_.msg(Arc::WARNING,"Wiping and re-creating whole storage");
         delete fstore_; fstore_ = NULL;
         // Full recreation of database. Delete everything.
         Glib::Dir dir(base);
@@ -51,7 +57,8 @@ namespace ARex {
         fstore_ = new FileRecord(base);
         if(!*fstore_) {
           // Failure
-          failure_ = "Failed to re-create database. " + fstore_->Error();
+          failure_ = "Failed to re-create storage. " + fstore_->Error();
+          logger_.msg(Arc::WARNING,"%s",failure_);
         } else {
           // Database recreated.
         };
