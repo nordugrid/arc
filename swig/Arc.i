@@ -259,12 +259,14 @@ public:
  * an object managing its memory.
  * Add method which sets managing object.
  */
+#ifdef SWIGJAVA
 %typemap(javacode) SWIGTYPE %{
   private Object objectManagingMyMemory;
   protected void setMemoryManager(Object r) {
     objectManagingMyMemory = r;
   }
 %}
+#endif
 /* Make sure that when a C++ reference is returned that the corresponding Java
  * proxy class will call the setMemoryManager method to indicate that the memory
  * is maintained by this object.
