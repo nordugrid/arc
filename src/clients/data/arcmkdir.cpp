@@ -41,18 +41,15 @@ bool arcmkdir(const Arc::URL& file_url,
     }
     return r;
   }
-
-  if (file_url.IsSecureProtocol()) {
-    usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials);
-    if (!Arc::Credential::IsCredentialsValid(usercfg)) {
-      logger.msg(Arc::ERROR, "Unable to create directory %s: No valid credentials found", file_url.str());
-      return false;
-    }
-  }
+  usercfg.InitializeCredentials(Arc::initializeCredentialsType::TryCredentials);
 
   Arc::DataHandle url(file_url, usercfg);
   if (!url) {
     logger.msg(Arc::ERROR, "Unsupported URL given");
+    return false;
+  }
+  if (url->RequiresCredentials() && !Arc::Credential::IsCredentialsValid(usercfg)) {
+    logger.msg(Arc::ERROR, "Unable to create directory %s: No valid credentials found", file_url.str());
     return false;
   }
   url->SetSecure(false);

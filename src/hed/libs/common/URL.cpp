@@ -440,17 +440,6 @@ namespace Arc {
     protocol = lower(newprot);
   }
 
-  bool URL::IsSecureProtocol() const {
-    return protocol == "gsiftp" ||
-           protocol == "https" ||
-           protocol == "httpg" ||
-           protocol == "rc" ||
-           protocol == "srm" ||
-           protocol == "arc" ||
-           protocol == "fireman" ||
-           protocol == "lfc";
-  }
-
   const std::string& URL::Username() const {
     return username;
   }

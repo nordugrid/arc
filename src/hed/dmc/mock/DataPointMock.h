@@ -28,6 +28,7 @@ namespace Arc {
     virtual DataStatus Remove();
     virtual DataStatus CreateDirectory(bool with_parents=false);
     virtual DataStatus Rename(const URL& newurl);
+    virtual bool RequiresCredentials() const { return false; }
   };
 
 } // namespace Arc

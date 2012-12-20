@@ -38,6 +38,7 @@ namespace Arc {
     virtual DataStatus Rename(const URL& newurl) { return DataStatus::UnimplementedError; };
     virtual DataStatus Stat(FileInfo& file, DataPoint::DataPointInfoType verb);
     virtual DataStatus List(std::list<FileInfo>& file, DataPoint::DataPointInfoType verb);
+    virtual bool RequiresCredentials() const { return false; };
   private:
     XMLNode node;
     XMLNode entry;

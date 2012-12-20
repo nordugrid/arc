@@ -142,18 +142,15 @@ static bool arcls(const Arc::URL& dir_url,
     }
     return r;
   }
-
-  if (dir_url.IsSecureProtocol()) {
-    usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials);
-    if (!Arc::Credential::IsCredentialsValid(usercfg)) {
-      logger.msg(Arc::ERROR, "Unable to list content of %s: No valid credentials found", dir_url.str());
-      return false;
-    }
-  }
+  usercfg.InitializeCredentials(Arc::initializeCredentialsType::TryCredentials);
 
   Arc::DataHandle url(dir_url, usercfg);
   if (!url) {
     logger.msg(Arc::ERROR, "Unsupported URL given");
+    return false;
+  }
+  if (url->RequiresCredentials() && !Arc::Credential::IsCredentialsValid(usercfg)) {
+    logger.msg(Arc::ERROR, "Unable to list content of %s: No valid credentials found", dir_url.str());
     return false;
   }
   url->SetSecure(false);

@@ -1328,6 +1328,10 @@ namespace Arc {
     return std::string("adler32");
   }
 
+  bool DataPointGridFTP::RequiresCredentials() const {
+    return is_secure;
+  }
+
   bool DataPointGridFTP::SetURL(const URL& url) {
     if ((url.Protocol() != "gsiftp") && (url.Protocol() != "ftp")) {
       return false;

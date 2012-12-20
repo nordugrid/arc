@@ -120,6 +120,7 @@ namespace Arc {
     virtual bool WriteOutOfOrder();
     virtual bool ProvidesMeta() const;
     virtual const std::string DefaultCheckSum() const;
+    virtual bool RequiresCredentials() const;
   };
 
 } // namespace Arc

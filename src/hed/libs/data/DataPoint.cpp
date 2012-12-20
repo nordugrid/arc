@@ -194,6 +194,10 @@ namespace Arc {
     if(triesleft) --triesleft;
   }
 
+  bool DataPoint::RequiresCredentials() const {
+    return true;
+  }
+
   void DataPoint::SetMeta(const DataPoint& p) {
     if (!CheckSize())
       SetSize(p.GetSize());

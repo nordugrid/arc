@@ -37,6 +37,7 @@ using namespace Arc;
     virtual DataStatus StartWriting(DataBuffer& buffer, DataCallback *space_cb = NULL);
     virtual DataStatus StopReading();
     virtual DataStatus StopWriting();
+    virtual bool RequiresCredentials() const { return url.Protocol() != "http"; };
   private:
     static void read_thread(void *arg);
     static void write_thread(void *arg);

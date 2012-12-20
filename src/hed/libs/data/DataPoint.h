@@ -568,6 +568,9 @@ namespace Arc {
     /// Decrease number of retries left.
     virtual void NextTry(void);
 
+    /// Returns true if some kind of credentials are needed to use this DataPoint
+    virtual bool RequiresCredentials() const;
+
     /// Check if URL is an Indexing Service.
     virtual bool IsIndex() const = 0;
 

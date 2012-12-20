@@ -107,9 +107,6 @@ namespace Arc {
     /** Changes the protocol of the URL. */
     void ChangeProtocol(const std::string& newprot);
 
-    /** Indicates whether the protocol is secure or not. */
-    bool IsSecureProtocol() const;
-
     /** Returns the username of the URL. */
     const std::string& Username() const;
 

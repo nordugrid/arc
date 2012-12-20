@@ -46,6 +46,7 @@ namespace Arc {
                                     DataCallback *space_cb = NULL);
     virtual DataStatus StopReading();
     virtual DataStatus StopWriting();
+    virtual bool RequiresCredentials() const { return bartender_url.Protocol() != "http"; };
   };
 
 } // namespace Arc

@@ -98,12 +98,10 @@ bool arctransfer(const Arc::URL& source_url,
     logger.msg(Arc::ERROR, "Invalid URL: %s", destination_url.str());
     return false;
   }
-  if (source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) {
-    usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials);
-    if (!Arc::Credential::IsCredentialsValid(usercfg)) {
-      logger.msg(Arc::ERROR, "Unable to transfer file %s: No valid credentials found", source_url.str());
-      return false;
-    }
+  // Credentials are always required for 3rd party transfer
+  if (!Arc::Credential::IsCredentialsValid(usercfg)) {
+    logger.msg(Arc::ERROR, "Unable to transfer file %s: No valid credentials found", source_url.str());
+    return false;
   }
 
   Arc::DataStatus res = Arc::DataPoint::Transfer3rdParty(source_url, destination_url, usercfg, verbose ? &transfer_cb : NULL);
@@ -207,13 +205,6 @@ bool arcregister(const Arc::URL& source_url,
     logger.msg(Arc::ERROR, "Fileset registration is not supported yet");
     return false;
   }
-  if (source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) {
-    usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials);
-    if (!Arc::Credential::IsCredentialsValid(usercfg)) {
-      logger.msg(Arc::ERROR, "Unable to register file %s: No valid credentials found", source_url.str());
-      return false;
-    }
-  }
   Arc::DataHandle source(source_url, usercfg);
   Arc::DataHandle destination(destination_url, usercfg);
   if (!source) {
@@ -223,6 +214,11 @@ bool arcregister(const Arc::URL& source_url,
   if (!destination) {
     logger.msg(Arc::ERROR, "Unsupported destination url: %s",
                destination_url.str());
+    return false;
+  }
+  if ((source->RequiresCredentials() || destination->RequiresCredentials()) &&
+      !Arc::Credential::IsCredentialsValid(usercfg)) {
+    logger.msg(Arc::ERROR, "Unable to register file %s: No valid credentials found", source_url.str());
     return false;
   }
   if (source->IsIndex() || !destination->IsIndex()) {
@@ -303,6 +299,11 @@ static Arc::DataStatus do_mover(const Arc::URL& s_url,
   if (!destination) {
     logger.msg(Arc::INFO, "Unsupported destination url: %s", d_url.str());
     return Arc::DataStatus::WriteAcquireError;
+  }
+  if ((source->RequiresCredentials() || destination->RequiresCredentials()) &&
+      !Arc::Credential::IsCredentialsValid(usercfg)) {
+    logger.msg(Arc::ERROR, "Unable to copy file %s: No valid credentials found", s_url.str());
+    return Arc::DataStatus::CredentialsExpiredError;
   }
   if (!locations.empty()) {
     std::string meta(destination->GetURL().Protocol()+"://"+destination->GetURL().Host());
@@ -431,14 +432,6 @@ bool arccp(const Arc::URL& source_url_,
     return r;
   }
 
-  if (source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) {
-    usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials);
-    if (!Arc::Credential::IsCredentialsValid(usercfg)) {
-      logger.msg(Arc::ERROR, "Unable to copy file %s: No valid credentials found", source_url.str());
-      return false;
-    }
-  }
-
   if (destination_url.Path()[destination_url.Path().length() - 1] != '/') {
     if (source_url.Path()[source_url.Path().length() - 1] == '/' &&
         source_url.MetaDataOption("guid").empty()) { // files specified by guid may have path '/'
@@ -464,6 +457,10 @@ bool arccp(const Arc::URL& source_url_,
       Arc::DataHandle source(source_url, usercfg);
       if (!source) {
         logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
+        return false;
+      }
+      if (source->RequiresCredentials() && !Arc::Credential::IsCredentialsValid(usercfg)) {
+        logger.msg(Arc::ERROR, "Unable to copy from %s: No valid credentials found", source_url.str());
         return false;
       }
       std::list<Arc::FileInfo> files;
@@ -670,8 +667,9 @@ int main(int argc, char **argv) {
     return 0;
   }
 
-  // credentials will be initialised later if necessary
-  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::SkipCredentials);
+  // Attempt to acquire credentials. Whether they are required will be
+  // determined later depending on the protocol.
+  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::TryCredentials);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
