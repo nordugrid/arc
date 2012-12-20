@@ -32,6 +32,16 @@
 %{
 #include <arc/loader/Plugin.h>
 %}
+/* Make garbage collector destroy all plugin objects _before_ destroying loader */
+%typemap(javaout) Arc::Plugin * get_instance {
+    long cPtr = $jnicall;
+    $javaclassname ret = null;
+    if (cPtr != 0) {
+      ret = new $javaclassname(cPtr, $owner);
+      ret.setMemoryManager(this);
+    }
+    return ret;
+  }
 %include "../src/hed/libs/loader/Plugin.h"
 %wraplist(ModuleDesc, Arc::ModuleDesc);
 %wraplist(PluginDesc, Arc::PluginDesc);
