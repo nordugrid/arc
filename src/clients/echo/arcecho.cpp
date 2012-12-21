@@ -37,6 +37,10 @@ int main(int argc, char **argv) {
                                     "The message argument is the message the "
                                     "service should return."));
 
+  int timeout = -1;
+  options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
+                    istring("seconds"), timeout);
+
   std::string conffile;
   options.AddOption('z', "conffile",
                     istring("configuration file (default ~/.arc/client.conf)"),
@@ -71,6 +75,10 @@ int main(int argc, char **argv) {
 
   if (debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
+
+  if (timeout > 0) {
+    usercfg.Timeout(timeout);
+  }
 
   if (args.size() != 2) {
     logger.msg(Arc::ERROR, "Wrong number of arguments!");
