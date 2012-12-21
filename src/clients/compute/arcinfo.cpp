@@ -130,15 +130,28 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
         std::cout << " (" << (**it).QualityLevel << ")";
       }
       std::cout << std::endl;
+      
+      std::stringstream infostream, submissionstream;
       for (std::map<int, Arc::ComputingEndpointType>::const_iterator itCE = it->ComputingEndpoint.begin();
            itCE != it->ComputingEndpoint.end(); ++itCE) {
-         if (itCE->second->Capability.empty() ||
-             itCE->second->Capability.count(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::JOBSUBMIT)) ||
-             itCE->second->Capability.count(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::JOBCREATION)))
-         {
-           std::cout << "  Submission endpoint: " << itCE->second->URLString << " (status: " << itCE->second->HealthState << ", interface: " << itCE->second->InterfaceName << ")" << std::endl;           
-         }
+        if (itCE->second->Capability.count(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO))) {
+          infostream << "  " << Arc::IString("Information endpoint") << ": " << itCE->second->URLString << std::endl;
+        }
+        if (itCE->second->Capability.empty() ||
+            itCE->second->Capability.count(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::JOBSUBMIT)) ||
+            itCE->second->Capability.count(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::JOBCREATION)))
+        {
+          submissionstream << "  ";
+          submissionstream << Arc::IString("Submission endpoint") << ": ";
+          submissionstream << itCE->second->URLString;
+          submissionstream << " (" << Arc::IString("status") << ": ";
+          submissionstream << itCE->second->HealthState << ", ";
+          submissionstream << Arc::IString("interface") << ": ";
+          submissionstream << itCE->second->InterfaceName << ")" << std::endl;           
+        }
       }
+      
+      std::cout << infostream.str() << submissionstream.str();
     }
   }
 
