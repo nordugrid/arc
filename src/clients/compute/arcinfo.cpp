@@ -122,7 +122,8 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
   for (std::list<Arc::ComputingServiceType>::const_iterator it = services.begin();
        it != services.end(); ++it) {
     if (opt.longlist) {
-      std::cout << *it << std::endl;
+      if (it != services.begin()) std::cout << std::endl;
+      std::cout << *it;
     }
     else {
       std::cout << "Computing service: " << (**it).Name;
