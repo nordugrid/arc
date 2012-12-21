@@ -37,6 +37,8 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 int test(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorter& ets, const Arc::JobDescription& testJob, const std::string& jobidfile);
 int dumpjobdescription(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorter& ets, const Arc::JobDescription& testJob);
 
+static bool get_hash_value(const Arc::Credential& c, std::string& hash_str);
+
 int RUNMAIN(arctest)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
@@ -145,16 +147,20 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     Glib::Dir cadir(usercfg.CACertificatesDirectory());
     for (Glib::DirIterator it = cadir.begin(); it != cadir.end(); ++it) {
       std::string cafile = Glib::build_filename(usercfg.CACertificatesDirectory(), *it);
+      // Assume certificates have file ending ".0", ".1" or ".2". Very OpenSSL specific.
       if (Glib::file_test(cafile, Glib::FILE_TEST_IS_REGULAR) && (*it)[(*it).size()-2] == '.' &&
           ((*it)[(*it).size()-1] == '0' || (*it)[(*it).size()-1] == '1' || (*it)[(*it).size()-1] == '2')) {
         
-        std::string dn = Arc::Credential(cafile, "", "", "").GetDN();
-        if (!dn.empty()) {
-          if (dn == certificate_issuer) {
-            issuer_certificate_found = true;
-          }
-          std::cout << "  " << dn << std::endl;
-        }
+        Arc::Credential cred(cafile, "", "", "");
+        std::string dn = cred.GetDN();
+        if (dn.empty()) continue;
+          
+        std::string hash;
+        // Only accept certificates with correct hash.
+        if (!get_hash_value(cred, hash) || hash != (*it).substr(0, (*it).size()-2)) continue;
+        
+        if (dn == certificate_issuer) issuer_certificate_found = true;
+        std::cout << "  " << dn << std::endl;
       }
     }
     
@@ -312,4 +318,18 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorte
   }
 
   return (!ets.endOfList());
+}
+
+static bool get_hash_value(const Arc::Credential& c, std::string& hash_str) {
+  X509* cert = c.GetCert();
+  if(!cert) return false;
+  X509_NAME* cert_name = X509_get_subject_name(cert);
+  if(!cert_name) return false;
+
+  char hash[32];
+  memset(hash, 0, 32);
+  snprintf(hash, 32, "%08lx", X509_NAME_hash(cert_name));
+  hash_str = hash;
+  X509_free(cert);
+  return true;
 }
