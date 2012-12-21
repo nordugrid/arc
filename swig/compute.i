@@ -152,8 +152,10 @@
 %template(JobDescriptionConstList) std::list< Arc::JobDescription const * >;
 #ifdef SWIGJAVA
 %template(JobDescriptionConstListIterator) listiterator< Arc::JobDescription const * >;
+#ifdef JAVA_IS_15_OR_ABOVE
 %typemap(javainterfaces) listiterator< Arc::JobDescription const * > %{Iterator< JobDescription >%}
 %typemap(javainterfaces) std::list< Arc::JobDescription const * > %{Iterable< JobDescription >%}
+#endif
 #endif
 %wraplist(StringPair, std::pair<std::string, std::string>);
 %wraplist(ExecutableType, Arc::ExecutableType);

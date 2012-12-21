@@ -426,10 +426,14 @@ if test "$enables_java" = "yes"; then
     JAVAC_FLAGS="-C --classpath=."
   elif test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xjavac"; then
     JAVAC_FLAGS="$JAVA_VM_FLAGS -cp ."
-    if ${JAVAC} -version 2>&1 | grep -q "Eclipse Java Compiler"; then
-      JAVAC_FLAGS="${JAVAC_FLAGS} -1.5"
-    fi
   fi
+  
+  # Check if version is 1.5 (Iterable was first introduced in 1.5)
+  echo "public abstract class TestIterable implements Iterable< Object > {}" > TestIterable.java
+  if $JAVAC $JAVAC_FLAGS TestIterable.java >/dev/null 2>&1; then
+    java_is_15_or_above="yes"
+  fi
+  rm -f TestIterable.java TestIterable.class
 
   if test "x$JAVAC" = "x"; then
     AC_MSG_NOTICE([Missing Java compiler - skipping Java components])
@@ -459,6 +463,7 @@ AC_MSG_NOTICE([Java enabled: $enables_java])
 AC_MSG_NOTICE([Java SWIG binding enabled: $enables_swig_java])
 AM_CONDITIONAL([JAVA_ENABLED],[test "x$enables_java" = "xyes"])
 AM_CONDITIONAL([JAVA_SWIG_ENABLED],[test "x$enables_swig_java" = "xyes"])
+AM_CONDITIONAL([JAVA_IS_15_OR_ABOVE], [test "x$java_is_15_or_above" = "xyes"])
 
 AC_SUBST(JAR_JFLAGS)
 AC_SUBST(JAVAC_FLAGS)

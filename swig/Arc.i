@@ -211,7 +211,11 @@ public:
   bool equal(const setiterator<T>& ita) { return it.operator==(ita.it); };
 };
 %}
+#ifdef JAVA_IS_15_OR_ABOVE
 %typemap(javaimports) listiterator "import java.util.Iterator; import java.util.NoSuchElementException;"
+#else
+%typemap(javaimports) listiterator "import java.util.NoSuchElementException;"
+#endif
 %typemap(javacode) listiterator %{
   public void remove() throws UnsupportedOperationException { throw new UnsupportedOperationException(); }
 %}
@@ -318,12 +322,19 @@ std::ostream& getStdout() { return std::cout; }
 %template(X ## List) std::list< Y >;
 %enddef
 #else
+#ifdef JAVA_IS_15_OR_ABOVE
 %define %wraplist(X, Y...)
 %typemap(javainterfaces) listiterator< Y > %{Iterator< X >%}
 %typemap(javainterfaces) std::list< Y > %{Iterable< X >%}
 %template(X ## List) std::list< Y >;
 %template(X ## ListIterator) listiterator< Y >;
 %enddef
+#else
+%define %wraplist(X, Y...)
+%template(X ## List) std::list< Y >;
+%template(X ## ListIterator) listiterator< Y >;
+%enddef
+#endif
 #endif
 
 %template(StringPair) std::pair<std::string, std::string>;
