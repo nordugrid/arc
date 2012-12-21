@@ -50,9 +50,9 @@ namespace Arc {
   class Extractor {
   public:
     Extractor() : logger(NULL) {}
-    Extractor(XMLNode node, const std::string prefix = "", Logger* logger = NULL) : node(node), prefix(prefix), logger(logger) {}
+    Extractor(XMLNode node, const std::string& prefix = "", Logger* logger = NULL) : node(node), prefix(prefix), logger(logger) {}
 
-    std::string get(const std::string name) {
+    std::string get(const std::string& name) {
       std::string value = node["GLUE2" + prefix + name];
       if (value.empty()) {
         value = (std::string)node["GLUE2" + name];
@@ -61,11 +61,11 @@ namespace Arc {
       return value;
     }
 
-    std::string operator[](const std::string name) {
+    std::string operator[](const std::string& name) {
       return get(name);
     }
 
-    bool set(const std::string name, std::string& string) {
+    bool set(const std::string& name, std::string& string) {
       std::string value = get(name);
       if (!value.empty()) {
         string = value;
@@ -75,7 +75,7 @@ namespace Arc {
       }
     }
 
-    bool set(const std::string name, Period& period) {
+    bool set(const std::string& name, Period& period) {
       std::string value = get(name);
       if (!value.empty()) {
         period = Period(value);
@@ -85,7 +85,7 @@ namespace Arc {
       }
     }
 
-    bool set(const std::string name, Time& time) {
+    bool set(const std::string& name, Time& time) {
       std::string value = get(name);
       if (!value.empty()) {
         time = Time(value);
@@ -95,22 +95,22 @@ namespace Arc {
       }
     }
 
-    bool set(const std::string name, int& integer) {
+    bool set(const std::string& name, int& integer) {
       const std::string value = get(name);
       return !value.empty() && stringto(value, integer);
     }
 
-    bool set(const std::string name, float& number) {
+    bool set(const std::string& name, float& number) {
       std::string value = get(name);
       return !value.empty() && stringto(value, number);
     }
 
-    bool set(const std::string name, double& number) {
+    bool set(const std::string& name, double& number) {
       std::string value = get(name);
       return !value.empty() && stringto(value, number);
     }
 
-    bool set(const std::string name, URL& url) {
+    bool set(const std::string& name, URL& url) {
       std::string value = get(name);
       if (!value.empty()) {
         url = URL(value);
@@ -120,7 +120,7 @@ namespace Arc {
       }
     }
 
-    bool set(const std::string name, bool& boolean) {
+    bool set(const std::string& name, bool& boolean) {
       std::string value = get(name);
       if (!value.empty()) {
         boolean = (value == "TRUE");
@@ -130,7 +130,7 @@ namespace Arc {
       }
     }
 
-    bool set(const std::string name, std::list<std::string>& list) {
+    bool set(const std::string& name, std::list<std::string>& list) {
       XMLNodeList nodelist = node.Path("GLUE2" + prefix + name);
       if (nodelist.empty()) {
         nodelist = node.Path("GLUE2" + name);
@@ -147,7 +147,7 @@ namespace Arc {
       return true;
     }
 
-    bool set(const std::string name, std::set<std::string>& list) {
+    bool set(const std::string& name, std::set<std::string>& list) {
       XMLNodeList nodelist = node.Path("GLUE2" + prefix + name);
       if (nodelist.empty()) {
         nodelist = node.Path("GLUE2" + name);
@@ -164,17 +164,17 @@ namespace Arc {
       return true;
     }
 
-    static Extractor First(XMLNode& node, const std::string objectClass, Logger* logger = NULL) {
+    static Extractor First(XMLNode& node, const std::string& objectClass, Logger* logger = NULL) {
       XMLNodeList objects = node.XPathLookup("//*[objectClass='GLUE2" + objectClass + "']", NS());
       if(objects.empty()) return Extractor();
       return Extractor(objects.front(), objectClass , logger);
     }
 
-    static Extractor First(Extractor& e, const std::string objectClass) {
+    static Extractor First(Extractor& e, const std::string& objectClass) {
       return First(e.node, objectClass, e.logger);
     }
 
-    static std::list<Extractor> All(XMLNode& node, const std::string objectClass, Logger* logger = NULL) {
+    static std::list<Extractor> All(XMLNode& node, const std::string& objectClass, Logger* logger = NULL) {
       std::list<XMLNode> objects = node.XPathLookup("//*[objectClass='GLUE2" + objectClass + "']", NS());
       std::list<Extractor> extractors;
       for (std::list<XMLNode>::iterator it = objects.begin(); it != objects.end(); it++) {
@@ -183,7 +183,7 @@ namespace Arc {
       return extractors;
     }
 
-    static std::list<Extractor> All(Extractor& e, const std::string objectClass) {
+    static std::list<Extractor> All(Extractor& e, const std::string& objectClass) {
       return All(e.node, objectClass, e.logger);
     }
 
