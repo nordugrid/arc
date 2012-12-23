@@ -121,7 +121,7 @@ namespace Arc {
   public:
     /// Construct a new DataHandle
     DataHandle(const URL& url, const UserConfig& usercfg)
-      : p(loader.load(url, usercfg)) {}
+      : p(getLoader().load(url, usercfg)) {}
     /// Destructor
     ~DataHandle() {
       if (p)
@@ -155,12 +155,13 @@ namespace Arc {
     /// This static method is mostly for bindings to other languages
     /// and if availability scope of obtained DataPoint is undefined.
     static DataPoint* GetPoint(const URL& url, const UserConfig& usercfg) {
-      return loader.load(url, usercfg);
+      return getLoader().load(url, usercfg);
     }
   private:
     /// Pointer to specific DataPoint instance
     DataPoint *p;
-    static DataPointLoader loader;
+    /// Returns DataPointLoader object to be used for creating DataPoint objects.
+    static DataPointLoader& getLoader();
     /// Private default constructor
     DataHandle(void);
     /// Private copy constructor and assignment operator because DataHandle

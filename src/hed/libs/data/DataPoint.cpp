@@ -267,6 +267,12 @@ namespace Arc {
     return factory_->GetInstance<DataPoint>("HED:DMC", &arg, false);
   }
 
-  DataPointLoader DataHandle::loader;
+  DataPointLoader& DataHandle::getLoader() {
+    static DataPointLoader* loader = NULL;
+    if(!loader) {
+      loader = new DataPointLoader();
+    }
+    return *loader;
+  }
 
 } // namespace Arc
