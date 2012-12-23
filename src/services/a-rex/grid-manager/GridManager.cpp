@@ -35,7 +35,7 @@ namespace ARex {
 #define DEFAULT_LOG_FILE "/var/log/arc/grid-manager.log"
 #define DEFAULT_PID_FILE "/var/run/grid-manager.pid"
 
-static Arc::Logger logger(Arc::Logger::getRootLogger(),"AREX:GM");
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"A-REX");
 
 class cache_st {
  public:
