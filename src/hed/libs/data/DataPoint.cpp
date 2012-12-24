@@ -268,6 +268,11 @@ namespace Arc {
   }
 
   DataPointLoader& DataHandle::getLoader() {
+    // For C++ it would be enough to have 
+    //   static DataPointLoader loader;
+    // But Java sometimes does not destroy objects causing
+    // PluginsFactory destructor loop forever waiting for
+    // plugins to exit.
     static DataPointLoader* loader = NULL;
     if(!loader) {
       loader = new DataPointLoader();

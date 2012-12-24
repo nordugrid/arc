@@ -82,7 +82,7 @@ namespace Arc {
 
     CountedPointer<BrokerPlugin> p;
 
-    static BrokerPluginLoader l;
+    static BrokerPluginLoader& getLoader();
 
     static Logger logger;
   };

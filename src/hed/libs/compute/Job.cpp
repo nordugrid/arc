@@ -84,7 +84,18 @@ namespace Arc {
 
   Logger Job::logger(Logger::getRootLogger(), "Job");
 
-  JobControllerPluginLoader Job::loader;
+  JobControllerPluginLoader& Job::getLoader() {
+    // For C++ it would be enough to have 
+    //   static JobControllerPluginLoader loader;
+    // But Java sometimes does not destroy objects causing
+    // PluginsFactory destructor loop forever waiting for
+    // plugins to exit.
+    static JobControllerPluginLoader* loader = NULL;
+    if(!loader) {
+      loader = new JobControllerPluginLoader();
+    }
+    return *loader;
+  }
   
   DataHandle* Job::data_source = NULL;
   DataHandle* Job::data_destination = NULL;
@@ -612,7 +623,7 @@ namespace Arc {
       logger.msg(VERBOSE, "Unable to handle job (%s), no interface specified.", JobID);
     }
     
-    jc = loader.loadByInterfaceName(JobManagementInterfaceName, uc);
+    jc = getLoader().loadByInterfaceName(JobManagementInterfaceName, uc);
     if (!jc) {
       logger.msg(VERBOSE, "Unable to handle job (%s), no plugin associated with the specified interface (%s)", JobID, JobManagementInterfaceName);
       return false;

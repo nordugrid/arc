@@ -59,7 +59,7 @@ namespace Arc {
 
     std::map<std::string, JobControllerPlugin*>::iterator currentJC = loadedJCs.find(job.JobManagementInterfaceName);
     if (currentJC == loadedJCs.end()) {
-      JobControllerPlugin *jc = Job::loader.loadByInterfaceName(job.JobManagementInterfaceName, usercfg);
+      JobControllerPlugin *jc = Job::getLoader().loadByInterfaceName(job.JobManagementInterfaceName, usercfg);
       currentJC = loadedJCs.insert(std::pair<std::string, JobControllerPlugin*>(job.JobManagementInterfaceName, jc)).first;
       if (!jc) {
         logger.msg(VERBOSE, "Ignoring job (%s), unable to load JobControllerPlugin for %s", job.JobID, job.JobManagementInterfaceName);

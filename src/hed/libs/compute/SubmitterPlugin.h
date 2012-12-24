@@ -100,7 +100,7 @@ namespace Arc {
 
   //! Class responsible for loading SubmitterPlugin plugins
   /// The SubmitterPlugin objects returned by a SubmitterPluginLoader
-  /// must not be used after the SubmitterPluginLoader goes out of scope.
+  /// must not be used after the SubmitterPluginLoader is destroyed.
   class SubmitterPluginLoader : public Loader {
   public:
     //! Constructor

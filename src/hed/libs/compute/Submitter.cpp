@@ -11,7 +11,19 @@
 
 namespace Arc {
 
-  SubmitterPluginLoader Submitter::loader;
+  SubmitterPluginLoader& Submitter::getLoader() {
+    // For C++ it would be enough to have 
+    //   static SubmitterPluginLoader loader;
+    // But Java sometimes does not destroy objects causing
+    // PluginsFactory destructor loop forever waiting for
+    // plugins to exit.
+    static SubmitterPluginLoader* loader = NULL;
+    if(!loader) {
+      loader = new SubmitterPluginLoader();
+    }
+    return *loader;
+  }
+
   Logger Submitter::logger(Logger::getRootLogger(), "Submitter");
 
   std::string EndpointSubmissionStatus::str(EndpointSubmissionStatusType s) {
@@ -75,7 +87,7 @@ namespace Arc {
     if (!endpoint.InterfaceName.empty()) {
       logger.msg(DEBUG, "Interface (%s) specified, submitting only to that interface", endpoint.InterfaceName);
       
-      SubmitterPlugin *sp = loader.loadByInterfaceName(endpoint.InterfaceName, uc);
+      SubmitterPlugin *sp = getLoader().loadByInterfaceName(endpoint.InterfaceName, uc);
       
       if (sp == NULL)  {
         submissionStatusMap[endpoint] = EndpointSubmissionStatus::NOPLUGIN;
@@ -93,12 +105,12 @@ namespace Arc {
     
     logger.msg(DEBUG, "Trying all available interfaces", endpoint.URLString);
     // InterfaceName is empty -> Try all interfaces.
-    loader.initialiseInterfacePluginMap(uc);
-    const std::map<std::string, std::string>& interfacePluginMap = loader.getInterfacePluginMap();
+    getLoader().initialiseInterfacePluginMap(uc);
+    const std::map<std::string, std::string>& interfacePluginMap = getLoader().getInterfacePluginMap();
     for (std::map<std::string, std::string>::const_iterator it = interfacePluginMap.begin();
          it != interfacePluginMap.end(); ++it) {
       logger.msg(DEBUG, "Trying to submit endpoint (%s) using interface (%s) with plugin (%s).", endpoint.URLString, it->first, it->second);
-      SubmitterPlugin *sp = loader.load(it->second, uc);
+      SubmitterPlugin *sp = getLoader().load(it->second, uc);
       
       if (sp == NULL) {
         logger.msg(DEBUG, "Unable to load plugin (%s) for interface (%s) when trying to submit job description.", it->second, it->first);
@@ -211,7 +223,7 @@ namespace Arc {
 
     ConsumerWrapper cw(*this);
 
-    SubmitterPlugin *sp = loader.loadByInterfaceName(et.ComputingEndpoint->InterfaceName, uc);
+    SubmitterPlugin *sp = getLoader().loadByInterfaceName(et.ComputingEndpoint->InterfaceName, uc);
     
     if (sp == NULL) {
       for (std::list<JobDescription>::const_iterator it = descs.begin(); it != descs.end(); ++it) {
@@ -309,7 +321,7 @@ namespace Arc {
         ets.set(*currentJobDesc);
         for (; !ets.endOfList(); ets.next()) {
           if(!match_submission_interface(*ets, requestedSubmissionInterfaces)) continue;
-          SubmitterPlugin *sp = loader.loadByInterfaceName(ets->ComputingEndpoint->InterfaceName, uc);
+          SubmitterPlugin *sp = getLoader().loadByInterfaceName(ets->ComputingEndpoint->InterfaceName, uc);
           if (sp == NULL) {
             submissionStatusMap[Endpoint(*ets)] = EndpointSubmissionStatus(EndpointSubmissionStatus::NOPLUGIN);
             retval |= SubmissionStatus::SUBMITTER_PLUGIN_NOT_LOADED;

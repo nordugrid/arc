@@ -149,7 +149,7 @@ namespace Arc {
     
     std::list<EntityConsumer<Job>*> consumers;
   
-    static SubmitterPluginLoader loader;
+    static SubmitterPluginLoader& getLoader();
 
     static Logger logger;
   };

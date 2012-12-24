@@ -33,7 +33,18 @@ namespace Arc {
     j = &_j;
   }
   
-  BrokerPluginLoader Broker::l;
+  BrokerPluginLoader& Broker::getLoader() {
+    // For C++ it would be enough to have 
+    //   static BrokerPluginLoader loader;
+    // But Java sometimes does not destroy objects causing
+    // PluginsFactory destructor loop forever waiting for
+    // plugins to exit.
+    static BrokerPluginLoader* loader = NULL;
+    if(!loader) {
+      loader = new BrokerPluginLoader();
+    }
+    return *loader;
+  }
 
   BrokerPluginLoader::BrokerPluginLoader() : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}
 
@@ -104,20 +115,20 @@ namespace Arc {
     return p;
   }
 
-  Broker::Broker(const UserConfig& uc, const JobDescription& j, const std::string& name) : uc(uc), j(&j), p(l.load(uc, j, name, false)) {
+  Broker::Broker(const UserConfig& uc, const JobDescription& j, const std::string& name) : uc(uc), j(&j), p(getLoader().load(uc, j, name, false)) {
     Credential credential(uc);
     proxyDN = credential.GetDN();
     proxyIssuerCA = credential.GetCAName();
   }
 
-  Broker::Broker(const UserConfig& uc, const std::string& name) : uc(uc), j(NULL), p(l.load(uc, name, false)) {
+  Broker::Broker(const UserConfig& uc, const std::string& name) : uc(uc), j(NULL), p(getLoader().load(uc, name, false)) {
     Credential credential(uc);
     proxyDN = credential.GetDN();
     proxyIssuerCA = credential.GetCAName();
   }
 
   Broker::Broker(const Broker& b) : uc(b.uc), j(b.j), proxyDN(b.proxyDN), proxyIssuerCA(b.proxyIssuerCA), p(b.p) {
-    p = l.copy(p.Ptr(), false);
+    p = getLoader().copy(p.Ptr(), false);
   }
 
   Broker::~Broker() {
@@ -127,7 +138,7 @@ namespace Arc {
     j = b.j;
     proxyDN = b.proxyDN;
     proxyIssuerCA = b.proxyIssuerCA;
-    p = l.copy(p.Ptr(), false);
+    p = getLoader().copy(p.Ptr(), false);
     return *this;
   }
 

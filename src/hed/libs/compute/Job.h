@@ -440,7 +440,7 @@ namespace Arc {
 
     JobControllerPlugin* jc;
 
-    static JobControllerPluginLoader loader;
+    static JobControllerPluginLoader& getLoader();
 
     // Objects might be pointing to allocated memory upon termination, leave it as garbage.
     static DataHandle *data_source, *data_destination;
