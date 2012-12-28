@@ -28,6 +28,8 @@ namespace Arc {
    *  configuring a client side Message Chain Component (MCC) chain
    *  and loading it into memory. It has several specializations of
    *  increasing complexity of the MCC chains.
+   *  This class is not supposed to be used directly. Instead its
+   *  descendants like ClientTCP, ClientHTTP, etc. must be used.
    **/
   class ClientInterface {
   public:
@@ -42,7 +44,11 @@ namespace Arc {
     MessageContext& GetContext() {
       return context;
     }
-    virtual bool Load();
+    /// Initializes communication chain for this object.
+    /// Call to this method in derived class is not needed
+    /// if process() methods are used. It is only needed if 
+    /// GetEntry() is used before process() is called.
+    virtual MCC_Status Load();
   protected:
     Config xmlcfg;
     XMLNode overlay;
@@ -89,10 +95,12 @@ namespace Arc {
                        PayloadStreamInterface **response, bool tls);
     MCC_Status process(PayloadStreamInterface *request,
                        PayloadStreamInterface **response, bool tls);
+    /** Returns entry point to TCP or TLS MCC in configured chain.
+       To initialize entry point Load() method must be called. */
     MCC* GetEntry() {
       return tls_entry ? tls_entry : tcp_entry;
     }
-    virtual bool Load();
+    virtual MCC_Status Load();
     void AddSecHandler(XMLNode handlercfg, TCPSec sec, const std::string& libanme = "", const std::string& libpath = "");
   protected:
     MCC *tcp_entry;
@@ -183,11 +191,13 @@ namespace Arc {
     MCC_Status process(const ClientHTTPAttributes &reqattr,
                        PayloadStreamInterface *request,
                        HTTPClientInfo *info, PayloadStreamInterface **response);
+    /** Returns entry point to HTTP MCC in configured chain.
+       To initialize entry point Load() method must be called. */
     MCC* GetEntry() {
       return http_entry;
     }
     void AddSecHandler(XMLNode handlercfg, const std::string& libanme = "", const std::string& libpath = "");
-    virtual bool Load();
+    virtual MCC_Status Load();
     void RelativeURI(bool val) { relative_uri=val; };
     const URL& GetURL() const { return default_url; };
   protected:
@@ -226,7 +236,7 @@ namespace Arc {
     /** Adds security handler to configuration of SOAP MCC */
     void AddSecHandler(XMLNode handlercfg, const std::string& libanme = "", const std::string& libpath = "");
     /** Instantiates pluggable elements according to generated configuration */
-    virtual bool Load();
+    virtual MCC_Status Load();
   protected:
     MCC *soap_entry;
   };

@@ -86,13 +86,13 @@ namespace Arc {
       delete loader;
   }
 
-  bool ClientInterface::Load() {
+  MCC_Status ClientInterface::Load() {
     if (!loader) {
-      if (overlay)
-        Overlay(overlay);
+      if (overlay) Overlay(overlay);
       loader = new MCCLoader(xmlcfg);
     }
-    return (*loader);
+    if (!(*loader)) return MCC_Status(GENERIC_ERROR,loader->failure());
+    return MCC_Status(STATUS_OK);
   }
 
   void ClientInterface::Overlay(XMLNode cfg) {
@@ -179,16 +179,16 @@ namespace Arc {
 
   ClientTCP::~ClientTCP() {}
 
-  bool ClientTCP::Load() {
-    if(!ClientInterface::Load()) return false;
-    if (!tls_entry)
-      tls_entry = (*loader)["tls"];
-    if (!tls_entry)
-      tls_entry = (*loader)["gsi"];
-    if (!tcp_entry)
-      tcp_entry = (*loader)["tcp"];
-    if((!tls_entry) && (!tcp_entry)) return false;
-    return true;
+  MCC_Status ClientTCP::Load() {
+    MCC_Status r(STATUS_OK);
+    if(!(r=ClientInterface::Load())) return r;
+    if (!tls_entry) tls_entry = (*loader)["tls"];
+    if (!tls_entry) tls_entry = (*loader)["gsi"];
+    if (!tcp_entry) tcp_entry = (*loader)["tcp"];
+    if((!tls_entry) && (!tcp_entry)) {
+      return MCC_Status(GENERIC_ERROR,"MCC chain loading produced no entry point");
+    }
+    return r;
   }
 
   MCC_Status ClientTCP::process(PayloadRawInterface *request,
@@ -371,12 +371,14 @@ namespace Arc {
 
   ClientHTTP::~ClientHTTP() {}
 
-  bool ClientHTTP::Load() {
-    if(!ClientTCP::Load()) return false;
-    if (!http_entry)
-      http_entry = (*loader)["http"];
-    if (!http_entry) return false;
-    return true;
+  MCC_Status ClientHTTP::Load() {
+    MCC_Status r(STATUS_OK);
+    if(!(r=ClientTCP::Load())) return r;
+    if (!http_entry) http_entry = (*loader)["http"];
+    if (!http_entry) {
+      return MCC_Status(GENERIC_ERROR,"MCC chain loading produced no entry point");
+    }
+    return r;
   }
 
   MCC_Status ClientHTTP::process(const std::string& method,
@@ -650,11 +652,14 @@ namespace Arc {
 
   ClientSOAP::~ClientSOAP() {}
 
-  bool ClientSOAP::Load() {
-    if(!ClientHTTP::Load()) return false;
+  MCC_Status ClientSOAP::Load() {
+    MCC_Status r(STATUS_OK);
+    if(!(r=ClientHTTP::Load())) return r;
     if (!soap_entry) soap_entry = (*loader)["soap"];
-    if (!soap_entry) return false;
-    return true;
+    if (!soap_entry) {
+      return MCC_Status(GENERIC_ERROR,"MCC chain loading produced no entry point");
+    }
+    return r;
   }
 
   MCC_Status ClientSOAP::process(PayloadSOAP *request,
