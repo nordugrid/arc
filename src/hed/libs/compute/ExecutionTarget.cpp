@@ -409,13 +409,13 @@ namespace Arc {
 
     buffer << *cst.Location;
     if (buffer.tellp() > 0) {
-      out << buffer.str() << std::endl;
+      out << buffer.str();
     }
     buffer.str("");
     
     buffer << *cst.AdminDomain;
     if (buffer.tellp() > 0) {
-      out << buffer.str() << std::endl;
+      out << buffer.str();
     }
     buffer.str("");
 
