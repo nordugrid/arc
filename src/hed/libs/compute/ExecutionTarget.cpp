@@ -467,6 +467,7 @@ namespace Arc {
       }
       for (std::map<int, ComputingShareType>::const_iterator it = cst.ComputingShare.begin();
            it != cst.ComputingShare.end(); ++it) {
+        if (it != cst.ComputingShare.begin()) out << std::endl;
         out << IString("Queue Information:") << std::endl;
         std::ostringstream queueBuffer;
         Indenter iQueue(queueBuffer);
