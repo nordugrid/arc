@@ -194,12 +194,11 @@ namespace Arc {
   MCC_Status ClientTCP::process(PayloadRawInterface *request,
                                 PayloadStreamInterface **response, bool tls) {
     *response = NULL;
-    if (!Load())
-      return MCC_Status();
-    if (tls && !tls_entry)
-      return MCC_Status();
-    if (!tls && !tcp_entry)
-      return MCC_Status();
+    MCC_Status r;
+    if (!(r=Load())) return r;
+    if ((tls && !tls_entry) || (!tls && !tcp_entry)) {
+      return MCC_Status(GENERIC_ERROR,"MCC chain loading produced no entry point");
+    }
     MessageAttributes attributes_req;
     MessageAttributes attributes_rep;
     Message reqmsg;
@@ -210,31 +209,31 @@ namespace Arc {
     repmsg.Attributes(&attributes_rep);
     repmsg.Context(&context);
 
-    MCC_Status r;
-    if (tls)
+    if (tls) {
       r = tls_entry->process(reqmsg, repmsg);
-    else
+    } else {
       r = tcp_entry->process(reqmsg, repmsg);
+    }
 
-    if (repmsg.Payload() != NULL)
+    if (repmsg.Payload() != NULL) {
       try {
         *response =
           dynamic_cast<PayloadStreamInterface*>(repmsg.Payload());
       } catch (std::exception&) {
         delete repmsg.Payload();
       }
+    }
     return r;
   }
 
   MCC_Status ClientTCP::process(PayloadStreamInterface *request,
                                 PayloadStreamInterface **response, bool tls) {
     *response = NULL;
-    if (!Load())
-      return MCC_Status();
-    if (tls && !tls_entry)
-      return MCC_Status();
-    if (!tls && !tcp_entry)
-      return MCC_Status();
+    MCC_Status r;
+    if (!(r=Load())) return r;
+    if ((tls && !tls_entry) || (!tls && !tcp_entry)) {
+      return MCC_Status(GENERIC_ERROR,"MCC chain loading produced no entry point");
+    }
     MessageAttributes attributes_req;
     MessageAttributes attributes_rep;
     Message reqmsg;
@@ -245,19 +244,20 @@ namespace Arc {
     repmsg.Attributes(&attributes_rep);
     repmsg.Context(&context);
 
-    MCC_Status r;
-    if (tls)
+    if (tls) {
       r = tls_entry->process(reqmsg, repmsg);
-    else
+    } else {
       r = tcp_entry->process(reqmsg, repmsg);
+    }
 
-    if (repmsg.Payload() != NULL)
+    if (repmsg.Payload() != NULL) {
       try {
         *response =
           dynamic_cast<PayloadStreamInterface*>(repmsg.Payload());
       } catch (std::exception&) {
         delete repmsg.Payload();
       }
+    }
     return r;
   }
 
@@ -453,10 +453,9 @@ namespace Arc {
                          HTTPClientInfo *info,
                          MessagePayload **response) {
     *response = NULL;
-    if (!Load())
-      return MCC_Status();
-    if (!http_entry)
-      return MCC_Status();
+    MCC_Status r;
+    if (!(r=Load())) return r;
+    if (!http_entry) return MCC_Status(GENERIC_ERROR,"MCC chain loading produced no entry point");
     MessageAttributes attributes_req;
     MessageAttributes attributes_rep;
     Message reqmsg;
@@ -487,26 +486,27 @@ namespace Arc {
         reqmsg.Attributes()->set("HTTP:ENDPOINT", rpath);
       }
     }
-    if (range_end != UINT64_MAX)
+    if (range_end != UINT64_MAX) {
       reqmsg.Attributes()->set("HTTP:Range", "bytes=" + tostring(range_start) +
                                "-" + tostring(range_end));
-    else if (range_start != 0)
+    } else if (range_start != 0) {
       reqmsg.Attributes()->set("HTTP:Range", "bytes=" +
                                tostring(range_start) + "-");
+    }
     std::map<std::string, std::string>::iterator it;
     for (it = attributes.begin(); it != attributes.end(); it++) {
       std::string key("HTTP:");
       key.append((*it).first);
       reqmsg.Attributes()->add(key, (*it).second);
     }
-    MCC_Status r = http_entry->process(reqmsg, repmsg);
+    r = http_entry->process(reqmsg, repmsg);
     if(!r) {
       if (repmsg.Payload() != NULL) delete repmsg.Payload();
       return r;
     };
     stringto(repmsg.Attributes()->get("HTTP:CODE"),info->code);
     if(info->code == 302) {
-      // Handle redirection transparently
+      // TODO: Handle redirection transparently
 
     }
 
@@ -514,11 +514,11 @@ namespace Arc {
     stringto(repmsg.Attributes()->get("HTTP:content-length"),info->size);
     std::string lm;
     lm = repmsg.Attributes()->get("HTTP:last-modified");
-    if (lm.size() > 11)
-      info->lastModified = lm;
+    if (lm.size() > 11) info->lastModified = lm;
     info->type = repmsg.Attributes()->get("HTTP:content-type");
-    for(AttributeIterator i = repmsg.Attributes()->getAll("HTTP:set-cookie");
-        i.hasMore();++i) info->cookies.push_back(*i);
+    for(AttributeIterator i = repmsg.Attributes()->getAll("HTTP:set-cookie");i.hasMore();++i) {
+      info->cookies.push_back(*i);
+    }
     info->location = repmsg.Attributes()->get("HTTP:location");
     *response = repmsg.Payload();
     return r;
@@ -665,8 +665,9 @@ namespace Arc {
   MCC_Status ClientSOAP::process(PayloadSOAP *request,
                                  PayloadSOAP **response) {
     *response = NULL;
-    if(!Load()) return MCC_Status();
-    if (!soap_entry) return MCC_Status();
+    MCC_Status r;
+    if(!(r=Load())) return r;
+    if (!soap_entry) return MCC_Status(GENERIC_ERROR,"MCC chain loading produced no entry point");
     MessageAttributes attributes_req;
     MessageAttributes attributes_rep;
     Message reqmsg;
@@ -676,7 +677,7 @@ namespace Arc {
     reqmsg.Payload(request);
     repmsg.Attributes(&attributes_rep);
     repmsg.Context(&context);
-    MCC_Status r = soap_entry->process(reqmsg, repmsg);
+    r = soap_entry->process(reqmsg, repmsg);
     if (repmsg.Payload() != NULL) {
       try {
         *response = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
@@ -691,8 +692,9 @@ namespace Arc {
                                  PayloadSOAP *request,
                                  PayloadSOAP **response) {
     *response = NULL;
-    if(!Load()) return MCC_Status();
-    if (!soap_entry) return MCC_Status();
+    MCC_Status r;
+    if(!(r=Load())) return r;
+    if (!soap_entry) return MCC_Status(GENERIC_ERROR,"MCC chain loading produced no entry point");
     MessageAttributes attributes_req;
     MessageAttributes attributes_rep;
     Message reqmsg;
@@ -703,7 +705,7 @@ namespace Arc {
     repmsg.Attributes(&attributes_rep);
     repmsg.Context(&context);
     attributes_req.set("SOAP:ACTION", action);
-    MCC_Status r = soap_entry->process(reqmsg, repmsg);
+    r = soap_entry->process(reqmsg, repmsg);
     if (repmsg.Payload() != NULL) {
       try {
         *response = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
