@@ -78,17 +78,21 @@ namespace Arc {
 
     if (key.empty() || cert.empty()) {
       logger.msg(VERBOSE, "Failed locating credentials.");
+      error_description = "Failed locating credentials for delegationg to "+rurl.str();
       return false;
     }
 
-    if(!client->Load()) {
+    MCC_Status r = client->Load();
+    if(!r) {
       logger.msg(VERBOSE, "Failed initiate client connection.");
+      error_description = "Failed initating communication to "+rurl.str()+" - "+(std::string)r;
       return false;
     }
 
     MCC* entry = client->GetEntry();
     if(!entry) {
       logger.msg(VERBOSE, "Client connection has no entry point.");
+      error_description = "Internal error: failed to properly initiate communication object for "+rurl.str();
       return false;
     }
 
@@ -101,6 +105,8 @@ namespace Arc {
     logger.msg(VERBOSE, "Initiating delegation procedure");
     if (!deleg.DelegateCredentialsInit(*entry,&(client->GetContext()))) {
       logger.msg(VERBOSE, "Failed to initiate delegation credentials");
+      error_description = "Internal error: failed to initiate delagtion at "+rurl.str();
+      // TODO: propagate error from DelegationProviderSOAP
       return false;
     }
     deleg.DelegatedToken(op);
@@ -111,10 +117,11 @@ namespace Arc {
     delete client; client = NULL;
     logger.msg(DEBUG, "Re-creating an A-REX client");
     client = new ClientSOAP(cfg, rurl, timeout);
-    if (!client) {
-      logger.msg(VERBOSE, "Unable to create SOAP client used by AREXClient.");
-      return false;
-    }
+    //if (!client) {
+    //  logger.msg(VERBOSE, "Unable to create SOAP client used by AREXClient.");
+    //  error_description = "Internal error: unable to create object to handle connection to "+rurl.str();
+    //  return false;
+    //}
     if(arex_enabled) {
       set_arex_namespaces(arex_ns);
     } else {
@@ -124,8 +131,10 @@ namespace Arc {
   }
 
   bool AREXClient::process(PayloadSOAP& req, bool delegate, XMLNode& response, bool retry) {
+    error_description = "";
     if (!client) {
       logger.msg(VERBOSE, "AREXClient was not created properly."); // Should not happen. Happens if client = null (out of memory?)
+      error_description = "Internal error: object is not in proper state.";
       return false;
     }
 
@@ -148,7 +157,9 @@ namespace Arc {
     WSAHeader header(req);
     header.To(rurl.str());
     PayloadSOAP* resp = NULL;
-    if (!client->process(header.Action(), &req, &resp)) {
+    MCC_Status r;
+    if (!(r = client->process(header.Action(), &req, &resp))) {
+      error_description = (std::string)r;
       logger.msg(VERBOSE, "%s request failed", action);
       delete client; client = NULL;
       if(!retry) return false;
@@ -158,6 +169,7 @@ namespace Arc {
 
     if (resp == NULL) {
       logger.msg(VERBOSE, "No response from %s", rurl.str());
+      error_description = "No or malformed response received from "+rurl.str();
       delete client; client = NULL;
       if(!retry) return false;
       if(!reconnect()) return false;
@@ -166,6 +178,7 @@ namespace Arc {
 
     if (resp->IsFault()) {
       logger.msg(VERBOSE, "%s request to %s failed with response: %s", action, rurl.str(), resp->Fault()->Reason());
+      error_description = "Fault received from "+rurl.str()+": "+resp->Fault()->Reason();
       if(resp->Fault()->Code() != SOAPFault::Receiver) retry = false;
       std::string s;
       resp->GetXML(s);
@@ -179,6 +192,7 @@ namespace Arc {
 
     if (!(*resp)[action + "Response"]) {
       logger.msg(VERBOSE, "%s request to %s failed. No expected response.", action, rurl.str());
+      error_description = "No expected response received from "+rurl.str();
       delete resp;
       return false;
     }

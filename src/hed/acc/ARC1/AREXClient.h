@@ -153,6 +153,10 @@ namespace Arc {
 
     void arexFeatures(bool val) { arex_enabled = val; };
 
+    const std::string& failure(void) const {
+      return error_description;
+    }
+
   private:
     bool process(PayloadSOAP& req, bool delegate, XMLNode& response, bool retry = true);
     bool reconnect(void);
@@ -173,6 +177,8 @@ namespace Arc {
     int timeout;
 
     bool arex_enabled;
+
+    std::string error_description;
 
     //! A logger for the A-REX client.
     /*! This is a logger to which all logging messages from the A-REX
