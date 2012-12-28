@@ -353,17 +353,10 @@ namespace Arc {
     if (cm.TotalPhysicalCPUs > -1)    out << IString("Total physical CPUs: %i", cm.TotalPhysicalCPUs) << std::endl;
     if (cm.TotalLogicalCPUs > -1)     out << IString("Total logical CPUs: %i", cm.TotalLogicalCPUs) << std::endl;
     if (cm.TotalSlots > -1)           out << IString("Total slots: %i", cm.TotalSlots) << std::endl;
-    if (!cm.Homogeneous)              out << IString("Non-homogeneous resource") << std::endl;
-    
-    if (!cm.ProductName.empty())      out << IString("Resource manager: %s", cm.ProductName) << std::endl;
-    if (!cm.ProductVersion.empty())   out << IString("Resource manager version: %s", cm.ProductVersion) << std::endl;
     if (cm.Reservation)               out << IString("Supports advance reservations") << std::endl;
     else                              out << IString("Doesn't support advance reservations") << std::endl;
     if (cm.BulkSubmission)            out << IString("Supports bulk submission") << std::endl;
     else                              out << IString("Doesn't support bulk Submission") << std::endl;
-    if (cm.TotalPhysicalCPUs > -1)    out << IString("Total physical CPUs: %i", cm.TotalPhysicalCPUs) << std::endl;
-    if (cm.TotalLogicalCPUs > -1)     out << IString("Total logical CPUs: %i", cm.TotalLogicalCPUs) << std::endl;
-    if (cm.TotalSlots > -1)           out << IString("Total slots: %i", cm.TotalSlots) << std::endl;
     if (cm.Homogeneous)               out << IString("Homogeneous resource") << std::endl;
     else                              out << IString("Non-homogeneous resource") << std::endl;
     if (!cm.NetworkInfo.empty()) {
