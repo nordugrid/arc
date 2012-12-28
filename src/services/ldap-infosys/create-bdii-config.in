@@ -312,7 +312,7 @@ if [ "x$infosys_compat" = "xenable" ]; then
 
     if [ "x$infosys_nordugrid" = "xenable" ]; then
 
-	ldif_generator_file=${bdii_tmp_dir}/arc-nordugrid-bdii-ldif
+	ldif_generator_file=${bdii_tmp_dir}/provider/arc-nordugrid-bdii-ldif
 	rm -f ${ldif_generator_file}
 	touch ${ldif_generator_file}
 
