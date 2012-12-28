@@ -13,6 +13,7 @@
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
 
+#include "Extractor.h"
 #include "TargetInformationRetrieverPluginLDAPGLUE2.h"
 
 namespace Arc {
@@ -45,153 +46,6 @@ namespace Arc {
 
     return service;
   }
-
-
-  class Extractor {
-  public:
-    Extractor() : logger(NULL) {}
-    Extractor(XMLNode node, const std::string& prefix = "", Logger* logger = NULL) : node(node), prefix(prefix), logger(logger) {}
-
-    std::string get(const std::string& name) {
-      std::string value = node["GLUE2" + prefix + name];
-      if (value.empty()) {
-        value = (std::string)node["GLUE2" + name];
-      }
-      if (logger) logger->msg(DEBUG, "Extractor (%s): %s = %s", prefix, name, value);
-      return value;
-    }
-
-    std::string operator[](const std::string& name) {
-      return get(name);
-    }
-
-    bool set(const std::string& name, std::string& string) {
-      std::string value = get(name);
-      if (!value.empty()) {
-        string = value;
-        return true;
-      } else {
-        return false;
-      }
-    }
-
-    bool set(const std::string& name, Period& period) {
-      std::string value = get(name);
-      if (!value.empty()) {
-        period = Period(value);
-        return true;
-      } else {
-        return false;
-      }
-    }
-
-    bool set(const std::string& name, Time& time) {
-      std::string value = get(name);
-      if (!value.empty()) {
-        time = Time(value);
-        return true;
-      } else {
-        return false;
-      }
-    }
-
-    bool set(const std::string& name, int& integer) {
-      const std::string value = get(name);
-      return !value.empty() && stringto(value, integer);
-    }
-
-    bool set(const std::string& name, float& number) {
-      std::string value = get(name);
-      return !value.empty() && stringto(value, number);
-    }
-
-    bool set(const std::string& name, double& number) {
-      std::string value = get(name);
-      return !value.empty() && stringto(value, number);
-    }
-
-    bool set(const std::string& name, URL& url) {
-      std::string value = get(name);
-      if (!value.empty()) {
-        url = URL(value);
-        return true;
-      } else {
-        return false;
-      }
-    }
-
-    bool set(const std::string& name, bool& boolean) {
-      std::string value = get(name);
-      if (!value.empty()) {
-        boolean = (value == "TRUE");
-        return true;
-      } else {
-        return false;
-      }
-    }
-
-    bool set(const std::string& name, std::list<std::string>& list) {
-      XMLNodeList nodelist = node.Path("GLUE2" + prefix + name);
-      if (nodelist.empty()) {
-        nodelist = node.Path("GLUE2" + name);
-      }
-      if (nodelist.empty()) {
-        return false;
-      }
-      list.clear();
-      for(XMLNodeList::iterator it = nodelist.begin(); it != nodelist.end(); it++) {
-        std::string value = *it;
-        list.push_back(value);
-        if (logger) logger->msg(DEBUG, "Extractor (%s): %s contains %s", prefix, name, value);
-      }
-      return true;
-    }
-
-    bool set(const std::string& name, std::set<std::string>& list) {
-      XMLNodeList nodelist = node.Path("GLUE2" + prefix + name);
-      if (nodelist.empty()) {
-        nodelist = node.Path("GLUE2" + name);
-      }
-      if (nodelist.empty()) {
-        return false;
-      }
-      list.clear();
-      for(XMLNodeList::iterator it = nodelist.begin(); it != nodelist.end(); it++) {
-        std::string value = *it;
-        list.insert(value);
-        if (logger) logger->msg(DEBUG, "Extractor (%s): %s contains %s", prefix, name, value);
-      }
-      return true;
-    }
-
-    static Extractor First(XMLNode& node, const std::string& objectClass, Logger* logger = NULL) {
-      XMLNodeList objects = node.XPathLookup("//*[objectClass='GLUE2" + objectClass + "']", NS());
-      if(objects.empty()) return Extractor();
-      return Extractor(objects.front(), objectClass , logger);
-    }
-
-    static Extractor First(Extractor& e, const std::string& objectClass) {
-      return First(e.node, objectClass, e.logger);
-    }
-
-    static std::list<Extractor> All(XMLNode& node, const std::string& objectClass, Logger* logger = NULL) {
-      std::list<XMLNode> objects = node.XPathLookup("//*[objectClass='GLUE2" + objectClass + "']", NS());
-      std::list<Extractor> extractors;
-      for (std::list<XMLNode>::iterator it = objects.begin(); it != objects.end(); it++) {
-        extractors.push_back(Extractor(*it, objectClass, logger));
-      }
-      return extractors;
-    }
-
-    static std::list<Extractor> All(Extractor& e, const std::string& objectClass) {
-      return All(e.node, objectClass, e.logger);
-    }
-
-
-    XMLNode node;
-    std::string prefix;
-    Logger *logger;
-  };
 
 
   EndpointQueryingStatus TargetInformationRetrieverPluginLDAPGLUE2::Query(const UserConfig& uc, const Endpoint& ce, std::list<ComputingServiceType>& csList, const EndpointQueryOptions<ComputingServiceType>&) const {
@@ -235,7 +89,7 @@ namespace Arc {
     }
 
     XMLNode xml_document(result);
-    Extractor document(xml_document, "", &logger);
+    Extractor document(xml_document, "", "GLUE2", &logger);
 
     std::list<Extractor> services = Extractor::All(document, "ComputingService");
     for (std::list<Extractor>::iterator it = services.begin(); it != services.end(); it++) {
