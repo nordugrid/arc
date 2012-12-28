@@ -127,12 +127,11 @@ namespace Arc {
     return XMLNode();
   }
 
-  static ArcSec::SecHandler* MakeSecHandler(Config& cfg, ChainContext *ctx,
-                                            MCCLoader::sechandler_container_t& sechandlers,
-                                            PluginsFactory *factory, XMLNode& node) {
+  ArcSec::SecHandler* MCCLoader::make_sec_handler(Config& cfg, XMLNode& node) {
     if(!node) {
       // Normally should not happen
       MCCLoader::logger.msg(ERROR, "SecHandler configuration is not defined");
+      error_description_ = "Security plugin configuration is not defined";
       return NULL;
     }
     XMLNode desc_node;
@@ -141,13 +140,13 @@ namespace Arc {
       desc_node = node;
       refid = (std::string)node.Attribute("id");
       if(refid.empty()) {
-        refid = "__arc_sechandler_" + tostring(sechandlers.size()) + "__";
+        refid = "__arc_sechandler_" + tostring(sechandlers_.size()) + "__";
       }
     }
     else {
       // Maybe it's already created
-      MCCLoader::sechandler_container_t::iterator phandler = sechandlers.find(refid);
-      if(phandler != sechandlers.end()) {
+      MCCLoader::sechandler_container_t::iterator phandler = sechandlers_.find(refid);
+      if(phandler != sechandlers_.end()) {
         return phandler->second;
       }
       // Look for it's configuration
@@ -155,23 +154,27 @@ namespace Arc {
     }
     if(!desc_node) {
       MCCLoader::logger.msg(ERROR, "SecHandler has no configuration");
+      error_description_ = "Security plugin configuration is not defined";
       return NULL;
     }
     std::string name = desc_node.Attribute("name");
     if(name.empty()) {
       MCCLoader::logger.msg(ERROR, "SecHandler has no name attribute defined");
+      error_description_ = "Security plugin has no name defined";
       return NULL;
     }
     // Create new security handler
     Config cfg_(desc_node, cfg.getFileName());
-    ArcSec::SecHandlerPluginArgument arg(&cfg_,ctx);
-    Plugin* plugin = factory->get_instance(SecHandlerPluginKind, name, &arg);
+    ArcSec::SecHandlerPluginArgument arg(&cfg_,context_);
+    Plugin* plugin = factory_->get_instance(SecHandlerPluginKind, name, &arg);
     ArcSec::SecHandler* sechandler = plugin?dynamic_cast<ArcSec::SecHandler*>(plugin):NULL;
     if(!sechandler) {
       Loader::logger.msg(ERROR, "Security Handler %s(%s) could not be created", name, refid);
+      error_description_ = "Security plugin component "+name+" could not be created";
+      // TODO: need a way to propagate error description from factory.
     } else {
       Loader::logger.msg(INFO, "SecHandler: %s(%s)", name, refid);
-      sechandlers[refid] = sechandler;
+      sechandlers_[refid] = sechandler;
     }
     return sechandler;
   }
@@ -179,12 +182,14 @@ namespace Arc {
   MCC* MCCLoader::make_component(Config& cfg, XMLNode cn, mcc_connectors_t *mcc_connectors) {
     Config cfg_(cn, cfg.getFileName());
     std::string name = cn.Attribute("name");
+    std::string id = cn.Attribute("id");
     if(name.empty()) {
+      error_description_ = "Component "+id+" has no name defined";
       logger.msg(ERROR, "Component has no name attribute defined");
       return NULL;
     }
-    std::string id = cn.Attribute("id");
     if(id.empty()) {
+      error_description_ = "Component "+name+" has no id defined";
       logger.msg(ERROR, "Component has no ID attribute defined");
       return NULL;
     }
@@ -192,6 +197,8 @@ namespace Arc {
     Plugin* plugin = factory_->get_instance(MCCPluginKind ,name, &arg);
     MCC* mcc = plugin?dynamic_cast<MCC*>(plugin):NULL;
     if(!mcc) {
+      error_description_ = "Component "+name+" could not be created";
+      // TODO: need a way to propagate error description from factory.
       logger.msg(VERBOSE, "Component %s(%s) could not be created", name, id);
       if(plugin) delete plugin;
       return NULL;
@@ -202,8 +209,7 @@ namespace Arc {
     for(int n = 0;; ++n) {
       XMLNode can = an[n];
       if(!can) break;
-      ArcSec::SecHandler* sechandler = MakeSecHandler(cfg, context_,
-                                    sechandlers_, factory_, can);
+      ArcSec::SecHandler* sechandler = make_sec_handler(cfg, can);
       if(!sechandler) {
         if(plugin) delete plugin;
         return NULL;
@@ -216,7 +222,6 @@ namespace Arc {
     MCC* oldmcc = (mccp == mccs_.end())?NULL:(mccp->second);
     mccs_[id] = mcc;
     if(mcc_connectors) {
-
       // Add to chain list
       mcc_connector_t mcc_connector(mccs_.find(id));
       for(int nn = 0;; ++nn) {
@@ -226,6 +231,7 @@ namespace Arc {
         if(nid.empty()) {
           logger.msg(ERROR, "Component's %s(%s) next has no ID "
                             "attribute defined", name, id);
+          error_description_ = "Component "+name+" has no id defined in next target";
           if(plugin) delete plugin;
           if(oldmcc) {
             mccs_[id] = oldmcc;
@@ -298,6 +304,7 @@ namespace Arc {
           if(nid.empty()) {
             logger.msg(ERROR, "Plexer's (%s) next has no ID "
                  "attribute defined", id);
+            error_description_ = "MCC chain is broken in plexer "+id+" - no id of next component defined";
             success = false;
             continue;
           }
@@ -311,22 +318,26 @@ namespace Arc {
 
       if(MatchXMLName(cn, "Service")) {
         std::string name = cn.Attribute("name");
+        std::string id = cn.Attribute("id");
         if(name.empty()) {
           logger.msg(ERROR, "Service has no Name attribute defined");
+          error_description_ = "MCC chain is broken in service "+id+" - no name defined";
           success = false;
           continue;
         }
-        std::string id = cn.Attribute("id");
         if(id.empty()) {
           logger.msg(ERROR, "Service has no ID attribute defined");
+          error_description_ = "MCC chain is broken in service "+name+" - no id defined";
           success = false;
           continue;
         }
         ServicePluginArgument arg(&cfg_,context_);
         Plugin* plugin = factory_->get_instance(ServicePluginKind, name, &arg);
-              Service* service = plugin?dynamic_cast<Service*>(plugin):NULL;
+        Service* service = plugin?dynamic_cast<Service*>(plugin):NULL;
         if(!service) {
           logger.msg(ERROR, "Service %s(%s) could not be created", name, id);
+          error_description_ = "Service component "+name+" could not be created";
+          // TODO: need a way to propagate error description from factory.
           success = false;
           continue;
         }
@@ -340,8 +351,7 @@ namespace Arc {
         for(int n = 0;; ++n) {
           XMLNode can = an[n];
           if(!can) break;
-          ArcSec::SecHandler* sechandler = MakeSecHandler(cfg, context_,
-                                        sechandlers_, factory_, can);
+          ArcSec::SecHandler* sechandler = make_sec_handler(cfg, can);
           if(!sechandler) {
             success = false;
             continue;
@@ -401,6 +411,7 @@ namespace Arc {
         }
         logger.msg(VERBOSE, "MCC %s(%s) - next %s(%s) has no target",
                    mcc->name, mcc->mcc->first, label, id);
+        error_description_ = "MCC chain is broken - no "+id+" target was found for "+mcc->name+" component";
         success = false;
         mcc->nexts.erase(next);
       }
@@ -445,6 +456,7 @@ namespace Arc {
 
         logger.msg(ERROR, "Plexer (%s) - next %s(%s) has no target",
                    plexer->plexer->first, label, id);
+        error_description_ = "MCC chain is broken - no "+id+" target was found for "+plexer->plexer->first+" plexer";
         success = false;
         plexer->nexts.erase(next);
       }

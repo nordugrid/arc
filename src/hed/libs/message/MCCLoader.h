@@ -83,8 +83,12 @@ namespace Arc {
 		       plexer_connectors_t *plexer_connectors = NULL);
     MCC* make_component(Config& cfg, XMLNode cn,
                         mcc_connectors_t *mcc_connectors = NULL);
+    ArcSec::SecHandler* make_sec_handler(Config& cfg, XMLNode& node);
+
 
     ChainContext* context_;
+
+    std::string error_description_;
 
    public:
     MCCLoader():valid_(false), context_(NULL) {};
@@ -101,6 +105,8 @@ namespace Arc {
 
     operator bool(void) { return valid_; };
     bool operator!(void) { return !valid_; };
+
+    const std::string& failure(void) { return error_description_; };
 
     bool ReloadElement(Config& cfg);
  };
