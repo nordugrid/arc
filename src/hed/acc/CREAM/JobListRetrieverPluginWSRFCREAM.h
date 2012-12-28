@@ -14,6 +14,7 @@ namespace Arc {
   public:
     JobListRetrieverPluginWSRFCREAM(PluginArgument* parg): JobListRetrieverPlugin(parg) {
       supportedInterfaces.push_back("org.glite.cream");
+      supportedInterfaces.push_back("org.glite.ce.cream");
     }
     virtual ~JobListRetrieverPluginWSRFCREAM() {}
 

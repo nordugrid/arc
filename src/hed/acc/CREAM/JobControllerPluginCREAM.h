@@ -11,7 +11,7 @@ namespace Arc {
 
   class JobControllerPluginCREAM : public JobControllerPlugin {
   public:
-    JobControllerPluginCREAM(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg) { supportedInterfaces.push_back("org.glite.cream"); }
+    JobControllerPluginCREAM(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg) { supportedInterfaces.push_back("org.glite.cream"); supportedInterfaces.push_back("org.glite.ce.cream"); }
     ~JobControllerPluginCREAM() {}
 
     static Plugin* Instance(PluginArgument *arg) {

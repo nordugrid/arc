@@ -9,7 +9,7 @@ namespace Arc {
 
   class SubmitterPluginCREAM : public SubmitterPlugin {
   public:
-    SubmitterPluginCREAM(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg) { supportedInterfaces.push_back("org.glite.cream"); }
+    SubmitterPluginCREAM(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg) { supportedInterfaces.push_back("org.glite.cream"); supportedInterfaces.push_back("org.glite.ce.cream"); }
     ~SubmitterPluginCREAM() {}
 
     static Plugin* Instance(PluginArgument *arg) {
