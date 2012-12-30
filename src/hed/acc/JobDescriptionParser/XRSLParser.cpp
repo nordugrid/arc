@@ -216,6 +216,26 @@ namespace Arc {
     return true;
   }
 
+  bool XRSLParser::ParseCountPerNodeAttribute(JobDescription& j) { // Must be called after the 'count' attribute has been parsed.
+    std::map<std::string, std::string>::iterator   itAtt;
+    itAtt = j.OtherAttributes.find("nordugrid:xrsl;countpernode");
+    
+    if (itAtt == j.OtherAttributes.end()) return true;
+    
+    if (j.Resources.SlotRequirement.NumberOfSlots == -1) {
+      logger.msg(ERROR, "When specifying the countpernode XRSL attribute, the count attribute must also be specified.");
+      return false;
+    }
+    
+    if (!stringto(itAtt->second, j.Resources.SlotRequirement.SlotsPerHost)) {
+      logger.msg(ERROR, "The countpernode XRSL attribute must be an integer.");
+      return false;
+    }
+
+    return true;
+  }
+
+
   JobDescriptionParserResult XRSLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
     if (language != "" && !IsLanguageSupported(language)) {
       return false;
@@ -253,6 +273,9 @@ namespace Arc {
       if (!ParseCacheAttribute(jobdescs.back())) {
         return false;
       }
+      if (!ParseCountPerNodeAttribute(jobdescs.back())) {
+        return false;
+      }
       if (dialect != "GRIDMANAGER" && !ParseJoinAttribute(jobdescs.back())) { // join is a client side attribute
         return false;
       }
@@ -268,6 +291,9 @@ namespace Arc {
           return false;
         }
         if (!ParseCacheAttribute(*itJob)) {
+          return false;
+        }
+        if (!ParseCountPerNodeAttribute(*itJob)) {
           return false;
         }
         if (dialect != "GRIDMANAGER" && !ParseJoinAttribute(*itJob)) { // join is a client side attribute
@@ -1189,12 +1215,37 @@ namespace Arc {
 
       if (c->Attr() == "count") {
         std::string count;
-        if (!SingleValue(c, count))
-          return false;
-        j.Resources.SlotRequirement.NumberOfSlots = stringtoi(count);
+        if (!SingleValue(c, count) || !stringto(count, j.Resources.SlotRequirement.NumberOfSlots)) return false;
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); ++it) {
           it->Resources.SlotRequirement.NumberOfSlots = j.Resources.SlotRequirement.NumberOfSlots;
+        }
+        return true;
+      }
+
+      if (c->Attr() == "countpernode") {
+        std::string countpernode;
+        if (!SingleValue(c, countpernode))
+          return false;
+        
+        j.OtherAttributes["nordugrid:xrsl;countpernode"] = countpernode;
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); ++it) {
+          it->OtherAttributes["nordugrid:xrsl;countpernode"] = countpernode;
+        }
+
+        return true;
+      }
+
+      if (c->Attr() == "exclusiveexecution") {
+        std::string ee;
+        if (!SingleValue(c, ee)) return false;
+        ee = lower(ee);
+        if (ee != "yes" && ee != "true" && ee != "no" && ee != "false") return false;
+        j.Resources.SlotRequirement.ExclusiveExecution = (ee == "yes" || ee == "true") ? SlotRequirementType::EE_TRUE : SlotRequirementType::EE_FALSE;
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); ++it) {
+          it->Resources.SlotRequirement.ExclusiveExecution = j.Resources.SlotRequirement.ExclusiveExecution;
         }
         return true;
       }
@@ -1653,6 +1704,26 @@ namespace Arc {
       l->Add(new RSLLiteral(tostring(j.Resources.SlotRequirement.NumberOfSlots)));
       r.Add(new RSLCondition("count", RSLEqual, l));
     }
+
+
+    if (j.Resources.SlotRequirement.SlotsPerHost > -1) {
+      if (j.Resources.SlotRequirement.NumberOfSlots <= -1) {
+        logger.msg(ERROR, "Cannot output XRSL representation: The Resources.SlotRequirement.NumberOfSlots attribute must be specified when the Resources.SlotRequirement.SlotsPerHost attribute is specified.");
+        return false;
+      }
+      RSLList *l = new RSLList;
+      l->Add(new RSLLiteral(tostring(j.Resources.SlotRequirement.SlotsPerHost)));
+      r.Add(new RSLCondition("countpernode", RSLEqual, l));
+    }
+
+
+    if (j.Resources.SlotRequirement.ExclusiveExecution != SlotRequirementType::EE_DEFAULT) {
+      RSLList *l = new RSLList;
+      l->Add(new RSLLiteral(j.Resources.SlotRequirement.ExclusiveExecution == SlotRequirementType::EE_TRUE ? "yes" : "no"));
+      r.Add(new RSLCondition("exclusiveexecution", RSLEqual, l));
+    }
+
+
 
     if (j.Application.ProcessingStartTime != -1) {
       RSLList *l = new RSLList;

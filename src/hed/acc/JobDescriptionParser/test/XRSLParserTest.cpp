@@ -35,6 +35,7 @@ class XRSLParserTest
   CPPUNIT_TEST(TestDryRun);
   CPPUNIT_TEST(TestGridTime);
   CPPUNIT_TEST(TestAccessControl);
+  CPPUNIT_TEST(TestParallelAttributes);
   CPPUNIT_TEST(TestAdditionalAttributes);
   CPPUNIT_TEST(TestMultiRSL);
   CPPUNIT_TEST(TestDisjunctRSL);
@@ -62,6 +63,7 @@ public:
   void TestDryRun();
   void TestGridTime();
   void TestAccessControl();
+  void TestParallelAttributes();
   void TestAdditionalAttributes();
   void TestMultiRSL();
   void TestDisjunctRSL();
@@ -776,6 +778,112 @@ void XRSLParserTest::TestAccessControl() {
   CPPUNIT_ASSERT_EQUAL((std::string)"gacl", OUTJOBS.front().Application.AccessControl.Name());
   CPPUNIT_ASSERT_EQUAL(1, OUTJOBS.front().Application.AccessControl.Size());
   CPPUNIT_ASSERT_EQUAL((std::string)"entry", OUTJOBS.front().Application.AccessControl.Child().Name());
+}
+
+void XRSLParserTest::TestParallelAttributes() {
+  xrsl = "&(executable = \"/bin/echo\")"
+          "(count = 8)"
+          "(countpernode = 4)"
+          "(exclusiveexecution = \"yes\")";
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(8, OUTJOBS.front().Resources.SlotRequirement.NumberOfSlots);
+  CPPUNIT_ASSERT_EQUAL(4, OUTJOBS.front().Resources.SlotRequirement.SlotsPerHost);
+  CPPUNIT_ASSERT_EQUAL(Arc::SlotRequirementType::EE_TRUE, OUTJOBS.front().Resources.SlotRequirement.ExclusiveExecution);
+  
+  std::string tempjobdesc;
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "nordugrid:xrsl"));
+  OUTJOBS.clear();
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(8, OUTJOBS.front().Resources.SlotRequirement.NumberOfSlots);
+  CPPUNIT_ASSERT_EQUAL(4, OUTJOBS.front().Resources.SlotRequirement.SlotsPerHost);
+  CPPUNIT_ASSERT_EQUAL(Arc::SlotRequirementType::EE_TRUE, OUTJOBS.front().Resources.SlotRequirement.ExclusiveExecution);
+  OUTJOBS.clear();
+
+
+  xrsl = "&(executable = \"/bin/echo\")"
+          "(count = 8)"
+          "(exclusiveexecution = \"no\")";
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(8, OUTJOBS.front().Resources.SlotRequirement.NumberOfSlots);
+  CPPUNIT_ASSERT_EQUAL(-1, OUTJOBS.front().Resources.SlotRequirement.SlotsPerHost);
+  CPPUNIT_ASSERT_EQUAL(Arc::SlotRequirementType::EE_FALSE, OUTJOBS.front().Resources.SlotRequirement.ExclusiveExecution);
+  
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "nordugrid:xrsl"));
+  OUTJOBS.clear();
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(8, OUTJOBS.front().Resources.SlotRequirement.NumberOfSlots);
+  CPPUNIT_ASSERT_EQUAL(-1, OUTJOBS.front().Resources.SlotRequirement.SlotsPerHost);
+  CPPUNIT_ASSERT_EQUAL(Arc::SlotRequirementType::EE_FALSE, OUTJOBS.front().Resources.SlotRequirement.ExclusiveExecution);
+  OUTJOBS.clear();
+
+
+  xrsl = "&(executable = \"/bin/echo\")"
+          "(count = 8)";
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(8, OUTJOBS.front().Resources.SlotRequirement.NumberOfSlots);
+  CPPUNIT_ASSERT_EQUAL(-1, OUTJOBS.front().Resources.SlotRequirement.SlotsPerHost);
+  CPPUNIT_ASSERT_EQUAL(Arc::SlotRequirementType::EE_DEFAULT, OUTJOBS.front().Resources.SlotRequirement.ExclusiveExecution);
+  
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "nordugrid:xrsl"));
+  OUTJOBS.clear();
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(8, OUTJOBS.front().Resources.SlotRequirement.NumberOfSlots);
+  CPPUNIT_ASSERT_EQUAL(-1, OUTJOBS.front().Resources.SlotRequirement.SlotsPerHost);
+  CPPUNIT_ASSERT_EQUAL(Arc::SlotRequirementType::EE_DEFAULT, OUTJOBS.front().Resources.SlotRequirement.ExclusiveExecution);
+  OUTJOBS.clear();
+
+  
+  // Test order of attributes
+  xrsl = "&(executable = \"/bin/echo\")"
+          "(countpernode = 4)"
+          "(count = 8)";
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(8, OUTJOBS.front().Resources.SlotRequirement.NumberOfSlots);
+  CPPUNIT_ASSERT_EQUAL(4, OUTJOBS.front().Resources.SlotRequirement.SlotsPerHost);
+  OUTJOBS.clear();
+
+
+  // Test failure cases
+  xrsl = "&(executable = \"/bin/echo\")"
+          "(count = \"eight\")";
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(xrsl, OUTJOBS));
+  OUTJOBS.clear();
+  
+  xrsl = "&(executable = \"/bin/echo\")"
+          "(countpernode = \"four\")";
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(xrsl, OUTJOBS));
+  OUTJOBS.clear();
+
+  xrsl = "&(executable = \"/bin/echo\")"
+          "(exclusiveexecution = \"yes-thank-you\")";
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(xrsl, OUTJOBS));
+  OUTJOBS.clear();
+
+  
+  INJOB.Application.Executable.Path = "/bin/echo";
+  INJOB.Resources.SlotRequirement.SlotsPerHost = 6;
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
 }
 
 void XRSLParserTest::TestAdditionalAttributes() {
