@@ -33,7 +33,7 @@ class ClientSOAPTest :
                             PayloadSOAP **response);
 
     /** Instantiates pluggable elements according to generated configuration */
-    virtual bool Load() { return true; }
+    virtual MCC_Status Load() { return MCC_Status(STATUS_OK); }
 
     /** Returns entry point to SOAP MCC in configured chain.
         To initialize entry point Load() method must be called. */
