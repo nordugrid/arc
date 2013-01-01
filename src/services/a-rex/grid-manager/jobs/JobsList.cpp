@@ -478,7 +478,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
         i->AddFailure("Failed initiating job submission to LRMS");
         logger.msg(Arc::ERROR,"%s: Failed running submission process",i->job_id);
       } else {
-        logger.msg(Arc::ERROR,"%s: Failed running cancel process",i->job_id);
+        logger.msg(Arc::ERROR,"%s: Failed running cancellation process",i->job_id);
       }
       return false;
     }
@@ -498,13 +498,13 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
         std::string local_id=job_desc_handler.get_local_id(i->job_id);
         if(local_id.length() > 0) {
           simulate_success = true;
-          logger.msg(Arc::ERROR,"%s: Job submission to LRMS takes too long. But ID is already obtained. Pretending submission is done.",i->job_id);
+          logger.msg(Arc::ERROR,"%s: Job submission to LRMS takes too long, but ID is already obtained. Pretending submission is done.",i->job_id);
         }
       } else {
         // Check if diagnostics collection is done
         if(job_lrms_mark_check(i->job_id,config)) {
           simulate_success = true;
-          logger.msg(Arc::ERROR,"%s: Job cancel takes too long. But diagnostic collection seems to be done. Pretending cancel succeeded.",i->job_id);
+          logger.msg(Arc::ERROR,"%s: Job cancellation takes too long, but diagnostic collection seems to be done. Pretending cancellation succeeded.",i->job_id);
         }
       }
     }
@@ -518,7 +518,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
         // It would be nice to cancel if job finally submits. But we do not know id.
         return false;
       } else {
-        logger.msg(Arc::ERROR,"%s: Job cancel takes too long. Failing.",i->job_id);
+        logger.msg(Arc::ERROR,"%s: Job cancellation takes too long. Failing.",i->job_id);
         delete i->child; i->child=NULL;
         return false;
       }
