@@ -116,7 +116,12 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
 #endif
       }; break;
       default: {
-        PayloadTLSMCC::HandleError(Logger::getRootLogger(),err);
+        PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
+        if(it) {
+          it->SetFailure(ConfigTLSMCC::HandleError(err));
+        } else {
+          Logger::getRootLogger().msg(ERROR,"%s",ConfigTLSMCC::HandleError(err));
+        }
       }; break;
     };
   };
@@ -139,7 +144,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
           std::istream* in = open_globus_policy(X509_get_issuer_name(cert),it->Config().CADir());
           if(in) {
             if(!match_globus_policy(*in,X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
-              Logger::getRootLogger().msg(ERROR,"Certificate %s failed Globus signing policy",subject_name);
+              it->SetFailure(std::string("Certificate ")+subject_name+" failed Globus signing policy");
               ok=0;
               X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);
             };
@@ -185,7 +190,7 @@ bool PayloadTLSMCC::StoreInstance(void) {
       ex_data_index_=OpenSSLAppDataIndex(ex_data_id);
    };
    if(ex_data_index_ == -1) {
-      Logger::getRootLogger().msg(ERROR,"Failed to store application data");
+      Logger::getRootLogger().msg(WARNING,"Failed to store application data");
       return false;
    };
    if(!sslctx_) return false;
@@ -213,20 +218,36 @@ PayloadTLSMCC* PayloadTLSMCC::RetrieveInstance(X509_STORE_CTX* container) {
     };
   };
   if(it == NULL) {
-    Logger::getRootLogger().msg(ERROR,"Failed to retrieve application data from OpenSSL");
+    Logger::getRootLogger().msg(WARNING,"Failed to retrieve application data from OpenSSL");
   };
   return it;
 }
 
+
+void PayloadTLSMCC::CollectError(int code) {
+  // Sources:
+  //  1. Already collected failure in failure_
+  //  2. SSL layer
+  //  3. Underlying stream through BIO
+  std::string err_failure = failure_?"":failure_.getExplanation();
+  std::string bio_failure = config_.GlobusIOGSI()?BIO_GSIMCC_failure(bio_):BIO_MCC_failure(bio_);
+  std::string tls_failure = ConfigTLSMCC::HandleError(code);
+  if(!err_failure.empty()) err_failure += "\n";
+  err_failure += bio_failure;
+  if(!err_failure.empty()) err_failure += "\n";
+  err_failure += tls_failure;
+  if(!err_failure.empty()) failure_ = MCC_Status(GENERIC_ERROR,"TLS",err_failure);
+}
+
 PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger& logger):
-    PayloadTLSStream(logger),sslctx_(NULL),config_(cfg),flags_(0) {
+    PayloadTLSStream(logger),sslctx_(NULL),bio_(NULL),config_(cfg),flags_(0) {
    // Client mode
    int err = SSL_ERROR_NONE;
    char gsi_cmd[1] = { '0' };
    master_=true;
    // Creating BIO for communication through stream which it will
    // extract from provided MCC
-   BIO* bio = config_.GlobusIOGSI()?BIO_new_GSIMCC(mcc):BIO_new_MCC(mcc);
+   BIO* bio = (bio_ = config_.GlobusIOGSI()?BIO_new_GSIMCC(mcc):BIO_new_MCC(mcc));
    // Initialize the SSL Context object
    if(cfg.IfTLSHandshake()) {
      sslctx_=SSL_CTX_new(SSLv23_client_method());
@@ -239,7 +260,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    };
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
    SSL_CTX_set_session_cache_mode(sslctx_,SSL_SESS_CACHE_OFF);
-   if(!config_.Set(sslctx_,logger_)) goto error;
+   if(!config_.Set(sslctx_)) goto error;
    SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, &verify_callback);
    GlobusSetVerifyCertCallback(sslctx_);
 
@@ -281,7 +302,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    //SSL_set_connect_state(ssl_);
    if((err=SSL_connect(ssl_)) != 1) {
       err = SSL_get_error(ssl_,err);
-      /* TODO: Print nice message when server side certificated has
+      /* TODO: Print nice message when server side certificate has
        *       expired. Still to investigate if this case is only when
        *       server side certificate has expired.
       if (ERR_GET_REASON(ERR_peek_last_error()) == SSL_R_SSLV3_ALERT_CERTIFICATE_EXPIRED) {
@@ -300,8 +321,8 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    }
    return;
 error:
-   HandleError(err);
-   if(bio) BIO_free(bio);
+   CollectError(err);
+   if(bio) BIO_free(bio); bio_=NULL;
    if(ssl_) SSL_free(ssl_); ssl_=NULL;
    if(sslctx_) SSL_CTX_free(sslctx_); sslctx_=NULL;
    return;
@@ -313,7 +334,7 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    int err = SSL_ERROR_NONE;
    master_=true;
    // Creating BIO for communication through provided stream
-   BIO* bio = config_.GlobusIOGSI()?BIO_new_GSIMCC(stream):BIO_new_MCC(stream);
+   BIO* bio = (bio_ = config_.GlobusIOGSI()?BIO_new_GSIMCC(stream):BIO_new_MCC(stream));
    // Initialize the SSL Context object
    if(cfg.IfTLSHandshake()) {
      sslctx_=SSL_CTX_new(SSLv23_server_method());
@@ -333,7 +354,7 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
      SSL_CTX_set_verify(sslctx_, SSL_VERIFY_NONE, NULL);
    }
    GlobusSetVerifyCertCallback(sslctx_);
-   if(!config_.Set(sslctx_,logger_)) goto error;
+   if(!config_.Set(sslctx_)) goto error;
 
    // Allow proxies, request CRL check
 #ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
@@ -377,8 +398,8 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    // }
    return;
 error:
-   HandleError(err);
-   if(bio) BIO_free(bio);
+   CollectError(err);
+   if(bio) BIO_free(bio); bio_=NULL;
    if(ssl_) SSL_free(ssl_); ssl_=NULL;
    if(sslctx_) SSL_CTX_free(sslctx_); sslctx_=NULL;
    return;
@@ -393,8 +414,7 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadTLSMCC& stream):
 
 
 PayloadTLSMCC::~PayloadTLSMCC(void) {
-  if (!master_)
-    return;
+  if (!master_) return;
   // There are indirect evidences that verify callback
   // was called after this object was destroyed. Although
   // that may be misinterpretation it is probably safer
@@ -408,7 +428,7 @@ PayloadTLSMCC::~PayloadTLSMCC(void) {
     if(err == 0) err = SSL_shutdown(ssl_);
     if(err < 0) { // -1 expected
       logger_.msg(INFO, "Failed to shut down SSL");
-      HandleError(SSL_ERROR_NONE);
+      ConfigTLSMCC::HandleError();
       // Trying to get out of error
       SSL_set_quiet_shutdown(ssl_,1);
       SSL_shutdown(ssl_);
@@ -422,6 +442,12 @@ PayloadTLSMCC::~PayloadTLSMCC(void) {
     SSL_CTX_free(sslctx_);
     sslctx_ = NULL;
   }
+  // bio_ was passed to ssl_ and hence does not need to
+  // be destroyed explicitely.
+}
+
+void PayloadTLSMCC::SetFailure(const std::string& err) {
+  failure_ = MCC_Status(GENERIC_ERROR,"TLS",err);
 }
 
 } // namespace Arc

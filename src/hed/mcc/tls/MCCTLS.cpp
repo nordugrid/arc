@@ -466,8 +466,16 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
    // Accepted payload is Raw and Stream
    // Returned payload is Stream
    // Extracting payload
-   if(!inmsg.Payload()) return MCC_Status();
-   if(!stream_) return MCC_Status();
+   if(!inmsg.Payload()) {
+     return MCC_Status(GENERIC_ERROR,"TLS","Internal error: missing payload for outgoing TLS message");
+   }
+   if(!stream_) {
+     return MCC_Status(GENERIC_ERROR,"TLS","Internal error: communication stream not initialised");
+   }
+   if(!*stream_) {
+     if(!stream_->Failure()) return stream_->Failure();
+     return MCC_Status(GENERIC_ERROR,"TLS","Internal error: communication stream not initialised");
+   }
    PayloadRawInterface* rinpayload = NULL;
    PayloadStreamInterface* sinpayload = NULL;
    try {
@@ -476,7 +484,9 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
    try {
       sinpayload = dynamic_cast<PayloadStreamInterface*>(inmsg.Payload());
    } catch(std::exception& e) { };
-   if((!rinpayload) && (!sinpayload)) return MCC_Status();
+   if((!rinpayload) && (!sinpayload)) {
+     return MCC_Status(GENERIC_ERROR,"TLS","Internal error: unsupported payload for outgoing TLS message");
+   }
    // Collecting security attributes
    // TODO: keep them or redo same for incoming message
    PayloadTLSStream* tstream = dynamic_cast<PayloadTLSStream*>(stream_);
@@ -494,8 +504,9 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
 
    //Checking authentication and authorization;
    if(!ProcessSecHandlers(inmsg,"outgoing")) {
-      logger.msg(ERROR, "Security check failed in TLS MCC for outgoing message");
-      return MCC_Status();
+      logger.msg(VERBOSE, "Security check failed for outgoing TLS message");
+      // TODO: propagate message from SecHandlers
+      return MCC_Status(GENERIC_ERROR,"TLS","Security check failed for outgoing TLS message");
    };
    // Sending payload
    if(rinpayload) {
@@ -504,8 +515,9 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
          if(!buf) break;
          int bufsize = rinpayload->BufferSize(n);
          if(!(stream_->Put(buf,bufsize))) {
-            logger.msg(INFO, "Failed to send content of buffer");
-            return MCC_Status();
+            logger.msg(VERBOSE, "Failed to send content of buffer");
+            if(!stream_->Failure()) return stream_->Failure();
+            return MCC_Status(GENERIC_ERROR,"TLS","Failed to send content of buffer");
          };
       };
    } else {
@@ -521,8 +533,10 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
    //outmsg.Attributes(inmsg.Attributes());
    //outmsg.Context(inmsg.Context());
    if(!ProcessSecHandlers(outmsg,"incoming")) {
-      logger.msg(ERROR, "Security check failed in TLS MCC for incoming message");
-      delete outmsg.Payload(NULL); return MCC_Status();
+      logger.msg(VERBOSE, "Security check failed for incoming TLS message");
+      delete outmsg.Payload(NULL);
+      // TODO: propagate message from SecHandlers
+      return MCC_Status(GENERIC_ERROR,"TLS","Security check failed for incoming TLS message");
    };
    return MCC_Status(STATUS_OK);
 }
@@ -543,7 +557,7 @@ void MCC_TLS_Client::Next(MCCInterface* next,const std::string& label) {
 //Glib::Mutex Arc::MCC_TLS::lock_;
 Arc::Logger ArcMCCTLS::MCC_TLS::logger(Arc::Logger::getRootLogger(), "MCC.TLS");
 
-ArcMCCTLS::MCC_TLS::MCC_TLS(Arc::Config& cfg,bool client,PluginArgument* parg) : Arc::MCC(&cfg,parg), config_(cfg,logger,client) {
+ArcMCCTLS::MCC_TLS::MCC_TLS(Arc::Config& cfg,bool client,PluginArgument* parg) : Arc::MCC(&cfg,parg), config_(cfg,client) {
 }
 
 static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {

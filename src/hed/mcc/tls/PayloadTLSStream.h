@@ -28,9 +28,9 @@ public:
   /** Destructor. */
   virtual ~PayloadTLSStream(void);
   
-  void HandleError(int code = SSL_ERROR_NONE);
-  static void HandleError(Logger& logger,int code = SSL_ERROR_NONE);
-  static void ClearError(void);
+  //void HandleError(int code = SSL_ERROR_NONE);
+  //static void HandleError(Logger& logger,int code = SSL_ERROR_NONE);
+  //void ClearError(void);
 
   virtual bool Get(char* buf,int& size);
   virtual bool Get(std::string& buf);

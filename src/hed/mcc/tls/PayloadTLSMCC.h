@@ -23,11 +23,13 @@ class PayloadTLSMCC: public PayloadTLSStream {
   bool master_;
   /** SSL context */
   SSL_CTX* sslctx_;
+  BIO* bio_;
   static int ex_data_index_;
   //PayloadTLSMCC(PayloadTLSMCC& stream);
   ConfigTLSMCC config_;
   bool StoreInstance(void);
   bool ClearInstance(void);
+  void CollectError(int code = SSL_ERROR_NONE);
   // Generic purpose bit flags
   unsigned long flags_;
  public:
@@ -48,6 +50,9 @@ class PayloadTLSMCC: public PayloadTLSStream {
   static PayloadTLSMCC* RetrieveInstance(X509_STORE_CTX* container);
   unsigned long Flags(void) { return flags_; };
   void Flags(unsigned long flags) { flags=flags_; };
+  void SetFailure(const std::string& err);
+  operator bool(void) { return (sslctx_ != NULL); };
+  bool operator!(void) { return (sslctx_ == NULL); };
 };
 
 } // namespace Arc 

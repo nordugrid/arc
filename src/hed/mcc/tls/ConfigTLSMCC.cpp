@@ -3,6 +3,7 @@
 #endif
 
 #include <glibmm/miscutils.h>
+#include <openssl/err.h>
 
 #include "PayloadTLSStream.h"
 
@@ -36,7 +37,7 @@ static void config_VOMS_add(XMLNode cfg,std::vector<std::string>& vomscert_trust
 
 // This class is collection of configuration information
 
-ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client) {
+ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   client_authn_ = true;
   cert_file_ = (std::string)(cfg["CertificatePath"]);
   key_file_ = (std::string)(cfg["KeyPath"]);
@@ -82,7 +83,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client) {
       std::string filename = (std::string)locnd;
       std::ifstream file(filename.c_str());
       if (!file) {
-        logger.msg(ERROR, "Can not read file %s with list of trusted VOMS DNs", filename);
+        failure_ = "Can not read file "+filename+" with list of trusted VOMS DNs";
         continue;
       };
       XMLNode node;
@@ -117,11 +118,11 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client) {
   if(!proxy_file_.empty()) { key_file_=proxy_file_; cert_file_=proxy_file_; };
 }
 
-bool ConfigTLSMCC::Set(SSL_CTX* sslctx,Logger& logger) {
+bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
   if((!ca_file_.empty()) || (!ca_dir_.empty())) {
     if(!SSL_CTX_load_verify_locations(sslctx, ca_file_.empty()?NULL:ca_file_.c_str(), ca_dir_.empty()?NULL:ca_dir_.c_str())) {
-      logger.msg(ERROR, "Can not assign CA location - %s",ca_dir_.empty()?ca_file_:ca_dir_);
-      PayloadTLSStream::HandleError(logger);
+      failure_ = "Can not assign CA location - "+(ca_dir_.empty()?ca_file_:ca_dir_)+"\n";
+      failure_ += HandleError();
       return false;
     };
   };
@@ -130,35 +131,68 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx,Logger& logger) {
     if((SSL_CTX_use_certificate_chain_file(sslctx,cert_file_.c_str()) != 1) &&
        (SSL_CTX_use_certificate_file(sslctx,cert_file_.c_str(),SSL_FILETYPE_PEM) != 1) &&
        (SSL_CTX_use_certificate_file(sslctx,cert_file_.c_str(),SSL_FILETYPE_ASN1) != 1)) {
-      logger.msg(ERROR, "Can not load certificate file - %s",cert_file_);
-      PayloadTLSStream::HandleError(logger);
+      failure_ = "Can not load certificate file - "+cert_file_+"\n";
+      failure_ += HandleError();
       return false;
     };
   };
   if(!key_file_.empty()) {
     if((SSL_CTX_use_PrivateKey_file(sslctx,key_file_.c_str(),SSL_FILETYPE_PEM) != 1) &&
        (SSL_CTX_use_PrivateKey_file(sslctx,key_file_.c_str(),SSL_FILETYPE_ASN1) != 1)) {
-      logger.msg(ERROR, "Can not load key file - %s",key_file_);
-      PayloadTLSStream::HandleError(logger);
+      failure_ = "Can not load key file - "+key_file_+"\n";
+      failure_ += HandleError();
       return false;
     };
   };
   if((!key_file_.empty()) && (!cert_file_.empty())) {
     if(!(SSL_CTX_check_private_key(sslctx))) {
-      logger.msg(ERROR, "Private key %s does not match certificate %s",key_file_,cert_file_);
-      PayloadTLSStream::HandleError(logger);
+      failure_ = "Private key "+key_file_+" does not match certificate "+cert_file_+"\n";
+      failure_ += HandleError();
       return false;
     };
   };
   if(!cipher_list_.empty()) {
     if(!SSL_CTX_set_cipher_list(sslctx,cipher_list_.c_str())) {
-      logger.msg(ERROR, "No ciphers found to satisfy requested encryption level. "
-                        "Check if OpenSSL supports ciphers '%s'",cipher_list_);
-      PayloadTLSStream::HandleError(logger);
+      failure_ = "No ciphers found to satisfy requested encryption level. "
+                 "Check if OpenSSL supports ciphers '"+cipher_list_+"'\n";
+      failure_ += HandleError();
       return false;
     };
   };
   return true;
+}
+
+std::string ConfigTLSMCC::HandleError(int code) {
+  std::string errstr;
+  unsigned long e = (code==SSL_ERROR_NONE)?ERR_get_error():code;
+  while(e != SSL_ERROR_NONE) {
+    if(e == SSL_ERROR_SYSCALL) {
+      // Hiding system errors
+      // int err = errno;
+      // logger.msg(DEBUG, "SSL error: system call failed: %d, %s",err,StrError(err));
+    } else {
+      const char* lib = ERR_lib_error_string(e);
+      const char* func = ERR_func_error_string(e);
+      const char* reason = ERR_reason_error_string(e);
+      const char* alert = SSL_alert_desc_string_long(e);
+      if(!errstr.empty()) errstr += "\n";
+      errstr += "SSL error";
+      if (reason) errstr += ", \"" + std::string(reason) + "\"";
+      if (func) errstr += ", in \"" + std::string(func) + "\" function";
+      if (lib) errstr += ", at \"" + std::string(lib) + "\" library";
+      if (alert) errstr += ", with \"" + std::string(alert) + "\" alert";
+      //logger.msg(DEBUG, errstr);
+    };
+    e = ERR_get_error();
+  }
+  return errstr;
+}
+
+void ConfigTLSMCC::ClearError(void) {
+  int e = ERR_get_error();
+  while(e != 0) {
+    e = ERR_get_error();
+  }
 }
 
 } // namespace Arc

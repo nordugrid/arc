@@ -36,9 +36,10 @@ class ConfigTLSMCC {
   } voms_processing_;
   std::vector<std::string> vomscert_trust_dn_;
   std::string cipher_list_;
+  std::string failure_;
   ConfigTLSMCC(void);
  public:
-  ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client = false);
+  ConfigTLSMCC(XMLNode cfg,bool client = false);
   const std::string& CADir(void) const { return ca_dir_; };
   const std::string& CAFile(void) const { return ca_file_; };
   const std::string& VOMSDir(void) const { return voms_dir_; };
@@ -49,13 +50,16 @@ class ConfigTLSMCC {
   bool GlobusGSI(void) const { return globus_gsi_; };
   bool GlobusIOGSI(void) const { return globusio_gsi_; };
   const std::vector<std::string>& VOMSCertTrustDN(void) { return vomscert_trust_dn_; };
-  bool Set(SSL_CTX* sslctx,Logger& logger);
+  bool Set(SSL_CTX* sslctx);
   bool IfClientAuthn(void) const { return client_authn_; };
   bool IfTLSHandshake(void) const { return handshake_ == tls_handshake; };
   bool IfSSLv3Handshake(void) const { return handshake_ == ssl3_handshake; };
   bool IfCheckVOMSCritical(void) const { return (voms_processing_ != relaxed_voms); };
   bool IfFailOnVOMSParsing(void) const { return (voms_processing_ == noerrors_voms) || (voms_processing_ == strict_voms); };
   bool IfFailOnVOMSInvalid(void) const { return (voms_processing_ == noerrors_voms); };
+  const std::string& Failure(void) { return failure_; };
+  static std::string HandleError(int code = SSL_ERROR_NONE);
+  static void ClearError(void);
 };
 
 } // namespace Arc 

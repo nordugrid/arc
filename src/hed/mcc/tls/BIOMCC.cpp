@@ -19,35 +19,37 @@ class BIOMCC {
   private:
     PayloadStreamInterface* stream_;
     MCCInterface* next_;
+    MCC_Status result_;
   public:
-    BIOMCC(MCCInterface* next) { next_=next; stream_=NULL; };
-    BIOMCC(PayloadStreamInterface* stream) { next_=NULL; stream_=stream; };
+    BIOMCC(MCCInterface* next):result_(STATUS_OK) { next_=next; stream_=NULL; };
+    BIOMCC(PayloadStreamInterface* stream):result_(STATUS_OK) { next_=NULL; stream_=stream; };
     ~BIOMCC(void) { if(stream_ && next_) delete stream_; };
-    PayloadStreamInterface* Stream() { return stream_; };
+    PayloadStreamInterface* Stream() const { return stream_; };
     void Stream(PayloadStreamInterface* stream) { stream_=stream; /*free ??*/ };
-    MCCInterface* Next(void) { return next_; };
+    MCCInterface* Next(void) const { return next_; };
     void MCC(MCCInterface* next) { next_=next; };
+    const MCC_Status& Result(void) { return result_; }; 
+    static int  mcc_write(BIO *h, const char *buf, int num);
+    static int  mcc_read(BIO *h, char *buf, int size);
+    static int  mcc_puts(BIO *h, const char *str);
+    static long mcc_ctrl(BIO *h, int cmd, long arg1, void *arg2);
+    static int  mcc_new(BIO *h);
+    static int  mcc_free(BIO *data);
 };
 
-static int  mcc_write(BIO *h, const char *buf, int num);
-static int  mcc_read(BIO *h, char *buf, int size);
-static int  mcc_puts(BIO *h, const char *str);
-static long mcc_ctrl(BIO *h, int cmd, long arg1, void *arg2);
-static int  mcc_new(BIO *h);
-static int  mcc_free(BIO *data);
 
 static void BIO_set_MCC(BIO* b,MCCInterface* mcc);
 static void BIO_set_MCC(BIO* b,PayloadStreamInterface* stream);
 
 static BIO_METHOD methods_mcc = {
   BIO_TYPE_FD,"Message Chain Component",
-  mcc_write,
-  mcc_read,
-  mcc_puts,
+  BIOMCC::mcc_write,
+  BIOMCC::mcc_read,
+  BIOMCC::mcc_puts,
   NULL, /* gets, */
-  mcc_ctrl,
-  mcc_new,
-  mcc_free,
+  BIOMCC::mcc_ctrl,
+  BIOMCC::mcc_new,
+  BIOMCC::mcc_free,
   NULL,
 };
 
@@ -87,7 +89,7 @@ static void BIO_set_MCC(BIO* b,PayloadStreamInterface* stream) {
   };
 }
 
-static int mcc_new(BIO *bi) {
+int BIOMCC::mcc_new(BIO *bi) {
   bi->init=1;
   bi->num=0;
   bi->ptr=NULL;
@@ -95,7 +97,7 @@ static int mcc_new(BIO *bi) {
   return(1);
 }
 
-static int mcc_free(BIO *b) {
+int BIOMCC::mcc_free(BIO *b) {
   if(b == NULL) return(0);
   BIOMCC* biomcc = (BIOMCC*)(b->ptr);
   b->ptr=NULL;
@@ -103,7 +105,7 @@ static int mcc_free(BIO *b) {
   return(1);
 }
   
-static int mcc_read(BIO *b, char *out,int outl) {
+int BIOMCC::mcc_read(BIO *b, char *out,int outl) {
   int ret=0;
   if (out == NULL) return(ret);
   if(b == NULL) return(ret);
@@ -115,11 +117,16 @@ static int mcc_read(BIO *b, char *out,int outl) {
   //clear_sys_error();
   bool r = stream->Get(out,outl);
   BIO_clear_retry_flags(b);
-  if(r) { ret=outl; } else { ret=-1; };
+  if(r) {
+    ret=outl;
+  } else {
+    ret=-1;
+    biomcc->result_ = stream->Failure();
+  };
   return ret;
 }
 
-static int mcc_write(BIO *b, const char *in, int inl) {
+int BIOMCC::mcc_write(BIO *b, const char *in, int inl) {
   int ret = 0;
   //clear_sys_error();
   if(in == NULL) return(ret);
@@ -133,7 +140,12 @@ static int mcc_write(BIO *b, const char *in, int inl) {
     // TODO: check if stream has changed ???
     bool r = stream->Put(in,inl);
     BIO_clear_retry_flags(b);
-    if(r) { ret=inl; } else { ret=-1; };
+    if(r) {
+      ret=inl;
+    } else {
+      ret=-1;
+      biomcc->result_ = stream->Failure();
+    };
     return ret;
   };
 
@@ -161,6 +173,7 @@ static int mcc_write(BIO *b, const char *in, int inl) {
     };
     ret=inl;
   } else {
+    biomcc->result_ = mccret;
     if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
     ret=-1;
   };
@@ -168,7 +181,7 @@ static int mcc_write(BIO *b, const char *in, int inl) {
 }
 
 
-static long mcc_ctrl(BIO*, int cmd, long, void*) {
+long BIOMCC::mcc_ctrl(BIO*, int cmd, long, void*) {
   long ret=0;
 
   switch (cmd) {
@@ -184,7 +197,7 @@ static long mcc_ctrl(BIO*, int cmd, long, void*) {
   return(ret);
 }
 
-static int mcc_puts(BIO *bp, const char *str) {
+int BIOMCC::mcc_puts(BIO *bp, const char *str) {
   int n,ret;
 
   n=strlen(str);
@@ -192,4 +205,12 @@ static int mcc_puts(BIO *bp, const char *str) {
   return(ret);
 }
 
-} // namespace Arc
+std::string BIO_MCC_failure(BIO* bio) {
+  if(!bio) return "";
+  BIOMCC* b = (BIOMCC*)(bio->ptr);
+  if(!b) return "";
+  if(b->Result()) return "";
+  return (std::string)(b->Result().getExplanation());
+}
+
+} // namespace ArcMCCTLS
