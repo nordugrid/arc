@@ -507,7 +507,7 @@ namespace Arc {
     putProxyRequest.NewChild("proxy") = signedCert;
 
     response = XMLNode();
-    if (!process(req, response))
+    if (!process(req, response, "http://www.gridsite.org/namespaces/delegation-2/"))
       return false;
 
     if (!response) {
