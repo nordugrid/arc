@@ -1,11 +1,11 @@
 pkglib_LTLIBRARIES = libaccCREAM.la
-noinst_LTLIBRARIES = libaccCREAMJLR.la
 
 libaccCREAM_la_SOURCES = DescriptorsCREAM.cpp \
 	SubmitterPluginCREAM.cpp SubmitterPluginCREAM.h \
 	JobControllerPluginCREAM.cpp JobControllerPluginCREAM.h \
 	CREAMClient.cpp CREAMClient.h \
-	JobStateCREAM.cpp JobStateCREAM.h
+	JobStateCREAM.cpp JobStateCREAM.h \
+	JobListRetrieverPluginWSRFCREAM.cpp JobListRetrieverPluginWSRFCREAM.h
 libaccCREAM_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 libaccCREAM_la_LIBADD = \
@@ -18,18 +18,3 @@ libaccCREAM_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS)
 libaccCREAM_la_LDFLAGS = -no-undefined -avoid-version -module
-
-libaccCREAMJLR_la_SOURCES = \
-	JobListRetrieverPluginWSRFCREAM.cpp JobListRetrieverPluginWSRFCREAM.h
-libaccCREAMJLR_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
-libaccCREAMJLR_la_LIBADD = \
-	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
-	$(top_builddir)/src/hed/libs/data/libarcdata.la \
-	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
-	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
-	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
-	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS)
-libaccCREAMJLR_la_LDFLAGS = -no-undefined -avoid-version -module
-

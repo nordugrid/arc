@@ -40,6 +40,7 @@ namespace Arc {
     bool registerJob(const std::string& jdl_text, creamJobInfo& info);
     bool startJob(const std::string& jobid);
     bool stat(const std::string& jobid, Job& job);
+    bool listJobs(std::list<creamJobInfo>& info);
     bool cancel(const std::string& jobid);
     bool purge(const std::string& jobid);
     bool resume(const std::string& jobid);

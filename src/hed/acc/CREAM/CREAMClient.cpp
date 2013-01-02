@@ -398,6 +398,31 @@ namespace Arc {
     return true;
   }
 
+  bool CREAMClient::listJobs(std::list<creamJobInfo>& info) {
+    logger.msg(VERBOSE, "Creating and sending request to list jobs");
+
+    action = "JobList";
+
+    PayloadSOAP req(cream_ns);
+    req.NewChild("types:" + action + "Request");
+
+    XMLNode response;
+    if (!process(req, response)) return false;
+
+    if (!response) {
+      logger.msg(VERBOSE, "Empty response");
+      return false;
+    }
+    
+    for (XMLNode n = response["result"]; n; ++n) {
+      creamJobInfo i;
+      i = n;
+      info.push_back(i);
+    }
+
+    return true;
+  }
+
   bool CREAMClient::registerJob(const std::string& jdl_text,
                                 creamJobInfo& info) {
     logger.msg(VERBOSE, "Creating and sending job register request");
