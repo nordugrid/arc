@@ -65,7 +65,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
   if ((ret != 0) || (!info)) {
     std::string err_str = gai_strerror(ret); 
     error_ = IString("Failed to resolve %s (%s)", hostname, err_str).str();
-    logger.msg(ERROR, "%s", error_);
+    logger.msg(VERBOSE, "%s", error_);
     return -1;
   }
   int s = -1;
@@ -77,7 +77,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
       error_ = IString("Failed to create socket for connecting to %s(%s):%d - %s",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
                         Arc::StrError(errno)).str();
-      logger.msg(ERROR, "%s", error_);
+      logger.msg(VERBOSE, "%s", error_);
       continue;
     }
 #ifndef WIN32
@@ -97,7 +97,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
         error_ = IString("Failed to connect to %s(%s):%i - %s",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
                         Arc::StrError(errno)).str();
-        logger.msg(ERROR, "%s", error_);
+        logger.msg(VERBOSE, "%s", error_);
         close(s); s = -1;
         continue;
       }
@@ -107,7 +107,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
         error_ = IString("Timeout connecting to %s(%s):%i - %i s",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
                         timeout_).str();
-        logger.msg(ERROR, "%s", error_);
+        logger.msg(VERBOSE, "%s", error_);
         close(s); s = -1;
         continue;
       }
@@ -115,7 +115,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
         error_ = IString("Failed while waiting for connection to %s(%s):%i - %s",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
                         Arc::StrError(errno)).str();
-        logger.msg(ERROR, "%s", error_);
+        logger.msg(VERBOSE, "%s", error_);
         close(s); s = -1;
         continue;
       }
@@ -124,7 +124,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
       if(events & (POLLERR | POLLHUP)) {
         error_ = IString("Failed to connect to %s(%s):%i",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port).str();
-        logger.msg(ERROR, "%s", error_);
+        logger.msg(VERBOSE, "%s", error_);
         close(s); s = -1;
         continue;
       }
@@ -133,7 +133,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
     if(::connect(s, info_->ai_addr, info_->ai_addrlen) == -1) {
       error_ = IString("Failed to connect to %s(%s):%i",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port).str();
-      logger.msg(ERROR, "%s", error_);
+      logger.msg(VERBOSE, "%s", error_);
       close(s); s = -1;
       continue;
     };
