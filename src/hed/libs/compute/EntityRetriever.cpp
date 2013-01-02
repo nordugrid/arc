@@ -4,7 +4,6 @@
 #include <config.h>
 #endif
 
-#include <arc/StringConv.h>
 #include <arc/compute/Job.h>
 
 #include "EntityRetriever.h"
@@ -120,10 +119,7 @@ namespace Arc {
   }
 
   template<typename T>
-  void EntityRetriever<T>::addEndpoint(const Endpoint& _endpoint) {
-    Endpoint endpoint = _endpoint;
-    // Treat InterfaceName as case-insensitive.
-    endpoint.InterfaceName = lower(endpoint.InterfaceName);
+  void EntityRetriever<T>::addEndpoint(const Endpoint& endpoint) {
     std::map<std::string, std::string>::const_iterator itPluginName = interfacePluginMap.end();
     if (!endpoint.InterfaceName.empty()) {
       itPluginName = interfacePluginMap.find(endpoint.InterfaceName);

@@ -144,6 +144,7 @@ namespace Arc {
       
       service.set("Status", ComputingEndpoint->HealthState);
       service.set("Type", ComputingEndpoint->InterfaceName);
+      ComputingEndpoint->InterfaceName = lower(ComputingEndpoint->InterfaceName); // CREAM -> cream.
       ComputingEndpoint->Technology = "webservice"; // CREAM is a webservice
       ComputingEndpoint->Capability.insert("information.lookup.job");
       ComputingEndpoint->Capability.insert("executionmanagement.jobcreation");
