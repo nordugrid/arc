@@ -550,7 +550,7 @@ namespace Arc {
       if (!StdErr.empty())
         out << IString(" Stderr: %s", StdErr) << std::endl;
       if (!LogDir.empty())
-        out << IString(" Grid Manager Log Directory: %s", LogDir)
+        out << IString(" Computing Service Log Directory: %s", LogDir)
                   << std::endl;
       if (SubmissionTime != -1)
         out << IString(" Submitted: %s",
