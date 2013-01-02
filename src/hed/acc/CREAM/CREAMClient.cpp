@@ -25,8 +25,7 @@ namespace Arc {
   Logger CREAMClient::logger(Logger::rootLogger, "CREAMClient");
 
   bool stringtoTime(const std::string& timestring, Time& time) {
-    if (timestring == "" || timestring.length() < 15)
-      return "";
+    if (timestring == "" || timestring.length() < 15) return false;
 
     //The conversion for example:
     //before: 11/5/08 11:52 PM
@@ -34,53 +33,40 @@ namespace Arc {
 
     tm timestr;
     std::string::size_type pos = 0;
-    if (sscanf(timestring.substr(pos, 8).c_str(),
-               "%2d/%2d/%2d",
-               &timestr.tm_mon,
-               &timestr.tm_mday,
-               &timestr.tm_year) == 3)
-      pos += 8;
+    if      (sscanf(timestring.substr(pos, 6).c_str(),
+                    "%d/%d/%2d",
+                    &timestr.tm_mon,
+                    &timestr.tm_mday,
+                    &timestr.tm_year) == 3) pos += 6;
     else if (sscanf(timestring.substr(pos, 7).c_str(),
                     "%2d/%d/%2d",
                     &timestr.tm_mon,
                     &timestr.tm_mday,
-                    &timestr.tm_year) == 3)
-      pos += 7;
+                    &timestr.tm_year) == 3) pos += 7;
     else if (sscanf(timestring.substr(pos, 7).c_str(),
                     "%d/%2d/%2d",
                     &timestr.tm_mon,
                     &timestr.tm_mday,
-                    &timestr.tm_year) == 3)
-      pos += 7;
-    else if (sscanf(timestring.substr(pos, 6).c_str(),
-                    "%d/%d/%2d",
+                    &timestr.tm_year) == 3) pos += 7;
+    else if (sscanf(timestring.substr(pos, 8).c_str(),
+                    "%2d/%2d/%2d",
                     &timestr.tm_mon,
                     &timestr.tm_mday,
-                    &timestr.tm_year) == 3)
-      pos += 6;
-    else
-      return false;
+                    &timestr.tm_year) == 3) pos += 8;
+    else return false;
 
     timestr.tm_year += 100;
     timestr.tm_mon--;
 
-    if (timestring[pos] == 'T' || timestring[pos] == ' ')
-      pos++;
+    if (timestring[pos] == 'T' || timestring[pos] == ' ') pos++;
 
-    if (sscanf(timestring.substr(pos, 5).c_str(),
-               "%2d:%2d",
-               &timestr.tm_hour,
-               &timestr.tm_min) == 2)
-      pos += 5;
-    else
-      return false;
+    if (sscanf(timestring.substr(pos, 5).c_str(), "%2d:%2d", &timestr.tm_hour, &timestr.tm_min) == 2) pos += 5;
+    else return false;
 
     // skip the space characters
-    while (timestring[pos] == ' ')
-      pos++;
+    while (timestring[pos] == ' ') pos++;
 
-    if (timestring.substr(pos, pos + 2) == "PM")
-      timestr.tm_hour += 12;
+    if (timestring.substr(pos, 2) == "PM") timestr.tm_hour += 12;
 
     time.SetTime(mktime(&timestr));
     return true;
