@@ -7,6 +7,16 @@
 
 namespace Arc {
 
+MessagePayload::MessagePayload(void):failure_(STATUS_OK) {
+}
+
+MessagePayload::~MessagePayload(void) {
+}
+
+MCC_Status MessagePayload::Failure(void) {
+  return failure_;
+}
+
 MessageContext::MessageContext(void) {
 }
 

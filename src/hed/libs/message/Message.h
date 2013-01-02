@@ -5,6 +5,7 @@
 
 #include "MessageAttributes.h"
 #include "MessageAuth.h"
+#include "MCC_Status.h"
 
 namespace Arc {
 
@@ -12,8 +13,13 @@ namespace Arc {
 /** It's not intended to be used directly. Instead functional 
   classes must be derived from it. */
 class MessagePayload {
+ protected:
+  MCC_Status failure_;
  public:
-  virtual ~MessagePayload(void) { };
+  MessagePayload(void);
+  virtual ~MessagePayload(void);
+  /// Returns last failure description
+  MCC_Status Failure(void);
 };
 
 /// Top class for elements contained in message context.

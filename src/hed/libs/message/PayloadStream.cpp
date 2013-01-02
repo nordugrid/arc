@@ -10,6 +10,7 @@
 #include <sys/poll.h>
 #endif
 
+#include <arc/Utils.h>
 #include "PayloadStream.h"
 
 namespace Arc {
@@ -33,31 +34,63 @@ PayloadStream::PayloadStream(int h):timeout_(60),handle_(h),seekable_(false) {
   return;
 }
 
+#define FAILSYSERR(msg) { \
+  failure_ = MCC_Status(GENERIC_ERROR,"STREAM",(msg)+StrError(errno)); \
+  return false; \
+}
+
 bool PayloadStream::Get(char* buf,int& size) {
   if(handle_ == -1) return false;
   ssize_t l = size;
   size=0;
   if(seekable_) { // check for EOF
     struct stat st;
-    if(fstat(handle_,&st) != 0) return false;
-    off_t o = lseek(handle_,0,SEEK_CUR);
-    if(o == (off_t)(-1)) return false;
+    if(::fstat(handle_,&st) != 0) {
+      FAILSYSERR("Can't get state of stream's handle: ");
+    };
+    off_t o = ::lseek(handle_,0,SEEK_CUR);
+    if(o == (off_t)(-1)) {
+      FAILSYSERR("Failed to seek in stream's handle: ");
+    };
     o++;
-    if(o >= st.st_size) return false;
+    if(o >= st.st_size) {
+      failure_ = MCC_Status(GENERIC_ERROR,"STREAM","Failed to seek to requested position");
+      return false;
+    };
   };
 #ifndef WIN32
   struct pollfd fd;
   fd.fd=handle_; fd.events=POLLIN | POLLPRI | POLLERR; fd.revents=0;
-  if(poll(&fd,1,timeout_*1000) != 1) return false;
-  if(!(fd.revents & (POLLIN | POLLPRI))) return false;
+  int r = 0;
+  if((r=poll(&fd,1,timeout_*1000)) != 1) {
+    if(r == 0) {
+      failure_ = MCC_Status(GENERIC_ERROR,"STREAM","Timeout waiting for incoming data");
+    } else {
+      failure_ = MCC_Status(GENERIC_ERROR,"STREAM","Failed while waiting for incoming data: "+StrError(errno));
+    };
+    return false;
+  }
+  if(!(fd.revents & (POLLIN | POLLPRI))) {
+    failure_ = MCC_Status(GENERIC_ERROR,"STREAM","Error in stream's handle");
+    return false;
+  }
 #endif
   l=::read(handle_,buf,l);
-  if(l == -1) return false;
+  if(l == -1) {
+    FAILSYSERR("Failed reading stream's handle: ");
+  }
   size=l;
 #ifndef WIN32
-  if((l == 0) && (fd.revents && POLLERR)) return false;
+  if((l == 0) && (fd.revents && POLLERR)) {
+    // TODO: remove because it never happens
+    failure_ = MCC_Status(GENERIC_ERROR,"STREAM","Error in stream's handle");
+    return false;
+  }
 #else
-  if(l == 0) return false;
+  if(l == 0) {
+    failure_ = MCC_Status(GENERIC_ERROR,"STREAM","No data in stream's handle");
+    return false;
+  }
 #endif
   return true;
 }
@@ -72,17 +105,33 @@ bool PayloadStream::Put(const char* buf,Size_t size) {
     fd.fd=handle_; fd.events=POLLOUT | POLLERR; fd.revents=0;
     int to = timeout_-(unsigned int)(time(NULL)-start);
     if(to < 0) to=0;
-    if(poll(&fd,1,to*1000) != 1) return false;
-    if(!(fd.revents & POLLOUT)) return false;
+    int r = 0;
+    if((r=poll(&fd,1,to*1000)) != 1) {
+      if(r == 0) {
+        failure_ = MCC_Status(GENERIC_ERROR,"STREAM","Timeout waiting for outgoing data");
+      } else {
+        failure_ = MCC_Status(GENERIC_ERROR,"STREAM","Failed while waiting for outgoing data: "+StrError(errno));
+      };
+      return false;
+    };
+    if(!(fd.revents & POLLOUT)) {
+      failure_ = MCC_Status(GENERIC_ERROR,"STREAM","Error in stream's handle");
+      return false;
+    };
 #endif
     l=::write(handle_,buf,size);
     if(l == -1) {
-	    return false;
+      FAILSYSERR("Failed writing into stream's handle: ");
     }
     buf+=l; size-=l;
 #ifdef WIN32
-    int to = timeout_-(unsigned int)(time(NULL)-start);
-    if(to < 0) return false;
+    if(size > 0) {
+      int to = timeout_-(unsigned int)(time(NULL)-start);
+      if(to < 0) {
+        failure_ = MCC_Status(GENERIC_ERROR,"STREAM","Timeout waiting for outgoing data");
+        return false;
+      };
+    };
 #endif
   };  
   return true;

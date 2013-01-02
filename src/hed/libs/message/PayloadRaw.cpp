@@ -46,14 +46,21 @@ static bool BufferAtPos(std::vector<PayloadRawBuf>& buf_,PayloadRawInterface::Si
 char* PayloadRaw::Content(Size_t pos) {
   unsigned int bufnum;
   Size_t bufpos;
-  if(!BufferAtPos(buf_,pos-offset_,bufnum,bufpos)) return NULL;
+  if(!BufferAtPos(buf_,pos-offset_,bufnum,bufpos)) {
+    failure_ = MCC_Status(GENERIC_ERROR,"RAW","Position is out of range");
+    return NULL;
+  };
   return buf_[bufnum].data+bufpos;
 }
 
 char PayloadRaw::operator[](Size_t pos) const {
   unsigned int bufnum;
   Size_t bufpos;
-  if(!BufferAtPos(buf_,pos-offset_,bufnum,bufpos)) return 0;
+  if(!BufferAtPos(buf_,pos-offset_,bufnum,bufpos)) {
+    // Avoid setting failure because behavior is well defined 
+    //failure_ = MCC_Status(GENERIC_ERROR,"RAW","Position is out of range");
+    return 0;
+  };
   return buf_[bufnum].data[bufpos];
 }
 
@@ -117,17 +124,29 @@ char* PayloadRaw::Insert(Size_t pos,Size_t size) {
 char* PayloadRaw::Insert(const char* s,Size_t pos,Size_t size) {
   if(size < 0) size=strlen(s);
   char* s_ = Insert(pos,size);
-  if(s_) memcpy(s_,s,size);
+  if(s_) {
+    memcpy(s_,s,size);
+  } else {
+    failure_ = MCC_Status(GENERIC_ERROR,"RAW","Failed to allocate new buffer");
+  };
   return s_;
 }
 
 char* PayloadRaw::Buffer(unsigned int num) {
-  if(num>=buf_.size()) return NULL;
+  if(num>=buf_.size()) {
+    // Avoid setting failure because behavior is well defined 
+    //failure_ = MCC_Status(GENERIC_ERROR,"RAW","Index is out of range");
+    return NULL;
+  };
   return buf_[num].data;
 }
 
 PayloadRaw::Size_t PayloadRaw::BufferSize(unsigned int num) const {
-  if(num>=buf_.size()) return 0;
+  if(num>=buf_.size()) {
+    // Avoid setting failure because behavior is well defined 
+    //failure_ = MCC_Status(GENERIC_ERROR,"RAW","Index is out of range");
+    return 0;
+  };
   return buf_[num].length;
 }
 
