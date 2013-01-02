@@ -8,6 +8,15 @@
 #include <arc/XMLNode.h>
 #include <arc/compute/Job.h>
 
+/** CREAMClient
+ * The CREAMClient class is used for commnunicating with a CREAM 2 computing
+ * service. CREAM uses WSRF technology with a WSDL specifying the allowed
+ * operations. The particular WSDLs can be obtained from the CERN source code
+ * repository with names 'org.glite.ce-cream2_service.wsdl' and
+ * 'www.gridsite.org-delegation-2.0.0.wsdl', at path 'org.glite.ce.wsdl'. A
+ * package for these WSDLs probably also exist.
+ */
+
 namespace Arc {
 
   class ClientSOAP;
