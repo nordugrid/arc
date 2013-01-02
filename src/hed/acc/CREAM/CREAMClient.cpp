@@ -232,18 +232,32 @@ namespace Arc {
     if (ISVALID(lastStatusNode["exitCode"]))
       job.ExitCode = stringtoi((std::string)lastStatusNode["exitCode"]);
     if (ISVALID(jobInfoNode["delegationProxyInfo"])) {
+      /* Format of delegationProxyInfo node.
+      [ isRFC="<true|false>";
+        valid from="<mon>/<date>/<yy> <hour>:<min> <AM|PM> (<timezone>)";
+        valid to="<mon>/<date>/<yy> <hour>:<min> <AM|PM> (<timezone>)";
+        holder DN="<DN>";
+        holder AC issuer="<DN>";
+        VO="<VO-name>";
+        AC issuer="<DN>";
+        VOMS attributes=<VOMS-Attributes>
+      ]
+      */
+      
       std::string delegationProxy = (std::string)jobInfoNode["delegationProxyInfo"];
-      std::list<std::string> splited_proxy;
-      tokenize(delegationProxy, splited_proxy, "\n");
-      for (std::list<std::string>::iterator it = splited_proxy.begin();
-           it != splited_proxy.end(); it++) {
-        if (it->find("Holder Subject") < it->find(":"))
-          job.Owner = it->substr(it->find_first_of(":") + 1);
-        if (it->find("Valid To") < it->find(":")) {
-          Time time;
-          if (stringtoTime(it->substr(it->find_first_of(":") + 2), time) && time.GetTime() != -1)
-            job.ProxyExpirationTime = time;
-        }
+      std::size_t lBracketPos = delegationProxy.find('['), rBracketPos = delegationProxy.rfind(']');
+      if (lBracketPos != std::string::npos && rBracketPos != std::string::npos) {
+        delegationProxy = trim(delegationProxy.substr(lBracketPos, rBracketPos - lBracketPos));
+      }
+      std::list<std::string> tDelegInfo;
+      tokenize(delegationProxy, tDelegInfo, ";");
+      for (std::list<std::string>::iterator it = tDelegInfo.begin();
+           it != tDelegInfo.end(); ++it) {
+        std::list<std::string> keyValuePair;
+        tokenize(*it, keyValuePair, "=", "\"", "\"");
+        if (keyValuePair.size() != 2) continue;
+        if (lower(trim(keyValuePair.front())) == "holder dn") job.Owner = trim(keyValuePair.back(), " \"");
+        if (lower(trim(keyValuePair.front())) == "valid to")  stringtoTime(trim(keyValuePair.back(), " \""), job.ProxyExpirationTime);
       }
     }
     if (ISVALID(jobInfoNode["localUser"]))
