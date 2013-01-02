@@ -140,10 +140,7 @@ namespace Arc {
       return false;
     }
 
-    if ((*resp)[action + "Response"]["result"])
-      (*resp)[action + "Response"]["result"].New(response);
-    else
-      (*resp)[action + "Response"].New(response);
+    (*resp)[action + "Response"].New(response);
 
     delete resp;
 
@@ -185,11 +182,10 @@ namespace Arc {
     xjobId.NewChild("types:creamURL") = client->GetURL().str();
 
     XMLNode response;
-    if (!process(req, response))
-      return false;
+    if (!process(req, response)) return false;
 
     XMLNode jobInfoNode;
-    jobInfoNode = response["jobInfo"];
+    jobInfoNode = response["result"]["jobInfo"];
 
     XMLNode lastStatusNode = jobInfoNode.Path("status").back();
 
@@ -350,8 +346,7 @@ namespace Arc {
     xjobId.NewChild("types:creamURL") = client->GetURL().str();
 
     XMLNode response;
-    if (!process(req, response))
-      return false;
+    if (!process(req, response)) return false;
 
     if (!response) {
       logger.msg(VERBOSE, "Empty response");
@@ -372,8 +367,7 @@ namespace Arc {
     xjobId.NewChild("types:creamURL") = client->GetURL().str();
 
     XMLNode response;
-    if (!process(req, response))
-      return false;
+    if (!process(req, response)) return false;
 
     if (!response) {
       logger.msg(VERBOSE, "Empty response");
@@ -394,8 +388,7 @@ namespace Arc {
     xjobId.NewChild("types:creamURL") = client->GetURL().str();
 
     XMLNode response;
-    if (!process(req, response))
-      return false;
+    if (!process(req, response)) return false;
 
     if (!response) {
       logger.msg(VERBOSE, "Empty response");
@@ -419,8 +412,7 @@ namespace Arc {
     act_job.NewChild("types:autoStart") = "false";
 
     XMLNode response;
-    if (!process(req, response))
-      return false;
+    if (!process(req, response)) return false;
 
     if (!response) {
       logger.msg(VERBOSE, "Empty response");
@@ -449,15 +441,14 @@ namespace Arc {
     xjobId.NewChild("types:creamURL") = client->GetURL().str();
 
     XMLNode response;
-    if (!process(req, response))
-      return false;
+    if (!process(req, response)) return false;
 
     if (!response) {
       logger.msg(VERBOSE, "Empty response");
       return false;
     }
 
-    if (!response["jobId"]["id"]) {
+    if (!response["result"]["jobId"]["id"]) {
       logger.msg(VERBOSE, "No job ID in response");
       return false;
     }
@@ -475,8 +466,7 @@ namespace Arc {
     req.NewChild("deleg:" + action).NewChild("delegationID") = delegation_id;
 
     XMLNode response;
-    if (!process(req, response, "http://www.gridsite.org/namespaces/delegation-2/"))
-      return false;
+    if (!process(req, response, "http://www.gridsite.org/namespaces/delegation-2/")) return false;
 
     std::string proxyRequestStr = (std::string)response["getProxyReqReturn"];
     if (proxyRequestStr.empty()) {
