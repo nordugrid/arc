@@ -130,9 +130,9 @@ namespace Arc {
       j.ServiceInformationURL.ChangeLDAPFilter("");
       j.ServiceInformationInterfaceName = "org.nordugrid.ldapng";
       j.JobStatusURL = url;
-      j.JobStatusInterfaceName = "org.glite.cream";
+      j.JobStatusInterfaceName = "org.glite.ce.cream";
       j.JobManagementURL = url;
-      j.JobManagementInterfaceName = "org.glite.cream";
+      j.JobManagementInterfaceName = "org.glite.ce.cream";
       j.StageInDir = jobInfo.ISB;
       j.StageOutDir = jobInfo.OSB;
       AddJobDetails(preparedjobdesc, j);
@@ -231,9 +231,9 @@ namespace Arc {
       j.ServiceInformationURL.ChangeLDAPFilter("");
       j.ServiceInformationInterfaceName = "org.nordugrid.ldapglue1";
       j.JobStatusURL = url;
-      j.JobStatusInterfaceName = "org.glite.cream";
+      j.JobStatusInterfaceName = "org.glite.ce.cream";
       j.JobManagementURL = url;
-      j.JobManagementInterfaceName = "org.glite.cream";
+      j.JobManagementInterfaceName = "org.glite.ce.cream";
       j.StageInDir = jobInfo.ISB;
       j.StageOutDir = jobInfo.OSB;
       AddJobDetails(preparedjobdesc, j);
