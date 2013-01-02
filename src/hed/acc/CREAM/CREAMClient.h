@@ -45,7 +45,7 @@ namespace Arc {
     bool resume(const std::string& jobid);
 
   private:
-    bool process(PayloadSOAP& req, XMLNode& response);
+    bool process(PayloadSOAP& req, XMLNode& response, const std::string& actionNS = "http://glite.org/2007/11/ce/cream/");
 
     std::string action;
 

@@ -123,14 +123,14 @@ namespace Arc {
       delete client;
   }
 
-  bool CREAMClient::process(PayloadSOAP& req, XMLNode& response) {
+  bool CREAMClient::process(PayloadSOAP& req, XMLNode& response, const std::string& actionNS) {
     if (!client) {
       logger.msg(VERBOSE, "CREAMClient not created properly");
       return false;
     }
 
     PayloadSOAP *resp = NULL;
-    if (!client->process("http://glite.org/2007/11/ce/cream/" + action, &req, &resp)) {
+    if (!client->process(actionNS + action, &req, &resp)) {
       logger.msg(VERBOSE, "%s request failed", action);
       return false;
     }
@@ -475,7 +475,7 @@ namespace Arc {
     req.NewChild("deleg:" + action).NewChild("delegationID") = delegation_id;
 
     XMLNode response;
-    if (!process(req, response))
+    if (!process(req, response, "http://www.gridsite.org/namespaces/delegation-2/"))
       return false;
 
     std::string proxyRequestStr = (std::string)response["getProxyReqReturn"];
