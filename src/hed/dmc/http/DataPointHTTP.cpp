@@ -26,6 +26,10 @@ namespace ArcDMCHTTP {
 
 using namespace Arc;
 
+  // TODO: filling failure_code in multiple threads is potentailly dangerous
+  //       because it is accessible through public method. Maybe it would be
+  //       safer to fill it in StopReading/StopWriting
+
   Logger DataPointHTTP::logger(Logger::getRootLogger(), "DataPoint.HTTP");
 
   typedef struct {
@@ -687,6 +691,7 @@ using namespace Arc;
     bool transfer_failure = false;
     int retries = 0;
     std::string path = point.CurrentLocation().FullPathURIEncoded();
+    DataStatus failure_code;
     for (;;) {
       if (!client) {
         transfer_failure = true;
@@ -724,9 +729,9 @@ using namespace Arc;
         // Failed to transfer chunk - retry.
         // 10 times in a row seems to be reasonable number
         // TODO: mark failure?
-        // TODO: report failure.
         if ((++retries) > 10) {
           transfer_failure = true;
+          failure_code = DataStatus(DataStatus::ReadError, r.getExplanation());
           break;
         }
         // Recreate connection
@@ -772,7 +777,7 @@ using namespace Arc;
         }
         logger.msg(VERBOSE,"HTTP failure %u - %s",transfer_info.code,transfer_info.reason);
         std::string reason = Arc::tostring(transfer_info.code) + " - " + transfer_info.reason;
-        point.failure_code = DataStatus(DataStatus::ReadError, point.http2errno(transfer_info.code), reason);
+        failure_code = DataStatus(DataStatus::ReadError, point.http2errno(transfer_info.code), reason);
         transfer_failure = true;
         break;
       }
@@ -868,7 +873,10 @@ using namespace Arc;
     }
     point.transfer_lock.lock();
     --(point.transfers_tofinish);
-    if (transfer_failure) point.buffer->error_read(true);
+    if (transfer_failure) {
+      point.failure_code = failure_code;
+      point.buffer->error_read(true);
+    }
     if (point.transfers_tofinish == 0) {
       // TODO: process/report failure?
       point.buffer->eof_read(true);
@@ -895,13 +903,14 @@ using namespace Arc;
     if (!r) {
       // It is not clear how to retry if early chunks are not available anymore.
       // Let it retry at higher level.
-      // TODO: report failure
+      point.failure_code = DataStatus(DataStatus::WriteError, r.getExplanation());
       delete client; client = NULL;
       return false;
     }
     if ((transfer_info.code != 201) &&
         (transfer_info.code != 200) &&
         (transfer_info.code != 204)) {  // HTTP error
+      point.failure_code = DataStatus(DataStatus::WriteError, point.http2errno(transfer_info.code), transfer_info.reason);
       return false;
     }
     return true;
@@ -918,6 +927,7 @@ using namespace Arc;
     int retries = 0;
     std::string path = client_url.FullPathURIEncoded();
     bool partial_write_failure = false;
+    DataStatus failure_code;
     for (;;) {
       if (!client) {
         transfer_failure = true;
@@ -947,9 +957,9 @@ using namespace Arc;
         // Failed to transfer chunk - retry.
         // 10 times in a row seems to be reasonable number
         // TODO: mark failure?
-        // TODO: report failure.
         if ((++retries) > 10) {
           transfer_failure = true;
+          failure_code = DataStatus(DataStatus::WriteError, r.getExplanation());
           break;
         }
         // Return buffer
@@ -973,7 +983,7 @@ using namespace Arc;
           partial_write_failure = true;
         } else {
           transfer_failure = true;
-          point.failure_code = DataStatus(DataStatus::WriteError, point.http2errno(transfer_info.code), transfer_info.reason);
+          failure_code = DataStatus(DataStatus::WriteError, point.http2errno(transfer_info.code), transfer_info.reason);
         }
         break;
       }
@@ -982,7 +992,10 @@ using namespace Arc;
     }
     point.transfer_lock.lock();
     --(point.transfers_tofinish);
-    if (transfer_failure) point.buffer->error_write(true);
+    if (transfer_failure) {
+      point.failure_code = failure_code;
+      point.buffer->error_write(true);
+    }
     if (point.transfers_tofinish == 0) {
       if(partial_write_failure) {
         // Writing in single chunk to be done in single thread
@@ -1010,6 +1023,7 @@ using namespace Arc;
           if (!r) {
             delete client; client = NULL;
             if ((++retries) > 10) {
+              point.failure_code = DataStatus(DataStatus::WriteError, r.getExplanation());
               point.buffer->error_write(true);
               break;
             }
