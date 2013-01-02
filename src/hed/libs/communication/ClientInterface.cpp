@@ -91,7 +91,7 @@ namespace Arc {
       if (overlay) Overlay(overlay);
       loader = new MCCLoader(xmlcfg);
     }
-    if (!(*loader)) return MCC_Status(GENERIC_ERROR,loader->failure());
+    if (!(*loader)) return MCC_Status(GENERIC_ERROR,"COMMUNICATION",loader->failure());
     return MCC_Status(STATUS_OK);
   }
 
@@ -186,7 +186,7 @@ namespace Arc {
     if (!tls_entry) tls_entry = (*loader)["gsi"];
     if (!tcp_entry) tcp_entry = (*loader)["tcp"];
     if((!tls_entry) && (!tcp_entry)) {
-      return MCC_Status(GENERIC_ERROR,"MCC chain loading produced no entry point");
+      return MCC_Status(GENERIC_ERROR,"COMMUNICATION","MCC chain loading produced no entry point");
     }
     return r;
   }
@@ -197,7 +197,7 @@ namespace Arc {
     MCC_Status r;
     if (!(r=Load())) return r;
     if ((tls && !tls_entry) || (!tls && !tcp_entry)) {
-      return MCC_Status(GENERIC_ERROR,"MCC chain loading produced no entry point");
+      return MCC_Status(GENERIC_ERROR,"COMMUNICATION","MCC chain loading produced no entry point");
     }
     MessageAttributes attributes_req;
     MessageAttributes attributes_rep;
@@ -232,7 +232,7 @@ namespace Arc {
     MCC_Status r;
     if (!(r=Load())) return r;
     if ((tls && !tls_entry) || (!tls && !tcp_entry)) {
-      return MCC_Status(GENERIC_ERROR,"MCC chain loading produced no entry point");
+      return MCC_Status(GENERIC_ERROR,"COMMUNICATION","MCC chain loading produced no entry point");
     }
     MessageAttributes attributes_req;
     MessageAttributes attributes_rep;
@@ -376,7 +376,7 @@ namespace Arc {
     if(!(r=ClientTCP::Load())) return r;
     if (!http_entry) http_entry = (*loader)["http"];
     if (!http_entry) {
-      return MCC_Status(GENERIC_ERROR,"MCC chain loading produced no entry point");
+      return MCC_Status(GENERIC_ERROR,"COMMUNICATION","MCC chain loading produced no entry point");
     }
     return r;
   }
@@ -455,7 +455,7 @@ namespace Arc {
     *response = NULL;
     MCC_Status r;
     if (!(r=Load())) return r;
-    if (!http_entry) return MCC_Status(GENERIC_ERROR,"MCC chain loading produced no entry point");
+    if (!http_entry) return MCC_Status(GENERIC_ERROR,"COMMUNICATION","MCC chain loading produced no entry point");
     MessageAttributes attributes_req;
     MessageAttributes attributes_rep;
     Message reqmsg;
@@ -657,7 +657,7 @@ namespace Arc {
     if(!(r=ClientHTTP::Load())) return r;
     if (!soap_entry) soap_entry = (*loader)["soap"];
     if (!soap_entry) {
-      return MCC_Status(GENERIC_ERROR,"MCC chain loading produced no entry point");
+      return MCC_Status(GENERIC_ERROR,"COMMUNICATION","MCC chain loading produced no entry point");
     }
     return r;
   }
@@ -667,7 +667,7 @@ namespace Arc {
     *response = NULL;
     MCC_Status r;
     if(!(r=Load())) return r;
-    if (!soap_entry) return MCC_Status(GENERIC_ERROR,"MCC chain loading produced no entry point");
+    if (!soap_entry) return MCC_Status(GENERIC_ERROR,"COMMUNICATION","MCC chain loading produced no entry point");
     MessageAttributes attributes_req;
     MessageAttributes attributes_rep;
     Message reqmsg;
@@ -694,7 +694,7 @@ namespace Arc {
     *response = NULL;
     MCC_Status r;
     if(!(r=Load())) return r;
-    if (!soap_entry) return MCC_Status(GENERIC_ERROR,"MCC chain loading produced no entry point");
+    if (!soap_entry) return MCC_Status(GENERIC_ERROR,"COMMUNICATION","MCC chain loading produced no entry point");
     MessageAttributes attributes_req;
     MessageAttributes attributes_rep;
     Message reqmsg;
