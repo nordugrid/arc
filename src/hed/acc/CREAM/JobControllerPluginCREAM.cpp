@@ -87,12 +87,23 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerPluginCREAM::ResumeJobs(const std::list<Job*>& jobs, std::list<std::string>&, std::list<std::string>& IDsNotProcessed, bool) const {
+  bool JobControllerPluginCREAM::ResumeJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool) const {
+    MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
+    bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
-      logger.msg(INFO, "Resumation of CREAM jobs is not supported");
-      IDsNotProcessed.push_back((*it)->JobID);
+      Job& job = **it;
+      CREAMClient gLiteClient(job.JobManagementURL.str() + "/CREAM2", cfg, usercfg.Timeout());
+      if (!gLiteClient.cancel(job.IDFromEndpoint)) {
+        logger.msg(INFO, "Failed resuming job: %s", job.JobID);
+        ok = false;
+        IDsNotProcessed.push_back(job.JobID);
+        continue;
+      }
+      IDsProcessed.push_back(job.JobID);
     }
-    return false;
+    
+    return ok;
   }
 
   bool JobControllerPluginCREAM::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {

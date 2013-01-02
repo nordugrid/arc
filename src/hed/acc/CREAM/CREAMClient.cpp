@@ -383,6 +383,28 @@ namespace Arc {
     return true;
   }
 
+  bool CREAMClient::resume(const std::string& jobid) {
+    logger.msg(VERBOSE, "Creating and sending request to resume a job");
+
+    action = "JobResume";
+
+    PayloadSOAP req(cream_ns);
+    XMLNode xjobId = req.NewChild("types:" + action + "Request").NewChild("types:jobId");
+    xjobId.NewChild("types:id") = jobid;
+    xjobId.NewChild("types:creamURL") = client->GetURL().str();
+
+    XMLNode response;
+    if (!process(req, response))
+      return false;
+
+    if (!response) {
+      logger.msg(VERBOSE, "Empty response");
+      return false;
+    }
+
+    return true;
+  }
+
   bool CREAMClient::registerJob(const std::string& jdl_text,
                                 creamJobInfo& info) {
     logger.msg(VERBOSE, "Creating and sending job register request");

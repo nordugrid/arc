@@ -42,6 +42,7 @@ namespace Arc {
     bool stat(const std::string& jobid, Job& job);
     bool cancel(const std::string& jobid);
     bool purge(const std::string& jobid);
+    bool resume(const std::string& jobid);
 
   private:
     bool process(PayloadSOAP& req, XMLNode& response);
