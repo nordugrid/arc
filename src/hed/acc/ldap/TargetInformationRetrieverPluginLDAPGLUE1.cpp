@@ -123,7 +123,8 @@ namespace Arc {
       VOMSTrustList vomsTrustDN;
       vomsTrustDN.AddRegex(".*");
       std::vector<VOMSACInfo> vomsAttributes;
-      if (parseVOMSAC(Credential(uc), uc.CACertificatesDirectory(), "", "", vomsTrustDN, vomsAttributes)) {
+      Credential cred(uc);
+      if (parseVOMSAC(cred, uc.CACertificatesDirectory(), "", "", vomsTrustDN, vomsAttributes)) {
         for (std::vector<VOMSACInfo>::const_iterator itAC = vomsAttributes.begin();
              itAC != vomsAttributes.end(); ++itAC) {
           for (XMLNode n = ce.node["GlueVOViewLocalID"]; n; ++n) {
