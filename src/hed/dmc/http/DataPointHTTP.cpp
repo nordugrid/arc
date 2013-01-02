@@ -364,7 +364,7 @@ using namespace Arc;
       MCC_Status r = client->process("HEAD", path, &request, &info, &inbuf);
       if (inbuf) delete inbuf;
       if (!r) {
-        return DataStatus::StatError;
+        return DataStatus(DataStatus::StatError,r.getExplanation());
       }
       release_client(rurl,client.Release());
       if (info.code != 200) {
@@ -631,9 +631,9 @@ using namespace Arc;
     PayloadRawInterface::Size_t logsize = 0;
     if (inbuf){
       logsize = inbuf->Size();
-      delete inbuf;
+      delete inbuf; inbuf = NULL;
     }
-    if (!r) return DataStatus::CheckError;
+    if (!r) return DataStatus(DataStatus::CheckError,r.getExplanation());
     release_client(url,client.Release());
     if ((info.code != 200) && (info.code != 206)) return DataStatus(DataStatus::CheckError, http2errno(info.code), info.reason);
     size = logsize;
@@ -650,8 +650,8 @@ using namespace Arc;
     HTTPClientInfo info;
     MCC_Status r = client->process("DELETE", url.FullPathURIEncoded(),
                                   &request, &info, &inbuf);
-    if (inbuf) delete inbuf;
-    if(!r) return DataStatus::DeleteError;
+    if (inbuf) delete inbuf; inbuf = NULL;
+    if(!r) return DataStatus(DataStatus::DeleteError,r.getExplanation());
     release_client(url,client.Release());
     if ((info.code != 200) && (info.code != 202) && (info.code != 204)) {
       return DataStatus(DataStatus::DeleteError, http2errno(info.code), info.reason);
@@ -669,7 +669,7 @@ using namespace Arc;
     MCC_Status r = client->process("MOVE", url.FullPathURIEncoded(),
                                    attributes, &request, &info, &inbuf);
     if (inbuf) delete inbuf;
-    if(!r) return DataStatus::RenameError;
+    if(!r) return DataStatus(DataStatus::RenameError,r.getExplanation());
     release_client(url,client.Release());
     if ((info.code != 201) && (info.code != 204)) { 
       return DataStatus(DataStatus::RenameError, http2errno(info.code), info.reason);
@@ -895,6 +895,7 @@ using namespace Arc;
     if (!r) {
       // It is not clear how to retry if early chunks are not available anymore.
       // Let it retry at higher level.
+      // TODO: report failure
       delete client; client = NULL;
       return false;
     }
