@@ -24,6 +24,12 @@ sub build_glueCEUniqueID
     return $cluster_name . ":" . "2811" . "/nordugrid-". $cluster_lrms_type . "-" . $queue_name;
 }
 
+sub build_glueSEUniqueID
+{
+    my $cluster_name = shift;
+    return $cluster_name . "_" . "org.nordugrid.arex";
+}
+
 # Global variables for translator
 use vars qw($DEFAULT); $DEFAULT = 0;
 use vars qw($outbIP $inbIP $glueSubClusterUniqueID $norduBenchmark $norduOpsys $norduNodecput $norduNodecpu);
@@ -193,6 +199,22 @@ sub translator(){
     if ( $cluster_attributes{'nordugrid-cluster-localse'} ) {
         write_ce_se_binding_entries($cluster_attributes{'nordugrid-cluster-localse'},\@storages);
     }
+    
+    # Service information. This is an hack to mimic Site-BDII service information.
+    my $glueSEUniqueID = build_glueSEUniqueID($cluster_attributes{'nordugrid-cluster-name'});
+    my $glueservicename = $glue_site_unique_id."-arc";
+    my $glueservicestatusinfo=`service a-rex status`;
+    chomp $glueservicestatusinfo;
+    my $glueservicestatus;
+    if ($? == 0) {
+        $glueservicestatus="OK";
+    } else {
+        $glueservicestatus="Warning";
+    }
+    my $serviceendpoint = "gsiftp://". $cluster_attributes{'nordugrid-cluster-name'} . ":" . "2811" . "/jobs";
+    my $serviceversion = "3.0.0";
+    my $servicetype = "ARC-CE";
+    write_service_information ($glueSEUniqueID,$glueservicename,$glueservicestatus,$glueservicestatusinfo,$serviceendpoint,$serviceversion,$servicetype,'_UNDEF_');
 }
 
 # Write SubCluster Entries
@@ -593,19 +615,19 @@ GlueSchemaVersionMinor: 2
 sub write_service_information () {
     my $serviceuniqueid = shift;
     my $servicename = shift;
-    my $mdsvoname = shift;
-    my $s_acb=shift;
-    my $s_acr=shift;
     my $glueservicestatus = shift;
     my $glueservicestatusinfo = shift;
     my $serviceendpoint = shift;
     my $serviceversion = shift;
     my $servicetype = shift;
     my $servicewsdl = shift;
-    my @accesscontrolbase = @{$s_acb};
-    my @accesscontrolrule = @{$s_acr};
+    my $s_acb=shift;
+    my $s_acr=shift;
+    my @accesscontrolbase = @{$s_acb} if defined $s_acb;
+    my @accesscontrolrule = @{$s_acr} if defined $s_acr;
+    
     print "
-dn: GlueServiceUniqueID=$serviceuniqueid,Mds-Vo-name=$mdsvoname,Mds-Vo-name=local,o=grid
+dn: GlueServiceUniqueID=$serviceuniqueid,mds-vo-name=resource,o=grid
 ";
     foreach (@accesscontrolbase) {
 	chomp;
@@ -631,6 +653,7 @@ GlueServiceAccessControlRule: $_
     print "
 GlueServiceEndpoint: $serviceendpoint
 GlueServiceVersion: $serviceversion
+GlueSchemaVersionMajor: 1
 GlueSchemaVersionMinor: 3
 GlueServiceName: $servicename
 GlueServiceType: $servicetype
