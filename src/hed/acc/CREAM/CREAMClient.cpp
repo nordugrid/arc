@@ -207,10 +207,11 @@ namespace Arc {
     if (ISVALID(jobInfoNode["type"]))
       job.Type = (std::string)jobInfoNode["type"];
     if (ISVALID(jobInfoNode["JDL"])) {
-      job.JobDescription = (std::string)jobInfoNode["JDL"];
+      job.JobDescription = "egee:jdl";
+      job.JobDescriptionDocument = (std::string)jobInfoNode["JDL"];
 
       std::list<JobDescription> jds;
-      if (JobDescription::Parse(job.JobDescription, jds) && !jds.empty()) {
+      if (JobDescription::Parse(job.JobDescriptionDocument, jds) && !jds.empty()) {
         if (!jds.front().Application.Input.empty())
           job.StdIn = jds.front().Application.Input;
 

@@ -56,9 +56,22 @@ namespace Arc {
 
     std::string Type;
     std::string IDFromEndpoint;
+
     std::string LocalIDFromManager;
+    /// Language of job description describing job
+    /**
+     * Equivalent to the GLUE2 ComputingActivity entity JobDescription (open
+     * enumeration), which here is represented by a string.
+     */
     std::string JobDescription;
+    
+    /// Job description document describing job
+    /**
+     * No GLUE2 entity equivalent. Should hold the job description document
+     * which was submitted to the computing service for this job.
+     */
     std::string JobDescriptionDocument;
+    
     JobState State;
     JobState RestartState;
     int ExitCode;
