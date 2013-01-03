@@ -24,7 +24,7 @@ sub build_glueCEUniqueID
     return $cluster_name . ":" . "2811" . "/nordugrid-". $cluster_lrms_type . "-" . $queue_name;
 }
 
-sub build_glueSEUniqueID
+sub build_glueServiceUniqueID
 {
     my $cluster_name = shift;
     return $cluster_name . "_" . "org.nordugrid.arex";
@@ -201,7 +201,7 @@ sub translator(){
     }
     
     # Service information. This is an hack to mimic Site-BDII service information.
-    my $glueSEUniqueID = build_glueSEUniqueID($cluster_attributes{'nordugrid-cluster-name'});
+    my $glueServiceUniqueID = build_glueServiceUniqueID($cluster_attributes{'nordugrid-cluster-name'});
     my $glueservicename = $glue_site_unique_id."-arc";
     my $glueservicestatusinfo=`service a-rex status`;
     chomp $glueservicestatusinfo;
@@ -214,7 +214,7 @@ sub translator(){
     my $serviceendpoint = "gsiftp://". $cluster_attributes{'nordugrid-cluster-name'} . ":" . "2811" . "/jobs";
     my $serviceversion = "3.0.0";
     my $servicetype = "ARC-CE";
-    write_service_information ($glueSEUniqueID,$glueservicename,$glueservicestatus,$glueservicestatusinfo,$serviceendpoint,$serviceversion,$servicetype,'_UNDEF_');
+    write_service_information ($glueServiceUniqueID,$glueservicename,$glueservicestatus,$glueservicestatusinfo,$serviceendpoint,$serviceversion,$servicetype,'_UNDEF_');
 }
 
 # Write SubCluster Entries
