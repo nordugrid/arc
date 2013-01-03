@@ -444,12 +444,12 @@ namespace Arc {
       return false;
     }
 
-    if (!response["jobId"]["id"]) {
+    if (!response["result"]["jobId"]["id"]) {
       logger.msg(VERBOSE, "No job ID in response");
       return false;
     }
 
-    info = response["jobId"];
+    info = response["result"]["jobId"];
 
     return true;
   }
