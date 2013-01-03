@@ -299,6 +299,24 @@ public:
   */
   void getServicesWithStatus(const EndpointQueryingStatus& status, std::set<std::string>& result);
 
+  /// Clear statuses of registered endpoints
+  /**
+   * The status map of registered endpoints will be cleared when calling this
+   * method. That can be useful if an already registered endpoint need to be
+   * queried again.
+   */
+  void clearEndpointStatuses() { statusLock.lock(); statuses.clear(); statusLock.unlock(); return; }
+
+  /// Remove a particular registered endpoint
+  /**
+   * The specified endpoint will be removed from the status map of registered
+   * endpoints.
+   * \param e endpoint to remove from status map.
+   * \return true is returned if endpoint is found in the map, otherwise false
+   *   is returned.
+   */
+  bool removeEndpoint(const Endpoint& e) { statusLock.lock(); EndpointStatusMap::iterator it = statuses.find(e); if (it != statuses.end()) { statuses.erase(it); statusLock.unlock(); return true; }; statusLock.unlock(); return false; }
+
   /** This method should only be used by the plugins when they return their results.
     This will send the results to all the registered consumers.
     
