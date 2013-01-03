@@ -79,6 +79,7 @@ my %queue_attributes=(
     'nordugrid-queue-maxqueuable' => '',
     'nordugrid-queue-totalcpus' => '',
     'nordugrid-queue-opsys' => '',
+    'nordugrid-queue-benchmark' => '',
     'nordugrid-queue-nodecpu' => '',           
     'nordugrid-queue-nodememory' => '',
     'nordugrid-queue-architecture' => '',
@@ -437,7 +438,7 @@ sub write_gluece_entries(){
 	    if ($queue_attributes{'nordugrid-queue-prelrmsqueued'} ne $DEFAULT) {$waitingJobs += $queue_attributes{'nordugrid-queue-prelrmsqueued'};}
 	    
 	    $totalJobs = $waitingJobs;
-	    if ($queue_attributes{'nordugrid-queue-prelrmsqueued'} ne $DEFAULT) { $totalJobs += $queue_attributes{'nordugrid-queue-running'}; }
+	    if ($queue_attributes{'nordugrid-queue-running'} ne $DEFAULT) { $totalJobs += $queue_attributes{'nordugrid-queue-running'}; }
 
 	    $freeSlots=$DEFAULT;
 	    if ( ($queue_attributes{'nordugrid-queue-totalcpus'} ne $DEFAULT) && ($queue_attributes{'nordugrid-queue-running'} ne $DEFAULT) ){
