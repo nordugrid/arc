@@ -113,7 +113,15 @@
 %ignore Arc::JobControllerPluginPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
 %wraplist(JobControllerPlugin, Arc::JobControllerPlugin *);
 %template(JobControllerPluginMap) std::map<std::string, Arc::JobControllerPlugin *>;
+#ifdef SWIGPYTHON
+%apply std::string& TUPLEOUTPUTSTRING { std::string& desc_str }; /* Applies to:
+ *  bool JobControllerPlugin::GetJobDescription(const Job&, std::string& desc_str) const;
+ */
+#endif
 %include "../src/hed/libs/compute/JobControllerPlugin.h"
+#ifdef SWIGPYTHON
+%clear std::string& desc_str;
+#endif
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/compute/EndpointQueryingStatus.h
