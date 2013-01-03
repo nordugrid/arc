@@ -7,7 +7,8 @@ libaccldap_la_SOURCES  = Descriptors.cpp \
 	TargetInformationRetrieverPluginLDAPNG.cpp TargetInformationRetrieverPluginLDAPNG.h \
 	TargetInformationRetrieverPluginLDAPGLUE1.cpp TargetInformationRetrieverPluginLDAPGLUE1.h \
 	TargetInformationRetrieverPluginLDAPGLUE2.cpp TargetInformationRetrieverPluginLDAPGLUE2.h \
-	ServiceEndpointRetrieverPluginEGIIS.cpp ServiceEndpointRetrieverPluginEGIIS.h
+	ServiceEndpointRetrieverPluginEGIIS.cpp ServiceEndpointRetrieverPluginEGIIS.h \
+	ServiceEndpointRetrieverPluginBDII.cpp ServiceEndpointRetrieverPluginBDII.h
 libaccldap_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 libaccldap_la_LIBADD = \

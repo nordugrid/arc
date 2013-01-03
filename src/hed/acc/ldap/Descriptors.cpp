@@ -13,6 +13,7 @@
 #include "TargetInformationRetrieverPluginLDAPGLUE2.h"
 #include "TargetInformationRetrieverPluginLDAPNG.h"
 #include "ServiceEndpointRetrieverPluginEGIIS.h"
+#include "ServiceEndpointRetrieverPluginBDII.h"
 
 Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
   { "LDAPNG", "HED:JobListRetrieverPlugin", "Classic NorduGrid LDAP Job List", 0, &Arc::JobListRetrieverPluginLDAPNG::Instance },
@@ -21,5 +22,6 @@ Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
   { "LDAPGLUE2", "HED:TargetInformationRetrieverPlugin", "GLUE2 LDAP Local Information", 0, &Arc::TargetInformationRetrieverPluginLDAPGLUE2::Instance },
   { "LDAPNG", "HED:TargetInformationRetrieverPlugin", "Classic NorduGrid LDAP Local Information", 0, &Arc::TargetInformationRetrieverPluginLDAPNG::Instance },
   { "EGIIS", "HED:ServiceEndpointRetrieverPlugin", "Classic NorduGrid EGIIS Registry", 0, &Arc::ServiceEndpointRetrieverPluginEGIIS::Instance },
+  { "BDII", "HED:ServiceEndpointRetrieverPlugin", "BDII top and site", 0, &Arc::ServiceEndpointRetrieverPluginBDII::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
