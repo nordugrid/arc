@@ -50,23 +50,17 @@ namespace Arc {
     URL url(CreateURL(rEndpoint.URLString));
     url.ChangeLDAPScope(URL::base);
     url.AddLDAPAttribute("giisregistrationstatus");
-    if (!url) {
-      s = EndpointQueryingStatus::FAILED;
-      return s;
-    }
+    if (!url) return EndpointQueryingStatus::FAILED;
 
     DataBuffer buffer;
     DataHandle handler(url, uc);
 
     if (!handler) {
       logger.msg(INFO, "Can't create information handle - is the ARC ldap DMC plugin available?");
-      s = EndpointQueryingStatus::FAILED;
-      return s;
+      return EndpointQueryingStatus::FAILED;
     }
 
-    if (!handler->StartReading(buffer)) {
-      return s;
-    }
+    if (!handler->StartReading(buffer)) return EndpointQueryingStatus::FAILED;
 
     int handle;
     unsigned int length;
