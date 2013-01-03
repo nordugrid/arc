@@ -131,8 +131,16 @@ namespace Arc {
     return true;
   }
 
-  bool JobControllerPluginCREAM::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) const {
-    return false;
+  bool JobControllerPluginCREAM::GetJobDescription(const Job& j, std::string& desc) const {
+    MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
+    CREAMClient gLiteClient(j.JobManagementURL.str() + "/CREAM2", cfg, usercfg.Timeout());
+    if (!gLiteClient.getJobDesc(j.IDFromEndpoint, desc)) {
+      logger.msg(INFO, "Failed retrieving job description for job: %s", j.JobID);
+      return false;
+    }
+    
+    return true;
   }
 
 } // namespace Arc

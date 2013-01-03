@@ -423,6 +423,27 @@ namespace Arc {
     return true;
   }
 
+  bool CREAMClient::getJobDesc(const std::string& jobid, std::string& desc) {
+    logger.msg(VERBOSE, "Creating and sending a status request");
+
+    action = "JobInfo";
+
+    PayloadSOAP req(cream_ns);
+    XMLNode xjobId = req.NewChild("types:" + action + "Request").NewChild("types:jobId");
+    xjobId.NewChild("types:id") = jobid;
+    xjobId.NewChild("types:creamURL") = client->GetURL().str();
+
+    XMLNode response;
+    if (!process(req, response)) return false;
+
+    if (ISVALID(response["result"]["jobInfo"]["JDL"])) {
+      desc = (std::string)response["result"]["jobInfo"]["JDL"];
+      return true;
+    }
+    
+    return false;
+  }
+
   bool CREAMClient::registerJob(const std::string& jdl_text,
                                 creamJobInfo& info) {
     logger.msg(VERBOSE, "Creating and sending job register request");
