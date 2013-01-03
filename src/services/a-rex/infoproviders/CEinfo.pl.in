@@ -418,7 +418,7 @@ sub fix_config {
     } 
     
     if ($config->{enable_emies_interface} and $config->{enable_emies_interface} = "yes") {
-        if (!$config->{arexhostport}) { log->warning("EMI-ES interface cannot be enabled. arex_mount_point not defined in configuration."); }
+        if (!$config->{arexhostport}) { $log->warning("EMI-ES interface cannot be enabled. arex_mount_point not defined in configuration."); }
     }
     
     # fire warning if GLUE2 Service Quality Level is not good
