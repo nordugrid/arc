@@ -1299,6 +1299,17 @@
 ## If not set, it defaults to timelimit + 1.
 #idletimeout="1800"
 
+## ldap_schema_dir - allows to explicitly specify a path to the schema
+## files. Note that this doesn'ẗ override standard location, but adds
+## the specified path to the standard locations /etc/ldap and /etc/openldap.
+## If you plan to relocate Glue1 and GLUE2 schemas, all these should be
+## in the same directory that you specify here.
+## this option does NOT apply to nordugrid.schema file. Such file has a 
+## release dependent location. 
+## Default is to use only standard locations described above.
+ldap_schema_dir="/nfs/ldap/schema/"
+
+
 ### Logging
 ## registrationlog path - specifies the logfile for the registration processes
 ## initiated by your machine. Default is "/var/log/arc/inforegistration.log"
