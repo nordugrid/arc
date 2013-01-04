@@ -1300,7 +1300,7 @@
 #idletimeout="1800"
 
 ## ldap_schema_dir - allows to explicitly specify a path to the schema
-## files. Note that this doesn'ẗ override standard location, but adds
+## files. Note that this doesn't override standard location, but adds
 ## the specified path to the standard locations /etc/ldap and /etc/openldap.
 ## If you plan to relocate Glue1 and GLUE2 schemas, all these should be
 ## in the same directory that you specify here.
