@@ -706,9 +706,11 @@ namespace Arc {
         /* User downloadable files should go to the local grid ftp
          * server (local to CREAM). See comments on the parsing of the
          * outputsandboxdesturi attribute above.
+         * Double slash (//) needed after localhost, otherwise job files are not
+         * transfered to OSB dir.
          */
         const std::string uri_tmp = (it->Targets.empty() || it->Targets.front().Protocol() == "file" ?
-                                     "gsiftp://localhost/" + it->Name :
+                                     "gsiftp://localhost//" + it->Name :
                                      it->Targets.front().fullstr());
         outputSandboxDestURIList.push_back(uri_tmp);
 
