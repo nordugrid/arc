@@ -293,7 +293,7 @@ namespace Arc {
     if(activity) {
       XMLNode gactivity = activity["ComputingActivity"];
       if(gactivity) {
-        job.Update(gactivity);
+        job.SetFromXML(gactivity);
 
         // Fetch the proper restart state.
         if (gactivity["RestartState"]) {

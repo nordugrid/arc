@@ -422,7 +422,7 @@ namespace Arc {
     XMLNode infodoc;
     if (!info(job, infodoc)) return false;
     // Processing generic GLUE2 information
-    arcjob.Update(infodoc);
+    arcjob.SetFromXML(infodoc);
     // Looking for EMI ES specific state
     XMLNode state = infodoc["State"];
     EMIESJobState st;

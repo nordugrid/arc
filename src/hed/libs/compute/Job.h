@@ -165,7 +165,7 @@ namespace Arc {
      * being iextended with information provided by XMLNode. Contrary operator=(XMLNode)
      * fully reinitializes Job, hence removing any associations to other objects.
      **/
-    void Update(XMLNode job);
+    void SetFromXML(XMLNode job);
 
     /// Add job information to a XMLNode
     /**

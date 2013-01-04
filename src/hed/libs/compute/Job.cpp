@@ -355,12 +355,12 @@ namespace Arc {
     }
 
     // Pick generic GLUE2 information
-    Update(job);
+    SetFromXML(job);
 
     return *this;
   }
 
-  void Job::Update(XMLNode job) {
+  void Job::SetFromXML(XMLNode job) {
 
     JXMLTOSTRING(Type)
 
