@@ -55,6 +55,7 @@ bdii_user=${CONFIG_user:-$ldap_user}
 slapd_loglevel=${CONFIG_slapd_loglevel:-0}
 slapd_hostnamebind=${CONFIG_slapd_hostnamebind:-"*"}
 slapd_port=${CONFIG_port:-2135}
+ldap_schema_dir=${CONFIG_ldap_schema_dir}
 threads=${CONFIG_threads:-32}
 timelimit=${CONFIG_timelimit:-2400}
 
@@ -81,7 +82,7 @@ bdii_db_config=${CONFIG_bdii_db_config:-"/etc/bdii/DB_CONFIG"}
 bdii_database=${CONFIG_bdii_database:-"hdb"}
 
 # Check for existance of core ldap schema
-coreschema=$(find /etc/openldap /etc/ldap -name core.schema \
+coreschema=$(find /etc/openldap /etc/ldap ${ldap_schema_dir} -name core.schema \
     -printf "%h/%f\n" 2>/dev/null)
 if [ "x" = "x$coreschema" ]; then
     echo "Could not find ldap core schema file"
@@ -89,7 +90,7 @@ if [ "x" = "x$coreschema" ]; then
 fi
 
 # Check for existance of Glue schemas.
-glueschemadir=$(find /etc/openldap /etc/ldap -name Glue-CORE.schema \
+glueschemadir=$(find /etc/openldap /etc/ldap ${ldap_schema_dir} -name Glue-CORE.schema \
     -printf "%h\n" 2>/dev/null)
 if [ "x" = "x$glueschemadir" ]; then
     echo "Error, could not find glue schema directory under /etc"
