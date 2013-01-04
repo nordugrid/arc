@@ -141,9 +141,10 @@ sub waitForProvider {
         
         my ($infosys_uid, $infosys_gid);
         
+        #TODO: enable relocation here
         my $infosys_runtime_dir = "/var/run/arc/infosys";
         
-        $log->debug("Infosys run dir set to $infosys_runtime_dir");
+        $log->debug("LDAP subsystem run dir set to $infosys_runtime_dir");
         
         # search for bdii pid file: legacy bdii4 locations still here
         # TODO: remove bdii_var_dir from everywhere (also from grid-infosys)
@@ -153,21 +154,21 @@ sub waitForProvider {
         my $bdii4_pidfile = "$bdii_var_dir/bdii-update.pid";
         for my $pidfile ( $bdii_update_pid_file, $bdii5_pidfile, $bdii4_pidfile) {
             unless ( ($infosys_uid, $infosys_gid) = uidGidFromFile($pidfile) ) {
-                $log->verbose("Infosys pidfile not found at: $pidfile");
+                $log->verbose("BDII pidfile not found at: $pidfile");
                 next;
             }
             $existsPidFile = 1;
-            $log->verbose("Infosys pidfile found at: $pidfile");
+            $log->verbose("BDII pidfile found at: $pidfile");
             next unless (my $user = getpwuid($infosys_uid));
-            $log->verbose("Infosys pidfile owned by: $user ($infosys_uid)");
+            $log->verbose("BDII pidfile owned by: $user ($infosys_uid)");
             last;
         }
         unless ($existsPidFile) {
-            $log->warning("Infosys pid file not found. Check that ldap-infosys is running, or that bdii_run_dir is set");
+            $log->warning("BDII pid file not found. Check that nordugrid-arc-bdii is running, or that bdii_run_dir is set");
             return @$cache = ();
         }
         unless (-d $infosys_runtime_dir) {
-            $log->warning("Infosys runtime directory does not exist. Check that ldap-infosys is running");
+            $log->warning("LDAP information system runtime directory does not exist. Check that nordugrid-arc-bdii is running");
             return @$cache = ();
         }
         return @$cache = ($infosys_runtime_dir, $infosys_uid, $infosys_gid);
@@ -190,7 +191,7 @@ sub notifyInfosys {
     my $fifopath = "$infosys_runtime_dir/ldif-provider.fifo";
 
     unless (-e $fifopath) {
-        $log->info("Ldap-infosys has not yet created fifo file $fifopath");
+        $log->info("LDAP subsystem has not yet created fifo file $fifopath");
         return undef;
     }
 
@@ -213,13 +214,13 @@ sub notifyInfosys {
         $log->error("Unexpected: $@") unless $@ eq "alarm\n";
  
         # timed out -- no reader
-        $log->warning("Fifo file exists but ldap-infosys is not listening");
+        $log->warning("Fifo file exists but LDAP information system is not listening");
         return undef;
     }
     return undef unless $ret;
     close $handle;
 
-    $log->info("Ldap-infosys notified on fifo: $fifopath");
+    $log->info("LDAP information system notified on fifo: $fifopath");
     return $handle;
 }
 

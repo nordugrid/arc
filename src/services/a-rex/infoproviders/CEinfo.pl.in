@@ -162,14 +162,20 @@ sub main {
             }
         };
 
-        if (InfosysHelper::createLdifScript($config, $print_ldif)) {
-            if (InfosysHelper::notifyInfosys($config)) {
-                $log->verbose("Ldap-infosys notified");
+        # only notifiy ldap infosys if ldap is enabled!
+		if ($config->{infosys_nordugrid} or $config->{infosys_glue12} or $config->{infosys_glue2_ldap}) {
+            # check that fifo is working and notify if so.
+            if (InfosysHelper::createLdifScript($config, $print_ldif)) {
+                if (InfosysHelper::notifyInfosys($config)) {
+                    $log->verbose("LDAP information system notified");
+                } else {
+                    $log->warning("Failed to notify LDAP information system");
+                }
             } else {
-                $log->warning("Failed to notify ldap-infosys");
+               $log->warning("Failed to create ldif generator script for LDAP information system");
             }
         } else {
-           $log->warning("Failed to create ldif generator script for infosys");
+            $log->verbose("LDAP/ldif information generation is disabled. To enable it, enable one of the options infosys_nordugrid, infosys_glue12, infosys_glue2_ldap.");
         }
     }
 
