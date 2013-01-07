@@ -99,6 +99,7 @@ namespace Arc {
     if (lower(msg).find("file exists")          != std::string::npos) return EEXIST;
     if (lower(msg).find("file not allowed")     != std::string::npos) return EACCES;
     if (lower(msg).find("permission denied")    != std::string::npos) return EACCES;
+    if (lower(msg).find("failed authenticating")!= std::string::npos) return EACCES;
     if (lower(msg).find("can't make")           != std::string::npos) return EACCES;
     if (lower(msg).find("directory not empty")  != std::string::npos) return ENOTEMPTY;
     if (lower(msg).find("do not understand")    != std::string::npos) return EOPNOTSUPP;
