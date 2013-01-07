@@ -18,7 +18,6 @@ namespace Arc {
   class Logger;
   class UserConfig;
 
-  // Must be specialiced for each supported middleware flavour.
   class JobControllerPlugin
     : public Plugin {
   protected:
@@ -52,26 +51,30 @@ namespace Arc {
     static Logger logger;
   };
 
-  //! Class responsible for loading JobControllerPlugin plugins
-  /// The JobControllerPlugin objects returned by a JobControllerPluginLoader
-  /// must not be used after the JobControllerPluginLoader goes out of scope.
+  /** Class responsible for loading JobControllerPlugin plugins
+   * The JobControllerPlugin objects returned by a JobControllerPluginLoader
+   * must not be used after the JobControllerPluginLoader goes out of scope.
+   */
   class JobControllerPluginLoader
     : public Loader {
 
   public:
-    //! Constructor
-    /// Creates a new JobControllerPluginLoader.
+    /** Constructor
+     * Creates a new JobControllerPluginLoader.
+     */
     JobControllerPluginLoader();
 
-    //! Destructor
-    /// Calling the destructor destroys all JobControllerPlugins loaded
-    /// by the JobControllerPluginLoader instance.
+    /** Destructor
+     * Calling the destructor destroys all JobControllerPlugins loaded
+     *  by the JobControllerPluginLoader instance.
+     */
     ~JobControllerPluginLoader();
 
-    //! Load a new JobControllerPlugin
-    /// \param name    The name of the JobControllerPlugin to load.
-    /// \param usercfg The UserConfig object for the new JobControllerPlugin.
-    /// \returns       A pointer to the new JobControllerPlugin (NULL on error).
+    /** Load a new JobControllerPlugin
+     * \param name    The name of the JobControllerPlugin to load.
+     * \param usercfg The UserConfig object for the new JobControllerPlugin.
+     * \return A pointer to the new JobControllerPlugin (NULL on error).
+     */
     JobControllerPlugin* load(const std::string& name, const UserConfig& uc);
 
     JobControllerPlugin* loadByInterfaceName(const std::string& name, const UserConfig& uc);

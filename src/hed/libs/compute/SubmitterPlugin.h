@@ -24,7 +24,7 @@ namespace Arc {
   class Logger;
   class UserConfig;
 
-  //! Base class for the SubmitterPlugins
+  /// Base class for the SubmitterPlugins
   /**
    * SubmitterPlugin is the base class for Grid middleware specialized
    * SubmitterPlugin objects. The class submits job(s) to the computing
@@ -98,24 +98,28 @@ namespace Arc {
     static Logger logger;
   };
 
-  //! Class responsible for loading SubmitterPlugin plugins
-  /// The SubmitterPlugin objects returned by a SubmitterPluginLoader
-  /// must not be used after the SubmitterPluginLoader is destroyed.
+  /** Class responsible for loading SubmitterPlugin plugins
+   * The SubmitterPlugin objects returned by a SubmitterPluginLoader
+   * must not be used after the SubmitterPluginLoader is destroyed.
+   */
   class SubmitterPluginLoader : public Loader {
   public:
-    //! Constructor
-    /// Creates a new SubmitterPluginLoader.
+    /** Constructor
+     * Creates a new SubmitterPluginLoader.
+     */
     SubmitterPluginLoader();
 
-    //! Destructor
-    /// Calling the destructor destroys all SubmitterPlugins loaded
-    /// by the SubmitterPluginLoader instance.
+    /** Destructor
+     * Calling the destructor destroys all SubmitterPlugins loaded
+     * by the SubmitterPluginLoader instance.
+     */
     ~SubmitterPluginLoader();
 
-    //! Load a new SubmitterPlugin
-    /// \param name    The name of the SubmitterPlugin to load.
-    /// \param usercfg The UserConfig object for the new SubmitterPlugin.
-    /// \returns       A pointer to the new SubmitterPlugin (NULL on error).
+    /** Load a new SubmitterPlugin
+     * \param name    The name of the SubmitterPlugin to load.
+     * \param usercfg The UserConfig object for the new SubmitterPlugin.
+     * \return A pointer to the new SubmitterPlugin (NULL on error).
+     */
     SubmitterPlugin* load(const std::string& name, const UserConfig& usercfg);
 
     SubmitterPlugin* loadByInterfaceName(const std::string& name, const UserConfig& usercfg);

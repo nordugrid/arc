@@ -35,9 +35,9 @@ namespace Arc {
 
   /// Abstract class for the different parsers
   /**
-   * The JobDescriptionParserPlugin class is abstract which provide a interface for job
-   * description parsers. A job description parser should inherit this class and
-   * overwrite the JobDescriptionParserPlugin::Parse and
+   * The JobDescriptionParserPlugin class is abstract which provide a interface
+   * for job description parsers. A job description parser should inherit this
+   * class and overwrite the JobDescriptionParserPlugin::Parse and
    * JobDescriptionParserPlugin::UnParse methods.
    */
   class JobDescriptionParserPlugin
@@ -63,32 +63,36 @@ namespace Arc {
     static Logger logger;
   };
 
-  //! Class responsible for loading JobDescriptionParserPlugin plugins
-  /// The JobDescriptionParserPlugin objects returned by a JobDescriptionParserPluginLoader
-  /// must not be used after the JobDescriptionParserPluginLoader goes out of scope.
+  /** Class responsible for loading JobDescriptionParserPlugin plugins
+   * The JobDescriptionParserPlugin objects returned by a
+   * JobDescriptionParserPluginLoader must not be used after the
+   * JobDescriptionParserPluginLoader goes out of scope.
+   */
   class JobDescriptionParserPluginLoader
     : public Loader {
 
   public:
-    //! Constructor
-    /// Creates a new JobDescriptionParserPluginLoader.
+    /** Constructor
+     * Creates a new JobDescriptionParserPluginLoader.
+     */
     JobDescriptionParserPluginLoader();
 
-    //! Destructor
-    /// Calling the destructor destroys all JobDescriptionParserPlugin object loaded
-    /// by the JobDescriptionParserPluginLoader instance.
+    /** Destructor
+     * Calling the destructor destroys all JobDescriptionParserPlugin object
+     * loaded by the JobDescriptionParserPluginLoader instance.
+     */
     ~JobDescriptionParserPluginLoader();
 
-    //! Load a new JobDescriptionParserPlugin
-    /// \param name    The name of the JobDescriptionParserPlugin to load.
-    /// \return        A pointer to the new JobDescriptionParserPlugin (NULL on error).
+    /** Load a new JobDescriptionParserPlugin
+     * \param name The name of the JobDescriptionParserPlugin to load.
+     * \return A pointer to the new JobDescriptionParserPlugin (NULL on error).
+     */
     JobDescriptionParserPlugin* load(const std::string& name);
 
-    //! Retrieve the list of loaded JobDescriptionParserPlugin objects.
-    /// \return A reference to the list of JobDescriptionParserPlugin objects.
-    const std::list<JobDescriptionParserPlugin*>& GetJobDescriptionParserPlugins() const {
-      return jdps;
-    }
+    /** Retrieve the list of loaded JobDescriptionParserPlugin objects.
+     * \return A reference to the list of JobDescriptionParserPlugin objects.
+     */
+    const std::list<JobDescriptionParserPlugin*>& GetJobDescriptionParserPlugins() const { return jdps; }
 
     class iterator {
     private:
