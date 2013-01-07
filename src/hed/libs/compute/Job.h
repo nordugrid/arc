@@ -110,11 +110,6 @@ namespace Arc {
     //Associations
     std::list<std::string>  ActivityOldID;
     std::map<std::string, std::string> LocalInputFiles;
-    //ExecutionEnvironment (condensed)
-    bool VirtualMachine;
-    std::string UsedCPUType;
-    std::string UsedOSFamily;
-    std::string UsedPlatform;
 
 
     enum ResourceType {

@@ -119,7 +119,6 @@ namespace Arc {
       ProxyExpirationTime(-1),
       CreationTime(-1),
       Validity(-1),
-      VirtualMachine(false),
       jc(NULL) {}
 
   Job::~Job() {}
@@ -143,7 +142,6 @@ namespace Arc {
       ProxyExpirationTime(-1),
       CreationTime(-1),
       Validity(-1),
-      VirtualMachine(false),
       jc(NULL) {
     *this = j;
   }
@@ -166,8 +164,7 @@ namespace Arc {
       WorkingAreaEraseTime(-1),
       ProxyExpirationTime(-1),
       CreationTime(-1),
-      Validity(-1),
-      VirtualMachine(false) {
+      Validity(-1) {
     *this = j;
   }
 
@@ -234,11 +231,6 @@ namespace Arc {
 
     ActivityOldID = j.ActivityOldID;
     LocalInputFiles = j.LocalInputFiles;
-
-    VirtualMachine = j.VirtualMachine;
-    UsedCPUType = j.UsedCPUType;
-    UsedOSFamily = j.UsedOSFamily;
-    UsedPlatform = j.UsedPlatform;
 
     return *this;
   }
