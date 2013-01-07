@@ -1,6 +1,10 @@
 #ifndef __ARC_SOFTWAREVERSION_H__
 #define __ARC_SOFTWAREVERSION_H__
 
+/** \file
+ * \brief Software and SoftwareRequirement classes.
+ */
+
 #include <list>
 #include <utility>
 #include <string>
