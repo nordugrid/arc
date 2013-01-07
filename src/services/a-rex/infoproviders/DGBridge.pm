@@ -103,6 +103,7 @@ sub queue_info ($$) {
     $lrms_queue{minwalltime} = "";
     $lrms_queue{defaultwallt} = "";
     $lrms_queue{maxwalltime} = $lrms_queue{maxcputime};
+    $lrms_queue{MaxSlotsPerJob} = 1;
 
     return %lrms_queue;
 }
