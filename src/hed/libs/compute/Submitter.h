@@ -15,7 +15,17 @@
 
 
 namespace Arc {  
+  
+  /**
+   * \defgroup compute ARC Compute Library (libarccompute)
+   * \page group__compute ARC Compute Library (libarccompute)
+   * \todo Write description of ARC Compute Library
+   */
 
+  /**
+   * \ingroup compute
+   * \headerfile Submitter.h arc/compute/Submitter.h 
+   */
   class EndpointSubmissionStatus {
   public:
     /** The possible states: */
@@ -71,6 +81,10 @@ namespace Arc {
 
   class SubmissionStatus;
 
+  /**
+   * \ingroup compute
+   * \headerfile Submitter.h arc/compute/Submitter.h 
+   */
   class Submitter {
   public:
     Submitter(const UserConfig& uc) : uc(uc) {}
