@@ -375,7 +375,7 @@ template <class Type> struct traits_from<const Type *> {
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) Arc::SubmitterPluginTestACCControl::submitJob;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) Arc::SubmitterPluginTestACCControl::migrateJob;
 %rename(_BrokerPluginTestACCControl) Arc::BrokerPluginTestACCControl;
-%rename(_JobDescriptionParserTestACCControl) Arc::JobDescriptionParserTestACCControl;
+%rename(_JobDescriptionParserPluginTestACCControl) Arc::JobDescriptionParserPluginTestACCControl;
 %rename(_JobControllerPluginTestACCControl) Arc::JobControllerPluginTestACCControl;
 %rename(_SubmitterPluginTestACCControl) Arc::SubmitterPluginTestACCControl;
 %rename(_ServiceEndpointRetrieverPluginTESTControl) Arc::ServiceEndpointRetrieverPluginTESTControl;
@@ -387,7 +387,7 @@ template <class Type> struct traits_from<const Type *> {
 #ifdef SWIGPYTHON
 %pythoncode %{
 BrokerPluginTestACCControl = StaticPropertyWrapper(_BrokerPluginTestACCControl)
-JobDescriptionParserTestACCControl = StaticPropertyWrapper(_JobDescriptionParserTestACCControl)
+JobDescriptionParserPluginTestACCControl = StaticPropertyWrapper(_JobDescriptionParserPluginTestACCControl)
 JobControllerPluginTestACCControl = StaticPropertyWrapper(_JobControllerPluginTestACCControl)
 SubmitterPluginTestACCControl = StaticPropertyWrapper(_SubmitterPluginTestACCControl)
 ServiceEndpointRetrieverPluginTESTControl = StaticPropertyWrapper(_ServiceEndpointRetrieverPluginTESTControl)

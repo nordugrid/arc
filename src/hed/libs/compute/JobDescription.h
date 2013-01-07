@@ -13,7 +13,7 @@
 
 namespace Arc {
 
-  class JobDescriptionParserLoader;
+  class JobDescriptionParserPluginLoader;
   class ExecutionTarget;
 
   template<class T>
@@ -487,7 +487,7 @@ namespace Arc {
    */
   class JobDescription {
   public:
-    friend class JobDescriptionParser;
+    friend class JobDescriptionParserPlugin;
     JobDescription() : alternatives(), current(alternatives.begin()) {};
 
     JobDescription(const JobDescription& j, bool withAlternatives = true);
@@ -522,10 +522,10 @@ namespace Arc {
      * tried one by one, parsing the string, and if one succeeds the list of
      * JobDescription objects is filled with the parsed contents and true is
      * returned, otherwise false is returned. If no language specified, each
-     * JobDescriptionParser will try all its supported languages. On the other
-     * hand if a language is specified, only the JobDescriptionParser supporting
+     * JobDescriptionParserPlugin will try all its supported languages. On the other
+     * hand if a language is specified, only the JobDescriptionParserPlugin supporting
      * that language will be tried. A dialect can also be specified, which only
-     * has an effect on the parsing if the JobDescriptionParser supports that
+     * has an effect on the parsing if the JobDescriptionParserPlugin supports that
      * dialect.
      *
      * @param source
@@ -552,7 +552,7 @@ namespace Arc {
 
     /// Get input source language
     /**
-     * If this object was created by a JobDescriptionParser, then this method
+     * If this object was created by a JobDescriptionParserPlugin, then this method
      * returns a string which indicates the job description language of the
      * parsed source. If not created by a JobDescripionParser the string
      * returned is empty.
@@ -620,7 +620,7 @@ namespace Arc {
 
     /// Holds attributes not fitting into this class
     /**
-     * This member is used by JobDescriptionParser classes to store
+     * This member is used by JobDescriptionParserPlugin classes to store
      * attribute/value pairs not fitting into attributes stored in this class.
      * The form of the attribute (the key in the map) should be as follows:
      * <language>;<attribute-name>
@@ -639,7 +639,7 @@ namespace Arc {
     std::list<JobDescription>::iterator current;
 
     static Glib::Mutex jdpl_lock;
-    static JobDescriptionParserLoader *jdpl;
+    static JobDescriptionParserPluginLoader *jdpl;
 
     static Logger logger;
   };

@@ -8,18 +8,18 @@
 
 #include <arc/UserConfig.h>
 #include <arc/Utils.h>
-#include <arc/compute/JobDescriptionParser.h>
+#include <arc/compute/JobDescriptionParserPlugin.h>
 
-class JobDescriptionParserTest
+class JobDescriptionParserPluginTest
   : public CppUnit::TestFixture {
 
-  CPPUNIT_TEST_SUITE(JobDescriptionParserTest);
+  CPPUNIT_TEST_SUITE(JobDescriptionParserPluginTest);
   CPPUNIT_TEST(LoadTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
-  JobDescriptionParserTest();
-  ~JobDescriptionParserTest() { delete jdpl; }
+  JobDescriptionParserPluginTest();
+  ~JobDescriptionParserPluginTest() { delete jdpl; }
 
   void setUp() {}
   void tearDown() { Arc::ThreadInitializer().waitExit(); }
@@ -27,15 +27,15 @@ public:
   void LoadTest();
 
 private:
-  Arc::JobDescriptionParser *jdp;
-  Arc::JobDescriptionParserLoader *jdpl;
+  Arc::JobDescriptionParserPlugin *jdp;
+  Arc::JobDescriptionParserPluginLoader *jdpl;
 };
 
-JobDescriptionParserTest::JobDescriptionParserTest() : jdp(NULL) {
-  jdpl = new Arc::JobDescriptionParserLoader();
+JobDescriptionParserPluginTest::JobDescriptionParserPluginTest() : jdp(NULL) {
+  jdpl = new Arc::JobDescriptionParserPluginLoader();
 }
 
-void JobDescriptionParserTest::LoadTest()
+void JobDescriptionParserPluginTest::LoadTest()
 {
   jdp = jdpl->load("");
   CPPUNIT_ASSERT(jdp == NULL);
@@ -47,4 +47,4 @@ void JobDescriptionParserTest::LoadTest()
   CPPUNIT_ASSERT(jdp != NULL);
 }
 
-CPPUNIT_TEST_SUITE_REGISTRATION(JobDescriptionParserTest);
+CPPUNIT_TEST_SUITE_REGISTRATION(JobDescriptionParserPluginTest);

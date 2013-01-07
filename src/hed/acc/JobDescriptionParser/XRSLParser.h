@@ -6,10 +6,10 @@
 #include <list>
 #include <string>
 
-#include <arc/compute/JobDescriptionParser.h>
+#include <arc/compute/JobDescriptionParserPlugin.h>
 
 /** XRSLParser
- * The XRSLParser class, derived from the JobDescriptionParser class, is a
+ * The XRSLParser class, derived from the JobDescriptionParserPlugin class, is a
  * job description parser for the Extended Resource Specification Language
  * (XRSL) specified in the NORDUGRID-MANUAL-4 document.
  */
@@ -20,12 +20,12 @@ namespace Arc {
   class RSLCondition;
 
   class XRSLParser
-    : public JobDescriptionParser {
+    : public JobDescriptionParserPlugin {
   public:
     XRSLParser(PluginArgument* parg);
     virtual ~XRSLParser();
-    virtual JobDescriptionParserResult Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "") const;
-    virtual JobDescriptionParserResult UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect = "") const;
+    virtual JobDescriptionParserPluginResult Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "") const;
+    virtual JobDescriptionParserPluginResult UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect = "") const;
 
     static Plugin* Instance(PluginArgument *arg);
 

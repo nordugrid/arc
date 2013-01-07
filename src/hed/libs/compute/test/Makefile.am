@@ -1,5 +1,5 @@
 TESTS = SoftwareTest JobTest JobStateTest BrokerTest JobDescriptionTest \
-	JobControllerPluginTest JobDescriptionParserTest SubmitterTest SubmitterPluginTest \
+	JobControllerPluginTest JobDescriptionParserPluginTest SubmitterTest SubmitterPluginTest \
 	JobSupervisorTest TargetInformationRetrieverTest \
 	ServiceEndpointRetrieverTest JobListRetrieverTest \
 	ExecutionTargetTest ComputingServiceUniqTest SubmissionStatusTest
@@ -66,11 +66,11 @@ JobSupervisorTest_LDADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
-JobDescriptionParserTest_SOURCES = $(top_srcdir)/src/Test.cpp \
-	JobDescriptionParserTest.cpp
-JobDescriptionParserTest_CXXFLAGS = -I$(top_srcdir)/include \
+JobDescriptionParserPluginTest_SOURCES = $(top_srcdir)/src/Test.cpp \
+	JobDescriptionParserPluginTest.cpp
+JobDescriptionParserPluginTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
-JobDescriptionParserTest_LDADD = \
+JobDescriptionParserPluginTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)

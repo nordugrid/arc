@@ -19,7 +19,7 @@
 namespace Arc {
 
   ADLParser::ADLParser(PluginArgument* parg)
-    : JobDescriptionParser(parg) {
+    : JobDescriptionParserPlugin(parg) {
     supportedLanguages.push_back("emies:adl");
   }
 
@@ -126,7 +126,7 @@ namespace Arc {
     return true;
   }
 
-  JobDescriptionParserResult ADLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
+  JobDescriptionParserPluginResult ADLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
     if (language != "" && !IsLanguageSupported(language)) {
       return false;
     }
@@ -760,7 +760,7 @@ namespace Arc {
     }
   }
 
-  JobDescriptionParserResult ADLParser::UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
+  JobDescriptionParserPluginResult ADLParser::UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
     if (!IsLanguageSupported(language)) {
       return false;
     }

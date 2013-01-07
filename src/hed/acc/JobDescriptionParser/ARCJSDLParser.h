@@ -5,10 +5,10 @@
 
 #include <string>
 
-#include <arc/compute/JobDescriptionParser.h>
+#include <arc/compute/JobDescriptionParserPlugin.h>
 
 /** ARCJSDLParser
- * The ARCJSDLParser class, derived from the JobDescriptionParser class, is
+ * The ARCJSDLParser class, derived from the JobDescriptionParserPlugin class, is
  * primarily a job description parser for the consolidated job description
  * language (ARCJSDL), derived from JSDL, described in the following document
  * <http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/tech_doc/client/job_description.odt>.
@@ -29,12 +29,12 @@ namespace Arc {
   class SoftwareRequirement;
 
   class ARCJSDLParser
-    : public JobDescriptionParser {
+    : public JobDescriptionParserPlugin {
   public:
     ARCJSDLParser(PluginArgument* parg);
     ~ARCJSDLParser();
-    JobDescriptionParserResult Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "") const;
-    JobDescriptionParserResult UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect = "") const;
+    JobDescriptionParserPluginResult Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "") const;
+    JobDescriptionParserPluginResult UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect = "") const;
 
     static Plugin* Instance(PluginArgument *arg);
 

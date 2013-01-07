@@ -70,7 +70,7 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     types.push_back("HED:SubmitterPlugin");
     types.push_back("HED:ServiceEndpointRetrieverPlugin");
     types.push_back("HED:TargetInformationRetrieverPlugin");
-    types.push_back("HED:JobDescriptionParser");
+    types.push_back("HED:JobDescriptionParserPlugin");
     types.push_back("HED:BrokerPlugin");
     showplugins("arcsub", types, logger, usercfg.Broker().first);
     return 0;

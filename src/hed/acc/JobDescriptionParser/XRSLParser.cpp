@@ -20,7 +20,7 @@
 namespace Arc {
 
   XRSLParser::XRSLParser(PluginArgument* parg)
-    : JobDescriptionParser(parg) {
+    : JobDescriptionParserPlugin(parg) {
     supportedLanguages.push_back("nordugrid:xrsl");
   }
 
@@ -236,7 +236,7 @@ namespace Arc {
   }
 
 
-  JobDescriptionParserResult XRSLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
+  JobDescriptionParserPluginResult XRSLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
     if (language != "" && !IsLanguageSupported(language)) {
       return false;
     }
@@ -1397,7 +1397,7 @@ namespace Arc {
     return true;
   }
 
-  JobDescriptionParserResult XRSLParser::UnParse(const JobDescription& j, std::string& product, const std::string& language, const std::string& dialect) const {
+  JobDescriptionParserPluginResult XRSLParser::UnParse(const JobDescription& j, std::string& product, const std::string& language, const std::string& dialect) const {
     if (!IsLanguageSupported(language)) {
       logger.msg(DEBUG, "Wrong language requested: %s",language);
       return false;

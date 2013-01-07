@@ -5,14 +5,14 @@ libarccompute_ladir = $(pkgincludedir)/client
 libarccompute_la_HEADERS = Broker.h ExecutionTarget.h \
 	Submitter.h SubmitterPlugin.h GLUE2Entity.h SubmissionStatus.h \
 	JobState.h Job.h JobControllerPlugin.h JobSupervisor.h \
-	JobDescription.h JobDescriptionParser.h Software.h \
+	JobDescription.h JobDescriptionParserPlugin.h Software.h \
 	GLUE2.h EndpointQueryingStatus.h TestACCControl.h \
 	EntityRetriever.h Endpoint.h \
 	ComputingServiceRetriever.h
 libarccompute_la_SOURCES = Broker.cpp ExecutionTarget.cpp \
 	Submitter.cpp SubmitterPlugin.cpp \
 	JobState.cpp Job.cpp JobControllerPlugin.cpp JobSupervisor.cpp \
-	JobDescription.cpp JobDescriptionParser.cpp Software.cpp \
+	JobDescription.cpp JobDescriptionParserPlugin.cpp Software.cpp \
 	GLUE2.cpp EndpointQueryingStatus.cpp TestACCControl.cpp \
 	EntityRetriever.cpp Endpoint.cpp \
 	ComputingServiceRetriever.cpp

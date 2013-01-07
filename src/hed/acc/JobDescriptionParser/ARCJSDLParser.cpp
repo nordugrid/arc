@@ -24,7 +24,7 @@ namespace Arc {
   #define JSDL_HPCPA_NAMESPACE "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa"
 
   ARCJSDLParser::ARCJSDLParser(PluginArgument* parg)
-    : JobDescriptionParser(parg) {
+    : JobDescriptionParserPlugin(parg) {
     supportedLanguages.push_back("nordugrid:jsdl");
   }
 
@@ -152,7 +152,7 @@ namespace Arc {
     }
   }
 
-  JobDescriptionParserResult ARCJSDLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
+  JobDescriptionParserPluginResult ARCJSDLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
     if (language != "" && !IsLanguageSupported(language)) {
       return false;
     }
@@ -724,7 +724,7 @@ namespace Arc {
     return true;
   }
 
-  JobDescriptionParserResult ARCJSDLParser::UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
+  JobDescriptionParserPluginResult ARCJSDLParser::UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
     if (!IsLanguageSupported(language)) {
         error = "Language is not supported";
       return false;

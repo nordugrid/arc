@@ -9,10 +9,10 @@ namespace Arc {
 bool BrokerPluginTestACCControl::match = false;
 bool BrokerPluginTestACCControl::less = false;
 
-bool JobDescriptionParserTestACCControl::parseStatus = true;
-std::list<JobDescription> JobDescriptionParserTestACCControl::parsedJobDescriptions(1, JobDescription());
-bool JobDescriptionParserTestACCControl::unparseStatus = true;
-std::string JobDescriptionParserTestACCControl::unparsedString = "";
+bool JobDescriptionParserPluginTestACCControl::parseStatus = true;
+std::list<JobDescription> JobDescriptionParserPluginTestACCControl::parsedJobDescriptions(1, JobDescription());
+bool JobDescriptionParserPluginTestACCControl::unparseStatus = true;
+std::string JobDescriptionParserPluginTestACCControl::unparsedString = "";
 
 bool JobControllerPluginTestACCControl::cleanStatus = true;
 bool JobControllerPluginTestACCControl::cancelStatus = true;

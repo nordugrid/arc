@@ -5,10 +5,10 @@
 
 #include <string>
 
-#include <arc/compute/JobDescriptionParser.h>
+#include <arc/compute/JobDescriptionParserPlugin.h>
 
 /** ARDLParser
- * The ARCJSDLParser class, derived from the JobDescriptionParser class, is
+ * The ARCJSDLParser class, derived from the JobDescriptionParserPlugin class, is
  * a job description parser for the EMI ES job description language (ADL)
  * described in <http://>.
  */
@@ -20,12 +20,12 @@ namespace Arc {
   class SoftwareRequirement;
 
   class ADLParser
-    : public JobDescriptionParser {
+    : public JobDescriptionParserPlugin {
   public:
     ADLParser(PluginArgument* parg);
     ~ADLParser();
-    JobDescriptionParserResult Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "") const;
-    JobDescriptionParserResult UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect = "") const;
+    JobDescriptionParserPluginResult Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "") const;
+    JobDescriptionParserPluginResult UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect = "") const;
 
     static Plugin* Instance(PluginArgument *arg);
 

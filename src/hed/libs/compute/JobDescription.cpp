@@ -13,7 +13,7 @@
 #include <arc/FileUtils.h>
 #include <arc/CheckSum.h>
 #include <arc/compute/ExecutionTarget.h>
-#include <arc/compute/JobDescriptionParser.h>
+#include <arc/compute/JobDescriptionParserPlugin.h>
 
 #include "JobDescription.h"
 
@@ -28,12 +28,12 @@ namespace Arc {
 
   Logger JobDescription::logger(Logger::getRootLogger(), "JobDescription");
 
-  // Maybe this mutex could go to JobDescriptionParserLoader. That would make
-  // it transparent. On another hand JobDescriptionParserLoader must not know
+  // Maybe this mutex could go to JobDescriptionParserPluginLoader. That would make
+  // it transparent. On another hand JobDescriptionParserPluginLoader must not know
   // how it is used.
   Glib::Mutex JobDescription::jdpl_lock;
-  // TODO: JobDescriptionParserLoader need to be freed when not used any more.
-  JobDescriptionParserLoader *JobDescription::jdpl = NULL;
+  // TODO: JobDescriptionParserPluginLoader need to be freed when not used any more.
+  JobDescriptionParserPluginLoader *JobDescription::jdpl = NULL;
 
   JobDescription::JobDescription(const long int& ptraddr) { *this = *((JobDescription*)ptraddr); }
 
@@ -439,11 +439,11 @@ namespace Arc {
 
     jdpl_lock.lock();
     if (!jdpl) {
-      jdpl = new JobDescriptionParserLoader();
+      jdpl = new JobDescriptionParserPluginLoader();
     }
 
     std::string parse_error;
-    for (JobDescriptionParserLoader::iterator it = jdpl->GetIterator(); it; ++it) {
+    for (JobDescriptionParserPluginLoader::iterator it = jdpl->GetIterator(); it; ++it) {
       // Releasing lock because we can't know how long parsing will take
       // But for current implementations of parsers it is not specified
       // if their Parse/Unparse methods can be called concurently.
@@ -474,10 +474,10 @@ namespace Arc {
 
     jdpl_lock.lock();
     if (!jdpl) {
-      jdpl = new JobDescriptionParserLoader();
+      jdpl = new JobDescriptionParserPluginLoader();
     }
 
-    for (JobDescriptionParserLoader::iterator it = jdpl->GetIterator(); it; ++it) {
+    for (JobDescriptionParserPluginLoader::iterator it = jdpl->GetIterator(); it; ++it) {
       if (it->IsLanguageSupported(language)) {
         logger.msg(VERBOSE, "Generating %s job description output", language);
         bool r = it->UnParse(*this, product, language, dialect);

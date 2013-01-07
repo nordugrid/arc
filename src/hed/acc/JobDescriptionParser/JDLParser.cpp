@@ -20,7 +20,7 @@
 namespace Arc {
 
   JDLParser::JDLParser(PluginArgument* parg)
-    : JobDescriptionParser(parg) {
+    : JobDescriptionParserPlugin(parg) {
     supportedLanguages.push_back("egee:jdl");
   }
 
@@ -512,7 +512,7 @@ namespace Arc {
     return true;
   }
 
-  JobDescriptionParserResult JDLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
+  JobDescriptionParserPluginResult JDLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
     if (language != "" && !IsLanguageSupported(language)) {
       return false;
     }
@@ -593,7 +593,7 @@ namespace Arc {
     return true;
   }
 
-  JobDescriptionParserResult JDLParser::UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
+  JobDescriptionParserPluginResult JDLParser::UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
     if (!IsLanguageSupported(language)) {
       return false;
     }

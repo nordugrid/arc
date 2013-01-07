@@ -22,7 +22,7 @@ class BrokerPluginTestACCControl {
     static bool less;
 };
 
-class JobDescriptionParserTestACCControl {
+class JobDescriptionParserPluginTestACCControl {
   public:
     static bool parseStatus;
     static bool unparseStatus;

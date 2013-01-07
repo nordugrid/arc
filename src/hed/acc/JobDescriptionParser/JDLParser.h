@@ -6,10 +6,10 @@
 #include <list>
 #include <string>
 
-#include <arc/compute/JobDescriptionParser.h>
+#include <arc/compute/JobDescriptionParserPlugin.h>
 
 /** JDLParser
- * The JDLParser class, derived from the JobDescriptionParser class, is a job
+ * The JDLParser class, derived from the JobDescriptionParserPlugin class, is a job
  * description parser for the Job Description Language (JDL) specified in CREAM
  * Job Description Language Attributes Specification for the EGEE middleware
  * (EGEE-JRA1-TEC-592336) and Job Description Language Attributes Specification
@@ -19,12 +19,12 @@
 namespace Arc {
 
   class JDLParser
-    : public JobDescriptionParser {
+    : public JobDescriptionParserPlugin {
   public:
     JDLParser(PluginArgument* parg);
     ~JDLParser();
-    JobDescriptionParserResult Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "") const;
-    JobDescriptionParserResult UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect = "") const;
+    JobDescriptionParserPluginResult Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "") const;
+    JobDescriptionParserPluginResult UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect = "") const;
 
     static Plugin* Instance(PluginArgument *arg);
 
