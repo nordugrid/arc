@@ -353,16 +353,25 @@ template <class Type> struct traits_from<const Type *> {
 %include "../src/hed/libs/compute/ComputingServiceRetriever.h"
 
 
+// Wrap contents of $(top_srcdir)/src/hed/libs/compute/BrokerPlugin.h
+%{
+#include <arc/compute/BrokerPlugin.h>
+%}
+%ignore Arc::BrokerPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
+%ignore Arc::BrokerPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
+#ifdef SWIGJAVA
+%rename(compare) Arc::BrokerPlugin::operator()(const ExecutionTarget&, const ExecutionTarget&) const;
+#endif
+%include "../src/hed/libs/compute/BrokerPlugin.h"
+
+
 // Wrap contents of $(top_srcdir)/src/hed/libs/compute/Broker.h
 %{
 #include <arc/compute/Broker.h>
 %}
 %ignore Arc::Broker::operator=(const Broker&);
-%ignore Arc::BrokerPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
-%ignore Arc::BrokerPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
 #ifdef SWIGJAVA
 %rename(compare) Arc::Broker::operator()(const ExecutionTarget&, const ExecutionTarget&) const;
-%rename(compare) Arc::BrokerPlugin::operator()(const ExecutionTarget&, const ExecutionTarget&) const;
 #endif
 %include "../src/hed/libs/compute/Broker.h"
 
