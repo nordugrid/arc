@@ -261,6 +261,16 @@
 };
 
 
+// Wrap contents of $(top_srcdir)/src/hed/libs/compute/EntityRetrieverPlugin.h
+%{
+#include <arc/compute/EntityRetrieverPlugin.h>
+%}
+%include "../src/hed/libs/compute/EntityRetrieverPlugin.h"
+%template(ServiceEndpointQueryOptions) Arc::EndpointQueryOptions<Arc::Endpoint>;
+%template(ComputingServiceQueryOptions) Arc::EndpointQueryOptions<Arc::ComputingServiceType>;
+%template(JobListQueryOptions) Arc::EndpointQueryOptions<Arc::Job>;
+
+
 // Wrap contents of $(top_srcdir)/src/hed/libs/compute/EntityRetriever.h
 %{
 #include <arc/compute/EntityRetriever.h>
@@ -271,15 +281,12 @@
 %include "../src/hed/libs/compute/EntityRetriever.h"
 %template(EndpointConsumer) Arc::EntityConsumer<Arc::Endpoint>;
 %template(EndpointContainer) Arc::EntityContainer<Arc::Endpoint>;
-%template(ServiceEndpointQueryOptions) Arc::EndpointQueryOptions<Arc::Endpoint>;
 %template(ServiceEndpointRetriever) Arc::EntityRetriever<Arc::Endpoint>;
 %template(ComputingServiceConsumer) Arc::EntityConsumer<Arc::ComputingServiceType>;
 %template(ComputingServiceContainer) Arc::EntityContainer<Arc::ComputingServiceType>;
-%template(ComputingServiceQueryOptions) Arc::EndpointQueryOptions<Arc::ComputingServiceType>;
 %template(TargetInformationRetriever) Arc::EntityRetriever<Arc::ComputingServiceType>;
 %template(JobConsumer) Arc::EntityConsumer<Arc::Job>;
 %template(JobContainer) Arc::EntityContainer<Arc::Job>;
-%template(JobListQueryOptions) Arc::EndpointQueryOptions<Arc::Job>;
 %template(JobListRetriever) Arc::EntityRetriever<Arc::Job>;
 
 

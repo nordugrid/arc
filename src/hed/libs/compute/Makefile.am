@@ -7,14 +7,14 @@ libarccompute_la_HEADERS = Broker.h ExecutionTarget.h \
 	JobState.h Job.h JobControllerPlugin.h JobSupervisor.h \
 	JobDescription.h JobDescriptionParserPlugin.h Software.h \
 	GLUE2.h EndpointQueryingStatus.h TestACCControl.h \
-	EntityRetriever.h Endpoint.h \
+	EntityRetriever.h EntityRetrieverPlugin.h Endpoint.h \
 	ComputingServiceRetriever.h
 libarccompute_la_SOURCES = Broker.cpp ExecutionTarget.cpp \
 	Submitter.cpp SubmitterPlugin.cpp \
 	JobState.cpp Job.cpp JobControllerPlugin.cpp JobSupervisor.cpp \
 	JobDescription.cpp JobDescriptionParserPlugin.cpp Software.cpp \
 	GLUE2.cpp EndpointQueryingStatus.cpp TestACCControl.cpp \
-	EntityRetriever.cpp Endpoint.cpp \
+	EntityRetriever.cpp EntityRetrieverPlugin.cpp Endpoint.cpp \
 	ComputingServiceRetriever.cpp
 libarccompute_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
