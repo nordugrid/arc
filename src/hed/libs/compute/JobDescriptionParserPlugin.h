@@ -21,7 +21,7 @@ namespace Arc {
 
   /**
    * \ingroup accplugins
-   * \header JobDescriptionParserPlugin.h arc/compute/JobDescriptionParserPlugin.h
+   * \headerfile JobDescriptionParserPlugin.h arc/compute/JobDescriptionParserPlugin.h
    */
   class JobDescriptionParserPluginResult {
   public:
@@ -49,7 +49,7 @@ namespace Arc {
    * JobDescriptionParserPlugin::UnParse methods.
    * 
    * \ingroup accplugins
-   * \header JobDescriptionParserPlugin.h arc/compute/JobDescriptionParserPlugin.h
+   * \headerfile JobDescriptionParserPlugin.h arc/compute/JobDescriptionParserPlugin.h
    */
   class JobDescriptionParserPlugin
     : public Plugin {
@@ -80,7 +80,7 @@ namespace Arc {
    * JobDescriptionParserPluginLoader goes out of scope.
    * 
    * \ingroup accplugins
-   * \header JobDescriptionParserPlugin.h arc/compute/JobDescriptionParserPlugin.h
+   * \headerfile JobDescriptionParserPlugin.h arc/compute/JobDescriptionParserPlugin.h
    */
   class JobDescriptionParserPluginLoader
     : public Loader {

@@ -19,7 +19,7 @@ namespace Arc {
 
   /**
    * \ingroup accplugins
-   * \header Broker.h arc/compute/Broker.h
+   * \headerfile BrokerPlugin.h arc/compute/BrokerPlugin.h
    */
   class BrokerPluginArgument : public PluginArgument {
   public:
@@ -32,7 +32,7 @@ namespace Arc {
 
   /**
    * \ingroup accplugins
-   * \header Broker.h arc/compute/Broker.h
+   * \headerfile BrokerPlugin.h arc/compute/BrokerPlugin.h
    */
   class BrokerPlugin : public Plugin {
   public:
@@ -49,7 +49,7 @@ namespace Arc {
 
   /**
    * \ingroup accplugins
-   * \header Broker.h arc/compute/Broker.h
+   * \headerfile BrokerPlugin.h arc/compute/BrokerPlugin.h
    */
   class BrokerPluginLoader : public Loader {
   public:

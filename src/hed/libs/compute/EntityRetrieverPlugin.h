@@ -70,7 +70,7 @@ private:
 
 /**
  * \ingroup accplugins
- * \header EntityRetriever.h arc/compute/EntityRetriever.h
+ * \headerfile EntityRetriever.h arc/compute/EntityRetriever.h
  */
 template<typename T>
 class EntityRetrieverPlugin : public Plugin {
@@ -89,7 +89,7 @@ protected:
 
 /**
  * \ingroup accplugins
- * \header EntityRetriever.h arc/compute/EntityRetriever.h
+ * \headerfile EntityRetriever.h arc/compute/EntityRetriever.h
  */
 template<typename T>
 class EntityRetrieverPluginLoader : public Loader {
@@ -109,7 +109,7 @@ protected:
 
 /**
  * \ingroup accplugins
- * \header EntityRetriever.h arc/compute/EntityRetriever.h
+ * \headerfile EntityRetriever.h arc/compute/EntityRetriever.h
  */
 class ServiceEndpointRetrieverPlugin : public EntityRetrieverPlugin<Endpoint> {
 protected:
@@ -119,7 +119,7 @@ protected:
 
 /**
  * \ingroup accplugins
- * \header EntityRetriever.h arc/compute/EntityRetriever.h
+ * \headerfile EntityRetriever.h arc/compute/EntityRetriever.h
  */
 class TargetInformationRetrieverPlugin : public EntityRetrieverPlugin<ComputingServiceType> {
 protected:
@@ -129,7 +129,7 @@ protected:
 
 /**
  * \ingroup accplugins
- * \header EntityRetriever.h arc/compute/EntityRetriever.h
+ * \headerfile EntityRetriever.h arc/compute/EntityRetriever.h
  */
 class JobListRetrieverPlugin : public EntityRetrieverPlugin<Job> {
 protected:
@@ -139,19 +139,19 @@ protected:
 
 /**
  * \ingroup accplugins
- * \header EntityRetriever.h arc/compute/EntityRetriever.h
+ * \headerfile EntityRetriever.h arc/compute/EntityRetriever.h
  */
 typedef EntityRetrieverPluginLoader<Endpoint> ServiceEndpointRetrieverPluginLoader;
 
 /**
  * \ingroup accplugins
- * \header EntityRetriever.h arc/compute/EntityRetriever.h
+ * \headerfile EntityRetriever.h arc/compute/EntityRetriever.h
  */
 typedef EntityRetrieverPluginLoader<ComputingServiceType> TargetInformationRetrieverPluginLoader;
 
 /**
  * \ingroup accplugins
- * \header EntityRetriever.h arc/compute/EntityRetriever.h
+ * \headerfile EntityRetriever.h arc/compute/EntityRetriever.h
  */
 typedef EntityRetrieverPluginLoader<Job> JobListRetrieverPluginLoader;
 

@@ -24,7 +24,7 @@ namespace Arc {
 
   /**
    * \ingroup accplugins
-   * \header JobControllerPlugin.h arc/compute/JobControllerPlugin.h
+   * \headerfile JobControllerPlugin.h arc/compute/JobControllerPlugin.h
    */
   class JobControllerPlugin
     : public Plugin {
@@ -64,7 +64,7 @@ namespace Arc {
    * must not be used after the JobControllerPluginLoader goes out of scope.
    * 
    * \ingroup accplugins
-   * \header JobControllerPlugin.h arc/compute/JobControllerPlugin.h
+   * \headerfile JobControllerPlugin.h arc/compute/JobControllerPlugin.h
    */
   class JobControllerPluginLoader
     : public Loader {
@@ -99,7 +99,7 @@ namespace Arc {
 
   /**
    * \ingroup accplugins
-   * \header JobControllerPlugin.h arc/compute/JobControllerPlugin.h
+   * \headerfile JobControllerPlugin.h arc/compute/JobControllerPlugin.h
    */
   class JobControllerPluginArgument : public PluginArgument {
   public:
