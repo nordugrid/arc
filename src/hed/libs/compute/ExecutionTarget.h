@@ -34,6 +34,8 @@ namespace Arc {
    * The listed structures are all used for holding resource information when
    * doing resource discovery and those structures are read when doing match
    * making.
+   * 
+   * \ingroup compute
    */
 
   /// ApplicationEnvironment
@@ -395,6 +397,7 @@ namespace Arc {
   };
 
   /**
+   * \ingroup compute
    * \ingroup resourceinfo
    * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
    */
@@ -424,6 +427,7 @@ namespace Arc {
    * linked to attributes defined in the GLUE Specification v. 2.0
    * (GFD-R-P.147).
    * 
+   * \ingroup compute
    * \ingroup resourceinfo
    * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
    */

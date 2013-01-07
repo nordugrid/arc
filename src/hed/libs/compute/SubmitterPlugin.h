@@ -24,6 +24,7 @@ namespace Arc {
 
   /**
    * \defgroup accplugins Plugin related classes for compute specialisations
+   * \ingroup compute
    */
 
   class Config;
@@ -39,7 +40,7 @@ namespace Arc {
    * resource it represents and uploads (needed by the job) local
    * input files.
    * 
-   * \header SubmitterPlugin.h arc/compute/SubmitterPlugin.h
+   * \headerfile SubmitterPlugin.h arc/compute/SubmitterPlugin.h
    */
   class SubmitterPlugin : public Plugin {
   protected:
@@ -113,7 +114,7 @@ namespace Arc {
    * must not be used after the SubmitterPluginLoader is destroyed.
    * 
    * \ingroup accplugins
-   * \header SubmitterPlugin.h arc/compute/SubmitterPlugin.h
+   * \headerfile SubmitterPlugin.h arc/compute/SubmitterPlugin.h
    */
   class SubmitterPluginLoader : public Loader {
   public:
@@ -147,7 +148,7 @@ namespace Arc {
 
   /**
    * \ingroup accplugins
-   * \header SubmitterPlugin.h arc/compute/SubmitterPlugin.h
+   * \headerfile SubmitterPlugin.h arc/compute/SubmitterPlugin.h
    */
   class SubmitterPluginArgument
     : public PluginArgument {

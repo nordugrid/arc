@@ -40,6 +40,7 @@ namespace Arc {
  * 
  * \todo * Give examples on how to load and use the test plugins.
  * \todo * Add descriptions to test control classes.
+ * \ingroup compute
  */
 
 /**

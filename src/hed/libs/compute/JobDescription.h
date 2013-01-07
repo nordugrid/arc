@@ -21,6 +21,7 @@ namespace Arc {
    * \defgroup jobdescription JobDescription related classes
    * This list of classes is used to make up the structure of the JobDescription
    * class.
+   * \ingroup compute
    */
 
 
@@ -548,6 +549,7 @@ namespace Arc {
 
 
   /**
+   * \ingroup compute
    * \ingroup jobdescription
    * \headerfile JobDescription.h arc/compute/JobDescription.h
    */
@@ -577,6 +579,7 @@ namespace Arc {
    * makes it directly accessible and modifiable from outside the scope of the
    * class.
    * 
+   * \ingroup compute
    * \ingroup jobdescription
    * \headerfile JobDescription.h arc/compute/JobDescription.h
    */
