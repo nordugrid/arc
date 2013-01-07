@@ -1,6 +1,10 @@
 #ifndef __ARC_ENTITYRETRIEVERPLUGIN_H__
 #define __ARC_ENTITYRETRIEVERPLUGIN_H__
 
+/** \file
+ * \brief Plugin, loader and argument classes for EntityRetriever specialisation.
+ */
+
 #include <list>
 #include <map>
 #include <set>
@@ -64,6 +68,10 @@ private:
   std::set<std::string> preferredInterfaceNames;
 };
 
+/**
+ * \ingroup accplugins
+ * \header EntityRetriever.h arc/compute/EntityRetriever.h
+ */
 template<typename T>
 class EntityRetrieverPlugin : public Plugin {
 protected:
@@ -79,6 +87,10 @@ protected:
   std::list<std::string> supportedInterfaces;
 };
 
+/**
+ * \ingroup accplugins
+ * \header EntityRetriever.h arc/compute/EntityRetriever.h
+ */
 template<typename T>
 class EntityRetrieverPluginLoader : public Loader {
 public:
@@ -95,26 +107,52 @@ protected:
   static Logger logger;
 };
 
+/**
+ * \ingroup accplugins
+ * \header EntityRetriever.h arc/compute/EntityRetriever.h
+ */
 class ServiceEndpointRetrieverPlugin : public EntityRetrieverPlugin<Endpoint> {
 protected:
   ServiceEndpointRetrieverPlugin(PluginArgument* parg);
   virtual ~ServiceEndpointRetrieverPlugin() {}
 };
 
+/**
+ * \ingroup accplugins
+ * \header EntityRetriever.h arc/compute/EntityRetriever.h
+ */
 class TargetInformationRetrieverPlugin : public EntityRetrieverPlugin<ComputingServiceType> {
 protected:
   TargetInformationRetrieverPlugin(PluginArgument* parg);
   virtual ~TargetInformationRetrieverPlugin() {}
 };
 
+/**
+ * \ingroup accplugins
+ * \header EntityRetriever.h arc/compute/EntityRetriever.h
+ */
 class JobListRetrieverPlugin : public EntityRetrieverPlugin<Job> {
 protected:
   JobListRetrieverPlugin(PluginArgument* parg);
   virtual ~JobListRetrieverPlugin() {}
 };
 
+/**
+ * \ingroup accplugins
+ * \header EntityRetriever.h arc/compute/EntityRetriever.h
+ */
 typedef EntityRetrieverPluginLoader<Endpoint> ServiceEndpointRetrieverPluginLoader;
+
+/**
+ * \ingroup accplugins
+ * \header EntityRetriever.h arc/compute/EntityRetriever.h
+ */
 typedef EntityRetrieverPluginLoader<ComputingServiceType> TargetInformationRetrieverPluginLoader;
+
+/**
+ * \ingroup accplugins
+ * \header EntityRetriever.h arc/compute/EntityRetriever.h
+ */
 typedef EntityRetrieverPluginLoader<Job> JobListRetrieverPluginLoader;
 
 } // namespace Arc

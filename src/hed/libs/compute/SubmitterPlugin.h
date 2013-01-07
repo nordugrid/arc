@@ -3,6 +3,10 @@
 #ifndef __ARC_SUBMITTERPLUGIN_H__
 #define __ARC_SUBMITTERPLUGIN_H__
 
+/** \file
+ * \brief Plugin, loader and argument classes for submitter specialisation.
+ */
+
 #include <list>
 #include <map>
 #include <string>
@@ -18,6 +22,10 @@
 
 namespace Arc {
 
+  /**
+   * \defgroup accplugins Plugin related classes for compute specialisations
+   */
+
   class Config;
   class ExecutionTarget;
   class JobDescription;
@@ -30,6 +38,8 @@ namespace Arc {
    * SubmitterPlugin objects. The class submits job(s) to the computing
    * resource it represents and uploads (needed by the job) local
    * input files.
+   * 
+   * \header SubmitterPlugin.h arc/compute/SubmitterPlugin.h
    */
   class SubmitterPlugin : public Plugin {
   protected:
@@ -101,6 +111,9 @@ namespace Arc {
   /** Class responsible for loading SubmitterPlugin plugins
    * The SubmitterPlugin objects returned by a SubmitterPluginLoader
    * must not be used after the SubmitterPluginLoader is destroyed.
+   * 
+   * \ingroup accplugins
+   * \header SubmitterPlugin.h arc/compute/SubmitterPlugin.h
    */
   class SubmitterPluginLoader : public Loader {
   public:
@@ -132,6 +145,10 @@ namespace Arc {
     static std::map<std::string, std::string> interfacePluginMap;
   };
 
+  /**
+   * \ingroup accplugins
+   * \header SubmitterPlugin.h arc/compute/SubmitterPlugin.h
+   */
   class SubmitterPluginArgument
     : public PluginArgument {
   public:

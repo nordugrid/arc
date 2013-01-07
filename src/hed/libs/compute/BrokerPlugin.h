@@ -3,6 +3,10 @@
 #ifndef __ARC_BROKERPLUGIN_H__
 #define __ARC_BROKERPLUGIN_H__
 
+/** \file
+ * \brief Plugin, loader and argument classes for broker specialisation.
+ */
+
 #include <arc/loader/Loader.h>
 #include <arc/loader/Plugin.h>
 
@@ -13,6 +17,10 @@ namespace Arc {
   class URL;
   class UserConfig;
 
+  /**
+   * \ingroup accplugins
+   * \header Broker.h arc/compute/Broker.h
+   */
   class BrokerPluginArgument : public PluginArgument {
   public:
     BrokerPluginArgument(const UserConfig& uc) : uc(uc) {}
@@ -22,6 +30,10 @@ namespace Arc {
     const UserConfig& uc;
   };
 
+  /**
+   * \ingroup accplugins
+   * \header Broker.h arc/compute/Broker.h
+   */
   class BrokerPlugin : public Plugin {
   public:
     BrokerPlugin(BrokerPluginArgument* arg) : Plugin(arg), uc(*arg), j(NULL) {}
@@ -35,6 +47,10 @@ namespace Arc {
     static Logger logger;
   };
 
+  /**
+   * \ingroup accplugins
+   * \header Broker.h arc/compute/Broker.h
+   */
   class BrokerPluginLoader : public Loader {
   public:
     BrokerPluginLoader();
