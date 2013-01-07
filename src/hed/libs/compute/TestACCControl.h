@@ -1,6 +1,10 @@
 #ifndef __ARC_TESTACCCONTROL_H__
 #define __ARC_TESTACCCONTROL_H__
 
+/** \file
+ * \brief Classes for controlling output of compute test plugins.
+ */
+
 #include <list>
 #include <string>
 
@@ -16,12 +20,42 @@
 
 namespace Arc {
 
+/**
+ * \defgroup testacccontrol Classes for controlling output of compute test plugins
+ * The listed classes are used for controlling the behaviour of the test
+ * plugins. A test plugin can be used for simulating, testing and checking how
+ * the compute library behaves and react to different inputs from plugins. Also
+ * the test plugins doesn't require a network connection in order to function.
+ * 
+ * Compute test plugins are available for the following plugin types:
+ * \li BrokerPlugin 
+ * \li JobControllerPlugin
+ * \li JobDescriptionParserPlugin
+ * \li SubmitterPlugin
+ * \li ServiceEndpointRetrieverPlugin
+ * \li TargetInformationRetrieverPlugin
+ * \li JobListRetrieverPlugin
+ * 
+ * They can be loaded by using the associated plugin loader class.
+ * 
+ * \todo * Give examples on how to load and use the test plugins.
+ * \todo * Add descriptions to test control classes.
+ */
+
+/**
+ * \ingroup testacccontrol
+ * \headerfile TestACCControl.h arc/compute/TestACCControl.h
+ */
 class BrokerPluginTestACCControl {
   public:
     static bool match;
     static bool less;
 };
 
+/**
+ * \ingroup testacccontrol
+ * \headerfile TestACCControl.h arc/compute/TestACCControl.h
+ */
 class JobDescriptionParserPluginTestACCControl {
   public:
     static bool parseStatus;
@@ -30,6 +64,10 @@ class JobDescriptionParserPluginTestACCControl {
     static std::string unparsedString;
 };
 
+/**
+ * \ingroup testacccontrol
+ * \headerfile TestACCControl.h arc/compute/TestACCControl.h
+ */
 class JobControllerPluginTestACCControl {
   public:
     static bool cleanStatus;
@@ -43,6 +81,10 @@ class JobControllerPluginTestACCControl {
     static URL createURL;
 };
 
+/**
+ * \ingroup testacccontrol
+ * \headerfile TestACCControl.h arc/compute/TestACCControl.h
+ */
 class SubmitterPluginTestACCControl {
   public:
     static SubmissionStatus submitStatus;
@@ -52,6 +94,10 @@ class SubmitterPluginTestACCControl {
     static Job migrateJob;
 };
 
+/**
+ * \ingroup testacccontrol
+ * \headerfile TestACCControl.h arc/compute/TestACCControl.h
+ */
 class JobStateTEST : public JobState {
   public:
     JobStateTEST(JobState::StateType type_, const std::string& state_ = "TestState") {
@@ -60,6 +106,10 @@ class JobStateTEST : public JobState {
     }
 };
 
+/**
+ * \ingroup testacccontrol
+ * \headerfile TestACCControl.h arc/compute/TestACCControl.h
+ */
 class JobListRetrieverPluginTESTControl {
 public:
   static float delay;
@@ -67,6 +117,10 @@ public:
   static EndpointQueryingStatus status;
 };
 
+/**
+ * \ingroup testacccontrol
+ * \headerfile TestACCControl.h arc/compute/TestACCControl.h
+ */
 class ServiceEndpointRetrieverPluginTESTControl {
 public:
   static std::list<SimpleCondition*> condition;
@@ -74,6 +128,10 @@ public:
   static std::list< std::list<Endpoint> > endpoints;
 };
 
+/**
+ * \ingroup testacccontrol
+ * \headerfile TestACCControl.h arc/compute/TestACCControl.h
+ */
 class TargetInformationRetrieverPluginTESTControl {
 public:
   static float delay;
