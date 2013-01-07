@@ -18,6 +18,12 @@ namespace Arc {
   class Logger;
   class UserConfig;
 
+  /**
+   * Must be specialiced for each supported middleware flavour.
+   * 
+   * \ingroup accplugins
+   * \header JobControllerPlugin.h arc/compute/JobControllerPlugin.h
+   */
   class JobControllerPlugin
     : public Plugin {
   protected:
@@ -54,6 +60,9 @@ namespace Arc {
   /** Class responsible for loading JobControllerPlugin plugins
    * The JobControllerPlugin objects returned by a JobControllerPluginLoader
    * must not be used after the JobControllerPluginLoader goes out of scope.
+   * 
+   * \ingroup accplugins
+   * \header JobControllerPlugin.h arc/compute/JobControllerPlugin.h
    */
   class JobControllerPluginLoader
     : public Loader {
@@ -86,6 +95,10 @@ namespace Arc {
     static std::map<std::string, std::string> interfacePluginMap;
   };
 
+  /**
+   * \ingroup accplugins
+   * \header JobControllerPlugin.h arc/compute/JobControllerPlugin.h
+   */
   class JobControllerPluginArgument : public PluginArgument {
   public:
     JobControllerPluginArgument(const UserConfig& usercfg) : usercfg(usercfg) {}
