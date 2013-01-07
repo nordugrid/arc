@@ -109,8 +109,8 @@
 %{
 #include <arc/compute/JobControllerPlugin.h>
 %}
-%ignore Arc::JobControllerPluginPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
-%ignore Arc::JobControllerPluginPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
+%ignore Arc::JobControllerPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
+%ignore Arc::JobControllerPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
 %wraplist(JobControllerPlugin, Arc::JobControllerPlugin *);
 %template(JobControllerPluginMap) std::map<std::string, Arc::JobControllerPlugin *>;
 #ifdef SWIGPYTHON
