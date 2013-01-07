@@ -3,10 +3,6 @@
 #ifndef __ARC_JOBDESCRIPTIONPARSERPLUGIN_H__
 #define __ARC_JOBDESCRIPTIONPARSERPLUGIN_H__
 
-/** \file
- * \brief Classes related to job description parser plugins.
- */
-
 #include <map>
 #include <string>
 
@@ -19,10 +15,6 @@ namespace Arc {
   class JobDescription;
   class Logger;
 
-  /**
-   * \ingroup accplugins
-   * \header JobDescriptionParserPlugin.h arc/compute/JobDescriptionParserPlugin.h
-   */
   class JobDescriptionParserPluginResult {
   public:
     typedef enum {
@@ -47,9 +39,6 @@ namespace Arc {
    * for job description parsers. A job description parser should inherit this
    * class and overwrite the JobDescriptionParserPlugin::Parse and
    * JobDescriptionParserPlugin::UnParse methods.
-   * 
-   * \ingroup accplugins
-   * \header JobDescriptionParserPlugin.h arc/compute/JobDescriptionParserPlugin.h
    */
   class JobDescriptionParserPlugin
     : public Plugin {
@@ -78,9 +67,6 @@ namespace Arc {
    * The JobDescriptionParserPlugin objects returned by a
    * JobDescriptionParserPluginLoader must not be used after the
    * JobDescriptionParserPluginLoader goes out of scope.
-   * 
-   * \ingroup accplugins
-   * \header JobDescriptionParserPlugin.h arc/compute/JobDescriptionParserPlugin.h
    */
   class JobDescriptionParserPluginLoader
     : public Loader {
