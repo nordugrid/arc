@@ -25,8 +25,10 @@ namespace Arc {
    * JobStatePlugin::JobStatePluging(const std::string& state) : JobState(state, &pluginStateMap) {}
    * where &pluginStateMap is a reference to the JobStateMap defined by the
    * derived class.
+   * 
+   * \ingroup compute
+   * \headerfile JobState.h arc/compute/JobState.h 
    */
-
   class JobState {
   public:
 #define JOBSTATE_TABLE \
@@ -112,6 +114,10 @@ namespace Arc {
     StateType type;
   };
 
+  /**
+   * \ingroup compute
+   * \headerfile JobState.h arc/compute/JobState.h 
+   */
   typedef JobState::StateType (*JobStateMap)(const std::string&);
 }
 

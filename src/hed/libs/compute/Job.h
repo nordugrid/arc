@@ -25,6 +25,9 @@ namespace Arc {
    * member attributes and methods for dealing with a Grid job. Most of the
    * member attributes contained in this class are directly linked to the
    * ComputingActivity defined in the GLUE Specification v. 2.0 (GFD-R-P.147).
+   * 
+   * \ingroup compute
+   * \headerfile Job.h arc/compute/Job.h 
    */
   class Job {
   friend class JobSupervisor;

@@ -20,6 +20,10 @@ namespace Arc {
   class URL;
   class UserConfig;
 
+  /**
+   * \ingroup compute
+   * \headerfile Broker.h arc/compute/Broker.h 
+   */
   class Broker {
   public:
     Broker(const UserConfig& uc, const std::string& name = "");
@@ -50,6 +54,10 @@ namespace Arc {
     static Logger logger;
   };
 
+  /**
+   * \ingroup compute
+   * \headerfile Broker.h arc/compute/Broker.h 
+   */
   class ExecutionTargetSorter : public EntityConsumer<ComputingServiceType> {
   public:
     ExecutionTargetSorter(const Broker& b, const std::list<URL>& rejectEndpoints = std::list<URL>())

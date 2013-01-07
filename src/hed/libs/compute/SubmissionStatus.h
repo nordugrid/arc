@@ -5,6 +5,10 @@
 
 namespace Arc {
   
+  /**
+   * \ingroup compute
+   * \headerfile SubmissionStatus.h arc/compute/SubmissionStatus.h 
+   */
   class SubmissionStatus {
   private:
     static const unsigned int maxValue = (1 << 8) - 1;
@@ -62,7 +66,7 @@ namespace Arc {
   private:
     unsigned int status;
   };
-    
+
   inline bool operator==(SubmissionStatus::SubmissionStatusType a, const SubmissionStatus& b) { return (unsigned int)a == b.status; }
 }
 
