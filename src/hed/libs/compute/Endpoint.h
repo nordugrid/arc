@@ -17,9 +17,16 @@ class Endpoint;
 class EndpointQueryingStatus;
 class ComputingEndpointAttributes;
   
+/**
+ * \ingroup compute
+ * \headerfile Endpoint.h arc/compute/Endpoint.h 
+ */
 typedef bool (*EndpointCompareFn)(const Endpoint&, const Endpoint&);
 
-class Endpoint;
+/**
+ * \ingroup compute
+ * \headerfile Endpoint.h arc/compute/Endpoint.h 
+ */
 class EndpointStatusMap : public std::map<Endpoint, EndpointQueryingStatus, EndpointCompareFn> {
 public:
   EndpointStatusMap();
@@ -30,19 +37,21 @@ public:
 
 /// Represents an endpoint of a service with a given interface type and capabilities
 /**
-The type of the interface is described by a string called InterfaceName (from the
-GLUE2 specification).
-An Endpoint object must have a URL, and it is quite useless without capabilities
-(the system has to know if an Endpoint is a service registry or a computing element),
-but the InterfaceName is optional.
-
-The Endpoint object also contains information about the health state and quality level
-of the endpoint, and optionally the requested submission interface name,
-which will be used later if a job will be submitted to a computing element
-related to this endpoint.
-
-\see CapabilityEnum where the capabilities are listed.
-*/
+ * The type of the interface is described by a string called InterfaceName (from
+ * the %GLUE2 specification). An Endpoint object must have a URL, and it is
+ * quite useless without capabilities (the system has to know if an Endpoint is
+ * a service registry or a computing element), but the InterfaceName is
+ * optional.
+ * 
+ * The Endpoint object also contains information about the health state and
+ * quality level of the endpoint, and optionally the requested submission
+ * interface name, which will be used later if a job will be submitted to a
+ * computing element related to this endpoint.
+ * 
+ * \see CapabilityEnum where the capabilities are listed.
+ * \ingroup compute
+ * \headerfile Endpoint.h arc/compute/Endpoint.h 
+ */
 class Endpoint {
 public:
   /** The capabilities:

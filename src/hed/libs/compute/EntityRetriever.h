@@ -24,9 +24,12 @@ class UserConfig;
 
 /// A general concept of an object which can consume entities use by the retrievers to return results
 /**
-    A class which wants to receive results from Retrievers, needs to subclass this class,
-    and implement the #addEntity method.
-*/
+ * A class which wants to receive results from Retrievers, needs to subclass
+ * this class, and implement the #addEntity method.
+ * 
+ * \ingroup compute
+ * \headerfile EntityRetriever.h arc/compute/EntityRetriever.h 
+ */
 template<typename T>
 class EntityConsumer {
 public:
@@ -40,14 +43,17 @@ public:
 
 /// An entity consumer class storing all the consumed entities in a list.
 /**
-  This class is a concrete subclass of the EntityConsumer abstract class,
-  it also inherits from std::list, and implements the #addEntity method
-  in a way, that it stores all the consumed entities in the list (in itself).
-  
-  The retrievers return their results through entity consumer objects,
-  so this container object can be used in those places, and then the results
-  can be found in the container, which can be treated as a standard list.
-*/
+ * This class is a concrete subclass of the EntityConsumer abstract class,
+ * it also inherits from std::list, and implements the #addEntity method
+ * in a way, that it stores all the consumed entities in the list (in itself).
+ * 
+ * The retrievers return their results through entity consumer objects,
+ * so this container object can be used in those places, and then the results
+ * can be found in the container, which can be treated as a standard list.
+ * 
+ * \ingroup compute
+ * \headerfile EntityRetriever.h arc/compute/EntityRetriever.h 
+ */
 template<typename T>
 class EntityContainer : public EntityConsumer<T>, public std::list<T> {
 public:
@@ -61,55 +67,56 @@ public:
 
 /// Queries Endpoint objects (using plugins in parallel) and sends the found entities to consumers
 /**
-  The EntityRetriever is a template class which queries Endpoint objects and returns 
-  entities of the template type T. The query is done by plugins (capable of 
-  retrieving type T objects from Endpoint objects), and the results are sent to the 
-  registered EntityConsumer objects (capable of consuming type T objects).
-  
-  When an Endpoint is added to the EntityRetriever, a new is 
-  started which queries the given Endpoint. Each plugin is capable of querying 
-  Endpoint objects with given interfaces (which is indicated with the InterfaceName 
-  attribute of the Endpoint). If the Endpoint has the InterfaceName specified, 
-  then the plugin capable of querying that interface will be selected. If the 
-  InterfaceName of the Endpoint is not specified, all the available plugins 
-  will be considered. If there is a preferred list of interfaces, then first 
-  the plugins supporting those interfaces will be tried, and if there are no 
-  preferred interfaces, or the preferred ones did not give any result, then all 
-  the plugins will be tried. All this happens parallel in separate threads.
-
-  Currently there are three instance classes:
-  - the #ServiceEndpointRetriever queries service registries and returns new
-    Endpoint objects
-  - the #TargetInformationRetriever queries computing elements and returns
-    ComputingServiceType objects containing the GLUE2 information about the
-    computing element
-  - the #JobListRetriever queries computing elements and returns jobs residing
-    on the computing element
-    
-  To start querying, a new EntityRetriever needs to be created with the user's 
-  credentials in the UserConfig object, then one or more consumers needs to be 
-  added with the #addConsumer method (e.g. an EntityContainer of the given T 
-  type), then the Endpoints need to be added one by one with the #addEndpoint 
-  method. Then the #wait method can be called to wait for all the results to 
-  arrive, after which we can be sure that all the retrieved entities are passed 
-  to the registered consumer objects. If we registered an EntityContainer, then 
-  we can get all the results from the container, using it as a standard list.
-  
-  It is possible to specify options in the constructor, which in case of the
-  #TargetInformationRetriever and the #JobListRetriever classes is
-  an EndpointQueryOptions object containing a list of preferred InterfaceNames.
-  When an Endpoint has not InterfaceName specified, these preferred InterfaceNames
-  will be tried first. The #ServiceEndpointRetriever has different options though:
-  the EndpointQueryOptions<Endpoint> object does not contain a preferred list
-  of InterfaceNames. It has a flag for recursivity instead and string lists
-  for filtering services by capability and rejecting them by URL.
-  
-  \see ComputingServiceRetriever which combines the #ServiceEndpointRetriever and
-    the #TargetInformationRetriever to query both the service registries and the
-    computing elements
-    
-  #ServiceEndpointRetriever example:
-  \code
+ * The EntityRetriever is a template class which queries Endpoint objects and
+ * returns entities of the template type T. The query is done by plugins
+ * (capable of retrieving type T objects from Endpoint objects), and the
+ * results are sent to the registered EntityConsumer objects (capable of
+ * consuming type T objects).
+ * 
+ * When an Endpoint is added to the EntityRetriever, a new is started which
+ * queries the given Endpoint. Each plugin is capable of querying Endpoint
+ * objects with given interfaces (which is indicated with the InterfaceName
+ * attribute of the Endpoint). If the Endpoint has the InterfaceName specified,
+ * then the plugin capable of querying that interface will be selected. If the 
+ * InterfaceName of the Endpoint is not specified, all the available plugins 
+ * will be considered. If there is a preferred list of interfaces, then first 
+ * the plugins supporting those interfaces will be tried, and if there are no 
+ * preferred interfaces, or the preferred ones did not give any result, then
+ * all the plugins will be tried. All this happens parallel in separate threads.
+ * Currently there are three instance classes:
+ * \li the #ServiceEndpointRetriever queries service registries and returns new
+ * Endpoint objects
+ * \li the #TargetInformationRetriever queries computing elements and returns
+ * ComputingServiceType objects containing the GLUE2 information about the
+ * computing element
+ * \li the #JobListRetriever queries computing elements and returns jobs
+ * residing on the computing element
+ * 
+ * To start querying, a new EntityRetriever needs to be created with the user's 
+ * credentials in the UserConfig object, then one or more consumers needs to be 
+ * added with the #addConsumer method (e.g. an EntityContainer of the given T 
+ * type), then the Endpoints need to be added one by one with the #addEndpoint 
+ * method. Then the #wait method can be called to wait for all the results to 
+ * arrive, after which we can be sure that all the retrieved entities are passed 
+ * to the registered consumer objects. If we registered an EntityContainer, then 
+ * we can get all the results from the container, using it as a standard list.
+ * 
+ * It is possible to specify options in the constructor, which in case of the
+ * #TargetInformationRetriever and the #JobListRetriever classes is
+ * an EndpointQueryOptions object containing a list of preferred InterfaceNames.
+ * When an Endpoint has not InterfaceName specified, these preferred
+ * InterfaceNames will be tried first. The #ServiceEndpointRetriever has
+ * different options though:
+ * the EndpointQueryOptions<Endpoint> object does not contain a preferred list
+ * of InterfaceNames. It has a flag for recursivity instead and string lists for
+ * filtering services by capability and rejecting them by URL.
+ * 
+ * \see ComputingServiceRetriever which combines the #ServiceEndpointRetriever
+ * and the #TargetInformationRetriever to query both the service registries and
+ * the computing elements
+ * 
+ * #ServiceEndpointRetriever example:
+ * \code
 Arc::UserConfig uc;
 // create the retriever with no options
 Arc::ServiceEndpointRetriever retriever(uc);
@@ -126,10 +133,12 @@ retriever.wait();
 // get the status of the query
 Arc::EndpointQueryingStatus status = retriever.getStatusOfEndpoint(registry);
   \endcode
-  After #wait returns, container contains all the services found in the registry "test.nordugrid.org".
-  
-  #TargetInformationRetriever example:
-  \code
+ *
+ * After #wait returns, container contains all the services found in the
+ * registry "test.nordugrid.org".
+ * 
+ * #TargetInformationRetriever example:
+ * \code
 Arc::UserConfig uc;
 // create the retriever with no options
 Arc::TargetInformationRetriever retriever(uc);
@@ -146,10 +155,13 @@ retriever.wait();
 // get the status of the query
 Arc::EndpointQueryingStatus status = retriever.getStatusOfEndpoint(ce);
   \endcode
-  After #wait returns, container contains the ComputingServiceType object which
-  has the full GLUE2 information about the computing element.
-*/
-
+ *
+ * After #wait returns, container contains the ComputingServiceType object which
+ * has the full %GLUE2 information about the computing element.
+ * 
+ * \ingroup compute
+ * \headerfile EntityRetriever.h arc/compute/EntityRetriever.h 
+ */
 template<typename T>
 class EntityRetriever : public EntityConsumer<T> {
 public:
@@ -364,15 +376,30 @@ protected:
 };
 
 /// The ServiceEndpointRetriever is an EntityRetriever retrieving Endpoint objects.
-/** It queries service registries to get endpoints of registered services. */
+/**
+ * It queries service registries to get endpoints of registered services.
+ * 
+ * \ingroup compute
+ * \headerfile EntityRetriever.h arc/compute/EntityRetriever.h 
+ */
 typedef EntityRetriever<Endpoint>             ServiceEndpointRetriever;
 
 /// The TargetInformationRetriever is an EntityRetriever retrieving ComputingServiceType objects.
-/** It queries computing elements to get the full GLUE2 information about the resource. */
+/**
+ * It queries computing elements to get the full GLUE2 information about the resource.
+ * 
+ * \ingroup compute
+ * \headerfile EntityRetriever.h arc/compute/EntityRetriever.h 
+ */
 typedef EntityRetriever<ComputingServiceType>             TargetInformationRetriever;
 
 /// The JobListRetriever is an EntityRetriever retrieving Job objects.
-/** It queries computing elements to get the list of jobs residing on the resource. */
+/**
+ * It queries computing elements to get the list of jobs residing on the resource.
+ * 
+ * \ingroup compute
+ * \headerfile EntityRetriever.h arc/compute/EntityRetriever.h 
+ */
 typedef EntityRetriever<Job>             JobListRetriever;
 
 } // namespace Arc

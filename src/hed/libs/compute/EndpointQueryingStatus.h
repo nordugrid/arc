@@ -7,11 +7,15 @@ namespace Arc {
 
 /// Represents the status in the EntityRetriever of the query process of an Endpoint (service registry, computing element).
 /**
-  An object of this class is returned by the instances of the EntityRetriever
-  (e.g. #ServiceEndpointRetriever, #TargetInformationRetriever, #JobListRetriever)
-  representing the state of the process of querying an Endpoint.
-  It contains an #EndpointQueryingStatusType enum (#getStatus), and a description string (#getDescription) 
-*/
+ * An object of this class is returned by the instances of the EntityRetriever
+ * (e.g. #ServiceEndpointRetriever, #TargetInformationRetriever,
+ * #JobListRetriever) representing the state of the process of querying an
+ * Endpoint. It contains an #EndpointQueryingStatusType enum (#getStatus), and
+ * a description string (#getDescription) 
+ * 
+ * \ingroup compute
+ * \headerfile EndpointQueryingStatus.h arc/compute/EndpointQueryingStatus.h 
+ */
 class EndpointQueryingStatus {
 public:
   /** The possible states: */
