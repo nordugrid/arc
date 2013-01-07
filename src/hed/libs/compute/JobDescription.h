@@ -1,6 +1,10 @@
 #ifndef __ARC_JOBDESCRIPTION_H__
 #define __ARC_JOBDESCRIPTION_H__
 
+/** \file
+ * \brief Classes related to creating JobDescription objects.
+ */
+
 #include <list>
 #include <vector>
 #include <string>
@@ -13,9 +17,20 @@
 
 namespace Arc {
 
+  /**
+   * \defgroup jobdescription JobDescription related classes
+   * This list of classes is used to make up the structure of the JobDescription
+   * class.
+   */
+
+
   class JobDescriptionParserPluginLoader;
   class ExecutionTarget;
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   template<class T>
   class OptIn {
   public:
@@ -33,6 +48,10 @@ namespace Arc {
     bool optIn;
   };
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   template<class T>
   class Range {
   public:
@@ -47,6 +66,10 @@ namespace Arc {
     T max;
   };
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   template<class T>
   class ScalableTime {
   public:
@@ -57,6 +80,10 @@ namespace Arc {
     Range<T> range;
   };
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   template<>
   class ScalableTime<int> {
   public:
@@ -77,6 +104,9 @@ namespace Arc {
    * execution service for providing information about the job created from
    * this job description. An object of this class is part of the
    * JobDescription class as the Identification public member.
+   * 
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
    **/
   class JobIdentificationType {
   public:
@@ -130,7 +160,10 @@ namespace Arc {
    * arguments to pass to it when invoked and the exit code for successful
    * execution.
    *
-   * NOTE: The Name string member has been renamed to Path.
+   * \note The Name string member has been renamed to Path.
+   * 
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
    **/
   class ExecutableType {
   public:
@@ -168,6 +201,9 @@ namespace Arc {
   /**
    * This class is used to specify a service which should be used to report
    * logging information to, such as job resource usage.
+   * 
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
    **/
   class RemoteLoggingType {
   public:
@@ -198,6 +234,10 @@ namespace Arc {
      bool optional;
   };
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   class NotificationType {
   public:
     NotificationType() {}
@@ -205,6 +245,10 @@ namespace Arc {
     std::list<std::string> States;
   };
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   class ApplicationType {
   public:
     ApplicationType() :
@@ -290,6 +334,10 @@ namespace Arc {
     bool DryRun;
   };
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   class SlotRequirementType {
   public:
     SlotRequirementType() :
@@ -305,6 +353,10 @@ namespace Arc {
     } ExclusiveExecution;
   };
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   class DiskSpaceRequirementType {
   public:
     DiskSpaceRequirementType() :
@@ -327,12 +379,20 @@ namespace Arc {
     int SessionDiskSpace;
   };
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   enum SessionDirectoryAccessMode {
     SDAM_NONE = 0,
     SDAM_RO = 1,
     SDAM_RW = 2
   };
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   enum NodeAccessType {
     NAT_NONE = 0,
     NAT_INBOUND = 1,
@@ -340,6 +400,10 @@ namespace Arc {
     NAT_INOUTBOUND = 3
   };
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   class ParallelEnvironmentType {
   public:
     ParallelEnvironmentType() :
@@ -352,6 +416,10 @@ namespace Arc {
     std::multimap<std::string, std::string> Options;
   };
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   class ResourcesType {
   public:
     ResourcesType() :
@@ -387,6 +455,10 @@ namespace Arc {
     SoftwareRequirement RunTimeEnvironment;
   };
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   class SourceType: public URL {
   public:
     SourceType() {};
@@ -397,6 +469,10 @@ namespace Arc {
     std::string DelegationID;
   };
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   class TargetType: public URL {
   public:
     TargetType() :
@@ -429,6 +505,10 @@ namespace Arc {
     bool UseIfSuccess;
   };
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   class InputFileType {
   public:
     InputFileType() : Name(""), IsExecutable(false), FileSize(-1) {};
@@ -444,6 +524,10 @@ namespace Arc {
     std::list<SourceType> Sources;
   };
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   class OutputFileType {
   public:
     OutputFileType() : Name("") {};
@@ -451,6 +535,10 @@ namespace Arc {
     std::list<TargetType> Targets;
   };
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   class DataStagingType {
   public:
     DataStagingType() {};
@@ -459,6 +547,10 @@ namespace Arc {
   };
 
 
+  /**
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
+   */
   class JobDescriptionResult {
   public:
     JobDescriptionResult(bool r):res(r) { };
@@ -484,6 +576,9 @@ namespace Arc {
    * Additionally the internal representation is contained in public members which
    * makes it directly accessible and modifiable from outside the scope of the
    * class.
+   * 
+   * \ingroup jobdescription
+   * \headerfile JobDescription.h arc/compute/JobDescription.h
    */
   class JobDescription {
   public:

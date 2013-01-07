@@ -27,6 +27,9 @@ namespace Arc {
    * Internally the Software object is represented by a family and name
    * identifier, and the software version is tokenized at the characters
    * defined in VERSIONTOKENS, and stored as a list of tokens.
+   * 
+   * \ingroup jobdescription
+   * \headerfile Software.h arc/compute/Software.h
    */
   class Software {
   public:
@@ -313,6 +316,9 @@ namespace Arc {
    * methods (selectSoftware()) to select Software objects which are
    * satisfying the requirements, and in this way resolving
    * requirements.
+   * 
+   * \ingroup jobdescription
+   * \headerfile Software.h arc/compute/Software.h
    **/
   class SoftwareRequirement {
   public:
