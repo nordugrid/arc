@@ -113,6 +113,13 @@ if [ -n "$joboption_nodeproperty_0" ]; then
         echo 'ERROR: Setting parallel environment failed.' 1>&2
     fi
 fi
+
+
+if [ ! -z $joboption_exclusive && $joboption_exclusive = 'yes' ] ; then
+  echo "WARNING: Exclusive execution not supported by SGE back-end." >> 1>&2
+fi
+
+
 ##############################################################
 # Execution times (obtained in seconds)
 ##############################################################

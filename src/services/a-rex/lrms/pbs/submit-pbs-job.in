@@ -91,7 +91,8 @@ echo "PBS jobname: $jobname" 1>&2
 
 set_count
 
-nodes_string="#PBS -l nodes=${joboption_count}"
+#nodes_string="#PBS -l nodes=${joboption_count}"
+nodes_string="#PBS -l nodes=${joboption_numnodes}:ppn=${joboption_countpernode}"
 
 if [ ! -z "$CONFIG_queue_node_string" ] ; then
   nodes_string="${nodes_string}:${CONFIG_queue_node_string}"
@@ -106,6 +107,13 @@ while [ ! -z "${var_is_set}" ] ; do
   eval "var_is_set=\${joboption_nodeproperty_$i+yes}"
 done
 echo "$nodes_string" >> $LRMS_JOB_SCRIPT
+
+# exclusice execution:
+# there is no standard way to express this in PBS. 
+# One way would be to request a full nodes memory,
+# but this is only feasible on a cluster with 
+# homogenous nodes
+
 
 ##############################################################
 # Execution times (minutes)
@@ -147,10 +155,26 @@ set_req_mem
 
 #pmem and pvmem are per process, so no need to modify based on count.
 #valid for both PBS and Torque
+#requested memory is used to simulate exclusive execution
+
+memreq="${joboption_memory}"
+
+if [ ! -z $joboption_exclusive && $joboption_exclusive = 'yes' ] ; then
+ # using nodememory as maximum mem
+  if [ -n "${CONFIG_nodememory}" ] ; then
+   tempmem=`expr $CONFIG_nodememory / $joboption_countpernode `
+   if [ "${tempmem}" -gt "${joboption_memory}" ] ; then
+     memreq="${tempmem}"
+   fi
+  else
+    echo "WARNING: Could not set memory limit to simulate exclusice execution." > 1>&2
+  fi 
+fi
+
 
 if [ ! -z "$joboption_memory" ] ; then
-  echo "#PBS -l pvmem=${joboption_memory}mb" >> $LRMS_JOB_SCRIPT
-  echo "#PBS -l pmem=${joboption_memory}mb" >> $LRMS_JOB_SCRIPT
+  echo "#PBS -l pvmem=${memreq}mb" >> $LRMS_JOB_SCRIPT
+  echo "#PBS -l pmem=${memreq}mb" >> $LRMS_JOB_SCRIPT
 fi
 
 gate_host=`uname -n`
