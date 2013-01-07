@@ -3,6 +3,10 @@
 #ifndef __ARC_EXECUTIONTARGET_H__
 #define __ARC_EXECUTIONTARGET_H__
 
+/** \file
+ * \brief Structures holding resource information.
+ */
+
 #include <list>
 #include <map>
 #include <set>
@@ -24,6 +28,14 @@ namespace Arc {
   class SubmitterPlugin;
   class UserConfig;
 
+  /**
+   * \defgroup resourceinfo Structures holding resource information
+   * \ingroup compute
+   * The listed structures are all used for holding resource information when
+   * doing resource discovery and those structures are read when doing match
+   * making.
+   */
+
   /// ApplicationEnvironment
   /**
    * The ApplicationEnviroment is closely related to the definition given in
@@ -34,6 +46,9 @@ namespace Arc {
    * GLUE2 description:
    * A description of installed application software or software environment
    * characteristics available within one or more Execution Environments.
+   * 
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
    */
   class ApplicationEnvironment
     : public Software {
@@ -54,6 +69,10 @@ namespace Arc {
     int FreeUserSeats;
   };
 
+  /**
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
+   */
   class LocationAttributes {
   public:
     LocationAttributes() : Latitude(0), Longitude(0) {}
@@ -68,6 +87,10 @@ namespace Arc {
     friend std::ostream& operator<<(std::ostream& out, const LocationAttributes& l);
   };
 
+  /**
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
+   */
   class AdminDomainAttributes {
   public:
     std::string Name;
@@ -76,6 +99,10 @@ namespace Arc {
     friend std::ostream& operator<<(std::ostream& out, const AdminDomainAttributes& ad);
   };
 
+  /**
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
+   */
   class ExecutionEnvironmentAttributes {
   public:
     ExecutionEnvironmentAttributes()
@@ -110,6 +137,10 @@ namespace Arc {
     friend std::ostream& operator<<(std::ostream&, const ExecutionEnvironmentAttributes&);
   };
 
+  /**
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
+   */
   class ComputingManagerAttributes {
   public:
     ComputingManagerAttributes() :
@@ -139,6 +170,10 @@ namespace Arc {
     friend std::ostream& operator<<(std::ostream&, const ComputingManagerAttributes&);
   };
 
+  /**
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
+   */
   class ComputingShareAttributes {
   public:
     ComputingShareAttributes() :
@@ -235,6 +270,10 @@ namespace Arc {
     friend std::ostream& operator<<(std::ostream&, const ComputingShareAttributes&);
   };
 
+  /**
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
+   */
   class ComputingEndpointAttributes {
   public:
     ComputingEndpointAttributes() : DowntimeStarts(-1), DowntimeEnds(-1),
@@ -272,6 +311,10 @@ namespace Arc {
     friend std::ostream& operator<<(std::ostream&, const ComputingEndpointAttributes&);
   };
 
+  /**
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
+   */
   class ComputingServiceAttributes {
   public:
     ComputingServiceAttributes() :
@@ -295,12 +338,28 @@ namespace Arc {
     friend std::ostream& operator<<(std::ostream& out, const ComputingServiceAttributes& cs);
   };
 
+  /**
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
+   */
   class LocationType : public GLUE2Entity<LocationAttributes> {};
 
+  /**
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
+   */
   class AdminDomainType : public GLUE2Entity<AdminDomainAttributes> {};
 
+  /**
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
+   */
   class ExecutionEnvironmentType : public GLUE2Entity<ExecutionEnvironmentAttributes> {};
 
+  /**
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
+   */
   class ComputingManagerType : public GLUE2Entity<ComputingManagerAttributes> {
   public:
     ComputingManagerType() : Benchmarks(new std::map<std::string, double>), ApplicationEnvironments(new std::list<ApplicationEnvironment>) {}
@@ -315,18 +374,30 @@ namespace Arc {
     CountedPointer< std::list<ApplicationEnvironment> > ApplicationEnvironments;
   };
 
+  /**
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
+   */
   class ComputingShareType : public GLUE2Entity<ComputingShareAttributes> {
   public:
     // TODO: Currently using int, use std::string instead for holding ID.
     std::set<int> ComputingEndpointIDs;
   };
 
+  /**
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
+   */
   class ComputingEndpointType : public GLUE2Entity<ComputingEndpointAttributes> {
   public:
     // TODO: Currently using int, use std::string instead for holding ID.
     std::set<int> ComputingShareIDs;
   };
 
+  /**
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
+   */
   class ComputingServiceType : public GLUE2Entity<ComputingServiceAttributes> {
   public:
     template<typename T>
@@ -352,6 +423,9 @@ namespace Arc {
    * members contained in this class, with a few exceptions, are directly
    * linked to attributes defined in the GLUE Specification v. 2.0
    * (GFD-R-P.147).
+   * 
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
    */
   class ExecutionTarget {
   public:
