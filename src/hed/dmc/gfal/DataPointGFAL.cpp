@@ -447,7 +447,7 @@ namespace Arc {
 
     file.SetSize(st.st_size);
     file.SetMetaData("size", tostring(st.st_size));
-    file.SetCreated(st.st_mtime);
+    file.SetModified(st.st_mtime);
     file.SetMetaData("mtime", (Time(st.st_mtime)).str());
     file.SetMetaData("atime", (Time(st.st_atime)).str());
     file.SetMetaData("ctime", (Time(st.st_ctime)).str());
@@ -479,7 +479,7 @@ namespace Arc {
     }
     
     SetSize(file.GetSize());
-    SetCreated(file.GetCreated());
+    SetModified(file.GetModified());
     return DataStatus::Success;
   }
   

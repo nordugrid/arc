@@ -21,7 +21,7 @@ namespace Arc {
       url(url),
       usercfg(usercfg),
       size((unsigned long long int)(-1)),
-      created(-1),
+      modified(-1),
       valid(-1),
       access_latency(ACCESS_LATENCY_ZERO),
       triesleft(1),
@@ -150,16 +150,16 @@ namespace Arc {
     return std::string("cksum");
   }
 
-  bool DataPoint::CheckCreated() const {
-    return (created != -1);
+  bool DataPoint::CheckModified() const {
+    return (modified != -1);
   }
 
-  void DataPoint::SetCreated(const Time& val) {
-    created = val;
+  void DataPoint::SetModified(const Time& val) {
+    modified = val;
   }
 
-  const Time& DataPoint::GetCreated() const {
-    return created;
+  const Time& DataPoint::GetModified() const {
+    return modified;
   }
 
   bool DataPoint::CheckValid() const {
@@ -203,8 +203,8 @@ namespace Arc {
       SetSize(p.GetSize());
     if (!CheckCheckSum())
       SetCheckSum(p.GetCheckSum());
-    if (!CheckCreated())
-      SetCreated(p.GetCreated());
+    if (!CheckModified())
+      SetModified(p.GetModified());
     if (!CheckValid())
       SetValid(p.GetValid());
   }

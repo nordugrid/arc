@@ -143,8 +143,8 @@ namespace Arc {
       else {
         int modify_utime;
         GlobusTimeAbstimeGet(gl_modify_time, modify_time, modify_utime);
-        SetCreated(modify_time);
-        logger.msg(VERBOSE, "check_ftp: obtained creation date: %s", GetCreated().str());
+        SetModified(modify_time);
+        logger.msg(VERBOSE, "check_ftp: obtained modification date: %s", GetModified().str());
       }
     }
     // check if file or directory - can't do a get on a directory
@@ -869,7 +869,7 @@ namespace Arc {
         f.SetType(FileInfo::file_type_file);
       }
     }
-    if ((verb & INFO_TYPE_TIMES) == INFO_TYPE_TIMES && !f.CheckCreated()) {
+    if ((verb & INFO_TYPE_TIMES) == INFO_TYPE_TIMES && !f.CheckModified()) {
       logger.msg(DEBUG, "list_files_ftp: "
                         "looking for modification time of %s", f_url);
       res = globus_ftp_client_modification_time(&ftp_handle, f_url.c_str(),
@@ -897,7 +897,7 @@ namespace Arc {
       else {
         int modify_utime;
         GlobusTimeAbstimeGet(gl_modify_time, modify_time, modify_utime);
-        f.SetCreated(modify_time);
+        f.SetModified(modify_time);
       }
     }
     if ((verb & INFO_TYPE_CONTENT) == INFO_TYPE_CONTENT && !f.CheckCheckSum() && f.GetType() != FileInfo::file_type_dir) {
@@ -992,10 +992,10 @@ namespace Arc {
       file.SetMetaData("size", tostring(lister_info.GetSize()));
       SetSize(lister_info.GetSize());
     }
-    if (lister_info.CheckCreated()) {
-      file.SetCreated(lister_info.GetCreated());
-      file.SetMetaData("mtime", lister_info.GetCreated());
-      SetCreated(lister_info.GetCreated());
+    if (lister_info.CheckModified()) {
+      file.SetModified(lister_info.GetModified());
+      file.SetMetaData("mtime", lister_info.GetModified());
+      SetModified(lister_info.GetModified());
     }
     if (lister_info.CheckCheckSum()) {
       file.SetCheckSum(lister_info.GetCheckSum());
@@ -1043,9 +1043,9 @@ namespace Arc {
         f->SetSize(i->GetSize());
         f->SetMetaData("size", tostring(i->GetSize()));
       }
-      if (i->CheckCreated()) {
-        f->SetCreated(i->GetCreated());
-        f->SetMetaData("mtime", i->GetCreated());
+      if (i->CheckModified()) {
+        f->SetModified(i->GetModified());
+        f->SetMetaData("mtime", i->GetModified());
       }
       if (i->CheckCheckSum()) {
         f->SetCheckSum(i->GetCheckSum());

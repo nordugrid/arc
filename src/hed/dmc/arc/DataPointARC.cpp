@@ -136,7 +136,7 @@ namespace Arc {
           file.SetType(FileInfo::file_type_file);
         }
       } else if((section == "timestamps") && (property == "created")) {
-        file.SetCreated(value);
+        file.SetModified(value);
       } else if((section == "states") && (property == "size")) {
         unsigned long long int s;
         if(stringto(value, s)) file.SetSize(s);
@@ -195,7 +195,7 @@ namespace Arc {
     file.SetName(file_name);
     set_stat(metadata, file);
     SetSize(file.GetSize());
-    SetCreated(file.GetCreated());
+    SetModified(file.GetModified());
     return DataStatus::Success;
   }
 

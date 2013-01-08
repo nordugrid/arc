@@ -26,7 +26,7 @@ namespace Arc {
     FileInfo(const std::string& name = "")
       : name(name),
         size((unsigned long long int)(-1)),
-        created((time_t)(-1)),
+        modified((time_t)(-1)),
         valid((time_t)(-1)),
         type(file_type_unknown),
         latency("") {}
@@ -81,16 +81,16 @@ namespace Arc {
       checksum = c;
     }
 
-    bool CheckCreated() const {
-      return (created != -1);
+    bool CheckModified() const {
+      return (modified != -1);
     }
 
-    Time GetCreated() const {
-      return created;
+    Time GetModified() const {
+      return modified;
     }
 
-    void SetCreated(const Time& t) {
-      created = t;
+    void SetModified(const Time& t) {
+      modified = t;
     }
 
     bool CheckValid() const {
@@ -155,7 +155,7 @@ namespace Arc {
     std::list<URL> urls;         // Physical enpoints/URLs.
     unsigned long long int size; // Size of file in bytes.
     std::string checksum;        // Checksum of file.
-    Time created;                // Creation/modification time.
+    Time modified;               // Creation/modification time.
     Time valid;                  // Valid till time.
     Type type;                   // File type - usually file_type_file
     std::string latency;         // Access latenct of file (applies to SRM only)

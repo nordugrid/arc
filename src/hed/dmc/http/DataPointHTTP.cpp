@@ -403,7 +403,7 @@ using namespace Arc;
         file.SetMetaData("size", tostring(info.size));
       }
       if(info.lastModified != (time_t)(-1)) {
-        file.SetCreated(info.lastModified);
+        file.SetModified(info.lastModified);
         file.SetMetaData("mtime", info.lastModified.str());
       }
       // Not sure
@@ -433,9 +433,9 @@ using namespace Arc;
       size = file.GetSize();
       logger.msg(VERBOSE, "Stat: obtained size %llu", size);
     }
-    if(file.CheckCreated()) {
-      created = file.GetCreated();
-      logger.msg(VERBOSE, "Stat: obtained modification time %s", created.str());
+    if(file.CheckModified()) {
+      modified = file.GetModified();
+      logger.msg(VERBOSE, "Stat: obtained modification time %s", modified.str());
     }
     return DataStatus::Success;
   }
@@ -449,7 +449,7 @@ using namespace Arc;
       r = do_stat(curl, file);
       if(r) {
         if(file.CheckSize()) size = file.GetSize();
-        if(file.CheckCreated()) created = file.GetCreated();
+        if(file.CheckModified()) modified = file.GetModified();
         if(file.GetType() != FileInfo::file_type_dir) return DataStatus(DataStatus::ListError, ENOTDIR);
       }
     }
@@ -642,8 +642,8 @@ using namespace Arc;
     if ((info.code != 200) && (info.code != 206)) return DataStatus(DataStatus::CheckError, http2errno(info.code), info.reason);
     size = logsize;
     logger.msg(VERBOSE, "Check: obtained size %llu", size);
-    created = info.lastModified;
-    logger.msg(VERBOSE, "Check: obtained modification time %s", created.str());
+    modified = info.lastModified;
+    logger.msg(VERBOSE, "Check: obtained modification time %s", modified.str());
     return DataStatus::Success;
   }
 
@@ -793,7 +793,7 @@ using namespace Arc;
         break;
       }
       // pick up usefull information from HTTP header
-      point.created = transfer_info.lastModified;
+      point.modified = transfer_info.lastModified;
       retries = 0;
       // Exclude chunks after EOF. Normally that is not needed.
       // But Apache if asked about out of file range gets confused

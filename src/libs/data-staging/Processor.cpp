@@ -135,10 +135,10 @@ namespace DataStaging {
         bool outdated = true;
         if (have_permission || !check_meta)
           outdated = false; // cached DN means don't check creation date
-        if (request->get_source()->CheckCreated() && cache.CheckCreated(canonic_url)) {
-          Arc::Time sourcetime = request->get_source()->GetCreated();
+        if (request->get_source()->CheckModified() && cache.CheckCreated(canonic_url)) {
+          Arc::Time sourcetime = request->get_source()->GetModified();
           Arc::Time cachetime = cache.GetCreated(canonic_url);
-          request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Source creation date: %s", request->get_short_id(), sourcetime.str());
+          request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Source modification date: %s", request->get_short_id(), sourcetime.str());
           request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Cache creation date: %s", request->get_short_id(), cachetime.str());
           if (sourcetime <= cachetime)
             outdated = false;

@@ -86,8 +86,8 @@ void print_details(const std::list<Arc::FileInfo>& files, bool show_urls, bool s
     } else {
       std::cout << " " << std::setw(sizewidth) << std::right << "  (n/a)";
     }
-    if (i->CheckCreated()) {
-      std::cout << " " << i->GetCreated();
+    if (i->CheckModified()) {
+      std::cout << " " << i->GetModified();
     } else {
       std::cout << "       (n/a)        ";
     }

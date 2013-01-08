@@ -344,7 +344,7 @@ using namespace Arc;
     // Set meta-attributes
     if (registered) {
       SetSize(entries[0].filesize);
-      SetCreated(entries[0].ctime);
+      SetModified(entries[0].ctime);
       if (entries[0].csumtype[0] && entries[0].csumvalue[0]) {
         std::string csum = entries[0].csumtype;
         if (csum == "MD")
@@ -358,9 +358,9 @@ using namespace Arc;
       guid = entries[0].guid;
     }
     free(entries);
-    if (CheckCheckSum()) logger.msg(VERBOSE, "meta_get_data: checksum: %s", GetCheckSum());
-    if (CheckSize()) logger.msg(VERBOSE, "meta_get_data: size: %llu", GetSize());
-    if (CheckCreated()) logger.msg(VERBOSE, "meta_get_data: created: %s", GetCreated().str());
+    if (CheckCheckSum()) logger.msg(VERBOSE, "Resolve: checksum: %s", GetCheckSum());
+    if (CheckSize()) logger.msg(VERBOSE, "Resolve: size: %llu", GetSize());
+    if (CheckModified()) logger.msg(VERBOSE, "Resolve: modified: %s", GetModified().str());
 
     resolved = true;
     return DataStatus::Success;
@@ -738,7 +738,7 @@ using namespace Arc;
             csum += direntry->csumvalue;
             f->SetCheckSum(csum);
           }
-          f->SetCreated(direntry->ctime);
+          f->SetModified(direntry->mtime);
           f->SetType((direntry->filemode & S_IFDIR) ? FileInfo::file_type_dir : FileInfo::file_type_file);
           {
             LFCEnvLocker lfc_lock(usercfg, url);
@@ -808,9 +808,9 @@ using namespace Arc;
         f->SetMetaData("checksum", csum);
         SetCheckSum(csum);
       }
-      f->SetCreated(st.mtime);
-      SetCreated(Arc::Time(st.mtime));
-      f->SetMetaData("mtime", f->GetCreated().str());
+      f->SetModified(st.mtime);
+      SetModified(Arc::Time(st.mtime));
+      f->SetMetaData("mtime", f->GetModified().str());
       f->SetType((st.filemode & S_IFDIR) ? FileInfo::file_type_dir : FileInfo::file_type_file);
       f->SetMetaData("type", (st.filemode & S_IFDIR) ? "dir" : "file");
       if (verb & INFO_TYPE_STRUCT) {
@@ -1110,7 +1110,7 @@ using namespace Arc;
 
       // Add metadata if available
       dp->SetSize(entries[n].filesize);
-      dp->SetCreated(entries[n].ctime);
+      dp->SetModified(entries[n].ctime);
       if (entries[n].csumtype[0] && entries[n].csumvalue[0]) {
         std::string csum = entries[n].csumtype;
         if (csum == "MD")
@@ -1127,9 +1127,9 @@ using namespace Arc;
 
     for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
       DataPoint * dp = *i;
-      if (dp->CheckCheckSum()) logger.msg(VERBOSE, "meta_get_data: checksum: %s", dp->GetCheckSum());
-      if (dp->CheckSize()) logger.msg(VERBOSE, "meta_get_data: size: %llu", dp->GetSize());
-      if (dp->CheckCreated()) logger.msg(VERBOSE, "meta_get_data: created: %s", dp->GetCreated().str());
+      if (dp->CheckCheckSum()) logger.msg(VERBOSE, "Resolve: checksum: %s", dp->GetCheckSum());
+      if (dp->CheckSize()) logger.msg(VERBOSE, "Resolve: size: %llu", dp->GetSize());
+      if (dp->CheckModified()) logger.msg(VERBOSE, "Resolve: modified: %s", dp->GetModified().str());
       // dp->resolved = true; ??
     }
     return DataStatus::Success;

@@ -90,9 +90,9 @@ namespace Arc {
                (strncasecmp(name, "modify", 6) == 0)) {
         std::string tmp_s(value, (int)(p - value));
         if (tmp_s.size() < 14)
-          fi.SetCreated(stringtoi(tmp_s)); // UNIX time
+          fi.SetModified(stringtoi(tmp_s)); // UNIX time
         else
-          fi.SetCreated(tmp_s); // ISO time
+          fi.SetModified(tmp_s); // ISO time
       }
     }
   }

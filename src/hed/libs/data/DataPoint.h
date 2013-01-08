@@ -521,13 +521,13 @@ namespace Arc {
     virtual const std::string DefaultCheckSum() const;
 
     /// Check if meta-information 'creation/modification time' is available.
-    virtual bool CheckCreated() const;
+    virtual bool CheckModified() const;
 
     /// Set value of meta-information 'creation/modification time'.
-    virtual void SetCreated(const Time& val);
+    virtual void SetModified(const Time& val);
 
     /// Get value of meta-information 'creation/modification time'.
-    virtual const Time& GetCreated() const;
+    virtual const Time& GetModified() const;
 
     /// Check if meta-information 'validity time' is available.
     virtual bool CheckValid() const;
@@ -675,7 +675,7 @@ namespace Arc {
     // attributes
     unsigned long long int size;
     std::string checksum;
-    Time created;
+    Time modified;
     Time valid;
     DataPointAccessLatency access_latency;
     int triesleft;

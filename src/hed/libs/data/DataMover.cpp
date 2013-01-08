@@ -609,10 +609,10 @@ namespace Arc {
             bool outdated = true;
             if (have_permission || !check_meta)
               outdated = false; // cached DN means don't check creation date
-            if (source.CheckCreated() && cache.CheckCreated(canonic_url)) {
-              Time sourcetime = source.GetCreated();
+            if (source.CheckModified() && cache.CheckCreated(canonic_url)) {
+              Time sourcetime = source.GetModified();
               Time cachetime = cache.GetCreated(canonic_url);
-              logger.msg(VERBOSE, "Source creation date: %s", sourcetime.str());
+              logger.msg(VERBOSE, "Source modification date: %s", sourcetime.str());
               logger.msg(VERBOSE, "Cache creation date: %s", cachetime.str());
               if (sourcetime <= cachetime)
                 outdated = false;

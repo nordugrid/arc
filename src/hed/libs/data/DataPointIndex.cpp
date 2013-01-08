@@ -286,8 +286,8 @@ namespace Arc {
       SetSize(p.GetSize());
     if (!CheckCheckSum())
       SetCheckSum(p.GetCheckSum());
-    if (!CheckCreated())
-      SetCreated(p.GetCreated());
+    if (!CheckModified())
+      SetModified(p.GetModified());
     if (!CheckValid())
       SetValid(p.GetValid());
     // set for current handle

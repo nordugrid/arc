@@ -361,7 +361,7 @@ namespace Arc {
         return DataStatus(DataStatus::CheckError, errno);
       }
       SetSize(st.st_size);
-      SetCreated(st.st_mtime);
+      SetModified(st.st_mtime);
     }
     return DataStatus::Success;
   }
@@ -383,7 +383,7 @@ namespace Arc {
     file.SetMetaData("path", path);
     file.SetSize(st.st_size);
     file.SetMetaData("size", tostring(st.st_size));
-    file.SetCreated(st.st_mtime);
+    file.SetModified(st.st_mtime);
     file.SetMetaData("mtime", (Time(st.st_mtime)).str());
     file.SetMetaData("atime", (Time(st.st_atime)).str());
     file.SetMetaData("ctime", (Time(st.st_ctime)).str());
@@ -420,7 +420,7 @@ namespace Arc {
       file.SetType(FileInfo::file_type_file);
       file.SetMetaData("type", "device");
       file.SetSize(st.st_size);
-      file.SetCreated(st.st_mtime);
+      file.SetModified(st.st_mtime);
       return DataStatus::Success;
     }
 
@@ -448,7 +448,7 @@ namespace Arc {
       return res;
     }
     SetSize(file.GetSize());
-    SetCreated(file.GetCreated());
+    SetModified(file.GetModified());
     return DataStatus::Success;
   }
 
@@ -557,7 +557,7 @@ namespace Arc {
       struct stat st;
       if (::fstat(fd, &st) == 0) {
         SetSize(st.st_size);
-        SetCreated(st.st_mtime);
+        SetModified(st.st_mtime);
       }
     } else {
       fd = -1;
@@ -577,7 +577,7 @@ namespace Arc {
       struct stat st;
       if(fa->fa_fstat(st)) {
         SetSize(st.st_size);
-        SetCreated(st.st_mtime);
+        SetModified(st.st_mtime);
       }
     }
     buffer = &buf;

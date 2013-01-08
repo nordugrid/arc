@@ -251,11 +251,11 @@ namespace Arc {
     file.SetSize(stinfo.size);
     file.SetMetaData("size", tostring(stinfo.size));
 
-    file.SetCreated(stinfo.modtime);
+    file.SetModified(stinfo.modtime);
     file.SetMetaData("mtime", tostring(stinfo.modtime));
 
     SetSize(file.GetSize());
-    SetCreated(stinfo.modtime);
+    SetModified(stinfo.modtime);
 
     if (!already_opened)
       client->Close();

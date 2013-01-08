@@ -83,9 +83,9 @@ namespace Arc {
         logger.msg(INFO, "Check: obtained checksum: %s", csum);
         SetCheckSum(csum);
       }
-      if (metadata.front().createdAtTime > 0) {
-        logger.msg(INFO, "Check: obtained creation date: %s", Time(metadata.front().createdAtTime).str());
-        SetCreated(Time(metadata.front().createdAtTime));
+      if (metadata.front().lastModificationTime > 0) {
+        logger.msg(INFO, "Check: obtained modification date: %s", Time(metadata.front().lastModificationTime).str());
+        SetModified(Time(metadata.front().lastModificationTime));
       }
       if (metadata.front().fileLocality == SRM_ONLINE) {
         logger.msg(INFO, "Check: obtained access latency: low (ONLINE)");
@@ -709,8 +709,8 @@ namespace Arc {
         std::string csum(srm_metadata.checkSumType+":"+srm_metadata.checkSumValue);
         (*dp)->SetCheckSum(csum);
       }
-      if(srm_metadata.createdAtTime > 0) {
-        (*dp)->SetCreated(Time(srm_metadata.createdAtTime));
+      if(srm_metadata.lastModificationTime > 0) {
+        (*dp)->SetModified(Time(srm_metadata.lastModificationTime));
       }
       if(srm_metadata.fileLocality == SRM_ONLINE) {
         (*dp)->SetAccessLatency(ACCESS_LATENCY_SMALL);
@@ -762,8 +762,8 @@ namespace Arc {
       std::string csum(srm_metadata.front().checkSumType+":"+srm_metadata.front().checkSumValue);
       SetCheckSum(csum);
     }
-    if(srm_metadata.front().createdAtTime > 0) {
-      SetCreated(Time(srm_metadata.front().createdAtTime));
+    if(srm_metadata.front().lastModificationTime > 0) {
+      SetModified(Time(srm_metadata.front().lastModificationTime));
     }
     if(srm_metadata.front().fileLocality == SRM_ONLINE) {
       SetAccessLatency(ACCESS_LATENCY_SMALL);
@@ -864,8 +864,11 @@ namespace Arc {
       f->SetSize(srm_metadata.size);
       f->SetMetaData("size", tostring(srm_metadata.size));
     }
+    if(srm_metadata.lastModificationTime > 0) {
+      f->SetModified(Time(srm_metadata.lastModificationTime));
+      f->SetMetaData("mtime", (Time(srm_metadata.lastModificationTime)).str());
+    }
     if (srm_metadata.createdAtTime > 0) {
-      f->SetCreated(Time(srm_metadata.createdAtTime));
       f->SetMetaData("ctime", (Time(srm_metadata.createdAtTime)).str());
     }
     if (srm_metadata.checkSumType.length() > 0 &&
@@ -895,8 +898,6 @@ namespace Arc {
     if(!srm_metadata.owner.empty()) f->SetMetaData("owner", srm_metadata.owner);
     if(!srm_metadata.group.empty()) f->SetMetaData("group", srm_metadata.group);
     if(!srm_metadata.permission.empty()) f->SetMetaData("accessperm", srm_metadata.permission);
-    if(srm_metadata.lastModificationTime > 0)
-      f->SetMetaData("mtime", (Time(srm_metadata.lastModificationTime)).str());
     if(srm_metadata.lifetimeLeft != 0) f->SetMetaData("lifetimeleft", tostring(srm_metadata.lifetimeLeft));
     if(srm_metadata.lifetimeAssigned != 0) f->SetMetaData("lifetimeassigned", tostring(srm_metadata.lifetimeAssigned));
 
