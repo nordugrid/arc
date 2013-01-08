@@ -1,7 +1,7 @@
 lib_LTLIBRARIES = libarccompute.la
 noinst_PROGRAMS = test_jobdescription
 
-libarccompute_ladir = $(pkgincludedir)/client
+libarccompute_ladir = $(pkgincludedir)/compute
 libarccompute_la_HEADERS = Broker.h BrokerPlugin.h ExecutionTarget.h \
 	Submitter.h SubmitterPlugin.h GLUE2Entity.h SubmissionStatus.h \
 	JobState.h Job.h JobControllerPlugin.h JobSupervisor.h \
