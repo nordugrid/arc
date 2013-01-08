@@ -25,6 +25,7 @@ public:
     STARTED, /**< the query process was started */
     FAILED, /**< the query process failed */
     NOPLUGIN, /**< there is no plugin for the given Endpoint InterfaceName (so the query process was not even started) */
+    NOINFORETURNED, /**< query was successful but the response didn't contain entity information */
     SUCCESSFUL /**< the query process was successful */
   };
 

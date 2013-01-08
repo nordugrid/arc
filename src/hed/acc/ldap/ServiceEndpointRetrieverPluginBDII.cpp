@@ -76,7 +76,8 @@ namespace Arc {
     if (!handler->StopReading()) return EndpointQueryingStatus::FAILED;
   
     XMLNode xmlresult(result);
-  
+
+    bool noServicesFound = true;
     XMLNodeList mdsVoNames = xmlresult.Path("o/Mds-Vo-name");
     for (std::list<XMLNode>::const_iterator itMds = mdsVoNames.begin(); itMds != mdsVoNames.end(); ++itMds) {
       for (XMLNode mdsVoNameSub = itMds->Get("Mds-Vo-name"); mdsVoNameSub; ++mdsVoNameSub) {
@@ -115,12 +116,14 @@ namespace Arc {
             // TODO: Handle other endpoints.
             continue;
           }
+
+          noServicesFound = false;
           seList.push_back(se);
         }
       }
     }
 
-    return EndpointQueryingStatus::SUCCESSFUL;
+    return noServicesFound ? EndpointQueryingStatus::NOINFORETURNED : EndpointQueryingStatus::SUCCESSFUL;
   }
 
 } // namespace Arc
