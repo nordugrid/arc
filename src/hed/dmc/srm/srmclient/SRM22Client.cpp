@@ -1075,7 +1075,7 @@ namespace Arc {
         metadata.path = metadata.path.substr(metadata.path.rfind("/") + 1);
     }
 
-    if (details["size"])
+    if (details["size"] && !((std::string)details["size"]).empty())
       metadata.size = stringtoull(details["size"]);
     else
       metadata.size = -1;
