@@ -21,8 +21,7 @@ namespace Arc {
   }
 
   SRMClient::~SRMClient() {
-    if (client)
-      delete client;
+    if (client) delete client;
   }
 
   SRMClient* SRMClient::getInstance(const UserConfig& usercfg,
@@ -74,8 +73,7 @@ namespace Arc {
     if (!info.getSRMFileInfo(srm_file_info)) {
       for (std::list<int>::iterator port = ports.begin();
            port != ports.end(); ++port) {
-        logger.msg(VERBOSE, "Attempting to contact %s on port %i",
-                   srm_url.Host(), *port);
+        logger.msg(VERBOSE, "Attempting to contact %s on port %i", srm_url.Host(), *port);
         srm_url.SetPort(*port);
         SRMClient *client = new SRM22Client(usercfg, srm_url);
 
@@ -104,15 +102,13 @@ namespace Arc {
     // url disagrees with file info
     else {
       // ping and if ok, replace file info
-      logger.msg(VERBOSE,
-                 "URL %s disagrees with stored SRM info, testing new info",
+      logger.msg(VERBOSE, "URL %s disagrees with stored SRM info, testing new info",
                  srm_url.ShortURL());
       SRMClient *client = new SRM22Client(usercfg, srm_url);
 
       if ((srm_error = client->ping(version, false)) == 0) {
         srm_file_info.port = srm_url.Port();
-        logger.msg(VERBOSE, "Replacing old SRM info with new for URL %s",
-                   srm_url.ShortURL());
+        logger.msg(VERBOSE, "Replacing old SRM info with new for URL %s", srm_url.ShortURL());
         info.putSRMFileInfo(srm_file_info);
         return client;
       }

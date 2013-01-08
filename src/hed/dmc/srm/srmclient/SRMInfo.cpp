@@ -34,8 +34,9 @@ SRMFileInfo::SRMFileInfo(): host(""), port(0), version(SRMURL::SRM_URL_VERSION_U
 bool SRMFileInfo::operator ==(SRMURL srm_url) {
   if (host == srm_url.Host() &&
       (!srm_url.PortDefined() || port == srm_url.Port()) &&
-      version == srm_url.SRMVersion())
+      version == srm_url.SRMVersion()) {
     return true;
+  }
   return false;
 }
 
@@ -75,8 +76,8 @@ SRMInfo::SRMInfo(std::string dir) {
       return;
     }
     if (!Arc::FileRead(srm_info_filename, filedata)) {
-      if (errno != ENOENT)
-        logger.msg(Arc::WARNING, "Error reading info from file %s:%s", srm_info_filename, Arc::StrError(errno));
+      if (errno != ENOENT) logger.msg(Arc::WARNING, "Error reading info from file %s:%s",
+                                      srm_info_filename, Arc::StrError(errno));
       filelock.release();
       lock.unlock();
       return;
@@ -84,8 +85,7 @@ SRMInfo::SRMInfo(std::string dir) {
     filelock.release();
   
     for (std::list<std::string>::iterator line = filedata.begin(); line != filedata.end(); ++line) {
-      if (line->empty() || (*line)[0] == '#')
-        continue;
+      if (line->empty() || (*line)[0] == '#') continue;
       // split line
       std::vector<std::string> fields;
       Arc::tokenize(*line, fields);
@@ -199,7 +199,7 @@ void SRMInfo::putSRMFileInfo(const SRMFileInfo& srm_file_info) {
   // write everything back to the file
   if (!Arc::FileCreate(srm_info_filename, lines)) {
     logger.msg(Arc::WARNING, "Error writing srm info file %s", srm_info_filename);
-  };
+  }
   filelock.release();
 }
 

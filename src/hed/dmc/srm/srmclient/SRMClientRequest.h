@@ -144,8 +144,9 @@ namespace Arc {
     std::list<std::string> surls() const {
       std::list<std::string> surl_list;
       for (std::map<std::string, SRMFileLocality>::const_iterator it =
-             _surls.begin(); it != _surls.end(); ++it)
+             _surls.begin(); it != _surls.end(); ++it) {
         surl_list.push_back(it->first);
+      }
       return surl_list;
     }
 

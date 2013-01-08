@@ -27,78 +27,43 @@ namespace Arc {
 
   SRM22Client::SRMStatusCode SRM22Client::GetStatus(XMLNode res, std::string& explanation) {
     std::string statuscode = (std::string)res["statusCode"];
-    if (res["explanation"])
-      explanation = (std::string)res["explanation"];
-    else
-      explanation = "No explanation given";
-    if (statuscode == "SRM_SUCCESS")
-      return SRM_SUCCESS;
-    if (statuscode == "SRM_FAILURE")
-      return SRM_FAILURE;
-    if (statuscode == "SRM_AUTHENTICATION_FAILURE")
-      return SRM_AUTHENTICATION_FAILURE;
-    if (statuscode == "SRM_AUTHORIZATION_FAILURE")
-      return SRM_AUTHORIZATION_FAILURE;
-    if (statuscode == "SRM_INVALID_REQUEST")
-      return SRM_INVALID_REQUEST;
-    if (statuscode == "SRM_INVALID_PATH")
-      return SRM_INVALID_PATH;
-    if (statuscode == "SRM_FILE_LIFETIME_EXPIRED")
-      return SRM_FILE_LIFETIME_EXPIRED;
-    if (statuscode == "SRM_SPACE_LIFETIME_EXPIRED")
-      return SRM_SPACE_LIFETIME_EXPIRED;
-    if (statuscode == "SRM_EXCEED_ALLOCATION")
-      return SRM_EXCEED_ALLOCATION;
-    if (statuscode == "SRM_NO_USER_SPACE")
-      return SRM_NO_USER_SPACE;
-    if (statuscode == "SRM_NO_FREE_SPACE")
-      return SRM_NO_FREE_SPACE;
-    if (statuscode == "SRM_DUPLICATION_ERROR")
-      return SRM_DUPLICATION_ERROR;
-    if (statuscode == "SRM_NON_EMPTY_DIRECTORY")
-      return SRM_NON_EMPTY_DIRECTORY;
-    if (statuscode == "SRM_TOO_MANY_RESULTS")
-      return SRM_TOO_MANY_RESULTS;
-    if (statuscode == "SRM_INTERNAL_ERROR")
-      return SRM_INTERNAL_ERROR;
-    if (statuscode == "SRM_FATAL_INTERNAL_ERROR")
-      return SRM_FATAL_INTERNAL_ERROR;
-    if (statuscode == "SRM_NOT_SUPPORTED")
-      return SRM_NOT_SUPPORTED;
-    if (statuscode == "SRM_REQUEST_QUEUED")
-      return SRM_REQUEST_QUEUED;
-    if (statuscode == "SRM_REQUEST_INPROGRESS")
-      return SRM_REQUEST_INPROGRESS;
-    if (statuscode == "SRM_REQUEST_SUSPENDED")
-      return SRM_REQUEST_SUSPENDED;
-    if (statuscode == "SRM_ABORTED")
-      return SRM_ABORTED;
-    if (statuscode == "SRM_RELEASED")
-      return SRM_RELEASED;
-    if (statuscode == "SRM_FILE_PINNED")
-      return SRM_FILE_PINNED;
-    if (statuscode == "SRM_FILE_IN_CACHE")
-      return SRM_FILE_IN_CACHE;
-    if (statuscode == "SRM_SPACE_AVAILABLE")
-      return SRM_SPACE_AVAILABLE;
-    if (statuscode == "SRM_LOWER_SPACE_GRANTED")
-      return SRM_LOWER_SPACE_GRANTED;
-    if (statuscode == "SRM_DONE")
-      return SRM_DONE;
-    if (statuscode == "SRM_PARTIAL_SUCCESS")
-      return SRM_PARTIAL_SUCCESS;
-    if (statuscode == "SRM_REQUEST_TIMED_OUT")
-      return SRM_REQUEST_TIMED_OUT;
-    if (statuscode == "SRM_LAST_COPY")
-      return SRM_LAST_COPY;
-    if (statuscode == "SRM_FILE_BUSY")
-      return SRM_FILE_BUSY;
-    if (statuscode == "SRM_FILE_LOST")
-      return SRM_FILE_LOST;
-    if (statuscode == "SRM_FILE_UNAVAILABLE")
-      return SRM_FILE_UNAVAILABLE;
-    if (statuscode == "SRM_CUSTOM_STATUS")
-      return SRM_CUSTOM_STATUS;
+    if (res["explanation"]) explanation = (std::string)res["explanation"];
+    else explanation = "No explanation given";
+
+    if (statuscode == "SRM_SUCCESS")                 return SRM_SUCCESS;
+    if (statuscode == "SRM_FAILURE")                 return SRM_FAILURE;
+    if (statuscode == "SRM_AUTHENTICATION_FAILURE")  return SRM_AUTHENTICATION_FAILURE;
+    if (statuscode == "SRM_AUTHORIZATION_FAILURE")   return SRM_AUTHORIZATION_FAILURE;
+    if (statuscode == "SRM_INVALID_REQUEST")         return SRM_INVALID_REQUEST;
+    if (statuscode == "SRM_INVALID_PATH")            return SRM_INVALID_PATH;
+    if (statuscode == "SRM_FILE_LIFETIME_EXPIRED")   return SRM_FILE_LIFETIME_EXPIRED;
+    if (statuscode == "SRM_SPACE_LIFETIME_EXPIRED")  return SRM_SPACE_LIFETIME_EXPIRED;
+    if (statuscode == "SRM_EXCEED_ALLOCATION")       return SRM_EXCEED_ALLOCATION;
+    if (statuscode == "SRM_NO_USER_SPACE")           return SRM_NO_USER_SPACE;
+    if (statuscode == "SRM_NO_FREE_SPACE")           return SRM_NO_FREE_SPACE;
+    if (statuscode == "SRM_DUPLICATION_ERROR")       return SRM_DUPLICATION_ERROR;
+    if (statuscode == "SRM_NON_EMPTY_DIRECTORY")     return SRM_NON_EMPTY_DIRECTORY;
+    if (statuscode == "SRM_TOO_MANY_RESULTS")        return SRM_TOO_MANY_RESULTS;
+    if (statuscode == "SRM_INTERNAL_ERROR")          return SRM_INTERNAL_ERROR;
+    if (statuscode == "SRM_FATAL_INTERNAL_ERROR")    return SRM_FATAL_INTERNAL_ERROR;
+    if (statuscode == "SRM_NOT_SUPPORTED")           return SRM_NOT_SUPPORTED;
+    if (statuscode == "SRM_REQUEST_QUEUED")          return SRM_REQUEST_QUEUED;
+    if (statuscode == "SRM_REQUEST_INPROGRESS")      return SRM_REQUEST_INPROGRESS;
+    if (statuscode == "SRM_REQUEST_SUSPENDED")       return SRM_REQUEST_SUSPENDED;
+    if (statuscode == "SRM_ABORTED")                 return SRM_ABORTED;
+    if (statuscode == "SRM_RELEASED")                return SRM_RELEASED;
+    if (statuscode == "SRM_FILE_PINNED")             return SRM_FILE_PINNED;
+    if (statuscode == "SRM_FILE_IN_CACHE")           return SRM_FILE_IN_CACHE;
+    if (statuscode == "SRM_SPACE_AVAILABLE")         return SRM_SPACE_AVAILABLE;
+    if (statuscode == "SRM_LOWER_SPACE_GRANTED")     return SRM_LOWER_SPACE_GRANTED;
+    if (statuscode == "SRM_DONE")                    return SRM_DONE;
+    if (statuscode == "SRM_PARTIAL_SUCCESS")         return SRM_PARTIAL_SUCCESS;
+    if (statuscode == "SRM_REQUEST_TIMED_OUT")       return SRM_REQUEST_TIMED_OUT;
+    if (statuscode == "SRM_LAST_COPY")               return SRM_LAST_COPY;
+    if (statuscode == "SRM_FILE_BUSY")               return SRM_FILE_BUSY;
+    if (statuscode == "SRM_FILE_LOST")               return SRM_FILE_LOST;
+    if (statuscode == "SRM_FILE_UNAVAILABLE")        return SRM_FILE_UNAVAILABLE;
+    if (statuscode == "SRM_CUSTOM_STATUS")           return SRM_CUSTOM_STATUS;
     // fallback - should not happen
     return SRM_FAILURE;
   }
@@ -131,19 +96,16 @@ namespace Arc {
     version = (std::string)res["versionInfo"];
     logger.msg(VERBOSE, "Server SRM version: %s", version);
 
-    for (XMLNode n = res["otherInfo"]["extraInfoArray"]; n; ++n)
+    for (XMLNode n = res["otherInfo"]["extraInfoArray"]; n; ++n) {
       if ((std::string)n["key"] == "backend_type") {
         std::string value = (std::string)n["value"];
         logger.msg(VERBOSE, "Server implementation: %s", value);
-        if (value == "dCache")
-          implementation = SRM_IMPLEMENTATION_DCACHE;
-        else if (value == "CASTOR")
-          implementation = SRM_IMPLEMENTATION_CASTOR;
-        else if (value == "DPM")
-          implementation = SRM_IMPLEMENTATION_DPM;
-        else if (value == "StoRM")
-          implementation = SRM_IMPLEMENTATION_STORM;
+        if (value == "dCache") implementation = SRM_IMPLEMENTATION_DCACHE;
+        else if (value == "CASTOR") implementation = SRM_IMPLEMENTATION_CASTOR;
+        else if (value == "DPM") implementation = SRM_IMPLEMENTATION_DPM;
+        else if (value == "StoRM") implementation = SRM_IMPLEMENTATION_STORM;
       }
+    }
 
     delete response;
     return 0;
@@ -154,8 +116,7 @@ namespace Arc {
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmGetSpaceTokens")
                   .NewChild("srmGetSpaceTokensRequest");
-    if (!description.empty())
-      req.NewChild("userSpaceTokenDescription") = description;
+    if (!description.empty()) req.NewChild("userSpaceTokenDescription") = description;
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
@@ -235,8 +196,10 @@ namespace Arc {
     XMLNode protocols = req.NewChild("transferParameters")
                         .NewChild("arrayOfTransferProtocols");
     std::list<std::string> transport_protocols(creq.transport_protocols());
-    for (std::list<std::string>::iterator prot = transport_protocols.begin(); prot != transport_protocols.end(); ++prot)
+    for (std::list<std::string>::iterator prot = transport_protocols.begin();
+         prot != transport_protocols.end(); ++prot) {
       protocols.NewChild("stringArray") = *prot;
+    }
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
@@ -252,17 +215,16 @@ namespace Arc {
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     // store the request token in the request object
-    if (res["requestToken"])
-      creq.request_token(res["requestToken"]);
+    if (res["requestToken"]) creq.request_token(res["requestToken"]);
 
     if (statuscode == SRM_REQUEST_QUEUED ||
         statuscode == SRM_REQUEST_INPROGRESS) {
       // file is queued - if asynchronous need to wait and query with returned request token
       unsigned int sleeptime = 1;
-      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
+      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]) {
         sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
                               ["estimatedWaitTime"]);
-
+      }
       if (creq.request_timeout() == 0) {
         creq.wait(sleeptime);
         delete response;
@@ -275,9 +237,8 @@ namespace Arc {
         sleeptime = (sleeptime < 1) ? 1 : sleeptime;
         sleeptime = (sleeptime > creq.request_timeout() - request_time) ?
                     creq.request_timeout() - request_time : sleeptime;
-        logger.msg(VERBOSE, "%s: File request %s in SRM queue. "
-                   "Sleeping for %i seconds", creq.surl(),
-                   creq.request_token(), sleeptime);
+        logger.msg(VERBOSE, "%s: File request %s in SRM queue. Sleeping for %i seconds",
+                   creq.surl(), creq.request_token(), sleeptime);
         sleep(sleeptime);
         request_time += sleeptime;
   
@@ -302,8 +263,9 @@ namespace Arc {
     else if (statuscode != SRM_SUCCESS) {
       // any other return code is a failure
       logger.msg(ERROR, explanation);
-      if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"])
+      if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]) {
         logger.msg(ERROR, res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]);
+      }
       SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], explanation);
       creq.finished_error();
       delete response;
@@ -311,8 +273,7 @@ namespace Arc {
     }
 
     // the file is ready and pinned - we can get the TURL
-    std::string turl = (std::string)res["arrayOfFileStatuses"]["statusArray"]
-                       ["transferURL"];
+    std::string turl = (std::string)res["arrayOfFileStatuses"]["statusArray"]["transferURL"];
     logger.msg(VERBOSE, "File is ready! TURL is %s", turl);
 
     urls.push_back(turl);
@@ -346,16 +307,17 @@ namespace Arc {
         statuscode == SRM_REQUEST_INPROGRESS) {
       // still queued - keep waiting
       int sleeptime = 1;
-      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
-        sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
-                              ["estimatedWaitTime"]);
+      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]) {
+        sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]);
+      }
       creq.wait(sleeptime);
     }
     else if (statuscode != SRM_SUCCESS) {
       // error
       logger.msg(ERROR, explanation);
-      if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"])
+      if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]) {
         logger.msg(ERROR, res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]);
+      }
       SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], explanation);
       creq.finished_error();
       delete response;
@@ -363,11 +325,9 @@ namespace Arc {
     }
     else {
       // success, TURL is ready
-      std::string turl = (std::string)res["arrayOfFileStatuses"]["statusArray"]
-                         ["transferURL"];
+      std::string turl = (std::string)res["arrayOfFileStatuses"]["statusArray"]["transferURL"];
       logger.msg(VERBOSE, "File is ready! TURL is %s", turl);
       urls.push_back(std::string(turl));
-
       creq.finished_success();
     }
     delete response;
@@ -380,9 +340,10 @@ namespace Arc {
                   .NewChild("srmBringOnlineRequest");
     std::list<std::string> surls = creq.surls();
     for (std::list<std::string>::iterator it = surls.begin();
-         it != surls.end(); ++it)
+         it != surls.end(); ++it) {
       req.NewChild("arrayOfFileRequests").NewChild("requestArray")
       .NewChild("sourceSURL") = *it;
+    }
 
     // should not be needed but dcache returns NullPointerException if
     // it is not given
@@ -415,14 +376,14 @@ namespace Arc {
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     // store the request token in the request object
-    if (res["requestToken"])
-      creq.request_token(res["requestToken"]);
+    if (res["requestToken"]) creq.request_token(res["requestToken"]);
 
     if (statuscode == SRM_SUCCESS) {
       // this means files are all already online
       for (std::list<std::string>::iterator it = surls.begin();
-           it != surls.end(); ++it)
+           it != surls.end(); ++it) {
         creq.surl_statuses(*it, SRM_ONLINE);
+      }
       creq.finished_success();
       delete response;
       return 0;
@@ -430,9 +391,9 @@ namespace Arc {
 
     if (statuscode == SRM_REQUEST_QUEUED) {
       unsigned int sleeptime = 10;
-      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
-        sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
-                        ["estimatedWaitTime"]);
+      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]) {
+        sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]);
+      }
 
       if (creq.request_timeout() == 0) {
         creq.wait(sleeptime);
@@ -446,9 +407,8 @@ namespace Arc {
         sleeptime = (sleeptime < 1) ? 1 : sleeptime;
         sleeptime = (sleeptime > creq.request_timeout() - request_time) ?
                     creq.request_timeout() - request_time : sleeptime;
-        logger.msg(VERBOSE, "%s: Bring online request %s in SRM queue. "
-                   "Sleeping for %i seconds", creq.surl(),
-                   creq.request_token(), sleeptime);
+        logger.msg(VERBOSE, "%s: Bring online request %s in SRM queue. Sleeping for %i seconds",
+                   creq.surl(), creq.request_token(), sleeptime);
         sleep(sleeptime);
         request_time += sleeptime;
 
@@ -486,8 +446,9 @@ namespace Arc {
 
     // here means an error code was returned and all files failed
     logger.msg(ERROR, explanation);
-    if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"])
+    if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]) {
       logger.msg(ERROR, res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]);
+    }
     SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], explanation);
     creq.finished_error();
     delete response;
@@ -530,9 +491,9 @@ namespace Arc {
     if (statuscode == SRM_REQUEST_QUEUED) {
       // all files are in the queue - leave statuses as they are
       int sleeptime = 1;
-      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
-        sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
-                        ["estimatedWaitTime"]);
+      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]) {
+        sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]);
+      }
       creq.wait(sleeptime);
       delete response;
       return 0;
@@ -542,9 +503,9 @@ namespace Arc {
       // some files have been queued and some are online. check each file
       fileStatus(creq, res["arrayOfFileStatuses"]);
       int sleeptime = 1;
-      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
-        sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
-                        ["estimatedWaitTime"]);
+      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]) {
+        sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]);
+      }
       creq.wait(sleeptime);
       delete response;
       return 0;
@@ -563,22 +524,19 @@ namespace Arc {
       // SRM_ABORTED after the first time a successful request is queried
       // so we have to look at the explanation string for the real reason.
       if (explanation.find("All files are done") != std::string::npos) {
-        logger.msg(VERBOSE,
-                   "Request is reported as ABORTED, but all files are done");
+        logger.msg(VERBOSE, "Request is reported as ABORTED, but all files are done");
         creq.finished_success();
         delete response;
         return 0;
       }
       else if (explanation.find("Canceled") != std::string::npos) {
-        logger.msg(VERBOSE,
-                   "Request is reported as ABORTED, since it was cancelled");
+        logger.msg(VERBOSE, "Request is reported as ABORTED, since it was cancelled");
         creq.cancelled();
         delete response;
         return 0;
       }
       else {
-        logger.msg(VERBOSE, "Request is reported as ABORTED. Reason: %s",
-                   explanation);
+        logger.msg(VERBOSE, "Request is reported as ABORTED. Reason: %s", explanation);
         creq.finished_error();
         delete response;
         return srm2errno(statuscode);
@@ -588,8 +546,9 @@ namespace Arc {
     // here means an error code was returned and all files failed
     logger.msg(ERROR, explanation);
     fileStatus(creq, res["arrayOfFileStatuses"]);
-    if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"])
+    if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]) {
       logger.msg(ERROR, res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]);
+    }
     SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], explanation);
     creq.finished_error();
     delete response;
@@ -604,20 +563,17 @@ namespace Arc {
       // store the largest estimated waiting time
       if (n["estimatedWaitTime"]) {
         int estimatedWaitTime = stringtoi(n["estimatedWaitTime"]);
-        if (estimatedWaitTime > waittime)
-          waittime = estimatedWaitTime;
+        if (estimatedWaitTime > waittime) waittime = estimatedWaitTime;
       }
 
       std::string explanation;
       SRMStatusCode filestatus = GetStatus(n["status"], explanation);
 
-      if (filestatus == SRM_SUCCESS ||
-          filestatus == SRM_FILE_IN_CACHE)
+      if (filestatus == SRM_SUCCESS || filestatus == SRM_FILE_IN_CACHE) {
         creq.surl_statuses(surl, SRM_ONLINE);
-      else if (filestatus == SRM_REQUEST_QUEUED ||
-               filestatus == SRM_REQUEST_INPROGRESS)
+      } else if (filestatus == SRM_REQUEST_QUEUED || filestatus == SRM_REQUEST_INPROGRESS) {
         creq.surl_statuses(surl, SRM_NEARLINE);
-      else {
+      } else {
         creq.surl_statuses(surl, SRM_STAGE_ERROR);
         creq.surl_failures(surl, explanation);
       }
@@ -641,12 +597,13 @@ namespace Arc {
                         .NewChild("arrayOfTransferProtocols");
 
     std::list<std::string> transport_protocols(creq.transport_protocols());
-    for (std::list<std::string>::iterator prot = transport_protocols.begin(); prot != transport_protocols.end(); ++prot)
+    for (std::list<std::string>::iterator prot = transport_protocols.begin();
+         prot != transport_protocols.end(); ++prot) {
       protocols.NewChild("stringArray") = *prot;
+    }
 
     // set space token if supplied
-    if (!creq.space_token().empty())
-      req.NewChild("targetSpaceToken") = creq.space_token();
+    if (!creq.space_token().empty()) req.NewChild("targetSpaceToken") = creq.space_token();
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
@@ -662,16 +619,15 @@ namespace Arc {
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     // store the request token in the request object
-    if (res["requestToken"])
-      creq.request_token(res["requestToken"]);
+    if (res["requestToken"]) creq.request_token(res["requestToken"]);
 
     if (statuscode == SRM_REQUEST_QUEUED ||
         statuscode == SRM_REQUEST_INPROGRESS) {
       // file is queued - need to wait and query with returned request token
       unsigned int sleeptime = 1;
-      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
-        sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
-                              ["estimatedWaitTime"]);
+      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]) {
+        sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]);
+      }
       unsigned int request_time = 0;
 
       if (creq.request_timeout() == 0) {
@@ -686,9 +642,8 @@ namespace Arc {
         sleeptime = (sleeptime < 1) ? 1 : sleeptime;
         sleeptime = (sleeptime > creq.request_timeout() - request_time) ?
                     creq.request_timeout() - request_time : sleeptime;
-        logger.msg(VERBOSE, "%s: File request %s in SRM queue. "
-                   "Sleeping for %i seconds", creq.surl(),
-                   creq.request_token(), sleeptime);
+        logger.msg(VERBOSE, "%s: File request %s in SRM queue. Sleeping for %i seconds",
+                   creq.surl(), creq.request_token(), sleeptime);
 
         sleep(sleeptime);
         request_time += sleeptime;
@@ -717,15 +672,12 @@ namespace Arc {
                                             statusexplanation);
       if (file_status == SRM_INVALID_PATH) {
         // make directories
-        logger.msg(VERBOSE,
-                   "Path %s is invalid, creating required directories",
-                   creq.surl());
+        logger.msg(VERBOSE, "Path %s is invalid, creating required directories", creq.surl());
         SRMReturnCode mkdirres = mkDir(creq);
         delete response;
         if (mkdirres == 0) return putTURLs(creq, urls);
 
-        logger.msg(ERROR, "Error creating required directories for %s",
-                   creq.surl());
+        logger.msg(ERROR, "Error creating required directories for %s", creq.surl());
         creq.finished_error();
         return mkdirres;
       }
@@ -738,8 +690,7 @@ namespace Arc {
     }
 
     // the file is ready and pinned - we can get the TURL
-    std::string turl = (std::string)res["arrayOfFileStatuses"]["statusArray"]
-                       ["transferURL"];
+    std::string turl = (std::string)res["arrayOfFileStatuses"]["statusArray"]["transferURL"];
     logger.msg(VERBOSE, "File is ready! TURL is %s", turl);
 
     urls.push_back(turl);
@@ -773,9 +724,9 @@ namespace Arc {
         statuscode == SRM_REQUEST_INPROGRESS) {
       // still queued - keep waiting
       int sleeptime = 1;
-      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
-        sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
-                              ["estimatedWaitTime"]);
+      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]) {
+        sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]);
+      }
       creq.wait(sleeptime);
     }
     else if (statuscode != SRM_SUCCESS) {
@@ -787,15 +738,12 @@ namespace Arc {
                                             statusexplanation);
       if (file_status == SRM_INVALID_PATH) {
         // make directories
-        logger.msg(VERBOSE,
-                   "Path %s is invalid, creating required directories",
-                   creq.surl());
+        logger.msg(VERBOSE, "Path %s is invalid, creating required directories", creq.surl());
         SRMReturnCode mkdirres = mkDir(creq);
         delete response;
         if (mkdirres == 0) return putTURLs(creq, urls);
 
-        logger.msg(ERROR, "Error creating required directories for %s",
-                   creq.surl());
+        logger.msg(ERROR, "Error creating required directories for %s", creq.surl());
         creq.finished_error();
         return mkdirres;
       }
@@ -807,8 +755,7 @@ namespace Arc {
     }
     else {
       // success, TURL is ready
-      std::string turl = (std::string)res["arrayOfFileStatuses"]["statusArray"]
-                         ["transferURL"];
+      std::string turl = (std::string)res["arrayOfFileStatuses"]["statusArray"]["transferURL"];
       logger.msg(VERBOSE, "File is ready! TURL is %s", turl);
       urls.push_back(std::string(turl));
 
@@ -836,24 +783,21 @@ namespace Arc {
     XMLNode surl_array = req.NewChild("arrayOfSURLs");
 
     std::list<std::string> surls = creq.surls();
-    for (std::list<std::string>::const_iterator surl = surls.begin(); surl != surls.end(); ++surl)
+    for (std::list<std::string>::const_iterator surl = surls.begin(); surl != surls.end(); ++surl) {
       surl_array.NewChild("urlArray") = *surl;
+    }
     // 0 corresponds to list the directory entry not the files in it
     // 1 corresponds to list the files in a directory - this is the desired
     // behaviour of arcls with no recursion, so we add 1 to the -r value
     req.NewChild("numOfLevels") = tostring(creq.recursion() + 1);
     // add count and offset options, if set
-    if (creq.offset() != 0)
-      req.NewChild("offset") = tostring(creq.offset());
-    if (creq.count() != 0)
-      req.NewChild("count") = tostring(creq.count());
-    if (creq.long_list())
-      req.NewChild("fullDetailedList") = "true";
+    if (creq.offset() != 0) req.NewChild("offset") = tostring(creq.offset());
+    if (creq.count() != 0) req.NewChild("count") = tostring(creq.count());
+    if (creq.long_list()) req.NewChild("fullDetailedList") = "true";
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
-    if (status != 0)
-      return status;
+    if (status != 0) return status;
 
     XMLNode res = (*response)["srmLsResponse"]["srmLsResponse"];
 
@@ -861,8 +805,7 @@ namespace Arc {
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     // store the request token in the request object
-    if (res["requestToken"])
-      creq.request_token(res["requestToken"]);
+    if (res["requestToken"]) creq.request_token(res["requestToken"]);
 
     if (statuscode == SRM_SUCCESS ||
         statuscode == SRM_TOO_MANY_RESULTS ||
@@ -877,8 +820,7 @@ namespace Arc {
 
       while (statuscode != SRM_SUCCESS && statuscode != SRM_PARTIAL_SUCCESS && request_time < creq.request_timeout()) {
         // sleep for some time (no estimated time is given by the server)
-        logger.msg(VERBOSE,
-                   "%s: File request %s in SRM queue. Sleeping for %i seconds",
+        logger.msg(VERBOSE, "%s: File request %s in SRM queue. Sleeping for %i seconds",
                    creq.surl(), creq.request_token(), sleeptime);
         sleep(sleeptime);
         request_time += sleeptime;
@@ -891,8 +833,7 @@ namespace Arc {
         delete response;
         response = NULL;
         status = process("", &request, &response);
-        if (status != 0)
-          return status;
+        if (status != 0) return status;
 
         res = (*response)["srmStatusOfLsRequestResponse"]
               ["srmStatusOfLsRequestResponse"];
@@ -915,10 +856,11 @@ namespace Arc {
             statuscode != SRM_REQUEST_INPROGRESS) {
           logger.msg(creq.error_loglevel(), "%s", explanation);
           // check if individual file status gives more info
-          if (res["details"]["pathDetailArray"]["status"]["explanation"])
+          if (res["details"]["pathDetailArray"]["status"]["explanation"]) {
             logger.msg(creq.error_loglevel(), "%s",
                        (std::string)res["details"]["pathDetailArray"]
                        ["status"]["explanation"]);
+          }
           SRMStatusCode file_statuscode = GetStatus(res["details"]["pathDetailArray"]["status"], explanation);
           delete response;
           return srm2errno(statuscode, file_statuscode);
@@ -927,8 +869,7 @@ namespace Arc {
 
       // check for timeout
       if (request_time >= creq.request_timeout()) {
-        logger.msg(creq.error_loglevel(), "Ls request timed out after %i seconds",
-                   creq.request_timeout());
+        logger.msg(creq.error_loglevel(), "Ls request timed out after %i seconds", creq.request_timeout());
         abort(creq);
         delete response;
         return ETIMEDOUT;
@@ -967,8 +908,9 @@ namespace Arc {
 
         // append to metadata
         for (std::list<SRMFileMetaData>::iterator it = list_metadata.begin();
-             it != list_metadata.end(); ++it)
+             it != list_metadata.end(); ++it) {
           md.push_back(*it);
+        }
       }
       // add to the map
       metadata[*surl] = md;
@@ -1000,10 +942,8 @@ namespace Arc {
         // it can happen that with multiple calls to info() for large dirs the
         // last call returns one directory. In this case we want to list it
         // without the directory structure.
-        if (creq.count() == 0)
-          md.push_back(fillDetails(details, false));
-        else
-          md.push_back(fillDetails(details, true));
+        if (creq.count() == 0) md.push_back(fillDetails(details, false));
+        else md.push_back(fillDetails(details, true));
       }
 
       // look for sub paths (files in a directory)
@@ -1045,8 +985,9 @@ namespace Arc {
             list_no++;
             // append to metadata
             for (std::list<SRMFileMetaData>::iterator it = list_metadata.begin();
-                 it != list_metadata.end(); ++it)
+                 it != list_metadata.end(); ++it) {
               md.push_back(*it);
+            }
           } while (list_metadata.size() == max_files_list);
           break;
         }
@@ -1068,73 +1009,69 @@ namespace Arc {
         metadata.path.erase(i, 1);
         i = metadata.path.find("//", i);
       }
-      if (metadata.path.find("/") != 0)
-        metadata.path = "/" + metadata.path;
-      if (directory)
-        // only use the basename of the path
-        metadata.path = metadata.path.substr(metadata.path.rfind("/") + 1);
+      if (metadata.path.find("/") != 0) metadata.path = "/" + metadata.path;
+      // only use the basename of the path if directory
+      if (directory) metadata.path = metadata.path.substr(metadata.path.rfind("/") + 1);
     }
 
-    if (details["size"] && !((std::string)details["size"]).empty())
+    if (details["size"] && !((std::string)details["size"]).empty()) {
       metadata.size = stringtoull(details["size"]);
-    else
+    } else {
       metadata.size = -1;
+    }
 
-    if (details["checkSumType"])
+    if (details["checkSumType"]) {
       metadata.checkSumType = lower((std::string)details["checkSumType"]);
-    else
+    } else {
       metadata.checkSumType = "";
+    }
 
-    if (details["checkSumValue"])
+    if (details["checkSumValue"]) {
       metadata.checkSumValue = lower((std::string)details["checkSumValue"]);
-    else
+    } else {
       metadata.checkSumValue = "";
+    }
 
     if (details["createdAtTime"]) {
       std::string created = (std::string)details["createdAtTime"];
-      if (!created.empty())
-        metadata.createdAtTime = created;
-      else
-        metadata.createdAtTime = (time_t)0;
-    }
-    else
+      if (!created.empty()) metadata.createdAtTime = created;
+      else metadata.createdAtTime = (time_t)0;
+    } else {
       metadata.createdAtTime = (time_t)0;
+    }
 
     if (details["type"]) {
       std::string filetype = (std::string)details["type"];
-      if (filetype == "FILE")
-        metadata.fileType = SRM_FILE;
-      else if (filetype == "DIRECTORY")
-        metadata.fileType = SRM_DIRECTORY;
-      else if (filetype == "LINK")
-        metadata.fileType = SRM_LINK;
-    }
-    else
+      if (filetype == "FILE") metadata.fileType = SRM_FILE;
+      else if (filetype == "DIRECTORY") metadata.fileType = SRM_DIRECTORY;
+      else if (filetype == "LINK") metadata.fileType = SRM_LINK;
+    } else {
       metadata.fileType = SRM_FILE_TYPE_UNKNOWN;
+    }
 
     if (details["fileLocality"]) {
       std::string filelocality = (std::string)details["fileLocality"];
       if (filelocality == "ONLINE" ||
-          filelocality == "ONLINE_AND_NEARLINE")
-        metadata.fileLocality = SRM_ONLINE;
-      else if (filelocality == "NEARLINE")
-        metadata.fileLocality = SRM_NEARLINE;
-    }
-    else
+          filelocality == "ONLINE_AND_NEARLINE")  metadata.fileLocality = SRM_ONLINE;
+      else if (filelocality == "NEARLINE") metadata.fileLocality = SRM_NEARLINE;
+    } else {
       metadata.fileLocality = SRM_UNKNOWN;
+    }
 
-    if (details["arrayOfSpaceTokens"])
-      for (XMLNode n = details["arrayOfSpaceTokens"]["stringArray"]; n; ++n)
+    if (details["arrayOfSpaceTokens"]) {
+      for (XMLNode n = details["arrayOfSpaceTokens"]["stringArray"]; n; ++n) {
         metadata.spaceTokens.push_back((std::string)n);
+      }
+    }
 
-    if (details["ownerPermission"] &&
-        details["groupPermission"] &&
-        details["otherPermission"]) {
+    if (details["ownerPermission"] && details["groupPermission"] && details["otherPermission"]) {
       std::string perm;
-      if (details["ownerPermission"]["userID"])
+      if (details["ownerPermission"]["userID"]) {
         metadata.owner = (std::string)details["ownerPermission"]["userID"];
-      if (details["groupPermission"]["groupID"])
+      }
+      if (details["groupPermission"]["groupID"]) {
         metadata.group = (std::string)details["groupPermission"]["groupID"];
+      }
       if (details["ownerPermission"]["mode"] &&
           details["groupPermission"]["mode"] &&
           details["otherPermission"]) {
@@ -1142,105 +1079,72 @@ namespace Arc {
         std::string uperm = (std::string)details["ownerPermission"]["mode"];
         std::string gperm = (std::string)details["groupPermission"]["mode"];
         std::string operm = (std::string)details["otherPermission"];
-        if (uperm.find('R') != std::string::npos)
-          perms += 'r';
-        else
-          perms += '-';
-        if (uperm.find('W') != std::string::npos)
-          perms += 'w';
-        else
-          perms += '-';
-        if (uperm.find('X') != std::string::npos)
-          perms += 'x';
-        else
-          perms += '-';
-        if (gperm.find('R') != std::string::npos)
-          perms += 'r';
-        else
-          perms += '-';
-        if (gperm.find('W') != std::string::npos)
-          perms += 'w';
-        else
-          perms += '-';
-        if (gperm.find('X') != std::string::npos)
-          perms += 'x';
-        else
-          perms += '-';
-        if (operm.find('R') != std::string::npos)
-          perms += 'r';
-        else
-          perms += '-';
-        if (operm.find('W') != std::string::npos)
-          perms += 'w';
-        else
-          perms += '-';
-        if (operm.find('X') != std::string::npos)
-          perms += 'x';
-        else
-          perms += '-';
+        if (uperm.find('R') != std::string::npos) perms += 'r';
+        else perms += '-';
+        if (uperm.find('W') != std::string::npos) perms += 'w';
+        else perms += '-';
+        if (uperm.find('X') != std::string::npos) perms += 'x';
+        else perms += '-';
+        if (gperm.find('R') != std::string::npos) perms += 'r';
+        else perms += '-';
+        if (gperm.find('W') != std::string::npos) perms += 'w';
+        else perms += '-';
+        if (gperm.find('X') != std::string::npos) perms += 'x';
+        else perms += '-';
+        if (operm.find('R') != std::string::npos) perms += 'r';
+        else perms += '-';
+        if (operm.find('W') != std::string::npos) perms += 'w';
+        else perms += '-';
+        if (operm.find('X') != std::string::npos) perms += 'x';
+        else perms += '-';
         metadata.permission = perms;
       }
     }
 
     if (details["lastModificationTime"]) {
       std::string modified = (std::string)details["lastModificationTime"];
-      if (!modified.empty())
-        metadata.lastModificationTime = modified;
-      else
-        metadata.lastModificationTime = (time_t)0;
-    }
-    else
+      if (!modified.empty()) metadata.lastModificationTime = modified;
+      else metadata.lastModificationTime = (time_t)0;
+    } else {
       metadata.lastModificationTime = (time_t)0;
+    }
 
     if (details["lifetimeAssigned"]) {
       std::string lifetimeassigned = (std::string)details["lifetimeAssigned"];
-      if (!lifetimeassigned.empty())
-        metadata.lifetimeAssigned = lifetimeassigned;
-      else
-        metadata.lifetimeAssigned = 0;
-    }
-    else
+      if (!lifetimeassigned.empty()) metadata.lifetimeAssigned = lifetimeassigned;
+      else metadata.lifetimeAssigned = 0;
+    } else {
       metadata.lifetimeAssigned = 0;
+    }
 
     if (details["lifetimeLeft"]) {
       std::string lifetimeleft = (std::string)details["lifetimeLeft"];
-      if (!lifetimeleft.empty())
-        metadata.lifetimeLeft = lifetimeleft;
-      else
-        metadata.lifetimeLeft = 0;
-    }
-    else
+      if (!lifetimeleft.empty()) metadata.lifetimeLeft = lifetimeleft;
+      else metadata.lifetimeLeft = 0;
+    } else {
       metadata.lifetimeLeft = 0;
+    }
 
     if (details["retentionPolicyInfo"]) {
       std::string policy = (std::string)details["retentionPolicyInfo"];
-      if (policy == "REPLICA")
-        metadata.retentionPolicy = SRM_REPLICA;
-      else if (policy == "OUTPUT")
-        metadata.retentionPolicy = SRM_OUTPUT;
-      else if (policy == "CUSTODIAL")
-        metadata.retentionPolicy = SRM_CUSTODIAL;
-      else
-        metadata.retentionPolicy = SRM_RETENTION_UNKNOWN;
-    }
-    else
+      if (policy == "REPLICA") metadata.retentionPolicy = SRM_REPLICA;
+      else if (policy == "OUTPUT") metadata.retentionPolicy = SRM_OUTPUT;
+      else if (policy == "CUSTODIAL") metadata.retentionPolicy = SRM_CUSTODIAL;
+      else metadata.retentionPolicy = SRM_RETENTION_UNKNOWN;
+    } else {
       metadata.retentionPolicy = SRM_RETENTION_UNKNOWN;
+    }
 
     if (details["fileStorageType"]) {
       std::string type = (std::string)details["fileStorageType"];
-      if (type == "VOLATILE")
-        metadata.fileStorageType = SRM_VOLATILE;
-      else if (type == "DURABLE")
-        metadata.fileStorageType = SRM_DURABLE;
-      else if (type == "PERMANENT")
-        metadata.fileStorageType = SRM_PERMANENT;
-      else
-        metadata.fileStorageType = SRM_FILE_STORAGE_UNKNOWN;
-    }
-    else
+      if (type == "VOLATILE") metadata.fileStorageType = SRM_VOLATILE;
+      else if (type == "DURABLE") metadata.fileStorageType = SRM_DURABLE;
+      else if (type == "PERMANENT") metadata.fileStorageType = SRM_PERMANENT;
+      else metadata.fileStorageType = SRM_FILE_STORAGE_UNKNOWN;
+    } else {
       // if any other value, leave undefined
       metadata.fileStorageType = SRM_FILE_STORAGE_UNKNOWN;
-
+    }
     return metadata;
   }
 
@@ -1272,9 +1176,7 @@ namespace Arc {
       return srm2errno(statuscode);
     }
 
-    logger.msg(VERBOSE,
-               "Files associated with request token %s released successfully",
-               creq.request_token());
+    logger.msg(VERBOSE, "Files associated with request token %s released successfully", creq.request_token());
     delete response;
     return 0;
   }
@@ -1308,9 +1210,7 @@ namespace Arc {
       return srm2errno(statuscode);
     }
 
-    logger.msg(VERBOSE,
-               "Files associated with request token %s put done successfully",
-               creq.request_token());
+    logger.msg(VERBOSE, "Files associated with request token %s put done successfully", creq.request_token());
     delete response;
     return 0;
   }
@@ -1342,9 +1242,7 @@ namespace Arc {
       return srm2errno(statuscode);
     }
 
-    logger.msg(VERBOSE,
-               "Files associated with request token %s aborted successfully",
-               creq.request_token());
+    logger.msg(VERBOSE, "Files associated with request token %s aborted successfully", creq.request_token());
     delete response;
     return 0;
   }
@@ -1431,8 +1329,7 @@ namespace Arc {
       return srm2errno(statuscode);
     }
 
-    logger.msg(VERBOSE, "Directory %s removed successfully",
-               creq.surl());
+    logger.msg(VERBOSE, "Directory %s removed successfully", creq.surl());
     delete response;
     return 0;
   }
@@ -1445,8 +1342,7 @@ namespace Arc {
                        .NewChild("requestArray");
     reqarray.NewChild("sourceSURL") = source;
     reqarray.NewChild("targetSURL") = creq.surl();
-    if (!creq.space_token().empty())
-      req.NewChild("targetSpaceToken") = creq.space_token();
+    if (!creq.space_token().empty()) req.NewChild("targetSpaceToken") = creq.space_token();
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
@@ -1458,8 +1354,7 @@ namespace Arc {
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     // store the request token in the request object
-    if (res["requestToken"])
-      creq.request_token(res["requestToken"]);
+    if (res["requestToken"]) creq.request_token(res["requestToken"]);
 
     // set timeout for copying. Since we don't know the progress of the
     // transfer we hard code a value 10 x the request timeout
@@ -1469,17 +1364,17 @@ namespace Arc {
         statuscode == SRM_REQUEST_INPROGRESS) {
       // request is queued - need to wait and query with returned request token
       int sleeptime = 1;
-      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
+      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]) {
         sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
                               ["estimatedWaitTime"]);
+      }
       int request_time = 0;
 
       while (statuscode != SRM_SUCCESS && request_time < copy_timeout) {
         // sleep for recommended time (within limits)
         sleeptime = (sleeptime < 1) ? 1 : sleeptime;
         sleeptime = (sleeptime > 10) ? 10 : sleeptime;
-        logger.msg(VERBOSE,
-                   "%s: File request %s in SRM queue. Sleeping for %i seconds",
+        logger.msg(VERBOSE, "%s: File request %s in SRM queue. Sleeping for %i seconds",
                    creq.surl(), creq.request_token(), sleeptime);
         sleep(sleeptime);
         request_time += sleeptime;
@@ -1503,9 +1398,9 @@ namespace Arc {
         if (statuscode == SRM_REQUEST_QUEUED ||
             statuscode == SRM_REQUEST_INPROGRESS) {
           // still queued - keep waiting
-          if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
-            sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
-                                  ["estimatedWaitTime"]);
+          if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]) {
+            sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]);
+          }
         }
         else if (statuscode != SRM_SUCCESS) {
           logger.msg(ERROR, "%s", explanation);
@@ -1516,8 +1411,7 @@ namespace Arc {
 
       // check for timeout
       if (request_time >= copy_timeout) {
-        logger.msg(ERROR, "copy request timed out after %i seconds",
-                   copy_timeout);
+        logger.msg(ERROR, "copy request timed out after %i seconds", copy_timeout);
         creq.finished_abort();
         delete response;
         return ETIMEDOUT;
@@ -1581,11 +1475,11 @@ namespace Arc {
       // there can be undetectable errors in creating dirs that already exist
       // so only report error on creating the final dir
       if (statuscode == SRM_SUCCESS ||
-          statuscode == SRM_DUPLICATION_ERROR)
+          statuscode == SRM_DUPLICATION_ERROR) {
         keeplisting = false;
+      }
       else if (slashpos == std::string::npos) {
-        logger.msg(ERROR, "Error creating directory %s: %s", dirname,
-                   explanation);
+        logger.msg(ERROR, "Error creating directory %s: %s", dirname, explanation);
         delete response;
         return srm2errno(statuscode);
       }

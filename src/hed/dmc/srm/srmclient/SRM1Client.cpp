@@ -18,10 +18,8 @@ namespace Arc {
   SRM1Client::SRM1Client(const UserConfig& usercfg, const SRMURL& url)
     : SRMClient(usercfg, url) {
     version = "v1";
-    ns["SRMv1Type"] =
-      "http://www.themindelectric.com/package/diskCacheV111.srm/";
-    ns["SRMv1Meth"] =
-      "http://tempuri.org/diskCacheV111.srm.server.SRMServerV1";
+    ns["SRMv1Type"] = "http://www.themindelectric.com/package/diskCacheV111.srm/";
+    ns["SRMv1Meth"] = "http://tempuri.org/diskCacheV111.srm.server.SRMServerV1";
   }
 
   SRM1Client::~SRM1Client() {}
@@ -48,8 +46,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("get", &request, &response);
-    if (status != 0)
-      return ECONNREFUSED;
+    if (status != 0) return ECONNREFUSED;
 
     XMLNode result = (*response)["getResponse"]["Result"];
     if (!result) {
@@ -63,26 +60,22 @@ namespace Arc {
     time_t t_start = time(NULL);
 
     for (;;) {
-      for (XMLNode n = result["fileStatuses"]["item"]; n; ++n)
-        if (strcasecmp(((std::string)n["state"]).c_str(), "ready") == 0)
+      for (XMLNode n = result["fileStatuses"]["item"]; n; ++n) {
+        if (strcasecmp(((std::string)n["state"]).c_str(), "ready") == 0) {
           if (n["TURL"]) {
             urls.push_back(n["TURL"]);
             file_ids.push_back(stringtoi(n["fileId"]));
           }
-      if (!urls.empty())         // Have requested data
-        break;
-      if (request_state.empty()) // No data and no state - fishy
-        break;
-      if (strcasecmp(request_state.c_str(), "pending") != 0)
-        break;
-      if ((time(NULL) - t_start) > creq.request_timeout())
-        break;
+        }
+      }
+      if (!urls.empty()) break; // Have requested data
+      if (request_state.empty()) break; // No data and no state - fishy
+      if (strcasecmp(request_state.c_str(), "pending") != 0) break;
+      if ((time(NULL) - t_start) > creq.request_timeout()) break;
 
       int retryDeltaTime = stringtoi(result["retryDeltaTime"]);
-      if (retryDeltaTime < 1)
-        retryDeltaTime = 1;
-      if (retryDeltaTime > 10)
-        retryDeltaTime = 10;
+      if (retryDeltaTime < 1) retryDeltaTime = 1;
+      if (retryDeltaTime > 10) retryDeltaTime = 10;
       sleep(retryDeltaTime);
 
       PayloadSOAP request(ns);
@@ -106,8 +99,7 @@ namespace Arc {
 
     creq.file_ids(file_ids);
     delete response;
-    if (urls.empty())
-      return EARCRESINVAL;
+    if (urls.empty()) return EARCRESINVAL;
     return acquire(creq, urls);
   }
 
@@ -159,26 +151,22 @@ namespace Arc {
     time_t t_start = time(NULL);
 
     for (;;) {
-      for (XMLNode n = result["fileStatuses"]["item"]; n; ++n)
-        if (strcasecmp(((std::string)n["state"]).c_str(), "ready") == 0)
+      for (XMLNode n = result["fileStatuses"]["item"]; n; ++n) {
+        if (strcasecmp(((std::string)n["state"]).c_str(), "ready") == 0) {
           if (n["TURL"]) {
             urls.push_back(n["TURL"]);
             file_ids.push_back(stringtoi(n["fileId"]));
           }
-      if (!urls.empty())         // Have requested data
-        break;
-      if (request_state.empty()) // No data and no state - fishy
-        break;
-      if (strcasecmp(request_state.c_str(), "pending") != 0)
-        break;
-      if ((time(NULL) - t_start) > creq.request_timeout())
-        break;
+        }
+      }
+      if (!urls.empty()) break; // Have requested data
+      if (request_state.empty()) break; // No data and no state - fishy
+      if (strcasecmp(request_state.c_str(), "pending") != 0) break;
+      if ((time(NULL) - t_start) > creq.request_timeout()) break;
 
       int retryDeltaTime = stringtoi(result["retryDeltaTime"]);
-      if (retryDeltaTime < 1)
-        retryDeltaTime = 1;
-      if (retryDeltaTime > 10)
-        retryDeltaTime = 10;
+      if (retryDeltaTime < 1) retryDeltaTime = 1;
+      if (retryDeltaTime > 10) retryDeltaTime = 10;
       sleep(retryDeltaTime);
 
       PayloadSOAP request(ns);
@@ -242,24 +230,21 @@ namespace Arc {
     time_t t_start = time(NULL);
 
     for (;;) {
-      for (XMLNode n = result["fileStatuses"]["item"]; n; ++n)
-        if (strcasecmp(((std::string)n["state"]).c_str(), "ready") == 0)
+      for (XMLNode n = result["fileStatuses"]["item"]; n; ++n) {
+        if (strcasecmp(((std::string)n["state"]).c_str(), "ready") == 0) {
           file_ids.push_back(stringtoi(n["fileId"]));
-      if (!file_ids.empty())     // Have requested data
-        break;
-      if (request_state.empty()) // No data and no state - fishy
-        break;
+        }
+      }
+      if (!file_ids.empty()) break; // Have requested data
+
+      if (request_state.empty()) break; // No data and no state - fishy
       if ((strcasecmp(request_state.c_str(), "pending") != 0) &&
-          (strcasecmp(request_state.c_str(), "active") != 0))
-        break;
-      if ((time(NULL) - t_start) > creq.request_timeout())
-        break;
+          (strcasecmp(request_state.c_str(), "active") != 0)) break;
+      if ((time(NULL) - t_start) > creq.request_timeout()) break;
 
       int retryDeltaTime = stringtoi(result["retryDeltaTime"]);
-      if (retryDeltaTime < 1)
-        retryDeltaTime = 1;
-      if (retryDeltaTime > 10)
-        retryDeltaTime = 10;
+      if (retryDeltaTime < 1) retryDeltaTime = 1;
+      if (retryDeltaTime > 10) retryDeltaTime = 10;
       sleep(retryDeltaTime);
 
       PayloadSOAP request(ns);
@@ -322,8 +307,7 @@ namespace Arc {
       }
 
       for (XMLNode n = result["fileStatuses"]["item"]; n; ++n) {
-        if (stringtoi(n["fileId"]) != *file_id)
-          continue;
+        if (stringtoi(n["fileId"]) != *file_id) continue;
         if (strcasecmp(((std::string)n["state"]).c_str(), "running") == 0) {
           ++file_id;
           ++file_url;
@@ -399,17 +383,14 @@ namespace Arc {
       md.path.erase(i, 1);
       i = md.path.find("//", i);
     }
-    if (md.path.find("/") != 0)
-      md.path = "/" + md.path;
+    if (md.path.find("/") != 0) md.path = "/" + md.path;
     // date, type and locality not supported in v1
     md.createdAtTime = (time_t)0;
     md.fileType = SRM_FILE_TYPE_UNKNOWN;
     md.fileLocality = SRM_UNKNOWN;
     md.size = stringtoull(mdata["size"]);
-    if (mdata["checksumType"])
-      md.checkSumType = (std::string)mdata["checksumType"];
-    if (mdata["checksumValue"])
-      md.checkSumValue = (std::string)mdata["checksumValue"];
+    if (mdata["checksumType"]) md.checkSumType = (std::string)mdata["checksumType"];
+    if (mdata["checksumValue"]) md.checkSumValue = (std::string)mdata["checksumValue"];
     std::list<struct SRMFileMetaData> mdlist;
     mdlist.push_back(md);
     metadata[creq.surls().front()] = mdlist;
@@ -460,10 +441,10 @@ namespace Arc {
       }
 
       for (XMLNode n = result["fileStatuses"]["item"]; n; ++n) {
-        if (stringtoi(n["fileId"]) != *file_id)
-          continue;
-        if (strcasecmp(((std::string)n["state"]).c_str(), "done") == 0)
+        if (stringtoi(n["fileId"]) != *file_id) continue;
+        if (strcasecmp(((std::string)n["state"]).c_str(), "done") == 0) {
           ++file_id;
+        }
         else {
           logger.msg(VERBOSE, "File could not be moved to Done state");
           file_id = file_ids.erase(file_id);
