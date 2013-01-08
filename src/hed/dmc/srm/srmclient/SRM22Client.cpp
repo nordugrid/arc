@@ -1124,7 +1124,7 @@ namespace Arc {
       metadata.fileLocality = SRM_UNKNOWN;
 
     if (details["arrayOfSpaceTokens"])
-      for (XMLNode n = details["arrayOfSpaceTokens"]; n; ++n)
+      for (XMLNode n = details["arrayOfSpaceTokens"]["stringArray"]; n; ++n)
         metadata.spaceTokens.push_back((std::string)n);
 
     if (details["ownerPermission"] &&
@@ -1192,13 +1192,23 @@ namespace Arc {
     else
       metadata.lastModificationTime = (time_t)0;
 
-    if (details["lifetimeAssigned"])
-      metadata.lifetimeAssigned = (std::string)details["lifetimeAssigned"];
+    if (details["lifetimeAssigned"]) {
+      std::string lifetimeassigned = (std::string)details["lifetimeAssigned"];
+      if (!lifetimeassigned.empty())
+        metadata.lifetimeAssigned = lifetimeassigned;
+      else
+        metadata.lifetimeAssigned = 0;
+    }
     else
       metadata.lifetimeAssigned = 0;
 
-    if (details["lifetimeLeft"])
-      metadata.lifetimeLeft = (std::string)details["lifetimeLeft"];
+    if (details["lifetimeLeft"]) {
+      std::string lifetimeleft = (std::string)details["lifetimeLeft"];
+      if (!lifetimeleft.empty())
+        metadata.lifetimeLeft = lifetimeleft;
+      else
+        metadata.lifetimeLeft = 0;
+    }
     else
       metadata.lifetimeLeft = 0;
 
