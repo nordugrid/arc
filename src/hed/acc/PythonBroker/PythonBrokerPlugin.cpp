@@ -236,7 +236,7 @@ namespace Arc {
       return;
     }
 
-    PyObjectP ucarg = Py_BuildValue("(l)", (long int)uc);
+    PyObjectP ucarg = Py_BuildValue("(l)", (long int)&uc);
     if (!ucarg) {
       logger.msg(ERROR, "Cannot create UserConfig argument");
       if (PyErr_Occurred())
