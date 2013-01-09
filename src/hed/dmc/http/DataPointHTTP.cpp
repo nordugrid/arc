@@ -366,9 +366,14 @@ using namespace Arc;
       if (!client) return DataStatus::StatError;
       // Do HEAD to obtain some metadata
       MCC_Status r = client->process("HEAD", path, &request, &info, &inbuf);
-      if (inbuf) delete inbuf;
+      if (inbuf) delete inbuf; inbuf = NULL;
       if (!r) {
-        return DataStatus(DataStatus::StatError,r.getExplanation());
+        // Because there is no reliable way to check if connection
+        // is still alive at this place, we must try again
+        client = acquire_new_client(rurl);
+        if(client) r = client->process("HEAD", path, &request, &info, &inbuf);
+        if (inbuf) delete inbuf; inbuf = NULL;
+        if(!r) return DataStatus(DataStatus::StatError,r.getExplanation());
       }
       release_client(rurl,client.Release());
       if (info.code != 200) {
@@ -632,7 +637,16 @@ using namespace Arc;
       logsize = inbuf->Size();
       delete inbuf; inbuf = NULL;
     }
-    if (!r) return DataStatus(DataStatus::CheckError,r.getExplanation());
+    if (!r) {
+      client = acquire_new_client(url);
+      if(client) r = client->process("GET", url.FullPathURIEncoded(), 0, 15,
+                                    &request, &info, &inbuf);
+      if (inbuf){
+        logsize = inbuf->Size();
+        delete inbuf; inbuf = NULL;
+      }
+      if(!r) return DataStatus(DataStatus::CheckError,r.getExplanation());
+    }
     release_client(url,client.Release());
     if ((info.code != 200) && (info.code != 206)) return DataStatus(DataStatus::CheckError, http2errno(info.code), info.reason);
     size = logsize;
@@ -650,7 +664,13 @@ using namespace Arc;
     MCC_Status r = client->process("DELETE", url.FullPathURIEncoded(),
                                   &request, &info, &inbuf);
     if (inbuf) delete inbuf; inbuf = NULL;
-    if(!r) return DataStatus(DataStatus::DeleteError,r.getExplanation());
+    if(!r) {
+      client = acquire_new_client(url);
+      if(client) r = client->process("DELETE", url.FullPathURIEncoded(),
+                                    &request, &info, &inbuf);
+      if (inbuf) delete inbuf; inbuf = NULL;
+      if(!r) return DataStatus(DataStatus::DeleteError,r.getExplanation());
+    }
     release_client(url,client.Release());
     if ((info.code != 200) && (info.code != 202) && (info.code != 204)) {
       return DataStatus(DataStatus::DeleteError, http2errno(info.code), info.reason);
@@ -667,8 +687,14 @@ using namespace Arc;
     attributes.insert(std::pair<std::string, std::string>("Destination", url.ConnectionURL() + destination.FullPathURIEncoded()));
     MCC_Status r = client->process("MOVE", url.FullPathURIEncoded(),
                                    attributes, &request, &info, &inbuf);
-    if (inbuf) delete inbuf;
-    if(!r) return DataStatus(DataStatus::RenameError,r.getExplanation());
+    if (inbuf) delete inbuf; inbuf = NULL;
+    if(!r) {
+      client = acquire_new_client(url);
+      if(client) r = client->process("MOVE", url.FullPathURIEncoded(),
+                                     attributes, &request, &info, &inbuf);
+      if (inbuf) delete inbuf; inbuf = NULL;
+      if(!r) return DataStatus(DataStatus::RenameError,r.getExplanation());
+    }
     release_client(url,client.Release());
     if ((info.code != 201) && (info.code != 204)) { 
       return DataStatus(DataStatus::RenameError, http2errno(info.code), info.reason);
@@ -730,7 +756,7 @@ using namespace Arc;
           break;
         }
         // Recreate connection
-        client = point.acquire_client(client_url);
+        client = point.acquire_new_client(client_url);
         continue;
       }
       if (transfer_info.code == 416) { // EOF
@@ -891,10 +917,12 @@ using namespace Arc;
     HTTPClientInfo transfer_info;
     PayloadRawInterface *response = NULL;
     std::string path = client_url.FullPathURIEncoded();
-    // TODO: do ping to *client in order to check if connection is alive.
+    // TODO: Do ping to *client in order to check if connection is alive.
+    // TODO: But ping itself can destroy connection on 1.0-like servers.
+    // TODO: Hence retry is needed like in other cases.
     MCC_Status r = client->process(ClientHTTPAttributes("PUT", path), &request, &transfer_info,
                                    &response);
-    if (response) delete response;
+    if (response) delete response; response = NULL;
     if (!r) {
       // It is not clear how to retry if early chunks are not available anymore.
       // Let it retry at higher level.
@@ -960,7 +988,7 @@ using namespace Arc;
         // Return buffer
         point.buffer->is_notwritten(transfer_handle);
         // Recreate connection
-        client = point.acquire_client(client_url);
+        client = point.acquire_new_client(client_url);
         continue;
       }
       if ((transfer_info.code != 201) &&
@@ -1023,7 +1051,7 @@ using namespace Arc;
               break;
             }
             // Recreate connection
-            client = point.acquire_client(client_url);;
+            client = point.acquire_new_client(client_url);;
             continue;
           }
           if ((transfer_info.code != 201) &&
@@ -1076,6 +1104,16 @@ using namespace Arc;
       client = new ClientHTTP(cfg, curl, usercfg.Timeout());
     };
     return client;
+  }
+
+  ClientHTTP* DataPointHTTP::acquire_new_client(const URL& curl) {
+    if(!curl) return NULL;
+    if((curl.Protocol() != "http") &&
+       (curl.Protocol() != "https") &&
+       (curl.Protocol() != "httpg")) return NULL;
+    MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
+    return new ClientHTTP(cfg, curl, usercfg.Timeout());
   }
 
   void DataPointHTTP::release_client(const URL& curl, ClientHTTP* client) {

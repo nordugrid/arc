@@ -44,6 +44,7 @@ using namespace Arc;
     static bool write_single(void *arg);
     DataStatus do_stat(URL& curl, FileInfo& file);
     ClientHTTP* acquire_client(const URL& curl);
+    ClientHTTP* acquire_new_client(const URL& curl);
     void release_client(const URL& curl, ClientHTTP* client);
     /// Convert HTTP return code to errno
     int http2errno(int http_code) const;
