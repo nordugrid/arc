@@ -13,6 +13,12 @@
 namespace Arc {
 
   /// FileInfo stores information about files (metadata).
+  /** Set/Get methods exist for "standard" metadata such as name, size and
+   * modification time, and there is a generic key-value map for
+   * protocol-specific attributes. The Set methods always set the corresponding
+   * entry in the generic map, so there is no need for a caller make two calls,
+   * for example SetSize(1) followed by SetMetaData("size", "1").
+   */
   class FileInfo {
 
   public:
@@ -29,7 +35,9 @@ namespace Arc {
         modified((time_t)(-1)),
         valid((time_t)(-1)),
         type(file_type_unknown),
-        latency("") {}
+        latency("") {
+      if (!name.empty()) metadata["name"] = name;
+    }
 
     ~FileInfo() {}
 
@@ -47,6 +55,7 @@ namespace Arc {
 
     void SetName(const std::string& n) {
       name = n;
+      metadata["name"] = n;
     }
 
     const std::list<URL>& GetURLs() const {
@@ -67,6 +76,7 @@ namespace Arc {
 
     void SetSize(const unsigned long long int s) {
       size = s;
+      metadata["size"] = tostring(s);
     }
 
     bool CheckCheckSum() const {
@@ -79,6 +89,7 @@ namespace Arc {
 
     void SetCheckSum(const std::string& c) {
       checksum = c;
+      metadata["checksum"] = c;
     }
 
     bool CheckModified() const {
@@ -91,6 +102,7 @@ namespace Arc {
 
     void SetModified(const Time& t) {
       modified = t;
+      metadata["mtime"] = t.str();
     }
 
     bool CheckValid() const {
@@ -103,6 +115,7 @@ namespace Arc {
 
     void SetValid(const Time& t) {
       valid = t;
+      metadata["validity"] = t.str();
     }
 
     bool CheckType() const {
@@ -115,6 +128,8 @@ namespace Arc {
 
     void SetType(const Type t) {
       type = t;
+      if (t == file_type_file) metadata["type"] = "file";
+      else if (t == file_type_dir) metadata["type"] = "dir";
     }
 
     bool CheckLatency() const {
@@ -127,6 +142,7 @@ namespace Arc {
 
     void SetLatency(const std::string l) {
       latency = l;
+      metadata["latency"] = l;
     }
 
     std::map<std::string, std::string> GetMetaData() const {

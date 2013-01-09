@@ -792,9 +792,7 @@ using namespace Arc;
     } // if (listdir)
     else {
       std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(path.c_str()));
-      f->SetMetaData("path", path);
       f->SetSize(st.filesize);
-      f->SetMetaData("size", tostring(st.filesize));
       SetSize(st.filesize);
       if (st.csumtype[0] && st.csumvalue[0]) {
         std::string csum = st.csumtype;
@@ -805,14 +803,11 @@ using namespace Arc;
         csum += ":";
         csum += st.csumvalue;
         f->SetCheckSum(csum);
-        f->SetMetaData("checksum", csum);
         SetCheckSum(csum);
       }
       f->SetModified(st.mtime);
       SetModified(Arc::Time(st.mtime));
-      f->SetMetaData("mtime", f->GetModified().str());
       f->SetType((st.filemode & S_IFDIR) ? FileInfo::file_type_dir : FileInfo::file_type_file);
-      f->SetMetaData("type", (st.filemode & S_IFDIR) ? "dir" : "file");
       if (verb & INFO_TYPE_STRUCT) {
         int nbentries = 0;
         struct lfc_filereplica *entries = NULL;

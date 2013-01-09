@@ -980,26 +980,21 @@ namespace Arc {
       lister_info.SetName(url.Path());
 
     file.SetName(lister_info.GetName());
-    file.SetMetaData("path", lister_info.GetName());
     if (more_info) {
       DataStatus r = do_more_stat(lister_info, verb);
       if(!r) result = r;
     }
     file.SetType(lister_info.GetType());
-    file.SetMetaData("type", (lister_info.GetType() == FileInfo::file_type_dir) ? "dir" : "file");
     if (lister_info.CheckSize()) {
       file.SetSize(lister_info.GetSize());
-      file.SetMetaData("size", tostring(lister_info.GetSize()));
       SetSize(lister_info.GetSize());
     }
     if (lister_info.CheckModified()) {
       file.SetModified(lister_info.GetModified());
-      file.SetMetaData("mtime", lister_info.GetModified());
       SetModified(lister_info.GetModified());
     }
     if (lister_info.CheckCheckSum()) {
       file.SetCheckSum(lister_info.GetCheckSum());
-      file.SetMetaData("checksum", lister_info.GetCheckSum());
       SetCheckSum(lister_info.GetCheckSum());
     }
     reading = false;
@@ -1029,7 +1024,6 @@ namespace Arc {
         i->SetName(url.Path()+'/'+i->GetName());
       std::list<FileInfo>::iterator f =
         files.insert(files.end(), FileInfo(i->GetLastName()));
-      f->SetMetaData("path", i->GetLastName());
       if (more_info) {
         DataStatus r = do_more_stat(*i, verb);
         if(!r) {
@@ -1037,20 +1031,10 @@ namespace Arc {
           result = r;
         }
         f->SetType(i->GetType());
-        f->SetMetaData("type", (i->GetType() == FileInfo::file_type_dir) ? "dir" : "file");
       }
-      if (i->CheckSize()) {
-        f->SetSize(i->GetSize());
-        f->SetMetaData("size", tostring(i->GetSize()));
-      }
-      if (i->CheckModified()) {
-        f->SetModified(i->GetModified());
-        f->SetMetaData("mtime", i->GetModified());
-      }
-      if (i->CheckCheckSum()) {
-        f->SetCheckSum(i->GetCheckSum());
-        f->SetMetaData("checksum", i->GetCheckSum());
-      }
+      if (i->CheckSize()) f->SetSize(i->GetSize());
+      if (i->CheckModified()) f->SetModified(i->GetModified());
+      if (i->CheckCheckSum()) f->SetCheckSum(i->GetCheckSum());
     }
     reading = false;
     return result;

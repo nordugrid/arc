@@ -243,16 +243,9 @@ namespace Arc {
       return DataStatus::StatError;
     }
     file.SetName(url.Path());
-    file.SetMetaData("path", url.Path());
-
     file.SetType(FileInfo::file_type_file);
-    file.SetMetaData("type", "file");
-
     file.SetSize(stinfo.size);
-    file.SetMetaData("size", tostring(stinfo.size));
-
     file.SetModified(stinfo.modtime);
-    file.SetMetaData("mtime", tostring(stinfo.modtime));
 
     SetSize(file.GetSize());
     SetModified(stinfo.modtime);

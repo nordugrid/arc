@@ -385,7 +385,6 @@ using namespace Arc;
         return DataStatus(DataStatus::StatError, http2errno(info.code), info.reason);
       }
       // Fetch known metadata
-      file.SetMetaData("path", path);
       std::string type = info.type;
       std::string::size_type pos = type.find(';');
       if (pos != std::string::npos) type = type.substr(0, pos);
@@ -393,18 +392,14 @@ using namespace Arc;
       // Treat every html as potential directory/set of links
       if(type == "text/html") {
         file.SetType(FileInfo::file_type_dir);
-        file.SetMetaData("type", "dir");
       } else {
         file.SetType(FileInfo::file_type_file);
-        file.SetMetaData("type", "file");
       }
       if(info.size != (uint64_t)(-1)) {
         file.SetSize(info.size);
-        file.SetMetaData("size", tostring(info.size));
       }
       if(info.lastModified != (time_t)(-1)) {
         file.SetModified(info.lastModified);
-        file.SetMetaData("mtime", info.lastModified.str());
       }
       // Not sure
       if(!info.location.empty()) file.AddURL(info.location);

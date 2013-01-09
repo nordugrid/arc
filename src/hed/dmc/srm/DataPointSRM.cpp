@@ -849,57 +849,47 @@ namespace Arc {
   void DataPointSRM::FillFileInfo(std::list<FileInfo>& files, const struct SRMFileMetaData& srm_metadata) {
     // set FileInfo attributes
     std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(srm_metadata.path));
-    f->SetMetaData("path", srm_metadata.path);
 
     if (srm_metadata.fileType == SRM_FILE) {
       f->SetType(FileInfo::file_type_file);
-      f->SetMetaData("type", "file");
     }
     else if (srm_metadata.fileType == SRM_DIRECTORY) {
       f->SetType(FileInfo::file_type_dir);
-      f->SetMetaData("type", "dir");
     }
-
     if (srm_metadata.size >= 0) {
       f->SetSize(srm_metadata.size);
-      f->SetMetaData("size", tostring(srm_metadata.size));
     }
-    if(srm_metadata.lastModificationTime > 0) {
+    if (srm_metadata.lastModificationTime > 0) {
       f->SetModified(Time(srm_metadata.lastModificationTime));
-      f->SetMetaData("mtime", (Time(srm_metadata.lastModificationTime)).str());
-    }
-    if (srm_metadata.createdAtTime > 0) {
-      f->SetMetaData("ctime", (Time(srm_metadata.createdAtTime)).str());
     }
     if (srm_metadata.checkSumType.length() > 0 &&
         srm_metadata.checkSumValue.length() > 0) {
       std::string csum(srm_metadata.checkSumType + ":" + srm_metadata.checkSumValue);
       f->SetCheckSum(csum);
-      f->SetMetaData("checksum", csum);
     }
     if (srm_metadata.fileLocality == SRM_ONLINE) {
       f->SetLatency("ONLINE");
-      f->SetMetaData("latency", "ONLINE");
     }
     else if (srm_metadata.fileLocality == SRM_NEARLINE) {
       f->SetLatency("NEARLINE");
-      f->SetMetaData("latency", "NEARLINE");
+    }
+    if (srm_metadata.createdAtTime > 0) {
+      f->SetMetaData("ctime", (Time(srm_metadata.createdAtTime)).str());
     }
     if (!srm_metadata.spaceTokens.empty()) {
       std::string spaceTokens;
       for (std::list<std::string>::const_iterator it = srm_metadata.spaceTokens.begin();
            it != srm_metadata.spaceTokens.end(); it++) {
-        if (!spaceTokens.empty())
-          spaceTokens += ',';
+        if (!spaceTokens.empty()) spaceTokens += ',';
         spaceTokens += *it;
       }
       f->SetMetaData("spacetokens", spaceTokens);
     }
-    if(!srm_metadata.owner.empty()) f->SetMetaData("owner", srm_metadata.owner);
-    if(!srm_metadata.group.empty()) f->SetMetaData("group", srm_metadata.group);
-    if(!srm_metadata.permission.empty()) f->SetMetaData("accessperm", srm_metadata.permission);
-    if(srm_metadata.lifetimeLeft != 0) f->SetMetaData("lifetimeleft", tostring(srm_metadata.lifetimeLeft));
-    if(srm_metadata.lifetimeAssigned != 0) f->SetMetaData("lifetimeassigned", tostring(srm_metadata.lifetimeAssigned));
+    if (!srm_metadata.owner.empty()) f->SetMetaData("owner", srm_metadata.owner);
+    if (!srm_metadata.group.empty()) f->SetMetaData("group", srm_metadata.group);
+    if (!srm_metadata.permission.empty()) f->SetMetaData("accessperm", srm_metadata.permission);
+    if (srm_metadata.lifetimeLeft != 0) f->SetMetaData("lifetimeleft", tostring(srm_metadata.lifetimeLeft));
+    if (srm_metadata.lifetimeAssigned != 0) f->SetMetaData("lifetimeassigned", tostring(srm_metadata.lifetimeAssigned));
 
     if (srm_metadata.retentionPolicy == SRM_REPLICA) f->SetMetaData("retentionpolicy", "REPLICA");
     else if (srm_metadata.retentionPolicy == SRM_OUTPUT) f->SetMetaData("retentionpolicy", "OUTPUT");

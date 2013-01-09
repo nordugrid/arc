@@ -429,10 +429,8 @@ namespace Arc {
 
     if(S_ISREG(st.st_mode)) {
       file.SetType(FileInfo::file_type_file);
-      file.SetMetaData("type", "file");
     } else if(S_ISDIR(st.st_mode)) {
       file.SetType(FileInfo::file_type_dir);
-      file.SetMetaData("type", "dir");
     } else {
       file.SetType(FileInfo::file_type_unknown);
     }
@@ -442,13 +440,10 @@ namespace Arc {
     if ((stat_url.Protocol() == "srm" && !stat_url.HTTPOption("SFN").empty())) path = stat_url.HTTPOption("SFN");
 
     std::string name = Glib::path_get_basename(path);
-    file.SetMetaData("path", path);
     file.SetName(name);
 
     file.SetSize(st.st_size);
-    file.SetMetaData("size", tostring(st.st_size));
     file.SetModified(st.st_mtime);
-    file.SetMetaData("mtime", (Time(st.st_mtime)).str());
     file.SetMetaData("atime", (Time(st.st_atime)).str());
     file.SetMetaData("ctime", (Time(st.st_ctime)).str());
 
