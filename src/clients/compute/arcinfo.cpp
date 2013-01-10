@@ -113,7 +113,7 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
   Arc::ComputingServiceUniq csu;
   Arc::ComputingServiceRetriever csr(usercfg, std::list<Arc::Endpoint>(), rejectDiscoveryURLs, preferredInterfaceNames);
   csr.addConsumer(csu);
-  for (std::list<Arc::Endpoint>::const_iterator it = endpoints.begin(); it != endpoints.end(); it++) {
+  for (std::list<Arc::Endpoint>::const_iterator it = endpoints.begin(); it != endpoints.end(); ++it) {
     csr.addEndpoint(*it);
   }
   csr.wait();
@@ -154,6 +154,39 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
       
       std::cout << infostream.str() << submissionstream.str();
     }
+  }
+
+  bool anEndpointFailed = false;
+  // Check if querying endpoint succeeded.
+  Arc::EndpointStatusMap statusMap = csr.getAllStatuses();
+  for (std::list<Arc::Endpoint>::const_iterator it = endpoints.begin(); it != endpoints.end(); ++it) {
+    Arc::EndpointStatusMap::const_iterator itStatus = statusMap.find(*it);
+    if (itStatus != statusMap.end() &&
+        itStatus->second != Arc::EndpointQueryingStatus::SUCCESSFUL &&
+        itStatus->second != Arc::EndpointQueryingStatus::SUSPENDED_NOTREQUIRED) {
+      if (!anEndpointFailed) {
+        anEndpointFailed = true;
+        std::cerr << Arc::IString("ERROR: Failed to retrieve information from the following endpoints:") << std::endl;
+      }
+      
+      std::cerr << "  " << it->URLString;
+      if (!itStatus->second.getDescription().empty()) {
+        std::cerr << " (" << itStatus->second.getDescription() << ")";
+      }
+      std::cerr << std::endl;
+    }
+  }
+  if (anEndpointFailed) return 1;
+  
+  if (services.empty()) {
+    std::cerr << Arc::IString("ERROR: Failed to retrieve information");
+    if (!endpoints.empty()) {
+      std::cerr << " " << Arc::IString("from the following endpoints:") << std::endl;
+      for (std::list<Arc::Endpoint>::const_iterator it = endpoints.begin(); it != endpoints.end(); ++it) {
+        std::cerr << "  " << it->URLString << std::endl;
+      }
+    }
+    return 1;
   }
 
   return 0;
