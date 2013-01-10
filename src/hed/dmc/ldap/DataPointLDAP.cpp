@@ -49,7 +49,7 @@ namespace Arc {
   }
 
   DataStatus DataPointLDAP::Remove() {
-    return DataStatus::UnimplementedError;
+    return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
   }
 
   void DataPointLDAP::CallBack(const std::string& attr,
@@ -127,20 +127,20 @@ namespace Arc {
   }
 
   DataStatus DataPointLDAP::StartWriting(DataBuffer&, DataCallback*) {
-    return DataStatus::UnimplementedError;
+    return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
   }
 
   DataStatus DataPointLDAP::StopWriting() {
-    return DataStatus::UnimplementedError;
+    return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
   }
 
   DataStatus DataPointLDAP::Stat(FileInfo& file, DataPoint::DataPointInfoType verb) {
-    return DataStatus::UnimplementedError;
+    return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
   }
 
   DataStatus DataPointLDAP::List(std::list<FileInfo>& file, DataPoint::DataPointInfoType verb) {
     // TODO: Implement through Read
-    return DataStatus::UnimplementedError;
+    return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
   }
 
   void DataPointLDAP::ReadThread(void *arg) {

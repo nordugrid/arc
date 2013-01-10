@@ -29,7 +29,7 @@ using namespace Arc;
     virtual bool SetURL(const URL& url);
     virtual DataStatus Check(bool check_meta);
     virtual DataStatus Remove();
-    virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus::UnimplementedError; };
+    virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP); };
     virtual DataStatus Rename(const URL& url);
     virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);

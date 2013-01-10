@@ -37,10 +37,10 @@ namespace Arc {
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus Check(bool check_meta);
     virtual DataStatus Remove();
-    virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus::UnimplementedError; };
+    virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP); };
     virtual DataStatus Stat(FileInfo& file, DataPoint::DataPointInfoType verb);
     virtual DataStatus List(std::list<FileInfo>& file, DataPoint::DataPointInfoType verb);
-    virtual DataStatus Rename(const URL& newurl) { return DataStatus::UnimplementedError; };
+    virtual DataStatus Rename(const URL& newurl) { return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP); };
     virtual DataStatus StartReading(DataBuffer& buffer);
     virtual DataStatus StartWriting(DataBuffer& buffer,
                                     DataCallback *space_cb = NULL);

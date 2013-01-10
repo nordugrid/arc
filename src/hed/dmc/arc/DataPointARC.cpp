@@ -150,7 +150,7 @@ namespace Arc {
   DataStatus DataPointARC::Stat(FileInfo& file, DataPoint::DataPointInfoType verb) {
     if (!url.Host().empty()){
       logger.msg(ERROR, "Hostname is not implemented for arc protocol");
-      return DataStatus::UnimplementedError;
+      return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
     }
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
@@ -202,7 +202,7 @@ namespace Arc {
   DataStatus DataPointARC::List(std::list<FileInfo>& files, DataPoint::DataPointInfoType verb) {
     if (!url.Host().empty()){
       logger.msg(ERROR, "Hostname is not implemented for arc protocol");
-      return DataStatus::UnimplementedError;
+      return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
     }
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
@@ -274,7 +274,7 @@ namespace Arc {
   DataStatus DataPointARC::StartReading(DataBuffer& buf) {
     if (!url.Host().empty()){
       logger.msg(ERROR, "Hostname is not implemented for arc protocol");
-      return DataStatus::UnimplementedError;
+      return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
     }
 
     logger.msg(VERBOSE, "StartReading");
@@ -371,7 +371,7 @@ namespace Arc {
                                         DataCallback *callback) {
     if (!url.Host().empty()){
       logger.msg(ERROR, "Hostname is not implemented for arc protocol");
-      return DataStatus::UnimplementedError;
+      return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
     }
     logger.msg(VERBOSE, "StartWriting");
     if (reading)
@@ -605,7 +605,7 @@ namespace Arc {
     std::string host = url.Host();
     if (!url.Host().empty()){
       logger.msg(ERROR, "Hostname is not implemented for arc protocol");
-      return DataStatus::UnimplementedError;
+      return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
     }
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);

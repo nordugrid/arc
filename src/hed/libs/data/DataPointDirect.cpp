@@ -105,27 +105,27 @@ namespace Arc {
   }
 
   DataStatus DataPointDirect::Resolve(bool) {
-    return DataStatus::NotSupportedForDirectDataPointsError;
+    return DataStatus(DataStatus::NotSupportedForDirectDataPointsError, EOPNOTSUPP);
   }
 
   DataStatus DataPointDirect::Resolve(bool source, const std::list<DataPoint*>& urls) {
-    return DataStatus::NotSupportedForDirectDataPointsError;
+    return DataStatus(DataStatus::NotSupportedForDirectDataPointsError, EOPNOTSUPP);
   }
 
   DataStatus DataPointDirect::PreRegister(bool, bool) {
-    return DataStatus::NotSupportedForDirectDataPointsError;
+    return DataStatus(DataStatus::NotSupportedForDirectDataPointsError, EOPNOTSUPP);
   }
 
   DataStatus DataPointDirect::PostRegister(bool) {
-    return DataStatus::NotSupportedForDirectDataPointsError;
+    return DataStatus(DataStatus::NotSupportedForDirectDataPointsError, EOPNOTSUPP);
   }
 
   DataStatus DataPointDirect::PreUnregister(bool) {
-    return DataStatus::NotSupportedForDirectDataPointsError;
+    return DataStatus(DataStatus::NotSupportedForDirectDataPointsError, EOPNOTSUPP);
   }
 
   DataStatus DataPointDirect::Unregister(bool) {
-    return DataStatus::NotSupportedForDirectDataPointsError;
+    return DataStatus(DataStatus::NotSupportedForDirectDataPointsError, EOPNOTSUPP);
   }
 
   bool DataPointDirect::AcceptsMeta() const {
@@ -154,7 +154,7 @@ namespace Arc {
   }
 
   DataStatus DataPointDirect::CompareLocationMetadata() const {
-    return DataStatus::NotSupportedForDirectDataPointsError;
+    return DataStatus(DataStatus::NotSupportedForDirectDataPointsError, EOPNOTSUPP);
   }
 
   bool DataPointDirect::NextLocation() {
@@ -176,19 +176,19 @@ namespace Arc {
   }
 
   DataStatus DataPointDirect::AddLocation(const URL&, const std::string&) {
-    return DataStatus::NotSupportedForDirectDataPointsError;
+    return DataStatus(DataStatus::NotSupportedForDirectDataPointsError, EOPNOTSUPP);
   }
 
   DataStatus DataPointDirect::RemoveLocation() {
-    return DataStatus::NotSupportedForDirectDataPointsError;
+    return DataStatus(DataStatus::NotSupportedForDirectDataPointsError, EOPNOTSUPP);
   }
 
   DataStatus DataPointDirect::RemoveLocations(const DataPoint&) {
-    return DataStatus::NotSupportedForDirectDataPointsError;
+    return DataStatus(DataStatus::NotSupportedForDirectDataPointsError, EOPNOTSUPP);
   }
 
   DataStatus DataPointDirect::ClearLocations() {
-    return DataStatus::NotSupportedForDirectDataPointsError;
+    return DataStatus(DataStatus::NotSupportedForDirectDataPointsError, EOPNOTSUPP);
   }
 
   int DataPointDirect::AddCheckSumObject(CheckSum *cksum) {
@@ -212,7 +212,7 @@ namespace Arc {
   DataStatus DataPointDirect::Stat(std::list<FileInfo>& files,
                                    const std::list<DataPoint*>& urls,
                                    DataPointInfoType verb) {
-    return DataStatus::UnimplementedError;
+    return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
   }
 
 
