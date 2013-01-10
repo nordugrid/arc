@@ -27,8 +27,8 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 
-static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> requestedSubmissionInterfaces, const std::string& jobidfile, bool direct_submission);
-static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> requestedSubmissionInterfaces);
+static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface, const std::string& jobidfile, bool direct_submission);
+static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface);
 
 int RUNMAIN(arcsub)(int argc, char **argv) {
 
@@ -171,14 +171,11 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     usercfg.AddRejectDiscoveryURLs(opt.rejectdiscovery);
   }
 
-  std::list<std::string> rsi;
-  if(!opt.requestedSubmissionInterfaceName.empty()) rsi.push_back(opt.requestedSubmissionInterfaceName);
-
   if (opt.dumpdescription) {
-    return dumpjobdescription(usercfg, jobdescriptionlist, services, rsi);
+    return dumpjobdescription(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName);
   }
 
-  return submit(usercfg, jobdescriptionlist, services, rsi, opt.jobidoutfile, opt.direct_submission);
+  return submit(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName, opt.jobidoutfile, opt.direct_submission);
 }
 
 
@@ -236,16 +233,7 @@ private:
 };
 
 
-static bool match_submission_interface(const Arc::ExecutionTarget& target, const std::list<std::string>& requestedSubmissionInterfaces) {
-  if(requestedSubmissionInterfaces.empty()) return true;
-  for(std::list<std::string>::const_iterator iname = requestedSubmissionInterfaces.begin();
-                iname != requestedSubmissionInterfaces.end();++iname) {
-    if(*iname == target.ComputingEndpoint->InterfaceName) return true;
-  }
-  return false;
-}
-
-static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::list<std::string> requestedSubmissionInterfaces, const std::string& jobidfile, bool direct_submission) {
+static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface, const std::string& jobidfile, bool direct_submission) {
   int retval = 0;
   
   HandleSubmittedJobs hsj(jobidfile, usercfg.JobListFile());
@@ -254,9 +242,22 @@ static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescri
 
   Arc::SubmissionStatus status;
   if (!direct_submission) {
-    status = s.BrokeredSubmit(services, jobdescriptionlist, requestedSubmissionInterfaces);
+    status = s.BrokeredSubmit(services, jobdescriptionlist, std::list<std::string>(1, requestedSubmissionInterface));
   }
   else {
+    if (!requestedSubmissionInterface.empty()) {
+      for (std::list<Arc::Endpoint>::iterator it = services.begin(); it != services.end();) {
+        // Remove endpoint - it has an unrequested interface name.
+        if (!it->InterfaceName.empty() && it->InterfaceName != requestedSubmissionInterface) {
+          logger.msg(Arc::INFO, "Removing endpoint %s: It has an unrequested interface (%s).", it->URLString, it->InterfaceName);
+          it = services.erase(it);
+          continue;
+        }
+        
+        it->InterfaceName = requestedSubmissionInterface;
+        ++it;
+      }
+    }
     status = s.Submit(services, jobdescriptionlist);
   }
   hsj.write();
@@ -296,7 +297,7 @@ static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescri
   return retval;
 }
 
-static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, std::list<std::string> requestedSubmissionInterfaces) {
+static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface) {
   int retval = 0;
 
   std::set<std::string> preferredInterfaceNames;
@@ -338,7 +339,7 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
       ets.set(jobdescdump);
 
       for (ets.reset(); !ets.endOfList(); ets.next()) {
-        if(!match_submission_interface(*ets,requestedSubmissionInterfaces)) continue;
+        if(!requestedSubmissionInterface.empty() && ets->ComputingEndpoint->InterfaceName != requestedSubmissionInterface) continue;
         if (!jobdescdump.Prepare(*ets)) {
           logger.msg(Arc::INFO, "Unable to prepare job description according to needs of the target resource (%s).", ets->ComputingEndpoint->URLString); 
           continue;
