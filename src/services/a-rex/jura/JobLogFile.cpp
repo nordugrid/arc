@@ -15,6 +15,8 @@
 #include <arc/Logger.h>
 #include <arc/URL.h>
 #include <arc/Utils.h>
+#include <arc/credential/Credential.h>
+#include <arc/credential/VOMSUtil.h>
 
 // Needed to redefine mkdir on mingw
 #ifdef WIN32
@@ -23,6 +25,30 @@
 
 namespace Arc
 {
+
+  std::string replaceChar(std::string str, char ch1, char ch2) {
+    for (int i = 0; i < (int)str.length(); ++i) {
+      if (str[i] == ch1)
+        str[i] = ch2;
+    }
+    return str;
+  }
+
+  std::vector<Arc::VOMSACInfo> ParseVOAttr(std::string cert_str) {
+	cert_str=replaceChar(cert_str,'\\', '\n');
+
+    Arc::Credential holder(cert_str, "", "", "", "", false);
+    std::string ca_dir = Arc::GetEnv("X509_CERT_DIR");
+    std::string voms_dir = Arc::GetEnv("X509_VOMS_DIR");
+
+    Arc::VOMSTrustList voms_trust_dn;
+    voms_trust_dn.AddRegex(".*");
+    std::vector<Arc::VOMSACInfo> voms_attributes;
+    parseVOMSAC(holder, ca_dir, "", voms_dir, voms_trust_dn, voms_attributes, true, true);
+    //parseVOMSAC(cert_str, ca_dir, "", voms_dir, voms_trust_dn, voms_attributes, true, true);
+
+    return voms_attributes;
+  }
 
   int JobLogFile::parse(const std::string& _filename)
   {
@@ -119,6 +145,7 @@ namespace Arc
     ns_ur["xsi"]="http://www.w3.org/2001/XMLSchema-instance";
     ns_ur["ds"]="http://www.w3.org/2000/09/xmldsig#";
     ns_ur["arc"]="http://www.nordugrid.org/ws/schemas/ur-arc";
+    ns_ur["vo"]="http://www.sgas.se/namespaces/2009/05/ur/vo";
 
     //Get node names
     std::list<std::string> nodenames;
@@ -199,6 +226,47 @@ namespace Arc
 
         ur.NewChild("UserIdentity").NewChild("GlobalUserName")=
           (*this)["usersn"];
+      }
+    
+    //VO Attributes  
+    if (find("usercert")!=end())
+      {
+        std::vector<Arc::VOMSACInfo> voms_attributes = ParseVOAttr((*this)["usercert"]);
+        for(int n = 0; n<(int)voms_attributes.size(); ++n) {
+
+            if(voms_attributes[n].attributes.size() > 0) {
+                if ( !ur["UserIdentity"] ) {
+                    ur.NewChild("UserIdentity");
+                }
+                Arc::XMLNode vo=ur["UserIdentity"].NewChild("VO");
+                vo.NewAttribute("type")="voms";
+                
+                vo.NewChild("Name")=voms_attributes[n].voname;
+                vo.NewChild("Issuer")=voms_attributes[n].issuer;
+                
+                for(int i = 0; i < (int)voms_attributes[n].attributes.size(); i++) {
+                  std::string attr = voms_attributes[n].attributes[i];
+                  std::string::size_type pos;
+                  if((pos = attr.find("hostname=")) != std::string::npos) {
+                    continue;
+                  }
+                  Arc::XMLNode vo_attr=vo.NewChild("Attribute");
+
+                  if(attr.find("Role=") == std::string::npos ||
+                     attr.find("Capability=") == std::string::npos) {  
+                    vo.NewChild("Group")=attr;
+                  }
+                  if((pos = attr.find("Role=")) != std::string::npos) {
+                    std::string str = attr.substr(pos+5);
+                    vo.NewChild("Role")=str;
+                  }
+                  if((pos = attr.find("Capability=")) != std::string::npos) {
+                    std::string str = attr.substr(pos+5);
+                    vo.NewChild("Capability")=str;
+                  }
+                }
+            }
+        }
       }
     
     //JobName
@@ -393,7 +461,6 @@ namespace Arc
       {
         ur.NewChild("arc:RunTimeEnvironment")=*jt;
       }
-    
 
 
     //TODO user id info
@@ -597,6 +664,38 @@ namespace Arc
 
     //Group
     //GroupAttribute  
+    if (find("usercert")!=end())
+      {
+        std::vector<Arc::VOMSACInfo> voms_attributes = ParseVOAttr((*this)["usercert"]);
+        for(int n = 0; n<(int)voms_attributes.size(); ++n) {
+
+            if(voms_attributes[n].attributes.size() > 0) {
+                if ( !useridentity["Group"] ) {
+                    useridentity.NewChild("Group")=voms_attributes[n].voname;
+                }
+                for(int i = 0; i < (int)voms_attributes[n].attributes.size(); i++) {
+                  std::string attr = voms_attributes[n].attributes[i];
+                  std::string::size_type pos;
+                  if((pos = attr.find("hostname=")) != std::string::npos) {
+                    continue;
+                  }
+                  else {
+                    if(attr.find("Role=") == std::string::npos ||
+                       attr.find("Capability=") == std::string::npos) {  
+                      Arc::XMLNode vo=useridentity.NewChild("GroupAttribute")=attr;
+                      vo.NewAttribute("urf:type")="FQAN";
+                    }
+                  }
+                  if((pos = attr.find("Role=")) != std::string::npos) {
+                    std::string str = attr.substr(pos+5);
+                    Arc::XMLNode vo=useridentity.NewChild("GroupAttribute")=attr;
+                    vo.NewAttribute("urf:type")="vo-role";
+                  }
+                }
+            }
+        }
+      }
+
     if (find("projectname")!=end())
       {
         Arc::XMLNode project=useridentity.NewChild("GroupAttribute")=(*this)["projectname"];
@@ -803,7 +902,7 @@ namespace Arc
         std::string site = machineName.Host();
         // repcale "." to "-"
         int position = site.find( "." ); // find first space
-        while ( position != std::string::npos ){
+        while ( position != (int)std::string::npos ){
             site.replace( position, 1, "-" );
             position = site.find( ".", position + 1 );
         }

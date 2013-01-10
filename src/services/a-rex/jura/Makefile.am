@@ -21,6 +21,7 @@ jura_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 man_MANS = jura.1
