@@ -303,17 +303,30 @@ if [ -n "${moduleload_rwm}" ]; then
 
 	# Relay to allow top-bdii to parse info as the CE was a site-bdii
 	database        relay
-	suffix          "GLUE2GroupID=services,GLUE2DomainID=$admindomain,o=glue"
-	overlay         rwm
-	suffixmassage   "GLUE2GroupID=services,o=glue"
+	suffix		"GLUE2GroupID=resource,o=glue"
+	overlay		rwm
+	rwm-rewriteEngine	on
+	rwm-rewriteContext	default
+	rwm-rewriteRule	"GLUE2GroupName=resource,o=glue" "GLUE2GroupNAME=services,o=glue" ":"
+	rwm-rewriteContext	searchFilter
+	rwm-rewriteContext	searchEntryDN
+	rwm-rewriteContext	searchAttrDN
+	rwm-rewriteContext	matchedDN
 
 	database        relay
 	suffix          "GLUE2GroupID=resource,GLUE2DomainID=$admindomain,o=glue"
 	overlay         rwm
-	suffixmassage   "GLUE2GroupID=services,o=glue"
+	rwm-rewriteEngine       on
+	rwm-rewriteContext      default
+	rwm-rewriteRule "GLUE2GroupNAME=resource,GLUE2DomainID=$admindomain,o=glue" "GLUE2GroupNAME=services,o=glue" ":"
+	rwm-rewriteContext      searchFilter
+	rwm-rewriteContext      searchEntryDN
+	rwm-rewriteRule "(.*[^ ],)?[ ]?GLUE2GroupNAME=services,o=glue" "\$1GLUE2GroupNAME=services,GLUE2DomainID=$admindomain,o=glue" ":"
+	rwm-rewriteContext      searchAttrDN
+	rwm-rewriteContext      matchedDN
 
 	database        relay
-	suffix          "GLUE2GroupID=resource,o=glue"
+	suffix          "GLUE2GroupID=services,GLUE2DomainID=$admindomain,o=glue"
 	overlay         rwm
 	suffixmassage   "GLUE2GroupID=services,o=glue"
 	EOF
