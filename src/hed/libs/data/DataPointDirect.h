@@ -16,14 +16,12 @@ namespace Arc {
   class DataBuffer;
   class DataCallback;
 
-  /// This is a kind of generalized file handle.
-  /** Differently from file handle it does not support operations
-      read() and write(). Instead it initiates operation and uses
-      object of class DataBuffer to pass actual data. It also
-      provides other operations like querying parameters of remote
-      object. It is used by higher-level classes DataMove and
-      DataMovePar to provide data transfer service for application. */
-
+  /// DataPointDirect represents "physical" data objects.
+  /**
+   * This class should never be used directly, instead inherit from it to
+   * provide a class for a specific access protocol.
+   * \headerfile DataPointDirect.h arc/data/DataPointDirect.h
+   */
   class DataPointDirect
     : public DataPoint {
   public:

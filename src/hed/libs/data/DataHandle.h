@@ -11,7 +11,8 @@ namespace Arc {
   class UserConfig;
 
   /// This class is a wrapper around the DataPoint class.
-  /** It simplifies the construction, use and destruction of
+  /**
+   * It simplifies the construction, use and destruction of
    * DataPoint objects and should be used instead of DataPoint
    * classes directly. The appropriate DataPoint subclass is
    * created automatically and stored internally in DataHandle.
@@ -20,9 +21,9 @@ namespace Arc {
    * through the usual dereference operators. A DataHandle
    * cannot be copied.
    *
-   * This class is main way to access remote data items and
+   * This class is the main way to access remote data items and
    * obtain information about them. Below is an example of
-   * accessing last 512 bytes of files stored at GridFTP
+   * accessing the last 512 bytes of a file stored on a GridFTP
    * server. To simply copy a whole file DataMover::Transfer() can
    * be used.
    *
@@ -38,11 +39,12 @@ namespace Arc {
    *   #define DESIRED_SIZE 512
    *   Arc::UserConfig usercfg;
    *   URL url("gsiftp://localhost/files/file_test_21");
-   *   DataPoint* handle = DataHandle::GetPoint(url,usercfg);
-   *   if(!handle) {
+   *   DataHandle handle(url,usercfg);
+   *   if(!handle || !(*handle)) {
    *     std::cerr<<"Unsupported URL protocol or malformed URL"<<std::endl;
    *     return -1;
    *   };
+   *   handle->SetSecure(false) // GridFTP servers generally do not have encrypted data channel
    *   FileInfo info;
    *   if(!handle->Stat(info)) {
    *     std::cerr<<"Failed Stat"<<std::endl;
@@ -57,18 +59,12 @@ namespace Arc {
    *     std::cerr<<"file is empty"<<std::endl;
    *     return -1;
    *   };
-   *   unsigned long long int foffset;
    *   if(fsize > DESIRED_SIZE) {
    *     handle->Range(fsize-DESIRED_SIZE,fsize-1);
    *   };
-   *   unsigned int wto;
    *   DataBuffer buffer;
-   *   if(!handle->PrepareReading(10,wto)) {
-   *     std::cerr<<"Failed PrepareReading"<<std::endl;
-   *     return -1;
-   *   };
    *   if(!handle->StartReading(buffer)) {
-   *     std::cerr<<"Failed StopReading"<<std::endl;
+   *     std::cerr<<"Failed to start reading"<<std::endl;
    *     return -1;
    *   };
    *   for(;;) {
@@ -85,7 +81,6 @@ namespace Arc {
    *     std::cerr<<"Transfer failed"<<std::endl;
    *   };
    *   handle->StopReading();
-   *   handle->FinishReading();
    *   return 0;
    * }
    * \endcode
@@ -96,16 +91,17 @@ namespace Arc {
    * desired_size = 512
    * usercfg = arc.UserConfig()
    * url = arc.URL("gsiftp://localhost/files/file_test_21")
-   * handle = arc.DataHandle.GetPoint(url,usercfg)
+   * handle = arc.DataHandle(url,usercfg)
+   * point = handle.__ref__()
+   * point.SetSecure(False) # GridFTP servers generally do not have encrypted data channel
    * info = arc.FileInfo("")
-   * handle.Stat(info)
+   * point.Stat(info)
    * print "Name: ", info.GetName()
    * fsize = info.GetSize()
    * if fsize > desired_size:
-   *     handle.Range(fsize-desired_size,fsize-1)
+   *     point.Range(fsize-desired_size,fsize-1)
    * buffer = arc.DataBuffer()
-   * res, wto = handle.PrepareReading(10)
-   * handle.StartReading(buffer)
+   * point.StartReading(buffer)
    * while True:
    *     n = 0
    *     length = 0
@@ -114,7 +110,9 @@ namespace Arc {
    *     if not r: break
    *     print "BUFFER: ", offset, ": ", length, " :", buf
    *     buffer.is_written(n);
+   * point.StopReading()
    * \endcode
+   * \headerfile DataHandle.h arc/data/DataHandle.h
    */
 
   class DataHandle {
@@ -152,8 +150,10 @@ namespace Arc {
       return !!p;
     }
     /// Returns a pointer to new DataPoint object corresponding to URL.
-    /// This static method is mostly for bindings to other languages
-    /// and if availability scope of obtained DataPoint is undefined.
+    /**
+     * This static method is mostly for bindings to other languages
+     * and if available scope of obtained DataPoint is undefined.
+     */
     static DataPoint* GetPoint(const URL& url, const UserConfig& usercfg) {
       return getLoader().load(url, usercfg);
     }

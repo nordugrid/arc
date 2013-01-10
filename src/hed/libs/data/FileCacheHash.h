@@ -8,7 +8,10 @@
 namespace Arc {
 
 /// FileCacheHash provides methods to make hashes from strings.
-/** Currently the SHA-1 hash from the openssl library is used. */
+/**
+ * Currently the SHA-1 hash from the openssl library is used.
+ * \headerfile FileCacheHash.h arc/data/FileCacheHash.h
+ */
 class FileCacheHash {
 
 private:

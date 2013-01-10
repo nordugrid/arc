@@ -15,6 +15,9 @@
 namespace Arc {
 
   /// Contains data on the parameters of a cache.
+  /**
+   * \headerfile FileCache.h arc/data/FileCache.h
+   */
   struct CacheParameters {
     std::string cache_path;
     std::string cache_link_path;
@@ -53,6 +56,7 @@ namespace Arc {
    * passing the URL to Find().  For more information on the structure of the
    * cache, see the ARC Computing Element System Administrator Guide
    * (NORDUGRID-MANUAL-20).
+   * \headerfile FileCache.h arc/data/FileCache.h
    */
   class FileCache {
    private:
@@ -122,8 +126,8 @@ namespace Arc {
     static Logger logger;
 
    public:
+    /// Create a new FileCache instance with one cache directory.
     /**
-     * Create a new FileCache instance.
      * @param cache_path The format is "cache_dir[ link_path]".
      * path is the path to the cache directory and the optional
      * link_path is used to create a link in case the
@@ -141,8 +145,8 @@ namespace Arc {
               uid_t job_uid,
               gid_t job_gid);
 
+    /// Create a new FileCache instance with multiple cache dirs.
     /**
-     * Create a new FileCache instance with multiple cache dirs
      * @param caches a vector of strings describing caches. The format
      * of each string is "cache_dir[ link_path]".
      * @param id the job id. This is used to create the per-job dir
@@ -154,10 +158,10 @@ namespace Arc {
     FileCache(const std::vector<std::string>& caches,
               const std::string& id,
               uid_t job_uid,
-              gid_t job_gid);       
+              gid_t job_gid);
+
+    /// Create a new FileCache instance with multiple cache dirs, remote caches and draining cache directories.
     /**
-     * Create a new FileCache instance with multiple cache dirs,
-     * remote caches and draining cache directories.
      * @param caches a vector of strings describing caches. The format
      * of each string is "cache_dir[ link_path]".
      * @param remote_caches Same format as caches. These are the
@@ -189,7 +193,7 @@ namespace Arc {
      * available parameter is set to true if the file already exists and in
      * this case Link() can be called immediately. If available is false the
      * caller should write the file and then call Link() followed by Stop().
-     * It returns false if it was unable to prepare the cache file for any
+     * Start() returns false if it was unable to prepare the cache file for any
      * reason. In this case the is_locked parameter should be checked and if
      * it is true the file is locked by another process and the caller should
      * try again later.
@@ -202,6 +206,8 @@ namespace Arc {
      * remote cache. Can be set to false if for example a forced download
      * to cache is desired.
      * @param delete_first If true then any existing cache file is deleted.
+     * @return true if file is available or ready to be downloaded, false if
+     * the file is already locked or preparing the cache failed.
      */
     bool Start(const std::string& url,
                bool& available,
@@ -211,15 +217,17 @@ namespace Arc {
 
     /// Stop the cache after a file was downloaded.
     /**
-     * This method (or stopAndDelete) must be called after file was
+     * This method (or stopAndDelete()) must be called after file was
      * downloaded or download failed, to release the lock on the
      * cache file. Stop() does not delete the cache file. It returns
      * false if the lock file does not exist, or another pid was found
      * inside the lock file (this means another process took over the
      * lock so this process must go back to Start()), or if it fails
      * to delete the lock file. It must only be called if the caller
-     * holds the writing lock.
+     * actually downloaded the file. It must not be called if the file was
+     * already available.
      * @param url the url of the file that was downloaded
+     * @return true if the lock was successfully released.
      */
     bool Stop(const std::string& url);
 
@@ -229,17 +237,18 @@ namespace Arc {
      * failed download left an incomplete copy. This method also deletes
      * the meta file which contains the url corresponding to the cache file.
      * The logic of the return value is the same as Stop(). It must only be
-     * called if the caller holds the writing lock.
+     * called if the caller downloaded the file.
      * @param url the url corresponding to the cache file that has
      * to be released and deleted
+     * @return true if the cache file and lock were successfully removed.
      */
     bool StopAndDelete(const std::string& url);
 
     /// Get the cache filename for the given URL.
     /**
-     * Returns the full pathname of the file in the cache which
-     * corresponds to the given url.
      * @param url the URL to look for in the cache
+     * @return the full pathname of the file in the cache which corresponds to
+     * the given url.
      */
     std::string File(const std::string& url);
 
@@ -259,10 +268,11 @@ namespace Arc {
      * a write lock, and whether the modification time has changed since
      * linking started (in case the file was locked, modified then released
      * during linking). If either of these are true the links created during
-     * Link() are deleted and try_again is set to true. The caller should then
-     * go back to Start(). If the caller has obtained a write lock from Start()
-     * and then downloaded the file, it should set holding_lock to true, in
-     * which case none of the above checks are performed.
+     * Link() are deleted, try_again is set to true and Link() returns false.
+     * The caller should then go back to Start(). If the caller has obtained a
+     * write lock from Start() and then downloaded the file, it should set
+     * holding_lock to true, in which case none of the above checks are
+     * performed.
      *
      * The session directory is accessed under the uid and gid passed in
      * the constructor.
@@ -277,6 +287,8 @@ namespace Arc {
      * the lock
      * @param try_again If after linking the cache file was found to be locked,
      * deleted or modified, then try_again is set to true
+     * @return true if linking succeeded, false if an error occurred or the
+     * file was locked or modified by another process during linking
      */
     bool Link(const std::string& link_path,
               const std::string& url,
@@ -290,6 +302,7 @@ namespace Arc {
      * Release claims on input files for the job specified by id.
      * For each cache directory the per-job directory with the
      * hard-links will be deleted.
+     * @return false if any directory fails to be deleted
      */
     bool Release() const;
 
@@ -300,32 +313,34 @@ namespace Arc {
      * want to add a cached DN
      * @param DN the DN of the user
      * @param expiry_time the expiry time of this DN in the DN cache
+     * @return true if the DN was successfully added
      */
     bool AddDN(const std::string& url, const std::string& DN, const Time& expiry_time);
 
-    /// Check if a DN exists in the permission cache for the given url.
+    /// Check if a DN exists in the permission cache and is still valid for the given url.
     /**
-     * Check if the given DN is cached for authorisation.
+     * Check if the given DN is cached for authorisation and it is still valid.
      * @param url the url corresponding to the cache file for which we
      * want to check the cached DN
      * @param DN the DN of the user
+     * @return true if the DN exists and is still valid
      */
     bool CheckDN(const std::string& url, const std::string& DN);
 
     /// Check if it is possible to obtain the creation time of a cache file.
     /**
-     * Returns true if the file exists in the cache, since the creation time
-     * is the creation time of the cache file.
      * @param url the url corresponding to the cache file for which we
      * want to know if the creation date exists
+     * @return true if the file exists in the cache, since the creation time
+     * is the creation time of the cache file.
      */
     bool CheckCreated(const std::string& url);
 
     /// Get the creation time of a cached file.
     /**
-     * If the cache file does not exist, 0 is returned.
      * @param url the url corresponding to the cache file for which we
      * want to know the creation date
+     * @return creation time of the file or 0 if the cache file does not exist
      */
     Time GetCreated(const std::string& url);
 
@@ -333,14 +348,15 @@ namespace Arc {
     /**
      * @param url the url corresponding to the cache file for which we
      * want to know if the expiration time exists
+     * @return true if an expiry time exists
      */
     bool CheckValid(const std::string& url);
 
     /// Get expiry time of a cached file.
     /**
-     * If the time is not available, a time equivalent to 0 is returned.
      * @param url the url corresponding to the cache file for which we
      * want to know the expiry time
+     * @return the expiry time or 0 if none is available
      */
     Time GetValid(const std::string& url);
 
@@ -349,6 +365,7 @@ namespace Arc {
      * @param url the url corresponding to the cache file for which we
      * want to set the expiry time
      * @param val expiry time
+     * @return true if the expiry time was successfully set
      */
     bool SetValid(const std::string& url, const Time& val);
 
@@ -357,7 +374,7 @@ namespace Arc {
       return (!_caches.empty());
     };
 
-    /// Return true if all attributes are equal
+    /// Returns true if all attributes are equal
     bool operator==(const FileCache& a);
 
   };

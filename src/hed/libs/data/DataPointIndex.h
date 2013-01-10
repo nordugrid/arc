@@ -11,9 +11,12 @@
 
 namespace Arc {
 
-  /// Complements DataPoint with attributes common for Indexing Service URLs
-  /** It should never be used directly. Instead inherit from it to provide
-      a class for specific a Indexing Service. */
+  /// DataPointIndex represents "index" data objects, e.g. catalogs.
+  /**
+   * This class should never be used directly, instead inherit from it to
+   * provide a class for a specific indexing service.
+   * \headerfile DataPointIndex.h arc/data/DataPointIndex.h
+   */
   class DataPointIndex
     : public DataPoint {
   public:

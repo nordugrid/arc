@@ -46,15 +46,19 @@ namespace Arc {
    * }
    * @endcode
    * since logger.msg() does not call any system calls that modify errno.
+   *
+   * \headerfile DataStatus.h arc/data/DataStatus.h
    */
   class DataStatus {
 
   public:
 
     /// Status codes
-    /** These codes describe in which operation an error occurred. Retryable
+    /**
+     * These codes describe in which operation an error occurred. Retryable
      * error codes are deprecated - the corresponding non-retryable error code
-     * should be used with errno set to a retryable value. */
+     * should be used with errno set to a retryable value.
+     */
     enum DataStatusType {
       // Order is important! Must be kept synchronised with status_string[]
 
@@ -225,36 +229,53 @@ namespace Arc {
       GenericErrorRetryable = DataStatusRetryableBase+GenericError ///< @deprecated
    };
 
-    /// Constructor to use when errno-like information is not available
+    /// Constructor to use when errno-like information is not available.
+    /**
+     * \param status error location
+     * \param desc error description
+     */
     DataStatus(const DataStatusType& status, std::string desc="")
       : status(status), Errno(0), desc(desc) {
       if (!Passed()) Errno = EARCOTHER;
     }
 
-    /// Construct a new DataStatus with errno and optional text description
-    /** If the status is an error condition then error_no must be set to a
-     * non-zero value */
+    /// Construct a new DataStatus with errno and optional text description.
+    /**
+     * If the status is an error condition then error_no must be set to a
+     * non-zero value.
+     * \param status error location
+     * \param error_no errno
+     * \param desc error description
+     */
     DataStatus(const DataStatusType& status, int error_no, const std::string& desc="")
       : status(status), Errno(error_no), desc(desc) {}
 
-    /// Construct a new DataStatus with fields initialised to success states
+    /// Construct a new DataStatus with fields initialised to success states.
     DataStatus()
       : status(Success), Errno(0), desc("") {}
 
+    /// Returns true if this status type matches s.
     bool operator==(const DataStatusType& s) {
       return status == s;
     }
+    /// Returns true if this status type matches the status type of s.
     bool operator==(const DataStatus& s) {
       return status == s.status;
     }
   
+    /// Returns true if this status type does not match s.
     bool operator!=(const DataStatusType& s) {
       return status != s;
     }
+    /// Returns true if this status type does not match the status type of s.
     bool operator!=(const DataStatus& s) {
       return status != s.status;
     }
 
+    /// Assignment operator.
+    /**
+     * Sets status type to s and errno to EARCOTHER if s is an error state.
+     */
     DataStatus operator=(const DataStatusType& s) {
       status = s;
       Errno = 0;
@@ -262,9 +283,11 @@ namespace Arc {
       return *this;
     }
 
+    /// Returns true if status type is not a success value.
     bool operator!() const {
       return (status != Success) && (status != SuccessCached);
     }
+    /// Returns true if status type is a success value.
     operator bool() const {
       return (status == Success) || (status == SuccessCached);
     }
@@ -277,34 +300,36 @@ namespace Arc {
     }
   
     /// Returns true if the error was temporary and could be retried.
-    /** Retryable error numbers are EAGAIN, EBUSY, ETIMEDOUT, EARCSVCTMP,
-     * EARCTRANSFERTIMEOUT and EARCCHECKSUM. */
+    /**
+     * Retryable error numbers are EAGAIN, EBUSY, ETIMEDOUT, EARCSVCTMP,
+     * EARCTRANSFERTIMEOUT, EARCCHECKSUM and EARCOTHER.
+     */
     bool Retryable() const;
 
-    /// Set the error number
-    void SetErrNo(int error_no) {
+    /// Set the error number.
+    void SetErrno(int error_no) {
       Errno = error_no;
     }
   
-    /// Get the error number
+    /// Get the error number.
     int GetErrno() const {
       return Errno;
     }
 
-    /// Get text description of the error number
+    /// Get text description of the error number.
     std::string GetStrErrno() const;
 
-    /// Set a detailed description of the status, removing trailing new line if present
+    /// Set a detailed description of the status, removing trailing new line if present.
     void SetDesc(const std::string& d) {
       desc = trim(d);
     }
     
-    /// Get a detailed description of the status
+    /// Get a detailed description of the status.
     std::string GetDesc() const {
       return desc;
     }
 
-    /// Returns a human-friendly readable string with all error information
+    /// Returns a human-friendly readable string with all error information.
     operator std::string(void) const;
 
   private:
@@ -318,6 +343,7 @@ namespace Arc {
 
   };
 
+  /// Write a human-friendly readable string with all error information to o.
   inline std::ostream& operator<<(std::ostream& o, const DataStatus& d) {
     return (o << ((std::string)d));
   }
