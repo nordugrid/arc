@@ -257,7 +257,7 @@ namespace Arc
     
     // Find the location of the ssm_master
     std::string ssm_command = "./ssm/"+exec_cmd;
-    for (int i=0; i<ssm_pathes.size(); i++) {
+    for (int i=0; i<(int)ssm_pathes.size(); i++) {
         std::ifstream ssmfile(ssm_pathes[i].c_str());
         if (ssmfile) {
             // The file exists,
