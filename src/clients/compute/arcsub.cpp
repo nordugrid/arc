@@ -120,7 +120,8 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
 
     buffer[length] = '\0';
     std::list<Arc::JobDescription> jobdescs;
-    if (Arc::JobDescription::Parse((std::string)buffer, jobdescs)) {
+    Arc::JobDescriptionResult parseres = Arc::JobDescription::Parse((std::string)buffer, jobdescs);
+    if (parseres) {
       for (std::list<Arc::JobDescription>::iterator itJ = jobdescs.begin();
            itJ != jobdescs.end(); itJ++) {
         itJ->Application.DryRun = opt.dryrun;
@@ -136,6 +137,7 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
       logger.msg(Arc::ERROR, "Invalid JobDescription:");
       std::cout << buffer << std::endl;
       delete[] buffer;
+      logger.msg(Arc::ERROR, "Parsing error:\n%s", parseres.str());
       return 1;
     }
     delete[] buffer;

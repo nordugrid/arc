@@ -443,11 +443,15 @@ namespace Arc {
     }
 
     std::string parse_error;
+    bool has_parsers = false;
+    bool has_languages = false;
     for (JobDescriptionParserPluginLoader::iterator it = jdpl->GetIterator(); it; ++it) {
       // Releasing lock because we can't know how long parsing will take
       // But for current implementations of parsers it is not specified
       // if their Parse/Unparse methods can be called concurently.
+      has_parsers = true;
       if (language.empty() || it->IsLanguageSupported(language)) {
+        has_languages = true;
         if (it->Parse(source, jobdescs, language, dialect)) {
           jdpl_lock.unlock();
           return true;
@@ -459,6 +463,13 @@ namespace Arc {
       }
     }
     jdpl_lock.unlock();
+    if(!has_parsers) {
+      parse_error = "No job description parsers are available.\n";
+    } else if(!has_languages) {
+      parse_error = "No job description parsers suitable for handling '"+language+"' language are available.\n";
+    } else if(parse_error.empty()) {
+      parse_error = "No job description parser was able to interpret job description\n";
+    }
 
     return JobDescriptionResult(false,parse_error);
   }
