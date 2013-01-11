@@ -48,6 +48,7 @@ namespace Arc {
     std::string userpass;
     std::string path;
     std::string scheme;
+    std::string urlstr;
     GSSCredential* credential;
 
     callback_status_t wait_for_callback(int to = -1);
