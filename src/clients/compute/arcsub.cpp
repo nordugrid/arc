@@ -244,7 +244,9 @@ static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescri
 
   Arc::SubmissionStatus status;
   if (!direct_submission) {
-    status = s.BrokeredSubmit(services, jobdescriptionlist, std::list<std::string>(1, requestedSubmissionInterface));
+    std::list<std::string> rsi;
+    if (!requestedSubmissionInterface.empty()) rsi.push_back(requestedSubmissionInterface);
+    status = s.BrokeredSubmit(services, jobdescriptionlist, rsi);
   }
   else {
     if (!requestedSubmissionInterface.empty()) {
