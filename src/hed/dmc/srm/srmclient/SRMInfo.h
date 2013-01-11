@@ -5,6 +5,8 @@
 
 #include "SRMURL.h"
 
+namespace ArcDMCSRM {
+
 /**
  * Info about a particular entry in the SRM info file
  */
@@ -35,5 +37,7 @@ class SRMInfo {
   static Arc::Logger logger;
   std::string srm_info_filename;
 };
+
+} //namespace ArcDMCSRM
 
 #endif /*SRM_INFO_H_*/

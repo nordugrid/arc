@@ -5,7 +5,9 @@
 
 #include "SRMClient.h"
 
-namespace Arc {
+namespace ArcDMCSRM {
+
+  using namespace Arc;
 
   class SRM22Client
     : public SRMClient {
@@ -218,6 +220,6 @@ namespace Arc {
 
   };
 
-} // namespace Arc
+} // namespace ArcDMCSRM
 
 #endif // __HTTPSD_SRM_CLIENT_2_2_H__

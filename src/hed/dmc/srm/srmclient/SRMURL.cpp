@@ -6,7 +6,7 @@
 
 #include "SRMURL.h"
 
-//namespace Arc {
+namespace ArcDMCSRM {
   
   SRMURL::SRMURL(std::string url) try: URL(url) {
     portdefined = false;
@@ -78,4 +78,4 @@
     return (protocol+"://"+host+":"+Arc::tostring(port)+"/"+filename);
   }
   
-//} // namespace Arc
+} // namespace ArcDMCSRM

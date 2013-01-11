@@ -17,7 +17,9 @@
 #include "SRMURL.h"
 #include "SRMClientRequest.h"
 
-namespace Arc {
+namespace ArcDMCSRM {
+
+  using namespace Arc;
 
   /// Return code of SRM operation (errno-like number)
   typedef int SRMReturnCode;
@@ -335,6 +337,6 @@ namespace Arc {
     }
   };
 
-} // namespace Arc
+} // namespace ArcDMCSRM
 
 #endif // __HTTPSD_SRM_CLIENT_H__

@@ -14,7 +14,9 @@
 
 #include <unistd.h>
 
-namespace Arc {
+namespace ArcDMCSRM {
+
+  using namespace Arc;
 
   /**
    * The max number of files returned when listing dirs
@@ -1599,4 +1601,4 @@ namespace Arc {
   }
 
 
-} // namespace Arc
+} // namespace ArcDMCSRM

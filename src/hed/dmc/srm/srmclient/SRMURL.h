@@ -3,7 +3,7 @@
 
 #include <arc/URL.h>
 
-//namespace Arc {
+namespace ArcDMCSRM {
   
   class SRMURL:public Arc::URL {
    public:
@@ -73,6 +73,6 @@
 
   };
 
-//} // namespace Arc
+} // namespace ArcDMCSRM
 
 #endif // __HTTPSD_SRM_URL_H__

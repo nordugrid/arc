@@ -13,7 +13,9 @@
 
 #include <unistd.h>
 
-namespace Arc {
+namespace ArcDMCSRM {
+
+  using namespace Arc;
 
   SRM1Client::SRM1Client(const UserConfig& usercfg, const SRMURL& url)
     : SRMClient(usercfg, url) {
@@ -470,4 +472,4 @@ namespace Arc {
     return release(creq);
   }
 
-} // namespace Arc
+} // namespace ArcDMCSRM

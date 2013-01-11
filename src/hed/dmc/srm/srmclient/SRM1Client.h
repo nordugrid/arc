@@ -5,7 +5,9 @@
 
 #include "SRMClient.h"
 
-namespace Arc {
+namespace ArcDMCSRM {
+
+  using namespace Arc;
 
   class SRM1Client
     : public SRMClient {
@@ -79,6 +81,6 @@ namespace Arc {
     SRMReturnCode copy(SRMClientRequest& req, const std::string& source);
   };
 
-} // namespace Arc
+} // namespace ArcDMCSRM
 
 #endif // __HTTPSD_SRM1_CLIENT_H__

@@ -17,6 +17,8 @@
 
 #include "SRMInfo.h"
 
+namespace ArcDMCSRM {
+
 Arc::SimpleCondition SRMInfo::lock;
 std::list<SRMFileInfo> SRMInfo::srm_info;
 
@@ -203,3 +205,4 @@ void SRMInfo::putSRMFileInfo(const SRMFileInfo& srm_file_info) {
   filelock.release();
 }
 
+} // namespace ArcDMCSRM {

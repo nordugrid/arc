@@ -8,7 +8,9 @@
 #include "SRM22Client.h"
 #include "SRMInfo.h"
 
-namespace Arc {
+namespace ArcDMCSRM {
+
+  using namespace Arc;
 
   Logger SRMClient::logger(Logger::getRootLogger(), "SRMClient");
 
@@ -171,4 +173,4 @@ namespace Arc {
     return 0;
   }
 
-} // namespace Arc
+} // namespace ArcDMCSRM
