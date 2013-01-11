@@ -71,7 +71,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
   }
 
   if ((opt.testjobid == 1) && (!opt.runtime)) {
-    std::cout << Arc::IString("For the 1st test job"
+    std::cout << Arc::IString("For the 1st test job "
         "you also have to specify a runtime value with -r (--runtime) option.");
     return 0;
   }

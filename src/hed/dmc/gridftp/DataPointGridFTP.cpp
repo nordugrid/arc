@@ -499,7 +499,7 @@ namespace Arc {
         }
         else {
           logger.msg(DEBUG, "ftp_read_thread: "
-                     "failed to register globus buffer - will try later: %s",
+                     "failed to register Globus buffer - will try later: %s",
                      it->url.str());
           it->buffer->is_read(h, 0, 0);
           // First retry quickly for race condition.
@@ -1013,7 +1013,7 @@ namespace Arc {
     bool more_info = ((verb | INFO_TYPE_NAME) != INFO_TYPE_NAME);
     DataStatus lister_res = lister->retrieve_dir_info(url,!more_info);
     if (!lister_res) {
-      logger.msg(ERROR, "Failed to obtain listing from ftp: %s", lister_res.GetDesc());
+      logger.msg(ERROR, "Failed to obtain listing from FTP: %s", lister_res.GetDesc());
       reading = false;
       return lister_res;
     }

@@ -335,11 +335,11 @@ int main(int argc, char *argv[]) {
                     istring("path"), proxy_path);
 
   std::string cert_path;
-  options.AddOption('C', "cert", istring("path to the certificate file, it can be either pem, der, or pkcs12 formated"),
+  options.AddOption('C', "cert", istring("path to the certificate file, it can be either PEM, DER, or PKCS12 formated"),
                     istring("path"), cert_path);
 
   std::string key_path;
-  options.AddOption('K', "key", istring("path to the private key file, if the certificate is in pkcs12 format, then no need to give private key"),
+  options.AddOption('K', "key", istring("path to the private key file, if the certificate is in PKCS12 format, then no need to give private key"),
                     istring("path"), key_path);
 
   std::string ca_dir;
@@ -380,7 +380,7 @@ int main(int argc, char *argv[]) {
 
   bool use_http_comm = false;
   options.AddOption('H', "httpcom", istring("use HTTP communication protocol for contacting VOMS services that provide RESTful access \n"
-                                            "               Note for RESTful access, \'list\' command and multiple voms server are not supported\n"
+                                            "               Note for RESTful access, \'list\' command and multiple VOMS server are not supported\n"
                                             ), 
                     use_http_comm);
 
@@ -434,7 +434,7 @@ int main(int argc, char *argv[]) {
 
 #ifdef HAVE_NSS
   bool use_nssdb = false;
-  options.AddOption('F', "nssdb", istring("use NSS credential db in firefox profile"), use_nssdb);
+  options.AddOption('F', "nssdb", istring("use NSS credential database in the Firefox profile"), use_nssdb);
 #endif
 
   int timeout = -1;
@@ -467,13 +467,13 @@ int main(int argc, char *argv[]) {
   if(use_nssdb) {
     std::string nssdb_path = get_nssdb_path();
     if(nssdb_path.empty()) {
-      std::cout << Arc::IString("The nss db can not be detected under firefox profile") << std::endl;
+      std::cout << Arc::IString("The NSS database can not be detected in the Firefox profile") << std::endl;
       return EXIT_FAILURE;
     }
     bool res;
     std::string configdir = nssdb_path;
     res = AuthN::nssInit(configdir);
-    std::cout<< Arc::IString("nss db to be accesses: %s\n", configdir.c_str());
+    std::cout<< Arc::IString("NSS database to be accessed: %s\n", configdir.c_str());
 
     char* slotpw = NULL; //"secretpw";  //TODO: Input passphrase to nss db 
     //The nss db under firefox profile seems to not be protected by any passphrase by default
@@ -1115,7 +1115,7 @@ static bool contact_voms_servers(std::list<std::string>& vomslist, std::list<std
           continue; //There could be another voms replicated server with the same name exists
         }
         if (!response) {
-          logger.msg(Arc::ERROR, "No http response from VOMS server");
+          logger.msg(Arc::ERROR, "No HTTP response from VOMS server");
           continue;
         }
         if(response->Content() != NULL) ret_str.append(response->Content());
@@ -1200,7 +1200,7 @@ static bool contact_voms_servers(std::list<std::string>& vomslist, std::list<std
     }//end of the scanning of multiple vomses lines with the same name
     if(succeeded == false) {
       if(voms_lines.size() > 1) 
-        std::cout << Arc::IString("There are %d servers with the same name: %s in your vomses file, but all of them can not been reached, or can return valid message. But proxy without voms AC extension will still be generated.", voms_lines.size(), voms_server) << std::endl; 
+        std::cout << Arc::IString("There are %d servers with the same name: %s in your vomses file, but all of them can not be reached, or can not return valid message. But proxy without VOMS AC extension will still be generated.", voms_lines.size(), voms_server) << std::endl;
     }
   }
 

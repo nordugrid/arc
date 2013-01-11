@@ -380,7 +380,7 @@ static void get_nss_certname(std::string& certname, Arc::Logger& logger) {
   std::list<AuthN::certInfo> certInfolist;
   AuthN::nssListUserCertificatesInfo(certInfolist);
   if(certInfolist.size()) {
-    std::cout<<Arc::IString("There are %d user certificates existing under nss database", 
+    std::cout<<Arc::IString("There are %d user certificates existing in the NSS database",
       certInfolist.size())<<std::endl;
   }
   int n = 1;
@@ -466,11 +466,11 @@ int main(int argc, char *argv[]) {
                     istring("path"), proxy_path);
 
   std::string cert_path;
-  options.AddOption('C', "cert", istring("path to the certificate file, it can be either pem, der, or pkcs12 formated"),
+  options.AddOption('C', "cert", istring("path to the certificate file, it can be either PEM, DER, or PKCS12 formated"),
                     istring("path"), cert_path);
 
   std::string key_path;
-  options.AddOption('K', "key", istring("path to the private key file, if the certificate is in pkcs12 format, then no need to give private key"),
+  options.AddOption('K', "key", istring("path to the private key file, if the certificate is in PKCS12 format, then no need to give private key"),
                     istring("path"), key_path);
 
   std::string ca_dir;
@@ -511,7 +511,7 @@ int main(int argc, char *argv[]) {
 
   bool use_http_comm = false;
   options.AddOption('H', "httpcom", istring("use HTTP communication protocol for contacting VOMS services that provide RESTful access \n"
-                                            "               Note for RESTful access, \'list\' command and multiple voms server are not supported\n"
+                                            "               Note for RESTful access, \'list\' command and multiple VOMS server are not supported\n"
                                             ), 
                     use_http_comm);
 
@@ -566,8 +566,8 @@ int main(int argc, char *argv[]) {
 
 #ifdef HAVE_NSS
   bool use_nssdb = false;
-  options.AddOption('F', "nssdb", istring("use NSS credential db in default mozilla profiles, \n"
-                                          "              including firefox, seamonkey and thunderbird.\n"), use_nssdb);
+  options.AddOption('F', "nssdb", istring("use NSS credential database in default Mozilla profiles, \n"
+                                          "              including Firefox, Seamonkey and Thunderbird.\n"), use_nssdb);
 #endif
 
   std::list<std::string> constraintlist;
@@ -943,7 +943,7 @@ int main(int argc, char *argv[]) {
     std::vector<std::string> nssdb_paths;
     get_default_nssdb_path(nssdb_paths);
     if(nssdb_paths.empty()) {
-      std::cout << Arc::IString("The nss db can not be detected under firefox profile") << std::endl;
+      std::cout << Arc::IString("The NSS database can not be detected in the Firefox profile") << std::endl;
       return EXIT_FAILURE;
     }
 
@@ -952,13 +952,13 @@ int main(int argc, char *argv[]) {
     bool res;
     std::string configdir;
     if(nssdb_paths.size()) {
-      std::cout<<Arc::IString("There are %d nss base directories where the cert, key, and module datbases live",
+      std::cout<<Arc::IString("There are %d NSS base directories where the certificate, key, and module datbases live",
         nssdb_paths.size())<<std::endl;
     }
     for(int i=0; i < nssdb_paths.size(); i++) {
       std::cout<<Arc::IString("Number %d is: %s", i+1, nssdb_paths[i])<<std::endl;
     }
-    std::cout << Arc::IString("Please choose the nss db you would use (1-%d): ", nssdb_paths.size());
+    std::cout << Arc::IString("Please choose the NSS database you would use (1-%d): ", nssdb_paths.size());
     if(nssdb_paths.size() == 1) { configdir = nssdb_paths[0]; }
     char c;
     while(true && (nssdb_paths.size()>1)) {
@@ -971,7 +971,7 @@ int main(int argc, char *argv[]) {
     }
 
     res = AuthN::nssInit(configdir);
-    std::cout<< Arc::IString("nss db to be accessed: %s\n", configdir.c_str());
+    std::cout<< Arc::IString("NSS database to be accessed: %s\n", configdir.c_str());
 
     char* slotpw = NULL; //"secretpw";  
     //The nss db under firefox profile seems to not be protected by any passphrase by default
@@ -1105,7 +1105,7 @@ int main(int argc, char *argv[]) {
       bool r = parseVOMSAC(holder, ca_dir, "", voms_dir, voms_trust_dn, voms_attributes, true, true);
       if (!r) logger.msg(Arc::ERROR, "VOMS attribute parsing failed");
       if(voms_attributes.size() == 0) {
-        logger.msg(Arc::INFO, "Myproxy server has not responded proxy with VOMS AC included");
+        logger.msg(Arc::INFO, "Myproxy server did not return proxy with VOMS AC included");
         std::string vomsacseq;
         contact_voms_servers(vomslist, orderlist, vomses_path, use_gsi_comm,
             use_http_comm, voms_period, usercfg, logger, proxy_path, vomsacseq);
@@ -1368,7 +1368,7 @@ static bool contact_voms_servers(std::list<std::string>& vomslist, std::list<std
           continue; //There could be another voms replicated server with the same name exists
         }
         if (!response) {
-          logger.msg(Arc::ERROR, "No http response from VOMS server");
+          logger.msg(Arc::ERROR, "No HTTP response from VOMS server");
           continue;
         }
         if(response->Content() != NULL) ret_str.append(response->Content());
@@ -1453,7 +1453,7 @@ static bool contact_voms_servers(std::list<std::string>& vomslist, std::list<std
     }//end of the scanning of multiple vomses lines with the same name
     if(succeeded == false) {
       if(voms_lines.size() > 1) 
-        std::cout << Arc::IString("There are %d servers with the same name: %s in your vomses file, but all of them can not been reached, or can return valid message. But proxy without voms AC extension will still be generated.", voms_lines.size(), voms_server) << std::endl; 
+        std::cout << Arc::IString("There are %d servers with the same name: %s in your vomses file, but all of them can not be reached, or can not return valid message. But proxy without VOMS AC extension will still be generated.", voms_lines.size(), voms_server) << std::endl;
     }
   }
 

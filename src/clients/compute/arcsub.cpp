@@ -283,7 +283,7 @@ static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescri
       }
     }
     if (gridFTPJobPluginFailed) {
-      std::cerr << Arc::IString("ERROR: A computing resource using the gridftp interface was requested, but") << std::endl;
+      std::cerr << Arc::IString("ERROR: A computing resource using the GridFTP interface was requested, but") << std::endl;
       std::cerr << Arc::IString("       the corresponding plugin could not be loaded. Is the plugin installed?") << std::endl;
       std::cerr << Arc::IString("       If not, please install the package 'nordugrid-arc-plugins-globus'.") << std::endl;
       std::cerr << Arc::IString("       Depending on your type of installation the package name might differ. ") << std::endl;

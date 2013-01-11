@@ -426,7 +426,7 @@ ClientOptions::ClientOptions(Client_t c,
   
   if (c == CO_INFO) {
     AddOption('S', "submissioninterface",
-              istring("only get information about executon targets which supports this job submission interface "
+              istring("only get information about executon targets which support this job submission interface "
                       "(e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes)"),
               istring("InterfaceName"),
               requestedSubmissionInterfaceName);

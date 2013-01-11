@@ -657,16 +657,16 @@ logger.msg(Arc::DEBUG,"Doing CREAM request");
         if(fqan_str.empty()) continue;
         if(pfqan.empty()) pfqan = fqan_str;
         if(!fqan->empty()) xacml_attribute_addvalue(attr, fqan_str.c_str());
-        logger.msg(Arc::DEBUG,"Adding fqan value: %s",fqan_str);
+        logger.msg(Arc::DEBUG,"Adding FQAN value: %s",fqan_str);
     }
     xacml_attribute_setdatatype(attr, XACML_DATATYPE_FQAN);
     xacml_subject_addattribute(subject,attr); attr = NULL;
     if(!pfqan.empty()) {
         attr = xacml_attribute_create("http://glite.org/xacml/attribute/fqan/primary");
-        if(!attr) throw ierror("Failed to create attribute fqan/primary object");
+        if(!attr) throw ierror("Failed to create attribute FQAN/primary object");
         // TODO: convert to VOMS FQAN?
         xacml_attribute_addvalue(attr, pfqan.c_str());
-        logger.msg(Arc::DEBUG,"Adding fqan/primary value: %s",pfqan);
+        logger.msg(Arc::DEBUG,"Adding FQAN/primary value: %s",pfqan);
         xacml_attribute_setdatatype(attr, XACML_DATATYPE_FQAN);
         xacml_subject_addattribute(subject,attr); attr = NULL;
     }
