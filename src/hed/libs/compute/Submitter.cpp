@@ -127,7 +127,7 @@ namespace Arc {
         return retval;
       }
     }
-    logger.msg(DEBUG, "No more interfaces to try.", endpoint.URLString);
+    logger.msg(DEBUG, "No more interfaces to try for endpoint %s.", endpoint.URLString);
 
     for (std::list<JobDescription>::const_iterator it = descs.begin();
          it != descs.end(); ++it) {
@@ -320,7 +320,10 @@ namespace Arc {
       do {
         ets.set(*currentJobDesc);
         for (; !ets.endOfList(); ets.next()) {
-          if(!match_submission_interface(*ets, requestedSubmissionInterfaces)) continue;
+          if(!match_submission_interface(*ets, requestedSubmissionInterfaces)) {
+            logger.msg(VERBOSE, "Target %s does not match requested interface(s).", ets->ComputingEndpoint->URLString);
+            continue;
+          }
           SubmitterPlugin *sp = getLoader().loadByInterfaceName(ets->ComputingEndpoint->InterfaceName, uc);
           if (sp == NULL) {
             submissionStatusMap[Endpoint(*ets)] = EndpointSubmissionStatus(EndpointSubmissionStatus::NOPLUGIN);
