@@ -11,7 +11,9 @@
 #include "DataPointLDAP.h"
 #include "LDAPQuery.h"
 
-namespace Arc {
+namespace ArcDMCLDAP {
+
+  using namespace Arc;
 
   Logger DataPointLDAP::logger(Logger::getRootLogger(), "DataPoint.LDAP");
 
@@ -162,10 +164,10 @@ namespace Arc {
     point.buffer->eof_read(true);
   }
 
-} // namespace Arc
+} // namespace ArcDMCLDAP
 
 Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
-  { "ldap", "HED:DMC", "Lightweight Directory Access Protocol", 0, &Arc::DataPointLDAP::Instance },
+  { "ldap", "HED:DMC", "Lightweight Directory Access Protocol", 0, &ArcDMCLDAP::DataPointLDAP::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
 

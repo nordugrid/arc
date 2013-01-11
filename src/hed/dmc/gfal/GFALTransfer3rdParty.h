@@ -5,7 +5,9 @@
 
 #include <arc/data/DataPoint.h>
 
-namespace Arc {
+namespace ArcDMCGFAL {
+
+  using namespace Arc;
 
   /// Class to interact with GFAL2 to do third-party transfer
   class GFALTransfer3rdParty {
@@ -23,7 +25,7 @@ namespace Arc {
     static void gfal_3rd_party_callback(gfalt_transfer_status_t h, const char* src, const char* dst, gpointer user_data);
   };
 
-} // namespace Arc
+} // namespace ArcDMCGFAL
 
 
 #endif /* TRANSFER3RDPARTY_H_ */

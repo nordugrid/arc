@@ -42,7 +42,9 @@ static void dos_to_unix(char *s) {
   }
 }
 
-namespace Arc {
+namespace ArcDMCGridFTP {
+
+  using namespace Arc;
 
   static Logger logger(Logger::rootLogger, "Lister");
 
@@ -1053,4 +1055,4 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-} // namespace Arc
+} // namespace ArcDMCGridFTP

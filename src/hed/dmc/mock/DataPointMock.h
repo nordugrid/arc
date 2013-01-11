@@ -3,7 +3,9 @@
 
 #include <arc/data/DataPointDirect.h>
 
-namespace Arc {
+namespace ArcDMCMock {
+
+  using namespace Arc;
 
   /// Mock data point which does not do anything but sleep for each operation.
   /**
@@ -31,6 +33,6 @@ namespace Arc {
     virtual bool RequiresCredentials() const { return false; }
   };
 
-} // namespace Arc
+} // namespace ArcDMCMock
 
 #endif /* DATAPOINTMOCK_H_ */

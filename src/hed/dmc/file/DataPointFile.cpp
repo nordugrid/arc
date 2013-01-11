@@ -29,7 +29,9 @@
 
 #include "DataPointFile.h"
 
-namespace Arc {
+namespace ArcDMCFile {
+
+  using namespace Arc;
 
 
   static char const * const stdfds[] = {
@@ -815,6 +817,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
-  { "file", "HED:DMC", "Regular local file", 0, &Arc::DataPointFile::Instance },
+  { "file", "HED:DMC", "Regular local file", 0, &ArcDMCFile::DataPointFile::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

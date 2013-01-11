@@ -5,7 +5,9 @@
 
 #include <unistd.h>
 
-namespace Arc {
+namespace ArcDMCMock {
+
+  using namespace Arc;
 
   DataPointMock::DataPointMock(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
     : DataPointDirect(url, usercfg, parg) {}
@@ -74,9 +76,9 @@ namespace Arc {
     return new DataPointMock(*dmcarg, *dmcarg, dmcarg);
   }
 
-} // namespace Arc
+} // namespace ArcDMCMock
 
 Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
-  { "mock", "HED:DMC", "Dummy protocol", 0, &Arc::DataPointMock::Instance },
+  { "mock", "HED:DMC", "Dummy protocol", 0, &ArcDMCMock::DataPointMock::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

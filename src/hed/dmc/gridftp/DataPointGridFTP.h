@@ -11,11 +11,13 @@
 
 #include <arc/Thread.h>
 #include <arc/data/DataPointDirect.h>
+#include <arc/URL.h>
+#include <arc/globusutils/GSSCredential.h>
 
-namespace Arc {
+namespace ArcDMCGridFTP {
 
-  class GSSCredential;
-  class URL;
+  using namespace Arc;
+
   class Lister;
 
   /**
@@ -123,6 +125,6 @@ namespace Arc {
     virtual bool RequiresCredentials() const;
   };
 
-} // namespace Arc
+} // namespace ArcDMCGridFTP
 
 #endif // __ARC_DATAPOINTGRIDFTP_H__

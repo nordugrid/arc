@@ -2,7 +2,9 @@
 
 #include "GFALUtils.h"
 
-namespace Arc {
+namespace ArcDMCGFAL {
+
+  using namespace Arc;
 
   std::string GFALUtils::GFALURL(const URL& u) {
     // LFC URLs must be converted to lfn:/path or guid:abcd...
@@ -24,4 +26,4 @@ namespace Arc {
     return error_no;
   }
 
-} // namespace Arc
+} // namespace ArcDMCGFAL

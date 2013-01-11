@@ -2,7 +2,9 @@
 
 #include "GFALTransfer3rdParty.h"
 
-namespace Arc {
+namespace ArcDMCGFAL {
+
+  using namespace Arc;
 
   Logger GFALTransfer3rdParty::logger(Logger::getRootLogger(), "Transfer3rdParty");
 
@@ -83,4 +85,4 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-} // namespace Arc
+} // namespace ArcDMCGFAL

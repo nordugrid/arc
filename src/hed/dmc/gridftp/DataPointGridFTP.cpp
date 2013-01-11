@@ -19,7 +19,9 @@
 #include "DataPointGridFTP.h"
 #include "Lister.h"
 
-namespace Arc {
+namespace ArcDMCGridFTP {
+
+  using namespace Arc;
 
   static bool proxy_initialized = false;
 
@@ -1335,10 +1337,10 @@ namespace Arc {
     lock.unlock();
   }
 
-} // namespace Arc
+} // namespace ArcDMCGridFTP
 
 Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
-  { "gsiftp", "HED:DMC", "FTP or FTP with GSI security", 0, &Arc::DataPointGridFTP::Instance },
+  { "gsiftp", "HED:DMC", "FTP or FTP with GSI security", 0, &ArcDMCGridFTP::DataPointGridFTP::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
 

@@ -11,7 +11,9 @@
 #include <arc/XMLNode.h>
 #include <arc/data/DataPointDirect.h>
 
-namespace Arc {
+namespace ArcDMCLDAP {
+
+  using namespace Arc;
 
   /**
    * LDAP is used in grids mainly to store information about grid services
@@ -50,6 +52,6 @@ namespace Arc {
     static Logger logger;
   };
 
-} // namespace Arc
+} // namespace ArcDMCLDAP
 
 #endif // __ARC_DATAPOINTLDAP_H__

@@ -28,7 +28,9 @@ typedef void (*ldap_callback)(const std::string& attr,
                               const std::string& value,
                               void *ref);
 
-namespace Arc {
+namespace ArcDMCLDAP {
+
+  using namespace Arc;
 
   /**
    *  LDAPQuery class; querying of LDAP servers.

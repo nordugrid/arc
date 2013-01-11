@@ -8,7 +8,9 @@
 #include <arc/Thread.h>
 #include <arc/data/DataPointDirect.h>
 
-namespace Arc {
+namespace ArcDMCFile {
+
+  using namespace Arc;
 
   /**
    * This class allows access to the regular local filesystem through the

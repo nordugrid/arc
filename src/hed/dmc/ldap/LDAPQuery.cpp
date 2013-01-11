@@ -59,7 +59,9 @@
 
 #include "LDAPQuery.h"
 
-namespace Arc {
+namespace ArcDMCLDAP {
+
+  using namespace Arc;
 
   Logger LDAPQuery::logger(Logger::rootLogger, "LDAPQuery");
 

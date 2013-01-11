@@ -14,7 +14,9 @@
 
 #include "DataPointXrootd.h"
 
-namespace Arc {
+namespace ArcDMCXrootd {
+
+  using namespace Arc;
 
   Logger DataPointXrootd::logger(Logger::getRootLogger(), "DataPoint.Xrootd");
 
@@ -271,10 +273,10 @@ namespace Arc {
     return DataStatus::DeleteError;
   }
 
-} // namespace Arc
+} // namespace ArcDMCXrootd
 
 
 Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
-  { "root", "HED:DMC", "XRootd", 0, &Arc::DataPointXrootd::Instance },
+  { "root", "HED:DMC", "XRootd", 0, &ArcDMCXrootd::DataPointXrootd::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

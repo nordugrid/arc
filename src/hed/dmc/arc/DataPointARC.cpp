@@ -24,7 +24,9 @@
 
 #include "DataPointARC.h"
 
-namespace Arc {
+namespace ArcDMCARC {
+
+  using namespace Arc;
 
   Logger DataPointARC::logger(Logger::getRootLogger(), "DataPoint.ARC");
 
@@ -648,9 +650,9 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-} // namespace Arc
+} // namespace ArcDMCARC
 
 Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
-  { "arc", "HED:DMC", "Chelonia Storage Element", 0, &Arc::DataPointARC::Instance },
+  { "arc", "HED:DMC", "Chelonia Storage Element", 0, &ArcDMCARC::DataPointARC::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

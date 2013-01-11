@@ -8,7 +8,9 @@
 #include <arc/Thread.h>
 #include <arc/data/DataPointDirect.h>
 
-namespace Arc {
+namespace ArcDMCGFAL {
+
+  using namespace Arc;
 
   /**
    * Provides access to the gLite Grid File Access Library through ARC's API.
@@ -62,6 +64,6 @@ namespace Arc {
     std::list<URLLocation> locations;
   };
 
-} // namespace Arc
+} // namespace ArcDMCGFAL
 
 #endif // __ARC_DATAPOINTGFAL_H__

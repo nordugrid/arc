@@ -5,7 +5,9 @@
 
 #include <arc/data/DataPointDirect.h>
 
-namespace Arc {
+namespace ArcDMCXrootd {
+
+  using namespace Arc;
 
   /**
    * xrootd is a protocol for data access across large scale storage clusters.
@@ -50,6 +52,6 @@ namespace Arc {
     static Logger logger;
   };
 
-} // namespace Arc
+} // namespace ArcDMCXrootd
 
 #endif /* __ARC_DATAPOINTXROOTD_H__ */

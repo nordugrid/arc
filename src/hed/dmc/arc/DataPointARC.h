@@ -11,7 +11,9 @@
 #include <arc/data/DataHandle.h>
 #include <arc/CheckSum.h>
 
-namespace Arc {
+namespace ArcDMCARC {
+
+  using namespace Arc;
 
   /**
    * Provides an interface to the Chelonia storage system developed by ARC.
@@ -49,6 +51,6 @@ namespace Arc {
     virtual bool RequiresCredentials() const { return bartender_url.Protocol() != "http"; };
   };
 
-} // namespace Arc
+} // namespace ArcDMCARC
 
 #endif // __ARC_DATAPOINTARC_H__

@@ -4,7 +4,9 @@
 #include <arc/Logger.h>
 #include <arc/URL.h>
 
-namespace Arc {
+namespace ArcDMCGFAL {
+
+  using namespace Arc;
 
   /// Utility functions for GFAL2
   class GFALUtils {
@@ -15,7 +17,7 @@ namespace Arc {
     static int HandleGFALError(Logger& logger);
   };
 
-} // namespace Arc
+} // namespace ArcDMCGFAL
 
 
 #endif /* GFALUTILS_H_ */

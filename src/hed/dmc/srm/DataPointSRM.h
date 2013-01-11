@@ -11,7 +11,9 @@
 
 #include "srmclient/SRMClient.h"
 
-namespace Arc {
+namespace ArcDMCSRM {
+
+  using namespace Arc;
 
   /**
    * The Storage Resource Manager (SRM) protocol allows access to data
@@ -71,6 +73,6 @@ namespace Arc {
     void FillFileInfo(std::list<FileInfo>& files, const struct SRMFileMetaData& srm_metadata);
   };
 
-} // namespace Arc
+} // namespace ArcDMCSRM
 
 #endif // __ARC_DATAPOINTSRM_H__

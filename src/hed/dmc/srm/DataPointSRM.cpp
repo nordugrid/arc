@@ -19,7 +19,9 @@
 
 #include "DataPointSRM.h"
 
-namespace Arc {
+namespace ArcDMCSRM {
+
+  using namespace Arc;
 
   Logger DataPointSRM::logger(Logger::getRootLogger(), "DataPoint.SRM");
 
@@ -900,9 +902,9 @@ namespace Arc {
     else if (srm_metadata.fileStorageType == SRM_PERMANENT) f->SetMetaData("filestoragetype", "PERMANENT");
   }
 
-} // namespace Arc
+} // namespace ArcDMCSRM
 
 Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
-  { "srm", "HED:DMC", "Storage Resource Manager", 0, &Arc::DataPointSRM::Instance },
+  { "srm", "HED:DMC", "Storage Resource Manager", 0, &ArcDMCSRM::DataPointSRM::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

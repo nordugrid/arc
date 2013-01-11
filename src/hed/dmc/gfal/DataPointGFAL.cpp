@@ -33,7 +33,9 @@
 #include "GFALTransfer3rdParty.h"
 #include "GFALUtils.h"
 
-namespace Arc {
+namespace ArcDMCGFAL {
+
+  using namespace Arc;
 
   /// Class for locking environment while calling gfal functions.
   class GFALEnvLocker: public CertEnvLocker {
@@ -588,9 +590,9 @@ namespace Arc {
     return transfer.Transfer();
   }
 
-} // namespace Arc
+} // namespace ArcDMCGFAL
 
 Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
-  { "gfal2", "HED:DMC", "Grid File Access Library 2", 0, &Arc::DataPointGFAL::Instance },
+  { "gfal2", "HED:DMC", "Grid File Access Library 2", 0, &ArcDMCGFAL::DataPointGFAL::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

@@ -8,15 +8,16 @@
 
 #include <arc/data/DataStatus.h>
 #include <arc/data/FileInfo.h>
+#include <arc/URL.h>
+#include <arc/globusutils/GSSCredential.h>
 
 #include <globus_ftp_control.h>
 
 #define LISTER_MAX_RESPONSES 3
 
-namespace Arc {
+namespace ArcDMCGridFTP {
 
-  class GSSCredential;
-  class URL;
+  using namespace Arc;
 
   class Lister {
   private:
@@ -101,6 +102,6 @@ namespace Arc {
     void close_connection();
   };
 
-} // namespace Arc
+} // namespace ArcDMCGridFTP
 
 #endif // __ARC_LISTER_H__
