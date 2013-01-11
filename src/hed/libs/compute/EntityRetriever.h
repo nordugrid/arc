@@ -36,8 +36,8 @@ public:
   virtual ~EntityConsumer() {}
   /// Send an entity to this consumer
   /**
-      This is the method which will be called by the retrievers when a new result is available.
-  */
+   * This is the method which will be called by the retrievers when a new result is available.
+   */
   virtual void addEntity(const T&) = 0;
 };
 
@@ -60,8 +60,8 @@ public:
   virtual ~EntityContainer() {}
   /// All the consumed entities are pushed to the list.
   /**
-    Because the EntityContainer is a standard list, it can push the entities in itself.
-  */
+   * Because the EntityContainer is a standard list, it can push the entities in itself.
+   */
   virtual void addEntity(const T& t) { this->push_back(t); }
 };
 
