@@ -155,9 +155,10 @@ namespace Arc {
     if (GetSize() == (unsigned long long int)(-1)) {
       FileInfo file;
       DataPointInfoType info(INFO_TYPE_CONTENT);
-      if (!Stat(file, info))
+      if (!Stat(file, info)) {
         reading = false;
         return DataStatus::ReadStartError;
+      }
     }
 
     buffer = &buf;
