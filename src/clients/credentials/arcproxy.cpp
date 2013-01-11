@@ -102,6 +102,12 @@ static void remove_proxy_file(const std::string& path) {
   }
 }
 
+static void remove_cert_file(const std::string& path) {
+  if((::unlink(path.c_str()) != 0) && (errno != ENOENT)) {
+    throw std::runtime_error("Failed to remove certificate file " + path);
+  }
+}
+
 static void tls_process_error(Arc::Logger& logger) {
   unsigned long err;
   err = ERR_get_error();
@@ -995,7 +1001,7 @@ int main(int argc, char *argv[]) {
       
       // Create tmp proxy cert
       int duration = 12;
-      res = AuthN::nssCreateCert(proxy_csrfile, issuername, "", duration, "", tmp_proxy_path, ascii);
+      res = AuthN::nssCreateCert(proxy_csrfile, issuername, NULL, duration, "", tmp_proxy_path, ascii);
       if(!res) return EXIT_FAILURE;
       std::string tmp_proxy_cred_str;
       std::ifstream tmp_proxy_cert_s(tmp_proxy_path.c_str());
@@ -1010,6 +1016,7 @@ int main(int argc, char *argv[]) {
       std::ifstream eec_s(cert_file.c_str());
       std::getline(eec_s, eec_cert_str,'\0');
       eec_s.close();
+      remove_cert_file(cert_file);
 
       // Compose tmp proxy file
       tmp_proxy_cred_str.append(proxy_privk_str).append(eec_cert_str);
@@ -1057,11 +1064,16 @@ int main(int argc, char *argv[]) {
     std::ifstream proxy_s(proxy_certfile.c_str());
     std::getline(proxy_s, proxy_cred_str,'\0');
     proxy_s.close();
+    // Remove the proxy file, because the content
+    // is recorded and then writen into proxy path,
+    // together with private key, and the issuer of proxy.
+    remove_proxy_file(proxy_certfile);
 
     std::string eec_cert_str;
     std::ifstream eec_s(cert_file.c_str());
     std::getline(eec_s, eec_cert_str,'\0');
     eec_s.close();
+    remove_cert_file(cert_file);
 
     proxy_cred_str.append(proxy_privk_str).append(eec_cert_str);
     write_proxy_file(proxy_path, proxy_cred_str);
