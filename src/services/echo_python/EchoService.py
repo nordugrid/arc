@@ -14,7 +14,7 @@ class EchoService:
         self.prefix = str(cfg.Get('prefix'))
         # get the response-suffix from the config XML
         self.suffix = str(cfg.Get('suffix'))
-        logger.msg(arc.DEBUG, "EchoService (python) has prefix '%s' and suffix '%s'" % (self.prefix, self.suffix))
+        logger.msg(arc.DEBUG, "EchoService (python) has prefix %(prefix)s and suffix %(suffix)s" % ('prefix': self.prefix, 'suffix': self.suffix))
         self.ssl_config = self.parse_ssl_config(cfg)
         thread_test = str(cfg.Get('ThreadTest'))
         if thread_test:
@@ -62,7 +62,7 @@ class EchoService:
                 outpayload = arc.PayloadSOAP(ns)
                 outpayload.NewChild('echo:echo').NewChild('echo:say').Set('hi!')
                 resp, status = s.process(outpayload)
-                logger.msg(arc.INFO, "EchoService (python) thread test, iteration %s %s" % (i, status))
+                logger.msg(arc.INFO, "EchoService (python) thread test, iteration %(iteration)s %(status)s" % ('iteration': i, 'status': status))
                 time.sleep(3)
             except Exception, e:
                 import traceback
