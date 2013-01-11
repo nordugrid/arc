@@ -187,7 +187,7 @@ namespace ArcDMCSRM {
       if (srm_request) {
         if (srm_request->status() != SRM_REQUEST_ONGOING) {
           // error, querying a request that was already prepared
-          logger.msg(ERROR, "Calling PrepareReading when request was already prepared!");
+          logger.msg(VERBOSE, "Calling PrepareReading when request was already prepared!");
           reading = false;
           return DataStatus(DataStatus::ReadPrepareError, EARCLOGIC, "File is already prepared");
         }
@@ -231,7 +231,7 @@ namespace ArcDMCSRM {
       }
       else {
         // bad logic - SRM_OK returned but request is not finished or on going
-        logger.msg(ERROR, "Bad logic for %s - bringOnline returned ok but SRM request is not finished successfully or on going", url.str());
+        logger.msg(VERBOSE, "Bad logic for %s - bringOnline returned ok but SRM request is not finished successfully or on going", url.str());
         return DataStatus(DataStatus::ReadPrepareError, EARCLOGIC, "Inconsistent status code from SRM");
       }
     }
@@ -240,7 +240,7 @@ namespace ArcDMCSRM {
     if (srm_request) {
       if (srm_request->status() != SRM_REQUEST_ONGOING) {
         // error, querying a request that was already prepared
-        logger.msg(ERROR, "Calling PrepareReading when request was already prepared!");
+        logger.msg(VERBOSE, "Calling PrepareReading when request was already prepared!");
         return DataStatus(DataStatus::ReadPrepareError, EARCLOGIC, "File is already prepared");
       }
       SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
@@ -260,7 +260,7 @@ namespace ArcDMCSRM {
 
       CheckProtocols(transport_protocols);
       if (transport_protocols.empty()) {
-        logger.msg(ERROR, "None of the requested transfer protocols are supported");
+        logger.msg(VERBOSE, "None of the requested transfer protocols are supported");
         delete client;
         return DataStatus(DataStatus::ReadPrepareError, EOPNOTSUPP, "None of the requested transfer protocols are supported");
       }
@@ -298,14 +298,14 @@ namespace ArcDMCSRM {
       }
 
       if (turls.empty()) {
-        logger.msg(ERROR, "SRM returned no useful Transfer URLs: %s", url.str());
+        logger.msg(VERBOSE, "SRM returned no useful Transfer URLs: %s", url.str());
         srm_request->finished_abort();
         return DataStatus(DataStatus::ReadPrepareError, EARCRESINVAL, "No useful transfer URLs returned");
       }
     }
     else {
       // bad logic - SRM_OK returned but request is not finished or on going
-      logger.msg(ERROR, "Bad logic for %s - getTURLs returned ok but SRM request is not finished successfully or on going", url.str());
+      logger.msg(VERBOSE, "Bad logic for %s - getTURLs returned ok but SRM request is not finished successfully or on going", url.str());
       return DataStatus(DataStatus::ReadPrepareError, EARCLOGIC, "Inconsistent status code from SRM");
     }
     return DataStatus::Success;
@@ -315,7 +315,7 @@ namespace ArcDMCSRM {
 
     logger.msg(VERBOSE, "StartReading");
     if (!reading || turls.empty() || !srm_request || r_handle) {
-      logger.msg(ERROR, "StartReading: File was not prepared properly");
+      logger.msg(VERBOSE, "StartReading: File was not prepared properly");
       return DataStatus(DataStatus::ReadStartError, EARCLOGIC, "File was not prepared");
     }
 
@@ -329,7 +329,7 @@ namespace ArcDMCSRM {
     // check if url can be handled
     if (!(*r_handle)) {
       delete r_handle; r_handle = NULL;
-      logger.msg(ERROR, "TURL %s cannot be handled", r_url.str());
+      logger.msg(VERBOSE, "TURL %s cannot be handled", r_url.str());
       return DataStatus(DataStatus::ReadStartError, EARCRESINVAL, "Transfer URL cannot be handled");
     }
 
@@ -401,7 +401,7 @@ namespace ArcDMCSRM {
     if (srm_request) {
       if (srm_request->status() != SRM_REQUEST_ONGOING) {
         // error, querying a request that was already prepared
-        logger.msg(ERROR, "Calling PrepareWriting when request was already prepared!");
+        logger.msg(VERBOSE, "Calling PrepareWriting when request was already prepared!");
         return DataStatus(DataStatus::WritePrepareError, EARCLOGIC, "File was already prepared");
       }
       SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
@@ -421,7 +421,7 @@ namespace ArcDMCSRM {
 
       CheckProtocols(transport_protocols);
       if (transport_protocols.empty()) {
-        logger.msg(ERROR, "None of the requested transfer protocols are supported");
+        logger.msg(VERBOSE, "None of the requested transfer protocols are supported");
         delete client;
         return DataStatus(DataStatus::WritePrepareError, EOPNOTSUPP, "None of the requested transfer protocols are supported");
       }
@@ -447,14 +447,14 @@ namespace ArcDMCSRM {
           std::list<std::string> tokens;
           SRMReturnCode token_res = client->getSpaceTokens(tokens, space_token);
           if (token_res != 0) {
-            logger.msg(ERROR, "Error looking up space tokens matching description %s", space_token);
+            logger.msg(VERBOSE, "Error looking up space tokens matching description %s", space_token);
             delete client;
             delete srm_request;
             srm_request = NULL;
-            return DataStatus(DataStatus::WritePrepareError, token_res);
+            return DataStatus(DataStatus::WritePrepareError, token_res, "Error looking up space tokens matching description");
           }
           if (tokens.empty()) {
-            logger.msg(ERROR, "No space tokens found matching description %s", space_token);
+            logger.msg(VERBOSE, "No space tokens found matching description %s", space_token);
             delete client;
             delete srm_request;
             srm_request = NULL;
@@ -500,14 +500,14 @@ namespace ArcDMCSRM {
       }
 
       if (turls.empty()) {
-        logger.msg(ERROR, "SRM returned no useful Transfer URLs: %s", url.str());
+        logger.msg(VERBOSE, "SRM returned no useful Transfer URLs: %s", url.str());
         srm_request->finished_abort();
         return DataStatus(DataStatus::WritePrepareError, EARCRESINVAL, "No useful transfer URLs returned");
       }
     }
     else {
       // bad logic - SRM_OK returned but request is not finished or on going
-      logger.msg(ERROR, "Bad logic for %s - putTURLs returned ok but SRM request is not finished successfully or on going", url.str());
+      logger.msg(VERBOSE, "Bad logic for %s - putTURLs returned ok but SRM request is not finished successfully or on going", url.str());
       return DataStatus(DataStatus::WritePrepareError, EARCLOGIC, "Inconsistent status code from SRM");
     }
     return DataStatus::Success;
@@ -517,7 +517,7 @@ namespace ArcDMCSRM {
                                         DataCallback *space_cb) {
     logger.msg(VERBOSE, "StartWriting");
     if (!writing || turls.empty() || !srm_request || r_handle) {
-      logger.msg(ERROR, "StartWriting: File was not prepared properly");
+      logger.msg(VERBOSE, "StartWriting: File was not prepared properly");
       return DataStatus(DataStatus::WriteStartError, EARCLOGIC, "File was not prepared");
     }
 
@@ -531,7 +531,7 @@ namespace ArcDMCSRM {
     // check if url can be handled
     if (!(*r_handle)) {
       delete r_handle; r_handle = NULL;
-      logger.msg(ERROR, "TURL %s cannot be handled", r_url.str());
+      logger.msg(VERBOSE, "TURL %s cannot be handled", r_url.str());
       return DataStatus(DataStatus::WriteStartError, EARCRESINVAL, "Transfer URL cannot be handled");
     }
 
@@ -614,8 +614,8 @@ namespace ArcDMCSRM {
                         logger.msg(INFO, "Calculated/supplied transfer checksum %s matches checksum reported by SRM destination %s", csum, servercsum);
                       }
                       else {
-                        logger.msg(ERROR, "Checksum mismatch between calculated/supplied checksum (%s) and checksum reported by SRM destination (%s)", csum, servercsum);
-                        r = DataStatus(DataStatus::WriteFinishError, EARCCHECKSUM);
+                        logger.msg(VERBOSE, "Checksum mismatch between calculated/supplied checksum (%s) and checksum reported by SRM destination (%s)", csum, servercsum);
+                        r = DataStatus(DataStatus::WriteFinishError, EARCCHECKSUM, "Checksum mismatch between calculated/supplied checksum and reported by SRM destination");
                       }
                     } else logger.msg(WARNING, "Checksum type of SRM (%s) and calculated/supplied checksum (%s) differ, cannot compare", servercsum, csum);
                   } else logger.msg(WARNING, "No checksum information from server");
@@ -627,8 +627,8 @@ namespace ArcDMCSRM {
             if (srm_request->status() == SRM_REQUEST_FINISHED_SUCCESS) {
               SRMReturnCode res = client->releasePut(*srm_request);
               if (res != 0) {
-                logger.msg(ERROR, "Failed to release completed request");
-                r = DataStatus(DataStatus::WriteFinishError, res);
+                logger.msg(VERBOSE, "Failed to release completed request");
+                r = DataStatus(DataStatus::WriteFinishError, res, "Failed to release completed request");
               }
             }
           } else {
