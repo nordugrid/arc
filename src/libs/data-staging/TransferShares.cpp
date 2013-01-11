@@ -99,19 +99,6 @@ namespace DataStaging {
     ActiveSharesSlots.clear();
   }
 
-  TransferShares::TransferShares(const TransferShares& shares) :
-    conf(shares.conf),
-    ActiveShares(shares.ActiveShares),
-    ActiveSharesSlots(shares.ActiveSharesSlots)
-  {}
-
-  TransferShares& TransferShares::operator=(const TransferShares& shares) {
-    conf = shares.conf;
-    ActiveShares = shares.ActiveShares;
-    ActiveSharesSlots = shares.ActiveSharesSlots;
-    return *this;
-  }
-
   void TransferShares::set_shares_conf(const TransferSharesConf& shares_conf) {
     conf = shares_conf;
   }

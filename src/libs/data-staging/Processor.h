@@ -12,6 +12,7 @@ namespace DataStaging {
    * The Processor takes care of everything that should happen before
    * and after a transfer takes place. Calling receiveDTR() spawns a
    * thread to perform the required operation depending on the DTR state.
+   * \headerfile Processor.h arc/data-staging/Processor.h
    */
   class Processor: public DTRCallback {
 
@@ -87,7 +88,7 @@ namespace DataStaging {
     /// Stop Processor.
     /**
      * This method sends waits for all started threads to end and exits. Since
-     * threads a short-lived it is better to wait rather than interrupt them.
+     * threads are short-lived it is better to wait rather than interrupt them.
      */
     void stop(void);
 
@@ -96,7 +97,7 @@ namespace DataStaging {
      * The DTR is sent to the Processor through this method when some
      * long-latency processing is to be performed, eg contacting a
      * remote service. The Processor spawns a thread to do the processing,
-     * and then returns. The thread notifies the scheduler when
+     * and then returns. The thread pushes the DTR back to the scheduler when
      * it is finished.
      */
     virtual void receiveDTR(DTR_ptr dtr);

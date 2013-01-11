@@ -21,6 +21,7 @@ namespace DataStaging {
    * DataDeliveryCommHandler regularly polls all active transfers using
    * PullStatus() and fills the Status object with current information,
    * which can be obtained through GetStatus().
+   * \headerfile DataDeliveryComm.h arc/data-staging/DataDeliveryComm.h
    */
   class DataDeliveryComm {
 
@@ -85,12 +86,14 @@ namespace DataStaging {
     virtual void PullStatus() = 0;
 
     /// Start transfer with parameters taken from DTR and supplied transfer limits.
-    /** Constructor should not be used directly, CreateInstance() should be used
-     * instead. */
+    /**
+     * Constructor should not be used directly, CreateInstance() should be used
+     * instead.
+     */
     DataDeliveryComm(DTR_ptr dtr, const TransferParameters& params);
 
    public:
-    /// Factory method to get concrete instance
+    /// Factory method to get DataDeliveryComm instance.
     static DataDeliveryComm* CreateInstance(DTR_ptr dtr, const TransferParameters& params);
 
     /// Destroy object. This stops any ongoing transfer and cleans up resources.
@@ -99,9 +102,13 @@ namespace DataStaging {
     /// Obtain status of transfer
     Status GetStatus() const;
 
-    /// Check the delivery is available. Calls CheckComm of the appropriate subclass.
-    /// @param dtr DTR from which credentials are used
-    /// @param allowed_dirs List of dirs that this comm is allowed to read/write
+    /// Check the delivery method is available. Calls CheckComm of the appropriate subclass.
+    /**
+     * \param dtr DTR from which credentials are used
+     * \param allowed_dirs filled with list of dirs that this comm is allowed
+     * to read/write
+     * \return true if selected delivery method is available
+     */
     static bool CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs);
 
     /// Get explanation of error
@@ -114,6 +121,9 @@ namespace DataStaging {
   };
 
   /// Singleton class handling all active DataDeliveryComm objects
+  /**
+   * \headerfile DataDeliveryComm.h arc/data-staging/DataDeliveryComm.h
+   */
   class DataDeliveryCommHandler {
 
    private:

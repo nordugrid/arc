@@ -19,6 +19,7 @@ namespace DataStaging {
  * The Scheduler manages a global list of DTRs and schedules when they should
  * go into the next state or be sent to other processes. The DTR priority is
  * used to decide each DTR's position in a queue.
+ * \headerfile Scheduler.h arc/data-staging/Scheduler.h
  */
 class Scheduler: public DTRCallback {	
 
@@ -207,15 +208,17 @@ class Scheduler: public DTRCallback {
   public:
   
     /// Get static instance of Scheduler, to use one DTR instance with multiple generators.
-    /** Configuration of Scheduler by Set* methods can only be done before
+    /**
+     * Configuration of Scheduler by Set* methods can only be done before
      * start() is called, so undetermined behaviour can result from multiple
      * threads simultaneously calling Set* then start(). It is safer to make
      * sure that all threads use the same configuration (calling start() twice
      * is harmless). It is also better to make sure that threads call stop() in
-     * a roughly coordinated way, i.e. all generators stop at the same time. */
+     * a roughly coordinated way, i.e. all generators stop at the same time.
+     */
     static Scheduler* getInstance();
 
-    /// Constructor
+    /// Constructor, to be used when only one Generator uses this Scheduler.
     Scheduler();
 
     /// Destructor calls stop(), which cancels all DTRs and waits for them to complete
@@ -227,14 +230,22 @@ class Scheduler: public DTRCallback {
     void SetSlots(int pre_processor = 0, int post_processor = 0,
                   int delivery = 0, int emergency = 0, int staged_prepared = 0);
 
-    /// Add URL mapping entry
+    /// Add URL mapping entry. See Arc::URLMap.
     void AddURLMapping(const Arc::URL& template_url, const Arc::URL& replacement_url,
                        const Arc::URL& access_url = Arc::URL());
 
     /// Replace all URL mapping entries
     void SetURLMapping(const Arc::URLMap& mapping = Arc::URLMap());
 
-    /// Set the preferred pattern
+    /// Set the preferred pattern for ordering replicas.
+    /**
+     * This pattern will be used in the case of an index service URL with
+     * multiple physical replicas and allows sorting of those replicas in order
+     * of preference. It consists of one or more patterns separated by a pipe
+     * character (|) listed in order of preference. If the dollar character ($)
+     * is used at the end of a pattern, the pattern will be matched to the end
+     * of the hostname of the replica. Example: "srm://myhost.org|.uk$|.ch$"
+     */
     void SetPreferredPattern(const std::string& pattern);
 
     /// Set TransferShares configuration
@@ -253,23 +264,29 @@ class Scheduler: public DTRCallback {
     void SetDumpLocation(const std::string& location);
 
     /// Start scheduling activity.
-    /** This method must be called after all configuration parameters are set
+    /**
+     * This method must be called after all configuration parameters are set
      * properly. Scheduler can be stopped either by calling stop() method or
-     * by destroying its instance. */
+     * by destroying its instance.
+     */
     bool start(void);
     
     /// Callback method implemented from DTRCallback.
-    /** This method is called by the generator when it wants to pass a DTR
+    /**
+     * This method is called by the generator when it wants to pass a DTR
      * to the scheduler and when other processes send a DTR back to the
-     * scheduler after processing. */
+     * scheduler after processing.
+     */
     virtual void receiveDTR(DTR_ptr dtr);
     
     /// Tell the Scheduler to cancel all the DTRs in the given job description
     bool cancelDTRs(const std::string& jobid);
 
     /// Tell the Scheduler to shut down all threads and exit.
-    /** All active DTRs are cancelled and this method waits until they finish
-     * (all DTRs go to CANCELLED state) */
+    /**
+     * All active DTRs are cancelled and this method waits until they finish
+     * (all DTRs go to CANCELLED state)
+     */
     bool stop();
   };
 } // namespace DataStaging

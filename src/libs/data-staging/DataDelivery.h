@@ -13,9 +13,14 @@ namespace DataStaging {
 
   /// DataDelivery transfers data between specified physical locations.
   /**
+   * start() must be called to start the delivery thread for processing DTRs
+   * and stop() should be called to stop it (this waits for all data transfers
+   * to exit). stop() is also called in the destructor.
+   *
    * All meta-operations for a DTR such as resolving replicas must be done
    * before sending to DataDelivery. Calling receiveDTR() starts a new process
    * which performs data transfer as specified in DTR.
+   * \headerfile DataDelivery.h arc/data-staging/DataDelivery.h
    */
   class DataDelivery: public DTRCallback {	
 
@@ -66,29 +71,30 @@ namespace DataStaging {
 
    public:
       
-    /// Constructor
+    /// Constructor.
     DataDelivery();
-    /// Destructor calls stop() and waits for cancelled processes to exit
+    /// Destructor calls stop() and waits for cancelled processes to exit.
     ~DataDelivery() { stop(); };
 
     /// Pass a DTR to Delivery.
     /**
      * This method is called by the scheduler to pass a DTR to the delivery.
-     * The DataDelivery starts a process to do the processing, and then returns.
-     * DataDelivery's own thread then monitors the started process.
+     * The DataDelivery starts the data transfer either using a local process
+     * or by sending a request to a remote delivery service, and then returns.
+     * DataDelivery's own thread then monitors the transfer.
      */
     virtual void receiveDTR(DTR_ptr request);
 
-    /// Kill the process corresponding to the given DTR
+    /// Stop the transfer corresponding to the given DTR.
     bool cancelDTR(DTR_ptr request);
 
-    /// Start the Delivery thread, which runs until stop() is called
+    /// Start the Delivery thread, which runs until stop() is called.
     bool start();
 
-    /// Tell the delivery to shut down all processes and threads and exit
+    /// Tell the delivery to stop all transfers and threads and exit.
     bool stop();
 
-    /// Set transfer limits
+    /// Set transfer limits.
     void SetTransferParameters(const TransferParameters& params);
 
   };   

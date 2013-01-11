@@ -34,7 +34,6 @@ namespace DataStaging {
     Arc::Logger::getRootLogger().removeDestinations();
     // DTR logger destinations can be destroyed when DTR has finished
     dtr->get_logger()->deleteDestinations();
-    dtrs.push_back(dtr);
     counter.dec();
   }
 

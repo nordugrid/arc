@@ -14,6 +14,7 @@ namespace DataStaging {
    * for basic direct testing of the library and to show how a Generator can
    * be written. It has one method, run(), which creates a single DTR
    * and submits it to the Scheduler.
+   * \headerfile Generator.h arc/data-staging/Generator.h
    */
   class Generator: public DTRCallback {
 
@@ -24,7 +25,6 @@ namespace DataStaging {
 
     /// DTR Scheduler
     Scheduler scheduler;
-    std::list<DTR_ptr> dtrs;
 
     /// Interrupt signal handler
     static void shutdown(int sig);
@@ -39,24 +39,22 @@ namespace DataStaging {
     /// Counter for main to know how many DTRs are in the system
     Arc::SimpleCounter counter;
 
-    /// Create a new Generator
+    /// Create a new Generator. start() must be called to start DTR threads.
     Generator();
     /// Stop Generator and DTR threads
     ~Generator();
 
     /// Implementation of callback from DTRCallback
     /**
-     * Callback method used when DTR processing is complete to
-     * pass back to the generator. The DTR is passed by value so
-     * that the scheduler can delete its copy of the object after
-     * calling this method.
+     * Callback method used when DTR processing is complete to pass the DTR
+     * back to the generator. It decrements counter.
      */
     virtual void receiveDTR(DTR_ptr dtr);
 
     /// Start Generator and DTR threads
     void start();
 
-    /// Submit a DTR with given source and destination
+    /// Submit a DTR with given source and destination. Increments counter.
     void run(const std::string& source, const std::string& destination);
   };
 

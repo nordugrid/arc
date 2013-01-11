@@ -8,6 +8,9 @@
 namespace DataStaging {
 
   /// This class starts, monitors and controls a local Delivery process.
+  /**
+   * \headerfile DataDeliveryLocalComm.h arc/data-staging/DataDeliveryLocalComm.h
+   */
   class DataDeliveryLocalComm : public DataDeliveryComm {
   public:
 

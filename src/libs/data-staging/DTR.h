@@ -28,28 +28,41 @@ namespace DataStaging {
   /// Internal state of staging processes
   enum ProcessState {INITIATED, RUNNING, TO_STOP, STOPPED};
 
-  /// Represents limits and properties of a DTR transfer. These generally apply
-  /// to all DTRs.
+  /// Represents limits and properties of a DTR transfer. These generally apply to all DTRs.
+  /**
+   * \headerfile DTR.h arc/data-staging/DTR.h
+   */
   class TransferParameters {
     public:
-    /// Minimum average bandwidth in bytes/sec - if the average bandwidth used
-    /// drops below this level the transfer should be killed
+    /// Minimum average bandwidth in bytes/sec.
+    /**
+     * If the average bandwidth used over the whole transfer drops below this
+     * level the transfer will be killed.
+     */
     unsigned long long int min_average_bandwidth;
-    /// Maximum inactivity time in sec - if transfer stops for longer than this
-    /// time it should be killed
+    /// Maximum inactivity time in sec.
+    /**
+     * If transfer stops for longer than this time it will be killed.
+     */
     unsigned int max_inactivity_time;
-    /// Minimum current bandwidth - if bandwidth averaged over averaging_time
-    /// is less than minimum the transfer should be killed (allows transfers
-    /// which slow down to be killed quicker)
+    /// Minimum current bandwidth in bytes/sec.
+    /**
+     * If bandwidth averaged over the previous averaging_time seconds is less
+     * than min_current_bandwidth the transfer will be killed (allows transfers
+     * which slow down to be killed quicker).
+     */
     unsigned long long int min_current_bandwidth;
-    /// The time over which to average the calculation of min_curr_bandwidth
+    /// The time in seconds over which to average the calculation of min_current_bandwidth.
     unsigned int averaging_time;
-    /// Constructor. Initialises all values to zero
+    /// Constructor. Initialises all values to zero.
     TransferParameters() : min_average_bandwidth(0), max_inactivity_time(0),
                            min_current_bandwidth(0), averaging_time(0) {};
   };
 
   /// The configured cache directories
+  /**
+   * \headerfile DTR.h arc/data-staging/DTR.h
+   */
   class DTRCacheParameters {
     public:
     /// List of (cache dir [link dir])
@@ -83,15 +96,16 @@ namespace DataStaging {
    * DTR is to be passed to a component. Several components in data staging
    * (eg Scheduler, Generator) are subclasses of DTRCallback, which allows
    * them to receive DTRs through the callback system.
+   * \headerfile DTR.h arc/data-staging/DTR.h
    */
   class DTRCallback {
     public:
-      /** Empty virtual destructor */
+      /// Empty virtual destructor
       virtual ~DTRCallback() {};
+      /// Defines the callback method called when a DTR is pushed to this object.
       /**
-       * Defines the callback method called when a DTR is pushed to this
-       * object. The automatic memory management of DTR_ptr ensures that
-       * the DTR object is only deleted when the last copy is deleted.
+       * The automatic memory management of DTR_ptr ensures that the DTR object
+       * is only deleted when the last copy is deleted.
        */
       virtual void receiveDTR(DTR_ptr dtr) = 0;
       // TODO
@@ -105,11 +119,11 @@ namespace DataStaging {
    * between two endpoints, a source and a destination. There are several
    * parameters and options relating to the transfer contained in a DTR.
    * The normal workflow is for a Generator to create a DTR and send it to the
-   * Scheduler for processing using dtr.push(SCHEDULER). If the Generator is a
+   * Scheduler for processing using DTR::push(SCHEDULER). If the Generator is a
    * subclass of DTRCallback, when the Scheduler has finished with the DTR
-   * the receiveDTR() callback method is called.
+   * the DTRCallback::receiveDTR() callback method is called.
    *
-   * DTRs should always be used through the ThreadedPointer DTR_ptr. This
+   * DTRs should always be used through the Arc::ThreadedPointer DTR_ptr. This
    * ensures proper memory management when passing DTRs among various threads.
    * To enforce this policy the copy constructor and assignment operator are
    * private.
@@ -158,404 +172,414 @@ namespace DataStaging {
    *
    * A lock protects member variables that are likely to be accessed and
    * modified by multiple threads.
+   * \headerfile DTR.h arc/data-staging/DTR.h
    */
   class DTR {
   	
-    private:
-      /// Identifier
-      std::string DTR_ID;
+  private:
+    /// Identifier
+    std::string DTR_ID;
+
+    /// UserConfig and URL objects. Needed as DataHandle keeps a reference to them.
+    Arc::URL source_url;
+    Arc::URL destination_url;
+    Arc::UserConfig cfg;
+
+    /// Source file
+    Arc::DataHandle source_endpoint;
+    /// Destination file
+    Arc::DataHandle destination_endpoint;
+
+    /// Source file as a string
+    std::string source_url_str;
+    /// Destination file as a string
+    std::string destination_url_str;
+
+    /// Endpoint of cached file.
+    /* Kept as string so we don't need to duplicate DataHandle properties
+     * of destination. Delivery should check if this is set and if so use
+     * it as destination. */
+    std::string cache_file;
+
+    /// Cache configuration
+    DTRCacheParameters cache_parameters;
+
+    /// Cache state for this DTR
+    CacheState cache_state;
+
+    /// Local user information
+    Arc::User user;
+
+    /// Whether the credentials for this DTR are of type RFC proxy (and
+    /// hence remote delivery service can be used for transfer)
+    bool rfc_proxy;
+
+    /// Job that requested the transfer. Could be used as a generic way of grouping DTRs.
+    std::string parent_job_id;
+
+    /// A flattened number set by the scheduler
+    int priority;
+
+    /// Transfer share this DTR belongs to
+    std::string transfershare;
+
+    /// This string can be used to form sub-sets of transfer shares.
+    /** It is appended to transfershare. It can be used by the Generator
+     * for example to split uploads and downloads into separate shares or
+     * make shares for different endpoints. */
+    std::string sub_share;
+
+    /// Number of attempts left to complete this DTR
+    unsigned int tries_left;
+
+    /// Initial number of attempts
+    unsigned int initial_tries;
+
+    /// A flag to say whether the DTR is replicating inside the same LFN of an index service
+    bool replication;
+
+    /// A flag to say whether to forcibly register the destination in an index service.
+    /** Even if the source is not the same file, the destination will be
+     * registered to an existing LFN. It should be set to true in
+     * the case where an output file is uploaded to several locations but
+     * with the same index service LFN */
+    bool force_registration;
+
+    /// The file that the current source is mapped to.
+    /** Delivery should check if this is set and if so use this as source. */
+    std::string mapped_source;
+
+    /// Status of the DTR
+    DTRStatus status;
+
+    /// Error status of the DTR
+    DTRErrorStatus error_status;
+
+    /// Number of bytes transferred so far
+    unsigned long long int bytes_transferred; // TODO and/or offset?
+
+    /** Timing variables **/
+    /// When should we finish the current action
+    Arc::Time timeout;
+    /// Creation time
+    Arc::Time created;
+    /// Modification time
+    Arc::Time last_modified;
+    /// Wait until this time before doing more processing
+    Arc::Time next_process_time;
+
+    /// True if some process requested cancellation
+    bool cancel_request;
+
+    /// Bulk start flag
+    bool bulk_start;
+    /// Bulk end flag
+    bool bulk_end;
+    /// Whether bulk operations are supported for the source
+    bool source_supports_bulk;
+
+    /// Endpoint of delivery service this DTR is scheduled for.
+    /** By default it is LOCAL_DELIVERY so local Delivery is used. */
+    Arc::URL delivery_endpoint;
+
+    /// List of problematic endpoints - those which the DTR definitely cannot use
+    std::vector<Arc::URL> problematic_delivery_endpoints;
+
+    /// Whether to use host instead of user credentials for contacting remote delivery services.
+    bool use_host_cert_for_remote_delivery;
+
+    /// The process in charge of this DTR right now
+    StagingProcesses current_owner;
+
+    /// Logger object.
+    /** Creation and deletion of this object should be managed
+     * in the Generator and a pointer passed in the DTR constructor. */
+    DTRLogger logger;
+
+    /// Log Destinations.
+    /** This list is kept here so that the Logger can be connected and
+     * disconnected in threads which have their own root logger
+     * to avoid duplicate messages */
+    std::list<Arc::LogDestination*> log_destinations;
+
+    /// List of callback methods called when DTR moves between processes
+    std::map<StagingProcesses,std::list<DTRCallback*> > proc_callback;
+
+    /// Lock to avoid collisions while changing DTR properties
+    Arc::SimpleCondition lock;
+
+    /** Possible fields  (types, names and so on are subject to change) **
+
+    /// DTRs that are grouped must have the same number here
+    int affiliation;
+
+    /// History of recent statuses
+    DTRStatus::DTRStatusType *history_of_statuses;
+
+    **/
+
+    /* Methods */
+    /// Change modification time
+    void mark_modification () { last_modified.SetTime(time(NULL)); };
+
+    /// Get the list of callbacks for this owner. Protected by lock.
+    std::list<DTRCallback*> get_callbacks(const std::map<StagingProcesses, std::list<DTRCallback*> >& proc_callback,
+                                          StagingProcesses owner);
+
+    /// Private and not implemented because DTR_ptr should always be used.
+    DTR& operator=(const DTR& dtr);
+    DTR(const DTR& dtr);
+    DTR();
+
+
+  public:
+
+    /// URL that is used to denote local Delivery should be used
+    static const Arc::URL LOCAL_DELIVERY;
+
+    /// Log level for all DTR activity
+    static Arc::LogLevel LOG_LEVEL;
+
+    /// Normal constructor.
+    /** Construct a new DTR.
+     * @param source Endpoint from which to read data
+     * @param destination Endpoint to which to write data
+     * @param usercfg Provides some user configuration information
+     * @param jobid ID of the job associated with this data transfer
+     * @param uid UID to use when accessing local file system if source
+     * or destination is a local file. If this is different to the current
+     * uid then the current uid must have sufficient privileges to change uid.
+     * @param log ThreadedPointer containing log object. If NULL the root
+     * logger is used.
+     */
+    DTR(const std::string& source,
+        const std::string& destination,
+        const Arc::UserConfig& usercfg,
+        const std::string& jobid,
+        const uid_t& uid,
+        DTRLogger log);
+
+    /// Empty destructor
+    ~DTR() {};
       
-      /// UserConfig and URL objects. Needed as DataHandle keeps a reference to them.
-      Arc::URL source_url;
-      Arc::URL destination_url;
-      Arc::UserConfig cfg;
+    /// Is DTR valid?
+    operator bool() const {
+      return (!DTR_ID.empty());
+    }
+    /// Is DTR not valid?
+    bool operator!() const {
+      return (DTR_ID.empty());
+    }
 
-      /// Source file
-      Arc::DataHandle source_endpoint;
-      /// Destination file
-      Arc::DataHandle destination_endpoint;
-      
-      /// Source file as a string
-      std::string source_url_str;
-      /// Destination file as a string
-      std::string destination_url_str;
+    /// Register callback objects to be used during DTR processing.
+    /**
+     * Objects deriving from DTRCallback can be registered with this method.
+     * The callback method of these objects will then be called when the DTR
+     * is passed to the specified owner. Protected by lock.
+     */
+    void registerCallback(DTRCallback* cb, StagingProcesses owner);
 
-      /// Endpoint of cached file.
-      /* Kept as string so we don't need to duplicate DataHandle properties
-       * of destination. Delivery should check if this is set and if so use
-       * it as destination. */
-      std::string cache_file;
+    /// Reset information held on this DTR, such as resolved replicas, error state etc.
+    /**
+     * Useful when a failed DTR is to be retried.
+     */
+    void reset();
 
-      /// Cache configuration
-      DTRCacheParameters cache_parameters;
-
-      /// Cache state for this DTR
-      CacheState cache_state;
-
-      /// Local user information
-      Arc::User user;
-
-      /// Whether the credentials for this DTR are of type RFC proxy (and
-      /// hence remote delivery service can be used for transfer)
-      bool rfc_proxy;
-
-      /// Job that requested the transfer. Could be used as a generic way of grouping DTRs.
-      std::string parent_job_id;
-
-      /// A flattened number set by the scheduler
-      int priority;
-      
-      /// Transfer share this DTR belongs to
-      std::string transfershare;
-
-      /// This string can be used to form sub-sets of transfer shares.
-      /** It is appended to transfershare. It can be used by the Generator
-       * for example to split uploads and downloads into separate shares or
-       * make shares for different endpoints. */
-      std::string sub_share;
-
-      /// Number of attempts left to complete this DTR
-      unsigned int tries_left;
-
-      /// Initial number of attempts
-      unsigned int initial_tries;
-
-      /// A flag to say whether the DTR is replicating inside the same LFN of an index service
-      bool replication;
-
-      /// A flag to say whether to forcibly register the destination in an index service.
-      /** Even if the source is not the same file, the destination will be
-       * registered to an existing LFN. It should be set to true in
-       * the case where an output file is uploaded to several locations but
-       * with the same index service LFN */
-      bool force_registration;
-
-      /// The file that the current source is mapped to.
-      /** Delivery should check if this is set and if so use this as source. */
-      std::string mapped_source;
-
-      /// Status of the DTR
-      DTRStatus status;
-      
-      /// Error status of the DTR
-      DTRErrorStatus error_status;
-
-      /// Number of bytes transferred so far
-      unsigned long long int bytes_transferred; // TODO and/or offset?
-
-      /** Timing variables **/
-      /// When should we finish the current action
-      Arc::Time timeout;
-      /// Creation time
-      Arc::Time created;
-      /// Modification time
-      Arc::Time last_modified;
-      /// Wait until this time before doing more processing
-      Arc::Time next_process_time;
-      
-      /// True if some process requested cancellation
-      bool cancel_request;
-      
-      /// Bulk start flag
-      bool bulk_start;
-      /// Bulk end flag
-      bool bulk_end;
-      /// Whether bulk operations are supported for the source
-      bool source_supports_bulk;
-
-      /// Endpoint of delivery service this DTR is scheduled for.
-      /** By default it is LOCAL_DELIVERY so local Delivery is used. */
-      Arc::URL delivery_endpoint;
-
-      /// List of problematic endpoints - those which the DTR definitely cannot use
-      std::vector<Arc::URL> problematic_delivery_endpoints;
-
-      /// Whether to use host instead of user credentials for contacting remote delivery services.
-      bool use_host_cert_for_remote_delivery;
-
-      /// The process in charge of this DTR right now
-      StagingProcesses current_owner;
-
-      /// Logger object.
-      /** Creation and deletion of this object should be managed
-       * in the Generator and a pointer passed in the DTR constructor. */
-      DTRLogger logger;
-
-      /// Log Destinations.
-      /** This list is kept here so that the Logger can be connected and
-       * disconnected in threads which have their own root logger
-       * to avoid duplicate messages */
-      std::list<Arc::LogDestination*> log_destinations;
-
-      /// List of callback methods called when DTR moves between processes
-      std::map<StagingProcesses,std::list<DTRCallback*> > proc_callback;
-
-      /// Lock to avoid collisions while changing DTR properties
-      Arc::SimpleCondition lock;
-      
-      /** Possible fields  (types, names and so on are subject to change) **
-      
-      /// DTRs that are grouped must have the same number here
-      int affiliation;
-      
-      /// History of recent statuses
-      DTRStatus::DTRStatusType *history_of_statuses;
-      
-      **/
-      
-      /* Methods */
-      /// Change modification time
-      void mark_modification () { last_modified.SetTime(time(NULL)); };
-
-      /// Get the list of callbacks for this owner. Protected by lock.
-      std::list<DTRCallback*> get_callbacks(const std::map<StagingProcesses, std::list<DTRCallback*> >& proc_callback,
-                                            StagingProcesses owner);
-
-      /// Private and not implemented because DTR_ptr should always be used.
-      DTR& operator=(const DTR& dtr);
-      DTR(const DTR& dtr);
-      DTR();
-
-
-    public:
-      
-      /// URL that is used to denote local Delivery should be used
-      static const Arc::URL LOCAL_DELIVERY;
-
-      /// Log level for all DTR activity
-      static Arc::LogLevel LOG_LEVEL;
-
-      /// Normal constructor.
-      /** Construct a new DTR.
-       * @param source Endpoint from which to read data
-       * @param destination Endpoint to which to write data
-       * @param usercfg Provides some user configuration information
-       * @param jobid ID of the job associated with this data transfer
-       * @param uid UID to use when accessing local file system if source
-       * or destination is a local file. If this is different to the current
-       * uid then the current uid must have sufficient privileges to change uid.
-       * @param log ThreadedPointer containing log object. If NULL the root
-       * logger is used.
-       */
-      DTR(const std::string& source,
-          const std::string& destination,
-          const Arc::UserConfig& usercfg,
-          const std::string& jobid,
-          const uid_t& uid,
-          DTRLogger log);
-      
-      /// Empty destructor
-      ~DTR() {};
-      
-     /// Is DTR valid?
-     operator bool() const {
-       return (!DTR_ID.empty());
-     }
-     /// Is DTR not valid?
-     bool operator!() const {
-       return (DTR_ID.empty());
-     }
-
-     /// Register callback objects to be used during DTR processing.
-     /** Objects deriving from DTRCallback can be registered with this method.
-      * The callback method of these objects will then be called when the DTR
-      * is passed to the specified owner. Protected by lock. */
-     void registerCallback(DTRCallback* cb, StagingProcesses owner);
-
-     /// Reset information held on this DTR, such as resolved replicas, error state etc.
-     /** Useful when a failed DTR is to be retried. */
-     void reset();
-
-     /// Set the ID of this DTR. Useful when passing DTR between processes
-     void set_id(const std::string& id);
-     /// Get the ID of this DTR
-     std::string get_id() const { return DTR_ID; };
-     /// Get an abbreviated version of the DTR ID - useful to reduce logging verbosity
-     std::string get_short_id() const;
+    /// Set the ID of this DTR. Useful when passing DTR between processes.
+    void set_id(const std::string& id);
+    /// Get the ID of this DTR
+    std::string get_id() const { return DTR_ID; };
+    /// Get an abbreviated version of the DTR ID - useful to reduce logging verbosity
+    std::string get_short_id() const;
      
-     /// Get source handle. Return by reference since DataHandle cannot be copied
-     Arc::DataHandle& get_source() { return source_endpoint; };
-     /// Get destination handle. Return by reference since DataHandle cannot be copied
-     Arc::DataHandle& get_destination() { return destination_endpoint; };
+    /// Get source handle. Return by reference since DataHandle cannot be copied
+    Arc::DataHandle& get_source() { return source_endpoint; };
+    /// Get destination handle. Return by reference since DataHandle cannot be copied
+    Arc::DataHandle& get_destination() { return destination_endpoint; };
 
-     /// Get source as a string
-     std::string get_source_str() const { return source_url_str; };
-     /// Get destination as a string
-     std::string get_destination_str() const { return destination_url_str; };
+    /// Get source as a string
+    std::string get_source_str() const { return source_url_str; };
+    /// Get destination as a string
+    std::string get_destination_str() const { return destination_url_str; };
 
-     /// Get the UserConfig object associated with this DTR
-     const Arc::UserConfig& get_usercfg() const { return cfg; };
+    /// Get the UserConfig object associated with this DTR
+    const Arc::UserConfig& get_usercfg() const { return cfg; };
 
-     /// Set the timeout for processing this DTR
-     void set_timeout(time_t value) { timeout.SetTime(Arc::Time().GetTime() + value); };
-     /// Get the timeout for processing this DTR
-     Arc::Time get_timeout() const { return timeout; };
+    /// Set the timeout for processing this DTR
+    void set_timeout(time_t value) { timeout.SetTime(Arc::Time().GetTime() + value); };
+    /// Get the timeout for processing this DTR
+    Arc::Time get_timeout() const { return timeout; };
      
-     /// Set the next processing time to current time + given time
-     void set_process_time(const Arc::Period& process_time);
-     /// Get the next processing time for the DTR
-     Arc::Time get_process_time() const { return next_process_time; };
+    /// Set the next processing time to current time + given time
+    void set_process_time(const Arc::Period& process_time);
+    /// Get the next processing time for the DTR
+    Arc::Time get_process_time() const { return next_process_time; };
 
-     /// Get the creation time
-     Arc::Time get_creation_time() const { return created; };
+    /// Get the creation time
+    Arc::Time get_creation_time() const { return created; };
      
-     /// Get the modification time
-     Arc::Time get_modification_time() const { return last_modified; };
+    /// Get the modification time
+    Arc::Time get_modification_time() const { return last_modified; };
 
-     /// Get the parent job ID
-     std::string get_parent_job_id() const { return parent_job_id; };
+    /// Get the parent job ID
+    std::string get_parent_job_id() const { return parent_job_id; };
      
-     /// Set the priority
-     void set_priority(int pri);
-     /// Get the priority
-     int get_priority() const { return priority; };
+    /// Set the priority
+    void set_priority(int pri);
+    /// Get the priority
+    int get_priority() const { return priority; };
      
-     /// Set whether credentials are type RFC proxy
-     void set_rfc_proxy(bool rfc) { rfc_proxy = rfc; };
-     /// Get whether credentials are type RFC proxy
-     bool is_rfc_proxy() const { return rfc_proxy; };
+    /// Set whether credentials are type RFC proxy
+    void set_rfc_proxy(bool rfc) { rfc_proxy = rfc; };
+    /// Get whether credentials are type RFC proxy
+    bool is_rfc_proxy() const { return rfc_proxy; };
 
-     /// Set the transfer share. sub_share is automatically added to transfershare
-     void set_transfer_share(const std::string& share_name);
-     /// Get the transfer share. sub_share is automatically added to transfershare
-     std::string get_transfer_share() const { return transfershare; };
+    /// Set the transfer share. sub_share is automatically added to transfershare.
+    void set_transfer_share(const std::string& share_name);
+    /// Get the transfer share. sub_share is automatically added to transfershare.
+    std::string get_transfer_share() const { return transfershare; };
      
-     /// Set sub-share
-     void set_sub_share(const std::string& share) { sub_share = share; };
-     /// Get sub-share
-     std::string get_sub_share() const { return sub_share; };
+    /// Set sub-share
+    void set_sub_share(const std::string& share) { sub_share = share; };
+    /// Get sub-share
+    std::string get_sub_share() const { return sub_share; };
 
-     /// Set the number of attempts remaining
-     void set_tries_left(unsigned int tries);
-     /// Get the number of attempts remaining
-     unsigned int get_tries_left() const { return tries_left; };
-     /// Get the initial number of attempts (set by set_tries_left())
-     unsigned int get_initial_tries() const { return initial_tries; }
-     /// Decrease attempt number
-     void decrease_tries_left();
+    /// Set the number of attempts remaining
+    void set_tries_left(unsigned int tries);
+    /// Get the number of attempts remaining
+    unsigned int get_tries_left() const { return tries_left; };
+    /// Get the initial number of attempts (set by set_tries_left())
+    unsigned int get_initial_tries() const { return initial_tries; }
+    /// Decrease attempt number
+    void decrease_tries_left();
 
-     /// Set the status. Protected by lock.
-     void set_status(DTRStatus stat);
-     /// Get the status. Protected by lock.
-     DTRStatus get_status();
+    /// Set the status. Protected by lock.
+    void set_status(DTRStatus stat);
+    /// Get the status. Protected by lock.
+    DTRStatus get_status();
      
-     /// Set the error status.
-     /** The DTRErrorStatus last error state field is set to the current status
-      * of the DTR. Protected by lock. */
-     void set_error_status(DTRErrorStatus::DTRErrorStatusType error_stat,
-                           DTRErrorStatus::DTRErrorLocation error_loc,
-                           const std::string& desc="");
-     /// Set the error status back to NONE_ERROR and clear other fields
-     void reset_error_status();
-     /// Get the error status.
-     DTRErrorStatus get_error_status();
+    /// Set the error status.
+    /**
+     * The DTRErrorStatus last error state field is set to the current status
+     * of the DTR. Protected by lock.
+     */
+    void set_error_status(DTRErrorStatus::DTRErrorStatusType error_stat,
+                          DTRErrorStatus::DTRErrorLocation error_loc,
+                          const std::string& desc="");
+    /// Set the error status back to NONE_ERROR and clear other fields
+    void reset_error_status();
+    /// Get the error status.
+    DTRErrorStatus get_error_status();
 
-     /// Set bytes transferred (should be set by whatever is controlling the transfer)
-     void set_bytes_transferred(unsigned long long int bytes);
-     /// Get current number of bytes transferred
-     unsigned long long int get_bytes_transferred() const { return bytes_transferred; };
+    /// Set bytes transferred (should be set by whatever is controlling the transfer)
+    void set_bytes_transferred(unsigned long long int bytes);
+    /// Get current number of bytes transferred
+    unsigned long long int get_bytes_transferred() const { return bytes_transferred; };
 
-     /// Set the DTR to be cancelled
-     void set_cancel_request();
-     /// Returns true if cancellation has been requested
-     bool cancel_requested() const { return cancel_request; };
+    /// Set the DTR to be cancelled
+    void set_cancel_request();
+    /// Returns true if cancellation has been requested
+    bool cancel_requested() const { return cancel_request; };
      
-     /// Set delivery endpoint
-     void set_delivery_endpoint(const Arc::URL& endpoint) { delivery_endpoint = endpoint; };
-     /// Returns delivery endpoint
-     const Arc::URL& get_delivery_endpoint() const { return delivery_endpoint; };
+    /// Set delivery endpoint
+    void set_delivery_endpoint(const Arc::URL& endpoint) { delivery_endpoint = endpoint; };
+    /// Returns delivery endpoint
+    const Arc::URL& get_delivery_endpoint() const { return delivery_endpoint; };
 
-     /// Add problematic endpoint. Should only be those endpoints where there
-     /// is a problem with the service itself and not the transfer.
-     void add_problematic_delivery_service(const Arc::URL& endpoint) { problematic_delivery_endpoints.push_back(endpoint); };
-     /// Get all problematic endpoints
-     const std::vector<Arc::URL>& get_problematic_delivery_services() const { return problematic_delivery_endpoints; };
+    /// Add problematic endpoint.
+    /**
+     * Should only be those endpoints where there is a problem with the service
+     * itself and not the transfer.
+     */
+    void add_problematic_delivery_service(const Arc::URL& endpoint) { problematic_delivery_endpoints.push_back(endpoint); };
+    /// Get all problematic endpoints
+    const std::vector<Arc::URL>& get_problematic_delivery_services() const { return problematic_delivery_endpoints; };
 
-     /// Set the flag for using host certificate for contacting remote delivery services
-     void host_cert_for_remote_delivery(bool host) { use_host_cert_for_remote_delivery = host; };
-     /// Set the flag for using host certificate for contacting remote delivery services
-     bool host_cert_for_remote_delivery() const { return use_host_cert_for_remote_delivery; };
+    /// Set the flag for using host certificate for contacting remote delivery services
+    void host_cert_for_remote_delivery(bool host) { use_host_cert_for_remote_delivery = host; };
+    /// Get the flag for using host certificate for contacting remote delivery services
+    bool host_cert_for_remote_delivery() const { return use_host_cert_for_remote_delivery; };
 
-     /// Set cache filename
-     void set_cache_file(const std::string& filename);
-     /// Get cache filename
-     std::string get_cache_file() const { return cache_file; };
+    /// Set cache filename
+    void set_cache_file(const std::string& filename);
+    /// Get cache filename
+    std::string get_cache_file() const { return cache_file; };
 
-     /// Set cache parameters
-     void set_cache_parameters(const DTRCacheParameters& param) { cache_parameters = param; };
-     /// Get cache parameters
-     const DTRCacheParameters& get_cache_parameters() const { return cache_parameters; };
+    /// Set cache parameters
+    void set_cache_parameters(const DTRCacheParameters& param) { cache_parameters = param; };
+    /// Get cache parameters
+    const DTRCacheParameters& get_cache_parameters() const { return cache_parameters; };
 
-     /// Set the cache state
-     void set_cache_state(CacheState state);
-     /// Get the cache state
-     CacheState get_cache_state() const { return cache_state; };
+    /// Set the cache state
+    void set_cache_state(CacheState state);
+    /// Get the cache state
+    CacheState get_cache_state() const { return cache_state; };
 
-     /// Set the mapped file
-     void set_mapped_source(const std::string& file = "") { mapped_source = file; };
-     /// Get the mapped file
-     std::string get_mapped_source() const { return mapped_source; };
+    /// Set the mapped file
+    void set_mapped_source(const std::string& file = "") { mapped_source = file; };
+    /// Get the mapped file
+    std::string get_mapped_source() const { return mapped_source; };
 
-     /// Find the DTR owner
-     StagingProcesses get_owner() const { return current_owner; };
+    /// Find the DTR owner
+    StagingProcesses get_owner() const { return current_owner; };
      
-     /// Get the local user information
-     Arc::User get_local_user() const { return user; };
+    /// Get the local user information
+    Arc::User get_local_user() const { return user; };
 
-     /// Set replication flag
-     void set_replication(bool rep) { replication = rep; };
-     /// Get replication flag
-     bool is_replication() const { return replication; };
-     /// Set force replication flag
-     void set_force_registration(bool force) { force_registration = force; };
-     /// Get force replication flag
-     bool is_force_registration() const { return force_registration; };
+    /// Set replication flag
+    void set_replication(bool rep) { replication = rep; };
+    /// Get replication flag
+    bool is_replication() const { return replication; };
+    /// Set force replication flag
+    void set_force_registration(bool force) { force_registration = force; };
+    /// Get force replication flag
+    bool is_force_registration() const { return force_registration; };
 
-     /// Set bulk start flag
-     void set_bulk_start(bool value) { bulk_start = value; };
-     /// Get bulk start flag
-     bool get_bulk_start() const { return bulk_start; };
-     /// Set bulk end flag
-     void set_bulk_end(bool value) { bulk_end = value; };
-     /// Get bulk start flag
-     bool get_bulk_end() const { return bulk_end; };
-     /// Whether bulk operation is possible according to current state and src/dest
-     bool bulk_possible();
+    /// Set bulk start flag
+    void set_bulk_start(bool value) { bulk_start = value; };
+    /// Get bulk start flag
+    bool get_bulk_start() const { return bulk_start; };
+    /// Set bulk end flag
+    void set_bulk_end(bool value) { bulk_end = value; };
+    /// Get bulk start flag
+    bool get_bulk_end() const { return bulk_end; };
+    /// Whether bulk operation is possible according to current state and src/dest
+    bool bulk_possible();
 
-     /// Get Logger object, so that processes can log to this DTR's log
-     const DTRLogger& get_logger() const { return logger; };
+    /// Get Logger object, so that processes can log to this DTR's log
+    const DTRLogger& get_logger() const { return logger; };
 
-     /// Connect log destinations to logger. Only needs to be done after disconnect()
-     void connect_logger() { if (logger) logger->setDestinations(log_destinations); };
-     /// Disconnect log destinations from logger.
-     void disconnect_logger() { if (logger) logger->removeDestinations(); };
+    /// Connect log destinations to logger. Only needs to be done after disconnect()
+    void connect_logger() { if (logger) logger->setDestinations(log_destinations); };
+    /// Disconnect log destinations from logger.
+    void disconnect_logger() { if (logger) logger->removeDestinations(); };
 
-     /// Pass the DTR from one process to another. Protected by lock.
-     static void push(DTR_ptr dtr, StagingProcesses new_owner);
+    /// Pass the DTR from one process to another. Protected by lock.
+    static void push(DTR_ptr dtr, StagingProcesses new_owner);
      
-     /// Suspend the DTR which is in doing transfer in the delivery process
-     bool suspend();
+    /// Suspend the DTR which is in doing transfer in the delivery process
+    bool suspend();
      
-     /// Did an error happen?
-     bool error() const { return (error_status != DTRErrorStatus::NONE_ERROR); }
+    /// Did an error happen?
+    bool error() const { return (error_status != DTRErrorStatus::NONE_ERROR); }
      
-     /// Returns true if this DTR is about to go into the pre-processor
-     bool is_destined_for_pre_processor() const;
-     /// Returns true if this DTR is about to go into the post-processor
-     bool is_destined_for_post_processor() const;
-     /// Returns true if this DTR is about to go into delivery
-     bool is_destined_for_delivery() const;
+    /// Returns true if this DTR is about to go into the pre-processor
+    bool is_destined_for_pre_processor() const;
+    /// Returns true if this DTR is about to go into the post-processor
+    bool is_destined_for_post_processor() const;
+    /// Returns true if this DTR is about to go into delivery
+    bool is_destined_for_delivery() const;
      
-     /// Returns true if this DTR just came from the pre-processor
-     bool came_from_pre_processor() const;
-     /// Returns true if this DTR just came from the post-processor
-     bool came_from_post_processor() const;
-     /// Returns true if this DTR just came from delivery
-     bool came_from_delivery() const;
-     /// Returns true if this DTR just came from the generator
-     bool came_from_generator() const;
-     /// Returns true if this DTR is in a final state (finished, failed or cancelled)
-     bool is_in_final_state() const;
+    /// Returns true if this DTR just came from the pre-processor
+    bool came_from_pre_processor() const;
+    /// Returns true if this DTR just came from the post-processor
+    bool came_from_post_processor() const;
+    /// Returns true if this DTR just came from delivery
+    bool came_from_delivery() const;
+    /// Returns true if this DTR just came from the generator
+    bool came_from_generator() const;
+    /// Returns true if this DTR is in a final state (finished, failed or cancelled)
+    bool is_in_final_state() const;
   };
   
   /// Helper method to create smart pointer, only for swig bindings

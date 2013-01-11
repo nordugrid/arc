@@ -3,7 +3,6 @@
 
 #include <map>
 
-#include <arc/Thread.h>
 #include <arc/credential/VOMSUtil.h>
 
 #include "DTR.h"
@@ -14,6 +13,7 @@ namespace DataStaging {
   /**
    * It allows reference shares to be defined with certain priorities. An
    * instance of this class is used when creating a TransferShares object.
+   * \headerfile TransferShares.h arc/data-staging/TransferShares.h
    */
   class TransferSharesConf {
 
@@ -103,6 +103,7 @@ namespace DataStaging {
    * configuration and the currently active shares (the DTRs already in the
    * process). can_start() is the method called by the Scheduler to
    * determine whether a particular share has an available slot in the process.
+   * \headerfile TransferShares.h arc/data-staging/TransferShares.h
    */
   class TransferShares {
 
@@ -128,30 +129,27 @@ namespace DataStaging {
     /// Empty destructor
     ~TransferShares(){};
 
-    /// Copy constructor must be defined because SimpleCondition cannot be copied
-    TransferShares(const TransferShares& shares);
-    /// Assignment operator must be defined because SimpleCondition cannot be copied
-    TransferShares& operator=(const TransferShares& shares);
-
     /// Set a new configuration, if a new reference share gets added for example
     void set_shares_conf(const TransferSharesConf& share_conf);
 
     /// Calculate how many slots to assign to each active share.
-    /** This method is called each time the Scheduler loops to calculate the
+    /**
+     * This method is called each time the Scheduler loops to calculate the
      * number of slots to assign to each share, based on the current number
-     * of active shares and the shares' relative priorities. */
+     * of active shares and the shares' relative priorities.
+     */
     void calculate_shares(int TotalNumberOfSlots);
 
-    /// Increase by one the active count for the given share.
-    /** Called when a new DTR enters the queue. */
+    /// Increase by one the active count for the given share. Called when a new DTR enters the queue.
     void increase_transfer_share(const std::string& ShareToIncrease);
-    /// Decrease by one the active count for the given share
-    /** Called when a completed DTR leaves the queue. */
+    /// Decrease by one the active count for the given share. Called when a completed DTR leaves the queue.
     void decrease_transfer_share(const std::string& ShareToDecrease);
 
     /// Decrease by one the number of slots available to the given share.
-    /** Called when there is a slot already used by this share
-     * to reduce the number available. */
+    /**
+     * Called when there is a slot already used by this share to reduce the
+     * number available.
+     */
     void decrease_number_of_slots(const std::string& ShareToDecrease);
 
     /// Returns true if there is a slot available for the given share

@@ -9,6 +9,9 @@
 namespace DataStaging {
       
   /// Class representing the status of a DTR.
+  /**
+   * \headerfile DTRStatus.h arc/data-staging/DTRStatus.h
+   */
   class DTRStatus {
 
   public:
@@ -128,7 +131,7 @@ namespace DataStaging {
       
     };
     
-    /// Make new DTRStatus with given status
+    /// Make new DTRStatus with given status and optional description.
     DTRStatus(const DTRStatusType& status, std::string desc="")
       : status(status), desc(desc) {}
     /// Make new DTRStatus with default NEW status
@@ -197,6 +200,9 @@ namespace DataStaging {
   }; // DTRStatus
 
   /// A class to represent error states reported by various components.
+  /**
+   * \headerfile DTRStatus.h arc/data-staging/DTRStatus.h
+   */
   class DTRErrorStatus {
 
    public:
@@ -255,6 +261,12 @@ namespace DataStaging {
     };
 
     /// Create a new DTRErrorStatus with given error states
+    /**
+     * @param status Type of error
+     * @param error_state DTR state in which the error occurred
+     * @param location Location of error (at source, destination or during transfer)
+     * @param desc Text description of error
+     */
     DTRErrorStatus(DTRErrorStatusType status,
                    DTRStatus::DTRStatusType error_state,
                    DTRErrorLocation location,

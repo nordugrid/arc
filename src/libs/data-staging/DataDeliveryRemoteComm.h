@@ -10,9 +10,14 @@
 namespace DataStaging {
 
   /// This class contacts a remote service to make a Delivery request.
+  /**
+   * \headerfile DataDeliveryRemoteComm.h arc/data-staging/DataDeliveryRemoteComm.h
+   */
   class DataDeliveryRemoteComm : public DataDeliveryComm {
   public:
+    /// Send the transfer request to the remote service.
     DataDeliveryRemoteComm(DTR_ptr dtr, const TransferParameters& params);
+    /// If transfer is still ongoing, sends a cancellation message to the service.
     virtual ~DataDeliveryRemoteComm();
 
     /// Read status from service
