@@ -4,6 +4,8 @@
 #include <config.h>
 #endif
 
+#include <utility>
+
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
@@ -46,18 +48,16 @@ namespace Arc {
      */
     std::string::size_type pos3 = service.find("/", pos1 + 3);
     if (pos3 == std::string::npos || pos3 == service.size()-1) {
-      service += "/services/query.xml?limit=";
+      service += "/services/query.xml";
       std::stringstream ss;
       ss << entryPerMessage;
       service += ss.str();
-      if (skipOffset > 0) {
-        service += "&skip=";
-        std::stringstream sskip;
-        sskip << skipOffset;
-        service += sskip.str();
-      }
     }
-    return service;
+    URL serviceURL(service);
+
+    if (entryPerMessage > 0) serviceURL.AddHTTPOption("limit", tostring(entryPerMessage));
+    if (skipOffset > 0)      serviceURL.AddHTTPOption("skip",  tostring(skipOffset));
+    return serviceURL;
   }
 
   EndpointQueryingStatus ServiceEndpointRetrieverPluginEMIR::Query(const UserConfig& uc,
@@ -69,7 +69,10 @@ namespace Arc {
     int currentSkip = 0;
     MCCConfig cfg;
     uc.ApplyToConfig(cfg);
-    while (true) {
+    
+    // Limitation: Max number of services the below loop will fetch, according to parameters:
+    // ServiceEndpointRetrieverPluginEMIR::maxEntries * 100 = 500.000 (currently)
+    for (int iAvoidInfiniteLoop = 0; iAvoidInfiniteLoop < 100; ++iAvoidInfiniteLoop) {
       URL url(CreateURL(rEndpoint.URLString, maxEntries, currentSkip));
       if (!url) {
         s = EndpointQueryingStatus::FAILED;
@@ -81,22 +84,27 @@ namespace Arc {
       ClientHTTP httpclient(cfg, url);
       httpclient.RelativeURI(true);
 
+      // Set Accept HTTP header tag, in order not to receive JSON output.
+      std::multimap<std::string, std::string> acceptHeaderTag;
+      acceptHeaderTag.insert(std::make_pair("Accept", "text/xml"));
+
       PayloadRaw http_request;
       PayloadRawInterface *http_response = NULL;
       HTTPClientInfo http_info;
 
       // send query message to the EMIRegistry
-      MCC_Status status = httpclient.process("GET", &http_request, &http_info, &http_response);
+      MCC_Status status = httpclient.process("GET", acceptHeaderTag, &http_request, &http_info, &http_response);
 
       if (http_info.code != 200 || !status) {
         s = EndpointQueryingStatus::FAILED;
         return s;
       }
-
+      
       XMLNode resp_xml(http_response->Content());
       XMLNodeList services = resp_xml.Path("Service");
       if (services.empty()) {
-        break;        // exit from the infinite loop, don't get more information from the EMIR server
+        delete http_response;
+        break; // No more services - exit from loop.
       }
       for (XMLNodeList::const_iterator it = services.begin(); it != services.end(); ++it) {
         if (!(*it)["Endpoint"] || !(*it)["Endpoint"]["URL"]) {
