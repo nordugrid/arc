@@ -1242,7 +1242,7 @@ static void create_proxy(std::string& proxy_cert, Arc::Credential& signer,
   //Put the voms attribute certificate into proxy certificate
   if (!vomsacseq.empty()) {
     bool r = cred_request.AddExtension("acseq", (char**)(vomsacseq.c_str()));
-    if (!r) std::cout << Arc::IString("Failed to add voms AC extension. Your proxy may be incomplete.") << std::endl;
+    if (!r) std::cout << Arc::IString("Failed to add VOMS AC extension. Your proxy may be incomplete.") << std::endl;
   }
 
   if (!use_gsi_proxy) {

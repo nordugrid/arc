@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
 
   std::list<std::string> cancel_jobs;
   options.AddOption('k', "killjob",
-                    istring("request to cancel job(s) with specified id(s)"),
+                    istring("request to cancel job(s) with specified ID(s)"),
                     istring("id"), cancel_jobs);
 
   std::list<std::string> cancel_users;
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
 
   std::list<std::string> clean_jobs;
   options.AddOption('r', "remjob",
-                    istring("request to clean job(s) with specified id(s)"),
+                    istring("request to clean job(s) with specified ID(s)"),
                     istring("id"), clean_jobs);
 
   std::list<std::string> clean_users;
@@ -159,17 +159,17 @@ int main(int argc, char* argv[]) {
 
   std::list<std::string> filter_jobs;
   options.AddOption('j', "filterjob",
-                    istring("show only jobs with specified id(s)"),
+                    istring("show only jobs with specified ID(s)"),
                     istring("id"), filter_jobs);
 
   bool show_delegs = false;
   options.AddOption('e', "listdelegs",
-		    istring("print list of available delegation ids"),
+		    istring("print list of available delegation IDs"),
 		    show_delegs);
 
   std::list<std::string> show_deleg_ids;
   options.AddOption('E', "showdeleg",
-                    istring("print delegation token of specified id(s)"),
+                    istring("print delegation token of specified ID(s)"),
                     istring("id"), show_deleg_ids);
 
 

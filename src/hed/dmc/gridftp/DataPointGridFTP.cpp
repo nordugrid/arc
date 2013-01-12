@@ -937,7 +937,7 @@ namespace ArcDMCGridFTP {
     bool more_info = ((verb | INFO_TYPE_NAME) != INFO_TYPE_NAME);
     DataStatus lister_res = lister->retrieve_file_info(url,!more_info);
     if (!lister_res) {
-      logger.msg(VERBOSE, "Failed to obtain stat from ftp: %s", lister_res.GetDesc());
+      logger.msg(VERBOSE, "Failed to obtain stat from FTP: %s", lister_res.GetDesc());
       reading = false;
       return lister_res;
     }

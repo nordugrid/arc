@@ -37,8 +37,8 @@ int RUNMAIN(arcacl)(int argc, char **argv) {
 
   ClientOptions opt(ClientOptions::CO_ACL,
                     istring("get|put [object ...]"),
-                    istring("The arcacl command retrieves/sets permisions"
-                            " (ACL) of data or computing object."));
+                    istring("The arcacl command retrieves/sets permissions"
+                            " (ACL) of data or computing objects."));
 
   std::list<std::string> jobidentifiers = opt.Parse(argc, argv);
 
@@ -83,7 +83,7 @@ int RUNMAIN(arcacl)(int argc, char **argv) {
 
   for (std::list<std::string>::const_iterator it = opt.jobidinfiles.begin(); it != opt.jobidinfiles.end(); it++) {
     if (!Arc::Job::ReadJobIDsFromFile(*it, jobidentifiers)) {
-      logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
+      logger.msg(Arc::WARNING, "Cannot read specified jobID file: %s", *it);
     }
   }
 

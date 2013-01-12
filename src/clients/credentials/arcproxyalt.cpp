@@ -1215,7 +1215,7 @@ static bool contact_voms_servers(std::list<std::string>& vomslist, std::list<std
     if(stat != AuthN::Status(0)) 
       std::cout<< Arc::IString("Failed to add extension: %s", stat.GetDescription().c_str()) <<std::endl;
   }
-  else std::cout << Arc::IString("Failed to add voms AC extension. Your proxy may be incomplete.") << std::endl;
+  else std::cout << Arc::IString("Failed to add VOMS AC extension. Your proxy may be incomplete.") << std::endl;
 
   return true;
 }
