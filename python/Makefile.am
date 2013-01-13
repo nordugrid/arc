@@ -73,7 +73,7 @@ MAINTAINERCLEANFILES = pydoxygen.i
 
 $(ARCPYLIBS): %.py: %_wrap.cpp
 
-$(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i pydoxygen.i
+$(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i $(top_srcdir)/swig/Arc.i pydoxygen.i
 	mkdir -p $(DEPDIR)
 	grep -h '^#' $(top_srcdir)/swig/$*.i | \
 	$(CXXCOMPILE) $(_arc_la_CXXFLAGS) -M -MT $*_wrap.cpp -MT arc_$*.py -MP -MF "$(DEPDIR)/$*_wrap.deps" -x c++ -
