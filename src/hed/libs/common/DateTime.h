@@ -137,7 +137,7 @@ namespace Arc {
 
     /** gets the time */
     time_t GetTime() const;
-    time_t GetTimeNanosec() const;
+    time_t GetTimeNanoseconds() const;
 
     /** Returns a string representation of the time,
         using the default format. */

@@ -309,7 +309,7 @@ namespace Arc {
   }
 
 
-  time_t Time::GetTimeNanosec() const {
+  time_t Time::GetTimeNanoseconds() const {
     return gnano;
   }
 

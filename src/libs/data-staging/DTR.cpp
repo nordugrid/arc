@@ -253,7 +253,7 @@ namespace DataStaging {
   void DTR::set_process_time(const Arc::Period& process_time) {
     Arc::Time t;
     t = t + process_time;
-    next_process_time.SetTime(t.GetTime(), t.GetTimeNanosec());
+    next_process_time.SetTime(t.GetTime(), t.GetTimeNanoseconds());
   }
 
   bool DTR::bulk_possible() {
