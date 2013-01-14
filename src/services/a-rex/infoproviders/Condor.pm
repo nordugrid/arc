@@ -473,6 +473,8 @@ sub queue_info ($$) {
     $lrms_queue{freecpus} = $totalcpus - $usedcpus;
     $lrms_queue{running} = $usedcpus;
     $lrms_queue{totalcpus} = $totalcpus;
+    # In theory any job in some circumstances can consume all available slots
+    $lrms_queue{MaxSlotsPerJob} = $totalcpus;
     $lrms_queue{queued} = $queuedcpus;
 
     # reserve negative numbers for error states 
