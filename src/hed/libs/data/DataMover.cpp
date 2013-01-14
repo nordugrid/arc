@@ -146,7 +146,7 @@ namespace Arc {
                      url.CurrentLocationMetadata());
           DataStatus r = url.Unregister(false);
           if (!r) {
-            logger.msg(ERROR, "Failed to delete meta-information");
+            logger.msg(INFO, "Failed to delete meta-information");
             res = r;
             url.NextLocation();
           }
@@ -160,21 +160,21 @@ namespace Arc {
       }
     if (url.IsIndex()) {
       if (url.HaveLocations()) {
-        logger.msg(ERROR, "Failed to remove all physical instances");
+        logger.msg(INFO, "Failed to remove all physical instances");
         return res;
       }
       if (remove_lfn) {
         logger.msg(INFO, "Removing logical file from metadata %s", url.str());
         DataStatus r = url.Unregister(true);
         if (!r) {
-          logger.msg(ERROR, "Failed to delete logical file");
+          logger.msg(INFO, "Failed to delete logical file");
           return r;
         }
       }
     }
     else {
       if (!url.LocationValid()) {
-        logger.msg(ERROR, "Failed to remove instance");
+        logger.msg(INFO, "Failed to remove instance");
         return res;
       }
     }
