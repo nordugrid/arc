@@ -1,4 +1,5 @@
-TESTSCRIPTS = 
+TESTSCRIPTS = \
+	MappingOf_time_t_and_uint32_t_CTypesToJavaRegressionTest.class
 
 if JUNIT_ENABLED
 CLASSPATH = $(top_builddir)/java/arc.jar:.:/usr/share/java/junit.jar

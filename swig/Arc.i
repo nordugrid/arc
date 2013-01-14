@@ -317,6 +317,80 @@ std::ostream& getStdout() { return std::cout; }
 %}
 #endif
 
+
+#ifdef SWIGPYTHON
+// Make typemap for time_t - otherwise it will be a useless proxy object.
+// Solution taken from: http://stackoverflow.com/questions/2816046/simple-typemap-example-in-swig-java
+%typemap(in) time_t
+{
+  if      (PyLong_Check($input))  $1 = (time_t) PyLong_AsLong($input);
+  else if (PyInt_Check($input))   $1 = (time_t) PyInt_AsLong($input);
+  else if (PyFloat_Check($input)) $1 = (time_t) PyFloat_AsDouble($input);
+  else {
+    PyErr_SetString(PyExc_TypeError,"Expected a large type");
+    return NULL;
+  }
+}
+%typemap(typecheck) time_t = long;
+
+%typemap(out) time_t
+{
+  $result = PyLong_FromLong((long)$1);
+}
+
+
+%typemap(in) uint32_t
+{
+  if      (PyInt_Check($input))   $1 = (uint32_t) PyInt_AsLong($input);
+  else if (PyFloat_Check($input)) $1 = (uint32_t) PyFloat_AsDouble($input);
+  else {
+    PyErr_SetString(PyExc_TypeError,"Unable to convert type to 32bit number (int/float)");
+    return NULL;
+  }
+}
+%typemap(typecheck) uint32_t = int;
+
+// It seems there is no need for an out typemap for uint32_t...
+// Methods returning an uint32_t type will in python return a long.
+#endif
+#ifdef SWIGJAVA
+// Make typemap for time_t - otherwise it will be a useless proxy object.
+// Solution taken from: http://stackoverflow.com/questions/2816046/simple-typemap-example-in-swig-java
+%typemap(in) time_t {
+  $1 = (time_t)$input;
+}
+%typemap(javain) time_t "$javainput"
+
+%typemap(out) time_t %{
+  $result = (jlong)$1;
+%}
+%typemap(javaout) time_t {
+  return $jnicall;
+}
+
+%typemap(jni)    time_t "jlong"
+%typemap(jtype)  time_t "long"
+%typemap(jstype) time_t "long"
+
+
+%typemap(in) uint32_t {
+  $1 = (uint32_t)$input;
+}
+%typemap(javain) uint32_t "$javainput"
+
+%typemap(out) uint32_t %{
+  $result = (jint)$1;
+%}
+%typemap(javaout) uint32_t {
+  return $jnicall;
+}
+
+%typemap(jni)    uint32_t "jint"
+%typemap(jtype)  uint32_t "int"
+%typemap(jstype) uint32_t "int"
+#endif
+
+
 #ifndef SWIGJAVA
 %define %wraplist(X, Y...)
 %template(X ## List) std::list< Y >;

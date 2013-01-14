@@ -1,0 +1,31 @@
+'''
+Regression test
+Checks whether the time_t and uint32_t types are mapped to a number (long, int,
+float).
+'''
+
+import testutils, arc, unittest, time
+
+class MappingOf_time_t_and_uint32_t_CTypesToPythonRegressionTest(testutils.ARCClientTestCase):
+    def setUp(self):
+        pass
+    
+    def tearDown(self):
+        pass
+    
+    def test_checkMappedTypeOf_time_t_CType(self):
+        self.expect(arc.Time().GetTime()).to_be_an_instance_of((long, int, float))
+        self.expect(arc.Time(123456L)).to_not_throw(NotImplementedError)
+
+        self.expect(arc.Period().GetPeriod()).to_be_an_instance_of((long, int, float))
+        self.expect(arc.Period(123456L)).to_not_throw(NotImplementedError)
+
+    def test_checkMappedTypeOf_uint32_t_CType(self):
+        self.expect(arc.Time().GetTimeNanoseconds()).to_be_an_instance_of((long, int, float))
+        self.expect(arc.Time(123456L, 123456)).to_not_throw(NotImplementedError)
+
+        self.expect(arc.Period().GetPeriodNanoseconds()).to_be_an_instance_of((long, int, float))
+        self.expect(arc.Period(123456L, 123456)).to_not_throw(NotImplementedError)
+
+if __name__ == '__main__':
+    unittest.main()
