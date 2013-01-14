@@ -92,5 +92,8 @@ arc.jar: $(JAVA_PATH)/arc.class $(subst .java,.class,$(wildcard $(JAVA_PATH)/*.j
 	rm -f $@
 	$(JAR) cf $@ $(JAVA_PATH)/*.class $(JAR_JFLAGS)
 
+DIST_SUBDIRS = test
+SUBDIRS = $(TEST_DIR)
+
 # Try not to build these objects in parallel in order to save memory
 .NOTPARALLEL: %.o %.class %.so

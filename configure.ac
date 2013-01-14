@@ -150,6 +150,7 @@ enables_swig_java=yes
 # Features directly related to components
 enables_cppunit=yes
 enables_java=yes
+enables_junit=yes
 enables_python=yes
 enables_altpython=yes
 enables_mock_dmc=no
@@ -213,6 +214,7 @@ enables_unicore_client=$enableval
 enables_emies_client=$enableval
 enables_hed=$enableval
 enables_java=$enableval
+enables_junit=$enableval
 enables_python=$enableval
 enables_altpython=$enableval
 enables_gacl=$enableval
@@ -468,6 +470,21 @@ AM_CONDITIONAL([JAVA_IS_15_OR_ABOVE], [test "x$java_is_15_or_above" = "xyes"])
 AC_SUBST(JAR_JFLAGS)
 AC_SUBST(JAVAC_FLAGS)
 AC_SUBST(JDK_CFLAGS)
+
+
+# Try to find junit - used for unit testing of Java bindings.
+dnl Check if JUnit is explicitly disabled.
+if test "$enables_hed" = "yes"; then
+AC_ARG_ENABLE(junit, AC_HELP_STRING([--disable-junit], [disable unit testing of Java bindings]),
+[enables_junit=$enableval],[])
+if test "$enables_java" = "yes" && test "$enables_junit" = "yes"; then
+  AC_PATH_PROG(JUNIT, junit)
+  AC_SUBST(JUNIT)
+fi
+fi
+
+AM_CONDITIONAL([JUNIT_ENABLED], [test "x$enables_junit" = "xyes"])
+
 
 # Python
 if test "$enables_hed" = "yes"; then
@@ -2493,6 +2510,8 @@ AC_CONFIG_FILES([Makefile
                  src/doc/arc.conf.5
                  swig/Makefile
                  java/Makefile
+                 java/test/Makefile
+                 java/test/strip_test_file_name_and_run_junit
                  python/Makefile
                  python/test/Makefile
                  po/Makefile.in

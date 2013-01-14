@@ -1,0 +1,9 @@
+#!/bin/bash
+
+export CLASSPATH=${CLASSPATH}
+
+# Remove leading './' from first argument
+class=${1#./}
+# Remove trailing '.class'
+class=${class%.class}
+@JUNIT@ ${class}
