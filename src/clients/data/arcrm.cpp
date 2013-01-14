@@ -60,12 +60,15 @@ int arcrm(const std::list<Arc::URL>& urls,
         continue;
       }
 
-      if ((*handle)->RequiresCredentials() && usercfg.ProxyPath().empty()) {
-        logger.msg(Arc::ERROR, "Unable to remove file %s: No valid proxy found", url->str());
-        failed++;
-        delete handle;
-        handle = NULL;
-        continue;
+      if ((*handle)->RequiresCredentials()) {
+        Arc::Credential cred(usercfg);
+        if (!cred.IsValid()) {
+          logger.msg(Arc::ERROR, "Unable to remove file %s: No valid proxy found", url->str());
+          failed++;
+          delete handle;
+          handle = NULL;
+          continue;
+        }
       }
     }
 
@@ -158,7 +161,7 @@ int main(int argc, char **argv) {
   }
 
   // credentials will be initialised later if necessary
-  Arc::UserConfig usercfg(conffile);
+  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::NotTryCredentials);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;

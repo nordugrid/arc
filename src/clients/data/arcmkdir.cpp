@@ -41,16 +41,18 @@ bool arcmkdir(const Arc::URL& file_url,
     }
     return r;
   }
-  usercfg.InitializeCredentials(Arc::initializeCredentialsType::TryCredentials);
 
   Arc::DataHandle url(file_url, usercfg);
   if (!url) {
     logger.msg(Arc::ERROR, "Unsupported URL given");
     return false;
   }
-  if (url->RequiresCredentials() && !Arc::Credential::IsCredentialsValid(usercfg)) {
-    logger.msg(Arc::ERROR, "Unable to create directory %s: No valid credentials found", file_url.str());
-    return false;
+  if (url->RequiresCredentials()) {
+    Arc::Credential cred(usercfg);
+    if (!cred.IsValid()) {
+      logger.msg(Arc::ERROR, "Unable to create directory %s: No valid credentials found", file_url.str());
+      return false;
+    }
   }
   url->SetSecure(false);
   Arc::DataStatus res = url->CreateDirectory(with_parents);
@@ -135,7 +137,7 @@ int main(int argc, char **argv) {
   }
 
   // credentials will be initialised later if necessary
-  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::SkipCredentials);
+  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::NotTryCredentials);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;

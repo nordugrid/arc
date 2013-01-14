@@ -142,16 +142,18 @@ static bool arcls(const Arc::URL& dir_url,
     }
     return r;
   }
-  usercfg.InitializeCredentials(Arc::initializeCredentialsType::TryCredentials);
 
   Arc::DataHandle url(dir_url, usercfg);
   if (!url) {
     logger.msg(Arc::ERROR, "Unsupported URL given");
     return false;
   }
-  if (url->RequiresCredentials() && !Arc::Credential::IsCredentialsValid(usercfg)) {
-    logger.msg(Arc::ERROR, "Unable to list content of %s: No valid credentials found", dir_url.str());
-    return false;
+  if (url->RequiresCredentials()) {
+    Arc::Credential cred(usercfg);
+    if (!cred.IsValid()) {
+      logger.msg(Arc::ERROR, "Unable to list content of %s: No valid credentials found", dir_url.str());
+      return false;
+    }
   }
   url->SetSecure(false);
 
@@ -362,7 +364,7 @@ int main(int argc, char **argv) {
   }
 
   // credentials will be initialised later if necessary
-  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::SkipCredentials);
+  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::NotTryCredentials);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;

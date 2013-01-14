@@ -53,16 +53,18 @@ bool arcrename(const Arc::URL& old_url,
     logger.msg(Arc::ERROR, "Cannot rename to the same URL");
     return false;
   }
-  usercfg.InitializeCredentials(Arc::initializeCredentialsType::TryCredentials);
 
   Arc::DataHandle url(old_url, usercfg);
   if (!url) {
     logger.msg(Arc::ERROR, "Unsupported URL given");
     return false;
   }
-  if (url->RequiresCredentials() && !Arc::Credential::IsCredentialsValid(usercfg)) {
-    logger.msg(Arc::ERROR, "Unable to rename file %s: No valid credentials found", old_url.str());
-    return false;
+  if (url->RequiresCredentials()) {
+    Arc::Credential cred(usercfg);
+    if (!cred.IsValid()) {
+      logger.msg(Arc::ERROR, "Unable to rename file %s: No valid credentials found", old_url.str());
+      return false;
+    }
   }
 
   // Insecure by default

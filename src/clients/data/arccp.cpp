@@ -99,7 +99,8 @@ bool arctransfer(const Arc::URL& source_url,
     return false;
   }
   // Credentials are always required for 3rd party transfer
-  if (!Arc::Credential::IsCredentialsValid(usercfg)) {
+  Arc::Credential cred(usercfg);
+  if (!cred.IsValid()) {
     logger.msg(Arc::ERROR, "Unable to transfer file %s: No valid credentials found", source_url.str());
     return false;
   }
@@ -216,10 +217,12 @@ bool arcregister(const Arc::URL& source_url,
                destination_url.str());
     return false;
   }
-  if ((source->RequiresCredentials() || destination->RequiresCredentials()) &&
-      !Arc::Credential::IsCredentialsValid(usercfg)) {
-    logger.msg(Arc::ERROR, "Unable to register file %s: No valid credentials found", source_url.str());
-    return false;
+  if (source->RequiresCredentials() || destination->RequiresCredentials()) {
+    Arc::Credential cred(usercfg);
+    if (!cred.IsValid()) {
+      logger.msg(Arc::ERROR, "Unable to register file %s: No valid credentials found", source_url.str());
+      return false;
+    }
   }
   if (source->IsIndex() || !destination->IsIndex()) {
     logger.msg(Arc::ERROR, "For registration source must be ordinary URL"
@@ -300,10 +303,12 @@ static Arc::DataStatus do_mover(const Arc::URL& s_url,
     logger.msg(Arc::INFO, "Unsupported destination url: %s", d_url.str());
     return Arc::DataStatus::WriteAcquireError;
   }
-  if ((source->RequiresCredentials() || destination->RequiresCredentials()) &&
-      !Arc::Credential::IsCredentialsValid(usercfg)) {
-    logger.msg(Arc::ERROR, "Unable to copy file %s: No valid credentials found", s_url.str());
-    return Arc::DataStatus::CredentialsExpiredError;
+  if (source->RequiresCredentials() || destination->RequiresCredentials()) {
+    Arc::Credential cred(usercfg);
+    if (!cred.IsValid()) {
+      logger.msg(Arc::ERROR, "Unable to copy file %s: No valid credentials found", s_url.str());
+      return Arc::DataStatus::CredentialsExpiredError;
+    }
   }
   if (!locations.empty()) {
     std::string meta(destination->GetURL().Protocol()+"://"+destination->GetURL().Host());
@@ -459,9 +464,12 @@ bool arccp(const Arc::URL& source_url_,
         logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
         return false;
       }
-      if (source->RequiresCredentials() && !Arc::Credential::IsCredentialsValid(usercfg)) {
-        logger.msg(Arc::ERROR, "Unable to copy from %s: No valid credentials found", source_url.str());
-        return false;
+      if (source->RequiresCredentials()) {
+        Arc::Credential cred(usercfg);
+        if (!cred.IsValid()) {
+          logger.msg(Arc::ERROR, "Unable to copy from %s: No valid credentials found", source_url.str());
+          return false;
+        }
       }
       std::list<Arc::FileInfo> files;
       Arc::DataStatus result = source->List(files, (Arc::DataPoint::DataPointInfoType)
@@ -669,7 +677,7 @@ int main(int argc, char **argv) {
 
   // Attempt to acquire credentials. Whether they are required will be
   // determined later depending on the protocol.
-  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::TryCredentials);
+  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::NotTryCredentials);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
