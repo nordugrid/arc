@@ -20,52 +20,68 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcrm");
 
-bool arcrm(const Arc::URL& file_url,
-           Arc::UserConfig& usercfg,
-           bool errcont,
-           int timeout) {
-  if (!file_url) {
-    logger.msg(Arc::ERROR, "Invalid URL: %s", file_url.str());
-    return false;
-  }
-  if (file_url.Protocol() == "urllist") {
-    std::list<Arc::URL> files = Arc::ReadURLList(file_url);
-    if (files.empty()) {
-      logger.msg(Arc::ERROR, "Can't read list of locations from file %s",
-                 file_url.Path());
-      return false;
-    }
-    bool r = true;
-    for (std::list<Arc::URL>::iterator file = files.begin();
-         file != files.end(); file++) {
-      if (!arcrm(*file, usercfg, errcont, timeout))
-        r = false;
-    }
-    return r;
-  }
-  usercfg.InitializeCredentials(Arc::initializeCredentialsType::TryCredentials);
+/// Returns number of files that failed to be deleted
+int arcrm(const std::list<Arc::URL>& urls,
+          const Arc::UserConfig& usercfg,
+          bool errcont) {
 
-  Arc::DataHandle url(file_url, usercfg);
-  if (!url) {
-    logger.msg(Arc::ERROR, "Unsupported URL given");
-    return false;
-  }
-  if (url->RequiresCredentials() && !Arc::Credential::IsCredentialsValid(usercfg)) {
-    logger.msg(Arc::ERROR, "Unable to remove file %s: No valid credentials found", file_url.str());
-    return false;
-  }
-
-  // only one try
-  url->SetTries(1);
+  Arc::DataHandle* handle = NULL;
   Arc::DataMover mover;
-  Arc::DataStatus res =  mover.Delete(*url,errcont);
-  if (!res.Passed()) {
-    logger.msg(Arc::ERROR, std::string(res));
-    if (res.Retryable())
-      logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
-    return false;
+  unsigned int failed = 0;
+  for (std::list<Arc::URL>::const_iterator url = urls.begin(); url != urls.end(); ++url) {
+
+    if (!(*url)) {
+      logger.msg(Arc::ERROR, "Invalid URL: %s", url->str());
+      failed++;
+      continue;
+    }
+    if (url->Protocol() == "urllist") {
+      std::list<Arc::URL> url_files = Arc::ReadURLList(*url);
+      if (url_files.empty()) {
+        logger.msg(Arc::ERROR, "Can't read list of locations from file %s", url->Path());
+        failed += 1;
+      } else {
+        failed += arcrm(url_files, usercfg, errcont);
+      }
+      continue;
+    }
+    // Depending on protocol SetURL() may allow reusing connections and hence
+    // the same DataHandle object to delete multiple files. If it is not
+    // supported SetURL() returns false and a new DataHandle must be created.
+    if (!handle || !(*handle)->SetURL(*url)) {
+      delete handle;
+      handle = new Arc::DataHandle(*url, usercfg);
+
+      if (!(*handle)) {
+        logger.msg(Arc::ERROR, "Unsupported URL given: %s", url->str());
+        failed++;
+        delete handle;
+        handle = NULL;
+        continue;
+      }
+
+      if ((*handle)->RequiresCredentials() && usercfg.ProxyPath().empty()) {
+        logger.msg(Arc::ERROR, "Unable to remove file %s: No valid proxy found", url->str());
+        failed++;
+        delete handle;
+        handle = NULL;
+        continue;
+      }
+    }
+
+    // only one try
+    (*handle)->SetTries(1);
+    Arc::DataStatus res =  mover.Delete(**handle, errcont);
+    if (!res.Passed()) {
+      logger.msg(Arc::ERROR, std::string(res));
+      if (res.Retryable()) {
+        logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
+      }
+      failed++;
+    }
   }
-  return true;
+  delete handle;
+  return failed;
 }
 
 int main(int argc, char **argv) {
@@ -79,7 +95,7 @@ int main(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("url"),
+  Arc::OptionParser options(istring("url [url ...]"),
                             istring("The arcrm command deletes files and on "
                                     "grid storage elements."));
 
@@ -120,8 +136,9 @@ int main(int argc, char **argv) {
   }
 
   // If debug is specified as argument, it should be set before loading the configuration.
-  if (!debug.empty())
+  if (!debug.empty()) {
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+  }
 
   if (show_plugins) {
     std::list<Arc::ModuleDesc> modules;
@@ -141,24 +158,31 @@ int main(int argc, char **argv) {
   }
 
   // credentials will be initialised later if necessary
-  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::SkipCredentials);
+  Arc::UserConfig usercfg(conffile);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
   usercfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY);
+  usercfg.Timeout(timeout);
 
-  if (debug.empty() && !usercfg.Verbosity().empty())
+  if (debug.empty() && !usercfg.Verbosity().empty()) {
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
-
-  if (params.size() != 1) {
-    logger.msg(Arc::ERROR, "Wrong number of parameters specified");
-    return 1;
   }
 
-  std::list<std::string>::iterator it = params.begin();
-  if (!arcrm(*it, usercfg, force, timeout))
-    return 1;
+  if (params.empty()) {
+   logger.msg(Arc::ERROR, "Wrong number of parameters specified");
+   return 1;
+  }
 
+  std::list<Arc::URL> urls;
+  for (std::list<std::string>::const_iterator i = params.begin(); i != params.end(); ++i) {
+    urls.push_back(*i);
+  }
+  unsigned int failed = arcrm(urls, usercfg, force);
+  if (failed != 0) {
+    if (params.size() != 1 || failed > 1) std::cout<<failed<<" deletions failed"<<std::endl;
+    return 1;
+  }
   return 0;
 }

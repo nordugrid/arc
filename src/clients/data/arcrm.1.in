@@ -13,7 +13,7 @@ command deletes files on grid storage elements and indexing services.
 
 .SH SYNOPSIS
 
-.B arcrm [options] url
+.B arcrm [options] url [url ...]
 
 .SH OPTIONS
 
@@ -34,8 +34,8 @@ print help
 
 .SH ARGUMENTS
 
-.IP "\fBurl\fR"
-the location to delete
+.IP "\fBurl [url ...]\fR"
+the location(s) to delete
 .LP
 
 .SH EXTENDED DESCRIPTION
@@ -56,7 +56,7 @@ starts from '@', the remaining argument is assumed to be a
 path to a local file containing a list of URLs, one per line.
 In this case
 .B arcrm
-performs like it were called multiple times - once for every URL.
+performs like it were called with all those URLs as arguments.
 
 Depending on the installed libraries (check with
 .B -P
@@ -95,6 +95,10 @@ default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
 .SH EXAMPLE
 
 arcrm lfc://lfc.org/grid/file.dat
+
+.SH NOTES
+
+Lack of recursion is a feature.
 
 .SH COPYRIGHT
 
