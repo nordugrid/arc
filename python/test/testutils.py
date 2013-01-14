@@ -27,10 +27,10 @@ class ExpectationalTestCase(unittest.TestCase):
         def to_be_an_instance_of(self, class_):
             self.testcase.assertTrue(isinstance(self.actual, class_), "%s was expected to be an instance of %s" % (self.actual, class_))
 
-        def to_not_throw(self):
+        def to_not_throw(self, exception = Exception):
             try:
-                self.actual()
-            except Exception, e:
+                self.actual
+            except exception, e:
                 self.testcase.fail("%s was expected not to raise an exception, but it did: %s" % (self.actual, e))
 
         def to_contain(self, *items):
