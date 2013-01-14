@@ -205,18 +205,13 @@ namespace ArcDMCGridFTP {
     if (writing) return DataStatus::IsWritingError;
     GlobusResult res;
     set_attributes();
-    // first check for file or dir
-    FileInfo f;
-    DataStatus stat_res = Stat(f, DataPoint::INFO_TYPE_TYPE);
-    if (!stat_res) return DataStatus(DataStatus::DeleteError, stat_res.GetErrno(), stat_res.GetDesc());
 
-    // if file type is unknown, try file delete and then dir delete if that fails
-    DataStatus rm_res;
-    if (f.GetType() != FileInfo::file_type_dir) {
-      rm_res = RemoveFile();
-    }
-    if (f.GetType() == FileInfo::file_type_dir ||
-        (f.GetType() == FileInfo::file_type_unknown && !rm_res)) {
+    // Try file delete and then dir delete if that fails. It would be good to
+    // use EISDIR but we cannot rely on that error being detected properly for
+    // all server implementations.
+    DataStatus rm_res = RemoveFile();
+    if (!rm_res && rm_res.GetErrno() != ENOENT && rm_res.GetErrno() != EACCES) {
+      logger.msg(INFO, "File delete failed, attempting directory delete for %s", url.str());
       rm_res = RemoveDir();
     }
     return rm_res;
@@ -1305,13 +1300,18 @@ namespace ArcDMCGridFTP {
     return is_secure;
   }
 
-  bool DataPointGridFTP::SetURL(const URL& url) {
-    if ((url.Protocol() != "gsiftp") && (url.Protocol() != "ftp")) {
+  bool DataPointGridFTP::SetURL(const URL& u) {
+    if ((u.Protocol() != "gsiftp") && (u.Protocol() != "ftp")) {
+      return false;
+    }
+    if (u.Host() != url.Host()) {
       return false;
     }
     // Globus FTP handle allows changing url completely
-    this->url = url;
+    url = u;
     if(triesleft < 1) triesleft = 1;
+    // Cache control connection
+    globus_ftp_client_handle_cache_url_state(&ftp_handle, url.str().c_str());
     return true;
   }
 
