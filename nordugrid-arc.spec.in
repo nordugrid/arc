@@ -30,6 +30,11 @@
 
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 %global with_java %{!?_without_java:1}%{?_without_java:0}
+%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >=5
+%global with_junit  %{!?_without_junit:1}%{?_without_junit:0}
+%else
+%global with_junit  0
+%endif
 %else
 %global with_java 0
 %endif
@@ -169,6 +174,9 @@ BuildRequires:	java-devel
 BuildRequires:	jpackage-utils
 %if %{with_gcj}
 BuildRequires:	java-gcj-compat-devel
+%endif
+%if %{with_junit}
+BuildRequires:	junit
 %endif
 %endif
 # Needed for LRMS testing during make check
