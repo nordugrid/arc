@@ -239,65 +239,90 @@ namespace Arc {
 
   Job& Job::operator=(XMLNode job) {
     jc = NULL;
-      
-    // Information specific to how job is stored in jobs list
-    if (job["JobID"]) {
+  
+    // Detect format:
+    if      (job["JobID"] && job["IDFromEndpoint"] &&
+             job["ServiceInformationURL"] && job["ServiceInformationInterfaceName"] &&
+             job["JobStatusURL"] && job["JobStatusInterfaceName"] &&
+             job["JobManagementURL"] && job["JobManagementInterfaceName"])
+    { // Version >= 3.x format.
       JobID = (std::string)job["JobID"];
-    } else if (job["IDFromEndpoint"]) { // Backwardscompatibility: Pre 2.0.0 format.
-      JobID = (std::string)job["IDFromEndpoint"];
-    }
-    if (job["IDFromEndpoint"]
-        /* If this is pre 2.0.0 format then JobID element would not
-         * exist, and the usage of IDFromEndpoint element corresponded
-         * to the current usage of the JobID element. Therefore only set
-         * the IDFromEndpoint member if the JobID _does_ exist.
-         */
-        && job["JobID"]
-        ) {
       IDFromEndpoint = (std::string)job["IDFromEndpoint"];
-    }
-
-    JXMLTOSTRING(Name)
-    else if (job["Flavour"]) {
-      if      ((std::string)job["Flavour"] == "ARC0")  JobManagementInterfaceName = "org.nordugrid.gridftpjob";
-      else if ((std::string)job["Flavour"] == "BES")   JobManagementInterfaceName = "org.ogf.bes";
-      else if ((std::string)job["Flavour"] == "ARC1")  JobManagementInterfaceName = "org.nordugrid.xbes";
-      else if ((std::string)job["Flavour"] == "EMIES") JobManagementInterfaceName = "org.ogf.glue.emies.activitycreation";
-      else if ((std::string)job["Flavour"] == "TEST")  JobManagementInterfaceName = "org.nordugrid.test";
-    }
-
-    // Proposed mandatory attributes for ARC 3.0
-    if (job["ServiceInformationURL"]) {
       ServiceInformationURL = URL((std::string)job["ServiceInformationURL"]);
-    } else {
-      ServiceInformationURL = URL((std::string)job["Cluster"]);
-    }
-    JXMLTOSTRING(ServiceInformationInterfaceName)
-
-    if (job["JobStatusURL"]) JobStatusURL = URL((std::string)job["JobStatusURL"]);
-    JXMLTOSTRING(JobStatusInterfaceName)
-
-    if (job["JobManagementURL"]) {
+      ServiceInformationInterfaceName = (std::string)job["ServiceInformationInterfaceName"];
+      JobStatusURL = URL((std::string)job["JobStatusURL"]);
+      JobStatusInterfaceName = (std::string)job["JobStatusInterfaceName"];
       JobManagementURL = URL((std::string)job["JobManagementURL"]);
-    } else {
+      JobManagementInterfaceName = (std::string)job["JobManagementInterfaceName"];
+
+      if (job["StageInDir"])  StageInDir  = URL((std::string)job["StageInDir"]);
+      if (job["StageOutDir"]) StageOutDir = URL((std::string)job["StageOutDir"]);
+      if (job["SessionDir"])  SessionDir  = URL((std::string)job["SessionDir"]);
+    }
+    else if (job["JobID"] && job["Cluster"] && job["InterfaceName"] && job["IDFromEndpoint"])
+    { // Version 2.x format.
+      JobID = (std::string)job["JobID"];
+      ServiceInformationURL = URL((std::string)job["Cluster"]);
+      JobStatusURL = URL((std::string)job["IDFromEndpoint"]);
+
+      JobManagementURL = URL(JobID);
+      StageInDir  = JobManagementURL;
+      StageOutDir = JobManagementURL;
+      SessionDir  = JobManagementURL;
+      
+      const std::string path = JobManagementURL.Path();
+      std::size_t slashpos = path.rfind("/");
+      IDFromEndpoint = path.substr(slashpos+1);
+
+      JobManagementURL.ChangePath(path.substr(0, slashpos));
+      JobManagementInterfaceName = (std::string)job["InterfaceName"];
+      if      (JobManagementInterfaceName == "org.nordugrid.gridftpjob") {
+        ServiceInformationInterfaceName = "org.nordugrid.ldapng";
+        JobStatusInterfaceName          = "org.nordugrid.ldapng";
+      }
+      else if (JobManagementInterfaceName == "org.ogf.bes") {
+        ServiceInformationInterfaceName = "org.ogf.bes";
+        JobStatusInterfaceName          = "org.ogf.bes";
+      }
+      else if (JobManagementInterfaceName == "org.ogf.xbes") {
+        ServiceInformationInterfaceName = "org.nordugrid.wsrfglue2";
+        JobStatusInterfaceName          = "org.ogf.xbes";
+      }
+    }
+    else if (job["Cluster"] && job["InfoEndpoint"] && job["IDFromEndpoint"] && job["Flavour"])
+    { // Version 1.x format.
+      JobID = (std::string)job["IDFromEndpoint"];
+      ServiceInformationURL = URL((std::string)job["Cluster"]);
+      JobStatusURL = URL((std::string)job["InfoEndpoint"]);
+      
       JobManagementURL = URL(JobID);
       StageInDir = JobManagementURL;
       StageOutDir = JobManagementURL;
       SessionDir = JobManagementURL;
       
-      std::string path = JobManagementURL.Path();
+      const std::string path = JobManagementURL.Path();
       std::size_t slashpos = path.rfind("/");
-      path = path.substr(0, slashpos);
-      JobManagementURL.ChangePath(path);
-    }
-    JXMLTOSTRING(JobManagementInterfaceName)
-    if (JobManagementInterfaceName.empty()) {
-      JobManagementInterfaceName = (std::string)job["InterfaceName"];
+      IDFromEndpoint = path.substr(slashpos+1);
+      JobManagementURL.ChangePath(path.substr(0, slashpos));
+
+      if      ((std::string)job["Flavour"] == "ARC0")  {
+        ServiceInformationInterfaceName = "org.nordugrid.ldapng";
+        JobStatusInterfaceName          = "org.nordugrid.ldapng";
+        JobManagementInterfaceName      = "org.nordugrid.gridftpjob";
+      }
+      else if ((std::string)job["Flavour"] == "BES") {
+        ServiceInformationInterfaceName = "org.ogf.bes";
+        JobStatusInterfaceName          = "org.ogf.bes";
+        JobManagementInterfaceName      = "org.ogf.bes";
+      }
+      else if ((std::string)job["Flavour"] == "ARC1") {
+        ServiceInformationInterfaceName = "org.nordugrid.wsrfglue2";
+        JobStatusInterfaceName          = "org.nordugrid.xbes";
+        JobManagementInterfaceName      = "org.nordugrid.xbes";
+      }
     }
 
-    if (job["StageInDir"]) StageInDir = URL((std::string)job["StageInDir"]);
-    if (job["StageOutDir"]) StageOutDir = URL((std::string)job["StageOutDir"]);
-    if (job["SessionDir"]) SessionDir = URL((std::string)job["SessionDir"]);
+    JXMLTOSTRING(Name)
 
     if (job["JobDescription"]) {
       const std::string sjobdesc = job["JobDescription"];

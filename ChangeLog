@@ -1,3 +1,10 @@
+2013-01-15  Martin Skou Andersen  <skou@nbi.dk>
+
+  * Improved backwards compatibility when reading job list files (client side).
+    Job records from 1.x and 2.x is supported, 1.x and 2.x does not support the
+    format used in 3.x. Support for NOX job record format is dropped. As always
+    'arcsync' can be used to recover the job list.
+
 2012-12-20  Martin Skou Andersen  <skou@nbi.dk>
 
   * Extending arctest to print DNs of installed CA-certificates.
