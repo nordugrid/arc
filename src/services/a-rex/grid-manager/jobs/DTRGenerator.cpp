@@ -983,7 +983,7 @@ int DTRGenerator::user_file_exists(FileData &dt,
       fa = new Arc::FileAccess();
       if (!fa->fa_setuid(uid, gid)) {
         delete fa;
-        logger.msg(Arc::ERROR, "%s: Failed to switch user id to %d/%d to read file %s", jobid, (unsigned int)uid, (unsigned int)gid, dt.pfn);
+        logger.msg(Arc::ERROR, "%s: Failed to switch user ID to %d/%d to read file %s", jobid, (unsigned int)uid, (unsigned int)gid, dt.pfn);
         error = "Could not switch user id to read file";
         return 1;
       }

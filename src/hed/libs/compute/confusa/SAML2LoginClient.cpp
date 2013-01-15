@@ -152,7 +152,7 @@ namespace Arc {
 	  }
 
 	  (*sso_pages_)["IdP"] = actual_ip_login;
-	  logger.msg(VERBOSE, "The idp login is %s", actual_ip_login);
+	  logger.msg(VERBOSE, "The IdP login is %s", actual_ip_login);
 	  return MCC_Status(STATUS_OK);
 
   }
@@ -259,7 +259,7 @@ namespace Arc {
 		  return MCC_Status(PARSING_ERROR, origin, "Could not retrieve the DN from Confusa!");
 	  }
 
-	  logger.msg(INFO, "The retrieved dn is %s", *dn);
+	  logger.msg(INFO, "The retrieved DN is %s", *dn);
 
 	  return stat;
 

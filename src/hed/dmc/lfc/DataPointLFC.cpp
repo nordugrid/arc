@@ -944,7 +944,7 @@ using namespace Arc;
       return "";
     }
 
-    logger.msg(VERBOSE, "guid %s resolved to LFN %s", guid, info[0].path);
+    logger.msg(VERBOSE, "GUID %s resolved to LFN %s", guid, info[0].path);
     path_for_guid = info[0].path;
     {
       LFCEnvLocker lfc_lock(usercfg, url);

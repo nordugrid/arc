@@ -265,34 +265,34 @@ namespace Arc {
 		  std::string idp_s_content = ConfusaParserUtils::extract_body_information(post_idp_page_);
 
 		  if (idp_s_content.empty()) {
-			  return MCC_Status(PARSING_ERROR, origin, "Could not get the post-IdP page's body information!");
+			  return MCC_Status(PARSING_ERROR, origin, "Could not get post-IdP page's body information!");
 		  }
 
 		  xmlDocPtr doc = ConfusaParserUtils::get_doc(idp_s_content);
 		  std::string idp_s_action = ConfusaParserUtils::evaluate_path(doc, "//form/@action");
-		  logger.msg(VERBOSE, "The found action is %s", idp_s_action);
+		  logger.msg(VERBOSE, "Found action is %s", idp_s_action);
 		  std::string idp_s_samlresponse = ConfusaParserUtils::evaluate_path(doc, "//form/input[@name='SAMLResponse']/@value");
 		  std::string idp_s_relaystate = ConfusaParserUtils::evaluate_path(doc, "//form/input[@name='RelayState']/@value");
 	 	  ConfusaParserUtils::destroy_doc(doc);
 
 		  if (idp_s_action.empty()) {
-			  return MCC_Status(PARSING_ERROR, origin, "Could not get the action from the post-IdP page body!");
+			  return MCC_Status(PARSING_ERROR, origin, "Could not get action from the post-IdP page body!");
 		  } else if (idp_s_samlresponse.empty()) {
-			  return MCC_Status(PARSING_ERROR, origin, "Could not get the SAMLResponse from the post-IdP page body!");
+			  return MCC_Status(PARSING_ERROR, origin, "Could not get SAMLResponse from the post-IdP page body!");
 		  } else if (idp_s_relaystate.empty()) {
-			  return MCC_Status(PARSING_ERROR, origin, "Could not get the RelayState from the post-IdP page body!");
+			  return MCC_Status(PARSING_ERROR, origin, "Could not get RelayState from the post-IdP page body!");
 		  }
 
 		  // now redirect from IdP SSOService to SP AssertionConsumerService
 		  std::string post_params = "SAMLResponse=" + ConfusaParserUtils::urlencode(idp_s_samlresponse) + "&RelayState=" + ConfusaParserUtils::urlencode(idp_s_relaystate);
 
-		  logger.msg(VERBOSE, "The post IdP-authentication action is %s", idp_s_action);
+		  logger.msg(VERBOSE, "Post-IdP-authentication action is %s", idp_s_action);
 
 		  // IdP loginuserpass POST to SP AssertionConsumerervice -- Confusa
 		  http_attributes.clear();
 		  http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["Confusa"]));
 		  http_attributes.insert(std::pair<std::string,std::string>("Content-Type","application/x-www-form-urlencoded"));
-		  logger.msg(VERBOSE, "The used session cookies for the assertion consumer is %s", (*session_cookies_)["Confusa"]);
+		  logger.msg(VERBOSE, "Used session cookies for the assertion consumer are %s", (*session_cookies_)["Confusa"]);
 		  ClientHTTP sp_assertionconsumer_post_client(cfg_, URL(idp_s_action));
 		  PayloadRaw sp_ass_cons_body;
 		  PayloadRawInterface *sp_assertionconsumer_post_response = NULL;
@@ -323,7 +323,7 @@ namespace Arc {
 			  response = confusa_service_response->Content();
 			  delete confusa_service_response;
 		  } else {
-			  return MCC_Status(GENERIC_ERROR, origin, "The redirect from the IdP to Confusa does not correspond to a valid page!");
+			  return MCC_Status(GENERIC_ERROR, origin, "Redirect from the IdP to Confusa does not correspond to a valid page!");
 		  }
 
 

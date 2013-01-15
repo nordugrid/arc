@@ -64,7 +64,7 @@ InfoCache::InfoCache(const Config &cfg, const std::string &service_id)
         return;
     }
     if(service_id.empty()) {
-        logger.msg(ERROR,"Missing service id");
+        logger.msg(ERROR,"Missing service ID");
         return;
     }
     logger.msg(DEBUG,"Cache root: %s",root);

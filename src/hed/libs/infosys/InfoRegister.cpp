@@ -360,7 +360,7 @@ void InfoRegistrar::sendDeleteToISIS(std::list<Register_Info_Type>::iterator r) 
         }
 
         if ((!status.isOk()) || (!response)) {
-            logger_.msg(ERROR, "Failed to remove registration from %s ISIS )", usedISIS.url);
+            logger_.msg(ERROR, "Failed to remove registration from %s ISIS", usedISIS.url);
         } else {
             if(!(bool)(*response)["RemoveRegistrationResponseElement"])  {
                 logger_.msg(VERBOSE, "Successfuly removed registration from ISIS (%s)", usedISIS.url);
@@ -417,7 +417,7 @@ void InfoRegistrar::sendDeleteToEMIREG(std::list<Register_Info_Type>::iterator r
         MCC_Status status = cli.process("DELETE", http_attributes, &http_request, &http_info, &http_response);
 
         if ((!status.isOk()) || (!http_response)) {
-            logger_.msg(ERROR, "Failed to remove registration from %s EMIRegistry )", id_);
+            logger_.msg(ERROR, "Failed to remove registration from %s EMIRegistry", id_);
         } else {
             if(http_info.code == 200)  {
                 logger_.msg(VERBOSE, "Successfuly removed registration from EMIRegistry (%s)", id_);

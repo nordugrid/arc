@@ -349,7 +349,7 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
 
         std::string str;
         req.GetXML(str);
-        logger.msg(Arc::DEBUG, "xacml authz request: %s", str);
+        logger.msg(Arc::DEBUG, "XACML authorisation request: %s", str);
 
         bool res = contact_pdp(client, pdpdlocation, certpath, logger, request, response);
         if (!res) {
@@ -360,7 +360,7 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
         }
 
         response.GetXML(str);
-        logger.msg(Arc::DEBUG, "xacml authz response: %s", str);
+        logger.msg(Arc::DEBUG, "XACML authorisation response: %s", str);
 
         // Extract the local user name from the response to be mapped to the GID
         for (int cn = 0;; ++cn) {
