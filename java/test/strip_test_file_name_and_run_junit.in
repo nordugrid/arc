@@ -6,4 +6,4 @@ export CLASSPATH=${CLASSPATH}
 class=${1#./}
 # Remove trailing '.class'
 class=${class%.class}
-@JUNIT@ ${class}
+@JAVA@ junit.textui.TestRunner ${class}

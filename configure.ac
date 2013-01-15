@@ -415,19 +415,19 @@ if test "$enables_java" = "yes"; then
   fi
 
   # Set absolute limit on Java heap size allocation instead of letting
-  # java (on Linux) allocate a quarter of the total memory.
-  JAVA_VM_FLAGS="-J-Xms50M -J-Xmx50M"
+  # the java compiler (on Linux) allocate a quarter of the total memory.
+  JAVAC_VM_FLAGS="-J-Xms50M -J-Xmx50M"
 
   JAR_JFLAGS=""
   # Old versions of fastjar does not ignore -J options
   if test "x$JAR" != "x" && test "x`basename $JAR`" = "xjar"; then
-      JAR_JFLAGS="$JAVA_VM_FLAGS"
+      JAR_JFLAGS="$JAVAC_VM_FLAGS"
   fi
 
   if test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xgcj"; then
     JAVAC_FLAGS="-C --classpath=."
   elif test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xjavac"; then
-    JAVAC_FLAGS="$JAVA_VM_FLAGS -cp ."
+    JAVAC_FLAGS="$JAVAC_VM_FLAGS -cp ."
   fi
   
   # Check if version is 1.5 (Iterable was first introduced in 1.5)
@@ -467,6 +467,7 @@ AM_CONDITIONAL([JAVA_ENABLED],[test "x$enables_java" = "xyes"])
 AM_CONDITIONAL([JAVA_SWIG_ENABLED],[test "x$enables_swig_java" = "xyes"])
 AM_CONDITIONAL([JAVA_IS_15_OR_ABOVE], [test "x$java_is_15_or_above" = "xyes"])
 
+AC_SUBST(JAVA)
 AC_SUBST(JAR_JFLAGS)
 AC_SUBST(JAVAC_FLAGS)
 AC_SUBST(JDK_CFLAGS)
@@ -478,12 +479,13 @@ if test "$enables_hed" = "yes"; then
 AC_ARG_ENABLE(junit, AC_HELP_STRING([--disable-junit], [disable unit testing of Java bindings]),
 [enables_junit=$enableval],[])
 if test "$enables_java" = "yes" && test "$enables_junit" = "yes"; then
-  AC_PATH_PROG(JUNIT, junit)
-  AC_SUBST(JUNIT)
+  if ! test -f /usr/share/java/junit.jar; then
+    enables_java="no"
+  fi
 fi
 fi
-
 AM_CONDITIONAL([JUNIT_ENABLED], [test "x$enables_junit" = "xyes"])
+AC_MSG_NOTICE([Java unit testing enabled: $enables_junit])
 
 
 # Python
