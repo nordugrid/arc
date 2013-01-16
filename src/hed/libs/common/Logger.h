@@ -39,6 +39,17 @@ namespace Arc {
     EmptyFormat  ///< only message is printed
   };
 
+  /// Struct to contain LogFormat, to use with operator<<(std::ostream&, const LoggerFormat&)
+  struct LoggerFormat {
+    /// Make a new LoggerFormat with the given LogFormat.
+    LoggerFormat(LogFormat format)
+      : format(format) {};
+    LogFormat format;
+  };
+
+  /// Allows printing of messages to streams using ARC Logger formatting.
+  std::ostream& operator<<(std::ostream& os, const LoggerFormat& format);
+
   /// Printing of LogLevel values to ostreams.
   /** Output operator so that LogLevel values can be printed in a
      nicer way.
