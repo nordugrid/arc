@@ -13,6 +13,7 @@ namespace Arc {
   /// Represents set of buffers.
   /**
    * This class is used during data transfer using DataPoint classes.
+   * \ingroup data
    * \headerfile DataBuffer.h arc/data/DataBuffer.h
    */
   class DataBuffer {

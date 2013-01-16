@@ -20,6 +20,7 @@ namespace Arc {
   /**
    * This class should never be used directly, instead inherit from it to
    * provide a class for a specific access protocol.
+   * \ingroup data
    * \headerfile DataPointDirect.h arc/data/DataPointDirect.h
    */
   class DataPointDirect

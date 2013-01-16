@@ -47,6 +47,7 @@ namespace Arc {
    * @endcode
    * since logger.msg() does not call any system calls that modify errno.
    *
+   * \ingroup data
    * \headerfile DataStatus.h arc/data/DataStatus.h
    */
   class DataStatus {
@@ -344,6 +345,7 @@ namespace Arc {
   };
 
   /// Write a human-friendly readable string with all error information to o.
+  /** \ingroup data */
   inline std::ostream& operator<<(std::ostream& o, const DataStatus& d) {
     return (o << ((std::string)d));
   }

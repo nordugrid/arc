@@ -112,6 +112,7 @@ namespace Arc {
    *     buffer.is_written(n);
    * point.StopReading()
    * \endcode
+   * \ingroup data
    * \headerfile DataHandle.h arc/data/DataHandle.h
    */
 

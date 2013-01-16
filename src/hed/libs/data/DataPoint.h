@@ -4,7 +4,7 @@
 // Enclosed in Arc namespace so automatic linking to other classes works
 namespace Arc {
 /**
- * \mainpage Summary of libarcdata
+ * \defgroup data ARC data library (libarcdata)
  *
  * libarcdata is a library for access to data on the Grid. It provides a
  * uniform interface to several types of Grid storage and catalogs using
@@ -150,6 +150,7 @@ namespace Arc {
    *   { NULL, NULL, NULL, 0, NULL }
    * };
    * @endcode
+   * \ingroup data
    * \headerfile DataPoint.h arc/data/DataPoint.h
    */
   class DataPoint
@@ -839,7 +840,7 @@ namespace Arc {
     virtual DataStatus Transfer3rdParty(const URL& source, const URL& destination, Callback3rdParty callback = NULL);
   };
 
-  /// Class used by DataHandle to load the required DMC.
+  /** \cond Class used by DataHandle to load the required DMC. */
   class DataPointLoader
     : public Loader {
   private:
@@ -848,8 +849,9 @@ namespace Arc {
     DataPoint* load(const URL& url, const UserConfig& usercfg);
     friend class DataHandle;
   };
+  /** \endcond */
 
-  /// Class representing the arguments passed to DMC plugins.
+  /** \cond Class representing the arguments passed to DMC plugins. */
   class DataPointPluginArgument
     : public PluginArgument {
   public:
@@ -867,6 +869,7 @@ namespace Arc {
     const URL& url;
     const UserConfig& usercfg;
   };
+  /** \endcond */
 
 } // namespace Arc
 

@@ -14,6 +14,7 @@ namespace Arc {
    * on how they wish to free up space. Each callback method should return true
    * if the space was freed, false otherwise. This subclass should then be used
    * as a parameter in StartWriting().
+   * \ingroup data
    * \headerfile DataCallback.h arc/data/DataCallback.h
    */
   class DataCallback {

@@ -15,6 +15,7 @@ namespace Arc {
   /**
    * This class should never be used directly, instead inherit from it to
    * provide a class for a specific indexing service.
+   * \ingroup data
    * \headerfile DataPointIndex.h arc/data/DataPointIndex.h
    */
   class DataPointIndex

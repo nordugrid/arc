@@ -14,6 +14,7 @@ namespace Arc {
   /// Keeps track of average and instantaneous transfer speed.
   /**
    * Also detects data transfer inactivity and other transfer timeouts.
+   * \ingroup data
    * \headerfile DataSpeed.h arc/data/DataSpeed.h
    */
   class DataSpeed {

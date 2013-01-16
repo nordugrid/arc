@@ -19,6 +19,7 @@ namespace Arc {
   /// DataMover provides an interface to transfer data between two DataPoints.
   /**
    * Its main action is represented by Transfer methods.
+   * \ingroup data
    * \headerfile DataMover.h arc/data/DataMover.h
    */
   class DataMover {

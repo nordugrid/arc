@@ -16,6 +16,7 @@ namespace Arc {
 
   /// Contains data on the parameters of a cache.
   /**
+   * \ingroup data
    * \headerfile FileCache.h arc/data/FileCache.h
    */
   struct CacheParameters {
@@ -56,6 +57,7 @@ namespace Arc {
    * passing the URL to Find().  For more information on the structure of the
    * cache, see the ARC Computing Element System Administrator Guide
    * (NORDUGRID-MANUAL-20).
+   * \ingroup data
    * \headerfile FileCache.h arc/data/FileCache.h
    */
   class FileCache {

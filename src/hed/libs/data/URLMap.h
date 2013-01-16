@@ -16,6 +16,7 @@ namespace Arc {
    * by other means on a certain site. For example a GridFTP storage element
    * may be mounted as a local file system and so a map can be made from a
    * gsiftp:// URL to a local file path.
+   * \ingroup data
    * \headerfile URLMap.h arc/data/URLMap.h
    */
   class URLMap {

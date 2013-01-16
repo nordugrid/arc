@@ -19,6 +19,7 @@ namespace Arc {
    * protocol-specific attributes. The Set methods always set the corresponding
    * entry in the generic map, so there is no need for a caller make two calls,
    * for example SetSize(1) followed by SetMetaData("size", "1").
+   * \ingroup data
    * \headerfile FileInfo.h arc/data/FileInfo.h
    */
   class FileInfo {
