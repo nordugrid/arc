@@ -103,12 +103,22 @@ slapd_env=
 if [ "x" = "x$CONFIG_slapd" ]; then
     O_IFS=$IFS
     IFS=:
+    # slapd2.4 search added to overcome SL5 problems
+    # can be removed once redhat5 is not supported anymore
     for dir in $PATH; do
-	if [ -x "$dir/slapd" ]; then
-	    slapd_cmd="$dir/slapd"
-	    break
-	fi
+        if [ -x "$dir/slapd2.4" ]; then
+            slapd_cmd="$dir/slapd2.4"
+            break
+        fi
     done
+    if [ -z "$slapd_cmd" ]; then
+        for dir in $PATH; do
+            if [ -x "$dir/slapd" ]; then
+                slapd_cmd="$dir/slapd"
+                break
+            fi
+        done
+    fi
     IFS=$O_IFS
 else
     slapd_cmd=$CONFIG_slapd
@@ -121,8 +131,15 @@ fi
 
 find_ldap_database_module() {
     # First try to find a separate module
-    ldapdir=$(find /usr/lib64/openldap /usr/lib/openldap /usr/lib64/ldap \
-	/usr/lib/ldap -name "back_${database}.la" -printf "%h/\n" 2>/dev/null)
+    # openldap2.4 search added to overcome SL5 problems
+    # can be removed once redhat5 is not supported anymore
+    if [[ "$slapd_cmd" =~ '2.4' ]]; then
+       ldapdir=$(find /usr/lib64/openldap2.4 /usr/lib/openldap2.4 \
+        -name "back_${database}.la" -printf "%h/\n" 2>/dev/null)
+    else 
+       ldapdir=$(find /usr/lib64/openldap /usr/lib/openldap /usr/lib64/ldap \
+	/usr/lib/ldap  -name "back_${database}.la" -printf "%h/\n" 2>/dev/null)
+    fi
     if [ -n "$ldapdir" ]; then
 	# Separate module found
 	ldapmodule="moduleload      back_${database}"
@@ -140,8 +157,15 @@ find_ldap_database_module() {
 
 find_ldap_overlay_module() {
     # Try to find a separate module
-    ldapdir=$(find /usr/lib64/openldap /usr/lib/openldap /usr/lib64/ldap \
-	/usr/lib/ldap -name "${overlay}.la" -printf "%h/\n" 2>/dev/null)
+    # openldap2.4 search added to overcome SL5 problems
+    # can be removed once redhat5 is not supported anymore
+    if [[ "$slapd_cmd" =~ '2.4' ]]; then
+       ldapdir=$(find /usr/lib64/openldap2.4 /usr/lib/openldap2.4 \
+        -name "${overlay}.la" -printf "%h/\n" 2>/dev/null)
+    else
+    	ldapdir=$(find /usr/lib64/openldap /usr/lib/openldap /usr/lib64/ldap \
+	/usr/lib/ldap /usr/lib/${slapd_otherdir} /usr/lib64/${slapd_otherdir} -name "${overlay}.la" -printf "%h/\n" 2>/dev/null)
+    fi
     if [ -n "$ldapdir" ]; then
 	# Separate module found
 	ldapmodule="moduleload      ${overlay}"
