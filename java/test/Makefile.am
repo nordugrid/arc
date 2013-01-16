@@ -8,7 +8,7 @@ CLASSPATH = $(top_builddir)/java/arc.jar:.:/usr/share/java/junit.jar
 TESTS_ENVIRONMENT = \
 	ARC_PLUGIN_PATH=$(top_builddir)/src/hed/acc/TEST/.libs \
 	CLASSPATH=$(CLASSPATH) \
-	JAVA_FLAGS=$(JAVA_FLAGS) \
+	JAVA_FLAGS="$(JAVA_FLAGS)" \
 	LD_LIBRARY_PATH=$(top_builddir)/java/.libs \
 	$(SHELL) $(top_builddir)/java/test/strip_test_file_name_and_run_junit
 TESTS = $(nodist_TESTSCRIPTS)
