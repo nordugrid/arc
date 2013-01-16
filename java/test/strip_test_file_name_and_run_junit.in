@@ -8,4 +8,4 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 class=${1#./}
 # Remove trailing '.class'
 class=${class%.class}
-@JAVA@ junit.textui.TestRunner ${class}
+@JAVA@ ${JAVA_FLAGS} junit.textui.TestRunner ${class}

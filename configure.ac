@@ -415,7 +415,9 @@ if test "$enables_java" = "yes"; then
   fi
 
   # Set absolute limit on Java heap size allocation instead of letting
-  # the java compiler (on Linux) allocate a quarter of the total memory.
+  # the java virtual machine and compiler (on Linux) allocate a quarter
+  # of the total memory.
+  JAVA_VM_FLAGS="-Xms50M -Xmx50M"
   JAVAC_VM_FLAGS="-J-Xms50M -J-Xmx50M"
 
   JAR_JFLAGS=""
@@ -428,6 +430,10 @@ if test "$enables_java" = "yes"; then
     JAVAC_FLAGS="-C --classpath=."
   elif test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xjavac"; then
     JAVAC_FLAGS="$JAVAC_VM_FLAGS -cp ."
+  fi
+  
+  if test "x$JAVA" != "x" && test "x`basename $JAVA`" = "xjava"; then
+    JAVA_FLAGS="$JAVA_VM_FLAGS"
   fi
   
   # Check if version is 1.5 (Iterable was first introduced in 1.5)
@@ -469,6 +475,7 @@ AM_CONDITIONAL([JAVA_IS_15_OR_ABOVE], [test "x$java_is_15_or_above" = "xyes"])
 
 AC_SUBST(JAVA)
 AC_SUBST(JAR_JFLAGS)
+AC_SUBST(JAVA_FLAGS)
 AC_SUBST(JAVAC_FLAGS)
 AC_SUBST(JDK_CFLAGS)
 
