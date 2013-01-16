@@ -12,11 +12,15 @@
 
 namespace Arc {
 
+  /// Class used to convert human-friendly ini-style configuration to XML.
+  /** \headerfile Profile.h arc/Profile.h */
   class Profile
     : public XMLNode {
   public:
+    /// Create a new profile with the given profile file
     Profile(const std::string& filename);
     ~Profile();
+    /// Evaluate the given ini-style configuration against the current profile.
     void Evaluate(Config &cfg, IniConfig ini);
   };
 

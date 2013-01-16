@@ -10,8 +10,8 @@
 #include <arc/DBInterface.h>
 
 namespace Arc {
-  ///Implement the database accessing interface in DBInterface.h by using mysql client library
-  ///for accessing mysql database
+  /// Implements a MySQL version of the Database interface.
+  /** \headerfile MysqlWrapper.h arc/MysqlWrapper.h */
   class MySQLDatabase
     : public Database {
     friend class MySQLQuery;
@@ -45,6 +45,8 @@ namespace Arc {
     MYSQL *mysql;
   };
 
+  /// Implements a MySQL version of the Query database query class.
+  /** \headerfile MysqlWrapper.h arc/MysqlWrapper.h */
   class MySQLQuery
     : public Query {
   public:

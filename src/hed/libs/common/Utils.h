@@ -10,42 +10,61 @@
 
 namespace Arc {
 
-  /// Portable function for getting environment variables
+  /// Portable function for getting environment variables. Protected by shared lock.
   std::string GetEnv(const std::string& var);
 
-  /// Portable function for getting environment variables
+  /// Portable function for getting environment variables. Protected by shared lock.
   std::string GetEnv(const std::string& var, bool &found);
 
-  /// Portable function for setting environment variables
+  /// Portable function for setting environment variables. Protected by exclusive lock.
   bool SetEnv(const std::string& var, const std::string& value, bool overwrite = true);
 
-  /// Portable function for unsetting environment variables
+  /// Portable function for unsetting environment variables. Protected by exclusive lock.
   void UnsetEnv(const std::string& var);
 
   // These are functions to be used used exclusively for solving
   // problem with specific libraries which depend too much on
   // environment variables.
+  /// Obtain lock on environment.
+  /** For use with external libraries using unprotected setenv/getenv in a
+      multi-threaded environment. */
   void EnvLockAcquire(void);
+  /// Release lock on environment.
+  /** For use with external libraries using unprotected setenv/getenv in a
+      multi-threaded environment. */
   void EnvLockRelease(void);
   /// Start code which is using setenv/getenv.
-  /// Use all=true for setenv and all=false for getenv.
-  /// Must always have corresponding EnvLockUnwrap.
+  /** For use with external libraries using unprotected setenv/getenv in a
+      multi-threaded environment. Must always have corresponding EnvLockUnwrap.
+   * \param all set to true for setenv and false for getenv. */
   void EnvLockWrap(bool all = false);
   /// End code which is using setenv/getenv.
-  /// Value of all must be same as in corresponding EnvLockWrap.
+  /** For use with external libraries using unprotected setenv/getenv in a
+      multi-threaded environment.
+      \param all must be same as in corresponding EnvLockWrap. */
   void EnvLockUnwrap(bool all = false);
   /// Use after fork() to reset all internal variables and release all locks.
+  /** For use with external libraries using unprotected setenv/getenv in a
+      multi-threaded environment. */
   void EnvLockUnwrapComplete(void);
 
+  /// Class to provide automatic locking/unlocking of environment on creation/destruction.
+  /** For use with external libraries using unprotected setenv/getenv in a
+      multi-threaded environment.
+      \headerfile Utils.h arc/Utils.h */
   class EnvLockWrapper {
    private:
     bool all_;
    public:
+    /// Create a new environment lock for using setenv/getenv.
+    /** \param all set to true for setenv and false for getenv. */
     EnvLockWrapper(bool all = false):all_(all) { EnvLockWrap(all_); };
+    /// Release environment lock.
     ~EnvLockWrapper(void) { EnvLockUnwrap(all_); };
   };
 
-  /// Marks off a section of code which should not be interrupted.
+  /// Marks off a section of code which should not be interrupted by signals.
+  /** \headerfile Utils.h arc/Utils.h */
   class InterruptGuard {
   public:
     InterruptGuard();
@@ -60,8 +79,9 @@ namespace Arc {
   /// Wrapper for pointer with automatic destruction
   /** If ordinary pointer is wrapped in instance of this class
      it will be automatically destroyed when instance is destroyed.
-     This is useful for maintaing pointers in scope of one
-     function. Only pointers returned by new() are supported. */
+     This is useful for maintaining pointers in scope of one
+     function. Only pointers returned by new() are supported.
+     \headerfile Utils.h arc/Utils.h */
   template<typename T>
   class AutoPointer {
   private:
@@ -83,11 +103,11 @@ namespace Arc {
       if (object) delete object;
       object = o; 
     }
-    /// For refering wrapped object
+    /// For referring wrapped object
     T& operator*(void) const {
       return *object;
     }
-    /// For refering wrapped object
+    /// For referring wrapped object
     T* operator->(void) const {
       return object;
     }
@@ -103,7 +123,7 @@ namespace Arc {
     T* Ptr(void) const {
       return object;
     }
-    /// Release refered object so that it can be passed to other container
+    /// Release referred object so that it can be passed to other container
     T* Release(void) {
       T* tmp = object;
       object = NULL;
@@ -111,15 +131,16 @@ namespace Arc {
     }
   };
 
-  /// Wrapper for pointer with automatic destruction and mutiple references
+  /// Wrapper for pointer with automatic destruction and multiple references
   /** If ordinary pointer is wrapped in instance of this class
-     it will be automatically destroyed when all instances refering to it
+     it will be automatically destroyed when all instances referring to it
      are destroyed.
-     This is useful for maintaing pointers refered from multiple structures
-     wihth automatic destruction of original object when last reference
+     This is useful for maintaining pointers referred from multiple structures
+     with automatic destruction of original object when last reference
      is destroyed. It is similar to Java approach with a difference that
-     desctruction time is strictly defined.
-     Only pointers returned by new() are supported. This class is not thread-safe */
+     destruction time is strictly defined.
+     Only pointers returned by new() are supported. This class is not thread-safe.
+     \headerfile Utils.h arc/Utils.h  */
   template<typename T>
   class CountedPointer {
   private:
@@ -176,11 +197,11 @@ namespace Arc {
       }
       return *this;
     }
-    /// For refering wrapped object
+    /// For referring wrapped object
     T& operator*(void) const {
       return *(object->ptr);
     }
-    /// For refering wrapped object
+    /// For referring wrapped object
     T* operator->(void) const {
       return (object->ptr);
     }
@@ -208,7 +229,7 @@ namespace Arc {
     T* Ptr(void) const {
       return (object->ptr);
     }
-    /// Release refred object so that it can be passed to other container
+    /// Release referred object so that it can be passed to other container
     T* Release(void) {
       T* tmp = object->ptr;
       object->released = true;
@@ -216,6 +237,7 @@ namespace Arc {
     }
   };
 
+  /// Load library and keep persistent.
   bool PersistentLibraryInit(const std::string& name);
 
 } // namespace Arc

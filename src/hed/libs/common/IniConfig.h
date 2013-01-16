@@ -10,13 +10,21 @@
 
 namespace Arc {
 
+  /// Class representing "ini-style" configuration.
+  /** It provides a way to convert configuration to XML for use with HED
+   *  internally.
+   *  \see Profile
+   *  \headerfile IniConfig.h arc/IniConfig.h
+   */
   class IniConfig
     : public XMLNode {
   public:
-    // Dummy constructor.
+    /// Dummy constructor.
     IniConfig() : XMLNode(NS(), "IniConfig") {}
+    /// Read configuration from specified filename.
     IniConfig(const std::string& filename);
     ~IniConfig();
+    /// Evaluate configuration against the standard profile.
     bool Evaluate(Config &cfg);
   };
 

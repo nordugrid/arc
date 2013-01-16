@@ -7,11 +7,16 @@
 namespace Arc {
 
   /// Determines ARC HED libraries version
+  /** \headerfile ArcVersion.h arc/ArcVersion.h */
   class ArcVersion {
   public:
+    /// Major version number
     const unsigned int Major;
+    /// Minor version number
     const unsigned int Minor;
+    /// Patch version number
     const unsigned int Patch;
+    /// Parses ver and fills major, minor and patch version values
     ArcVersion(const char* ver);
   };
 

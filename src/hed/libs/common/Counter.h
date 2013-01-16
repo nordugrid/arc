@@ -9,10 +9,10 @@
 
 namespace Arc {
 
-  //! A time very far in the future.
+  /// A time very far in the future.
   extern const Glib::TimeVal ETERNAL;
 
-  //! A time very far in the past.
+  /// A time very far in the past.
   extern const Glib::TimeVal HISTORIC;
 
 
@@ -24,8 +24,8 @@ namespace Arc {
 
 
 
-  //! A class defining a common interface for counters.
-  /*! This class defines a common interface for counters as well as
+  /// A class defining a common interface for counters.
+  /** This class defines a common interface for counters as well as
      some common functionality.
 
      The purpose of a counter is to provide housekeeping some resource
@@ -40,7 +40,7 @@ namespace Arc {
      Every counter has a limit, an excess limit and a value. The limit
      is a number that specify how many units are available for
      reservation. The value is the number of units that are currently
-     available for reservation, i.e. has not allready been reserved.
+     available for reservation, i.e. has not already been reserved.
      The excess limit specify how many extra units can be reserved for
      high priority needs even if there are no normal units available
      for reservation. The excess limit is similar to the credit limit
@@ -99,13 +99,14 @@ namespace Arc {
      if (tick.isValid())
       doSomething(...);
      \endcode
+     \headerfile Counter.h arc/Counter.h
    */
   class Counter {
 
   protected:
 
-    //! A typedef of identification numbers for reservation.
-    /*! This is a type that is used as identification numbesrs (keys)
+    /// A typedef of identification numbers for reservation.
+    /** This is a type that is used as identification numbers (keys)
        for referencing of reservations. It is used internally in
        counters for book keeping of reservations as well as in the
        CounterTicket class in order to be able to cancel and extend
@@ -113,8 +114,8 @@ namespace Arc {
      */
     typedef unsigned long long int IDType;
 
-    //! Default constructor.
-    /*! This is the default constructor. Since Counter is an abstract
+    /// Default constructor.
+    /** This is the default constructor. Since Counter is an abstract
        class, it should only be used by subclasses. Therefore it is
        protected. Furthermore, since the Counter class has no
        attributes, nothing needs to be initialized and thus this
@@ -124,60 +125,60 @@ namespace Arc {
 
   public:
 
-    //! The destructor.
-    /*! This is the destructor of the Counter class. Since the Counter
+    /// The destructor.
+    /** This is the destructor of the Counter class. Since the Counter
        class has no attributes, nothing needs to be cleaned up and thus
        the destructor is empty.
      */
     virtual ~Counter();
 
-    //! Returns the current limit of the counter.
-    /*! This method returns the current limit of the counter, i.e. how
+    /// Returns the current limit of the counter.
+    /** This method returns the current limit of the counter, i.e. how
        many units can be reserved simultaneously by different threads
        without claiming high priority.
        @return The current limit of the counter.
      */
     virtual int getLimit() = 0;
 
-    //! Sets the limit of the counter.
-    /*! This method sets a new limit for the counter.
+    /// Sets the limit of the counter.
+    /** This method sets a new limit for the counter.
        @param newLimit The new limit, an absolute number.
        @return The new limit.
      */
     virtual int setLimit(int newLimit) = 0;
 
-    //! Changes the limit of the counter.
-    /*! Changes the limit of the counter by adding a certain amount to
+    /// Changes the limit of the counter.
+    /** Changes the limit of the counter by adding a certain amount to
        the current limit.
        @param amount The amount by which to change the limit.
        @return The new limit.
      */
     virtual int changeLimit(int amount) = 0;
 
-    //! Returns the excess limit of the counter.
-    /*! Returns the excess limit of the counter, i.e. by how much the
+    /// Returns the excess limit of the counter.
+    /** Returns the excess limit of the counter, i.e. by how much the
        usual limit may be exceeded by prioritized reservations.
        @return The excess limit.
      */
     virtual int getExcess() = 0;
 
-    //! Sets the excess limit of the counter.
-    /*! This method sets a new excess limit for the counter.
+    /// Sets the excess limit of the counter.
+    /** This method sets a new excess limit for the counter.
        @param newExcess The new excess limit, an absolute number.
        @return The new excess limit.
      */
     virtual int setExcess(int newExcess) = 0;
 
-    //! Changes the excess limit of the counter.
-    /*! Changes the excess limit of the counter by adding a certain
+    /// Changes the excess limit of the counter.
+    /** Changes the excess limit of the counter by adding a certain
        amount to the current excess limit.
        @param amount The amount by which to change the excess limit.
        @return The new excess limit.
      */
     virtual int changeExcess(int amount) = 0;
 
-    //! Returns the current value of the counter.
-    /*! Returns the current value of the counter, i.e. the number of
+    /// Returns the current value of the counter.
+    /** Returns the current value of the counter, i.e. the number of
        unreserved units. Initially, the value is equal to the limit of
        the counter. When a reservation is made, the the value is
        decreased. Normally, the value should never be negative, but
@@ -188,8 +189,8 @@ namespace Arc {
      */
     virtual int getValue() = 0;
 
-    //! Makes a reservation from the counter.
-    /*! This method makes a reservation from the counter. If the
+    /// Makes a reservation from the counter.
+    /** This method makes a reservation from the counter. If the
        current value of the counter is too low to allow for the
        reservation, the method blocks until the reservation is
        possible or times out.
@@ -210,16 +211,16 @@ namespace Arc {
 
   protected:
 
-    //! Cancellation of a reservation.
-    /*! This method cancels a reservation. It is called by the
+    /// Cancellation of a reservation.
+    /** This method cancels a reservation. It is called by the
        CounterTicket that corresponds to the reservation.
        @param reservationID The identity number (key) of the
        reservation to cancel.
      */
     virtual void cancel(IDType reservationID) = 0;
 
-    //! Extension of a reservation.
-    /*! This method extends a reservation. It is called by the
+    /// Extension of a reservation.
+    /** This method extends a reservation. It is called by the
        CounterTicket that corresponds to the reservation.
        @param reservationID Used for input as well as output. Contains
        the identification number of the original reservation on entry
@@ -236,25 +237,25 @@ namespace Arc {
                         Glib::TimeVal& expiryTime,
                         Glib::TimeVal duration = ETERNAL) = 0;
 
-    //! Get the current time.
-    /*! Returns the current time. An "adapter method" for the
+    /// Get the current time.
+    /** Returns the current time. An "adapter method" for the
        assign_current_time() method in the Glib::TimeVal class.
        return The current time.
      */
     Glib::TimeVal getCurrentTime();
 
-    //! Computes an expiry time.
-    /*! This method computes an expiry time by adding a duration to
+    /// Computes an expiry time.
+    /** This method computes an expiry time by adding a duration to
        the current time.
        @param duration The duration.
        @return The expiry time.
      */
     Glib::TimeVal getExpiryTime(Glib::TimeVal duration);
 
-    //! A "relay method" for a constructor of the CounterTicket class.
-    /*! This method acts as a relay for one of the constructors of the
+    /// A "relay method" for a constructor of the CounterTicket class.
+    /** This method acts as a relay for one of the constructors of the
        CounterTicket class. That constructor is private, but needs to
-       be accessible from the subclasses of Counter (bot not from
+       be accessible from the subclasses of Counter (but not from
        anywhere else). In order not to have to declare every possible
        subclass of Counter as a friend of CounterTicket, only the base
        class Counter is a friend and its subclasses access the
@@ -273,10 +274,10 @@ namespace Arc {
                                    Glib::TimeVal expiryTime,
                                    Counter *counter);
 
-    //! A "relay method" for the constructor of ExpirationReminder.
-    /*! This method acts as a relay for one of the constructors of the
+    /// A "relay method" for the constructor of ExpirationReminder.
+    /** This method acts as a relay for one of the constructors of the
        ExpirationReminder class. That constructor is private, but needs
-       to be accessible from the subclasses of Counter (bot not from
+       to be accessible from the subclasses of Counter (but not from
        anywhere else). In order not to have to declare every possible
        subclass of Counter as a friend of ExpirationReminder, only the
        base class Counter is a friend and its subclasses access the
@@ -293,36 +294,36 @@ namespace Arc {
                                              Counter::IDType resID);
   private:
 
-    //! Copy constructor, should not be used.
-    /*! A private copy constructor, since Counters should never be
+    /// Copy constructor, should not be used.
+    /** A private copy constructor, since Counters should never be
        copied. It should be impossible to use, but if that would happen
        by accident the program will exit with the EXIT_FAILURE code.
      */
     Counter(const Counter& unique);
 
-    //! Assignment operator, should not be used.
-    /*! A private assignment operator, since Counters should never be
+    /// Assignment operator, should not be used.
+    /** A private assignment operator, since Counters should never be
        assigned. It should be impossible to use, but if that would
        happen by accident the program will exit with the EXIT_FAILURE
        code.
      */
     void operator=(const Counter& unique);
 
-    //! The CounterTicket class needs to be a friend.
+    /// The CounterTicket class needs to be a friend.
     friend class CounterTicket;
 
-    //! The ExpirationReminder class needs to be a friend.
+    /// The ExpirationReminder class needs to be a friend.
     friend class ExpirationReminder;
 
   };
 
 
 
-  //! A class for "tickets" that correspond to counter reservations.
-  /*! This is a class for reservation tickets. When a reservation is
+  /// A class for "tickets" that correspond to counter reservations.
+  /** This is a class for reservation tickets. When a reservation is
      made from a Counter, a ReservationTicket is returned. This ticket
      can then be queried about the validity of a reservation. It can
-     also be used for cancelation and extension of reservations.
+     also be used for cancellation and extension of reservations.
 
      Typical usage is:
      \code
@@ -339,29 +340,30 @@ namespace Arc {
      // Cancel the reservation.
      tick.cancel();
      \endcode
+     \headerfile Counter.h arc/Counter.h
    */
   class CounterTicket {
 
   public:
 
-    //! The default constructor.
-    /*! This is the default constructor. It creates a CounterTicket
+    /// The default constructor.
+    /** This is the default constructor. It creates a CounterTicket
        that is not valid. The ticket object that is created can later
        be assigned a ticket that is returned by the reserve() method of
        a Counter.
      */
     CounterTicket();
 
-    //! Returns the validity of a CounterTicket.
-    /*! This method checks whether a CounterTicket is valid. The
+    /// Returns the validity of a CounterTicket.
+    /** This method checks whether a CounterTicket is valid. The
        ticket was probably returned earlier by the reserve() method of
        a Counter but the corresponding reservation may have expired.
        @return The validity of the ticket.
      */
     bool isValid();
 
-    //! Extends a reservation.
-    /*! Extends a self-expiring reservation. In order to succeed the
+    /// Extends a reservation.
+    /** Extends a self-expiring reservation. In order to succeed the
        extension should be made before the previous reservation
        expires.
        @param duration The time by which to extend the reservation. The
@@ -370,8 +372,8 @@ namespace Arc {
      */
     void extend(Glib::TimeVal duration);
 
-    //! Cancels a resrvation.
-    /*! This method is called to cancel a reservation. It may be
+    /// Cancels a reservation.
+    /** This method is called to cancel a reservation. It may be
        called also for self-expiring reservations, which will then be
        cancelled before they were originally planned to expire.
      */
@@ -379,8 +381,8 @@ namespace Arc {
 
   private:
 
-    //! A private constructor.
-    /*! This constructor creates an CounterTicket containing the
+    /// A private constructor.
+    /** This constructor creates an CounterTicket containing the
        specified expiry time and identity number of a reservation
        besides a pointer to the counter from which the reservation was
        made. In order to prevent unintended use, it is private. Because
@@ -395,13 +397,13 @@ namespace Arc {
                   Glib::TimeVal expiryTime,
                   Counter *counter);
 
-    //! The identification number of the corresponding reservation.
+    /// The identification number of the corresponding reservation.
     Counter::IDType reservationID;
 
-    //! The expiry time of the corresponding reservation.
+    /// The expiry time of the corresponding reservation.
     Glib::TimeVal expiryTime;
 
-    //! A pointer to the Counter from which the reservation was made.
+    /// A pointer to the Counter from which the reservation was made.
     Counter *counter;
 
     //! The Counter class needs to be a friend.
@@ -411,16 +413,17 @@ namespace Arc {
 
 
 
-  //! A class intended for internal use within counters.
-  /*! This class is used for "reminder objects" that are used for
+  /// A class intended for internal use within counters.
+  /** This class is used for "reminder objects" that are used for
      automatic deallocation of self-expiring reservations.
+     \headerfile Counter.h arc/Counter.h
    */
   class ExpirationReminder {
 
   public:
 
-    //! Less than operator, compares "soonness".
-    /*! This is the less than operator for the ExpirationReminder
+    /// Less than operator, compares "soonness".
+    /** This is the less than operator for the ExpirationReminder
        class. It compares the priority of such objects with respect to
        which reservation expires first. It is used when reminder
        objects are inserted in a priority queue in order to allways
@@ -428,15 +431,15 @@ namespace Arc {
      */
     bool operator<(const ExpirationReminder& other) const;
 
-    //! Returns the expiry time.
-    /*! This method returns the expiry time of the reservation that
+    /// Returns the expiry time.
+    /** This method returns the expiry time of the reservation that
        this ExpirationReminder is associated with.
        @return The expiry time.
      */
     Glib::TimeVal getExpiryTime() const;
 
-    //! Returns the identification number of the reservation.
-    /*! This method returns the identification number of the
+    /// Returns the identification number of the reservation.
+    /** This method returns the identification number of the
        self-expiring reservation that this ExpirationReminder is
        associated with.
        @return The identification number.
@@ -445,8 +448,8 @@ namespace Arc {
 
   private:
 
-    //! The constructor.
-    /*! This constructor creates an ExpirationReminder containing the
+    /// The constructor.
+    /** This constructor creates an ExpirationReminder containing the
        specified expiry time and identity number of a reservation. In
        order to prevent unintended use, it is private. Because the
        Counter class must be able to use this constructor, it is
@@ -457,13 +460,13 @@ namespace Arc {
     ExpirationReminder(Glib::TimeVal expiryTime,
                        Counter::IDType reservationID);
 
-    //! The expiry time of the corresponding reservation.
+    /// The expiry time of the corresponding reservation.
     Glib::TimeVal expiryTime;
 
-    //! The identification number of t he corresponding reservation.
+    /// The identification number of t he corresponding reservation.
     Counter::IDType reservationID;
 
-    //! The Counter class needs to be a friend.
+    /// The Counter class needs to be a friend.
     friend class Counter;
 
   };

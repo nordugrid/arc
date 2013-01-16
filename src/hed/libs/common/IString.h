@@ -18,6 +18,8 @@
 
 namespace Arc {
 
+  /// Class used internally by IString.
+  /** \headerfile IString.h arc/IString.h */
   class PrintFBase {
   public:
     PrintFBase();
@@ -37,6 +39,8 @@ namespace Arc {
   const char* FindTrans(const char *p);
   const char* FindNTrans(const char *s, const char *p, unsigned long n);
 
+  /// Class used internally by IString.
+  /** \headerfile IString.h arc/IString.h */
   template<class T0 = int, class T1 = int, class T2 = int, class T3 = int,
            class T4 = int, class T5 = int, class T6 = int, class T7 = int>
   class PrintF
@@ -164,6 +168,10 @@ namespace Arc {
     std::list<char*> ptrs;
   };
 
+  /// Class used for localised output of log messages.
+  /** IString should only be used directly in rare cases. Logger should be used
+   *  instead in most cases.
+   *  \headerfile IString.h arc/IString.h */
   class IString {
 
   public:
@@ -216,6 +224,7 @@ namespace Arc {
     friend std::ostream& operator<<(std::ostream& os, const IString& msg);
   };
 
+  /// Output localised message to an output stream.
   std::ostream& operator<<(std::ostream& os, const IString& msg);
 
 } // namespace Arc

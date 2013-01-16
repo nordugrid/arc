@@ -23,15 +23,19 @@ namespace Arc {
 
   class Run;
 
-  /// Defines interface for accessing filesystems
-  /** This class accesses local filesystem through proxy executable
-    which allows to switch user id in multithreaded systems without 
+  /// Defines interface for accessing filesystems.
+  /** This class accesses the local filesystem through a proxy executable
+    which allows switching user id in multithreaded systems without
     introducing conflict with other threads. Its methods are mostly
     replicas of corresponding POSIX functions with some convenience
-    tweaking. */
+    tweaking.
+    \headerfile FileAccess.h arc/FileAccess.h
+  */
   class FileAccess {
   public:
+    /// New FileAccess object.
     FileAccess(void);
+    /// Shuts down any spawned executable.
     ~FileAccess(void);
     /// Constructor which takes already existing object from global cache
     static FileAccess* Acquire(void);
@@ -40,19 +44,19 @@ namespace Arc {
     /// Check if communication with proxy works
     bool ping(void);
     /// Modify user uid and gid.
-    /// If any is set to 0 then executable is switched to original uid/gid.
+    /** If any is set to 0 then executable is switched to original uid/gid. */
     bool fa_setuid(int uid,int gid);
     /// Make a directory and assign it specified mode.
     bool fa_mkdir(const std::string& path, mode_t mode);
     /// Make a directory and assign it specified mode.
-    /// If missing all intermediate directories are created too.
+    /** If missing all intermediate directories are created too. */
     bool fa_mkdirp(const std::string& path, mode_t mode);
     /// Create hard link.
     bool fa_link(const std::string& oldpath, const std::string& newpath);
     /// Create symbolic (aka soft) link.
     bool fa_softlink(const std::string& oldpath, const std::string& newpath);
     /// Copy file to new location.
-    /// If new file is created it is assigned secified mode.
+    /** If new file is created it is assigned specified mode. */
     bool fa_copy(const std::string& oldpath, const std::string& newpath, mode_t mode);
     /// Rename file
     bool fa_rename(const std::string& oldpath, const std::string& newpath);
@@ -78,21 +82,19 @@ namespace Arc {
     bool fa_rmdir(const std::string& path);
     /// Remove directory recursively.
     bool fa_rmdirr(const std::string& path);
-    /// Open directory.
-    /// Only one directory may be open at a time.
+    /// Open directory. Only one directory may be open at a time.
     bool fa_opendir(const std::string& path);
     /// Close open directory.
     bool fa_closedir(void);
     /// Read relative name of object in open directory.
     bool fa_readdir(std::string& name);
-    /// Open file.
-    /// Only one file may be open at a time.
+    /// Open file. Only one file may be open at a time.
     bool fa_open(const std::string& path, int flags, mode_t mode);
     /// Close open file.
     bool fa_close(void);
     /// Open new temporary file for writing.
-    /// On input path contains template of file name ending with XXXXXX.
-    /// On output path is path to created file.
+    /** On input path contains template of file name ending with XXXXXX.
+        On output path is path to created file. */
     bool fa_mkstemp(std::string& path, mode_t mode);
     /// Change current position in open file.
     off_t fa_lseek(off_t offset, int whence);
@@ -104,8 +106,7 @@ namespace Arc {
     ssize_t fa_pread(void* buf,size_t size,off_t offset);
     /// Write to open file at specified offset.
     ssize_t fa_pwrite(const void* buf,size_t size,off_t offset);
-    /// Get errno of last operation.
-    /// Every operation resets errno.
+    /// Get errno of last operation. Every operation resets errno.
     int geterrno() { return errno_; };
     /// Returns true if this instance is in useful condition
     operator bool(void) { return (file_access_ != NULL); };
@@ -120,28 +121,34 @@ namespace Arc {
     uid_t uid_;
     gid_t gid_;
   public:
+    /// Internal struct used for communication between processes.
     typedef struct {
       unsigned int size;
       unsigned int cmd;
     } header_t;
   };
 
-  /// Container for shared FileAccess objects
+  /// Container for shared FileAccess objects.
+  /** FileAccessContainer maintains a pool of executables and can be used to
+      reduce the overhead in creating and destroying executables when using
+      FileAccess.
+      \headerfile FileAccess.h arc/FileAccess.h */
   class FileAccessContainer {
   public:
     /// Creates container with number of stored objects between minval and maxval.
     FileAccessContainer(unsigned int minval, unsigned int maxval);
+    /// Creates container with number of stored objects between 1 and 10.
     FileAccessContainer(void);
-    /// Destroys container and all stored object
+    /// Destroys container and all stored objects.
     ~FileAccessContainer(void);
     /// Get object from container.
-    /// Object either is taken from stored ones or new one created.
-    /// Acquired object looses its connection to container and 
-    /// can be safely destroyed or returned into other container.
+    /** Object either is taken from stored ones or new one created.
+        Acquired object looses its connection to container and
+        can be safely destroyed or returned into other container. */
     FileAccess* Acquire(void);
     /// Returns object into container.
-    /// It canbe any object - taken from another cotainer or created
-    /// using new.
+    /** It can be any object - taken from another container or created using
+        new. */
     void Release(FileAccess* fa);
     /// Adjust minimal number of stored objects.
     void SetMin(unsigned int val);

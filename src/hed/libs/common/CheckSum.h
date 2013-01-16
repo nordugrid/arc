@@ -16,11 +16,15 @@ namespace Arc {
   /// Interface for checksum manipulations.
   /** This class is an interface and is extended in the specialized classes
    * CRC32Sum, MD5Sum and Adler32Sum. The interface is among others used
-   * during data transfers through DataBuffer class
+   * during data transfers through DataBuffer class. The helper class
+   * CheckSumAny can be used as an easier way of handling automatically the
+   * different checksum types.
    *
+   * @see CheckSumAny
    * @see CRC32Sum
    * @see MD5Sum
    * @see Adler32Sum
+   * @headerfile CheckSum.h arc/CheckSum.h
    **/
   class CheckSum {
   public:
@@ -35,9 +39,9 @@ namespace Arc {
      **/
     virtual void start(void) = 0;
 
-    /// Add data to be checksummed
+    /// Add data to be checksummed.
     /**
-     * This method calculates the checksum of the passed data chuck, taking
+     * This method calculates the checksum of the passed data chunk, taking
      * into account the previous state of this object.
      *
      * @param buf pointer to data chuck to be checksummed.
@@ -45,27 +49,28 @@ namespace Arc {
      **/
     virtual void add(void *buf, unsigned long long int len) = 0;
 
-    /// Finalize the checksumming
+    /// Finalize the checksumming.
     /**
      * This method finalizes the checksum algorithm, that is calculating the
      * final checksum result.
      **/
     virtual void end(void) = 0;
 
-    /// Retrieve result of checksum as binary blob
+    /// Retrieve result of checksum as binary blob.
     virtual void result(unsigned char*& res, unsigned int& len) const = 0;
 
-    /// Retrieve result of checksum into a string
+    /// Retrieve result of checksum into a string.
     /**
      * The passed string buf is filled with result of checksum algorithm in
-     * base 16. At most len chacters is filled into buffer buf. The
-     * hexadecimal value is prepended with "<algorithm>:", where <algorithm>
+     * base 16. At most len characters are filled into buffer buf. The
+     * hexadecimal value is prepended with "algorithm:", where algorithm
      * is one of "cksum", "md5" or "adler32" respectively corresponding to
      * the result from the CRC32Sum, MD5Sum and Adler32 classes.
      *
      * @param buf pointer to buffer which should be filled with checksum
      *  result.
      * @param len max number of character filled into buffer.
+     * @return 0 on success
      **/
     virtual int print(char *buf, int len) const {
       if (len > 0)
@@ -75,11 +80,11 @@ namespace Arc {
 
     /// Set internal checksum state
     /**
-     * This method sets the internal state to that of the passed textural
+     * This method sets the internal state to that of the passed textual
      * representation. The format passed to this method must be the same as
      * retrieved from the CheckSum::print method.
      *
-     * @param buf string containing textural representation of checksum
+     * @param buf string containing textual representation of checksum
      * @see CheckSum::print
      **/
     virtual void scan(const char *buf) = 0;
@@ -99,6 +104,7 @@ namespace Arc {
   /**
    * This class is a specialized class of the CheckSum class. It provides an
    * implementation for the CRC-32 IEEE 802.3 standard.
+   * @headerfile CheckSum.h arc/CheckSum.h
    **/
   class CRC32Sum
     : public CheckSum {
@@ -134,6 +140,7 @@ namespace Arc {
    * This class is a specialized class of the CheckSum class. It provides an
    * implementation of the MD5 message-digest algorithm specified in RFC
    * 1321.
+   * @headerfile CheckSum.h arc/CheckSum.h
    **/
   class MD5Sum
     : public CheckSum {
@@ -170,6 +177,7 @@ namespace Arc {
   /**
    * This class is a specialized class of the CheckSum class. It provides an
    * implementation of the Adler-32 checksum algorithm.
+   * @headerfile CheckSum.h arc/CheckSum.h
    **/
   class Adler32Sum
     : public CheckSum {
@@ -215,26 +223,31 @@ namespace Arc {
   /**
    * To be used for manipulation of any supported checksum type in a
    * transparent way.
+   * @headerfile CheckSum.h arc/CheckSum.h
    **/
   class CheckSumAny
     : public CheckSum {
   public:
+    /// Type of checksum
     typedef enum {
-      none,
-      unknown,
-      undefined,
-      cksum,
-      md5,
-      adler32
+      none,      ///< No checksum
+      unknown,   ///< Unknown checksum
+      undefined, ///< Undefined checksum
+      cksum,     ///< CRC32 checksum
+      md5,       ///< MD5 checksum
+      adler32    ///< ADLER32 checksum
     } type;
   private:
     CheckSum *cs;
     type tp;
   public:
+    /// Construct a new CheckSumAny from the given CheckSum.
     CheckSumAny(CheckSum *c = NULL)
       : cs(c),
         tp(none) {}
+    /// Construct a new CheckSumAny using the given checksum type.
     CheckSumAny(type type);
+    /// Construct a new CheckSumAny using the given checksum type represented as a string.
     CheckSumAny(const char *type);
     virtual ~CheckSumAny(void) {
       if (cs)
@@ -293,7 +306,7 @@ namespace Arc {
 
     /// Get checksum of a file
     /**
-     * This method provide an easy way to get the checksum of a file, by only
+     * This method provides an easy way to get the checksum of a file, by only
      * specifying the path to the file. Optionally the checksum type can be
      * specified, if not the MD5 algorithm will be used.
      *

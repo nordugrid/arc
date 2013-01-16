@@ -95,11 +95,6 @@ static Glib::Mutex suid_lock;
     valid = true;
   }
 
-  bool User::RunAs(std::string) {
-    // XXX NOP
-    return false;
-  }
-
   int User::check_file_access(const std::string& path, int flags) const {
     struct stat st;
     mode_t m;
@@ -256,10 +251,6 @@ static Glib::Mutex suid_lock;
 
     set(&pwd_p);
     valid = true;
-  }
-  bool User::RunAs(std::string cmd) {
-    // XXX NOP
-    return false;
   }
 
   int User::check_file_access(const std::string& path, int flags) const {

@@ -17,28 +17,30 @@ namespace Arc {
   class Logger;
   class XMLNode;
 
+  /// Type of service
   enum ServiceType {
-    COMPUTING,
-    INDEX
+    COMPUTING, ///< A service that processes jobs
+    INDEX      ///< A service that provides information
   };
 
-  /// Represents the endpoint af service with a given type and GLUE2 InterfaceName
+  /// Represents the endpoint of service with a given type and GLUE2 InterfaceName
   /**
     A ConfigEndpoint can be a service registry or a local information system of a
     computing element. It has a URL, and optionally GLUE2 InterfaceName and a
     RequestedSubmissionInterfaceName, which will be used to filter the possible
     job submission interfaces on a computing element.
+    \headerfile UserConfig.h arc/UserConfig.h
   */
   class ConfigEndpoint {
   public:
-    /** Types of ComputingEndpoint objects:
-        - REGISTRY: a service registry
-        - COMPUTINGINFO: a local information system of a computing element
-        - ANY: both, only used for filtering, when both types are accepted
-    */
-    enum Type { REGISTRY, COMPUTINGINFO, ANY };
+    /// Types of ComputingEndpoint objects.
+    enum Type {
+      REGISTRY,      ///< a service registry
+      COMPUTINGINFO, ///< a local information system of a computing element
+      ANY            ///< both, only used for filtering, when both types are accepted
+    };
 
-    /// Creates a ConfigEndpoint from a URL an InterfaceName and a Type
+    /// Creates a ConfigEndpoint from a URL an InterfaceName and a Type.
     /**
       \param[in] URLString is a string containing the URL of the ConfigEndpoint
       \param[in] InterfaceName is a string containing the type of the interface
@@ -48,66 +50,70 @@ namespace Arc {
     ConfigEndpoint(const std::string& URLString = "", const std::string& InterfaceName = "", ConfigEndpoint::Type type = ConfigEndpoint::ANY)
       : type(type), URLString(URLString), InterfaceName(InterfaceName) {}
       
-    /** The type of the ConfigEndpoint: REGISTRY or COMPUTINGINFO */
+    /// The type of the ConfigEndpoint: REGISTRY or COMPUTINGINFO.
     Type type;
     
-    /** A string representing the URL of the ConfigEndpoint */
+    /// A string representing the URL of the ConfigEndpoint.
     std::string URLString;
     
-    /** A string representing the interface type
-        (based on the InterfaceName attribute of the GLUE2 specification)
-    */
+    /// A string representing the interface type (based on the InterfaceName attribute of the GLUE2 specification).
     std::string InterfaceName;
         
-    /** A GLUE2 InterfaceName requesting a job submission interface.
-    
+    /// A GLUE2 InterfaceName requesting a job submission interface.
+    /**
         This will be used when collecting information about the
         computing element. Only those job submission interfaces will be considered
         which has this requested InterfaceName.
     */
     std::string RequestedSubmissionInterfaceName;
 
-    /** \return true if the URL is not empty */
+    /// Return true if the URL is not empty.
     operator bool() const {
       return (!URLString.empty());
     }
 
-    /** \return true if the URL is empty */
+    /// Returns true if the URL is empty.
     bool operator!() const {
       return (URLString.empty());
     }
     
-    /** \return true if the type, the URLString, the InterfaceName
-        and the RequestedSubmissionInterfaceName matches
-    */
+    /// Returns true if the type, the URLString, the InterfaceName and the RequestedSubmissionInterfaceName matches.
     bool operator==(ConfigEndpoint c) const {
       return (type == c.type) && (URLString == c.URLString) && (InterfaceName == c.InterfaceName) && (RequestedSubmissionInterfaceName == c.RequestedSubmissionInterfaceName);
     }
   };
 
+  /// Returns "computing" if st is COMPUTING, "index" if st is "INDEX", otherwise an empty string.
   std::string tostring(const ServiceType st);
 
   /// Defines how user credentials are looked for.
   /**
     * For complete information see description of
-    *  UserConfig::InitializeCredentials(initializeCredentials)
+    *  UserConfig::InitializeCredentials(initializeCredentialsType)
     * method.
-    **/
+    * \headerfile UserConfig.h arc/UserConfig.h
+    */
   class initializeCredentialsType {
    public:
+    /// initializeType determines how UserConfig deals with credentials.
     typedef enum {
-      SkipCredentials,
-      NotTryCredentials,
-      TryCredentials,
-      RequireCredentials,
-      SkipCANotTryCredentials,
-      SkipCATryCredentials,
-      SkipCARequireCredentials
+      SkipCredentials,         ///< Don't look for credentials
+      NotTryCredentials,       ///< Look for credentials but don't evaluate them
+      TryCredentials,          ///< Look for credentials and test if they are valid
+      RequireCredentials,      ///< Look for credentials, test if they are valid and report errors if not valid
+      SkipCANotTryCredentials, ///< Same as NotTryCredentials but skip checking CA certificates
+      SkipCATryCredentials,    ///< Same as TryCredentials but skip checking CA certificates
+      SkipCARequireCredentials ///< Same as RequireCredentials but skip checking CA certificates
     } initializeType;
+    /// Construct a new initializeCredentialsType with initializeType TryCredentials.
     initializeCredentialsType(void):val(TryCredentials) { };
+    /// Construct a new initializeCredentialsType with initializeType v.
     initializeCredentialsType(initializeType v):val(v) { };
+    /// Returns true if this initializeType is the same as v.
     bool operator==(initializeType v) { return (val == v); };
+    /// Returns true if this initializeType is not the same as v.
     bool operator!=(initializeType v) { return (val != v); };
+    /// Operator returns initializeType.
     operator initializeType(void) { return val; };
    private:
     initializeType val;
@@ -183,6 +189,7 @@ namespace Arc {
    * for locating user credentials by searching in different standard
    * locations. The CredentialsFound() method can be used to test if
    * locating the credentials succeeded.
+   * \headerfile UserConfig.h arc/UserConfig.h
    **/
   class UserConfig {
   public:
@@ -390,7 +397,7 @@ namespace Arc {
      * and every attribute present in the file is only allowed once 
      * (except the `rejectmanagement` and `rejectdiscovery` attributes),
      * otherwise a ::WARNING will be reported. For the list of allowed
-     * attributes see the [general description](#details) of the class.
+     * attributes see the detailed description of UserConfig.
      *
      * @param conffile is the path to the configuration file.
      * @param ignoreJobListFile is a optional boolean which indicates
@@ -1017,7 +1024,7 @@ namespace Arc {
      * files. For example arc* tools set it to ARCUSERDIRECTORY and A-REX
      * sets it to the control directory. The directory is created if it
      * does not exist.
-     * @param path is the new utils dir path.
+     * @param dir is the new utils dir path.
      * @return This method always returns \c true.
      */
     bool UtilsDirPath(const std::string& dir);
@@ -1166,6 +1173,7 @@ namespace Arc {
     */
     std::list<ConfigEndpoint> GetServices(const std::string& groupOrAlias, ConfigEndpoint::Type type = ConfigEndpoint::ANY);
 
+    /// Get all services
     std::map<std::string, ConfigEndpoint> GetAllConfiguredServices() { return allServices; }
 
 
@@ -1294,9 +1302,24 @@ namespace Arc {
   };
 
 
+  /// Class for handling X509* variables in a multi-threaded environment.
+  /**
+   * This class is useful when using external libraries which depend on X509*
+   * environment variables in a multi-threaded environment. When an instance of
+   * this class is created it holds a lock on these variables until the
+   * instance is destroyed. Additionally, if the credentials pointed to by the
+   * those variables are owned by a different uid from the uid of the current
+   * process, a temporary copy is made owned by the uid of the current process
+   * and the X509 variable points there instead. This is to comply with some
+   * restrictions in third-party libraries which insist on the credential files
+   * being owned by the current uid.
+   * \headerfile UserConfig.h arc/UserConfig.h
+   */
   class CertEnvLocker {
   public:
+    /// Create a lock on X509 environment variables. Blocks if another instance exists.
     CertEnvLocker(const UserConfig& cfg);
+    /// Release lock on X509 environment variables and set back to old values if they were changed.
     ~CertEnvLocker(void);
 
   protected:

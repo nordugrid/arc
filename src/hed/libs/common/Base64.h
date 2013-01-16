@@ -26,13 +26,19 @@
 #include <string>
 
 namespace Arc {
+
+  /// Base64 encoding and decoding, borrowed from Axis2c project.
+  /** \headerfile Base64.h arc/Base64.h */
   class Base64 {
   public:
+    /// Constructor is not implemented. Use static methods instead.
     Base64();
     ~Base64();
     static int encode_len(int len);
+    /// Encode a string to base 64
     static int encode(char *encoded, const char *string, int len);
     static int decode_len(const char *bufcoded);
+    /// Decode a string from base 64
     static int decode(char *bufplain, const char *bufcoded);
   };
 } // namespace Arc

@@ -3,12 +3,12 @@
 
 namespace Arc {
 
-  /// Internal implementation of watchdog.
-  /// Currently only single global watchdog is supported.
+  // Internal implementation of watchdog.
+  // Currently only single global watchdog is supported.
   class Watchdog;
 
-  /// This class is meant to provide interface
-  /// for watchdog executor part.
+  /// This class is meant to provide interface for Watchdog executor part.
+  /** \headerfile Watchdog.h arc/Watchdog.h */
   class WatchdogListener {
   private:
     Watchdog& instance_;
@@ -17,20 +17,19 @@ namespace Arc {
   public:
     WatchdogListener(void);
 
-    /// Waits till timeout occures and then returns true.
-    /// If any error occures it returns false and watchdog
-    /// is normally not usable anymore.
+    /// Waits till timeout occurs and then returns true.
+    /** If any error occurs it returns false and watchdog
+        is normally not usable anymore. */
     bool Listen(void);
 
-    /// Similar to Listen() but forces method to exit after
-    /// limit seconds. If limit passed false is returned.
-    /// If method is exited due to internal error then 
-    /// error argument is filled with true.
+    /// Similar to Listen() but forces method to exit after limit seconds.
+    /** If limit passed false is returned. If method is exited due to internal
+        error then error argument is filled with true. */
     bool Listen(int limit, bool& error);
   };
 
-  /// This class is meant to be used in code
-  /// which provides "I'm alive" ticks to watchdog.
+  /// This class is meant to be used in code which provides "I'm alive" ticks to watchdog.
+  /** \headerfile Watchdog.h arc/Watchdog.h */
   class WatchdogChannel {
   private:
     int id_;
@@ -38,10 +37,10 @@ namespace Arc {
   public:
 
     /// Defines watchdog kicking source with specified timeout.
-    /// Code must call Kick() method of this instance to keep
-    /// watchdog from timeouting. If object is destroyed watchdog
-    /// does not monitor it anymore. Althogh timeout is specified
-    /// in seconds real time resolution of watchdog is about 1 minute.
+    /** Code must call Kick() method of this instance to keep
+        watchdog from timeouting. If object is destroyed watchdog
+        does not monitor it anymore. Althogh timeout is specified
+        in seconds real time resolution of watchdog is about 1 minute. */
     WatchdogChannel(int timeout);
 
     /// Upon destruction channel is closed and watchdog forgets about it.

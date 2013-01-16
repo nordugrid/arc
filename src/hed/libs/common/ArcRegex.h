@@ -9,47 +9,46 @@
 
 namespace Arc {
 
-  //! A regular expression class.
-  /*! This class is a wrapper around the functions provided in
-     regex.h.
-   */
+  /// A regular expression class.
+  /** This class is a wrapper around the functions provided in regex.h.
+      \headerfile ArcRegex.h arc/ArcRegex.h */
   class RegularExpression {
   public:
 
-    //! default constructor
+    /// Default constructor
     RegularExpression() : status(-1) {}
 
-    //! Creates a reges from a pattern string.
+    /// Creates a regex from a pattern string.
     RegularExpression(std::string pattern);
 
-    //! Copy constructor.
+    /// Copy constructor.
     RegularExpression(const RegularExpression& regex);
 
-    //! Destructor
+    /// Destructor
     ~RegularExpression();
 
-    //! Assignment operator.
+    /// Assignment operator.
     RegularExpression& operator=(const RegularExpression& regex);
 
-    //! Returns true if the pattern of this regex is ok.
+    /// Returns true if the pattern of this regex is ok.
     bool isOk();
 
-    //! Returns true if this regex has the pattern provided.
+    /// Returns true if this regex has the pattern provided.
     bool hasPattern(std::string str);
 
-    //! Returns true if this regex matches whole string provided.
+    /// Returns true if this regex matches whole string provided.
     bool match(const std::string& str) const;
 
-    //! Returns true if this regex matches the string provided.
-    /*! Unmatched parts of the string are stored in 'unmatched'.
+    /// Returns true if this regex matches the string provided.
+    /** Unmatched parts of the string are stored in 'unmatched'.
      *  Matched parts of the string are stored in 'matched'. The
      *  first entry in matched is the string that matched the regex,
      *  and the following entries are parenthesised elements
-     *  of the regex
+     *  of the regex.
      */
     bool match(const std::string& str, std::list<std::string>& unmatched, std::list<std::string>& matched) const;
 
-    //! Returns pattern
+    /// Returns pattern
     std::string getPattern() const;
 
   private:
