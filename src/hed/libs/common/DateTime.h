@@ -25,14 +25,14 @@ namespace Arc {
 
   /// Base to use when constructing a new Period.
   enum PeriodBase {
-    PeriodNanoseconds,
-    PeriodMicroseconds,
-    PeriodMiliseconds,
-    PeriodSeconds,
-    PeriodMinutes,
-    PeriodHours,
-    PeriodDays,
-    PeriodWeeks
+    PeriodNanoseconds,  ///< Nanoseconds
+    PeriodMicroseconds, ///< Microseconds
+    PeriodMiliseconds,  ///< Milliseconds
+    PeriodSeconds,      ///< Seconds
+    PeriodMinutes,      ///< Minutes
+    PeriodHours,        ///< Hours
+    PeriodDays,         ///< Days
+    PeriodWeeks         ///< Weeks
   };
 
   /// A Period represents a length of time.

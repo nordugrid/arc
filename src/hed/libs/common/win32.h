@@ -1,5 +1,7 @@
 // -*- indent-tabs-mode: nil -*-
 
+// Disable doxygen as this is not part of the ARC API
+/// \cond
 #ifndef __ARC_WIN32_H__
 #define __ARC_WIN32_H__
 #define NOGDI
@@ -117,3 +119,6 @@ struct passwd {
 };
 
 #endif
+
+/// \endcond
+

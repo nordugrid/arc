@@ -198,6 +198,12 @@ namespace Arc {
 
   static const int formatindex = std::ios_base::xalloc();
 
+  struct LoggerFormat {
+    LoggerFormat(LogFormat format)
+      : format(format) {};
+    LogFormat format;
+  };
+
   std::ostream& operator<<(std::ostream& os, const LoggerFormat& format) {
     os.iword(formatindex) = format.format;
     return os;

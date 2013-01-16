@@ -39,16 +39,6 @@ namespace Arc {
     EmptyFormat  ///< only message is printed
   };
 
-  /// struct used in operator<<(std::ostream& os, const LoggerFormat& format).
-  struct LoggerFormat {
-    LoggerFormat(LogFormat format)
-      : format(format) {};
-    LogFormat format;
-  };
-
-  /// Printing of LogFormat to ostreams.
-  std::ostream& operator<<(std::ostream& os, const LoggerFormat& format);
-
   /// Printing of LogLevel values to ostreams.
   /** Output operator so that LogLevel values can be printed in a
      nicer way.
@@ -362,8 +352,8 @@ namespace Arc {
 
   class LoggerContextRef;
 
-  /// Container for internal logger configuration.
-  /** \headerfile Logger.h arc/Logger.h */
+  /** \cond Container for internal logger configuration.
+     \headerfile Logger.h arc/Logger.h */
   class LoggerContext {
     friend class Logger;
     friend class LoggerContextRef;
@@ -391,6 +381,7 @@ namespace Arc {
 
       void Release(void);
   };
+  /** \endcond */
  
 
   /// A logger class.

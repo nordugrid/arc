@@ -19,11 +19,12 @@ namespace Arc {
   // includes. It safe to use it multiple times and to include it both
   // from source files and other include files.
 
-  /// Defines size of stack assigned to every new thread.
-  /** It seems like MacOS has very small stack per thread by default.
+  /** \cond Defines size of stack assigned to every new thread.
+     It seems like MacOS has very small stack per thread by default.
      So it's safer to have bigger one defined. If this value is set
      to 0 default value will be used. */
   const size_t thread_stacksize = (16 * 1024 * 1024);
+  /** \endcond */
 
   /// Helper function to create simple thread.
   /** It takes care of all the peculiarities of the Glib::Thread API. It
@@ -307,8 +308,8 @@ namespace Arc {
     };
   };
 
-  /// Helper class for ThreadedPointer
-  /** \headerfile Thread.h arc/Thread.h */
+  /** \cond Helper class for ThreadedPointer.
+     \headerfile Thread.h arc/Thread.h */
   class ThreadedPointerBase {
   private:
     Glib::Mutex lock_;
@@ -332,6 +333,7 @@ namespace Arc {
       return cond_.timed_wait(lock_,etime);
     };
   };
+  /** \endcond */
 
   /// Wrapper for pointer with automatic destruction and multiple references.
   /** See for CountedPointer for description. Differently from CountedPointer
@@ -512,8 +514,10 @@ namespace Arc {
     }
   };
 
-  /// Internal function to initialize Glib thread system. Use ThreadInitializer instead.
+  /** \cond Internal function to initialize Glib thread system. Use
+      ThreadInitializer instead. */
   void GlibThreadInitialize(void);
+  /** \endcond */
 
   /// This class initializes the glibmm thread system.
   class ThreadInitializer {
