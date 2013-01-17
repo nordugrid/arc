@@ -122,6 +122,16 @@ int main(int argc, char **argv) {
 
   response->GetXML(xml, true);
   logger.msg(Arc::INFO, "Response:\n%s", xml);
+  if (response->IsFault()) {
+    Arc::SOAPFault& fault = *response->Fault();
+    std::string err("SOAP fault: %s", fault.Code());
+    for (int n = 0;;++n) {
+      if (fault.Reason(n).empty()) break;
+      err += ": " + fault.Reason(n);
+    }
+    logger.msg(Arc::ERROR, err);
+    return 1;
+  }
 
   std::string answer = (std::string)((*response)["echoResponse"]["hear"]);
 
