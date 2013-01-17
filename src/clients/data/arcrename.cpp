@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
   }
 
   // credentials will be initialised later if necessary
-  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::SkipCredentials);
+  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::NotTryCredentials);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
