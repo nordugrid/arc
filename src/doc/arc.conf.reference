@@ -1825,6 +1825,16 @@ ldap_schema_dir="/nfs/ldap/schema/"
 ## default is "2811". Will be cleaned up later.
 #gm_port="2811"
   
+## cpudistribution - this is the CPU distribution over nodes
+## given in the form: ncpu:m where 
+##   n is the number of CPUs per machine
+##   m is the number of such computers
+## Example: 1cpu:3,2cpu:4,4cpu:1 represents a cluster with 
+## 3 single CPU machines, 4 dual CPU machines, one machine with 4 CPUs.
+## This command is needed to tweak and overwrite the values returned
+## by the underlying LRMS. In general there is no need to configure it.
+#cpudistribution=1cpu:3,2cpu:4,4cpu:1
+
 
 ####################################################################
 ##
