@@ -11,6 +11,7 @@ namespace DataStaging {
   /**
    * This class contains several methods for filtering the list by owner, state
    * etc.
+   * \ingroup datastaging
    * \headerfile DTRList.h arc/data-staging/DTRList.h
    */
   class DTRList {

@@ -20,6 +20,7 @@ namespace DataStaging {
    * All meta-operations for a DTR such as resolving replicas must be done
    * before sending to DataDelivery. Calling receiveDTR() starts a new process
    * which performs data transfer as specified in DTR.
+   * \ingroup datastaging
    * \headerfile DataDelivery.h arc/data-staging/DataDelivery.h
    */
   class DataDelivery: public DTRCallback {	

@@ -19,6 +19,7 @@ namespace DataStaging {
  * The Scheduler manages a global list of DTRs and schedules when they should
  * go into the next state or be sent to other processes. The DTR priority is
  * used to decide each DTR's position in a queue.
+ * \ingroup datastaging
  * \headerfile Scheduler.h arc/data-staging/Scheduler.h
  */
 class Scheduler: public DTRCallback {	

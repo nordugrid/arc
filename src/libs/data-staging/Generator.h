@@ -8,7 +8,7 @@
 
 namespace DataStaging {
 
-  /// Simple Generator implementation
+  /// \cond Simple Generator implementation
   /**
    * This Generator implementation is included in the data staging library for
    * for basic direct testing of the library and to show how a Generator can
@@ -57,6 +57,7 @@ namespace DataStaging {
     /// Submit a DTR with given source and destination. Increments counter.
     void run(const std::string& source, const std::string& destination);
   };
+  /// \endcond
 
 } // namespace DataStaging
 

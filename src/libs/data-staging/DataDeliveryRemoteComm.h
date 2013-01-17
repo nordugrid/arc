@@ -11,6 +11,7 @@ namespace DataStaging {
 
   /// This class contacts a remote service to make a Delivery request.
   /**
+   * \ingroup datastaging
    * \headerfile DataDeliveryRemoteComm.h arc/data-staging/DataDeliveryRemoteComm.h
    */
   class DataDeliveryRemoteComm : public DataDeliveryComm {

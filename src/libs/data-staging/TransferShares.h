@@ -13,6 +13,7 @@ namespace DataStaging {
   /**
    * It allows reference shares to be defined with certain priorities. An
    * instance of this class is used when creating a TransferShares object.
+   * \ingroup datastaging
    * \headerfile TransferShares.h arc/data-staging/TransferShares.h
    */
   class TransferSharesConf {
@@ -103,6 +104,7 @@ namespace DataStaging {
    * configuration and the currently active shares (the DTRs already in the
    * process). can_start() is the method called by the Scheduler to
    * determine whether a particular share has an available slot in the process.
+   * \ingroup datastaging
    * \headerfile TransferShares.h arc/data-staging/TransferShares.h
    */
   class TransferShares {

@@ -12,6 +12,7 @@ namespace DataStaging {
    * The Processor takes care of everything that should happen before
    * and after a transfer takes place. Calling receiveDTR() spawns a
    * thread to perform the required operation depending on the DTR state.
+   * \ingroup datastaging
    * \headerfile Processor.h arc/data-staging/Processor.h
    */
   class Processor: public DTRCallback {

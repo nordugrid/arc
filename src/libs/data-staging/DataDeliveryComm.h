@@ -21,6 +21,7 @@ namespace DataStaging {
    * DataDeliveryCommHandler regularly polls all active transfers using
    * PullStatus() and fills the Status object with current information,
    * which can be obtained through GetStatus().
+   * \ingroup datastaging
    * \headerfile DataDeliveryComm.h arc/data-staging/DataDeliveryComm.h
    */
   class DataDeliveryComm {
@@ -40,6 +41,7 @@ namespace DataStaging {
     };
     #pragma pack(4)
     /// Plain C struct to pass information from executing process back to main thread
+    /** \ingroup datastaging */
     struct Status {
       CommStatusType commstatus;         ///< Communication state (filled by main thread)
       time_t timestamp;                  ///< Time when information was generated (filled externally)
@@ -122,6 +124,7 @@ namespace DataStaging {
 
   /// Singleton class handling all active DataDeliveryComm objects
   /**
+   * \ingroup datastaging
    * \headerfile DataDeliveryComm.h arc/data-staging/DataDeliveryComm.h
    */
   class DataDeliveryCommHandler {

@@ -10,6 +10,7 @@ namespace DataStaging {
       
   /// Class representing the status of a DTR.
   /**
+   * \ingroup datastaging
    * \headerfile DTRStatus.h arc/data-staging/DTRStatus.h
    */
   class DTRStatus {
@@ -201,6 +202,7 @@ namespace DataStaging {
 
   /// A class to represent error states reported by various components.
   /**
+   * \ingroup datastaging
    * \headerfile DTRStatus.h arc/data-staging/DTRStatus.h
    */
   class DTRErrorStatus {

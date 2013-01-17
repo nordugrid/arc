@@ -1,3 +1,79 @@
+// Summary page of data staging for doxygen
+namespace DataStaging {
+/**
+ * \defgroup datastaging ARC data staging (libarcdatastaging)
+ *
+ * ARC data staging components form a complete data transfer management system.
+ * Whereas \ref data is a library for data access, enabling several types of
+ * operation on data files on the Grid using a variety of access protocols,
+ * \ref datastaging is a framework for managed data transfer to and from the
+ * Grid. The data staging system is designed to run as a persistent process, to
+ * execute data transfers on demand. Data transfers are defined and fed into
+ * the system, and then notification is given when they complete. No knowledge
+ * is required of the internal workings of the Grid, a user only needs to
+ * specify URLs representing the source and destination of the transfer.
+ *
+ * The system is highly configurable and features an intelligent priority,
+ * fair-share and error handling mechanism, as well as the ability to spread
+ * data transfer across multiple hosts using ARC's DataDelivery service. It is
+ * used by ARC's Computing Element (A-REX) for pre- and post- job data transfer
+ * of input and output files. Note that this system is primarily for data
+ * transfer to and from local files and that third-party transfer is not
+ * supported. It is designed for the case of pulling or pushing data between
+ * the Grid and a local file system, rather than a service for transfer between
+ * two Grid storage elements. It is possible to transfer data between two
+ * remote endpoints, but all data flows through the client.
+ *
+ * The following code snippet shows a very simple example of how to use
+ * libarcdatastaging. A DTR is created which describes the data transfer
+ * required. It is passed to the Scheduler and then the code waits until the
+ * Scheduler calls the callback to notify that the transfer has finished.
+ *
+ * @code
+ * class MyGenerator : public DTRCallback {
+ *  public:
+ *   void receiveDTR(DTR_ptr dtr);
+ *   void run();
+ *  private:
+ *   Arc::SimpleCondition cond;
+ * };
+ *
+ * void MyGenerator::receiveDTR(DTR_ptr dtr) {
+ *   // DTR received back, so notify waiting condition
+ *   std::cout << "Received DTR " << dtr->get_id() << std::endl;
+ *   cond.signal();
+ * }
+ *
+ * void MyGenerator::run() {
+ *   // start Scheduler thread
+ *   Scheduler scheduler;
+ *   scheduler.start();
+ *
+ *   // create a DTR
+ *   DTR_ptr dtr(new DTR(source, destination,...));
+ *
+ *   // register this callback
+ *   dtr->registerCallback(this,DataStaging::GENERATOR);
+ *   // this line must be here in order to pass the DTR to the Scheduler
+ *   dtr->registerCallback(&scheduler,DataStaging::SCHEDULER);
+ *
+ *   // push the DTR to the Scheduler
+ *   DataStaging::DTR::push(dtr, DataStaging::SCHEDULER);
+ *
+ *   // wait until callback is called
+ *   cond.wait();
+ *   // DTR is finished, so stop Scheduler
+ *   scheduler.stop();
+ * }
+ * @endcode
+ *
+ * For more information see http://wiki.nordugrid.org/index.php/Data_Staging
+ *
+ * For more examples on using libarcdatastaging in several languages, see
+ * http://wiki.nordugrid.org/index.php/Data_Staging/API
+ */
+} // namespace DataStaging
+
 #ifndef DTR_H_
 #define DTR_H_
 
@@ -17,19 +93,35 @@ namespace DataStaging {
   class DTR;
 
   /// Provides automatic memory management of DTRs and thread-safe destruction.
+  /** \ingroup datastaging */
   typedef Arc::ThreadedPointer<DTR> DTR_ptr;
 
   /// The DTR's Logger object can be used outside the DTR object with DTRLogger.
+  /** \ingroup datastaging */
   typedef Arc::ThreadedPointer<Arc::Logger> DTRLogger;
 
   /// Components of the data staging framework
-  enum StagingProcesses {GENERATOR, SCHEDULER, PRE_PROCESSOR, DELIVERY, POST_PROCESSOR};
+  /** \ingroup datastaging */
+  enum StagingProcesses {
+    GENERATOR,     ///< Creator of new DTRs and receiver of completed DTRs
+    SCHEDULER,     ///< Controls queues and moves DTRs bewteen other components when necessary
+    PRE_PROCESSOR, ///< Performs all pre-transfer operations
+    DELIVERY,      ///< Performs physical transfer
+    POST_PROCESSOR ///< Performs all post-transfer operations
+  };
   
-  /// Internal state of staging processes
-  enum ProcessState {INITIATED, RUNNING, TO_STOP, STOPPED};
+  /// Internal state of StagingProcesses
+  /** \ingroup datastaging */
+  enum ProcessState {
+    INITIATED, ///< Process is ready to start
+    RUNNING,   ///< Process is running
+    TO_STOP,   ///< Process has been instructed to stop
+    STOPPED    ///< Proecess has stopped
+  };
 
   /// Represents limits and properties of a DTR transfer. These generally apply to all DTRs.
   /**
+   * \ingroup datastaging
    * \headerfile DTR.h arc/data-staging/DTR.h
    */
   class TransferParameters {
@@ -61,6 +153,7 @@ namespace DataStaging {
 
   /// The configured cache directories
   /**
+   * \ingroup datastaging
    * \headerfile DTR.h arc/data-staging/DTR.h
    */
   class DTRCacheParameters {
@@ -80,6 +173,7 @@ namespace DataStaging {
   };
 
   /// Represents possible cache states of this DTR
+  /** \ingroup datastaging */
   enum CacheState {
     CACHEABLE,             ///< Source should be cached
     NON_CACHEABLE,         ///< Source should not be cached
@@ -96,6 +190,7 @@ namespace DataStaging {
    * DTR is to be passed to a component. Several components in data staging
    * (eg Scheduler, Generator) are subclasses of DTRCallback, which allows
    * them to receive DTRs through the callback system.
+   * \ingroup datastaging
    * \headerfile DTR.h arc/data-staging/DTR.h
    */
   class DTRCallback {
@@ -128,50 +223,9 @@ namespace DataStaging {
    * To enforce this policy the copy constructor and assignment operator are
    * private.
    *
-   * registerCallback(this,DataStaging::GENERATOR) can be used to
-   * activate the callback. The following simple Generator code sample
-   * illustrates how to use DTRs:
-   *
-   * @code
-   * class MyGenerator : public DTRCallback {
-   *  public:
-   *   void receiveDTR(DTR_ptr dtr);
-   *   void run();
-   *  private:
-   *   Arc::SimpleCondition cond;
-   * };
-   *
-   * void MyGenerator::receiveDTR(DTR_ptr dtr) {
-   *   // DTR received back, so notify waiting condition
-   *   std::cout << "Received DTR " << dtr->get_id() << std::endl;
-   *   cond.signal();
-   * }
-   *
-   * void MyGenerator::run() {
-   *   // start Scheduler thread
-   *   Scheduler scheduler;
-   *   scheduler.start();
-   *
-   *   // create a DTR
-   *   DTR_ptr dtr(new DTR(source, destination,...));
-   *
-   *   // register this callback
-   *   dtr->registerCallback(this,DataStaging::GENERATOR);
-   *   // this line must be here in order to pass the DTR to the Scheduler
-   *   dtr->registerCallback(&scheduler,DataStaging::SCHEDULER);
-   *
-   *   // push the DTR to the Scheduler
-   *   DataStaging::DTR::push(dtr, DataStaging::SCHEDULER);
-   *
-   *   // wait until callback is called
-   *   cond.wait();
-   *   // DTR is finished, so stop Scheduler
-   *   scheduler.stop();
-   * }
-   * @endcode
-   *
    * A lock protects member variables that are likely to be accessed and
    * modified by multiple threads.
+   * \ingroup datastaging
    * \headerfile DTR.h arc/data-staging/DTR.h
    */
   class DTR {
