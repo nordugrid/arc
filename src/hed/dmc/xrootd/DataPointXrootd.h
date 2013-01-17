@@ -2,6 +2,7 @@
 #define __ARC_DATAPOINTXROOTD_H__
 
 #include <list>
+#include <XrdPosix/XrdPosixXrootd.hh>
 
 #include <arc/data/DataPointDirect.h>
 
@@ -32,8 +33,8 @@ namespace ArcDMCXrootd {
     virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus Remove();
-    virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP); };
-    virtual DataStatus Rename(const URL& newurl) { return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP); };
+    virtual DataStatus CreateDirectory(bool with_parents=false);
+    virtual DataStatus Rename(const URL& newurl);
 
    private:
     /// thread functions for async read/write
@@ -44,12 +45,16 @@ namespace ArcDMCXrootd {
 
     /// must be called everytime a new XrdClient is created
     void set_log_level();
+    /// Internal stat()
+    DataStatus do_stat(const URL& url, FileInfo& file, DataPointInfoType verb);
 
+    int fd;
     SimpleCondition transfer_cond;
-    XrdClient* client;
     bool reading;
     bool writing;
     static Logger logger;
+    // There must be one instance of this object per executable
+    static XrdPosixXrootd xrdposix;
   };
 
 } // namespace ArcDMCXrootd

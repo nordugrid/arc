@@ -2,15 +2,11 @@
 #include <config.h>
 #endif
 
-#include <XrdClient/XrdClient.hh>
+#include <fcntl.h>
 
 #include <arc/StringConv.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/CheckSum.h>
-
-// "Error" macro defined here conflicts with same name macro in glib
-// so have to include after glib includes
-#include <XrdClient/XrdClientDebug.hh>
 
 #include "DataPointXrootd.h"
 
@@ -19,12 +15,13 @@ namespace ArcDMCXrootd {
   using namespace Arc;
 
   Logger DataPointXrootd::logger(Logger::getRootLogger(), "DataPoint.Xrootd");
+  XrdPosixXrootd DataPointXrootd::xrdposix;
 
   DataPointXrootd::DataPointXrootd(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
     : DataPointDirect(url, usercfg, parg),
+      fd(-1),
       reading(false),
-      writing(false) {
-    client = new XrdClient(url.str().c_str());
+      writing(false){
     // set xrootd log level
     set_log_level();
   }
@@ -32,7 +29,6 @@ namespace ArcDMCXrootd {
   DataPointXrootd::~DataPointXrootd() {
     StopReading();
     StopWriting();
-    if (client) delete client;
   }
 
   Plugin* DataPointXrootd::Instance(PluginArgument *arg) {
@@ -56,11 +52,11 @@ namespace ArcDMCXrootd {
     bool eof = false;
 
     for (;;) {
-      /* 1. claim buffer */
+      // 1. claim buffer
       int h;
       unsigned int l;
       if (!buffer->for_read(h, l, true)) {
-        /* failed to get buffer - must be error or request to exit */
+        // failed to get buffer - must be error or request to exit
         buffer->error_read(true);
         break;
       }
@@ -79,20 +75,19 @@ namespace ArcDMCXrootd {
         }
         break;
       }
-      /* 2. read */
-      // it is an error to read past eof, so check if we are going to
-      if (GetSize() - offset < l) {
-        l = GetSize() - offset;
+      // 2. read, making sure not to read past eof
+      if (size - offset < l) {
+        l = size - offset;
         eof = true;
-        if (l == 0) {
+        if (l == 0) { // don't try to read zero bytes!
           buffer->is_read(h, 0, 0);
           continue;
         }
       }
       logger.msg(DEBUG, "Reading %u bytes from byte %llu", l, offset);
-      int res = client->Read((*(buffer))[h], offset, l);
+      int res = XrdPosixXrootd::Read(fd, (*(buffer))[h], l);
       logger.msg(DEBUG, "Read %i bytes", res);
-      if (res <= 0) { /* error */
+      if (res <= 0) { // error
         buffer->is_read(h, 0, 0);
         buffer->error_read(true);
         break;
@@ -104,24 +99,13 @@ namespace ArcDMCXrootd {
           if(*cksum) (*cksum)->add((*(buffer))[h], res);
         }
       }
-      /* 3. announce */
+      // 3. announce
       buffer->is_read(h, res, offset);
       offset += res;
     }
-    client->Close();
+    XrdPosixXrootd::Close(fd);
     buffer->eof_read(true);
     transfer_cond.signal();
-  }
-
-  void DataPointXrootd::set_log_level() {
-    // TODO xrootd lib logs to stderr - need to redirect to log file
-    // for new data staging
-    if (logger.getThreshold() == DEBUG)
-      XrdClientDebug::Instance()->SetLevel(XrdClientDebug::kHIDEBUG);
-    else if (logger.getThreshold() <= INFO)
-      XrdClientDebug::Instance()->SetLevel(XrdClientDebug::kUSERDEBUG);
-    else
-      XrdClientDebug::Instance()->SetLevel(XrdClientDebug::kNODEBUG);
   }
 
   DataStatus DataPointXrootd::StartReading(DataBuffer& buf) {
@@ -129,37 +113,28 @@ namespace ArcDMCXrootd {
     if (writing) return DataStatus::IsWritingError;
     reading = true;
 
-    // same client object cannot be opened twice, so create a new one here
-    // in case it was used before
-    if (client) {
-      delete client;
-      client = NULL;
-    }
-    client = new XrdClient(url.str().c_str());
-    set_log_level();
-
     {
       CertEnvLocker env(usercfg);
-      if (!client->Open(kXR_ur, kXR_open_read)) {
-         logger.msg(ERROR, "Could not open file %s for reading", url.str());
-         reading = false;
-         return DataStatus::ReadStartError;
+      fd = XrdPosixXrootd::Open(url.str().c_str(), O_RDONLY);
+      if (fd == -1) {
+        logger.msg(VERBOSE, "Could not open file %s for reading: %s", url.str(), StrError(errno));
+        reading = false;
+        return DataStatus(DataStatus::ReadStartError, errno);
       }
     }
-    // wait for open to complete
-    if (!client->IsOpen_wait()) {
-      logger.msg(ERROR, "Failed to open file %s", url.str());
-      reading = false;
-      return DataStatus::ReadStartError;
-    }
 
-    // stat to find filesize if not already known
-    if (GetSize() == (unsigned long long int)(-1)) {
-      FileInfo file;
-      DataPointInfoType info(INFO_TYPE_CONTENT);
-      if (!Stat(file, info)) {
+    // It is an error to read past EOF, so we need the file size if not known
+    if (!CheckSize()) {
+      FileInfo f;
+      DataStatus res = Stat(f, INFO_TYPE_CONTENT);
+      if (!res) {
         reading = false;
-        return DataStatus::ReadStartError;
+        return DataStatus(DataStatus::ReadStartError, res.GetErrno(), res.GetDesc());
+      }
+      if (!CheckSize()) {
+        logger.msg(VERBOSE, "Unable to find file size of %s", url.str());
+        reading = false;
+        return DataStatus(DataStatus::ReadStartError, std::string("Unable to obtain file size"));
       }
     }
 
@@ -167,7 +142,7 @@ namespace ArcDMCXrootd {
     transfer_cond.reset();
     // create thread to maintain reading
     if(!CreateThreadFunction(&DataPointXrootd::read_file_start, this)) {
-      client->Close();
+      XrdPosixXrootd::Close(fd);
       reading = false;
       buffer = NULL;
       return DataStatus::ReadStartError;
@@ -182,7 +157,8 @@ namespace ArcDMCXrootd {
     if (!buffer) return DataStatus(DataStatus::ReadStopError, EARCLOGIC, "Not reading");
     if (!buffer->eof_read()) {
       buffer->error_read(true);      /* trigger transfer error */
-      client->Close();
+      if (fd != -1) XrdPosixXrootd::Close(fd);
+      fd = -1;
     }
     transfer_cond.wait();         /* wait till reading thread exited */
     if (buffer->error_read()) {
@@ -197,7 +173,7 @@ namespace ArcDMCXrootd {
   DataStatus DataPointXrootd::StartWriting(DataBuffer& buffer,
                                       DataCallback *space_cb) {
     logger.msg(ERROR, "Writing to xrootd is not (yet) supported");
-    return DataStatus::WriteError;
+    return DataStatus(DataStatus::WriteError, EOPNOTSUPP);
   }
 
   DataStatus DataPointXrootd::StopWriting() {
@@ -206,71 +182,95 @@ namespace ArcDMCXrootd {
 
   DataStatus DataPointXrootd::Check(bool check_meta) {
     // check if file can be opened for reading
+    CertEnvLocker env(usercfg);
+    if (XrdPosixXrootd::Access(url.str().c_str(), R_OK) != 0) {
+      logger.msg(VERBOSE, "Read access not allowed for %s: %s", url.str(), StrError(errno));
+      return DataStatus(DataStatus::CheckError, errno);
+    }
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointXrootd::do_stat(const URL& url, FileInfo& file, DataPointInfoType verb) {
+
+    struct stat st;
     {
       CertEnvLocker env(usercfg);
-      if (!client->Open(kXR_ur, kXR_open_read)) {
-         logger.msg(ERROR, "Could not open file %s", url.str());
-         return DataStatus::CheckError;
+      if (XrdPosixXrootd::Stat(url.str().c_str(), &st)) {
+        logger.msg(VERBOSE, "Could not stat file %s: %s", url.str(), StrError(errno));
+        return DataStatus(DataStatus::StatError, errno);
       }
     }
-    // wait for open to complete
-    if (!client->IsOpen_wait()) {
-      logger.msg(ERROR, "Failed to open file %s", url.str());
-      return DataStatus::CheckError;
+    file.SetName(url.Path());
+    file.SetSize(st.st_size);
+    file.SetModified(st.st_mtime);
+
+    if(S_ISREG(st.st_mode)) {
+      file.SetType(FileInfo::file_type_file);
+    } else if(S_ISDIR(st.st_mode)) {
+      file.SetType(FileInfo::file_type_dir);
+    } else {
+      file.SetType(FileInfo::file_type_unknown);
     }
 
-    client->Close();
+    SetSize(file.GetSize());
+    SetModified(file.GetModified());
+
     return DataStatus::Success;
   }
 
   DataStatus DataPointXrootd::Stat(FileInfo& file, DataPointInfoType verb) {
-    struct XrdClientStatInfo stinfo;
-    bool already_opened = client->IsOpen();
-    {
-      CertEnvLocker env(usercfg);
-      if (!already_opened && !client->Open(kXR_ur, kXR_open_read)) {
-        logger.msg(ERROR, "Could not open file %s", url.str());
-        return DataStatus::StatError;
-      }
-    }
-    // wait for open to complete
-    if (!client->IsOpen_wait()) {
-      logger.msg(ERROR, "Failed to open file %s", url.str());
-      return DataStatus::StatError;
-    }
-
-    if (!client->Stat(&stinfo)) {
-      logger.msg(ERROR, "Could not stat file %s", url.str());
-      if (!already_opened)
-        client->Close();
-      return DataStatus::StatError;
-    }
-    file.SetName(url.Path());
-    file.SetType(FileInfo::file_type_file);
-    file.SetSize(stinfo.size);
-    file.SetModified(stinfo.modtime);
-
-    SetSize(file.GetSize());
-    SetModified(stinfo.modtime);
-
-    if (!already_opened)
-      client->Close();
-    return DataStatus::Success;
+    return do_stat(url, file, verb);
   }
 
   DataStatus DataPointXrootd::List(std::list<FileInfo>& files, DataPointInfoType verb) {
-    // cannot list directories so return same info as stat
-    logger.msg(WARNING, "Cannot list directories with xrootd");
-    FileInfo f;
-    if (!Stat(f, verb))
-      return DataStatus::ListError;
-    files.push_back(f);
+
+    DIR* dir = NULL;
+    {
+      CertEnvLocker env(usercfg);
+      dir = XrdPosixXrootd::Opendir(url.str().c_str());
+    }
+    if (!dir) {
+      logger.msg(VERBOSE, "Failed to open directory %s: %s", url.str(), StrError(errno));
+      return DataStatus(DataStatus::ListError, errno);
+    }
+
+    struct dirent* entry;
+    while ((entry = XrdPosixXrootd::Readdir(dir))) {
+      FileInfo f;
+      if (verb > INFO_TYPE_NAME) {
+        std::string path = url.str() + '/' + entry->d_name;
+        do_stat(path, f, verb);
+      }
+      f.SetName(entry->d_name);
+      files.push_back(f);
+    }
+    if (errno != 0) logger.msg(VERBOSE, "Error while reading dir %s: %s", url.str(), StrError(errno));
+    XrdPosixXrootd::Closedir(dir);
+
     return DataStatus::Success;
   }
 
   DataStatus DataPointXrootd::Remove() {
-    logger.msg(ERROR, "Cannot remove files through xrootd");
-    return DataStatus::DeleteError;
+    logger.msg(ERROR, "Cannot (yet) remove files through xrootd");
+    return DataStatus(DataStatus::DeleteError, EOPNOTSUPP);
+  }
+
+  DataStatus DataPointXrootd::CreateDirectory(bool with_parents) {
+    logger.msg(ERROR, "Cannot (yet) create directories through xrootd");
+    return DataStatus(DataStatus::CreateDirectoryError, EOPNOTSUPP);
+  }
+
+  DataStatus DataPointXrootd::Rename(const URL& newurl) {
+    logger.msg(ERROR, "Cannot (yet) rename files through xrootd");
+    return DataStatus(DataStatus::RenameError, EOPNOTSUPP);
+  }
+
+  void DataPointXrootd::set_log_level() {
+    // TODO xrootd lib logs to stderr - need to redirect to log file for DTR
+    // Level 1 enables some messages which go to stdout - which messes up
+    // communication in DTR so better to use no debugging
+    if (logger.getThreshold() == DEBUG) XrdPosixXrootd::setDebug(1);
+    else XrdPosixXrootd::setDebug(0);
   }
 
 } // namespace ArcDMCXrootd
