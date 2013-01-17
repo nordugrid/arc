@@ -321,6 +321,9 @@ namespace Arc {
         JobManagementInterfaceName      = "org.nordugrid.xbes";
       }
     }
+    else {
+      logger.msg(WARNING, "Unable to detect format of job record.");
+    }
 
     JXMLTOSTRING(Name)
 
