@@ -167,7 +167,7 @@ if [ ! -z $joboption_exclusive && $joboption_exclusive = 'yes' ] ; then
      memreq="${tempmem}"
    fi
   else
-    echo "WARNING: Could not set memory limit to simulate exclusice execution." > 1>&2
+    echo "WARNING: Could not set memory limit to simulate exclusice execution." 1>&2
   fi 
 fi
 
