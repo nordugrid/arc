@@ -123,7 +123,7 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
     return 1;
   }
 
-  std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.qlusters, opt.indexurls, opt.requestedSubmissionInterfaceName, opt.infointerface);
+  std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.qlusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
   std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
 
   std::list<Arc::Job> resubmittedJobs;
