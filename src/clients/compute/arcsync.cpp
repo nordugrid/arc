@@ -57,11 +57,13 @@ public:
   bool writeJobs(bool truncate) {
     bool jobsWritten = false;
     bool jobsReported = false;
+    Arc::JobInformationStorageXML jobList(uc.JobListFile());
     // Write extracted job info to joblist
     if (truncate) {
-      if ( (jobsWritten = Arc::Job::WriteJobsToTruncatedFile(uc.JobListFile(), jobs)) ) {
+      jobList.Clean();
+      if ( (jobsWritten = jobList.Write(jobs)) ) {
         for (std::list<Arc::Job>::const_iterator it = jobs.begin();
-             it != jobs.end(); it++) {
+             it != jobs.end(); ++it) {
           if (!jobsReported) {
             std::cout << Arc::IString("Found the following jobs:")<<std::endl;
             jobsReported = true;
@@ -81,10 +83,9 @@ public:
       std::set<std::string> prunedServices;
       jlr.getServicesWithStatus(Arc::EndpointQueryingStatus::SUCCESSFUL,
                                 prunedServices);
-      if ( (jobsWritten = Arc::Job::WriteJobsToFile(uc.JobListFile(), jobs,
-                                                    prunedServices, newJobs)) ) {
+      if ( (jobsWritten = jobList.Write(jobs, prunedServices, newJobs)) ) {
         for (std::list<const Arc::Job*>::const_iterator it = newJobs.begin();
-             it != newJobs.end(); it++) {
+             it != newJobs.end(); ++it) {
           if (!jobsReported) {
             std::cout << Arc::IString("Found the following new jobs:")<<std::endl;
             jobsReported = true;

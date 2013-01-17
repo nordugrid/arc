@@ -280,7 +280,8 @@ int test(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorter& ets, const 
     retval = 1;
   }
 
-  if (!Arc::Job::WriteJobsToFile(usercfg.JobListFile(), submittedJobs)) {
+  Arc::JobInformationStorageXML jobList(usercfg.JobListFile());
+  if (!jobList.Write(submittedJobs)) {
     std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile())
               << std::endl;
     std::cout << Arc::IString("To recover missing jobs, run arcsync") << std::endl;

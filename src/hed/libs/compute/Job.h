@@ -198,196 +198,6 @@ namespace Arc {
     static bool CompareSubmissionTime(const Job& a, const Job& b) { return a.SubmissionTime < b.SubmissionTime; }
     static bool CompareJobName(const Job& a, const Job& b) { return a.Name.compare(b.Name) < 0; }
 
-    /// Read all jobs from file
-    /**
-     * This static method will read jobs (in XML format) from the specified
-     * file, and they will be stored in the referenced list of jobs. The XML
-     * element in the file representing a job should be named "Job", and have
-     * the same format as accepted by the operator=(XMLNode) method.
-     *
-     * File locking:
-     * To avoid simultaneous use (writing and reading) of the file, reading will
-     * not be initiated before a lock on the file has been acquired. For this
-     * purpose the FileLock class is used. nTries specifies the maximal number
-     * of times the method will try to acquire a lock on the file, with an
-     * interval of tryInterval micro seconds between each attempt. If a lock is
-     * not acquired* this method returns false.
-     *
-     * The method will also return false if the content of file is not in XML
-     * format. Otherwise it returns true.
-     *
-     * @param filename is the filename of the job list to read jobs from.
-     * @param jobs is a reference to a list of Job objects, which will be filled
-     *  with the jobs read from file (cleared before use).
-     * @param nTries specifies the maximal number of times the method will try
-     *  to acquire a lock on file to read.
-     * @param tryInterval specifies the interval (in micro seconds) between each
-     *  attempt to acquire a lock.
-     * @return true in case of success, otherwise false.
-     * @see operator=(XMLNode)
-     * @see ReadJobsFromFile
-     * @see WriteJobsToTruncatedFile
-     * @see WriteJobsToFile
-     * @see RemoveJobsFromFile
-     * @see FileLock
-     * @see XMLNode::ReadFromFile
-     **/
-    static bool ReadAllJobsFromFile(const std::string& filename, std::list<Job>& jobs, unsigned nTries = 10, unsigned tryInterval = 500000);
-
-    /// Read specified jobs from file
-    /**
-     * Extract job information for jobs specified by job identifiers and/or
-     * endpoints from job list file. The method read all jobs from specified
-     * job list file, using the ReadAllJobsFromFile method. If the all argument
-     * is false, jobs will only be put into the list of Job objects (jobs) if
-     * the IDFromEndpoint or Name attributes of the Job object matches one of
-     * the entries in the jobIdentifiers list argument or if the Cluster
-     * attribute of the Job object matches one of the entries in
-     * the endpoints list argument (if specified), using the URL::StringMatches
-     * method. If the all argument is true, none of those matchings is carried
-     * out, instead all jobs are put into the list of Job objects. For both
-     * values of the all argument, the entries in the jobIdentifiers list will
-     * be removed if corresponding to a job in the jobs list. In the end, if the
-     * rejectEndpoints list is non-empty, the jobs list will be filtered by
-     * removing Job objects for which the Cluster attribute
-     * matches those in the rejectEndpoints list, using the URL::StringMatches
-     * method. This method returns true, except when the ReadAllJobsFromFile
-     * method returns false.
-     *
-     * @param filename is the filename of the job list to read jobs from.
-     * @param jobs is a reference to a list of Job objects, which will be filled
-     *  with the jobs read from file (cleared before use).
-     * @param jobIdentifiers specifies the job IDs and names of jobs to be put
-     *  into the jobs list. Entries in this list is removed if found among the
-     *  jobs in the job list file.
-     * @param all specifies whether all jobs from the jobs list should be put
-     *  into the jobs list.
-     * @param endpoints is a list of strings resembling endpoints for which Job
-     *  objects having matching Cluster attribute should be
-     *  added to the jobs list.
-     * @param rejectEndpoints is a list of strings resembling endpoint for which
-     *  Job objects having matching Cluster attribute should be
-     *  removed from the jobs list. Overides jobIdentifiers, all and endpoints.
-     * @param nTries will be passed to the ReadAllJobsFromFile method
-     * @param tryInterval will be passed to the ReadAllJobsFromFile method
-     * @return true in case of success, otherwise false.
-     * @see ReadAllJobsFromFile
-     * @see URL::StringMatches
-     * @see WriteJobsToTruncatedFile
-     * @see WriteJobsToFile
-     * @see RemoveJobsFromFile
-     **/
-    static bool ReadJobsFromFile(const std::string& filename, std::list<Job>& jobs, std::list<std::string>& jobIdentifiers, bool all = false, const std::list<std::string>& endpoints = std::list<std::string>(), const std::list<std::string>& rejectEndpoints = std::list<std::string>(), unsigned nTries = 10, unsigned tryInterval = 500000);
-
-    /// Truncate file and write jobs to it
-    /**
-     * This static method will write the passed list of jobs to the specified
-     * file, but before writing the file will be truncated. Jobs will be written
-     * in XML format as returned by the ToXML method, and each job will be
-     * contained in a element named "Job". If the passed list of jobs contains
-     * two identical jobs (i.e. IDFromEndpoint identical), only the latter
-     * Job object is stored. File locking will be done as described
-     * for the ReadAllJobsFromFile method. The method will return false if
-     * writing jobs to the file fails. Otherwise it returns true.
-     *
-     * @param filename is the filename of the job list to write jobs to.
-     * @param jobs is the list of Job objects which should be written to file.
-     * @param nTries specifies the maximal number of times the method will try
-     *  to acquire a lock on file to read.
-     * @param tryInterval specifies the interval (in micro seconds) between each
-     *  attempt to acquire a lock.
-     * @return true in case of success, otherwise false.
-     * @see ToXML
-     * @see ReadAllJobsFromFile
-     * @see WriteJobsToFile
-     * @see RemoveJobsFromFile
-     * @see FileLock
-     * @see XMLNode::SaveToFile
-     **/
-    static bool WriteJobsToTruncatedFile(const std::string& filename, const std::list<Job>& jobs, unsigned nTries = 10, unsigned tryInterval = 500000);
-
-    /// Write jobs to file
-    /**
-     * This method is in all respects identical to the WriteJobsToFile(const std::string&, const std::list<Job>&, std::list<const Job*>&, unsigned, unsigned)
-     * method, except for the information about new jobs which is disregarded.
-     *
-     * @see WriteJobsToFile(const std::string&, const std::list<Job>&, std::list<const Job*>&, unsigned, unsigned)
-     */
-    static bool WriteJobsToFile(const std::string& filename, const std::list<Job>& jobs, unsigned nTries = 10, unsigned tryInterval = 500000);
-
-    /// Write jobs to file
-    /**
-     * This method invokes
-     * WriteJobsToFile(const std::string&, const std::list<Job>&, const std::set<std::string>&, std::list<const Job*>&, unsigned, unsigned)
-     * with an empty set as the 3rd argument, meaning that all existing jobs
-     * which are not replaced, will be kept.
-     *
-     * @see WriteJobsToFile(const std::string&, const std::list<Job>&, const std::set<std::string>&, std::list<const Job*>&, unsigned, unsigned)
-     */
-    static bool WriteJobsToFile(const std::string& filename, const std::list<Job>& jobs, std::list<const Job*>& newJobs, unsigned nTries = 10, unsigned tryInterval = 500000);
-
-    /// Write jobs to file
-    /**
-     * This static method will write (append) the passed list of jobs to the
-     * specified file. Jobs will be written in XML format as returned by the
-     * ToXML method, and each job will be contained in a element named "Job".
-     * If the passed list of jobs contains two identical jobs (i.e.
-     * IDFromEndpoint identical), only the latter Job object is stored. If
-     * a job in the list is identical to one in file, the one in file will be
-     * replaced with the one from the list. A pointer (no memory allocation) to
-     * those jobs from the list which are not in the file will be added to the
-     * newJobs list, thus these pointers goes out of scope when 'jobs' list goes
-     * out of scope. File locking will be done as described for the
-     * ReadAllJobsFromFile method. The method will return false if writing jobs
-     * to the file fails. Otherwise it returns true.
-     *
-     * @param filename is the filename of the job list to write jobs to.
-     * @param jobs is the list of Job objects which should be written to file.
-     * @param prunedServices is a set of service names whose jobs should be
-     *  removed if not replaced.  This is typically the list of service names
-     *  for which at least one endpoint was successfully queried.  Passing the
-     *  empty set, all existing jobs are kept, even if outdated.
-     * @param newJobs is a reference to a list of pointers to Job objects which
-     *  are not duplicates.
-     * @param nTries specifies the maximal number of times the method will try
-     *  to acquire a lock on file to read.
-     * @param tryInterval specifies the interval (in micro seconds) between each
-     *  attempt to acquire a lock.
-     * @return true in case of success, otherwise false.
-     * @see ToXML
-     * @see ReadAllJobsFromFile
-     * @see WriteJobsToTruncatedFile
-     * @see RemoveJobsFromFile
-     * @see FileLock
-     * @see XMLNode::SaveToFile
-     **/
-    static bool WriteJobsToFile(const std::string& filename, const std::list<Job>& jobs, const std::set<std::string>& prunedServices, std::list<const Job*>& newJobs, unsigned nTries = 10, unsigned tryInterval = 500000);
-
-    /// Remove job from file
-    /**
-     * This static method will remove the jobs having IDFromEndpoint identical
-     * to any of those in the passed list jobids. File locking will be done as
-     * described for the ReadAllJobsFromFile method. The method will return
-     * false if reading from or writing jobs to the file fails. Otherwise it
-     * returns true.
-     *
-     * @param filename is the filename of the job list to write jobs to.
-     * @param jobids is a list of URL objects which specifies which jobs from
-     *  the file to remove.
-     * @param nTries specifies the maximal number of times the method will try
-     *  to acquire a lock on file to read.
-     * @param tryInterval specifies the interval (in micro seconds) between each
-     *  attempt to acquire a lock.
-     * @return true in case of success, otherwise false.
-     * @see ReadAllJobsFromFile
-     * @see WriteJobsToTruncatedFile
-     * @see WriteJobsToFile
-     * @see FileLock
-     * @see XMLNode::ReadFromFile
-     * @see XMLNode::SaveToFile
-     **/
-    static bool RemoveJobsFromFile(const std::string& filename, const std::list<std::string>& jobids, unsigned nTries = 10, unsigned tryInterval = 500000);
-
     /// Read a list of Job IDs from a file, and append them to a list
     /**
      * This static method will read job IDs from the given file, and append the
@@ -456,6 +266,214 @@ namespace Arc {
     // Objects might be pointing to allocated memory upon termination, leave it as garbage.
     static DataHandle *data_source, *data_destination;
     
+    static Logger logger;
+  };
+
+  /// Abstract class for storing job information
+  /**
+   * This abstract class provides an interface which can be used to store job
+   * information, which can then later be used to initialise Job objects from
+   * the stored information.
+   * 
+   * \note This class is abstract. All functionality is provided by specialised
+   *  child classes.
+   * 
+   * \headerfile Job.h arc/compute/Job.h
+   * \ingroup compute
+   **/
+  class JobInformationStorage {
+  public:
+    /// Constructor
+    /**
+     * Construct a JobInformationStorage object with name \c name. The name
+     * could be a file name or maybe a database, that is implemention specific.
+     * The \c nTries argument specifies the number times a lock on the storage
+     * should be tried obtained for each method invocation. The constructor it
+     * self should not acquire a lock through-out the object lifetime.
+     * \c tryInterval is the waiting period in micro seconds between each
+     * locking attemp.
+     * 
+     * @param name name of the storage.
+     * @param nTries specifies the maximal number of times try
+     *  to acquire a lock on file to read.
+     * @param tryInterval specifies the interval (in micro seconds) between each
+     *  attempt to acquire a lock.
+     **/
+    JobInformationStorage(const std::string& name, unsigned nTries = 10, unsigned tryInterval = 500000)
+      : name(name), nTries(nTries), tryInterval(tryInterval) {}
+    virtual ~JobInformationStorage() {}
+    
+    /// Read all jobs from storage
+    /**
+     * Read all jobs contained in storage, except those managed by a service at
+     * an endpoint which matches any of those in the \c rejectEndpoints list
+     * parameter. The read jobs are added to the list of Job objects referenced
+     * by the \c jobs parameter. The algorithm used for matching should be
+     * equivalent to that used in the URL::StringMatches method.
+     *
+     * \note This method is abstract and an implementation must be provided by
+     *  specialised classes.
+     * 
+     * @param jobs is a reference to a list of Job objects, which will be filled
+     *  with the jobs read from file (cleared before use).
+     * @param rejectEndpoints is a list of strings specifying endpoints for
+     *  which Job objects with JobManagementURL matching any of those endpoints
+     *  will not be part of the retrieved jobs. The algorithm used for matching
+     *  should be equivalent to that used in the URL::StringMatches method.
+     * @return \c true is returned if all jobs contained in the storage was
+     *  retrieved (except those rejected, if any), otherwise false.
+     **/
+    virtual bool ReadAll(std::list<Job>& jobs, const std::list<std::string>& rejectEndpoints = std::list<std::string>()) = 0;
+    
+    /// Read specified jobs
+    /**
+     * Read jobs specified by job identifiers and/or endpoints from storage.
+     * Only jobs which has a JobID or a Name attribute matching any of the items
+     * in the \c identifiers list parameter, and also jobs for which the
+     * \c JobManagementURL attribute matches any of those endpoints specified in
+     * the \c endpoints list parameter, will be added to the
+     * list of Job objects reference to by the \c jobs parameter, except those
+     * jobs for which the \c JobManagementURL attribute matches any of those
+     * endpoints specified in the \c rejectEndpoints list parameter. Identifiers
+     * specified in the \c jobIdentifiers list parameter which matches a job in
+     * the storage will be removed from the referenced list. The algorithm used
+     * for matching should be equivalent to that used in the URL::StringMatches
+     * method.
+     *
+     * \note This method is abstract and an implementation must be provided by
+     *  specialised classes.
+     * 
+     * @param jobs reference to list of Job objects which will be filled with
+     *  matching jobs.
+     * @param jobIdentifiers specifies the job IDs and names of jobs to be added
+     *  to the job list. Entries in this list is removed if they match a job
+     *  from the storage.
+     * @param endpoints is a list of strings specifying endpoints for
+     *  which Job objects with the JobManagementURL attribute matching any of
+     *  those endpoints will added to the job list. The algorithm used for
+     *  matching should be equivalent to that used in the URL::StringMatches
+     *  method.
+     * @param rejectEndpoints is a list of strings specifying endpoints for
+     *  which Job objects with the JobManagementURL attribute matching any of
+     *  those endpoints will not be part of the retrieved jobs. The algorithm
+     *  used for matching should be equivalent to that used in the
+     *  URL::StringMatches method.
+     * @return \c false is returned in case a job failed to be read from
+     *  storage, otherwise \c true is returned. This method will also return in
+     *  case an identifier does not match any jobs in the storage.
+     **/
+    virtual bool Read(std::list<Job>& jobs, std::list<std::string>& jobIdentifiers,
+                      const std::list<std::string>& endpoints = std::list<std::string>(),
+                      const std::list<std::string>& rejectEndpoints = std::list<std::string>()) = 0;
+
+    /// Write jobs
+    /**
+     * This method is in all respects identical to the Write(const std::list<Job>&, std::list<const Job*>&)
+     * method, except for information about new jobs which is disregarded.
+     *
+     * A specialised implementaion does not necessarily need to be provided.
+     *
+     * @see Write(const std::list<Job>&, std::list<const Job*>&)
+     */
+    virtual bool Write(const std::list<Job>& jobs)  { std::list<const Job*> newJobs; return Write(jobs, newJobs); }
+
+    /// Write jobs
+    /**
+     * This method invokes Write(const std::list<Job>&, const std::set<std::string>&, std::list<const Job*>&)
+     * with an empty set as the 3rd argument, meaning that all existing jobs
+     * which are not replaced, will be kept.
+     *
+     * @see Write(const std::list<Job>&, const std::set<std::string>&, std::list<const Job*>&)
+     */
+    virtual bool Write(const std::list<Job>& jobs, std::list<const Job*>& newJobs) { std::set<std::string> noServices; return Write(jobs, noServices, newJobs); }
+
+    /// Write jobs
+    /**
+     * Add jobs to storage. If there already exist a job with a specific job ID
+     * in the storage, and a job with the same job ID is tried added to the
+     * storage then the existing job will be overwritten. For jobs in the
+     * storage with a ServiceEndpointURL attribute where the host name is equal
+     * to any of the entries in the set referenced by the \c prunedServices
+     * parameter, is removed from the storage, if they are not among the list of
+     * jobs referenced by the \c jobs parameter. A pointer to jobs in the job
+     * list (\c jobs) which does not already exist in the storage will be added
+     * to the list of Job object pointers referenced by the \c newJobs
+     * parameter.
+     * 
+     * \note This method is abstract and an implementation must be provided by
+     *  specialised classes.
+     * 
+     * @param jobs is the list of Job objects which should be added to the
+     *  storage.
+     * @param prunedServices is a set of host names of services whose jobs
+     *  should be removed if not replaced. This is typically the list of
+     *  host names for which at least one endpoint was successfully queried.
+     *  By passing an empty set, all existing jobs are kept, even if jobs are
+     *  outdated.
+     * @param newJobs is a reference to a list of pointers to Job objects which
+     *  are not duplicates.
+     * @return \c true is returned if all jobs in the \c jobs list are written
+     *  to to storage, otherwise \c false is returned.
+     **/
+    virtual bool Write(const std::list<Job>& jobs, const std::set<std::string>& prunedServices, std::list<const Job*>& newJobs) = 0;
+
+    /// Clean storage
+    /**
+     * Invoking this method causes the storage to be cleaned of any jobs it
+     * holds.
+     * 
+     * \note This method is abstract and an implementation must be provided by
+     *  specialised classes.
+     * 
+     * @return \c true is returned if the storage was successfully cleaned,
+     *  otherwise \c false is returned.
+     **/
+    virtual bool Clean() = 0;
+
+    /// Remove jobs
+    /**
+     * The jobs with matching job IDs (Job::JobID attribute) as specified with
+     * the list of job IDs (\c jobids parameter) will be remove from the
+     * storage.
+     *
+     * \note This method is abstract and an implementation must be provided by
+     *  specialised classes.
+     * 
+     * @param jobids list job IDs for which matching jobs should be remove from
+     *  storage. 
+     * @return \c is returned if any of the matching jobs failed to be removed
+     *  from the storage, otherwise \c true is returned.
+     **/
+    virtual bool Remove(const std::list<std::string>& jobids) = 0;
+    
+    /// Get name
+    /**
+     * @return Returns the name of the storage.
+     **/
+    const std::string& GetName() const { return name; }
+
+  protected:
+    const std::string name;
+    unsigned nTries;
+    unsigned tryInterval;
+  };
+
+  class JobInformationStorageXML : public JobInformationStorage {
+  public:
+    JobInformationStorageXML(const std::string& name, unsigned nTries = 10, unsigned tryInterval = 500000)
+      : JobInformationStorage(name, nTries, tryInterval) {}
+    virtual ~JobInformationStorageXML() {}
+    
+    bool ReadAll(std::list<Job>& jobs, const std::list<std::string>& rejectEndpoints = std::list<std::string>());
+    bool Read(std::list<Job>& jobs, std::list<std::string>& jobIdentifiers,
+                      const std::list<std::string>& endpoints = std::list<std::string>(),
+                      const std::list<std::string>& rejectEndpoints = std::list<std::string>());
+    using JobInformationStorage::Write;
+    bool Write(const std::list<Job>& jobs, const std::set<std::string>& prunedServices, std::list<const Job*>& newJobs);
+    bool Clean();
+    bool Remove(const std::list<std::string>& jobids);
+    
+  private:
     static Logger logger;
   };
 

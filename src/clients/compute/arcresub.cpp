@@ -33,7 +33,7 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
 
   ClientOptions opt(ClientOptions::CO_RESUB, istring("[job ...]"));
 
-  std::list<std::string> jobIDsOrNames = opt.Parse(argc, argv);
+  std::list<std::string> jobidentifiers = opt.Parse(argc, argv);
 
   if (opt.showversion) {
     std::cout << Arc::IString("%s version %s", "arcresub", VERSION)
@@ -74,7 +74,7 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
   }
 
   for (std::list<std::string>::const_iterator it = opt.jobidinfiles.begin(); it != opt.jobidinfiles.end(); it++) {
-    if (!Arc::Job::ReadJobIDsFromFile(*it, jobIDsOrNames)) {
+    if (!Arc::Job::ReadJobIDsFromFile(*it, jobidentifiers)) {
       logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
     }
   }
@@ -85,10 +85,10 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
   if (!opt.broker.empty())
     usercfg.Broker(opt.broker);
 
-  if ((!opt.joblist.empty() || !opt.status.empty()) && jobIDsOrNames.empty() && opt.clusters.empty())
+  if ((!opt.joblist.empty() || !opt.status.empty()) && jobidentifiers.empty() && opt.clusters.empty())
     opt.all = true;
 
-  if (jobIDsOrNames.empty() && opt.clusters.empty() && !opt.all) {
+  if (jobidentifiers.empty() && opt.clusters.empty() && !opt.all) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;
   }
@@ -97,16 +97,19 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
   std::list<std::string> rejectManagementURLs = getRejectManagementURLsFromUserConfigAndCommandLine(usercfg, opt.rejectmanagement);
 
   std::list<Arc::Job> jobs;
-  if (!Arc::Job::ReadJobsFromFile(usercfg.JobListFile(), jobs, jobIDsOrNames, opt.all, selectedURLs, rejectManagementURLs)) {
+  Arc::JobInformationStorageXML jobList(usercfg.JobListFile());
+  if (( opt.all && !jobList.ReadAll(jobs, rejectManagementURLs)) ||
+      (!opt.all && !jobList.Read(jobs, jobidentifiers, selectedURLs, rejectManagementURLs))) {
     logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());
     return 1;
   }
 
-  for (std::list<std::string>::const_iterator itJIDOrName = jobIDsOrNames.begin();
-       itJIDOrName != jobIDsOrNames.end(); ++itJIDOrName) {
-    std::cout << Arc::IString("Warning: Job not found in job list: %s", *itJIDOrName) << std::endl;
+  if (!opt.all) {
+    for (std::list<std::string>::const_iterator itJIDAndName = jobidentifiers.begin();
+         itJIDAndName != jobidentifiers.end(); ++itJIDAndName) {
+      std::cout << Arc::IString("Warning: Job not found in job list: %s", *itJIDAndName) << std::endl;
+    }
   }
-
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
   jobmaster.Update();
@@ -136,7 +139,7 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
     std::cout << Arc::IString("Job submitted with jobid: %s", it->JobID) << std::endl;
   }
 
-  if (!resubmittedJobs.empty() && !Arc::Job::WriteJobsToFile(usercfg.JobListFile(), resubmittedJobs)) {
+  if (!resubmittedJobs.empty() && !jobList.Write(resubmittedJobs)) {
     std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
     std::cout << Arc::IString("         To recover missing jobs, run arcsync") << std::endl;
     retval = 1;
@@ -166,7 +169,7 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
       logger.msg(Arc::WARNING, "Resubmission of job (%s) succeeded, but cleaning the job failed - it will still appear in the job list", *it);
     }
 
-    if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), jobmaster.GetIDsProcessed())) {
+    if (!jobList.Remove(jobmaster.GetIDsProcessed())) {
       std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
       std::cout << Arc::IString("         Use arcclean to remove non-existing jobs") << std::endl;
       retval = 1;

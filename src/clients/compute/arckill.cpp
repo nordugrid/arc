@@ -89,14 +89,18 @@ int RUNMAIN(arckill)(int argc, char **argv) {
   std::list<std::string> rejectManagementURLs = getRejectManagementURLsFromUserConfigAndCommandLine(usercfg, opt.rejectmanagement);
 
   std::list<Arc::Job> jobs;
-  if (!Arc::Job::ReadJobsFromFile(usercfg.JobListFile(), jobs, jobidentifiers, opt.all, selectedURLs, rejectManagementURLs)) {
+  Arc::JobInformationStorageXML jobList(usercfg.JobListFile());
+  if (( opt.all && !jobList.ReadAll(jobs, rejectManagementURLs)) ||
+      (!opt.all && !jobList.Read(jobs, jobidentifiers, selectedURLs, rejectManagementURLs))) {
     logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());
     return 1;
   }
 
-  for (std::list<std::string>::const_iterator itJIdentifier = jobidentifiers.begin();
-       itJIdentifier != jobidentifiers.end(); ++itJIdentifier) {
-    std::cout << Arc::IString("Warning: Job not found in job list: %s", *itJIdentifier) << std::endl;
+  if (!opt.all) {
+    for (std::list<std::string>::const_iterator itJIDAndName = jobidentifiers.begin();
+         itJIDAndName != jobidentifiers.end(); ++itJIDAndName) {
+      std::cout << Arc::IString("Warning: Job not found in job list: %s", *itJIDAndName) << std::endl;
+    }
   }
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
@@ -128,7 +132,7 @@ int RUNMAIN(arckill)(int argc, char **argv) {
     }
     cleaned_num = jobmaster.GetIDsProcessed().size();
 
-    if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), jobmaster.GetIDsProcessed())) {
+    if (!jobList.Remove(jobmaster.GetIDsProcessed())) {
       std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
       std::cout << Arc::IString("         Run 'arcclean -s Undefined' to remove killed jobs from job list", usercfg.JobListFile()) << std::endl;
       retval = 1;

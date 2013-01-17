@@ -118,7 +118,9 @@ int RUNMAIN(arcacl)(int argc, char **argv) {
 
   // First try to find objects in jobs' file
   std::list<Arc::Job> jobs;
-  if (!Arc::Job::ReadJobsFromFile(usercfg.JobListFile(), jobs, jobidentifiers, opt.all, selectedURLs, rejectManagementURLs)) {
+  Arc::JobInformationStorageXML jobList(usercfg.JobListFile());
+  if (( opt.all && !jobList.ReadAll(jobs, rejectManagementURLs)) ||
+      (!opt.all && !jobList.Read(jobs, jobidentifiers, selectedURLs, rejectManagementURLs))) {
     // If no jobs file still try and treat things like data objects
   }
 

@@ -829,16 +829,19 @@ namespace Arc {
     return true;
   }
 
-  bool Job::ReadAllJobsFromFile(const std::string& filename, std::list<Job>& jobs, unsigned nTries, unsigned tryInterval) {
+
+  Logger JobInformationStorageXML::logger(Logger::getRootLogger(), "JobInformationStorageXML");
+
+  bool JobInformationStorageXML::ReadAll(std::list<Job>& jobs, const std::list<std::string>& rEndpoints) {
     jobs.clear();
     Config jobstorage;
 
-    FileLock lock(filename);
+    FileLock lock(name);
     bool acquired = false;
     for (int tries = (int)nTries; tries > 0; --tries) {
       acquired = lock.acquire();
       if (acquired) {
-        if (!jobstorage.ReadFromFile(filename)) {
+        if (!jobstorage.ReadFromFile(name)) {
           lock.release();
           return false;
         }
@@ -847,7 +850,7 @@ namespace Arc {
       }
 
       if (tries == 6) {
-        logger.msg(VERBOSE, "Waiting for lock on job list file %s", filename);
+        logger.msg(VERBOSE, "Waiting for lock on job list file %s", name);
       }
 
       Glib::usleep(tryInterval);
@@ -856,26 +859,33 @@ namespace Arc {
     if (!acquired) {
       return false;
     }
-
+    
     XMLNodeList xmljobs = jobstorage.Path("Job");
     for (XMLNodeList::iterator xit = xmljobs.begin(); xit != xmljobs.end(); ++xit) {
       jobs.push_back(*xit);
+      for (std::list<std::string>::const_iterator rEIt = rEndpoints.begin();
+           rEIt != rEndpoints.end(); ++rEIt) {
+        if (jobs.back().JobManagementURL.StringMatches(*rEIt)) {
+          jobs.pop_back();
+          break;
+        }
+      }
     }
 
     return true;
   }
 
-  bool Job::ReadJobsFromFile(const std::string& filename, std::list<Job>& jobs, std::list<std::string>& jobIdentifiers, bool all, const std::list<std::string>& endpoints, const std::list<std::string>& rEndpoints, unsigned nTries, unsigned tryInterval) {
-    if (!ReadAllJobsFromFile(filename, jobs, nTries, tryInterval)) { return false; }
+  bool JobInformationStorageXML::Read(std::list<Job>& jobs, std::list<std::string>& jobIdentifiers, const std::list<std::string>& endpoints, const std::list<std::string>& rEndpoints) {
+    if (!ReadAll(jobs, rEndpoints)) { return false; }
 
     std::list<std::string> jobIdentifiersCopy = jobIdentifiers;
-    for (std::list<Arc::Job>::iterator itJ = jobs.begin();
+    for (std::list<Job>::iterator itJ = jobs.begin();
          itJ != jobs.end();) {
       // Check if the job (itJ) is selected by the job identifies, either by job ID or Name.
       std::list<std::string>::iterator itJIdentifier = jobIdentifiers.begin();
       for (;itJIdentifier != jobIdentifiers.end(); ++itJIdentifier) {
         if ((!itJ->Name.empty() && itJ->Name == *itJIdentifier) ||
-            (itJ->JobID == URL(*itJIdentifier).fullstr())) {
+            (itJ->JobID == *itJIdentifier)) {
           break;
         }
       }
@@ -889,39 +899,21 @@ namespace Arc {
         continue;
       }
 
-      if (!all) {
-        // Check if the job (itJ) is selected by endpoints.
-        std::list<std::string>::const_iterator itC = endpoints.begin();
-        for (; itC != endpoints.end(); ++itC) {
-          if (itJ->ServiceInformationURL.StringMatches(*itC)) {
-            break;
-          }
+      // Check if the job (itJ) is selected by endpoints.
+      std::list<std::string>::const_iterator itC = endpoints.begin();
+      for (; itC != endpoints.end(); ++itC) {
+        if (itJ->JobManagementURL.StringMatches(*itC)) {
+          break;
         }
-        if (itC != endpoints.end()) {
-          // Cluster on which job reside is explicitly specified.
-          ++itJ;
-          continue;
-        }
-
-        // Job is not selected - remove it.
-        itJ = jobs.erase(itJ);
       }
-      else {
+      if (itC != endpoints.end()) {
+        // Cluster on which job reside is explicitly specified.
         ++itJ;
+        continue;
       }
-    }
 
-    // Filter jobs on rejected clusters.
-    for (std::list<std::string>::const_iterator itC = rEndpoints.begin();
-         itC != rEndpoints.end(); ++itC) {
-      for (std::list<Arc::Job>::iterator itJ = jobs.begin(); itJ != jobs.end();) {
-        if (itJ->ServiceInformationURL.StringMatches(*itC)) {
-          itJ = jobs.erase(itJ);
-        }
-        else {
-          ++itJ;
-        }
-      }
+      // Job is not selected - remove it.
+      itJ = jobs.erase(itJ);
     }
 
     jobIdentifiers = jobIdentifiersCopy;
@@ -929,27 +921,12 @@ namespace Arc {
     return true;
   }
 
-  bool Job::WriteJobsToTruncatedFile(const std::string& filename, const std::list<Job>& jobs, unsigned nTries, unsigned tryInterval) {
+  bool JobInformationStorageXML::Clean() {
     Config jobfile;
-    std::map<std::string, XMLNode> jobIDXMLMap;
-    for (std::list<Job>::const_iterator it = jobs.begin();
-         it != jobs.end(); it++) {
-      std::map<std::string, XMLNode>::iterator itJobXML = jobIDXMLMap.find(it->JobID);
-      if (itJobXML == jobIDXMLMap.end()) {
-        XMLNode xJob = jobfile.NewChild("Job");
-        it->ToXML(xJob);
-        jobIDXMLMap[it->JobID] = xJob;
-      }
-      else {
-        itJobXML->second.Replace(XMLNode(NS(), "Job"));
-        it->ToXML(itJobXML->second);
-      }
-    }
-
-    FileLock lock(filename);
+    FileLock lock(name);
     for (int tries = (int)nTries; tries > 0; --tries) {
       if (lock.acquire()) {
-        if (!jobfile.SaveToFile(filename)) {
+        if (!jobfile.SaveToFile(name)) {
           lock.release();
           return false;
         }
@@ -958,7 +935,7 @@ namespace Arc {
       }
 
       if (tries == 6) {
-        logger.msg(WARNING, "Waiting for lock on job list file %s", filename);
+        logger.msg(WARNING, "Waiting for lock on job list file %s", name);
       }
 
       Glib::usleep(tryInterval);
@@ -967,37 +944,22 @@ namespace Arc {
     return false;
   }
 
-  bool Job::WriteJobsToFile(const std::string& filename, const std::list<Job>& jobs, unsigned nTries, unsigned tryInterval) {
-    std::list<const Job*> newJobs;
-    return WriteJobsToFile(filename, jobs, newJobs, nTries, tryInterval);
-  }
-
-  bool Job::WriteJobsToFile(const std::string& filename, const std::list<Job>& jobs, std::list<const Job*>& newJobs, unsigned nTries, unsigned tryInterval) {
-    std::set<std::string> noServices;
-    return WriteJobsToFile(filename, jobs, noServices, newJobs, nTries, tryInterval);
-  }
-
-  bool Job::WriteJobsToFile(const std::string& filename,
-                            const std::list<Job>& jobs,
-                            const std::set<std::string>& prunedServices,
-                            std::list<const Job*>& newJobs,
-                            unsigned nTries, unsigned tryInterval) {
-    FileLock lock(filename);
+  bool JobInformationStorageXML::Write(const std::list<Job>& jobs, const std::set<std::string>& prunedServices, std::list<const Job*>& newJobs) {
+    FileLock lock(name);
     for (int tries = (int)nTries; tries > 0; --tries) {
       if (lock.acquire()) {
         Config jobfile;
-        jobfile.ReadFromFile(filename);
+        jobfile.ReadFromFile(name);
 
         // Use std::map to store job IDs to be searched for duplicates.
         std::map<std::string, XMLNode> jobIDXMLMap;
         std::list<XMLNode> jobsToRemove;
         for (Arc::XMLNode j = jobfile["Job"]; j; ++j) {
           if (!((std::string)j["JobID"]).empty()) {
-            Endpoint endpoint(j["ServiceInformationURL"]);
-            std::string serviceName = endpoint.getServiceName();
+            std::string serviceName = URL(j["ServiceInformationURL"]).Host();
             if (!serviceName.empty() && prunedServices.count(serviceName)) {
               logger.msg(DEBUG, "Will remove %s on service %s.",
-                         ((std::string)j["JobID"]).c_str(), endpoint.getServiceName().c_str());
+                         ((std::string)j["JobID"]).c_str(), serviceName);
               jobsToRemove.push_back(j);
             }
             else {
@@ -1040,7 +1002,7 @@ namespace Arc {
           newJobs.push_back(it->second);
         }
 
-        if (!jobfile.SaveToFile(filename)) {
+        if (!jobfile.SaveToFile(name)) {
           lock.release();
           return false;
         }
@@ -1049,7 +1011,7 @@ namespace Arc {
       }
 
       if (tries == 6) {
-        logger.msg(WARNING, "Waiting for lock on job list file %s", filename);
+        logger.msg(WARNING, "Waiting for lock on job list file %s", name);
       }
 
       Glib::usleep(tryInterval);
@@ -1058,16 +1020,16 @@ namespace Arc {
     return false;
   }
 
-  bool Job::RemoveJobsFromFile(const std::string& filename, const std::list<std::string>& jobids, unsigned nTries, unsigned tryInterval) {
+  bool JobInformationStorageXML::Remove(const std::list<std::string>& jobids) {
     if (jobids.empty()) {
       return true;
     }
 
-    FileLock lock(filename);
+    FileLock lock(name);
     for (int tries = nTries; tries > 0; --tries) {
       if (lock.acquire()) {
         Config jobstorage;
-        if (!jobstorage.ReadFromFile(filename)) {
+        if (!jobstorage.ReadFromFile(name)) {
           lock.release();
           return false;
         }
@@ -1083,7 +1045,7 @@ namespace Arc {
           }
         }
 
-        if (!jobstorage.SaveToFile(filename)) {
+        if (!jobstorage.SaveToFile(name)) {
           lock.release();
           return false;
         }
@@ -1092,13 +1054,14 @@ namespace Arc {
       }
 
       if (tries == 6) {
-        logger.msg(VERBOSE, "Waiting for lock on job list file %s", filename);
+        logger.msg(VERBOSE, "Waiting for lock on job list file %s", name);
       }
       Glib::usleep(tryInterval);
     }
 
     return false;
   }
+
 
   bool Job::ReadJobIDsFromFile(const std::string& filename, std::list<std::string>& jobids, unsigned nTries, unsigned tryInterval) {
     if (!Glib::file_test(filename, Glib::FILE_TEST_IS_REGULAR)) return false;
