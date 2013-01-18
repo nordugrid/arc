@@ -95,6 +95,8 @@
 ## name in job description. Queue name must match one of the [queue/queue_name]
 ## block labels, see below. 
 ##
+
+### PBS
 #lrms="pbs gridlong"
 #lrms="pbs"
 
@@ -106,6 +108,9 @@
 ## whether a PBS job is completed. If not specified, GM will use qstat for that.
 #pbs_log_path="/var/spool/pbs/server_logs"
 
+
+### Condor
+#lrms="condor"
 ## condor_location - path to directory containing Condor's bin, sbin, etc.
 ## need not to set if Condor is not used
 #condor_location="/opt/condor"
@@ -122,6 +127,15 @@
 ## Obviously no need to set if Condor is not used. An example:
 #condor_rank="(1-LoadAvg/2)*(1-LoadAvg/2)*Memory/1000*KFlops/1000000"
 
+## condor_bin_path - Allows to tweak and override the condor binary 
+## automatically found by ARC using the condor_location configuration 
+## command. Usually it is not needed. Please DO NOT set it unless you
+## know what you're doing.
+## default is NOT set, points to [path in condor_location]/bin
+#condor_bin_path=[path in condor_location]/bin
+
+### SGE
+#lrms="sge"
 ## sge_bin_path - Path to Sun Grid Engine (SGE) binaries, 
 ## MUST be set if SGE is the LRMS used
 #sge_bin_path="/opt/n1ge6/bin/lx24-x86"
@@ -139,6 +153,9 @@
 #sge_qmaster_port="536"
 #sge_execd_port="537"
 
+
+### SLURM
+lrms="slurm"
 ## slurm_bin_path - Path to SLURM binaries, must be set if installed
 ## outside of normal $PATH
 #slurm_bin_path="/usr/bin"
@@ -146,6 +163,9 @@
 ## How long should infosys wait before querying SLURM for new data (seconds)
 #slurm_wakeupperiod="15"
 
+
+### LSF
+lrms="lsf"
 ## the PATH to LSF bin folder
 ## no need to set if LSF is not used
 #lsf_bin_path="/usr/local/lsf/bin/"
@@ -154,6 +174,9 @@
 ## no need to set if LSF is not used
 #lsf_profile_path="/usr/share/lsf/conf"
 
+
+### LoadLeveler
+#lrms="ll"
 ## the PATH to the LoadLeveler bin folder
 ## no need to set if LoadLeveler is not used
 #ll_bin_path="/opt/ibmll/LoadL/full/bin"
@@ -162,11 +185,15 @@
 ## no need to set if LoadLeveler is not used
 #ll_consumable_resources="yes"
 
+
+### Desktop Bridge
+lrms="dgbridge"
 ## Desktop Bridge www publish dir
 #dgbridge_stage_dir="/var/www/DGBridge"
 
 ## Desktop Bridge url prefix pointing to dgbridge_stage_dir
 #dgbridge_stage_prepend="http://edgi-bridge.example.com/DGBridge/"
+
 
 ### Globus specifics
 ## globus_tcp_port_range, globus_udp_port_range - Firewall configuration
