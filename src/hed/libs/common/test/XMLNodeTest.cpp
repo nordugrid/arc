@@ -61,20 +61,20 @@ void XMLNodeTest::TestParsing() {
 
 void XMLNodeTest::TestExchange() {
   std::string xml1_str(
-     "<root1>"
-      "<child1>value1</child1>"
-      "<child2>"
-       "<child3>value3</child3>"
-      "</child2>"
-     "</root1>"
+     "<ns1:root1 xmlns:ns1=\"uri:ns1\" xmlns:ns2=\"uri:ns2\">"
+      "<ns1:child1>value1</ns1:child1>"
+      "<ns2:child2>"
+       "<ns2:child3>value3</ns2:child3>"
+      "</ns2:child2>"
+     "</ns1:root1>"
   );
   std::string xml2_str(
-     "<root2>"
-      "<child4>value4</child4>"
-      "<child5>"
-       "<child6>value6</child6>"
-      "</child5>"
-     "</root2>"
+     "<ns3:root2 xmlns:ns3=\"uri:ns3\" xmlns:ns4=\"uri:ns4\">"
+      "<ns3:child4>value4</ns3:child4>"
+      "<ns4:child5>"
+       "<ns4:child6>value6</ns4:child6>"
+      "</ns4:child5>"
+     "</ns3:root2>"
   );
   Arc::XMLNode* xml1 = NULL;
   Arc::XMLNode* xml2 = NULL;
@@ -88,7 +88,7 @@ void XMLNodeTest::TestExchange() {
   node2 = (*xml2)["child5"];
   node1.Exchange(node2);
   delete xml2; xml2 = new Arc::XMLNode(xml1_str);
-  CPPUNIT_ASSERT_EQUAL(std::string("value6"),(std::string)((*xml1)["child5"]["child6"]));
+  CPPUNIT_ASSERT_EQUAL(std::string("value6"),(std::string)((*xml1)["ns4:child5"]["ns4:child6"]));
   delete xml1;
   delete xml2;
 
@@ -99,7 +99,7 @@ void XMLNodeTest::TestExchange() {
   node2 = (*xml2);
   node1.Exchange(node2);
   delete xml2; xml2 = new Arc::XMLNode(xml1_str);
-  CPPUNIT_ASSERT_EQUAL(std::string("root1"),(*xml1).Name());
+  CPPUNIT_ASSERT_EQUAL(std::string("ns1:root1"),(*xml1).FullName());
   delete xml1;
   delete xml2;
 
@@ -107,8 +107,8 @@ void XMLNodeTest::TestExchange() {
   xml1 = new Arc::XMLNode(xml1_str);
   xml2 = new Arc::XMLNode(xml2_str);
   xml1->Exchange(*xml2);
-  CPPUNIT_ASSERT_EQUAL(std::string("root2"),(*xml1).Name());
-  CPPUNIT_ASSERT_EQUAL(std::string("root1"),(*xml2).Name());
+  CPPUNIT_ASSERT_EQUAL(std::string("ns3:root2"),(*xml1).FullName());
+  CPPUNIT_ASSERT_EQUAL(std::string("ns1:root1"),(*xml2).FullName());
   delete xml1;
   delete xml2;
 
@@ -116,7 +116,7 @@ void XMLNodeTest::TestExchange() {
   xml1 = new Arc::XMLNode(xml1_str);
   xml2 = new Arc::XMLNode;
   xml1->Exchange(*xml2);
-  CPPUNIT_ASSERT_EQUAL(std::string("root1"),(*xml2).Name());
+  CPPUNIT_ASSERT_EQUAL(std::string("ns1:root1"),(*xml2).FullName());
   CPPUNIT_ASSERT(!(*xml1));
   delete xml1;
   delete xml2;
@@ -124,32 +124,68 @@ void XMLNodeTest::TestExchange() {
   // Exchanging ordinary and empty node
   xml1 = new Arc::XMLNode(xml1_str);
   xml2 = new Arc::XMLNode;
-  node1 = (*xml1)["child2"];
+  node1 = (*xml1)["ns2:child2"];
   node1.Exchange(*xml2);
-  CPPUNIT_ASSERT_EQUAL(std::string("child2"),xml2->Name());
+  CPPUNIT_ASSERT_EQUAL(std::string("ns2:child2"),xml2->FullName());
   CPPUNIT_ASSERT(!node1);
   delete xml1;
   delete xml2;
+
 }
 
 void XMLNodeTest::TestMove() {
-  std::string xml_str(
-     "<root1>"
-      "<child1>value1</child1>"
-      "<child2>"
-       "<child3>value3</child3>"
-      "</child2>"
-     "</root1>"
+  std::string xml1_str(
+     "<ns1:root1 xmlns:ns1=\"uri:ns1\" xmlns:ns2=\"uri:ns2\">"
+      "<ns1:child1>value1</ns1:child1>"
+      "<ns2:child2>"
+       "<ns2:child3>value3</ns2:child3>"
+      "</ns2:child2>"
+     "</ns1:root1>"
   );
-  Arc::XMLNode xml1(xml_str);
-  Arc::XMLNode xml2;
-  Arc::XMLNode node = xml1["child2"];
-  node.Move(xml2);
-  CPPUNIT_ASSERT_EQUAL(std::string("child2"),xml2.Name());
-  CPPUNIT_ASSERT_EQUAL(std::string("value3"),(std::string)(xml2["child3"]));
-  CPPUNIT_ASSERT_EQUAL(std::string("root1"),xml1.Name());
-  CPPUNIT_ASSERT_EQUAL(std::string("value1"),(std::string)(xml1["child1"]));
-  CPPUNIT_ASSERT(!(xml1["child2"]));
+  std::string xml2_str(
+     "<ns3:root2 xmlns:ns3=\"uri:ns3\" xmlns:ns4=\"uri:ns4\">"
+      "<ns3:child4>value4</ns3:child4>"
+      "<ns4:child5>"
+       "<ns4:child6>value6</ns4:child6>"
+      "</ns4:child5>"
+     "</ns3:root2>"
+  );
+  Arc::XMLNode* xml1 = NULL;
+  Arc::XMLNode* xml2 = NULL;
+  Arc::XMLNode node1;
+  Arc::XMLNode node2;
+
+  // Moving ordinary to ordinary node
+  xml1 = new Arc::XMLNode(xml1_str);
+  xml2 = new Arc::XMLNode(xml2_str);
+  node1 = (*xml1)["child2"];
+  node2 = (*xml2)["child5"];
+  node1.Move(node2);
+  CPPUNIT_ASSERT_EQUAL(std::string("ns2:child2"),node2.FullName());
+  CPPUNIT_ASSERT(!node1);
+  CPPUNIT_ASSERT((*xml2)["child5"]);
+  CPPUNIT_ASSERT(!(*xml1)["child2"]);
+  delete xml1;
+  delete xml2;
+
+  // Moving ordinary to empty node
+  xml1 = new Arc::XMLNode(xml1_str);
+  xml2 = new Arc::XMLNode;
+  node1 = (*xml1)["child2"];
+  node1.Move(*xml2);
+  CPPUNIT_ASSERT_EQUAL(std::string("ns2:child2"),xml2->FullName());
+  CPPUNIT_ASSERT(!node1);
+  delete xml1;
+  delete xml2;
+
+  // Moving document to empty node
+  xml1 = new Arc::XMLNode(xml1_str);
+  xml2 = new Arc::XMLNode;
+  xml1->Move(*xml2);
+  CPPUNIT_ASSERT_EQUAL(std::string("ns1:root1"),xml2->FullName());
+  CPPUNIT_ASSERT(!*xml1);
+  delete xml1;
+  delete xml2;
 }
 
 void XMLNodeTest::TestQuery() {

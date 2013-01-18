@@ -14,7 +14,7 @@
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
-
+#include <libxml/xmlschemas.h>
 
 namespace Arc {
 
@@ -80,6 +80,13 @@ namespace Arc {
       : node_(node),
         is_owner_(false),
         is_temporary_(false) {}
+
+    /** printf-like callback for libxml */
+    static void LogError(void * ctx, const char * msg, ...);
+
+    /** Convenience method for XML validation */
+    bool Validate(xmlSchemaPtr schema, std::string &err_msg);
+
   public:
     /// Constructor of invalid node.
     /** Created instance does not point to XML element. All methods are still allowed
@@ -367,6 +374,8 @@ namespace Arc {
     //   void Purify(void);.
     /// XML schema validation against the schema file defined as argument.
     bool Validate(const std::string &schema_file, std::string &err_msg);
+    /** XML schema validation against the schema XML document defined as argument */
+    bool Validate(XMLNode schema_doc, std::string &err_msg);
   };
 
   /// Write XMLNode to output stream.

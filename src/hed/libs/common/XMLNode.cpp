@@ -10,7 +10,6 @@
 
 #include "XMLNode.h"
 #include "Utils.h"
-#include <libxml/xmlschemas.h>
 
 namespace Arc {
 
@@ -237,19 +236,103 @@ namespace Arc {
   }
 
   static void GetNamespaces(NS& namespaces, xmlNodePtr node_) {
-    if (node_ == NULL)
-      return;
-    if (node_->type != XML_ELEMENT_NODE)
-      return;
+    if (node_ == NULL) return;
+    if (node_->type != XML_ELEMENT_NODE) return;
     // TODO: Check for duplicate prefixes
     xmlNsPtr ns = node_->nsDef;
     for (; ns; ns = ns->next) {
       std::string prefix = ns->prefix ? (char*)(ns->prefix) : "";
-      if (ns->href)
-        if (namespaces[prefix].empty())
-          namespaces[prefix] = (char*)(ns->href);
+      if (ns->href) {
+        if (namespaces[prefix].empty()) namespaces[prefix] = (char*)(ns->href);
+      }
     }
     GetNamespaces(namespaces, node_->parent);
+  }
+
+  static void CollectNamespaces(xmlNodePtr node_, std::map<xmlNsPtr,xmlNsPtr>& localns) {
+    if (node_ == NULL) return;
+    if (node_->type != XML_ELEMENT_NODE) return;
+    xmlNodePtr node = node_;
+    for(;;) {
+      if(node_->type == XML_ELEMENT_NODE) {
+        for(xmlNsPtr ns = node_->nsDef; ns ; ns = ns->next) {
+          localns[ns] = NULL;
+        }
+      }
+      // 1. go down
+      if(node->children) {
+        node = node->children;
+        continue;
+      }
+      // 2. if impossible go next
+      if(node->next) {
+        node = node->next;
+        continue;
+      }
+      // 3. if impossible go up till next exists and then to next
+      for(;;) {
+        if((node == node_) || (!node)) return;
+        node = node->parent;
+        if(node->next) {
+          node = node->next;
+          break;
+        }
+      }
+    }
+  }
+
+  static void AdjustNamespace(xmlNodePtr node_, xmlNsPtr& ns, std::map<xmlNsPtr,xmlNsPtr>& localns, std::map<xmlNsPtr,xmlNsPtr>& newns) {
+    if(!ns) return;
+    if(localns.find(ns) == localns.end()) {
+      std::map<xmlNsPtr,xmlNsPtr>::iterator ins = newns.find(ns);
+      if(ins == newns.end()) {
+        xmlNsPtr nns = xmlNewNs(node_, ns->href, ns->prefix);
+        newns[ns] = nns;
+        ns = nns;
+      } else {
+        // already copied
+        ns = ins->second;
+      }
+    }
+  }
+
+  static void LocalizeNamespaces(xmlNodePtr node_) {
+    if (node_ == NULL) return;
+    if (node_->type != XML_ELEMENT_NODE) return;
+    // First collect all locally defined namespaces
+    std::map<xmlNsPtr,xmlNsPtr> localns;
+    CollectNamespaces(node_,localns);
+    // Identify referednamespaces and make copy if 
+    // defined externally
+    std::map<xmlNsPtr,xmlNsPtr> newns;
+    xmlNodePtr node = node_;
+    for(;;) {
+      if(node_->type == XML_ELEMENT_NODE) {
+        AdjustNamespace(node_, node->ns, localns, newns);
+        for(xmlAttrPtr attr = node_->properties; attr ; attr = attr->next) {
+          AdjustNamespace(node_, attr->ns, localns, newns);
+        }
+      }
+      // 1. go down
+      if(node->children) {
+        node = node->children;
+        continue;
+      }
+      // 2. if impossible go next
+      if(node->next) {
+        node = node->next;
+        continue;
+      }
+      // 3. if impossible go up till next exists and then to next
+      for(;;) {
+        if((node == node_) || (!node)) return;
+        node = node->parent;
+        if(node->next) {
+          node = node->next;
+          break;
+        }
+      }
+    }
   }
 
   XMLNode::XMLNode(const std::string& xml)
@@ -259,11 +342,11 @@ namespace Arc {
     //xmlDocPtr doc = xmlParseMemory((char*)(xml.c_str()), xml.length());
     xmlDocPtr doc = xmlReadMemory(xml.c_str(),xml.length(),NULL,NULL,
                                   XML_PARSE_NODICT|XML_PARSE_NOERROR|XML_PARSE_NOWARNING);
-    if (!doc)
-      return;
+    if (!doc) return;
     xmlNodePtr p = doc->children;
-    for (; p; p = p->next)
+    for (; p; p = p->next) {
       if (p->type == XML_ELEMENT_NODE) break;
+    }
     if (!p) {
       xmlFreeDoc(doc);
       return;
@@ -276,18 +359,16 @@ namespace Arc {
     : node_(NULL),
       is_owner_(false),
       is_temporary_(false) {
-    if (!xml)
-      return;
-    if (len == -1)
-      len = strlen(xml);
+    if (!xml) return;
+    if (len == -1) len = strlen(xml);
     //xmlDocPtr doc = xmlParseMemory((char*)xml, len);
     xmlDocPtr doc = xmlReadMemory(xml,len,NULL,NULL,
                                   XML_PARSE_NODICT|XML_PARSE_NOERROR|XML_PARSE_NOWARNING);
-    if (!doc)
-      return;
+    if (!doc) return;
     xmlNodePtr p = doc->children;
-    for (; p; p = p->next)
+    for (; p; p = p->next) {
       if (p->type == XML_ELEMENT_NODE) break;
+    }
     if (!p) {
       xmlFreeDoc(doc);
       return;
@@ -702,12 +783,10 @@ namespace Arc {
   }
 
   void XMLNode::Move(XMLNode& node) {
-    if (node.is_owner_ && node.node_)
-      xmlFreeDoc(node.node_->doc);
+    if (node.is_owner_ && node.node_) xmlFreeDoc(node.node_->doc);
     node.is_owner_ = false;
     node.node_ = NULL;
-    if (node_ == NULL)
-      return;
+    if (node_ == NULL) return;
     // TODO: Copy attribute node too
     if (node_->type != XML_ELEMENT_NODE) {
       return;
@@ -724,6 +803,9 @@ namespace Arc {
     xmlDocPtr doc = xmlNewDoc((const xmlChar*)"1.0");
     if (doc == NULL) return;
     xmlUnlinkNode(node_);
+    // Unlinked node still may contain references to namespaces
+    // defined in parent nodes. Those must be copied.
+    LocalizeNamespaces(node_);
     node.node_ = node_; node_ = NULL;
     xmlDocSetRootElement(doc, node.node_);
     node.is_owner_ = true;
@@ -762,8 +844,14 @@ namespace Arc {
     // top level element if node is not owning document
     if(node1 && (parent1 == NULL) && (!owner1)) return;
     if(node2 && (parent2 == NULL) && (!owner2)) return;
-    if(node1) xmlUnlinkNode(node1);
-    if(node2) xmlUnlinkNode(node2);
+    if(node1) {
+      xmlUnlinkNode(node1);
+      if(doc1 != doc2) LocalizeNamespaces(node1);
+    }
+    if(node2) {
+      xmlUnlinkNode(node2);
+      if(doc1 != doc2) LocalizeNamespaces(node2);
+    }
     if(node2) {
       if(parent1) {
         if(neighb1) {
@@ -1034,13 +1122,10 @@ namespace Arc {
 
   void XMLNode::GetXML(std::string& out_xml_str, bool user_friendly) const {
     out_xml_str.resize(0);
-    if (!node_)
-      return;
-    if (node_->type != XML_ELEMENT_NODE)
-      return;
+    if (!node_) return;
+    if (node_->type != XML_ELEMENT_NODE) return;
     xmlDocPtr doc = node_->doc;
-    if (doc == NULL)
-      return;
+    if (doc == NULL) return;
 /*
     xmlBufferPtr buf = xmlBufferCreate();
     xmlNodeDump(buf, doc, node_, 0, user_friendly ? 1 : 0);
@@ -1049,30 +1134,24 @@ namespace Arc {
 */
     xmlOutputBufferPtr buf =
      xmlOutputBufferCreateIO(&write_to_string,&close_string,&out_xml_str,NULL);
-    if(buf == NULL)
-      return;
+    if(buf == NULL) return;
     xmlNodeDumpOutput(buf, doc, node_, 0, user_friendly ? 1 : 0, (const char*)(doc->encoding));
     xmlOutputBufferClose(buf);
   }
 
   void XMLNode::GetXML(std::string& out_xml_str, const std::string& encoding, bool user_friendly) const {
     out_xml_str.resize(0);
-    if (!node_)
-      return;
-    if (node_->type != XML_ELEMENT_NODE)
-      return;
+    if (!node_) return;
+    if (node_->type != XML_ELEMENT_NODE) return;
     xmlDocPtr doc = node_->doc;
-    if (doc == NULL)
-      return;
+    if (doc == NULL) return;
     xmlCharEncodingHandlerPtr handler = NULL;
     handler = xmlFindCharEncodingHandler(encoding.c_str());
-    if (handler == NULL)
-      return;
+    if (handler == NULL) return;
     //xmlOutputBufferPtr buf = xmlAllocOutputBuffer(handler);
     xmlOutputBufferPtr buf =
      xmlOutputBufferCreateIO(&write_to_string,&close_string,&out_xml_str,NULL);
-    if(buf == NULL)
-      return;
+    if(buf == NULL) return;
     xmlNodeDumpOutput(buf, doc, node_, 0, user_friendly ? 1 : 0, encoding.c_str());
     xmlOutputBufferFlush(buf);
     //out_xml_str = (char*)(buf->conv ? buf->conv->content : buf->buffer->content);
@@ -1145,35 +1224,79 @@ namespace Arc {
     return in;
   }
 
-  bool XMLNode::Validate(const std::string &schema_file_name, std::string &err_msg) {
-    // create parser ctxt for schema accessible on schemaPath
-    xmlSchemaParserCtxtPtr schemaParser = xmlSchemaNewParserCtxt(schema_file_name.c_str());
-    if (!schemaParser) {
-        err_msg = "Cannot load schema";
+  bool XMLNode::Validate(XMLNode schema_doc, std::string &err_msg) {
+    XMLNode doc;
+    // Making copy of schema because it may be changed during parsing.
+    schema_doc.New(doc);
+    if((!doc.node_) || (!doc.node_->doc)) {
+        err_msg = "XML schema is invalid";
         return false;
     }
+    xmlSchemaParserCtxtPtr schemaParser = xmlSchemaNewDocParserCtxt(doc.node_->doc);
+    if (!schemaParser) {
+        err_msg = "Can not aquire XML schema";
+        return false;
+    }
+
     // parse schema
     xmlSchemaPtr schema = xmlSchemaParse(schemaParser);
     if (!schema) {
         xmlSchemaFreeParserCtxt(schemaParser);
-        err_msg = "Cannot parse schmea";
+        err_msg = "Can not parse schema";
         return false;
     }
     xmlSchemaFreeParserCtxt(schemaParser);
 
+    return Validate(schema, err_msg);
+  }
+
+  bool XMLNode::Validate(const std::string& schema_file, std::string &err_msg) {
+    // create parser ctxt for schema accessible on schemaPath
+    xmlSchemaParserCtxtPtr schemaParser = xmlSchemaNewParserCtxt(schema_file.c_str());
+    if (!schemaParser) {
+        err_msg = "Can not load schema from file "+schema_file;
+        return false;
+    }
+
+    // parse schema
+    xmlSchemaPtr schema = xmlSchemaParse(schemaParser);
+    if (!schema) {
+        xmlSchemaFreeParserCtxt(schemaParser);
+        err_msg = "Can not parse schema";
+        return false;
+    }
+    xmlSchemaFreeParserCtxt(schemaParser);
+
+    return Validate(schema, err_msg);
+  }
+
+  void XMLNode::LogError(void * ctx, const char * msg, ...) {
+    std::string* str = (std::string*)ctx;
+    va_list ap;
+    va_start(ap, msg);
+    const size_t bufsize = 256;
+    char* buf = new char[bufsize]; 
+    buf[0] = 0;
+    vsnprintf(buf, bufsize, msg, ap);
+    buf[bufsize-1] = 0;
+    //if(!str.empty()) str += ;
+    *str += buf;
+    delete[] buf;
+    va_end(ap);
+  }
+
+  bool XMLNode::Validate(xmlSchemaPtr schema, std::string &err_msg) {
     // create schema validation context
     xmlSchemaValidCtxtPtr validityCtx = xmlSchemaNewValidCtxt(schema);
     if (!validityCtx) {
         xmlSchemaFree(schema);
-        err_msg = "Cannot create validation context";
+        err_msg = "Can not create validation context";
         return false;
     }
 
-    // Set contect collectoors
-    xmlSchemaSetValidErrors(validityCtx,
-                            (xmlSchemaValidityErrorFunc) fprintf,
-                            (xmlSchemaValidityWarningFunc) fprintf,
-                            stderr);
+    // Set context collectors
+    xmlSchemaSetValidErrors(validityCtx,&LogError,&LogError,&err_msg);
+
     // validate against schema
     bool result = (xmlSchemaValidateDoc(validityCtx, node_->doc) == 0);
 
