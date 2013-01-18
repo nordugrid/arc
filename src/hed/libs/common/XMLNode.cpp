@@ -390,10 +390,8 @@ namespace Arc {
       is_owner_(false),
       is_temporary_(false) {
     xmlDocPtr doc = xmlNewDoc((const xmlChar*)"1.0");
-    if (!doc)
-      return;
-    if (name == NULL)
-      name = "";
+    if (!doc) return;
+    if (name == NULL) name = "";
     const char *name_ = strchr(name, ':');
     std::string node_ns_;
     if (name_ != NULL) {
@@ -1225,6 +1223,7 @@ namespace Arc {
   }
 
   bool XMLNode::Validate(XMLNode schema_doc, std::string &err_msg) {
+    if(!node_) return false;
     XMLNode doc;
     // Making copy of schema because it may be changed during parsing.
     schema_doc.New(doc);
@@ -1251,6 +1250,7 @@ namespace Arc {
   }
 
   bool XMLNode::Validate(const std::string& schema_file, std::string &err_msg) {
+    if(!node_) return false;
     // create parser ctxt for schema accessible on schemaPath
     xmlSchemaParserCtxtPtr schemaParser = xmlSchemaNewParserCtxt(schema_file.c_str());
     if (!schemaParser) {
@@ -1286,6 +1286,7 @@ namespace Arc {
   }
 
   bool XMLNode::Validate(xmlSchemaPtr schema, std::string &err_msg) {
+    if(!node_) return false;
     // create schema validation context
     xmlSchemaValidCtxtPtr validityCtx = xmlSchemaNewValidCtxt(schema);
     if (!validityCtx) {
@@ -1298,8 +1299,27 @@ namespace Arc {
     xmlSchemaSetValidErrors(validityCtx,&LogError,&LogError,&err_msg);
 
     // validate against schema
-    bool result = (xmlSchemaValidateDoc(validityCtx, node_->doc) == 0);
-
+    bool result = false;
+    if(node_->parent == (xmlNodePtr)node_->doc) {
+      result = (xmlSchemaValidateDoc(validityCtx, node_->doc) == 0);
+    } else {
+      // It lookslike a bug in libxml makes xmlSchemaValidateOneElement
+      // behave like xmlSchemaValidateDoc.
+      // So fake doc is needed
+      //result = (xmlSchemaValidateOneElement(validityCtx, node_) == 0);
+      xmlDocPtr olddoc = node_->doc;
+      xmlDocPtr newdoc = xmlNewDoc((const xmlChar*)"1.0");
+      if(newdoc) {
+        newdoc->children = node_;
+        node_->parent = (xmlNodePtr)newdoc;
+        node_->doc = newdoc;
+        result = (xmlSchemaValidateDoc(validityCtx, node_->doc) == 0);
+        node_->parent = (xmlNodePtr)olddoc;
+        node_->doc = olddoc;
+        newdoc->children = NULL;
+        xmlFreeDoc(newdoc);
+      }
+    }
     // free resources and return result
     xmlSchemaFreeValidCtxt(validityCtx);
     xmlSchemaFree(schema);
