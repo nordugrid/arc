@@ -879,6 +879,15 @@ lrms="dgbridge"
 ## http_proxy - http proxy server location
 #http_proxy="proxy.mydomain.org:3128"
 
+## fixdirectories yes|missing|no - specifies during startup A-REX should
+## create all directories needed for it operation and set suitable default
+## permissions. If "no" is specified then A-REX does nothing to prepare its
+## operational environement. In case of "missing" A-REX only creates and
+## sets permissions for directories which are not present yet.  For "yes"
+## all directories are created and permisisons for all used directories are
+## set to default safe values. Default behavior is as if "yes" is specified.
+#fixdirectories="yes"
+
 ## arex_mount_point - enables web services interfaces, including 
 ##  job execution and information system. The argument is
 ##  an https URL defining the endpoint port and path:
@@ -887,6 +896,12 @@ lrms="dgbridge"
 ##  path. Make sure the choosen port is not blocked by firewall
 ##  or other security rules.
 #arex_mount_point="https://piff.hep.lu.se:60000/arex"
+
+## enable_arc_interface yes|no - turns on or off the ARC own WS interface
+## based on OGSA BES and WSRF. If enabled the interface can be accessed at
+## the URL specified by arex_mount_point (this option must also be
+## specified).  Default is yes.
+#enable_arc_interface="yes"
 
 ## enable_emies_interface - enable the EMI Execution Service interface. If
 ## enabled the interface can be accessed at the URL specified in 
@@ -1016,6 +1031,9 @@ lrms="dgbridge"
 ## 0 (FATAL) and 5 (DEBUG). Default is 3 (INFO).
 #debug="2"
 
+## daemon yes|no - Whether GFS is run in daemon mode.  Default is yes.
+#daemon="yes"
+
 ## logfile path - Set logfile location
 #logfile="/var/log/arc/gridftpd.log"
 
@@ -1041,6 +1059,9 @@ lrms="dgbridge"
 ## encryption is very heavy 
 #encryption="no"
 
+## include - Include contents of another config file.
+#include="path"
+
 ## allowunknown yes|no - if no, check user subject against grid-mapfile and
 ## reject if missing. By default unknown (not in the grid-mapfile) grid users 
 ## are rejected
@@ -1049,6 +1070,18 @@ lrms="dgbridge"
 ## maxconnections - maximum number of connections accepted by a gridftpd server
 ## only supported in the 0.5.x tags. Default is 100.
 #maxconnections="200"
+
+## defaultbuffer size - defines size of every buffer for data
+## reading/writing.  Default is 65536.  The actual value may decrease if the
+## cumulative size of all buffers exceeds value specified by maxbuffer.
+#defaultbuffer="65536"
+
+## maxbuffer size - defines maximal amount of memory in bytes to be
+## allocated for all data reading/writing buffers. Default is 640kB.
+## The number of buffers is (max {3, min {41, 2P + 1}}), where P is the
+## parallelism level requested by the client.  Hence, even without parallel
+## streams enabled number of buffers will be 3.
+#maxbuffer="655360"
 
 ## globus_tcp_port_range, globus_udp_port_range - Firewall configuration
 #globus_tcp_port_range="9000,12000"
@@ -1334,7 +1367,7 @@ lrms="dgbridge"
 ## this option does NOT apply to nordugrid.schema file. Such file has a 
 ## release dependent location. 
 ## Default is to use only standard locations described above.
-ldap_schema_dir="/nfs/ldap/schema/"
+#ldap_schema_dir="/nfs/ldap/schema/"
 
 
 ### Logging
