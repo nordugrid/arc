@@ -184,6 +184,8 @@ set_req_mem () {
 set_count () {
   if [ -z "$joboption_count" ] || [ "$joboption_count" -le 1 ] ; then
     joboption_count=1
+    joboption_countpernode=-1
+    joboption_numnodes=-1
   fi
 }
 

@@ -98,7 +98,7 @@ set_count
 nodes_string="#SBATCH -n ${joboption_count}"
 echo "$nodes_string" >> $LRMS_JOB_SCRIPT
 
-if [ ! -z $joboption_countpernode && -n $joboption_countpernode ] ; then
+if [ ! -z $joboption_countpernode ] && [ $joboption_countpernode -gt 0 ] ; then
   echo "#SBATCH -c $joboption_countpernode" >> $LRMS_JOB_SCRIPT
 fi
 
