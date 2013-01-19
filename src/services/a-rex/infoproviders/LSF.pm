@@ -142,22 +142,21 @@ sub queue_info_user ($$$) {
        if (! ($line =~ '^QUEUE')) {
          chomp($line);
          my ($q_name,$q_priority,$q_status,$q_mjobs,$q_mslots,$q_mslots_proc,$q_mjob_slots_host,$q_num_jobs,$q_job_pending,$q_job_running,$q_job_suspended) = split(" ", $line);
+         $lrms_queue{totalcpus} = "$q_mjobs";
          $lrms_queue{maxrunning} = "$q_mjobs";
+         $lrms_queue{maxqueuable} = "$q_mjobs";
          if ($q_mjobs eq "-") {
             $lrms_queue{totalcpus} = totalcpus();         
-         }else{
-            $lrms_queue{totalcpus} = "$q_mjobs";
+	    $lrms_queue(maxrunning) = $lrms_queue(totalcpus);
+            $lrms_queue{maxqueuable} = $lrms_queue(totalcpus);
          }
+         $lrms_queue{maxuserrun} = "$q_mslots";
 	 if ($q_mslots eq "-"){
 	     $lrms_queue{maxuserrun} = $lrms_queue{totalcpus};
-	 } else {
-	     $lrms_queue{maxuserrun} = "$q_mslots";
 	 }
          $lrms_queue{running}= $q_job_running;
          $lrms_queue{status} = $q_status;
          $lrms_queue{queued} = $q_job_pending;
-         #what is the actual number of queueable jobs?
-         $lrms_queue{maxqueuable} = "$q_mjobs";
        }
     }
     close BQOUTPUT;
