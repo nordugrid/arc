@@ -114,9 +114,15 @@ if [ -n "$joboption_nodeproperty_0" ]; then
     fi
 fi
 
-
-if [ ! -z $joboption_exclusive && $joboption_exclusive = 'yes' ] ; then
-  echo "WARNING: Exclusive execution not supported by SGE back-end." >> 1>&2
+if [ "$joboption_exclusivenode" = "true" ]; then
+  sge_excl_complex=`$SGE_QCONF -sc | grep EXCL | head -n 1`
+  if [ -n "$sge_excl_complex" ]; then
+     sge_excl_complex_name=`echo $sge_excl_complex | awk '{print $1}'`
+     echo "#\$ -l ${sge_excl_complex_name}=true"  >> $LRMS_JOB_SCRIPT
+  else
+     echo "WARNING: Exclusive execution support is not configured by this Grid Engine" 1>&2
+     echo "WARNING: Example configuration: https://wiki.nordugrid.org/index.php/LRMS_Backends/Testbeds" 1>&2
+  fi
 fi
 
 

@@ -114,7 +114,7 @@ while [ ! -z "${var_is_set}" ] ; do
 done
 echo "$nodes_string" >> $LRMS_JOB_SCRIPT
 
-if [ ! -z $joboption_exclusive && $joboption_exclusive = 'yes' ] ; then
+if [ "$joboption_exclusivenode" = "true" ]; then
   echo "#SBATCH --exclusive" >> $LRMS_JOB_SCRIPT
 fi
 

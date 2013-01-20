@@ -89,7 +89,7 @@ fi
 
 #set node to exclusive
 
-if [ ! -z $joboption_exclusive && $joboption_exclusive = 'yes' ] ; then
+if [ "$joboption_exclusivenode" = "true" ]; then
   echo "# @ node_usage = not_shared " >> $LRMS_JOB_SCRIPT
 fi
 

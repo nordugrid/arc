@@ -529,6 +529,16 @@ namespace Arc {
     else if (lower((std::string)resource["NodeAccess"]) == "inoutbound")
       job.Resources.NodeAccess = NAT_INOUTBOUND;
 
+    // SlotRequirementType ExclusiveExecution
+    if (bool(resource["ExclusiveExecution"])) {
+       if (lower((std::string)resource["ExclusiveExecution"]) == "true")
+         job.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_TRUE;
+       else if (lower((std::string)resource["ExclusiveExecution"]) == "false")
+         job.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_FALSE;
+       else
+         job.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_DEFAULT;
+    }
+
     // ResourceSlotType Slots;
     if (bool(resource["SlotRequirement"]["NumberOfSlots"])) {
       if (!stringto<int>(resource["SlotRequirement"]["NumberOfSlots"], job.Resources.SlotRequirement.NumberOfSlots)) {
@@ -1107,6 +1117,17 @@ namespace Arc {
 
       if (!job.Resources.ParallelEnvironment.Type.empty()) {
         xmlSlotRequirement.NewChild("SPMDVariation") = job.Resources.ParallelEnvironment.Type;
+      }
+
+      if (job.Resources.SlotRequirement.ExclusiveExecution != SlotRequirementType::EE_DEFAULT) {
+         if (job.Resources.SlotRequirement.ExclusiveExecution == SlotRequirementType::EE_TRUE) {
+           xmlSlotRequirement.NewChild("ExclusiveExecution") = "true";
+           xmlResources.NewChild("ExclusiveExecution") = "true";
+         }
+         else if (job.Resources.SlotRequirement.ExclusiveExecution == SlotRequirementType::EE_FALSE) {
+           xmlSlotRequirement.NewChild("ExclusiveExecution") = "false";
+           xmlResources.NewChild("ExclusiveExecution") = "false";
+         }
       }
 
       if (xmlSlotRequirement.Size() > 0) {

@@ -162,7 +162,7 @@ set_req_mem
 
 memreq="${joboption_memory}"
 
-if [ ! -z $joboption_exclusive ] && [ $joboption_exclusive == 'yes' ] ; then
+if [ "$joboption_exclusivenode" = "true" ]; then
  # using nodememory as maximum mem
   if [ -n "${CONFIG_nodememory}" ] ; then
    tempmem=`expr $CONFIG_nodememory / $joboption_countpernode `
