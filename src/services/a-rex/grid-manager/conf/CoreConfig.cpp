@@ -788,17 +788,14 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
       logger.msg(Arc::ERROR,"sessionRootDir is missing");
       return false;
     }
-    if (session_root.find(' ') != std::string::npos) {
-      session_root = session_root.substr(0, session_root.find(' '));
-      if (session_root.substr(session_root.find(' ')+1) != "drain") {
-        config.session_roots_non_draining.push_back(session_root);
-      }
-    }
     if (session_root == "*") {
       // special value which uses each user's home area
       session_root = "%H/.jobs";
     }
     config.session_roots.push_back(session_root);
+    bool session_drain = false;
+    if(!elementtobool(session_node.Attribute("drain"), NULL, session_drain, &logger)) return false;
+    if(!session_drain) config.session_roots_non_draining.push_back(session_root);
   }
   GMConfig::fixdir_t fixdir = GMConfig::fixdir_always;
   const char* fixdir_opts[] = { "yes", "missing", "no", NULL };

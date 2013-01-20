@@ -393,8 +393,16 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="controlDir" type="xsd:string"/>
-            <xsd:element name="sessionRootDir" type="xsd:string"
-                         maxOccurs="unbounded"/>
+            <xsd:element name="sessionRootDir" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <xsd:simpleContent>
+                        <xsd:extension base="xsd:string">
+                            <xsd:attribute name="drain" type="xsd:boolean"
+                               use="optional" default="false"/>
+                        </xsd:extension>
+                    </xsd:simpleContent>
+                </xsd:complexType>
+            </xsd:element>
             <xsd:element name="cache" type="cache_Type"
                          minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="defaultTTL" type="xsd:nonNegativeInteger"
