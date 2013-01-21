@@ -238,11 +238,11 @@ namespace Arc
                 if ( !ur["UserIdentity"] ) {
                     ur.NewChild("UserIdentity");
                 }
-                Arc::XMLNode vo=ur["UserIdentity"].NewChild("VO");
-                vo.NewAttribute("type")="voms";
+                Arc::XMLNode vo=ur["UserIdentity"].NewChild("vo:VO");
+                vo.NewAttribute("vo:type")="voms";
                 
-                vo.NewChild("Name")=voms_attributes[n].voname;
-                vo.NewChild("Issuer")=voms_attributes[n].issuer;
+                vo.NewChild("vo:Name")=voms_attributes[n].voname;
+                vo.NewChild("vo:Issuer")=voms_attributes[n].issuer;
                 
                 for(int i = 0; i < (int)voms_attributes[n].attributes.size(); i++) {
                   std::string attr = voms_attributes[n].attributes[i];
@@ -250,19 +250,19 @@ namespace Arc
                   if((pos = attr.find("hostname=")) != std::string::npos) {
                     continue;
                   }
-                  Arc::XMLNode vo_attr=vo.NewChild("Attribute");
+                  Arc::XMLNode vo_attr=vo.NewChild("vo:Attribute");
 
                   if(attr.find("Role=") == std::string::npos ||
                      attr.find("Capability=") == std::string::npos) {  
-                    vo.NewChild("Group")=attr;
+                    vo_attr.NewChild("vo:Group")=attr;
                   }
                   if((pos = attr.find("Role=")) != std::string::npos) {
                     std::string str = attr.substr(pos+5);
-                    vo.NewChild("Role")=str;
+                    vo_attr.NewChild("vo:Role")=str;
                   }
                   if((pos = attr.find("Capability=")) != std::string::npos) {
                     std::string str = attr.substr(pos+5);
-                    vo.NewChild("Capability")=str;
+                    vo_attr.NewChild("vo:Capability")=str;
                   }
                 }
             }
