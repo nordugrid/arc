@@ -42,10 +42,10 @@ void XMLNodeTest::tearDown() {
 void XMLNodeTest::TestParsing() {
   std::string xml_str(
      "<!-- comment must not be visible -->\n"
-     "<root>\n"
-     "  <child1>value1</child1>\n"
-     "  <child2>value2</child2>\n"
-     "</root>"
+     "<ns1:root xmlns:ns1=\"http://ns1\" xmlns:ns2=\"http://ns2\">\n"
+     "  <ns2:child1>value1</ns2:child1>\n"
+     "  <ns2:child2>value2</ns2:child2>\n"
+     "</ns1:root>"
   );
   Arc::XMLNode xml(xml_str);
   CPPUNIT_ASSERT((bool)xml);
@@ -54,9 +54,11 @@ void XMLNodeTest::TestParsing() {
   CPPUNIT_ASSERT_EQUAL(std::string("value2"), (std::string)xml["child2"]);
   std::string s;
   xml.GetXML(s);
-  CPPUNIT_ASSERT_EQUAL(std::string("<root>\n  <child1>value1</child1>\n  <child2>value2</child2>\n</root>"),s);
+  CPPUNIT_ASSERT_EQUAL(std::string("<ns1:root xmlns:ns1=\"http://ns1\" xmlns:ns2=\"http://ns2\">\n  <ns2:child1>value1</ns2:child1>\n  <ns2:child2>value2</ns2:child2>\n</ns1:root>"),s);
   xml.GetDoc(s);
   CPPUNIT_ASSERT_EQUAL("<?xml version=\"1.0\"?>\n"+xml_str+"\n",s);
+  xml["child1"].GetXML(s);
+  CPPUNIT_ASSERT_EQUAL(std::string("<ns2:child1 xmlns:ns2=\"http://ns2\">value1</ns2:child1>"),s);
 }
 
 void XMLNodeTest::TestExchange() {
@@ -228,7 +230,6 @@ void XMLNodeTest::TestQuery() {
   xml2.StripNamespace(-1);
   Arc::XMLNodeList list6 = xml2.XPathLookup("/root1/child1",Arc::NS());
   CPPUNIT_ASSERT_EQUAL(1,(int)list6.size());
-
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(XMLNodeTest);

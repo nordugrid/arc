@@ -249,13 +249,14 @@ namespace Arc {
     GetNamespaces(namespaces, node_->parent);
   }
 
-  static void CollectNamespaces(xmlNodePtr node_, std::map<xmlNsPtr,xmlNsPtr>& localns) {
+  // Finds all namespaces defined in XML subtree specified by node_.
+  static void CollectLocalNamespaces(xmlNodePtr node_, std::map<xmlNsPtr,xmlNsPtr>& localns) {
     if (node_ == NULL) return;
     if (node_->type != XML_ELEMENT_NODE) return;
     xmlNodePtr node = node_;
     for(;;) {
-      if(node_->type == XML_ELEMENT_NODE) {
-        for(xmlNsPtr ns = node_->nsDef; ns ; ns = ns->next) {
+      if(node->type == XML_ELEMENT_NODE) {
+        for(xmlNsPtr ns = node->nsDef; ns ; ns = ns->next) {
           localns[ns] = NULL;
         }
       }
@@ -273,6 +274,52 @@ namespace Arc {
       for(;;) {
         if((node == node_) || (!node)) return;
         node = node->parent;
+        if((node == node_) || (!node)) return;
+        if(node->next) {
+          node = node->next;
+          break;
+        }
+      }
+    }
+  }
+
+  // Finds all namespaces referenced in XML subtree specified by node_ which
+  // are not defined there.
+  static void CollectExternalNamespaces(xmlNodePtr node_, std::map<xmlNsPtr,xmlNsPtr>& extns) {
+    if (node_ == NULL) return;
+    if (node_->type != XML_ELEMENT_NODE) return;
+    std::map<xmlNsPtr,xmlNsPtr> localns;
+    xmlNodePtr node = node_;
+    for(;;) {
+      if(node->type == XML_ELEMENT_NODE) {
+        for(xmlNsPtr ns = node->nsDef; ns ; ns = ns->next) {
+          localns[ns] = NULL;
+        }
+        // Look for refered namespaces
+        if(node->ns) {
+          if(localns.find(node->ns) == localns.end()) extns[node->ns] = NULL;
+        }
+        for(xmlAttrPtr attr = node->properties; attr ; attr = attr->next) {
+          if(attr->ns) {
+            if(localns.find(attr->ns) == localns.end()) extns[attr->ns] = NULL;
+          }
+        }
+      }
+      // 1. go down
+      if(node->children) {
+        node = node->children;
+        continue;
+      }
+      // 2. if impossible go next
+      if(node->next) {
+        node = node->next;
+        continue;
+      }
+      // 3. if impossible go up till next exists and then to next
+      for(;;) {
+        if((node == node_) || (!node)) return;
+        node = node->parent;
+        if((node == node_) || (!node)) return;
         if(node->next) {
           node = node->next;
           break;
@@ -301,15 +348,15 @@ namespace Arc {
     if (node_->type != XML_ELEMENT_NODE) return;
     // First collect all locally defined namespaces
     std::map<xmlNsPtr,xmlNsPtr> localns;
-    CollectNamespaces(node_,localns);
+    CollectLocalNamespaces(node_,localns);
     // Identify referednamespaces and make copy if 
     // defined externally
     std::map<xmlNsPtr,xmlNsPtr> newns;
     xmlNodePtr node = node_;
     for(;;) {
-      if(node_->type == XML_ELEMENT_NODE) {
+      if(node->type == XML_ELEMENT_NODE) {
         AdjustNamespace(node_, node->ns, localns, newns);
-        for(xmlAttrPtr attr = node_->properties; attr ; attr = attr->next) {
+        for(xmlAttrPtr attr = node->properties; attr ; attr = attr->next) {
           AdjustNamespace(node_, attr->ns, localns, newns);
         }
       }
@@ -327,6 +374,7 @@ namespace Arc {
       for(;;) {
         if((node == node_) || (!node)) return;
         node = node->parent;
+        if((node == node_) || (!node)) return;
         if(node->next) {
           node = node->next;
           break;
@@ -1118,12 +1166,60 @@ namespace Arc {
       xmlSaveFileTo(buf, doc, (const char*)(doc->encoding));
   }
 
+  static void NamespacesToString(std::map<xmlNsPtr,xmlNsPtr>& extns, std::string& ns_str) {
+    for(std::map<xmlNsPtr,xmlNsPtr>::iterator ns = extns.begin(); ns != extns.end(); ++ns) {
+      char* prefix = (char*)(ns->first->prefix);
+      char* href = (char*)(ns->first->href);
+      if(prefix && prefix[0]) {
+        ns_str+=" xmlns:"; ns_str+=prefix; ns_str+="=";
+      } else {
+        ns_str+=" xmlns=";
+      }
+      ns_str+="\"";
+      ns_str+=(href?href:"");
+      ns_str+="\"";
+    }
+  }
+
+  static void InsertExternalNamespaces(std::string& out_xml_str, const std::string& ns_str) {
+    // Find end of first name  "     <node ...|   <node>|   <node/>
+    std::string::size_type p = out_xml_str.find('<'); // tag start
+    if(p == std::string::npos) return;
+    //if(p < ns_str.length()) return;
+    ++p;
+    if(p >= out_xml_str.length()) return;
+    if(out_xml_str[p] == '?') {  // <?xml...?>
+      p = out_xml_str.find("?>",p); // tag end
+      if(p == std::string::npos) return;
+      p+=2;
+      p = out_xml_str.find('<',p); //tag start
+      if(p == std::string::npos) return;
+      ++p;
+    }
+    p = out_xml_str.find_first_not_of(" \t",p); // name start
+    if(p == std::string::npos) return;
+    p = out_xml_str.find_first_of(" \t>/",p); //name end
+    if(p == std::string::npos) return;
+    std::string namestr = out_xml_str.substr(ns_str.length(),p-ns_str.length());
+    out_xml_str.replace(0,p,namestr+ns_str);
+  }
+
   void XMLNode::GetXML(std::string& out_xml_str, bool user_friendly) const {
     out_xml_str.resize(0);
     if (!node_) return;
     if (node_->type != XML_ELEMENT_NODE) return;
     xmlDocPtr doc = node_->doc;
     if (doc == NULL) return;
+    // Printing non-root node omits namespaces defined at higher level.
+    // So we need to create temporary namespace definitions and place them 
+    // at node being printed
+    std::map<xmlNsPtr,xmlNsPtr> extns;
+    CollectExternalNamespaces(node_, extns);
+    // It is easier to insert namespaces into final text. Hence 
+    // allocating place for them.
+    std::string ns_str;
+    NamespacesToString(extns, ns_str);
+    out_xml_str.append(ns_str.length(),' ');
 /*
     xmlBufferPtr buf = xmlBufferCreate();
     xmlNodeDump(buf, doc, node_, 0, user_friendly ? 1 : 0);
@@ -1135,6 +1231,8 @@ namespace Arc {
     if(buf == NULL) return;
     xmlNodeDumpOutput(buf, doc, node_, 0, user_friendly ? 1 : 0, (const char*)(doc->encoding));
     xmlOutputBufferClose(buf);
+    // Insert external namespaces into final string using allocated space
+    InsertExternalNamespaces(out_xml_str, ns_str);
   }
 
   void XMLNode::GetXML(std::string& out_xml_str, const std::string& encoding, bool user_friendly) const {
@@ -1146,6 +1244,11 @@ namespace Arc {
     xmlCharEncodingHandlerPtr handler = NULL;
     handler = xmlFindCharEncodingHandler(encoding.c_str());
     if (handler == NULL) return;
+    std::map<xmlNsPtr,xmlNsPtr> extns;
+    CollectExternalNamespaces(node_, extns);
+    std::string ns_str;
+    NamespacesToString(extns, ns_str);
+    out_xml_str.append(ns_str.length(),' ');
     //xmlOutputBufferPtr buf = xmlAllocOutputBuffer(handler);
     xmlOutputBufferPtr buf =
      xmlOutputBufferCreateIO(&write_to_string,&close_string,&out_xml_str,NULL);
@@ -1154,6 +1257,7 @@ namespace Arc {
     xmlOutputBufferFlush(buf);
     //out_xml_str = (char*)(buf->conv ? buf->conv->content : buf->buffer->content);
     xmlOutputBufferClose(buf);
+    InsertExternalNamespaces(out_xml_str, ns_str);
   }
 
   bool XMLNode::SaveToStream(std::ostream& out) const {
