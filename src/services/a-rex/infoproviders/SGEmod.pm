@@ -648,6 +648,7 @@ sub queue_info ($) {
     #$lrms_queue->{freecpus} = $queuefree;
     $lrms_queue->{running} = $queueused;
     $lrms_queue->{status} = $queuestatus;
+    $lrms_queue->{MaxSlotsPerJob} = $queuetotal;
 
     # settings in the config file override
     my $qopts = $options->{queues}{$qname};
