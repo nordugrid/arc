@@ -508,7 +508,7 @@ namespace Arc
   {
     //***
     //If archiving is enabled: first try to load archived UR
-    std::string archive_fn=getArchivingPath();
+    std::string archive_fn=getArchivingPath(true);
     if (!archive_fn.empty())
       {
         errno=0;
@@ -1020,7 +1020,7 @@ namespace Arc
                       StrError(errno));
   }
 
-  std::string JobLogFile::getArchivingPath()
+  std::string JobLogFile::getArchivingPath(bool car)
   {
     //no archiving dir set
     if ((*this)["jobreport_option_archiving"].empty()) return std::string();
@@ -1033,6 +1033,9 @@ namespace Arc
     else
       base_fn=filename.substr(seppos+1,std::string::npos);
 
+    if (car) {
+      return (*this)["jobreport_option_archiving"]+"/usagerecordCAR."+base_fn;
+    }
     return (*this)["jobreport_option_archiving"]+"/usagerecord."+base_fn;
   }
   

@@ -20,7 +20,7 @@ namespace Arc
   {
     std::string filename;
     bool allow_remove;
-    std::string getArchivingPath();
+    std::string getArchivingPath(bool car=false);
   public:
     /** Constructor. Loads and parses A-REX job log. */
     JobLogFile(const std::string& _filename):allow_remove(true) { parse(_filename); } 
