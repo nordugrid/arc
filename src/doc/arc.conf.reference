@@ -2236,10 +2236,10 @@ lrms="dgbridge"
 #[logger]
 
 ## The log_dir option will set the top directory for the generated usage
-## records. The option will default to /var/spool/nordugrid/usagerecords/ and
+## records. The option will default to /var/spool/arc/usagerecords/ and
 ## can be left out. It is suggested to leave out this option, unless there is a
 ## good a reason not to.
-#log_dir="/var/spool/nordugrid/usagerecords/"
+#log_dir="/var/spool/arc/usagerecords/"
 
 ## The log_all option configures where usage records are registered. All usage
 ## records will be registered to the URLs specified with the log all option. It
@@ -2256,7 +2256,7 @@ lrms="dgbridge"
 #ur_lifetime="30"
 
 ## urlogger_logfile sets the log file for the logger. The default is
-## /var/log/arc-ur-logger.log.
+## /var/log/arc/ur-logger.log.
 #urlogger_logfile="/tmp/arc-ur-logger.log"
 
 ## urlogger_loglevel sets the log level for the logger. Valid options are:
@@ -2265,7 +2265,7 @@ lrms="dgbridge"
 #urlogger_loglevel="info"
 
 ## registrant_logfile sets the log file for the registrant. The default is
-## /var/log/arc-ur-registration.log.
+## /var/log/arc/ur-registration.log.
 #registrant_logfile="/tmp/arc-ur-registrant.log"
 
 ####################################################################
