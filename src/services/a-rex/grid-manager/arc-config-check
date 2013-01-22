@@ -384,7 +384,8 @@ sub confcheck($) {
 	}
 	# parameters which are allowed more than once
 	# taken from arc.conf.reference - somehow this needs to be kept in sync
-	my @multiple = ("voms_trust_chain", "source", "filter", "sessiondir", "cachedir",
+	my @multiple = ("voms_trust_chain", "source", "filter", "subject",
+		 "file", "voms", "sessiondir", "cachedir",
 		"remotecachedir", "jobreport", "share_limit", "authplugin",
 		"allowsubmit", "copyurl", "linkurl", "definedshare",
 		"deliveryservice", "unixmap", "unixgroup", "unixvo", "dir",
@@ -410,8 +411,7 @@ sub confcheck($) {
 		# a new block?
 		if ($line =~ m/^\s*\[(.+)\]\s*$/) {
 			if (defined $blockname and $blockcontents == 0) {
-				printf STDERR "E: %s: Block \"%s\" is empty\n",
-					$arcconf, $blockname;
+				e("$arcconf: Block \"$blockname\" is empty\n");
 			}
 
 			$blockname = $1;
@@ -536,7 +536,7 @@ sub check_completeness() {
 
 	my @required=("common", "grid-manager", "infosys", "cluster");
 
-	my @optional=("gridftpd", "data-staging", "gangliarc", "group", "vo", "registration/isis", "registration/emir", "nordugridmap", "infosys/glue12", "infosys/admindomain", "acix/cacheserver", "acix/indexserver");
+	my @optional=("gridftpd", "data-staging", "gangliarc", "group", "vo", "registration/isis", "registration/emir", "nordugridmap", "infosys/glue12", "infosys/admindomain", "acix/cacheserver", "logger", "acix/indexserver");
 
 	my @all=(@required,@optional);
 
