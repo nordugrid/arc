@@ -185,6 +185,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_bindir}/arcacl.exe
 %{_mingw32_bindir}/arctest.exe
 %{_mingw32_bindir}/arcwsrf.exe
+%{_mingw32_bindir}/arcemiestest.exe
 %{_mingw32_bindir}/saml_assertion_init.exe
 #
 %{_mingw32_sysconfdir}/arc/client.conf
@@ -216,6 +217,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_mingw32_mandir}/man1/arcacl.1*
 %doc %{_mingw32_mandir}/man1/arctest.1*
 %doc %{_mingw32_mandir}/man1/arcwsrf.1*
+%doc %{_mingw32_mandir}/man1/arcemiestest.1*
 %doc %{_mingw32_mandir}/man1/saml_assertion_init.1*
 #%doc %{_mingw32_mandir}/man1/voms_assertion_init.1*
 #%doc %{_mingw32_mandir}/man1/arc_storage_cli.1*

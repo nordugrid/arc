@@ -99,7 +99,7 @@ namespace Arc {
     const std::string& key  = (!cfg.proxy.empty() ? cfg.proxy : cfg.key);
 
     if (key.empty() || cert.empty()) {
-      lfailure = "Failed locating credentials for delagating.";
+      lfailure = "Failed locating credentials for delegating.";
       return "";
     }
 
@@ -512,7 +512,7 @@ namespace Arc {
         glue:Service
     */
     std::string action = "GetResourceInfo";
-    logger.msg(VERBOSE, "Creating and sending service information query request to %s", rurl.str());
+    logger.msg(VERBOSE, "Creating and sending service information request to %s", rurl.str());
 
     PayloadSOAP req(ns);
     XMLNode op = req.NewChild("esrinfo:" + action);
@@ -556,6 +556,35 @@ namespace Arc {
     service.Name(prefix+":ComputingService");
     manager.Name(prefix+":ActivityManager");
     */
+    return true;
+  }
+
+  bool EMIESClient::squery(const std::string& query, XMLNodeContainer& response) {
+    /* 
+    esrinfo:QueryResourceInfo
+      esrinfo:QueryDialect
+      esrinfo:QueryExpression
+
+    esrinfo:QueryResourceInfoResponse
+      esrinfo:QueryResourceInfoItem
+    */
+    std::string action = "QueryResourceInfo";
+    logger.msg(VERBOSE, "Creating and sending service information query request to %s", rurl.str());
+
+    PayloadSOAP req(ns);
+    XMLNode op = req.NewChild("esrinfo:" + action);
+    op.NewChild("esrinfo:QueryDialect") = "XPATH 1.0";
+    op.NewChild("esrinfo:QueryExpression") = query;
+    XMLNode res;
+
+    if (!process(req, res)) return false;
+
+    res.Namespaces(ns);
+    XMLNode item = res["QueryResourceInfoItem"];
+    for(;item;++item) {
+      response.AddNew(item);
+    }
+
     return true;
   }
 

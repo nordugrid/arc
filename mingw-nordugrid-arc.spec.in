@@ -306,6 +306,7 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw32_bindir}/arcacl.exe
 %{mingw32_bindir}/arctest.exe
 %{mingw32_bindir}/arcwsrf.exe
+%{mingw32_bindir}/arcemiestest.exe
 %{mingw32_bindir}/saml_assertion_init.exe
 #
 %{mingw32_sysconfdir}/arc/client.conf
@@ -335,6 +336,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{mingw32_mandir}/man1/arcacl.1*
 %doc %{mingw32_mandir}/man1/arctest.1*
 %doc %{mingw32_mandir}/man1/arcwsrf.1*
+%doc %{mingw32_mandir}/man1/arcemiestest.1*
 %doc %{mingw32_mandir}/man1/saml_assertion_init.1*
 %doc %{mingw32_datadir}/%{pkgdir}/examples/echo/echo.wsdl
 
@@ -458,6 +460,7 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw64_bindir}/arcacl.exe
 %{mingw64_bindir}/arctest.exe
 %{mingw64_bindir}/arcwsrf.exe
+%{mingw64_bindir}/arcemiestest.exe
 #%{mingw64_bindir}/saml_assertion_init.exe
 #
 %{mingw64_sysconfdir}/arc/client.conf
@@ -493,6 +496,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{mingw64_mandir}/man1/arcacl.1*
 %doc %{mingw64_mandir}/man1/arctest.1*
 %doc %{mingw64_mandir}/man1/arcwsrf.1*
+%doc %{mingw64_mandir}/man1/arcemiestest.1*
 #%doc %{mingw64_mandir}/man1/saml_assertion_init.1*
 %doc %{mingw64_datadir}/%{pkgdir}/examples/echo/echo.wsdl
 

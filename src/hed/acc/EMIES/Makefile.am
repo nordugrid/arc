@@ -1,5 +1,8 @@
+SUBDIRS = schema
+
 pkglib_LTLIBRARIES = libaccEMIES.la
-noinst_PROGRAMS = test-emies-client
+bin_PROGRAMS = arcemiestest
+man_MANS = arcemiestest.1
 
 libaccEMIES_la_SOURCES  = EMIESClient.cpp EMIESClient.h \
 	JobStateEMIES.cpp JobStateEMIES.h \
@@ -25,9 +28,9 @@ libaccEMIES_la_LDFLAGS = -no-undefined -avoid-version -module
 #	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 #
 
-test_emies_client_SOURCES = TestEMIESClient.cpp EMIESClient.cpp JobStateEMIES.cpp
-test_emies_client_CXXFLAGS = -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
-test_emies_client_LDADD = \
+arcemiestest_SOURCES = TestEMIESClient.cpp EMIESClient.cpp JobStateEMIES.cpp
+arcemiestest_CXXFLAGS = -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+arcemiestest_LDADD = \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \

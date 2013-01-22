@@ -209,12 +209,19 @@ namespace Arc {
 
     bool notify(const EMIESJob& job);
 
-    //! Query the status of a service.
-    /*! This method queries the EMI ES service about its status.
+    //! Request the status of a service.
+    /*! This method requests the EMI ES service about its status.
        @param status The XML document representing status of the service.
        @return true on success
      */
     bool sstat(XMLNode& status);
+
+    //! Query the status of a service.
+    /*! This method queries the EMI ES service about its status using XPath 1.0.
+       @param status The XML document representing status of the service.
+       @return true on success
+     */
+    bool squery(const std::string& query, XMLNodeContainer& items);
 
     //! Query the endpoints of a service.
     /*! This method queries the EMI ES service about its avaialble endpoints.

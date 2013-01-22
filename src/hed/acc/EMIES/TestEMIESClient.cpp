@@ -3,6 +3,7 @@
 #include <config.h>
 #endif
 
+#include <arc/ArcLocation.h>
 #include <arc/UserConfig.h>
 #include <arc/compute/Job.h>
 #include "EMIESClient.h"
@@ -19,14 +20,17 @@ using namespace Arc;
 
 static Logger logger(Logger::getRootLogger(), "emiestest");
 
+#define GLUE2_NAMESPACE "http://schemas.ogf.org/glue/2009/03/spec_2.0_r1"
+
 static void usage(void) {
-  std::cout<<"test-emies-client sstat <ResourceInfo URL>"<<std::endl;
-  std::cout<<"test-emies-client submit <Creation URL> <ADL file>"<<std::endl;
-  std::cout<<"test-emies-client stat <ActivityManagement URL> <Job ID>"<<std::endl;
-  std::cout<<"test-emies-client info <ActivityManagement URL> <Job ID>"<<std::endl;
-  std::cout<<"test-emies-client clean <ActivityManagement URL> <Job ID>"<<std::endl;
-  std::cout<<"test-emies-client kill <ActivityManagement URL> <Job ID>"<<std::endl;
-  std::cout<<"test-emies-client list <ActivityInfo URL>"<<std::endl;
+  std::cout<<"test-emies-client sstat <ResourceInfo URL> - retrieve service description"<<std::endl;
+  std::cout<<"test-emies-client submit <Creation URL> <ADL file> - submit job to service"<<std::endl;
+  std::cout<<"test-emies-client stat <ActivityManagement URL> <Job ID> - check state of job"<<std::endl;
+  std::cout<<"test-emies-client info <ActivityManagement URL> <Job ID> - obtain extended description of job"<<std::endl;
+  std::cout<<"test-emies-client clean <ActivityManagement URL> <Job ID> - remove job from service"<<std::endl;
+  std::cout<<"test-emies-client kill <ActivityManagement URL> <Job ID> - cancel job processing/execution"<<std::endl;
+  std::cout<<"test-emies-client list <ActivityInfo URL> - list jobs available at service"<<std::endl;
+  std::cout<<"test-emies-client ivalidate <ResourceInfo URL> - retrieve service description using all available methods and validate results"<<std::endl;
   exit(1);
 }
 
@@ -70,7 +74,7 @@ int main(int argc, char* argv[]) {
   Arc::LogStream logcerr(std::cerr);
   logcerr.setFormat(Arc::ShortFormat);
   Arc::Logger::getRootLogger().addDestination(logcerr);
-  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
+  Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
 
   if(argc < 3) usage();
 
@@ -166,6 +170,106 @@ int main(int argc, char* argv[]) {
       return 1;
     }
     print(jobs);
+  } else if(command == "ivalidate") {
+    std::map<std::string,std::string> interfaces;
+    interfaces["org.ogf.glue.emies.activitycreation"] = "";
+    interfaces["org.ogf.glue.emies.activitymanagement"] = "";
+    interfaces["org.ogf.glue.emies.activityinfo"] = "";
+    interfaces["org.ogf.glue.emies.resourceinfo"] = "";
+    interfaces["org.ogf.glue.emies.delegation"] = "";
+    logger.msg(INFO,"Fetching resource description from %s",url.str());
+    XMLNode info;
+    if(!ac.sstat(info)) {
+      logger.msg(ERROR,"Failed to obtain resource description: %s",ac.failure());
+      return 1;
+    };
+    int n = 0;
+    int cnum1 = 0;
+    for(;;++n) {
+      XMLNode node = info.Child(n);
+      if(!node) break;
+      if(node.Namespace() != GLUE2_NAMESPACE) {
+        logger.msg(ERROR,"Resource description contains unexpected element: %s:%s",node.Namespace(),node.Name());
+        return 1;
+      };
+      if((node.Name() != "ComputingService") && (node.Name() != "Service")) {
+        logger.msg(ERROR,"Resource description contains unexpected element: %s:%s",node.Namespace(),node.Name());
+        return 1;
+      };
+      std::string errstr;
+      std::string glue2_schema = ArcLocation::GetDataDir()+G_DIR_SEPARATOR_S+"schema"+G_DIR_SEPARATOR_S+"GLUE2.xsd";
+      if(!node.Validate(glue2_schema,errstr)) {
+        logger.msg(ERROR,"Resource description validation according to GLUE2 schema failed: %s",errstr);
+        return 1;
+      };
+      if(node.Name() == "ComputingService") {
+        ++cnum1;
+        XMLNode endpoint = node["ComputingEndpoint"];
+        for(;(bool)endpoint;++endpoint) {
+          XMLNode name = endpoint["InterfaceName"];
+          for(;(bool)name;++name) {
+            std::string iname = (std::string)name;
+            if((bool)endpoint["URL"]) {
+              if(interfaces.find(iname) != interfaces.end()) interfaces[iname] = (std::string)endpoint["URL"];
+            };
+          };
+        };
+      };
+    };
+    if(n == 0) {
+      logger.msg(ERROR,"Resource description is empty");
+      return 1;
+    };
+    int inum = 0;
+    for(std::map<std::string,std::string>::iterator i = interfaces.begin();
+                                    i != interfaces.end(); ++i) {
+      if(!i->second.empty()) {
+        logger.msg(INFO,"Resource description provides URL for interface %s: %s",i->first,i->second);
+        ++inum;
+      };
+    };
+    if(inum == 0) {
+      logger.msg(ERROR,"Resource description provides no URLs for interfaces");
+      return 1;
+    };
+    logger.msg(INFO,"Resource description validation passed");
+
+    logger.msg(INFO,"Requesting ComputingService elements of resource description at %s",url.str());
+    XMLNodeContainer items;
+    if(!ac.squery("/Services/ComputingService",items)) {
+      logger.msg(ERROR,"Failed to obtain resource description: %s",ac.failure());
+      return 1;
+    };
+    if(items.Size() <= 0) {
+      logger.msg(ERROR,"Query returned no elements");
+      return 1;
+    };
+    int cnum2 = 0;
+    for(int n = 0; n < items.Size(); ++n) {
+      for(int nn = 0; nn < items[n].Size(); ++nn) {
+        XMLNode result = items[n].Child(nn);
+        if(result.Namespace() != GLUE2_NAMESPACE) {
+          logger.msg(ERROR,"Query returned unexpected element: %s:%s",result.Namespace(),result.Name());
+          return 1;
+        };
+        if(result.Name() != "ComputingService") {
+          logger.msg(ERROR,"Query returned unexpected element: %s:%s",result.Namespace(),result.Name());
+          return 1;
+        };
+        std::string errstr;
+        std::string glue2_schema = ArcLocation::GetDataDir()+G_DIR_SEPARATOR_S+"schema"+G_DIR_SEPARATOR_S+"GLUE2.xsd";
+        if(!result.Validate(glue2_schema,errstr)) {
+          logger.msg(ERROR,"Element validation according to GLUE2 schema failed: %s",errstr);
+          return 1;
+        };
+        ++cnum2;
+      };
+    };
+    if(cnum1 != cnum2) {
+      logger.msg(ERROR,"Number of ComputingService elements obtained from full document and XPath qury do not match: %d != %d",cnum1,cnum2);
+      return 1;
+    };
+    logger.msg(INFO,"Resource description query validation passed");
   } else {
     logger.msg(ERROR,"Unsupported command: %s",command);
     return 1;
