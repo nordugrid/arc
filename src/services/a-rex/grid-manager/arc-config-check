@@ -343,17 +343,19 @@ sub confchecktripel($$$) {
 	}
 }
 
-# Get all valid configuration parameters from arc.conf.reference
+# Get all valid configuration parameters and blocks from arc.conf.reference.
+# Dynamic blocks which match those in %introducedSections are not included.
 
 sub validconfparams() {
 
 	my @validparams;
+	my @validblocks;
 	unless (open (ARCREF, "<$arcloc/share/arc/examples/arc.conf.reference")) {
 		w("Could not open arc.conf.reference. No arc.conf parameter checking will be done\n");
 		return @validparams;
 	}
 	while (my $line = <ARCREF>) {
-		if ($line =~ m/^#(\w*)\s*=(.*)$/) {
+		if ($line =~ m/^#(\w*)\s*=(.*)$/) { # match #parameter="value"
 			my $name = $1;
 			# take out spaces and quotes
 			$name =~ s/^\s*//;
@@ -363,9 +365,18 @@ sub validconfparams() {
 			if (!grep(/^$name$/, @validparams)) {
 				push(@validparams, $name);
 			}
+		} elsif ($line =~ m|^#\[(.*)\]$|) { # match #[section]
+			my $blockname = $1;
+			my $dynamic = 0;
+			foreach my $k (keys %introducedSections) {
+				if ($blockname =~ m/^$k.*/) {
+					$dynamic = 1;
+				}
+			}
+			push(@validblocks, $blockname) if !$dynamic;
 		}
 	}
-	return @validparams;
+	return ( \@validparams, \@validblocks );
 }
 	
 =item configuration check
@@ -392,8 +403,8 @@ sub confcheck($) {
 		"remotegmdirs", "allowreg", "cluster_owner", "authorizedvo",
 		"clustersupport", "opsys", "benchmark", "nodeaccess",
 		"localse", "cacheserver");
-	# valid parameter names
-	my @validparams = validconfparams();
+	# valid parameter names and blocks
+	my ($validparams, $validblocks) = validconfparams();
 	my $blockname = undef;
 	my $blockcontents = 0;
 	my $c = 0;
@@ -480,7 +491,7 @@ sub confcheck($) {
 		}
 
 		# check we have a valid parameter name
-		if (@validparams != 0 and !grep(/^$name$/, @validparams)) {
+		if (@$validparams != 0 and !grep(/^$name$/, @$validparams)) {
 			w("$arcconf:$c: found unknown parameter $name\n");
 			next;
 		}
@@ -536,13 +547,11 @@ sub check_completeness() {
 
 	my @required=("common", "grid-manager", "infosys", "cluster");
 
-	my @optional=("gridftpd", "data-staging", "gangliarc", "group", "vo", "registration/isis", "registration/emir", "nordugridmap", "infosys/glue12", "infosys/admindomain", "acix/cacheserver", "logger", "acix/indexserver");
-
-	my @all=(@required,@optional);
+	my ($validparams, $validblocks) = validconfparams();
 
 	# testing for unknown
 	foreach my $k (keys %$config) {
-		next if grep(/^$k$/,@all);
+		next if grep(/^$k$/,@$validblocks);
 		my @secs;
 		map { push(@secs,$_) if $k=~/^$_/;} keys %introducedSections;
 		print STDERR "$k -> " . join(":",@secs)."\n" if $debug;
