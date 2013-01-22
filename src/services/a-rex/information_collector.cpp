@@ -577,14 +577,15 @@ Arc::MCC_Status ARexService::ESQueryResourceInfo(ARexGMConfig& config,Arc::XMLNo
   ::close(h);
   Arc::XMLNode doc(buf);
   ::free(buf); buf=NULL;
-  Arc::XMLNode rdoc = doc["Domains"]["AdminDomain"];
+  Arc::XMLNode rdoc;
+  doc["Domains"]["AdminDomain"]["Services"].Move(rdoc);
   if((!doc) || (!rdoc)) {
     ESFAULT("Failed to parse resource information document");
   };
 
   Arc::NS glue_ns;
   glue_ns[rdoc.Prefix()] = rdoc.Namespace();
-  rdoc.StripNamespace(); // to ignore namespace in XPathLookup
+  rdoc.StripNamespace(-1); // to ignore namespace in XPathLookup
   //Arc::NS glueNS("glue","http://schemas.ogf.org/glue/2009/03/spec_2.0_r1");
   Arc::XMLNodeList ritems = rdoc.XPathLookup(xpath,Arc::NS());
   for(Arc::XMLNodeList::iterator ritem = ritems.begin(); ritem != ritems.end(); ++ritem) {
