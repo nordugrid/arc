@@ -1,7 +1,6 @@
 ####################################################################
 ##
-## Configuration blocks and variables for the ARC services via the arc.conf
-## (applies to the latest 1.0 release)
+## Configuration blocks and variables for the ARC services via the arc.conf.
 ##
 ## NEVER USE THIS DOCUMENT AS A CONFIGURATION FILE!
 ## There are out-of-the-box minimal configuration templates provided
@@ -14,14 +13,14 @@
 ##
 ## A block is identified by its blockname. A blockname consists of
 ## keywords and optionally block identifiers: [gridftpd/jobs] here 'gridftpd' is
-## a keyword while 'jobs' is an identifier. Block names must be UNIQUE. A block
-## starts with a unique [blockname] and ends with the next [blockname] directive.
-## Currently the following keywords are used in the block names: common
-## grid-manager, gridftpd, group, data-staging, nordugridmap, vo, infosys,
-## registration, cluster, queue.
+## a keyword while 'jobs' is an identifier. Block names must be UNIQUE ([vo] is
+## the only exception). A block starts with a unique [blockname] and ends with
+## the next [blockname] directive. Currently the following keywords are used in
+## the block names: common, grid-manager, gridftpd, group, data-staging,
+## nordugridmap, vo, infosys, registration, cluster, queue, logger, acix
 ##
 ## Some parts of the configuration file are order-dependent, blocks may require
-## other blocks be defined earlier (especially the authorization blocks]
+## other blocks be defined earlier (especially the authorization blocks).
 ##
 ## The arc.conf configures all the ARC services, and enabling an ARC service on 
 ## a resource requires the presence of the appropriate configuration blocks. 
@@ -49,9 +48,11 @@
 ## 
 ## WARNING: this file will not work as a configuration template!
 ##
-## Developers: please add explanatory text with two ## and a space
-##   at the beginning of the line and relevant configuration options with a single 
-##   # and no spaces at the beginning of the line.
+## Developers: This file is parsed by configuration validation scripts and so
+##   it is important that it follows the correct syntax. For each block or
+##   option please add explanatory text with two ## and a space at the
+##   beginning of the line and then an example with a single # and no spaces at
+##   the beginning of the line.
 ## 
 #####################################################################
 
