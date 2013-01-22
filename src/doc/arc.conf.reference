@@ -67,6 +67,11 @@
 ## MUST be set in the cluster block
 #hostname="myhost.org"
 
+## x509_voms_dir path - the path to the directory containing *.lsc files
+## needed for checking validity of VOMS extensions.  If not specified default
+## value /etc/grid-security/vomsdir is used.
+#x509_voms_dir="/etc/grid-security/vomsdir"
+
 ### LRMS
 ## ARC supports various LRMS flavours, as listed in this section. For detailed
 ## description of options please refer to ARC CE sysadmin guide:
@@ -492,6 +497,14 @@ lrms="dgbridge"
 ##   %P - path to proxy
 ##  For more about plugins read documentation.
 #plugin="10 /opt/external/bin/permis %P"
+
+## lcas library directory database - Call LCAS functions to check rule.
+##  Here library is path to shared library of LCAS, either absolute or
+##  relative to directory; directory is path to LCAS installation directory,
+##  equivalent of LCAS_DIR variable; database is path to LCAS database,
+##  equivalent to LCAS_DB_FILE variable. Each arguments except library is
+##  optional and may be either skipped or replaced with ’*’.
+#lcas=""
 
 ## remote URL ... - Check user's credentials against remote service. Only
 ##  DN groups stored at LDAP directories are supported. Multiple URLs are
@@ -1368,6 +1381,17 @@ lrms="dgbridge"
 ## release dependent location. 
 ## Default is to use only standard locations described above.
 #ldap_schema_dir="/nfs/ldap/schema/"
+
+## oldconfsuffix .suffix - sets the suffix of the backup files of the
+## low-level slapd config files in case they are regenerated. Default is
+## ".oldconfig".
+#oldconfsuffix=".oldconfig"
+
+## overwrite_config yes|no - determines if the grid-infosys startup script
+## should generate new low-level slapd configuration files.  By default the
+## low-level configuration files are regenerated with every server startup
+## making use of the values specified in the arc.conf.
+#overwrite_config="yes"
 
 
 ### Logging
