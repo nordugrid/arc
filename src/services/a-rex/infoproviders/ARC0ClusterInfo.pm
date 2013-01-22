@@ -169,7 +169,8 @@ sub collect($) {
         }
     }
 
-    my @authorizedvos = map {"VO:$_"} @{$config->{service}{AuthorizedVO}};
+    my @authorizedvos = @{$config->{service}{AuthorizedVO}};
+    @authorizedvos = map {"VO:$_"} @authorizedvos;
 
 	# Assume no connectivity unles explicitly configured otherwise on each
 	# ExecutionEnvironment

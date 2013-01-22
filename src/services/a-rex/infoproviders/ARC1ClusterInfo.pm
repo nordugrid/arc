@@ -567,9 +567,9 @@ sub collect($) {
     $totalpcpus ||= $lrms_info->{cluster}{totalcpus};
     $totallcpus ||= $lrms_info->{cluster}{totalcpus};
 
-    my $authorizedvos = $config->{service}{AuthorizedVO};
+    my @authorizedvos = @{$config->{service}{AuthorizedVO}};
     # add VO: suffix to each authorized VO
-    @{$authorizedvos} = map { "vo:".$_ } @{$authorizedvos};
+    @authorizedvos = map { "vo:".$_ } @authorizedvos;
 
     # # # # # # # # # # # # # # # # # # #
     # # # # # Job statistics  # # # # # #
@@ -956,13 +956,13 @@ sub collect($) {
          my ($epID) = @_;
          $apol->{ID} = "$apolIDp:basic";
          $apol->{Scheme} = "basic";
-         $apol->{Rule} = $authorizedvos;
+         $apol->{Rule} = [ @authorizedvos ];
          # $apol->{UserDomainID} = $apconf->{UserDomainID};
          $apol->{EndpointID} = $epID;
          return $apol;
     };
     
-    $accesspolicies->{BasicAccessPolicy} = $getBasicAccessPolicy if ($authorizedvos);
+    $accesspolicies->{BasicAccessPolicy} = $getBasicAccessPolicy if (@authorizedvos);
     
     ## more accesspolicies can go here.
     
@@ -988,13 +988,13 @@ sub collect($) {
          my ($shareID) = @_;
          $mpol->{ID} = "$mpolIDp:basic";
          $mpol->{Scheme} = "basic";
-         $mpol->{Rule} = $authorizedvos;
+         $mpol->{Rule} = @authorizedvos;
          # $mpol->{UserDomainID} = $apconf->{UserDomainID};
          $mpol->{ShareID} = $shareID;
          return $mpol;
     };
     
-    $mappingpolicies->{BasicMappingPolicy} = $getBasicMappingPolicy if ($authorizedvos);
+    $mappingpolicies->{BasicMappingPolicy} = $getBasicMappingPolicy if (@authorizedvos);
     
      ## more accesspolicies can go here.
     
