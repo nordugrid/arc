@@ -988,7 +988,7 @@ sub collect($) {
          my ($shareID) = @_;
          $mpol->{ID} = "$mpolIDp:basic";
          $mpol->{Scheme} = "basic";
-         $mpol->{Rule} = @authorizedvos;
+         $mpol->{Rule} = [ @authorizedvos ];
          # $mpol->{UserDomainID} = $apconf->{UserDomainID};
          $mpol->{ShareID} = $shareID;
          return $mpol;
