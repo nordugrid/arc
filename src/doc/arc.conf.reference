@@ -806,6 +806,15 @@ lrms="dgbridge"
 ## more details.
 #authplugin="FINISHED timeout=10,onfailure=pass /usr/libexec/arc/arc-ur-logger %C %I %S %U"
 
+## ARC is distributed with the plugin "arc-vomsac-check". It's purpose is to enforce
+## per-queue access policies based on VOMS attributes present in user's
+## proxy-certificate. Plugin should be run before job enters the cluster.
+## It requires 2 argments: path to job information .local file and path to
+## credentials file. 
+## Enforced per-queue access policies are configured with 'ac_policy' option 
+## in the [queue/name] configuration block.
+#authplugin="ACCEPTED 60 /usr/libexec/arc/arc-vomsac-check -L %C/job.%I.local -P %C/job.%I.proxy"
+
 ## localcred timeout plugin_path - Every time an external executable
 ## is run this plugin will be called. Its purpose is to set non-unix 
 ## permissions/credentials on running tasks. Note: the process itself 
@@ -2087,6 +2096,14 @@ lrms="dgbridge"
 #opsys="Linux-3.0"
 #benchmark="SPECINT2000  222"
 #benchmark="SPECFP2000 333" 
+
+## queue access policy rules based on VOMS attributes in user's 
+## proxy certificate (requires the arc-vomsac-check plugin to be enabled).
+## Matching rules have the following format:
+##   ac_policy="[+/-]VOMS: <FQAN>"
+## Please read arc-vomsac-check manual page for more information.
+#ac_policy="-VOMS: /badvo"
+#ac_policy="VOMS: /.*/Role=production"
 
 ## LDAP parameters of the queue+jobs+users.pl (old) infoprovider, use the defaults,
 ## do NOT change them unless you know what you are doing
