@@ -181,26 +181,33 @@ namespace ArcDMCXrootd {
   }
 
   DataStatus DataPointXrootd::Check(bool check_meta) {
-    // check if file can be opened for reading
-    CertEnvLocker env(usercfg);
-    if (XrdPosixXrootd::Access(url.str().c_str(), R_OK) != 0) {
-      logger.msg(VERBOSE, "Read access not allowed for %s: %s", url.str(), StrError(errno));
-      return DataStatus(DataStatus::CheckError, errno);
+
+    {
+      CertEnvLocker env(usercfg);
+      if (XrdPosixXrootd::Access(url.str().c_str(), R_OK) != 0) {
+        logger.msg(VERBOSE, "Read access not allowed for %s: %s", url.str(), StrError(errno));
+        return DataStatus(DataStatus::CheckError, errno);
+      }
+    }
+    if (check_meta) {
+      FileInfo f;
+      return do_stat(url, f, INFO_TYPE_CONTENT);
     }
     return DataStatus::Success;
   }
 
-  DataStatus DataPointXrootd::do_stat(const URL& url, FileInfo& file, DataPointInfoType verb) {
+  DataStatus DataPointXrootd::do_stat(const URL& u, FileInfo& file, DataPointInfoType verb) {
 
     struct stat st;
     {
       CertEnvLocker env(usercfg);
-      if (XrdPosixXrootd::Stat(url.str().c_str(), &st)) {
-        logger.msg(VERBOSE, "Could not stat file %s: %s", url.str(), StrError(errno));
+      if (XrdPosixXrootd::Stat(u.str().c_str(), &st) != 0) {
+        logger.msg(VERBOSE, "Could not stat file %s: %s", u.str(), StrError(errno));
         return DataStatus(DataStatus::StatError, errno);
       }
     }
-    file.SetName(url.Path());
+
+    file.SetName(u.Path());
     file.SetSize(st.st_size);
     file.SetModified(st.st_mtime);
 
@@ -244,7 +251,10 @@ namespace ArcDMCXrootd {
       f.SetName(entry->d_name);
       files.push_back(f);
     }
-    if (errno != 0) logger.msg(VERBOSE, "Error while reading dir %s: %s", url.str(), StrError(errno));
+    if (errno != 0) {
+      logger.msg(VERBOSE, "Error while reading dir %s: %s", url.str(), StrError(errno));
+      return DataStatus(DataStatus::ListError, errno);
+    }
     XrdPosixXrootd::Closedir(dir);
 
     return DataStatus::Success;
