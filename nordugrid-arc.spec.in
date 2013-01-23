@@ -151,7 +151,11 @@ BuildRequires:	gridsite-devel
 BuildRequires:	canl-c++-devel
 %endif
 %if %{with_xrootd}
+%if %{?fedora}%{!?fedora:0} >= 18 || %{?rhel}%{!?rhel:0} >= 7
+BuildRequires:	xrootd-client-devel
+%else
 BuildRequires:	xrootd-devel
+%endif
 %endif
 %if %{with_gfal}
 BuildRequires:  gfal2-devel
@@ -991,6 +995,7 @@ fi
 %post aris
 /sbin/chkconfig --add nordugrid-arc-bdii
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
+semanage fcontext -a -t slapd_etc_t "/var/run/arc/bdii/bdii-slapd\.conf" 2>/dev/null || :
 semanage fcontext -a -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
 semanage fcontext -a -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null || :
 # Remove selinux labels for old arc bdii var dir
@@ -1009,6 +1014,7 @@ if [ $1 -ge 1 ]; then
 fi
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 if [ $1 -eq 0 ]; then
+  semanage fcontext -d -t slapd_etc_t "/var/run/arc/bdii/bdii-slapd\.conf" 2>/dev/null || :
   semanage fcontext -d -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
   semanage fcontext -d -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null || :
 fi
