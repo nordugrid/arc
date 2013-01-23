@@ -538,13 +538,16 @@ lrms="dgbridge"
 ## not needed on the nodes. <must be set>
 #controldir="/var/spool/nordugrid/jobstatus"
 
-## sessiondir path - the directory which holds the sessiondirs of the gridjobs.
+## sessiondir path [drain] - the directory which holds the sessiondirs of the grid jobs.
 ## Multiple session directories may be specified by specifying multiple sessiondir
 ## commands. In this case jobs are spread evenly over the session directories.
 ## If sessiondir="*" is set, the session directory will be spread over the
 ## ${HOME}/.jobs directories of every locally mapped unix user. It is preferred
-## to use common session directories. <sessiondir must be set>
+## to use common session directories. The path may be followed by "drain", in
+## which case no new jobs will be assigned to that sessiondir, but current jobs
+## will still be processed and accessible. <sessiondir must be set>
 #sessiondir="/scratch/grid"
+#sessiondir="/mnt/grid drain"
 
 ## runtimedir path - The directory which holds the runtimeenvironment scripts, 
 ## should be available on the nodes as well! the runtimeenvironments are 
@@ -575,9 +578,11 @@ lrms="dgbridge"
 ## computing nodes, if it is different from the path on the GM host.
 ## Example: cache="/shared/cache /frontend/jobcache"
 ## If "link-path" is set to '.' files are not soft-linked, but copied to session
-## directory.
+## directory. If a cache directory needs to be drained, then cachedir
+## should specify "drain" as the link path, in which case no new files will be
+## added to the cache.
 #cachedir="/scratch/cache"
-#cachedir="/fs1/cache"
+#cachedir="/fs1/cache drain"
 
 ## remotecachedir cache_path [link_path] - specifies caches which are under
 ## the control of other GMs, but which this GM can have read-only access to.
