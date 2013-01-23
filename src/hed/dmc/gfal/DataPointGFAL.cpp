@@ -146,7 +146,7 @@ namespace ArcDMCGFAL {
       fd = gfal_open(GFALUtils::GFALURL(url).c_str(), O_RDONLY, 0);
     }
     if (fd < 0) {
-      logger.msg(ERROR, "gfal_open failed: %s", StrError(errno));
+      logger.msg(VERBOSE, "gfal_open failed: %s", StrError(errno));
       int error_no = GFALUtils::HandleGFALError(logger);
       reading = false;
       return DataStatus(DataStatus::ReadStartError, error_no);
@@ -158,14 +158,11 @@ namespace ArcDMCGFAL {
     // which will be signalled by the separate reading thread
     // Create the separate reading thread
     if (!CreateThreadFunction(&DataPointGFAL::read_file_start, this, &transfer_condition)) {
-      logger.msg(ERROR, "Failed to create reading thread");
-      if (fd != -1) {
-        if (gfal_close(fd) < 0) {
-          logger.msg(WARNING, "gfal_close failed: %s", StrError(gfal_posix_code_error()));
-        }
+      if (fd != -1 && gfal_close(fd) < 0) {
+        logger.msg(WARNING, "gfal_close failed: %s", StrError(gfal_posix_code_error()));
       }
       reading = false;
-      return DataStatus::ReadStartError;
+      return DataStatus(DataStatus::ReadStartError, "Failed to create reading thread");
     }
     return DataStatus::Success;
   }
@@ -191,7 +188,7 @@ namespace ArcDMCGFAL {
             
       // If there was an error
       if (bytes_read < 0) {
-        logger.msg(ERROR, "gfal_read failed: %s", StrError(errno));
+        logger.msg(VERBOSE, "gfal_read failed: %s", StrError(errno));
         GFALUtils::HandleGFALError(logger);
         buffer->error_read(true);
         break;
@@ -264,10 +261,10 @@ namespace ArcDMCGFAL {
       // choose first location
       std::string location(locations.begin()->plainstr());
       if (gfal_setxattr(GFALUtils::GFALURL(url).c_str(), "user.replicas", location.c_str(), location.length(), 0) != 0) {
-        logger.msg(ERROR, "Failed to set LFC replicas: %s", StrError(gfal_posix_code_error()));
+        logger.msg(VERBOSE, "Failed to set LFC replicas: %s", StrError(gfal_posix_code_error()));
         int error_no = GFALUtils::HandleGFALError(logger);
         writing = false;
-        return DataStatus(DataStatus::WriteStartError, error_no);
+        return DataStatus(DataStatus::WriteStartError, error_no, "Failed to set LFC replicas");
       }
     }
     {
@@ -296,7 +293,7 @@ namespace ArcDMCGFAL {
         }
       }
       if (fd < 0) {
-        logger.msg(ERROR, "gfal_open failed: %s", StrError(gfal_posix_code_error()));
+        logger.msg(VERBOSE, "gfal_open failed: %s", StrError(gfal_posix_code_error()));
         int error_no = GFALUtils::HandleGFALError(logger);
         writing = false;
         return DataStatus(DataStatus::WriteStartError, error_no);
@@ -309,14 +306,11 @@ namespace ArcDMCGFAL {
     // which will be signalled by the separate writing thread
     // Create the separate writing thread
     if (!CreateThreadFunction(&DataPointGFAL::write_file_start, this, &transfer_condition)) {
-      logger.msg(ERROR, "Failed to create writing thread");
-      if (fd != -1) {
-        if (gfal_close(fd) < 0) {
-          logger.msg(WARNING, "gfal_close failed: %s", StrError(gfal_posix_code_error()));
-        }
+      if (fd != -1 && gfal_close(fd) < 0) {
+        logger.msg(WARNING, "gfal_close failed: %s", StrError(gfal_posix_code_error()));
       }
       writing = false;
-      return DataStatus::WriteStartError;
+      return DataStatus(DataStatus::WriteStartError, "Failed to create writing thread");
     }    
     return DataStatus::Success;
   }
@@ -371,7 +365,7 @@ namespace ArcDMCGFAL {
 
       // if there was an error during writing
       if (bytes_written < 0) {
-        logger.msg(ERROR, "gfal_write failed: %s", StrError(gfal_posix_code_error()));
+        logger.msg(VERBOSE, "gfal_write failed: %s", StrError(gfal_posix_code_error()));
         GFALUtils::HandleGFALError(logger);
         buffer->error_write(true);
         break;
@@ -424,7 +418,7 @@ namespace ArcDMCGFAL {
       res = gfal_stat(GFALUtils::GFALURL(stat_url).c_str(), &st);
     }
     if (res < 0) {
-      logger.msg(ERROR, "gfal_stat failed: %s", StrError(gfal_posix_code_error()));
+      logger.msg(VERBOSE, "gfal_stat failed: %s", StrError(gfal_posix_code_error()));
       int error_no = GFALUtils::HandleGFALError(logger);
       return DataStatus(DataStatus::StatError, error_no);
     }
@@ -493,7 +487,7 @@ namespace ArcDMCGFAL {
       dir = gfal_opendir(GFALUtils::GFALURL(url).c_str());
     }
     if (!dir) {
-      logger.msg(ERROR, "gfal_opendir failed: %s", StrError(gfal_posix_code_error()));
+      logger.msg(VERBOSE, "gfal_opendir failed: %s", StrError(gfal_posix_code_error()));
       int error_no = GFALUtils::HandleGFALError(logger);
       return DataStatus(DataStatus::ListError, error_no);
     }
@@ -540,10 +534,10 @@ namespace ArcDMCGFAL {
     }
     if (res < 0) {
       if (file.GetType() == FileInfo::file_type_dir) {
-        logger.msg(ERROR, "gfal_rmdir failed: %s", StrError(gfal_posix_code_error()));
+        logger.msg(VERBOSE, "gfal_rmdir failed: %s", StrError(gfal_posix_code_error()));
       }
       else {
-        logger.msg(ERROR, "gfal_unlink failed: %s", StrError(gfal_posix_code_error()));
+        logger.msg(VERBOSE, "gfal_unlink failed: %s", StrError(gfal_posix_code_error()));
       }
       int error_no = GFALUtils::HandleGFALError(logger);
       return DataStatus(DataStatus::DeleteError, error_no);
@@ -560,7 +554,7 @@ namespace ArcDMCGFAL {
       res = gfal_mkdir(GFALUtils::GFALURL(url).c_str(), 0700);
     }
     if (res < 0) {
-      logger.msg(ERROR, "gfal_mkdir failed: %s", StrError(gfal_posix_code_error()));
+      logger.msg(VERBOSE, "gfal_mkdir failed: %s", StrError(gfal_posix_code_error()));
       int error_no = GFALUtils::HandleGFALError(logger);
       return DataStatus(DataStatus::CreateDirectoryError, error_no);
     }
@@ -575,7 +569,7 @@ namespace ArcDMCGFAL {
       res = gfal_rename(GFALUtils::GFALURL(url).c_str(), GFALUtils::GFALURL(newurl).c_str());
     }
     if (res < 0) {
-      logger.msg(ERROR, "gfal_rename failed: %s", StrError(gfal_posix_code_error()));
+      logger.msg(VERBOSE, "gfal_rename failed: %s", StrError(gfal_posix_code_error()));
       int error_no = GFALUtils::HandleGFALError(logger);
       return DataStatus(DataStatus::RenameError, error_no);
     }

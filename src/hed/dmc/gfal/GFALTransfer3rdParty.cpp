@@ -38,32 +38,32 @@ namespace ArcDMCGFAL {
     // Set up parameters and options
     gfalt_params_t params = gfalt_params_handle_new(&err);
     if (err != NULL) {
-      logger.msg(ERROR, "Failed to get initiate GFAL2 parameter handle: %s", err->message);
+      logger.msg(VERBOSE, "Failed to get initiate GFAL2 parameter handle: %s", err->message);
       g_error_free(err);
-      return DataStatus(DataStatus::TransferError, error_no);
+      return DataStatus(DataStatus::TransferError, error_no, "Failed to get initiate GFAL2 parameter handle");
     }
 
     gfal2_context_t ctx = gfal2_context_new(&err);
     if (err != NULL) {
-      logger.msg(ERROR, "Failed to get initiate new GFAL2 context: %s", err->message);
+      logger.msg(VERBOSE, "Failed to get initiate new GFAL2 context: %s", err->message);
       g_error_free(err);
-      return DataStatus(DataStatus::TransferError, error_no);
+      return DataStatus(DataStatus::TransferError, error_no, "Failed to get initiate new GFAL2 context");
     }
 
     gfalt_set_monitor_callback(params, &gfal_3rd_party_callback, &err);
     if (err != NULL) {
-      logger.msg(ERROR, "Failed to set GFAL2 monitor callback: %s", err->message);
+      logger.msg(VERBOSE, "Failed to set GFAL2 monitor callback: %s", err->message);
       g_error_free(err);
-      return DataStatus(DataStatus::TransferError, error_no);
+      return DataStatus(DataStatus::TransferError, error_no, "Failed to set GFAL2 monitor callback");
     }
 
     // Set our callback as the user data object so it can be called during
     // GFAL2 callback
     gfalt_set_user_data(params, (gpointer)(&callback), &err);
     if (err != NULL) {
-      logger.msg(ERROR, "Failed to set GFAL2 user data object: %s", err->message);
+      logger.msg(VERBOSE, "Failed to set GFAL2 user data object: %s", err->message);
       g_error_free(err);
-      return DataStatus(DataStatus::TransferError, error_no);
+      return DataStatus(DataStatus::TransferError, error_no, "Failed to set GFAL2 user data object");
     }
 
     // Do the copy
@@ -73,9 +73,9 @@ namespace ArcDMCGFAL {
     gfalt_params_handle_delete(params, NULL);
 
     if (res != 0) {
-      logger.msg(ERROR, "Transfer failed");
+      logger.msg(VERBOSE, "Transfer failed");
       if (err != NULL) {
-        logger.msg(ERROR, err->message);
+        logger.msg(VERBOSE, err->message);
         error_no = err->code;
         g_error_free(err);
       }

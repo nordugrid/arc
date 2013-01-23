@@ -21,7 +21,7 @@ namespace ArcDMCGFAL {
     int error_no = gfal_posix_code_error();
     char errbuf[2048];
     gfal_posix_strerror_r(errbuf, sizeof(errbuf));
-    logger.msg(ERROR, errbuf);
+    logger.msg(VERBOSE, errbuf);
     gfal_posix_clear_error();
     return error_no;
   }
