@@ -16,4 +16,7 @@ DIST_SUBDIRS = doc hed libs tests services clients utils doxygen
 if HED_ENABLED
 install-exec-hook:
 	test "x$(build_triplet)" = "x$(host_triplet)" && env LD_LIBRARY_PATH=$(DESTDIR)$(libdir):$(LD_LIBRARY_PATH) $(top_builddir)/src/utils/hed/arcplugin$(EXEEXT) -c $(DESTDIR)$(pkglibdir) -c  $(DESTDIR)$(pkglibdir)/test || echo "No .apd files since we are cross-compiling"
+
+uninstall-local:
+	test "x$(build_triplet)" = "x$(host_triplet)" && rm -f $(DESTDIR)$(pkglibdir)/*.apd $(DESTDIR)$(pkglibdir)/test/*.apd
 endif
