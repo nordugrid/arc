@@ -11,6 +11,7 @@
 #include <openssl/err.h>
 #include <glibmm/miscutils.h>
 #include <arc/DateTime.h>
+#include <arc/StringConv.h>
 #include <arc/crypto/OpenSSL.h>
 
 namespace ArcMCCTLS {
@@ -236,7 +237,7 @@ void PayloadTLSMCC::CollectError(int code) {
   err_failure += bio_failure;
   if(!err_failure.empty()) err_failure += "\n";
   err_failure += tls_failure;
-  if(!err_failure.empty()) failure_ = MCC_Status(GENERIC_ERROR,"TLS",err_failure);
+  if(!err_failure.empty()) failure_ = MCC_Status(GENERIC_ERROR,"TLS",trim(err_failure));
 }
 
 PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger& logger):
