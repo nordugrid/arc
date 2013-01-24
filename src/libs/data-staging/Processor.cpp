@@ -187,7 +187,7 @@ namespace DataStaging {
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Looking up source replicas", request->get_short_id());
       Arc::DataStatus res = request->get_source()->Resolve(true);
       if (!res.Passed() || !request->get_source()->HaveLocations() || !request->get_source()->LocationValid()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to resolve any source replicas", request->get_short_id());
+        request->get_logger()->msg(Arc::ERROR, "DTR %s: %s", request->get_short_id(), std::string(res));
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_SOURCE,
                                   "Could not resolve any source replicas for " + request->get_source()->str() + ": " + std::string(res));
@@ -211,7 +211,7 @@ namespace DataStaging {
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Resolving destination replicas", request->get_short_id());
       Arc::DataStatus res = request->get_destination()->Resolve(false);
       if (!res.Passed() || !request->get_destination()->HaveLocations() || !request->get_destination()->LocationValid()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to resolve destination replicas", request->get_short_id());
+        request->get_logger()->msg(Arc::ERROR, "DTR %s: %s", request->get_short_id(), std::string(res));
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_DESTINATION,
                                   "Could not resolve any destination replicas for " + request->get_destination()->str() + ": " + std::string(res));
@@ -241,7 +241,7 @@ namespace DataStaging {
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Pre-registering destination in index service", request->get_short_id());
       Arc::DataStatus res = request->get_destination()->PreRegister(request->is_replication(), request->is_force_registration());
       if (!res.Passed()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to pre-register destination", request->get_short_id());
+        request->get_logger()->msg(Arc::ERROR, "DTR %s: %s", request->get_short_id(), std::string(res));
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_DESTINATION,
                                   "Could not pre-register destination " + request->get_destination()->str() + ": " + std::string(res));
@@ -274,7 +274,7 @@ namespace DataStaging {
     for (std::list<DTR_ptr>::iterator i = requests.begin(); i != requests.end(); ++i) {
       DTR_ptr request = *i;
       if (!res.Passed() || !request->get_source()->HaveLocations() || !request->get_source()->LocationValid()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to resolve any source replicas", request->get_short_id());
+        request->get_logger()->msg(Arc::ERROR, "DTR %s: %s", request->get_short_id(), std::string(res));
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_SOURCE,
                                   "Could not resolve any source replicas for " + request->get_source()->str() + ": " + std::string(res));
@@ -311,7 +311,10 @@ namespace DataStaging {
                                   " and " + request->get_source()->str());
     }
     else if (!res.Passed()) {
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed checking source replica %s", request->get_short_id(), request->get_source()->CurrentLocation().str());
+      request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed checking source replica %s: %s",
+                                 request->get_short_id(),
+                                 request->get_source()->CurrentLocation().str(),
+                                 std::string(res) );
       request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                 DTRErrorStatus::ERROR_SOURCE,
                                 "Failed checking source replica " + request->get_source()->CurrentLocation().str() + ": " + std::string(res));
@@ -348,7 +351,8 @@ namespace DataStaging {
     for (std::list<DTR_ptr>::iterator i = requests.begin(); i != requests.end(); ++i, ++file) {
       DTR_ptr request = *i;
       if (!res.Passed() || files.size() != requests.size() || !*file) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed checking source replica", request->get_short_id());
+        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed checking source replica: %s",
+                                   request->get_short_id(), std::string(res));
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_SOURCE,
                                   "Failed checking source replica " + request->get_source()->CurrentLocation().str() + ": " + std::string(res));
@@ -392,7 +396,7 @@ namespace DataStaging {
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Finding existing destination replicas", request->get_short_id());
       res = dest->Resolve(true);
       if (!res.Passed()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Error resolving destination replicas", request->get_short_id());
+        request->get_logger()->msg(Arc::ERROR, "DTR %s: %s", request->get_short_id(), std::string(res));
       }
       else {
         if (dest->HaveLocations()) {
@@ -401,7 +405,9 @@ namespace DataStaging {
             res = dest->Remove();
             if (!res.Passed()) {
               // if we fail to delete one replica then bail out
-              request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to delete replica %s", request->get_short_id(), dest->CurrentLocation().str());
+              request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to delete replica %s: %s",
+                                         request->get_short_id(), dest->CurrentLocation().str(),
+                                         std::string(res));
               break;
             }
             // unregister this replica from the index
@@ -422,7 +428,7 @@ namespace DataStaging {
         request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Resolving destination replicas", request->get_short_id());
         res = request->get_destination()->Resolve(false);
         if (!res.Passed()) {
-          request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to resolve destination", request->get_short_id());
+          request->get_logger()->msg(Arc::ERROR, "DTR %s: %s", request->get_short_id(), std::string(res));
         } else {
           request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Pre-registering destination", request->get_short_id());
           res = request->get_destination()->PreRegister(false, request->is_force_registration());
@@ -430,7 +436,8 @@ namespace DataStaging {
       }
     }
     if (!res.Passed()) {
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to pre-clean destination", request->get_short_id());
+      request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to pre-clean destination: %s",
+                                 request->get_short_id(), std::string(res));
       request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                 DTRErrorStatus::ERROR_DESTINATION,
                                 "Failed to pre-clean destination " + request->get_destination()->str() + ": " + std::string(res));
@@ -457,7 +464,7 @@ namespace DataStaging {
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Preparing to stage source", request->get_short_id());
       Arc::DataStatus res = request->get_source()->PrepareReading(0, source_wait_time);
       if (!res.Passed()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to prepare source", request->get_short_id());
+        request->get_logger()->msg(Arc::ERROR, "DTR %s: %s", request->get_short_id(), std::string(res));
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_SOURCE,
                                   "Failed to prepare source " + request->get_source()->CurrentLocation().str() + ": " + std::string(res));
@@ -495,7 +502,7 @@ namespace DataStaging {
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Preparing to stage destination", request->get_short_id());
       Arc::DataStatus res = request->get_destination()->PrepareWriting(0, dest_wait_time);
       if (!res.Passed()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to prepare destination", request->get_short_id());
+        request->get_logger()->msg(Arc::ERROR, "DTR %s: %s", request->get_short_id(), std::string(res));
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_DESTINATION,
                                   "Failed to prepare destination " + request->get_destination()->CurrentLocation().str() + ": " + std::string(res));
@@ -542,7 +549,8 @@ namespace DataStaging {
       res = request->get_source()->FinishReading(request->error() || request->cancel_requested());
       if (!res.Passed()) {
         // an error here is not critical to the transfer
-        request->get_logger()->msg(Arc::WARNING, "DTR %s: There was a problem during post-transfer source handling", request->get_short_id());
+        request->get_logger()->msg(Arc::WARNING, "DTR %s: There was a problem during post-transfer source handling: %s",
+                                   request->get_short_id(), std::string(res));
       }
     }
     if (request->get_destination()->IsStageable()) {
@@ -550,11 +558,12 @@ namespace DataStaging {
       res = request->get_destination()->FinishWriting(request->error() || request->cancel_requested());
       if (!res.Passed()) {
         if (request->error()) {
-          request->get_logger()->msg(Arc::WARNING, "DTR %s: There was a problem during post-transfer destination handling after error",
-                     request->get_short_id());
+          request->get_logger()->msg(Arc::WARNING, "DTR %s: There was a problem during post-transfer destination handling after error: %s",
+                                     request->get_short_id(), std::string(res));
         }
         else {
-          request->get_logger()->msg(Arc::ERROR, "DTR %s: Error with post-transfer destination handling", request->get_short_id());
+          request->get_logger()->msg(Arc::ERROR, "DTR %s: Error with post-transfer destination handling: %s",
+                                     request->get_short_id(), std::string(res));
           request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
                                                       DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                     DTRErrorStatus::ERROR_DESTINATION,
@@ -581,18 +590,23 @@ namespace DataStaging {
     // here will lead to dark data. Need to check for successful copy
     if (request->error() || request->cancel_requested()) {
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Removing pre-registered destination in index service", request->get_short_id());
-      if (!request->get_destination()->PreUnregister(request->is_replication()).Passed())
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to unregister pre-registered destination. You may need to unregister it manually: %s",
-                   request->get_short_id(), request->get_destination()->str());
+      Arc::DataStatus res = request->get_destination()->PreUnregister(request->is_replication());
+      if (!res.Passed()) {
+        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to unregister pre-registered destination %s: %s."
+                                   " You may need to unregister it manually", request->get_short_id(),
+                                   request->get_destination()->str(), std::string(res));
+      }
     }
     else {
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Registering destination replica", request->get_short_id());
       Arc::DataStatus res = request->get_destination()->PostRegister(request->is_replication());
       if (!res.Passed()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to register destination replica", request->get_short_id());
+        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to register destination replica: %s",
+                                   request->get_short_id(), std::string(res));
         if (!request->get_destination()->PreUnregister(request->is_replication()).Passed()) {
-          request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to unregister pre-registered destination. You may need to unregister it manually: %s",
-                     request->get_short_id(), request->get_destination()->str());
+          request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to unregister pre-registered destination %s."
+                                     " You may need to unregister it manually",
+                                     request->get_short_id(), request->get_destination()->str());
         }
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_DESTINATION,
