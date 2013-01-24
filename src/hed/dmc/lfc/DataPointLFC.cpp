@@ -250,7 +250,7 @@ using namespace Arc;
       return DataStatus(DataStatus::WriteResolveError, ETIMEDOUT);
     }
     lfc_r = args->result;
-    serrno = args->serrno_;
+    error_no = args->serrno_;
     delete args;
     int nentries = *nbentries;
     delete nbentries;
@@ -259,9 +259,9 @@ using namespace Arc;
     delete lfc_entries;
 
     if (lfc_r != 0) {
-      logger.msg(VERBOSE, "Error finding replicas: %s", sstrerror(serrno));
-      if (source) return DataStatus(DataStatus::ReadResolveError, lfc2errno());
-      return DataStatus(DataStatus::WriteResolveError, lfc2errno());
+      logger.msg(VERBOSE, "Error finding replicas: %s", sstrerror(error_no));
+      if (source) return DataStatus(DataStatus::ReadResolveError, lfc2errno(), lfcerr2str());
+      return DataStatus(DataStatus::WriteResolveError, lfc2errno(), lfcerr2str());
     }
     if (nentries == 0 || !entries) {
       // Even if file doesn't exist in LFC an entry should be returned
@@ -386,8 +386,8 @@ using namespace Arc;
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
                       const_cast<char*>("ARC")), url, error_no);
     if(lfc_r != 0) {
-      logger.msg(VERBOSE, "Error starting session: %s", sstrerror(serrno));
-      return DataStatus(DataStatus::PreRegisterError, lfc2errno());
+      logger.msg(VERBOSE, "Error starting session: %s", sstrerror(error_no));
+      return DataStatus(DataStatus::PreRegisterError, lfc2errno(), lfcerr2str());
     }
     if (!url.MetaDataOption("guid").empty()) {
       guid = url.MetaDataOption("guid");
@@ -402,21 +402,21 @@ using namespace Arc;
 
       // check error - if it is no such file or directory, try to create the
       // required dirs
-      if (serrno == ENOENT) {
+      if (error_no == ENOENT) {
         DataStatus r = CreateDirectory(true);
-        if (!r) return DataStatus(DataStatus::PreRegisterError, r.GetErrno());
+        if (!r) return DataStatus(DataStatus::PreRegisterError, r.GetErrno(), r.GetDesc());
 
         LFCLOCKINT(lfc_r,lfc_creatg(url.Path().c_str(), guid.c_str(),
                        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP), url, error_no);
-        if(lfc_r != 0 && serrno != EEXIST) {
-          logger.msg(VERBOSE, "Error creating LFC entry: %s", sstrerror(serrno));
+        if(lfc_r != 0 && error_no != EEXIST) {
+          logger.msg(VERBOSE, "Error creating LFC entry: %s", sstrerror(error_no));
           lfc_endsess();
-          return DataStatus(DataStatus::PreRegisterError, lfc2errno());
+          return DataStatus(DataStatus::PreRegisterError, lfc2errno(), lfcerr2str());
         }
       }
       // LFN may already exist, caused by 2 uploaders simultaneously uploading to the same LFN
       // ignore the error if force is true and get the previously registered guid 
-      else if (serrno == EEXIST && force) {
+      else if (error_no == EEXIST && force) {
         struct lfc_filestatg st;
         LFCLOCKINT(lfc_r,lfc_statg(url.Path().c_str(), NULL, &st), url, error_no);
         if(lfc_r == 0) {
@@ -426,15 +426,15 @@ using namespace Arc;
           return DataStatus::Success;
         }
         else {
-          logger.msg(VERBOSE, "Error finding info on LFC entry %s which should exist: %s", url.Path(), sstrerror(serrno));
+          logger.msg(VERBOSE, "Error finding info on LFC entry %s which should exist: %s", url.Path(), sstrerror(error_no));
           lfc_endsess();
           return DataStatus(DataStatus::PreRegisterError, lfc2errno(), "Error finding info on LFC entry which should exist");
         }
       }
       else {
-        logger.msg(VERBOSE, "Error creating LFC entry %s, guid %s: %s", url.Path(), guid, sstrerror(serrno));
+        logger.msg(VERBOSE, "Error creating LFC entry %s, guid %s: %s", url.Path(), guid, sstrerror(error_no));
         lfc_endsess();
-        return DataStatus(DataStatus::PreRegisterError, lfc2errno());
+        return DataStatus(DataStatus::PreRegisterError, lfc2errno(), lfcerr2str());
       }
     }
     if (CheckCheckSum()) {
@@ -453,13 +453,13 @@ using namespace Arc;
             LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(),
                                            const_cast<char*>(cksumvalue.c_str())), url, error_no);
             if(lfc_r != 0)
-              logger.msg(WARNING, "Error entering metadata: %s", sstrerror(serrno));
+              logger.msg(WARNING, "Error entering metadata: %s", sstrerror(error_no));
           }
           else {
             LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(),
                                            const_cast<char*>(cksumvalue.c_str())), url, error_no);
             if(lfc_r != 0)
-              logger.msg(WARNING, "Error entering metadata: %s", sstrerror(serrno));
+              logger.msg(WARNING, "Error entering metadata: %s", sstrerror(error_no));
           }
         }
         else
@@ -469,7 +469,7 @@ using namespace Arc;
     else if (CheckSize()) {
       LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL), url, error_no);
       if(lfc_r != 0)
-        logger.msg(WARNING, "Error entering metadata: %s", sstrerror(serrno));
+        logger.msg(WARNING, "Error entering metadata: %s", sstrerror(error_no));
     }
 
     lfc_endsess();
@@ -486,15 +486,15 @@ using namespace Arc;
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
                const_cast<char*>("ARC")), url, error_no);
     if(lfc_r != 0) {
-      logger.msg(VERBOSE, "Error starting session: %s", sstrerror(serrno));
-      return DataStatus(DataStatus::PostRegisterError, lfc2errno());
+      logger.msg(VERBOSE, "Error starting session: %s", sstrerror(error_no));
+      return DataStatus(DataStatus::PostRegisterError, lfc2errno(), lfcerr2str());
     }
     LFCLOCKINT(lfc_r,lfc_addreplica(guid.c_str(), NULL, CurrentLocation().Host().c_str(),
                                     CurrentLocation().plainstr().c_str(), '-', 'P', NULL, NULL), url, error_no);
     if(lfc_r != 0) {
-      logger.msg(VERBOSE, "Error adding replica: %s", sstrerror(serrno));
+      logger.msg(VERBOSE, "Error adding replica: %s", sstrerror(error_no));
       lfc_endsess();
-      return DataStatus(DataStatus::PostRegisterError, lfc2errno());
+      return DataStatus(DataStatus::PostRegisterError, lfc2errno(), lfcerr2str());
     }
     if (!replication && !registered) {
       if (CheckCheckSum()) {
@@ -514,13 +514,13 @@ using namespace Arc;
               LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(),
                                              const_cast<char*>(cksumvalue.c_str())), url, error_no);
               if(lfc_r != 0)
-                logger.msg(WARNING, "Error entering metadata: %s", sstrerror(serrno));
+                logger.msg(WARNING, "Error entering metadata: %s", sstrerror(error_no));
             }
             else {
               LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(),
                                              const_cast<char*>(cksumvalue.c_str())), url, error_no);
               if(lfc_r != 0)
-                logger.msg(WARNING, "Error entering metadata: %s", sstrerror(serrno));
+                logger.msg(WARNING, "Error entering metadata: %s", sstrerror(error_no));
             }
           }
           else
@@ -530,7 +530,7 @@ using namespace Arc;
       else if (CheckSize()) {
         LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL), url, error_no);
         if(lfc_r != 0)
-          logger.msg(WARNING, "Error entering metadata: %s", sstrerror(serrno));
+          logger.msg(WARNING, "Error entering metadata: %s", sstrerror(error_no));
       }
     }
     lfc_endsess();
@@ -545,8 +545,8 @@ using namespace Arc;
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
                       const_cast<char*>("ARC")), url, error_no);
     if(lfc_r != 0) {
-      logger.msg(VERBOSE, "Error starting session: %s", sstrerror(serrno));
-      return DataStatus(DataStatus::UnregisterError, lfc2errno());
+      logger.msg(VERBOSE, "Error starting session: %s", sstrerror(error_no));
+      return DataStatus(DataStatus::UnregisterError, lfc2errno(), lfcerr2str());
     }
     std::string path = ResolveGUIDToLFN();
     if (path.empty()) {
@@ -555,10 +555,10 @@ using namespace Arc;
     }
     LFCLOCKINT(lfc_r,lfc_unlink(path.c_str()), url, error_no);
     if(lfc_r != 0)
-      if ((serrno != ENOENT) && (serrno != ENOTDIR)) {
+      if ((error_no != ENOENT) && (error_no != ENOTDIR)) {
         logger.msg(VERBOSE, "Failed to remove LFN in LFC - You may need to do it by hand");
         lfc_endsess();
-        return DataStatus(DataStatus::UnregisterError, lfc2errno());
+        return DataStatus(DataStatus::UnregisterError, lfc2errno(), lfcerr2str());
       }
     lfc_endsess();
     return DataStatus::Success;
@@ -574,8 +574,8 @@ using namespace Arc;
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
                       const_cast<char*>("ARC")), url, error_no);
     if(lfc_r != 0) {
-      logger.msg(VERBOSE, "Error starting session: %s", sstrerror(serrno));
-      return DataStatus(DataStatus::UnregisterError, lfc2errno());
+      logger.msg(VERBOSE, "Error starting session: %s", sstrerror(error_no));
+      return DataStatus(DataStatus::UnregisterError, lfc2errno(), lfcerr2str());
     }
     std::string path = ResolveGUIDToLFN();
     if (path.empty()) {
@@ -594,37 +594,37 @@ using namespace Arc;
           return DataStatus::Success;
         }
         logger.msg(VERBOSE, "Error getting replicas: %s", sstrerror(error_no));
-        return DataStatus(DataStatus::UnregisterError, lfc2errno());
+        return DataStatus(DataStatus::UnregisterError, lfc2errno(), lfcerr2str());
       }
       for (int n = 0; n < nbentries; n++) {
         LFCLOCKINT(lfc_r,lfc_delreplica(guid.c_str(), NULL, entries[n].sfn), url, error_no);
         if(lfc_r != 0) {
-          if (serrno == ENOENT)
+          if (error_no == ENOENT)
             continue;
           lfc_endsess();
           logger.msg(VERBOSE, "Failed to remove location from LFC: %s", sstrerror(error_no));
-          return DataStatus(DataStatus::UnregisterError, lfc2errno());
+          return DataStatus(DataStatus::UnregisterError, lfc2errno(), lfcerr2str());
         }
       }
       LFCLOCKINT(lfc_r,lfc_unlink(path.c_str()), url, error_no);
       if(lfc_r != 0) {
-        if (serrno == EPERM) { // we have a directory
+        if (error_no == EPERM) { // we have a directory
           LFCLOCKINT(lfc_r,lfc_rmdir(path.c_str()), url, error_no);
           if(lfc_r != 0) {
-            if (serrno == EEXIST) { // still files in the directory
+            if (error_no == EEXIST) { // still files in the directory
               logger.msg(VERBOSE, "Failed to remove LFC directory: directory is not empty");
               lfc_endsess();
               return DataStatus(DataStatus::UnregisterError, ENOTEMPTY);
             }
-            logger.msg(VERBOSE, "Failed to remove LFC directory: %s", sstrerror(serrno));
+            logger.msg(VERBOSE, "Failed to remove LFC directory: %s", sstrerror(error_no));
             lfc_endsess();
-            return DataStatus(DataStatus::UnregisterError, lfc2errno());
+            return DataStatus(DataStatus::UnregisterError, lfc2errno(), lfcerr2str());
           }
         }
-        else if ((serrno != ENOENT) && (serrno != ENOTDIR)) {
-          logger.msg(VERBOSE, "Failed to remove LFN in LFC: %s", sstrerror(serrno));
+        else if ((error_no != ENOENT) && (error_no != ENOTDIR)) {
+          logger.msg(VERBOSE, "Failed to remove LFN in LFC: %s", sstrerror(error_no));
           lfc_endsess();
-          return DataStatus(DataStatus::UnregisterError, lfc2errno());
+          return DataStatus(DataStatus::UnregisterError, lfc2errno(), lfcerr2str());
         }
       }
       registered = false;
@@ -633,8 +633,8 @@ using namespace Arc;
       LFCLOCKINT(lfc_r,lfc_delreplica(guid.c_str(), NULL, CurrentLocation().plainstr().c_str()), url, error_no);
       if(lfc_r != 0) {
         lfc_endsess();
-        logger.msg(VERBOSE, "Failed to remove location from LFC: %s", sstrerror(serrno));
-        return DataStatus(DataStatus::UnregisterError, lfc2errno());
+        logger.msg(VERBOSE, "Failed to remove location from LFC: %s", sstrerror(error_no));
+        return DataStatus(DataStatus::UnregisterError, lfc2errno(), lfcerr2str());
       }
     }
     lfc_endsess();
@@ -678,8 +678,8 @@ using namespace Arc;
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
                       const_cast<char*>("ARC")), url, error_no);
     if(lfc_r != 0) {
-      logger.msg(VERBOSE, "Error starting session: %s", sstrerror(serrno));
-      return DataStatus(DataStatus::ListError, lfc2errno());
+      logger.msg(VERBOSE, "Error starting session: %s", sstrerror(error_no));
+      return DataStatus(DataStatus::ListError, lfc2errno(), lfcerr2str());
     }
     std::string path = ResolveGUIDToLFN();
     if (path.empty()) {
@@ -691,9 +691,9 @@ using namespace Arc;
 
     LFCLOCKINT(lfc_r,lfc_statg(path.c_str(), NULL, &st), url, error_no);
     if(lfc_r != 0) {
-      logger.msg(VERBOSE, "Error listing file or directory: %s", sstrerror(serrno));
+      logger.msg(VERBOSE, "Error listing file or directory: %s", sstrerror(error_no));
       lfc_endsess();
-      return DataStatus(DataStatus::ListError, lfc2errno());
+      return DataStatus(DataStatus::ListError, lfc2errno(), lfcerr2str());
     }
 
     if (listdir) {
@@ -711,7 +711,7 @@ using namespace Arc;
         logger.msg(VERBOSE, "Error opening directory: %s", sstrerror(serrno));
         error_no = serrno;
         lfc_endsess();
-        return DataStatus(DataStatus::ListError, lfc2errno());
+        return DataStatus(DataStatus::ListError, lfc2errno(), lfcerr2str());
       }
 
       // list entries. If not long list use readdir
@@ -751,7 +751,7 @@ using namespace Arc;
         int err = lfc2errno();
         LFCLOCKINT(lfc_r,lfc_closedir(dir), url, error_no);
         lfc_endsess();
-        return DataStatus(DataStatus::ListError, err);
+        return DataStatus(DataStatus::ListError, err, sstrerror(err));
       }
 
       // if we want to resolve replicas call readdirxr
@@ -785,7 +785,7 @@ using namespace Arc;
           int err = lfc2errno();
           LFCLOCKINT(lfc_r,lfc_closedir(dir), url, error_no);
           lfc_endsess();
-          return DataStatus(DataStatus::ListError, err);
+          return DataStatus(DataStatus::ListError, err, sstrerror(err));
         }
       }
       LFCLOCKINT(lfc_r,lfc_closedir(dir), url, error_no);
@@ -814,9 +814,9 @@ using namespace Arc;
 
         LFCLOCKINT(lfc_r,lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries), url, error_no);
         if(lfc_r != 0) {
-          logger.msg(VERBOSE, "Error listing replicas: %s", sstrerror(serrno));
+          logger.msg(VERBOSE, "Error listing replicas: %s", sstrerror(error_no));
           lfc_endsess();
-          return DataStatus(DataStatus::ListError, lfc2errno());
+          return DataStatus(DataStatus::ListError, lfc2errno(), lfcerr2str());
         }
         for (int n = 0; n < nbentries; n++)
           f->AddURL(URL(std::string(entries[n].sfn)));
@@ -865,11 +865,11 @@ using namespace Arc;
 
       logger.msg(VERBOSE, "Creating LFC directory %s", dirname);
       LFCLOCKINT(lfc_r,lfc_mkdir(dirname.c_str(), 0775), url, error_no);
-      if (lfc_r == 0 || serrno == EEXIST) return DataStatus::Success;
+      if (lfc_r == 0 || error_no == EEXIST) return DataStatus::Success;
 
-      logger.msg(VERBOSE, "Error creating required LFC dirs: %s", sstrerror(serrno));
+      logger.msg(VERBOSE, "Error creating required LFC dirs: %s", sstrerror(error_no));
       lfc_endsess();
-      return DataStatus(DataStatus::CreateDirectoryError, lfc2errno());
+      return DataStatus(DataStatus::CreateDirectoryError, lfc2errno(), lfcerr2str());
     }
     while (slashpos != std::string::npos) {
       std::string dirname = url.Path().substr(0, slashpos);
@@ -884,10 +884,10 @@ using namespace Arc;
       logger.msg(VERBOSE, "Creating LFC directory %s", dirname);
       LFCLOCKINT(lfc_r,lfc_mkdir(dirname.c_str(), 0775), url, error_no);
       if(lfc_r != 0)
-        if (serrno != EEXIST) {
-          logger.msg(VERBOSE, "Error creating required LFC dirs: %s", sstrerror(serrno));
+        if (error_no != EEXIST) {
+          logger.msg(VERBOSE, "Error creating required LFC dirs: %s", sstrerror(error_no));
           lfc_endsess();
-          return DataStatus(DataStatus::CreateDirectoryError, lfc2errno());
+          return DataStatus(DataStatus::CreateDirectoryError, lfc2errno(), lfcerr2str());
         }
       slashpos = url.Path().find("/", slashpos + 1);
     }
@@ -910,8 +910,8 @@ using namespace Arc;
     int lfc_r;
     LFCLOCKINT(lfc_r, lfc_rename(path.c_str(), newurl.Path().c_str()), url, error_no);
     if (lfc_r != 0) {
-      logger.msg(VERBOSE, "Error renaming %s to %s: %s", path, newurl.Path(), sstrerror(serrno));
-      return DataStatus(DataStatus::RenameError, lfc2errno());
+      logger.msg(VERBOSE, "Error renaming %s to %s: %s", path, newurl.Path(), sstrerror(error_no));
+      return DataStatus(DataStatus::RenameError, lfc2errno(), lfcerr2str());
     }
     return DataStatus::Success;
   }
@@ -1043,7 +1043,7 @@ using namespace Arc;
       return DataStatus(DataStatus::ReadResolveError, ETIMEDOUT);
     }
     lfc_r = args->result;
-    serrno = args->serrno_;
+    error_no = args->serrno_;
     delete args;
     int nentries = *nbentries;
     delete nbentries;
@@ -1052,8 +1052,8 @@ using namespace Arc;
     delete lfc_entries;
 
     if(lfc_r != 0) {
-      logger.msg(VERBOSE, "Error finding replicas: %s", sstrerror(serrno));
-      return DataStatus(DataStatus::ReadResolveError, lfc2errno());
+      logger.msg(VERBOSE, "Error finding replicas: %s", sstrerror(error_no));
+      return DataStatus(DataStatus::ReadResolveError, lfc2errno(), lfcerr2str());
     }
     if (nentries == 0 || !entries) {
       logger.msg(VERBOSE, "Bulk resolve returned no entries");
@@ -1155,6 +1155,13 @@ using namespace Arc;
       default:
         return EARCSVCPERM;
     }
+  }
+
+  std::string DataPointLFC::lfcerr2str() const {
+    // Only LFC-specific error codes are of interest - the rest just repeat
+    // information already given by errno
+    if (error_no < SEBASEOFF) return "";
+    return sstrerror(error_no);
   }
 
 } // namespace Arc

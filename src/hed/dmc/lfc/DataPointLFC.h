@@ -51,6 +51,8 @@ namespace ArcDMCLFC {
     int error_no;
     /// Convert serrno to Arc::DataStatus errno
     int lfc2errno() const;
+    /// Convert serrno to string, only if it is not a regular errno.
+    std::string lfcerr2str() const;
     Arc::DataStatus ListFiles(std::list<Arc::FileInfo>& files, Arc::DataPoint::DataPointInfoType verb, bool listdir);
 
   };
