@@ -91,7 +91,6 @@ namespace ArcDMCSRM {
           _request_timeout(60),
           _total_size(0),
           _long_list(false),
-          _error_loglevel(Arc::ERROR),
           _recursion(0),
           _offset(0),
           _count(0) {
@@ -116,7 +115,6 @@ namespace ArcDMCSRM {
           _request_timeout(60),
           _total_size(0),
           _long_list(false),
-          _error_loglevel(Arc::ERROR),
           _recursion(0),
           _offset(0),
           _count(0) {
@@ -190,9 +188,6 @@ namespace ArcDMCSRM {
     void long_list(bool list) { _long_list = list; }
     bool long_list() const { return _long_list; }
 
-    void error_loglevel(Arc::LogLevel level) { _error_loglevel = level; }
-    Arc::LogLevel error_loglevel() const { return _error_loglevel; }
-
     void transport_protocols(const std::list<std::string>& protocols) { _transport_protocols = protocols; }
     std::list<std::string> transport_protocols() const { return _transport_protocols; }
 
@@ -247,10 +242,6 @@ namespace ArcDMCSRM {
 
     /// Whether a detailed listing is requested
     bool _long_list;
-
-    /// Error LogLevel. This can be changed when errors should not be reported
-    /// at ERROR level
-    Arc::LogLevel _error_loglevel;
 
     /// List of requested transport protocols
     std::list<std::string> _transport_protocols;

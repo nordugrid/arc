@@ -48,20 +48,20 @@ namespace ArcDMCSRM {
 
   DataStatus DataPointSRM::Check(bool check_meta) {
 
-    bool timedout;
-    SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
+    std::string error;
+    SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), error);
     if (!client) {
-      return DataStatus(DataStatus::CheckError, timedout ? ETIMEDOUT : ECONNREFUSED);
+      return DataStatus(DataStatus::CheckError, ECONNREFUSED, error);
     }
 
     SRMClientRequest srm_request_tmp(CanonicSRMURL(url));
     
     // first check permissions
-    SRMReturnCode res = client->checkPermissions(srm_request_tmp);
+    DataStatus res = client->checkPermissions(srm_request_tmp);
 
-    if (res != 0 && res != EOPNOTSUPP) {
+    if (!res && res.GetErrno() != EOPNOTSUPP) {
       delete client;
-      return DataStatus(DataStatus::CheckError, res);
+      return res;
     }
     if (check_meta) {
       logger.msg(VERBOSE, "Check: looking for metadata: %s", CurrentLocation().str());
@@ -72,7 +72,7 @@ namespace ArcDMCSRM {
       delete client;
       client = NULL;
 
-      if (res != 0) return DataStatus(DataStatus::CheckError, res);
+      if (!res) return DataStatus(DataStatus::CheckError, res.GetErrno(), res.GetDesc());
 
       if (metadata.empty()) return DataStatus(DataStatus::CheckError, EARCRESINVAL, "No results returned");
       if (metadata.front().size > 0) {
@@ -98,16 +98,19 @@ namespace ArcDMCSRM {
         SetAccessLatency(ACCESS_LATENCY_LARGE);
       }
     }
+    else {
+      delete client;
+    }
 
     return DataStatus::Success;
   }
 
   DataStatus DataPointSRM::Remove() {
 
-    bool timedout;
-    SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
+    std::string error;
+    SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), error);
     if (!client) {
-      return DataStatus(DataStatus::DeleteError, timedout ? ETIMEDOUT : ECONNREFUSED);
+      return DataStatus(DataStatus::DeleteError, ECONNREFUSED, error);
     }
 
     // take out options in srm url and encode path
@@ -115,20 +118,19 @@ namespace ArcDMCSRM {
 
     logger.msg(VERBOSE, "Remove: deleting: %s", CurrentLocation().str());
 
-    SRMReturnCode res = client->remove(srm_request_tmp);
+    DataStatus res = client->remove(srm_request_tmp);
     delete client;
     client = NULL;
 
-    if (res != 0) return DataStatus(DataStatus::DeleteError, res);
-    return DataStatus::Success;
+    return res;
   }
 
   DataStatus DataPointSRM::CreateDirectory(bool with_parents) {
 
-    bool timedout;
-    SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
+    std::string error;
+    SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), error);
     if (!client) {
-      return DataStatus(DataStatus::CreateDirectoryError, timedout ? ETIMEDOUT : ECONNREFUSED);
+      return DataStatus(DataStatus::CreateDirectoryError, ECONNREFUSED, error);
     }
 
     // take out options in srm url and encode path
@@ -136,20 +138,19 @@ namespace ArcDMCSRM {
 
     logger.msg(VERBOSE, "Creating directory: %s", CanonicSRMURL(url));
 
-    SRMReturnCode res = client->mkDir(request);
+    DataStatus res = client->mkDir(request);
     delete client;
     client = NULL;
 
-    if (res != 0) return DataStatus(DataStatus::CreateDirectoryError, res);
-    return DataStatus::Success;
+    return res;
   }
 
   DataStatus DataPointSRM::Rename(const URL& newurl) {
 
-    bool timedout;
-    SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
+    std::string error;
+    SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), error);
     if (!client) {
-      return DataStatus(DataStatus::RenameError, timedout ? ETIMEDOUT : ECONNREFUSED);
+      return DataStatus(DataStatus::RenameError, ECONNREFUSED, error);
     }
 
     // take out options in srm urls and encode paths
@@ -158,12 +159,11 @@ namespace ArcDMCSRM {
 
     logger.msg(VERBOSE, "Renaming %s to %s", CanonicSRMURL(url), canonic_newurl.str());
 
-    SRMReturnCode res = client->rename(request, canonic_newurl);
+    DataStatus res = client->rename(request, canonic_newurl);
     delete client;
     client = NULL;
 
-    if (res != 0) return DataStatus(DataStatus::RenameError, res);
-    return DataStatus::Success;
+    return res;
   }
 
   DataStatus DataPointSRM::PrepareReading(unsigned int stage_timeout,
@@ -174,8 +174,8 @@ namespace ArcDMCSRM {
     reading = true;
     turls.clear();
     std::list<std::string> transport_urls;
-    SRMReturnCode res;
-    bool timedout;
+    DataStatus res;
+    std::string error;
 
     // choose transfer procotols
     std::list<std::string> transport_protocols;
@@ -191,19 +191,19 @@ namespace ArcDMCSRM {
           reading = false;
           return DataStatus(DataStatus::ReadPrepareError, EARCLOGIC, "File is already prepared");
         }
-        SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
+        SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), error);
         if (!client) {
           reading = false;
-          return DataStatus(DataStatus::ReadPrepareError, timedout ? ETIMEDOUT : ECONNREFUSED);
+          return DataStatus(DataStatus::ReadPrepareError, ECONNREFUSED, error);
         }
         res = client->requestBringOnlineStatus(*srm_request);
         delete client;
       }
       // if no existing request, make a new request
       else {
-        SRMClient* client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
+        SRMClient* client = SRMClient::getInstance(usercfg, url.fullstr(), error);
         if (!client) {
-          return DataStatus(DataStatus::ReadPrepareError, timedout ? ETIMEDOUT : ECONNREFUSED);
+          return DataStatus(DataStatus::ReadPrepareError, ECONNREFUSED, error);
         }
 
         // take out options in srm url and encode path
@@ -214,7 +214,7 @@ namespace ArcDMCSRM {
         res = client->requestBringOnline(*srm_request);
         delete client;
       }
-      if (res != 0) return DataStatus(DataStatus::ReadPrepareError, res);
+      if (!res) return res;
 
       if (srm_request->status() == SRM_REQUEST_ONGOING) {
         // request is not finished yet
@@ -243,18 +243,18 @@ namespace ArcDMCSRM {
         logger.msg(VERBOSE, "Calling PrepareReading when request was already prepared!");
         return DataStatus(DataStatus::ReadPrepareError, EARCLOGIC, "File is already prepared");
       }
-      SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
+      SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), error);
       if (!client) {
-        return DataStatus(DataStatus::ReadPrepareError, timedout ? ETIMEDOUT : ECONNREFUSED);
+        return DataStatus(DataStatus::ReadPrepareError, ECONNREFUSED, error);
       }
       res = client->getTURLsStatus(*srm_request, transport_urls);
       delete client;
     }
     // if no existing request, make a new request
     else {
-      SRMClient* client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
+      SRMClient* client = SRMClient::getInstance(usercfg, url.fullstr(), error);
       if (!client) {
-        return DataStatus(DataStatus::ReadPrepareError, timedout ? ETIMEDOUT : ECONNREFUSED);
+        return DataStatus(DataStatus::ReadPrepareError, ECONNREFUSED, error);
       }
       delete srm_request;
 
@@ -270,7 +270,7 @@ namespace ArcDMCSRM {
       res = client->getTURLs(*srm_request, transport_urls);
       delete client;
     }
-    if (res != 0) return DataStatus(DataStatus::ReadPrepareError, res);
+    if (!res) return res;
 
     if (srm_request->status() == SRM_REQUEST_ONGOING) {
       // request is not finished yet
@@ -363,12 +363,12 @@ namespace ArcDMCSRM {
     reading = false;
 
     if (srm_request) {
-      bool timedout;
-      SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
+      std::string err;
+      SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), err);
       // if the request finished with an error there is no need to abort or release request
       if (client && (srm_request->status() != SRM_REQUEST_FINISHED_ERROR)) {
         if (error || srm_request->status() == SRM_REQUEST_SHOULD_ABORT) {
-          client->abort(*srm_request);
+          client->abort(*srm_request, true);
         } else if (srm_request->status() == SRM_REQUEST_FINISHED_SUCCESS) {
           client->releaseGet(*srm_request);
         }
@@ -390,8 +390,8 @@ namespace ArcDMCSRM {
     writing = true;
     turls.clear();
     std::list<std::string> transport_urls;
-    SRMReturnCode res;
-    bool timedout;
+    DataStatus res;
+    std::string error;
 
     // choose transfer procotols
     std::list<std::string> transport_protocols;
@@ -404,18 +404,18 @@ namespace ArcDMCSRM {
         logger.msg(VERBOSE, "Calling PrepareWriting when request was already prepared!");
         return DataStatus(DataStatus::WritePrepareError, EARCLOGIC, "File was already prepared");
       }
-      SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
+      SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), error);
       if (!client) {
-        return DataStatus(DataStatus::WritePrepareError, timedout ? ETIMEDOUT : ECONNREFUSED);
+        return DataStatus(DataStatus::WritePrepareError, ECONNREFUSED, error);
       }
       res = client->putTURLsStatus(*srm_request, transport_urls);
       delete client;
     }
     // if no existing request, make a new request
     else {
-      SRMClient* client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
+      SRMClient* client = SRMClient::getInstance(usercfg, url.fullstr(), error);
       if (!client) {
-        return DataStatus(DataStatus::WritePrepareError, timedout ? ETIMEDOUT : ECONNREFUSED);
+        return DataStatus(DataStatus::WritePrepareError, ECONNREFUSED, error);
       }
       delete srm_request;
 
@@ -445,13 +445,13 @@ namespace ArcDMCSRM {
           // get token from SRM that matches description
           // errors with space tokens now cause the transfer to fail - see bug 2061
           std::list<std::string> tokens;
-          SRMReturnCode token_res = client->getSpaceTokens(tokens, space_token);
-          if (token_res != 0) {
+          DataStatus token_res = client->getSpaceTokens(tokens, space_token);
+          if (!token_res) {
             logger.msg(VERBOSE, "Error looking up space tokens matching description %s", space_token);
             delete client;
             delete srm_request;
             srm_request = NULL;
-            return DataStatus(DataStatus::WritePrepareError, token_res, "Error looking up space tokens matching description");
+            return DataStatus(DataStatus::WritePrepareError, token_res.GetErrno(), "Error looking up space tokens matching description");
           }
           if (tokens.empty()) {
             logger.msg(VERBOSE, "No space tokens found matching description %s", space_token);
@@ -472,7 +472,7 @@ namespace ArcDMCSRM {
       delete client;
     }
 
-    if (res != 0) return DataStatus(DataStatus::WritePrepareError, res);
+    if (!res) return res;
 
     if (srm_request->status() == SRM_REQUEST_ONGOING) {
       // request is not finished yet
@@ -570,15 +570,14 @@ namespace ArcDMCSRM {
 
     // if the request finished with an error there is no need to abort or release request
     if (srm_request) {
-      bool timedout;
-      SRMClient * client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
+      std::string err;
+      SRMClient * client = SRMClient::getInstance(usercfg, url.fullstr(), err);
       if (client && (srm_request->status() != SRM_REQUEST_FINISHED_ERROR)) {
         // call abort if failure, or releasePut on success
         if (error || srm_request->status() == SRM_REQUEST_SHOULD_ABORT) {
-           client->abort(*srm_request);
+           client->abort(*srm_request, false);
            // according to the spec the SURL may or may not exist after abort
-           // so silence error messages from trying to delete
-           srm_request->error_loglevel(VERBOSE);
+           // so remove may fail, however it is not an error
            client->remove(*srm_request);
         }
         else {
@@ -596,13 +595,13 @@ namespace ArcDMCSRM {
                 SRMClientRequest list_request(srm_request->surls());
                 list_request.long_list(true);
                 std::list<struct SRMFileMetaData> metadata;
-                SRMReturnCode res = client->info(list_request,metadata);
-                if (res != 0) {
-                  client->abort(*srm_request); // if we can't list then we can't remove either
+                DataStatus res = client->info(list_request,metadata);
+                if (!res) {
+                  client->abort(*srm_request, false); // if we can't list then we can't remove either
                   delete client;
                   delete srm_request;
                   srm_request = NULL;
-                  return DataStatus(DataStatus::WriteFinishError, res);
+                  return DataStatus(DataStatus::WriteFinishError, res.GetErrno(), res.GetDesc());
                 }
                 if (!metadata.empty()) {
                   if (metadata.front().checkSumValue.length() > 0 &&
@@ -625,17 +624,16 @@ namespace ArcDMCSRM {
           }
           if (r.Passed()) {
             if (srm_request->status() == SRM_REQUEST_FINISHED_SUCCESS) {
-              SRMReturnCode res = client->releasePut(*srm_request);
-              if (res != 0) {
+              DataStatus res = client->releasePut(*srm_request);
+              if (!res) {
                 logger.msg(VERBOSE, "Failed to release completed request");
-                r = DataStatus(DataStatus::WriteFinishError, res, "Failed to release completed request");
+                r = DataStatus(DataStatus::WriteFinishError, res.GetErrno(), "Failed to release completed request");
               }
             }
           } else {
-            client->abort(*srm_request);
+            client->abort(*srm_request, false);
             // according to the spec the SURL may or may not exist after abort
-            // so silence error messages from trying to delete
-            srm_request->error_loglevel(VERBOSE);
+            // so remove may fail, however it is not an error
             client->remove(*srm_request);
           }
         }
@@ -663,10 +661,10 @@ namespace ArcDMCSRM {
 
     if (urls.empty()) return DataStatus::Success;
 
-    bool timedout;
-    SRMClient * client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
+    std::string error;
+    SRMClient * client = SRMClient::getInstance(usercfg, url.fullstr(), error);
     if(!client) {
-      return DataStatus(DataStatus::StatError, timedout ? ETIMEDOUT : ECONNREFUSED);
+      return DataStatus(DataStatus::StatError, ECONNREFUSED, error);
     }
 
     std::list<std::string> surls;
@@ -681,11 +679,9 @@ namespace ArcDMCSRM {
     std::map<std::string, std::list<struct SRMFileMetaData> > metadata_map;
 
     // get info from SRM
-    SRMReturnCode res = client->info(srm_request_tmp, metadata_map);
+    DataStatus res = client->info(srm_request_tmp, metadata_map);
     delete client;
-    if (res != 0) {
-      return DataStatus(DataStatus::StatError, res);
-    }
+    if (!res) return DataStatus(DataStatus::StatError, res.GetErrno(), res.GetDesc());
 
     for (std::list<DataPoint*>::const_iterator dp = urls.begin(); dp != urls.end(); ++dp) {
 
@@ -732,10 +728,10 @@ namespace ArcDMCSRM {
     // This method does not use any dynamic members of this object. Hence
     // it can be executed even while reading or writing
 
-    bool timedout;
-    SRMClient * client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
+    std::string error;
+    SRMClient * client = SRMClient::getInstance(usercfg, url.fullstr(), error);
     if(!client) {
-      return DataStatus(DataStatus::ListError, timedout ? ETIMEDOUT : ECONNREFUSED);
+      return DataStatus(DataStatus::ListError, ECONNREFUSED, error);
     }
 
     SRMClientRequest srm_request_tmp(CanonicSRMURL(url));
@@ -746,11 +742,9 @@ namespace ArcDMCSRM {
     std::list<struct SRMFileMetaData> srm_metadata;
 
     // get info from SRM
-    SRMReturnCode res = client->info(srm_request_tmp, srm_metadata);
+    DataStatus res = client->info(srm_request_tmp, srm_metadata);
     delete client;
-    if (res != 0) {
-      return DataStatus(DataStatus::ListError, res);
-    }
+    if (!res) return res;
 
     if (srm_metadata.empty()) {
       return DataStatus::Success;

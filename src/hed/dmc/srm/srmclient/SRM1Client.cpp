@@ -26,8 +26,8 @@ namespace ArcDMCSRM {
 
   SRM1Client::~SRM1Client() {}
 
-  SRMReturnCode SRM1Client::getTURLs(SRMClientRequest& creq,
-                                     std::list<std::string>& urls) {
+  DataStatus SRM1Client::getTURLs(SRMClientRequest& creq,
+                                  std::list<std::string>& urls) {
     SRMURL srmurl(creq.surls().front());
     std::list<int> file_ids;
 
@@ -47,14 +47,14 @@ namespace ArcDMCSRM {
     arg1node.NewChild("item") = "ftp";
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("get", &request, &response);
-    if (status != 0) return ECONNREFUSED;
+    DataStatus status = process("get", &request, &response);
+    if (!status) return DataStatus(DataStatus::ReadPrepareError, status.GetErrno(), status.GetDesc());
 
     XMLNode result = (*response)["getResponse"]["Result"];
     if (!result) {
-      logger.msg(INFO, "SRM did not return any information");
+      logger.msg(VERBOSE, "SRM did not return any information");
       delete response;
-      return EARCRESINVAL;
+      return DataStatus(DataStatus::ReadPrepareError, EARCRESINVAL, "SRM did not return any information");
     }
 
     std::string request_state = (std::string)result["state"];
@@ -87,13 +87,13 @@ namespace ArcDMCSRM {
       delete response;
       response = NULL;
       status = process("getRequestStatus", &request, &response);
-      if (status != 0) return ECONNREFUSED;
+      if (!status) return DataStatus(DataStatus::ReadPrepareError, status.GetErrno(), status.GetDesc());
 
       result = (*response)["getRequestStatusResponse"]["Result"];
       if (!result) {
-        logger.msg(INFO, "SRM did not return any information");
+        logger.msg(VERBOSE, "SRM did not return any information");
         delete response;
-        return EARCRESINVAL;
+        return DataStatus(DataStatus::ReadPrepareError, EARCRESINVAL, "SRM did not return any information");
       }
 
       request_state = (std::string)result["state"];
@@ -101,12 +101,12 @@ namespace ArcDMCSRM {
 
     creq.file_ids(file_ids);
     delete response;
-    if (urls.empty()) return EARCRESINVAL;
-    return acquire(creq, urls);
+    if (urls.empty()) return DataStatus(DataStatus::ReadPrepareError, EARCRESINVAL, "SRM did not return any TURLs");
+    return acquire(creq, urls, true);
   }
 
-  SRMReturnCode SRM1Client::putTURLs(SRMClientRequest& creq,
-                                     std::list<std::string>& urls) {
+  DataStatus SRM1Client::putTURLs(SRMClientRequest& creq,
+                                  std::list<std::string>& urls) {
     SRMURL srmurl(creq.surls().front());
     std::list<int> file_ids;
 
@@ -138,14 +138,14 @@ namespace ArcDMCSRM {
     arg4node.NewChild("item") = "ftp";
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("put", &request, &response);
-    if (status != 0) return status;
+    DataStatus status = process("put", &request, &response);
+    if (!status) return DataStatus(DataStatus::WritePrepareError, status.GetErrno(), status.GetDesc());
 
     XMLNode result = (*response)["putResponse"]["Result"];
     if (!result) {
-      logger.msg(INFO, "SRM did not return any information");
+      logger.msg(VERBOSE, "SRM did not return any information");
       delete response;
-      return EARCRESINVAL;
+      return DataStatus(DataStatus::WritePrepareError, EARCRESINVAL, "SRM did not return any information");
     }
 
     std::string request_state = (std::string)result["state"];
@@ -178,13 +178,13 @@ namespace ArcDMCSRM {
       delete response;
       response = NULL;
       status = process("getRequestStatus", &request, &response);
-      if (status != 0) return status;
+      if (!status) return DataStatus(DataStatus::WritePrepareError, status.GetErrno(), status.GetDesc());
 
       result = (*response)["getRequestStatusResponse"]["Result"];
       if (!result) {
-        logger.msg(INFO, "SRM did not return any information");
+        logger.msg(VERBOSE, "SRM did not return any information");
         delete response;
-        return EARCRESINVAL;
+        return DataStatus(DataStatus::WritePrepareError, EARCRESINVAL, "SRM did not return any information");
       }
 
       request_state = (std::string)result["state"];
@@ -192,12 +192,12 @@ namespace ArcDMCSRM {
 
     creq.file_ids(file_ids);
     delete response;
-    if (urls.empty()) return EARCRESINVAL;
-    return acquire(creq, urls);
+    if (urls.empty()) return DataStatus(DataStatus::ReadPrepareError, EARCRESINVAL, "SRM did not return any TURLs");
+    return acquire(creq, urls, false);
   }
 
-  SRMReturnCode SRM1Client::copy(SRMClientRequest& creq,
-                                 const std::string& source) {
+  DataStatus SRM1Client::copy(SRMClientRequest& creq,
+                              const std::string& source) {
     SRMURL srmurl(creq.surls().front());
     std::list<int> file_ids;
 
@@ -217,14 +217,14 @@ namespace ArcDMCSRM {
     arg2node.NewChild("item") = "false";
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("copy", &request, &response);
+    DataStatus status = process("copy", &request, &response);
     if (status != 0) return status;
 
     XMLNode result = (*response)["copyResponse"]["Result"];
     if (!result) {
-      logger.msg(INFO, "SRM did not return any information");
+      logger.msg(VERBOSE, "SRM did not return any information");
       delete response;
-      return EARCRESINVAL;
+      return DataStatus(DataStatus::TransferError, EARCRESINVAL, "SRM did not return any information");
     }
 
     std::string request_state = (std::string)result["state"];
@@ -260,22 +260,23 @@ namespace ArcDMCSRM {
 
       result = (*response)["getRequestStatusResponse"]["Result"];
       if (!result) {
-        logger.msg(INFO, "SRM did not return any information");
+        logger.msg(VERBOSE, "SRM did not return any information");
         delete response;
-        return EARCRESINVAL;
+        return DataStatus(DataStatus::TransferError, EARCRESINVAL, "SRM did not return any information");
       }
 
       request_state = (std::string)result["state"];
     }
 
     delete response;
-    if (file_ids.empty()) return EARCRESINVAL;
+    if (file_ids.empty()) return DataStatus(DataStatus::TransferError, EARCRESINVAL, "SRM did not return any file IDs");
     creq.file_ids(file_ids);
-    return release(creq);
+    return release(creq, true);
   }
 
-  SRMReturnCode SRM1Client::acquire(SRMClientRequest& creq,
-                                    std::list<std::string>& urls) {
+  DataStatus SRM1Client::acquire(SRMClientRequest& creq,
+                                 std::list<std::string>& urls,
+                                 bool source) {
     std::list<int> file_ids = creq.file_ids();
 
     // Tell server to move files into "Running" state
@@ -298,14 +299,15 @@ namespace ArcDMCSRM {
       arg2node.NewChild("item") = "Running";
 
       PayloadSOAP *response = NULL;
-      SRMReturnCode status = process("setFileStatus", &request, &response);
+      DataStatus status = process("setFileStatus", &request, &response);
       if (status != 0) return status;
 
       XMLNode result = (*response)["setFileStatusResponse"]["Result"];
       if (!result) {
-        logger.msg(INFO, "SRM did not return any information");
+        logger.msg(VERBOSE, "SRM did not return any information");
         delete response;
-        return EARCRESINVAL;
+        return DataStatus(source ? DataStatus::ReadPrepareError : DataStatus::WritePrepareError,
+                          EARCRESINVAL, "SRM did not return any information");
       }
 
       for (XMLNode n = result["fileStatuses"]["item"]; n; ++n) {
@@ -326,11 +328,12 @@ namespace ArcDMCSRM {
     }
 
     creq.file_ids(file_ids);
-    if (urls.empty()) return EARCRESINVAL;
-    return 0;
+    if (urls.empty()) return DataStatus(source ? DataStatus::ReadPrepareError : DataStatus::WritePrepareError,
+                                        EARCRESINVAL, "SRM did not return any information");
+    return DataStatus::Success;
   }
 
-  SRMReturnCode SRM1Client::remove(SRMClientRequest& creq) {
+  DataStatus SRM1Client::remove(SRMClientRequest& creq) {
     SRMURL srmurl(creq.surls().front());
 
     PayloadSOAP request(ns);
@@ -341,13 +344,13 @@ namespace ArcDMCSRM {
     arg0node.NewChild("item") = srmurl.FullURL();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("advisoryDelete", &request, &response);
+    DataStatus status = process("advisoryDelete", &request, &response);
     delete response;
     return status;
   }
 
-  SRMReturnCode SRM1Client::info(SRMClientRequest& creq,
-                                 std::map<std::string, std::list<struct SRMFileMetaData> >& metadata) {
+  DataStatus SRM1Client::info(SRMClientRequest& creq,
+                              std::map<std::string, std::list<struct SRMFileMetaData> >& metadata) {
     SRMURL srmurl(creq.surls().front());
 
     PayloadSOAP request(ns);
@@ -358,23 +361,21 @@ namespace ArcDMCSRM {
     arg0node.NewChild("item") = srmurl.FullURL();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("getFileMetaData", &request, &response);
+    DataStatus status = process("getFileMetaData", &request, &response);
     if (status != 0) return status;
 
     XMLNode result = (*response)["getFileMetaDataResponse"]["Result"];
     if (!result) {
-      logger.msg(creq.error_loglevel(),
-                 "SRM did not return any information");
+      logger.msg(VERBOSE, "SRM did not return any information");
       delete response;
-      return EARCRESINVAL;
+      return DataStatus(DataStatus::StatError, EARCRESINVAL, "SRM did not return any information");
     }
 
     XMLNode mdata = result["item"];
     if (!mdata) {
-      logger.msg(creq.error_loglevel(),
-                 "SRM did not return any useful information");
+      logger.msg(VERBOSE, "SRM did not return any useful information");
       delete response;
-      return EARCRESINVAL;
+      return DataStatus(DataStatus::StatError, EARCRESINVAL, "SRM did not return any useful information");
     }
 
     struct SRMFileMetaData md;
@@ -398,19 +399,20 @@ namespace ArcDMCSRM {
     metadata[creq.surls().front()] = mdlist;
 
     delete response;
-    return 0;
+    return DataStatus::Success;
   }
 
-  SRMReturnCode SRM1Client::info(SRMClientRequest& req,
+  DataStatus SRM1Client::info(SRMClientRequest& req,
                                  std::list<struct SRMFileMetaData>& metadata) {
     std::map<std::string, std::list<struct SRMFileMetaData> > metadata_map;
-    SRMReturnCode res = info(req, metadata_map);
-    if (res != 0 || metadata_map.find(req.surls().front()) == metadata_map.end()) return res;
+    DataStatus res = info(req, metadata_map);
+    if (!res || metadata_map.find(req.surls().front()) == metadata_map.end()) return res;
     metadata = metadata_map[req.surls().front()];
-    return 0;
+    return DataStatus::Success;
   }
 
-  SRMReturnCode SRM1Client::release(SRMClientRequest& creq) {
+  DataStatus SRM1Client::release(SRMClientRequest& creq,
+                                 bool source) {
     std::list<int> file_ids = creq.file_ids();
 
     // Tell server to move files into "Done" state
@@ -432,14 +434,15 @@ namespace ArcDMCSRM {
       arg2node.NewChild("item") = "Done";
 
       PayloadSOAP *response = NULL;
-      SRMReturnCode status = process("setFileStatus", &request, &response);
+      DataStatus status = process("setFileStatus", &request, &response);
       if (status != 0) return status;
 
       XMLNode result = (*response)["setFileStatusResponse"]["Result"];
       if (!result) {
-        logger.msg(INFO, "SRM did not return any information");
+        logger.msg(VERBOSE, "SRM did not return any information");
         delete response;
-        return EARCRESINVAL;
+        return DataStatus(source ? DataStatus::ReadFinishError : DataStatus::WriteFinishError,
+                          EARCRESINVAL, "SRM did not return any information");
       }
 
       for (XMLNode n = result["fileStatuses"]["item"]; n; ++n) {
@@ -457,19 +460,20 @@ namespace ArcDMCSRM {
     }
 
     creq.file_ids(file_ids);
-    return 0;
+    return DataStatus::Success;
   }
 
-  SRMReturnCode SRM1Client::releaseGet(SRMClientRequest& creq) {
-    return release(creq);
+  DataStatus SRM1Client::releaseGet(SRMClientRequest& creq) {
+    return release(creq, true);
   }
 
-  SRMReturnCode SRM1Client::releasePut(SRMClientRequest& creq) {
-    return release(creq);
+  DataStatus SRM1Client::releasePut(SRMClientRequest& creq) {
+    return release(creq, false);
   }
 
-  SRMReturnCode SRM1Client::abort(SRMClientRequest& creq) {
-    return release(creq);
+  DataStatus SRM1Client::abort(SRMClientRequest& creq,
+                               bool source) {
+    return release(creq, source);
   }
 
 } // namespace ArcDMCSRM

@@ -57,12 +57,12 @@ namespace ArcDMCSRM {
     /**
      * Remove a file by srmRm
      */
-    SRMReturnCode removeFile(SRMClientRequest& req);
+    DataStatus removeFile(SRMClientRequest& req);
 
     /**
      * Remove a directory by srmRmDir
      */
-    SRMReturnCode removeDir(SRMClientRequest& req);
+    DataStatus removeDir(SRMClientRequest& req);
 
     /**
      * Return a metadata struct with values filled from the given details
@@ -96,19 +96,19 @@ namespace ArcDMCSRM {
     /**
      * Get the server version from srmPing
      */
-    SRMReturnCode ping(std::string& version, bool report_error = true);
+    DataStatus ping(std::string& version);
 
     /**
      * Use srmGetSpaceTokens to return a list of spaces available
      */
-    SRMReturnCode getSpaceTokens(std::list<std::string>& tokens,
-                                 const std::string& description = "");
+    DataStatus getSpaceTokens(std::list<std::string>& tokens,
+                              const std::string& description = "");
 
     /**
      * Use srmGetRequestTokens to return a list of spaces available
      */
-    SRMReturnCode getRequestTokens(std::list<std::string>& tokens,
-                                   const std::string& description = "");
+    DataStatus getRequestTokens(std::list<std::string>& tokens,
+                                const std::string& description = "");
 
     /**
      * Get a list of TURLs for the given SURL. Uses srmPrepareToGet and waits
@@ -116,14 +116,14 @@ namespace ArcDMCSRM {
      * If not it returns after making the request. Although a list is returned,
      * SRMv2.2 only returns one TURL per SURL.
      */
-    SRMReturnCode getTURLs(SRMClientRequest& req,
-                           std::list<std::string>& urls);
+    DataStatus getTURLs(SRMClientRequest& req,
+                        std::list<std::string>& urls);
 
     /**
      * Uses srmStatusOfGetRequest to query the status of the given request.
      */
-    SRMReturnCode getTURLsStatus(SRMClientRequest& req,
-                                 std::list<std::string>& urls);
+    DataStatus getTURLsStatus(SRMClientRequest& req,
+                              std::list<std::string>& urls);
 
     /**
      * Retrieve TURLs which a file can be written to. Uses srmPrepareToPut and
@@ -131,92 +131,94 @@ namespace ArcDMCSRM {
      * synchronous. If not it returns after making the request. Although a
      * list is returned, SRMv2.2 only returns one TURL per SURL.
      */
-    SRMReturnCode putTURLs(SRMClientRequest& req,
-                           std::list<std::string>& urls);
+    DataStatus putTURLs(SRMClientRequest& req,
+                        std::list<std::string>& urls);
   
    /**
      * Uses srmStatusOfPutRequest to query the status of the given request.
      */
-    SRMReturnCode putTURLsStatus(SRMClientRequest& req,
-                                 std::list<std::string>& urls);
+    DataStatus putTURLsStatus(SRMClientRequest& req,
+                              std::list<std::string>& urls);
 
     /**
      * Call srmBringOnline with the SURLs specified in req.
      */
-    SRMReturnCode requestBringOnline(SRMClientRequest& req);
+    DataStatus requestBringOnline(SRMClientRequest& req);
 
     /**
      * Call srmStatusOfBringOnlineRequest and update req with any changes.
      */
-    SRMReturnCode requestBringOnlineStatus(SRMClientRequest& req);
+    DataStatus requestBringOnlineStatus(SRMClientRequest& req);
 
     /**
      * Use srmLs to get info on the given SURLs. Info on each file or content
      * of directory is put in a list of metadata structs.
      */
-    SRMReturnCode info(SRMClientRequest& req,
-                       std::map<std::string, std::list<struct SRMFileMetaData> >& metadata);
+    DataStatus info(SRMClientRequest& req,
+                    std::map<std::string, std::list<struct SRMFileMetaData> >& metadata);
 
     /**
      * Use srmLs to get info on the given SURL. Info on each file or content
      * of directory is put in a list of metadata structs
      */
-    SRMReturnCode info(SRMClientRequest& req,
-                       std::list<struct SRMFileMetaData>& metadata);
+    DataStatus info(SRMClientRequest& req,
+                    std::list<struct SRMFileMetaData>& metadata);
 
     /**
      * Release files that have been pinned by srmPrepareToGet using
      * srmReleaseFiles. Called after successful file transfer or
      * failed prepareToGet.
      */
-    SRMReturnCode releaseGet(SRMClientRequest& req);
+    DataStatus releaseGet(SRMClientRequest& req);
 
     /**
      * Mark a put request as finished.
      * Called after successful file transfer or failed prepareToPut.
      */
-    SRMReturnCode releasePut(SRMClientRequest& req);
+    DataStatus releasePut(SRMClientRequest& req);
 
     /**
      * Not used in this version of SRM
      */
-    SRMReturnCode release(SRMClientRequest& /* req */) {
-      return EOPNOTSUPP;
+    DataStatus release(SRMClientRequest& /* req */,
+                       bool /* source */) {
+      return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
     }
 
     /**
      * Abort request.
      * Called after any failure in the data transfer or putDone calls
      */
-    SRMReturnCode abort(SRMClientRequest& req);
+    DataStatus abort(SRMClientRequest& req,
+                     bool source);
 
     /**
      * Delete by srmRm or srmRmDir
      */
-    SRMReturnCode remove(SRMClientRequest& req);
+    DataStatus remove(SRMClientRequest& req);
 
     /**
      * Implemented in pull mode, ie the endpoint defined in the
      * request object performs the copy.
      */
-    SRMReturnCode copy(SRMClientRequest& req,
-                       const std::string& source);
+    DataStatus copy(SRMClientRequest& req,
+                    const std::string& source);
 
     /**
      * Call srmMkDir
      */
-    SRMReturnCode mkDir(SRMClientRequest& req);
+    DataStatus mkDir(SRMClientRequest& req);
 
     /**
      * Call srmMv
      */
-    SRMReturnCode rename(SRMClientRequest& req,
-                         const URL& newurl);
+    DataStatus rename(SRMClientRequest& req,
+                      const URL& newurl);
 
     /**
      * Call srmCheckPermission
      */
-    SRMReturnCode checkPermissions(SRMClientRequest& req);
+    DataStatus checkPermissions(SRMClientRequest& req);
 
   };
 

@@ -21,9 +21,6 @@ namespace ArcDMCSRM {
 
   using namespace Arc;
 
-  /// Return code of SRM operation (errno-like number)
-  typedef int SRMReturnCode;
-
   /// SRM-related file metadata
   struct SRMFileMetaData {
     std::string path;   // absolute dir and file path
@@ -84,7 +81,7 @@ namespace ArcDMCSRM {
     SRMClient(const UserConfig& usercfg, const SRMURL& url);
 
     /// Process SOAP request
-    SRMReturnCode process(const std::string& action, PayloadSOAP *request, PayloadSOAP **response);
+    DataStatus process(const std::string& action, PayloadSOAP *request, PayloadSOAP **response);
 
   public:
     /**
@@ -94,13 +91,13 @@ namespace ArcDMCSRM {
      * @param url A SURL. A client connects to the service host derived from
      * this SURL. All operations with a client instance must use SURLs with
      * the same host as this one.
-     * @param timedout Whether the connection timed out
+     * @param error Details of error if one occurred
      * @returns A pointer to an instance of SRMClient is returned, or NULL if
      * it was not possible to create one.
      */
     static SRMClient* getInstance(const UserConfig& usercfg,
                                   const std::string& url,
-                                  bool& timedout);
+                                  std::string& error);
 
     /**
      * Destructor
@@ -121,11 +118,9 @@ namespace ArcDMCSRM {
      * report an error to the user, so setting report_error to
      * false suppresses the error message.
      * @param version The version returned by the server
-     * @param report_error Whether an error should be reported
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode ping(std::string& version,
-                               bool report_error = true) = 0;
+    virtual DataStatus ping(std::string& version) = 0;
 
     /**
      * Find the space tokens available to write to which correspond to
@@ -134,22 +129,23 @@ namespace ArcDMCSRM {
      * spaces, not user-readable strings.
      * @param tokens The list filled by the service
      * @param description The space token description
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode getSpaceTokens(std::list<std::string>& tokens,
-                                         const std::string& description = "") = 0;
+    virtual DataStatus getSpaceTokens(std::list<std::string>& tokens,
+                                      const std::string& description = "") = 0;
 
     /**
      * Returns a list of request tokens for the user calling the method
      * which are still active requests, or the tokens corresponding to the
-     * token description, if given.
+     * token description, if given. Was used by the old ngstage command but
+     * is currently unused.
      * @param tokens The list filled by the service
      * @param description The user request description, which can be specified
      * when the request is created
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode getRequestTokens(std::list<std::string>& tokens,
-                                           const std::string& description = "") = 0;
+    virtual DataStatus getRequestTokens(std::list<std::string>& tokens,
+                                        const std::string& description = "") = 0;
 
 
     /**
@@ -162,10 +158,10 @@ namespace ArcDMCSRM {
      * it was not completed.
      * @param req The request object
      * @param urls A list of TURLs filled by the method
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode getTURLs(SRMClientRequest& req,
-                                   std::list<std::string>& urls) = 0;
+    virtual DataStatus getTURLs(SRMClientRequest& req,
+                                std::list<std::string>& urls) = 0;
 
     /**
      * In the case where getTURLs was called asynchronously and the request
@@ -175,10 +171,10 @@ namespace ArcDMCSRM {
      * @param req The request object. Status must be ongoing.
      * @param urls A list of TURLs filled by the method if the request
      * completed successfully
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode getTURLsStatus(SRMClientRequest& req,
-                                         std::list<std::string>& urls) = 0;
+    virtual DataStatus getTURLsStatus(SRMClientRequest& req,
+                                      std::list<std::string>& urls) = 0;
 
     /**
      * Submit a request to bring online files. If the synchronous property
@@ -189,9 +185,9 @@ namespace ArcDMCSRM {
      * operation blocks until the file(s) are online or the timeout specified
      * in the SRMClient constructor has passed.
      * @param req The request object
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode requestBringOnline(SRMClientRequest& req) = 0;
+    virtual DataStatus requestBringOnline(SRMClientRequest& req) = 0;
 
     /**
      * Query the status of a request to bring files online. The SURLs map
@@ -199,9 +195,9 @@ namespace ArcDMCSRM {
      * request has changed. requestBringOnline() but be called before
      * this method.
      * @param req The request object to query the status of
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode requestBringOnlineStatus(SRMClientRequest& req) = 0;
+    virtual DataStatus requestBringOnlineStatus(SRMClientRequest& req) = 0;
 
     /**
      * If the user wishes to copy a file to somewhere, putTURLs() is called
@@ -213,10 +209,10 @@ namespace ArcDMCSRM {
      * it was not completed.
      * @param req The request object
      * @param urls A list of TURLs filled by the method
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode putTURLs(SRMClientRequest& req,
-                                   std::list<std::string>& urls) = 0;
+    virtual DataStatus putTURLs(SRMClientRequest& req,
+                                std::list<std::string>& urls) = 0;
 
     /**
      * In the case where putTURLs was called asynchronously and the request
@@ -226,39 +222,43 @@ namespace ArcDMCSRM {
      * @param req The request object. Status must be ongoing.
      * @param urls A list of TURLs filled by the method if the request
      * completed successfully
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode putTURLsStatus(SRMClientRequest& req,
-                                         std::list<std::string>& urls) = 0;
+    virtual DataStatus putTURLsStatus(SRMClientRequest& req,
+                                      std::list<std::string>& urls) = 0;
 
     /**
      * Should be called after a successful copy from SRM storage.
      * @param req The request object
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode releaseGet(SRMClientRequest& req) = 0;
+    virtual DataStatus releaseGet(SRMClientRequest& req) = 0;
 
     /**
      * Should be called after a successful copy to SRM storage.
      * @param req The request object
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode releasePut(SRMClientRequest& req) = 0;
+    virtual DataStatus releasePut(SRMClientRequest& req) = 0;
 
     /**
      * Used in SRM v1 only. Called to release files after successful transfer.
      * @param req The request object
-     * @returns SRMReturnCode specifying outcome of operation
+     * @param source Whether source or destination is being released
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode release(SRMClientRequest& req) = 0;
+    virtual DataStatus release(SRMClientRequest& req,
+                               bool source) = 0;
 
     /**
      * Called in the case of failure during transfer or releasePut. Releases
      * all TURLs involved in the transfer.
      * @param req The request object
-     * @returns SRMReturnCode specifying outcome of operation
+     * @param source Whether source or destination is being aborted
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode abort(SRMClientRequest& req) = 0;
+    virtual DataStatus abort(SRMClientRequest& req,
+                             bool source) = 0;
 
     /**
      * Returns information on a file or files (v2.2 and higher) stored in SRM,
@@ -270,11 +270,11 @@ namespace ArcDMCSRM {
      * @param metadata A map mapping each SURL in the request to a list of
      * structs filled with file information. If a SURL is missing from the
      * map it means there was some problem accessing it.
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      * @see SRMFileMetaData
      */
-    virtual SRMReturnCode info(SRMClientRequest& req,
-                               std::map<std::string, std::list<struct SRMFileMetaData> >& metadata) = 0;
+    virtual DataStatus info(SRMClientRequest& req,
+                            std::map<std::string, std::list<struct SRMFileMetaData> >& metadata) = 0;
 
     /**
      * Returns information on a file stored in an SRM, such as file size,
@@ -283,50 +283,50 @@ namespace ArcDMCSRM {
      * content of the directory.
      * @param req The request object
      * @param metadata A list of structs filled with file information.
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      * @see SRMFileMetaData
      */
-    virtual SRMReturnCode info(SRMClientRequest& req,
-                               std::list<struct SRMFileMetaData>& metadata) = 0;
+    virtual DataStatus info(SRMClientRequest& req,
+                            std::list<struct SRMFileMetaData>& metadata) = 0;
 
     /**
      * Delete a file physically from storage and the SRM namespace.
      * @param req The request object
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode remove(SRMClientRequest& req) = 0;
+    virtual DataStatus remove(SRMClientRequest& req) = 0;
 
     /**
      * Copy a file between two SRM storages.
      * @param req The request object
      * @param source The source SURL
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode copy(SRMClientRequest& req,
-                               const std::string& source) = 0;
+    virtual DataStatus copy(SRMClientRequest& req,
+                            const std::string& source) = 0;
 
     /**
      * Make required directories for the SURL in the request
      * @param req The request object
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode mkDir(SRMClientRequest& req) = 0;
+    virtual DataStatus mkDir(SRMClientRequest& req) = 0;
 
     /**
      * Rename the URL in req to newurl.
      * @oaram req The request object
      * @param newurl The new URL
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode rename(SRMClientRequest& req,
-                                 const URL& newurl) = 0;
+    virtual DataStatus rename(SRMClientRequest& req,
+                              const URL& newurl) = 0;
     /**
      * Check permissions for the SURL in the request using the
      * current credentials.
      * @oaram req The request object
-     * @returns SRMReturnCode specifying outcome of operation
+     * @returns DataStatus specifying outcome of operation
      */
-    virtual SRMReturnCode checkPermissions(SRMClientRequest& req) = 0;
+    virtual DataStatus checkPermissions(SRMClientRequest& req) = 0;
 
 
     operator bool() const {

@@ -28,9 +28,12 @@ namespace ArcDMCSRM {
 
   SRMClient* SRMClient::getInstance(const UserConfig& usercfg,
                                     const std::string& url,
-                                    bool& timedout) {
+                                    std::string& error) {
     SRMURL srm_url(url);
-    if (!srm_url) return NULL;
+    if (!srm_url) {
+      error = "Invalid URL";
+      return NULL;
+    }
 
     // can't use ping with srmv1 so just return
     if (srm_url.SRMVersion() == SRMURL::SRM_URL_VERSION_1) {
@@ -41,10 +44,11 @@ namespace ArcDMCSRM {
       if (srm_url.SRMVersion() == SRMURL::SRM_URL_VERSION_2_2) {
         return new SRM22Client(usercfg, srm_url);
       }
+      error = "Unknown SRM version";
       return NULL;
     }
 
-    SRMReturnCode srm_error;
+    DataStatus srm_error;
     std::string version;
 
     SRMInfo info(usercfg.UtilsDirPath());
@@ -79,19 +83,20 @@ namespace ArcDMCSRM {
         srm_url.SetPort(*port);
         SRMClient *client = new SRM22Client(usercfg, srm_url);
 
-        if ((srm_error = client->ping(version, false)) == 0) {
+        if ((srm_error = client->ping(version)).Passed()) {
           srm_file_info.port = *port;
           logger.msg(VERBOSE, "Storing port %i for %s", *port, srm_url.Host());
           info.putSRMFileInfo(srm_file_info);
           return client;
         }
         delete client;
-        if (srm_error == ETIMEDOUT) {
+        if (srm_error.GetErrno() == ETIMEDOUT) {
           // probably correct port and service is down
           // but don't want to risk storing incorrect info
-          timedout = true;
+          error = "Connection timed out";
           return NULL;
         }
+        error = srm_error.GetDesc();
       }
       // if we get here no port has worked
       logger.msg(VERBOSE, "No port succeeded for %s", srm_url.Host());
@@ -108,25 +113,26 @@ namespace ArcDMCSRM {
                  srm_url.ShortURL());
       SRMClient *client = new SRM22Client(usercfg, srm_url);
 
-      if ((srm_error = client->ping(version, false)) == 0) {
+      if ((srm_error = client->ping(version)).Passed()) {
         srm_file_info.port = srm_url.Port();
         logger.msg(VERBOSE, "Replacing old SRM info with new for URL %s", srm_url.ShortURL());
         info.putSRMFileInfo(srm_file_info);
         return client;
       }
       delete client;
-      if (srm_error == ETIMEDOUT) {
+      if (srm_error.GetErrno() == ETIMEDOUT) {
         // probably correct port and service is down
         // but don't want to risk storing incorrect info
-        timedout = true;
+        error = "Connection timed out";
       }
+      else error = srm_error.GetDesc();
     }
     return NULL;
   }
 
-  SRMReturnCode SRMClient::process(const std::string& action,
-                                   PayloadSOAP *request,
-                                   PayloadSOAP **response) {
+  DataStatus SRMClient::process(const std::string& action,
+                                PayloadSOAP *request,
+                                PayloadSOAP **response) {
 
     if (logger.getThreshold() <= DEBUG) {
       std::string xml;
@@ -147,14 +153,16 @@ namespace ArcDMCSRM {
     }
 
     if (!status) {
+      // Currently it is not possible to get the cause of failure from the
+      // lower-level MCC code so all we can report is connection refused
       logger.msg(VERBOSE, "SRM Client status: %s", (std::string)status);
       if (*response) delete *response;
       *response = NULL;
-      return ECONNREFUSED;
+      return DataStatus(DataStatus::GenericError, ECONNREFUSED, (std::string)status);
     }
     if (!(*response)) {
       logger.msg(VERBOSE, "No SOAP response");
-      return ECONNREFUSED;
+      return DataStatus(DataStatus::GenericError, ECONNREFUSED, "No SOAP response");
     }
 
     if (logger.getThreshold() <= DEBUG) {
@@ -164,13 +172,14 @@ namespace ArcDMCSRM {
     }
 
     if ((*response)->IsFault()) {
-      logger.msg(VERBOSE, "SOAP fault: %s", (*response)->Fault()->Reason());
+      std::string fault((*response)->Fault()->Reason());
+      logger.msg(VERBOSE, "SOAP fault: %s", fault);
       delete *response;
       *response = NULL;
-      return EARCSVCTMP;
+      return DataStatus(DataStatus::GenericError, EARCSVCTMP, fault);
     }
 
-    return 0;
+    return DataStatus::Success;
   }
 
 } // namespace ArcDMCSRM

@@ -30,7 +30,6 @@ namespace ArcDMCSRM {
   SRM22Client::SRMStatusCode SRM22Client::GetStatus(XMLNode res, std::string& explanation) {
     std::string statuscode = (std::string)res["statusCode"];
     if (res["explanation"]) explanation = (std::string)res["explanation"];
-    else explanation = "No explanation given";
 
     if (statuscode == "SRM_SUCCESS")                 return SRM_SUCCESS;
     if (statuscode == "SRM_FAILURE")                 return SRM_FAILURE;
@@ -78,21 +77,21 @@ namespace ArcDMCSRM {
 
   SRM22Client::~SRM22Client() {}
 
-  SRMReturnCode SRM22Client::ping(std::string& version,
-                                  bool report_error) {
+  DataStatus SRM22Client::ping(std::string& version) {
+
     PayloadSOAP request(ns);
     request.NewChild("SRMv2:srmPing").NewChild("srmPingRequest");
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) return status;
+    DataStatus status = process("", &request, &response);
+    if (!status) return status;
 
     XMLNode res = (*response)["srmPingResponse"]["srmPingResponse"];
 
     if (!res) {
-      logger.msg(ERROR, "Could not determine version of server");
+      logger.msg(VERBOSE, "Could not determine version of server");
       delete response;
-      return EARCRESINVAL;
+      return DataStatus(DataStatus::GenericError, EARCRESINVAL, "Could not determine version of server");
     }
 
     version = (std::string)res["versionInfo"];
@@ -110,19 +109,19 @@ namespace ArcDMCSRM {
     }
 
     delete response;
-    return 0;
+    return DataStatus::Success;
   }
 
-  SRMReturnCode SRM22Client::getSpaceTokens(std::list<std::string>& tokens,
-                                            const std::string& description) {
+  DataStatus SRM22Client::getSpaceTokens(std::list<std::string>& tokens,
+                                         const std::string& description) {
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmGetSpaceTokens")
                   .NewChild("srmGetSpaceTokensRequest");
     if (!description.empty()) req.NewChild("userSpaceTokenDescription") = description;
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) return status;
+    DataStatus status = process("", &request, &response);
+    if (!status) return status;
 
     XMLNode res = (*response)["srmGetSpaceTokensResponse"]
                   ["srmGetSpaceTokensResponse"];
@@ -131,9 +130,9 @@ namespace ArcDMCSRM {
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     if (statuscode != SRM_SUCCESS) {
-      logger.msg(ERROR, "%s", explanation);
+      logger.msg(VERBOSE, "%s", explanation);
       delete response;
-      return srm2errno(statuscode);
+      return DataStatus(DataStatus::WritePrepareError, srm2errno(statuscode), explanation);
     }
 
     for (XMLNode n = res["arrayOfSpaceTokens"]["stringArray"]; n; ++n) {
@@ -143,11 +142,11 @@ namespace ArcDMCSRM {
     }
 
     delete response;
-    return 0;
+    return DataStatus::Success;
   }
 
-  SRMReturnCode SRM22Client::getRequestTokens(std::list<std::string>& tokens,
-                                              const std::string& description) {
+  DataStatus SRM22Client::getRequestTokens(std::list<std::string>& tokens,
+                                           const std::string& description) {
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmGetRequestTokens")
                   .NewChild("srmGetRequestTokensRequest");
@@ -155,8 +154,8 @@ namespace ArcDMCSRM {
       req.NewChild("userRequestDescription") = description;
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) return status;
+    DataStatus status = process("", &request, &response);
+    if (!status) return status;
 
     XMLNode res = (*response)["srmGetRequestTokensResponse"]
                   ["srmGetRequestTokensResponse"];
@@ -165,15 +164,15 @@ namespace ArcDMCSRM {
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     if (statuscode == SRM_INVALID_REQUEST) {
-      logger.msg(INFO, "No request tokens found");
+      logger.msg(VERBOSE, "No request tokens found");
       delete response;
-      return 0;
+      return DataStatus::Success;
     }
 
     if (statuscode != SRM_SUCCESS) {
-      logger.msg(ERROR, "%s", explanation);
+      logger.msg(VERBOSE, "%s", explanation);
       delete response;
-      return srm2errno(statuscode);
+      return DataStatus(DataStatus::GenericError, srm2errno(statuscode), explanation);
     }
 
     for (XMLNode n = res["arrayOfRequestTokens"]["tokenArray"]; n; ++n) {
@@ -183,11 +182,11 @@ namespace ArcDMCSRM {
     }
 
     delete response;
-    return 0;
+    return DataStatus::Success;
   }
 
-  SRMReturnCode SRM22Client::getTURLs(SRMClientRequest& creq,
-                                      std::list<std::string>& urls) {
+  DataStatus SRM22Client::getTURLs(SRMClientRequest& creq,
+                                   std::list<std::string>& urls) {
 
     // only one file requested at a time
     PayloadSOAP request(ns);
@@ -204,8 +203,8 @@ namespace ArcDMCSRM {
     }
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) {
+    DataStatus status = process("", &request, &response);
+    if (!status) {
       creq.finished_error();
       return status;
     }
@@ -230,7 +229,7 @@ namespace ArcDMCSRM {
       if (creq.request_timeout() == 0) {
         creq.wait(sleeptime);
         delete response;
-        return 0;
+        return DataStatus::Success;
       }
       unsigned int request_time = 0;
       while (request_time < creq.request_timeout()) {
@@ -245,7 +244,7 @@ namespace ArcDMCSRM {
         request_time += sleeptime;
   
         // get status of request
-        SRMReturnCode status_res = getTURLsStatus(creq, urls);
+        DataStatus status_res = getTURLsStatus(creq, urls);
         if (creq.status() != SRM_REQUEST_ONGOING) {
           delete response;
           return status_res;
@@ -255,23 +254,23 @@ namespace ArcDMCSRM {
       }
 
       // if we get here it means a timeout occurred
-      logger.msg(ERROR, "PrepareToGet request timed out after %i seconds", creq.request_timeout());
+      logger.msg(VERBOSE, "PrepareToGet request timed out after %i seconds", creq.request_timeout());
       creq.finished_abort();
       delete response;
-      return ETIMEDOUT;
+      return DataStatus(DataStatus::ReadPrepareError, ETIMEDOUT, "PrepareToGet request timed out");
   
     } // if file queued
   
     else if (statuscode != SRM_SUCCESS) {
       // any other return code is a failure
-      logger.msg(ERROR, explanation);
-      if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]) {
-        logger.msg(ERROR, res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]);
-      }
-      SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], explanation);
+      std::string file_explanation;
+      SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], file_explanation);
+      if (explanation.empty()) explanation = file_explanation;
+      else if (!file_explanation.empty()) explanation + ": " + file_explanation;
+      logger.msg(VERBOSE, explanation);
       creq.finished_error();
       delete response;
-      return srm2errno(statuscode, file_statuscode);
+      return DataStatus(DataStatus::ReadPrepareError, srm2errno(statuscode, file_statuscode), explanation);
     }
 
     // the file is ready and pinned - we can get the TURL
@@ -281,11 +280,11 @@ namespace ArcDMCSRM {
     urls.push_back(turl);
     creq.finished_success();
     delete response;
-    return 0;
+    return DataStatus::Success;
   }
   
-  SRMReturnCode SRM22Client::getTURLsStatus(SRMClientRequest& creq,
-                                            std::list<std::string>& urls) {
+  DataStatus SRM22Client::getTURLsStatus(SRMClientRequest& creq,
+                                         std::list<std::string>& urls) {
 
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmStatusOfGetRequest")
@@ -293,8 +292,8 @@ namespace ArcDMCSRM {
     req.NewChild("requestToken") = creq.request_token();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) {
+    DataStatus status = process("", &request, &response);
+    if (!status) {
       creq.finished_abort();
       return status;
     }
@@ -316,14 +315,14 @@ namespace ArcDMCSRM {
     }
     else if (statuscode != SRM_SUCCESS) {
       // error
-      logger.msg(ERROR, explanation);
-      if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]) {
-        logger.msg(ERROR, res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]);
-      }
-      SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], explanation);
+      std::string file_explanation;
+      SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], file_explanation);
+      if (explanation.empty()) explanation = file_explanation;
+      else if (!file_explanation.empty()) explanation + ": " + file_explanation;
+      logger.msg(VERBOSE, explanation);
       creq.finished_error();
       delete response;
-      return srm2errno(statuscode, file_statuscode);
+      return DataStatus(DataStatus::ReadPrepareError, srm2errno(statuscode, file_statuscode), explanation);
     }
     else {
       // success, TURL is ready
@@ -333,10 +332,10 @@ namespace ArcDMCSRM {
       creq.finished_success();
     }
     delete response;
-    return 0;
+    return DataStatus::Success;
   }
 
-  SRMReturnCode SRM22Client::requestBringOnline(SRMClientRequest& creq) {
+  DataStatus SRM22Client::requestBringOnline(SRMClientRequest& creq) {
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmBringOnline")
                   .NewChild("srmBringOnlineRequest");
@@ -365,8 +364,8 @@ namespace ArcDMCSRM {
     }
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) {
+    DataStatus status = process("", &request, &response);
+    if (!status) {
       creq.finished_error();
       return status;
     }
@@ -388,7 +387,7 @@ namespace ArcDMCSRM {
       }
       creq.finished_success();
       delete response;
-      return 0;
+      return DataStatus::Success;
     }
 
     if (statuscode == SRM_REQUEST_QUEUED) {
@@ -400,7 +399,7 @@ namespace ArcDMCSRM {
       if (creq.request_timeout() == 0) {
         creq.wait(sleeptime);
         delete response;
-        return 0;
+        return DataStatus::Success;
       }
 
       unsigned int request_time = 0;
@@ -415,7 +414,7 @@ namespace ArcDMCSRM {
         request_time += sleeptime;
 
         // get status of request
-        SRMReturnCode status_res = requestBringOnlineStatus(creq);
+        DataStatus status_res = requestBringOnlineStatus(creq);
         if (creq.status() != SRM_REQUEST_ONGOING) {
           delete response;
           return status_res;
@@ -424,10 +423,10 @@ namespace ArcDMCSRM {
       }
 
       // if we get here it means a timeout occurred
-      logger.msg(ERROR, "Bring online request timed out after %i seconds", creq.request_timeout());
+      logger.msg(VERBOSE, "Bring online request timed out after %i seconds", creq.request_timeout());
       creq.finished_abort();
       delete response;
-      return ETIMEDOUT;
+      return DataStatus(DataStatus::ReadPrepareError, ETIMEDOUT, "Bring online request timed out");
     }
 
     if (statuscode == SRM_REQUEST_INPROGRESS) {
@@ -435,7 +434,7 @@ namespace ArcDMCSRM {
       fileStatus(creq, res["arrayOfFileStatuses"]);
       creq.wait();
       delete response;
-      return 0;
+      return DataStatus::Success;
     }
 
     if (statuscode == SRM_PARTIAL_SUCCESS) {
@@ -443,25 +442,25 @@ namespace ArcDMCSRM {
       fileStatus(creq, res["arrayOfFileStatuses"]);
       creq.finished_partial_success();
       delete response;
-      return 0;
+      return DataStatus::Success;
     }
 
     // here means an error code was returned and all files failed
-    logger.msg(ERROR, explanation);
-    if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]) {
-      logger.msg(ERROR, res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]);
-    }
-    SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], explanation);
+    std::string file_explanation;
+    SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], file_explanation);
+    if (explanation.empty()) explanation = file_explanation;
+    else if (!file_explanation.empty()) explanation + ": " + file_explanation;
+    logger.msg(VERBOSE, explanation);
     creq.finished_error();
     delete response;
-    return srm2errno(statuscode, file_statuscode);
+    return DataStatus(DataStatus::ReadPrepareError, srm2errno(statuscode, file_statuscode), explanation);
   }
 
-  SRMReturnCode SRM22Client::requestBringOnlineStatus(SRMClientRequest& creq) {
+  DataStatus SRM22Client::requestBringOnlineStatus(SRMClientRequest& creq) {
     if (creq.request_token().empty()) {
-      logger.msg(ERROR, "No request token specified!");
+      logger.msg(VERBOSE, "No request token specified!");
       creq.finished_abort();
-      return EINVAL;
+      return DataStatus(DataStatus::ReadPrepareError, EINVAL, "No request token specified");
     }
 
     PayloadSOAP request(ns);
@@ -470,8 +469,8 @@ namespace ArcDMCSRM {
     req.NewChild("requestToken") = creq.request_token();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) {
+    DataStatus status = process("", &request, &response);
+    if (!status) {
       creq.finished_abort();
       return status;
     }
@@ -487,7 +486,7 @@ namespace ArcDMCSRM {
       fileStatus(creq, res["arrayOfFileStatuses"]);
       creq.finished_success();
       delete response;
-      return 0;
+      return DataStatus::Success;
     }
 
     if (statuscode == SRM_REQUEST_QUEUED) {
@@ -498,7 +497,7 @@ namespace ArcDMCSRM {
       }
       creq.wait(sleeptime);
       delete response;
-      return 0;
+      return DataStatus::Success;
     }
 
     if (statuscode == SRM_REQUEST_INPROGRESS) {
@@ -510,7 +509,7 @@ namespace ArcDMCSRM {
       }
       creq.wait(sleeptime);
       delete response;
-      return 0;
+      return DataStatus::Success;
     }
 
     if (statuscode == SRM_PARTIAL_SUCCESS) {
@@ -518,7 +517,7 @@ namespace ArcDMCSRM {
       fileStatus(creq, res["arrayOfFileStatuses"]);
       creq.finished_partial_success();
       delete response;
-      return 0;
+      return DataStatus::Success;
     }
 
     if (statuscode == SRM_ABORTED) {
@@ -529,32 +528,32 @@ namespace ArcDMCSRM {
         logger.msg(VERBOSE, "Request is reported as ABORTED, but all files are done");
         creq.finished_success();
         delete response;
-        return 0;
+        return DataStatus::Success;
       }
       else if (explanation.find("Canceled") != std::string::npos) {
         logger.msg(VERBOSE, "Request is reported as ABORTED, since it was cancelled");
         creq.cancelled();
         delete response;
-        return 0;
+        return DataStatus::Success;
       }
       else {
         logger.msg(VERBOSE, "Request is reported as ABORTED. Reason: %s", explanation);
         creq.finished_error();
         delete response;
-        return srm2errno(statuscode);
+        return DataStatus(DataStatus::ReadPrepareError, srm2errno(statuscode), explanation);
       }
     }
 
     // here means an error code was returned and all files failed
-    logger.msg(ERROR, explanation);
     fileStatus(creq, res["arrayOfFileStatuses"]);
-    if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]) {
-      logger.msg(ERROR, res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]);
-    }
-    SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], explanation);
+    std::string file_explanation;
+    SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], file_explanation);
+    if (explanation.empty()) explanation = file_explanation;
+    else if (!file_explanation.empty()) explanation + ": " + file_explanation;
+    logger.msg(VERBOSE, explanation);
     creq.finished_error();
     delete response;
-    return srm2errno(statuscode, file_statuscode);
+    return DataStatus(DataStatus::ReadPrepareError, srm2errno(statuscode, file_statuscode), explanation);
   }
 
   void SRM22Client::fileStatus(SRMClientRequest& creq, XMLNode file_statuses) {
@@ -584,8 +583,8 @@ namespace ArcDMCSRM {
     creq.waiting_time(waittime);
   }
 
-  SRMReturnCode SRM22Client::putTURLs(SRMClientRequest& creq,
-                                      std::list<std::string>& urls) {
+  DataStatus SRM22Client::putTURLs(SRMClientRequest& creq,
+                                   std::list<std::string>& urls) {
     // only one file requested at a time
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmPrepareToPut")
@@ -608,8 +607,8 @@ namespace ArcDMCSRM {
     if (!creq.space_token().empty()) req.NewChild("targetSpaceToken") = creq.space_token();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) {
+    DataStatus status = process("", &request, &response);
+    if (!status) {
       creq.finished_error();
       return status;
     }
@@ -635,7 +634,7 @@ namespace ArcDMCSRM {
       if (creq.request_timeout() == 0) {
         creq.wait(sleeptime);
         delete response;
-        return 0;
+        return DataStatus::Success;
       };
 
       while (request_time < creq.request_timeout()) {
@@ -651,7 +650,7 @@ namespace ArcDMCSRM {
         request_time += sleeptime;
 
         // get status of request
-        SRMReturnCode status_res = putTURLsStatus(creq, urls);
+        DataStatus status_res = putTURLsStatus(creq, urls);
         if (creq.status() != SRM_REQUEST_ONGOING) {
           delete response;
           return status_res;
@@ -660,35 +659,36 @@ namespace ArcDMCSRM {
       }
 
       // if we get here it means a timeout occurred
-      logger.msg(ERROR, "PrepareToPut request timed out after %i seconds", creq.request_timeout());
+      logger.msg(VERBOSE, "PrepareToPut request timed out after %i seconds", creq.request_timeout());
       creq.finished_abort();
       delete response;
-      return ETIMEDOUT;
+      return DataStatus(DataStatus::WritePrepareError, ETIMEDOUT, "PrepareToPut timed out");
 
     } // if file queued
   
     else if (statuscode != SRM_SUCCESS) {
-      std::string statusexplanation;
+      std::string file_explanation;
       SRMStatusCode file_status = GetStatus(res["arrayOfFileStatuses"]
                                             ["statusArray"]["status"],
-                                            statusexplanation);
+                                            file_explanation);
       if (file_status == SRM_INVALID_PATH) {
         // make directories
         logger.msg(VERBOSE, "Path %s is invalid, creating required directories", creq.surl());
-        SRMReturnCode mkdirres = mkDir(creq);
+        DataStatus mkdirres = mkDir(creq);
         delete response;
-        if (mkdirres == 0) return putTURLs(creq, urls);
+        if (mkdirres.Passed()) return putTURLs(creq, urls);
 
-        logger.msg(ERROR, "Error creating required directories for %s", creq.surl());
+        logger.msg(VERBOSE, "Error creating required directories for %s", creq.surl());
         creq.finished_error();
         return mkdirres;
       }
 
-      if (!statusexplanation.empty()) logger.msg(ERROR, statusexplanation);
-      logger.msg(ERROR, explanation);
+      if (explanation.empty()) explanation = file_explanation;
+      else if (!file_explanation.empty()) explanation + ": " + file_explanation;
+      logger.msg(VERBOSE, explanation);
       creq.finished_error();
       delete response;
-      return srm2errno(statuscode, file_status);
+      return DataStatus(DataStatus::WritePrepareError, srm2errno(statuscode, file_status), explanation);
     }
 
     // the file is ready and pinned - we can get the TURL
@@ -698,11 +698,11 @@ namespace ArcDMCSRM {
     urls.push_back(turl);
     creq.finished_success();
     delete response;
-    return 0;
+    return DataStatus::Success;
   }
   
-  SRMReturnCode SRM22Client::putTURLsStatus(SRMClientRequest& creq,
-                                            std::list<std::string>& urls) {
+  DataStatus SRM22Client::putTURLsStatus(SRMClientRequest& creq,
+                                         std::list<std::string>& urls) {
 
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmStatusOfPutRequest")
@@ -710,8 +710,8 @@ namespace ArcDMCSRM {
     req.NewChild("requestToken") = creq.request_token();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) {
+    DataStatus status = process("", &request, &response);
+    if (!status) {
       creq.finished_abort();
       return status;
     }
@@ -734,26 +734,27 @@ namespace ArcDMCSRM {
     else if (statuscode != SRM_SUCCESS) {
       // error
       // check individual file statuses
-      std::string statusexplanation;
+      std::string file_explanation;
       SRMStatusCode file_status = GetStatus(res["arrayOfFileStatuses"]
                                             ["statusArray"]["status"],
-                                            statusexplanation);
+                                            file_explanation);
       if (file_status == SRM_INVALID_PATH) {
         // make directories
         logger.msg(VERBOSE, "Path %s is invalid, creating required directories", creq.surl());
-        SRMReturnCode mkdirres = mkDir(creq);
+        DataStatus mkdirres = mkDir(creq);
         delete response;
-        if (mkdirres == 0) return putTURLs(creq, urls);
+        if (mkdirres.Passed()) return putTURLs(creq, urls);
 
-        logger.msg(ERROR, "Error creating required directories for %s", creq.surl());
+        logger.msg(VERBOSE, "Error creating required directories for %s", creq.surl());
         creq.finished_error();
         return mkdirres;
       }
-      if (!statusexplanation.empty()) logger.msg(ERROR, statusexplanation);
-      logger.msg(ERROR, explanation);
+      if (explanation.empty()) explanation = file_explanation;
+      else if (!file_explanation.empty()) explanation + ": " + file_explanation;
+      logger.msg(VERBOSE, explanation);
       creq.finished_error();
       delete response;
-      return srm2errno(statuscode, file_status);
+      return DataStatus(DataStatus::WritePrepareError, srm2errno(statuscode, file_status), explanation);
     }
     else {
       // success, TURL is ready
@@ -764,21 +765,21 @@ namespace ArcDMCSRM {
       creq.finished_success();
     }
     delete response;
-    return 0;
+    return DataStatus::Success;
   }
 
-  SRMReturnCode SRM22Client::info(SRMClientRequest& req,
-                                  std::list<struct SRMFileMetaData>& metadata) {
+  DataStatus SRM22Client::info(SRMClientRequest& req,
+                               std::list<struct SRMFileMetaData>& metadata) {
 
     std::map<std::string, std::list<struct SRMFileMetaData> > metadata_map;
-    SRMReturnCode res = info(req, metadata_map);
-    if (res != 0 || metadata_map.find(req.surl()) == metadata_map.end()) return res;
+    DataStatus res = info(req, metadata_map);
+    if (!res || metadata_map.find(req.surl()) == metadata_map.end()) return res;
     metadata = metadata_map[req.surl()];
-    return 0;
+    return DataStatus::Success;
   }
 
-  SRMReturnCode SRM22Client::info(SRMClientRequest& creq,
-                                  std::map<std::string, std::list<struct SRMFileMetaData> >& metadata) {
+  DataStatus SRM22Client::info(SRMClientRequest& creq,
+                               std::map<std::string, std::list<struct SRMFileMetaData> >& metadata) {
 
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmLs").NewChild("srmLsRequest");
@@ -798,8 +799,8 @@ namespace ArcDMCSRM {
     if (creq.long_list()) req.NewChild("fullDetailedList") = "true";
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) return status;
+    DataStatus status = process("", &request, &response);
+    if (!status) return status;
 
     XMLNode res = (*response)["srmLsResponse"]["srmLsResponse"];
 
@@ -835,7 +836,7 @@ namespace ArcDMCSRM {
         delete response;
         response = NULL;
         status = process("", &request, &response);
-        if (status != 0) return status;
+        if (!status) return status;
 
         res = (*response)["srmStatusOfLsRequestResponse"]
               ["srmStatusOfLsRequestResponse"];
@@ -845,8 +846,8 @@ namespace ArcDMCSRM {
         if (statuscode == SRM_TOO_MANY_RESULTS) {
           // we can only handle too many results if a single directory was listed
           if (surls.size() > 1) {
-            logger.msg(ERROR, "Too many files in one request - please try again with fewer files");
-            return EARCRESINVAL;
+            logger.msg(VERBOSE, "Too many files in one request - please try again with fewer files");
+            return DataStatus(DataStatus::ListError, EARCRESINVAL, "Too many files in one request");
           }
           break;
         }
@@ -856,34 +857,35 @@ namespace ArcDMCSRM {
             statuscode != SRM_PARTIAL_SUCCESS &&
             statuscode != SRM_REQUEST_QUEUED &&
             statuscode != SRM_REQUEST_INPROGRESS) {
-          logger.msg(creq.error_loglevel(), "%s", explanation);
+
           // check if individual file status gives more info
-          if (res["details"]["pathDetailArray"]["status"]["explanation"]) {
-            logger.msg(creq.error_loglevel(), "%s",
-                       (std::string)res["details"]["pathDetailArray"]
-                       ["status"]["explanation"]);
-          }
-          SRMStatusCode file_statuscode = GetStatus(res["details"]["pathDetailArray"]["status"], explanation);
+          std::string file_explanation;
+          SRMStatusCode file_statuscode = GetStatus(res["details"]["pathDetailArray"]["status"], file_explanation);
+          if (explanation.empty()) explanation = file_explanation;
+          else if (!file_explanation.empty()) explanation + ": " + file_explanation;
+          logger.msg(VERBOSE, explanation);
           delete response;
-          return srm2errno(statuscode, file_statuscode);
+          return DataStatus(DataStatus::ListError, srm2errno(statuscode, file_statuscode), explanation);
         }
       }
 
       // check for timeout
       if (request_time >= creq.request_timeout()) {
-        logger.msg(creq.error_loglevel(), "Ls request timed out after %i seconds", creq.request_timeout());
-        abort(creq);
+        logger.msg(VERBOSE, "Ls request timed out after %i seconds", creq.request_timeout());
+        abort(creq, true);
         delete response;
-        return ETIMEDOUT;
+        return DataStatus(DataStatus::ListError, ETIMEDOUT, "Ls request timed out");
       }
     }
     else {
-      logger.msg(creq.error_loglevel(), explanation);
       // check if individual file status gives more info
-      SRMStatusCode file_statuscode = GetStatus(res["details"]["pathDetailArray"]["status"], explanation);
-      logger.msg(creq.error_loglevel(), explanation);
+      std::string file_explanation;
+      SRMStatusCode file_statuscode = GetStatus(res["details"]["pathDetailArray"]["status"], file_explanation);
+      if (explanation.empty()) explanation = file_explanation;
+      else if (!file_explanation.empty()) explanation + ": " + file_explanation;
+      logger.msg(VERBOSE, explanation);
       delete response;
-      return srm2errno(statuscode, file_statuscode);
+      return DataStatus(DataStatus::ListError, srm2errno(statuscode, file_statuscode), explanation);
     }
 
     // the request is ready - collect the details
@@ -905,8 +907,8 @@ namespace ArcDMCSRM {
         list_req.offset(max_files_list * list_no);
         list_req.count(max_files_list);
 
-        SRMReturnCode infores = info(list_req, list_metadata);
-        if (infores != 0) return infores;
+        DataStatus infores = info(list_req, list_metadata);
+        if (!infores) return infores;
 
         // append to metadata
         for (std::list<SRMFileMetaData>::iterator it = list_metadata.begin();
@@ -916,7 +918,7 @@ namespace ArcDMCSRM {
       }
       // add to the map
       metadata[*surl] = md;
-      return 0;
+      return DataStatus::Success;
     }
 
     for (XMLNode details = res["details"]["pathDetailArray"]; details; ++details, ++surl) {
@@ -934,7 +936,7 @@ namespace ArcDMCSRM {
       }
       SRMStatusCode filestatuscode = GetStatus(details["status"], explanation);
       if (filestatuscode != SRM_SUCCESS && filestatuscode != SRM_FILE_BUSY) {
-        logger.msg(ERROR, "%s: %s", *surl, explanation);
+        logger.msg(VERBOSE, "%s: %s", *surl, explanation);
         continue;
       }
       std::list<struct SRMFileMetaData> md;
@@ -979,8 +981,8 @@ namespace ArcDMCSRM {
             list_req.offset(max_files_list * list_no);
             list_req.count(max_files_list);
             list_req.recursion(creq.recursion());
-            SRMReturnCode res = info(list_req, list_metadata);
-            if (res != 0) {
+            DataStatus res = info(list_req, list_metadata);
+            if (!res) {
               delete response;
               return res;
             }
@@ -999,7 +1001,7 @@ namespace ArcDMCSRM {
       metadata[*surl] = md;
     }
     delete response;
-    return 0;
+    return DataStatus::Success;
   }
 
   SRMFileMetaData SRM22Client::fillDetails(XMLNode details, bool directory) {
@@ -1150,11 +1152,11 @@ namespace ArcDMCSRM {
     return metadata;
   }
 
-  SRMReturnCode SRM22Client::releaseGet(SRMClientRequest& creq) {
+  DataStatus SRM22Client::releaseGet(SRMClientRequest& creq) {
     // Release all pins referred to by the request token in the request object
     if (creq.request_token().empty()) {
-      logger.msg(ERROR, "No request token specified!");
-      return EINVAL;
+      logger.msg(VERBOSE, "No request token specified!");
+      return DataStatus(DataStatus::ReadPrepareError, EINVAL, "No request token specified");
     }
 
     PayloadSOAP request(ns);
@@ -1163,8 +1165,8 @@ namespace ArcDMCSRM {
     req.NewChild("requestToken") = creq.request_token();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) return status;
+    DataStatus status = process("", &request, &response);
+    if (!status) return status;
 
     XMLNode res = (*response)["srmReleaseFilesResponse"]
                   ["srmReleaseFilesResponse"];
@@ -1173,22 +1175,22 @@ namespace ArcDMCSRM {
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     if (statuscode != SRM_SUCCESS) {
-      logger.msg(ERROR, "%s", explanation);
+      logger.msg(VERBOSE, explanation);
       delete response;
-      return srm2errno(statuscode);
+      return DataStatus(DataStatus::ReadPrepareError, srm2errno(statuscode), explanation);
     }
 
     logger.msg(VERBOSE, "Files associated with request token %s released successfully", creq.request_token());
     delete response;
-    return 0;
+    return DataStatus::Success;
   }
 
-  SRMReturnCode SRM22Client::releasePut(SRMClientRequest& creq) {
+  DataStatus SRM22Client::releasePut(SRMClientRequest& creq) {
     // Set the files referred to by the request token in the request object
     // which were prepared to put to done
     if (creq.request_token().empty()) {
-      logger.msg(ERROR, "No request token specified!");
-      return EINVAL;
+      logger.msg(VERBOSE, "No request token specified!");
+      return DataStatus(DataStatus::WritePrepareError, EINVAL, "No request token specified");
     }
 
     PayloadSOAP request(ns);
@@ -1198,8 +1200,8 @@ namespace ArcDMCSRM {
     req.NewChild("arrayOfSURLs").NewChild("urlArray") = creq.surl();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) return status;
+    DataStatus status = process("", &request, &response);
+    if (!status) return status;
 
     XMLNode res = (*response)["srmPutDoneResponse"]["srmPutDoneResponse"];
 
@@ -1207,21 +1209,23 @@ namespace ArcDMCSRM {
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     if (statuscode != SRM_SUCCESS) {
-      logger.msg(ERROR, "%s", explanation);
+      logger.msg(VERBOSE, "%s", explanation);
       delete response;
-      return srm2errno(statuscode);
+      return DataStatus(DataStatus::WritePrepareError, srm2errno(statuscode), explanation);
     }
 
     logger.msg(VERBOSE, "Files associated with request token %s put done successfully", creq.request_token());
     delete response;
-    return 0;
+    return DataStatus::Success;
   }
 
-  SRMReturnCode SRM22Client::abort(SRMClientRequest& creq) {
+  DataStatus SRM22Client::abort(SRMClientRequest& creq,
+                                bool source) {
     // Call srmAbortRequest on the files in the request token
     if (creq.request_token().empty()) {
-      logger.msg(ERROR, "No request token specified!");
-      return EINVAL;
+      logger.msg(VERBOSE, "No request token specified!");
+      return DataStatus(source ? DataStatus::ReadFinishError : DataStatus::WriteFinishError,
+                        EINVAL, "No request token specified");
     }
 
     PayloadSOAP request(ns);
@@ -1230,8 +1234,8 @@ namespace ArcDMCSRM {
     req.NewChild("requestToken") = creq.request_token();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) return status;
+    DataStatus status = process("", &request, &response);
+    if (!status) return status;
 
     XMLNode res = (*response)["srmAbortRequestResponse"]["srmAbortRequestResponse"];
 
@@ -1239,29 +1243,29 @@ namespace ArcDMCSRM {
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     if (statuscode != SRM_SUCCESS) {
-      logger.msg(ERROR, "%s", explanation);
+      logger.msg(VERBOSE, "%s", explanation);
       delete response;
-      return srm2errno(statuscode);
+      return DataStatus(source ? DataStatus::ReadFinishError : DataStatus::WriteFinishError,
+                        srm2errno(statuscode), explanation);
     }
 
     logger.msg(VERBOSE, "Files associated with request token %s aborted successfully", creq.request_token());
     delete response;
-    return 0;
+    return DataStatus::Success;
   }
 
-  SRMReturnCode SRM22Client::remove(SRMClientRequest& creq) {
+  DataStatus SRM22Client::remove(SRMClientRequest& creq) {
     // TODO: bulk remove
 
     // call info() to find out if we are dealing with a file or directory
     SRMClientRequest inforeq(creq.surls());
-    inforeq.error_loglevel(creq.error_loglevel());
     // set recursion to -1, meaning don't list entries in a dir
     inforeq.recursion(-1);
 
     std::list<struct SRMFileMetaData> metadata;
-    SRMReturnCode res = info(inforeq, metadata);
-    if (res != 0) {
-      logger.msg(creq.error_loglevel(),
+    DataStatus res = info(inforeq, metadata);
+    if (!res) {
+      logger.msg(VERBOSE,
                  "Failed to find metadata info on %s for determining file or directory delete",
                  inforeq.surl());
       return res;
@@ -1277,21 +1281,21 @@ namespace ArcDMCSRM {
     }
 
     logger.msg(WARNING, "File type is not available, attempting file delete");
-    if (removeFile(creq) == 0) return 0;
+    if (removeFile(creq).Passed()) return DataStatus::Success;
 
     logger.msg(WARNING, "File delete failed, attempting directory delete");
     return removeDir(creq);
   }
 
-  SRMReturnCode SRM22Client::removeFile(SRMClientRequest& creq) {
+  DataStatus SRM22Client::removeFile(SRMClientRequest& creq) {
     // only one file requested at a time
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmRm").NewChild("srmRmRequest");
     req.NewChild("arrayOfSURLs").NewChild("urlArray") = creq.surl();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) return status;
+    DataStatus status = process("", &request, &response);
+    if (!status) return status;
 
     XMLNode res = (*response)["srmRmResponse"]["srmRmResponse"];
 
@@ -1299,17 +1303,17 @@ namespace ArcDMCSRM {
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     if (statuscode != SRM_SUCCESS) {
-      logger.msg(creq.error_loglevel(), "%s", explanation);
+      logger.msg(VERBOSE, explanation);
       delete response;
-      return srm2errno(statuscode);
+      return DataStatus(DataStatus::DeleteError, srm2errno(statuscode), explanation);
     }
 
     logger.msg(VERBOSE, "File %s removed successfully", creq.surl());
     delete response;
-    return 0;
+    return DataStatus::Success;
   }
 
-  SRMReturnCode SRM22Client::removeDir(SRMClientRequest& creq) {
+  DataStatus SRM22Client::removeDir(SRMClientRequest& creq) {
     // only one file requested at a time
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmRmdir")
@@ -1317,8 +1321,8 @@ namespace ArcDMCSRM {
     req.NewChild("SURL") = creq.surl();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) return status;
+    DataStatus status = process("", &request, &response);
+    if (!status) return status;
 
     XMLNode res = (*response)["srmRmdirResponse"]["srmRmdirResponse"];
 
@@ -1326,18 +1330,18 @@ namespace ArcDMCSRM {
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     if (statuscode != SRM_SUCCESS) {
-      logger.msg(creq.error_loglevel(), "%s", explanation);
+      logger.msg(VERBOSE, explanation);
       delete response;
-      return srm2errno(statuscode);
+      return DataStatus(DataStatus::DeleteError, srm2errno(statuscode), explanation);
     }
 
     logger.msg(VERBOSE, "Directory %s removed successfully", creq.surl());
     delete response;
-    return 0;
+    return DataStatus::Success;
   }
 
-  SRMReturnCode SRM22Client::copy(SRMClientRequest& creq,
-                                  const std::string& source) {
+  DataStatus SRM22Client::copy(SRMClientRequest& creq,
+                               const std::string& source) {
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmCopy").NewChild("srmCopyRequest");
     XMLNode reqarray = req.NewChild("arrayOfFileRequests")
@@ -1347,8 +1351,8 @@ namespace ArcDMCSRM {
     if (!creq.space_token().empty()) req.NewChild("targetSpaceToken") = creq.space_token();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) return status;
+    DataStatus status = process("", &request, &response);
+    if (!status) return status;
 
     XMLNode res = (*response)["srmCopyResponse"]["srmCopyResponse"];
 
@@ -1389,7 +1393,7 @@ namespace ArcDMCSRM {
         delete response;
         response = NULL;
         status = process("", &request, &response);
-        if (status != 0) return status;
+        if (!status) return status;
 
         res = (*response)["srmStatusOfCopyRequestResponse"]
               ["srmStatusOfCopyRequestResponse"];
@@ -1405,32 +1409,32 @@ namespace ArcDMCSRM {
           }
         }
         else if (statuscode != SRM_SUCCESS) {
-          logger.msg(ERROR, "%s", explanation);
+          logger.msg(VERBOSE, explanation);
           delete response;
-          return srm2errno(statuscode);
+          return DataStatus(DataStatus::TransferError, srm2errno(statuscode), explanation);
         }
       }
 
       // check for timeout
       if (request_time >= copy_timeout) {
-        logger.msg(ERROR, "copy request timed out after %i seconds", copy_timeout);
+        logger.msg(VERBOSE, "copy request timed out after %i seconds", copy_timeout);
         creq.finished_abort();
         delete response;
-        return ETIMEDOUT;
+        return DataStatus(DataStatus::TransferError, ETIMEDOUT, "Copy request timed out");
       }
     }
     else if (statuscode != SRM_SUCCESS) {
-      logger.msg(ERROR, "%s", explanation);
+      logger.msg(VERBOSE, "%s", explanation);
       delete response;
-      return srm2errno(statuscode);
+      return DataStatus(DataStatus::TransferError, srm2errno(statuscode), explanation);
     }
 
     creq.finished_success();
     delete response;
-    return 0;
+    return DataStatus::Success;
   }
 
-  SRMReturnCode SRM22Client::mkDir(SRMClientRequest& creq) {
+  DataStatus SRM22Client::mkDir(SRMClientRequest& creq) {
     std::string surl = creq.surl();
     std::string::size_type slashpos = surl.find('/', 6);
     slashpos = surl.find('/', slashpos + 1); // don't create root dir
@@ -1440,16 +1444,14 @@ namespace ArcDMCSRM {
       std::string dirname = surl.substr(0, slashpos);
       // list dir to see if it exists
       SRMClientRequest listreq(dirname);
-      // don't report errors
-      listreq.error_loglevel(VERBOSE);
       listreq.recursion(-1);
       std::list<struct SRMFileMetaData> metadata;
       if (keeplisting) {
         logger.msg(VERBOSE, "Checking for existence of %s", dirname);
-        if (info(listreq, metadata) == 0) {
+        if (info(listreq, metadata).Passed()) {
           if (metadata.front().fileType == SRM_FILE) {
-            logger.msg(ERROR, "File already exists: %s", dirname);
-            return ENOTDIR;
+            logger.msg(VERBOSE, "File already exists: %s", dirname);
+            return DataStatus(DataStatus::CreateDirectoryError, ENOTDIR, "File already exists");
           }
           slashpos = surl.find("/", slashpos + 1);
           continue;
@@ -1464,8 +1466,8 @@ namespace ArcDMCSRM {
       req.NewChild("SURL") = dirname;
 
       PayloadSOAP *response = NULL;
-      SRMReturnCode status = process("", &request, &response);
-      if (status != 0) return status;
+      DataStatus status = process("", &request, &response);
+      if (!status) return status;
 
       XMLNode res = (*response)["srmMkdirResponse"]["srmMkdirResponse"];
 
@@ -1481,19 +1483,19 @@ namespace ArcDMCSRM {
         keeplisting = false;
       }
       else if (slashpos == std::string::npos) {
-        logger.msg(ERROR, "Error creating directory %s: %s", dirname, explanation);
+        logger.msg(VERBOSE, "Error creating directory %s: %s", dirname, explanation);
         delete response;
-        return srm2errno(statuscode);
+        return DataStatus(DataStatus::CreateDirectoryError, srm2errno(statuscode), explanation);
       }
 
       delete response;
     }
 
-    return 0;
+    return DataStatus::Success;
   }
 
-  SRMReturnCode SRM22Client::rename(SRMClientRequest& creq,
-                                    const URL& newurl) {
+  DataStatus SRM22Client::rename(SRMClientRequest& creq,
+                                 const URL& newurl) {
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmMv")
                   .NewChild("srmMvRequest");
@@ -1501,29 +1503,29 @@ namespace ArcDMCSRM {
     req.NewChild("toSURL") = newurl.plainstr();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) return status;
+    DataStatus status = process("", &request, &response);
+    if (!status) return status;
 
     XMLNode res = (*response)["srmMvResponse"]["srmMvResponse"];
 
     std::string explanation;
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
-    if (statuscode == SRM_SUCCESS) return 0;
+    if (statuscode == SRM_SUCCESS) return DataStatus::Success;
 
-    logger.msg(ERROR, "%s", explanation);
-    return srm2errno(statuscode);
+    logger.msg(VERBOSE, explanation);
+    return DataStatus(DataStatus::RenameError, srm2errno(statuscode), explanation);
   }
 
-  SRMReturnCode SRM22Client::checkPermissions(SRMClientRequest& creq) {
+  DataStatus SRM22Client::checkPermissions(SRMClientRequest& creq) {
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmCheckPermission")
                   .NewChild("srmCheckPermissionRequest");
     req.NewChild("arrayOfSURLs").NewChild("urlArray") = creq.surl();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process("", &request, &response);
-    if (status != 0) return status;
+    DataStatus status = process("", &request, &response);
+    if (!status) return status;
 
     XMLNode res = (*response)["srmCheckPermissionResponse"]["srmCheckPermissionResponse"];
 
@@ -1531,16 +1533,16 @@ namespace ArcDMCSRM {
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     if (statuscode != SRM_SUCCESS) {
-      logger.msg(ERROR, "%s", explanation);
+      logger.msg(VERBOSE, explanation);
       delete response;
-      return srm2errno(statuscode);
+      return DataStatus(DataStatus::CheckError, srm2errno(statuscode), explanation);
     }
     // check if 'r' bit is set
     if (std::string(res["arrayOfPermissions"]["surlPermissionArray"]["permission"]).find('R') != std::string::npos) {
       delete response;
-      return 0;
+      return DataStatus::Success;
     }
-    return EACCES;
+    return DataStatus(DataStatus::CheckError, EACCES);
   }
 
   int SRM22Client::srm2errno(SRMStatusCode reqstat, SRMStatusCode filestat) {
