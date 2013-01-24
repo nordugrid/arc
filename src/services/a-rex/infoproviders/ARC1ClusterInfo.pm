@@ -955,6 +955,8 @@ sub collect($) {
          my $apol = {};
          my ($epID) = @_;
          $apol->{ID} = "$apolIDp:basic";
+         $apol->{CreationTime} = $creation_time;
+         $apol->{Validity} = $validity_ttl;
          $apol->{Scheme} = "basic";
          $apol->{Rule} = [ @authorizedvos ];
          # $apol->{UserDomainID} = $apconf->{UserDomainID};
@@ -986,6 +988,8 @@ sub collect($) {
     my $getBasicMappingPolicy = sub {
          my $mpol = {};
          my ($shareID) = @_;
+         $mpol->{CreationTime} = $creation_time;
+         $mpol->{Validity} = $validity_ttl;
          $mpol->{ID} = "$mpolIDp:basic";
          $mpol->{Scheme} = "basic";
          $mpol->{Rule} = [ @authorizedvos ];
