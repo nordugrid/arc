@@ -99,7 +99,7 @@ start () {
 	log_failure_msg "Failed to create configuration for $prog"
 	exit 1
     fi
-    /var/run/arc/infosys/bdii-slapd.cmd
+    /bin/sh /var/run/arc/infosys/bdii-slapd.cmd
 
     touch ${slapd_lock_file}
 
