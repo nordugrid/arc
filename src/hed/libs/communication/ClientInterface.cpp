@@ -366,7 +366,7 @@ namespace Arc {
                      ((sec.sec == GSISec) || (sec.sec == GSIIOSec)) ? "gsi" : "tcp");
     comp.NewAttribute("entry") = "http";
     comp.NewChild("Method") = "POST"; // Override using attributes if needed
-    comp.NewChild("Endpoint") = url.str();
+    comp.NewChild("Endpoint") = url.str(true); // Override using attributes if needed
   }
 
   ClientHTTP::~ClientHTTP() {}
@@ -468,20 +468,20 @@ namespace Arc {
     reqmsg.Attributes()->set("HTTP:METHOD", method);
     if (!path.empty()) {
       URL url(default_url);
-      url.ChangeFullPath(path);
+      url.ChangeFullPath(path,true);
       if(relative_uri) {
         // Workaround for servers which can't handle full URLs in request
         reqmsg.Attributes()->set("HTTP:HOST", url.Host() + ":" + tostring(url.Port()));
-        std::string rpath = url.FullPath();
+        std::string rpath = url.FullPathURIEncoded();
         if(rpath[0] != '/') rpath.insert(0,"/");
         reqmsg.Attributes()->set("HTTP:ENDPOINT", rpath);
       } else {
-        reqmsg.Attributes()->set("HTTP:ENDPOINT", url.str());
+        reqmsg.Attributes()->set("HTTP:ENDPOINT", url.str(true));
       }
     } else {
       if(relative_uri) {
         reqmsg.Attributes()->set("HTTP:HOST", default_url.Host() + ":" + tostring(default_url.Port()));
-        std::string rpath = default_url.FullPath();
+        std::string rpath = default_url.FullPathURIEncoded();
         if(rpath[0] != '/') rpath.insert(0,"/");
         reqmsg.Attributes()->set("HTTP:ENDPOINT", rpath);
       }
