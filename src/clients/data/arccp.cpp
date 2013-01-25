@@ -677,7 +677,7 @@ int main(int argc, char **argv) {
 
   // Attempt to acquire credentials. Whether they are required will be
   // determined later depending on the protocol.
-  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::NotTryCredentials);
+  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::TryCredentials);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
