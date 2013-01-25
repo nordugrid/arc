@@ -788,6 +788,21 @@ int JobPlugin::close(bool eof) {
       if(*q == job_desc.queue) break; 
     };
   };
+  /* ***********************************************
+   * Collect delegation identifiers                *
+   *********************************************** */
+  std::list<std::string> deleg_ids;
+  for(std::list<FileData>::iterator f = job_desc.inputdata.begin();
+                                      f != job_desc.inputdata.end();++f) {
+    if(!f->cred.empty()) deleg_ids.push_back(f->cred);
+  };
+  for(std::list<FileData>::iterator f = job_desc.outputdata.begin();
+                                      f != job_desc.outputdata.end();++f) {
+    if(!f->cred.empty()) deleg_ids.push_back(f->cred);
+  };
+  /* ****************************************
+   * Preprocess job request                 *
+   **************************************** */
   std::string session_dir(config.SessionRoot(job_id) + '/' + job_id);
   GMJob job(job_id,user,session_dir,JOB_STATE_ACCEPTED);
   if(!job_desc_handler.process_job_req(job, job_desc)) {
@@ -873,18 +888,6 @@ int JobPlugin::close(bool eof) {
       error_description="Failed to process/store job ACL.";
       return 1;
     };
-  };
-  /* ***********************************************
-   * Collect delegation identifiers                *
-   *********************************************** */
-  std::list<std::string> deleg_ids;
-  for(std::list<FileData>::iterator f = job_desc.inputdata.begin();
-                                      f != job_desc.inputdata.end();++f) {
-    if(!f->cred.empty()) deleg_ids.push_back(f->cred);
-  };
-  for(std::list<FileData>::iterator f = job_desc.outputdata.begin();
-                                      f != job_desc.outputdata.end();++f) {
-    if(!f->cred.empty()) deleg_ids.push_back(f->cred);
   };
   /* ***********************************************
    * Call authentication/authorization plugin/exec *
