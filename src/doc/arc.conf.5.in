@@ -1,27 +1,28 @@
 .TH arc.conf 5 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
 
 .SH NAME
-arc.conf, .arc/client.conf \- ARC configuration
-
-.SH DESCRIPTION
-Configuration files for NorduGrid ARC.
+arc.conf \- ARC configuration
 
 .SH SYNOPSIS
 .B /etc/arc.conf
 
 .B ${ARC_LOCATION}/etc/arc.conf
 
-.B ${HOME}/.arc/client.conf
-
 .SH DESCRIPTION
 
-The ARC configuration file consists of several configuration blocks.
+ARC has two separate configuration files - one for client tools and
+another for services. This document describes the services configuration file.
+For client configuration please see "ARC Clients User Manual" at
+http://www.nordugrid.org/documents/arc-ui.pdf
+
+ARC configuration uses a plain-text "ini-style" format. It is also possible to
+use an XML format, however that is outside the scope of this document.
+
+The configuration file consists of several configuration blocks.
 Each configuration block is identified by a keyword and contains the
 configuration options for a specific part of the ARC middleware.
 
-The ARC configuration file can be written in one of two different
-formats: plain text or xml. In the plain text format each
-configuration block starts with its identifying keyword inside
+Each configuration block starts with its identifying keyword inside
 square brackets. Thereafter follows one or more attribute value pairs
 written one on each line in the following format
 (note that the attribute names are CASE-SENSITIVE):
@@ -35,637 +36,824 @@ written one on each line in the following format
 .BR attribute ="value"
 .fi
 
-In the xml format the arc configuration file consist of a single "arc"
-xml element. Inside this element each configuration block appears as a
-separate xml element named after the block's identifying keyword. This
-block in turn contains attribute value pairs in the following format:
-
-.nf
-.B <arc>
-.RB \  <keyword1>
-.RB \ \  <attribute1> value1 </attribute1>
-.RB \ \  <attribute2> value2 </attribute2>
-.RB \  </keyword1>
-.RB \  <keyword2>
-.RB \ \  <attribute> value </attribute>
-.RB \  </keyword2>
-.B </arc>
-.fi
-
-However, if a configuration block has an id attribute, it should be
-given as an xml attribute to the keyword instead:
-
-.BR <keyword\ id ="value" >
-
-Some options can also have suboptions. In the plain text format these
-are given as a comma separated list without spaces of attribute value
-pairs before the option value:
-
-.BR attribute =" subattr1 =subval1, subattr2 =subval2\ value"
-
-In the xml format the suboptions are given as attributes to the xml
-tag:
-
-.BR <attribute\ subattr1 ="subval1"\  subattr2 ="subval2" > value </attribute>
-
-The following keywords are used in the block names: common, client,
-group, data-staging, nordugridmap, vo, grid-manager, gridftpd, infosys, 
-registration, cluster, queue.
-
 If the ARC_LOCATION environment variable is set the ARC configuration
 file located at ${ARC_LOCATION}/etc/arc.conf is read first. If this
 file is not present or the relevant configuration information is not
 found in this file, the file at /etc/arc.conf is read.
 
-For ARC client applications each user can specify a personal
-configuration file at ${HOME}/.arc/client.conf. Only the common and
-client blocks are used in this file. If this file is not present or
-does not contain the relevant configuration information the global
-configuration files are read instead.
+.SH The [common] block 
 
-.SH COMMON OPTIONS
+The parameters set within this block are available for all the other blocks.
+These are the config parameters shared by the different components of ARC
+(e.g. grid-manager, infosys)  
 
-Options listed in the common configuration block affect all parts of
-the ARC middleware, unless overridden in a configuration block for a
-particular service or a command line option.
-
-.SH CLIENT OPTIONS
 
 .TP
-.B giis
-Configures which GIISes to use to discover computing and storage
-resources. The default is to use the four top level GIISes:
+.B hostname
+hostname - the FQDN of the frontend node, optional in the common block but
+MUST be set in the cluster block
 
-ldap://index1.nordugrid.org:2135/O=Grid/Mds-Vo-name=NorduGrid
+.IR Example:
 .br
-ldap://index2.nordugrid.org:2135/O=Grid/Mds-Vo-name=NorduGrid
+hostname="myhost.org"
+
+.TP
+.B x509_voms_dir
+x509_voms_dir path - the path to the directory containing *.lsc files
+needed for checking validity of VOMS extensions.  If not specified default
+value /etc/grid-security/vomsdir is used.
+
+.IR Example:
 .br
-ldap://index3.nordugrid.org:2135/O=Grid/Mds-Vo-name=NorduGrid
+x509_voms_dir="/etc/grid-security/vomsdir"
+
+.TP
+.B lrms
+ARC supports various LRMS flavours, as listed in this section. For detailed
+description of options please refer to ARC CE sysadmin guide:
+
+http://www.nordugrid.org/documents/arc-ce-sysadm-guide.pdf
+
+.B ONLY ONE LRMS IS ALLOWED. MULTIPLE lrms ENTRIES WILL TRIGGER UNEXPECTED BEHAVIOUR.
+
+.B lrms
+sets the type of the Local Resource Management System (queue system),
+and optionally - the default queue name, separated with a blank space:
+.B lrmstype queue_name.
+For 
+.B lrmstype,
+the following systems are supported and can be chosen (one per server):
+   fork   - simple forking of jobs to the same node as the server
+   sge    - (Sun/Oracle) Grid Engine
+   condor - Condor
+   pbs    - PBS
+   lsf    - LSF
+   ll     - LoadLeveler
+   slurm  - SLURM
+   dgbridge - Desktop Grid
+   
+PBS has many flavours, ARC currenly supports OpenPBS, PBSPro, ScalablePBS
+and Torque (the official name for ScalablePBS). There is no need to specify
+the flavour or the version number of the PBS, simply write 'pbs'. Similarly,
+there is no need to specify (Sun/Oracle) Grid Engine versions and flavours.
+"lrmstype" MUST be set here, it is a MANDATORY parameter!
+
+The optional 
+.B "queue"
+parameter specifies the default Grid queue of the
+LRMS. Jobs will be submitted to this queue if they do not specify queue
+name in job description. Queue name must match one of the [queue/queue_name]
+block labels, see below. 
+
+.IR Example:
 .br
-ldap://index4.nordugrid.org:2135/O=Grid/Mds-Vo-name=NorduGrid
-
-This option can be repeated several times.
-
-.I Example
-(plain text):
-
-giis="ldap://atlasgiis.nbi.dk:2135/O=Grid/Mds-Vo-name=Atlas"
-
-.I Example
-(xml):
-
-<giis>ldap://odin.switch.ch:2135/O=Grid/Mds-Vo-name=Switzerland</giis>
-
-.TP
-.B debug
-
-Default debug level to use for the arc clients. Corresponds to the -d
-command line switch of the clients. Default value is 0.
-
-.I Example
-(plain text): debug="2"
-
-.I Example
-(xml): <debug>2</debug>
-
-.TP
-.B timeout
-Timeout to use for interaction with LDAP servers, gridftp servers,
-etc. If a server, during e.g. job submission, does not answer in the
-specified number of seconds, the connection is timed out and
-closed. Default value is 20 seconds.
-
-.I Example
-(plain text): timeout="20"
-
-.I Example
-(xml): <timeout>10</timeout>
-
-.TP
-.B downloaddir
-Default download directory to download files to when retrieving output
-files from jobs using arccli get. Default is the current working
-directory.
-
-.I Example
-(plain text): downloaddir="/home/johndoe/arc-downloads"
-
-.I Example
-(xml): <downloaddir>/tmp/johndoe</downloaddir>
-
-.TP
-.B alias
-Alias substitutions to perform in connection with the -c command line
-switch of the arc clients. Alias definitions are recursive. Any alias
-defined in a block that is read before a given block can be used in
-alias definitions in that block. An alias defined in a block can also
-be used in alias definitions later in the same block. This option can
-be repeated several times.
-
-.I Example
-(plain text):
-
-alias="host1=somehost.nbi.dk"
+lrms="pbs gridlong"
 .br
-alias="host2=otherhost.uu.se"
+lrms="pbs"
+
+.SH PBS options
+
+.TP
+.B pbs_bin_path
+the path to the qstat,pbsnodes,qmgr etc PBS binaries, 
+no need to set if PBS is not used
+
+.IR Example:
 .br
-alias="myhosts=host1 host2"
+pbs_bin_path="/usr/bin"
 
-.I Example
-(xml):
+.TP
+.B pbs_log_path
+the path of the PBS server logfiles which are used by the GM to determine 
+whether a PBS job is completed. If not specified, GM will use qstat for that.
 
-<alias>host1=somehost.nbi.dk</alias>
+.IR Example:
 .br
-<alias>host2=otherhost.uu.se</alias>
+pbs_log_path="/var/spool/pbs/server_logs"
 .br
-<alias>myhosts=host1 host2</alias>
 
-With the example above "arcsub -c myhosts" will resolve to "arcsub -c
-somehost.nbi.dk -c otherhost.uu.se"
+.SH Condor options
 
 .TP
-.B broker
-Configures which broker to use during job submission. The default one
-is the FastestCpus broker that chooses, among the possible targets,
-the target with the fastest CPUs. Another possibility is the
-RandomSort broker that chooses the target randomly among the targets
-surviving the job description matchmaking.
+.B condor_location
+condor_location - path to directory containing Condor's bin, sbin, etc.
+need not to set if Condor is not used
 
-.I Example
-(plain text): broker="RandomSort"
-
-.I Example
-(xml): <broker>RandomSort</broker>
-
-.PP
-
-.SH GROUP OPTIONS
-
-The group configuration blocks define rules used to determine to which
-authorisation groups a user belongs. Each authorisation group is
-defined in its own group configuration block and should be given a
-unique id. If the plain text format is used, the authorisation group
-"users" is defined by:
-
-.nf
-.B [group]
-.BR id ="users"
-.fi
-
-If the xml format is used the same block is defined using the
-attributed xml tag:
-
-.BR <group\ id ="users" > ... </group>
-
-The attribute value pairs in a group configuration block represent
-rules for allowing or denying users as members of the group. These
-rules are processed in order of appearance. The first rule that
-matches the information presented by a user stops the processing of
-the remaining rules in the block. The result of a rule can be
-inverted, so that a matching rule counts as non-matching and vice
-versa. In the plain text format this is done by prepending the rule
-with an exclamation mark. In the xml format it is done by adding a
-match attribute with the value "inverted" to the rule's xml tag.
-
-A matching rule can either allow or deny a user. If the plain text
-format is used an allow rule is defined by prepending a the rule with
-plus sign and a deny rule by prepending it with a minus sign. If the
-xml format is used the type of rule is indicated by adding a rule
-attribute with a value of "allow" or "deny" to the xml tag. In either
-format, if the type is not indicated, the rule is interpreted as an
-allow rule. Currently the authorisation groups can be referred to in
-gridftpd and httpsd blocks.
-
-.TP
-.B subject
-Match a specific certificate subject.
-
-.I Examples
-(plain text):
-
-+subject="/O=Grid/O=Big VO/CN=Main Boss"
+.IR Example:
 .br
--subject="/O=Grid/O=Tiny VO/CN=Small Boss"
+condor_location="/opt/condor"
+
+.TP
+.B condor_config
+condor_config - path to Condor's configuration file
+no need to set if Condor is not used
+
+.IR Example:
 .br
-!subject="/O=Grid/O=Bad VO/CN=Evil Boss"
+condor_config="/opt/condor/etc/condor_config"
 
-.I Examples
-(xml):
+.TP
+.B condor_rank
+condor_rank - If you are not happy with the way Condor picks nodes when
+running jobs, you can define your own ranking algorithm by optionally
+setting the condor_rank attribute. condor_rank should be set to a 
+ClassAd float expression that you could use in the Rank attribute 
+in a Condor job description.
+Obviously no need to set if Condor is not used. An example:
 
-<subject rule="allow">/O=Grid/O=Big VO/CN=Main Boss</subject>
+.IR Example:
 .br
-<subject rule="reject">/O=Grid/O=Tiny VO/CN=Small Boss</subject>
+condor_rank="(1-LoadAvg/2)*(1-LoadAvg/2)*Memory/1000*KFlops/1000000"
+
+.TP
+.B condor_bin_path
+condor_bin_path - Allows to tweak and override the condor binary 
+automatically found by ARC using the condor_location configuration 
+command. Usually it is not needed. Please DO NOT set it unless you
+know what you're doing.
+default is NOT set, points to [path in condor_location]/bin
+
+.IR Example:
 .br
-<subject match="inverted">/O=Grid/O=Bad VO/CN=Evil Boss</subject>
+condor_bin_path=[path in condor_location]/bin
+.br
 
-These examples will allow the Big Boss, deny the Small Boss and
-allow everyone except the Evil Boss (except the Small Boss which was
-denied by the previous rule).
-
-.TP
-.B all
-Matches any credential.
-
-.I Example
-(plain text): all="all"
-
-.I Example
-(xml): <all>all</all>
+.SH SGE options
 
 .TP
-.B file
-This is convenient for directly adding gridmap like lists to
-authorisation groups.
+.B sge_bin_path
+sge_bin_path - Path to Sun Grid Engine (SGE) binaries, 
+MUST be set if SGE is the LRMS used
 
-.IR Example :
-file="/etc/grid-security/local-users"
-
-.TP
-.B group
-Match users belonging to a different group. The value for this
-attribute is the id of the referred group.
-
-.IR Example :
-group="admins"
+.IR Example:
+.br
+sge_bin_path="/opt/n1ge6/bin/lx24-x86"
 
 .TP
-.B plugin
-Run an external executable or a function from shared library. The rule
-matches if the plugin returns 0. The value for this attribute is a
-space separated list of arguments in the format "[function@]path [arg1
-[arg2 [...]]]". If the plugin is given as function@path then the
-function
+.B sge_root
+sge_root - Path to SGE installation directory. MUST be set if SGE is used.
 
-.RB int\  function \ (char*\  arg1 ,\ char*\  arg2 ,\ ...)
-
-from the shared library at path is called. Otherwise the external
-executable at the specified path is called with the given arguments.
-
-In the arguments the following substitutions are supported:
-
-.RS
-.TP
-.B %D
-the subject of the user's certificate
+.IR Example:
+.br
+sge_root="/opt/n1ge6"
 
 .TP
-.B %P
-the path to the proxy file
+.B sge_cell
+sge_cell - The name of the SGE cell to use. This option is only necessary
+in case SGE is set up with a cell name different from 'default'
 
-.PP
-Optionally a timeout value (specified in seconds) can be given by
-adding a suboption.
-
-.I Example
-(plain text):
-
-plugin="timeout=10 /opt/external/bin/permis %P"
-
-.I Example
-(xml):
-
-<plugin timeout="10">/opt/external/bin/permis %P</plugin>
-.RE
+.IR Example:
+.br
+sge_cell="default"
 
 .TP
-.B remote
-Check the user's credentials against a remote service. Only URLs to
-groups stored at LDAP directories are supported.
+.B sge_qmaster_port
+sge_qmaster_port, sge_execd_port - these options should be used in case SGE
+command line clients requre SGE_QMASTER_PORT and SGE_EXECD_PORT environment
+variables to be set. Usually they are not necessary.
 
-.IR Example :
+.IR Example:
+.br
+sge_qmaster_port="536"
+.br
+sge_execd_port="537"
 
-remote="ldap://grid-vo.nordugrid.org/ou=people,dc=nordugrid,dc=org"
+.SH SLURM options
+
+.TP
+.B slurm_bin_path
+slurm_bin_path - Path to SLURM binaries, must be set if installed
+outside of normal $PATH
+
+.IR Example:
+.br
+slurm_bin_path="/usr/bin"
+
+.TP
+.B slurm_wakeupperiod
+How long should infosys wait before querying SLURM for new data (seconds)
+
+.IR Example:
+.br
+slurm_wakeupperiod="15"
+
+.SH LSF options
+
+.TP
+.B lsf_bin_path
+the PATH to LSF bin folder
+no need to set if LSF is not used
+
+.IR Example:
+.br
+lsf_bin_path="/usr/local/lsf/bin/"
+
+.TP
+.B lsf_profile_path
+the PATH to profile.lsf
+no need to set if LSF is not used
+
+.IR Example:
+.br
+lsf_profile_path="/usr/share/lsf/conf"
+.br
+
+# LL options
+
+.TP
+.B ll_bin_path
+the PATH to the LoadLeveler bin folder
+no need to set if LoadLeveler is not used
+
+.IR Example:
+.br
+ll_bin_path="/opt/ibmll/LoadL/full/bin"
+
+.TP
+.B ll_consumable_resources
+support for a LoadLeveler setup using Consumable Resources
+no need to set if LoadLeveler is not used
+
+.IR Example:
+.br
+ll_consumable_resources="yes"
+
+.SH Desktop Grid options
+
+.TP
+.B dgbridge_stage_dir
+Desktop Bridge www publish dir
+
+.IR Example:
+.br
+dgbridge_stage_dir="/var/www/DGBridge"
+
+.TP
+.B dgbridge_stage_prepend
+Desktop Bridge url prefix pointing to dgbridge_stage_dir
+
+.IR Example:
+.br
+dgbridge_stage_prepend="http://edgi-bridge.example.com/DGBridge/"
+
+.SH Other [common] options
+
+.TP
+.B globus_tcp_port_range
+globus_tcp_port_range, globus_udp_port_range - Firewall configuration
+In a firewalled environment the software which uses GSI needs to know what
+ports are available. The full documentation can be found at:
+http://dev.globus.org/wiki/FirewallHowTo
+These variable are similar to the Globus enviroment variables:
+GLOBUS_TCP_PORT_RANGE and GLOBUS_UDP_PORT_RANGE.
+These variables are not limited to [common], but can be set individually
+for each service in corresponding section: [grid-manager], [gridftpd]
+Example:
+
+.IR Example:
+.br
+globus_tcp_port_range="9000,12000"
+.br
+globus_udp_port_range="9000,12000"
+
+.TP
+.B x509_user_key
+x509_user_cert, x509_user_key - Server credentials location.
+These variables are similar to the GSI enviroment variables:
+X509_USER_KEY and X509_USER_CERT
+These variables are not limited to [common], but can be set individually
+for each service in corresponding section: [grid-manager], [gridftpd], [nordugridmap]
+
+.IR Example:
+.br
+x509_user_key="/etc/grid-security/hostkey.pem"
+.br
+x509_user_cert="/etc/grid-security/hostcert.pem"
+
+.TP
+.B x509_cert_dir
+x509_cert_dir - Location of trusted CA certificates
+This variable is similar to the GSI enviroment variable: X509_CERT_DIR
+This variable is not limited to [common], but can be set individually
+for each service in corresponding section: [grid-manager], [gridftpd], [httpsd]
+
+.IR Example:
+.br
+x509_cert_dir="/etc/grid-security/certificates"
+
+.TP
+.B gridmap
+gridmap - The gridmap file location
+This variable is similar to the GSI enviroment variable: GRIDMAP
+This variable is not limited to [common], but can be set individually
+for each service in corresponding section: [grid-manager], [gridftpd], [httpsd]
+The default is /etc/grid-security/grid-mapfile
+
+.IR Example:
+.br
+gridmap="/etc/grid-security/grid-mapfile"
+
+.TP
+.B voms_processing
+voms_processing - Defines how to behave if errors in VOMS AC processing detected.
+  relaxed - use everything that passed validation.
+  standard - same as relaxed but fail if parsing errors took place and
+             VOMS extension is marked as critical. This is a default.
+  strict - fail if any parsing error was discovered.
+  noerrors - fail if any parsing or validation error happened.
+This command can also be used in [grid-manager] and [griftpd] blocks.
+
+.IR Example:
+.br
+voms_processing="standard"
+
+.TP
+.B voms_trust_chain 
+voms_trust_chain - Define the DN chain that the host services trust when the 
+voms AC from peer voms proxy certificate is parsed and validated. 
+There can be multiple "voms_trust_chain" existing, each one corresponds to a voms server. 
+This variable is similar to the information in *.lsc file, but with two differences:
+ 1, you don't need to create a *.lsc file per VOMS server, but create a chain per VOMS server;
+ 2, the regular expression is support when matching the DNs.
+
+This variable is not limited to [common], but can be used in [grid-manager]
+and [gridftpd] blocks.
+This variable should be used together with voms_processing.
+This variable will overwrite the information in *.lsc if *.lsc exists. 
+
+.IR Example:
+.br
+voms_trust_chain = "/O=Grid/O=NorduGrid/CN=host/arthur.hep.lu.se" "/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority"
+.br
+voms_trust_chain = "/O=Grid/O=NorduGrid/CN=host/emi-arc.eu" "/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority"
+.br
+voms_trust_chain = "^/O=Grid/O=NorduGrid"
+
+.SH [vo] block 
+
+[vo] block is used to define VOs and generate mapfiles from user 
+list maintained by VO databases. VO block is a configuration block
+for the nordugridmap utility.
+Please note that [vo] block processing by nordugridmap utility 
+depend on parameters defined in the [nordugridmap] block.
+
+[vo] block by itself does not affect authorization of client/user. For
+that label defined by vo="" atribute may be used in [group] block with
+'vo' rule. Also mapfiles generated by nordugridmap utility can be used
+with 'file' rule.
+
+
+.TP
+.B id
+id blockid - specifies the unique configuration block id (this does not
+affect nordugridmap utility)
+
+.IR Example:
+.br
+id="vo_1"
 
 .TP
 .B vo
-Match users belonging to a VO (virtual organisation) as configured in
-one of vo blocks. The value for this attribute is the id of the
-referred VO.
+vo vo_name - specifies the VO name, this name can be used in other blocks
+and in gacl expressions. MUST be given.
 
-.IR Example :
+.IR Example:
+.br
 vo="nordugrid"
 
 .TP
-.B voms
-Match a VOMS (Virtual Organisation Management Service) credential. The
-value for this attribute should be a space separated list of voms
-attributes to be matched in the order "vo group role capability". A
-`*' can be used as a wildcard for any value.
-
-.IR Example :
-voms="nordugrid guests * *"
-
-.SH VO OPTIONS
-
-A vo block is used to define VOs (virtual organisations) and generate
-mapfiles from user lists maintained by VO databases. A vo block is a
-configuration block for the nordugridmap utility. 
-.PP
-NOTE: Currently 
-.BR nordugridmap (1)
-utility works only with plain text configuration format.
-.PP
-The vo blocks can also be used and referenced in authorisation group 
-blocks and in gacl expressions. Each vo block MUST be given an unique
-name. If the plain text format is used, the vo group "atlas" is defined by:
-
-.nf
-.B [vo]
-.BR vo ="atlas"
-.fi
-
-If the xml format is used the same block is defined using the
-attributed xml tag:
-
-.BR <vo\ vo ="atlas" > ... </vo>
-
-.TP
 .B file
-The file which contains the user lists associated with this VO. The
-file is automatically generated using the nordugridmap utility.
+file path - output gridmap-file where GENERATED mapping list will be
+stored. See parameters below to define how to generate this file.
 If the same file specified as output for different [vo] blocks, 
 nordugridmap will automatically merge enrties in given blocks order.
-Default is "/etc/grid-security/gridmapfile".
+Default is '/etc/grid-security/gridmapfile'.
 
-.IR Example :
+.IR Example:
+.br
 file="/etc/grid-security/VOs/atlas-users"
 
 .TP
 .B source
-The URL of a VO database assigned to this VO. The nordugridmap utility
-will use this URL to automatically generate and keep up-to-date the
-user list (mapfile) specified by the \fBfile\fP attribute. This is a
-multivalued attribute \- several sources can be specified for a vo
-block and all the users from those sources will be merged into the
-same file. The source URLs are processed in the given order. 
-.PP
-.RS
-Currently \fIsupported URL types\fP are:
-.TP 
-.B http(s)://
-URL to plain text file. File should contain a list of DNs with 
-optional issuer certificate authority DN (see \fBrequire_issuerdn\fP): 
-"user DN" ["issuer DN"]
-.TP 
-.B voms(s)://
-URL to VOMS-Admin interface
-.TP 
-.B nordugrid
-Add NorduGrid VO members
-.TP 
-.B ldap://
-Point to LDAP-schema formatted VO Group
-.B file://
-Local file (stand-alone or dynamicaly generated by nordugridmap). 
-File should contain a list of DNs with optional mapped unixid: 
-"user DN" [mapped unixID]. Result of optional mapped unixid processing 
-depend on \fBmapuser_processing\fP nordugridmap configuration block 
-settings.
-.TP 
-.B vo://
-Reference to another vo configuration block
-.TP
-.B edg-mkgridmap://
-Local configuration file used by \fBedg-mkgridmap\fP tool.
-\fBnordugridmap\fP(8) will parse configuration from file and
-process it as aditional VO configuration block that will be refered
-authomatically in place URL specified.
-.PP
-For each separate source URL it is possible to 
-.IRoverride\~processing\~parameters\~value. 
-You can use the following syntax to perform this:
-.TP
-source="URL < parameter1=value1 parameter2=value2"
-.PP
+source url - the URL of the VO database which is assigned to this VO. 
+The nordugridmap will use this URL to automatically generate and keep 
+up-to-date userlist (mapfile) specified by the 'file' attribute. 
+url is a multivalued attribute, several sources can be specified for 
+the [vo] block and all the users from those sources will be merged 
+into the same file. The source URLs are processed in the given order.
+Currently supported URL types are: 
+   http(s):// - URL to plain text file. File should contain a list
+                of DNs with optional issuer certificate authority DN
+                (see require_issuerdn): "user DN" ["issuer DN"]
+   voms(s):// - URL to VOMS-Admin interface
+   nordugrid  - add NorduGrid VO members
+   ldap://    - expect LDAP-schema formatted VO Group
+   file://    - local file (stand-alone or dynamicaly generated by 
+                nordugridmap). File should contain a list of DNs with
+                optional mapped unixid: "user DN" [mapped user ID]
+                Result of optional mapped unixid processing depend
+                on mapuser_processing option settings.
+   vo://      - reference to another [vo] configuration block 
+   edg-mkgridmap:// 
+              - local configuration file used by edg-mkgridmap tool.
+                nordugridmap will parse configuration from file and 
+                process it as aditional [vo] block that will be refered 
+                authomatically in place URL specified. This allow 
+                easy migration from edg-mkgridmap solution without 
+                rewriting your previous configuration (NOTE that rarely 
+                used 'auth' directive and 'AUTO' mapping options are not 
+                supported)
+
+You can use either vo:// or file:// entries to specify dependencies
+between [vo] blocks, but using vo:// is a recommended way.
+For each separate source URL it is possible to override some parameters 
+value. You can use the following syntax to perform this:
+   source="URL < parameter1=value1 parameter2=value2"
+
 You can override the following parameters:
-.TP
-.B mapper_unixid
-for http(s), voms(s), ldap and file URLs
-.TP
-.B cache_enable
-for http(s), voms(s), ldap and file URLs
-.TP
-.B voms_method
-for voms(s) URLs
-.TP
-.B mapuser_processing
-for file URLs with \fBmapped_unixid\fP overrided
-.PP
-.IR Examples :
+   mapped_unixid       for http(s),voms(s),ldap and file URLs
+   cache_enable        for http(s),voms(s),ldap and file URLs
+   voms_method         for voms(s) URLs
+   mapuser_processing  for file URLs with mapped_unixid='<unixid>' overrided 
+                       (control mapped_unixid overriding behaviour for URL)
+
+.IR Example:
 .br
-source="http://www.nordugrid.org/developers.dn"
-.br
-source="vomss://voms.ndgf.org:8443/voms/nordugrid.org < voms_method=get"
-.br
-source="ldap://grid-vo.nikhef.nl/ou=lcg1,o=atlas,dc=eu-datagrid,dc=org"
+source="vomss://voms.ndgf.org:8443/voms/nordugrid.org"
 .br
 source="vomss://lcg-voms.cern.ch:8443/voms/atlas?/atlas/Role=VO-Admin < mapped_unixid=atlasadmin"
 .br
-source="file:///etc/grid-security/priviliged-users.txt"
+source="vomss://kuiken.nikhef.nl:8443/voms/gin.ggf.org < voms_method=get"
+.br
+source="http://www.nordugrid.org/developers.dn"
+.br
+source="ldap://grid-vo.nikhef.nl/ou=lcg1,o=atlas,dc=eu-datagrid,dc=org"
+.br
+source="file:///etc/grid-security/priviliged_users.dn"
 .br
 source="vo://nordugrid_community"
-.RE
+.br
+source="nordugrid"
 
 .TP
 .B mapped_unixid
-The local UNIXID which is used in the generated grid-mapfile by the 
-nordugridmap utility.
+mapped_unixid unixid - the local UNIXID which is used in the generated 
+grid-mapfile by the nordugridmap utility.
+
 If any of the sources have already provided mapping information (file:// 
-or vo://) behavior depends on \fBmapuser_processing\fP nordugridmap block
-conguration value:
-.RS
-.TP 
-.BR mapuser_processing ="overwrite"
-ignore already provided mapping and apply mapped_unixid for all sources
-.TP 
-.BR mapuser_processing ="keep"
-apply mapped_unixid only for sources that does not already has mapping 
-information
-.PP
-vo block can only have one UNIXID. If \fBmapped_unixid\fP is not specified 
-behavior depends on \fBallow_empty_unixid\fP nordugridmap block conguration
-value:
-.TP 
-.BR allow_empty_unixid ="yes"
-empty value will be used for \fBmapped_unixid\fP which means that 
-nordugridmap will generate only the list of DNs without mapping (consider 
-using \fBmapuser_processing\fP="overwrite" along with this option or
-sources that does not provide previously defined mapping information)
-.TP
-.BR allow_empty_unixid ="no"
-skip users without mapping information (if no mapping information provided 
-by sources)
-.PP
-.IR Example :
+or vo://) behavior depends on 'mapuser_processing' [nordugridmap] block
+conguration:
+   mapuser_processing = 'overwrite': ignore already provided mapping and 
+                        apply mapped_unixid for all sources
+   mapuser_processing = 'keep': apply mapped_unixid only for sources that
+                        does not already has mapping information
+
+[vo] block can only have one UNIXID.
+If 'mapped_unixid' is not specified behavior depends on 'allow_empty_unixid'
+[nordugridmap] block conguration value:
+   allow_empty_unixid = 'yes': empty value will be used for mapped_unixid
+                        which means that nordugridmap will generate only 
+                        the list of DNs without mapping (consider using  
+                        mapuser_processing='overwrite' along with this 
+                        option or sources that does not provide previously
+                        defined mapping information)
+   allow_empty_unixid = 'no': skip users without mapping information (if
+                        no mapping information provided by sources)
+
+.IR Example:
+.br
 mapped_unixid="gridtest"
-.RE
 
 .TP
 .B voms_fqan_map
-the local UNIXID which is used to map voms(s) sources with specific FQAN given.
-.PP
-.RS
+voms_fqan_map fqan unixid - the local UNIXID which is used to map voms(s)
+sources with specific FQAN given.
 Several voms_fqan_map can be specified for a [vo] block.
 For each voms(s) sources in [vo] block and every voms_fqan_map record 
 separate source record will be authomatically generated with mapped_unixid 
 overrided to specified one.
-.PP
 Sources are generated in a given voms_fqan_map order. Original voms(s) source
 URL are processed LAST.
-.PP
 This allows to simplify configuration, especially in redundancy cases when 
 several VOMS servers are used for the same VO.
 
-.IR Examples :
+.IR Example:
 .br
 voms_fqan_map="/atlas/Role=VO-Admin atlasadmin"
 .br
 voms_fqan_map="/atlas/Role=production atlasprod"
-.RE
 
 .TP
 .B require_issuerdn
-If set to "yes" only those DNs obtained from the URLs which have the
-corresponding public CA packages installed will be mapped. Default is
-"no".
-.PP
-.RS
+require_issuerdn yes/no - another nordugridmap option. YES would map only
+those DNs obtained from the urls which have the corresponding public CA 
+packages installed. Default is 'no'.
 Note, that some sources does not provide issuer information (like 
-voms(s):// or file://). If this sources are used within vo block
-and \fBrequire_issuerdn\fP is set to "yes" behavior depends on 
-\fBissuer_processing\fP nordugridmap block conguration value:
-.TP
-.BR issuer_processing ="relaxed"
-check only those records that have issuer information provided, allow 
-other sources
-.TP 
-.BR issuer_processing ="strict"
-if issuer information was not found record is filtered and will not be 
-passed into mapfile
-.PP
-.IR Example :
+voms(s):// or file://). If this sources are used within [vo] block
+and require_issuerdn is set to 'yes' behavior depends on issuer_processing
+[nordugridmap] block conguration:
+   issuer_processing = 'relaxed': check only those records that have issuer 
+                       information provided, allow other sources
+   issuer_processing = 'strict': if issuer information was not found record 
+                       is filtered and will not be passed into mapfile
+
+.IR Example:
+.br
 require_issuerdn="no"
-.RE
 
 .TP
 .B filter
-An ACL filter for the nordugridmap utility. Multiple allow/deny
-statements are possible. The fetched DNs are filtered against the
-specified rules before they are added to the generated mapfile. 
-.PP
-.RS
-A `*' can be used as a wildcard. You may run the nordugridmap with the
---test command line option to see how the filters you specified work.
-.PP
-If at least one allow filter is specified implicit deny is used at the 
-end of ACL. If only deny filters are present - implicit allow used.
+filter  ACL string - An ACL filter for the nordugridmap utility. Multiple
+allow/deny statements are possible. The fetched DNs are filtered against
+the specified rules before they are added to the generated mapfile. 
+* can be used as a wildcard. You may run the nordugridmap with the --test
+command line option to see how the filters you specified work.
+If at least one allow filter is specified implicit deny is used at the end
+of ACL. If only deny filters are present - implicit allow used at the end.
 
-.IR Examples :
-
-filter="deny *infn*"
+.IR Example:
+.br
+filter="deny  *infn*"
 .br
 filter="allow *NorduGrid*"
 
-.SH GRID-MANAGER OPTIONS
+.SH [group] Authorisation block 
 
-The grid-manager block configures the grid-manager process taking care
-of the grid tasks on the frontend (stagein/stageout, LRMS job
-submission, caching, etc...).
+These configuration blocks define rules used to define to which
+authorization group a user belongs. The group should not be mistaken
+for a virtual organisation (VO). A group may match a single vo if
+only a single check (rule) on vo membership is perfomed. It is
+however more common to allow multiple VOs in a single group. ARC
+also allows many other ways to assign users to groups. Technically,
+permissions are only granted to groups, not directly to VOs.
+
+The block specifies single authorization group. Ther may be multiple
+[group] blocks in configuration defining multiple authorization
+groups.
+
+The block can be specified in two ways - either using [group/group1]
+like subblock decalration per group or just [group]. The two formats
+are equivalent. Every block (till the beginning of next block or the 
+end of the file) defines one authorization group.
+
+.B IMPORTANT:
+Rules in a group are processed in their order of appearance.
+The first matching rule decides the membership of a  the user to a group
+and the processing STOPS. There are positively and negatively matching
+rules. If a rule is matched positively then the user tested is accepted
+into the respective group and further processing is stopped. Upon a 
+negative match the user would be rejected for that group - processing 
+stops too. The sign of rule is determined by prepending the rule with 
+'+' (for positive) or '-' (for negative) signs. '+' is default and can 
+be omitted. A rule may also be prepended with '!' to invert result of rule,
+which will let the rule match the complement of users. That complement 
+operator ('!') may be combined with the operator for positive or negative 
+matching.
+
+A group MUST be defined before it may be used. In this respect the
+arc.conf is ORDER SENSITIVE.
+
+The authorization groups can be used in [gridftpd] and in their sub-blocks.
+The syntax of their specification varies with the service they are used for.
+For using authorization groups and VO blocks in HED framework please
+read "Security Framework of ARC" at
+http://www.nordugrid.org/documents/arc-security-documentation.pdf
+
+
+.TP
+.B name
+name group_name - Specify name of group. If there is no such command
+in block, name of subblock is used instead (that is what subblocks 
+are used for). For example [group/users].
+
+.IR Example:
+.br
+name="users"
+
+.TP
+.B subject
+subject certificate_subject - Rule to match specific subject of user's 
+X.509 certificate. No masks, patterns and regular expressions are allowed.
+For more information about X.509 refer to http://www.wikipedia.org/wiki/X509
+
+.IR Example:
+.br
+subject="/O=Grid/O=Big VO/CN=Main Boss"
+
+.TP
+.B file
+file path - Start reading rules from another file. That file has a bit 
+different format. It can't contain blocks and commands are separated
+from arguments by space. Also word "subject" in subject command may be
+skipped. That makes it convinient to directly add gridmap-like lists to
+authorization group.
+
+.IR Example:
+.br
+file="/etc/grid-security/local_users"
+
+.TP
+.B voms
+voms vo group role capabilities - Match VOMS attribute in user's credential.
+Use '*' to match any value. More information about VOMS can be found at 
+http://grid-auth.infn.it
+
+.IR Example:
+.br
+voms="nordugrid Guests * *"
+
+.TP
+.B group
+group group_name [group_name ...] - Match user already belonging to one
+of specified groups. Groups refered here must be defined earlier in
+configuration file. Multiple group names may be specified for this rule.
+That allows creating hierarchical structure of authorization groups like
+'clients' are those which are 'users' and 'admins'.
+
+.IR Example:
+.br
+group="local_admins"
+
+.TP
+.B plugin
+plugin timeout path [argument ...] - Run external executable or 
+function from shared library. Rule is matched if plugin returns 0.
+In arguments following substitutions are supported:
+  %D - subject of certicate
+  %P - path to proxy
+
+For more about plugins read documentation.
+
+.IR Example:
+.br
+plugin="10 /opt/external/bin/permis %P"
+
+.TP
+.B lcas
+lcas library directory database - Call LCAS functions to check rule.
+Here library is path to shared library of LCAS, either absolute or
+relative to directory; directory is path to LCAS installation directory,
+equivalent of LCAS_DIR variable; database is path to LCAS database,
+equivalent to LCAS_DB_FILE variable. Each arguments except library is
+optional and may be either skipped or replaced with ’*’.
+
+.IR Example:
+.br
+lcas=""
+
+.TP
+.B remote
+remote URL ... - Check user's credentials against remote service. Only
+DN groups stored at LDAP directories are supported. Multiple URLs are
+allowed in this rule.
+
+.IR Example:
+.br
+remote="ldap://grid-vo.nordugrid.org/ou=People,dc=nordugrid,dc=org"
+
+.TP
+.B vo
+vo vo_name ... - Match user belonging to VO specified by "vo=vo_name" as 
+configured in one of PREVIOUSLY defined [vo] blocks. Multiple VO names
+are allowed for this rule.
+
+.IR Example:
+.br
+vo="nordugrid"
+
+.TP
+.B all
+all - Matches any user identity. This command requires no arguments but 
+ still can be written as all="" or all= for consistency.
+
+.IR Example:
+.br
+all=""
+
+.SH The [grid-manager] block 
+
+The [grid-manager] block configures the part of A-REX service hosted 
+in 
+.B arched
+taking care of the grid tasks on the frontend
+(stagein/stageout, LRMS job submission, caching, etc..). Name of this
+block is historical and comes from times then this functionality was
+handled by separate process called grid-manager. This section also 
+configures WS interfaces of A-REX service also hosted by same container.
+
 
 .TP
 .B controldir
-The directory of the grid-manager's internal job log files, not needed
-on the nodes.
+controldir path - The directory of the A-REX's internal job log files, 
+not needed on the nodes. <must be set>
 
-.IR Example :
+.IR Example:
+.br
 controldir="/var/spool/nordugrid/jobstatus"
 
 .TP
 .B sessiondir
-The directory which holds the session directories of the grid jobs.
+sessiondir path [drain] - the directory which holds the sessiondirs of the grid jobs.
 Multiple session directories may be specified by specifying multiple sessiondir
 commands. In this case jobs are spread evenly over the session directories.
 If sessiondir="*" is set, the session directory will be spread over the
-${HOME}/.jobs directories of every locally mapped unix user. It is
-preferred to use common session directories.
+${HOME}/.jobs directories of every locally mapped unix user. It is preferred
+to use common session directories. The path may be followed by "drain", in
+which case no new jobs will be assigned to that sessiondir, but current jobs
+will still be processed and accessible. <sessiondir must be set>
 
-.IR Example :
+.IR Example:
+.br
 sessiondir="/scratch/grid"
+.br
+sessiondir="/mnt/grid drain"
+
+.TP
+.B runtimedir
+runtimedir path - The directory which holds the runtimeenvironment scripts, 
+should be available on the nodes as well! the runtimeenvironments are 
+automatically detected and advertised in the information system.
+
+.IR Example:
+.br
+runtimedir="/SOFTWARE/runtime"
 
 .TP
 .B scratchdir
-Path on computing node to move session directory to before execution. If
-defined should contain the path to the directory on the computing node which
-can be used to store a job’s files during execution. Sets the environment
-variable RUNTIME_LOCAL_SCRATCH_DIR. Default is not to move session directory
-before execution.
+scratchdir path - path on computing node to move session directory to before
+execution. If defined should contain the path to the directory on the
+computing node which can be used to store a jobs' files during execution.
+Sets the environment variable RUNTIME_LOCAL_SCRATCH_DIR. Default is not to
+move session directory before execution.
 
-.IR Example :
+.IR Example:
+.br
 scratchdir="/local/scratch/"
 
 .TP
 .B shared_scratch
-Path on frontend where scratchdir can be found. If defined should contain the
-path corresponding to that set in scratchdir as seen on the frontend machine.
-Sets the environment variable RUNTIME_FRONTEND_SEES_NODE.
+shared_scratch path - path on frontend where scratchdir can be found. If
+defined should contain the path corresponding to that set in scratchdir as
+seen on the frontend machine. Sets the environment variable
+RUNTIME_FRONTEND_SEES_NODE.
 
-.IR Example :
+.IR Example:
+.br
 shared_scratch="/mnt/scratch"
 
 .TP
 .B nodename
-Command to obtain hostname of computing node.
+nodename path - command to obtain hostname of computing node.
 
-.IR Example :
+.IR Example:
+.br
 nodename="/bin/hostname"
 
 .TP
-.B runtimedir
-The directory which holds the runtime environment scripts, should be
-available on the nodes as well. The runtime environments are
-automatically detected and advertised in the information system.
-
-.IR Example :
-runtimedir="/SOFTWARE/runtime"
-
-.TP
 .B cachedir
-Specifies the directory where to store cached data. If the cache
-attribute is not specified or the specified path is empty caching is
-disabled. An optional second argument specifies the path at which the
-cached data is accessible at the computing nodes (if different from
-the path at the frontend node). If the second argument is set to `.'
-files are not soft-linked, but copied to the session
-directory. Multiple caches can be specified by specifying multiple
-cachedir options
-
-.IR Examples :
-
-cachedir="/scratch/cache"
-.br
-cachedir="/shared/cache /frontend/cache"
-
-.TP
-.B remotecachedir 
-Specifies caches which are under the control of
-other GMs, but which this GM can have read-only access to.  Multiple
-remote cache directories may be specified by specifying multiple
-remotecachedir commands. If a file is not available in paths specified
-by cachedir, the GM looks in remote caches. The second argument has the same
-meaning as in cachedir, but the special path ``replicate'' means files
-will be replicated from remote caches to local caches when they are
-requested.
+cachedir cache_path [link_path] - specifies a directory to store cached
+data. Multiple cache directories may be specified by specifying multiple
+cachedir commands. Cached data will be distributed evenly over the caches.
+Specifying no cachedir command or commands with an empty path disables caching.
+Optional link_path specifies the path at which the cache_path is accessible on
+computing nodes, if it is different from the path on the GM host.
+Example: cache="/shared/cache /frontend/jobcache"
+If "link-path" is set to '.' files are not soft-linked, but copied to session
+directory. If a cache directory needs to be drained, then cachedir
+should specify "drain" as the link path, in which case no new files will be
+added to the cache.
 
 .IR Example:
+.br
+cachedir="/scratch/cache"
+.br
+cachedir="/fs1/cache drain"
+
+.TP
+.B remotecachedir
+remotecachedir cache_path [link_path] - specifies caches which are under
+the control of other GMs, but which this GM can have read-only access to.
+Multiple remote cache directories may be specified by specifying multiple 
+remotecachedir commands. If a file is not available in paths specified by
+cachedir, the GM looks in remote caches. link_path has the same meaning as in
+cachedir, but the special path ``replicate'' means files will
+be replicated from remote caches to local caches when they are requested.
+
+.IR Example:
+.br
 remotecachedir="/mnt/fs1/cache replicate"
 
 .TP
-.B cachesize 
-Value should be given as "max min". Specifies high
-and low watermark for space used by cache. Values are specified as
-percentages of the cache file system.
+.B cachesize
+cachesize max min - specifies high and low watermarks for space used
+by cache, as a percentage of the space on the file system on which 
+the cache directory is located. When the max is exceeded, files will
+be deleted to bring the used space down to the min level. It is a 
+good idea to have the cache on its own separate file system. To turn
+off this feature "cachesize" without parameters can be specified. 
 
-.IR Example :
+.IR Example:
+.br
 cachesize="80 70"
 
 .TP
@@ -674,2579 +862,2954 @@ If cache cleaning is enabled, files accessed less recently than the given
 time period will be deleted. Example values of this option are 1800, 90s, 24h,
 30d. When no suffix is given the unit is seconds.
 
-.IR Example :
+.IR Example:
+.br
 cachelifetime="30d"
 
 .TP
 .B cachelogfile
-Specifies the filename where output of the cache-clean tool should be
-logged. Defaults to /var/log/arc/cache-clean.log.
+cachelogfile path - specifies the filename where output of the cache-clean
+tool should be logged. Defaults to /var/log/arc/cache-clean.log.
 
-.IR Example :
+.IR Example:
+.br
 cachelogfile="/tmp/cache-clean.log"
 
 .TP
 .B cacheloglevel
-Specifies the level of logging by the cache-clean tool, between 0 (FATAL)
-and 5 (DEBUG). Defaults to 3 (INFO).
+cacheloglevel level - specifies the level of logging by the cache-clean
+tool, between 0 (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
 
-.IR Example :
-cacheloglevel="2"
+.IR Example:
+.br
+cacheloglevel="4"
 
 .TP
 .B cachecleantimeout
-The timeout in seconds for running the cache-clean tool. If using a large
-cache or slow file system this value can be increased to allow the cleaning
-to complete. Defaults to 3600 (1 hour).
+cachecleantimeout time - the timeout in seconds for running the cache-clean
+tool. If using a large cache or slow file system this value can be
+increased to allow the cleaning to complete. Defaults to 3600 (1 hour).
 
 .IR Example:
+.br
 cachecleantimeout="10000"
 
 .TP
-.B user
-Switch to a non-root user/group after startup. The format of the
-argument is user[:group]. 
+.B enable_cache_service
+enable_cache_service yes|no - Turn on or off the cache service interface.
+If turned on the cache service must be installed, the A-REX WS interface
+must be enabled via arex_mount_point and the option enable_dtr="yes"
+must be set. The interface is accessible at the same host and port as given
+in arex_mount_point with path /cacheservice. Default is off.
 
-.IR Examples :
-
-user="grid"
+.IR Example:
 .br
-user="griduser:gridgroup"
+enable_cache_service="yes" 
+
+.TP
+.B user
+user user[:group] - Switch to a non root user/group after startup.
+Use with caution.
+
+.IR Example:
+.br
+user="grid"
 
 .TP
 .B debug
-Set the debug level of the grid-manager daemon between 0 (FATAL) and 5 (DEBUG).
-Defaults to 3 (INFO).
+debug debuglevel - Set debug level of the arched daemon hosting A-REX service,
+between 0 (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
 
-.IR Example :
+.IR Example:
+.br
 debug="2"
 
 .TP
 .B logfile
-Specify the log file location. This file is opened/created before the
-daemon switches to specified user. Hence it can be owned by
-root. Default log file is "/var/log/arc/grid-manager.log".
+logfile path - Specify log file location. This file is opened/created
+before daemon swithces to specified user. Hence it can be owned 
+by 'root'. Default log file is "/var/log/arc/grid-manager.log"
 
-.IR Example :
+.IR Example:
+.br
 logfile="/var/log/arc/grid-manager.log"
 
 .TP
 .B logsize
-Specifies the (approximate) maximum size in bytes of the log file. A
-second argument indicates how many log files are kept. When the logfile
-exceeds the specified size it is renamed to logfile.0 and logfile.0 is
-renamed to logfile.1 and so on. When installing from packages, logrotate
-is used to manage log files, so only use this option if logrotate is
-disabled. 
+logsize size [number] - 'Size' specifies in bytes how big log file is 
+allowed to grow (approximately). If log file exceeds specified size
+it is renamed into logfile.0. And logfile.0 is renamed into 
+logfile.1, etc. up to 'number' logfiles. Don't set logsize if you don't
+want to enable the ARC logrotation because another logrotation tool is used.
 
-.IR Example :
+.IR Example:
+.br
 logsize="100000 2"
 
 .TP
-.B pidfile
-Specifies the location of the file containing the process id (PID) of
-the daemon process. This is useful for automatic start/stop scripts.
+.B logreopen
+logreopen yes|no - Specifies if log file must be closed after each record is
+added. By default arched keeps log file open. This option can be used to
+make behavior of arched compatible with external log rotation utilities.
 
-.IR Example :
-pidfile="/var/run/grid-manager.pid"
+.IR Example:
+.br
+logreopen="no"
+
+.TP
+.B pidfile
+pidfile path - Specify location of file containing PID of daemon process.
+This is useful for automatic start/stop scripts. 
+
+.IR Example:
+.br
+pidfile="/var/run/arched-arex.pid"
 
 .TP
 .B gnu_time
-the GNU time command. Default is /usr/bin/time.
+the gnu time command, default /usr/bin/time
 
-.IR Example :
+.IR Example:
+.br
 gnu_time="/usr/bin/time"
 
 .TP
 .B shared_filesystem
-Specifies whether the computing nodes can access the session directory
-at the frontend node. Defaults to "yes".
+if computing node can access session directory at frontend, defaults to 'yes' 
 
-.IR Example :
+.IR Example:
+.br
 shared_filesystem="yes"
 
 .TP
 .B mail
-Specifies the e-mail address from where the notification mails are sent.
+specifies the email address from where the notification mails are sent, <must
+be specified>
 
-.IR Example :
+.IR Example:
+.br
 mail="grid.support@somewhere.org"
 
 .TP
 .B joblog
-Specifies where to store a specialised log about started and finished
-jobs. If the given path is empty or the joblog attribute is not given
-the log is disabled.
+joblog path - specifies where to store specialized log about started
+and finished jobs. If path is empty or no such command - log is not written.
+This log is not used by any other part of ARC, so keep it disabled unless
+needed.
 
-.IR Example :
+.IR Example:
+.br
 joblog="/var/log/arc/gm-jobs.log"
 
 .TP
 .B jobreport
-Tells the grid-manager to report all started and finished jobs to a
-logger service. Multiple jobreport commands are allowed. In that case
-the job information will be sent to all specified services.
+jobreport [url ...] [timeout] - tells to report all started and finished jobs 
+to logger service at 'url'. Multiple urls and multiple jobreport commands 
+are allowed. In that case the job info will be sent to all of them.
+Timeout specifies how long (in days) to try to pass information before
+give up. Suggested value is 30 days.
 
-.IR Example :
+.IR Example:
+.br
 jobreport="https://grid.uio.no:8001/logger"
 
 .TP
 .B jobreport_publisher
-Name of the accounting records publisher.
+jobreport publisher - name of the accounting records publisher.
 
-.IR Example :
+.IR Example:
+.br
 jobreport_publisher="jura"
 
 .TP
 .B jobreport_credentials
-Specifies the credentials for accessing the accounting service. Arguments are
-key_file [cert_file [ca_dir]]
+jobreport credentials path [key_file [cert_file [ca_dir]]] - specifies the
+credentials for accessing the accounting service.
 
-.IR Example :
+.IR Example:
+.br
 jobreport_credentials="/etc/grid-security/hostkey.pem /etc/grid-security/hostcert.pem /etc/grid-security/certificates"
 
 .TP
 .B jobreport_options
-Specifies additional parameters for the jobreporter.
+jobreport options [name:value, ...]- specifies additional parameters for 
+the jobreporter.
 
-.IR Example  
-jobreport_options="urbatch:50,archiving:/tmp/archive"
+.IR Example:
+.br
+jobreport_options="urbatch:50,archiving:/tmp/archive,topic:/topic/global.accounting.cpu.central"
+
+.TP
+.B max_job_control_requests
+max_job_control_requests number - max number of simultaneously processed job management
+requests over WS interface - like job submission, cancel, status check etc. 
+Default value is 100.
+
+.IR Example:
+.br
+max_job_control_requests="100"
+
+.TP
+.B max_infosys_requests
+max_infosys_requests number - max number of simultaneously processed resource info
+requests over WS interface. Default value is 1.
+
+.IR Example:
+.br
+max_infosys_requests="1"
+
+.TP
+.B max_data_transfer_requests
+max_data_transfer_requests number - max number of simultaneously processed data transfer
+requests over WS interface - like data staging. 
+Default value is 100.
+
+.IR Example:
+.br
+max_data_transfer_requests="100"
 
 .TP
 .B maxjobs
-Specifies the maximum allowed number of jobs being processed at 
-different stages: 1. max processed jobs - maximum number of concurrent
-jobs processed. This does not limit the amount of jobs which can be 
-submitted to the cluster. 2. max running jobs - maximum number of 
-jobs passed to Local Resource Management System. 3. max jobs per dn -
-maximum number of concurrent jobs processed by A-REX per user DN. If this
-option is used the total maximum number of jobs processed is still 
-max processed jobs. 4. max jobs total - total maximum number of jobs
-associated with service. It is advised to use this limit only in
-exceptional case because it also accounts for finished jobs. Missing 
-number or -1 means no limit.
+maxjobs number1 number2 number3 number4 - specifies maximum allowed number of jobs.
+ number1 - jobs which are not in FINISHED state (jobs tracked in RAM)
+ number2 - jobs being run (SUBMITTING, INLRMS states)
+ number3 - jobs being processed per DN
+ number4 - jobs in whole system
+ 
+Missing number or -1 means no limit.
 
-.IR Example :
-maxjobs="10000 10 1000"
+.IR Example:
+.br
+maxjobs="10000 10 2000"
 
 .TP
 .B maxload
-Specifies the maximum allowed number of jobs. The value should be
-three numbers separated by spaces. The first number limits the number
-of jobs being processed on frontend (PREPARING, FINISHING states). The
-second number is the additional reserved number of jobs being
-processed on frontend. The third number limits the number of files
-being transferred simultaneously by jobs in PREPARING and FINISHING
-states. Missing number or -1 means no limit. Options in [data-staging]
-should be used instead of this unless DTR is disabled with enable_dtr=no.
+maxload number1 number2 number3 - specifies maximum allowed number of jobs.
+ number1 - jobs being processed on frontend (PREPARING, FINISHING states)
+ number2 - additional reserved number of jobs being processed on frontend
+ number3 - number of files being transferred simultaneously by jobs in
+PREPARING and FINISHING states.
 
-.IR Example :
+Missing number or -1 means no limit.
+Options in [data-staging] should be used instead of this unless DTR is 
+disabled with enable_dtr=no
+
+.IR Example:
+.br
 maxload="10 2 5"
 
 .TP
 .B maxloadshare
-Specifies a sharing mechanism for data transfer. The values are an integer
-followed by a space followed by a string. The first number is the maximum
-number of processes that can run per transfer share and the string is the scheme
-used to assign jobs to transfer shares. Possible values of this string
-are "dn", "voms:vo", "voms:role", and "voms:group". Options in [data-staging]
-should be used instead of this unless DTR is disabled with enable_dtr=no.
+maxloadshare maxshare sharetype - specifies a sharing mechanism for data
+transfer. maxshare is the maximum number of processes
+that can run per transfer share and sharetype is the scheme
+used to assign jobs to transfer shares. Possible values of sharetype
+are "dn", "voms:vo", "voms:role", and "voms:group".
+
+Options in [data-staging] should be used instead of this unless DTR is 
+disabled with enable_dtr=no
 
 .IR Example:
+.br
 maxloadshare="4 voms:role"
 
 .TP
 .B share_limit
-Specifies a transfer share that has a number of processes different from the
-default value in maxloadshare. name is the name of the share and limit is
-the number of processes for this share. In the configuration should appear
-after maxloadshare. Can be repeated several times for different shares.
-Options in [data-staging] should be used instead of this unless DTR is disabled
-with enable_dtr=no.
+share_limit name limit - specifies a transfer share that has a number
+of processes different from the default value in maxloadshare. name is
+the name of the share and limit is the number of processes for this
+share. In the configuration should appear after maxloadshare. Can be
+repeated several times for different shares.
+
+Options in [data-staging] should be used instead of this unless DTR is 
+disabled with enable_dtr=no
 
 .IR Example:
+.br
 share_limit="atlas:production 10"
 
 .TP
 .B enable_dtr
-Turns on and off the data staging framework Data Transfer Reloaded (DTR),
-which replaces the downloader and uploader for managing input and output files.
-Options for this are set in the [data-staging] section. It is on by default.
+enable_dtr yes|no - turns on and off the data staging framework Data
+Transfer Reloaded (DTR) which replaces the downloader and uploader for
+managing input and output files.
+
+Options for DTR are set in the [data-staging] section. It is on by default.
 
 .IR Example:
+.br
 enable_dtr="yes"
 
 .TP
 .B wakeupperiod
-Specifies how often the grid-manager checks for new jobs arrived, jobs
-finished in LRMS, etc. The value should be an integer representing a
-time period in seconds. Default is 3 minutes. Usually this command is
-not needed.
+wakeupperiod time - specifies how often A-REX cheks for new jobs
+arrived, job state change requests, etc. That is resposivity of
+A-REX. 'time' is time period in seconds. Default is 3 minutes.
+Usually this command is not needed because important state changes
+are also trigering out-of-schedule checks.
 
-.IR Example :
+NOTE: This parameter does not affect responsivity of backend scripts -
+especially scan-*-job. That means that upper estimation of time for
+detecting job finished executing is sum of responsivity of backend
+script + wakeupperiod.
+
+.IR Example:
+.br
 wakeupperiod="180"
 
 .TP
 .B securetransfer
-Specifies if the server allows users to specify to use secure data
-transfer. Default is "no".
+securetransfer yes|no - if data connection allows to choose use 
+secure|non-secure data transfer. Currently only works for gridftp.
+default is no
 
-.IR Example :
+.IR Example:
+.br
 securetransfer="no"
 
 .TP
 .B passivetransfer
-Specifies whether gridftp transfers are passive. Setting this option
-to yes can solve transfer problems caused by firewalls. Default is "no".
+passivetransfer yes|no - If yes, gridftp transfers are passive. Setting
+this option to yes can solve transfer problems caused by firewalls.
+default is no
 
-.IR Example :
+.IR Example:
+.br
 passivetransfer="no"
 
 .TP
 .B localtransfer
-If set to "yes" the data download to the session directory (stage in)
-will be part of the batch job (prior to the execution of the binary).
-Default is "no".
+localtransfer yes|no - If yes, then the data download from to Grid to the
+session directory (stagein) will be part of the batch job (prior to the
+execution of the binary). Default is no.
 
-.IR Example :
+.IR Example:
+.br
 localtransfer="no"
 
 .TP
 .B speedcontrol
-Specifies how slow data transfers must be to trigger an error. The
-value should be four integers separated by spaces in the format
-"min_speed min_time min_average_speed max_inactivity". The transfer is
-cancelled if the speed is below min_speed bytes per second for at
-least min_time seconds, or if average rate is below min_average_speed
-bytes per second, or no data was transferred for longer than
-max_inactivity seconds. A value of zero turns feature off. Default is
-"0 300 0 300".
+speedcontrol min_speed min_time min_average_speed max_inactivity - specifies
+how slow data transfer must be to trigger error. Tranfer is canceled if 
+speed is below min_speed bytes per second for at least min_time seconds,
+or if average rate is below min_average_speed bytes per second, or no data
+was transfered for longer than max_inactivity seconds. Value of zero turns
+feature off. Default is "0 300 0 300"
 
-.IR Example :
+.IR Example:
+.br
 speedcontrol="0 300 0 300"
 
 .TP
 .B defaultttl
-The value should be given as "ttl [ttr]". ttl is the time in seconds
-for how long a session directory will survive after job execution has
-finished. If not specified the default is one week. ttr is how long
-information about a job will be kept. If not specified the ttr
-default is one month.
+defaultttl [ttl [ttr]] - ttl is the time in seconds for how long a session
+directory will survive after job execution has finished. If not specified
+the default is 1 week. ttr is how long information about a job will be kept.
+If not specified, the ttr default is one month.
 
-.IR Example :
+.IR Example:
+.br
 defaultttl="259200"  
 
 .TP
 .B authplugin
-Every time a job goes into a specific state the specified executable
-is run with the given arguments. In the plain text format the state is
-specified by adding its name before the path to the executable and any
-specified suboptions. In the xml format the state is given by a state
-xml attribute to the xml tag. Possible suboptions are:
+authplugin state options plugin_path - Every time job goes to 'state'
+run 'plugin_path' executable. Options consist of key=value pairs separated
+by ','.
 
-.RS
+Possible keys are
+ timeout - wait for result no longer that 'value' seconds (timeout= can be omitted).
+ onsuccess,onfailure,ontimeout - what to do if plugin exited with exit
+code 0, not 0, timeout achieved.
+  Possible actions are:
+   pass - continue executing job,
+   fail - cancel job,
+   log - write to log fail about problem and continue executing job.
+
+.IR Example:
+.br
+authplugin="ACCEPTED timeout=10 /usr/libexec/arc/bank %C/job.%I.local %S"
+
 .TP
-.B timeout
-wait for result no longer than the specified number of seconds.
+.B authplugin
+ARC is distributed with the plugin "inputcheck". Its purpose is
+to check if input files requested in job's RSL are accessible 
+from this machine. It is better to run it before job enters cluster.
+It accepts 2 arguments: names of files containing RSL and credentials'
+proxy. This plugin is only guaranteed to work for job submitted through
+the legacy GridFTP interface, as this is the only interface for which
+credentials in the form of proxy certificate files are guaranteed to
+exist.
+
+.IR Example:
+.br
+authplugin="ACCEPTED 60 /usr/libexec/arc/inputcheck %C/job.%I.description %C/job.%I.proxy"
 
 .TP
-.B onsuccess, onfailure, ontimeout
-what to do if the plugin exits with exit code zero, with non-zero exit
-code or if the timeout is reached respectively. Possible values are:
+.B authplugin
+The second plugin in ARC is a UR generator. Its purpose is to create
+records on job completion. See [logger] section and urlogger.pdf for
+more details.
 
-.I pass
-\- continue the execution of the job,
+.IR Example:
+.br
+authplugin="FINISHED timeout=10,onfailure=pass /usr/libexec/arc/arc-ur-logger %C %I %S %U"
 
-.I fail
-\- cancel the job,
+.TP
+.B authplugin
+ARC is distributed with the plugin "arc-vomsac-check". It's purpose is to enforce
+per-queue access policies based on VOMS attributes present in user's
+proxy-certificate. Plugin should be run before job enters the cluster.
+It requires 2 argments: path to job information .local file and path to
+credentials file. 
+Enforced per-queue access policies are configured with 'ac_policy' option 
+in the [queue/name] configuration block.
 
-.I log
-\- write to the log file about the problem and continue the execution of
-the job.
-
-.PP
-.I Example
-(plain text):
-
-authplugin="ACCEPTED timeout=10 /opt/nordugrid/libexec/bank %C/job.%I.local %S"
-
-.I Example
-(xml):
-
-<authplugin state="ACCEPTED" timeout="10">/opt/nordugrid/libexec/bank %C/job.%I.local %S</authplugin>
-
-ARC is distributed with a plugin called "inputcheck". It's purpose is
-to check if input files requested in job's XRSL are accessible from
-this machine. It accepts two arguments: the name of the file
-containing the XRSL and name of the proxy file.
-
-.I Example
-(plain text):
-
-authplugin="ACCEPTED timeout=60 /opt/nordugrid/libexec/inputcheck %C/job.%I.description %C/job.%I.proxy"
-
-.I Example
-(xml):
-
-<authplugin state="ACCEPTED" timeout="60">/opt/nordugrid/libexec/inputcheck %C/job.%I.description %C/job.%I.proxy</authplugin>
-.RE
+.IR Example:
+.br
+authplugin="ACCEPTED 60 /usr/libexec/arc/arc-vomsac-check -L %C/job.%I.local -P %C/job.%I.proxy"
 
 .TP
 .B localcred
-Run an external executable or a function form a shared library. Every
-time the job has to do something on behalf of a local user this plugin
-will be called. It's purpose is to set non-unix permissions and
-credentials on the running task. If the plugin path looks like
-name@path, then the function "name" from the shared library at path
-will be called, otherwise the external executable at path will be
-called. Don't use it unless you really know what you are doing. A
-timeout can be defined as a suboption if required.
+localcred timeout plugin_path - Every time an external executable
+is run this plugin will be called. Its purpose is to set non-unix 
+permissions/credentials on running tasks. Note: the process itself 
+can still be run under the root account. If plugin_path looks like
+somename@somepath, then function 'somename' from the shared library
+located at 'somepath' will be called (timeout is not effective in
+that case).
+The grid manager must be run as root to use this option.
+Comment it out unless you really know what you are doing.
 
-.I Example
-(plain text): localcred="acquire@/opt/nordugrid/lib/afs.so %C/job.%I.proxy"
-
-.I Example
-(xml): <localcred>acquire@/opt/nordugrid/lib/afs.so %C/job.%I.proxy</localcred>
+.IR Example:
+.br
+localcred="0 acquire@/opt/nordugrid/lib/afs.so %C/job.%I.proxy"
 
 .TP
 .B norootpower
-If set to "yes", all job management processes will switch to the
-mapped user's identity while accessing the session directory. This is
-useful if the session directory is on NFS with root squashing turned
-on. Default is "no".
+norootpower yes|no - if set to yes, all job management proccesses
+will switch to mapped user's identity while accessing session
+directory. This is usefull if session directory is on NFS
+root squashing turned on. Default is no.
 
-.IR Example :
+.IR Example:
+.br
 norootpower="yes"
 
 .TP
 .B allowsubmit
-An authorisation group allowed to submit new jobs while "allownew=no"
-is active in the jobplugin configuration. Multiple commands are
-allowed.
+allowsubmit [group ...]  - list of authorization groups of users allowed
+to submit new jobs while "allownew=no" is active in jobplugin 
+configuration. Multiple commands are allowed.
 
-.IR Example :
-allowsubmit="admins"
+.IR Example:
+.br
+allowsubmit="mygroup"
+.br
+allowsubmit="yourgroup"
 
 .TP
 .B helper
-Associates an external program with A-REX. This program will be kept running
-under the account of the user specified by username. Currently only ’.’ is
-supported as username, corresponding to the user running A-REX. Every time this
-executable finishes it will be started again. This helper plugin mechanism can
-be used as an alternative to /etc/init.d or cron to (re)start external
-processes.
+helper user executable arguments - associates an external program with
+A-REX. This program will be kept running under the account of the user
+specified by username. Currently only ’.’ is supported as username,
+corresponding to the user running A-REX. Every time this executable finishes
+it will be started again. This helper plugin mechanism can be used as an
+alternative to /etc/init.d or cron to (re)start external processes.
 
-.IR Example :
+.IR Example:
+.br
 helper=". /usr/local/bin/myutility"
 
-.TP 
-.B preferredpattern 
-.I pattern 
-\- specifies a preferred pattern on
-which to sort multiple replicas of an input file. It consists of one
-or more patterns separated by a pipe character (|) listed in order of
+.TP
+.B preferredpattern
+preferredpattern pattern - specifies a preferred pattern on which
+to sort multiple replicas of an input file. It consists of one or
+more patterns separated by a pipe  character (|) listed in order of
 preference. Replicas will be ordered by the earliest match. If the
 dollar character ($) is used at the end of a pattern, the pattern
 will be matched to the end of the hostname of the replica.
 
 .IR Example:
+.br
 preferredpattern="srm://myhost.ac.uk|.uk$|ndgf.org$"
 
 .TP
 .B copyurl
-.I url_head local_path
-\- specifies that URLs, starting from `url_head', should be accessed
-in a different way (most probably unix open). The `url_head' part of
-the URL will be replaced with `local_path' and the file from the
-obtained path will be copied to the session directory. NOTE:
-`local_path' can also be of URL type. You can have several copyurl
-lines.
+copyurl url_head local_path - specifies that URLs, starting from 'url_head'
+should be accessed in a different way (most probaly unix open). The
+'url_head' part of the URL will be replaced with 'local_path' and
+file from obtained path will be copied to the session directory.
+NOTE: 'local_path' can also be of URL type.
+you can have several copyurl lines
 
-.IR Example :
+.IR Example:
+.br
 copyurl="gsiftp://example.org:2811/data/ gsiftp://example.org/data/"
+.br
+copyurl="gsiftp://example2.org:2811/data/ gsiftp://example2.org/data/"
 
 .TP
 .B linkurl
-.I url_head local_path [node_path]
-\- identical to `copyurl', only the file won't be copied, but
-soft-link will be created. The `local_path' specifies the way to
-access the file from the gatekeeper, and is used to check
-permissions. The `node_path' specifies how the file can be accessed
-from computing nodes, and will be used for soft-link creation. If
-`node_path' is missing \- `local_path' will be used. You can have
-multiple linkurl settings.
+linkurl url_head local_path [node_path] - identical to 'copyurl', only
+file won't be copied, but soft-link will be created. The 'local_path'
+specifies the way to access the file from the gatekeeper, and is used
+to check permissions. The 'node_path' specifies how the file can be
+accessed from computing nodes, and will be used for soft-link creation.
+If 'node_path' is missing - 'local_path' will be used.
+you can have multiple linkurl settings
 
-.IR Example :
+.IR Example:
+.br
+linkurl="gsiftp://somewhere.org/data /data"
+.br
 linkurl="gsiftp://example.org:2811/data/  /scratch/data/"
 
 .TP
 .B tmpdir
-Used by the grid-manager. Default is /tmp.
+tmpdir - used by the A-REX, default is /tmp
 
-.IR Example :
+.IR Example:
+.br
 tmpdir="/tmp"
 
 .TP
 .B maxrerun
-Specifies how many times a job can be rerun if it fails in the
-LRMS. Default value is 2. This is only an upper limit, the actual
-rerun value is set by the user in his xrsl.
+maxrerun -  specifies how many times job can be rerun if it failed in LRMS.
+Default value is 5. This is only an upper limit, the actual rerun value is set
+by the user in his xrsl. 
 
-.IR Example :
-maxrerun="2" 
+.IR Example:
+.br
+maxrerun="5" 
 
 .TP
 .B maxtransfertries
-The maximum number of times download and upload will be attempted per
-job (retries are only performed if an error is judged to be temporary).
+maxtransfertries - the maximum number of times download and upload will
+be attempted per job (retries are only performed if an error is judged
+to be temporary)
 
-.IR Example :
+.IR Example:
+.br
 maxtransfertries="10"
 
 .TP
-.B pbs_bin_path
-The path to qstat, pbsnodes, qmgr and other PBS binaries. No need to
-set if PBS is not used.
+.B globus_tcp_port_range
+globus_tcp_port_range, globus_udp_port_range - Firewall configuration.
 
-.IR Example :
-pbs_bin_path="/usr/bin"
-
-.TP
-.B pbs_log_path
-The path to the PBS server log files which are used by the grid-manager
-to determine whether a PBS job is completed. If not specified the
-grid-manager will use qstat for that.
-
-.IR Example :
-pbs_log_path="/var/spool/pbs/server_logs"
-
-.TP
-.B sge_bin_path
-Path to Sun Grid Engine (SGE) binaries. MUST be set if SGE is used.
-
-.IR Example :
-sge_bin_path="/opt/n1ge6/bin/lx24-x86"
-
-.TP
-.B sge_root
-Path to SGE installation directory. MUST be set if SGE is used.
-
-.IR Example :
-sge_root="/opt/n1ge6"
-
-.TP
-.B sge_cell
-The name of the SGE cell to use. This option is only necessary in case  SGE is
-set up with a cell name different from 'default'
-
-.IR Example :
-sge_cell="default"
-
-.TP
-.B sge_qmaster_port, sge_execd_port
-These options should be used in case SGE command line clients requre
-SGE_QMASTER_PORT and SGE_EXECD_PORT environment variables to be set. Usually
-they are not necessary.
-
-.IR Example :
-.nf
-sge_qmaster_port="536"
-sge_execd_port="537"
-.fi
-
-.TP
-.B slurm_bin_path
-The path to squeue, sinfo and other SLURM binaries. No need to
-set if SLURM is not used.
-
-.IR Example :
-slurm_bin_path="/usr/bin"
-
-.B slurm_wakeupperiod
-How long should infosys wait between querying SLURM for new data.
-
-.IR Example :
-slurm_wakeupperiod="15"
-
-.TP
-.B condor_location
-Path to directory containing Condor's bin, sbin, etc. No need to set
-if Condor is not used.
-
-.IR Example :
-condor_location="/opt/condor"
-
-.TP
-.B condor_config
-Path to Condor's configuration file. No need to set if Condor is not
-used.
-
-.IR Example :
-condor_config="/opt/condor/etc/condor_config"
-
-.TP
-.B condor_rank
-If you are not happy with the way Condor picks nodes when running
-jobs, you can define your own ranking algorithm by optionally setting
-the condor_rank attribute. It should be set to a ClassAd float
-expression that you could use in the Rank attribute in a Condor job
-description. Obviously no need to set if Condor is not used.
-
-.IR Example :
+.IR Example:
 .br
-
-.nf
-condor_rank="(1-LoadAvg/2)*(1-LoadAvg/2)*Memory/1000*KFlops/1000000"
-.fi
-
-.TP
-.B lsf_bin_path
-The PATH to LSF bin folder. No need to set if LSF
-is not used.
-
-.IR Example :
-lsf_bin_path="/usr/local/lsf/bin/"
-
-.TP
-.B lsf_profile_path 
-The PATH to LSF profile: profile.lsf. No need to set if LSF
-is not used.
-
-.IR Example :
-lsf_profile_path="/usr/share/lsf/conf"
-
-.TP
-.B ll_bin_path
-The PATH to the LoadLeveler bin folder. No need to set if LoadLeveler
-is not used.
-
-.IR Example :
-ll_bin_path="/opt/ibmll/LoadL/full/bin"
- 
-.TP
-.B ll_consumable_resources
-Use Consumable Resources for a LoadLeveler.
-
-.IR Example :
-ll_consumable_resources="yes"
-
-.TP
-.B hostname
-The FQDN of the frontend node.
-
-.IR Example :
-hostname="myhost.org"
-
-.TP
-.B lrms
-Sets the type of Local Resource Management System (queueing
-system). Choose one from the following options (NOTE: these are case sensitive): fork, sge, condor,
-pbs, lsf, ll, SLURM. PBS has many flavours, we support OpenPBS, PBSPro, ScalablePBS
-and Torque (the official name for ScalablePBS). No need to specify the
-flavour or the version number of the PBS, simply write "pbs". The
-optional "queue" parameter specifies the default grid queue of the
-LRMS. The grid-manager submits jobs to this queue if there is no queue
-set in the job's XRSL.
-
-.IR Example :
-lrms="pbs grid"
-
-.TP
-.B globus_tcp_port_range, globus_udp_port_range
-Firewall configuration. In a firewalled environment the software which
-uses GSI needs to know what ports are available. The full
-documentation can be found at:
-http://dev.globus.org/wiki/FirewallHowTo. These variable are
-similar to the Globus environment variables GLOBUS_TCP_PORT_RANGE and
-GLOBUS_UDP_PORT_RANGE.
-
-.IR Example :
-
 globus_tcp_port_range="9000,12000"
 .br
 globus_udp_port_range="9000,12000"
 
 .TP
-.B x509_user_cert, x509_user_key
-Server credentials location. These variables are similar to the GSI
-environment variables X509_USER_KEY and X509_USER_CERT.
+.B x509_user_key
+x509_user_cert, x509_user_key - Location of credentials for service.
+These may be used by any module or external utility which need to
+contact another service not on behalf of user who submited job.
 
-.IR Example :
-
+.IR Example:
+.br
 x509_user_key="/etc/grid-security/hostkey.pem"
 .br
 x509_user_cert="/etc/grid-security/hostcert.pem"
 
 .TP
 .B x509_cert_dir
-Location of trusted CA certificates. This variable is similar to the
-GSI environment variable X509_CERT_DIR.
+x509_cert_dir - Location of trusted CA certificates
 
-.IR Example :
+.IR Example:
+.br
 x509_cert_dir="/etc/grid-security/certificates"
 
 .TP
-.B gridmap
-The gridmap file location. This variable is similar to the GSI
-environment variable GRIDMAP. The default is
-/etc/grid-security/grid-mapfile.
-
-.IR Example :
-gridmap="/etc/grid-security/grid-mapfile"
-
-.TP
-.B voms_processing
-Defines how to behave if errors in VOMS AC processing detected.
-.br
-relaxed - use everything that passed validation.
-.br
-standard - same as relaxed but fail if parsing errors took place and
-VOMS extension is marked as critical. This is a default.
-.br
-strict - fail if any parsing error was discovered.
-.br
-noerrors - fail if any parsing or validation error happened.
-
-.IR Example :
-voms_processing="strict"
-
-.TP
 .B http_proxy
-Use an http proxy server for downloading files from http servers. The
-format of the argument is host[:port].
+http_proxy - http proxy server location
 
-.IR Example :
+.IR Example:
+.br
 http_proxy="proxy.mydomain.org:3128"
 
 .TP
-.B arex_mount_point
-Enables web services interfaces, including job execution and information
-system. The argument is an https URL defining the endpoint port and path:
-https://<hostname>:<port>/<path>. In order to submit job a client must
-specify the exact published path. Make sure the choosen port is not blocked
-by firewall or other security rules.
+.B fixdirectories
+fixdirectories yes|missing|no - specifies during startup A-REX should
+create all directories needed for it operation and set suitable default
+permissions. If "no" is specified then A-REX does nothing to prepare its
+operational environement. In case of "missing" A-REX only creates and
+sets permissions for directories which are not present yet.  For "yes"
+all directories are created and permisisons for all used directories are
+set to default safe values. Default behavior is as if "yes" is specified.
 
-.IR Example :
+.IR Example:
+.br
+fixdirectories="yes"
+
+.TP
+.B arex_mount_point
+arex_mount_point - enables web services interfaces, including 
+job execution and information system. The argument is
+an https URL defining the endpoint port and path:
+
+     https://<hostname>:<port>/<path>
+
+In order to submit job a client must specify the exact published
+path. Make sure the choosen port is not blocked by firewall
+or other security rules.
+
+.IR Example:
+.br
 arex_mount_point="https://piff.hep.lu.se:60000/arex"
 
 .TP
-.B enable_emies_interface
-Enables the EMI Execution Service interface. If enabled the interface can be
-accessed at the URL specified in 
-.B arex_mount_point
-(this option must also be specified)
+.B enable_arc_interface
+enable_arc_interface yes|no - turns on or off the ARC own WS interface
+based on OGSA BES and WSRF. If enabled the interface can be accessed at
+the URL specified by arex_mount_point (this option must also be
+specified).  Default is yes.
 
-.IR Example :
+.IR Example:
+.br
+enable_arc_interface="yes"
+
+.TP
+.B enable_emies_interface
+enable_emies_interface - enable the EMI Execution Service interface. If
+enabled the interface can be accessed at the URL specified in 
+arex_mount_point (this option must also be specified)
+
+.IR Example:
+.br
 enable_emies_interface="yes"
 
 .TP
 .B arguspep_endpoint
-Specifies URL of Argus PEPD service to use for authorization and user mapping.
-If specified Argus is contacted for every operation requested through WS
-interface (see
-.B arex_mount_point
-).
+arguspep_endpoint - specifies URL of Argus PEPD service to use for 
+authorization and user mapping. If specified Argus is contacted
+for every operation requested through WS interface (see arex_mount_point).
 
-.IR Example :
+.IR Example:
+.br
 arguspep_endpoint="https://argus.hostname:port/path"
 
 .TP
 .B arguspep_profile
-Defines which communication profile to use while communicationg with Argus PEPD
-service. Possible values are:
-.br
-direct - pass all authorization attributes (only for debugging)
-.br
-subject - pass only subject name of client
-.br
-cream - makes A-REX pretend it is gLite CREAM service. This is default and currently recommended profile.
-.br
-emi - new profile developed in EMI project
+arguspep_profile - defines which communication profile to use while communicationg
+with Argus PEPD service. Possible values are:
+ direct - pass all authorization attributes (only for debugging)
+ subject - pass only subject name of client
+ cream - makes A-REX pretend it is gLite CREAM service. This is  
+   recommended profile for interoperability with gLite.
+ emi - new profile devloped in EMI project. This is default option.
 
-.IR Example :
+.IR Example:
+.br
 arguspep_profile="cream"
 
 .TP
 .B arguspep_usermap
-Specifies either response from Argus servie may define mapping of client to
-local account. Possible values are 'yes' and 'no'. Default is 'no'.
-Argus is contacted after all other user mapping is performed. Hence it can
+arguspep_usermap - specifies either response from Argus servie may define mapping
+of client to local account. Possible values are 'yes' and 'no'. Default is 'no'.
+Argus is contacted after all other user mapping is performed. Hence it can 
 overwrite all other decisions.
 
-.IR Example :
+.IR Example:
+.br
 arguspep_usermap="no"
 
 .TP
-.B watchdog
-Specifies if additinal watchdog processes is spawned to restart main proces
-if it is stuck or dies. Possible values are 'yes' and 'no'. Default is 'no'.
+.B arguspdp_endpoint
+arguspdp_endpoint - specifies URL of Argus PDP service to use for 
+authorization and user mapping. If specified Argus is contacted
+for every operation requested through WS interface (see arex_mount_point).
 
-.IR Example :
+.IR Example:
+.br
+arguspdp_endpoint="https://argus.hostname:port/path"
+
+.TP
+.B arguspdp_profile
+arguspdp_profile - defines which communication profile to use while communicationg
+with Argus PDP service. Possible values are:
+ subject - pass only subject name of client
+ cream - makes A-REX pretend it is gLite CREAM service. This is  
+   recommended profile for interoperability with gLite.
+ emi - new profile devloped in EMI project. This is default option.
+
+.IR Example:
+.br
+arguspdp_profile="cream"
+
+.TP
+.B watchdog
+watchdog - specifies if additinal watchdog processes is spawned to restart
+main process if it is stuck or dies. Possible values are 'yes' and 'no'.
+Default is 'no'.
+
+.IR Example:
+.br
 watchdog="no"
 
-.PP
-In the command arguments (paths, executables, ...) the following
-substitutions can be used:
+.SH [data-staging] block 
 
-.TP
-.B %R
-session directory
+[data-staging] block configures DTR data staging parameters unless
+enable_dtr="no" is set in [grid-manager].
 
-.TP
-.B %C
-control directory
-
-.TP
-.B %U
-username
-
-.TP
-.B %u
-userid \- numerical
-
-.TP
-.B %g
-groupid \- numerical
-
-.TP
-.B %H
-home directory \- home specified in /etc/passwd
-
-.TP
-.B %Q
-default queue
-
-.TP
-.B %L
-default lrms
-
-.TP
-.B %W
-installation path \- ${ARC_LOCATION}
-
-.TP
-.B %G
-globus path \- ${GLOBUS_LOCATION}
-
-.TP
-.B %c
-list of all control directories
-
-.TP
-.B %I
-job ID (for plugins only, substituted at runtime)
-
-.TP
-.B %S
-job state (for authplugin plugins only, substituted at runtime)
-
-.TP
-.B %O
-reason (for localcred plugins only, substituted at runtime). Possible reasons are:
-
-.I new
-\- new job, new credentials
-
-.I renew
-\- old job, new credentials
-
-.I write
-\- write/delete file, create/delete directory (through gridftp)
-
-.I read
-\- read file, directory, etc. (through gridftp)
-
-.I extern
-\- call external program (grid-manager)
-
-.PP
-See some of the examples above for examples of use.
-
-.SH DATA STAGING OPTIONS
-
-The [data-staging] block configures A-REX DTR data staging unless
-enable_dtr="no" is set in the [grid-manager] section.
 
 .TP
 .B debug
-Log level for transfer logging in job.id.errors files, between 0 (FATAL) and 5
-(DEBUG). Default is to use value set by debug option in [grid-manager] section.
+debug - Log level for transfer logging in job.id.errors files, between
+0 (FATAL) and 5 (DEBUG). Default is to use value set by debug option in 
+[grid-manager] section.
 
 .IR Example:
+.br
 debug="4"
 
 .TP
 .B maxdelivery
-Maximum number of concurrent file transfers, i.e. active transfers using
-network bandwidth. This is the total number for the whole system including
-any remote staging hosts. Default is 10.
+maxdelivery - Maximum number of concurrent file transfers, i.e. active
+transfers using network bandwidth. This is the total number for the whole
+system including any remote staging hosts. Default is 10.
 
-.IR Example :
+.IR Example:
+.br
 maxdelivery="40"
 
 .TP
 .B maxprocessor
-Maximum number of concurrent files in each pre- and post-processing state,
-e.g. cache check or replica resolution. Default is 10.
+maxprocessor - Maximum number of concurrent files in each pre- and post-
+processing state, eg cache check or replica resolution. Default is 10.
 
-.IR Example :
+.IR Example:
+.br
 maxprocessor="20"
 
 .TP
 .B maxemergency
-Maximum "emergency" slots which can be assigned to transfer shares when all
-slots up to the limits configured by the above two options are used by other
-shares. This ensures shares cannot be blocked by others. Default is 1.
+maxemergency - Maximum "emergency" slots which can be assigned to transfer
+shares when all slots up to the limits configured by the above two options
+are used by other shares. This ensures shares cannot be blocked by others.
+Default is 1.
 
-.IR Example :
+.IR Example:
+.br
 maxemergency="5"
 
 .TP
 .B maxprepared
-Maximum number of files in a prepared state, i.e. pinned on a remote storage
-such as SRM for transfer. A good value is a small multiple of maxdelivery.
-Default is 200.
+maxprepared - Maximum number of files in a prepared state, i.e. pinned on a
+remote storage such as SRM for transfer. A good value is a small multiple of
+maxdelivery. Default is 200.
 
-.IR Example :
+.IR Example:
+.br
 maxprepared="250"
 
 .TP
 .B sharetype
-Scheme to assign transfer shares. Possible values are dn, voms:vo, voms:role
-and voms:group.
+sharetype - Scheme to assign transfer shares. Possible values are dn,
+voms:vo, voms:role and voms:group.
 
-.IR Example :
+.IR Example:
+.br
 sharetype="voms:role"
 
 .TP
 .B definedshare
-Defines a share with a fixed priority, different from the default (50).
-Priority is an integer between 1 (lowest) and 100 (highest).
+definedshare - Defines a share with a fixed priority, different from the
+default (50). Priority is an integer between 1 (lowest) and 100 (highest).
 
-.IR Example :
-
+.IR Example:
+.br
 definedshare="myvo:production 80"
 .br
 definedshare="myvo:student 20"
 
 .TP
 .B dtrlog
-A file in which data staging state information (for monitoring and recovery
-purposes) is periodically dumped. Default is controldir/dtrstate.log
+dtrlog - A file in which data staging state information (for monitoring and
+recovery purposes) is periodically dumped. Default is controldir/dtrstate.log
 
-.IR Example :
+.IR Example:
+.br
 dtrlog="/tmp/dtrstate.log"
 
 .TP
 .B deliveryservice
-URL to a data delivery service which can perform remote data staging
+The following 4 options are used to configure multi-host data staging.
+deliveryservice - URL to a data delivery service which can perform remote
+data staging
 
-.IR Example :
+.IR Example:
+.br
 deliveryservice="https://myhost.org:60003/datadeliveryservice"
 
 .TP
 .B localdelivery
-If any deliveryservice is defined, this option determines whether local data
-transfer is also performed. Default is no.
+localdelivery - If any deliveryservice is defined, this option determines
+whether local data transfer is also performed. Default is no.
 
-.IR Example :
+.IR Example:
+.br
 localdelivery="yes"
 
 .TP
 .B remotesizelimit
-Lower limit on file size (in bytes) of files that remote hosts should transfer.
-Can be used to increase performance by transferring small files using local
-processes.
+remotesizelimit - Lower limit on file size (in bytes) of files that remote
+hosts should transfer. Can be used to increase performance by transferring
+small files using local processes.
 
-.IR Example :
+.IR Example:
+.br
 remotesizelimit="100000"
 
 .TP
 .B usehostcert
-Whether the A-REX host certificate should be used for communication with remote
-hosts instead of the users' proxies. Default is no.
+usehostcert - Whether the A-REX host certificate should be used for
+communication with remote hosts instead of the users' proxies. Default is no.
 
-.IR Example :
+.IR Example:
+.br
 usehostcert="yes"
 
-.SH GRIDFTPD OPTIONS
+.SH [gridftpd] block
 
-The gridftpd block configures the gridftpd server.
+The
+.B [gridftpd]
+block configures the gridftpd server 
 
 .TP
 .B user
-Switch to a non-root user/group after startup. The format of the
-argument is user[:group]. WARNING: Make sure that the certificate files 
-are owned by the user[:group] specified by this option. Default value is root.
+user user[:group] - Switch to a non root user/group after startup
 
-.IR Example :
+WARNING: Make sure that the certificate files are owned by the user/group 
+specified by this option. Default value is root.
+
+.IR Example:
+.br
 user="grid"
 
 .TP
 .B debug
-Set the debug level of the gridftpd daemon. Level 0 stands for
-no debug. Increasing number gives more information up to a maximum of 5.
+debug debuglevel - Set debug level of the gridftpd daemon, between 
+0 (FATAL) and 5 (DEBUG). Default is 3 (INFO).
 
-.IR Example :
+.IR Example:
+.br
 debug="2"
 
 .TP
-.B logfile
-Set log file location.
+.B daemon
+daemon yes|no - Whether GFS is run in daemon mode.  Default is yes.
 
-.IR Example :
+.IR Example:
+.br
+daemon="yes"
+
+.TP
+.B logfile
+logfile path - Set logfile location
+
+.IR Example:
+.br
 logfile="/var/log/arc/gridftpd.log"
 
 .TP
 .B logsize
-Specifies the (approximate) maximum size in bytes of the log file. A
-second argument indicates how many log files are kept. When the logfile
-exceeds the specified size it is renamed to logfile.0 and logfile.0 is
-renamed to logfile.1 and so on. When installing from packages, logrotate
-is used to manage log files, so only use this option if logrotate is
-disabled. 
+logsize size [number] - 'Size' specifies in bytes how big log file is 
+allowed to grow (approximately). If log file exceeds specified size
+it is renamed into logfile.0. And logfile.0 is renamed into 
+logfile.1, etc. up to 'number' logfiles. Don't set logsize if you don't
+want to enable the ARC logrotation because another logrotation tool is used.
 
-.IR Example :
+.IR Example:
+.br
 logsize="100000 2"
 
 .TP
 .B pidfile
-Specifies the location of the file containing the process id (PID) of
-the daemon process. This is useful for automatic start/stop scripts.
+pidfile path - Specify location of file containig PID of daemon process.
+This is usefull for automatic star/stop scripts. 
 
-.IR Example :
+.IR Example:
+.br
 pidfile="/var/run/gridftpd.pid"
 
 .TP
 .B port
-Port to listen on (default 2811).
+port bindport - Port to listen on (default 2811)
 
-.IR Example :
+.IR Example:
+.br
 port="2811"
 
 .TP
 .B pluginpath
-Directory where the plugin libraries are installed, default is
-${ARC_LOCATION}/lib/arc.
+pluginpath - directory where the plugin libraries are installed, default is
+$NORDUGRID_LOCATION/lib
 
-.IR Example :
-pluginpath="/opt/nordugrid/lib"
+.IR Example:
+.br
+pluginpath="/usr/lib/arc/"
 
 .TP
 .B encryption
-Should data encryption be allowed, default is "no". Encryption is very
-heavy.
+encryption yes|no - should data encryption be allowed, default is no,
+encryption is very heavy 
 
-.IR Example :
+.IR Example:
+.br
 encryption="no"
 
 .TP
-.B allowunknown
-If "no", check user subject against grid-mapfile and reject if
-missing. By default unknown (not in the grid-mapfile) grid users are
-rejected.
+.B include
+include - Include contents of another config file.
 
-.IR Example :
+.IR Example:
+.br
+include="path"
+
+.TP
+.B allowunknown
+allowunknown yes|no - if no, check user subject against grid-mapfile and
+reject if missing. By default unknown (not in the grid-mapfile) grid users 
+are rejected
+
+.IR Example:
+.br
 allowunknown="no"
 
 .TP
 .B maxconnections
-Maximum number of connections accepted by a gridftpd server. Default
-is 100.
+maxconnections - maximum number of connections accepted by a gridftpd server
+only supported in the 0.5.x tags. Default is 100.
 
-.IR Example :
+.IR Example:
+.br
 maxconnections="200"
 
 .TP
-.B globus_tcp_port_range, globus_udp_port_range
-Firewall configuration.
+.B defaultbuffer
+defaultbuffer size - defines size of every buffer for data
+reading/writing.  Default is 65536.  The actual value may decrease if the
+cumulative size of all buffers exceeds value specified by maxbuffer.
 
-.IR Examples :
+.IR Example:
+.br
+defaultbuffer="65536"
 
+.TP
+.B maxbuffer
+maxbuffer size - defines maximal amount of memory in bytes to be
+allocated for all data reading/writing buffers. Default is 640kB.
+The number of buffers is (max {3, min {41, 2P + 1}}), where P is the
+parallelism level requested by the client.  Hence, even without parallel
+streams enabled number of buffers will be 3.
+
+.IR Example:
+.br
+maxbuffer="655360"
+
+.TP
+.B globus_tcp_port_range
+globus_tcp_port_range, globus_udp_port_range - Firewall configuration
+
+.IR Example:
+.br
 globus_tcp_port_range="9000,12000"
 .br
 globus_udp_port_range="9000,12000"
 
 .TP
 .B firewall
-IP address or hostname to use in response to PASV command instead of IP 
-address of a network interface of computer. This command may be used if
-server is situated behind NAT.
+firewall - hostname or IP addres to use in response to PASV command 
+instead of IP address of a network interface of computer.
 
-.IR Examples :
-firewall=gateway.campus.org
+.IR Example:
+.br
+firewall="hostname"
 
 .TP
-.B x509_user_cert, x509_user_key
-Server credentials location.
+.B x509_user_key
+x509_user_cert, x509_user_key - Server credentials location
 
-.IR Examples :
-
+.IR Example:
+.br
 x509_user_key="/etc/grid-security/hostkey.pem"
 .br
 x509_user_cert="/etc/grid-security/hostcert.pem"
 
 .TP
 .B x509_cert_dir
-Location of trusted CA certificates.
+x509_cert_dir - Location of trusted CA certificates
 
-.IR Example :
+.IR Example:
+.br
 x509_cert_dir="/etc/grid-security/certificates"
 
-.TP 
+.TP
 .B gridmap
-The gridmap file location. The default is /etc/grid-security/grid-mapfile
+gridmap - The gridmap file location
+The default is /etc/grid-security/grid-mapfile
 
-.IR Example :
+.IR Example:
+.br
 gridmap="/etc/grid-security/grid-mapfile"
 
 .TP
-.B voms_processing
-Defines how to behave if errors in VOMS AC processing detected.
+.B unixmap
+unixmap [unixname][:unixgroup] rule - more sophisticated way to map 
+Grid identity of client to local account. If client matches 'rule'
+it's assigned specified unix identity or one generated by rule.
+Mapping commands are processed sequentially and processing stops
+at first successful one (like in [group] section). For possible rules
+read "ARC Computing Element. System Administrator guide" manual. All
+rules defined in [group] section canbe used. There are also additional
+rules which produce not only yes/no result but also give back user and
+group names to which mapping should happen. The way it works is quite
+complex so it is better to read full documentation.
+
+For safety reasons if sophisticated mapping is used it is better to
+finish mapping sequence with default mapping to nonexistent or safe
+account.
+
+.IR Example:
 .br
-relaxed - use everything that passed validation.
+unixmap="nobody:nogroup all"
+
+.TP
+.B unixgroup
+unixgroup group rule - do mapping only for users belonging to
+specified authorization 'group'. It is similar to an additional filter 
+for unixmap command which filters out all users not belonging to specified 
+authorization group. Only rules which generate unix user and group names
+may be used in this command. Please read "The NorduGrid Grid Manager 
+and GridFTP Server" for more information.
+
+.IR Example:
 .br
-standard - same as relaxed but fail if parsing errors took place and
-VOMS extension is marked as critical. This is a default.
+unixgroup="users simplepool /etc/grid-security/pool/users"
+
+.TP
+.B unixvo
+unixvo vo rule - do mapping only for users belonging to specified VO. 
+Only rules which generate unix identity name may be used in this command.
+Please read "ARC Computing Element. System Administrator Guide" for more 
+information. This command is similar to 'unixgroup' described above and 
+exists for convenience for setups which base mapping on VOs users belong to.
+
+.IR Example:
 .br
-strict - fail if any parsing error was discovered.
-.br
-noerrors - fail if any parsing or validation error happened.
+unixvo="ATLAS unixuser atlas:atlas"
 
-.IR Example :
-voms_processing="strict"
+.SH [gridftpd/filedir] block 
 
-.SH GRIDFTPD FILEPLUGIN OPTIONS
+[gridftpd/filedir] "fileplugin" storage block
+subblock for "exporting" a directory using the gridftpd's fileplugin plugin.
+gridftp plugins are shared libraries.
+"filedir" is a unique label. The acess control is set by using the 
+"dir" config option
 
-Configuration for a classic gridftp file server using the fileplugin.
-Each exported mount point is configured in its own configuration block
-and is given its own id. If the plain text format is used, the
-configuration block identified as "files" is defined by:
-
-.nf
-.B [gridftpd]
-.BR id ="files"
-.fi
-
-If the xml format is used the same block is defined using the
-attributed xml tag:
-
-.BR <gridftpd\ id ="files" > ... </gridftpd>
-
-The access control is defined by specifying the dir configuration option.
 
 .TP
 .B plugin
-Specifies the name of the shared library to be loaded relative to the
-path given in the pluginpath option. For a classic gridftp file
-server using the fileplugin it should be fileplugin.so.
+plugin name - specifies name of shared library to be loaded relative to 
+"pluginpath". 
+The next line is MUST for a gridftp file server with "fileplugin", don't
+change anything
 
-.IR Example :
+.IR Example:
+.br
 plugin="fileplugin.so"
 
 .TP
 .B groupcfg
-Specifies the authorisation groups for which this plugin is activated.
-In case groupcfg is not specified the plugin is loaded for every
-mapped grid user.
+groupcfg group_name [group_name ...] - specifies authorization groups
+for which this plugin is activated. In case groupcfg is not used the
+plugin is loaded for every mapped grid user. Multiple names were 
+may be specified delimited by blank space. Group names are as specified
+in [group] sections.
 
-.IR Example :
-groupcfg="atlas_users bio_students"
+.IR Example:
+.br
+groupcfg="users"
 
 .TP
 .B path
-The name of the virtual directory served by the gridftp server. If set
-to "/topdir" the exported storage area is accessible as
-gsiftp://<hostname>/topdir. The virtual path can be anything you
-like, even "/" is a valid choice.
+the name of the virtual directory served by the gridftp server, REQUIRED 
+the exported storage area is accessable as gsiftp://my_server/topdir. 
+"topdir" is just an example, call the virtual path anything you like, 
+even "/" is a valid choice.
 
-.IR Example :
+.IR Example:
+.br
 path="/topdir"
 
 .TP
 .B mount
-The physical directory on the local file system corresponding to the
-virtual one.
+the physical directory corresponding to the virtual one:
+gsiftp://my_server/topdir will give access to the
+/scratch/grid directory on my_server, REQUIRED 
 
-.IR Example :
+.IR Example:
+.br
 mount="/scratch/grid"
 
 .TP
 .B dir
-This is the access control parameter, you can have several dir lines
-controlling different directories within then same block.
+dir - this is the access control parameter, you can have several "dir" lines
+controlling different directories within then same block
 
-The value for this option is a path followed by one or more
-options. The options are:
-.RS
-.TP
-.B nouser
-do not use local file system rights, only use those specifies in this line
-.TP
-.B owner
-check only file owner access rights
-.TP
-.B group
-check only group access rights
-.TP
-.B other
-check only "others" access rights
+ dir path options  - specifies access rules for accessing files in 'path'
+(relative to virtual and real path) and all the files and directories below.
+ 'options' are:
+      nouser  - do not use local file system rights, only use those
+                specifies in this line
+      owner   - check only file owner access rights
+      group   - check only group access rights
+      other   - check only "others" access rights
+  if none of the above specified usual unix access rights are applied.
+      read    - allow reading files
+      delete  - allow deleting files
+      append  - allow appending files (does not allow creation)
+      overwrite - allow overwriting already existing files (does not 
+                allow creation, file attributes are not changed)
+      dirlist - allow obtaining list of the files
+      cd      - allow to make this directory current
+      create owner:group permissions_or:permissions_and  - allow creating
+                new files. File will be owned by 'owner' ang owning group
+                will be 'group'. If '*' is used, the user/group to which
+                connected user is mapped will be used. The permissions 
+                will be set to permissions_or & permissions_and. (second
+                number is reserved for the future usage). 
+                
+      mkdir owner:group permissions_or:permissions_and  - allow creating new directories.
 
-.PP
-If none of the above specified usual unix access rights are applied.
-
-.TP
-.B read
-allow reading files
-.TP
-.B delete
-allow deleting files
-.TP
-.B append
-allow appending files (does not allow creation)
-.TP
-.B overwrite
-allow overwriting already existing files (does not allow creation,
-file attributes are not changed)
-.TP
-.B dirlist
-allow obtaining list of the files
-.TP
-.B cd
-allow to make this directory current
-.TP
-.B create owner:group permissions_or:permissions_and
-allow creating new files. File will be owned by `owner' and owning
-group will be `group'. If `*' is used, the user/group to which
-connected user is mapped will be used. The permissions will be set to
-permissions_or & permissions_and. (The second number is reserved for
-the future usage).
-.TP
-.B mkdir owner:group permissions_or:permissions_and
-allow creating new directories.
-
-.PP
-.IR Examples :
-
+.IR Example:
+.br
+Set permissions on mounted directory:
+.br
 dir="/ nouser read cd dirlist delete create *:* 664:664 mkdir *:* 775:775"
+
+.IR Example:
 .br
-dir="/scratch  nouser read mkdir *:* 700:700 cd dirlist"
+Adjust permissions on some subdirectories:
 .br
-dir="/example_data nouser read mkdir *:* 700:700 cd dirlist"
+dir="/section1 nouser read mkdir *:* 700:700 cd dirlist"
+.br
+dir="/section2 nouser read mkdir *:* 700:700 cd dirlist"
 
-.SH GRIDFTPD GACLPLUGIN OPTIONS
+.SH [gridftpd/gacldir] block 
 
-Configuration for a GACL enabled gridftp file server using the
-gaclplugin. Each exported mount point is configured in its own
-configuration block and is given its own identifier. If the plain text
-format is used, the configuration block identified as "gaclfiles" is
-defined by:
+[gridftpd/gacldir] "gaclplugin" GACL-controlled storage block
+Subblock for "exporting" a directory through  gaclplugin,
+gridftp plugins are shared libraries. "gacldir" is a
+unique label. The acess control is set through "gacl" files placed in the
+physical directories assigned to every file/directory. 
+Newly created directories and uploaded files automatically obtain their
+default "gacl" files: only the creator of the file/directory has the
+"read,write,list,admin" capabilities, this default is not configureable yet.
+Additionally the 'mount' directory MUST contain a .gacl file with 
+initial ACL otherwise rule will be "deny all for everyone"
 
-.nf
-.B [gridftpd]
-.BR id ="gaclfiles"
-.fi
-
-If the xml format is used the same block is defined using the
-attributed xml tag:
-
-.BR <gridftpd\ id ="gaclfiles" > ... </gridftpd>
-
-The access control is set through GACL files placed in the physical
-directories assigned to every file/directory. Newly created
-directories and uploaded files automatically obtain their default GACL
-files: only the creator of the file/directory has read, write, list
-and admin capabilities. This default is not configurable
-yet. Additionally the "mount" directory must contain a .gacl file with
-initial GACL otherwise the rule will be "deny everything for everyone".
 
 .TP
 .B plugin
-Specifies the name of the shared library to be loaded relative to the
-path given in the pluginpath option. For a GACL enabled gridftp file
-server using the gaclplugin it should be gaclplugin.so.
+plugin name - specifies name of shared library to be loaded relative to 
+"pluginpath". 
+The next line is MUST for a gridftp file server with "gaclplugin", don't
+change anything
 
-.IR Example :
+.IR Example:
+.br
 plugin="gaclplugin.so"
 
 .TP
-.B groupcfg 
-Specifies the authorisation groups for which this plugin is activated.
-In case groupcfg is not specified the plugin is loaded for every
-mapped grid user.
+.B groupcfg
+groupcfg group_name [group_name ...] - specifies authorization groups
+for which this plugin is activated. In case groupcfg is not used the
+plugin is loaded for every mapped grid user.
 
-.IR Example :
-groupcfg="atlas_users bio_students"
+.IR Example:
+.br
+groupcfg="users"
 
 .TP
 .B path
-The name of the virtual directory served by the gridftp server. If set
-to "/gacltop" the exported storage area is accessible as
-gsiftp://<hostname>/gacltop. The virtual path can be anything you
-like, even "/" is a valid choice.
+the name of the virtual directory served by the gridftp server, REQUIRED
+the exported storage area is accessable as gsiftp://server/gacltop. 
+"gacltop" is just an example, call the virtual path anything you like, 
+even "/" is a valid choice.
 
-.IR Example :
+.IR Example:
+.br
 path="/gacltop"
 
 .TP
 .B mount
-The physical directory on the local file system corresponding to the
-virtual one. The directory must contain a .gacl file with the
-default GACL settings.
+the physical directory corresponding to the virtual one:
+gsiftp://server/gacltop will give access to the
+/scratch/GACL directory on server. 
+The directory MUST contain a .gacl file with the some default gacl settings.
+This parameter is REQUIRED. 
 
-.IR Example :
+.IR Example:
+.br
 mount="/scratch/GACL"
 
 .TP
 .B gacl
-Specifies the default GACL rule. MUST be set. The GACL expression 
-must be given in one line and in GACL xml format. 
+gacl - specifies the default GACL rule for new objects. The GACL expression 
+must be given in one line and in GACL XML format.
 
-.IR Example :
+.IR Example:
+.br
 gacl="<gacl>very long single line</gacl>"
 
-The default gacl can contain variables which are replaced with values
-taken from client's credentials. The following variables are supported:
+.SH [gridftpd/jobs] subblock 
 
-.RS
-.TP
-.B $subject
-subject of user's certificate (DN),
-.TP
-.B $voms
-subject of VOMS server (DN),
-.TP
-.B $vo
-name of VO (from VOMS certificate),
-.TP
-.B $role
-role (from VOMS certificate),
-.TP
-.B $capability
-capabilities (from VOMS certificate),
-.TP
-.B $group
-name of group (from VOMS certificate).
-.RE
+[gridftpd/jobs] subblock which creates the jobsubmission interface,
+using the jobplugin of the gridftpd service. 
+gridftp plugins are shared libraries. 'jobs' is a unique label.
 
-.SH GRIDFTPD JOBPLUGIN OPTIONS
 
-Configuration for a job submission interface using the gridftp servers
-jobplugin. The identifier of the configuration block is arbitrary but
-must be unique. If the plain text format is used, the configuration
-block identified as "jobs" is defined by:
+.TP
+.B path
+the path to the virtual gridftpd directory which is used during the 
+job submission. MUST be set.
 
-.nf
-.B [gridftpd]
-.BR id ="jobs"
-.fi
-
-If the xml format is used the same block is defined using the
-attributed xml tag:
-
-.BR <gridftpd\ id ="jobs" > ... </gridftpd>
+.IR Example:
+.br
+path="/jobs"
 
 .TP
 .B plugin
-Specifies the name of the shared library to be loaded relative to the
-path given in the pluginpath option. For a job submission service it
-should be jobplugin.so.
+plugin name - specifies name of shared library to be loaded relative to 
+"pluginpath".  
+The next line is MUST for a job submission service via gridftpd
+"jobplugin", don't change anything!
 
-.IR Example :
+.IR Example:
+.br
 plugin="jobplugin.so"
 
 .TP
 .B groupcfg
-Specifies the authorisation groups for which this plugin is activated.
-In case groupcfg is not specified the plugin is loaded for every
-mapped grid user.
+groupcfg group_name [group_name ...] - specifies authorization groups
+for which this plugin is activated. In case groupcfg is not used the
+plugin is loaded for every mapped grid user.
 
-.IR Example :
-groupcfg="atlas_users bio_students"
-
-.TP
-.B path
-The name of the virtual directory used during jobs submission. This
-will be part of the jobid of the jobs submitted to this service.
-
-.IR Example :
-path="/jobs"
+.IR Example:
+.br
+groupcfg="users"
 
 .TP
 .B allownew
-Specifies if the grid resource accepts submission of new jobs. This
-parameter can be used to close down a grid. The default is "yes".
+The 'allownew' config parameter sets if the grid resource accepts
+submission of new jobs. This parameter can be used to close down a grid.
+The default is yes
 
-.IR Example :
+.IR Example:
+.br
 allownew="yes"
 
-.TP 
+.TP
 .B remotegmdirs
-Specifies control and session directories to which
-jobs can be submitted but which are under the control of another
-GM. The corresponding controldir and sessiondir parameters must be
-defined in another grid-manager's configuration.  Multiple
-remotegmdirs can be specified.
+remotegmdirs controldir sessiondir - Specifies control
+and session directories to which jobs can be submitted but which are
+under the control of another A-REX. The corresponding controldir and
+sessiondir parameters must be defined in another A-REX's
+configuration. Multiple remotegmdirs can be specified.
 
-.IR Example :
+.IR Example:
+.br
 remotegmdirs="/mnt/host1/control /mnt/host1/session"
 
-.TP 
+.TP
 .B maxjobdesc
-Specifies maximal allowed size of job description in bytes. Default 
-value is 5MB. If value is missing or 0 size is not limited.
+maxjobdesc size - specifies maximal allowed size of job description
+in bytes. Default value is 5MB. If value is missing or 0 size is not
+limited.
 
-.IR Example :
+.IR Example:
+.br
 maxjobdesc="5242880"
 
+.TP
+.B configfile
+configfile service_configuration_path - If [gridftpd] and [grid-manager]
+configuration parts are located in separate files this configuration
+option allows to link them. The service_configuration_path points
+to configuration file containing [grid-manager] section.
+Use this option only if You really know what You are doing.
 
-.SH INFORMATION SYSTEM OPTIONS
+.IR Example:
+.br
+configfile="/etc/arc.conf"
 
-The infosys block configures the hosting environment of the
-Information services (Local Info Tree, Index Service, Registrations).
+.SH [infosys] block 
+
+[infosys] block configures the hosting environment of the
+Information services (Local Info Tree, Index Service, Registrations,
+see the Information System manual) provided by the 
+OpenLDAP slapd server.
+
 
 .TP
 .B infosys_compat
-Setting this variable will cause ARC to use the old infoproviders.
-Basically, the new version uses A-REX to create LDIF while the old version
-uses a BDII provider-script to do it. The new version is required for Glue2 output.
+infosys_compat - Setting this variable will cause ARC to use the old
+infoproviders.  Basically, the new version uses A-REX to create LDIF
+while the old version uses a BDII provider-script to do it. The new
+version is required for GLUE2 output.
 
-.IR Example :
+.IR Example:
+.br
 infosys_compat="disable"
 
 .TP
-.B overwrite_config
-Determines if the grid-infosys startup script should generate new
-low-level slapd configuration files. By default the low-level
-configuration files are regenerated with every server startup making
-use of the values specified in the arc.conf.
+.B infoproviders_timeout 
+infoproviders_timeout - this only applies to new infoproviders.
+it changes A-REX behaviour with respect to a single infoprovider run.
+Increase this value if you have many jobs in the controldir and
+infoproviders need more time to process.
+The value is in seconds.
+Default is 600 seconds. 
 
-.IR Example :
-overwrite_config="yes"
+.IR Example:
+.br
+infoproviders_timeout = "600"
 
 .TP
-.B oldconfsuffix
-Sets the suffix of the backup files of the low-level slapd config
-files in case the they are regenerated. Default is ".oldconfig".
+.B debug
+debug - sets the debug level/verbosity of the startup script {0 or 1}. 
+Default is 0. 
 
-.IR Example :
-oldconfsuffix=".oldconfig"
+.IR Example:
+.br
+debug="1"
 
 .TP
 .B hostname
-The hostname of the machine running the slapd service.
+hostname - the hostname of the machine running the slapd service
+will be the bind for slapd. If not present, will be
+taken from the [common] block or guessed
 
-.IR Example :
+.IR Example:
+.br
 hostname="my.testbox" 
 
 .TP
 .B port
-The port where the slapd service runs. Default infosys port is 2135.
+port - the port where the slapd service runs. Default infosys port is 2135.
 
-.IR Example :
+.IR Example:
+.br
 port="2135"
 
 .TP
-.B debug
-Sets the debug level/verbosity of the startup script {0 or 1}.
-Default is 0.
-
-.IR Example :
-debug="1"
-
-.TP
 .B slapd_loglevel
-Sets the native slapd log level (see man slapd). Slapd logs via
-syslog. The default is set to no-logging (0) and it is RECOMMENDED not
-to be changed in a production environment. Non-zero slap_loglevel
-value causes serious performance decrease.
+slapd_loglevel - sets the native slapd loglevel (see man slapd). 
+Slapd logs via syslog. The default is set to no-logging (0) and it is 
+RECOMMENDED not to be changed in a production environment.
+Non-zero slap_loglevel value causes serious performance decrease.
 
-.IR Example :
+.IR Example:
+.br
 slapd_loglevel="0"
 
 .TP
 .B slapd_hostnamebind
-May be used to set the hostname part of the
+slapd_hostnamebind - may be used to set the hostname part of the
 network interface to which the slapd process will bind. Most of
 the cases no need to set since the hostname config parameter is already
 sufficient. The default is empty. The example below will bind the slapd
 process to all the network interfaces available on the server.
 
-.IR Example :
+.IR Example:
+.br
 slapd_hostnamebind="*"
-
 
 .TP
 .B threads
-The native slapd threads parameter, default is 32. If you run an Index
-service too you should modify this value.
+threads - the native slapd threads parameter, default is 32. If you run an
+Index service too you should modify this value.
 
-.IR Example :
+.IR Example:
+.br
 threads="128"
 
 .TP
 .B timelimit
-The native slapd timelimit parameter. Maximum number of seconds the
-slapd server will spend answering a search request. Default is 3600.
+timelimit - the native slapd timelimit parameter. Maximum number of seconds
+the slapd server will spend answering a search request. Default is 3600. 
 You probably want a much lower value.
 
-.IR Example :
+.IR Example:
+.br
 timelimit="1800"
 
 .TP
 .B idletimeout
-The native slapd idletimeout parameter. Maximum number of seconds the slapd
-server will wait before forcibly closing idle client connections. It's value
-must be larger than the value of "timelimit" option. If not set, it defaults to
-timelimit + 1.
-.IR Example :
+idletimeout - the native slapd idletimeout parameter. Maximum number of
+seconds the slapd server will wait before forcibly closing idle client
+connections. It's value must be larger than the value of "timelimit" option.
+If not set, it defaults to timelimit + 1.
+
+.IR Example:
+.br
 idletimeout="1800"
 
 .TP
-.B registrationlog
-Specifies the log file for the registration processes initiated by your
-machine. Default is "/var/log/arc/inforegistration.log".
+.B ldap_schema_dir
+ldap_schema_dir - allows to explicitly specify a path to the schema
+files. Note that this doesn't override standard location, but adds
+the specified path to the standard locations /etc/ldap and /etc/openldap.
+If you plan to relocate Glue1 and GLUE2 schemas, all these should be
+in the same directory that you specify here.
+this option does NOT apply to nordugrid.schema file. Such file has a 
+release dependent location. 
+Default is to use only standard locations described above.
 
-.IR Example :
+.IR Example:
+.br
+ldap_schema_dir="/nfs/ldap/schema/"
+
+.TP
+.B oldconfsuffix
+oldconfsuffix .suffix - sets the suffix of the backup files of the
+low-level slapd config files in case they are regenerated. Default is
+".oldconfig".
+
+.IR Example:
+.br
+oldconfsuffix=".oldconfig"
+
+.TP
+.B overwrite_config
+overwrite_config yes|no - determines if the grid-infosys startup script
+should generate new low-level slapd configuration files.  By default the
+low-level configuration files are regenerated with every server startup
+making use of the values specified in the arc.conf.
+
+.IR Example:
+.br
+overwrite_config="yes"
+
+.TP
+.B registrationlog
+registrationlog path - specifies the logfile for the registration processes
+initiated by your machine. Default is "/var/log/arc/inforegistration.log"
+
+.IR Example:
+.br
 registrationlog="/var/log/arc/inforegistration.log"
 
 .TP
 .B providerlog
-Specifies log file location for the information provider scripts. The
-feature is only available with >= 0.5.26 tag. Default is
-"/var/log/arc/infoprovider.log"
+providerlog path - Specifies log file location for the information 
+provider scripts. The feature is only available with >= 0.5.26 tag.
+Default is "/var/log/arc/infoprovider.log"
 
-.IR Example :
+.IR Example:
+.br
 providerlog="/var/log/arc/infoprovider.log"
 
 .TP
 .B provider_loglevel
-Log level for the information provider scripts (0, 1, 2). The default is 1
-(critical errors are logged).
+provider_loglevel - loglevel for the infoprovider scripts (0-5).
+The default is 1 (critical errors are logged)
 
-.IR Example :
+.IR Example:
+.br
 provider_loglevel="2"
 
 .TP
-.B x509_cert_dir
-Location of trusted CA certificates.
-
-.IR Example :
-x509_cert_dir=/etc/grid-security/certificates
-
-.TP
-.B x509_user_cert, x509_user_key
-Server credentials location.
-
-.IR Examples :
-
-x509_user_cert="/etc/grid-security/ldapcert.pem"
-.br
-x509_user_key="/etc/grid-security/ldapkey.pem"
-
-.TP
-.B gridmap
-The gridmap file location.
-
-.IR Example :
-gridmap=/etc/grid-security/grid-mapfile
-
-.TP
-.B limit_core, limit_nofile
-Shell limits for the slapd process set via `ulimit -c' and `ulimit -n'.
-
-.IR Examples :
-
-limit_core="0"
-.br
-limit_nofile=""
-
-.TP
 .B user
-The unix user running the information system processes such as the
-slapd, the registrations and information provider scripts. By default the
-user executing the startup script is set. In case of non-root value
-you must make sure that the grid-manager directories and their content
-are readable by the `user' and the `user' has access to the full LRMS
-information including jobs submitted by other users. The grid-manager
-directories (controldir, sessiondir, runtimedir, cachedir) are
-specified in the grid-manager block
+user unix_user - the unix user running the infosys processes such as 
+the slapd, the registrations and infoprovider scripts. 
+By default the ldap-user is used, you can run it as root if you wish. 
+In case of non-root value you must make sure that the A-REX 
+directories and their content are readable by the 'user' and the 'user' 
+has access to the full LRMS information including jobs submitted by
+other users. The A-REX directories (controldir, sessiondir
+runtimedir, cachedir) are specified in the [grid-manager] block
 
-.IR Example :
+.IR Example:
+.br
 user="root"
 
 .TP
 .B giis_location
-If giis_location is not set, NORDUGRID_LOCATION will be used instead.
+giis_location - If giis_location is not set, ARC_LOCATION will be 
+used instead.
 
-.IR Example :
-giis_location="/opt/nordugrid"
+.IR Example:
+.br
+giis_location="/usr/"
 
+.TP
+.B infosys_nordugrid
+These three variables decide which schema should be used for
+publishing data. They can all be enabled at the same time. Default is
+to enable nordugrid mds and disable glue.  
+infosys_nordugrid - Enables NorduGrid schema
 
-.TP .B BDII related variables and their default values Nordugrid ARC
-works together with both BDII4 and BDII5.  If you use the
-nordugrid-packaged BDII installation, these variables have sensible
-defaults and can be omitted. The only variables that system
-administrators may want to change when using nordugrid-bdii are
-infosys_nordugrid and infosys_glue12.  These two variables specify
-what format the output should be in, default is
-infosys_nordugrid=enable, infosys_glue12=disable. If infosys_glue12 is
-enabled, then you need to set resource_location, resource_latitude,
-resource_longitude, cpuscalingreferencesi00,
-processorotherdescription, gluesiteweb and gluesiteuniqueid under the
-[infosys/glue12] block. These variables do not have default
-values. You may also want to set provide_glue_site_info to false in
-case you want to set up a more complicated setup with several
-publishers of data to a GlueSite.  The rest of the variables defaults
-are showcased here. infosys_debug disables/enables an ldap-database at
-the ldap tree entrypoint o=infosys. Note, the gLite supplied BDII
-installs into /opt/bdii. If you for some reason do not want to use the
-bdb ldap backend, you can set this with bdii_database.
-
-.IR Examples :
-
-General BDII options.
-
-bdii_location="/usr"
+.IR Example:
 .br
 infosys_nordugrid="enable"
+
+.TP
+.B infosys_glue12
+infosys_glue12 - Enables glue1.2/1.3 schema
+If infosys_glue12 is enabled, then resource_location, 
+resource_latitude and resource_longitude need to be set in the
+[infosys/glue12] block. These variables do not have default values.
+The rest of the variables defaults are showcased below.
+
+.IR Example:
 .br
 infosys_glue12="disable"
+
+.TP
+.B infosys_glue2_ldap
+infosys_glue2 - Enables GLUE2 schema
+
+.IR Example:
+.br
+infosys_glue2_ldap="disable"
+
+.TP
+.B infosys_glue2_ldap_showactivities
+infosys_glue2_ldap_showactivities - Enables GLUE2 ComputingActivities
+to appear in the LDAP rendering
+they're currently disabled by default.
+
+.IR Example:
+.br
+infosys_glue2_ldap_showactivities="disable"
+
+.TP
+.B infosys_glue2_service_qualitylevel
+infosys_glue2_service_qualitylevel - Allows a sysadmin to define a 
+different GLUE2 QualityLevel for A-REX.
+This can be used for operations.
+default: production
+Allowed value is one of: "production", "pre-production", "testing", 
+"development"
+Refer to GLUE2 documentation for the meaning of these strings.
+
+.IR Example:
+.br
+infosys_glue2_service_qualitylevel="production"
+
+.TP
+.B slapd
+slapd - Configure where the slapd command is located, default is:
+/usr/sbin/slapd
+
+.IR Example:
+.br
+slapd="/usr/sbin/slapd"
+
+.TP
+.B slapadd
+slapadd - Configure where the slapadd command is located, default is:
+/usr/sbin/slapadd
+
+.IR Example:
+.br
+slapadd="/usr/sbin/slapadd"
+
+.SH BDII specific
+Starting from 11.05, Nordugrid ARC only supports BDII5.
+These variables are usually automatically set by ARC, and
+are here mostly for debug purposes and to tweak exotic
+BDII5 installations. In general, a sysadmin should not set these.
+
+.TP
+.B bdii_debug_level
+bdii_debug_level - set the following to DEBUG to check bdii errors 
+in bdii-update.log
+useful not to enable slapd logs reducing performance issues.
+
+.IR Example:
+.br
+bdii_debug_level="ERROR"
+
+.TP
+.B provider_timeout
+provider_timeout - This variable allows a system administrator to
+modify the behaviour of bdii-update. This is the time BDII waits
+for the scripts generated by A-REX infoproviders to produce 
+their output.
+Default is 300 seconds.
+
+.IR Example:
+.br
+provider_timeout=300
+
+.TP
+.B infosys_debug
+infosys_debug - This variable disables/enables an ldap-database
+containing information about the ldap database itself on "o=infosys"
+it is very useful for debugging. Default is enabled.
+
+.IR Example:
 .br
 infosys_debug="disable"
+
+.P
+BDII5 uses the following variables. These might change depending on BDII version.
+ARC sets them by inspecting distributed bdii configuration files.
+.B DO NOT CHANGE UNLESS YOU KNOW WHAT YOU'RE DOING
+
+.TP
+.B bdii_location
+bdii_location - The installation directory for the BDII.
+Default is /usr
+
+.IR Example:
 .br
-bdii_tmp_dir="/var/tmp/bdii"
+bdii_location="/usr"
+
+.TP
+.B bdii_var_dir
+bdii_var_dir - Contains BDII pid files and slapd pid files
+
+.IR Example:
 .br
-bdii_var_dir="/var/run/bdii"
+bdii_var_dir="/var/run/arc/bdii"
+
+.TP
+.B bdii_log_dir
+bdii_log_dir - Contains infosys logs
+
+.IR Example:
 .br
 bdii_log_dir="/var/log/arc/bdii"
-.br
-bdii_conf="/var/run/nordugrid/bdii.conf"
-.br
-bdii_database="bdb"
-.br
-bdii_breathe_time="30"
-.br
 
-Glue 1.2 specific attributes
+.TP
+.B bdii_tmp_dir
+bdii_tmp_dir - Contains provider scripts
 
-resource_location="Kastrup, Denmark"
+.IR Example:
 .br
-resource_latitude="55.75000"
-.br
-resource_longitude="12.41670"
-.br
-cpuscalingreferencesi00="2400"
-.br
-processorotherdescription="Cores=3,Benchmark=9.8-HEP-SPEC06"
-.br
-gluesiteweb="http://www.ndgf.org"
-.br    
-gluesiteuniqueid="NDGF-T1"
-.br
-provide_glue_site_info="true"
-.br
+bdii_tmp_dir="/var/tmp/arc/bdii"
 
-BDII4 specific options.
+.TP
+.B bdii_lib_dir
+bdii_lib_dir - Contains slapd databases
 
-bdii_cmd="/etc/init.d/bdii4"
+.IR Example:
 .br
-bdii_update_cmd="/usr/sbin/bdii4-update"
-.br
-bdii_search_timeout="30"
-.br
-bdii_auto_update="no"
-.br
-bdii_auto_modify="no"
-.br
-bdii_modify_dn="no"
-.br
-bdii_is_cache="yes"
-.br
-bdii_update_url="http://"
-.br
-bdii_update_ldif="http://"
-.br
-bdii_update_conf="/var/run/nordugrid/bdii-update.conf"
-.br
+bdii_lib_dir="/var/lib/arc/bdii"
 
+.TP
+.B bdii_update_pid_file
+bdii_update_pid_file, slapd_pid_file - Allows to change bdii-update
+and slapd pidfiles filename and location
 
-BDII5 specific options.
-
-bdii_read_timeout="300"
-.br
-bdii_db_config="/etc/bdii/DB_CONFIG"
-.br
-fix_glue="no"
-.br
-bdii_archive_size="0"
+.IR Example:
 .br
 bdii_update_pid_file="/var/run/arc/bdii-update.pid"
 .br
 slapd_pid_file="$bdii_var_dir/db/slapd.pid"
 
+.TP
+.B bdii_database
+bdii_database - Configure what ldap database backend should be used, 
+default is: bdb
+
+.IR Example:
+.br
+bdii_database="bdb"
+
+.P
+The following options are for tweaking only. Usually one should not
+configure them. They change the BDII configuration file generated
+by ARC. Please consult BDII manual for details.
 
 .TP
-.B slapd
-Configure where the slapd command is located, default is:
-/usr/sbin/slapd
+.B bdii_conf
+bdii_conf - Location of the bdii config file.
+ARC modifies the original and sets it
+as default /var/run/arc/infosys/bdii.conf
 
-.IR Example :
-slapd="/usr/sbin/slapd"
+.IR Example:
+.br
+bdii_conf="/var/run/arc/infosys/bdii.conf"
+
+.P
+Command line options used to run bdii-update.
+ARC finds it looking into bdii configuration.
+default: ${bdii_location}/sbin/bdii-update
+
+.B bdii_update_cmd
+.br
+.B bdii_archive_size
+.br
+.B bdii_db_config
+.br
+.B bdii_breathe_time
+.br
+.B bdii_delete_delay
+.br
+.B bdii_read_timeout
+.br
+.B bdii_run_dir
+.br
+.B bindmethod
+.br
+.B cachettl
+.br
+.B db_archive
+.br
+.B db_checkpoint
+
+.SH EGIIS-related commands
 
 .TP
-.B slapadd
-Configure where the slapadd command is located, default is:
-/usr/sbin/slapadd
+.B giis_fifo
+giis_fifo - path to fifo used by EGIIS.
+default is /var/run/arc/giis-fifo
+This file is automatically created by ARC, the option
+is only for tweaking.
 
-.IR Example :
-slapadd="/usr/sbin/slapadd"
+.IR Example:
+.br
+giis_fifo=/var/run/arc/giis-fifo
 
-.SH GRID INFORMATION INDEX SERVICE (GIIS) OPTIONS
+.P
+LDAP parameters of the cluster.pl (old) infoprovider, use the defaults, 
+do NOT change them unless you know what you are doing
 
-The Index Service block configures and enables an Information Index
-Service. A separate configuration block is required for every Index
-Service you may run on a given machine. Each index service should be
-given its own id. This id is used as the index name in the
-"Mds-Vo-name=indexname, O=Grid" LDAP suffix characterising the Index
-Service. If the plain text format is used, the index service
-identified as "indexname" is defined by:
+.TP
+.B cachetime
+cachetime affects old infoproviders, and forces the validity time of the record.
 
-.nf
-.B [infosys/site]
-.BR id="sitename"
-.fi
+.IR Example:
+.br
+cachetime="30"
 
-Site BDII configuration block, this block is used to configure ARC to
-generate a site-bdii that can be registered in GOCDB etc to make it a
-part of a gLite network. The sitename part is to be declarative of the
-site-bdii being generated.
+.TP
+.B sizelimit
+sizelimit affects registration to egiis
 
-.IR Examples :
+.IR Example:
+.br
+sizelimit="10"
+
+.TP
+.B slapd_cron_checkpoint
+slapd_cron_checkpoint - LDAP checkpoint enable/disable
+This option was introduced to solve bug #2032, to reduce the number 
+of log files produced by BDII. It is usually not needed, 
+but if BDII produces large logs and huge number of files, 
+should help solving the issues related to that.
+
+.IR Example:
+.br
+slapd_cron_checkpoint="enable"
+
+.SH [infosys/glue12] block 
+
+This block holds information that is needed by the glue 1.2
+generation. This is only necessary if infosys_glue12 is enabled.
+
+
+.TP
+.B resource_location
+These variables need to be set if infosys_glue12 is enabled.
+IMPORTANT: no slashes or backslashes here!
+Example: "Kastrup, Denmark"
+
+.IR Example:
+.br
+resource_location=""
+
+.TP
+.B resource_latitude
+Example: "55.75000"
+
+.IR Example:
+.br
+resource_latitude=""
+
+.TP
+.B resource_longitude
+Example: "12.41670"
+
+.IR Example:
+.br
+resource_longitude=""
+
+.TP
+.B cpu_scaling_reference_si00
+Example 2400
+
+.IR Example:
+.br
+cpu_scaling_reference_si00=""
+
+.TP
+.B processor_other_description
+Example Cores=3,Benchmark=9.8-HEP-SPEC06
+
+.IR Example:
+.br
+processor_other_description=""
+
+.TP
+.B glue_site_web
+Example http://www.ndgf.org
+
+.IR Example:
+.br
+glue_site_web=""
+
+.TP
+.B glue_site_unique_id
+Example NDGF-T1
+
+.IR Example:
+.br
+glue_site_unique_id=""
+
+.TP
+.B provide_glue_site_info
+This variable decides if the GlueSite should be published. In case
+you want to set up a more complicated setup with several publishers
+of data to a GlueSite, then you may wish to tweak this parameter.
+
+.IR Example:
+.br
+provide_glue_site_info="true"
+
+.SH [infosys/site/sitename] block 
+
+[infosys/site/sitename] Site BDII configuration block, this block is
+used to configure ARC to generate a site-bdii that can be registered
+in GOCDB etc to make it a part of a gLite network. The sitename
+part is to be declarative of the site-bdii being generated.
+
+
+.TP
+.B unique_id
 The unique id used to identify this site, eg "NDGF-T1"
+
+.IR Example:
 .br
 unique_id=""
-.br
+
+.TP
+.B url
 The url is on the format:
-ldap://host.domain:2170/mds-vo-name=something,o=grid and should point
-to the resource-bdii.
+ldap://host.domain:2170/mds-vo-name=something,o=grid and should
+point to the resource-bdii
+
+.IR Example:
 .br
 url=""
+
+.SH [infosys/admindomain] block 
+
+[infosys/admindomain] GLUE2 AdminDomain configuration block, 
+to configure administrative items of the cluster. This values
+do not affect neither glue12 or nordugrid renderings.
+If the whole block is not specified, will default to an AdminDomain
+called UNDEFINEDVALUE.
+
+
+.TP
+.B name
+name - the Name attribute for the domain. This will show
+in top-BDII to group the resources belonging to this cluster.
+to group a bunch of clusters under the same AdminDomain,
+just use the same name.
+If not specified, will default to UNDEFINEDVALUE.
+
+.IR Example:
 .br
+name="ARC-TESTDOMAIN"
 
-.nf
-.B [infosys/index]
-.BR id ="indexname"
-.fi
+.TP
+.B description
+description - description of this domain. Not mandatory.
 
-If the xml format is used the same block is defined using the
-attributed xml tag inside the infosys block:
+.IR Example:
+.br
+description="ARC test Domain"
 
-.nf
-.B <infosys>
-.RB \  <index\ id ="indexname" > ... </index>
-.B </infosys>
-.fi
+.TP
+.B www
+www - url pointing at a site holding information about the 
+AdminDomain. Not mandatory.
+
+.IR Example:
+.br
+www="http://www.nordugrid.org/"
+
+.TP
+.B distributed
+distributed - set this to yes if the domain is distributed
+that means, if the resources belonging to the domain
+are considered geographically distributed.
+
+.IR Example:
+.br
+distributed=yes
+
+.TP
+.B owner
+owner - contact email of a responsible 
+subject for the domain
+
+.IR Example:
+.br
+owner=admin@nordugrid.org
+
+.TP
+.B otherinfo
+otherinfo - fills the OtherInfo GLUE2 field. 
+no need to set, used only for future development.
+
+.IR Example:
+.br
+otherinfo=Test Other info
+
+.SH [infosys/index/indexname] block 
+
+[infosys/index/indexname] Index Service block configures and enables 
+an Information Index Service. A separate Index block is required for 
+every Index Service you may run on the given machine.
+The 'indexname' constitutes to the 
+'mds-vo-name=indexname,o=grid' LDAP suffix characterizing the Index Service.
+
+
+.TP
+.B name
+name - The unique (within the hosting machine) name of the 
+Index Service. Its value becomes part of the LDAP suffix 
+of the Index Service:
+(mds-vo-name=value of the name attribute, o=grid)
+
+.IR Example:
+.br
+name="indexname"
 
 .TP
 .B allowreg
-Implements registration filtering within an Index Sevice. Sets the
-Local Information Trees or lower level Index Services allowed to
-register to the Index Service. List each allowed registrant with the
-allowreg attribute. Specifying allowreg implies setting up a strict
-filtering, only the matching registrants will be able to register to
-the Index. The wildcard `*' can be used in allowreg. Several allowreg
-lines can be used.
+allowregistration - Implements registration filtering within an Index Sevice
+Sets the Local Information Trees or lower level Index Services
+allowed to register to the Index Service. List each allowed registrants 
+with the allowreg atribute.
 
-.IR Examples :
-
-All the Swedish machines can register regardless they are resources or
-indexes:
-
+WARNING: specifying allowreg implies setting up a strict filtering, 
+only the matching registrants will be able to register to the Index. 
+The wildcard * can be used in allowreg. Several allowreg lines can be used. 
+Some examples:
+ -All the Swedish machines can register regardless they are resources or Indices
 allowreg="*.se:2135"
+ -Cluster resources from Denmark can register
+allowreg="*.dk:2135/nordugrid-cluster-name=*, Mds-Vo-name=local, o=grid"
+ -Storage resources from HIP, Finland can register
+allowreg="*hip.fi:2135/nordugrid-se-name=*, Mds-Vo-name=local, o=grid"
+ -The index1.sweden.se can register as a Sweden Index  (and only as a Sweden Index)
+allowreg="index1.sweden.se:2135/Mds-vo-Name=Sweden,o=Grid"
+ -Any Index Service can register
+allowreg="*:2135/Mds-vo-Name=*,o=Grid"
 
-Cluster resources from Denmark can register:
+.IR Example:
+.br
+allowreg="trusted.host.org.se:2135/Mds-vo-Name=Trusted-Index,o=Grid"
 
-allowreg="*.dk:2135/nordugrid-cluster-name=*, Mds-Vo-name=local, O=Grid"
+.SH [infosys/index/indexname/registration/registrationname] block 
 
-Storage resources from HIP, Finland can register:
+[infosys/index/indexname/registration/registrationname]
+Index service registration block
+This block enables a registration process initiated by the 
+'indexname' Index Service (configured previuosly)
+to a target Index Service.
+NorduGrid maintains a webpage with information on major
+Index Services:
+http://www.nordugrid.org/NorduGridMDS/index_service.html
 
-allowreg="*.hip.fi:2135/nordugrid-se-name=*, Mds-Vo-name=local, O=Grid"
-
-The index1.sweden.se can register as a Sweden Index (and only as a
-Sweden Index):
-
-allowreg="index1.sweden.se:2135/Mds-Vo-name=Sweden, O=Grid"
-
-Any Index Service can register:
-
-allowreg="*:2135/Mds-Vo-name=*, O=Grid"
-
-.SH GRID INFORMATION INDEX SERVICE REGISTRATION OPTIONS
-
-Options for registering a grid information index service (GIIS) to a
-higher level in the Information System. Each GIIS can be registered to
-more than one information index server. Each registration is
-configured in its own configuration block.
-
-If the plain text format is used, the registration of the index
-service identified as "indexname" is defined by:
-
-.nf
-.B [infosys/index/registration]
-.BR id ="indexname"
-.fi
-
-If the xml format is used the same block is defined using a
-registration tag inside the attributed xml tag inside the infosys
-block:
-
-.nf
-.B <infosys>
-.RB \  <index\ id ="indexname" >
-.RB \ \  <registration> ... </registration>
-.RB \  </index>
-.B </infosys>
-.fi
 
 .TP
 .B targethostname
-The hostname of the machine running the registration target Index
-Service
+targethostname - the hostname of the machine running the registration target
+Index Service
 
-.IR Example :
+.IR Example:
+.br
 targethostname="index.myinstitute.org"
 
 .TP
 .B targetport
-The port on which the target Index Service is running. The default is
-the 2135 Grid Resource Information Service port.
+targetport - the port on which the target Index Service is running.
+The default is the 2135 Infosys port.
 
-.IR Example :
+.IR Example:
+.br
 targetport="2135"
 
 .TP
 .B targetsuffix
-The LDAP suffix of the target Index Service
+targetsuffix - the LDAP suffix of the target Index Service
 
-.IR Example :
-targetsuffix="Mds-Vo-name=BigIndex, O=Grid"
+.IR Example:
+.br
+targetsuffix="mds-vo-name=BigIndex,o=grid"
 
 .TP
 .B regperiod
-The registration period in seconds, the registration messages are
-continuously sent according to the regperiod. Default is 120 s.
+regperiod - The registration period in seconds, the registration messages are 
+continously sent according to the regperiod. Default is 120 sec.
 
-.IR Example :
+.IR Example:
+.br
 regperiod="300"
 
 .TP
 .B registranthostname
-The hostname of the machine sending the registrations.
-This attribute inherits its value from the common and infosys blocks,
+registranthostname - the hostname of the machine sending the registrations.
+This attribute inherits its value from the [common] and [infosys] blocks,
 most cases no need to set.
 
-.IR Example :
+.IR Example:
+.br
 registranthostname="myhost.org"
 
 .TP
 .B registrantport
-The port of the slapd service hosting the registrant Index
-Service. The attribute inherits its value from the [infosys] block
-(and therefore defaults to 2135)
+registrantport - the port of the slapd service hosting the 
+registrant Index Service. The attribute inherits its value from the 
+[infosys] block (and therefore defaults to 2135)
 
-.IR Example :
+.IR Example:
+.br
 registrantport="2135"
 
 .TP
 .B registrantsuffix
-The LDAP suffix of the registrant Index Service.
-It is automatically determined from the registration block name,
+registrantsuffix - the LDAP suffix of the registrant Index Service.
+It is automatically determined from the registration block name, 
 therefore most of the cases no need to specify.
+In this case the default registrantsuffix will be:
+                 "Mds-Vo-name=indexname"
 
-.IR Example :
-registrantsuffix="Mds-Vo-name=indexname, O=Grid"
+please mind uppercase/lowercase characters in the above string
+when defining allowreg in an index!
+Don't set it unless you want to overwrite the default.
 
-.SH CLUSTER OPTIONS
+.IR Example:
+.br
+registrantsuffix="mds-vo-name=indexname,o=grid"
+.br
 
-The cluster block configures how your cluster is seen on the grid
-monitor (infosys point of view). Please consult the Infosys manual for
-detailed information on cluster attributes.  If you want your cluster
-configured below to appear in the infosys (on the monitor) you also
-need to create a cluster registration block see the next block.
+
+.SH [cluster] block 
+
+This block configures how your cluster is seen on the grid monitor (infosys
+point of view). Please consult the Infosys manual for detailed information
+on cluster attributes.
+If you want your cluster (configured below) to appear in the infosys 
+(on the monitor) you also need to create a cluster registration block 
+(see the next block).
+
 
 .TP
 .B hostname
-The FQDN of the frontend node.
+hostname - the FQDN of the frontend node, if the hostname is not set already
+in the common block then it  MUST be set here
 
-.IR Example :
+.IR Example:
+.br
 hostname="myhost.org"
 
 .TP
 .B interactive_contactstring
-The contact string for interactive logins, set this if the cluster
-supports some sort of grid enabled interactive login (gsi-ssh).
+interactive_contactstring - the contact string for interactive logins, set this 
+if the cluster supports some sort of grid-enabled interactive login (gsi-ssh),
+multivalued
 
-.IR Example :
-interactive_contactstring="gsissh://frontend.cluster:2200/"
+.IR Example:
+.br
+interactive_contactstring="gsissh://frontend.cluster:2200"
 
 .TP
-.B alias
-An arbitrary alias name of the cluster, optional.
+.B cluster_alias
+alias - an arbitrary alias name of the cluster, optional
 
-.IR Example :
-alias="Big Blue Cluster in Nowhere"
+.IR Example:
+.br
+cluster_alias="Big Blue Cluster in Nowhere"
 
 .TP
 .B comment
-A free text field for additional comments about the cluster.
+comment - a free text field for additional comments on the cluster in a single
+line, no newline character is allowed!
 
-.IR Example :
-
+.IR Example:
+.br
 comment="This cluster is specially designed for XYZ applications: www.xyz.org"
 
 .TP
 .B cluster_location
-The geographical location of the cluster, preferably specified as a
-postal code with a two letter country prefix.
+cluster_location - The geographical location of the cluster, preferably
+specified as a postal code with a two letter country prefix
 
-.IR Example :
+.IR Example:
+.br
 cluster_location="DK-2100"
 
 .TP
 .B cluster_owner
-It can be used to indicate the owner of a resource, multiple entries
-can be used.
+cluster_owner - it can be used to indicate the owner of a resource, multiple
+entries can be used
 
-.IR Example :
+.IR Example:
+.br
 cluster_owner="World Grid Project"
+.br
+cluster_owner="University of NeverLand"
 
 .TP
 .B authorizedvo
-This attribute is used to advertise which VOs are authorized 
+authorizedvo - this attribute is used to advertise which VOs are authorized 
 on the cluster. Multiple entries are allowed.
+This entries will be shown in GLUE2 AccessPolicy and MappingPolicy objects.
 
-.IR Example :
+.IR Example:
+.br
 authorizedvo="developer.nordugrid.org"
+.br
+authorizedvo="community.nordugrid.org"
 
 .TP
 .B clustersupport
-This is the support email address of the resource, multiple entries
-can be used.
+clustersupport - this is the support email address of the resource, multiple
+entries can be used
 
-.IR Example :
+.IR Example:
+.br
+clustersupport="grid.support@mysite.org"
+.br
 clustersupport="grid.support@myproject.org"
 
 .TP
 .B lrmsconfig
-An optional free text field to describe the configuration of your
+lrmsconfig - an optional free text field to describe the configuration of your
 Local Resource Management System (batch system).
 
-.IR Example :
+.IR Example:
+.br
 lrmsconfig="single job per processor"
 
 .TP
 .B homogeneity
-Determines whether the cluster consists of identical nodes with
-respect to CPU type, memory, installed software (opsys). The frontend
-does not have to be homogeneous with the nodes. In case of
-inhomogeneous nodes, try to arrange the nodes into homogeneous groups
-assigned to a queue and use queue level attributes. Possible values:
-True, False. The default is True.
+homogeneity - determines whether the cluster consists of identical NODES with
+respect to  cputype, memory, installed software (opsys). The frontend is NOT
+needed to be homogeneous with the nodes. In case of inhomogeneous nodes, try
+to arrange the nodes into homogeneous groups assigned to a queue and use
+queue-level attributes. Possible values: True,False, the default is True.
+False will trigger multiple GLUE2 ExecutionEnvironments to be published
+if applicable.
 
-.IR Example :
+.IR Example:
+.br
 homogeneity="True"
 
 .TP
 .B architecture
-Sets the hardware architecture of the nodes. The "architecture" is
-defined as the output of the "uname -m" (e.g. i686). Use this cluster
-attribute if only the nodes are homogeneous with respect to the
-architecture.  Otherwise the queue level attribute may be used for
-inhomogeneous nodes. If the frontend's architecture agrees to the
-nodes, the "adotf" (Automatically Determine On The Frontend) can be
-used to request automatic determination.
+architecture - sets the hardware architecture of the NODES. The "architecture"
+is defined as the output of the "uname -m" (e.g. i686). Use this cluster
+attribute if only the NODES are homogeneous with respect to the architecture.
+Otherwise the queue-level attribute may be used for inhomogeneous nodes. If
+the frontend's architecture agrees to the nodes, the "adotf" (Automatically
+Determine On The Frontend) can be used to request automatic determination.
 
-.IR Example :
+.IR Example:
+.br
 architecture="adotf"
 
 .TP
 .B opsys
-This multivalued attribute is meant to describe the operating system
-of the computing nodes. The opsys attribute can also be used to
-describe the kernel or libc version in case those differ from the
-originally shipped ones. The distribution name should be given as
-distroname-version.number, where spaces are not allowed. Kernel
-version should come in the form kernelname-version.number. If the
-nodes are inhomogeneous with respect to this attribute do not set it
-on cluster level, arrange your nodes into homogeneous groups assigned
-to a queue and use queue level attributes.
+opsys - this multivalued attribute is meant to describe the operating system
+of the computing NODES. Set it to the opsys distribution of the NODES and not
+the frontend! opsys can also be used to  describe the kernel or libc version
+in case those differ from the originally shipped ones. The distribution name
+should be given as distroname-version.number, where spaces are not allowed.
+Kernel version should come in the form kernelname-version.number. 
+If the NODES are inhomogeneous with respect to this attribute do NOT set it on
+cluster level, arrange your nodes into homogeneous groups assigned to a queue
+and use queue-level attributes. 
 
-.IR Examples :
-
-opsys="Redhat-7.2"
+.IR Example:
 .br
-opsys="Linux-2.4.21-mypatch"
+opsys="Linux-2.6.18"
 .br
-opsys="glibc-2.3.1"
+opsys="glibc-2.5.58"
+.br
+opsys="CentOS-5.6"
 
 .TP
 .B nodecpu
-This is the CPU type of the homogeneous nodes. The string is
-constructed from the /proc/cpuinfo as the value of "model name" and
-"@" and value of "cpu MHz". Do not set this attribute on cluster level
-if the nodes are inhomogeneous with respect to CPU type, instead
-arrange the nodes into homogeneous groups assigned to a queue and use
-queue-level attributes. Setting the nodecpu="adotf" will result in
-Automatic Determination On The Frontend, which should only be used if
-the frontend has the same CPU type as the homogeneous nodes.
+nodecpu - this is the cputype of the homogeneous nodes. The string is
+constructed from the /proc/cpuinfo  as  the value of "model name"  and "@" and
+value of "cpu MHz". Do NOT set this attribute on cluster level if the NODES
+are inhomogeneous with respect to cputype, instead arrange the nodes into
+homogeneous groups assigned to a queue and use queue-level attributes. Setting
+the nodecpu="adotf" will result in Automatic Determination On The Frontend, 
+which should only be used if the frontend has the same cputype as the
+homogeneous nodes.
 
-.IR Example :
+.IR Example:
+.br
 nodecpu="AMD Duron(tm) Processor @ 700 MHz"
 
 .TP
 .B nodememory
-This is the amount of memory (specified in MB) on the node which can
-be guaranteed to be available for the application. Please note in most
-cases it is less than the physical memory installed in the nodes. Do
-not set this attribute on cluster level if the nodes are inhomogeneous
-with respect to their memories, instead arrange the nodes into
-homogeneous groups assigned to a queue and use queue level attributes.
+nodememory - this is the amount of memory (specified in MB) on the node 
+which can be guaranteed to be available for the application. Please note 
+in most cases it is less than the physical memory installed in the nodes.
+Do NOT set this attribute on cluster level if the NODES are inhomogeneous
+with respect to their memories, instead arrange the nodes into homogeneous
+groups assigned to a queue and use queue-level attributes. 
 
-.IR Example :
+.IR Example:
+.br
 nodememory="512"
 
 .TP
 .B defaultmemory
-If a user submits a job without specifying how much memory should be
-used, this value will be taken first. The order is: xrsl ->
-defaultmemory -> nodememory -> 1GB. This is the amount of memory
-(specified in MB) that a job will request(per rank).
+defaultmemory - If a user submits a job without specifying how much
+memory should be used, this value will be taken first. The order is:
+xrsl -> defaultmemory -> nodememory -> 1GB. This is the amount of
+memory (specified in MB) that a job will request(per rank).
 
-.IR Example :
+.IR Example:
+.br
 defaultmemory="512"
 
 .TP
 .B benchmark
-This optional multivalued attribute can be used to specify benchmark
-results on the cluster level. Use this cluster attribute if only the
-nodes are homogeneous with respect to the benchmark performance.
-Otherwise the similar queue level attribute should be used. Please try
-to use one of standard benchmark names given below if possible.
+benchmark name value - this optional multivalued attribute can be used to 
+specify benchmark results on the cluster level. Use this cluster attribute 
+if only the NODES are homogeneous with respect to the benchmark performance. 
+Otherwise the similar queue-level attribute should be used. Please try to 
+use one of standard benchmark names given below if possible.
 
-.IR Examples :
-
-benchmark="SPECINT2000 222"
+.IR Example:
+.br
+benchmark="SPECINT2000  222"
+.br
 benchmark="SPECFP2000 333" 
 
 .TP
 .B middleware
-The multivalued attribute shows the installed grid software on the
-cluster, nordugrid and globus is automatically set, no need to specify
-middleware="nordugrid" or middleware="globus".
+middleware - the multivalued attribute shows the installed grid software on
+the cluster, nordugrid and globus-ng  is automatically set, no need to specify
+middleware=nordugrid or middleware=globus
 
-.IR Example :
+.IR Example:
+.br
 middleware="my grid software"
 
 .TP
 .B nodeaccess
-Determines how the nodes can connect to the internet. Not setting
-anything means the nodes are sitting on a private isolated
-network. "outbound" access means the nodes can connect to the outside
-world while "inbound" access means the nodes can be connected from
-outside. inbound & outbound access together means the nodes are
-sitting on a fully open network.
+nodeaccess - determines how the nodes can connect to the internet. Not setting
+anything means the nodes are sitting on a private isolated network. "outbound"
+access means the nodes can connect to the outside world while "inbound" access
+means the nodes can be connected from outside. inbound & outbound access
+together means the nodes are sitting on a fully open network.
 
-.IR Examples :
-
+.IR Example:
+.br
 nodeaccess="inbound"
+.br
 nodeaccess="outbound"
 
 .TP
 .B dedicated_node_string
-The string which is used in the PBS node configuration to distinguish the
-grid nodes from the rest. Suppose only a subset of nodes are available
-for grid jobs, and these nodes have a common "node property" string,
-in this case the dedicated_node_string should be set to this value and
-only the nodes with the corresponding "pbs node property" are counted
-as grid enabled nodes. Setting the dedicated_node_string to the value
-of the "pbs node property" of the grid enabled nodes will influence
-how the totalcpus and the user freecpus is calculated. You don't need
-to set this attribute if your cluster is fully available for the grid
-and your cluster's PBS configuration does not use the "node property" method
-to assign certain nodes to grid queues. You shouldn't use this configuration
-option unless you make sure your PBS configuration makes use of the above
-described setup.
+dedicated_node_string - the string which is used in the PBS node config to
+distinguish the grid nodes from the rest. Suppose only a subset of nodes are
+available for grid jobs, and these nodes have a common "node property" string,
+this case the dedicated_node_string should be set to this value and only the
+nodes with the corresponding  "pbs node property" are counted as grid enabled
+nodes. Setting the dedicated_node_string  to the value of the "pbs node
+property" of the grid-enabled  nodes will influence how the totalcpus, user
+freecpus is calculated. You don't need to set this attribute if your cluster
+is fully available for the grid and your cluster's PBS config does not use 
+the "node property" method to assign certain nodes to grid queues. You
+shouldn't use this config option unless you make sure  your PBS config makes
+use of the above described setup.
 
-.IR Example :
+.IR Example:
+.br
 dedicated_node_string="gridnode"
 
 .TP
 .B localse
-This multivalued parameter tells the broker that certain URLs (and
-locations below that) should be considered "locally" available to the
-cluster.
+localse - this multivalued parameter tells the BROKER that certain URLs (and
+locations below that) should be considered "locally" available to the cluster.
 
-.IR Example :
+.IR Example:
+.br
+localse="gsiftp://my.storage/data1/"
+.br
 localse="gsiftp://my.storage/data2/"
 
 .TP
 .B gm_mount_point
-This should be the same as the "path" from the gridftpd's jobplugin
-configuration block. The default is "/jobs".
+gm_mount_point - this is the same as the "path" from the [gridftpd/jobs]
+block. The default is "/jobs". Will be cleaned up later, do NOT touch it.
 
-.IR Example :
+.IR Example:
+.br
 gm_mount_point="/jobs"
 
 .TP
 .B gm_port
-This should be the same as the "port" from the gridftpd's jobplugin
-block. The default is "2811".
+gm_port - this is the same as the "port" from the [gridftpd] block. The
+default is "2811". Will be cleaned up later.
 
-.IR Example :
+.IR Example:
+.br
 gm_port="2811"
 
 .TP
-.B cachetime, timelimit, sizelimit
-LDAP parameters of the cluster information provider. Do not change the
-defaults unless you know what you are doing.
+.B cpudistribution
+cpudistribution - this is the CPU distribution over nodes
+given in the form: ncpu:m where 
+  n is the number of CPUs per machine
+  m is the number of such computers
 
-.IR Examples :
+Example: 1cpu:3,2cpu:4,4cpu:1 represents a cluster with 
+3 single CPU machines, 4 dual CPU machines, one machine with 4 CPUs.
+This command is needed to tweak and overwrite the values returned
+by the underlying LRMS. In general there is no need to configure it.
 
-cachetime="30"
+.IR Example:
 .br
-timelimit="30"
-.br
-sizelimit="10"
+cpudistribution=1cpu:3,2cpu:4,4cpu:1
 
-.SH CLUSTER REGISTRATION OPTIONS
+.SH [infosys/cluster/registration/registrationname] block
+Computing resource (cluster) registration block
+configures and enables the registration process of a
+computing resource to an Index Service.
+A cluster can register to several Index Services this case
+each registration process should have its own block.
+NorduGrid maintains a webpage with information on major
+Index Services:
+http://www.nordugrid.org/NorduGridMDS/index_service.html
 
-Options for registering the cluster in the Information System. The
-cluster can be registered to more than one information index
-server. Each registration is configured in its own configuration block.
-
-If the plain text format is used, the cluster registration block is
-defined by:
-
-.B [cluster/registration]
-
-If the xml format is used the same block is defined using a
-registration tag inside the cluster block:
-
-.nf
-.B <cluster>
-.RB \  <registration> ... </registration>
-.B </cluster>
-.fi
 
 .TP
 .B targethostname
-See description earlier.
+targethostname - see description earlier
 
-.IR Example :
+.IR Example:
+.br
 targethostname="index.myinstitute.org"
 
 .TP
 .B targetport
-See description earlier.
+targetport - see description earlier
 
-.IR Example :
+.IR Example:
+.br
 targetport="2135"
 
 .TP
 .B targetsuffix
-See description earlier.
+targetsuffix - see description earlier
 
-.IR Example :
-targetsuffix="Mds-Vo-name=BigIndex, O=Grid"
+.IR Example:
+.br
+targetsuffix="mds-vo-name=BigIndex,o=grid"
 
 .TP
 .B regperiod
-See description earlier.
+regperiod - see description earlier
 
-.IR Example :
+.IR Example:
+.br
 regperiod="300"
 
 .TP
 .B registranthostname
-See description earlier.
+registranthostname - see description earlier
 
-.IR Example :
+.IR Example:
+.br
 registranthostname="myhost.org"
 
 .TP
 .B registrantport
-See description earlier.
+registrantport - see description earlier
 
-.IR Example :
+.IR Example:
+.br
 registrantport="2135"
 
 .TP
 .B registrantsuffix
-The LDAP suffix of the registrant cluster resource It is automatically
-determined from the infosys block. Don't set it unless you want to
-overwrite the default.
+registrantsuffix - the LDAP suffix of the registrant cluster resource
+It is automatically determined from the [infosys] block and the 
+registration blockname. In this case the default registrantsuffix will be:
+   "nordugrid-cluster-name=hostname,Mds-Vo-name=local,o=Grid"
 
-.IR Example :
-registrantsuffix="nordugrid-cluster-name=myhost.org, Mds-Vo-name=local, O=Grid"
+please mind uppercase/lowercase characters above if defining 
+allowreg in an index!
+Don't set it unless you want to overwrite the default. 
 
-.SH QUEUE OPTIONS
+.IR Example:
+.br
+registrantsuffix="nordugrid-cluster-name=myhost.org,Mds-Vo-name=local,o=grid"
 
-Each grid enabled queue should have a separate queue block. The queue
-name should be used as the id of the configuration group. A queue can
-represent a PBS queue, an SGE pool, a Condor pool or a machine with a
-`fork' LRMS. Queues don't need to be registered (there is no queue
-registration block), once you configured your cluster to register to a
-Index Service the queue entries (configured with this block)
-automatically will be there. Please consult the Infosys manual for
-detailed information on queue attributes. The special id `fork' should
-be used for identifying the queue block of the fork LRMS.
+.SH [queue/queue_name] block 
+
+Each grid-enabled queue should have a separate queue block.
+The queuename should be used as a label in the block name.
+A queue can represent a PBS/LSF/SGE/SLURM/LL queue, a SGE pool, a Condor
+pool or a single machine in case 'fork' type of LRMS is specified in
+the [common] block.
+
+Queues don't need to be registered (there is no queue registration block),
+once you configured your cluster to register to an Index Service
+the queue entries (configured with this block) automatically will be there.
+Please consult the ARC Information System manual for detailed information
+on queue attributes:
+  http://www.nordugrid.org/documents/arc_infosys.pdf
+  
+use the queue_name for labeling the block. The special name 'fork' should be
+used for labeling the queue block in case you specified 'fork' type of
+LRMS in the [common] block.
+
+
+.TP
+.B name
+name sets the name of the grid-enabled queue. It MUST match the queue_name
+label of the corresponding queue block, see above.
+Use "fork" if you specified 'fork' type of LRMS in the [common] block.
+Queue name MUST be specified, even if the queue block is already correctly
+labeled.
+
+.IR Example:
+.br
+name="gridlong"
 
 .TP
 .B fork_job_limit
-The allowed number of concurrent jobs in a fork system, relevant only
-for a fork queue. Default is 1. The special value `cpunumber' can be
-used which will set the limit of running jobs to the number of CPUs
-available in the machine. This parameter is used in the calculation of
-free CPUs in a fork system.
+fork_job_limit, the allowed number of concurrent jobs in a fork system,
+relevant only for a fork queue. Default is 1. The special value 'cpunumber'
+can be used which will set the limit of running jobs to the number of cpus 
+available in the machine. This parameter is used in the calculation of 
+freecpus in a fork system.
 
-.IR Example :
+.IR Example:
+.br
 fork_job_limit="cpunumber"
 
 .TP
 .B homogeneity
-Determines whether the queue consists of identical nodes with respect
-to CPU type, memory, installed software (opsys). In case of
-inhomogeneous nodes, try to arrange the nodes into homogeneous groups
-and assigned them to a queue. Possible values: True, False. The
-default is True.
+homogeneity - determines whether the queue consists of identical NODES with
+respect to  cputype, memory, installed software (opsys). 
+In case of inhomogeneous nodes, try to arrange the nodes into homogeneous 
+groups and assigned them to a queue.
+Possible values: True,False, the default is True.
 
-.IR Example :
+.IR Example:
+.br
 homogeneity="True"
 
 .TP
 .B scheduling_policy
-This optional parameter tells the scheduling policy of the queue. PBS
-by default offers the FIFO scheduler, many sites run the MAUI
-scheduler. At the moment FIFO & MAUI is supported. If you have a MAUI
-scheduler you should specify the "MAUI" value since it modifies the
-way the queue resources are calculated. By default the "FIFO"
-scheduler is assumed.
+scheduling_policy - this optional parameter tells the schedulling policy of
+the queue, PBS by default offers the FIFO scheduller, many sites run the MAUI.
+At the moment FIFO & MAUI is supported. If you have a MAUI scheduller you 
+should specify the "MAUI" value since it modifies the way the queue resources
+are calculated.  BY default the "FIFO" sceduller is assumed.
 
-.IR Example :
+.IR Example:
+.br
 scheduling_policy="FIFO"
 
 .TP
 .B comment
-A free text field for additional comments about the queue.
+comment - a free text field for additional comments on the queue in a single
+line, no newline character is allowed!
 
-.IR Example :
+.IR Example:
+.br
 comment="This queue is nothing more than a condor pool"
 
 .TP
 .B maui_bin_path
-Set this parameter for the path of the maui commands like showbf in
-case you specified the "MAUI" scheduling policy above.
+maui_bin_path - set this parameter for the path of the maui commands like
+showbf in case you specified the "MAUI"  scheduling_policy above. This
+parameter can be set in the [common] block as well.
 
-.IR Example :
+.IR Example:
+.br
 maui_bin_path="/usr/local/bin"
 
 .TP
 .B queue_node_string
-In PBS you can assign nodes to a queue (or a queue to nodes) by using
-the "node property" PBS node configuration method and assigning the marked
-nodes to the queue (setting the resources_default.neednodes =
-queue_node_string for that queue). This parameter should contain the
-"node property" string of the queue assigned nodes. Setting the
-queue_node_string changes how the queue's totalcpus and user freecpus
-are determined for this queue. You shouldn't use this option unless
-you make sure that your PBS configuration makes use of the above
-configuration.
+queue_node_string - In PBS you can assign nodes to a queue (or a queue to
+nodes) by using the "node property" PBS node config method and asssigning the
+marked nodes to the queue (setting the resources_default.neednodes =
+queue_node_string for that queue). This parameter should contain the "node
+property" string of the queue-assigned nodes. Setting the queue_node_string
+changes how the queue-totalcpus, user freecpus are determined for this queue.
+Essentially, queue_node_string value is used to construct nodes= string in
+PBS script, such as nodes=count:queue_node_string where count is taken from
+the job description (1 if not specified). You shouldn't use this option unless
+you are sure that your PBS configuration makes use of the above configuration.
+Read NorduGrid PBS instructions for more information:
+   http://www.nordugrid.org/documents/pbs-config.html
 
-.IR Example :
+.IR Example:
+.br
 queue_node_string="gridlong_nodes"
+.br
+queue_node_string="ppn=4:ib" 
 
 .TP
 .B sge_jobopts
-Specify additional SGE options to be used when submitting jobs to SGE.
+sge_jobopts - additional SGE options to be used when submitting jobs to SGE
+from this queue.  If in doubt, leave it commented out
 
-.IR Example :
+.IR Example:
+.br
 sge_jobopts="-P atlas -r yes"
 
 .TP
 .B condor_requirements
-Only needed if using Condor. If using mutpiple queues, it needs to be defined
-for each queue. Use this option to determine which nodes belong to the current
+condor_requirements - only needed if using Condor. It needs to be defined for
+each queue. Use this option to determine which nodes belong to the current
 queue.  The value of 'condor_requirements' must be a valid constraints string
 which is recognized by a condor_status -constraint '....' command. It can
 reference pre-defined ClassAd attributes (like Memory, Opsys, Arch, HasJava,
 etc) but also custom ClassAd attributes.  To define a custom attribute on a
 condor node, just add two lines like the ones below in the `hostname`.local
 config file on the node:
-.nf
-   NORDUGRID_RESOURCE=TRUE
-   STARTD_EXPRS = NORDUGRID_RESOURCE, $(STARTD_EXPRS)
-.fi
-.br
+  NORDUGRID_RESOURCE=TRUE
+  STARTD_EXPRS = NORDUGRID_RESOURCE, $(STARTD_EXPRS)
 
 A job submitted to this queue is allowed to run on any node which satisfies
 the 'condor_requirements' constraint.  If 'condor_requirements' is not set,
 jobs will be allowed to run on any of the nodes in the pool. When configuring
-multiple queues, you can differentiate them based on memory size or disk space.
+multiple queues, you can differentiate them based on memory size or disk
+space, for example:
 
-.IR Example :
+.IR Example:
 .br
-
-.nf
 condor_requirements="(OpSys == "linux" && NORDUGRID_RESOURCE && Memory >= 1000 && Memory < 2000)"
-.fi
 
 .TP
 .B lsf_architecture
 CPU architecture to request when submitting jobs to LSF. Use only if you know
 what you are doing.
 
-.IR Example :
+.IR Example:
+.br
 lsf_architecture="PowerPC"
 
 .TP
 .B totalcpus
-Manually sets the number of CPUs assigned to the queue. No need to
-specify the parameter in case the queue_node_string method was used to
-assign nodes to the queue (this case it is dynamically calculated and
-the static value is overwritten) or when the queue have access to the
-entire cluster (this case the cluster level totalcpus is the relevant
-parameter). Use this static parameter only if some special method is
-applied to assign a subset of totalcpus to the queue.
+totalcpus - manually sets the number of cpus assigned to the queue. No need to
+specify the parameter in case the queue_node_string method was used to assign
+nodes to the queue (this case it is dynamically calculated and the static
+value is overwritten) or when the queue have access to the entire cluster
+(this case the cluster level totalcpus is the relevant parameter). Use this
+static parameter only if some special method is applied to assign a subset of
+totalcpus to the queue.
 
-.IR Example :
+.IR Example:
+.br
 totalcpus="32"
 
 .TP
-.B nodecpu, nodememory, architecture, opsys, benchmark
-Queue level configuration parameters should be set if they are
-homogeneous over the nodes assigned to the queue and they are
-different from the cluster level value. Their meanings are described
-in the cluster block. When the frontend's architecture or cputype agrees 
-with the queue nodes, the "adotf" (Automatically Determine On The Frontend) 
-can be used to request automatic determination of architecture or nodecpu.
+.B nodecpu
+queue-level configuration parameters: nodecpu, nodememory, architecture, opsys
+and benchmark should be set if they are homogeneous over the nodes assigned 
+to the queue AND they are different from the cluster-level value. 
+Their meanings are described in the cluster block. Usage: this queue collects
+nodes with "nodememory=512" while another queue has nodes with 
+"nodememory=256" -> don't set the cluster attributes but use the queue-level 
+attributes. When the frontend's architecture or cputype agrees with the queue 
+nodes, the "adotf" (Automatically Determine On The Frontend) can be used to 
+request automatic determination of architecture or nodecpu.
 
-.IR Examples:
-
-nodecpu="Pentium III (Coppermine) @ 1001 MHz"
+.IR Example:
+.br
+nodecpu="adotf"
 .br
 nodememory="512"
 .br
 architecture="adotf"
 .br
-opsys="Mandrake 8.0"
+opsys="Fedora 16"
 .br
-opsys="Linux-2.4.19"
+opsys="Linux-3.0"
 .br
-benchmark="SPECINT2000 222"
+benchmark="SPECINT2000  222"
 .br
-benchmark="SPECFP2000 333"
+benchmark="SPECFP2000 333" 
 
 .TP
-.B cachetime, timelimit, sizelimit
-LDAP parameters of the queue, job and user information provider. Do
-not change the defaults unless you know what you are doing.
+.B ac_policy
+queue access policy rules based on VOMS attributes in user's 
+proxy certificate (requires the arc-vomsac-check plugin to be enabled).
+Matching rules have the following format:
+  ac_policy="[+/-]VOMS: <FQAN>"
 
-.IR Examples :
+Please read arc-vomsac-check manual page for more information.
 
+.IR Example:
+.br
+ac_policy="-VOMS: /badvo"
+.br
+ac_policy="VOMS: /.*/Role=production"
+
+.TP
+.B cachetime
+this affects old infoproviders, and forces the validity time of the record.
+
+.IR Example:
+.br
 cachetime="30"
-.IR
-timelimit="30"
-.IR
+
+.TP
+.B sizelimit
+sizelimit affects registration to EGIIS
+
+.IR Example:
+.br
 sizelimit="5000"
 
-.SH SERVICES TO ISIS REGISTRATION OPTIONS
 
-Options for registering the services in the ISIS Information System.
-This block configures registration of all services into all specified ISISes.
+.SH [registration/emir] block 
 
-If the plain text format is used, this registration block is
-defined by (implemented only for A-REX):
+Services registration into EMIR block
+configures and enables the registration process of a
+services enabled in this configuration file into EMI
+indexing service (EMIR).
 
-.B [registration/isis]
-
-If the xml format is used the same block is defined using a
-InfoRegister tag inside service configuration:
-
-.nf
-.B <Service>
-.RB \  <InfoRegister xmlns="http://www.nordugrid.org/schemas/infosys/2009/08"> ... </InfoRegister>
-.B </Service>
-.fi
-
-.TP
-.B isisurls
-Comma separated list of URLs of ISIS services.
-
-.IR Example :
-isisurls="https://index.myinstitute.org/isis, http://index.myvo.com/index"
-
-.TP
-.B validity
-For how long registration record to stay valid in the index service in seconds.
-Default is 10 minutes.
-
-.IR Example :
-validity="600"
-
-.TP
-.B period
-How often registration record is sent to the index service in seconds.
-Default is 1 minute.
-
-.IR Example :
-period="60"
-
-.TP
-.B diablereg_xbes
-If set to "yes" registartion of A-REX service is disabled. Default is "no".
-
-.IR Example :
-disablereg_xbes="no"
-
-.SH SERVICES TO EMIR REGISTRATION OPTIONS
-
-Options for registering the services in the EMI Information System (EMIR).
-This block configures registration of all services into all specified EMIRs.
-
-If the plain text format is used, this registration block is
-defined by (implemented only for A-REX):
-
-.B [registration/emir]
-
-If the xml format is used the same block is defined using a
-InfoRegister tag inside service configuration:
-
-.nf
-.B <Service>
-.RB \  <InfoRegister xmlns="http://www.nordugrid.org/schemas/infosys/2009/08"> ... </InfoRegister>
-.B </Service>
-.fi
 
 .TP
 .B emirurls
-Comma separated list of URLs of EMIR services.
+List of URL separated by comma of EMIR services which are to accept
+registration. This is mandatory.
 
-.IR Example :
-isisurls="https://index.myinstitute.org/emir, http://index.myvo.com/index"
+.IR Example:
+.br
+emirurls="https://localhost:60002/emir"
 
 .TP
 .B validity
-For how long registration record to stay valid in the index service in seconds.
-Default is 10 minutes.
+Time in seconds for which registration records should stay valid.
 
-.IR Example :
-validity="600"
+.IR Example:
+.br
+validity=600
 
 .TP
 .B period
-How often registration record is sent to the index service in seconds.
-Default is 1 minute.
+Time in seconds how othen registration record should be sent to the 
+registration service.
 
-.IR Example :
-period="60"
+.IR Example:
+.br
+period=60
 
 .TP
-.B diablereg_xbes
-If set to "yes" registartion of A-REX service is disabled. Default is "no".
+.B disablereg_xbes
+disablereg_xbes may be used to selectively disable registration of
+A-REX service. Possible values are yes and no. Default is no,
 
-.IR Example :
+.IR Example:
+.br
 disablereg_xbes="no"
 
-.SH NORDUGRIDMAP OPTIONS
-The nordugridmap block configuration is used to fine-tune behavior of the
-.BR nordugridmap (1) 
-- an ARC tool used to generate grid-mapfiles.
+.SH [nordugridmap] block 
 
-Please refer to vo block description to find information how
+[nordugridmap] block configuration is used to fine-tune behavior 
+of the nordugridmap - an ARC tool used to generate grid-mapfiles.
+Please refer to [vo] block description to find information how
 to specify VO sources for mapfile generation. This section setup 
 general VO-independent parameters.
 
-.TP
-.B x509_user_cert
-Certificate file to be used when fetching sources over TLS (https:// and 
-vomss:// sources retrieval rely on this parameter). Default is
-"/etc/grid-security/hostkey.pem".
-
-.IR Example :
-x509_user_key="/etc/grid-security/hostkey.pem"
 
 .TP
 .B x509_user_key
-Private key file to be used when fetching sources over TLS (https:// and
-vomss:// sources retrieval rely on this parameter). Default is 
-"/etc/grid-security/hostkey.pem".
+x509_user_cert, x509_user_key - public certificate and privat key
+to be used when fetching sources over TLS (https:// and vomss://
+sources retrieval rely on this parameter)
+If not specified, values defined in [common] section will be used.
+If there is also no [common] section, X509_USER_{CERT,KEY} variables
+are used. Default is '/etc/grid-security/host{cert,key}.pem'
 
-.IR Example :
+.IR Example:
+.br
 x509_user_key="/etc/grid-security/hostkey.pem"
+.br
+x509_user_cert="/etc/grid-security/hostcert.pem"
 
 .TP
 .B x509_cert_dir
-The directory containing CA certificates. This information is needed for
-processing of \fBrequire_issuerdn\fP vo block option. Default is 
-"/etc/grid-security/certificates/"
+x509_cert_dir - the directory containing CA certificates. 
+This information is needed by the 'require_issuerdn' [vo] block 
+option. Default is '/etc/grid-security/certificates/'.
 
-.IR Example :
+.IR Example:
+.br
 x509_cert_dir="/etc/grid-security/certificates/"
 
 .TP
 .B generate_vomapfile
-Control whether nordugridmap will generate vo-mapfile used by arc-ur-logger.
-Default is "yes".
+generate_vomapfile - control is nordugridmap will generate 
+vo-mapfile used by arc-ur-logger. Default is 'yes'.
 
-.IR Example :
+.IR Example:
+.br
 generate_vomapfile="yes"
 
 .TP
 .B vomapfile
-Path to vo-mapfile location. Default is "/etc/grid-security/grid-vo-mapfile".
+vomapfile - path to vo-mapfile location. Default is 
+/etc/grid-security/grid-vo-mapfile
 
-.IR Example :
+.IR Example:
+.br
 vomapfile="/etc/grid-security/grid-vo-mapfile"
 
 .TP
 .B log_to_file
-Control whether logging output of nordugridmap will be saved to file.
-Default is "no" (STDERR is used).
+log_to_file - control whether logging output of nordugridmap
+will be saved to file. Default is 'no' (STDERR is used).
 
-.IR Example :
+.IR Example:
+.br
 log_to_file="yes"
 
 .TP
 .B logfile
-Specify the nordugridmap log file location when in use. Default is 
-"/var/log/arc/nordugridmap.log".
+logfile - specify the nordugridmap log file location when in use.
+Default is '/var/log/arc/nordugridmap.log'.
 
-.IR Example :
+.IR Example:
+.br
 logfile="/var/log/arc/nordugridmap.log"
 
 .TP
 .B cache_enable
-Control whether caching of external sources will be used. Default is 
-"yes".
+cache_enable - control whether caching of external sources 
+will be used. Default is 'yes'.
 
-.IR Example :
+.IR Example:
+.br
 cache_enable="yes"
 
 .TP
-.B cachedir 
-Specify the path where cached sources will be stored. Default is 
-"/var/spool/nordugrid/gridmapcache/".
+.B cachedir
+cachedir - specify the path where cached sources will be stored.
+Default is '/var/spool/nordugrid/gridmapcache/'
 
-.IR Example :
+.IR Example:
+.br
 cachedir="/var/spool/nordugrid/gridmapcache/"
 
 .TP
-.B cachetime 
-Controls how many time (in seconds) cached information remains valid. 
-Default is 259200 (3 days).
+.B cachetime
+cachetime - controls how many time (in seconds) cached information 
+remains valid. Default is 259200 (3 days).
 
-.IR Example :
+.IR Example:
+.br
 cachetime="259200"
-  
-.TP
-.B issuer_processing 
-Control the behavior of vo block \fBrequire_issuerdn\fP parameter. 
-Valid values are "relaxed" and "strict". Please see \fBrequire_issuerdn\fP 
-description in vo block for details. Default is "relaxed".
 
-.IR Example :
+.TP
+.B issuer_processing
+issuer_processing - control the behavior of [vo] block require_issuerdn 
+parameter. Valid values are 'relaxed' and 'strict'.
+Please see 'require_issuerdn' description in [vo] block for details. 
+Default is 'relaxed'.
+
+.IR Example:
+.br
 issuer_processing="relaxed"
 
 .TP
-.B mapuser_processing 
-Control the behavior of vo block \fBmapped_unixid\fP parameter usage. 
-Valid values are "overwrite" and "keep". Please see \fBmapped_unixid\fP 
-description in vo block for details. Default is "keep".
+.B mapuser_processing
+mapuser_processing - control the behavior of [vo] block mapped_unixid 
+parameter usage. Valid values are 'overwrite' and 'keep'. 
+Please see 'mapped_unixid' description in [vo] block for details.
+Default is 'keep'.
 
-.IR Example :
+.IR Example:
+.br
 mapuser_processing="keep"
-  
-.TP
-.B allow_empty_unixid 
-Control whether empty (or unspecified) \fBmapped_unixid\fP vo block 
-option is allowed to be used. Please see \fBmapped_unixid\fP description 
-of vo block for details. Default is "no".
 
-.IR Example :
+.TP
+.B allow_empty_unixid
+allow_empty_unixid - control whether empty (or unspecified) 
+'mapped_unixid' [vo] block option is allowed to be used. 
+Please see 'mapped_unixid' description of [vo] block for details. 
+Default is 'no'
+
+.IR Example:
+.br
 allow_empty_unixid="no"
 
 .TP
-.B voms_method 
-Control how to get information from VOMS(S) sources.
+.B voms_method
+voms_method - control how to get information from VOMS(S) sources.
 Valid values are:
-.RS
-.TP
-.B soap 
-\- call SOAP method directly using SOAP::Lite
-.TP
-.B get 
-\- use an old implementation that manually parses XML response
-.PP
-Default is "soap".
-.PP
-.IR Example :
+  soap - call SOAP method directly using SOAP::Lite
+  get  - use old implementation that manually parses XML response
+Default is 'soap'.
+
+.IR Example:
+.br
 voms_method="soap"
-.RE
 
 .TP
-.B fetch_timeout 
-Control how many time (in seconds) nordugridmap will wait for external 
-sources retrieval. Default is 15.
+.B debug
+debug level - controls the verbosity of nordugridmap output. Valid
+values are:
+  0 - FATAL   - only critical fatal error shown
+  1 - ERROR   - errors, including non-critical are shown
+  2 - WARNING (default) - configuration errors that can be ignored
+  3 - INFO    - processing information
+  4 - VERBOSE - a bit more processing information
+  5 - DEBUG   - lot of processing information
 
-.IR Example :
-fetch_timeout="15"
+When test run is requested (--test command line option of the 
+nordugridmap) debug level is automatically set to 5 (DEBUG).
+Default is 2 (WARNING)
 
-.TP
-.B debug 
-Controls the verbosity of nordugridmap output. Valid values are 
-from 0 (FATAL) to 5 (DEBUG).  When test run is requested 
-(--test command line option of the nordugridmap) debug level is 
-automatically set to 5 (DEBUG). Default is 2 (WARNING).
-
-.IR Example :
+.IR Example:
+.br
 debug="4"
 
-.SH ARC CACHE INDEX (ACIX) OPTIONS
+.TP
+.B fetch_timeout
+fetch_timeout - control how many time (in seconds) nordugridmap will 
+wait for external sources retrieval. Default is 15.
 
-Options for the ACIX cache server and index server.
+.IR Example:
+.br
+fetch_timeout="15"
 
-The cache server runs alongside A-REX. It periodically scans the
-cache directories and composes a Bloom filter of cache content which
-can be pulled by an ACIX index server. ACIX cache server options are
-defined under the block
+.SH The [logger] block 
 
-.B [acix/cacheserver]
+This section configures what to do with records generated by the
+arc-ur-logger tool. For more information see
+http://www.nordugrid.org/documents/urlogger.pdf
+
 
 .TP
-.B logfile 
+.B log_dir
+The log_dir option will set the top directory for the generated usage
+records. The option will default to /var/spool/arc/usagerecords/ and
+can be left out. It is suggested to leave out this option, unless there is a
+good a reason not to.
+
+.IR Example:
+.br
+log_dir="/var/spool/arc/usagerecords/"
+
+.TP
+.B log_all
+The log_all option configures where usage records are registered. All usage
+records will be registered to the URLs specified with the log all option. It
+is possible specifiy multiple URLs be having them space seperated.
+
+.IR Example:
+.br
+log_all="https://sgas.ndgf.org:6143/sgas https://sgas.grid.dk:6143/sgas"
+
+.TP
+.B log_vo
+The log_vo option makes it possible to only register usage records run with
+certain VO users to the given URL. It is possible to have multiple entries,
+by seperating entries with a comma.
+
+.IR Example:
+.br
+log_vo="bio.ndgf.org https://biosgas.ndgf.org:6143/sgas"
+
+.TP
+.B ur_lifetime
+The ur_lifetime option specifies how many days usage records are kept after
+being archived. The default is 30, and the option can be left out.
+
+.IR Example:
+.br
+ur_lifetime="30"
+
+.TP
+.B urlogger_logfile
+urlogger_logfile sets the log file for the logger. The default is
+/var/log/arc/ur-logger.log.
+
+.IR Example:
+.br
+urlogger_logfile="/tmp/arc-ur-logger.log"
+
+.TP
+.B urlogger_loglevel
+urlogger_loglevel sets the log level for the logger. Valid options are:
+debug, info, warning. The default is info which will write one line log per
+job, assuming everything goes as planned.
+
+.IR Example:
+.br
+urlogger_loglevel="info"
+
+.TP
+.B registrant_logfile
+registrant_logfile sets the log file for the registrant. The default is
+/var/log/arc/ur-registration.log.
+
+.IR Example:
+.br
+registrant_logfile="/tmp/arc-ur-registrant.log"
+
+.SH The [acix/cacheserver] block 
+
+The cache server component of ACIX runs alongside A-REX. It
+periodically scans the cache directories and composes a Bloom
+filter of cache content which can be pulled by an ACIX index
+server.
+
+
+.TP
+.B logfile
 Log file location for the cache server. Default is
 /var/log/arc/acix-cache.log
 
 .IR Example:
+.br
 logfile="/tmp/acix-cache.log"
 
-.PP
-The index server component of ACIX collects cache content filters
-from a set of cache servers configured in this block. The index server
-can be queried for the location of cached files. ACIX index server
-options are defined under the block
+.SH The [acix/indexserver] block 
 
-.B [acix/indexserver]
+The index server component of ACIX collects cache content filters
+from a set of cache servers configured in this block. The index
+server can be queried for the location of cached files.
+
 
 .TP
 .B cacheserver
-ACIX cache server from which to pull information (can be specified
-multiple times)
+ACIX cache servers from which to pull information
 
 .IR Example:
+.br
 cacheserver="https://localhost:5443/data/cache"
-
-.SH SEE ALSO
-
-http://www.nordugrid.org/meetings/sophia-conf.jpg
+.br
+cacheserver="https://another.host:5443/data/cache"
