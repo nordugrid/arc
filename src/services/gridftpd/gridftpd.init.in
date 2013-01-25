@@ -5,8 +5,8 @@
 # chkconfig: 2345 55 25
 # description: ARC gridftpd
 #
-# config: /etc/sysconfig/globus
 # config: /etc/sysconfig/nordugrid
+# config: /etc/sysconfig/gridftpd
 # config: @prefix@/etc/arc.conf
 # config: /etc/arc.conf
 
@@ -82,6 +82,12 @@ if [ -r /etc/sysconfig/${prog} ]; then
     . /etc/sysconfig/${prog}
 elif [ -r /etc/default/${prog} ]; then
     . /etc/default/${prog}
+fi
+
+if [ "$RUN" != "yes" ] ; then
+    log_warning_msg "$prog disabled, please adjust the configuration to your"
+    log_warning_msg "needs and then set RUN to 'yes' in /etc/default/$prog to enable it."
+    exit 0
 fi
 
 # GLOBUS_LOCATION
@@ -236,11 +242,6 @@ fi
 CMD="$CMD -P '$PID_FILE'"
 
 start() {
-    if [ "$RUN" != "yes" ] ; then
-        echo "$prog disabled, please adjust the configuration to your needs "
-        echo "and then set RUN to 'yes' in /etc/default/$prog to enable it."
-        return 0
-    fi
     check_cert
 
     echo -n "Starting $prog: "
