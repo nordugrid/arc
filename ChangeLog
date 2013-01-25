@@ -14,6 +14,10 @@
     format used in 3.x. Support for NOX job record format is dropped. As always
     'arcsync' can be used to recover the job list.
 
+2013-01-15  Florido Paganelli <florido.paganelli@hep.lu.se>
+
+  * Added infosys support for openldap2.4 on SLX distributions
+
 2012-12-30  Martin Skou Andersen  <skou@nbi.dk>
 
   * Extending xRSL parser to parse "countpernode" and "exclusiveexecution"
