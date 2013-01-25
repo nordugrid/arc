@@ -1,4 +1,4 @@
-#!/bin/bash
+#!@posix_shell@
 #
 #
 #   Scan for finished LSF jobs, using bjobs

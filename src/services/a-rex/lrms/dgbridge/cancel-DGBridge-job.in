@@ -16,7 +16,7 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
 pkgdatadir="$basedir"
 
-. ${pkgdatadir}/cancel_common.sh $1 || exit $?
+. ${pkgdatadir}/cancel_common.sh || exit $?
 
 dgjobid=`echo "$joboption_jobid" |cut -f 2 -d \|`
 echo "executing wsclient delete with endpoint $joboption_wsendpoint and job id $dgjobid" 1>&2

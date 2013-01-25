@@ -160,7 +160,7 @@ for ind in `seq 0 $numids` ; do
 	#performance: delete input files in running state, only possible if remote 3gbridge does not use passthrough of data
 	    msg="dt=$dato event=job_status job_id=${gridids[$ind]} status=Running"
             flock -w 2 $edgilog -c "echo $msg >> $edgilog"
-            if [ $? == 1 ]; then
+            if [ $? = 1 ]; then
               echo "Failed to log monitor data to: $edgilog" 1>&2
             fi
   	    ;;
@@ -172,7 +172,7 @@ for ind in `seq 0 $numids` ; do
 
 	    msg="dt=$dato event=job_status job_id=${gridids[$ind]} status=Failed"
             flock -w 2 $edgilog -c "echo $msg >> $edgilog"
-            if [ $? == 1 ]; then
+            if [ $? = 1 ]; then
               echo "Failed to log monitor data to: $edgilog" 1>&2
             fi
 
@@ -190,7 +190,7 @@ for ind in `seq 0 $numids` ; do
 
                msg="dt=$dato event=job_status job_id=${gridids[$ind]} status=Failed"
                flock -w 2 $edgilog -c "echo $msg >> $edgilog"
-               if [ $? == 1 ]; then
+               if [ $? = 1 ]; then
                  echo "Failed to log monitor data to: $edgilog" 1>&2
                fi
 
@@ -218,7 +218,7 @@ for ind in `seq 0 $numids` ; do
             #monitor
 	    msg="dt=$dato event=job_status job_id=${gridids[$ind]} status=Finished"
             flock -w 2 $edgilog -c "echo $msg >> $edgilog"
-            if [ $? == 1 ]; then
+            if [ $? = 1 ]; then
               echo "Failed to log monitor data to: $edgilog" 1>&2
             fi
             
@@ -232,7 +232,7 @@ for ind in `seq 0 $numids` ; do
             #monitor
 	    msg="dt=$dato event=job_status job_id=${gridids[$ind]} status=Failed"
             flock -w 2 $edgilog -c "echo $msg >> $edgilog"
-            if [ $? == 1 ]; then
+            if [ $? = 1 ]; then
               echo "Failed to log monitor data to: $edgilog" 1>&2
             fi
 

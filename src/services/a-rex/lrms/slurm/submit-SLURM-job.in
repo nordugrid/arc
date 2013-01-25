@@ -1,4 +1,4 @@
-#!/bin/bash
+#!@posix_shell@
 # set -x
 #
 #  Based on globus submission script for pbs

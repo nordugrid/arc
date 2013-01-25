@@ -1,4 +1,4 @@
-#!/bin/bash
+#!@posix_shell@
 # set -x
 #
 #  Based on globus submission script for pbs
@@ -91,7 +91,7 @@ echo "PBS jobname: $jobname" 1>&2
 
 set_count
 
-if [ "$joboption_count" == "1" ] ; then
+if [ "$joboption_count" = "1" ] ; then
   nodes_string="#PBS -l nodes=1"
 else
   nodes_string="#PBS -l nodes=${joboption_numnodes}:ppn=${joboption_countpernode}"
