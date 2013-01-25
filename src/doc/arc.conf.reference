@@ -2127,6 +2127,7 @@ lrms="dgbridge"
 ## configures and enables the registration process of a
 ## services enabled in this configuration file into EMI
 ## indexing service (EMIR).
+## Currently only implemented for A-REX.
 ##
 #[registration/emir]
 
