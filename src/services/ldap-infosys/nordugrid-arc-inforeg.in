@@ -6,7 +6,7 @@
 # description: NorduGrid/ARC Information Endpoint Registration
 #
 # config: /etc/sysconfig/nordugrid
-# config: /etc/sysconfig/grid-infosys
+# config: /etc/sysconfig/nordugrid-arc-infosys
 # config: /etc/arc.conf
 #
 ######################################################################
@@ -57,10 +57,10 @@ if [ -r /etc/sysconfig/nordugrid ]; then
 elif [ -r /etc/default/nordugrid ]; then
     . /etc/default/nordugrid
 fi
-if [ -r /etc/sysconfig/grid-infosys ]; then
-    . /etc/sysconfig/grid-infosys
-elif [ -r /etc/default/grid-infosys ]; then
-    . /etc/default/grid-infosys
+if [ -r /etc/sysconfig/$prog ]; then
+    . /etc/sysconfig/$prog
+elif [ -r /etc/default/$prog ]; then
+    . /etc/default/$prog
 fi
 
 [ -n "$ARC_LOCATION ] && export ARC_LOCATION
