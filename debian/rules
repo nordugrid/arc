@@ -136,6 +136,7 @@ binary-arch: install
 	dh_installinit -p nordugrid-arc-arex --name a-rex
 	dh_installinit -p nordugrid-arc-cache-service --name arc-cache-service
 	dh_installinit -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
+	dh_installinit -p nordugrid-arc-egiis --name nordugrid-arc-egiis
 	dh_installinit -p nordugrid-arc-gridftpd --name gridftpd
 	dh_installinit -p nordugrid-arc-acix-cache --name acix-cache
 	dh_installinit -p nordugrid-arc-acix-index --name acix-index
@@ -171,7 +172,6 @@ binary-indep: install
 	dh_installinit -p nordugrid-arc-aris --name nordugrid-arc-bdii
 	dh_installinit -p nordugrid-arc-aris --name nordugrid-arc-slapd
 	dh_installinit -p nordugrid-arc-aris --name nordugrid-arc-inforeg
-	dh_installinit -p nordugrid-arc-egiis --name nordugrid-arc-egiis
 	dh_perl -i
 	[ -x /usr/bin/dh_python2 ] && dh_python2 -i || dh_pysupport -i
 	[ -x /usr/bin/dh_lintian ] && dh_lintian -i || :
