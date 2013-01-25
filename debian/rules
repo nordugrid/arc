@@ -104,7 +104,7 @@ install: build-stamp
 	mv debian/tmp/etc/init.d/nordugrid-arc-inforeg \
 	   debian/nordugrid-arc-aris.nordugrid-arc-inforeg.init
 	mv debian/tmp/etc/init.d/nordugrid-arc-egiis \
-	   debian/nordugrid-arc-aris.nordugrid-arc-egiis.init
+	   debian/nordugrid-arc-egiis.nordugrid-arc-egiis.init
 	mv debian/tmp/etc/init.d/acix-cache \
 	   debian/nordugrid-arc-acix-cache.acix-cache.init
 	mv debian/tmp/etc/init.d/acix-index \
