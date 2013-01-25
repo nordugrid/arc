@@ -146,6 +146,21 @@ Requires: mingw32-openssl
 %description -n mingw32-%{mingw_pkg_name}-devel
 Development files for ARC
 
+%package -n mingw32-%{mingw_pkg_name}-misc-utils
+Summary:        NorduGrid misc tools
+Group:          Applications/Internet
+Requires:       mingw32-%{mingw_pkg_name} = %{version}-%{release}
+Requires:       mingw32-%{mingw_pkg_name}-plugins-needed = %{version}-%{release}
+
+%description -n mingw32-%{mingw_pkg_name}-misc-utils
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains various for various tasks including testing. The
+package is usually not required by users or sysadmins but mainly for
+developers.
+
 %package -n mingw32-%{mingw_pkg_name}-python
 Summary: ARC Python wrapper
 Group: Development/Libraries
@@ -219,6 +234,21 @@ Requires: mingw64-openssl
 
 %description -n mingw64-%{mingw_pkg_name}-devel
 Development files for ARC
+
+%package -n mingw64-%{mingw_pkg_name}-misc-utils
+Summary:        NorduGrid misc tools
+Group:          Applications/Internet
+Requires:       mingw64-%{mingw_pkg_name} = %{version}-%{release}
+Requires:       mingw64-%{mingw_pkg_name}-plugins-needed = %{version}-%{release}
+
+%description -n mingw64-%{mingw_pkg_name}-misc-utils
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains various for various tasks including testing. The
+package is usually not required by users or sysadmins but mainly for
+developers.
 
 %package -n mingw64-%{mingw_pkg_name}-python
 Summary: ARC Python wrapper
@@ -305,9 +335,6 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw32_bindir}/arcresume.exe
 %{mingw32_bindir}/arcacl.exe
 %{mingw32_bindir}/arctest.exe
-%{mingw32_bindir}/arcwsrf.exe
-%{mingw32_bindir}/arcemiestest.exe
-%{mingw32_bindir}/saml_assertion_init.exe
 #
 %{mingw32_sysconfdir}/arc/client.conf
 #
@@ -335,9 +362,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{mingw32_mandir}/man1/arcresume.1*
 %doc %{mingw32_mandir}/man1/arcacl.1*
 %doc %{mingw32_mandir}/man1/arctest.1*
-%doc %{mingw32_mandir}/man1/arcwsrf.1*
-%doc %{mingw32_mandir}/man1/arcemiestest.1*
-%doc %{mingw32_mandir}/man1/saml_assertion_init.1*
 %doc %{mingw32_datadir}/%{pkgdir}/examples/echo/echo.wsdl
 
 %files -n mingw32-%{mingw_pkg_name}-hed
@@ -396,6 +420,17 @@ rm -rf $RPM_BUILD_ROOT
 ##%{mingw32_libdir}/%{pkgdir}/libaccARC0.dll*
 ##%{mingw32_libexecdir}/%{pkgdir}/arc-lcas.exe
 ##%{mingw32_libexecdir}/%{pkgdir}/arc-lcmaps.exe
+
+%files -n mingw32-%{mingw_pkg_name}-misc-utils
+%defattr(-,root,root,-)
+%{mingw32_bindir}/arcemiestest.exe
+%{mingw32_bindir}/arcperftest.exe
+%{mingw32_bindir}/arcwsrf.exe
+%{mingw32_bindir}/saml_assertion_init.exe
+%doc %{mingw32_mandir}/man1/arcemiestest.1*
+%doc %{mingw32_mandir}/man1/arcperftest.1*
+%doc %{mingw32_mandir}/man1/arcwsrf.1*
+%doc %{mingw32_mandir}/man1/saml_assertion_init.1*
 
 %files -n mingw32-%{mingw_pkg_name}-python
 %defattr(-,root,root,-)
@@ -459,9 +494,6 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw64_bindir}/arcresume.exe
 %{mingw64_bindir}/arcacl.exe
 %{mingw64_bindir}/arctest.exe
-%{mingw64_bindir}/arcwsrf.exe
-%{mingw64_bindir}/arcemiestest.exe
-#%{mingw64_bindir}/saml_assertion_init.exe
 #
 %{mingw64_sysconfdir}/arc/client.conf
 #%{mingw64_libexecdir}/%{pkgdir}/ssm_master
@@ -495,9 +527,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{mingw64_mandir}/man1/arcresume.1*
 %doc %{mingw64_mandir}/man1/arcacl.1*
 %doc %{mingw64_mandir}/man1/arctest.1*
-%doc %{mingw64_mandir}/man1/arcwsrf.1*
-%doc %{mingw64_mandir}/man1/arcemiestest.1*
-#%doc %{mingw64_mandir}/man1/saml_assertion_init.1*
 %doc %{mingw64_datadir}/%{pkgdir}/examples/echo/echo.wsdl
 
 %files -n mingw64-%{mingw_pkg_name}-hed
@@ -557,6 +586,19 @@ rm -rf $RPM_BUILD_ROOT
 ##%{mingw64_libexecdir}/%{pkgdir}/arc-lcas.exe
 ##%{mingw64_libexecdir}/%{pkgdir}/arc-lcmaps.exe
 
+%files -n mingw64-%{mingw_pkg_name}-misc-utils
+%defattr(-,root,root,-)
+%{mingw64_bindir}/arcemiestest.exe
+%{mingw64_bindir}/arcperftest.exe
+%{mingw64_bindir}/arcwsrf.exe
+# mingw64-xmlsec1 does not yet exist so no saml
+#%{mingw64_bindir}/saml_assertion_init.exe
+%doc %{mingw64_mandir}/man1/arcemiestest.1*
+%doc %{mingw64_mandir}/man1/arcperftest.1*
+%doc %{mingw64_mandir}/man1/arcwsrf.1*
+# mingw64-xmlsec1 does not yet exist so no saml
+#%doc %{mingw64_mandir}/man1/saml_assertion_init.1*
+
 %files -n mingw64-%{mingw_pkg_name}-python
 %defattr(-,root,root,-)
 %if 0
@@ -569,6 +611,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{mingw64_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
 %endif
 %endif
+
 %changelog
 
 * @SPECDATE@ Anders Waananen <waananen@nbi.dk> - @VERSION@-1

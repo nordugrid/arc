@@ -1,18 +1,23 @@
 if XMLSEC_ENABLED
-noinst_PROGRAMS = perftest perftest_saml2sso perftest_slcs \
+bin_PROGRAMS = arcperftest
+noinst_PROGRAMS = perftest_saml2sso perftest_slcs \
 	perftest_deleg_bysechandler perftest_deleg_bydelegclient \
 	perftest_cmd_duration perftest_cmd_times perftest_msgsize \
 	perftest_samlaa
 else 
 if WIN32
-noinst_PROGRAMS = perftest \
+bin_PROGRAMS = arcperftest
+noinst_PROGRAMS = \
 	perftest_deleg_bysechandler perftest_deleg_bydelegclient
 else
-noinst_PROGRAMS = perftest \
+bin_PROGRAMS = arcperftest
+noinst_PROGRAMS = \
 	perftest_deleg_bysechandler perftest_deleg_bydelegclient \
 	perftest_cmd_duration perftest_cmd_times perftest_msgsize
 endif
 endif
+
+man_MANS = arcperftest.1
 
 if WIN32
 # On WIN32 the win32.h header file is needed.
@@ -21,10 +26,10 @@ else
 include_arc_headers_win32 = 
 endif
 
-perftest_SOURCES = perftest.cpp
-perftest_CXXFLAGS = -I$(top_srcdir)/include \
+arcperftest_SOURCES = perftest.cpp
+arcperftest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
-perftest_LDADD = \
+arcperftest_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \

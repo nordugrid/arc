@@ -1,3 +1,8 @@
+2013-01-25  Anders Waananen <waananen@nbi.dk>
+  * Rename perftest to arcperftest and add a man page.
+  * Move some test and misc tools to a new sub package nordugrid-arc-misc-utils.
+    - arcwsrf, arcemiestest, arcperftest, saml_assertion_init
+
 2013-01-21  Gabor Roczei  <roczei@niif.hu>
   * Several exclusive execution related bug fixes
 

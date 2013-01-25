@@ -359,3 +359,15 @@ Description: ARC grid middleware - Debug Symbols
  Connector (ARC).
  .
  This package provides debug symbols for the ARC Grid middleware.
+
+Package: nordugrid-arc-misc-utils
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version})
+Description: ARC grid middleware - Misc tools
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ This package contains various for various tasks including testing. The
+ package is usually not required by users or sysadmins but mainly for
+ developers.

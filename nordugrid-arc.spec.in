@@ -780,6 +780,21 @@ The nordugrid-arc-ca-utils packages has been obsoleted.
 The functionality of the grid-update-crls tool is provided by the
 fetch-crl tool in the fetch-crl package.
 
+%package nordugrid-arc-misc-utils
+Summary:	NorduGrid misc tools
+Group:		Applications/Internet
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-plugins-needed = %{version}-%{release}
+
+%description nordugrid-arc-misc-utils
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains various for various tasks including testing. The
+package is usually not required by users or sysadmins but mainly for
+developers.
+
 %prep
 %setup @fedorasetupopts@
 
@@ -1140,9 +1155,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_bindir}/arcsub
 %{_bindir}/arcsync
 %{_bindir}/arctest
-%{_bindir}/arcwsrf
-%{_bindir}/arcemiestest
-%{_bindir}/saml_assertion_init
 %{_bindir}/ngclient2arc
 %config(noreplace) %{_sysconfdir}/%{pkgdir}/client.conf
 %doc %{_datadir}/%{pkgdir}/examples/client.conf
@@ -1168,9 +1180,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/arcsub.1*
 %doc %{_mandir}/man1/arcsync.1*
 %doc %{_mandir}/man1/arctest.1*
-%doc %{_mandir}/man1/arcwsrf.1*
-%doc %{_mandir}/man1/arcemiestest.1*
-%doc %{_mandir}/man1/saml_assertion_init.1*
 %doc %{_mandir}/man1/ngclient2arc.1*
 
 %files hed
@@ -1494,6 +1503,17 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files ca-utils
 %defattr(-,root,root,-)
+
+%files nordugrid-arc-misc-utils
+%defattr(-,root,root,-)
+%{_bindir}/arcemiestest
+%{_bindir}/arcwsrf
+%{_bindir}/arcperftest
+%{_bindir}/saml_assertion_init
+%doc %{_mandir}/man1/arcemiestest.1*
+%doc %{_mandir}/man1/arcwsrf.1*
+%doc %{_mandir}/man1/arcperftest.1*
+%doc %{_mandir}/man1/saml_assertion_init.1*
 
 %changelog
 * @SPECDATE@ Anders Waananen <waananen@nbi.dk> - @baseversion@-@fedorarelease@

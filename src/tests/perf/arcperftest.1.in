@@ -1,0 +1,68 @@
+.\" -*- nroff -*-
+.TH ARCPERFTEST 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
+.SH NAME
+
+arcperftest \- ARC service performance tester
+
+.SH SYNOPSIS
+
+.B arcperftest
+[
+.B \-c
+.I config
+] [
+.B \-d
+.I debug
+] [
+.B -r
+]
+.I url threads duration
+
+.SH DESCRIPTION
+
+The
+.B arcperftest
+command test the performance of an ARC service specified by its
+.IR url
+sending
+.IR threads
+number of concurrent requests for a
+duration of 
+.IR duration
+seconds.
+
+
+.SH OPTIONS
+
+.IP "\fB-c\fR \fIconfig\fR"
+The file containing client chain XML configuration with 'soap' entry point
+and HOSTNAME, PORTNUMBER and PATH keyword for hostname, port and HTTP path of 'echo' service.
+
+.IP "\fB-d\fR \fIdebuglevel\fR"
+FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
+.IP "\fB-r\fR"
+If specified close connection and reconnect after every request.
+
+.SH EXAMPLES
+
+  Axis2C:
+    with tls:
+      arcperftest https://glueball.uio.no:50443/axis2/services/echo  10 30
+    without tls:
+      arcperftest http://glueball.uio.no:50000/axis2/services/echo  10 30
+   
+  HED:
+    with tls:
+      arcperftest https://glueball.uio.no:60000/echo 10 30
+    without tls:
+      arcperftest http://glueball.uio.no:60010/echo 10 30
+
+
+.SH COPYRIGHT
+
+APACHE LICENSE Version 2.0
+
+.SH AUTHOR
+
+Anders Wäänänen <waananen@nbi.dk>
