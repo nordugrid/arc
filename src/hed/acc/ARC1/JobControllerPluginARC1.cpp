@@ -151,7 +151,7 @@ namespace Arc {
     case Job::JOBLOG:
     case Job::JOBDESCRIPTION:
       std::string path = url.Path();
-      path.insert(path.rfind('/'), "/info");
+      path.insert(path.rfind('/'), "/?logs");
       url.ChangePath(path + (Job::JOBLOG ? "/errors" : "/description"));
       break;
     }
