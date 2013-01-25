@@ -64,6 +64,7 @@ namespace Arc {
       if(st.HasAttribute(EMIES_SATTR_PROCESSING_FAILURE_S)) return JobState::FAILED;
       if(st.HasAttribute(EMIES_SATTR_POSTPROCESSING_FAILURE_S)) return JobState::FAILED;
       if(st.HasAttribute(EMIES_SATTR_APP_FAILURE_S)) return JobState::FAILED;
+      if(st.HasAttribute(EMIES_SATTR_EXPIRED_S)) return JobState::DELETED;
       return JobState::FINISHED;
     } else if(st.state == "") {
       return JobState::UNDEFINED;
