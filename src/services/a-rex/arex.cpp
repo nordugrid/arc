@@ -369,14 +369,13 @@ class CountedResourceLock {
 static std::string GetPath(std::string url){
   std::string::size_type ds, ps;
   ds=url.find("//");
-  if (ds==std::string::npos)
+  if (ds==std::string::npos) {
     ps=url.find("/");
-  else
+  } else {
     ps=url.find("/", ds+2);
-  if (ps==std::string::npos)
-    return "";
-  else
-    return url.substr(ps);
+  }
+  if (ps==std::string::npos) return "";
+  return url.substr(ps);
 }
 
 
@@ -494,6 +493,8 @@ static std::string GetPath(Arc::Message &inmsg,std::string &base) {
     path=Arc::URL(base).Path();
     base.resize(0);
   };
+  // Path is encoded in HTTP URLs
+  path = Arc::uri_unencode(path);
   return path;
 }
 
