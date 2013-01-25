@@ -89,7 +89,9 @@ namespace Arc {
     URL();
 
     /// Constructs a new URL from a string representation.
-    URL(const std::string& url);
+    /* \param url      The string representation of URL
+       \param encoded  Set to true if URL is encoded according to RFC 3986 */
+    URL(const std::string& url, bool encoded = false);
 
     /// Empty destructor.
     virtual ~URL();
@@ -98,6 +100,12 @@ namespace Arc {
     enum Scope {
       base, onelevel, subtree
     };
+
+    /// Perform decoding of stored URL parts according to RFC 3986
+    /** This method is supposed to be used only if for some reason
+       URL constructor was called with encoded=false for URL which
+       was encoded. Use it only once. */
+    static void URIDecode(void);
 
     /// Returns the protocol of the URL.
     const std::string& Protocol() const;
@@ -138,7 +146,7 @@ namespace Arc {
     void ChangePath(const std::string& newpath);
 
     /// Changes the path of the URL and all options attached.
-    void ChangeFullPath(const std::string& newpath);
+    void ChangeFullPath(const std::string& newpath, bool encoded = false);
 
     /// Returns HTTP options if any.
     const std::map<std::string, std::string>& HTTPOptions() const;
@@ -248,13 +256,13 @@ namespace Arc {
     void RemoveMetaDataOption(const std::string& option);
 
     /// Returns a string representation of the URL including meta-options.
-    virtual std::string str() const;
+    virtual std::string str(bool encode = false) const;
 
     /// Returns a string representation of the URL without any options.
-    virtual std::string plainstr() const;
+    virtual std::string plainstr(bool encode = false) const;
 
     /// Returns a string representation including options and locations.
-    virtual std::string fullstr() const;
+    virtual std::string fullstr(bool encode = false) const;
 
     /// Returns a string representation with protocol, host and port only.
     virtual std::string ConnectionURL() const;
@@ -276,11 +284,20 @@ namespace Arc {
 
     /// Parse a string of options separated by separator into an attribute->value map.
     std::map<std::string, std::string> ParseOptions(const std::string& optstring,
-                                                    char separator);
+                                                    char separator, bool encoded = false);
 
     /// Returns a string representation of the options given in the options map.
+    /** \param encode if set to true then options are encoded according to RFC 3986 */
     static std::string OptionString(const std::map<std::string,
-                                                   std::string>& options, char separator);
+                                    std::string>& options, char separator, bool encode = false);
+
+    /// Perform encoding according to RFC 3986.
+    /** This simply calls Arc::uri_encode(). */
+    static std::string URIEncode(const std::string& str);
+
+    /// Perform decoding according to RFC 3986.
+    /** This simply calls Arc::uri_unencode(). */
+    static std::string URIDecode(const std::string& str);
 
   protected:
     /// the url protocol.
@@ -341,7 +358,7 @@ namespace Arc {
     friend std::ostream& operator<<(std::ostream& out, const URL& u);
 
     /// Convenience method for splitting schema specific part into path and options.
-    void ParsePath(void);
+    void ParsePath(bool encoded = false);
   };
 
 

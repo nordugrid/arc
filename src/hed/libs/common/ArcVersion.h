@@ -3,10 +3,16 @@
 #ifndef __ARC_ARCVERSION_H__
 #define __ARC_ARCVERSION_H__
 
+#define ARC_VERSION "3.0.0"
+#define ARC_VERSION_NUM 0x030000
+#define ARC_VERSION_MAJOR 3
+#define ARC_VERSION_MINOR 0
+#define ARC_VERSION_PATCH 0
+
 /// Arc namespace contains all core ARC classes.
 namespace Arc {
 
-  /// Determines ARC HED libraries version
+  /// Determines ARC HED libraries version at runtime
   /** \headerfile ArcVersion.h arc/ArcVersion.h */
   class ArcVersion {
   public:
@@ -20,6 +26,8 @@ namespace Arc {
     ArcVersion(const char* ver);
   };
 
+  /// Use this object to obtain current ARC HED version 
+  /// at runtime.
   extern const ArcVersion Version;
 
 } // namespace Arc

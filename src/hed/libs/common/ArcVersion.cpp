@@ -29,6 +29,6 @@ namespace Arc {
                             Patch(extract_subversion(ver,2)) {
   }
 
-  const ArcVersion Version(PACKAGE_VERSION);
+  const ArcVersion Version(ARC_VERSION);
 
 } // namespace Arc
