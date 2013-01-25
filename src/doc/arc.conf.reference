@@ -209,7 +209,7 @@ lrms="dgbridge"
 ## These variable are similar to the Globus enviroment variables:
 ## GLOBUS_TCP_PORT_RANGE and GLOBUS_UDP_PORT_RANGE.
 ## These variables are not limited to [common], but can be set individually
-## for each service in corresponding section: [grid-manager], [gridftpd], [httpsd]
+## for each service in corresponding section: [grid-manager], [gridftpd]
 ## Example:
 #globus_tcp_port_range="9000,12000"
 #globus_udp_port_range="9000,12000"
@@ -227,7 +227,7 @@ lrms="dgbridge"
 ## x509_cert_dir - Location of trusted CA certificates
 ## This variable is similar to the GSI enviroment variable: X509_CERT_DIR
 ## This variable is not limited to [common], but can be set individually
-## for each service in corresponding section: [grid-manager], [gridftpd], [httpsd]
+## for each service in corresponding section: [grid-manager], [gridftpd]
 #x509_cert_dir="/etc/grid-security/certificates"
 
 
@@ -235,7 +235,7 @@ lrms="dgbridge"
 ## gridmap - The gridmap file location
 ## This variable is similar to the GSI enviroment variable: GRIDMAP
 ## This variable is not limited to [common], but can be set individually
-## for each service in corresponding section: [grid-manager], [gridftpd], [httpsd]
+## for each service in corresponding section: [grid-manager], [gridftpd]
 ## The default is /etc/grid-security/grid-mapfile
 #gridmap="/etc/grid-security/grid-mapfile"
 
@@ -335,7 +335,6 @@ lrms="dgbridge"
 ##    voms_method         for voms(s) URLs
 ##    mapuser_processing  for file URLs with mapped_unixid='<unixid>' overrided 
 ##                        (control mapped_unixid overriding behaviour for URL)
-
 #source="vomss://voms.ndgf.org:8443/voms/nordugrid.org"
 #source="vomss://lcg-voms.cern.ch:8443/voms/atlas?/atlas/Role=VO-Admin < mapped_unixid=atlasadmin"
 #source="vomss://kuiken.nikhef.nl:8443/voms/gin.ggf.org < voms_method=get"
@@ -453,9 +452,9 @@ lrms="dgbridge"
 ## A group MUST be defined before it may be used. In this respect the
 ## arc.conf is ORDER SENSITIVE.
 ##
-## The authorization groups can be used in [gridftpd], [httpsd] 
-##  and in their sub-blocks. The syntax of their specification varies with
-##  the service they are used for.
+## The authorization groups can be used in [gridftpd]
+## and in its sub-blocks. The syntax of their specification varies with
+## the service they are used for.
 ## For using authorization groups and VO blocks in HED framework please
 ## read "Security Framework of ARC" at
 ## http://www.nordugrid.org/documents/arc-security-documentation.pdf
@@ -2122,41 +2121,12 @@ lrms="dgbridge"
 
 ####################################################################
 ##
-### [registration/isis] block ######################################
-##
-##  Services (a-rex) registration into ISIS block
-##  configures and enables the registration process of a
-##  services enabled in this configuration file into ISIS
-##  indexing service.
-##  Currently only implemented for A-REX.
-##
-#[registration/isis]
-
-## List of URL separated by comma of ISIS services which are to accept
-## registration. This is mandatory.
-#isisurls="https://localhost:60003/isis"
-
-## Time in seconds for which registration records should stay valid.
-#validity="600"
-
-## Time in seconds how othen registration record should be sent to the 
-## registration service.
-#period=60
-
-## disablereg_xbes may be used to selectively disable registration of
-## A-REX service. Possible values are yes and no. Default is no,
-#disablereg_xbes="no"
-
-
-####################################################################
-##
 ### [registration/emir] block ######################################
 ##
 ## Services registration into EMIR block
 ## configures and enables the registration process of a
 ## services enabled in this configuration file into EMI
 ## indexing service (EMIR).
-## Currently only implemented for A-REX.
 ##
 #[registration/emir]
 

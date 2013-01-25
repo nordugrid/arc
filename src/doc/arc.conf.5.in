@@ -335,7 +335,7 @@ x509_user_cert="/etc/grid-security/hostcert.pem"
 x509_cert_dir - Location of trusted CA certificates
 This variable is similar to the GSI enviroment variable: X509_CERT_DIR
 This variable is not limited to [common], but can be set individually
-for each service in corresponding section: [grid-manager], [gridftpd], [httpsd]
+for each service in corresponding section: [grid-manager], [gridftpd]
 
 .IR Example:
 .br
@@ -346,7 +346,7 @@ x509_cert_dir="/etc/grid-security/certificates"
 gridmap - The gridmap file location
 This variable is similar to the GSI enviroment variable: GRIDMAP
 This variable is not limited to [common], but can be set individually
-for each service in corresponding section: [grid-manager], [gridftpd], [httpsd]
+for each service in corresponding section: [grid-manager], [gridftpd]
 The default is /etc/grid-security/grid-mapfile
 
 .IR Example:
@@ -613,7 +613,7 @@ matching.
 A group MUST be defined before it may be used. In this respect the
 arc.conf is ORDER SENSITIVE.
 
-The authorization groups can be used in [gridftpd] and in their sub-blocks.
+The authorization groups can be used in [gridftpd] and in its sub-blocks.
 The syntax of their specification varies with the service they are used for.
 For using authorization groups and VO blocks in HED framework please
 read "Security Framework of ARC" at
