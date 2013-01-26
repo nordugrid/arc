@@ -4,11 +4,12 @@ else
 MYSQL_WRAPPER_TEST =
 endif
 
-check_PROGRAMS = URLTest LoggerTest RunTest XMLNodeTest FileAccessTest FileUtilsTest \
+TESTS = URLTest LoggerTest RunTest XMLNodeTest FileAccessTest FileUtilsTest \
         ProfileTest ArcRegexTest ThreadTest FileLockTest EnvTest UserConfigTest \
         StringConvTest CheckSumTest WatchdogTest UserTest $(MYSQL_WRAPPER_TEST)
 
-TESTS = $(filter-out ThreadTest,$(check_PROGRAMS))
+check_PROGRAMS = $(TESTS) ThreadTest
+
 TESTS_ENVIRONMENT = srcdir=$(srcdir)
 
 URLTest_SOURCES = $(top_srcdir)/src/Test.cpp URLTest.cpp
