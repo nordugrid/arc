@@ -6,7 +6,7 @@ AC_CANNONICAL_SYSTEM
 AC_INIT([nordugrid-arc],m4_normalize(m4_include(VERSION)),[http://bugzilla.nordugrid.org/])
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([Makefile.am])
-AM_CONFIG_HEADER([config.h])
+AC_CONFIG_HEADERS([config.h])
 
 baseversion=`echo $VERSION | sed 's/[[^0-9.]].*//'`
 preversion=`echo $VERSION | sed 's/^[[0-9.]]*//'`
