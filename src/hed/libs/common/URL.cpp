@@ -425,6 +425,31 @@ namespace Arc {
 
   URL::~URL() {}
 
+  void URL::URIDecode(void) {
+    path = uri_unencode(path);
+   
+    std::map<std::string, std::string> newhttpoptions;
+    for(std::map<std::string, std::string>::iterator o = httpoptions.begin();
+                                    o != httpoptions.end(); ++o) {
+      newhttpoptions[uri_unencode(o->first)] = uri_unencode(o->second);
+    }
+    httpoptions = newhttpoptions;
+
+    std::map<std::string, std::string> newmetadataoptions;
+    for(std::map<std::string, std::string>::iterator o = metadataoptions.begin();
+                                    o != metadataoptions.end(); ++o) {
+      newmetadataoptions[uri_unencode(o->first)] = uri_unencode(o->second);
+    }
+    metadataoptions = newmetadataoptions;
+
+    for(std::list<std::string>::iterator a = ldapattributes.begin();
+                                    a != ldapattributes.end(); ++a) {
+      *a = uri_unencode(*a);
+    }
+    ldapfilter = uri_unencode(ldapfilter);
+
+  }
+
   const std::string& URL::Protocol() const {
     return protocol;
   }
@@ -787,7 +812,7 @@ namespace Arc {
     }
 
     if (!metadataoptions.empty()) {
-      urlstr += ':' + OptionString(metadataoptions, ':');
+      urlstr += ':' + OptionString(metadataoptions, ':', encode);
     }
 
     return urlstr;

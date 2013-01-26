@@ -105,7 +105,7 @@ namespace Arc {
     /** This method is supposed to be used only if for some reason
        URL constructor was called with encoded=false for URL which
        was encoded. Use it only once. */
-    static void URIDecode(void);
+    void URIDecode(void);
 
     /// Returns the protocol of the URL.
     const std::string& Protocol() const;
