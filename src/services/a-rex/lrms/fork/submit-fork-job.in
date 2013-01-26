@@ -71,6 +71,8 @@ if [ ! -z "$maxwalltime" ] ; then
   echo "ulimit -t $maxwalltime" >> $LRMS_JOB_SCRIPT
 fi
 
+sourcewithargs_jobscript
+
 ##############################################################
 # Override umask
 ##############################################################

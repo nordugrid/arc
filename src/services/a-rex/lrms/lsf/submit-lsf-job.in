@@ -160,6 +160,11 @@ fi
 
 echo "# Overide umask of execution node (sometime values are really strange)" >> $LRMS_JOB_SCRIPT
 echo "umask 077" >> $LRMS_JOB_SCRIPT
+echo " " >> $LRMS_JOB_SCRIPT
+
+sourcewithargs_jobscript
+
+
 
 ##############################################################
 # Add environment variables

@@ -219,6 +219,9 @@ echo "# @ class=${class}" >> $LRMS_JOB_SCRIPT
 ##################################################################
 echo "# @ notification = never" >> $LRMS_JOB_SCRIPT
 echo "# @ queue" >> $LRMS_JOB_SCRIPT
+echo " " >> $LRMS_JOB_SCRIPT
+
+sourcewithargs_jobscript
 
 #######################################################################
 # copy information useful for transfering files to/from node directly

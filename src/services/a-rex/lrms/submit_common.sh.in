@@ -21,6 +21,12 @@
 #
 # directly. More tests still require to be added.
 
+sourcewithargs ()
+{
+script=$1
+shift
+. $script
+}
 
 init () {
 
@@ -211,8 +217,10 @@ RTE_stage0 () {
             arg_num=$(( $arg_num + 1 ))
             eval "arg_is_set=\${joboption_runtime_${joboption_num}_${arg_num}+yes}"
          done
-         eval ". \"$RUNTIME_CONFIG_DIR/${var_value}\" $args_value" 1>&2
-         if [ $? -ne '0' ] ; then
+         #eval ". \"$RUNTIME_CONFIG_DIR/${var_value}\" $args_value" 1>&2
+         cmdl="$RUNTIME_CONFIG_DIR/${var_value}"
+         sourcewithargs $cmdl $args_value 1>&2
+	 if [ $? -ne '0' ] ; then
             echo "ERROR: runtime script ${var_value} failed" 1>&2
             exit 1
          fi
@@ -291,11 +299,21 @@ add_user_env () {
    echo "" >> $LRMS_JOB_SCRIPT
 }
 
+sourcewithargs_jobscript )( {
+   echo "# source with arguments for DASH shells" >> $LRMS_JOB_SCRIPT
+   echo "sourcewithargs() {" >> $LRMS_JOB_SCRIPT
+   echo "script=\$1" >> $LRMS_JOB_SCRIPT
+   echo "shift" >> $LRMS_JOB_SCRIPT
+   echo ". \$script" >> $LRMS_JOB_SCRIPT
+   echo "}" >> $LRMS_JOB_SCRIPT
+}
+
 ##############################################################
 #  Runtime configuration
 ##############################################################
 RTE_stage1 () {
    echo "# Running runtime scripts" >> $LRMS_JOB_SCRIPT
+   
    echo "export RUNTIME_CONFIG_DIR=\${RUNTIME_CONFIG_DIR:-$RUNTIME_CONFIG_DIR}" >> $LRMS_JOB_SCRIPT
    i=0
    eval "var_is_set=\${joboption_runtime_$i+yes}"
@@ -318,7 +336,10 @@ RTE_stage1 () {
          arg_num=$(( $arg_num + 1 ))
          eval "arg_is_set=\${joboption_runtime_${i}_${arg_num}+yes}"
       done
-      echo "    . \${RUNTIME_CONFIG_DIR}/${var_value} $args_value " >> $LRMS_JOB_SCRIPT
+      #echo "    . \${RUNTIME_CONFIG_DIR}/${var_value} $args_value " >> $LRMS_JOB_SCRIPT
+      echo "    cmdl=\${RUNTIME_CONFIG_DIR}/${var_value} " >> $LRMS_JOB_SCRIPT
+      echo "    sourcewithargs \$cmdl $args_value " >> $LRMS_JOB_SCRIPT
+
       echo "    if [ \$? -ne '0' ] ; then " >> $LRMS_JOB_SCRIPT
       echo "      echo \"Runtime ${var_value} script failed \" 1>&2 " >> $LRMS_JOB_SCRIPT
       echo "      echo \"Runtime ${var_value} script failed \" 1>\"\$RUNTIME_JOB_DIAG\" " >> $LRMS_JOB_SCRIPT
@@ -478,7 +499,8 @@ configure_runtime () {
       arg_num=$(( $arg_num + 1 ))
       eval "arg_is_set=\${joboption_runtime_${i}_${arg_num}+yes}"
     done
-    echo "    . \${RUNTIME_CONFIG_DIR}/${var_value} $args_value " >> $LRMS_JOB_SCRIPT
+    echo "    cmdl=\${RUNTIME_CONFIG_DIR}/${var_value}" >> $LRMS_JOB_SCRIPT
+    echo "    sourcewithargs \$cmdl $args_value " >> $LRMS_JOB_SCRIPT
     echo "  fi" >> $LRMS_JOB_SCRIPT
     i=$(( $i + 1 ))
     eval "var_is_set=\${joboption_runtime_$i+yes}"
@@ -488,6 +510,7 @@ configure_runtime () {
   fi
   echo "" >> $LRMS_JOB_SCRIPT
 }
+
 ##############################################################
 # move files to node
 ##############################################################
