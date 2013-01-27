@@ -41,7 +41,9 @@ org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo)
 .IP "\fB-r\fR, \fB--rejectmanagement\fR=\fIURL\fR"
 skip jobs which are on a computing element with a given URL
 .IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"
-only select jobs whose status is statusstr
+only select jobs whose status is statusstr. See
+.BR arstat (1)
+for possible state values
 .IP "\fB-P\fR, \fB--listplugins\fR"
 list the available plugins
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"

@@ -81,9 +81,64 @@ shown. If the
 option is used the list of jobs is read from a file with the
 specified filename. By specifying the
 .B --all
-option, the status of all active jobs will be shown. If the
+option, the status of all active jobs will be shown.
+
+By default
+.B arcstat
+presents job states as defined internally followed by middleware
+specific representation of job state in brackets. The following
+internal job states are defined:
+
+.B Accepted
+- job accepted on cluster but not being processed yet
+
+.B Preparing
+- job is in phase of preparing for submission to batch system
+
+.B Submitting
+- communication with batch system in ongoing
+
+.B Hold
+- job's processing is suspended dueto internal reason or user request
+
+.B Queuing
+- job is passed to batch system but not being executed yet
+
+.B Running
+- job being execcuted in batch system
+
+.B Finishing
+- job in phase of post-execution procedures being run
+
+.B Finished
+- job successfully completed all processing phases
+
+.B Killed
+- job processing was interrupted by user request
+
+.B Failed
+- job processing was interrupted due to detected failure
+
+.B Deleted
+- job was removed from cluster (usually because it stayed there too long)
+
+.B Other
+- middleware specific job state could not be adequately mappped to internal state
+
+Those are also states which are used by
+.BR arccat (1),
+.BR arcclean (1),
+.BR arcget (1),
+.BR arckill (1),
+.BR arcacl (1),
+.BR arcrenew (1),
+.BR arcresub (1),
+.BR arcresume (1)
+to perform job filtering.
+
+If the
 .B --long
-option is given more detailed information is given.
+option is given more detailed information is shown.
 
 Jobs can be sorted according to the jobid, submissiontime or jobname, either
 in normal or reverse order. By using the

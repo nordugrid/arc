@@ -81,7 +81,9 @@ option can be used to select or reject jobs at specific clusters. See
 for a discussion of the format of arguments to this option. The
 .B --status
 option can be used to select jobs in a specific state. These options
-can be repeated several times.
+can be repeated several times. See
+.BR arcstat (1)
+for possible states values.
 
 .SH FILES
 
