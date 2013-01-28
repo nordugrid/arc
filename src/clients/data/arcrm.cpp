@@ -61,9 +61,17 @@ int arcrm(const std::list<Arc::URL>& urls,
       }
 
       if ((*handle)->RequiresCredentials()) {
-        Arc::Credential cred(usercfg);
-        if (!cred.IsValid()) {
-          logger.msg(Arc::ERROR, "Unable to remove file %s: No valid proxy found", url->str());
+        if (usercfg.ProxyPath().empty() ) {
+          logger.msg(Arc::ERROR, "Unable to remove file %s: No valid credentials found", url->str());
+          failed++;
+          delete handle;
+          handle = NULL;
+          continue;
+        }
+        Arc::Credential holder(usercfg.ProxyPath(), "", "", "");
+        if (holder.GetEndTime() < Arc::Time()){
+          logger.msg(Arc::ERROR, "Proxy expired");
+          logger.msg(Arc::ERROR, "Unable to remove file %s: No valid credentials found", url->str());
           failed++;
           delete handle;
           handle = NULL;

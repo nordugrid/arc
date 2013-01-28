@@ -60,9 +60,14 @@ bool arcrename(const Arc::URL& old_url,
     return false;
   }
   if (url->RequiresCredentials()) {
-    Arc::Credential cred(usercfg);
-    if (!cred.IsValid()) {
-      logger.msg(Arc::ERROR, "Unable to rename file %s: No valid credentials found", old_url.str());
+    if (usercfg.ProxyPath().empty() ) {
+      logger.msg(Arc::ERROR, "Unable to rename %s: No valid credentials found", old_url.str());
+      return false;
+    }
+    Arc::Credential holder(usercfg.ProxyPath(), "", "", "");
+    if (holder.GetEndTime() < Arc::Time()){
+      logger.msg(Arc::ERROR, "Proxy expired");
+      logger.msg(Arc::ERROR, "Unable to rename %s: No valid credentials found", old_url.str());
       return false;
     }
   }

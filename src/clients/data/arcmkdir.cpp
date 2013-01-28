@@ -48,8 +48,13 @@ bool arcmkdir(const Arc::URL& file_url,
     return false;
   }
   if (url->RequiresCredentials()) {
-    Arc::Credential cred(usercfg);
-    if (!cred.IsValid()) {
+    if (usercfg.ProxyPath().empty() ) {
+      logger.msg(Arc::ERROR, "Unable to create directory %s: No valid credentials found", file_url.str());
+      return false;
+    }
+    Arc::Credential holder(usercfg.ProxyPath(), "", "", "");
+    if (holder.GetEndTime() < Arc::Time()){
+      logger.msg(Arc::ERROR, "Proxy expired");
       logger.msg(Arc::ERROR, "Unable to create directory %s: No valid credentials found", file_url.str());
       return false;
     }

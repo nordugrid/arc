@@ -82,6 +82,20 @@ static void mover_callback(Arc::DataMover* mover, Arc::DataStatus status, void* 
   cond.broadcast();
 }
 
+static bool checkProxy(const Arc::UserConfig& usercfg, const Arc::URL& src_file) {
+  if (usercfg.ProxyPath().empty() ) {
+    logger.msg(Arc::ERROR, "Unable to copy %s: No valid credentials found", src_file.str());
+    return false;
+  }
+  Arc::Credential holder(usercfg.ProxyPath(), "", "", "");
+  if (holder.GetEndTime() < Arc::Time()){
+    logger.msg(Arc::ERROR, "Proxy expired");
+    logger.msg(Arc::ERROR, "Unable to copy %s: No valid credentials found", src_file.str());
+    return false;
+  }
+  return true;
+}
+
 bool arctransfer(const Arc::URL& source_url,
                  const Arc::URL& destination_url,
                  const std::list<std::string>& locations,
@@ -99,11 +113,7 @@ bool arctransfer(const Arc::URL& source_url,
     return false;
   }
   // Credentials are always required for 3rd party transfer
-  Arc::Credential cred(usercfg);
-  if (!cred.IsValid()) {
-    logger.msg(Arc::ERROR, "Unable to transfer file %s: No valid credentials found", source_url.str());
-    return false;
-  }
+  if (!checkProxy(usercfg, source_url)) return false;
 
   Arc::DataStatus res = Arc::DataPoint::Transfer3rdParty(source_url, destination_url, usercfg, verbose ? &transfer_cb : NULL);
   if (verbose) std::cerr<<std::endl;
@@ -217,13 +227,9 @@ bool arcregister(const Arc::URL& source_url,
                destination_url.str());
     return false;
   }
-  if (source->RequiresCredentials() || destination->RequiresCredentials()) {
-    Arc::Credential cred(usercfg);
-    if (!cred.IsValid()) {
-      logger.msg(Arc::ERROR, "Unable to register file %s: No valid credentials found", source_url.str());
-      return false;
-    }
-  }
+  if ((source->RequiresCredentials() || destination->RequiresCredentials())
+      && !checkProxy(usercfg, source_url)) return false;
+
   if (source->IsIndex() || !destination->IsIndex()) {
     logger.msg(Arc::ERROR, "For registration source must be ordinary URL"
                " and destination must be indexing service");
@@ -303,13 +309,9 @@ static Arc::DataStatus do_mover(const Arc::URL& s_url,
     logger.msg(Arc::INFO, "Unsupported destination url: %s", d_url.str());
     return Arc::DataStatus::WriteAcquireError;
   }
-  if (source->RequiresCredentials() || destination->RequiresCredentials()) {
-    Arc::Credential cred(usercfg);
-    if (!cred.IsValid()) {
-      logger.msg(Arc::ERROR, "Unable to copy file %s: No valid credentials found", s_url.str());
-      return Arc::DataStatus::CredentialsExpiredError;
-    }
-  }
+  if ((source->RequiresCredentials() || destination->RequiresCredentials())
+      && !checkProxy(usercfg, s_url)) return Arc::DataStatus::CredentialsExpiredError;
+
   if (!locations.empty()) {
     std::string meta(destination->GetURL().Protocol()+"://"+destination->GetURL().Host());
     for (std::list<std::string>::const_iterator i = locations.begin(); i != locations.end(); ++i) {
@@ -464,13 +466,8 @@ bool arccp(const Arc::URL& source_url_,
         logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
         return false;
       }
-      if (source->RequiresCredentials()) {
-        Arc::Credential cred(usercfg);
-        if (!cred.IsValid()) {
-          logger.msg(Arc::ERROR, "Unable to copy from %s: No valid credentials found", source_url.str());
-          return false;
-        }
-      }
+      if (source->RequiresCredentials() && !checkProxy(usercfg, source_url)) return false;
+
       std::list<Arc::FileInfo> files;
       Arc::DataStatus result = source->List(files, (Arc::DataPoint::DataPointInfoType)
                                            (Arc::DataPoint::INFO_TYPE_NAME | Arc::DataPoint::INFO_TYPE_TYPE));
