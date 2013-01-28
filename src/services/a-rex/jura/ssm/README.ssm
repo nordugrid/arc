@@ -2,6 +2,9 @@
 This modified Python codes are part of the SSM that developed by APEL.
 
 Changelog:
+*MonWed Jan 28 2013 Gabor Szigeti <szigeti@niif.hu>
+ -update to ssm2 0.0.2
+
 *Wed Sep 19 2012 Gabor Szigeti <szigeti@niif.hu>
  -update to ssm 1.2-2
 
@@ -30,9 +33,10 @@ What kind of modification happend:
 Installation requirement:
     *python 2.4.3 or later
     *stomppy 2.0.2 or later (recommended 3.0.3)
-    *m2crypto 0.21.1 or later
+    *python-dirq
+    *python-ldap (optional)
 
 Package names on different platforms:
-    *Scientific Linux, Fedora: python, stomppy, m2crypto
-    *Debian 6: python, python-stompy, (python-)m2crypto
+    *Scientific Linux, Fedora: python, stomppy, python-ldap, python-dirq
+    *Debian 6: python, python-stompy, python-ldap
 

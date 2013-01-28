@@ -27,8 +27,9 @@ MachineName:         MachineName, SubmitHost* headnode                          
                       Site*
                      Infrastructure* (desc.)  lrms
 Queue:               Queue*                   queue                    queue (lrms)
-ProjectName:         GroupAttribute           projectname              projectname
-                     Group                    [MISSING]
+ProjectName:         GroupAttribute           projectname,              projectname
+                                              usercert
+                     Group                    usercert
                      ExitStatus               exitcode
                      ServiceLevel*            [MISSING]
 

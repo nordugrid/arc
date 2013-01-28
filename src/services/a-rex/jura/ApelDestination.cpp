@@ -159,7 +159,17 @@ namespace Arc
   Arc::MCC_Status ApelDestination::send_request(const std::string &urset)
   {
     //Filename generation
-    std::string output_filename = "Apel_records_" +service_url.Host() + "_" + Current_Time();
+    std::string output_filename = Current_Time();
+    char chars[] = "-+T:";
+    for (unsigned int i = 0; i < strlen(chars); ++i) {
+        output_filename.erase (
+                        std::remove(output_filename.begin(),
+                                    output_filename.end(),
+                                    chars[i]),
+                        output_filename.end());
+    }
+    output_filename=output_filename.substr(0,14);
+
     if (!output_dir.empty()) {
         // local copy creation
         std::string output_path;
@@ -216,9 +226,15 @@ namespace Arc
     }
     //directory check
     std::string subdir = default_path + "outgoing/";
+    default_path = subdir.substr(0,subdir.length()-1);
     if (stat(subdir.c_str(), &st) != 0) {
         mkdir(subdir.c_str(), S_IRWXU);
     }
+    subdir = subdir + "00000000/";
+    if (stat(subdir.c_str(), &st) != 0) {
+        mkdir(subdir.c_str(), S_IRWXU);
+    }
+
     // create message file to the APEL client
     subdir += output_filename;
     const char* filename(subdir.c_str());
@@ -238,10 +254,10 @@ namespace Arc
                );
     }
     int retval;
-    //ssm-master <path-to-config-file> <hostname> <port> <topic> <key path> <cert path> <cadir path> <messages path>"
+    //ssmsend <hostname> <port> <topic> <key path> <cert path> <cadir path> <messages path>"
     std::string command;
     std::vector<std::string> ssm_pathes;
-    std::string exec_cmd = "ssm_master";
+    std::string exec_cmd = "ssmsend";
     //RedHat: /usr/libexec/arc/ssm_master
     ssm_pathes.push_back("/usr/libexec/arc/"+exec_cmd);
     ssm_pathes.push_back("/usr/local/libexec/arc/"+exec_cmd);
@@ -268,7 +284,6 @@ namespace Arc
     }
 
     command = ssm_command;
-    command += " ssm.cfg"; //config
     command += " " + service_url.Host(); //host
     std::stringstream port;
     port << service_url.Port();
