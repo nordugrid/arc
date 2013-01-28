@@ -1,13 +1,13 @@
 ssmdir= $(pkgdatadir)/ssm
 
-pkglibexec_SCRIPTS = ssm_master
+pkglibexec_SCRIPTS = ssmsend
 
-ssm_DATA = ssm.py encrypt_utils.py message_db.py ssm.cfg ssm.log.cfg
+ssm_DATA = ssm2.py crypto.py brokers.py sender.cfg __init__.py
 
 EXTRA_DIST = $(ssm_DATA) $(pkglibexec_SCRIPTS) README.ssm
 
 install-exec-hook:
 	cd $(DESTDIR)$(pkglibexecdir) && \
-        cp ssm_master ssm_master.orig && \
-        sed "s,SSMDIR,\"$(ssmdir)\"," < ssm_master.orig > ssm_master && \
-	rm -f ssm_master.orig
+        cp ssmsend ssmsend.orig && \
+        sed "s,SSMDIR,\"$(ssmdir)\"," < ssmsend.orig > ssmsend && \
+	rm -f ssmsend.orig
