@@ -1768,6 +1768,13 @@ lrms="dgbridge"
 ## Don't set it unless you want to overwrite the default.
 #registrantsuffix="mds-vo-name=indexname,o=grid"
 
+## timeout - The suggested timeout to be included in the registration.
+## Default: 120.
+#timeout="120"
+
+## ttl - The suggested TTL to be included in the registration.  The default
+## is twice the registration period.
+#ttl="600"
 
 
 ####################################################################
@@ -1974,6 +1981,13 @@ lrms="dgbridge"
 ## Don't set it unless you want to overwrite the default. 
 #registrantsuffix="nordugrid-cluster-name=myhost.org,Mds-Vo-name=local,o=grid"
 
+## timeout - The suggested timeout to be included in the registration.
+## Default: 45.
+#timeout="45"
+
+## ttl - The suggested TTL to be included in the registration.  The default
+## is twice the registration period.
+#ttl="600"
  
    	   
 ####################################################################
