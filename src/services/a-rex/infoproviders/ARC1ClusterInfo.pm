@@ -567,9 +567,12 @@ sub collect($) {
     $totalpcpus ||= $lrms_info->{cluster}{totalcpus};
     $totallcpus ||= $lrms_info->{cluster}{totalcpus};
 
-    my @authorizedvos = @{$config->{service}{AuthorizedVO}};
-    # add VO: suffix to each authorized VO
-    @authorizedvos = map { "vo:".$_ } @authorizedvos;
+    my @authorizedvos = (); 
+    if ($config->{service}{AuthorizedVO}) {
+        @authorizedvos = @{$config->{service}{AuthorizedVO}};
+        # add VO: suffix to each authorized VO
+        @authorizedvos = map { "vo:".$_ } @authorizedvos;
+    }
 
     # # # # # # # # # # # # # # # # # # #
     # # # # # Job statistics  # # # # # #
@@ -958,7 +961,7 @@ sub collect($) {
          $apol->{CreationTime} = $creation_time;
          $apol->{Validity} = $validity_ttl;
          $apol->{Scheme} = "basic";
-         $apol->{Rule} = [ @authorizedvos ];
+         if (@authorizedvos) { $apol->{Rule} = [ @authorizedvos ]; };
          # $apol->{UserDomainID} = $apconf->{UserDomainID};
          $apol->{EndpointID} = $epID;
          return $apol;
@@ -992,7 +995,7 @@ sub collect($) {
          $mpol->{Validity} = $validity_ttl;
          $mpol->{ID} = "$mpolIDp:basic";
          $mpol->{Scheme} = "basic";
-         $mpol->{Rule} = [ @authorizedvos ];
+         if (@authorizedvos) { $mpol->{Rule} = [ @authorizedvos ]; };
          # $mpol->{UserDomainID} = $apconf->{UserDomainID};
          $mpol->{ShareID} = $shareID;
          return $mpol;
