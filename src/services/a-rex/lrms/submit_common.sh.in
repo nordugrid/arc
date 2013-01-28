@@ -299,7 +299,7 @@ add_user_env () {
    echo "" >> $LRMS_JOB_SCRIPT
 }
 
-sourcewithargs_jobscript )( {
+sourcewithargs_jobscript () {
    echo "# source with arguments for DASH shells" >> $LRMS_JOB_SCRIPT
    echo "sourcewithargs() {" >> $LRMS_JOB_SCRIPT
    echo "script=\$1" >> $LRMS_JOB_SCRIPT
