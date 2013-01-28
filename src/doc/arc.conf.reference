@@ -968,12 +968,6 @@ lrms="dgbridge"
 ##  emi - new profile devloped in EMI project. This is default option.
 #arguspdp_profile="cream"
 
-## arguspdp_usermap yes|no - specifies whether response from Argus PDP service may
-## define mapping of client to local account.  Default is 'no'.  Argus is
-## contacted after all other user mapping is performed.  Hence, it can
-## overwrite all other decisions.
-#arguspdp_usermap="no"
-
 ## watchdog - specifies if additinal watchdog processes is spawned to restart
 ## main process if it is stuck or dies. Possible values are 'yes' and 'no'.
 ## Default is 'no'.
