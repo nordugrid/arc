@@ -496,12 +496,6 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw64_bindir}/arctest.exe
 #
 %{mingw64_sysconfdir}/arc/client.conf
-#%{mingw64_libexecdir}/%{pkgdir}/ssm_master
-#%{mingw64_datadir}/%{pkgdir}/ssm/encrypt_utils.py*
-#%{mingw64_datadir}/%{pkgdir}/ssm/ssm.py*
-#%{mingw64_datadir}/%{pkgdir}/ssm/message_db.py*
-#%{mingw64_datadir}/%{pkgdir}/ssm/ssm.cfg
-#%{mingw64_datadir}/%{pkgdir}/ssm/ssm.log.cfg
 #
 # Man pages
 #

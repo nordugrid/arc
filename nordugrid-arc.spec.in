@@ -470,7 +470,8 @@ Requires:	mktemp
 Requires:	python-twisted-core
 Requires:	python-twisted-web
 Requires:	stomppy
-Requires:	m2crypto
+Requires:	python-ldap
+Requires:	python-dirq
 Requires:	%{name}-aris = %{version}-%{release}
 Provides:	%{name}-grid-manager = %{version}-%{release}
 Obsoletes:	%{name}-grid-manager < 1.0.0
@@ -1333,12 +1334,12 @@ service fetch-crl-cron start > /dev/null 2>&1
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-arex
 %dir %{_localstatedir}/log/arc
 %if %{with_python}
-%{_libexecdir}/%{pkgdir}/ssm_master
-%{_datadir}/%{pkgdir}/ssm/encrypt_utils.py*
-%{_datadir}/%{pkgdir}/ssm/ssm.py*
-%{_datadir}/%{pkgdir}/ssm/message_db.py*
-%{_datadir}/%{pkgdir}/ssm/ssm.cfg
-%{_datadir}/%{pkgdir}/ssm/ssm.log.cfg
+%{_libexecdir}/%{pkgdir}/ssmsend
+%{_datadir}/%{pkgdir}/ssm/__init__.py*
+%{_datadir}/%{pkgdir}/ssm/crypto.py*
+%{_datadir}/%{pkgdir}/ssm/ssm2.py*
+%{_datadir}/%{pkgdir}/ssm/brokers.py*
+%{_datadir}/%{pkgdir}/ssm/sender.cfg
 %endif
 
 %if %{with_acix}
