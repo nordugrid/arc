@@ -998,20 +998,16 @@ def generateUsageRecord(arc_cfg, control_dir, job_id, job_status, local_user=Non
         if vo_info == []:
             try:
                 vo_info = getARCProxyInformation(proxy_filepath)
-            except OSError, e:
+            except ImportError, e:
                 logging.warning("Warning getting VOMS info. Possibly missing nordugrid-arc-python package (%s)"
                                 " trying voms-proxy-info" % str(e))
                 logging.exception(e)
 
-        if vo_info == []:
-            try:
-                vo_info = getVOMSProxyInformation(proxy_filepath)
-            except OSError, e:
-                logging.warning("Warning getting VOMS info. Possibly missing voms-proxy-info command (%s)" % str(e))
-                logging.exception(e)
-
-        if vo_info == []:
-            logging.error("Failure getting VOMS info from proxy")
+                try:
+                    vo_info = getVOMSProxyInformation(proxy_filepath)
+                except OSError, e:
+                    logging.warning("Warning getting VOMS info. Possibly missing voms-proxy-info command (%s)" % str(e))
+                    logging.exception(e)
 
     # still no vo info, try grid-vo-mapfile
     if vo_info == []:
