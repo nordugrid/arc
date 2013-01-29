@@ -1,3 +1,6 @@
+2013-01-29  Dmytro Karpenko <dmytrok@fys.uio.no>
+  * SLURMmod.pm plugin with native ARC1 API is introduced.
+
 2013-01-29  Anders Waananen <waananen@nbi.dk>
   * Make arc-ur-logger use ARC python api to retrieve information in proxy 
      instead of relying on voms-proxy-info (fixes bug #2597).

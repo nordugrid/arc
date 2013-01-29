@@ -35,6 +35,7 @@ debian/tmp/usr/share/arc/LL.pm
 debian/tmp/usr/share/arc/LSF.pm
 debian/tmp/usr/share/arc/PBS.pm
 debian/tmp/usr/share/arc/Condor.pm
+debian/tmp/usr/share/arc/SLURMmod.pm
 debian/tmp/usr/share/arc/SLURM.pm
 debian/tmp/usr/share/arc/DGBridge.pm
 
