@@ -1,3 +1,7 @@
+2013-01-29  Gabor Szigeti <szigeti@niif.hu>
+
+  * Use 2.0.0 version of SSM to the message sending.
+
 2013-01-25  Anders Waananen <waananen@nbi.dk>
   * Rename perftest to arcperftest and add a man page.
   * Move some test and misc tools to a new sub package
@@ -6,6 +10,11 @@
 
 2013-01-21  Gabor Roczei  <roczei@niif.hu>
   * Several exclusive execution related bug fixes
+
+2013-01-22  Gabor Szigeti <szigeti@niif.hu>
+  
+  * Add VO attributes to the reported accounting record. (fixes bug #3003)
+  * Use different filename for the different achiving record (UR or CAR).
 
 2013-01-15  Martin Skou Andersen  <skou@nbi.dk>
 
