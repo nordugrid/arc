@@ -2,6 +2,9 @@
 This modified Python codes are part of the SSM that developed by APEL.
 
 Changelog:
+*Mon Jan 29 2013 Gabor Szigeti <szigeti@niif.hu>
+ -update to ssm2 2.0.0
+ 
 *Mon Jan 28 2013 Gabor Szigeti <szigeti@niif.hu>
  -update to ssm2 0.0.2
 
