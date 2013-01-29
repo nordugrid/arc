@@ -106,13 +106,11 @@ $(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i $(top_srcdir)/swig/Arc.i pydo
 	sed 's/<(\([,:[:alnum:]]*\))>/<\1>/g' $*_wrap.cpp > $*_wrap.cpp.tmp
 	mv $*_wrap.cpp.tmp $*_wrap.cpp
 
-Doxyfile.api: $(srcdir)/Doxyfile.api.in
+pydoxygen.i: $(srcdir)/Doxyfile.api.in
 	sed "s/TOP_SOURCE_DIR/$(subst /,\/,$(top_srcdir))/g" $< > Doxyfile.api
-
-pydoxygen.i: Doxyfile.api
-	doxygen $<
+	doxygen Doxyfile.api
 	python $(srcdir)/doxy2swig.py api/xml/index.xml $@
-	rm -rf api $<
+	rm -rf api Doxyfile.api
 
 install-data-hook:
 	if test -n "$(PYTHON_SOABI)" ; then \
