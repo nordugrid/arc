@@ -2,3 +2,4 @@
  (jobname = 'arctest2')
  (stdout = 'stdout')
  (join = 'yes')
+ (gmlog = 'gmlog')
