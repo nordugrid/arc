@@ -23,14 +23,14 @@ static Logger logger(Logger::getRootLogger(), "emiestest");
 #define GLUE2_NAMESPACE "http://schemas.ogf.org/glue/2009/03/spec_2.0_r1"
 
 static void usage(void) {
-  std::cout<<"test-emies-client sstat <ResourceInfo URL> - retrieve service description"<<std::endl;
-  std::cout<<"test-emies-client submit <Creation URL> <ADL file> - submit job to service"<<std::endl;
-  std::cout<<"test-emies-client stat <ActivityManagement URL> <Job ID> - check state of job"<<std::endl;
-  std::cout<<"test-emies-client info <ActivityManagement URL> <Job ID> - obtain extended description of job"<<std::endl;
-  std::cout<<"test-emies-client clean <ActivityManagement URL> <Job ID> - remove job from service"<<std::endl;
-  std::cout<<"test-emies-client kill <ActivityManagement URL> <Job ID> - cancel job processing/execution"<<std::endl;
-  std::cout<<"test-emies-client list <ActivityInfo URL> - list jobs available at service"<<std::endl;
-  std::cout<<"test-emies-client ivalidate <ResourceInfo URL> - retrieve service description using all available methods and validate results"<<std::endl;
+  std::cout<<"arcemiestest sstat <ResourceInfo URL> - retrieve service description"<<std::endl;
+  std::cout<<"arcemiestest submit <Creation URL> <ADL file> - submit job to service"<<std::endl;
+  std::cout<<"arcemiestest stat <ActivityManagement URL> <Job ID> - check state of job"<<std::endl;
+  std::cout<<"arcemiestest info <ActivityManagement URL> <Job ID> - obtain extended description of job"<<std::endl;
+  std::cout<<"arcemiestest clean <ActivityManagement URL> <Job ID> - remove job from service"<<std::endl;
+  std::cout<<"arcemiestest kill <ActivityManagement URL> <Job ID> - cancel job processing/execution"<<std::endl;
+  std::cout<<"arcemiestest list <ActivityInfo URL> - list jobs available at service"<<std::endl;
+  std::cout<<"arcemiestest ivalidate <ResourceInfo URL> - retrieve service description using all available methods and validate results"<<std::endl;
   exit(1);
 }
 
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     interfaces["org.ogf.glue.emies.delegation"] = "";
     logger.msg(INFO,"Fetching resource description from %s",url.str());
     XMLNode info;
-    if(!ac.sstat(info)) {
+    if(!ac.sstat(info,false)) {
       logger.msg(ERROR,"Failed to obtain resource description: %s",ac.failure());
       return 1;
     };
@@ -199,7 +199,14 @@ int main(int argc, char* argv[]) {
       std::string errstr;
       std::string glue2_schema = ArcLocation::GetDataDir()+G_DIR_SEPARATOR_S+"schema"+G_DIR_SEPARATOR_S+"GLUE2.xsd";
       if(!node.Validate(glue2_schema,errstr)) {
-        logger.msg(ERROR,"Resource description validation according to GLUE2 schema failed: %s",errstr);
+        logger.msg(ERROR,"Resource description validation according to GLUE2 schema failed: ");
+        for(std::string::size_type p = 0;;) {
+          if(p >= errstr.length()) break;
+          std::string::size_type e = errstr.find('\n',p);
+          if(e == std::string::npos) e = errstr.length();
+          logger.msg(ERROR,"%s", errstr.substr(p,e-p));
+          p = e + 1;
+        };
         return 1;
       };
       if(node.Name() == "ComputingService") {

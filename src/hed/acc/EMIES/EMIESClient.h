@@ -214,7 +214,7 @@ namespace Arc {
        @param status The XML document representing status of the service.
        @return true on success
      */
-    bool sstat(XMLNode& status);
+    bool sstat(XMLNode& status, bool nsapply = true);
 
     //! Query the status of a service.
     /*! This method queries the EMI ES service about its status using XPath 1.0.

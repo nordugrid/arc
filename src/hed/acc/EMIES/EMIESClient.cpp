@@ -502,7 +502,7 @@ namespace Arc {
     return false;
   }
 
-  bool EMIESClient::sstat(XMLNode& response) {
+  bool EMIESClient::sstat(XMLNode& response, bool nsapply) {
     /* 
     esrinfo:GetResourceInfo
 
@@ -520,7 +520,7 @@ namespace Arc {
 
     if (!process(req, res)) return false;
 
-    res.Namespaces(ns);
+    if(nsapply) res.Namespaces(ns);
     XMLNode services = res["Services"];
     if(!services) {
       lfailure = "Missing Services in response";
