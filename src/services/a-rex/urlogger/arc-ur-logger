@@ -635,6 +635,59 @@ def parseVOMSProxyInfoOutput(voms_info_output):
 
 
 
+def getVOMSesFromProxy(proxyfile):
+
+    import arc
+
+    config = arc.UserConfig()
+    cafile = config.CACertificatePath()
+    cadir  = config.CACertificatesDirectory()
+    holder = arc.Credential(proxyfile ,"", cadir, cafile)
+
+    vomsdir = ""
+    trustlist = arc.VOMSTrustList()
+
+    outputs = arc.VOMSACInfoVector()
+
+    vos = []
+    if arc.parseVOMSAC(holder, cadir, cafile, vomsdir, trustlist, outputs, True, True):
+        for vo in outputs:
+
+            voi = VOInformation()
+            voi.type = "voms"
+            voi.name = vo.voname
+            voi.issuer = vo.issuer
+
+            for attribute in vo.attributes:
+                if attribute.startswith('/voname=') or not attribute.startswith('/'):
+                    continue
+                # Capabilities
+                capability = None
+                if '/Capability=' in attribute:
+                   attribute, capability = attribute.rsplit('/Capability=',1)
+                if capability == 'NULL':
+                    capability = None
+                # Roles
+                role = None
+                if '/Role=' in attribute:
+                    attribute, role = attribute.rsplit('/Role=',1)
+                if role == 'NULL':
+                    role = None
+                group = attribute[1:] # remove initial /
+                voi.attributes.append((group, role, None))
+            vos.append(voi)
+    return vos
+
+
+def getARCProxyInformation(proxy_filepath):
+     
+    try:
+        import arc
+    except ImportError, e:
+        raise e
+    return getVOMSesFromProxy(proxy_filepath)
+
+
 def getVOMSProxyInformation(proxy_filepath):
 
     voms_info_output = executeVOMSProxyInfo(proxy_filepath)
@@ -941,11 +994,25 @@ def generateUsageRecord(arc_cfg, control_dir, job_id, job_status, local_user=Non
     # first try to get voms info from proxy
     vo_info = []
     if os.path.exists(proxy_filepath):
-        try:
-            vo_info = getVOMSProxyInformation(proxy_filepath)
-        except OSError, e:
-            logging.error("Error getting VOMS info. Possibly missing voms-proxy-info command (%s)" % str(e))
-            logging.exception(e)
+
+        if vo_info == []:
+            try:
+                vo_info = getARCProxyInformation(proxy_filepath)
+            except OSError, e:
+                logging.warning("Warning getting VOMS info. Possibly missing nordugrid-arc-python package (%s)"
+                                " trying voms-proxy-info" % str(e))
+                logging.exception(e)
+
+        if vo_info == []:
+            try:
+                vo_info = getVOMSProxyInformation(proxy_filepath)
+            except OSError, e:
+                logging.warning("Warning getting VOMS info. Possibly missing voms-proxy-info command (%s)" % str(e))
+                logging.exception(e)
+
+        if vo_info == []:
+            logging.error("Failure getting VOMS info from proxy")
+
     # still no vo info, try grid-vo-mapfile
     if vo_info == []:
         vo_info = getVOMapfileInformation(local_data['subject'][0])

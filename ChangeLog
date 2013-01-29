@@ -1,3 +1,7 @@
+2013-01-29  Anders Waananen <waananen@nbi.dk>
+  * Make arc-ur-logger use ARC python api to retrieve information in proxy 
+     instead of relying on voms-proxy-info (fixes bug #2597).
+
 2013-01-29  Gabor Szigeti <szigeti@niif.hu>
 
   * Use 2.0.0 version of SSM to the message sending.
