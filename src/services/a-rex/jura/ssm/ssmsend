@@ -128,7 +128,7 @@ def main(_host, _port, _topic, _key, _cert, _cadir, _message_path):
                    key=_key,
                    dest=_topic,
                    capath=_cadir,
-                   enc_cert=_cert)
+                   enc_cert=server_cer)
         
         if sender.has_msgs():
             sender.handle_connect()
