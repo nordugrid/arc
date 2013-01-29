@@ -316,9 +316,11 @@ namespace Arc {
       }
       if (pos2 != std::string::npos) {
         pos3 = host.find(';', pos2);
-        port = stringtoi(pos3 == std::string::npos ?
-                         host.substr(pos2 + 1) :
-                         host.substr(pos2 + 1, pos3 - pos2 - 1));
+        if (!stringto(pos3 == std::string::npos ?
+                      host.substr(pos2 + 1) :
+                      host.substr(pos2 + 1, pos3 - pos2 - 1), port)) {
+          URLLogger.msg(ERROR, "Invalid port number in %s", url);
+        }
       }
       else {
         pos3 = host.find(';');
