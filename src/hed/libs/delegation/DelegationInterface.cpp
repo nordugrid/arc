@@ -1770,7 +1770,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         return true;
       };
       if(info.valid_till == Time(Time::UNDEFINED)) info.valid_till = Time();
-      r.NewChild("getTerminationTimeReturn") = info.valid_till.str();
+      r.NewChild("getTerminationTimeReturn") = info.valid_till.str(ISOTime);
       return true;
     } else if(op_name == "destroy") {
       Arc::XMLNode r = out.NewChild("destroyResponse");
@@ -1977,7 +1977,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         return true;
       };
       if(info.valid_till == Time(Time::UNDEFINED)) info.valid_till = Time();
-      r.NewChild("getTerminationTimeReturn") = info.valid_till.str();
+      r.NewChild("getTerminationTimeReturn") = info.valid_till.str(ISOTime);
       return true;
     } else if(op_name == "destroy") {
       // destroy
@@ -2131,7 +2131,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         return true;
       };
       if(info.valid_till == Time(Time::UNDEFINED)) info.valid_till = Time();
-      r.NewChild("Lifetime") = info.valid_till.str();
+      r.NewChild("Lifetime") = info.valid_till.str(ISOTime);
       r.NewChild("Issuer") = info.ca;
       r.NewChild("Subject") = info.identity;
       return true;
