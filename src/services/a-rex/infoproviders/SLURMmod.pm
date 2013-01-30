@@ -206,16 +206,15 @@ sub jobs_info ($) {
         $lrms_jobs->{$jid}{mem} = $scont_nodes{$node}{"RealMemory"};
         
         # SLURM returns it in minutes, but we need seconds
-        my $walltime = $scont_jobs{$jid}{"TimeUsed"}*60;
+        my $walltime = $scont_jobs{$jid}{"TimeUsed"};
         my $count = $scont_jobs{$jid}{ReqCPUs};
         $lrms_jobs->{$jid}{walltime} = $walltime;
         # TODO: multiply walltime by number of cores to get cputime?
         $lrms_jobs->{$jid}{cputime} = $walltime*$count;
         
-        # SLURM returns it in minutes, but we need seconds
-        $lrms_jobs->{$jid}{reqwalltime} = $scont_jobs{$jid}{"TimeLimit"} * 60;
+        $lrms_jobs->{$jid}{reqwalltime} = $scont_jobs{$jid}{"TimeLimit"};
         # TODO: cputime/walltime confusion again...
-        $lrms_jobs->{$jid}{reqcputime} = $scont_jobs{$jid}{"TimeLimit"}*$count*60;
+        $lrms_jobs->{$jid}{reqcputime} = $scont_jobs{$jid}{"TimeLimit"}*$count;
         $lrms_jobs->{$jid}{nodes} = [ split(",",slurm_expand_nodes($scont_jobs{$jid}{"NodeList"}) ) ];
         $lrms_jobs->{$jid}{comment} = [$scont_jobs{$jid}{"Name"}];
     }
@@ -237,8 +236,7 @@ sub queue_info ($) {
     $lrms_queue->{maxqueuable} = $scont_config{"MaxJobCount"};
     $lrms_queue->{maxuserrun} = $scont_config{"MaxJobCount"};
 	
-    # SLURM returns it in minutes, but wee need seconds
-    my $maxtime = $scont_part{$queue}{"MaxTime"} * 60;
+    my $maxtime = $scont_part{$queue}{"MaxTime"};
     
     $lrms_queue->{maxcputime} = $maxtime;
     $lrms_queue->{mincputime} = 0;
@@ -351,25 +349,22 @@ sub slurm_to_arc_time($){
     my $timeslurm = shift;
     my $timearc = 0;
     # $timeslurm can be "infinite" or "UNLIMITED"
-    if (($timeslurm =~ "UNLIMITED")
-	or ($timeslurm =~ "infinite")) {
-	#Max number allowed by ldap
-	$timearc = 2**31-1;
+    if (($timeslurm =~ "UNLIMITED")	or ($timeslurm =~ "infinite")) {
+    	#Max number allowed by ldap
+    	$timearc = 2**31-1;
     }
     # days-hours:minutes:seconds
     elsif ( $timeslurm =~ /(\d+)-(\d+):(\d+):(\d+)/ ) {
-	$timearc = $1*24*60*60 + $2*60*60 + $3*60 + $4;
+    	$timearc = $1*24*60*60 + $2*60*60 + $3*60 + $4;
     }
     # hours:minutes:seconds
     elsif ( $timeslurm =~ /(\d+):(\d+):(\d+)/ ) {
-	$timearc = $1*60*60 + $2*60 + $3;
+    	$timearc = $1*60*60 + $2*60 + $3;
     }
     # minutes:seconds
     elsif ( $timeslurm =~ /(\d+):(\d+)/ ) {
-	$timearc = $1*60 + $2;
+    	$timearc = $1*60 + $2;
     }
-    # ARC infosys uses minutes as the smallest allowed value.
-    $timearc = floor($timearc/60);
     return $timearc;
 }
 
