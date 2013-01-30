@@ -1330,6 +1330,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
 %doc %{_mandir}/man1/jura.1*
+%doc %{_mandir}/man8/gm-jobs.8*
 %doc %{_mandir}/man1/arc-config-check.1*
 %doc %{_mandir}/man8/arc-vomsac-check.8*
 %doc %{_datadir}/%{pkgdir}/examples/a-rex

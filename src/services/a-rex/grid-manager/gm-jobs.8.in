@@ -1,0 +1,58 @@
+.TH gm-jobs 8 "2013-01-30" "NorduGrid @VERSION@" "NorduGrid Toolkit"
+.SH NAME
+
+gm-jobs \- displays information and manages current jobs handled by ARC middleware
+
+
+.SH DESCRIPTION
+
+.B gm-jobs
+displays information related to jobs handled by locally running ARC middleware
+service A-REX. Different kind of information may be selected by using various options.
+This utility also can perform simple management operations - currently cancel
+processing of specific jobs and remove them. Default behavior is to print minimal
+information about all jobs currently handled by A-REX and some statistics.
+
+.SH SYNOPSIS
+
+gm-jobs [OPTION...]
+
+.SH OPTIONS
+
+.IP "\fB-h, --help\fR"
+Show help for available options
+.IP "\fB-l, --longlist\fR"
+display more information about each job
+.IP "\fB-c, --conffile=file\fR"
+use specified configuration file
+.IP "\fB-d, --controldir=dir\fR"
+read information from specified control directory
+.IP "\fB-s, --showshares\fR"
+print summary of jobs in each transfer share
+.IP "\fB-J, --notshowjobs\fR"
+do not print list of jobs (printed by default)
+.IP "\fB-S, --notshowstates\fR"
+do not print number of jobs in each state (printed by default)
+.IP "\fB-w, --showservice\fR"
+print state of the service
+.IP "\fB-f, --filteruser=dn\fR"
+show only jobs of user(s) with specified subject name(s)
+.IP "\fB-k, --killjob=id\fR"
+request to cancel job(s) with specified ID(s)
+.IP "\fB-K, --killuser=dn\fR"
+request to cancel jobs belonging to user(s) with specified subject name(s)
+.IP "\fB-r, --remjob=id\fR"
+request to clean job(s) with specified ID(s)
+.IP "\fB-R, --remuser=dn\fR"
+request to clean jobs belonging to user(s) with specified subject name(s)
+.IP "\fB-j, --filterjob=id\fR"
+show only jobs with specified ID(s)
+.IP "\fB-e, --listdelegs\fR"
+print list of available delegation IDs
+.IP "\fB-E, --showdeleg=id\fR"
+print delegation token of specified ID(s)
+
+.SH AUTHOR
+
+Aleksandr Konstantinov <aleksandr dot konstantinov at fys dot uio dot no>
+
