@@ -70,6 +70,24 @@ void FillJob(EMIESJob& job, int argc, char* argv[]) {
     job.id = id;
 }
 
+bool CheckComputingService(XMLNode result) {
+  if(result.Namespace() != GLUE2_NAMESPACE) {
+    logger.msg(ERROR,"Query returned unexpected element: %s:%s",result.Namespace(),result.Name());
+    return false;
+  };
+  if(result.Name() != "ComputingService") {
+    logger.msg(ERROR,"Query returned unexpected element: %s:%s",result.Namespace(),result.Name());
+    return false;
+  };
+  std::string errstr;
+  std::string glue2_schema = ArcLocation::GetDataDir()+G_DIR_SEPARATOR_S+"schema"+G_DIR_SEPARATOR_S+"GLUE2.xsd";
+  if(!result.Validate(glue2_schema,errstr)) {
+    logger.msg(ERROR,"Element validation according to GLUE2 schema failed: %s",errstr);
+    return false;
+  };
+  return true;
+}
+
 int main(int argc, char* argv[]) {
   Arc::LogStream logcerr(std::cerr);
   logcerr.setFormat(Arc::ShortFormat);
@@ -241,34 +259,69 @@ int main(int argc, char* argv[]) {
     };
     logger.msg(INFO,"Resource description validation passed");
 
+    int depth = 1;
     logger.msg(INFO,"Requesting ComputingService elements of resource description at %s",url.str());
     XMLNodeContainer items;
-    if(!ac.squery("/Services/ComputingService",items)) {
-      logger.msg(ERROR,"Failed to obtain resource description: %s",ac.failure());
+    bool query_passed = false;
+    bool all_elements = false;
+    if(!query_passed) {
+      logger.msg(INFO,"Performing /Services/ComputingService query");
+      if(!ac.squery("/Services/ComputingService",items)) {
+        logger.msg(INFO,"Failed to obtain resource description: %s",ac.failure());
+      } else if(items.Size() <= 0) {
+        logger.msg(INFO,"Query returned no elements.");
+      } else {
+        query_passed = true;
+      };
+    };
+    if(!query_passed) {
+      logger.msg(INFO,"Performing /ComputingService query");
+      if(!ac.squery("/ComputingService",items)) {
+        logger.msg(INFO,"Failed to obtain resource description: %s",ac.failure());
+      } else if(items.Size() <= 0) {
+        logger.msg(INFO,"Query returned no elements.");
+      } else {
+        query_passed = true;
+      };
+    };
+    if(!query_passed) {
+      all_elements = true;
+      logger.msg(INFO,"Performing /* query");
+      if(!ac.squery("/*",items)) {
+        logger.msg(INFO,"Failed to obtain resource description: %s",ac.failure());
+      } else if(items.Size() <= 0) {
+        logger.msg(INFO,"Query returned no elements.");
+      } else {
+        query_passed = true;
+      };
+    };
+    if(!query_passed) {
+      logger.msg(ERROR,"All queries failed");
       return 1;
     };
-    if(items.Size() <= 0) {
-      logger.msg(ERROR,"Query returned no elements");
-      return 1;
-    };
+    // In current implementation we can have different response
+    // 1. ComputingService elements inside every Item element (ARC)
+    // 2. Content of ComputingService elements inside every Item element (UNICORE)
+    // 3. All elements inside every Item element
+    // 4. Content of all elements inside every Item element
     int cnum2 = 0;
     for(int n = 0; n < items.Size(); ++n) {
-      for(int nn = 0; nn < items[n].Size(); ++nn) {
-        XMLNode result = items[n].Child(nn);
-        if(result.Namespace() != GLUE2_NAMESPACE) {
-          logger.msg(ERROR,"Query returned unexpected element: %s:%s",result.Namespace(),result.Name());
-          return 1;
+      if((items[n].Size() > 0) && (items[n]["ComputingService"])) {
+        // Case 1 and 3.
+        for(int nn = 0; nn < items[n].Size(); ++nn) {
+          if((all_elements) && (items[n].Name() != "ComputingService")) continue; // case 3
+          if(!CheckComputingService(items[n].Child(nn))) return 1;
+          ++cnum2;
         };
-        if(result.Name() != "ComputingService") {
-          logger.msg(ERROR,"Query returned unexpected element: %s:%s",result.Namespace(),result.Name());
-          return 1;
-        };
-        std::string errstr;
-        std::string glue2_schema = ArcLocation::GetDataDir()+G_DIR_SEPARATOR_S+"schema"+G_DIR_SEPARATOR_S+"GLUE2.xsd";
-        if(!result.Validate(glue2_schema,errstr)) {
-          logger.msg(ERROR,"Element validation according to GLUE2 schema failed: %s",errstr);
-          return 1;
-        };
+      } else {
+        // Assuming 2 and 4. Because 4 can't be reliably recognised
+        // just assume it never happens.
+        XMLNode result;
+        NS ns("glue2arc",GLUE2_NAMESPACE);
+        items[n].New(result);
+        result.Namespaces(ns,true,0);
+        result.Name(result.NamespacePrefix(GLUE2_NAMESPACE)+":ComputingService");
+        if(!CheckComputingService(result)) return 1;
         ++cnum2;
       };
     };
