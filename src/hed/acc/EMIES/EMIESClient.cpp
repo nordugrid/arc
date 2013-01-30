@@ -71,7 +71,8 @@ namespace Arc {
     : client(NULL),
       rurl(url),
       cfg(cfg),
-      timeout(timeout) {
+      timeout(timeout),
+      soapfault(false) {
 
     logger.msg(DEBUG, "Creating an EMI ES client");
     client = new ClientSOAP(cfg, url, timeout);
@@ -149,26 +150,13 @@ namespace Arc {
   } 
 
   bool EMIESClient::process(PayloadSOAP& req, XMLNode& response, bool retry) {
+    soapfault = false;
     if (!client) {
       lfailure = "EMIESClient was not created properly.";
       return false;
     }
 
     logger.msg(VERBOSE, "Processing a %s request", req.Child(0).FullName());
-
-    //if (delegate) {
-    //  XMLNode op = req.Child(0);
-    //  if(!delegation(op)) {
-    //    delete client; client = NULL;
-    //    // TODO: better way to check of retriable. 
-    //    if(!retry) return false; 
-    //    if(!reconnect()) return false; 
-    //    if(!delegation(op)) {
-    //      delete client; client = NULL;
-    //      return false; 
-    //    }
-    //  }
-    //}
 
     std::string action = req.Child(0).Name();
 
@@ -194,6 +182,7 @@ namespace Arc {
     if (resp->IsFault()) {
       logger.msg(VERBOSE, "%s request to %s failed with response: %s", req.Child(0).FullName(), rurl.str(), resp->Fault()->Reason());
       lfailure = "Fault response received: "+resp->Fault()->Reason();
+      soapfault = true;
       // Trying to check if it is EMI ES fault
       if(resp->Fault()->Code() != SOAPFault::Receiver) retry = false;
       {
@@ -559,7 +548,7 @@ namespace Arc {
     return true;
   }
 
-  bool EMIESClient::squery(const std::string& query, XMLNodeContainer& response) {
+  bool EMIESClient::squery(const std::string& query, XMLNodeContainer& response, bool nsapply) {
     /* 
     esrinfo:QueryResourceInfo
       esrinfo:QueryDialect
@@ -574,12 +563,24 @@ namespace Arc {
     PayloadSOAP req(ns);
     XMLNode op = req.NewChild("esrinfo:" + action);
     op.NewChild("esrinfo:QueryDialect") = "XPATH 1.0";
-    op.NewChild("esrinfo:QueryExpression") = query;
+    XMLNode exp = op.NewChild("esrinfo:QueryExpression") = query;
     XMLNode res;
 
-    if (!process(req, res)) return false;
+    if (!process(req, res)) {
+      if(!soapfault) return false;
 
-    res.Namespaces(ns);
+      // If service does not like how expression is presented, try another way
+      if(!client) {
+        if(!reconnect()) return false;
+      }
+      exp = "";
+      exp.NewChild("query") = query;
+      if (!process(req, res)) {
+        return false;
+      }
+    }
+
+    if(nsapply) res.Namespaces(ns);
     XMLNode item = res["QueryResourceInfoItem"];
     for(;item;++item) {
       response.AddNew(item);

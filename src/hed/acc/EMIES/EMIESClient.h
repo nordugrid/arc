@@ -221,7 +221,7 @@ namespace Arc {
        @param status The XML document representing status of the service.
        @return true on success
      */
-    bool squery(const std::string& query, XMLNodeContainer& items);
+    bool squery(const std::string& query, XMLNodeContainer& items, bool nsapply = true);
 
     //! Query the endpoints of a service.
     /*! This method queries the EMI ES service about its avaialble endpoints.
@@ -278,6 +278,8 @@ namespace Arc {
     int timeout;
 
     std::string lfailure;
+
+    bool soapfault;
 
     //! A logger for the A-REX client.
     /*! This is a logger to which all logging messages from the EMI ES

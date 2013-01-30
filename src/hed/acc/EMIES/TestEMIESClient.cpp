@@ -266,7 +266,7 @@ int main(int argc, char* argv[]) {
     bool all_elements = false;
     if(!query_passed) {
       logger.msg(INFO,"Performing /Services/ComputingService query");
-      if(!ac.squery("/Services/ComputingService",items)) {
+      if(!ac.squery("/Services/ComputingService",items,false)) {
         logger.msg(INFO,"Failed to obtain resource description: %s",ac.failure());
       } else if(items.Size() <= 0) {
         logger.msg(INFO,"Query returned no elements.");
@@ -276,7 +276,7 @@ int main(int argc, char* argv[]) {
     };
     if(!query_passed) {
       logger.msg(INFO,"Performing /ComputingService query");
-      if(!ac.squery("/ComputingService",items)) {
+      if(!ac.squery("/ComputingService",items,false)) {
         logger.msg(INFO,"Failed to obtain resource description: %s",ac.failure());
       } else if(items.Size() <= 0) {
         logger.msg(INFO,"Query returned no elements.");
@@ -287,7 +287,7 @@ int main(int argc, char* argv[]) {
     if(!query_passed) {
       all_elements = true;
       logger.msg(INFO,"Performing /* query");
-      if(!ac.squery("/*",items)) {
+      if(!ac.squery("/*",items,false)) {
         logger.msg(INFO,"Failed to obtain resource description: %s",ac.failure());
       } else if(items.Size() <= 0) {
         logger.msg(INFO,"Query returned no elements.");
