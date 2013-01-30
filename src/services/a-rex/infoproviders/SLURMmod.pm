@@ -205,7 +205,6 @@ sub jobs_info ($) {
         my $node = slurm_get_first_node($scont_jobs{$jid}{"NodeList"});
         $lrms_jobs->{$jid}{mem} = $scont_nodes{$node}{"RealMemory"};
         
-        # SLURM returns it in minutes, but we need seconds
         my $walltime = $scont_jobs{$jid}{"TimeUsed"};
         my $count = $scont_jobs{$jid}{ReqCPUs};
         $lrms_jobs->{$jid}{walltime} = $walltime;
@@ -349,7 +348,7 @@ sub slurm_to_arc_time($){
     my $timeslurm = shift;
     my $timearc = 0;
     # $timeslurm can be "infinite" or "UNLIMITED"
-    if (($timeslurm =~ "UNLIMITED")	or ($timeslurm =~ "infinite")) {
+    if (($timeslurm =~ "UNLIMITED") or ($timeslurm =~ "infinite")) {
     	#Max number allowed by ldap
     	$timearc = 2**31-1;
     }
