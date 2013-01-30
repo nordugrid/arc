@@ -250,8 +250,11 @@ namespace Arc {
     // load GFAL DMC
     DataHandle gfal_handle(gfal_url, usercfg);
     if (!gfal_handle) {
-      logger.msg(Arc::ERROR, "Could not load GFAL DMC. Please check that this plugin is installed");
-      return DataStatus(DataStatus::TransferError, EOPNOTSUPP, "Could not load GFAL DMC");
+      logger.msg(Arc::ERROR, "Third party transfer was requested but the corresponding plugin could\n"
+                      "       not be loaded. Is the GFAL plugin installed? If not, please install the\n"
+                      "       packages 'nordugrid-arc-plugins-gfal' and 'gfal2-all'. Depending on\n"
+                      "       your type of installation the package names might differ.");
+      return DataStatus(DataStatus::TransferError, EOPNOTSUPP, "Could not load GFAL plugin");
     }
     return gfal_handle->Transfer3rdParty(source, destination, callback);
   }
