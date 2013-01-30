@@ -632,11 +632,14 @@ int main(int argc, char *argv[]) {
   // Check for needed credentials objects
   // Can proxy be used for? Could not find it in documentation.
   // Key and certificate not needed if only printing proxy information
-  if((usercfg.CertificatePath().empty() || (usercfg.KeyPath().empty() && (usercfg.CertificatePath().find(".p12") == std::string::npos))) && !info) {
-    logger.msg(Arc::ERROR, "Failed to find certificate and/or private key or files have improper permissions or ownership.");
-    logger.msg(Arc::ERROR, "You may try to increase verbosity to get more information.");
-    return EXIT_FAILURE;
+  if (!(myproxy_command == "get" || myproxy_command == "GET" || myproxy_command == "Get")) {
+    if((usercfg.CertificatePath().empty() || (usercfg.KeyPath().empty() && (usercfg.CertificatePath().find(".p12") == std::string::npos))) && !info) {
+      logger.msg(Arc::ERROR, "Failed to find certificate and/or private key or files have improper permissions or ownership.");
+      logger.msg(Arc::ERROR, "You may try to increase verbosity to get more information.");
+      return EXIT_FAILURE;
+    }
   }
+
   if(!vomslist.empty() || !myproxy_command.empty()) {
     // For external communication CAs are needed
     if(usercfg.CACertificatesDirectory().empty()) {
