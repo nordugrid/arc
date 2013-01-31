@@ -185,7 +185,8 @@ namespace ArcDMCGridFTP {
         logger.msg(VERBOSE, "check_ftp: timeout waiting for partial get");
         globus_ftp_client_abort(&ftp_handle);
         cond.wait();
-        return DataStatus(DataStatus::CheckError, "timeout waiting for partial get from server: "+url.str());
+        return DataStatus(DataStatus::CheckError, EARCREQUESTTIMEOUT,
+                          "timeout waiting for partial get from server: "+url.str());
       }
       if (ftp_eof_flag) return DataStatus::Success;
       return DataStatus(DataStatus::CheckError, callback_status.GetDesc());
@@ -230,7 +231,7 @@ namespace ArcDMCGridFTP {
       logger.msg(VERBOSE, "delete_ftp: timeout waiting for delete");
       globus_ftp_client_abort(&ftp_handle);
       cond.wait();
-      return DataStatus(DataStatus::DeleteError, "Timeout waiting for delete for "+url.str());
+      return DataStatus(DataStatus::DeleteError, EARCREQUESTTIMEOUT, "Timeout waiting for delete for "+url.str());
     }
     if (!callback_status) {
       return DataStatus(DataStatus::DeleteError, callback_status.GetErrno(), callback_status.GetDesc());
@@ -251,7 +252,7 @@ namespace ArcDMCGridFTP {
       logger.msg(VERBOSE, "delete_ftp: timeout waiting for delete");
       globus_ftp_client_abort(&ftp_handle);
       cond.wait();
-      return DataStatus(DataStatus::DeleteError, "Timeout waiting for delete of "+url.str());
+      return DataStatus(DataStatus::DeleteError, EARCREQUESTTIMEOUT, "Timeout waiting for delete of "+url.str());
     }
     if (!callback_status) {
       return DataStatus(DataStatus::DeleteError, callback_status.GetErrno(), callback_status.GetDesc());
@@ -346,7 +347,8 @@ namespace ArcDMCGridFTP {
       /* timeout - have to cancel operation here */
       globus_ftp_client_abort(&ftp_handle);
       cond.wait();
-      return DataStatus(DataStatus::CreateDirectoryError, ETIMEDOUT, "Timeout waiting for mkdir at "+url.str());
+      return DataStatus(DataStatus::CreateDirectoryError, EARCREQUESTTIMEOUT,
+                        "Timeout waiting for mkdir at "+url.str());
     }
     if (!callback_status) {
       return DataStatus(DataStatus::CreateDirectoryError, callback_status.GetErrno(), callback_status.GetDesc());
@@ -846,7 +848,7 @@ namespace ArcDMCGridFTP {
         logger.msg(INFO, "list_files_ftp: timeout waiting for size");
         globus_ftp_client_abort(&ftp_handle);
         cond.wait();
-        result = DataStatus(DataStatus::StatError, "timeout waiting for file size");
+        result = DataStatus(DataStatus::StatError, EARCREQUESTTIMEOUT, "timeout waiting for file size");
       }
       else if (!callback_status) {
         logger.msg(INFO, "list_files_ftp: failed to get file's size");
@@ -878,7 +880,8 @@ namespace ArcDMCGridFTP {
                          "timeout waiting for modification_time");
         globus_ftp_client_abort(&ftp_handle);
         cond.wait();
-        result = DataStatus(DataStatus::StatError, "timeout waiting for file size");
+        result = DataStatus(DataStatus::StatError, EARCREQUESTTIMEOUT,
+                            "timeout waiting for file modification time");
       }
       else if (!callback_status) {
         logger.msg(INFO, "list_files_ftp: "
@@ -1049,7 +1052,7 @@ namespace ArcDMCGridFTP {
       logger.msg(VERBOSE, "Rename: timeout waiting for operation to complete");
       globus_ftp_client_abort(&ftp_handle);
       cond.wait();
-      return DataStatus(DataStatus::RenameError, "Timeout waiting for rename at "+url.str());
+      return DataStatus(DataStatus::RenameError, EARCREQUESTTIMEOUT, "Timeout waiting for rename at "+url.str());
     }
     if (!callback_status) {
       return DataStatus(DataStatus::RenameError, callback_status.GetErrno(), callback_status.GetDesc());

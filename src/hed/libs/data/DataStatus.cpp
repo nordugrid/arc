@@ -65,6 +65,7 @@ namespace Arc {
     istring("Temporary service error"),          // EARCSVCTMP
     istring("Permanent service error"),          // EARCSVCPERM
     istring("Error switching uid"),              // EARCUIDSWITCH
+    istring("Request timed out"),                // EARCREQUESTTIMEOUT
     istring("Unknown error")                     // EARCOTHER
   };
 

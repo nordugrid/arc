@@ -23,7 +23,8 @@ namespace Arc {
 #define EARCSVCTMP           (DataStatusErrnoBase + 5) // Temporary service error
 #define EARCSVCPERM          (DataStatusErrnoBase + 6) // Permanent service error
 #define EARCUIDSWITCH        (DataStatusErrnoBase + 7) // Error switching uid
-#define EARCOTHER            (DataStatusErrnoBase + 8) // Other / unknown error
+#define EARCREQUESTTIMEOUT   (DataStatusErrnoBase + 8) // Request made to remote service timed out
+#define EARCOTHER            (DataStatusErrnoBase + 9) // Other / unknown error
 
 #define DataStatusErrnoMax EARCOTHER
 

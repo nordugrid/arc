@@ -254,10 +254,11 @@ namespace ArcDMCSRM {
       }
 
       // if we get here it means a timeout occurred
-      logger.msg(VERBOSE, "PrepareToGet request timed out after %i seconds", creq.request_timeout());
+      std::string err_msg("PrepareToGet request timed out after " + tostring(creq.request_timeout()) + " seconds");
+      logger.msg(VERBOSE, err_msg);
       creq.finished_abort();
       delete response;
-      return DataStatus(DataStatus::ReadPrepareError, ETIMEDOUT, "PrepareToGet request timed out");
+      return DataStatus(DataStatus::ReadPrepareError, EARCREQUESTTIMEOUT, err_msg);
   
     } // if file queued
   
@@ -266,7 +267,7 @@ namespace ArcDMCSRM {
       std::string file_explanation;
       SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], file_explanation);
       if (explanation.empty()) explanation = file_explanation;
-      else if (!file_explanation.empty()) explanation + ": " + file_explanation;
+      else if (!file_explanation.empty()) explanation += ": " + file_explanation;
       logger.msg(VERBOSE, explanation);
       creq.finished_error();
       delete response;
@@ -318,7 +319,7 @@ namespace ArcDMCSRM {
       std::string file_explanation;
       SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], file_explanation);
       if (explanation.empty()) explanation = file_explanation;
-      else if (!file_explanation.empty()) explanation + ": " + file_explanation;
+      else if (!file_explanation.empty()) explanation += ": " + file_explanation;
       logger.msg(VERBOSE, explanation);
       creq.finished_error();
       delete response;
@@ -423,10 +424,11 @@ namespace ArcDMCSRM {
       }
 
       // if we get here it means a timeout occurred
-      logger.msg(VERBOSE, "Bring online request timed out after %i seconds", creq.request_timeout());
+      std::string err_msg("Bring online request timed out after " + tostring(creq.request_timeout()) + " seconds");
+      logger.msg(VERBOSE, err_msg);
       creq.finished_abort();
       delete response;
-      return DataStatus(DataStatus::ReadPrepareError, ETIMEDOUT, "Bring online request timed out");
+      return DataStatus(DataStatus::ReadPrepareError, EARCREQUESTTIMEOUT, err_msg);
     }
 
     if (statuscode == SRM_REQUEST_INPROGRESS) {
@@ -449,7 +451,7 @@ namespace ArcDMCSRM {
     std::string file_explanation;
     SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], file_explanation);
     if (explanation.empty()) explanation = file_explanation;
-    else if (!file_explanation.empty()) explanation + ": " + file_explanation;
+    else if (!file_explanation.empty()) explanation += ": " + file_explanation;
     logger.msg(VERBOSE, explanation);
     creq.finished_error();
     delete response;
@@ -549,7 +551,7 @@ namespace ArcDMCSRM {
     std::string file_explanation;
     SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], file_explanation);
     if (explanation.empty()) explanation = file_explanation;
-    else if (!file_explanation.empty()) explanation + ": " + file_explanation;
+    else if (!file_explanation.empty()) explanation += ": " + file_explanation;
     logger.msg(VERBOSE, explanation);
     creq.finished_error();
     delete response;
@@ -659,10 +661,11 @@ namespace ArcDMCSRM {
       }
 
       // if we get here it means a timeout occurred
-      logger.msg(VERBOSE, "PrepareToPut request timed out after %i seconds", creq.request_timeout());
+      std::string err_msg("PrepareToPut request timed out after " + tostring(creq.request_timeout()) + " seconds");
+      logger.msg(VERBOSE, err_msg);
       creq.finished_abort();
       delete response;
-      return DataStatus(DataStatus::WritePrepareError, ETIMEDOUT, "PrepareToPut timed out");
+      return DataStatus(DataStatus::WritePrepareError, EARCREQUESTTIMEOUT, err_msg);
 
     } // if file queued
   
@@ -684,7 +687,7 @@ namespace ArcDMCSRM {
       }
 
       if (explanation.empty()) explanation = file_explanation;
-      else if (!file_explanation.empty()) explanation + ": " + file_explanation;
+      else if (!file_explanation.empty()) explanation += ": " + file_explanation;
       logger.msg(VERBOSE, explanation);
       creq.finished_error();
       delete response;
@@ -750,7 +753,7 @@ namespace ArcDMCSRM {
         return mkdirres;
       }
       if (explanation.empty()) explanation = file_explanation;
-      else if (!file_explanation.empty()) explanation + ": " + file_explanation;
+      else if (!file_explanation.empty()) explanation += ": " + file_explanation;
       logger.msg(VERBOSE, explanation);
       creq.finished_error();
       delete response;
@@ -862,7 +865,7 @@ namespace ArcDMCSRM {
           std::string file_explanation;
           SRMStatusCode file_statuscode = GetStatus(res["details"]["pathDetailArray"]["status"], file_explanation);
           if (explanation.empty()) explanation = file_explanation;
-          else if (!file_explanation.empty()) explanation + ": " + file_explanation;
+          else if (!file_explanation.empty()) explanation += ": " + file_explanation;
           logger.msg(VERBOSE, explanation);
           delete response;
           return DataStatus(DataStatus::ListError, srm2errno(statuscode, file_statuscode), explanation);
@@ -871,10 +874,11 @@ namespace ArcDMCSRM {
 
       // check for timeout
       if (request_time >= creq.request_timeout()) {
-        logger.msg(VERBOSE, "Ls request timed out after %i seconds", creq.request_timeout());
+        std::string err_msg("Ls request timed out after " + tostring(creq.request_timeout()) + " seconds");
+        logger.msg(VERBOSE, err_msg);
         abort(creq, true);
         delete response;
-        return DataStatus(DataStatus::ListError, ETIMEDOUT, "Ls request timed out");
+        return DataStatus(DataStatus::ListError, EARCREQUESTTIMEOUT, err_msg);
       }
     }
     else {
@@ -882,7 +886,7 @@ namespace ArcDMCSRM {
       std::string file_explanation;
       SRMStatusCode file_statuscode = GetStatus(res["details"]["pathDetailArray"]["status"], file_explanation);
       if (explanation.empty()) explanation = file_explanation;
-      else if (!file_explanation.empty()) explanation + ": " + file_explanation;
+      else if (!file_explanation.empty()) explanation += ": " + file_explanation;
       logger.msg(VERBOSE, explanation);
       delete response;
       return DataStatus(DataStatus::ListError, srm2errno(statuscode, file_statuscode), explanation);
@@ -1417,10 +1421,11 @@ namespace ArcDMCSRM {
 
       // check for timeout
       if (request_time >= copy_timeout) {
-        logger.msg(VERBOSE, "copy request timed out after %i seconds", copy_timeout);
+        std::string err_msg("copy request timed out after " + tostring(creq.request_timeout()) + " seconds");
+        logger.msg(VERBOSE, err_msg);
         creq.finished_abort();
         delete response;
-        return DataStatus(DataStatus::TransferError, ETIMEDOUT, "Copy request timed out");
+        return DataStatus(DataStatus::TransferError, EARCREQUESTTIMEOUT, err_msg);
       }
     }
     else if (statuscode != SRM_SUCCESS) {
