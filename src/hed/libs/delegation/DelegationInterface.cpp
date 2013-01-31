@@ -1266,8 +1266,8 @@ class DelegationContainerSOAP::Consumer {
 #define EMIDSFAULT(out) { \
   for(XMLNode old = out.Child();(bool)old;old = out.Child()) old.Destroy(); \
   XMLNode r = SOAPFault((out),SOAPFault::Receiver,"").Detail(true); \
-  XMLNode ex = r.NewChild("deleg:DelegationException"); \
-  ex.Namespaces(ns); ex.NewChild("msg") = (failure_); \
+  XMLNode ex = r.NewChild("deleg:DelegationException",ns); \
+  ex.NewChild("msg") = (failure_); \
 }
 
 // InternalServiceDelegationFault
@@ -1556,8 +1556,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
     // Original GDS
     NS ns("",GDS10_NAMESPACE);
     if(op_name == "getProxyReq") {
-      Arc::XMLNode r = out.NewChild("getProxyReqResponse");
-      r.Namespaces(ns);
+      Arc::XMLNode r = out.NewChild("getProxyReqResponse",ns);
       std::string id = op["delegationID"];
       if(id.empty()) {
         failure_ = "No identifier specified"; GDS10FAULT(out);
@@ -1585,8 +1584,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       r.NewChild("request") = x509_request;
       return true;
     } else if(op_name == "putProxy") {
-      Arc::XMLNode r = out.NewChild("putProxyResponse");
-      r.Namespaces(ns);
+      Arc::XMLNode r = out.NewChild("putProxyResponse",ns);
       std::string id = op["delegationID"];
       std::string cred = op["proxy"];
       if(id.empty()) {
@@ -1621,21 +1619,19 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
     // Glite GDS
     NS ns("",GDS20_NAMESPACE);
     if(op_name == "getVersion") {
-      Arc::XMLNode r = out.NewChild("getVersionResponse");
-      r.Namespaces(ns); r.NewChild("getVersionReturn")="0";
+      Arc::XMLNode r = out.NewChild("getVersionResponse",ns);
+      r.NewChild("getVersionReturn")="0";
       return true;
     } else if(op_name == "getInterfaceVersion") {
-      Arc::XMLNode r = out.NewChild("getInterfaceVersionResponse");
-      r.Namespaces(ns); r.NewChild("getInterfaceVersionReturn")="2";
+      Arc::XMLNode r = out.NewChild("getInterfaceVersionResponse",ns);
+      r.NewChild("getInterfaceVersionReturn")="2";
       return true;
     } else if(op_name == "getServiceMetadata") {
-      //Arc::XMLNode r = out.NewChild("getServiceMetadataResponse");
-      //r.Namespaces(ns);
+      //Arc::XMLNode r = out.NewChild("getServiceMetadataResponse",ns);
       GDS20FAULT(out,"Service has no metadata");
       return true;
     } else if(op_name == "getProxyReq") {
-      Arc::XMLNode r = out.NewChild("getProxyReqResponse");
-      r.Namespaces(ns);
+      Arc::XMLNode r = out.NewChild("getProxyReqResponse",ns);
       std::string id = op["delegationID"];
       if(id.empty()) {
         GDS20FAULT(out,"No identifier specified");
@@ -1663,8 +1659,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       r.NewChild("getProxyReqReturn") = x509_request;
       return true;
     } else if(op_name == "getNewProxyReq") {
-      Arc::XMLNode r = out.NewChild("getNewProxyReqResponse");
-      r.Namespaces(ns);
+      Arc::XMLNode r = out.NewChild("getNewProxyReqResponse",ns);
       std::string id;
       DelegationConsumerSOAP* c = AddConsumer(id,client);
       if(!c) {
@@ -1685,8 +1680,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       ret.NewChild("delegationID") = id;
       return true;
     } else if(op_name == "putProxy") {
-      Arc::XMLNode r = out.NewChild("putProxyResponse");
-      r.Namespaces(ns);
+      Arc::XMLNode r = out.NewChild("putProxyResponse",ns);
       std::string id = op["delegationID"];
       std::string cred = op["proxy"];
       if(id.empty()) {
@@ -1716,8 +1710,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       credentials = cred;
       return true;
     } else if(op_name == "renewProxyReq") {
-      Arc::XMLNode r = out.NewChild("renewProxyReqResponse");
-      r.Namespaces(ns);
+      Arc::XMLNode r = out.NewChild("renewProxyReqResponse",ns);
       std::string id = op["delegationID"];
       if(id.empty()) {
         GDS20FAULT(out,"No identifier specified");
@@ -1745,8 +1738,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       r.NewChild("renewProxyReqReturn") = x509_request;
       return true;
     } else if(op_name == "getTerminationTime") {
-      Arc::XMLNode r = out.NewChild("getTerminationTimeResponse");
-      r.Namespaces(ns);
+      Arc::XMLNode r = out.NewChild("getTerminationTimeResponse",ns);
       std::string id = op["delegationID"];
       if(id.empty()) {
         GDS20FAULT(out,"No identifier specified");
@@ -1773,8 +1765,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       r.NewChild("getTerminationTimeReturn") = info.valid_till.str(ISOTime);
       return true;
     } else if(op_name == "destroy") {
-      Arc::XMLNode r = out.NewChild("destroyResponse");
-      r.Namespaces(ns);
+      Arc::XMLNode r = out.NewChild("destroyResponse",ns);
       std::string id = op["delegationID"];
       if(id.empty()) {
         GDS20FAULT(out,"No identifier specified");
@@ -1794,8 +1785,8 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       // getVersionResponse
       //   getVersionReturn
       // DelegationException
-      Arc::XMLNode r = out.NewChild("deleg:getVersionResponse");
-      r.Namespaces(ns); r.NewChild("getVersionReturn")="0";
+      Arc::XMLNode r = out.NewChild("deleg:getVersionResponse",ns);
+      r.NewChild("getVersionReturn")="0";
       return true;
     } else if(op_name == "getInterfaceVersion") {
       // getInterfaceVersion
@@ -1803,8 +1794,8 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       // getInterfaceVersionResponse
       //   getInterfaceVersionReturn
       // DelegationException
-      Arc::XMLNode r = out.NewChild("deleg:getInterfaceVersionResponse");
-      r.Namespaces(ns); r.NewChild("getInterfaceVersionReturn")="2.1";
+      Arc::XMLNode r = out.NewChild("deleg:getInterfaceVersionResponse",ns);
+      r.NewChild("getInterfaceVersionReturn")="2.1";
       return true;
     } else if(op_name == "getServiceMetadata") {
       // getServiceMetadata
@@ -1824,8 +1815,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       // getProxyReqResponse
       //   getProxyReqReturn
       // DelegationException
-      Arc::XMLNode r = out.NewChild("deleg:getProxyReqResponse");
-      r.Namespaces(ns);
+      Arc::XMLNode r = out.NewChild("deleg:getProxyReqResponse",ns);
       std::string id = op["delegationID"];
       // check if new id or id belongs to this client
       bool found = true;
@@ -1855,8 +1845,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       //   proxyRequest
       //   delegationID
       // DelegationException
-      Arc::XMLNode r = out.NewChild("deleg:getNewProxyReqResponse");
-      r.Namespaces(ns);
+      Arc::XMLNode r = out.NewChild("deleg:getNewProxyReqResponse",ns);
       std::string id;
       DelegationConsumerSOAP* c = AddConsumer(id,client);
       if(!c) {
@@ -1916,8 +1905,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       // renewProxyReqResponse
       //   renewProxyReqReturn
       // DelegationException
-      Arc::XMLNode r = out.NewChild("deleg:renewProxyReqResponse");
-      r.Namespaces(ns);
+      Arc::XMLNode r = out.NewChild("deleg:renewProxyReqResponse",ns);
       std::string id = op["delegationID"];
       if(id.empty()) {
         failure_ = "No identifier specified"; EMIDSFAULT(out);
@@ -1951,8 +1939,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       // getTerminationTimeResponse
       //   getTerminationTimeReturn (dateTime)
       // DelegationException
-      Arc::XMLNode r = out.NewChild("deleg:getTerminationTimeResponse");
-      r.Namespaces(ns);
+      Arc::XMLNode r = out.NewChild("deleg:getTerminationTimeResponse",ns);
       std::string id = op["delegationID"];
       if(id.empty()) {
         failure_ = "No identifier specified"; EMIDSFAULT(out);
@@ -1984,8 +1971,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       //   delegationID
       //
       // DelegationException
-      Arc::XMLNode r = out.NewChild("deleg:destroyResponse");
-      r.Namespaces(ns);
+      Arc::XMLNode r = out.NewChild("deleg:destroyResponse",ns);
       std::string id = op["delegationID"];
       if(id.empty()) {
         failure_ = "No identifier specified"; EMIDSFAULT(out);
@@ -2011,8 +1997,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       // AccessControlFault
       // InternalBaseFault
       // Need  UnknownDelegationIDFault for reporting bad RenewalID
-      Arc::XMLNode r = out.NewChild("InitDelegationResponse");
-      r.Namespaces(ns);
+      Arc::XMLNode r = out.NewChild("InitDelegationResponse",ns);
       if((std::string)op["CredentialType"] != "RFC3820") {
         EMIESFAULT(out,"Unsupported credential type requested");
         return true;
@@ -2064,8 +2049,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       // UnknownDelegationIDFault
       // AccessControlFault
       // InternalBaseFault
-      Arc::XMLNode r = out.NewChild("PutDelegationResponse");
-      r.Namespaces(ns);
+      Arc::XMLNode r = out.NewChild("PutDelegationResponse",ns);
       std::string id = op["DelegationId"];
       std::string cred = op["Credential"];
       if(id.empty()) {
@@ -2106,8 +2090,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       // UnknownDelegationIDFault
       // AccessControlFault
       // InternalBaseFault
-      Arc::XMLNode r = out.NewChild("GetDelegationInfoResponse");
-      r.Namespaces(ns);
+      Arc::XMLNode r = out.NewChild("GetDelegationInfoResponse",ns);
       std::string id = op["DelegationID"];
       if(id.empty()) {
         EMIESFAULT(out,"Identifier is missing");
