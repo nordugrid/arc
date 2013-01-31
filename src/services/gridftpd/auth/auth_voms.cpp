@@ -117,7 +117,7 @@ static int process_vomsproxy(const char* filename,std::vector<struct voms> &data
   emptylist.AddRegex(".*");
 */  
   std::string voms_trust_chains = Arc::GetEnv("VOMS_TRUST_CHAINS");
-  logger.msg(Arc::INFO, "VOMS trust chains: %s", voms_trust_chains);
+  logger.msg(Arc::VERBOSE, "VOMS trust chains: %s", voms_trust_chains);
 
   std::vector<std::string> vomstrustlist;
 
