@@ -53,7 +53,7 @@ namespace Arc {
     } else if(st.state == EMIES_STATE_PROCESSING_RUNNING_S) {
       return JobState::RUNNING;
     } else if(st.state == EMIES_STATE_POSTPROCESSING_S) {
-      if(st.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) return JobState::FINISHING;
+      if(st.HasAttribute(EMIES_SATTR_CLIENT_STAGEOUT_POSSIBLE_S)) return JobState::FINISHING;
       return JobState::OTHER;
     } else if(st.state == EMIES_STATE_TERMINAL_S) {
       if(st.HasAttribute(EMIES_SATTR_PREPROCESSING_CANCEL_S)) return JobState::FAILED;
