@@ -424,6 +424,7 @@ namespace Arc {
       FileCache cache;
       URL source_url(filename);
       URL dest_url(urlstr);
+      dest_url.AddOption("checksum=no");
       DataHandle source(source_url, usercfg);
       DataHandle destination(dest_url, usercfg);
       source->SetTries(1);
