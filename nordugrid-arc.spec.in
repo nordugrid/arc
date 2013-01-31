@@ -1022,7 +1022,7 @@ semanage fcontext -d -t slapd_db_t "/var/run/arc/bdii(/.*)?" 2>/dev/null || :
 %preun aris
 if [ $1 -eq 0 ]; then
   service nordugrid-arc-bdii stop > /dev/null 2>&1
-  /sbin/chkconfig --del service nordugrid-arc-bdii
+  /sbin/chkconfig --del nordugrid-arc-bdii
 fi
 
 %postun aris
