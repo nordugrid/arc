@@ -5,7 +5,7 @@ MYSQL_WRAPPER_TEST =
 endif
 
 TESTS = URLTest LoggerTest RunTest XMLNodeTest FileAccessTest FileUtilsTest \
-        ProfileTest ArcRegexTest ThreadTest FileLockTest EnvTest UserConfigTest \
+        ProfileTest ArcRegexTest FileLockTest EnvTest UserConfigTest \
         StringConvTest CheckSumTest WatchdogTest UserTest $(MYSQL_WRAPPER_TEST)
 
 check_PROGRAMS = $(TESTS) ThreadTest
