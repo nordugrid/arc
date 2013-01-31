@@ -1439,6 +1439,8 @@ namespace ArcDMCSRM {
     std::string::size_type slashpos = surl.find('/', 6);
     slashpos = surl.find('/', slashpos + 1); // don't create root dir
     bool keeplisting = true; // whether to keep checking dir exists
+    SRMStatusCode parent_status = SRM_SUCCESS; // reason for failing to create parent dirs
+    std::string parent_explanation; // detailed reason for failing to create parent dirs
 
     while (slashpos != std::string::npos) {
       std::string dirname = surl.substr(0, slashpos);
@@ -1483,9 +1485,19 @@ namespace ArcDMCSRM {
         keeplisting = false;
       }
       else if (slashpos == std::string::npos) {
+        if (statuscode == SRM_INVALID_PATH && parent_status != SRM_SUCCESS) {
+          statuscode = parent_status;
+          explanation = parent_explanation;
+        }
         logger.msg(VERBOSE, "Error creating directory %s: %s", dirname, explanation);
         delete response;
         return DataStatus(DataStatus::CreateDirectoryError, srm2errno(statuscode), explanation);
+      }
+      else if (statuscode != SRM_INVALID_PATH) {
+        // remember high-level error so as not to report ENOENT when final dir
+        // fails due to failing to create parent dirs
+        parent_status = statuscode;
+        parent_explanation = explanation;
       }
 
       delete response;
