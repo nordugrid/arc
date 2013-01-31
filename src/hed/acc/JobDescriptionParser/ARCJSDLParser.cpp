@@ -721,7 +721,9 @@ namespace Arc {
       }
 
       bool deleteOnTermination = (ds["DeleteOnTermination"] && lower(((std::string)ds["DeleteOnTermination"])) == "false");
-      if ((bool)filenameNode && deleteOnTermination) {
+      if ((bool)filenameNode && (deleteOnTermination || ((bool)target && !target_uri))) {
+        // It is allowed by schema for uri not to be present. It is
+        // probably safer to assume user wants that file.
         OutputFileType file;
         file.Name = (std::string)filenameNode;
         job.DataStaging.OutputFiles.push_back(file);
