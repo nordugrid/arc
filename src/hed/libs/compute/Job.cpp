@@ -241,10 +241,11 @@ namespace Arc {
     jc = NULL;
   
     // Detect format:
-    if      (job["JobID"] && job["IDFromEndpoint"] &&
-             job["ServiceInformationURL"] && job["ServiceInformationInterfaceName"] &&
-             job["JobStatusURL"] && job["JobStatusInterfaceName"] &&
-             job["JobManagementURL"] && job["JobManagementInterfaceName"])
+    if      (job["JobID"] && job["IDFromEndpoint"] && 
+               (job["ServiceInformationURL"] || job["ServiceInformationInterfaceName"] ||
+                job["JobStatusURL"] || job["JobStatusInterfaceName"] ||
+                job["JobManagementURL"] || job["JobManagementInterfaceName"])
+            )
     { // Version >= 3.x format.
       JobID = (std::string)job["JobID"];
       IDFromEndpoint = (std::string)job["IDFromEndpoint"];
