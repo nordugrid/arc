@@ -10,7 +10,7 @@ noinst_LTLIBRARIES = libgridmanager.la
 pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck arc-vomsac-check
 dist_pkglibexec_SCRIPTS = arc-config-check
 
-man_MANS = arc-vomsac-check.8 arc-config-check.1
+man_MANS = arc-vomsac-check.8 arc-config-check.1 gm-jobs.8
 
 libgridmanager_la_SOURCES = GridManager.cpp GridManager.h
 libgridmanager_la_CXXFLAGS = -I$(top_srcdir)/include \
