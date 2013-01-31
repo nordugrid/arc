@@ -1,3 +1,7 @@
+2013-01-31  Florido Paganelli, Mattias Ellert <florido.paganelli@hep.lu.se> <mattias.ellert@fysast.uu.se>
+  * Improved bdii-update automatical configuration. BDII configuration commands
+    are no longer needed in the [infosys] configuration block.
+    
 2013-01-29  Dmytro Karpenko <dmytrok@fys.uio.no>
   * SLURMmod.pm plugin with native ARC1 API is introduced.
 
