@@ -44,8 +44,8 @@ found in this file, the file at /etc/arc.conf is read.
 .SH The [common] block 
 
 The parameters set within this block are available for all the other blocks.
-These are the config parameters shared by the different components of ARC
-(e.g. grid-manager, infosys)  
+These are the configuration parameters shared by the different components of ARC
+(e.g. grid-manager, infosys) 
 
 
 .TP
@@ -60,7 +60,7 @@ hostname="myhost.org"
 .TP
 .B x509_voms_dir
 x509_voms_dir path - the path to the directory containing *.lsc files
-needed for checking validity of VOMS extensions.  If not specified default
+needed for checking validity of VOMS extensions. If not specified default
 value /etc/grid-security/vomsdir is used.
 
 .IR Example:
@@ -209,7 +209,7 @@ sge_cell="default"
 .TP
 .B sge_qmaster_port
 sge_qmaster_port, sge_execd_port - these options should be used in case SGE
-command line clients requre SGE_QMASTER_PORT and SGE_EXECD_PORT environment
+command line clients require SGE_QMASTER_PORT and SGE_EXECD_PORT environment
 variables to be set. Usually they are not necessary.
 
 .IR Example:
@@ -290,7 +290,7 @@ dgbridge_stage_dir="/var/www/DGBridge"
 
 .TP
 .B dgbridge_stage_prepend
-Desktop Bridge url prefix pointing to dgbridge_stage_dir
+Desktop Bridge URL prefix pointing to dgbridge_stage_dir
 
 .IR Example:
 .br
@@ -304,7 +304,7 @@ globus_tcp_port_range, globus_udp_port_range - Firewall configuration
 In a firewalled environment the software which uses GSI needs to know what
 ports are available. The full documentation can be found at:
 http://dev.globus.org/wiki/FirewallHowTo
-These variable are similar to the Globus enviroment variables:
+These variable are similar to the Globus environment variables:
 GLOBUS_TCP_PORT_RANGE and GLOBUS_UDP_PORT_RANGE.
 These variables are not limited to [common], but can be set individually
 for each service in corresponding section: [grid-manager], [gridftpd]
@@ -319,7 +319,7 @@ globus_udp_port_range="9000,12000"
 .TP
 .B x509_user_key
 x509_user_cert, x509_user_key - Server credentials location.
-These variables are similar to the GSI enviroment variables:
+These variables are similar to the GSI environment variables:
 X509_USER_KEY and X509_USER_CERT
 These variables are not limited to [common], but can be set individually
 for each service in corresponding section: [grid-manager], [gridftpd], [nordugridmap]
@@ -333,7 +333,7 @@ x509_user_cert="/etc/grid-security/hostcert.pem"
 .TP
 .B x509_cert_dir
 x509_cert_dir - Location of trusted CA certificates
-This variable is similar to the GSI enviroment variable: X509_CERT_DIR
+This variable is similar to the GSI environment variable: X509_CERT_DIR
 This variable is not limited to [common], but can be set individually
 for each service in corresponding section: [grid-manager], [gridftpd]
 
@@ -344,7 +344,7 @@ x509_cert_dir="/etc/grid-security/certificates"
 .TP
 .B gridmap
 gridmap - The gridmap file location
-This variable is similar to the GSI enviroment variable: GRIDMAP
+This variable is similar to the GSI environment variable: GRIDMAP
 This variable is not limited to [common], but can be set individually
 for each service in corresponding section: [grid-manager], [gridftpd]
 The default is /etc/grid-security/grid-mapfile
@@ -357,11 +357,10 @@ gridmap="/etc/grid-security/grid-mapfile"
 .B voms_processing
 voms_processing - Defines how to behave if errors in VOMS AC processing detected.
   relaxed - use everything that passed validation.
-  standard - same as relaxed but fail if parsing errors took place and
-             VOMS extension is marked as critical. This is a default.
+  standard - same as relaxed but fail if parsing errors took place and VOMS extension is marked as critical. This is the default.
   strict - fail if any parsing error was discovered.
   noerrors - fail if any parsing or validation error happened.
-This command can also be used in [grid-manager] and [griftpd] blocks.
+This command can also be used in [grid-manager] and [gridftpd] blocks.
 
 .IR Example:
 .br
@@ -370,17 +369,18 @@ voms_processing="standard"
 .TP
 .B voms_trust_chain 
 voms_trust_chain - Define the DN chain that the host services trust when the 
-voms AC from peer voms proxy certificate is parsed and validated. 
-There can be multiple "voms_trust_chain" existing, each one corresponds to a voms server. 
+VOMS AC from peer VOMS proxy certificate is parsed and validated. 
+There can be multiple "voms_trust_chain" existing, each one corresponds to a VOMS server. 
 This variable is similar to the information in *.lsc file, but with two differences:
- 1, you don't need to create a *.lsc file per VOMS server, but create a chain per VOMS server;
- 2, the regular expression is support when matching the DNs.
+ 1, You don't need to create a *.lsc file per VOMS server, but create a chain per VOMS server;
+ 2, Regular expressions are supported when matching the DNs.
 
 This variable is not limited to [common], but can be used in [grid-manager]
 and [gridftpd] blocks.
 This variable should be used together with voms_processing.
 This variable will overwrite the information in *.lsc if *.lsc exists. 
 
+.nf
 .IR Example:
 .br
 voms_trust_chain = "/O=Grid/O=NorduGrid/CN=host/arthur.hep.lu.se" "/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority"
@@ -388,6 +388,7 @@ voms_trust_chain = "/O=Grid/O=NorduGrid/CN=host/arthur.hep.lu.se" "/O=Grid/O=Nor
 voms_trust_chain = "/O=Grid/O=NorduGrid/CN=host/emi-arc.eu" "/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority"
 .br
 voms_trust_chain = "^/O=Grid/O=NorduGrid"
+.fi
 
 .SH [vo] block 
 
@@ -398,7 +399,7 @@ Please note that [vo] block processing by nordugridmap utility
 depend on parameters defined in the [nordugridmap] block.
 
 [vo] block by itself does not affect authorization of client/user. For
-that label defined by vo="" atribute may be used in [group] block with
+that label defined by vo="" attribute may be used in [group] block with
 'vo' rule. Also mapfiles generated by nordugridmap utility can be used
 with 'file' rule.
 
@@ -414,8 +415,7 @@ id="vo_1"
 
 .TP
 .B vo
-vo vo_name - specifies the VO name, this name can be used in other blocks
-and in gacl expressions. MUST be given.
+vo vo_name - specifies the VO name, this name can be used in other blocks. MUST be given.
 
 .IR Example:
 .br
@@ -426,7 +426,7 @@ vo="nordugrid"
 file path - output gridmap-file where GENERATED mapping list will be
 stored. See parameters below to define how to generate this file.
 If the same file specified as output for different [vo] blocks, 
-nordugridmap will automatically merge enrties in given blocks order.
+nordugridmap will automatically merge entries in given blocks order.
 Default is '/etc/grid-security/gridmapfile'.
 
 .IR Example:
@@ -435,10 +435,10 @@ file="/etc/grid-security/VOs/atlas-users"
 
 .TP
 .B source
-source url - the URL of the VO database which is assigned to this VO. 
+source URL - the URL of the VO database which is assigned to this VO. 
 The nordugridmap will use this URL to automatically generate and keep 
 up-to-date userlist (mapfile) specified by the 'file' attribute. 
-url is a multivalued attribute, several sources can be specified for 
+URL is a multivalued attribute, several sources can be specified for 
 the [vo] block and all the users from those sources will be merged 
 into the same file. The source URLs are processed in the given order.
 Currently supported URL types are: 
@@ -448,7 +448,7 @@ Currently supported URL types are:
    voms(s):// - URL to VOMS-Admin interface
    nordugrid  - add NorduGrid VO members
    ldap://    - expect LDAP-schema formatted VO Group
-   file://    - local file (stand-alone or dynamicaly generated by 
+   file://    - local file (stand-alone or dynamically generated by 
                 nordugridmap). File should contain a list of DNs with
                 optional mapped unixid: "user DN" [mapped user ID]
                 Result of optional mapped unixid processing depend
@@ -457,7 +457,7 @@ Currently supported URL types are:
    edg-mkgridmap:// 
               - local configuration file used by edg-mkgridmap tool.
                 nordugridmap will parse configuration from file and 
-                process it as aditional [vo] block that will be refered 
+                process it as additional [vo] block that will be referred 
                 authomatically in place URL specified. This allow 
                 easy migration from edg-mkgridmap solution without 
                 rewriting your previous configuration (NOTE that rarely 
@@ -474,7 +474,7 @@ You can override the following parameters:
    mapped_unixid       for http(s),voms(s),ldap and file URLs
    cache_enable        for http(s),voms(s),ldap and file URLs
    voms_method         for voms(s) URLs
-   mapuser_processing  for file URLs with mapped_unixid='<unixid>' overrided 
+   mapuser_processing  for file URLs with mapped_unixid='<unixid>' overrides
                        (control mapped_unixid overriding behaviour for URL)
 
 .IR Example:
@@ -501,16 +501,16 @@ mapped_unixid unixid - the local UNIXID which is used in the generated
 grid-mapfile by the nordugridmap utility.
 
 If any of the sources have already provided mapping information (file:// 
-or vo://) behavior depends on 'mapuser_processing' [nordugridmap] block
-conguration:
+or vo://) behaviour depends on 'mapuser_processing' [nordugridmap] block
+configuration:
    mapuser_processing = 'overwrite': ignore already provided mapping and 
                         apply mapped_unixid for all sources
    mapuser_processing = 'keep': apply mapped_unixid only for sources that
                         does not already has mapping information
 
 [vo] block can only have one UNIXID.
-If 'mapped_unixid' is not specified behavior depends on 'allow_empty_unixid'
-[nordugridmap] block conguration value:
+If 'mapped_unixid' is not specified behaviour depends on 'allow_empty_unixid'
+[nordugridmap] block configuration value:
    allow_empty_unixid = 'yes': empty value will be used for mapped_unixid
                         which means that nordugridmap will generate only 
                         the list of DNs without mapping (consider using  
@@ -546,12 +546,12 @@ voms_fqan_map="/atlas/Role=production atlasprod"
 .TP
 .B require_issuerdn
 require_issuerdn yes/no - another nordugridmap option. YES would map only
-those DNs obtained from the urls which have the corresponding public CA 
+those DNs obtained from the URLs which have the corresponding public CA 
 packages installed. Default is 'no'.
 Note, that some sources does not provide issuer information (like 
 voms(s):// or file://). If this sources are used within [vo] block
-and require_issuerdn is set to 'yes' behavior depends on issuer_processing
-[nordugridmap] block conguration:
+and require_issuerdn is set to 'yes' behaviour depends on issuer_processing
+[nordugridmap] block configuration:
    issuer_processing = 'relaxed': check only those records that have issuer 
                        information provided, allow other sources
    issuer_processing = 'strict': if issuer information was not found record 
@@ -582,17 +582,17 @@ filter="allow *NorduGrid*"
 These configuration blocks define rules used to define to which
 authorization group a user belongs. The group should not be mistaken
 for a virtual organisation (VO). A group may match a single vo if
-only a single check (rule) on vo membership is perfomed. It is
+only a single check (rule) on vo membership is performed. It is
 however more common to allow multiple VOs in a single group. ARC
 also allows many other ways to assign users to groups. Technically,
 permissions are only granted to groups, not directly to VOs.
 
-The block specifies single authorization group. Ther may be multiple
+The block specifies single authorization group. There may be multiple
 [group] blocks in configuration defining multiple authorization
 groups.
 
 The block can be specified in two ways - either using [group/group1]
-like subblock decalration per group or just [group]. The two formats
+like subblock declaration per group or just [group]. The two formats
 are equivalent. Every block (till the beginning of next block or the 
 end of the file) defines one authorization group.
 
@@ -645,7 +645,7 @@ subject="/O=Grid/O=Big VO/CN=Main Boss"
 file path - Start reading rules from another file. That file has a bit 
 different format. It can't contain blocks and commands are separated
 from arguments by space. Also word "subject" in subject command may be
-skipped. That makes it convinient to directly add gridmap-like lists to
+skipped. That makes it convenient to directly add gridmap-like lists to
 authorization group.
 
 .IR Example:
@@ -679,7 +679,7 @@ group="local_admins"
 plugin timeout path [argument ...] - Run external executable or 
 function from shared library. Rule is matched if plugin returns 0.
 In arguments following substitutions are supported:
-  %D - subject of certicate
+  %D - subject of certificate
   %P - path to proxy
 
 For more about plugins read documentation.
@@ -771,7 +771,7 @@ sessiondir="/mnt/grid drain"
 .TP
 .B runtimedir
 runtimedir path - The directory which holds the runtimeenvironment scripts, 
-should be available on the nodes as well! the runtimeenvironments are 
+should be available on the nodes as well! The runtimeenvironments are 
 automatically detected and advertised in the information system.
 
 .IR Example:
@@ -927,7 +927,7 @@ debug="2"
 .TP
 .B logfile
 logfile path - Specify log file location. This file is opened/created
-before daemon swithces to specified user. Hence it can be owned 
+before the daemon switches to specified user. Hence it can be owned 
 by 'root'. Default log file is "/var/log/arc/grid-manager.log"
 
 .IR Example:
@@ -950,7 +950,7 @@ logsize="100000 2"
 .B logreopen
 logreopen yes|no - Specifies if log file must be closed after each record is
 added. By default arched keeps log file open. This option can be used to
-make behavior of arched compatible with external log rotation utilities.
+make behaviour of arched compatible with external log rotation utilities.
 
 .IR Example:
 .br
@@ -1003,8 +1003,8 @@ joblog="/var/log/arc/gm-jobs.log"
 
 .TP
 .B jobreport
-jobreport [url ...] [timeout] - tells to report all started and finished jobs 
-to logger service at 'url'. Multiple urls and multiple jobreport commands 
+jobreport [URL ...] [timeout] - tells to report all started and finished jobs 
+to logger service at 'URL'. Multiple URLs and multiple jobreport commands 
 are allowed. In that case the job info will be sent to all of them.
 Timeout specifies how long (in days) to try to pass information before
 give up. Suggested value is 30 days.
@@ -1257,7 +1257,7 @@ authplugin="FINISHED timeout=10,onfailure=pass /usr/libexec/arc/arc-ur-logger %C
 
 .TP
 .B authplugin
-ARC is distributed with the plugin "arc-vomsac-check". It's purpose is to enforce
+ARC is distributed with the plugin "arc-vomsac-check". Its purpose is to enforce
 per-queue access policies based on VOMS attributes present in user's
 proxy-certificate. Plugin should be run before job enters the cluster.
 It requires 2 argments: path to job information .local file and path to
@@ -1439,7 +1439,7 @@ permissions. If "no" is specified then A-REX does nothing to prepare its
 operational environement. In case of "missing" A-REX only creates and
 sets permissions for directories which are not present yet.  For "yes"
 all directories are created and permisisons for all used directories are
-set to default safe values. Default behavior is as if "yes" is specified.
+set to default safe values. Default behaviour is as if "yes" is specified.
 
 .IR Example:
 .br
@@ -1459,7 +1459,7 @@ or other security rules.
 
 .IR Example:
 .br
-arex_mount_point="https://piff.hep.lu.se:60000/arex"
+arex_mount_point="https://piff.hep.lu.se:443/arex"
 
 .TP
 .B enable_arc_interface
@@ -1764,7 +1764,7 @@ encryption="no"
 
 .TP
 .B include
-include - Include contents of another config file.
+include - Include contents of another configuration file.
 
 .IR Example:
 .br
@@ -1909,7 +1909,7 @@ unixvo="ATLAS unixuser atlas:atlas"
 subblock for "exporting" a directory using the gridftpd's fileplugin plugin.
 gridftp plugins are shared libraries.
 "filedir" is a unique label. The acess control is set by using the 
-"dir" config option
+"dir" configuration option
 
 
 .TP
@@ -2106,7 +2106,7 @@ groupcfg="users"
 
 .TP
 .B allownew
-The 'allownew' config parameter sets if the grid resource accepts
+The 'allownew' configuration parameter sets if the grid resource accepts
 submission of new jobs. This parameter can be used to close down a grid.
 The default is yes
 
@@ -2222,7 +2222,7 @@ slapd_loglevel="0"
 .B slapd_hostnamebind
 slapd_hostnamebind - may be used to set the hostname part of the
 network interface to which the slapd process will bind. Most of
-the cases no need to set since the hostname config parameter is already
+the cases no need to set since the hostname configuration parameter is already
 sufficient. The default is empty. The example below will bind the slapd
 process to all the network interfaces available on the server.
 
@@ -2253,7 +2253,7 @@ timelimit="1800"
 .B idletimeout
 idletimeout - the native slapd idletimeout parameter. Maximum number of
 seconds the slapd server will wait before forcibly closing idle client
-connections. It's value must be larger than the value of "timelimit" option.
+connections. Its value must be larger than the value of "timelimit" option.
 If not set, it defaults to timelimit + 1.
 
 .IR Example:
@@ -2278,7 +2278,7 @@ ldap_schema_dir="/nfs/ldap/schema/"
 .TP
 .B oldconfsuffix
 oldconfsuffix .suffix - sets the suffix of the backup files of the
-low-level slapd config files in case they are regenerated. Default is
+low-level slapd configuration files in case they are regenerated. Default is
 ".oldconfig".
 
 .IR Example:
@@ -2532,7 +2532,7 @@ by ARC. Please consult BDII manual for details.
 
 .TP
 .B bdii_conf
-bdii_conf - Location of the bdii config file.
+bdii_conf - Location of the bdii configuration file.
 ARC modifies the original and sets it
 as default /var/run/arc/infosys/bdii.conf
 
@@ -2704,7 +2704,7 @@ unique_id=""
 
 .TP
 .B url
-The url is on the format:
+The URL is of the format:
 ldap://host.domain:2170/mds-vo-name=something,o=grid and should
 point to the resource-bdii
 
@@ -2743,7 +2743,7 @@ description="ARC test Domain"
 
 .TP
 .B www
-www - url pointing at a site holding information about the 
+www - URL pointing at a site holding information about the 
 AdminDomain. Not mandatory.
 
 .IR Example:
@@ -2803,7 +2803,7 @@ name="indexname"
 allowregistration - Implements registration filtering within an Index Sevice
 Sets the Local Information Trees or lower level Index Services
 allowed to register to the Index Service. List each allowed registrants 
-with the allowreg atribute.
+with the allowreg attribute.
 
 WARNING: specifying allowreg implies setting up a strict filtering, 
 only the matching registrants will be able to register to the Index. 
@@ -3133,7 +3133,7 @@ nodeaccess="outbound"
 
 .TP
 .B dedicated_node_string
-dedicated_node_string - the string which is used in the PBS node config to
+dedicated_node_string - the string which is used in the PBS node configuration to
 distinguish the grid nodes from the rest. Suppose only a subset of nodes are
 available for grid jobs, and these nodes have a common "node property" string,
 this case the dedicated_node_string should be set to this value and only the
@@ -3141,9 +3141,9 @@ nodes with the corresponding  "pbs node property" are counted as grid enabled
 nodes. Setting the dedicated_node_string  to the value of the "pbs node
 property" of the grid-enabled  nodes will influence how the totalcpus, user
 freecpus is calculated. You don't need to set this attribute if your cluster
-is fully available for the grid and your cluster's PBS config does not use 
+is fully available for the grid and your cluster's PBS configuration does not use 
 the "node property" method to assign certain nodes to grid queues. You
-shouldn't use this config option unless you make sure  your PBS config makes
+shouldn't use this configuration option unless you make sure your PBS configuration makes
 use of the above described setup.
 
 .IR Example:
@@ -3359,7 +3359,7 @@ maui_bin_path="/usr/local/bin"
 .TP
 .B queue_node_string
 queue_node_string - In PBS you can assign nodes to a queue (or a queue to
-nodes) by using the "node property" PBS node config method and asssigning the
+nodes) by using the "node property" PBS node configuration method and asssigning the
 marked nodes to the queue (setting the resources_default.neednodes =
 queue_node_string for that queue). This parameter should contain the "node
 property" string of the queue-assigned nodes. Setting the queue_node_string
@@ -3537,7 +3537,7 @@ disablereg_xbes="no"
 
 .SH [nordugridmap] block 
 
-[nordugridmap] block configuration is used to fine-tune behavior 
+[nordugridmap] block configuration is used to fine-tune behaviour 
 of the nordugridmap - an ARC tool used to generate grid-mapfiles.
 Please refer to [vo] block description to find information how
 to specify VO sources for mapfile generation. This section setup 
@@ -3634,7 +3634,7 @@ cachetime="259200"
 
 .TP
 .B issuer_processing
-issuer_processing - control the behavior of [vo] block require_issuerdn 
+issuer_processing - control the behaviour of [vo] block require_issuerdn 
 parameter. Valid values are 'relaxed' and 'strict'.
 Please see 'require_issuerdn' description in [vo] block for details. 
 Default is 'relaxed'.
@@ -3645,7 +3645,7 @@ issuer_processing="relaxed"
 
 .TP
 .B mapuser_processing
-mapuser_processing - control the behavior of [vo] block mapped_unixid 
+mapuser_processing - control the behaviour of [vo] block mapped_unixid 
 parameter usage. Valid values are 'overwrite' and 'keep'. 
 Please see 'mapped_unixid' description in [vo] block for details.
 Default is 'keep'.
@@ -3667,7 +3667,7 @@ allow_empty_unixid="no"
 
 .TP
 .B voms_method
-voms_method - control how to get information from VOMS(S) sources.
+voms_method - control how to get information from voms(s) sources.
 Valid values are:
   soap - call SOAP method directly using SOAP::Lite
   get  - use old implementation that manually parses XML response
