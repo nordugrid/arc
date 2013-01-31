@@ -186,7 +186,7 @@ else
     update_lock_file=${update_lock_file:-/var/lock/$prog}
 fi
 
-chown ${bdii_user} ${bdii_log_dir}
+chown ${bdii_user}: ${bdii_log_dir}
 
 arc_runtime_config="/var/run/arc/infosys"
 BDII_CONF=${CONFIG_bdii_conf:-${arc_runtime_config}/bdii.conf}

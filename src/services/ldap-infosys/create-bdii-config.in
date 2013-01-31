@@ -66,7 +66,7 @@ fi
 
 arc_runtime_config=/var/run/arc/infosys
 mkdir -p ${arc_runtime_config}
-chown ${bdii_user} ${arc_runtime_config}
+chown ${bdii_user}: ${arc_runtime_config}
 
 bdii_debug_level=${CONFIG_bdii_debug_level:-ERROR}
 
@@ -131,10 +131,10 @@ fi
 # Check directories and permissions
 mkdir -p `dirname $providerlog`
 touch ${providerlog}
-chown ${bdii_user} ${providerlog}
+chown ${bdii_user}: ${providerlog}
 
 mkdir -p $bdii_log_dir
-chown -R ${bdii_user}:${bdii_user} ${bdii_log_dir}
+chown -R ${bdii_user}: ${bdii_log_dir}
 
 # If the new code path is selected...
 if [ "x$infosys_nordugrid" = "xenable" ] || \
@@ -245,8 +245,8 @@ mkdir -p $bdii_tmp_dir/provider
 mkdir -p $bdii_tmp_dir/plugin
 
 # change permissions if user is not root
-chown -R ${bdii_user}:${bdii_user} ${bdii_var_dir}
-chown -R ${bdii_user}:${bdii_user} ${bdii_tmp_dir}
+chown -R ${bdii_user}: ${bdii_var_dir}
+chown -R ${bdii_user}: ${bdii_tmp_dir}
 
 # Generate bdii configuration
 

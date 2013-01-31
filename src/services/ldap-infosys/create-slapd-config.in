@@ -64,7 +64,7 @@ bdii_update_cmd=${CONFIG_bdii_update_cmd:-${bdii_location}/sbin/bdii-update}
 
 arc_runtime_config=/var/run/arc/infosys
 mkdir -p ${arc_runtime_config}
-chown ${bdii_user} ${arc_runtime_config}
+chown ${bdii_user}: ${arc_runtime_config}
 
 giis_location=${CONFIG_giis_location:-$ARC_LOCATION}
 giis_fifo=${CONFIG_giis_fifo:-$arc_runtime_config/giis-fifo}
@@ -390,7 +390,7 @@ cat <<-EOF >> $bdii_slapd_conf
 	directory       $bdii_var_dir/db/stats
 	EOF
 
-chown $bdii_user:$bdii_user $bdii_slapd_conf
+chown $bdii_user: $bdii_slapd_conf
 [ -x /sbin/restorecon ] && /sbin/restorecon $bdii_slapd_conf
 
 if [ "x$slapd_hostnamebind" = "x*" ]; then
@@ -404,9 +404,9 @@ chmod +x ${bdii_slapd_cmd}
 
 mkdir -p $bdii_run_dir/db
 mkdir -p $bdii_run_dir/archive
-chown $bdii_user:$bdii_user $bdii_run_dir
-chown $bdii_user:$bdii_user $bdii_run_dir/db
-chown $bdii_user:$bdii_user $bdii_run_dir/archive
+chown $bdii_user: $bdii_run_dir
+chown $bdii_user: $bdii_run_dir/db
+chown $bdii_user: $bdii_run_dir/archive
 [ -x /sbin/restorecon ] && /sbin/restorecon -R $bdii_run_dir/db
 [ -x /sbin/restorecon ] && /sbin/restorecon -R $bdii_run_dir/archive
 mkdir -p $bdii_var_dir/archive
@@ -416,11 +416,11 @@ mkdir -p $bdii_var_dir/db/stats
 rm -f $bdii_var_dir/db/arc/* 2>/dev/null
 rm -f $bdii_var_dir/db/glue2/* 2>/dev/null
 rm -f $bdii_var_dir/db/stats/* 2>/dev/null
-chown $bdii_user:$bdii_user $bdii_var_dir/db
-chown $bdii_user:$bdii_user $bdii_var_dir/archive
-chown $bdii_user:$bdii_user $bdii_var_dir/db/arc
-chown $bdii_user:$bdii_user $bdii_var_dir/db/glue2
-chown $bdii_user:$bdii_user $bdii_var_dir/db/stats
+chown $bdii_user: $bdii_var_dir/db
+chown $bdii_user: $bdii_var_dir/archive
+chown $bdii_user: $bdii_var_dir/db/arc
+chown $bdii_user: $bdii_var_dir/db/glue2
+chown $bdii_user: $bdii_var_dir/db/stats
 [ -x /sbin/restorecon ] && /sbin/restorecon -R $bdii_var_dir/db
 [ -x /sbin/restorecon ] && /sbin/restorecon -R $bdii_var_dir/archive
 
@@ -452,9 +452,9 @@ fi
 cp ${bdii_db_config} ${bdii_var_dir}/db/arc/DB_CONFIG
 cp ${bdii_db_config} ${bdii_var_dir}/db/glue2/DB_CONFIG
 cp ${bdii_db_config} ${bdii_var_dir}/db/stats/DB_CONFIG
-chown $bdii_user ${bdii_var_dir}/db/arc/DB_CONFIG
-chown $bdii_user ${bdii_var_dir}/db/glue2/DB_CONFIG
-chown $bdii_user ${bdii_var_dir}/db/stats/DB_CONFIG
+chown $bdii_user: ${bdii_var_dir}/db/arc/DB_CONFIG
+chown $bdii_user: ${bdii_var_dir}/db/glue2/DB_CONFIG
+chown $bdii_user: ${bdii_var_dir}/db/stats/DB_CONFIG
 
 # if the BDII low memory workaround has been applied, remove the temp file
 if [ -r $TEMPBDIIDBCONFIG ]; then

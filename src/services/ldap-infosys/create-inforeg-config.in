@@ -56,11 +56,11 @@ bdii_user=${CONFIG_user:-$ldap_user}
 registrationlog=${CONFIG_registrationlog:-/var/log/arc/inforegistration.log}
 mkdir -p `dirname $registrationlog`
 touch ${registrationlog}
-chown ${bdii_user} ${registrationlog}
+chown ${bdii_user}: ${registrationlog}
 
 arc_runtime_config="/var/run/arc/infosys"
 mkdir -p ${arc_runtime_config}
-chown ${bdii_user} ${arc_runtime_config}
+chown ${bdii_user}: ${arc_runtime_config}
 
 registrationconf=$arc_runtime_config/grid-info-resource-register.conf
 

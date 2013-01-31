@@ -145,7 +145,7 @@ fi
 
 arc_runtime_config="/var/run/arc/infosys"
 mkdir -p ${arc_runtime_config}
-chown ${bdii_user} ${arc_runtime_config}
+chown ${bdii_user}: ${arc_runtime_config}
 
 giis_fifo=${CONFIG_giis_fifo:-$arc_runtime_config/giis-fifo}
 
