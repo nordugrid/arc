@@ -359,7 +359,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
         logger.msg(Arc::ERROR, "Wrong number in defaultttl command"); return false;
       }
       default_ttl_s = config_next_arg(rest);
-      if (!Arc::stringto(default_ttl_s, config.keep_deleted)) {
+      if (!default_ttl_s.empty() && !Arc::stringto(default_ttl_s, config.keep_deleted)) {
         logger.msg(Arc::ERROR, "Wrong number in defaultttl command"); return false;
       }
     }
