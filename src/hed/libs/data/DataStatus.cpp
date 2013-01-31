@@ -74,7 +74,7 @@ namespace Arc {
     if (status_ > UnknownError) status_ = UnknownError;
     std::string s(status_string[status_]);
     if (Errno > 0 && Errno < DataStatusErrnoMax) s += ": " + GetStrErrno();
-    if (!desc.empty()) s += ": " + desc;
+    if (!desc.empty() && desc != GetStrErrno()) s += ": " + desc;
     return s;
   }
 
