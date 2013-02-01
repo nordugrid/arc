@@ -368,24 +368,21 @@ namespace Arc {
 
     /// Write jobs
     /**
-     * This method is in all respects identical to the Write(const std::list<Job>&, std::list<const Job*>&)
-     * method, except for information about new jobs which is disregarded.
+     * Add jobs to storage. If there already exist a job with a specific job ID
+     * in the storage, and a job with the same job ID is tried added to the
+     * storage then the existing job will be overwritten. 
      *
-     * A specialised implementaion does not necessarily need to be provided.
+     * A specialised implementaion does not necessarily need to be provided. If
+     * not provided Write(const std::list<Job>&, std::set<std::string>&, std::list<const Job*>&)
+     * will be used.
      *
-     * @see Write(const std::list<Job>&, std::list<const Job*>&)
+     * @param jobs is the list of Job objects which should be added to the
+     *  storage.
+     * @return \c true is returned if all jobs in the \c jobs list are written
+     *  to to storage, otherwise \c false is returned.
+     * @see Write(const std::list<Job>&, std::set<std::string>&, std::list<const Job*>&)
      */
-    virtual bool Write(const std::list<Job>& jobs)  { std::list<const Job*> newJobs; return Write(jobs, newJobs); }
-
-    /// Write jobs
-    /**
-     * This method invokes Write(const std::list<Job>&, const std::set<std::string>&, std::list<const Job*>&)
-     * with an empty set as the 3rd argument, meaning that all existing jobs
-     * which are not replaced, will be kept.
-     *
-     * @see Write(const std::list<Job>&, const std::set<std::string>&, std::list<const Job*>&)
-     */
-    virtual bool Write(const std::list<Job>& jobs, std::list<const Job*>& newJobs) { std::set<std::string> noServices; return Write(jobs, noServices, newJobs); }
+    virtual bool Write(const std::list<Job>& jobs)  { std::list<const Job*> newJobs; std::set<std::string> prunedServices; return Write(jobs, prunedServices, newJobs); }
 
     /// Write jobs
     /**

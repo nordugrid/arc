@@ -410,8 +410,9 @@ void JobTest::FileTest() {
   inJobs.back().JobID = "https://ce01.niif.hu:60000/arex/job3";
 
   // Check that pointers to new jobs are added to the list
+  std::set<std::string> prunedServices;
   std::list<const Arc::Job*> newJobs;
-  CPPUNIT_ASSERT(jobList.Write(inJobs, newJobs));
+  CPPUNIT_ASSERT(jobList.Write(inJobs, prunedServices, newJobs));
   CPPUNIT_ASSERT_EQUAL(1, (int)newJobs.size());
   CPPUNIT_ASSERT_EQUAL(inJobs.back().Name, newJobs.front()->Name);
   CPPUNIT_ASSERT_EQUAL(inJobs.back().IDFromEndpoint, newJobs.front()->IDFromEndpoint);
@@ -454,7 +455,7 @@ void JobTest::FileTest() {
   // Truncate file.
   CPPUNIT_ASSERT(jobList.Clean());
   newJobs.clear();
-  CPPUNIT_ASSERT(jobList.Write(inJobs, newJobs));
+  CPPUNIT_ASSERT(jobList.Write(inJobs, prunedServices, newJobs));
   CPPUNIT_ASSERT_EQUAL(4, (int)newJobs.size());
   CPPUNIT_ASSERT(jobList.ReadAll(outJobs));
   CPPUNIT_ASSERT_EQUAL(4, (int)outJobs.size());
