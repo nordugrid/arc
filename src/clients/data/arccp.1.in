@@ -44,7 +44,8 @@ physical file to write to when destination is an indexing service. Must be speci
 .IP "\fB-P\fR, \fB--listplugins\fR"
 list the available plugins (protocols supported)
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
-timeout in seconds (default 20)
+timeout in seconds (default 20). This timeout applies to connections to remote
+services and indicates the maximum allowed idle time of the transfer.
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
 configuration file (default ~/.arc/client.conf)
 .IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
@@ -95,9 +96,9 @@ case of two remote endpoints, unless the
 .B --thirdparty
 option is used. With this option credentials are delegated to the destination
 and it pulls the data directly from the source. The timeout option in this case
-applies to the transfer itself and default timeouts are used for connections to
-the remote endpoints. Note that third-party transfer is only possible if the
-GFAL2 plugin is installed.
+applies to the entire transfer itself and default timeouts are used for
+connections to the remote endpoints. Note that third-party transfer is only
+possible if the GFAL2 plugin is installed.
 
 Depending on the installed libraries (check with
 .B -P
