@@ -67,6 +67,14 @@ namespace ArcDMCGFAL {
       return DataStatus(DataStatus::TransferError, error_no, "Failed to set GFAL2 user data object");
     }
 
+    // Set replace according to overwrite option
+    gfalt_set_replace_existing_file(params, (destination.Option("overwrite") == "yes"), &err);
+    if (err != NULL) {
+      logger.msg(VERBOSE, "Failed to set overwrite option in GFAL2: %s", err->message);
+      g_error_free(err);
+      return DataStatus(DataStatus::TransferError, error_no, "Failed to set overwrite option in GFAL2");
+    }
+
     // Set transfer timeout
     gfalt_set_timeout(params, transfer_timeout, &err);
     if (err != NULL) {
