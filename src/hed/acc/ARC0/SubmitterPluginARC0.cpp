@@ -222,10 +222,32 @@ namespace Arc {
   }
 
   SubmissionStatus SubmitterPluginARC0::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
+    SubmissionStatus retval;
+
+    // gridftp and ldapng intterfaces are bound. So for submiting to
+    // to gridftp presence of ldapng is needed.
+    // This will not help against misbehaving information system 
+    // because actual state of interface is not propagated to 
+    // OtherEndpoints. But it should prevent submission to sites 
+    // where ldapng is explicitely disabled.
+    bool ldapng_interface_present = false;
+    for (std::list< CountedPointer<ComputingEndpointAttributes> >::const_iterator it = et.OtherEndpoints.begin(); it != et.OtherEndpoints.end(); it++) {
+      if (((*it)->InterfaceName == "org.nordugrid.ldapng") &&
+          ((*it)->HealthState == "ok")) {
+        ldapng_interface_present = true;
+        break;
+      }
+    }
+    if(!ldapng_interface_present) {
+      logger.msg(INFO, "Submit: service has no suitable information interface - need org.nordugrid.ldapng");
+      retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+      retval |= SubmissionStatus::NO_SERVICES;
+      return retval;
+    }
+
     FTPControl ctrl;
     URL url(et.ComputingEndpoint->URLString);
     
-    SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
       if (!ctrl.Connect(url,
                         usercfg.ProxyPath(), usercfg.CertificatePath(),
@@ -323,13 +345,16 @@ namespace Arc {
       // Prepare contact url for information about this job
       URL infoendpoint;
       for (std::list< CountedPointer<ComputingEndpointAttributes> >::const_iterator it = et.OtherEndpoints.begin(); it != et.OtherEndpoints.end(); it++) {
-        if ((*it)->InterfaceName == "org.nordugrid.ldapng") {
+        if (((*it)->InterfaceName == "org.nordugrid.ldapng") &&
+            ((*it)->HealthState == "ok")) {
           infoendpoint = URL((*it)->URLString);
           infoendpoint.ChangeLDAPScope(URL::subtree);
+          break;
         }
       }
 
       if (!infoendpoint) {
+        // Should not happen
         infoendpoint = CreateInfoURL(ContactString.Host());
       }
 
