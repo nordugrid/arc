@@ -606,22 +606,25 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       dtr_generator->receiveJob(*i);
       return true;
     }
+    // if job has already failed then do not set failed state again if DTR failed
+    bool already_failed = !i->GetFailure(config).empty();
+    // queryJobFinished() calls i->AddFailure() if any DTR failed
     if (dtr_generator->queryJobFinished(*i)) {
 
       bool done = true;
       bool result = true;
 
       // check for failure
-      if (!i->GetFailure(config).empty()) {
+      if (!i->GetFailure(config).empty() && !already_failed) {
         JobFailStateRemember(i, (up ? JOB_STATE_FINISHING : JOB_STATE_PREPARING));
         result = false;
       }
       else if (!up) { // check for user-uploadable files if downloading
-        int result = dtr_generator->checkUploadedFiles(*i);
-        if (result == 2) { // still going
+        int res = dtr_generator->checkUploadedFiles(*i);
+        if (res == 2) { // still going
           done = false;
         }
-        else if (result == 0) { // finished successfully
+        else if (res == 0) { // finished successfully
           state_changed=true;
         }
         else { // error
