@@ -341,6 +341,16 @@ sub confchecktripel($$$) {
 			v("$name exists.");
 		}
 	}
+    
+    # check few infosys commands
+    if ($block eq "infosys") {
+        if ($name eq "slapd_loglevel" and $value gt 0) {
+            w("slapd_loglevel > 0 should only be used for development. DO NOT USE for production and testing.\nConfigure bdii_debug_level=\"DEBUG\" instead.\n");
+        }
+        if ($name ne "bdii_debug_level" and $name =~ /^bdii/ ) {
+            e("Starting from release 13.02, BDII configuration commands are strongly deprecated. Use only for Development.\nThe only allowed command is bdii_debug_level\n");
+        }
+    }
 }
 
 # Get all valid configuration parameters and blocks from arc.conf.reference.
