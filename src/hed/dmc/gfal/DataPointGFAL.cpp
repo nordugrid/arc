@@ -580,7 +580,7 @@ namespace ArcDMCGFAL {
 
     if (source.Protocol() == "lfc") lfc_host = source.Host();
     GFALEnvLocker(usercfg, lfc_host);
-    GFALTransfer3rdParty transfer(source, destination, callback);
+    GFALTransfer3rdParty transfer(source, destination, usercfg, callback);
     return transfer.Transfer();
   }
 

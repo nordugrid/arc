@@ -24,8 +24,9 @@ namespace ArcDMCGFAL {
     }
   }
 
-  GFALTransfer3rdParty::GFALTransfer3rdParty(const URL& src, const URL& dest, DataPoint::Callback3rdParty cb)
-  : source(src), destination(dest), callback(cb) {};
+  GFALTransfer3rdParty::GFALTransfer3rdParty(const URL& src, const URL& dest,
+                                             const Arc::UserConfig& cfg, DataPoint::Callback3rdParty cb)
+  : source(src), destination(dest), transfer_timeout(cfg.Timeout()), callback(cb) {};
 
   DataStatus GFALTransfer3rdParty::Transfer() {
 
@@ -64,6 +65,14 @@ namespace ArcDMCGFAL {
       logger.msg(VERBOSE, "Failed to set GFAL2 user data object: %s", err->message);
       g_error_free(err);
       return DataStatus(DataStatus::TransferError, error_no, "Failed to set GFAL2 user data object");
+    }
+
+    // Set transfer timeout
+    gfalt_set_timeout(params, transfer_timeout, &err);
+    if (err != NULL) {
+      logger.msg(WARNING, "Failed to set GFAL2 transfer timeout, will use default: %s", err->message);
+      g_error_free(err);
+      err = NULL;
     }
 
     // Do the copy

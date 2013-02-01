@@ -114,6 +114,7 @@ bool arctransfer(const Arc::URL& source_url,
   }
   // Credentials are always required for 3rd party transfer
   if (!checkProxy(usercfg, source_url)) return false;
+  if (timeout > 0) usercfg.Timeout(timeout);
 
   Arc::DataStatus res = Arc::DataPoint::Transfer3rdParty(source_url, destination_url, usercfg, verbose ? &transfer_cb : NULL);
   if (verbose) std::cerr<<std::endl;

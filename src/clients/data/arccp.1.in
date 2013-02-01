@@ -94,8 +94,10 @@ All data transfer goes through the machine of the caller of arccp, even in the
 case of two remote endpoints, unless the
 .B --thirdparty
 option is used. With this option credentials are delegated to the destination
-and it pulls the data directly from the source. Note that third-party transfer
-is only possible if the GFAL2 plugin is installed.
+and it pulls the data directly from the source. The timeout option in this case
+applies to the transfer itself and default timeouts are used for connections to
+the remote endpoints. Note that third-party transfer is only possible if the
+GFAL2 plugin is installed.
 
 Depending on the installed libraries (check with
 .B -P
