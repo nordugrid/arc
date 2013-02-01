@@ -40,7 +40,7 @@
 #include <openssl/ui.h>
 
 #ifdef HAVE_CANLXX
-#include <canl-c++/dcisec.h>
+#include <canl-c++/canlxx.h>
 #endif
 
 
