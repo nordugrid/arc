@@ -231,12 +231,23 @@ namespace Arc {
         else if (t.ComputingShare->MaxCPUTime.GetPeriod() != -1) {
           const int slots = (j.Resources.SlotRequirement.NumberOfSlots > 0 ? j.Resources.SlotRequirement.NumberOfSlots : 1);
           if (t.ComputingShare->MaxCPUTime.GetPeriod() < totalcputime/slots) {
-            logger.msg(VERBOSE, "Matchmaking, MaxTotalCPUTime problem, ExecutionTarget: %d (MaxCPUTime), JobDescription: %d (TotalCPUTime/NumberOfSlots)", t.ComputingShare->MaxTotalCPUTime.GetPeriod(), totalcputime/slots);
+            logger.msg(VERBOSE, "Matchmaking, MaxCPUTime problem, ExecutionTarget: %d (MaxCPUTime), JobDescription: %d (TotalCPUTime/NumberOfSlots)", t.ComputingShare->MaxCPUTime.GetPeriod(), totalcputime/slots);
             return false;
           }
         }
         else {
           logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxTotalCPUTime or MaxCPUTime not defined, assuming no CPU time limit", t.ComputingEndpoint->URLString);
+        }
+        // There is no MinTotalCPUTime
+        if (t.ComputingShare->MinCPUTime.GetPeriod() != -1) {
+          const int slots = (j.Resources.SlotRequirement.NumberOfSlots > 0 ? j.Resources.SlotRequirement.NumberOfSlots : 1);
+          if (t.ComputingShare->MinCPUTime.GetPeriod() > totalcputime/slots) {
+            logger.msg(VERBOSE, "Matchmaking, MinCPUTime problem, ExecutionTarget: %d (MinCPUTime), JobDescription: %d (TotalCPUTime/NumberOfSlots)", t.ComputingShare->MinCPUTime.GetPeriod(), totalcputime/slots);
+            return false;
+          }
+        }
+        else {
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MinCPUTime not defined, assuming no CPU time limit", t.ComputingEndpoint->URLString);
         }
       }
     }
