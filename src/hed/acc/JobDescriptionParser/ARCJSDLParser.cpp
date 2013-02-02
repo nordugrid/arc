@@ -69,11 +69,11 @@ namespace Arc {
     for (; itSW != sr.getSoftwareList().end(); itSW++, itCO++) {
       if (itSW->empty()) continue;
 
-      XMLNode xmlSoftware = arcJSDL.NewChild("Software");
-      if (!itSW->getFamily().empty()) xmlSoftware.NewChild("Family") = itSW->getFamily();
-      xmlSoftware.NewChild("Name") = itSW->getName();
+      XMLNode xmlSoftware = arcJSDL.NewChild("arc-jsdl:Software");
+      if (!itSW->getFamily().empty()) xmlSoftware.NewChild("arc-jsdl:Family") = itSW->getFamily();
+      xmlSoftware.NewChild("arc-jsdl:Name") = itSW->getName();
       if (!itSW->getVersion().empty()) {
-        XMLNode xmlVersion = xmlSoftware.NewChild("Version");
+        XMLNode xmlVersion = xmlSoftware.NewChild("arc-jsdl:Version");
         xmlVersion = itSW->getVersion();
         if (*itCO != &Software::operator ==)
           xmlVersion.NewAttribute("require") = Software::toString(*itCO);
@@ -115,12 +115,12 @@ namespace Arc {
   void ARCJSDLParser::outputARCJSDLRange(const Range<T>& range, XMLNode& arcJSDL, const T& undefValue) const {
     if (range.min != undefValue) {
       const std::string min = tostring(range.min);
-      if (!min.empty()) arcJSDL.NewChild("Min") = min;
+      if (!min.empty()) arcJSDL.NewChild("arc-jsdl:Min") = min;
     }
 
     if (range.max != undefValue) {
       const std::string max = tostring(range.max);
-      if (!max.empty()) arcJSDL.NewChild("Max") = max;
+      if (!max.empty()) arcJSDL.NewChild("arc-jsdl:Max") = max;
     }
   }
 
@@ -147,8 +147,8 @@ namespace Arc {
 
   void ARCJSDLParser::outputBenchmark(const std::pair<std::string, double>& benchmark, XMLNode& arcJSDL) const {
     if (!benchmark.first.empty()) {
-      arcJSDL.NewChild("BenchmarkType") = benchmark.first;
-      arcJSDL.NewChild("BenchmarkValue") = tostring(benchmark.second);
+      arcJSDL.NewChild("arc-jsdl:BenchmarkType") = benchmark.first;
+      arcJSDL.NewChild("arc-jsdl:BenchmarkValue") = tostring(benchmark.second);
     }
   }
 
@@ -747,14 +747,19 @@ namespace Arc {
       return false;
     }
 
-    XMLNode jobdefinition(NS("", JSDL_NAMESPACE), "JobDefinition");
+    NS ns;
+    ns[""] = JSDL_NAMESPACE;
+    ns["posix-jsdl"] = JSDL_POSIX_NAMESPACE;
+    ns["hpcpa-jsdl"] = JSDL_HPCPA_NAMESPACE;
+    ns["arc-jsdl"] = JSDL_ARC_NAMESPACE;
+    XMLNode jobdefinition(ns, "JobDefinition");
 
     XMLNode jobdescription = jobdefinition.NewChild("JobDescription");
 
     // JobIdentification
 
     // std::string JobName;
-    XMLNode xmlIdentification("<JobIdentification/>");
+    XMLNode xmlIdentification(ns,"JobIdentification");
     if (!job.Identification.JobName.empty())
       xmlIdentification.NewChild("JobName") = job.Identification.JobName;
 
@@ -773,56 +778,56 @@ namespace Arc {
     // std::list<std::string> Annotation;
     for (std::list<std::string>::const_iterator it = job.Identification.Annotation.begin();
          it != job.Identification.Annotation.end(); it++)
-      xmlIdentification.NewChild("UserTag") = *it;
+      xmlIdentification.NewChild("arc-jsdl:UserTag") = *it;
 
     // std::list<std::string> ActivityOldID;
     for (std::list<std::string>::const_iterator it = job.Identification.ActivityOldID.begin();
          it != job.Identification.ActivityOldID.end(); it++)
-      xmlIdentification.NewChild("ActivityOldId") = *it;
+      xmlIdentification.NewChild("arc-jsdl:ActivityOldId") = *it;
 
     if (xmlIdentification.Size() > 0)
       jobdescription.NewChild(xmlIdentification);
     // end of JobIdentification
 
     // Application
-    XMLNode xmlApplication("<Application/>");
+    XMLNode xmlApplication(ns,"Application");
     XMLNode xmlPApplication(NS("posix-jsdl", JSDL_POSIX_NAMESPACE), "posix-jsdl:POSIXApplication");
-    XMLNode xmlHApplication(NS("hpcp-jsdl", JSDL_HPCPA_NAMESPACE), "hpcp-jsdl:HPCProfileApplication");
+    XMLNode xmlHApplication(NS("hpcpa-jsdl", JSDL_HPCPA_NAMESPACE), "hpcpa-jsdl:HPCProfileApplication");
 
     // ExecutableType Executable;
     if (!job.Application.Executable.Path.empty()) {
       xmlPApplication.NewChild("posix-jsdl:Executable") = job.Application.Executable.Path;
-      xmlHApplication.NewChild("hpcp-jsdl:Executable") = job.Application.Executable.Path;
+      xmlHApplication.NewChild("hpcpa-jsdl:Executable") = job.Application.Executable.Path;
       for (std::list<std::string>::const_iterator it = job.Application.Executable.Argument.begin();
            it != job.Application.Executable.Argument.end(); it++) {
         xmlPApplication.NewChild("posix-jsdl:Argument") = *it;
-        xmlHApplication.NewChild("hpcp-jsdl:Argument") = *it;
+        xmlHApplication.NewChild("hpcpa-jsdl:Argument") = *it;
       }
     }
 
     // std::string Input;
     if (!job.Application.Input.empty()) {
       xmlPApplication.NewChild("posix-jsdl:Input") = job.Application.Input;
-      xmlHApplication.NewChild("hpcp-jsdl:Input") = job.Application.Input;
+      xmlHApplication.NewChild("hpcpa-jsdl:Input") = job.Application.Input;
     }
 
     // std::string Output;
     if (!job.Application.Output.empty()) {
       xmlPApplication.NewChild("posix-jsdl:Output") = job.Application.Output;
-      xmlHApplication.NewChild("hpcp-jsdl:Output") = job.Application.Output;
+      xmlHApplication.NewChild("hpcpa-jsdl:Output") = job.Application.Output;
     }
 
     // std::string Error;
     if (!job.Application.Error.empty()) {
       xmlPApplication.NewChild("posix-jsdl:Error") = job.Application.Error;
-      xmlHApplication.NewChild("hpcp-jsdl:Error") = job.Application.Error;
+      xmlHApplication.NewChild("hpcpa-jsdl:Error") = job.Application.Error;
     }
 
     // std::list< std::pair<std::string, std::string> > Environment;
     for (std::list< std::pair<std::string, std::string> >::const_iterator it = job.Application.Environment.begin();
          it != job.Application.Environment.end(); it++) {
       XMLNode pEnvironment = xmlPApplication.NewChild("posix-jsdl:Environment");
-      XMLNode hEnvironment = xmlHApplication.NewChild("hpcp-jsdl:Environment");
+      XMLNode hEnvironment = xmlHApplication.NewChild("hpcpa-jsdl:Environment");
       pEnvironment.NewAttribute("name") = it->first;
       pEnvironment = it->second;
       hEnvironment.NewAttribute("name") = it->first;
@@ -831,75 +836,75 @@ namespace Arc {
 
     // std::list<ExecutableType> PreExecutable;
     if (!job.Application.PreExecutable.empty() && !job.Application.PreExecutable.front().Path.empty()) {
-      xmlApplication.NewChild("Prologue");
-      xmlApplication["Prologue"].NewChild("Path") = job.Application.PreExecutable.front().Path;
+      XMLNode prologue = xmlApplication.NewChild("arc-jsdl:Prologue");
+      prologue.NewChild("arc-jsdl:Path") = job.Application.PreExecutable.front().Path;
       for (std::list<std::string>::const_iterator it = job.Application.PreExecutable.front().Argument.begin();
            it != job.Application.PreExecutable.front().Argument.end(); ++it) {
-        xmlApplication["Prologue"].NewChild("Argument") = *it;
+        prologue.NewChild("arc-jsdl:Argument") = *it;
       }
     }
 
     // std::list<ExecutableType> PostExecutable;
     if (!job.Application.PostExecutable.empty() && !job.Application.PostExecutable.front().Path.empty()) {
-      xmlApplication.NewChild("Epilogue");
-      xmlApplication["Epilogue"].NewChild("Path") = job.Application.PostExecutable.front().Path;
+      XMLNode epilogue = xmlApplication.NewChild("arc-jsdl:Epilogue");
+      epilogue.NewChild("arc-jsdl:Path") = job.Application.PostExecutable.front().Path;
       for (std::list<std::string>::const_iterator it = job.Application.PostExecutable.front().Argument.begin();
            it != job.Application.PostExecutable.front().Argument.end(); ++it)
-        xmlApplication["Epilogue"].NewChild("Argument") = *it;
+        epilogue.NewChild("arc-jsdl:Argument") = *it;
     }
 
     // std::string LogDir;
     if (!job.Application.LogDir.empty())
-      xmlApplication.NewChild("LogDir") = job.Application.LogDir;
+      xmlApplication.NewChild("arc-jsdl:LogDir") = job.Application.LogDir;
 
     // std::list<URL> RemoteLogging;
     for (std::list<RemoteLoggingType>::const_iterator it = job.Application.RemoteLogging.begin();
          it != job.Application.RemoteLogging.end(); it++) {
       if (it->ServiceType == "SGAS") {
-        xmlApplication.NewChild("RemoteLogging") = it->Location.str();
+        xmlApplication.NewChild("arc-jsdl:RemoteLogging") = it->Location.str();
       }
     }
 
     // int Rerun;
     if (job.Application.Rerun > -1)
-      xmlApplication.NewChild("Rerun") = tostring(job.Application.Rerun);
+      xmlApplication.NewChild("arc-jsdl:Rerun") = tostring(job.Application.Rerun);
 
     // int Priority;
     if (job.Application.Priority > -1)
-      xmlApplication.NewChild("Priority") = tostring(job.Application.Priority);
+      xmlApplication.NewChild("arc-jsdl:Priority") = tostring(job.Application.Priority);
 
     // Time ExpirationTime;
     if (job.Application.ExpirationTime > -1)
-      xmlApplication.NewChild("ExpiryTime") = job.Application.ExpirationTime.str();
+      xmlApplication.NewChild("arc-jsdl:ExpiryTime") = job.Application.ExpirationTime.str();
 
 
     // Time ProcessingStartTime;
     if (job.Application.ProcessingStartTime > -1)
-      xmlApplication.NewChild("ProcessingStartTime") = job.Application.ProcessingStartTime.str();
+      xmlApplication.NewChild("arc-jsdl:ProcessingStartTime") = job.Application.ProcessingStartTime.str();
 
     // XMLNode Notification;
     for (std::list<NotificationType>::const_iterator it = job.Application.Notification.begin();
          it != job.Application.Notification.end(); it++) {
-      XMLNode n = xmlApplication.NewChild("Notification");
-      n.NewChild("Type") = "Email";
-      n.NewChild("Endpoint") = it->Email;
+      XMLNode n = xmlApplication.NewChild("arc-jsdl:Notification");
+      n.NewChild("arc-jsdl:Type") = "Email";
+      n.NewChild("arc-jsdl:Endpoint") = it->Email;
       for (std::list<std::string>::const_iterator s = it->States.begin();
                   s != it->States.end(); s++) {
-        n.NewChild("State") = *s;
+        n.NewChild("arc-jsdl:State") = *s;
       }
     }
 
     // XMLNode AccessControl;
     if (bool(job.Application.AccessControl))
-      xmlApplication.NewChild("AccessControl").NewChild(job.Application.AccessControl);
+      xmlApplication.NewChild("arc-jsdl:AccessControl").NewChild(job.Application.AccessControl);
 
     // std::list<URL> CredentialService;
     for (std::list<URL>::const_iterator it = job.Application.CredentialService.begin();
          it != job.Application.CredentialService.end(); it++)
-      xmlApplication.NewChild("CredentialService") = it->fullstr();
+      xmlApplication.NewChild("arc-jsdl:CredentialService") = it->fullstr();
 
     if (job.Application.DryRun) {
-      xmlApplication.NewChild("DryRun") = "yes";
+      xmlApplication.NewChild("arc-jsdl:DryRun") = "yes";
     }
 
     // POSIX compliance...
@@ -926,7 +931,7 @@ namespace Arc {
     // end of Application
 
     // Resources
-    XMLNode xmlResources("<Resources/>");
+    XMLNode xmlResources(ns,"Resources");
 
     // SoftwareRequirement OperatingSystem
     if (!job.Resources.OperatingSystem.empty()) {
@@ -935,21 +940,21 @@ namespace Arc {
       outputSoftware(job.Resources.OperatingSystem, xmlOS);
 
       // JSDL compliance. Only the first element in the OperatingSystem object is printed.
-      xmlOS.NewChild("jsdl:OperatingSystemType").NewChild("OperatingSystemName") = job.Resources.OperatingSystem.getSoftwareList().front().getName();
+      xmlOS.NewChild("OperatingSystemType").NewChild("OperatingSystemName") = job.Resources.OperatingSystem.getSoftwareList().front().getName();
       if (!job.Resources.OperatingSystem.getSoftwareList().front().getVersion().empty())
-        xmlOS.NewChild("jsdl:OperatingSystemVersion") = job.Resources.OperatingSystem.getSoftwareList().front().getVersion();
+        xmlOS.NewChild("OperatingSystemVersion") = job.Resources.OperatingSystem.getSoftwareList().front().getVersion();
     }
 
     // std::string Platform;
     if (!job.Resources.Platform.empty()) {
-      xmlResources.NewChild("Platform") = job.Resources.Platform;
+      xmlResources.NewChild("arc-jsdl:Platform") = job.Resources.Platform;
       // JSDL compliance
       xmlResources.NewChild("CPUArchitecture").NewChild("CPUArchitectureName") = job.Resources.Platform;
     }
 
     // std::string NetworkInfo;
     if (!job.Resources.NetworkInfo.empty()) {
-      xmlResources.NewChild("NetworkInfo") = job.Resources.NetworkInfo;
+      xmlResources.NewChild("arc-jsdl:NetworkInfo") = job.Resources.NetworkInfo;
 
       std::string value = "";
       if (job.Resources.NetworkInfo == "100megabitethernet")
@@ -970,19 +975,19 @@ namespace Arc {
     case NAT_NONE:
       break;
     case NAT_INBOUND:
-      xmlResources.NewChild("NodeAccess") = "inbound";
+      xmlResources.NewChild("arc-jsdl:NodeAccess") = "inbound";
       break;
     case NAT_OUTBOUND:
-      xmlResources.NewChild("NodeAccess") = "outbound";
+      xmlResources.NewChild("arc-jsdl:NodeAccess") = "outbound";
       break;
     case NAT_INOUTBOUND:
-      xmlResources.NewChild("NodeAccess") = "inoutbound";
+      xmlResources.NewChild("arc-jsdl:NodeAccess") = "inoutbound";
       break;
     }
 
     // Range<int> IndividualPhysicalMemory;
     {
-      XMLNode xmlIPM("<IndividualPhysicalMemory/>");
+      XMLNode xmlIPM(ns,"IndividualPhysicalMemory");
       outputARCJSDLRange(job.Resources.IndividualPhysicalMemory, xmlIPM, (int)-1);
       // JSDL compliance...
       outputJSDLRange(job.Resources.IndividualPhysicalMemory, xmlIPM, (int)-1);
@@ -992,7 +997,7 @@ namespace Arc {
 
     // Range<int> IndividualVirtualMemory;
     {
-      XMLNode xmlIVM("<IndividualVirtualMemory/>");
+      XMLNode xmlIVM(ns,"IndividualVirtualMemory");
       outputARCJSDLRange(job.Resources.IndividualVirtualMemory, xmlIVM, (int)-1);
       outputJSDLRange(job.Resources.IndividualVirtualMemory, xmlIVM, (int)-1);
       if (xmlIVM.Size() > 0)
@@ -1001,8 +1006,8 @@ namespace Arc {
 
     {
       // Range<int> DiskSpace;
-      XMLNode xmlDiskSpace("<DiskSpace/>");
-      XMLNode xmlFileSystem("<FileSystem/>"); // JDSL compliance...
+      XMLNode xmlDiskSpace(ns,"arc-jsdl:DiskSpace");
+      XMLNode xmlFileSystem(ns,"DiskSpace"); // JDSL compliance...
       if (job.Resources.DiskSpaceRequirement.DiskSpace.max != -1 || job.Resources.DiskSpaceRequirement.DiskSpace.min != -1) {
         Range<long long int> diskspace;
         if (job.Resources.DiskSpaceRequirement.DiskSpace.max != -1) {
@@ -1018,16 +1023,17 @@ namespace Arc {
       }
 
       if (xmlDiskSpace.Size() > 0) {
-        xmlResources.NewChild("DiskSpaceRequirement").NewChild(xmlDiskSpace);
+        XMLNode dsr = xmlResources.NewChild("arc-jsdl:DiskSpaceRequirement");
+        dsr.NewChild(xmlDiskSpace);
 
         // int CacheDiskSpace;
         if (job.Resources.DiskSpaceRequirement.CacheDiskSpace > -1) {
-          xmlResources["DiskSpaceRequirement"].NewChild("CacheDiskSpace") = tostring(job.Resources.DiskSpaceRequirement.CacheDiskSpace*1024*1024);
+          dsr.NewChild("arc-jsdl:CacheDiskSpace") = tostring(job.Resources.DiskSpaceRequirement.CacheDiskSpace*1024*1024);
         }
 
         // int SessionDiskSpace;
         if (job.Resources.DiskSpaceRequirement.SessionDiskSpace > -1) {
-          xmlResources["DiskSpaceRequirement"].NewChild("SessionDiskSpace") = tostring(job.Resources.DiskSpaceRequirement.SessionDiskSpace*1024*1024);
+          dsr.NewChild("arc-jsdl:SessionDiskSpace") = tostring(job.Resources.DiskSpaceRequirement.SessionDiskSpace*1024*1024);
         }
       }
 
@@ -1039,42 +1045,42 @@ namespace Arc {
 
     // Period SessionLifeTime;
     if (job.Resources.SessionLifeTime > -1)
-      xmlResources.NewChild("SessionLifeTime") = tostring(job.Resources.SessionLifeTime);
+      xmlResources.NewChild("arc-jsdl:SessionLifeTime") = tostring(job.Resources.SessionLifeTime);
 
     // ScalableTime<int> IndividualCPUTime;
     {
-      XMLNode xmlICPUT("<IndividualCPUTime><Value/></IndividualCPUTime>");
-      XMLNode xmlValue = xmlICPUT["Value"];
+      XMLNode xmlICPUT(ns,"IndividualCPUTime");
+      XMLNode xmlValue = xmlICPUT.NewChild("arc-jsdl:Value");
       outputARCJSDLRange(job.Resources.IndividualCPUTime.range, xmlValue, -1);
-      if (xmlICPUT["Value"].Size() > 0) {
+      if (xmlValue.Size() > 0) {
         outputBenchmark(job.Resources.IndividualCPUTime.benchmark, xmlICPUT);
-        xmlResources.NewChild(xmlICPUT);
-
         // JSDL compliance...
         outputJSDLRange(job.Resources.IndividualCPUTime.range, xmlICPUT, -1);
+
+        xmlResources.NewChild(xmlICPUT);
       }
     }
 
     // ScalableTime<int> TotalCPUTime;
     {
-      XMLNode xmlTCPUT("<TotalCPUTime><Value/></TotalCPUTime>");
-      XMLNode xmlValue = xmlTCPUT["Value"];
+      XMLNode xmlTCPUT(ns,"TotalCPUTime");
+      XMLNode xmlValue = xmlTCPUT.NewChild("arc-jsdl:Value");
       outputARCJSDLRange(job.Resources.TotalCPUTime.range, xmlValue, -1);
-      if (xmlTCPUT["Value"].Size() > 0) {
+      if (xmlValue.Size() > 0) {
         outputBenchmark(job.Resources.TotalCPUTime.benchmark, xmlTCPUT);
-        xmlResources.NewChild(xmlTCPUT);
-
         // JSDL compliance...
         outputJSDLRange(job.Resources.TotalCPUTime.range, xmlTCPUT, -1);
+
+        xmlResources.NewChild(xmlTCPUT);
       }
     }
 
     // ScalableTime<int> IndividualWallTime;
     {
-     XMLNode xmlIWT("<IndividualWallTime><Value/></IndividualWallTime>");
-      XMLNode xmlValue = xmlIWT["Value"];
+      XMLNode xmlIWT(ns,"arc-jsdl:IndividualWallTime");
+      XMLNode xmlValue = xmlIWT.NewChild("arc-jsdl:Value");
       outputARCJSDLRange(job.Resources.IndividualWallTime.range, xmlValue, -1);
-      if (xmlIWT["Value"].Size() > 0) {
+      if (xmlValue.Size() > 0) {
         outputBenchmark(job.Resources.IndividualWallTime.benchmark, xmlIWT);
         xmlResources.NewChild(xmlIWT);
       }
@@ -1082,10 +1088,10 @@ namespace Arc {
 
     // ScalableTime<int> TotalWallTime;
     {
-     XMLNode xmlTWT("<TotalWallTime><Value/></TotalWallTime>");
-      XMLNode xmlValue = xmlTWT["Value"];
+      XMLNode xmlTWT("arc-jsdl:TotalWallTime");
+      XMLNode xmlValue = xmlTWT.NewChild("arc-jsdl:Value");
       outputARCJSDLRange(job.Resources.TotalWallTime.range, xmlValue, -1);
-      if (xmlTWT["Value"].Size() > 0) {
+      if (xmlValue.Size() > 0) {
         outputBenchmark(job.Resources.TotalWallTime.benchmark, xmlTWT);
         xmlResources.NewChild(xmlTWT);
       }
@@ -1093,41 +1099,41 @@ namespace Arc {
 
     // SoftwareRequirement CEType;
     if (!job.Resources.CEType.empty()) {
-      XMLNode xmlCEType = xmlResources.NewChild("CEType");
+      XMLNode xmlCEType = xmlResources.NewChild("arc-jsdl:CEType");
       outputSoftware(job.Resources.CEType, xmlCEType);
     }
 
     // ResourceSlotType Slots;
     {
-      XMLNode xmlSlotRequirement("<SlotRequirement/>");
+      XMLNode xmlSlotRequirement(ns,"arc-jsdl:SlotRequirement");
 
       // Range<int> NumberOfSlots;
       if (job.Resources.SlotRequirement.NumberOfSlots > -1) {
-        xmlSlotRequirement.NewChild("NumberOfSlots") = tostring(job.Resources.SlotRequirement.NumberOfSlots);
+        xmlSlotRequirement.NewChild("arc-jsdl:NumberOfSlots") = tostring(job.Resources.SlotRequirement.NumberOfSlots);
       }
 
       // int ProcessPerHost;
       if (job.Resources.SlotRequirement.SlotsPerHost > -1) {
-        xmlSlotRequirement.NewChild("ProcessPerHost") = tostring(job.Resources.SlotRequirement.SlotsPerHost);
+        xmlSlotRequirement.NewChild("arc-jsdl:ProcessPerHost") = tostring(job.Resources.SlotRequirement.SlotsPerHost);
         xmlResources.NewChild("TotalCPUCount") = tostring(job.Resources.SlotRequirement.SlotsPerHost);
       }
 
       // int ThreadsPerProcess;
       if (job.Resources.ParallelEnvironment.ThreadsPerProcess > -1) {
-        xmlSlotRequirement.NewChild("ThreadsPerProcesses") = tostring(job.Resources.ParallelEnvironment.ThreadsPerProcess);
+        xmlSlotRequirement.NewChild("arc-jsdl:ThreadsPerProcesses") = tostring(job.Resources.ParallelEnvironment.ThreadsPerProcess);
       }
 
       if (!job.Resources.ParallelEnvironment.Type.empty()) {
-        xmlSlotRequirement.NewChild("SPMDVariation") = job.Resources.ParallelEnvironment.Type;
+        xmlSlotRequirement.NewChild("arc-jsdl:SPMDVariation") = job.Resources.ParallelEnvironment.Type;
       }
 
       if (job.Resources.SlotRequirement.ExclusiveExecution != SlotRequirementType::EE_DEFAULT) {
          if (job.Resources.SlotRequirement.ExclusiveExecution == SlotRequirementType::EE_TRUE) {
-           xmlSlotRequirement.NewChild("ExclusiveExecution") = "true";
-           xmlResources.NewChild("ExclusiveExecution") = "true";
+           xmlSlotRequirement.NewChild("arc-jsdl:ExclusiveExecution") = "true";
+           xmlResources.NewChild("ExclusiveExecution") = "true"; // JSDL
          }
          else if (job.Resources.SlotRequirement.ExclusiveExecution == SlotRequirementType::EE_FALSE) {
-           xmlSlotRequirement.NewChild("ExclusiveExecution") = "false";
+           xmlSlotRequirement.NewChild("arc-jsdl:ExclusiveExecution") = "false";
            xmlResources.NewChild("ExclusiveExecution") = "false";
          }
       }
@@ -1139,16 +1145,16 @@ namespace Arc {
 
     // std::string QueueName;
     if (!job.Resources.QueueName.empty()) {;
-      logger.msg(INFO, "job.Resources.QueueName = %s", job.Resources.QueueName);
-      xmlResources.NewChild("QueueName") = job.Resources.QueueName;
+      //logger.msg(INFO, "job.Resources.QueueName = %s", job.Resources.QueueName);
+      xmlResources.NewChild("arc-jsdl:QueueName") = job.Resources.QueueName;
 
       // Be backwards compatible with NOX versions of A-REX.
-      xmlResources.NewChild("CandidateTarget").NewChild("QueueName") = job.Resources.QueueName;
+      xmlResources.NewChild("arc-jsdl:CandidateTarget").NewChild("arc-jsdl:QueueName") = job.Resources.QueueName;
     }
 
     // SoftwareRequirement RunTimeEnvironment;
     if (!job.Resources.RunTimeEnvironment.empty()) {
-      XMLNode xmlRTE = xmlResources.NewChild("RunTimeEnvironment");
+      XMLNode xmlRTE = xmlResources.NewChild("arc-jsdl:RunTimeEnvironment");
       outputSoftware(job.Resources.RunTimeEnvironment, xmlRTE);
     }
 
@@ -1176,29 +1182,29 @@ namespace Arc {
           // add any URL options
           for (std::multimap<std::string, std::string>::const_iterator itOpt = it->Sources.front().Options().begin();
                itOpt != it->Sources.front().Options().end(); ++itOpt) {
-            xs.NewChild("URIOption") = itOpt->first + "=" + itOpt->second;
+            xs.NewChild("arc-jsdl:URIOption") = itOpt->first + "=" + itOpt->second;
           }
           // add URL Locations, which may have their own options
           for (std::list<URLLocation>::const_iterator itLoc = it->Sources.front().Locations().begin();
                itLoc != it->Sources.front().Locations().end(); ++itLoc) {
-            XMLNode xloc = xs.NewChild("Location");
+            XMLNode xloc = xs.NewChild("arc-jsdl:Location");
             xloc.NewChild("URI") = itLoc->str();
 
             for (std::multimap<std::string, std::string>::const_iterator itOpt = itLoc->Options().begin();
                  itOpt != itLoc->Options().end(); ++itOpt) {
-              xloc.NewChild("URIOption") = itOpt->first + "=" + itOpt->second;
+              xloc.NewChild("arc-jsdl:URIOption") = itOpt->first + "=" + itOpt->second;
             }
           }
         }
       }
       if (it->IsExecutable) {
-        datastaging.NewChild("IsExecutable") = "true";
+        datastaging.NewChild("arc-jsdl:IsExecutable") = "true";
       }
       if (it->FileSize > -1) {
-        datastaging.NewChild("FileSize") = tostring(it->FileSize);
+        datastaging.NewChild("arc-jsdl:FileSize") = tostring(it->FileSize);
       }
       if (!it->Checksum.empty()) {
-        datastaging.NewChild("Checksum") = it->Checksum;
+        datastaging.NewChild("arc-jsdl:Checksum") = it->Checksum;
       }
     }
 
@@ -1216,17 +1222,17 @@ namespace Arc {
         // add any URL options
         for (std::multimap<std::string, std::string>::const_iterator itOpt = it->Targets.front().Options().begin();
              itOpt != it->Targets.front().Options().end(); ++itOpt) {
-          xs.NewChild("URIOption") = itOpt->first + "=" + itOpt->second;
+          xs.NewChild("arc-jsdl:URIOption") = itOpt->first + "=" + itOpt->second;
         }
         // add URL Locations, which may have their own options
         for (std::list<URLLocation>::const_iterator itLoc = it->Targets.front().Locations().begin();
              itLoc != it->Targets.front().Locations().end(); ++itLoc) {
-          XMLNode xloc = xs.NewChild("Location");
+          XMLNode xloc = xs.NewChild("arc-jsdl:Location");
           xloc.NewChild("URI") = itLoc->str();
 
           for (std::multimap<std::string, std::string>::const_iterator itOpt = itLoc->Options().begin();
                itOpt != itLoc->Options().end(); ++itOpt) {
-            xloc.NewChild("URIOption") = itOpt->first + "=" + itOpt->second;
+            xloc.NewChild("arc-jsdl:URIOption") = itOpt->first + "=" + itOpt->second;
           }
         }
       }
