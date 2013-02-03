@@ -782,13 +782,13 @@ The nordugrid-arc-ca-utils packages has been obsoleted.
 The functionality of the grid-update-crls tool is provided by the
 fetch-crl tool in the fetch-crl package.
 
-%package nordugrid-arc-misc-utils
+%package misc-utils
 Summary:	NorduGrid misc tools
 Group:		Applications/Internet
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
 
-%description nordugrid-arc-misc-utils
+%description misc-utils
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
@@ -1508,7 +1508,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %files ca-utils
 %defattr(-,root,root,-)
 
-%files nordugrid-arc-misc-utils
+%files misc-utils
 %defattr(-,root,root,-)
 %{_bindir}/arcemiestest
 %{_bindir}/arcwsrf
