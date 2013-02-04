@@ -85,7 +85,7 @@ Provides: nordugrid-arc-nox-gridftp-server
 Replaces: nordugrid-arc-nox-gridftp-server (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-gridftp-server (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
 Description: ARC GridFTP server
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
@@ -106,7 +106,7 @@ Provides: nordugrid-arc-nox-cache-service
 Replaces: nordugrid-arc-nox-cache-service (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-cache-service (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
 Description: ARC cache service
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
@@ -120,7 +120,7 @@ Description: ARC cache service
 Package: nordugrid-arc-datadelivery-service
 Provides: nordugrid-arc-nox-datadelivery-service
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
 Description: ARC data delivery service
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
@@ -128,29 +128,43 @@ Description: ARC data delivery service
  .
  This package contains the ARC data delivery service.
 
-Package: nordugrid-arc-aris
+Package: nordugrid-arc-ldap-infosys
 Provides: nordugrid-arc-infosys-ldap, nordugrid-arc-nox-ldap-infosys, nordugrid-arc-infoindex
-Replaces: nordugrid-arc-infosys-ldap (<< 1.0.0~), nordugrid-arc-nox-ldap-infosys (<< 1.3.0~), nordugrid-arc-infoindex (<< 0.8.2~)
-Conflicts: nordugrid-arc-infosys-ldap (<< 1.0.0~), nordugrid-arc-nox-ldap-infosys (<< 1.3.0~), nordugrid-arc-infoindex (<< 0.8.2~)
+Replaces: nordugrid-arc-infosys-ldap (<< 1.0.0~), nordugrid-arc-nox-ldap-infosys (<< 1.3.0~), nordugrid-arc-infoindex (<< 0.8.2~), nordugrid-arc-aris (<< 3.0.0~)
+Conflicts: nordugrid-arc-infosys-ldap (<< 1.0.0~), nordugrid-arc-nox-ldap-infosys (<< 1.3.0~), nordugrid-arc-infoindex (<< 0.8.2~), nordugrid-arc-aris (<< 3.0.0~)
 Architecture: all
-Depends: ${misc:Depends}, ${perl:Depends}, bdii
+Depends: ${misc:Depends}, ${perl:Depends}
 Description: ARC LDAP infosys service
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- ARIS stands for ARC Resource Information Service. The package contains
- LDAP based information system for ARC services. This package is not
- self-contained: it should be coupled either with ARC Compute Element
- to be a part of a local information system or with ARC Information
- Indexing Service (EGIIS) to be a part of an EGIIS service.
+ This package contains the LDAP based information system for ARC.
+ This package is not self-contained. it should be pulled in by either
+ nordugrid-arc-arex to be a part of a local information system or by
+ nordugrid-arc-egiis to be a part of a EGIIS service.
+
+Package: nordugrid-arc-aris
+Replaces: nordugrid-arc-infosys-ldap (<< 1.0.0~), nordugrid-arc-nox-ldap-infosys (<< 1.3.0~), nordugrid-arc-infoindex (<< 0.8.2~)
+Conflicts: nordugrid-arc-infosys-ldap (<< 1.0.0~), nordugrid-arc-nox-ldap-infosys (<< 1.3.0~), nordugrid-arc-infoindex (<< 0.8.2~)
+Architecture: all
+Depends: ${misc:Depends}, ${perl:Depends}, nordugrid-arc-ldap-infosys (= ${binary:Version}), bdii
+Description: ARC local information system
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ This package contains the LDAP based information system for ARC.
+ This package is not self-contained. it should be pulled in by either
+ nordugrid-arc-arex to be a part of a local information system or by
+ nordugrid-arc-egiis to be a part of a EGIIS service.
 
 Package: nordugrid-arc-egiis
 Provides: nordugrid-arc-nox-giis
 Replaces: nordugrid-arc-nox-giis (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-giis (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-aris (= ${source:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-ldap-infosys (= ${source:Version})
 Description: ARC EGIIS service
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource

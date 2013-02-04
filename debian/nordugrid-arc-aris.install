@@ -1,10 +1,4 @@
-debian/tmp/usr/share/arc/ldap-schema/nordugrid.schema
-
-debian/tmp/usr/share/arc/grid-info-soft-register
-
 debian/tmp/usr/share/arc/create-bdii-config
-debian/tmp/usr/share/arc/create-slapd-config
-debian/tmp/usr/share/arc/create-inforeg-config
 debian/tmp/usr/share/arc/glue-generator.pl
 debian/tmp/usr/share/arc/glite-info-provider-ldap
 debian/tmp/usr/share/arc/qju.pl
@@ -14,4 +8,3 @@ debian/tmp/usr/share/arc/se.pl
 debian/tmp/usr/share/arc/LRMS.pm
 debian/tmp/usr/share/arc/Shared.pm
 debian/tmp/usr/share/arc/ConfigParser.pm
-debian/tmp/usr/share/arc/config_parser_compat.sh
