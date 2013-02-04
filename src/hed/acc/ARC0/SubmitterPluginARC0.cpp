@@ -233,7 +233,7 @@ namespace Arc {
     bool ldapng_interface_present = false;
     for (std::list< CountedPointer<ComputingEndpointAttributes> >::const_iterator it = et.OtherEndpoints.begin(); it != et.OtherEndpoints.end(); it++) {
       if (((*it)->InterfaceName == "org.nordugrid.ldapng") &&
-          ((*it)->HealthState == "ok")) {
+          (((*it)->HealthState == "ok") || ((*it)->HealthState.empty()))) {
         ldapng_interface_present = true;
         break;
       }
@@ -346,7 +346,7 @@ namespace Arc {
       URL infoendpoint;
       for (std::list< CountedPointer<ComputingEndpointAttributes> >::const_iterator it = et.OtherEndpoints.begin(); it != et.OtherEndpoints.end(); it++) {
         if (((*it)->InterfaceName == "org.nordugrid.ldapng") &&
-            ((*it)->HealthState == "ok")) {
+            (((*it)->HealthState == "ok") || ((*it)->HealthState.empty()))) {
           infoendpoint = URL((*it)->URLString);
           infoendpoint.ChangeLDAPScope(URL::subtree);
           break;
