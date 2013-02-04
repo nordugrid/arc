@@ -175,6 +175,18 @@ sub get_gmjobs {
             $log->warning("Job $ID: 'queue' missing from .local file");
         }
 
+        # check for interface field
+        if (! $job->{interface}) {
+            $log->warning("Job $ID: 'interface' missing from .local file, reverting to org.nordugrid.gridftpjob");
+            $job->{interface} = 'org.nordugrid.gridftpjob';
+        }
+
+        # check for localid
+        if (! $job->{localid}) {
+            $log->warning("Job $ID: has no local ID, probably corrupted control directory");
+            $job->{localid} = 'UNDEFINEDVALUE';
+        }
+
         # read the job.ID.status into "status"
         unless (open (GMJOB_STATUS, "<$gmjob_status")) {
             $log->warning("Job $ID: Can't open status file $gmjob_status, skipping job");

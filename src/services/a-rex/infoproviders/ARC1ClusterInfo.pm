@@ -141,37 +141,43 @@ sub emies_state {
         return $es_state;
     } elsif ($gm_state eq "FAILED") {
             $es_state->{State} = [ "terminal" ];
-            if ($failure_state eq "ACCEPTED")  {                
-                $es_state->{Attributes} = ["validation-failure"];
-                return $es_state;
-            } elsif ($failure_state eq "PREPARING") {
-                $es_state->{Attributes} = ["preprocessing-cancel","preprocessing-failure"];
-                return $es_state;
-            } elsif ($failure_state eq "SUBMIT") {
-                $es_state->{Attributes} = ["processing-cancel","processing-failure"];
-                return $es_state;
-            } elsif ($failure_state eq "INLRMS") {
-                if ( $lrms_state eq "R" ) {
-                    $es_state->{Attributes} = ["processing-cancel","processing-failure","app-failure"];
-                    return $es_state;
-                } else {
-                    $es_state->{Attributes} = ["processing-cancel","processing-failure"];
-                    return $es_state;
-                }                
-            } elsif ($failure_state eq "FINISHING") {
-                $es_state->{Attributes} = ["postprocessing-cancel","postprocessing-failure"];
-                return $es_state;
-            } elsif ($failure_state eq "FINISHED") {
-                # TODO: $es_state->{Attributes} = '';
-                return $es_state;
-            } elsif ($failure_state eq "DELETED") {
-                # TODO: $es_state->{Attributes} = '';
-                return $es_state;
-            } elsif ($failure_state eq "CANCELING") {
-                # TODO: $es_state->{Attributes} = '';
+            # introduced for bug #3036
+            if (! defined($failure_state)) {
+                $log->warning('EMIES Failure state attribute cannot be determined.');
                 return $es_state;
             } else {
-                return $es_state;
+                if ($failure_state eq "ACCEPTED")  {                
+                    $es_state->{Attributes} = ["validation-failure"];
+                    return $es_state;
+                } elsif ($failure_state eq "PREPARING") {
+                    $es_state->{Attributes} = ["preprocessing-cancel","preprocessing-failure"];
+                    return $es_state;
+                } elsif ($failure_state eq "SUBMIT") {
+                    $es_state->{Attributes} = ["processing-cancel","processing-failure"];
+                    return $es_state;
+                } elsif ($failure_state eq "INLRMS") {
+                    if ( $lrms_state eq "R" ) {
+                        $es_state->{Attributes} = ["processing-cancel","processing-failure","app-failure"];
+                        return $es_state;
+                    } else {
+                        $es_state->{Attributes} = ["processing-cancel","processing-failure"];
+                        return $es_state;
+                    }                
+                } elsif ($failure_state eq "FINISHING") {
+                    $es_state->{Attributes} = ["postprocessing-cancel","postprocessing-failure"];
+                    return $es_state;
+                } elsif ($failure_state eq "FINISHED") {
+                    # TODO: $es_state->{Attributes} = '';
+                    return $es_state;
+                } elsif ($failure_state eq "DELETED") {
+                    # TODO: $es_state->{Attributes} = '';
+                    return $es_state;
+                } elsif ($failure_state eq "CANCELING") {
+                    # TODO: $es_state->{Attributes} = '';
+                    return $es_state;
+                } else {
+                    return $es_state;
+                }
             }
     } elsif ($gm_state eq "FINISHED") {
             $es_state->{State} = [ "terminal" ];
@@ -677,7 +683,7 @@ sub collect($) {
         # count grid jobs running and queued in LRMS for each share
 
         if ($gmstatus eq 'INLRMS') {
-            my $lrmsid = $job->{localid};
+            my $lrmsid = $job->{localid} || 'IDNOTFOUND';
             my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
             my $slots = $job->{count} || 1;
 
