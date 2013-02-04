@@ -31,6 +31,7 @@ public:
   ) : uc(uc), ser(uc, Arc::EndpointQueryOptions<Arc::Endpoint>(true, capabilityFilter, rejectedServices)),
       jlr(uc, Arc::EndpointQueryOptions<Arc::Job>(preferredInterfaceNames))
   {
+    jlr.needAllResults();
     ser.addConsumer(*this);
     jlr.addConsumer(jobs);
     
