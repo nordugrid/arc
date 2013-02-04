@@ -16,7 +16,8 @@ namespace Arc {
       result(),
       statuses(&Endpoint::ServiceIDCompare),
       uc(uc),
-      options(options)
+      options(options),
+      need_all_results(false)
   {
     // Used for holding names of all available plugins.
     std::list<std::string> availablePlugins = common->getListOfPlugins();
@@ -331,6 +332,9 @@ namespace Arc {
     AutoPointer<ThreadArg> a((ThreadArg*)arg);
     ThreadedPointer<Common>& common = a->common;
 
+    if(!common->lockSharedIfValid()) return;
+    bool need_all = (*common)->need_all_results;
+    common->unlockShared();
     // If the thread was able to set the status, then this is the first (and only) thread querying this endpoint
     if (!a->pluginName.empty()) { // If the plugin was already selected
       EntityRetrieverPlugin<T>* plugin = common->load(a->pluginName);
@@ -371,8 +375,8 @@ namespace Arc {
       const std::set<std::string>& preferredInterfaceNames = a->options.getPreferredInterfaceNames();
       
       // A new result object is created for the sub-threads, "true" means we only want to wait for the first successful query
-      Result preferredResult(true);
-      Result otherResult(true);
+      Result preferredResult(!need_all);
+      Result otherResult(!need_all);
       for (std::list<std::string>::const_iterator it = common->getAvailablePlugins().begin(); it != common->getAvailablePlugins().end(); ++it) {
         EntityRetrieverPlugin<T>* plugin = common->load(*it);
         if (!plugin) {

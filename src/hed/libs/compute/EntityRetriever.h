@@ -272,6 +272,15 @@ public:
   */
   virtual void addEndpoint(const Endpoint& endpoint);
 
+  /// Sets if all wait for all queries
+  /**
+    This method specifies if whole query must wait for all individual
+    queries to same endpoint to fnish. By default it waits for first
+    successful one. But in some cases it may be needed to obtain results
+    from all available interfaces because they may be different.
+  */
+  void needAllResults(bool all_results =  true) { need_all_results = all_results; }
+
 protected:
   static void queryEndpoint(void *arg_);
 
@@ -373,6 +382,7 @@ protected:
   mutable SimpleCondition consumerLock;
   mutable SimpleCondition statusLock;
   std::map<std::string, std::string> interfacePluginMap;
+  bool need_all_results;
 };
 
 /// The ServiceEndpointRetriever is an EntityRetriever retrieving Endpoint objects.
