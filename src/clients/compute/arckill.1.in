@@ -85,10 +85,17 @@ can be repeated several times. See
 .BR arstat (1)
 for possible state values.
 
-If the job was successfully killed the job will be removed from the
-remote cluster unless the
+If the job was successfully killed the attepmt to remove the job from the
+remote cluster will be made unless the
 .B --keep
-option was specified.
+option was specified. Depending on functionality of service job killing
+procedure may take time and it may be impossible to clean job immediately.
+In that case
+.B arckill 
+will report number of cleaned jobs smaller than processed ones. Cleaning
+of leftover jobs may be performed by running
+.B arcclean 
+later.
 
 .SH FILES
 
