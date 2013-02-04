@@ -67,7 +67,7 @@ namespace Arc {
         std::string submittedvia = "SubmittedVia=";
         if (otherinfo.compare(0, submittedvia.length(), submittedvia) == 0) {
           std::string interfacename = otherinfo.substr(submittedvia.length());
-          if (interfacename != "org.ogf.emies") {
+          if (interfacename != "org.ogf.glue.emies.activitycreation") {
             logger.msg(DEBUG, "Skipping retrieved job (%s) because it was submitted via another interface (%s).", url.fullstr() + "/" + jobid->id, interfacename);
             submittedviaother = true;
           }

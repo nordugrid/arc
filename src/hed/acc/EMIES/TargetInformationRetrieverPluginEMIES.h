@@ -21,7 +21,6 @@ namespace Arc {
     TargetInformationRetrieverPluginEMIES(PluginArgument* parg):
         TargetInformationRetrieverPlugin(parg) {
         supportedInterfaces.push_back("org.ogf.glue.emies.resourceinfo");
-        supportedInterfaces.push_back("org.ogf.emies");
     };
     ~TargetInformationRetrieverPluginEMIES() {};
 

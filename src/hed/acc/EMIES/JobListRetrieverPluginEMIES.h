@@ -14,7 +14,6 @@ namespace Arc {
   public:
     JobListRetrieverPluginEMIES(PluginArgument* parg): JobListRetrieverPlugin(parg) {
       supportedInterfaces.push_back("org.ogf.glue.emies.resourceinfo");
-      supportedInterfaces.push_back("org.ogf.emies");
     }
     virtual ~JobListRetrieverPluginEMIES() {}
 
