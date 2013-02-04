@@ -21,22 +21,25 @@ class JobTest
   CPPUNIT_TEST(XMLToJobStateTest);
   CPPUNIT_TEST(VersionTwoFormatTest);
   CPPUNIT_TEST(VersionOneFormatTest);
-  CPPUNIT_TEST(FileTest);
-  CPPUNIT_TEST(ReadJobsFromFileTest);
+  CPPUNIT_TEST(JobInformationStorageXMLGeneralTest);
+  CPPUNIT_TEST(JobInformationStorageXMLReadJobsTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
   JobTest();
   void setUp() {}
-  void tearDown() {}
+  void tearDown() { remove("jobs.xml"); }
   void XMLToJobTest();
   void JobToXMLTest();
   void XMLToJobStateTest();
   void VersionTwoFormatTest();
   void VersionOneFormatTest();
-  void FileTest();
-  void ReadJobsFromFileTest();
-
+  void JobInformationStorageGeneralTest(Arc::JobInformationStorage& joblist);
+  void JobInformationStorageReadJobsTest(Arc::JobInformationStorage& joblist);
+  void JobInformationStorageXMLGeneralTest()  { Arc::JobInformationStorageXML joblist("jobs.xml"); JobInformationStorageGeneralTest(joblist); }
+  void JobInformationStorageXMLReadJobsTest() { Arc::JobInformationStorageXML joblist("jobs.xml"); JobInformationStorageReadJobsTest(joblist); }
+  void JobInformationStorageXMLLockTest();
+  
 private:
   Arc::XMLNode xmlJob;
 };
@@ -384,16 +387,17 @@ void JobTest::VersionOneFormatTest() {
   CPPUNIT_ASSERT_EQUAL((std::string)"e52b14b10b967d9135c198fd11b9b8bc", itFiles->second);
 }
 
-void JobTest::FileTest() {
-  Arc::JobInformationStorageXML jobList("jobs.xml");
+void JobTest::JobInformationStorageGeneralTest(Arc::JobInformationStorage& jobList) {
   std::list<Arc::Job> inJobs, outJobs;
 
   inJobs.push_back(xmlJob);
   inJobs.back().Name = "Job1";
   inJobs.back().JobID = "https://ce01.niif.hu:60000/arex/job1";
+  inJobs.back().ServiceInformationURL = Arc::URL("https://info01.niif.hu:2135/aris");
   inJobs.push_back(xmlJob);
   inJobs.back().Name = "Job2";
   inJobs.back().JobID = "https://ce01.niif.hu:60000/arex/job2";
+  inJobs.back().ServiceInformationURL = Arc::URL("https://info01.niif.hu:2135/aris");
 
   // Write and read jobs.
   CPPUNIT_ASSERT(jobList.Clean());
@@ -405,26 +409,33 @@ void JobTest::FileTest() {
   CPPUNIT_ASSERT_EQUAL(inJobs.front().IDFromEndpoint, outJobs.front().IDFromEndpoint);
   CPPUNIT_ASSERT_EQUAL(inJobs.back().IDFromEndpoint, outJobs.back().IDFromEndpoint);
 
+  inJobs.clear();
+  std::set<std::string> prunedServices;
+  prunedServices.insert("info01.niif.hu");
   inJobs.push_back(xmlJob);
   inJobs.back().Name = "Job3";
-  inJobs.back().JobID = "https://ce01.niif.hu:60000/arex/job3";
+  inJobs.back().JobID = "https://ce02.niif.hu:60000/arex/job3";
+  inJobs.back().ServiceInformationURL = Arc::URL("https://info02.niif.hu:2135/aris");
 
-  // Check that pointers to new jobs are added to the list
-  std::set<std::string> prunedServices;
+  inJobs.push_back(xmlJob);
+  inJobs.back().Name = "Job2";
+  inJobs.back().JobID = "https://ce01.niif.hu:60000/arex/job2";
+  inJobs.back().ServiceInformationURL = Arc::URL("https://info01.niif.hu:2135/aris");
+
+  // Check that pointers to new jobs are added to the list, and that jobs on services specified to be pruned are removed.
   std::list<const Arc::Job*> newJobs;
   CPPUNIT_ASSERT(jobList.Write(inJobs, prunedServices, newJobs));
   CPPUNIT_ASSERT_EQUAL(1, (int)newJobs.size());
-  CPPUNIT_ASSERT_EQUAL(inJobs.back().Name, newJobs.front()->Name);
-  CPPUNIT_ASSERT_EQUAL(inJobs.back().IDFromEndpoint, newJobs.front()->IDFromEndpoint);
+  CPPUNIT_ASSERT_EQUAL((std::string)"Job3", newJobs.front()->Name);
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://ce02.niif.hu:60000/arex/job3", newJobs.front()->JobID);
   CPPUNIT_ASSERT(jobList.ReadAll(outJobs));
-  CPPUNIT_ASSERT_EQUAL(inJobs.size(), outJobs.size());
+  CPPUNIT_ASSERT_EQUAL(2, (int)outJobs.size());
   CPPUNIT_ASSERT_EQUAL(inJobs.front().Name, outJobs.front().Name);
   CPPUNIT_ASSERT_EQUAL(inJobs.back().Name, outJobs.back().Name);
   CPPUNIT_ASSERT_EQUAL(inJobs.front().IDFromEndpoint, outJobs.front().IDFromEndpoint);
   CPPUNIT_ASSERT_EQUAL(inJobs.back().IDFromEndpoint, outJobs.back().IDFromEndpoint);
-
+  
   // Check whether file is truncated.
-  inJobs.pop_front();
   CPPUNIT_ASSERT(jobList.Clean());
   CPPUNIT_ASSERT(jobList.Write(inJobs));
   CPPUNIT_ASSERT(jobList.ReadAll(outJobs));
@@ -450,16 +461,16 @@ void JobTest::FileTest() {
   CPPUNIT_ASSERT(jobList.Write(inJobs));
   CPPUNIT_ASSERT(jobList.ReadAll(outJobs));
   CPPUNIT_ASSERT_EQUAL(4, (int)outJobs.size());
-  CPPUNIT_ASSERT_EQUAL(inJobs.back().Name, outJobs.back().Name);
+  CPPUNIT_ASSERT_EQUAL((std::string)"Job5New", outJobs.back().Name);
 
   // Truncate file.
   CPPUNIT_ASSERT(jobList.Clean());
   newJobs.clear();
-  CPPUNIT_ASSERT(jobList.Write(inJobs, prunedServices, newJobs));
+  CPPUNIT_ASSERT(jobList.Write(inJobs, std::set<std::string>(), newJobs));
   CPPUNIT_ASSERT_EQUAL(4, (int)newJobs.size());
   CPPUNIT_ASSERT(jobList.ReadAll(outJobs));
   CPPUNIT_ASSERT_EQUAL(4, (int)outJobs.size());
-  CPPUNIT_ASSERT_EQUAL(inJobs.back().Name, outJobs.back().Name);
+  CPPUNIT_ASSERT_EQUAL((std::string)"Job5New", outJobs.back().Name);
 
   inJobs.pop_back();
 
@@ -467,39 +478,27 @@ void JobTest::FileTest() {
   CPPUNIT_ASSERT(jobList.Clean());
   CPPUNIT_ASSERT(jobList.Write(inJobs));
   CPPUNIT_ASSERT(jobList.ReadAll(outJobs));
-  CPPUNIT_ASSERT_EQUAL(inJobs.size(), outJobs.size());
+  CPPUNIT_ASSERT_EQUAL(4, (int)outJobs.size());
   CPPUNIT_ASSERT_EQUAL(inJobs.front().Name, outJobs.front().Name);
   CPPUNIT_ASSERT_EQUAL(inJobs.back().Name, outJobs.back().Name);
   CPPUNIT_ASSERT_EQUAL(inJobs.front().IDFromEndpoint, outJobs.front().IDFromEndpoint);
   CPPUNIT_ASSERT_EQUAL(inJobs.back().IDFromEndpoint, outJobs.back().IDFromEndpoint);
 
   std::list<std::string> toberemoved;
-  toberemoved.push_back("https://ce01.niif.hu:60000/arex/job3");
+  toberemoved.push_back("https://ce02.niif.hu:60000/arex/job3");
   toberemoved.push_back("https://ce01.niif.hu:60000/arex/job4");
 
   // Check whether jobs are removed correctly.
   CPPUNIT_ASSERT(jobList.Remove(toberemoved));
   CPPUNIT_ASSERT(jobList.ReadAll(outJobs));
   CPPUNIT_ASSERT_EQUAL(2, (int)outJobs.size());
-  CPPUNIT_ASSERT_EQUAL(inJobs.front().Name, outJobs.front().Name);
+  CPPUNIT_ASSERT_EQUAL((std::string)"Job2", outJobs.front().Name);
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://ce01.niif.hu:60000/arex/job2", outJobs.front().JobID);
   CPPUNIT_ASSERT_EQUAL(inJobs.back().Name, outJobs.back().Name);
-  CPPUNIT_ASSERT_EQUAL(inJobs.front().IDFromEndpoint, outJobs.front().IDFromEndpoint);
   CPPUNIT_ASSERT_EQUAL(inJobs.back().IDFromEndpoint, outJobs.back().IDFromEndpoint);
-
-  // Check whether lock is respected.
-  Arc::FileLock lock(jobList.GetName());
-  CPPUNIT_ASSERT(lock.acquire());
-  CPPUNIT_ASSERT(!jobList.Write(inJobs));
-  CPPUNIT_ASSERT(!jobList.ReadAll(outJobs));
-  CPPUNIT_ASSERT(!jobList.Remove(toberemoved));
-  CPPUNIT_ASSERT(!jobList.Clean());
-  CPPUNIT_ASSERT(lock.release());
-
-  remove(jobList.GetName().c_str());
 }
 
-void JobTest::ReadJobsFromFileTest() {
-  Arc::JobInformationStorageXML jobList("jobs.xml");
+void JobTest::JobInformationStorageReadJobsTest(Arc::JobInformationStorage& jobList) {
 
   std::list<Arc::Job> inJobs, outJobs;
 
@@ -555,6 +554,8 @@ void JobTest::ReadJobsFromFileTest() {
 
     std::list<std::string> jobIdentifiers;
     jobIdentifiers.push_back("https://ce.grid.org/1234567890-foo-job-1");
+    // Having the same identifier twice should only result in one Job object being added to the list.
+    jobIdentifiers.push_back("https://ce.grid.org/1234567890-foo-job-1");
     jobIdentifiers.push_back("foo-job-2");
     jobIdentifiers.push_back("nonexistent-job");
     
@@ -565,10 +566,20 @@ void JobTest::ReadJobsFromFileTest() {
     CPPUNIT_ASSERT_EQUAL((std::string)"https://ce.grid.org/1234567890-foo-job-1", itJ->JobID);
     ++itJ;
     CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-2", itJ->Name);
-    CPPUNIT_ASSERT_EQUAL((std::string)"https://ce.grid.org/1234567890-foo-job-2", itJ->JobID);
-    ++itJ;
-    CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-2", itJ->Name);
-    CPPUNIT_ASSERT_EQUAL((std::string)"https://ce.grid.org/0987654321-foo-job-2", itJ->JobID);
+    if      ("https://ce.grid.org/1234567890-foo-job-2" == itJ->JobID) {
+      ++itJ;
+      CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-2", itJ->Name);
+      CPPUNIT_ASSERT_EQUAL((std::string)"https://ce.grid.org/0987654321-foo-job-2", itJ->JobID);
+    }
+    else if ("https://ce.grid.org/0987654321-foo-job-2" == itJ->JobID) {
+      ++itJ;
+      CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-2", itJ->Name);
+      CPPUNIT_ASSERT_EQUAL((std::string)"https://ce.grid.org/1234567890-foo-job-2", itJ->JobID);
+    }
+    else {
+      CPPUNIT_FAIL((  "Expected: \"https://ce.grid.org/1234567890-foo-job-2\" or \"https://ce.grid.org/0987654321-foo-job-2\"\n"
+                    "- Actual:   \"" + itJ->JobID + "\"").c_str());
+    }
 
     CPPUNIT_ASSERT_EQUAL(1, (int)jobIdentifiers.size());
     CPPUNIT_ASSERT_EQUAL((std::string)"nonexistent-job", jobIdentifiers.front());
@@ -650,6 +661,20 @@ void JobTest::ReadJobsFromFileTest() {
   }
   
   remove(jobList.GetName().c_str());
+}
+
+void JobTest::JobInformationStorageXMLLockTest() {
+  // Check whether lock is respected.
+  Arc::JobInformationStorageXML jobList("jobs.xml");
+  std::list<Arc::Job> inJobs, outJobs;
+  std::list<std::string> toberemoved;
+  Arc::FileLock lock(jobList.GetName());
+  CPPUNIT_ASSERT(lock.acquire());
+  CPPUNIT_ASSERT(!jobList.Write(inJobs));
+  CPPUNIT_ASSERT(!jobList.ReadAll(outJobs));
+  CPPUNIT_ASSERT(!jobList.Remove(toberemoved));
+  CPPUNIT_ASSERT(!jobList.Clean());
+  CPPUNIT_ASSERT(lock.release());
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(JobTest);

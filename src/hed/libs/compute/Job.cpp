@@ -892,8 +892,9 @@ namespace Arc {
       }
       if (itJIdentifier != jobIdentifiers.end()) {
         // Job explicitly specified. Remove id from the copy list, in order to keep track of used identifiers.
-        std::list<std::string>::iterator itJIdentifierCopy = std::find(jobIdentifiersCopy.begin(), jobIdentifiersCopy.end(), *itJIdentifier);
-        if (itJIdentifierCopy != jobIdentifiersCopy.end()) {
+        std::list<std::string>::iterator itJIdentifierCopy;
+        while ((itJIdentifierCopy = std::find(jobIdentifiersCopy.begin(), jobIdentifiersCopy.end(), *itJIdentifier))
+               != jobIdentifiersCopy.end()) {
           jobIdentifiersCopy.erase(itJIdentifierCopy);
         }
         ++itJ;
@@ -954,14 +955,14 @@ namespace Arc {
 
         // Use std::map to store job IDs to be searched for duplicates.
         std::map<std::string, XMLNode> jobIDXMLMap;
-        std::list<XMLNode> jobsToRemove;
+        std::map<std::string, XMLNode> jobsToRemove;
         for (Arc::XMLNode j = jobfile["Job"]; j; ++j) {
           if (!((std::string)j["JobID"]).empty()) {
             std::string serviceName = URL(j["ServiceInformationURL"]).Host();
             if (!serviceName.empty() && prunedServices.count(serviceName)) {
               logger.msg(DEBUG, "Will remove %s on service %s.",
                          ((std::string)j["JobID"]).c_str(), serviceName);
-              jobsToRemove.push_back(j);
+              jobsToRemove[(std::string)j["JobID"]] = j;
             }
             else {
               jobIDXMLMap[(std::string)j["JobID"]] = j;
@@ -970,9 +971,9 @@ namespace Arc {
         }
 
         // Remove jobs which belong to our list of endpoints to prune.
-        for (std::list<XMLNode>::iterator it = jobsToRemove.begin();
+        for (std::map<std::string, XMLNode>::iterator it = jobsToRemove.begin();
              it != jobsToRemove.end(); ++it) {
-          it->Destroy();
+          it->second.Destroy();
         }
 
         std::map<std::string, const Job*> newJobsMap;
@@ -982,7 +983,11 @@ namespace Arc {
             XMLNode xJob = jobfile.NewChild("Job");
             it->ToXML(xJob);
             jobIDXMLMap[it->JobID] = xJob;
-            newJobsMap[it->JobID] = &(*it);
+
+            std::map<std::string, XMLNode>::iterator itRemovedJobs = jobsToRemove.find(it->JobID);
+            if (itRemovedJobs == jobsToRemove.end()) {
+              newJobsMap[it->JobID] = &(*it);
+            }
           }
           else {
             // Duplicate found, replace it.
