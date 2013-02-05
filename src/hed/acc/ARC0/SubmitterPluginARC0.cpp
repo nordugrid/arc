@@ -155,8 +155,9 @@ namespace Arc {
       }
 
       std::string jobdescstring;
-      if (!preparedjobdesc.UnParse(jobdescstring, "nordugrid:xrsl", "GRIDMANAGER")) {
-        logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:xrsl");
+      JobDescriptionResult ures = preparedjobdesc.UnParse(jobdescstring, "nordugrid:xrsl", "GRIDMANAGER");
+      if (!ures) {
+        logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format: %s", "nordugrid:xrsl", ures.str());
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
@@ -306,8 +307,9 @@ namespace Arc {
       }
   
       std::string jobdescstring;
-      if (!preparedjobdesc.UnParse(jobdescstring, "nordugrid:xrsl", "GRIDMANAGER")) {
-        logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:xrsl");
+      JobDescriptionResult ures = preparedjobdesc.UnParse(jobdescstring, "nordugrid:xrsl", "GRIDMANAGER");
+      if (!ures) {
+        logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format: %s", "nordugrid:xrsl", ures.str());
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;

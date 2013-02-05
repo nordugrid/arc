@@ -136,8 +136,9 @@ namespace Arc {
     Arc::XMLNode product;
     {
       std::string jstr;
-      if (!preparedjobdesc.UnParse(jstr, "emies:adl")) {
-        logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "emies:adl");
+      JobDescriptionResult ures = preparedjobdesc.UnParse(jstr, "emies:adl");
+      if (!ures) {
+        logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format: %s", "emies:adl", ures.str());
         return false;
       }
       XMLNode(jstr).Move(product);
@@ -217,7 +218,7 @@ namespace Arc {
     AutoPointer<EMIESClient> ac(clients.acquire(url));
     EMIESJobState jobstate;
     if (!ac->submit(product, jobid, jobstate, delegation_id)) {
-      logger.msg(INFO, "Failed to submit job description");
+      logger.msg(INFO, "Failed to submit job description: %s", ac->failure());
       return false;
     }
   

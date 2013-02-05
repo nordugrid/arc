@@ -74,8 +74,9 @@ namespace Arc {
 
       // !! TODO: For regular BES ordinary JSDL is needed - keeping nordugrid:jsdl so far
       std::string product;
-      if (!preparedjobdesc.UnParse(product, "nordugrid:jsdl")) {
-        logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:jsdl");
+      JobDescriptionResult ures = preparedjobdesc.UnParse(product, "nordugrid:jsdl");
+      if (!ures) {
+        logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format: %s", "nordugrid:jsdl", ures.str());
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
@@ -164,8 +165,9 @@ namespace Arc {
   
       // !! TODO: For regular BES ordinary JSDL is needed - keeping nordugrid:jsdl so far
       std::string product;
-      if (!preparedjobdesc.UnParse(product, "nordugrid:jsdl")) {
-        logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:jsdl");
+      JobDescriptionResult ures = preparedjobdesc.UnParse(product, "nordugrid:jsdl");
+      if (!ures) {
+        logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format: %s", "nordugrid:jsdl", ures.str());
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
@@ -283,8 +285,9 @@ namespace Arc {
     preparedjobdesc.Identification.ActivityOldID.push_back(jobid);
 
     std::string product;
-    if (!preparedjobdesc.UnParse(product, "nordugrid:jsdl")) {
-      logger.msg(INFO, "Unable to migrate job. Job description is not valid in the %s format", "nordugrid:jsdl");
+    JobDescriptionResult ures = preparedjobdesc.UnParse(product, "nordugrid:jsdl");
+    if (!ures) {
+      logger.msg(INFO, "Unable to migrate job. Job description is not valid in the %s format: %s", "nordugrid:jsdl", ures.str());
       clients.release(ac);
       return false;
     }
