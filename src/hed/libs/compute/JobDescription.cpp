@@ -563,6 +563,7 @@ namespace Arc {
 
     for (std::list<InputFileType>::iterator it1 = DataStaging.InputFiles.begin();
          it1 != DataStaging.InputFiles.end(); ++it1) {
+      if (it1->Name.empty()) continue; // undefined input fule
       if (it1->Sources.empty() || (it1->Sources.front().Protocol() == "file")) {
         std::string path = it1->Name;
         if (!it1->Sources.empty()) path = it1->Sources.front().Path();
@@ -570,7 +571,7 @@ namespace Arc {
         // Check presence
         struct stat st;
         if (!FileStat(path,&st,true) || !S_ISREG(st.st_mode)) {
-          logger.msg(ERROR, "Cannot find local input file '%s'", it1->Sources.front().Path());
+          logger.msg(ERROR, "Cannot find local input file '%s' (%s)", path, it1->Name);
           return false;
         }
         // Collect information about file
