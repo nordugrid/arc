@@ -86,6 +86,9 @@ namespace Arc {
       jobs.push_back(j);
     }
 
+    // TODO: Because listing/obtaining content is too generic operation
+    // maybe it is unsafe to claim that operation suceeded if nothing
+    // was retrieved.
     s = EndpointQueryingStatus::SUCCESSFUL;
 
     return s;
