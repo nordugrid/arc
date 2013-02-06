@@ -47,13 +47,18 @@ PIDFILE=/var/run/acix-cache.pid
 DEFAULT_LOGFILE=/var/log/arc/acix-cache.log
 prog=twistd
 
-# ARC_CONFIG
-if [ "x$ARC_CONFIG" = "x" ] && [ -r /etc/arc.conf ]; then
-    ARC_CONFIG=/etc/arc.conf
+RUN=yes
+
+# sysconfig files
+if [ -r /etc/sysconfig/nordugrid ]; then
+    . /etc/sysconfig/nordugrid
+elif [ -r /etc/default/nordugrid ]; then
+    . /etc/default/nordugrid
 fi
-if [ ! -r "$ARC_CONFIG" ]; then
-    log_failure_msg "ARC configuration not found (usually /etc/arc.conf)"
-    exit 1
+if [ -r /etc/sysconfig/acix-cache ]; then
+    . /etc/sysconfig/acix-cache
+elif [ -r /etc/default/acix-cache ]; then
+    . /etc/default/acix-cache
 fi
 
 if [ `id -u` = 0 ] ; then
@@ -70,6 +75,21 @@ fi
 APPSTART="from acix import cacheserver ; application = cacheserver.createApplication()"
 
 do_start() {
+
+    if [ "$RUN" != "yes" ] ; then
+        echo "acix-cache service is disabled, please adjust the configuration to your"
+        echo "needs and then set RUN to 'yes' in /etc/default/acix-cache to enable it."
+        return 0
+    fi
+
+    # ARC_CONFIG
+    if [ "x$ARC_CONFIG" = "x" ] && [ -r /etc/arc.conf ]; then
+        ARC_CONFIG=/etc/arc.conf
+    fi
+    if [ ! -r "$ARC_CONFIG" ]; then
+        log_failure_msg "ARC configuration not found (usually /etc/arc.conf)"
+        exit 1
+    fi
     
     echo -n "Starting ARC cache server..."
 
