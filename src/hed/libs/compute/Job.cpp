@@ -5,6 +5,7 @@
 #endif
 
 #include <unistd.h>
+#include <errno.h>
 
 #include <algorithm>
 
@@ -1066,6 +1067,514 @@ namespace Arc {
     }
 
     return false;
+  }
+
+
+  static void* store_string(const std::string& str, void* buf) {
+    uint32_t l = str.length();
+    unsigned char* p = (unsigned char*)buf;
+    *p = (unsigned char)l; l >>= 8; ++p;
+    *p = (unsigned char)l; l >>= 8; ++p;
+    *p = (unsigned char)l; l >>= 8; ++p;
+    *p = (unsigned char)l; l >>= 8; ++p;
+    ::memcpy(p,str.c_str(),str.length());
+    p += str.length();
+    return (void*)p;
+  }
+
+  static void* parse_string(std::string& str, const void* buf, uint32_t& size) {
+    uint32_t l = 0;
+    const unsigned char* p = (unsigned char*)buf;
+    if(size < 4) { p += size; size = 0; return (void*)p; };
+    l |= ((uint32_t)(*p)) << 0; ++p; --size;
+    l |= ((uint32_t)(*p)) << 8; ++p; --size;
+    l |= ((uint32_t)(*p)) << 16; ++p; --size;
+    l |= ((uint32_t)(*p)) << 24; ++p; --size;
+    if(l > size) l = size;
+    // TODO: sanity check
+    str.assign((const char*)p,l);
+    p += l; size -= l;
+    return (void*)p;
+  }
+   
+  static void serialiseJob(const Job& j, Dbt& data) {
+    const std::string version = "3.0.0";
+    const unsigned nItems = 14;
+    const std::string dataItems[] =
+      {version, j.IDFromEndpoint, j.Name,
+       j.JobStatusInterfaceName, j.JobStatusURL.fullstr(),
+       j.JobManagementInterfaceName, j.JobManagementURL.fullstr(),
+       j.ServiceInformationInterfaceName, j.ServiceInformationURL.fullstr(),
+       j.SessionDir.fullstr(), j.StageInDir.fullstr(), j.StageOutDir.fullstr(),
+       j.JobDescriptionDocument, tostring(j.LocalSubmissionTime.GetTime())};
+      
+    data.set_data(NULL); data.set_size(0);
+    uint32_t l = 4;
+    for (unsigned i = 0; i < nItems; ++i) l += 4 + dataItems[i].length();
+    void* d = (void*)::malloc(l);
+    if(!d) return;
+    data.set_data(d); data.set_size(l);
+    
+    for (unsigned i = 0; i < nItems; ++i) d = store_string(dataItems[i], d);
+  }
+ 
+  static void deserialiseJob(Job& j, const Dbt& data) {
+    uint32_t size = 0;
+    void* d = NULL;
+
+    d = (void*)data.get_data();
+    size = (uint32_t)data.get_size();
+    
+    std::string version;
+    d = parse_string(version, d, size);
+    if (version == "3.0.0") {
+      /* Order of items in record. Version 3.0.0
+          {version, j.IDFromEndpoint, j.Name,
+           j.JobStatusInterfaceName, j.JobStatusURL.fullstr(),
+           j.JobManagementInterfaceName, j.JobManagementURL.fullstr(),
+           j.ServiceInformationInterfaceName, j.ServiceInformationURL.fullstr(),
+           j.SessionDir.fullstr(), j.StageInDir.fullstr(), j.StageOutDir.fullstr(),
+           j.JobDescriptionDocument, tostring(j.LocalSubmissionTime.GetTime())};
+       */
+      std::string s;
+      d = parse_string(j.IDFromEndpoint, d, size);
+      d = parse_string(j.Name, d, size);
+      d = parse_string(j.JobStatusInterfaceName, d, size);
+      d = parse_string(s, d, size); j.JobStatusURL = URL(s);
+      d = parse_string(j.JobManagementInterfaceName, d, size);
+      d = parse_string(s, d, size); j.JobManagementURL = URL(s);
+      d = parse_string(j.ServiceInformationInterfaceName, d, size);
+      d = parse_string(s, d, size); j.ServiceInformationURL = URL(s);
+      d = parse_string(s, d, size); j.SessionDir = URL(s);
+      d = parse_string(s, d, size); j.StageInDir = URL(s);
+      d = parse_string(s, d, size); j.StageOutDir = URL(s);
+      d = parse_string(j.JobDescriptionDocument, d, size);
+      d = parse_string(s, d, size); j.LocalSubmissionTime.SetTime(stringtoi(s));
+    }
+  }
+  
+  static void deserialiseNthJobAttribute(std::string& attr, const Dbt& data, unsigned n) {
+    uint32_t size = 0;
+    void* d = NULL;
+
+    d = (void*)data.get_data();
+    size = (uint32_t)data.get_size();
+    
+    std::string version;
+    d = parse_string(version, d, size);
+    if (version == "3.0.0") {
+      // Second entry is Name. Use 'name' variable as buffer for JobID attribute value.
+      for (unsigned i = 0; i < n-1; ++i) {
+        d = parse_string(attr, d, size);
+      }
+    }
+  }
+  
+  static int getNameKey(Db *secondary, const Dbt *key, const Dbt *data, Dbt *result) {
+    std::string name;
+    // 3rd attribute in job record is job name.
+    deserialiseNthJobAttribute(name, *data, 3);
+    result->set_size(name.size());
+    result->set_data((char *)name.c_str());
+    return 0;
+  }
+  
+  static int getEndpointKey(Db *secondary, const Dbt *key, const Dbt *data, Dbt *result) {
+    std::string endpointS;
+    // 7th attribute in job record is job management URL.
+    deserialiseNthJobAttribute(endpointS, *data, 7);
+    endpointS = URL(endpointS).Host();
+    if (endpointS.empty()) {
+      return DB_DONOTINDEX;
+    }
+    result->set_size(endpointS.size());
+    result->set_data((char *)endpointS.c_str());
+    return 0;
+  }
+  
+  static int getServiceInfoHostnameKey(Db *secondary, const Dbt *key, const Dbt *data, Dbt *result) {
+    std::string endpointS;
+    // 9th attribute in job record is service information URL.
+    deserialiseNthJobAttribute(endpointS, *data, 9);
+    endpointS = URL(endpointS).Host();
+    if (endpointS.empty()) {
+      return DB_DONOTINDEX;
+    }
+    result->set_size(endpointS.size());
+    result->set_data((char *)endpointS.c_str());
+    return 0;
+  }
+  
+  Logger JobInformationStorageBDB::logger(Logger::getRootLogger(), "JobInformationStorageBDB");
+
+  JobInformationStorageBDB::JobDB::JobDB(const std::string& name, u_int32_t flags)
+    : dbEnv(NULL), jobDB(NULL), endpointSecondaryKeyDB(NULL), nameSecondaryKeyDB(NULL), serviceInfoSecondaryKeyDB(NULL)
+  {
+    int ret;
+    const DBTYPE type = (flags == DB_CREATE ? DB_BTREE : DB_UNKNOWN);
+    std::string basepath = "";
+    
+    dbEnv = new DbEnv(DB_CXX_NO_EXCEPTIONS);
+    if ((ret = dbEnv->open(NULL, DB_CREATE | DB_INIT_CDB | DB_INIT_MPOOL | DB_PRIVATE, 0)) != 0) {
+      JobInformationStorageBDB::logger.msg(ERROR, "Unable to create data base environment (%s)", name);
+      throw std::exception();
+    }
+
+    jobDB = new Db(dbEnv, DB_CXX_NO_EXCEPTIONS);
+    nameSecondaryKeyDB = new Db(dbEnv, DB_CXX_NO_EXCEPTIONS);
+    endpointSecondaryKeyDB = new Db(dbEnv, DB_CXX_NO_EXCEPTIONS);
+    serviceInfoSecondaryKeyDB = new Db(dbEnv, DB_CXX_NO_EXCEPTIONS);
+
+    if ((ret = nameSecondaryKeyDB->set_flags(DB_DUPSORT)) != 0) {
+      JobInformationStorageBDB::logger.msg(ERROR, "Unable to set duplicate flags for secondary key DB (%s)", name);
+      logErrorMessage(ret);
+      throw std::exception();
+    }
+    if ((ret = endpointSecondaryKeyDB->set_flags(DB_DUPSORT)) != 0) {
+      JobInformationStorageBDB::logger.msg(ERROR, "Unable to set duplicate flags for secondary key DB (%s)", name);
+      logErrorMessage(ret);
+      throw std::exception();
+    }
+    if ((ret = serviceInfoSecondaryKeyDB->set_flags(DB_DUPSORT)) != 0) {
+      JobInformationStorageBDB::logger.msg(ERROR, "Unable to set duplicate flags for secondary key DB (%s)", name);
+      logErrorMessage(ret);
+      throw std::exception();
+    }
+
+    if ((ret = jobDB->open(NULL, name.c_str(), "job_records", type, flags, 0)) != 0) {
+      JobInformationStorageBDB::logger.msg(ERROR, "Unable to create job database (%s)", name);
+      logErrorMessage(ret);
+      throw std::exception();
+    }
+    if ((ret = nameSecondaryKeyDB->open(NULL, name.c_str(), "name_keys", type, flags, 0)) != 0) {
+      JobInformationStorageBDB::logger.msg(ERROR, "Unable to create DB for secondary name keys (%s)", name);
+      logErrorMessage(ret);
+      throw std::exception();
+    }
+    if ((ret = endpointSecondaryKeyDB->open(NULL, name.c_str(), "endpoint_keys", type, flags, 0)) != 0) {
+      JobInformationStorageBDB::logger.msg(ERROR, "Unable to create DB for secondary endpoint keys (%s)", name);
+      logErrorMessage(ret);
+      throw std::exception();
+    }
+    if ((ret = serviceInfoSecondaryKeyDB->open(NULL, name.c_str(), "serviceinfo_keys", type, flags, 0)) != 0) {
+      JobInformationStorageBDB::logger.msg(ERROR, "Unable to create DB for secondary service info keys (%s)", name);
+      logErrorMessage(ret);
+      throw std::exception();
+    }
+
+    if ((ret = jobDB->associate(NULL, nameSecondaryKeyDB, (flags != DB_RDONLY ? getNameKey : NULL), 0)) != 0) {
+      JobInformationStorageBDB::logger.msg(ERROR, "Unable to associate secondary DB with primary DB (%s)", name);
+      logErrorMessage(ret);
+      throw std::exception();
+    }
+    if ((ret = jobDB->associate(NULL, endpointSecondaryKeyDB, (flags != DB_RDONLY ? getEndpointKey : NULL), 0)) != 0) {
+      JobInformationStorageBDB::logger.msg(ERROR, "Unable to associate secondary DB with primary DB (%s)", name);
+      logErrorMessage(ret);
+      throw std::exception();
+    }
+    if ((ret = jobDB->associate(NULL, serviceInfoSecondaryKeyDB, (flags != DB_RDONLY ? getServiceInfoHostnameKey : NULL), 0)) != 0) {
+      JobInformationStorageBDB::logger.msg(ERROR, "Unable to associate secondary DB with primary DB (%s)", name);
+      logErrorMessage(ret);
+      throw std::exception();
+    }
+
+    JobInformationStorageBDB::logger.msg(DEBUG, "Job database created successfully (%s)", name);
+  }
+
+  JobInformationStorageBDB::JobDB::~JobDB() {
+    if (nameSecondaryKeyDB) {
+      nameSecondaryKeyDB->close(0);
+    }
+    if (endpointSecondaryKeyDB) {
+      endpointSecondaryKeyDB->close(0);
+    }
+    if (jobDB) {
+      jobDB->close(0);
+    }
+    if (dbEnv) {
+      dbEnv->close(0);
+    }
+
+    delete endpointSecondaryKeyDB; endpointSecondaryKeyDB = NULL; 
+    delete nameSecondaryKeyDB; nameSecondaryKeyDB = NULL;
+    delete jobDB; jobDB = NULL;
+    delete dbEnv; dbEnv = NULL;
+  }
+
+  bool JobInformationStorageBDB::Write(const std::list<Job>& jobs) {
+    if (jobs.empty()) return true;
+    
+    try {
+      JobDB db(name, DB_CREATE);
+      int ret;
+      std::list<Job>::const_iterator it = jobs.begin();
+      void* pdata = NULL;
+      Dbt key, data;
+      do {
+        ::free(pdata);
+        key.set_size(it->JobID.size());
+        key.set_data((char*)it->JobID.c_str());
+        serialiseJob(*it, data);
+        pdata = data.get_data();
+      } while ((ret = db->put(NULL, &key, &data, 0)) == 0 && ++it != jobs.end());
+      ::free(pdata);
+      
+      if (ret != 0) {
+        logger.msg(ERROR, "Unable to write key/value pair to job database (%s): Key \"%s\"", name, (char*)key.get_data());
+        logErrorMessage(ret);
+        return false;
+      }
+    } catch (const std::exception& e) {
+      return false;
+    }
+
+    return true;
+  }
+
+  bool JobInformationStorageBDB::Write(const std::list<Job>& jobs, const std::set<std::string>& prunedServices, std::list<const Job*>& newJobs) {
+    if (jobs.empty()) return true;
+    
+    try {
+      JobDB db(name, DB_CREATE);
+      int ret = 0;
+      
+      std::set<std::string> idsOfPrunedJobs;
+      Dbc *cursor = NULL;
+      if ((ret = db.viaServiceInfoKeys()->cursor(NULL, &cursor, DB_WRITECURSOR)) != 0) return false;
+      for (std::set<std::string>::const_iterator itPruned = prunedServices.begin();
+           itPruned != prunedServices.end(); ++itPruned) {
+        Dbt key((char *)itPruned->c_str(), itPruned->size()), pkey, data;
+        if (cursor->pget(&key, &pkey, &data, DB_SET) != 0) continue;
+        idsOfPrunedJobs.insert(std::string((char *)pkey.get_data(), pkey.get_size()));
+        cursor->del(0);
+        while (cursor->pget(&key, &pkey, &data, DB_NEXT_DUP) == 0) {
+          idsOfPrunedJobs.insert(std::string((char *)pkey.get_data(), pkey.get_size()));
+          cursor->del(0);
+        }
+      }
+      
+      cursor->close();
+      
+      std::list<Job>::const_iterator it = jobs.begin();
+      void* pdata = NULL;
+      Dbt key, data;
+      bool jobWasPruned;
+      do {
+        if (ret == DB_KEYEXIST) {
+          newJobs.pop_back();
+          if ((ret = db->put(NULL, &key, &data, 0)) != 0 || ++it == jobs.end()) {
+            break;
+          }
+        }
+        ::free(pdata);
+        key.set_size(it->JobID.size());
+        key.set_data((char*)it->JobID.c_str());
+        serialiseJob(*it, data);
+        pdata = data.get_data();
+        jobWasPruned = (idsOfPrunedJobs.count(it->JobID) != 0);
+        if (!jobWasPruned) newJobs.push_back(&*it);
+      } while (((ret = db->put(NULL, &key, &data, (!jobWasPruned)*DB_NOOVERWRITE)) == 0 && ++it != jobs.end()) || ret == DB_KEYEXIST);
+      ::free(pdata);
+      
+      if (ret != 0) {
+        logger.msg(ERROR, "Unable to write key/value pair to job database (%s): Key \"%s\"", name, (char*)key.get_data());
+        logErrorMessage(ret);
+        return false;
+      }
+    } catch (const std::exception& e) {
+      return false;
+    }
+
+    return true;
+  }
+
+  bool JobInformationStorageBDB::ReadAll(std::list<Job>& jobs, const std::list<std::string>& rejectEndpoints) {
+    jobs.clear();
+
+    try {
+      int ret;
+      JobDB db(name);
+  
+      Dbc *cursor;
+      if ((ret = db->cursor(NULL, &cursor, 0)) != 0) {
+        //dbp->err(dbp, ret, "DB->cursor");
+        return false;
+      }
+      
+      Dbt key, data;
+      while ((ret = cursor->get(&key, &data, DB_NEXT)) == 0) {
+        jobs.push_back(Job());
+        jobs.back().JobID = std::string((char *)key.get_data(), key.get_size());
+        deserialiseJob(jobs.back(), data);
+        for (std::list<std::string>::const_iterator it = rejectEndpoints.begin();
+             it != rejectEndpoints.end(); ++it) {
+          if (jobs.back().JobManagementURL.StringMatches(*it)) {
+            jobs.pop_back();
+            break;
+          }
+        }
+      }
+  
+      cursor->close();
+      
+      if (ret != DB_NOTFOUND) {
+        //dbp->err(dbp, ret, "DBcursor->get");
+        return false;
+      }
+    } catch (const std::exception& e) {
+      return false;
+    }
+    
+    return true;
+  }
+  
+  static void addJobFromDB(const Dbt& key, const Dbt& data, std::list<Job>& jobs, std::set<std::string>& idsOfAddedJobs, const std::list<std::string>& rejectEndpoints) {
+    jobs.push_back(Job());
+    jobs.back().JobID.assign((char *)key.get_data(), key.get_size());
+    deserialiseJob(jobs.back(), data);
+    if (idsOfAddedJobs.count(jobs.back().JobID) != 0) { // Look for duplicates and remove them.
+      jobs.pop_back();
+      return;
+    }
+    idsOfAddedJobs.insert(jobs.back().JobID);
+    for (std::list<std::string>::const_iterator it = rejectEndpoints.begin();
+         it != rejectEndpoints.end(); ++it) {
+      if (jobs.back().JobManagementURL.StringMatches(*it)) {
+        idsOfAddedJobs.erase(jobs.back().JobID);
+        jobs.pop_back();
+        return;
+      }
+    }
+  }
+
+  static bool addJobsFromDuplicateKeys(Db& db, Dbt& key, std::list<Job>& jobs, std::set<std::string>& idsOfAddedJobs, const std::list<std::string>& rejectEndpoints) {
+    int ret;
+    Dbt pkey, data;
+    Dbc *cursor;
+    if ((ret = db.cursor(NULL, &cursor, 0)) != 0) {
+      //dbp->err(dbp, ret, "DB->cursor");
+      return false;
+    }
+    ret = cursor->pget(&key, &pkey, &data, DB_SET);
+    if (ret != 0) return false;
+    
+    addJobFromDB(pkey, data, jobs, idsOfAddedJobs, rejectEndpoints);
+    while ((ret = cursor->pget(&key, &pkey, &data, DB_NEXT_DUP)) == 0) {
+       addJobFromDB(pkey, data, jobs, idsOfAddedJobs, rejectEndpoints);
+    }
+    return true;
+  }
+  
+  bool JobInformationStorageBDB::Read(std::list<Job>& jobs, std::list<std::string>& jobIdentifiers,
+                                      const std::list<std::string>& endpoints,
+                                      const std::list<std::string>& rejectEndpoints) {
+    jobs.clear();
+    
+    try {
+      JobDB db(name);
+      int ret;
+      std::set<std::string> idsOfAddedJobs;
+      for (std::list<std::string>::iterator it = jobIdentifiers.begin();
+           it != jobIdentifiers.end();) {
+        if (it->empty()) continue;
+        
+        Dbt key((char *)it->c_str(), it->size()), data;
+        ret = db->get(NULL, &key, &data, 0);
+        if (ret == DB_NOTFOUND) {
+          if (addJobsFromDuplicateKeys(*db.viaNameKeys(), key, jobs, idsOfAddedJobs, rejectEndpoints)) {
+            it = jobIdentifiers.erase(it);
+          }
+          else {
+            ++it;
+          }
+          continue;
+        }
+        addJobFromDB(key, data, jobs, idsOfAddedJobs, rejectEndpoints);
+        it = jobIdentifiers.erase(it);
+      }
+      if (endpoints.empty()) return true;
+      
+      Dbc *cursor;
+      if ((ret = db.viaEndpointKeys()->cursor(NULL, &cursor, 0)) != 0) return false;
+      for (std::list<std::string>::const_iterator it = endpoints.begin();
+           it != endpoints.end(); ++it) {
+        // Extract hostname from iterator.
+        URL u(*it);
+        if (u.Protocol() == "file") {
+          u = URL("http://" + *it); // Only need to extract hostname. Prefix with "http://".
+        }
+        if (u.Host().empty()) continue;
+
+        Dbt key((char *)u.Host().c_str(), u.Host().size()), pkey, data;
+        ret = cursor->pget(&key, &pkey, &data, DB_SET);
+        if (ret != 0) {
+          std::cout << "pget returned non-zero." << std::endl;
+          continue;
+        }
+        std::string tmpEndpoint;
+        deserialiseNthJobAttribute(tmpEndpoint, data, 7);
+        URL jobManagementURL(tmpEndpoint);
+        if (jobManagementURL.StringMatches(*it)) {
+          addJobFromDB(pkey, data, jobs, idsOfAddedJobs, rejectEndpoints);
+        }
+        while ((ret = cursor->pget(&key, &pkey, &data, DB_NEXT_DUP)) == 0) {
+          deserialiseNthJobAttribute(tmpEndpoint, data, 7);
+          URL jobManagementURL(tmpEndpoint);
+          if (jobManagementURL.StringMatches(*it)) {
+           addJobFromDB(pkey, data, jobs, idsOfAddedJobs, rejectEndpoints);
+         }
+        }
+      }
+    } catch (const std::exception& e) {
+      return false;
+    }
+
+    return true;
+  }
+  
+  bool JobInformationStorageBDB::Clean() {
+    if (remove(name.c_str()) != 0) {
+      if (errno == ENOENT) return true; // No such file. DB already cleaned.
+      logger.msg(ERROR, "Unable to truncate job database (%s)", name);
+      perror("Error");
+      return false;
+    }
+    
+    return true;
+  }
+  
+  bool JobInformationStorageBDB::Remove(const std::list<std::string>& jobids) {
+    try {
+      JobDB db(name, DB_CREATE);
+      for (std::list<std::string>::const_iterator it = jobids.begin();
+           it != jobids.end(); ++it) {
+        Dbt key((char *)it->c_str(), it->size());
+        db->del(NULL, &key, 0);
+        db.viaNameKeys()->del(NULL, &key, 0);
+      }
+    } catch (const std::exception& e) {
+      return false;
+    }
+    
+    return true;
+  }
+  
+  void JobInformationStorageBDB::logErrorMessage(int err) {
+    switch (err) {
+    case ENOENT:
+      logger.msg(DEBUG, "ENOENT: The file or directory does not exist, Or a nonexistent re_source file was specified.");
+      break;
+    case DB_OLD_VERSION:
+      logger.msg(DEBUG, "DB_OLD_VERSION: The database cannot be opened without being first upgraded.");
+      break;
+    case EEXIST:
+      logger.msg(DEBUG, "EEXIST: DB_CREATE and DB_EXCL were specified and the database exists.");
+    case EINVAL:
+      logger.msg(DEBUG, "EINVAL");
+      break;
+    default:
+      logger.msg(DEBUG, "Unable to determine error (%d)", err);
+    }
   }
 
 

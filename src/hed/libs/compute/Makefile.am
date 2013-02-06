@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libarccompute.la
-noinst_PROGRAMS = test_jobdescription
+noinst_PROGRAMS = test_jobdescription test_JobInformationStorage
 
 libarccompute_ladir = $(pkgincludedir)/compute
 libarccompute_la_HEADERS = Broker.h BrokerPlugin.h ExecutionTarget.h \
@@ -17,7 +17,7 @@ libarccompute_la_SOURCES = Broker.cpp BrokerPlugin.cpp ExecutionTarget.cpp \
 	EntityRetriever.cpp EntityRetrieverPlugin.cpp Endpoint.cpp \
 	ComputingServiceRetriever.cpp
 libarccompute_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
 libarccompute_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
@@ -25,13 +25,20 @@ libarccompute_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(DBCXX_LIBS)
 libarccompute_la_LDFLAGS = -version-info 2:0:0
 
 test_jobdescription_SOURCES = test_jobdescription.cpp
 test_jobdescription_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 test_jobdescription_LDADD = libarccompute.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(DBCXX_LIBS)
+
+test_JobInformationStorage_SOURCES = test_JobInformationStorage.cpp
+test_JobInformationStorage_CXXFLAGS = -I$(top_srcdir)/include \
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
+test_JobInformationStorage_LDADD = libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
 

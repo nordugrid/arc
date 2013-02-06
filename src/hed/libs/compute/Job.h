@@ -3,11 +3,14 @@
 #ifndef __ARC_JOB_H__
 #define __ARC_JOB_H__
 
+#include <string>
+#include <set>
+
+#include <db_cxx.h>
+
 #include <arc/DateTime.h>
 #include <arc/URL.h>
 #include <arc/compute/JobState.h>
-#include <string>
-#include <set>
 
 namespace Arc {
 
@@ -472,6 +475,44 @@ namespace Arc {
     
   private:
     static Logger logger;
+  };
+
+  class JobInformationStorageBDB : public JobInformationStorage {
+  public:
+    JobInformationStorageBDB(const std::string& name, unsigned nTries = 10, unsigned tryInterval = 500000)
+      : JobInformationStorage(name, nTries, tryInterval) {}
+    virtual ~JobInformationStorageBDB() {}
+    
+    bool ReadAll(std::list<Job>& jobs, const std::list<std::string>& rejectEndpoints = std::list<std::string>());
+    bool Read(std::list<Job>& jobs, std::list<std::string>& jobIdentifiers,
+                      const std::list<std::string>& endpoints = std::list<std::string>(),
+                      const std::list<std::string>& rejectEndpoints = std::list<std::string>());
+    bool Write(const std::list<Job>& jobs);
+    bool Write(const std::list<Job>& jobs, const std::set<std::string>& prunedServices, std::list<const Job*>& newJobs);
+    bool Clean();
+    bool Remove(const std::list<std::string>& jobids);
+
+  private:
+    static void logErrorMessage(int err);
+  
+    static Logger logger;
+    
+    class JobDB {
+    public:
+      JobDB(const std::string&, u_int32_t = DB_RDONLY);
+      ~JobDB();
+      
+      Db* operator->() { return jobDB; }
+      Db* viaNameKeys() { return nameSecondaryKeyDB; }
+      Db* viaEndpointKeys() { return endpointSecondaryKeyDB; }
+      Db* viaServiceInfoKeys() { return serviceInfoSecondaryKeyDB; }
+      
+      DbEnv *dbEnv;
+      Db *jobDB;
+      Db *endpointSecondaryKeyDB;
+      Db *nameSecondaryKeyDB;
+      Db *serviceInfoSecondaryKeyDB;
+    };
   };
 
 } // namespace Arc
