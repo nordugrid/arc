@@ -71,10 +71,12 @@ int main(int argc, char **argv) {
     Arc::JobInformationStorageXML *jisXML = new Arc::JobInformationStorageXML(filename);
     jisPointer = (Arc::JobInformationStorage**)&jisXML;
   }
+#ifdef HAVE_DBCXX
   else if (typeS == "BDB") {
     Arc::JobInformationStorageBDB *jisDB4 = new Arc::JobInformationStorageBDB(filename);
     jisPointer = (Arc::JobInformationStorage**)&jisDB4;
   }
+#endif
   else {
     std::cerr << "ERROR: Unable to determine storage back-end to use." << std::endl;
     return 1;

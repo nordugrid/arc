@@ -23,8 +23,10 @@ class JobTest
   CPPUNIT_TEST(VersionOneFormatTest);
   CPPUNIT_TEST(JobInformationStorageXMLGeneralTest);
   CPPUNIT_TEST(JobInformationStorageXMLReadJobsTest);
+#ifdef HAVE_DBCXX  
   CPPUNIT_TEST(JobInformationStorageBDBGeneralTest);
   CPPUNIT_TEST(JobInformationStorageBDBReadJobsTest);
+#endif
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -40,8 +42,10 @@ public:
   void JobInformationStorageReadJobsTest(Arc::JobInformationStorage& joblist);
   void JobInformationStorageXMLGeneralTest()  { Arc::JobInformationStorageXML joblist("jobs.xml"); JobInformationStorageGeneralTest(joblist); }
   void JobInformationStorageXMLReadJobsTest() { Arc::JobInformationStorageXML joblist("jobs.xml"); JobInformationStorageReadJobsTest(joblist); }
+#ifdef HAVE_DBCXX
   void JobInformationStorageBDBGeneralTest()  { Arc::JobInformationStorageBDB joblist("jobs.bdb"); JobInformationStorageGeneralTest(joblist); }
   void JobInformationStorageBDBReadJobsTest() { Arc::JobInformationStorageBDB joblist("jobs.bdb"); JobInformationStorageReadJobsTest(joblist); }
+#endif
   void JobInformationStorageXMLLockTest();
   
 private:

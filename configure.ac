@@ -1338,7 +1338,7 @@ AC_SUBST(DBCXX_LIBS)
 if test ! "x$DBCXX_LIBS" = "x"
 then
   # Mingw need -I$dbcxx_dir
-
+  AC_DEFINE(HAVE_DBCXX, , [define if Berkeley DB C++ binding is available])
   SAVE_CXXFLAGS=$CXXFLAGS
   CXXFLAGS="-I$dbcxx_dir $CXXFLAGS"
   AC_DBCXX_HAVE_DBDEADLOCKEXCEPTION

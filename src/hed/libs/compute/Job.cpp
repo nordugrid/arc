@@ -1070,6 +1070,7 @@ namespace Arc {
   }
 
 
+#ifdef HAVE_DBCXX
   static void* store_string(const std::string& str, void* buf) {
     uint32_t l = str.length();
     unsigned char* p = (unsigned char*)buf;
@@ -1576,7 +1577,7 @@ namespace Arc {
       logger.msg(DEBUG, "Unable to determine error (%d)", err);
     }
   }
-
+#endif
 
   bool Job::ReadJobIDsFromFile(const std::string& filename, std::list<std::string>& jobids, unsigned nTries, unsigned tryInterval) {
     if (!Glib::file_test(filename, Glib::FILE_TEST_IS_REGULAR)) return false;
