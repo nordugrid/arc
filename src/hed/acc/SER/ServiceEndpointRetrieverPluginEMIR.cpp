@@ -120,7 +120,7 @@ namespace Arc {
         se.ServiceID = (std::string)(*it)["ID"];
         seList.push_back(se);
       }
-      logger.msg(VERBOSE, "Found %u execution services from the index service at %s", resp_xml.Size(), url.str());
+      logger.msg(VERBOSE, "Found %u service endpoints from the index service at %s", resp_xml.Size(), url.str());
       if (http_response != NULL) {
         delete http_response;
       }
