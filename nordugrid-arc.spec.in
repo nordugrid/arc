@@ -343,6 +343,9 @@ Obsoletes:	nordugrid-arc-nox-ldap-infosys < 1.3.0
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
+Requires:	openldap-servers
+Requires:	glue-schema >= 2.0.8
+Requires:	bdii 
 
 Requires(post):		chkconfig
 Requires(preun):	chkconfig
@@ -382,6 +385,9 @@ Obsoletes:	nordugrid-arc-nox-ldap-infosys < 1.3.0
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
+Requires:	openldap-servers
+Requires:	glue-schema >= 2.0.8
+Requires:	bdii 
 
 Requires(post):		chkconfig
 Requires(preun):	chkconfig
@@ -394,9 +400,8 @@ support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
 
 This package contains the LDAP based information system for ARC.
-This package is not self-contained. it should be pulled in by either
-nordugrid-arc-arex to be a part of a local information system or by
-nordugrid-arc-egiis to be a part of a EGIIS service.
+This package is not self-contained but is closely connected to
+nordugrid-arc-arex.
 
 %package egiis
 Summary:	ARC EGIIS service
@@ -406,6 +411,8 @@ Provides:	%{name}-infoindex = %{version}-%{release}
 Obsoletes:	%{name}-infoindex < 0.8.2-1
 Provides:	nordugrid-arc-nox-giis = 1.3.0
 Obsoletes:	nordugrid-arc-nox-giis < 1.3.0
+Requires:	openldap-servers
+Requires:	glue-schema >= 2.0.8
 
 %if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 Requires(post):		policycoreutils
