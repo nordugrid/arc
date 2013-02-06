@@ -124,8 +124,8 @@ pbs_bin_path="/usr/bin"
 
 .TP
 .B pbs_log_path
-the path of the PBS server logfiles which are used by the GM to determine 
-whether a PBS job is completed. If not specified, GM will use qstat for that.
+the path of the PBS server logfiles which are used by A-REX to determine 
+whether a PBS job is completed. If not specified, A-REX will use qstat for that.
 
 .IR Example:
 .br
@@ -816,7 +816,7 @@ data. Multiple cache directories may be specified by specifying multiple
 cachedir commands. Cached data will be distributed evenly over the caches.
 Specifying no cachedir command or commands with an empty path disables caching.
 Optional link_path specifies the path at which the cache_path is accessible on
-computing nodes, if it is different from the path on the GM host.
+computing nodes, if it is different from the path on the A-REX host.
 Example: cache="/shared/cache /frontend/jobcache"
 If "link-path" is set to '.' files are not soft-linked, but copied to session
 directory. If a cache directory needs to be drained, then cachedir
@@ -832,10 +832,10 @@ cachedir="/fs1/cache drain"
 .TP
 .B remotecachedir
 remotecachedir cache_path [link_path] - specifies caches which are under
-the control of other GMs, but which this GM can have read-only access to.
+the control of other A-REXs, but which this A-REX can have read-only access to.
 Multiple remote cache directories may be specified by specifying multiple 
 remotecachedir commands. If a file is not available in paths specified by
-cachedir, the GM looks in remote caches. link_path has the same meaning as in
+cachedir, A-REX looks in remote caches. link_path has the same meaning as in
 cachedir, but the special path ``replicate'' means files will
 be replicated from remote caches to local caches when they are requested.
 
@@ -1278,7 +1278,7 @@ can still be run under the root account. If plugin_path looks like
 somename@somepath, then function 'somename' from the shared library
 located at 'somepath' will be called (timeout is not effective in
 that case).
-The grid manager must be run as root to use this option.
+A-REX must be run as root to use this option.
 Comment it out unless you really know what you are doing.
 
 .IR Example:
@@ -1884,8 +1884,8 @@ unixgroup group rule - do mapping only for users belonging to
 specified authorization 'group'. It is similar to an additional filter 
 for unixmap command which filters out all users not belonging to specified 
 authorization group. Only rules which generate unix user and group names
-may be used in this command. Please read "The NorduGrid Grid Manager 
-and GridFTP Server" for more information.
+may be used in this command. Please read "ARC Computing Element System
+Administrator Guide" for more information.
 
 .IR Example:
 .br
