@@ -93,6 +93,8 @@ namespace Arc {
 
     /// Comparing two Period objects.
     bool operator!=(const Period&) const;
+    
+    Period& operator+=(const Period&);
 
   private:
     /// The duration of the period

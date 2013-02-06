@@ -913,6 +913,14 @@ namespace Arc {
     return (seconds != othertime.seconds) || (nanoseconds != othertime.nanoseconds);
   }
 
+  Period& Period::operator+=(const Period&otherPeriod) {
+    nanoseconds += otherPeriod.nanoseconds;
+    seconds += otherPeriod.seconds + nanoseconds/1000000000;
+    nanoseconds = nanoseconds%1000000000;
+    
+    return *this;
+  }
+
 
   std::ostream& operator<<(std::ostream& out, const Period& period) {
     return (out << (std::string)period);
