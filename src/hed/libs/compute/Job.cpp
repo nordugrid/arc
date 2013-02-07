@@ -1164,7 +1164,6 @@ namespace Arc {
     std::string version;
     d = parse_string(version, d, size);
     if (version == "3.0.0") {
-      // Second entry is Name. Use 'name' variable as buffer for JobID attribute value.
       for (unsigned i = 0; i < n-1; ++i) {
         d = parse_string(attr, d, size);
       }
@@ -1346,14 +1345,11 @@ namespace Arc {
            itPruned != prunedServices.end(); ++itPruned) {
         Dbt key((char *)itPruned->c_str(), itPruned->size()), pkey, data;
         if (cursor->pget(&key, &pkey, &data, DB_SET) != 0) continue;
-        idsOfPrunedJobs.insert(std::string((char *)pkey.get_data(), pkey.get_size()));
-        cursor->del(0);
-        while (cursor->pget(&key, &pkey, &data, DB_NEXT_DUP) == 0) {
+        do {
           idsOfPrunedJobs.insert(std::string((char *)pkey.get_data(), pkey.get_size()));
           cursor->del(0);
-        }
+        } while (cursor->pget(&key, &pkey, &data, DB_NEXT_DUP) == 0);
       }
-      
       cursor->close();
       
       std::list<Job>::const_iterator it = jobs.begin();
@@ -1551,7 +1547,6 @@ namespace Arc {
            it != jobids.end(); ++it) {
         Dbt key((char *)it->c_str(), it->size());
         db->del(NULL, &key, 0);
-        db.viaNameKeys()->del(NULL, &key, 0);
       }
     } catch (const std::exception& e) {
       return false;
