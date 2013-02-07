@@ -1486,8 +1486,12 @@ enable_emies_interface="yes"
 .B arguspep_endpoint
 arguspep_endpoint - specifies URL of Argus PEPD service (by default, the 
 argus pepd service runs on port 8154 with path /authz) to use for 
-authorization and user mapping. If specified Argus is contacted
-for every operation requested through WS interface (see arex_mount_point).
+authorization and user mapping. 
+It is worth to mention that "requireClientCertAuthentication" (default is false) 
+item of pepd.ini (configuration of Argus PEPD service) is set to be 'true', then
+https should be used, otherwise http is proper.
+If specified Argus is contacted for every operation requested 
+through WS interface (see arex_mount_point).
 
 .IR Example:
 .br
@@ -1520,10 +1524,14 @@ arguspep_usermap="no"
 
 .TP
 .B arguspdp_endpoint
-arguspdp_endpoint - specifies URL of Argus PDP service (by default, the 
-argus pdp service runs on port 8152 with path /authz) to use for 
-authorization and user mapping. If specified Argus is contacted
-for every operation requested through WS interface (see arex_mount_point).
+arguspdp_endpoint - specifies URL of Argus PDP service (by default, the
+argus pepd service runs on port 8152 with path /authz) to use for 
+authorization and user mapping. 
+It is worth to mention that "requireClientCertAuthentication" (default is false) 
+item of pdp.ini (configuration of Argus PDP service) is set to be 'true', then
+https should be used, otherwise http is proper.
+If specified Argus is contacted for every operation requested 
+through WS interface (see arex_mount_point).
 
 .IR Example:
 .br

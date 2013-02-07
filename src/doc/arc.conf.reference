@@ -936,8 +936,12 @@ lrms="dgbridge"
 #enable_emies_interface="yes"
 
 ## arguspep_endpoint - specifies URL of Argus PEPD service to use for 
-## authorization and user mapping. If specified Argus is contacted
-## for every operation requested through WS interface (see arex_mount_point).
+## authorization and user mapping. 
+## It is worth to mention that "requireClientCertAuthentication" (default is false) 
+## item of pepd.ini (configuration of Argus PEPD service) is set to be 'true', then
+## https should be used, otherwise http is proper.
+## If specified Argus is contacted for every operation requested 
+## through WS interface (see arex_mount_point).
 #arguspep_endpoint="https://somehost.somedomain:8154/authz"
 
 ## arguspep_profile - defines which communication profile to use while communicationg
@@ -956,8 +960,12 @@ lrms="dgbridge"
 #arguspep_usermap="no"
 
 ## arguspdp_endpoint - specifies URL of Argus PDP service to use for 
-## authorization and user mapping. If specified Argus is contacted
-## for every operation requested through WS interface (see arex_mount_point).
+## authorization and user mapping. 
+## It is worth to mention that "requireClientCertAuthentication" (default is false) 
+## item of pdp.ini (configuration of Argus PDP service) is set to be 'true', then
+## https should be used, otherwise http is proper.
+## If specified Argus is contacted for every operation requested 
+## through WS interface (see arex_mount_point).
 #arguspdp_endpoint="https://somehost.somedomain:8152/authz"
 
 ## arguspdp_profile - defines which communication profile to use while communicationg
