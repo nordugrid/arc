@@ -938,7 +938,7 @@ lrms="dgbridge"
 ## arguspep_endpoint - specifies URL of Argus PEPD service to use for 
 ## authorization and user mapping. If specified Argus is contacted
 ## for every operation requested through WS interface (see arex_mount_point).
-#arguspep_endpoint="https://argus.hostname:port/path"
+#arguspep_endpoint="https://localhost.localdomain:8154/authz"
 
 ## arguspep_profile - defines which communication profile to use while communicationg
 ## with Argus PEPD service. Possible values are:
@@ -958,7 +958,7 @@ lrms="dgbridge"
 ## arguspdp_endpoint - specifies URL of Argus PDP service to use for 
 ## authorization and user mapping. If specified Argus is contacted
 ## for every operation requested through WS interface (see arex_mount_point).
-#arguspdp_endpoint="https://argus.hostname:port/path"
+#arguspdp_endpoint="https://localhost.localdomain:8152/authz"
 
 ## arguspdp_profile - defines which communication profile to use while communicationg
 ## with Argus PDP service. Possible values are:
@@ -967,6 +967,17 @@ lrms="dgbridge"
 ##    recommended profile for interoperability with gLite.
 ##  emi - new profile devloped in EMI project. This is default option.
 #arguspdp_profile="cream"
+
+## arguspdp_usermap - specifies whether response from Argus service may define mapping
+## of client to local account. Possible values are 'yes' and 'no'. Default is 'no'.
+## Argus is contacted after all other user mapping is performed. Hence it can
+## overwrite all other decisions.
+#arguspdp_usermap="no"
+
+## arguspdp_accpetnotapplicable - specify if the "NotApplicable" decision returned by Argus
+## PDP service is treated as reason to deny request. Default is 'no', which treats
+## "NotApplicable" as reson to deny request.
+#arguspdp_acceptnotapplicable="no"
 
 ## watchdog - specifies if additinal watchdog processes is spawned to restart
 ## main process if it is stuck or dies. Possible values are 'yes' and 'no'.
