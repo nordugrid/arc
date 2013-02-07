@@ -514,7 +514,6 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
          char* buf = rinpayload->Buffer(n);
          if(!buf) break;
          int bufsize = rinpayload->BufferSize(n);
-//std::cout<<">>>>>>|"<<std::string(buf,bufsize)<<"|"<<std::endl;
          if(!(stream_->Put(buf,bufsize))) {
             logger.msg(VERBOSE, "Failed to send content of buffer");
             if(!stream_->Failure()) return stream_->Failure();

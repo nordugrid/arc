@@ -320,7 +320,6 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   // Converting payload to Raw
   PayloadRaw nextpayload;
   std::string xml; inpayload->GetXML(xml);
-//std::cout<<"OUTMSG --------\n"<<xml<<std::endl;
   nextpayload.Insert(xml.c_str());
   // Creating message to pass to next MCC and setting new payload.. 
   Message nextinmsg = inmsg;
@@ -358,7 +357,6 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   };
   MessagePayload* retpayload = nextoutmsg.Payload();
   if(!retpayload) return make_soap_fault(outmsg,nextoutmsg,false,"No valid response for SOAP message recieved");
-//std::cout<<"INMSG --------\n"<<ContentFromPayload(*retpayload)<<std::endl;
   PayloadSOAP* outpayload  = new PayloadSOAP(*retpayload);
   if(!outpayload) {
     return make_soap_fault(outmsg,nextoutmsg,false,"Response is not SOAP");
