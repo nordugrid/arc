@@ -399,6 +399,10 @@ void JobTest::JobInformationStorageGeneralTest(Arc::JobInformationStorage& jobLi
   std::list<Arc::Job> inJobs, outJobs;
 
   inJobs.push_back(xmlJob);
+  inJobs.back().Name = "Job0";
+  inJobs.back().JobID = "https://ce00.niif.hu:60000/arex/job0";
+  inJobs.back().ServiceInformationURL = Arc::URL("https://info00.niif.hu:2135/aris");
+  inJobs.push_back(xmlJob);
   inJobs.back().Name = "Job1";
   inJobs.back().JobID = "https://ce01.niif.hu:60000/arex/job1";
   inJobs.back().ServiceInformationURL = Arc::URL("https://info01.niif.hu:2135/aris");
@@ -410,16 +414,24 @@ void JobTest::JobInformationStorageGeneralTest(Arc::JobInformationStorage& jobLi
   inJobs.back().Name = "Job3";
   inJobs.back().JobID = "https://ce01.niif.hu:60000/arex/job3";
   inJobs.back().ServiceInformationURL = Arc::URL("https://info01.niif.hu:2135/aris");
+  inJobs.push_back(xmlJob);
+  inJobs.back().Name = "Other Job";
+  inJobs.back().JobID = "https://ce-other.niif.hu:60000/arex/other-job";
+  inJobs.back().ServiceInformationURL = Arc::URL("https://info-other.niif.hu:2135/aris");
 
   // Write and read jobs.
   CPPUNIT_ASSERT(jobList.Clean());
   CPPUNIT_ASSERT(jobList.Write(inJobs));
   CPPUNIT_ASSERT(jobList.ReadAll(outJobs));
-  CPPUNIT_ASSERT_EQUAL(3, (int)outJobs.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"Job1", outJobs.front().Name);
-  CPPUNIT_ASSERT_EQUAL((std::string)"Job3", outJobs.back().Name);
-  CPPUNIT_ASSERT_EQUAL((std::string)"https://ce01.niif.hu:60000/arex/job1", outJobs.front().JobID);
-  CPPUNIT_ASSERT_EQUAL((std::string)"https://ce01.niif.hu:60000/arex/job3", outJobs.back().JobID);
+  CPPUNIT_ASSERT_EQUAL(5, (int)outJobs.size());
+  {
+  std::set<std::string> jobNames;
+  jobNames.insert("Job0"); jobNames.insert("Job1"); jobNames.insert("Job2"); jobNames.insert("Job3"); jobNames.insert("Other Job");
+  for (std::list<Arc::Job>::const_iterator itJ = outJobs.begin();
+       itJ != outJobs.end(); ++itJ) {
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Job with name \"" + itJ->Name + "\" was unexpected" , 1, (int)jobNames.erase(itJ->Name));
+  }
+  }
 
   inJobs.clear();
   std::set<std::string> prunedServices;
@@ -442,22 +454,14 @@ void JobTest::JobInformationStorageGeneralTest(Arc::JobInformationStorage& jobLi
   CPPUNIT_ASSERT_EQUAL((std::string)"Job4", newJobs.front()->Name);
   CPPUNIT_ASSERT_EQUAL((std::string)"https://ce02.niif.hu:60000/arex/job4", newJobs.front()->JobID);
   CPPUNIT_ASSERT(jobList.ReadAll(outJobs));
-  CPPUNIT_ASSERT_EQUAL(2, (int)outJobs.size());
-  if      ("https://ce02.niif.hu:60000/arex/job4" == outJobs.front().JobID) {
-    CPPUNIT_ASSERT_EQUAL((std::string)"Job4", outJobs.front().Name);
-
-    CPPUNIT_ASSERT_EQUAL((std::string)"Job2", outJobs.back().Name);
-    CPPUNIT_ASSERT_EQUAL((std::string)"https://ce01.niif.hu:60000/arex/job2", outJobs.back().JobID);
+  CPPUNIT_ASSERT_EQUAL(4, (int)outJobs.size());
+  {
+  std::set<std::string> jobNames;
+  jobNames.insert("Job0"); jobNames.insert("Job2"); jobNames.insert("Job4"); jobNames.insert("Other Job");
+  for (std::list<Arc::Job>::const_iterator itJ = outJobs.begin();
+       itJ != outJobs.end(); ++itJ) {
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Job with name \"" + itJ->Name + "\" was unexpected" , 1, (int)jobNames.erase(itJ->Name));
   }
-  else if ("https://ce01.niif.hu:60000/arex/job2" == outJobs.front().JobID) {
-    CPPUNIT_ASSERT_EQUAL((std::string)"Job2", outJobs.front().Name);
-
-    CPPUNIT_ASSERT_EQUAL((std::string)"Job4", outJobs.back().Name);
-    CPPUNIT_ASSERT_EQUAL((std::string)"https://ce02.niif.hu:60000/arex/job4", outJobs.back().JobID);
-  }
-  else {
-    CPPUNIT_FAIL((  "Expected: \"https://ce01.niif.hu:60000/arex/job2\" or \"https://ce02.niif.hu:60000/arex/job4\"\n"
-                  "- Actual:   \"" + outJobs.front().JobID + "\"").c_str());
   }
 
   // Check whether file is truncated.
@@ -704,8 +708,6 @@ void JobTest::JobInformationStorageReadJobsTest(Arc::JobInformationStorage& jobL
     CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-4", outJobs.back().Name);
     CPPUNIT_ASSERT_EQUAL((std::string)"https://ce3.grid.org/1234567890-foo-job-4", outJobs.back().JobID);
   }
-  
-  remove(jobList.GetName().c_str());
 }
 
 void JobTest::JobInformationStorageXMLLockTest() {
