@@ -477,7 +477,7 @@ namespace Arc {
     static Logger logger;
   };
 
-#ifdef HAVE_DBCXX
+#ifdef DBJSTORE_ENABLED
   class JobInformationStorageBDB : public JobInformationStorage {
   public:
     JobInformationStorageBDB(const std::string& name, unsigned nTries = 10, unsigned tryInterval = 500000)

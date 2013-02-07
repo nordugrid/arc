@@ -160,7 +160,7 @@ enables_xrootd=yes
 enables_gacl=yes
 enables_argus=no
 enables_xmlsec1=yes
-enables_dbxml=yes
+enables_dbjstore=yes
 #  Libraries and plugins
 # Currently no fine-grained choice is supported.
 # Also this variable is used to check if source
@@ -228,7 +228,7 @@ enables_argus=$enableval
 enables_cppunit=$enableval
 enables_doc=$enableval
 enabled_acix=$enableval
-enables_dbxml=$enableval
+enables_dbjstore=$enableval
 ],
 [])
 
@@ -1350,17 +1350,20 @@ AC_LANG_RESTORE
 
 fi
 
-# DBXML (storing jobs information in BDB)
-AC_ARG_ENABLE(dbxml, AC_HELP_STRING([--disable-dbxml], [disable storing local jobs information in BDB]),
-  [enables_dbxml=$enableval],[])
-if test "$enables_dbxml" = "yes"; then
+# DBJSTORE (storing jobs information in BDB)
+AC_ARG_ENABLE(dbjstore, AC_HELP_STRING([--disable-dbjstore], [disable storing local jobs information in BDB]),
+  [enables_dbjstore=$enableval],[])
+if test "$enables_dbjstore" = "yes"; then
   if test "x$DBCXX_LIBS" = "x" ; then 
     AC_MSG_NOTICE([For storing jobs in BDB C++ API is needed (dbcxx) - disabling])
-    enables_dbxml="no"
+    enables_dbjstore="no"
   fi
 fi
-AC_MSG_NOTICE([Storing jobs in BDB enabled: $enables_dbxml])
-AM_CONDITIONAL([DBXML_ENABLED],[test "x$enables_dbxml" = "xyes"])
+AC_MSG_NOTICE([Storing jobs in BDB enabled: $enables_dbjstore])
+AM_CONDITIONAL([DBJSTORE_ENABLED],[test "x$enables_dbjstore" = "xyes"])
+if test "x$enables_dbjstore" = "xyes"; then
+  AC_DEFINE(DBJSTORE_ENABLED,, [define if to build job information in BDB storage])
+fi
 
 # globus/gpt packages
 if test "$enables_hed" = "yes"; then
@@ -1701,6 +1704,7 @@ AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
 AM_CONDITIONAL([OPENSSL_X509_VERIFY_PARAM_ENABLED], test x$OPENSSL_X509_VERIFY_PARAM = xyes)
 AM_CONDITIONAL([XMLSEC_ENABLED], test x$XMLSEC_INSTALLED = xyes)
 AM_CONDITIONAL([CPPUNIT_ENABLED], test x$enables_cppunit = xyes)
+AM_CONDITIONAL([DBXML_ENABLED],[test ! "x$DBCXX_LIBS" = "x"])
 
 enables_srm_dmc=no
 if test "$enables_hed" = "yes"; then
@@ -2588,7 +2592,8 @@ CANL++:             ${enables_canlxx}
 BDB C++:            ${enables_dbcxx}
 
 Enabled features:
-Local jobs info in BDB: ${enables_dbxml}
+
+Local jobs info in BDB: ${enables_dbjstore}
 
 Included components:
 HED:                ${enables_hed}

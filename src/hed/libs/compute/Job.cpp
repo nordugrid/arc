@@ -1070,7 +1070,7 @@ namespace Arc {
   }
 
 
-#ifdef HAVE_DBCXX
+#ifdef DBJSTORE_ENABLED
   static void* store_string(const std::string& str, void* buf) {
     uint32_t l = str.length();
     unsigned char* p = (unsigned char*)buf;

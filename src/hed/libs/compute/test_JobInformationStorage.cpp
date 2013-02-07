@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
     Arc::JobInformationStorageXML *jisXML = new Arc::JobInformationStorageXML(filename);
     jisPointer = (Arc::JobInformationStorage**)&jisXML;
   }
-#ifdef HAVE_DBCXX
+#ifdef DBJSTORE_ENABLED
   else if (typeS == "BDB") {
     Arc::JobInformationStorageBDB *jisDB4 = new Arc::JobInformationStorageBDB(filename);
     jisPointer = (Arc::JobInformationStorage**)&jisDB4;
