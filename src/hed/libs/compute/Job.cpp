@@ -1288,6 +1288,9 @@ namespace Arc {
     if (endpointSecondaryKeyDB) {
       endpointSecondaryKeyDB->close(0);
     }
+    if (serviceInfoSecondaryKeyDB) {
+      serviceInfoSecondaryKeyDB->close(0);
+    }
     if (jobDB) {
       jobDB->close(0);
     }
@@ -1297,6 +1300,7 @@ namespace Arc {
 
     delete endpointSecondaryKeyDB; endpointSecondaryKeyDB = NULL; 
     delete nameSecondaryKeyDB; nameSecondaryKeyDB = NULL;
+    delete serviceInfoSecondaryKeyDB; serviceInfoSecondaryKeyDB = NULL;
     delete jobDB; jobDB = NULL;
     delete dbEnv; dbEnv = NULL;
   }
@@ -1505,7 +1509,6 @@ namespace Arc {
         Dbt key((char *)u.Host().c_str(), u.Host().size()), pkey, data;
         ret = cursor->pget(&key, &pkey, &data, DB_SET);
         if (ret != 0) {
-          std::cout << "pget returned non-zero." << std::endl;
           continue;
         }
         std::string tmpEndpoint;
