@@ -938,7 +938,7 @@ lrms="dgbridge"
 ## arguspep_endpoint - specifies URL of Argus PEPD service to use for 
 ## authorization and user mapping. If specified Argus is contacted
 ## for every operation requested through WS interface (see arex_mount_point).
-#arguspep_endpoint="https://localhost.localdomain:8154/authz"
+#arguspep_endpoint="https://somehost.somedomain:8154/authz"
 
 ## arguspep_profile - defines which communication profile to use while communicationg
 ## with Argus PEPD service. Possible values are:
@@ -958,7 +958,7 @@ lrms="dgbridge"
 ## arguspdp_endpoint - specifies URL of Argus PDP service to use for 
 ## authorization and user mapping. If specified Argus is contacted
 ## for every operation requested through WS interface (see arex_mount_point).
-#arguspdp_endpoint="https://localhost.localdomain:8152/authz"
+#arguspdp_endpoint="https://somehost.somedomain:8152/authz"
 
 ## arguspdp_profile - defines which communication profile to use while communicationg
 ## with Argus PDP service. Possible values are:
@@ -2152,7 +2152,7 @@ lrms="dgbridge"
 
 ## List of URL separated by comma of EMIR services which are to accept
 ## registration. This is mandatory.
-#emirurls="https://localhost:60002/emir"
+#emirurls="https://somehost:60002/emir"
 
 ## Time in seconds for which registration records should stay valid.
 #validity=600
@@ -2330,7 +2330,7 @@ lrms="dgbridge"
 #[acix/indexserver]
 
 ## ACIX cache servers from which to pull information
-#cacheserver="https://localhost:5443/data/cache"
+#cacheserver="https://some.host:5443/data/cache"
 #cacheserver="https://another.host:5443/data/cache"
 
 ####################################################################

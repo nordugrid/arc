@@ -1484,8 +1484,8 @@ enable_emies_interface="yes"
 
 .TP
 .B arguspep_endpoint
-arguspep_endpoint - specifies URL of Argus PEPD service (by default, the
-> argus pepd service runs on port 8154 with path /authz) to use for 
+arguspep_endpoint - specifies URL of Argus PEPD service (by default, the 
+argus pepd service runs on port 8154 with path /authz) to use for 
 authorization and user mapping. If specified Argus is contacted
 for every operation requested through WS interface (see arex_mount_point).
 
@@ -1520,8 +1520,8 @@ arguspep_usermap="no"
 
 .TP
 .B arguspdp_endpoint
-arguspdp_endpoint - specifies URL of Argus PDP service (by default, the
-> argus pepd service runs on port 8152 with path /authz) to use for 
+arguspdp_endpoint - specifies URL of Argus PDP service (by default, the 
+argus pdp service runs on port 8152 with path /authz) to use for 
 authorization and user mapping. If specified Argus is contacted
 for every operation requested through WS interface (see arex_mount_point).
 
@@ -3519,7 +3519,7 @@ registration. This is mandatory.
 
 .IR Example:
 .br
-emirurls="https://localhost:60002/emir"
+emirurls="https://somehost:60002/emir"
 
 .TP
 .B validity
@@ -3822,6 +3822,6 @@ ACIX cache servers from which to pull information
 
 .IR Example:
 .br
-cacheserver="https://localhost:5443/data/cache"
+cacheserver="https://some.host:5443/data/cache"
 .br
 cacheserver="https://another.host:5443/data/cache"
