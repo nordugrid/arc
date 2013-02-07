@@ -160,6 +160,7 @@ enables_xrootd=yes
 enables_gacl=yes
 enables_argus=no
 enables_xmlsec1=yes
+enables_dbxml=yes
 #  Libraries and plugins
 # Currently no fine-grained choice is supported.
 # Also this variable is used to check if source
@@ -227,6 +228,7 @@ enables_argus=$enableval
 enables_cppunit=$enableval
 enables_doc=$enableval
 enabled_acix=$enableval
+enables_dbxml=$enableval
 ],
 [])
 
@@ -1347,7 +1349,18 @@ fi
 AC_LANG_RESTORE
 
 fi
-AM_CONDITIONAL([DBXML_ENABLED],[test ! "x$DBCXX_LIBS" = "x"])
+
+# DBXML (storing jobs information in BDB)
+AC_ARG_ENABLE(dbxml, AC_HELP_STRING([--disable-dbxml], [disable storing local jobs information in BDB]),
+  [enables_dbxml=$enableval],[])
+if test "$enables_dbxml" = "yes"; then
+  if test "x$DBCXX_LIBS" = "x" ; then 
+    AC_MSG_NOTICE([For storing jobs in BDB C++ API is needed (dbcxx) - disabling])
+    enables_dbxml="no"
+  fi
+fi
+AC_MSG_NOTICE([Storing jobs in BDB enabled: $enables_dbxml])
+AM_CONDITIONAL([DBXML_ENABLED],[test "x$enables_dbxml" = "xyes"])
 
 # globus/gpt packages
 if test "$enables_hed" = "yes"; then
@@ -1599,6 +1612,12 @@ AC_ARG_ENABLE(mock-dmc, AC_HELP_STRING([--enable-mock-dmc], [enable mock DMC, de
 # Check for LFC
 AC_ARG_ENABLE(lfc, AC_HELP_STRING([--disable-lfc], [disable the LFC support, default is enable]),[enables_lfc="$enableval"],[])
 if test "x$enables_lfc" = "xyes"; then
+  if test "x$GLOBUS_OPENSSL_MODULE_LIBS" = "x"; then
+    AC_MSG_NOTICE([LFC plugin needs GLOBUS_OPENSSL_MODULE component - disabling])
+    enables_lfc=no
+  fi
+fi
+if test "x$enables_lfc" = "xyes"; then
   LFC_CFLAGS="-I/usr/include/lfc"
   LFC_LDFLAGS="-ldl"
   AC_ARG_WITH(lfc, [  --with-lfc=(PATH)  LFC location])
@@ -1724,6 +1743,8 @@ fi
 # Setup messages for reporting
 enables_gridftp=no
 if test -n "$GLOBUS_FTP_CLIENT_VERSION" ; then enables_gridftp=yes; fi
+enables_dbcxx=no
+if test -n "$DBCXX_LIBS" ; then enables_dbcxx=yes; fi
 
 # Check for LDAP
 
@@ -2564,6 +2585,10 @@ ARGUS:              ${enables_argus}
 GACL:               ${enables_gacl}
 NSS:                ${enables_nss}
 CANL++:             ${enables_canlxx}
+BDB C++:            ${enables_dbcxx}
+
+Enabled features:
+Local jobs info in BDB: ${enables_dbxml}
 
 Included components:
 HED:                ${enables_hed}
@@ -2576,7 +2601,7 @@ CACHE service:      ${enables_cache_service}
 DATADELIVERY service: ${enables_datadelivery_service}
 ACIX service:       ${enables_acix}
 
-COMPUTE clients:     ${enables_compute_client}
+COMPUTE clients:    ${enables_compute_client}
 DATA clients:       ${enables_data_client}
 CREDENTIAL clients: ${enables_credentials_client}
 ECHO client:        ${enables_echo_client}
