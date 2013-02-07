@@ -305,6 +305,7 @@ std::string SOAPFault::Reason(int num) {
 }
 
 void SOAPFault::Reason(int num,const char* r) {
+  if(!r) r = "";
   if(ver12) {
     if(!reason) reason=fault.NewChild(fault.Prefix()+":Reason");
     XMLNode rn = reason.Child(num);
@@ -313,7 +314,13 @@ void SOAPFault::Reason(int num,const char* r) {
     return;
   };
   if(!reason) reason=fault.NewChild(fault.Prefix()+":faultstring");
-  reason=r;
+  if(*r) {
+    reason=r;
+  } else {
+    // RFC says it SHOULD provide some description.
+    // And some implementations take it too literally.
+    reason="unknown";
+  };
   return;
 }
 
@@ -322,6 +329,7 @@ std::string SOAPFault::Node(void) {
 }
 
 void SOAPFault::Node(const char* n) {
+  if(!n) n = "";
   if(!node) {
     if(ver12) {
       node=fault.NewChild(fault.Prefix()+":Node");
@@ -337,6 +345,7 @@ std::string SOAPFault::Role(void) {
 }
 
 void SOAPFault::Role(const char* r) {
+  if(!r) r = "";
   if(ver12) {
     if(!role) role=fault.NewChild(fault.Prefix()+":Role");
     role=r;
@@ -344,6 +353,8 @@ void SOAPFault::Role(const char* r) {
 }
 
 static const char* FaultCodeMatch(const char* base,const char* code) {
+  if(!base) base = "";
+  if(!code) code = "";
   int l = strlen(base);
   if(strncasecmp(base,code,l) != 0) return NULL;
   if(code[l] == 0) return code+l;
@@ -424,6 +435,7 @@ std::string SOAPFault::Subcode(int level) {
 void SOAPFault::Subcode(int level,const char* s) {
   if(!ver12) return;
   if(level < 0) return;
+  if(!s) s = "";
   if(!code) code=fault.NewChild(fault.Prefix()+":Code");
   XMLNode subcode = code;
   for(;level;--level) {
