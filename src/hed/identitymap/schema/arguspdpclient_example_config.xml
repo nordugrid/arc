@@ -3,7 +3,6 @@
             <!--PDPD>http://localhost.localdomain:8152/authz</PDPD--> 
             <PDPD>https://emitestbed30.cnaf.infn.it:8152/authz</PDPD>
             <Conversion>emi</Conversion>
-            <AcceptMapping>1</AcceptMapping>
             <AcceptNotApplicable>false</AcceptNotApplicable>
             <!--KeyPath and CertificatePath are only needed when url is with https-->
             <KeyPath>/location/to/key.pem</KeyPath>
