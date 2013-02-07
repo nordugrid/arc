@@ -83,6 +83,14 @@
     </xsd:annotation>
   </xsd:element>
 
+  <xsd:element name="AcceptMapping" type="xsd:boolean">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Specify if local account name returned by Argus is to be used.
+        Default is not to apply local account provided by Argus.
+    </xsd:annotation>
+  </xsd:element>
+
   <xsd:element name="AcceptNotApplicable" type="xsd:boolean">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
