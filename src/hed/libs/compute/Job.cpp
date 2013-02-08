@@ -1215,7 +1215,7 @@ namespace Arc {
     std::string basepath = "";
     
     dbEnv = new DbEnv(DB_CXX_NO_EXCEPTIONS);
-    if ((ret = dbEnv->open(NULL, DB_CREATE | DB_INIT_CDB | DB_INIT_MPOOL | DB_PRIVATE, 0)) != 0) {
+    if ((ret = dbEnv->open(NULL, DB_CREATE | DB_INIT_CDB | DB_INIT_MPOOL, 0)) != 0) {
       JobInformationStorageBDB::logger.msg(ERROR, "Unable to create data base environment (%s)", name);
       throw std::exception();
     }
@@ -1302,6 +1302,10 @@ namespace Arc {
     delete nameSecondaryKeyDB; nameSecondaryKeyDB = NULL;
     delete serviceInfoSecondaryKeyDB; serviceInfoSecondaryKeyDB = NULL;
     delete jobDB; jobDB = NULL;
+    delete dbEnv; dbEnv = NULL;
+
+    dbEnv = new DbEnv(DB_CXX_NO_EXCEPTIONS);
+    dbEnv->remove(NULL, 0);
     delete dbEnv; dbEnv = NULL;
   }
 
