@@ -231,7 +231,11 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     if (!opt.dumpdescription) {
       std::cout << Arc::IString("Test aborted because no resource returned any information") << std::endl;
     } else {
-      std::cout << Arc::IString("Dumping job description aborted because no resource returned any information") << std::endl;
+      std::cout << Arc::IString("Unable to adapt job description to any resource, no resource information could be obtained.") << std::endl;
+      std::cout << Arc::IString("Original job description is listed below:") << std::endl;
+      std::string descOutput;
+      testJob.UnParse(descOutput, testJob.GetSourceLanguage());
+      std::cout << descOutput << std::endl;
     }
     return 1;
   }
