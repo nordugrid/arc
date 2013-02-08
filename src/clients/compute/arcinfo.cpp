@@ -124,6 +124,7 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
     if (opt.longlist) {
       if (it != services.begin()) std::cout << std::endl;
       std::cout << *it;
+      std::cout << std::flush;
     }
     else {
       std::cout << "Computing service: " << (**it).Name;
