@@ -1365,20 +1365,19 @@ namespace Arc {
       Dbt key, data;
       bool jobWasPruned;
       do {
-        if (ret == DB_KEYEXIST) {
-          newJobs.pop_back();
-          if ((ret = db->put(NULL, &key, &data, 0)) != 0 || ++it == jobs.end()) {
-            break;
-          }
-        }
         ::free(pdata);
         key.set_size(it->JobID.size());
         key.set_data((char*)it->JobID.c_str());
         serialiseJob(*it, data);
         pdata = data.get_data();
         jobWasPruned = (idsOfPrunedJobs.count(it->JobID) != 0);
-        if (!jobWasPruned) newJobs.push_back(&*it);
-      } while (((ret = db->put(NULL, &key, &data, (!jobWasPruned)*DB_NOOVERWRITE)) == 0 && ++it != jobs.end()) || ret == DB_KEYEXIST);
+        if (!jobWasPruned) { // Check if job already exist.
+          Dbt existingData;
+          if (db->get(NULL, &key, &existingData, 0) == DB_NOTFOUND) {
+            newJobs.push_back(&*it);
+          }
+        }
+      } while (((ret = db->put(NULL, &key, &data, 0)) == 0 && ++it != jobs.end()));
       ::free(pdata);
       
       if (ret != 0) {
