@@ -1110,7 +1110,7 @@ namespace Arc {
        j.JobDescriptionDocument, tostring(j.LocalSubmissionTime.GetTime())};
       
     data.set_data(NULL); data.set_size(0);
-    uint32_t l = 4;
+    uint32_t l = 0;
     for (unsigned i = 0; i < nItems; ++i) l += 4 + dataItems[i].length();
     void* d = (void*)::malloc(l);
     if(!d) return;
