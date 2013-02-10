@@ -3322,18 +3322,6 @@ labeled.
 name="gridlong"
 
 .TP
-.B fork_job_limit
-fork_job_limit, the allowed number of concurrent jobs in a fork system,
-relevant only for a fork queue. Default is 1. The special value 'cpunumber'
-can be used which will set the limit of running jobs to the number of cpus 
-available in the machine. This parameter is used in the calculation of 
-freecpus in a fork system.
-
-.IR Example:
-.br
-fork_job_limit="cpunumber"
-
-.TP
 .B homogeneity
 homogeneity - determines whether the queue consists of identical NODES with
 respect to  cputype, memory, installed software (opsys). 

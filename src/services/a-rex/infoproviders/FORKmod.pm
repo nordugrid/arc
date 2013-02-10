@@ -32,7 +32,7 @@ sub get_lrms_options_schema {
             'queues' => {
                 '*' => {
                     'users'       => [ '' ],
-                    'fork_job_limit' => '*'
+                    'maxjobs' => '*'
                 }
             },
             'jobs' => [ '' ]
@@ -174,13 +174,22 @@ sub queue_info ($) {
     $lrms_queue->{status} = 0 if $lrms_queue->{status} < 0;
 
     my $job_limit;
-    if ( not $qopts->{fork_job_limit} ) {
-       $job_limit = 1;
-    } elsif ($qopts->{fork_job_limit} eq "cpunumber") {
-        $job_limit = $lrms_queue->{totalcpus};
-    } else {
-       $job_limit = $qopts->{fork_job_limit};
+    
+    $job_limit = 1;
+    if ( $qopts->{maxjobs} ) {
+       #extract lrms maxjobs from config option
+
+       @maxes = split(' ', $qopts->{maxjobs});
+       $len=@maxes;
+       if ($len > 1){
+         $job_limit = $maxes[2];
+         #do we allow "cpunumber" special statement in maxjobs?
+         if ($job_limit eq "cpunumber") {
+           $job_limit = $lrms_queue->{totalcpus};
+         }
+       }
     }
+
     $lrms_queue->{maxrunning} = $job_limit;
     $lrms_queue->{maxuserrun} = $job_limit;
     $lrms_queue->{maxqueuable} = $job_limit;

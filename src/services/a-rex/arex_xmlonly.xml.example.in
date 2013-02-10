@@ -179,7 +179,6 @@
               <ip:OSVersion>5.1</ip:OSVersion>
               <ip:MaxVirtualMemory>2000</ip:MaxVirtualMemory>
               <ip:SchedulingPolicy>fifo</ip:SchedulingPolicy>
-              <lrms:fork_job_limit>cpunumber</lrms:fork_job_limit>
           </ip:ComputingShare>
       </arex:InfoProvider>
     </loader:Service>

@@ -42,7 +42,6 @@ my $lrms_options = {
     dgbridge_stage_prepend => '*',
 };
 my $lrms_share_options = {
-    fork_job_limit => '*',
     queue_node_string => '*',
     condor_requirements => '*',
     sge_jobopts => '*',

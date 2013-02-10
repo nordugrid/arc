@@ -230,7 +230,7 @@ my $opt1 = {lrms => 'fork',
             sge_root => '/opt/n1ge6',
             sge_cell => 'cello',
             sge_bin_path => '/opt/n1ge6/bin/lx24-x86',
-            queues => {'shar' => {users => []}, 'loca' => {users => ['joe','pete'], fork_job_limit => 5}},
+            queues => {'shar' => {users => []}, 'loca' => {users => ['joe','pete'], maxjobs => '4 2'}},
             jobs => [qw(7 101 5865)]
            };
 

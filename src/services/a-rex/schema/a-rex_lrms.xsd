@@ -44,13 +44,6 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="fork_job_limit" type="xsd:string">
-        <xsd:annotation>
-            <xsd:documentation xml:lang="en">
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-
     <xsd:element name="condor_location" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">

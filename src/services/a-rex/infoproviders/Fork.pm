@@ -244,12 +244,18 @@ sub queue_info ($$) {
     }
 
     my $job_limit;
-    if ( not $$config{fork_job_limit} ) {
-       $job_limit = 1;
-    } elsif ($$config{fork_job_limit} eq "cpunumber") {
-        $job_limit = $lrms_queue{totalcpus};
-    } else {
-       $job_limit = $$config{fork_job_limit};
+    $job_limit = 1;
+    if ( $$config{maxjobs} ) {
+       #extract lrms maxjobs from config option
+      
+       @maxes = split(' ', $$config{maxjobs});
+       $len=@maxes;
+       if ($len > 1){ 
+         $job_limit = $maxes[2];
+         if ($job_limit eq "cpunumber") {
+           $job_limit = $lrms_queue->{totalcpus};
+         }
+       }
     }
     $lrms_queue{maxrunning} = $job_limit;
     $lrms_queue{maxuserrun} = $job_limit;

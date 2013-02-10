@@ -368,7 +368,6 @@ appropiate.
               <ip:SchedulingPolicy>fairshare</ip:SchedulingPolicy>
               <ip:Preemption>false</ip:Preemption>
               <lrms:slurm_project>knowarc</lrms:slurm_project>
-              <lrms:fork_job_limit>cpunumber</lrms:fork_job_limit>
               <lrms:queue_node_string>gridlong_nodes</lrms:queue_node_string>
               <lrms:sge_jobopts>-P atlas -r yes</lrms:sge_jobopts>
               <lrms:condor_requirements>Memory&gt;=1000 &amp;&amp; (Arch == "INTEL" || Arch == "x86_64") || (Arch == "x86_64")</lrms:condor_requirements>
