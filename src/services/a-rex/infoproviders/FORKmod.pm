@@ -31,11 +31,11 @@ sub get_lrms_options_schema {
     return {
             'queues' => {
                 '*' => {
-                    'users'       => [ '' ],
-                    'maxjobs' => '*'
+                    'users'       => [ '' ]
                 }
             },
-            'jobs' => [ '' ]
+            'jobs' => [ '' ],
+            'maxjobs' => '*'
         };
 }
 
@@ -176,16 +176,16 @@ sub queue_info ($) {
     my $job_limit;
     
     $job_limit = 1;
-    if ( $qopts->{maxjobs} ) {
+    if ( $options->{maxjobs} ) {
        #extract lrms maxjobs from config option
 
-       my @maxes = split(' ', $qopts->{maxjobs});
+       my @maxes = split(' ', $options->{maxjobs});
        my $len=@maxes;
        if ($len > 1){
          $job_limit = $maxes[1];
          #do we allow "cpunumber" special statement in maxjobs?
          if ($job_limit eq "cpunumber") {
-           $job_limit = $lrms_queue{totalcpus};
+           $job_limit = $lrms_queue->{totalcpus};
          }
        }
     }
