@@ -1217,6 +1217,10 @@ namespace ArcDMCGridFTP {
         globus_ftp_client_operationattr_set_data_protection(&ftp_opattr,
                                     GLOBUS_FTP_CONTROL_PROTECTION_CLEAR);
         logger.msg(VERBOSE, "Using insecure data transfer");
+
+        globus_ftp_control_dcau_t dcau;
+        dcau.mode = GLOBUS_FTP_CONTROL_DCAU_NONE;
+        globus_ftp_client_operationattr_set_dcau(&ftp_opattr, &dcau);
       }
       if (force_passive) {
         globus_ftp_client_operationattr_set_mode(&ftp_opattr,
