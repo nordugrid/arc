@@ -179,13 +179,13 @@ sub queue_info ($) {
     if ( $qopts->{maxjobs} ) {
        #extract lrms maxjobs from config option
 
-       @maxes = split(' ', $qopts->{maxjobs});
-       $len=@maxes;
+       my @maxes = split(' ', $qopts->{maxjobs});
+       my $len=@maxes;
        if ($len > 1){
-         $job_limit = $maxes[2];
+         $job_limit = $maxes[1];
          #do we allow "cpunumber" special statement in maxjobs?
          if ($job_limit eq "cpunumber") {
-           $job_limit = $lrms_queue->{totalcpus};
+           $job_limit = $lrms_queue{totalcpus};
          }
        }
     }
