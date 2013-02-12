@@ -27,6 +27,7 @@ namespace Arc {
     PyObject *module;
     PyObject *klass;
     PyObject *object;
+    bool valid;
 
     static Logger logger;
     static PyThreadState *tstate;

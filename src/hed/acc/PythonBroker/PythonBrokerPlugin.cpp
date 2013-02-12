@@ -82,6 +82,10 @@ namespace Arc {
 
     PythonBrokerPlugin *broker = new PythonBrokerPlugin(brokerarg);
     PyEval_ReleaseThread(tstate); // Release current thread
+    if (!broker->valid) {
+      delete broker;
+      return NULL;
+    }
     return broker;
   }
 
@@ -93,7 +97,8 @@ namespace Arc {
       arc_xtarget_klass(NULL),
       module(NULL),
       klass(NULL),
-      object(NULL) {
+      object(NULL),
+      valid(false) {
 
     if (!tstate) {
       logger.msg(ERROR, "Main Python thread is not initialized");
@@ -108,7 +113,8 @@ namespace Arc {
       args.resize(pos);
     pos = args.rfind('.');
     if (pos == std::string::npos) {
-      logger.msg(ERROR, "Invalid class name");
+      logger.msg(ERROR, "Invalid class name. The broker argument for the PythonBroker should be\n"
+                 "       Filename.Class.args (args is optional), for example SampleBroker.MyBroker");
       return;
     }
     std::string module_name = args.substr(0, pos);
@@ -270,6 +276,7 @@ namespace Arc {
     }
 
     logger.msg(VERBOSE, "Python broker constructor called (%d)", refcount);
+    valid = true;
   }
 
   PythonBrokerPlugin::~PythonBrokerPlugin() {
