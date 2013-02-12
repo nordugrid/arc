@@ -768,7 +768,7 @@ sub build_config_from_inifile {
         delete $queue->{NodeSelection};
 
         rename_keys $queue, $sconf, {scheduling_policy => 'SchedulingPolicy',
-                                     nodememory => 'MaxVirtualMemory', comment => 'Description'};
+                                     nodememory => 'MaxVirtualMemory', comment => 'Description', maxslotsperjob => 'MaxSlotsPerJob'};
         move_keys $queue, $sconf, [keys %$share_options, keys %$lrms_share_options];
 
         rename_keys $queue, $xeconf, {homogeneity => 'Homogeneous', architecture => 'Platform',

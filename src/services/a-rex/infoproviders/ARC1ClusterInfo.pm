@@ -2679,9 +2679,11 @@ sub collect($) {
         $csha->{MaxUserRunningJobs} = $qinfo->{maxuserrun}
             if defined $qinfo->{maxuserrun};
 
-        # TODO: new return value from LRMS infocollector
-        # TODO: see how LRMSs can detect the correct value
-        $csha->{MaxSlotsPerJob} = $sconfig->{MaxSlotsPerJob} || $qinfo->{MaxSlotsPerJob}  || 1;
+        # TODO: eventually new return value from LRMS infocollector
+        # not published if not in arc.conf or returned by infocollectors
+        if ($sconfig->{MaxSlotsPerJob} || $qinfo->{MaxSlotsPerJob}) {
+            $csha->{MaxSlotsPerJob} = $sconfig->{MaxSlotsPerJob} || $qinfo->{MaxSlotsPerJob};
+        }
 
         # MaxStageInStreams, MaxStageOutStreams
         # OBS: A-REX does not have separate limits for up and downloads.
