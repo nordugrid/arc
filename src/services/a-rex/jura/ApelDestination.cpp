@@ -224,8 +224,13 @@ namespace Arc
     if (stat(default_path.c_str(), &st) != 0) {
         mkdir(default_path.c_str(), S_IRWXU);
     }
+    //directory check (for host)
+    std::string subdir = default_path + service_url.Host() + "/";
+    if (stat(subdir.c_str(), &st) != 0) {
+        mkdir(subdir.c_str(), S_IRWXU);
+    }
     //directory check
-    std::string subdir = default_path + "outgoing/";
+    subdir = subdir + "outgoing/";
     default_path = subdir.substr(0,subdir.length()-1);
     if (stat(subdir.c_str(), &st) != 0) {
         mkdir(subdir.c_str(), S_IRWXU);
