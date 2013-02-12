@@ -1,12 +1,19 @@
 package FORKmod;
 
-our @ISA = ('Exporter');
+require Exporter;
+our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(get_lrms_info get_lrms_options_schema);
 
 use POSIX qw(ceil floor);
 use Sys::Hostname;
 use LogUtils;
 use Sysinfo;
+# uncomment the following and install the perl concise package 
+# for a dump of datastructures.
+#use Data::Dumper::Concise;
+# usage: put the following anywhere in the code where you need the dump
+#$log->warning(Dumper($variable_to_dump));
+
 
 use strict;
 
@@ -14,14 +21,14 @@ use strict;
 # Saved private variables
 ##########################################
 
-our $lrms_info;
+our $lrms_info = {};
 our $options;
 
 our $running = 0;
 our $hostname = hostname();
 our $cputhreadcount;
 
-our $log = LogUtils->getLogger("LRMSInfo.fork");
+our $log = LogUtils->getLogger(__PACKAGE__);
 
 ############################################
 # Public subs
