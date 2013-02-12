@@ -1295,6 +1295,7 @@ namespace Arc {
       jobDB->close(0);
     }
     if (dbEnv) {
+      dbEnv->memp_sync(NULL);
       dbEnv->close(0);
     }
 
