@@ -1028,13 +1028,13 @@ semanage fcontext -d -t slapd_db_t "/var/run/arc/bdii(/.*)?" 2>/dev/null || :
 
 %preun aris
 if [ $1 -eq 0 ]; then
-  service nordugrid-arc-bdii stop > /dev/null 2>&1
+  service nordugrid-arc-bdii stop > /dev/null 2>&1 || :
   /sbin/chkconfig --del nordugrid-arc-bdii
 fi
 
 %postun aris
 if [ $1 -ge 1 ]; then
-  service nordugrid-arc-bdii condrestart > /dev/null 2>&1
+  service nordugrid-arc-bdii condrestart > /dev/null 2>&1 || :
 fi
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 if [ $1 -eq 0 ]; then
@@ -1045,7 +1045,7 @@ fi
 %endif
 
 %triggerun aris -- bdii
-service nordugrid-arc-bdii condrestart > /dev/null 2>&1
+service nordugrid-arc-bdii condrestart > /dev/null 2>&1 || :
 
 %post egiis
 %if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
@@ -1072,7 +1072,7 @@ fi
 
 %postun acix-cache
 if [ $1 -ge 1 ]; then
-  service acix-cache condrestart > /dev/null 2>&1
+  service acix-cache condrestart > /dev/null 2>&1 || :
 fi
 
 %post acix-index
@@ -1080,13 +1080,13 @@ fi
 
 %preun acix-index
 if [ $1 -eq 0 ]; then
-  service acix-index stop > /dev/null 2>&1
+  service acix-index stop > /dev/null 2>&1 || :
   /sbin/chkconfig --del acix-index
 fi
 
 %postun acix-index
 if [ $1 -ge 1 ]; then
-  service acix-index condrestart > /dev/null 2>&1
+  service acix-index condrestart > /dev/null 2>&1 || :
 fi
 %endif
 
