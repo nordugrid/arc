@@ -1907,7 +1907,6 @@ bool JobsList::AddJob(const JobId& id) {
   for(std::list<std::string>::iterator subdir = subdirs.begin();
                                subdir != subdirs.end();++subdir) {
     std::string cdir=config.control_dir;
-    std::list<JobFDesc> ids;
     std::string odir=cdir+(*subdir);
     std::string fname=odir+'/'+"job."+id+".status";
     uid_t uid;
@@ -1915,7 +1914,6 @@ bool JobsList::AddJob(const JobId& id) {
     time_t t;
     if(check_file_owner(fname,uid,gid,t)) {
       // add it to the list
-      iterator i;
       AddJobNoCheck(id,uid,gid);
       return true;
     }

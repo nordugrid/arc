@@ -366,7 +366,6 @@ namespace Arc {
     t = (long)n;
     if(!sign) t=-t;
     return true;
-    return false;
   }
 
   bool strtoint(const std::string& s, unsigned long& t, int base) {

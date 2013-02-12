@@ -1374,7 +1374,7 @@ err:
     if(!ac || !cert || !(ac->acinfo) || !(ac->acinfo->version) || !(ac->acinfo->holder) 
        || (ac->acinfo->holder->digest) || !(ac->acinfo->form) || !(ac->acinfo->form->names) 
        || (ac->acinfo->form->is) || (ac->acinfo->form->digest) || !(ac->acinfo->serial) 
-       || !(ac->acinfo->validity) || !(ac->acinfo->alg) || !(ac->acinfo->validity) 
+       || !(ac->acinfo->alg) || !(ac->acinfo->validity)
        || !(ac->acinfo->validity->notBefore) || !(ac->acinfo->validity->notAfter) 
        || !(ac->acinfo->attrib) || !(ac->sig_alg) || !(ac->signature)) {
       status |= VOMSACInfo::ACParsingFailed;

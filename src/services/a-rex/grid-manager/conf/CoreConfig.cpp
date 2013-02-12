@@ -270,7 +270,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
     else if (command == "maxloadshare") {
       std::string max_share_s = config_next_arg(rest);
       unsigned int max_share = 0;
-      if (!Arc::stringto(max_share_s, max_share) || max_share <= 0) {
+      if (!Arc::stringto(max_share_s, max_share) || max_share == 0) {
         logger.msg(Arc::ERROR, "Wrong number in maxloadshare: %s", max_share_s); return false;
       }
       config.max_staging_share = max_share;
@@ -298,7 +298,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       }
       unsigned int share_limit = 0;
       if (share_limit_s.length() != 0) {
-        if (!Arc::stringto(share_limit_s, share_limit) || share_limit <= 0) {
+        if (!Arc::stringto(share_limit_s, share_limit) || share_limit == 0) {
           logger.msg(Arc::ERROR, "Wrong number in share_limit: %s", share_limit); return false;
         }
       }
@@ -736,7 +736,6 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
       logger.msg(Arc::ERROR, "Command for localCred is missing");
       return false;
     }
-    std::string options;
     Arc::XMLNode onode;
     onode = tmp_node.Attribute("timeout");
     if (!onode) {

@@ -200,18 +200,18 @@ namespace ArcDMCFile {
     write_file_chunks(void) {
     }
     unsigned long long int eof(void) {
-      if(chunks.size() <= 0) return 0;
+      if(chunks.empty()) return 0;
       return (--(chunks.end()))->end;
     }
     unsigned long long int extends(void) {
-      if(chunks.size() <= 0) return 0;
+      if(chunks.empty()) return 0;
       return chunks.begin()->end;
     }
     void add(unsigned long long int start, unsigned long long int end) {
       chunk_t c;
       c.start = start;
       c.end = end;
-      if(chunks.size() <= 0) {
+      if(chunks.empty()) {
         chunks.push_back(c);
         return;
       }

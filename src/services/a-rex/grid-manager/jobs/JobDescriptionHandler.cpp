@@ -36,8 +36,6 @@ bool JobDescriptionHandler::process_job_req(const GMJob &job,JobLocalDescription
   job_desc.lrms=config.DefaultLRMS();
   job_desc.queue=config.DefaultQueue();
   job_desc.lifetime=Arc::tostring(config.KeepFinished());
-  std::string filename;
-  filename = config.ControlDir() + "/job." + job.get_id() + ".description";
   if(parse_job_req(job.get_id(),job_desc) != JobReqSuccess) return false;
   if(job_desc.reruns>config.Reruns()) job_desc.reruns=config.Reruns();
   if(!job_local_write_file(job,config,job_desc)) return false;

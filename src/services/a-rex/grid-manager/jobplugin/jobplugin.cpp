@@ -1071,7 +1071,7 @@ int JobPlugin::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::
             if(job_local_read_file(fname,job_desc)) {
               if(job_desc.DN == subject) {
                 JobId id(tokens[1]);
-                dir_list.push_back(DirEntry(false,id.c_str()));
+                dir_list.push_back(DirEntry(false,id));
               };
             };
           };

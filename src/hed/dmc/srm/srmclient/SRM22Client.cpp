@@ -1073,7 +1073,6 @@ namespace ArcDMCSRM {
     }
 
     if (details["ownerPermission"] && details["groupPermission"] && details["otherPermission"]) {
-      std::string perm;
       if (details["ownerPermission"]["userID"]) {
         metadata.owner = (std::string)details["ownerPermission"]["userID"];
       }

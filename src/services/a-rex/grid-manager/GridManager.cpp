@@ -76,7 +76,6 @@ static void cache_func(void* arg) {
   cmd += " -M " + maxfreespace;
   if (!cachelifetime.empty()) cmd += " -E " + cachelifetime;
   cmd += " -D " + cache_info.getLogLevel();
-  std::vector<std::string> cache_dirs;
   for (std::vector<std::string>::iterator i = cache_info_dirs.begin(); i != cache_info_dirs.end(); i++) {
     cmd += " " + (i->substr(0, i->find(" ")));
   }

@@ -175,7 +175,7 @@ namespace ArcDMCGFAL {
     int handle;
     unsigned int length;
     unsigned long long int offset = 0;
-    unsigned int bytes_read;
+    ssize_t bytes_read = 0;
     for (;;) {
       // Ask the DataBuffer for a buffer to read into
       if (!buffer->for_read(handle, length, true)) {
@@ -324,7 +324,7 @@ namespace ArcDMCGFAL {
     unsigned int length;
     unsigned long long int position;
     unsigned long long int offset = 0;
-    unsigned int bytes_written;
+    ssize_t bytes_written = 0;
     unsigned int chunk_offset;
     
     for (;;) {

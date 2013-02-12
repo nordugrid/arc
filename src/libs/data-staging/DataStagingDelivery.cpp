@@ -35,7 +35,6 @@ static void ReportStatus(DataStaging::DTRStatus::DTRStatusType st,
                          unsigned long long int size,
                          const std::string& checksum = "") {
   static DataStaging::DataDeliveryComm::Status status;
-  static DataStaging::DataDeliveryComm::Status status_;
   static unsigned int status_pos = 0;
   static bool status_changed = true;
 
@@ -53,7 +52,6 @@ static void ReportStatus(DataStaging::DTRStatus::DTRStatusType st,
   status.speed = 0;
   strncpy(status.checksum, checksum.c_str(), sizeof(status.checksum));
   if(status_pos == 0) {
-    status_=status;
     status_changed=true;
   };
   if(status_changed) {
@@ -177,7 +175,6 @@ int main(int argc,char* argv[]) {
   for(std::list<std::string>::iterator o = transfer_opts.begin();
                            o != transfer_opts.end();++o) {
     std::string::size_type p = o->find('=');
-    std::string value;
     if(p != std::string::npos) {
       std::string name = o->substr(0,p);
       unsigned long long int value;
