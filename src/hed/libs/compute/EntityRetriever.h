@@ -168,10 +168,10 @@ public:
   /// Needs the credentials of the user and can have some options
   /**
     Creating the EntityRetriever does not start any querying yet.
-    \param UserConfig with the user's credentials
+    \param uc UserConfig with the user's credentials
     \param options contain type T specific querying options
   */
-  EntityRetriever(const UserConfig&, const EndpointQueryOptions<T>& options = EndpointQueryOptions<T>());
+  EntityRetriever(const UserConfig& uc, const EndpointQueryOptions<T>& options = EndpointQueryOptions<T>());
   ~EntityRetriever() { common->deactivate(); }
 
   /** This method blocks until all the results arrive. */

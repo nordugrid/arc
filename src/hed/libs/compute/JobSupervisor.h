@@ -107,12 +107,14 @@ namespace Arc {
      * 'retrievedJobs' list. If all jobs are successfully retrieved this
      * method returns true, otherwise false.
      *
-     * @param downloaddir specifies the path to in which job download
+     * @param downloaddirprefix specifies the path to in which job download
      *   directories will be located.
      * @param usejobname specifies whether to use the job name or job ID as
      *   directory name to store job output files in.
      * @param force indicates whether existing job directories should be
      *   overwritten or not.
+     * @param downloaddirectories filled with a list of directories to which
+     *   jobs were downloaded.
      * @see JobControllerPlugin::RetrieveJob.
      * @return true if all jobs are successfully retrieved, otherwise false.
      **/
@@ -235,12 +237,13 @@ namespace Arc {
      *
      * @param destination specifies how target destination should be determined
      *  (1 = same target, 2 = not same, any other = any target).
+     * @param services possible destinations for the resubmission
      * @param resubmittedJobs list of Job objects which resubmitted jobs will be
      *  appended to.
-     * @param TODO
+     * @param rejectedURLs list of services which should be rejected
      * @return false if any error is encountered, otherwise true.
      **/
-    bool Resubmit(int destination, const std::list<Endpoint>&, std::list<Job>& resubmittedJobs, const std::list<std::string>& = std::list<std::string>());
+    bool Resubmit(int destination, const std::list<Endpoint>& services, std::list<Job>& resubmittedJobs, const std::list<std::string>& rejectedURLs = std::list<std::string>());
 
     /// Migrate jobs
     /**
@@ -289,12 +292,13 @@ namespace Arc {
      *
      * @param forcemigration indicates whether migration should succeed if
      *  service fails to cancel the existing queuing job.
+     * @param services possible destinations for the migration
      * @param migratedJobs list of Job objects which migrated jobs will be
      *  appended to.
-     * @param TODO
+     * @param rejectedURLs list of services which should be rejected
      * @return false if any error is encountered, otherwise true.
      **/
-    bool Migrate(bool forcemigration, const std::list<Endpoint>&, std::list<Job>& migratedJobs, const std::list<std::string>& = std::list<std::string>());
+    bool Migrate(bool forcemigration, const std::list<Endpoint>& services, std::list<Job>& migratedJobs, const std::list<std::string>& rejectedURLs = std::list<std::string>());
 
     /// Cancel jobs
     /**

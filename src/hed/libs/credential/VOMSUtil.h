@@ -159,11 +159,19 @@ namespace Arc {
   */
 
   /**Create AC(Attribute Certificate) with voms specific format.
-   * @param codedac	  The coded AC as output of this method
+   * @param codedac The coded AC as output of this method
    * @param issuer_cred   The issuer credential which is used to sign the AC
    * @param holder_cred   The holder credential, the holder certificate
    *			   is the one which carries AC
-   * The rest arguments are the same as the above method          
+   * @param fqan    The AC_IETFATTR. According to the definition of voms, the fqan
+   *                      will be like /Role=Employee/Group=Tester/Capability=NULL
+   * @param targets The list of targets which are supposed to consume this AC
+   * @param attributes  The AC_FULL_ATTRIBUTES.  Accoding to the definition of voms,
+   *                      the attributes will be like "qualifier::name=value"
+   * @param voname  The vo name
+   * @param uri   The uri of this vo, together with voname, it will be
+   *          as the granter of this AC
+   * @param lifetime  The lifetime of this AC   *
    */
   bool createVOMSAC(std::string& codedac, Credential& issuer_cred,
                     Credential& holder_cred,
@@ -195,6 +203,7 @@ namespace Arc {
    *                   /O=Grid/O=NorduGrid/OU=KnowARC/CN=voms.knowarc.eu
    *                   /O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority
    *  See more in : https://twiki.cern.ch/twiki/bin/view/LCG/VomsFAQforServiceManagers
+   * @param vomscert_trust_dn List of VOMS trust chains
    * @param output  The parsed attributes (Role and Generic Attribute) . 
    *           Each attribute is stored in element of a vector as a string.
    *           It is up to the consumer to understand the meaning of the
@@ -210,7 +219,6 @@ namespace Arc {
    * 		for AC_IETFATTR, the 'VO' (voname) is added:
    * 		      /VO=knowarc.eu/Group=coredev/Role=NULL/Capability=NULL
    * 		      /VO=knowarc.eu/Group=testers/Role=NULL/Capability=NULL
-   *
    * 		some other redundant attributes is provided:
    * 		      voname=knowarc.eu/hostname=arthur.hep.lu.se:15001
    * @param verify  true: Verify the voms certificate is trusted based on the 
@@ -252,8 +260,7 @@ namespace Arc {
                    std::vector<VOMSACInfo>& output,
                    bool verify = true, bool reportall = false);
 
-  /**Parse the certificate in string format. 
-   * @param cert_str  one certificate, or a chain of certifiate, in string format */
+  /**Parse the certificate or a chain of certificates, in string format */
   bool parseVOMSAC(const std::string& cert_str,
                    const std::string& ca_cert_dir,
                    const std::string& ca_cert_file,

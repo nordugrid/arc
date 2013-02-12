@@ -38,7 +38,7 @@ namespace Arc {
     /** String representation of the states in the enum #EndpointSubmissionStatusType */
     static std::string str(EndpointSubmissionStatusType status);
   
-    /** A new EndpointSubmissionStatus is created with #UNKNOWN status and with an empty description by default */
+    /** A new EndpointSubmissionStatus is created with UNKNOWN status and with an empty description by default */
     EndpointSubmissionStatus(EndpointSubmissionStatusType status = UNKNOWN, const std::string& description = "") : status(status), description(description) {};
   
     /** This EndpointSubmissionStatus object equals to an enum #EndpointSubmissionStatusType if it contains the same state */

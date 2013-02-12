@@ -287,7 +287,9 @@ namespace Arc {
                                                     char separator, bool encoded = false);
 
     /// Returns a string representation of the options given in the options map.
-    /** \param encode if set to true then options are encoded according to RFC 3986 */
+    /** \param options Key-value map of options
+     *  \param separator The character that separates options
+     *  \param encode if set to true then options are encoded according to RFC 3986 */
     static std::string OptionString(const std::map<std::string,
                                     std::string>& options, char separator, bool encode = false);
 

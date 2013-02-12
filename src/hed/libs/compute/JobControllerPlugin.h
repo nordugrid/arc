@@ -82,8 +82,8 @@ namespace Arc {
     ~JobControllerPluginLoader();
 
     /** Load a new JobControllerPlugin
-     * \param name    The name of the JobControllerPlugin to load.
-     * \param usercfg The UserConfig object for the new JobControllerPlugin.
+     * \param name The name of the JobControllerPlugin to load.
+     * \param uc The UserConfig object for the new JobControllerPlugin.
      * \return A pointer to the new JobControllerPlugin (NULL on error).
      */
     JobControllerPlugin* load(const std::string& name, const UserConfig& uc);

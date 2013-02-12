@@ -721,7 +721,9 @@ namespace Arc {
      * This member is used by JobDescriptionParserPlugin classes to store
      * attribute/value pairs not fitting into attributes stored in this class.
      * The form of the attribute (the key in the map) should be as follows:
-     * <language>;<attribute-name>
+       \verbatim
+       <language>;<attribute-name>
+       \endverbatim
      * E.g.: "nordugrid:xrsl;hostname".
      **/
     std::map<std::string, std::string> OtherAttributes;

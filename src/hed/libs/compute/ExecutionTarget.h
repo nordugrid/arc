@@ -453,7 +453,7 @@ namespace Arc {
     /**
      * Copy constructor.
      *
-     * @param target ExecutionTarget to copy.
+     * @param t ExecutionTarget to copy.
      **/
     ExecutionTarget(const ExecutionTarget& t) :
       Location(t.Location), AdminDomain(t.AdminDomain), ComputingService(t.ComputingService),
@@ -526,11 +526,11 @@ namespace Arc {
     /**
      * Method to print the ExecutionTarget attributes to a std::ostream object.
      *
-     * @param out is the std::ostream to print the attributes to.
-     * @param 
+     * @param out the std::ostream to print the attributes to.
+     * @param et ExecutionTarget from which to obtain information
      * @return the input ostream object is returned.
      **/
-    friend std::ostream& operator<<(std::ostream&, const ExecutionTarget&);
+    friend std::ostream& operator<<(std::ostream& out, const ExecutionTarget& et);
 
     static void GetExecutionTargets(const std::list<ComputingServiceType>& csList, std::list<ExecutionTarget>& etList);
 

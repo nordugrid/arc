@@ -48,6 +48,7 @@ public:
       one capability from this list.
       \param[in] rejectedServices If a service's URL contains any item from this list,
       the services will be not returned among the results.
+      \param[in] preferredInterfaceNames Set of preferred interface names
   */
   EndpointQueryOptions(bool recursive = false,
                        const std::list<std::string>& capabilityFilter = std::list<std::string>(),

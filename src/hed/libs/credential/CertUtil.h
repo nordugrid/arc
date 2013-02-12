@@ -19,7 +19,7 @@ namespace ArcCredential {
     #define PROXYCERTINFO_OPENSSL      "1.3.6.1.5.5.7.1.14"
 
  
-    /* Certificate Types */
+    /** Certificate Types */
     typedef enum {
       /** A end entity certificate */
       CERT_TYPE_EEC,

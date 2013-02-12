@@ -74,25 +74,29 @@ class Credential {
 
     /**Constructor, specific constructor for proxy certificate, only acts as a
     * container for constraining certificate signing and/or generating certificate
-    * request(only keybits is useful for creating certificate request), is meaningless
+    * request (only keybits is useful for creating certificate request), is meaningless
     * for any other use.
     * The proxyversion and policylang is for specifying the proxy certificate type and
     * the policy language inside proxy.
     * The definition of proxyversion and policy language is based on
     * http://dev.globus.org/wiki/Security/ProxyCertTypes#RFC_3820_Proxy_Certificates
     * The code is supposed to support proxy version: GSI2(legacy proxy), GSI3(Proxy draft)
-    * and RFC(RFC3820 proxy), and correspoding policy language. GSI2(GSI2, GSI2_LIMITED)
+    * and RFC(RFC3820 proxy), and corresponding policy language. GSI2(GSI2, GSI2_LIMITED)
     * GSI3 and RFC (IMPERSONATION_PROXY--1.3.6.1.5.5.7.21.1, INDEPENDENT_PROXY--1.3.6.1.5.5.7.21.2,
     * LIMITED_PROXY--1.3.6.1.4.1.3536.1.1.1.9, RESTRICTED_PROXY--policy language undefined)
     * In openssl>=098, there are three types of policy languages: id-ppl-inheritAll--1.3.6.1.5.5.7.21.1,
     * id-ppl-independent--1.3.6.1.5.5.7.21.2, and id-ppl-anyLanguage-1.3.6.1.5.5.7.21.0
     *
-    *@param start, start time of proxy certificate
-    *@param lifetime, lifetime of proxy certificate
-    *@param keybits, modulus size for RSA key generation,
-         *it should be greater than 1024 if 'this' class is
-         *used for generating X509 request; it should be '0' if
-         *'this' class is used for constraing certificate signing.
+    * @param start start time of proxy certificate
+    * @param lifetime lifetime of proxy certificate
+    * @param keybits modulus size for RSA key generation,
+    * it should be greater than 1024 if 'this' class is
+    * used for generating X509 request; it should be '0' if
+    * 'this' class is used for constraining certificate signing.
+    * @param proxyversion proxy certificate version (see above for values)
+    * @param policylang policy language of the proxy (see above for values)
+    * @param policy path to file with policy content
+    * @param pathlength path length constraint
     */
     Credential(Time start, Period lifetime = Period("PT12H"),
               int keybits = 1024, std::string proxyversion = "rfc",
@@ -103,10 +107,14 @@ class Credential {
     * credential files. only acts as a container for parsing the certificate and key
     * files, is meaningless for any other use. this constructor will parse the credential
     * information, and put them into "this" object
-    * @param passphrase4key, specifies the password for descrypting private key (if needed).
-    *    If value is empty then password will be asked interrctively. To avoid askig for 
+    * @param cert path to certificate file
+    * @param key path to key file
+    * @param cadir path to directory of CA certificates
+    * @param cafile path to file with CA certificate
+    * @param passphrase4key specifies the password for decrypting private key (if needed).
+    *    If value is empty then password will be asked interactively. To avoid asking for
     *    password use value provided by NoPassword() method.
-    * @param is_file, specifies if the cert/key are from file, otherwise they
+    * @param is_file specifies if the cert/key are from file, otherwise they
     *    are supposed to be from string. default is from file
     */
     Credential(const std::string& cert, const std::string& key, const std::string& cadir,
@@ -116,9 +124,9 @@ class Credential {
     /**Constructor, specific constructor for usual certificate, constructing from
     * information in UserConfig object. Only acts as a container for parsing the 
     * certificate and key files, is meaningless for any other use. this constructor 
-    * will parse the credential * information, and put them into "this" object
-    * @param is_file, specify if the cert/key are from file, otherwise they
-    *    are supposed to be from string. default is from file
+    * will parse the credential information, and put them into "this" object.
+    * @param usercfg UserConfig object from which certificate information is obtained
+    * @param passphrase4key passphrase for private key
     */
     Credential(const UserConfig& usercfg, const std::string& passphrase4key = "");
 
@@ -254,20 +262,23 @@ class Credential {
         const std::string& policy, int pathlength);
 
     /**Output the private key into string
-    *@param encryption, whether encrypt the output private key or not
-    *@param passphrase, the passphrase to encrypt the output private key
-    */
+     * @param content Filled with private key content
+     * @param encryption whether encrypt the output private key or not
+     * @param passphrase the passphrase to encrypt the output private key
+     */
     bool OutputPrivatekey(std::string &content,  bool encryption = false, const std::string& passphrase ="");
 
     /**Output the public key into string*/
     bool OutputPublickey(std::string &content);
 
     /**Output the certificate into string
+     * @param content Filled with certificate content
      * @param is_der false for PEM, true for DER
      */
     bool OutputCertificate(std::string &content, bool is_der=false);
 
     /**Output the certificate chain into string
+     * @param content Filled with certificate chain content
      * @param is_der false for PEM, true for DER
      */
     bool OutputCertificateChain(std::string &content, bool is_der=false);
@@ -296,14 +307,17 @@ class Credential {
     **/
 
     /**Add an extension to the extension part of the certificate
-    *@param name, the name of the extension, there OID related with the name
+    *@param name the name of the extension, there OID related with the name
     *should be registered into openssl firstly
-    *@param data, the data which will be inserted into certificate extension
+    *@param data the data which will be inserted into certificate extension
+    *@param crit critical
     */
     bool AddExtension(const std::string& name, const std::string& data, bool crit = false);
 
     /**Add an extension to the extension part of the certificate
-    * @param binary, the data which will be inserted into certificate
+    * @param name the name of the extension, there OID related with the name
+    * should be registered into openssl firstly
+    * @param binary the data which will be inserted into certificate
     * extension part as a specific extension there should be specific
     * methods defined inside specific X509V3_EXT_METHOD structure
     * to parse the specific extension format.
@@ -319,7 +333,7 @@ class Credential {
     /**Get the specific extension (named by the parameter) in a certificate
     * this function is only supposed to be called after certificate and key
     * are loaded by the constructor for usual certificate 
-    *@param name, the name of the extension to get
+    * @param name the name of the extension to get
     */
     std::string GetExtension(const std::string& name);
 
@@ -353,6 +367,8 @@ class Credential {
     * information to X509_REQ inside this object,
     * and parse the certificate type from the PROXYCERTINFO
     * of request' extension
+    * @param reqbio the BIO containing the certificate request
+    * @param if_eec true if EEC request
     * @param if_der false for PEM; true for DER
     */
     bool InquireRequest(BIO* reqbio, bool if_eec = false, bool if_der = false);
@@ -365,19 +381,25 @@ class Credential {
 
     /**Sign request based on the information inside proxy, and
      * output the signed certificate to output BIO
+     * @param proxy Credential object holding proxy information
+     * @param outputbio BIO to hold the signed certificate
      * @param if_der false for PEM, true for DER
      */
     bool SignRequest(Credential* proxy, BIO* outputbio, bool if_der = false);
 
     /**Sign request and output the signed certificate to a string
+     * @param proxy Credential object holding proxy information
+     * @param content string to hold the signed certificate
      * @param if_der false for PEM, true for DER
      */
     bool SignRequest(Credential* proxy, std::string &content, bool if_der = false);
 
     /**Sign request and output the signed certificate to a file
+     * @param proxy Credential object holding proxy information
+     * @param filename path to file where certificate will be written
      * @param if_der false for PEM, true for DER
      */
-    bool SignRequest(Credential* proxy, const char* filename, bool foamat = false);
+    bool SignRequest(Credential* proxy, const char* filename, bool if_der = false);
 
     /**Self sign a certificate. This functionality is specific for creating a CA credential
     * by using this Credential class. 

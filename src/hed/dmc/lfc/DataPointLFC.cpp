@@ -648,7 +648,7 @@ using namespace Arc;
     if(!r) {
       return DataStatus(DataStatus::StatError, r.GetErrno(), r.GetDesc());
     }
-    if(files.size() < 1) {
+    if(files.empty()) {
       return DataStatus(DataStatus::StatError, EARCRESINVAL, "No results returned");
     }
     file = files.front();

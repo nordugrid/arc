@@ -246,7 +246,7 @@ namespace Arc {
      * ReadAllJobsFromFile method. It returns false if the file was not
      * writable, true otherwise.
      *
-     * @param jobid is a list of URL objects to be written to file
+     * @param jobids is a list of URL objects to be written to file
      * @param filename is the filename of file, where the URL objects will be
      *  appended to.
      * @param nTries specifies the maximal number of times the method will try
