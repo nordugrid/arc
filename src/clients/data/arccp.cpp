@@ -122,6 +122,9 @@ bool arctransfer(const Arc::URL& source_url,
   if (!res) {
     if (res == Arc::DataStatus::UnimplementedError) {
       logger.msg(Arc::ERROR, "Third party transfer is not supported for these endpoints");
+    } else if (res.GetErrno() == EPROTONOSUPPORT) {
+      logger.msg(Arc::ERROR, "Protocol(s) not supported - please check that the relevant gfal2\n"
+                      "       plugins are installed (gfal2-plugin-* packages)");
     } else {
       logger.msg(Arc::ERROR, "Transfer FAILED: %s", std::string(res));
       if (res.Retryable()) {
