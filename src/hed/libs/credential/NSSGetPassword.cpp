@@ -190,6 +190,7 @@ namespace AuthN {
     output = fopen(consoleName, "w");
     if (output == NULL) {
       fprintf(stderr, "Error opening output terminal for write\n");
+      fclose(input);
       return NULL;
     }
 

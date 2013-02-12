@@ -322,7 +322,7 @@ namespace Arc {
         continue;
       if ((opt == '?') || (opt == ':') || (opt == 'h')) {
         if (optopt) {
-          delete longoptions;
+          delete[] longoptions;
           exit(1);
         }
         std::cout << IString("Usage:") << std::endl;
@@ -354,7 +354,7 @@ namespace Arc {
         std::cout << std::endl;
         if (!description.empty())
           std::cout << IString(description) << std::endl;
-        delete longoptions;
+        delete[] longoptions;
         exit(0);
       }
       i = 0;
@@ -364,7 +364,7 @@ namespace Arc {
         if(!o) o = longoptions[i].val;
         if (opt == o) {
           if (!(*it)->Set(optarg ? optarg : "")) {
-            delete longoptions;
+            delete[] longoptions;
             exit(1);
           }
           break;

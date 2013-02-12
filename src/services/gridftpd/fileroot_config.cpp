@@ -108,7 +108,7 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
 #endif
           logger.msg(Arc::ERROR, "Can't resolve host %s", value);
           gridftpd::config_close(cfile);
-          if(cf) delete cf;
+          delete cf;
           return 1;
         };
         if( (host == NULL) ||
@@ -551,7 +551,7 @@ int FileRoot::config(globus_ftp_control_auth_info_t *auth,
   int r;
   r = config(*cf,pluginpath);
   gridftpd::config_close(cfile);
-  if(cf) delete cf;
+  delete cf;
   if(r != 0) return r;
   if(!user.gridmap) {
     logger.msg(Arc::ERROR, "unknown (non-gridmap) user is not allowed");
