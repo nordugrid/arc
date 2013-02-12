@@ -188,9 +188,8 @@ sub load_lrms($) {
     my $module = $lrms_name."mod";
     eval { require "$module.pm" };
     
-    $log->debug("require for $module returned: $@");
-    
     if ($@) {
+        $log->debug("require for $module returned: $@");
         $log->debug("Using ARC0.6 compatible $lrms_name module");
 
         require ARC0mod;
