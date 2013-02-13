@@ -383,7 +383,7 @@ namespace Arc {
     return PyBool_Check((PyObject*)py_status) && PyObject_IsTrue((PyObject*)py_status);
   }
 
-  void PythonBrokerPlugin::set(const JobDescription& j) {
+  void PythonBrokerPlugin::set(const JobDescription& j) const {
     PythonLock pylock;
 
     PyObjectP arg = Py_BuildValue("(l)", &j);

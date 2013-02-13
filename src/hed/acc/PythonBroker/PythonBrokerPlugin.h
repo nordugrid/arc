@@ -17,7 +17,7 @@ namespace Arc {
     
     bool operator()(const ExecutionTarget&, const ExecutionTarget&) const;
     bool match(const ExecutionTarget&) const;
-    void set(const JobDescription&);
+    void set(const JobDescription&) const;
 
   private:
     PyObject *arc_module;

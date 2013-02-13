@@ -23,10 +23,10 @@ namespace Arc {
     }
     virtual bool match(const ExecutionTarget&) const;
     virtual bool operator()(const ExecutionTarget&, const ExecutionTarget&) const;
-    virtual void set(const JobDescription& _j);
+    virtual void set(const JobDescription& _j) const;
 
   protected:
-    MCCConfig cfg;
+    mutable MCCConfig cfg;
     mutable PayloadSOAP * request;
     mutable std::map<std::string, long> CacheMappingTable;
   };

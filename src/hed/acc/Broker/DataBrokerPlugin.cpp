@@ -13,20 +13,21 @@
 
 namespace Arc {
 
-  void DataBrokerPlugin::set(const JobDescription& _j) {
+  void DataBrokerPlugin::set(const JobDescription& _j) const {
     BrokerPlugin::set(_j);
     if (j) {
       uc.ApplyToConfig(cfg);
       if (request) {
         delete request;
       }
-      request = new PayloadSOAP(NS());
-      XMLNode req = request->NewChild("CacheCheck").NewChild("TheseFilesNeedToCheck");
+      Arc::NS ns("a-rex", "http://www.nordugrid.org/schemas/a-rex");
+      request = new PayloadSOAP(ns);
+      XMLNode req = request->NewChild("a-rex:CacheCheck").NewChild("a-rex:TheseFilesNeedToCheck");
   
       for (std::list<InputFileType>::const_iterator it = j->DataStaging.InputFiles.begin();
            it != j->DataStaging.InputFiles.end(); ++it) {
         if (!it->Sources.empty()) {
-          req.NewChild("FileURL") = it->Sources.front().fullstr();
+          req.NewChild("a-rex:FileURL") = it->Sources.front().fullstr();
         }
       }
     }

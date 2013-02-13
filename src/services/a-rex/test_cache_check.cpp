@@ -13,6 +13,7 @@
 #include <arc/message/MCC.h>
 #include <arc/message/MCCLoader.h>
 #include <arc/URL.h>
+#include <arc/UserConfig.h>
 #include <arc/communication/ClientInterface.h>
 
 int main(void) {
@@ -23,35 +24,31 @@ int main(void) {
   logger.msg(Arc::INFO, "Creating client side chain");
 
   std::string id;
-  std::string url("https://localhost:60000/arex");
-  Arc::NS ns;
+  std::string url("https://localhost/arex");
+  Arc::NS ns("a-rex", "http://www.nordugrid.org/schemas/a-rex");
   Arc::MCCConfig cfg;
-
-  cfg.AddProxy("/home/roczei/.globus/proxy.pem");
-  //cfg.AddCADir("/Users/roczei/arc1/etc/certificates");
+  Arc::UserConfig uc;
+  uc.ApplyToConfig(cfg);
 
   Arc::ClientSOAP client(cfg, url, 60);
+  std::string faultstring;
 
+  Arc::PayloadSOAP request(ns);
+  Arc::XMLNode req = request.NewChild("a-rex:CacheCheck").NewChild("a-rex:TheseFilesNeedToCheck");
+  req.NewChild("a-rex:FileURL") = "http://example.org/test.txt";
 
-    std::string faultstring;
+  Arc::PayloadSOAP* response;
 
-    Arc::PayloadSOAP request(ns);
-    Arc::XMLNode req = request.NewChild("CacheCheck").NewChild("TheseFilesNeedToCheck");
+  Arc::MCC_Status status = client.process(&request, &response);
 
-    req.NewChild("FileURL") = "http://example.org/test.txt";
+  if (!status) {
+    std::cerr << "Request failed" << std::endl;
+  }
 
-    Arc::PayloadSOAP* response;
+  std::string str;
+  response->GetDoc(str, true);
+  std::cout << str << std::endl;
 
-    Arc::MCC_Status status = client.process(&request, &response);
-
-    if (!status) {
-           std::cerr << "Request failed" << std::endl;
-    }
-
-    std::string str;
-    response->GetDoc(str, true);
-    std::cout << str << std::endl;
-
-   return 0;  
+  return 0;
 }
 
