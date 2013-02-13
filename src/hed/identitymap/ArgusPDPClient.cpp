@@ -134,7 +134,7 @@ std::string xacml_decision_to_string(xacml_decision_t decision) {
 }
 
 /* extract the elements from the configuration file */
-ArgusPDPClient::ArgusPDPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHandler(cfg,parg) , client(NULL), conversion(conversion_emi) {  
+ArgusPDPClient::ArgusPDPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSec::SecHandler(cfg,parg), conversion(conversion_emi) {  
     valid_ = false;
     accept_mapping = false;
     accept_notapplicable = false;
@@ -184,20 +184,10 @@ ArgusPDPClient::ArgusPDPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSe
     std::string notapplicable_str = (std::string)(*cfg)["AcceptNotApplicable"];
     if((notapplicable_str == "1") || (notapplicable_str == "true")) accept_notapplicable = true;
 
-    // Create a SOAP client to contact PDP server
-    logger.msg(Arc::INFO, "Creating a PDP client");
-    Arc::URL pdp_url(pdpdlocation);
-    Arc::MCCConfig mcc_cfg;
-    mcc_cfg.AddPrivateKey(keypath);
-    mcc_cfg.AddCertificate(certpath);
-    mcc_cfg.AddCADir(capath);
-    client = new Arc::ClientSOAP(mcc_cfg,pdp_url,60);
-
     valid_ = true;
 }
 
 ArgusPDPClient::~ArgusPDPClient(void) {
-  if(client) delete client;
 }
 
 
@@ -344,6 +334,15 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
       // Simple combining algorithm. At least one deny means deny. If none, then at 
       // least one permit means permit. Otherwise deny. TODO: configurable.
       logger.msg(Arc::DEBUG, "Have %i requests to process", requests.size());
+
+      logger.msg(Arc::INFO, "Creating a client to Argus PDP service");
+      Arc::URL pdp_url(pdpdlocation);
+      Arc::MCCConfig mcc_cfg;
+      mcc_cfg.AddPrivateKey(keypath);
+      mcc_cfg.AddCertificate(certpath);
+      mcc_cfg.AddCADir(capath);
+      Arc::ClientSOAP client(mcc_cfg,pdp_url,60);
+
       for(std::list<Arc::XMLNode>::iterator it = requests.begin(); it != requests.end(); it++) {
         Arc::XMLNode req = *it;
 
@@ -351,7 +350,7 @@ bool ArgusPDPClient::Handle(Arc::Message* msg) const {
         req.GetXML(str);
         logger.msg(Arc::DEBUG, "XACML authorisation request: %s", str);
 
-        bool res = contact_pdp(client, pdpdlocation, certpath, logger, request, response);
+        bool res = contact_pdp(&client, pdpdlocation, certpath, logger, request, response);
         if (!res) {
           throw pep_ex(std::string("Failed to process XACML request"));
         }   
