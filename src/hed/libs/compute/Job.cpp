@@ -1097,7 +1097,7 @@ namespace Arc {
     p += l; size -= l;
     return (void*)p;
   }
-   
+  
   static void serialiseJob(const Job& j, Dbt& data) {
     const std::string version = "3.0.0";
     const unsigned nItems = 14;
@@ -1174,8 +1174,9 @@ namespace Arc {
     std::string name;
     // 3rd attribute in job record is job name.
     deserialiseNthJobAttribute(name, *data, 3);
+    result->set_flags(DB_DBT_APPMALLOC);
     result->set_size(name.size());
-    result->set_data((char *)name.c_str());
+    result->set_data(strdup(name.c_str()));
     return 0;
   }
   
@@ -1187,8 +1188,9 @@ namespace Arc {
     if (endpointS.empty()) {
       return DB_DONOTINDEX;
     }
+    result->set_flags(DB_DBT_APPMALLOC);
     result->set_size(endpointS.size());
-    result->set_data((char *)endpointS.c_str());
+    result->set_data(strdup(endpointS.c_str()));
     return 0;
   }
   
@@ -1200,8 +1202,9 @@ namespace Arc {
     if (endpointS.empty()) {
       return DB_DONOTINDEX;
     }
+    result->set_flags(DB_DBT_APPMALLOC);
     result->set_size(endpointS.size());
-    result->set_data((char *)endpointS.c_str());
+    result->set_data(strdup(endpointS.c_str()));
     return 0;
   }
   
@@ -1295,7 +1298,6 @@ namespace Arc {
       jobDB->close(0);
     }
     if (dbEnv) {
-      dbEnv->memp_sync(NULL);
       dbEnv->close(0);
     }
 
