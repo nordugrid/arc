@@ -3,9 +3,10 @@
 
 %include "Arc.i"
 
-%import "../src/hed/libs/common/XMLNode.h"
-%import "../src/hed/libs/common/ArcConfig.h"
-%import "../src/hed/libs/loader/Plugin.h"
+// (module="..") is needed for inheritance from those classes to work in python
+%import(module="common") "../src/hed/libs/common/XMLNode.h"
+%import(module="common") "../src/hed/libs/common/ArcConfig.h"
+%import(module="loader") "../src/hed/libs/loader/Plugin.h"
 #endif
 
 

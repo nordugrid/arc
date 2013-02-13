@@ -3,8 +3,9 @@
 
 %include "Arc.i"
 
+// (module="..") is needed for inheritance from those classes to work in python
 %import "../src/hed/libs/common/ArcConfig.h"
-%import "../src/hed/libs/common/URL.h"
+%import(module="common") "../src/hed/libs/common/URL.h"
 %import "../src/hed/libs/common/XMLNode.h"
 %import "../src/hed/libs/common/DateTime.h"
 %import "../src/hed/libs/common/Thread.h"
