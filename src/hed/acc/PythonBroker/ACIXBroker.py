@@ -1,6 +1,10 @@
 '''
-Broker using ACIX information. Implements the following methods from
-BrokerPlugin:
+Broker using ACIX information. This broker queries ACIX for cached locations
+of input files specified in the job. It then matches those locations against
+execution targets and ranks the targets by the number of cached files they
+have.
+
+Implements the following methods from BrokerPlugin:
  - bool operator() (const ExecutionTarget&, const ExecutionTarget&) const;
    - Used for sorting targets, here the method is lessthan()
  - bool match(const ExecutionTarget& et) const;
@@ -34,6 +38,12 @@ import random
 import httplib
 import re
 import logging
+
+# Check if we can use json module (python >= 2.6 only)
+try:
+    import json
+except ImportError:
+    json = False
 
 import arc
 
@@ -181,12 +191,18 @@ class ACIXBroker:
         conn.close()
         logging.debug('ACIX response: %s', data)
         
-        # Using eval() is the quick and unsafe way - TODO use json library.
-        # At least check it looks like a python dictionary
-        if data[0] != '{' or data[-1] != '}':
-            logging.error('Unexpected response from ACIX: %s', data)
+        if json:
+            try:
+                self.cachelocations.update(json.loads(data))
+            except ValueError:
+                logging.error('Unexpected response from ACIX: %s', data)
         else:
-            self.cachelocations.update(eval(data))
+            # Using eval() is unsafe but it will only be used on old OSes
+            # (like RHEL5). At least check response looks like a python dictionary
+            if data[0] != '{' or data[-1] != '}':
+                logging.error('Unexpected response from ACIX: %s', data)
+            else:
+                self.cachelocations.update(eval(data))
 
     def splitURL(self, url):
         """
