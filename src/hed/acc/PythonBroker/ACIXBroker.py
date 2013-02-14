@@ -106,7 +106,7 @@ class ACIXBroker:
         if not self.inputfiles:
             return
         
-        self.queryACIX()
+        self.queryACIX(0)
 
     def lessthan(self, lhs, rhs):
         '''
@@ -142,16 +142,25 @@ class ACIXBroker:
                 self.inputfiles.append(canonic_url)
 
     
-    def queryACIX(self):
+    def queryACIX(self, index):
         '''
-        Call ACIX index to get cached locations of self.inputfiles.
+        Call ACIX index to get cached locations of self.inputfiles[index:].
+        It seems like ACIX has a limit of 64k character URLs, so if we exceed
+        that then call recursively.
         '''
+        maxACIXurl = 60000
         (procotol, host, port, path) = self.splitURL(self.cacheindex)
                 
         # add URLs to path
-        path += '?url=' + self.inputfiles[0]
-        for file in self.inputfiles[1:]:
+        path += '?url=' + self.inputfiles[index]
+        index += 1
+        for file in self.inputfiles[index:]:
             path += ',' + file
+            index += 1
+            if len(path) > maxACIXurl and index != len(self.inputfiles):
+                logging.debug('URL length (%i) for ACIX query exceeds maximum (%i), will call in batches', len(path), maxACIXurl)
+                self.queryACIX(index)
+                break
             
         conn = httplib.HTTPSConnection(host, port)
         try:
@@ -160,7 +169,12 @@ class ACIXBroker:
             logging.error('Error connecting to service at %s: %s', host, str(e))
             return
         
-        resp = conn.getresponse()
+        try:
+            resp = conn.getresponse()
+        except httplib.HTTPException, e:
+            logging.error('Bad response from ACIX: %s', str(e))
+            return
+        
         logging.info('ACIX returned %s %s', resp.status, resp.reason)
         
         data = resp.read()
@@ -172,7 +186,7 @@ class ACIXBroker:
         if data[0] != '{' or data[-1] != '}':
             logging.error('Unexpected response from ACIX: %s', data)
         else:
-            self.cachelocations = eval(data)
+            self.cachelocations.update(eval(data))
 
     def splitURL(self, url):
         """
