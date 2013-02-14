@@ -306,34 +306,35 @@ namespace Arc {
     PythonLock pylock;
 
     // Convert ExecutionTarget object to python object
-    PyObjectP arg = Py_BuildValue("(l)", &lhs);
-    if (!arg) {
+    PyObjectP arg_lhs = Py_BuildValue("(l)", &lhs);
+    if (!arg_lhs) {
       logger.msg(ERROR, "Cannot create ExecutionTarget argument");
       if (PyErr_Occurred())
         PyErr_Print();
       return false;
     }
 
-    PyObjectP py_lhs = PyObject_CallObject(arc_xtarget_klass, arg);
+    PyObjectP py_lhs = PyObject_CallObject(arc_xtarget_klass, arg_lhs);
     if (!py_lhs) {
-      logger.msg(ERROR,
-                 "Cannot convert ExecutionTarget to python object");
+      logger.msg(ERROR, "Cannot convert ExecutionTarget (%s) to python object",
+                 lhs.ComputingEndpoint->URLString);
       if (PyErr_Occurred())
         PyErr_Print();
       return false;
     }
 
-    arg = Py_BuildValue("(l)", &rhs);
-    if (!arg) {
+    PyObjectP arg_rhs = Py_BuildValue("(l)", &rhs);
+    if (!arg_rhs) {
       logger.msg(ERROR, "Cannot create ExecutionTarget argument");
       if (PyErr_Occurred())
         PyErr_Print();
       return false;
     }
 
-    PyObjectP py_rhs = PyObject_CallObject(arc_xtarget_klass, arg);
+    PyObjectP py_rhs = PyObject_CallObject(arc_xtarget_klass, arg_rhs);
     if (!py_rhs) {
-      logger.msg(ERROR, "Cannot convert ExecutionTarget to python object");
+      logger.msg(ERROR, "Cannot convert ExecutionTarget (%s) to python object",
+                 rhs.ComputingEndpoint->URLString);
       if (PyErr_Occurred())
         PyErr_Print();
       return false;
@@ -365,7 +366,8 @@ namespace Arc {
 
     PyObjectP py_xtarget = PyObject_CallObject(arc_xtarget_klass, arg);
     if (!py_xtarget) {
-      logger.msg(ERROR, "Cannot convert ExecutionTarget to python object");
+      logger.msg(ERROR, "Cannot convert ExecutionTarget (%s) to python object",
+                 et.ComputingEndpoint->URLString);
       if (PyErr_Occurred())
         PyErr_Print();
       return false;
