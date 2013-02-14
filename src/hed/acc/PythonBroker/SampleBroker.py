@@ -21,12 +21,13 @@ class MyBroker:
         else:
             self.args = ""
 
+    def set(self, job):
         # Either set the job description as a member object, or extract
         # the relevant information. Only printing below for clarity.
-        #print 'JobName:', job.Identification.JobName
-        #print 'Executable:', job.Application.Executable.Path
-        #for i in range(job.Application.Executable.Argument.size()):
-        #    print 'Argument', i, ':', job.Application.Executable.Argument[i]
+        print 'JobName:', job.Identification.JobName
+        print 'Executable:', job.Application.Executable.Path
+        for i in range(job.Application.Executable.Argument.size()):
+            print 'Argument', i, ':', job.Application.Executable.Argument[i]
 
     def match(self, target):
         # Some printouts - only as an example
