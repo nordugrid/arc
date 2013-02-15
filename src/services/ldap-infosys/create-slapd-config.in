@@ -135,16 +135,16 @@ find_ldap_database_module() {
     # can be removed once redhat5 is not supported anymore
     if [[ "$slapd_cmd" =~ '2.4' ]]; then
        ldapdir=$(find /usr/lib64/openldap2.4 /usr/lib/openldap2.4 \
-        -name "back_${database}.la" -printf "%h/\n" 2>/dev/null)
+        -name "back_${database}.la" -printf ":%h/" 2>/dev/null)
     else 
        ldapdir=$(find /usr/lib64/openldap /usr/lib/openldap /usr/lib64/ldap \
-	/usr/lib/ldap -name "back_${database}.la" -printf "%h/\n" 2>/dev/null)
+	/usr/lib/ldap -name "back_${database}.la" -printf ":%h/" 2>/dev/null)
     fi
     if [ -n "$ldapdir" ]; then
 	# Separate module found
 	ldapmodule="moduleload      back_${database}"
 	grep -E -q "(^|:)${ldapdir}(:|$)" <<< ${ldapdirs} || \
-	    ldapdirs=${ldapdirs}:${ldapdir}
+	    ldapdirs=${ldapdirs}${ldapdir}
     else
 	# Separate module not found - check for preloaded module
 	ldapmodule=
@@ -161,16 +161,16 @@ find_ldap_overlay_module() {
     # can be removed once redhat5 is not supported anymore
     if [[ "$slapd_cmd" =~ '2.4' ]]; then
        ldapdir=$(find /usr/lib64/openldap2.4 /usr/lib/openldap2.4 \
-        -name "${overlay}.la" -printf "%h/\n" 2>/dev/null)
+        -name "${overlay}.la" -printf ":%h/" 2>/dev/null)
     else
     	ldapdir=$(find /usr/lib64/openldap /usr/lib/openldap /usr/lib64/ldap \
-	/usr/lib/ldap -name "${overlay}.la" -printf "%h/\n" 2>/dev/null)
+	/usr/lib/ldap -name "${overlay}.la" -printf ":%h/" 2>/dev/null)
     fi
     if [ -n "$ldapdir" ]; then
 	# Separate module found
 	ldapmodule="moduleload      ${overlay}"
 	grep -E -q "(^|:)${ldapdir}(:|$)" <<< ${ldapdirs} || \
-	    ldapdirs=${ldapdirs}:${ldapdir}
+	    ldapdirs=${ldapdirs}${ldapdir}
     else
 	# Module not found
 	ldapmodule=
@@ -213,6 +213,7 @@ if [ "$(config_subsections infosys/index)" ]; then
     moduleload_shell="${ldapmodule}"
 
     if [ -n "${ldapmodule}" ]; then
+    ldapdir=`sed 's/^://' <<< $ldapdir`
 	dlname=`( . ${ldapdir}/back_shell.la ; echo ${dlname} )`
 	slapd_env="ARC_LDAPLIB_SHELL=${ldapdir}/${dlname}"
     fi
@@ -237,6 +238,7 @@ else
 fi
 
 ldapdirs=`sed 's/^://' <<< $ldapdirs`
+#ldapdirs=`sed 's/:$//' <<< $ldapdirs`
 if [ -n "$ldapdirs" ]; then
     modulepath="modulepath      $ldapdirs"
 else
