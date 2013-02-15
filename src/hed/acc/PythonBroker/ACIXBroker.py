@@ -56,6 +56,7 @@ class ACIXBroker:
         self.cachelocations = {} # dict of files to cache locations (hostnames)
         self.targetranking = {} # dict of hostname to ranking (no of cached files)
         self.cacheindex = '' # URL of ACIX index service
+        self.uc = usercfg # UserConfig object
         
         loglevel = 'WARNING'
         if usercfg.Verbosity():
@@ -81,16 +82,19 @@ class ACIXBroker:
 
     def match(self, target):
         '''
-        Check the number of cache files at target. All targets are acceptable
-        even if no files are cached so always returns True. We assume only one
-        A-REX per hostname, so multiple interfaces at the same hostname are
-        ignored.
+        Check the number of cache files at target. All targets which match the
+        job description are acceptable even if no files are cached. We assume
+        only one A-REX per hostname, so multiple interfaces at the same
+        hostname are ignored.
         '''
-        
         (procotol, host, port, path) = self.splitURL(target.ComputingEndpoint.URLString)
         
         if not host or host in self.targetranking:
             return True
+        
+        # First do generic matching
+        if not arc.Broker.genericMatch(target, self.job, self.uc):
+            return False
         
         cached = 0
         for file in self.cachelocations:
@@ -108,10 +112,12 @@ class ACIXBroker:
         Extract the input files from the job description and call ACIX to find
         cached locations.
         '''
-        if not self.cacheindex:
+        self.job = jobdescription
+        
+        if not self.job or not self.cacheindex:
             return
 
-        self.getInputFiles(jobdescription.DataStaging.InputFiles)
+        self.getInputFiles(self.job.DataStaging.InputFiles)
         
         if not self.inputfiles:
             return

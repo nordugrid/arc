@@ -354,8 +354,6 @@ namespace Arc {
   }
 
   bool PythonBrokerPlugin::match(const ExecutionTarget& et) const {
-    if (!BrokerPlugin::match(et)) return false;
-
     PythonLock pylock;
 
     PyObjectP arg = Py_BuildValue("(l)", &et);
@@ -388,8 +386,6 @@ namespace Arc {
   }
 
   void PythonBrokerPlugin::set(const JobDescription& j) const {
-    BrokerPlugin::set(j);
-
     PythonLock pylock;
 
     PyObjectP arg = Py_BuildValue("(l)", &j);

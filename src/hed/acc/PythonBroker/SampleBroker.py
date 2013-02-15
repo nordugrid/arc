@@ -11,6 +11,7 @@ import random
 class MyBroker:
     def __init__(self, usercfg):
         # Extract some useful information from the broker configuration
+        self.uc = usercfg
         self.proxypath = usercfg.ProxyPath()
         self.certificatepath = usercfg.CertificatePath()
         self.keypath = usercfg.KeyPath()
@@ -23,7 +24,10 @@ class MyBroker:
 
     def set(self, job):
         # Either set the job description as a member object, or extract
-        # the relevant information. Only printing below for clarity.
+        # the relevant information. For generic matchmaking a job member is
+        # needed.
+        self.job = job
+        # Only printing below for clarity.
         print 'JobName:', job.Identification.JobName
         print 'Executable:', job.Application.Executable.Path
         for i in range(job.Application.Executable.Argument.size()):
@@ -41,10 +45,15 @@ class MyBroker:
         # Broker implementation starts here
 
         print 'Targets before brokering:'
-
         print target.ComputingEndpoint.URLString
         
+        # Do generic matchmaking
+        if not arc.Broker.genericMatch(target, self.job, self.uc):
+            print 'Target', target.ComputingEndpoint.URLString, 'rejected'
+            return False
+        
         # Accept target
+        print 'Target', target.ComputingEndpoint.URLString, 'accepted'
         return True
 
     def lessthan(self, lhs, rhs):
