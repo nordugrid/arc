@@ -51,7 +51,7 @@ configuration file (default ~/.arc/client.conf)
 .IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
 FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
 .IP "\fB-b\fR, \fB--broker\fR=\fIbroker\fR"
-selected broker: Random (default), FastestQueue or custom
+selected broker: Random (default), FastestQueue or custom. Use -P to find possible options.
 .IP "\fB-v\fR, \fB--version\fR"
 print version information
 .IP "\fB-?\fR, \fB--help\fR"
@@ -144,17 +144,39 @@ that cluster using the \fB--rejectdiscovery\fR option and providing the URL
 (or just the hostname) of the CE, which will disregard that CE as a target for submission.
 
 When multiple CEs are targeted for submission, the resource broker will be used
-to rank the CEs. The broker used by default will rank the CEs randomly,
-however a different broker can be chosen by using the \fB--broker\fR option,
-which takes the name of the broker as argument. Two other brokers are
-by default available. The FastestQueue and Benchmark brokers. The former ranks
-CEs according to the length of the job queue at the CEs, ranking those with
-shortest queue first/highest. The latter ranks CEs according to a specified
-benchmark, which should be specified by appending the broker name with ':' and
-then the name of the benchmark. If no option is given to the Benchmark broker
-then CEs will be ranked according to the 'specint2000' benchmark. For examples
-see the respective section.
-
+to filter out CEs which do not match the job description requirements and
+then rank the remaining CEs. The broker used by default will rank the CEs
+randomly, however a different broker can be chosen by using the
+\fB--broker\fR option, which takes the name of the broker as argument. The
+broker type can also be specified in client.conf. The brokers available can be
+seen using
+.B arcsub -P.
+By default the following brokers are available:
+.IP "Random (default)"
+Chooses a random CE matching the job requirements. 
+.IP "FastestQueue"
+Ranks matching CEs according to the length of the job queue at the CEs, ranking
+those with shortest queue first/highest.
+.IP "Benchmark"
+Ranks matching CEs according to a specified benchmark, which should be
+specified by appending the broker name with ':' and then the name of the
+benchmark. If no option is given to the Benchmark broker then CEs will be
+ranked according to the 'specint2000' benchmark.
+.IP "Data"
+Ranks matching CEs according to the amount of input data cached by each CE, by 
+querying the CE. Only CEs with the A-REX BES interface support this operation.
+.IP "Null"
+Choose a random CE with no filtering at all of CEs.
+.IP "PythonBroker"
+User-defined custom brokers can be created in Python. See the example broker
+SampleBroker.py or ACIXBroker.py (like Data broker but uses the ARC Cache
+Index) that come installed with ARC for more details of how to write your own
+broker. A PythonBroker is specified by
+\fB--broker PythonBroker:Filename.Class:args\fR, where Filename is the file
+containing the class Class which implements the broker interface. The directory
+containing this file must be in the PYTHONPATH. args is optional and allows
+specifying arguments to the broker.
+.P
 Before submission, \fBarcsub\fR performs an intelligent modification of the job
 description (adding or modifying attributes, even converting the description
 language to fit the needs of the CE) ensuring that it is valid. The
@@ -201,6 +223,11 @@ When submitting against CEs retrieved from information index servers it might
 be useful to do resource brokering:
 .br
 \fBarcsub -g registry.example.com -b FastestQueue helloworld.jsdl\fR
+
+If the job has a large input data set, it can be useful to send it to a CE
+where those files are already cached. The ACIX broker can be used for this:
+.br
+\fBarcsub -g registry.example.com -b PythonBroker:ACIXBroker.ACIXBroker:https://cacheindex.ndgf.org:6443/data/index helloworld.jsdl\fR
 
 Disregarding a specific CE for submission submitting against an information
 index server:
