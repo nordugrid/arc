@@ -478,7 +478,7 @@ namespace Arc {
     cs.GetExecutionTargets(targets.second); // Adds ExecutionTarget objects to end of targets.second list.
 
     if (b == NULL || !b->isValid()) {
-      logger.msg(DEBUG, "Unable to sort added jobs. The BrokerPlugin plugin haven't been loaded.");
+      logger.msg(DEBUG, "Unable to sort added jobs. The BrokerPlugin plugin has not been loaded.");
       return;
     }
 
