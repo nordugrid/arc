@@ -29,8 +29,9 @@
 
  <xsd:complexType name="Software_Type">
   <xsd:sequence>
-   <xsd:element name="Family" type="xsd:long"/>
-   <xsd:element name="Version" type="xsd:long"/>
+   <xsd:element name="Family" type="xsd:string" minOccurs="0"/>
+   <xsd:element name="Name" type="xsd:string"/>
+   <xsd:element name="Version" type="xsd:string" minOccurs="0"/>
   </xsd:sequence>
   <xsd:attribute name="require" type="jsdl-arc:SoftwareOp_Type" use="optional"/>
  </xsd:complexType>
