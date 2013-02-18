@@ -1210,7 +1210,9 @@ static bool contact_voms_servers(std::list<std::string>& vomslist, std::list<std
   if (!aclist_str.empty()) {
     AuthN::Credentials::Extension ac_ext;
     ac_ext.oid = "acseq";
-    ac_ext.value = aclist_str;
+    std::string aclist_asn1;
+    Arc::VOMSACSeqEncode(aclist_str, aclist_asn1);
+    ac_ext.value = aclist_asn1;
     AuthN::Status stat = proxyreq.AddExtension(ac_ext);
     if(stat != AuthN::Status(0)) 
       std::cout<< Arc::IString("Failed to add extension: %s", stat.GetDescription().c_str()) <<std::endl;
