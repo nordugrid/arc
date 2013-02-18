@@ -18,7 +18,7 @@ class LegacySecHandler : public ArcSec::SecHandler {
   LegacySecHandler(Arc::Config *cfg, Arc::ChainContext* ctx, Arc::PluginArgument* parg);
   virtual ~LegacySecHandler(void);
   static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
-  virtual bool Handle(Arc::Message* msg) const;
+  virtual ArcSec::SecHandlerStatus Handle(Arc::Message* msg) const;
   operator bool(void) { return (conf_files_.size() > 0); };
   bool operator!(void) { return (conf_files_.size() <= 0); };
 };

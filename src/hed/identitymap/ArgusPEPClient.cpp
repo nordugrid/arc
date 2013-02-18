@@ -159,7 +159,7 @@ ArgusPEPClient::ArgusPEPClient(Arc::Config *cfg,Arc::PluginArgument* parg):ArcSe
 ArgusPEPClient::~ArgusPEPClient(void) {
 }
 
-bool ArgusPEPClient::Handle(Arc::Message* msg) const {
+SecHandlerStatus ArgusPEPClient::Handle(Arc::Message* msg) const {
     int rc = 0;
     bool res = true;
     PEP* pep_handle = NULL;

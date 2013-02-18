@@ -84,7 +84,7 @@ bool ArcAuthZ::MakePDPs(XMLNode cfg) {
   return true;
 }
 
-bool ArcAuthZ::Handle(Arc::Message* msg) const {
+SecHandlerStatus ArcAuthZ::Handle(Arc::Message* msg) const {
   pdp_container_t::const_iterator it;
   bool r = false;
   for(it=pdps_.begin();it!=pdps_.end();it++){

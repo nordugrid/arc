@@ -46,7 +46,7 @@ class ArgusPEPClient : public SecHandler {
     ArgusPEPClient(Arc::Config *cfg,Arc::PluginArgument* parg);
     ArgusPEPClient(void);
     virtual ~ArgusPEPClient(void);
-    virtual bool Handle(Arc::Message* msg) const ;
+    virtual SecHandlerStatus Handle(Arc::Message* msg) const ;
     operator bool(void) { return valid_; };
     bool operator!(void) { return !valid_; };
   

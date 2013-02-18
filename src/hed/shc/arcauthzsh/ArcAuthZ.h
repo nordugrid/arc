@@ -51,7 +51,7 @@ class ArcAuthZ : public SecHandler {
   virtual ~ArcAuthZ(void);
   static Plugin* get_sechandler(Arc::PluginArgument* arg);  
   /** Get authorization decision*/
-  virtual bool Handle(Arc::Message* msg) const;
+  virtual SecHandlerStatus Handle(Arc::Message* msg) const;
   operator bool(void) { return valid_; };
   bool operator!(void) { return !valid_; };
 };

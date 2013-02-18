@@ -28,7 +28,7 @@ class X509TokenSH : public SecHandler {
   X509TokenSH(Arc::Config *cfg, Arc::ChainContext* ctx, Arc::PluginArgument* parg);
   virtual ~X509TokenSH(void);
   static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
-  virtual bool Handle(Arc::Message* msg) const;
+  virtual SecHandlerStatus Handle(Arc::Message* msg) const;
   operator bool(void) { return valid_; };
   bool operator!(void) { return !valid_; };
 };

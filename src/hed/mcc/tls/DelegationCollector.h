@@ -15,7 +15,7 @@ class DelegationCollector : public SecHandler {
  public:
   DelegationCollector(Arc::Config *cfg,Arc::PluginArgument* parg);
   virtual ~DelegationCollector(void);
-  virtual bool Handle(Arc::Message* msg) const;
+  virtual SecHandlerStatus Handle(Arc::Message* msg) const;
   static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
 };
 

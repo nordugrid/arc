@@ -33,7 +33,7 @@ class IdentityMap : public SecHandler {
  public:
   IdentityMap(Arc::Config *cfg, Arc::ChainContext* ctx, Arc::PluginArgument* parg);
   virtual ~IdentityMap(void);
-  virtual bool Handle(Arc::Message* msg) const;
+  virtual SecHandlerStatus Handle(Arc::Message* msg) const;
   operator bool(void) { return valid_; };
   bool operator!(void) { return !valid_; };
 };

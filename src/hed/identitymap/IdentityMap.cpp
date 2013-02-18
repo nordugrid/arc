@@ -212,7 +212,7 @@ IdentityMap::~IdentityMap(void) {
   };
 }
 
-bool IdentityMap::Handle(Arc::Message* msg) const {
+SecHandlerStatus IdentityMap::Handle(Arc::Message* msg) const {
   for(std::list<map_pair_t>::const_iterator p = maps_.begin();p!=maps_.end();++p) {
     if(p->pdp->isPermitted(msg)) {
       std::string id = p->uid->ID(msg);

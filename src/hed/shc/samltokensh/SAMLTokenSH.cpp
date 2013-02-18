@@ -190,7 +190,7 @@ SAMLTokenSH::~SAMLTokenSH() {
   final_xmlsec();
 }
 
-bool SAMLTokenSH::Handle(Arc::Message* msg) const {
+SecHandlerStatus SAMLTokenSH::Handle(Arc::Message* msg) const {
   if(process_type_ == process_extract) {
     try {
       PayloadSOAP* soap = dynamic_cast<PayloadSOAP*>(msg->Payload());

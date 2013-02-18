@@ -71,7 +71,7 @@ UsernameTokenSH::UsernameTokenSH(Config *cfg,ChainContext*,Arc::PluginArgument* 
 UsernameTokenSH::~UsernameTokenSH() {
 }
 
-bool UsernameTokenSH::Handle(Arc::Message* msg) const {
+SecHandlerStatus UsernameTokenSH::Handle(Arc::Message* msg) const {
   if(process_type_ == process_extract) {
     try {
       MessagePayload* payload = msg->Payload();

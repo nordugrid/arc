@@ -270,7 +270,7 @@ static bool contact_pdp(Arc::ClientSOAP* client, const std::string& pdpdlocation
 }
 
 
-bool ArgusPDPClient::Handle(Arc::Message* msg) const {
+SecHandlerStatus ArgusPDPClient::Handle(Arc::Message* msg) const {
     int rc = 0;
     bool res = true;
     Arc::XMLNode request;

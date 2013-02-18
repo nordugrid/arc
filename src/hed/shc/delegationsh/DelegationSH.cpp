@@ -128,7 +128,7 @@ static unsigned long string_hash(const std::string& value){
   return ret;
 }
 
-bool DelegationSH::Handle(Arc::Message* msg) const {
+SecHandlerStatus DelegationSH::Handle(Arc::Message* msg) const {
   if(delegation_type_ == delegation_x509) {
     try {
       dynamic_cast<PayloadSOAP*>(msg->Payload());

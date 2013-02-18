@@ -12,6 +12,47 @@ class ChainContext;
 
 namespace ArcSec {
 
+
+  class SecHandlerStatus {
+   public:
+    enum {
+      STATUS_ALLOW = 0,
+      STATUS_DENY = 1
+    } Code;
+
+    SecHandlerStatus(void);
+
+    SecHandlerStatus(bool positive);
+
+    SecHandlerStatus(int code);
+
+    SecHandlerStatus(int code, const std::string& explanation);
+
+    SecHandlerStatus(int code,
+               const std::string& origin,
+               const std::string& explanation);
+
+    operator bool(void) const { return (code == 0); };
+
+    int getCode(void) const;
+
+    const std::string& getOrigin(void) const;
+
+    const std::string& getExplanation(void) const;
+
+    operator std::string(void) const;
+
+   private:
+    //! The code status. 0 always stands for positive.
+    int code;
+
+    //! A string describing the origin SHC of this object.
+    std::string origin;
+
+    //! A user-friendly explanation of this object.
+    std::string explanation;
+  };
+
   /// Base class for simple security handling plugins
   /** This virtual class defines method Handle() which processes 
     security related information/attributes in Message and optionally
@@ -25,7 +66,7 @@ namespace ArcSec {
    public:
     SecHandler(Arc::Config*, Arc::PluginArgument* arg):Arc::Plugin(arg) {};
     virtual ~SecHandler() {};
-    virtual bool Handle(Arc::Message *msg) const = 0;
+    virtual SecHandlerStatus Handle(Arc::Message *msg) const = 0;
 
    protected:
     static Arc::Logger logger;

@@ -107,7 +107,7 @@ class LegacySHCP: public ConfigParser {
 };
 
 
-bool LegacySecHandler::Handle(Arc::Message* msg) const {
+ArcSec::SecHandlerStatus LegacySecHandler::Handle(Arc::Message* msg) const {
   if(conf_files_.size() <= 0) {
     logger.msg(Arc::ERROR, "LegacySecHandler: configuration file not specified");
     return false;

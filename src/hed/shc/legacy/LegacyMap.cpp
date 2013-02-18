@@ -116,7 +116,7 @@ class LegacyMapCP: public ConfigParser {
 };
 
 
-bool LegacyMap::Handle(Arc::Message* msg) const {
+ArcSec::SecHandlerStatus LegacyMap::Handle(Arc::Message* msg) const {
   if(blocks_.size()<=0) {
     logger.msg(Arc::ERROR, "LegacyMap: no configurations blocks defined");
     return false;
