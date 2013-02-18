@@ -199,9 +199,9 @@ namespace Arc
         ur.NewChild("JobIdentity").NewChild("GlobalJobId")=
           (*this)["globalid"];
         
-        if (find("localjobid")!=end())
+        if (find("localid")!=end())
           ur["JobIdentity"].NewChild("LocalJobId")=
-            (*this)["localjobid"];
+            (*this)["localid"];
       }
     else
     {
@@ -628,7 +628,7 @@ namespace Arc
           ur.NewChild("JobIdentity");
 
         ur["JobIdentity"].NewChild("LocalJobId")=
-          (*this)["localjobid"];
+          (*this)["localid"];
       }
     else
     {

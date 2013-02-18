@@ -6,7 +6,7 @@ RecordIdentity:*     RecordIdentity*          nodename, ngjobid
                                               (hyphen-separated, 
                                                with custom prefix)
 GlobalJobId:         GlobalJobId              globalid                 globaljobid
-LocalJobId:          LocalJobId*              localjobid               localjobid             LocalJobId
+LocalJobId:          LocalJobId*              localid                  localid                LocalJobId
 ProcessId:                                    [MISSING]                processid
 GlobalUserName:      GlobalUserName           usersn                   globaluserid           GlobalUserName
 LocalUserId:         LocalUserId*             localuser                localuserid            LocalUserId
