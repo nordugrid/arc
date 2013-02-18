@@ -5,8 +5,10 @@
 
 #include <arc/DateTime.h>
 
+/// Code for handling Network Security Services (NSS) credentials.
 namespace AuthN {
   
+  /// NSS certificate information.
   struct certInfo {
     std::string certname;
     std::string subject_dn;

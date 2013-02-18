@@ -14,6 +14,7 @@ namespace Arc {
 
   typedef std::string VOMSTrustRegex;
 
+  /// Represents VOMS attribute part of a credential.
   class VOMSACInfo {
    public:
     // Not all statuses are implemented
@@ -44,7 +45,7 @@ namespace Arc {
     VOMSACInfo(void):from(-1),till(-1),status(0) { };
   };
 
-  /** Stores definitions for making decision if VOMS server is trusted */
+  /// Stores definitions for making decision if VOMS server is trusted.
   class VOMSTrustList {
     private:
       std::vector<VOMSTrustChain> chains_;

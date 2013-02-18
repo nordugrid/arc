@@ -2,7 +2,7 @@
 // PKCS #8 PrivateKeyInfo and PublicKeyInfo
 
 //This part of code is introduced from chromium, therefore the BSD license applies
-
+/// \cond
 #include <list>
 #include <vector>
 
@@ -150,3 +150,4 @@ namespace AuthN {
   };
 
 }
+/// \endcond

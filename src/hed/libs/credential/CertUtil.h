@@ -110,6 +110,7 @@ namespace ArcCredential {
      */
     #define VERIFY_CTX_STORE_EX_DATA_IDX  1
 
+    /// Struct representing a certificate verification context.
     typedef struct {
       X509_STORE_CTX *                    cert_store;
       int                                 cert_depth;

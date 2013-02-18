@@ -1,3 +1,4 @@
+/// \cond
 /**Borrow the code about Attribute Certificate from VOMS*/
 
 /**The VOMSAttribute.h and VOMSAttribute.cpp are integration about code written by VOMS project, 
@@ -520,3 +521,4 @@ X509V3_EXT_METHOD * VOMSAttribute_attribs_x509v3_ext_meth();
 } // namespace ArcCredential
 
 #endif
+/// \endcond

@@ -1,6 +1,15 @@
+#ifndef ARC_PROXYCERTINFO_H
+#define ARC_PROXYCERTINFO_H
+
+#include <openssl/x509.h>
+#include <openssl/x509v3.h>
+#include <string>
+
+/// Internal code for low-level credential handling.
+namespace ArcCredential {
 /**
   Functions and constants for maintaining proxy certificates
- */
+*/
 
 /**
  The code is derived from globus gsi, voms, and openssl-0.9.8e.
@@ -9,14 +18,6 @@
  here the Globus code is introduced.
 */
 
-#ifndef ARC_PROXYCERTINFO_H
-#define ARC_PROXYCERTINFO_H
-
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
-#include <string>
-
-namespace ArcCredential {
 /* predefined policy language */
 #define ANYLANGUAGE_PROXY_OID         "1.3.6.1.5.5.7.21.0"
 #define ANYLANGUAGE_PROXY_SN          "ANYLANGUAGE_PROXY"      //"anyLanguage" in openssl >= 098
@@ -54,7 +55,7 @@ namespace ArcCredential {
 #define X509V3_R_POLICY_WHEN_PROXY_LANGUAGE_REQUIRES_NO_POLICY 159
 
 /* data structure */
-
+/// \cond
 typedef struct PROXYPOLICY_st {
     ASN1_OBJECT *                       policy_language;
     ASN1_OCTET_STRING *                 policy;
@@ -65,7 +66,7 @@ typedef struct PROXYCERTINFO_st {
   PROXYPOLICY * proxypolicy;
   int version;
 } PROXYCERTINFO;
-
+/// \endcond
 
 /* PROXYPOLICY function */
 

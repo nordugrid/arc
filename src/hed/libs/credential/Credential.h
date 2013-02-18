@@ -37,18 +37,20 @@ typedef enum {CRED_PEM, CRED_DER, CRED_PKCS, CRED_UNKNOWN} Credformat;
 /**Logger to be used by all modules of credentials library*/
 extern Logger CredentialLogger;
 
+/// Class for handling X509 credentials.
 /**Credential class covers the functionality about general processing about certificate/key
  * files, including:
- * 1. cerficate/key parsing, information extracting (such as subject name,
+ *  -# certificate/key parsing, information extracting (such as subject name,
  * issuer name, lifetime, etc.), chain verifying, extension processing about proxy certinfo,
  * extension processing about other general certificate extension (such as voms attributes,
  * it should be the extension-specific code itself to create, parse and verify the extension,
  * not the Credential class. For voms, it is some code about writing and parsing voms-implementing
- * Attibute Certificate/ RFC3281, the voms-attibute is then be looked as a binary part and
- * embeded into extension of X509 certificate/proxy certificate);
- * 2. certificate request, extension emeding and certificate signing, for both proxy certificate
- * and EEC (end entity certificate) certificate
- * The Credential class support PEM, DER PKCS12 credential.
+ * Attribute Certificate/ RFC3281, the voms-attribute is then be looked as a binary part and
+ * embedded into extension of X509 certificate/proxy certificate);
+ *  -# certificate request, extension embedding and certificate signing, for both proxy certificate
+ * and EEC (end entity certificate) certificate.
+ *
+ * The Credential class supports PEM, DER PKCS12 credentials.
  */
 class Credential {
   public:
@@ -76,16 +78,29 @@ class Credential {
     * container for constraining certificate signing and/or generating certificate
     * request (only keybits is useful for creating certificate request), is meaningless
     * for any other use.
+    *
     * The proxyversion and policylang is for specifying the proxy certificate type and
     * the policy language inside proxy.
     * The definition of proxyversion and policy language is based on
     * http://dev.globus.org/wiki/Security/ProxyCertTypes#RFC_3820_Proxy_Certificates
-    * The code is supposed to support proxy version: GSI2(legacy proxy), GSI3(Proxy draft)
-    * and RFC(RFC3820 proxy), and corresponding policy language. GSI2(GSI2, GSI2_LIMITED)
-    * GSI3 and RFC (IMPERSONATION_PROXY--1.3.6.1.5.5.7.21.1, INDEPENDENT_PROXY--1.3.6.1.5.5.7.21.2,
-    * LIMITED_PROXY--1.3.6.1.4.1.3536.1.1.1.9, RESTRICTED_PROXY--policy language undefined)
-    * In openssl>=098, there are three types of policy languages: id-ppl-inheritAll--1.3.6.1.5.5.7.21.1,
-    * id-ppl-independent--1.3.6.1.5.5.7.21.2, and id-ppl-anyLanguage-1.3.6.1.5.5.7.21.0
+    * The code is supposed to support proxy version:
+    *  - GSI2 (legacy proxy)
+    *  - GSI3 (Proxy draft)
+    *  - RFC (RFC3820 proxy)
+    *
+    * and corresponding policy languages
+    *  - GSI2 (GSI2, GSI2_LIMITED)
+    *  - GSI3
+    *  - RFC
+    *    - IMPERSONATION_PROXY--1.3.6.1.5.5.7.21.1
+    *    - INDEPENDENT_PROXY--1.3.6.1.5.5.7.21.2
+    *    - LIMITED_PROXY--1.3.6.1.4.1.3536.1.1.1.9
+    *    - RESTRICTED_PROXY--policy language undefined
+    *
+    * In openssl>=098, there are three types of policy languages:
+    *  - id-ppl-inheritAll--1.3.6.1.5.5.7.21.1
+    *  - id-ppl-independent--1.3.6.1.5.5.7.21.2
+    *  - id-ppl-anyLanguage-1.3.6.1.5.5.7.21.0
     *
     * @param start start time of proxy certificate
     * @param lifetime lifetime of proxy certificate
@@ -251,12 +266,12 @@ class Credential {
     std::string GetCAName(void) const;
 
     /**Get the proxy policy attached to the "proxy certificate
-     * information" extension of the proxy certicate
+     * information" extension of the proxy certificate
      */
     std::string GetProxyPolicy(void) const;
 
     /**Set the proxy policy attached to the "proxy certificate
-     * information" extension of the proxy certicate
+     * information" extension of the proxy certificate
      */
     void SetProxyPolicy(const std::string& proxyversion, const std::string& policylang,
         const std::string& policy, int pathlength);
@@ -404,7 +419,7 @@ class Credential {
     /**Self sign a certificate. This functionality is specific for creating a CA credential
     * by using this Credential class. 
     * @param dn  the DN for the subject
-    * @param extfile  the configration file which includes the extension information, typically the openssl.cnf file
+    * @param extfile  the configuration file which includes the extension information, typically the openssl.cnf file
     * @param extsect  the section/group name for the extension, e.g. in openssl.cnf, usr_cert and v3_ca
     * @param certfile the certificate file, which contains the signed certificate 
     */
