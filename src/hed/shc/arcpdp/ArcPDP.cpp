@@ -84,7 +84,7 @@ ArcPDP::ArcPDP(Config* cfg,Arc::PluginArgument* parg):PDP(cfg,parg) /*, eval(NUL
   policy_combining_alg = (std::string)((*cfg)["PolicyCombiningAlg"]);
 }
 
-bool ArcPDP::isPermitted(Message *msg) const {
+PDPStatus ArcPDP::isPermitted(Message *msg) const {
   //Compose Request based on the information inside message, the Request will be like below:
   /*
   <Request xmlns="http://www.nordugrid.org/schemas/request-arc">

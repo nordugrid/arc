@@ -32,7 +32,7 @@ SimpleListPDP::SimpleListPDP(Config* cfg, Arc::PluginArgument* parg):PDP(cfg,par
   }
 }
 
-bool SimpleListPDP::isPermitted(Message *msg) const {
+PDPStatus SimpleListPDP::isPermitted(Message *msg) const {
   std::string subject=msg->Attributes()->get("TLS:IDENTITYDN");
   std::string line;
   if(location.empty() && dns.empty()) {

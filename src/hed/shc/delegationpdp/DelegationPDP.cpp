@@ -50,7 +50,7 @@ DelegationPDP::DelegationPDP(Config* cfg, Arc::PluginArgument* parg):PDP(cfg,par
 DelegationPDP::~DelegationPDP(){
 }
 
-bool DelegationPDP::isPermitted(Message *msg) const {
+PDPStatus DelegationPDP::isPermitted(Message *msg) const {
   MessageAuth* mauth = msg->Auth()->Filter(select_attrs,reject_attrs);
   MessageAuth* cauth = msg->AuthContext()->Filter(select_attrs,reject_attrs);
   if((!mauth) && (!cauth)) {

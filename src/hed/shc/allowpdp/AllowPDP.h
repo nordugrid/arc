@@ -14,7 +14,7 @@ class AllowPDP : public PDP {
   static Arc::Plugin* get_allow_pdp(Arc::PluginArgument *arg);
   AllowPDP(Arc::Config* cfg, Arc::PluginArgument* parg);
   virtual ~AllowPDP() {};
-  virtual bool isPermitted(Arc::Message *msg) const;
+  virtual PDPStatus isPermitted(Arc::Message *msg) const;
 };
 
 } // namespace ArcSec

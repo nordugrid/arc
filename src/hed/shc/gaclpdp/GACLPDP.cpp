@@ -86,7 +86,7 @@ GACLPDP::GACLPDP(Config* cfg, Arc::PluginArgument* parg):PDP(cfg,parg) {
   for(;(bool)policy_doc;++policy_doc) policy_docs.AddNew(policy_doc);
 }
 
-bool GACLPDP::isPermitted(Message *msg) const{
+PDPStatus GACLPDP::isPermitted(Message *msg) const{
   Evaluator* eval = NULL;
 
   std::string ctxid = "arcsec.gaclpdp";

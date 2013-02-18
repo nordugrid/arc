@@ -20,7 +20,7 @@ Plugin* DenyPDP::get_deny_pdp(PluginArgument* arg) {
 DenyPDP::DenyPDP(Config* cfg,PluginArgument* parg):PDP(cfg,parg){
 }
 
-bool DenyPDP::isPermitted(Message*) const {
+PDPStatus DenyPDP::isPermitted(Message*) const {
   return false;
 }
 

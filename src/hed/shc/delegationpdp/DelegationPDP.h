@@ -16,7 +16,7 @@ class DelegationPDP : public PDP {
   static Arc::Plugin* get_delegation_pdp(Arc::PluginArgument *arg);
   DelegationPDP(Arc::Config* cfg, Arc::PluginArgument* parg);
   virtual ~DelegationPDP();
-  virtual bool isPermitted(Arc::Message *msg) const;
+  virtual PDPStatus isPermitted(Arc::Message *msg) const;
  private:
   std::list<std::string> select_attrs;
   std::list<std::string> reject_attrs;

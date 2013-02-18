@@ -120,7 +120,7 @@ class LegacyPDPCP: public ConfigParser {
   std::list<std::string> groups_;
 };
 
-bool LegacyPDP::isPermitted(Arc::Message *msg) const {
+ArcSec::PDPStatus LegacyPDP::isPermitted(Arc::Message *msg) const {
   Arc::SecAttr* sattr = msg->Auth()->get("ARCLEGACY");
   if(!sattr) sattr = msg->AuthContext()->get("ARCLEGACY");
   if(!sattr) {

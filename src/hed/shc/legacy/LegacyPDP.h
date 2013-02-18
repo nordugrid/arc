@@ -25,7 +25,7 @@ class LegacyPDP : public ArcSec::PDP {
   static Arc::Plugin* get_pdp(Arc::PluginArgument *arg);
   LegacyPDP(Arc::Config* cfg, Arc::PluginArgument* parg);
   virtual ~LegacyPDP();
-  virtual bool isPermitted(Arc::Message *msg) const;
+  virtual ArcSec::PDPStatus isPermitted(Arc::Message *msg) const;
 };
 
 } // namespace ArcSHCLegacy

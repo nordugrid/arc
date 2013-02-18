@@ -73,6 +73,25 @@ namespace ArcSec {
     };
   };
 
+  class PDPStatus {
+   public:
+    enum {
+      STATUS_ALLOW = 0,
+      STATUS_DENY = 1
+    } Code;
+    PDPStatus(void);
+    PDPStatus(bool positive);
+    PDPStatus(int code);
+    PDPStatus(int code, const std::string& explanation);
+    operator bool(void) const { return (code == 0); };
+    int getCode(void) const;
+    const std::string& getExplanation(void) const;
+    operator std::string(void) const;
+   private:
+    int code;
+    std::string explanation;
+  };
+
   /// Base class for Policy Decision Point plugins
   /** This virtual class defines method isPermitted() which processes
     security related information/attributes in Message and makes security 
@@ -85,7 +104,7 @@ namespace ArcSec {
       if(cfg) id_=(std::string)(cfg->Attribute("id"));
     };
     virtual ~PDP() {};
-    virtual bool isPermitted(Arc::Message *msg) const = 0;
+    virtual PDPStatus isPermitted(Arc::Message *msg) const = 0;
     void SetId(std::string& id) { id_ = id; };
     std::string GetId() { return id_; };
 

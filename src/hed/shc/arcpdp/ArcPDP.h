@@ -18,7 +18,7 @@ class ArcPDP : public PDP {
   virtual ~ArcPDP();
 
   /***/
-  virtual bool isPermitted(Arc::Message *msg) const;
+  virtual PDPStatus isPermitted(Arc::Message *msg) const;
  private:
   // Evaluator *eval;
   // Arc::ClassLoader* classloader;

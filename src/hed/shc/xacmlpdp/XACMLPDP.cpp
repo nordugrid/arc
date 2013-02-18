@@ -71,7 +71,7 @@ XACMLPDP::XACMLPDP(Config* cfg, Arc::PluginArgument* parg):PDP(cfg,parg) /*, eva
   policy_combining_alg = (std::string)((*cfg)["PolicyCombiningAlg"]);
 }
 
-bool XACMLPDP::isPermitted(Message *msg) const {
+PDPStatus XACMLPDP::isPermitted(Message *msg) const {
   //Compose Request based on the information inside message, the Request will be
   //compatible to xacml request schema
 
