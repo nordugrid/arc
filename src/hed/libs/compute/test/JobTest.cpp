@@ -11,6 +11,7 @@
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
 #include <arc/compute/Job.h>
+#include <arc/compute/JobInformationStorage.h>
 
 class JobTest
   : public CppUnit::TestFixture {

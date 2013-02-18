@@ -18,11 +18,11 @@ SoftwareTest_LDADD = \
 
 JobTest_SOURCES = $(top_srcdir)/src/Test.cpp JobTest.cpp
 JobTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
 JobTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DBCXX_LIBS)
 
 JobDescriptionTest_SOURCES = $(top_srcdir)/src/Test.cpp JobDescriptionTest.cpp
 JobDescriptionTest_CXXFLAGS = -I$(top_srcdir)/include \
