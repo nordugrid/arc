@@ -8,14 +8,14 @@ libarccompute_la_HEADERS = Broker.h BrokerPlugin.h ExecutionTarget.h \
 	JobDescription.h JobDescriptionParserPlugin.h Software.h \
 	GLUE2.h EndpointQueryingStatus.h TestACCControl.h \
 	EntityRetriever.h EntityRetrieverPlugin.h Endpoint.h \
-	ComputingServiceRetriever.h
+	ComputingServiceRetriever.h JobInformationStorage.h
 libarccompute_la_SOURCES = Broker.cpp BrokerPlugin.cpp ExecutionTarget.cpp \
 	Submitter.cpp SubmitterPlugin.cpp \
 	JobState.cpp Job.cpp JobControllerPlugin.cpp JobSupervisor.cpp \
 	JobDescription.cpp JobDescriptionParserPlugin.cpp Software.cpp \
 	GLUE2.cpp EndpointQueryingStatus.cpp TestACCControl.cpp \
 	EntityRetriever.cpp EntityRetrieverPlugin.cpp Endpoint.cpp \
-	ComputingServiceRetriever.cpp
+	ComputingServiceRetriever.cpp JobInformationStorage.cpp
 libarccompute_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
 libarccompute_la_LIBADD = \
@@ -37,7 +37,7 @@ test_jobdescription_LDADD = libarccompute.la \
 
 test_JobInformationStorage_SOURCES = test_JobInformationStorage.cpp
 test_JobInformationStorage_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 test_JobInformationStorage_LDADD = libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS)

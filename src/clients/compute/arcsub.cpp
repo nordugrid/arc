@@ -20,6 +20,7 @@
 #include <arc/compute/ExecutionTarget.h>
 #include <arc/compute/Job.h>
 #include <arc/compute/JobDescription.h>
+#include <arc/compute/JobInformationStorage.h>
 #include <arc/compute/SubmissionStatus.h>
 #include <arc/compute/Submitter.h>
 

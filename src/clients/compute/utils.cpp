@@ -9,6 +9,7 @@
 #include <arc/credential/Credential.h>
 #include <arc/loader/FinderLoader.h>
 #include <arc/loader/Plugin.h>
+#include <arc/compute/JobInformationStorage.h>
 
 #include "utils.h"
 

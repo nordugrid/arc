@@ -15,6 +15,7 @@
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
 #include <arc/compute/Job.h>
+#include <arc/compute/JobInformationStorage.h>
 #include <arc/compute/JobSupervisor.h>
 
 #include "utils.h"

@@ -13,6 +13,7 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/compute/JobControllerPlugin.h>
+#include <arc/compute/JobInformationStorage.h>
 #include <arc/compute/JobSupervisor.h>
 #include <arc/UserConfig.h>
 

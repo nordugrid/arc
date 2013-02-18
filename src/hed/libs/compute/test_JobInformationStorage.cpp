@@ -7,11 +7,12 @@
 #include <list>
 #include <string>
 
-#include <arc/compute/Job.h>
 #include <arc/FileUtils.h>
 #include <arc/StringConv.h>
 #include <arc/OptionParser.h>
 #include <arc/Logger.h>
+#include <arc/compute/Job.h>
+#include <arc/compute/JobInformationStorage.h>
 
 
 int main(int argc, char **argv) {
