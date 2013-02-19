@@ -554,6 +554,13 @@ static std::list<std::string> get_sec_attrs(std::list<Arc::MessageAuth*> auths, 
     return std::list<std::string>();
 }
 
+std::string get_resource(std::list<Arc::MessageAuth*>& auths, Arc::MessageAttributes* attrs) {
+    std::string resource = get_sec_attr(auths, "AREX", "SERVICE");
+    if(!resource.empty()) return resource;
+    if(attrs) resource = attrs->get("ENDPOINT");
+    return resource;
+}
+
 int ArgusPDPClient::create_xacml_request_cream(Arc::XMLNode& request, std::list<Arc::MessageAuth*> auths,  
     Arc::MessageAttributes* attrs, Arc::XMLNode operation) const {
     logger.msg(Arc::DEBUG,"Doing CREAM request");
@@ -636,8 +643,8 @@ int ArgusPDPClient::create_xacml_request_cream(Arc::XMLNode& request, std::list<
       // Resource
       Arc::XMLNode resource = xacml_request_add_element(request, "Resource");
       std::string res_attr_id = XACML_RESOURCE_ID; //"urn:oasis:names:tc:xacml:1.0:resource:resource-id";
-      std::string res_attr_value = attrs->get("ENDPOINT");
-      if(res_attr_value.empty()) throw ierror("Failed to extract ENDPOINT");
+      std::string res_attr_value = get_resource(auths,attrs);
+      if(res_attr_value.empty()) throw ierror("Failed to extract resource identifier");
       logger.msg(Arc::DEBUG,"Adding resource-id value: %s", res_attr_value);
       xacml_element_add_attribute(resource, res_attr_value, XACML_DATATYPE_STRING, res_attr_id, "");
 
@@ -827,8 +834,8 @@ int ArgusPDPClient::create_xacml_request_emi(Arc::XMLNode& request, std::list<Ar
       Arc::XMLNode resource = xacml_request_add_element(request, "Resource");
 
       std::string res_attr_id = XACML_RESOURCE_ID; //"urn:oasis:names:tc:xacml:1.0:resource:resource-id"
-      std::string res_attr_value = attrs->get("ENDPOINT");
-      if(res_attr_value.empty()) throw ierror("Failed to extract ENDPOINT");
+      std::string res_attr_value = get_resource(auths,attrs);
+      if(res_attr_value.empty()) throw ierror("Failed to extract resource identifier");
       logger.msg(Arc::DEBUG,"Adding resource-id value: %s", res_attr_value);
       xacml_element_add_attribute(resource, res_attr_value, XACML_DATATYPE_STRING, res_attr_id, "");
 
