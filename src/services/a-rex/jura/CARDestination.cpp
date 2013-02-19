@@ -139,7 +139,7 @@ namespace Arc
     joblogs.clear();
     usagerecordset.Replace(
         Arc::XMLNode(Arc::NS("",
-                             "http://eu-emi.eu/namespaces/2011/11/computerecord"
+                             "http://eu-emi.eu/namespaces/2012/11/computerecord"
                             ),
                      "UsageRecords")
                     );
