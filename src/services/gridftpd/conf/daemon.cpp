@@ -256,7 +256,7 @@ namespace gridftpd {
     if (logsize_ > 0) logger_file->setMaxSize(logsize_);
     if (lognum_ > 0) logger_file->setBackups(lognum_);
     logger_file->setReopen(logreopen_);
-    if (debug_ > 0) {
+    if (debug_ >= 0) {
       Arc::Logger::getRootLogger().setThreshold(Arc::old_level_to_level((unsigned int)debug_));
     };
     Arc::Logger::getRootLogger().removeDestinations();
