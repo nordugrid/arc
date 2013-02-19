@@ -213,7 +213,7 @@ if [ "$(config_subsections infosys/index)" ]; then
     moduleload_shell="${ldapmodule}"
 
     if [ -n "${ldapmodule}" ]; then
-    ldapdir=`sed 's/^://' <<< $ldapdir`
+    ldapdir=`sed 's/^://;s/\/:.*//' <<< $ldapdir`
 	dlname=`( . ${ldapdir}/back_shell.la ; echo ${dlname} )`
 	slapd_env="ARC_LDAPLIB_SHELL=${ldapdir}/${dlname}"
     fi
