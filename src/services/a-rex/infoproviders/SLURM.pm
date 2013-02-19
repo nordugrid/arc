@@ -426,9 +426,7 @@ sub queue_info ($$) {
     $lrms_queue{minwalltime} = 0;
     $lrms_queue{defaultwallt} = $maxtime;
 
-#    ($lrms_queue{running}, $lrms_queue{queued}) = slurm_get_usedqueued();
-    $lrms_queue{running} = $scont_part{$queue}{AllocatedCPUs};
-    ($lrms_queue{queued}) = slurm_get_jobs($queue);
+    ($lrms_queue{queued}, $lrms_queue{running}) = slurm_get_jobs($queue);
 
     $lrms_queue{totalcpus} = $scont_part{$queue}{TotalCPUs};
 
