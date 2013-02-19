@@ -1,13 +1,13 @@
 lib_LTLIBRARIES = libarcdata.la
 
 if WIN32
-DIRS =
+DIRS = examples
 else
-DIRS = . $(TEST_DIR)
+DIRS = . $(TEST_DIR) examples
 endif
 
 SUBDIRS = $(DIRS)
-DIST_SUBDIRS = test
+DIST_SUBDIRS = test examples
 
 if WIN32
 pkglibexec_SCRIPTS = 

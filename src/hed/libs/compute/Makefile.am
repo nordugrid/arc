@@ -46,5 +46,5 @@ testjobdir = $(pkgdatadir)/test-jobs
 testjob_DATA = test-job-1 test-job-2 test-job-3
 EXTRA_DIST = $(testjob_DATA)
 
-DIST_SUBDIRS = test
-SUBDIRS = $(TEST_DIR)
+DIST_SUBDIRS = test examples
+SUBDIRS = . $(TEST_DIR) examples

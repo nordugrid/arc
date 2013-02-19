@@ -22,96 +22,10 @@ namespace Arc {
    * cannot be copied.
    *
    * This class is the main way to access remote data items and
-   * obtain information about them. Below is an example of
-   * accessing the last 512 bytes of a file stored on a GridFTP
-   * server. To simply copy a whole file DataMover::Transfer() can
-   * be used.
-   *
-   * \code
-   * #include <iostream>
-   * #include <arc/data/DataPoint.h>
-   * #include <arc/data/DataHandle.h>
-   * #include <arc/data/DataBuffer.h>
+   * obtain information about them. To simply copy a whole file
+   * DataMover::Transfer() can be used. For partial file copy see
+   * the examples in \ref data.
    * 
-   * using namespace Arc;
-   * 
-   * int main(void) {
-   *   #define DESIRED_SIZE 512
-   *   Arc::UserConfig usercfg;
-   *   URL url("gsiftp://localhost/files/file_test_21");
-   *   DataHandle handle(url,usercfg);
-   *   if(!handle || !(*handle)) {
-   *     std::cerr<<"Unsupported URL protocol or malformed URL"<<std::endl;
-   *     return -1;
-   *   };
-   *   handle->SetSecure(false) // GridFTP servers generally do not have encrypted data channel
-   *   FileInfo info;
-   *   if(!handle->Stat(info)) {
-   *     std::cerr<<"Failed Stat"<<std::endl;
-   *     return -1;
-   *   };
-   *   unsigned long long int fsize = handle->GetSize();
-   *   if(fsize == (unsigned long long int)-1) {
-   *     std::cerr<<"file size is not available"<<std::endl;
-   *     return -1;
-   *   };
-   *   if(fsize == 0) {
-   *     std::cerr<<"file is empty"<<std::endl;
-   *     return -1;
-   *   };
-   *   if(fsize > DESIRED_SIZE) {
-   *     handle->Range(fsize-DESIRED_SIZE,fsize-1);
-   *   };
-   *   DataBuffer buffer;
-   *   if(!handle->StartReading(buffer)) {
-   *     std::cerr<<"Failed to start reading"<<std::endl;
-   *     return -1;
-   *   };
-   *   for(;;) {
-   *     int n;
-   *     unsigned int length;
-   *     unsigned long long int offset;
-   *     if(!buffer.for_write(n,length,offset,true)) {
-   *       break;
-   *     };
-   *     std::cout<<"BUFFER: "<<offset<<": "<<length<<" :"<<std::string((const char*)(buffer[n]),length)<<std::endl;
-   *     buffer.is_written(n);
-   *   };
-   *   if(buffer.error()) {
-   *     std::cerr<<"Transfer failed"<<std::endl;
-   *   };
-   *   handle->StopReading();
-   *   return 0;
-   * }
-   * \endcode
-   * And the same example in python
-   * \code
-   * import arc
-   * 
-   * desired_size = 512
-   * usercfg = arc.UserConfig()
-   * url = arc.URL("gsiftp://localhost/files/file_test_21")
-   * handle = arc.DataHandle(url,usercfg)
-   * point = handle.__ref__()
-   * point.SetSecure(False) # GridFTP servers generally do not have encrypted data channel
-   * info = arc.FileInfo("")
-   * point.Stat(info)
-   * print "Name: ", info.GetName()
-   * fsize = info.GetSize()
-   * if fsize > desired_size:
-   *     point.Range(fsize-desired_size,fsize-1)
-   * buffer = arc.DataBuffer()
-   * point.StartReading(buffer)
-   * while True:
-   *     n = 0
-   *     length = 0
-   *     offset = 0
-   *     ( r, n, length, offset, buf) = buffer.for_write(True)
-   *     if not r: break
-   *     print "BUFFER: ", offset, ": ", length, " :", buf
-   *     buffer.is_written(n);
-   * point.StopReading()
-   * \endcode
    * \ingroup data
    * \headerfile DataHandle.h arc/data/DataHandle.h
    */

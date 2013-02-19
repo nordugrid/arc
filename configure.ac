@@ -2248,6 +2248,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/Makefile
                  src/hed/libs/compute/Makefile
                  src/hed/libs/compute/test/Makefile
+                 src/hed/libs/compute/examples/Makefile
                  src/hed/libs/common/Makefile
                  src/hed/libs/common/test/Makefile
                  src/hed/libs/communication/Makefile
@@ -2262,6 +2263,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/data/cache-list
                  src/hed/libs/data/cache-list.1
                  src/hed/libs/data/test/Makefile
+                 src/hed/libs/data/examples/Makefile
                  src/hed/libs/Makefile
                  src/hed/libs/loader/Makefile
                  src/hed/libs/loader/schema/Makefile
@@ -2367,6 +2369,7 @@ AC_CONFIG_FILES([Makefile
                  src/libs/Makefile
                  src/libs/data-staging/Makefile
                  src/libs/data-staging/test/Makefile
+                 src/libs/data-staging/examples/Makefile
                  src/services/Makefile
                  src/services/a-rex/Makefile
                  src/services/a-rex/a-rex

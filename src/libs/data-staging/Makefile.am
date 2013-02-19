@@ -1,5 +1,5 @@
-DIST_SUBDIRS = test
-SUBDIRS = . $(TEST_DIR)
+DIST_SUBDIRS = test examples
+SUBDIRS = . $(TEST_DIR) examples
 
 lib_LTLIBRARIES = libarcdatastaging.la
 
@@ -24,17 +24,6 @@ libarcdatastaging_la_LIBADD = \
   $(top_builddir)/src/hed/libs/communication/libarccommunication.la \
   $(GLIBMM_LIBS)
 libarcdatastaging_la_LDFLAGS = -version-info 2:0:0
-
-noinst_PROGRAMS = generator
-
-generator_SOURCES = generator-main.cpp Generator.h Generator.cpp
-generator_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
-generator_LDADD = libarcdatastaging.la \
-	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
-	$(top_builddir)/src/hed/libs/data/libarcdata.la \
-	$(GLIBMM_LIBS)
 
 pkglibexec_PROGRAMS = DataStagingDelivery
 

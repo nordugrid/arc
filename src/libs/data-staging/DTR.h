@@ -25,47 +25,19 @@ namespace DataStaging {
  * remote endpoints, but all data flows through the client.
  *
  * The following code snippet shows a very simple example of how to use
- * libarcdatastaging. A DTR is created which describes the data transfer
- * required. It is passed to the Scheduler and then the code waits until the
- * Scheduler calls the callback to notify that the transfer has finished.
+ * libarcdatastaging. The Generator class receives as input a source and
+ * destination, and creates a DTR which describes the data transfer. It is then
+ * passed to the Scheduler and the Generator defines a receiveDTR() method for
+ * the Scheduler to calls to notify that the transfer has finished. A main()
+ * program is also shown as an example of how to use the Generator as a basic
+ * copy tool from the command line.
  *
- * @code
- * class MyGenerator : public DTRCallback {
- *  public:
- *   void receiveDTR(DTR_ptr dtr);
- *   void run();
- *  private:
- *   Arc::SimpleCondition cond;
- * };
- *
- * void MyGenerator::receiveDTR(DTR_ptr dtr) {
- *   // DTR received back, so notify waiting condition
- *   std::cout << "Received DTR " << dtr->get_id() << std::endl;
- *   cond.signal();
- * }
- *
- * void MyGenerator::run() {
- *   // start Scheduler thread
- *   Scheduler scheduler;
- *   scheduler.start();
- *
- *   // create a DTR
- *   DTR_ptr dtr(new DTR(source, destination,...));
- *
- *   // register this callback
- *   dtr->registerCallback(this,DataStaging::GENERATOR);
- *   // this line must be here in order to pass the DTR to the Scheduler
- *   dtr->registerCallback(&scheduler,DataStaging::SCHEDULER);
- *
- *   // push the DTR to the Scheduler
- *   DataStaging::DTR::push(dtr, DataStaging::SCHEDULER);
- *
- *   // wait until callback is called
- *   cond.wait();
- *   // DTR is finished, so stop Scheduler
- *   scheduler.stop();
- * }
- * @endcode
+ * Generator.h:
+ * \include Generator.h
+ * Generator.cpp:
+ * \include Generator.cpp
+ * generator-main.cpp:
+ * \include generator-main.cpp
  *
  * For more information see http://wiki.nordugrid.org/index.php/Data_Staging
  *

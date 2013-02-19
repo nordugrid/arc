@@ -1,6 +1,6 @@
 // -*- indent-tabs-mode: nil -*-
 
-// Summary page for doxygen docs on libarcdata
+// Summary page for libarcdata doxygen module
 // Enclosed in Arc namespace so automatic linking to other classes works
 namespace Arc {
 /**
@@ -8,7 +8,7 @@ namespace Arc {
  *
  * libarcdata is a library for access to data on the Grid. It provides a
  * uniform interface to several types of Grid storage and catalogs using
- * various protocols. The protocols useable on a given system depend on the
+ * various protocols. The protocols usable on a given system depend on the
  * packages installed. The interface can be used to read, write, list, transfer
  * and delete data to and from storage systems and catalogs.
  *
@@ -19,9 +19,6 @@ namespace Arc {
  * representing a resource accessible through a given protocol. DataHandle
  * should always be used instead of DataPoint directly.
  *
- * DataMover provides a simple high-level interface to copy files. For more
- * fine-grained control over data transfer see the examples in DataHandle.
- *
  * To create a new DMC for a protocol which is not yet supported see the
  * instruction and examples in the DataPoint class documentation. This
  * documentation also gives a complete overview of the interface.
@@ -29,31 +26,40 @@ namespace Arc {
  * The following protocols are currently supported in standard distributions
  * of ARC.
  *
- * ARC (arc://) - Protocol to access the Chelonia storage system developed by
+ * - ARC (arc://) - Protocol to access the Chelonia storage system developed by
  * ARC.
  *
- * File (%file://) - Regular local file system.
+ * - File (%file://) - Regular local file system.
  *
- * GridFTP (gsiftp://) - GridFTP is essentially the FTP protocol with GSI
+ * - GridFTP (gsiftp://) - GridFTP is essentially the FTP protocol with GSI
  * security. Regular FTP can also be used.
  *
- * HTTP(S/G) (%http://) - Hypertext Transfer Protocol. HTTP over SSL (HTTPS)
+ * - HTTP(S/G) (%http://) - Hypertext Transfer Protocol. HTTP over SSL (HTTPS)
  * and HTTP over GSI (HTTPG) are also supported.
  *
- * LDAP (ldap://) - Lightweight Directory Access Protocol. LDAP is used in
+ * - LDAP (ldap://) - Lightweight Directory Access Protocol. LDAP is used in
  * grids mainly to store information about grid services or resources rather
  * than to store data itself.
  *
- * LFC (lfc://) - The LCG File Catalog (LFC) is a replica catalog developed
+ * - LFC (lfc://) - The LCG File Catalog (LFC) is a replica catalog developed
  * by CERN. It consists of a hierarchical namespace of grid files and each
  * filename can be associated with one or more physical locations.
  *
- * SRM (srm://) - The Storage Resource Manager (SRM) protocol allows access
+ * - SRM (srm://) - The Storage Resource Manager (SRM) protocol allows access
  * to data distributed across physical storage through a unified namespace
  * and management interface.
  *
- * XRootd (root://) - Protocol for data access across large scale storage
+ * - XRootd (root://) - Protocol for data access across large scale storage
  * clusters. More information can be found at http://xrootd.slac.stanford.edu/
+ *
+ * DataMover provides a simple high-level interface to copy files. Fine-grained
+ * control over data transfer is shown in the following example:
+ *
+ * \include partial_copy.cpp
+ *
+ * And the same example in python
+ *
+ * \include partial_copy.py
  */
 } // namespace Arc
 
@@ -108,48 +114,11 @@ namespace Arc {
    * rely on third-party components. The new DMC must also add itself to the
    * list of available plugins and provide an Instance() method which returns
    * a new instance of itself, if the supplied arguments are valid for the
-   * protocol. Here is an example implementation of a new DMC for protocol
-   * MyProtocol which represents a physical resource accessible through
+   * protocol. Here is an example skeleton implementation of a new DMC for
+   * protocol MyProtocol which represents a physical resource accessible through
    * protocol my://
+   * \include DataPointMyProtocol.cpp
    *
-   * @code
-   * #include <arc/data/DataPointDirect.h>
-   *
-   * namespace Arc {
-   *
-   * class DataPointMyProtocol : public DataPointDirect {
-   *  public:
-   *   DataPointMyProtocol(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
-   *   static Plugin* Instance(PluginArgument *arg);
-   *   virtual DataStatus StartReading(DataBuffer& buffer);
-   *   ...
-   * };
-   *
-   * DataPointMyProtocol::DataPointMyProtocol(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
-   *  : DataPointDirect(url, usercfg, parg) {
-   *   ...
-   * }
-   *
-   * DataPointMyProtocol::StartReading(DataBuffer& buffer) { ... }
-   *
-   * ...
-   *
-   * Plugin* DataPointMyProtocol::Instance(PluginArgument *arg) {
-   *   DataPointPluginArgument *dmcarg = dynamic_cast<DataPointPluginArgument*>(arg);
-   *   if (!dmcarg)
-   *     return NULL;
-   *   if (((const URL &)(*dmcarg)).Protocol() != "my")
-   *     return NULL;
-   *   return new DataPointMyProtocol(*dmcarg, *dmcarg, dmcarg);
-   * }
-   *
-   * } // namespace Arc
-   *
-   * Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
-   *   { "my", "HED:DMC", "My protocol", 0, &Arc::DataPointMyProtocol::Instance },
-   *   { NULL, NULL, NULL, 0, NULL }
-   * };
-   * @endcode
    * \ingroup data
    * \headerfile DataPoint.h arc/data/DataPoint.h
    */

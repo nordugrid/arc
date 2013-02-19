@@ -1,11 +1,5 @@
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <signal.h>
-
 #include <arc/StringConv.h>
-
 #include "Generator.h"
 
 static Arc::SimpleCounter counter;
@@ -32,7 +26,7 @@ int main(int argc, char** argv) {
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::INFO);
 
-  DataStaging::Generator generator;
+  Generator generator;
   int num = 10;
   if (argc == 1 || argc == 2) { // run mock a number of times
     if (argc == 2 && (std::string(argv[1]) == "-h" || !Arc::stringto(argv[1], num))) {
