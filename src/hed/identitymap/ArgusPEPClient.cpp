@@ -14,6 +14,21 @@
 
 static const char XACML_DATATYPE_FQAN[]= "http://glite.org/xacml/datatype/fqan";
 
+#define AREX_JOB_POLICY_OPERATION_URN "http://www.nordugrid.org/schemas/policy-arc/types/a-rex/joboperation"
+#define AREX_JOB_POLICY_OPERATION_CREATE "Create"
+#define AREX_JOB_POLICY_OPERATION_MODIFY "Modify"
+#define AREX_JOB_POLICY_OPERATION_READ   "Read"
+#define AREX_POLICY_OPERATION_URN "http://www.nordugrid.org/schemas/policy-arc/types/a-rex/operation"
+#define AREX_POLICY_OPERATION_ADMIN "Admin"
+#define AREX_POLICY_OPERATION_INFO  "Info"
+
+#define EMIES_OPERATION_CREATION "http://www.eu-emi.eu/es/2010/12/creation"
+#define EMIES_OPERATION_ACTIVITY "http://www.eu-emi.eu/es/2010/12/activity"
+#define EMIES_OPERATION_ACTIVITYMANGEMENT "http://www.eu-emi.eu/es/2010/12/activitymanagement"
+#define EMIES_OPERATION_RESOURCEINFO "http://www.eu-emi.eu/es/2010/12/resourceinfo"
+#define EMIES_OPERATION_DELEGATION "http://www.gridsite.org/namespaces/delegation-21"
+#define EMIES_OPERATION_ANY "http://dci-sec.org/xacml/action/ANY"
+
 static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg) {
     ArcSec::SecHandlerPluginArgument* shcarg = arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
     if(!shcarg) return NULL;
@@ -579,6 +594,36 @@ static std::string get_cream_action_http(const std::string& method, Arc::Logger&
     return "";
 }
 
+static std::string get_emi_action_http(const std::string& method) { 
+    if(method == "GET") { 
+        return EMIES_OPERATION_CREATION; 
+    } else if(method == "PUT") { 
+        return EMIES_OPERATION_ACTIVITYMANGEMENT; 
+    } 
+    return ""; 
+} 
+ 
+static std::string get_emi_action(Arc::XMLNode op) { 
+  if(MatchXMLNamespace(op,EMIES_OPERATION_CREATION)) return EMIES_OPERATION_CREATION; 
+  if(MatchXMLNamespace(op,EMIES_OPERATION_ACTIVITY)) return EMIES_OPERATION_ACTIVITY; 
+  if(MatchXMLNamespace(op,EMIES_OPERATION_ACTIVITYMANGEMENT)) return EMIES_OPERATION_ACTIVITYMANGEMENT; 
+  if(MatchXMLNamespace(op,EMIES_OPERATION_RESOURCEINFO)) return EMIES_OPERATION_RESOURCEINFO; 
+  if(MatchXMLNamespace(op,EMIES_OPERATION_DELEGATION)) return EMIES_OPERATION_DELEGATION; 
+  return ""; 
+} 
+ 
+static std::string get_emi_action_arex(const std::string& ns, const std::string& action) { 
+  if(ns == AREX_JOB_POLICY_OPERATION_URN) { 
+    if(action == AREX_JOB_POLICY_OPERATION_CREATE) return EMIES_OPERATION_CREATION; 
+    if(action == AREX_JOB_POLICY_OPERATION_MODIFY) return EMIES_OPERATION_ACTIVITYMANGEMENT; 
+    if(action == AREX_JOB_POLICY_OPERATION_READ) return EMIES_OPERATION_ACTIVITY; 
+  } else if(ns == AREX_POLICY_OPERATION_URN) { 
+    if(action == AREX_POLICY_OPERATION_INFO) return EMIES_OPERATION_RESOURCEINFO; 
+    if(action == AREX_POLICY_OPERATION_ADMIN) return ""; 
+  } 
+  return ""; 
+} 
+ 
 static std::string get_sec_attr(std::list<Arc::MessageAuth*> auths, const std::string& sid, const std::string& aid) {
     for(std::list<Arc::MessageAuth*>::iterator a = auths.begin(); a != auths.end(); ++a) {
         Arc::SecAttr* sa = (*a)->get(sid);
@@ -599,6 +644,13 @@ static std::list<std::string> get_sec_attrs(std::list<Arc::MessageAuth*> auths, 
     return std::list<std::string>();
 }
 
+static std::string get_resource(std::list<Arc::MessageAuth*>& auths, Arc::MessageAttributes* attrs) { 
+    std::string resource = get_sec_attr(auths, "AREX", "SERVICE"); 
+    if(!resource.empty()) return resource; 
+    if(attrs) resource = attrs->get("ENDPOINT"); 
+    return resource; 
+} 
+ 
 int ArgusPEPClient::create_xacml_request_cream(xacml_request_t** request, std::list<Arc::MessageAuth*> auths,  Arc::MessageAttributes* attrs, Arc::XMLNode operation) const {
 logger.msg(Arc::DEBUG,"Doing CREAM request");
     xacml_attribute_t* attr = NULL;
@@ -702,8 +754,8 @@ logger.msg(Arc::DEBUG,"Doing CREAM request");
     // Resource
     attr = xacml_attribute_create("urn:oasis:names:tc:xacml:1.0:resource:resource-id");
     if(!attr) throw ierror("Failed to create attribute resource-id object");
-    std::string endpoint = attrs->get("ENDPOINT");
-    if(endpoint.empty()) throw ierror("Failed to extract ENDPOINT");
+    std::string endpoint = get_resource(auths,attrs);
+    if(endpoint.empty()) throw ierror("Failed to extract resource identifier");
     xacml_attribute_addvalue(attr, endpoint.c_str());
     logger.msg(Arc::DEBUG,"Adding resoure-id value: %s",endpoint);
     xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
@@ -880,7 +932,7 @@ int ArgusPEPClient::create_xacml_request_emi(xacml_request_t** request, std::lis
     // Resource
     attr = xacml_attribute_create("urn:oasis:names:tc:xacml:1.0:resource:resource-id");
     if(!attr) throw ierror();
-    std::string endpoint = attrs->get("ENDPOINT");
+    std::string endpoint = get_resource(auths,attrs);
     if(endpoint.empty()) throw ierror();
     xacml_attribute_addvalue(attr, endpoint.c_str());
     xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
@@ -898,9 +950,13 @@ int ArgusPEPClient::create_xacml_request_emi(xacml_request_t** request, std::lis
     // In a future action names should be synchronized among services
     attr = xacml_attribute_create("urn:oasis:names:tc:xacml:1.0:action:action-id");
     if(!attr) throw ierror();
-    //"http://dci-sec.org/xacml/action/arc/arex/"+operation.Name
-    std::string act = get_sec_attr(auths, "AREX", "NAMESPACE") + "/" + get_sec_attr(auths, "AREX", "ACTION");
-    if(act.empty()) throw ierror();
+    std::string arex_ns = get_sec_attr(auths, "AREX", "NAMESPACE"); 
+    std::string arex_action = get_sec_attr(auths, "AREX", "ACTION"); 
+    std::string act = get_emi_action(operation); 
+    if(act.empty()) act = get_emi_action_arex(arex_ns, arex_action); 
+    if(act.empty()) act = get_emi_action_http(attrs->get("HTTP:METHOD")); 
+    //if(act.empty() && !arex_ns.empty()) act = arex_ns + "/" + arex_action; 
+    if(act.empty()) act = EMIES_OPERATION_ANY; //throw ierror("Failed to generate action name"); 
     xacml_attribute_addvalue(attr, act.c_str());
     xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
     xacml_action_addattribute(action,attr); attr = NULL;

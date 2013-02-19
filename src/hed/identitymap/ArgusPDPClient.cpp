@@ -554,7 +554,7 @@ static std::list<std::string> get_sec_attrs(std::list<Arc::MessageAuth*> auths, 
     return std::list<std::string>();
 }
 
-std::string get_resource(std::list<Arc::MessageAuth*>& auths, Arc::MessageAttributes* attrs) {
+static std::string get_resource(std::list<Arc::MessageAuth*>& auths, Arc::MessageAttributes* attrs) {
     std::string resource = get_sec_attr(auths, "AREX", "SERVICE");
     if(!resource.empty()) return resource;
     if(attrs) resource = attrs->get("ENDPOINT");
