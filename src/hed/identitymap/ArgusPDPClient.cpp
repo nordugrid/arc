@@ -418,7 +418,7 @@ SecHandlerStatus ArgusPDPClient::Handle(Arc::Message* msg) const {
       }
       else if((decision == XACML_DECISION_NOT_APPLICABLE) && (accept_notapplicable == false)) {
         logger.msg(Arc::INFO,"Not authorized");
-        throw pep_ex("The reached decision is: " + xacml_decision_to_string(decision) + ". But this service will treat NotAcceptable decision as reason to deny request");
+        throw pep_ex("The reached decision is: " + xacml_decision_to_string(decision) + ". But this service will treat NotApplicable decision as reason to deny request");
       }
      
       if(accept_mapping && !local_id.empty()) {
