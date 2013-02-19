@@ -1,6 +1,6 @@
 docdir = @docdir@
 
-doc_DATA = ARC1-API.pdf ARC1-Services.pdf ARC1-ChainComponents.pdf ARC1-libarcdata.pdf
+doc_DATA = ARC1-API.pdf ARC1-libarcdata.pdf
 
 ARC1-API.pdf: $(srcdir)/Doxyfile.api
 	doxygen $(srcdir)/Doxyfile.api
@@ -9,20 +9,6 @@ ARC1-API.pdf: $(srcdir)/Doxyfile.api
 	mv api/latex/refman.pdf $@
 	rm -rf api
 
-ARC1-Services.pdf: $(srcdir)/Doxyfile.services
-	doxygen $(srcdir)/Doxyfile.services
-	( cd services/latex ; for f in *.tex ; do sed 's/\\doxyref{p\.}/\\doxyref{}{p\.}/g' $$f > $$f.new ; mv $$f.new $$f ; done )
-	make -C services/latex
-	mv services/latex/refman.pdf $@
-	rm -rf services
-
-ARC1-ChainComponents.pdf: $(srcdir)/Doxyfile.chain
-	doxygen $(srcdir)/Doxyfile.chain
-	( cd chain/latex ; for f in *.tex ; do sed 's/\\doxyref{p\.}/\\doxyref{}{p\.}/g' $$f > $$f.new ; mv $$f.new $$f ; done )
-	make -C chain/latex
-	mv chain/latex/refman.pdf $@
-	rm -rf chain
-
 ARC1-libarcdata.pdf: $(srcdir)/Doxyfile.data
 	doxygen $(srcdir)/Doxyfile.data
 	( cd data/latex ; for f in *.tex ; do sed 's/\\doxyref{p\.}/\\doxyref{}{p\.}/g' $$f > $$f.new ; mv $$f.new $$f ; done )
@@ -30,9 +16,9 @@ ARC1-libarcdata.pdf: $(srcdir)/Doxyfile.data
 	mv data/latex/refman.pdf $@
 	rm -rf data
 
-EXTRA_DIST = Doxyfile.api Doxyfile.services Doxyfile.chain Doxyfile.data $(doc_DATA)
+EXTRA_DIST = Doxyfile.api Doxyfile.data $(doc_DATA)
 
-CLEANFILES = api services chain data
+CLEANFILES = api data
 
 MAINTAINERCLEANFILES = $(doc_DATA)
 
