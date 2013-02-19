@@ -305,8 +305,13 @@ SecHandlerStatus ArgusPDPClient::Handle(Arc::Message* msg) const {
         try {
           payload = dynamic_cast<Arc::PayloadSOAP*>(msg->Payload());
         } catch(std::exception& e) { };
-        if(!payload) throw pep_ex("No SOAP in message");
-        rc = create_xacml_request_cream(request,auths,msg->Attributes(),payload->Child(0));
+        //if(!payload) throw pep_ex("No SOAP in message");
+        if(payload) {
+          rc = create_xacml_request_cream(request,auths,msg->Attributes(),payload->Child(0));
+        } else {
+          // For HTTP operations
+          rc = create_xacml_request_cream(request,auths,msg->Attributes(),Arc::XMLNode());
+        }
         if((bool)request) requests.push_back(request);
       }
       else if(conversion == conversion_emi) {
@@ -317,8 +322,13 @@ SecHandlerStatus ArgusPDPClient::Handle(Arc::Message* msg) const {
         try {
           payload = dynamic_cast<Arc::PayloadSOAP*>(msg->Payload());
         } catch(std::exception& e) { };
-        if(!payload) throw pep_ex("No SOAP in message");
-        rc = create_xacml_request_emi(request,auths,msg->Attributes(),payload->Child(0));
+        //if(!payload) throw pep_ex("No SOAP in message");
+        if(payload) {
+          rc = create_xacml_request_emi(request,auths,msg->Attributes(),payload->Child(0));
+        } else {
+          // For HTTP operations
+          rc = create_xacml_request_emi(request,auths,msg->Attributes(),Arc::XMLNode());
+        }
         if((bool)request) requests.push_back(request);
       } 
       else {
@@ -502,6 +512,15 @@ static std::string get_cream_action(Arc::XMLNode op, Arc::Logger& logger) {
     return "";
 }
 
+static std::string get_cream_action_http(const std::string& method, Arc::Logger& logger) {
+    if(method == "GET") {
+        return "http://glite.org/xacml/action/ce/job/get-info";
+    } else if(method == "PUT") {
+        return "http://glite.org/xacml/action/ce/job/submit";
+    }
+    return "";
+}
+
 static std::string get_sec_attr(std::list<Arc::MessageAuth*> auths, const std::string& sid, const std::string& aid) {
     for(std::list<Arc::MessageAuth*>::iterator a = auths.begin(); a != auths.end(); ++a) {
         Arc::SecAttr* sa = (*a)->get(sid);
@@ -613,7 +632,12 @@ int ArgusPDPClient::create_xacml_request_cream(Arc::XMLNode& request, std::list<
       // Action
       Arc::XMLNode action = xacml_request_add_element(request, "Action");
       std::string act_attr_id = XACML_ACTION_ID; //"urn:oasis:names:tc:xacml:1.0:action:action-id";
-      std::string act_attr_value = get_cream_action(operation,logger);
+      std::string act_attr_value;
+      if((bool)operation) {
+        act_attr_value = get_cream_action(operation,logger);
+      } else if(attrs) {
+        act_attr_value = get_cream_action_http(attrs->get("HTTP:METHOD"),logger);
+      }
       if(act_attr_value.empty()) act_attr_value = "http://glite.org/xacml/action/ANY"; // throw ierror("Failed to generate action name");
       logger.msg(Arc::DEBUG,"Adding action-id value: %s", act_attr_value);
       xacml_element_add_attribute(action, act_attr_value, XACML_DATATYPE_STRING, act_attr_id, "");

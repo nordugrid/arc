@@ -233,8 +233,13 @@ SecHandlerStatus ArgusPEPClient::Handle(Arc::Message* msg) const {
             try {
                 payload = dynamic_cast<Arc::PayloadSOAP*>(msg->Payload());
             } catch(std::exception& e) { };
-            if(!payload) throw pep_ex("No SOAP in message");
-            rc = create_xacml_request_cream(&request,auths,msg->Attributes(),payload->Child(0));
+            //if(!payload) throw pep_ex("No SOAP in message");
+            if(payload) {
+              rc = create_xacml_request_cream(&request,auths,msg->Attributes(),payload->Child(0));
+            } else {
+              // For HTTP operations
+              rc = create_xacml_request_cream(&request,auths,msg->Attributes(),Arc::XMLNode());
+            }
             if(request != NULL) requests.push_back(request);
             request = NULL;
         } else if(conversion == conversion_emi) {
@@ -245,8 +250,12 @@ SecHandlerStatus ArgusPEPClient::Handle(Arc::Message* msg) const {
             try {
                 payload = dynamic_cast<Arc::PayloadSOAP*>(msg->Payload());
             } catch(std::exception& e) { };
-            if(!payload) throw pep_ex("No SOAP in message");
-            rc = create_xacml_request_emi(&request,auths,msg->Attributes(),payload->Child(0));
+            //if(!payload) throw pep_ex("No SOAP in message");
+            if(payload) {
+              rc = create_xacml_request_emi(&request,auths,msg->Attributes(),payload->Child(0));
+            } else {
+              rc = create_xacml_request_emi(&request,auths,msg->Attributes(),Arc::XMLNode());
+            }
             if(request != NULL) requests.push_back(request);
             request = NULL;
         } else {
@@ -511,8 +520,8 @@ static const std::string BES_MANAGEMENT_NAMESPACE("http://schemas.ggf.org/bes/20
 static const std::string BES_ARC_NAMESPACE("http://www.nordugrid.org/schemas/a-rex");
 static const std::string DELEG_ARC_NAMESPACE("http://www.nordugrid.org/schemas/delegation");
 static const std::string WSRF_NAMESPACE("http://docs.oasis-open.org/wsrf/rp-2");
-static std::string get_cream_acion(Arc::XMLNode op, Arc::Logger& logger) {
-logger.msg(Arc::DEBUG,"Converting to CREAM action - namespace: %s, operation: %s",op.Namespace(),op.Name());
+static std::string get_cream_action(Arc::XMLNode op, Arc::Logger& logger) {
+    logger.msg(Arc::DEBUG,"Converting to CREAM action - namespace: %s, operation: %s",op.Namespace(),op.Name());
     if(MatchXMLNamespace(op,BES_FACTORY_NAMESPACE)) {
         if(MatchXMLName(op,"CreateActivity"))
             return "http://glite.org/xacml/action/ce/job/submit";
@@ -558,6 +567,15 @@ logger.msg(Arc::DEBUG,"Converting to CREAM action - namespace: %s, operation: %s
     // *http://glite.org/xacml/action/ce/delegation/manage
     // http://glite.org/xacml/action/ce/subscription/get-info
     // http://glite.org/xacml/action/ce/subscription/manage
+    return "";
+}
+
+static std::string get_cream_action_http(const std::string& method, Arc::Logger& logger) {
+    if(method == "GET") {
+        return "http://glite.org/xacml/action/ce/job/get-info";
+    } else if(method == "PUT") {
+        return "http://glite.org/xacml/action/ce/job/submit";
+    }
     return "";
 }
 
@@ -694,8 +712,13 @@ logger.msg(Arc::DEBUG,"Doing CREAM request");
     // Action
     attr = xacml_attribute_create("urn:oasis:names:tc:xacml:1.0:action:action-id");
     if(!attr) throw ierror("Failed to create attribute action-id object");
-    std::string act = get_cream_acion(operation,logger);
-    if(act.empty()) throw ierror("Failed to generate action name");
+    std::string act;
+    if((bool)operation) {
+      act = get_cream_action(operation,logger);
+    } else if(attrs) {
+      act = get_cream_action_http(attrs->get("HTTP:METHOD"),logger);
+    }
+    if(act.empty()) act = "http://glite.org/xacml/action/ANY"; // throw ierror("Failed to generate action name");
     xacml_attribute_addvalue(attr, act.c_str());
     logger.msg(Arc::DEBUG,"Adding action-id value: %s",act);
     xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
