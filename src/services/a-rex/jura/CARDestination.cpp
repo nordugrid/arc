@@ -14,7 +14,7 @@ namespace Arc
   CARDestination::CARDestination(JobLogFile& joblog):
     logger(Arc::Logger::rootLogger, "JURA.CARDestination"),
     urn(0),
-    usagerecordset(Arc::NS("","http://eu-emi.eu/namespaces/2011/11/computerecord"),
+    usagerecordset(Arc::NS("","http://eu-emi.eu/namespaces/2012/11/computerecord"),
                    "UsageRecords")
   {
     //Get service URL, cert, key, CA path from job log file
