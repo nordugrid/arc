@@ -17,6 +17,14 @@
 #include "ArgusPDPClient.h"
 #include "ArgusXACMLConstant.h"
 
+#define AREX_JOB_POLICY_OPERATION_URN "http://www.nordugrid.org/schemas/policy-arc/types/a-rex/joboperation"
+#define AREX_JOB_POLICY_OPERATION_CREATE "Create"
+#define AREX_JOB_POLICY_OPERATION_MODIFY "Modify"
+#define AREX_JOB_POLICY_OPERATION_READ   "Read"
+#define AREX_POLICY_OPERATION_URN "http://www.nordugrid.org/schemas/policy-arc/types/a-rex/operation"
+#define AREX_POLICY_OPERATION_ADMIN "Admin"
+#define AREX_POLICY_OPERATION_INFO  "Info"
+
 static const char XACML_DATATYPE_FQAN[]= "http://glite.org/xacml/datatype/fqan";
 
 #define SAML_NAMESPACE "urn:oasis:names:tc:SAML:2.0:assertion"
@@ -24,6 +32,12 @@ static const char XACML_DATATYPE_FQAN[]= "http://glite.org/xacml/datatype/fqan";
 #define XACML_SAMLP_NAMESPACE "urn:oasis:names:tc:xacml:2.0:profile:saml2.0:v2:schema:protocol"
 //#define XACML_SAMLP_NAMESPACE "urn:oasis:xacml:2.0:saml:protocol:schema:os"
 
+#define EMIES_OPERATION_CREATION "http://www.eu-emi.eu/es/2010/12/creation"
+#define EMIES_OPERATION_ACTIVITY "http://www.eu-emi.eu/es/2010/12/activity"
+#define EMIES_OPERATION_ACTIVITYMANGEMENT "http://www.eu-emi.eu/es/2010/12/activitymanagement"
+#define EMIES_OPERATION_RESOURCEINFO "http://www.eu-emi.eu/es/2010/12/resourceinfo"
+#define EMIES_OPERATION_DELEGATION "http://www.gridsite.org/namespaces/delegation-21"
+#define EMIES_OPERATION_ANY "http://dci-sec.org/xacml/action/ANY"
 
 static void xacml_create_request(Arc::XMLNode& request) {
     Arc::NS ns;
@@ -462,8 +476,7 @@ static const std::string BES_ARC_NAMESPACE("http://www.nordugrid.org/schemas/a-r
 static const std::string DELEG_ARC_NAMESPACE("http://www.nordugrid.org/schemas/delegation");
 static const std::string WSRF_NAMESPACE("http://docs.oasis-open.org/wsrf/rp-2");
 
-static std::string get_cream_action(Arc::XMLNode op, Arc::Logger& logger) {
-  logger.msg(Arc::DEBUG,"Converting to CREAM action - namespace: %s, operation: %s",op.Namespace(),op.Name());
+static std::string get_cream_action(Arc::XMLNode op) {
     if(MatchXMLNamespace(op,BES_FACTORY_NAMESPACE)) {
         if(MatchXMLName(op,"CreateActivity"))
             return "http://glite.org/xacml/action/ce/job/submit";
@@ -634,7 +647,7 @@ int ArgusPDPClient::create_xacml_request_cream(Arc::XMLNode& request, std::list<
       std::string act_attr_id = XACML_ACTION_ID; //"urn:oasis:names:tc:xacml:1.0:action:action-id";
       std::string act_attr_value;
       if((bool)operation) {
-        act_attr_value = get_cream_action(operation,logger);
+        act_attr_value = get_cream_action(operation);
       } else if(attrs) {
         act_attr_value = get_cream_action_http(attrs->get("HTTP:METHOD"),logger);
       }
@@ -676,6 +689,36 @@ static bool split_voms(const std::string& voms_attr, std::string& vo, std::strin
         }
     }
     return true;
+}
+
+static std::string get_emi_action_http(const std::string& method) {
+    if(method == "GET") {
+        return EMIES_OPERATION_CREATION;
+    } else if(method == "PUT") {
+        return EMIES_OPERATION_ACTIVITYMANGEMENT;
+    }
+    return "";
+}
+
+static std::string get_emi_action(Arc::XMLNode op) {
+  if(MatchXMLNamespace(op,EMIES_OPERATION_CREATION)) return EMIES_OPERATION_CREATION;
+  if(MatchXMLNamespace(op,EMIES_OPERATION_ACTIVITY)) return EMIES_OPERATION_ACTIVITY;
+  if(MatchXMLNamespace(op,EMIES_OPERATION_ACTIVITYMANGEMENT)) return EMIES_OPERATION_ACTIVITYMANGEMENT;
+  if(MatchXMLNamespace(op,EMIES_OPERATION_RESOURCEINFO)) return EMIES_OPERATION_RESOURCEINFO;
+  if(MatchXMLNamespace(op,EMIES_OPERATION_DELEGATION)) return EMIES_OPERATION_DELEGATION;
+  return "";
+}
+
+static std::string get_emi_action_arex(const std::string& ns, const std::string& action) {
+  if(ns == AREX_JOB_POLICY_OPERATION_URN) {
+    if(action == AREX_JOB_POLICY_OPERATION_CREATE) return EMIES_OPERATION_CREATION;
+    if(action == AREX_JOB_POLICY_OPERATION_MODIFY) return EMIES_OPERATION_ACTIVITYMANGEMENT;
+    if(action == AREX_JOB_POLICY_OPERATION_READ) return EMIES_OPERATION_ACTIVITY;
+  } else if(ns == AREX_POLICY_OPERATION_URN) {
+    if(action == AREX_POLICY_OPERATION_INFO) return EMIES_OPERATION_RESOURCEINFO;
+    if(action == AREX_POLICY_OPERATION_ADMIN) return "";
+  }
+  return "";
 }
 
 int ArgusPDPClient::create_xacml_request_emi(Arc::XMLNode& request, std::list<Arc::MessageAuth*> auths, Arc::MessageAttributes* attrs, Arc::XMLNode operation) const {
@@ -803,10 +846,12 @@ int ArgusPDPClient::create_xacml_request_emi(Arc::XMLNode& request, std::list<Ar
       //"http://dci-sec.org/xacml/action/arc/arex/"+operation.Name
       std::string arex_ns = get_sec_attr(auths, "AREX", "NAMESPACE");
       std::string arex_action = get_sec_attr(auths, "AREX", "ACTION");
-      std::string act_attr_value;
-      if(!arex_ns.empty()) act_attr_value = arex_ns + "/" + arex_action;
+      std::string act_attr_value = get_emi_action(operation);
+      if(act_attr_value.empty()) act_attr_value = get_emi_action_arex(arex_ns, arex_action);
+      if(act_attr_value.empty()) act_attr_value = get_emi_action_http(attrs->get("HTTP:METHOD"));
+      //if(act_attr_value.empty() && !arex_ns.empty()) act_attr_value = arex_ns + "/" + arex_action;
 
-      if(act_attr_value.empty()) act_attr_value = "http://dci-sec.org/xacml/action/ANY"; //throw ierror("Failed to generate action name");
+      if(act_attr_value.empty()) act_attr_value = EMIES_OPERATION_ANY; //throw ierror("Failed to generate action name");
       logger.msg(Arc::DEBUG,"Adding action-id value: %s", act_attr_value);
       xacml_element_add_attribute(action, act_attr_value, XACML_DATATYPE_STRING, act_attr_id, "");
 
