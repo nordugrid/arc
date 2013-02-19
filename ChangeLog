@@ -1,5 +1,5 @@
 2013-02-06  Martin Skou Andersen  <skou@nbi.dk>
-  * Adding support for storing job information in a Berkeley DB.
+  * Adding support in library for storing job information in a Berkeley DB.
 
 2013-01-31  Florido Paganelli, Mattias Ellert <florido.paganelli@hep.lu.se> <mattias.ellert@fysast.uu.se>
   * Improved bdii-update automatical configuration. BDII configuration commands
