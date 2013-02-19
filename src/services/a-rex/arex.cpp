@@ -99,9 +99,13 @@ class ARexSecAttr: public Arc::SecAttr {
   virtual operator bool(void) const;
   virtual bool Export(Arc::SecAttrFormat format,Arc::XMLNode &val) const;
   virtual std::string get(const std::string& id) const;
+  void SetResource(const std::string& service, const std::string& job, const std::string& action);
  protected:
   std::string action_;
   std::string id_;
+  std::string service_;
+  std::string job_;
+  std::string file_;
   virtual bool equal(const Arc::SecAttr &b) const;
 };
 
@@ -225,6 +229,12 @@ ARexSecAttr::ARexSecAttr(const Arc::XMLNode op) {
   }
 }
 
+void ARexSecAttr::SetResource(const std::string& service, const std::string& job, const std::string& action) {
+  service_ = service;
+  job_ = job;
+  action_ = action;
+}
+
 ARexSecAttr::~ARexSecAttr(void) {
 }
 
@@ -253,6 +263,7 @@ bool ARexSecAttr::Export(Arc::SecAttrFormat format,Arc::XMLNode &val) const {
       action.NewAttribute("Type")="string";
       action.NewAttribute("AttributeId")=id_;
     };
+    // TODO: add resource part
     return true;
   } else {
   };
@@ -262,6 +273,9 @@ bool ARexSecAttr::Export(Arc::SecAttrFormat format,Arc::XMLNode &val) const {
 std::string ARexSecAttr::get(const std::string& id) const {
   if(id == "ACTION") return action_;
   if(id == "NAMESPACE") return id_;
+  if(id == "SERVICE") return service_;
+  if(id == "JOB") return job_;
+  if(id == "FILE") return file_;
   return "";
 };
 
@@ -531,6 +545,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   // Sort out request
   Arc::PayloadSOAP* inpayload = NULL;
   Arc::XMLNode op;
+  ARexSecAttr* sattr = NULL;
   if(method == "POST") {
     logger_.msg(Arc::VERBOSE, "process: POST");
     // Both input and output are supposed to be SOAP
@@ -555,13 +570,17 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     };
     logger_.msg(Arc::VERBOSE, "process: operation: %s",op.Name());
     // Adding A-REX attributes
-    inmsg.Auth()->set("AREX",new ARexSecAttr(op));
+    sattr = new ARexSecAttr(op);
   } else if(method == "GET") {
-    inmsg.Auth()->set("AREX",new ARexSecAttr(std::string(JOB_POLICY_OPERATION_READ)));
+    sattr = new ARexSecAttr(std::string(JOB_POLICY_OPERATION_READ));
   } else if(method == "HEAD") {
-    inmsg.Auth()->set("AREX",new ARexSecAttr(std::string(JOB_POLICY_OPERATION_READ)));
+    sattr = new ARexSecAttr(std::string(JOB_POLICY_OPERATION_READ));
   } else if(method == "PUT") {
-    inmsg.Auth()->set("AREX",new ARexSecAttr(std::string(JOB_POLICY_OPERATION_MODIFY)));
+    sattr = new ARexSecAttr(std::string(JOB_POLICY_OPERATION_MODIFY));
+  }
+  if(sattr) {
+    inmsg.Auth()->set("AREX",sattr);
+    sattr->SetResource(endpoint,id,subpath);
   }
 
   if(!ProcessSecHandlers(inmsg,"incoming")) {
