@@ -1502,8 +1502,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %files doxygen
 %defattr(-,root,root,-)
 %doc src/doxygen/ARC1-API.pdf
-%doc src/doxygen/ARC1-ChainComponents.pdf
-%doc src/doxygen/ARC1-Services.pdf
+%doc src/doxygen/ARC1-libarcdata.pdf
 
 %files gridmap-utils
 %defattr(-,root,root,-)
