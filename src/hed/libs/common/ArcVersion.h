@@ -54,6 +54,9 @@ namespace Arc {
    * into a set of <a href="modules.html">modules</a> which take care of
    * different aspects of Grid interaction.
    *
+   * \version The version of the SDK that this documentation refers to can be
+   * found from #ARC_VERSION.
+   *
    * \section sec Quick Start
    * The following code is a minimal example showing how to submit a job to a
    * Grid resource using the ARC SDK:
@@ -70,9 +73,6 @@ namespace Arc {
    * \code
    * g++ -o copy -I/usr/include/libxml2 `pkg-config --cflags glibmm-2.4` -l arcdata copy.cpp
    * \endcode
-   *
-   * \version The version of the SDK that this documentation refers to can be
-   * found from #ARC_VERSION.
    */
 
 
