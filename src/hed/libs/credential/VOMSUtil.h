@@ -10,6 +10,9 @@
 
 namespace Arc {
 
+  /** \addtogroup credential
+   *  @{ */
+
   typedef std::vector<std::string> VOMSTrustChain;
 
   typedef std::string VOMSTrustRegex;
@@ -309,6 +312,8 @@ namespace Arc {
    * @param asn1    The encoded value as output
   */
   bool VOMSACSeqEncode(const std::list<std::string> acs, std::string& asn1);
+
+  /** @} */
 
 }// namespace Arc
 

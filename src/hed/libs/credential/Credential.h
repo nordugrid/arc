@@ -19,9 +19,14 @@
 #include <arc/credential/CertUtil.h>
 
 namespace Arc {
-  // An exception class for the Credential class.
+
+  /** \defgroup credential Credential handling classes and functions. */
+
+  /// An exception class for the Credential class.
   /** This is an exception class that is used to handle runtime errors
    * discovered in the Credential class.
+   * \ingroup credential
+   * \headerfile Credential.h arc/credential/Credential.h
    */
 class CredentialError : public std::runtime_error {
   public:
@@ -51,6 +56,8 @@ extern Logger CredentialLogger;
  * and EEC (end entity certificate) certificate.
  *
  * The Credential class supports PEM, DER PKCS12 credentials.
+ * \ingroup credential
+ * \headerfile Credential.h arc/credential/Credential.h
  */
 class Credential {
   public:
