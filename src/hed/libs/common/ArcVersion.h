@@ -55,7 +55,9 @@ namespace Arc {
    * different aspects of Grid interaction.
    *
    * \version The version of the SDK that this documentation refers to can be
-   * found from #ARC_VERSION.
+   * found from #ARC_VERSION. The ARC release corresponding to the SDK version
+   * can be found using the "SVN tag" column in the table at
+   * http://www.nordugrid.org/arc/releases/
    *
    * \section sec Quick Start
    * The following code is a minimal example showing how to submit a job to a
