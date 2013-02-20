@@ -14,6 +14,7 @@ namespace Arc {
   /** It provides a way to convert configuration to XML for use with HED
    *  internally.
    *  \see Profile
+   *  \ingroup common
    *  \headerfile IniConfig.h arc/IniConfig.h
    */
   class IniConfig

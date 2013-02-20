@@ -9,6 +9,9 @@
 
 namespace Arc {
 
+  /** \addtogroup common
+   *  @{ */
+
   class SimpleCondition;
   class SimpleCounter;
 
@@ -543,6 +546,8 @@ namespace Arc {
   // elements. The simplest way to do that is to use
   // this header instead of glibmm/thread.h
   static ThreadInitializer _local_thread_initializer;
+
+  /** @} */
 
 } // namespace Arc
 

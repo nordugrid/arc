@@ -7,12 +7,13 @@
 
 namespace Arc {
 
-  /// Utilities for generating unique identifiers in the form 12345678-90ab-cdef-1234-567890abcdef
-  /** \headerfile GUID.h arc/GUID.h */
+  // Utilities for generating unique identifiers in the form 12345678-90ab-cdef-1234-567890abcdef
 
   /// Generates a unique identifier using information such as IP address, current time etc.
+  /** \ingroup common */
   void GUID(std::string& guid);
   /// Generates a unique identifier using the system uuid libraries.
+  /** \ingroup common */
   std::string UUID(void);
 
 } // namespace Arc

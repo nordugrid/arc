@@ -11,7 +11,8 @@
 
 namespace Arc {
   /// Implements a MySQL version of the Database interface.
-  /** \headerfile MysqlWrapper.h arc/MysqlWrapper.h */
+  /** \ingroup common
+   *  \headerfile MysqlWrapper.h arc/MysqlWrapper.h */
   class MySQLDatabase
     : public Database {
     friend class MySQLQuery;
@@ -46,7 +47,8 @@ namespace Arc {
   };
 
   /// Implements a MySQL version of the Query database query class.
-  /** \headerfile MysqlWrapper.h arc/MysqlWrapper.h */
+  /** \ingroup common
+   *  \headerfile MysqlWrapper.h arc/MysqlWrapper.h */
   class MySQLQuery
     : public Query {
   public:

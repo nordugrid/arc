@@ -3,7 +3,12 @@
 #ifndef __ARC_ARCVERSION_H__
 #define __ARC_ARCVERSION_H__
 
+/** \defgroup common Common utility classes and functions. */
+
 /// \file ArcVersion.h
+/** \addtogroup common
+ * @{
+ */
 /** ARC API version */
 #define ARC_VERSION "3.0.0"
 /** ARC API version number */
@@ -22,6 +27,7 @@ namespace Arc {
   /**
    * ARC also provides pre-processor macros to determine the API version at
    * compile time in \ref ArcVersion.h.
+   * \ingroup common
    * \headerfile ArcVersion.h arc/ArcVersion.h
    */
   class ArcVersion {
@@ -72,4 +78,5 @@ namespace Arc {
 
 } // namespace Arc
 
+/** @} */
 #endif // __ARC_ARCVERSION_H__

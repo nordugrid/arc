@@ -10,7 +10,8 @@ struct passwd;
 namespace Arc {
 
   /// Platform independent representation of system user
-  /** \headerfile User.h arc/User.h */
+  /** \ingroup common
+   *  \headerfile User.h arc/User.h */
   class User {
   private:
     // local name, home directory, uid and gid of this user
@@ -88,6 +89,7 @@ namespace Arc {
      in __nptl_setxid. This bug causes lockup of seteuid() function
      if racing with fork. To avoid this problem the lock mentioned above
      is used by the Run class while spawning a new process.
+     \ingroup common
      \headerfile User.h arc/User.h  */
   class UserSwitch {
   private:

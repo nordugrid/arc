@@ -13,7 +13,8 @@
 namespace Arc {
 
   /// Class used to convert human-friendly ini-style configuration to XML.
-  /** \headerfile Profile.h arc/Profile.h */
+  /** \ingroup common
+   *  \headerfile Profile.h arc/Profile.h */
   class Profile
     : public XMLNode {
   public:

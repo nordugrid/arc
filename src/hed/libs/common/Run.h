@@ -15,6 +15,7 @@ namespace Arc {
   /// This class runs an external executable.
   /** It is possible to read from or write to its standard handles or to
    * redirect them to std::string elements.
+   * \ingroup common
    * \headerfile Run.h arc/Run.h */
   class Run {
     friend class RunPump;

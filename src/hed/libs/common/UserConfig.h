@@ -14,6 +14,8 @@
 
 namespace Arc {
 
+  /** \addtogroup common
+   *  @{ */
   class Logger;
   class XMLNode;
 
@@ -1335,6 +1337,8 @@ namespace Arc {
     std::string ca_cert_dir_old;
     bool ca_cert_dir_set;
   };
+
+  /** @} */
 
 } // namespace Arc
 

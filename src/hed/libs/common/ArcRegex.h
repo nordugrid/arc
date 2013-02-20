@@ -11,6 +11,7 @@ namespace Arc {
 
   /// A regular expression class.
   /** This class is a wrapper around the functions provided in regex.h.
+      \ingroup common
       \headerfile ArcRegex.h arc/ArcRegex.h */
   class RegularExpression {
   public:

@@ -18,6 +18,9 @@
 
 namespace Arc {
 
+  /** \addtogroup common
+   *  @{ */
+
   class XMLNode;
 
   /// Class to represent an XML namespace.
@@ -436,6 +439,7 @@ namespace Arc {
   /// Returns true if 'namespace' matches 'node's namespace..
   bool MatchXMLNamespace(const XMLNode& node, const std::string& uri);
 
+  /** @} */
 
 } // namespace Arc
 

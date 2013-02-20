@@ -18,8 +18,7 @@
 
 namespace Arc {
 
-  /** \cond Class used internally by IString.
-     \headerfile IString.h arc/IString.h */
+  /** \cond Class used internally by IString. */
   class PrintFBase {
   public:
     PrintFBase();
@@ -38,12 +37,13 @@ namespace Arc {
   /** \endcond */
 
   /// Return the translation of the given string.
+  /** \ingroup common */
   const char* FindTrans(const char *p);
   /// Return the plural form translation of the given string when it refers to multiple n.
+  /** \ingroup common */
   const char* FindNTrans(const char *s, const char *p, unsigned long n);
 
-  /** \cond Class used internally by IString.
-     \headerfile IString.h arc/IString.h */
+  /** \cond Class used internally by IString. */
   template<class T0 = int, class T1 = int, class T2 = int, class T3 = int,
            class T4 = int, class T5 = int, class T6 = int, class T7 = int>
   class PrintF
@@ -175,6 +175,7 @@ namespace Arc {
   /// Class used for localised output of log messages.
   /** IString should only be used directly in rare cases. Logger should be used
    *  instead in most cases.
+   *  \ingroup common
    *  \headerfile IString.h arc/IString.h */
   class IString {
 

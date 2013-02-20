@@ -10,6 +10,9 @@
 
 namespace Arc {
 
+  /** \addtogroup common
+   *  @{ */
+
   /// Portable function for getting environment variables. Protected by shared lock.
   std::string GetEnv(const std::string& var);
 
@@ -239,6 +242,8 @@ namespace Arc {
 
   /// Load library and keep persistent.
   bool PersistentLibraryInit(const std::string& name);
+
+  /** @{ */
 
 } // namespace Arc
 

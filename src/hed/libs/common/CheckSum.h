@@ -24,6 +24,7 @@ namespace Arc {
    * @see CRC32Sum
    * @see MD5Sum
    * @see Adler32Sum
+   * @ingroup common
    * @headerfile CheckSum.h arc/CheckSum.h
    **/
   class CheckSum {
@@ -104,6 +105,7 @@ namespace Arc {
   /**
    * This class is a specialized class of the CheckSum class. It provides an
    * implementation for the CRC-32 IEEE 802.3 standard.
+   * @ingroup common
    * @headerfile CheckSum.h arc/CheckSum.h
    **/
   class CRC32Sum
@@ -140,6 +142,7 @@ namespace Arc {
    * This class is a specialized class of the CheckSum class. It provides an
    * implementation of the MD5 message-digest algorithm specified in RFC
    * 1321.
+   * @ingroup common
    * @headerfile CheckSum.h arc/CheckSum.h
    **/
   class MD5Sum
@@ -177,6 +180,7 @@ namespace Arc {
   /**
    * This class is a specialized class of the CheckSum class. It provides an
    * implementation of the Adler-32 checksum algorithm.
+   * @ingroup common
    * @headerfile CheckSum.h arc/CheckSum.h
    **/
   class Adler32Sum
@@ -223,6 +227,7 @@ namespace Arc {
   /**
    * To be used for manipulation of any supported checksum type in a
    * transparent way.
+   * @ingroup common
    * @headerfile CheckSum.h arc/CheckSum.h
    **/
   class CheckSumAny

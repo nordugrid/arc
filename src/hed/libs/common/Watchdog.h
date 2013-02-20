@@ -8,7 +8,8 @@ namespace Arc {
   class Watchdog;
 
   /// This class is meant to provide interface for Watchdog executor part.
-  /** \headerfile Watchdog.h arc/Watchdog.h */
+  /** \ingroup common
+   *  \headerfile Watchdog.h arc/Watchdog.h */
   class WatchdogListener {
   private:
     Watchdog& instance_;
@@ -29,7 +30,8 @@ namespace Arc {
   };
 
   /// This class is meant to be used in code which provides "I'm alive" ticks to watchdog.
-  /** \headerfile Watchdog.h arc/Watchdog.h */
+  /** \ingroup common
+   *  \headerfile Watchdog.h arc/Watchdog.h */
   class WatchdogChannel {
   private:
     int id_;

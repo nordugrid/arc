@@ -80,6 +80,7 @@ namespace Arc {
  protocol://[location[;location[;...]]@][host][:port]...
 \endverbatim
    *  The structure of the 'location' element is protocol specific.
+   *  \ingroup common
    *  \headerfile URL.h arc/URL.h
    */
   class URL {
@@ -366,6 +367,7 @@ namespace Arc {
 
   /// Class to hold a resolved URL location.
   /** It is specific to file indexing service registrations.
+   *  \ingroup common
    *  \headerfile URL.h arc/URL.h */
   class URLLocation
     : public URL {
@@ -406,12 +408,13 @@ namespace Arc {
 
 
   /// Class to iterate through elements of a path.
+  /** \ingroup common
+   *  \headerfile URL.h arc/URL.h */
   class PathIterator {
   public:
     /// Constructor accepts path and stores it internally.
     /** If end is set to false iterator points at first element
-     * in path. Otherwise selected element is one before last.
-     * \headerfile URL.h arc/URL.h */
+     * in path. Otherwise selected element is one before last. */
     PathIterator(const std::string& path, bool end = false);
     ~PathIterator();
 

@@ -20,6 +20,9 @@ namespace Arc {
   // If any of specified ids is 0 then such id is not switched and
   // current id is used instead.
 
+  /** \addtogroup common
+   *  @{ */
+
   /// Copy file source_path to file destination_path.
   /** Specified uid and gid are used for accessing filesystem. */
   bool FileCopy(const std::string& source_path,const std::string& destination_path, uid_t uid, gid_t gid);
@@ -119,5 +122,6 @@ namespace Arc {
    * \return false if it is not possible to remove all the ../ */
   bool CanonicalDir(std::string& name, bool leading_slash = true);
 
+  /** @} */
 } // namespace Arc
 

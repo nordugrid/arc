@@ -24,6 +24,7 @@ namespace Arc {
    * exit(0) after displaying the help text.
    *
    * Both short and long format options are supported.
+   * \ingroup common
    * \headerfile OptionParser.h arc/OptionParser.h
    */
   class OptionParser {

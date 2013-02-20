@@ -28,7 +28,8 @@
 namespace Arc {
 
   /// Base64 encoding and decoding, borrowed from Axis2c project.
-  /** \headerfile Base64.h arc/Base64.h */
+  /** \ingroup common
+   *  \headerfile Base64.h arc/Base64.h */
   class Base64 {
   public:
     /// Constructor is not implemented. Use static methods instead.

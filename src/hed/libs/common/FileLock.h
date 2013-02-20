@@ -30,6 +30,7 @@ namespace Arc {
    * is checked to make sure the correct process ID and hostname are inside.
    * This eliminates race conditions where multiple processes compete to
    * obtain the lock.
+   * @ingroup common
    * @headerfile FileLock.h arc/FileLock.h
    */
   class FileLock {

@@ -9,14 +9,15 @@
 namespace Arc {
 
   /// Determines ARC installation location
+  /** \ingroup common
+   * \headerfile ArcLocation.h arc/ArcLocation.h */
   class ArcLocation {
   public:
     /// Initializes location information
     /** Main source is value of variable ARC_LOCATION,
        otherwise path to executable provided in path is used.
        If nothing works then warning message is sent to logger
-       and initial installation prefix is used.
-       \headerfile ArcLocation arc/ArcLocation.h */
+       and initial installation prefix is used. */
     static void Init(std::string path);
     /// Returns ARC installation location
     static const std::string& Get();

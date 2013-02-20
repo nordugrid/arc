@@ -14,6 +14,8 @@
 
 namespace Arc {
 
+  /** \addtogroup common
+   *  @{ */
   /// Logging levels for tagging and filtering log messages.
   enum LogLevel {
     DEBUG = 1,   ///< DEBUG level designates finer-grained informational events
@@ -677,6 +679,8 @@ namespace Arc {
     static std::map<std::string,LogLevel>* defaultThresholds;
     static unsigned int rootLoggerMark;
   };
+
+  /** @} */
 
 } // namespace Arc
 

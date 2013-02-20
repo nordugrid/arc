@@ -11,6 +11,10 @@
 #include <arc/Logger.h>
 
 namespace Arc {
+
+  /** \addtogroup common
+   *  @{ */
+
   extern Logger stringLogger;
 
   /// This method converts a string to any type.
@@ -202,6 +206,7 @@ namespace Arc {
   /// Unescape or unencode characters in str escaped with esc.
   std::string unescape_chars(const std::string& str, char esc, escape_type type = escape_char);
 
+  /** @} */
 } // namespace Arc
 
 #endif // ARCLIB_STRINGCONV

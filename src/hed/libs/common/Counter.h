@@ -99,6 +99,7 @@ namespace Arc {
      if (tick.isValid())
       doSomething(...);
      \endcode
+     \ingroup common
      \headerfile Counter.h arc/Counter.h
    */
   class Counter {
@@ -340,6 +341,7 @@ namespace Arc {
      // Cancel the reservation.
      tick.cancel();
      \endcode
+     \ingroup common
      \headerfile Counter.h arc/Counter.h
    */
   class CounterTicket {
@@ -416,6 +418,7 @@ namespace Arc {
   /// A class intended for internal use within counters.
   /** This class is used for "reminder objects" that are used for
      automatic deallocation of self-expiring reservations.
+     \ingroup common
      \headerfile Counter.h arc/Counter.h
    */
   class ExpirationReminder {

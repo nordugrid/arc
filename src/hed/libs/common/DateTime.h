@@ -12,6 +12,9 @@
 
 namespace Arc {
 
+  /** \addtogroup common
+   *  @{ */
+
   /// An enumeration that contains the possible textual time formats.
   enum TimeFormat {
     MDSTime,       ///< YYYYMMDDHHMMSSZ
@@ -226,6 +229,7 @@ namespace Arc {
   /// Returns a time-stamp of some specified time in some format.
   std::string TimeStamp(Time, const TimeFormat& = Time::GetFormat());
 
+  /** @} */
 } // namespace Arc
 
 #endif // ARCLIB_TIME

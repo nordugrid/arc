@@ -29,6 +29,7 @@ namespace Arc {
     introducing conflict with other threads. Its methods are mostly
     replicas of corresponding POSIX functions with some convenience
     tweaking.
+    \ingroup common
     \headerfile FileAccess.h arc/FileAccess.h
   */
   class FileAccess {
@@ -132,6 +133,7 @@ namespace Arc {
   /** FileAccessContainer maintains a pool of executables and can be used to
       reduce the overhead in creating and destroying executables when using
       FileAccess.
+      \ingroup common
       \headerfile FileAccess.h arc/FileAccess.h */
   class FileAccessContainer {
   public:

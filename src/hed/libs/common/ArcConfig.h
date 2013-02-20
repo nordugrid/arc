@@ -19,6 +19,7 @@ namespace Arc {
       format and processing it into a tree-like structure convenient for
       machine processing (XML-like).
       So far there are no schema and/or namespaces assigned.
+      \ingroup common
       \headerfile ArcConfig.h arc/ArcConfig.h
    */
   class Config
@@ -74,6 +75,7 @@ namespace Arc {
   /** It contains information which can't be expressed in
       class constructor arguments. Most probably common things
       like software installation location, identity of user, etc.
+      \ingroup common
       \headerfile ArcConfig.h arc/ArcConfig.h */
   class BaseConfig {
   protected:

@@ -18,6 +18,8 @@ namespace Arc {
   /** This is a class for shared among different threads within a
      single process. See the Counter class for further information
      about counters and examples of usage.
+     @ingroup common
+     @headerfile IntraProcessCounter.h arc/IntraProcessCounter.h
    */
   class IntraProcessCounter
     : public Counter {
