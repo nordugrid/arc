@@ -323,8 +323,16 @@ int main(int argc, char* argv[]) {
       std::cout<<" "<<states_all[i].name<<": "<<counters[i]<<" ("<<counters_pending[i]<<")"<<std::endl;
     }
 
-    std::cout<<" Accepted: "<<jobs.AcceptedJobs()<<"/"<<config.MaxJobs()<<std::endl;
-    std::cout<<" Running: "<<jobs.RunningJobs()<<"/"<<config.MaxRunning()<<std::endl;
+    unsigned int accepted = counters[JOB_STATE_ACCEPTED] +
+                            counters[JOB_STATE_PREPARING] +
+                            counters[JOB_STATE_SUBMITTING] +
+                            counters[JOB_STATE_INLRMS] +
+                            counters[JOB_STATE_FINISHING];
+    std::cout<<" Accepted: "<<accepted<<"/"<<config.MaxJobs()<<std::endl;
+    unsigned int running = counters[JOB_STATE_SUBMITTING] +
+                           counters[JOB_STATE_INLRMS];
+    std::cout<<" Running: "<<running<<"/"<<config.MaxRunning()<<std::endl;
+
     std::cout<<" Total: "<<jobs_total<<"/"<<config.MaxTotal()<<std::endl;
     std::cout<<" Processing: "<<
     counters[JOB_STATE_PREPARING]-counters_pending[JOB_STATE_PREPARING]<<"+"<<
