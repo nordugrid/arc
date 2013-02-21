@@ -449,6 +449,7 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw32_libdir}/python?.?/site-packages/echo_python
 %{mingw32_libdir}/%{pkgdir}/libpythonservice.dll*
 %{mingw32_libdir}/%{pkgdir}/libaccPythonBroker.dll*
+%doc %{mingw32_datadir}/%{pkgdir}/examples/PythonBroker/ACIXBroker.py*
 %doc %{mingw32_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
 %endif
 
