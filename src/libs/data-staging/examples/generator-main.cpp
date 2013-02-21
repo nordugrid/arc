@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <signal.h>
 #include <arc/StringConv.h>
 #include "Generator.h"
