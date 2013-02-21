@@ -216,13 +216,15 @@ ClientOptions::ClientOptions(Client_t c,
             istring("name"),
             clusters);
   
-  AddOption('I', "infointerface",
-            istring("the computing element specified by URL at the command line "
-                    "should be queried using this information interface "
-                    "(possible options: org.nordugrid.ldapng, org.nordugrid.ldapglue2, "
-                    "org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo)"),
-            istring("interfacename"),
-            infointerface);
+  if (!cIsJobMan && c != CO_SYNC) {
+    AddOption('I', "infointerface",
+              istring("the computing element specified by URL at the command line "
+                      "should be queried using this information interface "
+                      "(possible options: org.nordugrid.ldapng, org.nordugrid.ldapglue2, "
+                      "org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo)"),
+              istring("interfacename"),
+              infointerface);
+  }
 
   if (c == CO_RESUB || c == CO_MIGRATE) {
     AddOption('q', "qluster",

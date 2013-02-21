@@ -18,11 +18,6 @@ information at a given cluster or index server.
 
 .IP "\fB-c\fR, \fB--cluster\fR=\fIname\fR"
 select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
-.IP "\fB-I\fR, \fB--infointerface\fR=\fIInterfaceName\fR"
-the computing element specified by URL at the command line should be
-queried using this information interface (possible options:
-org.nordugrid.ldapng, org.nordugrid.ldapglue2,
-org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo)
 .IP "\fB-g\fR, \fB--index\fR=\fIname\fR"
 select one or more registries: \fIname\fR can be an alias for a single registry, a group of registries or a URL
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
