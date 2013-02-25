@@ -158,7 +158,7 @@ BuildRequires:	xrootd-devel
 %endif
 %endif
 %if %{with_gfal}
-BuildRequires:  gfal2-devel
+BuildRequires:	gfal2-devel
 %endif
 %if %{?suse_version}%{!?suse_version:0}
 BuildRequires:	libdb-4_5-devel
@@ -1445,6 +1445,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %if %{with_canl}
 %files arcproxyalt
+%defattr(-,root,root,-)
 %{_bindir}/arcproxyalt
 %endif
 
