@@ -75,11 +75,11 @@ namespace Arc {
 
   static void ssl_locking_cb(int mode, int n, const char * s_, int n_){
     if(!ssl_locks) {
-      logger().msg(ERROR, "FATAL: SSL locks not initialized");
+      logger().msg(FATAL, "SSL locks not initialized");
       _exit(-1);
     };
     if((n < 0) || (n >= ssl_locks_num)) {
-      logger().msg(ERROR, "FATAL: wrong SSL lock requested: %i of %i: %i - %s",n,ssl_locks_num,n_,s_);
+      logger().msg(FATAL, "wrong SSL lock requested: %i of %i: %i - %s",n,ssl_locks_num,n_,s_);
       _exit(-1);
     };
     if(mode & CRYPTO_LOCK) {
