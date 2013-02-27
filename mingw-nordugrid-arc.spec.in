@@ -297,7 +297,7 @@ rm -rf $RPM_BUILD_ROOT
 %if %{mingw_build_win32}
 %files -n mingw32-%{mingw_pkg_name} -f mingw32-%{mingw_pkg_name}.lang
 %defattr(-,root,root,-)
-%doc README AUTHORS LICENSE ChangeLog
+%doc README AUTHORS LICENSE NOTICE ChangeLog
 %{mingw32_bindir}/lib*.dll
 %{mingw32_libdir}/%{pkgdir}/libmodcrypto.dll*
 %{mingw32_libdir}/%{pkgdir}/libmodcredential.dll*
@@ -457,7 +457,7 @@ rm -rf $RPM_BUILD_ROOT
 %if %{mingw_build_win64}
 %files -n mingw64-%{mingw_pkg_name} -f mingw64-%{mingw_pkg_name}.lang
 %defattr(-,root,root,-)
-%doc README AUTHORS LICENSE ChangeLog
+%doc README AUTHORS LICENSE NOTICE ChangeLog
 %{mingw64_bindir}/lib*.dll
 %{mingw64_libdir}/%{pkgdir}/libmodcrypto.dll*
 %{mingw64_libdir}/%{pkgdir}/libmodcredential.dll*
