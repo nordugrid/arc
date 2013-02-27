@@ -403,7 +403,7 @@ namespace ARex {
     if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
     Dbc* cur = NULL;
-    if(!dberr("removelock:cursor",db_lock_->cursor(NULL,&cur,0))) return false;
+    if(!dberr("removelock:cursor",db_lock_->cursor(NULL,&cur,DB_WRITECURSOR))) return false;
     Dbt key;
     Dbt data;
     make_string(lock_id,key);
