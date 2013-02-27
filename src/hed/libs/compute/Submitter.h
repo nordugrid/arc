@@ -82,6 +82,48 @@ namespace Arc {
   class SubmissionStatus;
 
   /**
+   * As the name indicates this class is used for submitting jobs. It has a
+   * number of different submit methods which can be used directly for different
+   * purposes. When initiating a object of this class a UserConfig object must
+   * be passed, which should contain path to user credentials.
+   * 
+   * Generally there are two versions of submit methods. One which doesn't
+   * accept a reference to a Job or list of Job objects, and one which does.
+   * This is because the Submitter class is able to pass submitted Job objects
+   * to consumer objects. Registering a consumer object is done using the
+   * \ref Submitter::addConsumer "addConsumer" method passing a reference to a
+   * EntityConsumer<Job> object. An
+   * example of such a consumer is the JobSupervisor class. Multiple consumers
+   * can be registered simultaneously. Every submit method will then pass
+   * submitted Job objects to the registered consumer objects. A registered
+   * consumer can be removed using the
+   * \ref Submitter::removeConsumer "removeConsumer" method.
+   * 
+   * For submitting a Grid job one should use one of the
+   * \ref Submitter::BrokeredSubmit "BrokeredSubmit" methods. They accept a list 
+   * of job descriptions and a list of information system endpoints for which
+   * computing services are discovered and matched to the job descriptions.
+   * Jobs are then submitted to the matching services in the order ranked by the
+   * \ref Broker "algorithm" specified in the UserConfig object.
+   * 
+   * Another way of submitting a job is by using the
+   * \ref Submitter::Submit "Submit" methods. These methods accepts submission
+   * endpoints or ExecutionTarget objects. Using these methods will not do
+   * any client side checks whether the computing service resources pointed to
+   * by the submission endpoint (or ExecutionTarget) really matches the
+   * specified job description(s).
+   * 
+   * Common for both ways of submitting jobs is that they both return a
+   * SubmissionStatus object indicating the outcome of the submission attemp(s).
+   * If the returned status object indicates failures, further examination can
+   * be carried out by using the
+   * \ref Submitter::GetDescriptionsNotSubmitted "GetDescriptionsNotSubmitted",
+   * \ref Submitter::GetEndpointQueryingStatuses "GetEndpointQueryingStatuses"
+   * and/or \ref Submitter::GetEndpointSubmissionStatuses "GetEndpointSubmissionStatuses"
+   * methods. Note that on each invocation of any of the submit methods the
+   * state from a previous submission attemp will be cleared, thus the just
+   * mentioned methods should be used just after an attempted submission fails.
+   * 
    * \ingroup compute
    * \headerfile Submitter.h arc/compute/Submitter.h 
    */
