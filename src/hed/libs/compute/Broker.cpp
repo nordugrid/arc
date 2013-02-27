@@ -74,13 +74,73 @@ namespace Arc {
     return plugin_match;
   }
 
+  bool decodeDN(std::string in, std::list<std::string>& out) {
+    in = trim(in," ");
+    if(in[0] == '/') { // /N1=V1/N2=V2 kind
+      std::string::size_type pos = 0;
+      while(true) {
+        std::string item;
+        pos = get_token(item, in, pos, "/");
+        if((pos == std::string::npos) && item.empty()) break;
+        std::string::size_type p = item.find('=');
+        if(p == std::string::npos) {
+          // Most probably this belongs to previous item
+          if(out.size() > 0) {
+            *out.begin() += "/"+item;
+          } else {
+            out.push_front(item);
+          }
+        } else {
+          out.push_front(item);
+        }
+      }
+    } else { // N2=V2,N1=V1 kind
+      tokenize(in,out,",");
+    }
+    for(std::list<std::string>::iterator item = out.begin(); item != out.end(); ++item) {
+      std::string::size_type p = item->find('=');
+      if(p != std::string::npos) {
+        *item = trim(item->substr(0,p)," ") + "=" + trim(item->substr(p+1)," ");
+      } else {
+        *item = trim(*item," ");
+      }
+    }
+    return true;
+  }
+
+  static bool compareDN(const std::list<std::string>& dn1, const std::list<std::string>& dn2) {
+    if(dn1.size() != dn2.size()) return false;
+    std::list<std::string>::const_iterator d1 = dn1.begin();
+    std::list<std::string>::const_iterator d2 = dn2.begin();
+    while(d1 != dn1.end()) {
+      if(*d1 != *d2) return false;
+      ++d1; ++d2;
+    }
+    return true;
+  }
+
+  static bool compareDN(const std::string& dn1, const std::string& dn2) {
+    std::list<std::string> dnl1;
+    std::list<std::string> dnl2;
+    if(!decodeDN(dn1,dnl1)) return false;
+    if(!decodeDN(dn2,dnl2)) return false;
+    return compareDN(dnl1,dnl2);
+  }
+
+  static std::list<std::string>::iterator findDN(std::list<std::string>::iterator first, std::list<std::string>::iterator last, const std::string& item) {
+    for(;first != last;++first) {
+      if(compareDN(*first,item)) break;
+    }
+    return first;
+  }
+
   bool Broker::genericMatch(const ExecutionTarget& t, const JobDescription& j, const UserConfig& uc) {
     // Maybe Credential can be passed to plugins through one more set()
     Credential credential(uc);
     std::string proxyDN = credential.GetDN();
     std::string proxyIssuerCA = credential.GetCAName();
 
-    if ( !(t.ComputingEndpoint->TrustedCA.empty()) && (find(t.ComputingEndpoint->TrustedCA.begin(), t.ComputingEndpoint->TrustedCA.end(), proxyIssuerCA)
+    if ( !(t.ComputingEndpoint->TrustedCA.empty()) && (findDN(t.ComputingEndpoint->TrustedCA.begin(), t.ComputingEndpoint->TrustedCA.end(), proxyIssuerCA)
             == t.ComputingEndpoint->TrustedCA.end()) ){
         logger.msg(VERBOSE, "The CA issuer (%s) of the credentials (%s) is not trusted by the target (%s).", proxyIssuerCA, proxyDN, t.ComputingEndpoint->URLString);
         return false;

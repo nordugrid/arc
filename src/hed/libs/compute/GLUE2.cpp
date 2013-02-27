@@ -16,7 +16,7 @@ namespace Arc {
     // /name=value/name/...
     // Implementing very simplified check
     std::string::size_type pos = 0;
-    if(dn[pos] != '/') return false;
+    if((dn[pos] != '/') && (dn.find(',') == std::string::npos)) return false;
     //while(pos < dn.length()) {
     //  std::string::size_type ppos = dn.find('/',pos+1);
     //  if(ppos == std::string::npos) ppos = dn.length();
