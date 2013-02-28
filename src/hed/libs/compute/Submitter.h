@@ -124,6 +124,7 @@ namespace Arc {
    * state from a previous submission attemp will be cleared, thus the just
    * mentioned methods should be used just after an attempted submission fails.
    * 
+   * \since Added in 2.0.0
    * \ingroup compute
    * \headerfile Submitter.h arc/compute/Submitter.h 
    */
@@ -139,11 +140,85 @@ namespace Arc {
 
     // === No brokering ===
 
+    /**
+     * Submit a job described by the passed JobDescription object to the
+     * specified submission endpoint of a computing service. If successful, the
+     * submitted job will be added to the registered consumer object. If
+     * unsuccessful, more details can be obtained from the returned
+     * SubmissionStatus object, or by using the
+     * \ref Submitter::GetDescriptionsNotSubmitted "GetDescriptionsNotSubmitted",
+     * \ref Submitter::GetEndpointQueryingStatuses "GetEndpointQueryingStatuses"
+     * and \ref Submitter::GetEndpointSubmissionStatuses "GetEndpointSubmissionStatuses"
+     * 
+     * \param[in] endpoint the endpoint to which job should be submitted.
+     * \param[in] desc the JobDescription object describing the job to be
+     *  submitted.
+     * \return A SubmissionStatus object is returned indicating the status of
+     *  submission.
+     * \see addConsumer
+     * \see GetDescriptionsNotSubmitted
+     * \see GetEndpointQueryingStatuses
+     * \see GetEndpointSubmissionStatuses
+     * \since Added in 3.0.0
+     */
     SubmissionStatus Submit(const Endpoint& endpoint, const JobDescription& desc) { return Submit(endpoint, std::list<JobDescription>(1, desc)); }
+    /**
+     * Identical to Submit(const Endpoint&, const JobDescription&), with the
+     * addition that the Job object passed as reference will also be filled with
+     * job information if submission was successful.
+     * 
+     * \param[out] job a reference to a Job object which will be filled with
+     *  job details if submission was successful.
+     * \see Submit(const Endpoint&, const JobDescription&) for detailed
+     *  description.
+     * \since Added in 3.0.0
+     */
     SubmissionStatus Submit(const Endpoint& endpoint, const JobDescription& desc, Job& job);
+    /**
+     * Identical to Submit(const Endpoint&, const JobDescription&), except that
+     * this method submits multiple jobs to same endpoint. Submitted jobs will
+     * be added to the registered consumer.
+     * 
+     * \see Submit(const Endpoint&, const JobDescription&)
+     * \since Added in 3.0.0
+     */
     SubmissionStatus Submit(const Endpoint& endpoint, const std::list<JobDescription>& descs);
+    /**
+     * Identical to Submit(const Endpoint&, const JobDescription&), with the
+     * addition that the list of Job objects passed reference will filled with
+     * the submitted jobs, and that multiple jobs are submitted to same
+     * endpoint.
+     * 
+     * \see Submit(const Endpoint&, const JobDescription&)
+     * \since Added in 3.0.0
+     */
     SubmissionStatus Submit(const Endpoint& endpoint, const std::list<JobDescription>& descs, std::list<Job>& jobs);
+    /**
+     * Submit multiple jobs to a list of submission endpoints to computing
+     * services. For each JobDescription object submission is tried against the
+     * list of submission endpoints in order. If submission to a endpoint fails
+     * the next in the list is tried - no ranking of endpoints will be done.
+     * Also note that a job is only submitted once, and not to multiple
+     * computing services. Submitted Job objects is passed to the registered
+     * consumer objects.
+     * 
+     * \return A SubmissionStatus object is returned which indicates the
+     *  outcome of the submission.
+     * \see addConsumer
+     * \see GetDescriptionsNotSubmitted
+     * \see GetEndpointQueryingStatuses
+     * \see GetEndpointSubmissionStatuses
+     * \since Added in 3.0.0
+     */
     SubmissionStatus Submit(const std::list<Endpoint>& endpoint, const std::list<JobDescription>& descs);
+    /**
+     * Identical to Submit(const Endpoint&, const std::list<JobDescription>&, std::list<Job>&)
+     * with the addition that submitted jobs are also added to the passed list
+     * of Job objects.
+     * 
+     * \see Submit(const Endpoint&, const std::list<JobDescription>&, std::list<Job>&)
+     * \since Added in 3.0.0
+     */
     SubmissionStatus Submit(const std::list<Endpoint>& endpoint, const std::list<JobDescription>& descs, std::list<Job>& jobs);
     
     // ==== Submission to single configuration (adaption of job description) ====
