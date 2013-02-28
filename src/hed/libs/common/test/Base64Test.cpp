@@ -32,16 +32,18 @@ void Base64Test::TestBase64() {
   bool found = false;
 
   std::string plain_str("base64 to test 1234567890 abcdefghijklmnopqrstuvwxyz");
-  std::string encoded_str;
+  std::string encoded_str("YmFzZTY0IHRvIHRlc3QgMTIzNDU2Nzg5MCBhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5eg==");
+  std::string str;
 
   // encode
-  encoded_str = Arc::Base64::encode(plain_str);
+  str = Arc::Base64::encode(plain_str);
+
+  CPPUNIT_ASSERT_EQUAL(encoded_str, str);
 
   // decode
-  std::string decoded_str = Arc::Base64::decode(encoded_str);
+  str = Arc::Base64::decode(str);
 
-  CPPUNIT_ASSERT_EQUAL(plain_str.length(), decoded_str.length());
-  CPPUNIT_ASSERT(!plain_str.compare(decoded_str));
+  CPPUNIT_ASSERT_EQUAL(plain_str, str);
   
 }
 
