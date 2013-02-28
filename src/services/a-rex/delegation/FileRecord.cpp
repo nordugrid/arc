@@ -101,6 +101,8 @@ namespace ARex {
         return false;
       };
     };
+    dberr("Error setting database environment flags",
+          db_env_->set_flags(DB_CDB_ALLDB,1));
 
     std::string dbpath = FR_DB_NAME;
     if(!verify()) return false;
@@ -257,6 +259,7 @@ namespace ARex {
   }
 
   bool FileRecord::Recover(void) {
+    Glib::Mutex::Lock lock(lock_);
     // Real recovery not implemented yet.
     close();
     error_num_ = -1;
@@ -451,6 +454,7 @@ namespace ARex {
   }
 
   FileRecord::Iterator::Iterator(FileRecord& frec):frec_(frec),cur_(NULL) {
+    Glib::Mutex::Lock lock(frec_.lock_);
     if(!frec_.dberr("Iterator:cursor",frec_.db_rec_->cursor(NULL,&cur_,0))) {
       if(cur_) {
         cur_->close(); cur_=NULL;
@@ -467,6 +471,7 @@ namespace ARex {
   }
 
   FileRecord::Iterator::~Iterator(void) {
+    Glib::Mutex::Lock lock(frec_.lock_);
     if(cur_) {
       cur_->close(); cur_=NULL;
     };
@@ -474,6 +479,7 @@ namespace ARex {
 
   FileRecord::Iterator& FileRecord::Iterator::operator++(void) {
     if(!cur_) return *this;
+    Glib::Mutex::Lock lock(frec_.lock_);
     Dbt key;
     Dbt data;
     if(!frec_.dberr("Iterator:first",cur_->get(&key,&data,DB_NEXT))) {
@@ -486,6 +492,7 @@ namespace ARex {
 
   FileRecord::Iterator& FileRecord::Iterator::operator--(void) {
     if(!cur_) return *this;
+    Glib::Mutex::Lock lock(frec_.lock_);
     Dbt key;
     Dbt data;
     if(!frec_.dberr("Iterator:first",cur_->get(&key,&data,DB_PREV))) {
