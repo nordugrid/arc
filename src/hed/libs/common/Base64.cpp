@@ -4,13 +4,19 @@
 #include <config.h>
 #endif
 
+/*
 #include <openssl/bio.h>
 #include <openssl/evp.h>
+*/
+#include <iostream>
 
 #include "Base64.h"
 
 namespace Arc {
   std::string Base64::decode(const std::string& bufcoded) {
+    std::cerr<<"This functionality is not properly implemented (Base64::decode)"<<std::endl;
+    return "";
+    /*
     BIO *bio = NULL, *b64 = NULL;
     b64 = BIO_new(BIO_f_base64());
     bio = BIO_new_mem_buf((void*)(bufcoded.c_str()), bufcoded.length());
@@ -26,9 +32,13 @@ namespace Arc {
 
     if(bio) BIO_free_all(bio);
     return plain_str;
+    */
   }
 
   std::string Base64::encode(const std::string& bufplain) {
+    std::cerr<<"This functionality is not properly implemented (Base64::encode)"<<std::endl;
+    return "";
+    /*
     BIO *bio = NULL, *b64 = NULL;
     b64 = BIO_new(BIO_f_base64());
     bio = BIO_new(BIO_s_mem());
@@ -49,5 +59,6 @@ namespace Arc {
     if(bio) BIO_free(bio);
     if(b64) BIO_free(b64);
     return encoded_str;
+    */
   }
 }
