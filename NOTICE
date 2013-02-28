@@ -17,6 +17,8 @@ under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 
+Support for APEL SSM in JURA is provided by the APEL code licensed under Apache 2.0 and owned by STFC (authors: Kevin Haines, Will Rogers). The original software is available from http://apel.github.com/apel/ 
+
 This software contains code derived from [add here]
 
 Support for NNN is provided by MMM. The original software is available from
