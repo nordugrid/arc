@@ -139,10 +139,9 @@ static std::string get_nonce() {
   if (i < 0) {
     std::cout<<"Something wrong with random generator"<<std::endl;
   }
-  char encoded [25];
-  Base64::encode(encoded ,(const char*)buf,16);
-  
-  std::string ret(encoded);
+
+  std::string ret;
+  ret = Base64::encode(std::string((const char*)buf));
   //std::cout<<"Generated nonce: "<<ret<<std::endl;
   return ret;
 }
@@ -157,10 +156,8 @@ static std::string get_salt(bool mac) {
   if(mac){buf[15] = 0x01;}
   else {buf[15] = 0x02;}
 
-  char encoded [25];
-  Base64::encode(encoded ,(const char*)buf,16);
-
-  std::string ret(encoded);
+  std::string ret;
+  ret = Base64::encode(std::string((const char*)buf));
   //std::cout<<"Generated salt: "<<ret<<std::endl;
   return ret;
 }
@@ -169,9 +166,9 @@ static std::string digest_password(const std::string& nonce, const std::string& 
   EVP_MD_CTX mdctx;       
   unsigned char md_value[SHA_DIGEST_LENGTH];
   unsigned int md_len;
-
-  char plain[1024];
-  Base64::decode(plain, nonce.c_str());
+  
+  std::string plain;
+  plain = Base64::decode(nonce);
   std::string todigest(plain);
 
   //UTF-8?
@@ -186,9 +183,8 @@ static std::string digest_password(const std::string& nonce, const std::string& 
   EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
   EVP_MD_CTX_cleanup(&mdctx);
 
-  char encoded [256];
-  Base64::encode(encoded, (const char*)md_value, SHA_DIGEST_LENGTH);
-  std::string ret(encoded);
+  std::string ret;
+  ret = Base64::encode(std::string((const char*)md_value));
 
   return ret;
 }

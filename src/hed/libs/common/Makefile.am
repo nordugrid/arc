@@ -36,10 +36,10 @@ libarccommon_la_SOURCES = ArcVersion.cpp ArcConfig.cpp ArcLocation.cpp ArcRegex.
 	$(PLATFORM_SPECIFIC) $(MYSQL_WRAPPER_CPP)
 libarccommon_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) $(ZLIB_CFLAGS) \
-	$(MYSQL_CFLAGS) $(AM_CXXFLAGS)
+	$(MYSQL_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 libarccommon_la_LIBADD = $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS) $(ZLIB_LIBS) \
 	$(REGEX_LIBS) $(UUID_LIBS) $(EXTRA_LIBS) $(SOCKET_LIBS) \
-	$(MYSQL_LIBS) $(LIBINTL)
+	$(MYSQL_LIBS) $(OPENSSL_LIBS) $(LIBINTL)
 libarccommon_la_LDFLAGS = -version-info 2:0:0
 
 arc_file_access_SOURCES  = file_access.cpp file_access.h

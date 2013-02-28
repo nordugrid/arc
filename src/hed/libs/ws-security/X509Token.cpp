@@ -32,7 +32,6 @@
 #endif 
 
 #include <arc/DateTime.h>
-#include <arc/Base64.h>
 #include <arc/StringConv.h>
 
 #include <arc/xmlsec/XmlSecUtils.h>

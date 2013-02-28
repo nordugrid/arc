@@ -165,11 +165,14 @@ namespace Arc {
 
 		non_enc_data += '\n';
 
+/*
 		int enc_len = ((int) non_enc_data.size()*1.5)+1;
 		char enc_data_char[enc_len];
 
 		Base64::encode(enc_data_char, non_enc_data.c_str(), non_enc_data.size());
 		std::string result = enc_data_char;
+*/
+                std::string result = Base64::encode(non_enc_data);
 		return result;
 	}
 

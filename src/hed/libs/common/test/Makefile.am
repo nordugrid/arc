@@ -6,7 +6,8 @@ endif
 
 TESTS = URLTest LoggerTest RunTest XMLNodeTest FileAccessTest FileUtilsTest \
         ProfileTest ArcRegexTest FileLockTest EnvTest UserConfigTest \
-        StringConvTest CheckSumTest WatchdogTest UserTest $(MYSQL_WRAPPER_TEST)
+        StringConvTest CheckSumTest WatchdogTest UserTest $(MYSQL_WRAPPER_TEST) \
+        Base64Test
 
 check_PROGRAMS = $(TESTS) ThreadTest
 
@@ -132,5 +133,12 @@ MysqlWrapperTest_LDADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(MYSQL_LIBS)
 endif
+
+Base64Test_SOURCES = $(top_srcdir)/src/Test.cpp Base64Test.cpp
+Base64Test_CXXFLAGS = -I$(top_srcdir)/include \
+        $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
+Base64Test_LDADD = \
+        $(top_builddir)/src/hed/libs/common/libarccommon.la \
+        $(CPPUNIT_LIBS) $(GLIBMM_LIBS)
 
 EXTRA_DIST = rcode
