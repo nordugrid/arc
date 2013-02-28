@@ -97,6 +97,7 @@ namespace Arc {
     std::string::size_type p = 0;
     int ecnt = 0;
     for(;p < bufcoded.length();++p) {
+      if(base64_character_decode(bufcoded[p]) == (char)0xff) continue; // ignore eol and garbage
       encoded[ecnt] = bufcoded[p];
       ++ecnt;
       if(ecnt >= 4) {
@@ -105,7 +106,7 @@ namespace Arc {
         ecnt = 0;
       }
     }
-    if(ecnt > 0) { // must not happen
+    if(ecnt > 0) {
       for(;ecnt<4;++ecnt) encoded[ecnt] = '=';
       int qsize = base64_quantum_decode(encoded, quantum);
       bufplain.append(quantum, qsize);

@@ -40,6 +40,9 @@ void Base64Test::TestBase64() {
 
   CPPUNIT_ASSERT_EQUAL(encoded_str, str);
 
+  str.insert(16,"\r\n");
+  str.insert(34,"\r\n");
+
   // decode
   str = Arc::Base64::decode(str);
 
