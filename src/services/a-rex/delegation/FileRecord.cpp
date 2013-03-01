@@ -48,7 +48,7 @@ namespace ARex {
     return false;
   }
 
-  FileRecord::FileRecord(const std::string& base):
+  FileRecord::FileRecord(const std::string& base, bool create):
       basepath_(base),
       db_rec_(NULL),
       db_lock_(NULL),
@@ -56,7 +56,7 @@ namespace ARex {
       db_link_(NULL),
       error_num_(0),
       valid_(false) {
-    valid_ = open();
+    valid_ = open(create);
   }
 
   bool FileRecord::verify(void) {
@@ -78,7 +78,7 @@ namespace ARex {
     };
     // Skip 'link' - it is not of btree kind
     // Skip 'lock' - for unknown reason it returns DB_NOTFOUND
-    // Skip 'lock' - for unknown reason it returns DB_NOTFOUND
+    // Skip 'locked' - for unknown reason it returns DB_NOTFOUND
     return true;
   }
 
@@ -86,9 +86,13 @@ namespace ARex {
     close();
   }
 
-  bool FileRecord::open(void) {
-    int oflags = DB_CREATE;
-    int eflags = DB_CREATE | DB_INIT_CDB | DB_INIT_MPOOL;
+  bool FileRecord::open(bool create) {
+    int oflags = 0;
+    int eflags = DB_INIT_CDB | DB_INIT_MPOOL;
+    if(create) {
+      oflags |= DB_CREATE;
+      eflags |= DB_CREATE;
+    };
     int mode = S_IRUSR|S_IWUSR;
 
     db_env_ = new DbEnv(DB_CXX_NO_EXCEPTIONS);

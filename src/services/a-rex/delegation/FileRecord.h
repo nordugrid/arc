@@ -23,7 +23,7 @@ class FileRecord {
   static int lock_callback(Db *, const Dbt *, const Dbt *, Dbt * result);
   std::string uid_to_path(const std::string& uid);
   bool dberr(const char* s, int err);
-  bool open(void);
+  bool open(bool create);
   void close(void);
   bool verify(void);
  public:
@@ -49,7 +49,7 @@ class FileRecord {
     const std::string path(void) const { return frec_.uid_to_path(uid_); };
   };
   friend class FileRecord::Iterator;
-  FileRecord(const std::string& base);
+  FileRecord(const std::string& base, bool create = true);
   ~FileRecord(void);
   operator bool(void) { return valid_; };
   bool operator!(void) { return !valid_; };

@@ -30,7 +30,7 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
   FileRecord::Iterator* mrec_;
   Arc::Logger logger_;
  public:
-  DelegationStore(const std::string& base, bool allow_recover = false);
+  DelegationStore(const std::string& base, bool allow_recover = true);
   ~DelegationStore(void);
   operator bool(void) { return ((bool)fstore_ && (bool)*fstore_); };
   bool operator!(void) { return !((bool)fstore_ && (bool)*fstore_); };

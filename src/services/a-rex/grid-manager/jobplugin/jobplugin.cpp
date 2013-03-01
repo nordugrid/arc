@@ -949,6 +949,17 @@ int JobPlugin::close(bool eof) {
     error_description="Failed to create session directory.";
     return 1;
   }
+
+  // Put lock on delegated credentials
+  if(!deleg_ids.empty()) {
+    if(!ARex::DelegationStore(config.DelegationDir(),false).LockCred(job_id,deleg_ids,subject)) {
+      logger.msg(Arc::ERROR, "Failed to lock delegated credentials");
+      delete_job_id();
+      error_description="Failed to lock delegated credentials.";
+      return 1;
+    };
+  }
+
   /* **********************************************************
    * Create status file (do it last so GM picks job up here)  *
    ********************************************************** */
@@ -958,14 +969,6 @@ int JobPlugin::close(bool eof) {
     error_description="Failed registering job in grid-manager.";
     return 1;
   };
-
-  // Put lock on delegated credentials
-  // In current implementation it may be risky to use multiple DelegationStore
-  // objects for accessing delegations. Either database is stays undamaged
-  // still needs investigation. But in current situation it should not happen
-  // because job description sent over gridftp does not contain per-file
-  // delegations.
-  ARex::DelegationStore(config.DelegationDir()).LockCred(job_id,deleg_ids,subject);
 
   SignalFIFO(config.ControlDir());
   job_id.resize(0);

@@ -29,39 +29,43 @@ namespace ARex {
     maxrecords_ = 0;
     mtimeout_ = 0;
     mrec_ = NULL;
-    fstore_ = new FileRecord(base);
+    fstore_ = new FileRecord(base, allow_recover);
     if(!*fstore_) {
       failure_ = "Failed to initialize storage. " + fstore_->Error();
-      logger_.msg(Arc::WARNING,"%s",failure_);
-      // Database creation failed. Try recovery.
-      if(!fstore_->Recover()) {
-        failure_ = "Failed to recover storage. " + fstore_->Error();
+      if(allow_recover) {
         logger_.msg(Arc::WARNING,"%s",failure_);
-        logger_.msg(Arc::WARNING,"Wiping and re-creating whole storage");
-        delete fstore_; fstore_ = NULL;
-        // Full recreation of database. Delete everything.
-        Glib::Dir dir(base);
-        std::string name;
-        while ((name = dir.read_name()) != "") {
-          std::string fullpath(base);
-          fullpath += G_DIR_SEPARATOR_S + name;
-          struct stat st;
-          if (::lstat(fullpath.c_str(), &st) == 0) {
-            if(S_ISDIR(st.st_mode)) {
-              Arc::DirDelete(fullpath.c_str());
-            } else {
-              Arc::FileDelete(fullpath.c_str());
+        // Database creation failed. Try recovery.
+        if(!fstore_->Recover()) {
+          failure_ = "Failed to recover storage. " + fstore_->Error();
+          logger_.msg(Arc::WARNING,"%s",failure_);
+          logger_.msg(Arc::WARNING,"Wiping and re-creating whole storage");
+          delete fstore_; fstore_ = NULL;
+          // Full recreation of database. Delete everything.
+          Glib::Dir dir(base);
+          std::string name;
+          while ((name = dir.read_name()) != "") {
+            std::string fullpath(base);
+            fullpath += G_DIR_SEPARATOR_S + name;
+            struct stat st;
+            if (::lstat(fullpath.c_str(), &st) == 0) {
+              if(S_ISDIR(st.st_mode)) {
+                Arc::DirDelete(fullpath.c_str());
+              } else {
+                Arc::FileDelete(fullpath.c_str());
+              };
             };
           };
+          fstore_ = new FileRecord(base);
+          if(!*fstore_) {
+            // Failure
+            failure_ = "Failed to re-create storage. " + fstore_->Error();
+            logger_.msg(Arc::WARNING,"%s",failure_);
+          } else {
+            // Database recreated.
+          };
         };
-        fstore_ = new FileRecord(base);
-        if(!*fstore_) {
-          // Failure
-          failure_ = "Failed to re-create storage. " + fstore_->Error();
-          logger_.msg(Arc::WARNING,"%s",failure_);
-        } else {
-          // Database recreated.
-        };
+      } else {
+        logger_.msg(Arc::ERROR,"%s",failure_);
       };
     };
     // TODO: Do some cleaning on startup
