@@ -23,7 +23,7 @@ namespace ARex {
     Arc::DirCreate(dpath,0,0,S_IXUSR|S_IRUSR|S_IWUSR,true);
   }
 
-  DelegationStore::DelegationStore(const std::string& base):
+  DelegationStore::DelegationStore(const std::string& base, bool allow_recover):
            logger_(Arc::Logger::rootLogger, "Delegation Storage") {
     expiration_ = 0;
     maxrecords_ = 0;
@@ -65,6 +65,26 @@ namespace ARex {
       };
     };
     // TODO: Do some cleaning on startup
+  }
+
+  DelegationStore::~DelegationStore(void) {
+    // BDB objects must be destroyed because
+    // somehow BDB does not understand that process
+    // already died and keeps locks forewer.
+    delete mrec_;
+    delete fstore_;
+    /* Following code is not executed because there must be no active 
+      consumers when store being destroyed. It is probably safer to
+      leave hanging consumers than to destroy them.
+      Anyway by design this destructor is supposed to be called only 
+      when applications exits.
+       
+    while(acquired_.size() > 0) {
+      std::map<Arc::DelegationConsumerSOAP*,Consumer>::iterator i = acquired_.begin();
+      delete i->first;
+      acquired_.erase(i);
+    };
+    */
   }
 
   Arc::DelegationConsumerSOAP* DelegationStore::AddConsumer(std::string& id,const std::string& client) {

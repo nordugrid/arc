@@ -14,6 +14,7 @@
 #include <glibmm.h>
 
 #include <arc/FileUtils.h>
+#include <arc/Logger.h>
 
 #include "uid.h"
 
