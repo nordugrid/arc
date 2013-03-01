@@ -20,3 +20,8 @@ specific language governing permissions and limitations under the License.
 Support for APEL SSM in JURA is provided by the APEL code licensed under Apache
 2.0 and owned by STFC (authors: Kevin Haines, Will Rogers). The original
 software is available from http://apel.github.com/apel/ 
+
+Some hash function code in ACIX is provided by the General Purpose Hash
+Function Algorithms Library licensed under the Common Public License and
+written by Arash Partow. The original software is available from
+http://www.partow.net/programming/hashfunctions/index.html
