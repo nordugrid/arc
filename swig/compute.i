@@ -411,3 +411,10 @@ ServiceEndpointRetrieverPluginTESTControl = StaticPropertyWrapper(_ServiceEndpoi
 TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInformationRetrieverPluginTESTControl)
 %}
 #endif
+
+
+// Wrap contents of $(top_srcdir)/src/hed/libs/compute/JobInformationStorage.h
+%{
+#include <arc/compute/JobInformationStorage.h>
+%}
+%include "../src/hed/libs/compute/JobInformationStorage.h"
