@@ -20,7 +20,3 @@ specific language governing permissions and limitations under the License.
 Support for APEL SSM in JURA is provided by the APEL code licensed under Apache
 2.0 and owned by STFC (authors: Kevin Haines, Will Rogers). The original
 software is available from http://apel.github.com/apel/ 
-
-Support for Base64 encoding and decoding is provided by code from the Axis2c
-project, licensed under the Apache License, Version 2.0 and owned by Apache.
-The original software is available from http://axis.apache.org/axis2/c/core/
