@@ -141,7 +141,7 @@ static std::string get_nonce() {
   }
 
   std::string ret;
-  ret = Base64::encode(std::string((const char*)buf));
+  ret = Base64::encode(std::string((const char*)buf, 16));
   //std::cout<<"Generated nonce: "<<ret<<std::endl;
   return ret;
 }
@@ -157,7 +157,7 @@ static std::string get_salt(bool mac) {
   else {buf[15] = 0x02;}
 
   std::string ret;
-  ret = Base64::encode(std::string((const char*)buf));
+  ret = Base64::encode(std::string((const char*)buf, 16));
   //std::cout<<"Generated salt: "<<ret<<std::endl;
   return ret;
 }
@@ -184,7 +184,7 @@ static std::string digest_password(const std::string& nonce, const std::string& 
   EVP_MD_CTX_cleanup(&mdctx);
 
   std::string ret;
-  ret = Base64::encode(std::string((const char*)md_value));
+  ret = Base64::encode(std::string((const char*)md_value, SHA_DIGEST_LENGTH));
 
   return ret;
 }
