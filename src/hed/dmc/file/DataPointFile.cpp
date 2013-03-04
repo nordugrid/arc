@@ -719,7 +719,7 @@ namespace ArcDMCFile {
 
       /* preallocate space */
       buffer->speed.hold(true);
-      if (additional_checks && CheckSize()) {
+      if (additional_checks && CheckSize() && GetSize() > 0) {
         unsigned long long int fsize = GetSize();
         logger.msg(INFO, "setting file %s to size %llu", url.Path(), fsize);
         while(true) {
