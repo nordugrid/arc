@@ -1,4 +1,4 @@
-EXAMPLES = basic_job_submission.py
+EXAMPLES = basic_job_submission.py partial_copy.py
 
 if PYLINT_ENABLED
 TESTS_ENVIRONMENT = $(PYLINT) -E
