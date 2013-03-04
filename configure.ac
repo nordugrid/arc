@@ -153,6 +153,7 @@ enables_java=yes
 enables_junit=yes
 enables_python=yes
 enables_altpython=yes
+enables_pylint=yes
 enables_mock_dmc=no
 enables_lfc=yes
 enables_gfal=no
@@ -218,6 +219,7 @@ enables_java=$enableval
 enables_junit=$enableval
 enables_python=$enableval
 enables_altpython=$enableval
+enables_pylint=$enableval
 enables_gacl=$enableval
 enables_mock_dmc=$enableval
 enables_lfc=$enableval
@@ -725,6 +727,23 @@ fi
 AC_MSG_NOTICE([Alternative Python enabled: $enables_altpython])
 
 AM_CONDITIONAL([ALTPYTHON_ENABLED],[test "x$enables_altpython" = "xyes"])
+
+
+# check for pylint
+dnl Check if pylint is explicitly disabled.
+if test "$enables_hed" = "yes"; then
+AC_ARG_ENABLE(pylint, AC_HELP_STRING([--disable-pylint], [disable python example checking using pylint]),
+[enables_pylint=$enableval],[])
+  AC_CHECK_PROGS(PYLINT, pylint)
+  if test "x$PYLINT" = "x"; then
+    enables_pylint="no"
+  else
+    enables_pylint="yes"
+  fi
+fi
+AM_CONDITIONAL([PYLINT_ENABLED], [test "x$enables_pylint" = "xyes"])
+AC_MSG_NOTICE([Python example checking with pylint enabled: $enables_pylint])
+
 
 # check gthread
 if test "$enables_hed" = "yes"; then
@@ -2558,6 +2577,7 @@ AC_CONFIG_FILES([Makefile
                  java/examples/Makefile
                  python/Makefile
                  python/test/Makefile
+                 python/examples/Makefile
                  po/Makefile.in
                  include/Makefile
                  debian/Makefile

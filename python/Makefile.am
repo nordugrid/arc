@@ -122,7 +122,7 @@ install-data-hook:
 	  $(DESTDIR)$(altpythondir)/_arc.$(ALTPYTHON_SOABI).so ; \
 	fi
 
-DIST_SUBDIRS = test
-SUBDIRS = $(TEST_DIR)
+DIST_SUBDIRS = test examples
+SUBDIRS = $(TEST_DIR) examples
 
 .NOTPARALLEL: %.lo %.o
