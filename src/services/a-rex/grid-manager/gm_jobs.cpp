@@ -19,7 +19,6 @@
 #include "jobs/CommFIFO.h"
 #include "jobs/JobsList.h"
 #include "../delegation/DelegationStore.h"
-#include "../delegation/DelegationStores.h"
 
 using namespace ARex;
 
@@ -341,8 +340,7 @@ int main(int argc, char* argv[]) {
   }
 
   if(show_delegs || (show_deleg_ids.size() > 0)) {
-    ARex::DelegationStores dstores;
-    ARex::DelegationStore& dstore = dstores[config.ControlDir()+"/delegations"];
+    ARex::DelegationStore dstore(config.ControlDir()+"/delegations", false);
     std::list<std::pair<std::string,std::string> > creds = dstore.ListCredIDs();
     for(std::list<std::pair<std::string,std::string> >::iterator cred = creds.begin();
                                      cred != creds.end(); ++cred) {
