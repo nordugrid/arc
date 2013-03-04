@@ -274,7 +274,7 @@ namespace ARex {
   }
 
   std::string JobIDGeneratorES::GetInterface(void) {
-    return "org.ogf.emies";
+    return "org.ogf.glue.emies.activitycreation";
   }
 
 

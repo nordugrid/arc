@@ -1620,7 +1620,7 @@ sub collect($) {
               # this complicated thing here creates a specialized getComputingActivities
               # version of sub with a builtin parameter!
               #TODO: change interfacename for jobs?
-              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.ogf.emies'); };
+              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.ogf.glue.emies.activitycreation'); };
             }
 
             # Associations
@@ -1748,7 +1748,7 @@ sub collect($) {
               # this complicated thing here creates a specialized getComputingActivities
               # version of sub with a builtin parameter!
               #TODO: change interfacename for jobs?
-              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.ogf.emies'); };
+              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.ogf.glue.emies.activitycreation'); };
             }
 
             # Associations
@@ -1994,7 +1994,7 @@ sub collect($) {
               # this complicated thing here creates a specialized getComputingActivities
               # version of sub with a builtin parameter!
               #TODO: change interfacename for jobs?
-              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.ogf.emies'); };
+              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.ogf.glue.emies.activitycreation'); };
             }
 
             # Associations

@@ -357,7 +357,7 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
     <ComputingActivity xmlns=\"http://schemas.ogf.org/glue/2009/03/spec_2.0_r1\"\n\
                        BaseType=\"Activity\" CreationTime=\"\" Validity=\"60\">\n\
       <ID></ID>\n\
-      <OtherInfo>SubmittedVia=org.ogf.emies</OtherInfo>\n\
+      <OtherInfo>SubmittedVia=org.ogf.glue.emies.activitycreation</OtherInfo>\n\
       <Type>single</Type>\n\
       <IDFromEndpoint></IDFromEndpoint>\n\
       <JobDescription>emies:adl</JobDescription>\n\
@@ -411,7 +411,7 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
         // TODO: if xml information is not ready yet create something minimal
         Arc::XMLNode(job_xml_template).New(glue_xml);
         Arc::URL headnode(config.GmConfig().HeadNode());
-        glue_xml["ID"] = std::string("urn:caid:")+headnode.Host()+":org.ogf.emies:"+jobid;
+        glue_xml["ID"] = std::string("urn:caid:")+headnode.Host()+":org.ogf.glue.emies.activitycreation:"+jobid;
         glue_xml["IDFromEndpoint"] = "urn:idfe:"+id;
         {
           // Collecting job state
