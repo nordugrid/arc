@@ -1388,6 +1388,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/arcplugin.1*
 %{_libdir}/pkgconfig/arcbase.pc
 %doc  src/hed/shc/arcpdp/*.xsd
+%{_datadir}/%{pkgdir}/examples/sdk/*
 
 %files plugins-needed
 %defattr(-,root,root,-)
