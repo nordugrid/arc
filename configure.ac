@@ -2555,6 +2555,7 @@ AC_CONFIG_FILES([Makefile
                  java/Makefile
                  java/test/Makefile
                  java/test/strip_test_file_name_and_run_junit
+                 java/examples/Makefile
                  python/Makefile
                  python/test/Makefile
                  po/Makefile.in
