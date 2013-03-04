@@ -489,10 +489,10 @@ AC_ARG_ENABLE(junit, AC_HELP_STRING([--disable-junit], [disable unit testing of 
 [enables_junit=$enableval],[])
 if test "$enables_java" = "yes" && test "$enables_junit" = "yes"; then
   if ! test -f /usr/share/java/junit.jar; then
-    enables_java="no"
+    enables_junit="no"
   fi
 else
-  enables_java="no"
+  enables_junit="no"
 fi
 fi
 AM_CONDITIONAL([JUNIT_ENABLED], [test "x$enables_junit" = "xyes"])
