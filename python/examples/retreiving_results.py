@@ -14,7 +14,7 @@ def example():
     job = arc.Job()
     job.JobID = "https://piff.hep.lu.se:443/arex/hYDLDmyxvUfn5h5iWqkutBwoABFKDmABFKDmIpHKDmYBFKDmtRy9En"
     job.Flavour = "ARC1"
-    job.ServiceInformationURL = job.JobStatusURL = job.JobManagementURL arc.URL("https://piff.hep.lu.se:443/arex")
+    job.ServiceInformationURL = job.JobStatusURL = job.JobManagementURL = arc.URL("https://piff.hep.lu.se:443/arex")
     
     print "Get job information from the computing element..."
     # Put the job into a JobSupervisor and update its information
