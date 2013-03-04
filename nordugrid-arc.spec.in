@@ -1388,7 +1388,8 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/arcplugin.1*
 %{_libdir}/pkgconfig/arcbase.pc
 %doc  src/hed/shc/arcpdp/*.xsd
-%{_datadir}/%{pkgdir}/examples/sdk/*
+%{_datadir}/%{pkgdir}/examples/sdk/*.cpp
+%{_datadir}/%{pkgdir}/examples/sdk/*.h
 
 %files plugins-needed
 %defattr(-,root,root,-)
@@ -1484,6 +1485,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libpythonservice.so
 %{_libdir}/%{pkgdir}/libpythonservice.apd
 %doc %{_datadir}/%{pkgdir}/examples/PythonBroker
+%{_datadir}/%{pkgdir}/examples/sdk/*.py
 %endif
 
 %if %{?rhel}%{!?rhel:0} == 5
@@ -1508,6 +1510,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %if %{with_gcj}
 %{_libdir}/gcj/%{name}
 %endif
+%{_datadir}/%{pkgdir}/examples/sdk/*.java
 %endif
 
 %files doxygen
