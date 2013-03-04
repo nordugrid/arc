@@ -1,9 +1,9 @@
 lib_LTLIBRARIES = libarcdata.la
 
 if WIN32
-DIRS = . examples
+DIRS = examples
 else
-DIRS = . $(TEST_DIR) examples
+DIRS = $(TEST_DIR) examples
 endif
 
 SUBDIRS = $(DIRS)

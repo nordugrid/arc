@@ -1,4 +1,4 @@
-noinst_PROGRAMS = partial_copy simple_copy
+check_PROGRAMS = partial_copy simple_copy
 
 partial_copy_SOURCES = partial_copy.cpp
 partial_copy_CXXFLAGS = -I$(top_srcdir)/include \
@@ -14,7 +14,8 @@ simple_copy_LDADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	../libarcdata.la $(GLIBMM_LIBS)
 
-noinst_LTLIBRARIES = libdmcmy.la
+
+check_LTLIBRARIES = libdmcmy.la
 
 libdmcmy_la_SOURCES = DataPointMyProtocol.cpp
 libdmcmy_la_CXXFLAGS = -I$(top_srcdir)/include \
@@ -23,3 +24,9 @@ libdmcmy_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	../libarcdata.la	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
 libdmcmy_la_LDFLAGS = -no-undefined -avoid-version -module
+
+
+exampledir = $(pkgdatadir)/examples/sdk
+example_DATA = $(check_PROGRAMS:=.cpp) DataPointMyProtocol.cpp
+
+EXTRA_DIST = $(check_PROGRAMS:=.cpp) DataPointMyProtocol.cpp
