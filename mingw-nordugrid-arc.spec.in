@@ -385,6 +385,8 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw32_bindir}/arcplugin.exe
 %doc %{mingw32_mandir}/man1/arcplugin.1*
 %{mingw32_libdir}/pkgconfig/arcbase.pc
+%doc %{mingw32_datadir}/%{pkgdir}/examples/sdk/*.cpp
+%doc %{mingw32_datadir}/%{pkgdir}/examples/sdk/*.h
 
 %files -n mingw32-%{mingw_pkg_name}-plugins-needed
 %defattr(-,root,root,-)
@@ -451,6 +453,7 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw32_libdir}/%{pkgdir}/libaccPythonBroker.dll*
 %doc %{mingw32_datadir}/%{pkgdir}/examples/PythonBroker/ACIXBroker.py*
 %doc %{mingw32_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
+%doc %{mingw32_datadir}/%{pkgdir}/examples/sdk/*.py*
 %endif
 
 # mingw64
@@ -545,6 +548,8 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw64_bindir}/arcplugin.exe
 %doc %{mingw64_mandir}/man1/arcplugin.1*
 %{mingw64_libdir}/pkgconfig/arcbase.pc
+%doc %{mingw64_datadir}/%{pkgdir}/examples/sdk/*.cpp
+%doc %{mingw64_datadir}/%{pkgdir}/examples/sdk/*.h
 
 %files -n mingw64-%{mingw_pkg_name}-plugins-needed
 %defattr(-,root,root,-)
@@ -605,6 +610,7 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw64_libdir}/%{pkgdir}/libaccPythonBroker.dll*
 %doc %{mingw64_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
 %endif
+%doc %{mingw64_datadir}/%{pkgdir}/examples/sdk/*.py*
 %endif
 
 %changelog
