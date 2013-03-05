@@ -26,19 +26,19 @@
 if [ -f /etc/init.d/functions ]; then
     . /etc/init.d/functions
     log_success_msg() {
-	echo -n "$@"
-	success "$@"
-	echo
+        echo -n "$@"
+        success "$@"
+        echo
     }
     log_warning_msg() {
-	echo -n "$@"
-	warning "$@"
-	echo
+        echo -n "$@"
+        warning "$@"
+        echo
     }
     log_failure_msg() {
-	echo -n "$@"
-	failure "$@"
-	echo
+        echo -n "$@"
+        failure "$@"
+        echo
     }
 elif [ -f /lib/lsb/init-functions ]; then
     . /lib/lsb/init-functions
@@ -131,101 +131,124 @@ fi
 registrationlog=${CONFIG_registrationlog:-/var/log/arc/inforegistration.log}
 arc_runtime_config="/var/run/arc/infosys"
 registrationconf=$arc_runtime_config/grid-info-resource-register.conf
+pid_file="/var/run/nordugrid-arc-inforeg.pid"
 
 start () {
+    echo -n "Starting $prog: "
+
+    # Check if we are already running
+    if [ -f "$pid_file" ]; then
+        read pid < "$pid_file"
+        if [ "x$pid" != "x" ]; then
+            ps -p "$pid" -o comm 2>/dev/null | grep "^sleep$" 1>/dev/null 2>/dev/null
+            if [ $? -eq 0 ] ; then
+                log_success_msg "already running (pid $pid)"
+                return 0
+            fi
+        fi
+        rm -f "$pid_file" "$lockfile"
+    fi
+
     rm -f $registrationconf
     $ARC_LOCATION/@pkgdatasubdir@/create-inforeg-config
     if grep -q ^regtype: $registrationconf ; then
-	# We should sleep forever really...
-	sleep 10000d >/dev/null 2>&1 &
-	pid=$!
-	echo $pid > /var/run/nordugrid-arc-inforeg.pid
-	$ARC_LOCATION/@pkgdatasubdir@/grid-info-soft-register \
-	    -log $registrationlog -f $registrationconf \
-	    -p $pid >/dev/null 2>&1 &
+        # We should sleep forever really...
+        sleep 10000d >/dev/null 2>&1 &
+        pid=$!
+        echo $pid > $pid_file
+        $ARC_LOCATION/@pkgdatasubdir@/grid-info-soft-register \
+            -log $registrationlog -f $registrationconf \
+            -p $pid >/dev/null 2>&1 &
+        if [ $? -eq 0 ]; then
+            touch $lockfile
+            log_success_msg
+        else
+            log_failure_msg
+        fi
     fi
-    log_success_msg "$prog started"
 }
 
 stop () {
-    if [ -f "/var/run/nordugrid-arc-inforeg.pid" ]; then
-	pid=$(cat /var/run/nordugrid-arc-inforeg.pid)
+    echo -n "Stopping $prog: "
+
+    RETVAL=0
+    if [ -f "$pid_file" ]; then
+        read pid < "$pid_file"
+        if [ -n "${pid}" ]; then
+            kill -15 ${pid} 2>/dev/null
+            ps ${pid} >/dev/null 2>&1
+            if [ $? -eq 0 ]; then
+                sleep 2
+                ps ${pid} >/dev/null 2>&1
+                if [ $? -eq 0 ]; then
+                    kill -9 ${update_pid} 2>/dev/null
+                    sleep 2
+                    ps ${pid} >/dev/null 2>&1
+                    if [ $? -eq 0 ]; then
+                        RETVAL=1
+                    fi
+                fi
+    
+            fi
+        fi
+        if [ ${RETVAL} -eq 0 ];  then
+            rm -f "$pid_file" "$lockfile"
+            log_success_msg
+        else
+            log_failure_msg "Could not kill $prog"
+        fi
     else
-	log_failure_msg "$prog has no pid-file"
-	return 1
+        log_success_msg "already stopped"
     fi
 
-    if [ -n "${pid}" ]; then
-	kill -15 ${pid} 2>/dev/null
-	ps ${pid} >/dev/null 2>&1
-	if [ $? = 0 ]; then
-	    sleep 2
-	    ps ${pid} >/dev/null 2>&1
-	    if [ $? = 0 ]; then
-		kill -9 ${update_pid} 2>/dev/null
-		sleep 2
-		ps ${pid} >/dev/null 2>&1
-		if [ $? = 0 ]; then
-		    RETVAL=1
-		fi
-	    fi
-
-	fi
-    fi
-
-    if [ ${RETVAL} = 0 ];  then
-	rm -f /var/run/nordugrid-arc-inforeg.pid
-	rm -f $lockfile
-    else
-	log_failure_msg "Could not kill $prog"
-    fi
-
-    if [ ! ${RETVAL} = 0 ];  then
-	return 1
-    else
-	# lockfile is to make sure that bdii gets a clean shutdown with system
-	rm -f $lockfile
-    fi
-
-    log_success_msg "$prog stopped"
     return ${RETVAL}
 }
 
 status ()  {
-    RETVAL=0
-    return ${RETVAL}
+    if [ -f "$pid_file" ]; then
+        read pid < "$pid_file"
+        if [ "$pid" != "" ]; then
+            if ps -p "$pid" > /dev/null; then
+                echo "$1 (pid $pid) is running..."
+                return 0
+            fi
+            echo "$1 stopped but pid file exists"
+            return 1
+        fi
+    fi
+    if [ -f $lockfile ]; then
+        echo "$1 stopped but lockfile exists"
+        return 2
+    fi
+    echo "$1 is stopped"
+    return 3
 }
 
 case "$1" in
     start)
-	start
-	;;
+        start
+        ;;
     stop)
-	stop
-	;;
+        stop
+        ;;
     restart | force-reload)
-	stop
-	# avoid race
-	sleep 3
-	start
-	;;
+        stop
+        # avoid race
+        sleep 3
+        start
+        ;;
     reload)
-	;;
+        ;;
     status)
-	status
-	;;
+        status $prog
+        ;;
     condrestart | try-restart)
-	if [ -f ${lockfile} ]; then
-	    stop
-	    # avoid race
-	    sleep 3
-	    start
-	fi
-	;;
+        [ -f $LOCKFILE ] && restart || :
+        ;;
     *)
-	echo "Usage: $0 {start|stop|restart|force-reload|reload|condrestart|try-restart|status}"
-	exit 1
-	;;
+        echo "Usage: $0 {start|stop|restart|force-reload|reload|condrestart|try-restart|status}"
+        exit 1
+        ;;
 esac
 
-exit $RETVAL
+exit $?
