@@ -4,13 +4,18 @@ EXAMPLES = \
 	service_discovery.py
 
 if PYLINT_ENABLED
-TESTS_ENVIRONMENT = $(PYLINT) --errors-only
+TESTS_ENVIRONMENT = PYTHONPATH=..:../.libs $(PYLINT) --errors-only
 TESTS = $(EXAMPLES)
 else
 TESTS =
 endif
 
-check_SCRIPTS = $(EXAMPLES)
+check_SCRIPTS = ../arc.py $(EXAMPLES)
+
+../arc.py : $(top_srcdir)/python/__init__.py
+	cp $< $@
+
+CLEANFILES = ../arc.py ../arc.pyc
 
 exampledir = $(pkgdatadir)/examples/sdk
 example_DATA = $(EXAMPLES)
