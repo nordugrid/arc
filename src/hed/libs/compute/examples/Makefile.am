@@ -8,6 +8,4 @@ basic_job_submission_LDADD = \
 	../libarccompute.la $(GLIBMM_LIBS)
 
 exampledir = $(pkgdatadir)/examples/sdk
-example_DATA = $(check_PROGRAMS:=.cpp)
-
-EXTRA_DIST = $(check_PROGRAMS:=.cpp)
+example_DATA = basic_job_submission.cpp
