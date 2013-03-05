@@ -558,6 +558,10 @@ sub jobs_info ($$$) {
 	$lrms_jobs{$id}{cputime} = 0;
         if (defined $jobinfo{$id}{Step_Total_Time}) {
             my (@cput) = split(/:/,$jobinfo{$id}{Step_Total_Time});       
+            my (@cpudh) = split(/+/,$cput[0]);
+            if (@cpudh == 2){
+               $cput[0]= 24*$cpudh[0] + $cpudh[1];
+            }
 	    $lrms_jobs{$id}{cputime} = int($cput[0]*60 + $cput[1] + $cput[2]/60) if (@cput); 
         }
 	if ($jobinfo{$id}{Wall_Clk_Hard_Limit} =~ / \(([0-9]*) seconds\)/) {
