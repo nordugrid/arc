@@ -4,7 +4,7 @@ EXAMPLES = \
 	service_discovery.py
 
 if PYLINT_ENABLED
-TESTS_ENVIRONMENT = $(PYLINT) -E
+TESTS_ENVIRONMENT = $(PYLINT) --errors-only
 TESTS = $(EXAMPLES)
 else
 TESTS =
