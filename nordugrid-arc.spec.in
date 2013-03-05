@@ -1,6 +1,14 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(0)")}
 
+%global pkgdir arc
+
+# Remove python object files which should not be packaged, since the internal RPM bytecompile (brp-python-bytecompile) acts on the
+# whole install tree and not just on standard python module locations.
+%global __os_install_post %__os_install_post \
+        rm -f $RPM_BUILD_ROOT%{_datadir}/%{pkgdir}/examples/sdk/*.py[oc] \
+        %{nil}
+
 %if %{?rhel}%{!?rhel:0} == 5
 %global __python26 %{_bindir}/python2.6
 %{!?python26_sitearch: %global python26_sitearch %(%{__python26} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
@@ -78,8 +86,6 @@
 %else
 %global with_canl 0
 %endif
-
-%global pkgdir arc
 
 Name:		@PACKAGE@
 Version:	@baseversion@
