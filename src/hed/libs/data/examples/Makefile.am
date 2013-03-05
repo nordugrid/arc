@@ -27,6 +27,4 @@ libdmcmy_la_LDFLAGS = -no-undefined -avoid-version -module
 
 
 exampledir = $(pkgdatadir)/examples/sdk
-example_DATA = $(check_PROGRAMS:=.cpp) DataPointMyProtocol.cpp
-
-EXTRA_DIST = $(check_PROGRAMS:=.cpp) DataPointMyProtocol.cpp
+example_DATA = partial_copy.cpp simple_copy.cpp DataPointMyProtocol.cpp
