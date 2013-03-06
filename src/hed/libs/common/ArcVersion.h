@@ -61,7 +61,8 @@ namespace Arc {
    *
    * \section sec Quick Start
    * The following code is a minimal example showing how to submit a job to a
-   * Grid resource using the ARC SDK:
+   * Grid resource using the ARC SDK. For futher examples see the \ref examples
+   * "list of all examples".
    * \include basic_job_submission.cpp
    * This code can be compiled with
    * \code
@@ -77,6 +78,69 @@ namespace Arc {
    * \endcode
    */
 
+  // Page listing all examples
+  /**
+   * \page examples List of all examples
+   * %Job submission and management
+   * - \subpage basicjobsubmission
+   * - \subpage jobfiltering
+   * - \subpage jobstatus
+   * - \subpage joblistretrieval
+   * - \subpage retrievingresults
+   * - \subpage servicediscovery
+   *
+   * Data management
+   * - \subpage copyfile
+   * - \subpage partialcopy
+   * - \subpage exampledmc
+   * - \subpage dtrgenerator
+   *
+   * \page basicjobsubmission Basic %Job Submission
+   * \section cpp C++
+   * \include basic_job_submission.cpp
+   * \section py Python
+   * \include basic_job_submission.py
+   * \section java Java
+   * \include BasicJobSubmission.java
+   *
+   * \page jobfiltering %Job Filtering
+   * \include job_filtering.py
+   *
+   * \page jobstatus %Job Status
+   * \include job_status.py
+   *
+   * \page joblistretrieval %Job List Retrieval
+   * \include joblist_retrieval.py
+   *
+   * \page retrievingresults Retrieving Results
+   * \include retrieving_results.py
+   *
+   * \page servicediscovery Service Discovery
+   * \include service_discovery.py
+   *
+   * \page copyfile Copy File
+   * \section cpp C++
+   * \include simple_copy.cpp
+   * \section py Python
+   * \include copy_file.py
+   *
+   * \page partialcopy Partial File Copy
+   * \section cpp C++
+   * \include partial_copy.cpp
+   * \section py Python
+   * \include partial_copy.py
+   *
+   * \page exampledmc Example Protocol %Plugin
+   * \include DataPointMyProtocol.cpp
+   *
+   * \page dtrgenerator DTR Generator
+   * Generator.cpp
+   * \include Generator.cpp
+   * Generator.h
+   * \include Generator.h
+   * generator-main.cpp
+   * \include generator-main.cpp
+   */
 
 } // namespace Arc
 
