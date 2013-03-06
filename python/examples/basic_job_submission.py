@@ -40,4 +40,4 @@ if not jobList.Write(jobs):
   logger.msg(arc.WARNING, "Failed to write to local job list %s", usercfg.JobListFile())
 
 # Job submitted ok
-print "Job submitted with job id {}".format(jobs.front().JobID)
+print "Job submitted with job id %s" % {jobs.front().JobID}
