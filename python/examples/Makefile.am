@@ -1,6 +1,6 @@
 EXAMPLES = \
 	basic_job_submission.py partial_copy.py copy_file.py job_filtering.py \
-	joblist_retrieval.py job_status.py job_submission.py retreiving_results.py \
+	joblist_retrieval.py job_status.py job_submission.py retrieving_results.py \
 	service_discovery.py
 
 if PYLINT_ENABLED
