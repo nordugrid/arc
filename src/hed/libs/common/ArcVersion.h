@@ -134,12 +134,17 @@ namespace Arc {
    * \include DataPointMyProtocol.cpp
    *
    * \page dtrgenerator DTR Generator
+   * \section cpp C++
    * Generator.cpp
    * \include Generator.cpp
    * Generator.h
    * \include Generator.h
    * generator-main.cpp
    * \include generator-main.cpp
+   * \section py Python
+   * \include dtr_generator.py
+   * \section java Java
+   * \include DTRGenerator.java
    */
 
 } // namespace Arc

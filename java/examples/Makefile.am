@@ -1,4 +1,4 @@
-EXAMPLES = BasicJobSubmission.java
+EXAMPLES = BasicJobSubmission.java DTRGenerator.java
 
 if JAVA_SWIG_ENABLED
 CLASSPATH = $(top_builddir)/java/arc.jar:.

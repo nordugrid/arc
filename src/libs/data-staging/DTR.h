@@ -24,25 +24,15 @@ namespace DataStaging {
  * two Grid storage elements. It is possible to transfer data between two
  * remote endpoints, but all data flows through the client.
  *
- * The following code snippet shows a very simple example of how to use
- * libarcdatastaging. The Generator class receives as input a source and
- * destination, and creates a DTR which describes the data transfer. It is then
- * passed to the Scheduler and the Generator defines a receiveDTR() method for
- * the Scheduler to calls to notify that the transfer has finished. A main()
- * program is also shown as an example of how to use the Generator as a basic
- * copy tool from the command line.
- *
- * Generator.h:
- * \include Generator.h
- * Generator.cpp:
- * \include Generator.cpp
- * generator-main.cpp:
- * \include generator-main.cpp
+ * Simple examples of how to use libarcdatastaging are shown for several
+ * languages in the \ref dtrgenerator "DTR examples page". In all the examples
+ * a Generator class receives as input a source and destination, and creates
+ * a DTR which describes the data transfer. It is then passed to the Scheduler
+ * and the Generator defines a receiveDTR() method for the Scheduler to calls
+ * to notify that the transfer has finished. The examples all allow using the
+ * Generator as a basic copy tool from the command line to copy a single file.
  *
  * For more information see http://wiki.nordugrid.org/index.php/Data_Staging
- *
- * For more examples on using libarcdatastaging in several languages, see
- * http://wiki.nordugrid.org/index.php/Data_Staging/API
  */
 } // namespace DataStaging
 
