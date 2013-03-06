@@ -738,7 +738,18 @@ AC_ARG_ENABLE(pylint, AC_HELP_STRING([--disable-pylint], [disable python example
   if test "x$PYLINT" = "x"; then
     enables_pylint="no"
   else
-    enables_pylint="yes"
+    PYLINT_VERSION=`$PYLINT --version 2> /dev/null | sed -n 's/^pylint \([[0-9.]]*\).*/\1/p'`
+    PYLINT_VERSION_MAJOR=`echo $PYLINT_VERSION | cut -d. -f1`
+    PYLINT_VERSION_MINOR=`echo $PYLINT_VERSION | cut -d. -f2`
+    # Version prior to 0.13.0 doesn't seem to support the --errors-only flag.
+    # In version 0.20.0 when specifying --errors-only, convention warnings (C) are treated like errors.
+    if test $PYLINT_VERSION_MAJOR -eq 0 && test $PYLINT_VERSION_MINOR -ge 13 && test $PYLINT_VERSION_MINOR -ne 20; then
+      enables_pylint="yes"
+      AC_MSG_NOTICE([pylint version $PYLINT_VERSION found - version ok])
+    else
+      enables_pylint="no"
+      AC_MSG_NOTICE([pylint version $PYLINT_VERSION found - bad version])
+    fi
   fi
 fi
 AM_CONDITIONAL([PYLINT_ENABLED], [test "x$enables_pylint" = "xyes"])
