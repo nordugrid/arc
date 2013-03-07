@@ -141,21 +141,21 @@ public:
   ARex::DelegationStores* Delegations() const { return delegations; }
 
   /// Control directory
-  std::string ControlDir() const { return control_dir; }
+  const std::string & ControlDir() const { return control_dir; }
   /// Session root directory corresponding to given job ID. If the session
   /// dir corresponding to job_id is not found an empty string is returned.
   std::string SessionRoot(const std::string& job_id) const;
   /// Session directories
-  std::vector<std::string> SessionRoots() const { return session_roots; }
+  const std::vector<std::string> & SessionRoots() const { return session_roots; }
   /// Session directories that can be used for new jobs
-  std::vector<std::string> SessionRootsNonDraining() const { return session_roots_non_draining; }
+  const std::vector<std::string> & SessionRootsNonDraining() const { return session_roots_non_draining; }
   /// Base scratch directory for job execution on node
-  std::string ScratchDir() const { return scratch_dir; }
+  const std::string & ScratchDir() const { return scratch_dir; }
   /// Whether access to session dir must be performed under mapped uid
   bool StrictSession() const { return strict_session; }
 
   /// Cache configuration
-  CacheConfig CacheParams() const { return cache_params; }
+  const CacheConfig & CacheParams() const { return cache_params; }
 
   /// URL of cluster's headnode
   const std::string & HeadNode() const { return headnode; }
@@ -173,7 +173,7 @@ public:
   /// Default queue
   const std::string & DefaultQueue() const { return default_queue; }
   /// All configured queues
-  std::list<std::string> Queues() const { return queues; }
+  const std::list<std::string> & Queues() const { return queues; }
 
   /// Username of user running A-REX
   const std::string & UnixName() const { return gm_user.Name(); }
