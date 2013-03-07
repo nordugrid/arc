@@ -1,14 +1,6 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(0)")}
 
-%global pkgdir arc
-
-# Remove python object files which should not be packaged, since the internal RPM bytecompile (brp-python-bytecompile) acts on the
-# whole install tree and not just on standard python module locations.
-%global __os_install_post %__os_install_post \
-        rm -f $RPM_BUILD_ROOT%{_datadir}/%{pkgdir}/examples/sdk/*.py[oc] \
-        %{nil}
-
 %if %{?rhel}%{!?rhel:0} == 5
 %global __python26 %{_bindir}/python2.6
 %{!?python26_sitearch: %global python26_sitearch %(%{__python26} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
@@ -86,6 +78,8 @@
 %else
 %global with_canl 0
 %endif
+
+%global pkgdir arc
 
 Name:		@PACKAGE@
 Version:	@baseversion@
@@ -926,6 +920,23 @@ cd -
 %{__python26} -O -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT%{python26_sitearch}"'", 10, "%{python26_sitearch}", 1)' > /dev/null
 %endif
 
+#
+# Remove examples and let RPM package them under %docdir using %doc
+#
+rm -rf $RPM_BUILD_ROOT%{_datadir}/%{pkgdir}/examples
+make -C src/libs/data-staging/examples     DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
+make -C src/hed/libs/compute/examples      DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
+make -C src/hed/libs/data/examples         DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
+make -C src/hed/acc/PythonBroker           DESTDIR=$PWD/docdir/python pkgdatadir= install-exampleDATA
+make -C python/examples                    DESTDIR=$PWD/docdir/python pkgdatadir= install-exampleDATA
+make -C java/examples                      DESTDIR=$PWD/docdir/java   pkgdatadir= install-exampleDATA
+make -C src/clients                        DESTDIR=$PWD/docdir/client pkgdatadir= install-exampleDATA
+make -C src/services/a-rex                 DESTDIR=$PWD/docdir/arex   pkgdatadir= install-exampleDATA
+make -C src/doc                            DESTDIR=$PWD/docdir/base   pkgdatadir= install-exampleDATA
+make -C src/tests/echo                     DESTDIR=$PWD/docdir/hed    pkgdatadir= install-exampleDATA
+make -C src/hed                            DESTDIR=$PWD/docdir/hed    pkgdatadir= install-profileDATA
+
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -1148,17 +1159,16 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libmodcredential.so
 %{_libdir}/%{pkgdir}/libmodcredential.apd
 %{_libexecdir}/%{pkgdir}/arc-file-access
-%dir %{_datadir}/%{pkgdir}/examples
-%doc %{_datadir}/%{pkgdir}/examples/arc.conf.template
-%doc %{_datadir}/%{pkgdir}/examples/arc.conf.reference
 %dir %{_datadir}/%{pkgdir}/test-jobs
 %{_datadir}/%{pkgdir}/test-jobs/test-job-*
 %{_datadir}/%{pkgdir}/schema
 %dir %{_datadir}/%{pkgdir}
 %doc README AUTHORS LICENSE NOTICE ChangeLog
+%doc docdir/base/*
 
 %files client
 %defattr(-,root,root,-)
+%doc docdir/client/*
 %{_bindir}/arcacl
 %{_bindir}/arccat
 %{_bindir}/arcclean
@@ -1183,7 +1193,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_bindir}/arctest
 %{_bindir}/ngclient2arc
 %config(noreplace) %{_sysconfdir}/%{pkgdir}/client.conf
-%doc %{_datadir}/%{pkgdir}/examples/client.conf
 %doc %{_mandir}/man1/arcacl.1*
 %doc %{_mandir}/man1/arccat.1*
 %doc %{_mandir}/man1/arcclean.1*
@@ -1210,13 +1219,12 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files hed
 %defattr(-,root,root,-)
+%doc docdir/hed/*
 %{_initrddir}/arched
 %{_sbindir}/arched
 %{_libdir}/%{pkgdir}/libecho.so
 %{_libdir}/%{pkgdir}/libecho.apd
 %{_datadir}/%{pkgdir}/profiles
-%doc %{_datadir}/%{pkgdir}/examples/config
-%doc %{_datadir}/%{pkgdir}/examples/echo
 %doc %{_mandir}/man8/arched.8*
 %doc %{_mandir}/man5/arc.conf.5*
 
@@ -1292,6 +1300,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files arex
 %defattr(-,root,root,-)
+%doc docdir/arex/*
 %{_initrddir}/a-rex
 %{_libexecdir}/%{pkgdir}/cache-clean
 %{_libexecdir}/%{pkgdir}/cache-list
@@ -1357,7 +1366,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man8/gm-jobs.8*
 %doc %{_mandir}/man1/arc-config-check.1*
 %doc %{_mandir}/man8/arc-vomsac-check.8*
-%doc %{_datadir}/%{pkgdir}/examples/a-rex
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-arex
 %dir %{_localstatedir}/log/arc
 %if %{with_python}
@@ -1388,6 +1396,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files devel
 %defattr(-,root,root,-)
+%doc docdir/devel/*
 %{_includedir}/%{pkgdir}
 %{_libdir}/lib*.so
 %{_bindir}/wsdl2hed
@@ -1396,8 +1405,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/arcplugin.1*
 %{_libdir}/pkgconfig/arcbase.pc
 %doc  src/hed/shc/arcpdp/*.xsd
-%{_datadir}/%{pkgdir}/examples/sdk/*.cpp
-%{_datadir}/%{pkgdir}/examples/sdk/*.h
 
 %files plugins-needed
 %defattr(-,root,root,-)
@@ -1485,6 +1492,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %if %{with_python}
 %files python
 %defattr(-,root,root,-)
+%doc docdir/python/*
 %{python_sitearch}/arc
 %{python_sitelib}/cache
 %{python_sitelib}/echo_python
@@ -1492,8 +1500,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libaccPythonBroker.apd
 %{_libdir}/%{pkgdir}/libpythonservice.so
 %{_libdir}/%{pkgdir}/libpythonservice.apd
-%doc %{_datadir}/%{pkgdir}/examples/PythonBroker
-%{_datadir}/%{pkgdir}/examples/sdk/*.py
 %endif
 
 %if %{?rhel}%{!?rhel:0} == 5
@@ -1511,6 +1517,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %if %{with_java}
 %files java
 %defattr(-,root,root,-)
+%doc docdir/java/*
 %{_libdir}/java/libjarc.so
 %{_libdir}/java/arc.jar
 %{_libdir}/%{pkgdir}/libjavaservice.so
@@ -1518,7 +1525,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %if %{with_gcj}
 %{_libdir}/gcj/%{name}
 %endif
-%{_datadir}/%{pkgdir}/examples/sdk/*.java
 %endif
 
 %files doxygen
