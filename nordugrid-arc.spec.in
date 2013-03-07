@@ -199,7 +199,7 @@ BuildRequires:	junit
 %endif
 %endif
 # Needed for infoprovider testing during make check
-BuildRequires: perl(XML::Simple)
+BuildRequires:	perl(XML::Simple)
 # Needed for LRMS testing during make check
 BuildRequires:	perl(Test::Harness)
 BuildRequires:	perl(Test::Simple)
