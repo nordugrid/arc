@@ -1,4 +1,4 @@
-pkgdata_SCRIPTS = CEinfo.pl # cluster.pl qju.pl se.pl
+pkgdata_SCRIPTS = CEinfo.pl cluster.pl qju.pl se.pl
 dist_pkgdata_SCRIPTS = glue-generator.pl \
 	grid-info-soft-register glite-info-provider-ldap
 
@@ -18,7 +18,7 @@ dist_arcldapschema_DATA = schema/nordugrid.schema
 
 PERL = @PERL@
 
-PERLSCRIPTS = $(dist_pkgdata_DATA) $(pkgdata_SCRIPTS)
+PERLSCRIPTS = $(dist_pkgdata_DATA) CEinfo.pl
 TESTS_ENVIRONMENT = $(PERL) -Mstrict -wc
 TESTS = $(PERLSCRIPTS)
 
