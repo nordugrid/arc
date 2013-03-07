@@ -224,8 +224,8 @@ bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc,
       }
       f<<"joboption_penv_type="<<Arc::tostring(arc_job_desc.Resources.ParallelEnvironment.Type)<<std::endl;
       f<<"joboption_penv_version="<<Arc::tostring(arc_job_desc.Resources.ParallelEnvironment.Version)<<std::endl;
-      f<<"joboption_penv_procperslot="<<(arc_job_desc.Resources.ParallelEnvironment.ProcessesPerSot != -1 ? Arc::tostring(arc_job_desc.Resources.ParallelEnvironment.ProcessesPerSlot):"")<<std::endl;
-      f<<"joboption_penv_threadperslot="<<(arc_job_desc.Resources.ParallelEnvironment.ThreadPerProcess != -1 ? Arc::tostring(arc_job_desc.Resources.ParallelEnvironment.ThreadsPerProcess):"")<<std::endl;
+      f<<"joboption_penv_procperslot="<<(arc_job_desc.Resources.ParallelEnvironment.ProcessesPerSlot != -1 ? Arc::tostring(arc_job_desc.Resources.ParallelEnvironment.ProcessesPerSlot):"")<<std::endl;
+      f<<"joboption_penv_threadperslot="<<(arc_job_desc.Resources.ParallelEnvironment.ThreadsPerProcess != -1 ? Arc::tostring(arc_job_desc.Resources.ParallelEnvironment.ThreadsPerProcess):"")<<std::endl;
 
     }else{
       f<<"joboption_count=1"<<std::endl;
