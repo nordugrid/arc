@@ -358,13 +358,6 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     delete_job_id();
     return;
   };
-  if((!desc.Resources.ParallelEnvironment.Type.empty()) ||
-     (!desc.Resources.ParallelEnvironment.Version.empty())) {
-    failure_="ParallelEnvironment is not supported yet. Use RunTimeEnvironment instead";
-    failure_type_=ARexJobDescriptionUnsupportedError;
-    delete_job_id();
-    return;
-  };
   if(!desc.Resources.Coprocessor.v.empty()) {
     failure_="Coprocessor is not supported yet.";
     failure_type_=ARexJobDescriptionUnsupportedError;
