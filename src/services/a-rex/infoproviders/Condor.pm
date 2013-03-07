@@ -1,14 +1,14 @@
 package Condor;
 
+use strict;
 use POSIX;
-@ISA = ('Exporter');
-@EXPORT_OK = ('cluster_info',
+our @ISA = ('Exporter');
+our @EXPORT_OK = ('cluster_info',
 	      'queue_info',
 	      'jobs_info',
 	      'users_info');
 use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
 use condor_env;
-use strict;
 
 ##########################################
 # Saved private variables

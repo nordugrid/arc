@@ -1,6 +1,6 @@
 package GLUE2ldifPrinter;
 
-use base LdifPrinter;
+use base "LdifPrinter";
 
 sub new {
     my ($this, $handle, $splitjobs) =  @_;

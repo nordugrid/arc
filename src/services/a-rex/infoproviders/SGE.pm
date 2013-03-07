@@ -1,14 +1,14 @@
 package SGE;
 
+use strict;
 use POSIX qw(floor ceil);
-@ISA = ('Exporter');
-@EXPORT_OK = ('lrms_init',
+our @ISA = ('Exporter');
+our @EXPORT_OK = ('lrms_init',
               'cluster_info',
 	      'queue_info',
 	      'jobs_info',
 	      'users_info');
 use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
-use strict;
 
 ##########################################
 # Saved private variables

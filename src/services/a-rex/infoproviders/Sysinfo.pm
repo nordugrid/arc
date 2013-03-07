@@ -1,15 +1,14 @@
 package Sysinfo;
 
+use strict;
 use POSIX;
 use Sys::Hostname;
 
 use Exporter;
-@ISA = ('Exporter');     # Inherit from Exporter
-@EXPORT_OK = qw(cpuinfo meminfo osinfo processid diskinfo diskspaces);
+our @ISA = ('Exporter');     # Inherit from Exporter
+our @EXPORT_OK = qw(cpuinfo meminfo osinfo processid diskinfo diskspaces);
 
 use LogUtils;
-
-use strict;
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 

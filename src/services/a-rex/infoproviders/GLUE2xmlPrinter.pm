@@ -1,6 +1,6 @@
 package GLUE2xmlPrinter;
 
-use base XmlPrinter;
+use base "XmlPrinter";
 
 # the line below is useful for debugging. see http://perldoc.perl.org/Data/Dumper.html for usage
 # use Data::Dumper;

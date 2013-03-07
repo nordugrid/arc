@@ -146,7 +146,7 @@ sub list_subsections($$) {
 
 ########################################################
 package SubstitutingIniParser;
-use base "IniParser";
+our @ISA = ('IniParser');
 
 sub new($$$) {
     my ($this,$arcconf,$arc_location) = @_;

@@ -249,7 +249,7 @@ sub createLdifScript {
 
     switchEffectiveUser($infosys_uid);
 
-    my $tmpscript;
+    my ($h, $tmpscript);
     eval {
         my $template = "ldif-provider.sh.XXXXXXX";
         ($h, $tmpscript) = tempfile($template, DIR => $infosys_runtime_dir);

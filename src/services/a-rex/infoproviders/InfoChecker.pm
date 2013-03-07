@@ -1,6 +1,6 @@
 package InfoChecker;
 
-use base Exporter;
+use base 'Exporter';
 
 use strict;
 

@@ -1,4 +1,4 @@
-pkgdata_SCRIPTS = CEinfo.pl cluster.pl qju.pl se.pl
+pkgdata_SCRIPTS = CEinfo.pl # cluster.pl qju.pl se.pl
 dist_pkgdata_SCRIPTS = glue-generator.pl \
 	grid-info-soft-register glite-info-provider-ldap
 
@@ -15,5 +15,13 @@ dist_pkgdata_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm DGBridge.pm \
 
 arcldapschemadir = $(pkgdatadir)/ldap-schema
 dist_arcldapschema_DATA = schema/nordugrid.schema
+
+PERL = @PERL@
+
+PERLSCRIPTS = $(dist_pkgdata_DATA) $(pkgdata_SCRIPTS)
+TESTS_ENVIRONMENT = $(PERL) -Mstrict -wc
+TESTS = $(PERLSCRIPTS)
+
+check_SCRIPTS = $(PERLSCRIPTS)
 
 SUBDIRS = test

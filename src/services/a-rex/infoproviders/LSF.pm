@@ -1,12 +1,12 @@
 package LSF;
 
-@ISA = ('Exporter');
-@EXPORT_OK = ('cluster_info',
+use strict;
+our @ISA = ('Exporter');
+our @EXPORT_OK = ('cluster_info',
 	      'queue_info',
 	      'jobs_info',
 	      'users_info');
 use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
-use strict;
 
 ##########################################
 # Saved private variables
@@ -147,8 +147,8 @@ sub queue_info_user ($$$) {
          $lrms_queue{maxqueuable} = "$q_mjobs";
          if ($q_mjobs eq "-") {
             $lrms_queue{totalcpus} = totalcpus();         
-	    $lrms_queue(maxrunning) = $lrms_queue(totalcpus);
-            $lrms_queue{maxqueuable} = $lrms_queue(totalcpus);
+	    $lrms_queue{maxrunning} = $lrms_queue{totalcpus};
+            $lrms_queue{maxqueuable} = $lrms_queue{totalcpus};
          }
          $lrms_queue{maxuserrun} = "$q_mslots";
 	 if ($q_mslots eq "-"){
@@ -177,7 +177,7 @@ sub queue_info_user ($$$) {
          chomp($line2);
          my (@mcput)= split(" ", $line2);
 	 #change from float to int.
-	 $mcput[0]=~ s/(\d+).*/\1/;
+	 $mcput[0]=~ s/(\d+).*/$1/;
 	 if ($lastline =~ '^DEFAULT'){
             $lrms_queue{defaultcput} = "$mcput[0]";
          } else {
@@ -192,7 +192,7 @@ sub queue_info_user ($$$) {
          chomp($line2);
          my (@mcput)= split(" ", $line2);
 	 #change from float to int.
-	 $mcput[0]=~ s/(\d+).*/\1/;
+	 $mcput[0]=~ s/(\d+).*/$1/;
 	 if ($lastline =~ '^DEFAULT'){
             $lrms_queue{defaultwallt} = "$mcput[0]";
          } else {

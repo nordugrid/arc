@@ -1,6 +1,7 @@
 package NGldifPrinter;
 
-use base LdifPrinter;
+use strict;
+use base 'LdifPrinter';
 
 use POSIX;
 

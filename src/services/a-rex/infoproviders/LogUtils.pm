@@ -13,15 +13,15 @@ package LogUtils;
 #    warning("Oops!");
 #    error("Can't go on!");
 
+use strict;
+
 use POSIX;
 use FileHandle;
 use File::Basename;
 
 use Exporter;
-@ISA = ('Exporter');     # Inherit from Exporter
-@EXPORT_OK = qw(start_logging error warning info verbose debug);
-
-use strict;
+our @ISA = ('Exporter');     # Inherit from Exporter
+our @EXPORT_OK = qw(start_logging error warning info verbose debug);
 
 our %names = (FATAL => 0, ERROR => 1, WARNING => 2, INFO => 3, VERBOSE => 4, DEBUG => 5);
 

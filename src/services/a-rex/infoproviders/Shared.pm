@@ -3,15 +3,15 @@ package Shared;
 # Subroutines common to cluster.pl and qju.pl
 #
 
+use strict;
 use Exporter;
-@ISA = ('Exporter');     # Inherit from Exporter
-@EXPORT_OK = ( 'mds_valid',
+our @ISA = ('Exporter');     # Inherit from Exporter
+our @EXPORT_OK = ( 'mds_valid',
 	       'post_process_config',
 	       'print_ldif_data',
                'diskspace',
                'diskspaces');
 use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
-use strict;
 
 sub post_process_config (%) {
     # post processes %main::config
@@ -65,7 +65,7 @@ sub mds_valid ($){
 }
 
 
-sub print_ldif_data (@%) {
+sub print_ldif_data (\@\%) {
     my ($fields) = shift;
     my ($data) = shift;
     my ($k, $cc);

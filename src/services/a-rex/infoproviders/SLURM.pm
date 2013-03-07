@@ -1,19 +1,19 @@
 package SLURM;
 
+use strict;
 use POSIX qw(ceil floor);
 
-@ISA = ('Exporter');
+our @ISA = ('Exporter');
 
 # Module implements these subroutines for the LRMS interface
 
-@EXPORT_OK = ('cluster_info',
+our @EXPORT_OK = ('cluster_info',
               'queue_info',
               'jobs_info',
               'users_info',
               'nodes_info');
 
 use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
-use strict;
 
 ##########################################
 # Saved private variables

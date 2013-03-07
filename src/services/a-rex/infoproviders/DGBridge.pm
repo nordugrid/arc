@@ -1,14 +1,14 @@
 package DGBridge;
 
+use strict;
 use POSIX qw(ceil floor);
 use Sys::Hostname;
-@ISA = ('Exporter');
-@EXPORT_OK = ('cluster_info',
+our @ISA = ('Exporter');
+our @EXPORT_OK = ('cluster_info',
 	      'queue_info',
 	      'jobs_info',
 	      'users_info');
 use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
-use strict;
 
 ##########################################
 # Saved private variables

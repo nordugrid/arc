@@ -50,6 +50,8 @@ AC_DISABLE_STATIC
 AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 
+AC_CHECK_PROG(PERL, perl, perl, :)
+
 # EL-5 compatibility.  $(mkdir_p) is now obsolete.
 test -n "$MKDIR_P" || MKDIR_P="$mkdir_p"
 AC_SUBST([MKDIR_P])

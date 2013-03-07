@@ -1,15 +1,15 @@
 package SLURMmod;
 
+use strict;
 use POSIX qw(ceil floor);
 
-@ISA = ('Exporter');
+our @ISA = ('Exporter');
 
 # Module implements these subroutines for the LRMS interface
 
-@EXPORT_OK = ('get_lrms_info', 'get_lrms_options_schema');
+our @EXPORT_OK = ('get_lrms_info', 'get_lrms_options_schema');
 
 use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
-use strict;
 
 ##########################################
 # Public variables

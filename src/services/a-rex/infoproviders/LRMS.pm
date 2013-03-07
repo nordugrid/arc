@@ -16,9 +16,10 @@ package LRMS;
 #    to the select_lrms subroutine in this module, and the module reference
 #    itself, naturally.
 
+use strict;
 use Exporter;
-@ISA = ('Exporter');     # Inherit from Exporter
-@EXPORT_OK = ( 'select_lrms',
+our @ISA = ('Exporter');     # Inherit from Exporter
+our @EXPORT_OK = ( 'select_lrms',
 	       'cluster_info',
 	       'queue_info',
 	       'jobs_info',
@@ -31,8 +32,6 @@ use LL;
 use LSF;
 use Condor;
 use SLURM;
-
-use strict;
 
 our ( $lrms_name, $cluster_info, $queue_info, $jobs_info, $users_info ); 
 
