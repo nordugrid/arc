@@ -258,9 +258,9 @@ bool GridManager::thread() {
     logger.msg(Arc::INFO,"Jobs cleaned");
   };
   */
-  // check if cleaning is enabled, if so activate cleaning thread
+  // check if cache cleaning is enabled, if so activate cleaning thread
+  cache_st cache_h(&config_);
   if (!config_.CacheParams().getCacheDirs().empty() && config_.CacheParams().cleanCache()) {
-    cache_st cache_h(&config_);
     if(!Arc::CreateThreadFunction(cache_func,&cache_h,&cache_h.counter)) {
       logger.msg(Arc::INFO,"Failed to start new thread: cache won't be cleaned");
     }
