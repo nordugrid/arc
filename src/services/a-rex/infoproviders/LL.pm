@@ -558,7 +558,7 @@ sub jobs_info ($$$) {
 	$lrms_jobs{$id}{cputime} = 0;
         if (defined $jobinfo{$id}{Step_Total_Time}) {
             my (@cput) = split(/:/,$jobinfo{$id}{Step_Total_Time});       
-            my (@cpudh) = split(/+/,$cput[0]);
+            my (@cpudh) = split(/\+/,$cput[0]);
             if (@cpudh == 2){
                $cput[0]= 24*$cpudh[0] + $cpudh[1];
             }
