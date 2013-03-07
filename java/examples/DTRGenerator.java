@@ -10,7 +10,6 @@
 // architecture. 
 
 import nordugrid.arc.*; // For the sake of brevity in this example import everything from arc
-import com.sun.security.auth.module.UnixSystem; // to get uid
 
 // Implementation of DTR Generator.
 // Cannot inherit from DTRCallback as it is a pure virtual class and swig does not
@@ -57,9 +56,10 @@ class DTRGenerator extends Scheduler {
         DTRLogger dtrlog = arc.createDTRLogger(Logger.getRootLogger(), "DTR");
         dtrlog.addDestination(logdest);
 
+        // Use current user's uid for the transfer
+        User user = new User();
         // Create a DTR
-        UnixSystem unix = new UnixSystem();
-        DTRPointer dtr = arc.createDTRPtr(source, dest, cfg, id, (int)unix.getUid(), dtrlog);
+        DTRPointer dtr = arc.createDTRPtr(source, dest, cfg, id, user.get_uid(), dtrlog);
         logger.msg(LogLevel.INFO, "Created DTR "+ dtr.get_id());
 
         // Register this callback in order to receive completed DTRs
