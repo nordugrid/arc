@@ -16,7 +16,10 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.3.1 r9886"
-   sodipodi:docname="arcsdk.svg">
+   sodipodi:docname="arcsdk.svg"
+   inkscape:export-filename="/home/skou/nordugrid/svn-area/arc1-exp-3/src/doxygen/images/arcsdk.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <defs
      id="defs4">
     <marker
@@ -182,9 +185,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.98994949"
-     inkscape:cx="348.72518"
-     inkscape:cy="208.38532"
+     inkscape:zoom="0.7"
+     inkscape:cx="390.72846"
+     inkscape:cy="382.88548"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -263,7 +266,7 @@
        id="guide21751" />
     <sodipodi:guide
        orientation="0,1"
-       position="713.35299,50.096151"
+       position="103.25418,47.823463"
        id="guide21831" />
     <sodipodi:guide
        orientation="1,0"
@@ -275,7 +278,7 @@
        id="guide21835" />
     <sodipodi:guide
        orientation="0,1"
-       position="328.21429,14.696616"
+       position="129.04699,83.460487"
        id="guide21837" />
     <sodipodi:guide
        orientation="1,0"
@@ -291,7 +294,7 @@
        id="guide4119" />
     <sodipodi:guide
        orientation="0,1"
-       position="483.37561,16.610229"
+       position="57.571274,12.186378"
        id="guide4121" />
     <sodipodi:guide
        orientation="1,0"
@@ -313,6 +316,10 @@
        orientation="0,1"
        position="252.85714,168.29832"
        id="guide4153" />
+    <sodipodi:guide
+       orientation="1,0"
+       position="244.35779,218.41314"
+       id="guide4263" />
   </sodipodi:namedview>
   <metadata
      id="metadata7">
@@ -322,7 +329,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -1327,149 +1334,60 @@
        inkscape:export-filename="/home/skou/nordugrid/arcsdk.png"
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90" />
-    <g
-       id="g17646"
-       transform="translate(31.47169,26.161945)"
-       inkscape:export-filename="/home/skou/nordugrid/arcsdk.png"
-       inkscape:export-xdpi="90"
-       inkscape:export-ydpi="90">
-      <rect
-         y="493.00415"
-         x="326.01398"
-         height="133.91975"
-         width="212.82272"
-         id="rect4951-5-8-6"
-         style="fill:#f0f0ec;fill-opacity:1;stroke:#a0a0a0;stroke-width:0.70235425;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-         rx="5"
-         ry="5" />
-      <g
-         transform="translate(212.97412,157.29141)"
-         id="g17256">
-        <rect
-           style="fill:#67a430;fill-opacity:1;stroke:none"
-           id="rect12789-62"
-           width="91.365814"
-           height="28.637047"
-           x="222.95122"
-           y="355.73325"
-           rx="2.2472827"
-           ry="1.9285194" />
-        <rect
-           style="fill:#67a430;fill-opacity:1;stroke:none"
-           id="rect12789-7-02"
-           width="91.365814"
-           height="28.637047"
-           x="124.5854"
-           y="355.73325"
-           rx="2.2472827"
-           ry="1.9285194" />
-        <rect
-           style="fill:#67a430;fill-opacity:1;stroke:none"
-           id="rect12789-0-7"
-           width="91.365814"
-           height="28.637047"
-           x="124.5854"
-           y="391.37027"
-           rx="2.2472827"
-           ry="1.9285194" />
-        <rect
-           style="fill:#67a430;fill-opacity:1;stroke:none"
-           id="rect12789-3-4"
-           width="91.365814"
-           height="28.637047"
-           x="222.95122"
-           y="391.37027"
-           rx="2.2472827"
-           ry="1.9285194" />
-        <rect
-           style="fill:#67a430;fill-opacity:1;stroke:none"
-           id="rect12789-3-4-0"
-           width="91.365814"
-           height="28.637047"
-           x="124.5854"
-           y="427.00735"
-           rx="2.2472827"
-           ry="1.9285194" />
-        <flowRoot
-           xml:space="preserve"
-           style="font-size:16px;font-style:normal;font-weight:bold;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
-           id="flowRoot17214"><flowRegion
-             id="flowRegion17216"><use
-               x="0"
-               y="0"
-               xlink:href="#rect12789-7-02"
-               id="use17218"
-               transform="translate(5.4423828e-6,3.0304576)"
-               width="1052.3622"
-               height="744.09448" /></flowRegion><flowPara
-             id="flowPara17220"
-             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Bold">EMI ES</flowPara></flowRoot>        <flowRoot
-           xml:space="preserve"
-           style="font-size:16px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:ubuntu;-inkscape-font-specification:ubuntu"
-           id="flowRoot17222"><flowRegion
-             id="flowRegion17224"><use
-               x="0"
-               y="0"
-               xlink:href="#rect12789-62"
-               id="use17226"
-               transform="translate(5.4423828e-6,3.0304576)"
-               width="1052.3622"
-               height="744.09448" /></flowRegion><flowPara
-             id="flowPara17228"
-             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Bold">BES</flowPara></flowRoot>        <flowRoot
-           xml:space="preserve"
-           style="font-size:16px;font-style:normal;font-weight:bold;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
-           id="flowRoot17230"><flowRegion
-             id="flowRegion17232"><use
-               x="0"
-               y="0"
-               xlink:href="#rect12789-0-7"
-               id="use17234"
-               transform="translate(5.4423828e-6,3.0304576)"
-               width="1052.3622"
-               height="744.09448" /></flowRegion><flowPara
-             id="flowPara17236"
-             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Bold">GridFTP</flowPara></flowRoot>        <flowRoot
-           xml:space="preserve"
-           style="font-size:16px;font-style:normal;font-weight:bold;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
-           id="flowRoot17238"><flowRegion
-             id="flowRegion17240"><use
-               x="0"
-               y="0"
-               xlink:href="#rect12789-3-4"
-               id="use17242"
-               transform="translate(5.4423828e-6,3.0304576)"
-               width="1052.3622"
-               height="744.09448" /></flowRegion><flowPara
-             id="flowPara17244"
-             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Bold">CREAM</flowPara></flowRoot>        <flowRoot
-           xml:space="preserve"
-           style="font-size:16px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:ubuntu;-inkscape-font-specification:ubuntu"
-           id="flowRoot17246"><flowRegion
-             id="flowRegion17248"><use
-               height="744.09448"
-               width="1052.3622"
-               x="0"
-               y="0"
-               xlink:href="#rect12789-3-4-0"
-               id="use17250" /></flowRegion><flowPara
-             id="flowPara17252"
-             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Bold">custom</flowPara><flowPara
-             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Bold"
-             id="flowPara17254" /></flowRoot>      </g>
-      <flowRoot
-         id="flowRoot17638"
-         style="font-size:16px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
-         xml:space="preserve"><flowRegion
-           id="flowRegion17640"><use
-             id="use17642"
-             xlink:href="#rect4951-5-8-6"
-             y="0"
-             x="0"
-             width="1052.3622"
-             height="744.09448" /></flowRegion><flowPara
-           style="font-size:14px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Bold"
-           id="flowPara17644">Computing Services</flowPara></flowRoot>    </g>
+    <rect
+       ry="5"
+       rx="5"
+       style="fill:#f0f0ec;fill-opacity:1;stroke:#a0a0a0;stroke-width:0.70235425;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect4951-5-8-6"
+       width="212.82272"
+       height="133.91975"
+       x="357.48566"
+       y="519.16608" />
+    <rect
+       style="fill:#67a430;fill-opacity:1;stroke:none"
+       id="rect12789-62"
+       width="91.365814"
+       height="28.637047"
+       x="467.31735"
+       y="541.69684"
+       rx="2.2472827"
+       ry="1.9285194" />
+    <rect
+       style="fill:#67a430;fill-opacity:1;stroke:none"
+       id="rect12789-7-02"
+       width="91.365814"
+       height="28.637047"
+       x="368.95154"
+       y="541.69684"
+       rx="2.2472827"
+       ry="1.9285194" />
+    <rect
+       style="fill:#67a430;fill-opacity:1;stroke:none"
+       id="rect12789-0-7"
+       width="91.365814"
+       height="28.637047"
+       x="368.95154"
+       y="577.33386"
+       rx="2.2472827"
+       ry="1.9285194" />
+    <rect
+       style="fill:#67a430;fill-opacity:1;stroke:none"
+       id="rect12789-3-4"
+       width="91.365814"
+       height="28.637047"
+       x="467.31735"
+       y="577.33386"
+       rx="2.2472827"
+       ry="1.9285194" />
+    <rect
+       style="fill:#67a430;fill-opacity:1;stroke:none"
+       id="rect12789-3-4-0"
+       width="91.365814"
+       height="28.637047"
+       x="368.95154"
+       y="612.97095"
+       rx="2.2472827"
+       ry="1.9285194" />
     <flowRoot
        xml:space="preserve"
        style="font-size:14px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Bold"
@@ -2050,5 +1968,87 @@
        inkscape:export-filename="/home/skou/nordugrid/arcsdk.png"
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90" />
-  </g>
+    <flowRoot
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+       id="flowRoot4187"><flowRegion
+         id="flowRegion4189"><use
+           x="0"
+           y="0"
+           xlink:href="#rect4951-5-8-6"
+           id="use4191" /></flowRegion><flowPara
+         style="font-size:14px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Bold"
+         id="flowPara4193">Computing Services</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+       id="flowRoot4221"
+       transform="translate(-0.07967948,7.5400593)"><flowRegion
+         id="flowRegion4223"><use
+           x="0"
+           y="0"
+           xlink:href="#rect12789-7-02"
+           id="use4225"
+           width="776.18542"
+           height="516.48187"
+           transform="translate(0.07967948,-3.8919885)" /></flowRegion><flowPara
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Bold"
+         id="flowPara4227">EMI ES</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+       id="flowRoot4229"
+       transform="translate(-0.07967948,8.6585833)"><flowRegion
+         id="flowRegion4231"><use
+           x="0"
+           y="0"
+           xlink:href="#rect12789-0-7"
+           id="use4233"
+           width="776.18542"
+           height="516.48187"
+           transform="translate(0.07967948,-4.4480125)" /></flowRegion><flowPara
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Bold"
+         id="flowPara4235">GridFTP</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:ubuntu;-inkscape-font-specification:ubuntu"
+       id="flowRoot4237"
+       transform="translate(-0.07967948,7.0901682)"><flowRegion
+         id="flowRegion4239"><use
+           x="0"
+           y="0"
+           xlink:href="#rect12789-3-4-0"
+           id="use4241"
+           width="776.18542"
+           height="516.48187"
+           transform="translate(0.07967948,-3.6608474)" /></flowRegion><flowPara
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Bold"
+         id="flowPara4243">custom</flowPara><flowPara
+         id="flowPara4245"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Bold" /></flowRoot>    <flowRoot
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:ubuntu;-inkscape-font-specification:ubuntu"
+       id="flowRoot4247"
+       transform="translate(-0.07967948,7.5400593)"><flowRegion
+         id="flowRegion4249"><use
+           x="0"
+           y="0"
+           xlink:href="#rect12789-62"
+           id="use4251"
+           width="776.18542"
+           height="516.48187"
+           transform="translate(0.07967948,-3.8919885)" /></flowRegion><flowPara
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;text-anchor:middle;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Bold"
+         id="flowPara4253">BES</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+       id="flowRoot4255"
+       transform="translate(-0.07967948,7.5520833)"><flowRegion
+         id="flowRegion4257"><use
+           x="0"
+           y="0"
+           xlink:href="#rect12789-3-4"
+           id="use4259"
+           width="776.18542"
+           height="516.48187"
+           transform="translate(0.07967948,-3.9040125)" /></flowRegion><flowPara
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Bold"
+         id="flowPara4261">CREAM</flowPara></flowRoot>  </g>
 </svg>
