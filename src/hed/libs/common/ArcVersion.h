@@ -61,7 +61,7 @@ namespace Arc {
    * interfaces, matching and ranking algorithms, data access protocols and
    * job description languages.
    * 
-   * \image html myarcsdk.png
+   * \image html arcsdk.png
    *
    * \version The version of the SDK that this documentation refers to can be
    * found from #ARC_VERSION. The ARC release corresponding to the SDK version
