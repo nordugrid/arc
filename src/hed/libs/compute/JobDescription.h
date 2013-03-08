@@ -452,6 +452,7 @@ namespace Arc {
     SlotRequirementType SlotRequirement;
     ParallelEnvironmentType ParallelEnvironment;
     OptIn<std::string> Coprocessor;
+    /// Name of queue to use
     std::string QueueName;
     SoftwareRequirement RunTimeEnvironment;
   };
@@ -470,39 +471,84 @@ namespace Arc {
     std::string DelegationID;
   };
 
+  /// Represent an output file destination 
   /**
    * \ingroup jobdescription
    * \headerfile JobDescription.h arc/compute/JobDescription.h
    */
   class TargetType: public URL {
   public:
+    /// Default constructor
+    /**
+     * Creation flag is set to CFE_DEFAULT, UserIfFailure is set to false,
+     * UserIfCancel is set to false, UserIfSuccess is set to true and
+     * DelegationID is empty. Default URL constructor is used.
+     **/
     TargetType() :
       CreationFlag(CFE_DEFAULT),
       UseIfFailure(false),
       UseIfCancel(false),
       UseIfSuccess(true) {};
+    /// Constructor destination from URL
+    /**
+     * Uses same defaults as TargetType(). Passes argument to URL constructor.
+     **/
     TargetType(const URL& u) :
       URL(u),
       CreationFlag(CFE_DEFAULT),
       UseIfFailure(false),
       UseIfCancel(false),
       UseIfSuccess(true) {};
+    /// Constructor destination from string
+    /**
+     * Uses same defaults as TargetType(). Passes argument to URL constructor.
+     **/
     TargetType(const std::string& s) :
       URL(s),
       CreationFlag(CFE_DEFAULT),
       UseIfFailure(false),
       UseIfCancel(false),
       UseIfSuccess(true) {};
+    
+    /// Delegation ID to use
+    /**
+     * Specifies the delegation ID to use when accessing this destination.
+     **/
     std::string DelegationID;
+    
     enum CreationFlagEnumeration {
-      CFE_DEFAULT,
-      CFE_OVERWRITE,
-      CFE_APPEND,
-      CFE_DONTOVERWRITE
+      CFE_DEFAULT, /**< Default action should be used (default w.r.t. the service).*/
+      CFE_OVERWRITE, /**< Overwrite an existing file. */
+      CFE_APPEND, /**< Append file to an possible existing file. */
+      CFE_DONTOVERWRITE /**< Don't overwrite an existing file. */
     };
+    
+    /// Output file creation flag
+    /**
+     * Specifies what action should be taken when creating output file at this
+     * destination.
+     **/
     CreationFlagEnumeration CreationFlag;
+    
+    /// Action in case job failed
+    /**
+     * Specifies whether this destination should used in case job failed
+     * (JobState::FAILED).
+     **/
     bool UseIfFailure;
+    
+    /// Action in case job was cancelled
+    /**
+     * Specifies whether this destination should be used in case job was
+     * cancelled (JobState::KILLED).
+     **/
     bool UseIfCancel;
+
+    /// Action in case job succeeded
+    /**
+     * Specifies whether this destination should be used in case job succeeded
+     * (JobState::FINISHED).
+     **/
     bool UseIfSuccess;
   };
 
@@ -525,6 +571,7 @@ namespace Arc {
     std::list<SourceType> Sources;
   };
 
+  /// An output file
   /**
    * \ingroup jobdescription
    * \headerfile JobDescription.h arc/compute/JobDescription.h
@@ -532,10 +579,13 @@ namespace Arc {
   class OutputFileType {
   public:
     OutputFileType() : Name("") {};
+    /// Name of output file
     std::string Name;
+    /// List of destinations for which the output file should be copied
     std::list<TargetType> Targets;
   };
 
+  /// Simple structure for in- and output files.
   /**
    * \ingroup jobdescription
    * \headerfile JobDescription.h arc/compute/JobDescription.h
@@ -543,7 +593,10 @@ namespace Arc {
   class DataStagingType {
   public:
     DataStagingType() {};
+    
+    /// List of inputfiles
     std::list<InputFileType> InputFiles;
+    /// List of outputfiles
     std::list<OutputFileType> OutputFiles;
   };
 
@@ -590,17 +643,12 @@ namespace Arc {
 
     JobDescription(const JobDescription& j, bool withAlternatives = true);
 
-    JobIdentificationType Identification;
-    ApplicationType Application;
-    ResourcesType Resources;
-    DataStagingType DataStaging;
-
-    JobDescription& operator=(const JobDescription& j);
-
     // Language wrapper constructor
     JobDescription(const long int& ptraddr);
 
     ~JobDescription() {}
+
+    JobDescription& operator=(const JobDescription& j);
 
     void AddAlternative(const JobDescription& j);
 
@@ -646,7 +694,6 @@ namespace Arc {
      * @return
      **/
     JobDescriptionResult UnParse(std::string& product, std::string language, const std::string& dialect = "") const;
-
 
     /// Get input source language
     /**
@@ -715,6 +762,33 @@ namespace Arc {
     bool Prepare() { return Prepare(NULL); }
 
     static bool GetTestJob(int testid, JobDescription& jobdescription);
+
+    /// Structure for identification
+    /**
+     * This member object stores information which can be used to identify the
+     * job description.
+     **/
+    JobIdentificationType Identification;
+    
+    /// Structure for apllication options
+    /**
+     * All options relating to the application is stored in this structure.
+     **/
+    ApplicationType Application;
+    
+    /// Structure for resource requirements
+    /**
+     * This structure specifies requirements which should be satisfied before
+     * application can be started.
+     **/
+    ResourcesType Resources;
+    
+    /// Structure for data staging
+    /**
+     * Input files requirements, and destinations for output files can be
+     * specified using this structure.
+     **/
+    DataStagingType DataStaging;
 
     /// Holds attributes not fitting into this class
     /**
