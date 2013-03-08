@@ -53,6 +53,15 @@ namespace Arc {
    * manipulation of jobs and data in a Grid environment. The SDK is divided
    * into a set of <a href="modules.html">modules</a> which take care of
    * different aspects of Grid interaction.
+   * 
+   * In the figure below an overview of the SDK is illustrated, showing
+   * software components depending on the SDK, supported security standards and
+   * in particular plugins providing functionality for different index and
+   * registry services, local information systems, job submission and management
+   * interfaces, matching and ranking algorithms, data access protocols and
+   * job description languages.
+   * 
+   * \image html myarcsdk.png
    *
    * \version The version of the SDK that this documentation refers to can be
    * found from #ARC_VERSION. The ARC release corresponding to the SDK version
