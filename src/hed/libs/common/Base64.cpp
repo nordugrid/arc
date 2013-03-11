@@ -9,6 +9,7 @@
 #include <openssl/evp.h>
 */
 #include <iostream>
+#include <string.h>
 
 #include "Base64.h"
 
@@ -134,5 +135,26 @@ namespace Arc {
       bufcoded.append(encoded,4);
     }
     return bufcoded;
+  }
+
+  int Base64::encode_len(int len) {
+    return ((len + 2) / 3 * 4) + 1;
+  }
+
+  int Base64::encode(char *encoded, const char *string, int len) {
+    std::string str(string, len);
+    strncpy(encoded, encode(str).c_str(), str.length());
+    return 0;
+  }
+
+  int Base64::decode_len(const char *bufcoded) {
+    std::string str(bufcoded);
+    return (((str.length() + 3) / 4) * 3) + 1;
+  }
+
+  int Base64::decode(char *bufplain, const char *bufcoded) {
+    std::string str(bufcoded);
+    strncpy(bufplain, decode(str).c_str(), str.length());
+    return 0;
   }
 }

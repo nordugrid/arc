@@ -21,6 +21,17 @@ namespace Arc {
     static std::string encode(const std::string& bufplain);
     /// Decode a string from base 64
     static std::string decode(const std::string& bufcoded);
+
+    // The next 4 methods are legacy API kept for backwards compatibility. They
+    // can be removed in the next major version.
+    static int encode_len(int len);
+    /// Encode a string to base 64
+    /** \deprecated Use encode(std::string&) instead */
+    static int encode(char *encoded, const char *string, int len);
+    static int decode_len(const char *bufcoded);
+    /// Decode a string from base 64
+    /** \deprecated Use decode(std::string&) instead */
+    static int decode(char *bufplain, const char *bufcoded);
   };
 } // namespace Arc
 
