@@ -92,6 +92,18 @@ void DTRGenerator::thread() {
   }
   // stop scheduler - cancels all DTRs and waits for them to complete
   scheduler->stop();
+  // Handle all the DTRs returned by the scheduler, in case there are completed
+  // DTRs to process before exiting and thus avoiding redoing those transfers
+  // when A-REX restarts.
+  // Lock is not necessary here because scheduler has finished and A-REX is
+  // waiting for this thread to exit.
+  std::list<DataStaging::DTR_ptr>::iterator it_dtrs = dtrs_received.begin();
+  while (it_dtrs != dtrs_received.end()) {
+    processReceivedDTR(*it_dtrs);
+    // delete DTR LogDestinations
+    (*it_dtrs)->get_logger()->deleteDestinations();
+    it_dtrs = dtrs_received.erase(it_dtrs);
+  }
   run_condition.signal();
   logger.msg(Arc::INFO, "Exiting Generator thread");
 }
