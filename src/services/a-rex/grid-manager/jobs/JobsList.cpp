@@ -615,8 +615,8 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       bool result = true;
 
       // check for failure
-      if (!i->GetFailure(config).empty() && !already_failed) {
-        JobFailStateRemember(i, (up ? JOB_STATE_FINISHING : JOB_STATE_PREPARING));
+      if (!i->GetFailure(config).empty()) {
+        if (!already_failed) JobFailStateRemember(i, (up ? JOB_STATE_FINISHING : JOB_STATE_PREPARING));
         result = false;
       }
       else if (!up) { // check for user-uploadable files if downloading
