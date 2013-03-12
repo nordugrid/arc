@@ -120,6 +120,8 @@ namespace DataStaging {
     delivery_pair_t* dp = (delivery_pair_t*)arg;
     delete dp->comm;
     dp->comm = NULL;
+    // In case transfer finished before getting cancel signal, delete destination
+    if (dp->cancelled || dp->dtr->error()) dp->dtr->get_destination()->Remove();
   }
 
   bool DataDelivery::delete_delivery_pair(delivery_pair_t* dp) {
