@@ -198,6 +198,11 @@ int main(int argc,char* argv[]) {
   }
   buffer.speed.set_min_speed(minspeed,minspeedtime);
 
+  // Checksum objects must be destroyed after DataHandles
+  CheckSumAny crc;
+  CheckSumAny crc_source;
+  CheckSumAny crc_dest;
+
   initializeCredentialsType source_cred(initializeCredentialsType::SkipCredentials);
   UserConfig source_cfg(source_cred);
   if(!source_cred_path.empty()) source_cfg.ProxyPath(source_cred_path);
@@ -246,9 +251,6 @@ int main(int argc,char* argv[]) {
 
   // if checksum type is supplied, use that type, otherwise use default for the
   // destination (if checksum is supported by the destination protocol)
-  CheckSumAny crc;
-  CheckSumAny crc_source;
-  CheckSumAny crc_dest;
   std::string crc_type("");
 
   if (!checksum_type.empty()) {
@@ -321,7 +323,6 @@ int main(int argc,char* argv[]) {
                  "DataStagingProcess process killed",
                  buffer.speed.transferred_size(),
                  GetFileSize(*source,*dest));
-    buffer.error_write(true); // to trigger cleanup of destination
     dest->StopWriting();
     _exit(-1);
   }
