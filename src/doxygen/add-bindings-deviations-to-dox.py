@@ -4,8 +4,10 @@
 Script for parsing Swig interface files (.i) and extracting renames (%rename)
 and ignores (%s), and adding that information to the doxygen generated HTML.
 
+Usage: add-bindings-deviations-to-dox.py <swig.i> <doxygen-html-dir>
+E.g.: add-bindings-deviations-to-dox.py swig-interface.i dox/html
+
 Limitations:
-* Unable to handle nested #ifdef's.
 * Unable to handle #else or #elif statements.
 * Unable to handle templates.
 '''
@@ -13,7 +15,9 @@ Limitations:
 import sys, re
 from os.path import isfile
 
+# Location of swig file
 filename = sys.argv[1]
+# Location of generated doxygen HTML documentation
 sdkDocumentationLocation = sys.argv[2]
 
 inIfdef = []
