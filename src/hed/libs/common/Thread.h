@@ -358,6 +358,7 @@ namespace Arc {
     ~ThreadedPointer(void) {
       delete((T*)(object_->rem()));
     }
+    /// Assign a new ThreadedPointer from a pointer to an object.
     ThreadedPointer<T>& operator=(T *p) {
       if (p != object_->ptr()) {
         delete((T*)(object_->rem()));
@@ -365,6 +366,7 @@ namespace Arc {
       }
       return *this;
     }
+    /// Assign a new ThreadedPointer from another ThreadedPointer.
     ThreadedPointer<T>& operator=(const ThreadedPointer<T>& p) {
       if (p.object_->ptr() != object_->ptr()) {
         delete((T*)(object_->rem()));
