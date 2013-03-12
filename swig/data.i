@@ -102,7 +102,7 @@
 %{
 #include <arc/data/DataBuffer.h>
 %}
-%ignore Arc::DataBuffer::operator[];
+%ignore Arc::DataBuffer::operator[](int);
 #ifdef SWIGPYTHON
 %{
 namespace Arc {
@@ -232,7 +232,6 @@ typedef int gid_t;
 %{
 #include <arc/data-staging/TransferShares.h>
 %}
-%ignore DataStaging::TransferShares::operator=(const TransferShares&);
 %include "../src/libs/data-staging/TransferShares.h"
 %template(StringIntMap) std::map<std::string, int>;
 
