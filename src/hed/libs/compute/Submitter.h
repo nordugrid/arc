@@ -18,9 +18,72 @@ namespace Arc {
   
   /**
    * \defgroup compute ARC Compute Library (libarccompute)
+   * 
+   * libarccompute is a library for discovering, quering, matching and ranking,
+   * submitting jobs to and managing jobs on Grid resources, as well as parsing
+   * and assembling job descriptions. It features a uniform high-level interface
+   * to a wide range of Service Registries, Information Systems and Computing
+   * Services. With this interface, registries can be queried for service
+   * endpoints, information systems can be queried for detailed resource and job
+   * information, and jobs can be submitted to and managed in a Grid
+   * environment. The library doesn't offer specific interfaces to different
+   * services, instead it tries to provide a uniform interface to different kind
+   * of services.
+   * 
+   * An introduction on how to use the library to query services for information
+   * is given in the description of the EntityRetriever class. How to use the
+   * library for submitting jobs is described at the Submitter class reference
+   * page. How to manage jobs with the library is described at the JobSupervisor
+   * class reference page.
+   * 
+   * The library uses ARC's dynamic plugin mechanism to load plugins for
+   * specific services and features only when required at runtime. These plugins
+   * for the libarccompute library are called ARC Compute Components (ACCs).
+   * Each of the classes listed below will transparently load any required ACC
+   * plugins at runtime when needed. If preferred ACC plugins can also be used
+   * and loaded manually, which is described in more detail \ref accplugins
+   * "here".
+   * 
+   * Support for a custom service (info-system, registry or compute), a ranking
+   * algorithm and/or a job description parsing/assembling algorithm is exactly
+   * what is defined as a ACC, and it can easily be added to be accessible to
+   * the libarccompute library. More details about creating such a plugin can be
+   * found \ref accplugins "here".
+   * 
+   * With the default NorduGrid ARC plugins installed the librarccompute library
+   * supports the following services and specifications:
+   * 
+   * <b>Computing Services:</b>
+   * * EMI ES
+   * * BES (+ ARC BES extension)
+   * * CREAM
+   * * GridFTPJob interface (requires the nordugrid-arc-plugins-globus package)
+   * 
+   * <b>Registry and Index Services:</b>
+   * * EMIR
+   * * EGIIS
+   * * Top BDII
+   * 
+   * <b>Local Information Schemes:</b>
+   * * %GLUE2 (through LDAP and EMI ES)
+   * * NorduGrid schema (through LDAP)
+   * * GLUE1 (through LDAP)
+   * 
+   * <b>Matchmaking and Ranking Algorithms:</b>
+   * * Benchmark
+   * * Fastest queue
+   * * ACIX
+   * * Random
+   * * Python interface for custom broker
+   * 
+   * <b>%Job description languages:</b>
+   * * EMI ADL
+   * * xRSL
+   * * JDL
+   * * JSDL (+ Posix and HPC-P extensions)
+   *
    * \page group__compute ARC Compute Library (libarccompute)
-   * \todo Write description of ARC Compute Library
-   */
+   */  
 
   /**
    * \ingroup compute
