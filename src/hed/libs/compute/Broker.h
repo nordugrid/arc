@@ -68,12 +68,103 @@ namespace Arc {
     bool operator() (const ExecutionTarget& lhs, const ExecutionTarget& rhs) const;
     /// Returns true if the ExecutionTarget is allowed by BrokerPlugin.
     bool match(const ExecutionTarget& et) const;
+    
     /// Perform a match between the given target and job.
     /**
      * This method is generally called by BrokerPlugins at the start of match()
      * to check that a target matches general attributes of the job such as CPU
      * and memory limits. The BrokerPlugin then does further matching depending
      * on its own criteria.
+     * 
+     * The table below list all the checks in order made by this method. If a
+     * check fails the method returns false. Generally a check is only made if
+     * the attribute in the left column are set in the JobDescription object.
+     * Contrary if a resource attribute in the right column is not set, and the
+     * corresponding JobDescription attribute is set, then generally the check
+     * will fail and the method returns false. If all relevant checks succeeds
+     * this method returns true.
+     * 
+       %JobDescription attribute | Comparator | %ExecutionTarget attribute 
+       --------------------------|:----------:|----------------------------
+       \ref Credential::GetCAName "CA DN" of \ref Credential::Credential(const UserConfig&, const std::string&) "Credentials" <sup>[\ref genericMatch_Note1 "1"]</sup> | in | \ref ComputingEndpointAttributes::TrustedCA "TrustedCA" <sup>[\ref genericMatch_Note2 "2"]</sup>
+       \ref JobDescription.OtherAttributes "OtherAttributes"["nordugrid:broker;reject_queue"] | != | \ref ComputingShareAttributes.Name "ComputingShare.Name"
+       \ref ResourcesType.QueueName "QueueName" | == | \ref ComputingShareAttributes.Name "ComputingShare.Name"
+       \ref ApplicationType.ProcessingStartTime "ProcessingStartTime" | < | \ref ComputingEndpointAttributes.DowntimeStarts "DowntimeStarts"
+       \ref ApplicationType.ProcessingStartTime "ProcessingStartTime" | > | \ref ComputingEndpointAttributes.DowntimeEnds "DowntimeEnds"
+       --- | | \ref lower "lower"(\ref ComputingEndpointAttributes::HealthState "HealthState") == "ok"
+       \ref ResourcesType.CEType "CEType" | \ref SoftwareRequirement.isSatisfied "isSatisfied" | \ref ComputingEndpointAttributes.Implementation "Implementation"
+       \ref ResourcesType.IndividualWallTime "IndividualWallTime".max | <= | \ref ComputingShareAttributes.MaxWallTime "MaxWallTime"
+       \ref ResourcesType.IndividualWallTime "IndividualWallTime".min | >= | \ref ComputingShareAttributes.MinWallTime "MinWallTime"
+       \ref ResourcesType.IndividualCPUTime "IndividualCPUTime".max | <= | \ref ComputingShareAttributes.MaxCPUTime "MaxCPUTime"
+       \ref ResourcesType.IndividualCPUTime "IndividualCPUTime".min | >= | \ref ComputingShareAttributes.MinCPUTime "MinCPUTime"
+       \ref ResourcesType.TotalCPUTime "TotalCPUTime" | <= | \ref ComputingShareAttributes.MaxTotalCPUTime "MaxTotalCPUTime" <sup>[\ref genericMatch_Note3 "3"]</sup>
+       \ref ResourcesType.TotalCPUTime "TotalCPUTime" / \ref SlotRequirementType.NumberOfSlots "NumberOfSlots" | <= | \ref ComputingShareAttributes.MaxCPUTime "MaxCPUTime" <sup>[\ref genericMatch_Note4 "4"]</sup>
+       \ref ResourcesType.TotalCPUTime "TotalCPUTime" / \ref SlotRequirementType.NumberOfSlots "NumberOfSlots" | >= | \ref ComputingShareAttributes.MinCPUTime "MinCPUTime"
+       \ref ResourcesType.IndividualPhysicalMemory "IndividualPhysicalMemory" | <= | \ref ExecutionEnvironmentAttributes.MainMemorySize "MainMemorySize" <sup>[\ref genericMatch_Note5 "5"]</sup>
+       \ref ResourcesType.IndividualPhysicalMemory "IndividualPhysicalMemory" | <= | \ref ComputingShareAttributes.MaxMainMemory "MaxMainMemory" <sup>[\ref genericMatch_Note6 "6"]</sup>
+       \ref ResourcesType.IndividualVirtualMemory "IndividualVirtualMemory" | <= | \ref ComputingShareAttributes.MaxVirtualMemory "MaxVirtualMemory"
+       \ref ResourcesType.Platform "Platform" | == | \ref ExecutionEnvironmentAttributes.Platform "Platform"
+       \ref ResourcesType.OperatingSystem "OperatingSystem" | \ref SoftwareRequirement.isSatisfied "isSatisfied" | \ref ExecutionEnvironmentAttributes.OperatingSystem "OperatingSystem"
+       \ref ResourcesType.RunTimeEnvironment "RunTimeEnvironment" | \ref SoftwareRequirement.isSatisfied "isSatisfied" | ApplicationEnvironment
+       \ref ResourcesType.NetworkInfo "NetworkInfo" | in | \ref ComputingManagerAttributes.NetworkInfo "NetworkInfo"
+       \ref DiskSpaceRequirementType.SessionDiskSpace "SessionDiskSpace" | <= | 1024*\ref ComputingShareAttributes.MaxDiskSpace "MaxDiskSpace" <sup>[\ref genericMatch_Note7 "7"]</sup>
+       \ref DiskSpaceRequirementType.SessionDiskSpace "SessionDiskSpace" | <= | 1024*\ref ComputingShareAttributes.WorkingAreaFree "WorkingAreaFree" <sup>[\ref genericMatch_Note7 "7"]</sup>
+       \ref DiskSpaceRequirementType.DiskSpace "DiskSpace" - \ref DiskSpaceRequirementType.CacheDiskSpace "CacheDiskSpace" | <= | 1024*\ref ComputingShareAttributes.MaxDiskSpace "MaxDiskSpace" <sup>[\ref genericMatch_Note8 "8"]</sup>
+       \ref DiskSpaceRequirementType.DiskSpace "DiskSpace" - \ref DiskSpaceRequirementType.CacheDiskSpace "CacheDiskSpace" | <= | 1024*\ref ComputingManagerAttributes.WorkingAreaFree "WorkingAreaFree" <sup>[\ref genericMatch_Note8 "8"]</sup>
+       \ref DiskSpaceRequirementType.DiskSpace "DiskSpace" | <= | 1024*\ref ComputingShareAttributes.MaxDiskSpace "MaxDiskSpace" <sup>[\ref genericMatch_Note9 "9"]</sup>
+       \ref DiskSpaceRequirementType.DiskSpace "DiskSpace" | <= | 1024*\ref ComputingManagerAttributes.WorkingAreaFree "WorkingAreaFree" <sup>[\ref genericMatch_Note9 "9"]</sup>
+       \ref DiskSpaceRequirementType.CacheDiskSpace "CacheDiskSpace" | <= | 1024*\ref ComputingManagerAttributes.CacheTotal "CacheTotal"
+       \ref SlotRequirementType.NumberOfSlots "NumberOfSlots" | <= | \ref ComputingManagerAttributes.TotalSlots "TotalSlots" <sup>[\ref genericMatch_Note10 "10"]</sup>
+       \ref SlotRequirementType.NumberOfSlots "NumberOfSlots" | <= | \ref ComputingShareAttributes.MaxSlotsPerJob "MaxSlotsPerJob" <sup>[\ref genericMatch_Note10 "10"]</sup>
+       \ref ResourcesType.SessionLifeTime "SessionLifeTime" | <= | \ref ComputingManagerAttributes.WorkingAreaLifeTime "WorkingAreaLifeTime"
+       \ref ResourcesType.NodeAccess "NodeAccess" is NAT_INBOUND OR NAT_INOUTBOUND | AND | \ref ExecutionEnvironmentAttributes.ConnectivityIn "ConnectivityIn" is true
+       \ref ResourcesType.NodeAccess "NodeAccess" is NAT_OUTBOUND OR NAT_INOUTBOUND | AND | \ref ExecutionEnvironmentAttributes.ConnectivityOut "ConnectivityOut" is true
+     * 
+     * \b Notes:
+     * 1. \anchor genericMatch_Note1 Credential object is not part of
+     *  JobDescription object, but is obtained from the passed UserConfig
+     *  object.
+     * 2. \anchor genericMatch_Note2 Check is only made if
+     *  \ref ComputingEndpointAttributes::TrustedCA "TrustedCA" list is not
+     *  empty.
+     * 3. \anchor genericMatch_Note3 If
+     *  \ref ComputingShareAttributes::MaxTotalCPUTime "MaxTotalCPUTime" is not
+     *  set, the next check in the table is made.
+     * 4. \anchor genericMatch_Note4 Check is only done if
+     *  \ref ComputingShareAttributes::MaxTotalCPUTime "MaxTotalCPUTime" is not
+     *  set.
+     * 5. \anchor genericMatch_Note5 If
+     *  \ref ExecutionEnvironmentAttributes::MainMemorySize "MainMemorySize" is
+     *  not set, the next check in the table is made.
+     * 6. \anchor genericMatch_Note6 Check is only done if
+     *  \ref ExecutionEnvironmentAttributes::MainMemorySize "MainMemorySize" is
+     *  not set.
+     * 7. \anchor genericMatch_Note7 Check doesn't fail if
+     *  \ref ComputingShareAttributes.MaxDiskSpace "MaxDiskSpace" or
+     *  \ref ComputingShareAttributes.MaxMainMemory "MaxMainMemory"
+     *  respectively is not set. Both attributes must be unspecified, and
+     *  \ref DiskSpaceRequirementType.SessionDiskSpace "SessionDiskSpace"
+     *  be specified before the checks fails.
+     * 8. \anchor genericMatch_Note8 Check doesn't fail if
+     *  \ref ComputingShareAttributes.MaxDiskSpace "MaxDiskSpace" or
+     *  \ref ComputingShareAttributes.MaxMainMemory "MaxMainMemory"
+     *  respectively is not set. Both attributes must be unspecified, and
+     *  \ref DiskSpaceRequirementType.DiskSpace "DiskSpace" and
+     *  \ref DiskSpaceRequirementType.CacheDiskSpace "CacheDiskSpace"
+     *  be specified before the checks fails.
+     * 9. \anchor genericMatch_Note9 Check doesn't fail if
+     *  \ref ComputingShareAttributes.MaxDiskSpace "MaxDiskSpace" or
+     *  \ref ComputingShareAttributes.MaxMainMemory "MaxMainMemory"
+     *  respectively is not set. Both attributes must be unspecified, and
+     *  \ref DiskSpaceRequirementType.DiskSpace "DiskSpace"
+     *  be specified before the checks fails.
+     * 10. \anchor genericMatch_Note10 Check doesn't fail if
+     *  \ref ComputingManagerAttributes.TotalSlots "TotalSlots" or
+     *  \ref ComputingShareAttributes.MaxSlotsPerJob "MaxSlotsPerJob"
+     *  respectively is not set. Both attributes must be unspecified, and
+     *  \ref SlotRequirementType.NumberOfSlots "NumberOfSlots"
+     *  be specified before the checks fails.
+     * 
      * \return True if target matches job description.
      */
     static bool genericMatch(const ExecutionTarget& et, const JobDescription& j, const Arc::UserConfig&);
