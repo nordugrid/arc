@@ -26,7 +26,6 @@ my $lrms_options = {
     dedicated_node_string => '*',
     maui_bin_path => '*',
     condor_location => '*',
-    condor_config => '*',
     condor_rank => '*',
     sge_bin_path => '*',
     sge_root => '*',

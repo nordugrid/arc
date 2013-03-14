@@ -121,10 +121,6 @@
 ## need not to set if Condor is not used
 #condor_location="/opt/condor"
 
-## condor_config - path to Condor's configuration file
-## no need to set if Condor is not used
-#condor_config="/opt/condor/etc/condor_config"
-
 ## condor_rank - If you are not happy with the way Condor picks nodes when
 ## running jobs, you can define your own ranking algorithm by optionally
 ## setting the condor_rank attribute. condor_rank should be set to a 
