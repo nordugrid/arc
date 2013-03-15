@@ -156,12 +156,4 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="slurm_project" type="xsd:string">
-        <xsd:annotation>
-            <xsd:documentation xml:lang="en">
-                SLURM project associated to a clusterShare
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-
 </xsd:schema>

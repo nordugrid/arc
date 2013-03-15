@@ -46,7 +46,6 @@ my $lrms_share_options = {
     sge_jobopts => '*',
     lsf_architecture => '*',
     ll_consumable_resources => '*',
-    slurm_project => '*',
 };
 my $xenv_options = {
     Platform => '*',

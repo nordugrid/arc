@@ -489,7 +489,6 @@ attributes depending on how the mapping should be done.
           <ip:SchedulingPolicy inisections="#this" initag="schedulingpolicy"/>
           <ip:Preemption inisections="#this" initag="preemption"/>
 
-          <lrms:slurm_project initokenenables="lrms/slurm" inisections="#this" initag="slurm_project"/>
           <lrms:queue_node_string initokenenables="lrms/pbs" inisections="#this" initag="queue_node_string"/>
           <lrms:sge_jobopts initokenenables="lrms/sge" inisections="#this" initag="sge_jobopts"/>
           <lrms:condor_requirements initokenenables="lrms/condor" inisections="#this" initag="condor_requirements"/>
