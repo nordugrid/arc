@@ -521,8 +521,10 @@ sub fix_adotf {
     }
     if ($h->{OpSys} and grep {$_ eq 'adotf'} @{$h->{OpSys}}) {
         $h->{OpSys} = [ grep {$_ ne 'adotf'} @{$h->{OpSys}} ];
-        $log->error("Failed to autodetect value for 'OSName'. Enter correct value in config file")
-            unless defined $hostinfo->{osname};
+        unless (defined($hostinfo->{osname})) {
+            $log->warning("Failed to autodetect value for 'OSName'. Enter correct value in config file");
+            $h->{OSName} = 'unknown';
+        }
         $h->{OSName} ||= 'adotf';
         $h->{OSVersion} ||= 'adotf';
         $h->{OSFamily} ||= 'adotf';
@@ -541,7 +543,7 @@ sub fix_adotf {
     );
     for my $key (keys %hostkey) {
         if (exists $h->{$key} and $h->{$key} eq 'adotf') {
-            $log->error("Failed to autodetect value for '$key'. Enter correct value in config file")
+            $log->warning("Failed to autodetect value for '$key'. Enter correct value in config file")
                 unless defined $hostinfo->{$hostkey{$key}};
             $h->{$key} = $hostinfo->{$hostkey{$key}};
         }
