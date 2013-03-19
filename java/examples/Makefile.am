@@ -1,4 +1,10 @@
-EXAMPLES = BasicJobSubmission.java DTRGenerator.java
+if JAVA_IS_15_OR_ABOVE
+JAVA_15_EXAMPLES = ResourceDiscovery.java
+else
+JAVA_15_EXAMPLES = 
+endif
+
+EXAMPLES = BasicJobSubmission.java DTRGenerator.java $(JAVA_15_EXAMPLES)
 
 if JAVA_SWIG_ENABLED
 CLASSPATH = $(top_builddir)/java/arc.jar:.
