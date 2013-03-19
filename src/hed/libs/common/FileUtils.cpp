@@ -206,22 +206,27 @@ bool FileCreate(const std::string& filename, const std::string& data, uid_t uid,
     // If somebody bother about changing uid/gid then probably safer mode is needed
     if(mode == 0) mode = S_IRUSR|S_IWUSR;
     if(!fa.fa_setuid(uid,gid)) { errno = fa.geterrno(); return false; }
-    if((!fa.fa_remove(filename)) && (fa.geterrno() != ENOENT)) { errno = fa.geterrno(); return false; }
-    if(!fa.fa_open(filename,O_WRONLY|O_CREAT|O_EXCL,mode)) { errno = fa.geterrno(); return false; }
-    if(!write_all(fa,data.c_str(),data.length())) { errno = fa.geterrno(); fa.fa_close(); return false; }
+    std::string tempfile(filename + ".XXXXXX");
+    if(!fa.fa_mkstemp(tempfile, S_IRUSR|S_IWUSR)) { errno = fa.geterrno(); return false; }
+    if(!write_all(fa,data.c_str(),data.length())) { errno = fa.geterrno(); fa.fa_close(); fa.fa_unlink(tempfile); return false; }
     fa.fa_close();
+    if(!fa.fa_chmod(filename, mode)) { errno = fa.geterrno(); fa.fa_unlink(tempfile); return false; }
+    if(!fa.fa_rename(tempfile, filename)) { errno = fa.geterrno(); fa.fa_unlink(tempfile); return false; }
     return true;
   }
 #ifndef WIN32
-  if(mode == 0) mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH;
+  if(mode == 0) mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH;
 #else
   if(mode == 0) mode = S_IRUSR|S_IWUSR;
 #endif
-  if (remove(filename.c_str()) != 0 && errno != ENOENT) return false;
-  int h = ::open(filename.c_str(),O_WRONLY|O_CREAT|O_EXCL,mode);
-  if(h == -1) return false;
-  if(!write_all(h,data.c_str(),data.length())) { ::close(h); return false; }
+  char* tempfile = strdup(std::string(filename+".XXXXXX").c_str());
+  int h = ::mkstemp(tempfile);
+  if(h == -1) { free(tempfile); return false; }
+  if(!write_all(h,data.c_str(),data.length())) { ::close(h); free(tempfile); return false; }
   ::close(h);
+  if(chmod(tempfile, mode) != 0) { unlink(tempfile); free(tempfile); return false; }
+  if(rename(tempfile, filename.c_str()) != 0) { unlink(tempfile); free(tempfile); return false; }
+  free(tempfile);
   return true;
 }
 

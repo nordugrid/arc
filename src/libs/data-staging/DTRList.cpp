@@ -225,7 +225,6 @@ namespace DataStaging {
     }
     Lock.unlock();
 
-    Arc::FileDelete(path);
     Arc::FileCreate(path, data);
   }
 
