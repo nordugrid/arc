@@ -183,20 +183,20 @@ sub osinfo {
 
     if ($sysname =~ /linux/i) {
         my ($id, $descr, $version);
-        if (open RELEASE, '< /etc/lsb-release') {
-            while (<RELEASE>) {
-                $id = lc $1 if m/^DISTRIB_ID=(.*)/;
-                $descr = $1 if m/^DISTRIB_DESCRIPTION=(.*)/;
-                $version = $1 if m/^DISTRIB_RELEASE=([.\d]+)/;
-            }
-            close RELEASE;
-        } elsif (-x '/usr/bin/lsb_release' or -x '/bin/lsb_release') {
+        if (-x '/usr/bin/lsb_release' or -x '/bin/lsb_release') {
             if (open RELEASE, 'lsb_release -a |') {
                 while (<RELEASE>) {
                     $id = lc $1 if m/^Distributor ID:\s+(.*)/;
                     $descr = $1 if m/^Description:\s+(.*)/;
                     $version = $1 if m/^Release:\s+([.\d]+)/;
                 }
+            }
+            close RELEASE;
+        } elsif (open RELEASE, '< /etc/lsb-release') {
+            while (<RELEASE>) {
+                $id = lc $1 if m/^DISTRIB_ID=(.*)/;
+                $descr = $1 if m/^DISTRIB_DESCRIPTION=(.*)/;
+                $version = $1 if m/^DISTRIB_RELEASE=([.\d]+)/;
             }
             close RELEASE;
         } elsif (open RELEASE, '< /etc/redhat-release') {
