@@ -914,7 +914,17 @@ namespace Arc
         Arc::XMLNode siten = ur.NewChild("Site")=site;
         siten.NewAttribute("urf:type")="arc";
       }
-
+    if (find("jobreport_option_gocdb_name")!=end())
+      {
+        //GOCDB name is required by the APEL as a Site value.
+        std::string site = (*this)["jobreport_option_gocdb_name"];
+        if ( !ur["Site"] ) {
+            Arc::XMLNode siten = ur.NewChild("Site")=site;
+            siten.NewAttribute("urf:type")="arc";
+        } else {
+            ur["Site"] = site;
+        }
+      }
     //Host
     if (!mainnode.empty())
       {
