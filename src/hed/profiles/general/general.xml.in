@@ -344,7 +344,7 @@ attributes depending on how the mapping should be done.
         <arex:runtimeDir inisections="lrms/condor" initag="runtimedirectory"/>
         <arex:GNUTimeUtility inisections="lrms/condor" initag="gnutime"/>
 
-        <lrms:condor_location inisections="lrms/condor" initag="location"/>
+        <lrms:condor_bin_path inisections="lrms/condor" initag="bin_path"/>
         <lrms:condor_rank inisections="lrms/condor" initag="rank"/>
       </arex:LRMS>
 

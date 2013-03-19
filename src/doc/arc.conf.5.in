@@ -135,15 +135,6 @@ pbs_log_path="/var/spool/pbs/server_logs"
 .SH Condor options
 
 .TP
-.B condor_location
-condor_location - path to directory containing Condor's bin, sbin, etc.
-need not to set if Condor is not used
-
-.IR Example:
-.br
-condor_location="/opt/condor"
-
-.TP
 .B condor_rank
 condor_rank - If you are not happy with the way Condor picks nodes when
 running jobs, you can define your own ranking algorithm by optionally
@@ -158,15 +149,11 @@ condor_rank="(1-LoadAvg/2)*(1-LoadAvg/2)*Memory/1000*KFlops/1000000"
 
 .TP
 .B condor_bin_path
-condor_bin_path - Allows to tweak and override the condor binary 
-automatically found by ARC using the condor_location configuration 
-command. Usually it is not needed. Please DO NOT set it unless you
-know what you're doing.
-default is NOT set, points to [path in condor_location]/bin
+condor_bin_path - Path to Condor binaries. Must be set if Condor is used. 
 
 .IR Example:
 .br
-condor_bin_path=[path in condor_location]/bin
+condor_bin_path=/opt/condor/bin
 .br
 
 .SH SGE options

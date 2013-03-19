@@ -8,14 +8,12 @@ BEGIN {
     our @EXPORT = qw( configure_condor_env );
 }
 
-# Initializes environment variables: CONDOR_LOCATION
+# Initializes environment variables: CONDOR_BIN_PATH
 # Values defined in arc.conf take priority over previously set environment
-# variables. Also defines CONDOR_BIN_PATH (the location of Condor executables)
+# variables.
 # Condor executables are located using the following cues:
 # 1. condor_bin_path option in arc.conf
-# 2. condor_location option in arc.conf
-# 3. CONDOR_LOCATION environment variable
-# 4. PATH environment variable
+# 2. PATH environment variable
 
 # Synopsis:
 #
@@ -30,12 +28,14 @@ BEGIN {
 
 sub configure_condor_env(%) {
     my %config = @_;
-    $ENV{CONDOR_LOCATION} = $config{condor_location} if $config{condor_location};
-    for (split ':', $ENV{PATH}) {
-        $ENV{CONDOR_BIN_PATH} = $_ and last if -x "$_/condor_version";
+    if ($config{condor_bin_path}) {
+        $ENV{CONDOR_BIN_PATH} = $config{condor_bin_path};
     }
-    $ENV{CONDOR_BIN_PATH} = "$ENV{CONDOR_LOCATION}/bin" if $ENV{CONDOR_LOCATION};
-    $ENV{CONDOR_BIN_PATH} = $config{condor_bin_path} if $config{condor_bin_path};
+    else {
+        for (split ':', $ENV{PATH}) {
+            $ENV{CONDOR_BIN_PATH} = $_ and last if -x "$_/condor_version";
+        }
+    }
     return 0 unless -x "$ENV{CONDOR_BIN_PATH}/condor_version";
     return 1;
 }

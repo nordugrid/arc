@@ -11,14 +11,12 @@ config_import_section "infosys"
 config_import_section "grid-manager"
 
 
-# Initializes environment variables: CONDOR_LOCATION
+# Initializes environment variables: CONDOR_BIN_PATH
 # Valued defines in arc.conf take priority over pre-existing environment
-# variables. Also defines CONDOR_BIN_PATH (the location of Condor executables)
+# variables.
 # Condor executables are located using the following cues:
 # 1. condor_bin_path option in arc.conf
-# 2. condor_location option in arc.conf
-# 3. CONDOR_LOCATION environment variable
-# 4. PATH environment variable
+# 2. PATH environment variable
 
 # Synopsis:
 # 
@@ -28,15 +26,18 @@ config_import_section "grid-manager"
 #   . configure-condor-env.sh || exit 1
 
 
-if [ ! -z "$CONFIG_condor_location" ]; then CONDOR_LOCATION=$CONFIG_condor_location; fi
-condor_version=$(type -p condor_version)
-CONDOR_BIN_PATH=${condor_version%/*}
-if [ ! -z "$CONDOR_LOCATION" ]; then CONDOR_BIN_PATH="$CONDOR_LOCATION/bin"; fi
-if [ ! -z "$CONFIG_condor_bin_path" ]; then CONDOR_BIN_PATH=$CONFIG_condor_bin_path; fi;
+if [ ! -z "$CONFIG_condor_bin_path" ]; 
+then 
+    CONDOR_BIN_PATH=$CONFIG_condor_bin_path; 
+else
+    condor_version=$(type -p condor_version)
+    CONDOR_BIN_PATH=${condor_version%/*}
+fi;
+
 if [ ! -x "$CONDOR_BIN_PATH/condor_version" ]; then
     echo 'Condor executables not found!';
     return 1;
 fi
 echo "Using Condor executables from: $CONDOR_BIN_PATH"
-export CONDOR_LOCATION CONDOR_BIN_PATH
+export CONDOR_BIN_PATH
 

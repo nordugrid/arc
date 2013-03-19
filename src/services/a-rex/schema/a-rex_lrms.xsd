@@ -44,7 +44,7 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="condor_location" type="xsd:string">
+    <xsd:element name="condor_bin_path" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
             </xsd:documentation>
