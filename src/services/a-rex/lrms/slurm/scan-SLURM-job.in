@@ -5,9 +5,6 @@
 #
 # usage: scan_slurm_job control_dir ...
 
-# Load arc.conf and set up environment
-joboption_lrms=SLURM
-
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
@@ -17,7 +14,7 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 libexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@/"
 pkgdatadir="$basedir"
 
-. "${pkgdatadir}/configure-${joboption_lrms}-env.sh" || exit $?
+. "${pkgdatadir}/configure-SLURM-env.sh" || exit $?
 
 . "${pkgdatadir}/scan_common.sh" || exit $?
 
