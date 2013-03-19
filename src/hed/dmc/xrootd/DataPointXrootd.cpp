@@ -201,7 +201,9 @@ namespace ArcDMCXrootd {
     struct stat st;
     {
       CertEnvLocker env(usercfg);
-      if (XrdPosixXrootd::Stat(u.str().c_str(), &st) != 0) {
+      // When used against dcache stat returns 0 even if file does not exist
+      // so check inode number
+      if (XrdPosixXrootd::Stat(u.str().c_str(), &st) != 0 || st.st_ino == (unsigned long long int)(-1)) {
         logger.msg(VERBOSE, "Could not stat file %s: %s", u.str(), StrError(errno));
         return DataStatus(DataStatus::StatError, errno);
       }
