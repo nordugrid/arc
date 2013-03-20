@@ -181,12 +181,6 @@ sub get_gmjobs {
             $job->{interface} = 'org.nordugrid.gridftpjob';
         }
 
-        # check for localid
-        if (! $job->{localid}) {
-            $log->warning("Job $ID: has no local ID, probably corrupted control directory");
-            $job->{localid} = 'UNDEFINEDVALUE';
-        }
-
         # read the job.ID.status into "status"
         unless (open (GMJOB_STATUS, "<$gmjob_status")) {
             $log->warning("Job $ID: Can't open status file $gmjob_status, skipping job");
@@ -227,6 +221,14 @@ sub get_gmjobs {
             } else {
                 $log->warning("Job $ID: Cannot stat status file: $!");
             }
+        }
+        
+        # check for localid
+        if (! $job->{localid}) {
+            if ($job->{status} eq 'INLRMS') {
+               $log->warning("Job $ID: has no local ID but is in INLRMS state, this should not happen");
+            } 
+            $job->{localid} = 'UNDEFINEDVALUE';
         }
 
         # Comes the splitting of the terminal job state
