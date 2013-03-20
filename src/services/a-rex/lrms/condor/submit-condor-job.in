@@ -461,8 +461,15 @@ sub create_condor_job_description {
         $remove .= " || RemoteWallClockTime > JobTimeLimit";
         warn "$0: Setting time limit\n";
     }
-    # Set a default memory limit
-    $grami{joboption_memory} ||= $config{MaxVirtualMemory} || 1000;
+    # Set the memory limit.
+    # The limit is set by checking the next values in the following order and applying the first present
+    #   1. Memory in the job description
+    #   2. defaultmemory from the queue configuration
+    #   3. defaultmemory from common cluster configuration
+    #   4. nodememory from the queue configuration
+    #   5. nodememory from common cluster configuration
+    #   6. hardcoded limit on 1 GB
+    $grami{joboption_memory} ||= $config{defaultmemory} || $config{service}{defaultmemory} || $config{MaxVirtualMemory} || $config{service}{MaxVirtualMemory} || 1000;
     $output .= "+JobMemoryLimit = ".int(1024*$grami{joboption_memory})."\n";
     $remove .= " || ImageSize > JobMemoryLimit";
     warn "$0: Setting memory limit\n";
