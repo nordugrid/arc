@@ -26,7 +26,7 @@ const char * const sfx_clean       = ".clean";         // Mark to tell A-REX to 
 const char * const sfx_status      = ".status";        // Current job status
 const char * const sfx_local       = ".local";         // Local information about job
 const char * const sfx_errors      = ".errors";        // Log of data staging and job submission
-const char * const sfx_rsl         = ".description";   // Job description sent by user
+const char * const sfx_desc        = ".description";   // Job description sent by user
 const char * const sfx_diag        = ".diag";          // Diagnostic info about finished job
 const char * const sfx_lrmsoutput  = ".comment";       // Additional information from LRMS
 const char * const sfx_acl         = ".acl";           // ACL information for job
@@ -471,23 +471,24 @@ static bool job_state_write_file(const std::string &fname,job_state_t state,bool
 }
 
 time_t job_description_time(const JobId &id,const GMConfig &config) {
-  std::string fname = config.ControlDir() + "/job." + id + sfx_rsl;
+  std::string fname = config.ControlDir() + "/job." + id + sfx_desc;
   return job_mark_time(fname);
 }
 
-bool job_description_read_file(const JobId &id,const GMConfig &config,std::string &rsl) {
-  std::string fname = config.ControlDir() + "/job." + id + sfx_rsl;
-  return job_description_read_file(fname,rsl);
+bool job_description_read_file(const JobId &id,const GMConfig &config,std::string &desc) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_desc;
+  return job_description_read_file(fname,desc);
 }
 
-bool job_description_read_file(const std::string &fname,std::string &rsl) {
-  if (!Arc::FileRead(fname, rsl)) return false;
-  while (rsl.find('\n') != std::string::npos) rsl.erase(rsl.find('\n'), 1);
+bool job_description_read_file(const std::string &fname,std::string &desc) {
+  if (!Arc::FileRead(fname, desc)) return false;
+  while (desc.find('\n') != std::string::npos) desc.erase(desc.find('\n'), 1);
   return true;
 }
 
-bool job_description_write_file(const std::string &fname,const std::string &rsl) {
-  return Arc::FileCreate(fname, rsl);
+bool job_description_write_file(const GMJob &job,const GMConfig &config,const std::string &desc) {
+  std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_desc;
+  return Arc::FileCreate(fname, desc) & fix_file_owner(fname,job) & fix_file_permissions(fname,job,config);
 }
 
 bool job_acl_read_file(const JobId &id,const GMConfig &config,std::string &acl) {
@@ -497,7 +498,7 @@ bool job_acl_read_file(const JobId &id,const GMConfig &config,std::string &acl) 
 
 bool job_acl_write_file(const JobId &id,const GMConfig &config,const std::string &acl) {
   std::string fname = config.ControlDir() + "/job." + id + sfx_acl;
-  return job_description_write_file(fname,acl);
+  return Arc::FileCreate(fname, acl);
 }
 
 bool job_xml_read_file(const JobId &id,const GMConfig &config,std::string &xml) {
@@ -507,7 +508,7 @@ bool job_xml_read_file(const JobId &id,const GMConfig &config,std::string &xml) 
 
 bool job_xml_write_file(const JobId &id,const GMConfig &config,const std::string &xml) {
   std::string fname = config.ControlDir() + "/job." + id + sfx_xml;
-  return job_description_write_file(fname,xml);
+  return Arc::FileCreate(fname, xml);
 }
 
 bool job_local_write_file(const GMJob &job,const GMConfig &config,const JobLocalDescription &job_desc) {
@@ -729,7 +730,7 @@ bool job_clean_final(const GMJob &job,const GMConfig &config) {
   fname = config.ControlDir()+"/"+subdir_cur+"/job."+id+sfx_status; remove(fname.c_str());
   fname = config.ControlDir()+"/"+subdir_old+"/job."+id+sfx_status; remove(fname.c_str());
   fname = config.ControlDir()+"/"+subdir_rew+"/job."+id+sfx_status; remove(fname.c_str());
-  fname = config.ControlDir()+"/job."+id+sfx_rsl; remove(fname.c_str());
+  fname = config.ControlDir()+"/job."+id+sfx_desc; remove(fname.c_str());
   fname = config.ControlDir()+"/job."+id+sfx_xml; remove(fname.c_str());
   return true;
 }

@@ -135,10 +135,10 @@ bool job_state_write_file(const GMJob &job,const GMConfig &config,job_state_t st
 // Get modification time of file used to store description of the job.
 time_t job_description_time(const JobId &id,const GMConfig &config);
 
-// Read and write file used to store RSL description of job.
-bool job_description_read_file(const JobId &id,const GMConfig &config,std::string &rsl);
-bool job_description_read_file(const std::string &fname,std::string &rsl);
-bool job_description_write_file(const std::string &fname,const std::string &rsl);
+// Read and write file used to store description of job.
+bool job_description_read_file(const JobId &id,const GMConfig &config,std::string &desc);
+bool job_description_read_file(const std::string &fname,std::string &desc);
+bool job_description_write_file(const GMJob &job,const GMConfig &config,const std::string &desc);
 
 // Read and write file used to store ACL of job.
 bool job_acl_read_file(const JobId &id,const GMConfig &config,std::string &acl);

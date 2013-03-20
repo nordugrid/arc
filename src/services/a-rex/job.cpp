@@ -236,11 +236,20 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     jsdl.New(jsdldoc);
     jsdldoc.GetDoc(job_desc_str);
   };
-  // Store description
-  std::string fname = config_.GmConfig().ControlDir() + "/job." + id_ + ".description";
-  if(!job_description_write_file(fname,job_desc_str)) {
+  // Choose session directory
+  std::string sessiondir;
+  if (!ChooseSessionDir(id_, sessiondir)) {
     delete_job_id();
-    failure_="Failed to store job RSL description";
+    failure_="Failed to find valid session directory";
+    failure_type_=ARexJobInternalError;
+    return;
+  };
+  job_.sessiondir = sessiondir+"/"+id_;
+  GMJob job(id_,Arc::User(config_.User().get_uid()),job_.sessiondir,JOB_STATE_ACCEPTED);
+  // Store description
+  if(!job_description_write_file(job,config_.GmConfig(),job_desc_str)) {
+    delete_job_id();
+    failure_="Failed to store job description";
     failure_type_=ARexJobInternalError;
     return;
   };
@@ -468,18 +477,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
       };
     };
   };
-  // Choose session directory
-  std::string sessiondir;
-  if (!ChooseSessionDir(id_, sessiondir)) {
-    delete_job_id();
-    failure_="Failed to find valid session directory";
-    failure_type_=ARexJobInternalError;
-    return;
-  };
-  //config_.GmConfig().SetSessionRoot(sessiondir);
-  job_.sessiondir = sessiondir+"/"+id_;
   // Write local file
-  GMJob job(id_,Arc::User(config_.User().get_uid()),job_.sessiondir,JOB_STATE_ACCEPTED);
   job.set_local(&job_); // need this for write_grami
   if(!job_local_write_file(job,config_.GmConfig(),job_)) {
     delete_job_id();
