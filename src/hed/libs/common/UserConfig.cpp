@@ -1148,20 +1148,11 @@ static std::string cert_file_fix(const std::string& old_file,std::string& new_fi
   if(::getuid() == st.st_uid) return old_file;
 #endif
   std::string tmpname = Glib::build_filename(Glib::get_tmp_dir(), "arccred.XXXXXX");
-  int tmph = Glib::mkstemp(tmpname);
-  if(tmph == -1) return old_file;
-  int oldh = ::open(old_file.c_str(),O_RDONLY);
-  if(oldh == -1) {
-    ::close(tmph); ::unlink(tmpname.c_str());
+  if (!TmpFileCreate(tmpname, "")) return old_file;
+  if (!FileCopy(old_file, tmpname)) {
+    unlink(tmpname.c_str());
     return old_file;
-  };
-  if(!FileCopy(oldh,tmph)) {
-    ::close(tmph); ::unlink(tmpname.c_str());
-    ::close(oldh);
-    return old_file;
-  };
-  ::close(tmph);
-  ::close(oldh);
+  }
   new_file = tmpname;
   return new_file;
 }

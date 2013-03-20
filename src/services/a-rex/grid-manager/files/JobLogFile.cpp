@@ -13,6 +13,7 @@
 
 #include <arc/StringConv.h>
 #include <arc/DateTime.h>
+#include <arc/FileUtils.h>
 #include <arc/compute/JobDescription.h>
 #include "../jobs/GMJob.h"
 #include "ControlFileHandling.h"
@@ -67,18 +68,12 @@ bool job_log_make_file(const GMJob &job,const GMConfig& config,const std::string
   std::string fname_dst = config.ControlDir()+"/logs/"+job.get_id()+".XXXXXX";
   std::string fname_src;
   std::string status;
-  int h_dst;
   int l;
   time_t t;
   char buf[256];
-  if((h_dst=mkstemp((char*)(fname_dst.c_str()))) == -1) {
-    return false;
-  };
-  (void)chmod(fname_dst.c_str(),S_IRUSR | S_IWUSR);
+  if(!Arc::TmpFileCreate(fname_dst, "")) return false;
   fix_file_owner(fname_dst,job);
-  fix_file_permissions(fname_dst,false);
   std::ofstream o_dst(fname_dst.c_str());
-  close(h_dst);
   // URL to send info to
   if(url.length()) {
     o_dst<<"loggerurl="<<url<<std::endl; if(o_dst.fail()) goto error;

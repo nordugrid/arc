@@ -5,6 +5,7 @@
 #include <iostream>
 #include <globus_gsi_credential.h>
 
+#include <arc/FileUtils.h>
 #include <arc/StringConv.h>
 
 #include "../misc/proxy.h"
@@ -171,20 +172,6 @@ void AuthUser::set(const char* s,gss_ctx_id_t ctx,gss_cred_id_t cred,const char*
   if(process_voms() == AAA_FAILURE) valid=false;
 }
 
-static bool temporary_file(const char* prefix,std::string& name) {
-  char* tmp = getenv("TMP");
-  if(tmp == NULL) tmp=(char*)"/tmp";
-  if(prefix == NULL) prefix="";
-  char* fname = (char*)malloc(strlen(tmp)+1+strlen(prefix)+6+1);
-  if(fname == NULL) return false;
-  strcpy(fname,tmp);
-  strcat(fname,"/"); strcat(fname,prefix); strcat(fname,"XXXXXX");
-  int h = mkstemp(fname);
-  if(h == -1) { free(fname); return false; };
-  name=fname; free(fname); close(h); (void)chmod(name.c_str(),S_IRUSR | S_IWUSR);
-  return true;
-}
-
 void AuthUser::set(const char* s,STACK_OF(X509)* cred,const char* hostname) {
   valid=true;
   if(hostname) from=hostname;
@@ -211,7 +198,9 @@ void AuthUser::set(const char* s,STACK_OF(X509)* cred,const char* hostname) {
     subject=s;
   };
   if(chain_size > 0) {
-    if(!temporary_file("x509.",filename)) return;
+    std::string tempname = Glib::build_filename(Glib::get_tmp_dir(), "x509.XXXXXX");
+    if(!Arc::TmpFileCreate(tempname, "")) return;
+    filename = tempname;
     BIO* bio;
     if((bio=BIO_new_file(filename.c_str(), "w")) == NULL) return;
     for(int chain_index = 0;chain_index<chain_size;++chain_index) {

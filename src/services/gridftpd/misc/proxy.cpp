@@ -304,18 +304,9 @@ namespace gridftpd {
     /* TODO: do not store in file - pass directly to calling function */
     /* Make temporary file */
     {
-      int h;
-      const char* prefix = "x509.";
-      const char* tmp = getenv("TMP");
-      if(tmp == NULL) tmp="/tmp";
-      fname = (char*)malloc(strlen(tmp)+1+strlen(prefix)+6+1);
-      if(fname == NULL) goto err_exit;
-      strcpy(fname,tmp);
-      strcat(fname,"/"); strcat(fname,prefix); strcat(fname,"XXXXXX");
-      if((h=mkstemp(fname)) == -1) {
-        free(fname); fname=NULL; goto err_exit;
-      };
-      fchmod(h,S_IRUSR | S_IWUSR); close(h);
+      std::string tempname = Glib::build_filename(Glib::get_tmp_dir(), "x509.XXXXXX");
+      if(!Arc::TmpFileCreate(tempname, "")) goto err_exit;
+      fname = strdup(tempname.c_str());
       if((bio=BIO_new_file(fname,"w")) == NULL) goto err_exit;
     };
     for(n=0;n<n_;++n) {

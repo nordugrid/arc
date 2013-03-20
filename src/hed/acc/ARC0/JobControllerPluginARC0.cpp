@@ -13,6 +13,7 @@
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/URLMap.h>
+#include <arc/FileUtils.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
 #include <arc/UserConfig.h>
@@ -402,22 +403,12 @@ namespace Arc {
       std::string rsl("&(action=restart)(jobid=" + jobnr + ")");
   
       std::string filename = Glib::build_filename(Glib::get_tmp_dir(), "arcresume.XXXXXX");
-      int tmp_h = Glib::mkstemp(filename);
-      if (tmp_h == -1) {
+      if (!TmpFileCreate(filename, rsl)) {
         logger.msg(INFO, "Could not create temporary file: %s", filename);
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
-      std::ofstream outfile(filename.c_str(), std::ofstream::binary);
-      outfile.write(rsl.c_str(), rsl.size());
-      if (outfile.fail()) {
-        logger.msg(INFO, "Could not write temporary file: %s", filename);
-        ok = false;
-        IDsNotProcessed.push_back(job.JobID);
-        continue;
-      }
-      outfile.close();
   
       // Send temporary file to cluster
       DataMover mover;
@@ -431,6 +422,9 @@ namespace Arc {
       destination->SetTries(1);
       DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
                                       0, 0, 0, usercfg.Timeout());
+      // Cleaning up tmp file
+      source->Remove();
+
       if (!res.Passed()) {
         logger.msg(INFO, "Current transfer FAILED: %s", std::string(res));
         mover.Delete(*destination);
@@ -442,11 +436,8 @@ namespace Arc {
         logger.msg(INFO, "Current transfer complete");
       }
   
-      //Cleaning up
-      source->Remove();
-  
       IDsProcessed.push_back(job.JobID);
-      logger.msg(VERBOSE, "Job resumed successful");
+      logger.msg(VERBOSE, "Job resuming successful");
     }
   
     return ok;

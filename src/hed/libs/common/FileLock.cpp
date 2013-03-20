@@ -104,35 +104,21 @@ namespace Arc {
       }
       // lock does not exist - create tmp file
       std::string tmpfile = lock_file + ".XXXXXX";
-      int h = Glib::mkstemp(tmpfile);
-      if (h == -1) {
-        logger.msg(ERROR, "Error creating file %s with mkstemp(): %s", tmpfile, StrError(errno));
+      std::string lock_content = use_pid ? pid + "@" + hostname : "";
+      if (!TmpFileCreate(tmpfile, lock_content)) {
+        logger.msg(ERROR, "Error creating temporary file %s: %s", tmpfile, StrError(errno));
         return false;
       }
-      // write pid@hostname to the tmp file
-      if (!write_pid(h)) {
-        logger.msg(ERROR, "Error writing to tmp lock file %s: %s", tmpfile, StrError(errno));
-        // not much we can do if this doesn't work, but it is only a tmp file
-        remove(tmpfile.c_str());
-        close(h);
-        return false;
-      }
-      if (close(h) != 0) {
-        // not critical as file will be removed after we are done
-        logger.msg(WARNING, "Warning: closing tmp lock file %s failed", tmpfile);
-      }
-
       // create lock by creating hard link - should be an atomic operation
-      errno = EPERM; // Workaround for systems without linking and link is just return false
+      errno = EPERM; // Workaround for systems without links is open with O_EXCL
       if (!FileLink(tmpfile.c_str(), lock_file.c_str(), false)) {
+        remove(tmpfile.c_str());
         if (errno == EEXIST) {
-          remove(tmpfile.c_str());
           // another process got there first
           logger.msg(INFO, "Could not create link to lock file %s as it already exists", lock_file);
           // should recursion depth be limited somehow?
           return acquire_(lock_removed);
         } else if (errno == EPERM) {
-          remove(tmpfile.c_str());
           // Most probably links not supported
           // Trying to create lock file
           // Which permissions should it have?
@@ -155,15 +141,15 @@ namespace Arc {
             return false;
           }
           close(h);
-          tmpfile = ""; // do not remove tmp file again
           // fall through to success handling code
         } else {
-          remove(tmpfile.c_str());
           logger.msg(ERROR, "Error linking tmp file %s to lock file %s: %s", tmpfile, lock_file, StrError(errno));
           return false;
         }
       }
-      if(!tmpfile.empty()) remove(tmpfile.c_str());
+      else {
+        remove(tmpfile.c_str());
+      }
       // check it's really there with the correct pid and hostname
       if (check(true) != 0) {
         logger.msg(ERROR, "Error in lock file %s, even though linking did not return an error", lock_file);
