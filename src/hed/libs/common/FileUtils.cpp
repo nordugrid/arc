@@ -480,25 +480,29 @@ bool TmpDirCreate(std::string& path) {
 }
 
 bool TmpFileCreate(std::string& filename, const std::string& data, uid_t uid, gid_t gid, mode_t mode) {
-  std::string tmpdir(Glib::get_tmp_dir());
-  char tmptemplate[] = "ARC-XXXXXX";
-  filename = Glib::build_filename(tmpdir, tmptemplate);
+  if (filename.length() < 6 || filename.find("XXXXXX") != filename.length() - 6) {
+    std::string tmpdir(Glib::get_tmp_dir());
+    char tmptemplate[] = "ARC-XXXXXX";
+    filename = Glib::build_filename(tmpdir, tmptemplate);
+  }
   if(mode == 0) mode = S_IRUSR|S_IWUSR;
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
     if(!fa.fa_setuid(uid,gid)) { errno = fa.geterrno(); return false; }
     if(!fa.fa_mkstemp(filename,mode)) { errno = fa.geterrno(); return false; }
-    if(!write_all(fa,data.c_str(),data.length())) { errno = fa.geterrno(); fa.fa_close(); return false; }
+    if(!write_all(fa,data.c_str(),data.length())) { errno = fa.geterrno(); fa.fa_close(); fa.fa_unlink(filename); return false; }
     return true;
   }
   int h = Glib::mkstemp(filename);
   if(h == -1) return false;
   if (::chmod(filename.c_str(), mode) != 0) {
     ::close(h);
+    unlink(filename.c_str());
     return false;
   }
   if(!write_all(h,data.c_str(),data.length())) {
     ::close(h);
+    unlink(filename.c_str());
     return false;
   };
   ::close(h);

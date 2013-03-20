@@ -165,9 +165,30 @@ void FileUtilsTest::TestTmpDirCreate() {
 }
 
 void FileUtilsTest::TestTmpFileCreate() {
+  // No specified path - uses system tmp
   std::string path;
   CPPUNIT_ASSERT(Arc::TmpFileCreate(path,"TEST"));
   struct stat st;
+  CPPUNIT_ASSERT(stat(path.c_str(), &st) == 0);
+  CPPUNIT_ASSERT(S_ISREG(st.st_mode));
+  CPPUNIT_ASSERT_EQUAL(4,(int)st.st_size);
+  CPPUNIT_ASSERT(Arc::FileDelete(path));
+  CPPUNIT_ASSERT(stat(path.c_str(), &st) != 0);
+
+  // Specified path
+  path = Glib::build_filename(Glib::get_tmp_dir(), "myfile-XXXXXX");
+  CPPUNIT_ASSERT(Arc::TmpFileCreate(path,"TEST"));
+  CPPUNIT_ASSERT_EQUAL(0, (int)path.find(Glib::build_filename(Glib::get_tmp_dir(), "myfile-")));
+  CPPUNIT_ASSERT(stat(path.c_str(), &st) == 0);
+  CPPUNIT_ASSERT(S_ISREG(st.st_mode));
+  CPPUNIT_ASSERT_EQUAL(4,(int)st.st_size);
+  CPPUNIT_ASSERT(Arc::FileDelete(path));
+  CPPUNIT_ASSERT(stat(path.c_str(), &st) != 0);
+
+  // Specified path with no template - should use default name
+  path = Glib::build_filename(Glib::get_tmp_dir(), "myfile");
+  CPPUNIT_ASSERT(Arc::TmpFileCreate(path,"TEST"));
+  CPPUNIT_ASSERT_EQUAL((int)std::string::npos, (int)path.find(Glib::build_filename(Glib::get_tmp_dir(), "myfile-")));
   CPPUNIT_ASSERT(stat(path.c_str(), &st) == 0);
   CPPUNIT_ASSERT(S_ISREG(st.st_mode));
   CPPUNIT_ASSERT_EQUAL(4,(int)st.st_size);
