@@ -120,7 +120,7 @@ class JobLocalDescription {
   /* attributes stored in other files */
   std::list<FileData> inputdata;  /* input files */
   std::list<FileData> outputdata; /* output files */
-  /* attributes taken from RSL */
+  /* attributes taken from job description */
   std::list<std::string> rte; /* runtime environments */
   std::string action;        /* what to do - must be 'request' */
   std::string rc;            /* url to contact replica collection */

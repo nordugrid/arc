@@ -88,17 +88,17 @@ int main(int argc,char* argv[]) {
     logger.msg(Arc::ERROR, "Wrong number of arguments given");
     return -1;
   }
-  std::string rsl = params.front();
+  std::string desc = params.front();
   std::string proxy;
   if (params.size() == 2) proxy = params.back();
 
-  // TODO It would be better to use Arc::JobDescription::Parse(rsl)
+  // TODO It would be better to use Arc::JobDescription::Parse(desc)
   ARex::GMConfig config;
   ARex::JobDescriptionHandler job_desc_handler(config);
   ARex::JobLocalDescription job;
   Arc::JobDescription arc_job_desc;
 
-  if(job_desc_handler.parse_job_req(job,arc_job_desc,rsl) != ARex::JobReqSuccess) return 1;
+  if(job_desc_handler.parse_job_req(job,arc_job_desc,desc) != ARex::JobReqSuccess) return 1;
 
   if(!proxy.empty()) {
     Arc::SetEnv("X509_USER_PROXY",proxy,true);

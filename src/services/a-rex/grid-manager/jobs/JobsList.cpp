@@ -872,7 +872,7 @@ bool JobsList::RecreateTransferLists(const JobsList::iterator &i) {
   // recreate lists by reprocessing job description
   JobLocalDescription job_desc; // placeholder
   if(!job_desc_handler.process_job_req(*i,job_desc)) {
-    logger.msg(Arc::ERROR,"%s: Reprocessing RSL failed",i->job_id);
+    logger.msg(Arc::ERROR,"%s: Reprocessing job description failed",i->job_id);
     return false;
   }
   // Restore 'local'

@@ -24,7 +24,7 @@
 namespace ARex {
 
 const char * const sfx_local       = ".local";
-const char * const sfx_rsl         = ".description";
+const char * const sfx_desc        = ".description";
 const char * const sfx_diag        = ".diag";
 const char * const sfx_proxy       = ".proxy";
 
@@ -92,7 +92,7 @@ bool job_log_make_file(const GMJob &job,const GMConfig& config,const std::string
     }
   // Copy job description
   {
-  fname_src = config.ControlDir() + "/job." + job.get_id() + sfx_rsl;
+  fname_src = config.ControlDir() + "/job." + job.get_id() + sfx_desc;
   int h_src=open(fname_src.c_str(),O_RDONLY);
   if(h_src==-1) goto error;
   o_dst<<"description=";
@@ -180,7 +180,7 @@ bool job_log_make_file(const GMJob &job,const GMConfig& config,const std::string
 
   // Extract requested resources
   {
-    fname_src = config.ControlDir() + "/job." + job.get_id() + sfx_rsl;
+    fname_src = config.ControlDir() + "/job." + job.get_id() + sfx_desc;
     std::string job_desc_str;
     if (!job_description_read_file(fname_src, job_desc_str)) goto error;
     Arc::JobDescription arc_job_desc;
