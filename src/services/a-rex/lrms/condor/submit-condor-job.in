@@ -462,7 +462,7 @@ sub create_condor_job_description {
         warn "$0: Setting time limit\n";
     }
     # Set a default memory limit
-    $grami{joboption_memory} ||= $config{nodememory} || 1000;
+    $grami{joboption_memory} ||= $config{MaxVirtualMemory} || 1000;
     $output .= "+JobMemoryLimit = ".int(1024*$grami{joboption_memory})."\n";
     $remove .= " || ImageSize > JobMemoryLimit";
     warn "$0: Setting memory limit\n";
