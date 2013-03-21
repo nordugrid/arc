@@ -139,12 +139,8 @@ bool arctransfer(const Arc::URL& source_url,
 
 bool arcregister(const Arc::URL& source_url,
                  const Arc::URL& destination_url,
-                 const std::list<std::string>& locations,
                  Arc::UserConfig& usercfg,
-                 bool secure,
-                 bool passive,
-                 bool force_meta,
-                 int timeout) {
+                 bool force_meta) {
   if (!source_url) {
     logger.msg(Arc::ERROR, "Invalid URL: %s", source_url.str());
     return false;
@@ -168,8 +164,7 @@ bool arcregister(const Arc::URL& source_url,
       return false;
     }
     if (sources.size() != destinations.size()) {
-      logger.msg(Arc::ERROR,
-                 "Numbers of sources and destinations do not match");
+      logger.msg(Arc::ERROR, "Numbers of sources and destinations do not match");
       return false;
     }
     bool r = true;
@@ -177,8 +172,7 @@ bool arcregister(const Arc::URL& source_url,
                                        destination = destinations.begin();
          (source != sources.end()) && (destination != destinations.end());
          source++, destination++) {
-      if (!arcregister(*source, *destination, locations, usercfg, secure, passive,
-                       force_meta, timeout)) r = false;
+      if (!arcregister(*source, *destination, usercfg, force_meta)) r = false;
       if (cancelled) return true;
     }
     return r;
@@ -193,8 +187,7 @@ bool arcregister(const Arc::URL& source_url,
     bool r = true;
     for (std::list<Arc::URL>::iterator source = sources.begin();
          source != sources.end(); source++) {
-      if (!arcregister(*source, destination_url, locations, usercfg, secure, passive,
-                       force_meta, timeout)) r = false;
+      if (!arcregister(*source, destination_url, usercfg, force_meta)) r = false;
       if (cancelled) return true;
     }
     return r;
@@ -209,8 +202,7 @@ bool arcregister(const Arc::URL& source_url,
     bool r = true;
     for (std::list<Arc::URL>::iterator destination = destinations.begin();
          destination != destinations.end(); destination++) {
-      if (!arcregister(source_url, *destination, locations, usercfg, secure, passive,
-                       force_meta, timeout)) r = false;
+      if (!arcregister(source_url, *destination, usercfg, force_meta)) r = false;
       if (cancelled) return true;
     }
     return r;
@@ -227,8 +219,7 @@ bool arcregister(const Arc::URL& source_url,
     return false;
   }
   if (!destination) {
-    logger.msg(Arc::ERROR, "Unsupported destination url: %s",
-               destination_url.str());
+    logger.msg(Arc::ERROR, "Unsupported destination url: %s", destination_url.str());
     return false;
   }
   if ((source->RequiresCredentials() || destination->RequiresCredentials())
@@ -239,53 +230,44 @@ bool arcregister(const Arc::URL& source_url,
                " and destination must be indexing service");
     return false;
   }
-  if (!locations.empty()) {
-    std::string meta(destination->GetURL().Protocol()+"://"+destination->GetURL().Host());
-    for (std::list<std::string>::const_iterator i = locations.begin(); i != locations.end(); ++i) {
-      destination->AddLocation(*i, meta);
-    }
-  }
+
   // Obtain meta-information about source
   Arc::FileInfo fileinfo;
   Arc::DataPoint::DataPointInfoType verb = (Arc::DataPoint::DataPointInfoType)Arc::DataPoint::INFO_TYPE_CONTENT;
-  if (!source->Stat(fileinfo, verb)) {
-    logger.msg(Arc::ERROR, "Source probably does not exist");
+  Arc::DataStatus res = source->Stat(fileinfo, verb);
+  if (!res) {
+    logger.msg(Arc::ERROR, "Could not obtain information about source: %s", std::string(res));
     return false;
   }
-  // add new location
-  if (!destination->Resolve(false)) {
-    logger.msg(Arc::ERROR, "Problems resolving destination");
-    return false;
+  // Check if destination is already registered
+  if (destination->Resolve(true)) {
+    // Check meta-info matches source
+    if (!destination->CompareMeta(*source) && !force_meta) {
+      logger.msg(Arc::ERROR, "Metadata of source does not match existing "
+          "destination. Use the --force option to override this.");
+      return false;
+    }
+    // Remove existing locations
+    destination->ClearLocations();
   }
   bool replication = destination->Registered();
   destination->SetMeta(*source); // pass metadata
-  std::string metaname;
-  // look for similar destination
-  for (destination->SetTries(1); destination->LocationValid();
-       destination->NextLocation()) {
-    const Arc::URL& loc_url = destination->CurrentLocation();
-    if (loc_url == source_url) {
-      metaname = destination->CurrentLocationMetadata();
-      break;
-    }
-  }
-  // remove locations if exist
-  for (destination->SetTries(1); destination->RemoveLocation();) {}
-  // add new location
-  if (metaname.empty()) metaname = source_url.ConnectionURL();
+  // Add new location
+  std::string metaname = source_url.ConnectionURL();
   if (!destination->AddLocation(source_url, metaname)) {
-    destination->PreUnregister(replication);
     logger.msg(Arc::ERROR, "Failed to accept new file/destination");
     return false;
   }
   destination->SetTries(1);
-  if (!destination->PreRegister(replication, force_meta)) {
-    logger.msg(Arc::ERROR, "Failed to register new file/destination");
+  res = destination->PreRegister(replication, force_meta);
+  if (!res) {
+    logger.msg(Arc::ERROR, "Failed to register new file/destination: %s", std::string(res));
     return false;
   }
-  if (!destination->PostRegister(replication)) {
+  res = destination->PostRegister(replication);
+  if (!res) {
     destination->PreUnregister(replication);
-    logger.msg(Arc::ERROR, "Failed to register new file/destination");
+    logger.msg(Arc::ERROR, "Failed to register new file/destination: %s", std::string(res));
     return false;
   }
   return true;
@@ -713,7 +695,7 @@ int main(int argc, char **argv) {
   if (thirdparty) {
     if (!arctransfer(source, destination, locations, usercfg, secure, passive, verbose, timeout)) return 1;
   } else if (nocopy) {
-    if (!arcregister(source, destination, locations, usercfg, secure, passive, force, timeout)) return 1;
+    if (!arcregister(source, destination, usercfg, force)) return 1;
   } else {
     if (!arccp(source, destination, locations, cache_path, usercfg, secure, passive, force,
                recursion, retries + 1, verbose, timeout)) return 1;
