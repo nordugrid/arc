@@ -144,29 +144,29 @@ bool job_log_make_file(const GMJob &job,const GMConfig& config,const std::string
     std::ifstream proxy_src(fname_src.c_str());
     bool in_private=false;
     for(;;) {
-      if(proxy_src.bad()) goto error;
-      if(proxy_src.eof()) break;
       std::string line;
       std::getline(proxy_src,line);
-      if(in_private)
-  { // Skip private key
-    if (line.find("-----END") != std::string::npos &&
-        line.find("PRIVATE KEY-----") != std::string::npos
-        )           // can be RSA, DSA etc.
-      in_private=false;
-  }
-      else
-  {
-    if (line.find("-----BEGIN") != std::string::npos &&
-        line.find("PRIVATE KEY-----") != std::string::npos
-        )           // can be RSA, DSA etc.
-      in_private=true;
-    else
-      {
-        user_cert+=line;
-        if (!proxy_src.eof()) user_cert+='\\';
+      if(proxy_src.eof()) break;
+      if(proxy_src.fail()) {
+        user_cert.clear();
+        break;
       }
-  }
+      if(in_private) { // Skip private key
+        if (line.find("-----END") != std::string::npos &&
+            line.find("PRIVATE KEY-----") != std::string::npos) { // can be RSA, DSA etc.
+          in_private=false;
+        }
+      }
+      else {
+        if (line.find("-----BEGIN") != std::string::npos &&
+            line.find("PRIVATE KEY-----") != std::string::npos) { // can be RSA, DSA etc.
+          in_private=true;
+        }
+        else {
+          user_cert+=line;
+          if (!proxy_src.eof()) user_cert+='\\';
+        }
+      }
     }
     if(user_cert.length()) {
       o_dst<<"usercert="<<user_cert<<std::endl; if(o_dst.fail()) goto error;
