@@ -121,7 +121,7 @@ std::string LocalMapList::ID(Arc::Message* msg) {
     std::string file_ = *it;
     std::ifstream f(file_.c_str());
     if(!f.is_open() ) continue;
-    for(;!f.eof();) {
+    for(;f.good();) {
       std::string buf;
       std::getline(f,buf);
       buf=Arc::trim(buf);

@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
 	job_local.open(job_local_f, std::ios::in);
 	if ( job_local.is_open() ) {
 		std::string line;
-		while ( ! job_local.eof() ){
+		while ( job_local.good() ){
 			getline(job_local,line);
 			if ( ! line.compare(0,6,"queue=") ) {
 				queue = line.substr(6);

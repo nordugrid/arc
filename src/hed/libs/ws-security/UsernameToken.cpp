@@ -98,8 +98,7 @@ static bool get_username(std::string& user) {
 static std::string get_password_from_file(std::istream& f, const std::string& username) {
   size_t left, right, found, found1, found2;
   std::string str, user, passwd;
-  while (!f.eof() && !f.fail()) {
-    std::getline(f, str);
+  while (std::getline(f, str)) {
 
     left = str.find_first_not_of(" ");
     found1 = str.find_first_of(" ", left);

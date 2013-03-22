@@ -111,7 +111,7 @@ std::string SimpleMap::map(const std::string& subject) {
     std::ifstream f((dir_+"pool").c_str());
     if(!f.is_open()) failure("can't open pool file")
     std::string name;
-    while(!f.eof()) {
+    while(f.good()) {
       std::getline(f,name);
       if(!f.fail()) break;
       if(name.empty()) continue;

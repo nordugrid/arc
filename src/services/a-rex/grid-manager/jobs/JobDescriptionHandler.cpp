@@ -102,24 +102,19 @@ JobReqResult JobDescriptionHandler::parse_job_req(const JobId &job_id,JobLocalDe
 }
 
 std::string JobDescriptionHandler::get_local_id(const JobId &job_id) const {
-  const char* local_id_param = "joboption_jobid=";
-  int l = strlen(local_id_param);
-  std::string id = "";
-  std::string fgrami = config.ControlDir() + "/job." + job_id + ".grami";
-  std::ifstream f(fgrami.c_str());
-  if(!f.is_open()) return id;
-  for(;!(f.eof() || f.fail());) {
-    std::string buf;
-    std::getline(f,buf);
-    Arc::trim(buf," \t\r\n");
-    if(strncmp(local_id_param,buf.c_str(),l)) continue;
-    if(buf[l]=='\'') {
-      l++; int ll = buf.length();
-      if(buf[ll-1]=='\'') buf.resize(ll-1);
-    };
-    id=buf.substr(l); break;
-  };
-  f.close();
+  std::string id;
+  std::string joboption("joboption_jobid=");
+  std::string fgrami(config.ControlDir() + "/job." + job_id + ".grami");
+  std::list<std::string> grami_data;
+  if (Arc::FileRead(fgrami, grami_data)) {
+    for (std::list<std::string>::iterator line = grami_data.begin(); line != grami_data.end(); ++line) {
+      if (line->find(joboption) == 0) {
+        id = line->substr(joboption.length());
+        id = Arc::trim(id, "'");
+        break;
+      }
+    }
+  }
   return id;
 }
 

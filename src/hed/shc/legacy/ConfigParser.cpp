@@ -53,7 +53,7 @@ bool ConfigParser::Parse(void) {
     logger_.msg(Arc::ERROR, "Configuration file can not be read");
     return false;
   };
-  while(!f_.eof()) {
+  while(f_.good()) {
     if(!f_) {
       logger_.msg(Arc::ERROR, "Configuration file can not be read");
       return false;

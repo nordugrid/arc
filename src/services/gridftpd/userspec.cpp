@@ -47,7 +47,7 @@ bool check_gridmap(const char* dn,char** user,const char* mapfile) {
     logger.msg(Arc::ERROR, "Mapfile is missing at %s", globus_gridmap);
     return false;
   };
-  for(;!f.eof();) {
+  for(;f.good();) {
     std::string buf;//char buf[512]; // must be enough for DN + name
     getline(f,buf);
     //buf[511]=0;

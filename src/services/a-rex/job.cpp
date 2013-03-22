@@ -397,8 +397,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
             std::string path = (*deleg)[config_.GmConfig().DelegationDir()].
                                       FindCred(t->DelegationID,config_.GridName());
             if(!path.empty()) {
-              std::ifstream fcred(path.c_str());
-              std::getline(fcred,cred,'\0');
+              Arc::FileRead(path, cred);
               if(!cred.empty()) {
                 need_delegation = false; 
                 break;
@@ -416,8 +415,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
             std::string path = (*deleg)[config_.GmConfig().DelegationDir()].
                                       FindCred(t->DelegationID,config_.GridName());
             if(!path.empty()) {
-              std::ifstream fcred(path.c_str());
-              std::getline(fcred,cred,'\0');
+              Arc::FileRead(path, cred);
               if(!cred.empty()) {
                 need_delegation = false;
                 break;

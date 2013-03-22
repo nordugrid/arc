@@ -24,7 +24,7 @@ int AuthUser::match_file(const char* line) {
       logger.msg(Arc::ERROR, "Failed to read file %s", *s);
       return AAA_FAILURE;
     };
-    for(;!f.eof();) {
+    for(;f.good();) {
       std::string buf;
       getline(f,buf);
       int res = evaluate(buf.c_str());

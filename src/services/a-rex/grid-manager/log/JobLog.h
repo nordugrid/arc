@@ -39,9 +39,6 @@ class JobLog {
   bool start_info(GMJob &job,const GMConfig &config);
   /* log job finish iformation */
   bool finish_info(GMJob &job,const GMConfig& config);
-  /* read information stored by start_info and finish_info */
-  static bool read_info(std::fstream &i,bool &processed,bool &jobstart,struct tm &t,JobId &jobid,JobLocalDescription &job_desc,std::string &failure);
-  bool is_reporting(void) { return (!urls.empty()); };
   /* Run external utility to report gathered information to logger service */
   bool RunReporter(const GMConfig& config);
   /* Set name of the accounting reporter */

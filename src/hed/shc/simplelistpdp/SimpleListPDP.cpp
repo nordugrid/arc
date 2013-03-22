@@ -55,7 +55,7 @@ PDPStatus SimpleListPDP::isPermitted(Message *msg) const {
     return false;
   }   
 
-  while (!fs.eof()) {
+  while (fs.good()) {
     std::string::size_type p;
     getline (fs, line);
     logger.msg(DEBUG, "Policy line: %s", line);

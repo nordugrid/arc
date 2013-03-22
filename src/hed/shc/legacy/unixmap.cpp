@@ -202,7 +202,7 @@ bool UnixMap::map_mapfile(const AuthUser& user,unix_user_t& unix_user,const char
     logger.msg(Arc::ERROR, "Mapfile at %s can't be opened.", line);
     return false;
   };
-  for(;!f.eof();) {
+  for(;f.good();) {
     std::string buf;
     getline(f,buf);
     std::string::size_type p = 0;
