@@ -109,10 +109,9 @@ bool job_diagnostics_mark_move(const GMJob &job,const GMConfig &config);
 bool job_lrmsoutput_mark_put(const GMJob &job,const GMConfig &config);
 
 // Common purpose functions, used by previous functions.
-std::string job_mark_read_s(const std::string &fname);
-long int job_mark_read_i(const std::string &fname);
-bool job_mark_write_s(const std::string &fname,const std::string &content);
-bool job_mark_add_s(const std::string &fname,const std::string &content);
+std::string job_mark_read(const std::string &fname);
+bool job_mark_write(const std::string &fname,const std::string &content);
+bool job_mark_add(const std::string &fname,const std::string &content);
 bool job_mark_put(const std::string &fname);
 bool job_mark_check(const std::string &fname);
 bool job_mark_remove(const std::string &fname);

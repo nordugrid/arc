@@ -196,12 +196,12 @@ bool job_clean_mark_remove(const JobId &id,const GMConfig &config) {
 bool job_failed_mark_put(const GMJob &job,const GMConfig &config,const std::string &content) {
   std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_failed;
   if(job_mark_size(fname) > 0) return true;
-  return job_mark_write_s(fname,content) & fix_file_owner(fname,job) & fix_file_permissions(fname,job,config);
+  return job_mark_write(fname,content) & fix_file_owner(fname,job) & fix_file_permissions(fname,job,config);
 }
 
 bool job_failed_mark_add(const GMJob &job,const GMConfig &config,const std::string &content) {
   std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_failed;
-  return job_mark_add_s(fname,content) & fix_file_owner(fname,job) & fix_file_permissions(fname,job,config);
+  return job_mark_add(fname,content) & fix_file_owner(fname,job) & fix_file_permissions(fname,job,config);
 }
 
 bool job_failed_mark_check(const JobId &id,const GMConfig &config) {
@@ -216,7 +216,7 @@ bool job_failed_mark_remove(const JobId &id,const GMConfig &config) {
 
 std::string job_failed_mark_read(const JobId &id,const GMConfig &config) {
   std::string fname = config.ControlDir() + "/job." + id + sfx_failed;
-  return job_mark_read_s(fname);
+  return job_mark_read(fname);
 }
 
 bool job_controldiag_mark_put(const GMJob &job,const GMConfig &config,char const * const args[]) {
@@ -298,28 +298,17 @@ bool job_lrmsoutput_mark_remove(const GMJob &job,const GMConfig &config) {
   return job_mark_remove(fname);
 }
 
-std::string job_mark_read_s(const std::string &fname) {
+std::string job_mark_read(const std::string &fname) {
   std::string s("");
   Arc::FileRead(fname, s);
   return s;
 }
 
-long int job_mark_read_i(const std::string &fname) {
-  std::ifstream f(fname.c_str()); if(! f.is_open() ) return -1;
-  char buf[32]; f.getline(buf,30); f.close();
-  char* e; long int i;
-  i=strtol(buf,&e,10); if((*e) == 0) return i;
-  return -1;
+bool job_mark_write(const std::string &fname,const std::string &content) {
+  return Arc::FileCreate(fname, content);
 }
 
-bool job_mark_write_s(const std::string &fname,const std::string &content) {
-  int h=open(fname.c_str(),O_WRONLY | O_CREAT | O_TRUNC,S_IRUSR | S_IWUSR);
-  if(h==-1) return false;
-  write(h,(const void *)content.c_str(),content.length());
-  close(h); return true;
-}
-
-bool job_mark_add_s(const std::string &fname,const std::string &content) {
+bool job_mark_add(const std::string &fname,const std::string &content) {
   int h=open(fname.c_str(),O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
   if(h==-1) return false;
   write(h,(const void *)content.c_str(),content.length());
