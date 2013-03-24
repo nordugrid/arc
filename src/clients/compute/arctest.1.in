@@ -1,4 +1,5 @@
-.TH arctest 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
+.\" -*- nroff -*-
+.TH ARCTEST 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 
 .SH NAME
 
@@ -8,7 +9,7 @@ arctest \- ARC Test Suite
 
 The
 .B arctest
-command tests basic client and server setup.
+command tests basic ARC client and server setup.
 
 .SH SYNOPSIS
 
@@ -65,7 +66,7 @@ print usage information
 
 The
 .B arctest
-command is used for basic testing of client and server installation
+command is used for basic testing of ARC client and server installation
 through submitting various test jobs. It can also print basic information
 about user's certificate. The command is complementary to
 .B arcinfo
@@ -95,9 +96,15 @@ arctest --certificate
 
 will print basic information about the user's certificate.
 
+.SH COPYRIGHT
+
+APACHE LICENSE Version 2.0
+
 .SH AUTHOR
 
-Ivan Marton <martoni@niif.hu>
+ARC software is developed by the NorduGrid Collaboration 
+(http://www.nordugrid.org), please consult the AUTHORS file distributed with 
+ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 
 .SH SEE ALSO
 

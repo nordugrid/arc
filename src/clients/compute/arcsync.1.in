@@ -1,5 +1,5 @@
 .\" -*- nroff -*-
-.TH ARCSYNC 1 "@DATE" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+.TH ARCSYNC 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 
 .SH NAME
 
@@ -25,7 +25,7 @@ the file storing information about active jobs (default ~/.arc/jobs.xml)
 .IP "\fB-f\fR, \fB--force\fR"
 don't ask for verification
 .IP "\fB-T\fR, \fB--truncate\fR"
-truncate the joblist before synchronizing
+shrinks the joblist before synchronizing
 .IP "\fB-P\fR, \fB--listplugins\fR"
 list the available plugins
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
@@ -66,8 +66,8 @@ for a discussion of the format of arguments to this option.
 If the joblist is not empty when invoking synchronization the old jobs
 will be merged with the new jobs, unless the
 .B --truncate
-option is given, in which case the joblist will first be truncated and
-then the new jobs will be added.
+option is given, in which case the joblist will first be cleaned of old
+jobs and then the new jobs will be added.
 
 .SH FILES
 
@@ -93,7 +93,7 @@ option a different file can be used than the default.
 
 .TP
 .B X509_USER_PROXY
-The location of the user's grid proxy file. Shouldn't be set unless
+The location of the user's Grid proxy file. Shouldn't be set unless
 the proxy is in a non-standard location.
 
 .TP
@@ -115,7 +115,9 @@ APACHE LICENSE Version 2.0
 
 .SH AUTHOR
 
-Mattias Ellert <mattias.ellert@fysast.uu.se>
+ARC software is developed by the NorduGrid Collaboration 
+(http://www.nordugrid.org), please consult the AUTHORS file distributed with 
+ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 
 .SH SEE ALSO
 

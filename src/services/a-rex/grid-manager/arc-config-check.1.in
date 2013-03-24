@@ -1,4 +1,6 @@
-.TH arc-config-check 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
+.\" -*- nroff -*-
+.TH ARC-CONFIG-CHECK 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
 .SH NAME
 
 arc-config-check \- checks the arc.conf for inconsistencies, known problems
@@ -43,6 +45,12 @@ Quick summary of options
 .B \-\-man
 Detailed man page.
 
+.SH COPYRIGHT
+
+APACHE LICENSE Version 2.0
+
 .SH AUTHOR
 
-Steffen Moeller
+ARC software is developed by the NorduGrid Collaboration 
+(http://www.nordugrid.org), please consult the AUTHORS file distributed with 
+ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org

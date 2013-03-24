@@ -270,7 +270,7 @@ different file can be used than the default.
 
 .TP
 .B X509_USER_PROXY
-The location of the user's grid proxy file. Shouldn't be set unless
+The location of the user's Grid proxy file. Shouldn't be set unless
 the proxy is in a non-standard location.
 
 .TP
@@ -292,7 +292,9 @@ APACHE LICENSE Version 2.0
 
 .SH AUTHOR
 
-Mattias Ellert <mattias.ellert@fysast.uu.se>
+ARC software is developed by the NorduGrid Collaboration 
+(http://www.nordugrid.org), please consult the AUTHORS file distributed with 
+ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 
 .SH SEE ALSO
 

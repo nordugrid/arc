@@ -1,4 +1,4 @@
-.TH cache-clean 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
+.TH CACHE-CLEAN 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 .SH NAME
 
 cache-clean \- Administration tool for the A-REX cache.
@@ -114,4 +114,7 @@ APACHE LICENSE Version 2.0
 
 .SH AUTHOR
 
-David Cameron <cameron@ndgf.org>
+ARC software is developed by the NorduGrid Collaboration 
+(http://www.nordugrid.org), please consult the AUTHORS file distributed with 
+ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
+

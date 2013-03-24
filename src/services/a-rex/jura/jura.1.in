@@ -101,5 +101,6 @@ APACHE LICENSE Version 2.0
 
 .SH AUTHOR
 
-Peter Dobe <dobe@iit.bme.hu>,
-Gabor Szigeti <szigeti@niif.hu>
+ARC software is developed by the NorduGrid Collaboration 
+(http://www.nordugrid.org), please consult the AUTHORS file distributed with 
+ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org

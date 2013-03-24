@@ -9,7 +9,7 @@ arcplugin \- ARC plugin management utility
 
 The
 .B arcplugin
-command prints description of ARC plugin or creates Arc Plugin Descriptor (APD) file.
+command prints description of ARC plugin or creates ARC Plugin Descriptor (APD) file.
 
 .SH SYNOPSIS
 
@@ -43,4 +43,7 @@ Report bugs to http://bugzilla.nordugrid.org
 APACHE LICENSE Version 2.0
 
 .SH AUTHOR
-Aleksandr Konstantinov <aleksandr.konstantnov@fys.uio.no>
+
+ARC software is developed by the NorduGrid Collaboration 
+(http://www.nordugrid.org), please consult the AUTHORS file distributed with 
+ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org

@@ -45,4 +45,7 @@ Report bugs to http://bugzilla.nordugrid.org
 APACHE LICENSE Version 2.0
 
 .SH AUTHOR
-Markus Norden <Markus.Norden@tsl.uu.se>
+
+ARC software is developed by the NorduGrid Collaboration 
+(http://www.nordugrid.org), please consult the AUTHORS file distributed with 
+ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
