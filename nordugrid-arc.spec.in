@@ -160,7 +160,7 @@ BuildRequires:	gridsite-devel
 BuildRequires:	canl-c++-devel
 %endif
 %if %{with_xrootd}
-%if %{?fedora}%{!?fedora:0} >= 18 || %{?rhel}%{!?rhel:0} >= 7
+%if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 5
 BuildRequires:	xrootd-client-devel
 %else
 BuildRequires:	xrootd-devel
