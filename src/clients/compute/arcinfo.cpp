@@ -186,6 +186,8 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
       for (std::list<Arc::Endpoint>::const_iterator it = endpoints.begin(); it != endpoints.end(); ++it) {
         std::cerr << "  " << it->URLString << std::endl;
       }
+    } else {
+      std::cerr << std::endl;
     }
     return 1;
   }
