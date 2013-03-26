@@ -219,12 +219,48 @@
 #endif // SWIGPYTHON
 #ifdef SWIGJAVA
 %ignore Arc::GLUE2Entity<Arc::LocationAttributes>::operator*() const;
+%ignore ::operator<<(std::ostream&, const LocationAttributes&);
+%extend Arc::LocationAttributes {
+  std::string toString() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
 %ignore Arc::GLUE2Entity<Arc::AdminDomainAttributes>::operator*() const;
+%ignore ::operator<<(std::ostream&, const AdminDomainAttributes&);
+%extend Arc::AdminDomainAttributes {
+  std::string toString() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
 %ignore Arc::GLUE2Entity<Arc::ExecutionEnvironmentAttributes>::operator*() const;
+%ignore ::operator<<(std::ostream&, const ExecutionEnvironmentAttributes&);
+%extend Arc::ExecutionEnvironmentAttributes {
+  std::string toString() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
 %ignore Arc::GLUE2Entity<Arc::ComputingManagerAttributes>::operator*() const;
+%ignore ::operator<<(std::ostream&, const ComputingManagerAttributes&);
+%extend Arc::ComputingManagerAttributes {
+  std::string toString() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
 %ignore Arc::GLUE2Entity<Arc::ComputingShareAttributes>::operator*() const;
+%ignore ::operator<<(std::ostream&, const ComputingShareAttributes&);
+%extend Arc::ComputingShareAttributes {
+  std::string toString() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
 %ignore Arc::GLUE2Entity<Arc::ComputingEndpointAttributes>::operator*() const;
+%ignore ::operator<<(std::ostream&, const ComputingEndpointAttributes&);
+%extend Arc::ComputingEndpointAttributes {
+  std::string toString() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
 %ignore Arc::GLUE2Entity<Arc::ComputingServiceAttributes>::operator*() const;
+%ignore ::operator<<(std::ostream&, const ComputingServiceAttributes&);
+%extend Arc::ComputingServiceAttributes {
+  std::string toString() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
+%ignore ::operator<<(std::ostream&, const ComputingServiceType&);
+%extend Arc::ComputingServiceType {
+  std::string toString() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
+%ignore ::operator<<(std::ostream&, const ExecutionTarget&);
+%extend Arc::ExecutionTarget {
+  std::string toString() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
 #endif
 %include "../src/hed/libs/compute/GLUE2Entity.h" // Contains declaration of the GLUE2Entity template, used in ExecutionTarget.h file.
 %wraplist(ApplicationEnvironment, Arc::ApplicationEnvironment);
