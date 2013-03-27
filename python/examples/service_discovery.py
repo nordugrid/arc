@@ -57,7 +57,7 @@ def example():
 
     print "The discovered ExecutionTargets:"
     for target in targets2:
-        target.SaveToStream(arc.CPyOstream(sys.stdout), False)
+        print target
     
     
     # Query both registries and computing elements at the same time:

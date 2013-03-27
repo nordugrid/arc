@@ -216,6 +216,42 @@
  */
 %ignore Arc::CountedPointer< std::map<std::string, double> >::operator bool;
 %ignore Arc::CountedPointer< std::list<Arc::ApplicationEnvironment> >::operator bool;
+%ignore ::operator<<(std::ostream&, const LocationAttributes&);
+%extend Arc::LocationAttributes {
+  std::string __str__() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
+%ignore ::operator<<(std::ostream&, const AdminDomainAttributes&);
+%extend Arc::AdminDomainAttributes {
+  std::string __str__() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
+%ignore ::operator<<(std::ostream&, const ExecutionEnvironmentAttributes&);
+%extend Arc::ExecutionEnvironmentAttributes {
+  std::string __str__() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
+%ignore ::operator<<(std::ostream&, const ComputingManagerAttributes&);
+%extend Arc::ComputingManagerAttributes {
+  std::string __str__() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
+%ignore ::operator<<(std::ostream&, const ComputingShareAttributes&);
+%extend Arc::ComputingShareAttributes {
+  std::string __str__() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
+%ignore ::operator<<(std::ostream&, const ComputingEndpointAttributes&);
+%extend Arc::ComputingEndpointAttributes {
+  std::string __str__() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
+%ignore ::operator<<(std::ostream&, const ComputingServiceAttributes&);
+%extend Arc::ComputingServiceAttributes {
+  std::string __str__() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
+%ignore ::operator<<(std::ostream&, const ComputingServiceType&);
+%extend Arc::ComputingServiceType {
+  std::string __str__() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
+%ignore ::operator<<(std::ostream&, const ExecutionTarget&);
+%extend Arc::ExecutionTarget {
+  std::string __str__() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
 #endif // SWIGPYTHON
 #ifdef SWIGJAVA
 %ignore Arc::GLUE2Entity<Arc::LocationAttributes>::operator*() const;
