@@ -103,5 +103,7 @@ arc.jar: $(JAVA_PATH)/arc.class $(subst .java,.class,$(wildcard $(JAVA_PATH)/*.j
 DIST_SUBDIRS = test examples
 SUBDIRS = $(TEST_DIR) examples
 
+EXTRA_DIST = $(JAVA_INTERFACE_SOURCES)
+
 # Try not to build these objects in parallel in order to save memory
 .NOTPARALLEL: %.o %.class %.so
