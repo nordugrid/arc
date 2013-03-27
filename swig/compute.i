@@ -216,6 +216,9 @@
  */
 %ignore Arc::CountedPointer< std::map<std::string, double> >::operator bool;
 %ignore Arc::CountedPointer< std::list<Arc::ApplicationEnvironment> >::operator bool;
+%{
+#include <sstream>
+%}
 %ignore ::operator<<(std::ostream&, const LocationAttributes&);
 %extend Arc::LocationAttributes {
   std::string __str__() { std::ostringstream oss; oss << *self; return oss.str(); }
@@ -254,6 +257,9 @@
 }
 #endif // SWIGPYTHON
 #ifdef SWIGJAVA
+%{
+#include <sstream>
+%}
 %ignore Arc::GLUE2Entity<Arc::LocationAttributes>::operator*() const;
 %ignore ::operator<<(std::ostream&, const LocationAttributes&);
 %extend Arc::LocationAttributes {
