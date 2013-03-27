@@ -35,7 +35,7 @@ private:
  * \ingroup compute
  * \headerfile ComputingServiceRetriever.h arc/compute/ComputingServiceRetriever.h 
  */
-class ComputingServiceRetriever : public EntityConsumer<Endpoint>, public EntityContainer<ComputingServiceType> {
+class ComputingServiceRetriever : public EntityContainer<ComputingServiceType>, public EntityConsumer<Endpoint> { // The order of inheritance is important for Swig.
 public:
   /// Creates a ComputingServiceRetriever with a list of services to query
   /**
@@ -93,14 +93,14 @@ public:
    * \param[in] c one consumer of the type EntityConsumer<ComputingServiceType>
    *  capable of accepting ComputingServiceType objects
    */
-  void addConsumer(EntityConsumer<ComputingServiceType>& c) { tir.addConsumer(c); };
+  void addConsumer(EntityConsumer<ComputingServiceType>& addConsumer_consumer /* The name 'addConsumer_consumer' is important for Swig when matching methods */) { tir.addConsumer(addConsumer_consumer); };
   
   /// Remove a previously added consumer from this ComputingServiceRetriever
   /**
    * The removed consumer will not get any more result objects
    * \param[in] c the consumer to be removed
    */
-  void removeConsumer(const EntityConsumer<ComputingServiceType>& c) { tir.removeConsumer(c); }
+  void removeConsumer(const EntityConsumer<ComputingServiceType>& removeConsumer_consumer /* The name 'removeConsumer_consumer' is important for Swig when matching methods */) { tir.removeConsumer(removeConsumer_consumer); }
   
   /// Convenience method to generate ExectionTarget objects from the resulted ComputingServiceType objects
   /**

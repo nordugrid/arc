@@ -197,8 +197,8 @@ namespace Arc {
     ~Submitter() {}
 
     // === Using the consumer concept as in the EntityRetriever ===
-    void addConsumer(EntityConsumer<Job>& jc) { consumers.push_back(&jc); }
-    void removeConsumer(EntityConsumer<Job>& jc);
+    void addConsumer(EntityConsumer<Job>& addConsumer_consumer /* The name 'addConsumer_consumer' is important for Swig when matching methods */) { consumers.push_back(&addConsumer_consumer); }
+    void removeConsumer(EntityConsumer<Job>& removeConsumer_consumer /* The name 'removeConsumer_consumer' is important for Swig when matching methods */);
     // ===
 
     // === No brokering ===

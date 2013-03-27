@@ -33,6 +33,7 @@ class UserConfig;
 template<typename T>
 class EntityConsumer {
 public:
+  EntityConsumer() {}
   virtual ~EntityConsumer() {}
   /// Send an entity to this consumer
   /**
@@ -55,8 +56,9 @@ public:
  * \headerfile EntityRetriever.h arc/compute/EntityRetriever.h 
  */
 template<typename T>
-class EntityContainer : public EntityConsumer<T>, public std::list<T> {
+class EntityContainer : public std::list<T>, public EntityConsumer<T> { // The order of inheritance is important for Swig.
 public:
+  EntityContainer() {}
   virtual ~EntityContainer() {}
   /// All the consumed entities are pushed to the list.
   /**
@@ -185,14 +187,15 @@ public:
   bool isDone() const { return result.wait(0); };
 
   /** Register a new consumer which will receive results from now on.
-    \param[in] consumer is a consumer object capable of consuming type T objects
+    \param[in] addConsumer_consumer is a consumer object capable of consuming
+    type T objects
   */
-  void addConsumer(EntityConsumer<T>& consumer) { consumerLock.lock(); consumers.push_back(&consumer); consumerLock.unlock(); };
+  void addConsumer(EntityConsumer<T>& addConsumer_consumer /* The name 'addConsumer_consumer' is important for Swig when matching methods */) { consumerLock.lock(); consumers.push_back(&addConsumer_consumer); consumerLock.unlock(); };
     
   /** Remove a previously registered consumer
-    \param[in] consumer is the consumer object
+    \param[in] removeConsumer_consumer is the consumer object
   */
-  void removeConsumer(const EntityConsumer<T>& consumer);
+  void removeConsumer(const EntityConsumer<T>& removeConsumer_consumer /* The name 'removeConsumer_consumer' is important for Swig when matching methods */);
 
   /// Get the status of the query process of a given Endpoint.
   /**

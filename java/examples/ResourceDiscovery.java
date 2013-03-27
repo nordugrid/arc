@@ -11,8 +11,14 @@
 
 import nordugrid.arc.*; // For the sake of brevity in this example import everything from arc
 
-public class ResourceDiscovery
+public class ResourceDiscovery implements ComputingServiceTypeConsumer
 {
+    public int i;
+    
+    public ResourceDiscovery() {
+      i = 0;
+    }
+    
     public static void main(String[] args)
     {
         // Set up logging to stderr with level VERBOSE (a lot of output will be shown)
@@ -28,30 +34,23 @@ public class ResourceDiscovery
         // This object holds various attributes, including proxy location and selected services.
         UserConfig uc = new UserConfig("");
         
+        // Example Java consumer
+        ResourceDiscovery rd = new ResourceDiscovery();
+        
         // Create a instance for discovering computing services at the registry service.
         ComputingServiceRetriever csr = new ComputingServiceRetriever(uc);
+        csr.addConsumer(rd);
         csr.addEndpoint(e); // Add endpoint ... which initiates discovery.
         csr._wait(); // Wait for results to be retrieved.
         
-        ExecutionTargetList etl = new ExecutionTargetList();
-        csr.GetExecutionTargets(etl);
-        for (ExecutionTarget et : etl) {
-            System.out.println("Execution Target on Computing Service: " + et.getComputingService().getName());
-            if (!et.getComputingEndpoint().getURLString().isEmpty()) {
-                System.out.println(" Computing endpoint URL: " + et.getComputingEndpoint().getURLString());
-            }
-            if (!et.getComputingEndpoint().getInterfaceName().isEmpty()) {
-                System.out.println(" Computing endpoint interface name: " + et.getComputingEndpoint().getInterfaceName());
-            }
-            if (!et.getComputingShare().getName().isEmpty()) {
-                System.out.println(" Queue: " + et.getComputingShare().getName());
-            }
-            if (!et.getComputingShare().getMappingQueue().isEmpty()) {
-                System.out.println(" Mapping queue: " + et.getComputingShare().getMappingQueue());
-            }
-            if (!et.getComputingEndpoint().getHealthState().isEmpty()) {
-                System.out.println(" Health state: " + et.getComputingEndpoint().getHealthState());
-            }
+        for (ComputingServiceType cst : csr) {
+            System.out.println(cst);
         }
+        
+        System.out.println(rd.i + " services found.");
+    }
+    
+    public void addEntity(ComputingServiceType cst) {
+      i += 1;
     }
 }

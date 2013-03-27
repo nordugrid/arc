@@ -314,15 +314,41 @@
 %}
 #ifdef SWIGJAVA
 %rename(_wait) Arc::EntityRetriever::wait;
+%prewrapentityconsumerinterface(Endpoint, Arc::Endpoint);
+%prewrapentityconsumerinterface(Job, Arc::Job);
+%prewrapentityconsumerinterface(ComputingServiceType, Arc::ComputingServiceType);
+%typemap(javainterfaces) Arc::EntityContainer<Arc::Endpoint> "EndpointConsumer";
+%typemap(javainterfaces) Arc::EntityContainer<Arc::Job> "JobConsumer";
+%typemap(javainterfaces) Arc::EntityContainer<Arc::ComputingServiceType> "ComputingServiceTypeConsumer";
+
+%typemap(javacode) Arc::EntityRetriever<Arc::Endpoint> %{
+  private java.util.HashMap<EndpointConsumer, NativeEndpointConsumer> consumers = new java.util.HashMap<EndpointConsumer, NativeEndpointConsumer>();
+%}
+%typemap(javacode) Arc::EntityRetriever<Arc::ComputingServiceType> %{
+  private java.util.HashMap<ComputingServiceTypeConsumer, NativeComputingServiceTypeConsumer> consumers = new java.util.HashMap<ComputingServiceTypeConsumer, NativeComputingServiceTypeConsumer>();
+%}
+%typemap(javacode) Arc::EntityRetriever<Arc::Job> %{
+  private java.util.HashMap<JobConsumer, NativeJobConsumer> consumers = new java.util.HashMap<JobConsumer, NativeJobConsumer>();
+%}
 #endif
 %include "../src/hed/libs/compute/EntityRetriever.h"
+#ifdef SWIGPYTHON
 %template(EndpointConsumer) Arc::EntityConsumer<Arc::Endpoint>;
+%template(ComputingServiceConsumer) Arc::EntityConsumer<Arc::ComputingServiceType>;
+%template(JobConsumer) Arc::EntityConsumer<Arc::Job>;
+#endif
+#ifdef SWIGJAVA
+%template(NativeEndpointConsumer) Arc::EntityConsumer<Arc::Endpoint>;
+%template(NativeComputingServiceConsumer) Arc::EntityConsumer<Arc::ComputingServiceType>;
+%template(NativeJobConsumer) Arc::EntityConsumer<Arc::Job>;
+%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE) Arc::EntityContainer<Arc::Endpoint>;
+%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE) Arc::EntityContainer<Arc::ComputingServiceType>;
+%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE) Arc::EntityContainer<Arc::Job>;
+#endif
 %template(EndpointContainer) Arc::EntityContainer<Arc::Endpoint>;
 %template(ServiceEndpointRetriever) Arc::EntityRetriever<Arc::Endpoint>;
-%template(ComputingServiceConsumer) Arc::EntityConsumer<Arc::ComputingServiceType>;
 %template(ComputingServiceContainer) Arc::EntityContainer<Arc::ComputingServiceType>;
 %template(TargetInformationRetriever) Arc::EntityRetriever<Arc::ComputingServiceType>;
-%template(JobConsumer) Arc::EntityConsumer<Arc::Job>;
 %template(JobContainer) Arc::EntityContainer<Arc::Job>;
 %template(JobListRetriever) Arc::EntityRetriever<Arc::Job>;
 
@@ -358,6 +384,11 @@ template <class Type> struct traits_from<const Type *> {
 %}
 #endif
 #endif
+#ifdef SWIGJAVA
+%typemap(javacode) Arc::Submitter %{
+  private java.util.HashMap<JobConsumer, NativeJobConsumer> consumers = new java.util.HashMap<JobConsumer, NativeJobConsumer>();
+%}
+#endif
 %template(EndpointQueryingStatusMap) std::map<Arc::Endpoint, Arc::EndpointQueryingStatus>;
 %template(EndpointSubmissionStatusMap) std::map<Arc::Endpoint, Arc::EndpointSubmissionStatus>;
 %include "../src/hed/libs/compute/Submitter.h"
@@ -368,7 +399,12 @@ template <class Type> struct traits_from<const Type *> {
 #include <arc/compute/ComputingServiceRetriever.h>
 %}
 #ifdef SWIGJAVA
+%typemap(javacode) Arc::ComputingServiceRetriever %{
+  private java.util.HashMap<ComputingServiceTypeConsumer, NativeComputingServiceTypeConsumer> consumers = new java.util.HashMap<ComputingServiceTypeConsumer, NativeComputingServiceTypeConsumer>();
+%}
 %rename(_wait) Arc::ComputingServiceRetriever::wait;
+%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE) Arc::ComputingServiceRetriever;
+%typemap(javainterfaces) Arc::ComputingServiceRetriever "EndpointConsumer";
 #endif
 #ifdef SWIGPYTHON
 %extend Arc::ComputingServiceRetriever {

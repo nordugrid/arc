@@ -315,6 +315,87 @@ public:
 #include <iostream>
 std::ostream& getStdout() { return std::cout; }
 %}
+
+
+/* Swig doesn't provide a direct way to wrap an abstract class with no concrete
+ * members to a Java interface. Instead the following workaround is made in
+ * order to make the EntityConsumer interface work correctly in the Java
+ * bindings.
+ * The '%prewrapentityconsumerinterface' macro should be invoked
+ * before the C++ class definition is included (%include).
+ * Some of the code is taken from: <http://stackoverflow.com/questions/8168517/generating-java-interface-with-swig>
+ */
+%define %prewrapentityconsumerinterface(X, Y...)
+%feature("director") Arc::EntityConsumer< Y >;
+%rename(Native ## X ## Consumer) Arc::EntityConsumer< Y >;
+%typemap(jstype) const Arc::EntityConsumer< Y >&   %{X ## Consumer%};
+%typemap(jstype)       Arc::EntityConsumer< Y >&   %{X ## Consumer%};
+%typemap(javainterfaces) Arc::EntityConsumer< Y >  %{X ## Consumer%};
+
+/* Make sure every Java consumer interface instance is converted to an instance
+ * which inherits from the concrete native consumer class which wraps the C++
+ * consumer abstract class.
+ */
+%typemap(javain, pgcppname="n", pre= "    $javaclassname n = $module.makeNative($javainput);") const Arc::EntityConsumer< Y >&  %{ Native ## X ## Consumer.getCPtr(n) %};
+%typemap(javain, pgcppname="n", pre= "    $javaclassname n = $module.makeNative($javainput);")       Arc::EntityConsumer< Y >&  %{ Native ## X ## Consumer.getCPtr(n) %};
+
+/* For C++ classes holding an instance of the consumer object, the java wrapped
+ * class also need to hold a reference to the native consumer. Otherwise it will
+ * go out of scope, while being used. Note that a Map (HashMap) must be added
+ * to the particular Java class, corresponding the C++ in question. This must be
+ * done at before '%include'ing the corresponding C++ header. E.g.:
+   %typemap(javacode) Arc::Example %{
+     private java.util.HashMap<ExampleConsumer, NativeExampleConsumer> consumers = new java.util.HashMap<ExampleConsumer, NativeExampleConsumer>();
+   %}
+ * Overrides the 'javain' typemaps above since those below are more specific due
+ * to the use of the 'addConsumer_consumer' and 'removeConsumer_consumer'
+ * matching.
+ */
+%typemap(javain, pgcppname="n", pre= "    $javaclassname n = $module.makeNative($javainput); consumers.put($javainput, n);") Arc::EntityConsumer< Y >&  addConsumer_consumer %{Native ## X ## Consumer.getCPtr(n)%};
+%typemap(javain, pgcppname="n", pre= "    if (!consumers.containsKey($javainput)) return; $javaclassname n = ($javaclassname)consumers.get($javainput);", post = "      consumers.remove($javainput);")       Arc::EntityConsumer< Y >&  removeConsumer_consumer %{Native ## X ## Consumer.getCPtr(n)%};
+%typemap(javain, pgcppname="n", pre= "    if (!consumers.containsKey($javainput)) return; $javaclassname n = ($javaclassname)consumers.get($javainput);", post = "      consumers.remove($javainput);") const Arc::EntityConsumer< Y >&  removeConsumer_consumer %{Native ## X ## Consumer.getCPtr(n)%};
+ 
+%pragma(java) modulecode=%{
+  private static class Native ## X ## ConsumerProxy extends Native ## X ## Consumer {
+    private X ## Consumer delegate;
+    public Native ## X ## ConsumerProxy(X ## Consumer i) {
+      delegate = i;
+    }
+    
+    public Native ## X ## ConsumerProxy(X ## Consumer i, long cPtr) {
+      super(cPtr, false);
+      delegate = i;
+    }
+
+    public void addEntity(X e) {
+      delegate.addEntity(e);
+    }
+  }
+
+  // No access modifier. Classes in this package need to access the method.
+  static Native ## X ## Consumer makeNative(X ## Consumer i) {
+    if (i instanceof Native ## X ## Consumer) {
+      // If it already *is* a Native ## X ## Consumer don't bother wrapping it again
+      return (Native ## X ## Consumer)i;
+    }
+    /* Not all Swig wrapped classes which inherits (C++) from EntityConsumer is
+     * a native consumer. Check if the instance have a 'getCPtr' method and if
+     * so instantiate native consumer proxy with the value returned by
+     * 'getCPtr'.
+     */
+    try {
+      Class[] types = new Class[1];
+      types[0] = i.getClass();
+      Object[] params = new Object[1];
+      params[0] = i;
+      return new Native ## X ## ConsumerProxy(i, (Long)i.getClass().getMethod("getCPtr", types).invoke(null, params));
+    } catch (Exception e) {
+      return new Native ## X ## ConsumerProxy(i);
+    }
+  }
+%}
+%enddef
+
 #endif
 
 
