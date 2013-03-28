@@ -388,7 +388,7 @@ std::ostream& getStdout() { return std::cout; }
       types[0] = i.getClass();
       Object[] params = new Object[1];
       params[0] = i;
-      return new Native ## X ## ConsumerProxy(i, (Long)i.getClass().getMethod("getCPtr", types).invoke(null, params));
+      return new Native ## X ## ConsumerProxy(i, ((Long)i.getClass().getMethod("getCPtr", types).invoke(null, params)).longValue());
     } catch (Exception e) {
       return new Native ## X ## ConsumerProxy(i);
     }
