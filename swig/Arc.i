@@ -217,6 +217,12 @@ public:
 %typemap(javaimports) listiterator "import java.util.NoSuchElementException;"
 #endif
 %typemap(javacode) listiterator %{
+  // Copied verbatim from '%typemape(javacode) SWIGTYPE'.
+  private Object objectManagingMyMemory;
+  protected void setMemoryManager(Object r) {
+    objectManagingMyMemory = r;
+  } // %typemap(javacode) SWIGTYPE - End
+
   public void remove() throws UnsupportedOperationException { throw new UnsupportedOperationException(); }
 %}
 %javaexception("java.util.NoSuchElementException") listiterator::next {
@@ -262,6 +268,11 @@ public:
 /* Add member to any Java proxy class which is able to hold a reference to
  * an object managing its memory.
  * Add method which sets managing object.
+ * Since typemaps overrides other typemaps which are less specific in the
+ * matching and since the $typemap macro is not working in older versions of
+ * swig (e.g. 1.3.29) the code in the below typemap is copied verbatim in this
+ * and other swig interface files (.i). Look for '%typemap(javacode) SWIGTYPE'
+ * comment.
  */
 %typemap(javacode) SWIGTYPE %{
   private Object objectManagingMyMemory;

@@ -364,12 +364,30 @@
 %typemap(javainterfaces) Arc::EntityContainer<Arc::ComputingServiceType> "ComputingServiceTypeConsumer";
 
 %typemap(javacode) Arc::EntityRetriever<Arc::Endpoint> %{
+  // Copied verbatim from '%typemape(javacode) SWIGTYPE'.
+  private Object objectManagingMyMemory;
+  protected void setMemoryManager(Object r) {
+    objectManagingMyMemory = r;
+  } // %typemap(javacode) SWIGTYPE - End
+  
   private java.util.HashMap<EndpointConsumer, NativeEndpointConsumer> consumers = new java.util.HashMap<EndpointConsumer, NativeEndpointConsumer>();
 %}
 %typemap(javacode) Arc::EntityRetriever<Arc::ComputingServiceType> %{
+  // Copied verbatim from '%typemape(javacode) SWIGTYPE'.
+  private Object objectManagingMyMemory;
+  protected void setMemoryManager(Object r) {
+    objectManagingMyMemory = r;
+  } // %typemap(javacode) SWIGTYPE - End
+  
   private java.util.HashMap<ComputingServiceTypeConsumer, NativeComputingServiceTypeConsumer> consumers = new java.util.HashMap<ComputingServiceTypeConsumer, NativeComputingServiceTypeConsumer>();
 %}
 %typemap(javacode) Arc::EntityRetriever<Arc::Job> %{
+  // Copied verbatim from '%typemape(javacode) SWIGTYPE'.
+  private Object objectManagingMyMemory;
+  protected void setMemoryManager(Object r) {
+    objectManagingMyMemory = r;
+  } // %typemap(javacode) SWIGTYPE - End
+  
   private java.util.HashMap<JobConsumer, NativeJobConsumer> consumers = new java.util.HashMap<JobConsumer, NativeJobConsumer>();
 %}
 #endif
@@ -428,6 +446,12 @@ template <class Type> struct traits_from<const Type *> {
 #endif
 #ifdef SWIGJAVA
 %typemap(javacode) Arc::Submitter %{
+  // Copied verbatim from '%typemape(javacode) SWIGTYPE'.
+  private Object objectManagingMyMemory;
+  protected void setMemoryManager(Object r) {
+    objectManagingMyMemory = r;
+  } // %typemap(javacode) SWIGTYPE - End
+  
   private java.util.HashMap<JobConsumer, NativeJobConsumer> consumers = new java.util.HashMap<JobConsumer, NativeJobConsumer>();
 %}
 #endif
@@ -442,6 +466,12 @@ template <class Type> struct traits_from<const Type *> {
 %}
 #ifdef SWIGJAVA
 %typemap(javacode) Arc::ComputingServiceRetriever %{
+  // Copied verbatim from '%typemape(javacode) SWIGTYPE'.
+  private Object objectManagingMyMemory;
+  protected void setMemoryManager(Object r) {
+    objectManagingMyMemory = r;
+  } // %typemap(javacode) SWIGTYPE - End
+  
   private java.util.HashMap<ComputingServiceTypeConsumer, NativeComputingServiceTypeConsumer> consumers = new java.util.HashMap<ComputingServiceTypeConsumer, NativeComputingServiceTypeConsumer>();
 %}
 %rename(_wait) Arc::ComputingServiceRetriever::wait;
