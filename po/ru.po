@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-03-30 23:17+0100\n"
-"PO-Revision-Date: 2013-03-30 23:24+0100\n"
+"POT-Creation-Date: 2013-03-31 09:25+0100\n"
+"PO-Revision-Date: 2013-03-31 09:28+0100\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -16,7 +16,7 @@ msgstr ""
 "X-Generator: Poedit 1.5.4\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Poedit-KeywordsList: msg:2;IString:1;istring:1\n"
+"X-Poedit-KeywordsList: msg:2;IString:1;istring:1;FindNTrans:1,2\n"
 "X-Poedit-Basepath: /home/oxana/CVSROOT/ARC1\n"
 "X-Poedit-SearchPath-0: src\n"
 
@@ -6957,6 +6957,48 @@ msgstr "Неверный ISO-формат продолжительности: %s
 #, c-format
 msgid "Invalid period string: %s"
 msgstr "Недопустимый интервал времени: %s"
+
+#: src/hed/libs/common/DateTime.cpp:811
+msgid "year"
+msgid_plural "years"
+msgstr[0] "год"
+msgstr[1] "года"
+msgstr[2] "лет"
+
+#: src/hed/libs/common/DateTime.cpp:817
+msgid "month"
+msgid_plural "months"
+msgstr[0] "месяц"
+msgstr[1] "месяца"
+msgstr[2] "месяцев"
+
+#: src/hed/libs/common/DateTime.cpp:823
+msgid "day"
+msgid_plural "days"
+msgstr[0] "день"
+msgstr[1] "дня"
+msgstr[2] "дней"
+
+#: src/hed/libs/common/DateTime.cpp:829
+msgid "hour"
+msgid_plural "hours"
+msgstr[0] "час"
+msgstr[1] "часа"
+msgstr[2] "часов"
+
+#: src/hed/libs/common/DateTime.cpp:835
+msgid "minute"
+msgid_plural "minutes"
+msgstr[0] "минута"
+msgstr[1] "минуты"
+msgstr[2] "минут"
+
+#: src/hed/libs/common/DateTime.cpp:841
+msgid "second"
+msgid_plural "seconds"
+msgstr[0] "секунда"
+msgstr[1] "секунды"
+msgstr[2] "секунд"
 
 #: src/hed/libs/common/URL.cpp:121
 #, c-format
@@ -26346,36 +26388,6 @@ msgstr "Ожидание завершено."
 #~ msgid "store job descriptions in local sandbox."
 #~ msgstr "Невозможно открыть файл с описанием задачи: %s"
 
-#~ msgid "year"
-#~ msgid_plural "years"
-#~ msgstr[0] "год"
-#~ msgstr[1] "года"
-#~ msgstr[2] "лет"
-
-#~ msgid "month"
-#~ msgid_plural "months"
-#~ msgstr[0] "месяц"
-#~ msgstr[1] "месяца"
-#~ msgstr[2] "месяцов"
-
-#~ msgid "day"
-#~ msgid_plural "days"
-#~ msgstr[0] "день"
-#~ msgstr[1] "дня"
-#~ msgstr[2] "дней"
-
-#~ msgid "hour"
-#~ msgid_plural "hours"
-#~ msgstr[0] "час"
-#~ msgstr[1] "часа"
-#~ msgstr[2] "часов"
-
-#~ msgid "second"
-#~ msgid_plural "seconds"
-#~ msgstr[0] "секунда"
-#~ msgstr[1] "секунды"
-#~ msgstr[2] "секунд"
-
 #, fuzzy
 #~ msgid "Failed to load service configuration form file %s"
 #~ msgstr "Не удалось загрузить конфигурацию сервиса"
@@ -26963,9 +26975,6 @@ msgstr "Ожидание завершено."
 
 #~ msgid "hours"
 #~ msgstr "часа(ов)"
-
-#~ msgid "minutes"
-#~ msgstr "минут(ы)"
 
 #~ msgid "ENV: "
 #~ msgstr "ENV: "
