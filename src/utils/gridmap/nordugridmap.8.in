@@ -71,7 +71,9 @@ APACHE LICENSE Version 2.0
 .BR /etc/arc.conf
 
 .SH AUTHOR
-Anders Waananen <waananen@nbi.dk>, Andrii Salnikov <manf@grid.org.ua>
+ARC software is developed by the NorduGrid Collaboration  
+(http://www.nordugrid.org), please consult the AUTHORS file distributed with  
+ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org 
 
 .SH SEE ALSO
 
