@@ -26,7 +26,7 @@ if the destination is an indexing service and not the same as the source and the
 .IP "\fB-i\fR, \fB--indicate\fR"
 show progress indicator
 .IP "\fB-T\fR, \fB--notransfer\fR"
-do not transfer file, just register it - destination must be non-existing meta-url
+do not transfer, but register source into destination. destination must be a meta-url. If destination already exists then meta-information of source must match meta-information of destination. This can be overridden using the --force option.
 .IP "\fB-3\fR, \fB--thirdparty\fR"
 perform third party transfer, where the destination pulls from the source (only available with GFAL plugin)
 .IP "\fB-u\fR, \fB--secure\fR"

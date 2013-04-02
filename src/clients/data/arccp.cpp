@@ -565,8 +565,8 @@ int main(int argc, char **argv) {
 
   bool nocopy = false;
   options.AddOption('T', "notransfer",
-                    istring("do not transfer file, just register it - "
-                            "destination must be non-existing meta-url"),
+                    istring("do not transfer, but register source into "
+                            "destination. destination must be a meta-url."),
                     nocopy);
 
   bool secure = false;
