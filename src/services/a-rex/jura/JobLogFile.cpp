@@ -627,8 +627,13 @@ namespace Arc
         if (!ur["JobIdentity"])
           ur.NewChild("JobIdentity");
 
-        ur["JobIdentity"].NewChild("LocalJobId")=
-          (*this)["localid"];
+        if (find("localid")!=end()) {
+          ur["JobIdentity"].NewChild("LocalJobId")=
+            (*this)["localid"];
+        } else {
+          ur["JobIdentity"].NewChild("LocalJobId")=
+            (*this)["ngjobid"];
+        }
       }
     else
     {
