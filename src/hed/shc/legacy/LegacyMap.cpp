@@ -164,20 +164,23 @@ ArcSec::SecHandlerStatus LegacyMap::Handle(Arc::Message* msg) const {
     logger.msg(Arc::ERROR, "LegacyMap: no configurations blocks defined");
     return false;
   };
-  // Check if decision is already made
-  Arc::SecAttr* dattr = msg->AuthContext()->get("ARCLEGACYMAP");
-  if(dattr) {
-    LegacyMapAttr* mattr = dynamic_cast<LegacyMapAttr*>(dattr);
-    if(mattr) {
-      // Mapping already was done in this context
-      std::string id = mattr->GetID();
-      if(!id.empty()) {
-        msg->Attributes()->set("SEC:LOCALID",id);
+  Arc::SecAttr* sattr = msg->Auth()->get("ARCLEGACY");
+  if(!sattr) {
+    // Only if information collection is done per context.
+    // Check if decision is already made.
+    Arc::SecAttr* dattr = msg->AuthContext()->get("ARCLEGACYMAP");
+    if(dattr) {
+      LegacyMapAttr* mattr = dynamic_cast<LegacyMapAttr*>(dattr);
+      if(mattr) {
+        // Mapping already was done in this context
+        std::string id = mattr->GetID();
+        if(!id.empty()) {
+          msg->Attributes()->set("SEC:LOCALID",id);
+        };
+        return true;
       };
-      return true;
     };
   };
-  Arc::SecAttr* sattr = msg->Auth()->get("ARCLEGACY");
   if(!sattr) sattr = msg->AuthContext()->get("ARCLEGACY");
   if(!sattr) {
     logger.msg(Arc::ERROR, "LegacyPDP: there is no ARCLEGACY Sec Attribute defined. Probably ARC Legacy Sec Handler is not configured or failed.");
