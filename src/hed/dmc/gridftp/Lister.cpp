@@ -790,7 +790,7 @@ namespace ArcDMCGridFTP {
 
     DataStatus result = DataStatus::StatError;
     DataStatus con_result = handle_connect(url);
-    if(!con_result) return con_result;
+    if(!con_result) return DataStatus(DataStatus::StatError, con_result.GetErrno(), con_result.GetDesc());
 
     globus_ftp_control_response_class_t cmd_resp;
     char *sresp = NULL;
@@ -936,7 +936,9 @@ namespace ArcDMCGridFTP {
       return result;
     }
     free(sresp); sresp = NULL;
-    return transfer_list();
+    result = transfer_list();
+    if (!result) result = DataStatus(DataStatus::StatError, result.GetErrno(), result.GetDesc());
+    return result;
   }
 
   DataStatus Lister::retrieve_dir_info(const URL& url,bool names_only) {
