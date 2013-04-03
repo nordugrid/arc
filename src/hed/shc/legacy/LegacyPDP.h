@@ -12,13 +12,21 @@ namespace ArcSHCLegacy {
 class LegacyPDP : public ArcSec::PDP {
  friend class LegacyPDPCP;
  private:
+  class cfgblock {
+   public:
+    std::string name;
+    std::list<std::string> groups;
+    bool exists;
+    bool limited;
+    cfgblock(const std::string& n):name(n),exists(false),limited(false) { };
+  };
   class cfgfile {
    public:
     std::string filename;
-    std::list<std::string> blocknames;
+    std::list<cfgblock> blocks;
     cfgfile(const std::string& fname):filename(fname) {};
   };
-  std::list<cfgfile> blocks_;
+  bool any_;
   std::list<std::string> groups_;
   std::list<std::string> vos_;
  public:
