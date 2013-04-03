@@ -112,6 +112,14 @@ ArcSec::SecHandlerStatus LegacySecHandler::Handle(Arc::Message* msg) const {
     logger.msg(Arc::ERROR, "LegacySecHandler: configuration file not specified");
     return false;
   };
+  Arc::SecAttr* attr = msg->AuthContext()->get("ARCLEGACY");
+  if(attr) {
+    LegacySecAttr* lattr = dynamic_cast<LegacySecAttr*>(attr);
+    if(lattr) {
+      // Information already collected
+      return true;
+    };
+  };
   AuthUser auth(*msg);
   Arc::AutoPointer<LegacySecAttr> sattr(new LegacySecAttr(logger));
   for(std::list<std::string>::const_iterator conf_file = conf_files_.begin();
@@ -121,8 +129,7 @@ ArcSec::SecHandlerStatus LegacySecHandler::Handle(Arc::Message* msg) const {
     if(!parser.Parse()) return false;
   };
   // Pass all matched groups and VOs to Message in SecAttr
-  // TODO: maybe assign to context
-  msg->Auth()->set("ARCLEGACY",sattr.Release());
+  msg->AuthContext()->set("ARCLEGACY",sattr.Release());
   return true;
 }
 
