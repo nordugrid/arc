@@ -1,5 +1,5 @@
 .\" -*- nroff -*- 
-.TH NGCLIENT2ARC 1 "2011-02-25" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+.TH NGCLIENT2ARC 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 
 .SH NAME
 
