@@ -561,12 +561,13 @@ void MCC_TCP_Service::executer(void* arg) {
         nextinmsg.Attributes()->set("TCP:ENDPOINT",endpoint_attr);
         nextinmsg.Attributes()->set("ENDPOINT",endpoint_attr);
         nextinmsg.Context(&context);
-        nextoutmsg.Attributes(&attributes_out);
         nextinmsg.Auth(&auth_in);
         TCPSecAttr* tattr = new TCPSecAttr(remotehost_attr, remoteport_attr, host_attr, port_attr);
         nextinmsg.Auth()->set("TCP",tattr);
-        nextoutmsg.Auth(&auth_out);
+        nextinmsg.AuthContext(&auth_context);
+        nextoutmsg.Attributes(&attributes_out);
         nextoutmsg.Context(&context);
+        nextoutmsg.Auth(&auth_out);
         nextoutmsg.AuthContext(&auth_context);
         if(!it.ProcessSecHandlers(nextinmsg,"incoming")) break;
         // Call next MCC
