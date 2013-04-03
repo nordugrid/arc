@@ -115,11 +115,67 @@ class LegacyMapCP: public ConfigParser {
   bool is_block_;
 };
 
+class LegacyMapAttr: public Arc::SecAttr {
+ public:
+  LegacyMapAttr(const std::string& id):id_(id) { };
+  virtual ~LegacyMapAttr(void);
+
+  // Common interface
+  virtual operator bool(void) const;
+  virtual bool Export(Arc::SecAttrFormat format,Arc::XMLNode &val) const;
+  virtual std::string get(const std::string& id) const;
+  virtual std::list<std::string> getAll(const std::string& id) const;
+
+  // Specific interface
+  const std::string GetID(void) const { return id_; };
+
+ protected:
+  std::string id_;
+  virtual bool equal(const SecAttr &b) const;
+};
+
+LegacyMapAttr::~LegacyMapAttr(void) {
+}
+
+LegacyMapAttr::operator bool(void) const {
+  return true; 
+}
+
+bool LegacyMapAttr::Export(Arc::SecAttrFormat format,Arc::XMLNode &val) const {
+  return true; 
+}
+
+std::string LegacyMapAttr::get(const std::string& id) const {
+  return ""; 
+}
+
+std::list<std::string> LegacyMapAttr::getAll(const std::string& id) const {
+  return std::list<std::string>(); 
+}
+
+bool LegacyMapAttr::equal(const SecAttr &b) const {
+  const LegacyMapAttr& a = dynamic_cast<const LegacyMapAttr&>(b);
+  if (!a) return false;
+  return (id_ == a.id_);
+}
 
 ArcSec::SecHandlerStatus LegacyMap::Handle(Arc::Message* msg) const {
   if(blocks_.size()<=0) {
     logger.msg(Arc::ERROR, "LegacyMap: no configurations blocks defined");
     return false;
+  };
+  // Check if decision is already made
+  Arc::SecAttr* dattr = msg->AuthContext()->get("ARCLEGACYMAP");
+  if(dattr) {
+    LegacyMapAttr* mattr = dynamic_cast<LegacyMapAttr*>(dattr);
+    if(mattr) {
+      // Mapping already was done in this context
+      std::string id = mattr->GetID();
+      if(!id.empty()) {
+        msg->Attributes()->set("SEC:LOCALID",id);
+      };
+      return true;
+    };
   };
   Arc::SecAttr* sattr = msg->Auth()->get("ARCLEGACY");
   if(!sattr) sattr = msg->AuthContext()->get("ARCLEGACY");
@@ -136,18 +192,21 @@ ArcSec::SecHandlerStatus LegacyMap::Handle(Arc::Message* msg) const {
   AuthUser auth(*msg);
   auth.add_groups(lattr->GetGroups());
   auth.add_vos(lattr->GetVOs());
+  std::string id;
   for(std::list<cfgfile>::const_iterator block = blocks_.begin();
                               block!=blocks_.end();++block) {
     LegacyMapCP parser(*block,logger,auth);
     if(!parser) return false;
     if(!parser.Parse()) return false;
-    std::string id = parser.LocalID();
+    id = parser.LocalID();
     if(!id.empty()) {
       logger.msg(Arc::INFO,"Grid identity is mapped to local identity '%s'",id);
       msg->Attributes()->set("SEC:LOCALID",id);
       break;
     };
   };
+  // Store decision even if no id was selected
+  msg->AuthContext()->set("ARCLEGACYMAP",new LegacyMapAttr(id));
   return true;
 }
 
