@@ -49,9 +49,9 @@ namespace Arc {
     std::string::size_type pos3 = service.find("/", pos1 + 3);
     if (pos3 == std::string::npos || pos3 == service.size()-1) {
       service += "/services/query.xml";
-      std::stringstream ss;
-      ss << entryPerMessage;
-      service += ss.str();
+      //std::stringstream ss;
+      //ss << entryPerMessage;
+      //service += ss.str();
     }
     URL serviceURL(service);
 
