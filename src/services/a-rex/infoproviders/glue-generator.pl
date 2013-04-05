@@ -204,7 +204,7 @@ sub translator(){
     # Service information. This is an hack to mimic Site-BDII service information.
     my $glueServiceUniqueID = build_glueServiceUniqueID($cluster_attributes{'nordugrid-cluster-name'});
     my $glueservicename = $glue_site_unique_id."-arc";
-    my $glueservicestatusinfo=`service a-rex status`;
+    my $glueservicestatusinfo=`/etc/init.d/a-rex status`;
     chomp $glueservicestatusinfo;
     my $glueservicestatus;
     if ($? == 0) {
