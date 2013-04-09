@@ -180,8 +180,8 @@ Arc::MCC_Status ARexService::ESListActivities(ARexGMConfig& config,Arc::XMLNode 
   if((bool)(node = in["FromDate"])) {
     from = (std::string)node;
     if(from.GetTime() == (time_t)(-1)) {
-      ESInvalidParameterFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
-                                 "failed to parse FromDate: "+(std::string)node);
+      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
+      ESInvalidParameterFault(fault,"failed to parse FromDate: "+(std::string)node);
       out.Destroy();
       return Arc::MCC_Status(Arc::STATUS_OK);
     };
@@ -190,8 +190,8 @@ Arc::MCC_Status ARexService::ESListActivities(ARexGMConfig& config,Arc::XMLNode 
   if((bool)(node = in["ToDate"])) {
     to = (std::string)node;
     if(to.GetTime() == (time_t)(-1)) {
-      ESInvalidParameterFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
-                                 "failed to parse ToDate: "+(std::string)node);
+      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
+      ESInvalidParameterFault(fault,"failed to parse ToDate: "+(std::string)node);
       out.Destroy();
       return Arc::MCC_Status(Arc::STATUS_OK);
     };
@@ -199,8 +199,8 @@ Arc::MCC_Status ARexService::ESListActivities(ARexGMConfig& config,Arc::XMLNode 
   };
   if((bool)(node = in["Limit"])) {
     if(!Arc::stringto((std::string)node,limit)) {
-      ESInternalBaseFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
-                          "failed to parse Limit: "+(std::string)node);
+      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
+      ESInternalBaseFault(fault,"failed to parse Limit: "+(std::string)node);
       out.Destroy();
       return Arc::MCC_Status(Arc::STATUS_OK);
     };
@@ -210,8 +210,8 @@ Arc::MCC_Status ARexService::ESListActivities(ARexGMConfig& config,Arc::XMLNode 
     std::pair<std::string,std::list<std::string> > status;
     status.first = (std::string)(node["Status"]);
     if(status.first.empty()) {
-      ESInvalidParameterFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
-                                 "Status in ActivityStatus is missing");
+      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
+      ESInvalidParameterFault(fault,"Status in ActivityStatus is missing");
       out.Destroy();
       return Arc::MCC_Status(Arc::STATUS_OK);
     };
@@ -287,8 +287,8 @@ Arc::MCC_Status ARexService::ESGetActivityStatus(ARexGMConfig& config,Arc::XMLNo
   unsigned int n = 0;
   for(;(bool)id;++id) {
     if((++n) > MAX_ACTIVITIES) {
-      ESVectorLimitExceededFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
-                                 MAX_ACTIVITIES,"Too many ActivityID");
+      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
+      ESVectorLimitExceededFault(fault,MAX_ACTIVITIES,"Too many ActivityID");
       out.Destroy();
       return Arc::MCC_Status(Arc::STATUS_OK);
     };
@@ -371,8 +371,8 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
   unsigned int n = 0;
   for(;(bool)id;++id) {
     if((++n) > MAX_ACTIVITIES) {
-      ESVectorLimitExceededFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
-                                 MAX_ACTIVITIES,"Too many ActivityID");
+      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
+      ESVectorLimitExceededFault(fault,MAX_ACTIVITIES,"Too many ActivityID");
       out.Destroy();
       return Arc::MCC_Status(Arc::STATUS_OK);
     };
@@ -382,8 +382,8 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
     attributes.push_back((std::string)anode);
   };
   //if(!attributes.empty()) {
-  //  ESUnknownAttributeFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
-  //                      "Selection by AttributeName is not implemented yet");
+  //  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
+  //  ESUnknownAttributeFault(fault,"Selection by AttributeName is not implemented yet");
   //  out.Destroy();
   //  return Arc::MCC_Status(Arc::STATUS_OK);
   //};
@@ -538,8 +538,8 @@ Arc::MCC_Status ARexService::ESNotifyService(ARexGMConfig& config,Arc::XMLNode i
   unsigned int n = 0;
   for(;(bool)item;++item) {
     if((++n) > MAX_ACTIVITIES) {
-      ESVectorLimitExceededFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
-                                 MAX_ACTIVITIES,"Too many NotifyRequestItem");
+      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
+      ESVectorLimitExceededFault(fault,MAX_ACTIVITIES,"Too many NotifyRequestItem");
       out.Destroy();
       return Arc::MCC_Status(Arc::STATUS_OK);
     };

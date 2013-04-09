@@ -525,14 +525,14 @@ Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode
 Arc::MCC_Status ARexService::ESQueryResourceInfo(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
   std::string dialect = (std::string)in["QueryDialect"];
   if(dialect.empty()) {
-    ESNotSupportedQueryDialectFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
-                                    "Query dialect not defined");
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
+    ESNotSupportedQueryDialectFault(fault,"Query dialect not defined");
     out.Destroy();
     return Arc::MCC_Status(Arc::STATUS_OK);
   }
   if(dialect != "XPATH 1.0") {
-    ESNotSupportedQueryDialectFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
-                                    "Only XPATH 1.0 is supported");
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
+    ESNotSupportedQueryDialectFault(fault,"Only XPATH 1.0 is supported");
     out.Destroy();
     return Arc::MCC_Status(Arc::STATUS_OK);
   }
@@ -541,8 +541,8 @@ Arc::MCC_Status ARexService::ESQueryResourceInfo(ARexGMConfig& config,Arc::XMLNo
   if(expression.Size() > 0) expression = expression.Child(0);
   std::string xpath = (std::string)expression;
   if(xpath.empty()) {
-    ESNotValidQueryStatementFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
-                                    "Could not extract xpath query from request");
+    Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
+    ESNotValidQueryStatementFault(fault,"Could not extract xpath query from request");
     out.Destroy();
     return Arc::MCC_Status(Arc::STATUS_OK);
   }

@@ -196,8 +196,8 @@ Arc::MCC_Status ARexService::ESPauseActivity(ARexGMConfig& config,Arc::XMLNode i
   unsigned int n = 0;
   for(;(bool)id;++id) {
     if((++n) > MAX_ACTIVITIES) {
-      ESVectorLimitExceededFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
-                                 MAX_ACTIVITIES,"Too many ActivityID");
+      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
+      ESVectorLimitExceededFault(fault,MAX_ACTIVITIES,"Too many ActivityID");
       out.Destroy();
       return Arc::MCC_Status(Arc::STATUS_OK);
     };
@@ -245,8 +245,8 @@ Arc::MCC_Status ARexService::ESResumeActivity(ARexGMConfig& config,Arc::XMLNode 
   unsigned int n = 0;
   for(;(bool)id;++id) {
     if((++n) > MAX_ACTIVITIES) {
-      ESVectorLimitExceededFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
-                                 MAX_ACTIVITIES,"Too many ActivityID");
+      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
+      ESVectorLimitExceededFault(fault,MAX_ACTIVITIES,"Too many ActivityID");
       out.Destroy();
       return Arc::MCC_Status(Arc::STATUS_OK);
     };
@@ -294,8 +294,8 @@ Arc::MCC_Status ARexService::ESCancelActivity(ARexGMConfig& config,Arc::XMLNode 
   unsigned int n = 0;
   for(;(bool)id;++id) {
     if((++n) > MAX_ACTIVITIES) {
-      ESVectorLimitExceededFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
-                                 MAX_ACTIVITIES,"Too many ActivityID");
+      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
+      ESVectorLimitExceededFault(fault,MAX_ACTIVITIES,"Too many ActivityID");
       out.Destroy();
       return Arc::MCC_Status(Arc::STATUS_OK);
     };
@@ -352,8 +352,8 @@ Arc::MCC_Status ARexService::ESWipeActivity(ARexGMConfig& config,Arc::XMLNode in
   unsigned int n = 0;
   for(;(bool)id;++id) {
     if((++n) > MAX_ACTIVITIES) {
-      ESVectorLimitExceededFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
-                                 MAX_ACTIVITIES,"Too many ActivityID");
+       Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
+      ESVectorLimitExceededFault(fault,MAX_ACTIVITIES,"Too many ActivityID");
       out.Destroy();
       return Arc::MCC_Status(Arc::STATUS_OK);
     };
@@ -410,8 +410,8 @@ Arc::MCC_Status ARexService::ESRestartActivity(ARexGMConfig& config,Arc::XMLNode
   unsigned int n = 0;
   for(;(bool)id;++id) {
     if((++n) > MAX_ACTIVITIES) {
-      ESVectorLimitExceededFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
-                                 MAX_ACTIVITIES,"Too many ActivityID");
+      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
+      ESVectorLimitExceededFault(fault,MAX_ACTIVITIES,"Too many ActivityID");
       out.Destroy();
       return Arc::MCC_Status(Arc::STATUS_OK);
     };

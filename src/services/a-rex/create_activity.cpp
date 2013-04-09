@@ -161,7 +161,8 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
   for(;(bool)adl;++adl) {
     if((++n) > MAX_ACTIVITIES) {
       logger_.msg(Arc::ERROR, "EMIES:CreateActivity: too many activity descriptions");
-      ESVectorLimitExceededFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,"Too many activity descriptions"),MAX_ACTIVITIES,"Too many activity descriptions");
+      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Too many activity descriptions");
+      ESVectorLimitExceededFault(fault,MAX_ACTIVITIES,"Too many activity descriptions");
       out.Destroy();
       return Arc::MCC_Status(Arc::STATUS_OK);
     };
