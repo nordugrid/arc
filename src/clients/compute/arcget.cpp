@@ -4,6 +4,7 @@
 #include <config.h>
 #endif
 
+#include <sys/stat.h>
 #include <iostream>
 #include <list>
 #include <string>
@@ -12,6 +13,7 @@
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/UserConfig.h>
+#include <arc/FileUtils.h>
 #include <arc/compute/JobInformationStorage.h>
 #include <arc/compute/JobSupervisor.h>
 
@@ -130,6 +132,16 @@ int RUNMAIN(arcget)(int argc, char **argv) {
     return 1;
   }
 
+  if(!opt.downloaddir.empty()) {
+    Arc::URL dirpath(opt.downloaddir);
+    if(dirpath.Protocol() == "file") {
+      if(!Arc::DirCreate(dirpath.Path(),S_IRWXU,true)) {
+        std::string errstr = Arc::StrError();
+        logger.msg(Arc::ERROR, "Unable to create directory for storing results (%s) - %s", dirpath.Path(), errstr);
+        return 1;
+      }
+    }
+  }
   std::list<std::string> downloaddirectories;
   int retval = (int)!jobmaster.Retrieve(opt.downloaddir, opt.usejobname, opt.forcedownload, downloaddirectories);
 
