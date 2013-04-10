@@ -4,6 +4,7 @@
 #include <config.h>
 #endif
 
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include <algorithm>
@@ -14,6 +15,7 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
+#include <arc/FileUtils.h>
 #include <arc/compute/Endpoint.h>
 #include <arc/compute/JobControllerPlugin.h>
 #include <arc/data/DataHandle.h>
@@ -690,8 +692,16 @@ namespace Arc {
       return false;
     }
 
+    // TODO: can destination be remote?
+
     if (!force && Glib::file_test(dst.Path(), Glib::FILE_TEST_EXISTS)) {
       logger.msg(WARNING, "%s directory exist! Skipping job.", dst.Path());
+      return false;
+    }
+
+    // We must make it sure it is directory and it exists 
+    if (!DirCreate(dst.Path(), S_IRWXU, true)) {
+      logger.msg(WARNING, "Failed to create directory %s! Skipping job.", dst.Path());
       return false;
     }
 
