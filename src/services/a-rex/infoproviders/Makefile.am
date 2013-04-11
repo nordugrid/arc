@@ -19,7 +19,7 @@ dist_arcldapschema_DATA = schema/nordugrid.schema
 PERL = @PERL@
 
 PERLSCRIPTS = $(dist_pkgdata_DATA) CEinfo.pl
-TESTS_ENVIRONMENT = $(PERL) -Mstrict -wc
+TESTS_ENVIRONMENT = $(PERL) -I$(srcdir) -Mstrict -wc
 TESTS = $(PERLSCRIPTS)
 
 check_SCRIPTS = $(PERLSCRIPTS)
