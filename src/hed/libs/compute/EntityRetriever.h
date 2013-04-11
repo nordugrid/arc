@@ -19,7 +19,7 @@ class Logger;
 class SharedMutex;
 class SimpleCondition;
 class SimpleCounter;
-class ThreadedPointer<class Endpoint>;
+template<> class ThreadedPointer<class Endpoint>;
 class UserConfig;
 
 /// A general concept of an object which can consume entities use by the retrievers to return results
