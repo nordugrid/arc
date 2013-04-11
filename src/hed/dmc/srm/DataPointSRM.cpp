@@ -582,7 +582,7 @@ namespace ArcDMCSRM {
         }
         else {
           // checksum verification - if requested and not already done at lower level
-          if (srm_request->status() == SRM_REQUEST_FINISHED_SUCCESS && additional_checks && !CheckCheckSum()) {
+          if (srm_request->status() == SRM_REQUEST_FINISHED_SUCCESS && additional_checks && buffer && !CheckCheckSum()) {
             const CheckSum * calc_sum = buffer->checksum_object();
             if (calc_sum && *calc_sum && buffer->checksum_valid()) {
               char buf[100];
