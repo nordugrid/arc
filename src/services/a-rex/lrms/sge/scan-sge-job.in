@@ -187,6 +187,10 @@ handle_failedcode () {
     else
       failedreason="SGE error $failedreason"
     fi
+
+    if [ ! -z "$eqwmessage" ]; then
+       failedreason="$eqwmessage"
+    fi
 	
     olog "SGE job $id failed: $failedreason"
     if [ -z "$sgeexitcode" ] || [ "$sgeexitcode" = 0 ]; then sgeexitcode="-1"; fi
@@ -388,6 +392,7 @@ for ctr_dir in $control_dirs ; do
     failedfile="${ctr_dir}/job.${gridid}.failed"
     errorsfile="${ctr_dir}/job.${gridid}.errors"
     localfile="${ctr_dir}/job.${gridid}.local"
+    xmlfile="${ctr_dir}/job.${gridid}.xml"
     if [ -f "$donefile" ] ; then continue ; fi
     statusfile="${ctr_dir}/processing/job.${gridid}.status"
     if [ ! -f "$statusfile" ] ; then continue ; fi
@@ -422,6 +427,8 @@ for ctr_dir in $control_dirs ; do
         # Accounting file is not accessible on this host.
         noaccounting=1
       fi
+
+      eqwmessage=`grep "SGE job state was Eqw" $xmlfile | sed -r 's/<[/]?OtherMessages>//g'`
 
       # get accounting info. write diag file
       write_diagfile_acct "$diagfile_acct" "${SGE_BIN_PATH}/qacct" "$id" "$extraargs"

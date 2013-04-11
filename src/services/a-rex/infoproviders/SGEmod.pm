@@ -801,6 +801,7 @@ sub jobs_info ($) {
         
             $log->debug("SGE job $jid has finished");
             $lrms_jobs->{$jid}{status} = 'EXECUTED';
+            $lrms_jobs->{$jid}{comment} = ''
         }
     }
 
@@ -866,11 +867,13 @@ sub jobs_info ($) {
             # error reason  1:  08/20/2008 13:40:27 [113794:25468]: error: can't chdir to /some/dir: No such file or directory
             # error reason  1:          fork failed: Cannot allocate memory
             #               1:          fork failed: Cannot allocate memory
-            push @{$lrms_jobs->{$jid}{comment}}, "LRMS: $1";
+            push @{$lrms_jobs->{$jid}{comment}}, "SGE job state was Eqw. LRMS error message was: $1";
+            loop_callback("$path/qdel -fj $jidstr", sub {})
         }
         elsif ($l =~ /(job is in error state)/) {
             # for SGE version 5.x.
-            push @{$lrms_jobs->{$jid}{comment}}, "LRMS: $1";
+            push @{$lrms_jobs->{$jid}{comment}}, "SGE job state was Eqw. LRMS error message was: $1";
+            loop_callback("$path/qdel -fj $jidstr", sub {})
 
             # qstat is not informative. qacct would be a bit more helpful with
             # messages like:
