@@ -1,3 +1,7 @@
+2013-04-12  Gabor Roczei <roczei@niif.hu>
+  * SGE bugfix (#2714), the SGE backend will detect the MainMemorySize
+  * SGE bugfix (#2716), correct handling of the Eqw SGE state
+
 2013-03-19  Dmytro Karpenko <dmytrok@fys.uio.no>
   * Condor configuration options in arc.conf have been revised. Condor users are 
     strongly advised to check the updated Condor configuration manual
