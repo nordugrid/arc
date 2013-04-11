@@ -442,6 +442,13 @@ if test "$enables_java" = "yes"; then
     JAVA_FLAGS="$JAVA_VM_FLAGS"
   fi
   
+  # For Java generics - check if the '-source' flag must be specified to the Java compiler.
+  echo "public abstract class Test { private java.util.AbstractList<Object> al; }" > Test.java
+  if ! $JAVAC $JAVAC_FLAGS Test.java >/dev/null 2>&1; then
+    JAVAC_FLAGS="$JAVAC_FLAGS -source 1.5"
+  fi
+  rm -f Test.java Test.class
+
   # Check if version is 1.5 (Iterable was first introduced in 1.5)
   echo "public abstract class TestIterable implements Iterable< Object > {}" > TestIterable.java
   if $JAVAC $JAVAC_FLAGS TestIterable.java >/dev/null 2>&1; then
