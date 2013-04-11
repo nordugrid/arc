@@ -25,7 +25,7 @@ endif
 libjarc_la_SOURCES = arc_init.cpp arc_jni.h
 nodist_libjarc_la_SOURCES = arc_wrap.cpp
 libjarc_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(JDK_CFLAGS) $(ZLIB_CFLAGS) \
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(JDK_CFLAGS) $(ZLIB_CFLAGS) $(DBCXX_CPPFLAGS) \
 	-fno-strict-aliasing $(AM_CXXFLAGS)
 libjarc_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/credentialstore/libarccredentialstore.la \
@@ -38,7 +38,7 @@ libjarc_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/libs/data-staging/libarcdatastaging.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(ZLIB_LIBS)
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(ZLIB_LIBS) $(DBCXX_LIBS)
 libjarc_la_LDFLAGS = -no-undefined -avoid-version -module $(SHREXT)
 
 SWIG_OUTPUTS = arc_wrap.cpp $(JAVA_PATH)/*.java
