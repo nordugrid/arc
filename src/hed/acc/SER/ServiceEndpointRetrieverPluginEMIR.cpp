@@ -34,24 +34,25 @@ namespace Arc {
   static URL CreateURL(std::string service, int entryPerMessage, int skipOffset) {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos) {
-      service = "https://" + service;
+      service = "http://" + service;
+      pos1 = service.find("://");
     } else {
       std::string proto = lower(service.substr(0,pos1));
       if((proto != "http") && (proto != "https")) return URL();
     }
-    // Default port other than 443?
     /* 
      *  URL structure and response format: 
      *    * in JSON: http[s]://<host_name>:<port>/services?limit=<nr_of_entries_per_message>[&skip=<offset>]
      *
      *    * in XML:  http[s]://<host_name>:<port>/services/query.xml?limit=<nr_of_entries_per_message>[&skip=<offset>]
      */
+    std::string::size_type pos2 = service.find(":", pos1 + 3);
     std::string::size_type pos3 = service.find("/", pos1 + 3);
+    if (pos2 == std::string::npos && pos3 == std::string::npos) {
+      service += ":9126"; // Default port seems to be 9126.
+    }
     if (pos3 == std::string::npos || pos3 == service.size()-1) {
       service += "/services/query.xml";
-      //std::stringstream ss;
-      //ss << entryPerMessage;
-      //service += ss.str();
     }
     URL serviceURL(service);
 
