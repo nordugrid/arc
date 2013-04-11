@@ -39,7 +39,7 @@
  * Adding a "constructor" (used as a function in the cpp file) which
  * returns a new CountedPointer object with newed T object created
  * Ts default constructor. Thus if T has no default constructor,
- * another work around is needed in order to map that CountedPointer
+ * another workaround is needed in order to map that CountedPointer
  * wrapped class with swig.
  */
 %extend Arc::CountedPointer {
@@ -397,9 +397,45 @@
 %template(ComputingServiceConsumer) Arc::EntityConsumer<Arc::ComputingServiceType>;
 %template(JobConsumer) Arc::EntityConsumer<Arc::Job>;
 #endif
+#if SWIG_VERSION <= 0x010331 && defined(SWIGJAVA)
+// Workaround for older swig versions wrt. the EntityConsumer interface. See Arc.i.
+%typemap(javaout) void Arc::EntityRetriever<Arc::Job>::addConsumer {
+  NativeJobConsumer n = $module.makeNative(addConsumer_consumer);
+  consumers.put(addConsumer_consumer, n);
+  $jnicall;
+}
+%typemap(javaout) void Arc::EntityRetriever<Arc::Job>::removeConsumer {
+  if (!consumers.containsKey(removeConsumer_consumer)) return;
+  NativeJobConsumer n = (NativeJobConsumer)consumers.get(removeConsumer_consumer);
+  $jnicall;
+  consumers.remove(removeConsumer_consumer);
+}
+%typemap(javaout) void Arc::EntityRetriever<Arc::ComputingServiceType>::addConsumer {
+  NativeComputingServiceTypeConsumer n = $module.makeNative(addConsumer_consumer);
+  consumers.put(addConsumer_consumer, n);
+  $jnicall;
+}
+%typemap(javaout) void Arc::EntityRetriever<Arc::ComputingServiceType>::removeConsumer {
+  if (!consumers.containsKey(removeConsumer_consumer)) return;
+  NativeComputingServiceTypeConsumer n = (NativeComputingServiceTypeConsumer)consumers.get(removeConsumer_consumer);
+  $jnicall;
+  consumers.remove(removeConsumer_consumer);
+}
+%typemap(javaout) void Arc::EntityRetriever<Arc::Endpoint>::addConsumer {
+  NativeEndpointConsumer n = $module.makeNative(addConsumer_consumer);
+  consumers.put(addConsumer_consumer, n);
+  $jnicall;
+}
+%typemap(javaout) void Arc::EntityRetriever<Arc::Endpoint>::removeConsumer {
+  if (!consumers.containsKey(removeConsumer_consumer)) return;
+  NativeEndpointConsumer n = (NativeEndpointConsumer)consumers.get(removeConsumer_consumer);
+  $jnicall;
+  consumers.remove(removeConsumer_consumer);
+}
+#endif
 #ifdef SWIGJAVA
 %template(NativeEndpointConsumer) Arc::EntityConsumer<Arc::Endpoint>;
-%template(NativeComputingServiceConsumer) Arc::EntityConsumer<Arc::ComputingServiceType>;
+%template(NativeComputingServiceTypeConsumer) Arc::EntityConsumer<Arc::ComputingServiceType>;
 %template(NativeJobConsumer) Arc::EntityConsumer<Arc::Job>;
 %warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE) Arc::EntityContainer<Arc::Endpoint>;
 %warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE) Arc::EntityContainer<Arc::ComputingServiceType>;
@@ -417,6 +453,13 @@
 %{
 #include <arc/compute/SubmitterPlugin.h>
 %}
+#if SWIG_VERSION <= 0x010331 && defined(SWIGJAVA)
+// Workaround for older swig versions wrt. the EntityConsumer interface. See Arc.i.
+%typemap(javaout) Arc::SubmissionStatus Arc::SubmitterPlugin::Submit {
+  NativeJobConsumer n = $module.makeNative(jc);
+  return new SubmissionStatus($jnicall, $owner);
+}
+#endif
 %ignore Arc::SubmitterPluginArgument::operator const UserConfig&; // works with swig 1.3.40, and higher...
 %ignore Arc::SubmitterPluginArgument::operator const Arc::UserConfig&; // works with swig 1.3.29
 %wraplist(SubmitterPlugin, Arc::SubmitterPlugin*);
@@ -444,6 +487,20 @@ template <class Type> struct traits_from<const Type *> {
 %}
 #endif
 #endif
+#if SWIG_VERSION <= 0x010331 && defined(SWIGJAVA)
+// Workaround for older swig versions wrt. the EntityConsumer interface. See Arc.i.
+%typemap(javaout) void Arc::Submitter::addConsumer {
+  NativeJobConsumer n = $module.makeNative(addConsumer_consumer);
+  consumers.put(addConsumer_consumer, n);
+  $jnicall;
+}
+%typemap(javaout) void Arc::Submitter::removeConsumer {
+  if (!consumers.containsKey(removeConsumer_consumer)) return;
+  NativeJobConsumer n = (NativeJobConsumer)consumers.get(removeConsumer_consumer);
+  $jnicall;
+  consumers.remove(removeConsumer_consumer);
+}
+#endif
 #ifdef SWIGJAVA
 %typemap(javacode) Arc::Submitter %{
   // Copied verbatim from '%typemape(javacode) SWIGTYPE'.
@@ -464,6 +521,20 @@ template <class Type> struct traits_from<const Type *> {
 %{
 #include <arc/compute/ComputingServiceRetriever.h>
 %}
+#if SWIG_VERSION <= 0x010331 && defined(SWIGJAVA)
+// Workaround for older swig versions wrt. the EntityConsumer interface. See Arc.i.
+%typemap(javaout) void Arc::ComputingServiceRetriever::addConsumer {
+  NativeComputingServiceTypeConsumer n = $module.makeNative(addConsumer_consumer);
+  consumers.put(addConsumer_consumer, n);
+  $jnicall;
+}
+%typemap(javaout) void Arc::ComputingServiceRetriever::removeConsumer {
+  if (!consumers.containsKey(removeConsumer_consumer)) return;
+  NativeComputingServiceTypeConsumer n = (NativeComputingServiceTypeConsumer)consumers.get(removeConsumer_consumer);
+  $jnicall;
+  consumers.remove(removeConsumer_consumer);
+}
+#endif
 #ifdef SWIGJAVA
 %typemap(javacode) Arc::ComputingServiceRetriever %{
   // Copied verbatim from '%typemape(javacode) SWIGTYPE'.
@@ -480,7 +551,7 @@ template <class Type> struct traits_from<const Type *> {
 #endif
 #ifdef SWIGPYTHON
 %extend Arc::ComputingServiceRetriever {
-  const std::list<ComputingServiceType>& getResults() { return *self; }  
+  const std::list<ComputingServiceType>& getResults() { return *self; }
 
   %insert("python") %{
     def __iter__(self):

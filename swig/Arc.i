@@ -237,7 +237,7 @@ public:
 
 
 /* For non-static methods in the ARC library which returns a reference to an
- * internal object, a work around is needed for Java. The reason for this is
+ * internal object, a workaround is needed for Java. The reason for this is
  * the following:
  * // In C++ let A::get() return a reference to an internal (private) object.
  * const R& A::get() const; // C++
@@ -343,6 +343,7 @@ std::ostream& getStdout() { return std::cout; }
 %typemap(jstype)       Arc::EntityConsumer< Y >&   %{X ## Consumer%};
 %typemap(javainterfaces) Arc::EntityConsumer< Y >  %{X ## Consumer%};
 
+#if SWIG_VERSION > 0x010331
 /* Make sure every Java consumer interface instance is converted to an instance
  * which inherits from the concrete native consumer class which wraps the C++
  * consumer abstract class.
@@ -365,6 +366,15 @@ std::ostream& getStdout() { return std::cout; }
 %typemap(javain, pgcppname="n", pre= "    $javaclassname n = $module.makeNative($javainput); consumers.put($javainput, n);") Arc::EntityConsumer< Y >&  addConsumer_consumer %{Native ## X ## Consumer.getCPtr(n)%};
 %typemap(javain, pgcppname="n", pre= "    if (!consumers.containsKey($javainput)) return; $javaclassname n = ($javaclassname)consumers.get($javainput);", post = "      consumers.remove($javainput);")       Arc::EntityConsumer< Y >&  removeConsumer_consumer %{Native ## X ## Consumer.getCPtr(n)%};
 %typemap(javain, pgcppname="n", pre= "    if (!consumers.containsKey($javainput)) return; $javaclassname n = ($javaclassname)consumers.get($javainput);", post = "      consumers.remove($javainput);") const Arc::EntityConsumer< Y >&  removeConsumer_consumer %{Native ## X ## Consumer.getCPtr(n)%};
+
+#else
+/* Workaround for older swig versions. The pgcppname, pre and post attributes
+ * to the javain typemap doesn't work in swig 1.3.31 and lower. Additional
+ * workarounds is found in the other swig interface files (e.g. compute.i).
+ */
+%typemap(javain)  const Arc::EntityConsumer< Y >&  %{Native ## X ## Consumer.getCPtr(n)%};
+%typemap(javain)        Arc::EntityConsumer< Y >&  %{Native ## X ## Consumer.getCPtr(n)%};
+#endif
  
 %pragma(java) modulecode=%{
   private static class Native ## X ## ConsumerProxy extends Native ## X ## Consumer {
