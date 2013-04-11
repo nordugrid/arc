@@ -93,6 +93,8 @@ require Data::Dumper; import Data::Dumper qw(Dumper);
     %running_jobs = ();
     %waiting_jobs = ();
 
+    nodes_info();
+
     return $lrms_info
 }
 
@@ -922,20 +924,85 @@ sub users_info($$) {
     }
 }
 
+sub run_qhost {
+   my ($host) = @_;
+   my $result = {};
 
-#TODO
-sub nodes_info {
-    my $arch; # as reported by qstat
-    my $nodes;
-    my $node;
-    my %system = qw(lx Linux sol SunOS darwin Darwin);
-    my %machine = qw(amd64 x86_64 x86 i686 ia64 ia64 ppc ppc sparc sparc sparc64 sparc64);
-    if ($arch =~ /^(lx|sol|darwin)-(amd64|x86|ia64|ppc|sparc|sparc64)$/) {
-        $nodes->{$node}{system} = $system{$1};
-        $nodes->{$node}{machine} = $machine{$2};
-    }
+   #require Data::Dumper; import Data::Dumper qw(Dumper);
+   #print STDERR Dumper($host);
+
+   loop_callback("$path/qhost -F -h $host | grep '='", sub {
+        my $l = shift;
+        my ($prefix, $value ) = split ":", $l;
+        if ( $value =~ /^mem_total=(\d+(?:\.\d+)?)\s*(\w)/) {
+           my $mult = 1;
+           if ($2 eq "M") {$mult = 1024}
+           if ($2 eq "G") {$mult = 1024*1024}
+           $result->{$host}{pmem} = int($mult*$1);
+        }
+        elsif ( $value =~ /^virtual_total=(\d+(?:\.\d+)?)\s*(\w)/) {
+           my ($mult) = 1;
+           if ($2 eq "M") {$mult = 1024}
+           if ($2 eq "G") {$mult = 1024*1024}
+           $result->{$host}{vmem} = int($mult*$1);
+        }
+        elsif ( $value =~ /^m_socket=(\d+(?:\.\d+)?)/) {
+           $result->{$host}{nsock} = int($1);
+        }
+   }) or $log->error("Failed listing host attributes");
+
+   return $result;
 }
 
+sub nodes_info {
+
+   require Data::Dumper; import Data::Dumper qw(Dumper);
+
+   my $lrms_nodes = {};
+
+   # add nodes to the info tree
+   $lrms_info->{nodes} = $lrms_nodes;
+
+   for my $host (keys %node_stats) {
+      my $node = $node_stats{$host};
+      my $queues = $node->{queues};
+      next unless defined $queues;
+      my $arc_queue = 0;
+      for my $qname1 (keys %$queues) {
+          for my $qname2 ( keys %{$options->{queues}}) {
+             if ($qname1 =~ $qname2 ) {$arc_queue = 1;}
+          }
+      }
+
+      if ($arc_queue == 0) {next;}
+
+      $lrms_nodes->{$host}{lcpus} = $node_stats{$host}{totalcpus};
+      $lrms_nodes->{$host}{slots} = $node_stats{$host}{totalcpus};
+
+      my $pmem = run_qhost($host);
+      my $vmem = run_qhost($host);
+      my $nsock = run_qhost($host);
+
+      $lrms_nodes->{$host}{pmem} = $pmem->{$host}{pmem};
+      $lrms_nodes->{$host}{vmem} = $vmem->{$host}{vmem};
+      $lrms_nodes->{$host}{nsock} = $nsock->{$host}{nsock};
+
+      # TODO
+      $lrms_nodes->{$host}{isfree} = 1;
+      $lrms_nodes->{$host}{isavailable} = 1;
+      # $lrms_nodes->{$host}{tags} =
+      # $lrms_nodes->{$host}{release} =
+      #my %system = qw(lx Linux sol SunOS darwin Darwin);
+      #my %machine = qw(amd64 x86_64 x86 i686 ia64 ia64 ppc ppc sparc sparc sparc64 sparc64);
+      #if ($node_stats{$host}{arch} =~ /^(lx|sol|darwin)-(amd64|x86|ia64|ppc|sparc|sparc64)$/) {
+      #   $lrms_nodes->{$host}{sysname} = $system{$1};
+      #   $lrms_nodes->{$host}{machine} = $machine{$2};
+      #}
+   }
+
+   #print STDERR Dumper($lrms_nodes);
+   #print STDERR Dumper(%{$options->{queues}});
+}
 
 sub test {
     LogUtils::level("VERBOSE");
