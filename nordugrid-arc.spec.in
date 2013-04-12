@@ -357,7 +357,7 @@ BuildArch:	noarch
 %endif
 Requires:	openldap-servers
 Requires:	glue-schema >= 2.0.8
-Requires:	bdii 
+Requires:	bdii
 
 Requires(post):		chkconfig
 Requires(preun):	chkconfig
@@ -399,7 +399,7 @@ BuildArch:	noarch
 %endif
 Requires:	openldap-servers
 Requires:	glue-schema >= 2.0.8
-Requires:	bdii 
+Requires:	bdii
 
 Requires(post):		chkconfig
 Requires(preun):	chkconfig
@@ -553,9 +553,9 @@ Components (DMCs).
 
 %if %{with_canl}
 %package arcproxyalt
-Summary:  ARC proxy client based on canl
-Group:    Applications/Internet
-Requires: %{name} = %{version}-%{release}
+Summary:	ARC proxy client based on canl
+Group:		Applications/Internet
+Requires:	%{name} = %{version}-%{release}
 
 %description arcproxyalt
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -567,9 +567,9 @@ This package includes a preview of the arcproxy command based on canl.
 
 %if %{with_xrootd}
 %package plugins-xrootd
-Summary:  ARC xrootd plugins
-Group:    System Environment/Libraries
-Requires: %{name} = %{version}-%{release}
+Summary:	ARC xrootd plugins
+Group:		System Environment/Libraries
+Requires:	%{name} = %{version}-%{release}
 
 %description plugins-xrootd
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -582,9 +582,9 @@ ARC xrootd plugins. These allow access to data through the xrootd protocol.
 %if %{with_gfal}
 %package plugins-gfal
 
-Summary:  ARC Globus plugins
-Group:    System Environment/Libraries
-Requires: %{name} = %{version}-%{release}
+Summary:	ARC Globus plugins
+Group:		System Environment/Libraries
+Requires:	%{name} = %{version}-%{release}
 
 %description plugins-gfal
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -922,20 +922,20 @@ cd -
 %endif
 
 #
-# Remove examples and let RPM package them under %docdir using %doc
+# Remove examples and let RPM package them under /usr/share/doc using the doc macro
 #
 rm -rf $RPM_BUILD_ROOT%{_datadir}/%{pkgdir}/examples
-make -C src/libs/data-staging/examples     DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
-make -C src/hed/libs/compute/examples      DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
-make -C src/hed/libs/data/examples         DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
-make -C src/hed/acc/PythonBroker           DESTDIR=$PWD/docdir/python pkgdatadir= install-exampleDATA
-make -C python/examples                    DESTDIR=$PWD/docdir/python pkgdatadir= install-exampleDATA
-make -C java/examples                      DESTDIR=$PWD/docdir/java   pkgdatadir= install-exampleDATA
-make -C src/clients                        DESTDIR=$PWD/docdir/client pkgdatadir= install-exampleDATA
-make -C src/services/a-rex                 DESTDIR=$PWD/docdir/arex   pkgdatadir= install-exampleDATA
-make -C src/doc                            DESTDIR=$PWD/docdir/base   pkgdatadir= install-exampleDATA
-make -C src/tests/echo                     DESTDIR=$PWD/docdir/hed    pkgdatadir= install-exampleDATA
-make -C src/hed                            DESTDIR=$PWD/docdir/hed    pkgdatadir= install-profileDATA
+make -C src/libs/data-staging/examples	DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
+make -C src/hed/libs/compute/examples	DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
+make -C src/hed/libs/data/examples	DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
+make -C src/hed/acc/PythonBroker	DESTDIR=$PWD/docdir/python pkgdatadir= install-exampleDATA
+make -C python/examples			DESTDIR=$PWD/docdir/python pkgdatadir= install-exampleDATA
+make -C java/examples			DESTDIR=$PWD/docdir/java   pkgdatadir= install-exampleDATA
+make -C src/clients			DESTDIR=$PWD/docdir/client pkgdatadir= install-exampleDATA
+make -C src/services/a-rex		DESTDIR=$PWD/docdir/arex   pkgdatadir= install-exampleDATA
+make -C src/doc				DESTDIR=$PWD/docdir/base   pkgdatadir= install-exampleDATA
+make -C src/tests/echo			DESTDIR=$PWD/docdir/hed    pkgdatadir= install-exampleDATA
+make -C src/hed				DESTDIR=$PWD/docdir/hed    pkgdatadir= install-profileDATA
 
 
 %clean
@@ -1562,7 +1562,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 - 2.0.1 Final Release
 
 * Thu Oct 25 2012 Anders Waananen <waananen@nbi.dk> - 2.0.1-0.rc2
-- 2.0.1 release candidate 2 
+- 2.0.1 release candidate 2
 
 * Fri Aug 24 2012 Anders Waananen <waananen@nbi.dk> - 2.0.1-0.rc1
 - 2.0.1 release candidate 1
