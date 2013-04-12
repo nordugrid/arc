@@ -22,4 +22,4 @@ CLEANFILES = *.class
 exampledir = $(pkgdatadir)/examples/sdk
 example_DATA = $(EXAMPLES)
 
-EXTRA_DIST = $(EXAMPLES)
+EXTRA_DIST = $(EXAMPLES) ResourceDiscovery.java
