@@ -28,9 +28,10 @@
 
 %global with_lfc  %{!?_without_lfc:1}%{?_without_lfc:0}
 
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
+# Java 1.5.0 or later is needed for bindings (Fedora 7+)
+%if %{?fedora}%{!?fedora:0} >= 7 || %{?rhel}%{!?rhel:0} >= 5
 %global with_java %{!?_without_java:1}%{?_without_java:0}
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >=5
+%if %{?fedora}%{!?fedora:0} >= 7 || %{?rhel}%{!?rhel:0} >= 5
 %global with_junit  %{!?_without_junit:1}%{?_without_junit:0}
 %else
 %global with_junit  0
