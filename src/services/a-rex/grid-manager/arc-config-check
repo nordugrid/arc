@@ -330,7 +330,11 @@ sub confchecktripel($$$) {
 				e("The tmpdir directory must be writable and have the sticky bit set (chmod +t \"$name\")\n");
 			}
 		}
+
 	}
+	
+	# Check for logrotate paths
+	if ($block =~ /common|grid-manager|gridftp/ and $name eq 'logfile') {check_logrotate($block,$name,$value)};
 
 	# check for any mount dirs
 	if ($name eq "mount") {
@@ -350,8 +354,32 @@ sub confchecktripel($$$) {
         if ($name ne "bdii_debug_level" and $name =~ /^bdii/ ) {
             e("Starting from release 13.02, BDII configuration commands are strongly deprecated. Use only for Development.\nThe only allowed command is bdii_debug_level\n");
         }
+        # check logs locations for logrotation
+	    if ($name =~ /providerlog|registrationlog/) {check_logrotate($block,$name,$value)};
     }
+    
+		
 }
+
+# Checks log locations for standard location
+sub check_logrotate($$$$) {
+	my ($block, $name, $value, $defaultlocation) = @_;
+	my $defaultpath = '/var/log/arc/';
+	my $defaultlocations = {
+							'commonlogfile' => $defaultpath.'gridftpd.log',
+							'grid-managerlogfile' => $defaultpath.'grid-manager.log',
+							'gridftpdlogfile' => $defaultpath.'gridftpd.log',
+							'infosysproviderlog' => $defaultpath.'infoprovider.log',
+							'infosysregistrationlog' => $defaultpath.'inforegistration.log'
+						   };
+	$defaultlocation = $defaultlocations->{$block.$name} || $defaultpath;
+	if ($value ne $defaultlocation ) {
+		w("[$block] $name: $value is not in the default location ($defaultlocation). Logrotation will not work, check your system logrotation configuration files\n");
+		if ( $block =~ /common|grid-manager|gridftp/ ) {
+			w("[$block] supports independent logrotation. Check ARC CE System Administrator manual to configure. Disable system logrotate configuration for it if you do this!\n");
+		}
+	}	
+} 
 
 # Get all valid configuration parameters and blocks from arc.conf.reference.
 # Dynamic blocks which match those in %introducedSections are not included.
