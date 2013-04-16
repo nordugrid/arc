@@ -942,15 +942,18 @@ namespace Arc {
     if (job.SessionDir) session.push_back(job.SessionDir);
     session.clear();
     stageout.clear();
-    XMLNode IDFromEndpointXML(job.IDFromEndpoint);
-    if (IDFromEndpointXML) {
-      id = (std::string)IDFromEndpointXML["ReferenceParameters"]["CustomID"];
-    } else {
-      id = job.IDFromEndpoint;        
-    }
+    id = getIDFromJob(job);
     manager = job.JobManagementURL;
     resource = job.ServiceInformationURL;
     return *this;
+  }
+  
+  std::string EMIESJob::getIDFromJob(const Job& job) {
+    XMLNode IDFromEndpointXML(job.IDFromEndpoint);
+    if (IDFromEndpointXML) {
+      return (std::string)IDFromEndpointXML["ReferenceParameters"]["CustomID"];
+    }
+    return job.IDFromEndpoint;        
   }
   
   Job EMIESJob::ToJob() const {

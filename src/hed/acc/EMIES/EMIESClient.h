@@ -95,6 +95,7 @@ namespace Arc {
     Job ToJob(void) const;
     bool operator!(void);
     operator bool(void);
+    static std::string getIDFromJob(const Job&);
   };
 
   class EMIESFault {
