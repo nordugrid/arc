@@ -932,7 +932,6 @@ make -C src/hed/acc/PythonBroker	DESTDIR=$PWD/docdir/python pkgdatadir= install-
 make -C python/examples			DESTDIR=$PWD/docdir/python pkgdatadir= install-exampleDATA
 make -C java/examples			DESTDIR=$PWD/docdir/java   pkgdatadir= install-exampleDATA
 make -C src/clients			DESTDIR=$PWD/docdir/client pkgdatadir= install-exampleDATA
-make -C src/services/a-rex		DESTDIR=$PWD/docdir/arex   pkgdatadir= install-exampleDATA
 make -C src/doc				DESTDIR=$PWD/docdir/base   pkgdatadir= install-exampleDATA
 make -C src/tests/echo			DESTDIR=$PWD/docdir/hed    pkgdatadir= install-exampleDATA
 make -C src/hed				DESTDIR=$PWD/docdir/hed    pkgdatadir= install-profileDATA
@@ -1300,7 +1299,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files arex
 %defattr(-,root,root,-)
-%doc docdir/arex/*
 %{_initrddir}/a-rex
 %{_libexecdir}/%{pkgdir}/cache-clean
 %{_libexecdir}/%{pkgdir}/cache-list
