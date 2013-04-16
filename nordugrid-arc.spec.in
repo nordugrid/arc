@@ -21,25 +21,25 @@
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 12 || %{?rhel}%{!?rhel:0}
-%global with_xrootd  %{!?_without_xrootd:1}%{?_without_xrootd:0}
+%global with_xrootd %{!?_without_xrootd:1}%{?_without_xrootd:0}
 %else
-%global with_xrootd  0
+%global with_xrootd 0
 %endif
 
-%global with_lfc  %{!?_without_lfc:1}%{?_without_lfc:0}
+%global with_lfc %{!?_without_lfc:1}%{?_without_lfc:0}
 
 # Java 1.5.0 or later is needed for bindings (Fedora 7+)
 %if %{?fedora}%{!?fedora:0} >= 7 || %{?rhel}%{!?rhel:0} >= 5
 %global with_java %{!?_without_java:1}%{?_without_java:0}
 %if %{?fedora}%{!?fedora:0} >= 7 || %{?rhel}%{!?rhel:0} >= 5
-%global with_junit  %{!?_without_junit:1}%{?_without_junit:0}
+%global with_junit %{!?_without_junit:1}%{?_without_junit:0}
 %else
-%global with_junit  0
+%global with_junit 0
 %endif
 %else
 %global with_java 0
 %endif
-%global with_gcj  %{!?_with_gcj:0}%{?_with_gcj:1}
+%global with_gcj %{!?_with_gcj:0}%{?_with_gcj:1}
 
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 %if %{?rhel}%{!?rhel:0} == 6
@@ -57,9 +57,9 @@
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 4 || %{?rhel}%{!?rhel:0} >= 5
-%global with_pylint  %{!?_without_pylint:1}%{?_without_pylint:0}
+%global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
 %else
-%global with_pylint  0
+%global with_pylint 0
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 7 || %{?rhel}%{!?rhel:0} >= 5
@@ -356,7 +356,7 @@ Obsoletes:	nordugrid-arc-nox-ldap-infosys < 1.3.0
 BuildArch:	noarch
 %endif
 Requires:	openldap-servers
-Requires:	glue-schema >= 2.0.8
+Requires:	glue-schema >= 2.0.10
 Requires:	bdii
 
 Requires(post):		chkconfig
@@ -398,7 +398,7 @@ Obsoletes:	nordugrid-arc-nox-ldap-infosys < 1.3.0
 BuildArch:	noarch
 %endif
 Requires:	openldap-servers
-Requires:	glue-schema >= 2.0.8
+Requires:	glue-schema >= 2.0.10
 Requires:	bdii
 
 Requires(post):		chkconfig
@@ -424,7 +424,7 @@ Obsoletes:	%{name}-infoindex < 0.8.2-1
 Provides:	nordugrid-arc-nox-giis = 1.3.0
 Obsoletes:	nordugrid-arc-nox-giis < 1.3.0
 Requires:	openldap-servers
-Requires:	glue-schema >= 2.0.8
+Requires:	glue-schema >= 2.0.10
 
 %if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 Requires(post):		policycoreutils
@@ -1023,6 +1023,7 @@ fi
 /sbin/chkconfig --add nordugrid-arc-inforeg
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 semanage port -a -t ldap_port_t -p tcp 2135 2>/dev/null || :
+semanage fcontext -a -t slapd_etc_t "/var/run/arc/infosys/bdii-slapd\.conf" 2>/dev/null || :
 %endif
 
 %preun ldap-infosys
@@ -1041,13 +1042,13 @@ fi
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 if [ $1 -eq 0 ]; then
   semanage port -d -t ldap_port_t -p tcp 2135 2>/dev/null || :
+  semanage fcontext -d -t slapd_etc_t "/var/run/arc/infosys/bdii-slapd\.conf" 2>/dev/null || :
 fi
 %endif
 
 %post aris
 /sbin/chkconfig --add nordugrid-arc-bdii
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
-semanage fcontext -a -t slapd_etc_t "/var/run/arc/infosys/bdii-slapd\.conf" 2>/dev/null || :
 semanage fcontext -a -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
 semanage fcontext -a -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null || :
 # Remove selinux labels for old arc bdii var dir
@@ -1066,7 +1067,6 @@ if [ $1 -ge 1 ]; then
 fi
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 if [ $1 -eq 0 ]; then
-  semanage fcontext -d -t slapd_etc_t "/var/run/arc/infosys/bdii-slapd\.conf" 2>/dev/null || :
   semanage fcontext -d -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
   semanage fcontext -d -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null || :
 fi
