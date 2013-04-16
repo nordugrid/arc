@@ -157,7 +157,7 @@ start () {
     fi
 
     if [ ! "`config_subsections infosys/index`" ]; then
-	log_failure_msg "No $prog defined if $ARC_CONFIG"
+	log_failure_msg "No $prog defined in $ARC_CONFIG"
 	exit 1
     fi
 
