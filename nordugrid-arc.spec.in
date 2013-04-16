@@ -485,7 +485,9 @@ Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-hed = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
+%if %{with_python}
 Requires:	%{name}-python = %{version}-%{release}
+%endif
 Requires:	mktemp
 Requires:	python-twisted-core
 Requires:	python-twisted-web
