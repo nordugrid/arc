@@ -185,6 +185,13 @@ namespace Arc {
       soapfault = true;
       // Trying to check if it is EMI ES fault
       if(resp->Fault()->Code() != SOAPFault::Receiver) retry = false;
+      // Check if fault is VectorLimitExceededFault
+      XMLNode soapFaultDetail = resp->Fault()->Detail();
+      if (soapFaultDetail["VectorLimitExceededFault"]) {
+        soapFaultDetail.New(response);
+        delete resp;
+        return false;
+      }
       {
         std::string s;
         resp->GetXML(s);
