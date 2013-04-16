@@ -937,6 +937,8 @@ namespace Arc {
   
   EMIESJob& EMIESJob::operator=(const Job& job) {
     stagein.clear();
+    session.clear();
+    stageout.clear();
     if (job.StageInDir) stagein.push_back(job.StageInDir);
     if (job.StageOutDir) stageout.push_back(job.StageOutDir);
     if (job.SessionDir) session.push_back(job.SessionDir);
