@@ -837,7 +837,7 @@ cd -
      --disable-lfc \
 %endif
 %if ! %{with_python}
-     --disable-python \
+     --disable-swig-python \
 %endif
 %if ! %{with_acix}
      --disable-acix \
