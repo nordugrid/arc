@@ -1743,7 +1743,6 @@ AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
 AM_CONDITIONAL([OPENSSL_X509_VERIFY_PARAM_ENABLED], test x$OPENSSL_X509_VERIFY_PARAM = xyes)
 AM_CONDITIONAL([XMLSEC_ENABLED], test x$XMLSEC_INSTALLED = xyes)
 AM_CONDITIONAL([CPPUNIT_ENABLED], test x$enables_cppunit = xyes)
-AM_CONDITIONAL([DBXML_ENABLED],[test ! "x$DBCXX_LIBS" = "x"])
 
 enables_srm_dmc=no
 if test "$enables_hed" = "yes"; then
@@ -2326,7 +2325,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/delegation/Makefile
                  src/hed/libs/delegation/test/Makefile
                  src/hed/libs/ws/Makefile
-                 src/hed/libs/dbxml/Makefile
                  src/hed/libs/xmlsec/Makefile
                  src/hed/libs/globusutils/Makefile
                  src/hed/daemon/Makefile

@@ -1145,7 +1145,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/libarcdata.so.*
 %{_libdir}/libarcdatastaging.so.*
 %{_libexecdir}/%{pkgdir}/DataStagingDelivery
-%{_libdir}/libarcdbxml.so.*
 %{_libdir}/libarcloader.so.*
 %{_libdir}/libarcmessage.so.*
 %{_libdir}/libarcsecurity.so.*

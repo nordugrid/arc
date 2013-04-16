@@ -24,11 +24,6 @@ ARCDATA_CFLAGS='-I$(top_srcdir)/include'
 AC_SUBST(ARCDATA_LIBS)
 AC_SUBST(ARCDATA_CFLAGS)
 
-ARCDBXML_LIBS='$(top_builddir)/src/hed/libs/dbxml/libarcdbxml.la'
-ARCDBXML_CFLAGS='-I$(top_srcdir)/include'
-AC_SUBST(ARCDBXML_LIBS)
-AC_SUBST(ARCDBXML_CFLAGS)
-
 ARCJOB_LIBS='$(top_builddir)/src/hed/libs/job/libarcjob.la'
 ARCJOB_CFLAGS='-I$(top_srcdir)/include'
 AC_SUBST(ARCJOB_LIBS)
