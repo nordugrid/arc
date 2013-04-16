@@ -6,7 +6,6 @@ debian/tmp/usr/lib/libarccredentialstore.so.*
 debian/tmp/usr/lib/libarccrypto.so.*
 debian/tmp/usr/lib/libarcdata.so.*
 debian/tmp/usr/lib/libarcdatastaging.so.*
-debian/tmp/usr/lib/libarcdbxml.so.*
 debian/tmp/usr/lib/libarcloader.so.*
 debian/tmp/usr/lib/libarcmessage.so.*
 debian/tmp/usr/lib/libarcsecurity.so.*
