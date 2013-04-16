@@ -103,6 +103,10 @@ namespace Arc {
 
     XMLNode xmlresult(result);
     XMLNodeList xContactStrings = xmlresult.XPathLookup("//nordugrid-cluster-contactstring", NS());
+    if (xContactStrings.empty()) {
+      return s;
+    }
+
     std::string ContactString = (std::string)xContactStrings.front();
     XMLNodeList xJobs = xmlresult.XPathLookup("//nordugrid-job-globalid[objectClass='nordugrid-job']", NS());
     for (XMLNodeList::iterator it = xJobs.begin(); it != xJobs.end(); ++it) {
