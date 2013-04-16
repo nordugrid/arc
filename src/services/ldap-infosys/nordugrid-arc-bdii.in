@@ -2,7 +2,7 @@
 #
 # Init file for the NorduGrid/ARC LDAP based local resource information system
 #
-# chkconfig: 2345 56 44
+# chkconfig: 2345 76 44
 # description: NorduGrid/ARC local resource information system
 #
 # config: /etc/sysconfig/nordugrid

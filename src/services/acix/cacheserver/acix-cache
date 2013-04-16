@@ -1,7 +1,7 @@
 #!/bin/sh
 # ARC cache index cache server
 # 
-# chkconfig: - 55 25
+# chkconfig: - 75 25
 # description:  The ARC cache server collects cache information which \
 #               can be pulled by a cache index.
 

@@ -2,7 +2,7 @@
 #
 # Init file for the NorduGrid/ARC Information Endpoint Registration
 #
-# chkconfig: 2345 55 45
+# chkconfig: 2345 75 45
 # description: NorduGrid/ARC Information Endpoint Registration
 #
 # config: /etc/sysconfig/nordugrid

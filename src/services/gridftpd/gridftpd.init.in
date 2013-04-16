@@ -2,7 +2,7 @@
 #
 # Init file for the ARC gridftp server
 #
-# chkconfig: 2345 55 25
+# chkconfig: 2345 75 25
 # description: ARC gridftpd
 #
 # config: /etc/sysconfig/nordugrid
