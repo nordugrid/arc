@@ -1,3 +1,7 @@
+2013-04-16  Martin Skou Andersen  <skou@nbi.dk>
+  * EMI-ES: Make use of bulk queries (vector operations in EMI ES terminology)
+    when retrieving job information. Partly fixes bug 3099.
+
 2013-04-12  Gabor Roczei <roczei@niif.hu>
   * SGE bugfix (#2714), the SGE backend will detect the MainMemorySize
   * SGE bugfix (#2716), correct handling of the Eqw SGE state

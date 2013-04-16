@@ -166,6 +166,7 @@ namespace Arc {
     bool stat(const EMIESJob& job, EMIESJobState& state);
     bool info(EMIESJob& job, XMLNode &state);
     bool info(EMIESJob& job, Job& info);
+    void info(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed);
 
     //! Terminates a job.
     /*! This method sends a request to the EMI ES service to terminate
@@ -259,6 +260,8 @@ namespace Arc {
   private:
     bool process(PayloadSOAP& req, XMLNode& response, bool retry = true);
 
+    void process_with_vector_limit(PayloadSOAP& req, XMLNode& response);
+    
     std::string dodelegation(void);
 
     bool reconnect(void);

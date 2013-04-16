@@ -4,6 +4,9 @@
 #include <config.h>
 #endif
 
+#include <map>
+#include <utility>
+
 #include <glib.h>
 
 #include <arc/StringConv.h>
@@ -30,35 +33,31 @@ namespace Arc {
   }
   
   void JobControllerPluginEMIES::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
-    for (std::list<Job*>::iterator it = jobs.begin();
-         it != jobs.end(); ++it) {
-      bool job_ok = false;
-      EMIESJob job;
-      job = **it;
-      AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(job.manager));
-      if (!ac->info(job, **it)) {
-        // do nothing because the following stat() may succeed
-        
-        //IDsNotProcessed.push_back((*it)->JobID);
-        //((EMIESClients&)clients).release(ac.Release());
-        //continue;
-      } else {
-        job_ok = true;
+    if (jobs.empty()) return;
+    
+    std::map<std::string, std::list<Job*> > groupedJobs;
+    if (!isGrouped) {
+      // Group jobs per host.
+      for (std::list<Job*>::const_iterator it = jobs.begin();
+           it != jobs.end(); ++it) {
+        std::map<std::string, std::list<Job*> >::iterator entry = groupedJobs.find((**it).JobManagementURL.str());
+        if (entry == groupedJobs.end()) {
+          groupedJobs.insert(make_pair((**it).JobManagementURL.str(), std::list<Job*>(1, *it)));
+        }
+        else {
+          entry->second.push_back(*it);
+        }
       }
-      // Going for more detailed state
-      XMLNode jst;
-      if (!ac->stat(job, jst)) {
-      } else {
-        JobStateEMIES jst_ = jst;
-        if(jst_) (*it)->State = jst_;
-        job_ok = true;
-      }
-      if(job_ok) {
-        IDsProcessed.push_back((*it)->JobID);
-      } else {
-        logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID);
-        IDsNotProcessed.push_back((*it)->JobID);
-      }
+    }
+    else {
+      groupedJobs.insert(make_pair(jobs.front()->JobManagementURL.str(), jobs));
+    }
+    
+    for (std::map<std::string, std::list<Job*> >::iterator it = groupedJobs.begin();
+         it != groupedJobs.end(); ++it) {
+      AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(it->first));
+      ac->info(it->second, IDsProcessed, IDsNotProcessed);
+      // TODO: Log warning: //logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID);
       ((EMIESClients&)clients).release(ac.Release());
     }
   }
