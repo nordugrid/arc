@@ -935,7 +935,7 @@ namespace Arc {
     return *this;
   }
   
-  EMIESJob& EMIESJob::operator=(Job job) {
+  EMIESJob& EMIESJob::operator=(const Job& job) {
     stagein.clear();
     if (job.StageInDir) stagein.push_back(job.StageInDir);
     if (job.StageOutDir) stageout.push_back(job.StageOutDir);
