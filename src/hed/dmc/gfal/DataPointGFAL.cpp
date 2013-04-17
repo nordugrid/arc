@@ -584,6 +584,12 @@ namespace ArcDMCGFAL {
     return transfer.Transfer();
   }
 
+  bool DataPointGFAL::RequiresCredentialsInFile() const {
+    return true;
+  }
+
+
+
 } // namespace ArcDMCGFAL
 
 Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {

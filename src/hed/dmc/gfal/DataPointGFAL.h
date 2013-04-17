@@ -40,6 +40,7 @@ namespace ArcDMCGFAL {
     virtual DataStatus Remove();
     virtual DataStatus CreateDirectory(bool with_parents=false);
     virtual DataStatus Rename(const URL& newurl);
+    virtual bool RequiresCredentialsInFile() const;
     // Even though this is not a DataPointIndex, it still needs to handle
     // locations so Resolve and AddLocation must be implemented
     virtual DataStatus Resolve(bool source = true);

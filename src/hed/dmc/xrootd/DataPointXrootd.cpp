@@ -277,6 +277,10 @@ namespace ArcDMCXrootd {
     return DataStatus(DataStatus::RenameError, EOPNOTSUPP);
   }
 
+  bool DataPointXrootd::RequiresCredentialsInFile() const {
+    return true;
+  }
+
   void DataPointXrootd::set_log_level() {
     // TODO xrootd lib logs to stderr - need to redirect to log file for DTR
     // Level 1 enables some messages which go to stdout - which messes up

@@ -632,6 +632,14 @@ namespace Arc {
     /// Returns true if some kind of credentials are needed to use this DataPoint
     virtual bool RequiresCredentials() const;
 
+    /// Returns true if credentials must be stored in files.
+    /**
+     * Some protocols require that credentials exist in files (in which case
+     * this method returns true), whereas others can use credentials in memory
+     * (then this method returns false).
+     */
+    virtual bool RequiresCredentialsInFile() const;
+
     /// Check if URL is an Indexing Service.
     virtual bool IsIndex() const = 0;
 

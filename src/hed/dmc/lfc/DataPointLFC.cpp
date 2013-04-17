@@ -967,6 +967,10 @@ using namespace Arc;
     return tmp;
   }
 
+  bool DataPointLFC::RequiresCredentialsInFile() const {
+    return true;
+  }
+
   DataStatus DataPointLFC::Resolve(bool source, const std::list<DataPoint*>& urls) {
 
     if (urls.empty()) return DataStatus::Success;

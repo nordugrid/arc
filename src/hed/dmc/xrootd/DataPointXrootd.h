@@ -35,6 +35,7 @@ namespace ArcDMCXrootd {
     virtual DataStatus Remove();
     virtual DataStatus CreateDirectory(bool with_parents=false);
     virtual DataStatus Rename(const URL& newurl);
+    virtual bool RequiresCredentialsInFile() const;
 
    private:
     /// thread functions for async read/write
