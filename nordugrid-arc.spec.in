@@ -602,6 +602,9 @@ protocol support is provided by separate gfal2-plugin packages.
 %package acix-core
 Summary:	ARC cache index - core
 Group:		System Environment/Libraries
+%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
+BuildArch:	noarch
+%endif
 Requires:	python-twisted-core
 Requires:	python-twisted-web
 Requires:	pyOpenSSL
@@ -619,6 +622,9 @@ Core components of the ARC Cache Index (ACIX).
 %package acix-cache
 Summary:	ARC cache index - cache server
 Group:		System Environment/Libraries
+%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
+BuildArch:	noarch
+%endif
 Requires:	python-twisted-core
 Requires:	python-twisted-web
 Requires:	pyOpenSSL
@@ -639,6 +645,9 @@ an A-REX cache.
 %package acix-index
 Summary:	ARC cache index - index server
 Group:		System Environment/Libraries
+%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
+BuildArch:	noarch
+%endif
 Requires:	python-twisted-core
 Requires:	python-twisted-web
 Requires:	pyOpenSSL
