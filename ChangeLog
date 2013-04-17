@@ -1,3 +1,8 @@
+2013-04-17  David Cameron  <d.g.cameron@fys.uio.no>
+
+  * Add support for in-memory credentials for http and gsiftp-based protocols
+    and use in data staging to avoid the need for creating temporary proxies.
+  
 2013-04-16  Martin Skou Andersen  <skou@nbi.dk>
   * EMI-ES: Make use of bulk queries (vector operations in EMI ES terminology)
     when retrieving job information. Partly fixes bug 3099.
