@@ -5,6 +5,8 @@
 #include <glibmm/miscutils.h>
 #include <openssl/err.h>
 
+#include <arc/credential/Credential.h>
+
 #include "PayloadTLSStream.h"
 
 #include "ConfigTLSMCC.h"
@@ -49,6 +51,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   globusio_gsi_ = (((std::string)(cfg["GSI"])) == "globusio");
   handshake_ = (cfg["Handshake"] == "SSLv3")?ssl3_handshake:tls_handshake;
   proxy_file_ = (std::string)(cfg["ProxyPath"]);
+  credential_ = (std::string)(cfg["Credential"]);
   if(client) {
     // Client is using safest setup by default
     cipher_list_ = "TLSv1:SSLv3:!eNULL:!aNULL";
@@ -126,29 +129,67 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
       return false;
     };
   };
-  if(!cert_file_.empty()) {
-    // Try to load proxy then PEM and then ASN1 certificate
-    if((SSL_CTX_use_certificate_chain_file(sslctx,cert_file_.c_str()) != 1) &&
-       (SSL_CTX_use_certificate_file(sslctx,cert_file_.c_str(),SSL_FILETYPE_PEM) != 1) &&
-       (SSL_CTX_use_certificate_file(sslctx,cert_file_.c_str(),SSL_FILETYPE_ASN1) != 1)) {
-      failure_ = "Can not load certificate file - "+cert_file_+"\n";
+  if(!credential_.empty()) {
+    // First try to use in-memory credential
+    Credential cred(credential_, credential_, ca_dir_, ca_file_, Credential::NoPassword(), false);
+    if (!cred.IsValid()) {
+      failure_ = "Failed to read in-memory credentials";
+      return false;
+    }
+    EVP_PKEY* key = cred.GetPrivKey();
+    if (SSL_CTX_use_PrivateKey(sslctx, key) != 1) {
+      failure_ = "Can not load key from in-memory credentials\n";
+      failure_ += HandleError();
+      EVP_PKEY_free(key);
+      return false;
+    }
+    EVP_PKEY_free(key);
+    X509* cert = cred.GetCert();
+    if (SSL_CTX_use_certificate(sslctx, cert) != 1) {
+      failure_ = "Can not load certificate from in-memory credentials\n";
+      failure_ += HandleError();
+      X509_free(cert);
+      return false;
+    }
+    X509_free(cert);
+    // Add certificate chain
+    STACK_OF(X509)* chain = cred.GetCertChain();
+    int res = 1;
+    for (int id = 0; id < sk_X509_num(chain) && res == 1; ++id) {
+      X509* cert = sk_X509_value(chain,id);
+      res = SSL_CTX_add_extra_chain_cert(sslctx, cert);
+    }
+    if (res != 1) {
+      failure_ = "Can not construct certificate chain from in-memory credentials\n";
       failure_ += HandleError();
       return false;
+    }
+  }
+  else {
+    if(!cert_file_.empty()) {
+      // Try to load proxy then PEM and then ASN1 certificate
+      if((SSL_CTX_use_certificate_chain_file(sslctx,cert_file_.c_str()) != 1) &&
+         (SSL_CTX_use_certificate_file(sslctx,cert_file_.c_str(),SSL_FILETYPE_PEM) != 1) &&
+         (SSL_CTX_use_certificate_file(sslctx,cert_file_.c_str(),SSL_FILETYPE_ASN1) != 1)) {
+        failure_ = "Can not load certificate file - "+cert_file_+"\n";
+        failure_ += HandleError();
+        return false;
+      };
     };
-  };
-  if(!key_file_.empty()) {
-    if((SSL_CTX_use_PrivateKey_file(sslctx,key_file_.c_str(),SSL_FILETYPE_PEM) != 1) &&
-       (SSL_CTX_use_PrivateKey_file(sslctx,key_file_.c_str(),SSL_FILETYPE_ASN1) != 1)) {
-      failure_ = "Can not load key file - "+key_file_+"\n";
-      failure_ += HandleError();
-      return false;
+    if(!key_file_.empty()) {
+      if((SSL_CTX_use_PrivateKey_file(sslctx,key_file_.c_str(),SSL_FILETYPE_PEM) != 1) &&
+         (SSL_CTX_use_PrivateKey_file(sslctx,key_file_.c_str(),SSL_FILETYPE_ASN1) != 1)) {
+        failure_ = "Can not load key file - "+key_file_+"\n";
+        failure_ += HandleError();
+        return false;
+      };
     };
-  };
-  if((!key_file_.empty()) && (!cert_file_.empty())) {
-    if(!(SSL_CTX_check_private_key(sslctx))) {
-      failure_ = "Private key "+key_file_+" does not match certificate "+cert_file_+"\n";
-      failure_ += HandleError();
-      return false;
+    if((!key_file_.empty()) && (!cert_file_.empty())) {
+      if(!(SSL_CTX_check_private_key(sslctx))) {
+        failure_ = "Private key "+key_file_+" does not match certificate "+cert_file_+"\n";
+        failure_ += HandleError();
+        return false;
+      };
     };
   };
   if(!cipher_list_.empty()) {

@@ -82,6 +82,8 @@ namespace Arc {
     /// List of file system paths to ARC plugin files
     std::list<std::string> plugin_paths;
   public:
+    /// Credential stored as string
+    std::string credential;
     /// Path to private key
     std::string key;
     /// Path to certificate
@@ -99,6 +101,8 @@ namespace Arc {
     virtual ~BaseConfig() {}
     /// Adds non-standard location of plugins
     void AddPluginsPath(const std::string& path);
+    /// Add credential string
+    void AddCredential(const std::string& cred);
     /// Add private key
     void AddPrivateKey(const std::string& path);
     /// Add certificate

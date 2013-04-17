@@ -37,6 +37,15 @@
     </xsd:annotation>
 </xsd:element>
 
+<xsd:element name="Credential" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        String representation of credentials. It may simply be the contents of
+        the proxy file or a string representing any other kind of credential.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
 <xsd:element name="CACertificatePath" type="xsd:string">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">

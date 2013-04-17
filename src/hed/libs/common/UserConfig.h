@@ -692,6 +692,23 @@ namespace Arc {
      **/
     const std::string& Password() const { return password; }
 
+    /// Set credentials.
+    /**
+     * For code which does not need credentials stored in files, this method
+     * can be used to set the credential as a string stored in memory.
+     *
+     * @param cred The credential represented as a string
+     */
+    void CredentialString(const std::string& cred) { credentialString = cred; }
+    /// Get credentials.
+    /**
+     * Returns the string representation of credentials previously set by
+     * CredentialString(const std::string&).
+     *
+     * @return String representation of credentials
+     */
+    const std::string& CredentialString() const { return credentialString; }
+
     /// Set path to user proxy
     /**
      * This method will set the path of the user proxy. Note that the
@@ -1267,6 +1284,7 @@ namespace Arc {
     // Vector needed for random access.
     std::vector<URL> bartenders;
 
+    std::string credentialString;
     std::string proxyPath;
     std::string certificatePath;
     std::string keyPath;

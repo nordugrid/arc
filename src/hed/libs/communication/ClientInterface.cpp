@@ -145,6 +145,7 @@ namespace Arc {
       if (!cfg.key.empty()) comp.NewChild("KeyPath") = cfg.key;
       if (!cfg.cert.empty()) comp.NewChild("CertificatePath") = cfg.cert;
       if (!cfg.proxy.empty()) comp.NewChild("ProxyPath") = cfg.proxy;
+      if (!cfg.credential.empty()) comp.NewChild("Credential") = cfg.credential;
       if (!cfg.cafile.empty()) comp.NewChild("CACertificatePath") = cfg.cafile;
       if (!cfg.cadir.empty()) comp.NewChild("CACertificatesDir") = cfg.cadir;
       comp.NewAttribute("entry") = "tls";
@@ -155,6 +156,7 @@ namespace Arc {
       if (!cfg.key.empty()) comp.NewChild("KeyPath") = cfg.key;
       if (!cfg.cert.empty()) comp.NewChild("CertificatePath") = cfg.cert;
       if (!cfg.proxy.empty()) comp.NewChild("ProxyPath") = cfg.proxy;
+      if (!cfg.credential.empty()) comp.NewChild("Credential") = cfg.credential;
       if (!cfg.cafile.empty()) comp.NewChild("CACertificatePath") = cfg.cafile;
       if (!cfg.cadir.empty()) comp.NewChild("CACertificatesDir") = cfg.cadir;
       if (sec.sec == GSISec) {

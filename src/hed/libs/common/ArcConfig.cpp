@@ -82,6 +82,10 @@ namespace Arc {
     return mm;
   }
 
+  void BaseConfig::AddCredential(const std::string& cred) {
+    credential = cred;
+  }
+
   void BaseConfig::AddPrivateKey(const std::string& path) {
     key = path;
   }

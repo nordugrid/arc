@@ -1195,8 +1195,7 @@ namespace ArcDMCGridFTP {
     else { // gridftp protocol
 
       if (!credential){
-        credential = new GSSCredential(usercfg.ProxyPath(),
-                                       usercfg.CertificatePath(), usercfg.KeyPath());
+        credential = new GSSCredential(usercfg);
       }
       lister->set_credential(credential);
 

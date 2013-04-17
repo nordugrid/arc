@@ -20,6 +20,7 @@ class ConfigTLSMCC {
   std::string proxy_file_;
   std::string cert_file_;
   std::string key_file_;
+  std::string credential_;
   bool client_authn_;
   bool globus_policy_;
   bool globus_gsi_;

@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include <arc/Logger.h>
+#include <arc/UserConfig.h>
 
 #include "GlobusErrorUtils.h"
 #include "GSSCredential.h"
@@ -14,56 +15,70 @@ namespace Arc {
   static Logger logger(Logger::getRootLogger(), "GSSCredential");
 
   GSSCredential::GSSCredential(const std::string& proxyPath,
-			       const std::string& certificatePath,
-			       const std::string& keyPath)
+                               const std::string& certificatePath,
+                               const std::string& keyPath)
     : credential(GSS_C_NO_CREDENTIAL) {
 
+    initCred(readCredFromFiles(proxyPath, certificatePath, keyPath));
+  }
+
+  GSSCredential::GSSCredential(const UserConfig& usercfg)
+    : credential(GSS_C_NO_CREDENTIAL) {
+
+    if (!usercfg.CredentialString().empty()) initCred(usercfg.CredentialString());
+    else initCred(readCredFromFiles(usercfg.ProxyPath(), usercfg.CertificatePath(), usercfg.KeyPath()));
+  }
+
+  std::string GSSCredential::readCredFromFiles(const std::string& proxyPath,
+                                               const std::string& certificatePath,
+                                               const std::string& keyPath) {
     std::string credbuf;
   
     if (!proxyPath.empty()) {
       std::ifstream is(proxyPath.c_str());
       getline(is, credbuf, '\0');
       if(!is || credbuf.empty()) {
-	logger.msg(ERROR, "Failed to read proxy file: %s", proxyPath);
-	return;
+        logger.msg(ERROR, "Failed to read proxy file: %s", proxyPath);
+        return "";
       }
     }
     else if (!certificatePath.empty() && !keyPath.empty()) {
       std::ifstream is(certificatePath.c_str());
       getline(is, credbuf, '\0');
       if(!is || credbuf.empty()) {
-	logger.msg(ERROR, "Failed to read certificate file: %s",
-		   certificatePath);
-	return;
+        logger.msg(ERROR, "Failed to read certificate file: %s", certificatePath);
+        return "";
       }
       std::string keybuf;
       std::ifstream ik(keyPath.c_str());
       getline(ik, keybuf, '\0');
       if(!ik || keybuf.empty()) {
-	logger.msg(ERROR, "Failed to read private key file: %s", keyPath);
-	return;
+        logger.msg(ERROR, "Failed to read private key file: %s", keyPath);
+        return "";
       }
       credbuf += "\n";
       credbuf += keybuf;
     }
+    return credbuf;
+  }
 
-    if(!credbuf.empty()) { 
-      //Convert to GSS credental only if find credential content
-      OM_uint32 majstat, minstat;
-      gss_buffer_desc gbuf;
+  void GSSCredential::initCred(const std::string& credbuf) {
 
-      gbuf.value = (void*)credbuf.c_str();
-      gbuf.length = credbuf.length();
+    if(credbuf.empty()) return;
+    //Convert to GSS credental only if find credential content
+    OM_uint32 majstat, minstat;
+    gss_buffer_desc gbuf;
 
-      majstat = gss_import_cred(&minstat, &credential, NULL, 0,
-			      &gbuf, GSS_C_INDEFINITE, NULL);
+    gbuf.value = (void*)credbuf.c_str();
+    gbuf.length = credbuf.length();
 
-      if (GSS_ERROR(majstat)) {
-        credential = GSS_C_NO_CREDENTIAL;
-        logger.msg(ERROR, "Failed to convert GSI credential to "
-                    "GSS credential (major: %d, minor: %d)%s", majstat, minstat, ErrorStr(majstat, minstat));
-        return;
-      }
+    majstat = gss_import_cred(&minstat, &credential, NULL, 0,
+          &gbuf, GSS_C_INDEFINITE, NULL);
+
+    if (GSS_ERROR(majstat)) {
+      credential = GSS_C_NO_CREDENTIAL;
+      logger.msg(ERROR, "Failed to convert GSI credential to "
+                  "GSS credential (major: %d, minor: %d)%s", majstat, minstat, ErrorStr(majstat, minstat));
     }
   }
 

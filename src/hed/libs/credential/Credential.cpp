@@ -1049,10 +1049,16 @@ namespace Arc {
   }
 
   Credential::Credential(const UserConfig& usercfg, const std::string& passphrase4key) {
-    InitCredential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
-                   !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
-                   usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
-                   passphrase4key, true);
+    if (usercfg.CredentialString().empty()) {
+      InitCredential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
+                     !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
+                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
+                     passphrase4key, true);
+    } else {
+      InitCredential(usercfg.CredentialString(), "",
+                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
+                     passphrase4key, false);
+    }
   }
 
   void Credential::InitCredential(const std::string& certfile, const std::string& keyfile,
