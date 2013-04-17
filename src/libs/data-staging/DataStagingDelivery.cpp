@@ -203,9 +203,14 @@ int main(int argc,char* argv[]) {
   CheckSumAny crc_source;
   CheckSumAny crc_dest;
 
+  // Read credential from stdin if available
+  std::string proxy_cred;
+  std::getline(std::cin, proxy_cred, '\0');
+
   initializeCredentialsType source_cred(initializeCredentialsType::SkipCredentials);
   UserConfig source_cfg(source_cred);
   if(!source_cred_path.empty()) source_cfg.ProxyPath(source_cred_path);
+  else if (!proxy_cred.empty()) source_cfg.CredentialString(proxy_cred);
   if(!source_ca_path.empty()) source_cfg.CACertificatesDirectory(source_ca_path);
   //source_cfg.UtilsDirPath(...); - probably not needed
   DataHandle source(source_url,source_cfg);
@@ -214,11 +219,17 @@ int main(int argc,char* argv[]) {
     _exit(-1);
     //return -1;
   };
+  if (source->RequiresCredentialsInFile() && source_cred_path.empty()) {
+    logger.msg(ERROR, "No credentials supplied");
+    _exit(-1);
+  }
+
   source->SetSecure(false);
   source->Passive(true);
   initializeCredentialsType dest_cred(initializeCredentialsType::SkipCredentials);
   UserConfig dest_cfg(dest_cred);
   if(!dest_cred_path.empty()) dest_cfg.ProxyPath(dest_cred_path);
+  else if (!proxy_cred.empty()) dest_cfg.CredentialString(proxy_cred);
   if(!dest_ca_path.empty()) dest_cfg.CACertificatesDirectory(dest_ca_path);
   //dest_cfg.UtilsDirPath(...); - probably not needed
   DataHandle dest(dest_url,dest_cfg);
@@ -227,16 +238,22 @@ int main(int argc,char* argv[]) {
     _exit(-1);
     //return -1;
   };
+  if (dest->RequiresCredentialsInFile() && dest_cred_path.empty()) {
+    logger.msg(ERROR, "No credentials supplied");
+    _exit(-1);
+  }
   dest->SetSecure(false);
   dest->Passive(true);
 
   // set X509* for 3rd party tools which need it (eg GFAL)
-  SetEnv("X509_USER_PROXY", source_cfg.ProxyPath());
-  if (!source_cfg.CACertificatesDirectory().empty()) SetEnv("X509_CERT_DIR", source_cfg.CACertificatesDirectory());
-  // those tools also use hostcert by default if the user is root...
-  if (getuid() == 0) {
-    SetEnv("X509_USER_CERT", source_cfg.ProxyPath());
-    SetEnv("X509_USER_KEY", source_cfg.ProxyPath());
+  if (!source_cfg.ProxyPath().empty()) {
+    SetEnv("X509_USER_PROXY", source_cfg.ProxyPath());
+    if (!source_cfg.CACertificatesDirectory().empty()) SetEnv("X509_CERT_DIR", source_cfg.CACertificatesDirectory());
+    // those tools also use hostcert by default if the user is root...
+    if (getuid() == 0) {
+      SetEnv("X509_USER_CERT", source_cfg.ProxyPath());
+      SetEnv("X509_USER_KEY", source_cfg.ProxyPath());
+    }
   }
 
   // set signal handlers

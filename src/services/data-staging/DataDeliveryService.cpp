@@ -74,7 +74,8 @@ namespace DataStaging {
 
   }
 
-  bool DataDeliveryService::CheckInput(const std::string& url, const Arc::UserConfig& usercfg, Arc::XMLNode& resultelement) {
+  bool DataDeliveryService::CheckInput(const std::string& url, const Arc::UserConfig& usercfg,
+                                       Arc::XMLNode& resultelement, bool& require_credential_file) {
 
     Arc::DataHandle h(url, usercfg);
     if (!h || !(*h)) {
@@ -96,6 +97,7 @@ namespace DataStaging {
         return false;
       }
     }
+    if (h->RequiresCredentialsInFile()) require_credential_file = true;
     return true;
   }
 
@@ -109,11 +111,13 @@ namespace DataStaging {
 
     LogToRootLogger(Arc::INFO, "Received DTR "+dtr->get_id()+" from Delivery in state "+dtr->get_status().str());
 
-    // delete temp proxy file
-    std::string proxy_file(tmp_proxy_dir+"/DTR."+dtr->get_id()+".proxy");
-    LogToRootLogger(Arc::DEBUG, "Removing temp proxy "+proxy_file);
-    if (unlink(proxy_file.c_str()) && errno != ENOENT) {
-      LogToRootLogger(Arc::WARNING, "Failed to remove temporary proxy "+proxy_file+": "+Arc::StrError(errno));
+    // delete temp proxy file if it was created
+    if (dtr->get_source()->RequiresCredentialsInFile() || dtr->get_destination()->RequiresCredentialsInFile()) {
+      std::string proxy_file(tmp_proxy_dir+"/DTR."+dtr->get_id()+".proxy");
+      LogToRootLogger(Arc::DEBUG, "Removing temp proxy "+proxy_file);
+      if (unlink(proxy_file.c_str()) != 0 && errno != ENOENT) {
+        LogToRootLogger(Arc::WARNING, "Failed to remove temporary proxy "+proxy_file+": "+Arc::StrError(errno));
+      }
     }
     --current_processes;
   }
@@ -187,18 +191,19 @@ namespace DataStaging {
       // proxy path will be set later
       Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
       Arc::UserConfig usercfg(cred_type);
+      bool require_credential_file = false;
 
       Arc::XMLNode resultelement = results.NewChild("Result");
       resultelement.NewChild("ID") = dtrid;
 
-      if (!CheckInput(src, usercfg, resultelement)) {
+      if (!CheckInput(src, usercfg, resultelement, require_credential_file)) {
         resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
         resultelement["ErrorDescription"] = (std::string)resultelement["ErrorDescription"] + ": Cannot use source";
         logger.msg(Arc::ERROR, (std::string)resultelement["ErrorDescription"]);
         continue;
       }
 
-      if (!CheckInput(dest, usercfg, resultelement)) {
+      if (!CheckInput(dest, usercfg, resultelement, require_credential_file)) {
         resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
         resultelement["ErrorDescription"] = (std::string)resultelement["ErrorDescription"] + ": Cannot use destination";
         logger.msg(Arc::ERROR, (std::string)resultelement["ErrorDescription"]);
@@ -234,32 +239,36 @@ namespace DataStaging {
       }
       active_dtrs_lock.unlock();
 
-      // Store proxy, only readable by user. Use DTR job id as proxy name.
-      // TODO: it is inefficient to create a file for every DTR, better to
-      // use some kind of proxy store
       std::string proxy_file(tmp_proxy_dir+"/DTR."+dtrid+".proxy");
-      logger.msg(Arc::VERBOSE, "Storing temp proxy at %s", proxy_file);
+      if (require_credential_file) {
+        // Store proxy, only readable by user. Use DTR job id as proxy name.
+        // TODO: it is inefficient to create a file for every DTR, better to
+        // use some kind of proxy store
+        logger.msg(Arc::VERBOSE, "Storing temp proxy at %s", proxy_file);
 
-      bool proxy_result = Arc::FileCreate(proxy_file, credential, 0, 0, S_IRUSR | S_IWUSR);
-      if (!proxy_result && errno == ENOENT) {
-        Arc::DirCreate(tmp_proxy_dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH, true);
-        proxy_result = Arc::FileCreate(proxy_file, credential);
-      }
-      if (!proxy_result) {
-        logger.msg(Arc::ERROR, "Failed to create temp proxy at %s: %s", proxy_file, Arc::StrError(errno));
-        resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
-        resultelement.NewChild("ErrorDescription") = "Failed to store temporary proxy";
-        continue;
-      }
+        bool proxy_result = Arc::FileCreate(proxy_file, credential, 0, 0, S_IRUSR | S_IWUSR);
+        if (!proxy_result && errno == ENOENT) {
+          Arc::DirCreate(tmp_proxy_dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH, true);
+          proxy_result = Arc::FileCreate(proxy_file, credential);
+        }
+        if (!proxy_result) {
+          logger.msg(Arc::ERROR, "Failed to create temp proxy at %s: %s", proxy_file, Arc::StrError(errno));
+          resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
+          resultelement.NewChild("ErrorDescription") = "Failed to store temporary proxy";
+          continue;
+        }
 
-      if (chown(proxy_file.c_str(), uid, gid) != 0) {
-        logger.msg(Arc::ERROR, "Failed to change owner of temp proxy at %s to %i:%i: %s",
-                   proxy_file, uid, gid, Arc::StrError(errno));
-        resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
-        resultelement.NewChild("ErrorDescription") = "Failed to store temporary proxy";
-        continue;
+        if (chown(proxy_file.c_str(), uid, gid) != 0) {
+          logger.msg(Arc::ERROR, "Failed to change owner of temp proxy at %s to %i:%i: %s",
+                     proxy_file, uid, gid, Arc::StrError(errno));
+          resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
+          resultelement.NewChild("ErrorDescription") = "Failed to store temporary proxy";
+          continue;
+        }
+        usercfg.ProxyPath(proxy_file);
+      } else {
+        usercfg.CredentialString(credential);
       }
-      usercfg.ProxyPath(proxy_file);
 
       // Logger for this DTR. Uses a string stream so log can easily be sent
       // back to the client. LogStream keeps a reference to the stream so we
@@ -279,7 +288,7 @@ namespace DataStaging {
         resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
         resultelement.NewChild("ErrorDescription") = "Could not create DTR";
         log->deleteDestinations();
-        if (unlink(proxy_file.c_str()) && errno != ENOENT) {
+        if (unlink(proxy_file.c_str()) != 0 && errno != ENOENT) {
           logger.msg(Arc::WARNING, "Failed to remove temporary proxy %s: %s", proxy_file, Arc::StrError(errno));
         }
         continue;
@@ -564,10 +573,7 @@ namespace DataStaging {
 
     // clear any proxies left behind from previous bad shutdown
     Arc::DirDelete(tmp_proxy_dir);
-    if (!Arc::DirCreate(tmp_proxy_dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH, true)) {
-      logger.msg(Arc::ERROR, "Failed to create dir %s for temp proxies: %s", tmp_proxy_dir, Arc::StrError(errno));
-      return;
-    }
+
     // Set restrictive umask
     umask(0077);
     // Set log level for DTR

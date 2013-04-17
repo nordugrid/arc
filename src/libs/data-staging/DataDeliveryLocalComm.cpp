@@ -83,23 +83,30 @@ namespace DataStaging {
         child_uid = dtr->get_local_user().get_uid();
         child_gid = dtr->get_local_user().get_gid();
       }
-      // If child is going to be run under different user ID
-      // we must ensure it will be able to read credentials.
-      tmp_proxy_ = prepare_proxy(dtr->get_usercfg().ProxyPath(), child_uid, child_gid);
       args.push_back("--surl");
       args.push_back(surl);
       args.push_back("--durl");
       args.push_back(durl);
-      if (!tmp_proxy_.empty()) {
-        args.push_back("--sopt");
-        args.push_back("credential="+tmp_proxy_);
-        args.push_back("--dopt");
-        args.push_back("credential="+tmp_proxy_);
-      } else if(!dtr->get_usercfg().ProxyPath().empty()) {
-        args.push_back("--sopt");
-        args.push_back("credential="+dtr->get_usercfg().ProxyPath());
-        args.push_back("--dopt");
-        args.push_back("credential="+dtr->get_usercfg().ProxyPath());
+      if (!dtr->get_source()->RequiresCredentialsInFile() &&
+          !dtr->get_destination()->RequiresCredentialsInFile() &&
+          !dtr->get_usercfg().CredentialString().empty()) {
+        // If file-based credentials are not required then send through stdin
+        stdin_ = dtr->get_usercfg().CredentialString();
+      } else {
+        // If child is going to be run under different user ID
+        // we must ensure it will be able to read credentials.
+        tmp_proxy_ = prepare_proxy(dtr->get_usercfg().ProxyPath(), child_uid, child_gid);
+        if (!tmp_proxy_.empty()) {
+          args.push_back("--sopt");
+          args.push_back("credential="+tmp_proxy_);
+          args.push_back("--dopt");
+          args.push_back("credential="+tmp_proxy_);
+        } else if(!dtr->get_usercfg().ProxyPath().empty()) {
+          args.push_back("--sopt");
+          args.push_back("credential="+dtr->get_usercfg().ProxyPath());
+          args.push_back("--dopt");
+          args.push_back("credential="+dtr->get_usercfg().ProxyPath());
+        }
       }
       if (!dtr->get_usercfg().CACertificatesDirectory().empty()) {
         args.push_back("--sopt");
@@ -141,6 +148,7 @@ namespace DataStaging {
       child_->KeepStdin(false);
       child_->AssignUserId(child_uid);
       child_->AssignGroupId(child_gid);
+      child_->AssignStdin(stdin_);
       // Start child
       std::string cmd;
       for(std::list<std::string>::iterator arg = args.begin();arg!=args.end();++arg) {

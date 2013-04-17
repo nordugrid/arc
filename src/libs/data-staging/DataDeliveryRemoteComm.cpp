@@ -469,8 +469,9 @@ namespace DataStaging {
   bool DataDeliveryRemoteComm::SetupDelegation(Arc::XMLNode& op, const Arc::UserConfig& usercfg) {
     const std::string& cert = (!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath());
     const std::string& key  = (!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.KeyPath());
+    const std::string& credentials = usercfg.CredentialString();
 
-    if (key.empty() || cert.empty()) {
+    if (credentials.empty() && (key.empty() || cert.empty())) {
       logger_->msg(Arc::VERBOSE, "DTR %s: Failed locating credentials", dtr_id);
       return false;
     }
@@ -486,13 +487,18 @@ namespace DataStaging {
       return false;
     }
 
-    Arc::DelegationProviderSOAP deleg(cert, key);
+    Arc::DelegationProviderSOAP * deleg = NULL;
+    // Use in-memory credentials if set in UserConfig
+    if (!credentials.empty()) deleg = new Arc::DelegationProviderSOAP(credentials);
+    else deleg = new Arc::DelegationProviderSOAP(cert, key);
     logger_->msg(Arc::VERBOSE, "DTR %s: Initiating delegation procedure", dtr_id);
-    if (!deleg.DelegateCredentialsInit(*entry, &(client->GetContext()))) {
+    if (!deleg->DelegateCredentialsInit(*entry, &(client->GetContext()))) {
       logger_->msg(Arc::VERBOSE, "DTR %s: Failed to initiate delegation credentials", dtr_id);
+      delete deleg;
       return false;
     }
-    deleg.DelegatedToken(op);
+    deleg->DelegatedToken(op);
+    delete deleg;
     return true;
   }
 

@@ -74,9 +74,7 @@ namespace DataStaging {
   }
 
   std::string TransferSharesConf::extract_share_info(DTR_ptr DTRToExtract) {
-    Arc::Credential cred(DTRToExtract->get_usercfg().ProxyPath(),
-                         DTRToExtract->get_usercfg().ProxyPath(),
-                         DTRToExtract->get_usercfg().CACertificatesDirectory(), "");
+    Arc::Credential cred(DTRToExtract->get_usercfg());
 
     using namespace ArcCredential; // needed for marco expansion
     if (CERT_IS_RFC_PROXY(cred.GetType())) DTRToExtract->set_rfc_proxy(true);

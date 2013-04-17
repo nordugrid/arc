@@ -34,6 +34,8 @@ namespace DataStaging {
   private:
     /// Child process
     Arc::Run* child_;
+    /// Stdin of child, used to pass credentials
+    std::string stdin_;
     /// Temporary credentails location
     std::string tmp_proxy_;
     /// Time last communication was received from child

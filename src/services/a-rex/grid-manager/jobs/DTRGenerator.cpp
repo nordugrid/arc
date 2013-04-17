@@ -772,10 +772,13 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
       }
     }
 
+    std::string proxy_cred;
     if(!i->cred.empty()) {
       usercfg.ProxyPath(i->cred);
+      if (Arc::FileRead(i->cred, proxy_cred)) usercfg.CredentialString(proxy_cred);
     } else {
       usercfg.ProxyPath(job_proxy_filename(jobid, config));
+      if (Arc::FileRead(job_proxy_filename(jobid, config), proxy_cred)) usercfg.CredentialString(proxy_cred);
     }
     // logger for these DTRs. LogDestinations should be deleted when DTR is received back
     DataStaging::DTRLogger dtr_log(new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging.DTR"));

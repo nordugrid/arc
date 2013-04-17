@@ -83,7 +83,8 @@ namespace DataStaging {
     void ArchivalThread(void);
 
     /// Sanity check on file sources and destinations
-    bool CheckInput(const std::string& url, const Arc::UserConfig& usercfg, Arc::XMLNode& resultelement);
+    bool CheckInput(const std::string& url, const Arc::UserConfig& usercfg,
+                    Arc::XMLNode& resultelement, bool& require_credential_file);
 
     /* individual operations */
     /// Start a new transfer
