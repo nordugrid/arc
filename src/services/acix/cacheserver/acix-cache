@@ -201,7 +201,7 @@ case "$1" in
     stop)
         do_stop
     ;;
-    restart|reload)
+    restart|reload|force-reload)
         do_restart
     ;;
     condrestart|try-restart)
