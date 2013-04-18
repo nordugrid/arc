@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-04-18 00:13+0100\n"
-"PO-Revision-Date: 2013-04-18 00:19+0100\n"
+"POT-Creation-Date: 2013-04-18 22:31+0100\n"
+"PO-Revision-Date: 2013-04-18 22:31+0100\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -6546,14 +6546,14 @@ msgstr ""
 "Запущено максимальное количество потоков - новый запрос помещён в очередь"
 
 #: src/hed/libs/common/UserConfig.cpp:30
-#: src/hed/libs/common/UserConfig.cpp:703
-#: src/hed/libs/common/UserConfig.cpp:712
-#: src/hed/libs/common/UserConfig.cpp:718
-#: src/hed/libs/common/UserConfig.cpp:741
-#: src/hed/libs/common/UserConfig.cpp:757
-#: src/hed/libs/common/UserConfig.cpp:767
-#: src/hed/libs/common/UserConfig.cpp:779
-#: src/hed/libs/common/UserConfig.cpp:799
+#: src/hed/libs/common/UserConfig.cpp:704
+#: src/hed/libs/common/UserConfig.cpp:713
+#: src/hed/libs/common/UserConfig.cpp:719
+#: src/hed/libs/common/UserConfig.cpp:742
+#: src/hed/libs/common/UserConfig.cpp:758
+#: src/hed/libs/common/UserConfig.cpp:768
+#: src/hed/libs/common/UserConfig.cpp:780
+#: src/hed/libs/common/UserConfig.cpp:800
 #, c-format
 msgid "Multiple %s attributes in configuration file (%s)"
 msgstr "Множественные атрибуты %s в файле настроек (%s)"
@@ -6798,14 +6798,14 @@ msgstr ""
 msgid "Loading configuration (%s)"
 msgstr "Чтение файла настроек (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:700
+#: src/hed/libs/common/UserConfig.cpp:701
 #, c-format
 msgid ""
 "The value of the timeout attribute in the configuration file (%s) was only "
 "partially parsed"
 msgstr "Значение атрибута timeout (%s) в файле настроек разобрано неполностью"
 
-#: src/hed/libs/common/UserConfig.cpp:725
+#: src/hed/libs/common/UserConfig.cpp:726
 msgid ""
 "The brokerarguments attribute can only be used in conjunction with the "
 "brokername attribute"
@@ -6813,7 +6813,7 @@ msgstr ""
 "Атрибут brokerarguments может быть использован только в связи с атрибутом "
 "brokername"
 
-#: src/hed/libs/common/UserConfig.cpp:735
+#: src/hed/libs/common/UserConfig.cpp:736
 #, c-format
 msgid ""
 "Could not convert the bartender attribute value (%s) to an URL instance in "
@@ -6822,14 +6822,14 @@ msgstr ""
 "Не удалось преобразовать значение атрибута bartender (%s) в файле настроек в "
 "URL (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:754
+#: src/hed/libs/common/UserConfig.cpp:755
 #, c-format
 msgid ""
 "The value of the keysize attribute in the configuration file (%s) was only "
 "partially parsed"
 msgstr "Значение атрибута keysize (%s) в файле настроек разобрано неполностью"
 
-#: src/hed/libs/common/UserConfig.cpp:774
+#: src/hed/libs/common/UserConfig.cpp:775
 #, c-format
 msgid ""
 "Could not convert the slcs attribute value (%s) to an URL instance in "
@@ -6838,12 +6838,12 @@ msgstr ""
 "Не удалось преобразовать значение атрибута slcs (%s) в файле настроек в URL "
 "(%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:820
+#: src/hed/libs/common/UserConfig.cpp:821
 #, c-format
 msgid "Specified overlay file (%s) does not exist."
 msgstr "Указанный файл с трафаретом (%s) не существует."
 
-#: src/hed/libs/common/UserConfig.cpp:824
+#: src/hed/libs/common/UserConfig.cpp:825
 #, c-format
 msgid ""
 "Unknown attribute %s in common section of configuration file (%s), ignoring "
@@ -6851,64 +6851,64 @@ msgid ""
 msgstr ""
 "Игнорируется неизвестный атрибут %s в разделе common файла настроек (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:865
+#: src/hed/libs/common/UserConfig.cpp:866
 #, c-format
 msgid "Unknown section %s, ignoring it"
 msgstr "Игнорируется неизвестный раздел %s"
 
-#: src/hed/libs/common/UserConfig.cpp:869
+#: src/hed/libs/common/UserConfig.cpp:870
 #, c-format
 msgid "Configuration (%s) loaded"
 msgstr "Настройки (%s) подгружены"
 
-#: src/hed/libs/common/UserConfig.cpp:872
+#: src/hed/libs/common/UserConfig.cpp:873
 #, c-format
 msgid "Could not load configuration (%s)"
 msgstr "Не удалось подгрузить настройки (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:975
+#: src/hed/libs/common/UserConfig.cpp:976
 #, c-format
 msgid "UserConfiguration saved to file (%s)"
 msgstr "UserConfiguration сохранены в файле (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:988
+#: src/hed/libs/common/UserConfig.cpp:989
 #, c-format
 msgid "Unable to create %s directory."
 msgstr "Не удалось создать каталог %s."
 
-#: src/hed/libs/common/UserConfig.cpp:997
+#: src/hed/libs/common/UserConfig.cpp:998
 #, c-format
 msgid "Configuration example file created (%s)"
 msgstr "Создан шаблонный файл настроек (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:999
+#: src/hed/libs/common/UserConfig.cpp:1000
 #, c-format
 msgid "Unable to copy example configuration from existing configuration (%s)"
 msgstr "Не удалось скопировать шаблон настроек из существующих настроек (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:1003
+#: src/hed/libs/common/UserConfig.cpp:1004
 #, c-format
 msgid "Cannot copy example configuration (%s), it is not a regular file"
 msgstr ""
 "Не удалось скопировать шаблон настроек (%s), т.к. это нестандартный файл"
 
-#: src/hed/libs/common/UserConfig.cpp:1008
+#: src/hed/libs/common/UserConfig.cpp:1009
 #, c-format
 msgid "Example configuration (%s) not created."
 msgstr "Шаблон настроек (%s) не создан."
 
-#: src/hed/libs/common/UserConfig.cpp:1013
+#: src/hed/libs/common/UserConfig.cpp:1014
 #, c-format
 msgid "The default configuration file (%s) is not a regular file."
 msgstr "Файл настроек по умолчанию (%s) не является обычным файлом"
 
-#: src/hed/libs/common/UserConfig.cpp:1031
+#: src/hed/libs/common/UserConfig.cpp:1032
 #, c-format
 msgid "%s directory created"
 msgstr "создан каталог %s"
 
-#: src/hed/libs/common/UserConfig.cpp:1033
-#: src/hed/libs/common/UserConfig.cpp:1072 src/hed/libs/data/DataMover.cpp:689
+#: src/hed/libs/common/UserConfig.cpp:1034
+#: src/hed/libs/common/UserConfig.cpp:1073 src/hed/libs/data/DataMover.cpp:689
 #, c-format
 msgid "Failed to create directory %s"
 msgstr "Не удалось создать каталог %s"
