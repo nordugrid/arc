@@ -692,6 +692,7 @@ namespace Arc {
         if (ini["common"]) {
           XMLNode common = ini["common"];
           HANDLESTRATT("verbosity", Verbosity)
+          if (!verbosity.empty()) logger.setThreshold(Arc::string_to_level(verbosity));
           if (!ignoreJobListFile) {
             HANDLESTRATT("joblist", JobListFile)
           }
