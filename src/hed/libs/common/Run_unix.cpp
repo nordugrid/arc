@@ -803,6 +803,7 @@ namespace Arc {
   Watchdog::Watchdog(void) {
     lpipe[0] = -1; lpipe[1] = -1;
     ::pipe(lpipe);
+    if(lpipe[1] != -1) fcntl(lpipe[1], F_SETFL, fcntl(lpipe[1], F_GETFL) | O_NONBLOCK);
   }
 
   Watchdog::~Watchdog(void) {
