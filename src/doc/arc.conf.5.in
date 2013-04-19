@@ -1745,7 +1745,7 @@ port="2811"
 .TP
 .B pluginpath
 pluginpath - directory where the plugin libraries are installed, default is
-$NORDUGRID_LOCATION/lib
+$ARC_LOCATION/lib(64)/arc
 
 .IR Example:
 .br

@@ -1082,7 +1082,7 @@ lrms="dgbridge"
 #port="2811"
 
 ## pluginpath - directory where the plugin libraries are installed, default is
-## $NORDUGRID_LOCATION/lib
+## $ARC_LOCATION/lib(64)/arc
 #pluginpath="/usr/lib/arc/"
 
 ## encryption yes|no - should data encryption be allowed, default is no,
