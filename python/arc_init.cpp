@@ -15,6 +15,20 @@
 #include <arc/Utils.h>
 #include <arc/Logger.h>
 
+
+static bool __arc_init_try_path(const std::string& modulepath) {
+  Glib::Module *module = NULL;
+#ifdef HAVE_GLIBMM_BIND_LOCAL
+  module = new Glib::Module(modulepath,Glib::ModuleFlags(0));
+#else
+  module = new Glib::Module(modulepath);
+#endif
+  if(module == NULL) return false;
+  if(*module) return true;
+  delete module;
+  return false;
+}
+
 __attribute__((constructor)) void __arc_init(void) {
 
 /*
@@ -41,33 +55,26 @@ seems to be present.
   std::string::size_type start = 0;
   std::string::size_type end = pythonpath.find_first_of(";:\n");
   if(end == std::string::npos) end=pythonpath.length();
+std::cerr<<"----- python init: paths: "<<pythonpath<<std::endl;
   for(;start<pythonpath.length();) {
     std::string path;
     std::string modulepath;
-    Glib::Module *module = NULL;
     path = pythonpath.substr(start,end-start);
+
+    // Possible options
+    //  PATH/_arc.so
+    //  PATH/site-packages/_arc.so
+    //  PATH/arc/_arc.so
+    //  PATH/site-packages/arc/_arc.so
     modulepath = Glib::build_filename(path,std::string("_arc.")+G_MODULE_SUFFIX);
-#ifdef HAVE_GLIBMM_BIND_LOCAL
-    module = new Glib::Module(modulepath,Glib::ModuleFlags(0));
-#else
-    module = new Glib::Module(modulepath);
-#endif
-    if(module != NULL) {
-      if(*module) return;
-      delete module;
-    };
-    path = Glib::build_filename(path,"site-packages");
-    modulepath = Glib::build_filename(path,std::string("_arc.")+G_MODULE_SUFFIX);
-#ifdef HAVE_GLIBMM_BIND_LOCAL
-    module = new Glib::Module(modulepath,Glib::ModuleFlags(0));
-#else
-    module = new Glib::Module(modulepath);
-#endif
-    if(module != NULL) {
-      if(*module) return;
-      delete module;
-    };
-    path = Glib::build_filename(path,"site-packages");
+    if(__arc_init_try_path(modulepath)) return;
+    modulepath = Glib::build_filename(Glib::build_filename(path,"site-packages"),std::string("_arc.")+G_MODULE_SUFFIX);
+    if(__arc_init_try_path(modulepath)) return;
+    modulepath = Glib::build_filename(Glib::build_filename(path,"arc"),std::string("_arc.")+G_MODULE_SUFFIX);
+    if(__arc_init_try_path(modulepath)) return;
+    modulepath = Glib::build_filename(Glib::build_filename(Glib::build_filename(path,"site-packages"),"arc"),std::string("_arc.")+G_MODULE_SUFFIX);
+    if(__arc_init_try_path(modulepath)) return;
+
     start=end+1;
     end=pythonpath.find_first_of(";:\n",start);
     if(end == std::string::npos) end=pythonpath.length();
