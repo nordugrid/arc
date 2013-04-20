@@ -55,7 +55,6 @@ seems to be present.
   std::string::size_type start = 0;
   std::string::size_type end = pythonpath.find_first_of(";:\n");
   if(end == std::string::npos) end=pythonpath.length();
-std::cerr<<"----- python init: paths: "<<pythonpath<<std::endl;
   for(;start<pythonpath.length();) {
     std::string path;
     std::string modulepath;
