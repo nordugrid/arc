@@ -20,6 +20,3 @@ stamp-h1
 compile
 INSTALL
 debian/changelog
-doc/ARC1-Services.pdf
-doc/ARC1-ChainComponents.pdf
-
