@@ -9,7 +9,6 @@ our $rte_options_schema = {
         pgkdatadir     => '',
         configfile     => '',
         runtimedir     => '*',
-        use_janitor    => '*',
 };
 
 our $rte_info_schema = {
@@ -28,7 +27,6 @@ sub collect($) {
 
     my $rtes = {};
     add_static_rtes($options->{runtimedir}, $rtes);
-    add_janitor_res($options, $rtes);
 
     return $rtes;
 }
@@ -54,50 +52,12 @@ sub add_static_rtes {
 }
 
 
-sub add_janitor_res {
-    my ($options, $rtes) = @_;
-    return unless $options->{use_janitor};
-
-    my $jmodpath = $options->{pkgdatadir}.'/perl';
-    if (! -e "$jmodpath/Janitor/ArcUtils.pm") {
-       $log->warning("Janitor modules not found in '$jmodpath'");
-       $log->warning("The janitor package is not installed");
-       return;
-    }
-
-    eval { unshift @INC, $jmodpath; require Janitor::ArcUtils };
-    if ($@) {
-        $log->warning("Failed to load Janitor modules: $@");
-        return;
-    }
-
-    my $configfile = $options->{configfile};
-    Janitor::ArcUtils::listAll($configfile, $rtes);
-
-    # Hide unusable runtimes
-    for my $rte (keys %$rtes) {
-        my $state = $rtes->{$rte}{state};
-        next if $state eq "installednotverified";
-        next if $state eq "installedverified";
-        next if $state eq "installable";
-        next if $state eq "pendingremoval";
-        # installationfailed
-        # installedbroken
-        # pendingremoval
-        # UNDEFINEDVALUE
-        delete $rtes->{$rte};
-    }
-}
-
-
-
 #### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ####
 
 sub test {
     my $options = { pkgdatadir => '/scratch/adrianta/arc1/share/arc',
                     runtimedir => '/data/export/SOFTWARE/runtime',
                     configfile => '/etc/arc.conf',
-                    use_janitor => 1,
     };
     require Data::Dumper; import Data::Dumper qw(Dumper);
     LogUtils::level('VERBOSE');

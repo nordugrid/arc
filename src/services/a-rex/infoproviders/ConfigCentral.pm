@@ -105,7 +105,6 @@ my $gmcommon_options = {
     shared_filesystem => '*',
     shared_scratch => '*',
     scratchdir => '*',
-    use_janitor => '*',
     enable_emies_interface => '*',
     enable_arc_interface => '*',
 };
@@ -226,7 +225,7 @@ my $allbools = [ qw(
                  PublishNordugrid Homogeneous VirtualMachine
                  ConnectivityIn ConnectivityOut Preemption
                  infosys_compat infosys_nordugrid infosys_glue12 infosys_glue2_ldap infosys_glue2_ldap_showactivities
-                 GridftpdEnabled GridftpdAllowNew use_janitor Distributed ) ];
+                 GridftpdEnabled GridftpdAllowNew Distributed ) ];
 
 ############################ Generic functions ###########################
 
@@ -488,8 +487,7 @@ sub build_config_from_xmlfile {
                                  scratchDir => 'scratchdir',
                                  sharedScratch => 'shared_scratch',
                                  sharedFilesystem => 'shared_filesystem',
-                                 GNUTimeUtility => 'gnu_time',
-                                 useJanitor => 'use_janitor'};
+                                 GNUTimeUtility => 'gnu_time'};
 
     my $ipcfg = hash_get_hashref($arex, 'InfoProvider');
 

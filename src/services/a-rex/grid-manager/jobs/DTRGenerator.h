@@ -30,9 +30,8 @@ class DTRInfo: public DataStaging::DTRCallback {
 
 
 /**
- * A-REX implementation of DTR Generator. Note that neither Janitor nor job
- * migration functionality present in the down/uploaders has been implemented
- * here.
+ * A-REX implementation of DTR Generator. Note that job migration functionality
+ * present in the down/uploaders has not been implemented here.
  */
 class DTRGenerator: public DataStaging::DTRCallback {
  private:
