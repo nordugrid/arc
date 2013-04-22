@@ -760,20 +760,6 @@ Connector (ARC).
 Java bindings for ARC.
 %endif
 
-%package doxygen
-Summary:	ARC API documentation
-Group:		Documentation
-%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
-BuildArch:	noarch
-%endif
-
-%description doxygen
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-Reference to the ARC programming API. It is prepared with doxygen.
-
 %package gridmap-utils
 Summary:	NorduGrid authorization tools
 Group:		Applications/Internet
@@ -1535,11 +1521,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/gcj/%{name}
 %endif
 %endif
-
-%files doxygen
-%defattr(-,root,root,-)
-%doc src/doxygen/ARC1-API.pdf
-%doc src/doxygen/ARC1-libarcdata.pdf
 
 %files gridmap-utils
 %defattr(-,root,root,-)

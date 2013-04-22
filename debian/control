@@ -326,18 +326,6 @@ Description: ARC Java wrapper
  .
  Java bindings for ARC.
 
-Package: nordugrid-arc-doxygen
-Architecture: all
-Section: doc
-Depends: ${misc:Depends}
-Conflicts: nordugrid-arc-nox-doc (<< 1.3.0~)
-Description: ARC API documentation
- NorduGrid is a collaboration aiming at development, maintenance and
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
- .
- Reference to the ARC programming API. It is prepared with Doxygen.
-
 Package: nordugrid-arc-gridmap-utils
 Architecture: all
 Depends: libnet-ldap-perl, libxml-dom-perl, libcrypt-ssleay-perl, libsoap-lite-perl, libcrypt-openssl-x509-perl, ${perl:Depends}, ${misc:Depends}
