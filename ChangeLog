@@ -1,3 +1,7 @@
+2013-04-22  Gabor Szigeti <szigeti@niif.hu>
+  * Fixed wrong VO attribute that leading '/' character in the CAR. Required 
+    for the APEL. (fixes bug #3152)
+
 2013-04-17  David Cameron  <d.g.cameron@fys.uio.no>
 
   * Add support for in-memory credentials for http and gsiftp-based protocols
