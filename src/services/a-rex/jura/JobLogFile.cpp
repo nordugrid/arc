@@ -687,13 +687,16 @@ namespace Arc
                   else {
                     if(attr.find("Role=") == std::string::npos ||
                        attr.find("Capability=") == std::string::npos) {  
+                      if(attr[0] == '/') {
+                         attr.erase (0,1);
+                      }
                       Arc::XMLNode vo=useridentity.NewChild("GroupAttribute")=attr;
                       vo.NewAttribute("urf:type")="FQAN";
                     }
                   }
                   if((pos = attr.find("Role=")) != std::string::npos) {
-                    std::string str = attr.substr(pos+5);
-                    Arc::XMLNode vo=useridentity.NewChild("GroupAttribute")=attr;
+                    std::string role = attr.substr(pos+5);
+                    Arc::XMLNode vo=useridentity.NewChild("GroupAttribute")=role;
                     vo.NewAttribute("urf:type")="vo-role";
                   }
                 }
