@@ -54,6 +54,9 @@ class OptimizedInformationContainer: public Arc::InformationContainer {
 
 #define AREXOP(NAME) Arc::MCC_Status NAME(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out)
 class ARexService: public Arc::Service {
+ private:
+  static void gm_threads_starter(void* arg);
+  void gm_threads_starter();
  protected:
   Arc::ThreadRegistry thread_count_;
   Arc::NS ns_;
@@ -71,6 +74,7 @@ class ARexService: public Arc::Service {
   std::string long_description_;
   std::string lrms_name_;
   std::string os_name_;
+  std::string gmrun_;
   unsigned int infoprovider_wakeup_period_;
   unsigned int all_jobs_count_;
   //Glib::Mutex glue_states_lock_;

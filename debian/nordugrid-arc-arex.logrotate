@@ -10,6 +10,15 @@
   endscript
 }
 
+/var/log/arc/ws-interface.log {
+  missingok
+  compress
+  delaycompress
+  daily
+  rotate 14
+  create
+}
+
 /var/log/arc/cache-clean.log {
   missingok
   compress

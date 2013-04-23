@@ -623,10 +623,18 @@ lrms="dgbridge"
 ## between 0 (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
 #debug="2"
 
-## logfile path - Specify log file location. This file is opened/created
-##  before daemon swithces to specified user. Hence it can be owned 
-##  by 'root'. Default log file is "/var/log/arc/grid-manager.log"
+## logfile path - Specify A-REX log file location. If using an external log
+## rotation tool be careful to make sure it matches the path specified here.
+## Default log file is /var/log/arc/grid-manager.log
 #logfile="/var/log/arc/grid-manager.log"
+
+## wslogfile path - Specify log file location for WS-interface operations. This
+## file is only created if the WS-interface is enabled through the
+## arex_mount_point option. The logsize, logreopen and debug options also apply
+## to this file. If using an external log rotation tool be careful to make sure
+## it matches the path specified here. It is possible to specify the same file
+## as logfile to combine the logs. Default is /var/log/arc/ws-interface.log
+#wslogfile="/var/log/arc/ws-interface.log"
 
 ## logsize size [number] - 'Size' specifies in bytes how big log file is 
 ##  allowed to grow (approximately). If log file exceeds specified size

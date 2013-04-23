@@ -74,6 +74,11 @@ void GMConfig::SetDefaults() {
   cont_plugins = NULL;
   cred_plugin = NULL;
   delegations = NULL;
+
+  max_log_size = -1;
+  max_log_backups = -1;
+  reopen_log = false;
+
   share_uid = 0;
   keep_finished = DEFAULT_KEEP_FINISHED;
   keep_deleted = DEFAULT_KEEP_DELETED;

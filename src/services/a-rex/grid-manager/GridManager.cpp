@@ -32,9 +32,6 @@ namespace ARex {
 /* cache cleaning default timeout */
 #define CACHE_CLEAN_TIMEOUT 3600
 
-#define DEFAULT_LOG_FILE "/var/log/arc/grid-manager.log"
-#define DEFAULT_PID_FILE "/var/run/grid-manager.pid"
-
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"A-REX");
 
 class cache_st {
@@ -170,8 +167,8 @@ void GridManager::grid_manager(void* arg) {
 }
 
 bool GridManager::thread() {
-  logger.msg(Arc::INFO,"Starting grid-manager thread");
 
+  logger.msg(Arc::INFO,"Starting jobs processing thread");
   logger.msg(Arc::INFO,"Used configuration file %s",config_.ConfigFile());
   config_.Print();
 
@@ -329,7 +326,7 @@ bool GridManager::thread() {
   logger.msg(Arc::INFO,"Stopping jobs processing thread");
   config_.PrepareToDestroy();
   jobs.PrepareToDestroy();
-  logger.msg(Arc::INFO,"Destroying jobs and waiting for underlying processes to finish");
+  logger.msg(Arc::INFO,"Exiting jobs processing thread");
   return true;
 }
 
