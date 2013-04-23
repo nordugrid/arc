@@ -31,11 +31,11 @@ namespace Arc {
       MCC* mcc = mcc_i->second;
       if(mcc) mcc->Unlink();
     }
-    for(plexer_container_t::iterator plexer_i = plexers_.begin();
-        plexer_i != plexers_.end(); ++plexer_i) {
-      Plexer* plexer = plexer_i->second;
-      if(plexer) plexer->Unlink();
-    }
+    //for(plexer_container_t::iterator plexer_i = plexers_.begin();
+    //    plexer_i != plexers_.end(); ++plexer_i) {
+    //  Plexer* plexer = plexer_i->second;
+    //  if(plexer) plexer->Unlink();
+    //}
     // Destroy all objects
     // First unlinked MCC are destroyed because they handle spawned threads
     // processing request. After they are destroyed there should be no 
@@ -53,12 +53,12 @@ namespace Arc {
       mccs_.erase(mcc_i);
       if(mcc) delete mcc;
     }
-    for(plexer_container_t::iterator plexer_i = plexers_.begin();
-        plexer_i != plexers_.end(); plexer_i = plexers_.begin()) {
-      Plexer* plexer = plexer_i->second;
-      plexers_.erase(plexer_i);
-      if(plexer) delete plexer;
-    }
+    //for(plexer_container_t::iterator plexer_i = plexers_.begin();
+    //    plexer_i != plexers_.end(); plexer_i = plexers_.begin()) {
+    //  Plexer* plexer = plexer_i->second;
+    //  plexers_.erase(plexer_i);
+    //  if(plexer) delete plexer;
+    //}
     for(service_container_t::iterator service_i = services_.begin();
         service_i != services_.end(); service_i = services_.begin()) {
       Service* service = service_i->second;
@@ -92,16 +92,16 @@ namespace Arc {
     return o;
   }
 
-  class plexer_connector_t {
-  public:
-    MCCLoader::plexer_container_t::iterator plexer;
-    std::map<std::string, std::string> nexts;
-    plexer_connector_t(MCCLoader::plexer_container_t::iterator plexer) :
-      plexer(plexer) {};
-  };
+  //class plexer_connector_t {
+  //public:
+  //  MCCLoader::plexer_container_t::iterator plexer;
+  //  std::map<std::string, std::string> nexts;
+  //  plexer_connector_t(MCCLoader::plexer_container_t::iterator plexer) :
+  //    plexer(plexer) {};
+  //};
 
   class mcc_connectors_t : public std::list<mcc_connector_t> {};
-  class plexer_connectors_t : public std::list<plexer_connector_t> {};
+  //class plexer_connectors_t : public std::list<plexer_connector_t> {};
 
   static XMLNode FindElementByID(XMLNode node, const std::string& id, const std::string& name) {
     for(int n = 0;; ++n) {
@@ -252,11 +252,11 @@ namespace Arc {
   }
 
   bool MCCLoader::make_elements(Config& cfg, int level,
-                                mcc_connectors_t *mcc_connectors,
-                                plexer_connectors_t *plexer_connectors) {
+                                mcc_connectors_t *mcc_connectors/*,
+                                plexer_connectors_t *plexer_connectors*/) {
     bool success = true;
     if(mcc_connectors == NULL) mcc_connectors = new mcc_connectors_t;
-    if(plexer_connectors == NULL) plexer_connectors = new plexer_connectors_t;
+    //if(plexer_connectors == NULL) plexer_connectors = new plexer_connectors_t;
     // 1st stage - creating all elements.
     // Configuration is parsed recursively - going deeper at ArcConfig
     // and Chain elements
@@ -266,13 +266,13 @@ namespace Arc {
       Config cfg_(cn, cfg.getFileName());
 
       if(MatchXMLName(cn, "ArcConfig")) {
-        if(!make_elements(cfg_, level + 1, mcc_connectors, plexer_connectors))
+        if(!make_elements(cfg_, level + 1, mcc_connectors/*, plexer_connectors*/))
           success = false;
         continue;
       }
 
       if(MatchXMLName(cn, "Chain")) {
-        if(!make_elements(cfg_, level + 1, mcc_connectors, plexer_connectors))
+        if(!make_elements(cfg_, level + 1, mcc_connectors/*, plexer_connectors*/))
           success = false;
         continue;
       }
@@ -291,12 +291,20 @@ namespace Arc {
       }
 
       if(MatchXMLName(cn, "Plexer")) {
+        static unsigned int plexer_cnt = 0; // TODO: better and per instance
         std::string id = cn.Attribute("id");
-        if(id.empty()) id = "plexer";
+        if(id.empty()) id = "plexer"+(plexer_cnt?tostring(plexer_cnt):"");
+        ++plexer_cnt;
         MCCPluginArgument arg(&cfg_,context_);
         Plexer* plexer = new Plexer(&cfg_,&arg);
-        plexers_[id] = plexer;
-        plexer_connector_t plexer_connector(plexers_.find(id));
+        //plexers_[id] = plexer;
+        if(mccs_.find(id) != mccs_.end()) {
+          success = false;
+          continue;
+        };
+        mccs_[id] = plexer;
+        //plexer_connector_t plexer_connector(plexers_.find(id));
+        mcc_connector_t mcc_connector(mccs_.find(id));
         for(int nn = 0;; ++nn) {
           XMLNode cnn = cn["next"][nn];
           if(!cnn) break;
@@ -309,9 +317,11 @@ namespace Arc {
             continue;
           }
           std::string label = cnn;
-          plexer_connector.nexts[label] = nid;
+          //plexer_connector.nexts[label] = nid;
+          mcc_connector.nexts[label] = nid;
         }
-        plexer_connectors->push_back(plexer_connector);
+        //plexer_connectors->push_back(plexer_connector);
+        mcc_connectors->push_back(mcc_connector);
         logger.msg(INFO, "Loaded Plexer %s", id);
         continue;
       }
@@ -382,7 +392,7 @@ namespace Arc {
         std::string id = next->second;
         mcc_container_t::iterator mcc_l = mccs_.find(id);
         if(mcc_l != mccs_.end()) {
-          // Make link MCC->MCC
+          // Make link MCC->MCC/Plexer
           mcc->mcc->second->Next(mcc_l->second, label);
           logger.msg(DEBUG, "Linking MCC %s(%s) to MCC (%s) under %s",
                mcc->name, mcc->mcc->first, id, label);
@@ -400,15 +410,15 @@ namespace Arc {
           mcc->nexts.erase(next);
           continue;
         }
-        plexer_container_t::iterator plexer_l = plexers_.find(id);
-        if(plexer_l != plexers_.end()) {
-          // Make link MCC->Plexer
-          mcc->mcc->second->Next(plexer_l->second, label);
-          logger.msg(INFO, "Linking MCC %s(%s) to Plexer (%s) under %s",
-               mcc->name, mcc->mcc->first, id, label);
-          mcc->nexts.erase(next);
-          continue;
-        }
+        //plexer_container_t::iterator plexer_l = plexers_.find(id);
+        //if(plexer_l != plexers_.end()) {
+        //  // Make link MCC->Plexer
+        //  mcc->mcc->second->Next(plexer_l->second, label);
+        //  logger.msg(INFO, "Linking MCC %s(%s) to Plexer (%s) under %s",
+        //       mcc->name, mcc->mcc->first, id, label);
+        //  mcc->nexts.erase(next);
+        //  continue;
+        //}
         logger.msg(VERBOSE, "MCC %s(%s) - next %s(%s) has no target",
                    mcc->name, mcc->mcc->first, label, id);
         error_description_ = "MCC chain is broken - no "+id+" target was found for "+mcc->name+" component";
@@ -417,6 +427,7 @@ namespace Arc {
       }
     }
     // Making links from Plexers
+    /*
     for(plexer_connectors_t::iterator plexer = plexer_connectors->begin();
         plexer != plexer_connectors->end(); ++plexer) {
       for(std::map<std::string, std::string>::iterator next =
@@ -461,8 +472,9 @@ namespace Arc {
         plexer->nexts.erase(next);
       }
     }
+    */
     if(mcc_connectors) delete mcc_connectors;
-    if(plexer_connectors) delete plexer_connectors;
+    //if(plexer_connectors) delete plexer_connectors;
     // Move all unlinked MCCs to dedicated container
     for(mcc_container_t::iterator mcc = mccs_unlinked_.begin();
                                   mcc != mccs_unlinked_.end();++mcc) {
@@ -472,6 +484,47 @@ namespace Arc {
     return success;
   }
 
+  bool MCCLoader::UnlinkElement(const std::string& id) {
+    Glib::Mutex::Lock lock(edit_lock_);
+    // Find element
+    MCCInterface* element = NULL;
+    std::map<std::string, MCC*>::iterator mcc = mccs_.find(id);
+    std::map<std::string, Service*>::iterator service = services_.find(id);
+    if(mcc == mccs_.end()) mcc = mccs_unlinked_.find(id);
+    bool is_service = false;
+    if(mcc != mccs_.end()) {
+      element = mcc->second;
+    } else if(service != services_.end()) {
+      element = service->second;
+      is_service = true;
+    }
+    if(!element) return false;
+    // Find elements which link to it and remove those links
+    for(std::map<std::string, MCC*>::iterator m = mccs_.begin();
+                                           m != mccs_.end(); ++m) {
+      std::string label;
+      if(m->second->IsNext(element,label)) {
+        m->second->Next(NULL,label);
+      }
+    }
+    for(std::map<std::string, MCC*>::iterator m = mccs_unlinked_.begin();
+                                           m != mccs_unlinked_.end(); ++m) {
+      std::string label;
+      if(m->second->IsNext(element,label)) {
+        m->second->Next(NULL,label);
+      }
+    }
+    // Remove links going from found element
+    if(!is_service) {
+      ((MCC*)element)->Unlink();
+    }
+    return true;
+  }
+
+  bool MCCLoader::RemoveElement(const std::string& id) {
+  }
+
+  /*
   bool MCCLoader::ReloadElement(Config& cfg) {
     XMLNode cn = cfg;
     if(MatchXMLName(cn, "Component")) {
@@ -505,6 +558,7 @@ namespace Arc {
     }
     return false;
   }
+  */
 
   MCC* MCCLoader::operator[](const std::string& id) {
     mcc_container_t::iterator mcc = mccs_exposed_.find(id);

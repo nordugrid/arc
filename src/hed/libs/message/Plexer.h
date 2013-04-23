@@ -53,7 +53,7 @@ namespace Arc {
     //! Add reference to next MCC in chain.
     /*! This method is called by Loader for every potentially labeled
       link to next component which implements MCCInterface. If next is
-      set NULL corresponding link is removed.
+      set to NULL corresponding link is removed.
      */
     virtual void Next(MCCInterface* next, const std::string& label);
 

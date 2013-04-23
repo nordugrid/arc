@@ -12,7 +12,7 @@ libarcmessage_la_SOURCES = SOAPEnvelope.cpp PayloadRaw.cpp PayloadSOAP.cpp \
 	PayloadStream.cpp MCC_Status.cpp MCC.cpp Service.cpp Plexer.cpp \
 	MessageAttributes.cpp Message.cpp SOAPMessage.cpp MessageAuth.cpp \
 	SecAttr.cpp MCCLoader.cpp SecHandler.cpp
-libarcmessage_la_CXXFLAGS = -I$(top_srcdir)/include \
+libarcmessage_la_CXXFLAGS = -DARC_DYNAMIC_CHAINS -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 libarcmessage_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \

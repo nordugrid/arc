@@ -37,9 +37,25 @@ namespace Arc {
     return n->second;
   }
 
+  bool MCC::IsNext(MCCInterface *mcc, std::string& label) {
+    Glib::Mutex::Lock lock(next_lock_);
+    std::map<std::string, MCCInterface *>::iterator n = next_.begin();
+    for(;n != next_.end();++n) {
+      if(n->second == mcc) {
+        label = n->first;
+        return true;
+      }
+    }
+    return false;
+  }
+
   void MCC::Unlink() {
     Glib::Mutex::Lock lock(next_lock_);
     next_.clear();
+  }
+
+  void MCC::Destroy() {
+
   }
 
   void MCC::AddSecHandler(Config *cfg, ArcSec::SecHandler *sechandler,
