@@ -52,10 +52,6 @@ namespace Arc {
     std::map<std::string, MCCInterface *> next_;
     /** Mutex to protect access to next_. */
     Glib::Mutex next_lock_;
-
-    /** Counter for messages being processed (in different threads) */
-    int message_cnt_;
-
     /** Returns "next" component associated with provided label. */
     MCCInterface *Next(const std::string& label = "");
 
@@ -83,10 +79,6 @@ namespace Arc {
     /** Example contructor - MCC takes at least it's configuration subtree */
     MCC(Config *, PluginArgument* arg);
 
-    /** Destructor. Some implementations may implement waiting in destructor
-       till all current messages are finished procesing. But it is advised 
-       to do that only for MCCs which initiate Messages. Otherwise deadlock
-       may occur. */
     virtual ~MCC();
 
     /** Add reference to next MCC in chain.
@@ -94,11 +86,6 @@ namespace Arc {
         next component which implements MCCInterface. If next is NULL
         corresponding link is removed.  */
     virtual void Next(MCCInterface *next, const std::string& label = "");
-
-    /** Check if next is linked from this MCC.
-       On success returns true and label contains label used to
-       refer to this link. */
-    virtual bool IsNext(MCCInterface *next, std::string& label);
 
     /** Add security components/handlers to this MCC.
         Security handlers are stacked into a few queues with each queue
@@ -114,15 +101,8 @@ namespace Arc {
              ArcSec::SecHandler *sechandler,
              const std::string& label = "");
 
-    /** Removing all links to next elements. Useful for destroying chains. */
+    /** Removing all links. Useful for destroying chains. */
     virtual void Unlink();
-
-    /** Either destroy this MCC immediately or schedule it for destruction
-      later when it becomes free messages being processed. It is safer
-      to use this method than delete this. In any case MCC must be
-      completely unlinked before it can be destroyed. This method will not
-      do any unlinking. */
-    virtual void Destroy();
 
     /** Dummy Message processing method. Just a placeholder. */
     virtual MCC_Status process(Message& /* request */,

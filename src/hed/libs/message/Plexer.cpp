@@ -23,7 +23,7 @@ namespace Arc {
 
   void Plexer::Next(MCCInterface* next, const std::string& label){
     std::list<PlexerEntry>::iterator iter;
-    if (next) {
+    if (next!=0) {
       RegularExpression regex(label);
       if (regex.isOk()) {
         mccs.push_front(PlexerEntry(regex,next));
@@ -39,7 +39,6 @@ namespace Arc {
         }
       }
     }
-    MCC::Next(next,label); // For other Next() to work properly.
   }
   
   MCC_Status Plexer::process(Message& request, Message& response){

@@ -17,7 +17,7 @@ namespace Arc {
 
   // Internal classes - used in private methods
   class mcc_connectors_t;
-  //class plexer_connectors_t;
+  class plexer_connectors_t;
 
   class ChainContext;
 
@@ -49,12 +49,10 @@ namespace Arc {
     typedef std::map<std::string, MCC*>        mcc_container_t;
     typedef std::map<std::string, Service*>    service_container_t;
     typedef std::map<std::string, ArcSec::SecHandler*> sechandler_container_t;
-    //typedef std::map<std::string, Plexer*>     plexer_container_t;
+    typedef std::map<std::string, Plexer*>     plexer_container_t;
 
    private:
     bool valid_;
-
-    Glib::Mutex edit_lock_;
 
     /** Set of labeled MCC objects */
     mcc_container_t mccs_;
@@ -72,7 +70,7 @@ namespace Arc {
     sechandler_container_t sechandlers_;
 
     /** Set of labeled Plexer objects */
-    //plexer_container_t plexers_;
+    plexer_container_t plexers_;
 
     /** Internal method which performs whole stuff specific to 
        creation of Message Chains.
@@ -81,8 +79,8 @@ namespace Arc {
        Returns true if all objects were succesfully initialized 
        and all links created. */
     bool make_elements(Config& cfg, int level = 0,
-		       mcc_connectors_t *mcc_connectors = NULL/*,
-		       plexer_connectors_t *plexer_connectors = NULL*/);
+		       mcc_connectors_t *mcc_connectors = NULL,
+		       plexer_connectors_t *plexer_connectors = NULL);
     MCC* make_component(Config& cfg, XMLNode cn,
                         mcc_connectors_t *mcc_connectors = NULL);
     ArcSec::SecHandler* make_sec_handler(Config& cfg, XMLNode& node);
@@ -110,17 +108,7 @@ namespace Arc {
 
     const std::string& failure(void) { return error_description_; };
 
-    /** Add new element into the chain according to supplied configuration. */
-    bool InsertElement(Config& cfg);
-
-    /** Reload existing element with new configuration. */
     bool ReloadElement(Config& cfg);
-
-    /** Safely remove existing element from configuration also destroying all links. */
-    bool RemoveElement(const std::string& id);
-
-    /** Safely unlink existing element from all linked elements. */
-    bool UnlinkElement(const std::string& id);
  };
 
   /// Interface to chain specific functionality
