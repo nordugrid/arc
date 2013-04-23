@@ -1,5 +1,5 @@
 EXTRA_DIST = changelog compat control copyright rules source/format \
-             $(srcdir)/*.doc-base* $(srcdir)/*.install $(srcdir)/*.docs \
+             $(srcdir)/*.install $(srcdir)/*.docs \
              $(srcdir)/*.default $(srcdir)/*.logrotate \
              $(srcdir)/*.postinst $(srcdir)/*.postrm \
              $(srcdir)/*.lintian-overrides README.Debian README.source
