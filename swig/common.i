@@ -264,6 +264,7 @@ private:
 %{
 #include <arc/Thread.h>
 %}
+%ignore Arc::ThreadId;
 #ifdef SWIGJAVA
 %rename(_wait) Arc::SimpleCondition::wait;
 %rename(_wait) Arc::SimpleCounter::wait;
