@@ -37,7 +37,7 @@ scancel="$SLURM_BIN_PATH/scancel"
 sbatch="$SLURM_BIN_PATH/sbatch"
 
 # Verifies that a SLURM jobid is set, and is an integer
-function verify_jobid {
+verify_jobid () {
     joboption_jobid="$1"
     # Verify that the jobid is somewhat sane.
     if [ -z ${joboption_jobid} ];then
@@ -45,7 +45,7 @@ function verify_jobid {
 	return 1
     fi
     # jobid in slurm is always an integer, so anything else is an error.
-    if [ "x" != "x$(sed s/[0-9]//g <(echo ${joboption_jobid}))" ];then
+    if [ "x" != "x$(echo ${joboption_jobid} | sed s/[0-9]//g )" ];then
 	echo "error: non-numeric characters in joboption_jobid: ${joboption_jobid}" 1>&2
 	return 1
     fi
