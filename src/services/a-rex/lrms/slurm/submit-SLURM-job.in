@@ -358,8 +358,10 @@ while [ "$SLURM_TRIES" -lt '10' ] ; do
     # Unset all environment variables before calling sbatch. Otherwise
     # SLURM will forward them to the job and leak information about
     # the grid-manager.
+    # Only unset lines with assignments.
+    # Risks unsetting variables in sub assignments, but this is likely harmless.
     # TODO: Maybe we only should unset $ARC_*, $CONFIG_*, $GLOBUS_* etc?
-  (for i in $(env|grep -v "LRMS_JOB_SCRIPT"|cut -d= -f1);do unset $i;done; \
+  (for i in $(env|grep '^[A-Za-z][A-Za-z0-9]*='|grep -v "LRMS_JOB_SCRIPT"|cut -d= -f1);do unset $i;done; \
        ${sbatch} $LRMS_JOB_SCRIPT) 1>$LRMS_JOB_OUT 2>$LRMS_JOB_ERR
   SLURM_RESULT="$?"
   if [ "$SLURM_RESULT" -eq '0' ] ; then break ; fi 
