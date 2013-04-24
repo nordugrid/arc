@@ -40,7 +40,6 @@ namespace Arc
     int submit_batch();
     Arc::MCC_Status send_request(const std::string &urset);
     void clear();
-    void XML2KeyValue(Arc::XMLNode &xml_urset, std::map<std::string, std::string> &key_urset);
 
   public:
     /** Constructor. Service URL and APEL-related parameters (e.g. UR
