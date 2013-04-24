@@ -228,6 +228,7 @@ namespace Arc {
 #endif
 
   void ThreadArgument::thread(void) {
+    ThreadId::getInstance().add();
 #ifdef USE_THREAD_DATA
     ThreadData* tdata = ThreadData::Get();
     if(tdata) {
@@ -248,6 +249,30 @@ namespace Arc {
 #ifdef USE_THREAD_DATA
     ThreadData::Remove();
 #endif
+    ThreadId::getInstance().remove();
+  }
+
+  ThreadId& ThreadId::getInstance() {
+    static ThreadId* id = new ThreadId();
+    return *id;
+  }
+
+  ThreadId::ThreadId(): thread_no(0) {}
+
+  void ThreadId::add() {
+    Glib::Mutex::Lock lock(mutex);
+    if (thread_no == ULONG_MAX) thread_no = 0;
+    thread_ids[(unsigned long int)(void*)Glib::Thread::self()] = ++thread_no;
+  }
+
+  void ThreadId::remove() {
+    Glib::Mutex::Lock lock(mutex);
+    thread_ids.erase((unsigned long int)(void*)Glib::Thread::self());
+  }
+
+  unsigned long int ThreadId::get() {
+    Glib::Mutex::Lock lock(mutex);
+    return thread_ids[(unsigned long int)(void*)Glib::Thread::self()];
   }
 
   bool CreateThreadFunction(void (*func)(void*), void *arg, SimpleCounter* count

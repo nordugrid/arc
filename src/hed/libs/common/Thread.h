@@ -37,6 +37,25 @@ namespace Arc {
       \return true on success. */
   bool CreateThreadFunction(void (*func)(void*), void *arg, SimpleCounter* count = NULL);
 
+  /** \cond Internal class used to map glib thread ids (pointer addresses) to
+     an incremental counter, for easier debugging. */
+  class ThreadId {
+  private:
+    Glib::Mutex mutex;
+    std::map<unsigned long int, unsigned long int> thread_ids;
+    unsigned long int thread_no;
+    ThreadId();
+   public:
+    static ThreadId& getInstance();
+    /// Called at beginning of ThreadArgument.thread() to add thread id to map
+    void add();
+    /// Called at end of ThreadArgument.thread() to remove thread id from map
+    void remove();
+    /// Called by logger to get id of current thread
+    unsigned long int get();
+  };
+  /** \endcond */
+
   class ThreadData;
 
   /// Base class for per-thread object.

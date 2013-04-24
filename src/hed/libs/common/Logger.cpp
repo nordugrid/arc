@@ -180,13 +180,13 @@ namespace Arc {
 #ifdef WIN32
          << (unsigned long int)GetCurrentThreadId();
 #else
-         << (unsigned long int)(void*)Glib::Thread::self();
+         << ThreadId::getInstance().get();
 #endif
 #else
 #ifdef WIN32
     sout << (unsigned long int)GetCurrentThreadId();
 #else
-    sout << (unsigned long int)(void*)Glib::Thread::self();
+    sout << ThreadId::getInstance().get();
 #endif
 #endif
     return sout.str();
