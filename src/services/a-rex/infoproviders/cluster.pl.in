@@ -349,7 +349,7 @@ for my $controldir (keys %controldirs) {
 
     my $conf_file = $config{conf_file};
     unless (open GMJOBSOUTPUT, 
-        "$config{arc_location}/@pkglibexecsubdir@/gm-jobs -u 0 -c $conf_file -d $controldir 2>/dev/null |") {
+        "$config{arc_location}/@pkglibexecsubdir@/gm-jobs -c $conf_file -d $controldir 2>/dev/null |") {
         error("Error in executing gm-jobs")
     }
 
