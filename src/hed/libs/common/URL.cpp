@@ -118,7 +118,7 @@ namespace Arc {
     }
 
     if (url[0] == '#') { // TODO: describe
-      URLLogger.msg(ERROR, "URL is not valid: %s", url);
+      URLLogger.msg(VERBOSE, "URL is not valid: %s", url);
       valid = false;
       return;
     }
@@ -189,12 +189,12 @@ namespace Arc {
         // For same reason let's assume path must be always
         // absolute.
         if(url[pos] != '/') {
-          URLLogger.msg(ERROR, "Illegal URL - path must be absolute: %s", url);
+          URLLogger.msg(VERBOSE, "Illegal URL - path must be absolute: %s", url);
           valid = false;
           return;
         }
       } else {
-        URLLogger.msg(ERROR, "Illegal URL - no hostname given: %s", url);
+        URLLogger.msg(VERBOSE, "Illegal URL - no hostname given: %s", url);
         valid = false;
         return;
       }
@@ -279,7 +279,7 @@ namespace Arc {
 
     // At this point path must be absolutely absolute (starts with /) or empty
     if ((!path.empty()) && (path[0] != '/')) {
-      URLLogger.msg(ERROR, "Illegal URL - path must be absolute or empty: %s", url);
+      URLLogger.msg(VERBOSE, "Illegal URL - path must be absolute or empty: %s", url);
       valid = false;
       return;
     }
@@ -295,7 +295,7 @@ namespace Arc {
         ip6addr = true;
         pos2 = host.find(']');
         if(pos2 == std::string::npos) {
-          URLLogger.msg(ERROR, "Illegal URL - no closing ] for IPv6 address found: %s", url);
+          URLLogger.msg(VERBOSE, "Illegal URL - no closing ] for IPv6 address found: %s", url);
           valid = false;
           return;
         }
@@ -303,7 +303,7 @@ namespace Arc {
         ++pos2;
         if(pos2 < host.length()) {
           if((host[pos2] != ':') && (host[pos2] != ';')) {
-            URLLogger.msg(ERROR, "Illegal URL - closing ] for IPv6 address is followed by illegal token: %s", url);
+            URLLogger.msg(VERBOSE, "Illegal URL - closing ] for IPv6 address is followed by illegal token: %s", url);
             valid = false;
             return;
           }
@@ -319,7 +319,7 @@ namespace Arc {
         if (!stringto(pos3 == std::string::npos ?
                       host.substr(pos2 + 1) :
                       host.substr(pos2 + 1, pos3 - pos2 - 1), port)) {
-          URLLogger.msg(ERROR, "Invalid port number in %s", url);
+          URLLogger.msg(VERBOSE, "Invalid port number in %s", url);
         }
       }
       else {
@@ -414,7 +414,7 @@ namespace Arc {
       else if (ldapscopestr == "one") ldapscope = onelevel;
       else if (ldapscopestr == "sub") ldapscope = subtree;
       else if (!ldapscopestr.empty()) {
-        URLLogger.msg(ERROR, "Unknown LDAP scope %s - using base",
+        URLLogger.msg(VERBOSE, "Unknown LDAP scope %s - using base",
                       ldapscopestr);
       }
       if (ldapfilter.empty()) ldapfilter = "(objectClass=*)";
@@ -675,7 +675,7 @@ namespace Arc {
   bool URL::AddOption(const std::string& option, bool overwrite) {
     std::string::size_type pos = option.find('=');
     if (pos == std::string::npos) {
-      URLLogger.msg(ERROR, "URL option %s does not have format name=value", option);
+      URLLogger.msg(VERBOSE, "URL option %s does not have format name=value", option);
       return false;
     }
     std::string attr_name(option.substr(0, pos));
@@ -1140,12 +1140,12 @@ namespace Arc {
         if (url)
           urllist.push_back(url);
         else
-          URLLogger.msg(ERROR, "urllist %s contains invalid URL: %s",
+          URLLogger.msg(VERBOSE, "urllist %s contains invalid URL: %s",
                         url.Path(), line);
       }
     }
     else
-      URLLogger.msg(ERROR, "URL protocol is not urllist: %s", url.str());
+      URLLogger.msg(VERBOSE, "URL protocol is not urllist: %s", url.str());
     return urllist;
   }
 
