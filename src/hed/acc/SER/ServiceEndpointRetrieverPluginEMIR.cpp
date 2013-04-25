@@ -116,7 +116,7 @@ namespace Arc {
         for (XMLNode n = (*it)["Endpoint"]["Capability"]; n; ++n) {
           se.Capability.insert((std::string)n);
         }
-        se.InterfaceName = (std::string)(*it)["Endpoint"]["InterfaceName"];
+        se.InterfaceName = lower((std::string)(*it)["Endpoint"]["InterfaceName"]);
 
         se.ServiceID = (std::string)(*it)["ID"];
         seList.push_back(se);

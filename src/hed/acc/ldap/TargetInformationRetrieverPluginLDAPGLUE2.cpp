@@ -139,7 +139,10 @@ namespace Arc {
         endpoint.set("URL", ComputingEndpoint->URLString);
         endpoint.set("Capability", ComputingEndpoint->Capability);
         endpoint.set("Technology", ComputingEndpoint->Technology);
+        
         endpoint.set("InterfaceName", ComputingEndpoint->InterfaceName);
+        ComputingEndpoint->InterfaceName = lower(ComputingEndpoint->InterfaceName);
+        
         endpoint.set("InterfaceVersion", ComputingEndpoint->InterfaceVersion);
         endpoint.set("InterfaceExtension", ComputingEndpoint->InterfaceExtension);
         endpoint.set("SupportedProfile", ComputingEndpoint->SupportedProfile);

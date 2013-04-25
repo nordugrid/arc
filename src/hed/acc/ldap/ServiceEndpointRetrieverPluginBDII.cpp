@@ -84,7 +84,7 @@ namespace Arc {
         for (XMLNode service = mdsVoNameSub["GlueServiceUniqueID"]; service; ++service) {
           if ((std::string)service["GlueServiceStatus"] != "OK") continue;
           
-          const std::string serviceType = (std::string)service["GlueServiceType"];
+          const std::string serviceType = lower((std::string)service["GlueServiceType"]);
           Endpoint se;
           se.URLString = (std::string)service["GlueServiceEndpoint"];
           se.HealthState = "ok";
@@ -97,9 +97,9 @@ namespace Arc {
             se.Capability.insert("information.discovery.registry");
             se.InterfaceName = "org.nordugrid.bdii";
           }
-          else if (serviceType == "org.glite.ce.CREAM") {
+          else if (serviceType == "org.glite.ce.cream") {
             logger.msg(INFO, "Adding CREAM computing service");
-            se.InterfaceName = "org.glite.ce.CREAM";
+            se.InterfaceName = "org.glite.ce.cream";
             se.Capability.insert("information.lookup.job");
             se.Capability.insert("executionmanagement.jobcreation");
             se.Capability.insert("executionmanagement.jobdescription");

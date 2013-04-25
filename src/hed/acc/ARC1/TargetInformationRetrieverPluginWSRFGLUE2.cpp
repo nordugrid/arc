@@ -171,9 +171,9 @@ namespace Arc {
           ComputingEndpoint->Technology = (std::string)xmlCENode["Technology"];
         }
         if (xmlCENode["InterfaceName"]) {
-          ComputingEndpoint->InterfaceName = (std::string)xmlCENode["InterfaceName"];
+          ComputingEndpoint->InterfaceName = lower((std::string)xmlCENode["InterfaceName"]);
         } else if (xmlCENode["Interface"]) { // No such attribute according to GLUE2 document. Legacy/backward compatibility?
-          ComputingEndpoint->InterfaceName = (std::string)xmlCENode["Interface"];
+          ComputingEndpoint->InterfaceName = lower((std::string)xmlCENode["Interface"]);
         } else {
           logger.msg(VERBOSE, "The Service doesn't advertise its Interface.");
         }

@@ -91,7 +91,7 @@ namespace Arc {
     XMLNodeList glueServices = xmlResult.Path("o/Mds-Vo-name/GlueServiceUniqueID");
     for (XMLNodeList::iterator itS = glueServices.begin(); itS != glueServices.end(); ++itS) {
       // Currently only consider CREAM services.
-      if ((std::string)(*itS)["GlueServiceType"] != "org.glite.ce.CREAM") continue;
+      if (lower((std::string)(*itS)["GlueServiceType"]) != "org.glite.ce.cream") continue;
       
       // Only consider the first 'GlueClusterUniqueID' entry - possibly there is only one.
       XMLNode glueCluster = xmlResult["o"]["Mds-Vo-name"]["GlueClusterUniqueID"];
