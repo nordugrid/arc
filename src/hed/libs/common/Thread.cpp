@@ -272,7 +272,9 @@ namespace Arc {
 
   unsigned long int ThreadId::get() {
     Glib::Mutex::Lock lock(mutex);
-    return thread_ids[(unsigned long int)(void*)Glib::Thread::self()];
+    unsigned long int id = (unsigned long int)(void*)Glib::Thread::self();
+    if (thread_ids.count(id) == 0) return id;
+    return thread_ids[id];
   }
 
   bool CreateThreadFunction(void (*func)(void*), void *arg, SimpleCounter* count
