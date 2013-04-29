@@ -94,7 +94,16 @@ set_count
 if [ "$joboption_count" = "1" ] ; then
   nodes_string="#PBS -l nodes=1"
 else
-  nodes_string="#PBS -l nodes=${joboption_numnodes}:ppn=${joboption_countpernode}"
+  if [ ! -z $joboption_numnodes ] ; then
+    nodes_string="#PBS -l nodes=${joboption_numnodes}"
+  else
+#in case no countpernode is requested in job, numnodes will also not be set, use count instead
+    nodes_string="#PBS -l nodes=${joboption_count}"
+  fi
+fi
+
+if [ ! -z $joboption_countpernode ] && [ $joboption_countpernode -gt 0 ] ; then
+  nodes_string="${nodes_string}:ppn=${joboption_countpernode}"
 fi
 
 if [ ! -z "$CONFIG_queue_node_string" ] ; then
