@@ -239,6 +239,7 @@ fi
 
 # Create directories for storing temporary scripts and check permissions etc
 mkdir -p $bdii_var_dir
+mkdir -p $bdii_run_dir
 mkdir -p $bdii_tmp_dir
 mkdir -p $bdii_tmp_dir/ldif
 mkdir -p $bdii_tmp_dir/provider
