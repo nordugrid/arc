@@ -154,21 +154,6 @@ public:
   /// Whether access to session dir must be performed under mapped uid
   bool StrictSession() const { return strict_session; }
 
-  /// Set log file for job processing
-  void SetLogFile(const std::string& path) { logfile = path; }
-  /// Log file for job processing
-  const std::string & LogFile() const { return logfile; }
-  /// Set log file for WS-interface
-  void SetWSLogFile(const std::string& path) { wslogfile = path; }
-  /// Log file for WS-interface
-  const std::string & WSLogFile() const { return wslogfile; }
-  /// Max size of log file
-  int MaxLogFileSize() const { return max_log_size; }
-  /// Number of log backups to keep
-  int MaxLogFileBackups() const { return max_log_backups; }
-  /// Whether to reopen log file after every write (default false)
-  bool ReopenLogFile() const { return reopen_log; }
-
   /// Cache configuration
   const CacheConfig & CacheParams() const { return cache_params; }
 
@@ -275,16 +260,6 @@ private:
   std::string rte_dir;
   /// email address for support
   std::string support_email_address;
-  /// Log file used by job processing
-  std::string logfile;
-  /// Log file used by WS-interface
-  std::string wslogfile;
-  /// Max log size
-  int max_log_size;
-  /// Max log backups to keep
-  int max_log_backups;
-  /// Whether to keep log open
-  bool reopen_log;
 
   /// Scratch directory
   std::string scratch_dir;

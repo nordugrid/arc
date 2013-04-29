@@ -46,14 +46,17 @@ static void do_shutdown(void)
     _exit(exit_code);
 }
 
-static Arc::LogFile* sighup_dest = NULL;
+static std::list<Arc::LogFile*> sighup_dests;
 
 static void sighup_handler(int) {
     int old_errno = errno;
     if(main_daemon) main_daemon->logreopen();
-    if(sighup_dest) {
-        sighup_dest->setReopen(true);
-        sighup_dest->setReopen(false);
+    for (std::list<Arc::LogFile*>::iterator dest = sighup_dests.begin();
+         dest != sighup_dests.end(); ++dest) {
+      if(*dest) {
+        (*dest)->setReopen(true);
+        (*dest)->setReopen(false);
+      }
     }
     errno = old_errno;
 }
@@ -141,8 +144,8 @@ static bool is_true(Arc::XMLNode val) {
 
 static std::string init_logger(Arc::XMLNode log, bool foreground)
 {
-    /* setup root logger */
-    Arc::LogFile* sd = NULL;
+    // set up root logger(s)
+    std::list<Arc::LogFile*> dests;
     Arc::XMLNode xlevel = log["Level"];
 
     Arc::Logger::rootLogger.setThreshold(Arc::WARNING);
@@ -156,40 +159,49 @@ static std::string init_logger(Arc::XMLNode log, bool foreground)
       }
     }
 
-    std::string log_file = (log["File"] ? (std::string)log["File"] : "/var/log/arc/arched.log");
-    sd = new Arc::LogFile(log_file);
-    if((!sd) || (!(*sd))) {
-      logger.msg(Arc::ERROR, "Failed to open log file: %s", log_file);
-      _exit(1);
-    }
-    if(log["Backups"]) {
-      int backups;
-      if(Arc::stringto((std::string)log["Backups"], backups)) {
-	sd->setBackups(backups);
+    std::string default_log;
+    for (Arc::XMLNode logfile = log["File"]; logfile; ++logfile) {
+      Arc::LogFile* l = new Arc::LogFile((std::string)logfile);
+      if((!l) || (!(*l))) {
+        logger.msg(Arc::ERROR, "Failed to open log file: %s", (std::string)logfile);
+        _exit(1);
       }
+      dests.push_back(l);
+      if (default_log.empty()) default_log = (std::string)logfile;
     }
-    if(log["Maxsize"]) {
-      int maxsize;
-      if(Arc::stringto((std::string)log["Maxsize"], maxsize)) {
-	sd->setMaxSize(maxsize);
-      }
+    if (dests.empty()) {
+      Arc::LogFile* l = new Arc::LogFile("/var/log/arc/arched.log");
+      dests.push_back(l);
+      default_log = "/var/log/arc/arched.log";
     }
+
+    int backups = -1;
+    if (log["Backups"]) Arc::stringto((std::string)log["Backups"], backups);
+
+    int maxsize = -1;
+    if (log["Maxsize"]) Arc::stringto((std::string)log["Maxsize"], maxsize);
+
     bool reopen_b = false;
-    if(log["Reopen"]) {
+    if (log["Reopen"]) {
       std::string reopen = (std::string)(log["Reopen"]);
       if((reopen == "true") || (reopen == "1")) reopen_b = true;
-      sd->setReopen(reopen_b);
     }
-    if(!reopen_b) sighup_dest = sd;
+    if (!reopen_b) sighup_dests = dests;
+
     Arc::Logger::rootLogger.removeDestinations();
-    Arc::Logger::rootLogger.addDestination(*sd);
+    for (std::list<Arc::LogFile*>::iterator i = dests.begin(); i != dests.end(); ++i) {
+      (*i)->setBackups(backups);
+      (*i)->setMaxSize(maxsize);
+      (*i)->setReopen(reopen_b);
+      Arc::Logger::rootLogger.addDestination(**i);
+    }
     if (foreground) {
       logger.msg(Arc::INFO, "Start foreground");
       Arc::LogStream *err = new Arc::LogStream(std::cerr);
       Arc::Logger::rootLogger.addDestination(*err);
     }
-    if(reopen_b) return "";
-    return log_file;
+    if (reopen_b) return "";
+    return default_log;
 }
 
 static uid_t get_uid(const std::string &name)

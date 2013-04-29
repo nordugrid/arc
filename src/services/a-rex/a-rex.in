@@ -253,6 +253,7 @@ prepare() {
     #  User name
 
     LOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager logfile`
+    WSLOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager wslogfile`
     LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager debug`
     LOGSIZE=`readconfigvar "$ARC_CONFIG" grid-manager logsize`
     LOGREOPEN=`readconfigvar "$ARC_CONFIG" grid-manager logreopen`
@@ -574,6 +575,10 @@ prepare() {
     if [ ! -d `dirname $LOGFILE` ]; then
         mkdir -p `dirname $LOGFILE`
     fi
+    WSLOGFILE=${WSLOGFILE:-/var/log/arc/ws-interface.log}
+    if [ ! -d `dirname $WSLOGFILE` ]; then
+        mkdir -p `dirname $WSLOGFILE`
+    fi
     LOGSIZE=${LOGSIZE:--1 -1}
     LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
     LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`
@@ -641,6 +646,7 @@ prepare() {
     <PidFile>$PID_FILE</PidFile>
     <Logger>
       <File>$LOGFILE</File>
+      <File>$WSLOGFILE</File>
       <Level>$LOGLEVEL</Level>
       <Backups>$LOGNUM</Backups>
       <Maxsize>$LOGSIZE</Maxsize>

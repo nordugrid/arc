@@ -16,6 +16,9 @@
   delaycompress
   daily
   rotate 14
+  postrotate
+    kill -HUP `cat /var/run/arched-arex.pid`
+  endscript
   create
 }
 

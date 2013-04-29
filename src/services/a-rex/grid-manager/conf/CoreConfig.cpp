@@ -169,27 +169,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
     else if (command == "runtimedir") {
       config.rte_dir = rest;
     }
-    else if (command == "logfile") {
-      config.logfile = rest;
-    }
-    else if (command == "wslogfile") {
-      config.wslogfile = rest;
-    }
-    else if (command == "logsize") {
-      std::string s(config_next_arg(rest));
-      if (s.empty()) continue;
-      if (!Arc::stringto(s, config.max_log_size) || config.max_log_size <= 0) {
-        logger.msg(Arc::ERROR, "Bad number in logsize: %s", s); return false;
-      }
-      s = config_next_arg(rest);
-      if (s.empty()) continue;
-      if (!Arc::stringto(s, config.max_log_backups) || config.max_log_backups < 0) {
-        logger.msg(Arc::ERROR, "Bad number in logsize: %s", s); return false;
-      }
-    }
-    else if (command == "logreopen") {
-      if (!CheckYesNoCommand(config.reopen_log, command, rest)) return false;
-    }
     else if (command == "joblog") { // where to write job information
       if (!config.job_log) continue;
       std::string fname = config_next_arg(rest);  // empty is allowed too

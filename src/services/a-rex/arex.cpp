@@ -33,8 +33,6 @@ namespace ARex {
 #define DEFAULT_INFOSYS_MAX_CLIENTS (1)
 #define DEFAULT_JOBCONTROL_MAX_CLIENTS (100)
 #define DEFAULT_DATATRANSFER_MAX_CLIENTS (100)
-#define DEFAULT_WS_LOG_FILE "/var/log/arc/ws-interface.log"
-#define DEFAULT_GM_LOG_FILE "/var/log/arc/grid-manager.log"
  
 static const std::string BES_FACTORY_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/");
 static const std::string BES_FACTORY_NPREFIX("bes-factory");
@@ -857,58 +855,29 @@ void ARexService::gm_threads_starter(void* arg) {
 
 void ARexService::gm_threads_starter() {
   if (!endpoint_.empty()) { // no need to do this if no WS interface
-    if (config_.LogFile().empty()) config_.SetLogFile(DEFAULT_GM_LOG_FILE);
-    // Here we assume the first destination is the log file and the second (if
-    // exists) is log stream to stderr (arched -f)
-    int destinations = Arc::Logger::getRootLogger().getDestinations().size();
-    // Start new thread context for these threads to write to GM log
-    Arc::Logger::getRootLogger().setThreadContext();
-    Arc::Logger::getRootLogger().removeDestinations();
+    // Remove the WS log from the log destinations.
+    // Here we assume the order is gm, ws, [stderr (arched -f)]
+    std::list<Arc::LogDestination*> dests = Arc::Logger::getRootLogger().getDestinations();
+    if (dests.size() > 1) {
+      std::list<Arc::LogDestination*>::iterator i = dests.begin();
+      ++i;
+      dests.erase(i);
 
-    // The LogFile is never destroyed explicitly to ensure that logging can still
-    // be done during destruction of objects when exiting the main thread,
-    // however profiling tools may report this as a memory leak.
-    Arc::LogFile * logfile = new Arc::LogFile(config_.LogFile());
-    Arc::Logger::getRootLogger().addDestination(*logfile);
-    // Restore stderr stream if necessary
-    if (destinations == 2) {
-      Arc::LogStream * err = new Arc::LogStream(std::cerr);
-      Arc::Logger::getRootLogger().addDestination(*err);
+      Arc::Logger::getRootLogger().setThreadContext();
+      Arc::Logger::getRootLogger().removeDestinations();
+      Arc::Logger::getRootLogger().addDestinations(dests);
     }
   }
   // Run grid-manager in thread
-  if((gmrun_.empty()) || (gmrun_ == "internal")) {
-    gm_=new GridManager(config_);
-    if(!(*gm_)) {
+  if ((gmrun_.empty()) || (gmrun_ == "internal")) {
+    gm_ = new GridManager(config_);
+    if (!(*gm_)) {
       logger_.msg(Arc::ERROR, "Failed to run Grid Manager thread");
       delete gm_; gm_=NULL; return;
-    };
-  };
-
-  CreateThreadFunction(&information_collector_starter,this);
-}
-
-static void switch_log(const GMConfig& config) {
-  // Here we assume the first destination is the log file and the second (if
-  // exists) is log stream to stderr (arched -f)
-  int destinations = Arc::Logger::getRootLogger().getDestinations().size();
-  Arc::Logger::getRootLogger().deleteDestinations();
-  Arc::DirCreate(Glib::path_get_dirname(config.WSLogFile()), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH, true);
-
-  // The LogFile is never destroyed explicitly to ensure that logging can still
-  // be done during destruction of objects when exiting the main thread,
-  // however profiling tools may report this as a memory leak.
-  Arc::LogFile * logfile = new Arc::LogFile(config.WSLogFile());
-  // TODO get the following attributes from old LogFile instead of GMConfig
-  logfile->setMaxSize(config.MaxLogFileSize());
-  logfile->setBackups(config.MaxLogFileBackups());
-  logfile->setReopen(config.ReopenLogFile());
-  Arc::Logger::getRootLogger().addDestination(*logfile);
-  // Restore stderr stream if necessary
-  if (destinations == 2) {
-    Arc::LogStream * err = new Arc::LogStream(std::cerr);
-    Arc::Logger::getRootLogger().addDestination(*err);
+    }
   }
+  // Start info collector thread
+  CreateThreadFunction(&information_collector_starter, this);
 }
 
 
@@ -1045,18 +1014,22 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
   };
   datalimit_.MaxConsumers(valuei);
 
-  // Separate thread to start GM and info collector threads so they can log to
-  // GM log after we change to the WS-interface log in this thread
+  // If WS interface is enabled and multiple log files are configured then here
+  // the log splits between WS interface operations and GM job processing.
+  // Start separate thread to start GM and info collector threads so they can
+  // log to GM log after we remove it in this thread
   Arc::SimpleCounter counter;
   if (!CreateThreadFunction(&gm_threads_starter, this, &counter)) return;
   counter.wait();
   if ((gmrun_.empty() || gmrun_ == "internal") && !gm_) return; // GM didn't start
-  // Switch to WS-interface log if it is turned on
+  // If WS is used then remove gm log destination from this thread
   if (!endpoint_.empty()) {
-    if (config_.WSLogFile().empty()) config_.SetWSLogFile(DEFAULT_WS_LOG_FILE);
-    if (config_.WSLogFile() != config_.LogFile()) {
-      logger.msg(Arc::INFO, "WS-interface messages will be logged to %s", config_.WSLogFile());
-      switch_log(config_);
+    // Assume that gm log is first in list - potentially dangerous
+    std::list<Arc::LogDestination*> dests = logger.getRootLogger().getDestinations();
+    if (dests.size() > 1) {
+      dests.pop_front();
+      logger.getRootLogger().removeDestinations();
+      logger.getRootLogger().addDestinations(dests);
     }
   }
   valid=true;
