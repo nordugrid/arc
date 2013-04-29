@@ -223,7 +223,7 @@ if [ "$(config_subsections infosys/index)" ]; then
     elif [ -r ${giis_location}/lib/arc/arc-infoindex-slapd-wrapper.so ]; then
 	pkglibdir=${giis_location}/lib/arc
     else
-	echo "Error, could not find infoindex slapd wrapper"
+	echo "Error, could not find infoindex slapd wrapper, please install the package nordugrid-arc-egiis to run an index server"
 	exit 1
     fi
     ldapdirs=${ldapdirs}:${pkglibdir}
