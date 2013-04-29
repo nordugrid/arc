@@ -2298,7 +2298,7 @@ oldconfsuffix=".oldconfig"
 
 .TP
 .B overwrite_config
-overwrite_config yes|no - determines if the grid-infosys startup script
+overwrite_config yes|no - determines if the infosys startup scripts
 should generate new low-level slapd configuration files.  By default the
 low-level configuration files are regenerated with every server startup
 making use of the values specified in the arc.conf.
