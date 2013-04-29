@@ -247,6 +247,7 @@ mkdir -p $bdii_tmp_dir/plugin
 
 # change permissions if user is not root
 chown -R ${bdii_user}: ${bdii_var_dir}
+chown -R ${bdii_user}: ${bdii_run_dir}
 chown -R ${bdii_user}: ${bdii_tmp_dir}
 
 # Generate bdii configuration
