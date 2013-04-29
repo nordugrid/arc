@@ -406,6 +406,15 @@ Requires(preun):	chkconfig
 Requires(preun):	initscripts
 Requires(postun):	initscripts
 
+%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
+Requires(post):		policycoreutils
+Requires(postun):	policycoreutils
+%if %{?fedora}%{!?fedora:0} >= 11 || %{?rhel}%{!?rhel:0} >= 6
+Requires(post):		policycoreutils-python
+Requires(postun):	policycoreutils-python
+%endif
+%endif
+
 %description aris
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
@@ -425,6 +434,11 @@ Provides:	nordugrid-arc-nox-giis = 1.3.0
 Obsoletes:	nordugrid-arc-nox-giis < 1.3.0
 Requires:	openldap-servers
 Requires:	glue-schema >= 2.0.10
+
+Requires(post):		chkconfig
+Requires(preun):	chkconfig
+Requires(preun):	initscripts
+Requires(postun):	initscripts
 
 %if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 Requires(post):		policycoreutils
@@ -1073,12 +1087,22 @@ fi
 service nordugrid-arc-bdii condrestart > /dev/null 2>&1 || :
 
 %post egiis
+/sbin/chkconfig --add nordugrid-arc-egiis
 %if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 /usr/sbin/semodule -i %{_datadir}/selinux/packages/%{name}/%{name}-egiis.pp > /dev/null 2>&1 || :
 /sbin/restorecon %{_sbindir}/arc-infoindex-relay
 %endif
 
+%preun egiis
+if [ $1 -eq 0 ]; then
+  service nordugrid-arc-egiis stop > /dev/null 2>&1 || :
+  /sbin/chkconfig --del nordugrid-arc-egiis
+fi
+
 %postun egiis
+if [ $1 -ge 1 ]; then
+  service nordugrid-arc-egiis condrestart > /dev/null 2>&1 || :
+fi
 %if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 if [ $1 -eq 0 ] ; then
   /usr/sbin/semodule -r %{name}-egiis > /dev/null 2>&1 || :
