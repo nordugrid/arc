@@ -769,6 +769,7 @@ namespace Arc
     middleware.NewAttribute("urf:description")=PACKAGE_STRING;
 
     // WallDuration (EndTime-StartTime)
+    ur.NewChild("WallDuration")="PT0S";
     if (find("usedwalltime")!=end())
       {
         Arc::Period walldur((*this)["usedwalltime"],Arc::PeriodSeconds);
@@ -776,7 +777,7 @@ namespace Arc
         if (walld == "P"){
           walld = "PT0S";
         }
-        ur.NewChild("WallDuration")=walld;
+        ur["WallDuration"]=walld;
       }
 
     // CpuDuration
