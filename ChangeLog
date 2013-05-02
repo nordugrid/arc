@@ -1,3 +1,6 @@
+2013-05-02  Gabor Szigeti <szigeti@niif.hu>
+  * Accounting message publisher update to SSM 2.1.0.
+
 2013-04-23  David Cameron  <d.g.cameron@fys.uio.no>
   * Split log for A-REX WS-interface operations into separate file, specified
     by wslogfile in arc.conf. Default is /var/log/arc/ws-interface.log.
