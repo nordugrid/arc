@@ -19,7 +19,9 @@
 import logging
 import sys
 
-__version__ = (2, 0, 0)
+__version__ = (2, 1, 0)
+
+LOG_BREAK = '========================================'
 
 def set_up_logging(logfile, level, console):
     '''

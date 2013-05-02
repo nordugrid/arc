@@ -22,12 +22,15 @@
 '''
 
 from subprocess import Popen, PIPE
+import quopri
+import base64
 import logging
 
 # logging configuration
 log = logging.getLogger(__name__)
 # Valid ciphers
 CIPHERS = ['aes128', 'aes192', 'aes256']
+
 
 class CryptoException(Exception):
     '''
@@ -97,6 +100,7 @@ def sign(text, certpath, keypath):
             log.error(error)
 
         return signed_msg
+    
     except OSError, e:
         log.error('Failed to sign message: %s' % e)
         raise CryptoException('Message signing failed.  Check cert and key permissions.')
@@ -123,6 +127,7 @@ def encrypt(text, certpath, cipher='aes128'):
 
     return enc_txt
 
+
 def verify(signed_text, capath, check_crl):
     '''
     Verify the signed message has been signed by the certificate (attached to the
@@ -130,7 +135,8 @@ def verify(signed_text, capath, check_crl):
     capath.
 
     Returns a tuple including the signer's certificate and the plain-text of the
-    message if it has been verified
+    message if it has been verified.  If the content transfer encoding is specified
+    as 'quoted-printable' or 'base64', decode the message body accordingly.
     ''' 
     if signed_text is None or capath is None:
         raise CryptoException('Invalid None argument to verify().')
@@ -147,10 +153,22 @@ def verify(signed_text, capath, check_crl):
     # The -noverify flag removes the certificate verification.  The certificate 
     # is verified above; this check would also check that the certificate
     # is allowed to sign with SMIME, which host certificates sometimes aren't.
-    p1 = Popen(['openssl', 'smime', '-verify', '-CApath', capath, '-noverify', '-text'], 
+    p1 = Popen(['openssl', 'smime', '-verify', '-CApath', capath, '-noverify'], 
                stdin=PIPE, stdout=PIPE, stderr=PIPE)
     
     message, error = p1.communicate(signed_text)
+    
+    # SMIME header and message body are separated by a blank line
+    lines = message.strip().splitlines()
+    blankline = lines.index('')
+    headers = '\n'.join(lines[:blankline])
+    body = '\n'.join(lines[blankline + 1:])
+    # two possible encodings
+    if 'quoted-printable' in headers:
+        body = quopri.decodestring(body)
+    elif 'base64' in headers:
+        body = base64.decodestring(body)
+    # otherwise, plain text
     
     # Interesting problem here - we get a message 'Verification successful'
     # to standard error.  We don't want to log this as an error each time,
@@ -158,7 +176,7 @@ def verify(signed_text, capath, check_crl):
     log.info(str(error).strip())
 
     subj = get_certificate_subject(signer)
-    return message, subj
+    return body, subj
 
 
 def decrypt(encrypted_text, certpath, keypath):
@@ -202,12 +220,12 @@ def verify_cert(certstring, capath, check_crls=True):
     if certstring is None or capath is None:
         raise CryptoException('Invalid None argument to verify_cert().')
     
+    args = ['openssl', 'verify', '-CApath', capath]
+    
     if check_crls:
-        p1 = Popen(['openssl', 'verify', '-CApath', capath, '-crl_check_all'], 
-                   stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    else: 
-        p1 = Popen(['openssl', 'verify', '-CApath', capath], 
-                   stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        args.append('-crl_check_all')
+
+    p1 = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
          
     message, error = p1.communicate(certstring)
     
@@ -227,28 +245,36 @@ def verify_cert(certstring, capath, check_crls=True):
     return ('OK' in message and not 'error' in message)
 
 
+def verify_cert_path(certpath, capath, check_crls=True):
+    '''
+    Verify certificate, but using the certificate filepath rather than
+    the certificate string as in verify_cert.
+    '''
+    certstring = _from_file(certpath)
+    return verify_cert(certstring, capath, check_crls)
+
+
 def get_certificate_subject(certstring):
     '''
-    Returns the certificate subject's DN, in legacy openssl format.
+    Return the certificate subject's DN, in legacy openssl format.
     '''
     p1 = Popen(['openssl', 'x509', '-noout', '-subject'],
                stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    
     subject, error = p1.communicate(certstring)
 
     if (error != ''):
         log.error(error)
         raise CryptoException('Failed to get subject: %s' % error)
     
-    subject = subject[9:] # remove 'subject= ' from the front
-    subject = subject.strip()
+    subject = subject.strip()[9:] # remove 'subject= ' from the front
     return subject
+
 
 def get_signer_cert(signed_text):
     '''
-    Read the signer's certificate from the specified message, and return the
+    Read the signer's certificate from the signed specified message, and return the
     certificate string.
-
-    Returns an X509 object for the signer's certificate
     '''
     # This ensures that openssl knows that the string is finished.
     # It makes no difference if the signed message is correct, but 
@@ -268,19 +294,3 @@ def get_signer_cert(signed_text):
         
     return certstring
 
-if __name__ == '__main__':
-    
-    CERTPATH = '/etc/grid-security/hostcert.pem'
-    KEYPATH = '/etc/grid-security/hostkey.pem'
-    
-    MESSAGE = ('test')
-    
-    CERTSTRING = _from_file(CERTPATH)
-    print get_certificate_subject(CERTSTRING)
-    
-    ENC = encrypt(MESSAGE, CERTPATH, 'aes256')
-    print ENC
-    DEC = decrypt(ENC, CERTPATH, KEYPATH)
-    print DEC
-    
-    

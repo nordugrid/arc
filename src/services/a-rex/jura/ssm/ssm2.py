@@ -52,11 +52,11 @@ class Ssm2(object):
     CONNECTION_TIMEOUT = 10
     
     def __init__(self, hosts_and_ports, qpath, cert, key, dest=None, listen=None, 
-                 capath=None, use_ssl=False, username=None, password=None, enc_cert=None,
-                 pidfile=None):
+                 capath=None, check_crls=False, use_ssl=False, username=None, password=None, 
+                 enc_cert=None, verify_enc_cert=True, pidfile=None):
         '''
         Creates an SSM2 object.  If a listen value is supplied,
-        this SSM2 will be a consumer.
+        this SSM2 will be a receiver.
         '''
         self._conn = None
         self._last_msg = None
@@ -66,10 +66,11 @@ class Ssm2(object):
         self._key = key
         self._enc_cert = enc_cert
         self._capath = capath
+        self._check_crls = check_crls
         self._user = username
         self._pwd = password
         self._use_ssl = use_ssl
-        # Use pwd if we're supplied user and pwd
+        # use pwd auth if we're supplied both user and pwd
         self._use_pwd = username is not None and password is not None
         self.connected = False
         
@@ -77,7 +78,9 @@ class Ssm2(object):
         self._dest = dest
         
         self._valid_dns = []
+        self._pidfile = pidfile
         
+        # create the filesystem queues for accepted and rejected messages
         if dest is not None and listen is None:
             self._outq = QueueSimple(qpath)
         elif listen is not None:
@@ -87,17 +90,19 @@ class Ssm2(object):
             self._rejectq = Queue(rejectqpath, schema=Ssm2.REJECT_SCHEMA)
         else:
             raise Ssm2Exception('SSM must be either producer or consumer.')
-        
+        # check that the cert and key match
         if not crypto.check_cert_key(self._cert, self._key):
             raise Ssm2Exception('Cert and key don\'t match.')
-        
+        # check the server certificate provided
         if enc_cert is not None:
-            if not os.path.isfile(enc_cert):
-                raise Ssm2Exception('Specified certificate file does not exist.')
-        
-        self._pidfile = pidfile
-        
-        
+            log.info('Messages will be encrypted using %s' % enc_cert)
+            if not os.path.isfile(self._enc_cert):
+                raise Ssm2Exception('Specified certificate file does not exist: %s.' % self._enc_cert)
+            if verify_enc_cert:
+                if not crypto.verify_cert_path(self._enc_cert, self._capath, self._check_crls):
+                    raise Ssm2Exception('Failed to verify server certificate %s against CA path %s.' 
+                                         % (self._enc_cert, self._capath))
+            
     
     def set_dns(self, dn_list):
         '''
@@ -133,15 +138,21 @@ class Ssm2(object):
         raw_msg, signer = self._handle_msg(body)
         
         try:
-            if raw_msg is None:
-                log.warn('Could not extract message; rejecting.')
-                if signer is None:
+            if raw_msg is None: # the message has been rejected
+                log.warn('Message rejected.')
+                if signer is None: # crypto failed
+                    err_msg = 'Could not extract message.'
+                    log.warn(err_msg)
                     signer = 'Not available.'
+                else: # crypto ok but signer not verified
+                    err_msg = 'Signer not in valid DNs list.'
+                    log.warn(err_msg)
+                    
                 self._rejectq.add({'body': body,
                                    'signer': signer,
                                    'empaid': empaid,
-                                   'error': 'Could not extract message.'})
-            else:
+                                   'error': err_msg})
+            else: # message verified ok
                 self._inq.add({'body': raw_msg, 
                                'signer':signer, 
                                'empaid': headers['empa-id']})
@@ -204,13 +215,13 @@ class Ssm2(object):
         
         # always signed
         try:
-            message, signer = crypto.verify(text, self._capath, False)
+            message, signer = crypto.verify(text, self._capath, self._check_crls)
         except crypto.CryptoException, e:
             log.error('Failed to verify message: %s' % e)
             return None, None
         
         if signer not in self._valid_dns:
-            log.error('Received message from invalid signer: %s' % signer)
+            log.error('Message signer not in the valid DNs list: %s' % signer)
             return None, signer
         else:
             log.info('Valid signer: %s' % signer)
@@ -232,7 +243,7 @@ class Ssm2(object):
             if self._enc_cert is not None:
                 to_send = crypto.encrypt(to_send, self._enc_cert)
         else:
-            to_send = None
+            to_send = ''
             
         self._conn.send(to_send, headers=headers)
         
@@ -282,6 +293,9 @@ class Ssm2(object):
         Create the self._connection object with the appropriate properties,
         but don't try to start the connection.
         '''
+        if self._use_ssl:
+            log.info('Connecting using SSL...')
+            
         self._conn = stomp.Connection([(host, port)], 
                                       use_ssl=self._use_ssl,
                                       user = self._user,
@@ -339,8 +353,8 @@ class Ssm2(object):
             
         # If reconnection fails, admit defeat.
         if not self.connected:
-            error_message = 'Reconnection attempts failed and have been abandoned.'
-            raise Ssm2Exception(error_message)
+            err_msg = 'Reconnection attempts failed and have been abandoned.'
+            raise Ssm2Exception(err_msg)
         
     def start_connection(self):
         '''
