@@ -197,23 +197,40 @@ namespace Arc {
   }
 
   static const int formatindex = std::ios_base::xalloc();
+  static const int prefixindex = std::ios_base::xalloc();
 
   std::ostream& operator<<(std::ostream& os, const LoggerFormat& format) {
     os.iword(formatindex) = format.format;
     return os;
   }
 
+  std::ostream& operator<<(std::ostream& os, const LogDestination& dest) {
+    os.iword(formatindex) = dest.format;
+    if (!dest.prefix.empty()) os.pword(prefixindex) = const_cast<std::string*>(&dest.prefix);
+    return os;
+  }
+
   std::ostream& operator<<(std::ostream& os, const LogMessage& message) {
+    std::string* pre = (std::string*)os.pword(prefixindex);
+    std::string prefix = pre ? *pre : "";
     switch (os.iword(formatindex)) {
     case LongFormat:
       os << "[" << message.time << "] "
          << "[" << message.domain << "] "
          << "[" << message.level << "] "
          << "[" << message.identifier << "] "
+         << prefix
+         << message.message;
+      break;
+    case MediumFormat:
+      os << "[" << message.time << "] "
+         << "[" << message.level << "] "
+         << "[" << message.identifier << "] "
+         << prefix
          << message.message;
       break;
     case ShortFormat:
-      os << message.level << ": " << message.message;
+      os << message.level << ": " << prefix << message.message;
       break;
     case EmptyFormat:
       os << message.message;
@@ -227,7 +244,7 @@ namespace Arc {
         os << "(" << d.GetPeriod()*1000000+d.GetPeriodNanoseconds()/1000<<")";
       };
       lt = ct;
-      os << "] " << message.message;
+      os << "] " << prefix << message.message;
       break;
     }
     return os;
@@ -240,13 +257,17 @@ namespace Arc {
     format = newformat;
   }
 
+  void LogDestination::setPrefix(const std::string& pre) {
+    prefix = pre;
+  }
+
   LogStream::LogStream(std::ostream& destination)
     : destination(destination) {}
 
   void LogStream::log(const LogMessage& message) {
     Glib::Mutex::Lock lock(mutex);
     EnvLockWrap(false); // Protecting getenv inside gettext()
-    destination << LoggerFormat(format) << message << std::endl;
+    destination << *this << message << std::endl;
     EnvLockUnwrap(false);
   }
 
@@ -304,7 +325,7 @@ namespace Arc {
     }
     if(!destination.is_open()) return;
     EnvLockWrap(false); // Protecting getenv inside gettext()
-    destination << LoggerFormat(format) << message << std::endl;
+    destination << *this << message << std::endl;
     EnvLockUnwrap(false);
     // Check if unrecoverable error occurred. Close if error
     // and reopen on next write.

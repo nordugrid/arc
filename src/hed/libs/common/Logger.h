@@ -34,6 +34,7 @@ namespace Arc {
   /// Output formats. Defines prefix for each message.
   enum LogFormat {
     LongFormat,  ///< all information about message is printed
+    MediumFormat,///< all information except domain is printed
     ShortFormat, ///< only message level is printed
     DebugFormat, ///< message time (microsecond precision) and time difference
                  ///< from previous message are printed. This format is mostly
@@ -201,6 +202,11 @@ namespace Arc {
     /// Set format for this log destination.
     void setFormat(const LogFormat& newformat);
 
+    /// Set a prefix for this log destination to be logged before messages.
+    /** The prefix is prepended to messages in all formats except EmptyFormat.
+     */
+    void setPrefix(const std::string& prefix);
+
   protected:
 
     /// Default constructor. Protected since subclasses should be used instead.
@@ -220,9 +226,15 @@ namespace Arc {
      */
     void operator=(const LogDestination& unique);
 
+    /// Sets iword and pword for format and prefix
+    friend std::ostream& operator<<(std::ostream& os, const LogDestination& dest);
+
   protected:
     /// Format to use in this LogDestination.
     LogFormat format;
+
+    /// Prefix to use in this log destination.
+    std::string prefix;
   };
 
 
