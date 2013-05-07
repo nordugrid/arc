@@ -359,7 +359,7 @@ Description: ARC grid middleware - Misc tools
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- This package contains various for various tasks including testing. The
+ This package contains utilities for various tasks including testing. The
  package is usually not required by users or sysadmins but mainly for
  developers.
 
