@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-04-29 01:32+0100\n"
-"PO-Revision-Date: 2013-04-29 01:35+0100\n"
+"POT-Creation-Date: 2013-05-07 23:27+0100\n"
+"PO-Revision-Date: 2013-05-07 23:28+0100\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -1228,7 +1228,7 @@ msgstr "вывести информацию о версии"
 #: src/clients/credentials/arcslcs.cpp:208
 #: src/clients/credentials/arcproxyalt.cpp:461 src/clients/wsrf/arcwsrf.cpp:74
 #: src/hed/daemon/win32/main_win32.cpp:148
-#: src/hed/daemon/unix/main_unix.cpp:304
+#: src/hed/daemon/unix/main_unix.cpp:316
 #, c-format
 msgid "%s version %s"
 msgstr "%s, версия %s"
@@ -11425,7 +11425,7 @@ msgstr "mkdir_ftp: истекло время ожидания команды mkd
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1467
 #: src/hed/dmc/file/DataPointFile.cpp:510
 #: src/services/a-rex/jura/JobLogFile.cpp:477
-#: src/services/a-rex/jura/JobLogFile.cpp:986
+#: src/services/a-rex/jura/JobLogFile.cpp:987
 #, c-format
 msgid "Creating directory %s"
 msgstr "Создается директория %s"
@@ -13770,52 +13770,52 @@ msgstr "следующий элемент в цепи возвратил пус�
 msgid "shutdown"
 msgstr "Выключение"
 
-#: src/hed/daemon/win32/main_win32.cpp:53 src/hed/daemon/unix/main_unix.cpp:82
+#: src/hed/daemon/win32/main_win32.cpp:53 src/hed/daemon/unix/main_unix.cpp:85
 msgid "No server config part of config file"
 msgstr "В файле настроек отсутствуют настройки сервера"
 
 #: src/hed/daemon/win32/main_win32.cpp:91
-#: src/hed/daemon/unix/main_unix.cpp:153
+#: src/hed/daemon/unix/main_unix.cpp:156
 #, c-format
 msgid "Unknown log level %s"
 msgstr "Неизвестный уровень журналирования %s"
 
 #: src/hed/daemon/win32/main_win32.cpp:100
-#: src/hed/daemon/unix/main_unix.cpp:162
+#: src/hed/daemon/unix/main_unix.cpp:166
 #, c-format
 msgid "Failed to open log file: %s"
 msgstr "Не удалось открыть журнальный файл: %s"
 
 #: src/hed/daemon/win32/main_win32.cpp:126
-#: src/hed/daemon/unix/main_unix.cpp:187
+#: src/hed/daemon/unix/main_unix.cpp:199
 msgid "Start foreground"
 msgstr "Запуск с высоким приоритетом"
 
 #: src/hed/daemon/win32/main_win32.cpp:154
-#: src/hed/daemon/unix/main_unix.cpp:240 src/hed/daemon/unix/main_unix.cpp:255
+#: src/hed/daemon/unix/main_unix.cpp:252 src/hed/daemon/unix/main_unix.cpp:267
 #, c-format
 msgid "Failed to load service configuration from file %s"
 msgstr "Не удалось загрузить настройки сервиса из файла %s"
 
 #: src/hed/daemon/win32/main_win32.cpp:159
-#: src/hed/daemon/unix/main_unix.cpp:331
+#: src/hed/daemon/unix/main_unix.cpp:343
 msgid "Configuration root element is not <ArcConfig>"
 msgstr "Корневой элемент настроек не является <ArcConfig>"
 
 #: src/hed/daemon/win32/main_win32.cpp:176
-#: src/hed/daemon/unix/main_unix.cpp:380
+#: src/hed/daemon/unix/main_unix.cpp:392
 msgid "Failed to load service side MCCs"
 msgstr "Не удалось загрузить компоненты MCC сервера"
 
 #: src/hed/daemon/win32/main_win32.cpp:178
-#: src/hed/daemon/unix/main_unix.cpp:382 src/tests/echo/test_service.cpp:29
+#: src/hed/daemon/unix/main_unix.cpp:394 src/tests/echo/test_service.cpp:29
 #: src/tests/echo/test.cpp:30 src/tests/count/test_service.cpp:32
 #: src/services/saml/test_service.cpp:29 src/services/a-rex/test.cpp:41
 msgid "Service side MCCs are loaded"
 msgstr "Подгружены сервисные компоненты цепи сообщений"
 
 #: src/hed/daemon/win32/main_win32.cpp:185
-#: src/hed/daemon/unix/main_unix.cpp:389
+#: src/hed/daemon/unix/main_unix.cpp:401
 msgid "Unexpected arguments supplied"
 msgstr "Заданы непредусмотренные аргументы"
 
@@ -13837,47 +13837,47 @@ msgstr "Останов демона"
 msgid "exit"
 msgstr " выход  "
 
-#: src/hed/daemon/unix/main_unix.cpp:236
+#: src/hed/daemon/unix/main_unix.cpp:248
 #, c-format
 msgid "XML config file %s does not exist"
 msgstr "Файл настроек XML %s не существует"
 
-#: src/hed/daemon/unix/main_unix.cpp:246
+#: src/hed/daemon/unix/main_unix.cpp:258
 #, c-format
 msgid "INI config file %s does not exist"
 msgstr "Файл настроек INI %s не существует"
 
-#: src/hed/daemon/unix/main_unix.cpp:251
+#: src/hed/daemon/unix/main_unix.cpp:263
 msgid "Error evaluating profile"
 msgstr "Ошибка проверки профиля"
 
-#: src/hed/daemon/unix/main_unix.cpp:267
+#: src/hed/daemon/unix/main_unix.cpp:279
 msgid "Error loading generated configuration"
 msgstr "Ошибка загрузки сгенерированных настроек"
 
-#: src/hed/daemon/unix/main_unix.cpp:273
+#: src/hed/daemon/unix/main_unix.cpp:285
 msgid "Error evaulating profile"
 msgstr "Ошибка проверки профиля"
 
-#: src/hed/daemon/unix/main_unix.cpp:278
+#: src/hed/daemon/unix/main_unix.cpp:290
 msgid "Failed to load service configuration from any default config file"
 msgstr "Не удалось загрузить настройки сервиса ни из какого файла настроек"
 
-#: src/hed/daemon/unix/main_unix.cpp:316
+#: src/hed/daemon/unix/main_unix.cpp:328
 msgid "Schema validation error"
 msgstr "Ошибка проверки схемы"
 
-#: src/hed/daemon/unix/main_unix.cpp:347
+#: src/hed/daemon/unix/main_unix.cpp:359
 #, c-format
 msgid "Cannot switch to group (%s)"
 msgstr "Невозможно перейти к группе (%s)"
 
-#: src/hed/daemon/unix/main_unix.cpp:357
+#: src/hed/daemon/unix/main_unix.cpp:369
 #, c-format
 msgid "Cannot switch to primary group for user (%s)"
 msgstr "Невозможно переключить на основную группу для пользователя (%s)"
 
-#: src/hed/daemon/unix/main_unix.cpp:362
+#: src/hed/daemon/unix/main_unix.cpp:374
 #, c-format
 msgid "Cannot switch to user (%s)"
 msgstr "Невозможно перейти к пользователю (%s)"
@@ -16922,14 +16922,14 @@ msgstr "Запущен обработчик делегирования с рол
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:152
 #: src/services/cache_service/CacheService.cpp:510
-#: src/services/a-rex/arex.cpp:552
+#: src/services/a-rex/arex.cpp:550
 #: src/services/data-staging/DataDeliveryService.cpp:608
 msgid "process: POST"
 msgstr "процесс: POST"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:159
 #: src/services/cache_service/CacheService.cpp:519
-#: src/services/saml/aaservice.cpp:82 src/services/a-rex/arex.cpp:559
+#: src/services/saml/aaservice.cpp:82 src/services/a-rex/arex.cpp:557
 #: src/services/wrappers/java/javawrapper.cpp:140
 #: src/services/wrappers/python/pythonwrapper.cpp:413
 #: src/services/data-staging/DataDeliveryService.cpp:617
@@ -17373,14 +17373,14 @@ msgid "echo: Unauthorized"
 msgstr "echo: Доступ закрыт"
 
 #: src/tests/echo/echo.cpp:98 src/services/cache_service/CacheService.cpp:527
-#: src/services/a-rex/arex.cpp:565
+#: src/services/a-rex/arex.cpp:563
 #: src/services/data-staging/DataDeliveryService.cpp:625
 #, c-format
 msgid "process: request=%s"
 msgstr "процесс: запрос=%s"
 
 #: src/tests/echo/echo.cpp:166 src/services/cache_service/CacheService.cpp:564
-#: src/services/a-rex/arex.cpp:768 src/services/a-rex/arex.cpp:785
+#: src/services/a-rex/arex.cpp:766 src/services/a-rex/arex.cpp:783
 #: src/services/data-staging/DataDeliveryService.cpp:676
 #, c-format
 msgid "process: response=%s"
@@ -17531,14 +17531,14 @@ msgstr "Ввод не в формате SOAP"
 
 #: src/tests/count/count.cpp:69
 #: src/services/cache_service/CacheService.cpp:532
-#: src/services/a-rex/arex.cpp:570
+#: src/services/a-rex/arex.cpp:568
 #: src/services/data-staging/DataDeliveryService.cpp:630
 msgid "input does not define operation"
 msgstr "не задана операция на вводе"
 
 #: src/tests/count/count.cpp:72
 #: src/services/cache_service/CacheService.cpp:535
-#: src/services/a-rex/arex.cpp:573
+#: src/services/a-rex/arex.cpp:571
 #: src/services/data-staging/DataDeliveryService.cpp:633
 #, c-format
 msgid "process: operation: %s"
@@ -17551,9 +17551,9 @@ msgstr "Запрос не поддерживается - %s"
 
 #: src/services/slcs/slcs.cpp:43 src/services/slcs/slcs.cpp:184
 #: src/services/cache_service/CacheService.cpp:569
-#: src/services/a-rex/arex.cpp:589 src/services/a-rex/arex.cpp:774
-#: src/services/a-rex/arex.cpp:793 src/services/a-rex/arex.cpp:806
-#: src/services/a-rex/arex.cpp:816 src/services/a-rex/arex.cpp:831
+#: src/services/a-rex/arex.cpp:587 src/services/a-rex/arex.cpp:772
+#: src/services/a-rex/arex.cpp:791 src/services/a-rex/arex.cpp:804
+#: src/services/a-rex/arex.cpp:814 src/services/a-rex/arex.cpp:829
 #: src/services/data-staging/DataDeliveryService.cpp:681
 msgid "Security Handlers processing failed"
 msgstr "Сбой в процессе обработки прав доступа"
@@ -17757,7 +17757,7 @@ msgid "Identity is %s"
 msgstr "Личные данные: %s"
 
 #: src/services/cache_service/CacheService.cpp:553
-#: src/services/a-rex/arex.cpp:518
+#: src/services/a-rex/arex.cpp:516
 #: src/services/data-staging/DataDeliveryService.cpp:665
 #, c-format
 msgid "SOAP operation is not supported: %s"
@@ -18083,132 +18083,127 @@ msgid "No non-draining session dirs available"
 msgstr "Нет каталогов сессий не в состоянии разгрузки"
 
 #: src/services/a-rex/cachecheck.cpp:34
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:526
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:836
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:505
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:815
 #: src/services/a-rex/grid-manager/loaders/downloader.cpp:424
 #: src/services/a-rex/grid-manager/loaders/uploader.cpp:337
 #, c-format
 msgid "Error with cache configuration: %s"
 msgstr "Ошибка при настройке кэша: %s"
 
-#: src/services/a-rex/arex.cpp:456
+#: src/services/a-rex/arex.cpp:454
 msgid "Will not map to 'root' account by default"
 msgstr "По умолчанию привязки к учётной записи 'root' не будет"
 
-#: src/services/a-rex/arex.cpp:469
+#: src/services/a-rex/arex.cpp:467
 msgid "No local account name specified"
 msgstr "Не указано имя локальной учётной записи"
 
-#: src/services/a-rex/arex.cpp:472
+#: src/services/a-rex/arex.cpp:470
 #, c-format
 msgid "Using local account '%s'"
 msgstr "Используется локальная учётная запись '%s'"
 
-#: src/services/a-rex/arex.cpp:493
+#: src/services/a-rex/arex.cpp:491
 msgid "Failed to acquire grid-manager's configuration"
 msgstr "Не удалось получить настройки grid-manager"
 
-#: src/services/a-rex/arex.cpp:532
+#: src/services/a-rex/arex.cpp:530
 #, c-format
 msgid "process: method: %s"
 msgstr "процесс: метод: %s"
 
-#: src/services/a-rex/arex.cpp:533
+#: src/services/a-rex/arex.cpp:531
 #, c-format
 msgid "process: endpoint: %s"
 msgstr "процесс: конечная точка: %s"
 
-#: src/services/a-rex/arex.cpp:544
+#: src/services/a-rex/arex.cpp:542
 #, c-format
 msgid "process: id: %s"
 msgstr "процесс: идентификатор: %s"
 
-#: src/services/a-rex/arex.cpp:545
+#: src/services/a-rex/arex.cpp:543
 #, c-format
 msgid "process: subpath: %s"
 msgstr "процесс: подкаталог: %s"
 
-#: src/services/a-rex/arex.cpp:596
+#: src/services/a-rex/arex.cpp:594
 msgid "Can't obtain configuration"
 msgstr "Не удалось получить настройки"
 
-#: src/services/a-rex/arex.cpp:612
+#: src/services/a-rex/arex.cpp:610
 msgid "process: factory endpoint"
 msgstr "процесс: конечная точка фабрики "
 
-#: src/services/a-rex/arex.cpp:770
+#: src/services/a-rex/arex.cpp:768
 msgid "process: response is not SOAP"
 msgstr "процесс: ответ не является документом SOAP"
 
-#: src/services/a-rex/arex.cpp:800
+#: src/services/a-rex/arex.cpp:798
 msgid "process: GET"
 msgstr "процесс: GET"
 
-#: src/services/a-rex/arex.cpp:823
+#: src/services/a-rex/arex.cpp:821
 msgid "process: PUT"
 msgstr "процес: PUT"
 
-#: src/services/a-rex/arex.cpp:838
+#: src/services/a-rex/arex.cpp:836
 #, c-format
 msgid "process: method %s is not supported"
 msgstr "процесс: метод %s не поддерживается"
 
-#: src/services/a-rex/arex.cpp:841
+#: src/services/a-rex/arex.cpp:839
 msgid "process: method is not defined"
 msgstr "процесс: неопределённый метод"
 
-#: src/services/a-rex/arex.cpp:883
+#: src/services/a-rex/arex.cpp:875
 msgid "Failed to run Grid Manager thread"
 msgstr "Сбой запуска потока Grid Manager"
 
-#: src/services/a-rex/arex.cpp:967
+#: src/services/a-rex/arex.cpp:936
 #, c-format
 msgid "Storing configuration in temporary file %s"
 msgstr "Запись настроек во временный файл %s"
 
-#: src/services/a-rex/arex.cpp:972
+#: src/services/a-rex/arex.cpp:941
 msgid "Failed to process service configuration"
 msgstr "Не удалось обработать настройки сервиса"
 
-#: src/services/a-rex/arex.cpp:980
+#: src/services/a-rex/arex.cpp:949
 #, c-format
 msgid "Failed to process configuration in %s"
 msgstr "Не удалось обработать настройки в %s"
 
-#: src/services/a-rex/arex.cpp:986
+#: src/services/a-rex/arex.cpp:955
 msgid "No control directory set in configuration"
 msgstr "Не найден контрольный каталог в файле настроек"
 
-#: src/services/a-rex/arex.cpp:990
+#: src/services/a-rex/arex.cpp:959
 msgid "No session directory set in configuration"
 msgstr "Не найден каталог сессии в файле настроек"
 
-#: src/services/a-rex/arex.cpp:994
+#: src/services/a-rex/arex.cpp:963
 msgid "No LRMS set in configuration"
 msgstr "Не найдена СУПО в файле настроек"
 
-#: src/services/a-rex/arex.cpp:999
+#: src/services/a-rex/arex.cpp:968
 #, c-format
 msgid "Failed to create control directory %s"
 msgstr "Ошибка создания контрольного каталога %s"
 
-#: src/services/a-rex/arex.cpp:1014
+#: src/services/a-rex/arex.cpp:983
 #, c-format
 msgid "Provided LRMSName is not a valid URL: %s"
 msgstr "Указанное значение LRMSName не является допустимым URL: %s"
 
-#: src/services/a-rex/arex.cpp:1016
+#: src/services/a-rex/arex.cpp:985
 msgid ""
 "No LRMSName is provided. This is needed if you wish to completely comply "
 "with the BES specifications."
 msgstr ""
 "Не задан атрибут LRMSName. Он необходим для полного соответствия "
 "спецификации интерфейса BES."
-
-#: src/services/a-rex/arex.cpp:1058
-#, c-format
-msgid "WS-interface messages will be logged to %s"
-msgstr "Сообщения интерфейса WS будут записаны в журнал %s"
 
 #: src/services/a-rex/migrate_activity.cpp:37
 #, c-format
@@ -18803,24 +18798,24 @@ msgid "Missing required element \"Status\" in job log file %s"
 msgstr "Отсутствует обязательный элемент \"Status\" в файле журнала задач %s"
 
 #: src/services/a-rex/jura/JobLogFile.cpp:483
-#: src/services/a-rex/jura/JobLogFile.cpp:992
+#: src/services/a-rex/jura/JobLogFile.cpp:993
 #, c-format
 msgid "Failed to create archive directory %s: %s"
 msgstr "Не удалось создать архивный каталог %s: %s"
 
 #: src/services/a-rex/jura/JobLogFile.cpp:490
-#: src/services/a-rex/jura/JobLogFile.cpp:999
+#: src/services/a-rex/jura/JobLogFile.cpp:1000
 #, c-format
 msgid "Archiving Usage Record to file %s"
 msgstr "Архивирование записи Usage Record в файл %s"
 
 #: src/services/a-rex/jura/JobLogFile.cpp:496
-#: src/services/a-rex/jura/JobLogFile.cpp:1005
+#: src/services/a-rex/jura/JobLogFile.cpp:1006
 #, c-format
 msgid "Failed to write file %s: %s"
 msgstr "Сбой при записи файла %s: %s"
 
-#: src/services/a-rex/jura/JobLogFile.cpp:1036
+#: src/services/a-rex/jura/JobLogFile.cpp:1037
 #, c-format
 msgid "Failed to delete file %s:%s"
 msgstr "Не удалось удалить файл %s: %s"
@@ -19261,103 +19256,97 @@ msgstr "Невозможно определить тип файла настро
 msgid "No queue name given in queue block name"
 msgstr "Не указано название очереди в названии блока queue"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:182
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:187
-#, c-format
-msgid "Bad number in logsize: %s"
-msgstr "Недопустимое значение logsize: %s"
-
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:223
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:230
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:237
 #: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:244
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:251
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:258
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:265
 #, c-format
 msgid "Wrong number in maxjobs: %s"
 msgstr "Недопустимое число в maxjobs: %s"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:273
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:280
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:287
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:252
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:259
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:266
 #, c-format
 msgid "Wrong number in maxload: %s"
 msgstr "Недопустимое число в maxload: %s"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:295
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:274
 #, c-format
 msgid "Wrong number in maxloadshare: %s"
 msgstr "Недопустимое число в maxloadshare: %s"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:300
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:279
 msgid "The type of share is not set in maxloadshare"
 msgstr "Тип квоты не указан в maxloadshare"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:306
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:285
 msgid "share_limit should be located after maxloadshare"
 msgstr "share_limit должен располагаться после maxloadshare"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:318
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:297
 msgid "The name of share is not set in share_limit"
 msgstr "Название квоты не указано в share_limit"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:323
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:302
 #, c-format
 msgid "Wrong number in share_limit: %s"
 msgstr "Недопустимое число в share_limit: %s"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:332
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:336
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:340
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:344
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:311
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:315
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:319
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:323
 #, c-format
 msgid "Wrong number in speedcontrol: %s"
 msgstr "Недопустимое число в speedcontrol: %s"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:350
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:329
 #, c-format
 msgid "Wrong number in wakeupperiod: %s"
 msgstr "Недопустимое число в wakeupperiod: %s"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:362
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:341
 msgid "Wrong number in maxtransfertries"
 msgstr "Недопустимое число в maxtransfertries"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:374
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:353
 msgid "mail parameter is empty"
 msgstr "Параметр mail пуст"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:380
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:384
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:359
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:363
 msgid "Wrong number in defaultttl command"
 msgstr "Недопустимое число в команде defaultttl"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:390
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:369
 msgid "Wrong number in maxrerun command"
 msgstr "Недопустимое число в команде maxrerun"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:396
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:375
 msgid "defaultlrms is empty"
 msgstr "пустое значение defaultlrms"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:409
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:388
 msgid "State name for plugin is missing"
 msgstr "Отсутствует наименование состояния подключаемого модуля"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:413
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:392
 msgid "Options for plugin are missing"
 msgstr "Этот модуль не имеет настраиваемых параметров."
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:416
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:744
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:395
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:723
 #, c-format
 msgid "Failed to register plugin for state %s"
 msgstr "Сбой регистрации подключаемого модуля для состояния %s"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:424
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:403
 msgid "Wrong number for timeout in plugin command"
 msgstr ""
 "Недопустимое значение времени ожидания в инструкции подключаемого модуля"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:434
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:413
 msgid ""
 "'newdatastaging' configuration option is deprecated, 'enable_dtr' should be "
 "used instead"
@@ -19365,23 +19354,23 @@ msgstr ""
 "Опция настроек 'newdatastaging' теперь называется 'enable_dtr'; пожалуйста, "
 "используйте новое название"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:450
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:429
 msgid "Wrong option in fixdirectories"
 msgstr "Неверная опция в fixdirectories"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:465
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:444
 msgid "Session root directory is missing"
 msgstr "Отсутствует корневая директория сессии"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:468
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:447
 msgid "Junk in sessiondir command"
 msgstr "Бессмыслица в команде sessiondir"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:480
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:459
 msgid "Missing directory in control command"
 msgstr "В контрольной инструкции пропущен каталог"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:485
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:464
 msgid ""
 "'control' configuration option is no longer supported, please use "
 "'controldir' instead"
@@ -19389,74 +19378,74 @@ msgstr ""
 "Опция настроек 'control' теперь называется 'controldir'; пожалуйста, "
 "используйте новое название"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:490
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:469
 msgid "User for helper program is missing"
 msgstr "Отсутствует пользователь для вспомогательной программы"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:493
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:859
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:472
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:838
 msgid "Only user '.' for helper program is supported"
 msgstr "Для вспомогательной программы поддерживается только пользователь '.'"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:496
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:475
 msgid "Helper program is missing"
 msgstr "Отсутствует вспомогательная программа"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:682
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:661
 msgid "serviceMail is empty"
 msgstr "пустой serviceMail"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:696
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:675
 msgid "Type in LRMS is missing"
 msgstr "Отсутствует тип в СУПО"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:709
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:688
 msgid "LRMS is missing"
 msgstr "Отсутствует СУПО"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:722
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:701
 msgid "State name for authPlugin is missing"
 msgstr "Отсутствует наименование состояния модуля authPlugin"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:727
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:706
 msgid "Command for authPlugin is missing"
 msgstr "Отсутствует команда для модуля authPlugin"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:741
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:720
 #, c-format
 msgid "Registering plugin for state %s; options: %s; command: %s"
 msgstr ""
 "Регистрируется подключаемый модуль для состояния %s; опции: %s; команда: %s"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:757
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:736
 msgid "Command for localCred is missing"
 msgstr "Отсутствует команда для модуля localCred"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:763
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:742
 msgid "Timeout for localCred is missing"
 msgstr "Отсутствует тайм-аут для модуля localCred"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:768
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:747
 msgid "Timeout for localCred is incorrect number"
 msgstr "Недопустимое значение тайм-аута для модуля localCred"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:796
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:775
 msgid "Control element must be present"
 msgstr "Элемент Control должен присутствовать"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:801
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:780
 msgid "controlDir is missing"
 msgstr "Отсутствует controlDir"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:808
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:787
 msgid "sessionRootDir is missing"
 msgstr "Отсутствует sessionRootDir"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:850
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:829
 msgid "Command in helperUtility is missing"
 msgstr "Отсутствует команда в модуле helperUtility"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:855
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:834
 msgid "Username in helperUtility is empty"
 msgstr "Не указано имя пользователя в модуле helperUtility"
 
@@ -19566,65 +19555,65 @@ msgstr "Недостаточное количество параметров в 
 msgid "Not enough parameters in linkurl"
 msgstr "Недостаточное количество параметров в linkurl"
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:125
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:121
 #, c-format
 msgid "\tSession root dir : %s"
 msgstr "\tКорневой каталог сессии: %s"
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:126
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:122
 #, c-format
 msgid "\tControl dir      : %s"
 msgstr "\tКонтрольный каталог: %s"
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:127
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:123
 #, c-format
 msgid "\tdefault LRMS     : %s"
 msgstr "\tСУПО по умолчанию       : %s"
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:128
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:124
 #, c-format
 msgid "\tdefault queue    : %s"
 msgstr "\tочередь по умолчанию  : %s"
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:129
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:125
 #, c-format
 msgid "\tdefault ttl      : %u"
 msgstr "\tВремя жизни по умолчанию : %u"
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:134
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:130
 msgid "No valid caches found in configuration, caching is disabled"
 msgstr ""
 "В настройках не обнаружено ни одного приемлемого кэша, кэширование отключено"
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:139
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:135
 #, c-format
 msgid "\tCache            : %s"
 msgstr "\tКэш            : %s"
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:141
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:137
 #, c-format
 msgid "\tCache link dir   : %s"
 msgstr "\tКаталог с кэшем ссылок: %s"
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:145
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:141
 #, c-format
 msgid "\tRemote cache     : %s"
 msgstr "\tУдалённый кэш          : %s"
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:147
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:143
 #, c-format
 msgid "\tRemote cache link: %s"
 msgstr "\tСсылка на удалённый кэш: %s"
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:149
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:145
 msgid "\tCache cleaning enabled"
 msgstr "\tОчистка кэша включена"
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:150
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:146
 msgid "\tCache cleaning disabled"
 msgstr "\tОчистка кэша отключена"
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:313
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:309
 msgid ""
 "Globus location variable substitution is not supported anymore. Please "
 "specify path directly."
@@ -19632,17 +19621,17 @@ msgstr ""
 "Переменная, указывающая на расположение Globus, больше не поддерживается. "
 "Пожалуйста, укажите полный путь."
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:401
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:397
 #, c-format
 msgid "Starting helper process: %s"
 msgstr "Запускается вспомогательный процесс: %s"
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:407
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:403
 #, c-format
 msgid "Helper process start failed: %s"
 msgstr "Сбой при запуске вспомогательного процесса: %s"
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:414
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:410
 #, c-format
 msgid "Stopping helper process %s"
 msgstr "Останавливается вспомогательный процесс %s"
@@ -22568,6 +22557,12 @@ msgstr "Ждём 10 секунд..."
 #: src/services/echo_python/EchoService.py:173
 msgid "Waiting ends."
 msgstr "Ожидание завершено."
+
+#~ msgid "WS-interface messages will be logged to %s"
+#~ msgstr "Сообщения интерфейса WS будут записаны в журнал %s"
+
+#~ msgid "Bad number in logsize: %s"
+#~ msgstr "Недопустимое значение logsize: %s"
 
 #~ msgid "Starting grid-manager thread"
 #~ msgstr "Запускается поток Грид-менеджера"
