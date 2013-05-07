@@ -360,7 +360,7 @@ Description: ARC grid middleware - Misc tools
  Connector (ARC).
  .
  This package contains utilities for various tasks including testing. The
- package is usually not required by users or sysadmins but mainly for
+ package is usually not required by users or sysadmins but is mainly for
  developers.
 
 Package: nordugrid-arc-dbg
