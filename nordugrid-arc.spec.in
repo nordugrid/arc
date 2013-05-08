@@ -28,16 +28,23 @@
 
 %global with_lfc %{!?_without_lfc:1}%{?_without_lfc:0}
 
-# Java 1.5.0 or later is needed for bindings (Fedora 7+)
 %if %{?fedora}%{!?fedora:0} >= 7 || %{?rhel}%{!?rhel:0} >= 5
-%global with_java %{!?_without_java:1}%{?_without_java:0}
-%if %{?fedora}%{!?fedora:0} >= 7 || %{?rhel}%{!?rhel:0} >= 5
-%global with_junit %{!?_without_junit:1}%{?_without_junit:0}
-%else
+%if %{?rhel}%{!?rhel:0} == 5
+%ifarch ppc
+# RHEL 5 ppc only has java 1.4
+%global with_java 0
 %global with_junit 0
+%else
+%global with_java %{!?_without_java:1}%{?_without_java:0}
+%global with_junit %{!?_without_junit:1}%{?_without_junit:0}
+%endif
+%else
+%global with_java %{!?_without_java:1}%{?_without_java:0}
+%global with_junit %{!?_without_junit:1}%{?_without_junit:0}
 %endif
 %else
 %global with_java 0
+%global with_junit 0
 %endif
 %global with_gcj %{!?_with_gcj:0}%{?_with_gcj:1}
 
@@ -46,19 +53,17 @@
 %ifarch ppc64
 # The python module doesn't build on RHEL6 ppc64 (.toc1 section overflow)
 %global with_python 0
+%global with_pylint 0
 %else
 %global with_python 1
+%global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
 %endif
 %else
 %global with_python 1
+%global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
 %endif
 %else
 %global with_python 0
-%endif
-
-%if %{?fedora}%{!?fedora:0} >= 4 || %{?rhel}%{!?rhel:0} >= 5
-%global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
-%else
 %global with_pylint 0
 %endif
 
@@ -184,7 +189,7 @@ BuildRequires:	db4-devel
 %endif
 %endif
 %if %{with_java}
-BuildRequires:	java-devel
+BuildRequires:	java-devel >= 1.5.0
 BuildRequires:	jpackage-utils
 %if %{with_gcj}
 BuildRequires:	java-gcj-compat-devel
@@ -932,9 +937,7 @@ cd -
 %{__python26} -O -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT%{python26_sitearch}"'", 10, "%{python26_sitearch}", 1)' > /dev/null
 %endif
 
-#
 # Remove examples and let RPM package them under /usr/share/doc using the doc macro
-#
 rm -rf $RPM_BUILD_ROOT%{_datadir}/%{pkgdir}/examples
 make -C src/libs/data-staging/examples	DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
 make -C src/hed/libs/compute/examples	DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
@@ -944,9 +947,8 @@ make -C python/examples			DESTDIR=$PWD/docdir/python pkgdatadir= install-example
 make -C java/examples			DESTDIR=$PWD/docdir/java   pkgdatadir= install-exampleDATA
 make -C src/clients			DESTDIR=$PWD/docdir/client pkgdatadir= install-exampleDATA
 make -C src/doc				DESTDIR=$PWD/docdir/base   pkgdatadir= install-exampleDATA
-make -C src/tests/echo			DESTDIR=$PWD/docdir/hed    pkgdatadir= install-exampleDATA
-make -C src/hed				DESTDIR=$PWD/docdir/hed    pkgdatadir= install-profileDATA
-
+make -C src/tests/echo			DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-exampleDATA
+make -C src/hed				DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-profileDATA
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -1156,6 +1158,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
+%doc docdir/base/* README AUTHORS LICENSE NOTICE ChangeLog
 %{_libdir}/libarccompute.so.*
 %{_libdir}/libarccommunication.so.*
 %{_libdir}/libarccommon.so.*
@@ -1183,8 +1186,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/test-jobs/test-job-*
 %{_datadir}/%{pkgdir}/schema
 %dir %{_datadir}/%{pkgdir}
-%doc README AUTHORS LICENSE NOTICE ChangeLog
-%doc docdir/base/*
 
 %files client
 %defattr(-,root,root,-)
@@ -1415,7 +1416,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files devel
 %defattr(-,root,root,-)
-%doc docdir/devel/*
+%doc docdir/devel/* src/hed/shc/arcpdp/*.xsd
 %{_includedir}/%{pkgdir}
 %{_libdir}/lib*.so
 %{_bindir}/wsdl2hed
@@ -1423,7 +1424,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_bindir}/arcplugin
 %doc %{_mandir}/man1/arcplugin.1*
 %{_libdir}/pkgconfig/arcbase.pc
-%doc  src/hed/shc/arcpdp/*.xsd
 
 %files plugins-needed
 %defattr(-,root,root,-)
