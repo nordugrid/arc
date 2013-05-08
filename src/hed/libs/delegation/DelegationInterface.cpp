@@ -674,6 +674,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   const char* need_ext = "critical,digitalSignature,keyEncipherment";
   std::string proxy_cn;
   std::string res;
+  time_t validity_start_adjustment = 300; //  5 minute grace period for unsync clocks
   time_t validity_start = time(NULL);
   time_t validity_end = (time_t)(-1);
   DelegationRestrictions& restrictions_ = (DelegationRestrictions&)restrictions;
@@ -843,12 +844,14 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   X509_NAME_free(subject); subject=NULL;
   if(!(restrictions_["validityStart"].empty())) {
     validity_start=Time(restrictions_["validityStart"]).GetTime();
+    validity_start_adjustment = 0;
   };
   if(!(restrictions_["validityEnd"].empty())) {
     validity_end=Time(restrictions_["validityEnd"]).GetTime();
   } else if(!(restrictions_["validityPeriod"].empty())) {
     validity_end=validity_start+Period(restrictions_["validityPeriod"]).GetPeriod();
   };
+  validity_start -= validity_start_adjustment;
   //Set "notBefore"
   if( X509_cmp_time(X509_get_notBefore((X509*)cert_), &validity_start) < 0) {
     X509_time_adj(X509_get_notBefore(cert), 0L, &validity_start);
