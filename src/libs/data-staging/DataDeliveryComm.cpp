@@ -15,7 +15,7 @@ namespace DataStaging {
   }
 
   DataDeliveryComm::DataDeliveryComm(DTR_ptr dtr, const TransferParameters& params)
-    : status_pos_(0),dtr_id(dtr->get_short_id()),transfer_params(params),logger_(dtr->get_logger()) {
+    : status_pos_(0),transfer_params(params),logger_(dtr->get_logger()) {
     handler_= DataDeliveryCommHandler::getInstance();
   }
 

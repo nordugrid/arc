@@ -70,8 +70,6 @@ namespace DataStaging {
     Glib::Mutex lock_;
     /// Pointer to singleton handler of all DataDeliveryComm objects
     DataDeliveryCommHandler* handler_;
-    /// ID of the DTR this object is handling. Used in log messages.
-    std::string dtr_id;
     /// Transfer limits
     TransferParameters transfer_params;
     /// Time transfer was started

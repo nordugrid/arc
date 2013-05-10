@@ -185,8 +185,7 @@ namespace DataStaging {
           // With ThreadedPointer this may not be a problem any more.
           DTR_ptr tmp = dp->dtr;
           if (!delete_delivery_pair(dp)) {
-            tmp->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to delete delivery object or deletion timed out",
-                                                  tmp->get_short_id());
+            tmp->get_logger()->msg(Arc::ERROR, "Failed to delete delivery object or deletion timed out");
           }
           tmp->set_status(DTRStatus::TRANSFERRED);
           DTR::push(tmp, SCHEDULER);
@@ -249,13 +248,11 @@ namespace DataStaging {
           else if (status.checksum) {
             dp->dtr->get_destination()->SetCheckSum(status.checksum);
           }
-          dp->dtr->get_logger()->msg(Arc::INFO, "DTR %s: Transfer finished: %llu bytes transferred %s",
-                                     dp->dtr->get_short_id(), status.transferred,
+          dp->dtr->get_logger()->msg(Arc::INFO, "Transfer finished: %llu bytes transferred %s", status.transferred,
                                      (status.checksum[0] ? ": checksum "+std::string(status.checksum) : " "));
           DTR_ptr tmp = dp->dtr;
           if (!delete_delivery_pair(dp)) {
-            tmp->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to delete delivery object or deletion timed out",
-                                                  tmp->get_short_id());
+            tmp->get_logger()->msg(Arc::ERROR, "Failed to delete delivery object or deletion timed out");
           }
           tmp->set_status(DTRStatus::TRANSFERRED);
           DTR::push(tmp, SCHEDULER);
@@ -294,8 +291,7 @@ namespace DataStaging {
           }
           DTR_ptr tmp = dp->dtr;
           if (!delete_delivery_pair(dp)) {
-            tmp->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to delete delivery object or deletion timed out",
-                                                  tmp->get_short_id());
+            tmp->get_logger()->msg(Arc::ERROR, "Failed to delete delivery object or deletion timed out");
           }
           tmp->set_status(DTRStatus::TRANSFERRED);
           DTR::push(tmp, SCHEDULER);
@@ -314,8 +310,7 @@ namespace DataStaging {
     for (std::list<delivery_pair_t*>::iterator d = dtr_list.begin(); d != dtr_list.end();) {
       DTR_ptr tmp = (*d)->dtr;
       if (!delete_delivery_pair(*d)) {
-        tmp->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to delete delivery object or deletion timed out",
-                                              tmp->get_short_id());
+        tmp->get_logger()->msg(Arc::ERROR, "Failed to delete delivery object or deletion timed out");
       }
       d = dtr_list.erase(d);
     }

@@ -63,12 +63,12 @@ namespace DataStaging {
         surl = dtr->get_source()->TransferLocations()[0].fullstr();
       }
       else {
-        logger_->msg(Arc::ERROR, "DTR %s: No locations defined for %s", dtr_id, dtr->get_source()->str());
+        logger_->msg(Arc::ERROR, "No locations defined for %s", dtr->get_source()->str());
         return;
       }
 
       if (dtr->get_destination()->TransferLocations().empty()) {
-        logger_->msg(Arc::ERROR, "DTR %s: No locations defined for %s", dtr_id, dtr->get_destination()->str());
+        logger_->msg(Arc::ERROR, "No locations defined for %s", dtr->get_destination()->str());
         return;
       }
       std::string durl = dtr->get_destination()->TransferLocations()[0].fullstr();
@@ -127,7 +127,7 @@ namespace DataStaging {
         std::string csum(dtr->get_source()->GetCheckSum());
         std::string::size_type pos(csum.find(':'));
         if (pos == std::string::npos || pos == csum.length()-1) {
-          logger_->msg(Arc::WARNING, "DTR %s: Bad checksum format %s", dtr_id, csum);
+          logger_->msg(Arc::WARNING, "Bad checksum format %s", csum);
         } else {
           args.push_back("--cstype");
           args.push_back(csum.substr(0, pos));
@@ -155,7 +155,7 @@ namespace DataStaging {
         cmd += *arg;
         cmd += " ";
       }
-      logger_->msg(Arc::DEBUG, "DTR %s: Running command: %s", dtr_id, cmd);
+      logger_->msg(Arc::DEBUG, "Running command: %s", cmd);
       if(!child_->Start()) {
         delete child_;
         child_=NULL;
@@ -193,7 +193,7 @@ namespace DataStaging {
           for(;*start;) {
             char* end = strchr(start,'\n');
             if(end) *end = 0;
-            logger_->msg(Arc::INFO, "DTR %s: DataDelivery: %s", dtr_id, start);
+            logger_->msg(Arc::INFO, "DataDelivery: %s", start);
             if(!end) break;
             start = end + 1;
           }
@@ -205,7 +205,7 @@ namespace DataStaging {
           } else {
             status_.commstatus = CommExited;
             if(child_->Result() != 0) {
-              logger_->msg(Arc::ERROR, "DTR %s: DataStagingDelivery exited with code %i", dtr_id, child_->Result());
+              logger_->msg(Arc::ERROR, "DataStagingDelivery exited with code %i", child_->Result());
               status_.commstatus = CommFailed;
             }
           }
@@ -224,7 +224,7 @@ namespace DataStaging {
     // check for stuck child process (no report through comm channel)
     Arc::Period t = Arc::Time() - last_comm;
     if (transfer_params.max_inactivity_time > 0 && t >= transfer_params.max_inactivity_time*2) {
-      logger_->msg(Arc::ERROR, "DTR %s: Transfer killed after %i seconds without communication", dtr_id, t.GetPeriod());
+      logger_->msg(Arc::ERROR, "Transfer killed after %i seconds without communication", t.GetPeriod());
       child_->Kill(1);
       delete child_;
       child_ = NULL;

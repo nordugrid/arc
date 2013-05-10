@@ -39,12 +39,12 @@ namespace DataStaging {
       surl = dtr->get_source()->TransferLocations()[0].fullstr();
     }
     else {
-      logger_->msg(Arc::ERROR, "DTR %s: No locations defined for %s", dtr_id, dtr->get_source()->str());
+      logger_->msg(Arc::ERROR, "No locations defined for %s", dtr->get_source()->str());
       return;
     }
 
     if (dtr->get_destination()->TransferLocations().empty()) {
-      logger_->msg(Arc::ERROR, "DTR %s: No locations defined for %s", dtr_id, dtr->get_destination()->str());
+      logger_->msg(Arc::ERROR, "No locations defined for %s", dtr->get_destination()->str());
       return;
     }
     std::string durl = dtr->get_destination()->TransferLocations()[0].fullstr();
@@ -64,8 +64,7 @@ namespace DataStaging {
     }
 
     // connect to service and make a new transfer request
-    logger_->msg(Arc::VERBOSE, "DTR %s: Connecting to Delivery service at %s",
-                 dtr_id, endpoint.str());
+    logger_->msg(Arc::VERBOSE, "Connecting to Delivery service at %s", endpoint.str());
     client = new Arc::ClientSOAP(cfg, endpoint, timeout);
 
     Arc::NS ns;
@@ -91,34 +90,32 @@ namespace DataStaging {
     // delegate credentials
     Arc::XMLNode op = request.Child(0);
     if (!SetupDelegation(op, dtr->get_usercfg())) {
-      logger_->msg(Arc::ERROR, "DTR %s: Failed to set up credential delegation with %s",
-                   dtr_id, endpoint.str());
+      logger_->msg(Arc::ERROR, "Failed to set up credential delegation with %s", endpoint.str());
       return;
     }
 
     std::string xml;
     request.GetXML(xml, true);
-    logger_->msg(Arc::DEBUG, "DTR %s: Request:\n%s", dtr_id, xml);
+    logger_->msg(Arc::DEBUG, "Request:\n%s", xml);
 
     Arc::PayloadSOAP *response = NULL;
     Arc::MCC_Status status = client->process(&request, &response);
 
     if (!status) {
-      logger_->msg(Arc::ERROR, "DTR %s: Could not connect to service %s: %s",
-                   dtr_id, endpoint.str(), (std::string)status);
+      logger_->msg(Arc::ERROR, "Could not connect to service %s: %s",
+                   endpoint.str(), (std::string)status);
       if (response)
         delete response;
       return;
     }
 
     if (!response) {
-      logger_->msg(Arc::ERROR, "DTR %s: No SOAP response from Delivery service %s",
-                   dtr_id, endpoint.str());
+      logger_->msg(Arc::ERROR, "No SOAP response from Delivery service %s", endpoint.str());
       return;
     }
 
     response->GetXML(xml, true);
-    logger_->msg(Arc::DEBUG, "DTR %s: Response:\n%s", dtr_id, xml);
+    logger_->msg(Arc::DEBUG, "Response:\n%s", xml);
 
     if (response->IsFault()) {
       Arc::SOAPFault& fault = *response->Fault();
@@ -127,28 +124,27 @@ namespace DataStaging {
         if (fault.Reason(n).empty()) break;
         err += ": " + fault.Reason(n);
       }
-      logger_->msg(Arc::ERROR, "DTR %s: Failed to start transfer request: %s", dtr_id, err);
+      logger_->msg(Arc::ERROR, "Failed to start transfer request: %s", err);
       delete response;
       return;
     }
 
     Arc::XMLNode resultnode = (*response)["DataDeliveryStartResponse"]["DataDeliveryStartResult"]["Result"][0];
     if (!resultnode || !resultnode["ResultCode"]) {
-      logger_->msg(Arc::ERROR, "DTR %s: Bad format in XML response from service at %s: %s",
-                   dtr_id, endpoint.str(), xml);
+      logger_->msg(Arc::ERROR, "Bad format in XML response from service at %s: %s",
+                   endpoint.str(), xml);
       delete response;
       return;
     }
 
     std::string resultcode = (std::string)(resultnode["ResultCode"]);
     if (resultcode != "OK") {
-      logger_->msg(Arc::ERROR, "DTR %s: Could not make new transfer request: %s: %s",
-                   dtr_id, resultcode, (std::string)(resultnode[0]["ErrorDescription"]));
+      logger_->msg(Arc::ERROR, "Could not make new transfer request: %s: %s",
+                   resultcode, (std::string)(resultnode[0]["ErrorDescription"]));
       delete response;
       return;
     }
-    logger_->msg(Arc::INFO, "DTR %s: Started remote Delivery at %s",
-                 dtr_id, endpoint.str());
+    logger_->msg(Arc::INFO, "Started remote Delivery at %s", endpoint.str());
 
     delete response;
     valid = true;
@@ -174,26 +170,26 @@ namespace DataStaging {
 
     std::string xml;
     request.GetXML(xml, true);
-    logger_->msg(Arc::DEBUG, "DTR %s: Request:\n%s", dtr_id, xml);
+    logger_->msg(Arc::DEBUG, "Request:\n%s", xml);
 
     Arc::PayloadSOAP *response = NULL;
 
     Arc::MCC_Status status = client->process(&request, &response);
 
     if (!status) {
-      logger_->msg(Arc::ERROR, "DTR %s: Failed to send cancel request: %s", dtr_id, (std::string)status);
+      logger_->msg(Arc::ERROR, "Failed to send cancel request: %s", (std::string)status);
       if (response)
         delete response;
       return;
     }
 
     if (!response) {
-      logger_->msg(Arc::ERROR, "DTR %s: Failed to cancel: No SOAP response", dtr_id);
+      logger_->msg(Arc::ERROR, "Failed to cancel: No SOAP response");
       return;
     }
 
     response->GetXML(xml, true);
-    logger_->msg(Arc::DEBUG, "DTR %s: Response:\n%s", dtr_id, xml);
+    logger_->msg(Arc::DEBUG, "Response:\n%s", xml);
 
     if (response->IsFault()) {
       Arc::SOAPFault& fault = *response->Fault();
@@ -202,21 +198,21 @@ namespace DataStaging {
         if (fault.Reason(n).empty()) break;
         err += ": " + fault.Reason(n);
       }
-      logger_->msg(Arc::ERROR, "DTR %s: Failed to cancel transfer request: %s", dtr_id, err);
+      logger_->msg(Arc::ERROR, "Failed to cancel transfer request: %s", err);
       delete response;
       return;
     }
 
     Arc::XMLNode resultnode = (*response)["DataDeliveryCancelResponse"]["DataDeliveryCancelResult"]["Result"][0];
     if (!resultnode || !resultnode["ResultCode"]) {
-      logger_->msg(Arc::ERROR, "DTR %s: Bad format in XML response: %s", dtr_id, xml);
+      logger_->msg(Arc::ERROR, "Bad format in XML response: %s", xml);
       delete response;
       return;
     }
 
     if ((std::string)resultnode["ResultCode"] != "OK") {
       Arc::XMLNode errnode = resultnode["ErrorDescription"];
-      logger_->msg(Arc::ERROR, "DTR %s: Failed to cancel: %s", dtr_id, (std::string)errnode);
+      logger_->msg(Arc::ERROR, "Failed to cancel: %s", (std::string)errnode);
     }
     delete response;
   }
@@ -239,14 +235,14 @@ namespace DataStaging {
 
     std::string xml;
     request.GetXML(xml, true);
-    logger_->msg(Arc::DEBUG, "DTR %s: Request:\n%s", dtr_id, xml);
+    logger_->msg(Arc::DEBUG, "Request:\n%s", xml);
 
     Arc::PayloadSOAP *response = NULL;
 
     Arc::MCC_Status status = client->process(&request, &response);
 
     if (!status) {
-      logger_->msg(Arc::ERROR, "DTR %s: %s", dtr_id, (std::string)status);
+      logger_->msg(Arc::ERROR, "%s", (std::string)status);
       status_.commstatus = CommFailed;
       if (response)
         delete response;
@@ -259,14 +255,14 @@ namespace DataStaging {
         HandleQueryFault("No SOAP response from delivery service");
         return;
       }
-      logger_->msg(Arc::ERROR, "DTR %s: No SOAP response from delivery service", dtr_id);
+      logger_->msg(Arc::ERROR, "No SOAP response from delivery service");
       status_.commstatus = CommFailed;
       valid = false;
       return;
     }
 
     response->GetXML(xml, true);
-    logger_->msg(Arc::DEBUG, "DTR %s: Response:\n%s", dtr_id, xml);
+    logger_->msg(Arc::DEBUG, "Response:\n%s", xml);
 
     if (response->IsFault()) {
       Arc::SOAPFault& fault = *response->Fault();
@@ -280,7 +276,7 @@ namespace DataStaging {
         HandleQueryFault("Failed to query state: " + err);
         return;
       }
-      logger_->msg(Arc::ERROR, "DTR %s: Failed to query state: %s", dtr_id, err);
+      logger_->msg(Arc::ERROR, "Failed to query state: %s", err);
       status_.commstatus = CommFailed;
       strncpy(status_.error_desc, "SOAP error in connection with delivery service", sizeof(status_.error_desc));
       valid = false;
@@ -289,7 +285,7 @@ namespace DataStaging {
 
     Arc::XMLNode resultnode = (*response)["DataDeliveryQueryResponse"]["DataDeliveryQueryResult"]["Result"][0];
     if (!resultnode || !resultnode["ResultCode"]) {
-      logger_->msg(Arc::ERROR, "DTR %s: Bad format in XML response: %s", dtr_id, xml);
+      logger_->msg(Arc::ERROR, "Bad format in XML response: %s", xml);
       delete response;
       status_.commstatus = CommFailed;
       valid = false;
@@ -314,8 +310,8 @@ namespace DataStaging {
       dtr->get_usercfg().ApplyToConfig(cfg);
     }
 
-    dtr->get_logger()->msg(Arc::VERBOSE, "DTR %s: Connecting to Delivery service at %s",
-                           dtr->get_short_id(), dtr->get_delivery_endpoint().str());
+    dtr->get_logger()->msg(Arc::VERBOSE, "Connecting to Delivery service at %s",
+                           dtr->get_delivery_endpoint().str());
     Arc::ClientSOAP client(cfg, dtr->get_delivery_endpoint(), dtr->get_usercfg().Timeout());
 
     Arc::NS ns;
@@ -325,27 +321,27 @@ namespace DataStaging {
 
     std::string xml;
     request.GetXML(xml, true);
-    dtr->get_logger()->msg(Arc::DEBUG, "DTR %s: Request:\n%s", dtr->get_short_id(), xml);
+    dtr->get_logger()->msg(Arc::DEBUG, "Request:\n%s", xml);
 
     Arc::PayloadSOAP *response = NULL;
     Arc::MCC_Status status = client.process(&request, &response);
 
     if (!status) {
-      dtr->get_logger()->msg(Arc::ERROR, "DTR %s: Could not connect to service %s: %s",
-                             dtr->get_short_id(), dtr->get_delivery_endpoint().str(), (std::string)status);
+      dtr->get_logger()->msg(Arc::ERROR, "Could not connect to service %s: %s",
+                             dtr->get_delivery_endpoint().str(), (std::string)status);
       if (response)
         delete response;
       return false;
     }
 
     if (!response) {
-      dtr->get_logger()->msg(Arc::ERROR, "DTR %s: No SOAP response from Delivery service %s",
-                             dtr->get_short_id(), dtr->get_delivery_endpoint().str());
+      dtr->get_logger()->msg(Arc::ERROR, "No SOAP response from Delivery service %s",
+                             dtr->get_delivery_endpoint().str());
       return false;
     }
 
     response->GetXML(xml, true);
-    dtr->get_logger()->msg(Arc::DEBUG, "DTR %s: Response:\n%s", dtr->get_short_id(), xml);
+    dtr->get_logger()->msg(Arc::DEBUG, "Response:\n%s", xml);
 
     if (response->IsFault()) {
       Arc::SOAPFault& fault = *response->Fault();
@@ -354,24 +350,24 @@ namespace DataStaging {
         if (fault.Reason(n).empty()) break;
         err += ": " + fault.Reason(n);
       }
-      dtr->get_logger()->msg(Arc::ERROR, "DTR %s: SOAP fault from delivery service at %s: %s",
-                             dtr->get_short_id(), dtr->get_delivery_endpoint().str(), err);
+      dtr->get_logger()->msg(Arc::ERROR, "SOAP fault from delivery service at %s: %s",
+                             dtr->get_delivery_endpoint().str(), err);
       delete response;
       return false;
     }
 
     Arc::XMLNode resultnode = (*response)["DataDeliveryPingResponse"]["DataDeliveryPingResult"]["Result"][0];
     if (!resultnode || !resultnode["ResultCode"]) {
-      dtr->get_logger()->msg(Arc::ERROR, "DTR %s: Bad format in XML response from delivery service at %s: %s",
-                             dtr->get_short_id(), dtr->get_delivery_endpoint().str(), xml);
+      dtr->get_logger()->msg(Arc::ERROR, "Bad format in XML response from delivery service at %s: %s",
+                             dtr->get_delivery_endpoint().str(), xml);
       delete response;
       return false;
     }
 
     std::string resultcode = (std::string)(resultnode["ResultCode"]);
     if (resultcode != "OK") {
-      dtr->get_logger()->msg(Arc::ERROR, "DTR %s: Error pinging delivery service at %s: %s: %s",
-                             dtr->get_short_id(), dtr->get_delivery_endpoint().str(),
+      dtr->get_logger()->msg(Arc::ERROR, "Error pinging delivery service at %s: %s: %s",
+                             dtr->get_delivery_endpoint().str(),
                              resultcode, (std::string)(resultnode[0]["ErrorDescription"]));
       delete response;
       return false;
@@ -459,7 +455,7 @@ namespace DataStaging {
       std::string log = (std::string)node["Log"];
       if (!log.empty()) {
         if (log.size() > 2000) log = log.substr(log.find('\n', log.size()-2000));
-        logger_->msg(Arc::INFO, "DTR %s: DataDelivery log tail:\n%s", dtr_id, log);
+        logger_->msg(Arc::INFO, "DataDelivery log tail:\n%s", log);
       }
       valid = false;
     }
@@ -472,18 +468,18 @@ namespace DataStaging {
     const std::string& credentials = usercfg.CredentialString();
 
     if (credentials.empty() && (key.empty() || cert.empty())) {
-      logger_->msg(Arc::VERBOSE, "DTR %s: Failed locating credentials", dtr_id);
+      logger_->msg(Arc::VERBOSE, "Failed locating credentials");
       return false;
     }
 
     if(!client->Load()) {
-      logger_->msg(Arc::VERBOSE, "DTR %s: Failed to initiate client connection", dtr_id);
+      logger_->msg(Arc::VERBOSE, "Failed to initiate client connection");
       return false;
     }
 
     Arc::MCC* entry = client->GetEntry();
     if(!entry) {
-      logger_->msg(Arc::VERBOSE, "DTR %s: Client connection has no entry point", dtr_id);
+      logger_->msg(Arc::VERBOSE, "Client connection has no entry point");
       return false;
     }
 
@@ -491,9 +487,9 @@ namespace DataStaging {
     // Use in-memory credentials if set in UserConfig
     if (!credentials.empty()) deleg = new Arc::DelegationProviderSOAP(credentials);
     else deleg = new Arc::DelegationProviderSOAP(cert, key);
-    logger_->msg(Arc::VERBOSE, "DTR %s: Initiating delegation procedure", dtr_id);
+    logger_->msg(Arc::VERBOSE, "Initiating delegation procedure");
     if (!deleg->DelegateCredentialsInit(*entry, &(client->GetContext()))) {
-      logger_->msg(Arc::VERBOSE, "DTR %s: Failed to initiate delegation credentials", dtr_id);
+      logger_->msg(Arc::VERBOSE, "Failed to initiate delegation credentials");
       delete deleg;
       return false;
     }
@@ -504,7 +500,7 @@ namespace DataStaging {
 
   void DataDeliveryRemoteComm::HandleQueryFault(const std::string& err) {
     // Just return without changing status
-    logger_->msg(Arc::WARNING, "DTR %s: %s", dtr_id, err);
+    logger_->msg(Arc::WARNING, err);
     status_.timestamp = time(NULL);
     // A reconnect may be needed after losing connection
     delete client;

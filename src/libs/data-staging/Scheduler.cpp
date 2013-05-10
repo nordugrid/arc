@@ -167,23 +167,23 @@ namespace DataStaging {
       // Use next replica
       // Clear the error flag to resume normal workflow
       request->reset_error_status();
-      request->get_logger()->msg(Arc::INFO, "DTR %s: Using next %s replica", request->get_short_id(), source_error ? "source" : "destination");
+      request->get_logger()->msg(Arc::INFO, "Using next %s replica", source_error ? "source" : "destination");
       // Perhaps not necessary to query replica again if the error was in the destination
       // but the error could have been caused by a source problem during transfer
       request->set_status(DTRStatus::QUERY_REPLICA);
     }
     else {
       // No replicas - move to appropriate state for the post-processor to do cleanup
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: No more %s replicas", request->get_short_id(), source_error ? "source" : "destination");
+      request->get_logger()->msg(Arc::ERROR, "No more %s replicas", source_error ? "source" : "destination");
       if (request->get_destination()->IsIndex()) {
-        request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Will clean up pre-registered destination", request->get_short_id());
+        request->get_logger()->msg(Arc::VERBOSE, "Will clean up pre-registered destination");
         request->set_status(DTRStatus::REGISTER_REPLICA);
       } else if (!request->get_cache_parameters().cache_dirs.empty() &&
                  (request->get_cache_state() == CACHE_ALREADY_PRESENT || request->get_cache_state() == CACHEABLE)) {
-        request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Will release cache locks", request->get_short_id());
+        request->get_logger()->msg(Arc::VERBOSE, "Will release cache locks");
         request->set_status(DTRStatus::PROCESS_CACHE);
       } else { // nothing to clean up - set to end state
-        request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Moving to end of data staging", request->get_short_id());
+        request->get_logger()->msg(Arc::VERBOSE, "Moving to end of data staging");
         request->set_status(DTRStatus::CACHE_PROCESSED);
       }
     }
@@ -192,11 +192,11 @@ namespace DataStaging {
   bool Scheduler::handle_mapped_source(DTR_ptr request, Arc::URL& mapped_url) {
     // The DTR source is mapped to another place so set the mapped location in request.
     // If mapped_url is set delivery will use it as source
-    request->get_logger()->msg(Arc::INFO, "DTR %s: Source is mapped to %s", request->get_short_id(), mapped_url.str());
+    request->get_logger()->msg(Arc::INFO, "Source is mapped to %s", mapped_url.str());
 
     if (!request->get_source()->ReadOnly() && mapped_url.Protocol() == "link") {
       // read-write access means user can potentially modify source, so copy instead
-      request->get_logger()->msg(Arc::WARNING, "DTR %s: Cannot link to source which can be modified, will copy instead");
+      request->get_logger()->msg(Arc::WARNING, "Cannot link to source which can be modified, will copy instead");
       mapped_url.ChangeProtocol("file");
     }
     if (mapped_url.Protocol() == "link") {
@@ -206,18 +206,17 @@ namespace DataStaging {
       // turn off caching, remembering that we still need to release any cache
       // locks later if necessary.
       if (!request->get_destination()->Local()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Cannot link to a remote destination. Will not use mapped URL", request->get_short_id());
+        request->get_logger()->msg(Arc::ERROR, "Cannot link to a remote destination. Will not use mapped URL");
       }
       else {
-        request->get_logger()->msg(Arc::INFO, "DTR %s: Linking mapped file", request->get_short_id());
+        request->get_logger()->msg(Arc::INFO, "Linking mapped file");
         // Access session dir under mapped user
         if (!Arc::FileLink(mapped_url.Path(),
                            request->get_destination()->CurrentLocation().Path(),
                            request->get_local_user().get_uid(),
                            request->get_local_user().get_gid(),
                            true)) {
-          request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to create link: %s. Will not use mapped URL",
-                                     request->get_short_id(), Arc::StrError(errno));
+          request->get_logger()->msg(Arc::ERROR, "Failed to create link: %s. Will not use mapped URL", Arc::StrError(errno));
         }
         else {
           // successful link, so turn off caching, set to TRANSFERRED and return
@@ -229,7 +228,7 @@ namespace DataStaging {
         }
       }
 #else
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Linking mapped file - can't link on Windows", request->get_short_id());
+      request->get_logger()->msg(Arc::ERROR, "Linking mapped file - can't link on Windows");
 #endif
     }
     else {
@@ -252,17 +251,16 @@ namespace DataStaging {
 
     // Normal workflow is CHECK_CACHE
     if (request->get_cache_state() == NON_CACHEABLE || request->get_cache_parameters().cache_dirs.empty()) {
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: File is not cacheable, was requested not to be cached or no cache available, skipping cache check", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "File is not cacheable, was requested not to be cached or no cache available, skipping cache check");
       request->set_status(DTRStatus::CACHE_CHECKED);
     } else {
       // Cache checking should have quite a long timeout as it may
       // take a long time to download a big file
       request->set_timeout(3600);
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: File is cacheable, will check cache", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "File is cacheable, will check cache");
       if (DtrList.is_being_cached(request)) {
         Arc::Period cache_wait_period(10);
-        request->get_logger()->msg(Arc::VERBOSE, "DTR %s: File is currently being cached, will wait %is",
-                                   request->get_short_id(), cache_wait_period.GetPeriod());
+        request->get_logger()->msg(Arc::VERBOSE, "File is currently being cached, will wait %is", cache_wait_period.GetPeriod());
         request->set_process_time(cache_wait_period);
         request->set_status(DTRStatus::CACHE_WAIT);
       } else {
@@ -281,19 +279,18 @@ namespace DataStaging {
       request->set_error_status(DTRErrorStatus::CACHE_ERROR,
                                 DTRErrorStatus::ERROR_DESTINATION,
                                 "Timed out while waiting for cache for " + request->get_source()->str());
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Timed out while waiting for cache lock", request->get_short_id());
+      request->get_logger()->msg(Arc::ERROR, "Timed out while waiting for cache lock");
       request->set_status(DTRStatus::CACHE_PROCESSED);
     } else if (DtrList.is_being_cached(request)) {
       // TODO A low priority DTR holding the cache lock can block a high priority DTR
       // downloading the same file. Here we should cancel the low priority one to let
       // the high priority one go through
       Arc::Period cache_wait_period(10);
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: File is currently being cached, will wait %is",
-                                 request->get_short_id(), cache_wait_period.GetPeriod());
+      request->get_logger()->msg(Arc::VERBOSE, "File is currently being cached, will wait %is", cache_wait_period.GetPeriod());
       request->set_process_time(cache_wait_period);
     } else {
       // Try to check cache again
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Checking cache again", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Checking cache again");
       request->set_status(DTRStatus::CHECK_CACHE);
     }
   }
@@ -309,14 +306,14 @@ namespace DataStaging {
     if(request->get_cache_state() == CACHE_ALREADY_PRESENT){
       // File is on place already. After the post-processor
       // the DTR is DONE.
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Destination file is in cache", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Destination file is in cache");
       request->set_status(DTRStatus::PROCESS_CACHE);
     } else if (request->get_source()->IsIndex() || request->get_destination()->IsIndex()) {
       // The Normal workflow -- RESOLVE
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Source and/or destination is index service, will resolve replicas", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Source and/or destination is index service, will resolve replicas");
       request->set_status(DTRStatus::RESOLVE);
     } else {
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Neither source nor destination are index services, will skip resolving replicas", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Neither source nor destination are index services, will skip resolving replicas");
       request->set_status(DTRStatus::RESOLVED);
     }
   }
@@ -326,11 +323,11 @@ namespace DataStaging {
       // It's impossible to download anything, since no replica location is resolved
       // if cacheable, move to PROCESS_CACHE, the post-processor will do the cleanup
       if (request->get_cache_state() == CACHEABLE && !request->get_cache_parameters().cache_dirs.empty()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Problem with index service, will release cache lock", request->get_short_id());
+        request->get_logger()->msg(Arc::ERROR, "Problem with index service, will release cache lock");
         request->set_status(DTRStatus::PROCESS_CACHE);
       // else go to end state
       } else {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Problem with index service, will proceed to end of data staging", request->get_short_id());
+        request->get_logger()->msg(Arc::ERROR, "Problem with index service, will proceed to end of data staging");
         request->set_status(DTRStatus::CACHE_PROCESSED);
       }
     } else {
@@ -340,7 +337,7 @@ namespace DataStaging {
       // logic to choose best replica - sort according to configured preference
       request->get_source()->SortLocations(preferred_pattern, url_map);
       // Access latency is not known until replica is queried
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Checking source file is present", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Checking source file is present");
       request->set_status(DTRStatus::QUERY_REPLICA);
     }
   }
@@ -348,7 +345,7 @@ namespace DataStaging {
   void Scheduler::ProcessDTRREPLICA_QUERIED(DTR_ptr request){
     if(request->error()){
       // go to next replica or exit with error
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Error with source file, moving to next replica", request->get_short_id());
+      request->get_logger()->msg(Arc::ERROR, "Error with source file, moving to next replica");
       next_replica(request);
       return;
     }
@@ -365,12 +362,12 @@ namespace DataStaging {
       // If the current source location is long latency, try the next replica
       // TODO add this replica to the end of location list, so that if there
       // are problems with other replicas, we eventually come back to this one
-      request->get_logger()->msg(Arc::INFO, "DTR %s: Replica %s has long latency, trying next replica", request->get_short_id(), request->get_source()->CurrentLocation().str());
+      request->get_logger()->msg(Arc::INFO, "Replica %s has long latency, trying next replica", request->get_source()->CurrentLocation().str());
       if (request->get_source()->LastLocation()) {
-        request->get_logger()->msg(Arc::INFO, "DTR %s: No more replicas, will use %s", request->get_short_id(), request->get_source()->CurrentLocation().str());
+        request->get_logger()->msg(Arc::INFO, "No more replicas, will use %s", request->get_source()->CurrentLocation().str());
       } else {
         request->get_source()->NextLocation();
-        request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Checking replica %s", request->get_short_id(), request->get_source()->CurrentLocation().str());
+        request->get_logger()->msg(Arc::VERBOSE, "Checking replica %s", request->get_source()->CurrentLocation().str());
         request->set_status(DTRStatus::QUERY_REPLICA);
         return;
       }
@@ -380,10 +377,10 @@ namespace DataStaging {
     if (!request->is_replication() &&
         (request->get_destination()->GetURL().Option("overwrite") == "yes" ||
          request->get_destination()->CurrentLocation().Option("overwrite") == "yes")) {
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Overwrite requested - will pre-clean destination", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Overwrite requested - will pre-clean destination");
       request->set_status(DTRStatus::PRE_CLEAN);
     } else {
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: No overwrite requested or allowed, skipping pre-cleaning", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "No overwrite requested or allowed, skipping pre-cleaning");
       request->set_status(DTRStatus::PRE_CLEANED);
     }
   }
@@ -391,18 +388,18 @@ namespace DataStaging {
   void Scheduler::ProcessDTRPRE_CLEANED(DTR_ptr request){
     // If an error occurred in pre-cleaning, try to copy anyway
     if (request->error())
-      request->get_logger()->msg(Arc::INFO, "DTR %s: Pre-clean failed, will still try to copy", request->get_short_id());
+      request->get_logger()->msg(Arc::INFO, "Pre-clean failed, will still try to copy");
     request->reset_error_status();
     if (request->get_source()->IsStageable() || request->get_destination()->IsStageable()) {
       // Normal workflow is STAGE_PREPARE
       // Need to set the timeout to prevent from waiting for too long
       request->set_timeout(3600);
       // processor will take care of staging source or destination or both
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Source or destination requires staging", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Source or destination requires staging");
       request->set_status(DTRStatus::STAGE_PREPARE);
     }
     else {
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: No need to stage source or destination, skipping staging", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "No need to stage source or destination, skipping staging");
       request->set_status(DTRStatus::STAGED_PREPARED);
     }
   }
@@ -432,11 +429,11 @@ namespace DataStaging {
                                   "Stage request for source or destination file timed out");
 
       // Let the post-processor do the job
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Staging request timed out, will release request", request->get_short_id());
+      request->get_logger()->msg(Arc::ERROR, "Staging request timed out, will release request");
       request->set_status(DTRStatus::RELEASE_REQUEST);
     } else {
       // Normal workflow is STAGE_PREPARE again
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Querying status of staging request", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Querying status of staging request");
       request->set_status(DTRStatus::STAGE_PREPARE);
     }
   }
@@ -445,7 +442,7 @@ namespace DataStaging {
     if(request->error()){
       // We have to try another replica if the source failed to stage
       // but first we have to release any requests
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Releasing requests", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Releasing requests");
       request->set_status(DTRStatus::RELEASE_REQUEST);
       return;
     }
@@ -462,7 +459,7 @@ namespace DataStaging {
     }
 
     // After normal workflow the DTR is ready for delivery
-    request->get_logger()->msg(Arc::VERBOSE, "DTR %s: DTR is ready for transfer, moving to delivery queue", request->get_short_id());
+    request->get_logger()->msg(Arc::VERBOSE, "DTR is ready for transfer, moving to delivery queue");
 
     // set long timeout for waiting for transfer slot
     // (setting timeouts for active transfers is done in Delivery)
@@ -477,7 +474,7 @@ namespace DataStaging {
 
     // Delivery will clean up destination physical file on error
     if (request->error())
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Transfer failed: %s", request->get_short_id(), request->get_error_status().GetDesc());
+      request->get_logger()->msg(Arc::ERROR, "Transfer failed: %s", request->get_error_status().GetDesc());
 
     // Resuming normal workflow after the DTR has finished transferring
     // The next state is RELEASE_REQUEST
@@ -487,10 +484,10 @@ namespace DataStaging {
     if (!request->cancel_requested() && !request->error() && request->get_cache_state() == CACHEABLE)
       request->set_cache_state(CACHE_DOWNLOADED);
     if (request->get_source()->IsStageable() || request->get_destination()->IsStageable()) {
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Releasing request(s) made during staging", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Releasing request(s) made during staging");
       request->set_status(DTRStatus::RELEASE_REQUEST);
     } else {
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Neither source nor destination were staged, skipping releasing requests", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Neither source nor destination were staged, skipping releasing requests");
       request->set_status(DTRStatus::REQUEST_RELEASED);
     }
   }
@@ -502,15 +499,15 @@ namespace DataStaging {
     // and is not from destination, we need to query another replica
     if (request->error() &&
         request->get_error_status().GetLastErrorState() != DTRStatus::RELEASING_REQUEST) {
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Trying next replica", request->get_short_id());
+      request->get_logger()->msg(Arc::ERROR, "Trying next replica");
       next_replica(request);
     } else if (request->get_destination()->IsIndex()) {
       // Normal workflow is REGISTER_REPLICA
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Will %s in destination index service", request->get_short_id(),
+      request->get_logger()->msg(Arc::VERBOSE, "Will %s in destination index service",
                                  ((request->error() || request->cancel_requested()) ? "unregister":"register"));
       request->set_status(DTRStatus::REGISTER_REPLICA);
     } else {
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Destination is not index service, skipping replica registration", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Destination is not index service, skipping replica registration");
       request->set_status(DTRStatus::REPLICA_REGISTERED);
     }
   }
@@ -523,7 +520,7 @@ namespace DataStaging {
     // before, follow normal workflow and processor will clean up
     if(request->error() &&
        request->get_error_status().GetLastErrorState() == DTRStatus::REGISTERING_REPLICA) {
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Error registering replica, moving to end of data staging", request->get_short_id());
+      request->get_logger()->msg(Arc::ERROR, "Error registering replica, moving to end of data staging");
       request->set_status(DTRStatus::CACHE_PROCESSED);
     } else if (!request->get_cache_parameters().cache_dirs.empty() &&
                (request->get_cache_state() == CACHE_ALREADY_PRESENT ||
@@ -531,11 +528,11 @@ namespace DataStaging {
                 request->get_cache_state() == CACHEABLE ||
                 request->get_cache_state() == CACHE_NOT_USED)) {
       // Normal workflow is PROCESS_CACHE
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Will process cache", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Will process cache");
       request->set_status(DTRStatus::PROCESS_CACHE);
     } else {
       // not a cacheable file
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: File is not cacheable, skipping cache processing", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "File is not cacheable, skipping cache processing");
       request->set_status(DTRStatus::CACHE_PROCESSED);
     }
   }
@@ -549,7 +546,7 @@ namespace DataStaging {
 
     if (request->cancel_requested()) {
       // Cancellation steps finished
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Cancellation complete", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Cancellation complete");
       request->set_status(DTRStatus::CANCELLED);
     }
     else if(request->error()) {
@@ -563,13 +560,13 @@ namespace DataStaging {
         if (request->get_cache_state() == CACHE_LOCKED) {
           // set a flat wait time of 10s
           Arc::Period cache_wait_period(10);
-          request->get_logger()->msg(Arc::INFO, "DTR %s: Will wait 10s", request->get_short_id());
+          request->get_logger()->msg(Arc::INFO, "Will wait 10s");
           request->set_process_time(cache_wait_period);
           request->set_cache_state(CACHEABLE);
           request->set_status(DTRStatus::NEW);
         }
         else {
-          request->get_logger()->msg(Arc::ERROR, "DTR %s: Error in cache processing, will retry without caching", request->get_short_id());
+          request->get_logger()->msg(Arc::ERROR, "Error in cache processing, will retry without caching");
           if (request->get_cache_state() == CACHE_ALREADY_PRESENT) request->set_status(DTRStatus::CACHE_CHECKED);
           else request->set_status(DTRStatus::REPLICA_QUERIED);
           request->set_cache_state(CACHE_SKIP);
@@ -578,7 +575,7 @@ namespace DataStaging {
         return;
       }
       else if (request->get_error_status().GetLastErrorState() == DTRStatus::CACHE_WAIT) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Will retry without caching", request->get_short_id());
+        request->get_logger()->msg(Arc::ERROR, "Will retry without caching");
         request->set_cache_state(CACHE_SKIP);
         request->reset_error_status();
         request->set_status(DTRStatus::CACHE_CHECKED);
@@ -595,8 +592,8 @@ namespace DataStaging {
             // exponential back off - 10s, 40s, 90s, ...
             request->set_process_time(10*(request->get_initial_tries()-request->get_tries_left())*
                                          (request->get_initial_tries()-request->get_tries_left()));
-            request->get_logger()->msg(Arc::INFO, "DTR %s: %i retries left, will wait until %s before next attempt",
-                                       request->get_short_id(), request->get_tries_left(), request->get_process_time().str());
+            request->get_logger()->msg(Arc::INFO, "%i retries left, will wait until %s before next attempt",
+                                       request->get_tries_left(), request->get_process_time().str());
             // set state depending on where the error occurred
             if (request->get_error_status().GetLastErrorState() == DTRStatus::REGISTERING_REPLICA) {
               request->set_status(DTRStatus::REGISTER_REPLICA);
@@ -611,15 +608,15 @@ namespace DataStaging {
             return;
           }
           else
-            request->get_logger()->msg(Arc::ERROR, "DTR %s: Out of retries", request->get_short_id());
+            request->get_logger()->msg(Arc::ERROR, "Out of retries");
         }
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Permanent failure", request->get_short_id());
+        request->get_logger()->msg(Arc::ERROR, "Permanent failure");
         request->set_status(DTRStatus::ERROR);
       }
     }
     else {
       // Normal workflow is completed for this DTR successfully
-      request->get_logger()->msg(Arc::INFO, "DTR %s: Finished successfully", request->get_short_id());
+      request->get_logger()->msg(Arc::INFO, "Finished successfully");
       request->set_status(DTRStatus::DONE);
     }
   }
@@ -629,7 +626,7 @@ namespace DataStaging {
   	// and deleted from the global list
 
   	// Return to the generator
-    request->get_logger()->msg(Arc::INFO, "DTR %s: Returning to generator", request->get_short_id());
+    request->get_logger()->msg(Arc::INFO, "Returning to generator");
     DTR::push(request, GENERATOR);
     // Delete from the global list
     DtrList.delete_dtr(request);
@@ -796,15 +793,13 @@ namespace DataStaging {
       for (std::vector<Arc::URL>::const_iterator i = configured_delivery_services.begin();
            i != configured_delivery_services.end(); ++i) {
         if (*i == DTR::LOCAL_DELIVERY) {
-          request->get_logger()->msg(Arc::INFO, "DTR %s: Using non-RFC proxy so only local delivery can be used",
-                                     request->get_short_id());
+          request->get_logger()->msg(Arc::INFO, "Using non-RFC proxy so only local delivery can be used");
           request->set_delivery_endpoint(DTR::LOCAL_DELIVERY);
           return;
         }
       }
       // No local defined so log a warning
-      request->get_logger()->msg(Arc::WARNING, "DTR %s: Using non-RFC proxy so forcing local delivery",
-                                 request->get_short_id());
+      request->get_logger()->msg(Arc::WARNING, "Using non-RFC proxy so forcing local delivery");
       request->set_delivery_endpoint(DTR::LOCAL_DELIVERY);
       return;
     }
@@ -813,8 +808,7 @@ namespace DataStaging {
     if (remote_size_limit > 0 &&
         request->get_source()->CheckSize() &&
         request->get_source()->GetSize() < remote_size_limit) {
-      request->get_logger()->msg(Arc::INFO, "DTR %s: File is smaller than %llu bytes, will use local delivery",
-                                 request->get_short_id(), remote_size_limit);
+      request->get_logger()->msg(Arc::INFO, "File is smaller than %llu bytes, will use local delivery", remote_size_limit);
       request->set_delivery_endpoint(DTR::LOCAL_DELIVERY);
       return;
     }
@@ -864,8 +858,7 @@ namespace DataStaging {
           if ((request->get_cache_state() == CACHEABLE) && !request->get_cache_file().empty()) dest = request->get_cache_file();
 
           if (dest.find(*dir) == 0) {
-            request->get_logger()->msg(Arc::DEBUG, "DTR %s: Delivery service at %s can copy to %s",
-                                       request->get_short_id(), service->first.str(), *dir);
+            request->get_logger()->msg(Arc::DEBUG, "Delivery service at %s can copy to %s", service->first.str(), *dir);
             possible_delivery_services.push_back(service->first);
             break;
           }
@@ -873,8 +866,7 @@ namespace DataStaging {
         else if (request->get_source()->Local()) {
 
           if (request->get_source()->TransferLocations()[0].Path().find(*dir) == 0) {
-            request->get_logger()->msg(Arc::DEBUG, "DTR %s: Delivery service at %s can copy from %s",
-                                       request->get_short_id(), service->first.str(), *dir);
+            request->get_logger()->msg(Arc::DEBUG, "Delivery service at %s can copy from %s", service->first.str(), *dir);
             possible_delivery_services.push_back(service->first);
             break;
           }
@@ -887,8 +879,8 @@ namespace DataStaging {
       }
     }
     if (possible_delivery_services.empty()) {
-      request->get_logger()->msg(Arc::WARNING, "DTR %s: Could not find any useable delivery service,"
-                                               " forcing local transfer", request->get_short_id());
+      request->get_logger()->msg(Arc::WARNING, "Could not find any useable delivery service,"
+                                               " forcing local transfer");
       request->set_delivery_endpoint(DTR::LOCAL_DELIVERY);
       return;
     }
@@ -910,8 +902,7 @@ namespace DataStaging {
       std::vector<Arc::URL>::const_iterator problem = request->get_problematic_delivery_services().begin();
       while (problem != request->get_problematic_delivery_services().end()) {
         if (*possible == *problem) {
-          request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Not using delivery service %s due to previous failure",
-                                     request->get_short_id(), problem->str());
+          request->get_logger()->msg(Arc::VERBOSE, "Not using delivery service %s due to previous failure", problem->str());
           possible = possible_delivery_services.erase(possible);
           break;
         }
@@ -921,8 +912,8 @@ namespace DataStaging {
     }
     if (possible_delivery_services.empty()) {
       // force local
-      if (!can_use_local) request->get_logger()->msg(Arc::WARNING, "DTR %s: No remote delivery services "
-                                                     "are useable, forcing local delivery", request->get_short_id());
+      if (!can_use_local) request->get_logger()->msg(Arc::WARNING, "No remote delivery services "
+                                                     "are useable, forcing local delivery");
       request->set_delivery_endpoint(DTR::LOCAL_DELIVERY);
     } else {
       // Find a random service different from the previous one, looping a
@@ -1114,7 +1105,7 @@ namespace DataStaging {
           // post-processor DTRs don't get cancelled here but are allowed to
           // continue processing.
           if ( tmp->cancel_requested()) {
-            tmp->get_logger()->msg(Arc::INFO, "DTR %s: Cancelling active transfer", tmp->get_short_id());
+            tmp->get_logger()->msg(Arc::INFO, "Cancelling active transfer");
             delivery.cancelDTR(tmp);
             dtr = ActiveDTRs.erase(dtr);
             continue;
@@ -1126,7 +1117,7 @@ namespace DataStaging {
           // stuck thread wakes up.
           // Need to re-connect logger as it was disconnected in Processor thread
           tmp->connect_logger();
-          tmp->get_logger()->msg(Arc::WARNING, "DTR %s: Processing thread timed out. Restarting DTR", tmp->get_short_id());
+          tmp->get_logger()->msg(Arc::WARNING, "Processing thread timed out. Restarting DTR");
           tmp->set_error_status(DTRErrorStatus::INTERNAL_PROCESS_ERROR,
                                 DTRErrorStatus::NO_ERROR_LOCATION,
                                 "Processor thread timed out");
@@ -1194,7 +1185,7 @@ namespace DataStaging {
               std::set<DTR_ptr> bulk_set(bulk_requests[tmp->get_parent_job_id()]);
               if (bulk_set.size() > 1 &&
                   bulk_set.find(tmp) != bulk_set.end()) {
-                tmp->get_logger()->msg(Arc::INFO, "DTR %s: Will use bulk request", tmp->get_short_id());
+                tmp->get_logger()->msg(Arc::INFO, "Will use bulk request");
                 unsigned int dtr_no = 0;
                 for (std::set<DTR_ptr>::iterator i = bulk_set.begin(); i != bulk_set.end(); ++i) {
                   if (dtr_no == 0) (*i)->set_bulk_start(true);

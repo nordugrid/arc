@@ -276,6 +276,7 @@ namespace DataStaging {
       // deleted when the DTR is archived.
       sstream_ptr stream(new std::stringstream());
       Arc::LogDestination * output = new Arc::LogStream(*stream);
+      output->setFormat(Arc::MediumFormat);
       DTRLogger log(new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging"));
       log->removeDestinations();
       log->addDestination(*output);
@@ -547,6 +548,12 @@ namespace DataStaging {
       current_processes(0) {
 
     valid = false;
+    // Set medium format for logging
+    root_destinations = Arc::Logger::getRootLogger().getDestinations();
+    for (std::list<Arc::LogDestination*>::iterator i = root_destinations.begin();
+         i != root_destinations.end(); ++i) {
+      (*i)->setFormat(Arc::MediumFormat);
+    }
     // Check configuration - at least one allowed IP address and dir must be specified
     if (!(*cfg)["SecHandler"]["PDP"]["Policy"]["Rule"]["Subjects"]["Subject"]) {
       logger.msg(Arc::ERROR, "Invalid configuration - no allowed IP address specified");
@@ -578,7 +585,6 @@ namespace DataStaging {
     umask(0077);
     // Set log level for DTR
     DataStaging::DTR::LOG_LEVEL = Arc::Logger::getRootLogger().getThreshold();
-    root_destinations = Arc::Logger::getRootLogger().getDestinations();
     // Start new DataDelivery
     delivery.start();
     valid = true;

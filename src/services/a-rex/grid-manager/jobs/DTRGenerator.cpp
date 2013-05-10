@@ -739,7 +739,6 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
 
   // flag to say whether at least one file needs to be staged
   bool staging = false;
-  Arc::LogLevel log_level = Arc::Logger::getRootLogger().getThreshold();
 
   for (std::list<FileData>::iterator i = files.begin(); i != files.end(); ++i) {
     if (i->lfn.find(":") == std::string::npos)
@@ -784,6 +783,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
     DataStaging::DTRLogger dtr_log(new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging.DTR"));
     Arc::LogFile * dest = new Arc::LogFile(job_errors_filename(jobid, config));
     dest->setReopen(true);
+    dest->setFormat(Arc::MediumFormat);
     dtr_log->addDestination(*dest);
 
     // create DTR and send to Scheduler

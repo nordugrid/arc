@@ -124,6 +124,11 @@ namespace DataStaging {
     set_timeout(60);
     // setting ID last means all the previous steps have to pass for the DTR to be valid
     DTR_ID = Arc::UUID();
+    // Prefix all log messages for this DTR with the short ID
+    for (std::list<Arc::LogDestination*>::iterator dest = log_destinations.begin();
+         dest != log_destinations.end(); ++dest) {
+      (*dest)->setPrefix("DTR " + get_short_id() + ": ");
+    }
   }	
 
   void DTR::registerCallback(DTRCallback* cb, StagingProcesses owner) {
@@ -158,6 +163,11 @@ namespace DataStaging {
       logger->msg(Arc::WARNING, "Invalid ID: %s", id);
     } else {
       DTR_ID = id;
+      // Change logging prefix to new ID
+      for (std::list<Arc::LogDestination*>::iterator dest = log_destinations.begin();
+           dest != log_destinations.end(); ++dest) {
+        (*dest)->setPrefix("DTR " + get_short_id() + ": ");
+      }
     }
   }
 
@@ -187,7 +197,7 @@ namespace DataStaging {
 
   void DTR::set_status(DTRStatus stat)
   {
-    logger->msg(Arc::VERBOSE, "DTR %s: %s->%s", get_short_id(), status.str(), stat.str());
+    logger->msg(Arc::VERBOSE, "%s->%s", status.str(), stat.str());
     lock.lock();
     status = stat;
     lock.unlock();
@@ -291,7 +301,7 @@ namespace DataStaging {
 
     std::list<DTRCallback*> callbacks = dtr->get_callbacks(dtr->proc_callback,dtr->current_owner);
     if (callbacks.empty())
-      dtr->logger->msg(Arc::INFO, "DTR %s: No callback for %s defined", dtr->get_short_id(), get_owner_name(dtr->current_owner));
+      dtr->logger->msg(Arc::INFO, "No callback for %s defined", get_owner_name(dtr->current_owner));
 
     for (std::list<DTRCallback*>::iterator callback = callbacks.begin();
         callback != callbacks.end(); ++callback) {
@@ -306,10 +316,10 @@ namespace DataStaging {
           if (*callback)
             (*callback)->receiveDTR(dtr);
           else
-            dtr->logger->msg(Arc::WARNING, "DTR %s: NULL callback for %s", dtr->get_short_id(), get_owner_name(dtr->current_owner));
+            dtr->logger->msg(Arc::WARNING, "NULL callback for %s", get_owner_name(dtr->current_owner));
         } break;
         default: // impossible
-          dtr->logger->msg(Arc::INFO, "DTR %s: Request to push to unknown owner - %u", dtr->get_short_id(), (unsigned int)dtr->current_owner);
+          dtr->logger->msg(Arc::INFO, "Request to push to unknown owner - %u", (unsigned int)dtr->current_owner);
           break;
       }
     }

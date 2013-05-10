@@ -48,7 +48,7 @@ namespace DataStaging {
                          request->get_local_user().get_gid());
 
     if (!cache) {
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Error creating cache", request->get_short_id());
+      request->get_logger()->msg(Arc::ERROR, "Error creating cache");
       request->set_cache_state(CACHE_SKIP);
       request->set_error_status(DTRErrorStatus::CACHE_ERROR,
                             DTRErrorStatus::ERROR_DESTINATION,
@@ -76,12 +76,12 @@ namespace DataStaging {
     bool use_remote = true;
     // check for forced re-download option
     bool renew = (request->get_source()->GetURL().Option("cache") == "renew");
-    if (renew) request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Forcing re-download of file %s", request->get_short_id(), canonic_url);
+    if (renew) request->get_logger()->msg(Arc::VERBOSE, "Forcing re-download of file %s", canonic_url);
 
     for (;;) {
       if (!cache.Start(canonic_url, is_in_cache, is_locked, use_remote, renew)) {
         if (is_locked) {
-          request->get_logger()->msg(Arc::WARNING, "DTR %s: Cached file is locked - should retry", request->get_short_id());
+          request->get_logger()->msg(Arc::WARNING, "Cached file is locked - should retry");
           request->set_cache_state(CACHE_LOCKED);
           request->set_status(DTRStatus::CACHE_WAIT);
 
@@ -93,14 +93,14 @@ namespace DataStaging {
           // add random number of milliseconds
           uint32_t nano_randomness = (rand() % 1000) * 1000000;
           Arc::Period cache_wait_period(cache_wait_time, nano_randomness);
-          request->get_logger()->msg(Arc::INFO, "DTR %s: Will wait around %is", request->get_short_id(), cache_wait_time);
+          request->get_logger()->msg(Arc::INFO, "Will wait around %is", cache_wait_time);
           request->set_process_time(cache_wait_period);
 
           request->connect_logger();
           DTR::push(request, SCHEDULER);
           return;
         }
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to initiate cache", request->get_short_id());
+        request->get_logger()->msg(Arc::ERROR, "Failed to initiate cache");
         request->set_cache_state(CACHE_SKIP);
         request->set_error_status(DTRErrorStatus::CACHE_ERROR,
                               DTRErrorStatus::ERROR_DESTINATION,
@@ -110,8 +110,8 @@ namespace DataStaging {
       request->set_cache_file(cache.File(canonic_url));
       if (is_in_cache) {
         // just need to check permissions
-        request->get_logger()->msg(Arc::INFO, "DTR %s: File %s is cached (%s) - checking permissions",
-                   request->get_short_id(), canonic_url, cache.File(canonic_url));
+        request->get_logger()->msg(Arc::INFO, "File %s is cached (%s) - checking permissions",
+                   canonic_url, cache.File(canonic_url));
         // check the list of cached DNs
         bool have_permission = false;
         // don't request metadata from source if user says not to
@@ -121,7 +121,7 @@ namespace DataStaging {
         else {
           Arc::DataStatus cres = request->get_source()->Check(check_meta);
           if (!cres.Passed()) {
-            request->get_logger()->msg(Arc::ERROR, "DTR %s: Permission checking failed", request->get_short_id());
+            request->get_logger()->msg(Arc::ERROR, "Permission checking failed");
             request->set_cache_state(CACHE_SKIP);
             request->set_error_status(DTRErrorStatus::CACHE_ERROR,
                                   DTRErrorStatus::ERROR_DESTINATION,
@@ -130,7 +130,7 @@ namespace DataStaging {
           }
           cache.AddDN(canonic_url, dn, exp_time);
         }
-        request->get_logger()->msg(Arc::INFO, "DTR %s: Permission checking passed", request->get_short_id());
+        request->get_logger()->msg(Arc::INFO, "Permission checking passed");
         // check if file is fresh enough
         bool outdated = true;
         if (have_permission || !check_meta)
@@ -138,31 +138,31 @@ namespace DataStaging {
         if (request->get_source()->CheckModified() && cache.CheckCreated(canonic_url)) {
           Arc::Time sourcetime = request->get_source()->GetModified();
           Arc::Time cachetime = cache.GetCreated(canonic_url);
-          request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Source modification date: %s", request->get_short_id(), sourcetime.str());
-          request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Cache creation date: %s", request->get_short_id(), cachetime.str());
+          request->get_logger()->msg(Arc::VERBOSE, "Source modification date: %s", sourcetime.str());
+          request->get_logger()->msg(Arc::VERBOSE, "Cache creation date: %s", cachetime.str());
           if (sourcetime <= cachetime)
             outdated = false;
         }
         if (cache.CheckValid(canonic_url)) {
           Arc::Time validtime = cache.GetValid(canonic_url);
-          request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Cache file valid until: %s", validtime.str(), request->get_short_id());
+          request->get_logger()->msg(Arc::VERBOSE, "Cache file valid until: %s", validtime.str());
           if (validtime > Arc::Time())
             outdated = false;
           else
             outdated = true;
         }
         if (outdated) {
-          request->get_logger()->msg(Arc::INFO, "DTR %s: Cached file is outdated, will re-download", request->get_short_id());
+          request->get_logger()->msg(Arc::INFO, "Cached file is outdated, will re-download");
           use_remote = false;
           renew = true;
           continue;
         }
         // cached file is present and valid
-        request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Cached copy is still valid", request->get_short_id());
+        request->get_logger()->msg(Arc::VERBOSE, "Cached copy is still valid");
         request->set_cache_state(CACHE_ALREADY_PRESENT);
       }
       else { // file is not there but we are ready to download it
-        request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Will download to cache file %s", request->get_short_id(), request->get_cache_file());
+        request->get_logger()->msg(Arc::VERBOSE, "Will download to cache file %s", request->get_cache_file());
         request->set_cache_state(CACHEABLE);
       }
       break;
@@ -184,10 +184,10 @@ namespace DataStaging {
 
     // check for source replicas
     if (request->get_source()->IsIndex()) {
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Looking up source replicas", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Looking up source replicas");
       Arc::DataStatus res = request->get_source()->Resolve(true);
       if (!res.Passed() || !request->get_source()->HaveLocations() || !request->get_source()->LocationValid()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: %s", request->get_short_id(), std::string(res));
+        request->get_logger()->msg(Arc::ERROR, std::string(res));
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_SOURCE,
                                   "Could not resolve any source replicas for " + request->get_source()->str() + ": " + std::string(res));
@@ -208,10 +208,10 @@ namespace DataStaging {
 
     // Check replicas supplied for destination
     if (request->get_destination()->IsIndex()) {
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Resolving destination replicas", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Resolving destination replicas");
       Arc::DataStatus res = request->get_destination()->Resolve(false);
       if (!res.Passed() || !request->get_destination()->HaveLocations() || !request->get_destination()->LocationValid()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: %s", request->get_short_id(), std::string(res));
+        request->get_logger()->msg(Arc::ERROR, std::string(res));
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_DESTINATION,
                                   "Could not resolve any destination replicas for " + request->get_destination()->str() + ": " + std::string(res));
@@ -226,7 +226,7 @@ namespace DataStaging {
       // we do not want to replicate to same physical file
       request->get_destination()->RemoveLocations(*(request->get_source()));
       if (!request->get_destination()->HaveLocations()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: No locations for destination different from source found");
+        request->get_logger()->msg(Arc::ERROR, "No locations for destination different from source found");
         request->set_error_status(DTRErrorStatus::SELF_REPLICATION_ERROR,
                                   DTRErrorStatus::NO_ERROR_LOCATION,
                                   "No locations for destination different from source found for " + request->get_destination()->str());
@@ -238,10 +238,10 @@ namespace DataStaging {
     }
     // pre-register destination
     if (request->get_destination()->IsIndex()) {
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Pre-registering destination in index service", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Pre-registering destination in index service");
       Arc::DataStatus res = request->get_destination()->PreRegister(request->is_replication(), request->is_force_registration());
       if (!res.Passed()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: %s", request->get_short_id(), std::string(res));
+        request->get_logger()->msg(Arc::ERROR, std::string(res));
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_DESTINATION,
                                   "Could not pre-register destination " + request->get_destination()->str() + ": " + std::string(res));
@@ -265,7 +265,7 @@ namespace DataStaging {
     std::list<Arc::DataPoint*> sources;
     for (std::list<DTR_ptr>::iterator i = requests.begin(); i != requests.end(); ++i) {
       setUpLogger(*i);
-      (*i)->get_logger()->msg(Arc::VERBOSE, "DTR %s: Resolving source replicas in bulk", (*i)->get_short_id());
+      (*i)->get_logger()->msg(Arc::VERBOSE, "Resolving source replicas in bulk");
       sources.push_back(&(*((*i)->get_source()))); // nasty...
     }
 
@@ -274,7 +274,7 @@ namespace DataStaging {
     for (std::list<DTR_ptr>::iterator i = requests.begin(); i != requests.end(); ++i) {
       DTR_ptr request = *i;
       if (!res.Passed() || !request->get_source()->HaveLocations() || !request->get_source()->LocationValid()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: %s", request->get_short_id(), std::string(res));
+        request->get_logger()->msg(Arc::ERROR, std::string(res));
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_SOURCE,
                                   "Could not resolve any source replicas for " + request->get_source()->str() + ": " + std::string(res));
@@ -294,7 +294,7 @@ namespace DataStaging {
     setUpLogger(request);
 
     Arc::DataStatus res;
-    request->get_logger()->msg(Arc::INFO, "DTR %s: Checking %s", request->get_short_id(), request->get_source()->CurrentLocation().str());
+    request->get_logger()->msg(Arc::INFO, "Checking %s", request->get_source()->CurrentLocation().str());
     if (request->get_source()->IsIndex()) {
       res = request->get_source()->CompareLocationMetadata();
     } else {
@@ -303,7 +303,7 @@ namespace DataStaging {
     }
 
     if (res == Arc::DataStatus::InconsistentMetadataError) {
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Metadata of replica and index service differ", request->get_short_id());
+      request->get_logger()->msg(Arc::ERROR, "Metadata of replica and index service differ");
       request->set_error_status(DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                 DTRErrorStatus::ERROR_SOURCE,
                                 "Metadata of replica and index service differ for " +
@@ -311,8 +311,7 @@ namespace DataStaging {
                                   " and " + request->get_source()->str());
     }
     else if (!res.Passed()) {
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed checking source replica %s: %s",
-                                 request->get_short_id(),
+      request->get_logger()->msg(Arc::ERROR, "Failed checking source replica %s: %s",
                                  request->get_source()->CurrentLocation().str(),
                                  std::string(res) );
       request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
@@ -339,7 +338,7 @@ namespace DataStaging {
     std::list<Arc::DataPoint*> sources;
     for (std::list<DTR_ptr>::iterator i = requests.begin(); i != requests.end(); ++i) {
       setUpLogger(*i);
-      (*i)->get_logger()->msg(Arc::VERBOSE, "DTR %s: Querying source replicas in bulk", (*i)->get_short_id());
+      (*i)->get_logger()->msg(Arc::VERBOSE, "Querying source replicas in bulk");
       sources.push_back((*i)->get_source()->CurrentLocationHandle());
     }
 
@@ -351,14 +350,13 @@ namespace DataStaging {
     for (std::list<DTR_ptr>::iterator i = requests.begin(); i != requests.end(); ++i, ++file) {
       DTR_ptr request = *i;
       if (!res.Passed() || files.size() != requests.size() || !*file) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed checking source replica: %s",
-                                   request->get_short_id(), std::string(res));
+        request->get_logger()->msg(Arc::ERROR, "Failed checking source replica: %s", std::string(res));
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_SOURCE,
                                   "Failed checking source replica " + request->get_source()->CurrentLocation().str() + ": " + std::string(res));
       }
       else if (request->get_source()->IsIndex() && !request->get_source()->CompareMeta(*(request->get_source()->CurrentLocationHandle()))) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Metadata of replica and index service differ", request->get_short_id());
+        request->get_logger()->msg(Arc::ERROR, "Metadata of replica and index service differ");
         request->set_error_status(DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_SOURCE,
                                   "Metadata of replica and index service differ for " +
@@ -387,26 +385,26 @@ namespace DataStaging {
     Arc::DataStatus res = Arc::DataStatus::Success;
 
     if (!request->get_destination()->IsIndex()) {
-      request->get_logger()->msg(Arc::INFO, "DTR %s: Removing %s", request->get_short_id(), request->get_destination()->CurrentLocation().str());
+      request->get_logger()->msg(Arc::INFO, "Removing %s", request->get_destination()->CurrentLocation().str());
       res = request->get_destination()->Remove();
     }
     else {
       // get existing locations
       Arc::DataHandle dest(request->get_destination()->GetURL(), request->get_destination()->GetUserConfig());
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Finding existing destination replicas", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Finding existing destination replicas");
       res = dest->Resolve(true);
       if (!res.Passed()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: %s", request->get_short_id(), std::string(res));
+        request->get_logger()->msg(Arc::ERROR, std::string(res));
       }
       else {
         if (dest->HaveLocations()) {
           while (dest->LocationValid()) {
-            request->get_logger()->msg(Arc::INFO, "DTR %s: Removing %s", request->get_short_id(), dest->CurrentLocation().str());
+            request->get_logger()->msg(Arc::INFO, "Removing %s", dest->CurrentLocation().str());
             res = dest->Remove();
             if (!res.Passed()) {
               // if we fail to delete one replica then bail out
-              request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to delete replica %s: %s",
-                                         request->get_short_id(), dest->CurrentLocation().str(),
+              request->get_logger()->msg(Arc::ERROR, "Failed to delete replica %s: %s",
+                                         dest->CurrentLocation().str(),
                                          std::string(res));
               break;
             }
@@ -419,25 +417,24 @@ namespace DataStaging {
         }
         if (!dest->HaveLocations()) {
           // all replicas were deleted successfully, now unregister the LFN
-          request->get_logger()->msg(Arc::INFO, "DTR %s: Unregistering %s", request->get_short_id(), dest->str());
+          request->get_logger()->msg(Arc::INFO, "Unregistering %s", dest->str());
           res = dest->Unregister(true);
         }
       }
       // if deletion was successful resolve destination and pre-register
       if (!dest->HaveLocations()) {
-        request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Resolving destination replicas", request->get_short_id());
+        request->get_logger()->msg(Arc::VERBOSE, "Resolving destination replicas");
         res = request->get_destination()->Resolve(false);
         if (!res.Passed()) {
-          request->get_logger()->msg(Arc::ERROR, "DTR %s: %s", request->get_short_id(), std::string(res));
+          request->get_logger()->msg(Arc::ERROR, std::string(res));
         } else {
-          request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Pre-registering destination", request->get_short_id());
+          request->get_logger()->msg(Arc::VERBOSE, "Pre-registering destination");
           res = request->get_destination()->PreRegister(false, request->is_force_registration());
         }
       }
     }
     if (!res.Passed()) {
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to pre-clean destination: %s",
-                                 request->get_short_id(), std::string(res));
+      request->get_logger()->msg(Arc::ERROR, "Failed to pre-clean destination: %s", std::string(res));
       request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                 DTRErrorStatus::ERROR_DESTINATION,
                                 "Failed to pre-clean destination " + request->get_destination()->str() + ": " + std::string(res));
@@ -461,10 +458,10 @@ namespace DataStaging {
     if (request->get_source()->IsStageable() && request->get_source()->TransferLocations().empty()) {
       // give default wait time for cases where no wait time is given by the remote service
       unsigned int source_wait_time = 10;
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Preparing to stage source", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Preparing to stage source");
       Arc::DataStatus res = request->get_source()->PrepareReading(0, source_wait_time);
       if (!res.Passed()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: %s", request->get_short_id(), std::string(res));
+        request->get_logger()->msg(Arc::ERROR, std::string(res));
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_SOURCE,
                                   "Failed to prepare source " + request->get_source()->CurrentLocation().str() + ": " + std::string(res));
@@ -474,13 +471,13 @@ namespace DataStaging {
         if (Arc::Time() < request->get_timeout()) {
           if (source_wait_time > 60) source_wait_time = 60;
           request->set_process_time(source_wait_time);
-          request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Source is not ready, will wait %u seconds", request->get_short_id(), source_wait_time);
+          request->get_logger()->msg(Arc::VERBOSE, "Source is not ready, will wait %u seconds", source_wait_time);
         }
         request->set_status(DTRStatus::STAGING_PREPARING_WAIT);
       }
       else {
         if (request->get_source()->TransferLocations().empty()) {
-          request->get_logger()->msg(Arc::ERROR, "DTR %s: No physical files found for source", request->get_short_id());
+          request->get_logger()->msg(Arc::ERROR, "No physical files found for source");
           request->set_error_status(DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                     DTRErrorStatus::ERROR_SOURCE,
                                     "No physical files found for source " + request->get_source()->CurrentLocation().str());
@@ -499,10 +496,10 @@ namespace DataStaging {
     if (request->get_destination()->IsStageable() && request->get_destination()->TransferLocations().empty()) {
       // give default wait time for cases where no wait time is given by the remote service
       unsigned int dest_wait_time = 10;
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Preparing to stage destination", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Preparing to stage destination");
       Arc::DataStatus res = request->get_destination()->PrepareWriting(0, dest_wait_time);
       if (!res.Passed()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: %s", request->get_short_id(), std::string(res));
+        request->get_logger()->msg(Arc::ERROR, std::string(res));
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_DESTINATION,
                                   "Failed to prepare destination " + request->get_destination()->CurrentLocation().str() + ": " + std::string(res));
@@ -512,13 +509,13 @@ namespace DataStaging {
         if (Arc::Time() < request->get_timeout()) {
           if (dest_wait_time > 60) dest_wait_time = 60;
           request->set_process_time(dest_wait_time);
-          request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Destination is not ready, will wait %u seconds", request->get_short_id(), dest_wait_time);
+          request->get_logger()->msg(Arc::VERBOSE, "Destination is not ready, will wait %u seconds", dest_wait_time);
         }
         request->set_status(DTRStatus::STAGING_PREPARING_WAIT);
       }
       else {
         if (request->get_destination()->TransferLocations().empty()) {
-          request->get_logger()->msg(Arc::ERROR, "DTR %s: No physical files found for destination", request->get_short_id());
+          request->get_logger()->msg(Arc::ERROR, "No physical files found for destination");
           request->set_error_status(DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                     DTRErrorStatus::ERROR_DESTINATION,
                                     "No physical files found for destination " + request->get_destination()->CurrentLocation().str());
@@ -545,25 +542,25 @@ namespace DataStaging {
     Arc::DataStatus res;
 
     if (request->get_source()->IsStageable()) {
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Releasing source", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Releasing source");
       res = request->get_source()->FinishReading(request->error() || request->cancel_requested());
       if (!res.Passed()) {
         // an error here is not critical to the transfer
-        request->get_logger()->msg(Arc::WARNING, "DTR %s: There was a problem during post-transfer source handling: %s",
-                                   request->get_short_id(), std::string(res));
+        request->get_logger()->msg(Arc::WARNING, "There was a problem during post-transfer source handling: %s",
+                                   std::string(res));
       }
     }
     if (request->get_destination()->IsStageable()) {
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Releasing destination", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Releasing destination");
       res = request->get_destination()->FinishWriting(request->error() || request->cancel_requested());
       if (!res.Passed()) {
         if (request->error()) {
-          request->get_logger()->msg(Arc::WARNING, "DTR %s: There was a problem during post-transfer destination handling after error: %s",
-                                     request->get_short_id(), std::string(res));
+          request->get_logger()->msg(Arc::WARNING, "There was a problem during post-transfer destination handling after error: %s",
+                                     std::string(res));
         }
         else {
-          request->get_logger()->msg(Arc::ERROR, "DTR %s: Error with post-transfer destination handling: %s",
-                                     request->get_short_id(), std::string(res));
+          request->get_logger()->msg(Arc::ERROR, "Error with post-transfer destination handling: %s",
+                                     std::string(res));
           request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
                                                       DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                     DTRErrorStatus::ERROR_DESTINATION,
@@ -589,24 +586,24 @@ namespace DataStaging {
     // TODO: If the copy completed before request was cancelled, unregistering
     // here will lead to dark data. Need to check for successful copy
     if (request->error() || request->cancel_requested()) {
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Removing pre-registered destination in index service", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Removing pre-registered destination in index service");
       Arc::DataStatus res = request->get_destination()->PreUnregister(request->is_replication());
       if (!res.Passed()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to unregister pre-registered destination %s: %s."
-                                   " You may need to unregister it manually", request->get_short_id(),
+        request->get_logger()->msg(Arc::ERROR, "Failed to unregister pre-registered destination %s: %s."
+                                   " You may need to unregister it manually",
                                    request->get_destination()->str(), std::string(res));
       }
     }
     else {
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Registering destination replica", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Registering destination replica");
       Arc::DataStatus res = request->get_destination()->PostRegister(request->is_replication());
       if (!res.Passed()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to register destination replica: %s",
-                                   request->get_short_id(), std::string(res));
+        request->get_logger()->msg(Arc::ERROR, "Failed to register destination replica: %s",
+                                   std::string(res));
         if (!request->get_destination()->PreUnregister(request->is_replication()).Passed()) {
-          request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to unregister pre-registered destination %s."
+          request->get_logger()->msg(Arc::ERROR, "Failed to unregister pre-registered destination %s."
                                      " You may need to unregister it manually",
-                                     request->get_short_id(), request->get_destination()->str());
+                                     request->get_destination()->str());
         }
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_DESTINATION,
@@ -635,7 +632,7 @@ namespace DataStaging {
                          request->get_local_user().get_gid());
 
     if (!cache) {
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Error creating cache. Stale locks may remain.", request->get_short_id());
+      request->get_logger()->msg(Arc::ERROR, "Error creating cache. Stale locks may remain.");
       request->set_error_status(DTRErrorStatus::CACHE_ERROR,
                             DTRErrorStatus::ERROR_DESTINATION,
                             "Failed to create cache for " + request->get_source()->str());
@@ -670,8 +667,8 @@ namespace DataStaging {
     bool executable = (request->get_source()->GetURL().Option("exec") == "yes") ? true : false;
     bool cache_copy = (request->get_source()->GetURL().Option("cache") == "copy") ? true : false;
 
-    request->get_logger()->msg(Arc::INFO, "DTR %s: Linking/copying cached file to %s",
-                               request->get_short_id(), request->get_destination()->CurrentLocation().Path());
+    request->get_logger()->msg(Arc::INFO, "Linking/copying cached file to %s",
+                               request->get_destination()->CurrentLocation().Path());
 
     bool was_downloaded = (request->get_cache_state() == CACHE_DOWNLOADED) ? true : false;
     if (was_downloaded) {
@@ -692,12 +689,12 @@ namespace DataStaging {
       if (try_again) {
         // set cache status to CACHE_LOCKED, so that the Scheduler will try again
         request->set_cache_state(CACHE_LOCKED);
-        request->get_logger()->msg(Arc::WARNING, "DTR %s: Failed linking cache file to %s",
-                                   request->get_short_id(), request->get_destination()->CurrentLocation().Path());
+        request->get_logger()->msg(Arc::WARNING, "Failed linking cache file to %s",
+                                   request->get_destination()->CurrentLocation().Path());
       }
       else {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: Error linking cache file to %s.",
-                                   request->get_short_id(), request->get_destination()->CurrentLocation().Path());
+        request->get_logger()->msg(Arc::ERROR, "Error linking cache file to %s.",
+                                   request->get_destination()->CurrentLocation().Path());
       }
       request->set_error_status(DTRErrorStatus::CACHE_ERROR,
                                 DTRErrorStatus::ERROR_DESTINATION,
@@ -718,14 +715,14 @@ namespace DataStaging {
 
     // first deal with bulk
     if (request->get_bulk_end()) { // end of bulk
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Adding to bulk request", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Adding to bulk request");
       request->set_bulk_end(false);
       bulk_list.push_back(request);
       bulk_arg = new BulkThreadArgument(this, bulk_list);
       bulk_list.clear();
     }
     else if (request->get_bulk_start() || !bulk_list.empty()) { // filling bulk list
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Adding to bulk request", request->get_short_id());
+      request->get_logger()->msg(Arc::VERBOSE, "Adding to bulk request");
       bulk_list.push_back(request);
       if (request->get_bulk_start()) request->set_bulk_start(false);
     }
