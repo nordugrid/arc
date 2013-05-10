@@ -685,7 +685,7 @@ namespace Arc
                     continue;
                   }
                   else {
-                    if(attr.find("Role=") == std::string::npos ||
+                    if(attr.find("Role=") == std::string::npos &&
                        attr.find("Capability=") == std::string::npos) {  
                       if(attr[0] == '/') {
                          attr.erase (0,1);
@@ -693,11 +693,16 @@ namespace Arc
                       Arc::XMLNode vo=useridentity.NewChild("GroupAttribute")=attr;
                       vo.NewAttribute("urf:type")="FQAN";
                     }
-                  }
-                  if((pos = attr.find("Role=")) != std::string::npos) {
-                    std::string role = attr.substr(pos+5);
-                    Arc::XMLNode vo=useridentity.NewChild("GroupAttribute")=role;
-                    vo.NewAttribute("urf:type")="vo-role";
+                    else {
+                      if((pos = attr.find("Role=")) != std::string::npos) {
+                        std::string role = attr.substr(pos);
+                        Arc::XMLNode vo=useridentity.NewChild("GroupAttribute")=role;
+                        vo.NewAttribute("urf:type")="vo-role";
+                        std::string group = attr.substr(0,pos-1);
+                        Arc::XMLNode vog=useridentity.NewChild("GroupAttribute")=group;
+                        vog.NewAttribute("urf:type")="vo-group";
+                      }
+                    }
                   }
                 }
             }
