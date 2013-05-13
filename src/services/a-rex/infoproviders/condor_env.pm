@@ -37,6 +37,13 @@ sub configure_condor_env(%) {
         }
     }
     return 0 unless -x "$ENV{CONDOR_BIN_PATH}/condor_version";
+    if ($config{condor_config}) {
+        $ENV{CONDOR_CONFIG} = $config{condor_config};
+    }
+    else {
+        $ENV{CONDOR_CONFIG} = "/etc/condor/condor_config";
+    }
+    return 0 unless -e "$ENV{CONDOR_CONFIG}";
     return 1;
 }
 

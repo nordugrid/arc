@@ -41,3 +41,16 @@ fi
 echo "Using Condor executables from: $CONDOR_BIN_PATH"
 export CONDOR_BIN_PATH
 
+if [ ! -z "$CONFIG_condor_config" ];
+then
+    CONDOR_CONFIG=$CONFIG_condor_config;
+else
+    CONDOR_CONFIG="/etc/condor/condor_config";
+fi;
+
+if [ ! -e "$CONDOR_CONFIG" ]; then
+    echo 'Condor config file not found!';
+    return 1;
+fi
+echo "Using Condor config file at: $CONDOR_CONFIG"
+export CONDOR_CONFIG

@@ -156,6 +156,17 @@ condor_bin_path - Path to Condor binaries. Must be set if Condor is used.
 condor_bin_path=/opt/condor/bin
 .br
 
+.TP
+.B condor_config
+condor_config - Path to Condor config file. Must be set if Condor is used
+and the config file is not in its default location (/etc/condor/condir_config
+or ~/condor/condor_config). The full path to the file should be given.
+
+.IR Example:
+.br
+condor_config=/opt/condor/etc/condor_config
+.br
+
 .SH SGE options
 
 .TP

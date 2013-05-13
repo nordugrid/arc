@@ -130,6 +130,12 @@
 ## is used. 
 #condor_bin_path=/opt/condor/bin
 
+## condor_bin_path - Path to Condor config file. Must be set if Condor
+## is used and the config file is not in its default location
+## (/etc/condor/condor_config or ~/condor/condor_config).
+## The full path to the file should be given.
+#condor_config=/opt/condor/etc/condor_config
+
 ### SGE
 #lrms="sge"
 ## sge_bin_path - Path to Sun Grid Engine (SGE) binaries, 
