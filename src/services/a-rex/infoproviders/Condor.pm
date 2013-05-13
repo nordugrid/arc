@@ -322,27 +322,6 @@ sub condor_cluster_get_usedcpus() {
 }
 
 #
-# Counts running jobs (condor JobStatus == 2) submitted by Grid
-# into the current queue. 
-sub condor_queue_get_gridrunning() {
-    my $sum = 0;
-    my @qnod = condor_queue_get_nodes();
-    for (values %alljobdata) {
-        my %job = %$_;
-        next unless grep { $job{clusterid} eq $_ } @jobids_thisqueue;
-        next unless $job{jobstatus} == 2;
-        my $host = $job{remotehost};
-        $host = $job{lastremotehost} unless $host;
-        next unless $host;
-        # only count job if it's running in the current queue
-        $sum++ if grep { $host =~ /^((vm|slot)\d+@)?$_/i } @qnod;
-
-    }
-    debug "===condor_queue_get_gridrunning: $sum";
-    return $sum;
-}
-
-#
 # returns the total number of nodes in the cluster
 #
 sub condor_cluster_totalcpus() {
