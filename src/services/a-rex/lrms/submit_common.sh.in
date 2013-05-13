@@ -675,7 +675,7 @@ EOSCR
 # Check if executable exists
 if [ ! -f "$executable" ]; 
 then 
-  echo "\"$executable\" is not a valid path to a file" 1>$RUNTIME_JOB_STDOUT 2>$RUNTIME_JOB_STDERR 1>&2
+  echo "Path \"$executable\" does not seem to exist" 1>$RUNTIME_JOB_STDOUT 2>$RUNTIME_JOB_STDERR 1>&2
   exit 1
 fi
 EOSCR
