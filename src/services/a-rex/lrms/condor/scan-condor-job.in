@@ -571,7 +571,7 @@ condor_read_history() {
 
     # added braces to force the redirection to apply to the whole command, not
     # just to the sub-command. Seems like a bash bug.
-    { histstring=$( $CONDOR_BIN_PATH/condor_history -l "$lrmsid" ); } 2>&1
+    { histstring=$( $CONDOR_BIN_PATH/condor_history -l "$lrmsid" -match 1 ); } 2>&1
 
     # the awk expression checks that the input is more than 1 line long
     [ $? = 0 ] && echo "$histstring" | awk 'END{if(NR<2){exit 1}}' || return 1
