@@ -685,16 +685,17 @@ namespace Arc
                     continue;
                   }
                   else {
-					std::string role = "Role=NULL";
-                    if((pos = attr.find("Role=")) != std::string::npos) {
-                        role = attr.substr(pos);
-                    }
+                    pos = attr.find("Role=");
+
                     std::string group = attr.substr(0,pos-1);
                     Arc::XMLNode vog=useridentity.NewChild("GroupAttribute")=group;
                     vog.NewAttribute("urf:type")="vo-group";
 
-                    Arc::XMLNode vo=useridentity.NewChild("GroupAttribute")=role;
-                    vo.NewAttribute("urf:type")="vo-role";
+                    if( pos != std::string::npos) {
+                      std::string role = attr.substr(pos);
+                      Arc::XMLNode vo=useridentity.NewChild("GroupAttribute")=role;
+                      vo.NewAttribute("urf:type")="vo-role";
+                    }
                   }
                 }
             }
