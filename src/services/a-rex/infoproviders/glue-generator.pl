@@ -508,6 +508,7 @@ GlueCEPolicyAssignedJobSlots: $AssignedSlots\n";
             print "GlueForeignKey: GlueClusterUniqueID=$cluster_attributes{'nordugrid-cluster-name'}
 GlueSchemaVersionMajor: 1
 GlueSchemaVersionMinor: 2
+GlueCEImplementationName: ARC-CE
 ";
 
             foreach (@vos){
