@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-05-07 23:27+0100\n"
-"PO-Revision-Date: 2013-05-07 23:28+0100\n"
+"POT-Creation-Date: 2013-05-26 23:22+0100\n"
+"PO-Revision-Date: 2013-05-26 23:23+0100\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -22,66 +22,59 @@ msgstr ""
 
 #: src/libs/data-staging/Scheduler.cpp:170
 #, c-format
-msgid "DTR %s: Using next %s replica"
-msgstr "DTR %s: Используется следующая копия (%s)"
+msgid "Using next %s replica"
+msgstr "Используется следующая копия (%s)"
 
 #: src/libs/data-staging/Scheduler.cpp:177
 #, c-format
-msgid "DTR %s: No more %s replicas"
-msgstr "DTR %s: Больше копий нет (%s)"
+msgid "No more %s replicas"
+msgstr "Больше копий нет (%s)"
 
 #: src/libs/data-staging/Scheduler.cpp:179
-#, c-format
-msgid "DTR %s: Will clean up pre-registered destination"
-msgstr "DTR %s: Предварительное назначение будет сброшено"
+msgid "Will clean up pre-registered destination"
+msgstr "Предварительное назначение будет сброшено"
 
 #: src/libs/data-staging/Scheduler.cpp:183
-#, c-format
-msgid "DTR %s: Will release cache locks"
-msgstr "DTR %s: Будет отменены блокировки в кэше"
+msgid "Will release cache locks"
+msgstr "Будет отменены блокировки в кэше"
 
 #: src/libs/data-staging/Scheduler.cpp:186
-#, c-format
-msgid "DTR %s: Moving to end of data staging"
-msgstr "DTR %s: Заканчивается размещение данных"
+msgid "Moving to end of data staging"
+msgstr "Заканчивается размещение данных"
 
 #: src/libs/data-staging/Scheduler.cpp:195
 #, c-format
-msgid "DTR %s: Source is mapped to %s"
-msgstr "DTR %s: Источник поставлен в соответствие %s"
+msgid "Source is mapped to %s"
+msgstr "Источник поставлен в соответствие %s"
 
 #: src/libs/data-staging/Scheduler.cpp:199
-#, c-format
-msgid "DTR %s: Cannot link to source which can be modified, will copy instead"
+msgid "Cannot link to source which can be modified, will copy instead"
 msgstr ""
-"DTR %s: Невозможно создать ссылку на источник, который может измениться; "
-"будет сделана копия"
+"Невозможно создать ссылку на источник, который может измениться; будет "
+"сделана копия"
 
 #: src/libs/data-staging/Scheduler.cpp:209
-#, c-format
-msgid "DTR %s: Cannot link to a remote destination. Will not use mapped URL"
+msgid "Cannot link to a remote destination. Will not use mapped URL"
 msgstr ""
-"DTR %s: Невозможно создать ссылку на удалённое назначение. Приписанный URL "
-"не будет использован"
+"Невозможно создать ссылку на удалённое назначение. Приписанный URL не будет "
+"использован"
 
 #: src/libs/data-staging/Scheduler.cpp:212
-#, c-format
-msgid "DTR %s: Linking mapped file"
-msgstr "DTR %s: Создаётся символическая ссылка на соответствующий файл"
+msgid "Linking mapped file"
+msgstr "Создаётся символическая ссылка на соответствующий файл"
 
 #: src/libs/data-staging/Scheduler.cpp:219
 #, c-format
-msgid "DTR %s: Failed to create link: %s. Will not use mapped URL"
-msgstr "DTR %s: Сбой создания ссылки %s. Приписанный URL не будет использован"
+msgid "Failed to create link: %s. Will not use mapped URL"
+msgstr "Сбой создания ссылки %s. Приписанный URL не будет использован"
 
-#: src/libs/data-staging/Scheduler.cpp:232
-#, c-format
-msgid "DTR %s: Linking mapped file - can't link on Windows"
+#: src/libs/data-staging/Scheduler.cpp:231
+msgid "Linking mapped file - can't link on Windows"
 msgstr ""
-"DTR %s: Создаётся символическая ссылка на соответствующий файл - невыполнимо "
-"на Windows"
+"Создаётся символическая ссылка на соответствующий файл - невыполнимо на "
+"Windows"
 
-#: src/libs/data-staging/Scheduler.cpp:248
+#: src/libs/data-staging/Scheduler.cpp:247
 #, c-format
 msgid ""
 "Scheduler received new DTR %s with source: %s, destination: %s, assigned to "
@@ -90,346 +83,295 @@ msgstr ""
 "Планировщик получил новый запрос DTR %s с источником: %s, назначением: %s, "
 "приписан к доле %s с приоритетом %d"
 
-#: src/libs/data-staging/Scheduler.cpp:255
-#, c-format
+#: src/libs/data-staging/Scheduler.cpp:254
 msgid ""
-"DTR %s: File is not cacheable, was requested not to be cached or no cache "
-"available, skipping cache check"
+"File is not cacheable, was requested not to be cached or no cache available, "
+"skipping cache check"
 msgstr ""
-"DTR %s: Файл либо не может быть кэширован, кэширование не было запрошено, "
-"либо кэша нет; пропускается проверка кэша"
+"Файл либо не может быть кэширован, либо кэширование не было запрошено, либо "
+"кэша нет; пропускается проверка кэша"
 
-#: src/libs/data-staging/Scheduler.cpp:261
-#, c-format
-msgid "DTR %s: File is cacheable, will check cache"
-msgstr "DTR %s: Файл может быть кэширован, кэш будет проверен"
+#: src/libs/data-staging/Scheduler.cpp:260
+msgid "File is cacheable, will check cache"
+msgstr "Файл может быть кэширован, проверяется кэш"
 
-#: src/libs/data-staging/Scheduler.cpp:264
-#: src/libs/data-staging/Scheduler.cpp:291
+#: src/libs/data-staging/Scheduler.cpp:263
+#: src/libs/data-staging/Scheduler.cpp:289
 #, c-format
-msgid "DTR %s: File is currently being cached, will wait %is"
-msgstr "DTR %s: Файл ещё кэшируется, ожидание %i сек"
+msgid "File is currently being cached, will wait %is"
+msgstr "Файл ещё кэшируется, ожидание %i сек"
 
-#: src/libs/data-staging/Scheduler.cpp:284
-#, c-format
-msgid "DTR %s: Timed out while waiting for cache lock"
-msgstr "DTR %s: Истекло время ожидания блокировки кэша"
+#: src/libs/data-staging/Scheduler.cpp:282
+msgid "Timed out while waiting for cache lock"
+msgstr "Истекло время ожидания блокировки кэша"
 
-#: src/libs/data-staging/Scheduler.cpp:296
-#, c-format
-msgid "DTR %s: Checking cache again"
-msgstr "DTR %s: Кэш проверяется заново"
+#: src/libs/data-staging/Scheduler.cpp:293
+msgid "Checking cache again"
+msgstr "Кэш проверяется снова"
 
-#: src/libs/data-staging/Scheduler.cpp:312
-#, c-format
-msgid "DTR %s: Destination file is in cache"
-msgstr "DTR %s: Файл назначения в кэше"
+#: src/libs/data-staging/Scheduler.cpp:309
+msgid "Destination file is in cache"
+msgstr "Файл назначения записан в кэш"
+
+#: src/libs/data-staging/Scheduler.cpp:313
+msgid "Source and/or destination is index service, will resolve replicas"
+msgstr ""
+"Источник и/или назначение является каталогом, будет произведён поиск копий"
 
 #: src/libs/data-staging/Scheduler.cpp:316
-#, c-format
 msgid ""
-"DTR %s: Source and/or destination is index service, will resolve replicas"
+"Neither source nor destination are index services, will skip resolving "
+"replicas"
 msgstr ""
-"DTR %s: Источник и/или назначение являются указателями, будет произведён "
-"поиск копий"
+"Ни источник, ни назначение не являются каталогом, поиск копий не будет "
+"произведён"
 
-#: src/libs/data-staging/Scheduler.cpp:319
-#, c-format
-msgid ""
-"DTR %s: Neither source nor destination are index services, will skip "
-"resolving replicas"
-msgstr ""
-"DTR %s: Ни источник, ни назначение не являются указателями, поиск копий не "
-"будет произведён"
+#: src/libs/data-staging/Scheduler.cpp:326
+msgid "Problem with index service, will release cache lock"
+msgstr "Проблема с каталогом, кэш будет разблокирован"
 
-#: src/libs/data-staging/Scheduler.cpp:329
-#, c-format
-msgid "DTR %s: Problem with index service, will release cache lock"
-msgstr "DTR %s: Проблема с указателем, кэш будет разблокирован"
+#: src/libs/data-staging/Scheduler.cpp:330
+msgid "Problem with index service, will proceed to end of data staging"
+msgstr "Проблема с каталогом, переходим к завершению размещения данных"
 
-#: src/libs/data-staging/Scheduler.cpp:333
-#, c-format
-msgid "DTR %s: Problem with index service, will proceed to end of data staging"
-msgstr ""
-"DTR %s: Проблема с указателем, переходим к завершению размещения данных"
+#: src/libs/data-staging/Scheduler.cpp:340
+msgid "Checking source file is present"
+msgstr "Проверка наличия файла-источника"
 
-#: src/libs/data-staging/Scheduler.cpp:343
-#, c-format
-msgid "DTR %s: Checking source file is present"
-msgstr "DTR %s: Проверка наличия файла-источника"
+#: src/libs/data-staging/Scheduler.cpp:348
+msgid "Error with source file, moving to next replica"
+msgstr "Ошибка в файле источника, пробуем другую копию"
 
-#: src/libs/data-staging/Scheduler.cpp:351
+#: src/libs/data-staging/Scheduler.cpp:365
 #, c-format
-msgid "DTR %s: Error with source file, moving to next replica"
-msgstr "DTR %s: Ошибка в файле источника, пробуем другую копию"
+msgid "Replica %s has long latency, trying next replica"
+msgstr "У копии %s долгая задержка, пробуем следующую копию"
 
-#: src/libs/data-staging/Scheduler.cpp:368
+#: src/libs/data-staging/Scheduler.cpp:367
 #, c-format
-msgid "DTR %s: Replica %s has long latency, trying next replica"
-msgstr "DTR %s: У копии %s долгая задержка, пробуем следующую копию"
+msgid "No more replicas, will use %s"
+msgstr "Больше копий нет, будет использован файл %s"
 
 #: src/libs/data-staging/Scheduler.cpp:370
 #, c-format
-msgid "DTR %s: No more replicas, will use %s"
-msgstr "DTR %s: Больше копий нет, будет использован файл %s"
+msgid "Checking replica %s"
+msgstr "Проверяется копия %s"
 
-#: src/libs/data-staging/Scheduler.cpp:373
-#, c-format
-msgid "DTR %s: Checking replica %s"
-msgstr "DTR %s: Проверяется копия %s"
+#: src/libs/data-staging/Scheduler.cpp:380
+msgid "Overwrite requested - will pre-clean destination"
+msgstr "Запрошена перезапись - назначение будет предварительно очищено"
 
 #: src/libs/data-staging/Scheduler.cpp:383
-#, c-format
-msgid "DTR %s: Overwrite requested - will pre-clean destination"
-msgstr "DTR %s: Запрошена перезапись - назначение будет предварительно очищено"
-
-#: src/libs/data-staging/Scheduler.cpp:386
-#, c-format
-msgid "DTR %s: No overwrite requested or allowed, skipping pre-cleaning"
+msgid "No overwrite requested or allowed, skipping pre-cleaning"
 msgstr ""
-"DTR %s: Перезапись не запрошена или не разрешена, предварительная очистка "
+"Перезапись не запрошена или не разрешена, предварительная очистка "
 "пропускается"
 
-#: src/libs/data-staging/Scheduler.cpp:394
-#, c-format
-msgid "DTR %s: Pre-clean failed, will still try to copy"
-msgstr "DTR %s: Сбой предварительной очистки, всё же попытаемся скопировать "
+#: src/libs/data-staging/Scheduler.cpp:391
+msgid "Pre-clean failed, will still try to copy"
+msgstr "Сбой предварительной очистки, всё же попытаемся скопировать "
 
-#: src/libs/data-staging/Scheduler.cpp:401
-#, c-format
-msgid "DTR %s: Source or destination requires staging"
+#: src/libs/data-staging/Scheduler.cpp:398
+msgid "Source or destination requires staging"
+msgstr "Источник или назначение требуют размещения с ленточного накопителя"
+
+#: src/libs/data-staging/Scheduler.cpp:402
+msgid "No need to stage source or destination, skipping staging"
 msgstr ""
-"DTR %s: Источник или назначение требуют размещения с ленточного накопителя"
+"Не требуется размещение с ленточного накопителя ни источника, ни назначения; "
+"размещение пропускается "
 
-#: src/libs/data-staging/Scheduler.cpp:405
-#, c-format
-msgid "DTR %s: No need to stage source or destination, skipping staging"
-msgstr ""
-"DTR %s: Не требуется размещение с ленточного накопителя ни источника, ни "
-"назначения; размещение пропускается "
+#: src/libs/data-staging/Scheduler.cpp:432
+msgid "Staging request timed out, will release request"
+msgstr "Истекло время ожидания запроса на размещение, запрос будет отозван"
 
-#: src/libs/data-staging/Scheduler.cpp:435
-#, c-format
-msgid "DTR %s: Staging request timed out, will release request"
-msgstr ""
-"DTR %s: Истекло время ожидания запроса на размещение, запрос будет отозван"
+#: src/libs/data-staging/Scheduler.cpp:436
+msgid "Querying status of staging request"
+msgstr "Опрос состояния запроса на размещение"
 
-#: src/libs/data-staging/Scheduler.cpp:439
-#, c-format
-msgid "DTR %s: Querying status of staging request"
-msgstr "DTR %s: Опрос состояния запроса на размещение"
+#: src/libs/data-staging/Scheduler.cpp:445
+msgid "Releasing requests"
+msgstr "Сброс запросов"
 
-#: src/libs/data-staging/Scheduler.cpp:448
-#, c-format
-msgid "DTR %s: Releasing requests"
-msgstr "DTR %s: Сброс запросов"
+#: src/libs/data-staging/Scheduler.cpp:462
+msgid "DTR is ready for transfer, moving to delivery queue"
+msgstr "DTR готов к пересылке, переводится в очередь на доставку"
 
-#: src/libs/data-staging/Scheduler.cpp:465
+#: src/libs/data-staging/Scheduler.cpp:477
 #, c-format
-msgid "DTR %s: DTR is ready for transfer, moving to delivery queue"
-msgstr "DTR %s: DTR готов к пересылке, переводится в очередь на доставку"
+msgid "Transfer failed: %s"
+msgstr "Сбой передачи: %s"
 
-#: src/libs/data-staging/Scheduler.cpp:480
-#, c-format
-msgid "DTR %s: Transfer failed: %s"
-msgstr "DTR %s: Сбой передачи: %s"
+#: src/libs/data-staging/Scheduler.cpp:487
+msgid "Releasing request(s) made during staging"
+msgstr "Отзыв запросов, сделанных при размещении"
 
 #: src/libs/data-staging/Scheduler.cpp:490
-#, c-format
-msgid "DTR %s: Releasing request(s) made during staging"
-msgstr "DTR %s: Отзыв запросов, сделанных при размещении"
-
-#: src/libs/data-staging/Scheduler.cpp:493
-#, c-format
-msgid ""
-"DTR %s: Neither source nor destination were staged, skipping releasing "
-"requests"
+msgid "Neither source nor destination were staged, skipping releasing requests"
 msgstr ""
-"DTR %s: Ни источник, ни назначение не были размещены с ленточного "
-"накопителя, пропускается отмена запросов"
+"Ни источник, ни назначение не были размещены с ленточного накопителя, "
+"пропускается отмена запросов"
 
-#: src/libs/data-staging/Scheduler.cpp:505
-#, c-format
-msgid "DTR %s: Trying next replica"
-msgstr "DTR %s: Пробуем следующую копию"
+#: src/libs/data-staging/Scheduler.cpp:502
+msgid "Trying next replica"
+msgstr "Пробуем следующую копию"
 
-#: src/libs/data-staging/Scheduler.cpp:509
+#: src/libs/data-staging/Scheduler.cpp:506
 #, c-format
-msgid "DTR %s: Will %s in destination index service"
-msgstr "DTR %s: Будет выполнена операция %s в каталоге назначения"
+msgid "Will %s in destination index service"
+msgstr "Будет выполнена операция %s в каталоге назначения"
 
-#: src/libs/data-staging/Scheduler.cpp:513
+#: src/libs/data-staging/Scheduler.cpp:510
+msgid "Destination is not index service, skipping replica registration"
+msgstr "Назначение не является указателем, пропускается регистрация копии"
+
+#: src/libs/data-staging/Scheduler.cpp:523
+msgid "Error registering replica, moving to end of data staging"
+msgstr "Ошибка регистрации копии, переход к завершению размещения"
+
+#: src/libs/data-staging/Scheduler.cpp:531
+msgid "Will process cache"
+msgstr "Будет обработан кэш"
+
+#: src/libs/data-staging/Scheduler.cpp:535
+msgid "File is not cacheable, skipping cache processing"
+msgstr "Файл не может быть кэширован, пропускается обработка кэша"
+
+#: src/libs/data-staging/Scheduler.cpp:549
+msgid "Cancellation complete"
+msgstr "Отмена завершена"
+
+#: src/libs/data-staging/Scheduler.cpp:563
+msgid "Will wait 10s"
+msgstr "Ожидание 10 секунд"
+
+#: src/libs/data-staging/Scheduler.cpp:569
+msgid "Error in cache processing, will retry without caching"
+msgstr "Ошибка при обработке кэша, попытаемся без кэширования"
+
+#: src/libs/data-staging/Scheduler.cpp:578
+msgid "Will retry without caching"
+msgstr "Будет произведена повторная попытка без кэширования"
+
+#: src/libs/data-staging/Scheduler.cpp:595
 #, c-format
-msgid "DTR %s: Destination is not index service, skipping replica registration"
+msgid "%i retries left, will wait until %s before next attempt"
+msgstr "Осталось %i попыток, повторная попытка в %s"
+
+#: src/libs/data-staging/Scheduler.cpp:611
+msgid "Out of retries"
+msgstr "Достигнут предел количества попыток"
+
+#: src/libs/data-staging/Scheduler.cpp:613
+msgid "Permanent failure"
+msgstr "Устойчивый сбой"
+
+#: src/libs/data-staging/Scheduler.cpp:619
+msgid "Finished successfully"
+msgstr "Успешное завершение"
+
+#: src/libs/data-staging/Scheduler.cpp:629
+msgid "Returning to generator"
+msgstr "Возврат в генератор"
+
+#: src/libs/data-staging/Scheduler.cpp:796
+msgid "Using non-RFC proxy so only local delivery can be used"
 msgstr ""
-"DTR %s: Назначение не является указателем, пропускается регистрация копии"
+"Используется несовместимая с RFC доверенность, поэтому возможна только "
+"локальная доставка"
 
-#: src/libs/data-staging/Scheduler.cpp:526
-#, c-format
-msgid "DTR %s: Error registering replica, moving to end of data staging"
-msgstr "DTR %s: Ошибка регистрации копии, переход к завершению размещения"
-
-#: src/libs/data-staging/Scheduler.cpp:534
-#, c-format
-msgid "DTR %s: Will process cache"
-msgstr "DTR %s: Будет обработан кэш"
-
-#: src/libs/data-staging/Scheduler.cpp:538
-#, c-format
-msgid "DTR %s: File is not cacheable, skipping cache processing"
-msgstr "DTR %s: Файл не может быть кэширован, пропускается обработка кэша"
-
-#: src/libs/data-staging/Scheduler.cpp:552
-#, c-format
-msgid "DTR %s: Cancellation complete"
-msgstr "DTR %s: Отмена завершена"
-
-#: src/libs/data-staging/Scheduler.cpp:566
-#, c-format
-msgid "DTR %s: Will wait 10s"
-msgstr "DTR %s: Ожидание 10 секунд"
-
-#: src/libs/data-staging/Scheduler.cpp:572
-#, c-format
-msgid "DTR %s: Error in cache processing, will retry without caching"
-msgstr "DTR %s: Ошибка при обработке кэша, попытаемся без кэширования"
-
-#: src/libs/data-staging/Scheduler.cpp:581
-#, c-format
-msgid "DTR %s: Will retry without caching"
-msgstr "DTR %s: Будет произведена повторная попытка без кэширования"
-
-#: src/libs/data-staging/Scheduler.cpp:598
-#, c-format
-msgid "DTR %s: %i retries left, will wait until %s before next attempt"
-msgstr "DTR %s: Осталось %i попыток, повторная попытка через %s"
-
-#: src/libs/data-staging/Scheduler.cpp:614
-#, c-format
-msgid "DTR %s: Out of retries"
-msgstr "DTR %s: Достигнут предел количества попыток"
-
-#: src/libs/data-staging/Scheduler.cpp:616
-#, c-format
-msgid "DTR %s: Permanent failure"
-msgstr "DTR %s: Устойчивый сбой"
-
-#: src/libs/data-staging/Scheduler.cpp:622
-#, c-format
-msgid "DTR %s: Finished successfully"
-msgstr "DTR %s: Успешное завершение"
-
-#: src/libs/data-staging/Scheduler.cpp:632
-#, c-format
-msgid "DTR %s: Returning to generator"
-msgstr "DTR %s: Возврат в генератор"
-
-#: src/libs/data-staging/Scheduler.cpp:799
-#, c-format
-msgid "DTR %s: Using non-RFC proxy so only local delivery can be used"
+#: src/libs/data-staging/Scheduler.cpp:802
+msgid "Using non-RFC proxy so forcing local delivery"
 msgstr ""
-"DTR %s: Используется несовместимая с RFC доверенность, поэтому возможна "
-"только локальная доставка"
+"Используется несовместимая с RFC доверенность, вынужденно используется "
+"локальная доставка"
 
-#: src/libs/data-staging/Scheduler.cpp:806
+#: src/libs/data-staging/Scheduler.cpp:811
 #, c-format
-msgid "DTR %s: Using non-RFC proxy so forcing local delivery"
+msgid "File is smaller than %llu bytes, will use local delivery"
+msgstr "Файл меньше %llu байт, будет использована локальная доставка"
+
+#: src/libs/data-staging/Scheduler.cpp:861
+#, c-format
+msgid "Delivery service at %s can copy to %s"
+msgstr "Служба доставки в %s может копировать в %s"
+
+#: src/libs/data-staging/Scheduler.cpp:869
+#, c-format
+msgid "Delivery service at %s can copy from %s"
+msgstr "Служба доставки в %s может копировать из %s"
+
+#: src/libs/data-staging/Scheduler.cpp:882
+msgid "Could not find any useable delivery service, forcing local transfer"
 msgstr ""
-"DTR %s: Используется несовместимая с RFC доверенность, вынужденно "
-"используется локальная доставка"
+"Не удалось обнаружить подходящую службу доставки, вынужденно используется "
+"локальная пересылка"
 
-#: src/libs/data-staging/Scheduler.cpp:816
+#: src/libs/data-staging/Scheduler.cpp:905
 #, c-format
-msgid "DTR %s: File is smaller than %llu bytes, will use local delivery"
-msgstr "DTR %s: Файл меньше %llu байт, будет использована локальная доставка"
+msgid "Not using delivery service %s due to previous failure"
+msgstr "Служба доставки %s не используется в связи с предыдущим сбоем"
 
-#: src/libs/data-staging/Scheduler.cpp:867
-#, c-format
-msgid "DTR %s: Delivery service at %s can copy to %s"
-msgstr "DTR %s: Служба доставки в %s может копировать в %s"
-
-#: src/libs/data-staging/Scheduler.cpp:876
-#, c-format
-msgid "DTR %s: Delivery service at %s can copy from %s"
-msgstr "DTR %s: Служба доставки в %s может копировать из %s"
-
-#: src/libs/data-staging/Scheduler.cpp:890
-#, c-format
-msgid ""
-"DTR %s: Could not find any useable delivery service, forcing local transfer"
+#: src/libs/data-staging/Scheduler.cpp:915
+msgid "No remote delivery services are useable, forcing local delivery"
 msgstr ""
-"DTR %s: Не удалось обнаружить подходящую службу доставки, вынужденно "
-"используется локальная пересылка"
+"Ни одна из удалённых служб доставки не подходит, вынужденно используется "
+"локальная доставка"
 
-#: src/libs/data-staging/Scheduler.cpp:913
-#, c-format
-msgid "DTR %s: Not using delivery service %s due to previous failure"
-msgstr "DTR %s: Служба доставки %s не используется в связи с предыдущим сбоем"
+#: src/libs/data-staging/Scheduler.cpp:1108
+msgid "Cancelling active transfer"
+msgstr "Отмена активных передач"
 
-#: src/libs/data-staging/Scheduler.cpp:924
-#, c-format
-msgid "DTR %s: No remote delivery services are useable, forcing local delivery"
-msgstr ""
-"DTR %s: Ни одна из удалённых служб доставки не подходит, вынужденно "
-"используется локальная доставка"
+#: src/libs/data-staging/Scheduler.cpp:1120
+msgid "Processing thread timed out. Restarting DTR"
+msgstr "Вышло время ожидания потока обработки. DTR перезапускается"
 
-#: src/libs/data-staging/Scheduler.cpp:1117
-#, c-format
-msgid "DTR %s: Cancelling active transfer"
-msgstr "DTR %s: Отмена активных передач"
+#: src/libs/data-staging/Scheduler.cpp:1188
+msgid "Will use bulk request"
+msgstr "Будет использован массовый запрос"
 
-#: src/libs/data-staging/Scheduler.cpp:1129
-#, c-format
-msgid "DTR %s: Processing thread timed out. Restarting DTR"
-msgstr "DTR %s: Вышло время ожидания потока обработки. DTR перезапускается"
-
-#: src/libs/data-staging/Scheduler.cpp:1197
-#, c-format
-msgid "DTR %s: Will use bulk request"
-msgstr "DTR %s: Будет использован массовый запрос"
-
-#: src/libs/data-staging/Scheduler.cpp:1230
+#: src/libs/data-staging/Scheduler.cpp:1221
 msgid "Scheduler received NULL DTR"
 msgstr "Планировщик получил пустой запрос DTR"
 
-#: src/libs/data-staging/Scheduler.cpp:1240
+#: src/libs/data-staging/Scheduler.cpp:1231
 msgid "Scheduler received invalid DTR"
 msgstr "Планировщик получил недопустимый запрос DTR"
 
-#: src/libs/data-staging/Scheduler.cpp:1326
+#: src/libs/data-staging/Scheduler.cpp:1317
 msgid "Scheduler starting up"
 msgstr "Запуск планировщика"
 
-#: src/libs/data-staging/Scheduler.cpp:1327
+#: src/libs/data-staging/Scheduler.cpp:1318
 msgid "Scheduler configuration:"
 msgstr "Конфигурация планировщика:"
 
-#: src/libs/data-staging/Scheduler.cpp:1328
+#: src/libs/data-staging/Scheduler.cpp:1319
 #, c-format
 msgid "  Pre-processor slots: %u"
 msgstr "  Мест для предварительной обработки: %u"
 
-#: src/libs/data-staging/Scheduler.cpp:1329
+#: src/libs/data-staging/Scheduler.cpp:1320
 #, c-format
 msgid "  Delivery slots: %u"
 msgstr "  Мест для отгрузки: %u"
 
-#: src/libs/data-staging/Scheduler.cpp:1330
+#: src/libs/data-staging/Scheduler.cpp:1321
 #, c-format
 msgid "  Post-processor slots: %u"
 msgstr "  Мест для окончательной обработки: %u"
 
-#: src/libs/data-staging/Scheduler.cpp:1331
+#: src/libs/data-staging/Scheduler.cpp:1322
 #, c-format
 msgid "  Emergency slots: %u"
 msgstr "  Мест для срочной обработки: %u"
 
-#: src/libs/data-staging/Scheduler.cpp:1332
+#: src/libs/data-staging/Scheduler.cpp:1323
 #, c-format
 msgid "  Prepared slots: %u"
 msgstr "  Подготовленных мест: %u"
 
-#: src/libs/data-staging/Scheduler.cpp:1333
+#: src/libs/data-staging/Scheduler.cpp:1324
 #, c-format
 msgid ""
 "  Shares configuration:\n"
@@ -438,21 +380,21 @@ msgstr ""
 "  Конфигурация квот:\n"
 "%s"
 
-#: src/libs/data-staging/Scheduler.cpp:1336
+#: src/libs/data-staging/Scheduler.cpp:1327
 msgid "  Delivery service: LOCAL"
 msgstr "  Служба доставки: LOCAL"
 
-#: src/libs/data-staging/Scheduler.cpp:1337
+#: src/libs/data-staging/Scheduler.cpp:1328
 #, c-format
 msgid "  Delivery service: %s"
 msgstr "  Служба доставки: %s"
 
-#: src/libs/data-staging/Scheduler.cpp:1342
+#: src/libs/data-staging/Scheduler.cpp:1333
 msgid "Failed to create DTR dump thread"
 msgstr "Не удалось создать поток сброса DTR"
 
-#: src/libs/data-staging/Scheduler.cpp:1359
-#: src/services/data-staging/DataDeliveryService.cpp:506
+#: src/libs/data-staging/Scheduler.cpp:1350
+#: src/services/data-staging/DataDeliveryService.cpp:507
 #, c-format
 msgid "DTR %s cancelled"
 msgstr "Запрос DTR %s отменён"
@@ -488,20 +430,18 @@ msgid "Cleaning up after failure: deleting %s"
 msgstr "Очистка после сбоя: уничтожается %s"
 
 #: src/libs/data-staging/DataDelivery.cpp:188
-#: src/libs/data-staging/DataDelivery.cpp:257
-#: src/libs/data-staging/DataDelivery.cpp:297
-#: src/libs/data-staging/DataDelivery.cpp:317
-#, c-format
-msgid "DTR %s: Failed to delete delivery object or deletion timed out"
-msgstr ""
-"DTR %s: Сбой удаления объекта доставки, или истекло время ожидания удаления"
+#: src/libs/data-staging/DataDelivery.cpp:255
+#: src/libs/data-staging/DataDelivery.cpp:294
+#: src/libs/data-staging/DataDelivery.cpp:313
+msgid "Failed to delete delivery object or deletion timed out"
+msgstr "Сбой удаления объекта доставки, или истекло время ожидания удаления"
 
-#: src/libs/data-staging/DataDelivery.cpp:252
+#: src/libs/data-staging/DataDelivery.cpp:251
 #, c-format
-msgid "DTR %s: Transfer finished: %llu bytes transferred %s"
-msgstr "DTR %s: Передача завершена: %llu байтов передано %s"
+msgid "Transfer finished: %llu bytes transferred %s"
+msgstr "Передача завершена: %llu байтов передано %s"
 
-#: src/libs/data-staging/DataDelivery.cpp:324
+#: src/libs/data-staging/DataDelivery.cpp:319
 msgid "Data delivery loop exited"
 msgstr "Прерван цикл размещения данных"
 
@@ -509,205 +449,255 @@ msgstr "Прерван цикл размещения данных"
 #: src/libs/data-staging/DataDeliveryRemoteComm.cpp:47
 #: src/libs/data-staging/DataDeliveryLocalComm.cpp:66
 #: src/libs/data-staging/DataDeliveryLocalComm.cpp:71
+#: src/hed/dmc/gfal/DataPointGFAL.cpp:257
 #, c-format
-msgid "DTR %s: No locations defined for %s"
-msgstr "DTR %s: Не определены расположения %s"
+msgid "No locations defined for %s"
+msgstr "Не найдено ни одного местонахождения файла %s"
 
 #: src/libs/data-staging/DataDeliveryRemoteComm.cpp:67
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:317
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:313
 #, c-format
-msgid "DTR %s: Connecting to Delivery service at %s"
-msgstr "DTR %s: Соединяемся со службой доставки на %s"
+msgid "Connecting to Delivery service at %s"
+msgstr "Соединяемся со службой доставки на %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:94
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:93
 #, c-format
-msgid "DTR %s: Failed to set up credential delegation with %s"
-msgstr "DTR %s: Сбой установки делегирования прав доступа с %s"
+msgid "Failed to set up credential delegation with %s"
+msgstr "Сбой установки делегирования прав доступа с %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:101
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:177
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:242
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:328
-#, c-format
-msgid ""
-"DTR %s: Request:\n"
-"%s"
-msgstr ""
-"DTR %s: Запрос:\n"
-"%s"
-
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:107
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:334
-#, c-format
-msgid "DTR %s: Could not connect to service %s: %s"
-msgstr "DTR %s: Не удалось соединиться со службой %s: %s"
-
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:115
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:342
-#, c-format
-msgid "DTR %s: No SOAP response from Delivery service %s"
-msgstr "DTR %s: Нет ответа SOAP от службы доставки %s"
-
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:121
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:196
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:269
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:348
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:99
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:173
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:238
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:324
+#: src/clients/echo/arcecho.cpp:105 src/hed/dmc/arc/DataPointARC.cpp:169
+#: src/hed/dmc/arc/DataPointARC.cpp:222 src/hed/dmc/arc/DataPointARC.cpp:304
+#: src/hed/dmc/arc/DataPointARC.cpp:415 src/hed/dmc/arc/DataPointARC.cpp:510
+#: src/hed/dmc/arc/DataPointARC.cpp:574 src/hed/dmc/arc/DataPointARC.cpp:624
 #, c-format
 msgid ""
-"DTR %s: Response:\n"
+"Request:\n"
 "%s"
 msgstr ""
-"DTR %s: Отклик:\n"
+"Запрос:\n"
 "%s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:130
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:105
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:330
 #, c-format
-msgid "DTR %s: Failed to start transfer request: %s"
-msgstr "DTR %s: Сбой запуска запроса на передачу: %s"
+msgid "Could not connect to service %s: %s"
+msgstr "Не удалось соединиться со службой %s: %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:137
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:113
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:338
 #, c-format
-msgid "DTR %s: Bad format in XML response from service at %s: %s"
-msgstr "DTR %s: Недопустимый формат отзыва XML от сервиса в %s: %s"
+msgid "No SOAP response from Delivery service %s"
+msgstr "Нет ответа SOAP от службы доставки %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:145
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:118
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:192
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:265
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:344
+#: src/clients/echo/arcecho.cpp:124 src/hed/dmc/arc/DataPointARC.cpp:187
+#: src/hed/dmc/arc/DataPointARC.cpp:240 src/hed/dmc/arc/DataPointARC.cpp:325
+#: src/hed/dmc/arc/DataPointARC.cpp:436 src/hed/dmc/arc/DataPointARC.cpp:529
+#: src/hed/dmc/arc/DataPointARC.cpp:592 src/hed/dmc/arc/DataPointARC.cpp:643
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:531
 #, c-format
-msgid "DTR %s: Could not make new transfer request: %s: %s"
-msgstr "DTR %s: Невозможно создать новый запрос пересылки: %s: %s"
+msgid ""
+"Response:\n"
+"%s"
+msgstr ""
+"Отзыв:\n"
+"%s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:150
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:127
 #, c-format
-msgid "DTR %s: Started remote Delivery at %s"
-msgstr "DTR %s: Запущена удалённая служба доставки на %s"
+msgid "Failed to start transfer request: %s"
+msgstr "Сбой запуска запроса на передачу: %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:184
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:134
 #, c-format
-msgid "DTR %s: Failed to send cancel request: %s"
-msgstr "DTR %s: Сбой отправки запроса на прерывание: %s"
+msgid "Bad format in XML response from service at %s: %s"
+msgstr "Недопустимый формат отзыва XML от сервиса в %s: %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:191
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:142
 #, c-format
-msgid "DTR %s: Failed to cancel: No SOAP response"
-msgstr "DTR %s: Сбой прерывания: нет ответа SOAP"
+msgid "Could not make new transfer request: %s: %s"
+msgstr "Невозможно создать новый запрос пересылки: %s: %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:205
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:147
 #, c-format
-msgid "DTR %s: Failed to cancel transfer request: %s"
-msgstr "DTR %s: Сбой прерывания запроса на передачу: %s"
+msgid "Started remote Delivery at %s"
+msgstr "Запущена удалённая служба доставки на %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:212
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:292
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:180
 #, c-format
-msgid "DTR %s: Bad format in XML response: %s"
-msgstr "DTR %s: Неверный формат отклика XML: %s"
+msgid "Failed to send cancel request: %s"
+msgstr "Сбой отправки запроса на прерывание: %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:219
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:187
+msgid "Failed to cancel: No SOAP response"
+msgstr "Сбой прерывания: нет ответа SOAP"
+
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:201
 #, c-format
-msgid "DTR %s: Failed to cancel: %s"
-msgstr "DTR %s: Сбой прерывания: %s"
+msgid "Failed to cancel transfer request: %s"
+msgstr "Сбой прерывания запроса на передачу: %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:249
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:507
-#: src/libs/data-staging/Processor.cpp:190
-#: src/libs/data-staging/Processor.cpp:214
-#: src/libs/data-staging/Processor.cpp:244
-#: src/libs/data-staging/Processor.cpp:277
-#: src/libs/data-staging/Processor.cpp:399
-#: src/libs/data-staging/Processor.cpp:431
-#: src/libs/data-staging/Processor.cpp:467
-#: src/libs/data-staging/Processor.cpp:505
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:208
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:288
 #, c-format
-msgid "DTR %s: %s"
-msgstr "DTR %s: %s"
+msgid "Bad format in XML response: %s"
+msgstr "Неверный формат отклика XML: %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:262
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:215
 #, c-format
-msgid "DTR %s: No SOAP response from delivery service"
-msgstr "DTR %s: Нет ответа SOAP от службы доставки"
+msgid "Failed to cancel: %s"
+msgstr "Ошибка отмены: %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:283
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:245
+#: src/hed/libs/credential/Credential.cpp:141
+#: src/hed/libs/credential/Credential.cpp:1138
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:559
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:613
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:815
+#: src/hed/dmc/srm/srmclient/SRM22Client.cpp:133
+#: src/hed/dmc/srm/srmclient/SRM22Client.cpp:173
+#: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1215
+#: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1249
+#: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1431
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:124
+#: src/hed/mcc/tcp/PayloadTCPSocket.cpp:68
+#: src/hed/mcc/tcp/PayloadTCPSocket.cpp:80
+#: src/hed/mcc/tcp/PayloadTCPSocket.cpp:100
+#: src/hed/mcc/tcp/PayloadTCPSocket.cpp:110
+#: src/hed/mcc/tcp/PayloadTCPSocket.cpp:118
+#: src/hed/mcc/tcp/PayloadTCPSocket.cpp:127
+#: src/hed/mcc/tcp/PayloadTCPSocket.cpp:136
+#: src/hed/acc/EMIES/TestEMIESClient.cpp:225 src/hed/shc/arcpdp/ArcPDP.cpp:235
+#: src/hed/shc/samltokensh/SAMLTokenSH.cpp:293
+#: src/hed/identitymap/ArgusPDPClient.cpp:444
+#: src/hed/identitymap/ArgusPEPClient.cpp:98
+#: src/hed/identitymap/ArgusPEPClient.cpp:345
+#: src/services/a-rex/delegation/DelegationStore.cpp:36
+#: src/services/a-rex/delegation/DelegationStore.cpp:40
+#: src/services/a-rex/delegation/DelegationStore.cpp:62
+#: src/services/a-rex/delegation/DelegationStore.cpp:68
+#: src/services/a-rex/grid-manager/inputcheck.cpp:33
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:549
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:615
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:638
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:647
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:656
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:665
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:673
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:679
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:684
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:689
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:694
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:702
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:709
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:720
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:727
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:766
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:776
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:784
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:810
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1156
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1161
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1190
+#: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:324
 #, c-format
-msgid "DTR %s: Failed to query state: %s"
-msgstr "DTR %s: Сбой опроса состояния: %s"
+msgid "%s"
+msgstr "%s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:357
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:258
+msgid "No SOAP response from delivery service"
+msgstr "Нет ответа SOAP от службы доставки"
+
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:279
 #, c-format
-msgid "DTR %s: SOAP fault from delivery service at %s: %s"
-msgstr "DTR %s: Ошибка SOAP службы доставки на %s: %s"
+msgid "Failed to query state: %s"
+msgstr "Сбой опроса состояния: %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:365
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:353
 #, c-format
-msgid "DTR %s: Bad format in XML response from delivery service at %s: %s"
-msgstr "DTR %s: Неверный формат отклика XML службы доставки на %s: %s"
+msgid "SOAP fault from delivery service at %s: %s"
+msgstr "Ошибка SOAP службы доставки на %s: %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:373
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:361
 #, c-format
-msgid "DTR %s: Error pinging delivery service at %s: %s: %s"
-msgstr "DTR %s: Ошибка связи со службой доставки на %s: %s: %s"
+msgid "Bad format in XML response from delivery service at %s: %s"
+msgstr "Неверный формат отклика XML службы доставки на %s: %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:381
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:369
+#, c-format
+msgid "Error pinging delivery service at %s: %s: %s"
+msgstr "Ошибка связи со службой доставки на %s: %s: %s"
+
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:377
 #, c-format
 msgid "Dir %s allowed at service %s"
 msgstr "Каталог %s допускается для службы %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:462
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:458
 #, c-format
 msgid ""
-"DTR %s: DataDelivery log tail:\n"
+"DataDelivery log tail:\n"
 "%s"
 msgstr ""
-"DTR %s: Последние записи журнала DataDelivery:\n"
+"Последние записи журнала DataDelivery:\n"
 "%s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:475
-#, c-format
-msgid "DTR %s: Failed locating credentials"
-msgstr "DTR %s: Сбой обнаружения параметров доступа"
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:471
+msgid "Failed locating credentials"
+msgstr "Сбой обнаружения параметров доступа"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:480
-#, c-format
-msgid "DTR %s: Failed to initiate client connection"
-msgstr "DTR %s: Сбой запуска соединения с клиентом"
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:476
+msgid "Failed to initiate client connection"
+msgstr "Сбой запуска соединения с клиентом"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:486
-#, c-format
-msgid "DTR %s: Client connection has no entry point"
-msgstr "DTR %s: Отсутствует точка входа для соединения с клиентом"
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:482
+msgid "Client connection has no entry point"
+msgstr "Отсутствует точка входа в клиентскую цепь"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:494
-#, c-format
-msgid "DTR %s: Initiating delegation procedure"
-msgstr "DTR %s: Инициализация процедуры делегирования"
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:490
+#: src/hed/acc/ARC1/AREXClient.cpp:105
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:191
+#: src/hed/acc/UNICORE/UNICOREClient.cpp:222
+#: src/hed/acc/EMIES/EMIESClient.cpp:121 src/services/a-rex/test.cpp:86
+msgid "Initiating delegation procedure"
+msgstr "Инициализация процедуры делегирования:"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:496
-#, c-format
-msgid "DTR %s: Failed to initiate delegation credentials"
-msgstr "DTR %s: Сбой инициализации делегируемых прав доступа"
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:492
+#: src/hed/acc/ARC1/AREXClient.cpp:107
+msgid "Failed to initiate delegation credentials"
+msgstr "Сбой инициализации параметров доступа для делегирования"
 
 #: src/libs/data-staging/DataDeliveryLocalComm.cpp:130
 #, c-format
-msgid "DTR %s: Bad checksum format %s"
-msgstr "DTR %s: Неверный формат контрольной суммы %s"
+msgid "Bad checksum format %s"
+msgstr "Неверный формат контрольной суммы %s"
 
 #: src/libs/data-staging/DataDeliveryLocalComm.cpp:158
 #, c-format
-msgid "DTR %s: Running command: %s"
-msgstr "DTR %s: Выполняется команда %s"
+msgid "Running command: %s"
+msgstr "Выполняется команда %s"
 
 #: src/libs/data-staging/DataDeliveryLocalComm.cpp:196
 #, c-format
-msgid "DTR %s: DataDelivery: %s"
-msgstr "DTR %s: DataDelivery: %s"
+msgid "DataDelivery: %s"
+msgstr "DataDelivery: %s"
 
 #: src/libs/data-staging/DataDeliveryLocalComm.cpp:208
 #, c-format
-msgid "DTR %s: DataStagingDelivery exited with code %i"
-msgstr "DTR %s: Процесс DataStagingDelivery завершился с кодом %i"
+msgid "DataStagingDelivery exited with code %i"
+msgstr "Процесс DataStagingDelivery завершился с кодом %i"
 
 #: src/libs/data-staging/DataDeliveryLocalComm.cpp:227
 #, c-format
-msgid "DTR %s: Transfer killed after %i seconds without communication"
-msgstr "DTR %s: Пересылка оборвана после %i секунд бездействия"
+msgid "Transfer killed after %i seconds without communication"
+msgstr "Пересылка оборвана после %i секунд бездействия"
 
 #: src/libs/data-staging/DTR.cpp:82 src/libs/data-staging/DTR.cpp:86
 #, c-format
@@ -718,303 +708,283 @@ msgstr "Невозможно обработать точку входа %s"
 msgid "Source is the same as destination"
 msgstr "Источник идентичен назначению"
 
-#: src/libs/data-staging/DTR.cpp:158
+#: src/libs/data-staging/DTR.cpp:163
 #, c-format
 msgid "Invalid ID: %s"
 msgstr "Неверный ID: %s"
 
-#: src/libs/data-staging/DTR.cpp:190
+#: src/libs/data-staging/DTR.cpp:200
 #, c-format
-msgid "DTR %s: %s->%s"
-msgstr "DTR %s: %s->%s"
+msgid "%s->%s"
+msgstr "%s->%s"
 
-#: src/libs/data-staging/DTR.cpp:294
+#: src/libs/data-staging/DTR.cpp:304
 #, c-format
-msgid "DTR %s: No callback for %s defined"
-msgstr "DTR %s: Не определена функция обратного вызова для %s"
+msgid "No callback for %s defined"
+msgstr "Не определена функция обратного вызова для %s"
 
-#: src/libs/data-staging/DTR.cpp:309
+#: src/libs/data-staging/DTR.cpp:319
 #, c-format
-msgid "DTR %s: NULL callback for %s"
-msgstr "DTR %s: Нулевой обратный вызов для %s"
+msgid "NULL callback for %s"
+msgstr "Нулевой обратный вызов для %s"
 
-#: src/libs/data-staging/DTR.cpp:312
+#: src/libs/data-staging/DTR.cpp:322
 #, c-format
-msgid "DTR %s: Request to push to unknown owner - %u"
-msgstr "DTR %s: Попытка передачи неизвестному владельцу - %u"
+msgid "Request to push to unknown owner - %u"
+msgstr "Попытка передачи неизвестному владельцу - %u"
 
 #: src/libs/data-staging/Processor.cpp:51
-#, c-format
-msgid "DTR %s: Error creating cache"
-msgstr "DTR %s: Ошибка создания кэша"
+#: src/services/cache_service/CacheService.cpp:113
+#: src/services/a-rex/grid-manager/loaders/downloader.cpp:418
+#: src/services/a-rex/grid-manager/loaders/downloader.cpp:435
+#: src/services/a-rex/grid-manager/loaders/uploader.cpp:331
+#: src/services/a-rex/grid-manager/loaders/uploader.cpp:348
+msgid "Error creating cache"
+msgstr "Ошибка при создании кэша"
 
 #: src/libs/data-staging/Processor.cpp:79
 #, c-format
-msgid "DTR %s: Forcing re-download of file %s"
-msgstr "DTR %s: Принудительная перезагрузка файла  %s"
+msgid "Forcing re-download of file %s"
+msgstr "Принудительная перезагрузка файла %s"
 
-#: src/libs/data-staging/Processor.cpp:84
-#, c-format
-msgid "DTR %s: Cached file is locked - should retry"
-msgstr "DTR %s: Кэшированный файл заблокирован - должна быть новая попытка"
+#: src/libs/data-staging/Processor.cpp:84 src/hed/libs/data/DataMover.cpp:577
+#: src/hed/libs/data/DataMover.cpp:644
+msgid "Cached file is locked - should retry"
+msgstr "Файл в кэше заблокирован - попытаемся заново"
 
 #: src/libs/data-staging/Processor.cpp:96
 #, c-format
-msgid "DTR %s: Will wait around %is"
-msgstr "DTR %s: Ожидание порядка %i секунд"
+msgid "Will wait around %is"
+msgstr "Ожидание порядка %i сек"
 
-#: src/libs/data-staging/Processor.cpp:103
-#, c-format
-msgid "DTR %s: Failed to initiate cache"
-msgstr "DTR %s: Сбой инициализации кэша"
+#: src/libs/data-staging/Processor.cpp:103 src/hed/libs/data/DataMover.cpp:582
+msgid "Failed to initiate cache"
+msgstr "Сбой при инициализации кэша"
 
-#: src/libs/data-staging/Processor.cpp:113
+#: src/libs/data-staging/Processor.cpp:113 src/hed/libs/data/DataMover.cpp:291
+#: src/hed/libs/data/DataMover.cpp:588
 #, c-format
-msgid "DTR %s: File %s is cached (%s) - checking permissions"
-msgstr "DTR %s: Файл %s занесён в кэш (%s) - проверка прав доступа"
+msgid "File %s is cached (%s) - checking permissions"
+msgstr "Файл %s присутствует в кэше (%s) - проверяется допуск"
 
 #: src/libs/data-staging/Processor.cpp:124
-#, c-format
-msgid "DTR %s: Permission checking failed"
-msgstr "DTR %s: Проверка доступа не пройдена"
+msgid "Permission checking failed"
+msgstr "Проверка прав доступа не удалась"
 
-#: src/libs/data-staging/Processor.cpp:133
-#, c-format
-msgid "DTR %s: Permission checking passed"
-msgstr "DTR %s: Проверка доступа пройдена успешно"
+#: src/libs/data-staging/Processor.cpp:133 src/hed/libs/data/DataMover.cpp:295
+#: src/hed/libs/data/DataMover.cpp:607 src/hed/libs/data/DataMover.cpp:677
+msgid "Permission checking passed"
+msgstr "Проверка допуска пройдена"
 
-#: src/libs/data-staging/Processor.cpp:141
+#: src/libs/data-staging/Processor.cpp:141 src/hed/libs/data/DataMover.cpp:615
 #, c-format
-msgid "DTR %s: Source modification date: %s"
-msgstr "DTR %s: Время изменения источника: %s"
+msgid "Source modification date: %s"
+msgstr "Дата изменения источника: %s"
 
-#: src/libs/data-staging/Processor.cpp:142
+#: src/libs/data-staging/Processor.cpp:142 src/hed/libs/data/DataMover.cpp:616
 #, c-format
-msgid "DTR %s: Cache creation date: %s"
-msgstr "DTR %s: Время создания кэша: %s"
+msgid "Cache creation date: %s"
+msgstr "Дата создания кэша: %s"
 
-#: src/libs/data-staging/Processor.cpp:148
+#: src/libs/data-staging/Processor.cpp:148 src/hed/libs/data/DataMover.cpp:622
 #, c-format
-msgid "DTR %s: Cache file valid until: %s"
-msgstr "DTR %s: Файл в кэше действителен до: %s"
+msgid "Cache file valid until: %s"
+msgstr "Файл в кэше действителен до: %s"
 
-#: src/libs/data-staging/Processor.cpp:155
-#, c-format
-msgid "DTR %s: Cached file is outdated, will re-download"
-msgstr "DTR %s: Кэшированный файл устарел, будет перезагружен"
+#: src/libs/data-staging/Processor.cpp:155 src/hed/libs/data/DataMover.cpp:630
+msgid "Cached file is outdated, will re-download"
+msgstr "Файл в кэше устарел, будет загружен заново"
 
-#: src/libs/data-staging/Processor.cpp:161
-#, c-format
-msgid "DTR %s: Cached copy is still valid"
-msgstr "DTR %s: Кэшированная копия всё ещё действительна"
+#: src/libs/data-staging/Processor.cpp:161 src/hed/libs/data/DataMover.cpp:634
+msgid "Cached copy is still valid"
+msgstr "Копия в кэше ещё действительна"
 
 #: src/libs/data-staging/Processor.cpp:165
 #, c-format
-msgid "DTR %s: Will download to cache file %s"
-msgstr "DTR %s: Будет произведена загрузка в файл кэша %s"
+msgid "Will download to cache file %s"
+msgstr "Будет произведена загрузка в файл кэша %s"
 
 #: src/libs/data-staging/Processor.cpp:187
-#, c-format
-msgid "DTR %s: Looking up source replicas"
-msgstr "DTR %s: Поиск копий файла-источника"
+msgid "Looking up source replicas"
+msgstr "Поиск копий файла-источника"
 
 #: src/libs/data-staging/Processor.cpp:211
-#: src/libs/data-staging/Processor.cpp:428
-#, c-format
-msgid "DTR %s: Resolving destination replicas"
-msgstr "DTR %s: Обнаружение копий цели"
+#: src/libs/data-staging/Processor.cpp:426
+msgid "Resolving destination replicas"
+msgstr "Обнаружение копий назначения"
 
 #: src/libs/data-staging/Processor.cpp:229
-#, c-format
-msgid "DTR %s: No locations for destination different from source found"
-msgstr "DTR %s: Не обнаружено адресов цели, отличных от источника"
+msgid "No locations for destination different from source found"
+msgstr "Не найдено расположений для назначения, отличающихся от источника"
 
 #: src/libs/data-staging/Processor.cpp:241
-#, c-format
-msgid "DTR %s: Pre-registering destination in index service"
-msgstr "DTR %s: Предварительная регистрация назначения в указателе"
+msgid "Pre-registering destination in index service"
+msgstr "Предварительная регистрация назначения в каталоге"
 
 #: src/libs/data-staging/Processor.cpp:268
-#, c-format
-msgid "DTR %s: Resolving source replicas in bulk"
-msgstr "DTR %s: Массовое обнаружение копий источника"
+msgid "Resolving source replicas in bulk"
+msgstr "Массовое обнаружение копий источника"
 
 #: src/libs/data-staging/Processor.cpp:297
 #, c-format
-msgid "DTR %s: Checking %s"
-msgstr "DTR %s: Проверяется %s"
+msgid "Checking %s"
+msgstr "Проверка %s"
 
 #: src/libs/data-staging/Processor.cpp:306
-#: src/libs/data-staging/Processor.cpp:361
-#, c-format
-msgid "DTR %s: Metadata of replica and index service differ"
-msgstr "DTR %s: Метаданные копии отличаются от тех, что в каталоге"
+#: src/libs/data-staging/Processor.cpp:359
+msgid "Metadata of replica and index service differ"
+msgstr "Метаданные копии отличаются от тех, что в каталоге"
 
 #: src/libs/data-staging/Processor.cpp:314
 #, c-format
-msgid "DTR %s: Failed checking source replica %s: %s"
-msgstr "DTR %s: Сбой проверки копии источника %s: %s"
+msgid "Failed checking source replica %s: %s"
+msgstr "Сбой проверки копии источника %s: %s"
 
-#: src/libs/data-staging/Processor.cpp:342
+#: src/libs/data-staging/Processor.cpp:341
+msgid "Querying source replicas in bulk"
+msgstr "Массовый опрос копий источника"
+
+#: src/libs/data-staging/Processor.cpp:353
 #, c-format
-msgid "DTR %s: Querying source replicas in bulk"
-msgstr "DTR %s: Массовый опрос копий источника"
+msgid "Failed checking source replica: %s"
+msgstr "Сбой проверки копии источника: %s"
 
-#: src/libs/data-staging/Processor.cpp:354
+#: src/libs/data-staging/Processor.cpp:388
+#: src/libs/data-staging/Processor.cpp:402 src/hed/libs/data/FileCache.cpp:673
+#: src/hed/libs/data/DataMover.cpp:115
 #, c-format
-msgid "DTR %s: Failed checking source replica: %s"
-msgstr "DTR %s: Сбой проверки копии источника: %s"
+msgid "Removing %s"
+msgstr "Удаляется %s"
 
-#: src/libs/data-staging/Processor.cpp:390
-#: src/libs/data-staging/Processor.cpp:404
+#: src/libs/data-staging/Processor.cpp:394
+msgid "Finding existing destination replicas"
+msgstr "Обнаружение существующих копий назначения"
+
+#: src/libs/data-staging/Processor.cpp:406
 #, c-format
-msgid "DTR %s: Removing %s"
-msgstr "DTR %s: Удаляется %s"
+msgid "Failed to delete replica %s: %s"
+msgstr "Сбой удаления копии %s: %s"
 
-#: src/libs/data-staging/Processor.cpp:396
+#: src/libs/data-staging/Processor.cpp:420
 #, c-format
-msgid "DTR %s: Finding existing destination replicas"
-msgstr "DTR %s: Обнаружение существующих копий назначения"
+msgid "Unregistering %s"
+msgstr "Удаляется запись о %s"
 
-#: src/libs/data-staging/Processor.cpp:408
+#: src/libs/data-staging/Processor.cpp:431
+msgid "Pre-registering destination"
+msgstr "Предварительная регистрация назначения"
+
+#: src/libs/data-staging/Processor.cpp:437
 #, c-format
-msgid "DTR %s: Failed to delete replica %s: %s"
-msgstr "DTR %s: Сбой удаления копии %s: %s"
+msgid "Failed to pre-clean destination: %s"
+msgstr "Сбой предварительной очистки назначения: %s"
 
-#: src/libs/data-staging/Processor.cpp:422
+#: src/libs/data-staging/Processor.cpp:461
+msgid "Preparing to stage source"
+msgstr "Подготовка к размещению файла-источника"
+
+#: src/libs/data-staging/Processor.cpp:474
 #, c-format
-msgid "DTR %s: Unregistering %s"
-msgstr "DTR %s: Удаляется запись о %s"
+msgid "Source is not ready, will wait %u seconds"
+msgstr "Источник неготов, следующая попытка через %u сек"
 
-#: src/libs/data-staging/Processor.cpp:433
+#: src/libs/data-staging/Processor.cpp:480
+msgid "No physical files found for source"
+msgstr "Не найдено реальных файлов источника"
+
+#: src/libs/data-staging/Processor.cpp:499
+msgid "Preparing to stage destination"
+msgstr "Подготовка к размещению назначения"
+
+#: src/libs/data-staging/Processor.cpp:512
 #, c-format
-msgid "DTR %s: Pre-registering destination"
-msgstr "DTR %s: Предварительная регистрация цели"
+msgid "Destination is not ready, will wait %u seconds"
+msgstr "Назначение неготово, следующая попытка через %u сек"
 
-#: src/libs/data-staging/Processor.cpp:439
+#: src/libs/data-staging/Processor.cpp:518
+msgid "No physical files found for destination"
+msgstr "Не найдено реальных файлов для назначения"
+
+#: src/libs/data-staging/Processor.cpp:545
+msgid "Releasing source"
+msgstr "Сброс источника"
+
+#: src/libs/data-staging/Processor.cpp:549
 #, c-format
-msgid "DTR %s: Failed to pre-clean destination: %s"
-msgstr "DTR %s: Сбой предварительной очистки цели: %s"
+msgid "There was a problem during post-transfer source handling: %s"
+msgstr "Обнаружена проблема при обслуживании источника после пересылки: %s"
 
-#: src/libs/data-staging/Processor.cpp:464
-#, c-format
-msgid "DTR %s: Preparing to stage source"
-msgstr "DTR %s: Подготовка к размещению файла-источника"
+#: src/libs/data-staging/Processor.cpp:554
+msgid "Releasing destination"
+msgstr "Сброс назначения"
 
-#: src/libs/data-staging/Processor.cpp:477
-#, c-format
-msgid "DTR %s: Source is not ready, will wait %u seconds"
-msgstr "DTR %s: Источник неготов, следующая попытка через %u секунд"
-
-#: src/libs/data-staging/Processor.cpp:483
-#, c-format
-msgid "DTR %s: No physical files found for source"
-msgstr "DTR %s: Не найдено реальных файлов источника"
-
-#: src/libs/data-staging/Processor.cpp:502
-#, c-format
-msgid "DTR %s: Preparing to stage destination"
-msgstr "DTR %s: Подготовка к размещению цели"
-
-#: src/libs/data-staging/Processor.cpp:515
-#, c-format
-msgid "DTR %s: Destination is not ready, will wait %u seconds"
-msgstr "DTR %s: Назначение неготово, следующая попытка через %u секунд"
-
-#: src/libs/data-staging/Processor.cpp:521
-#, c-format
-msgid "DTR %s: No physical files found for destination"
-msgstr "DTR %s: Не найдено реальных файлов для цели"
-
-#: src/libs/data-staging/Processor.cpp:548
-#, c-format
-msgid "DTR %s: Releasing source"
-msgstr "DTR %s: Сброс источника"
-
-#: src/libs/data-staging/Processor.cpp:552
-#, c-format
-msgid "DTR %s: There was a problem during post-transfer source handling: %s"
-msgstr ""
-"DTR %s: Обнаружена проблема при обслуживании источника после пересылки: %s"
-
-#: src/libs/data-staging/Processor.cpp:557
-#, c-format
-msgid "DTR %s: Releasing destination"
-msgstr "DTR %s: Сброс цели"
-
-#: src/libs/data-staging/Processor.cpp:561
+#: src/libs/data-staging/Processor.cpp:558
 #, c-format
 msgid ""
-"DTR %s: There was a problem during post-transfer destination handling after "
-"error: %s"
+"There was a problem during post-transfer destination handling after error: %s"
 msgstr ""
-"DTR %s: Обнаружена проблема при обслуживании назначения после пересылки "
-"после сбоя: %s"
+"Обнаружена проблема при обслуживании назначения после пересылки после сбоя: "
+"%s"
 
-#: src/libs/data-staging/Processor.cpp:565
+#: src/libs/data-staging/Processor.cpp:562
 #, c-format
-msgid "DTR %s: Error with post-transfer destination handling: %s"
-msgstr "DTR %s: Ошибка обслуживания назначения после пересылки: %s"
+msgid "Error with post-transfer destination handling: %s"
+msgstr "Ошибка обслуживания назначения после пересылки: %s"
+
+#: src/libs/data-staging/Processor.cpp:589
+msgid "Removing pre-registered destination in index service"
+msgstr "Отмена предварительной регистрации назначения в каталоге"
 
 #: src/libs/data-staging/Processor.cpp:592
 #, c-format
-msgid "DTR %s: Removing pre-registered destination in index service"
-msgstr "DTR %s: Отмена предварительной регистрации цели в каталоге"
-
-#: src/libs/data-staging/Processor.cpp:595
-#, c-format
 msgid ""
-"DTR %s: Failed to unregister pre-registered destination %s: %s. You may need "
-"to unregister it manually"
+"Failed to unregister pre-registered destination %s: %s. You may need to "
+"unregister it manually"
 msgstr ""
-"DTR %s: Не удалось отменить предварительную регистрацию цели %s: %s. "
-"Возможно, Вам придётся сделать это вручную"
+"Не удалось отменить предварительную регистрацию назначения %s: %s. Возможно, "
+"Вам придётся сделать это вручную"
+
+#: src/libs/data-staging/Processor.cpp:598
+msgid "Registering destination replica"
+msgstr "Регистрация копии назначения"
 
 #: src/libs/data-staging/Processor.cpp:601
 #, c-format
-msgid "DTR %s: Registering destination replica"
-msgstr "DTR %s: Регистрация копии цели"
+msgid "Failed to register destination replica: %s"
+msgstr "Сбой регистрации копии назначения: %s"
 
 #: src/libs/data-staging/Processor.cpp:604
 #, c-format
-msgid "DTR %s: Failed to register destination replica: %s"
-msgstr "DTR %s: Сбой регистрации копии цели: %s"
-
-#: src/libs/data-staging/Processor.cpp:607
-#, c-format
 msgid ""
-"DTR %s: Failed to unregister pre-registered destination %s. You may need to "
+"Failed to unregister pre-registered destination %s. You may need to "
 "unregister it manually"
 msgstr ""
-"DTR %s: Не удалось отменить предварительную регистрацию цели %s. Возможно, "
-"Вам придётся сделать это вручную"
+"Не удалось отменить предварительную регистрацию назначения %s. Возможно, Вам "
+"придётся сделать это вручную"
 
-#: src/libs/data-staging/Processor.cpp:638
-#, c-format
-msgid "DTR %s: Error creating cache. Stale locks may remain."
-msgstr ""
-"DTR %s: Ошибка про создании кэша. Возможно, остались старые блокировки."
+#: src/libs/data-staging/Processor.cpp:635
+msgid "Error creating cache. Stale locks may remain."
+msgstr "Ошибка про создании кэша. Возможно, остались старые блокировки."
 
-#: src/libs/data-staging/Processor.cpp:673
+#: src/libs/data-staging/Processor.cpp:670
 #, c-format
-msgid "DTR %s: Linking/copying cached file to %s"
-msgstr "DTR %s: Создание ссылки/копирование файла из кэша в %s"
+msgid "Linking/copying cached file to %s"
+msgstr "Создание ссылки/копирование файла из кэша в %s"
 
-#: src/libs/data-staging/Processor.cpp:695
+#: src/libs/data-staging/Processor.cpp:692
 #, c-format
-msgid "DTR %s: Failed linking cache file to %s"
-msgstr "DTR %s: Сбой создания ссылки на файл из кэша из %s"
+msgid "Failed linking cache file to %s"
+msgstr "Сбой создания ссылки на файл из кэша из %s"
 
-#: src/libs/data-staging/Processor.cpp:699
+#: src/libs/data-staging/Processor.cpp:696
 #, c-format
-msgid "DTR %s: Error linking cache file to %s."
-msgstr "DTR %s: Ошибка создания ссылки на файл из кэша из %s."
+msgid "Error linking cache file to %s."
+msgstr "Ошибка создания ссылки на файл из кэша из %s."
 
-#: src/libs/data-staging/Processor.cpp:721
-#: src/libs/data-staging/Processor.cpp:728
-#, c-format
-msgid "DTR %s: Adding to bulk request"
-msgstr "DTR %s: Добавление к массовому запросу"
+#: src/libs/data-staging/Processor.cpp:718
+#: src/libs/data-staging/Processor.cpp:725
+msgid "Adding to bulk request"
+msgstr "Добавление к массовому запросу"
 
 #: src/libs/data-staging/DataStagingDelivery.cpp:122
 msgid "Unexpected arguments"
@@ -1253,18 +1223,6 @@ msgstr "Не удалось загрузить настройки"
 msgid "Wrong number of arguments!"
 msgstr "Недопустимое число аргументов!"
 
-#: src/clients/echo/arcecho.cpp:105 src/hed/dmc/arc/DataPointARC.cpp:169
-#: src/hed/dmc/arc/DataPointARC.cpp:222 src/hed/dmc/arc/DataPointARC.cpp:304
-#: src/hed/dmc/arc/DataPointARC.cpp:415 src/hed/dmc/arc/DataPointARC.cpp:510
-#: src/hed/dmc/arc/DataPointARC.cpp:574 src/hed/dmc/arc/DataPointARC.cpp:624
-#, c-format
-msgid ""
-"Request:\n"
-"%s"
-msgstr ""
-"Запрос:\n"
-"%s"
-
 #: src/clients/echo/arcecho.cpp:119
 #: src/hed/dmc/srm/srmclient/SRMClient.cpp:164
 #: src/hed/dmc/arc/DataPointARC.cpp:182 src/hed/dmc/arc/DataPointARC.cpp:235
@@ -1273,19 +1231,6 @@ msgstr ""
 #: src/hed/dmc/arc/DataPointARC.cpp:638
 msgid "No SOAP response"
 msgstr "Нет ответа SOAP"
-
-#: src/clients/echo/arcecho.cpp:124 src/hed/dmc/arc/DataPointARC.cpp:187
-#: src/hed/dmc/arc/DataPointARC.cpp:240 src/hed/dmc/arc/DataPointARC.cpp:325
-#: src/hed/dmc/arc/DataPointARC.cpp:436 src/hed/dmc/arc/DataPointARC.cpp:529
-#: src/hed/dmc/arc/DataPointARC.cpp:592 src/hed/dmc/arc/DataPointARC.cpp:643
-#: src/hed/acc/UNICORE/UNICOREClient.cpp:531
-#, c-format
-msgid ""
-"Response:\n"
-"%s"
-msgstr ""
-"Отзыв:\n"
-"%s"
 
 #: src/clients/compute/arcinfo.cpp:34
 msgid "[resource ...]"
@@ -7348,61 +7293,6 @@ msgstr "Пароль слишком короткий, используйте х�
 msgid "Password is too long, need at most %u characters"
 msgstr "Слишком длинный пароль, требуется не более %u символов"
 
-#: src/hed/libs/credential/Credential.cpp:141
-#: src/hed/libs/credential/Credential.cpp:1138
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:559
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:613
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:815
-#: src/hed/dmc/srm/srmclient/SRM22Client.cpp:133
-#: src/hed/dmc/srm/srmclient/SRM22Client.cpp:173
-#: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1215
-#: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1249
-#: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1431
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:124
-#: src/hed/mcc/tcp/PayloadTCPSocket.cpp:68
-#: src/hed/mcc/tcp/PayloadTCPSocket.cpp:80
-#: src/hed/mcc/tcp/PayloadTCPSocket.cpp:100
-#: src/hed/mcc/tcp/PayloadTCPSocket.cpp:110
-#: src/hed/mcc/tcp/PayloadTCPSocket.cpp:118
-#: src/hed/mcc/tcp/PayloadTCPSocket.cpp:127
-#: src/hed/mcc/tcp/PayloadTCPSocket.cpp:136
-#: src/hed/acc/EMIES/TestEMIESClient.cpp:225 src/hed/shc/arcpdp/ArcPDP.cpp:235
-#: src/hed/shc/samltokensh/SAMLTokenSH.cpp:293
-#: src/hed/identitymap/ArgusPDPClient.cpp:444
-#: src/hed/identitymap/ArgusPEPClient.cpp:98
-#: src/hed/identitymap/ArgusPEPClient.cpp:345
-#: src/services/a-rex/delegation/DelegationStore.cpp:36
-#: src/services/a-rex/delegation/DelegationStore.cpp:40
-#: src/services/a-rex/delegation/DelegationStore.cpp:62
-#: src/services/a-rex/delegation/DelegationStore.cpp:68
-#: src/services/a-rex/grid-manager/inputcheck.cpp:33
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:549
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:615
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:638
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:647
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:656
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:665
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:673
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:679
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:684
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:689
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:694
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:702
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:709
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:720
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:727
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:766
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:776
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:784
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:810
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1156
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1161
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1190
-#: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:324
-#, c-format
-msgid "%s"
-msgstr "%s"
-
 #: src/hed/libs/credential/Credential.cpp:272
 msgid "Can't get the first byte of input to determine its format"
 msgstr ""
@@ -9713,11 +9603,6 @@ msgstr "Невозможно удалить существующую симво�
 msgid "Failed to create symbolic link from %s to %s: %s"
 msgstr "Невозможно создать символьную ссылку с %s на %s: %s"
 
-#: src/hed/libs/data/FileCache.cpp:673 src/hed/libs/data/DataMover.cpp:115
-#, c-format
-msgid "Removing %s"
-msgstr "Удаляется %s"
-
 #: src/hed/libs/data/FileCache.cpp:675
 #, c-format
 msgid "Failed to remove cache per-job dir %s: %s"
@@ -9916,16 +9801,6 @@ msgstr "Цель недействительна"
 msgid "Couldn't handle certificate: %s"
 msgstr "Не удалось использовать сертификат: %s"
 
-#: src/hed/libs/data/DataMover.cpp:291 src/hed/libs/data/DataMover.cpp:588
-#, c-format
-msgid "File %s is cached (%s) - checking permissions"
-msgstr "Файл %s присутствует в кэше (%s) - проверяется допуск"
-
-#: src/hed/libs/data/DataMover.cpp:295 src/hed/libs/data/DataMover.cpp:607
-#: src/hed/libs/data/DataMover.cpp:677
-msgid "Permission checking passed"
-msgstr "Проверка допуска пройдена"
-
 #: src/hed/libs/data/DataMover.cpp:296 src/hed/libs/data/DataMover.cpp:635
 #: src/hed/libs/data/DataMover.cpp:1143
 msgid "Linking/copying cached file"
@@ -10026,14 +9901,6 @@ msgstr "Невозможно создать буфер!"
 msgid "URL is mapped to: %s"
 msgstr "URL поставлен в соответствие к: %s"
 
-#: src/hed/libs/data/DataMover.cpp:577 src/hed/libs/data/DataMover.cpp:644
-msgid "Cached file is locked - should retry"
-msgstr "Файл в кэше заблокирован - попытаемся заново"
-
-#: src/hed/libs/data/DataMover.cpp:582
-msgid "Failed to initiate cache"
-msgstr "Сбой при инициализации кэша"
-
 #: src/hed/libs/data/DataMover.cpp:599
 #: src/services/cache_service/CacheService.cpp:347
 #, c-format
@@ -10044,29 +9911,6 @@ msgstr "Проверка прав доступа не удалась: %s"
 #: src/hed/libs/data/DataMover.cpp:691 src/hed/libs/data/DataMover.cpp:702
 msgid "source.next_location"
 msgstr "source.next_location"
-
-#: src/hed/libs/data/DataMover.cpp:615
-#, c-format
-msgid "Source modification date: %s"
-msgstr "Дата изменения источника: %s"
-
-#: src/hed/libs/data/DataMover.cpp:616
-#, c-format
-msgid "Cache creation date: %s"
-msgstr "Дата создания кэша: %s"
-
-#: src/hed/libs/data/DataMover.cpp:622
-#, c-format
-msgid "Cache file valid until: %s"
-msgstr "Файл в кэше действителен до: %s"
-
-#: src/hed/libs/data/DataMover.cpp:630
-msgid "Cached file is outdated, will re-download"
-msgstr "Файл в кэше устарел, будет загружен заново"
-
-#: src/hed/libs/data/DataMover.cpp:634
-msgid "Cached copy is still valid"
-msgstr "Копия в кэше ещё действительна"
 
 #: src/hed/libs/data/DataMover.cpp:662
 msgid "URL is mapped to local access - checking permissions on original URL"
@@ -11425,7 +11269,7 @@ msgstr "mkdir_ftp: истекло время ожидания команды mkd
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1467
 #: src/hed/dmc/file/DataPointFile.cpp:510
 #: src/services/a-rex/jura/JobLogFile.cpp:477
-#: src/services/a-rex/jura/JobLogFile.cpp:987
+#: src/services/a-rex/jura/JobLogFile.cpp:985
 #, c-format
 msgid "Creating directory %s"
 msgstr "Создается директория %s"
@@ -12310,11 +12154,6 @@ msgstr "StopReading начинает ожидание transfer_condition."
 #: src/hed/dmc/gfal/DataPointGFAL.cpp:230
 msgid "StopReading finished waiting for transfer_condition."
 msgstr "StopReading закончил ожидание transfer_condition."
-
-#: src/hed/dmc/gfal/DataPointGFAL.cpp:257
-#, c-format
-msgid "No locations defined for %s"
-msgstr "Не найдено ни одного местонахождения файла %s"
 
 #: src/hed/dmc/gfal/DataPointGFAL.cpp:264
 #, c-format
@@ -15495,17 +15334,6 @@ msgstr "Сбой инициализации соединения с клиент
 msgid "Client connection has no entry point."
 msgstr "Отсутствует точка входа в клиентскую цепь."
 
-#: src/hed/acc/ARC1/AREXClient.cpp:105
-#: src/hed/acc/UNICORE/UNICOREClient.cpp:191
-#: src/hed/acc/UNICORE/UNICOREClient.cpp:222
-#: src/hed/acc/EMIES/EMIESClient.cpp:121 src/services/a-rex/test.cpp:86
-msgid "Initiating delegation procedure"
-msgstr "Инициализация процедуры делегирования:"
-
-#: src/hed/acc/ARC1/AREXClient.cpp:107
-msgid "Failed to initiate delegation credentials"
-msgstr "Сбой инициализации параметров доступа для делегирования"
-
 #: src/hed/acc/ARC1/AREXClient.cpp:118
 msgid "Re-creating an A-REX client"
 msgstr "Воссоздаётся клиент A-REX"
@@ -16923,7 +16751,7 @@ msgstr "Запущен обработчик делегирования с рол
 #: src/hed/shc/delegationsh/DelegationSH.cpp:152
 #: src/services/cache_service/CacheService.cpp:510
 #: src/services/a-rex/arex.cpp:550
-#: src/services/data-staging/DataDeliveryService.cpp:608
+#: src/services/data-staging/DataDeliveryService.cpp:614
 msgid "process: POST"
 msgstr "процесс: POST"
 
@@ -16932,7 +16760,7 @@ msgstr "процесс: POST"
 #: src/services/saml/aaservice.cpp:82 src/services/a-rex/arex.cpp:557
 #: src/services/wrappers/java/javawrapper.cpp:140
 #: src/services/wrappers/python/pythonwrapper.cpp:413
-#: src/services/data-staging/DataDeliveryService.cpp:617
+#: src/services/data-staging/DataDeliveryService.cpp:623
 msgid "input is not SOAP"
 msgstr "ввод не в формате SOAP"
 
@@ -17374,14 +17202,14 @@ msgstr "echo: Доступ закрыт"
 
 #: src/tests/echo/echo.cpp:98 src/services/cache_service/CacheService.cpp:527
 #: src/services/a-rex/arex.cpp:563
-#: src/services/data-staging/DataDeliveryService.cpp:625
+#: src/services/data-staging/DataDeliveryService.cpp:631
 #, c-format
 msgid "process: request=%s"
 msgstr "процесс: запрос=%s"
 
 #: src/tests/echo/echo.cpp:166 src/services/cache_service/CacheService.cpp:564
 #: src/services/a-rex/arex.cpp:766 src/services/a-rex/arex.cpp:783
-#: src/services/data-staging/DataDeliveryService.cpp:676
+#: src/services/data-staging/DataDeliveryService.cpp:682
 #, c-format
 msgid "process: response=%s"
 msgstr "процесс: отзыв=%s"
@@ -17532,14 +17360,14 @@ msgstr "Ввод не в формате SOAP"
 #: src/tests/count/count.cpp:69
 #: src/services/cache_service/CacheService.cpp:532
 #: src/services/a-rex/arex.cpp:568
-#: src/services/data-staging/DataDeliveryService.cpp:630
+#: src/services/data-staging/DataDeliveryService.cpp:636
 msgid "input does not define operation"
 msgstr "не задана операция на вводе"
 
 #: src/tests/count/count.cpp:72
 #: src/services/cache_service/CacheService.cpp:535
 #: src/services/a-rex/arex.cpp:571
-#: src/services/data-staging/DataDeliveryService.cpp:633
+#: src/services/data-staging/DataDeliveryService.cpp:639
 #, c-format
 msgid "process: operation: %s"
 msgstr "процесс: операция: %s"
@@ -17554,7 +17382,7 @@ msgstr "Запрос не поддерживается - %s"
 #: src/services/a-rex/arex.cpp:587 src/services/a-rex/arex.cpp:772
 #: src/services/a-rex/arex.cpp:791 src/services/a-rex/arex.cpp:804
 #: src/services/a-rex/arex.cpp:814 src/services/a-rex/arex.cpp:829
-#: src/services/data-staging/DataDeliveryService.cpp:681
+#: src/services/data-staging/DataDeliveryService.cpp:687
 msgid "Security Handlers processing failed"
 msgstr "Сбой в процессе обработки прав доступа"
 
@@ -17620,14 +17448,6 @@ msgstr "Не удалось обработать настройки A-REX в %s"
 #: src/services/cache_service/CacheService.cpp:64
 msgid "No caches defined in configuration"
 msgstr "Кэш не описан в файле настроек"
-
-#: src/services/cache_service/CacheService.cpp:113
-#: src/services/a-rex/grid-manager/loaders/downloader.cpp:418
-#: src/services/a-rex/grid-manager/loaders/downloader.cpp:435
-#: src/services/a-rex/grid-manager/loaders/uploader.cpp:331
-#: src/services/a-rex/grid-manager/loaders/uploader.cpp:348
-msgid "Error creating cache"
-msgstr "Ошибка при создании кэша"
 
 #: src/services/cache_service/CacheService.cpp:134
 #: src/services/cache_service/CacheService.cpp:311
@@ -17751,14 +17571,14 @@ msgid "No local user mapping found"
 msgstr "Пользователь не приписан ни к одному локальному имени"
 
 #: src/services/cache_service/CacheService.cpp:511
-#: src/services/data-staging/DataDeliveryService.cpp:609
+#: src/services/data-staging/DataDeliveryService.cpp:615
 #, c-format
 msgid "Identity is %s"
 msgstr "Личные данные: %s"
 
 #: src/services/cache_service/CacheService.cpp:553
 #: src/services/a-rex/arex.cpp:516
-#: src/services/data-staging/DataDeliveryService.cpp:665
+#: src/services/data-staging/DataDeliveryService.cpp:671
 #, c-format
 msgid "SOAP operation is not supported: %s"
 msgstr "Операция SOAP не поддерживается: %s"
@@ -18792,30 +18612,30 @@ msgstr ""
 "журнала задач %s"
 
 #: src/services/a-rex/jura/JobLogFile.cpp:289
-#: src/services/a-rex/jura/JobLogFile.cpp:743
+#: src/services/a-rex/jura/JobLogFile.cpp:741
 #, c-format
 msgid "Missing required element \"Status\" in job log file %s"
 msgstr "Отсутствует обязательный элемент \"Status\" в файле журнала задач %s"
 
 #: src/services/a-rex/jura/JobLogFile.cpp:483
-#: src/services/a-rex/jura/JobLogFile.cpp:993
+#: src/services/a-rex/jura/JobLogFile.cpp:991
 #, c-format
 msgid "Failed to create archive directory %s: %s"
 msgstr "Не удалось создать архивный каталог %s: %s"
 
 #: src/services/a-rex/jura/JobLogFile.cpp:490
-#: src/services/a-rex/jura/JobLogFile.cpp:1000
+#: src/services/a-rex/jura/JobLogFile.cpp:998
 #, c-format
 msgid "Archiving Usage Record to file %s"
 msgstr "Архивирование записи Usage Record в файл %s"
 
 #: src/services/a-rex/jura/JobLogFile.cpp:496
-#: src/services/a-rex/jura/JobLogFile.cpp:1006
+#: src/services/a-rex/jura/JobLogFile.cpp:1004
 #, c-format
 msgid "Failed to write file %s: %s"
 msgstr "Сбой при записи файла %s: %s"
 
-#: src/services/a-rex/jura/JobLogFile.cpp:1037
+#: src/services/a-rex/jura/JobLogFile.cpp:1035
 #, c-format
 msgid "Failed to delete file %s:%s"
 msgstr "Не удалось удалить файл %s: %s"
@@ -20840,7 +20660,7 @@ msgstr "%s: Невозможно записать два разных файла
 msgid "%s: Received job in a bad state: %s"
 msgstr "%s: Задача получена в плохом состоянии: %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:762
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:761
 #, c-format
 msgid ""
 "%s: Destination file %s was possibly left unfinished from previous A-REX "
@@ -22385,71 +22205,71 @@ msgstr "Не удалось создать временную доверенно
 msgid "Failed to change owner of temp proxy at %s to %i:%i: %s"
 msgstr "Не удалось поменять владельца временной доверенности в %s на %i:%i: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:287
+#: src/services/data-staging/DataDeliveryService.cpp:288
 msgid "Invalid DTR"
 msgstr "Недействительный запрос DTR"
 
-#: src/services/data-staging/DataDeliveryService.cpp:292
+#: src/services/data-staging/DataDeliveryService.cpp:293
 #, c-format
 msgid "Failed to remove temporary proxy %s: %s"
 msgstr "Не удалось удалить временную доверенность %s: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:390
+#: src/services/data-staging/DataDeliveryService.cpp:391
 #, c-format
 msgid "No such DTR %s"
 msgstr "Нет такого запроса DTR %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:401
+#: src/services/data-staging/DataDeliveryService.cpp:402
 #, c-format
 msgid "DTR %s failed: %s"
 msgstr "Сбой запроса DTR %s: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:411
+#: src/services/data-staging/DataDeliveryService.cpp:412
 #, c-format
 msgid "DTR %s finished successfully"
 msgstr "Запрос DTR %s успешно завершён"
 
-#: src/services/data-staging/DataDeliveryService.cpp:420
+#: src/services/data-staging/DataDeliveryService.cpp:421
 #, c-format
 msgid "DTR %s still in progress (%lluB transferred)"
 msgstr "Запрос DTR %s ещё в процессе (передано %lluB)"
 
-#: src/services/data-staging/DataDeliveryService.cpp:481
+#: src/services/data-staging/DataDeliveryService.cpp:482
 #, c-format
 msgid "No active DTR %s"
 msgstr "Нет активных запросов DTR %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:491
+#: src/services/data-staging/DataDeliveryService.cpp:492
 #, c-format
 msgid "DTR %s was already cancelled"
 msgstr "Запрос DTR %s уже был прерван"
 
-#: src/services/data-staging/DataDeliveryService.cpp:500
+#: src/services/data-staging/DataDeliveryService.cpp:501
 #, c-format
 msgid "DTR %s could not be cancelled"
 msgstr "Запрос DTR %s не может быть прерван"
 
-#: src/services/data-staging/DataDeliveryService.cpp:552
+#: src/services/data-staging/DataDeliveryService.cpp:559
 msgid "Invalid configuration - no allowed IP address specified"
 msgstr "Неверная настройка - не указано ни одного допустимого IP-адреса"
 
-#: src/services/data-staging/DataDeliveryService.cpp:556
+#: src/services/data-staging/DataDeliveryService.cpp:563
 msgid "Invalid configuration - no allowed dirs specified"
 msgstr "Неверная настройка - не указано ни одного допустимого каталога"
 
-#: src/services/data-staging/DataDeliveryService.cpp:567
+#: src/services/data-staging/DataDeliveryService.cpp:574
 msgid "Failed to start archival thread"
 msgstr "Не удалось запустить поток архивирования"
 
-#: src/services/data-staging/DataDeliveryService.cpp:593
+#: src/services/data-staging/DataDeliveryService.cpp:599
 msgid "Shutting down data delivery service"
 msgstr "Закрывается служба размещения данных"
 
-#: src/services/data-staging/DataDeliveryService.cpp:602
+#: src/services/data-staging/DataDeliveryService.cpp:608
 msgid "Unauthorized"
 msgstr "Доступ закрыт"
 
-#: src/services/data-staging/DataDeliveryService.cpp:688
+#: src/services/data-staging/DataDeliveryService.cpp:694
 msgid "Only POST is supported in DataDeliveryService"
 msgstr "DataDeliveryService поддерживает только POST"
 
@@ -22557,6 +22377,98 @@ msgstr "Ждём 10 секунд..."
 #: src/services/echo_python/EchoService.py:173
 msgid "Waiting ends."
 msgstr "Ожидание завершено."
+
+#~ msgid "DTR %s: Transfer failed: %s"
+#~ msgstr "DTR %s: Сбой передачи: %s"
+
+#~ msgid "DTR %s: No locations defined for %s"
+#~ msgstr "DTR %s: Не определены расположения %s"
+
+#~ msgid ""
+#~ "DTR %s: Request:\n"
+#~ "%s"
+#~ msgstr ""
+#~ "DTR %s: Запрос:\n"
+#~ "%s"
+
+#~ msgid ""
+#~ "DTR %s: Response:\n"
+#~ "%s"
+#~ msgstr ""
+#~ "DTR %s: Отклик:\n"
+#~ "%s"
+
+#~ msgid "DTR %s: Failed to cancel: %s"
+#~ msgstr "DTR %s: Сбой прерывания: %s"
+
+#~ msgid "DTR %s: %s"
+#~ msgstr "DTR %s: %s"
+
+#~ msgid "DTR %s: Failed locating credentials"
+#~ msgstr "DTR %s: Сбой обнаружения параметров доступа"
+
+#~ msgid "DTR %s: Failed to initiate client connection"
+#~ msgstr "DTR %s: Сбой запуска соединения с клиентом"
+
+#~ msgid "DTR %s: Client connection has no entry point"
+#~ msgstr "DTR %s: Отсутствует точка входа для соединения с клиентом"
+
+#~ msgid "DTR %s: Initiating delegation procedure"
+#~ msgstr "DTR %s: Инициализация процедуры делегирования"
+
+#~ msgid "DTR %s: Failed to initiate delegation credentials"
+#~ msgstr "DTR %s: Сбой инициализации делегируемых прав доступа"
+
+#~ msgid "DTR %s: Running command: %s"
+#~ msgstr "DTR %s: Выполняется команда %s"
+
+#~ msgid "DTR %s: Error creating cache"
+#~ msgstr "DTR %s: Ошибка создания кэша"
+
+#~ msgid "DTR %s: Forcing re-download of file %s"
+#~ msgstr "DTR %s: Принудительная перезагрузка файла  %s"
+
+#~ msgid "DTR %s: Cached file is locked - should retry"
+#~ msgstr "DTR %s: Кэшированный файл заблокирован - должна быть новая попытка"
+
+#~ msgid "DTR %s: Failed to initiate cache"
+#~ msgstr "DTR %s: Сбой инициализации кэша"
+
+#~ msgid "DTR %s: File %s is cached (%s) - checking permissions"
+#~ msgstr "DTR %s: Файл %s занесён в кэш (%s) - проверка прав доступа"
+
+#~ msgid "DTR %s: Permission checking failed"
+#~ msgstr "DTR %s: Проверка доступа не пройдена"
+
+#~ msgid "DTR %s: Permission checking passed"
+#~ msgstr "DTR %s: Проверка доступа пройдена успешно"
+
+#~ msgid "DTR %s: Source modification date: %s"
+#~ msgstr "DTR %s: Время изменения источника: %s"
+
+#~ msgid "DTR %s: Cache creation date: %s"
+#~ msgstr "DTR %s: Время создания кэша: %s"
+
+#~ msgid "DTR %s: Cache file valid until: %s"
+#~ msgstr "DTR %s: Файл в кэше действителен до: %s"
+
+#~ msgid "DTR %s: Cached file is outdated, will re-download"
+#~ msgstr "DTR %s: Кэшированный файл устарел, будет перезагружен"
+
+#~ msgid "DTR %s: Cached copy is still valid"
+#~ msgstr "DTR %s: Кэшированная копия всё ещё действительна"
+
+#~ msgid "DTR %s: No locations for destination different from source found"
+#~ msgstr "DTR %s: Не обнаружено адресов цели, отличных от источника"
+
+#~ msgid "DTR %s: Checking %s"
+#~ msgstr "DTR %s: Проверяется %s"
+
+#~ msgid "DTR %s: Removing %s"
+#~ msgstr "DTR %s: Удаляется %s"
+
+#~ msgid "DTR %s: Linking/copying cached file to %s"
+#~ msgstr "DTR %s: Создание ссылки/копирование файла из кэша в %s"
 
 #~ msgid "WS-interface messages will be logged to %s"
 #~ msgstr "Сообщения интерфейса WS будут записаны в журнал %s"
@@ -25102,9 +25014,6 @@ msgstr "Ожидание завершено."
 #~ msgid "DTR %s: Failed linking cache file to %s due to existing write lock"
 #~ msgstr "Копирование файла '%s' из '%s'..."
 
-#~ msgid "Forcing re-download of file %s"
-#~ msgstr "Принудительная перезагрузка файла %s"
-
 #~ msgid "Cannot determine hostname from uname()"
 #~ msgstr "Невозможно извлечь имя узла используя uname()"
 
@@ -26455,9 +26364,6 @@ msgstr "Ожидание завершено."
 
 #~ msgid "Failed to clean job"
 #~ msgstr "Ошибка удаления задачи"
-
-#~ msgid "Failed to cancel job"
-#~ msgstr "Не удалось прервать задачу"
 
 #, fuzzy
 #~ msgid "The node %s has no %s element."
