@@ -112,6 +112,9 @@ namespace Arc {
     /// and create one if it doesn't exist. Returns false if creation fails,
     /// and if it was due to being locked, is_locked is set to true.
     bool _checkMetaFile(const std::string& filename, const std::string& url, bool& is_locked);
+    /// Create the meta file with the given content. Returns false and sets
+    /// is_locked to true if the file is already locked.
+    bool _createMetaFile(const std::string& meta_file, const std::string& content, bool& is_locked);
     /// Return the filename of the meta file associated to the given url
     std::string _getMetaFileName(const std::string& url);
     /// Get the hashed path corresponding to the given url

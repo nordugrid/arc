@@ -252,6 +252,12 @@ void FileCacheTest::testStart() {
   CPPUNIT_ASSERT(!available);
   CPPUNIT_ASSERT(!is_locked);
   CPPUNIT_ASSERT(_fc1->Stop(_url));
+
+  // remove meta file - now locked should be true
+  CPPUNIT_ASSERT_EQUAL(0, remove(meta_file.c_str()));
+  CPPUNIT_ASSERT(!_fc1->Start(_url, available, is_locked));
+  CPPUNIT_ASSERT(!available);
+  CPPUNIT_ASSERT(is_locked);
   CPPUNIT_ASSERT_EQUAL(0, remove(meta_lock.c_str()));
 
   // empty meta file - should be recreated
@@ -264,6 +270,17 @@ void FileCacheTest::testStart() {
   CPPUNIT_ASSERT(_fc1->Stop(_url));
   CPPUNIT_ASSERT_EQUAL_MESSAGE("Could not stat meta file " + meta_file, 0, stat(meta_file.c_str(), &fileStat));
   CPPUNIT_ASSERT(fileStat.st_size > 0);
+
+  // corrupted meta file - should be recreated
+  _createFile(_fc1->File(_url) + ".meta", "\n");
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("Could not stat meta file " + meta_file, 0, stat(meta_file.c_str(), &fileStat));
+  CPPUNIT_ASSERT_EQUAL(1, (int)fileStat.st_size);
+  CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
+  CPPUNIT_ASSERT(!available);
+  CPPUNIT_ASSERT(!is_locked);
+  CPPUNIT_ASSERT(_fc1->Stop(_url));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("Could not stat meta file " + meta_file, 0, stat(meta_file.c_str(), &fileStat));
+  CPPUNIT_ASSERT(fileStat.st_size > 1);
 
   // Use a bad cache dir
   if (_uid != 0 && stat("/lost+found/cache", &fileStat) != 0 && errno == EACCES) {

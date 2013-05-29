@@ -898,6 +898,20 @@ namespace Arc {
             a._gid == _gid);
   }
 
+  bool FileCache::_createMetaFile(const std::string& meta_file, const std::string& content, bool& is_locked) {
+    FileLock meta_lock(meta_file, CACHE_META_LOCK_TIMEOUT);
+    if (!meta_lock.acquire()) {
+      logger.msg(WARNING, "Failed to acquire lock on cache meta file %s", meta_file);
+      is_locked = true;
+      return false;
+    }
+    if (!FileCreate(meta_file, content)) {
+      logger.msg(WARNING, "Failed to create cache meta file %s", meta_file);
+    }
+    meta_lock.release(); // there is a small timeout so don't bother to report error
+    return true;
+  }
+
   bool FileCache::_checkMetaFile(const std::string& filename, const std::string& url, bool& is_locked) {
     std::string meta_file(filename + CACHE_META_SUFFIX);
     struct stat fileStat;
@@ -907,65 +921,42 @@ namespace Arc {
       std::list<std::string> lines;
       if (!FileRead(meta_file, lines)) {
         // file was probably deleted by another process - try again
-        logger.msg(WARNING, "Failed to read meta file %s", meta_file);
+        logger.msg(WARNING, "Failed to read cache meta file %s", meta_file);
         is_locked = true;
         return false;
       }
       if (lines.empty()) {
-        logger.msg(WARNING, "Meta file %s is empty, will recreate", meta_file);
-        FileLock meta_lock(meta_file, CACHE_META_LOCK_TIMEOUT);
-        if (!meta_lock.acquire()) {
-          logger.msg(WARNING, "Failed to acquire lock on cache meta file %s", meta_file);
-          is_locked = true;
-          return false;
-        }
-        if (!FileCreate(meta_file, std::string(url + '\n'))) {
-          logger.msg(WARNING, "Failed to create meta file %s", meta_file);
-        }
-        meta_lock.release(); // there is a small timeout so don't bother to report error
+        logger.msg(WARNING, "Cache meta file %s is empty, will recreate", meta_file);
+        return _createMetaFile(meta_file, std::string(url + '\n'), is_locked);
       }
-      else {
-        std::string meta_str = lines.front();
-        // check new and old format for validity time - if old change to new
-        if (meta_str != url) {
-          if (meta_str.substr(0, meta_str.rfind(' ')) != url) {
-            logger.msg(ERROR, "File %s is already cached at %s under a different URL: %s - this file will not be cached",
-                       url, filename, meta_str);
-            return false;
-          } else {
-            logger.msg(VERBOSE, "Changing old validity time format to new in %s", meta_file);
-            std::string new_meta(url + '\n' + meta_str.substr(meta_str.rfind(' ')+1) + '\n');
-            lines.pop_front();
-            for (std::list<std::string>::const_iterator i = lines.begin(); i != lines.end(); ++i) {
-              new_meta += *i + '\n';
-            }
-            FileLock meta_lock(meta_file, CACHE_META_LOCK_TIMEOUT);
-            if (meta_lock.acquire()) {
-              if (!FileCreate(meta_file, new_meta)) {
-                logger.msg(WARNING, "Could not write meta file %s", meta_file);
-              }
-              meta_lock.release(); // there is a small timeout so don't bother to report error
-            }
-            else logger.msg(VERBOSE, "Failed to acquire lock on cache meta file %s", meta_file);
+      std::string meta_str = lines.front();
+      if (meta_str.empty()) {
+        logger.msg(WARNING, "Cache meta file %s possibly corrupted, will recreate", meta_file);
+        return _createMetaFile(meta_file, std::string(url + '\n'), is_locked);
+      }
+      // check new and old format for validity time - if old change to new
+      if (meta_str != url) {
+        if (meta_str.substr(0, meta_str.rfind(' ')) != url) {
+          logger.msg(WARNING, "File %s is already cached at %s under a different URL: %s - this file will not be cached",
+                     url, filename, meta_str);
+          return false;
+        } else {
+          logger.msg(VERBOSE, "Changing old validity time format to new in %s", meta_file);
+          std::string new_meta(url + '\n' + meta_str.substr(meta_str.rfind(' ')+1) + '\n');
+          lines.pop_front();
+          for (std::list<std::string>::const_iterator i = lines.begin(); i != lines.end(); ++i) {
+            new_meta += *i + '\n';
           }
+          return _createMetaFile(meta_file, new_meta, is_locked);
         }
       }
     }
     else if (errno == ENOENT) {
       // create new file
-      FileLock meta_lock(meta_file, CACHE_META_LOCK_TIMEOUT);
-      if (!meta_lock.acquire()) {
-        logger.msg(WARNING, "Failed to acquire lock on cache meta file %s", meta_file);
-        is_locked = true;
-        return false;
-      }
-      if (!FileCreate(meta_file, std::string(url + '\n'))) {
-        logger.msg(WARNING, "Failed to create meta file %s", meta_file);
-      }
-      meta_lock.release(); // there is a small timeout so don't bother to report error
+      return _createMetaFile(meta_file, std::string(url + '\n'), is_locked);
     }
     else {
-      logger.msg(ERROR, "Error looking up attributes of meta file %s: %s", meta_file, StrError(errno));
+      logger.msg(ERROR, "Error looking up attributes of cache meta file %s: %s", meta_file, StrError(errno));
       return false;
     }
     return true;
