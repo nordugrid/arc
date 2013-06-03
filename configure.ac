@@ -2134,7 +2134,11 @@ AM_CONDITIONAL([DATADELIVERY_SERVICE_ENABLED],[test "x$enables_datadelivery_serv
 # ACIX service
 AC_ARG_ENABLE(acix, AC_HELP_STRING([--disable-acix], [disable building ACIX service]),
   [enables_acix=$enableval],[])
-AM_PATH_PYTHON([2.4], [], [enables_acix="no"])
+dnl AM_PATH_PYTHON([2.4], [], [enables_acix="no"])
+if test "x$PYTHON_VERSION" = "x2.2" -o test "x$PYTHON_VERSION" = "x2.3"
+then
+  enables_acix="no"
+fi
 AC_MSG_NOTICE([ACIX enabled: $enables_acix])
 AM_CONDITIONAL([ACIX_ENABLED],[test "x$enables_acix" = "xyes"])
 
