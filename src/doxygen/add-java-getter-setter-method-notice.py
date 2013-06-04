@@ -43,7 +43,7 @@ for filename in files:
                 if regMatch:
                     fieldName = regMatch.group(1)
                 elif doxHTMLFileLines[i] == '</div>\n' and fieldName:
-                    doxHTMLFile.write('<dl class="section attention"><dt>Java interface deviation</dt><dd>The member is only accessible through the <tt>get' + fieldName + '</tt> and <tt>set' + fieldName + '</tt> methods</dd></dl>')
+                    doxHTMLFile.write('<dl class="section attention"><dt>Java interface deviation</dt><dd>The member is only accessible through the <tt>get' + fieldName + '</tt> and <tt>set' + fieldName + '</tt> methods in the Java interface</dd></dl>')
                     doxHTMLFile.write(doxHTMLFileLines[i])
                     break
                 doxHTMLFile.write(doxHTMLFileLines[i])
