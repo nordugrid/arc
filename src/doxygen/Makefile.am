@@ -33,7 +33,7 @@ Doxyfile.SDK.build: $(top_srcdir)/src/doxygen/Doxyfile.SDK
 Doxyfile.SDK.build.layout.xml: $(top_srcdir)/src/doxygen/Doxyfile.SDK.layout.xml
 	cp $(srcdir)/Doxyfile.SDK.layout.xml Doxyfile.SDK.build.layout.xml
 
-SDK: Doxyfile.SDK.build Doxyfile.SDK.build.layout.xml $(srcdir)/add-bindings-deviations-to-dox.py $(srcdir)/images/arcsdk.png $(SWIG_DEPENDS) $(wildcard $(addsuffix /*.h, $(INPUT))) $(wildcard $(addsuffix /*.cpp, $(CPP_EXAMPLES))) $(wildcard $(addsuffix /*.py, $(PYTHON_EXAMPLES))) $(wildcard $(addsuffix /*.java, $(JAVA_EXAMPLES)))
+SDK: Doxyfile.SDK.build Doxyfile.SDK.build.layout.xml $(srcdir)/add-bindings-deviations-to-dox.py $(srcdir)/add-java-getter-setter-method-notice.py $(srcdir)/images/arcsdk.png $(SWIG_DEPENDS) $(wildcard $(addsuffix /*.h, $(INPUT))) $(wildcard $(addsuffix /*.cpp, $(CPP_EXAMPLES))) $(wildcard $(addsuffix /*.py, $(PYTHON_EXAMPLES))) $(wildcard $(addsuffix /*.java, $(JAVA_EXAMPLES)))
 	doxygen Doxyfile.SDK.build
 # Postprocessing: Add deviations from SDK API for language bindings (Python and Java).
 	for file in $(SWIG_DEPENDS); do $(PYTHON) $(srcdir)/add-bindings-deviations-to-dox.py $${file} SDK/html; done
