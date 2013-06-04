@@ -37,6 +37,7 @@ SDK: Doxyfile.SDK.build Doxyfile.SDK.build.layout.xml $(srcdir)/add-bindings-dev
 	doxygen Doxyfile.SDK.build
 # Postprocessing: Add deviations from SDK API for language bindings (Python and Java).
 	for file in $(SWIG_DEPENDS); do $(PYTHON) $(srcdir)/add-bindings-deviations-to-dox.py $${file} SDK/html; done
+	$(PYTHON) $(srcdir)/add-java-getter-setter-method-notice.py SDK/html
 
 EXTRA_DIST = Doxyfile.SDK Doxyfile.SDK.layout.xml images/arcsdk.png
 
