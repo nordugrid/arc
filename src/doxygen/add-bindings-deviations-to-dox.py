@@ -97,7 +97,7 @@ for filename, v in expressionsFound.iteritems():
     doxHTMLFile = open(filename, "w")
     i = 0
     while i < len(doxHTMLFileLines):
-        doxHTMLFile.write(doxHTMLFileLines[i] + '\n')
+        doxHTMLFile.write(doxHTMLFileLines[i])
         regMatch = re.match('\s+<td class="memname">(.+)</td>', doxHTMLFileLines[i])
         if not regMatch:
             i += 1
