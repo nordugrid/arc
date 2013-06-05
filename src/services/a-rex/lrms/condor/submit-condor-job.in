@@ -410,6 +410,10 @@ sub create_condor_job_description {
         $output .= "Requirements = (" . (join ") && (", @requirements) . ")\n";
     }
 
+    if($grami{joboption_exclusivenode} eq "true"){
+        $output .= "+RequiresWholeMachine=True\n";
+    }
+
     # Option to force Condor to transfer of input and output files by itself
     if ($config{shared_filesystem} =~ /^no/i && notnull($grami{joboption_inputfile_0})) { 
         $output .= "Transfer_input_files = ";

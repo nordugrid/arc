@@ -1,3 +1,6 @@
+2013-06-05  Dmytro Karpenko  <dmytrok@fys.uio.no>
+  * Support for job exclusive execution in Condor.
+
 2013-05-10  Gabor Szigeti <szigeti@niif.hu>
   * Better VO group and role parsing mechanism by the CAR.
 
