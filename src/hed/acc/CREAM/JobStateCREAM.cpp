@@ -7,28 +7,41 @@
 namespace Arc {
 
   JobState::StateType JobStateCREAM::StateMap(const std::string& state) {
+    /// \mapname CREAM CREAM extended BES
+    /// \mapattr REGISTERED -> ACCEPTED
     if (state == "REGISTERED")
       return JobState::ACCEPTED;
+    /// \mapattr PENDING -> ACCEPTED 
     else if (state == "PENDING")
       return JobState::ACCEPTED;
+    /// \mapattr RUNNING -> RUNNING
     else if (state == "RUNNING")
       return JobState::RUNNING;
+    /// \mapattr REALLY-RUNNING -> RUNNING
     else if (state == "REALLY-RUNNING")
       return JobState::RUNNING;
+    /// \mapattr HELD -> HOLD
     else if (state == "HELD")
       return JobState::HOLD;
+    /// \mapattr DONE-FAILED -> FAILED
     else if (state == "DONE-FAILED")
       return JobState::FAILED;
+    /// \mapattr DONE-OK -> FINISHED
     else if (state == "DONE-OK")
       return JobState::FINISHED;
+    /// \mapattr ABORTED -> FAILED
     else if (state == "ABORTED")
       return JobState::FAILED;
+    /// \mapattr CANCELLED -> KILLED
     else if (state == "CANCELLED")
       return JobState::KILLED;
+    /// \mapattr IDLE -> QUEUING
     else if (state == "IDLE")
       return JobState::QUEUING;
+    /// \mapattr "" -> UNDEFINED
     else if (state == "")
       return JobState::UNDEFINED;
+    /// \mapattr Any other state -> OTHER
     else
       return JobState::OTHER;
   }

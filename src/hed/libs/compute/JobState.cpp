@@ -9,14 +9,22 @@ namespace Arc {
 #undef JOBSTATE_X
 #endif
 
-#define JOBSTATE_X(a, b) , b
-const std::string JobState::StateTypeString[] = { "Undefined" JOBSTATE_TABLE };
-#undef JOBSTATE_X
+const std::string JobState::StateTypeString[] = { "Undefined", "Accepted", "Preparing", "Submitting", "Hold", "Queuing", "Running", "Finishing", "Finished", "Killed", "Failed", "Deleted", "Other" };
 
 JobState::StateType JobState::GetStateType(const std::string& stateStr) {
-#define JOBSTATE_X(a, b) if (stateStr == b) { return a; }
-JOBSTATE_TABLE
-return UNDEFINED;
-#undef JOBSTATE_X
+    if (stateStr == "Accepted") { return ACCEPTED; }
+    if (stateStr == "Preparing") { return PREPARING; }
+    if (stateStr == "Submitting") { return SUBMITTING; }
+    if (stateStr == "Hold") { return HOLD; }
+    if (stateStr == "Queuing") { return QUEUING; }
+    if (stateStr == "Running") { return RUNNING; }
+    if (stateStr == "Finishing") { return FINISHING; }
+    if (stateStr == "Finished") { return FINISHED; }
+    if (stateStr == "Killed") { return KILLED; }
+    if (stateStr == "Failed") { return FAILED; }
+    if (stateStr == "Deleted") { return DELETED; }
+    if (stateStr == "Other") { return OTHER; }
+    return UNDEFINED;
 }
-}
+
+} // namespace Arc

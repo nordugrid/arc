@@ -18,12 +18,25 @@ CPP_EXAMPLES = $(top_srcdir)/src/hed/libs/common/examples \
 PYTHON_EXAMPLES = $(top_srcdir)/python/examples
 JAVA_EXAMPLES = $(top_srcdir)/java/examples
 
+SPECIALISATION_MAPPINGS = JobState
+SPECIALISATION_MAPPINGS_JobState = \
+	$(top_srcdir)/src/hed/acc/ARC0/JobStateARC0.cpp \
+	$(top_srcdir)/src/hed/acc/EMIES/JobStateEMIES.cpp \
+	$(top_srcdir)/src/hed/acc/ARC1/JobStateBES.cpp \
+	$(top_srcdir)/src/hed/acc/ARC1/JobStateARC1.cpp \
+	$(top_srcdir)/src/hed/acc/CREAM/JobStateCREAM.cpp
+
+
+.SECONDEXPANSION:
+
+$(addsuffix _Mapping.dox, $(SPECIALISATION_MAPPINGS)): %_Mapping.dox: $(srcdir)/create-mapping-documentation.py $(top_srcdir)/src/hed/libs/compute/%.h $$(SPECIALISATION_MAPPINGS_%)
+	$(PYTHON) $^ $*_Mapping.dox
 
 Doxyfile.SDK.build: $(top_srcdir)/src/doxygen/Doxyfile.SDK
 	cp $(srcdir)/Doxyfile.SDK Doxyfile.SDK.build
 	sed "s/@TOP_SRCDIR@/$(subst /,\/,$(top_srcdir))/g" Doxyfile.SDK.build > Doxyfile.SDK.build.tmp
 	mv Doxyfile.SDK.build.tmp Doxyfile.SDK.build
-	sed "s/@INPUT@/$(subst /,\/,$(INPUT))/g" Doxyfile.SDK.build > Doxyfile.SDK.build.tmp
+	sed "s/@INPUT@/$(subst /,\/,$(INPUT) $(addsuffix _Mapping.dox, $(SPECIALISATION_MAPPINGS)))/g" Doxyfile.SDK.build > Doxyfile.SDK.build.tmp
 	mv Doxyfile.SDK.build.tmp Doxyfile.SDK.build
 	sed "s/@EXAMPLES@/$(subst /,\/,$(CPP_EXAMPLES) $(PYTHON_EXAMPLES) $(JAVA_EXAMPLES))/g" Doxyfile.SDK.build > Doxyfile.SDK.build.tmp
 	mv Doxyfile.SDK.build.tmp Doxyfile.SDK.build
@@ -33,7 +46,7 @@ Doxyfile.SDK.build: $(top_srcdir)/src/doxygen/Doxyfile.SDK
 Doxyfile.SDK.build.layout.xml: $(top_srcdir)/src/doxygen/Doxyfile.SDK.layout.xml
 	cp $(srcdir)/Doxyfile.SDK.layout.xml Doxyfile.SDK.build.layout.xml
 
-SDK: Doxyfile.SDK.build Doxyfile.SDK.build.layout.xml $(srcdir)/add-bindings-deviations-to-dox.py $(srcdir)/add-java-getter-setter-method-notice.py $(srcdir)/images/arcsdk.png $(SWIG_DEPENDS) $(wildcard $(addsuffix /*.h, $(INPUT))) $(wildcard $(addsuffix /*.cpp, $(CPP_EXAMPLES))) $(wildcard $(addsuffix /*.py, $(PYTHON_EXAMPLES))) $(wildcard $(addsuffix /*.java, $(JAVA_EXAMPLES)))
+SDK: Doxyfile.SDK.build Doxyfile.SDK.build.layout.xml $(srcdir)/add-bindings-deviations-to-dox.py $(srcdir)/add-java-getter-setter-method-notice.py $(srcdir)/images/arcsdk.png $(SWIG_DEPENDS) $(wildcard $(addsuffix /*.h, $(INPUT))) $(wildcard $(addsuffix /*.cpp, $(CPP_EXAMPLES))) $(wildcard $(addsuffix /*.py, $(PYTHON_EXAMPLES))) $(wildcard $(addsuffix /*.java, $(JAVA_EXAMPLES))) $(addsuffix _Mapping.dox, $(SPECIALISATION_MAPPINGS))
 	doxygen Doxyfile.SDK.build
 # Postprocessing: Add deviations from SDK API for language bindings (Python and Java).
 	for file in $(SWIG_DEPENDS); do $(PYTHON) $(srcdir)/add-bindings-deviations-to-dox.py $${file} SDK/html; done

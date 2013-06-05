@@ -14,40 +14,76 @@
 
 namespace Arc {
 
-  /** ARC general state model.
-   * The class comprise the general state model of the ARC-lib, and are herein
-   * used to compare job states from the different middlewares supported by the
-   * plugin structure of the ARC-lib. Which is why every ACC plugin should
-   * contain a class derived from this class. The derived class should consist
-   * of a constructor and a mapping function (a JobStateMap) which maps a
+  /** libarccompute state model.
+   * The class comprise the general state model used by the libarccompute
+   * library. A JobState object has two attributes: A native state as a string,
+   * and a enum value specifying the mapping to the state model. Each job
+   * management extension (JobControllerPlugin specialisation), likely a
+   * implementation against a computing service, should define a mapping of the
+   * native job states to those in the libarccompute state model, which should
+   * then be used when constructing a JobState object for that specific
+   * extension. In that way both the general and the specific state is
+   * available.
+   * 
+   * A derived class should consist of a constructor and a mapping function (a
+   * JobStateMap) which maps a
    * std::string to a JobState:StateType. An example of a constructor in a
    * plugin could be:
    * JobStatePlugin::JobStatePluging(const std::string& state) : JobState(state, &pluginStateMap) {}
    * where &pluginStateMap is a reference to the JobStateMap defined by the
    * derived class.
    * 
+   * Documentation for mapping of job states for different computing services to
+   * those defined in this class can be found \subpage job-state-mapping "here".
+   * 
    * \ingroup compute
    * \headerfile JobState.h arc/compute/JobState.h 
    */
   class JobState {
   public:
-#define JOBSTATE_TABLE \
-    JOBSTATE_X(ACCEPTED, "Accepted")\
-    JOBSTATE_X(PREPARING, "Preparing")\
-    JOBSTATE_X(SUBMITTING, "Submitting")\
-    JOBSTATE_X(HOLD, "Hold")\
-    JOBSTATE_X(QUEUING, "Queuing")\
-    JOBSTATE_X(RUNNING, "Running")\
-    JOBSTATE_X(FINISHING, "Finishing")\
-    JOBSTATE_X(FINISHED, "Finished")\
-    JOBSTATE_X(KILLED, "Killed")\
-    JOBSTATE_X(FAILED, "Failed")\
-    JOBSTATE_X(DELETED, "Deleted")\
-    JOBSTATE_X(OTHER, "Other")
+    /**
+     * \mapdef
+     * On this page the mapping of job state attributes of different
+     * computing services to those defined by the libarccompute library in the
+     * \ref Arc::JobState "JobState" class is documented.
+     * 
+     * \mapdefattr UNDEFINED
+     * \mapdefattr ACCEPTED
+     * \mapdefattr PREPARING
+     * \mapdefattr SUBMITTING
+     * \mapdefattr HOLD
+     * \mapdefattr QUEUING
+     * \mapdefattr RUNNING
+     * \mapdefattr FINISHING
+     * \mapdefattr FINISHED
+     * \mapdefattr KILLED
+     * \mapdefattr FAILED
+     * \mapdefattr DELETED
+     * \mapdefattr OTHER
+     * \endmapdef
+     **/
+    /** \enum StateType
+     * \brief Possible job states in libarccompute
+     * 
+     * The possible job states usable in the libarccompute library with a short
+     * description is listed below:
+     **/
+    enum StateType {
+      UNDEFINED, /**< %Job state could not be resolved */
+      ACCEPTED, /**< %Job was accepted by the computing service */
+      PREPARING, /**< %Job is being prepared by the computing service */
+      SUBMITTING, /**< %Job is being submitted to a computing share */
+      HOLD, /**< %Job is put on hold */
+      QUEUING, /**< %Job is on computing share waiting to run */
+      RUNNING, /**< %Job is running on computing share */
+      FINISHING, /**< %Job is finishing */
+      FINISHED, /**< %Job has finished */
+      KILLED, /**< %Job has been killed */
+      FAILED, /**< %Job failed */
+      DELETED, /**< %Job have been deleted */
+      OTHER /**< Any job state which does not fit the above states */
+    };
 
-#define JOBSTATE_X(a, b) , a
-    enum StateType { UNDEFINED JOBSTATE_TABLE };
-#undef JOBSTATE_X
     static const std::string StateTypeString[];
 
     JobState() : ssf(FormatSpecificState), type(UNDEFINED) {}
