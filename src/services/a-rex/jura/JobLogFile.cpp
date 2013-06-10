@@ -827,9 +827,26 @@ namespace Arc
       }
 
     //ServiceLevel
-    Arc::XMLNode sleveln = ur.NewChild("ServiceLevel")="1.0"; //TODO
-    sleveln.NewAttribute("urf:type")="Si2K";
-    sleveln.NewAttribute("urf:description")="";
+    std::string benchmark_type = "Si2K";
+    std::string benchmark_value = "1.0";
+    std::string benchmark_description = "";
+    if (find("jobreport_option_benchmark_type")!=end())
+      {
+        benchmark_type = (*this)["jobreport_option_benchmark_type"];
+      }
+    if (find("jobreport_option_benchmark_value")!=end())
+      {
+        benchmark_value = (*this)["jobreport_option_benchmark_value"];
+      }
+    if (find("jobreport_option_benchmark_description")!=end())
+      {
+        benchmark_description = (*this)["jobreport_option_benchmark_description"];
+      }
+
+    Arc::XMLNode sleveln = benchmark_type;
+    sleveln.NewAttribute("urf:type")=benchmark_type;
+    sleveln.NewAttribute("urf:description")=benchmark_description;
+
 
     //Memory
     if (find("usedmemory")!=end() && (*this)["usedmemory"] != "0")
