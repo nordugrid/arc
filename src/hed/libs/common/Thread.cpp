@@ -262,17 +262,17 @@ namespace Arc {
   void ThreadId::add() {
     Glib::Mutex::Lock lock(mutex);
     if (thread_no == ULONG_MAX) thread_no = 0;
-    thread_ids[(unsigned long int)(void*)Glib::Thread::self()] = ++thread_no;
+    thread_ids[(size_t)(void*)Glib::Thread::self()] = ++thread_no;
   }
 
   void ThreadId::remove() {
     Glib::Mutex::Lock lock(mutex);
-    thread_ids.erase((unsigned long int)(void*)Glib::Thread::self());
+    thread_ids.erase((size_t)(void*)Glib::Thread::self());
   }
 
   unsigned long int ThreadId::get() {
     Glib::Mutex::Lock lock(mutex);
-    unsigned long int id = (unsigned long int)(void*)Glib::Thread::self();
+    size_t id = (size_t)(void*)Glib::Thread::self();
     if (thread_ids.count(id) == 0) return id;
     return thread_ids[id];
   }
