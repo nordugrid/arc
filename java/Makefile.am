@@ -1,8 +1,8 @@
 JAVA_PATH = nordugrid/arc
 
-JAVA_INTERFACE_SOURCES = EndpointConsumer.java JobConsumer.java ComputingServiceTypeConsumer.java
+JAVA_INTERFACE_SRC = EndpointConsumer.java JobConsumer.java ComputingServiceTypeConsumer.java
 JAVA_BUILD_PATH = $(top_builddir)/java/$(JAVA_PATH)/
-JAVA_INTERFACE_SOURCES_MOVED = $(addprefix $(JAVA_BUILD_PATH), $(JAVA_INTERFACE_SOURCES))
+JAVA_INTERFACE_SRC_MOVED = $(addprefix $(JAVA_BUILD_PATH), $(JAVA_INTERFACE_SRC))
 
 javalibdir = $(libdir)/java
 javasharedir = $(libdir)/java
@@ -86,14 +86,14 @@ arc_wrap.cpp: $(top_srcdir)/swig/*.i
 	done
 
 
-$(JAVA_INTERFACE_SOURCES_MOVED): $(JAVA_BUILD_PATH)% : $(JAVA_INTERFACE_SOURCES)
+$(JAVA_INTERFACE_SRC_MOVED): $(JAVA_BUILD_PATH)% : $(JAVA_INTERFACE_SRC)
 	cp -p $(top_srcdir)/java/$* $@
 
-$(JAVA_PATH)/*.java: arc_wrap.cpp $(JAVA_INTERFACE_SOURCES_MOVED)
+$(JAVA_PATH)/*.java: arc_wrap.cpp $(JAVA_INTERFACE_SRC_MOVED)
 
-$(JAVA_PATH)/arc.class: $(JAVA_PATH)/arc.java $(JAVA_INTERFACE_SOURCES_MOVED)
+$(JAVA_PATH)/arc.class: $(JAVA_PATH)/arc.java $(JAVA_INTERFACE_SRC_MOVED)
 
-.java.class: $(JAVA_INTERFACE_SOURCES_MOVED)
+.java.class: $(JAVA_INTERFACE_SRC_MOVED)
 	$(JAVAC) $(JAVAC_FLAGS) $<
 
 arc.jar: $(JAVA_PATH)/arc.class $(subst .java,.class,$(wildcard $(JAVA_PATH)/*.java))
@@ -103,7 +103,7 @@ arc.jar: $(JAVA_PATH)/arc.class $(subst .java,.class,$(wildcard $(JAVA_PATH)/*.j
 DIST_SUBDIRS = test examples
 SUBDIRS = $(TEST_DIR) examples
 
-EXTRA_DIST = $(JAVA_INTERFACE_SOURCES)
+EXTRA_DIST = $(JAVA_INTERFACE_SRC)
 
 # Try not to build these objects in parallel in order to save memory
 .NOTPARALLEL: %.o %.class %.so
