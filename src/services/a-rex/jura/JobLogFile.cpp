@@ -11,8 +11,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <list>
+#include <vector>
 
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/Utils.h>
 #include <arc/credential/Credential.h>
@@ -832,19 +834,48 @@ namespace Arc
     std::string benchmark_description = "";
     if (find("jobreport_option_benchmark_type")!=end())
       {
-        benchmark_type = (*this)["jobreport_option_benchmark_type"];
+        std::string type = (*this)["jobreport_option_benchmark_type"];
+        std::vector<std::string> accepted_types;
+        accepted_types.push_back("Si2k");
+        accepted_types.push_back("Sf2k");
+        accepted_types.push_back("HEPSPEC");
+        if (std::find(accepted_types.begin(), accepted_types.end(), type) == accepted_types.end())
+          {
+            Arc::Logger::rootLogger.msg(Arc::WARNING,
+                                        "Set non standard bechmark type: %s",
+                                        type);
+
+          }
+        benchmark_type = type;
       }
     if (find("jobreport_option_benchmark_value")!=end())
       {
-        benchmark_value = (*this)["jobreport_option_benchmark_value"];
+        std::string value = (*this)["jobreport_option_benchmark_value"];
+        float float_value = stringtof(value);
+        if (float_value==0)
+          {
+            Arc::Logger::rootLogger.msg(Arc::WARNING,
+                                        "Ignored incomming benchmark value: %s, Use float value!",
+                                        value);
+          }
+        else
+          {
+            std::ostringstream ss;
+            ss << float_value;
+            benchmark_value = ss.str();
+            if (benchmark_value.find(".")==std::string::npos)
+              {
+                benchmark_value +=".0";
+              }
+          }
       }
     if (find("jobreport_option_benchmark_description")!=end())
       {
         benchmark_description = (*this)["jobreport_option_benchmark_description"];
       }
 
-    Arc::XMLNode sleveln = benchmark_type;
-    sleveln.NewAttribute("urf:type")=benchmark_type;
+    Arc::XMLNode sleveln = ur.NewChild("ServiceLevel")=benchmark_type;
+    sleveln.NewAttribute("urf:type")=benchmark_value;
     sleveln.NewAttribute("urf:description")=benchmark_description;
 
 
