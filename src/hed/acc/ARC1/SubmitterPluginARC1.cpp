@@ -106,6 +106,7 @@ namespace Arc {
         URL sessionurl = jobid;
         sessionurl.AddOption("threads=2",false);
         sessionurl.AddOption("encryption=optional",false);
+        if(arex_features) sessionurl.AddOption("httpputpartial=yes",false);
     
         if (!PutFiles(preparedjobdesc, sessionurl)) {
           logger.msg(INFO, "Failed uploading local input files");
@@ -197,6 +198,7 @@ namespace Arc {
         URL sessionurl = jobid;
         sessionurl.AddOption("threads=2",false);
         sessionurl.AddOption("encryption=optional",false);
+        if(arex_features) sessionurl.AddOption("httpputpartial=yes",false);
     
         if (!PutFiles(preparedjobdesc, sessionurl)) {
           logger.msg(INFO, "Failed uploading local input files");
@@ -311,6 +313,7 @@ namespace Arc {
     URL sessionurl = newjobid;
     sessionurl.AddOption("threads=2",false);
     sessionurl.AddOption("encryption=optional",false);
+    sessionurl.AddOption("httpputpartial=yes",false); // for A-REX
 
     if (!PutFiles(preparedjobdesc, sessionurl)) {
       logger.msg(INFO, "Failed uploading local input files");

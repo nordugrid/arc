@@ -134,6 +134,7 @@ namespace Arc {
     // compensate for time between request and response on slow networks
     url.AddOption("threads=2",false);
     url.AddOption("encryption=optional",false);
+    url.AddOption("httpputpartial=yes",false);
     switch (resource) {
     case Job::STDIN:
       url.ChangePath(url.Path() + '/' + job.StdIn);

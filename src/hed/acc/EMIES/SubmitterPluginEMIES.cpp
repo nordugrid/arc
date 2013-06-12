@@ -291,6 +291,7 @@ namespace Arc {
         if((stagein->Protocol() == "https") || (stagein->Protocol() == "http")) {
           stagein->AddOption("threads=2",false);
           stagein->AddOption("encryption=optional",false);
+          // stagein->AddOption("httpputpartial=yes",false); - TODO: use for A-REX
         }
         stagein->AddOption("checksum=no",false);
         if (!PutFiles(preparedjobdesc, *stagein)) {

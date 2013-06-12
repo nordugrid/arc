@@ -223,6 +223,7 @@ namespace Arc {
     if(url && ((url.Protocol() == "https") || (url.Protocol() == "http"))) {
       url.AddOption("threads=2",false);
       url.AddOption("encryption=optional",false);
+      // url.AddOption("httpputpartial=yes",false); - TODO: use for A-REX
     }
 
     return true;
