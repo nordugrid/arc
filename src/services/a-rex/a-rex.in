@@ -96,11 +96,13 @@ fi
 
 # GLOBUS_LOCATION
 GLOBUS_LOCATION=${GLOBUS_LOCATION:-@DEFAULT_GLOBUS_LOCATION@}
-if [ ! -d "$GLOBUS_LOCATION" ]; then
-    log_failure_msg "GLOBUS_LOCATION ($GLOBUS_LOCATION) not found"
-    exit 1
+if [ -n "$GLOBUS_LOCATION" ]; then
+    if [ ! -d "$GLOBUS_LOCATION" ]; then
+        log_failure_msg "GLOBUS_LOCATION ($GLOBUS_LOCATION) not found"
+        exit 1
+    fi
+    export GLOBUS_LOCATION
 fi
-export GLOBUS_LOCATION
 
 # ARC_LOCATION
 ARC_LOCATION=${ARC_LOCATION:-@prefix@}
