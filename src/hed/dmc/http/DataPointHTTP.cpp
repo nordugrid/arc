@@ -355,7 +355,7 @@ using namespace Arc;
     return true;
   }
 
-  DataStatus DataPointHTTP::do_stat(URL& rurl, FileInfo& file) {
+  DataStatus DataPointHTTP::do_stat_http(URL& rurl, FileInfo& file) {
     PayloadRaw request;
     PayloadRawInterface *inbuf = NULL;
     HTTPClientInfo info;
@@ -413,10 +413,101 @@ using namespace Arc;
     return DataStatus(DataStatus::StatError,"Too many redirects");
   }
 
+  DataStatus DataPointHTTP::do_stat_webdav(URL& rurl, FileInfo& file) {
+    PayloadRaw request;
+    {
+      NS webdav_ns("d","DAV:");
+      XMLNode propfind(webdav_ns,"propfind");
+      XMLNode props = propfind.NewChild("d:prop");
+      props.NewChild("d:creationdate");
+      props.NewChild("d:displayname");
+      props.NewChild("d:getcontentlength");
+      props.NewChild("d:getcontenttype");
+      props.NewChild("d:getlastmodified");
+      std::string s; propfind.GetDoc(s);
+      request.Insert(s.c_str(),0,s.length());
+    }
+    std::multimap<std::string, std::string> propattr;
+    propattr.insert(std::pair<std::string, std::string>("Depth","0"));
+    PayloadRawInterface *inbuf = NULL;
+    HTTPClientInfo info;
+    for(int redirects_max = 10;redirects_max>=0;--redirects_max) {
+      std::string path = rurl.FullPathURIEncoded();
+      info.lastModified = (time_t)(-1);
+      AutoPointer<ClientHTTP> client(acquire_client(rurl));
+      if (!client) return DataStatus::StatError;
+      MCC_Status r = client->process("PROPFIND", path, propattr, &request, &info, &inbuf);
+      if (!r) {
+        if (inbuf) delete inbuf; inbuf = NULL;
+        // Because there is no reliable way to check if connection
+        // is still alive at this place, we must try again
+        client = acquire_new_client(rurl);
+        if(client) r = client->process("PROPFIND", path, propattr, &request, &info, &inbuf);
+        if (inbuf) delete inbuf; inbuf = NULL;
+        if(!r) return DataStatus(DataStatus::StatError,r.getExplanation());
+      }
+      release_client(rurl,client.Release());
+      if ((info.code != 200) && (info.code != 207)) {
+        if (inbuf) delete inbuf; inbuf = NULL;
+        if((info.code == 301) || // permanent redirection
+           (info.code == 302) || // temporary redirection
+           (info.code == 303) || // POST to GET redirection
+           (info.code == 304)) { // redirection to cache
+          // 305 - redirection to proxy - unhandled
+          // Recreate connection now to new URL
+          rurl = info.location;
+          logger.msg(VERBOSE,"Redirecting to %s",info.location);
+          continue;
+        }
+        return DataStatus(DataStatus::StatError, http2errno(info.code), info.reason);
+      }
+      XMLNode multistatus(ContentFromPayload(*inbuf));
+      if (inbuf) delete inbuf; inbuf = NULL;
+      if(multistatus.Name() == "multistatus") {
+        XMLNode response = multistatus["response"];
+        if((bool)response) {
+          XMLNode href = response["href"];
+          XMLNode propstat = response["propstat"];
+          if((bool)propstat) {
+            XMLNode prop = propstat["prop"];
+            if((bool)prop) {
+              XMLNode creationdate = prop["creationdate"];
+              XMLNode displayname = prop["displayname"];
+              XMLNode getcontentlength = prop["getcontentlength"];
+              XMLNode getcontenttype = prop["getcontenttype"];
+              XMLNode getlastmodified = prop["getlastmodified"];
+              // Fetch known metadata
+              if((bool)getcontenttype["collection"]) {
+                file.SetType(FileInfo::file_type_dir);
+              } else {
+                file.SetType(FileInfo::file_type_file);
+              }
+              uint64_t l = (uint64_t)(-1);
+              if(stringto((std::string)getcontentlength,l)) {
+                file.SetSize(l);
+              }
+              std::string t = (std::string)getlastmodified;
+              if(t.empty()) t = (std::string)creationdate;
+              if(!t.empty()) {
+                Time tm(t);
+                if(tm.GetTime() != Time::UNDEFINED) {
+                  file.SetModified(tm);
+                }
+              }
+              if(!(bool)href) file.AddURL((std::string)href);
+              return DataStatus::Success;
+            }
+          }
+        }
+      }
+    }
+    return DataStatus(DataStatus::StatError,"Too many redirects");
+  }
+
   DataStatus DataPointHTTP::Stat(FileInfo& file, DataPointInfoType verb) {
     // verb is not used
     URL curl = url;
-    DataStatus r = do_stat(curl, file);
+    DataStatus r = do_stat_http(curl, file);
     if(!r) return r;
     std::string name = url.FullPath();
     std::string::size_type p = name.rfind('/');
@@ -446,7 +537,7 @@ using namespace Arc;
     DataStatus r;
     {
       FileInfo file;
-      r = do_stat(curl, file);
+      r = do_stat_http(curl, file);
       if(r) {
         if(file.CheckSize()) size = file.GetSize();
         if(file.CheckModified()) modified = file.GetModified();
@@ -512,7 +603,7 @@ using namespace Arc;
       if(verb & (INFO_TYPE_TYPE | INFO_TYPE_TIMES | INFO_TYPE_CONTENT)) {
         for(std::list<FileInfo>::iterator f = files.begin(); f != files.end(); ++f) {
           URL furl(curl.str()+'/'+(f->GetName()));
-          do_stat(furl, *f);
+          do_stat_http(furl, *f);
         }
       }
     }
@@ -949,9 +1040,10 @@ using namespace Arc;
     bool transfer_failure = false;
     int retries = 0;
     std::string path = client_url.FullPathURIEncoded();
-    bool partial_write_failure = false;
+    bool partial_write_failure = (client_url.Option("httpputpartial") != "yes");
     DataStatus failure_code;
-    for (;;) {
+    // Fall through if partial PUT is not allowed
+    if(!partial_write_failure) for (;;) {
       if (!client) {
         transfer_failure = true;
         break;
