@@ -1,3 +1,6 @@
+2013-06-10  Gabor Szigeti <szigeti@niif.hu>
+  * Option for setting benchmark parameters in the CAR from the arc.conf.
+  
 2013-06-05  Dmytro Karpenko  <dmytrok@fys.uio.no>
   * Support for job exclusive execution in Condor.
 
