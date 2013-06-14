@@ -1206,8 +1206,9 @@ speedcontrol="0 300 0 300"
 .B defaultttl
 defaultttl [ttl [ttr]] - ttl is the time in seconds for how long a session
 directory will survive after job execution has finished. If not specified
-the default is 1 week. ttr is how long information about a job will be kept.
-If not specified, the ttr default is one month.
+the default is 1 week. ttr is how long information about a job will be kept
+after the session directory is deleted. If not specified, the ttr default is
+one month.
 
 .IR Example:
 .br

@@ -783,8 +783,9 @@ lrms="dgbridge"
 
 ## defaultttl [ttl [ttr]] - ttl is the time in seconds for how long a session
 ## directory will survive after job execution has finished. If not specified
-## the default is 1 week. ttr is how long information about a job will be kept.
-## If not specified, the ttr default is one month.
+## the default is 1 week. ttr is how long information about a job will be kept
+## after the session directory is deleted. If not specified, the ttr default is
+## one month.
 #defaultttl="259200"  
 
 ## authplugin state options plugin_path - Every time job goes to 'state'
