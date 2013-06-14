@@ -44,6 +44,7 @@ using namespace Arc;
     static bool write_single(void *arg);
     DataStatus do_stat_http(URL& curl, FileInfo& file);
     DataStatus do_stat_webdav(URL& curl, FileInfo& file);
+    DataStatus do_list_webdav(URL& rurl, std::list<FileInfo>& files, DataPointInfoType verb);
     ClientHTTP* acquire_client(const URL& curl);
     ClientHTTP* acquire_new_client(const URL& curl);
     void release_client(const URL& curl, ClientHTTP* client);

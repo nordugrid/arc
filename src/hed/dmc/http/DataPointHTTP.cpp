@@ -413,11 +413,64 @@ using namespace Arc;
     return DataStatus(DataStatus::StatError,"Too many redirects");
   }
 
+ static unsigned int parse_http_status(const std::string& str) {
+   // HTTP/1.1 200 OK
+   std::vector<std::string> tokens;
+   tokenize(str, tokens);
+   if(tokens.size() < 2) return 0;
+   unsigned int code;
+   if(!stringto(tokens[1],code)) return 0;
+   return code;
+ }
+
+  static bool parse_webdav_response(XMLNode response, FileInfo& file, std::string& url) {
+    bool found = false;
+    XMLNode href = response["href"];
+    XMLNode propstat = response["propstat"];
+    for(;(bool)propstat;++propstat) {
+      // Multiple propstat for multiple results
+      // Only those with 200 represent real results
+      std::string status = (std::string)propstat["status"];
+      if(parse_http_status(status) != 200) continue;
+      XMLNode prop = propstat["prop"];
+      if((bool)prop) {
+        XMLNode creationdate = prop["creationdate"];
+        XMLNode displayname = prop["displayname"];
+        XMLNode getcontentlength = prop["getcontentlength"];
+        XMLNode getcontenttype = prop["getcontenttype"];
+        XMLNode getlastmodified = prop["getlastmodified"];
+        // Fetch known metadata
+        if((bool)getcontenttype["collection"]) {
+          file.SetType(FileInfo::file_type_dir);
+        } else {
+          file.SetType(FileInfo::file_type_file);
+        }
+        uint64_t l = (uint64_t)(-1);
+        if(stringto((std::string)getcontentlength,l)) {
+          file.SetSize(l);
+        }
+        std::string t = (std::string)getlastmodified;
+        if(t.empty()) t = (std::string)creationdate;
+        if(!t.empty()) {
+          Time tm(t);
+          if(tm.GetTime() != Time::UNDEFINED) {
+            file.SetModified(tm);
+          }
+        }
+        found = true;
+      }
+    }
+    if(found) {
+      if((bool)href) url = (std::string)href;
+    }
+    return found;
+  }
+
   DataStatus DataPointHTTP::do_stat_webdav(URL& rurl, FileInfo& file) {
     PayloadRaw request;
     {
       NS webdav_ns("d","DAV:");
-      XMLNode propfind(webdav_ns,"propfind");
+      XMLNode propfind(webdav_ns,"d:propfind");
       XMLNode props = propfind.NewChild("d:prop");
       props.NewChild("d:creationdate");
       props.NewChild("d:displayname");
@@ -443,11 +496,13 @@ using namespace Arc;
         // is still alive at this place, we must try again
         client = acquire_new_client(rurl);
         if(client) r = client->process("PROPFIND", path, propattr, &request, &info, &inbuf);
-        if (inbuf) delete inbuf; inbuf = NULL;
-        if(!r) return DataStatus(DataStatus::StatError,r.getExplanation());
+        if(!r) {
+          if (inbuf) delete inbuf; inbuf = NULL;
+          return DataStatus(DataStatus::StatError,r.getExplanation());
+        }
       }
       release_client(rurl,client.Release());
-      if ((info.code != 200) && (info.code != 207)) {
+      if ((info.code != 200) && (info.code != 207)) { // 207 for multistatus response
         if (inbuf) delete inbuf; inbuf = NULL;
         if((info.code == 301) || // permanent redirection
            (info.code == 302) || // temporary redirection
@@ -459,47 +514,124 @@ using namespace Arc;
           logger.msg(VERBOSE,"Redirecting to %s",info.location);
           continue;
         }
+        //  Possibly following errors can be returned by server
+        // if it does not implement webdav.
+        // 405 - method not allowed
+        // 501 - not implemented
+        // 500 - internal error (for simplest servers)
+        if((info.code == 405) || (info.code == 501) || (info.code == 500)) {
+          // Indicating possible failure reason using POSIX error code ENOSYS
+          return DataStatus(DataStatus::StatError, ENOSYS, info.reason);
+        }
         return DataStatus(DataStatus::StatError, http2errno(info.code), info.reason);
       }
-      XMLNode multistatus(ContentFromPayload(*inbuf));
-      if (inbuf) delete inbuf; inbuf = NULL;
-      if(multistatus.Name() == "multistatus") {
-        XMLNode response = multistatus["response"];
-        if((bool)response) {
-          XMLNode href = response["href"];
-          XMLNode propstat = response["propstat"];
-          if((bool)propstat) {
-            XMLNode prop = propstat["prop"];
-            if((bool)prop) {
-              XMLNode creationdate = prop["creationdate"];
-              XMLNode displayname = prop["displayname"];
-              XMLNode getcontentlength = prop["getcontentlength"];
-              XMLNode getcontenttype = prop["getcontenttype"];
-              XMLNode getlastmodified = prop["getlastmodified"];
-              // Fetch known metadata
-              if((bool)getcontenttype["collection"]) {
-                file.SetType(FileInfo::file_type_dir);
-              } else {
-                file.SetType(FileInfo::file_type_file);
-              }
-              uint64_t l = (uint64_t)(-1);
-              if(stringto((std::string)getcontentlength,l)) {
-                file.SetSize(l);
-              }
-              std::string t = (std::string)getlastmodified;
-              if(t.empty()) t = (std::string)creationdate;
-              if(!t.empty()) {
-                Time tm(t);
-                if(tm.GetTime() != Time::UNDEFINED) {
-                  file.SetModified(tm);
-                }
-              }
-              if(!(bool)href) file.AddURL((std::string)href);
+      if(inbuf) {
+        XMLNode multistatus(ContentFromPayload(*inbuf));
+        delete inbuf; inbuf = NULL;
+        if(multistatus.Name() == "multistatus") {
+          XMLNode response = multistatus["response"];
+          if((bool)response) {
+            std::string url;
+            if(parse_webdav_response(response,file,url)) {
               return DataStatus::Success;
             }
           }
         }
       }
+      return DataStatus(DataStatus::StatError,"Can't process WebDAV response");
+    }
+    return DataStatus(DataStatus::StatError,"Too many redirects");
+  }
+
+  DataStatus DataPointHTTP::do_list_webdav(URL& rurl, std::list<FileInfo>& files, DataPointInfoType verb) {
+    PayloadRaw request;
+    {
+      NS webdav_ns("d","DAV:");
+      XMLNode propfind(webdav_ns,"d:propfind");
+      XMLNode props = propfind.NewChild("d:prop");
+      // TODO: verb
+      props.NewChild("d:creationdate");
+      props.NewChild("d:displayname");
+      props.NewChild("d:getcontentlength");
+      props.NewChild("d:getcontenttype");
+      props.NewChild("d:getlastmodified");
+      std::string s; propfind.GetDoc(s);
+      request.Insert(s.c_str(),0,s.length());
+    }
+    std::multimap<std::string, std::string> propattr;
+    propattr.insert(std::pair<std::string, std::string>("Depth","1")); // for listing
+    PayloadRawInterface *inbuf = NULL;
+    HTTPClientInfo info;
+    for(int redirects_max = 10;redirects_max>=0;--redirects_max) {
+      std::string path = rurl.FullPathURIEncoded();
+      info.lastModified = (time_t)(-1);
+      AutoPointer<ClientHTTP> client(acquire_client(rurl));
+      if (!client) return DataStatus::StatError;
+      MCC_Status r = client->process("PROPFIND", path, propattr, &request, &info, &inbuf);
+      if (!r) {
+        if (inbuf) delete inbuf; inbuf = NULL;
+        // Because there is no reliable way to check if connection
+        // is still alive at this place, we must try again
+        client = acquire_new_client(rurl);
+        if(client) r = client->process("PROPFIND", path, propattr, &request, &info, &inbuf);
+        if(!r) {
+          if (inbuf) delete inbuf; inbuf = NULL;
+          return DataStatus(DataStatus::StatError,r.getExplanation());
+        }
+      }
+      release_client(rurl,client.Release());
+      if ((info.code != 200) && (info.code != 207)) { // 207 for multistatus response
+        if (inbuf) delete inbuf; inbuf = NULL;
+        if((info.code == 301) || // permanent redirection
+           (info.code == 302) || // temporary redirection
+           (info.code == 303) || // POST to GET redirection
+           (info.code == 304)) { // redirection to cache
+          // 305 - redirection to proxy - unhandled
+          // Recreate connection now to new URL
+          rurl = info.location;
+          logger.msg(VERBOSE,"Redirecting to %s",info.location);
+          continue;
+        }
+        //  Possibly following errors can be returned by server
+        // if it does not implement webdav.
+        // 405 - method not allowed
+        // 501 - not implemented
+        // 500 - internal error (for simplest servers)
+        if((info.code == 405) || (info.code == 501) || (info.code == 500)) {
+          // Indicating possible failure reason using POSIX error code ENOSYS
+          return DataStatus(DataStatus::StatError, ENOSYS, info.reason);
+        }
+        return DataStatus(DataStatus::StatError, http2errno(info.code), info.reason);
+      }
+      if(inbuf) {
+        XMLNode multistatus(ContentFromPayload(*inbuf));
+        delete inbuf; inbuf = NULL;
+        if(multistatus.Name() == "multistatus") {
+          XMLNode response = multistatus["response"];
+          for(;(bool)response;++response) {
+            FileInfo file;
+            std::string url;
+            if(parse_webdav_response(response,file,url)) {
+              // url = uri_unencode(url); ?
+              if(url[0] == '/') {
+                url = rurl.ConnectionURL()+url;
+              }
+              if (url.find("://") != std::string::npos) {
+                URL u(url);
+                std::string b = rurl.str();
+                if (b[b.size() - 1] != '/') b += '/';
+                if (u.str().substr(0, b.size()) == b) url = u.str().substr(b.size());
+              }
+              if(!url.empty()) { // skip requested object
+                file.SetName(url);
+                files.push_back(file);
+              }
+            }
+          }
+          return DataStatus::Success;
+        }
+      }
+      return DataStatus(DataStatus::StatError,"Can't process WebDAV response");
     }
     return DataStatus(DataStatus::StatError,"Too many redirects");
   }
@@ -507,8 +639,11 @@ using namespace Arc;
   DataStatus DataPointHTTP::Stat(FileInfo& file, DataPointInfoType verb) {
     // verb is not used
     URL curl = url;
-    DataStatus r = do_stat_http(curl, file);
-    if(!r) return r;
+    DataStatus r = do_stat_webdav(curl, file);
+    if(!r) {
+      if(r.GetErrno() != ENOSYS) return r;
+      r = do_stat_http(curl, file);
+    }
     std::string name = url.FullPath();
     std::string::size_type p = name.rfind('/');
     while(p != std::string::npos) {
@@ -535,15 +670,29 @@ using namespace Arc;
     if (transfers_started.get() != 0) return DataStatus(DataStatus::ListError, EARCLOGIC, "Currently reading");
     URL curl = url;
     DataStatus r;
+    bool webdav_supported = true;
     {
       FileInfo file;
-      r = do_stat_http(curl, file);
+      r = do_stat_webdav(curl, file);
+      if(!r) {
+        webdav_supported = false;
+        if(r.GetErrno() == ENOSYS) {
+          r = do_stat_http(curl, file);
+        }
+      }
       if(r) {
         if(file.CheckSize()) size = file.GetSize();
         if(file.CheckModified()) modified = file.GetModified();
         if(file.GetType() != FileInfo::file_type_dir) return DataStatus(DataStatus::ListError, ENOTDIR);
       }
     }
+
+    if(webdav_supported) {
+      r = do_list_webdav(curl, files, verb);
+      return r;
+    }
+
+    // If server has no webdav try to read content and present it as list of links
 
     DataBuffer buffer;
 
