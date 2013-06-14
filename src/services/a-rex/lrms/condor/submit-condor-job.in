@@ -347,7 +347,7 @@ EOF
             }
         }
         $output .= <<EOF;
-find ./ -type f -perm +200 -exec rm -f "{}" ";"
+find ./ -type f -perm /200 -exec rm -f "{}" ";"
 find ./ -type f -exec chmod u+w "{}" ";"
 EOF
     }

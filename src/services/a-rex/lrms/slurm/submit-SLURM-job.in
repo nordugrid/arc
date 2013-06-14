@@ -327,7 +327,7 @@ EOSCR
     done
   fi
 
-  echo '  find ./ -type f -perm +200 -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
+  echo '  find ./ -type f -perm /200 -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
   echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
   echo 'fi' >> $LRMS_JOB_SCRIPT
 fi
