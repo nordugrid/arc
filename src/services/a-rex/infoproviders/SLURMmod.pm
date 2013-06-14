@@ -203,8 +203,13 @@ sub jobs_info ($) {
         #allocation which will not be correct on a heterogenous
         #cluster
         my $node = slurm_get_first_node($scont_jobs{$jid}{"NodeList"});
-        $lrms_jobs->{$jid}{mem} = $scont_nodes{$node}{"RealMemory"};
-        
+
+        # Only jobs that got the nodes can report the memory of
+        # their nodes
+        if($node ne " NoNode "){
+            $lrms_jobs->{$jid}{mem} = $scont_nodes{$node}{"RealMemory"};
+        }
+
         my $walltime = $scont_jobs{$jid}{"TimeUsed"};
         my $count = $scont_jobs{$jid}{ReqCPUs};
         $lrms_jobs->{$jid}{walltime} = $walltime;
