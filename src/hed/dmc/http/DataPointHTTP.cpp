@@ -437,13 +437,15 @@ using namespace Arc;
         XMLNode creationdate = prop["creationdate"];
         XMLNode displayname = prop["displayname"];
         XMLNode getcontentlength = prop["getcontentlength"];
-        XMLNode getcontenttype = prop["getcontenttype"];
+        XMLNode resourcetype = prop["resourcetype"];
         XMLNode getlastmodified = prop["getlastmodified"];
         // Fetch known metadata
-        if((bool)getcontenttype["collection"]) {
-          file.SetType(FileInfo::file_type_dir);
-        } else {
-          file.SetType(FileInfo::file_type_file);
+        if((bool)resourcetype) {
+          if((bool)resourcetype["collection"]) {
+            file.SetType(FileInfo::file_type_dir);
+          } else {
+            file.SetType(FileInfo::file_type_file);
+          }
         }
         uint64_t l = (uint64_t)(-1);
         if(stringto((std::string)getcontentlength,l)) {
@@ -475,7 +477,7 @@ using namespace Arc;
       props.NewChild("d:creationdate");
       props.NewChild("d:displayname");
       props.NewChild("d:getcontentlength");
-      props.NewChild("d:getcontenttype");
+      props.NewChild("d:resourcetype");
       props.NewChild("d:getlastmodified");
       std::string s; propfind.GetDoc(s);
       request.Insert(s.c_str(),0,s.length());
@@ -553,7 +555,7 @@ using namespace Arc;
       props.NewChild("d:creationdate");
       props.NewChild("d:displayname");
       props.NewChild("d:getcontentlength");
-      props.NewChild("d:getcontenttype");
+      props.NewChild("d:resourcetype");
       props.NewChild("d:getlastmodified");
       std::string s; propfind.GetDoc(s);
       request.Insert(s.c_str(),0,s.length());
