@@ -874,8 +874,8 @@ namespace Arc
         benchmark_description = (*this)["jobreport_option_benchmark_description"];
       }
 
-    Arc::XMLNode sleveln = ur.NewChild("ServiceLevel")=benchmark_type;
-    sleveln.NewAttribute("urf:type")=benchmark_value;
+    Arc::XMLNode sleveln = ur.NewChild("ServiceLevel")=benchmark_value;
+    sleveln.NewAttribute("urf:type")=benchmark_type;
     sleveln.NewAttribute("urf:description")=benchmark_description;
 
 
