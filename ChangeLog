@@ -1,3 +1,6 @@
+2013-06-26  Gabor Szigeti <szigeti@niif.hu>
+  * Fixed ServiceLevel value and type in the accounting records.
+  
 2013-06-10  Gabor Szigeti <szigeti@niif.hu>
   * Option for setting benchmark parameters in the CAR from the arc.conf.
   
