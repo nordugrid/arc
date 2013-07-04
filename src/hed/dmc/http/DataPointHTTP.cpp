@@ -1155,28 +1155,72 @@ using namespace Arc;
     URL client_url = point.url;
     ClientHTTP *client = point.acquire_client(client_url);
     if (!client) return false;
-    StreamBuffer request(*point.buffer);
     HTTPClientInfo transfer_info;
     PayloadRawInterface *response = NULL;
     std::string path = client_url.FullPathURIEncoded();
     // TODO: Do ping to *client in order to check if connection is alive.
     // TODO: But ping itself can destroy connection on 1.0-like servers.
     // TODO: Hence retry is needed like in other cases.
-    MCC_Status r = client->process(ClientHTTPAttributes("PUT", path), &request, &transfer_info,
-                                   &response);
-    if (response) delete response; response = NULL;
-    if (!r) {
-      // It is not clear how to retry if early chunks are not available anymore.
-      // Let it retry at higher level.
-      point.failure_code = DataStatus(DataStatus::WriteError, r.getExplanation());
-      delete client; client = NULL;
-      return false;
-    }
-    if ((transfer_info.code != 201) &&
-        (transfer_info.code != 200) &&
-        (transfer_info.code != 204)) {  // HTTP error
-      point.failure_code = DataStatus(DataStatus::WriteError, point.http2errno(transfer_info.code), transfer_info.reason);
-      return false;
+
+    // To allow for redirection from the server without uploading the whole
+    // body we send an empty buffer and Expect: 100-continue header. Servers
+    // should return either 100 continue or 30x redirection.
+    std::multimap<std::string, std::string> attrs;
+    attrs.insert(std::pair<std::string, std::string>("Expect", "100-continue"));
+    DataBuffer* empty_buffer = new DataBuffer();
+    empty_buffer->eof_read(true);
+    StreamBuffer* request = new StreamBuffer(*empty_buffer);
+    for (;;) {
+      MCC_Status r = client->process(ClientHTTPAttributes("PUT", path, attrs), request, &transfer_info,
+                                     &response);
+      if (request) delete request; request = NULL;
+      if (empty_buffer) delete empty_buffer; empty_buffer = NULL;
+      if (response) delete response; response = NULL;
+      if (!r) {
+        // It is not clear how to retry if early chunks are not available anymore.
+        // Let it retry at higher level.
+        point.failure_code = DataStatus(DataStatus::WriteError, r.getExplanation());
+        delete client; client = NULL;
+        return false;
+      }
+      if (transfer_info.code == 301 || // Moved permanently
+          transfer_info.code == 302 || // Found (temp redirection)
+          transfer_info.code == 307) { // Temporary redirection
+        // Recreate connection now to new URL
+        point.release_client(client_url,client); client = NULL;
+        client_url = transfer_info.location;
+        logger.msg(VERBOSE,"Redirecting to %s",transfer_info.location);
+        client = point.acquire_client(client_url);
+        if (client) {
+          // TODO: Only one redirection is currently supported. Here we should
+          // try again with 100-continue but there were problems with dCache
+          // where on upload of the real body the server returns 201 Created
+          // immediately and leaves an empty file. We cannot use a new
+          // connection after 100 continue because redirected URLs that dCache
+          // sends are one time use only.
+          request = new StreamBuffer(*point.buffer);
+          path = client_url.FullPathURIEncoded();
+          attrs.clear();
+          continue;
+        }
+        point.buffer->error_write(true);
+        point.failure_code = DataStatus(DataStatus::WriteError, "Failed to connect to redirected URL "+client_url.fullstr());
+        return false;
+      }
+      if (transfer_info.code == 100 || // Continue
+          transfer_info.code == 417) { // Expectation not supported
+        // Server accepts request so send full body
+        request = new StreamBuffer(*point.buffer);
+        attrs.clear();
+        continue;
+      }
+      if ((transfer_info.code != 201) &&
+          (transfer_info.code != 200) &&
+          (transfer_info.code != 204)) {  // HTTP error
+        point.failure_code = DataStatus(DataStatus::WriteError, point.http2errno(transfer_info.code), transfer_info.reason);
+        return false;
+      }
+      break;
     }
     return true;
   }
