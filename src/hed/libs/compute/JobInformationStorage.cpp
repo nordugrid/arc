@@ -10,6 +10,7 @@
 #include <arc/FileLock.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
+#include <arc/Utils.h>
 
 #include "JobInformationStorage.h"
 
@@ -504,14 +505,17 @@ namespace Arc {
       std::list<Job>::const_iterator it = jobs.begin();
       void* pdata = NULL;
       Dbt key, data;
-      do {
+      {
+        InterruptGuard guard;
+        do {
+          ::free(pdata);
+          key.set_size(it->JobID.size());
+          key.set_data((char*)it->JobID.c_str());
+          serialiseJob(*it, data);
+          pdata = data.get_data();
+        } while ((ret = db->put(NULL, &key, &data, 0)) == 0 && ++it != jobs.end());
         ::free(pdata);
-        key.set_size(it->JobID.size());
-        key.set_data((char*)it->JobID.c_str());
-        serialiseJob(*it, data);
-        pdata = data.get_data();
-      } while ((ret = db->put(NULL, &key, &data, 0)) == 0 && ++it != jobs.end());
-      ::free(pdata);
+      };
       
       if (ret != 0) {
         logger.msg(ERROR, "Unable to write key/value pair to job database (%s): Key \"%s\"", name, (char*)key.get_data());
@@ -550,21 +554,24 @@ namespace Arc {
       void* pdata = NULL;
       Dbt key, data;
       bool jobWasPruned;
-      do {
-        ::free(pdata);
-        key.set_size(it->JobID.size());
-        key.set_data((char*)it->JobID.c_str());
-        serialiseJob(*it, data);
-        pdata = data.get_data();
-        jobWasPruned = (idsOfPrunedJobs.count(it->JobID) != 0);
-        if (!jobWasPruned) { // Check if job already exist.
-          Dbt existingData;
-          if (db->get(NULL, &key, &existingData, 0) == DB_NOTFOUND) {
-            newJobs.push_back(&*it);
+      {
+        InterruptGuard guard;
+        do {
+          ::free(pdata);
+          key.set_size(it->JobID.size());
+          key.set_data((char*)it->JobID.c_str());
+          serialiseJob(*it, data);
+          pdata = data.get_data();
+          jobWasPruned = (idsOfPrunedJobs.count(it->JobID) != 0);
+          if (!jobWasPruned) { // Check if job already exist.
+            Dbt existingData;
+            if (db->get(NULL, &key, &existingData, 0) == DB_NOTFOUND) {
+              newJobs.push_back(&*it);
+            }
           }
-        }
-      } while (((ret = db->put(NULL, &key, &data, 0)) == 0 && ++it != jobs.end()));
-      ::free(pdata);
+        } while (((ret = db->put(NULL, &key, &data, 0)) == 0 && ++it != jobs.end()));
+        ::free(pdata);
+      };
       
       if (ret != 0) {
         logger.msg(ERROR, "Unable to write key/value pair to job database (%s): Key \"%s\"", name, (char*)key.get_data());
@@ -734,6 +741,7 @@ namespace Arc {
   
   bool JobInformationStorageBDB::Remove(const std::list<std::string>& jobids) {
     try {
+      InterruptGuard guard;
       JobDB db(name, DB_CREATE);
       for (std::list<std::string>::const_iterator it = jobids.begin();
            it != jobids.end(); ++it) {
