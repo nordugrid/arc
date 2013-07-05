@@ -41,47 +41,82 @@ namespace Arc {
    */
   class JobState {
   public:
-    /**
-     * \mapdef
-     * On this page the mapping of job state attributes of different
-     * computing services to those defined by the libarccompute library in the
-     * \ref Arc::JobState "JobState" class is documented.
-     * 
-     * \mapdefattr UNDEFINED
-     * \mapdefattr ACCEPTED
-     * \mapdefattr PREPARING
-     * \mapdefattr SUBMITTING
-     * \mapdefattr HOLD
-     * \mapdefattr QUEUING
-     * \mapdefattr RUNNING
-     * \mapdefattr FINISHING
-     * \mapdefattr FINISHED
-     * \mapdefattr KILLED
-     * \mapdefattr FAILED
-     * \mapdefattr DELETED
-     * \mapdefattr OTHER
-     * \endmapdef
-     **/
     /** \enum StateType
      * \brief Possible job states in libarccompute
      * 
      * The possible job states usable in the libarccompute library with a short
      * description is listed below:
+     * 
+     * \mapdef job_state_mapping Job state mapping
+     * On this page the mapping of job state attributes of different
+     * computing services to those defined by the libarccompute library in the
+     * \ref Arc::JobState "JobState" class is documented.
      **/
     enum StateType {
-      UNDEFINED, /**< %Job state could not be resolved */
-      ACCEPTED, /**< %Job was accepted by the computing service */
-      PREPARING, /**< %Job is being prepared by the computing service */
-      SUBMITTING, /**< %Job is being submitted to a computing share */
-      HOLD, /**< %Job is put on hold */
-      QUEUING, /**< %Job is on computing share waiting to run */
-      RUNNING, /**< %Job is running on computing share */
-      FINISHING, /**< %Job is finishing */
-      FINISHED, /**< %Job has finished */
-      KILLED, /**< %Job has been killed */
-      FAILED, /**< %Job failed */
-      DELETED, /**< %Job have been deleted */
-      OTHER /**< Any job state which does not fit the above states */
+      /** %Job state could not be resolved.
+       * \mapdefattr UNDEFINED Arc::JobState
+       **/
+      UNDEFINED,
+      
+      /** %Job was accepted by the computing service.
+       * \mapdefattr ACCEPTED Arc::JobState
+       */
+      ACCEPTED,
+      
+      /** %Job is being prepared by the computing service.
+       * \mapdefattr PREPARING Arc::JobState
+       **/
+      PREPARING,
+
+      /** %Job is being submitted to a computing share.
+       * \mapdefattr SUBMITTING Arc::JobState
+       **/
+      SUBMITTING,
+      
+      /** %Job is put on hold.
+       * \mapdefattr HOLD Arc::JobState
+       **/
+      HOLD,
+      
+      /** %Job is on computing share waiting to run.
+       * \mapdefattr QUEUING Arc::JobState
+       **/
+      QUEUING,
+      
+      /** %Job is running on computing share.
+       * \mapdefattr RUNNING Arc::JobState
+       **/
+      RUNNING,
+      
+      /** %Job is finishing.
+       * \mapdefattr FINISHING Arc::JobState
+       **/
+      FINISHING,
+      
+      /** %Job has finished.
+       * \mapdefattr FINISHED Arc::JobState
+       **/
+      FINISHED,
+      
+      /** %Job has been killed.
+       * \mapdefattr KILLED Arc::JobState
+       **/
+      KILLED,
+      
+      /** %Job failed.
+       * \mapdefattr FAILED Arc::JobState
+       **/
+      FAILED,
+      
+      /** %Job have been deleted.
+       * \mapdefattr DELETED Arc::JobState
+       **/
+      DELETED,
+      
+      /** Any job state which does not fit the above states.
+       * \mapdefattr OTHER Arc::JobState
+       **/
+      OTHER
     };
 
     static const std::string StateTypeString[];
