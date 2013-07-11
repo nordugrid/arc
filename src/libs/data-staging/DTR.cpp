@@ -142,12 +142,15 @@ namespace DataStaging {
     if (source_endpoint->IsIndex()) {
       source_endpoint->ClearLocations();
     }
+    // clear any transfer locations
+    source_endpoint->ClearTransferLocations();
     // reset retry count to 1
     source_endpoint->SetTries(1);
 
     if (destination_endpoint->IsIndex()) {
       destination_endpoint->ClearLocations();
     }
+    destination_endpoint->ClearTransferLocations();
     destination_endpoint->SetTries(1);
 
     // empty cache and map info

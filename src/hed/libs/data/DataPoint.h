@@ -679,6 +679,13 @@ namespace Arc {
      * will use first URL in the list. */
     virtual std::vector<URL> TransferLocations() const;
 
+    /// Clear list of physical file(s) to read/write.
+    /**
+     * To be used with protocols which re-direct to different URLs such as
+     * Transport URLs (TURLs). Has no effect for other protocols.
+     */
+    virtual void ClearTransferLocations() {};
+
     /// Returns current (resolved) URL.
     virtual const URL& CurrentLocation() const = 0;
 

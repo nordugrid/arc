@@ -54,6 +54,7 @@ namespace ArcDMCSRM {
     virtual bool ProvidesMeta() const;
     virtual bool IsStageable() const;
     virtual std::vector<URL> TransferLocations() const;
+    virtual void ClearTransferLocations();
   private:
     SRMClientRequest *srm_request; /* holds SRM request ID between Prepare* and Finish* */
     static Logger logger;

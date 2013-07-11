@@ -790,6 +790,10 @@ namespace ArcDMCSRM {
     return turls;
   }
 
+  void DataPointSRM::ClearTransferLocations() {
+    turls.clear();
+  }
+
   void DataPointSRM::CheckProtocols(std::list<std::string>& transport_protocols) {
     for (std::list<std::string>::iterator protocol = transport_protocols.begin();
          protocol != transport_protocols.end();) {

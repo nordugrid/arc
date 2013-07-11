@@ -66,6 +66,7 @@ namespace Arc {
     virtual DataStatus FinishReading(bool error = false);
     virtual DataStatus FinishWriting(bool error = false);
     virtual std::vector<URL> TransferLocations() const;
+    virtual void ClearTransferLocations();
 
     virtual DataStatus Check(bool check_meta);
 
