@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-06-25 18:13+0100\n"
-"PO-Revision-Date: 2013-06-25 18:21+0100\n"
+"POT-Creation-Date: 2013-07-12 16:20+0100\n"
+"PO-Revision-Date: 2013-07-12 16:20+0100\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -4131,6 +4131,7 @@ msgstr "LFC выдаёт больше результатов, чем надо!"
 #: src/hed/dmc/http/DataPointHTTP.cpp:516
 #: src/hed/dmc/http/DataPointHTTP.cpp:594
 #: src/hed/dmc/http/DataPointHTTP.cpp:1022
+#: src/hed/dmc/http/DataPointHTTP.cpp:1192
 #, c-format
 msgid "Redirecting to %s"
 msgstr "Перенаправление к %s"
@@ -4630,7 +4631,7 @@ msgstr "Сбой сброса завершившегося запроса"
 msgid "ListFiles: looking for metadata: %s"
 msgstr "ListFiles: поиск метаданных: %s"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:802
+#: src/hed/dmc/srm/DataPointSRM.cpp:806
 #, c-format
 msgid "plugin for transport protocol %s is not installed"
 msgstr ""
@@ -7735,80 +7736,80 @@ msgstr ""
 "Точка входа (%s) добавляется как к ServiceEndpointRetriever, так и к "
 "TargetInformationRetriever"
 
-#: src/hed/libs/compute/JobInformationStorage.cpp:38
-#: src/hed/libs/compute/JobInformationStorage.cpp:124
-#: src/hed/libs/compute/JobInformationStorage.cpp:204
-#: src/hed/libs/compute/JobInformationStorage.cpp:247
+#: src/hed/libs/compute/JobInformationStorage.cpp:39
+#: src/hed/libs/compute/JobInformationStorage.cpp:125
+#: src/hed/libs/compute/JobInformationStorage.cpp:205
+#: src/hed/libs/compute/JobInformationStorage.cpp:248
 #, c-format
 msgid "Waiting for lock on job list file %s"
 msgstr "Ожидание разблокирования файла списка задач %s"
 
-#: src/hed/libs/compute/JobInformationStorage.cpp:147
+#: src/hed/libs/compute/JobInformationStorage.cpp:148
 #, c-format
 msgid "Will remove %s on service %s."
 msgstr "Задача %s будет удалена с серивса %s."
 
-#: src/hed/libs/compute/JobInformationStorage.cpp:405
+#: src/hed/libs/compute/JobInformationStorage.cpp:406
 #, c-format
 msgid "Unable to create data base environment (%s)"
 msgstr "Не удалось создать окружение для базы данных (%s)"
 
-#: src/hed/libs/compute/JobInformationStorage.cpp:415
-#: src/hed/libs/compute/JobInformationStorage.cpp:420
-#: src/hed/libs/compute/JobInformationStorage.cpp:425
+#: src/hed/libs/compute/JobInformationStorage.cpp:416
+#: src/hed/libs/compute/JobInformationStorage.cpp:421
+#: src/hed/libs/compute/JobInformationStorage.cpp:426
 #, c-format
 msgid "Unable to set duplicate flags for secondary key DB (%s)"
 msgstr ""
 "Невозможно установить повторяющиеся метки для вторичной базы данных ключей "
 "(%s)"
 
-#: src/hed/libs/compute/JobInformationStorage.cpp:431
+#: src/hed/libs/compute/JobInformationStorage.cpp:432
 #, c-format
 msgid "Unable to create job database (%s)"
 msgstr "Не удалось создать базу данных задач (%s)"
 
-#: src/hed/libs/compute/JobInformationStorage.cpp:436
+#: src/hed/libs/compute/JobInformationStorage.cpp:437
 #, c-format
 msgid "Unable to create DB for secondary name keys (%s)"
 msgstr "Не удалось создать базу данных для вторичных ключей имён (%s)"
 
-#: src/hed/libs/compute/JobInformationStorage.cpp:441
+#: src/hed/libs/compute/JobInformationStorage.cpp:442
 #, c-format
 msgid "Unable to create DB for secondary endpoint keys (%s)"
 msgstr "Не удалось создать базу данных для вторичных ключей точек входа (%s)"
 
-#: src/hed/libs/compute/JobInformationStorage.cpp:446
+#: src/hed/libs/compute/JobInformationStorage.cpp:447
 #, c-format
 msgid "Unable to create DB for secondary service info keys (%s)"
 msgstr ""
 "Не удалось создать базу данных для вторичных ключей информации о службах (%s)"
 
-#: src/hed/libs/compute/JobInformationStorage.cpp:452
-#: src/hed/libs/compute/JobInformationStorage.cpp:457
-#: src/hed/libs/compute/JobInformationStorage.cpp:462
+#: src/hed/libs/compute/JobInformationStorage.cpp:453
+#: src/hed/libs/compute/JobInformationStorage.cpp:458
+#: src/hed/libs/compute/JobInformationStorage.cpp:463
 #, c-format
 msgid "Unable to associate secondary DB with primary DB (%s)"
 msgstr ""
 "Невозможно поставить в соответствие вторичную базу данных первичной (%s)"
 
-#: src/hed/libs/compute/JobInformationStorage.cpp:467
+#: src/hed/libs/compute/JobInformationStorage.cpp:468
 #, c-format
 msgid "Job database created successfully (%s)"
 msgstr "Успешно создана база данных задач (%s)"
 
-#: src/hed/libs/compute/JobInformationStorage.cpp:517
-#: src/hed/libs/compute/JobInformationStorage.cpp:570
+#: src/hed/libs/compute/JobInformationStorage.cpp:521
+#: src/hed/libs/compute/JobInformationStorage.cpp:577
 #, c-format
 msgid "Unable to write key/value pair to job database (%s): Key \"%s\""
 msgstr ""
 "Невозможно записать пару ключ/значение в базу данных задач (%s): Ключ \"%s\""
 
-#: src/hed/libs/compute/JobInformationStorage.cpp:727
+#: src/hed/libs/compute/JobInformationStorage.cpp:734
 #, c-format
 msgid "Unable to truncate job database (%s)"
 msgstr "Не удалось укоротить базу данных задач (%s)"
 
-#: src/hed/libs/compute/JobInformationStorage.cpp:753
+#: src/hed/libs/compute/JobInformationStorage.cpp:761
 msgid ""
 "ENOENT: The file or directory does not exist, Or a nonexistent re_source "
 "file was specified."
@@ -7816,22 +7817,22 @@ msgstr ""
 "ENOENT: Файл или каталог не существуют, либо указан несуществующий файл "
 "re_source"
 
-#: src/hed/libs/compute/JobInformationStorage.cpp:756
+#: src/hed/libs/compute/JobInformationStorage.cpp:764
 msgid ""
 "DB_OLD_VERSION: The database cannot be opened without being first upgraded."
 msgstr ""
 "DB_OLD_VERSION: База данных не может быть открыта без предварительного "
 "обновления версии."
 
-#: src/hed/libs/compute/JobInformationStorage.cpp:759
+#: src/hed/libs/compute/JobInformationStorage.cpp:767
 msgid "EEXIST: DB_CREATE and DB_EXCL were specified and the database exists."
 msgstr "EEXIST: были заданы DB_CREATE и DB_EXCL, и база данных существует ."
 
-#: src/hed/libs/compute/JobInformationStorage.cpp:761
+#: src/hed/libs/compute/JobInformationStorage.cpp:769
 msgid "EINVAL"
 msgstr "EINVAL"
 
-#: src/hed/libs/compute/JobInformationStorage.cpp:764
+#: src/hed/libs/compute/JobInformationStorage.cpp:772
 #, c-format
 msgid "Unable to determine error (%d)"
 msgstr "Невозможно распознать ошибку (%d)"
@@ -9566,7 +9567,6 @@ msgstr ""
 "невозможно"
 
 #: src/hed/libs/data/DataMover.cpp:1098
-#: src/libs/data-staging/DataStagingDelivery.cpp:434
 #, c-format
 msgid "Checksum mismatch between calcuated checksum %s and source checksum %s"
 msgstr ""
@@ -16503,27 +16503,27 @@ msgstr "Невозможно обработать точку входа %s"
 msgid "Source is the same as destination"
 msgstr "Источник идентичен назначению"
 
-#: src/libs/data-staging/DTR.cpp:163
+#: src/libs/data-staging/DTR.cpp:166
 #, c-format
 msgid "Invalid ID: %s"
 msgstr "Неверный ID: %s"
 
-#: src/libs/data-staging/DTR.cpp:200
+#: src/libs/data-staging/DTR.cpp:203
 #, c-format
 msgid "%s->%s"
 msgstr "%s->%s"
 
-#: src/libs/data-staging/DTR.cpp:304
+#: src/libs/data-staging/DTR.cpp:307
 #, c-format
 msgid "No callback for %s defined"
 msgstr "Не определена функция обратного вызова для %s"
 
-#: src/libs/data-staging/DTR.cpp:319
+#: src/libs/data-staging/DTR.cpp:322
 #, c-format
 msgid "NULL callback for %s"
 msgstr "Нулевой обратный вызов для %s"
 
-#: src/libs/data-staging/DTR.cpp:322
+#: src/libs/data-staging/DTR.cpp:325
 #, c-format
 msgid "Request to push to unknown owner - %u"
 msgstr "Попытка передачи неизвестному владельцу - %u"
@@ -16966,6 +16966,13 @@ msgstr "Неподдерживаемый URL назначения: %s"
 #, c-format
 msgid "Will calculate %s checksum"
 msgstr "Будет вычислена контрольная сумма для %s"
+
+#: src/libs/data-staging/DataStagingDelivery.cpp:434
+#, c-format
+msgid "Checksum mismatch between calculated checksum %s and source checksum %s"
+msgstr ""
+"Несовпадение вычисленной контрольной суммы %s и контрольной суммы источника "
+"%s"
 
 #: src/libs/data-staging/DataStagingDelivery.cpp:444
 #, c-format
