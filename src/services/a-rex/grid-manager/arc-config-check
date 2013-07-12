@@ -390,7 +390,7 @@ sub validconfparams() {
 	my @validblocks;
 	unless (open (ARCREF, "<$arcloc/share/arc/examples/arc.conf.reference")) {
 		w("Could not open arc.conf.reference. No arc.conf parameter checking will be done\n");
-		return @validparams;
+		return ( \@validparams, \@validblocks );
 	}
 	while (my $line = <ARCREF>) {
 		if ($line =~ m/^#(\w*)\s*=(.*)$/) { # match #parameter="value"
