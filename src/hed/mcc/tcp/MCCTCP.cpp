@@ -163,7 +163,7 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg, PluginArgument* parg):MCC_TCP(cfg,
               // Some systems (Linux for example) make v6 support v4 too
               // by default. Some don't. Make it same for everyone -
               // separate sockets for v4 and v6.
-              if(setsockopt(s,IPPROTO_IPV6,IPV6_V6ONLY,&v,sizeof(v)) != 0) {
+              if(setsockopt(s,IPPROTO_IPV6,IPV6_V6ONLY,(const char*)(&v),sizeof(v)) != 0) {
                 if(interface_s.empty()) {
                   logger.msg(ERROR, "Failed to limit socket to IPv6 at TCP port %s - may cause errors for IPv4 at same port", port_s);
                 } else {
@@ -340,7 +340,7 @@ void MCC_TCP_Service::listener(void* arg) {
                     bool rejected = false;
                     bool first_time = true;
                     while((it.max_executers_ > 0) &&
-                          (it.executers_.size() >= it.max_executers_)) {
+                          (it.executers_.size() >= (size_t) it.max_executers_)) {
                       if(it.max_executers_drop_) {
                         logger.msg(WARNING, "Too many connections - dropping new one");
                         ::shutdown(s,2);
