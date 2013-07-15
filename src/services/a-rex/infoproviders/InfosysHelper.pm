@@ -121,6 +121,9 @@ sub waitForProvider {
 
     #
     # Finds infosys' runtime directory and the infosys user's uid, gid
+    # TODO: this is a bit complicated and due to BDII4/BDII5.
+    # Maybe it needs simplification, but requires understanding
+    # of what happens in BDII5 since they changed directory paths.
     #
     sub findInfosys {
         return @$cache if defined $cache;
@@ -141,10 +144,10 @@ sub waitForProvider {
         
         my ($infosys_uid, $infosys_gid);
         
-        #TODO: enable relocation here
-        my $infosys_runtime_dir = "/var/run/arc/infosys";
-        
-        $log->debug("LDAP subsystem run dir set to $infosys_runtime_dir");
+        my $infosys_ldap_run_dir = $config->{infosys_ldap_run_dir} || "/var/run/arc/infosys";
+        # remove trailing slashes
+        $infosys_ldap_run_dir =~ s|/\z||;
+        $log->debug("LDAP subsystem run dir set to $infosys_ldap_run_dir");
         
         # search for bdii pid file: legacy bdii4 locations still here
         # TODO: remove bdii_var_dir from everywhere (also from grid-infosys)
@@ -167,11 +170,11 @@ sub waitForProvider {
             $log->warning("BDII pid file not found. Check that nordugrid-arc-bdii is running, or that bdii_run_dir is set");
             return @$cache = ();
         }
-        unless (-d $infosys_runtime_dir) {
-            $log->warning("LDAP information system runtime directory does not exist. Check that nordugrid-arc-bdii is running");
+        unless (-d $infosys_ldap_run_dir) {
+            $log->warning("LDAP information system runtime directory does not exist. Check that:\n \t *) The arc.conf parameter infosys_ldap_run_dir is correctly set im manually added. \n \t *) nordugrid-arc-bdii is running");
             return @$cache = ();
         }
-        return @$cache = ($infosys_runtime_dir, $infosys_uid, $infosys_gid);
+        return @$cache = ($infosys_ldap_run_dir, $infosys_uid, $infosys_gid);
     }
 }
 
@@ -185,10 +188,10 @@ sub waitForProvider {
 sub notifyInfosys {
     my ($config) = @_;
 
-    my ($infosys_runtime_dir) = findInfosys($config);
-    return undef unless $infosys_runtime_dir;
+    my ($infosys_ldap_run_dir) = findInfosys($config);
+    return undef unless $infosys_ldap_run_dir;
 
-    my $fifopath = "$infosys_runtime_dir/ldif-provider.fifo";
+    my $fifopath = "$infosys_ldap_run_dir/ldif-provider.fifo";
 
     unless (-e $fifopath) {
         $log->info("LDAP subsystem has not yet created fifo file $fifopath");
@@ -234,16 +237,16 @@ sub notifyInfosys {
 sub createLdifScript {
     my ($config, $print_ldif) = @_;
 
-    my ($infosys_runtime_dir, $infosys_uid, $infosys_gid) = findInfosys($config);
-    return undef unless $infosys_runtime_dir;
+    my ($infosys_ldap_run_dir, $infosys_uid, $infosys_gid) = findInfosys($config);
+    return undef unless $infosys_ldap_run_dir;
 
-    eval { mkpath($infosys_runtime_dir); };
+    eval { mkpath($infosys_ldap_run_dir); };
     if ($@) {
-        $log->warning("Failed creating parent directory $infosys_runtime_dir: $@");
+        $log->warning("Failed creating parent directory $infosys_ldap_run_dir: $@");
         return undef;
     }
-    unless (chown $infosys_uid, $infosys_gid, $infosys_runtime_dir) {
-        $log->warning("Chown to uid($infosys_uid) gid($infosys_gid) failed on: $infosys_runtime_dir: $!");
+    unless (chown $infosys_uid, $infosys_gid, $infosys_ldap_run_dir) {
+        $log->warning("Chown to uid($infosys_uid) gid($infosys_gid) failed on: $infosys_ldap_run_dir: $!");
         return undef;
     }
 
@@ -252,7 +255,7 @@ sub createLdifScript {
     my ($h, $tmpscript);
     eval {
         my $template = "ldif-provider.sh.XXXXXXX";
-        ($h, $tmpscript) = tempfile($template, DIR => $infosys_runtime_dir);
+        ($h, $tmpscript) = tempfile($template, DIR => $infosys_ldap_run_dir);
     };
     if ($@) {
         $log->warning("Failed to create temporary file: $@");
@@ -291,7 +294,7 @@ sub createLdifScript {
         return undef;
     }
 
-    my $finalscript = "$infosys_runtime_dir/ldif-provider.sh";
+    my $finalscript = "$infosys_ldap_run_dir/ldif-provider.sh";
 
     unless (rename $tmpscript, $finalscript) {
         $log->warning("Failed renaming temporary script to $finalscript: $!");
@@ -310,12 +313,12 @@ sub createLdifScript {
 #  * returns true if/when there is a fresh ldif
 #
 sub ldifIsReady {
-    my ($infosys_runtime_dir, $max_age) = @_;
+    my ($infosys_ldap_run_dir, $max_age) = @_;
 
     LogUtils::timestamps(1);
 
     # Check if ldif generator script exists and is fresh enough
-    my $scriptpath = "$infosys_runtime_dir/ldif-provider.sh";
+    my $scriptpath = "$infosys_ldap_run_dir/ldif-provider.sh";
     unless (-e $scriptpath) {
         $log->info("The ldif generator script was not found ($scriptpath)");
         $log->info("This file should have been created by A-REX's infoprovider. Check that A-REX is running.");
@@ -332,7 +335,7 @@ sub ldifIsReady {
     }
 
     # A-REX has started up... Wait for the next infoprovider cycle
-    waitForProvider($infosys_runtime_dir)
+    waitForProvider($infosys_ldap_run_dir)
         or $log->warning("Failed to receive notification from A-REX's infoprovider");
 
     $log->verbose("Using ldif generator script: $scriptpath");
