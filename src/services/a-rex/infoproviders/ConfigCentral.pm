@@ -111,6 +111,7 @@ my $gmcommon_options = {
 };
 my $ldap_infosys_options = {
     SlapdPort => '*',
+    infosys_ldap_run_dir => '*',
     bdii_var_dir => '*',
     bdii_tmp_dir => '*',
     bdii_run_dir => '*',
