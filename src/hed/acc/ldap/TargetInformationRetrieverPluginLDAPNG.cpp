@@ -148,15 +148,7 @@ namespace Arc {
         ComputingEndpoint->URLString = (std::string)(*it)["nordugrid-cluster-contactstring"];
       }
       if ((*it)["nordugrid-cluster-middleware"]) {
-        std::string mw = (std::string)(*it)["nordugrid-cluster-middleware"];
-        std::string::size_type pos1 = mw.find('-');
-        if (pos1 == std::string::npos) {
-          ComputingEndpoint->Implementor = mw;
-        }
-        else {
-          ComputingEndpoint->Implementor = mw.substr(0, pos1);
-          ComputingEndpoint->Implementation = mw.substr(pos1 + 1);
-        }
+        ComputingEndpoint->Implementation = (std::string)(*it)["nordugrid-cluster-middleware"];
       }
       if ((*it)["nordugrid-cluster-issuerca"]) {
         ComputingEndpoint->IssuerCA = (std::string)(*it)["nordugrid-cluster-issuerca"];
