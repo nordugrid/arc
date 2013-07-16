@@ -22,11 +22,23 @@ namespace Arc {
   }
 
   EndpointQueryingStatus JobListRetrieverPluginLDAPGLUE2::Query(const UserConfig& uc, const Endpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
-    EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
-
     ComputingServiceRetriever csr(uc);
     csr.addEndpoint(endpoint);
     csr.wait();
+    
+    {
+      // Check if CSR was successful.
+      EndpointStatusMap statuses = csr.getAllStatuses();
+      EndpointStatusMap::const_iterator it = statuses.begin();
+      for (; it != statuses.end(); ++it) {
+        if (it->second) {
+          break;
+        }
+      }
+      if (it == statuses.end()) { // csr was unsuccessful
+        return EndpointQueryingStatus::FAILED;
+      }
+    }
     
     EntityContainer<Job> container;
     JobListRetriever jlr(uc);
@@ -38,13 +50,30 @@ namespace Arc {
         if (e.HasCapability(Endpoint::JOBLIST) &&
             e.InterfaceName != "org.nordugrid.ldapglue2" &&
           // the wsrfglue2 job list retriever is not prepared to coexist with the others, so rather skip it
-            e.InterfaceName != "org.nordugrid.wsrfglue2") jlr.addEndpoint(e);
+            e.InterfaceName != "org.nordugrid.wsrfglue2") {
+          logger.msg(DEBUG, "Adding endpoint '%s' with interface name %s", e.URLString, e.InterfaceName);
+          jlr.addEndpoint(e);
+        }
       }
     }
     jlr.wait();
+    
+    {
+      // Check if JRL's was successful.
+      EndpointStatusMap statuses = jlr.getAllStatuses();
+      EndpointStatusMap::const_iterator it = statuses.begin();
+      for (; it != statuses.end(); ++it) {
+        if (it->second) {
+          break;
+        }
+      }
+      if (it == statuses.end()) { // No jlr's were successful.
+        return EndpointQueryingStatus::FAILED;
+      }
+    }
+    
     jobs.insert(jobs.end(), container.begin(), container.end());
-    s = EndpointQueryingStatus::SUCCESSFUL;
-    return s;
+    return EndpointQueryingStatus::SUCCESSFUL;
   }
 
 } // namespace Arc
