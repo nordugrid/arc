@@ -1242,7 +1242,7 @@ sub collect($) {
                           ];
             $cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
             $cep->{Implementor} = "NorduGrid";
-            $cep->{ImplementationName} = "ARC CE XBES : WSRF eXtended BES-compatible Interface";
+            $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
             $cep->{QualityLevel} = "development";
@@ -1407,7 +1407,7 @@ sub collect($) {
             # Wrong type, should be URI
             $cep->{Semantics} = [ "http://www.nordugrid.org/documents/gridfptd.pdf" ];
             $cep->{Implementor} = "NorduGrid";
-            $cep->{ImplementationName} = "ARC CE Gridftpd";
+            $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
             $cep->{QualityLevel} = "production";
@@ -1537,7 +1537,7 @@ sub collect($) {
             #              ];
             $cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
             $cep->{Implementor} = "NorduGrid";
-            $cep->{ImplementationName} = "ARC CE";
+            $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
             $cep->{QualityLevel} = "development";
@@ -1665,7 +1665,7 @@ sub collect($) {
             #              ];
             $cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
             $cep->{Implementor} = "NorduGrid";
-            $cep->{ImplementationName} = "ARC CE";
+            $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
             $cep->{QualityLevel} = "development";
@@ -1792,7 +1792,7 @@ sub collect($) {
             # TODO: put EMIES spec URL here
             #$ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
             $ep->{Implementor} = "NorduGrid";
-            $ep->{ImplementationName} = "ARC CE";
+            $ep->{ImplementationName} = "nordugrid-arc";
             $ep->{ImplementationVersion} = $config->{arcversion};
 
             $ep->{QualityLevel} = "development";
@@ -1911,7 +1911,7 @@ sub collect($) {
             #              ];
             $cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
             $cep->{Implementor} = "NorduGrid";
-            $cep->{ImplementationName} = "ARC CE";
+            $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
             $cep->{QualityLevel} = "development";
@@ -2034,7 +2034,7 @@ sub collect($) {
             # TODO: put EMIES spec URL here
             #$ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
             $ep->{Implementor} = "NorduGrid";
-            $ep->{ImplementationName} = "ARC CE";
+            $ep->{ImplementationName} = "nordugrid-arc";
             $ep->{ImplementationVersion} = $config->{arcversion};
 
             $ep->{QualityLevel} = "development";
@@ -2154,7 +2154,7 @@ sub collect($) {
             #              ];
             #$cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
             $cep->{Implementor} = "NorduGrid";
-            $cep->{ImplementationName} = "Stagein";
+            $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
             $cep->{QualityLevel} = "development";
@@ -2271,7 +2271,7 @@ sub collect($) {
             #              ];
             $ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
             $ep->{Implementor} = "NorduGrid";
-            $ep->{ImplementationName} = "ARIS";
+            $ep->{ImplementationName} = "nordugrid-arc";
             $ep->{ImplementationVersion} = $config->{arcversion};
 
             $ep->{QualityLevel} = "production";
@@ -2343,7 +2343,7 @@ sub collect($) {
             #              ];
             $ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
             $ep->{Implementor} = "NorduGrid";
-            $ep->{ImplementationName} = "ARIS";
+            $ep->{ImplementationName} = "nordugrid-arc";
             $ep->{ImplementationVersion} = $config->{arcversion};
 
             $ep->{QualityLevel} = "production";
@@ -2415,7 +2415,7 @@ sub collect($) {
             #              ];
             $ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
             $ep->{Implementor} = "NorduGrid";
-            $ep->{ImplementationName} = "ARIS";
+            $ep->{ImplementationName} = "nordugrid-arc";
             $ep->{ImplementationVersion} = $config->{arcversion};
 
             $ep->{QualityLevel} = "production";
@@ -2489,7 +2489,7 @@ sub collect($) {
             # TODO: put a relevant document here
             #$ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
             $ep->{Implementor} = "NorduGrid";
-            $ep->{ImplementationName} = "ARIS";
+            $ep->{ImplementationName} = "nordugrid-arc";
             $ep->{ImplementationVersion} = $config->{arcversion};
 
             $ep->{QualityLevel} = "production";
@@ -3226,7 +3226,6 @@ sub collect($) {
 
 	my $getCacheIndexEndpoint = sub {
 
-	    #return undef unless ( -e $config->{bdii_update_pid_file});
 	    return undef;
 
 	    my $ep = {};
@@ -3252,7 +3251,7 @@ sub collect($) {
 	    #              ];
 	    $ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
 	    $ep->{Implementor} = "NorduGrid";
-	    $ep->{ImplementationName} = "Cache-Index";
+	    $ep->{ImplementationName} = "nordugrid-arc";
 	    $ep->{ImplementationVersion} = $config->{arcversion};
 	    $ep->{QualityLevel} = "testing";
 
@@ -3390,7 +3389,7 @@ sub collect($) {
 	    #              ];
 	    $ep->{Semantics} = [ "http://www.nordugrid.org/documents/" ];
 	    $ep->{Implementor} = "NorduGrid";
-	    $ep->{ImplementationName} = "HED-CONTROL";
+	    $ep->{ImplementationName} = "nordugrid-arc";
 	    $ep->{ImplementationVersion} = $config->{arcversion};
 	    $ep->{QualityLevel} = "pre-production";
 
