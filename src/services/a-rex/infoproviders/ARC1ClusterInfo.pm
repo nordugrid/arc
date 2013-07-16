@@ -1245,7 +1245,7 @@ sub collect($) {
             $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
-            $cep->{QualityLevel} = "development";
+            $cep->{QualityLevel} = "testing";
 
             my %healthissues;
 
@@ -1529,7 +1529,7 @@ sub collect($) {
             $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activitycreation'};
             $cep->{Technology} = 'webservice';
             $cep->{InterfaceName} = 'org.ogf.glue.emies.activitycreation';
-            $cep->{InterfaceVersion} = [ '1.15' ];
+            $cep->{InterfaceVersion} = [ '1.16' ];
             $cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
             # What is profile for EMIES?
             #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
@@ -1540,7 +1540,7 @@ sub collect($) {
             $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
-            $cep->{QualityLevel} = "development";
+            $cep->{QualityLevel} = "testing";
 
             my %healthissues;
 
@@ -1657,7 +1657,7 @@ sub collect($) {
             $cep->{Capability} = [ @{$epscapabilities->{'org.ogf.glue.emies.activitymanagement'}}, @{$epscapabilities->{'common'}} ];
             $cep->{Technology} = 'webservice';
             $cep->{InterfaceName} = 'org.ogf.glue.emies.activitymanagement';
-            $cep->{InterfaceVersion} = [ '1.15' ];
+            $cep->{InterfaceVersion} = [ '1.16' ];
             $cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
             # What is profile for EMIES?
             #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
@@ -1668,7 +1668,7 @@ sub collect($) {
             $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
-            $cep->{QualityLevel} = "development";
+            $cep->{QualityLevel} = "testing";
 
             my %healthissues;
 
@@ -1784,7 +1784,7 @@ sub collect($) {
             $ep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.resourceinfo'};;
             $ep->{Technology} = 'webservice';
             $ep->{InterfaceName} = 'org.ogf.glue.emies.resourceinfo';
-            $ep->{InterfaceVersion} = [ '1.15' ];
+            $ep->{InterfaceVersion} = [ '1.16' ];
             # Wrong type, should be URI
             #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
             #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
@@ -1795,7 +1795,7 @@ sub collect($) {
             $ep->{ImplementationName} = "nordugrid-arc";
             $ep->{ImplementationVersion} = $config->{arcversion};
 
-            $ep->{QualityLevel} = "development";
+            $ep->{QualityLevel} = "testing";
 
             # How to calculate health for this interface?
             # TODO: inherit health infos from arex endpoints
@@ -1903,7 +1903,7 @@ sub collect($) {
             $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activityinfo'};
             $cep->{Technology} = 'webservice';
             $cep->{InterfaceName} = 'org.ogf.glue.emies.activityinfo';
-            $cep->{InterfaceVersion} = [ '1.15' ];
+            $cep->{InterfaceVersion} = [ '1.16' ];
             $cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
             # What is profile for EMIES?
             #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
@@ -1914,7 +1914,7 @@ sub collect($) {
             $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
-            $cep->{QualityLevel} = "development";
+            $cep->{QualityLevel} = "testing";
 
             my %healthissues;
 
@@ -2026,7 +2026,7 @@ sub collect($) {
             $ep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.delegation'};;
             $ep->{Technology} = 'webservice';
             $ep->{InterfaceName} = 'org.ogf.glue.emies.delegation';
-            $ep->{InterfaceVersion} = [ '1.15' ];
+            $ep->{InterfaceVersion} = [ '1.16' ];
             # Wrong type, should be URI
             #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
             #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
@@ -2037,7 +2037,7 @@ sub collect($) {
             $ep->{ImplementationName} = "nordugrid-arc";
             $ep->{ImplementationVersion} = $config->{arcversion};
 
-            $ep->{QualityLevel} = "development";
+            $ep->{QualityLevel} = "testing";
 
             # How to calculate health for this interface?
             # TODO: inherit health infos from arex endpoints
