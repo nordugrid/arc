@@ -28,6 +28,8 @@ namespace Arc
     std::string output_dir;
     /** Max number of URs to put in a set before submitting it */
     int max_ur_set_size;
+    /** Require to set to ture this option by production message broker */
+    std::string use_ssl;
     /** Actual number of usage records in set */
     int urn;
     /** File name extension */

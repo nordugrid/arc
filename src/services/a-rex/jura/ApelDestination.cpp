@@ -10,11 +10,13 @@
 #include <arc/Utils.h>
 #include <arc/communication/ClientInterface.h>
 #include <sstream>
+#include <string> 
 
 namespace Arc
 {
   ApelDestination::ApelDestination(JobLogFile& joblog):
     logger(Arc::Logger::rootLogger, "JURA.ApelDestination"),
+    use_ssl("false"),
     urn(0),
     sequence(0),
     usagerecordset(Arc::NS("","http://eu-emi.eu/namespaces/2012/11/computerecord"),
@@ -79,7 +81,12 @@ namespace Arc
          std::istringstream is(urbatch);
         is>>max_ur_set_size;
       }
-
+    std::string o_use_ssl=joblog["jobreport_option_use_ssl"];
+    std::transform(o_use_ssl.begin(), o_use_ssl.end(), o_use_ssl.begin(), tolower);
+    if (o_use_ssl == "true")
+      {
+		  use_ssl="true";
+      }
   }
 
   void ApelDestination::report(Arc::JobLogFile &joblog)
@@ -259,7 +266,7 @@ namespace Arc
                );
     }
     int retval;
-    //ssmsend <hostname> <port> <topic> <key path> <cert path> <cadir path> <messages path>"
+    //ssmsend <hostname> <port> <topic> <key path> <cert path> <cadir path> <messages path> <use_ssl>"
     std::string command;
     std::vector<std::string> ssm_pathes;
     std::string exec_cmd = "ssmsend";
@@ -298,6 +305,7 @@ namespace Arc
     command += " " + cfg.cert;   //certificate
     command += " " + cfg.cadir;  //cadir
     command += " " + default_path; //messages path
+    command += " " + use_ssl;    //use_ssl
     command += "";
 
     retval = system(command.c_str());
