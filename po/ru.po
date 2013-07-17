@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-07-12 16:20+0100\n"
-"PO-Revision-Date: 2013-07-12 16:20+0100\n"
+"POT-Creation-Date: 2013-07-17 16:20+0100\n"
+"PO-Revision-Date: 2013-07-17 16:21+0100\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -85,14 +85,14 @@ msgstr ""
 "%s"
 
 #: src/hed/acc/ARC1/TargetInformationRetrieverPluginWSRFGLUE2.cpp:463
-#: src/hed/acc/ldap/TargetInformationRetrieverPluginLDAPNG.cpp:453
+#: src/hed/acc/ldap/TargetInformationRetrieverPluginLDAPNG.cpp:445
 #, c-format
 msgid "Unable to parse the %s.%s value from execution service (%s)."
 msgstr ""
 "Невозможно разобрать %s.Получено значение %s от службы исполнения (%s)."
 
 #: src/hed/acc/ARC1/TargetInformationRetrieverPluginWSRFGLUE2.cpp:464
-#: src/hed/acc/ldap/TargetInformationRetrieverPluginLDAPNG.cpp:454
+#: src/hed/acc/ldap/TargetInformationRetrieverPluginLDAPNG.cpp:446
 #, c-format
 msgid "Value of %s.%s is \"%s\""
 msgstr "Значение %s.%s: \"%s\""
@@ -2378,6 +2378,11 @@ msgstr ""
 #: src/hed/acc/ldap/ServiceEndpointRetrieverPluginBDII.cpp:101
 msgid "Adding CREAM computing service"
 msgstr "Добавляется вычислительная служба типа CREAM"
+
+#: src/hed/acc/ldap/JobListRetrieverPluginLDAPGLUE2.cpp:54
+#, c-format
+msgid "Adding endpoint '%s' with interface name %s"
+msgstr "Добавляется точка доступа '%s' с названием интерфейса %s"
 
 #: src/hed/acc/SER/ServiceEndpointRetrieverPluginEMIR.cpp:124
 #, c-format
@@ -4822,7 +4827,7 @@ msgstr ""
 #: src/services/gridftpd/misc/ldapquery.cpp:623
 #: src/services/gridftpd/misc/ldapquery.cpp:632
 #: src/services/a-rex/jura/LutsDestination.cpp:154
-#: src/services/a-rex/jura/ApelDestination.cpp:150
+#: src/services/a-rex/jura/ApelDestination.cpp:157
 #: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:629
 #, c-format
 msgid "%s: %s"
@@ -19523,27 +19528,27 @@ msgstr "Отзыв не является ожидаемым WS-RP"
 
 #: src/services/a-rex/jura/CARDestination.cpp:49
 #: src/services/a-rex/jura/LutsDestination.cpp:48
-#: src/services/a-rex/jura/ApelDestination.cpp:54
+#: src/services/a-rex/jura/ApelDestination.cpp:56
 msgid "ServiceURL missing"
 msgstr "Отсутствует ServiceURL"
 
 #: src/services/a-rex/jura/CARDestination.cpp:56
 #: src/services/a-rex/jura/LutsDestination.cpp:66
-#: src/services/a-rex/jura/ApelDestination.cpp:62
+#: src/services/a-rex/jura/ApelDestination.cpp:64
 #, c-format
 msgid "Protocol is %s, should be https"
 msgstr "Указан протокол %s, а должен быть https"
 
 #: src/services/a-rex/jura/CARDestination.cpp:95
 #: src/services/a-rex/jura/LutsDestination.cpp:105
-#: src/services/a-rex/jura/ApelDestination.cpp:101
+#: src/services/a-rex/jura/ApelDestination.cpp:108
 #, c-format
 msgid "Ignoring incomplete log file \"%s\""
 msgstr "Игнорируется неполный журнальный файл \"%s\""
 
 #: src/services/a-rex/jura/CARDestination.cpp:119
 #: src/services/a-rex/jura/LutsDestination.cpp:129
-#: src/services/a-rex/jura/ApelDestination.cpp:125
+#: src/services/a-rex/jura/ApelDestination.cpp:132
 #, c-format
 msgid "Logging UR set of %d URs."
 msgstr "Записывается набор UR из %d записей UR."
@@ -19551,7 +19556,7 @@ msgstr "Записывается набор UR из %d записей UR."
 #: src/services/a-rex/jura/CARDestination.cpp:122
 #: src/services/a-rex/jura/LutsDestination.cpp:132
 #: src/services/a-rex/jura/Destination.cpp:61
-#: src/services/a-rex/jura/ApelDestination.cpp:128
+#: src/services/a-rex/jura/ApelDestination.cpp:135
 #, c-format
 msgid "UR set dump: %s"
 msgstr "Выведен набор записей UR: %s"
@@ -19671,17 +19676,17 @@ msgid "UsageRecords registration response: %s"
 msgstr "Отклик регистрации записи UsageRecords: %s"
 
 #: src/services/a-rex/jura/Destination.cpp:96
-#: src/services/a-rex/jura/ApelDestination.cpp:206
+#: src/services/a-rex/jura/ApelDestination.cpp:213
 #, c-format
 msgid "Backup file (%s) created."
 msgstr "Создан резервный файл (%s)."
 
-#: src/services/a-rex/jura/ApelDestination.cpp:251
+#: src/services/a-rex/jura/ApelDestination.cpp:258
 #, c-format
 msgid "APEL message file (%s) created."
 msgstr "Создан файл сообщений APEL (%s)."
 
-#: src/services/a-rex/jura/ApelDestination.cpp:304
+#: src/services/a-rex/jura/ApelDestination.cpp:312
 #, c-format
 msgid "system retval: %d"
 msgstr "Системное значение retval: %d"
