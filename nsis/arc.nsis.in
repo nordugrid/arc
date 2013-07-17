@@ -1,7 +1,28 @@
 Name "NorduGrid ARC"
+
+RequestExecutionLevel admin #NOTE: You still need to check user rights with UserInfo!
+
+!include LogicLib.nsh
+
+Function .onInit
+UserInfo::GetAccountType
+pop $0
+${If} $0 != "admin" ;Require admin rights on NT4+
+    MessageBox mb_iconstop "Administrator rights required!"
+    SetErrorLevel 740 ;ERROR_ELEVATION_REQUIRED
+    Quit
+${EndIf}
+FunctionEnd
+
 OutFile "nordugrid-arc-@VERSION@-1.exe"
-InstallDir "$PROGRAMFILES\NorduGridArc"
-InstallDirRegKey HKLM SOFTWARE\NorduGridArc "Install_Dir"
+
+# Fix lnk removals
+RequestExecutionLevel user
+
+!define COMPANYNAME "NorduGrid" 
+
+InstallDir "$PROGRAMFILES\${COMPANYNAME}"
+InstallDirRegKey HKLM SOFTWARE\${COMPANYNAME}\ARC "Install_Dir"
 ShowInstDetails hide
 ShowUninstDetails hide
 XPStyle on
@@ -15,9 +36,19 @@ XPStyle on
 !define env_hklm 'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
 !define env_hkcu 'HKCU "Environment"'
 
-!define SYS_PATH "/usr/i686-pc-mingw32/sys-root/mingw"
-!define ARC_LOCATION "/usr/i686-pc-mingw32/sys-root/mingw"
-!define GLOBUS_LOCATION "/usr/i686-pc-mingw32/sys-root/mingw"
+!define USE_GUI
+#!define USE_PYTHON
+#!define USE_GLOBUS
+
+!ifndef SYS_PATH
+!define SYS_PATH "/usr"
+!endif
+!ifndef ARC_LOCATION
+!define ARC_LOCATION "/opt/arc"
+!endif
+!ifndef GLOBUS_LOCATION
+!define GLOBUS_LOCATION "/opt/globus"
+!endif
 !define CERT_PATH "/etc/grid-security/certificates"
 !define MISC_PATH "."
 !define PYVER 2.6
@@ -51,7 +82,6 @@ Section "NorduGrid ARC clients"
   File "${ARC_LOCATION}/bin/arccat.exe"
   File "${ARC_LOCATION}/bin/arcclean.exe"
   File "${ARC_LOCATION}/bin/arccp.exe"
-#  File "${ARC_LOCATION}/bin/arcdecision.exe"
   File "${ARC_LOCATION}/bin/arcecho.exe"
   File "${ARC_LOCATION}/bin/arcget.exe"
   File "${ARC_LOCATION}/bin/arcinfo.exe"
@@ -60,6 +90,7 @@ Section "NorduGrid ARC clients"
   File "${ARC_LOCATION}/bin/arcmigrate.exe"
   File "${ARC_LOCATION}/bin/arcmkdir.exe"
   File "${ARC_LOCATION}/bin/arcproxy.exe"
+  File "${ARC_LOCATION}/bin/arcproxyalt.exe"
   File "${ARC_LOCATION}/bin/arcrenew.exe"
   File "${ARC_LOCATION}/bin/arcresub.exe"
   File "${ARC_LOCATION}/bin/arcresume.exe"
@@ -69,8 +100,8 @@ Section "NorduGrid ARC clients"
   File "${ARC_LOCATION}/bin/arcsub.exe"
   File "${ARC_LOCATION}/bin/arcsync.exe"
   File "${ARC_LOCATION}/bin/arctest.exe"
-  File "${ARC_LOCATION}/bin/arcwsrf.exe"
-  File "${ARC_LOCATION}/bin/arcemiestest.exe"
+#  File "${ARC_LOCATION}/bin/arcwsrf.exe"
+#  File "${ARC_LOCATION}/bin/arcemiestest.exe"
   File "${ARC_LOCATION}/bin/libarccommunication-2.dll"
   File "${ARC_LOCATION}/bin/libarccompute-2.dll"
   File "${ARC_LOCATION}/bin/libarccommon-2.dll"
@@ -82,13 +113,22 @@ Section "NorduGrid ARC clients"
   File "${ARC_LOCATION}/bin/libarcloader-2.dll"
   File "${ARC_LOCATION}/bin/libarcmessage-2.dll"
   File "${ARC_LOCATION}/bin/libarcsecurity-2.dll"
-  File "${ARC_LOCATION}/bin/libarcinfosys-2.dll"
+  File "${ARC_LOCATION}/bin/libarcinfosys-0.dll"
   File "${ARC_LOCATION}/bin/libarcws-2.dll"
   File "${ARC_LOCATION}/bin/libarcwssecurity-2.dll"
   File "${ARC_LOCATION}/bin/libarcxmlsec-2.dll"
+!ifdef USE_GLOBUS
   File "${ARC_LOCATION}/bin/libarcglobusutils-2.dll"
-  File "${ARC_LOCATION}/bin/perftest.exe"
-  File "${ARC_LOCATION}/bin/saml_assertion_init.exe"
+!endif
+;  File "${ARC_LOCATION}/bin/perftest.exe"
+;  File "${ARC_LOCATION}/bin/saml_assertion_init.exe"
+
+  # Needed by libcanl_c++-1.dll
+  File "${SYS_PATH}/bin/pthreadGC2.dll"
+  # Needed by arcproxyalt.exe
+  File "${SYS_PATH}/bin/libcanl_c++-1.dll"
+  # Needed by libcanl_c++-1.dll
+  File "${SYS_PATH}/bin/libdb_cxx-5.3.dll"
 
   File "${SYS_PATH}/bin/libcrypto-10.dll"
   File "${SYS_PATH}/bin/libgcc_s_sjlj-1.dll"
@@ -98,19 +138,40 @@ Section "NorduGrid ARC clients"
   File "${SYS_PATH}/bin/libgnurx-0.dll"
   File "${SYS_PATH}/bin/libgobject-2.0-0.dll"
   File "${SYS_PATH}/bin/libgthread-2.0-0.dll"
-  File "${SYS_PATH}/bin/libiconv-2.dll"
+  File "${SYS_PATH}/bin/iconv.dll"
   File "${SYS_PATH}/bin/libintl-8.dll"
   File "${SYS_PATH}/bin/libgio-2.0-0.dll"
   File "${SYS_PATH}/bin/libgiomm-2.4-1.dll"
   File "${SYS_PATH}/bin/libsigc-2.0-0.dll"
   File "${SYS_PATH}/bin/libssl-10.dll"
+  File "${SYS_PATH}/bin/libstdc++-6.dll"
   File "${SYS_PATH}/bin/libxml2-2.dll"
   File "${SYS_PATH}/bin/libxmlsec1.dll"
   File "${SYS_PATH}/bin/libxmlsec1-openssl.dll"
   File "${SYS_PATH}/bin/libxslt-1.dll"
   File "${SYS_PATH}/bin/zlib1.dll"
+  File "${SYS_PATH}/bin/libffi-6.dll"
+  File "${SYS_PATH}/bin/libltdl-7.dll"
+
+  File "${SYS_PATH}/bin/openssl.exe"
+
+!ifdef USE_GUI
+  File "${ARC_LOCATION}/bin/arccert-ui.exe"
+  File "${ARC_LOCATION}/bin/arcproxy-ui.exe"
+  File "${ARC_LOCATION}/bin/arcstat-ui.exe"
+  File "${ARC_LOCATION}/bin/arcstorage-ui.exe"
+  File "${ARC_LOCATION}/bin/arcsub-ui.exe"
+
+  File "${SYS_PATH}/bin/QtCore4.dll"
+  File "${SYS_PATH}/bin/QtGui4.dll"
+  File "${SYS_PATH}/bin/QtNetwork4.dll"
+  File "${SYS_PATH}/bin/QtWebKit4.dll"
+  File "${SYS_PATH}/bin/libpng15-15.dll"
+  File "${SYS_PATH}/bin/libsqlite3-0.dll"
+!endif
 
 ; Python
+!ifdef USE_PYTHON
   File "${SYS_PATH}/bin/python.exe"
   File "${SYS_PATH}/bin/python${PYVER}.exe"
   File "${SYS_PATH}/bin/libpython${PYVER}.dll"
@@ -122,8 +183,10 @@ Section "NorduGrid ARC clients"
   File /r "${SYS_PATH}/lib/python${PYVER}/**"
   SetOutPath "$INSTDIR\lib\python${PYVER}\site-packages"
   File /oname=_arc.pyd "${SYS_PATH}/lib/python${PYVER}/site-packages/_arc.dll"
+!endif
 
 ; Globus ARC dependencies
+!ifdef USE_GLOBUS
   SetOutPath "$INSTDIR\bin"
   File "${GLOBUS_LOCATION}/bin/libglobus_common-0.dll"
   File "${GLOBUS_LOCATION}/bin/libglobus_gsi_callback-0.dll"
@@ -156,6 +219,7 @@ Section "NorduGrid ARC clients"
   SetOutPath "$INSTDIR\lib"
   File "${GLOBUS_LOCATION}/lib/libglobus_xio_gsi_driver-0.dll"
   File "${GLOBUS_LOCATION}/lib/libglobus_xio_popen_driver-0.dll"
+!endif
 
   SetOutPath "$INSTDIR\lib\arc"
   File "${ARC_LOCATION}/lib/arc/libaccARC1.dll"
@@ -166,7 +230,9 @@ Section "NorduGrid ARC clients"
   File "${ARC_LOCATION}/lib/arc/libaccldap.dll"
 ;  File "${ARC_LOCATION}/lib/arc/libaccUNICORE.dll"
   File "${ARC_LOCATION}/lib/arc/libaccJobDescriptionParser.dll"
+!ifdef USE_PYTHON
   File "${ARC_LOCATION}/lib/arc/libaccPythonBroker.dll"
+!endif
   File "${ARC_LOCATION}/lib/arc/libarcshc.dll"
   File "${ARC_LOCATION}/lib/arc/libarcshclegacy.dll"
   File "${ARC_LOCATION}/lib/arc/libdmcarc.dll"
@@ -183,10 +249,12 @@ Section "NorduGrid ARC clients"
   File "${ARC_LOCATION}/lib/arc/libmodcredential.dll"
 
 ; Extra stuff now we have Globus
+!ifdef USE_GLOBUS
   File "${ARC_LOCATION}/lib/arc/libaccARC0.dll"
   File "${ARC_LOCATION}/lib/arc/libdmcgridftp.dll"
   File "${ARC_LOCATION}/lib/arc/libdmcldap.dll"
   File "${ARC_LOCATION}/lib/arc/libmccgsi.dll"
+!endif
 
 ; Testing stuff
   SetOutPath "$INSTDIR\lib\arc\test"
@@ -203,15 +271,33 @@ Section "NorduGrid ARC clients"
   File "${MISC_PATH}/vomses"
 SectionEnd
 
-Section "NorduGrid ARC Server"
+Section "NSS Utilities"
 
-  SetOutPath "$INSTDIR\sbin"
-  File "${ARC_LOCATION}/sbin/arched.exe"
+  SetOutPath "$INSTDIR\bin"
 
-  SetOutPath "$INSTDIR\lib\arc"
-;  File "${ARC_LOCATION}/lib/arc/libslcs.dll"
-  File "${ARC_LOCATION}/lib/arc/libecho.dll"
-  File "${ARC_LOCATION}/lib/arc/libpythonservice.dll"
+  ; NSPR
+  File "${SYS_PATH}/bin/libnspr4.dll"
+  File "${SYS_PATH}/bin/libplc4.dll"
+  File "${SYS_PATH}/bin/libplds4.dll"
+
+  ; NSS
+  File "${SYS_PATH}/bin/freebl3.dll"
+  File "${SYS_PATH}/bin/nss3.dll"
+  File "${SYS_PATH}/bin/nssckbi.dll"
+  File "${SYS_PATH}/bin/nssdbm3.dll"
+  File "${SYS_PATH}/bin/nssutil3.dll"
+  File "${SYS_PATH}/bin/smime3.dll"
+  File "${SYS_PATH}/bin/softokn3.dll"
+  File "${SYS_PATH}/bin/ssl3.dll"
+
+  File "${SYS_PATH}/bin/certutil.exe"
+  File "${SYS_PATH}/bin/cmsutil.exe"
+  File "${SYS_PATH}/bin/crlutil.exe"
+  File "${SYS_PATH}/bin/modutil.exe"
+  File "${SYS_PATH}/bin/pk12util.exe"
+  File "${SYS_PATH}/bin/signtool.exe"
+  File "${SYS_PATH}/bin/signver.exe"
+  File "${SYS_PATH}/bin/ssltap.exe"
 
 SectionEnd
 
@@ -226,8 +312,19 @@ SectionEnd
 
 
 Section "Uninstall"
+  SetShellVarContext all
 
-  Delete /rebootok "$INSTDIR\UninstallNorduGridARC.exe"
+  Delete /rebootok "$INSTDIR\Uninstall NorduGrid ARC.exe"
+
+  Delete "$SMPROGRAMS\${COMPANYNAME}\Uninstall NorduGrid ARC.lnk"
+  Delete "$SMPROGRAMS\${COMPANYNAME}\ARC Job Manager.lnk"
+  Delete "$SMPROGRAMS\${COMPANYNAME}\ARC Certificate Utility.lnk"
+  Delete "$SMPROGRAMS\${COMPANYNAME}\ARC Proxy Generator.lnk"
+  Delete "$SMPROGRAMS\${COMPANYNAME}\ARC Job Submission Tool.lnk"
+  Delete "$SMPROGRAMS\${COMPANYNAME}\ARC Storage Explorer.lnk"
+
+  rmDir "$SMPROGRAMS\${COMPANYNAME}"
+
 
   Delete /rebootok "$INSTDIR\lib\arc\test\libaccTEST.dll"
   RMDir "$INSTDIR\lib\arc\test"
@@ -246,7 +343,9 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\lib\arc\libdmcarc.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libarcshc.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libarcshclegacy.dll"
+!ifdef USE_PYTHON
   Delete /rebootok "$INSTDIR\lib\arc\libaccPythonBroker.dll"
+!endif
   Delete /rebootok "$INSTDIR\lib\arc\libaccJobDescriptionParser.dll"
 ;  Delete /rebootok "$INSTDIR\lib\arc\libaccUNICORE.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libaccldap.dll"
@@ -256,12 +355,16 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\lib\arc\libaccBroker.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libaccARC1.dll"
 
+!ifdef USE_GLOBUS
   Delete /rebootok "$INSTDIR\lib\arc\libaccARC0.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libdmcldap.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libdmcgridftp.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libmccgsi.dll"
+!endif
 
+!ifdef USE_PYTHON
   Delete /rebootok "$INSTDIR\lib\arc\libpythonservice.dll"
+!endif
   Delete /rebootok "$INSTDIR\lib\arc\libecho.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libslcs.dll"
 
@@ -271,6 +374,7 @@ Section "Uninstall"
 
   RMDir "$INSTDIR\lib"
 
+!ifdef USE_PYTHON
   RmDir /r "$INSTDIR\lib\python${PYVER}"
   Delete /rebootok "$INSTDIR\bin\libdb-4.7.dll"
   Delete /rebootok "$INSTDIR\bin\libtermcap-0.dll"
@@ -279,6 +383,27 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\bin\libpython${PYVER}.dll"
   Delete /rebootok "$INSTDIR\bin\python${PYVER}.exe"
   Delete /rebootok "$INSTDIR\bin\python.exe"
+!endif
+
+!ifdef USE_GUI
+  Delete /rebootok "$INSTDIR\bin\libsqlite3-0.dll"
+  Delete /rebootok "$INSTDIR\bin\libpng15-15.dll"
+  Delete /rebootok "$INSTDIR\bin\QtGui4.dll"
+  Delete /rebootok "$INSTDIR\bin\QtWebKit4.dll"
+  Delete /rebootok "$INSTDIR\bin\QtNetwork4.dll"
+  Delete /rebootok "$INSTDIR\bin\QtGui4.dll"
+  Delete /rebootok "$INSTDIR\bin\QtCore4.dll"
+
+  Delete /rebootok "$INSTDIR\bin\arcsub-ui.exe"
+  Delete /rebootok "$INSTDIR\bin\arcstorage-ui.exe"
+  Delete /rebootok "$INSTDIR\bin\arcstat-ui.exe"
+  Delete /rebootok "$INSTDIR\bin\arcproxy-ui.exe"
+  Delete /rebootok "$INSTDIR\bin\arccert-ui.exe"
+!endif
+
+  Delete /rebootok "$INSTDIR\bin\openssl.exe"
+  Delete /rebootok "$INSTDIR\bin\libltdl-7.dll"
+  Delete /rebootok "$INSTDIR\bin\libffi-6.dll"
   Delete /rebootok "$INSTDIR\bin\zlib1.dll"
   Delete /rebootok "$INSTDIR\bin\libxslt-1.dll"
   Delete /rebootok "$INSTDIR\bin\libxmlsec1-openssl.dll"
@@ -287,9 +412,10 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\bin\libssl-10.dll"
   Delete /rebootok "$INSTDIR\bin\libgiomm-2.4-1.dll"
   Delete /rebootok "$INSTDIR\bin\libgio-2.0-0.dll"
+  Delete /rebootok "$INSTDIR\bin\libstdc++-6.dll"
   Delete /rebootok "$INSTDIR\bin\libsigc-2.0-0.dll"
   Delete /rebootok "$INSTDIR\bin\libintl-8.dll"
-  Delete /rebootok "$INSTDIR\bin\libiconv-2.dll"
+  Delete /rebootok "$INSTDIR\bin\iconv.dll"
   Delete /rebootok "$INSTDIR\bin\libgthread-2.0-0.dll"
   Delete /rebootok "$INSTDIR\bin\libgobject-2.0-0.dll"
   Delete /rebootok "$INSTDIR\bin\libgnurx-0.dll"
@@ -299,13 +425,19 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\bin\libgcc_s_sjlj-1.dll"
   Delete /rebootok "$INSTDIR\bin\libcrypto-10.dll"
 
-  Delete /rebootok "$INSTDIR\bin\saml_assertion_init.exe"
-  Delete /rebootok "$INSTDIR\bin\perftest.exe"
+  Delete /rebootok "$INSTDIR\bin\pthreadGC2.dll"
+  Delete /rebootok "$INSTDIR\bin\libdb_cxx-5.3.dll"
+  Delete /rebootok "$INSTDIR\bin\libcanl_c++-1.dll"
+
+;  Delete /rebootok "$INSTDIR\bin\saml_assertion_init.exe"
+;  Delete /rebootok "$INSTDIR\bin\perftest.exe"
+!ifdef USE_GLOBUS
   Delete /rebootok "$INSTDIR\bin\libarcglobusutils-2.dll"
+!endif
   Delete /rebootok "$INSTDIR\bin\libarcxmlsec-2.dll"
   Delete /rebootok "$INSTDIR\bin\libarcwssecurity-2.dll"
   Delete /rebootok "$INSTDIR\bin\libarcws-2.dll"
-  Delete /rebootok "$INSTDIR\bin\libarcinfosys-2.dll"
+  Delete /rebootok "$INSTDIR\bin\libarcinfosys-0.dll"
   Delete /rebootok "$INSTDIR\bin\libarcsecurity-2.dll"
   Delete /rebootok "$INSTDIR\bin\libarcmessage-2.dll"
   Delete /rebootok "$INSTDIR\bin\libarcloader-2.dll"
@@ -317,8 +449,8 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\bin\libarccompute-2.dll"
   Delete /rebootok "$INSTDIR\bin\libarccommunication-2.dll"
   Delete /rebootok "$INSTDIR\bin\libarccrypto-2.dll"
-  Delete /rebootok "$INSTDIR\bin\arcemiestest.exe"
-  Delete /rebootok "$INSTDIR\bin\arcwsrf.exe"
+#  Delete /rebootok "$INSTDIR\bin\arcemiestest.exe"
+#  Delete /rebootok "$INSTDIR\bin\arcwsrf.exe"
   Delete /rebootok "$INSTDIR\bin\arctest.exe"
   Delete /rebootok "$INSTDIR\bin\arcsync.exe"
   Delete /rebootok "$INSTDIR\bin\arcsub.exe"
@@ -328,6 +460,7 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\bin\arcresume.exe"
   Delete /rebootok "$INSTDIR\bin\arcresub.exe"
   Delete /rebootok "$INSTDIR\bin\arcrenew.exe"
+  Delete /rebootok "$INSTDIR\bin\arcproxyalt.exe"
   Delete /rebootok "$INSTDIR\bin\arcproxy.exe"
   Delete /rebootok "$INSTDIR\bin\arcmkdir.exe"
   Delete /rebootok "$INSTDIR\bin\arcmigrate.exe"
@@ -336,12 +469,36 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\bin\arcinfo.exe"
   Delete /rebootok "$INSTDIR\bin\arcget.exe"
   Delete /rebootok "$INSTDIR\bin\arcecho.exe"
-  Delete /rebootok "$INSTDIR\bin\arcdecision.exe"
   Delete /rebootok "$INSTDIR\bin\arccp.exe"
   Delete /rebootok "$INSTDIR\bin\arcclean.exe"
   Delete /rebootok "$INSTDIR\bin\arccat.exe"
   Delete /rebootok "$INSTDIR\bin\arcacl.exe"
 
+  ; NSS
+  Delete /rebootok "$INSTDIR\bin\ssl3.dll"
+  Delete /rebootok "$INSTDIR\bin\softokn3.dll"
+  Delete /rebootok "$INSTDIR\bin\smime3.dll"
+  Delete /rebootok "$INSTDIR\bin\nssutil3.dll"
+  Delete /rebootok "$INSTDIR\bin\nssdbm3.dll"
+  Delete /rebootok "$INSTDIR\bin\nssckbi.dll"
+  Delete /rebootok "$INSTDIR\bin\nss3.dll"
+  Delete /rebootok "$INSTDIR\bin\freebl3.dll"
+
+  ; NSPR
+  Delete /rebootok "$INSTDIR\bin\libplds4.dll"
+  Delete /rebootok "$INSTDIR\bin\libplc4.dll"
+  Delete /rebootok "$INSTDIR\bin\libnspr4.dll"
+
+  Delete /rebootok "$INSTDIR\bin\/ssltap.exe"
+  Delete /rebootok "$INSTDIR\bin\/signver.exe"
+  Delete /rebootok "$INSTDIR\bin\/signtool.exe"
+  Delete /rebootok "$INSTDIR\bin\/pk12util.exe"
+  Delete /rebootok "$INSTDIR\bin\/modutil.exe"
+  Delete /rebootok "$INSTDIR\bin\/crlutil.exe"
+  Delete /rebootok "$INSTDIR\bin\/cmsutil.exe"
+  Delete /rebootok "$INSTDIR\bin\/certutil.exe"
+
+!ifdef USE_GLOBUS
   Delete /rebootok "$INSTDIR\bin\libglobus_common-0.dll"
   Delete /rebootok "$INSTDIR\bin\libglobus_ftp_control-1.dll"
   Delete /rebootok "$INSTDIR\bin\libglobus_gsi_callback-0.dll"
@@ -364,11 +521,14 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\bin\libglobus_gssapi_error-2.dll"
   Delete /rebootok "$INSTDIR\bin\libglobus_gss_assist-3.dll"
   Delete /rebootok "$INSTDIR\bin\libglobus_io-3.dll"
+!endif
 
   RMDir "$INSTDIR\bin"
 
+!ifdef USE_GLOBUS
   Delete /rebootok "$INSTDIR\lib\libglobus_xio_gsi_driver-0.dll"
   Delete /rebootok "$INSTDIR\lib\libglobus_xio_popen_driver-0.dll"
+!endif
 
   RMDir "$INSTDIR\lib"
 
@@ -376,8 +536,6 @@ Section "Uninstall"
   RMDir "$INSTDIR\share\arc\examples"
   RMDir "$INSTDIR\share\arc"
   RMDir "$INSTDIR\share"
-
-  Delete /rebootok "$INSTDIR\sbin\arched.exe"
 
   RMDir "$INSTDIR\sbin"
 
@@ -399,7 +557,9 @@ Section "Uninstall"
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\lib"
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\lib\arc"
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\sbin"
+!ifdef USE_PYTHON
   ${un.EnvVarUpdate} $0 "PYTHONPATH" "R" "HKLM" "$INSTDIR\lib\python${PYVER}\site-packages"
+!endif
 
   DeleteRegValue ${env_hklm} ARC_LOCATION
   DeleteRegValue ${env_hklm} GLOBUS_LOCATION
@@ -413,7 +573,24 @@ Section "Uninstall"
 SectionEnd
 
 Section -post
-  WriteUninstaller "$INSTDIR\UninstallNorduGridARC.exe"
+  SetShellVarContext all
+  WriteUninstaller "$INSTDIR\Uninstall NorduGrid ARC.exe"
+
+  # Start Menu
+  createDirectory "$SMPROGRAMS\${COMPANYNAME}"
+
+  createShortCut "$SMPROGRAMS\${COMPANYNAME}\ARC Storage Explorer.lnk" "$INSTDIR\bin\arcstorage-ui.exe" "" "" "" \
+                 SW_SHOWNORMAL ALT|CONTROL|SHIFT|F5 "Browse Grid storage resources"
+  createShortCut "$SMPROGRAMS\${COMPANYNAME}\ARC Job Submission Tool.lnk" "$INSTDIR\bin\arcsub-ui.exe" "" "" "" \
+                 SW_SHOWNORMAL ALT|CONTROL|SHIFT|F5 "Submit jobs to the Grid"
+  createShortCut "$SMPROGRAMS\${COMPANYNAME}\ARC Proxy Generator.lnk" "$INSTDIR\bin\arcproxy-ui.exe" "" "" "" \
+                 SW_SHOWNORMAL ALT|CONTROL|SHIFT|F5 "Create shortlived X509 proxy certificate"
+  createShortCut "$SMPROGRAMS\${COMPANYNAME}\ARC Certificate Utility.lnk" "$INSTDIR\bin\arccert-ui.exe" "" "" "" \
+                 SW_SHOWNORMAL ALT|CONTROL|SHIFT|F5 "Converts between X509 and PKCS12 certificates"
+  createShortCut "$SMPROGRAMS\${COMPANYNAME}\ARC Job Manager.lnk" "$INSTDIR\bin\arcstat-ui.exe" "" "" "" \
+                 SW_SHOWNORMAL ALT|CONTROL|SHIFT|F5 "Manage running Grid jobs"
+ 
+  createShortCut "$SMPROGRAMS\${COMPANYNAME}\Uninstall NorduGrid ARC.lnk" "$INSTDIR\\Uninstall NorduGrid ARC.exe"
 
   WriteRegExpandStr ${env_hklm} ARC_LOCATION $INSTDIR
   WriteRegExpandStr ${env_hklm} GLOBUS_LOCATION $INSTDIR
@@ -429,7 +606,9 @@ Section -post
   ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\lib\arc"  ; Append the new one
   ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\sbin"  ; Append the new one
 
+!if USE_PYTHON
   ${EnvVarUpdate} $0 "PYTHONPATH" "A" "HKLM" "$INSTDIR\lib\python${PYVER}\site-packages"
+!endif
 
 SectionEnd
 
