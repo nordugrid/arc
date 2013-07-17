@@ -673,9 +673,9 @@ sub queue_info ($) {
         if ($l =~ /^[sh]_rt\s+(\S+)/) {
             return if $1 eq 'INFINITY';
             my $timelimit;
-            if ($1 =~ /^(?:(\d+):)?(\d+):(\d\d):(\d\d)$/) {
-                my ($d,$h,$m,$s) = ($1||0,$2,$3,$4);
-                $timelimit = $s + 60*($m + 60*($h + 24*$d));
+            if ($1 =~ /^(\d+):(\d+):(\d+)$/) {
+                my ($h,$m,$s) = ($1,$2,$3);
+                $timelimit = $s + 60 * ($m + 60 * $h);
             } else {
                 $log->warning("Error extracting time limit from line: $l");
                 return;
@@ -688,9 +688,9 @@ sub queue_info ($) {
         elsif ($l =~ /^[sh]_cpu\s+(\S+)/) {
             return if $1 eq 'INFINITY';
             my $timelimit;
-            if ($1 =~ /^(?:(\d+):)?(\d+):(\d\d):(\d\d)$/) {
-                my ($d,$h,$m,$s) = ($1||0,$2,$3,$4);
-                $timelimit = $s + 60*($m + 60*($h + 24*$d));
+            if ($1 =~ /^(\d+):(\d+):(\d+)$/) {
+                my ($h,$m,$s) = ($1,$2,$3);
+                $timelimit = $s + 60 * ($m + 60 * $h);
             } else {
                 $log->warning("Error extracting time limit from line: $l");
                 return;
@@ -720,9 +720,9 @@ sub queue_info ($) {
         $lrms_queue->{maxqueuable} = $max_jobs if $max_jobs;
         $lrms_queue->{maxrunning} = $max_jobs if $lrms_queue->{maxrunning} > $max_jobs;
     }
-    if ($max_u_jobs and $lrms_queue->{maxuserrun} > $max_u_jobs) {
-        $lrms_queue->{maxuserrun} = $max_u_jobs;
-    }
+
+
+    $lrms_queue->{maxuserrun} = $max_u_jobs;
     
 }
 
@@ -931,7 +931,7 @@ sub run_qhost {
    #require Data::Dumper; import Data::Dumper qw(Dumper);
    #print STDERR Dumper($host);
 
-   loop_callback("$path/qhost -F -h $host | grep '='", sub {
+   loop_callback("$path/qhost -F -h `echo $host | cut -d . -f 1` | grep '='", sub {
         my $l = shift;
         my ($prefix, $value ) = split ":", $l;
         if ( $value =~ /^mem_total=(\d+(?:\.\d+)?)\s*(\w)/) {
