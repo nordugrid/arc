@@ -721,9 +721,9 @@ sub queue_info ($) {
         $lrms_queue->{maxrunning} = $max_jobs if $lrms_queue->{maxrunning} > $max_jobs;
     }
 
-
-    $lrms_queue->{maxuserrun} = $max_u_jobs;
-    
+    if (defined $max_u_jobs and defined $lrms_queue->{maxuserrun} and $lrms_queue->{maxuserrun} > $max_u_jobs) {
+        $lrms_queue->{maxuserrun} = $max_u_jobs;
+    }
 }
 
 
