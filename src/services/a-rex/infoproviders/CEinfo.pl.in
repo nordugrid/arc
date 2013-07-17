@@ -114,6 +114,7 @@ sub main {
     $data->{nojobs} = $nojobs;
 
     # Print GLUE2 XML
+    $log->info("Generating GLUE2 XML rendering");
     my $glue2data = timed 'ARC1ClusterInfo', sub { ARC1ClusterInfo::collect($data) };
     my $xmlPrinter = GLUE2xmlPrinter->new(*STDOUT, $splitjobs);
     $xmlPrinter->begin('InfoRoot');
@@ -122,6 +123,7 @@ sub main {
 
     # Generate ldif for infosys-ldap -- but only if infosys expects it
     if (not $config->{infosys_compat}) {
+		$log->info("Generating LDIF renderings");
         my $ngdata;
         $ngdata = timed 'ARC0ClusterInfo', sub { ARC0ClusterInfo::collect($data) }
             if ($config->{infosys_nordugrid} or $config->{infosys_glue12});
@@ -132,7 +134,7 @@ sub main {
                # introduced to find GLUE2 LDAP schema version
                 my $glue2schemaversion;
                 unless (open (GLUE2_SCHEMA, "</etc/ldap/schema/GLUE20.schema")) {
-                    $log->warning("CEinfo.pl didn't find GLUE20.schema in standard location. Will create LDIF in compatibitity mode.");
+                    $log->debug("CEinfo.pl didn't find GLUE20.schema in standard location. Will create LDIF in compatibitity mode.");
                 } else {
                      my $linecnt=0;
                      while (my $line = <GLUE2_SCHEMA>) {
@@ -140,11 +142,11 @@ sub main {
                         next unless $line;
                         if ($line =~ m/# Schema Version: (\d).*/) {
                             $glue2schemaversion = $1; 
-                            $log->warning("GLUE2 schema version major identified. It is: $glue2schemaversion");
+                            $log->debug("GLUE2 schema version major identified. It is: $glue2schemaversion");
                             last
                         }
                         if ($linecnt > 25) {
-                            $log->warning("Can't identify GLUE2 schema version. Will create LDIF in compatibility mode");
+                            $log->debug("Can't identify GLUE2 schema version. Will create LDIF in compatibility mode");
                             last
                         }
                         $linecnt++;
@@ -153,10 +155,12 @@ sub main {
                 }
                 # override splitjobs for ldap if option specified in arc.conf
                 if ( $config->{infosys_glue2_ldap_showactivities} ) { $splitjobs = 0 };
+                $log->info("Generating GLUE2 LDIF rendering");
                 my $ldifPrinter = GLUE2ldifPrinter->new($fh, $splitjobs, $glue2schemaversion);
                 timed 'GLUE2ldif', sub { $ldifPrinter->Top($glue2data) };
             }
             if ($config->{infosys_nordugrid} or $config->{infosys_glue12}) {
+				$log->info("Generating NorduGrid LDIF rendering");
                 my $ldifPrinter = NGldifPrinter->new($fh, $config->{ttl});
                 timed 'NGldif', sub { $ldifPrinter->Top($ngdata) };
             }
@@ -191,6 +195,7 @@ sub collect($) {
     my ($config) = @_;
 
     # get all local users from grid-map. Sort unique
+    $log->info("Reading grid-mapfiles");
     my @localusers;
     my $usermap = {};
     if ($config->{gridmap}) {
@@ -204,8 +209,10 @@ sub collect($) {
     }
     $log->warning("Cannot determine local users") unless @localusers;
 
+    $log->info("Fetching job information from control directory (GMJobsInfo.pm)");
     my $gmjobs_info = get_gmjobs_info($config);
 
+    $log->info("Updating job status information");
     # build the list of all jobs in state INLRMS
     my @jobids;
     for my $job (values %$gmjobs_info) {
@@ -218,11 +225,15 @@ sub collect($) {
     my $data = {};
     $data->{config} = $config;
     $data->{usermap} = $usermap;
+    $log->info("Updating frontend information (HostInfo.pm)");
     $data->{host_info} = get_host_info($config,\@localusers);
+    $log->info("Updating RTE information (RTEInfo.pm)");
     $data->{rte_info} = get_rte_info($config);
     $data->{gmjobs_info} = $gmjobs_info;
+    $log->info("Updating LRMS information (LRMSInfo.pm)");
     $data->{lrms_info} = get_lrms_info($config,\@localusers,\@jobids);
 
+    $log->info("Discovering adotf values");
     fix_adotf($config->{service}, $data->{host_info});
     fix_adotf($_, $data->{host_info}) for values %{$config->{xenvs}};
 
