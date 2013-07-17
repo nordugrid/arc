@@ -1,3 +1,7 @@
+2013-07-17  Gabor Szigeti <szigeti@niif.hu>
+  * Add new (use_ssl) configuration option that can be use during the communication
+    with a production accounting server.
+
 2013-06-26  Gabor Szigeti <szigeti@niif.hu>
   * Fixed ServiceLevel value and type in the accounting records.
   
