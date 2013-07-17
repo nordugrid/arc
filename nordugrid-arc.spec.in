@@ -916,6 +916,12 @@ sed -e 's/\(chkconfig: \) *[^ ]*/\1-/' \
 # Create log directory
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/arc
 
+# Create spool directories for Jura
+mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc
+mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc/ssm
+mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc/urs
+
+
 %find_lang %{name}
 
 %if %{with_java} && %{with_gcj}
@@ -1388,6 +1394,9 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man8/arc-vomsac-check.8*
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-arex
 %dir %{_localstatedir}/log/arc
+%dir %{_localstatedir}/spool/arc
+%dir %{_localstatedir}/spool/arc/ssm
+%dir %{_localstatedir}/spool/arc/urs
 %if %{with_python}
 %{_libexecdir}/%{pkgdir}/ssmsend
 %{_datadir}/%{pkgdir}/ssm/__init__.py*
