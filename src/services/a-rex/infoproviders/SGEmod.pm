@@ -6,6 +6,7 @@ our @EXPORT_OK = qw(get_lrms_info get_lrms_options_schema);
 
 use POSIX qw(floor ceil);
 use LogUtils;
+use XML::Simple qw(:strict);
 
 use strict;
 
@@ -299,19 +300,19 @@ sub count_array_spec($) {
                 $log->warning("Could not extract hostname for queue $qname") unless $currentnode;
             }
             if ($currentnode) {
-                # Was this node not listed with qconf -sep ?
+                # Was this node not listed with qhost -xml ?
                 if (not exists $node_stats{$currentnode} or
                     not exists $node_stats{$currentnode}{totalcpus}) {
                     # Node name may have been truncated by qstat -f
                     if (length $qname >= 30) {
-                        # Try to match it with a node already listed by qconf -sep
+                        # Try to match it with a node already listed by qhost -xml
                         my @fullnames = grep { length($_) >= length($currentnode)
                                                    and $_ =~ m/^\Q$currentnode\E/
                                         } grep { exists $node_stats{$_}{totalcpus}
                                         } keys %node_stats;
                         $currentnode = $fullnames[0] if @fullnames == 1;
                     }
-                    # Node name may have been truncated by qconf -sep
+                    # Node name may have been truncated by qhost -xml
                     for (my $name = $currentnode; length $name >= 24; chop $name) {
                         $currentnode = $name if exists $node_stats{$name}
                                             and exists $node_stats{$name}{totalcpus}
@@ -320,7 +321,7 @@ sub count_array_spec($) {
                 if (not exists $node_stats{$currentnode} or
                     not exists $node_stats{$currentnode}{totalcpus}) {
                     $log->warning("Queue $currentqueue\@$currentnode cannot be matched"
-                                  ." with a hostname listed by qconf -sep");
+                                  ." with a hostname listed by qhost -xml");
                 }
                 $node_stats{$currentnode}{load} = $load unless $load eq '-NA-';
                 $node_stats{$currentnode}{runningslots} ||= 0; # will be counted later
@@ -460,13 +461,17 @@ sub run_qconf {
 
     # cpu distribution
     $cpudistribution = '';
-    loop_callback("$path/qconf -sep", sub {
-        my $l = shift;
-        return if $l =~ /^HOST/ or $l =~ /^SUM/ or $l =~ /^=======/;
-        my ($name, $cpus, $arch ) = split " ", $l;
-        $node_stats{$name}{totalcpus} = $cpus;
-        $node_stats{$name}{arch} = $arch;
-    }) or $log->error("Failed listing licensed processors");
+
+    # qconf -sep deprecated therefore we are using qhost -xml
+    my $qhost_xml_output = `$path/qhost -xml` or $log->error("Failed listing licensed processors");
+    use XML::Simple qw(:strict);
+    my $xml = XMLin($qhost_xml_output, KeyAttr => { host => 'name' }, ForceArray => [ 'host' ]);
+    for my $h ( keys %{$xml->{host}} ) {
+            next if $h eq "global";
+            $node_stats{$h}{arch} =$xml->{host}{$h}{"hostvalue"}[0]{content};
+            $node_stats{$h}{totalcpus} = $xml->{host}{$h}{"hostvalue"}[1]{content};
+    } 
+
     my %cpuhash;
     $cpuhash{$_->{totalcpus}}++ for values %node_stats;
     while ( my ($cpus,$count)  = each %cpuhash ) {
@@ -639,7 +644,7 @@ sub queue_info ($) {
                 $nodefree = 0 if $nodefree < 0;
             }
         } else {
-            $log->info("Node not listed by qconf -sep: $nodename");
+            $log->info("Node not listed by qhost -xml: $nodename");
         }
         $queuetotal += $nodetotal;
         $queuefree += $nodefree;
