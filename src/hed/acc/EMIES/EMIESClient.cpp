@@ -1107,8 +1107,6 @@ namespace Arc {
     if (job.StageInDir) stagein.push_back(job.StageInDir);
     if (job.StageOutDir) stageout.push_back(job.StageOutDir);
     if (job.SessionDir) session.push_back(job.SessionDir);
-    session.clear();
-    stageout.clear();
     id = getIDFromJob(job);
     manager = job.JobManagementURL;
     resource = job.ServiceInformationURL;
