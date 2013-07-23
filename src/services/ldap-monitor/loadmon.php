@@ -116,7 +116,7 @@ if ( $debug ) {
 }
 
 $tcont     = array(); // array with rows, to be sorted
-$cachefile = CACHE_LOCATION."/loadmon-".$yazyk;
+$cachefile = CACHE_LOCATION."/loadmon-$schema-".$yazyk;
 $tcont     = get_from_cache($cachefile,120);
 
 // If cache exists, skip ldapsearch
