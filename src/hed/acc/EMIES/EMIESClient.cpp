@@ -1118,7 +1118,7 @@ namespace Arc {
     if (IDFromEndpointXML) {
       return (std::string)IDFromEndpointXML["ReferenceParameters"]["CustomID"];
     }
-    return job.IDFromEndpoint;        
+    return job.IDFromEndpoint;
   }
   
   Job EMIESJob::ToJob() const {
@@ -1184,14 +1184,6 @@ namespace Arc {
 
   EMIESJob::operator bool(void) {
     return !id.empty();
-  }
-
-  EMIESFault& EMIESFault::operator=(SOAPFault* fault) {
-    type = "";
-    if(!fault) return *this;
-    XMLNode detail = fault->Detail();
-    if(!detail) return *this;
-    return operator=(detail);
   }
 
   EMIESFault& EMIESFault::operator=(XMLNode item) {

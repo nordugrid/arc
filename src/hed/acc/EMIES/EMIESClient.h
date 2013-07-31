@@ -106,7 +106,6 @@ namespace Arc {
     Time timestamp;
     int code;
     EMIESFault& operator=(XMLNode item);
-    EMIESFault& operator=(SOAPFault* fault);
     bool operator!(void);
     operator bool(void);
   };
