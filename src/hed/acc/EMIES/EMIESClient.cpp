@@ -139,7 +139,7 @@ namespace Arc {
     return delegation_id;
   }
 
-   bool EMIESClient::reconnect(void) { 
+  bool EMIESClient::reconnect(void) { 
     delete client; client = NULL; 
     logger.msg(DEBUG, "Re-creating an EMI ES client");
     client = new ClientSOAP(cfg, rurl, timeout);
@@ -187,9 +187,9 @@ namespace Arc {
       soapfault = true;
       // Trying to check if it is EMI ES fault
       if(resp->Fault()->Code() != SOAPFault::Receiver) retry = false;
-      // Check if fault is VectorLimitExceededFault
+      // Check if fault is EMI ES fault
       XMLNode soapFaultDetail = resp->Fault()->Detail();
-      if (soapFaultDetail["VectorLimitExceededFault"]) {
+      if (EMIESFault::isEMIESFault(soapFaultDetail)) {
         soapFaultDetail.New(response);
         delete resp;
         return false;
@@ -216,64 +216,6 @@ namespace Arc {
     // TODO: switch instead of copy
     (*resp)[action + "Response"].New(response);
     delete resp;
-    return true;
-  }
-
-  class ServiceReturnedFaultException : public std::exception {
-  public:
-    virtual const char* what() const throw() { return ""; }
-  };
-
-  class VectorLimitExceededException : public std::exception {
-  public:
-    VectorLimitExceededException(int new_limit) : std::exception(), new_limit(new_limit) {}
-    virtual const char* what() const throw() { return ""; }
-    int new_limit;
-  };
-  
-  class InvalidVectorLimitExceededResponseException : public std::runtime_error {
-  public:
-    InvalidVectorLimitExceededResponseException(const std::string& limit) : std::runtime_error(limit) {}
-  };
-
-  void EMIESClient::process_with_vector_limit(PayloadSOAP& req, XMLNode& response) {
-    if (!process(req, response)) {
-      int newLimit = -1;
-      if (!response["VectorLimitExceededFault"]) {
-        throw ServiceReturnedFaultException();
-      }
-      else if (!response["VectorLimitExceededFault"]["ServerLimit"] || !stringto((std::string)response["VectorLimitExceededFault"]["ServerLimit"], newLimit)) {
-        throw InvalidVectorLimitExceededResponseException((std::string)response["VectorLimitExceededFault"]["ServerLimit"]);
-      }
-      else {
-        throw VectorLimitExceededException(newLimit);
-      }
-    }
-    
-    response.Namespaces(ns);
-  }
-
-  static bool find_id_node(XMLNode& response, const std::string& id, const std::string& node_name, XMLNode& node) {
-    XMLNode aiNode;
-    for (int i = 0; i < response.Size(); ++i) {
-      if((std::string)(response.Child(i)["estypes:ActivityID"]) == id) {
-        aiNode = response.Child(i);
-        break;
-      };
-    }
-    
-    EMIESFault fault; fault = aiNode;
-    node = aiNode[node_name];
-    if (!aiNode ||
-        //!MatchXMLName(aiNode, node_name) ||
-        fault ||
-        !node) {
-      // TODO: Propagate the below messages.
-      //lfailure = "Response is not ActivityInfoItem";
-      //lfailure = "Service responded with fault: "+fault.message+" - "+fault.description;
-      //lfailure = "Response does not contain ActivityInfoDocument";
-      return false;
-    }
     return true;
   }
 
@@ -487,67 +429,93 @@ namespace Arc {
         actionNode.NewChild("estypes:ActivityID") = EMIESJob::getIDFromJob(**itRequested);
       }
 
-      try {
-        XMLNode response;
-        process_with_vector_limit(req, response);
-        for (std::list<Job*>::iterator itProcess = itLastProcessedEnd;
-             itProcess != itRequested; ++itProcess) {
-          XMLNode infodoc;
-          std::string emies_id = EMIESJob::getIDFromJob(**itProcess);
-          if (!find_id_node(response, emies_id, "esainfo:ActivityInfoDocument", infodoc)) {
-            infodoc.Parent().Destroy();
-            IDsNotProcessed.push_back((*itProcess)->JobID);
-            continue;
+      XMLNode xmlResponse;
+      if (!process(req, xmlResponse)) {
+        if (EMIESFault::isEMIESFault(xmlResponse)) {
+          EMIESFault fault; fault = xmlResponse;
+          if (fault.type == "VectorLimitExceededFault") {
+            if (fault.limit < limit) {
+              logger.msg(VERBOSE, "New limit for vector queries returned by EMI ES service: %d", fault.limit);
+              itRequested = itLastProcessedEnd;
+              limit = fault.limit;
+              continue;
+            }
+
+            // Bail out if response is a limit higher than the current.
+            logger.msg(DEBUG, "Error: Service returned a limit higher or equal to current limit (current: %d; returned: %d)", limit, fault.limit);
           }
-  
-          // Processing generic GLUE2 information
-          (**itProcess).SetFromXML(infodoc);
-          // Looking for EMI ES specific state
-          XMLNode state = infodoc["State"];
-          EMIESJobState st;
-          for(;(bool)state;++state) st = (std::string)state;
-          if(st) (**itProcess).State = JobStateEMIES(st);
-          EMIESJobState rst;
-          XMLNode rstate = infodoc["RestartState"];
-          for(;(bool)rstate;++rstate) rst = (std::string)rstate;
-          (**itProcess).RestartState = JobStateEMIES(rst);
-          if (infodoc["esainfo:StageInDirectory"]) {
-            (**itProcess).StageInDir = (std::string)infodoc["esainfo:StageInDirectory"];
+          else {
+            logger.msg(DEBUG, "Unexpected error: %s", lfailure);
           }
-          if (infodoc["esainfo:StageOutDirectory"]) {
-            (**itProcess).StageOutDir = (std::string)infodoc["esainfo:StageOutDirectory"];
-          }
-          if (infodoc["esainfo:SessionDirectory"]) {
-            (**itProcess).SessionDir = (std::string)infodoc["esainfo:SessionDirectory"];
-          }
-          // Making EMI ES specific job id
-          // URL-izing job id
-          (**itProcess).JobID = (**itProcess).JobManagementURL.str() + "/" + emies_id;
-    
-          infodoc.Parent().Destroy();
-          IDsProcessed.push_back((*itProcess)->JobID);
         }
-        itLastProcessedEnd = itRequested;
-        continue;
-      } catch (VectorLimitExceededException& vlee) {
-        if (vlee.new_limit < limit) {
-          logger.msg(VERBOSE, "New limit for vector queries returned by EMI ES service: %d", vlee.new_limit);
-          itRequested = itLastProcessedEnd;
-          limit = vlee.new_limit;
-          continue;
+        else {
+          logger.msg(DEBUG, "Unexpected error: %s", lfailure);
         }
-        // Bail out if response is a limit higher than the current.
-        logger.msg(DEBUG, "Error: Service returned a limit higher or equal to current limit (current: %d; returned: %d)", limit, vlee.new_limit);
-      } catch (InvalidVectorLimitExceededResponseException& ivlere) {
-        logger.msg(DEBUG, "Error: Unable to parse limit in VectorLimitExceededFault response from service to an 'int': %s", ivlere.what());
-      } catch (ServiceReturnedFaultException& srfe) {}
-      
-      // Error happened. Set IDsNotProcessed and return.
-      for (std::list<Job*>::iterator itProcess = itLastProcessedEnd;
-           itProcess != jobs.end(); ++itProcess) {
-        IDsNotProcessed.push_back((*itProcess)->JobID);
+        for (std::list<Job*>::iterator itJ = itLastProcessedEnd; itJ != jobs.end(); ++itJ) {
+          IDsNotProcessed.push_back((**itJ).JobID);
+        }
+        return;
       }
-      return;
+
+      for (std::list<Job*>::iterator itJ = itLastProcessedEnd; itJ != itRequested; ++itJ) {
+        XMLNode n = xmlResponse["esainfo:ActivityInfoItem"];
+        std::string activityID = EMIESJob::getIDFromJob(**itJ);
+        while ((bool)n) {
+          if ((bool)n["esainfo:ActivityInfoDocument"]) {
+            if ((std::string)(n["estypes:ActivityID"]) != activityID) {
+              n = xmlResponse["esainfo:ActivityInfoItem"];
+              continue;
+            }
+            
+            XMLNode infodoc = n["esainfo:ActivityInfoDocument"];
+            // Processing generic GLUE2 information
+            (**itJ).SetFromXML(infodoc);
+            // Looking for EMI ES specific state
+            XMLNode state = infodoc["State"];
+            EMIESJobState st;
+            for(;(bool)state;++state) st = (std::string)state;
+            if(st) (**itJ).State = JobStateEMIES(st);
+            EMIESJobState rst;
+            XMLNode rstate = infodoc["RestartState"];
+            for(;(bool)rstate;++rstate) rst = (std::string)rstate;
+            (**itJ).RestartState = JobStateEMIES(rst);
+            if (infodoc["esainfo:StageInDirectory"]) {
+              (**itJ).StageInDir = (std::string)infodoc["esainfo:StageInDirectory"];
+            }
+            if (infodoc["esainfo:StageOutDirectory"]) {
+              (**itJ).StageOutDir = (std::string)infodoc["esainfo:StageOutDirectory"];
+            }
+            if (infodoc["esainfo:SessionDirectory"]) {
+              (**itJ).SessionDir = (std::string)infodoc["esainfo:SessionDirectory"];
+            }
+            // Making EMI ES specific job id
+            // URL-izing job id
+            (**itJ).JobID = (**itJ).JobManagementURL.str() + "/" + activityID;
+      
+            IDsProcessed.push_back((**itJ).JobID);
+            break;
+          }
+          else {
+            EMIESFault fault; fault = n;
+            if (fault) {
+              lfailure = "Service responded with fault: "+fault.message+" - "+fault.description;
+            }
+            else {
+              lfailure = "An ActivityInfoDocument or EMI ES fault element was expected";
+            }
+            n.Destroy();
+            n = xmlResponse["esainfo:ActivityInfoItem"];
+          }
+        }
+        
+        if (n) {
+          n.Destroy();
+        }
+        else {
+          IDsNotProcessed.push_back((**itJ).JobID);
+        }
+      }
+      itLastProcessedEnd = itRequested;
     }
   }
 
@@ -1186,8 +1154,12 @@ namespace Arc {
     return !id.empty();
   }
 
-  EMIESFault& EMIESFault::operator=(XMLNode item) {
-    code = 0;
+  bool EMIESFault::isEMIESFault(XMLNode item) {
+    std::string name;
+    return isEMIESFault(item, name);
+  }
+  
+  bool EMIESFault::isEMIESFault(XMLNode item, std::string& name) {
     XMLNode fault;
     if((fault = item["InternalBaseFault"]) ||
        (fault = item["VectorLimitExceededFault"]) ||
@@ -1208,16 +1180,38 @@ namespace Arc {
        (fault = item["UnknownQueryFault"]) ||
        (fault = item["InternalResourceInfoFault"]) ||
        (fault = item["ResourceInfoNotFoundFault"])) {
-      type = fault.Name();
+      name = fault.Name();
+      return true;
+    }
+    return false;
+  }
+
+  EMIESFault& EMIESFault::operator=(XMLNode item) {
+    type = "";
+    message = "";
+    description = "";
+    timestamp = Time(0);
+    code = 0;
+    limit = 0;
+    
+    if (isEMIESFault(item, type)) {
+      XMLNode fault = item[type];
       description = (std::string)fault["Description"];
       message = (std::string)fault["Message"];
       if((bool)fault["FailureCode"]) strtoint((std::string)fault["FailureCode"],code);
       if((bool)fault["Timestamp"]) timestamp = (std::string)fault["Timestamp"];
-    } else {
-      type = "";
-    };
+      if(type == "VectorLimitExceededFault" &&
+         ((!fault["ServerLimit"]) || (!stringto((std::string)fault["ServerLimit"], limit)))) {
+        type = "MalformedFaultError";
+        if (!message.empty()) {
+          message = " [Original message: " + message + "]";
+        }
+        message = "ServerLimit element of VectorLimitExceededFault is malformed: ServerLimit is \"" + (std::string)fault["ServerLimit"] + "\"." + message;
+      }
+    }
+    
     return *this;
-  }
+   }
 
   bool EMIESFault::operator!(void) {
     return type.empty();

@@ -105,9 +105,12 @@ namespace Arc {
     std::string description;
     Time timestamp;
     int code;
+    int limit;
     EMIESFault& operator=(XMLNode item);
     bool operator!(void);
     operator bool(void);
+    static bool isEMIESFault(XMLNode item);
+    static bool isEMIESFault(XMLNode item, std::string& name);
   };
 
   //! A client class for the EMI ES service.
