@@ -1207,7 +1207,6 @@ namespace Arc {
        (fault = item["UnableToRetrieveStatusFault"]) ||
        (fault = item["OperationNotPossibleFault"]) ||
        (fault = item["OperationNotAllowedFault"]) ||
-       (fault = item["ActivityNotFoundFault"]) ||
        (fault = item["UnknownAttributeFault"]) ||
        (fault = item["InternalNotificationFault"]) ||
        (fault = item["InvalidActivityStateFault"]) ||
