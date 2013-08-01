@@ -41,7 +41,7 @@ libjarc_la_LIBADD = \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(ZLIB_LIBS) $(DBCXX_LIBS)
 libjarc_la_LDFLAGS = -no-undefined -avoid-version -module $(SHREXT)
 
-SWIG_OUTPUTS = arc_wrap.cpp $(JAVA_PATH)/*.java
+SWIG_OUTPUTS = arc_wrap.cpp arc_wrap.h $(JAVA_PATH)/*.java
 
 CLEANFILES = $(SWIG_OUTPUTS) $(JAVA_PATH)/*.class arc.jar
 

@@ -25,6 +25,11 @@ configure: configure-stamp
 
 configure-stamp:
 	dh_testdir
+
+	if [ ! -f po/POTFILES.in.save ] ; then \
+	    cp -p po/POTFILES.in po/POTFILES.in.save ; \
+	fi
+
 	CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" \
 	CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS) -Wl,-z,defs" \
 	./configure --host=$(DEB_HOST_GNU_TYPE) \
@@ -71,6 +76,13 @@ clean:
 	rm -f debian/nordugrid-arc-egiis.nordugrid-arc-egiis.init
 	rm -f debian/nordugrid-arc-acix-cache.acix-cache.init
 	rm -f debian/nordugrid-arc-acix-index.acix-index.init
+
+	if [ -f po/POTFILES.in.save ] ; then \
+	    mv po/POTFILES.in.save po/POTFILES.in ; \
+	fi
+
+	find python src -name *.pyc -exec rm {} ';'
+	rm -rf src/services/acix/*/test/_trial_temp
 
 	dh_clean configure-stamp build-stamp
 
