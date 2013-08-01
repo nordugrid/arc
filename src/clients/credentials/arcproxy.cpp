@@ -59,7 +59,8 @@ static void create_tmp_proxy(const std::string& tmp_proxy_path, Arc::Credential&
 
 static void create_proxy(std::string& proxy_cert, Arc::Credential& signer,     
     const std::string& proxy_policy, Arc::Time& proxy_start, Arc::Period& proxy_period, 
-    const std::string& vomsacseq, bool use_gsi_proxy, int keybits);
+    const std::string& vomsacseq, bool use_gsi_proxy, int keybits,
+    const std::string& signing_algorithm);
 
 static std::string get_proxypolicy(const std::string& policy_source);
 
@@ -438,6 +439,17 @@ static void get_nss_certname(std::string& certname, Arc::Logger& logger) {
 
 #endif
 
+static std::string signTypeToString(Arc::Signalgorithm alg) {
+  switch(alg) {
+    case Arc::SIGN_SHA1: return "sha1";
+    case Arc::SIGN_SHA224: return "sha224";
+    case Arc::SIGN_SHA256: return "sha256";
+    case Arc::SIGN_SHA384: return "sha384";
+    case Arc::SIGN_SHA512: return "sha512";
+  }
+  return "unknown";
+}
+
 int main(int argc, char *argv[]) {
 
   setlocale(LC_ALL, "");
@@ -465,7 +477,13 @@ int main(int argc, char *argv[]) {
                                     "  e.g. 43200 or 12h or 12H; if not specified, the default is the minimum value of\n"
                                     "  12 hours and validityPeriod (which is lifetime of the delegated proxy on myproxy server))\n"
                                     "  proxyPolicy=policy content\n"
-                                    "  proxyPolicyFile=policy file"));
+                                    "  proxyPolicyFile=policy file\n"
+                                    "  keybits=number - length of the key to generate. Default is 1024 bits.\n"
+                                    "  Special value 'inherit' is to use key length of signing certificate.\n"
+                                    "  signingAlgorithm=name - signing algorithm to use for signing public key of proxy.\n"
+                                    "  Default is sha1. Possible values are sha1, sha2 (alias for sha256), sha224, sha256,\n"
+                                    "  sha384, sha512 and inherit (use algorithm of signing certificate)."
+));
 
   std::string proxy_path;
   options.AddOption('P', "proxy", istring("path to the proxy file"),
@@ -733,6 +751,8 @@ int main(int argc, char *argv[]) {
       std::cout << Arc::IString("Time left for proxy: %s", (holder.GetEndTime() - now).istr()) << std::endl;
     std::cout << Arc::IString("Proxy path: %s", proxy_path) << std::endl;
     std::cout << Arc::IString("Proxy type: %s", certTypeToString(holder.GetType())) << std::endl;
+    std::cout << Arc::IString("Proxy key length: %i", holder.GetKeybits()) << std::endl;
+    std::cout << Arc::IString("Proxy signature: %s", signTypeToString(holder.GetSigningAlgorithm())) << std::endl;
 
     Arc::VOMSTrustList voms_trust_dn;
     voms_trust_dn.AddRegex(".*");
@@ -948,6 +968,16 @@ int main(int argc, char *argv[]) {
   }
   std::string myproxy_period = Arc::tostring(myproxyvalidityPeriod.GetPeriod());
 
+  std::string signing_algorithm = constraints["signingAlgorithm"];
+  int keybits = 0;
+  if(!constraints["keybits"].empty()) {
+    if(constraints["keybits"] == "inherit") {
+      keybits = -1;
+    } else if((!Arc::stringto(constraints["keybits"],keybits)) || (keybits <= 0)) {
+      std::cerr << Arc::IString("The keybits constraint is wrong: %s.", (std::string)constraints["keybits"]) << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
 
 
 #ifdef HAVE_NSS
@@ -1105,8 +1135,7 @@ int main(int argc, char *argv[]) {
     proxy_start = proxy_start - Arc::Period(300);
     proxy_period.SetPeriod(proxy_period.GetPeriod() + 300);
   }
-  std::string policy;
-  policy = constraints["proxyPolicy"].empty() ? constraints["proxyPolicyFile"] : constraints["proxyPolicy"];
+  std::string policy = constraints["proxyPolicy"].empty() ? constraints["proxyPolicyFile"] : constraints["proxyPolicy"];
 
   if (!myproxy_command.empty() && (myproxy_command != "put" && myproxy_command != "PUT" && myproxy_command != "Put")) {
     bool res = contact_myproxy_server(myproxy_server, myproxy_command, 
@@ -1133,7 +1162,7 @@ int main(int argc, char *argv[]) {
           Arc::Credential signer(proxy_path, proxy_path, "", "");
           std::string proxy_cert;
           create_proxy(proxy_cert, signer, policy, proxy_start, proxy_period, 
-              vomsacseq, use_gsi_proxy, 1024);
+              vomsacseq, use_gsi_proxy, keybits, signing_algorithm);
           write_proxy_file(proxy_path, proxy_cert);
         }
       }
@@ -1181,7 +1210,7 @@ int main(int argc, char *argv[]) {
 
     std::string proxy_cert;
     create_proxy(proxy_cert, signer, policy, proxy_start, proxy_period,      
-        vomsacseq, use_gsi_proxy, 1024);
+        vomsacseq, use_gsi_proxy, keybits, signing_algorithm);
 
     //If myproxy command is "Put", then the proxy path is set to /tmp/myproxy-proxy.uid.pid 
     if (myproxy_command == "put" || myproxy_command == "PUT" || myproxy_command == "Put")
@@ -1236,12 +1265,33 @@ static void create_tmp_proxy(const std::string& tmp_proxy_path, Arc::Credential&
 
 static void create_proxy(std::string& proxy_cert, Arc::Credential& signer, 
     const std::string& proxy_policy, Arc::Time& proxy_start, Arc::Period& proxy_period, 
-    const std::string& vomsacseq, bool use_gsi_proxy, int keybits) {
+    const std::string& vomsacseq, bool use_gsi_proxy, int keybits,
+    const std::string& signing_algorithm) {
 
   std::string private_key, signing_cert, signing_cert_chain;
   std::string req_str;
+  if(keybits < 0) keybits = signer.GetKeybits();
 
   Arc::Credential cred_request(proxy_start, proxy_period, keybits);
+  if(!signing_algorithm.empty()) {
+    if(signing_algorithm == "sha1") {
+      cred_request.SetSigningAlgorithm(Arc::SIGN_SHA1);
+    } else if(signing_algorithm == "sha2") {
+      cred_request.SetSigningAlgorithm(Arc::SIGN_SHA256);
+    } else if(signing_algorithm == "sha224") {
+      cred_request.SetSigningAlgorithm(Arc::SIGN_SHA224);
+    } else if(signing_algorithm == "sha256") {
+      cred_request.SetSigningAlgorithm(Arc::SIGN_SHA256);
+    } else if(signing_algorithm == "sha384") {
+      cred_request.SetSigningAlgorithm(Arc::SIGN_SHA384);
+    } else if(signing_algorithm == "sha512") {
+      cred_request.SetSigningAlgorithm(Arc::SIGN_SHA512);
+    } else if(signing_algorithm == "inherit") {
+      cred_request.SetSigningAlgorithm(signer.GetSigningAlgorithm());
+    } else {
+      throw std::runtime_error("Unknown signing algoritm specified: "+signing_algorithm);
+    }
+  }
   cred_request.GenerateRequest(req_str);
   cred_request.OutputPrivatekey(private_key);
   signer.OutputCertificate(signing_cert);
