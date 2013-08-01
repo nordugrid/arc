@@ -80,7 +80,16 @@ namespace Arc {
     std::string ToXML(void) const;
   };
 
-  class EMIESJob {
+  class EMIESResponse {
+  public:
+    EMIESResponse(const EMIESResponse& r) {}
+    virtual ~EMIESResponse() {}
+
+  protected:
+    EMIESResponse() {}
+  };
+
+  class EMIESJob : public EMIESResponse {
   public:
     std::string id;
     URL manager;
@@ -98,7 +107,7 @@ namespace Arc {
     static std::string getIDFromJob(const Job&);
   };
 
-  class EMIESFault {
+  class EMIESFault : public EMIESResponse {
   public:
     std::string type;
     std::string message;
