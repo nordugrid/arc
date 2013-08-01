@@ -395,7 +395,7 @@ namespace Arc {
     return true;
   }
 
-  void EMIESClient::info(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed) {
+  void EMIESClient::info(const std::list<Job*> jobs, std::list<EMIESResponse*>& responses) {
     /*
       esainfo:GetActivityInfo
         estypes:ActivityID
@@ -421,7 +421,7 @@ namespace Arc {
     logger.msg(VERBOSE, "Creating and sending job information query request to %s", rurl.str());
 
     int limit = 1000000; // 1 M - Safety
-    std::list<Job*>::iterator itRequested = jobs.begin(), itLastProcessedEnd = jobs.begin();
+    std::list<Job*>::const_iterator itRequested = jobs.begin(), itLastProcessedEnd = jobs.begin();
     while (itRequested != jobs.end() && limit > 0) {
       PayloadSOAP req(ns);
       XMLNode actionNode = req.NewChild("esainfo:" + action);
@@ -432,87 +432,42 @@ namespace Arc {
       XMLNode xmlResponse;
       if (!process(req, xmlResponse)) {
         if (EMIESFault::isEMIESFault(xmlResponse)) {
-          EMIESFault fault; fault = xmlResponse;
-          if (fault.type == "VectorLimitExceededFault") {
-            if (fault.limit < limit) {
-              logger.msg(VERBOSE, "New limit for vector queries returned by EMI ES service: %d", fault.limit);
+          EMIESFault *f = new EMIESFault(); *f = xmlResponse;
+          if (f->type == "VectorLimitExceededFault") {
+            if (f->limit < limit) {
+              logger.msg(VERBOSE, "New limit for vector queries returned by EMI ES service: %d", f->limit);
               itRequested = itLastProcessedEnd;
-              limit = fault.limit;
+              limit = f->limit;
+              delete f;
               continue;
             }
 
             // Bail out if response is a limit higher than the current.
-            logger.msg(DEBUG, "Error: Service returned a limit higher or equal to current limit (current: %d; returned: %d)", limit, fault.limit);
+            logger.msg(DEBUG, "Error: Service returned a limit higher or equal to current limit (current: %d; returned: %d)", limit, f->limit);
+            delete f;
+            responses.push_back(new UnexpectedError("Service returned a limit higher or equal to current limit"));
+            return;
           }
-          else {
-            logger.msg(DEBUG, "Unexpected error: %s", lfailure);
-          }
+          responses.push_back(f);
+          return;
         }
-        else {
-          logger.msg(DEBUG, "Unexpected error: %s", lfailure);
-        }
-        for (std::list<Job*>::iterator itJ = itLastProcessedEnd; itJ != jobs.end(); ++itJ) {
-          IDsNotProcessed.push_back((**itJ).JobID);
-        }
+        responses.push_back(new UnexpectedError(lfailure));
         return;
       }
 
-      for (std::list<Job*>::iterator itJ = itLastProcessedEnd; itJ != itRequested; ++itJ) {
-        XMLNode n = xmlResponse["esainfo:ActivityInfoItem"];
-        std::string activityID = EMIESJob::getIDFromJob(**itJ);
-        while ((bool)n) {
-          if ((bool)n["esainfo:ActivityInfoDocument"]) {
-            if ((std::string)(n["estypes:ActivityID"]) != activityID) {
-              n = xmlResponse["esainfo:ActivityInfoItem"];
-              continue;
-            }
-            
-            XMLNode infodoc = n["esainfo:ActivityInfoDocument"];
-            // Processing generic GLUE2 information
-            (**itJ).SetFromXML(infodoc);
-            // Looking for EMI ES specific state
-            XMLNode state = infodoc["State"];
-            EMIESJobState st;
-            for(;(bool)state;++state) st = (std::string)state;
-            if(st) (**itJ).State = JobStateEMIES(st);
-            EMIESJobState rst;
-            XMLNode rstate = infodoc["RestartState"];
-            for(;(bool)rstate;++rstate) rst = (std::string)rstate;
-            (**itJ).RestartState = JobStateEMIES(rst);
-            if (infodoc["esainfo:StageInDirectory"]) {
-              (**itJ).StageInDir = (std::string)infodoc["esainfo:StageInDirectory"];
-            }
-            if (infodoc["esainfo:StageOutDirectory"]) {
-              (**itJ).StageOutDir = (std::string)infodoc["esainfo:StageOutDirectory"];
-            }
-            if (infodoc["esainfo:SessionDirectory"]) {
-              (**itJ).SessionDir = (std::string)infodoc["esainfo:SessionDirectory"];
-            }
-            // Making EMI ES specific job id
-            // URL-izing job id
-            (**itJ).JobID = (**itJ).JobManagementURL.str() + "/" + activityID;
-      
-            IDsProcessed.push_back((**itJ).JobID);
-            break;
-          }
-          else {
-            EMIESFault fault; fault = n;
-            if (fault) {
-              lfailure = "Service responded with fault: "+fault.message+" - "+fault.description;
-            }
-            else {
-              lfailure = "An ActivityInfoDocument or EMI ES fault element was expected";
-            }
-            n.Destroy();
-            n = xmlResponse["esainfo:ActivityInfoItem"];
-          }
-        }
-        
-        if (n) {
-          n.Destroy();
+      for (XMLNode n = xmlResponse["esainfo:ActivityInfoItem"]; (bool)n; ++n) {
+        if ((bool)n["esainfo:ActivityInfoDocument"]) {
+          responses.push_back(new EMIESJobInfo(n));
         }
         else {
-          IDsNotProcessed.push_back((**itJ).JobID);
+          EMIESFault *f = new EMIESFault(); *f = n;
+          if (*f) {
+            responses.push_back(f);
+          }
+          else {
+            delete f;
+            responses.push_back(new UnexpectedError("An ActivityInfoDocument or EMI ES fault element was expected"));
+          }
         }
       }
       itLastProcessedEnd = itRequested;
@@ -1152,6 +1107,33 @@ namespace Arc {
 
   EMIESJob::operator bool(void) {
     return !id.empty();
+  }
+
+  void EMIESJobInfo::toJob(Job& j) const {
+    XMLNode aid = jobInfo["ActivityInfoDocument"];
+    // Processing generic GLUE2 information
+    j.SetFromXML(aid);
+    // Looking for EMI ES specific state
+    XMLNode state = aid["State"];
+    EMIESJobState st;
+    for(;(bool)state;++state) st = (std::string)state;
+    if(st) j.State = JobStateEMIES(st);
+    EMIESJobState rst;
+    XMLNode rstate = aid["RestartState"];
+    for(;(bool)rstate;++rstate) rst = (std::string)rstate;
+    j.RestartState = JobStateEMIES(rst);
+    if (aid["esainfo:StageInDirectory"]) {
+      j.StageInDir = (std::string)aid["esainfo:StageInDirectory"];
+    }
+    if (aid["esainfo:StageOutDirectory"]) {
+      j.StageOutDir = (std::string)aid["esainfo:StageOutDirectory"];
+    }
+    if (aid["esainfo:SessionDirectory"]) {
+      j.SessionDir = (std::string)aid["esainfo:SessionDirectory"];
+    }
+    // Making EMI ES specific job id
+    // URL-izing job id
+    j.JobID = j.JobManagementURL.str() + "/" + (std::string)jobInfo["ActivityID"]; // TODO: Optimize?
   }
 
   bool EMIESFault::isEMIESFault(XMLNode item) {

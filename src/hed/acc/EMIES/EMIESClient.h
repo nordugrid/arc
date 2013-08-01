@@ -107,6 +107,17 @@ namespace Arc {
     static std::string getIDFromJob(const Job&);
   };
 
+  class EMIESJobInfo : public EMIESResponse {
+    public:
+      EMIESJobInfo(XMLNode item) : EMIESResponse() { item.New(jobInfo); }
+      EMIESJobInfo(const EMIESJobInfo& ji) :
+        EMIESResponse() {}
+      void toJob(Job&) const;
+      std::string getActivityID() const { return (std::string)jobInfo["ActivityID"]; }
+    private:
+      XMLNode jobInfo;
+  };
+
   class EMIESFault : public EMIESResponse {
   public:
     std::string type;
@@ -120,6 +131,14 @@ namespace Arc {
     operator bool(void);
     static bool isEMIESFault(XMLNode item);
     static bool isEMIESFault(XMLNode item, std::string& name);
+  };
+  
+  class UnexpectedError : public EMIESResponse {
+  public:
+    UnexpectedError(const std::string& message) : EMIESResponse(), message(message) {}
+    UnexpectedError(const UnexpectedError& ue) : EMIESResponse(), message(ue.message) {}
+    
+    const std::string message;
   };
 
   //! A client class for the EMI ES service.
@@ -177,7 +196,7 @@ namespace Arc {
     bool stat(const EMIESJob& job, EMIESJobState& state);
     bool info(EMIESJob& job, XMLNode &state);
     bool info(EMIESJob& job, Job& info);
-    void info(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed);
+    void info(const std::list<Job*> jobs, std::list<EMIESResponse*>& responses);
 
     //! Terminates a job.
     /*! This method sends a request to the EMI ES service to terminate

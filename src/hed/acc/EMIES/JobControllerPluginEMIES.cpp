@@ -55,10 +55,38 @@ namespace Arc {
     
     for (std::map<std::string, std::list<Job*> >::iterator it = groupedJobs.begin();
          it != groupedJobs.end(); ++it) {
+      std::list<EMIESResponse*> responses;
       AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(it->first));
-      ac->info(it->second, IDsProcessed, IDsNotProcessed);
-      // TODO: Log warning: //logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID);
-      ((EMIESClients&)clients).release(ac.Release());
+      ac->info(it->second, responses);
+      
+      for (std::list<Job*>::iterator itJ = it->second.begin();
+           itJ != it->second.end(); ++itJ) {
+        std::list<EMIESResponse*>::iterator itR = responses.begin();
+        for (; itR != responses.end(); ++itR) {
+          EMIESJobInfo *j = dynamic_cast<EMIESJobInfo*>(*itR);
+          if (j) {
+            if (EMIESJob::getIDFromJob(**itJ) == j->getActivityID()) {
+              j->toJob(**itJ);
+              delete *itR;
+              break;
+            }
+          }
+          // TODO: Handle ERROR.
+          // TODO: Log warning: //logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID);
+        }
+        if (itR != responses.end()) {
+          IDsProcessed.push_back((**itJ).JobID);
+          responses.erase(itR);
+        }
+        else {
+          IDsNotProcessed.push_back((**itJ).JobID);
+        }
+      }
+      
+      for (std::list<EMIESResponse*>::iterator itR = responses.begin();
+           itR != responses.end(); ++itR) {
+        delete *itR;
+      }
     }
   }
 
