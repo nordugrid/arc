@@ -25,6 +25,10 @@
 using namespace ArcCredential;
 
 namespace Arc {
+
+  #define DEFAULT_DIGEST   ((EVP_MD*)EVP_sha1())
+  #define DEFAULT_KEYBITS  (1024)
+
   CredentialError::CredentialError(const std::string& what) : std::runtime_error(what) { }
 
   Logger CredentialLogger(Logger::rootLogger, "Credential");
@@ -463,12 +467,52 @@ namespace Arc {
     return start_+lifetime_;
   }
 
+  Signalgorithm Credential::GetSigningAlgorithm(void) const {
+    Signalgorithm signing_algorithm = SIGN_DEFAULT;
+    if(!cert_) return signing_algorithm;
+    X509_ALGOR* alg = cert_->sig_alg;
+    if(!alg) return signing_algorithm;
+    int sig_nid = OBJ_obj2nid(alg->algorithm);
+    switch(sig_nid) {
+      case NID_sha1WithRSAEncryption: signing_algorithm = SIGN_SHA1; break;
+      case NID_sha224WithRSAEncryption: signing_algorithm = SIGN_SHA224; break;
+      case NID_sha256WithRSAEncryption: signing_algorithm = SIGN_SHA256; break;
+      case NID_sha384WithRSAEncryption: signing_algorithm = SIGN_SHA384; break;
+      case NID_sha512WithRSAEncryption: signing_algorithm = SIGN_SHA512; break;
+    }
+    return signing_algorithm;
+  }
+
+  int Credential::GetKeybits(void) const {
+    int keybits = 0;
+    if(!cert_) return keybits;
+    EVP_PKEY* pkey = X509_get_pubkey(cert_);
+    if(!pkey) return keybits;
+    keybits = EVP_PKEY_bits(pkey);
+    return keybits;
+  }
+
   void Credential::SetLifeTime(const Period& period) {
     lifetime_ = period;
   }
 
   void Credential::SetStartTime(const Time& start_time) {
     start_ = start_time;
+  }
+
+  void Credential::SetSigningAlgorithm(Signalgorithm signing_algorithm) {
+    switch(signing_algorithm) {
+      case SIGN_SHA1: signing_alg_ = ((EVP_MD*)EVP_sha1()); break;
+      case SIGN_SHA224: signing_alg_ = ((EVP_MD*)EVP_sha224()); break;
+      case SIGN_SHA256: signing_alg_ = ((EVP_MD*)EVP_sha256()); break;
+      case SIGN_SHA384: signing_alg_ = ((EVP_MD*)EVP_sha384()); break;
+      case SIGN_SHA512: signing_alg_ = ((EVP_MD*)EVP_sha512()); break;
+      default: signing_alg_ = NULL; break;
+    }
+  }
+
+  void Credential::SetKeybits(int keybits) {
+    keybits_ = keybits;
   }
 
   bool Credential::IsCredentialsValid(const UserConfig& usercfg) {
@@ -812,7 +856,7 @@ namespace Arc {
   Credential::Credential() : verification_valid(false), cert_(NULL), pkey_(NULL),
         cert_chain_(NULL), proxy_cert_info_(NULL), format(CRED_UNKNOWN),
         start_(Time()), lifetime_(Period("PT12H")),
-        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(1024),
+        req_(NULL), rsa_key_(NULL), signing_alg_(NULL), keybits_(0),
         proxyver_(0), pathlength_(0), extensions_(NULL) {
 
     OpenSSLInit();
@@ -828,7 +872,7 @@ namespace Arc {
   Credential::Credential(const int keybits) : cert_(NULL),
     pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
     start_(Time()), lifetime_(Period("PT12H")),
-    req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(keybits),
+    req_(NULL), rsa_key_(NULL), signing_alg_(NULL), keybits_(keybits),
     extensions_(NULL) {
 
     OpenSSLInit();
@@ -845,7 +889,7 @@ namespace Arc {
         std::string policylang, std::string policy, int pathlength) :
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
         start_(start), lifetime_(lifetime), req_(NULL), rsa_key_(NULL),
-        signing_alg_((EVP_MD*)EVP_sha1()), keybits_(keybits), extensions_(NULL) {
+        signing_alg_(NULL), keybits_(keybits), extensions_(NULL) {
 
     OpenSSLInit();
 
@@ -1076,8 +1120,8 @@ namespace Arc {
     proxy_cert_info_ = NULL;
     req_ = NULL;
     rsa_key_ = NULL;
-    signing_alg_ = (EVP_MD*)EVP_sha1();
-    keybits_ = 1024;
+    signing_alg_ = NULL;
+    keybits_ = 0;
     proxyver_ = 0;
     pathlength_ = 0;
     extensions_ = NULL;
@@ -1252,9 +1296,9 @@ namespace Arc {
   bool Credential::GenerateEECRequest(BIO* reqbio, BIO* /*keybio*/, const std::string& dn) {
     bool res = false;
     RSA* rsa_key = NULL;
-    const EVP_MD *digest = signing_alg_;
+    const EVP_MD *digest = signing_alg_?signing_alg_:DEFAULT_DIGEST;
     EVP_PKEY* pkey;
-    int keybits = keybits_;
+    int keybits = keybits_?keybits_:DEFAULT_KEYBITS;
 
 #ifdef HAVE_OPENSSL_OLDRSA
     unsigned long prime = RSA_F4;
@@ -1425,8 +1469,8 @@ namespace Arc {
   bool Credential::GenerateRequest(BIO* reqbio, bool if_der){
     bool res = false;
     RSA* rsa_key = NULL;
-    int keybits = keybits_;
-    const EVP_MD *digest = signing_alg_;
+    int keybits = keybits_?keybits_:DEFAULT_KEYBITS;
+    const EVP_MD *digest = signing_alg_?signing_alg_:DEFAULT_DIGEST;
     EVP_PKEY* pkey;
 
     if(pkey_) { CredentialLogger.msg(ERROR, "The credential's private key has already been initialized"); return false; };
@@ -2290,7 +2334,6 @@ err:
     }
 
     int md_nid;
-    char* md_str;
     const EVP_MD* dgst_alg  =NULL;
     EVP_PKEY* issuer_priv = NULL;
     EVP_PKEY* issuer_pub = NULL;
@@ -2359,15 +2402,22 @@ err:
 
     /* Use the signing algorithm in the signer's priv key */
 #if OPENSSL_VERSION_NUMBER >= 0x10000000L
-    if(EVP_PKEY_get_default_digest_nid(issuer_priv, &md_nid) <= 0) {
-      CredentialLogger.msg(INFO, "There is no digest in issuer's private key object");
-    }
-    md_str = (char *)OBJ_nid2sn(md_nid);
-    if((dgst_alg = EVP_get_digestbyname(md_str)) == NULL) {
-      CredentialLogger.msg(INFO, "%s is an unsupported digest type", md_str);
+    {
+      int dgst_err = EVP_PKEY_get_default_digest_nid(issuer_priv, &md_nid);
+      if(dgst_err <= 0) {
+        CredentialLogger.msg(INFO, "There is no digest in issuer's private key object");
+      } else if((dgst_err == 2) || (!proxy->signing_alg_)) { // mandatory or no digest specified
+        char* md_str = (char *)OBJ_nid2sn(md_nid);
+        if(md_str) {
+          if((dgst_alg = EVP_get_digestbyname(md_str)) == NULL) {
+            CredentialLogger.msg(INFO, "%s is an unsupported digest type", md_str);
+            // TODO: if disgest is mandatory then probably there must be error.
+          }
+        }
+      }
     }
 #endif
-    if(dgst_alg == NULL) dgst_alg = proxy->signing_alg_;
+    if(dgst_alg == NULL) dgst_alg = proxy->signing_alg_?proxy->signing_alg_:DEFAULT_DIGEST;
 
     /* Check whether the digest algorithm is SHA1 or SHA2*/
     md_nid = EVP_MD_type(dgst_alg);
@@ -2385,7 +2435,7 @@ err:
     }
 #endif
 
-    if(!X509_sign(proxy_cert, issuer_priv, proxy->signing_alg_)) {
+    if(!X509_sign(proxy_cert, issuer_priv, dgst_alg)) {
       CredentialLogger.msg(ERROR, "Failed to sign the proxy certificate"); LogError(); goto err;
     }
     else CredentialLogger.msg(INFO, "Succeeded to sign the proxy certificate");
@@ -2478,7 +2528,7 @@ err:
        const std::string& extsect, const std::string& passphrase4key) :
        certfile_(CAcertfile), keyfile_(CAkeyfile), verification_valid(false),
        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
-       req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(1024),
+       req_(NULL), rsa_key_(NULL), signing_alg_(NULL), keybits_(0),
        proxyver_(0), pathlength_(0), extensions_(NULL),
        CAserial_(CAserial), extfile_(extfile), extsect_(extsect) {
     OpenSSLInit();

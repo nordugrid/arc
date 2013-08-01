@@ -38,6 +38,7 @@ class CredentialError : public std::runtime_error {
 };
 
 typedef enum {CRED_PEM, CRED_DER, CRED_PKCS, CRED_UNKNOWN} Credformat;
+typedef enum { SIGN_DEFAULT = 0, SIGN_SHA1, SIGN_SHA224, SIGN_SHA256, SIGN_SHA384, SIGN_SHA512 } Signalgorithm;
 
 /**Logger to be used by all modules of credentials library*/
 extern Logger CredentialLogger;
@@ -164,6 +165,10 @@ class Credential {
     /**General method for adding a new nid into openssl's global const*/
     void AddCertExtObj(std::string& sn, std::string& oid);
 
+    void SetSigningAlgorithm(Signalgorithm signing_algorithm = SIGN_DEFAULT);
+
+    void SetKeybits(int keybits = 0);
+
     static std::string NoPassword(void) { return std::string("\0",1); };
 
   private:
@@ -271,6 +276,12 @@ class Credential {
      *is an EEC, GetCAName get the same value as GetIssuerName
      */
     std::string GetCAName(void) const;
+
+    /**Get signing algorithm used to sign the certificate attached to this object*/
+    Signalgorithm GetSigningAlgorithm(void) const;
+
+    /**Get key size of the certificate attached to this object*/
+    int GetKeybits(void) const;
 
     /**Get the proxy policy attached to the "proxy certificate
      * information" extension of the proxy certificate
