@@ -446,6 +446,8 @@ static std::string signTypeToString(Arc::Signalgorithm alg) {
     case Arc::SIGN_SHA256: return "sha256";
     case Arc::SIGN_SHA384: return "sha384";
     case Arc::SIGN_SHA512: return "sha512";
+    default:
+      break;
   }
   return "unknown";
 }
