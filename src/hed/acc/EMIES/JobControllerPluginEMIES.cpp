@@ -87,6 +87,8 @@ namespace Arc {
            itR != responses.end(); ++itR) {
         delete *itR;
       }
+      
+      ((EMIESClients&)clients).release(ac.Release());
     }
   }
 
