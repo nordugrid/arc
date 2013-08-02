@@ -152,6 +152,11 @@ namespace Arc {
     ClearAll();
     
     std::list<JobDescription> descs_to_submit = descs;
+    std::list<const JobDescription*> descs_to_submit_ptr;
+    for (std::list<JobDescription>::const_iterator itJ = descs.begin();
+         itJ != descs.end(); ++itJ) {
+      descs_to_submit_ptr.push_back(&*itJ);
+    }
     
     SubmissionStatus ok;
     for (std::list<Endpoint>::const_iterator it = endpoints.begin();
@@ -177,14 +182,16 @@ namespace Arc {
        * check whether it was submitted or not, and then only keep the submitted
        * ones. The latter algorithm is implemented below.
        */
-      for (std::list<JobDescription>::iterator itJ = descs_to_submit.begin();
-           itJ != descs_to_submit.end();) {
+      std::list<JobDescription>::iterator itJ = descs_to_submit.begin();
+      std::list<const JobDescription*>::iterator itJPtr = descs_to_submit_ptr.begin();
+      for (; itJ != descs_to_submit.end();) {
         std::list<JobDescription const *>::iterator itNotS = notsubmitted.begin();
         for (; itNotS != notsubmitted.end(); ++itNotS) if (*itNotS == &*itJ) break;
 
         if (itNotS == notsubmitted.end()) { // No match found - job description was submitted.
           // Remove entry from descs_to_submit list, now that it was submitted.
-          itJ = descs_to_submit.erase(itJ);
+          itJ    = descs_to_submit.erase(itJ);
+          itJPtr = descs_to_submit_ptr.erase(itJPtr);
         }
         else { // Match found - job not submitted.
           // Remove entry from notsubmitted list, now that entry was found.
@@ -192,6 +199,11 @@ namespace Arc {
           ++itJ;
         }
       }
+    }
+    
+    for (std::list<const JobDescription*>::const_iterator itJ = descs_to_submit_ptr.begin();
+         itJ != descs_to_submit_ptr.end(); ++itJ) {
+      notsubmitted.push_back(*itJ);
     }
     
     if (!notsubmitted.empty()) {
