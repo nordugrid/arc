@@ -124,14 +124,17 @@ int main(int argc, char* argv[]) {
     if(!adl) usage();
     std::string adls;
     adl.GetDoc(adls);
-    EMIESJob job;
-    EMIESJobState state;
-    if(!ac.submit(adls,job,state)) {
+    EMIESResponse *response = NULL;
+    ac.submit(adls,&response);
+    EMIESJob *job = dynamic_cast<EMIESJob*>(response);
+    if(!job) {
+      delete response;
       logger.msg(ERROR,"Submission failed");
       return 1;
     };
-    print(job);
-    print(state);
+    print(*job);
+    print(job->state);
+    delete response;
   } else if(command == "stat") {
     EMIESJob job;
     FillJob(job,argc,argv);

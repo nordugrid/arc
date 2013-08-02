@@ -97,6 +97,7 @@ namespace Arc {
     std::list<URL> stagein;
     std::list<URL> session;
     std::list<URL> stageout;
+    EMIESJobState state;
     EMIESJob& operator=(XMLNode job);
     EMIESJob& operator=(const Job& job);
     EMIESJob& operator=(const std::string& s) { XMLNode n(s); return operator=(n); }
@@ -182,8 +183,7 @@ namespace Arc {
        @param state The current state of submitted job.
        @return true on success
      */
-    bool submit(XMLNode jobdesc, EMIESJob& job, EMIESJobState& state,
-                const std::string delegation_id = "");
+    bool submit(XMLNode jobdesc, EMIESResponse** response, const std::string delegation_id = "");
 
     //! Query the status of a job.
     /*! This method queries the EMI ES service about the status of a

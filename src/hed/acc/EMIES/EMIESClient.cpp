@@ -219,7 +219,7 @@ namespace Arc {
     return true;
   }
 
-  bool EMIESClient::submit(XMLNode jobdesc, EMIESJob& job, EMIESJobState& state, const std::string delegation_id) {
+  bool EMIESClient::submit(XMLNode jobdesc, EMIESResponse** response, const std::string delegation_id) {
     std::string action = "CreateActivity";
     logger.msg(VERBOSE, "Creating and sending job submit request to %s", rurl.str());
 
@@ -271,30 +271,40 @@ namespace Arc {
       logger.msg(DEBUG, "Job description to be sent: %s", s);
     };
 
-    XMLNode response;
-    if (!process(req, response)) return false;
-
-    response.Namespaces(ns);
-    XMLNode item = response.Child(0);
-    if(!MatchXMLName(item,"escreate:ActivityCreationResponse")) {
-      lfailure = "Response is not ActivityCreationResponse";
+    XMLNode xmlResponse;
+    if (!process(req, xmlResponse)) {
+      if (EMIESFault::isEMIESFault(xmlResponse)) {
+        EMIESFault *fault = new EMIESFault; *fault = xmlResponse;
+        *response = fault;
+      }
+      else {
+        *response = new UnexpectedError(lfailure);
+      }
       return false;
     }
-    EMIESFault fault; fault = item;
-    if(fault) {
-      lfailure = "Service responded with fault: "+fault.message+" - "+fault.description;
+
+    xmlResponse.Namespaces(ns);
+    XMLNode item = xmlResponse.Child(0);
+    if(!MatchXMLName(item,"escreate:ActivityCreationResponse")) {
+      lfailure = "Response is not ActivityCreationResponse";
+      *response = new UnexpectedError(lfailure);
+      return false;
+    }
+    EMIESFault *fault = new EMIESFault; *fault = item;
+    if(*fault) {
+      lfailure = "Service responded with fault: "+fault->message+" - "+fault->description;
+      *response = fault;
       return false;
     };
-    job = item;
-    if(!job) {
+    delete fault;
+    EMIESJob *job = new EMIESJob; *job = item;
+    if(!(*job)) {
       lfailure = "Response is not valid ActivityCreationResponse";
+      *response = new UnexpectedError(lfailure);
+      delete job;
       return false;
     };
-    state = item["estypes:ActivityStatus"];
-    if(!state) {
-      lfailure = "Response does not contain valid ActivityStatus";
-      return false;
-    };
+    *response = job;
     return true;
   }
 
@@ -1017,6 +1027,7 @@ namespace Arc {
     id = (std::string)job["ActivityID"];
     manager = (std::string)job["ActivityMgmtEndpointURL"];
     resource = (std::string)job["ResourceInfoEndpointURL"];
+    state = job["ActivityStatus"];
     for(XMLNode u = job["StageInDirectory"]["URL"];(bool)u;++u) stagein.push_back((std::string)u);
     for(XMLNode u = job["SessionDirectory"]["URL"];(bool)u;++u) session.push_back((std::string)u);
     for(XMLNode u = job["StageOutDirectory"]["URL"];(bool)u;++u) stageout.push_back((std::string)u);
@@ -1033,6 +1044,7 @@ namespace Arc {
     id = getIDFromJob(job);
     manager = job.JobManagementURL;
     resource = job.ServiceInformationURL;
+    // State information is not transfered from Job object. Currently not needed.
     return *this;
   }
   
@@ -1102,11 +1114,11 @@ namespace Arc {
   }
 
   bool EMIESJob::operator!(void) {
-    return id.empty();
+    return id.empty() || !state;
   }
 
   EMIESJob::operator bool(void) {
-    return !id.empty();
+    return !id.empty() && (bool)state;
   }
 
   void EMIESJobInfo::toJob(Job& j) const {

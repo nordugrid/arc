@@ -215,18 +215,24 @@ namespace Arc {
       clients.release(ac.Release());
     }
 
+    EMIESResponse *response = NULL;
     AutoPointer<EMIESClient> ac(clients.acquire(url));
-    EMIESJobState jobstate;
-    if (!ac->submit(product, jobid, jobstate, delegation_id)) {
+    if (!ac->submit(product, &response, delegation_id)) {
+      delete response;
       logger.msg(INFO, "Failed to submit job description: %s", ac->failure());
       return false;
     }
   
-    if (!jobid) {
+    EMIESJob* jobid_ptr = dynamic_cast<EMIESJob*>(response);
+    if (!jobid_ptr) {
+      delete response;
       logger.msg(INFO, "No valid job identifier returned by EMI ES");
       return false;
     }
   
+    jobid = *jobid_ptr;
+    delete response;
+    
     if(!jobid.manager) jobid.manager = url;
   
     // Check if we have anything to upload. Otherwise there is no need to wait.
@@ -234,18 +240,18 @@ namespace Arc {
       // Wait for job to go into proper state
       for(;;) {
         // TODO: implement timeout
-        if(jobstate.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) break;
-        if(jobstate.state == EMIES_STATE_TERMINAL_S) {
+        if(jobid.state.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) break;
+        if(jobid.state.state == EMIES_STATE_TERMINAL_S) {
           logger.msg(INFO, "Job failed on service side");
           job_ok = false;
           break;
         }
         // If service jumped over stageable state client probably does not
         // have to send anything.
-        if((jobstate.state != EMIES_STATE_ACCEPTED_S) &&
-           (jobstate.state != EMIES_STATE_PREPROCESSING_S)) break;
+        if((jobid.state.state != EMIES_STATE_ACCEPTED_S) &&
+           (jobid.state.state != EMIES_STATE_PREPROCESSING_S)) break;
         sleep(5);
-        if(!ac->stat(jobid, jobstate)) {
+        if(!ac->stat(jobid, jobid.state)) {
           logger.msg(INFO, "Failed to obtain state of job");
           job_ok = false;
           break;
@@ -257,7 +263,7 @@ namespace Arc {
     }
         
     if(have_uploads) {
-      if(!jobstate.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) {
+      if(!jobid.state.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) {
         logger.msg(INFO, "Failed to wait for job to allow stage in");
         return false;
       }
