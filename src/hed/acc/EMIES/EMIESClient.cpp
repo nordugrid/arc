@@ -996,6 +996,99 @@ namespace Arc {
     return true;
   }
 
+  bool EMIESClient::notify(const std::list<EMIESJob*> jobs, std::list<EMIESResponse*>& responses) {
+    /*
+    esmanag:NotifyService
+      esmanag:NotifyRequestItem
+        estypes:ActivityID
+        esmanag:NotifyMessage
+          client-datapull-done
+          client-datapush-done
+
+    esmanag:NotifyServiceResponse
+      esmang:NotifyResponseItem"
+        estypes:ActivityID
+        Acknowledgement
+        or
+        estypes:InternalBaseFault
+        OperationNotPossibleFault
+        OperationNotAllowedFault
+        InternalNotificationFault
+        ActivityNotFoundFault
+        AccessControlFault
+    */
+    std::string action = "NotifyService";
+    logger.msg(VERBOSE, "Creating and sending notify request to %s", rurl.str());
+    
+    bool retval = true;
+    int limit = 1000000; // 1 M - Safety
+    std::list<EMIESJob*>::const_iterator itRequested = jobs.begin(), itLastProcessedEnd = jobs.begin();
+    while (itRequested != jobs.end() && limit > 0) {
+      PayloadSOAP req(ns);
+      XMLNode op = req.NewChild("esmanag:" + action);
+      
+      for (int i = 0; itRequested != jobs.end() && i < limit; ++itRequested, ++i) {
+        XMLNode ritem = op.NewChild("esmanag:NotifyRequestItem");
+        ritem.NewChild("estypes:ActivityID") = (**itRequested).id;
+        ritem.NewChild("esmanag:NotifyMessage") = "client-datapush-done";
+      }
+  
+      // Send request
+      XMLNode xmlResponse;
+      if (!process(req, xmlResponse)) {
+        if (EMIESFault::isEMIESFault(xmlResponse)) {
+          EMIESFault *f = new EMIESFault(); *f = xmlResponse;
+          if (f->type == "VectorLimitExceededFault") {
+            if (f->limit < limit) {
+              logger.msg(VERBOSE, "New limit for vector queries returned by EMI ES service: %d", f->limit);
+              itRequested = itLastProcessedEnd;
+              limit = f->limit;
+              delete f;
+              continue;
+            }
+
+            // Bail out if response is a limit higher than the current.
+            logger.msg(DEBUG, "Error: Service returned a limit higher or equal to current limit (current: %d; returned: %d)", limit, f->limit);
+            delete f;
+            responses.push_back(new UnexpectedError("Service returned a limit higher or equal to current limit"));
+            return false;
+          }
+          responses.push_back(f);
+          return false;
+        }
+        responses.push_back(new UnexpectedError(lfailure));
+        return false;
+      }
+
+      xmlResponse.Namespaces(ns);
+      for (XMLNode n = xmlResponse["NotifyResponseItem"]; (bool)n; ++n) {
+        if(!(bool)n["ActivityID"]) {
+          responses.push_back(new UnexpectedError("NotifyResponseItem element contained no ActivityID element"));
+          retval = false;
+          continue;
+        };
+      
+        if(EMIESFault::isEMIESFault(n)) {
+          EMIESFault *fault = new EMIESFault; *fault = n;
+          responses.push_back(fault);
+          retval = false;
+          continue;
+        };
+        
+        responses.push_back(new EMIESAcknowledgement((std::string)n["ActivityID"]));
+        
+        // TODO: Use of Acknowledgement element is unclear from current specification (v1.16).
+        //if(!item["Acknowledgement"]) {
+        //  lfailure = "Response does not contain Acknowledgement";
+        //  return false;
+        //};
+      }
+      itLastProcessedEnd = itRequested;
+    }
+    
+    return retval;
+  }
+
   bool EMIESClient::list(std::list<EMIESJob>& jobs) {
     /*
     esainfo:ListActivities

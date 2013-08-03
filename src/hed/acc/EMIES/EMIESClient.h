@@ -119,6 +119,14 @@ namespace Arc {
       XMLNode jobInfo;
   };
 
+  class EMIESAcknowledgement : public EMIESResponse {
+  public:
+    EMIESAcknowledgement(const std::string& id) : EMIESResponse(), activityID(id) {}
+    EMIESAcknowledgement(const EMIESAcknowledgement& a) : EMIESResponse(), activityID(a.activityID) {}
+    
+    std::string activityID;
+  };
+
   class EMIESFault : public EMIESResponse {
   public:
     EMIESFault() : code(0), limit(-1) {}
@@ -244,6 +252,7 @@ namespace Arc {
     bool restart(const EMIESJob& job);
 
     bool notify(const EMIESJob& job);
+    bool notify(const std::list<EMIESJob*> jobs, std::list<EMIESResponse*>& responses);
 
     //! Request the status of a service.
     /*! This method requests the EMI ES service about its status.
