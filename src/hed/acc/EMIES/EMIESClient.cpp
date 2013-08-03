@@ -1184,6 +1184,7 @@ namespace Arc {
     type = "";
     message = "";
     description = "";
+    activityID = "";
     timestamp = Time(0);
     code = 0;
     limit = 0;
@@ -1194,6 +1195,7 @@ namespace Arc {
       message = (std::string)fault["Message"];
       if((bool)fault["FailureCode"]) strtoint((std::string)fault["FailureCode"],code);
       if((bool)fault["Timestamp"]) timestamp = (std::string)fault["Timestamp"];
+      if((bool)item["ActivityID"]) activityID = (std::string)item["ActivityID"]; // ActivityID is located at same level as fault.
       if(type == "VectorLimitExceededFault" &&
          ((!fault["ServerLimit"]) || (!stringto((std::string)fault["ServerLimit"], limit)))) {
         type = "MalformedFaultError";
@@ -1205,7 +1207,7 @@ namespace Arc {
     }
     
     return *this;
-   }
+  }
 
   bool EMIESFault::operator!(void) {
     return type.empty();

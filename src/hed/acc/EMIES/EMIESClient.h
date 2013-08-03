@@ -121,9 +121,11 @@ namespace Arc {
 
   class EMIESFault : public EMIESResponse {
   public:
+    EMIESFault() : code(0), limit(-1) {}
     std::string type;
     std::string message;
     std::string description;
+    std::string activityID;
     Time timestamp;
     int code;
     int limit;
