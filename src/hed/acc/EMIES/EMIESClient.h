@@ -187,6 +187,8 @@ namespace Arc {
      */
     bool submit(XMLNode jobdesc, EMIESResponse** response, const std::string delegation_id = "");
 
+    bool submit(const XMLNodeList& jobdescs, std::list<EMIESResponse*>& responses, const std::string delegation_id = "");
+
     //! Query the status of a job.
     /*! This method queries the EMI ES service about the status of a
        job.

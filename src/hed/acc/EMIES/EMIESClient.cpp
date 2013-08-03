@@ -308,6 +308,124 @@ namespace Arc {
     return true;
   }
 
+  bool EMIESClient::submit(const XMLNodeList& jobdescs, std::list<EMIESResponse*>& responses, const std::string delegation_id) {
+    std::string action = "CreateActivity";
+    logger.msg(VERBOSE, "Creating and sending job submit request to %s", rurl.str());
+
+    // Create job request
+    /*
+       escreate:CreateActivity
+         esadl:ActivityDescription
+
+       escreate:CreateActivityResponse
+         escreate:ActivityCreationResponse
+           estypes:ActivityID
+           estypes:ActivityMgmtEndpointURL
+           estypes:ResourceInfoEndpointURL
+           estypes:ActivityStatus
+           escreate:ETNSC
+           escreate:StageInDirectory
+             URL
+           escreate:SessionDirectory
+             URL
+           escreate:StageOutDirectory
+             URL
+           or
+           estypes:InternalBaseFault
+           estypes:AccessControlFault
+           escreate:InvalidActivityDescriptionFault
+           escreate:InvalidActivityDescriptionSemanticFault
+           escreate:UnsupportedCapabilityFault
+     */
+
+    bool noFailures = true;
+    int limit = 1000000; // 1 M - Safety
+    XMLNodeList::const_iterator itSubmit = jobdescs.begin(), itLastProcessedEnd = jobdescs.begin();
+    while (itSubmit != jobdescs.end() && limit > 0) {
+      PayloadSOAP req(ns);
+      XMLNode op = req.NewChild("escreate:" + action);
+
+      for (int i = 0; itSubmit != jobdescs.end() && i < limit; ++itSubmit, ++i) {
+        XMLNode act_doc = op.NewChild(*itSubmit);
+        act_doc.Name("esadl:ActivityDescription"); // In case it had different top element
+  
+        if(!delegation_id.empty()) {
+          // Inserting delegation id into job desription - ADL specific
+          XMLNodeList sources = act_doc.Path("DataStaging/InputFile/Source");
+          for(XMLNodeList::iterator item = sources.begin();item!=sources.end();++item) {
+            XMLNode delegNode = (*item)["esadl:DelegationID"];
+            if (!(bool)delegNode) {
+              delegNode = item->NewChild("esadl:DelegationID");
+            }
+            delegNode = delegation_id;
+          };
+          XMLNodeList targets = act_doc.Path("DataStaging/OutputFile/Target");
+          for(XMLNodeList::iterator item = targets.begin();item!=targets.end();++item) {
+            XMLNode delegNode = (*item)["esadl:DelegationID"];
+            if (!(bool)delegNode) {
+              delegNode = item->NewChild("esadl:DelegationID");
+            }
+            delegNode = delegation_id;
+          };
+        };
+        {
+          std::string s;
+          itSubmit->GetXML(s);
+          logger.msg(DEBUG, "Job description to be sent: %s", s);
+        };
+      }
+
+      XMLNode xmlResponse;
+      if (!process(req, xmlResponse)) {
+        if (EMIESFault::isEMIESFault(xmlResponse)) {
+          EMIESFault *fault = new EMIESFault; *fault = xmlResponse;
+          if (fault->type == "VectorLimitExceededFault") {
+            if (fault->limit < limit) {
+              logger.msg(VERBOSE, "New limit for vector queries returned by EMI ES service: %d", fault->limit);
+              itSubmit = itLastProcessedEnd;
+              limit = fault->limit;
+              delete fault;
+              continue;
+            }
+
+            // Bail out if response is a limit higher than the current.
+            logger.msg(DEBUG, "Error: Service returned a limit higher or equal to current limit (current: %d; returned: %d)", limit, fault->limit);
+            delete fault;
+            responses.push_back(new UnexpectedError("Service returned a limit higher or equal to current limit"));
+            return false;
+          }
+          responses.push_back(fault);
+          return false;
+        }
+        responses.push_back(new UnexpectedError(lfailure));
+        return false;
+      }
+
+
+      xmlResponse.Namespaces(ns);
+      for (XMLNode n = xmlResponse["escreate:ActivityCreationResponse"]; (bool)n; ++n) {
+        EMIESJob *j = new EMIESJob; *j = n;
+        if (*j) {
+          responses.push_back(j);
+          continue;
+        }
+        delete j;
+        
+        noFailures = false;
+        EMIESFault *fault = new EMIESFault; *fault = n;
+        if (*fault) {
+          responses.push_back(fault);
+          continue;
+        }
+        delete fault;
+        responses.push_back(new UnexpectedError("Invalid ActivityCreationResponse: It is neither a new activity or a fault"));
+      }
+      itLastProcessedEnd = itSubmit;
+    }
+
+    return noFailures;
+  }
+
   bool EMIESClient::stat(const EMIESJob& job, EMIESJobState& state) {
     XMLNode st;
     if(!stat(job,st)) return false;
