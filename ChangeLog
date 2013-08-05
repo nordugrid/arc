@@ -1,3 +1,8 @@
+2013-08-05  Martin Skou Andersen <skou@nbi.dk>
+  * EMI-ES: Make use of bulk operations when submitting jobs directly to a
+    submission endpoint (i.e. using the '--direct' flag with arcsub). On the way
+    to fixing bug 3099.
+
 2013-07-17  Gabor Szigeti <szigeti@niif.hu>
   * Add new (use_ssl) configuration option that can be use during the communication
     with a production accounting server.
