@@ -47,35 +47,294 @@ namespace Arc {
     return str;
   }
   
+  bool SubmitterPluginEMIES::getDelegationID(const URL& durl, std::string& delegation_id) {
+    if(!durl) {
+      logger.msg(INFO, "Failed to delegate credentials to server - no delegation interface found");
+      return false;
+    }
+    
+    AutoPointer<EMIESClient> ac(clients.acquire(durl));
+    delegation_id = ac->delegation();
+    if(delegation_id.empty()) {
+      logger.msg(INFO, "Failed to delegate credentials to server - %s",ac->failure());
+      return false;
+    }
+    clients.release(ac.Release());
+    
+    return true;
+  }
+
+
   SubmissionStatus SubmitterPluginEMIES::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     // TODO: this is multi step process. So having retries would be nice.
+    // TODO: If delegation interface is not on same endpoint as submission interface this method is faulty.
 
     URL url = CreateURL(endpoint);
 
     SubmissionStatus retval;
-    for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
-
-      JobDescription preparedjobdesc(*it);
-  
+    bool need_delegation = false;
+    std::string delegation_id;
+    std::list<bool> have_uploads;
+    XMLNodeList products;
+    for (std::list<JobDescription>::const_iterator itJ = jobdescs.begin(); itJ != jobdescs.end(); ++itJ) {
+      JobDescription preparedjobdesc(*itJ);
       if (!preparedjobdesc.Prepare()) {
         logger.msg(INFO, "Failed preparing job description");
-        notSubmitted.push_back(&*it);
+        notSubmitted.push_back(&*itJ);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
 
-      EMIESJob jobid;
-      if(!SubmitterPluginEMIES::submit(preparedjobdesc,url,URL(),URL(),jobid)) {
-        notSubmitted.push_back(&*it);
+      {
+        std::string jstr;
+        JobDescriptionResult ures = preparedjobdesc.UnParse(jstr, "emies:adl");
+        if (!ures) {
+          logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format: %s", "emies:adl", ures.str());
+          notSubmitted.push_back(&*itJ);
+          retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+          continue;
+        }
+        products.push_back(XMLNode());
+        XMLNode(jstr).Move(products.back());
+        if(!products.back()) {
+          logger.msg(INFO, "Unable to submit job. Job description is not valid XML");
+          notSubmitted.push_back(&*itJ);
+          retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+          products.pop_back();
+          continue;
+        }
+      }
+      
+
+      have_uploads.push_back(false);
+      for(std::list<InputFileType>::const_iterator itIF = itJ->DataStaging.InputFiles.begin();
+          itIF != itJ->DataStaging.InputFiles.end() && (!need_delegation || !have_uploads.back()); ++itIF) {
+        have_uploads.back() = have_uploads.back() || (!itIF->Sources.empty() && (itIF->Sources.front().Protocol() == "file"));
+        need_delegation     = need_delegation     || (!itIF->Sources.empty() && (itIF->Sources.front().Protocol() != "file"));
+      }
+      for(std::list<OutputFileType>::const_iterator itOF = itJ->DataStaging.OutputFiles.begin();
+          itOF != itJ->DataStaging.OutputFiles.end() && !need_delegation; ++itOF) {
+        need_delegation = !itOF->Targets.empty();
+      }
+
+      if (need_delegation && delegation_id.empty()) {
+      // Assume that delegation interface is on same machine as submission interface.
+      if (need_delegation && delegation_id.empty() && !getDelegationID(url, delegation_id)) {
+        notSubmitted.push_back(&*itJ);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
+        products.pop_back();
+        have_uploads.pop_back();
         continue;
       }
- 
-      Job j = jobid.ToJob();
-      AddJobDetails(preparedjobdesc, j);
-      jc.addEntity(j);
+      
+      }
+
+      if(have_uploads.back()) {
+        // At least CREAM expects to have ClientDataPush for any input file
+        std::string prefix = products.back().Prefix();
+        Arc::XMLNode stage = products.back()["DataStaging"];
+        Arc::XMLNode flag = stage["ClientDataPush"];
+        // Following 2 are for satisfying inner paranoic feeling
+        if(!stage) stage = products.back().NewChild(prefix+":DataStaging");
+        if(!flag) flag = stage.NewChild(prefix+":ClientDataPush",0,true);
+        flag = "true";
+      }
+  
     }
+    
+    AutoPointer<EMIESClient> ac(clients.acquire(url));
+    std::list<EMIESResponse*> responses;
+    ac->submit(products, responses, delegation_id);
+    
+    std::list<bool>::iterator itHU = have_uploads.begin();
+    std::list<EMIESResponse*>::iterator itR = responses.begin();
+    std::list<JobDescription>::const_iterator itJ = jobdescs.begin();
+    
+    std::list<EMIESJob*> jobsToNotify;
+    std::list<const JobDescription*> jobDescriptionsOfJobsToNotify;
+    for (; itR != responses.end() && itHU != have_uploads.end() && itJ != jobdescs.end(); ++itJ, ++itR) {
+      EMIESJob *j = dynamic_cast<EMIESJob*>(*itR);
+      if (j) {
+        if (!(*j)) {
+          logger.msg(INFO, "No valid job identifier returned by EMI ES");
+          notSubmitted.push_back(&*itJ);
+          retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+          delete *itR; *itR = NULL;
+          continue;
+        }
+
+        if(!j->manager) {
+          j->manager = url;
+        }
+  
+        JobDescription preparedjobdesc(*itJ);
+        preparedjobdesc.Prepare();
+
+        bool job_ok = true;
+        // Check if we have anything to upload. Otherwise there is no need to wait.
+        if(*itHU) {
+          // Wait for job to go into proper state
+          for(;;) {
+            // TODO: implement timeout
+            if(j->state.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) break;
+            if(j->state.state == EMIES_STATE_TERMINAL_S) {
+              logger.msg(INFO, "Job failed on service side");
+              job_ok = false;
+              break;
+            }
+            // If service jumped over stageable state client probably does not
+            // have to send anything.
+            if((j->state.state != EMIES_STATE_ACCEPTED_S) &&
+               (j->state.state != EMIES_STATE_PREPROCESSING_S)) break;
+            sleep(5);
+            if(!ac->stat(*j, j->state)) {
+              logger.msg(INFO, "Failed to obtain state of job");
+              job_ok = false;
+              break;
+            }
+          }
+          if (!job_ok) {
+            notSubmitted.push_back(&*itJ);
+            retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+            delete *itR; *itR = NULL;
+            continue;
+          }
+        }
+            
+        if(*itHU) {
+          if(!j->state.HasAttribute(EMIES_SATTR_CLIENT_STAGEIN_POSSIBLE_S)) {
+            logger.msg(INFO, "Failed to wait for job to allow stage in");
+            notSubmitted.push_back(&*itJ);
+            retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+            delete *itR; *itR = NULL;
+            continue;
+          }
+          if(j->stagein.empty()) {
+            // Try to obtain it from job info
+            Job tjob;
+            if((!ac->info(*j, tjob)) ||
+               (j->stagein.empty())) {
+              job_ok = false;
+            } else {
+              job_ok = false;
+              for(std::list<URL>::iterator stagein = j->stagein.begin();
+                  stagein != j->stagein.end();++stagein) {
+                if(*stagein) {
+                  job_ok = true;
+                  break;
+                }
+              }
+            }
+            if(!job_ok) {
+              logger.msg(INFO, "Failed to obtain valid stagein URL for input files");
+              notSubmitted.push_back(&*itJ);
+              retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+              delete *itR; *itR = NULL;
+              continue;
+            }
+          }
+    
+          job_ok = false;
+          for(std::list<URL>::iterator stagein = j->stagein.begin();
+              stagein != j->stagein.end();++stagein) {
+            if(!*stagein) continue;
+            // Enhance file upload performance by tuning URL
+            if((stagein->Protocol() == "https") || (stagein->Protocol() == "http")) {
+              stagein->AddOption("threads=2",false);
+              stagein->AddOption("encryption=optional",false);
+              // stagein->AddOption("httpputpartial=yes",false); - TODO: use for A-REX
+            }
+            stagein->AddOption("checksum=no",false);
+            if (!PutFiles(preparedjobdesc, *stagein)) {
+              logger.msg(INFO, "Failed uploading local input files to %s",stagein->str());
+            } else {
+              job_ok = true;
+            }
+          }
+          if (!job_ok) {
+            notSubmitted.push_back(&*itJ);
+            retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+            delete *itR; *itR = NULL;
+            continue;
+          }
+        }
+        clients.release(ac.Release());
+
+        jobsToNotify.push_back(j);
+        jobDescriptionsOfJobsToNotify.push_back(&*itJ);
+        ++itHU;
+        continue;
+      }
+      EMIESFault *f = dynamic_cast<EMIESFault*>(*itR);
+      if (f) {
+        logger.msg(INFO, "Failed to submit job description: EMIESFault(%s , %s)", f->message, f->description);
+        notSubmitted.push_back(&*itJ);
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        delete *itR; *itR = NULL;
+        itHU = have_uploads.erase(itHU);
+        continue;
+      }
+      UnexpectedError *ue = dynamic_cast<UnexpectedError*>(*itR);
+      if (ue) {
+        logger.msg(INFO, "Failed to submit job description: UnexpectedError(%s)", ue->message);
+        notSubmitted.push_back(&*itJ);
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        delete *itR; *itR = NULL;
+        itHU = have_uploads.erase(itHU);
+        continue;
+      }
+    }
+
+    for (; itJ != jobdescs.end(); ++itJ) {
+      notSubmitted.push_back(&*itJ);
+      retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+    }
+
+    // Safety
+    for (; itR != responses.end(); ++itR) {
+      delete *itR; *itR = NULL;
+    }
+    responses.clear();
+
+    if (jobsToNotify.empty()) return retval;
+    
+    // It is not clear how service is implemented. So notifying should not harm.
+    // Notification must be sent to manager URL.
+    // Assumption: Jobs is managed by the same manager.
+    AutoPointer<EMIESClient> mac(clients.acquire(jobsToNotify.front()->manager));
+    mac->notify(jobsToNotify, responses);
+    clients.release(mac.Release());
+    
+    itR = responses.begin(); 
+    itHU = have_uploads.begin();
+    std::list<EMIESJob*>::iterator itJob = jobsToNotify.begin();
+    std::list<const JobDescription*>::const_iterator itJPtr = jobDescriptionsOfJobsToNotify.begin();
+    for (; itR != responses.end() && itJPtr != jobDescriptionsOfJobsToNotify.end() && itJob != jobsToNotify.end() && itHU != have_uploads.end();
+         ++itR, ++itJPtr, ++itJob, ++itHU) {
+      EMIESAcknowledgement *ack = dynamic_cast<EMIESAcknowledgement*>(*itR);
+      if (!ack) {
+        logger.msg(VERBOSE, "Failed to notify service");
+        // TODO: exact logic still requires clarification of specs.
+        // TODO: Maybe job should be killed in this case?
+        // So far assume if there are no files to upload 
+        // activity can survive without notification.
+        if(*itHU) {
+          notSubmitted.push_back(*itJPtr);
+          retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+          delete *itR; *itR = NULL;
+          continue;
+        }
+      }
+      
+
+      JobDescription preparedjobdesc(**itJPtr);
+      preparedjobdesc.Prepare();
+      
+      Job job = (**itJob).ToJob();
+      AddJobDetails(preparedjobdesc, job);
+      jc.addEntity(job);
+      delete *itR; *itR = NULL;
+    } 
 
     return retval;
   }

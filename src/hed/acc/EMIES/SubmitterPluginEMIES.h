@@ -36,6 +36,7 @@ namespace Arc {
   private:
     EMIESClients clients;
 
+    bool getDelegationID(const URL& durl, std::string& delegation_id);
     bool submit(const JobDescription& preparedjobdesc, const URL& url, const URL& iurl, URL durl, EMIESJob& jobid);
 
     static Logger logger;
