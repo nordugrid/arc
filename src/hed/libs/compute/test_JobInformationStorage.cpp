@@ -24,19 +24,19 @@ int main(int argc, char **argv) {
   Arc::OptionParser options("", "", "");
 
   int nJobs = -1;
-  options.AddOption('N', "NJobs", "njobs", "number of jobs to write/read to/from storage", nJobs);
+  options.AddOption('N', "NJobs", "number of jobs to write/read to/from storage", "n", nJobs);
   
-  int bunchSize = 100000;
-  options.AddOption('B', "bunchSize", "", "size of bunches of job objects to pass to JobInformationStorage object methods", bunchSize);
+  int bunchSize = 50000;
+  options.AddOption('B', "bunchSize", "size of bunches of job objects to pass to JobInformationStorage object methods", "n", bunchSize);
 
   std::string action = "write";
-  options.AddOption('a', "action", "write, append, appendreturnnew, read, readall, remove", "Action to perform", action);
+  options.AddOption('a', "action", "Action to perform: write, append, appendreturnnew, read, readall, remove", "action", action);
   
   std::string filename = "";
   options.AddOption('f', "filename", "", "", filename);
   
   std::string typeS = "";
-  options.AddOption('t', "type", "BDB or XML", "Type of storage back-end to use", typeS);
+  options.AddOption('t', "type", "Type of storage back-end to use (BDB or XML)", "type", typeS);
   
   std::string hostname = "test.nordugrid.org";
   options.AddOption(0, "hostname", "", "", hostname);
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
   options.AddOption(0, "endpoint", "", "", endpoints);
 
   std::list<std::string> rejectEndpoints;
-  options.AddOption(0, "rejectEndpoint", "reject", "Reject jobs with JobManagementURL matching specified endpoints (matching algorithm: URL::StringMatches)", rejectEndpoints);
+  options.AddOption(0, "rejectEndpoint", "Reject jobs with JobManagementURL matching specified endpoints (matching algorithm: URL::StringMatches)", "reject", rejectEndpoints);
 
   std::string jobidinfile;
   options.AddOption('i', "jobids-from-file", "a file containing a list of job IDs", "filename", jobidinfile);
@@ -100,10 +100,8 @@ int main(int argc, char **argv) {
       remove(filename.c_str());
     }
     else {
-      Arc::FileCopy(filename, "append-" + filename);
-      filename = "append-" + filename;
+      Arc::FileCopy(filename, filename + ".orig");
     }
-    
     Arc::Job j;
     j.ServiceInformationInterfaceName = "org.nordugrid.test";
     j.JobStatusInterfaceName = "org.nordugrid.test";
