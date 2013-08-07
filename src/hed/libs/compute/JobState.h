@@ -122,6 +122,7 @@ namespace Arc {
     static const std::string StateTypeString[];
 
     JobState() : ssf(FormatSpecificState), type(UNDEFINED) {}
+    JobState(const std::string& jobstate) : ssf(FormatSpecificState), state(jobstate), type(GetStateType(jobstate)) {}
     
     JobState& operator=(const JobState& js) { type = js.type; state = js.state; ssf = js.ssf; return *this; }
 
