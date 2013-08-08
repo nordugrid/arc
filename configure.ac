@@ -389,7 +389,7 @@ if test "$enables_java" = "yes"; then
       *-pc-mingw32 | *-pc-cygwin)
         JAVA_EXTRA_INCLUDE="win32"
         ;;
-      *linux*)
+      *linux* | *kfreebsd* | *gnu* )
         JAVA_EXTRA_INCLUDE="linux"
         ;;
       *solaris*)
