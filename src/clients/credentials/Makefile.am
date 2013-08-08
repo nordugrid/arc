@@ -22,7 +22,7 @@ arcproxy_LDADD = \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 
 if CANLXX_ENABLED
 arcproxyalt_SOURCES = arcproxyalt.cpp
@@ -36,7 +36,7 @@ arcproxyalt_LDADD = \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(CANLXX_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(CANLXX_LIBS)
 endif
 
 if XMLSEC_ENABLED
@@ -50,7 +50,7 @@ arcslcs_LDADD = \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
 endif
 
 test2vomsserver_SOURCES = test2vomsserver.cpp
@@ -63,7 +63,7 @@ test2vomsserver_LDADD = \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 
 test2myproxyserver_put_SOURCES = test2myproxyserver_put.cpp
 test2myproxyserver_put_CXXFLAGS = -I$(top_srcdir)/include \
@@ -74,7 +74,7 @@ test2myproxyserver_put_LDADD = \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 
 test2myproxyserver_get_SOURCES = test2myproxyserver_get.cpp
 test2myproxyserver_get_CXXFLAGS = -I$(top_srcdir)/include \
@@ -85,6 +85,6 @@ test2myproxyserver_get_LDADD = \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 
 man_MANS = arcproxy.1 arcslcs.1
