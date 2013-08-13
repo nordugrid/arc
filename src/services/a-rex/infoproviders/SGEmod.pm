@@ -808,7 +808,7 @@ sub jobs_info ($) {
         
             $log->debug("SGE job $jid has finished");
             $lrms_jobs->{$jid}{status} = 'EXECUTED';
-            $lrms_jobs->{$jid}{comment} = ''
+            $lrms_jobs->{$jid}{comment} = [];
         }
     }
 
