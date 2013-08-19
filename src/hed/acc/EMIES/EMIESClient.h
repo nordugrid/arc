@@ -107,6 +107,7 @@ namespace Arc {
     operator bool(void);
     static std::string getIDFromJob(const Job*);
     static std::string getIDFromJob(const Job&);
+    static std::string getIDFromJob(const EMIESJob&);
   };
 
   class EMIESJobInfo : public EMIESResponse {

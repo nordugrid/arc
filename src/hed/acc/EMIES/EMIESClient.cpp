@@ -604,6 +604,7 @@ namespace Arc {
   }
 
   template void EMIESClient::info<Job*>(const std::list<Job*>&, std::list<EMIESResponse*>&);
+  template void EMIESClient::info<EMIESJob>(const std::list<EMIESJob>&, std::list<EMIESResponse*>&);
 
   bool EMIESClient::info(EMIESJob& job, Job& arcjob) {
     /*
@@ -1273,6 +1274,10 @@ namespace Arc {
   std::string EMIESJob::getIDFromJob(const Job* job) {
     if (!job) return "";
     return getIDFromJob(*job);
+  }
+  
+  std::string EMIESJob::getIDFromJob(const EMIESJob& job) {
+    return job.id;
   }
   
   Job EMIESJob::ToJob() const {
