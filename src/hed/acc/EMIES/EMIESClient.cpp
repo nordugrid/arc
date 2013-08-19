@@ -523,7 +523,8 @@ namespace Arc {
     return true;
   }
 
-  void EMIESClient::info(const std::list<Job*> jobs, std::list<EMIESResponse*>& responses) {
+  template<class T>
+  void EMIESClient::info(const std::list<T>& jobs, std::list<EMIESResponse*>& responses) {
     /*
       esainfo:GetActivityInfo
         estypes:ActivityID
@@ -549,12 +550,12 @@ namespace Arc {
     logger.msg(VERBOSE, "Creating and sending job information query request to %s", rurl.str());
 
     int limit = 1000000; // 1 M - Safety
-    std::list<Job*>::const_iterator itRequested = jobs.begin(), itLastProcessedEnd = jobs.begin();
+    typename std::list<T>::const_iterator itRequested = jobs.begin(), itLastProcessedEnd = jobs.begin();
     while (itRequested != jobs.end() && limit > 0) {
       PayloadSOAP req(ns);
       XMLNode actionNode = req.NewChild("esainfo:" + action);
       for (int i = 0; itRequested != jobs.end() && i < limit; ++itRequested, ++i) {
-        actionNode.NewChild("estypes:ActivityID") = EMIESJob::getIDFromJob(**itRequested);
+        actionNode.NewChild("estypes:ActivityID") = EMIESJob::getIDFromJob(*itRequested);
       }
 
       XMLNode xmlResponse;
@@ -601,6 +602,8 @@ namespace Arc {
       itLastProcessedEnd = itRequested;
     }
   }
+
+  template void EMIESClient::info<Job*>(const std::list<Job*>&, std::list<EMIESResponse*>&);
 
   bool EMIESClient::info(EMIESJob& job, Job& arcjob) {
     /*
@@ -1265,6 +1268,11 @@ namespace Arc {
       return (std::string)IDFromEndpointXML["ReferenceParameters"]["CustomID"];
     }
     return job.IDFromEndpoint;
+  }
+
+  std::string EMIESJob::getIDFromJob(const Job* job) {
+    if (!job) return "";
+    return getIDFromJob(*job);
   }
   
   Job EMIESJob::ToJob() const {

@@ -105,6 +105,7 @@ namespace Arc {
     Job ToJob(void) const;
     bool operator!(void);
     operator bool(void);
+    static std::string getIDFromJob(const Job*);
     static std::string getIDFromJob(const Job&);
   };
 
@@ -208,7 +209,8 @@ namespace Arc {
     bool stat(const EMIESJob& job, EMIESJobState& state);
     bool info(EMIESJob& job, XMLNode &state);
     bool info(EMIESJob& job, Job& info);
-    void info(const std::list<Job*> jobs, std::list<EMIESResponse*>& responses);
+    template<class T>
+    void info(const std::list<T>& jobs, std::list<EMIESResponse*>& responses);
 
     //! Terminates a job.
     /*! This method sends a request to the EMI ES service to terminate
