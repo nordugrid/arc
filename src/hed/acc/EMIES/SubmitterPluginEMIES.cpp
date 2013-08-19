@@ -330,7 +330,8 @@ namespace Arc {
       JobDescription preparedjobdesc(**itJPtr);
       preparedjobdesc.Prepare();
       
-      Job job = (**itJob).ToJob();
+      Job job;
+      (**itJob).toJob(job);
       AddJobDetails(preparedjobdesc, job);
       jc.addEntity(job);
       delete *itR; *itR = NULL;
@@ -378,7 +379,8 @@ namespace Arc {
         continue;
       }
       
-      Job j = jobid.ToJob();
+      Job j;
+      jobid.toJob(j);
       
       AddJobDetails(preparedjobdesc, j);
       jc.addEntity(j);

@@ -101,8 +101,8 @@ namespace Arc {
     EMIESJob& operator=(XMLNode job);
     EMIESJob& operator=(const Job& job);
     EMIESJob& operator=(const std::string& s) { XMLNode n(s); return operator=(n); }
-    std::string ToXML(void) const;
-    Job ToJob(void) const;
+    std::string toXML(void) const;
+    void toJob(Job& j) const;
     bool operator!(void);
     operator bool(void);
     static std::string getIDFromJob(const Job*);

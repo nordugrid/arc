@@ -1280,9 +1280,7 @@ namespace Arc {
     return job.id;
   }
   
-  Job EMIESJob::ToJob() const {
-    Job j;
-    
+  void EMIESJob::toJob(Job& j) const {
     // Proposed mandatory attributes for ARC 3.0
     j.JobID = manager.str() + "/" + id;
     j.ServiceInformationURL = resource;
@@ -1295,11 +1293,9 @@ namespace Arc {
     if (!stagein.empty()) j.StageInDir = stagein.front();
     if (!stageout.empty()) j.StageInDir = stageout.front();
     if (!session.empty()) j.StageInDir = session.front();
-    
-    return j;
   }
 
-  std::string EMIESJob::ToXML() const {
+  std::string EMIESJob::toXML() const {
     /*
     estypes:ActivityID
     estypes:ActivityMgmtEndpointURL
