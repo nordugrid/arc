@@ -282,10 +282,12 @@ bool PayloadHTTPIn::read_multipart(char* buf,int64_t& size) {
     // TODO: check if it is last tag
     multipart_ = MULTIPART_END;
   };
+  logger.msg(Arc::DEBUG,"<< %s",std::string(buf,size));
   return true;
 }
 
 bool PayloadHTTPIn::flush_multipart(void) {
+  // TODO: protect against insame length of body
   if(!multipart_) return true;
   if(multipart_ == MULTIPART_ERROR) return false;
   std::string::size_type pos = 0;
@@ -496,9 +498,11 @@ bool PayloadHTTPIn::get_body(void) {
   int64_t result_size = 0;
   if(length_ == 0) {
     valid_=true;
+    body_read_=true;
     return true;
   } else if(length_ > 0) {
     // TODO: combination of chunked and defined length is probably impossible
+    // TODO: protect against insane length_
     result=(char*)malloc(length_+1);
     if(!read_multipart(result,length_)) { free(result); return false; };
     result_size=length_;
@@ -511,6 +515,7 @@ bool PayloadHTTPIn::get_body(void) {
       result=new_result;
       if(!read_multipart(result+result_size,chunk_size)) break;
       // TODO: logical size is not always same as end of body
+      // TODO: protect against insane length of body
       result_size+=chunk_size;
     };
   };
@@ -526,23 +531,26 @@ bool PayloadHTTPIn::get_body(void) {
   // allign to end of message
   flush_multipart();
   flush_chunked();
+  body_read_=true;
   return true;
 }
 
 PayloadHTTPIn::PayloadHTTPIn(PayloadStreamInterface& stream,bool own):
     chunked_(CHUNKED_NONE),chunk_size_(0),
     multipart_(MULTIPART_NONE),stream_(&stream),stream_offset_(0),
-    stream_own_(own),fetched_(false),body_(NULL),body_size_(0) {
+    stream_own_(own),fetched_(false),header_read_(false),body_read_(false),
+    body_(NULL),body_size_(0) {
   tbuf_[0]=0; tbuflen_=0;
   if(!parse_header()) {
     error_ = IString("Failed to parse HTTP header").str();
     return;
   }
+  header_read_=true;
   valid_=true;
 }
 
 PayloadHTTPIn::~PayloadHTTPIn(void) {
-  // allign to end of message
+  // allign to end of message (maybe not needed with Sync() exposed)
   flush_multipart();
   flush_chunked();
   if(stream_ && stream_own_) delete stream_;
@@ -641,6 +649,7 @@ bool PayloadHTTPIn::Get(char* buf,int& size) {
   if(length_ == 0) {
     // No body
     size=0;
+    body_read_=true;
     return false;
   };
   if(length_ > 0) {
@@ -653,12 +662,14 @@ bool PayloadHTTPIn::Get(char* buf,int& size) {
       size=bs; return false;
     };
     size=bs; stream_offset_+=bs;
+    if(stream_offset_ >= length_) body_read_=true;
     return true;
   };
   // Ordinary stream with no length known
   int64_t tsize = size;
   bool r = read_multipart(buf,tsize);
   if(r) stream_offset_+=tsize;
+  if(!r) body_read_=true;
   size=tsize;
   // TODO: adjust logical parameters of buffers
   return r;
@@ -689,6 +700,30 @@ PayloadStreamInterface::Size_t PayloadHTTPIn::Limit(void) const {
   return (offset_ + body_size_);
 }
 
+bool PayloadHTTPIn::Sync(void) {
+  if(!valid_) return false;
+  if(!header_read_) return false;
+  if(fetched_) return true;
+  // For multipart data - read till end tag
+  // If data is chunked then it is enough to just read till 
+  // chunks are over.
+  if(multipart_ || chunked_) {
+    bool r = true;
+    if(!flush_multipart()) r=false; // not really neaded but keeps variables ok
+    if(!flush_chunked()) r=false;
+    if(r) body_read_ = true;
+    return r;
+  };
+  // For data without any tags just read till end reached
+  for(;!body_read_;) {
+    char buf[1024];
+    int size = sizeof(buf);
+    bool r = Get(buf,size);
+    if(body_read_) return true;
+    if(!r) break;
+  };
+  return false;
+}
 
 // ------------------- PayloadHTTPOut ---------------------------
 

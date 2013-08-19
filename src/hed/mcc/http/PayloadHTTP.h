@@ -113,6 +113,8 @@ class PayloadHTTPIn: public PayloadHTTP, public PayloadRawInterface, public Payl
                                        buffers. Otherwise only header and
                                        part of body in tbuf_ was fetched and
                                        rest is to be read through stream_. */
+  bool header_read_;               /** true if whole header was read from stream_ */
+  bool body_read_;                 /** true if whole body was read from stream_ */
   char tbuf_[1024];                /** intermediate buffer for reading header lines */
   int tbuflen_;                    /** amount of data stored in tbuf */
   char* body_;
@@ -161,6 +163,9 @@ class PayloadHTTPIn: public PayloadHTTP, public PayloadRawInterface, public Payl
   virtual std::string Reason(void) { return reason_; };
   virtual int Code(void) { return code_; };
   virtual bool KeepAlive(void) { return keep_alive_; };
+  // Fetch anything what is left of current request from input stream 
+  // to sync for next request.
+  virtual bool Sync(void);
 
   // PayloadRawInterface implemented methods
   virtual char operator[](PayloadRawInterface::Size_t pos) const;

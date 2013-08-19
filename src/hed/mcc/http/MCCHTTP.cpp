@@ -144,7 +144,7 @@ MCC_HTTP_Service::MCC_HTTP_Service(Config *cfg,PluginArgument* parg):MCC_HTTP(cf
 MCC_HTTP_Service::~MCC_HTTP_Service(void) {
 }
 
-static MCC_Status make_http_fault(Logger& logger,PayloadStreamInterface& stream,Message& outmsg,int code,const char* desc = NULL) {
+static MCC_Status make_http_fault(Logger& logger, PayloadHTTPIn &inpayload, PayloadStreamInterface& stream, Message& outmsg, int code, const char* desc = NULL) {
   if((desc == NULL) || (*desc == 0)) {
     switch(code) {
       case HTTP_BAD_REQUEST:  desc="Bad Request"; break;
@@ -156,9 +156,15 @@ static MCC_Status make_http_fault(Logger& logger,PayloadStreamInterface& stream,
   };
   logger.msg(WARNING, "HTTP Error: %d %s",code,desc);
   PayloadHTTPOut outpayload(code,desc);
+  bool keep_alive = (!inpayload)?false:inpayload.KeepAlive();
+  outpayload.KeepAlive(keep_alive);
   if(!outpayload.Flush(stream)) return MCC_Status();
   // Returning empty payload because response is already sent
   outmsg.Payload(new PayloadRaw);
+  if(!keep_alive) return MCC_Status(SESSION_CLOSE);
+  // If connection is supposed to be kept any unused body must be ignored
+  if(!inpayload) return MCC_Status(SESSION_CLOSE);
+  if(!inpayload.Sync()) return MCC_Status(SESSION_CLOSE);
   return MCC_Status(STATUS_OK);
 }
 
@@ -209,7 +215,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   PayloadHTTPIn nextpayload(*inpayload);
   if(!nextpayload) {
     logger.msg(WARNING, "Cannot create http payload");
-    return make_http_fault(logger,*inpayload,outmsg,HTTP_BAD_REQUEST);
+    return make_http_fault(logger,nextpayload,*inpayload,outmsg,HTTP_BAD_REQUEST);
   };
   if(nextpayload.Method() == "END") {
     return MCC_Status(SESSION_CLOSE);
@@ -254,14 +260,14 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
     nextinmsg.Attributes()->add("HTTP:"+i->first,i->second);
   };
   if(!ProcessSecHandlers(nextinmsg,"incoming")) {
-    return make_http_fault(logger,*inpayload,outmsg,HTTP_BAD_REQUEST); // Maybe not 400 ?
+    return make_http_fault(logger,nextpayload,*inpayload,outmsg,HTTP_BAD_REQUEST); // Maybe not 400 ?
   };
   // Call next MCC
   MCCInterface* next = Next(nextpayload.Method());
   if(!next) {
     logger.msg(WARNING, "No next element in the chain");
     // Here selection is on method name. So failure result is "not supported"
-    return make_http_fault(logger,*inpayload,outmsg,HTTP_NOT_IMPLEMENTED);
+    return make_http_fault(logger,nextpayload,*inpayload,outmsg,HTTP_NOT_IMPLEMENTED);
   }
   Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
   MCC_Status ret = next->process(nextinmsg,nextoutmsg);
@@ -269,15 +275,12 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   if(!ret) {
     if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
     logger.msg(WARNING, "next element of the chain returned error status");
-    if(ret.getKind() == UNKNOWN_SERVICE_ERROR) {
-      return make_http_fault(logger,*inpayload,outmsg,HTTP_NOT_FOUND);
-    } else {
-      return make_http_fault(logger,*inpayload,outmsg,HTTP_INTERNAL_ERR);
-    }
+    return make_http_fault(logger,nextpayload,*inpayload,outmsg,
+           (ret.getKind() == UNKNOWN_SERVICE_ERROR)?HTTP_NOT_FOUND:HTTP_INTERNAL_ERR);
   }
   if(!nextoutmsg.Payload()) {
     logger.msg(WARNING, "next element of the chain returned no payload");
-    return make_http_fault(logger,*inpayload,outmsg,HTTP_INTERNAL_ERR);
+    return make_http_fault(logger,nextpayload,*inpayload,outmsg,HTTP_INTERNAL_ERR);
   }
   PayloadRawInterface* retpayload = NULL;
   PayloadStreamInterface* strpayload = NULL;
@@ -290,11 +293,11 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   if((!retpayload) && (!strpayload)) {
     logger.msg(WARNING, "next element of the chain returned invalid/unsupported payload");
     delete nextoutmsg.Payload();
-    return make_http_fault(logger,*inpayload,outmsg,HTTP_INTERNAL_ERR);
+    return make_http_fault(logger,nextpayload,*inpayload,outmsg,HTTP_INTERNAL_ERR);
   };
   if(!ProcessSecHandlers(nextinmsg,"outgoing")) {
     delete nextoutmsg.Payload();
-    return make_http_fault(logger,*inpayload,outmsg,HTTP_BAD_REQUEST); // Maybe not 400 ?
+    return make_http_fault(logger,nextpayload,*inpayload,outmsg,HTTP_BAD_REQUEST); // Maybe not 400 ?
   };
   // Create HTTP response from raw body content
   // Use stream payload of inmsg to send HTTP response
@@ -367,6 +370,8 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
     return MCC_Status(SESSION_CLOSE);
   };
   if(!keep_alive) return MCC_Status(SESSION_CLOSE);
+  // Make sure whole body sent to us was fetch from input stream.
+  if(!nextpayload.Sync()) return MCC_Status(SESSION_CLOSE);
   return MCC_Status(STATUS_OK);
 }
 
