@@ -48,6 +48,11 @@ fi
 
 PIDFILE=/var/run/acix-index.pid
 LOGFILE=/var/log/arc/acix-index.log
+
+if [ ! -d `dirname $LOGFILE` ]; then
+    mkdir -p `dirname $LOGFILE`
+fi
+
 prog=twistd
 
 RUN=yes
