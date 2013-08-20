@@ -163,6 +163,9 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
     return 1;
   }
 
+  if (opt.timeout > 0)
+    usercfg.Timeout(opt.timeout);
+
   if (!checkproxy(usercfg)) {
     return 1;
   }
