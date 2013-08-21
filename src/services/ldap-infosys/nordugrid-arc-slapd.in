@@ -117,6 +117,10 @@ start () {
     fi
 
     log_success_msg "$prog started"
+
+    if [ -x "/etc/init.d/nordugrid-arc-bdii" ] ; then
+	/etc/init.d/nordugrid-arc-bdii condrestart
+    fi
 }
 
 stop () {
