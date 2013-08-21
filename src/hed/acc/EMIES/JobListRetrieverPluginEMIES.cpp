@@ -58,36 +58,30 @@ namespace Arc {
       return s;
     }
     
-    for(std::list<EMIESJob>::iterator jobid = jobids.begin(); jobid != jobids.end(); ++jobid) {
-      XMLNode infoxml;
-      ac.info(*jobid, infoxml);
-      bool submittedviaother = false;
-      while (infoxml["OtherInfo"]) {
-        std::string otherinfo = (std::string)infoxml["OtherInfo"];
-        std::string submittedvia = "SubmittedVia=";
-        if (otherinfo.compare(0, submittedvia.length(), submittedvia) == 0) {
-          std::string interfacename = otherinfo.substr(submittedvia.length());
-          if (interfacename != "org.ogf.glue.emies.activitycreation") {
-            logger.msg(DEBUG, "Skipping retrieved job (%s) because it was submitted via another interface (%s).", url.fullstr() + "/" + jobid->id, interfacename);
-            submittedviaother = true;
-          }
-        }
-        infoxml["OtherInfo"].Destroy();
+    logger.msg(DEBUG, "Listing jobs succeeded, %d jobs found", jobids.size());
+    
+    std::list<EMIESResponse*> responses;
+    ac.info(jobids, responses);
+    
+    std::list<EMIESJob>::iterator itID = jobids.begin();
+    std::list<EMIESResponse*>::iterator itR = responses.begin();
+    for(; itR != responses.end() && itID != jobids.end(); ++itR, ++itID) {
+      EMIESJobInfo* jInfo = dynamic_cast<EMIESJobInfo*>(*itR);
+      if (!jInfo) {
+        // TODO: Handle ERROR
+        continue;
       }
-      if (submittedviaother) continue;
+      
+      std::string submittedVia = jInfo->getSubmittedVia();
+      if (submittedVia != "org.ogf.glue.emies.activitycreation") {
+        logger.msg(DEBUG, "Skipping retrieved job (%s) because it was submitted via another interface (%s).", url.fullstr() + "/" + itID->id, submittedVia);
+        continue;
+      }
       
       Job j;
-      if(!jobid->manager) jobid->manager = url;
-      // Proposed mandatory attributes for ARC 3.0
-      j.JobID = jobid->manager.str() + "/" + jobid->id;
-      j.ServiceInformationURL = url.fullstr();
-      j.ServiceInformationInterfaceName = "org.ogf.glue.emies.resourceinfo";
-      j.JobStatusURL = jobid->manager;
-      j.JobStatusInterfaceName = "org.ogf.glue.emies.activitymanagement";
-      j.JobManagementURL = jobid->manager;
-      j.JobManagementInterfaceName = "org.ogf.glue.emies.activitymanagement";
-      j.IDFromEndpoint = jobid->id;
-      
+      if(!itID->manager) itID->manager = url;
+      itID->toJob(j);
+      jInfo->toJob(j);
       jobs.push_back(j);
     };
 

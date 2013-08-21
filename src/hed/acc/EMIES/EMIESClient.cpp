@@ -1368,6 +1368,18 @@ namespace Arc {
     j.JobID = j.JobManagementURL.str() + "/" + (std::string)jobInfo["ActivityID"]; // TODO: Optimize?
   }
 
+  std::string EMIESJobInfo::getSubmittedVia() const {
+    for (XMLNode n = jobInfo["ActivityInfoDocument"]["OtherInfo"]; (bool)n; ++n) {
+      const std::string submittedvia = "SubmittedVia=";
+      if (((std::string)n).substr(0, submittedvia.length()) == submittedvia) {
+        return ((std::string)n).substr(submittedvia.length());
+      }
+    }
+    
+    return "";
+  }
+
+
   bool EMIESFault::isEMIESFault(XMLNode item) {
     std::string name;
     return isEMIESFault(item, name);

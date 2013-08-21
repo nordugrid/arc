@@ -117,6 +117,7 @@ namespace Arc {
         EMIESResponse() {}
       void toJob(Job&) const;
       std::string getActivityID() const { return (std::string)jobInfo["ActivityID"]; }
+      std::string getSubmittedVia() const;
     private:
       XMLNode jobInfo;
   };
