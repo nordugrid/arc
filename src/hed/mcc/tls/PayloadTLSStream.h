@@ -20,6 +20,7 @@ class PayloadTLSStream: public PayloadStreamInterface {
   int timeout_;   /** Timeout for read/write operations */
   SSL* ssl_; 
   Logger& logger_;
+  virtual std::string CollectError(int code = SSL_ERROR_NONE);
 public:
   /** Constructor. Attaches to already open handle.
     Handle is not managed by this class and must be closed by external code. */

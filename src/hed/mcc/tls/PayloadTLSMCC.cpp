@@ -225,7 +225,7 @@ PayloadTLSMCC* PayloadTLSMCC::RetrieveInstance(X509_STORE_CTX* container) {
 }
 
 
-void PayloadTLSMCC::CollectError(int code) {
+std::string PayloadTLSMCC::CollectError(int code) {
   // Sources:
   //  1. Already collected failure in failure_
   //  2. SSL layer
@@ -233,11 +233,11 @@ void PayloadTLSMCC::CollectError(int code) {
   std::string err_failure = failure_?"":failure_.getExplanation();
   std::string bio_failure = config_.GlobusIOGSI()?BIO_GSIMCC_failure(bio_):BIO_MCC_failure(bio_);
   std::string tls_failure = ConfigTLSMCC::HandleError(code);
-  if(!err_failure.empty()) err_failure += "\n";
+  if(!err_failure.empty() && !bio_failure.empty()) err_failure += "\n";
   err_failure += bio_failure;
-  if(!err_failure.empty()) err_failure += "\n";
+  if(!err_failure.empty() && !tls_failure.empty()) err_failure += "\n";
   err_failure += tls_failure;
-  if(!err_failure.empty()) failure_ = MCC_Status(GENERIC_ERROR,"TLS",trim(err_failure));
+  return trim(err_failure);
 }
 
 PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger& logger):
@@ -322,7 +322,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    }
    return;
 error:
-   CollectError(err);
+   failure_ = MCC_Status(GENERIC_ERROR, "TLS", CollectError(err));
    if(bio) BIO_free(bio); bio_=NULL;
    if(ssl_) SSL_free(ssl_); ssl_=NULL;
    if(sslctx_) SSL_CTX_free(sslctx_); sslctx_=NULL;
@@ -399,7 +399,7 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    // }
    return;
 error:
-   CollectError(err);
+   failure_ = MCC_Status(GENERIC_ERROR, "TLS", CollectError(err));
    if(bio) BIO_free(bio); bio_=NULL;
    if(ssl_) SSL_free(ssl_); ssl_=NULL;
    if(sslctx_) SSL_CTX_free(sslctx_); sslctx_=NULL;
@@ -411,6 +411,7 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadTLSMCC& stream):
    master_=false;
    sslctx_=stream.sslctx_;
    ssl_=stream.ssl_;
+   bio_=stream.bio_;
 }
 
 

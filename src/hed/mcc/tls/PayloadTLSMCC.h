@@ -29,9 +29,10 @@ class PayloadTLSMCC: public PayloadTLSStream {
   ConfigTLSMCC config_;
   bool StoreInstance(void);
   bool ClearInstance(void);
-  void CollectError(int code = SSL_ERROR_NONE);
   // Generic purpose bit flags
   unsigned long flags_;
+ protected:
+  std::string CollectError(int code = SSL_ERROR_NONE);
  public:
   /** Constructor - creates ssl object which is bound to next MCC.
     This instance must be used on client side. It obtains Stream interface
