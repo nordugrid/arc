@@ -121,7 +121,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
         if(it) {
           it->SetFailure(ConfigTLSMCC::HandleError(err));
         } else {
-          it->logger_.msg(ERROR,"%s",ConfigTLSMCC::HandleError(err));
+          it->logger_.msg(ERROR,"%s",X509_verify_cert_error_string(err));
         }
       }; break;
     };
