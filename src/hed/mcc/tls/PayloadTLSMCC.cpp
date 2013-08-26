@@ -119,7 +119,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
       default: {
         PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
         if(it) {
-          it->SetFailure(ConfigTLSMCC::HandleError(err));
+          it->SetFailure(X509_verify_cert_error_string(err));
         } else {
           Logger::getRootLogger().msg(ERROR,"%s",X509_verify_cert_error_string(err));
         }
