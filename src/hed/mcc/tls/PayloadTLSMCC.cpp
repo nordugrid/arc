@@ -237,6 +237,7 @@ std::string PayloadTLSMCC::CollectError(int code) {
   err_failure += bio_failure;
   if(!err_failure.empty() && !tls_failure.empty()) err_failure += "\n";
   err_failure += tls_failure;
+  if (err_failure.empty()) err_failure = "SSL error, with \"unknown\" alert";
   return trim(err_failure);
 }
 
