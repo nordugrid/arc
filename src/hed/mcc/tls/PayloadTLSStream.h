@@ -19,7 +19,6 @@ class PayloadTLSStream: public PayloadStreamInterface {
  protected:
   int timeout_;   /** Timeout for read/write operations */
   SSL* ssl_; 
-  Logger& logger_;
   virtual std::string CollectError(int code = SSL_ERROR_NONE);
 public:
   /** Constructor. Attaches to already open handle.
@@ -59,6 +58,8 @@ public:
     Obtained X509 object is owned by this instance and becomes invalid
     after destruction. */
   X509* GetCert(void);
+
+  Logger& logger_;
 };
 
 }
