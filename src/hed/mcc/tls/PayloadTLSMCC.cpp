@@ -119,7 +119,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
       default: {
         PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
         if(it) {
-          it->PayloadTLSStream::SetFailure((std::string)X509_verify_cert_error_string(err));
+          it->SetFailure((std::string)X509_verify_cert_error_string(err));
         } else {
           Logger::getRootLogger().msg(ERROR,"%s",X509_verify_cert_error_string(err));
         }
@@ -145,7 +145,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
           std::istream* in = open_globus_policy(X509_get_issuer_name(cert),it->Config().CADir());
           if(in) {
             if(!match_globus_policy(*in,X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
-              it->PayloadTLSStream::SetFailure(std::string("Certificate ")+subject_name+" failed Globus signing policy");
+              it->SetFailure(std::string("Certificate ")+subject_name+" failed Globus signing policy");
               ok=0;
               X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);
             };
@@ -433,13 +433,31 @@ PayloadTLSMCC::~PayloadTLSMCC(void) {
   // be destroyed explicitely.
 }
 
+void PayloadTLSMCC::SetFailure(const std::string& err) {
+  MCC_Status bioStatus;
+  bool isBioFailure = (config_.GlobusIOGSI() ? BIO_GSIMCC_failure(bio_, bioStatus) : BIO_MCC_failure(bio_, bioStatus));
+  if (isBioFailure && bioStatus.getOrigin() != "TLS" && !bioStatus) {
+    failure_ = bioStatus;
+    return;
+  }
+  PayloadTLSStream::SetFailure(err);
+}
+
 void PayloadTLSMCC::SetFailure(int code) {
   // Sources:
   //  1. Already collected failure in failure_
   //  2. SSL layer
   //  3. Underlying stream through BIO
+
+  MCC_Status bioStatus;
+  bool isBioFailure = (config_.GlobusIOGSI() ? BIO_GSIMCC_failure(bio_, bioStatus) : BIO_MCC_failure(bio_, bioStatus));
+  if (isBioFailure && bioStatus.getOrigin() != "TLS" && !bioStatus) {
+    failure_ = bioStatus;
+    return;
+  }
+  
   std::string err_failure = failure_?"":failure_.getExplanation();
-  std::string bio_failure = config_.GlobusIOGSI()?BIO_GSIMCC_failure(bio_):BIO_MCC_failure(bio_);
+  std::string bio_failure = (!isBioFailure || bioStatus.getOrigin() != "TLS" ? "" : bioStatus.getExplanation());
   std::string tls_failure = ConfigTLSMCC::HandleError(code);
   if(!err_failure.empty() && !bio_failure.empty()) err_failure += "\n";
   err_failure += bio_failure;

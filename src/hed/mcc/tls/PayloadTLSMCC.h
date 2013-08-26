@@ -49,6 +49,7 @@ class PayloadTLSMCC: public PayloadTLSStream {
   static PayloadTLSMCC* RetrieveInstance(X509_STORE_CTX* container);
   unsigned long Flags(void) { return flags_; };
   void Flags(unsigned long flags) { flags=flags_; };
+  void SetFailure(const std::string& err);
   void SetFailure(int code = SSL_ERROR_NONE);
   operator bool(void) { return (sslctx_ != NULL); };
   bool operator!(void) { return (sslctx_ == NULL); };

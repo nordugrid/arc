@@ -205,12 +205,12 @@ int BIOMCC::mcc_puts(BIO *bp, const char *str) {
   return(ret);
 }
 
-std::string BIO_MCC_failure(BIO* bio) {
-  if(!bio) return "";
+bool BIO_MCC_failure(BIO* bio, MCC_Status& s) {
+  if(!bio) return false;
   BIOMCC* b = (BIOMCC*)(bio->ptr);
-  if(!b) return "";
-  if(b->Result()) return "";
-  return (std::string)(b->Result().getExplanation());
+  if(!b || b->Result()) return false;
+  s = b->Result();
+  return true;
 }
 
 } // namespace ArcMCCTLS

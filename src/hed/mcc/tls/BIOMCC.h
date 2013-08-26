@@ -16,7 +16,7 @@ using namespace Arc;
 
 BIO* BIO_new_MCC(MCCInterface* mcc);
 BIO* BIO_new_MCC(PayloadStreamInterface* stream);
-std::string BIO_MCC_failure(BIO* bio);
+bool BIO_MCC_failure(BIO* bio, MCC_Status& s);
 
 } // namespace Arc
 
