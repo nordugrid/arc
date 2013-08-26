@@ -121,7 +121,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
         if(it) {
           it->SetFailure(ConfigTLSMCC::HandleError(err));
         } else {
-          it->logger_.msg(ERROR,"%s",X509_verify_cert_error_string(err));
+          Logger::getRootLogger().msg(ERROR,"%s",X509_verify_cert_error_string(err));
         }
       }; break;
     };
@@ -132,7 +132,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
     X509* cert = X509_STORE_CTX_get_current_cert(sctx);
     char* subject_name = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
     if(it == NULL) {
-      it->logger_.msg(WARNING,"Failed to retrieve link to TLS stream. Additional policy matching is skipped.");
+      Logger::getRootLogger().msg(WARNING,"Failed to retrieve link to TLS stream. Additional policy matching is skipped.");
     } else {
       // Globus signing policy
       // Do not apply to proxies and self-signed CAs.
@@ -159,7 +159,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
     //in a while of time
     Time exptime = asn1_to_utctime(X509_get_notAfter(cert));
     if(exptime <= Time()) {
-      it->logger_.msg(WARNING,"Certificate %s already expired",subject_name);
+      Logger::getRootLogger().msg(WARNING,"Certificate %s already expired",subject_name);
     } else {
       Arc::Period timeleft = exptime - Time();
 #ifdef HAVE_OPENSSL_PROXY
@@ -171,7 +171,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
       //for EEC certificate, give warning 5 days in advance
       if(((pos < 0) && (timeleft <= 5*24*3600)) ||
          (timeleft <= 3600)) {
-        it->logger_.msg(WARNING,"Certificate %s will expire in %s", subject_name, timeleft.istr());
+        Logger::getRootLogger().msg(WARNING,"Certificate %s will expire in %s", subject_name, timeleft.istr());
       }
     }
     OPENSSL_free(subject_name);
