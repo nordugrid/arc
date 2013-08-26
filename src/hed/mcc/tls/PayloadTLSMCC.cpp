@@ -119,7 +119,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
       default: {
         PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
         if(it) {
-          it->SetFailure(X509_verify_cert_error_string(err));
+          it->PayloadTLSStream::SetFailure((std::string)X509_verify_cert_error_string(err));
         } else {
           Logger::getRootLogger().msg(ERROR,"%s",X509_verify_cert_error_string(err));
         }
@@ -145,7 +145,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
           std::istream* in = open_globus_policy(X509_get_issuer_name(cert),it->Config().CADir());
           if(in) {
             if(!match_globus_policy(*in,X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
-              it->SetFailure(std::string("Certificate ")+subject_name+" failed Globus signing policy");
+              it->PayloadTLSStream::SetFailure(std::string("Certificate ")+subject_name+" failed Globus signing policy");
               ok=0;
               X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);
             };
@@ -224,22 +224,6 @@ PayloadTLSMCC* PayloadTLSMCC::RetrieveInstance(X509_STORE_CTX* container) {
   return it;
 }
 
-
-std::string PayloadTLSMCC::CollectError(int code) {
-  // Sources:
-  //  1. Already collected failure in failure_
-  //  2. SSL layer
-  //  3. Underlying stream through BIO
-  std::string err_failure = failure_?"":failure_.getExplanation();
-  std::string bio_failure = config_.GlobusIOGSI()?BIO_GSIMCC_failure(bio_):BIO_MCC_failure(bio_);
-  std::string tls_failure = ConfigTLSMCC::HandleError(code);
-  if(!err_failure.empty() && !bio_failure.empty()) err_failure += "\n";
-  err_failure += bio_failure;
-  if(!err_failure.empty() && !tls_failure.empty()) err_failure += "\n";
-  err_failure += tls_failure;
-  if (err_failure.empty()) err_failure = "SSL error, with \"unknown\" alert";
-  return trim(err_failure);
-}
 
 PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger& logger):
     PayloadTLSStream(logger),sslctx_(NULL),bio_(NULL),config_(cfg),flags_(0) {
@@ -323,7 +307,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    }
    return;
 error:
-   if (failure_) SetFailure(CollectError(err)); // Only set if not already set.
+   if (failure_) SetFailure(err); // Only set if not already set.
    if(bio) BIO_free(bio); bio_=NULL;
    if(ssl_) SSL_free(ssl_); ssl_=NULL;
    if(sslctx_) SSL_CTX_free(sslctx_); sslctx_=NULL;
@@ -400,7 +384,7 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    // }
    return;
 error:
-   if (failure_) SetFailure(CollectError(err)); // Only set if not already set.
+   if (failure_) SetFailure(err); // Only set if not already set.
    if(bio) BIO_free(bio); bio_=NULL;
    if(ssl_) SSL_free(ssl_); ssl_=NULL;
    if(sslctx_) SSL_CTX_free(sslctx_); sslctx_=NULL;
@@ -447,6 +431,22 @@ PayloadTLSMCC::~PayloadTLSMCC(void) {
   }
   // bio_ was passed to ssl_ and hence does not need to
   // be destroyed explicitely.
+}
+
+void PayloadTLSMCC::SetFailure(int code) {
+  // Sources:
+  //  1. Already collected failure in failure_
+  //  2. SSL layer
+  //  3. Underlying stream through BIO
+  std::string err_failure = failure_?"":failure_.getExplanation();
+  std::string bio_failure = config_.GlobusIOGSI()?BIO_GSIMCC_failure(bio_):BIO_MCC_failure(bio_);
+  std::string tls_failure = ConfigTLSMCC::HandleError(code);
+  if(!err_failure.empty() && !bio_failure.empty()) err_failure += "\n";
+  err_failure += bio_failure;
+  if(!err_failure.empty() && !tls_failure.empty()) err_failure += "\n";
+  err_failure += tls_failure;
+  if (err_failure.empty()) err_failure = "SSL error, with \"unknown\" alert";
+  PayloadTLSStream::SetFailure(err_failure);
 }
 
 } // namespace Arc
