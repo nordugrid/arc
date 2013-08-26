@@ -46,6 +46,7 @@ public:
   virtual Size_t Pos(void) const { return 0; };
   virtual Size_t Size(void) const { return 0; };
   virtual Size_t Limit(void) const { return 0; };
+  virtual void SetFailure(const std::string& err);
 
   /**Get peer certificate from the established ssl.
     Obtained X509 object is owned by this instance and becomes invalid

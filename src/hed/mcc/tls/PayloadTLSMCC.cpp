@@ -323,7 +323,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    }
    return;
 error:
-   failure_ = MCC_Status(GENERIC_ERROR, "TLS", CollectError(err));
+   if (failure_) SetFailure(CollectError(err)); // Only set if not already set.
    if(bio) BIO_free(bio); bio_=NULL;
    if(ssl_) SSL_free(ssl_); ssl_=NULL;
    if(sslctx_) SSL_CTX_free(sslctx_); sslctx_=NULL;
@@ -400,7 +400,7 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    // }
    return;
 error:
-   failure_ = MCC_Status(GENERIC_ERROR, "TLS", CollectError(err));
+   if (failure_) SetFailure(CollectError(err)); // Only set if not already set.
    if(bio) BIO_free(bio); bio_=NULL;
    if(ssl_) SSL_free(ssl_); ssl_=NULL;
    if(sslctx_) SSL_CTX_free(sslctx_); sslctx_=NULL;
@@ -447,10 +447,6 @@ PayloadTLSMCC::~PayloadTLSMCC(void) {
   }
   // bio_ was passed to ssl_ and hence does not need to
   // be destroyed explicitely.
-}
-
-void PayloadTLSMCC::SetFailure(const std::string& err) {
-  failure_ = MCC_Status(GENERIC_ERROR,"TLS",err);
 }
 
 } // namespace Arc

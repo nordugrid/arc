@@ -47,7 +47,7 @@ bool PayloadTLSStream::Get(char* buf,int& size) {
   size=0;
   l=SSL_read(ssl_,buf,l);
   if(l <= 0){
-     failure_ = MCC_Status(GENERIC_ERROR,"TLS", CollectError(SSL_get_error(ssl_,l)));
+     SetFailure(CollectError(SSL_get_error(ssl_,l)));
      return false;
   }
   size=l;
@@ -69,7 +69,7 @@ bool PayloadTLSStream::Put(const char* buf,Size_t size) {
   for(;size;){
      l=SSL_write(ssl_,buf,size);
      if(l <= 0){
-        failure_ = MCC_Status(GENERIC_ERROR,"TLS",CollectError(SSL_get_error(ssl_,l)));
+        SetFailure(CollectError(SSL_get_error(ssl_,l)));
         return false;
      }
      buf+=l; size-=l;
@@ -84,10 +84,10 @@ X509* PayloadTLSStream::GetPeerCert(void){
   if((err=SSL_get_verify_result(ssl_)) == X509_V_OK){
     peercert=SSL_get_peer_certificate (ssl_);
     if(peercert!=NULL) return peercert;
-    failure_ = MCC_Status(GENERIC_ERROR,"TLS","Peer certificate cannot be extracted\n"+CollectError());
+    SetFailure("Peer certificate cannot be extracted\n"+CollectError());
   }
   else{
-    failure_ = MCC_Status(GENERIC_ERROR,"TLS",std::string("Peer cert verification failed: ")+X509_verify_cert_error_string(err)+"\n"+CollectError(err));
+    SetFailure(std::string("Peer cert verification failed: ")+X509_verify_cert_error_string(err)+"\n"+CollectError(err));
   }
   return NULL;
 }
@@ -97,7 +97,7 @@ X509* PayloadTLSStream::GetCert(void){
   if(ssl_ == NULL) return NULL;
   cert=SSL_get_certificate (ssl_);
   if(cert!=NULL) return cert;
-  failure_ = MCC_Status(GENERIC_ERROR,"TLS","Peer certificate cannot be extracted\n"+CollectError());
+  SetFailure("Peer certificate cannot be extracted\n"+CollectError());
   return NULL;
 }
 
@@ -108,11 +108,15 @@ STACK_OF(X509)* PayloadTLSStream::GetPeerChain(void){
   if((err=SSL_get_verify_result(ssl_)) == X509_V_OK){
     peerchain=SSL_get_peer_cert_chain (ssl_);
     if(peerchain!=NULL) return peerchain;
-    failure_ = MCC_Status(GENERIC_ERROR,"TLS","Peer certificate chain cannot be extracted\n"+CollectError());
+    SetFailure("Peer certificate chain cannot be extracted\n"+CollectError());
   } else {
-    failure_ = MCC_Status(GENERIC_ERROR,"TLS",std::string("Peer cert verification failed: ")+X509_verify_cert_error_string(err)+"\n"+CollectError(err));
+    SetFailure(std::string("Peer cert verification failed: ")+X509_verify_cert_error_string(err)+"\n"+CollectError(err));
   }
   return NULL;
+}
+
+void PayloadTLSStream::SetFailure(const std::string& err) {
+  failure_ = MCC_Status(GENERIC_ERROR,"TLS",err);
 }
 
 } // namespace ArcMCCTLS
