@@ -94,7 +94,12 @@ int RUNMAIN(arccat)(int argc, char **argv) {
 
   std::list<Arc::Job> jobs;
   Arc::JobInformationStorageXML jobList(usercfg.JobListFile());
-  if (( opt.all && !jobList.ReadAll(jobs, rejectManagementURLs)) ||
+  if (!jobList.IsStorageExisting()) {
+    logger.msg(Arc::ERROR, "Job list file (%s) doesn't exist", usercfg.JobListFile());
+    return 1;
+  }
+  if (!jobList.IsValid() ||
+      ( opt.all && !jobList.ReadAll(jobs, rejectManagementURLs)) ||
       (!opt.all && !jobList.Read(jobs, jobidentifiers, selectedURLs, rejectManagementURLs))) {
     logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());
     return 1;

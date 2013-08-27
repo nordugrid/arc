@@ -311,34 +311,6 @@ namespace Arc {
   }
 
   bool UserConfig::JobListFile(const std::string& path) {
-    // Check if joblistfile exist.
-    if (!Glib::file_test(path, Glib::FILE_TEST_EXISTS)) {
-      // The joblistfile does not exist. Create a empty version, and if
-      // this fails report an error and exit.
-      const std::string joblistdir = Glib::path_get_dirname(path);
-
-      // Check if the parent directory exist.
-      if (!Glib::file_test(joblistdir, Glib::FILE_TEST_EXISTS)) {
-        // Create directory.
-        if (!makeDir(joblistdir)) {
-          logger.msg(ERROR, "Unable to create %s directory", joblistdir);
-          return false;
-        }
-      }
-      else if (!dir_test(joblistdir)) {
-        logger.msg(ERROR, "%s is not a directory, it is needed for the client to function correctly", joblistdir);
-        return false;
-      }
-
-      NS ns;
-      Config(ns).SaveToFile(path);
-      logger.msg(INFO, "Created empty ARC job list file: %s", path);
-    }
-    else if (!Glib::file_test(path, Glib::FILE_TEST_IS_REGULAR)) {
-      logger.msg(ERROR, "ARC job list file is not a regular file: %s", path);
-      return false;
-    }
-
     joblistfile = path;
     return true;
   }

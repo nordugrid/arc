@@ -457,20 +457,13 @@ namespace Arc {
     /// Set path to job list file
     /**
      * The method takes a path to a file which will be used as the job
-     * list file for storing and reading job information. If the
-     * specified path \a path does not exist a empty job list file will
-     * be tried created. If creating the job list file in any way fails
-     * \a false will be returned and a ::ERROR message will be reported.
-     * Otherwise \a true is returned. If the directory containing the
-     * file does not exist, it will be tried created. The method will
-     * also return \a false if the file is not a regular file.
+     * list file for storing and reading job information. This method always
+     * return true.
      *
      * The attribute associated with this setter method is 'joblist'.
      *
      * @param path the path to the job list file.
-     * @return If the job list file is a regular file or if it can be
-     *         created \a true is returned, otherwise \a false is
-     *         returned.
+     * @return true is always returned.
      * @see JobListFile() const
      **/
     bool JobListFile(const std::string& path);

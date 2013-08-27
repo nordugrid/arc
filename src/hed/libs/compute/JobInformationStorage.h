@@ -10,6 +10,7 @@
 #include <db_cxx.h>
 #endif
 
+#include <arc/ArcConfig.h>
 #include <arc/compute/Job.h>
 
 namespace Arc {
@@ -17,8 +18,7 @@ namespace Arc {
   /// Abstract class for storing job information
   /**
    * This abstract class provides an interface which can be used to store job
-   * information, which can then later be used to initialise Job objects from
-   * the stored information.
+   * information, which can then later be used to initialise Job objects from.
    * 
    * \note This class is abstract. All functionality is provided by specialised
    *  child classes.
@@ -39,15 +39,27 @@ namespace Arc {
      * locking attemp.
      * 
      * @param name name of the storage.
-     * @param nTries specifies the maximal number of times try
-     *  to acquire a lock on file to read.
+     * @param nTries specifies the maximal number of times try to acquire a
+     *  lock on storage to read from.
      * @param tryInterval specifies the interval (in micro seconds) between each
      *  attempt to acquire a lock.
      **/
     JobInformationStorage(const std::string& name, unsigned nTries = 10, unsigned tryInterval = 500000)
-      : name(name), nTries(nTries), tryInterval(tryInterval) {}
+      : name(name), nTries(nTries), tryInterval(tryInterval), isValid(false) {}
     virtual ~JobInformationStorage() {}
     
+    /// Check if storage is valid
+    /**
+     * @return true if storage is valid. 
+     **/
+    bool IsValid() const { return isValid; }
+    
+    /// Check if storage exists
+    /**
+     * @return true if storage already exist.
+     **/
+    bool IsStorageExisting() const { return isStorageExisting; }
+
     /// Read all jobs from storage
     /**
      * Read all jobs contained in storage, except those managed by a service at
@@ -60,7 +72,7 @@ namespace Arc {
      *  specialised classes.
      * 
      * @param jobs is a reference to a list of Job objects, which will be filled
-     *  with the jobs read from file (cleared before use).
+     *  with the jobs read from storage (cleared before use).
      * @param rejectEndpoints is a list of strings specifying endpoints for
      *  which Job objects with JobManagementURL matching any of those endpoints
      *  will not be part of the retrieved jobs. The algorithm used for matching
@@ -198,12 +210,13 @@ namespace Arc {
     const std::string name;
     unsigned nTries;
     unsigned tryInterval;
+    bool isValid;
+    bool isStorageExisting;
   };
 
   class JobInformationStorageXML : public JobInformationStorage {
   public:
-    JobInformationStorageXML(const std::string& name, unsigned nTries = 10, unsigned tryInterval = 500000)
-      : JobInformationStorage(name, nTries, tryInterval) {}
+    JobInformationStorageXML(const std::string& name, unsigned nTries = 10, unsigned tryInterval = 500000);
     virtual ~JobInformationStorageXML() {}
     
     bool ReadAll(std::list<Job>& jobs, const std::list<std::string>& rejectEndpoints = std::list<std::string>());
@@ -216,14 +229,14 @@ namespace Arc {
     bool Remove(const std::list<std::string>& jobids);
     
   private:
+    Config jobstorage;
     static Logger logger;
   };
 
 #ifdef DBJSTORE_ENABLED
   class JobInformationStorageBDB : public JobInformationStorage {
   public:
-    JobInformationStorageBDB(const std::string& name, unsigned nTries = 10, unsigned tryInterval = 500000)
-      : JobInformationStorage(name, nTries, tryInterval) {}
+    JobInformationStorageBDB(const std::string& name, unsigned nTries = 10, unsigned tryInterval = 500000);
     virtual ~JobInformationStorageBDB() {}
     
     bool ReadAll(std::list<Job>& jobs, const std::list<std::string>& rejectEndpoints = std::list<std::string>());

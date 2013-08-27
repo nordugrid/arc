@@ -104,8 +104,7 @@ public:
     }
 
     if (!jobsWritten) {
-      std::cout << Arc::IString("ERROR: Failed to lock job list file %s", uc.JobListFile()) << std::endl;
-      std::cout << Arc::IString("Please try again later, or manually clean up lock file") << std::endl;
+      std::cout << Arc::IString("ERROR: Failed to write job information to file (%s)", uc.JobListFile()) << std::endl;
       return false;
     }
 

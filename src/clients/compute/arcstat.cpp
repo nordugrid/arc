@@ -111,6 +111,10 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
   std::list<std::string> rejectManagementURLs = getRejectManagementURLsFromUserConfigAndCommandLine(usercfg, opt.rejectmanagement);
   std::list<Arc::Job> jobs;
   Arc::JobInformationStorageXML jobList(usercfg.JobListFile());
+  if (!jobList.IsStorageExisting()) {
+    logger.msg(Arc::ERROR, "Job list file (%s) doesn't exist", usercfg.JobListFile());
+    return 1;
+  }
   if (( opt.all && !jobList.ReadAll(jobs, rejectManagementURLs)) ||
       (!opt.all && !jobList.Read(jobs, jobidentifiers, selectedURLs, rejectManagementURLs))) {
     logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());

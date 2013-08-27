@@ -91,6 +91,10 @@ int RUNMAIN(arckill)(int argc, char **argv) {
 
   std::list<Arc::Job> jobs;
   Arc::JobInformationStorageXML jobList(usercfg.JobListFile());
+  if (!jobList.IsStorageExisting()) {
+    logger.msg(Arc::ERROR, "Job list file (%s) doesn't exist", usercfg.JobListFile());
+    return 1;
+  }
   if (( opt.all && !jobList.ReadAll(jobs, rejectManagementURLs)) ||
       (!opt.all && !jobList.Read(jobs, jobidentifiers, selectedURLs, rejectManagementURLs))) {
     logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());
@@ -134,7 +138,7 @@ int RUNMAIN(arckill)(int argc, char **argv) {
     cleaned_num = jobmaster.GetIDsProcessed().size();
 
     if (!jobList.Remove(jobmaster.GetIDsProcessed())) {
-      std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
+      std::cout << Arc::IString("Warning: Failed removing jobs from file (%s)", usercfg.JobListFile()) << std::endl;
       std::cout << Arc::IString("         Run 'arcclean -s Undefined' to remove killed jobs from job list", usercfg.JobListFile()) << std::endl;
       retval = 1;
     }

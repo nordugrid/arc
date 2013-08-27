@@ -193,11 +193,11 @@ public:
   
   void write() const {
     if (!jobidfile.empty() && !Arc::Job::WriteJobIDsToFile(submittedJobs, jobidfile)) {
-      logger.msg(Arc::WARNING, "Cannot write jobids to file (%s)", jobidfile);
+      logger.msg(Arc::WARNING, "Cannot write job IDs to file (%s)", jobidfile);
     }
     Arc::JobInformationStorageXML jobList(joblist);
     if (!jobList.Write(submittedJobs)) {
-      std::cout << Arc::IString("Warning: Failed to lock job list file %s", joblist)
+      std::cout << Arc::IString("Warning: Failed to write job information to file (%s)", joblist)
                 << std::endl;
       std::cout << Arc::IString("To recover missing jobs, run arcsync") << std::endl;
     }

@@ -99,6 +99,10 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
 
   std::list<Arc::Job> jobs;
   Arc::JobInformationStorageXML jobList(usercfg.JobListFile());
+  if (!jobList.IsStorageExisting()) {
+    logger.msg(Arc::ERROR, "Job list file (%s) doesn't exist", usercfg.JobListFile());
+    return 1;
+  }
   if (( opt.all && !jobList.ReadAll(jobs, rejectManagementURLs)) ||
       (!opt.all && !jobList.Read(jobs, jobidentifiers, selectedURLs, rejectManagementURLs))) {
     logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());
@@ -141,7 +145,7 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
   }
 
   if (!resubmittedJobs.empty() && !jobList.Write(resubmittedJobs)) {
-    std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
+    std::cout << Arc::IString("Warning: Failed to write job information to file (%s)", usercfg.JobListFile()) << std::endl;
     std::cout << Arc::IString("         To recover missing jobs, run arcsync") << std::endl;
     retval = 1;
   }
@@ -171,7 +175,7 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
     }
 
     if (!jobList.Remove(jobmaster.GetIDsProcessed())) {
-      std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
+      std::cout << Arc::IString("Warning: Failed removing jobs from file (%s)", usercfg.JobListFile()) << std::endl;
       std::cout << Arc::IString("         Use arcclean to remove non-existing jobs") << std::endl;
       retval = 1;
     }
