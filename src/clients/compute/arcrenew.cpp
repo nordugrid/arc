@@ -12,7 +12,7 @@
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/UserConfig.h>
-#include <arc/compute/JobInformationStorage.h>
+#include <arc/compute/JobInformationStorageXML.h>
 #include <arc/compute/JobSupervisor.h>
 
 #include "utils.h"

@@ -24,7 +24,7 @@
 #include <arc/Utils.h>
 #include <arc/compute/ComputingServiceRetriever.h>
 #include <arc/compute/Job.h>
-#include <arc/compute/JobInformationStorage.h>
+#include <arc/compute/JobInformationStorageXML.h>
 #include <arc/compute/SubmitterPlugin.h>
 #include <arc/compute/JobDescription.h>
 #include <arc/credential/Credential.h>

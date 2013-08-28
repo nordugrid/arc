@@ -633,3 +633,10 @@ TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInfor
 #include <arc/compute/JobInformationStorage.h>
 %}
 %include "../src/hed/libs/compute/JobInformationStorage.h"
+
+
+// Wrap contents of $(top_srcdir)/src/hed/libs/compute/JobInformationStorageXML.h
+%{
+#include <arc/compute/JobInformationStorageXML.h>
+%}
+%include "../src/hed/libs/compute/JobInformationStorageXML.h"

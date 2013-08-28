@@ -19,7 +19,7 @@
 #include <arc/UserConfig.h>
 #include <arc/compute/EntityRetriever.h>
 #include <arc/compute/Job.h>
-#include <arc/compute/JobInformationStorage.h>
+#include <arc/compute/JobInformationStorageXML.h>
 
 class JobSynchronizer : public Arc::EntityConsumer<Arc::Endpoint> {
 public:
