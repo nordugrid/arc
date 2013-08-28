@@ -21,15 +21,15 @@ libarccompute_la_HEADERS = Broker.h BrokerPlugin.h ExecutionTarget.h \
 	GLUE2.h EndpointQueryingStatus.h TestACCControl.h \
 	EntityRetriever.h EntityRetrieverPlugin.h Endpoint.h \
 	ComputingServiceRetriever.h JobInformationStorage.h \
-	$(HEADER_WITH_DBJSTORE)
+	JobInformationStorageXML.h $(HEADER_WITH_DBJSTORE)
 libarccompute_la_SOURCES = Broker.cpp BrokerPlugin.cpp ExecutionTarget.cpp \
 	Submitter.cpp SubmitterPlugin.cpp \
 	JobState.cpp Job.cpp JobControllerPlugin.cpp JobSupervisor.cpp \
 	JobDescription.cpp JobDescriptionParserPlugin.cpp Software.cpp \
 	GLUE2.cpp EndpointQueryingStatus.cpp TestACCControl.cpp \
 	EntityRetriever.cpp EntityRetrieverPlugin.cpp Endpoint.cpp \
-	ComputingServiceRetriever.cpp JobInformationStorage.cpp \
-	$(SOURCE_WITH_DBJSTORE)
+	ComputingServiceRetriever.cpp \
+	JobInformationStorageXML.cpp $(SOURCE_WITH_DBJSTORE)
 libarccompute_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) \
 	$(CXXFLAGS_WITH_DBJSTORE) $(AM_CXXFLAGS)

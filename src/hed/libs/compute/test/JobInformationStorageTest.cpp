@@ -11,7 +11,7 @@
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
 #include <arc/compute/Job.h>
-#include <arc/compute/JobInformationStorage.h>
+#include <arc/compute/JobInformationStorageXML.h>
 #ifdef DBJSTORE_ENABLED
 #include "../JobInformationStorageBDB.h"
 #endif

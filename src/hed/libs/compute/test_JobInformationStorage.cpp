@@ -12,7 +12,7 @@
 #include <arc/OptionParser.h>
 #include <arc/Logger.h>
 #include <arc/compute/Job.h>
-#include <arc/compute/JobInformationStorage.h>
+#include "JobInformationStorageXML.h"
 #ifdef DBJSTORE_ENABLED
 #include "JobInformationStorageBDB.h"
 #endif

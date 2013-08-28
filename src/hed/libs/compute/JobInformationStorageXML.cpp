@@ -9,7 +9,7 @@
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
 
-#include "JobInformationStorage.h"
+#include "JobInformationStorageXML.h"
 
 namespace Arc {
 

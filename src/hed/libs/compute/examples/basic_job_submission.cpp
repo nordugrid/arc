@@ -4,7 +4,7 @@
 #include <arc/compute/Job.h>
 #include <arc/compute/JobDescription.h>
 #include <arc/compute/Submitter.h>
-#include <arc/compute/JobInformationStorage.h>
+#include <arc/compute/JobInformationStorageXML.h>
 
 int main() {
 
