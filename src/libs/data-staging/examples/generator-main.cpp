@@ -1,7 +1,7 @@
 // To compile this example requires that nordugrid-arc-devel be installed. It
 // also requires including headers of external libraries used by ARC core code:
 //
-// g++ -o generator `pkg-config --cflags glibmm-2.4` -I/usr/include/libxml2 \
+// g++ -o generator `pkg-config --cflags glibmm-2.4` -I/usr/include/libxml2 \ 
 //   -larcdatastaging Generator.cpp Generator.h generator-main.cpp
 //
 // If ARC is installed in a non-standard location, the options
