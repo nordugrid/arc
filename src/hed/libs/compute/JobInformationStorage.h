@@ -269,6 +269,18 @@ namespace Arc {
       Db *nameSecondaryKeyDB;
       Db *serviceInfoSecondaryKeyDB;
     };
+    
+    class BDBException {
+    public:
+      BDBException(const std::string& msg, int ret, bool writeLogMessage = true) throw();
+      ~BDBException() throw() {}
+      const std::string& getMessage() const throw()  { return message; }
+      int getReturnValue() const throw() { return returnvalue; }
+
+    private:
+      std::string message;
+      int returnvalue;
+    };
   };
 #endif
 

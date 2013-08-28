@@ -421,8 +421,7 @@ namespace Arc {
     
     dbEnv = new DbEnv(DB_CXX_NO_EXCEPTIONS);
     if ((ret = dbEnv->open(NULL, DB_CREATE | DB_INIT_CDB | DB_INIT_MPOOL, 0)) != 0) {
-      JobInformationStorageBDB::logger.msg(ERROR, "Unable to create data base environment (%s)", name);
-      throw std::exception();
+      throw BDBException(IString("Unable to create data base environment (%s)", name).str(), ret);
     }
 
     jobDB = new Db(dbEnv, DB_CXX_NO_EXCEPTIONS);
@@ -431,56 +430,36 @@ namespace Arc {
     serviceInfoSecondaryKeyDB = new Db(dbEnv, DB_CXX_NO_EXCEPTIONS);
 
     if ((ret = nameSecondaryKeyDB->set_flags(DB_DUPSORT)) != 0) {
-      JobInformationStorageBDB::logger.msg(ERROR, "Unable to set duplicate flags for secondary key DB (%s)", name);
-      logErrorMessage(ret);
-      throw std::exception();
+      throw BDBException(IString("Unable to set duplicate flags for secondary key DB (%s)", name).str(), ret);
     }
     if ((ret = endpointSecondaryKeyDB->set_flags(DB_DUPSORT)) != 0) {
-      JobInformationStorageBDB::logger.msg(ERROR, "Unable to set duplicate flags for secondary key DB (%s)", name);
-      logErrorMessage(ret);
-      throw std::exception();
+      throw BDBException(IString("Unable to set duplicate flags for secondary key DB (%s)", name).str(), ret);
     }
     if ((ret = serviceInfoSecondaryKeyDB->set_flags(DB_DUPSORT)) != 0) {
-      JobInformationStorageBDB::logger.msg(ERROR, "Unable to set duplicate flags for secondary key DB (%s)", name);
-      logErrorMessage(ret);
-      throw std::exception();
+      throw BDBException(IString("Unable to set duplicate flags for secondary key DB (%s)", name).str(), ret);
     }
 
     if ((ret = jobDB->open(NULL, name.c_str(), "job_records", type, flags, 0)) != 0) {
-      JobInformationStorageBDB::logger.msg(ERROR, "Unable to create job database (%s)", name);
-      logErrorMessage(ret);
-      throw std::exception();
+      throw BDBException(IString("Unable to create job database (%s)", name).str(), ret);
     }
     if ((ret = nameSecondaryKeyDB->open(NULL, name.c_str(), "name_keys", type, flags, 0)) != 0) {
-      JobInformationStorageBDB::logger.msg(ERROR, "Unable to create DB for secondary name keys (%s)", name);
-      logErrorMessage(ret);
-      throw std::exception();
+      throw BDBException(IString("Unable to create DB for secondary name keys (%s)", name).str(), ret);
     }
     if ((ret = endpointSecondaryKeyDB->open(NULL, name.c_str(), "endpoint_keys", type, flags, 0)) != 0) {
-      JobInformationStorageBDB::logger.msg(ERROR, "Unable to create DB for secondary endpoint keys (%s)", name);
-      logErrorMessage(ret);
-      throw std::exception();
+      throw BDBException(IString("Unable to create DB for secondary endpoint keys (%s)", name).str(), ret);
     }
     if ((ret = serviceInfoSecondaryKeyDB->open(NULL, name.c_str(), "serviceinfo_keys", type, flags, 0)) != 0) {
-      JobInformationStorageBDB::logger.msg(ERROR, "Unable to create DB for secondary service info keys (%s)", name);
-      logErrorMessage(ret);
-      throw std::exception();
+      throw BDBException(IString("Unable to create DB for secondary service info keys (%s)", name).str(), ret);
     }
 
     if ((ret = jobDB->associate(NULL, nameSecondaryKeyDB, (flags != DB_RDONLY ? getNameKey : NULL), 0)) != 0) {
-      JobInformationStorageBDB::logger.msg(ERROR, "Unable to associate secondary DB with primary DB (%s)", name);
-      logErrorMessage(ret);
-      throw std::exception();
+      throw BDBException(IString("Unable to associate secondary DB with primary DB (%s)", name).str(), ret);
     }
     if ((ret = jobDB->associate(NULL, endpointSecondaryKeyDB, (flags != DB_RDONLY ? getEndpointKey : NULL), 0)) != 0) {
-      JobInformationStorageBDB::logger.msg(ERROR, "Unable to associate secondary DB with primary DB (%s)", name);
-      logErrorMessage(ret);
-      throw std::exception();
+      throw BDBException(IString("Unable to associate secondary DB with primary DB (%s)", name).str(), ret);
     }
     if ((ret = jobDB->associate(NULL, serviceInfoSecondaryKeyDB, (flags != DB_RDONLY ? getServiceInfoHostnameKey : NULL), 0)) != 0) {
-      JobInformationStorageBDB::logger.msg(ERROR, "Unable to associate secondary DB with primary DB (%s)", name);
-      logErrorMessage(ret);
-      throw std::exception();
+      throw BDBException(IString("Unable to associate secondary DB with primary DB (%s)", name).str(), ret);
     }
 
     JobInformationStorageBDB::logger.msg(DEBUG, "Job database created successfully (%s)", name);
@@ -512,6 +491,13 @@ namespace Arc {
     dbEnv = new DbEnv(DB_CXX_NO_EXCEPTIONS);
     dbEnv->remove(NULL, 0);
     delete dbEnv; dbEnv = NULL;
+  }
+
+  JobInformationStorageBDB::BDBException::BDBException(const std::string& msg, int ret, bool writeLogMessage) throw() : message(msg), returnvalue(ret) {
+    if (writeLogMessage) {
+      JobInformationStorageBDB::logger.msg(VERBOSE, msg);
+      JobInformationStorageBDB::logErrorMessage(ret);
+    }
   }
 
   JobInformationStorageBDB::JobInformationStorageBDB(const std::string& name, unsigned nTries, unsigned tryInterval)
@@ -576,7 +562,7 @@ namespace Arc {
         logErrorMessage(ret);
         return false;
       }
-    } catch (const std::exception& e) {
+    } catch (const BDBException& e) {
       return false;
     }
 
@@ -635,7 +621,7 @@ namespace Arc {
         logErrorMessage(ret);
         return false;
       }
-    } catch (const std::exception& e) {
+    } catch (const BDBException& e) {
       return false;
     }
 
@@ -678,7 +664,7 @@ namespace Arc {
         //dbp->err(dbp, ret, "DBcursor->get");
         return false;
       }
-    } catch (const std::exception& e) {
+    } catch (const BDBException& e) {
       return false;
     }
     
@@ -784,7 +770,7 @@ namespace Arc {
          }
         }
       }
-    } catch (const std::exception& e) {
+    } catch (const BDBException& e) {
       return false;
     }
 
@@ -819,7 +805,7 @@ namespace Arc {
         Dbt key((char *)it->c_str(), it->size());
         db->del(NULL, &key, 0);
       }
-    } catch (const std::exception& e) {
+    } catch (const BDBException& e) {
       return false;
     }
     
