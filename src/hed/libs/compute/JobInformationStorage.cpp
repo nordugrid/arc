@@ -150,6 +150,10 @@ namespace Arc {
       return false;
     }
 
+    if (!jobstorage) {
+      Config().Swap(jobstorage);
+    }
+
     // Use std::map to store job IDs to be searched for duplicates.
     std::map<std::string, XMLNode> jobIDXMLMap;
     std::map<std::string, XMLNode> jobsToRemove;
