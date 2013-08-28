@@ -526,7 +526,7 @@ namespace Arc {
 
     try {
       JobDB db(name);
-    } catch (const std::exception& e) {
+    } catch (const BDBException& e) {
       isValid = false;
       return;
     }
