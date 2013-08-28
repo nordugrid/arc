@@ -1,6 +1,18 @@
 lib_LTLIBRARIES = libarccompute.la
 noinst_PROGRAMS = test_jobdescription test_JobInformationStorage
 
+if DBJSTORE_ENABLED
+HEADER_WITH_DBJSTORE   = JobInformationStorageBDB.h
+SOURCE_WITH_DBJSTORE   = JobInformationStorageBDB.cpp
+CXXFLAGS_WITH_DBJSTORE = $(DBCXX_CPPFLAGS)
+LIBADD_WITH_DBJSTORE   =  $(DBCXX_LIBS)
+else
+HEADER_WITH_DBJSTORE   =
+SOURCE_WITH_DBJSTORE   =
+CXXFLAGS_WITH_DBJSTORE =
+LIBADD_WITH_DBJSTORE   =
+endif
+
 libarccompute_ladir = $(pkgincludedir)/compute
 libarccompute_la_HEADERS = Broker.h BrokerPlugin.h ExecutionTarget.h \
 	Submitter.h SubmitterPlugin.h GLUE2Entity.h SubmissionStatus.h \
@@ -8,16 +20,19 @@ libarccompute_la_HEADERS = Broker.h BrokerPlugin.h ExecutionTarget.h \
 	JobDescription.h JobDescriptionParserPlugin.h Software.h \
 	GLUE2.h EndpointQueryingStatus.h TestACCControl.h \
 	EntityRetriever.h EntityRetrieverPlugin.h Endpoint.h \
-	ComputingServiceRetriever.h JobInformationStorage.h
+	ComputingServiceRetriever.h JobInformationStorage.h \
+	$(HEADER_WITH_DBJSTORE)
 libarccompute_la_SOURCES = Broker.cpp BrokerPlugin.cpp ExecutionTarget.cpp \
 	Submitter.cpp SubmitterPlugin.cpp \
 	JobState.cpp Job.cpp JobControllerPlugin.cpp JobSupervisor.cpp \
 	JobDescription.cpp JobDescriptionParserPlugin.cpp Software.cpp \
 	GLUE2.cpp EndpointQueryingStatus.cpp TestACCControl.cpp \
 	EntityRetriever.cpp EntityRetrieverPlugin.cpp Endpoint.cpp \
-	ComputingServiceRetriever.cpp JobInformationStorage.cpp
+	ComputingServiceRetriever.cpp JobInformationStorage.cpp \
+	$(SOURCE_WITH_DBJSTORE)
 libarccompute_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) \
+	$(CXXFLAGS_WITH_DBJSTORE) $(AM_CXXFLAGS)
 libarccompute_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
@@ -25,7 +40,7 @@ libarccompute_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(DBCXX_LIBS)
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(LIBADD_WITH_DBJSTORE)
 libarccompute_la_LDFLAGS = -version-info 2:0:0
 
 test_jobdescription_SOURCES = test_jobdescription.cpp
