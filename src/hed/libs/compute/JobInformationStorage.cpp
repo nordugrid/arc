@@ -573,7 +573,7 @@ namespace Arc {
       };
       
       if (ret != 0) {
-        logger.msg(ERROR, "Unable to write key/value pair to job database (%s): Key \"%s\"", name, (char*)key.get_data());
+        logger.msg(VERBOSE, "Unable to write key/value pair to job database (%s): Key \"%s\"", name, (char*)key.get_data());
         logErrorMessage(ret);
         return false;
       }
@@ -632,7 +632,7 @@ namespace Arc {
       };
       
       if (ret != 0) {
-        logger.msg(ERROR, "Unable to write key/value pair to job database (%s): Key \"%s\"", name, (char*)key.get_data());
+        logger.msg(VERBOSE, "Unable to write key/value pair to job database (%s): Key \"%s\"", name, (char*)key.get_data());
         logErrorMessage(ret);
         return false;
       }
@@ -799,7 +799,7 @@ namespace Arc {
 
     if (remove(name.c_str()) != 0) {
       if (errno == ENOENT) return true; // No such file. DB already cleaned.
-      logger.msg(ERROR, "Unable to truncate job database (%s)", name);
+      logger.msg(VERBOSE, "Unable to truncate job database (%s)", name);
       perror("Error");
       return false;
     }
