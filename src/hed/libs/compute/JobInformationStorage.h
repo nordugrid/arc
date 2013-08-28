@@ -260,6 +260,8 @@ namespace Arc {
       
       void tearDown();
 
+      static void handleError(const DbEnv *dbenv, const char *errpfx, const char *msg);
+
       Db* operator->() { return jobDB; }
       Db* viaNameKeys() { return nameSecondaryKeyDB; }
       Db* viaEndpointKeys() { return endpointSecondaryKeyDB; }

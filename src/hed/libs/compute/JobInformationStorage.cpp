@@ -420,7 +420,9 @@ namespace Arc {
     std::string basepath = "";
     
     dbEnv = new DbEnv(DB_CXX_NO_EXCEPTIONS);
-    if ((ret = dbEnv->open(NULL, DB_CREATE | DB_INIT_CDB | DB_INIT_MPOOL, 0)) != 0) {
+    dbEnv->set_errcall(&handleError);
+
+   if ((ret = dbEnv->open(NULL, DB_CREATE | DB_INIT_CDB | DB_INIT_MPOOL, 0)) != 0) {
       tearDown();
       throw BDBException(IString("Unable to create data base environment (%s)", name).str(), ret);
     }
@@ -506,6 +508,15 @@ namespace Arc {
 
   JobInformationStorageBDB::JobDB::~JobDB() {
     tearDown();
+  }
+
+  void JobInformationStorageBDB::JobDB::handleError(const DbEnv *dbenv, const char *errpfx, const char *msg) {
+    if (errpfx) {
+      JobInformationStorageBDB::logger.msg(DEBUG, "Error from BDB: %s: %s", errpfx, msg);
+    }
+    else {
+      JobInformationStorageBDB::logger.msg(DEBUG, "Error from BDB: %s", msg);
+    }
   }
 
   JobInformationStorageBDB::BDBException::BDBException(const std::string& msg, int ret, bool writeLogMessage) throw() : message(msg), returnvalue(ret) {
