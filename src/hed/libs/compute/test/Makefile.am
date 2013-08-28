@@ -1,8 +1,17 @@
-TESTS = SoftwareTest JobTest JobStateTest BrokerTest JobDescriptionTest \
-	JobControllerPluginTest JobDescriptionParserPluginTest SubmitterTest SubmitterPluginTest \
+if DBJSTORE_ENABLED
+CXXFLAGS_WITH_DBJSTORE = $(DBCXX_CPPFLAGS)
+LIBADD_WITH_DBJSTORE   = $(DBCXX_LIBS)
+else
+CXXFLAGS_WITH_DBJSTORE =
+LIBADD_WITH_DBJSTORE   =
+endif
+
+TESTS = SoftwareTest JobTest JobInformationStorageTest JobStateTest \
+	BrokerTest JobDescriptionTest JobControllerPluginTest \
+	JobDescriptionParserPluginTest SubmitterTest SubmitterPluginTest \
 	JobSupervisorTest TargetInformationRetrieverTest \
-	ServiceEndpointRetrieverTest JobListRetrieverTest \
-	ExecutionTargetTest ComputingServiceUniqTest SubmissionStatusTest
+	ServiceEndpointRetrieverTest JobListRetrieverTest ExecutionTargetTest \
+	ComputingServiceUniqTest SubmissionStatusTest
 
 check_PROGRAMS = $(TESTS)
 
@@ -18,8 +27,18 @@ SoftwareTest_LDADD = \
 
 JobTest_SOURCES = $(top_srcdir)/src/Test.cpp JobTest.cpp
 JobTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) \
+	$(CXXFLAGS_WITH_DBJSTORE) $(AM_CXXFLAGS)
 JobTest_LDADD = \
+	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(LIBADD_WITH_DBJSTORE)
+
+JobInformationStorageTest_SOURCES = $(top_srcdir)/src/Test.cpp \
+	JobInformationStorageTest.cpp
+JobInformationStorageTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
+JobInformationStorageTest_LDADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DBCXX_LIBS)
