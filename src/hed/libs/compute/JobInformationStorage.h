@@ -258,6 +258,8 @@ namespace Arc {
       JobDB(const std::string&, u_int32_t = DB_RDONLY);
       ~JobDB();
       
+      void tearDown();
+
       Db* operator->() { return jobDB; }
       Db* viaNameKeys() { return nameSecondaryKeyDB; }
       Db* viaEndpointKeys() { return endpointSecondaryKeyDB; }
