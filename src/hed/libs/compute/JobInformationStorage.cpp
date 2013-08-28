@@ -422,7 +422,7 @@ namespace Arc {
     dbEnv = new DbEnv(DB_CXX_NO_EXCEPTIONS);
     dbEnv->set_errcall(&handleError);
 
-   if ((ret = dbEnv->open(NULL, DB_CREATE | DB_INIT_CDB | DB_INIT_MPOOL, 0)) != 0) {
+    if ((ret = dbEnv->open(NULL, DB_CREATE | DB_INIT_CDB | DB_INIT_MPOOL, 0)) != 0) {
       tearDown();
       throw BDBException(IString("Unable to create data base environment (%s)", name).str(), ret);
     }
