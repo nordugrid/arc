@@ -30,6 +30,12 @@ PYDOXFLAGS = -DPYDOXYGEN
 SWIG_INPUTS += pydoxygen.i
 endif
 
+if DBJSTORE_ENABLED
+SWIG_IS_DBJSTORE_ENABLED = -DDBJSTORE_ENABLED
+else
+SWIG_IS_DBJSTORE_ENABLED =
+endif
+
 ARCLIBS = \
 	$(top_builddir)/src/hed/libs/credentialstore/libarccredentialstore.la \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
@@ -79,7 +85,8 @@ $(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i $(top_srcdir)/swig/Arc.i pydo
 	$(CXXCOMPILE) $(_arc_la_CXXFLAGS) -M -MT $*_wrap.cpp -MT arc_$*.py -MP -MF "$(DEPDIR)/$*_wrap.deps" -x c++ -
 	$(SWIG) -v -c++ -python -threads -o $*_wrap.cpp \
 		-I/usr/include -I$(top_srcdir)/include \
-		$(PYDOXFLAGS) $(AM_CPPFLAGS) $(OPENSSL_CFLAGS) $(top_srcdir)/swig/$*.i
+		$(PYDOXFLAGS) $(SWIG_IS_DBJSTORE_ENABLED) \
+		$(AM_CPPFLAGS) $(OPENSSL_CFLAGS) $(top_srcdir)/swig/$*.i
 # Workaround for RHEL5 swig + EPEL5 python26
 	sed 's/\(^\s*char \*.*\) = \(.*ml_doc\)/\1 = (char *)\2/' $*_wrap.cpp > $*_wrap.cpp.new
 	mv $*_wrap.cpp.new $*_wrap.cpp

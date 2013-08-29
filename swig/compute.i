@@ -640,3 +640,11 @@ TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInfor
 #include <arc/compute/JobInformationStorageXML.h>
 %}
 %include "../src/hed/libs/compute/JobInformationStorageXML.h"
+
+#ifdef DBJSTORE_ENABLED
+// Wrap contents of $(top_srcdir)/src/hed/libs/compute/JobInformationStorageBDB.h
+%{
+#include <arc/compute/JobInformationStorageBDB.h>
+%}
+%include "../src/hed/libs/compute/JobInformationStorageBDB.h"
+#endif // DBJSTORE_ENABLED

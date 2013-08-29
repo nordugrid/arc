@@ -22,6 +22,12 @@ else
 SWIG_IS_JAVA_15_OR_ABOVE = -DJAVA_IS_NOT_15_OR_ABOVE
 endif
 
+if DBJSTORE_ENABLED
+SWIG_IS_DBJSTORE_ENABLED = -DDBJSTORE_ENABLED
+else
+SWIG_IS_DBJSTORE_ENABLED =
+endif
+
 libjarc_la_SOURCES = arc_init.cpp arc_jni.h
 nodist_libjarc_la_SOURCES = arc_wrap.cpp
 libjarc_la_CXXFLAGS = -I$(top_srcdir)/include \
@@ -56,7 +62,7 @@ arc_wrap.cpp: $(top_srcdir)/swig/*.i
 	$(SWIG) -v -c++ -java -nodefaultctor -nodefaultdtor -module arc \
 		-package nordugrid.arc -o arc_wrap.cpp \
 		-outdir $(JAVA_PATH) \
-		$(SWIG_IS_JAVA_15_OR_ABOVE) \
+		$(SWIG_IS_JAVA_15_OR_ABOVE) $(SWIG_IS_DBJSTORE_ENABLED) \
 		-I/usr/include -I$(top_srcdir)/include \
                 $(OPENSSL_CFLAGS) $(top_srcdir)/swig/Arc.i
 	sed 's%#include <jni.h>%#include <arc_jni.h>%' < \
