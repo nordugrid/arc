@@ -29,6 +29,7 @@ libarccompute_la_SOURCES = Broker.cpp BrokerPlugin.cpp ExecutionTarget.cpp \
 	GLUE2.cpp EndpointQueryingStatus.cpp TestACCControl.cpp \
 	EntityRetriever.cpp EntityRetrieverPlugin.cpp Endpoint.cpp \
 	ComputingServiceRetriever.cpp \
+	JobInformationStorageDescriptor.cpp \
 	JobInformationStorageXML.cpp $(SOURCE_WITH_DBJSTORE)
 libarccompute_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) \

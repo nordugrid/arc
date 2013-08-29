@@ -13,6 +13,8 @@ namespace Arc {
   public:
     JobInformationStorageBDB(const std::string& name, unsigned nTries = 10, unsigned tryInterval = 500000);
     virtual ~JobInformationStorageBDB() {}
+
+    static JobInformationStorage* Instance(const std::string& name) { return new JobInformationStorageBDB(name); }
     
     bool ReadAll(std::list<Job>& jobs, const std::list<std::string>& rejectEndpoints = std::list<std::string>());
     bool Read(std::list<Job>& jobs, std::list<std::string>& jobIdentifiers,

@@ -10,6 +10,13 @@
 
 namespace Arc {
   
+  class JobInformationStorage;
+  
+  typedef struct {
+    const char *name;
+    JobInformationStorage* (*instance)(const std::string&);
+  } JobInformationStorageDescriptor;
+
   /// Abstract class for storing job information
   /**
    * This abstract class provides an interface which can be used to store job
@@ -200,6 +207,8 @@ namespace Arc {
      * @return Returns the name of the storage.
      **/
     const std::string& GetName() const { return name; }
+    
+    static JobInformationStorageDescriptor AVAILABLE_TYPES[];
 
   protected:
     const std::string name;
