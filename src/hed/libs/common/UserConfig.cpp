@@ -140,6 +140,8 @@ namespace Arc {
 
   const std::string UserConfig::DEFAULTCONFIG = Glib::build_filename(ARCUSERDIRECTORY, "client.conf");
 
+  const std::string UserConfig::JOBLISTFILE = Glib::build_filename(UserConfig::ARCUSERDIRECTORY, "jobs.dat");
+
   UserConfig::UserConfig(initializeCredentialsType initializeCredentials)
     : timeout(0), keySize(0), ok(false), initializeCredentials(initializeCredentials) {
     if (!InitializeCredentials(initializeCredentials)) {
@@ -258,7 +260,7 @@ namespace Arc {
 
     // If no job list file have been initialized use the default. If the
     // job list file cannot be initialized this object is non-valid.
-    if (joblistfile.empty() && !JobListFile(Glib::build_filename(ARCUSERDIRECTORY, "jobs.xml")))
+    if (joblistfile.empty() && !JobListFile(JOBLISTFILE))
       return;
 
     if (!InitializeCredentials(initializeCredentials)) {
@@ -312,6 +314,17 @@ namespace Arc {
 
   bool UserConfig::JobListFile(const std::string& path) {
     joblistfile = path;
+    return true;
+  }
+
+  bool UserConfig::JobListType(const std::string& type) {
+    if (type != "XML" && type != "BDB") {
+      logger.msg(WARNING, "Unsupported job list type '%s', using 'BDB'. Supported types are: BDB, XML.", type);
+      joblisttype = "BDB";
+      return true;
+    }
+    
+    joblisttype = type;
     return true;
   }
 
@@ -659,6 +672,7 @@ namespace Arc {
             }
             alias.Child().Destroy();
           }
+          alias.Destroy();
         }
 
         if (ini["common"]) {
@@ -668,6 +682,7 @@ namespace Arc {
           if (!ignoreJobListFile) {
             HANDLESTRATT("joblist", JobListFile)
           }
+          HANDLESTRATT("joblisttype", JobListType)
           if (common["timeout"]) {
             if (!stringto(common["timeout"], timeout))
               logger.msg(WARNING, "The value of the timeout attribute in the configuration file (%s) was only partially parsed", conffile);

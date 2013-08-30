@@ -20,7 +20,7 @@
 #include <arc/compute/ExecutionTarget.h>
 #include <arc/compute/Job.h>
 #include <arc/compute/JobDescription.h>
-#include <arc/compute/JobInformationStorageXML.h>
+#include <arc/compute/JobInformationStorage.h>
 #include <arc/compute/SubmissionStatus.h>
 #include <arc/compute/Submitter.h>
 
@@ -184,7 +184,7 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
 
 class HandleSubmittedJobs : public Arc::EntityConsumer<Arc::Job> {
 public:
-  HandleSubmittedJobs(const std::string& jobidfile, const std::string& joblist) : jobidfile(jobidfile), joblist(joblist), submittedJobs() {}
+  HandleSubmittedJobs(const std::string& jobidfile, const Arc::UserConfig& uc) : jobidfile(jobidfile), uc(uc), submittedJobs() {}
 
   void addEntity(const Arc::Job& j) {
     std::cout << Arc::IString("Job submitted with jobid: %s", j.JobID) << std::endl;
@@ -195,12 +195,17 @@ public:
     if (!jobidfile.empty() && !Arc::Job::WriteJobIDsToFile(submittedJobs, jobidfile)) {
       logger.msg(Arc::WARNING, "Cannot write job IDs to file (%s)", jobidfile);
     }
-    Arc::JobInformationStorageXML jobList(joblist);
-    if (!jobList.Write(submittedJobs)) {
-      std::cout << Arc::IString("Warning: Failed to write job information to file (%s)", joblist)
-                << std::endl;
-      std::cout << Arc::IString("To recover missing jobs, run arcsync") << std::endl;
+    Arc::JobInformationStorage* jobStore = createJobInformationStorage(uc);
+    if (jobStore == NULL || !jobStore->Write(submittedJobs)) {
+      if (jobStore == NULL) {
+        std::cerr << Arc::IString("Warning: Unable to open job list file (%s), unknown format", uc.JobListFile()) << std::endl;
+      }
+      else {
+        std::cerr << Arc::IString("Warning: Failed to write job information to file (%s)", uc.JobListFile()) << std::endl;
+      }
+      std::cerr << "         " << Arc::IString("To recover missing jobs, run arcsync") << std::endl;
     }
+    delete jobStore;
   }
 
   void printsummary(const std::list<Arc::JobDescription>& originalDescriptions, const std::list<const Arc::JobDescription*>& notsubmitted) const {
@@ -232,7 +237,8 @@ public:
   void clearsubmittedjobs() { submittedJobs.clear(); }
 
 private:
-  const std::string jobidfile, joblist;
+  const std::string jobidfile;
+  const Arc::UserConfig& uc;
   std::list<Arc::Job> submittedJobs;
 };
 
@@ -240,7 +246,7 @@ private:
 static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface, const std::string& jobidfile, bool direct_submission) {
   int retval = 0;
   
-  HandleSubmittedJobs hsj(jobidfile, usercfg.JobListFile());
+  HandleSubmittedJobs hsj(jobidfile, usercfg);
   Arc::Submitter s(usercfg);
   s.addConsumer(hsj);
 

@@ -19,7 +19,9 @@
 #include <arc/UserConfig.h>
 #include <arc/compute/EntityRetriever.h>
 #include <arc/compute/Job.h>
-#include <arc/compute/JobInformationStorageXML.h>
+#include <arc/compute/JobInformationStorage.h>
+
+#include "utils.h"
 
 class JobSynchronizer : public Arc::EntityConsumer<Arc::Endpoint> {
 public:
@@ -59,11 +61,15 @@ public:
   bool writeJobs(bool truncate) {
     bool jobsWritten = false;
     bool jobsReported = false;
-    Arc::JobInformationStorageXML jobList(uc.JobListFile());
+    Arc::JobInformationStorage *jobstore = createJobInformationStorage(uc);
+    if (jobstore == NULL) {
+      std::cerr << Arc::IString("Warning: Unable to open job list file (%s), unknown format", uc.JobListFile()) << std::endl;
+      return false;
+    }
     // Write extracted job info to joblist
     if (truncate) {
-      jobList.Clean();
-      if ( (jobsWritten = jobList.Write(jobs)) ) {
+      jobstore->Clean();
+      if ( (jobsWritten = jobstore->Write(jobs)) ) {
         for (std::list<Arc::Job>::const_iterator it = jobs.begin();
              it != jobs.end(); ++it) {
           if (!jobsReported) {
@@ -85,7 +91,7 @@ public:
       std::set<std::string> prunedServices;
       jlr.getServicesWithStatus(Arc::EndpointQueryingStatus::SUCCESSFUL,
                                 prunedServices);
-      if ( (jobsWritten = jobList.Write(jobs, prunedServices, newJobs)) ) {
+      if ( (jobsWritten = jobstore->Write(jobs, prunedServices, newJobs)) ) {
         for (std::list<const Arc::Job*>::const_iterator it = newJobs.begin();
              it != newJobs.end(); ++it) {
           if (!jobsReported) {
@@ -102,7 +108,7 @@ public:
         std::cout << Arc::IString("Total number of new jobs found: ") << newJobs.size() << std::endl;
       }
     }
-
+    delete jobstore;
     if (!jobsWritten) {
       std::cout << Arc::IString("ERROR: Failed to write job information to file (%s)", uc.JobListFile()) << std::endl;
       return false;
@@ -117,8 +123,6 @@ private:
   Arc::JobListRetriever jlr;
   Arc::EntityContainer<Arc::Job> jobs;
 };
-
-#include "utils.h"
 
 int RUNMAIN(arcsync)(int argc, char **argv) {
 

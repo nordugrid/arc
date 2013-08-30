@@ -4,6 +4,8 @@
 #include <config.h>
 #endif
 
+#include <glibmm.h>
+
 #include <arc/ArcConfig.h>
 #include <arc/IString.h>
 #include <arc/credential/Credential.h>
@@ -177,6 +179,42 @@ void splitendpoints(std::list<std::string>& selected, std::list<std::string>& re
     }
   }
 }
+
+Arc::JobInformationStorage* createJobInformationStorage(const Arc::UserConfig& uc) {
+  Arc::JobInformationStorage* jis = NULL;
+  if (Glib::file_test(uc.JobListFile(), Glib::FILE_TEST_EXISTS)) {
+    for (int i = 0; Arc::JobInformationStorage::AVAILABLE_TYPES[i].name != NULL; ++i) {
+      jis = (Arc::JobInformationStorage::AVAILABLE_TYPES[i].instance)(uc.JobListFile());
+      if (jis && jis->IsValid()) {
+        return jis;
+      }
+      delete jis;
+    }
+    return NULL;
+  }
+  
+  for (int i = 0; Arc::JobInformationStorage::AVAILABLE_TYPES[i].name != NULL; ++i) {
+    if (uc.JobListType() == Arc::JobInformationStorage::AVAILABLE_TYPES[i].name) {
+      jis = (Arc::JobInformationStorage::AVAILABLE_TYPES[i].instance)(uc.JobListFile());
+      if (jis && jis->IsValid()) {
+        return jis;
+      }
+      delete jis;
+      return NULL;
+    }
+  }
+
+  if (Arc::JobInformationStorage::AVAILABLE_TYPES[0].instance != NULL) {
+    jis = (Arc::JobInformationStorage::AVAILABLE_TYPES[0].instance)(uc.JobListFile());
+    if (jis && jis->IsValid()) {
+      return jis;
+    }
+    delete jis;
+  }
+  
+  return NULL;
+}
+
 
 ClientOptions::ClientOptions(Client_t c,
                              const std::string& arguments,
@@ -440,7 +478,7 @@ ClientOptions::ClientOptions(Client_t c,
 
   if (c != CO_INFO) {
     AddOption('j', "joblist",
-              istring("the file storing information about active jobs (default ~/.arc/jobs.xml)"),
+              Arc::IString("the file storing information about active jobs (default %s)", Arc::UserConfig::JOBLISTFILE).str(), // TODO
               istring("filename"),
               joblist);
   }

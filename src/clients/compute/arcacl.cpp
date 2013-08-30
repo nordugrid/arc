@@ -12,7 +12,7 @@
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/compute/JobControllerPlugin.h>
-#include <arc/compute/JobInformationStorageXML.h>
+#include <arc/compute/JobInformationStorage.h>
 #include <arc/UserConfig.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
@@ -119,11 +119,13 @@ int RUNMAIN(arcacl)(int argc, char **argv) {
 
   // First try to find objects in jobs' file
   std::list<Arc::Job> jobs;
-  Arc::JobInformationStorageXML jobList(usercfg.JobListFile());
-  if (( opt.all && !jobList.ReadAll(jobs, rejectManagementURLs)) ||
-      (!opt.all && !jobList.Read(jobs, jobidentifiers, selectedURLs, rejectManagementURLs))) {
+  Arc::JobInformationStorage *jobstore = createJobInformationStorage(usercfg);
+  if (jobstore == NULL ||
+      ( opt.all && !jobstore->ReadAll(jobs, rejectManagementURLs)) ||
+      (!opt.all && !jobstore->Read(jobs, jobidentifiers, selectedURLs, rejectManagementURLs))) {
     // If no jobs file still try and treat things like data objects
   }
+  delete jobstore;
 
   // Data part
   for (std::list<std::string>::const_iterator identifier = jobidentifiers.begin();

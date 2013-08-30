@@ -12,7 +12,7 @@
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/UserConfig.h>
-#include <arc/compute/JobInformationStorageXML.h>
+#include <arc/compute/JobInformationStorage.h>
 #include <arc/compute/JobSupervisor.h>
 
 #include "utils.h"
@@ -90,14 +90,17 @@ int RUNMAIN(arckill)(int argc, char **argv) {
   std::list<std::string> rejectManagementURLs = getRejectManagementURLsFromUserConfigAndCommandLine(usercfg, opt.rejectmanagement);
 
   std::list<Arc::Job> jobs;
-  Arc::JobInformationStorageXML jobList(usercfg.JobListFile());
-  if (!jobList.IsStorageExisting()) {
+  Arc::JobInformationStorage *jobstore = createJobInformationStorage(usercfg);
+  if (jobstore != NULL && !jobstore->IsStorageExisting()) {
     logger.msg(Arc::ERROR, "Job list file (%s) doesn't exist", usercfg.JobListFile());
+    delete jobstore;
     return 1;
   }
-  if (( opt.all && !jobList.ReadAll(jobs, rejectManagementURLs)) ||
-      (!opt.all && !jobList.Read(jobs, jobidentifiers, selectedURLs, rejectManagementURLs))) {
+  if (jobstore == NULL ||
+      ( opt.all && !jobstore->ReadAll(jobs, rejectManagementURLs)) ||
+      (!opt.all && !jobstore->Read(jobs, jobidentifiers, selectedURLs, rejectManagementURLs))) {
     logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());
+    delete jobstore;
     return 1;
   }
 
@@ -117,6 +120,7 @@ int RUNMAIN(arckill)(int argc, char **argv) {
 
   if (jobmaster.GetSelectedJobs().empty()) {
     std::cout << Arc::IString("No jobs") << std::endl;
+    delete jobstore;
     return 1;
   }
 
@@ -137,19 +141,16 @@ int RUNMAIN(arckill)(int argc, char **argv) {
     }
     cleaned_num = jobmaster.GetIDsProcessed().size();
 
-    if (!jobList.Remove(jobmaster.GetIDsProcessed())) {
+    if (!jobstore->Remove(jobmaster.GetIDsProcessed())) {
       std::cout << Arc::IString("Warning: Failed removing jobs from file (%s)", usercfg.JobListFile()) << std::endl;
       std::cout << Arc::IString("         Run 'arcclean -s Undefined' to remove killed jobs from job list", usercfg.JobListFile()) << std::endl;
       retval = 1;
     }
-
     std::cout << Arc::IString("Jobs processed: %d, successfully killed: %d, successfully cleaned: %d", selected_num, canceled_num, cleaned_num) << std::endl;
-
   } else {
-
     std::cout << Arc::IString("Jobs processed: %d, successfully killed: %d", selected_num, canceled_num) << std::endl;
-
   }
+  delete jobstore;
 
   return retval;
 }

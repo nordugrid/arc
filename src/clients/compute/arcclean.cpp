@@ -13,7 +13,7 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
-#include <arc/compute/JobInformationStorageXML.h>
+#include <arc/compute/JobInformationStorage.h>
 #include <arc/compute/JobSupervisor.h>
 
 #include "utils.h"
@@ -91,14 +91,17 @@ int RUNMAIN(arcclean)(int argc, char **argv) {
   std::list<std::string> rejectManagementURLs = getRejectManagementURLsFromUserConfigAndCommandLine(usercfg, opt.rejectmanagement);
 
   std::list<Arc::Job> jobs;
-  Arc::JobInformationStorageXML jobList(usercfg.JobListFile());
-  if (!jobList.IsStorageExisting()) {
+  Arc::JobInformationStorage *jobstore = createJobInformationStorage(usercfg);
+  if (jobstore != NULL && !jobstore->IsStorageExisting()) {
     logger.msg(Arc::ERROR, "Job list file (%s) doesn't exist", usercfg.JobListFile());
+    delete jobstore;
     return 1;
   }
-  if (( opt.all && !jobList.ReadAll(jobs, rejectManagementURLs)) ||
-      (!opt.all && !jobList.Read(jobs, jobidentifiers, selectedURLs, rejectManagementURLs))) {
+  if (jobstore == NULL ||
+      ( opt.all && !jobstore->ReadAll(jobs, rejectManagementURLs)) ||
+      (!opt.all && !jobstore->Read(jobs, jobidentifiers, selectedURLs, rejectManagementURLs))) {
     logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());
+    delete jobstore;
     return 1;
   }
 
@@ -153,10 +156,11 @@ int RUNMAIN(arcclean)(int argc, char **argv) {
   }
 
 
-  if (!jobList.Remove(cleaned)) {
+  if (!jobstore->Remove(cleaned)) {
     std::cout << Arc::IString("Warning: Failed to write job information to file (%s)", usercfg.JobListFile()) << std::endl;
     std::cout << Arc::IString("         Run 'arcclean -s Undefined' to remove cleaned jobs from job list", usercfg.JobListFile()) << std::endl;
   }
+  delete jobstore;
 
   if (cleaned.empty() && notcleaned.empty()) {
     std::cout << Arc::IString("No jobs") << std::endl;

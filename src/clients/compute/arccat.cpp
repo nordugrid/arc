@@ -13,7 +13,7 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/compute/JobControllerPlugin.h>
-#include <arc/compute/JobInformationStorageXML.h>
+#include <arc/compute/JobInformationStorage.h>
 #include <arc/compute/JobSupervisor.h>
 #include <arc/UserConfig.h>
 
@@ -93,17 +93,20 @@ int RUNMAIN(arccat)(int argc, char **argv) {
   std::list<std::string> rejectManagementURLs = getRejectManagementURLsFromUserConfigAndCommandLine(usercfg, opt.rejectmanagement);
 
   std::list<Arc::Job> jobs;
-  Arc::JobInformationStorageXML jobList(usercfg.JobListFile());
-  if (!jobList.IsStorageExisting()) {
+  Arc::JobInformationStorage *jobstore = createJobInformationStorage(usercfg);
+  if (jobstore != NULL && !jobstore->IsStorageExisting()) {
     logger.msg(Arc::ERROR, "Job list file (%s) doesn't exist", usercfg.JobListFile());
+    delete jobstore;
     return 1;
   }
-  if (!jobList.IsValid() ||
-      ( opt.all && !jobList.ReadAll(jobs, rejectManagementURLs)) ||
-      (!opt.all && !jobList.Read(jobs, jobidentifiers, selectedURLs, rejectManagementURLs))) {
+  if (jobstore == NULL ||
+      ( opt.all && !jobstore->ReadAll(jobs, rejectManagementURLs)) ||
+      (!opt.all && !jobstore->Read(jobs, jobidentifiers, selectedURLs, rejectManagementURLs))) {
     logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());
+    delete jobstore;
     return 1;
   }
+  delete jobstore;
 
   if (!opt.all) {
     for (std::list<std::string>::const_iterator itJIDAndName = jobidentifiers.begin();

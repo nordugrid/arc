@@ -137,6 +137,7 @@ namespace Arc {
    * - cacertificatepath / CACertificatePath(const std::string&)
    * - timeout / Timeout(int)
    * - joblist / JobListFile(const std::string&)
+   * - joblisttype / JobListType(const std::string&)
    * - verbosity / Verbosity(const std::string&)
    * - brokername / Broker(const std::string&) or Broker(const std::string&, const std::string&)
    * - brokerarguments / Broker(const std::string&) or Broker(const std::string&, const std::string&)
@@ -477,6 +478,24 @@ namespace Arc {
      * @see JobListFile(const std::string&)
      **/
     const std::string& JobListFile() const { return joblistfile; }
+    
+    /// Set type of job storage
+    /**
+     * Possible storage types are BDB and XML. This method always return true.
+     * 
+     * The attribute associated with this setter method is 'joblisttype'.
+     * 
+     * @param type of job storage
+     * @return true is always returned.
+     * @see JobListType()
+     **/
+    bool JobListType(const std::string& type);
+    /// Get type of job storage
+    /**
+     * @return The type of job storage is returned.
+     * @see JobListType(const std::string&)
+     **/
+    const std::string& JobListType() const { return joblisttype; }
 
     /// Set timeout
     /**
@@ -1224,6 +1243,15 @@ namespace Arc {
      * configuration file.
      **/
     static const std::string EXAMPLECONFIG;
+    /// Path to default job list file
+    /**
+     * The \a JOBLISTFILE variable specifies the default path to the job list
+     * file used by the ARC job management tools. The job list file is located
+     * in the directory specified by the ARCUSERDIRECTORY variable with name
+     * 'jobs.dat'.
+     * @see ARCUSERDIRECTORY
+     **/
+    static const std::string JOBLISTFILE;
 
     /// Default timeout in seconds
     /**
@@ -1260,6 +1288,7 @@ namespace Arc {
 
 
     std::string joblistfile;
+    std::string joblisttype;
 
     int timeout;
 

@@ -5,6 +5,8 @@
 #include <arc/UserConfig.h>
 #include <arc/OptionParser.h>
 #include <arc/compute/Endpoint.h>
+#include <arc/compute/Job.h>
+#include <arc/compute/JobInformationStorage.h>
 
 #ifdef TEST
 #define RUNMAIN(X) test_##X##_main
@@ -88,6 +90,12 @@ void showplugins(const std::string& program, const std::list<std::string>& types
 bool checkproxy(const Arc::UserConfig& uc);
 
 void splitendpoints(std::list<std::string>& selected, std::list<std::string>& rejected);
+
+/**
+ * Creates a new JobInformationStorage object. Caller has responsibility of
+ * deleting returned object.
+ */
+Arc::JobInformationStorage* createJobInformationStorage(const Arc::UserConfig& uc);
 
 class ClientOptions : public Arc::OptionParser {
 public:

@@ -24,7 +24,7 @@
 #include <arc/Utils.h>
 #include <arc/compute/ComputingServiceRetriever.h>
 #include <arc/compute/Job.h>
-#include <arc/compute/JobInformationStorageXML.h>
+#include <arc/compute/JobInformationStorage.h>
 #include <arc/compute/SubmitterPlugin.h>
 #include <arc/compute/JobDescription.h>
 #include <arc/credential/Credential.h>
@@ -285,12 +285,17 @@ int test(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorter& ets, const 
     retval = 1;
   }
 
-  Arc::JobInformationStorageXML jobList(usercfg.JobListFile());
-  if (!jobList.Write(submittedJobs)) {
+  Arc::JobInformationStorage *jobstore = createJobInformationStorage(usercfg);
+  if (jobstore == NULL) {
+    logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());
+    return 1;
+  }
+  if (!jobstore->Write(submittedJobs)) {
     std::cout << Arc::IString("Warning: Failed to write job information to file (%s)", usercfg.JobListFile())
               << std::endl;
     std::cout << Arc::IString("To recover missing jobs, run arcsync") << std::endl;
   }
+  delete jobstore;
 
   return retval;
 }

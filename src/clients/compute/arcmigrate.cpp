@@ -14,7 +14,7 @@
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
 #include <arc/compute/Job.h>
-#include <arc/compute/JobInformationStorageXML.h>
+#include <arc/compute/JobInformationStorage.h>
 #include <arc/compute/JobSupervisor.h>
 
 #include "utils.h"
@@ -97,14 +97,17 @@ int RUNMAIN(arcmigrate)(int argc, char **argv) {
   std::list<std::string> rejectManagementURLs = getRejectManagementURLsFromUserConfigAndCommandLine(usercfg, opt.rejectmanagement);
 
   std::list<Arc::Job> jobs;
-  Arc::JobInformationStorageXML jobList(usercfg.JobListFile());
-  if (!jobList.IsStorageExisting()) {
+  Arc::JobInformationStorage *jobstore = createJobInformationStorage(usercfg);
+  if (jobstore != NULL && !jobstore->IsStorageExisting()) {
     logger.msg(Arc::ERROR, "Job list file (%s) doesn't exist", usercfg.JobListFile());
+    delete jobstore;
     return 1;
   }
-  if (( opt.all && !jobList.ReadAll(jobs, rejectManagementURLs)) ||
-      (!opt.all && !jobList.Read(jobs, jobidentifiers, selectedURLs, rejectManagementURLs))) {
+  if (jobstore == NULL ||
+      ( opt.all && !jobstore->ReadAll(jobs, rejectManagementURLs)) ||
+      (!opt.all && !jobstore->Read(jobs, jobidentifiers, selectedURLs, rejectManagementURLs))) {
     logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());
+    delete jobstore;
     return 1;
   }
 
@@ -121,6 +124,7 @@ int RUNMAIN(arcmigrate)(int argc, char **argv) {
   jobmaster.SelectByStatus(std::list<std::string>(1, "Queuing"));
   if (jobmaster.GetSelectedJobs().empty()) {
     std::cout << Arc::IString("No jobs") << std::endl;
+    delete jobstore;
     return 1;
   }
 
@@ -138,7 +142,7 @@ int RUNMAIN(arcmigrate)(int argc, char **argv) {
     std::cout << Arc::IString("Job submitted with jobid: %s", it->JobID) << std::endl;
   }
 
-  if (!migratedJobs.empty() && !jobList.Write(migratedJobs)) {
+  if (!migratedJobs.empty() && !jobstore->Write(migratedJobs)) {
     std::cout << Arc::IString("Warning: Failed to write job information to file (%s)", usercfg.JobListFile()) << std::endl;
     std::cout << Arc::IString("         To recover missing jobs, run arcsync") << std::endl;
     retval = 1;
@@ -166,12 +170,13 @@ int RUNMAIN(arcmigrate)(int argc, char **argv) {
       logger.msg(Arc::WARNING, "Migration of job (%s) succeeded, but cleaning the job failed - it will still appear in the job list", *it);
     }
 
-    if (!jobList.Remove(jobmaster.GetIDsProcessed())) {
+    if (!jobstore->Remove(jobmaster.GetIDsProcessed())) {
       std::cout << Arc::IString("Warning: Failed removing jobs from file (%s)", usercfg.JobListFile()) << std::endl;
       std::cout << Arc::IString("         Use arcclean to remove non-existing jobs") << std::endl;
       retval = 1;
     }
   }
+  delete jobstore;
 
   if ((migratedJobs.size() + notmigrated.size()) > 1) {
     std::cout << std::endl << Arc::IString("Job migration summary:") << std::endl;
