@@ -478,7 +478,7 @@ ClientOptions::ClientOptions(Client_t c,
 
   if (c != CO_INFO) {
     AddOption('j', "joblist",
-              Arc::IString("the file storing information about active jobs (default %s)", Arc::UserConfig::JOBLISTFILE).str(), // TODO
+              Arc::IString("the file storing information about active jobs (default %s)", Arc::UserConfig::JOBLISTFILE).str(),
               istring("filename"),
               joblist);
   }
