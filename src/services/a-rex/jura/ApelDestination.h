@@ -26,6 +26,7 @@ namespace Arc
     Arc::URL service_url;
     std::string topic;
     std::string output_dir;
+    std::string default_path_prefix;
     /** Max number of URs to put in a set before submitting it */
     int max_ur_set_size;
     /** Require to set to ture this option by production message broker */
@@ -38,10 +39,17 @@ namespace Arc
     std::list<JobLogFile> joblogs;
     /** Usage Record set XML */
     Arc::XMLNode usagerecordset;
+    /** location of Aggregation Records */
+    std::string aggr_record_location;
+    bool aggr_record_update_need;
+    /** Aggregation Record set XML */
+    Arc::XMLNode aggregationrecordset;
+
     
     int submit_batch();
     Arc::MCC_Status send_request(const std::string &urset);
     void clear();
+    void UpdateAggregationRecord(Arc::XMLNode& ur);
 
   public:
     /** Constructor. Service URL and APEL-related parameters (e.g. UR
