@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <sstream>
+
 #include "CARAggregation.h"
 
 #include <sys/stat.h>
