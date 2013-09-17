@@ -28,7 +28,7 @@ namespace Arc
     std::string port;
     std::string topic;
 
-    /** Require to set to ture this option by production message broker */
+    /** Require to set to true this option by production message broker */
     std::string use_ssl;
     /** File name extension */
     int sequence;
@@ -37,12 +37,17 @@ namespace Arc
     bool aggr_record_update_need;
     /** Aggregation Record set XML */
     Arc::XMLNode aggregationrecordset;
+    Arc::NS ns;
 
-    
+    void init(std::string _host, std::string _port, std::string _topic);
+    /** Send records to the accounting server. */
     Arc::MCC_Status send_records(const std::string &urset);
+    /** Update all records sending dates */
+    void UpdateLastSendingDate();
+    /** Update records sending dates that contains in the list */
+    void UpdateLastSendingDate(Arc::XMLNodeList& records);
     void clear();
     std::string Current_Time( time_t parameter_time = time(NULL) );
-    ~CARAggregation();
 
   public:
     /**
@@ -53,8 +58,9 @@ namespace Arc
      *  Constructor for record reporting.
      */
     CARAggregation(std::string _host, std::string _port, std::string _topic);
+    ~CARAggregation();
 
-    /** Generates record from CAR record, collects it into the
+    /** Generated record from CAR record, collects it into the
      *  CAR aggregation. 
      */
     void UpdateAggregationRecord(Arc::XMLNode& ur);
@@ -63,6 +69,13 @@ namespace Arc
      */
     int save_records();
 
+    /** Reporting a required record to the accounting server.
+     */
+    bool Reporting_records(std::string year, std::string month="");
+
+    /** Reporting all records to the accounting server.
+     */
+    bool Reporting_records();
   };
 
 }
