@@ -584,12 +584,12 @@ sub write_mapfiles_data {
     foreach my $mapfile ( keys %$ref_mapfile_data ) {
         unless ( $dryrun ) {
             my ($gmf, $tmp_mapfile) = tempfile($mapfile . "XXXXX", UNLINK => 1) or 
-                &Logger("Cannot open temporary file for $mapfile gridmap data writting", FATAL);
+                &Logger("Cannot open temporary file to write $mapfile data", FATAL);
 
-            &Logger("Writting mapfile content for $mapfile", INFO);
+            &Logger("Writting mapfile data for $mapfile", INFO);
 
             while ( my ($dn, $map) = each(%{$ref_mapfile_data->{$mapfile}}) ) {
-                print $gmf "\"$dn\" $map\n" or &Logger("Failed to write gridmap data (no enoung disk space?) to $tmp_mapfile", FATAL);
+                print $gmf "\"$dn\" $map\n" or &Logger("Failed to write gridmap data (not enough disk space?) to $tmp_mapfile", FATAL);
             }
 
             close($gmf);
