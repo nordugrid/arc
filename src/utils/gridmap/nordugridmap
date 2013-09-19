@@ -13,7 +13,7 @@ use URI;
 use XML::DOM;
 use LWP::UserAgent;
 use LWP::Protocol::https;
-use File::Temp;
+use File::Temp qw(tempfile);
 use File::Path;
 use Storable;
 use SOAP::Lite;
@@ -583,16 +583,16 @@ sub write_mapfiles_data {
 
     foreach my $mapfile ( keys %$ref_mapfile_data ) {
         unless ( $dryrun ) {
-            my $tmp_mapfile = $mapfile . "_tmp";
-            open (GMF, "> $tmp_mapfile") or &Logger("Cannot open file for writting: $tmp_mapfile", FATAL);
+            my ($gmf, $tmp_mapfile) = tempfile($mapfile . "XXXXX", UNLINK => 1) or 
+                &Logger("Cannot open temporary file for $mapfile gridmap data writting", FATAL);
 
             &Logger("Writting mapfile content for $mapfile", INFO);
 
             while ( my ($dn, $map) = each(%{$ref_mapfile_data->{$mapfile}}) ) {
-                print GMF "\"$dn\" $map\n";
+                print $gmf "\"$dn\" $map\n" or &Logger("Failed to write gridmap data (no enoung disk space?) to $tmp_mapfile", FATAL);
             }
 
-            close(GMF);
+            close($gmf);
             rename $tmp_mapfile, $mapfile;
         } else {
             my $gmf_string = "";
