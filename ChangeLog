@@ -1,3 +1,7 @@
+2013-08-30  Martin Skou Andersen <skou@nbi.dk>
+  * Enable client job management tools to be able to use Berkeley database for
+    storing information about jobs.
+
 2013-08-21  Martin Skou Andersen <skou@nbi.dk>
   * EMI-ES: Make use of bulk operations when retrieving list of jobs from
     service. Performance improvement to arcsync. On the way to fixing bug 3099.
