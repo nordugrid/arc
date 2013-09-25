@@ -606,37 +606,97 @@ namespace ArcDMCGridFTP {
     char *sresp;
     GlobusResult res;
     DataStatus result = DataStatus::ListError;
-    if (send_command("PASV", NULL, true, &sresp, NULL, '(') !=
+    pasv_addr.port = 0;
+    pasv_addr.hostlen = 0;
+    // Try EPSV first to make it work over IPv6
+    if (send_command("EPSV", NULL, true, &sresp, NULL, '(') !=
         GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
       if (sresp) {
-        logger.msg(INFO, "PASV failed: %s", sresp);
-        result.SetDesc("PASV comand failed at "+urlstr+" : "+sresp);
+        logger.msg(INFO, "EPSV failed: %s", sresp);
+        result.SetDesc("EPSV comand failed at "+urlstr+" : "+sresp);
         free(sresp);
       } else {
-        logger.msg(INFO, "PASV failed");
-        result.SetDesc("PASV comand failed at "+urlstr);
+        logger.msg(INFO, "EPSV failed");
+        result.SetDesc("EPSV comand failed at "+urlstr);
       }
+      // Now try PASV. It will fail on IPv6 unless server provides IPv4 data channel.
+      if (send_command("PASV", NULL, true, &sresp, NULL, '(') !=
+          GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
+        if (sresp) {
+          logger.msg(INFO, "PASV failed: %s", sresp);
+          result.SetDesc("PASV comand failed at "+urlstr+" : "+sresp);
+          free(sresp);
+        } else {
+          logger.msg(INFO, "PASV failed");
+          result.SetDesc("PASV comand failed at "+urlstr);
+        }
+        return result;
+      }
+      if (sresp) {
+        int port_low, port_high;
+        if (sscanf(sresp, "%i,%i,%i,%i,%i,%i",
+                   &(pasv_addr.host[0]), &(pasv_addr.host[1]),
+                   &(pasv_addr.host[2]), &(pasv_addr.host[3]),
+                   &port_high, &port_low) == 6) {
+          pasv_addr.port = ((port_high & 0x000FF) << 8) | (port_low & 0x000FF);
+          pasv_addr.hostlen = 4;
+        }
+        free(sresp);
+      }
+    } else {
+      // Successful EPSV - response is (|||port|)
+      // Currently more complex responses with protocol and host
+      // are not supported.
+      if (sresp) {
+        char sep = sresp[0];
+        char* lsep = NULL;
+        if(sep) {
+          if((sresp[1] == sep) && (sresp[2] == sep) &&
+             ((lsep = (char*)strchr(sresp+3,sep)) != NULL)) {
+            *lsep = 0;
+            pasv_addr.port = strtoul(sresp+3,&lsep,10);
+            if(pasv_addr.port != 0) {
+              // Apply control connection address
+              unsigned short local_port;
+              if(!(res = globus_io_tcp_get_local_address_ex(&(handle->cc_handle.io_handle),
+                                     pasv_addr.host,&pasv_addr.hostlen,&local_port))) {
+                logger.msg(INFO, "Failed to apply local address to data connection");
+                std::string globus_err(res.str());
+                logger.msg(INFO, "Failure: %s", globus_err);
+                result.SetDesc("Failed to apply local address to data connection for "+urlstr+": "+globus_err);
+                free(sresp);
+                return result;
+              }
+            }
+          }
+        }
+        free(sresp);
+      }
+    }
+    if (pasv_addr.hostlen == 0) {
+      logger.msg(INFO, "Can't parse host and/or port in response to EPSV/PASV");
+      result.SetDesc("Can't parse host and/or port in response to EPSV/PASV from "+urlstr);
       return result;
     }
-    pasv_addr.port = 0;
-    if (sresp) {
-      int port_low, port_high;
-      if (sscanf(sresp, "%i,%i,%i,%i,%i,%i",
-                 &(pasv_addr.host[0]), &(pasv_addr.host[1]),
-                 &(pasv_addr.host[2]), &(pasv_addr.host[3]),
-                 &port_high, &port_low) == 6)
-        pasv_addr.port = ((port_high & 0x000FF) << 8) | (port_low & 0x000FF);
+    if (pasv_addr.hostlen == 4) {
+      logger.msg(VERBOSE, "Data channel: %d.%d.%d.%d:%d",
+                 pasv_addr.host[0], pasv_addr.host[1], pasv_addr.host[2], pasv_addr.host[3],
+                 pasv_addr.port);
+    } else {
+      char buf[8*5];
+      snprintf(buf,sizeof(buf),"%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x",
+                 pasv_addr.host[0]<<8  | pasv_addr.host[1],
+                 pasv_addr.host[2]<<8  | pasv_addr.host[3],
+                 pasv_addr.host[4]<<8  | pasv_addr.host[5],
+                 pasv_addr.host[6]<<8  | pasv_addr.host[7],
+                 pasv_addr.host[8]<<8  | pasv_addr.host[9],
+                 pasv_addr.host[10]<<8 | pasv_addr.host[11],
+                 pasv_addr.host[12]<<8 | pasv_addr.host[13],
+                 pasv_addr.host[14]<<8 | pasv_addr.host[15]);
+      buf[sizeof(buf)-1] = 0;
+      logger.msg(VERBOSE, "Data channel: [%s]:%d",
+                 buf, pasv_addr.port);
     }
-    if (pasv_addr.port == 0) {
-      logger.msg(INFO, "Can't parse host and port in response to PASV");
-      result.SetDesc("Can't parse host and port in response to PASV from "+urlstr);
-      if (sresp) free(sresp);
-      return result;
-    }
-    free(sresp);
-    logger.msg(VERBOSE, "Data channel: %d.%d.%d.%d %d", pasv_addr.host[0],
-               pasv_addr.host[1], pasv_addr.host[2], pasv_addr.host[3],
-               pasv_addr.port);
     if (!(res = globus_ftp_control_local_port(handle, &pasv_addr))) {
       logger.msg(INFO, "Obtained host and address are not acceptable");
       std::string globus_err(res.str());
