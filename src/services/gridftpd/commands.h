@@ -24,6 +24,9 @@ class GridFTP_Commands {
 #endif
     int log_id;
     unsigned int firewall[4];
+    int local_host[16]; // enough for IPv6
+    unsigned short local_port;
+    bool local_is_ipv6;
     time_t last_action_time;
     globus_ftp_control_handle_t handle;
     globus_mutex_t response_lock;

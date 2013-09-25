@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <arpa/inet.h>
+
 #include <globus_common.h>
 #include <globus_io.h>
 #include <globus_ftp_control.h>
@@ -132,6 +134,32 @@ int GridFTP_Commands::new_connection_callback(void* arg,int sock) {
   it->handle.cc_handle.cc_state=GLOBUS_FTP_CONTROL_CONNECTED;
 
   fork_done = 0;
+  int count = 0;
+  res = globus_io_tcp_get_local_address_ex(&(it->handle.cc_handle.io_handle),
+                                     it->local_host,&count,&(it->local_port));
+  if(res != GLOBUS_SUCCESS) {
+    logger.msg(Arc::ERROR, "Failed to obtain own address: %s", Arc::GlobusResult(res).str());
+    return -1;
+  };
+  if(count == sizeof(in_addr)) {
+    it->local_is_ipv6 = false;
+  } else if(count == sizeof(in6_addr)) {
+    it->local_is_ipv6 = true;
+  } else {
+    logger.msg(Arc::ERROR, "Failed to recognize own address type (IPv4 ir IPv6) - %u",count);
+    return -1;
+  };
+  if(it->local_is_ipv6) {
+    char str[8*5];
+    snprintf(str,sizeof(str),"%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x",
+            it->local_host[0]<<8  | it->local_host[1], it->local_host[2]<<8  | it->local_host[3],
+            it->local_host[4]<<8  | it->local_host[5], it->local_host[6]<<8  | it->local_host[7],
+            it->local_host[8]<<8  | it->local_host[9], it->local_host[10]<<8 | it->local_host[11],
+            it->local_host[12]<<8 | it->local_host[13],it->local_host[14]<<8 | it->local_host[15]);
+    logger.msg(Arc::INFO, "Accepted connection on [%s]:%u",str,it->local_port);
+  } else {
+    logger.msg(Arc::INFO, "Accepted connection on %u.%u.%u.%u:%u",it->local_host[0],it->local_host[1],it->local_host[2],it->local_host[3],it->local_port);
+  };
   globus_ftp_control_local_prot(&(it->handle),GLOBUS_FTP_CONTROL_PROTECTION_PRIVATE);
 //  globus_ftp_control_local_prot(&(it->handle),GLOBUS_FTP_CONTROL_PROTECTION_CLEAR);
   it->data_dcau.mode=GLOBUS_FTP_CONTROL_DCAU_SELF;
@@ -177,15 +205,26 @@ void GridFTP_Commands::accepted_callback(void* arg,globus_ftp_control_handle_t *
     delete it;
     return;
   };
-  int remote_host[4] = { 0, 0, 0, 0 };
+  int remote_host[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   unsigned short remote_port = 0;
-  globus_io_tcp_get_remote_address(&(handle->cc_handle.io_handle),remote_host,&remote_port);
-  logger.msg(Arc::INFO, "Accepted connection from %u.%u.%u.%u:%u",
-        (unsigned int)(remote_host[0]),
-        (unsigned int)(remote_host[1]),
-        (unsigned int)(remote_host[2]),
-        (unsigned int)(remote_host[3]),
-        remote_port);
+  int count = 0;
+  globus_io_tcp_get_remote_address_ex(&(handle->cc_handle.io_handle),remote_host,&count,&remote_port);
+  if(count == sizeof(in6_addr)) {
+    char str[8*5];
+    snprintf(str,sizeof(str),"%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x",
+            remote_host[0]<<8  | remote_host[1], remote_host[2]<<8  | remote_host[3],
+            remote_host[4]<<8  | remote_host[5], remote_host[6]<<8  | remote_host[7],
+            remote_host[8]<<8  | remote_host[9], remote_host[10]<<8 | remote_host[11],
+            remote_host[12]<<8 | remote_host[13],remote_host[14]<<8 | remote_host[15]);
+    logger.msg(Arc::INFO, "Accepted connection from [%s]:%u",str,remote_port);
+  } else {
+    logger.msg(Arc::INFO, "Accepted connection from %u.%u.%u.%u:%u",
+          (unsigned int)(remote_host[0]),
+          (unsigned int)(remote_host[1]),
+          (unsigned int)(remote_host[2]),
+          (unsigned int)(remote_host[3]),
+          remote_port);
+  };
   it->send_response("220 Server ready\r\n");
   if(globus_ftp_control_server_authenticate(&(it->handle),GLOBUS_FTP_CONTROL_AUTH_REQ_GSSAPI,&authenticate_callback,it) != GLOBUS_SUCCESS) {
     logger.msg(Arc::ERROR, "Authenticate in commands failed");
@@ -243,7 +282,7 @@ void GridFTP_Commands::authenticate_callback(void* arg,globus_ftp_control_handle
   };
 }
 
-int parse_integers(char* string,int args[],int margs) {
+static int parse_integers(char* string,int args[],int margs) {
   char* cp = string;
   char* np;
   int n=0;
@@ -258,7 +297,7 @@ int parse_integers(char* string,int args[],int margs) {
   return n;
 }
  
-int parse_semicolon(char* string,char* args[],int margs) {
+static int parse_semicolon(char* string,char* args[],int margs) {
   char* cp = string;
   int n=0;
   for(;;) {
@@ -270,7 +309,7 @@ int parse_semicolon(char* string,char* args[],int margs) {
   return n;
 }
 
-char* get_arg(char* string) {
+static char* get_arg(char* string) {
   char* cp=strchr(string,' '); 
   if(cp==NULL) return NULL;
   for(;(*cp) == ' ';cp++);
@@ -280,7 +319,7 @@ char* get_arg(char* string) {
   return cp;
 }
 
-int parse_args(char* string,char* args[],int margs) {
+static int parse_args(char* string,char* args[],int margs) {
   char* cp = string;
   char* np;
   int n=0;
@@ -297,7 +336,7 @@ int parse_args(char* string,char* args[],int margs) {
   return n;
 }
 
-void fix_string_arg(char* s) {
+static void fix_string_arg(char* s) {
   if(s == NULL) return;
   char* s_=strchr(s,'\n');
   if(s_ == NULL) return;
@@ -325,6 +364,43 @@ void fix_string_arg(char* s) {
   }; \
 }
   
+static int parse_eport(char* str, globus_ftp_control_host_port_t* host_port) {
+  memset(host_port,0,sizeof(globus_ftp_control_host_port_t));
+  for(;isblank(*str);++str) { };
+  if((*str < 33) || (*str > 126)) return -1; // bad delimiter
+  char delim = *str;
+  const char* protocol_s = ++str;
+  for(;*str != delim;++str) { if(!*str) return -1; }; // missing delimiter
+  *str = 0;
+  const char* addr_s = ++str;
+  for(;*str != delim;++str) { if(!*str) return -1; }; // missing delimiter
+  *str = 0;
+  const char* port_s = ++str;
+  for(;*str != delim;++str) { if(!*str) return -1; }; // missing delimiter
+  *str = 0;
+  char* port_e = NULL;
+  unsigned short port = strtoul(port_s,&port_e,10);
+  if(!port) return -1; // wrong port number
+  host_port->port = port;
+  char* protocol_e = NULL;
+  unsigned short protocol = strtoul(protocol_s,&protocol_e,10);
+  if(protocol == 1) { // IPv4
+    struct in_addr addr;
+    if(inet_pton(AF_INET,addr_s,&addr) != 1) return -1; // wrong address
+    if(sizeof(addr) > sizeof(host_port->host)) return -1; 
+    memcpy(&(host_port->host),&addr,sizeof(addr));
+    host_port->hostlen = sizeof(addr);
+  } else if(protocol == 2) { // IPv6
+    struct in6_addr addr;
+    if(inet_pton(AF_INET6,addr_s,&addr) != 1) return -1; // wrong address
+    if(sizeof(addr) > sizeof(host_port->host)) return -1; 
+    memcpy(&(host_port->host),&addr,sizeof(addr));
+    host_port->hostlen = sizeof(addr);
+  } else {
+    return -1; // wrong protocol
+  };
+  return 0;
+}
 
 /* main procedure */
 void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *handle,globus_object_t *error,union globus_ftp_control_command_u *command) {
@@ -344,6 +420,10 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
     ((globus_ftp_control_command_code_t)(GLOBUS_FTP_CONTROL_COMMAND_UNKNOWN+1))
 #define GLOBUS_FTP_CONTROL_COMMAND_MLST \
     ((globus_ftp_control_command_code_t)(GLOBUS_FTP_CONTROL_COMMAND_UNKNOWN+2))
+#define GLOBUS_FTP_CONTROL_COMMAND_EPRT \
+    ((globus_ftp_control_command_code_t)(GLOBUS_FTP_CONTROL_COMMAND_UNKNOWN+3))
+#define GLOBUS_FTP_CONTROL_COMMAND_EPSV \
+    ((globus_ftp_control_command_code_t)(GLOBUS_FTP_CONTROL_COMMAND_UNKNOWN+4))
   if(command->code == GLOBUS_FTP_CONTROL_COMMAND_UNKNOWN) {
     if(!strncasecmp("MLSD",command->base.raw_command,4)) {
       command->code=GLOBUS_FTP_CONTROL_COMMAND_MLSD;
@@ -356,6 +436,22 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
       const char* arg = get_arg(command->base.raw_command);
       if(arg == NULL) { arg=""; };
       command->list.string_arg=(char*)arg;
+    }
+    else if(!strncasecmp("EPRT",command->base.raw_command,4)) {
+      command->code=GLOBUS_FTP_CONTROL_COMMAND_EPRT;
+      char* arg = get_arg(command->base.raw_command);
+      if(parse_eport(arg,&(command->port.host_port)) != 0) {
+        logger.msg(Arc::VERBOSE, "Command EPRT");
+        logger.msg(Arc::ERROR, "Failed to parse remote addres %s",arg);
+        it->send_response("553 Failed to parse port for data transfer\r\n");
+        return;
+      }
+    }
+    else if(!strncasecmp("EPSV",command->base.raw_command,4)) {
+      command->code=GLOBUS_FTP_CONTROL_COMMAND_EPSV;
+      const char* arg = get_arg(command->base.raw_command);
+      if(arg == NULL) { arg=""; };
+      command->pasv.string_arg=(char*)arg;
     };
   };
 #endif
@@ -364,7 +460,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
       it->send_response("534 Reauthentication is not supported\r\n");
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_FEAT: {
-      it->send_response("211- Features supported\r\n FEAT\r\n AUTH\r\n ERET\r\n SBUF\r\n DCAU\r\n SPAS\r\n SPOR\r\n SIZE\r\n MDTM\r\n MLSD\r\n MLST\r\n211 End\r\n");
+      it->send_response("211- Features supported\r\n FEAT\r\n AUTH\r\n ERET\r\n SBUF\r\n DCAU\r\n SPAS\r\n SPOR\r\n SIZE\r\n MDTM\r\n MLSD\r\n MLST\r\nEPRT\r\nEPSV\r\n211 End\r\n");
     }; break;
     case GLOBUS_FTP_CONTROL_COMMAND_USER: {
       fix_string_arg(command->user.string_arg);
@@ -550,14 +646,32 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
       };
       it->send_response("350 Restore pointer accepted\r\n");
     }; break;
+    case GLOBUS_FTP_CONTROL_COMMAND_EPSV:
     case GLOBUS_FTP_CONTROL_COMMAND_SPAS:
     case GLOBUS_FTP_CONTROL_COMMAND_PASV: {
-      logger.msg(Arc::VERBOSE, "Command PASV/SPAS");
+      if(command->code == GLOBUS_FTP_CONTROL_COMMAND_EPSV) {
+        logger.msg(Arc::VERBOSE, "Command EPSV %s",command->pasv.string_arg);
+      } else if(command->code == GLOBUS_FTP_CONTROL_COMMAND_SPAS) {
+        logger.msg(Arc::VERBOSE, "Command SPAS");
+      } else {
+        logger.msg(Arc::VERBOSE, "Command PASV");
+      };
       CHECK_TRANSFER;
       globus_ftp_control_host_port_t node;
       memset(&node,0,sizeof(node));
       char buf[200];
-      if(command->code == GLOBUS_FTP_CONTROL_COMMAND_PASV) {
+      if((command->code == GLOBUS_FTP_CONTROL_COMMAND_EPSV) && it->local_is_ipv6) {
+        // EPSV requires data and control to be of same interface
+        // Hopefully globus opens port both for IPv4 and IPv6
+        globus_ftp_control_ipv6_allow(&(it->handle),GLOBUS_TRUE);
+        // But it does not. It also ignores address passed to it 
+        // in 'node'. Looks like only option to control which 
+        // socket is created is to directly set attribute in
+        // internal member.
+        globus_io_attr_set_tcp_interface(&(it->handle.dc_handle.io_attr),"0:0:0:0:0:0:0:0");
+      }
+      if((command->code == GLOBUS_FTP_CONTROL_COMMAND_PASV) ||
+         (command->code == GLOBUS_FTP_CONTROL_COMMAND_EPSV)) {
         globus_result_t res_tmp;
         if((res_tmp=globus_ftp_control_local_pasv(&(it->handle),&node))
                                                              !=GLOBUS_SUCCESS){
@@ -565,18 +679,23 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
           logger.msg(Arc::ERROR, Arc::GlobusResult(res_tmp).str());
           it->send_response("553 Failed to allocate port for data transfer\r\n"); break;
         };
-        if(it->firewall[0]) { // replace address
+        if(it->firewall[0] && (node.hostlen == 4)) { // replace address
+          // todo: we need separate firewall for IPv4 and IPv6
           node.host[0]=it->firewall[0];
           node.host[1]=it->firewall[1];
           node.host[2]=it->firewall[2];
           node.host[3]=it->firewall[3];
         };
-        sprintf(buf,"227 Entering Passive Mode (%i,%i,%i,%i,%i,%i)\r\n",
-        node.host[0], node.host[1], node.host[2], node.host[3],
-        (node.port & 0x0FF00) >> 8,
-        node.port & 0x000FF);
+        if(command->code == GLOBUS_FTP_CONTROL_COMMAND_PASV) {
+          sprintf(buf,"227 Entering Passive Mode (%i,%i,%i,%i,%i,%i)\r\n",
+          node.host[0], node.host[1], node.host[2], node.host[3],
+          (node.port & 0x0FF00) >> 8,
+          node.port & 0x000FF);
+        } else { // EPSV
+          sprintf(buf,"229 Entering Extended Passive Mode (|||%u|)\r\n",node.port);
+        };
       }
-      else {
+      else { // SPAS
         globus_result_t res_tmp;
         if((res_tmp=globus_ftp_control_local_spas(&(it->handle),&node,1))
                                                              !=GLOBUS_SUCCESS){
@@ -598,8 +717,13 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
       it->data_conn_type=GRIDFTP_CONNECT_PASV;
       it->send_response(buf);
     }; break;
+    case GLOBUS_FTP_CONTROL_COMMAND_EPRT:
     case GLOBUS_FTP_CONTROL_COMMAND_PORT: {
-      logger.msg(Arc::VERBOSE, "Command PORT");
+      if(command->code == GLOBUS_FTP_CONTROL_COMMAND_EPRT) {
+        logger.msg(Arc::VERBOSE, "Command EPRT");
+      } else {
+        logger.msg(Arc::VERBOSE, "Command PORT");
+      };
       CHECK_TRANSFER;
       globus_ftp_control_host_port_t node;
       node=command->port.host_port;
