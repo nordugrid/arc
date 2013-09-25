@@ -282,6 +282,10 @@ static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescri
    std::cerr << Arc::IString("ERROR: Job submission aborted because no resource returned any information") << std::endl;
    return 1;
   }
+  if (status.isSet(Arc::SubmissionStatus::DESCRIPTION_NOT_SUBMITTED)) {
+    std::cerr << Arc::IString("ERROR: One or multiple job descriptions was not submitted.") << std::endl;
+    retval = 1;
+  }
   if (status.isSet(Arc::SubmissionStatus::SUBMITTER_PLUGIN_NOT_LOADED)) {
     bool gridFTPJobPluginFailed = false;
     for (std::map<Arc::Endpoint, Arc::EndpointSubmissionStatus>::const_iterator it = s.GetEndpointSubmissionStatuses().begin();
@@ -291,17 +295,14 @@ static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescri
       }
     }
     if (gridFTPJobPluginFailed) {
-      std::cerr << Arc::IString("ERROR: A computing resource using the GridFTP interface was requested, but") << std::endl;
-      std::cerr << Arc::IString("       the corresponding plugin could not be loaded. Is the plugin installed?") << std::endl;
-      std::cerr << Arc::IString("       If not, please install the package 'nordugrid-arc-plugins-globus'.") << std::endl;
-      std::cerr << Arc::IString("       Depending on your type of installation the package name might differ. ") << std::endl;
+      Arc::LogLevel level  = (retval == 1 ? Arc::ERROR : Arc::INFO);
+      std::string indent   = (retval == 1 ? "       " : "      ");
+      logger.msg(level, "A computing resource using the GridFTP interface was requested, but\n"
+                        "%sthe corresponding plugin could not be loaded. Is the plugin installed?\n"
+                        "%sIf not, please install the package 'nordugrid-arc-plugins-globus'.\n"
+                        "%sDepending on your type of installation the package name might differ.", indent, indent, indent);
     }
     // TODO: What to do when failing to load other plugins.
-    retval = 1;
-  }
-  if (status.isSet(Arc::SubmissionStatus::DESCRIPTION_NOT_SUBMITTED)) {
-    std::cerr << Arc::IString("ERROR: One or multiple job descriptions was not submitted.") << std::endl;
-    retval = 1;
   }
     
   hsj.printsummary(jobdescriptionlist, s.GetDescriptionsNotSubmitted());
