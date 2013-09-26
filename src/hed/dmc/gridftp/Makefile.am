@@ -11,5 +11,5 @@ libdmcgridftp_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GLOBUS_FTP_CLIENT_LIBS) \
-	$(GLOBUS_FTP_CONTROL_LIBS) $(GLOBUS_COMMON_LIBS)
+	$(GLOBUS_FTP_CONTROL_LIBS) $(GLOBUS_COMMON_LIBS) $(GLOBUS_IO_LIBS)
 libdmcgridftp_la_LDFLAGS = -no-undefined -avoid-version -module
