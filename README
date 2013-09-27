@@ -11,23 +11,12 @@ stability, reliability and performance of the middleware. A growing
 number of grid projects, like Swegrid, NDGF and Swiss Bio Grid have
 chosen ARC as their middleware.
 
-This release (April 2011) is the first release of the new generation of
-ARC (previews were known as ARC1 or Nox). It is based on a service
-container - the Hosting Environment Daemon (HED) - and different grid
-capabilities are implemented as Web Services residing in HED. ARC Compute
-Element is implemented as an OGSA BES compliant execution service called
-A-REX (ARC Resource-coupled EXecution service), which has same
-functionality as Grid Manager before. Another service residing in HED
-and included in this release is a simple echo service for test purposes,
-but the set of services is rapidly growing.
-
-
 
 Dependencies
 ============
 
 The core part of middleware is written in C/C++.
-Building the software from source or installing a precompiled binary 
+Building the software from source or installing a pre-compiled binary 
 requires different external packages, furthermore the client and server
 packages have different dependencies too. Below a list of the explicit 
 requirements is shown:
@@ -53,8 +42,8 @@ Build & runtime:
 
 If you are using LDAP based infosys:
   o open-ldap server
-  o bdii version 5 or later ( from repositories or http://download.nordugrid.org/packages/bdii/releases/ )
-  o glue-schema ( from repositories or http://svnweb.cern.ch/guest/gridinfo/glue-schema )
+  o bdii version 5 or later
+  o glue-schema
 
 Optional dependencies
 ---------------------
@@ -74,6 +63,8 @@ Build & runtime:
   o globus-io  4 (compute client)
   o globus-openssl (compute client)
   o LHC File Catalog (LFC DMC)
+  o xrootd (xrootd DMC)
+  o GFAL 2 (GFAL DMC)
   o Berkeley DB C++ interface (Delegation)
   o xmlsec1 1.2.4 or higher (Security)
   o GridSite (GridFTP)
@@ -97,21 +88,20 @@ Getting the software
 ====================
 
 The middleware is free to deploy anywhere by anybody. Pre-built binary
-releases for a dozen of Linux platforms can be downloaded from the
-NorduGrid software repository at download.nordugrid.org.
+releases for many Linux platforms can be downloaded from the NorduGrid
+software repository at download.nordugrid.org.
 
 The software is released under the Apache 2.0 License (see the LICENSE
 file).
 
-The NorduGrid repository hosts the source code, and provides most of
-the required external software which are not part of a standard Linux
-distribution.
+The NorduGrid repository hosts the source code. The external software
+required is usually part of standard Linux distributions.
 
 You can get the latest source code for ARC from the Subversion 
 repository. See http://svn.nordugrid.org for more details.
 
 There are also nightly code snapshots available at
-http://download.nordugrid.org/software/nordugrid-arc/experimental/ .
+http://download.nordugrid.org/nightlies/packages/nordugrid-arc/trunk/ .
 Choose latest version available, go in to the src directory and
 download the tarball.
 
@@ -139,9 +129,9 @@ Now configure the obtained code with
 
 Choose the installation prefix wisely and according to the
 requirements of your OS and personal preferences. ARC should function
-properly from any location. By default installation goes into /usr if
-you omit the '--prefix' option. If you instal into another directory
-than /usr you may need to set up the environment variable after
+properly from any location. By default installation goes into /usr/local if
+you omit the '--prefix' option. If you install into another directory
+than /usr/local you may need to set up an environment variable after
 installation:
 
   export ARC_LOCATION=PLACE_TO_INSTALL_ARC
@@ -164,16 +154,17 @@ install ARC:
 If you have already installed ARC libraries in the system default
 location such as /usr/lib you may need to use the following
 installation command instead in order to override installed pkgconfig
-files and/or libtool archives which contains -L/usr/lib:
+files and/or libtool archives which contain -L/usr/lib:
 
   make LDFLAGS="-L<PLACE_TO_INSTALL_ARC>/lib" install
 
 On some systems you may need to use gmake instead of make.
 
-Depending on chosen installation location you may need to run the last
-command from root account. That should install the following components:
+Depending on the chosen installation location you may need to run the last
+command from a root account. That should install the following components:
 
 sbin/arched - server executable
+etc/init.d - daemon init scripts
 bin/ - user tools and command line clients
 lib/ - common libraries used by clients, server and plugins
 lib/arc/ - plugins implementing Message Chain, Service and Security components
@@ -189,18 +180,18 @@ share/man - manual pages for various utilities
 X509 Certificates
 =================
 
-Most of ARC planned and existing services use HTTPS as transport protocol
-so they require proper setup of X509 security infrastructure. Minimal 
-requirements are:
+All ARC services use HTTPS or GridFTP as transport protocol so they require
+proper setup of an X509 security infrastructure. Minimal requirements are:
 * Host certificate aka public key in PEM format
 * Corresponding private key
-* Certificate of the Certification Authority (CA) which was used to sign the host certificate
-* Certificates of CAs of clients which are going to send requests to services. Unless
-of course clients use the same CA as the server.
+* Certificate of the Certification Authority (CA) which was used to sign the
+  host certificate
+* Certificates of CAs of clients which are going to send requests to services,
+  unless of course clients use the same CA as the server.
 
 More information about X509 certificates and their usage in Grid environment 
 can be found on http://www.nordugrid.org/documents/certificate_howto.html
-and http://www.nordugrid.org/documents/ng-server-install.html#security
+and http://www.nordugrid.org/documents/arc-server-install.html#security
 
 For testing purposes you can use pre-generated certificates and
 keys available at:
@@ -208,220 +199,71 @@ keys available at:
  http://svn.nordugrid.org/trac/nordugrid/browser/doc/trunk/tech_doc/sec/TestCA
 
 Alternatively You may choose to use KnowARC Instant CA service available at 
-https://vls.grid.upjs.sk/CA/instantCA . It is especially useful if to test
-installations consisting on multiple hosts.
+https://arc-emi.grid.upjs.sk/instantCA/instantCA . It is especially useful when
+testing installations consisting of multiple hosts.
 
 Please remember that it is not safe to use such instant keys in publicly
-accessible installations of ARC. Make sure that even the generate CA
+accessible installations of ARC. Make sure that even the generated CA
 certificate is removed before making your services available to the
 outside world.
 
 You can put host certificates and private keys anywhere. Common locations
 for servers running from root account are /etc/grid-security/hostcert.pem
 and /etc/grid-security/hostkey.pem, respectively. The content of the
-private key must not be encrypted and or protected by a password sinc
-a service has no way to ask person about password. So make sure it is
-properly protected by means of file system.
+private key must not be encrypted nor protected by a password since
+a service has no way to ask a password. Therefore it must be properly protected
+by means of file system permissions (some services enforce that the private key
+is only readable by the user running the service).
 
-It is possible to configure ARC server to accept either a single CA certificate
-or multiple CA certificates located in the specified directory. The latter
-option is recommended. The common location is /etc/grid-security/certificates/ .
-In that case names of certificate files have to follow hash values of
-the certificates. These are obtainable by running the command
+It is possible to configure the ARC server to accept either a single CA
+certificate or multiple CA certificates located in the specified directory. The
+latter option is recommended. The common location is
+/etc/grid-security/certificates/ . In that case the names of the certificate
+files have to follow the hash values of the certificates. These are obtainable
+by running the command
 
   openssl x509 -hash -noout -in path_to_certificate
 
 The corresponding file name for the certificate should be <hash_value>.0 . 
 The value for the pre-generated CA certificate is 4457e417. 
 
-1. Configuration for mutual authentication
-Please make sure the chosen location of certificates is correctly
-configured in the service configuration file. The configuration for the
-certificate for TLS MCC should look like this:  
-
-      <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
-      <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
-      <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
-
-or
-
-      <CACertificatePath>/etc/grid-security/ca.pem</CACertificatePath>
-
-The key file has to be without passphrase for the server side. You can also 
-configure a proxy certificate instead of the normal certificate (See part:
-Proxy certificate Generation & Usage).
-
-The same requirements are valid for the client tools of ARC. You may use
-the pregenerated user certificate and key located at the same
-place. Locations of the credentials are provided to the client tools
-from the command line.
-
-2.Configuration for no client-authentication
-You can also configure only server-authentication instead of mutual 
-authentication. In this case, the server will not send a client certificate 
-request to the client, so the client will not send a certificate to the 
-server, which means only the server's certificate is checked.
-
-For the server side, the configuration for the certificate for TLS MCC 
-should look like this:
-      <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
-      <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
-      <ClientAuthn>false</ClientAuthn>
-Note: here either <CACertificatePath/> or <<CACertificatesDir>/> are not needed,
-because the client's certificate will not checked by server; but <ClientAuthn/>
-is required here, which explicitly specify that client's certificate will not 
-be checked, the default value of <ClientAuthn/> is "true" and it does not need 
-to be explicitly specified.
-
-For the client side, the configuration for the certificate for TLS MCC 
-should look like this:
-      <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
-or
-      <CACertificatePath>/etc/grid-security/ca.pem</CACertificatePath>
-Note: here only the ca information needs to be specified.
-
-
-
+For the ARC client tools you may use the pre-generated user certificate and key
+located at the same place above. Generally the key and certificate are not used
+directly but a passphraseless proxy certificate is generated and used instead.
+ARC comes with a proxy generation utility arcproxy - see 'man arcproxy' for
+usage and options. Locations of the credentials are provided to the client
+tools via the client configuration file.
 
 The set of pre-generated keys and certificates also includes a user
 certificate in PKCS12 format which you can import into your browser
 for accessing ARC services capable of producing HTML output.
 
-ARC comes with the utility arcproxy to generate proxy credentials
-from a certificate/private key pair. It provides only basic functionality 
-and is meant for testing purposes only. 
-
-IMPORTANT: If during configuration stage You see a message "OpenSSL 
-contains no support for proxy credentials" that means You won't be
+IMPORTANT: If during the configuration stage you see a message "OpenSSL 
+contains no support for proxy credentials" that means you won't be
 able to use proxy credentials generated by utilities like grid-proxy-init,
-voms-proxy-init or arcproxy. Because of that all user private keys has 
-to be kept unencrypted. 
-
-
-
-Proxy certificate Generation & Usage
-====================================
-As metioned above, ARC comes with utility proxy generation utility
---arcproxy. 
-arcproxy appears in ARC_LOCATION/bin. The usage of arcproxy is like:
-ARC_LOCATION/bin/arcproxy -P proxy.pem -C cert.pem -K key.pem 
--c validityStart=2008-05-29T10:20:30Z
--c validityEnd=2008-06-29T10:20:30Z
--c proxyPolicyFile=delegation_policy.xml
-By using argument "-c", some constraints can be specified for proxy 
-certificate. 
-Currently, the life time can be specified by using 
-"-c validityStart=..." and "-c validityEnd=...", or "-c validityStart=..."
-and "-c validityPeriod=..."; 
-and the proxy policy can be specified by using "-c proxyPolicyFile=..." 
-or "-c proxyPolicy=...".
-Note: If the "validityStart" has not been set, the current time will 
-be used as start time for proxy. 
-If both "validityEnd" and "validityPeriod" have not been set, the default
-validity period will be set to 12 hours.
-If the "validityStart" is set, it should not be before current time.
-The time unit for "validityPeriod" is second, e.g. "-c validityPeriod=86400"
-
-If proxy certificate is used, in the configuration file for service
-side or client side, the configuration for the certificate for TLS MCC 
-should look like this:
-      <KeyPath>./proxy.pem</KeyPath>
-      <CertificatePath>./proxy.pem</CertificatePath>
-      <CACertificatePath>./ca.pem</CACertificatePath>
-Since normally a proxy certificate file includes the proxy certificate
-and private key corresponding to the proxy certificate, <KeyPath/> and 
-<CertificatePath/> are configured the same.
-
-Alternatively, you can directly configure <ProxyPath/> instead of <KeyPath/>
-and <CertificatePath/>:
-      <ProxyPath>./proxy.pem</ProxyPath>
-      <CACertificatePath>./ca.pem</CACertificatePath>
-
-
-Proxy policy can be spefified as constraint. Proxy policy is for constraining 
-identity delegation. Currently, the supported policy is Arc specific policy.
-Proxy policy is inserted into proxy certificate's "proxy cert info"
-extenstion in RFC3820's policy language "NID_id_ppl_anyLanguage".
+voms-proxy-init or arcproxy. Because of that all user private keys must
+be kept unencrypted. 
 
 
 
 ARC Server Setup & Configuration
 ================================
 
-The configuration of the ARC server can either be specified in
-arc.conf or in an XML file, the location of which is specified as a
-command line argument with the -c option of 'arched' daemon. Examples
-of configuration files with comments describing various elements are
-available in directory share/doc/arc of the ARC installation.
-
-
-
-The Echo Service
-================
-
-The echo service is "atomic" and has no additional dependencies other
-than what is provided by the Hosting Environment Daemon (HED). An example
-of an echo service configuration can be found in share/doc/arc/echo.xml.
-
-
-
-The Echo Client
-===============
-
-The configuration of the ARC echo client is specified in an XML
-file. The location of the configuration file is specified by the
-environment variable ARC_ECHO_CONFIG. If there is no such environment
-variable, the configuration file is assumed to be echo_client.xml in
-the current working directory. An example configuration file can be
-found in share/doc/arc/echo_client.xml
-
-To use the echo client, type
-
-  $ARC_LOCATION/bin/arcecho <message>
-
-where <message> is the message which the echo service will return.
+The configuration of the ARC server is specified in a file which by default
+is at /etc/arc.conf. A different location can be specified by the ARC_CONFIG
+environment variable. For configuration details and examples please refer to
+the reference in share/arc/arc.conf.reference or the service manual of the
+particular services you wish to run.
 
 
 
 The A-REX Service
 =================
 
-ARC comes with OGSA BES compliant Grid job management service called A-REX.
-To deploy A-REX use example configuration files available in share/doc/arc :
-
- * arex.xml - configuration for arched server. Read comments inside this file
-   and edit it to fit your installation. This file defines the WS interface of A-REX.
- * arc-arex.conf - legacy configuration for the Grid Manager part of A-REX. This
-   file defines how jobs are managed by A-REX locally. Read and edit it. For more
-   detailed information please read Grid Manager documentation available in SVN
-   repository
-   http://svn.nordugrid.org/trac/nordugrid/browser/doc/trunk/tech_doc/a-rex/arex_tech_doc.pdf?format=raw
-
-The Grid Manager runs as part of the A-REX service. There is no need to run any additional
-executable. But you still need to setup its infrastructure as long as you are 
-going to have anything more sophisticated than described in the example configuration.
-For more information read the previously mentioned document.
-
-A-REX uses either GridFTP or HTTPS as transport protocol (although You can reconfigure it to use 
-plain HTTP) so it requires proper setup of X509 security infrastructure. See
-above for instructions.
-
-Copy example configuration files to some location and edit them. Make sure all paths
-to X509 certificates and Grid Manager configuration are set correctly. Start server 
-with command
-
-  $ARC_LOCATION/sbin/arched -c path_to_edited_arex.xml
-  or
-  /etc/init.d/a-rex start
-
-Look into log file specified in arex.xml for possible errors. You can safely ignore 
-messages like "Not a '...' type plugin" and "Unknown element ... - ignoring".
-
-If you compiled ARC with Globus support and you see complaints about "libglobus..." 
-and that it cannot open a shared object file, try to add "/opt/globus/lib" to your
-LD_LIBRARY_PATH:
-
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/globus/lib
+ARC comes with an OGSA BES compliant Grid job management service called A-REX.
+To deploy A-REX refer to "ARC Computing Element: System Administrator Guide"
+(NORDUGRID-MANUAL-20) which contains extensive information on set up and
+configuration of A-REX.
 
 
 
@@ -431,10 +273,10 @@ Testing and Using A-REX (clients)
 Now you may use the command line utility 'arcinfo' to obtain a service description.
 You can do something like
 
- ./arcinfo -c ARC1:https://localhost:60000/arex -l
+ arcinfo -c https://localhost:60000/arex -l
 
 This should produce a description list of the resources A-REX represents. Below
-you can see an example of proper output.
+you can see a truncated example of proper output.
 
 ---
 Cluster: localhost
@@ -468,83 +310,7 @@ Endpoint information:
   /C=BE/O=BELNET/OU=BEGrid/CN=BEGrid CA/emailAddress=gridca@belnet.be
   /C=FR/O=CNRS/CN=CNRS2-Projets
   /DC=org/DC=ugrid/CN=UGRID CA
-  /C=BR/O=ICPEDU/O=UFF BrGrid CA/CN=UFF Brazilian Grid Certification Authority
-  /C=DE/O=DFN-Verein/OU=DFN-PKI/CN=DFN-Verein PCA Grid - G01
-  /C=PT/O=LIPCA/CN=LIP Certification Authority
-  /C=FR/O=CNRS/CN=GRID-FR
-  /C=FR/O=CNRS/CN=CNRS2
-  /C=TR/O=TRGrid/CN=TR-Grid CA
-  /C=NL/O=NIKHEF/CN=NIKHEF medium-security certification auth
-  /DC=org/DC=DOEGrids/OU=Certificate Authorities/CN=DOEGrids CA 1
-  /DC=ch/DC=cern/CN=CERN Trusted Certification Authority
-  /C=AU/O=APACGrid/OU=CA/CN=APACGrid/emailAddress=camanager@vpac.org
-  /C=IE/O=Grid-Ireland/CN=Grid-Ireland Certification Authority
-  /O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority
-  /DC=RO/DC=RomanianGRID/O=ROSA/OU=Certification Authority/CN=RomanianGRID CA
-  /DC=bg/DC=acad/CN=BG.ACAD CA
-  /C=MX/O=UNAMgrid/OU=UNAM/CN=CA
-  /C=GR/O=HellasGrid/OU=Certification Authorities/CN=HellasGrid Root CA 2006
-  /C=CL/O=REUNACA/CN=REUNA Certification Authority
-  /DC=org/DC=balticgrid/CN=Baltic Grid Certification Authority
-  /C=IT/O=INFN/CN=INFN CA
-  /DC=me/DC=ac/DC=MREN/CN=MREN-CA
-  /C=FR/O=CNRS/CN=CNRS-Projets
-  /C=DE/O=DFN-Verein/OU=DFN-PKI/CN=DFN-Verein User CA Grid - G01
-  /C=UK/O=eScienceCA/OU=Authority/CN=UK e-Science CA
-  /C=RS/O=AEGIS/CN=AEGIS-CA
-  /C=SI/O=SiGNET/CN=SiGNET CA
-  /C=VE/O=Grid/O=Universidad de Los Andes/OU=CeCalCULA/CN=ULAGrid Certification Authority
-  /DC=ORG/DC=SEE-GRID/CN=SEE-GRID CA
-  /C=CH/O=Switch - Teleinformatikdienste fuer Lehre und Forschung/CN=SWITCH Personal CA
-  /C=RU/O=RDIG/CN=Russian Data-Intensive Grid CA
-  /C=HU/O=KFKI RMKI CA/CN=KFKI RMKI CA
-  /C=JP/O=KEK/OU=CRC/CN=KEK GRID Certificate Authority
-  /DC=EDU/DC=UTEXAS/DC=TACC/O=UT-AUSTIN/CN=TACC Root CA
-  /C=AT/O=AustrianGrid/OU=Certification Authority/CN=Certificate Issuer
-  /C=IL/O=IUCC/CN=IUCC/emailAddress=ca@mail.iucc.ac.il
-  /DC=TW/DC=ORG/DC=NCHC/CN=NCHC CA
-  /C=KR/O=KISTI/O=GRID/CN=KISTI Grid Certificate Authority
-  /DC=LV/DC=latgrid/CN=Certification Authority for Latvian Grid
-  /DC=NET/DC=PRAGMA-GRID/CN=PRAGMA-UCSD CA
-  /C=CH/O=SwissSign/CN=SwissSign CA (RSA IK May 6 1999 18:00:58)/emailAddress=ca@SwissSign.com
-  /C=MA/O=MaGrid/CN=MaGrid CA
-  /C=MK/O=MARGI/CN=MARGI-CA
-  /C=GR/O=HellasGrid/OU=Certification Authorities/CN=HellasGrid CA 2006
-  /C=TH/O=NECTEC/OU=GOC/CN=NECTEC GOC CA
-  /C=PL/O=GRID/CN=Polish Grid CA
-  /C=UK/O=eScienceRoot/OU=Authority/CN=UK e-Science Root
-  /DC=cz/DC=cesnet-ca/CN=CESNET CA
-  /C=TW/O=AS/CN=Academia Sinica Grid Computing Certification Authority Mercury
-  /DC=es/DC=irisgrid/CN=IRISGridCA
-  /C=JP/O=AIST/OU=GRID/CN=Certificate Authority
-  /C=JP/O=National Research Grid Initiative/OU=CGRD/CN=NAREGI CA
-  /DC=BR/DC=UFF/DC=IC/O=UFF LACGrid CA/CN=UFF Latin American and Caribbean Catch-all Grid CA
-  /C=CY/O=CyGrid/O=HPCL/CN=CyGridCA
-  /DC=CN/DC=Grid/CN=Root Certificate Authority at CNIC
-  /C=AR/O=e-Ciencia/OU=UNLP/L=CeSPI/CN=PKIGrid
-  /C=CN/O=HEP/CN=gridca-cn/emailAddress=gridca@ihep.ac.cn
-  /C=CA/O=Grid/CN=Grid Canada Certificate Authority
-  /CN=SWITCH CA/emailAddress=switch.ca@switch.ch/O=Switch - Teleinformatikdienste fuer Lehre und Forschung/C=CH
-  /DC=CN/DC=Grid/DC=SDG/CN=Scientific Data Grid CA
-  /C=HU/O=NIIF/OU=Certificate Authorities/CN=NIIF Root CA
-  /C=IR/O=IPM/O=IRAN-GRID/CN=IRAN-GRID CA
-  /C=FR/O=CNRS/CN=CNRS
-  /C=CH/O=Switch - Teleinformatikdienste fuer Lehre und Forschung/CN=SWITCHgrid Root CA
-  /C=AM/O=ArmeSFo/CN=ArmeSFo CA
-  /C=FR/O=CNRS/CN=GRID2-FR
-  /DC=net/DC=ES/O=ESnet/OU=Certificate Authorities/CN=ESnet Root CA 1
-  /DC=ch/DC=cern/CN=CERN Root CA
-  /DC=IN/DC=GARUDAINDIA/CN=Indian Grid Certification Authority
-  /C=DE/O=GermanGrid/CN=GridKa-CA
-  /C=SK/O=SlovakGrid/CN=SlovakGrid CA
-  /CN=SwissSign Bronze CA/emailAddress=bronze@swisssign.com/O=SwissSign/C=CH
-  /DC=EDU/DC=UTEXAS/DC=TACC/O=UT-AUSTIN/CN=TACC Classic CA
-  /C=BE/OU=BEGRID/O=BELNET/CN=BEgrid CA
-  /CN=SwissSign Silver CA/emailAddress=silver@swisssign.com/O=SwissSign/C=CH
-  /C=CH/O=Switch - Teleinformatikdienste fuer Lehre und Forschung/CN=SWITCH Server CA
-  /C=PK/O=NCP/CN=PK-GRID-CA
-  /C=DE/O=DFN-Verein/OU=DFN-PKI/CN=DFN-Verein Server CA Grid - G01
-  /C=HR/O=edu/OU=srce/CN=SRCE CA
+[...]
  Staging: staginginout
  Job Descriptions:
   ogf:jsdl:1.0
@@ -591,113 +357,49 @@ Execution Environment information:
  Execution environment does not support outbound connections
 ---
 
-Please note that you can run similar arcinfo request against any ARC service
-except for the echo service.
 
-A-REX accepts jobs described in JSDL. Example JSDL jobs are provided
-in $ARC_LOCATION/share/doc/ in files 'jsdl_simple.xml' and 'jsdl_stage.xml'. To 
-submit job to the A-REX service one may use the 'arcsub' command:
+A-REX accepts jobs described in XRSL, which is described in "Extended Resource
+Specification Language: Reference Manual for ARC versions 0.8 and above"
+(NORDUGRID-MANUAL-4). To submit a job to the A-REX service one may use the
+'arcsub' command:
 
-$ARC_LOCATION/bin/arcsub -c ARC1:https://localhost:60000/arex -f /usr/local/share/doc/arc/jsdl_simple.xml -j id.xml
+arcsub -c https://localhost:60000/arex -f simple.xrsl
 
 If everything goes fine, somewhere in its output there should be a message
-"Job submitted!", and a job identifier is obtained which will be stored
-in 'id.xml' file. One can then query job state with the 'arcstat' utility:
+"Job submitted", and a job identifier is obtained which will be stored locally
+in a client job store. One can then query job state with the 'arcstat' utility:
 
- $ARC_LOCATION/bin/arcstat id.xml
- Job status: Running/Submitting
+ arcstat <job id>
+ State: Running
 
- $ARC_LOCATION/bin/arcstat id.xml
- Job status: Running/Finishing
+ arcstat <job id>
+ State: Finished
 
- $ARC_LOCATION/bin/arcstat id.xml
- Job status: Finished/Finished
+For more information on these and other arc* job and data management commands
+please see the man pages of those utilities or "ARC Clients: User Manual for
+ARC 11.05 (client versions 1.0.0) and above" (NORDUGRID-MANUAL-13).
 
-Some of the of A-REX client tools consists of arcsub, arcstat, arckill, arcget 
-and arcclean commands. For more information please see the man pages of those utilities.
-
-
-Security and Authorization
-==========================
-
-ARC implements security related features through set of Security Handler and 
-Policy Decision Point components. Security Handler components are attached to 
-message processing components. Each Security Handler takes care of processing
-own part of security information. Currently ARC comes with 2 Security Handlers:
-
- * identity.map - associates client's identity with local (UNIX) identity. It 
-   uses PDP components to choose local isentity and/or identity mapping algorithm.
- * arc.authz - calls PDP components and combines obtained authorization
-   decisions.
- * delegation.collector - parses proxy policy from remote proxy certificate.
-   this Security Handler should be configured under tls mcc component.
- * usernametoken.handler - implement the functioanlity ofws-security usernametoken 
-   profile. It will generate usernametoken into soap header, or extract
-   usernametoken outof soap header and do authentication based on the
-   extracted usernametoken.
-
-Among available PDP components there are
-
- * allow - always returns positive result
- * deny - always returns negative result 
- * simplelist.pdp - compares DN of user to those stored in a file.
- * arc.pdp - compares request information parsed from message and policy 
-   information specified in this pdp.
- * pdpservice.invoker -  it composes the request, puts request into soap message,
-   and invokes the remote pdp service to get the response soap which
-   includes authorization decision. the pdp service has similar
-   functionality with arc.pdp.
- * delegation.pdp - compares request information parsed from message and policy
-   information specified in proxy certificate from remote side.
-
-There are examples of A-REX service and echo service with Security Handlers being used.
-They may be found at $ARC_LOCATION/share/doc/arc/arex_secure.xml and 
-$ARC_LOCATION/share/doc/arc/echo.xml
-
-There is also a pdp service which implements the same functionality as arc.pdp. See 
-src/service/pdp/README.
-Specifically for arc.pdp and pdp service, a formatted policy with specific schema
-should be managed, see $ARC_LOCATION/share/doc/arc/pdp_policy.xml.example and 
-$ARC_LOCATION/share/doc/arc/Policy.xsd for details.
-
-For usernametoken handler, there is example about configuration on service side in 
-$ARC_LOCATION/share/doc/arc/echo.xml, you can run the echo service by using this configuration
-file with usernametoken sechandler configuered. For the client side, the echo client 
-(src/client/echo)can use usernametoken sechandler to authenticate against echo service 
-(see README under src/client/echo); there is also a test program in 
-src/tests/echo/test_clientinterface.cpp which can be compiled and tested against echo
-service with usernametoken sechandler configured.
-
-
-Finding more information
-========================
-
-Many information about functionality and configuration of various components
-may be found inside corresponding configuratrion XML schemas.
-
-There is an API document 
 
 
 Contributing
 ============
 
 The open source development of the ARC middleware is coordinated by
-the NorduGrid Collaboration. Currently, the main contributor is the
-EMI project (www.eu-emi.eu), but the collaboration is open to new
-members. Contributions from the community to the software and the
-documentation is welcomed. Sources can be downloaded from the software
-repository at download.nordugrid.org or the Subversion code repository at
+the NorduGrid Collaboration which is always open to new members.
+Contributions from the community to the software and the documentation
+is welcomed. Sources can be downloaded from the software repository
+at download.nordugrid.org or the Subversion code repository at
 svn.nordugrid.org.
 
 The technical coordination group defines outstanding issues that have
-to be addressed in the framework of the ARC development. Feature
+to be addressed in the framework of ARC development. Feature
 requests and enhancement proposals are recorded in the Bugzilla bug
 tracking system at bugzilla.nordugrid.org. For a more detailed
 description, write access to the code repository and further
 questions, write to the nordugrid-discuss mailing list (see
-www.nordugrid.org for details). Ongoing and completed Grid Research
+www.nordugrid.org for details). Ongoing and completed Grid research
 projects and student assignments related to the middleware are listed
-on the NorduGrid Web site as well.
+on the NorduGrid web site as well.
 
 
 
