@@ -484,8 +484,32 @@ int main(int argc, char *argv[]) {
                                     "  Special value 'inherit' is to use key length of signing certificate.\n"
                                     "  signingAlgorithm=name - signing algorithm to use for signing public key of proxy.\n"
                                     "  Default is sha1. Possible values are sha1, sha2 (alias for sha256), sha224, sha256,\n"
-                                    "  sha384, sha512 and inherit (use algorithm of signing certificate)."
-));
+                                    "  sha384, sha512 and inherit (use algorithm of signing certificate).\n"
+                                    "\n"
+                                    "Supported information item names are:\n"
+                                    "  subject - subject name of proxy certificate.\n"
+                                    "  identity - identity subject name of proxy certificate.\n"
+                                    "  issuer - issuer subject name of proxy certificate.\n"
+                                    "  ca - subject name of CA ehich issued initial certificate\n"
+                                    "  path - file system path to file containing proxy.\n"
+                                    "  type - type of proxy certificate.\n"
+                                    "  validityStart - timestamp when proxy validity starts.\n"
+                                    "  validityEnd - timestamp when proxy validity ends.\n"
+                                    "  validityPeriod - duration of proxy validity in seconds.\n"
+                                    "  validityLeft - duration of proxy validity left in seconds.\n"
+                                    "  vomsVO - VO name  represented by VOMS attribute\n"
+                                    "  vomsSubject - subject of certificate for which VOMS attribute is issued\n"
+                                    "  vomsIssuer - subject of service which issued VOMS certificate\n"
+                                    "  vomsACvalidityStart - timestamp when VOMS attribute validity starts.\n"
+                                    "  vomsACvalidityEnd - timestamp when VOMS attribute validity ends.\n"
+                                    "  vomsACvalidityPeriod - duration of VOMS attribute validity in seconds.\n"
+                                    "  vomsACvalidityLeft - duration of VOMS attribute validity left in seconds.\n"
+                                    "  proxyPolicy\n"
+                                    "  keybits - size of proxy certificate key in bits.\n"
+                                    "  signingAlgorithm - algorith used to sign proxy certificate.\n"
+                                    "Items are printed in requested order and are separated by newline.\n"
+                                    "If item has multiple values they are printed in same line separated by |."
+  ));
 
   std::string proxy_path;
   options.AddOption('P', "proxy", istring("path to the proxy file"),
@@ -545,11 +569,10 @@ int main(int argc, char *argv[]) {
   options.AddOption('O', "old", istring("use GSI proxy (RFC 3820 compliant proxy is default)"), use_gsi_proxy);
 
   bool info = false;
-  options.AddOption('I', "info", istring("print all information about this proxy. \n"
-                                         "              In order to show the Identity (DN without CN as suffix for proxy) \n"
-                                         "              of the certificate, the 'trusted certdir' is needed."
-                                         ),
-                    info);
+  options.AddOption('I', "info", istring("print all information about this proxy."), info);
+
+  std::list<std::string> infoitemlist;
+  options.AddOption('i', "infoitem", istring("print selected information about this proxy."), istring("string"), infoitemlist);
 
   bool remove_proxy = false;
   options.AddOption('r', "remove", istring("remove proxy"), remove_proxy);
@@ -658,7 +681,7 @@ int main(int argc, char *argv[]) {
          usercfg.KeyPath().empty() && 
          (usercfg.CertificatePath().find(".p12") == std::string::npos)
         )
-       ) && !(info || remove_proxy)) {
+       ) && !(info || (infoitemlist.size() > 0) || remove_proxy)) {
       logger.msg(Arc::ERROR, "Failed to find certificate and/or private key or files have improper permissions or ownership.");
       logger.msg(Arc::ERROR, "You may try to increase verbosity to get more information.");
       return EXIT_FAILURE;
@@ -847,6 +870,88 @@ int main(int argc, char *argv[]) {
       else
         std::cout << Arc::IString("AC has been expired for: %s", (now-till).istr())<<std::endl;
 */
+    }
+    return EXIT_SUCCESS;
+  }
+  if(infoitemlist.size() > 0) {
+    std::vector<Arc::VOMSACInfo> voms_attributes;
+    Arc::Credential holder(proxy_path, "", "", "");
+    Arc::VOMSTrustList voms_trust_dn;
+    voms_trust_dn.AddRegex(".*");
+    parseVOMSAC(holder, ca_dir, "", voms_dir, voms_trust_dn, voms_attributes, true, true);
+    for(std::list<std::string>::iterator ii = infoitemlist.begin();
+                           ii != infoitemlist.end(); ++ii) {
+      if(*ii == "subject") {
+        std::cout << holder.GetDN() << std::endl;
+      } else if(*ii == "identity") {
+        std::cout << holder.GetIdentityName() << std::endl;
+      } else if(*ii == "issuer") {
+        std::cout << holder.GetIssuerName() << std::endl;
+      } else if(*ii == "ca") {
+        std::cout << holder.GetCAName() << std::endl;
+      } else if(*ii == "path") {
+        std::cout << proxy_path << std::endl;
+      } else if(*ii == "type") {
+        std::cout << certTypeToString(holder.GetType()) << std::endl; // todo:less human readable
+      } else if(*ii == "validityStart") {
+        std::cout << holder.GetStartTime().GetTime() << std::endl;
+      } else if(*ii == "validityEnd") {
+        std::cout << holder.GetEndTime().GetTime() << std::endl;
+      } else if(*ii == "validityPeriod") {
+        std::cout << (holder.GetEndTime() - holder.GetStartTime()).GetPeriod() << std::endl;
+      } else if(*ii == "validityLeft") {
+        std::cout << ((now<holder.GetEndTime())?(holder.GetEndTime()-now):Arc::Period(0)).GetPeriod() << std::endl;
+      } else if(*ii == "vomsVO") {
+        for(int n = 0; n<voms_attributes.size(); ++n) {
+          if(n) std::cout << "|";
+          std::cout << voms_attributes[n].voname;
+        }
+        std::cout << std::endl;
+      } else if(*ii == "vomsSubject") {
+        for(int n = 0; n<voms_attributes.size(); ++n) {
+          if(n) std::cout << "|";
+          std::cout << voms_attributes[n].holder;
+        }
+        std::cout << std::endl;
+      } else if(*ii == "vomsIssuer") {
+        for(int n = 0; n<voms_attributes.size(); ++n) {
+          if(n) std::cout << "|";
+          std::cout << voms_attributes[n].issuer;
+        }
+        std::cout << std::endl;
+      } else if(*ii == "vomsACvalidityStart") {
+        for(int n = 0; n<voms_attributes.size(); ++n) {
+          if(n) std::cout << "|";
+          std::cout << voms_attributes[n].from.GetTime();
+        }
+        std::cout << std::endl;
+      } else if(*ii == "vomsACvalidityEnd") {
+        for(int n = 0; n<voms_attributes.size(); ++n) {
+          if(n) std::cout << "|";
+          std::cout << voms_attributes[n].till.GetTime();
+        }
+        std::cout << std::endl;
+      } else if(*ii == "vomsACvalidityPeriod") {
+        for(int n = 0; n<voms_attributes.size(); ++n) {
+          if(n) std::cout << "|";
+          std::cout << (voms_attributes[n].till-voms_attributes[n].from).GetPeriod();
+        }
+        std::cout << std::endl;
+      } else if(*ii == "vomsACvalidityLeft") {
+        for(int n = 0; n<voms_attributes.size(); ++n) {
+          if(n) std::cout << "|";
+          std::cout << ((voms_attributes[n].till>now)?(voms_attributes[n].till-now):Arc::Period(0)).GetPeriod();
+        }
+        std::cout << std::endl;
+      } else if(*ii == "proxyPolicy") {
+        std::cout << holder.GetProxyPolicy() << std::endl;
+      } else if(*ii == "keybits") {
+        std::cout << holder.GetKeybits() << std::endl;
+      } else if(*ii == "signingAlgorithm") {
+        std::cout << signTypeToString(holder.GetSigningAlgorithm()) << std::endl;
+      } else {
+        logger.msg(Arc::ERROR, "Information item '%s' is not known",*ii);
+      }
     }
     return EXIT_SUCCESS;
   }
