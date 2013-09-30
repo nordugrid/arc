@@ -3,6 +3,8 @@
 
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
 
+%{!?_jnidir: %global _jnidir %{_libdir}/java}
+
 %if %{?rhel}%{!?rhel:0} == 5
 %global __python26 %{_bindir}/python2.6
 %{!?python26_sitearch: %global python26_sitearch %(%{__python26} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
@@ -875,7 +877,8 @@ cd -
      --disable-xrootd \
 %endif
      --disable-doc \
-     --with-docdir=%{_pkgdocdir}
+     --with-docdir=%{_pkgdocdir} \
+     --with-jnidir=%{_jnidir}
 
 make %{?_smp_mflags}
 
@@ -1549,8 +1552,8 @@ service fetch-crl-cron start > /dev/null 2>&1
 %files java
 %defattr(-,root,root,-)
 %doc docdir/java/*
-%{_libdir}/java/libjarc.so
-%{_libdir}/java/arc.jar
+%{_libdir}/%{pkgdir}/libjarc.so
+%{_jnidir}/arc.jar
 %{_libdir}/%{pkgdir}/libjavaservice.so
 %{_libdir}/%{pkgdir}/libjavaservice.apd
 %if %{with_gcj}

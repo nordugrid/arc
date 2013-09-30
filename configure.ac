@@ -491,6 +491,24 @@ AC_SUBST(JAVA_FLAGS)
 AC_SUBST(JAVAC_FLAGS)
 AC_SUBST(JDK_CFLAGS)
 
+AC_ARG_WITH([jnidir],
+AC_HELP_STRING([--with-jnidir=DIR],
+  [Install jar in DIR [[default: ${libdir}/java]]]),
+  [case $withval in
+    yes|no)
+      AC_MSG_ERROR([Invalid DIR])
+      ;;
+    *)
+      jnidir="$withval"
+      ;;
+  esac
+],
+[
+  if test -z "$jnidir"; then
+    jnidir='${libdir}/java'
+  fi
+])
+AC_SUBST(jnidir)
 
 # Try to find junit - used for unit testing of Java bindings.
 dnl Check if JUnit is explicitly disabled.

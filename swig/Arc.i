@@ -104,10 +104,18 @@ class StaticPropertyWrapper(object):
 %pragma(java) jniclasscode=%{
   static {
     try {
-        System.loadLibrary("jarc");
-    } catch (UnsatisfiedLinkError e) {
-      System.err.println("Unable to load native code library (jarc), which provides Java interface to the ARC C++ libraries. \n" + e);
-      System.exit(1);
+      System.loadLibrary("jarc");
+    } catch (UnsatisfiedLinkError e1) {
+      try {
+        System.load("/usr/lib64/arc/libjarc.so");
+      } catch (UnsatisfiedLinkError e2) {
+        try {
+          System.load("/usr/lib/arc/libjarc.so");
+        } catch (UnsatisfiedLinkError e3) {
+          System.err.println("Unable to load native code library (jarc), which provides Java interface to the ARC C++ libraries.");
+          System.exit(1);
+        }
+      }
     }
   }
 %}

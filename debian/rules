@@ -42,6 +42,7 @@ configure-stamp:
 		    --infodir='$${datadir}/info' \
 		    --disable-doc \
 		    --with-docdir='$${datadir}/doc/nordugrid-arc' \
+		    --with-jnidir='$${datadir}/java' \
 		    $(LFC_CONFIGURE_OPTION) $(CANL_CONFIGURE_OPTION)
 	touch $@
 
@@ -121,11 +122,6 @@ install: build-stamp
 	   debian/nordugrid-arc-acix-cache.acix-cache.init
 	mv debian/tmp/etc/init.d/acix-index \
 	   debian/nordugrid-arc-acix-index.acix-index.init
-
-	mkdir -p debian/tmp/usr/share/java
-	mv debian/tmp/usr/lib/java/*.jar debian/tmp/usr/share/java
-	mkdir -p debian/tmp/usr/lib/jni
-	mv debian/tmp/usr/lib/java/*.so debian/tmp/usr/lib/jni
 
 binary: binary-arch binary-indep
 
