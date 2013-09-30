@@ -3,7 +3,16 @@
 
 AC_PREREQ(2.56)
 AC_INIT([nordugrid-arc],m4_normalize(m4_include(VERSION)),[http://bugzilla.nordugrid.org/])
-AM_INIT_AUTOMAKE([foreign 1.9 tar-pax serial-tests])
+
+dnl serial-tests is not recognized before 1.12, and required after 1.13
+m4_define([serial_tests], [
+    m4_esyscmd([case `${AUTOMAKE:-automake} --version | head -n 1` in
+      *1.11.*|*1.10.*|*1.9.*);;
+      *) echo serial-tests;;
+      esac])
+])
+
+AM_INIT_AUTOMAKE([foreign 1.9 tar-pax] serial_tests)
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS([config.h])
 
