@@ -35,6 +35,7 @@ namespace Arc
     /** location of Aggregation Records */
     std::string aggr_record_location;
     bool aggr_record_update_need;
+    bool synch_message;
     /** Aggregation Record set XML */
     Arc::XMLNode aggregationrecordset;
     Arc::NS ns;
@@ -48,6 +49,8 @@ namespace Arc
     void UpdateLastSendingDate(Arc::XMLNodeList& records);
     void clear();
     std::string Current_Time( time_t parameter_time = time(NULL) );
+    /** APEL Synch record generation from the CAR aggregation record */
+    std::string SynchMessage(Arc::XMLNode records);
 
   public:
     /**
@@ -57,7 +60,7 @@ namespace Arc
     /**
      *  Constructor for record reporting.
      */
-    CARAggregation(std::string _host, std::string _port, std::string _topic);
+    CARAggregation(std::string _host, std::string _port, std::string _topic, bool synch);
     ~CARAggregation();
 
     /** Generated record from CAR record, collects it into the

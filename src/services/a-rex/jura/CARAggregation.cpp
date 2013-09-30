@@ -17,20 +17,23 @@ namespace Arc
   CARAggregation::CARAggregation(std::string _host):
     logger(Arc::Logger::rootLogger, "JURA.CARAggregation"),
     aggr_record_update_need(false),
+    synch_message(false),
     aggregationrecordset(Arc::NS("","http://eu-emi.eu/namespaces/2012/11/aggregatedcomputerecord"),
                    "SummaryRecords")
   {
     init(_host, "", "");
   }
 
-  CARAggregation::CARAggregation(std::string _host, std::string _port, std::string _topic):
+  CARAggregation::CARAggregation(std::string _host, std::string _port, std::string _topic, bool synch):
     logger(Arc::Logger::rootLogger, "JURA.CARAggregation"),
     use_ssl("false"),
     sequence(0),
     aggr_record_update_need(false),
+    synch_message(false),
     aggregationrecordset(Arc::NS("","http://eu-emi.eu/namespaces/2012/11/aggregatedcomputerecord"),
                    "SummaryRecords")
   {
+    synch_message = synch;
     init(_host, _port, _topic);
   }
 
@@ -429,9 +432,19 @@ namespace Arc
       }
     }
 
+    if ( sendingXMLrecords.Size() == 0 ) {
+      logger.msg(Arc::INFO, "Does not sending empty aggregation/synch message.");
+      return true;
+    }
     // send the required records
     std::string records;
-    sendingXMLrecords.GetXML(records,true);
+    if (synch_message) {
+      //Synch record need to be send
+      records = SynchMessage(sendingXMLrecords);
+    } else {
+      //Aggregation record need to be send
+      sendingXMLrecords.GetXML(records,true);
+    }
     Arc::MCC_Status status = send_records(records);
     if ( status != Arc::STATUS_OK ) {
       return false;
@@ -444,9 +457,19 @@ namespace Arc
 
   bool CARAggregation::Reporting_records()
   {
+    if ( aggregationrecordset.Size() == 0 ) {
+      logger.msg(Arc::INFO, "Does not sending empty aggregation/synch message.");
+      return true;
+    }
     // send all records
     std::string all_records;
-    aggregationrecordset.GetXML(all_records,true);
+    if (synch_message) {
+      //Synch record need to be send
+      all_records = SynchMessage(aggregationrecordset);
+    } else {
+      //Aggregation record need to be send
+      aggregationrecordset.GetXML(all_records,true);
+    }
     Arc::MCC_Status status = send_records(all_records);
     if ( status != Arc::STATUS_OK ) {
       return false;
@@ -475,5 +498,29 @@ namespace Arc
     if(records.size() > 0){
       aggr_record_update_need = true;
     }
+  }
+
+  std::string CARAggregation::SynchMessage(Arc::XMLNode records)
+  {
+    std::string result;
+    //header
+    result = "APEL-sync-message: v0.1\n";
+    Arc::XMLNode node = records["SummaryRecord"];
+    while (node) {
+      //Site
+      result += "Site: " + (std::string)node["Site"] + "\n";
+      //SubmitHost
+      result += "SubmitHost: " + (std::string)node["SubmitHost"] + "\n";
+      //NumberOfJobs
+      result += "NumberOfJobs: " + (std::string)node["NumberOfJobs"] + "\n";
+      //Month
+      result += "Month: " + (std::string)node["Month"] + "\n";
+      //Year
+      result += "Year: " + (std::string)node["Year"] + "\n";
+      result += "%%\n";
+      ++node;
+    }
+    logger.msg(Arc::DEBUG, "synch message: %s", result);
+    return result;
   }
 }
