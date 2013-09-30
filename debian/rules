@@ -43,6 +43,7 @@ configure-stamp:
 		    --disable-doc \
 		    --with-docdir='$${datadir}/doc/nordugrid-arc' \
 		    --with-jnidir='$${datadir}/java' \
+		    --with-jninativedir='$${libdir}/jni' \
 		    $(LFC_CONFIGURE_OPTION) $(CANL_CONFIGURE_OPTION)
 	touch $@
 

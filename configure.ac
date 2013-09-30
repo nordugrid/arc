@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.56)
 AC_INIT([nordugrid-arc],m4_normalize(m4_include(VERSION)),[http://bugzilla.nordugrid.org/])
-AM_INIT_AUTOMAKE([foreign 1.9 tar-pax])
+AM_INIT_AUTOMAKE([foreign 1.9 tar-pax serial-tests])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS([config.h])
 
@@ -509,6 +509,25 @@ AC_HELP_STRING([--with-jnidir=DIR],
   fi
 ])
 AC_SUBST(jnidir)
+
+AC_ARG_WITH([jninativedir],
+AC_HELP_STRING([--with-jninativedir=DIR],
+  [Install jar in DIR [[default: ${pkglibdir}]]]),
+  [case $withval in
+    yes|no)
+      AC_MSG_ERROR([Invalid DIR])
+      ;;
+    *)
+      jninativedir="$withval"
+      ;;
+  esac
+],
+[
+  if test -z "$jninativedir"; then
+    jninativedir='${pkglibdir}'
+  fi
+])
+AC_SUBST(jninativedir)
 
 # Try to find junit - used for unit testing of Java bindings.
 dnl Check if JUnit is explicitly disabled.

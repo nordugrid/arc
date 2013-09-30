@@ -19,10 +19,6 @@ import nordugrid.arc.*;
  */
 public class ReturnLocalReferenceRGTest
 {
-  static {
-    System.loadLibrary("jarc");
-  }
-
   public ReturnLocalReferenceRGTest() {}
 
   public static void main(String argv[]) throws InterruptedException

@@ -4,11 +4,8 @@ JAVA_INTERFACE_SRC = EndpointConsumer.java JobConsumer.java ComputingServiceType
 JAVA_BUILD_PATH = $(top_builddir)/java/$(JAVA_PATH)/
 JAVA_INTERFACE_SRC_MOVED = $(addprefix $(JAVA_BUILD_PATH), $(JAVA_INTERFACE_SRC))
 
-javalibdir = $(libdir)/java
-javasharedir = $(libdir)/java
-
-javalib_LTLIBRARIES = libjarc.la
-javashare_DATA = arc.jar
+jninative_LTLIBRARIES = libjarc.la
+jni_DATA = arc.jar
 
 if MACOSX
 SHREXT = -shrext .dylib

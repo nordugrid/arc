@@ -8,6 +8,7 @@ config.h.in
 config.log
 config.status
 config.sub
+config.rpath
 configure
 depcomp
 install-sh
@@ -19,4 +20,5 @@ missing
 stamp-h1
 compile
 INSTALL
-debian/changelog
+ABOUT-NLS
+py-compile
