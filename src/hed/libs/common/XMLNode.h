@@ -354,12 +354,16 @@ namespace Arc {
        as in operator[].
        \return all nodes which are represented by path. */
     XMLNodeList Path(const std::string& path);
-    /// Uses xPath to look up the whole xml structure,
+    /// Uses XPath to look up XML tree.
     /** Returns a list of XMLNode points. The xpathExpr should be like
        "//xx:child1/" which indicates the namespace and node that you
-       would like to find; The nsList is the namespace the result should
-       belong to (e.g. xx="uri:test"). Query is run on whole XML document
-       but only the elements belonging to this XML subtree are returned. */
+       would like to find. The nsList contains namespaces used by the 
+       xpathExpr. 
+       Query is run on whole XML document but only the elements belonging
+       to this XML subtree are returned.
+       Please note, that default namespaces - without prefix - are not 
+       fully supported. So xpathExpr without properly defined namespace
+       prefixes will only work for XML documents without namespaces. */
     XMLNodeList XPathLookup(const std::string& xpathExpr, const NS& nsList);
     /// Get the root node from any child node of the tree.
     XMLNode GetRoot(void);
