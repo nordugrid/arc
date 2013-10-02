@@ -32,7 +32,8 @@ namespace Arc {
   static void SetPrefix(xmlNodePtr node, const char *prefix, int recursion) {
     if (!node) return;
     if ((node->type != XML_ELEMENT_NODE) && (node->type != XML_ATTRIBUTE_NODE)) return;
-    if(!prefix) {
+    if(!prefix || (node->type == XML_ATTRIBUTE_NODE)) {
+      // Request to remove namespace or attribute - attributes have no namespaces
       node->ns = NULL;
     } else {
       xmlNsPtr ns = xmlSearchNs(node->doc, node, (const xmlChar*)(prefix[0]?prefix:NULL));
@@ -633,6 +634,9 @@ namespace Arc {
       std::string ns_(name, name_ - name);
       ns = xmlSearchNs(node_->doc, node_, (const xmlChar*)(ns_.c_str()));
       ++name_;
+    } else if(name_ != NULL) {
+      ns = xmlSearchNs(node_->doc, node_, (const xmlChar*)NULL);
+      ++name_;
     } else {
       ns = xmlSearchNs(node_->doc, node_, (const xmlChar*)NULL);
       name_ = name;
@@ -745,6 +749,9 @@ namespace Arc {
     if ((name_ != NULL) && (name_ != name)) {
       std::string ns_(name, name_ - name);
       ns = xmlSearchNs(node_->doc, node_, (const xmlChar*)(ns_.c_str()));
+      ++name_;
+    } else if(name_ != NULL) {
+      ns = xmlSearchNs(node_->doc, node_, (const xmlChar*)NULL);
       ++name_;
     } else {
       ns = xmlSearchNs(node_->doc, node_, (const xmlChar*)NULL);
