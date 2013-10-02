@@ -8,7 +8,7 @@
  * @param element string
  * @param debug integer
  * @param loopcnt integer
- * @desc Returns base GIIS info recursively down to the lowest level
+ * @desc Returns base EGIIS info recursively down to the lowest level
  */
 function recursive_giis_info($giislist,$element,$errors,$debug="0",$loopcnt="1")
 {
@@ -39,12 +39,12 @@ function recursive_giis_info($giislist,$element,$errors,$debug="0",$loopcnt="1")
   $entries   = array();
   $blacklist = array();
 
-  if ( file_exists("blacklist.inc") ) include('blacklist.inc');
+  @include('blacklist.inc'); // uses blacklist if it is in includes or current path
 
   // Loop on entered sites
   // If a host is blacklisted, skip
-  // If a host is a cluster (GRIS), keep and skip
-  // If a host is any other local GRIS, skip
+  // If a host is a cluster (ARIS), keep and skip
+  // If a host is any other local ARIS, skip
 
   for ( $ig = 0; $ig < $ngiis; $ig++ ) {
     $ghost = $giislist[$ig]["host"];
@@ -106,7 +106,7 @@ function recursive_giis_info($giislist,$element,$errors,$debug="0",$loopcnt="1")
 
   $nhosts  = count($srarray);
 
-  // If GIISes are found, loop on contacted GIISes
+  // If EGIISes are found, loop on contacted EGIISes
   if ( $nhosts ) {
 
     $truecount = 0;
@@ -125,7 +125,7 @@ function recursive_giis_info($giislist,$element,$errors,$debug="0",$loopcnt="1")
       $record   = @ldap_get_entries($ds,$sr);
       $nrecords = $record["count"];
       
-      // Per each contacted GIIS, loop on potential lower-level GIISes/clusters
+      // Per each contacted EGIIS, loop on potential lower-level EGIISes/clusters
       
       for ($i = 0; $i < $nrecords; $i++) {
 	
@@ -157,7 +157,7 @@ function recursive_giis_info($giislist,$element,$errors,$debug="0",$loopcnt="1")
       }
     }
     
-    // Array $entries contains all possible stuff which registers to a GIIS
+    // Array $entries contains all possible stuff which registers to a EGIIS
     // Keep recursing
     
     if ($truecount && $loopcnt < 10 ) $entries = recursive_giis_info($entries,$element,$errors,$debug,$loopcnt);
