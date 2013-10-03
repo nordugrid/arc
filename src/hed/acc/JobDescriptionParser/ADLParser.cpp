@@ -300,6 +300,9 @@ namespace Arc {
               attr:useNumberOfSlots=false
             ExclusiveExecution minOccurs=0
           QueueName minOccurs=0
+          IndividualCPUTime minOccurs=0
+          TotalCPUTime minOccurs=0
+          WallTime minOccurs=0
         DataStaging minOccurs=0
           ClientDataPush
           InputFile minOccurs=0 maxOccurs=unbounded
@@ -634,6 +637,32 @@ namespace Arc {
         jobdescs.clear();
         return false;
       }
+      XMLNode time;
+      time = resources["adl:IndividualCPUTime"];
+      if((bool)time) {
+        if(!stringto((std::string)time,job.Resources.IndividualCPUTime.range.max)) {
+          logger.msg(ERROR, "[ADLParser] Missing or wrong value in IndividualCPUTime.");
+          jobdescs.clear();
+          return false;
+        }
+      }
+      time = resources["adl:TotalCPUTime"];
+      if((bool)time) {
+        if(!stringto((std::string)time,job.Resources.TotalCPUTime.range.max)) {
+          logger.msg(ERROR, "[ADLParser] Missing or wrong value in TotalCPUTime.");
+          jobdescs.clear();
+          return false;
+        }
+      }
+      time = resources["adl:WallTime"];
+      if((bool)time) {
+        if(!stringto((std::string)time,job.Resources.TotalWallTime.range.max)) {
+          logger.msg(ERROR, "[ADLParser] Missing or wrong value in WallTime.");
+          jobdescs.clear();
+          return false;
+        }
+        job.Resources.IndividualWallTime = job.Resources.TotalWallTime;
+      }
     }
     if((bool)staging) {
       bool clientpush = false;
@@ -948,20 +977,21 @@ namespace Arc {
     if(!job.Resources.QueueName.empty()) {;
       resources.NewChild("QueueName") = job.Resources.QueueName;
     }
+    if(job.Resources.IndividualCPUTime.range.max != -1) {
+      resources.NewChild("IndividualCPUTime") = tostring(job.Resources.IndividualCPUTime.range.max);
+    }
+    if(job.Resources.TotalCPUTime.range.max != -1) {
+      resources.NewChild("TotalCPUTime") = tostring(job.Resources.TotalCPUTime.range.max);
+    }
+    if(job.Resources.TotalWallTime.range.max != -1) {
+      resources.NewChild("WallTime") = tostring(job.Resources.TotalWallTime.range.max);
+    } else if(job.Resources.IndividualWallTime.range.max != -1) {
+      resources.NewChild("WallTime") = tostring(job.Resources.IndividualWallTime.range.max);
+    }
 
-    // job.Resources.TotalWallTime.range.max
-    // job.Resources.TotalCPUTime.range.max
     // job.Resources.NetworkInfo
     // job.Resources.DiskSpaceRequirement.CacheDiskSpace
     // job.Resources.DiskSpaceRequirement.SessionDiskSpace
-    // job.Resources.IndividualCPUTime.range
-    // job.Resources.IndividualCPUTime.benchmark
-    // job.Resources.TotalCPUTime.range
-    // job.Resources.TotalCPUTime.benchmark
-    // job.Resources.IndividualWallTime.range
-    // job.Resources.IndividualWallTime.benchmark
-    // job.Resources.TotalWallTime.range
-    // job.Resources.TotalWallTime.benchmark
     // job.Resources.CEType
 
     // DataStaging
