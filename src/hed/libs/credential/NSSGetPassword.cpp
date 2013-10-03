@@ -66,10 +66,10 @@ namespace AuthN {
     int infd  = fileno(input);
     int isTTY = isatty(infd);
 #endif
-    char phrase[200] = {'\0'};      /* ensure EOF doesn't return junk */
+    char phrase[200] = {'\0'};      // ensure EOF doesn't return junk
 
     for (;;) {
-      /* Prompt for password */
+      // Prompt for password
       if (isTTY) {
         fprintf(output, "%s", prompt);
         fflush (output);
@@ -83,12 +83,12 @@ namespace AuthN {
         echoOn(infd);
       }
 
-      /* stomp on newline */
+      // stomp on newline
       phrase[PORT_Strlen(phrase)-1] = 0;
 
-      /* Validate password */
+      // Validate password 
       if (!(*ok)(phrase)) {
-        /* Not weird enough */
+        // Not weird enough 
         if (!isTTY) return 0;
         fprintf(output, "Password must be at least 8 characters long with one or more\n");
         fprintf(output, "non-alphabetic characters\n");
@@ -112,7 +112,7 @@ namespace AuthN {
       unsigned char ch = *cp++;
       if (!((ch >= 'A') && (ch <= 'Z')) &&
           !((ch >= 'a') && (ch <= 'z'))) {
-        /* pass phrase has at least one non alphabetic in it */
+        // pass phrase has at least one non alphabetic in it 
         return PR_TRUE;
       }
     }
@@ -228,4 +228,5 @@ namespace AuthN {
     return NULL;
 
   }
+
 }

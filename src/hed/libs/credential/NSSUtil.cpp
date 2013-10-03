@@ -125,14 +125,6 @@ namespace AuthN {
     return ret;
   }
 
-  static char* nss_get_password(PK11SlotInfo* slot, PRBool retry, void *arg) {
-    (void)slot; // unused
-    if(retry || NULL == arg)
-      return NULL;
-    else
-      return (char *)PORT_Strdup((char *)arg);
-  }
-
 #define NS_CERT_HEADER "-----BEGIN CERTIFICATE-----"
 #define NS_CERT_TRAILER "-----END CERTIFICATE-----"
 
@@ -1340,7 +1332,7 @@ loser:
     CERTCertListNode* node = NULL;
 
     slot = PK11_GetInternalKeySlot();
-    if (PK11_Authenticate(slot, PR_TRUE, slotpw) != SECSuccess) {
+    if (PK11_Authenticate(slot, PR_TRUE, (void*)slotpw) != SECSuccess) {
       NSSUtilLogger.msg(ERROR, "Failed to authenticate to PKCS11 slot %s", PK11_GetSlotName(slot));
       goto err;
     }
@@ -1376,7 +1368,7 @@ loser:
       goto err;
     }
 
-    p12ecx = SEC_PKCS12CreateExportContext(NULL, NULL, slot, slotpw);
+    p12ecx = SEC_PKCS12CreateExportContext(NULL, NULL, slot, (void*)slotpw);
     if(!p12ecx) {
       NSSUtilLogger.msg(ERROR, "Failed to create export context");
       goto err;
@@ -1709,14 +1701,14 @@ err:
     return true;
   }
 
-  static bool GenerateKeyPair(char* slotpw, SECKEYPublicKey **pubk, SECKEYPrivateKey **privk, std::string& privk_str, int keysize, const std::string& nick_str) {
+  static bool GenerateKeyPair(const char* slotpw, SECKEYPublicKey **pubk, SECKEYPrivateKey **privk, std::string& privk_str, int keysize, const std::string& nick_str) {
     PK11RSAGenParams rsaParams;
     rsaParams.keySizeInBits = keysize;
     rsaParams.pe = 0x10001;
 
     PK11SlotInfo* slot = NULL;
     slot = PK11_GetInternalKeySlot();
-    if(PK11_Authenticate(slot, PR_TRUE, slotpw) != SECSuccess) {
+    if(PK11_Authenticate(slot, PR_TRUE, (void*)slotpw) != SECSuccess) {
       NSSUtilLogger.msg(ERROR, "Failed to authenticate to key database");
       if(slot) PK11_FreeSlot(slot);
       return false;
@@ -1742,7 +1734,7 @@ err:
     return true;
   }
  
-  static bool ImportPrivateKey(char* slotpw, const std::string& keyfile, const std::string& nick_str) {
+  static bool ImportPrivateKey(const char* slotpw, const std::string& keyfile, const std::string& nick_str) {
     BIO* key = NULL;
     key = BIO_new_file(keyfile.c_str(), "r");
     std::string key_str;
@@ -1758,7 +1750,7 @@ err:
 
     PK11SlotInfo* slot = NULL;
     slot = PK11_GetInternalKeySlot();
-    if(PK11_Authenticate(slot, PR_TRUE, slotpw) != SECSuccess) {
+    if(PK11_Authenticate(slot, PR_TRUE, (void*)slotpw) != SECSuccess) {
       NSSUtilLogger.msg(ERROR, "Failed to authenticate to key database");
       if(slot) PK11_FreeSlot(slot);
       return false;
@@ -1797,7 +1789,7 @@ err:
     //Remove the existing private key and related cert in nss db
     rv = DeleteKeyAndCert((privkey_name.c_str()), slotpw);
 
-    if(!GenerateKeyPair((char*)slotpw, &pubkey, &privkey, privk_str, keybits, privkey_name)) return false;
+    if(!GenerateKeyPair(slotpw, &pubkey, &privkey, privk_str, keybits, privkey_name)) return false;
     //PK11_SetPrivateKeyNickname(privkey, privkey_name.c_str());    
 
     //privkey = SECKEY_CreateRSAPrivateKey(keybits, &pubkey, NULL);
@@ -2867,7 +2859,7 @@ error:
     SECStatus rv = SECSuccess;
 
     slot = PK11_GetInternalKeySlot();
-    if(PK11_Authenticate(slot, PR_TRUE, slotpw) != SECSuccess) {
+    if(PK11_Authenticate(slot, PR_TRUE, (void*)slotpw) != SECSuccess) {
       NSSUtilLogger.msg(ERROR, "Failed to authenticate to key database");
       if(slot) PK11_FreeSlot(slot);
       return false;
@@ -2918,7 +2910,7 @@ error:
       rv = PK11_ImportCert(slot, cert, CK_INVALID_HANDLE, (char*)(name.c_str()), PR_FALSE);
       if(rv != SECSuccess) {
         if(PORT_GetError() == SEC_ERROR_TOKEN_NOT_LOGGED_IN) {
-          if(PK11_Authenticate(slot, PR_TRUE, slotpw) != SECSuccess) {
+          if(PK11_Authenticate(slot, PR_TRUE, (void*)slotpw) != SECSuccess) {
             NSSUtilLogger.msg(ERROR, "Failed to authenticate to token %s", PK11_GetTokenName(slot));
             rv = SECFailure; break;
           }
@@ -2935,7 +2927,7 @@ error:
       rv = CERT_ChangeCertTrust(certhandle, cert, trust);
       if(rv != SECSuccess) {
         if (PORT_GetError() == SEC_ERROR_TOKEN_NOT_LOGGED_IN) {
-          if(PK11_Authenticate(slot, PR_TRUE, slotpw) != SECSuccess) {
+          if(PK11_Authenticate(slot, PR_TRUE, (void*)slotpw) != SECSuccess) {
             NSSUtilLogger.msg(ERROR, "Failed to authenticate to token %s", PK11_GetTokenName(slot));
             rv = SECFailure; break;
           }

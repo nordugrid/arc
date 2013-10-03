@@ -17,6 +17,7 @@
 #include <arc/UserConfig.h>
 
 #include <arc/credential/CertUtil.h>
+#include <arc/credential/PasswordSource.h>
 
 namespace Arc {
 
@@ -82,6 +83,14 @@ class Credential {
                const std::string& extfile, const std::string& extsect,
                const std::string& passphrase4key);
 
+    /** Same as previuos constructor but allows password to be
+    * supplied from different sources.
+    */
+    Credential(const std::string& CAfile, const std::string& CAkey,
+               const std::string& CAserial,
+               const std::string& extfile, const std::string& extsect,
+               PasswordSource& passphrase4key);
+
     /**Constructor, specific constructor for proxy certificate, only acts as a
     * container for constraining certificate signing and/or generating certificate
     * request (only keybits is useful for creating certificate request), is meaningless
@@ -144,6 +153,13 @@ class Credential {
                const std::string& cafile, const std::string& passphrase4key = "",
                const bool is_file = true);
 
+    /** Same as previuos constructor but allows password to be
+    * supplied from different sources.
+    */
+    Credential(const std::string& cert, const std::string& key, const std::string& cadir,
+               const std::string& cafile, PasswordSource& passphrase4key,
+               const bool is_file = true);
+
     /**Constructor, specific constructor for usual certificate, constructing from
     * information in UserConfig object. Only acts as a container for parsing the 
     * certificate and key files, is meaningless for any other use. this constructor 
@@ -152,6 +168,11 @@ class Credential {
     * @param passphrase4key passphrase for private key
     */
     Credential(const UserConfig& usercfg, const std::string& passphrase4key = "");
+
+    /** Same as previuos constructor but allows password to be
+    * supplied from different sources.
+    */
+    Credential(const UserConfig& usercfg, PasswordSource& passphrase4key);
 
     /**Initiate nid for proxy certificate extension*/
     static void InitProxyCertInfo(void);
@@ -177,11 +198,13 @@ class Credential {
     Credential(const Credential&);
 
     void InitCredential(const std::string& cert, const std::string& key, const std::string& cadir,
-               const std::string& cafile, const std::string& passphrase4key, const bool is_file);
+               const std::string& cafile, PasswordSource& passphrase4key, const bool is_file);
 
     /**load key from argument keybio, and put key information into argument pkey */
-    void loadKeyString(const std::string& key, EVP_PKEY* &pkey, const std::string& passphrase = "");
-    void loadKeyFile(const std::string& keyfile, EVP_PKEY* &pkey, const std::string& passphrase = "");
+    //void loadKeyString(const std::string& key, EVP_PKEY* &pkey, const std::string& passphrase = "");
+    void loadKeyString(const std::string& key, EVP_PKEY* &pkey, PasswordSource& passphrase);
+    //void loadKeyFile(const std::string& keyfile, EVP_PKEY* &pkey, const std::string& passphrase = "");
+    void loadKeyFile(const std::string& keyfile, EVP_PKEY* &pkey, PasswordSource& passphrase);
     //void loadKey(BIO* bio, EVP_PKEY* &pkey, const std::string& passphrase = "", const std::string& prompt_info = "", const bool is_file = true);
 
     /**load certificate from argument certbio, and put certificate information into
@@ -300,6 +323,13 @@ class Credential {
      * @param passphrase the passphrase to encrypt the output private key
      */
     bool OutputPrivatekey(std::string &content,  bool encryption = false, const std::string& passphrase ="");
+
+    /**Output the private key into string
+     * @param content Filled with private key content
+     * @param encryption whether encrypt the output private key or not
+     * @param passphrase the source for passphrase to encrypt the output private key
+     */
+    bool OutputPrivatekey(std::string &content,  bool encryption, PasswordSource& passphrase);
 
     /**Output the public key into string*/
     bool OutputPublickey(std::string &content);

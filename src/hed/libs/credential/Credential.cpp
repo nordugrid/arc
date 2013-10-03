@@ -7,7 +7,7 @@
 
 #include <fstream>
 #include <fcntl.h>
-#include <openssl/ui.h>
+//#include <openssl/ui.h>
 #include <openssl/ssl.h>
 #include <openssl/evp.h>
 
@@ -33,42 +33,6 @@ namespace Arc {
 
   Logger CredentialLogger(Logger::rootLogger, "Credential");
 
-#if 0
-#define PASS_MIN_LENGTH 4
-  static int passwordcb(char* pwd, int len, int verify, void* passphrase) {
-    int j, r;
-    //char prompt[128];
-    const char* prompt;
-    if(passphrase) {
-      j=strlen((const char*)passphrase);
-      j=(j > len)?len:j;
-      memcpy(pwd,passphrase,j);
-      return(j);
-    }
-    prompt=EVP_get_pw_prompt();
-    if (prompt == NULL)
-      prompt="Enter PEM pass phrase:";
-
-    for(;;) {
-      //if(!verify)
-      //  snprintf(prompt, sizeof(prompt), "Enter passphrase to decrypte the key file: ");
-      //else
-      //  snprintf(prompt, sizeof(prompt), "Enter passphrase to encrypte the key file: ");
-      r = EVP_read_pw_string(pwd, len, prompt, verify);
-      if(r != 0) {
-        CredentialLogger.msg(ERROR,"Failed to read input passphrase");
-        memset(pwd,0,(unsigned int)len);
-        return(-1);
-      }
-      j = strlen(pwd);
-      if(verify && (j < PASS_MIN_LENGTH)) {
-        CredentialLogger.msg(ERROR,"Input phrase is too short (at least %d char)",PASS_MIN_LENGTH);
-      }
-      else { return j; }
-    }
-  }
-#endif
-
   static int ssl_err_cb(const char *str, size_t, void *u) {
     Logger& logger = *((Logger*)u);
     logger.msg(DEBUG, "OpenSSL error string: %s", str);
@@ -77,107 +41,28 @@ namespace Arc {
 
 #define PASS_MIN_LENGTH (0)
   typedef struct pw_cb_data {
-    const void *password;
-    const char *prompt_info;
+    PasswordSource *password;
   } PW_CB_DATA;
 
   static int passwordcb(char *buf, int bufsiz, int verify, void *cb_tmp) {
-    UI *ui = NULL;
-    int res = 0;
-    const char *prompt_info = NULL;
-    const char *password = NULL;
     PW_CB_DATA *cb_data = (PW_CB_DATA *)cb_tmp;
 
-    if (bufsiz <= 1) return res;
+    if (bufsiz <= 1) return 0;
     if (cb_data) {
-      if (cb_data->password) password = (const char*)(cb_data->password);
-      if (cb_data->prompt_info) prompt_info = cb_data->prompt_info;
-    }
-
-    if (password) {
-      res = strlen(password);
-      if (res > (bufsiz-1)) res = bufsiz-1;
-      if(buf) memcpy(buf, password, res+1);
-      return res;
-    }
-
-    ui = UI_new();
-    if (!ui) return res;
-
-    int ok = 0;
-    char *buf1 = NULL;
-    char *buf2 = NULL;
-    int ui_flags = 0;
-    char *prompt = NULL;
-
-    prompt = UI_construct_prompt(ui, "pass phrase", cb_data->prompt_info);
-
-    ui_flags |= UI_INPUT_FLAG_DEFAULT_PWD;
-//  UI_ctrl(ui, UI_CTRL_PRINT_ERRORS, 1, 0, 0);
-
-    if (ok >= 0) {
-      ok = -1;
-      if((buf1 = (char *)OPENSSL_malloc(bufsiz)) != NULL) {
-        memset(buf1,0,(unsigned int)bufsiz);
-        ok = UI_add_input_string(ui,prompt,ui_flags,buf1,PASS_MIN_LENGTH,bufsiz-1);
+      if (cb_data->password) {
+        std::string password;
+        if(cb_data->password->Get(password,PASS_MIN_LENGTH,bufsiz) != PasswordSource::PASSWORD) {
+          // It was requested to have key encrypted and no password was provided
+          return 0;
+        }
+        if(buf) strncpy(buf, password.c_str(), bufsiz);
+        int len = password.length();
+        if(len > bufsiz) len = bufsiz;
+        return len;
       }
     }
-    if (ok >= 0 && verify) {
-      ok = -1;
-      if((buf2 = (char *)OPENSSL_malloc(bufsiz)) != NULL) {
-        memset(buf2,0,(unsigned int)bufsiz);
-        ok = UI_add_verify_string(ui,prompt,ui_flags,buf2,PASS_MIN_LENGTH,bufsiz-1,buf1);
-      }
-    }
-    if (ok >= 0) do {
-      ok = UI_process(ui);
-      if(ok == -2) break; // Abort request
-      if(ok == -1) { // Password error
-        unsigned long errcode = ERR_get_error();
-        const char* errstr = ERR_reason_error_string(errcode);
-        if(errstr == NULL) {
-          CredentialLogger.msg(Arc::ERROR, "Password input error - code %lu",errcode);
-        } else if(strstr(errstr,"result too small")) {
-          CredentialLogger.msg(Arc::ERROR, "Password is too short, need at least %u charcters", PASS_MIN_LENGTH);
-        } else if(strstr(errstr,"result too large")) {
-          CredentialLogger.msg(Arc::ERROR, "Password is too long, need at most %u characters", bufsiz-1);
-        } else {
-          CredentialLogger.msg(Arc::ERROR, "%s", errstr);
-        };
-      };
-    } while (ok < 0 && UI_ctrl(ui, UI_CTRL_IS_REDOABLE, 0, 0, 0));
-
-    if (buf2){
-      memset(buf2,0,(unsigned int)bufsiz);
-      OPENSSL_free(buf2);
-    }
-
-    if (ok >= 0) {
-      if(buf1) {
-        buf1[bufsiz-1] = 0;
-        res = strlen(buf1);
-        if(buf) memcpy(buf,buf1,res+1);
-      }
-    }
-
-    if (buf1){
-      memset(buf1,0,(unsigned int)bufsiz);
-      OPENSSL_free(buf1);
-    }
-
-    if (ok == -1){
-      CredentialLogger.msg(Arc::ERROR, "User interface error");
-      ERR_print_errors_cb(&ssl_err_cb, &CredentialLogger);
-      if(buf) memset(buf,0,(unsigned int)bufsiz);
-      res = 0;
-    } else if (ok == -2) {
-      if(buf) memset(buf,0,(unsigned int)bufsiz);
-      res = 0;
-    }
-    UI_free(ui);
-    OPENSSL_free(prompt);
-
-    return res;
+    // Password is needed but no source defined for password
+    return 0;
   }
 
   void Credential::LogError(void) const {
@@ -698,7 +583,7 @@ namespace Arc {
      } // end switch
   }
 
-  void Credential::loadKeyFile(const std::string& keyfile, EVP_PKEY* &pkey, const std::string& passphrase) {
+  void Credential::loadKeyFile(const std::string& keyfile, EVP_PKEY* &pkey, PasswordSource& passphrase) {
     BIO* b = OpenFileBIO(keyfile);
     if(!b) {
         CredentialLogger.msg(ERROR,"Can not find key file: %s", keyfile);
@@ -722,14 +607,13 @@ namespace Arc {
     loadKeyString(keystr,pkey,passphrase);
   }
 
-  void Credential::loadKeyString(const std::string& key, EVP_PKEY* &pkey, const std::string& passphrase) {
+  void Credential::loadKeyString(const std::string& key, EVP_PKEY* &pkey, PasswordSource& passphrase) {
     AutoBIO keybio(BIO_new_mem_buf((void*)(key.c_str()), key.length()));
     if(!keybio){
       CredentialLogger.msg(ERROR,"Can not read key string");
       LogError();
       throw CredentialError("Can not read key string");
     }
-    std::string prompt_info = "private key";
 
     //Read key
     Credformat format;
@@ -740,10 +624,9 @@ namespace Arc {
     unsigned char* key_chr;
 
     switch(format){
-      case CRED_PEM:
+      case CRED_PEM: {
         PW_CB_DATA cb_data;
-        cb_data.password = (passphrase.empty()) ? NULL : (void*)(passphrase.c_str());
-        cb_data.prompt_info = prompt_info.empty() ? NULL : prompt_info.c_str();
+        cb_data.password = &passphrase;
         if(!(pkey = PEM_read_bio_PrivateKey(keybio, NULL, passwordcb, &cb_data))) {
           int reason = ERR_GET_REASON(ERR_peek_error());
           if(reason == PEM_R_BAD_BASE64_DECODE) 
@@ -756,7 +639,7 @@ namespace Arc {
             throw CredentialError("Can not read PEM private key: failed to obtain password");
           throw CredentialError("Can not read PEM private key");
         }
-        break;
+        } break;
 
       case CRED_DER:
         key_chr = (unsigned char*)(key.c_str());
@@ -1088,11 +971,25 @@ namespace Arc {
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile,
         const std::string& cadir, const std::string& cafile,
-        const std::string& passphrase4key, const bool is_file) {
+        PasswordSource& passphrase4key, const bool is_file) {
     InitCredential(certfile,keyfile,cadir,cafile,passphrase4key,is_file);
   }
+  Credential::Credential(const std::string& certfile, const std::string& keyfile,
+        const std::string& cadir, const std::string& cafile,
+        const std::string& passphrase4key, const bool is_file) {
+    PasswordSource* pass = NULL;
+    if(passphrase4key.empty()) {
+      pass = new PasswordSourceInteractive("private key", false);
+    } else if(passphrase4key[0] == '\0') {
+      pass = new PasswordSourceString("");
+    } else {
+      pass = new PasswordSourceString(passphrase4key);
+    }
+    InitCredential(certfile,keyfile,cadir,cafile,*pass,is_file);
+    delete pass;
+  }
 
-  Credential::Credential(const UserConfig& usercfg, const std::string& passphrase4key) {
+  Credential::Credential(const UserConfig& usercfg, PasswordSource& passphrase4key) {
     if (usercfg.CredentialString().empty()) {
       InitCredential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
                      !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
@@ -1105,9 +1002,31 @@ namespace Arc {
     }
   }
 
+  Credential::Credential(const UserConfig& usercfg, const std::string& passphrase4key) {
+    PasswordSource* pass = NULL;
+    if(passphrase4key.empty()) {
+      pass = new PasswordSourceInteractive("private key", false);
+    } else if(passphrase4key[0] == '\0') {
+      pass = new PasswordSourceString("");
+    } else {
+      pass = new PasswordSourceString(passphrase4key);
+    }
+    if (usercfg.CredentialString().empty()) {
+      InitCredential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
+                     !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
+                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
+                     *pass, true);
+    } else {
+      InitCredential(usercfg.CredentialString(), "",
+                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
+                     *pass, false);
+    }
+    delete pass;
+  }
+
   void Credential::InitCredential(const std::string& certfile, const std::string& keyfile,
         const std::string& cadir, const std::string& cafile,
-        const std::string& passphrase4key, const bool is_file) {
+        PasswordSource& passphrase4key, const bool is_file) {
 
     cacertfile_ = cafile;
     cacertdir_ = cadir;
@@ -1136,7 +1055,7 @@ namespace Arc {
       CredentialLogger.msg(ERROR, "Certificate/Proxy path is empty");
       return;
     }
-
+    
     //Initiate the proxy certificate constant and  method which is required by openssl
     if(!proxy_init_) InitProxyCertInfo();
 
@@ -1158,8 +1077,9 @@ namespace Arc {
           std::ifstream in(certfile.c_str(), std::ios::in);
           std::getline<char>(in, keystr, 0);
           in.close();
-          if(keystr.find("BEGIN RSA PRIVATE KEY") != std::string::npos)
+          if(keystr.find("BEGIN RSA PRIVATE KEY") != std::string::npos) {
             loadKeyFile(certfile, pkey_, passphrase4key);
+          }
         }
         else {
           loadKeyFile(keyfile, pkey_, passphrase4key);
@@ -1686,6 +1606,16 @@ namespace Arc {
   }
 
   bool Credential::OutputPrivatekey(std::string &content, bool encryption, const std::string& passphrase) {
+    if(passphrase.empty()) {
+
+      PasswordSourceInteractive pass("", true);
+      return OutputPrivatekey(content, encryption, pass);
+    }
+    PasswordSourceString pass(passphrase);
+    return OutputPrivatekey(content, encryption, pass);
+  }
+
+  bool Credential::OutputPrivatekey(std::string &content, bool encryption, PasswordSource& passphrase) {
     BIO *out = BIO_new(BIO_s_mem());
     EVP_CIPHER *enc = NULL;
     if(!out) return false;
@@ -1697,18 +1627,9 @@ namespace Arc {
       }
       else {
         enc = (EVP_CIPHER*)EVP_des_ede3_cbc();
-#if 0
-        std::string prompt;
-        prompt = "Enter passphrase to encrypt the PEM key file: ";
-        if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0,passwordcb,
-          (passphrase.empty())?NULL:(void*)(passphrase.c_str()))) {
-          BIO_free_all(out); return false;
-        }
-#endif
         PW_CB_DATA cb_data;
-        cb_data.password = (passphrase.empty()) ? NULL : (void*)(passphrase.c_str());
-        cb_data.prompt_info = NULL;
-        if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0, (pem_password_cb *)passwordcb,&cb_data)) {
+        cb_data.password = &passphrase;
+        if(!PEM_write_bio_RSAPrivateKey(out,rsa_key_,enc,NULL,0, &passwordcb,&cb_data)) {
           BIO_free_all(out); return false;
         }
       }
@@ -1721,18 +1642,9 @@ namespace Arc {
       }
       else {
         enc = (EVP_CIPHER*)EVP_des_ede3_cbc();
-#if 0
-        std::string prompt;
-        prompt = "Enter passphrase to encrypt the PEM key file: ";
-        if(!PEM_write_bio_PrivateKey(out,pkey_,enc,NULL,0,passwordcb,
-          (passphrase.empty())?NULL:(void*)(passphrase.c_str()))) {
-          BIO_free_all(out); return false;
-        }
-#endif
         PW_CB_DATA cb_data;
-        cb_data.password = (passphrase.empty()) ? NULL : (void*)(passphrase.c_str());
-        cb_data.prompt_info = NULL;
-        if(!PEM_write_bio_PrivateKey(out,pkey_,enc,NULL,0, (pem_password_cb *)passwordcb,&cb_data)) {
+        cb_data.password = &passphrase;
+        if(!PEM_write_bio_PrivateKey(out,pkey_,enc,NULL,0, &passwordcb,&cb_data)) {
           BIO_free_all(out); return false;
         }
       }
@@ -2525,7 +2437,7 @@ err:
 
   Credential::Credential(const std::string& CAcertfile, const std::string& CAkeyfile,
        const std::string& CAserial, const std::string& extfile,
-       const std::string& extsect, const std::string& passphrase4key) :
+       const std::string& extsect, PasswordSource& passphrase4key) :
        certfile_(CAcertfile), keyfile_(CAkeyfile), verification_valid(false),
        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
        req_(NULL), rsa_key_(NULL), signing_alg_(NULL), keybits_(0),
@@ -2544,6 +2456,42 @@ err:
       loadCertificateFile(CAcertfile, cert_, &cert_chain_);
       if(cert_) check_cert_type(cert_,cert_type_);
       loadKeyFile(CAkeyfile, pkey_, passphrase4key);
+    } catch(std::exception& err){
+      CredentialLogger.msg(ERROR, "ERROR:%s", err.what());
+      LogError();
+    }
+  }
+
+  Credential::Credential(const std::string& CAcertfile, const std::string& CAkeyfile,
+       const std::string& CAserial, const std::string& extfile,
+       const std::string& extsect, const std::string& passphrase4key) :
+       certfile_(CAcertfile), keyfile_(CAkeyfile), verification_valid(false),
+       cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
+       req_(NULL), rsa_key_(NULL), signing_alg_(NULL), keybits_(0),
+       proxyver_(0), pathlength_(0), extensions_(NULL),
+       CAserial_(CAserial), extfile_(extfile), extsect_(extsect) {
+    OpenSSLInit();
+
+    InitVerification();
+
+    //Initiate the proxy certificate constant and  method which is required by openssl
+    if(!proxy_init_) InitProxyCertInfo();
+
+    extensions_ = sk_X509_EXTENSION_new_null();
+
+    try {
+      PasswordSource* pass = NULL;
+      if(passphrase4key.empty()) {
+        pass = new PasswordSourceInteractive("private key", false);
+      } else if(passphrase4key[0] == '\0') {
+        pass = new PasswordSourceString("");
+      } else {
+        pass = new PasswordSourceString(passphrase4key);
+      }
+      loadCertificateFile(CAcertfile, cert_, &cert_chain_);
+      if(cert_) check_cert_type(cert_,cert_type_);
+      loadKeyFile(CAkeyfile, pkey_, *pass);
+      delete pass;
     } catch(std::exception& err){
       CredentialLogger.msg(ERROR, "ERROR:%s", err.what());
       LogError();
