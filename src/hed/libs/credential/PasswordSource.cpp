@@ -51,7 +51,6 @@ PasswordSource::Result PasswordSourceInteractive::Get(std::string& password, int
   int ui_flags = 0;
   char *prompt = NULL;
   int bufsiz = maxsize;
-  std::string buf;
 
   if(bufsiz <= 0) bufsiz = 256;
   ++bufsiz; // for \0
@@ -101,7 +100,7 @@ PasswordSource::Result PasswordSourceInteractive::Get(std::string& password, int
     if(buf1) {
       buf1[bufsiz-1] = 0;
       res = strlen(buf1);
-      buf.assign(buf1,res+1);
+      password.assign(buf1,res);
     }
   }
 
@@ -113,10 +112,12 @@ PasswordSource::Result PasswordSourceInteractive::Get(std::string& password, int
   if (ok == -1){
     std::cerr << "User interface error" << std::endl;
     ERR_print_errors_cb(&ssl_err_cb, NULL);
-    memset((void*)buf.c_str(),0,(unsigned int)buf.length());
+    memset((void*)password.c_str(),0,(unsigned int)password.length());
+    password.resize(0);
     res = 0;
   } else if (ok == -2) {
-    memset((void*)buf.c_str(),0,(unsigned int)buf.length());
+    memset((void*)password.c_str(),0,(unsigned int)password.length());
+    password.resize(0);
     res = 0;
   }
   UI_free(ui);

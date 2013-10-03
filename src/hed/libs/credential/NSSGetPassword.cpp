@@ -99,6 +99,7 @@ namespace AuthN {
     return NULL;
   }
 
+  /*
   static PRBool CheckPassword(char *cp) {
     int len;
     char *end;
@@ -118,6 +119,7 @@ namespace AuthN {
     }
     return PR_FALSE;
   }
+  */
 
   static PRBool BlindCheckPassword(char *cp) {
     if (cp != NULL) {
@@ -126,13 +128,13 @@ namespace AuthN {
     return PR_FALSE;
   }
 
-  /* Get a password from the input terminal, without echoing */
+  // Get a password from the input terminal, without echoing 
 #if defined(_WINDOWS)
   static char * quiet_fgets (char *buf, int length, FILE *input) {
     int c;
     char *end = buf;
 
-    /* fflush (input); */
+    // fflush (input); 
     memset (buf, 0, length);
 
     if (!isatty(fileno(input))) {
@@ -141,9 +143,9 @@ namespace AuthN {
 
     while (1) {
 #if defined (_WIN32_WCE)
-      c = getchar();      /* gets a character from stdin */
+      c = getchar();      // gets a character from stdin 
 #else
-      c = getch();        /* getch gets a character from the console */
+      c = getch();        // getch gets a character from the console 
 #endif
       if (c == '\b') {
       if (end > buf)
