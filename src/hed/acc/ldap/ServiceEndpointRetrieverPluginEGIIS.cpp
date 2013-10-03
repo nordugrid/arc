@@ -49,7 +49,10 @@ namespace Arc {
 
     URL url(CreateURL(rEndpoint.URLString));
     url.ChangeLDAPScope(URL::base);
-    url.AddLDAPAttribute("giisregistrationstatus");
+    // This is not needed for EGIIS
+    // It was needed for the original ancient Globus GIIS
+    // There are no such installations around any more (as far as we know)
+    // url.AddLDAPAttribute("giisregistrationstatus");
     if (!url) return EndpointQueryingStatus::FAILED;
 
     DataBuffer buffer;

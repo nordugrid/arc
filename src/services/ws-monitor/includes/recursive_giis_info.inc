@@ -26,7 +26,7 @@ function recursive_giis_info($giislist,$element,$errors,$debug="0",$loopcnt="1")
   $tout = 5;
   if($debug && count($giislist) < 5) dbgmsg("<div align=\"left\"><i>:::&gt; ".$errors["114"].$tlim.$errors["102"].$tout.$errors["103"]." &lt;:::</div><BR>");
 
-  $greg      = array("giisregistrationstatus");
+  $greg      = array();
   $gfilter   = "(objectclass=mds*)";
 
   $ngiis     = count($giislist);
