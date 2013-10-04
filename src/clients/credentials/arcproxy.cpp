@@ -483,8 +483,8 @@ int main(int argc, char *argv[]) {
                                     "  keybits=number - length of the key to generate. Default is 1024 bits.\n"
                                     "  Special value 'inherit' is to use key length of signing certificate.\n"
                                     "  signingAlgorithm=name - signing algorithm to use for signing public key of proxy.\n"
-                                    "  Default is sha1. Possible values are sha1, sha2 (alias for sha256), sha224, sha256,\n"
-                                    "  sha384, sha512 and inherit (use algorithm of signing certificate).\n"
+                                    "  Possible values are sha1, sha2 (alias for sha256), sha224, sha256, sha384, sha512\n"
+                                    "  and inherit (use algorithm of signing certificate). Default is inherit.\n"
                                     "\n"
                                     "Supported information item names are:\n"
                                     "  subject - subject name of proxy certificate.\n"
@@ -1380,7 +1380,9 @@ static void create_proxy(std::string& proxy_cert, Arc::Credential& signer,
   if(keybits < 0) keybits = signer.GetKeybits();
 
   Arc::Credential cred_request(proxy_start, proxy_period, keybits);
-  if(!signing_algorithm.empty()) {
+  cred_request.SetSigningAlgorithm(signer.GetSigningAlgorithm());
+
+  if(!signing_algorithm.empty() && signing_algorithm != "inherit") {
     if(signing_algorithm == "sha1") {
       cred_request.SetSigningAlgorithm(Arc::SIGN_SHA1);
     } else if(signing_algorithm == "sha2") {
@@ -1393,10 +1395,8 @@ static void create_proxy(std::string& proxy_cert, Arc::Credential& signer,
       cred_request.SetSigningAlgorithm(Arc::SIGN_SHA384);
     } else if(signing_algorithm == "sha512") {
       cred_request.SetSigningAlgorithm(Arc::SIGN_SHA512);
-    } else if(signing_algorithm == "inherit") {
-      cred_request.SetSigningAlgorithm(signer.GetSigningAlgorithm());
     } else {
-      throw std::runtime_error("Unknown signing algoritm specified: "+signing_algorithm);
+      throw std::runtime_error("Unknown signing algorithm specified: "+signing_algorithm);
     }
   }
   cred_request.GenerateRequest(req_str);
