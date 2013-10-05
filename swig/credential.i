@@ -26,6 +26,13 @@
 %include "../src/hed/libs/crypto/OpenSSL.h"
 
 
+// Wrap contents of $(top_srcdir)/src/hed/libs/credential/PasswordSource.h
+%{
+#include <arc/credential/PasswordSource.h>
+%}
+%include "../src/hed/libs/credential/PasswordSource.h"
+
+
 // Wrap contents of $(top_srcdir)/src/hed/libs/credential/Credential.h
 #ifdef SWIGJAVA
 // Suppress warning about unknown class std::runtime_error
