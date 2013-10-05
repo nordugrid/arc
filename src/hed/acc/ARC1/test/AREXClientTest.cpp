@@ -105,7 +105,7 @@ void AREXClientTest::SubmitTest()
   CPPUNIT_ASSERT(ac.submit(jobdesc, jobid, false));
 
   //Response Check
-  CPPUNIT_ASSERT_EQUAL((std::string)"<?xml version=\"1.0\"?>\n<ActivityIdentifier>Test value</ActivityIdentifier>\n", jobid);
+  CPPUNIT_ASSERT_EQUAL((std::string)"<?xml version=\"1.0\"?>\n<ActivityIdentifier xmlns=\"http://www.nordugrid.org/schemas/isis/2007/06\">Test value</ActivityIdentifier>\n", jobid);
   CPPUNIT_ASSERT(Arc::ClientSOAPTest::request["CreateActivity"]);
   CPPUNIT_ASSERT(Arc::ClientSOAPTest::request["CreateActivity"]["ActivityDocument"]);
   CPPUNIT_ASSERT_EQUAL(jobdesc, (std::string)Arc::ClientSOAPTest::request["CreateActivity"]["ActivityDocument"]);
@@ -128,7 +128,7 @@ void AREXClientTest::SubmitTestwithDelegation()
   CPPUNIT_ASSERT(ac.submit(jobdesc, jobid, true));
 
   //Response Check
-  CPPUNIT_ASSERT_EQUAL((std::string)"<?xml version=\"1.0\"?>\n<ActivityIdentifier>Test value</ActivityIdentifier>\n", jobid);
+  CPPUNIT_ASSERT_EQUAL((std::string)"<?xml version=\"1.0\"?>\n<ActivityIdentifier xmlns=\"http://www.nordugrid.org/schemas/isis/2007/06\">Test value</ActivityIdentifier>\n", jobid);
   CPPUNIT_ASSERT(Arc::ClientSOAPTest::request["CreateActivity"]);
   CPPUNIT_ASSERT(Arc::ClientSOAPTest::request["CreateActivity"]["ActivityDocument"]);
   CPPUNIT_ASSERT_EQUAL(jobdesc, (std::string)Arc::ClientSOAPTest::request["CreateActivity"]["ActivityDocument"]);
