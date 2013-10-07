@@ -658,7 +658,7 @@ namespace ArcDMCGridFTP {
             if(pasv_addr.port != 0) {
               // Apply control connection address
               unsigned short local_port;
-              if(!(res = globus_io_tcp_get_local_address_ex(&(handle->cc_handle.io_handle),
+              if(!(res = globus_io_tcp_get_remote_address_ex(&(handle->cc_handle.io_handle),
                                      pasv_addr.host,&pasv_addr.hostlen,&local_port))) {
                 logger.msg(INFO, "Failed to apply local address to data connection");
                 std::string globus_err(res.str());
