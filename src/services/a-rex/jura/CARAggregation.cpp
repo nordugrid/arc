@@ -39,7 +39,7 @@ namespace Arc
 
   void CARAggregation::init(std::string _host, std::string _port, std::string _topic)
   {
-    ns[""] = "http://eu-emi.eu/namespaces/2012/11/aggregatedcomputerecord";
+    ns["car"] = "http://eu-emi.eu/namespaces/2012/11/aggregatedcomputerecord";
     ns["urf"] = "http://eu-emi.eu/namespaces/2012/11/computerecord";
     // Get cert, key, CA path from environment
     std::string certfile=Arc::GetEnv("X509_USER_CERT");
@@ -63,7 +63,7 @@ namespace Arc
     //read the previous aggregation records
     std::string default_path = (std::string)JURA_DEFAULT_DIR_PREFIX + "/urs/";
     aggr_record_location = default_path + host + "_aggregation_records.xml";
-/*    if (!aggregationrecordset.ReadFromFile(aggr_record_location))
+    if (!aggregationrecordset.ReadFromFile(aggr_record_location))
       {
         logger.msg(Arc::INFO, "Aggregation record (%s) not exist, initialize it...",
                        aggr_record_location);
@@ -83,27 +83,6 @@ namespace Arc
         logger.msg(Arc::DEBUG, "Aggregation record (%s) read from file successful.",
                        aggr_record_location);
        }
-*/
- { //only for testing while the XPathLookup does not work                   
-    Arc::XMLNode n=aggregationrecordset.NewChild("SummaryRecord");
-    n.NewChild("Year")="2012";
-    n.NewChild("Month")="10";
-    n.NewChild("LastModification")="1";
-    n.NewChild("LastSending")="12";
-    n.NewChild("LastSending")="13";
-    Arc::XMLNode n2=aggregationrecordset.NewChild("SummaryRecord");
-    n2.NewChild("Year")="2013";
-    n2.NewChild("Month")="10";
-    n2.NewChild("LastModification")="2";
-    Arc::XMLNode n3=aggregationrecordset.NewChild("SummaryRecord");
-    n3.NewChild("Year")="2012";
-    n3.NewChild("Month")="09";
-    n3.NewChild("LastModification")="3";
-    
-    std::string ss;
-    aggregationrecordset.GetXML(ss,true);
-    std::cerr<< "Node: " <<  ss << std::endl;
- }
   }
 
 
@@ -245,10 +224,10 @@ namespace Arc
     logger.msg(Arc::DEBUG, "moth: %s", month);
     logger.msg(Arc::DEBUG, "queue: %s", queue);
 
-    std::string query("//SummaryRecords/SummaryRecord[Year='");
+    std::string query("//car:SummaryRecords/car:SummaryRecord[car:Year='");
     query += year;
-    query += "' and Month='" + month;
-    query += "' and Queue='" + queue;
+    query += "' and car:Month='" + month;
+    query += "' and car:Queue='" + queue;
     query += "']";
     logger.msg(Arc::DEBUG, "query: %s", query);
 
@@ -373,7 +352,7 @@ namespace Arc
 
   CARAggregation::~CARAggregation()
   {
-    save_records();
+    //save_records();
   }
 
   // Current time calculation and convert to the UTC time format.
@@ -405,10 +384,10 @@ namespace Arc
   bool CARAggregation::Reporting_records(std::string year, std::string month)
   {
     // get the required records
-    std::string query("//SummaryRecords/SummaryRecord[Year='");
+    std::string query("//car:SummaryRecords/car:SummaryRecord[car:Year='");
     query += year;
     if(!month.empty()){
-      query += "' and Month='" + month;
+      query += "' and car:Month='" + month;
     }
     query += "']";
     logger.msg(Arc::DEBUG, "query: %s", query);
@@ -418,18 +397,7 @@ namespace Arc
     Arc::XMLNode sendingXMLrecords(Arc::NS("","http://eu-emi.eu/namespaces/2012/11/aggregatedcomputerecord"),
                    "SummaryRecords");
     for(Arc::XMLNodeList::iterator liter = list.begin(); liter != list.end(); ++liter) {
-      Arc::XMLNode node = sendingXMLrecords.NewChild(*liter);
-
-      /** Remove the local information from the sending record.
-       *  These attributes are not CAR related values.
-       */
-      node["LastModification"].Destroy();
-      Arc::XMLNode next = (Arc::XMLNode)node["LastSending"];
-      while (next) {
-        Arc::XMLNode prev = next;
-        ++next;
-        prev.Destroy();
-      }
+      NodeCleaning(sendingXMLrecords.NewChild(*liter));
     }
 
     if ( sendingXMLrecords.Size() == 0 ) {
@@ -455,9 +423,34 @@ namespace Arc
     return save_records();
   }
 
-  bool CARAggregation::Reporting_records()
+  bool CARAggregation::Reporting_records(bool force_resend)
   {
-    if ( aggregationrecordset.Size() == 0 ) {
+    Arc::XMLNode sendingXMLrecords(Arc::NS("","http://eu-emi.eu/namespaces/2012/11/aggregatedcomputerecord"),
+                   "SummaryRecords");
+
+    Arc::XMLNode node = aggregationrecordset["SummaryRecord"];
+    while (node) {
+      if ( force_resend ) {
+        // force resend all records
+        NodeCleaning(sendingXMLrecords.NewChild(node));
+        ++node;
+        continue;
+      }
+      Arc::XMLNode lastsendingnode = node["LastSending"];
+      std::string lastsending= "";
+      // find the latest LastSending element
+      while ( lastsendingnode ) {
+        lastsending = (std::string)lastsendingnode;
+        ++lastsendingnode;
+      }
+      // collect all modified records
+      if ( lastsending < (std::string)node["LastModification"] ) {
+        NodeCleaning(sendingXMLrecords.NewChild(node));
+      }
+      ++node;
+    }
+
+    if ( sendingXMLrecords.Size() == 0 ) {
       logger.msg(Arc::INFO, "Does not sending empty aggregation/synch message.");
       return true;
     }
@@ -465,10 +458,10 @@ namespace Arc
     std::string all_records;
     if (synch_message) {
       //Synch record need to be send
-      all_records = SynchMessage(aggregationrecordset);
+      all_records = SynchMessage(sendingXMLrecords);
     } else {
       //Aggregation record need to be send
-      aggregationrecordset.GetXML(all_records,true);
+      sendingXMLrecords.GetXML(all_records,true);
     }
     Arc::MCC_Status status = send_records(all_records);
     if ( status != Arc::STATUS_OK ) {
@@ -482,7 +475,7 @@ namespace Arc
   
   void CARAggregation::UpdateLastSendingDate()
   {
-    std::string query("//SummaryRecords/SummaryRecord");
+    std::string query("//car:SummaryRecords/car:SummaryRecord");
     
     Arc::XMLNodeList list = aggregationrecordset.XPathLookup(query,ns);
 
@@ -522,5 +515,19 @@ namespace Arc
     }
     logger.msg(Arc::DEBUG, "synch message: %s", result);
     return result;
+  }
+  
+  void CARAggregation::NodeCleaning(Arc::XMLNode node)
+  {
+    /** Remove the local information from the sending record.
+     *  These attributes are not CAR related values.
+     */
+    node["LastModification"].Destroy();
+    Arc::XMLNode next = (Arc::XMLNode)node["LastSending"];
+    while (next) {
+      Arc::XMLNode prev = next;
+      ++next;
+      prev.Destroy();
+    }
   }
 }

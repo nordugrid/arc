@@ -47,7 +47,8 @@ namespace Arc
     void UpdateLastSendingDate();
     /** Update records sending dates that contains in the list */
     void UpdateLastSendingDate(Arc::XMLNodeList& records);
-    void clear();
+    /** Remove all local information from the XMLNode */
+    void NodeCleaning(Arc::XMLNode node);
     std::string Current_Time( time_t parameter_time = time(NULL) );
     /** APEL Synch record generation from the CAR aggregation record */
     std::string SynchMessage(Arc::XMLNode records);
@@ -78,7 +79,7 @@ namespace Arc
 
     /** Reporting all records to the accounting server.
      */
-    bool Reporting_records();
+    bool Reporting_records(bool force_resend=false);
   };
 
 }

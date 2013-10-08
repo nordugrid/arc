@@ -72,7 +72,7 @@ namespace Arc
       }
 
     //read the previous aggregation records
-    aggregationManager = new CARAggregation(host);
+    aggregationManager = new CARAggregation(host,port,topic, true);
 
     //Get Batch Size:
     //Default value:
@@ -125,6 +125,7 @@ namespace Arc
     if (urn>0)
       // Send the remaining URs and delete job log files.
       submit_batch();
+    delete aggregationManager;
   }
 
   int ApelDestination::submit_batch()
@@ -144,8 +145,10 @@ namespace Arc
 
     if (status.isOk())
       {
-        // Save the stored aggregation records
+        // Save the modified aggregation records
         aggregationManager->save_records();
+        // Reported the new synch record
+        aggregationManager->Reporting_records();
 
         // Delete log files
         for (std::list<JobLogFile>::iterator jp=joblogs.begin();
