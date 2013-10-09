@@ -35,6 +35,7 @@ namespace Arc {
     globus_ftp_control_handle_t control_handle;
     CBArg* cb;
     bool connected;
+    bool SetupPASV(int timeout);
   };
 
 } // namespace Arc
