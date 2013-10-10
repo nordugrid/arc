@@ -6,7 +6,9 @@ libaccARC0_la_SOURCES = \
 	JobControllerPluginARC0.cpp JobControllerPluginARC0.h \
 	FTPControl.cpp FTPControl.h JobStateARC0.cpp JobStateARC0.h
 libaccARC0_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_FTP_CONTROL_CFLAGS) $(AM_CXXFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
+	$(GLOBUS_IO_CFLAGS) $(GLOBUS_FTP_CONTROL_CFLAGS) \
+	$(AM_CXXFLAGS)
 libaccARC0_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
 	$(top_builddir)/src/hed/libs/globusutils/libarcglobusutils.la \
@@ -16,5 +18,5 @@ libaccARC0_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GLOBUS_FTP_CONTROL_LIBS) \
-	$(GLOBUS_COMMON_LIBS)
+	$(GLOBUS_IO_LIBS) $(GLOBUS_COMMON_LIBS)
 libaccARC0_la_LDFLAGS = -no-undefined -avoid-version -module
