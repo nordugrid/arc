@@ -149,11 +149,34 @@ namespace Arc {
   }
 
   bool JobControllerPluginEMIES::ResumeJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
-    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
-      logger.msg(INFO, "Resume of EMI ES jobs is not supported");
-      IDsNotProcessed.push_back((*it)->JobID);
-    }
-    return false;
+	    MCCConfig cfg;
+	    usercfg.ApplyToConfig(cfg);
+
+	    bool ok = true;
+	    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+	      Job& job = **it;
+	      if (!job.RestartState) {
+	        logger.msg(INFO, "Job %s does not report a resumable state", job.JobID);
+	        ok = false;
+	        IDsNotProcessed.push_back(job.JobID);
+	        continue;
+	      }
+	      logger.msg(VERBOSE, "Resuming job: %s at state: %s (%s)", job.JobID, job.RestartState.GetGeneralState(), job.RestartState());
+	      EMIESJob ejob;
+	      ejob = job;
+	      AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(ejob.manager));
+	      if(!ac->restart(ejob)) {
+	        ok = false;
+	        IDsNotProcessed.push_back((*it)->JobID);
+	        ((EMIESClients&)clients).release(ac.Release());
+	        continue;
+	      }
+
+	      IDsProcessed.push_back((*it)->JobID);
+	      ((EMIESClients&)clients).release(ac.Release());
+	      logger.msg(VERBOSE, "Job resuming successful");
+	    }
+	    return ok;
   }
 
   bool JobControllerPluginEMIES::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
