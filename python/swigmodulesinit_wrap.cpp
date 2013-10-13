@@ -63,7 +63,7 @@ static struct PyModuleDef moduledef = {
 #endif
 
 extern "C"
-SWIGEXPORT void init_arc(void) {
+SWIGEXPORT void SWIG_init(arc)(void) {
   // Initialise this module
 #if PY_MAJOR_VERSION >= 3
   PyObject* module = PyModule_Create(&moduledef);
