@@ -503,7 +503,7 @@ namespace Arc
       //Site
       result += "Site: " + (std::string)node["Site"] + "\n";
       //SubmitHost
-      result += "SubmitHost: " + (std::string)node["SubmitHost"] + "\n";
+      result += "SubmitHost: " + (std::string)node["Site"] + "/" + (std::string)node["Queue"] + "\n";
       //NumberOfJobs
       result += "NumberOfJobs: " + (std::string)node["NumberOfJobs"] + "\n";
       //Month
