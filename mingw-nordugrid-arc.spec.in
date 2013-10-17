@@ -443,6 +443,7 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw32_libdir}/%{pkgdir}/libdmcarc.dll*
 %{mingw32_libdir}/%{pkgdir}/libdmcldap.dll*
 %{mingw32_libdir}/%{pkgdir}/libdmcsrm.dll*
+%{mingw32_libdir}/%{pkgdir}/libdmcdq2.dll*
 %{mingw32_libdir}/%{pkgdir}/libarcshc.dll*
 %{mingw32_libdir}/%{pkgdir}/libarcshclegacy.dll*
 %{mingw32_libdir}/%{pkgdir}/libidentitymap.dll*

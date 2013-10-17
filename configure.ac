@@ -2412,6 +2412,8 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/gfal/Makefile
                  src/hed/dmc/xrootd/Makefile
                  src/hed/dmc/mock/Makefile
+                 src/hed/dmc/dq2/Makefile
+                 src/hed/dmc/dq2/cJSON/Makefile
                  src/hed/profiles/general/general.xml
                  src/hed/shc/Makefile
                  src/hed/shc/arcpdp/Makefile

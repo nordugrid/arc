@@ -27,3 +27,8 @@ Function Algorithms Library licensed under the Common Public License and
 written by Arash Partow. This code is in src/services/acix/core/hashes.py. The
 original software is available from
 http://www.partow.net/programming/hashfunctions/index.html
+
+Support for json parsing is provided by the cJSON library written by Dave
+Gamble and licensed under the MIT license. This code is in
+src/hed/dmc/dq2/cJSON. The original software is available from
+http://cjson.sourceforge.net/

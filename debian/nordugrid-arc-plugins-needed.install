@@ -13,6 +13,7 @@ debian/tmp/usr/lib/arc/libdmcfile.so
 debian/tmp/usr/lib/arc/libdmchttp.so
 debian/tmp/usr/lib/arc/libdmcldap.so
 debian/tmp/usr/lib/arc/libdmcsrm.so
+debian/tmp/usr/lib/arc/libdmcdq2.so
 debian/tmp/usr/lib/arc/libidentitymap.so
 debian/tmp/usr/lib/arc/libarguspdpclient.so
 debian/tmp/usr/lib/arc/libmcchttp.so
