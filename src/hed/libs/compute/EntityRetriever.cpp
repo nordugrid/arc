@@ -10,6 +10,10 @@
 
 namespace Arc {
 
+  template<> Logger EntityRetriever<Endpoint>::logger(Logger::getRootLogger(), "ServiceEndpointRetriever");
+  template<> Logger EntityRetriever<ComputingServiceType>::logger(Logger::getRootLogger(), "TargetInformationRetriever");
+  template<> Logger EntityRetriever<Job>::logger(Logger::getRootLogger(), "JobListRetriever");
+
   template<typename T>
   EntityRetriever<T>::EntityRetriever(const UserConfig& uc, const EndpointQueryOptions<T>& options)
     : common(new Common(this, uc)),
@@ -481,12 +485,7 @@ namespace Arc {
   }
 
   template class EntityRetriever<Endpoint>;
-  template<> Logger EntityRetriever<Endpoint>::logger(Logger::getRootLogger(), "ServiceEndpointRetriever");
-
   template class EntityRetriever<ComputingServiceType>;
-  template<> Logger EntityRetriever<ComputingServiceType>::logger(Logger::getRootLogger(), "TargetInformationRetriever");
-
   template class EntityRetriever<Job>;
-  template<> Logger EntityRetriever<Job>::logger(Logger::getRootLogger(), "JobListRetriever");
 
 } // namespace Arc

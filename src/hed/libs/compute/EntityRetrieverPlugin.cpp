@@ -10,6 +10,14 @@
 
 namespace Arc {
 
+  template<> Logger EntityRetrieverPluginLoader<Endpoint>::logger(Logger::getRootLogger(), "ServiceEndpointRetrieverPluginLoader");
+  template<> Logger EntityRetrieverPluginLoader<ComputingServiceType>::logger(Logger::getRootLogger(), "TargetInformationRetrieverPluginLoader");
+  template<> Logger EntityRetrieverPluginLoader<Job>::logger(Logger::getRootLogger(), "JobListRetrieverPluginLoader");
+
+  template<> const std::string EntityRetrieverPlugin<Endpoint>::kind("HED:ServiceEndpointRetrieverPlugin");
+  template<> const std::string EntityRetrieverPlugin<ComputingServiceType>::kind("HED:TargetInformationRetrieverPlugin");
+  template<> const std::string EntityRetrieverPlugin<Job>::kind("HED:JobListRetrieverPlugin");
+
   template<typename T>
   EntityRetrieverPluginLoader<T>::~EntityRetrieverPluginLoader() {
     for (typename std::map<std::string, EntityRetrieverPlugin<T> *>::iterator it = plugins.begin();
@@ -68,14 +76,7 @@ namespace Arc {
   JobListRetrieverPlugin::JobListRetrieverPlugin(PluginArgument* parg): EntityRetrieverPlugin<Job>(parg) {};
 
   template class EntityRetrieverPluginLoader<Endpoint>;
-  template<> Logger EntityRetrieverPluginLoader<Endpoint>::logger(Logger::getRootLogger(), "ServiceEndpointRetrieverPluginLoader");
   template class EntityRetrieverPluginLoader<ComputingServiceType>;
-  template<> Logger EntityRetrieverPluginLoader<ComputingServiceType>::logger(Logger::getRootLogger(), "TargetInformationRetrieverPluginLoader");
   template class EntityRetrieverPluginLoader<Job>;
-  template<> Logger EntityRetrieverPluginLoader<Job>::logger(Logger::getRootLogger(), "JobListRetrieverPluginLoader");
-
-  template<> const std::string EntityRetrieverPlugin<Endpoint>::kind("HED:ServiceEndpointRetrieverPlugin");
-  template<> const std::string EntityRetrieverPlugin<ComputingServiceType>::kind("HED:TargetInformationRetrieverPlugin");
-  template<> const std::string EntityRetrieverPlugin<Job>::kind("HED:JobListRetrieverPlugin");
 
 } // namespace Arc

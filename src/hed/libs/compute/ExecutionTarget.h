@@ -420,6 +420,10 @@ namespace Arc {
     static Logger logger;
   };
 
+  // to avoid "explicit specialization before instantiation" errors
+  template <>
+  void ComputingServiceType::AddExecutionTarget< std::list<ExecutionTarget> >(std::list<ExecutionTarget>& etList, const ExecutionTarget& et) const;
+
   /// ExecutionTarget
   /**
    * This class describe a target which accept computing jobs. All of the
