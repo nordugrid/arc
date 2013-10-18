@@ -7,8 +7,6 @@ use Storable;
 use FileHandle;
 use File::Temp;
 use POSIX qw(ceil);
-# enable this below to dump datastructures
-# use Data::Dumper::Concise;
 
 use strict;
 
