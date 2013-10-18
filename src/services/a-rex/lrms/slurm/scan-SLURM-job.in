@@ -205,6 +205,7 @@ function handle_diag_file {
 	sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
     endtime=$(echo "$jobinfostring"|sed -n 's/.*EndTime=\([^ ]*\) .*/\1/p' | \
 	sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
+    cpus=$(echo "$jobinfostring"|sed -n 's/.*NumCPUs=\([^ ]*\) .*/\1/p')
 
     date_to_utc_seconds "$starttime"
     starttime_seconds="$return_date_seconds"
@@ -220,6 +221,7 @@ function handle_diag_file {
     #cputime=$(( $walltime * $count))
     # Values to write to diag. These will override values already written.
     [ -n "$walltime" ] && WallTime=$walltime
+    [ -n "$cpus" ] && Processors=$cpus
     #[ -n "$cputime" ] && UserTime=$cputime
     #[ -n "$cputime" ] && KernelTime=0
 
