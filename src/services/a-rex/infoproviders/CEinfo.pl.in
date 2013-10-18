@@ -429,11 +429,14 @@ sub fix_config {
 
         $log->info("AdminDomain config option is missing in XML. Defaulting to arc.conf values") unless $config->{AdminDomain};
         $log->info("AdminDomain name in [infosys/admindomain] block is missing or incorrect in arc.conf. Defaulting to UNDEFINEDVALUE") unless $config->{admindomain}{Name};
-        $log->info("ClusterName config option is missing. Defaulting to: $shorthost") unless $config->{service}{ClusterName};
 
         chomp ($config->{admindomain}{Name} ||= "UNDEFINEDVALUE");
         chomp ($config->{AdminDomain} ||= "UNDEFINEDVALUE");
-        chomp ($config->{service}{ClusterName} ||= $shorthost);
+        
+        
+        $log->info("ClusterName config option is missing in XML. Trying cluster_alias...") unless $config->{service}{ClusterName};
+        $log->info("ClusterAlias in XML or cluster-alias in arc.conf missing. Defaulting to $shorthost") unless $config->{service}{ClusterAlias};
+        chomp ($config->{service}{ClusterName} ||= $config->{service}{ClusterAlias} ||= $shorthost);
     }
 
     if ($config->{endpoint} and $config->{endpoint} =~ m{^(https?)://([^:/]+)(?::(\d+))?(.*)}) {
