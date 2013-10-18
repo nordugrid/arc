@@ -452,7 +452,12 @@ namespace Arc
         ur.NewChild("NodeCount")=(*this)["nodecount"];
       }
 
-    //Processors?
+    //Processors
+    if (find("processors")!=end())
+      {
+        ur.NewChild("Processors")=(*this)["processors"];
+      }
+
 
     //Extra:
     //RunTimeEnvironment
@@ -914,6 +919,10 @@ namespace Arc
       }
 
     //Processors
+    if (find("processors")!=end())
+      {
+        ur.NewChild("Processors")=(*this)["processors"];
+      }
 
     //EndTime
     if (find("endtime")!=end())
