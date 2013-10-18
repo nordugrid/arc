@@ -188,6 +188,8 @@ bool job_log_make_file(const GMJob &job,const GMConfig& config,const std::string
       if (key == "nodename") {
         if (nodecount) nodenames+=":"; nodenames+=value;
         nodecount++;
+      } else if(key == "processors") {
+        job_data += "processors=" + value + '\n';
       } else if(key == "walltime") {
         float f;
         if (string_to_number(value,f)) {

@@ -60,6 +60,7 @@ write_diagfile_acct () {
                      $exitcode=$1         if /^exit_status\s+(\S+)/;
                      $failed=$1           if /^failed\s+(.*\S)/;
                      $CPUTime=$1          if /^cpu\s+(\d+)/;
+                     $Processors=$1       if /^slots\s+(\d+)/;
                      $KernelTime=$1       if /^ru_stime\s+(\d+)/;
                      $WallTime=$1         if /^ru_wallclock\s+(\d+)/;
                      $UsedMemory=$1       if /^maxvmem\s+(\S+)M/;
@@ -80,6 +81,7 @@ write_diagfile_acct () {
                      print "LRMSEndTime="  .mds_date($1)."\n" if $end_time   =~ m/^(\d+)$/;
                      print "nodename=${nodename}\n";
                      print "CPUTime=${CPUTime}.0s\n";
+                     print "Processors=${Processors}\n";
                      print "WallTime=${WallTime}.0s\n";
                      print "KernelTime=${KernelTime}.0s\n";
                      print "UserTime=".int($CPUTime-$KernelTime).".0s\n";
