@@ -37,6 +37,7 @@ debian/tmp/usr/lib/arc/libdmchttp.apd
 debian/tmp/usr/lib/arc/libmccmsgvalidator.apd
 debian/tmp/usr/lib/arc/libdmcldap.apd
 debian/tmp/usr/lib/arc/libdmcsrm.apd
+debian/tmp/usr/lib/arc/libdmcdq2.apd
 debian/tmp/usr/lib/arc/libidentitymap.apd
 debian/tmp/usr/lib/arc/libarguspdpclient.apd
 debian/tmp/usr/lib/arc/libmcchttp.apd
