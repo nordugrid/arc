@@ -624,6 +624,7 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw64_libdir}/%{pkgdir}/libdmcarc.dll*
 %{mingw64_libdir}/%{pkgdir}/libdmcldap.dll*
 %{mingw64_libdir}/%{pkgdir}/libdmcsrm.dll*
+%{mingw64_libdir}/%{pkgdir}/libdmcdq2.dll*
 %{mingw64_libdir}/%{pkgdir}/libarcshc.dll*
 %{mingw64_libdir}/%{pkgdir}/libarcshclegacy.dll*
 %{mingw64_libdir}/%{pkgdir}/libidentitymap.dll*
