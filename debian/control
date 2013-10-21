@@ -10,10 +10,10 @@ Vcs-Browser: http://svn.nordugrid.org/trac/nordugrid/browser/arc1
 Vcs-Svn: http://svn.nordugrid.org/repos/nordugrid/arc1/trunk
 Homepage: http://www.nordugrid.org
 
-Package: libarccommon2
+Package: libarccommon3
 Provides: nordugrid-arc-libs, nordugrid-arc1, nordugrid-arc-nox
-Replaces: nordugrid-arc-libs (<< 1.0.0~), nordugrid-arc1 (<< 1.0.0~), nordugrid-arc-nox (<< 1.3.0~), nordugrid-arc-hed (<< 1.0.1~rc2~), nordugrid-arc-arex (<< 2.0.1~), libarccommon0, libarccommon1
-Conflicts: nordugrid-arc-libs (<< 1.0.0~), nordugrid-arc1 (<< 1.0.0~), nordugrid-arc1-janitor (<< 1.0.0~), nordugrid-arc-nox (<< 1.3.0~), nordugrid-arc-httpsd (<< 0.8.2~), nordugrid-arc-logger-server (<< 0.8.2~), nordugrid-arc-nox-charon (<< 1.3.0~), nordugrid-arc-nox-chelonia (<< 1.3.0~), nordugrid-arc-nox-compiler (<< 1.3.0~), nordugrid-arc-nox-delegation (<< 1.3.0~), nordugrid-arc-nox-hopi (<< 1.3.0~), nordugrid-arc-nox-isis (<< 1.3.0~), nordugrid-arc-nox-janitor (<< 1.3.0~), nordugrid-arc-nox-paul (<< 1.3.0~), nordugrid-arc-nox-saml2sp (<< 1.3.0~), nordugrid-arc-nox-slcs (<< 1.3.0~), nordugrid-arc-chelonia (<< 2.0.0~), nordugrid-arc-hopi (<< 2.0.0~), nordugrid-arc-isis (<< 2.0.0~), nordugrid-arc-janitor (<< 2.0.0~), libarccommon0, libarccommon1
+Replaces: nordugrid-arc-libs (<< 1.0.0~), nordugrid-arc1 (<< 1.0.0~), nordugrid-arc-nox (<< 1.3.0~), nordugrid-arc-hed (<< 1.0.1~rc2~), nordugrid-arc-arex (<< 2.0.1~), libarccommon0, libarccommon1, libarccommon2
+Conflicts: nordugrid-arc-libs (<< 1.0.0~), nordugrid-arc1 (<< 1.0.0~), nordugrid-arc1-janitor (<< 1.0.0~), nordugrid-arc-nox (<< 1.3.0~), nordugrid-arc-httpsd (<< 0.8.2~), nordugrid-arc-logger-server (<< 0.8.2~), nordugrid-arc-nox-charon (<< 1.3.0~), nordugrid-arc-nox-chelonia (<< 1.3.0~), nordugrid-arc-nox-compiler (<< 1.3.0~), nordugrid-arc-nox-delegation (<< 1.3.0~), nordugrid-arc-nox-hopi (<< 1.3.0~), nordugrid-arc-nox-isis (<< 1.3.0~), nordugrid-arc-nox-janitor (<< 1.3.0~), nordugrid-arc-nox-paul (<< 1.3.0~), nordugrid-arc-nox-saml2sp (<< 1.3.0~), nordugrid-arc-nox-slcs (<< 1.3.0~), nordugrid-arc-chelonia (<< 2.0.0~), nordugrid-arc-hopi (<< 2.0.0~), nordugrid-arc-isis (<< 2.0.0~), nordugrid-arc-janitor (<< 2.0.0~), libarccommon0, libarccommon1, libarccommon2
 Breaks: nordugrid-arc-hed (<< 1.0.1~rc2~), nordugrid-arc-arex (<< 2.0.1~)
 Architecture: any
 Section: libs
@@ -41,7 +41,7 @@ Provides: nordugrid-arc1-client, nordugrid-arc-nox-client
 Replaces: nordugrid-arc1-client (<< 1.0.0~), nordugrid-arc-nox-client (<< 1.3.0~)
 Conflicts: nordugrid-arc1-client (<< 1.0.0~), nordugrid-arc-nox-client (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
 Description: ARC command line interface
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
@@ -55,7 +55,7 @@ Description: ARC command line interface
 
 Package: nordugrid-arc-arcproxyalt
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
 Description: ARC command line interface
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
@@ -70,7 +70,7 @@ Replaces: nordugrid-arc1-server (<< 1.0.0~), nordugrid-arc-nox-hed (<< 1.3.0~), 
 Conflicts: nordugrid-arc1-server (<< 1.0.0~), nordugrid-arc-nox-hed (<< 1.3.0~)
 Breaks: nordugrid-arc-nox-client (<< 1.3.0~), nordugrid-arc-client (<< 1.0.1~rc2~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version})
 Recommends: nordugrid-arc-python
 Description: ARC Hosting Environment Daemon
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -85,7 +85,7 @@ Provides: nordugrid-arc-nox-gridftp-server
 Replaces: nordugrid-arc-nox-gridftp-server (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-gridftp-server (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
 Description: ARC GridFTP server
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
@@ -106,7 +106,7 @@ Provides: nordugrid-arc-nox-cache-service
 Replaces: nordugrid-arc-nox-cache-service (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-cache-service (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
 Description: ARC cache service
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
@@ -120,7 +120,7 @@ Description: ARC cache service
 Package: nordugrid-arc-datadelivery-service
 Provides: nordugrid-arc-nox-datadelivery-service
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
 Description: ARC data delivery service
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
@@ -208,7 +208,7 @@ Provides: nordugrid-arc-grid-manager, nordugrid-arc-server, nordugrid-arc1-arex,
 Replaces: nordugrid-arc-grid-manager (<< 1.0.0~), nordugrid-arc-server (<< 1.0.0~), nordugrid-arc1-arex (<< 1.0.0~), nordugrid-arc-nox-arex (<< 1.3.0~)
 Conflicts: nordugrid-arc-grid-manager (<< 1.0.0~), nordugrid-arc-server (<< 1.0.0~), nordugrid-arc1-arex (<< 1.0.0~), nordugrid-arc-nox-arex (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, libarccommon2 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-aris (= ${source:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-python (= ${binary:Version}), libxml-simple-perl, python, python-stompy, python-ldap
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-aris (= ${source:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-python (= ${binary:Version}), libxml-simple-perl, python, python-stompy, python-ldap
 Description: ARC Remote EXecution service
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
@@ -224,7 +224,7 @@ Provides: nordugrid-arc1-plugins-base, nordugrid-arc-nox-plugins-base, nordugrid
 Replaces: nordugrid-arc1-plugins-base (<< 1.0.0~), nordugrid-arc-nox-plugins-base (<< 1.3.0~), nordugrid-arc-plugins-base (<< 1.0.0~b2~)
 Conflicts: nordugrid-arc1-plugins-base (<< 1.0.0~), nordugrid-arc-nox-plugins-base (<< 1.3.0~), nordugrid-arc-nox-plugins-globus (<< 1.3.0~), nordugrid-arc-plugins-base (<< 1.0.0~b2~), nordugrid-arc-plugins-globus (<< 1.0.0~b3~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version})
 Description: ARC base plugins
  NorduGrid is a collaboration aiming at development, maintenance and
  and support of the free Grid middleware, known as the Advanced
@@ -238,7 +238,7 @@ Provides: nordugrid-arc1-plugins-globus, nordugrid-arc-nox-plugins-globus
 Replaces: nordugrid-arc1-plugins-globus (<< 1.0.0~), nordugrid-arc-nox-plugins-globus (<< 1.3.0~)
 Conflicts: nordugrid-arc1-plugins-globus (<< 1.0.0~), nordugrid-arc-nox-plugins-globus (<< 1.3.0~), nordugrid-arc-plugins-needed (<< 1.0.1-2~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version})
 Description: ARC Globus plugins
  NorduGrid is a collaboration aiming at development, maintenance and
  and support of the free Grid middleware, known as the Advanced
@@ -289,7 +289,7 @@ Replaces: nordugrid-arc-libs-devel (<< 1.0.0~), nordugrid-arc1-dev (<< 1.0.0~), 
 Conflicts: nordugrid-arc-libs-devel (<< 1.0.0~), nordugrid-arc1-dev (<< 1.0.0~), nordugrid-arc-nox-dev (<< 1.3.0~)
 Architecture: any
 Section: libdevel
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version}), libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev
 Description: ARC development files
  NorduGrid is a collaboration aiming at development, maintenance and
  and support of the free Grid middleware, known as the Advanced
@@ -303,7 +303,7 @@ Replaces: nordugrid-arc1-python (<< 1.0.0~), nordugrid-arc-nox-python (<< 1.3.0~
 Conflicts: nordugrid-arc1-python (<< 1.0.0~), nordugrid-arc-nox-python (<< 1.3.0~)
 Architecture: any
 Section: python
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, libarccommon2 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, libarccommon3 (= ${binary:Version})
 XB-Python-Version: ${python:Versions}
 Description: ARC Python wrapper
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -318,7 +318,7 @@ Replaces: nordugrid-arc1-java (<< 1.0.0~), nordugrid-arc-nox-java (<< 1.3.0~)
 Conflicts: nordugrid-arc1-java (<< 1.0.0~), nordugrid-arc-nox-java (<< 1.3.0~)
 Architecture: any
 Section: java
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version}), default-jre | java6-runtime | java5-runtime
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), default-jre | java6-runtime | java5-runtime
 Description: ARC Java wrapper
  NorduGrid is a collaboration aiming at development, maintenance and
  and support of the free Grid middleware, known as the Advanced
@@ -353,7 +353,7 @@ Description: NorduGrid authentication tools
 
 Package: nordugrid-arc-misc-utils
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon2 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version})
 Description: ARC grid middleware - Misc tools
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
@@ -370,7 +370,7 @@ Conflicts: nordugrid-arc-nox-dbg (<< 1.3.0~)
 Architecture: any
 Section: debug
 Priority: extra
-Depends: ${misc:Depends}, libarccommon2 (= ${binary:Version}) | nordugrid-arc-client (= ${binary:Version}) | nordugrid-arc-hed (= ${binary:Version}) | nordugrid-arc-arex (= ${binary:Version}) | nordugrid-arc-plugins-needed (= ${binary:Version}) | nordugrid-arc-plugins-globus (= ${binary:Version}) | nordugrid-arc-dev (= ${binary:Version}) | nordugrid-arc-python (= ${binary:Version}) | nordugrid-arc-java (= ${binary:Version}) | nordugrid-arc-cache-service (= ${binary:Version}) | nordugrid-arc-gridftpd (= ${binary:Version})
+Depends: ${misc:Depends}, libarccommon3 (= ${binary:Version}) | nordugrid-arc-client (= ${binary:Version}) | nordugrid-arc-hed (= ${binary:Version}) | nordugrid-arc-arex (= ${binary:Version}) | nordugrid-arc-plugins-needed (= ${binary:Version}) | nordugrid-arc-plugins-globus (= ${binary:Version}) | nordugrid-arc-dev (= ${binary:Version}) | nordugrid-arc-python (= ${binary:Version}) | nordugrid-arc-java (= ${binary:Version}) | nordugrid-arc-cache-service (= ${binary:Version}) | nordugrid-arc-gridftpd (= ${binary:Version})
 Description: ARC grid middleware - Debug Symbols
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
