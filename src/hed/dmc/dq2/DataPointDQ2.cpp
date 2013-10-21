@@ -10,6 +10,7 @@
 #include <arc/data/DataBuffer.h>
 #include <arc/message/MCC.h>
 #include <arc/message/PayloadRaw.h>
+#include <arc/credential/VOMSUtil.h>
 
 #include "cJSON/cJSON.h"
 
@@ -177,7 +178,14 @@ namespace ArcDMCDQ2 {
 
   DataStatus DataPointDQ2::Check(bool check_meta) {
     // TODO: look up file size and checksum
-    // TODO: Check permissions by looking for atlas VOMS extension?
+    // Check permissions by looking for atlas VOMS extension
+    Credential cred(usercfg);
+    std::string vo(getCredentialProperty(cred, "voms:vo"));
+
+    if (vo != "atlas") {
+      logger.msg(ERROR, "Proxy certificate does not have ATLAS VO extension");
+      return DataStatus(DataStatus::CheckError, EPERM, "Proxy certificate does not have ATLAS VO extension");
+    }
 
     // It should be safe to assume that DQ2 files are immutable, and also it is
     // not possible to get file modification times, so set mtime to 0 so that
@@ -307,7 +315,7 @@ namespace ArcDMCDQ2 {
     // cJSON parser expects strings are enclosed in double quotes and cannot handle None
     std::replace(content.begin(), content.end(), '\'', '"');
     while (content.find("None") != std::string::npos) {
-      content.replace(content.find("None"), 4, "");
+      content.replace(content.find("None"), 4, "\"\"");
     }
 
     logger.msg(DEBUG, "DQ2 returned %s", content);
