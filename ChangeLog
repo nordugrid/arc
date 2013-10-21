@@ -1,3 +1,7 @@
+2013-10-17  David Cameron  <d.g.cameron@fys.uio.no>
+   * Add DQ2 DMC to allow download of ATLAS files using dataset and LFN.
+     The URL convention is dq2://atlddmcat-reader.cern.ch/dataset/lfn
+
 2013-08-30  Martin Skou Andersen <skou@nbi.dk>
   * Enable client job management tools to be able to use Berkeley database for
     storing information about jobs.
