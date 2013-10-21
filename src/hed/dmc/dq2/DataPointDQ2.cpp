@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <sys/stat.h>
 #include <openssl/evp.h> // For rucio hashing algorithm
 
 #include <arc/FileUtils.h>
@@ -143,7 +144,8 @@ namespace ArcDMCDQ2 {
     if (sites.empty()) return DataStatus(DataStatus::ReadResolveError, ENOENT, "Dataset has no locations");
 
     // Get endpoints
-    AGISInfo* agis = AGISInfo::getInstance(usercfg.Timeout(), "/tmp/agis-info");
+    std::string agis_cache_file(Glib::build_filename(Glib::get_tmp_dir(), std::string(User().Name() + "-arc-agis-info")));
+    AGISInfo* agis = AGISInfo::getInstance(usercfg.Timeout(), agis_cache_file);
     if (!agis) {
       logger.msg(ERROR, "Could not obtain information from AGIS");
       return DataStatus(DataStatus::ReadResolveError, "Could not obtain information from AGIS");
@@ -176,12 +178,24 @@ namespace ArcDMCDQ2 {
   DataStatus DataPointDQ2::Check(bool check_meta) {
     // TODO: look up file size and checksum
     // TODO: Check permissions by looking for atlas VOMS extension?
+
+    // It should be safe to assume that DQ2 files are immutable, and also it is
+    // not possible to get file modification times, so set mtime to 0 so that
+    // file is never outdated
+    SetModified(Time(0));
     return DataStatus::Success;
   }
 
   DataStatus DataPointDQ2::Stat(FileInfo& file, DataPoint::DataPointInfoType verb) {
     // TODO: look up file size and checksum
     file.SetName(lfn);
+
+    if (verb & INFO_TYPE_STRUCT) {
+      // List replicas. Call resolve to get physical locations and add to FileInfo
+      DataStatus res = Resolve(true);
+      if (!res) return DataStatus(DataStatus::StatError, res.GetErrno(), res.GetDesc());
+      for (; LocationValid(); NextLocation()) file.AddURL(CurrentLocation());
+    }
     return DataStatus::Success;
   }
 
@@ -305,8 +319,11 @@ namespace ArcDMCDQ2 {
     // Construct path in Rucio convention explained here
     // https://twiki.cern.ch/twiki/bin/viewauth/AtlasComputing/DDMRucioPhysicalFileName
     // rucio/scope/L1/L2/LFN where L1/L2 are the first 2 bytes of MD5(scope:LFN)
+    // If scope contains dots they are replaced with slashes
 
-    std::string path("rucio/" + scope + "/");
+    std::string scopedir(scope);
+    std::replace(scopedir.begin(), scopedir.end(), '.', '/');
+    std::string path("rucio/" + scopedir + "/");
     std::string hash(scope + ":" + lfn);
 
     // Taken from FileCacheHash and changed to use md5
@@ -324,18 +341,15 @@ namespace ArcDMCDQ2 {
 
     char result[3];
     snprintf(result, 3, "%02x", md_value[0]);
-    logger.msg(DEBUG, result);
     path.append(result);
     path += "/";
     snprintf(result, 3, "%02x", md_value[1]);
-    logger.msg(DEBUG, result);
     path.append(result);
     path += "/" + lfn;
 
     for (std::list<std::string>::const_iterator endpoint = endpoints.begin();
          endpoint != endpoints.end(); ++endpoint) {
       std::string location(*endpoint + path);
-      logger.msg(DEBUG, "%s: Adding location %s", lfn, location);
       if (AddLocation(URL(location), url.ConnectionURL()) == DataStatus::LocationAlreadyExistsError) {
         logger.msg(WARNING, "Duplicate location of file %s", lfn);
       }
@@ -348,7 +362,7 @@ namespace ArcDMCDQ2 {
   AGISInfo * AGISInfo::instance = NULL;
   Glib::Mutex AGISInfo::lock;
   Logger AGISInfo::logger(Logger::getRootLogger(), "DataPoint.DQ2.AGISInfo");
-  const Arc::Period AGISInfo::info_lifetime(360000); // 1 hour lifetime hard-coded
+  const Arc::Period AGISInfo::info_lifetime(3600); // 1 hour lifetime hard-coded
 
   AGISInfo::AGISInfo(int timeout, const std::string& cache_file)
     : cache_file(cache_file),
@@ -366,7 +380,7 @@ namespace ArcDMCDQ2 {
     if (instance) {
       if (Arc::Time() > instance->expiry_time) {
         // refresh info
-        instance->getAGISInfo();
+        instance->parseAGISInfo(instance->downloadAGISInfo());
       }
     } else {
       instance = new AGISInfo(timeout, cache_file);
@@ -398,10 +412,16 @@ namespace ArcDMCDQ2 {
     if (!cache_file.empty()) {
       std::string data;
       logger.msg(VERBOSE, "Reading cached AGIS data from %s", cache_file);
-      if (FileRead(cache_file, data)) {
+      struct stat st;
+      if (!FileStat(cache_file, &st, false)) {
+        logger.msg(VERBOSE, "Cannot read cached AGIS info from %s, will re-download: %s", cache_file, StrError(errno));
+      } else if (Time(st.st_mtim.tv_sec) + info_lifetime < Time()) {
+        logger.msg(VERBOSE, "Cached AGIS info is out of date, will re-download");
+      } else if (!FileRead(cache_file, data)) {
+        logger.msg(VERBOSE, "Cannot read cached AGIS info from %s, will re-download: %s", cache_file, StrError(errno));
+      } else {
         return parseAGISInfo(data);
       }
-      logger.msg(VERBOSE, "Cannot read cached AGIS info from %s, will re-download", cache_file);
     }
     return parseAGISInfo(downloadAGISInfo());
   }
@@ -475,9 +495,19 @@ namespace ArcDMCDQ2 {
       while (protocol) {
         // should be 3 children: str, int, str
         cJSON *endpoint_start = protocol->child;
+        if (!endpoint_start) {
+          logger.msg(WARNING, "Badly formatted output from AGIS");
+          protocol = protocol->next;
+          continue;
+        }
         cJSON *priority = endpoint_start->next;
+        if (!priority) {
+          logger.msg(WARNING, "Badly formatted output from AGIS");
+          protocol = protocol->next;
+          continue;
+        }
         cJSON *endpoint_end = priority->next;
-        if (!endpoint_start || !priority || !endpoint_end) {
+        if (!endpoint_end) {
           logger.msg(WARNING, "Badly formatted output from AGIS");
           protocol = protocol->next;
           continue;
