@@ -455,6 +455,11 @@ sub collect($) {
                 my ($sn, $localid, $lrms_user);
                 while (1) {
                     return undef unless ($sn, $localid) = each %$usermap;
+                    # skip users whose SNs need to be base64 encoded
+                    if ($sn =~ /^[\s,:<]/ or $sn =~ /[\x0D\x0A\x00]/ or $sn =~ /[^\x00-\x7F]/) {
+						$log->warning("While collecting info for queue $q->{'name'}: user with sn $sn will not be published due to characters that require base64 encoding. Skipping");
+						next;
+					}
                     $lrms_user = $qinfo->{users}{$localid};
                     last if not exists $qinfo->{acl_users};
                     last if grep { $_ eq $localid } @{$qinfo->{acl_users}};
