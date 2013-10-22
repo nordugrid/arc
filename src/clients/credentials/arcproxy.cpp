@@ -121,75 +121,6 @@ static void tls_process_error(Arc::Logger& logger) {
   return;
 }
 
-#define PASS_MIN_LENGTH (4)
-static int input_password(char *password, int passwdsz, bool verify,
-                          const std::string& prompt_info,
-                          const std::string& prompt_verify_info,
-                          Arc::Logger& logger) {
-  UI *ui = NULL;
-  int res = 0;
-  ui = UI_new();
-  if (ui) {
-    int ok = 0;
-    char* buf = new char[passwdsz];
-    memset(buf, 0, passwdsz);
-    int ui_flags = 0;
-    char *prompt1 = NULL;
-    char *prompt2 = NULL;
-    prompt1 = UI_construct_prompt(ui, "passphrase", prompt_info.c_str());
-    ui_flags |= UI_INPUT_FLAG_DEFAULT_PWD;
-    UI_ctrl(ui, UI_CTRL_PRINT_ERRORS, 1, 0, 0);
-    ok = UI_add_input_string(ui, prompt1, ui_flags, password,
-                             0, passwdsz - 1);
-    if (ok >= 0) {
-      do {
-        ok = UI_process(ui);
-      } while (ok < 0 && UI_ctrl(ui, UI_CTRL_IS_REDOABLE, 0, 0, 0));
-    }
-
-    if (ok >= 0) res = strlen(password);
-
-    if (ok >= 0 && verify) {
-      UI_free(ui);
-      ui = UI_new();
-      if(!ui) {
-        ok = -1;
-      } else {
-        // TODO: use some generic password strength evaluation
-        if(res < PASS_MIN_LENGTH) {
-          UI_add_info_string(ui, "WARNING: Your password is too weak (too short)!\n"
-                                 "Make sure this is really what You wanted to enter.\n");
-        }
-        prompt2 = UI_construct_prompt(ui, "passphrase", prompt_verify_info.c_str());
-        ok = UI_add_verify_string(ui, prompt2, ui_flags, buf,
-                                  0, passwdsz - 1, password);
-        if (ok >= 0) {
-          do {
-            ok = UI_process(ui);
-          } while (ok < 0 && UI_ctrl(ui, UI_CTRL_IS_REDOABLE, 0, 0, 0));
-        }
-      }
-    }
-
-    if (ok == -1) {
-      logger.msg(Arc::ERROR, "User interface error");
-      tls_process_error(logger);
-      memset(password, 0, (unsigned int)passwdsz);
-      res = 0;
-    }
-    if (ok == -2) {
-      logger.msg(Arc::ERROR, "Aborted!");
-      memset(password, 0, (unsigned int)passwdsz);
-      res = 0;
-    }
-    if(ui) UI_free(ui);
-    delete[] buf;
-    if(prompt1) OPENSSL_free(prompt1);
-    if(prompt2) OPENSSL_free(prompt2);
-  }
-  return res;
-}
-
 static bool is_file(std::string path) {
   if (Glib::file_test(path, Glib::FILE_TEST_IS_REGULAR))
     return true;
@@ -452,6 +383,28 @@ static std::string signTypeToString(Arc::Signalgorithm alg) {
   return "unknown";
 }
 
+typedef enum {
+  pass_all,
+  pass_private_key,
+  pass_myproxy,
+  pass_myproxy_new
+} pass_destination_type;
+
+std::map<pass_destination_type, Arc::PasswordSource*> passsources;
+
+class PasswordSourceFile: public Arc::PasswordSource {
+ private:
+  std::ifstream file_;
+ public:
+  PasswordSourceFile(const std::string& filename):file_(filename.c_str()) {
+  };
+  virtual Result Get(std::string& password, int minsize, int maxsize) {
+    if(!file_) return Arc::PasswordSource::NO_PASSWORD;
+    std::getline(file_, password);
+    return Arc::PasswordSource::PASSWORD;
+  };
+};
+
 int main(int argc, char *argv[]) {
 
   setlocale(LC_ALL, "");
@@ -603,8 +556,8 @@ int main(int argc, char *argv[]) {
 
   std::string myproxy_command; //command to myproxy server
   options.AddOption('M', "myproxycmd", istring("command to MyProxy server. The command can be PUT or GET.\n"
-                                               "              PUT/put/Put -- put a delegated credential to the MyProxy server; \n"
-                                               "              GET/get/Get -- get a delegated credential from the MyProxy server, \n"
+                                               "              PUT -- put a delegated credential to the MyProxy server; \n"
+                                               "              GET -- get a delegated credential from the MyProxy server, \n"
                                                "              credential (certificate and key) is not needed in this case. \n"
                                                "              MyProxy functionality can be used together with VOMS\n"
                                                "              functionality.\n"
@@ -622,6 +575,10 @@ int main(int argc, char *argv[]) {
   std::list<std::string> constraintlist;
   options.AddOption('c', "constraint", istring("proxy constraints"),
                     istring("string"), constraintlist);
+
+  std::list<std::string> passsourcelist;
+  options.AddOption('p', "passwordsource", istring("password sources"),
+                    istring("string"), passsourcelist);
 
   int timeout = -1;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
@@ -675,7 +632,7 @@ int main(int argc, char *argv[]) {
   // Check for needed credentials objects
   // Can proxy be used for? Could not find it in documentation.
   // Key and certificate not needed if only printing proxy information
-  if (!(myproxy_command == "get" || myproxy_command == "GET" || myproxy_command == "Get")) {
+  if (!(Arc::lower(myproxy_command) == "get")) {
     if((usercfg.CertificatePath().empty() || 
         (
          usercfg.KeyPath().empty() && 
@@ -957,7 +914,7 @@ int main(int argc, char *argv[]) {
   }
 
   if ((cert_path.empty() || key_path.empty()) && 
-      ((myproxy_command == "PUT") || (myproxy_command == "put") || (myproxy_command == "Put"))) {
+      (Arc::lower(myproxy_command) == "put")) {
     if (cert_path.empty())
       logger.msg(Arc::ERROR, "Cannot find the user certificate path, "
                  "please setup environment X509_USER_CERT, "
@@ -977,6 +934,69 @@ int main(int argc, char *argv[]) {
       constraints[it->substr(0, pos)] = it->substr(pos + 1);
     else
       constraints[*it] = "";
+  }
+
+  std::map<pass_destination_type, std::pair<std::string,bool> > passprompts;
+  passprompts[pass_private_key] = std::pair<std::string,bool>("private key",false);
+  passprompts[pass_myproxy] = std::pair<std::string,bool>("MyProxy server",false);
+  passprompts[pass_myproxy_new] = std::pair<std::string,bool>("MyProxy server (new)",true);
+  for (std::list<std::string>::iterator it = passsourcelist.begin();
+       it != passsourcelist.end(); it++) {
+    std::string::size_type pos = it->find('=');
+    if (pos == std::string::npos) {
+      logger.msg(Arc::ERROR, "Cannot parse password source expression %s "
+                 "it must be of type=source format", *it);
+      return EXIT_FAILURE;
+    }
+    std::string dest = it->substr(0, pos);
+    pass_destination_type pass_dest;
+    if(dest == "key") {
+      pass_dest = pass_private_key;
+    } else {
+      logger.msg(Arc::ERROR, "Cannot parse password type %s. "
+                 "Currently supported value is 'key'.", dest);
+      return EXIT_FAILURE;
+    }
+    std::string pass = it->substr(pos + 1);
+    if((pass[0] == '"') && (pass[pass.length()-1] == '"')) {
+      passsources[pass_dest] = new Arc::PasswordSourceString(pass.substr(1,pass.length()-2));
+    } else if(pass == "int") {
+      passsources[pass_dest] = new Arc::PasswordSourceInteractive(passprompts[pass_private_key].first,passprompts[pass_private_key].second);
+    } else if(pass == "stdin") {
+      passsources[pass_dest] = new Arc::PasswordSourceStream(&std::cin);
+    } else {
+      pos = pass.find(':');
+      if(pos == std::string::npos) {
+        logger.msg(Arc::ERROR, "Cannot parse password source %s "
+                   "it must be of source_type or source_type:data format. "
+                   "Supported source types are int,stdin,stream,file.", pass);
+        return EXIT_FAILURE;
+      }
+      std::string data = pass.substr(pos + 1);
+      pass.resize(pos);
+      if(pass == "file") {
+        passsources[pass_dest] = new PasswordSourceFile(data);
+        // TODO: combine same files
+      } else if(pass == "stream") {
+        if(data == "0") {
+          passsources[pass_dest] = new Arc::PasswordSourceStream(&std::cin);
+        } else {
+          logger.msg(Arc::ERROR, "Only standard input is currently supported "
+                     "for password source.");
+          return EXIT_FAILURE;
+        }
+      } else {
+        logger.msg(Arc::ERROR, "Cannot parse password source type %s. "
+                   "Supported source types are int,stdin,stream,file.", pass);
+        return EXIT_FAILURE;
+      }
+    }
+  }
+  for(std::map<pass_destination_type, std::pair<std::string,bool> >::iterator p = passprompts.begin();
+                            p != passprompts.end();++p) {
+    if(passsources.find(p->first) == passsources.end()) {
+      passsources[p->first] = new Arc::PasswordSourceInteractive(p->second.first,p->second.second);
+    }
   }
 
   //proxy validity period
@@ -1280,7 +1300,7 @@ int main(int argc, char *argv[]) {
 
   //Create proxy or voms proxy
   try {
-    Arc::Credential signer(cert_path, key_path, "", "");
+    Arc::Credential signer(cert_path, key_path, "", "", *passsources[pass_private_key]);
     if (signer.GetIdentityName().empty()) {
       std::cerr << Arc::IString("Proxy generation failed: No valid certificate found.") << std::endl;
       return EXIT_FAILURE;
@@ -1734,7 +1754,7 @@ static bool contact_myproxy_server(const std::string& myproxy_server, const std:
   //information about the existence of stored credentials 
   //on the myproxy server.
   try {
-    if (myproxy_command == "newpass" || myproxy_command == "NEWPASS" || myproxy_command == "Newpass" || myproxy_command == "NewPass") {
+    if (Arc::lower(myproxy_command) == "newpass") {
       if (myproxy_server.empty())
         throw std::invalid_argument("URL of MyProxy server is missing");
 
@@ -1744,21 +1764,13 @@ static bool contact_myproxy_server(const std::string& myproxy_server, const std:
       if (user_name.empty())
         throw std::invalid_argument("Username to MyProxy server is missing");
 
-      std::string prompt1 = "MyProxy server";
-      char password[256];
       std::string passphrase;
-      int res = input_password(password, 256, false, prompt1, "", logger);
-      if (!res)
+      if(passsources[pass_myproxy]->Get(passphrase, 4, 256) != Arc::PasswordSource::PASSWORD) 
         throw std::invalid_argument("Error entering passphrase");
-      passphrase = password;
      
-      std::string prompt2 = "MyProxy server";
-      char newpassword[256];
       std::string newpassphrase;
-      res = input_password(newpassword, 256, true, prompt1, prompt2, logger);
-      if (!res)
+      if(passsources[pass_myproxy_new]->Get(newpassphrase, 4, 256) != Arc::PasswordSource::PASSWORD) 
         throw std::invalid_argument("Error entering passphrase");
-      newpassphrase = newpassword;
      
       if(usercfg.ProxyPath().empty() && !proxy_path.empty()) usercfg.ProxyPath(proxy_path);
       else {
@@ -1800,13 +1812,9 @@ static bool contact_myproxy_server(const std::string& myproxy_server, const std:
       if (user_name.empty())
         throw std::invalid_argument("Username to MyProxy server is missing");
 
-      std::string prompt1 = "MyProxy server";
-      char password[256];
       std::string passphrase;
-      int res = input_password(password, 256, false, prompt1, "", logger);
-      if (!res)
+      if(passsources[pass_myproxy]->Get(passphrase, 4, 256) != Arc::PasswordSource::PASSWORD) 
         throw std::invalid_argument("Error entering passphrase");
-      passphrase = password;
 
       std::string respinfo;
 
@@ -1849,15 +1857,10 @@ static bool contact_myproxy_server(const std::string& myproxy_server, const std:
       if (user_name.empty())
         throw std::invalid_argument("Username to MyProxy server is missing");
 
-      std::string prompt1 = "MyProxy server";
-      char password[256];
-
-      std::string passphrase = password;
+      std::string passphrase;
       if(!use_empty_passphrase) {
-        int res = input_password(password, 256, false, prompt1, "", logger);
-        if (!res)
+        if(passsources[pass_myproxy]->Get(passphrase, 4, 256) != Arc::PasswordSource::PASSWORD)
           throw std::invalid_argument("Error entering passphrase");
-        passphrase = password;
       }
 
       std::string proxy_cred_str_pem;
@@ -1927,7 +1930,7 @@ static bool contact_myproxy_server(const std::string& myproxy_server, const std:
   //Delegate the former self-delegated credential to
   //myproxy server
   try {
-    if (myproxy_command == "put" || myproxy_command == "PUT" || myproxy_command == "Put") {
+    if (Arc::lower(myproxy_command) == "put") {
       if (myproxy_server.empty())
         throw std::invalid_argument("URL of MyProxy server is missing");
       if(user_name.empty()) {
@@ -1937,14 +1940,10 @@ static bool contact_myproxy_server(const std::string& myproxy_server, const std:
         throw std::invalid_argument("Username to MyProxy server is missing");
 
       std::string prompt1 = "MyProxy server";
-      std::string prompt2 = "MyProxy server";
-      char password[256];
       std::string passphrase;
       if(retrievable_by_cert.empty()) {
-        int res = input_password(password, 256, true, prompt1, prompt2, logger);
-        if (!res)
+        if(passsources[pass_myproxy_new]->Get(passphrase, 4, 256) != Arc::PasswordSource::PASSWORD)
           throw std::invalid_argument("Error entering passphrase");
-        passphrase = password;
       }
 
       std::string proxy_cred_str_pem;
