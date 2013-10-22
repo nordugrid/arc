@@ -1456,6 +1456,11 @@ lrms="dgbridge"
 ## used instead.
 #giis_location="/usr/"
 
+## infosys_ldap_run_dir - path where NorduGrid/GLUE2 LDAP ldif file 
+## will be generated, and where the fifo to sync between infoproviders
+## and BDII will be generated. Default: /var/run/arc/infosys/
+#infosys_ldap_run_dir="/var/run/arc/infosys/"
+
 ## These three variables decide which schema should be used for
 ## publishing data. They can all be enabled at the same time. Default is
 ## to enable nordugrid mds and disable glue.  
