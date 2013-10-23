@@ -961,8 +961,11 @@ make -C src/clients			DESTDIR=$PWD/docdir/client pkgdatadir= install-exampleDATA
 make -C src/tests/echo			DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-exampleDATA
 make -C src/hed				DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-profileDATA
 
+# arc.conf.reference and arc.conf.template needs to be handled differently
+make -C src/doc				DESTDIR=$RPM_BUILD_ROOT                install-exampleDATA
 # Link to arc.conf.reference from doc
 ln -s %{_datadir}/%{pkgdir}/examples/arc.conf.reference $PWD/docdir/arc.conf.reference
+ln -s %{_datadir}/%{pkgdir}/examples/arc.conf.template  $PWD/docdir/arc.conf.template
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -1172,7 +1175,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
-%doc README AUTHORS LICENSE NOTICE ChangeLog
+%doc docdir/arc.conf.reference README AUTHORS LICENSE NOTICE ChangeLog
 %{_libdir}/libarccompute.so.*
 %{_libdir}/libarccommunication.so.*
 %{_libdir}/libarccommon.so.*
