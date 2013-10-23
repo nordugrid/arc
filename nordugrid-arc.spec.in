@@ -958,9 +958,11 @@ make -C src/hed/acc/PythonBroker	DESTDIR=$PWD/docdir/python pkgdatadir= install-
 make -C python/examples			DESTDIR=$PWD/docdir/python pkgdatadir= install-exampleDATA
 make -C java/examples			DESTDIR=$PWD/docdir/java   pkgdatadir= install-exampleDATA
 make -C src/clients			DESTDIR=$PWD/docdir/client pkgdatadir= install-exampleDATA
-make -C src/doc				DESTDIR=$PWD/docdir/base   pkgdatadir= install-exampleDATA
 make -C src/tests/echo			DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-exampleDATA
 make -C src/hed				DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-profileDATA
+
+# Link to arc.conf.reference from doc
+ln -s %{_datadir}/%{pkgdir}/examples/arc.conf.reference $PWD/docdir/arc.conf.reference
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -1170,7 +1172,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
-%doc docdir/base/* README AUTHORS LICENSE NOTICE ChangeLog
+%doc README AUTHORS LICENSE NOTICE ChangeLog
 %{_libdir}/libarccompute.so.*
 %{_libdir}/libarccommunication.so.*
 %{_libdir}/libarccommon.so.*
@@ -1194,6 +1196,8 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libmodcredential.so
 %{_libdir}/%{pkgdir}/libmodcredential.apd
 %{_libexecdir}/%{pkgdir}/arc-file-access
+%{_datadir}/%{pkgdir}/examples/arc.conf.template
+%{_datadir}/%{pkgdir}/examples/arc.conf.reference
 %dir %{_datadir}/%{pkgdir}/test-jobs
 %{_datadir}/%{pkgdir}/test-jobs/test-job-*
 %{_datadir}/%{pkgdir}/schema
