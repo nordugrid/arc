@@ -322,7 +322,6 @@ sub ldifIsReady {
     unless (-e $scriptpath) {
         $log->info("The ldif generator script was not found ($scriptpath)");
         $log->info("This file should have been created by A-REX's infoprovider. Check that A-REX is running.");
-        $log->info("For operation without A-REX, set infosys_compat=enable under the [infosys] section.");
         return undef;
     }
     my @stat = stat $scriptpath;
@@ -330,7 +329,6 @@ sub ldifIsReady {
     if (time() - $stat[9] > $max_age) {
         $log->info("The ldif generator script is too old ($scriptpath)");
         $log->info("This file should have been refreshed by A-REX's infoprovider. Check that A-REX is running.");
-        $log->info("For operation without A-REX, set infosys_compat=enable under the [infosys] section.");
         return undef;
     }
 
