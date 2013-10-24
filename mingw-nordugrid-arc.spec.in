@@ -414,7 +414,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{mingw32_mandir}/man5/arc.conf.5*
 %{mingw32_datadir}/%{pkgdir}/profiles
 %{mingw32_datadir}/%{pkgdir}/examples/config
-%{mingw32_datadir}/%{pkgdir}/examples/arc.conf.template
 %{mingw32_datadir}/%{pkgdir}/examples/arc.conf.reference
 %doc %{mingw32_datadir}/%{pkgdir}/examples/echo/echo_service.xml.example
 %{mingw32_libdir}/%{pkgdir}/libecho.dll*
@@ -595,7 +594,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{mingw64_mandir}/man5/arc.conf.5*
 %{mingw64_datadir}/%{pkgdir}/profiles
 %{mingw64_datadir}/%{pkgdir}/examples/config
-%{mingw64_datadir}/%{pkgdir}/examples/arc.conf.template
 %{mingw64_datadir}/%{pkgdir}/examples/arc.conf.reference
 %doc %{mingw64_datadir}/%{pkgdir}/examples/echo/echo_service.xml.example
 %{mingw64_libdir}/%{pkgdir}/libecho.dll*

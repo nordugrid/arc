@@ -961,11 +961,11 @@ make -C src/clients			DESTDIR=$PWD/docdir/client pkgdatadir= install-exampleDATA
 make -C src/tests/echo			DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-exampleDATA
 make -C src/hed				DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-profileDATA
 
-# arc.conf.reference and arc.conf.template needs to be handled differently
-make -C src/doc				DESTDIR=$RPM_BUILD_ROOT                install-exampleDATA
+# arc.conf.reference needs special handling
+make -C src/doc        DESTDIR=$RPM_BUILD_ROOT                install-exampleDATA
+
 # Link to arc.conf.reference from doc
 ln -s %{_datadir}/%{pkgdir}/examples/arc.conf.reference $PWD/docdir/arc.conf.reference
-ln -s %{_datadir}/%{pkgdir}/examples/arc.conf.template  $PWD/docdir/arc.conf.template
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -1199,7 +1199,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libmodcredential.so
 %{_libdir}/%{pkgdir}/libmodcredential.apd
 %{_libexecdir}/%{pkgdir}/arc-file-access
-%{_datadir}/%{pkgdir}/examples/arc.conf.template
 %{_datadir}/%{pkgdir}/examples/arc.conf.reference
 %dir %{_datadir}/%{pkgdir}/test-jobs
 %{_datadir}/%{pkgdir}/test-jobs/test-job-*
