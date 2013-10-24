@@ -172,7 +172,6 @@ bdii_plugin_dir=${bdii_tmp_dir}/plugin
 # Using uppercase characters in bdii_bind will break infosys.
 bdii_bind="o=grid"
 
-infosys_compat=${CONFIG_infosys_compat:-"disable"}
 infosys_nordugrid=${CONFIG_infosys_nordugrid:-"enable"}
 infosys_glue12=${CONFIG_infosys_glue12:-"disable"}
 infosys_glue2_ldap=${CONFIG_infosys_glue2_ldap:-"disable"}
