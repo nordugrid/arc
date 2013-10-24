@@ -1293,8 +1293,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/create-bdii-config
 %{_datadir}/%{pkgdir}/glue-generator.pl
 %{_datadir}/%{pkgdir}/glite-info-provider-ldap
-%{_datadir}/%{pkgdir}/qju.pl
-%{_datadir}/%{pkgdir}/cluster.pl
 %{_datadir}/%{pkgdir}/se.pl
 %{_datadir}/%{pkgdir}/LRMS.pm
 %{_datadir}/%{pkgdir}/Shared.pm
