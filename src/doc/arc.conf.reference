@@ -1350,7 +1350,10 @@ lrms="dgbridge"
 #[infosys]
 
 ## infosys_compat - Setting this variable will cause ARC to use the old
-## infoproviders.  Basically, the new version uses A-REX to create LDIF
+## infoproviders.  
+## NOTE: this only applies to ARC < 13.11. Old infoproviders
+## have been REMOVED from release 13.11 on.
+##Basically, the new version uses A-REX to create LDIF
 ## while the old version uses a BDII provider-script to do it. The new
 ## version is required for GLUE2 output.
 #infosys_compat="disable"
