@@ -43,6 +43,10 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
         if(!val.empty()) {
           if(!Arc::stringto<off_t>(val,range_end)) {
             range_end=(off_t)(-1);
+          } else {
+            // Rest of code here treats end of range as exclusive
+            // While HTTP ranges are inclusive
+            ++range_end;
           };
         };
       };

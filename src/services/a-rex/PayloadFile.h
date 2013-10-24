@@ -95,6 +95,7 @@ class PayloadFAFile: public Arc::PayloadStreamInterface {
   bool operator!(void) { return (handle_ == NULL); };
 };
 
+// For ranges start is inclusive and end is exclusive
 Arc::MessagePayload* newFileRead(const char* filename,Arc::PayloadRawInterface::Size_t start = 0,Arc::PayloadRawInterface::Size_t end = (Arc::PayloadRawInterface::Size_t)(-1));
 Arc::MessagePayload* newFileRead(int h,Arc::PayloadRawInterface::Size_t start = 0,Arc::PayloadRawInterface::Size_t end = (Arc::PayloadRawInterface::Size_t)(-1));
 Arc::MessagePayload* newFileRead(Arc::FileAccess* h,Arc::PayloadRawInterface::Size_t start = 0,Arc::PayloadRawInterface::Size_t end = (Arc::PayloadRawInterface::Size_t)(-1));
