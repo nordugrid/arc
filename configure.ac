@@ -2467,8 +2467,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/arc-config-check.1
                  src/services/a-rex/infoproviders/Makefile
                  src/services/a-rex/infoproviders/CEinfo.pl
-                 src/services/a-rex/infoproviders/qju.pl
-                 src/services/a-rex/infoproviders/cluster.pl
                  src/services/a-rex/infoproviders/se.pl
                  src/services/a-rex/infoproviders/test/Makefile
                  src/services/a-rex/jura/Makefile
