@@ -358,7 +358,23 @@ sub confchecktripel($$$) {
 	    if ($name =~ /providerlog|registrationlog/) {check_logrotate($block,$name,$value)};
     }
     
-		
+    # check compliance of AdminDomain name as a LDAP DNs
+    # TODO: add to startup script the capability of escaping special
+    # chars.
+    if ($block eq "infosys/admindomain") {
+        if ($name eq "name") {
+        w("Warning: $block $name not configured. Default AdminDomain name is UNDEFINEDVALUE.\n") if $value eq '';
+        # bad symbols from RFC 4514
+        my @syntaxerrors;
+        push (@syntaxerrors, ("\n\tThe following unicode chars are not allowed:", $&)) while ( $value =~ /\x{0022}|\x{002B}|\x{002C}|\x{003B}|\x{003C}|\x{003E}|\x{005C}/g );
+        push (@syntaxerrors, ("\n\tBlank space or \"#\" symbol at the beginning of name are not allowed")) if ( $value =~ /^#|^\s/ );
+        push (@syntaxerrors, ("\n\tBlank space at the end of name is not allowed")) if ( $value =~ /\s$/ );
+        push (@syntaxerrors, ("\n\tNull character unicode (U+0000) not allowed")) if ( $value =~ /\x{0000}/ );
+        e("$block option $name contains the following errors: @syntaxerrors \n\tLDAP Infosys will not start. \n\tPlease change AdminDomain name accordingly *\n") if @syntaxerrors;
+        
+        }
+   }
+   	
 }
 
 # Checks log locations for standard location
