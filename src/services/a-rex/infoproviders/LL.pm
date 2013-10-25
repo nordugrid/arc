@@ -39,8 +39,8 @@ sub consumable_distribution ($$) {
 	    /[^# ]*(#*) *.*$consumable_type.([0-9]*),([0-9]*).*/;
 	    # Check if node is down
 	    if ( $1 ne "#" ) {
-		my @a = ($3 - $2,$3);
-		push @cons_dist, [ @a ];
+		  my @a = ($3 - $2,$3);
+		  push @cons_dist, [ @a ];
 	    }
 	}
     }
@@ -92,19 +92,16 @@ sub get_cpu_distribution($) {
 
 	my $single_job_per_box = 1;
 
-        if ($single_job_per_box == 1) {
-
-        # Without hyperthreading
-	    unless (open LLSTATUSOUT,  "$path/llstatus -f %sta|") {
-		error("Error in executing llstatus");
-	    }
-
+    if ($single_job_per_box == 1) {
+       # Without hyperthreading
+  	   unless (open LLSTATUSOUT,  "$path/llstatus -f %sta|") {
+  	   	  error("Error in executing llstatus");
+	   }
 	} else {
-
-        # Use all available cpus/cores including hyperthreading:
-	    unless (open LLSTATUSOUT,  "$path/llstatus -r %cpu %sta|") {
-		error("Error in executing llstatus");
-	    }
+       # Use all available cpus/cores including hyperthreading:
+	   unless (open LLSTATUSOUT,  "$path/llstatus -r %cpu %sta|") {
+		  error("Error in executing llstatus");
+	   }
 	}
 
 	my %cpudist;
@@ -142,7 +139,7 @@ sub get_used_cpus($) {
 
 	unless (open LLSTATUSOUT,  "$path/llstatus |") {
 		error("Error in executing llstatus");
-    	}
+    }
 
 	my $cpus_used;
 
@@ -328,17 +325,18 @@ sub get_long_job_info($$$) {
     if ( (@{$lrms_ids})==0){
       return %jobinfo;
     }
-
+    
+    # can the list of ids become too long for the shell? 
     my $lrmsidstr = join(" ", @{$lrms_ids});
 
     if (!$queue) {
-	unless (open LLQOUT, "$path/llq -l -x $lrmsidstr |") {
+	  unless (open LLQOUT, "$path/llq -l -x $lrmsidstr |") {
 	    error("Error in executing llq");
-	}
+	  }
     } else {
-	unless (open LLQOUT, "$path/llq -c $queue |") {
+	  unless (open LLQOUT, "$path/llq -c $queue |") {
 	    error("Error in executing llq");
-	}
+	  }
     }
 
     my $jobid;
@@ -365,10 +363,12 @@ sub get_long_job_info($$$) {
             next;
 	}
 	chomp;
-	# Create variables using text before colon
+	# Create variables using text before colon, trimming whitespace on both sides and replacing white space with _
 	my ($par, $val) = split/: */,$_,2;
-	$par =~ s/^ *//g;
-	$par =~ s/ /_/g;
+	$par =~ s/^\s+//;
+	$par =~ s/\s+$//;
+	$par =~ s/\s/_/g;
+	
 	# Assign variables
 	if ($par eq 'Job_Step_Id') {
 	    $jobid = $val;
@@ -487,8 +487,13 @@ sub queue_info ($$) {
     # There is no lower limit enforced
     $lrms_queue{mincputime} = 0;
     $lrms_queue{minwalltime} = 0;
-
+    
+    # LL v3 has Def_wall... and LL v5 has Default_wall...
     $_ = $long_queue_info{$queue}{'Def_wall_clock_limit'};
+    if ($_ eq ""){
+       $_ = $long_queue_info{$queue}{'Default_wall_clock_limit'};
+    }
+    
     if (/\((.*) seconds,/) {
 	$lrms_queue{defaultcput} = int($1 / 60);
     }
@@ -569,8 +574,8 @@ sub jobs_info ($$$) {
 	}
 	$lrms_jobs{$id}{reqcputime} = $lrms_jobs{$id}{reqwalltime};
 	$lrms_jobs{$id}{comment} = [ "LRMS: $jobinfo{$id}{Status}" ];
-        if ($jobinfo{$id}{Allocated_Host} ne "") {
-            $lrms_jobs{$id}{nodes} =  ["$jobinfo{$id}{Allocated_Host}"];
+        if ($jobinfo{$id}{Allocated_Hosts} ne "") {
+            $lrms_jobs{$id}{nodes} =  ["$jobinfo{$id}{Allocated_Hosts}"];
         } else {
             $lrms_jobs{$id}{nodes} = [];
         }
