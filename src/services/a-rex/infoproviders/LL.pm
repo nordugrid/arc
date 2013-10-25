@@ -22,28 +22,57 @@ our(%lrms_queue);
 # Private subs
 ##########################################
 
+# calculates the total cpus from a string like: " 1 3 5-9 "
+sub total_from_individual($){
+   my $str=shift;
+
+   #trim string
+   $str =~ s/^\s+//;
+   $str =~ s/\s+$//;
+
+   my @ids = split(' ', $str);
+   my $total = 0;
+
+   foreach my $id (@ids) {
+     if ( $id =~ /([0-9]+)-([0-9]+)/ ){
+       $total += $2-$1 +1;
+     }elsif( $id =~ /[0-9]+/ ){
+       $total++;
+     }
+   }
+
+   return $total;
+}
+
 sub consumable_distribution ($$) {
 
     my ( $path ) = shift;
     my ( $consumable_type ) = shift;
-    my $used = 0;
-    my $max  = 0;
     
     unless (open LLSTATUSOUT,  "$path/llstatus -R|") {
 	error("Error in executing llstatus");
     }
-
+    
     my @cons_dist = ();
     while (<LLSTATUSOUT>) {
-	if (/^.*$consumable_type.*/) {
-	    /[^# ]*(#*) *.*$consumable_type.([0-9]*),([0-9]*).*/;
-	    # Check if node is down
-	    if ( $1 ne "#" ) {
-		  my @a = ($3 - $2,$3);
-		  push @cons_dist, [ @a ];
-	    }
-	}
+       if ( /[^# ]*(#*) *.*$consumable_type.([0-9]*),([0-9]*).*/ ) {
+       #if displayed as total cpus
+          # Check if node is down
+          if ( $1 ne "#" ) {
+             my @a = ($3 - $2,$3);
+             push @cons_dist, [ @a ];
+          }
+	   } elsif ( /[^# ]*(#*) *.*$consumable_type<([^>]*)><([^>]*)>.*/ ){
+       #if displayed as individual cpu numbers
+          if ( $1 ne "#" ) {
+             my $availcpu=total_from_individual($2);
+             my $alcpu=total_from_individual($3);
+             my @a = ($alcpu  - $availcpu,$alcpu);
+             push @cons_dist, [ @a ];
+          }
+	   }
     }
+
     return @cons_dist;
 }
 
