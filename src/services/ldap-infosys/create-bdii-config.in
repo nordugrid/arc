@@ -292,7 +292,6 @@ cat <<-EOF > $bdii_default_ldif
 	print "\n";
 
 	print "dn: o=glue\n";
-	print "objectClass: top\n";
 	print "objectClass: organization\n";
 	print "o: glue\n";
 	EOF
