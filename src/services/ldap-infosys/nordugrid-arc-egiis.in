@@ -2,7 +2,7 @@
 #
 # Init file for the NorduGrid/ARC Grid Information Index Server (EGIIS)
 #
-# chkconfig: 2345 76 44
+# chkconfig: 2345 76 24
 # description: NorduGrid/ARC Grid Information Index Server
 #
 # config: /etc/sysconfig/nordugrid
