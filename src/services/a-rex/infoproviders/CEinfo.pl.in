@@ -398,7 +398,7 @@ sub fix_config {
                    GridftpdPort        => 2811,
                    GridftpdAllowNew    => 1,
                    GridftpdPidFile     => '/var/run/gridftpd.pid',
-                   ttl            =>  60,
+                   ttl            =>  600,
                    # TODO: this is supposed to be in control->defaulttl
                    defaultttl     => 604800,
                    SlapdPort      => 2135,
