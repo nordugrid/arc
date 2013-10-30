@@ -1,3 +1,12 @@
+2013-10-30  Florido Paganelli <florido.paganelli@hep.lu.se>
+   * Added support for cluster_alias option in GLUE2, as ServiceName.
+   * Default Validity of GLUE2 information is set to 10 minutes.
+   * AdminDomain Name is now validated by 'service a-rex validate' to 
+   avoid infosystem to crash at startup
+   * LDAP DNs containing characters that needs to be base64 encoded are 
+   now skipped and not published. This mostly affects NorduGrid schema 
+   nordugrid-authuser-name objects.
+
 2013-10-17  David Cameron  <d.g.cameron@fys.uio.no>
    * Add DQ2 DMC to allow download of ATLAS files using dataset and LFN.
      The URL convention is dq2://atlddmcat-reader.cern.ch/dataset/lfn
