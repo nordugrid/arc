@@ -341,12 +341,10 @@ sub get_short_job_info($$) {
 }
 
 
-sub get_long_job_info($$$) { 
+sub get_long_job_info($$) { 
 
     # Path to LRMS commands
     my ($path) = shift;
-    # Name of the queue to query
-    my ($queue) = shift;
     # LRMS job IDs from Grid Manager (jobs with "INLRMS" GM status)
     my ($lrms_ids) = @_;
 
@@ -358,39 +356,36 @@ sub get_long_job_info($$$) {
     # can the list of ids become too long for the shell? 
     my $lrmsidstr = join(" ", @{$lrms_ids});
 
-    if (!$queue) {
-	  unless (open LLQOUT, "$path/llq -l -x $lrmsidstr |") {
-	    error("Error in executing llq");
-	  }
-    } else {
-	  unless (open LLQOUT, "$path/llq -c $queue |") {
-	    error("Error in executing llq");
-	  }
-    }
 
+	unless (open LLQOUT, "$path/llq -l -x $lrmsidstr |") {
+	  error("Error in executing llq");
+    }
+ 
+    
     my $jobid;
     my $skip=0;
 
     while (<LLQOUT>) {
 
-        # Discard trailing information separated by a newline
-        if ( /^$/ ) {
-            last;
-        }
-
-	# Discard header lines
+    # Discard trailing information separated by a newline
+    if (/job step\(s\) in queue, /) {
+      last;
+    }   
+    
+    # Discard header lines
 	if (/^===/) {
 	    $skip=0;
 	    next;
 	}
-	if ($skip == 1) {
+	# Skip all lines of extra info
+	if (/^--------------------------------------------------------------------------------/) {
+      $skip=!$skip;
+      next;
+    }
+	if ($skip) {
 	    next;
 	}
-	# skip extra info line
-        if (/^------/) {
-	    $skip=0;
-            next;
-	}
+	
 	chomp;
 	# Create variables using text before colon, trimming whitespace on both sides and replacing white space with _
 	my ($par, $val) = split/: */,$_,2;
@@ -547,7 +542,7 @@ sub jobs_info ($$$) {
 
     my (%lrms_jobs);
 
-    my %jobinfo = get_long_job_info($path,"",$lrms_ids);
+    my %jobinfo = get_long_job_info($path,$lrms_ids);
 
     foreach my $id (keys %jobinfo) {
         $lrms_jobs{$id}{status} = "O";
