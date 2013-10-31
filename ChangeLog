@@ -1,3 +1,6 @@
+2013-10-31  Gabor Szigeti <szigeti@niif.hu>
+  * Remove the unnecessary "s" from the reported Processors value. (fixing bug #3289)
+
 2013-10-30  Florido Paganelli <florido.paganelli@hep.lu.se>
    * Added support for cluster_alias option in GLUE2, as ServiceName.
    * Default Validity of GLUE2 information is set to 10 minutes.
@@ -7,9 +10,16 @@
    now skipped and not published. This mostly affects NorduGrid schema 
    nordugrid-authuser-name objects.
 
+2013-10-18  Gabor Szigeti <szigeti@niif.hu>
+  * Collecting processor count information from the backend (SGE, SLURM) into the accounting record.
+
 2013-10-17  David Cameron  <d.g.cameron@fys.uio.no>
    * Add DQ2 DMC to allow download of ATLAS files using dataset and LFN.
      The URL convention is dq2://atlddmcat-reader.cern.ch/dataset/lfn
+
+2013-10-08  Gabor Szigeti <szigeti@niif.hu>
+  * Collecting information for the aggregation records during the accounting messsage sending procedure.
+  * Send APEL sync record after every successfully sent CAR message. Partly fixes bug 3269.
 
 2013-08-30  Martin Skou Andersen <skou@nbi.dk>
   * Enable client job management tools to be able to use Berkeley database for
