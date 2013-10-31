@@ -163,7 +163,7 @@ job_write_diag() {
     { echo "$diagstring" && echo
       [ -n "$nodename" ] && echo "$nodename" | sed -n 's/^\(..*\)/nodename=\1/p'
       [ -n "$WallTime" ] && echo "WallTime=${WallTime}s"
-      [ -n "$Processors" ] && echo "Processors=${Processors}s"
+      [ -n "$Processors" ] && echo "Processors=${Processors}"
       [ -n "$UserTime" ] && echo "UserTime=${UserTime}s"
       [ -n "$KernelTime" ] && echo "KernelTime=${KernelTime}s"
       [ -n "$TotalMemory" ] && echo "AverageTotalMemory=${TotalMemory}kB"
