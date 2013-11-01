@@ -10,11 +10,11 @@
  * @{
  */
 /** ARC API version */
-#define ARC_VERSION "3.0.0"
+#define ARC_VERSION "4.0.0"
 /** ARC API version number */
-#define ARC_VERSION_NUM 0x030000
+#define ARC_VERSION_NUM 0x040000
 /** ARC API major version number */
-#define ARC_VERSION_MAJOR 3
+#define ARC_VERSION_MAJOR 4
 /** ARC API minor version number */
 #define ARC_VERSION_MINOR 0
 /** ARC API patch number */
