@@ -1279,6 +1279,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files ldap-infosys
 %defattr(-,root,root,-)
+%{_initrddir}/nordugrid-arc-ldap-infosys
 %{_initrddir}/nordugrid-arc-slapd
 %{_initrddir}/nordugrid-arc-inforeg
 %{_datadir}/%{pkgdir}/create-slapd-config

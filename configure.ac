@@ -2540,6 +2540,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/ldap-infosys/nordugrid-arc-bdii
                  src/services/ldap-infosys/nordugrid-arc-egiis
                  src/services/ldap-infosys/nordugrid-arc-inforeg
+                 src/services/ldap-infosys/nordugrid-arc-ldap-infosys
                  src/services/ldap-infosys/nordugrid-arc-slapd
                  src/services/ldap-infosys/giis/Makefile
                  src/services/ldap-infosys/giis/arc-infoindex-relay.8
