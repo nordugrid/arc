@@ -475,7 +475,7 @@ sub create_condor_job_description {
     #   6. hardcoded limit on 1 GB
     $grami{joboption_memory} ||= $config{defaultmemory} || $config{service}{defaultmemory} || $config{MaxVirtualMemory} || $config{service}{MaxVirtualMemory} || 1000;
     $output .= "+JobMemoryLimit = ".int(1024*$grami{joboption_memory})."\n";
-    $remove .= " || ImageSize > JobMemoryLimit";
+    $remove .= " || ResidentSetSize > JobMemoryLimit";
     warn "$0: Setting memory limit\n";
 
     $output .= "GetEnv = True\n" .
