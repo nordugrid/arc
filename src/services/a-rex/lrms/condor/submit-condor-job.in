@@ -478,6 +478,8 @@ sub create_condor_job_description {
     $remove .= " || ResidentSetSize > JobMemoryLimit";
     warn "$0: Setting memory limit\n";
 
+    $output .= "request_memory = $grami{joboption_memory}\n";
+    $output .= "request_cpus = $grami{joboption_count}\n";
     $output .= "GetEnv = True\n" .
                "Universe = vanilla\n" .
                "Notification = Never\n" .
