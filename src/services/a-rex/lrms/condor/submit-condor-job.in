@@ -480,7 +480,7 @@ sub create_condor_job_description {
 
     $output .= "GetEnv = True\n" .
                "Universe = vanilla\n" .
-               "Notification = Always\n" .
+               "Notification = Never\n" .
 #              "When_to_transfer_output = ON_EXIT\n" .
                "Periodic_remove = $remove\n" .
                "Queue\n";
