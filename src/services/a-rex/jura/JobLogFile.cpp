@@ -12,6 +12,7 @@
 #include <string.h>
 #include <list>
 #include <vector>
+#include <algorithm>
 
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
@@ -762,7 +763,9 @@ namespace Arc
     std::string type = "local";
     if (find("headnode")!=end() && (*this)["lrms"] != "fork" ){
         type = "grid";
-        infran.NewAttribute("urf:description")=(*this)["lrms"];
+        std::string lrms = (std::string)(*this)["lrms"];
+        std::transform(lrms.begin(), lrms.end(), lrms.begin(), ::toupper);
+        infran.NewAttribute("urf:description")="JURA-ARC-"+lrms;  //Prefix required to the APEL
     }
     infran.NewAttribute("urf:type")=type;
 
