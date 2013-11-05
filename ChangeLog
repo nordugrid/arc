@@ -1,3 +1,6 @@
+2013-11-05  Anders Waananen <waananen@nbi.dk>
+  * Add support for ptyhon3 bindings. (fixing bug #3276)
+
 2013-10-31  Gabor Szigeti <szigeti@niif.hu>
   * Remove the unnecessary "s" from the reported Processors value. (fixing bug #3289)
 

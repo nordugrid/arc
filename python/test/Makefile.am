@@ -26,4 +26,6 @@ TESTS =
 endif
 check_SCRIPTS = $(TESTS)
 
+CLEANFILES = arc
+
 EXTRA_DIST = $(TESTSCRIPTS) testutils.py

@@ -42,18 +42,17 @@ PyMODVAL (*initfunction)(void)) {
 #if PY_MAJOR_VERSION >= 3
   PyObject *module = initfunction();
 #else
+  initfunction();
   PyObject *module = PyImport_AddModule((char *)modulename);
 #endif
   if(!module) {
-    fprintf(stderr, "initialisation in PyImport_AddModule failed for module %s\n", modulename);
+    fprintf(stderr, "Failed initialising Python module '%s', through Python C API\n", modulename);
     PyMOD_RETURN(NULL);
   }
   if(PyModule_AddObject(package, (char *)modulename, module)) {
-    fprintf(stderr, "initialisation in PyModule_AddObject failed for module %s\n", modulename);
+    fprintf(stderr, "Failied adding Python module '%s' to package 'arc', through Python C API\n", modulename);
     PyMOD_RETURN(NULL);
   }
-  Py_INCREF(module);
-  initfunction();
   PyMOD_RETURN(module);
 }
 
