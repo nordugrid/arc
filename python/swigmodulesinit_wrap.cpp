@@ -16,35 +16,45 @@
 
 #include <Python.h>
 
+// Python 2vs3 differences
 #if PY_MAJOR_VERSION >= 3
 #define SWIG_init(NAME) PyInit__##NAME
+#define PyMOD_RETURN(NAME) return NAME
+#define PyMODVAL PyObject*
 #else
 #define SWIG_init(NAME) init_##NAME
+#define PyMOD_RETURN(NAME) return
+#define PyMODVAL void
 #endif
 
-extern "C" void SWIG_init(common)(void);
-extern "C" void SWIG_init(loader)(void);
-extern "C" void SWIG_init(message)(void);
-extern "C" void SWIG_init(communication)(void);
-extern "C" void SWIG_init(compute)(void);
-extern "C" void SWIG_init(credential)(void);
-extern "C" void SWIG_init(data)(void);
-extern "C" void SWIG_init(delegation)(void);
-extern "C" void SWIG_init(security)(void);
+PyMODINIT_FUNC SWIG_init(common)(void);
+PyMODINIT_FUNC SWIG_init(loader)(void);
+PyMODINIT_FUNC SWIG_init(message)(void);
+PyMODINIT_FUNC SWIG_init(communication)(void);
+PyMODINIT_FUNC SWIG_init(compute)(void);
+PyMODINIT_FUNC SWIG_init(credential)(void);
+PyMODINIT_FUNC SWIG_init(data)(void);
+PyMODINIT_FUNC SWIG_init(delegation)(void);
+PyMODINIT_FUNC SWIG_init(security)(void);
 
-static void init_extension_module(PyObject* package, const char *modulename,
-void (*initfunction)(void)) {
+static PyMODVAL init_extension_module(PyObject* package, const char *modulename,
+PyMODVAL (*initfunction)(void)) {
+#if PY_MAJOR_VERSION >= 3
+  PyObject *module = initfunction();
+#else
   PyObject *module = PyImport_AddModule((char *)modulename);
+#endif
   if(!module) {
     fprintf(stderr, "initialisation in PyImport_AddModule failed for module %s\n", modulename);
-    return;
+    PyMOD_RETURN(NULL);
   }
   if(PyModule_AddObject(package, (char *)modulename, module)) {
     fprintf(stderr, "initialisation in PyModule_AddObject failed for module %s\n", modulename);
-    return;
+    PyMOD_RETURN(NULL);
   }
   Py_INCREF(module);
   initfunction();
+  PyMOD_RETURN(module);
 }
 
 
@@ -62,8 +72,16 @@ static struct PyModuleDef moduledef = {
 };
 #endif
 
+// We can probably change
+//   extern "C" SWIGEXPORT to PyMODINIT_FUNC
+// and thus remove SWIGEXPORT since it is no longer used and PyMODINIT_FUNC
+// does most of what SWIGEXPORT does. One thing however would be missing:
+//   __attribute__ ((visibility("default")))
+// but that seems not to have any effect since -fvisibility*
+// is not used during compilation.
+//
 extern "C"
-SWIGEXPORT void SWIG_init(arc)(void) {
+SWIGEXPORT PyMODVAL SWIG_init(arc)(void) {
   // Initialise this module
 #if PY_MAJOR_VERSION >= 3
   PyObject* module = PyModule_Create(&moduledef);
@@ -72,14 +90,14 @@ SWIGEXPORT void SWIG_init(arc)(void) {
 #endif
   if(!module) {
    fprintf(stderr, "initialisation failed\n");
-   return;
+   PyMOD_RETURN(NULL);
   }
   
   // Initialise all the SWIG low level modules
   PyObject *package = PyImport_AddModule((char *)"arc"); // a means to get a handle to the package, not sure if this is a great idea but it works
   if(!package) {
    fprintf(stderr, "initialisation failed\n");
-   return;
+   PyMOD_RETURN(NULL);
   }
   
   init_extension_module(package, "_common", SWIG_init(common));
@@ -91,4 +109,6 @@ SWIGEXPORT void SWIG_init(arc)(void) {
   init_extension_module(package, "_data", SWIG_init(data));
   init_extension_module(package, "_delegation", SWIG_init(delegation));
   init_extension_module(package, "_security", SWIG_init(security));
+
+  PyMOD_RETURN(module);
 }

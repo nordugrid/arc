@@ -15,18 +15,15 @@ TESTSCRIPTS = \
 
 if PYTHON_ENABLED
 TESTS_ENVIRONMENT = \
+        test -r arc || ln -s .. arc ; \
+        test -r ../_arc.so || ln -s .libs/_arc.so ../_arc.so ; \
 	ARC_PLUGIN_PATH=$(top_builddir)/src/hed/acc/TEST/.libs \
 	DYLD_LIBRARY_PATH="$(DYLD_LIBRARY_PATH)" \
-	PYTHONPATH=..:../.libs $(PYTHON)
+	$(PYTHON)
 TESTS = $(TESTSCRIPTS)
 else
 TESTS =
 endif
-check_SCRIPTS = ../arc.py $(TESTS)
-
-../arc.py : $(top_srcdir)/python/__init__.py
-	cp $< $@
-
-CLEANFILES = ../arc.py ../arc.pyc
+check_SCRIPTS = $(TESTS)
 
 EXTRA_DIST = $(TESTSCRIPTS) testutils.py

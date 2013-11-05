@@ -112,6 +112,16 @@ $(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i $(top_srcdir)/swig/Arc.i pydo
 # valid syntax should be T<A,B> instead.
 	sed 's/<(\([,:[:alnum:]]*\))>/<\1>/g' $*_wrap.cpp > $*_wrap.cpp.tmp
 	mv $*_wrap.cpp.tmp $*_wrap.cpp
+# Fix python3 relative import problem
+	cp -p $*.py $*.py.old
+	sed "s/import _$*/from arc &/" < $*.py.old > $*.py
+# Fix python3 relative import problem if the module imports other submodules through %import(module= in the *.i files
+	for i in $(ARCSWIGLIBS); do\
+          if grep -q "^import $$i" $*.py; then \
+            cp -p $*.py $*.py.old.$$i; \
+            sed "s/import $$i/from arc &/" < $*.py.old.$$i > $*.py ;\
+          fi;\
+        done
 
 pydoxygen.i: $(srcdir)/Doxyfile.api.in
 	sed "s/TOP_SOURCE_DIR/$(subst /,\/,$(top_srcdir))/g" $< > Doxyfile.api
