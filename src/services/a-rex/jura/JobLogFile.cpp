@@ -202,9 +202,11 @@ namespace Arc
         ur.NewChild("JobIdentity").NewChild("GlobalJobId")=
           (*this)["globalid"];
         
-        if (find("localid")!=end())
+        if (find("localid")!=end()) {
+          Arc::Time endtime((*this)["endtime"]);
           ur["JobIdentity"].NewChild("LocalJobId")=
-            (*this)["localid"];
+            endtime.str(Arc::UTCTime) +"-"+ (*this)["localid"];
+        }
       }
     else
     {
