@@ -53,6 +53,7 @@ PyMODVAL (*initfunction)(void)) {
     fprintf(stderr, "Failied adding Python module '%s' to package 'arc', through Python C API\n", modulename);
     PyMOD_RETURN(NULL);
   }
+  Py_INCREF(module);
   PyMOD_RETURN(module);
 }
 
@@ -109,5 +110,6 @@ SWIGEXPORT PyMODVAL SWIG_init(arc)(void) {
   init_extension_module(package, "_delegation", SWIG_init(delegation));
   init_extension_module(package, "_security", SWIG_init(security));
 
+  Py_INCREF(module);
   PyMOD_RETURN(module);
 }
