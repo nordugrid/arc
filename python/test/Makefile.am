@@ -19,7 +19,7 @@ TESTS_ENVIRONMENT = \
         test -r ../_arc.so || ln -s .libs/_arc.so ../_arc.so ; \
 	ARC_PLUGIN_PATH=$(top_builddir)/src/hed/acc/TEST/.libs \
 	DYLD_LIBRARY_PATH="$(DYLD_LIBRARY_PATH)" \
-	$(PYTHON)
+	PYTHONPATH=. $(PYTHON)
 TESTS = $(TESTSCRIPTS)
 else
 TESTS =
