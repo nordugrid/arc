@@ -39,7 +39,7 @@ static void add_libs(std::string& paths,const std::string& curpath) {
     fname = dir.read_name();
     if(fname.empty()) break;
     fname=Glib::build_filename(curpath,fname);
-    if(fname == ".libs") {
+    if(fname == ".libs" || file_test(fname, Glib::FILE_TEST_IS_SYMLINK)) {
     } else if(file_test(fname, Glib::FILE_TEST_IS_DIR)) {
       add_libs(paths,fname);
     };
