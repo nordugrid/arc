@@ -11,8 +11,10 @@
 
 #include <glibmm.h>
 
+#include <arc/FileUtils.h>
 #include <arc/StringConv.h>
 #include <arc/message/PayloadRaw.h>
+#include <arc/data/FileCache.h>
 #include "PayloadFile.h"
 #include "job.h"
 
@@ -27,6 +29,7 @@ namespace ARex {
 
 static Arc::MCC_Status http_get(Arc::Message& outmsg,const std::string& burl,ARexJob& job,std::string hpath,off_t start,off_t end,bool no_content);
 static Arc::MCC_Status http_get_log(Arc::Message& outmsg,const std::string& burl,ARexJob& job,std::string hpath,off_t start,off_t end,bool no_content);
+static Arc::MCC_Status cache_get(Arc::Message& outmsg, const std::string& subpath, off_t range_start, off_t range_end, ARexGMConfig& config, Arc::Logger& logger);
 
 Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string id,std::string subpath) {
   bool force_logs = false;
@@ -99,6 +102,9 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
       id = subpath.substr(0,p); subpath = subpath.substr(p+1);
     };
   };
+  if (id == "cache") {
+    return cache_get(outmsg, subpath, range_start, range_end, config, logger);
+  }
   ARexJob job(id,config,logger_);
   if(!job) {
     // There is no such job
@@ -324,6 +330,62 @@ static Arc::MCC_Status http_get_log(Arc::Message& outmsg,const std::string& burl
   };
   return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
 }
+
+static Arc::MCC_Status cache_get(Arc::Message& outmsg, const std::string& subpath, off_t range_start, off_t range_end, ARexGMConfig& config, Arc::Logger& logger) {
+
+  // subpath contains the URL, which can be encoded. Constructing a URL
+  // object with encoded=true only decodes the path so have to decode first
+  std::string unencoded(Arc::uri_unencode(subpath));
+  Arc::URL cacheurl(unencoded);
+  logger.msg(Arc::VERBOSE, "Looking in cache for %s", cacheurl.str());
+
+  if (!cacheurl) {
+    logger.msg(Arc::ERROR, "Get from cache: Invalid URL %s", subpath);
+    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+  }
+  // Security check. The access is configured in arc.conf like
+  // cache_access="lfc://prod-lfc-atlas.cern.ch/grid/atlas* vo:atlas"
+  // then the url is compared to the certificate attribute specified
+  // Arc::Credential cred;
+
+  Arc::FileCache cache(config.GmConfig().CacheParams().getCacheDirs(),
+                       config.GmConfig().CacheParams().getRemoteCacheDirs(),
+                       config.GmConfig().CacheParams().getDrainingCacheDirs(),
+                       "0", // Jobid is not used
+                       config.User().get_uid(),
+                       config.User().get_gid());
+  if (!cache) {
+    logger.msg(Arc::ERROR, "Get from cache: Error starting cache");
+    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+  }
+  bool available = false;
+  bool is_locked = false;
+  if (!cache.Start(cacheurl.str(), available, is_locked)) {
+    // TODO if (is_locked) return try_again;
+    logger.msg(Arc::ERROR, "Get from cache: failed to prepare cache");
+    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+  }
+  if (!available) {
+    cache.Stop(cacheurl.str());
+    logger.msg(Arc::ERROR, "Get from cache: cache file not available");
+    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+  }
+  // Check file size against specified range
+  std::string cache_file(cache.File(cacheurl.str()));
+  struct stat st;
+  if (!Arc::FileStat(cache_file, &st, false)) return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+
+  // Check file size against specified range
+  if (range_start > st.st_size) range_start = st.st_size;
+  if (range_end > st.st_size) range_end = st.st_size;
+
+  // Read the file and fill the payload
+  Arc::MessagePayload* h = newFileRead(cache_file.c_str(), range_start, range_end);
+  outmsg.Payload(h);
+  outmsg.Attributes()->set("HTTP:content-type","application/octet-stream");
+  return Arc::MCC_Status(Arc::STATUS_OK);
+}
+
 
 } // namespace ARex
 
