@@ -203,9 +203,10 @@ namespace Arc
           (*this)["globalid"];
         
         if (find("localid")!=end()) {
-          Arc::Time endtime((*this)["endtime"]);
-          ur["JobIdentity"].NewChild("LocalJobId")=
-            endtime.str(Arc::UTCTime) +"-"+ (*this)["localid"];
+          std::string prefix = "";
+          if (find("jobreport_option_localid_prefix")!=end())
+            prefix = (*this)["jobreport_option_localid_prefix"] +"-";
+          ur["JobIdentity"].NewChild("LocalJobId")=prefix + (*this)["localid"];
         }
       }
     else
