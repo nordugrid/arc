@@ -407,7 +407,7 @@ namespace ArcDMCDQ2 {
       if (endpoint_info.find(*site) != endpoint_info.end()) {
         endpoints.push_back(endpoint_info[*site]);
       } else if (std::find(nondeterministic_sites.begin(), nondeterministic_sites.end(), *site) != nondeterministic_sites.end()) {
-        logger.msg(WARNING, "Site %s is not deterministic and cannot be used", *site);
+        logger.msg(VERBOSE, "Site %s is not deterministic and cannot be used", *site);
       } else {
         logger.msg(WARNING, "Site %s not found in AGIS info", *site);
       }
@@ -485,6 +485,17 @@ namespace ArcDMCDQ2 {
         continue;
       }
       std::string site = sitename->valuestring;
+      cJSON *isdeterministic = cJSON_GetObjectItem(subitem, "is_deterministic");
+      if (!isdeterministic) {
+        logger.msg(WARNING, "Badly formatted output from AGIS");
+        subitem = subitem->next;
+        continue;
+      }
+      if (isdeterministic->valueint == 0) {
+        nondeterministic_sites.push_back(site);
+        subitem = subitem->next;
+        continue;
+      }
       cJSON *protocols = cJSON_GetObjectItem(subitem, "aprotocols");
       if (!protocols) {
         logger.msg(WARNING, "Badly formatted output from AGIS");
