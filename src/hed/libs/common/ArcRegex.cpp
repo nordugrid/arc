@@ -9,6 +9,11 @@
 
 namespace Arc {
 
+  RegularExpression::RegularExpression()
+    : pattern(""), status(-1) {
+    regcomp(&preg, pattern.c_str(), REG_EXTENDED);
+  }
+
   RegularExpression::RegularExpression(std::string pattern)
     : pattern(pattern) {
     status = regcomp(&preg, pattern.c_str(), REG_EXTENDED);

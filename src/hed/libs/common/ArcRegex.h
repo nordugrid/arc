@@ -17,7 +17,7 @@ namespace Arc {
   public:
 
     /// Default constructor
-    RegularExpression() : status(-1) {}
+    RegularExpression();
 
     /// Creates a regex from a pattern string.
     RegularExpression(std::string pattern);

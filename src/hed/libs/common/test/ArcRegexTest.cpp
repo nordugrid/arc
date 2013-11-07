@@ -60,6 +60,9 @@ void ArcRegexTest::TestRegex() {
   CPPUNIT_ASSERT_EQUAL(std::string("=\""), *i); i++;
   CPPUNIT_ASSERT_EQUAL(std::string("\""), *i);
 
+  Arc::RegularExpression empty_regexp;
+  CPPUNIT_ASSERT(!empty_regexp.isOk());
+
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ArcRegexTest);
