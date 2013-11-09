@@ -79,12 +79,11 @@ fi
 
 set_count
 
-if [ $joboption_count -gt 1 ] ; then
+if [ $joboption_count -gt 1 ] || [ "$LL_PARALLEL_SINGLE_JOBS" = "yes" ] ; then
   echo "# @ job_type = parallel" >> $LRMS_JOB_SCRIPT
   echo "# @ total_tasks = $joboption_count" >> $LRMS_JOB_SCRIPT
   echo "# @ node = $joboption_numnodes" >> $LRMS_JOB_SCRIPT
 
-#  echo "# @ task_per_node = $joboption_countpernode" >> $LRMS_JOB_SCRIPT
 fi
 
 #set node to exclusive
@@ -92,7 +91,6 @@ fi
 if [ "$joboption_exclusivenode" = "true" ]; then
   echo "# @ node_usage = not_shared " >> $LRMS_JOB_SCRIPT
 fi
-
 
 ##############################################################
 # Execution times (obtained in seconds)

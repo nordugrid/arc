@@ -33,6 +33,9 @@ fi
 # Consumable resources
 LL_CONSUMABLE_RESOURCES=${LL_CONSUMABLE_RESOURCES:-$CONFIG_ll_consumable_resources}
 
+# Enable parallel single jobs 
+LL_PARALLEL_SINGLE_JOBS=${LL_PARALLEL_SINGLE_JOBS:-$CONFIG_ll_parallel_single_jobs}
+
 # Local scratch disk
 RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-$CONFIG_scratchdir}
 export RUNTIME_LOCAL_SCRATCH_DIR
