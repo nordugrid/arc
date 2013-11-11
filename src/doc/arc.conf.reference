@@ -695,6 +695,8 @@ lrms="dgbridge"
 #                   localid_prefix:prefix_for_SGAS"
 # options element can be the followings:
 #    - urbatch:size
+#         default size:   50 by SGAS
+#                       1000 by APEL
 #    - archiving:directory for the archiving files
 #    - topic:name of the topic
 #    - gocdb_name:GOCDB name of CE
@@ -702,6 +704,7 @@ lrms="dgbridge"
 #    - benchmark_value:value of benchmark
 #    - benchmark_description:additional description for a benchmark
 #    - use_ssl:true or false
+#         default value: false
 #    - localid_prefix:prefix string for the SGAS records
 
 ## max_job_control_requests number - max number of simultaneously processed job management
