@@ -464,13 +464,13 @@ namespace Arc
 
 
     //Extra:
-    //RunTimeEnvironment
+    //RuntimeEnvironment
 
     for(std::list<std::string>::iterator jt=rtes.begin();
         jt!=rtes.end();
         ++jt)
       {
-        ur.NewChild("arc:RunTimeEnvironment")=*jt;
+        ur.NewChild("arc:RuntimeEnvironment")=*jt;
       }
 
 
