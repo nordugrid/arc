@@ -793,6 +793,9 @@ AC_ARG_ENABLE(pylint, AC_HELP_STRING([--disable-pylint], [disable python example
     if test $PYLINT_VERSION_MAJOR -eq 0 && test $PYLINT_VERSION_MINOR -ge 13 && test $PYLINT_VERSION_MINOR -ne 20; then
       enables_pylint="yes"
       AC_MSG_NOTICE([pylint version $PYLINT_VERSION found - version ok])
+    elif test $PYLINT_VERSION_MAJOR -ge 1; then
+      enables_pylint="yes"
+      AC_MSG_NOTICE([pylint version $PYLINT_VERSION found - version ok])
     else
       enables_pylint="no"
       AC_MSG_NOTICE([pylint version $PYLINT_VERSION found - bad version])
