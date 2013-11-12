@@ -5,7 +5,6 @@
   * Add "JURA-ARC-" prefix for an Infrastructure's description in a CAR. Requested by APEL.
   * Extend the LocalJobId with the endtime in UTC Time format by the SGAS URs. (fixing bug #3288)
 
-=======
 2013-11-05  Anders Waananen <waananen@nbi.dk>
   * Add support for ptyhon3 bindings. (fixing bug #3276)
 
