@@ -439,7 +439,6 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw32_libdir}/%{pkgdir}/libmcctls.dll*
 %{mingw32_libdir}/%{pkgdir}/libdmcfile.dll*
 %{mingw32_libdir}/%{pkgdir}/libdmchttp.dll*
-%{mingw32_libdir}/%{pkgdir}/libdmcarc.dll*
 %{mingw32_libdir}/%{pkgdir}/libdmcldap.dll*
 %{mingw32_libdir}/%{pkgdir}/libdmcsrm.dll*
 %{mingw32_libdir}/%{pkgdir}/libdmcdq2.dll*
@@ -619,7 +618,6 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw64_libdir}/%{pkgdir}/libmcctls.dll*
 %{mingw64_libdir}/%{pkgdir}/libdmcfile.dll*
 %{mingw64_libdir}/%{pkgdir}/libdmchttp.dll*
-%{mingw64_libdir}/%{pkgdir}/libdmcarc.dll*
 %{mingw64_libdir}/%{pkgdir}/libdmcldap.dll*
 %{mingw64_libdir}/%{pkgdir}/libdmcsrm.dll*
 %{mingw64_libdir}/%{pkgdir}/libdmcdq2.dll*

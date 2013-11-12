@@ -1457,7 +1457,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/test/libaccTEST.so
 %{_libdir}/%{pkgdir}/libarcshc.so
 %{_libdir}/%{pkgdir}/libarcshclegacy.so
-%{_libdir}/%{pkgdir}/libdmcarc.so
 %{_libdir}/%{pkgdir}/libdmcfile.so
 %{_libdir}/%{pkgdir}/libdmchttp.so
 %{_libdir}/%{pkgdir}/libdmcldap.so
@@ -1480,7 +1479,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/test/libaccTEST.apd
 %{_libdir}/%{pkgdir}/libarcshc.apd
 %{_libdir}/%{pkgdir}/libarcshclegacy.apd
-%{_libdir}/%{pkgdir}/libdmcarc.apd
 %{_libdir}/%{pkgdir}/libdmcfile.apd
 %{_libdir}/%{pkgdir}/libdmchttp.apd
 %{_libdir}/%{pkgdir}/libdmcldap.apd

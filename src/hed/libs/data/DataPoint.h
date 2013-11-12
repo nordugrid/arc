@@ -26,9 +26,6 @@ namespace Arc {
  * The following protocols are currently supported in standard distributions
  * of ARC.
  *
- * - ARC (arc://) - Protocol to access the Chelonia storage system developed by
- * ARC.
- *
  * - File (%file://) - Regular local file system.
  *
  * - GridFTP (gsiftp://) - GridFTP is essentially the FTP protocol with GSI

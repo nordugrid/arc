@@ -1,3 +1,6 @@
+2013-11-12  Anders Waananen <waananen@nbi.dk>
+  * Remove the Chelonia DMC (libdmcarc.so) which handles the arc:// protocol
+
 2013-11-11  Gabor Szigeti <szigeti@niif.hu>
   * Rename the RuntimeEnvironment element by the UR that send to SGAS. (fixing bug #3297)
 

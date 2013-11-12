@@ -258,7 +258,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_libdir}/%{pkgdir}/libmcctls.dll*
 %{_mingw32_libdir}/%{pkgdir}/libdmcfile.dll*
 %{_mingw32_libdir}/%{pkgdir}/libdmchttp.dll*
-%{_mingw32_libdir}/%{pkgdir}/libdmcarc.dll*
 %{_mingw32_libdir}/%{pkgdir}/libdmcldap.dll*
 %{_mingw32_libdir}/%{pkgdir}/libdmcsrm.dll*
 %{_mingw32_libdir}/%{pkgdir}/libdmcdq2.dll*

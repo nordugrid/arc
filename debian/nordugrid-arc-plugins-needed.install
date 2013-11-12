@@ -8,7 +8,6 @@ debian/tmp/usr/lib/arc/libaccldap.so
 debian/tmp/usr/lib/arc/test/libaccTEST.so
 debian/tmp/usr/lib/arc/libarcshclegacy.so
 debian/tmp/usr/lib/arc/libarcshc.so
-debian/tmp/usr/lib/arc/libdmcarc.so
 debian/tmp/usr/lib/arc/libdmcfile.so
 debian/tmp/usr/lib/arc/libdmchttp.so
 debian/tmp/usr/lib/arc/libdmcldap.so
@@ -31,7 +30,6 @@ debian/tmp/usr/lib/arc/libaccldap.apd
 debian/tmp/usr/lib/arc/test/libaccTEST.apd
 debian/tmp/usr/lib/arc/libarcshclegacy.apd
 debian/tmp/usr/lib/arc/libarcshc.apd
-debian/tmp/usr/lib/arc/libdmcarc.apd
 debian/tmp/usr/lib/arc/libdmcfile.apd
 debian/tmp/usr/lib/arc/libdmchttp.apd
 debian/tmp/usr/lib/arc/libmccmsgvalidator.apd
