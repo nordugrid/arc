@@ -5,11 +5,9 @@ float).
 '''
 
 import testutils, arc, unittest, time, sys
-if sys.version > '3':
+if sys.version_info[0] >= 3:
     long = int
-    number = 123456
-else:
-    number = 123456L
+number = long(123456)
 
 class MappingOf_time_t_and_uint32_t_CTypesToPythonRegressionTest(testutils.ARCClientTestCase):
     def setUp(self):
