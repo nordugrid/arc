@@ -9,7 +9,6 @@ debian/tmp/usr/lib/python?.?/site-packages/arc/credential.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/data.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/delegation.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/security.py*
-debian/tmp/usr/lib/python?.?/site-packages/cache
 debian/tmp/usr/lib/python?.?/site-packages/echo_python
 debian/tmp/usr/lib/arc/libaccPythonBroker.so
 debian/tmp/usr/lib/arc/libpythonservice.so

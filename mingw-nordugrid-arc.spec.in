@@ -495,7 +495,6 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw32_libdir}/python?.?/site-packages/arc/data.py*
 %{mingw32_libdir}/python?.?/site-packages/arc/delegation.py*
 %{mingw32_libdir}/python?.?/site-packages/arc/security.py*
-%{mingw32_libdir}/python?.?/site-packages/cache
 %{mingw32_libdir}/python?.?/site-packages/echo_python
 %{mingw32_libdir}/%{pkgdir}/libpythonservice.dll*
 %{mingw32_libdir}/%{pkgdir}/libaccPythonBroker.dll*
@@ -665,7 +664,6 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %{mingw64_libdir}/python?.?/site-packages/_arc.dll*
 %{mingw64_libdir}/python?.?/site-packages/arc.py*
-%{mingw64_libdir}/python?.?/site-packages/cache
 %{mingw64_libdir}/python?.?/site-packages/echo_python
 %{mingw64_libdir}/%{pkgdir}/libpythonservice.dll*
 %{mingw64_libdir}/%{pkgdir}/libaccPythonBroker.dll*

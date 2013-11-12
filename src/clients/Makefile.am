@@ -34,14 +34,8 @@ else
 WSRF_CLIENT =
 endif
 
-if CACHE_CLIENT_ENABLED
-CACHE_CLIENT = cache
-else
-CACHE_CLIENT =
-endif
-
-SUBDIRS = $(DATA_CLIENT) $(ECHO_CLIENT) $(CREDENTIALS_CLIENT) $(COMPUTE_CLIENT) $(SAML_CLIENT) $(WSRF_CLIENT) $(CACHE_CLIENT)
-DIST_SUBDIRS = data echo credentials compute saml wsrf cache
+SUBDIRS = $(DATA_CLIENT) $(ECHO_CLIENT) $(CREDENTIALS_CLIENT) $(COMPUTE_CLIENT) $(SAML_CLIENT) $(WSRF_CLIENT)
+DIST_SUBDIRS = data echo credentials compute saml wsrf
 
 arcsysconfdir = $(sysconfdir)/arc
 arcsysconf_DATA = client.conf

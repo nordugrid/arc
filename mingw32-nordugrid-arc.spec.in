@@ -297,7 +297,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_libdir}/python?.?/site-packages/arc/data.py*
 %{_mingw32_libdir}/python?.?/site-packages/arc/delegation.py*
 %{_mingw32_libdir}/python?.?/site-packages/arc/security.py*
-%{_mingw32_libdir}/python?.?/site-packages/cache
 %{_mingw32_libdir}/python?.?/site-packages/echo_python
 %{_mingw32_libdir}/%{pkgdir}/libpythonservice.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccPythonBroker.dll*

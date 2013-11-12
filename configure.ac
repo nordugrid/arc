@@ -195,7 +195,6 @@ enables_data_client=yes
 enables_jura_client=yes
 enables_saml_client=yes
 enables_wsrf_client=yes
-enables_cache_client=yes
 enables_unicore_client=no
 enables_emies_client=yes
 #  Documentation
@@ -221,7 +220,6 @@ enables_data_client=$enableval
 enables_jura_client=$enableval
 enables_saml_client=$enableval
 enables_wsrf_client=$enableval
-enables_cache_client=$enableval
 enables_unicore_client=$enableval
 enables_emies_client=$enableval
 enables_hed=$enableval
@@ -253,7 +251,6 @@ enables_data_client=$enableval
 enables_jura_client=$enableval
 enables_saml_client=$enableval
 enables_wsrf_client=$enableval
-enables_cache_client=$enableval
 enables_unicore_client=$enableval
 enables_emies_client=$enableval
 enables_doc=$enableval
@@ -2233,17 +2230,6 @@ AC_ARG_ENABLE(wsrf_client, AC_HELP_STRING([--disable-wsrf-client], [disable buil
 AC_MSG_NOTICE([WSRF client tool enabled: $enables_wsrf_client])
 AM_CONDITIONAL([WSRF_CLIENT_ENABLED],[test "x$enables_wsrf_client" = "xyes"])
 
-AC_ARG_ENABLE(cache_client, AC_HELP_STRING([--disable-cache-client], [disable building client tools for cache service.]),
-  [enables_cache_client=$enableval],[])
-if test "$enables_cache_client" = "yes"; then
-  if test "x$enables_python" != "xyes"; then
-    enables_cache_client="no"
-    AC_MSG_NOTICE([Cache client requires python - disabling])
-  fi
-fi
-AC_MSG_NOTICE([Cache client tool enabled: $enables_cache_client])
-AM_CONDITIONAL([CACHE_CLIENT_ENABLED],[test "x$enables_cache_client" = "xyes"])
-
 AC_ARG_ENABLE(unicore_client, AC_HELP_STRING([--enable-unicore-client], [enables building UNICORE-related plugins.]),
   [enables_unicore_client=$enableval],[])
 AC_MSG_NOTICE([UNICORE plugin(s) enabled: $enables_unicore_client])
@@ -2267,7 +2253,7 @@ if test "$enables_hed" = "no"; then
           "$enables_jura_client" = "yes" -o \
           "$enables_saml_client" = "yes" -o \
           "$enables_wsrf_client" = "yes" -o \
-          "$enables_cache_client" = "yes"; then
+          ; then
     AC_MSG_ERROR(HED is needed for building any of the client or service tools. Please enable HED by using --enable-hed.)
   fi
 fi
@@ -2601,7 +2587,6 @@ AC_CONFIG_FILES([Makefile
                  src/clients/compute/arctest.1
                  src/clients/wsrf/arcwsrf.1
                  src/clients/wsrf/Makefile
-                 src/clients/cache/Makefile
                  src/tests/Makefile
                  src/tests/echo/Makefile
                  src/tests/echo/perftest.1
@@ -2692,7 +2677,6 @@ ECHO client:        ${enables_echo_client}
 JURA client:        ${enables_jura_client}
 SAML VOMS client:   ${enables_saml_client}
 WSRF client:        ${enables_wsrf_client}
-CACHE client:       ${enables_cache_client}
 
 UNICORE client (ACC): ${enables_unicore_client}
 EMI ES client (ACC): ${enables_emies_client}
