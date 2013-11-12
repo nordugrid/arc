@@ -432,10 +432,11 @@ namespace Arc
       }
     
     //Headnode
-    if (find("headnode")!=end())
+    /* Unhandled UR element by SGAS
+     if (find("headnode")!=end())
       {
         ur.NewChild("Headnode")=(*this)["headnode"];
-      }
+      }*/
 
     //Queue
     if (find("queue")!=end())
