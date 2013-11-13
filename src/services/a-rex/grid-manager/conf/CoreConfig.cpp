@@ -245,66 +245,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       }
       if (config.max_jobs_total < 0) config.max_jobs_total = -1;
     }
-    else if (command == "maxload") { // maximum number of jobs staging on frontend
-      std::string max_jobs_s = config_next_arg(rest);
-      if (max_jobs_s.empty()) continue;
-      if (!Arc::stringto(max_jobs_s, config.max_jobs_staging)) {
-        logger.msg(Arc::ERROR, "Wrong number in maxload: %s", max_jobs_s); return false;
-      }
-      if (config.max_jobs_staging < 0) config.max_jobs_staging = -1;
-
-      max_jobs_s = config_next_arg(rest);
-      if (max_jobs_s.empty()) continue;
-      if (!Arc::stringto(max_jobs_s, config.max_jobs_staging_emergency)) {
-        logger.msg(Arc::ERROR, "Wrong number in maxload: %s", max_jobs_s); return false;
-      }
-      if (config.max_jobs_staging_emergency < 0) config.max_jobs_staging_emergency = -1;
-
-      max_jobs_s = config_next_arg(rest);
-      if (max_jobs_s.empty()) continue;
-      if (!Arc::stringto(max_jobs_s, config.max_downloads)) {
-        logger.msg(Arc::ERROR, "Wrong number in maxload: %s", max_jobs_s); return false;
-      }
-      if (config.max_downloads < 0) config.max_downloads = -1;
-    }
-    else if (command == "maxloadshare") {
-      std::string max_share_s = config_next_arg(rest);
-      unsigned int max_share = 0;
-      if (!Arc::stringto(max_share_s, max_share) || max_share == 0) {
-        logger.msg(Arc::ERROR, "Wrong number in maxloadshare: %s", max_share_s); return false;
-      }
-      config.max_staging_share = max_share;
-      std::string transfer_share = config_next_arg(rest);
-      if (transfer_share.empty()) {
-        logger.msg(Arc::ERROR, "The type of share is not set in maxloadshare"); return false;
-      }
-      config.share_type = transfer_share;
-    }
-    else if (command == "share_limit") {
-      if (config.max_staging_share == 0) {
-        logger.msg(Arc::ERROR, "share_limit should be located after maxloadshare"); return false;
-      }
-      std::string share_name = config_next_arg(rest);
-      std::string share_limit_s = config_next_arg(rest);
-      std::string temp = config_next_arg(rest);
-      while (temp.length() != 0) {
-        share_name.append(" ");
-        share_name.append(share_limit_s);
-        share_limit_s = temp;
-        temp = config_next_arg(rest);
-      }
-      if (share_name.empty()) {
-        logger.msg(Arc::ERROR, "The name of share is not set in share_limit"); return false;
-      }
-      unsigned int share_limit = 0;
-      if (share_limit_s.length() != 0) {
-        if (!Arc::stringto(share_limit_s, share_limit) || share_limit == 0) {
-          logger.msg(Arc::ERROR, "Wrong number in share_limit: %s", share_limit); return false;
-        }
-      }
-      if (share_limit == 0) share_limit = config.max_staging_share;
-      config.limited_share[share_name] = share_limit;
-    }
     else if (command == "speedcontrol") {
       std::string speed_s = config_next_arg(rest);
       if (!Arc::stringto(speed_s, config.min_speed)) {
@@ -407,12 +347,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
     else if (command == "preferredpattern") {
       std::string preferred_pattern = config_next_arg(rest);
       config.preferred_pattern = preferred_pattern;
-    }
-    else if (command == "newdatastaging" || command == "enable_dtr") {
-      if (command == "newdatastaging") {
-        logger.msg(Arc::WARNING, "'newdatastaging' configuration option is deprecated, 'enable_dtr' should be used instead");
-      }
-      if (!CheckYesNoCommand(config.use_dtr, command, rest)) return false;
     }
     else if (command == "fixdirectories") {
       std::string s = config_next_arg(rest);
@@ -610,7 +544,6 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
 
   /*
   dataTransfer
-    enableDTR
     secureTransfer
     passiveTransfer
     localTransfer
@@ -632,8 +565,6 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
       TCPPortRange
       UDPPortRange
     httpProxy
-    deliveryService
-    localDelivery
   */
   tmp_node = cfg["dataTransfer"];
   if (tmp_node) {
@@ -647,7 +578,6 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     if (!elementtobool(tmp_node, "passiveTransfer", config.use_passive_transfer, &logger)) return false;
     if (!elementtobool(tmp_node, "secureTransfer", config.use_secure_transfer, &logger)) return false;
     if (!elementtobool(tmp_node, "localTransfer", config.use_local_transfer, &logger)) return false;
-    if (!elementtobool(tmp_node, "enableDTR", config.use_dtr, &logger)) return false;
     if (!elementtoint(tmp_node, "maxRetries", config.max_retries, &logger)) return false;
     if (tmp_node["preferredPattern"]) config.preferred_pattern = (std::string)(tmp_node["preferredPattern"]);
   }

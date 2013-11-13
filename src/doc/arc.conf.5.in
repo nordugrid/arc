@@ -886,10 +886,10 @@ cachecleantimeout="10000"
 .TP
 .B enable_cache_service
 enable_cache_service yes|no - Turn on or off the cache service interface.
-If turned on the cache service must be installed, the A-REX WS interface
-must be enabled via arex_mount_point and the option enable_dtr="yes"
-must be set. The interface is accessible at the same host and port as given
-in arex_mount_point with path /cacheservice. Default is off.
+If turned on the cache service must be installed and the A-REX WS interface
+must be enabled via arex_mount_point. The interface is accessible at the same
+host and port as given inn arex_mount_point with path /cacheservice. Default
+is off.
 
 .IR Example:
 .br
@@ -1083,64 +1083,6 @@ Missing number or -1 means no limit.
 .IR Example:
 .br
 maxjobs="10000 10 2000"
-
-.TP
-.B maxload
-maxload number1 number2 number3 - specifies maximum allowed number of jobs.
- number1 - jobs being processed on frontend (PREPARING, FINISHING states)
- number2 - additional reserved number of jobs being processed on frontend
- number3 - number of files being transferred simultaneously by jobs in
-PREPARING and FINISHING states.
-
-Missing number or -1 means no limit.
-Options in [data-staging] should be used instead of this unless DTR is 
-disabled with enable_dtr=no
-
-.IR Example:
-.br
-maxload="10 2 5"
-
-.TP
-.B maxloadshare
-maxloadshare maxshare sharetype - specifies a sharing mechanism for data
-transfer. maxshare is the maximum number of processes
-that can run per transfer share and sharetype is the scheme
-used to assign jobs to transfer shares. Possible values of sharetype
-are "dn", "voms:vo", "voms:role", and "voms:group".
-
-Options in [data-staging] should be used instead of this unless DTR is 
-disabled with enable_dtr=no
-
-.IR Example:
-.br
-maxloadshare="4 voms:role"
-
-.TP
-.B share_limit
-share_limit name limit - specifies a transfer share that has a number
-of processes different from the default value in maxloadshare. name is
-the name of the share and limit is the number of processes for this
-share. In the configuration should appear after maxloadshare. Can be
-repeated several times for different shares.
-
-Options in [data-staging] should be used instead of this unless DTR is 
-disabled with enable_dtr=no
-
-.IR Example:
-.br
-share_limit="atlas:production 10"
-
-.TP
-.B enable_dtr
-enable_dtr yes|no - turns on and off the data staging framework Data
-Transfer Reloaded (DTR) which replaces the downloader and uploader for
-managing input and output files.
-
-Options for DTR are set in the [data-staging] section. It is on by default.
-
-.IR Example:
-.br
-enable_dtr="yes"
 
 .TP
 .B wakeupperiod
@@ -1575,8 +1517,7 @@ watchdog="no"
 
 .SH [data-staging] block 
 
-[data-staging] block configures DTR data staging parameters unless
-enable_dtr="no" is set in [grid-manager].
+[data-staging] block configures DTR data staging parameters.
 
 
 .TP
