@@ -1230,7 +1230,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_bindir}/arcsub
 %{_bindir}/arcsync
 %{_bindir}/arctest
-%{_bindir}/ngclient2arc
 %config(noreplace) %{_sysconfdir}/%{pkgdir}/client.conf
 %doc %{_mandir}/man1/arcacl.1*
 %doc %{_mandir}/man1/arccat.1*
@@ -1254,7 +1253,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/arcsub.1*
 %doc %{_mandir}/man1/arcsync.1*
 %doc %{_mandir}/man1/arctest.1*
-%doc %{_mandir}/man1/ngclient2arc.1*
 
 %files hed
 %defattr(-,root,root,-)

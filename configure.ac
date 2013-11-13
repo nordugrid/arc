@@ -2606,7 +2606,6 @@ AC_CONFIG_FILES([Makefile
                  src/tests/perf/Makefile
                  src/tests/perf/arcperftest.1
                  src/tests/client/Makefile
-                 src/utils/ngclient2arc.1
                  src/utils/hed/wsdl2hed.1
                  src/utils/hed/arcplugin.1
                  src/utils/hed/Makefile

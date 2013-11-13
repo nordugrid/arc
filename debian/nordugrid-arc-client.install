@@ -20,7 +20,6 @@ debian/tmp/usr/bin/arcstat
 debian/tmp/usr/bin/arcsub
 debian/tmp/usr/bin/arcsync
 debian/tmp/usr/bin/arctest
-debian/tmp/usr/bin/ngclient2arc
 debian/tmp/etc/arc/client.conf
 debian/tmp/usr/share/arc/examples/client.conf
 debian/tmp/usr/share/man/man1/arcacl.1
@@ -45,4 +44,3 @@ debian/tmp/usr/share/man/man1/arcstat.1
 debian/tmp/usr/share/man/man1/arcsub.1
 debian/tmp/usr/share/man/man1/arcsync.1
 debian/tmp/usr/share/man/man1/arctest.1
-debian/tmp/usr/share/man/man1/ngclient2arc.1

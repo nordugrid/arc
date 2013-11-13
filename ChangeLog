@@ -1,4 +1,7 @@
 2013-11-13  Anders Waananen <waananen@nbi.dk>
+  * Remove the old ngclient2arc utility
+
+2013-11-13  Anders Waananen <waananen@nbi.dk>
   * Support unit tests for the alternative python 
   * Support unit tests for python 3
   * Reorganise build tree layout for python to make unit tests simpler
