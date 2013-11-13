@@ -568,8 +568,10 @@ if test "$enables_python" = "yes"; then
     PYNAME=`basename $PYTHON`
     PKG_CHECK_MODULES(PYTHON, $PYNAME, [
     PYTHON_VERSION=`$PKG_CONFIG --modversion $PYNAME`
+    PYTHON_MAJOR=`echo $PYTHON_VERSION|cut -f1 -d.`
     ],[
     PYTHON_VERSION=`$PYTHON -c 'import sys; print(sys.version[[:3]])'`
+    PYTHON_MAJOR=`$PYTHON -c 'import sys; print(sys.version_info[[0]])'`
     PYTHON_CFLAGS=-I`$PYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_inc())'`
     PY_LIBS=`$PYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('LIBS'))" | sed s/None//`
     PY_SYSLIBS=`$PYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('SYSLIBS'))" | sed s/None//`
@@ -670,6 +672,7 @@ AC_MSG_NOTICE([Python enabled: $enables_python])
 AC_MSG_NOTICE([Python SWIG bindings enabled: $enables_swig_python])
 
 AM_CONDITIONAL([PYTHON_ENABLED],[test "x$enables_python" = "xyes"])
+AM_CONDITIONAL([PYTHON3], [test "x$enables_python" = "xyes" && test "x$PYTHON_MAJOR" = "x3"])
 AM_CONDITIONAL([PYTHON_SWIG_ENABLED],[test "x$enables_swig_python" = "xyes"])
 AM_CONDITIONAL([PYTHON_SERVICE],[test "x$enables_python" = "xyes" &&
                                  test "x$enables_python_service" = "xyes"])
@@ -690,8 +693,10 @@ if test "$enables_altpython" = "yes"; then
     ALTPYNAME=`basename $ALTPYTHON`
     PKG_CHECK_MODULES(ALTPYTHON, $ALTPYNAME, [
     ALTPYTHON_VERSION=`$PKG_CONFIG --modversion $ALTPYNAME`
+    ALTPYTHON_MAJOR=`echo $ALTPYTHON_VERSION|cut -f1 -d.`
     ],[
     ALTPYTHON_VERSION=`$ALTPYTHON -c 'import sys; print(sys.version[[:3]])'`
+    ALTPYTHON_MAJOR=`$ALTPYTHON -c 'import sys; print(sys.version_info[[0]])'`
     ALTPYTHON_CFLAGS=-I`$ALTPYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_inc())'`
     ALTPY_LIBS=`$ALTPYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('LIBS'))" | sed s/None//`
     ALTPY_SYSLIBS=`$ALTPYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('SYSLIBS'))" | sed s/None//`
@@ -771,6 +776,7 @@ fi
 AC_MSG_NOTICE([Alternative Python enabled: $enables_altpython])
 
 AM_CONDITIONAL([ALTPYTHON_ENABLED],[test "x$enables_altpython" = "xyes"])
+AM_CONDITIONAL([ALTPYTHON3], [test "x$enables_altpython" = "xyes" && test "x$ALTPYTHON_MAJOR" = "x3"])
 
 
 # check for pylint
@@ -2616,7 +2622,13 @@ AC_CONFIG_FILES([Makefile
                  java/test/strip_test_file_name_and_run_junit
                  java/examples/Makefile
                  python/Makefile
+                 python/python/Makefile
+                 python/python/arc/Makefile
+                 python/altpython/Makefile
+                 python/altpython/arc/Makefile
                  python/test/Makefile
+                 python/test/python/Makefile
+                 python/test/altpython/Makefile
                  python/examples/Makefile
                  po/Makefile.in
                  include/Makefile

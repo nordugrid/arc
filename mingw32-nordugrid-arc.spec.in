@@ -286,7 +286,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files python
 %defattr(-,root,root,-)
-%{_mingw32_libdir}/python?.?/site-packages/arc/_arc.dll*
+%{_mingw32_libdir}/python?.?/site-packages/arc/_arc*.dll*
 %{_mingw32_libdir}/python?.?/site-packages/arc/__init__.py*
 %{_mingw32_libdir}/python?.?/site-packages/arc/common.py*
 %{_mingw32_libdir}/python?.?/site-packages/arc/loader.py*

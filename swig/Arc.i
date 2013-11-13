@@ -23,7 +23,7 @@
 %include <std_list.i>
 %include <std_set.i>
 #ifdef PYDOXYGEN
-%include "../python/pydoxygen.i"
+%include "pydoxygen.i"
 #endif
 
 namespace Arc {

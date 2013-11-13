@@ -1,3 +1,10 @@
+2013-11-13  Anders Waananen <waananen@nbi.dk>
+  * Support unit tests for the alternative python 
+  * Support unit tests for python 3
+  * Reorganise build tree layout for python to make unit tests simpler
+  * Add -py3 option to swig if using python3
+  * Move python shared library (_arc.*) to <site-packages>
+
 2013-11-13  David Cameron <d.g.cameron@fys.uio.no>
   * Remove option to use old downloader and uploader for data staging
 

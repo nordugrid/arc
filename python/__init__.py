@@ -1,5 +1,5 @@
 # Import/initialise all the swig modules (low level wrappers)
-from arc import _arc
+import _arc
 
 # Import the high level wrappers (proxy classes) into this namespace
 from arc.common import *

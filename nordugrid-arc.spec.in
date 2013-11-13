@@ -1532,6 +1532,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %files python
 %defattr(-,root,root,-)
 %doc docdir/python/*
+%{python_sitearch}/_arc.@PYTHON_SOABI@*so
 %{python_sitearch}/arc
 %{python_sitelib}/echo_python
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
@@ -1549,6 +1550,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %if %{?fedora}%{!?fedora:0} >= 13
 %files python3
 %defattr(-,root,root,-)
+%{python3_sitearch}/_arc.@ALTPYTHON_SOABI@*so
 %{python3_sitearch}/arc
 %endif
 
