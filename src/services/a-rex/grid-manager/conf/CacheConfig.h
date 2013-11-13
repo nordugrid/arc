@@ -1,6 +1,7 @@
 #ifndef __GM_CONFIG_CACHE_H__
 #define __GM_CONFIG_CACHE_H__
 
+#include <arc/ArcRegex.h>
 #include <arc/User.h>
 #include <arc/XMLNode.h>
 
@@ -27,6 +28,13 @@ public:
  * Methods of this class may throw CacheConfigException.
  */
 class CacheConfig {
+ public:
+  /// A struct defining a URL pattern and credentials which can access it
+  struct CacheAccess {
+    Arc::RegularExpression regexp;
+    std::string cred_type;
+    std::string cred_value;
+  };
  private:
    /**
     * List of (cache dir [link dir])
@@ -58,6 +66,10 @@ class CacheConfig {
     * Timeout for cleaning process
     */
    int _clean_timeout;
+   /**
+    * List of CacheAccess structs describing who can access what URLs in cache
+    */
+   std::list<struct CacheAccess> _cache_access;
   /**
    * Parsers for the two different conf styles
    */
@@ -90,6 +102,7 @@ class CacheConfig {
   std::string getLogLevel() const { return _log_level; };
   std::string getLifeTime() const { return _lifetime; };
   int getCleanTimeout() const { return _clean_timeout; };
+  const std::list<struct CacheAccess>& getCacheAccess() const { return _cache_access; };
 };
 
 } // namespace ARex

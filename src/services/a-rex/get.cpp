@@ -331,6 +331,100 @@ static Arc::MCC_Status http_get_log(Arc::Message& outmsg,const std::string& burl
   return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
 }
 
+static bool cache_get_allowed(const std::string& url, ARexGMConfig& config, Arc::Logger& logger) {
+
+  // Extract information from credentials
+  std::string dn;              // DN of credential
+  std::string vo;              // Assuming only one VO
+  std::list<std::string> voms; // VOMS attributes
+
+  for (std::list<Arc::MessageAuth*>::const_iterator a = config.beginAuth(); a!=config.endAuth(); ++a) {
+    if (*a) {
+      Arc::SecAttr* sattr = (*a)->get("TLS");
+      if (!sattr) continue;
+      dn = sattr->get("IDENTITY");
+      vo = sattr->get("VO");
+      voms = sattr->getAll("VOMS");
+      break;
+    }
+  }
+  // At least DN should be found. VOMS info may not be present.
+  if (dn.empty()) {
+    logger.msg(Arc::ERROR, "Failed to extract credential information");
+    return false;
+  }
+  logger.msg(Arc::DEBUG, "Checking cache permissions: DN: %s", dn);
+  logger.msg(Arc::DEBUG, "Checking cache permissions: VO: %s", vo);
+  for (std::list<std::string>::const_iterator att = voms.begin(); att != voms.end(); ++att) {
+    logger.msg(Arc::DEBUG, "Checking cache permissions: VOMS attr: %s", *att);
+  }
+
+  // Cache configuration specifies URL regexps and a certificate attribute and
+  // value. Go through looking for a match.
+  for (std::list<struct CacheConfig::CacheAccess>::const_iterator access = config.GmConfig().CacheParams().getCacheAccess().begin();
+       access != config.GmConfig().CacheParams().getCacheAccess().end(); ++access) {
+    if (access->regexp.match(url)) {
+      if (Arc::lower(access->cred_type) == "dn") {
+        if (access->cred_value == dn) {
+          logger.msg(Arc::VERBOSE, "Cache access allowed to %s by DN %s", url, dn);
+          return true;
+        }
+        logger.msg(Arc::DEBUG, "DN %s doesn't match %s", dn, access->cred_value);
+      } else if (Arc::lower(access->cred_type) == "voms:vo") {
+        if (access->cred_value == vo) {
+          logger.msg(Arc::VERBOSE, "Cache access allowed to %s by VO %s", url, vo);
+          return true;
+        }
+        logger.msg(Arc::DEBUG, "VO %s doesn't match %s", vo, access->cred_value);
+      } else if (Arc::lower(access->cred_type) == "voms:role") {
+        // Get the configured allowed role
+        std::vector<std::string> role_parts;
+        Arc::tokenize(access->cred_value, role_parts, ":");
+        if (role_parts.size() != 2) {
+          logger.msg(Arc::WARNING, "Bad credential value %s in cache access rules", access->cred_value);
+          continue;
+        }
+        std::string cred_vo = role_parts[0];
+        std::string cred_role = role_parts[1];
+        std::string allowed_role("/VO="+cred_vo+"/Group="+cred_vo+"/Role="+cred_role);
+        for (std::list<std::string>::const_iterator attr = voms.begin(); attr != voms.end(); ++attr) {
+          if (*attr == allowed_role) {
+            logger.msg(Arc::DEBUG, "VOMS attr %s matches %s", *attr, allowed_role);
+            logger.msg(Arc::VERBOSE, "Cache access allowed to %s by VO %s and role %s", url, cred_vo, cred_role);
+            return true;
+          }
+          logger.msg(Arc::DEBUG, "VOMS attr %s doesn't match %s", *attr, allowed_role);
+        }
+      } else if (Arc::lower(access->cred_type) == "voms:group") {
+        // Get the configured allowed group
+        std::vector<std::string> group_parts;
+        Arc::tokenize(access->cred_value, group_parts, ":");
+        if (group_parts.size() != 2) {
+          logger.msg(Arc::WARNING, "Bad credential value %s in cache access rules", access->cred_value);
+          continue;
+        }
+        std::string cred_vo = group_parts[0];
+        std::string cred_group = group_parts[1];
+        std::string allowed_group("/VO="+cred_vo+"/Group="+cred_vo+"/Group="+cred_group);
+        for (std::list<std::string>::const_iterator attr = voms.begin(); attr != voms.end(); ++attr) {
+          if (*attr == allowed_group) {
+            logger.msg(Arc::DEBUG, "VOMS attr %s matches %s", *attr, allowed_group);
+            logger.msg(Arc::VERBOSE, "Cache access allowed to %s by VO %s and group %s", url, cred_vo, cred_group);
+            return true;
+          }
+          logger.msg(Arc::DEBUG, "VOMS attr %s doesn't match %s", *attr, allowed_group);
+        }
+      } else {
+        logger.msg(Arc::WARNING, "Unknown credential type %s for URL pattern %s", access->cred_type, access->regexp.getPattern());
+      }
+    }
+  }
+
+  // If we get to here no match was found
+  logger.msg(Arc::VERBOSE, "No match found in cache access rules for %s", url);
+  return false;
+}
+
 static Arc::MCC_Status cache_get(Arc::Message& outmsg, const std::string& subpath, off_t range_start, off_t range_end, ARexGMConfig& config, Arc::Logger& logger) {
 
   // subpath contains the URL, which can be encoded. Constructing a URL
@@ -344,9 +438,11 @@ static Arc::MCC_Status cache_get(Arc::Message& outmsg, const std::string& subpat
     return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
   }
   // Security check. The access is configured in arc.conf like
-  // cache_access="lfc://prod-lfc-atlas.cern.ch/grid/atlas* vo:atlas"
+  // cache_access="lfc://prod-lfc-atlas.cern.ch/grid/atlas* voms:vo atlas"
   // then the url is compared to the certificate attribute specified
-  // Arc::Credential cred;
+  if (!cache_get_allowed(cacheurl.str(), config, logger)) {
+    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+  }
 
   Arc::FileCache cache(config.GmConfig().CacheParams().getCacheDirs(),
                        config.GmConfig().CacheParams().getRemoteCacheDirs(),

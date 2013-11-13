@@ -205,6 +205,22 @@ void CacheConfig::parseINIConf(ConfigSections& cf) {
       if(!Arc::stringto(timeout, _clean_timeout))
         throw CacheConfigException("bad number in cachecleantimeout parameter");
     }
+    else if (command == "cacheaccess") {
+      Arc::RegularExpression regexp(config_next_arg(rest));
+      if (!regexp.isOk()) throw CacheConfigException("Bad regexp " + regexp.getPattern() + " in cacheaccess");
+
+      std::string cred_type(config_next_arg(rest));
+      if (cred_type.empty()) throw CacheConfigException("Missing credential type in cacheaccess");
+
+      std::string cred_value(rest);
+      if (cred_value.empty()) throw CacheConfigException("Missing credential value in cacheaccess");
+
+      struct CacheAccess ca;
+      ca.regexp = regexp;
+      ca.cred_type = cred_type;
+      ca.cred_value = cred_value;
+      _cache_access.push_back(ca);
+    }
   }
 }
 
