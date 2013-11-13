@@ -1,3 +1,6 @@
+2013-11-13  David Cameron <d.g.cameron@fys.uio.no>
+  * Remove option to use old downloader and uploader for data staging
+
 2013-11-12  Anders Waananen <waananen@nbi.dk>
   * Remove the HED cache client
 
