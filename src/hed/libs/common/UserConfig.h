@@ -141,7 +141,6 @@ namespace Arc {
    * - verbosity / Verbosity(const std::string&)
    * - brokername / Broker(const std::string&) or Broker(const std::string&, const std::string&)
    * - brokerarguments / Broker(const std::string&) or Broker(const std::string&, const std::string&)
-   * - bartender / Bartender(const std::list<URL>&)
    * - vomsserverpath / VOMSESPath(const std::string&)
    * - username / UserName(const std::string&)
    * - password / Password(const std::string&)
@@ -603,38 +602,6 @@ namespace Arc {
      * @see DEFAULT_BROKER
      **/
     const std::pair<std::string, std::string>& Broker() const { return broker; }
-
-    /// Set bartenders, used to contact Chelonia
-    /**
-     * Takes as input a vector of Bartender URLs.
-     *
-     * The attribute associated with this setter method is 'bartender'.
-     *
-     * @param urls is a list of URL object to be set as bartenders.
-     * @return This method always returns \c true.
-     * @see AddBartender(const URL&)
-     * @see Bartender() const
-     **/
-    bool Bartender(const std::vector<URL>& urls) { bartenders = urls; return true; }
-    /// Set bartenders, used to contact Chelonia
-    /**
-     * Takes as input a Bartender URL and adds this to the list of
-     * bartenders.
-     *
-     * @param url is a URL to be added to the list of bartenders.
-     * @see Bartender(const std::list<URL>&)
-     * @see Bartender() const
-     **/
-    void AddBartender(const URL& url) { bartenders.push_back(url); }
-    /// Get bartenders
-    /**
-     * Returns a list of Bartender URLs
-     *
-     * @return The list of bartender URL objects is returned.
-     * @see Bartender(const std::list<URL>&)
-     * @see AddBartender(const URL&)
-     **/
-    const std::vector<URL>& Bartender() const { return bartenders; }
 
     /// Set path to file containing VOMS configuration
     /**
@@ -1302,9 +1269,6 @@ namespace Arc {
     std::map<std::string, std::list<ConfigEndpoint> > groupMap;
     std::list<std::string> rejectDiscoveryURLs;
     std::list<std::string> rejectManagementURLs;
-
-    // Vector needed for random access.
-    std::vector<URL> bartenders;
 
     std::string credentialString;
     std::string proxyPath;

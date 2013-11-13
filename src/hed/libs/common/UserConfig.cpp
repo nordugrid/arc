@@ -713,23 +713,6 @@ namespace Arc {
             logger.msg(WARNING, "The brokerarguments attribute can only be used in conjunction with the brokername attribute");
             while (common["brokerarguments"]) common["brokerarguments"].Destroy();
           }
-          if (common["bartender"]) {
-            std::list<std::string> bartendersStr;
-            tokenize(common["bartender"], bartendersStr, " \t");
-            for (std::list<std::string>::const_iterator it = bartendersStr.begin();
-                 it != bartendersStr.end(); it++) {
-              URL bartenderURL(*it);
-              if (!bartenderURL)
-                logger.msg(WARNING, "Could not convert the bartender attribute value (%s) to an URL instance in configuration file (%s)", *it, conffile);
-              else
-                bartenders.push_back(bartenderURL);
-            }
-            common["bartender"].Destroy();
-            if (common["bartender"]) {
-              logger.msg(WARNING, "Multiple %s attributes in configuration file (%s)", "bartender", conffile);
-              while (common["bartender"]) common["bartender"].Destroy();
-            }
-          }
           HANDLESTRATT("vomsespath", VOMSESPath)
           HANDLESTRATT("username", UserName)
           HANDLESTRATT("password", Password)
@@ -907,14 +890,6 @@ namespace Arc {
       file << "brokername = " << broker.first << std::endl;
       if (!broker.second.empty())
         file << "brokerarguments = " << broker.second << std::endl;
-    }
-    if (!bartenders.empty()) {
-      file << "bartender =";
-      for (std::vector<URL>::const_iterator it = bartenders.begin();
-           it != bartenders.end(); it++) {
-        file << " " << it->fullstr();
-      }
-      file << std::endl;
     }
     if (!vomsesPath.empty())
       file << "vomsespath = " << vomsesPath << std::endl;
