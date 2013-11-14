@@ -884,6 +884,27 @@ increased to allow the cleaning to complete. Defaults to 3600 (1 hour).
 cachecleantimeout="10000"
 
 .TP
+.B cacheaccess
+cacheaccess rule - rules for allowing access to files in the cache remotely
+through the A-REX web interface. A rule has three parts:
+ 1. Regular expression defining a URL pattern
+ 2. Credential attribute to match against a client's credential
+ 3. Credential value to match against a client's credential
+A client is allowed to access the cached file if a URL pattern matches the
+cached file URL and the client's credential has the attribute and value
+required for that pattern. Possible values for credential attribute are dn,
+voms:vo, voms:role and voms:group. Remote cache access requires that the
+A-REX web interface is enabled via arex_mount_point.
+
+.IR Examples:
+.br
+cacheaccess="lfc://lfc.myvo.org/.* voms:vo myvo"
+.br
+cacheaccess="gsiftp://host.org/private/data/.* voms:vo myvo:production"
+.br
+cacheaccess="gsiftp://host.org/private/data/bob/.* dn /O=Grid/CN=Bob"
+
+.TP
 .B enable_cache_service
 enable_cache_service yes|no - Turn on or off the cache service interface.
 If turned on the cache service must be installed and the A-REX WS interface
