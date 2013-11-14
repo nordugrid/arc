@@ -57,6 +57,7 @@ class ARexService: public Arc::Service {
  private:
   static void gm_threads_starter(void* arg);
   void gm_threads_starter();
+  Arc::MCC_Status cache_get(Arc::Message& outmsg, const std::string& subpath, off_t range_start, off_t range_end, ARexGMConfig& config);
  protected:
   Arc::ThreadRegistry thread_count_;
   Arc::NS ns_;

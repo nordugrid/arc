@@ -420,8 +420,8 @@ Arc::MCC_Status ARexService::make_http_fault(Arc::Message& outmsg,int code,const
   Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
   outmsg.Payload(outpayload);
   outmsg.Attributes()->set("HTTP:CODE",Arc::tostring(code));
-  if(resp) outmsg.Attributes()->set("HTTP:RESPONSE",resp);
-  return Arc::MCC_Status(Arc::STATUS_OK);
+  if(resp) outmsg.Attributes()->set("HTTP:REASON",resp);
+  return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
 }
 
 Arc::MCC_Status ARexService::make_fault(Arc::Message& /*outmsg*/) {

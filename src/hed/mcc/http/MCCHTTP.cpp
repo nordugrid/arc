@@ -275,8 +275,12 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   if(!ret) {
     if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
     logger.msg(WARNING, "next element of the chain returned error status");
-    return make_http_fault(logger,nextpayload,*inpayload,outmsg,
-           (ret.getKind() == UNKNOWN_SERVICE_ERROR)?HTTP_NOT_FOUND:HTTP_INTERNAL_ERR);
+    int http_code = (ret.getKind() == UNKNOWN_SERVICE_ERROR)?HTTP_NOT_FOUND:HTTP_INTERNAL_ERR;
+    // Check if next chain provided error code and reason
+    std::string http_code_s = nextoutmsg.Attributes()->get("HTTP:CODE");
+    std::string http_resp = nextoutmsg.Attributes()->get("HTTP:REASON");
+    if (!http_code_s.empty()) stringto(http_code_s, http_code);
+    return make_http_fault(logger,nextpayload,*inpayload,outmsg,http_code,http_resp.c_str());
   }
   if(!nextoutmsg.Payload()) {
     logger.msg(WARNING, "next element of the chain returned no payload");
