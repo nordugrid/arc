@@ -10,6 +10,7 @@
 
 #include "jura.h"
 #include "Destination.h"
+#include <arc/StringConv.h>
 #include <arc/Utils.h>
 
 namespace Arc
@@ -328,7 +329,7 @@ namespace Arc
 
         // NumberOfJobs
         std::ostringstream nrofjobs;
-        nrofjobs << ((int)node["NumberOfJobs"])+1;
+        nrofjobs << stringtoi(((std::string)node["NumberOfJobs"]))+1;
         node["NumberOfJobs"] =  nrofjobs.str();
 
         //node.NewChild("Memory");
