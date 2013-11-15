@@ -24,7 +24,7 @@ arctest_LDADD    = $(CLILIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(D
 
 arcget_SOURCES  = arcget.cpp utils.cpp utils.h
 arcget_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $($(AM_CXXFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
 arcget_LDADD    = $(CLILIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(DBCXX_LIBS)
 
 arcstat_SOURCES  = arcstat.cpp utils.cpp utils.h
