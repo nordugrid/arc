@@ -1348,8 +1348,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libexecdir}/%{pkgdir}/uploader
 %{_libexecdir}/%{pkgdir}/inputcheck
 %{_libexecdir}/%{pkgdir}/arc-vomsac-check
-%{_libexecdir}/%{pkgdir}/arc-ur-logger
-%{_libexecdir}/%{pkgdir}/arc-ur-registrant
 %{_libexecdir}/%{pkgdir}/arc-config-check
 %{_datadir}/%{pkgdir}/cancel-*-job
 %{_datadir}/%{pkgdir}/scan-*-job

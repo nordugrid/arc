@@ -1,3 +1,6 @@
+2013-11-15  Anders Waananen <waananen@nbi.dk>
+  * Remove the arc-ur-logger since jura is now a drop-in replacement
+
 2013-11-13  Anders Waananen <waananen@nbi.dk>
   * Remove the old ngclient2arc utility
 
