@@ -1,5 +1,4 @@
-pythondir = $(PYTHON_SITE_LIB)/echo_python
+exampledir = $(pkgdatadir)/examples/sdk
+example_DATA = README EchoService.py __init__.py schema/echo_python.xsd
 
-python_DATA = EchoService.py __init__.py
-
-EXTRA_DIST = $(python_DATA)
+EXTRA_DIST = $(example_DATA)
