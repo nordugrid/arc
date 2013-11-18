@@ -22,12 +22,28 @@ AM_CPPFLAGS = -DWIN32 -DWINNT
 endif
 
 if PYDOXYGEN
-PYDOXFLAGS   = -I$(top_srcdir)/python -DPYDOXYGEN
-PYDOXFILE    = $(top_srcdir)/python/pydoxygen.i
+PYDOXFLAGS   = -DPYDOXYGEN
+PYDOXFILE    = pydoxygen.i
 else
 PYDOXFLAGS   =
 PYDOXFILE    =
 endif
+
+# Only remake index.xml if it is unavailable.
+# It really depends on Doxyfile.api, but this file changes whenever
+# configure is run, and we do not want to remake index.xml all
+# the time since doxygen is currently not required to be present.
+#index.xml: $(top_srcdir)/python/Doxyfile.api
+index.xml:
+	$(DOXYGEN) $(top_srcdir)/python/Doxyfile.api
+	cp -p api/xml/index.xml $@
+	rm -rf api
+
+pydoxygen.i: index.xml
+	$(PYTHON) $(top_srcdir)/python/doxy2swig.py $< $@
+
+EXTRA_DIST = index.xml
+MAINTAINERCLEANFILES = index.xml
 
 if DBJSTORE_ENABLED
 SWIG_IS_DBJSTORE_ENABLED = -DDBJSTORE_ENABLED
@@ -57,7 +73,7 @@ _arc_la_LIBADD = \
         $(ARCLIBS) $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(PYTHON_LIBS) $(ZLIB_LIBS) $(DBCXX_LIBS)
 _arc_la_LDFLAGS = -no-undefined -avoid-version -module
 
-CLEANFILES = $(ARCWRAPPERS) $(ARCPYLIBS) $(BUILT_SOURCES) api Doxyfile.api $(ARCPYLIBS:.py=.pyc)
+CLEANFILES = $(ARCWRAPPERS) $(ARCPYLIBS) $(BUILT_SOURCES) pydoxygen.i $(ARCPYLIBS:.py=.pyc)
 
 clean-local:
 	-rm -rf __pycache__

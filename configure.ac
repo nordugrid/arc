@@ -2049,7 +2049,8 @@ AC_ARG_ENABLE(doc, AC_HELP_STRING([--disable-doc], [disable building documentati
 AC_MSG_NOTICE([Documentation enabled: $enables_doc])
 AM_CONDITIONAL([DOC_ENABLED],[test "x$enables_doc" = "xyes"])
 
-AM_CONDITIONAL([PYDOXYGEN],[test -f python/pydoxygen.i -o "x$DOXYGEN" != "x"])
+AM_CONDITIONAL([PYDOXYGEN],[test -f python/python/arc/index.xml -o "x$DOXYGEN" != "x"])
+AM_CONDITIONAL([ALTPYDOXYGEN],[test -f python/altpython/arc/index.xml -o "x$DOXYGEN" != "x"])
 
 # Check for explicitely and implicitely disabled services
 if test "x$WIN32" = "xyes" ; then
@@ -2620,6 +2621,7 @@ AC_CONFIG_FILES([Makefile
                  java/test/strip_test_file_name_and_run_junit
                  java/examples/Makefile
                  python/Makefile
+                 python/Doxyfile.api
                  python/python/Makefile
                  python/python/arc/Makefile
                  python/altpython/Makefile
