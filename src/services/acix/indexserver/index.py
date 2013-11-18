@@ -48,18 +48,20 @@ class CacheIndex(service.Service):
 
     def _updateCache(self, result, url):
 
-        hashes, cache_time, cache = result
+        hashes, cache_time, cache, cache_url = result
 
-        host = urlparse.urlparse(url).netloc
-        if ':' in host:
-            host = host.split(':')[0]
-
+        if not cache_url:
+            host = urlparse.urlparse(url).netloc
+            if ':' in host:
+                host = host.split(':')[0]
+            cache_url = host
+            
         try:
             size = len(cache) * 8
-            self.filters[host] = bloomfilter.BloomFilter(size=size, bits=cache, hashes=hashes)
+            self.filters[cache_url] = bloomfilter.BloomFilter(size=size, bits=cache, hashes=hashes)
         except Exception, e:
             log.err(e)
-        log.msg("New cache added for " + host)
+        log.msg("New cache added for " + cache_url)
 
 
     def _failedCacheRetrieval(self, failure, url):

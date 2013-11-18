@@ -36,7 +36,7 @@ class CacheResourceTest(unittest.TestCase):
 
         scanner = TestScanner(TEST_URLS1)
 
-        self.cs = cache.Cache(scanner, 10000, 60)
+        self.cs = cache.Cache(scanner, 10000, 60, '')
         cr = cacheresource.CacheResource(self.cs)
 
         siteroot = resource.Resource()
@@ -59,7 +59,7 @@ class CacheResourceTest(unittest.TestCase):
     @defer.inlineCallbacks
     def testCacheRetrieval(self):
 
-        hashes, cache_time, cache = yield cacheclient.retrieveCache(self.cache_url)
+        hashes, cache_time, cache, cache_url = yield cacheclient.retrieveCache(self.cache_url)
 
         size = len(cache) * 8
         bf = bloomfilter.BloomFilter(size, bits=cache, hashes=hashes)

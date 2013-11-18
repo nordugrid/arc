@@ -52,8 +52,8 @@ class SystemTest(unittest.TestCase):
         scanner1 = TestScanner(TEST_URLS1)
         scanner2 = TestScanner(TEST_URLS2)
 
-        self.cs1 = cache.Cache(scanner1, 10000, 60)
-        self.cs2 = cache.Cache(scanner2, 10000, 60)
+        self.cs1 = cache.Cache(scanner1, 10000, 60, '')
+        self.cs2 = cache.Cache(scanner2, 10000, 60, 'http://127.0.0.1/arex/cache')
         self.idx = index.CacheIndex(self.cache_urls)
 
         cr1 = cacheresource.CacheResource(self.cs1)
@@ -112,7 +112,7 @@ class SystemTest(unittest.TestCase):
         locations = result[urls2[0]]
         self.failUnlessEqual(len(locations), 2)
         self.failUnlessIn(u'localhost', locations)
-        self.failUnlessIn(u'127.0.0.1', locations)
+        self.failUnlessIn(u'http://127.0.0.1/arex/cache', locations)
 
         urls3 = [ 'srm://host/no_such_file' ]
         result = yield indexclient.queryIndex(self.index_url, urls3)
@@ -123,5 +123,5 @@ class SystemTest(unittest.TestCase):
         result = yield indexclient.queryIndex(self.index_url, urls4)
         self.failUnlessIn(urls4[0], result)
         locations = result[urls4[0]]
-        self.failUnlessEqual(locations, [u'127.0.0.1'])
+        self.failUnlessEqual(locations, [u'http://127.0.0.1/arex/cache'])
 

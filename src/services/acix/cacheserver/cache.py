@@ -27,11 +27,12 @@ class _Counter:
 
 class Cache(service.Service):
 
-    def __init__(self, scanner, capacity, refresh_interval):
+    def __init__(self, scanner, capacity, refresh_interval, cache_url):
 
         self.scanner = scanner
         self.capacity = capacity
         self.refresh_interval = refresh_interval
+        self.cache_url = cache_url
 
         self.cache_task = task.LoopingCall(self.renewCache)
 
@@ -104,5 +105,5 @@ class Cache(service.Service):
 
     def getCache(self):
 
-        return self.generation_time, self.hashes, self.cache
+        return self.generation_time, self.hashes, self.cache, self.cache_url
 

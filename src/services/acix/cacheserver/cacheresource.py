@@ -20,13 +20,14 @@ class CacheResource(resource.Resource):
         client = request.getClient() + "/" + request.getClientIP()
         log.msg("GET request on cache from %s" % client)
 
-        gen_time, hashes, cache = self.cache_service.getCache()
+        gen_time, hashes, cache, cache_url = self.cache_service.getCache()
 
         request.setHeader('Content-type', 'application/vnd.org.ndgf.acix.bloomfilter')
         request.setHeader('Content-length', str(len(cache)))
 
         request.setHeader("x-hashes", ','.join(hashes))
         request.setHeader("x-cache-time", str(gen_time))
+        request.setHeader("x-cache-url", cache_url)
 
         return cache
 

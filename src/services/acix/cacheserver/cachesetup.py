@@ -1,3 +1,5 @@
+import os
+
 from twisted.application import internet, service
 from twisted.web import resource, server
 
@@ -12,12 +14,33 @@ CACHE_SSL_PORT = 5443
 DEFAULT_CAPACITY = 30000              # number of files in cache
 DEFAULT_CACHE_REFRESH_INTERVAL = 600  # seconds between updating cache
 
+ARC_CONF = '/etc/arc.conf'
+
+def getCacheAccessURL():
+
+    # Use cache access URL if mount point and at least one cacheaccess is defined
+    cache_url = ''
+    config = ARC_CONF
+    if 'ARC_CONFIG' in os.environ:
+        config = os.environ['ARC_CONFIG']
+    cacheaccess = False
+    for line in file(config):
+        if line.startswith('arex_mount_point'):
+            args = line.split('=', 2)[1]
+            url = args.replace('"', '').strip()
+            cache_url = url + '/cache'
+        if line.startswith('cacheaccess'):
+            cacheaccess = True
+    if not cacheaccess:
+        cache_url = ''
+    return cache_url
+
 
 def createCacheApplication(use_ssl=SSL_DEFAULT, port=None, cache_dir=None,
                            capacity=DEFAULT_CAPACITY, refresh_interval=DEFAULT_CACHE_REFRESH_INTERVAL):
 
     scanner = pscan.CacheScanner(cache_dir)
-    cs = cache.Cache(scanner, capacity, refresh_interval)
+    cs = cache.Cache(scanner, capacity, refresh_interval, getCacheAccessURL())
 
     cr = cacheresource.CacheResource(cs)
 

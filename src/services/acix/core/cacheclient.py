@@ -8,6 +8,7 @@ from twisted.web import client
 
 HEADER_HASHES = 'x-hashes'
 HEADER_CACHE_TIME = 'x-cache-time'
+HEADER_CACHE_URL = 'x-cache-url'
 
 
 
@@ -45,6 +46,11 @@ def _gotCache(result, factory, url):
     except KeyError, e:
         raise InvalidCacheReplyError(str(e))
 
+    try:
+        cache_url = factory.response_headers[HEADER_CACHE_URL][0]
+    except KeyError, e: # Site may not expose cache to outside
+        cache_url = ''
+        
     #log.msg("Raw cache headers. Hashes: %s. Cache time: %s." % (hashes, cache_time))
     assert len(hashes) == 1, "Got more than one hash header"
     assert len(cache_time) == 1, "Got more than one cache time header"
@@ -52,5 +58,5 @@ def _gotCache(result, factory, url):
     hashes = hashes[0].split(',')
     cache_time = float(cache_time[0])
 
-    return hashes, cache_time, result
+    return hashes, cache_time, result, cache_url
 

@@ -47,6 +47,10 @@ https://HOST_FQDN:5443/data/cache
 This is important as the index server pulls the cache filter from your site
 (the filter doesn't get registered automatically).
 
+If you have both arex_mount_point and at least one cacheaccess rule defined in
+arc.conf then the URL for remote cache access will be sent to the index,
+otherwise just the hostname is used.
+
 
 ACIX Index Server:
 -----------------
@@ -97,6 +101,15 @@ will do this automatically, but most http libraries won't)
 
 The result a JSON encoded datastructure with the top level structure being a
 dictionary/hash-table with the mapping: url -> [machines], where [machines] is
-a list of the machines of which the files is cached on. You should always use a
+a list of the machines on which the files are cached. You should always use a
 JSON parser to decode the result (the string might be escaped).
 
+If a machine has enabled remote cache access then a URL at which cache files
+may be accessed is shown, otherwise just the hostname is used. To access a
+cached file remotely, simply append the URL of the original file to the cache
+access endpoint and call HTTP GET (or use wget, curl, arccp,...), eg
+
+https://arex.host/arex/cache/http://www.nordugrid.org:80/data/echo.sh
+
+Some encoding of the original URL may be necessary depending on the tool you
+use.
