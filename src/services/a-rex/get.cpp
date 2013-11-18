@@ -11,8 +11,10 @@
 
 #include <glibmm.h>
 
+#include <arc/FileLock.h>
 #include <arc/FileUtils.h>
 #include <arc/StringConv.h>
+#include <arc/Utils.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/data/FileCache.h>
 #include "PayloadFile.h"
@@ -430,7 +432,7 @@ Arc::MCC_Status ARexService::cache_get(Arc::Message& outmsg, const std::string& 
   // object with encoded=true only decodes the path so have to decode first
   std::string unencoded(Arc::uri_unencode(subpath));
   Arc::URL cacheurl(unencoded);
-  logger.msg(Arc::VERBOSE, "Looking in cache for %s", cacheurl.str());
+  logger.msg(Arc::INFO, "Get from cache: Looking in cache for %s", cacheurl.str());
 
   if (!cacheurl) {
     logger.msg(Arc::ERROR, "Get from cache: Invalid URL %s", subpath);
@@ -450,29 +452,31 @@ Arc::MCC_Status ARexService::cache_get(Arc::Message& outmsg, const std::string& 
                        config.User().get_uid(),
                        config.User().get_gid());
   if (!cache) {
-    logger.msg(Arc::ERROR, "Get from cache: Error starting cache");
-    return make_http_fault(outmsg, 500, "Error starting cache");
+    logger.msg(Arc::ERROR, "Get from cache: Error in cache configuration");
+    return make_http_fault(outmsg, 500, "Error in cache configuration");
   }
-  bool available = false;
-  bool is_locked = false;
-  if (!cache.Start(cacheurl.str(), available, is_locked)) {
-    if (is_locked) return make_http_fault(outmsg, 409, "Cache file is locked");
-    logger.msg(Arc::ERROR, "Get from cache: failed to prepare cache");
-    return make_http_fault(outmsg, 500, "Error starting cache");
-  }
-  if (!available) {
-    cache.Stop(cacheurl.str());
-    logger.msg(Arc::ERROR, "Get from cache: cache file not available");
-    return make_http_fault(outmsg, 404, "File not found");
-  }
-  // Check file size against specified range
+  // Get the cache file corresponding to the URL
   std::string cache_file(cache.File(cacheurl.str()));
+  // Check if file exists
   struct stat st;
-  if (!Arc::FileStat(cache_file, &st, false)) return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
-
+  if (!Arc::FileStat(cache_file, &st, false)) {
+    if (errno == ENOENT) {
+      logger.msg(Arc::INFO, "Get from cache: File not in cache");
+      return make_http_fault(outmsg, 404, "File not found");
+    } else {
+      logger.msg(Arc::WARNING, "Get from cache: could not access cached file: %s", Arc::StrError(errno));
+      return make_http_fault(outmsg, 500, "Error accessing cached file");
+    }
+  }
   // Check file size against specified range
   if (range_start > st.st_size) range_start = st.st_size;
   if (range_end > st.st_size) range_end = st.st_size;
+
+  // Check if lockfile exists
+  if (Arc::FileStat(cache_file + Arc::FileLock::getLockSuffix(), &st, false)) {
+    logger.msg(Arc::INFO, "Get from cache: Cached file is locked");
+    return make_http_fault(outmsg, 409, "Cached file is locked");
+  }
 
   // Read the file and fill the payload
   Arc::MessagePayload* h = newFileRead(cache_file.c_str(), range_start, range_end);
