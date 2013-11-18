@@ -35,7 +35,7 @@ endif
 # the time since doxygen is currently not required to be present.
 #index.xml: $(top_srcdir)/python/Doxyfile.api
 index.xml:
-	$(DOXYGEN) $(top_srcdir)/python/Doxyfile.api
+	$(DOXYGEN) $(top_builddir)/python/Doxyfile.api
 	cp -p api/xml/index.xml $@
 	rm -rf api
 
