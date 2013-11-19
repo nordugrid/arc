@@ -313,7 +313,7 @@ for localid in ${localids[@]}; do
   	    ;;
   	NODE_FAIL)
 	    handle_commentfile $localid
-	    handle_exitcode $localid "-1" "Node fail"
+	    handle_exitcode_cancelled $localid "-1" "Node fail"
 	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
   	    ;;
     esac
