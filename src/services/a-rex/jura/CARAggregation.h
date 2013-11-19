@@ -1,19 +1,10 @@
 #ifndef CARAGGREGATION_H
 #define CARAGGREGATION_H
 
-//#include "Destination.h"
-//#include "JobLogFile.h"
-//#include <stdexcept>
-//#include <string>
-//#include <vector>
-//#include <map>
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 #include <arc/communication/ClientInterface.h>
 #include <arc/message/MCC.h>
-//#include <arc/message/MCCLoader.h>
-#include <arc/message/Message.h>
-//#include <arc/message/PayloadSOAP.h>
 
 namespace Arc
 {
@@ -39,6 +30,7 @@ namespace Arc
     /** Aggregation Record set XML */
     Arc::XMLNode aggregationrecordset;
     Arc::NS ns;
+    Arc::NS ns_query;
 
     void init(std::string _host, std::string _port, std::string _topic);
     /** Send records to the accounting server. */

@@ -40,8 +40,12 @@ namespace Arc
 
   void CARAggregation::init(std::string _host, std::string _port, std::string _topic)
   {
-    ns["car"] = "http://eu-emi.eu/namespaces/2012/11/aggregatedcomputerecord";
+    ns[""] = "http://eu-emi.eu/namespaces/2012/11/aggregatedcomputerecord";
     ns["urf"] = "http://eu-emi.eu/namespaces/2012/11/computerecord";
+    
+    ns_query["car"] = "http://eu-emi.eu/namespaces/2012/11/aggregatedcomputerecord";
+    ns_query["urf"] = "http://eu-emi.eu/namespaces/2012/11/computerecord";
+
     // Get cert, key, CA path from environment
     std::string certfile=Arc::GetEnv("X509_USER_CERT");
     std::string keyfile=Arc::GetEnv("X509_USER_KEY");
@@ -228,11 +232,11 @@ namespace Arc
     std::string query("//car:SummaryRecords/car:SummaryRecord[car:Year='");
     query += year;
     query += "' and car:Month='" + month;
-    query += "' and car:Queue='" + queue;
+    query += "' and Queue='" + queue;
     query += "']";
     logger.msg(Arc::DEBUG, "query: %s", query);
 
-    Arc::XMLNodeList list = aggregationrecordset.XPathLookup(query,ns);
+    Arc::XMLNodeList list = aggregationrecordset.XPathLookup(query,ns_query);
     logger.msg(Arc::DEBUG, "list size: %d", (int)list.size());
     /**
      * CAR aggregation record elements:
@@ -393,7 +397,7 @@ namespace Arc
     query += "']";
     logger.msg(Arc::DEBUG, "query: %s", query);
 
-    Arc::XMLNodeList list = aggregationrecordset.XPathLookup(query,ns);
+    Arc::XMLNodeList list = aggregationrecordset.XPathLookup(query,ns_query);
 
     Arc::XMLNode sendingXMLrecords(Arc::NS("","http://eu-emi.eu/namespaces/2012/11/aggregatedcomputerecord"),
                    "SummaryRecords");
@@ -478,7 +482,7 @@ namespace Arc
   {
     std::string query("//car:SummaryRecords/car:SummaryRecord");
     
-    Arc::XMLNodeList list = aggregationrecordset.XPathLookup(query,ns);
+    Arc::XMLNodeList list = aggregationrecordset.XPathLookup(query,ns_query);
 
     UpdateLastSendingDate(list);
   }
