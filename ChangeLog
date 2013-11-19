@@ -1,3 +1,6 @@
+2013-11-19  Gabor Szigeti <szigeti@niif.hu>
+  * Do not create new element in the aggregation record for every record. (fixing bug #3301)
+
 2013-11-15  Anders Waananen <waananen@nbi.dk>
   * Remove the arc-ur-logger since jura is now a drop-in replacement
 
