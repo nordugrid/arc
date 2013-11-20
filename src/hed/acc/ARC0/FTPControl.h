@@ -7,6 +7,7 @@
 #include <globus_ftp_control.h>
 
 #include <arc/URL.h>
+#include <arc/UserConfig.h>
 
 namespace Arc {
 
@@ -18,9 +19,7 @@ namespace Arc {
     FTPControl();
     ~FTPControl();
 
-    bool Connect(const URL& url, const std::string& proxyPath,
-                 const std::string& certificatePath,
-                 const std::string& keyPath, int timeout);
+    bool Connect(const URL& url, const UserConfig& uc);
     bool SendCommand(const std::string& cmd, int timeout);
     bool SendCommand(const std::string& cmd, std::string& response,
                      int timeout);

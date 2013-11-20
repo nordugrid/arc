@@ -98,9 +98,7 @@ namespace Arc {
     
     SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
-      if (!ctrl.Connect(url,
-                        usercfg.ProxyPath(), usercfg.CertificatePath(),
-                        usercfg.KeyPath(), usercfg.Timeout())) {
+      if (!ctrl.Connect(url, usercfg)) {
         logger.msg(INFO, "Submit: Failed to connect");
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
@@ -250,9 +248,7 @@ namespace Arc {
     URL url(et.ComputingEndpoint->URLString);
     
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
-      if (!ctrl.Connect(url,
-                        usercfg.ProxyPath(), usercfg.CertificatePath(),
-                        usercfg.KeyPath(), usercfg.Timeout())) {
+      if (!ctrl.Connect(url, usercfg)) {
         logger.msg(INFO, "Submit: Failed to connect");
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;

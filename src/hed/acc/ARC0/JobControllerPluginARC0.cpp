@@ -236,8 +236,7 @@ namespace Arc {
       logger.msg(VERBOSE, "Cleaning job: %s", job.JobID);
   
       FTPControl ctrl;
-      if (!ctrl.Connect(URL(job.JobID), usercfg.ProxyPath(), usercfg.CertificatePath(),
-                        usercfg.KeyPath(), usercfg.Timeout())) {
+      if (!ctrl.Connect(URL(job.JobID), usercfg)) {
         logger.msg(INFO, "Failed to connect for job cleaning");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
@@ -285,8 +284,7 @@ namespace Arc {
       logger.msg(VERBOSE, "Cancelling job: %s", job.JobID);
   
       FTPControl ctrl;
-      if (!ctrl.Connect(URL(job.JobID), usercfg.ProxyPath(), usercfg.CertificatePath(),
-                        usercfg.KeyPath(), usercfg.Timeout())) {
+      if (!ctrl.Connect(URL(job.JobID), usercfg)) {
         logger.msg(INFO, "Failed to connect for job cancelling");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
@@ -335,8 +333,7 @@ namespace Arc {
       logger.msg(VERBOSE, "Renewing credentials for job: %s", job.JobID);
   
       FTPControl ctrl;
-      if (!ctrl.Connect(URL(job.JobID), usercfg.ProxyPath(), usercfg.CertificatePath(),
-                        usercfg.KeyPath(), usercfg.Timeout())) {
+      if (!ctrl.Connect(URL(job.JobID), usercfg)) {
         logger.msg(INFO, "Failed to connect for credential renewal");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);

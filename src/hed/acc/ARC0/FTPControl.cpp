@@ -131,11 +131,9 @@ namespace Arc {
   }
 
   bool FTPControl::Connect(const URL& url,
-                           const std::string& proxyPath,
-                           const std::string& certificatePath,
-                           const std::string& keyPath,
-                           int timeout) {
+                           const UserConfig& uc) {
 
+    int timeout = uc.Timeout();
     bool timedin;
     GlobusResult result;
 
@@ -176,7 +174,7 @@ namespace Arc {
       return false;
     }
 
-    GSSCredential handle(proxyPath, certificatePath, keyPath);
+    GSSCredential handle(uc);
 
     globus_ftp_control_auth_info_t auth;
     result = globus_ftp_control_auth_info_init(&auth, handle, GLOBUS_TRUE,
