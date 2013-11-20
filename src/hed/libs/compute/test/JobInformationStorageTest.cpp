@@ -8,6 +8,7 @@
 
 #include <arc/DateTime.h>
 #include <arc/FileLock.h>
+#include <arc/FileUtils.h>
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
 #include <arc/compute/Job.h>
@@ -31,13 +32,15 @@ class JobInformationStorageTest
 
 public:
   JobInformationStorageTest();
-  void setUp() {}
-  void tearDown() { remove("jobs.dat"); }
+  void setUp();
+  void tearDown() { Arc::DirDelete(tmpdir, true); }
   void GeneralTest();
   void ReadJobsTest();
   
 private:
   Arc::XMLNode xmlJob;
+  std::string tmpdir;
+  std::string tmpfile;
 };
 
 JobInformationStorageTest::JobInformationStorageTest() : xmlJob(Arc::XMLNode("<ComputingActivity>"
@@ -110,11 +113,16 @@ JobInformationStorageTest::JobInformationStorageTest() : xmlJob(Arc::XMLNode("<C
     "</Associations>"
   "</ComputingActivity>")) {}
 
+void JobInformationStorageTest::setUp() {
+  Arc::TmpDirCreate(tmpdir);
+  tmpfile = Glib::build_filename(tmpdir, "jobs.dat");
+}
+
 void JobInformationStorageTest::GeneralTest() {
   Arc::JobInformationStorage* jis = NULL;
   for (int i = 0; Arc::JobInformationStorage::AVAILABLE_TYPES[i].name != NULL; ++i) {
     const std::string jisType = Arc::JobInformationStorage::AVAILABLE_TYPES[i].name;
-    jis = (Arc::JobInformationStorage::AVAILABLE_TYPES[i].instance)("jobs.dat");
+    jis = (Arc::JobInformationStorage::AVAILABLE_TYPES[i].instance)(tmpfile);
     JISTEST_ASSERT(jis != NULL, jisType);
     JISTEST_ASSERT(jis->IsValid(), jisType);
 
@@ -268,7 +276,7 @@ void JobInformationStorageTest::GeneralTest() {
     JISTEST_ASSERT_EQUAL((std::string)"https://ce01.niif.hu:60000/arex/job2", outJobs.front().JobID, jisType);
     JISTEST_ASSERT_EQUAL((std::string)"Job6", outJobs.back().Name, jisType);
     JISTEST_ASSERT_EQUAL((std::string)"https://ce01.niif.hu:60000/arex/job6", outJobs.back().JobID, jisType);
-    remove("jobs.dat");
+    remove(tmpfile.c_str());
     delete jis;
   }
 
@@ -278,7 +286,7 @@ void JobInformationStorageTest::ReadJobsTest() {
   Arc::JobInformationStorage* jis = NULL;
   for (int i = 0; Arc::JobInformationStorage::AVAILABLE_TYPES[i].name != NULL; ++i) {
     const std::string jisType = Arc::JobInformationStorage::AVAILABLE_TYPES[i].name;
-    jis = (Arc::JobInformationStorage::AVAILABLE_TYPES[i].instance)("jobs.dat");
+    jis = (Arc::JobInformationStorage::AVAILABLE_TYPES[i].instance)(tmpfile);
     JISTEST_ASSERT(jis != NULL, jisType);
     JISTEST_ASSERT(jis->IsValid(), jisType);
 
@@ -443,7 +451,7 @@ void JobInformationStorageTest::ReadJobsTest() {
       JISTEST_ASSERT_EQUAL((std::string)"https://ce3.grid.org/1234567890-foo-job-4", outJobs.back().JobID, jisType);
     }
     
-    remove("jobs.dat");
+    remove(tmpfile.c_str());
     delete jis;
   }
 }
