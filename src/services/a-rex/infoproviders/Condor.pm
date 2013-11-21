@@ -240,7 +240,10 @@ sub condor_queue_get_nodes() {
 sub condor_queue_get_queued() {
     my $gridqueued = 0;
     my $localqueued = 0;
-    my $qfactor = condor_queue_get_nodes() / condor_cluster_totalcpus();
+    my $qfactor = 0;
+    if(condor_cluster_totalcpus() != 0){
+        $qfactor = condor_queue_get_nodes() / condor_cluster_totalcpus();
+    }
     for (values %alljobdata) {
         my %job = %$_;
         # only include jobs which are idle or held
