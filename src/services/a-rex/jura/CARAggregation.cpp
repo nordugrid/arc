@@ -232,12 +232,18 @@ namespace Arc
     std::string query("//car:SummaryRecords/car:SummaryRecord[car:Year='");
     query += year;
     query += "' and car:Month='" + month;
+    std::string queryPrefix(query);
     query += "' and Queue='" + queue;
     query += "']";
     logger.msg(Arc::DEBUG, "query: %s", query);
 
     Arc::XMLNodeList list = aggregationrecordset.XPathLookup(query,ns_query);
     logger.msg(Arc::DEBUG, "list size: %d", (int)list.size());
+    if ( list.size() == 0 ) {
+       // When read XML from file create a namespace for the Queue element.    
+       query = queryPrefix + "' and car:Queue='" + queue + "']";
+       list = aggregationrecordset.XPathLookup(query,ns_query);
+    }
     /**
      * CAR aggregation record elements:
      *   Site*
