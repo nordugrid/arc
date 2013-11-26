@@ -153,7 +153,7 @@ sub run_rte0 {
 
         # source RTE script
 #        $script .= ". \Q$ENV{RUNTIME_CONFIG_DIR}/$r\E 0 $r_args>&2\n";
-        $script .= "\nsourcewithargs() {\n script=\$1;shift;. \$script\n } ; sourcewithargs \Q$ENV{RUNTIME_CONFIG_DIR}/$r\E 0 $r_args>&2\n";
+        $script .= "\nsourcewithargs() {\n script=\$1;shift;. \$script\n } ; sourcewithargs \Q$ENV{RUNTIME_CONFIG_DIR}/$r\E 0 $r_args >&2\n";
         $script .= "ret=\$?\n";
 
         # print joboption_* variables to stdout. First export them, then use perl for printing.
