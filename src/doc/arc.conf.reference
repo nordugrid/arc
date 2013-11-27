@@ -695,6 +695,13 @@ lrms="dgbridge"
 ## give up. Suggested value is 30 days.
 #jobreport="https://grid.uio.no:8001/logger"
 
+## jobreport_vo_filters [VO URL[,VO URL]...] - it is a filter option
+## where can be set which VO will be send to the configured jobreport server.
+## When add new URL here (that no exist in the list of jobreport) need to
+## add this URL into the jobreport element. Multiple VO's are allowed BUT
+## only just one jobreport_vo_filters is allowed.
+#jobreport_vo_filters="vo1 url1, vo2 url2"
+
 ## jobreport publisher - name of the accounting records publisher.
 #jobreport_publisher="jura"
 
