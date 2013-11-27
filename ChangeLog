@@ -1,3 +1,6 @@
+2013-11-27  Gabor Szigeti <szigeti@niif.hu>
+  * Add VO filter to the jobreporter. (fixing bug #3302)
+
 2013-11-19  Gabor Szigeti <szigeti@niif.hu>
   * Do not create new element in the aggregation record for every record. (fixing bug #3301)
 
