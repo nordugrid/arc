@@ -962,7 +962,7 @@ make -C src/tests/echo			DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-exampleD
 make -C src/hed				DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-profileDATA
 
 # arc.conf.reference needs special handling
-make -C src/doc        DESTDIR=$RPM_BUILD_ROOT                install-exampleDATA
+make -C src/doc DESTDIR=$RPM_BUILD_ROOT install-exampleDATA
 
 # Link to arc.conf.reference from doc
 ln -s %{_datadir}/%{pkgdir}/examples/arc.conf.reference $PWD/docdir/arc.conf.reference
