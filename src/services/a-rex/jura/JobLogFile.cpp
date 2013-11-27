@@ -12,6 +12,7 @@
 #include <string.h>
 #include <list>
 #include <vector>
+#include <map>
 #include <algorithm>
 
 #include <arc/Logger.h>
@@ -51,6 +52,74 @@ namespace Arc
     //parseVOMSAC(cert_str, ca_dir, "", voms_dir, voms_trust_dn, voms_attributes, true, true);
 
     return voms_attributes;
+  }
+
+  static std::string vo_filters_previous="";
+  static std::multimap<std::string,std::string> log_vo_map;
+
+  bool VOFilterCheck(std::string vo_filters, std::string voname, std::string loggerurl) {
+      bool retval=true;
+      std::multimap<std::string,std::string> local_vo_map;
+      
+      if (vo_filters == "") {
+        // Accept all messages
+        return true;
+      }
+      if (vo_filters == vo_filters_previous) {
+          // tokenized it before
+          local_vo_map=log_vo_map;
+      } else {
+         //tokenize vo_filters string to map
+          char * pairs;
+          char delimiter = ',';
+          pairs = strtok (strdup(vo_filters.c_str()), &delimiter);
+          while (pairs != NULL)
+          {
+            std::string pairStr = (std::string)pairs;
+            std::size_t  found = pairStr.find_first_of(" ");
+            // left trim
+            std::size_t firstChar = pairStr.find_first_not_of(' ');
+            if ( firstChar > found ) {
+              pairStr.erase (0,firstChar);
+            }
+            // right trim
+            pairStr.erase(pairStr.find_last_not_of(" \n\r\t")+1);
+            
+            found = pairStr.find_first_of(" ");
+            std::string vo = pairStr.substr(0,found);
+            std::string url = pairStr.substr(found+1);
+            Arc::Logger::rootLogger.msg(Arc::DEBUG,
+                   "Insert filter element: <%s,%s>",url, vo);
+            local_vo_map.insert ( std::pair<std::string,std::string>(url,vo) );
+            
+            pairs = strtok (NULL, &delimiter);
+          }
+         vo_filters_previous = vo_filters;
+         log_vo_map=local_vo_map;
+      }
+      
+      if ( local_vo_map.count(loggerurl) == 0 ) {
+          // No filter set for this logger URL
+          // Accept the record
+          Arc::Logger::rootLogger.msg(Arc::VERBOSE,
+                   "Not set filter for this URL (%s).", loggerurl);
+      } else {
+          // Contains VO filter option for this logger URL
+          bool acceptVO=false;
+          std::map<std::string,std::string>::iterator it;
+          Arc::Logger::rootLogger.msg(Arc::DEBUG,
+                   "Current job's VO name: %s", voname);
+          for (it=local_vo_map.equal_range(loggerurl).first; it!=local_vo_map.equal_range(loggerurl).second; ++it) {
+            Arc::Logger::rootLogger.msg(Arc::DEBUG,
+                   "VO filter for host: %s", it->second);
+            if ( it->second == voname ) {
+              acceptVO=true;
+              break;
+            }
+          }
+          retval = acceptVO;
+      }
+      return retval;
   }
 
   int JobLogFile::parse(const std::string& _filename)
@@ -238,6 +307,8 @@ namespace Arc
     if (find("usercert")!=end())
       {
         std::vector<Arc::VOMSACInfo> voms_attributes = ParseVOAttr((*this)["usercert"]);
+        std::string loggerurl=(*this)["loggerurl"];
+        bool needToSend = false;
         for(int n = 0; n<(int)voms_attributes.size(); ++n) {
 
             if(voms_attributes[n].attributes.size() > 0) {
@@ -247,9 +318,24 @@ namespace Arc
                 Arc::XMLNode vo=ur["UserIdentity"].NewChild("vo:VO");
                 vo.NewAttribute("vo:type")="voms";
                 
-                vo.NewChild("vo:Name")=voms_attributes[n].voname;
+                std::string voname=voms_attributes[n].voname;
+                vo.NewChild("vo:Name")=voname;
                 vo.NewChild("vo:Issuer")=voms_attributes[n].issuer;
                 
+
+                if ( find("vo_filters")!=end() ) {
+                    if ( !needToSend ) {
+                        needToSend = VOFilterCheck((*this)["vo_filters"], voname, loggerurl);
+                        if ( !needToSend ) {
+                            Arc::Logger::rootLogger.msg(Arc::DEBUG,
+                                "VO (%s) not set for this (%s) SGAS server by VO filter.",
+                                 voname, loggerurl);
+                        }
+                    }
+                } else {
+                    needToSend = true;
+                }
+
                 for(int i = 0; i < (int)voms_attributes[n].attributes.size(); i++) {
                   std::string attr = voms_attributes[n].attributes[i];
                   std::string::size_type pos;
@@ -272,6 +358,12 @@ namespace Arc
                   }
                 }
             }
+        }
+        if ( !needToSend ) {
+            Arc::Logger::rootLogger.msg(Arc::INFO,
+                 "[VO filter] Job log will be not send. %s.", filename.c_str());
+            usagerecord.Destroy();
+            return;
         }
       }
     

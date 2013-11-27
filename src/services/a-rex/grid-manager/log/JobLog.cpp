@@ -103,6 +103,7 @@ bool JobLog::RunReporter(const GMConfig &config) {
   last_run=time(NULL);
   std::string cmd = Arc::ArcLocation::GetToolsDir()+"/"+logger;
   if(ex_period) cmd += " -E " + Arc::tostring(ex_period);
+  if(!vo_filters.empty()) cmd += " -F " + vo_filters;
   cmd += " " + config.ControlDir();
   bool res = RunParallel::run(config,Arc::User(),"logger",cmd,&proc,false,false);
   return res;
@@ -110,6 +111,11 @@ bool JobLog::RunReporter(const GMConfig &config) {
 
 bool JobLog::SetLogger(const char* fname) {
   if(fname) logger = (std::string(fname));
+  return true;
+}
+
+bool JobLog::SetVoFilters(const char* filters) {
+  if(filters) vo_filters = (std::string(filters));
   return true;
 }
 

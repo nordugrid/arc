@@ -25,6 +25,7 @@ namespace Arc
    */
   UsageReporter::UsageReporter(std::string job_log_dir_, time_t expiration_time_,
                                std::vector<std::string> urls_, std::vector<std::string> topics_,
+                               std::string vo_filters_,
                                std::string out_dir_):
     logger(Arc::Logger::rootLogger, "JURA.UsageReporter"),
     dests(NULL),
@@ -32,6 +33,7 @@ namespace Arc
     expiration_time(expiration_time_),
     urls(urls_),
     topics(topics_),
+    vo_filters(vo_filters_),
     out_dir(out_dir_)
   {
     logger.msg(Arc::INFO, "Initialised, job log dir: %s",
@@ -108,6 +110,10 @@ namespace Arc
                   }
               }
 
+            if ( vo_filters != "")
+              {
+                  (*logfile)["vo_filters"] = vo_filters;
+              }
             //A. Non-interactive mode: each jlf is parsed, and if valid, 
             //   submitted to the destination given  by "loggerurl=..."
             if (urls.empty())

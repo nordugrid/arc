@@ -22,6 +22,7 @@ class JobLog {
   std::string filename;
   std::list<std::string> urls;
   std::list<std::string> report_config; // additional configuration for usage reporter
+  std::string vo_filters;
   std::string certificate_path;
   std::string ca_certificates_dir;
   std::string logger;
@@ -43,6 +44,8 @@ class JobLog {
   bool RunReporter(const GMConfig& config);
   /* Set name of the accounting reporter */
   bool SetLogger(const char* fname);
+  /* Set filters of VO that allow to report to accounting service */
+  bool SetVoFilters(const char* filters);
   /* Set url of service and local name to use */
   // bool SetReporter(const char* destination,const char* name = NULL);
   bool SetReporter(const char* destination);

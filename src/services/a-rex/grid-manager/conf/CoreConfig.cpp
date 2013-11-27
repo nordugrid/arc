@@ -187,6 +187,14 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
         config.job_log->SetReporter(url.c_str());
       }
     }
+    else if (command == "jobreport_vo_filters") { // which VO will be send to the server
+      if (!config.job_log) continue;
+      for(;;) {
+        std::string voFilters = config_next_arg(rest);
+        if (voFilters.empty()) break;
+        config.job_log->SetVoFilters(voFilters.c_str());
+      }
+    }
     else if (command == "jobreport_publisher") { // Name of the publisher: e.g. jura
       if (!config.job_log) continue;
       std::string publisher = config_next_arg(rest);

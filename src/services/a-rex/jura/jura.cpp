@@ -46,8 +46,9 @@ int main(int argc, char **argv)
   bool force_resend = false;
   std::string year  = "";
   std::string month = "";
+  std::string vo_filters=""; 
   int n;
-  while((n=getopt(argc,argv,":E:u:t:o:y:m:afsv")) != -1) {
+  while((n=getopt(argc,argv,":E:u:t:o:y:F:m:afsv")) != -1) {
     switch(n) {
     case ':': { std::cerr<<"Missing argument\n"; return 1; }
     case '?': { std::cerr<<"Unrecognized option\n"; return 1; }
@@ -81,6 +82,9 @@ int main(int argc, char **argv)
       break;
     case 'y':
       year = (std::string(optarg));
+      break;
+    case 'F':
+      vo_filters = (std::string(optarg));
       break;
     case 'm':
       month = (std::string(optarg));
@@ -152,7 +156,7 @@ int main(int argc, char **argv)
     {
       usagereporter=new Arc::UsageReporter(
                           std::string(argv[argind])+"/logs",
-                          ex_period, urls, topics, output_dir );
+                          ex_period, urls, topics, vo_filters, output_dir );
       usagereporter->report();
       delete usagereporter;
     }
