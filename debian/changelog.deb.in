@@ -1,5 +1,341 @@
 nordugrid-arc (@debianversion@-1) unstable; urgency=low
 
-  * New upstream release.
+  * Unofficial build.
 
  -- Anders Waananen <waananen@nbi.dk>  @DATER@
+
+nordugrid-arc (4.0.0rc2-1) unstable; urgency=low
+
+  * 4.0.0 Release Candidate 2
+
+ -- Anders Waananen <waananen@nbi.dk>  Thu, 07 Nov 2013 11:01:24 +0100
+
+nordugrid-arc (4.0.0rc1-1) unstable; urgency=low
+
+  * 4.0.0 Release Candidate 1
+
+ -- Anders Waananen <waananen@nbi.dk>  Tue, 29 Oct 2013 23:22:57 +0100
+
+nordugrid-arc (3.0.3-1) unstable; urgency=low
+
+  * 3.0.3 Final Release
+
+ -- Anders Waananen <waananen@nbi.dk>  Fri, 19 Jul 2013 12:05:50 +0200
+
+nordugrid-arc (3.0.2-1) unstable; urgency=low
+
+  * 3.0.2 Final Release
+
+ -- Anders Waananen <waananen@nbi.dk>  Wed, 12 Jun 2013 15:09:59 +0200
+
+nordugrid-arc (3.0.1-1) unstable; urgency=low
+
+  * 3.0.1 Final Release
+
+ -- Anders Waananen <waananen@nbi.dk>  Tue, 30 Apr 2013 00:47:43 +0200
+
+nordugrid-arc (3.0.1~rc2-1) unstable; urgency=low
+
+  * 3.0.1 Release Candidate 2
+
+ -- Anders Waananen <waananen@nbi.dk>  Fri, 12 Apr 2013 16:56:03 +0200
+
+nordugrid-arc (3.0.1~rc1-1) unstable; urgency=low
+
+  * 3.0.1 Release Candidate 1
+
+ -- Anders Waananen <waananen@nbi.dk>  Fri, 12 Apr 2013 13:50:41 +0200
+
+nordugrid-arc (3.0.0-1) unstable; urgency=low
+
+  * 3.0.0 Final Release
+
+ -- Anders Waananen <waananen@nbi.dk>  Fri, 22 Mar 2013 12:32:51 +0100
+
+nordugrid-arc (3.0.0~rc5-1) unstable; urgency=low
+
+  * 3.0.0 Release Candidate 5
+
+ -- Anders Waananen <waananen@nbi.dk>  Wed, 06 Feb 2013 12:12:48 +0100
+
+nordugrid-arc (3.0.0~rc4-1) unstable; urgency=low
+
+  * 3.0.0 Release Candidate 4
+
+ -- Anders Waananen <waananen@nbi.dk>  Sat, 02 Feb 2013 01:00:33 +0100
+
+nordugrid-arc (3.0.0~rc3-1) unstable; urgency=low
+
+  * 3.0.0 Release Candidate 3
+
+ -- Anders Waananen <waananen@nbi.dk>  Wed, 30 Jan 2013 09:02:17 +0100
+
+nordugrid-arc (3.0.0~rc2-1) unstable; urgency=low
+
+  * 3.0.0 Release Candidate 2
+
+ -- Anders Waananen <waananen@nbi.dk>  Mon, 28 Jan 2013 07:55:14 +0100
+
+nordugrid-arc (3.0.0~rc1-1) unstable; urgency=low
+
+  * 3.0.0 Release Candidate 1
+
+ -- Anders Waananen <waananen@nbi.dk>  Thu, 06 Dec 2012 22:05:31 +0100
+
+nordugrid-arc (2.0.1-1) unstable; urgency=low
+
+  * 2.0.1 Final Release
+
+ -- Anders Waananen <waananen@nbi.dk>  Thu, 22 Nov 2012 23:47:19 +0100
+
+nordugrid-arc (2.0.1rc2) unstable; urgency=low
+
+  * 2.0.1rc2 Release Candidate 2
+
+ -- Anders Waananen <waananen@nbi.dk>  Thu, 25 Oct 2012 13:00:02 +0200
+
+nordugrid-arc (2.0.1rc1) unstable; urgency=low
+
+  * 2.0.1rc1 Release Candidate 1
+
+ -- Anders Waananen <waananen@nbi.dk>  Mon, 27 Aug 2012 13:26:30 +0200
+
+nordugrid-arc (2.0.0-1) unstable; urgency=low
+
+  * 2.0.0 Final Release
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Wed, 23 May 2012 19:27:47 +0200
+
+nordugrid-arc (2.0.0~rc4-1) unstable; urgency=low
+
+  * 2.0.0 Release Candidate 4
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Mon, 02 Apr 2012 16:06:45 +0200
+
+nordugrid-arc (2.0.0~rc3.1-1) unstable; urgency=low
+
+  * 2.0.0 Release Candidate 3.1
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Tue, 27 Mar 2012 10:30:23 +0200
+
+nordugrid-arc (2.0.0~rc3-1) unstable; urgency=low
+
+  * 2.0.0 Release Candidate 3
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Mon, 05 Mar 2012 16:27:32 +0100
+
+nordugrid-arc (2.0.0~rc2-1) unstable; urgency=low
+
+  * 2.0.0 Release Candidate 2
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Wed, 15 Feb 2012 13:54:17 +0100
+
+nordugrid-arc (1.1.0-1) unstable; urgency=low
+
+  * 1.1.0 Final Release
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Mon, 03 Oct 2011 14:30:45 +0200
+
+nordugrid-arc (1.1.0~rc2-1) unstable; urgency=low
+
+  * 1.1.0 Release Candidate 2
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Sun, 25 Sep 2011 05:42:22 +0200
+
+nordugrid-arc (1.1.0~rc1-1) unstable; urgency=low
+
+  * 1.1.0 Release Candidate 1
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Sun, 11 Sep 2011 20:08:33 +0200
+
+nordugrid-arc (1.0.1-1) unstable; urgency=low
+
+  * 1.0.0 Final Release
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Sat, 23 Jul 2011 09:32:53 +0200
+
+nordugrid-arc (1.0.1~rc4-1) unstable; urgency=low
+
+  * 1.0.1 Release Candidate 4
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Tue, 19 Jul 2011 15:17:05 +0200
+
+nordugrid-arc (1.0.1~rc1-1) unstable; urgency=low
+
+  * 1.0.1 Release Candidate 1
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Sat, 18 Jun 2011 18:29:09 +0200
+
+nordugrid-arc (1.0.0-1) unstable; urgency=low
+
+  * 1.0.0 Final Release
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Mon, 18 Apr 2011 08:59:55 +0200
+
+nordugrid-arc (1.0.0~b5-1) unstable; urgency=low
+
+  * 1.0.0 Beta Release 5
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Wed, 06 Apr 2011 14:08:52 +0200
+
+nordugrid-arc (1.0.0~b4-1) unstable; urgency=low
+
+  * 1.0.0 Beta Release 4
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Wed, 23 Mar 2011 15:19:08 +0100
+
+nordugrid-arc (1.0.0~b3-1) unstable; urgency=low
+
+  * 1.0.0 Beta Release 3
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Thu, 10 Mar 2011 17:05:28 +0100
+
+nordugrid-arc (1.0.0~b2-1) unstable; urgency=low
+
+  * 1.0.0 Beta Release 2
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Mon, 07 Mar 2011 05:12:30 +0100
+
+nordugrid-arc (1.0.0~b1-1) unstable; urgency=low
+
+  * 1.0.0 Beta Release 1
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Mon, 14 Feb 2011 17:19:04 +0100
+
+nordugrid-arc-nox (1.2.1-1) unstable; urgency=low
+
+  * 1.2.1 Final release
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Tue, 21 Dec 2010 22:34:02 +0100
+
+nordugrid-arc-nox (1.2.1~rc2-1) unstable; urgency=low
+
+  * 1.2.1 Release Candidate 2
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Tue, 21 Dec 2010 09:36:46 +0100
+
+nordugrid-arc-nox (1.2.1~rc1-1) unstable; urgency=low
+
+  * 1.2.1 Release Candidate 1
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Wed, 08 Dec 2010 15:30:37 +0100
+
+nordugrid-arc-nox (1.2.0-1) unstable; urgency=low
+
+  * 1.2.0 Final release
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Fri, 22 Oct 2010 15:25:07 +0200
+
+nordugrid-arc-nox (1.2.0~rc2-1) unstable; urgency=low
+
+  * 1.2.0 Release Candidate 2
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Thu, 30 Sep 2010 10:11:14 +0200
+
+nordugrid-arc-nox (1.2.0~rc1-1) unstable; urgency=low
+
+  * 1.2.0 Release Candidate 1
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Mon, 13 Sep 2010 11:14:51 +0200
+
+nordugrid-arc-nox (1.1.0-1) unstable; urgency=low
+
+  * 1.1.0 Final release
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Wed, 05 May 2010 18:31:59 +0200
+
+nordugrid-arc-nox (1.1.0~rc6-1) unstable; urgency=low
+
+  * 1.1.0 Release Candidate 6
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Mon, 08 Mar 2010 20:36:00 +0100
+
+nordugrid-arc-nox (1.1.0~rc5-2) unstable; urgency=low
+
+  * Rebuild for Globus Toolkit 5
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Fri, 26 Feb 2010 16:25:39 +0100
+
+nordugrid-arc-nox (1.1.0~rc5-1) unstable; urgency=low
+
+  * 1.1.0 Release Candidate 5
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Fri, 26 Feb 2010 15:07:39 +0100
+
+nordugrid-arc-nox (1.1.0~rc4-1) unstable; urgency=low
+
+  * 1.1.0 release candidate 4
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Wed, 24 Feb 2010 12:34:41 +0100
+
+nordugrid-arc-nox (1.1.0~rc3-1) unstable; urgency=low
+
+  * 1.1.0 release candidate 3
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Mon, 22 Feb 2010 10:20:27 +0100
+
+nordugrid-arc-nox (1.1.0~rc2-1) unstable; urgency=low
+
+  * 1.1.0 release candidate 2
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Mon, 15 Feb 2010 19:08:07 +0100
+
+nordugrid-arc-nox (1.1.0~rc1-1) unstable; urgency=low
+
+  * 1.1.0 release candidate 1
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Thu, 11 Feb 2010 19:48:01 +0100
+
+nordugrid-arc-nox (1.0.0-1) unstable; urgency=low
+
+  * 1.0.0 Final release
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Sun, 29 Nov 2009 23:13:41 +0100
+
+nordugrid-arc-nox (1.0.0~rc7-1) unstable; urgency=low
+
+  * 1.0.0 release candidate 7
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Thu, 19 Nov 2009 15:30:32 +0100
+
+nordugrid-arc-nox (1.0.0~rc6-1) unstable; urgency=low
+
+  * 1.0.0 release candidate 6
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Thu, 12 Nov 2009 10:12:45 +0100
+
+nordugrid-arc-nox (1.0.0~rc5-1) unstable; urgency=low
+
+  * 1.0.0 release candidate 5
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Wed, 04 Nov 2009 16:45:22 +0100
+
+nordugrid-arc1 (0.9.4~rc4-1) unstable; urgency=low
+
+  * 0.9.3 release candidate 4
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Mon, 26 Oct 2009 23:19:55 +0100
+
+nordugrid-arc1 (0.9.4~rc3-1) unstable; urgency=low
+
+  * 0.9.3 release candidate 3
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Thu, 22 Oct 2009 19:22:31 +0200
+
+nordugrid-arc1 (0.9.4~rc2-1) unstable; urgency=low
+
+  * 0.9.3 release candidate 2
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Thu, 15 Oct 2009 09:04:24 +0200
+
+nordugrid-arc1 (0.9.3-1) unstable; urgency=low
+
+  * Final 0.9.3 release
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Sun, 27 Sep 2009 01:27:31 +0200
+
+nordugrid-arc1 (0.9.3~rc3-1) unstable; urgency=low
+
+  * Initial release
+
+ -- Mattias Ellert <mattias.ellert@fysast.uu.se>  Mon,  5 Nov 2007 10:12:49 -0400
