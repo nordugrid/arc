@@ -7,7 +7,7 @@
 ## for all services.
 ##
 ## The arc.conf configuration file consists of blocks like
-## [common], [grid-manager], [gridftpd], [gridftpd/name], [group], 
+## [common], [grid-manager], [gridftpd], [gridftpd/name], [group],
 ## [data-staging], [nordugridmap], [vo], [cluster], [queue/name],
 ## [infosys], [infosys/index/name], [infosys/index/name/registration/name].
 ##
@@ -22,8 +22,8 @@
 ## Some parts of the configuration file are order-dependent, blocks may require
 ## other blocks be defined earlier (especially the authorization blocks).
 ##
-## The arc.conf configures all the ARC services, and enabling an ARC service on 
-## a resource requires the presence of the appropriate configuration blocks. 
+## The arc.conf configures all the ARC services, and enabling an ARC service on
+## a resource requires the presence of the appropriate configuration blocks.
 ## The ARC services are the following: gridftpd, A-REX (grid-manager block),
 ## infosys, infosys registration. The nordugridmap utility is also configured by
 ## the [nordugridmap] and [vo] block(s) of this file.
@@ -45,7 +45,7 @@
 ##
 ## Below we give a detailed description of all the configuration options of the
 ## different configuration blocks.
-## 
+##
 ## WARNING: this file will not work as a configuration template!
 ##
 ## Developers: This file is parsed by configuration validation scripts and so
@@ -53,7 +53,7 @@
 ##   option please add explanatory text with two ## and a space at the
 ##   beginning of the line and then an example with a single # and no spaces at
 ##   the beginning of the line.
-## 
+##
 #####################################################################
 
 
@@ -61,7 +61,7 @@
 ### The [common] block ##############################################
 ## The parameters set within this block are available for all the other blocks.
 ## These are the config parameters shared by the different components of ARC
-## (e.g. grid-manager, infosys)  
+## (e.g. grid-manager, infosys)
 #[common]
 
 ## hostname - the FQDN of the frontend node, optional in the common block but
@@ -99,18 +99,18 @@
 ## The optional "queue" parameter specifies the default Grid queue of the
 ## LRMS. Jobs will be submitted to this queue if they do not specify queue
 ## name in job description. Queue name must match one of the [queue/queue_name]
-## block labels, see below. 
+## block labels, see below.
 ##
 
 ### PBS
 #lrms="pbs gridlong"
 #lrms="pbs"
 
-## the path to the qstat,pbsnodes,qmgr etc PBS binaries, 
+## the path to the qstat,pbsnodes,qmgr etc PBS binaries,
 ## no need to set if PBS is not used
 #pbs_bin_path="/usr/bin"
 
-## the path of the PBS server logfiles which are used by A-REX to determine 
+## the path of the PBS server logfiles which are used by A-REX to determine
 ## whether a PBS job is completed. If not specified, A-REX will use qstat for that.
 #pbs_log_path="/var/spool/pbs/server_logs"
 
@@ -120,14 +120,14 @@
 
 ## condor_rank - If you are not happy with the way Condor picks nodes when
 ## running jobs, you can define your own ranking algorithm by optionally
-## setting the condor_rank attribute. condor_rank should be set to a 
-## ClassAd float expression that you could use in the Rank attribute 
+## setting the condor_rank attribute. condor_rank should be set to a
+## ClassAd float expression that you could use in the Rank attribute
 ## in a Condor job description.
 ## Obviously no need to set if Condor is not used. An example:
 #condor_rank="(1-LoadAvg/2)*(1-LoadAvg/2)*Memory/1000*KFlops/1000000"
 
 ## condor_bin_path - Path to Condor binaries. Must be set if Condor
-## is used. 
+## is used.
 #condor_bin_path=/opt/condor/bin
 
 ## condor_bin_path - Path to Condor config file. Must be set if Condor
@@ -138,7 +138,7 @@
 
 ### SGE
 #lrms="sge"
-## sge_bin_path - Path to Sun Grid Engine (SGE) binaries, 
+## sge_bin_path - Path to Sun Grid Engine (SGE) binaries,
 ## MUST be set if SGE is the LRMS used
 #sge_bin_path="/opt/n1ge6/bin/lx24-x86"
 
@@ -157,7 +157,7 @@
 
 
 ### SLURM
-lrms="slurm"
+#lrms="slurm"
 ## slurm_bin_path - Path to SLURM binaries, must be set if installed
 ## outside of normal $PATH
 #slurm_bin_path="/usr/bin"
@@ -167,7 +167,7 @@ lrms="slurm"
 
 
 ### LSF
-lrms="lsf"
+#lrms="lsf"
 ## the PATH to LSF bin folder
 ## no need to set if LSF is not used
 #lsf_bin_path="/usr/local/lsf/bin/"
@@ -189,7 +189,7 @@ lrms="lsf"
 
 
 ### Desktop Bridge
-lrms="dgbridge"
+#lrms="dgbridge"
 ## Desktop Bridge www publish dir
 #dgbridge_stage_dir="/var/www/DGBridge"
 
@@ -244,16 +244,16 @@ lrms="dgbridge"
 ## This command can also be used in [grid-manager] and [griftpd] blocks.
 #voms_processing="standard"
 
-## voms_trust_chain - Define the DN chain that the host services trust when the 
-## voms AC from peer voms proxy certificate is parsed and validated. 
-## There can be multiple "voms_trust_chain" existing, each one corresponds to a voms server. 
+## voms_trust_chain - Define the DN chain that the host services trust when the
+## voms AC from peer voms proxy certificate is parsed and validated.
+## There can be multiple "voms_trust_chain" existing, each one corresponds to a voms server.
 ## This variable is similar to the information in *.lsc file, but with two differences:
 ##  1, you don't need to create a *.lsc file per VOMS server, but create a chain per VOMS server;
 ##  2, the regular expression is support when matching the DNs.
 ## This variable is not limited to [common], but can be used in [grid-manager]
 ## and [gridftpd] blocks.
 ## This variable should be used together with voms_processing.
-## This variable will overwrite the information in *.lsc if *.lsc exists. 
+## This variable will overwrite the information in *.lsc if *.lsc exists.
 #voms_trust_chain = "/O=Grid/O=NorduGrid/CN=host/arthur.hep.lu.se" "/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority"
 #voms_trust_chain = "/O=Grid/O=NorduGrid/CN=host/emi-arc.eu" "/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority"
 #voms_trust_chain = "^/O=Grid/O=NorduGrid"
@@ -261,10 +261,10 @@ lrms="dgbridge"
 
 ### [vo] block #####################################################
 ##
-## [vo] block is used to define VOs and generate mapfiles from user 
+## [vo] block is used to define VOs and generate mapfiles from user
 ## list maintained by VO databases. VO block is a configuration block
 ## for the nordugridmap utility.
-## Please note that [vo] block processing by nordugridmap utility 
+## Please note that [vo] block processing by nordugridmap utility
 ## depend on parameters defined in the [nordugridmap] block.
 ## [vo] block by itself does not affect authorization of client/user. For
 ## that label defined by vo="" atribute may be used in [group] block with
@@ -283,53 +283,53 @@ lrms="dgbridge"
 
 ## file path - output gridmap-file where GENERATED mapping list will be
 ## stored. See parameters below to define how to generate this file.
-## If the same file specified as output for different [vo] blocks, 
+## If the same file specified as output for different [vo] blocks,
 ## nordugridmap will automatically merge enrties in given blocks order.
 ## Default is '/etc/grid-security/gridmapfile'.
 #file="/etc/grid-security/VOs/atlas-users"
 
-## source url - the URL of the VO database which is assigned to this VO. 
-## The nordugridmap will use this URL to automatically generate and keep 
-## up-to-date userlist (mapfile) specified by the 'file' attribute. 
+## source url - the URL of the VO database which is assigned to this VO.
+## The nordugridmap will use this URL to automatically generate and keep
+## up-to-date userlist (mapfile) specified by the 'file' attribute.
 ##
-## url is a multivalued attribute, several sources can be specified for 
-## the [vo] block and all the users from those sources will be merged 
+## url is a multivalued attribute, several sources can be specified for
+## the [vo] block and all the users from those sources will be merged
 ## into the same file. The source URLs are processed in the given order.
 ##
-## Currently supported URL types are: 
+## Currently supported URL types are:
 ##    http(s):// - URL to plain text file. File should contain a list
 ##                 of DNs with optional issuer certificate authority DN
 ##                 (see require_issuerdn): "user DN" ["issuer DN"]
 ##    voms(s):// - URL to VOMS-Admin interface
 ##    nordugrid  - add NorduGrid VO members
 ##    ldap://    - expect LDAP-schema formatted VO Group
-##    file://    - local file (stand-alone or dynamicaly generated by 
+##    file://    - local file (stand-alone or dynamicaly generated by
 ##                 nordugridmap). File should contain a list of DNs with
 ##                 optional mapped unixid: "user DN" [mapped user ID]
 ##                 Result of optional mapped unixid processing depend
 ##                 on mapuser_processing option settings.
-##    vo://      - reference to another [vo] configuration block 
-##    edg-mkgridmap:// 
+##    vo://      - reference to another [vo] configuration block
+##    edg-mkgridmap://
 ##               - local configuration file used by edg-mkgridmap tool.
-##                 nordugridmap will parse configuration from file and 
-##                 process it as aditional [vo] block that will be refered 
-##                 authomatically in place URL specified. This allow 
-##                 easy migration from edg-mkgridmap solution without 
-##                 rewriting your previous configuration (NOTE that rarely 
-##                 used 'auth' directive and 'AUTO' mapping options are not 
+##                 nordugridmap will parse configuration from file and
+##                 process it as aditional [vo] block that will be refered
+##                 authomatically in place URL specified. This allow
+##                 easy migration from edg-mkgridmap solution without
+##                 rewriting your previous configuration (NOTE that rarely
+##                 used 'auth' directive and 'AUTO' mapping options are not
 ##                 supported)
 ##
 ## You can use either vo:// or file:// entries to specify dependencies
 ## between [vo] blocks, but using vo:// is a recommended way.
 ##
-## For each separate source URL it is possible to override some parameters 
+## For each separate source URL it is possible to override some parameters
 ## value. You can use the following syntax to perform this:
 ##    source="URL < parameter1=value1 parameter2=value2"
 ## You can override the following parameters:
 ##    mapped_unixid       for http(s),voms(s),ldap and file URLs
 ##    cache_enable        for http(s),voms(s),ldap and file URLs
 ##    voms_method         for voms(s) URLs
-##    mapuser_processing  for file URLs with mapped_unixid='<unixid>' overrided 
+##    mapuser_processing  for file URLs with mapped_unixid='<unixid>' overrided
 ##                        (control mapped_unixid overriding behaviour for URL)
 #source="vomss://voms.ndgf.org:8443/voms/nordugrid.org"
 #source="vomss://lcg-voms.cern.ch:8443/voms/atlas?/atlas/Role=VO-Admin < mapped_unixid=atlasadmin"
@@ -340,13 +340,13 @@ lrms="dgbridge"
 #source="vo://nordugrid_community"
 #source="nordugrid"
 
-## mapped_unixid unixid - the local UNIXID which is used in the generated 
+## mapped_unixid unixid - the local UNIXID which is used in the generated
 ## grid-mapfile by the nordugridmap utility.
 ##
-## If any of the sources have already provided mapping information (file:// 
+## If any of the sources have already provided mapping information (file://
 ## or vo://) behavior depends on 'mapuser_processing' [nordugridmap] block
 ## conguration:
-##    mapuser_processing = 'overwrite': ignore already provided mapping and 
+##    mapuser_processing = 'overwrite': ignore already provided mapping and
 ##                         apply mapped_unixid for all sources
 ##    mapuser_processing = 'keep': apply mapped_unixid only for sources that
 ##                         does not already has mapping information
@@ -355,9 +355,9 @@ lrms="dgbridge"
 ## If 'mapped_unixid' is not specified behavior depends on 'allow_empty_unixid'
 ## [nordugridmap] block conguration value:
 ##    allow_empty_unixid = 'yes': empty value will be used for mapped_unixid
-##                         which means that nordugridmap will generate only 
-##                         the list of DNs without mapping (consider using  
-##                         mapuser_processing='overwrite' along with this 
+##                         which means that nordugridmap will generate only
+##                         the list of DNs without mapping (consider using
+##                         mapuser_processing='overwrite' along with this
 ##                         option or sources that does not provide previously
 ##                         defined mapping information)
 ##    allow_empty_unixid = 'no': skip users without mapping information (if
@@ -369,37 +369,37 @@ lrms="dgbridge"
 ## sources with specific FQAN given.
 ##
 ## Several voms_fqan_map can be specified for a [vo] block.
-## For each voms(s) sources in [vo] block and every voms_fqan_map record 
-## separate source record will be authomatically generated with mapped_unixid 
+## For each voms(s) sources in [vo] block and every voms_fqan_map record
+## separate source record will be authomatically generated with mapped_unixid
 ## overrided to specified one.
 ##
 ## Sources are generated in a given voms_fqan_map order. Original voms(s) source
 ## URL are processed LAST.
 ##
-## This allows to simplify configuration, especially in redundancy cases when 
+## This allows to simplify configuration, especially in redundancy cases when
 ## several VOMS servers are used for the same VO.
 ##
 #voms_fqan_map="/atlas/Role=VO-Admin atlasadmin"
 #voms_fqan_map="/atlas/Role=production atlasprod"
 
 ## require_issuerdn yes/no - another nordugridmap option. YES would map only
-## those DNs obtained from the urls which have the corresponding public CA 
+## those DNs obtained from the urls which have the corresponding public CA
 ## packages installed. Default is 'no'.
 ##
-## Note, that some sources does not provide issuer information (like 
+## Note, that some sources does not provide issuer information (like
 ## voms(s):// or file://). If this sources are used within [vo] block
 ## and require_issuerdn is set to 'yes' behavior depends on issuer_processing
 ## [nordugridmap] block conguration:
-##    issuer_processing = 'relaxed': check only those records that have issuer 
+##    issuer_processing = 'relaxed': check only those records that have issuer
 ##                        information provided, allow other sources
-##    issuer_processing = 'strict': if issuer information was not found record 
+##    issuer_processing = 'strict': if issuer information was not found record
 ##                        is filtered and will not be passed into mapfile
 ##
 #require_issuerdn="no"
 
 ## filter  ACL string - An ACL filter for the nordugridmap utility. Multiple
 ## allow/deny statements are possible. The fetched DNs are filtered against
-## the specified rules before they are added to the generated mapfile. 
+## the specified rules before they are added to the generated mapfile.
 ##
 ## * can be used as a wildcard. You may run the nordugridmap with the --test
 ## command line option to see how the filters you specified work.
@@ -429,20 +429,20 @@ lrms="dgbridge"
 ##
 ## The block can be specified in two ways - either using [group/group1]
 ## like subblock decalration per group or just [group]. The two formats
-## are equivalent. Every block (till the beginning of next block or the 
+## are equivalent. Every block (till the beginning of next block or the
 ## end of the file) defines one authorization group.
 ##
 ## IMPORTANT: Rules in a group are processed in their order of appearance.
 ## The first matching rule decides the membership of a  the user to a group
 ## and the processing STOPS. There are positively and negatively matching
 ## rules. If a rule is matched positively then the user tested is accepted
-## into the respective group and further processing is stopped. Upon a 
-## negative match the user would be rejected for that group - processing 
-## stops too. The sign of rule is determined by prepending the rule with 
-## '+' (for positive) or '-' (for negative) signs. '+' is default and can 
+## into the respective group and further processing is stopped. Upon a
+## negative match the user would be rejected for that group - processing
+## stops too. The sign of rule is determined by prepending the rule with
+## '+' (for positive) or '-' (for negative) signs. '+' is default and can
 ## be omitted. A rule may also be prepended with '!' to invert result of rule,
-## which will let the rule match the complement of users. That complement 
-## operator ('!') may be combined with the operator for positive or negative 
+## which will let the rule match the complement of users. That complement
+## operator ('!') may be combined with the operator for positive or negative
 ## matching.
 ##
 ## A group MUST be defined before it may be used. In this respect the
@@ -458,16 +458,16 @@ lrms="dgbridge"
 #[group]
 
 ## name group_name - Specify name of group. If there is no such command
-##  in block, name of subblock is used instead (that is what subblocks 
+##  in block, name of subblock is used instead (that is what subblocks
 ##  are used for). For example [group/users]
 #name="users"
 
-## subject certificate_subject - Rule to match specific subject of user's 
+## subject certificate_subject - Rule to match specific subject of user's
 ## X.509 certificate. No masks, patterns and regular expressions are allowed.
 ## For more information about X.509 refer to http://www.wikipedia.org/wiki/X509
 #subject="/O=Grid/O=Big VO/CN=Main Boss"
 
-## file path - Start reading rules from another file. That file has a bit 
+## file path - Start reading rules from another file. That file has a bit
 ##  different format. It can't contain blocks and commands are separated
 ##  from arguments by space. Also word "subject" in subject command may be
 ##  skipped. That makes it convinient to directly add gridmap-like lists to
@@ -475,7 +475,7 @@ lrms="dgbridge"
 #file="/etc/grid-security/local_users"
 
 ## voms vo group role capabilities - Match VOMS attribute in user's credential.
-##  Use '*' to match any value. More information about VOMS can be found at 
+##  Use '*' to match any value. More information about VOMS can be found at
 ##  http://grid-auth.infn.it
 #voms="nordugrid Guests * *"
 
@@ -486,7 +486,7 @@ lrms="dgbridge"
 ##   'clients' are those which are 'users' and 'admins'.
 #group="local_admins"
 
-## plugin timeout path [argument ...] - Run external executable or 
+## plugin timeout path [argument ...] - Run external executable or
 ##  function from shared library. Rule is matched if plugin returns 0.
 ##  In arguments following substitutions are supported:
 ##   %D - subject of certicate
@@ -507,12 +507,12 @@ lrms="dgbridge"
 ##  allowed in this rule.
 #remote="ldap://grid-vo.nordugrid.org/ou=People,dc=nordugrid,dc=org"
 
-## vo vo_name ... - Match user belonging to VO specified by "vo=vo_name" as 
+## vo vo_name ... - Match user belonging to VO specified by "vo=vo_name" as
 ##  configured in one of PREVIOUSLY defined [vo] blocks. Multiple VO names
 ##  are allowed for this rule.
 #vo="nordugrid"
 
-## all - Matches any user identity. This command requires no arguments but 
+## all - Matches any user identity. This command requires no arguments but
 ##  still can be written as all="" or all= for consistency.
 #all=""
 
@@ -521,15 +521,15 @@ lrms="dgbridge"
 
 
 ### The [grid-manager] block #########################################
-## The [grid-manager] block configures the part of A-REX service hosted 
+## The [grid-manager] block configures the part of A-REX service hosted
 ## in *arched* and taking care of the grid tasks on the frontend
 ## (stagein/stageout, LRMS job submission, caching, etc..). Name of this
 ## block is historical and comes from times then this functionality was
-## handled by separate process called grid-manager. This section also 
+## handled by separate process called grid-manager. This section also
 ## configures WS interfaces of A-REX service also hosted by same container.
 #[grid-manager]
 
-## controldir path - The directory of the A-REX's internal job log files, 
+## controldir path - The directory of the A-REX's internal job log files,
 ## not needed on the nodes. <must be set>
 #controldir="/var/spool/nordugrid/jobstatus"
 
@@ -544,8 +544,8 @@ lrms="dgbridge"
 #sessiondir="/scratch/grid"
 #sessiondir="/mnt/grid drain"
 
-## runtimedir path - The directory which holds the runtimeenvironment scripts, 
-## should be available on the nodes as well! the runtimeenvironments are 
+## runtimedir path - The directory which holds the runtimeenvironment scripts,
+## should be available on the nodes as well! the runtimeenvironments are
 ## automatically detected and advertised in the information system.
 #runtimedir="/SOFTWARE/runtime"
 
@@ -581,7 +581,7 @@ lrms="dgbridge"
 
 ## remotecachedir cache_path [link_path] - specifies caches which are under
 ## the control of other A-REXs, but which this A-REX can have read-only access to.
-## Multiple remote cache directories may be specified by specifying multiple 
+## Multiple remote cache directories may be specified by specifying multiple
 ## remotecachedir commands. If a file is not available in paths specified by
 ## cachedir, A-REX looks in remote caches. link_path has the same meaning as in
 ## cachedir, but the special path ``replicate'' means files will
@@ -589,11 +589,11 @@ lrms="dgbridge"
 #remotecachedir="/mnt/fs1/cache replicate"
 
 ## cachesize max min - specifies high and low watermarks for space used
-## by cache, as a percentage of the space on the file system on which 
+## by cache, as a percentage of the space on the file system on which
 ## the cache directory is located. When the max is exceeded, files will
-## be deleted to bring the used space down to the min level. It is a 
+## be deleted to bring the used space down to the min level. It is a
 ## good idea to have the cache on its own separate file system. To turn
-## off this feature "cachesize" without parameters can be specified. 
+## off this feature "cachesize" without parameters can be specified.
 #cachesize="80 70"
 
 ## If cache cleaning is enabled, files accessed less recently than the given
@@ -633,7 +633,7 @@ lrms="dgbridge"
 ## must be enabled via arex_mount_point The interface is accessible at the same
 ## host and port as given in arex_mount_point with path /cacheservice. Default
 ## is off.
-#enable_cache_service="yes" 
+#enable_cache_service="yes"
 
 ## user user[:group] - Switch to a non root user/group after startup.
 ## Use with caution.
@@ -656,9 +656,9 @@ lrms="dgbridge"
 ## as logfile to combine the logs. Default is /var/log/arc/ws-interface.log
 #wslogfile="/var/log/arc/ws-interface.log"
 
-## logsize size [number] - 'Size' specifies in bytes how big log file is 
+## logsize size [number] - 'Size' specifies in bytes how big log file is
 ##  allowed to grow (approximately). If log file exceeds specified size
-##  it is renamed into logfile.0. And logfile.0 is renamed into 
+##  it is renamed into logfile.0. And logfile.0 is renamed into
 ##  logfile.1, etc. up to 'number' logfiles. Don't set logsize if you don't
 ##  want to enable the ARC logrotation because another logrotation tool is used.
 #logsize="100000 2"
@@ -669,13 +669,13 @@ lrms="dgbridge"
 #logreopen="no"
 
 ## pidfile path - Specify location of file containing PID of daemon process.
-##  This is useful for automatic start/stop scripts. 
+##  This is useful for automatic start/stop scripts.
 #pidfile="/var/run/arched-arex.pid"
 
 ## the gnu time command, default /usr/bin/time
 #gnu_time="/usr/bin/time"
 
-## if computing node can access session directory at frontend, defaults to 'yes' 
+## if computing node can access session directory at frontend, defaults to 'yes'
 #shared_filesystem="yes"
 
 ## specifies the email address from where the notification mails are sent, <must
@@ -688,8 +688,8 @@ lrms="dgbridge"
 ##  needed.
 #joblog="/var/log/arc/gm-jobs.log"
 
-## jobreport [url ...] [timeout] - tells to report all started and finished jobs 
-## to logger service at 'url'. Multiple urls and multiple jobreport commands 
+## jobreport [url ...] [timeout] - tells to report all started and finished jobs
+## to logger service at 'url'. Multiple urls and multiple jobreport commands
 ## are allowed. In that case the job info will be sent to all of them.
 ## Timeout specifies how long (in days) to try to pass information before
 ## give up. Suggested value is 30 days.
@@ -709,7 +709,7 @@ lrms="dgbridge"
 ## credentials for accessing the accounting service.
 #jobreport_credentials="/etc/grid-security/hostkey.pem /etc/grid-security/hostcert.pem /etc/grid-security/certificates"
 
-## jobreport options [name:value, ...]- specifies additional parameters for 
+## jobreport options [name:value, ...]- specifies additional parameters for
 ## the jobreporter.
 #jobreport_options="urbatch:50,archiving:/tmp/archive,topic:/topic/global.accounting.cpu.central
 #                   gocdb_name:GRID_UIO_NO,benchmark_type:HEPSPEC,benchmark_value:2.0,use_ssl:false,
@@ -729,7 +729,7 @@ lrms="dgbridge"
 #    - localid_prefix:prefix string for the SGAS records
 
 ## max_job_control_requests number - max number of simultaneously processed job management
-## requests over WS interface - like job submission, cancel, status check etc. 
+## requests over WS interface - like job submission, cancel, status check etc.
 ## Default value is 100.
 #max_job_control_requests="100"
 
@@ -738,7 +738,7 @@ lrms="dgbridge"
 #max_infosys_requests="1"
 
 ## max_data_transfer_requests number - max number of simultaneously processed data transfer
-## requests over WS interface - like data staging. 
+## requests over WS interface - like data staging.
 ## Default value is 100.
 #max_data_transfer_requests="100"
 
@@ -761,7 +761,7 @@ lrms="dgbridge"
 ## script + wakeupperiod.
 #wakeupperiod="180"
 
-## securetransfer yes|no - if data connection allows to choose use 
+## securetransfer yes|no - if data connection allows to choose use
 ## secure|non-secure data transfer. Currently only works for gridftp.
 ## default is no
 #securetransfer="no"
@@ -777,7 +777,7 @@ lrms="dgbridge"
 #localtransfer="no"
 
 ## speedcontrol min_speed min_time min_average_speed max_inactivity - specifies
-##  how slow data transfer must be to trigger error. Tranfer is canceled if 
+##  how slow data transfer must be to trigger error. Tranfer is canceled if
 ##  speed is below min_speed bytes per second for at least min_time seconds,
 ##  or if average rate is below min_average_speed bytes per second, or no data
 ##  was transfered for longer than max_inactivity seconds. Value of zero turns
@@ -789,7 +789,7 @@ lrms="dgbridge"
 ## the default is 1 week. ttr is how long information about a job will be kept
 ## after the session directory is deleted. If not specified, the ttr default is
 ## one month.
-#defaultttl="259200"  
+#defaultttl="259200"
 
 ## authplugin state options plugin_path - Every time job goes to 'state'
 ## run 'plugin_path' executable. Options consist of key=value pairs separated
@@ -804,7 +804,7 @@ lrms="dgbridge"
 #authplugin="ACCEPTED timeout=10 /usr/libexec/arc/bank %C/job.%I.local %S"
 
 ## ARC is distributed with the plugin "inputcheck". It's purpose is
-## to check if input files requested in job's RSL are accessible 
+## to check if input files requested in job's RSL are accessible
 ## from this machine. It is better to run it before job enters cluster.
 ## It accepts 2 arguments: names of files containing RSL and credentials'
 ## proxy. This plugin is only guaranteed to work for job submitted through
@@ -817,14 +817,14 @@ lrms="dgbridge"
 ## per-queue access policies based on VOMS attributes present in user's
 ## proxy-certificate. Plugin should be run before job enters the cluster.
 ## It requires 2 argments: path to job information .local file and path to
-## credentials file. 
-## Enforced per-queue access policies are configured with 'ac_policy' option 
+## credentials file.
+## Enforced per-queue access policies are configured with 'ac_policy' option
 ## in the [queue/name] configuration block.
 #authplugin="ACCEPTED 60 /usr/libexec/arc/arc-vomsac-check -L %C/job.%I.local -P %C/job.%I.proxy"
 
 ## localcred timeout plugin_path - Every time an external executable
-## is run this plugin will be called. Its purpose is to set non-unix 
-## permissions/credentials on running tasks. Note: the process itself 
+## is run this plugin will be called. Its purpose is to set non-unix
+## permissions/credentials on running tasks. Note: the process itself
 ## can still be run under the root account. If plugin_path looks like
 ## somename@somepath, then function 'somename' from the shared library
 ## located at 'somepath' will be called (timeout is not effective in
@@ -840,7 +840,7 @@ lrms="dgbridge"
 #norootpower="yes"
 
 ## allowsubmit [group ...]  - list of authorization groups of users allowed
-## to submit new jobs while "allownew=no" is active in jobplugin 
+## to submit new jobs while "allownew=no" is active in jobplugin
 ## configuration. Multiple commands are allowed.
 #allowsubmit="mygroup"
 #allowsubmit="yourgroup"
@@ -885,8 +885,8 @@ lrms="dgbridge"
 
 ## maxrerun -  specifies how many times job can be rerun if it failed in LRMS.
 ## Default value is 5. This is only an upper limit, the actual rerun value is set
-## by the user in his xrsl. 
-#maxrerun="5" 
+## by the user in his xrsl.
+#maxrerun="5"
 
 ## maxtransfertries - the maximum number of times download and upload will
 ## be attempted per job (retries are only performed if an error is judged
@@ -918,7 +918,7 @@ lrms="dgbridge"
 ## set to default safe values. Default behavior is as if "yes" is specified.
 #fixdirectories="yes"
 
-## arex_mount_point - enables web services interfaces, including 
+## arex_mount_point - enables web services interfaces, including
 ##  job execution and information system. The argument is
 ##  an https URL defining the endpoint port and path:
 ##      https://<hostname>:<port>/<path>
@@ -934,16 +934,16 @@ lrms="dgbridge"
 #enable_arc_interface="yes"
 
 ## enable_emies_interface - enable the EMI Execution Service interface. If
-## enabled the interface can be accessed at the URL specified in 
+## enabled the interface can be accessed at the URL specified in
 ## arex_mount_point (this option must also be specified)
 #enable_emies_interface="yes"
 
-## arguspep_endpoint - specifies URL of Argus PEPD service to use for 
-## authorization and user mapping. 
-## It is worth to mention that "requireClientCertAuthentication" (default is false) 
+## arguspep_endpoint - specifies URL of Argus PEPD service to use for
+## authorization and user mapping.
+## It is worth to mention that "requireClientCertAuthentication" (default is false)
 ## item of pepd.ini (configuration of Argus PEPD service) is set to be 'true', then
 ## https should be used, otherwise http is proper.
-## If specified Argus is contacted for every operation requested 
+## If specified Argus is contacted for every operation requested
 ## through WS interface (see arex_mount_point).
 #arguspep_endpoint="https://somehost.somedomain:8154/authz"
 
@@ -951,30 +951,30 @@ lrms="dgbridge"
 ## with Argus PEPD service. Possible values are:
 ##  direct - pass all authorization attributes (only for debugging)
 ##  subject - pass only subject name of client
-##  cream - makes A-REX pretend it is gLite CREAM service. This is  
+##  cream - makes A-REX pretend it is gLite CREAM service. This is
 ##    recommended profile for interoperability with gLite.
 ##  emi - new profile devloped in EMI project. This is default option.
 #arguspep_profile="cream"
 
 ## arguspep_usermap - specifies whether response from Argus service may define mapping
 ## of client to local account. Possible values are 'yes' and 'no'. Default is 'no'.
-## Argus is contacted after all other user mapping is performed. Hence it can 
+## Argus is contacted after all other user mapping is performed. Hence it can
 ## overwrite all other decisions.
 #arguspep_usermap="no"
 
-## arguspdp_endpoint - specifies URL of Argus PDP service to use for 
-## authorization and user mapping. 
-## It is worth to mention that "requireClientCertAuthentication" (default is false) 
+## arguspdp_endpoint - specifies URL of Argus PDP service to use for
+## authorization and user mapping.
+## It is worth to mention that "requireClientCertAuthentication" (default is false)
 ## item of pdp.ini (configuration of Argus PDP service) is set to be 'true', then
 ## https should be used, otherwise http is proper.
-## If specified Argus is contacted for every operation requested 
+## If specified Argus is contacted for every operation requested
 ## through WS interface (see arex_mount_point).
 #arguspdp_endpoint="https://somehost.somedomain:8152/authz"
 
 ## arguspdp_profile - defines which communication profile to use while communicationg
 ## with Argus PDP service. Possible values are:
 ##  subject - pass only subject name of client
-##  cream - makes A-REX pretend it is gLite CREAM service. This is  
+##  cream - makes A-REX pretend it is gLite CREAM service. This is
 ##    recommended profile for interoperability with gLite.
 ##  emi - new profile devloped in EMI project. This is default option.
 #arguspdp_profile="cream"
@@ -1000,7 +1000,7 @@ lrms="dgbridge"
 #[data-staging]
 
 ## debug - Log level for transfer logging in job.id.errors files, between
-## 0 (FATAL) and 5 (DEBUG). Default is to use value set by debug option in 
+## 0 (FATAL) and 5 (DEBUG). Default is to use value set by debug option in
 ## [grid-manager] section.
 #debug="4"
 
@@ -1065,11 +1065,11 @@ lrms="dgbridge"
 #[gridftpd]
 
 ## user user[:group] - Switch to a non root user/group after startup
-## WARNING: Make sure that the certificate files are owned by the user/group 
+## WARNING: Make sure that the certificate files are owned by the user/group
 ## specified by this option. Default value is root.
 #user="grid"
 
-## debug debuglevel - Set debug level of the gridftpd daemon, between 
+## debug debuglevel - Set debug level of the gridftpd daemon, between
 ## 0 (FATAL) and 5 (DEBUG). Default is 3 (INFO).
 #debug="2"
 
@@ -1079,15 +1079,15 @@ lrms="dgbridge"
 ## logfile path - Set logfile location
 #logfile="/var/log/arc/gridftpd.log"
 
-## logsize size [number] - 'Size' specifies in bytes how big log file is 
+## logsize size [number] - 'Size' specifies in bytes how big log file is
 ##  allowed to grow (approximately). If log file exceeds specified size
-##  it is renamed into logfile.0. And logfile.0 is renamed into 
+##  it is renamed into logfile.0. And logfile.0 is renamed into
 ##  logfile.1, etc. up to 'number' logfiles. Don't set logsize if you don't
 ##  want to enable the ARC logrotation because another logrotation tool is used.
 #logsize="100000 2"
 
 ## pidfile path - Specify location of file containig PID of daemon process.
-## This is usefull for automatic star/stop scripts. 
+## This is usefull for automatic star/stop scripts.
 #pidfile="/var/run/gridftpd.pid"
 
 ## port bindport - Port to listen on (default 2811)
@@ -1098,14 +1098,14 @@ lrms="dgbridge"
 #pluginpath="/usr/lib/arc/"
 
 ## encryption yes|no - should data encryption be allowed, default is no,
-## encryption is very heavy 
+## encryption is very heavy
 #encryption="no"
 
 ## include - Include contents of another config file.
 #include="path"
 
 ## allowunknown yes|no - if no, check user subject against grid-mapfile and
-## reject if missing. By default unknown (not in the grid-mapfile) grid users 
+## reject if missing. By default unknown (not in the grid-mapfile) grid users
 ## are rejected
 #allowunknown="no"
 
@@ -1129,7 +1129,7 @@ lrms="dgbridge"
 #globus_tcp_port_range="9000,12000"
 #globus_udp_port_range="9000,12000"
 
-## firewall - hostname or IP addres to use in response to PASV command 
+## firewall - hostname or IP addres to use in response to PASV command
 ## instead of IP address of a network interface of computer.
 #firewall="hostname"
 
@@ -1144,7 +1144,7 @@ lrms="dgbridge"
 ## The default is /etc/grid-security/grid-mapfile
 #gridmap="/etc/grid-security/grid-mapfile"
 
-## unixmap [unixname][:unixgroup] rule - more sophisticated way to map 
+## unixmap [unixname][:unixgroup] rule - more sophisticated way to map
 ##  Grid identity of client to local account. If client matches 'rule'
 ##  it's assigned specified unix identity or one generated by rule.
 ##  Mapping commands are processed sequentially and processing stops
@@ -1160,17 +1160,17 @@ lrms="dgbridge"
 #unixmap="nobody:nogroup all"
 
 ## unixgroup group rule - do mapping only for users belonging to
-##  specified authorization 'group'. It is similar to an additional filter 
-##  for unixmap command which filters out all users not belonging to specified 
+##  specified authorization 'group'. It is similar to an additional filter
+##  for unixmap command which filters out all users not belonging to specified
 ##  authorization group. Only rules which generate unix user and group names
 ##  may be used in this command. Please read "ARC Computing Element System
 ##  Administrator Guide" for more information.
 #unixgroup="users simplepool /etc/grid-security/pool/users"
 
-## unixvo vo rule - do mapping only for users belonging to specified VO. 
+## unixvo vo rule - do mapping only for users belonging to specified VO.
 ## Only rules which generate unix identity name may be used in this command.
-## Please read "ARC Computing Element. System Administrator Guide" for more 
-## information. This command is similar to 'unixgroup' described above and 
+## Please read "ARC Computing Element. System Administrator Guide" for more
+## information. This command is similar to 'unixgroup' described above and
 ## exists for convenience for setups which base mapping on VOs users belong to.
 #unixvo="ATLAS unixuser atlas:atlas"
 
@@ -1181,38 +1181,38 @@ lrms="dgbridge"
 ## [gridftpd/filedir] "fileplugin" storage block
 ## subblock for "exporting" a directory using the gridftpd's fileplugin plugin.
 ## gridftp plugins are shared libraries.
-## "filedir" is a unique label. The acess control is set by using the 
+## "filedir" is a unique label. The acess control is set by using the
 ## "dir" config option
 ##
 #[gridftpd/filedir]
 
-## plugin name - specifies name of shared library to be loaded relative to 
-## "pluginpath". 
+## plugin name - specifies name of shared library to be loaded relative to
+## "pluginpath".
 ## The next line is MUST for a gridftp file server with "fileplugin", don't
 ## change anything
 #plugin="fileplugin.so"
 
 ## groupcfg group_name [group_name ...] - specifies authorization groups
 ## for which this plugin is activated. In case groupcfg is not used the
-## plugin is loaded for every mapped grid user. Multiple names were 
+## plugin is loaded for every mapped grid user. Multiple names were
 ## may be specified delimited by blank space. Group names are as specified
 ## in [group] sections.
 #groupcfg="users"
 
-## the name of the virtual directory served by the gridftp server, REQUIRED 
-## the exported storage area is accessable as gsiftp://my_server/topdir. 
-## "topdir" is just an example, call the virtual path anything you like, 
+## the name of the virtual directory served by the gridftp server, REQUIRED
+## the exported storage area is accessable as gsiftp://my_server/topdir.
+## "topdir" is just an example, call the virtual path anything you like,
 ## even "/" is a valid choice.
 #path="/topdir"
 
 ## the physical directory corresponding to the virtual one:
 ## gsiftp://my_server/topdir will give access to the
-## /scratch/grid directory on my_server, REQUIRED 
+## /scratch/grid directory on my_server, REQUIRED
 #mount="/scratch/grid"
 
 ## dir - this is the access control parameter, you can have several "dir" lines
 ## controlling different directories within then same block
-## 
+##
 ##  dir path options  - specifies access rules for accessing files in 'path'
 ##           (relative to virtual and real path) and all the files and directories below.
 ##  'options' are:
@@ -1225,17 +1225,17 @@ lrms="dgbridge"
 ##       read    - allow reading files
 ##       delete  - allow deleting files
 ##       append  - allow appending files (does not allow creation)
-##       overwrite - allow overwriting already existing files (does not 
+##       overwrite - allow overwriting already existing files (does not
 ##                 allow creation, file attributes are not changed)
 ##       dirlist - allow obtaining list of the files
 ##       cd      - allow to make this directory current
 ##       create owner:group permissions_or:permissions_and  - allow creating
 ##                 new files. File will be owned by 'owner' ang owning group
 ##                 will be 'group'. If '*' is used, the user/group to which
-##                 connected user is mapped will be used. The permissions 
+##                 connected user is mapped will be used. The permissions
 ##                 will be set to permissions_or & permissions_and. (second
-##                 number is reserved for the future usage). 
-##                 
+##                 number is reserved for the future usage).
+##
 ##       mkdir owner:group permissions_or:permissions_and  - allow creating new directories.
 ## some examples:
 ## Set permissions on mounted directory
@@ -1251,17 +1251,17 @@ lrms="dgbridge"
 ## Subblock for "exporting" a directory through  gaclplugin,
 ## gridftp plugins are shared libraries. "gacldir" is a
 ## unique label. The acess control is set through "gacl" files placed in the
-## physical directories assigned to every file/directory. 
+## physical directories assigned to every file/directory.
 ## Newly created directories and uploaded files automatically obtain their
 ## default "gacl" files: only the creator of the file/directory has the
 ## "read,write,list,admin" capabilities, this default is not configureable yet.
-## Additionally the 'mount' directory MUST contain a .gacl file with 
+## Additionally the 'mount' directory MUST contain a .gacl file with
 ## initial ACL otherwise rule will be "deny all for everyone"
 ##
 #[gridftpd/gacldir]
 
-## plugin name - specifies name of shared library to be loaded relative to 
-## "pluginpath". 
+## plugin name - specifies name of shared library to be loaded relative to
+## "pluginpath".
 ## The next line is MUST for a gridftp file server with "gaclplugin", don't
 ## change anything
 #plugin="gaclplugin.so"
@@ -1272,19 +1272,19 @@ lrms="dgbridge"
 #groupcfg="users"
 
 ## the name of the virtual directory served by the gridftp server, REQUIRED
-## the exported storage area is accessable as gsiftp://server/gacltop. 
-## "gacltop" is just an example, call the virtual path anything you like, 
+## the exported storage area is accessable as gsiftp://server/gacltop.
+## "gacltop" is just an example, call the virtual path anything you like,
 ## even "/" is a valid choice.
 #path="/gacltop"
 
 ## the physical directory corresponding to the virtual one:
 ## gsiftp://server/gacltop will give access to the
-## /scratch/GACL directory on server. 
+## /scratch/GACL directory on server.
 ## The directory MUST contain a .gacl file with the some default gacl settings.
-## This parameter is REQUIRED. 
+## This parameter is REQUIRED.
 #mount="/scratch/GACL"
 
-## gacl - specifies the default GACL rule for new objects. The GACL expression 
+## gacl - specifies the default GACL rule for new objects. The GACL expression
 ## must be given in one line and in GACL XML format.
 #gacl="<gacl>very long single line</gacl>"
 
@@ -1293,16 +1293,16 @@ lrms="dgbridge"
 ##
 ### [gridftpd/jobs] subblock ###############################
 ## [gridftpd/jobs] subblock which creates the jobsubmission interface,
-## using the jobplugin of the gridftpd service. 
+## using the jobplugin of the gridftpd service.
 ## gridftp plugins are shared libraries. 'jobs' is a unique label.
 #[gridftpd/jobs]
 
-## the path to the virtual gridftpd directory which is used during the 
+## the path to the virtual gridftpd directory which is used during the
 ## job submission. MUST be set.
 #path="/jobs"
 
-## plugin name - specifies name of shared library to be loaded relative to 
-## "pluginpath".  
+## plugin name - specifies name of shared library to be loaded relative to
+## "pluginpath".
 ## The next line is MUST for a job submission service via gridftpd
 ## "jobplugin", don't change anything!
 #plugin="jobplugin.so"
@@ -1339,15 +1339,15 @@ lrms="dgbridge"
 
 ####################################################################
 ##
-### [infosys] block ################################################ 
+### [infosys] block ################################################
 ## [infosys] block configures the hosting environment of the
 ## Information services (Local Info Tree, Index Service, Registrations,
-## see the Information System manual) provided by the 
+## see the Information System manual) provided by the
 ## OpenLDAP slapd server.
 #[infosys]
 
 ## infosys_compat - Setting this variable will cause ARC to use the old
-## infoproviders.  
+## infoproviders.
 ## NOTE: this only applies to ARC < 13.11. Old infoproviders
 ## have been REMOVED from release 13.11 on.
 ##Basically, the new version uses A-REX to create LDIF
@@ -1360,24 +1360,24 @@ lrms="dgbridge"
 ## Increase this value if you have many jobs in the controldir and
 ## infoproviders need more time to process.
 ## The value is in seconds.
-## Default is 600 seconds. 
+## Default is 600 seconds.
 #infoproviders_timeout = "600"
 
-## debug - sets the debug level/verbosity of the startup script {0 or 1}. 
-## Default is 0. 
+## debug - sets the debug level/verbosity of the startup script {0 or 1}.
+## Default is 0.
 #debug="1"
 
 ### Openldap specifics
 ## hostname - the hostname of the machine running the slapd service
 ## will be the bind for slapd. If not present, will be
 ## taken from the [common] block or guessed
-#hostname="my.testbox" 
+#hostname="my.testbox"
 
 ## port - the port where the slapd service runs. Default infosys port is 2135.
 #port="2135"
 
-## slapd_loglevel - sets the native slapd loglevel (see man slapd). 
-## Slapd logs via syslog. The default is set to no-logging (0) and it is 
+## slapd_loglevel - sets the native slapd loglevel (see man slapd).
+## Slapd logs via syslog. The default is set to no-logging (0) and it is
 ## RECOMMENDED not to be changed in a production environment.
 ## Non-zero slap_loglevel value causes serious performance decrease.
 #slapd_loglevel="0"
@@ -1394,7 +1394,7 @@ lrms="dgbridge"
 #threads="128"
 
 ## timelimit - the native slapd timelimit parameter. Maximum number of seconds
-## the slapd server will spend answering a search request. Default is 3600. 
+## the slapd server will spend answering a search request. Default is 3600.
 ## You probably want a much lower value.
 #timelimit="1800"
 
@@ -1409,8 +1409,8 @@ lrms="dgbridge"
 ## the specified path to the standard locations /etc/ldap and /etc/openldap.
 ## If you plan to relocate Glue1 and GLUE2 schemas, all these should be
 ## in the same directory that you specify here.
-## this option does NOT apply to nordugrid.schema file. Such file has a 
-## release dependent location. 
+## this option does NOT apply to nordugrid.schema file. Such file has a
+## release dependent location.
 ## Default is to use only standard locations described above.
 #ldap_schema_dir="/nfs/ldap/schema/"
 
@@ -1431,7 +1431,7 @@ lrms="dgbridge"
 ## initiated by your machine. Default is "/var/log/arc/inforegistration.log"
 #registrationlog="/var/log/arc/inforegistration.log"
 
-## providerlog path - Specifies log file location for the information 
+## providerlog path - Specifies log file location for the information
 ## provider scripts. The feature is only available with >= 0.5.26 tag.
 ## Default is "/var/log/arc/infoprovider.log"
 #providerlog="/var/log/arc/infoprovider.log"
@@ -1442,33 +1442,33 @@ lrms="dgbridge"
 
 
 ### Other
-## user unix_user - the unix user running the infosys processes such as 
-## the slapd, the registrations and infoprovider scripts. 
-## By default the ldap-user is used, you can run it as root if you wish. 
-## In case of non-root value you must make sure that the A-REX 
-## directories and their content are readable by the 'user' and the 'user' 
+## user unix_user - the unix user running the infosys processes such as
+## the slapd, the registrations and infoprovider scripts.
+## By default the ldap-user is used, you can run it as root if you wish.
+## In case of non-root value you must make sure that the A-REX
+## directories and their content are readable by the 'user' and the 'user'
 ## has access to the full LRMS information including jobs submitted by
 ## other users. The A-REX directories (controldir, sessiondir
 ## runtimedir, cachedir) are specified in the [grid-manager] block
 #user="root"
 
-## giis_location - If giis_location is not set, ARC_LOCATION will be 
+## giis_location - If giis_location is not set, ARC_LOCATION will be
 ## used instead.
 #giis_location="/usr/"
 
-## infosys_ldap_run_dir - path where NorduGrid/GLUE2 LDAP ldif file 
+## infosys_ldap_run_dir - path where NorduGrid/GLUE2 LDAP ldif file
 ## will be generated, and where the fifo to sync between infoproviders
 ## and BDII will be generated. Default: /var/run/arc/infosys/
 #infosys_ldap_run_dir="/var/run/arc/infosys/"
 
 ## These three variables decide which schema should be used for
 ## publishing data. They can all be enabled at the same time. Default is
-## to enable nordugrid mds and disable glue.  
+## to enable nordugrid mds and disable glue.
 ## infosys_nordugrid - Enables NorduGrid schema
 #infosys_nordugrid="enable"
 
 ## infosys_glue12 - Enables glue1.2/1.3 schema
-## If infosys_glue12 is enabled, then resource_location, 
+## If infosys_glue12 is enabled, then resource_location,
 ## resource_latitude and resource_longitude need to be set in the
 ## [infosys/glue12] block. These variables do not have default values.
 ## The rest of the variables defaults are showcased below.
@@ -1482,11 +1482,11 @@ lrms="dgbridge"
 ## they're currently disabled by default.
 #infosys_glue2_ldap_showactivities="disable"
 
-## infosys_glue2_service_qualitylevel - Allows a sysadmin to define a 
+## infosys_glue2_service_qualitylevel - Allows a sysadmin to define a
 ## different GLUE2 QualityLevel for A-REX.
 ## This can be used for operations.
 ## default: production
-## Allowed value is one of: "production", "pre-production", "testing", 
+## Allowed value is one of: "production", "pre-production", "testing",
 ## "development"
 ## Refer to GLUE2 documentation for the meaning of these strings.
 #infosys_glue2_service_qualitylevel="production"
@@ -1508,14 +1508,14 @@ lrms="dgbridge"
 ## are here mostly for debug purposes and to tweak exotic
 ## BDII5 installations. In general, a sysadmin should not set these.
 
-## bdii_debug_level - set the following to DEBUG to check bdii errors 
+## bdii_debug_level - set the following to DEBUG to check bdii errors
 ## in bdii-update.log
 ## useful not to enable slapd logs reducing performance issues.
 #bdii_debug_level="ERROR"
 
 ## provider_timeout - This variable allows a system administrator to
 ## modify the behaviour of bdii-update. This is the time BDII waits
-## for the scripts generated by A-REX infoproviders to produce 
+## for the scripts generated by A-REX infoproviders to produce
 ## their output.
 ## Default is 300 seconds.
 #provider_timeout=300
@@ -1551,7 +1551,7 @@ lrms="dgbridge"
 #bdii_update_pid_file="/var/run/arc/bdii-update.pid"
 #slapd_pid_file="$bdii_var_dir/db/slapd.pid"
 
-## bdii_database - Configure what ldap database backend should be used, 
+## bdii_database - Configure what ldap database backend should be used,
 ## default is: bdb
 #bdii_database="bdb"
 
@@ -1590,7 +1590,7 @@ lrms="dgbridge"
 #giis_fifo=/var/run/arc/giis-fifo
 
 
-## LDAP parameters of the cluster.pl (old) infoprovider, use the defaults, 
+## LDAP parameters of the cluster.pl (old) infoprovider, use the defaults,
 ## do NOT change them unless you know what you are doing
 
 ## cachetime affects old infoproviders, and forces the validity time of the record.
@@ -1600,9 +1600,9 @@ lrms="dgbridge"
 #sizelimit="10"
 
 ## slapd_cron_checkpoint - LDAP checkpoint enable/disable
-## This option was introduced to solve bug #2032, to reduce the number 
-## of log files produced by BDII. It is usually not needed, 
-## but if BDII produces large logs and huge number of files, 
+## This option was introduced to solve bug #2032, to reduce the number
+## of log files produced by BDII. It is usually not needed,
+## but if BDII produces large logs and huge number of files,
 ## should help solving the issues related to that.
 #slapd_cron_checkpoint="enable"
 
@@ -1668,7 +1668,7 @@ lrms="dgbridge"
 ##
 ### [infosys/admindomain] block ##################################
 ##
-## [infosys/admindomain] GLUE2 AdminDomain configuration block, 
+## [infosys/admindomain] GLUE2 AdminDomain configuration block,
 ## to configure administrative items of the cluster. This values
 ## do not affect neither glue12 or nordugrid renderings.
 ## If the whole block is not specified, will default to an AdminDomain
@@ -1686,7 +1686,7 @@ lrms="dgbridge"
 ## description - description of this domain. Not mandatory.
 #description="ARC test Domain"
 
-## www - url pointing at a site holding information about the 
+## www - url pointing at a site holding information about the
 ## AdminDomain. Not mandatory.
 ## Example:
 #www="http://www.nordugrid.org/"
@@ -1696,11 +1696,11 @@ lrms="dgbridge"
 ## are considered geographically distributed.
 #distributed=yes
 
-## owner - contact email of a responsible 
+## owner - contact email of a responsible
 ## subject for the domain
 #owner=admin@nordugrid.org
 
-## otherinfo - fills the OtherInfo GLUE2 field. 
+## otherinfo - fills the OtherInfo GLUE2 field.
 ## no need to set, used only for future development.
 #otherinfo=Test Other info
 
@@ -1709,26 +1709,26 @@ lrms="dgbridge"
 ##
 ### [infosys/index/indexname] block ################################
 ##
-## [infosys/index/indexname] Index Service block configures and enables 
-## an Information Index Service. A separate Index block is required for 
+## [infosys/index/indexname] Index Service block configures and enables
+## an Information Index Service. A separate Index block is required for
 ## every Index Service you may run on the given machine.
-## The 'indexname' constitutes to the 
+## The 'indexname' constitutes to the
 ## 'mds-vo-name=indexname,o=grid' LDAP suffix characterizing the Index Service.
 #[infosys/index/indexname]
 
-## name - The unique (within the hosting machine) name of the 
-## Index Service. Its value becomes part of the LDAP suffix 
+## name - The unique (within the hosting machine) name of the
+## Index Service. Its value becomes part of the LDAP suffix
 ## of the Index Service:
 ## (mds-vo-name=value of the name attribute, o=grid)
 #name="indexname"
 
 ## allowregistration - Implements registration filtering within an Index Sevice
 ## Sets the Local Information Trees or lower level Index Services
-## allowed to register to the Index Service. List each allowed registrants 
+## allowed to register to the Index Service. List each allowed registrants
 ## with the allowreg atribute.
-## WARNING: specifying allowreg implies setting up a strict filtering, 
-## only the matching registrants will be able to register to the Index. 
-## The wildcard * can be used in allowreg. Several allowreg lines can be used. 
+## WARNING: specifying allowreg implies setting up a strict filtering,
+## only the matching registrants will be able to register to the Index.
+## The wildcard * can be used in allowreg. Several allowreg lines can be used.
 ## Some examples:
 ## -All the Swedish machines can register regardless they are resources or Indices
 ## allowreg="*.se:2135"
@@ -1748,7 +1748,7 @@ lrms="dgbridge"
 ### [infosys/index/indexname/registration/registrationname] block #
 ## [infosys/index/indexname/registration/registrationname]
 ## Index service registration block
-## This block enables a registration process initiated by the 
+## This block enables a registration process initiated by the
 ## 'indexname' Index Service (configured previuosly)
 ## to a target Index Service.
 ## NorduGrid maintains a webpage with information on major
@@ -1767,7 +1767,7 @@ lrms="dgbridge"
 ## targetsuffix - the LDAP suffix of the target Index Service
 #targetsuffix="mds-vo-name=BigIndex,o=grid"
 
-## regperiod - The registration period in seconds, the registration messages are 
+## regperiod - The registration period in seconds, the registration messages are
 ## continously sent according to the regperiod. Default is 120 sec.
 #regperiod="300"
 
@@ -1776,13 +1776,13 @@ lrms="dgbridge"
 ## most cases no need to set.
 #registranthostname="myhost.org"
 
-## registrantport - the port of the slapd service hosting the 
-## registrant Index Service. The attribute inherits its value from the 
+## registrantport - the port of the slapd service hosting the
+## registrant Index Service. The attribute inherits its value from the
 ## [infosys] block (and therefore defaults to 2135)
 #registrantport="2135"
 
 ## registrantsuffix - the LDAP suffix of the registrant Index Service.
-## It is automatically determined from the registration block name, 
+## It is automatically determined from the registration block name,
 ## therefore most of the cases no need to specify.
 ## In this case the default registrantsuffix will be:
 ##                  "Mds-Vo-name=indexname"
@@ -1802,12 +1802,12 @@ lrms="dgbridge"
 
 ####################################################################
 #
-### [cluster] block ################################################ 
+### [cluster] block ################################################
 ## This block configures how your cluster is seen on the grid monitor (infosys
 ## point of view). Please consult the Infosys manual for detailed information
 ## on cluster attributes.
-## If you want your cluster (configured below) to appear in the infosys 
-## (on the monitor) you also need to create a cluster registration block 
+## If you want your cluster (configured below) to appear in the infosys
+## (on the monitor) you also need to create a cluster registration block
 ## (see the next block).
 #[cluster]
 
@@ -1815,7 +1815,7 @@ lrms="dgbridge"
 ## in the common block then it  MUST be set here
 #hostname="myhost.org"
 
-## interactive_contactstring - the contact string for interactive logins, set this 
+## interactive_contactstring - the contact string for interactive logins, set this
 ## if the cluster supports some sort of grid-enabled interactive login (gsi-ssh),
 ## multivalued
 #interactive_contactstring="gsissh://frontend.cluster:2200"
@@ -1836,7 +1836,7 @@ lrms="dgbridge"
 #cluster_owner="World Grid Project"
 #cluster_owner="University of NeverLand"
 
-## authorizedvo - this attribute is used to advertise which VOs are authorized 
+## authorizedvo - this attribute is used to advertise which VOs are authorized
 ## on the cluster. Multiple entries are allowed.
 ## This entries will be shown in GLUE2 AccessPolicy and MappingPolicy objects.
 #authorizedvo="developer.nordugrid.org"
@@ -1873,10 +1873,10 @@ lrms="dgbridge"
 ## the frontend! opsys can also be used to  describe the kernel or libc version
 ## in case those differ from the originally shipped ones. The distribution name
 ## should be given as distroname-version.number, where spaces are not allowed.
-## Kernel version should come in the form kernelname-version.number. 
+## Kernel version should come in the form kernelname-version.number.
 ## If the NODES are inhomogeneous with respect to this attribute do NOT set it on
 ## cluster level, arrange your nodes into homogeneous groups assigned to a queue
-## and use queue-level attributes. 
+## and use queue-level attributes.
 #opsys="Linux-2.6.18"
 #opsys="glibc-2.5.58"
 #opsys="CentOS-5.6"
@@ -1886,17 +1886,17 @@ lrms="dgbridge"
 ## value of "cpu MHz". Do NOT set this attribute on cluster level if the NODES
 ## are inhomogeneous with respect to cputype, instead arrange the nodes into
 ## homogeneous groups assigned to a queue and use queue-level attributes. Setting
-## the nodecpu="adotf" will result in Automatic Determination On The Frontend, 
+## the nodecpu="adotf" will result in Automatic Determination On The Frontend,
 ## which should only be used if the frontend has the same cputype as the
 ## homogeneous nodes.
 #nodecpu="AMD Duron(tm) Processor @ 700 MHz"
 
-## nodememory - this is the amount of memory (specified in MB) on the node 
-## which can be guaranteed to be available for the application. Please note 
+## nodememory - this is the amount of memory (specified in MB) on the node
+## which can be guaranteed to be available for the application. Please note
 ## in most cases it is less than the physical memory installed in the nodes.
 ## Do NOT set this attribute on cluster level if the NODES are inhomogeneous
 ## with respect to their memories, instead arrange the nodes into homogeneous
-## groups assigned to a queue and use queue-level attributes. 
+## groups assigned to a queue and use queue-level attributes.
 #nodememory="512"
 
 ## defaultmemory - If a user submits a job without specifying how much
@@ -1905,13 +1905,13 @@ lrms="dgbridge"
 ## memory (specified in MB) that a job will request(per rank).
 #defaultmemory="512"
 
-## benchmark name value - this optional multivalued attribute can be used to 
-## specify benchmark results on the cluster level. Use this cluster attribute 
-## if only the NODES are homogeneous with respect to the benchmark performance. 
-## Otherwise the similar queue-level attribute should be used. Please try to 
+## benchmark name value - this optional multivalued attribute can be used to
+## specify benchmark results on the cluster level. Use this cluster attribute
+## if only the NODES are homogeneous with respect to the benchmark performance.
+## Otherwise the similar queue-level attribute should be used. Please try to
 ## use one of standard benchmark names given below if possible.
 #benchmark="SPECINT2000  222"
-#benchmark="SPECFP2000 333" 
+#benchmark="SPECFP2000 333"
 
 ## middleware - the multivalued attribute shows the installed grid software on
 ## the cluster, nordugrid and globus-ng  is automatically set, no need to specify
@@ -1934,7 +1934,7 @@ lrms="dgbridge"
 ## nodes. Setting the dedicated_node_string  to the value of the "pbs node
 ## property" of the grid-enabled  nodes will influence how the totalcpus, user
 ## freecpus is calculated. You don't need to set this attribute if your cluster
-## is fully available for the grid and your cluster's PBS config does not use 
+## is fully available for the grid and your cluster's PBS config does not use
 ## the "node property" method to assign certain nodes to grid queues. You
 ## shouldn't use this config option unless you make sure  your PBS config makes
 ## use of the above described setup.
@@ -1952,12 +1952,12 @@ lrms="dgbridge"
 ## gm_port - this is the same as the "port" from the [gridftpd] block. The
 ## default is "2811". Will be cleaned up later.
 #gm_port="2811"
-  
+
 ## cpudistribution - this is the CPU distribution over nodes
-## given in the form: ncpu:m where 
+## given in the form: ncpu:m where
 ##   n is the number of CPUs per machine
 ##   m is the number of such computers
-## Example: 1cpu:3,2cpu:4,4cpu:1 represents a cluster with 
+## Example: 1cpu:3,2cpu:4,4cpu:1 represents a cluster with
 ## 3 single CPU machines, 4 dual CPU machines, one machine with 4 CPUs.
 ## This command is needed to tweak and overwrite the values returned
 ## by the underlying LRMS. In general there is no need to configure it.
@@ -1996,12 +1996,12 @@ lrms="dgbridge"
 #registrantport="2135"
 
 ## registrantsuffix - the LDAP suffix of the registrant cluster resource
-## It is automatically determined from the [infosys] block and the 
+## It is automatically determined from the [infosys] block and the
 ## registration blockname. In this case the default registrantsuffix will be:
 ##    "nordugrid-cluster-name=hostname,Mds-Vo-name=local,o=Grid"
-## please mind uppercase/lowercase characters above if defining 
+## please mind uppercase/lowercase characters above if defining
 ## allowreg in an index!
-## Don't set it unless you want to overwrite the default. 
+## Don't set it unless you want to overwrite the default.
 #registrantsuffix="nordugrid-cluster-name=myhost.org,Mds-Vo-name=local,o=grid"
 
 ## timeout - The suggested timeout to be included in the registration.
@@ -2011,8 +2011,8 @@ lrms="dgbridge"
 ## ttl - The suggested TTL to be included in the registration.  The default
 ## is twice the registration period.
 #ttl="600"
- 
-   	   
+
+   	
 ####################################################################
 ##
 ### [queue/queue_name] block #######################################
@@ -2042,15 +2042,15 @@ lrms="dgbridge"
 #name="gridlong"
 
 ## homogeneity - determines whether the queue consists of identical NODES with
-## respect to  cputype, memory, installed software (opsys). 
-## In case of inhomogeneous nodes, try to arrange the nodes into homogeneous 
+## respect to  cputype, memory, installed software (opsys).
+## In case of inhomogeneous nodes, try to arrange the nodes into homogeneous
 ## groups and assigned them to a queue.
 ## Possible values: True,False, the default is True.
 #homogeneity="True"
 
 ## scheduling_policy - this optional parameter tells the schedulling policy of
 ## the queue, PBS by default offers the FIFO scheduller, many sites run the MAUI.
-## At the moment FIFO & MAUI is supported. If you have a MAUI scheduller you 
+## At the moment FIFO & MAUI is supported. If you have a MAUI scheduller you
 ## should specify the "MAUI" value since it modifies the way the queue resources
 ## are calculated.  BY default the "FIFO" sceduller is assumed.
 #scheduling_policy="FIFO"
@@ -2077,7 +2077,7 @@ lrms="dgbridge"
 ## Read NorduGrid PBS instructions for more information:
 ##    http://www.nordugrid.org/documents/pbs-config.html
 #queue_node_string="gridlong_nodes"
-#queue_node_string="ppn=4:ib" 
+#queue_node_string="ppn=4:ib"
 
 ## sge_jobopts - additional SGE options to be used when submitting jobs to SGE
 ## from this queue.  If in doubt, leave it commented out
@@ -2115,13 +2115,13 @@ lrms="dgbridge"
 #totalcpus="32"
 
 ## queue-level configuration parameters: nodecpu, nodememory, architecture, opsys
-## and benchmark should be set if they are homogeneous over the nodes assigned 
-## to the queue AND they are different from the cluster-level value. 
+## and benchmark should be set if they are homogeneous over the nodes assigned
+## to the queue AND they are different from the cluster-level value.
 ## Their meanings are described in the cluster block. Usage: this queue collects
-## nodes with "nodememory=512" while another queue has nodes with 
-## "nodememory=256" -> don't set the cluster attributes but use the queue-level 
-## attributes. When the frontend's architecture or cputype agrees with the queue 
-## nodes, the "adotf" (Automatically Determine On The Frontend) can be used to 
+## nodes with "nodememory=512" while another queue has nodes with
+## "nodememory=256" -> don't set the cluster attributes but use the queue-level
+## attributes. When the frontend's architecture or cputype agrees with the queue
+## nodes, the "adotf" (Automatically Determine On The Frontend) can be used to
 ## request automatic determination of architecture or nodecpu.
 #nodecpu="adotf"
 #nodememory="512"
@@ -2129,9 +2129,9 @@ lrms="dgbridge"
 #opsys="Fedora 16"
 #opsys="Linux-3.0"
 #benchmark="SPECINT2000  222"
-#benchmark="SPECFP2000 333" 
+#benchmark="SPECFP2000 333"
 
-## queue access policy rules based on VOMS attributes in user's 
+## queue access policy rules based on VOMS attributes in user's
 ## proxy certificate (requires the arc-vomsac-check plugin to be enabled).
 ## Matching rules have the following format:
 ##   ac_policy="[+/-]VOMS: <FQAN>"
@@ -2140,12 +2140,12 @@ lrms="dgbridge"
 #ac_policy="VOMS: /.*/Role=production"
 
 ## maxslotsperjob - this configures the GLUE2 MaxSlotsPerJob value
-## on a particular queue (see GLUE2 definition). 
-## This value is usually generated by LRMS 
+## on a particular queue (see GLUE2 definition).
+## This value is usually generated by LRMS
 ## infocollectors, but there are cases in which a system administrator
-## might like to tweak it. 
+## might like to tweak it.
 ## Default is to publish what is returned by the LRMS, and if nothing is
-## returned, NOT to publish the MaxSlotsPerJob attribute. 
+## returned, NOT to publish the MaxSlotsPerJob attribute.
 ## If a system administrator sets the value here, that value will be
 ## published instead, regardless of what the LRMS returns.
 ## Each LRMS might have a different meaning for this value.
@@ -2181,7 +2181,7 @@ lrms="dgbridge"
 ## Time in seconds for which registration records should stay valid.
 #validity=600
 
-## Time in seconds how othen registration record should be sent to the 
+## Time in seconds how othen registration record should be sent to the
 ## registration service.
 #period=60
 
@@ -2194,10 +2194,10 @@ lrms="dgbridge"
 
 ### [nordugridmap] block ###########################################
 ##
-## [nordugridmap] block configuration is used to fine-tune behavior 
+## [nordugridmap] block configuration is used to fine-tune behavior
 ## of the nordugridmap - an ARC tool used to generate grid-mapfiles.
 ## Please refer to [vo] block description to find information how
-## to specify VO sources for mapfile generation. This section setup 
+## to specify VO sources for mapfile generation. This section setup
 ## general VO-independent parameters.
 ##
 #[nordugridmap]
@@ -2211,16 +2211,16 @@ lrms="dgbridge"
 #x509_user_key="/etc/grid-security/hostkey.pem"
 #x509_user_cert="/etc/grid-security/hostcert.pem"
 
-## x509_cert_dir - the directory containing CA certificates. 
-## This information is needed by the 'require_issuerdn' [vo] block 
+## x509_cert_dir - the directory containing CA certificates.
+## This information is needed by the 'require_issuerdn' [vo] block
 ## option. Default is '/etc/grid-security/certificates/'.
 #x509_cert_dir="/etc/grid-security/certificates/"
 
-## generate_vomapfile - control is nordugridmap will generate 
+## generate_vomapfile - control is nordugridmap will generate
 ## vo-mapfile used by arc-ur-logger. Default is 'yes'.
 #generate_vomapfile="yes"
 
-## vomapfile - path to vo-mapfile location. Default is 
+## vomapfile - path to vo-mapfile location. Default is
 ## '/etc/grid-security/grid-vo-mapfile'
 #vomapfile="/etc/grid-security/grid-vo-mapfile"
 
@@ -2232,7 +2232,7 @@ lrms="dgbridge"
 ## Default is '/var/log/arc/nordugridmap.log'.
 #logfile="/var/log/arc/nordugridmap.log"
 
-## cache_enable - control whether caching of external sources 
+## cache_enable - control whether caching of external sources
 ## will be used. Default is 'yes'.
 #cache_enable="yes"
 
@@ -2240,25 +2240,25 @@ lrms="dgbridge"
 ## Default is '/var/spool/nordugrid/gridmapcache/'
 #cachedir="/var/spool/nordugrid/gridmapcache/"
 
-## cachetime - controls how many time (in seconds) cached information 
+## cachetime - controls how many time (in seconds) cached information
 ## remains valid. Default is 259200 (3 days).
 #cachetime="259200"
 
-## issuer_processing - control the behavior of [vo] block require_issuerdn 
+## issuer_processing - control the behavior of [vo] block require_issuerdn
 ## parameter. Valid values are 'relaxed' and 'strict'.
-## Please see 'require_issuerdn' description in [vo] block for details. 
+## Please see 'require_issuerdn' description in [vo] block for details.
 ## Default is 'relaxed'.
 #issuer_processing="relaxed"
 
-## mapuser_processing - control the behavior of [vo] block mapped_unixid 
-## parameter usage. Valid values are 'overwrite' and 'keep'. 
+## mapuser_processing - control the behavior of [vo] block mapped_unixid
+## parameter usage. Valid values are 'overwrite' and 'keep'.
 ## Please see 'mapped_unixid' description in [vo] block for details.
 ## Default is 'keep'.
 #mapuser_processing="keep"
 
-## allow_empty_unixid - control whether empty (or unspecified) 
-## 'mapped_unixid' [vo] block option is allowed to be used. 
-## Please see 'mapped_unixid' description of [vo] block for details. 
+## allow_empty_unixid - control whether empty (or unspecified)
+## 'mapped_unixid' [vo] block option is allowed to be used.
+## Please see 'mapped_unixid' description of [vo] block for details.
 ## Default is 'no'
 #allow_empty_unixid="no"
 
@@ -2278,12 +2278,12 @@ lrms="dgbridge"
 ##   4 - VERBOSE - a bit more processing information
 ##   5 - DEBUG   - lot of processing information
 ##
-## When test run is requested (--test command line option of the 
+## When test run is requested (--test command line option of the
 ## nordugridmap) debug level is automatically set to 5 (DEBUG).
 ## Default is 2 (WARNING)
 #debug="4"
 
-## fetch_timeout - control how many time (in seconds) nordugridmap will 
+## fetch_timeout - control how many time (in seconds) nordugridmap will
 ## wait for external sources retrieval. Default is 15.
 #fetch_timeout="15"
 
