@@ -1,3 +1,6 @@
+2013-12-06  David Cameron <d.g.cameron@fys.uio.no>
+  * Use 'anonymous' username by default for ftp listing (fixing bug #3312)
+
 2013-11-27  Gabor Szigeti <szigeti@niif.hu>
   * Add VO filter to the jobreporter. (fixing bug #3302)
 
