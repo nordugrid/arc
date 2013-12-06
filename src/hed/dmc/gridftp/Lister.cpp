@@ -26,9 +26,9 @@
 #include "Lister.h"
 
 
-static char default_ftp_user[] = "ftp";
+static char default_ftp_user[] = "anonymous";
 static char default_gsiftp_user[] = ":globus-mapping:";
-static char default_ftp_pass[] = "user@";
+static char default_ftp_pass[] = "dummy";
 static char default_gsiftp_pass[] = "user@";
 
 static void dos_to_unix(char *s) {
