@@ -423,6 +423,7 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
     };
   };
   nextpayload->Attribute("User-Agent","ARC");
+  bool request_is_head = (upper(http_method) == "HEAD");
   // Creating message to pass to next MCC and setting new payload..
   Message nextinmsg = inmsg;
   if(inrpayload) {
@@ -449,10 +450,13 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   try {
     retpayload = dynamic_cast<PayloadStreamInterface*>(nextoutmsg.Payload());
   } catch(std::exception& e) { };
-  if(!retpayload) { delete nextoutmsg.Payload(); return make_raw_fault(outmsg,"HTTP layer got something that is not stream"); };
+  if(!retpayload) {
+    delete nextoutmsg.Payload();
+    return make_raw_fault(outmsg,"HTTP layer got something that is not stream");
+  };
   // Stream retpayload becomes owned by outpayload. This is needed because
   // HTTP payload may postpone extracting information from stream till demanded.
-  PayloadHTTPIn* outpayload  = new PayloadHTTPIn(*retpayload,true);
+  PayloadHTTPIn* outpayload  = new PayloadHTTPIn(*retpayload,true,request_is_head);
   if(!outpayload) {
     delete retpayload;
     return make_raw_fault(outmsg,"Returned payload is not recognized as HTTP");

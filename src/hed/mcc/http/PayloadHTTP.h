@@ -100,6 +100,7 @@ class PayloadHTTPIn: public PayloadHTTP, public PayloadRawInterface, public Payl
     MULTIPART_EOF,
     MULTIPART_ERROR
   } multipart_t;
+  bool head_response_;             /** true if HTTP response for HEAD request is expected */
   chunked_t chunked_;              /** chunked encoding parsing state */
   int64_t chunk_size_;
   multipart_t multipart_;
@@ -151,7 +152,7 @@ class PayloadHTTPIn: public PayloadHTTP, public PayloadRawInterface, public Payl
     then stream will be deleted in destructor. Because stream can be used by this
     object during whole lifetime it is important not to destroy stream till this 
     object is deleted. */
-  PayloadHTTPIn(PayloadStreamInterface& stream,bool own = false);
+  PayloadHTTPIn(PayloadStreamInterface& stream,bool own = false,bool head_response = false);
 
   virtual ~PayloadHTTPIn(void);
 

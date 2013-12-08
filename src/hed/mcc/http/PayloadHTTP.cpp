@@ -493,7 +493,14 @@ bool PayloadHTTPIn::get_body(void) {
   valid_=false; // But object is invalid till whole body is available
   if(body_) free(body_);
   body_ = NULL; body_size_ = 0;
-  // TODO: Check for methods and responses which can't have body
+  if(head_response_ && (code_ == 200)) {
+    // Successful response to HEAD contains no body
+    valid_=true;
+    flush_multipart();
+    flush_chunked();
+    body_read_=true;
+    return true;
+  };
   char* result = NULL;
   int64_t result_size = 0;
   if(length_ == 0) {
@@ -535,8 +542,8 @@ bool PayloadHTTPIn::get_body(void) {
   return true;
 }
 
-PayloadHTTPIn::PayloadHTTPIn(PayloadStreamInterface& stream,bool own):
-    chunked_(CHUNKED_NONE),chunk_size_(0),
+PayloadHTTPIn::PayloadHTTPIn(PayloadStreamInterface& stream,bool own,bool head_response):
+    head_response_(head_response),chunked_(CHUNKED_NONE),chunk_size_(0),
     multipart_(MULTIPART_NONE),stream_(&stream),stream_offset_(0),
     stream_own_(own),fetched_(false),header_read_(false),body_read_(false),
     body_(NULL),body_size_(0) {
