@@ -288,11 +288,11 @@ static Arc::DataStatus do_mover(const Arc::URL& s_url,
   Arc::DataHandle source(s_url, usercfg);
   Arc::DataHandle destination(d_url, usercfg);
   if (!source) {
-    logger.msg(Arc::INFO, "Unsupported source url: %s", s_url.str());
+    logger.msg(Arc::ERROR, "Unsupported source url: %s", s_url.str());
     return Arc::DataStatus::ReadAcquireError;
   }
   if (!destination) {
-    logger.msg(Arc::INFO, "Unsupported destination url: %s", d_url.str());
+    logger.msg(Arc::ERROR, "Unsupported destination url: %s", d_url.str());
     return Arc::DataStatus::WriteAcquireError;
   }
   if ((source->RequiresCredentials() || destination->RequiresCredentials())
