@@ -1,17 +1,10 @@
 %{?mingw_package_header}
-%global __strip %{mingw_strip}
-%global __objdump %{mingw_objdump}
-%define __debug_install_post %{mingw_debug_install_post}
-%global _use_internal_dependency_generator 0
-%global __find_requires %{mingw_findrequires}
-%global __find_provides %{mingw_findprovides}
 
 %global mingw_pkg_name @PACKAGE@
 
 # Cross-compilation platforms supported
 %global mingw_build_win32    1
 %global mingw_build_win64    1
-%global mingw_build_darwinx  0
 
 # External (currently unofficial) dependencies)
 %define with_mingw32_python  0
@@ -101,9 +94,6 @@ BuildRequires:	mingw64-globus-ftp-control
 
 BuildRequires:	pkgconfig
 BuildRequires:	swig
-
-%{?mingw_default_requires}
-%{?mingw_debug_package}
 
 %description
 NorduGrid ARC
@@ -294,6 +284,8 @@ Python wrapper for ARC
 %endif
 
 %endif
+
+%{?mingw_debug_package}
 
 %prep
 %setup -q -n %{mingw_pkg_name}-%{version}
