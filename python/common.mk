@@ -84,7 +84,7 @@ $(ARCPYLIBS): %.py: %_wrap.cpp
 
 $(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i $(top_srcdir)/swig/Arc.i $(PYDOXFILE)
 	mkdir -p $(DEPDIR)
-	grep -h '^#' $^ | \
+	grep -h '^#' $< $(top_srcdir)/swig/Arc.i $(PYDOXFILE) | \
 	$(CXXCOMPILE) $(_arc_la_CXXFLAGS) -M -MT $*_wrap.cpp -MT arc_$*.py -MP -MF "$(DEPDIR)/$*_wrap.deps" -x c++ -
 	$(SWIG) -v -c++ -python $(SWIG_PY3) -threads -o $*_wrap.cpp \
 		-I/usr/include -I$(top_srcdir)/include \
