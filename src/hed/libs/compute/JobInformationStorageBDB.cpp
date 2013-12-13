@@ -249,7 +249,11 @@ namespace Arc {
     tearDown();
   }
 
+#if ((DB_VERSION_MAJOR > 4)||(DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR >= 3))
   void JobInformationStorageBDB::JobDB::handleError(const DbEnv *dbenv, const char *errpfx, const char *msg) {
+#else
+  void JobInformationStorageBDB::JobDB::handleError(const char *errpfx, char *msg) {
+#endif
     if (errpfx) {
       JobInformationStorageBDB::logger.msg(DEBUG, "Error from BDB: %s: %s", errpfx, msg);
     }

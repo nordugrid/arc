@@ -37,7 +37,11 @@ namespace Arc {
       
       void tearDown();
 
+#if ((DB_VERSION_MAJOR > 4)||(DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR >= 3))
       static void handleError(const DbEnv *dbenv, const char *errpfx, const char *msg);
+#else
+      static void handleError(const char *errpfx, char *msg);
+#endif
 
       Db* operator->() { return jobDB; }
       Db* viaNameKeys() { return nameSecondaryKeyDB; }
