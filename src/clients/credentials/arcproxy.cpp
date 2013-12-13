@@ -373,10 +373,12 @@ static void get_nss_certname(std::string& certname, Arc::Logger& logger) {
 static std::string signTypeToString(Arc::Signalgorithm alg) {
   switch(alg) {
     case Arc::SIGN_SHA1: return "sha1";
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
     case Arc::SIGN_SHA224: return "sha224";
     case Arc::SIGN_SHA256: return "sha256";
     case Arc::SIGN_SHA384: return "sha384";
     case Arc::SIGN_SHA512: return "sha512";
+#endif
     default:
       break;
   }
@@ -436,7 +438,12 @@ int main(int argc, char *argv[]) {
                                     "  keybits=number - length of the key to generate. Default is 1024 bits.\n"
                                     "  Special value 'inherit' is to use key length of signing certificate.\n"
                                     "  signingAlgorithm=name - signing algorithm to use for signing public key of proxy.\n"
-                                    "  Possible values are sha1, sha2 (alias for sha256), sha224, sha256, sha384, sha512\n"
+                                    "  Possible values are sha1"
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+                                    ", sha2 (alias for sha256), sha224, sha256, sha384, sha512\n"
+#else
+                                    "\n"
+#endif
                                     "  and inherit (use algorithm of signing certificate). Default is inherit.\n"
                                     "\n"
                                     "Supported information item names are:\n"
@@ -1405,6 +1412,7 @@ static void create_proxy(std::string& proxy_cert, Arc::Credential& signer,
   if(!signing_algorithm.empty() && signing_algorithm != "inherit") {
     if(signing_algorithm == "sha1") {
       cred_request.SetSigningAlgorithm(Arc::SIGN_SHA1);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
     } else if(signing_algorithm == "sha2") {
       cred_request.SetSigningAlgorithm(Arc::SIGN_SHA256);
     } else if(signing_algorithm == "sha224") {
@@ -1415,6 +1423,7 @@ static void create_proxy(std::string& proxy_cert, Arc::Credential& signer,
       cred_request.SetSigningAlgorithm(Arc::SIGN_SHA384);
     } else if(signing_algorithm == "sha512") {
       cred_request.SetSigningAlgorithm(Arc::SIGN_SHA512);
+#endif
     } else {
       throw std::runtime_error("Unknown signing algorithm specified: "+signing_algorithm);
     }

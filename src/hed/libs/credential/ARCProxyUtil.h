@@ -6,7 +6,14 @@ namespace Arc {
 
 
 class ARCProxyUtil {
-  enum { SHA1, SHA224, SHA256, SHA384, SHA512 } SHA_OPTION;
+  enum { SHA1,
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+         SHA224,
+         SHA256,
+         SHA384,
+         SHA512,
+#endif
+       } SHA_OPTION;
 
   public:
     ARCProxyUtil();

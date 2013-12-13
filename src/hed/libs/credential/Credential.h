@@ -39,7 +39,15 @@ class CredentialError : public std::runtime_error {
 };
 
 typedef enum {CRED_PEM, CRED_DER, CRED_PKCS, CRED_UNKNOWN} Credformat;
-typedef enum { SIGN_DEFAULT = 0, SIGN_SHA1, SIGN_SHA224, SIGN_SHA256, SIGN_SHA384, SIGN_SHA512 } Signalgorithm;
+typedef enum { SIGN_DEFAULT = 0,
+               SIGN_SHA1,
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+               SIGN_SHA224,
+               SIGN_SHA256,
+               SIGN_SHA384,
+               SIGN_SHA512
+#endif
+             } Signalgorithm;
 
 /**Logger to be used by all modules of credentials library*/
 extern Logger CredentialLogger;

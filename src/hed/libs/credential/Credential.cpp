@@ -360,10 +360,12 @@ namespace Arc {
     int sig_nid = OBJ_obj2nid(alg->algorithm);
     switch(sig_nid) {
       case NID_sha1WithRSAEncryption: signing_algorithm = SIGN_SHA1; break;
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
       case NID_sha224WithRSAEncryption: signing_algorithm = SIGN_SHA224; break;
       case NID_sha256WithRSAEncryption: signing_algorithm = SIGN_SHA256; break;
       case NID_sha384WithRSAEncryption: signing_algorithm = SIGN_SHA384; break;
       case NID_sha512WithRSAEncryption: signing_algorithm = SIGN_SHA512; break;
+#endif
     }
     return signing_algorithm;
   }
@@ -388,10 +390,12 @@ namespace Arc {
   void Credential::SetSigningAlgorithm(Signalgorithm signing_algorithm) {
     switch(signing_algorithm) {
       case SIGN_SHA1: signing_alg_ = ((EVP_MD*)EVP_sha1()); break;
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
       case SIGN_SHA224: signing_alg_ = ((EVP_MD*)EVP_sha224()); break;
       case SIGN_SHA256: signing_alg_ = ((EVP_MD*)EVP_sha256()); break;
       case SIGN_SHA384: signing_alg_ = ((EVP_MD*)EVP_sha384()); break;
       case SIGN_SHA512: signing_alg_ = ((EVP_MD*)EVP_sha512()); break;
+#endif
       default: signing_alg_ = NULL; break;
     }
   }
