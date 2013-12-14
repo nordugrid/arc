@@ -125,6 +125,7 @@ Obsoletes:	nordugrid-arc-chelonia < 2.0.0
 Obsoletes:	nordugrid-arc-hopi < 2.0.0
 Obsoletes:	nordugrid-arc-isis < 2.0.0
 Obsoletes:	nordugrid-arc-janitor < 2.0.0
+Obsoletes:	nordugrid-arc-doxygen < 4.0.0
 
 BuildRequires:	cppunit-devel
 BuildRequires:	pkgconfig
