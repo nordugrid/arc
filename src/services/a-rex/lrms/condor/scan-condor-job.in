@@ -207,6 +207,7 @@ job_write_diag() {
 
     { echo "$diagstring" && echo
       [ -n "$nodename" ] && echo "$nodename" | sed -n 's/^\(..*\)/nodename=\1/p'
+      [ -n "$RequestCpus" ] && echo "Processors=${RequestCpus}"
       [ -n "$WallTime" ] && echo "WallTime=${WallTime}s"
       [ -n "$UserTime" ] && echo "UserTime=${UserTime}s"
       [ -n "$KernelTime" ] && echo "KernelTime=${KernelTime}s"
@@ -590,6 +591,7 @@ condor_read_history() {
     ExitReason=$(echo   "$histstring" | sed -n 's/^ExitReason *= *"\(.*\)"[^"]*$/\1/p')
     JobCurrentStartDate=$(echo  "$histstring" | sed -n 's/^JobCurrentStartDate *= *\([0-9][0-9]*\).*/\1/p')
     EnteredCurrentStatus=$(echo "$histstring" | sed -n 's/^EnteredCurrentStatus *= *\([0-9][0-9]*\).*/\1/p')
+    RequestCpus=$(echo  "$histstring" | sed -n 's/^RequestCpus *= *//p')
 
     echo "$RemoveReason" | grep -q 'PeriodicRemove .*evaluated to \(TRUE\)'
     [ $? = 0 ] && PeriodicRemove=TRUE
@@ -697,6 +699,7 @@ lrms_last_call() {
         [ -n "$JobCurrentStartDate" ] && echo "$progname: JobCurrentStartDate=$JobCurrentStartDate"
         [ -n "$EnteredCurrentStatus" ] && echo "$progname: EnteredCurrentStatus=$EnteredCurrentStatus"
         [ -n "$ExitReason" ] && echo "$progname: ExitReason=$ExitReason"
+        [ -n "$RequestCpus" ] && echo "$progname: RequestCpus=$RequestCpus"
         echo "$progname: -----------------------------------------------------"
 
         if [ -n "$JobCurrentStartDate" ]; then
