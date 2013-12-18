@@ -430,7 +430,7 @@ chown $bdii_user: $bdii_var_dir/db/stats
 set_cachesize_line=`egrep '^[[:space:]]*'set_cachesize ${bdii_db_config}`
 if [ -n "${set_cachesize_line}" ]; then
     if [ -e /proc/meminfo ]; then
-	memsize=$(grep MemFree /proc/meminfo | awk '{print $2 * 1000}')
+	memsize=$(grep MemFree /proc/meminfo | awk '{printf "%.0f", $2 * 1024}')
 	default_set_cachesize=$(echo ${set_cachesize_line} | awk '{print $2 * 1073741824 + $3}')
 	half_memsize=$(( ${memsize} / 2 ))
 	if [ $default_set_cachesize -ge $half_memsize ]; then
