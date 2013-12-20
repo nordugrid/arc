@@ -141,7 +141,7 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
   jobs = jobmaster.GetSelectedJobs();
 
   if (jobs.empty()) {
-    std::cout << Arc::IString("No jobs") << std::endl;
+    std::cout << Arc::IString("No jobs found, try later") << std::endl;
     return 1;
   }
 
