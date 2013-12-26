@@ -27,6 +27,7 @@ our @EXPORT_OK = ( 'select_lrms',
 use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
 use SGE;
 use Fork;
+use Boinc;
 use PBS;
 use LL;
 use LSF;
@@ -54,6 +55,11 @@ sub select_lrms ($) {
 	$queue_info   = \&Fork::queue_info;
 	$jobs_info    = \&Fork::jobs_info;
 	$users_info   = \&Fork::users_info;
+    } elsif ( lc($lrms_name) eq "boinc" ) {
+	$cluster_info = \&Boinc::cluster_info;
+	$queue_info   = \&Boinc::queue_info;
+	$jobs_info    = \&Boinc::jobs_info;
+	$users_info   = \&Boinc::users_info;
     } elsif ( lc($lrms_name) eq "pbs" ) {
 	$cluster_info = \&PBS::cluster_info;
 	$queue_info   = \&PBS::queue_info;

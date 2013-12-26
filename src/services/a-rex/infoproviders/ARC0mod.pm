@@ -33,6 +33,7 @@ our %modnames = ( PBS    => "PBS",
                   DGBRIDGE  => "DGBridge",
                   CONDOR => "Condor",
                   SLURM  => "SLURM",
+                  BOINC  => "Boinc",
                   FORK   => "Fork"
                 );
 
