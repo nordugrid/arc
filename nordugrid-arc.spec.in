@@ -1371,6 +1371,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/SLURMmod.pm
 %{_datadir}/%{pkgdir}/SLURM.pm
 %{_datadir}/%{pkgdir}/DGBridge.pm
+%{_datadir}/%{pkgdir}/Boinc.pm
 %{_datadir}/%{pkgdir}/XmlPrinter.pm
 %{_datadir}/%{pkgdir}/InfosysHelper.pm
 %{_datadir}/%{pkgdir}/LdifPrinter.pm

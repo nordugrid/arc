@@ -2504,6 +2504,10 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/dgbridge/submit-DGBridge-job
                  src/services/a-rex/lrms/dgbridge/scan-DGBridge-job
                  src/services/a-rex/lrms/dgbridge/cancel-DGBridge-job
+                 src/services/a-rex/lrms/boinc/Makefile
+                 src/services/a-rex/lrms/boinc/submit-boinc-job
+                 src/services/a-rex/lrms/boinc/scan-boinc-job
+                 src/services/a-rex/lrms/boinc/cancel-boinc-job
                  src/services/a-rex/schema/Makefile
                  src/services/acix/Makefile
                  src/services/acix/cacheserver/Makefile

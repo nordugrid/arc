@@ -36,6 +36,7 @@ debian/tmp/usr/share/arc/Condor.pm
 debian/tmp/usr/share/arc/SLURMmod.pm
 debian/tmp/usr/share/arc/SLURM.pm
 debian/tmp/usr/share/arc/DGBridge.pm
+debian/tmp/usr/share/arc/Boinc.pm
 
 debian/tmp/usr/share/arc/XmlPrinter.pm
 debian/tmp/usr/share/arc/InfosysHelper.pm

@@ -1,3 +1,9 @@
+2013-12-26  Anders Waananen <waananen@nbi.dk>
+  * Package Boinc lrms
+
+2013-12-26  Wenjing Wu <Wenjing.Wu@cern.ch>
+  * Add Boinc lrms
+
 2013-12-06  David Cameron <d.g.cameron@fys.uio.no>
   * Use 'anonymous' username by default for ftp listing (fixing bug #3312)
 
