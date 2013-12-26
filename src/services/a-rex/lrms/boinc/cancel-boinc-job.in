@@ -1,0 +1,76 @@
+#!/bin/sh
+# set -x
+# 
+#  Cancel job running in FORK.
+# 
+ProjectDir=/home/boinc/projects/ATLAS
+
+echo "----- starting cancel_fork_job -----" 1>&2
+trap 'echo "----- exiting cancel_fork_job -----" 1>&2; echo "" 1>&2' EXIT
+
+joboption_lrms=fork
+
+# ARC1 passes first the config file.
+if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+
+basedir=`dirname $0`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
+
+pkgdatadir="$basedir"
+
+. ${pkgdatadir}/cancel_common.sh || exit $?
+
+if [ -z "$joboption_controldir" ] ; then
+  joboption_controldir=`dirname "$arg_file"`
+  if [ "$joboption_controldir" = '.' ] ; then
+    joboption_controldir="$PWD"
+  fi
+fi
+
+job_control_dir="$joboption_controldir"
+if [ -z "$joboption_gridid" ] ; then
+  joboption_gridid=`basename "$arg_file" | sed 's/^job\.\(.*\)\.grami$/\1/'`
+fi
+
+echo "Deleting job $joboption_gridid, local id $joboption_jobid" 1>&2
+
+if [ ! -r "$job_control_dir/job.${joboption_gridid}.local" ]; then
+  echo "Local description of job ${joboption_gridid} not found at '$job_control_dir/job.${joboption_gridid}.local'. Job was not killed, if running at all." 1>&2
+  exit 1
+fi
+
+if [ -z "$joboption_jobid" ] ; then
+  joboption_jobid=`cat "$job_control_dir/job.${joboption_gridid}.local" | grep '^localid=' | sed 's/^localid=//'`
+fi
+
+job_control_subdir=
+if [ -r "$job_control_dir/accepting/job.${joboption_gridid}.status" ]; then
+  job_control_subdir="$job_control_dir/accepting"
+elif [ -r "$job_control_dir/processing/job.${joboption_gridid}.status" ]; then
+  job_control_subdir="$job_control_dir/processing"
+elif [ -r "$job_control_dir/finished/job.${joboption_gridid}.status" ]; then
+  job_control_subdir="$job_control_dir/finished"
+else
+  echo "Status file of job ${joboption_gridid} not found in '$job_control_dir'. Job was not killed, if running at all." 1>&2
+  exit 1
+fi
+
+case X`cat "$job_control_subdir/job.${joboption_gridid}.status"` in
+    XINLRMS | XCANCELING)
+        if [ -z "$joboption_jobid" ] ; then
+            echo "Can't find local id of job" 1>&2
+            exit 1
+        fi
+        cd $ProjectDir;bin/cancel_jobs --name $joboption_gridid
+        ;;
+
+    XFINISHED | XDELETED)
+        echo "Job already died, won't do anything" 1>&2
+        ;;
+    *)
+        echo "Job is at unkillable state" 1>&2
+        ;;
+esac
+
+exit 0
+

@@ -1,0 +1,294 @@
+#!/bin/sh
+ set -x
+#
+#  Input: path to grami file (same as Globus).
+#  This script creates a temporary job script and runs it
+
+echo "----- starting submit_boinc_job -----" 1>&2
+joboption_lrms=boinc
+
+# ARC1 passes first the config file.
+if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+
+basedir=`dirname $0`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
+
+pkgdatadir="$basedir"
+
+. ${pkgdatadir}/submit_common.sh || exit $?
+
+##############################################################
+# Parse grami file, read arc config
+##############################################################
+init $1
+echo runtimedir=$CONFIG_runtimedir
+echo sratch=$CONFIG_scratchdir
+joboption_directory_orig=$joboption_directory
+joboption_directory='`pwd`'
+joboption_stdout='`pwd`/'`basename $joboption_stdout`
+joboption_stderr='`pwd`/'`basename $joboption_stderr`
+read_arc_conf
+
+
+RUNTIME_NODE_SEES_FRONTEND=yes
+
+##############################################################
+# Zero stage of runtime environments
+##############################################################
+RTE_stage0
+echo "project_root=$PROJECT_ROOT"
+
+##############################################################
+# create job script
+##############################################################
+mktempscript
+LRMS_JOB_BOINC="${LRMS_JOB_SCRIPT}.boinc"
+touch $LRMS_JOB_BOINC
+chmod u+x ${LRMS_JOB_SCRIPT}
+
+
+##############################################################
+# Start job script
+##############################################################
+echo '#!/bin/sh' > $LRMS_JOB_SCRIPT
+echo "#job script built by grid-manager and input file for BOINC job" >> $LRMS_JOB_SCRIPT
+echo "" >> $LRMS_JOB_SCRIPT
+cat >> $LRMS_JOB_SCRIPT <<"FMARK"
+set -x 
+export RUNTIME_CONFIG_DIR=`pwd`/runtime
+tar zxvf RTE.tar.gz
+tar --strip-components=3 -zxvf *input.tar.gz
+
+FMARK
+##############################################################
+# non-parallel jobs
+##############################################################
+
+set_count
+
+
+##############################################################
+# Execution times (obtained in seconds)
+##############################################################
+if [ ! -z "$joboption_walltime" ] ; then
+  if [ $joboption_walltime -lt 0 ] ; then
+    joboption_walltime=0
+  fi
+  maxwalltime="$joboption_walltime"
+elif [ ! -z "$joboption_cputime" ] ; then
+  if [ $joboption_cputime -lt 0 ] ; then
+    joboption_cputime=0
+  fi
+  maxwalltime="$joboption_cputime"
+fi
+if [ ! -z "$maxwalltime" ] ; then
+  echo "ulimit -t $maxwalltime" >> $LRMS_JOB_SCRIPT
+fi
+
+sourcewithargs_jobscript
+
+##############################################################
+# Override umask
+##############################################################
+echo "" >> $LRMS_JOB_SCRIPT
+echo "# Overide umask of execution node (sometime values are really strange)" >> $LRMS_JOB_SCRIPT
+echo "umask 077" >> $LRMS_JOB_SCRIPT
+
+##############################################################
+# Add environment variables
+##############################################################
+add_user_env
+
+##############################################################
+# Check for existance of executable,
+##############################################################
+if [ -z "${joboption_arg_0}" ] ; then
+  echo 'Executable is not specified' 1>&2
+  exit 1
+fi
+
+#######################################################################
+# copy information useful for transfering files to/from node directly
+#######################################################################
+if [ "$joboption_localtransfer" = 'yes' ] ; then
+   setup_local_transfer
+fi
+
+setup_runtime_env
+
+##############################################################
+# Add std... to job arguments
+##############################################################
+include_std_streams
+
+##############################################################
+#  Move files to local working directory (job is done on node only)
+#  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
+##############################################################
+move_files_to_node 
+
+echo "" >> $LRMS_JOB_SCRIPT
+echo "RESULT=0" >> $LRMS_JOB_SCRIPT
+echo "" >> $LRMS_JOB_SCRIPT
+
+
+#####################################################
+#  Download input files
+#####################################################
+download_input_files
+
+echo "" >> $LRMS_JOB_SCRIPT
+
+echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
+
+##############################################################
+#  Runtime configuration
+##############################################################
+#echo RUNTIME_JOB_DIAG='`pwd`/job.'`basename $joboption_directory_orig`.diag >>$LRMS_JOB_SCRIPT
+echo RUNTIME_JOB_DIAG='`pwd`/'`basename $joboption_directory_orig`.diag >>$LRMS_JOB_SCRIPT
+RTE_stage1 
+echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+
+#####################################################
+#  Go to working dir and start job
+#####################################################
+cd_and_run
+echo "fi" >> $LRMS_JOB_SCRIPT
+
+#####################################################
+#  Upload output files
+#####################################################
+upload_output_files
+echo "" >> $LRMS_JOB_SCRIPT
+
+##############################################################
+#  Runtime (post)configuration at computing node
+##############################################################
+configure_runtime
+
+
+##############################################################
+#  Move files back to session directory (job is done on node only)
+#  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
+##############################################################
+#move_files_to_frontend
+
+echo 'echo exitcode=$RESULT >> $RUNTIME_JOB_DIAG'  >> $LRMS_JOB_SCRIPT
+#############################################################
+# zip the result files into 1 file zip.tar.gz
+#############################################################
+function notnull
+{
+   if [ -z $1 ];then
+	echo 0
+   else
+	echo 1
+   fi
+}
+result_list=
+i=0
+eval opt=\${joboption_outputfile_$i}
+ret=`notnull $opt`
+while [ $ret = "1" ]
+do
+   output_file=$(echo $opt|sed -e "s#^/#./#")
+   output_file=$(echo $output_file|sed -e "s#@##")
+   result_list=$result_list" "$output_file
+   let i=$i+1
+   eval opt=\${joboption_outputfile_$i}
+   ret=`notnull $opt`
+   echo $ret
+done
+
+files=$(echo $result_list|tr " " "\n")
+
+cat >> $LRMS_JOB_SCRIPT <<'EOF'
+echo "zip all output files"
+flist="*.diag "
+EOF
+echo for f in $files >>$LRMS_JOB_SCRIPT
+
+cat >> $LRMS_JOB_SCRIPT <<'EOF'
+do
+ if [  -e $f ];then
+ flist=$flist" "$f
+fi
+done
+EOF
+#echo $flist
+cat <<'EOF' >>$LRMS_JOB_SCRIPT
+if [ -f output.list ];then
+ol=$(awk '{print $1}' output.list)
+for i in $ol
+do
+ if [ -f $i ];then
+ flist=$flist" "$i
+ fi
+done
+fi
+EOF
+
+echo 'tar czvf result.tar.gz $flist' >>$LRMS_JOB_SCRIPT
+
+
+echo 
+
+chmod g+r $LRMS_JOB_SCRIPT
+
+
+#######################################
+#  Submit the job
+#######################################
+echo "job script ${LRMS_JOB_SCRIPT} built" 1>&2
+JobId=`basename $joboption_directory_orig`
+JobInput="/tmp/"$JobId"_input.tar.gz"
+wu=$JobId
+echo "#!/bin/bash" >> $LRMS_JOB_BOINC
+echo "tar zcvf $JobInput $joboption_directory_orig" >> $LRMS_JOB_BOINC
+echo "cd $PROJECT_ROOT " >>$LRMS_JOB_BOINC
+
+JobInput_basename=`basename $JobInput`
+Script_basename=`basename $LRMS_JOB_SCRIPT` 
+
+
+echo "cp $JobInput "'`bin/dir_hier_path '$(basename $JobInput)'`' >> $LRMS_JOB_BOINC
+echo "chmod g+r "'`bin/dir_hier_path '$(basename $JobInput)'`' >> $LRMS_JOB_BOINC
+echo "cp $LRMS_JOB_SCRIPT " '`bin/dir_hier_path' $(basename $LRMS_JOB_SCRIPT)'`' >>$LRMS_JOB_BOINC
+echo "chmod g+r " '`bin/dir_hier_path' $(basename $LRMS_JOB_SCRIPT)'`' >>$LRMS_JOB_BOINC
+#echo "cp /home/boinc/projects/ATLAS/Input/RTE.tar.gz "'`bin/dir_hier_path RTE.tar.gz`' >> $LRMS_JOB_BOINC
+echo "cp $RTE_LOCATION "'`bin/dir_hier_path RTE.tar.gz`' >> $LRMS_JOB_BOINC
+echo "chmod g+r "'`bin/dir_hier_path RTE.tar.gz`' >> $LRMS_JOB_BOINC
+
+if [[ -z $joboption_memory ]];then
+memreq=2000000000
+else
+let memreq=${joboption_memory}*1000000
+fi
+if [[ -z $joboption_cputime ]];then
+let maxcputime=2*3600*3000000000
+else
+let maxcputime=$joboption_cputime*3000000000
+fi
+
+#echo "bin/create_work -appname ATLAS -wu_name $wu  -wu_template templates/ATLAS_IN -result_template templates/ATLAS_OUT  --rsc_memory_bound $memreq  --rsc_fpops_est $maxcputime $(basename $JobInput) RTE.tar.gz $(basename $LRMS_JOB_SCRIPT)" >> $LRMS_JOB_BOINC
+echo "bin/create_work -appname $BOINC_APP -wu_name $wu  -wu_template $WU_TEMPLATE -result_template $RESULT_TEMPLATE  --rsc_memory_bound $memreq  --rsc_fpops_est $maxcputime $(basename $JobInput) RTE.tar.gz $(basename $LRMS_JOB_SCRIPT)" >> $LRMS_JOB_BOINC
+
+echo 'ret=$?' >>$LRMS_JOB_BOINC
+if [ $ret -eq 0 ];then
+echo "succesfully submitted workunit $wu"
+fi
+echo 'exit $ret' >>$LRMS_JOB_BOINC
+sh $LRMS_JOB_BOINC
+#cat $LRMS_JOB_BOINC
+rc=$?
+
+if [ $rc -eq 0 ];then
+echo "job $wu submitted successfully!" 1>&2
+echo "joboption_jobid=$wu" >> $arg_file
+fi
+echo "----- removing intermediate files ----"
+rm -fr $LRMS_JOB_BOINC $LRMS_JOB_ERR $LRMS_JOB_OUT $LRMS_JOB_SCRIPT
+rm -fr $JobInput
+echo "----- exiting submit_boinc_job -----" 1>&2
+echo "" 1>&2
+exit $rc

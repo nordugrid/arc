@@ -1,0 +1,134 @@
+#!/bin/sh
+#
+#  Periodically monitor for jobs which has finished or failed but not
+#  reported an exitcode
+#
+set -x 
+id=`id -u`
+
+#debug='eval echo >> /tmp/parse-fork-log.$id'
+debug=:
+
+$debug "run at `date`"
+$debug "options = $@"
+
+# ARC1 passes first the config file.
+if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+
+if [ -z "$1" ] ; then echo "Argument missing" 1>&2 ; exit 1 ; fi
+
+# Prints the uid of the owner of the file given as argument
+# Perl is used because it's more portable than using the stat command
+printuid () {
+  code='my @s = stat($ARGV[0]); print($s[4] || "")'
+  /usr/bin/perl -we "$code" "$1"
+}
+
+#
+# Attempts to switch to uid passed as the first argument and then runs the
+# commands passed as the second argument in a shell. The remaining arguments
+# are passed as arguments to the shell. No warning is given in case switching
+# uid is not possible.
+#
+do_as_uid () {
+    test $# -ge 2 || { log "do_as_uid requires 2 arguments"; return 1; }
+
+    script='use English;
+            my ($uid, @args) = @ARGV;
+            if ( $UID == 0 && $uid ) {
+                eval { $UID = $uid };
+                print STDERR "Cannot switch to uid($UID): $@\n" if $UID != $uid;
+            }
+            system("/bin/sh","-c",@args);
+            exit ($?>>8||128+($?&127));
+    '
+    /usr/bin/perl -we "$script" "$@"
+}
+
+# Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
+save_commentfile () {
+  uid=$1
+  commentfile=$2
+  errorsfile=$3
+  action="
+    { echo '---------- Output of the job wrapper script -----------'
+      cat '$commentfile' 2> /dev/null
+      echo '------------------------- End of output -------------------------'
+    } >> '$errorsfile'
+  "
+  do_as_uid "$uid" "$action"
+}
+
+for control_dir in "$@" ; do
+
+    if [ ! -d "${control_dir}" ]; then 
+        echo "No control dir $control_dir" 1>&2
+        continue
+    fi
+
+    # iterate over all jobs known in the control directory
+    find "${control_dir}/processing" -name 'job.*.status' \
+    | xargs egrep -l "INLRMS|CANCELING" \
+    | sed -e 's/.*job\.//' -e 's/\.status$//' \
+    | while read job; do
+        $debug "scanning job = $job"
+        unset joboption_jobid
+        unset joboption_directory
+
+        # this job was already completed, nothing remains to be done
+        [ -f "${control_dir}/job.${job}.lrms_done" ] && continue
+
+        # a grami file exists for all jobs that GM thinks are running.
+        # proceed to next job if this file is missing.
+        if [ ! -f "${control_dir}/job.${job}.grami" ]; then
+            continue
+        fi
+
+        # extract process IDs of the grami file
+        [ ! -f "${control_dir}/job.${job}.grami" ] && continue
+        . "${control_dir}/job.${job}.grami"
+
+        # process IDs could not be learned, proceeding to next
+        [ -z "$joboption_jobid" ] && continue
+    
+        $debug "local jobid = $joboption_jobid"
+
+        # checking if process is still running
+        finished=$(mysql ATLAS -e "select name from workunit where assimilate_state=2 and name=\"$joboption_jobid\"")
+	if [ -z $finished ];then
+	    $debug "returned $finished, $joboption_jobid is still running, Continueing to next"
+	    continue
+	else
+	    $debug "returned $finished, $joboption_jobid is finished"
+	fi
+        uid=$(printuid "${control_dir}/job.${job}.local")
+        $debug "local user id = $uid"
+        #diagfile=${joboption_directory}.diag
+	diagfile=${joboption_directory}/${joboption_jobid}.diag
+	#diagfile=${control_dir}/job.${joboption_jobid}.diag
+        $debug "checking $diagfile"
+        exitcode=$(do_as_uid "$uid" "cat '$diagfile'" | sed -n 's/^exitcode=\([0-9]*\).*/\1/p')
+        
+        #exitcode=$(cat '$diagfile' | sed -n 's/^exitcode=\([0-9]*\).*/\1/p')
+	#exitcode=0
+        $debug "exitcode = [$exitcode] extracted from $diagfile"
+        fork_comment=""
+        if [ -z "$joboption_arg_code" ] ; then joboption_arg_code='0' ; fi
+        if [ -z "$exitcode" ]; then
+            echo "Job $job with PID $joboption_jobid died unexpectedly" 1>&2
+            fork_comment="Job died unexpectedly" 1>&2
+            exitcode=-1
+        elif [ "$exitcode" -ne "$joboption_arg_code" ]; then
+            fork_comment="Job finished with wrong exit code - $exitcode != $joboption_arg_code" 1>&2
+        fi
+        $debug "got exitcode=$exitcode"
+        save_commentfile "$uid" "${joboption_directory}.comment" "${control_dir}/job.${job}.errors"
+        echo "$exitcode $fork_comment" > "${control_dir}/job.${job}.lrms_done"
+    done
+
+done
+
+$debug "done, going to sleep"
+
+sleep 10
+exit 0
