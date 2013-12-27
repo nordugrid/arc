@@ -73,6 +73,7 @@ Build & runtime:
 Runtime dependencies:
   o Perl, libxml-simple-perl, perl-Digest-SHA1 (A-rex)
   o Perl, perl-SOAP-Lite, perl-Crypt-OpenSSL-X509 (nordugridmap)
+  o perl-DBI (Boinc backend)
   o GNU time (A-rex)
   o VOMS (LFC DMC)
   o Stomppy, m2Crypto (APEL publisher by Jura)

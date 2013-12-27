@@ -203,6 +203,8 @@ BuildRequires:	java-gcj-compat-devel
 BuildRequires:	junit
 %endif
 %endif
+# Needed for Boinc backend testing during make check
+BuildRequires:	perl(DBI)
 # Needed for infoprovider testing during make check
 BuildRequires:	perl(XML::Simple)
 # Needed for LRMS testing during make check
