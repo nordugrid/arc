@@ -130,6 +130,7 @@ def main(_host, _port, _topic, _key, _cert, _cadir, _message_path, _use_ssl):
                    cert=_cert,
                    key=_key,
                    dest=_topic,
+                   use_ssl=_use_ssl,
                    capath=_cadir,
                    enc_cert=server_cert,
                    verify_enc_cert=verify_server_cert)

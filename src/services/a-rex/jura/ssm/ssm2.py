@@ -246,23 +246,27 @@ class Ssm2(object):
             to_send = ''
             
         self._conn.send(to_send, headers=headers)
-        
+
     def send_ping(self):
         '''
-        If a STOMP connection is left open with no activity for an hour or 
+        If a STOMP connection is left open with no activity for an hour or
         so, it stops responding. Stomppy 3.1.3 has two ways of handling
         this, but stomppy 3.0.3 (EPEL 5 and 6) has neither.
-        To get around this, we send periodic 'ping' messages to keep the 
-        connection active.
+        To get around this, we begin and then abort a STOMP transaction to
+        keep the connection active.
         '''
-        self._send_msg(None, 'ping')
-        
+        # Use time as transaction id to ensure uniqueness within each connection
+        transaction_id = str(time.time())
+
+        self._conn.begin({'transaction': transaction_id})
+        self._conn.abort({'transaction': transaction_id})
+
     def has_msgs(self):
         '''
         Return True if there are any messages in the outgoing queue.
         '''
         return self._outq.count() > 0
-        
+
     def send_all(self):
         '''
         Send all the messages in the outgoing queue.
@@ -272,22 +276,24 @@ class Ssm2(object):
             if not self._outq.lock(msgid):
                 log.warn('Message queue was locked. %s will not be sent.' % msgid)
                 continue
-            
+
             text = self._outq.get(msgid)
             self._send_msg(text, msgid)
-            
+
+            log.info('Waiting for broker to accept message.')
             while self._last_msg is None:
-                log.info('Waiting for broker to accept message.')
-                time.sleep(0.5)
-            
+                if not self.connected:
+                    raise Ssm2Exception('Lost connection.')
+
+                time.sleep(0.1)
+
             self._last_msg = None
             self._outq.remove(msgid)
-        
-        
-    ###############################################################################           
+
+    ############################################################################
     # Connection handling methods
-    ###############################################################################  
-    
+    ############################################################################
+
     def _initialise_connection(self, host, port):
         '''
         Create the self._connection object with the appropriate properties,
