@@ -358,9 +358,9 @@ namespace Arc {
         for (XMLNode n = (*it)["nordugrid-cluster-benchmark"]; n; ++n) {
           std::string benchmark = (std::string)n;
           std::string::size_type alpha = benchmark.find_first_of("@");
-          std::string benchmarkname = benchmark.substr(0, alpha);
+          std::string benchmarkname = trim(benchmark.substr(0, alpha));
           double performance = 0;
-          stringto(benchmark.substr(alpha + 1), performance);
+          stringto(trim(benchmark.substr(alpha + 1)), performance);
           (*ComputingManager.Benchmarks)[benchmarkname] = performance;
         }
       }
