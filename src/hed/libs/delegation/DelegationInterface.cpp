@@ -1312,7 +1312,8 @@ DelegationContainerSOAP::~DelegationContainerSOAP(void) {
   lock_.lock();
   ConsumerIterator i = consumers_.begin();
   for(;i!=consumers_.end();++i) {
-    if(i->second.deleg) delete i->second.deleg;
+    if(i->second->deleg) delete i->second->deleg;
+    delete i->second;
   };
   lock_.unlock();
 }
@@ -1339,17 +1340,18 @@ DelegationConsumerSOAP* DelegationContainerSOAP::AddConsumer(std::string& id,con
       return NULL;
     };
   };
-  Consumer c;
-  c.deleg=new DelegationConsumerSOAP(); 
-  c.client_id=client;
-  c.previous=consumers_.end();
-  c.next=consumers_first_;
-  ConsumerIterator i = consumers_.insert(consumers_.begin(),make_pair(id,c)); 
-  if(consumers_first_ != consumers_.end()) consumers_first_->second.previous=i;
+  Consumer* c = new Consumer();
+  c->deleg=new DelegationConsumerSOAP();
+  c->client_id=client;
+  c->previous=consumers_.end();
+  c->next=consumers_first_;
+  lock_.unlock();
+  ConsumerIterator i = consumers_.insert(consumers_.begin(),make_pair(id,c));
+  if(consumers_first_ != consumers_.end()) consumers_first_->second->previous=i;
   consumers_first_=i;
   if(consumers_last_ == consumers_.end()) consumers_last_=i;
-  i->second.acquired = 1;
-  DelegationConsumerSOAP* cs = i->second.deleg;
+  i->second->acquired = 1;
+  DelegationConsumerSOAP* cs = i->second->deleg;
   lock_.unlock();
   return cs;
 }
@@ -1358,20 +1360,20 @@ bool DelegationContainerSOAP::TouchConsumer(DelegationConsumerSOAP* c,const std:
   Glib::Mutex::Lock lock(lock_);
   ConsumerIterator i = find(c);
   if(i == consumers_.end()) { failure_ = "Delegation not found"; return false; };
-  i->second.last_used=time(NULL);
-  if(((++(i->second.usage_count)) > max_usage_) && (max_usage_ > 0)) {
-    i->second.to_remove=true;
+  i->second->last_used=time(NULL);
+  if(((++(i->second->usage_count)) > max_usage_) && (max_usage_ > 0)) {
+    i->second->to_remove=true;
   } else {
-    i->second.to_remove=false;
+    i->second->to_remove=false;
   };
   if(i == consumers_first_) return true;
-  ConsumerIterator previous = i->second.previous;
-  ConsumerIterator next = i->second.next;
-  if(previous != consumers_.end()) previous->second.next=next;
-  if(next != consumers_.end()) next->second.previous=previous;
-  i->second.previous=consumers_.end();
-  i->second.next=consumers_first_;
-  if(consumers_first_ != consumers_.end()) consumers_first_->second.previous=i;
+  ConsumerIterator previous = i->second->previous;
+  ConsumerIterator next = i->second->next;
+  if(previous != consumers_.end()) previous->second->next=next;
+  if(next != consumers_.end()) next->second->previous=previous;
+  i->second->previous=consumers_.end();
+  i->second->next=consumers_first_;
+  if(consumers_first_ != consumers_.end()) consumers_first_->second->previous=i;
   consumers_first_=i;
   return true;
 }
@@ -1380,7 +1382,7 @@ bool DelegationContainerSOAP::QueryConsumer(DelegationConsumerSOAP* c,std::strin
   Glib::Mutex::Lock lock(lock_);
   ConsumerIterator i = find(c);
   if(i == consumers_.end()) { failure_ = "Delegation not found"; return false; };
-  if(i->second.deleg) i->second.deleg->Backup(credentials); // only key is available
+  if(i->second->deleg) i->second->deleg->Backup(credentials); // only key is available
   return true;
 }
 
@@ -1388,7 +1390,7 @@ void DelegationContainerSOAP::ReleaseConsumer(DelegationConsumerSOAP* c) {
   lock_.lock();
   ConsumerIterator i = find(c);
   if(i == consumers_.end()) { lock_.unlock(); return; };
-  if(i->second.acquired > 0) --(i->second.acquired);
+  if(i->second->acquired > 0) --(i->second->acquired);
   remove(i);
   lock_.unlock();
   return;
@@ -1398,8 +1400,8 @@ void DelegationContainerSOAP::RemoveConsumer(DelegationConsumerSOAP* c) {
   lock_.lock();
   ConsumerIterator i = find(c);
   if(i == consumers_.end()) { lock_.unlock(); return; };
-  if(i->second.acquired > 0) --(i->second.acquired);
-  i->second.to_remove=true;
+  if(i->second->acquired > 0) --(i->second->acquired);
+  i->second->to_remove=true;
   remove(i);
   lock_.unlock();
   return;
@@ -1407,22 +1409,23 @@ void DelegationContainerSOAP::RemoveConsumer(DelegationConsumerSOAP* c) {
 
 DelegationContainerSOAP::ConsumerIterator DelegationContainerSOAP::find(DelegationConsumerSOAP* c) {
   ConsumerIterator i = consumers_first_;
-  for(;i!=consumers_.end();i=i->second.next) {
-    if(i->second.deleg == c) break;
+  for(;i!=consumers_.end();i=i->second->next) {
+    if(i->second->deleg == c) break;
   };
   return i;
 }
 
 bool DelegationContainerSOAP::remove(ConsumerIterator i) {
-  if(i->second.acquired > 0) return false;
-  if(!i->second.to_remove) return false;
-  ConsumerIterator previous = i->second.previous;
-  ConsumerIterator next = i->second.next;
-  if(previous != consumers_.end()) previous->second.next=next;
-  if(next != consumers_.end()) next->second.previous=previous;
+  if(i->second->acquired > 0) return false;
+  if(!i->second->to_remove) return false;
+  ConsumerIterator previous = i->second->previous;
+  ConsumerIterator next = i->second->next;
+  if(previous != consumers_.end()) previous->second->next=next;
+  if(next != consumers_.end()) next->second->previous=previous;
   if(consumers_first_ == i) consumers_first_=next; 
   if(consumers_last_ == i) consumers_last_=previous; 
-  if(i->second.deleg) delete i->second.deleg;
+  if(i->second->deleg) delete i->second->deleg;
+  delete i->second;
   consumers_.erase(i);
   return true;
 }
@@ -1434,8 +1437,8 @@ void DelegationContainerSOAP::CheckConsumers(void) {
     unsigned int count = consumers_.size();
     while(count > max_size_) {
       if(i == consumers_.end()) break;
-      ConsumerIterator prev = i->second.previous;
-      i->second.to_remove=true;
+      ConsumerIterator prev = i->second->previous;
+      i->second->to_remove=true;
       remove(i);
       i=prev;
       --count;
@@ -1446,9 +1449,9 @@ void DelegationContainerSOAP::CheckConsumers(void) {
     lock_.lock();
     time_t t = time(NULL);
     for(ConsumerIterator i = consumers_last_;i!=consumers_.end();) {
-      ConsumerIterator next = i->second.next;
-      if(((unsigned int)(t - i->second.last_used)) > max_duration_) {
-        i->second.to_remove=true;
+      ConsumerIterator next = i->second->next;
+      if(((unsigned int)(t - i->second->last_used)) > max_duration_) {
+        i->second->to_remove=true;
         remove(i);
         i=next;
       } else {
@@ -1483,16 +1486,16 @@ bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,const S
 }
 
 #define ClientAuthorized(consumer,client) \
-  ( ((consumer).client_id.empty()) || ((consumer).client_id == (client)) )
+  ( ((consumer)->client_id.empty()) || ((consumer)->client_id == (client)) )
 
 DelegationConsumerSOAP* DelegationContainerSOAP::FindConsumer(const std::string& id,const std::string& client) {
   Glib::Mutex::Lock lock(lock_);
-  ConsumerIterator i = consumers_.find(id);
+  ConsumerIterator i = consumers_.end();//find(id);
   if(i == consumers_.end()) { failure_ = "Identifier not found"; return NULL; };
-  if(!(i->second.deleg)) { failure_ = "Identifier has no delegation associated"; return NULL; };
+  if(!(i->second->deleg)) { failure_ = "Identifier has no delegation associated"; return NULL; };
   if(!ClientAuthorized(i->second,client)) { failure_ = "Client not authorized for this identifier"; return NULL; };
-  ++(i->second.acquired);
-  DelegationConsumerSOAP* cs = i->second.deleg;
+  ++(i->second->acquired);
+  DelegationConsumerSOAP* cs = i->second->deleg;
   return cs;
 }
 

@@ -174,7 +174,7 @@ class DelegationContainerSOAP {
   /// Stores description of last error. Derived classes should store their errors here.
   std::string failure_;
   class Consumer;
-  typedef std::map<std::string,Consumer> ConsumerMap;
+  typedef std::map<std::string,Consumer*> ConsumerMap;
   typedef ConsumerMap::iterator ConsumerIterator;
   ConsumerMap consumers_;
   ConsumerIterator consumers_first_;
