@@ -1345,7 +1345,6 @@ DelegationConsumerSOAP* DelegationContainerSOAP::AddConsumer(std::string& id,con
   c->client_id=client;
   c->previous=consumers_.end();
   c->next=consumers_first_;
-  lock_.unlock();
   ConsumerIterator i = consumers_.insert(consumers_.begin(),make_pair(id,c));
   if(consumers_first_ != consumers_.end()) consumers_first_->second->previous=i;
   consumers_first_=i;
@@ -1490,7 +1489,7 @@ bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,const S
 
 DelegationConsumerSOAP* DelegationContainerSOAP::FindConsumer(const std::string& id,const std::string& client) {
   Glib::Mutex::Lock lock(lock_);
-  ConsumerIterator i = consumers_.end();//find(id);
+  ConsumerIterator i = consumers_.find(id);
   if(i == consumers_.end()) { failure_ = "Identifier not found"; return NULL; };
   if(!(i->second->deleg)) { failure_ = "Identifier has no delegation associated"; return NULL; };
   if(!ClientAuthorized(i->second,client)) { failure_ = "Client not authorized for this identifier"; return NULL; };
