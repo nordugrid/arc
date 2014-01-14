@@ -556,7 +556,7 @@ scan_main() {
 ################################### Condor ####################################
 
 lrms_list_jobs() {
-    script='my $cmd="$ENV{CONDOR_BIN_PATH}/condor_q -global";
+    script='my $cmd="$ENV{CONDOR_BIN_PATH}/condor_q";
             open Q, "$cmd|" or die "Failed running $cmd : $!\n";
             my $out; { local $/; $out = <Q>; }; close Q;
             exit 0 if $out =~ m/All queues are empty/;
