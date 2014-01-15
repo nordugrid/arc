@@ -9,7 +9,7 @@ include $(srcdir)/../tests.mk
 $(TESTSCRIPTS) testutils.py: $(addprefix ../, $(TESTSCRIPTS) testutils.py)
 
 $(TESTSCRIPTS) testutils.py: %: testutils.py
-	cp -p ../$* $@
+	cp -p $(srcdir)/../$* $@
 
 CLEANFILES = $(TESTSCRIPTS) testutils.py*
 
