@@ -33,7 +33,8 @@ namespace ArcDMCGridFTP {
     enum callback_status_t {
       CALLBACK_NOTREADY = 0,
       CALLBACK_DONE = 1,
-      CALLBACK_ERROR = 2
+      CALLBACK_ERROR = 2,
+      CALLBACK_TIMEDOUT = 3
     };
     callback_status_t callback_status;
     callback_status_t data_callback_status;
@@ -80,6 +81,7 @@ namespace ArcDMCGridFTP {
     DataStatus setup_pasv(globus_ftp_control_host_port_t& pasv_addr);
     DataStatus handle_connect(const URL& url);
     DataStatus transfer_list(void);
+    void close_connection();
 
   public:
     Lister();
@@ -99,7 +101,6 @@ namespace ArcDMCGridFTP {
     int size() const {
       return fnames.size();
     }
-    void close_connection();
   };
 
 } // namespace ArcDMCGridFTP

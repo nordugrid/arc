@@ -109,7 +109,11 @@ namespace ArcDMCGridFTP {
     } else {
       globus_abstime_t timeout;
       GlobusTimeAbstimeSet(timeout,to,0);
-      globus_cond_timedwait(&cond, &mutex, &timeout);
+      if (globus_cond_timedwait(&cond, &mutex, &timeout) == ETIMEDOUT) {
+        // on timeout the mutex is unlocked
+        callback_status = CALLBACK_NOTREADY;
+        return CALLBACK_TIMEDOUT;
+      }
     }
     res = callback_status;
     callback_status = CALLBACK_NOTREADY;
@@ -520,9 +524,16 @@ namespace ArcDMCGridFTP {
     bool res = true;
     close_callback_status = CALLBACK_NOTREADY;
     logger.msg(VERBOSE, "Closing connection");
-    if (globus_ftp_control_data_force_close(handle, simple_callback, this) != GLOBUS_SUCCESS) {
-    } else if (wait_for_callback() != CALLBACK_DONE) {
-      res = false;
+    if (globus_ftp_control_data_force_close(handle, simple_callback, this) == GLOBUS_SUCCESS) {
+      // Timeouts are used while waiting for callbacks just in case they never
+      // come. If a timeout happens then the response object is not freed just
+      // in case the callback eventually arrives.
+      callback_status_t cbs = wait_for_callback(60);
+      if (cbs == CALLBACK_TIMEDOUT) {
+        logger.msg(VERBOSE, "Timeout waiting for Globus callback - leaking connection");
+        return;
+      }
+      if (cbs != CALLBACK_DONE) res = false;
     }
     //if (globus_ftp_control_abort(handle, resp_callback, this) != GLOBUS_SUCCESS) {
     //} else if (wait_for_callback() != CALLBACK_DONE) {
@@ -531,15 +542,19 @@ namespace ArcDMCGridFTP {
     if(send_command("ABOR", NULL, true, NULL) == GLOBUS_FTP_UNKNOWN_REPLY) {
       res = false;
     }
-    if (globus_ftp_control_quit(handle, resp_callback, this) != GLOBUS_SUCCESS) {
-    } else if (wait_for_callback() != CALLBACK_DONE) {
-      res = false;
+    if (globus_ftp_control_quit(handle, resp_callback, this) == GLOBUS_SUCCESS) {
+      callback_status_t cbs = wait_for_callback(60);
+      if (cbs == CALLBACK_TIMEDOUT) {
+        logger.msg(VERBOSE, "Timeout waiting for Globus callback - leaking connection");
+        return;
+      }
+      if (cbs != CALLBACK_DONE) res = false;
     }
-    if (globus_ftp_control_force_close(handle, close_callback, this) != GLOBUS_SUCCESS) {
-    } else if (wait_for_close_callback() != CALLBACK_DONE) {
-      res = false;
+    if (globus_ftp_control_force_close(handle, close_callback, this) == GLOBUS_SUCCESS) {
+      callback_status_t cbs = wait_for_close_callback();
+      if (cbs != CALLBACK_DONE) res = false;
     }
-    if(res) {
+    if (res) {
       logger.msg(VERBOSE, "Closed successfully");
     } else {
       logger.msg(VERBOSE, "Closing may have failed");
