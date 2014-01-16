@@ -180,6 +180,9 @@ namespace Arc {
   /// This method removes blank lines from the passed text string. Lines with only space on them are considered blank.
   std::string strip(const std::string& str);
 
+  /// Join all the elements in strlist using delimiter
+  std::string join(const std::list<std::string>& strlist, const std::string& delimiter);
+
   /// This method %-encodes characters in URI str.
   /** Characters which are not unreserved according to RFC 3986 are encoded.
       If encode_slash is true forward slashes will also be encoded. It is

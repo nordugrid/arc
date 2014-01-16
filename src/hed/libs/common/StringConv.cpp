@@ -184,6 +184,19 @@ namespace Arc {
     return retstr;
   }
   
+  std::string join(const std::list<std::string>& strlist, const std::string& delimiter) {
+    std::string result;
+    for (std::list<std::string>::const_iterator i = strlist.begin(); i != strlist.end(); ++i) {
+      if (i == strlist.begin()) {
+        result.append(*i);
+      } else {
+        result.append(delimiter).append(*i);
+      }
+    }
+    return result;
+  }
+
+
   static int unescape_character(const std::string& scanner, int i) {
     int first_digit;
     int second_digit;

@@ -13,12 +13,14 @@ class StringConvTest
   CPPUNIT_TEST(TestStringConv);
   CPPUNIT_TEST(TestURIEncode);
   CPPUNIT_TEST(TestIntegers);
+  CPPUNIT_TEST(TestJoin);
   CPPUNIT_TEST_SUITE_END();
 
 public:
   void TestStringConv();
   void TestURIEncode();
   void TestIntegers();
+  void TestJoin();
 };
 
 void StringConvTest::TestStringConv() {
@@ -99,6 +101,21 @@ void StringConvTest::TestIntegers() {
   CPPUNIT_ASSERT_EQUAL(12345,n);
   CPPUNIT_ASSERT(Arc::strtoint("1ah5",n,20));
   CPPUNIT_ASSERT_EQUAL(12345,n);
+}
+
+void StringConvTest::TestJoin() {
+
+  std::list<std::string> strlist;
+  CPPUNIT_ASSERT(Arc::join(strlist, " ").empty());
+
+  strlist.push_back("test");
+  CPPUNIT_ASSERT_EQUAL(std::string("test"), Arc::join(strlist, " "));
+
+  strlist.push_back("again");
+  CPPUNIT_ASSERT_EQUAL(std::string("test again"), Arc::join(strlist, " "));
+
+  strlist.push_back("twice");
+  CPPUNIT_ASSERT_EQUAL(std::string("test,again,twice"), Arc::join(strlist, ","));
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(StringConvTest);
