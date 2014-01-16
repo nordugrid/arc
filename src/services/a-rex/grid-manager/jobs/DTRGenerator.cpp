@@ -498,10 +498,8 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
     lock.unlock();
     return true;
   }
-  lock.unlock();
 
   // no DTRs left, clean up session dir if upload or failed download
-  lock.lock();
   bool finished_with_error = (finished_jobs.find(jobid) != finished_jobs.end() && !finished_jobs[jobid].empty());
   lock.unlock();
   if (dtr->get_source()->Local()) {
