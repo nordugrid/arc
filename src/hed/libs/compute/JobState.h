@@ -34,7 +34,7 @@ namespace Arc {
    * derived class.
    * 
    * Documentation for mapping of job states for different computing services to
-   * those defined in this class can be found \subpage job-state-mapping "here".
+   * those defined in this class can be found \subpage job_state_mapping "here".
    * 
    * \ingroup compute
    * \headerfile JobState.h arc/compute/JobState.h 
