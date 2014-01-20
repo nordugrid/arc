@@ -19,6 +19,7 @@
 
 namespace Arc {
 
+  /// \mapname JDL CREAM JDL
   JDLParser::JDLParser(PluginArgument* parg)
     : JobDescriptionParserPlugin(parg) {
     supportedLanguages.push_back("egee:jdl");
@@ -145,22 +146,27 @@ namespace Arc {
     }
     else if (attributeName == "jobtype")
       return true;     // Skip this attribute
+    /// \mapattr executable -> ExecutableType::Path
     else if (attributeName == "executable") {
       job.Application.Executable.Path = simpleJDLvalue(attributeValue);
       return true;
     }
+    /// \mapattr arguments -> ExecutableType::Argument
     else if (attributeName == "arguments") {
       tokenize(simpleJDLvalue(attributeValue), job.Application.Executable.Argument);
       return true;
     }
+    /// \mapattr stdinput -> Input
     else if (attributeName == "stdinput") {
       job.Application.Input = simpleJDLvalue(attributeValue);
       return true;
     }
+    /// \mapattr stdoutput -> Output
     else if (attributeName == "stdoutput") {
       job.Application.Output = simpleJDLvalue(attributeValue);
       return true;
     }
+    /// \mapattr stderror -> Error
     else if (attributeName == "stderror") {
       job.Application.Error = simpleJDLvalue(attributeValue);
       return true;
@@ -233,6 +239,7 @@ namespace Arc {
       return true;
     }
 */
+    /// \mapattr prologue -> PreExecutable
     else if (attributeName == "prologue") {
       if (job.Application.PreExecutable.empty()) {
         job.Application.PreExecutable.push_back(ExecutableType());
@@ -240,6 +247,7 @@ namespace Arc {
       job.Application.PreExecutable.front().Path = simpleJDLvalue(attributeValue);
       return true;
     }
+    /// \mapattr prologuearguments -> PreExecutable
     else if (attributeName == "prologuearguments") {
       if (job.Application.PreExecutable.empty()) {
         job.Application.PreExecutable.push_back(ExecutableType());
@@ -247,6 +255,7 @@ namespace Arc {
       tokenize(simpleJDLvalue(attributeValue), job.Application.PreExecutable.front().Argument);
       return true;
     }
+    /// \mapattr epilogue -> PostExecutable
     else if (attributeName == "epilogue") {
       if (job.Application.PostExecutable.empty()) {
         job.Application.PostExecutable.push_back(ExecutableType());
@@ -254,6 +263,7 @@ namespace Arc {
       job.Application.PostExecutable.front().Path = simpleJDLvalue(attributeValue);
       return true;
     }
+    /// \mapattr epiloguearguments -> PostExecutable
     else if (attributeName == "epiloguearguments") {
       if (job.Application.PostExecutable.empty()) {
         job.Application.PostExecutable.push_back(ExecutableType());
@@ -261,20 +271,26 @@ namespace Arc {
       tokenize(simpleJDLvalue(attributeValue), job.Application.PostExecutable.front().Argument);
       return true;
     }
+    /// TODO
+    /// \mapattr allowzippedisb -> OtherAttributes
     else if (attributeName == "allowzippedisb") {
       // Not supported yet, only store it
       job.OtherAttributes["egee:jdl;AllowZippedISB"] = simpleJDLvalue(attributeValue);
       return true;
     }
+    /// TOOD
+    /// \mapattr zippedisb -> OtherAttributes
     else if (attributeName == "zippedisb") {
       // Not supported yet, only store it
       job.OtherAttributes["egee:jdl;ZippedISB"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
+    /// \mapattr expirytime -> ExpirationTime
     else if (attributeName == "expirytime") {
       job.Application.ExpirationTime = Time(stringtol(simpleJDLvalue(attributeValue)));
       return true;
     }
+    /// \mapattr environment -> Environment
     else if (attributeName == "environment") {
       std::list<std::string> variables = listJDLvalue(attributeValue);
       for (std::list<std::string>::const_iterator it = variables.begin();
@@ -293,16 +309,22 @@ namespace Arc {
       }
       return true;
     }
+    /// TODO
+    /// \mapattr perusalfileenable -> OtherAttributes
     else if (attributeName == "perusalfileenable") {
       // Not supported yet, only store it
       job.OtherAttributes["egee:jdl;PerusalFileEnable"] = simpleJDLvalue(attributeValue);
       return true;
     }
+    /// TODO
+    /// \mapattr perusaltimeinterval -> OtherAttributes
     else if (attributeName == "perusaltimeinterval") {
       // Not supported yet, only store it
       job.OtherAttributes["egee:jdl;PerusalTimeInterval"] = simpleJDLvalue(attributeValue);
       return true;
     }
+    /// TODO
+    /// \mapattr perusalfilesdesturi -> OtherAttributes
     else if (attributeName == "perusalfilesdesturi") {
       // Not supported yet, only store it
       job.OtherAttributes["egee:jdl;PerusalFilesDestURI"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
@@ -324,50 +346,65 @@ namespace Arc {
       // Not supported yet
       // will be soon deprecated
       return true;
+    /// TODO
+    /// \mapattr datarequirements -> OtherAttributes
     else if (attributeName == "datarequirements") {
       // Not supported yet, only store it
       job.OtherAttributes["egee:jdl;DataRequirements"] = simpleJDLvalue(attributeValue);
       return true;
     }
+    /// TODO
+    /// \mapattr dataaccessprotocol -> OtherAttributes
     else if (attributeName == "dataaccessprotocol") {
       // Not supported yet, only store it
       job.OtherAttributes["egee:jdl;DataAccessProtocol"] = simpleJDLvalue(attributeValue);
       return true;
     }
+    /// TODO
+    /// \mapattr virtualorganisation -> OtherAttributes
     else if (attributeName == "virtualorganisation") {
       job.OtherAttributes["egee:jdl;VirtualOrganisation"] = simpleJDLvalue(attributeValue);
       return true;
     }
+    /// \mapattr queuename -> QueueName
     else if (attributeName == "queuename") {
       job.Resources.QueueName = simpleJDLvalue(attributeValue);
       return true;
     }
+    /// TODO
+    /// \mapattr batchsystem -> OtherAttributes
     else if (attributeName == "batchsystem") {
       job.OtherAttributes["egee:jdl;batchsystem"] = simpleJDLvalue(attributeValue);
       return true;
     }
+    /// \mapattr cpunumber -> NumberOfSlots
     else if (attributeName == "cpunumber") {
       if (!stringto<int>(simpleJDLvalue(attributeValue), job.Resources.SlotRequirement.NumberOfSlots)) {
         job.Resources.SlotRequirement.NumberOfSlots = -1;
       }
     }
+    /// \mapattr retrycount -> Rerun
     else if (attributeName == "retrycount") {
       const int count = stringtoi(simpleJDLvalue(attributeValue));
       if (job.Application.Rerun < count)
         job.Application.Rerun = count;
       return true;
     }
+    /// \mapattr shallowretrycount -> Rerun
     else if (attributeName == "shallowretrycount") {
       const int count = stringtoi(simpleJDLvalue(attributeValue));
       if (job.Application.Rerun < count)
         job.Application.Rerun = count;
       return true;
     }
+    /// TODO
+    /// \mapattr lbaddress -> OtherAttributes
     else if (attributeName == "lbaddress") {
       // Not supported yet, only store it
       job.OtherAttributes["egee:jdl;LBAddress"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
+    /// \mapattr myproxyserver -> CredentialService
     else if (attributeName == "myproxyserver") {
       URL url(simpleJDLvalue(attributeValue));
       if (!url)
@@ -375,16 +412,22 @@ namespace Arc {
       job.Application.CredentialService.push_back(url);
       return true;
     }
+    /// TODO
+    /// \mapattr hlrlocation -> OtherAttributes
     else if (attributeName == "hlrlocation") {
       // Not supported yet, only store it
       job.OtherAttributes["egee:jdl;HLRLocation"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
+    /// TODO
+    /// \mapattr jobprovenance -> OtherAttributes
     else if (attributeName == "jobprovenance") {
       // Not supported yet, only store it
       job.OtherAttributes["egee:jdl;JobProvenance"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
+    /// TODO
+    /// \mapattr nodenumber -> OtherAttributes
     else if (attributeName == "nodenumber") {
       // Not supported yet, only store it
       job.OtherAttributes["egee:jdl;NodeNumber"] = simpleJDLvalue(attributeValue);
@@ -402,21 +445,29 @@ namespace Arc {
       // Not supported yet
       // will be soon deprecated
       return true;
+    /// TODO
+    /// \mapattr listenerport -> OtherAttributes
     else if (attributeName == "listenerport") {
       // Not supported yet, only store it
       job.OtherAttributes["egee:jdl;ListenerPort"] = simpleJDLvalue(attributeValue);
       return true;
     }
+    /// TODO
+    /// \mapattr listenerport -> OtherAttributes
     else if (attributeName == "listenerhost") {
       // Not supported yet, only store it
       job.OtherAttributes["egee:jdl;ListenerHost"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
+    /// TODO
+    /// \mapattr listenerpipename -> OtherAttributes
     else if (attributeName == "listenerpipename") {
       // Not supported yet, only store it
       job.OtherAttributes["egee:jdl;ListenerPipeName"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
+    /// TODO
+    /// \mapattr requirements -> OtherAttributes
     else if (attributeName == "requirements") {
       // It's too complicated to determinize the right conditions, because the definition language is
       // LRMS specific.
@@ -424,18 +475,25 @@ namespace Arc {
       job.OtherAttributes["egee:jdl;Requirements"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
+    /// TODO
+    /// \mapattr rank -> OtherAttributes
     else if (attributeName == "rank") {
       job.OtherAttributes["egee:jdl;rank"] = simpleJDLvalue(attributeValue);
       return true;
     }
+    /// TODO
+    /// \mapattr fuzzyrank -> OtherAttributes
     else if (attributeName == "fuzzyrank") {
       job.OtherAttributes["egee:jdl;fuzzyrank"] = simpleJDLvalue(attributeValue);
       return true;
     }
+    /// \mapattr usertags -> Annotation
     else if (attributeName == "usertags") {
       job.Identification.Annotation = listJDLvalue(attributeValue, std::make_pair('[', ']'), ';');
       return true;
     }
+    /// TODO
+    /// \mapattr outputse -> OtherAttributes
     else if (attributeName == "outputse") {
       // Not supported yet, only store it
       job.OtherAttributes["egee:jdl;OutputSE"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
@@ -605,7 +663,9 @@ namespace Arc {
 
     product = "[\n  Type = \"job\";\n";
 
+    /// \mapattr executable <- ExecutableType::Path
     product += ADDJDLSTRING(job.Application.Executable.Path, "Executable");
+    /// \mapattr arguments <- ExecutableType::Argument
     if (!job.Application.Executable.Argument.empty()) {
       product += "  Arguments = \"";
       for (std::list<std::string>::const_iterator it = job.Application.Executable.Argument.begin();
@@ -617,10 +677,14 @@ namespace Arc {
       product += "\";\n";
     }
 
+    /// \mapattr stdinput <- Input
     product += ADDJDLSTRING(job.Application.Input, "StdInput");
+    /// \mapattr stdoutput <- Output
     product += ADDJDLSTRING(job.Application.Output, "StdOutput");
+    /// \mapattr stderror <- Error
     product += ADDJDLSTRING(job.Application.Error, "StdError");
 
+    /// \mapattr environment <- Environment
     if (!job.Application.Environment.empty()) {
       std::list<std::string> environment;
       for (std::list< std::pair<std::string, std::string> >::const_iterator it = job.Application.Environment.begin();
@@ -632,6 +696,8 @@ namespace Arc {
         product += generateOutputList("Environment", environment);
     }
 
+    /// \mapattr prologue <- PreExecutable
+    /// \mapattr prologuearguments <- PreExecutable
     if (!job.Application.PreExecutable.empty()) {
       product += ADDJDLSTRING(job.Application.PreExecutable.front().Path, "Prologue");
       if (!job.Application.PreExecutable.front().Argument.empty()) {
@@ -646,6 +712,8 @@ namespace Arc {
       }
     }
 
+    /// \mapattr epilogue <- PostExecutable
+    /// \mapattr epiloguearguments <- PostExecutable
     if (!job.Application.PostExecutable.empty()) {
       product += ADDJDLSTRING(job.Application.PostExecutable.front().Path, "Epilogue");
       if (!job.Application.PostExecutable.front().Argument.empty()) {
@@ -734,17 +802,23 @@ namespace Arc {
       }
     }
 
+    /// \mapattr queuename <- QueueName
     if (!job.Resources.QueueName.empty()) {
       product += "  QueueName = \"";
       product += job.Resources.QueueName;
       product += "\";\n";
     }
 
+    /// \mapattr cpunumber <- NumberOfSlots
     product += ADDJDLNUMBER(job.Resources.SlotRequirement.NumberOfSlots, "CPUNumber");
+    /// \mapattr retrycount <- Rerun
     product += ADDJDLNUMBER(job.Application.Rerun, "RetryCount");
+    /// \mapattr shallowretrycount <- Rerun
     product += ADDJDLNUMBER(job.Application.Rerun, "ShallowRetryCount");
+    /// \mapattr expirytime <- ExpirationTime
     product += ADDJDLNUMBER(job.Application.ExpirationTime.GetTime(), "ExpiryTime");
 
+    /// \mapattr myproxyserver <- CredentialService
     if (!job.Application.CredentialService.empty() &&
         job.Application.CredentialService.front()) {
       product += "  MyProxyServer = \"";
@@ -752,6 +826,7 @@ namespace Arc {
       product += "\";\n";
     }
 
+    /// \mapattr usertags <- Annotation
     if (!job.Identification.Annotation.empty())
       product += generateOutputList("UserTags", job.Identification.Annotation, std::pair<char, char>('[', ']'), ';');
 

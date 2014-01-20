@@ -19,6 +19,12 @@
 
 namespace Arc {
 
+  /// \mapname xRSL xRSL (nordugrid:xrsl)
+  /// The libarccompute library has full support for xRSL. The
+  /// reference manual is located <a href="http://www.nordugrid.org/documents/xrsl.pdf">here</a>.
+  /// By default the xRSL parser expects and produces user-side RSL (see
+  /// reference manual), however if GM-side RSL is passed as input or wanted as
+  /// output, then the "GRIDMANAGER" dialect should be used.
   XRSLParser::XRSLParser(PluginArgument* parg)
     : JobDescriptionParserPlugin(parg) {
     supportedLanguages.push_back("nordugrid:xrsl");
@@ -62,6 +68,7 @@ namespace Arc {
     return l;
   }
 
+  /// \mapattr executables -> InputFileType::IsExecutable
   bool XRSLParser::ParseExecutablesAttribute(JobDescription& j) {
     std::map<std::string, std::string>::iterator itExecsAtt = j.OtherAttributes.find("nordugrid:xrsl;executables");
     if (itExecsAtt == j.OtherAttributes.end()) {
@@ -105,6 +112,7 @@ namespace Arc {
     return true;
   }
 
+  /// TODO \mapattr executables -> InputFileType::IsExecutable
   bool XRSLParser::ParseFTPThreadsAttribute(JobDescription& j) {
     std::map<std::string, std::string>::iterator itAtt;
     itAtt = j.OtherAttributes.find("nordugrid:xrsl;ftpthreads");
@@ -139,6 +147,7 @@ namespace Arc {
     return true;
   }
 
+  /// TODO \mapattr executables -> InputFileType::IsExecutable
   bool XRSLParser::ParseCacheAttribute(JobDescription& j) {
     std::map<std::string, std::string>::iterator itAtt;
     itAtt = j.OtherAttributes.find("nordugrid:xrsl;cache");
@@ -161,6 +170,7 @@ namespace Arc {
     return true;
   }
 
+  /// TODO \mapattr executables -> InputFileType::IsExecutable
   bool XRSLParser::ParseJoinAttribute(JobDescription& j) {
     std::map<std::string, std::string>::iterator itAtt;
     itAtt = j.OtherAttributes.find("nordugrid:xrsl;join");
@@ -187,6 +197,7 @@ namespace Arc {
     return true;
   }
 
+  /// TODO \mapattr executables -> InputFileType::IsExecutable
   bool XRSLParser::ParseGridTimeAttribute(JobDescription& j) { // Must be called after the 'count' attribute has been parsed.
     std::map<std::string, std::string>::iterator itAtt;
     itAtt = j.OtherAttributes.find("nordugrid:xrsl;gridtime");
@@ -216,6 +227,7 @@ namespace Arc {
     return true;
   }
 
+  /// TODO \mapattr executables -> InputFileType::IsExecutable
   bool XRSLParser::ParseCountPerNodeAttribute(JobDescription& j) { // Must be called after the 'count' attribute has been parsed.
     std::map<std::string, std::string>::iterator   itAtt;
     itAtt = j.OtherAttributes.find("nordugrid:xrsl;countpernode");
@@ -555,6 +567,7 @@ namespace Arc {
       }
     }
     else if ((c = dynamic_cast<const RSLCondition*>(r))) {
+      /// \mapattr executable -> ExecutableType::Path
       if (c->Attr() == "executable") {
         bool r = SingleValue(c, j.Application.Executable.Path);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
@@ -565,6 +578,7 @@ namespace Arc {
         return r;
       }
 
+      /// \mapattr arguments -> ExecutableType::Argument
       if (c->Attr() == "arguments") {
         bool r = ListValue(c, j.Application.Executable.Argument);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
@@ -575,6 +589,7 @@ namespace Arc {
         return r;
       }
 
+      /// \mapattr stdin -> Input
       if (c->Attr() == "stdin") {
         bool r = SingleValue(c, j.Application.Input);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
@@ -585,6 +600,7 @@ namespace Arc {
         return r;
       }
 
+      /// \mapattr stdout -> Output
       if (c->Attr() == "stdout") {
         bool r = SingleValue(c, j.Application.Output);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
@@ -595,6 +611,7 @@ namespace Arc {
         return r;
       }
 
+      /// \mapattr stderr -> Error
       if (c->Attr() == "stderr") {
         bool r = SingleValue(c, j.Application.Error);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
@@ -605,6 +622,7 @@ namespace Arc {
         return r;
       }
 
+      /// TODO \mapattr inputfiles -> DataStagingType::InputFiles
       if (c->Attr() == "inputfiles") {
         std::list<std::list<std::string> > ll;
         if (!SeqListValue(c, ll))
@@ -690,6 +708,7 @@ namespace Arc {
         return true;
       }
 
+      // Mapping documented above
       if (c->Attr() == "executables") {
         std::list<std::string> execs;
         if (!ListValue(c, execs))
@@ -708,6 +727,7 @@ namespace Arc {
         return true;
       }
 
+      // Mapping documented above
       if (c->Attr() == "cache") {
         std::string cache;
         if (!SingleValue(c, cache))
@@ -724,6 +744,7 @@ namespace Arc {
         return true;
       }
 
+      /// TODO \mapattr outputfiles -> DataStagingType::OutputFiles
       if (c->Attr() == "outputfiles") {
         std::list<std::list<std::string> > ll;
         if (!SeqListValue(c, ll))
@@ -790,6 +811,8 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr queue -> QueueName
+      /// TODO \mapattr queue -> JobDescription::OtherAttributes["nordugrid:broker;reject_queue"]
       if (c->Attr() == "queue") {
         std::string queueName;
         if (!SingleValue(c, queueName))
@@ -821,6 +844,7 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr starttime -> ProcessingStartTime
       if (c->Attr() == "starttime") {
         std::string time;
         if (!SingleValue(c, time))
@@ -833,6 +857,7 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr lifetime -> SessionLifeTime
       if (c->Attr() == "lifetime") {
         std::string time;
         if (!SingleValue(c, time))
@@ -850,6 +875,7 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr cputime -> TotalCPUTime "With user-side RSL minutes is expected, while for GM-side RSL seconds."
       if (c->Attr() == "cputime") {
         std::string time;
         if (!SingleValue(c, time))
@@ -867,6 +893,9 @@ namespace Arc {
         return true;
       }
 
+      /// TotalWallTime is a reference to IndividualWallTime
+      /// \mapattr walltime -> IndividualWallTime
+      /// TODO cputime dialect/units
       if (c->Attr() == "walltime") {
         std::string time;
         if (!SingleValue(c, time))
@@ -884,6 +913,7 @@ namespace Arc {
         return true;
       }
 
+      // Documented above.
       if (c->Attr() == "gridtime") {
         std::string time;
         if (!SingleValue(c, time))
@@ -901,6 +931,7 @@ namespace Arc {
         return true;
       }
 
+      // TODO \mapattr benchmarks -> ResourcesType::TotalWallTime
       if (c->Attr() == "benchmarks") {
         std::list<std::list<std::string> > bm;
         if (!SeqListValue(c, bm, 3))
@@ -923,6 +954,7 @@ namespace Arc {
         return false;
       }
 
+      /// \mapattr memory -> IndividualPhysicalMemory
       if (c->Attr() == "memory") {
         std::string mem;
         if (!SingleValue(c, mem))
@@ -937,6 +969,7 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr disk -> DiskSpace
       if (c->Attr() == "disk") {
         std::string disk;
         if (!SingleValue(c, disk))
@@ -950,6 +983,7 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr runtimeenvironment -> RunTimeEnvironment
       if (c->Attr() == "runtimeenvironment") {
         std::string runtime;
         if (!SingleValue(c, runtime))
@@ -964,6 +998,7 @@ namespace Arc {
         return true;
        }
 
+      /// \mapattr middleware -> CEType
       // This attribute should be passed to the broker and should not be stored.
       if (c->Attr() == "middleware") {
         std::string cetype;
@@ -978,6 +1013,7 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr opsys -> OperatingSystem
       if (c->Attr() == "opsys") {
         std::string opsys;
         if (!SingleValue(c, opsys))
@@ -991,6 +1027,7 @@ namespace Arc {
         return true;
       }
 
+      // Documented above.
       if (c->Attr() == "join") {
         if (dialect == "GRIDMANAGER") {
           // Ignore the join attribute for GM (it is a client side attribute).
@@ -1013,6 +1050,7 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr gmlog -> LogDir
       if (c->Attr() == "gmlog") {
         bool r = SingleValue(c, j.Application.LogDir);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
@@ -1023,6 +1061,7 @@ namespace Arc {
         return r;
       }
 
+      /// \mapattr jobname -> JobName
       if (c->Attr() == "jobname") {
         bool r = SingleValue(c, j.Identification.JobName);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
@@ -1033,6 +1072,7 @@ namespace Arc {
         return r;
       }
 
+      // Documented above.
       if (c->Attr() == "ftpthreads") {
         std::string sthreads;
         if (!SingleValue(c, sthreads))
@@ -1049,6 +1089,7 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr acl -> AccessControl
       if (c->Attr() == "acl") {
         std::string acl;
         if (!SingleValue(c, acl))
@@ -1068,11 +1109,13 @@ namespace Arc {
         return true;
       }
 
+      // TODO Document non existent mapping.
       if (c->Attr() == "cluster") {
         logger.msg(ERROR, "The cluster XRSL attribute is currently unsupported.");
         return false;
       }
 
+      /// TODO: \mapattr notify -> ApplicationType::Notification
       if (c->Attr() == "notify") {
         std::list<std::string> l;
         if (!ListValue(c, l))
@@ -1111,6 +1154,8 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr replicacollection -> OtherAttributes
+      /// TODO \mapattr replicacollection -> OtherAttributes["nordugrid:xrsl;replicacollection"]
       // Is this attribute supported?
       if (c->Attr() == "replicacollection") {
         std::string collection;
@@ -1125,6 +1170,7 @@ namespace Arc {
         }
       }
 
+      /// \mapattr rerun -> Rerun
       if (c->Attr() == "rerun") {
         std::string rerun;
         if (!SingleValue(c, rerun))
@@ -1137,6 +1183,7 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr priority -> Priority
       if (c->Attr() == "priority") {
         std::string priority;
         if (!SingleValue(c, priority))
@@ -1153,6 +1200,7 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr architecture -> Platform
       if (c->Attr() == "architecture") {
         bool r = SingleValue(c, j.Resources.Platform);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
@@ -1162,6 +1210,7 @@ namespace Arc {
         return r;
       }
 
+      /// \mapattr nodeaccess -> NodeAccess
       if (c->Attr() == "nodeaccess") {
         std::list<std::string> l;
         if (!ListValue(c, l))
@@ -1181,6 +1230,7 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr dryrun -> DryRun
       if (c->Attr() == "dryrun") {
         std::string dryrun;
         if (!SingleValue(c, dryrun)) {
@@ -1202,6 +1252,7 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr environment -> Environment
       if (c->Attr() == "environment") {
         std::list<std::list<std::string> > ll;
         if (!SeqListValue(c, ll, 2))
@@ -1213,6 +1264,7 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr count -> NumberOfSlots
       if (c->Attr() == "count") {
         std::string count;
         if (!SingleValue(c, count) || !stringto(count, j.Resources.SlotRequirement.NumberOfSlots)) return false;
@@ -1223,6 +1275,7 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr countpernode -> SlotsPerHost
       if (c->Attr() == "countpernode") {
         std::string countpernode;
         if (!SingleValue(c, countpernode))
@@ -1237,6 +1290,7 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr exclusiveexecution -> ExclusiveExecution
       if (c->Attr() == "exclusiveexecution") {
         std::string ee;
         if (!SingleValue(c, ee)) return false;
@@ -1250,6 +1304,7 @@ namespace Arc {
         return true;
       }
 
+      /// TODO: \mapattr jobreport -> RemoteLogging
       if (c->Attr() == "jobreport") {
         std::string jobreport;
         if (!SingleValue(c, jobreport))
@@ -1266,6 +1321,7 @@ namespace Arc {
         return true;
       }
 
+      /// \mapattr credentialserver -> CredentialService
       if (c->Attr() == "credentialserver") {
         std::string credentialserver;
         if (!SingleValue(c, credentialserver))
@@ -1411,12 +1467,14 @@ namespace Arc {
 
     RSLBoolean r(RSLAnd);
 
+    /// \mapattr executable <- ExecutableType::Path
     if (!j.Application.Executable.Path.empty()) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(j.Application.Executable.Path));
       r.Add(new RSLCondition("executable", RSLEqual, l));
     }
 
+    /// \mapattr arguments <- ExecutableType::Argument
     if (!j.Application.Executable.Argument.empty()) {
       RSLList *l = new RSLList;
       for (std::list<std::string>::const_iterator it = j.Application.Executable.Argument.begin();
@@ -1425,24 +1483,28 @@ namespace Arc {
       r.Add(new RSLCondition("arguments", RSLEqual, l));
     }
 
+    /// \mapattr stdin <- Input
     if (!j.Application.Input.empty()) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(j.Application.Input));
       r.Add(new RSLCondition("stdin", RSLEqual, l));
     }
 
+    /// \mapattr stdout <- Output
     if (!j.Application.Output.empty()) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(j.Application.Output));
       r.Add(new RSLCondition("stdout", RSLEqual, l));
     }
 
+    /// \mapattr stderr <- Error
     if (!j.Application.Error.empty()) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(j.Application.Error));
       r.Add(new RSLCondition("stderr", RSLEqual, l));
     }
 
+    /// \mapattr cputime <- TotalCPUTime
     if (j.Resources.TotalCPUTime.range > -1) {
       RSLList *l = new RSLList;
       if(dialect == "GRIDMANAGER") {
@@ -1455,6 +1517,7 @@ namespace Arc {
       r.Add(new RSLCondition("cputime", RSLEqual, l));
     }
 
+    /// \mapattr walltime <- IndividualWallTime
     if (j.Resources.TotalWallTime.range > -1) {
       RSLList *l = new RSLList;
       if(dialect == "GRIDMANAGER") {
@@ -1467,12 +1530,14 @@ namespace Arc {
       r.Add(new RSLCondition("walltime", RSLEqual, l));
     }
 
+    /// \mapattr memory <- IndividualPhysicalMemory
     if (j.Resources.IndividualPhysicalMemory > -1) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(tostring(j.Resources.IndividualPhysicalMemory)));
       r.Add(new RSLCondition("memory", RSLEqual, l));
     }
 
+    /// \mapattr environment <- Environment
     if (!j.Application.Environment.empty()) {
       RSLList *l = new RSLList;
       for (std::list< std::pair<std::string, std::string> >::const_iterator it = j.Application.Environment.begin();
@@ -1485,6 +1550,7 @@ namespace Arc {
       r.Add(new RSLCondition("environment", RSLEqual, l));
     }
 
+    // TODO Document mapping.
     if(dialect == "GRIDMANAGER") {
       RSLList *l = NULL;
 
@@ -1511,6 +1577,7 @@ namespace Arc {
       l = NULL;
 
       // Executables
+      /// \mapattr executables <- InputFileType::IsExecutable
       for (std::list<InputFileType>::const_iterator it = j.DataStaging.InputFiles.begin();
            it != j.DataStaging.InputFiles.end(); it++) {
         if (it->IsExecutable) {
@@ -1627,24 +1694,29 @@ namespace Arc {
       }
     } // (dialect == "GRIDMANAGER")
 
+    /// \mapattr queue <- QueueName
     if (!j.Resources.QueueName.empty()) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(j.Resources.QueueName));
       r.Add(new RSLCondition("queue", RSLEqual, l));
     }
 
+    /// \mapattr rerun <- Rerun
     if (j.Application.Rerun != -1) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(tostring(j.Application.Rerun)));
       r.Add(new RSLCondition("rerun", RSLEqual, l));
     }
 
+    /// \mapattr priority <- Priority
     if (j.Application.Priority != -1) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(tostring(j.Application.Priority)));
       r.Add(new RSLCondition("priority", RSLEqual, l));
     }
 
+    /// TODO: dialect/units
+    /// \mapattr lifetime <- SessionLifeTime 
     if (j.Resources.SessionLifeTime != -1) {
       RSLList *l = new RSLList;
       if(dialect == "GRIDMANAGER") {
@@ -1657,12 +1729,14 @@ namespace Arc {
       r.Add(new RSLCondition("lifetime", RSLEqual, l));
     }
 
+    /// \mapattr disk <- DiskSpace
     if (j.Resources.DiskSpaceRequirement.DiskSpace > -1) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(tostring(j.Resources.DiskSpaceRequirement.DiskSpace)));
       r.Add(new RSLCondition("disk", RSLEqual, l));
     }
 
+    /// \mapattr runtimeenvironment <- RunTimeEnvironment
     if (!j.Resources.RunTimeEnvironment.empty()) {
       std::list<Software>::const_iterator itSW = j.Resources.RunTimeEnvironment.getSoftwareList().begin();
       std::list<Software::ComparisonOperator>::const_iterator itCO = j.Resources.RunTimeEnvironment.getComparisonOperatorList().begin();
@@ -1673,6 +1747,7 @@ namespace Arc {
       }
     }
 
+    /// \mapattr middleware <- CEType
     if (!j.Resources.CEType.empty()) {
       std::list<Software>::const_iterator itSW = j.Resources.CEType.getSoftwareList().begin();
       std::list<Software::ComparisonOperator>::const_iterator itCO = j.Resources.CEType.getComparisonOperatorList().begin();
@@ -1683,6 +1758,7 @@ namespace Arc {
       }
     }
 
+    /// \mapattr opsys <- OperatingSystem
     if (!j.Resources.OperatingSystem.empty()) {
       std::list<Software>::const_iterator itSW = j.Resources.OperatingSystem.getSoftwareList().begin();
       std::list<Software::ComparisonOperator>::const_iterator itCO = j.Resources.OperatingSystem.getComparisonOperatorList().begin();
@@ -1693,19 +1769,21 @@ namespace Arc {
       }
     }
 
+    /// \mapattr architecture <- Platform
     if (!j.Resources.Platform.empty()) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(j.Resources.Platform));
       r.Add(new RSLCondition("architecture", RSLEqual, l));
     }
 
+    /// \mapattr count <- NumberOfSlots
     if (j.Resources.SlotRequirement.NumberOfSlots > -1) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(tostring(j.Resources.SlotRequirement.NumberOfSlots)));
       r.Add(new RSLCondition("count", RSLEqual, l));
     }
 
-
+    /// \mapattr countpernode <- SlotsPerHost
     if (j.Resources.SlotRequirement.SlotsPerHost > -1) {
       if (j.Resources.SlotRequirement.NumberOfSlots <= -1) {
         logger.msg(ERROR, "Cannot output XRSL representation: The Resources.SlotRequirement.NumberOfSlots attribute must be specified when the Resources.SlotRequirement.SlotsPerHost attribute is specified.");
@@ -1716,33 +1794,35 @@ namespace Arc {
       r.Add(new RSLCondition("countpernode", RSLEqual, l));
     }
 
-
+    /// \mapattr exclusiveexecution <- ExclusiveExecution
     if (j.Resources.SlotRequirement.ExclusiveExecution != SlotRequirementType::EE_DEFAULT) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(j.Resources.SlotRequirement.ExclusiveExecution == SlotRequirementType::EE_TRUE ? "yes" : "no"));
       r.Add(new RSLCondition("exclusiveexecution", RSLEqual, l));
     }
 
-
-
+    /// \mapattr starttime <- ProcessingStartTime
     if (j.Application.ProcessingStartTime != -1) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(j.Application.ProcessingStartTime.str(MDSTime)));
       r.Add(new RSLCondition("starttime", RSLEqual, l));
     }
 
+    /// \mapattr gmlog <- LogDir
     if (!j.Application.LogDir.empty()) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(j.Application.LogDir));
       r.Add(new RSLCondition("gmlog", RSLEqual, l));
     }
 
+    /// \mapattr jobname <- JobName
     if (!j.Identification.JobName.empty()) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(j.Identification.JobName));
       r.Add(new RSLCondition("jobname", RSLEqual, l));
     }
 
+    /// \mapattr acl <- AccessControl
     if (j.Application.AccessControl) {
       RSLList *l = new RSLList;
       std::string acl;
@@ -1751,6 +1831,7 @@ namespace Arc {
       r.Add(new RSLCondition("acl", RSLEqual, l));
     }
 
+    /// TODO \mapattr notify <- ApplicationType::Notification
     if (!j.Application.Notification.empty()) {
       RSLList *l = new RSLList;
       for (std::list<NotificationType>::const_iterator it = j.Application.Notification.begin();
@@ -1767,6 +1848,7 @@ namespace Arc {
       r.Add(new RSLCondition("notify", RSLEqual, l));
     }
 
+    /// TODO \mapattr jobreport <- RemoteLogging
     if (!j.Application.RemoteLogging.empty()) {
       // Pick first SGAS remote logging service.
       for (std::list<RemoteLoggingType>::const_iterator it = j.Application.RemoteLogging.begin();
@@ -1781,18 +1863,21 @@ namespace Arc {
       }
     }
 
+    /// \mapattr credentialserver <- CredentialService
     if (!j.Application.CredentialService.empty()) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(j.Application.CredentialService.front().fullstr()));
       r.Add(new RSLCondition("credentialserver", RSLEqual, l));
     }
 
+    /// \mapattr dryrun <- DryRun
     if (j.Application.DryRun) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral("yes"));
       r.Add(new RSLCondition("dryrun", RSLEqual, l));
     }
 
+    /// TODO \mapnote 
     for (std::map<std::string, std::string>::const_iterator it = j.OtherAttributes.begin();
          it != j.OtherAttributes.end(); it++) {
       std::list<std::string> keys;

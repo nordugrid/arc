@@ -18,6 +18,13 @@
 
 namespace Arc {
 
+  /// \mapname ADL EMI ADL
+  /// The libarccompute library has almost full support for EMI Activity
+  /// Description Language (ADL) v1.16, it is described in the EMI Execution
+  /// Service (ES) specification
+  /// (<a href="https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/EMI-ES-Specification_v1.16.odt">EMI-ES-Specification_v1.16.odt</a>).<br/>
+  /// Currently the ADL parser is not able to parse: <br/>
+  /// TODO
   ADLParser::ADLParser(PluginArgument* parg)
     : JobDescriptionParserPlugin(parg) {
     supportedLanguages.push_back("emies:adl");
@@ -29,7 +36,7 @@ namespace Arc {
     return new ADLParser(arg);
   }
 
-  //  EMI state             ARC state
+  // EMI state             ARC state
   // ACCEPTED              ACCEPTED
   // PREPROCESSING         PREPARING
   //                       SUBMIT
@@ -349,28 +356,40 @@ namespace Arc {
     XMLNode staging = node["adl:DataStaging"];
 
     if((bool)identification) {
+      /// \mapattr ActivityIdentification.Name -> JobName
       job.Identification.JobName = (std::string)identification["adl:Name"];
+      /// \mapattr ActivityIdentification.Description -> Description
       job.Identification.Description = (std::string)identification["adl:Description"];
+      /// \mapattr ActivityIdentification.Type -> JobIdentificationType::Type
       job.Identification.Type = (std::string)identification["adl:Type"];
+      /// \mapattr ActivityIdentification.Annotation -> Annotation
       for(XMLNode annotation = identification["adl:Annotation"];
                                       (bool)annotation;++annotation) {
         job.Identification.Annotation.push_back((std::string)annotation);
       }
       // ARC extension: ActivityOldID
+      // TODO: Add note about this being a ARC extension.
+      /// \mapattr ActivityIdentification.ActivityOldID -> ActivityOldID
       for(XMLNode activityoldid = identification["nordugrid-adl:ActivityOldID"];
                                       (bool)activityoldid;++activityoldid) {
         job.Identification.ActivityOldID.push_back((std::string)activityoldid);
       }
     }
     if((bool)application) {
+      /// \mapattr Application.Executable.Path -> ExecutableType::Path
+      /// \mapattr Application.Executable.Argument -> ExecutableType::Argument
       XMLNode executable = application["adl:Executable"];
       if(executable && !ParseExecutable(executable, job.Application.Executable, dialect, logger)) {
         jobdescs.clear();
         return false;
       }
+      /// \mapattr Application.Input -> Input
       job.Application.Input = (std::string)application["adl:Input"];
+      /// \mapattr Application.Output -> Output
       job.Application.Output = (std::string)application["adl:Output"];
+      /// \mapattr Application.Error -> Error
       job.Application.Error = (std::string)application["adl:Error"];
+      /// \mapattr Application.Environment -> Environment
       for(XMLNode environment = application["adl:Environment"];
                          (bool)environment;++environment) {
         job.Application.Environment.push_back(
@@ -378,6 +397,7 @@ namespace Arc {
                         (std::string)environment["adl:Name"],
                         (std::string)environment["adl:Value"]));
       }
+      /// \mapattr Application.PreExecutable -> PreExecutable
       for(XMLNode preexecutable = application["adl:PreExecutable"];
           (bool)preexecutable;++preexecutable) {
         ExecutableType exec;
@@ -387,6 +407,7 @@ namespace Arc {
         }
         job.Application.PreExecutable.push_back(exec);
       }
+      /// \mapattr Application.PostExecutable -> PostExecutable
       for(XMLNode postexecutable = application["adl:PostExecutable"];
           (bool)postexecutable;++postexecutable) {
         ExecutableType exec;
@@ -396,6 +417,7 @@ namespace Arc {
         }
         job.Application.PostExecutable.push_back(exec);
       }
+      /// \mapattr Application.LoggingDirectory -> LogDir
       job.Application.LogDir = (std::string)application["LoggingDirectory"];
       for(XMLNode logging = application["adl:RemoteLogging"];
                                 (bool)logging;++logging) {
@@ -413,6 +435,7 @@ namespace Arc {
           return false;
         }
       }
+      /// \mapattr Application.ExpirationTime -> ExpirationTime
       XMLNode expire =  application["adl:ExpirationTime"];
       if((bool)expire) {
         bool b;
@@ -429,6 +452,7 @@ namespace Arc {
           }
         }
       }
+      /// \mapattr Application.WipeTime -> SessionLifeTime
       XMLNode wipe =  application["adl:WipeTime"];
       if((bool)wipe) {
         job.Resources.SessionLifeTime = (std::string)wipe;
@@ -478,17 +502,20 @@ namespace Arc {
       }
     }
     if((bool)resources) {
+      /// \mapattr Resources.OperatingSystem -> OperatingSystem
       XMLNode os = resources["adl:OperatingSystem"];
       if((bool)os) {
         // TODO: convert from EMI ES types. So far they look similar.
         Software os_((std::string)os["adl:Family"],(std::string)os["adl:Name"],(std::string)os["adl:Version"]);
         job.Resources.OperatingSystem.add(os_, Software::EQUAL);
       }
+      /// \mapattr Resources.Platform -> Platform
       XMLNode platform = resources["adl:Platform"];
       if((bool)platform) {
         // TODO: convert from EMI ES types. So far they look similar.
         job.Resources.Platform = (std::string)platform;
       }
+      /// \mapattr Resources.RuntimeEnvironment -> RunTimeEnvironment
       for(XMLNode rte = resources["adl:RuntimeEnvironment"];(bool)rte;++rte) {
         Software rte_("",(std::string)rte["adl:Name"],(std::string)rte["adl:Version"]);
         for(XMLNode o = rte["adl:Option"];(bool)o;++o) {
@@ -504,22 +531,27 @@ namespace Arc {
       if((bool)resources["adl:ParallelEnvironment"]) {
         ParallelEnvironmentType& pe = job.Resources.ParallelEnvironment;
         XMLNode xpe = resources["adl:ParallelEnvironment"];
+        /// \mapattr Resources.ParallelEnvironment.Type ->  ParallelEnvironmentType::Type
         if ((bool)xpe["adl:Type"]) {
           pe.Type = (std::string)xpe["adl:Type"];
         }
+        /// \mapattr Resources.ParallelEnvironment.Version ->  ParallelEnvironmentType::Version
         if ((bool)xpe["adl:Version"]) {
           pe.Version = (std::string)xpe["adl:Version"];
         }
+        /// \mapattr Resources.ParallelEnvironment.ProcessesPerSlot ->  ParallelEnvironmentType::ProcessesPerSlot
         if (((bool)xpe["adl:ProcessesPerSlot"]) && !stringto(xpe["adl:ProcessesPerSlot"], pe.ProcessesPerSlot)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in ProcessesPerSlot.");
           jobdescs.clear();
           return false;
         }
+        /// \mapattr Resources.ParallelEnvironment.ThreadsPerProcess ->  ParallelEnvironmentType::ThreadsPerProcess
         if (((bool)xpe["adl:ThreadsPerProcess"]) && !stringto(xpe["adl:ThreadsPerProcess"], pe.ThreadsPerProcess)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in ThreadsPerProcess.");
           jobdescs.clear();
           return false;
         }
+        /// \mapattr Resources.ParallelEnvironment.Option ->  ParallelEnvironmentType::Options
         for (XMLNode xOption = xpe["adl:Option"]; xOption; ++xOption) {
           if ((!(bool)xOption["adl:Name"]) || ((std::string)xOption["adl:Name"]).empty()) {
             logger.msg(ERROR, "[ADLParser] Missing Name element or value in ParallelEnvironment/Option element.");
@@ -529,6 +561,7 @@ namespace Arc {
           pe.Options.insert(std::make_pair<std::string, std::string>(xOption["adl:Name"], xOption["adl:Value"]));
         }
       }
+      /// \mapattr Resources.Coprocessor -> Coprocessor
       XMLNode coprocessor = resources["adl:Coprocessor"];
       if((bool)coprocessor && !((std::string)coprocessor).empty()) {
         job.Resources.Coprocessor = coprocessor;
@@ -537,12 +570,14 @@ namespace Arc {
           return false;
         }
       }
+      /// \mapattr Resources.NetworkInfo -> NetworkInfo
       XMLNode netinfo = resources["adl:NetworkInfo"];
       if(((bool)netinfo)) {
         logger.msg(ERROR, "[ADLParser] NetworkInfo is not supported yet.");
         jobdescs.clear();
         return false;
       }
+      /// \mapattr Resources.NodeAccess -> NodeAccess
       XMLNode nodeaccess = resources["adl:NodeAccess"];
       if(nodeaccess) {
         std::string na = nodeaccess;
@@ -560,6 +595,7 @@ namespace Arc {
       }
       XMLNode slot = resources["adl:SlotRequirement"];
       if((bool)slot) {
+        /// \mapattr Resources.SlotRequirement.NumberOfSlots -> NumberOfSlots
         if(!stringto(slot["adl:NumberOfSlots"],job.Resources.SlotRequirement.NumberOfSlots)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in NumberOfSlots.");
           jobdescs.clear();
@@ -574,11 +610,13 @@ namespace Arc {
             }
             job.Resources.SlotRequirement.SlotsPerHost = job.Resources.SlotRequirement.NumberOfSlots;
           }
+          /// \mapattr Resources.SlotRequirement.SlotsPerHost -> SlotsPerHost
           else if(!stringto(slot["adl:SlotsPerHost"],job.Resources.SlotRequirement.SlotsPerHost)) {
             logger.msg(ERROR, "[ADLParser] Missing or wrong value in SlotsPerHost.");
             jobdescs.clear();
             return false;
           }
+          /// \mapattr Resources.SlotRequirement.ExclusiveExecution -> ExclusiveExecution
           if((bool)slot["adl:ExclusiveExecution"]) {
             const std::string ee = slot["adl:ExclusiveExecution"];
             if ((ee == "true") || (ee == "1")) {
@@ -593,10 +631,12 @@ namespace Arc {
           }
         }
       }
+      /// \mapattr Resources.QueueName -> QueueName
       XMLNode queue = resources["adl:QueueName"];
       if((bool)queue) {
         job.Resources.QueueName = (std::string)queue;
       }
+      /// \mapattr Resources.IndividualPhysicalMemory -> IndividualPhysicalMemory
       XMLNode memory;
       memory = resources["adl:IndividualPhysicalMemory"];
       if((bool)memory) {
@@ -606,6 +646,7 @@ namespace Arc {
           return false;
         }
       }
+      /// \mapattr Resources.IndividualVirtualMemory -> IndividualVirtualMemory
       memory = resources["adl:IndividualVirtualMemory"];
       if((bool)memory) {
         if(!stringto((std::string)memory,job.Resources.IndividualVirtualMemory.max)) {
@@ -614,6 +655,7 @@ namespace Arc {
           return false;
         }
       }
+      /// \mapattr Resources.DiskSpaceRequirement -> DiskSpace
       memory = resources["adl:DiskSpaceRequirement"];
       if((bool)memory) {
         unsigned long long int v = 0;
@@ -624,6 +666,7 @@ namespace Arc {
         }
         job.Resources.DiskSpaceRequirement.DiskSpace.min = (v - 1) / 1024*1024 + 1;
       }
+      /// \mapattr Resources.RemoteSessionAccess -> SessionDirectoryAccess
       if((bool)resources["adl:RemoteSessionAccess"]) {
         bool v = false;
         if(!ParseFlag(resources["adl:RemoteSessionAccess"],v,logger)) {
@@ -640,6 +683,7 @@ namespace Arc {
       XMLNode time;
       time = resources["adl:IndividualCPUTime"];
       if((bool)time) {
+        /// \mapattr Resources.IndividualCPUTime -> IndividualCPUTime
         if(!stringto((std::string)time,job.Resources.IndividualCPUTime.range.max)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in IndividualCPUTime.");
           jobdescs.clear();
@@ -648,6 +692,7 @@ namespace Arc {
       }
       time = resources["adl:TotalCPUTime"];
       if((bool)time) {
+        /// \mapattr Resources.TotalCPUTime -> TotalCPUTime
         if(!stringto((std::string)time,job.Resources.TotalCPUTime.range.max)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in TotalCPUTime.");
           jobdescs.clear();
@@ -656,6 +701,8 @@ namespace Arc {
       }
       time = resources["adl:WallTime"];
       if((bool)time) {
+        /// \mapattr Resources.WallTime -> IndividualWallTime
+        /// TODO: Change to IndividualWallTime
         if(!stringto((std::string)time,job.Resources.TotalWallTime.range.max)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in WallTime.");
           jobdescs.clear();
@@ -807,38 +854,53 @@ namespace Arc {
     XMLNode staging = description.NewChild("DataStaging");
 
     // ActivityIdentification
+    /// \mapattr ActivityIdentification.JobName <- JobName
     if(!job.Identification.JobName.empty()) identification.NewChild("Name") = job.Identification.JobName;
+    /// \mapattr ActivityIdentification.Description <- Description
     if(!job.Identification.Description.empty()) identification.NewChild("Description") = job.Identification.Description;
+    /// \mapattr ActivityIdentification.Type <- JobIdentificationType::Type
     if(!job.Identification.Type.empty()) identification.NewChild("Type") = job.Identification.Type;
+    /// \mapattr ActivityIdentification.Annotation <- Annotation
     for (std::list<std::string>::const_iterator it = job.Identification.Annotation.begin();
          it != job.Identification.Annotation.end(); it++) {
       identification.NewChild("Annotation") = *it;
     }
     // ARC extension: ActivityOldID
+    /// \mapattr ActivityIdentification.ActivityOldID <- ActivityOldID
+    /// TODO: Add mapping note that this element is an extention.
     for (std::list<std::string>::const_iterator it = job.Identification.ActivityOldID.begin();
          it != job.Identification.ActivityOldID.end(); ++it) {
       identification.NewChild("nordugrid-adl:ActivityOldID") = *it;
     }
 
     // Application
+    /// \mapattr Application.Executable.Path <- ExecutableType::Path
+    /// \mapattr Application.Executable.Argument <- ExecutableType::Argument
     generateExecutableTypeElement(application.NewChild("Executable"), job.Application.Executable);
+    /// \mapattr Application.Input <- Input
     if(!job.Application.Input.empty()) application.NewChild("Input") = job.Application.Input;
+    /// \mapattr Application.Output <- Output
     if(!job.Application.Output.empty()) application.NewChild("Output") = job.Application.Output;
+    /// \mapattr Application.Error <- Error
     if(!job.Application.Error.empty()) application.NewChild("Error") = job.Application.Error;
+    /// \mapattr Application.Environment <- Environment
     for(std::list< std::pair<std::string, std::string> >::const_iterator it =
         job.Application.Environment.begin(); it != job.Application.Environment.end(); it++) {
       XMLNode environment = application.NewChild("Environment");
       environment.NewChild("Name") = it->first;
       environment.NewChild("Value") = it->second;
     }
+    /// \mapattr Application.PreExecutable <- PreExecutable
     for(std::list<ExecutableType>::const_iterator it = job.Application.PreExecutable.begin();
         it != job.Application.PreExecutable.end(); ++it) {
       generateExecutableTypeElement(application.NewChild("PreExecutable"), *it);
     }
+    /// \mapattr Application.PostExecutable <- PostExecutable
     for(std::list<ExecutableType>::const_iterator it = job.Application.PostExecutable.begin();
         it != job.Application.PostExecutable.end(); ++it) {
       generateExecutableTypeElement(application.NewChild("PostExecutable"), *it);
     }
+    /// \mapattr Application.LoggingDirectory <- LogDir
     if(!job.Application.LogDir.empty()) application.NewChild("LoggingDirectory") = job.Application.LogDir;
     for (std::list<RemoteLoggingType>::const_iterator it = job.Application.RemoteLogging.begin();
          it != job.Application.RemoteLogging.end(); it++) {
@@ -847,17 +909,20 @@ namespace Arc {
       logging.NewChild("URL") = it->Location.fullstr();
       if(it->optional) logging.NewAttribute("optional") = "true";
     }
+    /// \mapattr Application.ExpirationTime <- ExpirationTime
     if(job.Application.ExpirationTime > -1) {
       XMLNode expire = application.NewChild("ExpirationTime");
       expire = job.Application.ExpirationTime.str();
       //if() expire.NewAttribute("optional") = "true";
     }
+    /// \mapattr Application.WipeTime <- SessionLifeTime
     if(job.Resources.SessionLifeTime > -1) {
       XMLNode wipe = application.NewChild("WipeTime");
       // TODO: ask for type change from dateTime to period.
       wipe = (std::string)job.Resources.SessionLifeTime;
       //if() wipe.NewAttribute("optional") = "true";
     }
+    
     for (std::list<NotificationType>::const_iterator it = job.Application.Notification.begin();
          it != job.Application.Notification.end(); it++) {
       XMLNode notification = application.NewChild("Notification");
@@ -866,32 +931,33 @@ namespace Arc {
       for (std::list<std::string>::const_iterator s = it->States.begin();
                   s != it->States.end(); s++) {
         std::string st = InternalStateToADL(*s,false,logger);
-		if(st.empty()) continue; // return false; TODO later
-		notification.NewChild("OnState") = st;
-	      }
-	    }
-	    // job.Application.Rerun
-	    // job.Application.Priority
-	    // job.Application.ProcessingStartTime
-	    // job.Application.AccessControl
-	    // job.Application.CredentialService
-	    // job.Application.DryRun
-
-	    // Resources
-
-	    for(std::list<Software>::const_iterator o =
-				    job.Resources.OperatingSystem.getSoftwareList().begin();
-				    o != job.Resources.OperatingSystem.getSoftwareList().end(); ++o) {
-	      XMLNode os = resources.NewChild("OperatingSystem");
-	      os.NewChild("Name") = o->getName();
-	      std::string fam = o->getFamily();
-	      if(!fam.empty()) os.NewChild("Family") = fam;
+        if(st.empty()) continue; // return false; TODO later
+        notification.NewChild("OnState") = st;
+      }
+    }
+    // job.Application.Rerun
+    // job.Application.Priority
+    // job.Application.ProcessingStartTime
+    // job.Application.AccessControl
+    // job.Application.CredentialService
+    // job.Application.DryRun
+  
+    // Resources
+    /// \mapattr Resources.OperatingSystem <- OperatingSystem
+    for(std::list<Software>::const_iterator o = job.Resources.OperatingSystem.getSoftwareList().begin();
+        o != job.Resources.OperatingSystem.getSoftwareList().end(); ++o) {
+      XMLNode os = resources.NewChild("OperatingSystem");
+      os.NewChild("Name") = o->getName();
+      std::string fam = o->getFamily();
+      if(!fam.empty()) os.NewChild("Family") = fam;
       os.NewChild("Version") = o->getVersion();
     }
+    /// \mapattr Resources.Platform <- Platform
     if(!job.Resources.Platform.empty()) {
       // TODO: convert to EMI ES types. So far they look same.
       resources.NewChild("Platform") = job.Resources.Platform;
     }
+    /// \mapattr Resources.RuntimeEnvironment <- RunTimeEnvironment
     for(std::list<Software>::const_iterator s =
                     job.Resources.RunTimeEnvironment.getSoftwareList().begin();
                     s != job.Resources.RunTimeEnvironment.getSoftwareList().end();++s) {
@@ -907,18 +973,23 @@ namespace Arc {
     {
       XMLNode xpe("<ParallelEnvironment/>");
       const ParallelEnvironmentType& pe = job.Resources.ParallelEnvironment;
+      /// \mapattr Resources.ParallelEnvironment.Type <- ParallelEnvironmentType::Type
       if (!pe.Type.empty()) {
         xpe.NewChild("Type") = pe.Type;
       }
+      /// \mapattr Resources.ParallelEnvironment.Version <- ParallelEnvironmentType::Version
       if (!pe.Version.empty()) {
         xpe.NewChild("Version") = pe.Version;
       }
+      /// \mapattr Resources.ParallelEnvironment.ProcessesPerSlot <- ParallelEnvironmentType::ProcessesPerSlot
       if (pe.ProcessesPerSlot > -1) {
         xpe.NewChild("ProcessesPerSlot") = tostring(pe.ProcessesPerSlot);
       }
+      /// \mapattr Resources.ParallelEnvironment.ThreadsPerProcess <- ParallelEnvironmentType::ThreadsPerProcess
       if (pe.ThreadsPerProcess > -1) {
         xpe.NewChild("ThreadsPerProcess") = tostring(pe.ThreadsPerProcess);
       }
+      /// \mapattr Resources.ParallelEnvironment.Option <- ParallelEnvironmentType::Options
       for (std::multimap<std::string, std::string>::const_iterator it = pe.Options.begin();
            it != pe.Options.end(); ++it) {
         XMLNode xo = xpe.NewChild("Option");
@@ -929,60 +1000,74 @@ namespace Arc {
         resources.NewChild(xpe);
       }
     }
+    /// \mapattr Resources.Coprocessor <- Coprocessor
     if(!((std::string)job.Resources.Coprocessor).empty()) {
       XMLNode coprocessor = resources.NewChild("Coprocessor");
       coprocessor = (std::string)job.Resources.Coprocessor;
       if(job.Resources.Coprocessor.optIn) coprocessor.NewAttribute("optional") = "true";
     }
     //TODO: check values. So far they look close. 
+    /// \mapattr Resources.NetworkInfo <- NetworkInfo
     if(!job.Resources.NetworkInfo.empty()) {
       resources.NewChild("NetworkInfo") = job.Resources.NetworkInfo;
     }
+    /// \mapattr Resources.NodeAccess <- NodeAccess
     switch(job.Resources.NodeAccess) {
       case NAT_INBOUND: resources.NewChild("NodeAccess") = "inbound"; break;
       case NAT_OUTBOUND: resources.NewChild("NodeAccess") = "outbound"; break;
       case NAT_INOUTBOUND: resources.NewChild("NodeAccess") = "inoutbound"; break;
       default: break;
     }
+    /// \mapattr Resources.IndividualPhysicalMemory <- IndividualPhysicalMemory
     if(job.Resources.IndividualPhysicalMemory.max != -1) {
       resources.NewChild("IndividualPhysicalMemory") = tostring(job.Resources.IndividualPhysicalMemory.max);
     }
+    /// \mapattr Resources.IndividualVirtualMemory <- IndividualVirtualMemory
     if(job.Resources.IndividualVirtualMemory.max != -1) {
       resources.NewChild("IndividualVirtualMemory") = tostring(job.Resources.IndividualVirtualMemory.max);
     }
+    /// \mapattr Resources.DiskSpaceRequirement <- DiskSpace
     if(job.Resources.DiskSpaceRequirement.DiskSpace.min > -1) {
       resources.NewChild("DiskSpaceRequirement") = tostring(job.Resources.DiskSpaceRequirement.DiskSpace.min*1024*1024);
     }
+    /// \mapattr Resources.RemoteSessionAccess <- SessionDirectoryAccess
     switch(job.Resources.SessionDirectoryAccess) {
       case SDAM_RW: resources.NewChild("RemoteSessionAccess") = "true"; break;
-      case SDAM_RO: resources.NewChild("RemoteSessionAccess") = "true"; break; // approximately
+      case SDAM_RO: resources.NewChild("RemoteSessionAccess") = "true"; break; // approximately; TODO: Document in mapping.
       default: break;
     }
     //Benchmark
     //  BenchmarkType
     //  BenchmarkValue
     XMLNode slot = resources.NewChild("SlotRequirement");
+    /// \mapattr Resources.SlotRequirement.NumberOfSlots <- NumberOfSlots
     if(job.Resources.SlotRequirement.NumberOfSlots > -1) {
       slot.NewChild("NumberOfSlots") = tostring(job.Resources.SlotRequirement.NumberOfSlots);
     }
+    /// \mapattr Resources.SlotRequirement.SlotsPerHost <- SlotsPerHost
     if (job.Resources.SlotRequirement.SlotsPerHost > -1) {
       slot.NewChild("SlotsPerHost") = tostring(job.Resources.SlotRequirement.SlotsPerHost);
     }
+    /// \mapattr Resources.SlotRequirement.ExclusiveExecution <- ExclusiveExecution
     switch(job.Resources.SlotRequirement.ExclusiveExecution) {
       case SlotRequirementType::EE_TRUE: slot.NewChild("ExclusiveExecution") = "true"; break;
       case SlotRequirementType::EE_FALSE: slot.NewChild("ExclusiveExecution") = "false"; break;
       default: break;
     }
     if(slot.Size() <= 0) slot.Destroy();
+    /// \mapattr Resources.QueueName <- QueueName
     if(!job.Resources.QueueName.empty()) {;
       resources.NewChild("QueueName") = job.Resources.QueueName;
     }
+    /// \mapattr Resources.IndividualCPUTime <- IndividualCPUTime
     if(job.Resources.IndividualCPUTime.range.max != -1) {
       resources.NewChild("IndividualCPUTime") = tostring(job.Resources.IndividualCPUTime.range.max);
     }
+    /// \mapattr Resources.TotalCPUTime <- TotalCPUTime
     if(job.Resources.TotalCPUTime.range.max != -1) {
       resources.NewChild("TotalCPUTime") = tostring(job.Resources.TotalCPUTime.range.max);
     }
+    /// \mapattr Resources.WallTime <- IndividualWallTime
     if(job.Resources.TotalWallTime.range.max != -1) {
       resources.NewChild("WallTime") = tostring(job.Resources.TotalWallTime.range.max);
     } else if(job.Resources.IndividualWallTime.range.max != -1) {
