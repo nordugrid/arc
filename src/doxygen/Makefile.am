@@ -42,11 +42,28 @@ Doxyfile.SDK.build: $(top_srcdir)/src/doxygen/Doxyfile.SDK
 	mv Doxyfile.SDK.build.tmp Doxyfile.SDK.build
 	sed "s/Doxyfile.SDK.layout.xml/Doxyfile.SDK.build.layout.xml/g" Doxyfile.SDK.build > Doxyfile.SDK.build.tmp
 	mv Doxyfile.SDK.build.tmp Doxyfile.SDK.build
+	for mapping in $(SPECIALISATION_MAPPINGS); do \
+		sed "s/^FILTER_PATTERNS[[:space:]]*=/& *\/$${mapping}.h=$(subst /,\/,$(srcdir))\/adapt-and-filter-mapping-attributes.sed/g" Doxyfile.SDK.build > Doxyfile.SDK.build.tmp;\
+		mv Doxyfile.SDK.build.tmp Doxyfile.SDK.build;\
+	done
+
 
 Doxyfile.SDK.build.layout.xml: $(top_srcdir)/src/doxygen/Doxyfile.SDK.layout.xml
 	cp $(srcdir)/Doxyfile.SDK.layout.xml Doxyfile.SDK.build.layout.xml
 
-SDK: Doxyfile.SDK.build Doxyfile.SDK.build.layout.xml $(srcdir)/add-bindings-deviations-to-dox.py $(srcdir)/add-java-getter-setter-method-notice.py $(srcdir)/images/arcsdk.png $(SWIG_DEPENDS) $(wildcard $(addsuffix /*.h, $(INPUT))) $(wildcard $(addsuffix /*.cpp, $(CPP_EXAMPLES))) $(wildcard $(addsuffix /*.py, $(PYTHON_EXAMPLES))) $(wildcard $(addsuffix /*.java, $(JAVA_EXAMPLES))) $(addsuffix _Mapping.dox, $(SPECIALISATION_MAPPINGS))
+SDKDEPENDENCIES = Doxyfile.SDK.build Doxyfile.SDK.build.layout.xml \
+	$(srcdir)/add-bindings-deviations-to-dox.py \
+	$(srcdir)/add-java-getter-setter-method-notice.py \
+	$(srcdir)/images/arcsdk.png \
+	$(srcdir)/adapt-and-filter-mapping-attributes.sed \
+	$(SWIG_DEPENDS) \
+	$(wildcard $(addsuffix /*.h, $(INPUT))) \
+	$(wildcard $(addsuffix /*.cpp, $(CPP_EXAMPLES))) \
+	$(wildcard $(addsuffix /*.py, $(PYTHON_EXAMPLES))) \
+	$(wildcard $(addsuffix /*.java, $(JAVA_EXAMPLES))) \
+	$(addsuffix _Mapping.dox, $(SPECIALISATION_MAPPINGS))
+
+SDK: $(SDKDEPENDENCIES)
 	doxygen Doxyfile.SDK.build
 # Postprocessing: Add deviations from SDK API for language bindings (Python and Java).
 	for file in $(SWIG_DEPENDS); do $(PYTHON) $(srcdir)/add-bindings-deviations-to-dox.py $${file} SDK/html; done
