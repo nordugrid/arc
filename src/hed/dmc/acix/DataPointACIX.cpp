@@ -1,0 +1,302 @@
+#include <arc/communication/ClientInterface.h>
+#include <arc/message/MCC.h>
+#include <arc/message/PayloadRaw.h>
+
+#include <arc/external/cJSON/cJSON.h>
+
+#include "DataPointACIX.h"
+
+namespace ArcDMCACIX {
+
+  using namespace Arc;
+
+  Arc::Logger DataPointACIX::logger(Arc::Logger::getRootLogger(), "DataPoint.ACIX");
+
+  // Copied from DataPointHTTP. Should be put in common place
+  static int http2errno(int http_code) {
+    // Codes taken from RFC 2616 section 10. Only 4xx and 5xx are treated as errors
+    switch(http_code) {
+      case 400:
+      case 405:
+      case 411:
+      case 413:
+      case 414:
+      case 415:
+      case 416:
+      case 417:
+        return EINVAL;
+      case 401:
+      case 403:
+      case 407:
+        return EACCES;
+      case 404:
+      case 410:
+        return ENOENT;
+      case 406:
+      case 412:
+        return EARCRESINVAL;
+      case 408:
+        return ETIMEDOUT;
+      case 409: // Conflict. Not sure about this one.
+      case 500:
+      case 502:
+      case 503:
+      case 504:
+        return EARCSVCTMP;
+      case 501:
+      case 505:
+        return EOPNOTSUPP;
+
+      default:
+        return EARCOTHER;
+    }
+  }
+
+  DataPointACIX::DataPointACIX(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
+    : DataPointIndex(url, usercfg, parg) {}
+
+  DataPointACIX::~DataPointACIX() {}
+
+  Plugin* DataPointACIX::Instance(PluginArgument *arg) {
+    DataPointPluginArgument *dmcarg =
+      dynamic_cast<DataPointPluginArgument*>(arg);
+    if (!dmcarg)
+      return NULL;
+    if (((const URL&)(*dmcarg)).Protocol() != "acix")
+      return NULL;
+    // Change URL protocol to https and reconstruct URL so HTTP options are parsed
+    std::string acix_url(((const URL&)(*dmcarg)).fullstr());
+    acix_url.replace(0, 4, "https");
+    return new DataPointACIX(URL(acix_url), *dmcarg, arg);
+  }
+
+  DataStatus DataPointACIX::Check(bool check_meta) {
+    // simply check that the file can be resolved
+    DataStatus r = Resolve(true);
+    if (r) return r;
+    return DataStatus(DataStatus::CheckError, r.GetErrno(), r.GetDesc());
+  }
+
+  DataStatus DataPointACIX::Resolve(bool source) {
+    std::list<DataPoint*> urls(1, const_cast<DataPointACIX*> (this));
+    return Resolve(source, urls);
+  }
+
+  DataStatus DataPointACIX::Resolve(bool source, const std::list<DataPoint*>& urls) {
+    // Contact ACIX to resolve cached replicas. Also resolve original replica
+    // and add those locations to locations.
+    if (!source) return DataStatus(DataStatus::WriteResolveError, ENOTSUP, "Writing to ACIX is not supported");
+    if (urls.empty()) return DataStatus::Success;
+
+    // Construct acix query URL, giving all urls as option. Assumes only one
+    // URL is specified in each datapoint.
+    std::list<std::string> urllist;
+    for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
+
+      std::string lookupurl = (*i)->GetURL().HTTPOption("url");
+      if (lookupurl.empty() || lookupurl.find(',') != std::string::npos) {
+        logger.msg(ERROR, "Found none or multiple URLs (%s) in ACIX URL: %s", lookupurl, (*i)->GetURL().str());
+        return DataStatus(DataStatus::ReadResolveError, EINVAL, "Invalid URLs specified");
+      }
+      // urls with meta options (eg guid=) have those stripped off in url
+      // parsing of the cacheindex url, so put them back
+      if (!(*i)->GetURL().MetaDataOptions().empty()) {
+        for (std::map<std::string, std::string>::const_iterator opts = (*i)->GetURL().MetaDataOptions().begin();
+             opts != (*i)->GetURL().MetaDataOptions().end(); ++opts) {
+          lookupurl += ':' + opts->first + '=' + opts->second;
+        }
+      }
+      urllist.push_back(lookupurl);
+
+      // Now resolve original replica if any
+      if ((*i)->HaveLocations() && (*i)->CurrentLocationHandle()->IsIndex()) {
+        // Resolve the location and add replicas to this datapoint
+        DataStatus res = (*i)->CurrentLocationHandle()->Resolve(true);
+        if (!res) {
+          // Just log a warning and continue. One of the main use cases of ACIX
+          // is as a fallback when the original source is not available
+          logger.msg(WARNING, "Could not resolve original source of %s: %s", lookupurl, std::string(res));
+          // Remove original replica from acix location
+          (*i)->RemoveLocation();
+        } else {
+          DataPoint* original_dp((*i)->CurrentLocationHandle());
+          // Add replicas found from resolving original replica
+          for (; original_dp->LocationValid(); original_dp->NextLocation()) {
+            (*i)->AddLocation(original_dp->CurrentLocation(), original_dp->CurrentLocation().ConnectionURL());
+          }
+          // Remove original replica from acix location (the current location
+          // should still be the original one)
+          (*i)->RemoveLocation();
+        }
+      }
+    }
+    url.AddHTTPOption("url", Arc::join(urllist, ","));
+    logger.msg(DEBUG, "Calling acix with query %s", url.plainstr());
+
+    std::string content;
+    DataStatus res = queryACIX(content, url.FullPath());
+    if (!res) return res;
+
+    res = parseLocations(content, urls);
+    if (!res) return res;
+
+    if (!HaveLocations()) {
+      logger.msg(VERBOSE, "No locations found for %s", url.str());
+      return DataStatus(DataStatus::ReadResolveError, ENOENT, "No cache locations found");
+    }
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointACIX::Stat(FileInfo& file, DataPoint::DataPointInfoType verb) {
+    std::list<FileInfo> files;
+    std::list<DataPoint*> urls(1, const_cast<DataPointACIX*> (this));
+    DataStatus r = Stat(files, urls, verb);
+    if (!r) {
+      return r;
+    }
+    if (files.empty()) {
+      return DataStatus(DataStatus::StatError, EARCRESINVAL, "No results returned");
+    }
+    file = files.front();
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointACIX::Stat(std::list<FileInfo>& files,
+                                const std::list<DataPoint*>& urls,
+                                DataPointInfoType verb) {
+    files.clear();
+    DataStatus r = Resolve(true, urls);
+    if (!r) {
+      return DataStatus(DataStatus::StatError, r.GetErrno(), r.GetDesc());
+    }
+    for (std::list<DataPoint*>::const_iterator f = urls.begin(); f != urls.end(); ++f) {
+      FileInfo info;
+      // Only name and replicas are available
+      info.SetName((*f)->GetURL().HTTPOption("url"));
+      for (; (*f)->LocationValid(); (*f)->NextLocation()) {
+        info.AddURL((*f)->CurrentLocation());
+      }
+      files.push_back(info);
+    }
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointACIX::PreRegister(bool replication, bool force) {
+    return DataStatus(DataStatus::PreRegisterError, ENOTSUP, "Writing to ACIX is not supported");
+  }
+
+  DataStatus DataPointACIX::PostRegister(bool replication) {
+    return DataStatus(DataStatus::PostRegisterError, ENOTSUP, "Writing to ACIX is not supported");
+  }
+
+  DataStatus DataPointACIX::PreUnregister(bool replication) {
+    return DataStatus(DataStatus::UnregisterError, ENOTSUP, "Deleting from ACIX is not supported");
+  }
+
+  DataStatus DataPointACIX::Unregister(bool all) {
+    return DataStatus(DataStatus::UnregisterError, ENOTSUP, "Deleting from ACIX is not supported");
+  }
+
+  DataStatus DataPointACIX::List(std::list<FileInfo>& files, DataPoint::DataPointInfoType verb) {
+    return DataStatus(DataStatus::ListError, ENOTSUP, "Listing in ACIX is not supported");
+  }
+
+  DataStatus DataPointACIX::CreateDirectory(bool with_parents) {
+    return DataStatus(DataStatus::CreateDirectoryError, ENOTSUP, "Creating directories in ACIX is not supported");
+  }
+
+  DataStatus DataPointACIX::Rename(const URL& newurl) {
+    return DataStatus(DataStatus::RenameError, ENOTSUP, "Renaming in ACIX is not supported");
+  }
+
+  DataStatus DataPointACIX::AddLocation(const URL& url,
+                                        const std::string& meta) {
+    if (!HaveLocations()) {
+      original_location = URLLocation(url);
+    }
+    return DataPointIndex::AddLocation(url, meta);
+  }
+
+  DataStatus DataPointACIX::ClearLocations() {
+    DataPointIndex::ClearLocations();
+    DataPointIndex::AddLocation(original_location, original_location.ConnectionURL());
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointACIX::queryACIX(std::string& content,
+                                      const std::string& path) const {
+
+    MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
+    ClientHTTP client(cfg, url, usercfg.Timeout());
+    client.RelativeURI(true); // twisted (ACIX server) doesn't support GET with full URL
+
+    HTTPClientInfo transfer_info;
+    PayloadRaw request;
+    PayloadRawInterface *response = NULL;
+
+    MCC_Status r = client.process("GET", url.Path(), &request, &transfer_info, &response);
+
+    if (!r) {
+      return DataStatus(DataStatus::ReadResolveError, "Failed to contact server: " + r.getExplanation());
+    }
+    if (transfer_info.code != 200) {
+      return DataStatus(DataStatus::ReadResolveError, http2errno(transfer_info.code), "HTTP error when contacting server: %s" + transfer_info.reason);
+    }
+    PayloadStreamInterface* instream = NULL;
+    try {
+      instream = dynamic_cast<PayloadStreamInterface*>(dynamic_cast<MessagePayload*>(response));
+    } catch(std::exception& e) {
+      return DataStatus(DataStatus::ReadResolveError, "Unexpected response from server");
+    }
+    if (!instream) {
+      return DataStatus(DataStatus::ReadResolveError, "Unexpected response from server");
+    }
+    content.clear();
+    std::string buf;
+    while (instream->Get(buf)) content += buf;
+
+    logger.msg(DEBUG, "ACIX returned %s", content);
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointACIX::parseLocations(const std::string& content,
+                                           const std::list<DataPoint*>& urls) const {
+
+    // parse JSON {url: [loc1, loc2,...]}
+    cJSON *root = cJSON_Parse(content.c_str());
+    if (!root) {
+      logger.msg(ERROR, "Failed to parse ACIX response: %s", content);
+      return DataStatus(DataStatus::ReadResolveError, "Failed to parse ACIX response");
+    }
+    for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
+      std::string urlstr = (*i)->GetURL().HTTPOption("url");
+
+      cJSON *urlinfo = cJSON_GetObjectItem(root, urlstr.c_str());
+      if (!urlinfo) {
+        logger.msg(DEBUG, "No locations for %s", urlstr);
+        continue;
+      }
+      cJSON *locinfo = urlinfo->child;
+      while (locinfo) {
+        std::string loc = std::string(locinfo->valuestring);
+        logger.msg(DEBUG, "%s: ACIX Location: %s", urlstr, loc);
+        if (loc.find("://") == std::string::npos) {
+          logger.msg(DEBUG, "%s: Location %s not accessible remotely, skipping", urlstr, loc);
+        } else {
+          URL fullloc(loc + '/' + urlstr);
+          (*i)->AddLocation(fullloc, loc);
+        }
+        locinfo = locinfo->next;
+      }
+    }
+    cJSON_Delete(root);
+    return DataStatus::Success;
+  }
+
+} // namespace ArcDMCACIX
+
+Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+  { "acix", "HED:DMC", "ARC Cache Index", 0, &ArcDMCACIX::DataPointACIX::Instance },
+  { NULL, NULL, NULL, 0, NULL }
+};

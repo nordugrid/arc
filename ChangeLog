@@ -1,3 +1,6 @@
+2014-01-22  David Cameron <d.g.cameron@fys.uio.no>
+  * Add ACIX DMC to allow discovery of locations of cached copies of data
+
 2013-12-26  Anders Waananen <waananen@nbi.dk>
   * Package Boinc lrms
 
