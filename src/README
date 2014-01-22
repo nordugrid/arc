@@ -2,6 +2,7 @@ Main source tree
 
 clients  - ARC clients
 doxygen  - Documentation genereated from code
+external - External software compiled from source
 hed      - Libraries and plugins which make up the basic low-level
            functionality of ARC - the Hosting  Environment Daemon (HED)
 libs     - Other ARC libraries

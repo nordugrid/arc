@@ -1,0 +1,2 @@
+External libraries small enough to include source rather than depending on an
+external package.
