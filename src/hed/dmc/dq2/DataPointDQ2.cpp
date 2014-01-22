@@ -12,7 +12,7 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/credential/VOMSUtil.h>
 
-#include "cJSON/cJSON.h"
+#include <arc/external/cJSON/cJSON.h>
 
 #include "DataPointDQ2.h"
 

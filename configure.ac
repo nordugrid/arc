@@ -2318,6 +2318,8 @@ AH_BOTTOM([#ifdef WIN32
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
+                 src/external/Makefile
+                 src/external/cJSON/Makefile
                  src/hed/Makefile
                  src/hed/libs/compute/Makefile
                  src/hed/libs/compute/test/Makefile
@@ -2408,7 +2410,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/xrootd/Makefile
                  src/hed/dmc/mock/Makefile
                  src/hed/dmc/dq2/Makefile
-                 src/hed/dmc/dq2/cJSON/Makefile
                  src/hed/profiles/general/general.xml
                  src/hed/shc/Makefile
                  src/hed/shc/arcpdp/Makefile
