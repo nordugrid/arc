@@ -645,6 +645,7 @@ using namespace Arc;
     if(!r) {
       if(r.GetErrno() != ENOSYS) return r;
       r = do_stat_http(curl, file);
+      if (!r) return r;
     }
     std::string name = url.FullPath();
     std::string::size_type p = name.rfind('/');
