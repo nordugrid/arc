@@ -158,6 +158,9 @@ Arc::MCC_Status ARexService::Head(Arc::Message& inmsg,Arc::Message& outmsg,ARexG
       id = subpath.substr(0,p); subpath = subpath.substr(p+1);
     };
   };
+  if (id == "cache") {
+    return cache_get(outmsg, subpath, 0, (off_t)(-1), config);
+  }
   ARexJob job(id,config,logger_);
   if(!job) {
     // There is no such job
