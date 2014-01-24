@@ -38,16 +38,17 @@ namespace ArcDMCACIX {
     virtual Arc::DataStatus Unregister(bool all);
     virtual Arc::DataStatus Stat(Arc::FileInfo& file, Arc::DataPoint::DataPointInfoType verb = INFO_TYPE_ALL);
     virtual Arc::DataStatus Stat(std::list<Arc::FileInfo>& files,
-                            const std::list<Arc::DataPoint*>& urls,
-                            Arc::DataPoint::DataPointInfoType verb = INFO_TYPE_ALL);
+                                 const std::list<Arc::DataPoint*>& urls,
+                                 Arc::DataPoint::DataPointInfoType verb = INFO_TYPE_ALL);
     virtual Arc::DataStatus List(std::list<Arc::FileInfo>& files, Arc::DataPoint::DataPointInfoType verb = INFO_TYPE_ALL);
     virtual Arc::DataStatus CreateDirectory(bool with_parents=false);
     virtual Arc::DataStatus Rename(const Arc::URL& newurl);
     virtual Arc::DataStatus AddLocation(const Arc::URL& url, const std::string& meta);
-    virtual Arc::DataStatus ClearLocations();
+    virtual const Arc::URL& GetURL() const;
   protected:
     static Arc::Logger logger;
     Arc::URLLocation original_location;
+    bool original_location_resolved;
   private:
     Arc::DataStatus queryACIX(std::string& content, const std::string& path) const;
     Arc::DataStatus parseLocations(const std::string& content, const std::list<DataPoint*>& urls) const;

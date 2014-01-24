@@ -53,7 +53,7 @@ namespace ArcDMCACIX {
   }
 
   DataPointACIX::DataPointACIX(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
-    : DataPointIndex(url, usercfg, parg) {}
+    : DataPointIndex(url, usercfg, parg), original_location_resolved(false) {}
 
   DataPointACIX::~DataPointACIX() {}
 
@@ -71,7 +71,12 @@ namespace ArcDMCACIX {
   }
 
   DataStatus DataPointACIX::Check(bool check_meta) {
-    // simply check that the file can be resolved
+    // If original location is set, check that
+    if (original_location) {
+      DataHandle h(original_location, usercfg);
+      return h->Check(check_meta);
+    }
+    // If not simply check that the file can be resolved
     DataStatus r = Resolve(true);
     if (r) return r;
     return DataStatus(DataStatus::CheckError, r.GetErrno(), r.GetDesc());
@@ -93,58 +98,49 @@ namespace ArcDMCACIX {
     std::list<std::string> urllist;
     for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
 
-      std::string lookupurl = (*i)->GetURL().HTTPOption("url");
-      if (lookupurl.empty() || lookupurl.find(',') != std::string::npos) {
-        logger.msg(ERROR, "Found none or multiple URLs (%s) in ACIX URL: %s", lookupurl, (*i)->GetURL().str());
+      // This casting is needed to access url directly, as GetURL() returns
+      // original_location
+      DataPointACIX* dp = dynamic_cast<DataPointACIX*>(*i);
+      URL lookupurl(uri_unencode(dp->url.HTTPOption("url")));
+
+      if (!lookupurl || lookupurl.str().find(',') != std::string::npos) {
+        logger.msg(ERROR, "Found none or multiple URLs (%s) in ACIX URL: %s", lookupurl.str(), dp->url.str());
         return DataStatus(DataStatus::ReadResolveError, EINVAL, "Invalid URLs specified");
       }
-      // urls with meta options (eg guid=) have those stripped off in url
-      // parsing of the cacheindex url, so put them back
-      if (!(*i)->GetURL().MetaDataOptions().empty()) {
-        for (std::map<std::string, std::string>::const_iterator opts = (*i)->GetURL().MetaDataOptions().begin();
-             opts != (*i)->GetURL().MetaDataOptions().end(); ++opts) {
-          lookupurl += ':' + opts->first + '=' + opts->second;
-        }
-      }
-      urllist.push_back(lookupurl);
+      urllist.push_back(lookupurl.str());
 
       // Now resolve original replica if any
-      if ((*i)->HaveLocations() && (*i)->CurrentLocationHandle()->IsIndex()) {
-        // Resolve the location and add replicas to this datapoint
-        DataStatus res = (*i)->CurrentLocationHandle()->Resolve(true);
-        if (!res) {
-          // Just log a warning and continue. One of the main use cases of ACIX
-          // is as a fallback when the original source is not available
-          logger.msg(WARNING, "Could not resolve original source of %s: %s", lookupurl, std::string(res));
-          // Remove original replica from acix location
-          (*i)->RemoveLocation();
-        } else {
-          DataPoint* original_dp((*i)->CurrentLocationHandle());
-          // Add replicas found from resolving original replica
-          for (; original_dp->LocationValid(); original_dp->NextLocation()) {
-            (*i)->AddLocation(original_dp->CurrentLocation(), original_dp->CurrentLocation().ConnectionURL());
+      if (dp->original_location) {
+
+        DataHandle origdp(dp->original_location, dp->usercfg);
+        // If index resolve the location and add replicas to this datapoint
+        if (origdp->IsIndex()) {
+          DataStatus res = origdp->Resolve(true);
+          if (!res) {
+            // Just log a warning and continue. One of the main use cases of ACIX
+            // is as a fallback when the original source is not available
+            logger.msg(WARNING, "Could not resolve original source of %s: %s", lookupurl.str(), std::string(res));
+          } else {
+            // Add replicas found from resolving original replica
+            for (; origdp->LocationValid(); origdp->NextLocation()) {
+              dp->AddLocation(origdp->CurrentLocation(), origdp->CurrentLocation().ConnectionURL());
+            }
           }
-          // Remove original replica from acix location (the current location
-          // should still be the original one)
-          (*i)->RemoveLocation();
+        } else {
+          dp->AddLocation(dp->original_location, dp->original_location.ConnectionURL());
         }
       }
+      dp->original_location_resolved = true;
     }
-    url.AddHTTPOption("url", Arc::join(urllist, ","));
-    logger.msg(DEBUG, "Calling acix with query %s", url.plainstr());
+    URL queryURL(url);
+    queryURL.AddHTTPOption("url", Arc::join(urllist, ","), true);
+    logger.msg(DEBUG, "Calling acix with query %s", queryURL.plainstr());
 
     std::string content;
-    DataStatus res = queryACIX(content, url.FullPath());
+    DataStatus res = queryACIX(content, queryURL.FullPath());
     if (!res) return res;
 
-    res = parseLocations(content, urls);
-    if (!res) return res;
-
-    if (!HaveLocations()) {
-      logger.msg(VERBOSE, "No locations found for %s", url.str());
-      return DataStatus(DataStatus::ReadResolveError, ENOENT, "No cache locations found");
-    }
-    return DataStatus::Success;
+    return parseLocations(content, urls);
   }
 
   DataStatus DataPointACIX::Stat(FileInfo& file, DataPoint::DataPointInfoType verb) {
@@ -209,18 +205,23 @@ namespace ArcDMCACIX {
     return DataStatus(DataStatus::RenameError, ENOTSUP, "Renaming in ACIX is not supported");
   }
 
-  DataStatus DataPointACIX::AddLocation(const URL& url,
+  DataStatus DataPointACIX::AddLocation(const URL& urlloc,
                                         const std::string& meta) {
-    if (!HaveLocations()) {
-      original_location = URLLocation(url);
+    if (!original_location && !original_location_resolved) {
+      original_location = URLLocation(urlloc);
+      // Add any URL options to the acix URL
+      for (std::map<std::string, std::string>::const_iterator opt = original_location.Options().begin();
+           opt != original_location.Options().end(); ++opt) {
+        url.AddOption(opt->first, opt->second);
+      }
+      return DataStatus::Success;
     }
-    return DataPointIndex::AddLocation(url, meta);
+    return DataPointIndex::AddLocation(urlloc, meta);
   }
 
-  DataStatus DataPointACIX::ClearLocations() {
-    DataPointIndex::ClearLocations();
-    DataPointIndex::AddLocation(original_location, original_location.ConnectionURL());
-    return DataStatus::Success;
+  const URL& DataPointACIX::GetURL() const {
+    if (original_location) return original_location;
+    return url;
   }
 
   DataStatus DataPointACIX::queryACIX(std::string& content,
@@ -235,7 +236,7 @@ namespace ArcDMCACIX {
     PayloadRaw request;
     PayloadRawInterface *response = NULL;
 
-    MCC_Status r = client.process("GET", url.Path(), &request, &transfer_info, &response);
+    MCC_Status r = client.process("GET", path, &request, &transfer_info, &response);
 
     if (!r) {
       return DataStatus(DataStatus::ReadResolveError, "Failed to contact server: " + r.getExplanation());
@@ -270,11 +271,14 @@ namespace ArcDMCACIX {
       return DataStatus(DataStatus::ReadResolveError, "Failed to parse ACIX response");
     }
     for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
-      std::string urlstr = (*i)->GetURL().HTTPOption("url");
+      // This casting is needed to access url directly, as GetURL() returns
+      // original_location
+      DataPointACIX* dp = dynamic_cast<DataPointACIX*>(*i);
+      std::string urlstr = URL(uri_unencode(dp->url.HTTPOption("url"))).str();
 
       cJSON *urlinfo = cJSON_GetObjectItem(root, urlstr.c_str());
       if (!urlinfo) {
-        logger.msg(DEBUG, "No locations for %s", urlstr);
+        logger.msg(WARNING, "No locations for %s", urlstr);
         continue;
       }
       cJSON *locinfo = urlinfo->child;
@@ -285,9 +289,19 @@ namespace ArcDMCACIX {
           logger.msg(DEBUG, "%s: Location %s not accessible remotely, skipping", urlstr, loc);
         } else {
           URL fullloc(loc + '/' + urlstr);
-          (*i)->AddLocation(fullloc, loc);
+          // Add URL options to replicas
+          for (std::map<std::string, std::string>::const_iterator opt = dp->url.CommonLocOptions().begin();
+               opt != dp->url.CommonLocOptions().end(); opt++)
+            fullloc.AddOption(opt->first, opt->second, false);
+          for (std::map<std::string, std::string>::const_iterator opt = dp->url.Options().begin();
+               opt != dp->url.Options().end(); opt++)
+            fullloc.AddOption(opt->first, opt->second, false);
+          dp->AddLocation(fullloc, loc);
         }
         locinfo = locinfo->next;
+      }
+      if (!dp->HaveLocations()) {
+        logger.msg(WARNING, "No locations found for %s", dp->url.str());
       }
     }
     cJSON_Delete(root);
