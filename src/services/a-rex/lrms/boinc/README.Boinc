@@ -1,0 +1,31 @@
+This is a README file for the ARC BOINC plugin
+The ARC Plungin includes 2 parts:
+1. the standard ArcCE files which include:
+Boinc.pm
+configure-boinc-env.sh
+cancel-boinc-job
+scan-boinc-job
+submit-boinc-job
+
+
+2 the RTE files which set up BOINC project specific environment variables, the RTE files can be put in a RTE directory, and then set up include the RTE directory in /etc/arc.conf
+[XXX@XXX]# more /var/arc/rte/APPS/BOINC/ATLAS 
+#!/bin/bash
+case $1 in
+   0) export PROJECT_ROOT="/home/boinc/projects/ATLAS"
+      export BOINC_APP="ATLAS"
+      export WU_TEMPLATE="templates/ATLAS_IN"
+      export RESULT_TEMPLATE="templates/ATLAS_OUT"
+      export RTE_LOCATION="/home/boinc/projects/ATLAS/Input/RTE.tar.gz"
+      ;;
+   1) :
+      ;;
+   2) :
+      ;;
+esac
+
+[XXX@XXX]# grep rte /etc/arc.conf
+runtimedir="/var/arc/rte" 
+
+
+
