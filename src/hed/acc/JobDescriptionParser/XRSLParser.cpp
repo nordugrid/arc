@@ -983,6 +983,7 @@ namespace Arc {
         return true;
       }
 
+      // TODO: Maybe add support for RTE options.
       /// \mapattr runtimeenvironment -> RunTimeEnvironment
       if (c->Attr() == "runtimeenvironment") {
         std::string runtime;
