@@ -233,6 +233,7 @@ sub collect($) {
         $c->{nodecpu} = $config->{service}{CPUModel}." @ ".$config->{service}{CPUClockSpeed}." MHz"
             if $config->{service}{CPUModel} and $config->{service}{CPUClockSpeed};
         $c->{homogeneity} = $homogeneous ? 'TRUE' : 'FALSE';
+        $c->{nodememory} = $config->{service}{MaxVirtualMemory} if ( $homogeneous && $config->{service}{MaxVirtualMemory} );
         $c->{nodeaccess} = 'inbound' if $inbound;
         $c->{nodeaccess} = 'outbound' if $outbound;
        if ($config->{service}{totalcpus}) {
