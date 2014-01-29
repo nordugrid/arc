@@ -570,9 +570,18 @@ lrms_list_jobs() {
 
 condor_read_history() {
 
-    # added braces to force the redirection to apply to the whole command, not
-    # just to the sub-command. Seems like a bash bug.
-    { histstring=$( $CONDOR_BIN_PATH/condor_history -l "$lrmsid" -match 1 ); } 2>&1
+    hostname=`hostname -f`
+    historydir=`$CONDOR_BIN_PATH/condor_config_val HISTORY`
+
+    # find the appropriate history file
+    historyfile=`grep "$hostname#$lrmsid.0" -l $historydir*`
+
+    # try to get the full job classad
+    if [[ "$historyfile" == *condor* ]]; then
+       { histstring=$( $CONDOR_BIN_PATH/condor_history -l -file $historyfile -match 1 "$lrmsid" ); } 2>&1
+    else
+       histstring=""
+    fi
 
     # the awk expression checks that the input is more than 1 line long
     [ $? = 0 ] && echo "$histstring" | awk 'END{if(NR<2){exit 1}}' || return 1
