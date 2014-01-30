@@ -126,7 +126,7 @@ sub collect_jobids($$) {
     close LOCAL;
     foreach my $pair (values %pairs) {
         # get rid of .condor from localid.
-        $$pair{id} =~ s/(.*)\.condor$/$1.0/;
+        $$pair{id} =~ s/(\d+)\..*/$1.0/;
         if ( $$pair{queue} eq $qname ) {
             push @jobids_thisqueue, $$pair{id};
         } else {
@@ -497,10 +497,10 @@ sub jobs_info ($$@) {
 
     foreach my $id ( @$jids ) {
         # submit-condor-job might return identifiers of the form ClusterId.condor
-        # Replace .condor with .0. It is safe to assume that ProcId is 0 because
+        # Replace .hostname with .0. It is safe to assume that ProcId is 0 because
         # we only submit one job at a time.
         my $id0 = $id;
-        $id0 =~ s/(.*)\.condor$/$1.0/;
+        $id0 =~ s/(\d+)\..*/$1.0/;
         debug "===jobs_info: Mapping $id to $id0";
 
         if ( $alljobdata{$id0} ) {

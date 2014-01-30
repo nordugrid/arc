@@ -20,7 +20,7 @@ pkgdatadir="$basedir"
 
 echo "$progname: canceling job $joboption_jobid with condor_rm..." 1>&2
 
-$CONDOR_BIN_PATH/condor_rm ${joboption_jobid%.condor} 1>&2
+$CONDOR_BIN_PATH/condor_rm ${joboption_jobid%.`hostname -f`} 1>&2
 
 echo "----- exiting $progname -----" 1>&2
 exit 0

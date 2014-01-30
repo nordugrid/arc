@@ -529,7 +529,7 @@ sub submit_condor_job {
     warn "$0: appending local job id to grami file $gramifile\n";
     my ($localid) = $submit_out =~ /submitted to cluster (\d+)\./;
     open GRAMI, ">>$gramifile"                      or die "$0: $gramifile: $!";
-    print GRAMI "joboption_jobid=$localid.condor\n" or die "$0: $gramifile: $!";
+    print GRAMI "joboption_jobid=$localid.".hostname()."\n" or die "$0: $gramifile: $!";
     print GRAMI "condor_log=$condor_log\n"          or die "$0: $gramifile: $!";
     close GRAMI                                     or die "$0: $gramifile: $!";
 }
