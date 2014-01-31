@@ -45,6 +45,7 @@ namespace ArcDMCACIX {
     virtual Arc::DataStatus Rename(const Arc::URL& newurl);
     virtual Arc::DataStatus AddLocation(const Arc::URL& url, const std::string& meta);
     virtual const Arc::URL& GetURL() const;
+    virtual std::string str() const;
   protected:
     static Arc::Logger logger;
     Arc::URLLocation original_location;

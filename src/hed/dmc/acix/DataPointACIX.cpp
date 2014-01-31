@@ -84,7 +84,13 @@ namespace ArcDMCACIX {
 
   DataStatus DataPointACIX::Resolve(bool source) {
     std::list<DataPoint*> urls(1, const_cast<DataPointACIX*> (this));
-    return Resolve(source, urls);
+    DataStatus r = Resolve(source, urls);
+    if (!r) return r;
+    if (!HaveLocations()) {
+      logger.msg(VERBOSE, "No locations found for %s", url.str());
+      return DataStatus(DataStatus::ReadResolveError, ENOENT, "No valid locations found");
+    }
+    return DataStatus::Success;
   }
 
   DataStatus DataPointACIX::Resolve(bool source, const std::list<DataPoint*>& urls) {
@@ -134,6 +140,7 @@ namespace ArcDMCACIX {
     }
     URL queryURL(url);
     queryURL.AddHTTPOption("url", Arc::join(urllist, ","), true);
+    logger.msg(INFO, "Querying ACIX server at %s", queryURL.ConnectionURL());
     logger.msg(DEBUG, "Calling acix with query %s", queryURL.plainstr());
 
     std::string content;
@@ -224,6 +231,11 @@ namespace ArcDMCACIX {
     return url;
   }
 
+  std::string DataPointACIX::str() const {
+    if (original_location) return original_location.str();
+    return url.str();
+  }
+
   DataStatus DataPointACIX::queryACIX(std::string& content,
                                       const std::string& path) const {
 
@@ -284,9 +296,9 @@ namespace ArcDMCACIX {
       cJSON *locinfo = urlinfo->child;
       while (locinfo) {
         std::string loc = std::string(locinfo->valuestring);
-        logger.msg(DEBUG, "%s: ACIX Location: %s", urlstr, loc);
+        logger.msg(INFO, "%s: ACIX Location: %s", urlstr, loc);
         if (loc.find("://") == std::string::npos) {
-          logger.msg(DEBUG, "%s: Location %s not accessible remotely, skipping", urlstr, loc);
+          logger.msg(INFO, "%s: Location %s not accessible remotely, skipping", urlstr, loc);
         } else {
           URL fullloc(loc + '/' + urlstr);
           // Add URL options to replicas
