@@ -905,6 +905,18 @@ cacheaccess="gsiftp://host.org/private/data/.* voms:vo myvo:production"
 cacheaccess="gsiftp://host.org/private/data/bob/.* dn /O=Grid/CN=Bob"
 
 .TP
+.B acix_endpoint
+acix_endpoint URL - the ARC Cache Index specified here will be queried for 
+every input file specified in a job description and any replicas found in
+sites with accessible caches will be added to the replica list of the input
+file. The replicas will be tried in the order specified by
+.B preferredpattern.
+
+.IR Example:
+.br
+acix_endpoint="https://cacheindex.ndgf.org:6443/data/index"
+
+.TP
 .B enable_cache_service
 enable_cache_service yes|no - Turn on or off the cache service interface.
 If turned on the cache service must be installed and the A-REX WS interface
