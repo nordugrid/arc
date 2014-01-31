@@ -289,6 +289,14 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
         logger.msg(Arc::ERROR, "Wrong number in maxtransfertries"); return false;
       }
     }
+    else if (command == "acix_endpoint")  {
+      std::string endpoint(config_next_arg(rest));
+      if (!Arc::URL(endpoint) || endpoint.find("://") == std::string::npos) {
+        logger.msg(Arc::ERROR, "Bad URL in acix_endpoint"); return false;
+      }
+      endpoint.replace(0, endpoint.find("://"), "acix");
+      config.acix_endpoint = endpoint;
+    }
     else if(command == "norootpower") {
       if (!CheckYesNoCommand(config.strict_session, command, rest)) return false;
     }
@@ -556,6 +564,7 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     passiveTransfer
     localTransfer
     preferredPattern
+    acixEndpoint
     timeouts
       minSpeed
       minSpeedTime
@@ -588,6 +597,14 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     if (!elementtobool(tmp_node, "localTransfer", config.use_local_transfer, &logger)) return false;
     if (!elementtoint(tmp_node, "maxRetries", config.max_retries, &logger)) return false;
     if (tmp_node["preferredPattern"]) config.preferred_pattern = (std::string)(tmp_node["preferredPattern"]);
+    if (tmp_node["acixEndpoint"]) {
+      std::string endpoint((std::string)(tmp_node["acixEndPoint"]));
+      if (!Arc::URL(endpoint) || endpoint.find("://") == std::string::npos) {
+        logger.msg(Arc::ERROR, "Bad URL in acix_endpoint"); return false;
+      }
+      endpoint.replace(0, endpoint.find("://"), "acix");
+      config.acix_endpoint = endpoint;
+    }
   }
   /*
   serviceMail

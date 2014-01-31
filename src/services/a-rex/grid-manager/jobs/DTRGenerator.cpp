@@ -744,9 +744,26 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
 
     staging = true;
     std::string source;
+    std::string original_source;
     std::string destination;
     if (job.get_state() == JOB_STATE_PREPARING) {
-      source = i->lfn;
+      // If ACIX should be used, use it as source and add original URL as
+      // location after DTR is created
+      if (!config.ACIXEndpoint().empty()) {
+        // Encode the original url so it is not parsed as part of the acix url
+        original_source = i->lfn;
+        Arc::URL acix_source(config.ACIXEndpoint() + "?url=" + Arc::uri_encode(original_source, false));
+        Arc::URL original_url(original_source);
+        // Add URL options to ACIX URL
+        for (std::map<std::string, std::string>::const_iterator opt = original_url.Options().begin();
+             opt != original_url.Options().end(); ++opt) {
+          acix_source.AddOption(opt->first, opt->second);
+        }
+        source = acix_source.fullstr();
+      }
+      else {
+        source = i->lfn;
+      }
       destination = "file:" + job.SessionDir() + i->pfn;
     }
     else {
@@ -797,6 +814,10 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
       dtr->set_priority(job.get_local()->priority);
     // set whether to use A-REX host certificate for remote delivery services
     dtr->host_cert_for_remote_delivery(staging_conf.use_host_cert_for_remote_delivery);
+    // set real location if ACIX is used
+    if (!original_source.empty()) {
+      dtr->get_source()->AddLocation(Arc::URL(original_source), Arc::URL(original_source).ConnectionURL());
+    }
 
     DataStaging::DTRCacheParameters cache_parameters;
     CacheConfig cache_params(config.CacheParams());

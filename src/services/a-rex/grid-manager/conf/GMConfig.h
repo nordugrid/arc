@@ -210,6 +210,8 @@ public:
   int MaxStagingEmergency() const { return max_jobs_staging_emergency; }
   /// Max files downloaded in parallel per job
   int MaxDownloads() const { return max_downloads; }
+  /// ACIX endpoint from which to find locations of cached files
+  const std::string & ACIXEndpoint() const { return acix_endpoint; };
 
   /// Whether to use new data staging (DTR)
   bool UseDTR() const { return use_dtr; }
@@ -344,6 +346,8 @@ private:
   std::map<std::string, int> limited_share;
   /// Maximum retries for data transfer
   int max_retries;
+  /// ACIX endpoint from which to find locations of cached files
+  std::string acix_endpoint;
 
   /// Whether WS-interface is enabled
   bool enable_arc_interface;

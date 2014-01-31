@@ -360,6 +360,7 @@
             <xsd:element name="Globus" minOccurs="0" type="Globus_Type"/>            
             <xsd:element name="httpProxy" type="xsd:anyURI"
                          minOccurs="0"/>
+            <xsd:element name="acixEndpoint" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
 
