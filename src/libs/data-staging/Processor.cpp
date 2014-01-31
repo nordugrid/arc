@@ -273,11 +273,16 @@ namespace DataStaging {
     Arc::DataStatus res = requests.front()->get_source()->Resolve(true, sources);
     for (std::list<DTR_ptr>::iterator i = requests.begin(); i != requests.end(); ++i) {
       DTR_ptr request = *i;
-      if (!res.Passed() || !request->get_source()->HaveLocations() || !request->get_source()->LocationValid()) {
+      if (!res.Passed()) {
         request->get_logger()->msg(Arc::ERROR, std::string(res));
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_SOURCE,
                                   "Could not resolve any source replicas for " + request->get_source()->str() + ": " + std::string(res));
+      } else if (!request->get_source()->HaveLocations() || !request->get_source()->LocationValid()) {
+        request->get_logger()->msg(Arc::ERROR, "No replicas found for %s", request->get_source()->str());
+        request->set_error_status(DTRErrorStatus::PERMANENT_REMOTE_ERROR,
+                                  DTRErrorStatus::ERROR_SOURCE,
+                                  "No replicas found for " + request->get_source()->str());
       }
       request->set_status(DTRStatus::RESOLVED);
       request->connect_logger();
@@ -349,11 +354,17 @@ namespace DataStaging {
     std::list<Arc::FileInfo>::const_iterator file = files.begin();
     for (std::list<DTR_ptr>::iterator i = requests.begin(); i != requests.end(); ++i, ++file) {
       DTR_ptr request = *i;
-      if (!res.Passed() || files.size() != requests.size() || !*file) {
+      if (!res.Passed() || files.size() != requests.size()) {
         request->get_logger()->msg(Arc::ERROR, "Failed checking source replica: %s", std::string(res));
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_SOURCE,
                                   "Failed checking source replica " + request->get_source()->CurrentLocation().str() + ": " + std::string(res));
+      }
+      else if (!*file) {
+        request->get_logger()->msg(Arc::ERROR, "Failed checking source replica");
+        request->set_error_status(DTRErrorStatus::PERMANENT_REMOTE_ERROR,
+                                  DTRErrorStatus::ERROR_SOURCE,
+                                  "Failed checking source replica " + request->get_source()->CurrentLocation().str());
       }
       else if (request->get_source()->IsIndex() && !request->get_source()->CompareMeta(*(request->get_source()->CurrentLocationHandle()))) {
         request->get_logger()->msg(Arc::ERROR, "Metadata of replica and index service differ");
