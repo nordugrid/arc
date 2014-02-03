@@ -430,7 +430,7 @@ int main(int argc,char* argv[]) {
       if (calc_csum.substr(0, calc_csum.find(":")) != checksum_type ||
           calc_csum.substr(calc_csum.find(":")+1).length() != checksum_value.length()) {
         logger.msg(INFO, "Checksum type of source and calculated checksum differ, cannot compare");
-      } else if (calc_csum.substr(calc_csum.find(":")+1) != checksum_value) {
+      } else if (calc_csum.substr(calc_csum.find(":")+1) != Arc::lower(checksum_value)) {
         logger.msg(ERROR, "Checksum mismatch between calculated checksum %s and source checksum %s", calc_csum, source->GetCheckSum());
         ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
                      DataStaging::DTRErrorStatus::TRANSFER_SPEED_ERROR,
