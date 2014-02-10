@@ -320,7 +320,7 @@ sub create_shell_wrapper {
     # GNU-centric.  TODO: fix this if we're to support non-x86-Linux.)
     $output .= <<EOF;
 find ./ -type l -exec rm -f "{}" ";"
-find ./ -type f -exec chmod u+w "{}" ";"
+find ./ -type f ! -name '.job.ad' ! -name '.machine.ad' -exec chmod u+w "{}" ";"
 EOF
     my $outputlist = "$grami{joboption_controldir}/job.$grami{joboption_gridid}.output";
     if (-e $outputlist) {
@@ -383,8 +383,8 @@ sub create_condor_job_description {
     $output .= "Log = $condor_log\n";
 
     if ($grami{joboption_stdout} =~ /_condor_stdout/ && $grami{joboption_stderr} =~ /_condor_stderr/ && $config{shared_filesystem} =~ /^no/i && notnull($grami{joboption_inputfile_0})) {
-       $output .= "Output = _condor_stdout\n";
-       $output .= "Error = _condor_stderr\n";
+       $output .= "Output = $grami{joboption_stdout}\n";
+       $output .= "Error = $grami{joboption_stderr}\n";
     } else {
        $output .= "Output = $grami{joboption_directory}.comment\n";
        $output .= "Error = $grami{joboption_directory}.comment\n";
