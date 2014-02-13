@@ -1166,6 +1166,7 @@ using namespace Arc;
     // To allow for redirection from the server without uploading the whole
     // body we send an empty buffer and Expect: 100-continue header. Servers
     // should return either 100 continue or 30x redirection.
+    bool expect100 = true;
     std::multimap<std::string, std::string> attrs;
     attrs.insert(std::pair<std::string, std::string>("Expect", "100-continue"));
     DataBuffer* empty_buffer = new DataBuffer();
@@ -1209,10 +1210,12 @@ using namespace Arc;
         return false;
       }
       if (transfer_info.code == 100 || // Continue
+          (transfer_info.code == 200 && expect100) || // RFC2616 says "Many older HTTP/1.0 and HTTP/1.1 applications do not understand the Expect header"
           transfer_info.code == 417) { // Expectation not supported
         // Server accepts request so send full body
         request = new StreamBuffer(*point.buffer);
         attrs.clear();
+        expect100 = false;
         continue;
       }
       if ((transfer_info.code != 201) &&
