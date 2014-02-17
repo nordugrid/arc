@@ -14,9 +14,9 @@ namespace Arc {
     regcomp(&preg, pattern.c_str(), REG_EXTENDED);
   }
 
-  RegularExpression::RegularExpression(std::string pattern)
+  RegularExpression::RegularExpression(std::string pattern, bool ignoreCase)
     : pattern(pattern) {
-    status = regcomp(&preg, pattern.c_str(), REG_EXTENDED);
+    status = regcomp(&preg, pattern.c_str(), REG_EXTENDED | (REG_ICASE * ignoreCase) );
   }
 
   RegularExpression::RegularExpression(const RegularExpression& regex)

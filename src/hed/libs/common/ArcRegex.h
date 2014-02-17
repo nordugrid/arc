@@ -20,7 +20,7 @@ namespace Arc {
     RegularExpression();
 
     /// Creates a regex from a pattern string.
-    RegularExpression(std::string pattern);
+    RegularExpression(std::string pattern, bool ignoreCasse = false);
 
     /// Copy constructor.
     RegularExpression(const RegularExpression& regex);

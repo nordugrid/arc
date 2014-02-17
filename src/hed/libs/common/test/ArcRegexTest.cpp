@@ -11,10 +11,12 @@ class ArcRegexTest
 
   CPPUNIT_TEST_SUITE(ArcRegexTest);
   CPPUNIT_TEST(TestRegex);
+  CPPUNIT_TEST(TestCaseInsensitive);
   CPPUNIT_TEST_SUITE_END();
 
 public:
   void TestRegex();
+  void TestCaseInsensitive();
 };
 
 void ArcRegexTest::TestRegex() {
@@ -65,4 +67,17 @@ void ArcRegexTest::TestRegex() {
 
 }
 
+void ArcRegexTest::TestCaseInsensitive() {
+  Arc::RegularExpression cis("foo", true);
+  CPPUNIT_ASSERT(cis.isOk());
+  CPPUNIT_ASSERT(cis.match("FOO"));
+  CPPUNIT_ASSERT(cis.match("foo"));
+  CPPUNIT_ASSERT(cis.match("fOo"));
+  
+  Arc::RegularExpression cs("foo");
+  CPPUNIT_ASSERT(cs.isOk());
+  CPPUNIT_ASSERT(!cs.match("FOO"));
+  CPPUNIT_ASSERT(cs.match("foo"));
+  CPPUNIT_ASSERT(!cs.match("fOo"));
+}
 CPPUNIT_TEST_SUITE_REGISTRATION(ArcRegexTest);
