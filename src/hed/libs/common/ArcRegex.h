@@ -5,6 +5,7 @@
 
 #include <list>
 #include <string>
+#include <vector>
 #include <regex.h>
 
 namespace Arc {
@@ -48,6 +49,18 @@ namespace Arc {
      *  of the regex.
      */
     bool match(const std::string& str, std::list<std::string>& unmatched, std::list<std::string>& matched) const;
+    
+    /// Try to match string
+    /**
+     * The passed string is matched against this regular expression. If string
+     * matches, any matched subexpression will be appended to the passed vector,
+     * for any conditional subexpression failing to match a empty is appended.
+     * 
+     * \param str string to match against this regular expression.
+     * \param matched vector which to append matched subexpressions to.
+     * \return true is returned is string matches, otherwise false.
+     **/
+    bool match(const std::string& str, std::vector<std::string>& matched) const;
 
     /// Returns pattern
     std::string getPattern() const;

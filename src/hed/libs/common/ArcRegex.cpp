@@ -49,6 +49,22 @@ namespace Arc {
     return match(str, unmatched, matched) && (unmatched.empty());
   }
 
+  bool RegularExpression::match(const std::string& str, std::vector<std::string>& matched) const {
+    if (status != 0) return false;
+    
+    regmatch_t rm[preg.re_nsub+1];
+    if (regexec(&preg, str.c_str(), preg.re_nsub+1, rm, 0) != 0) return false;
+    for (int n = 1; n <= preg.re_nsub; ++n) {
+      if (rm[n].rm_so == -1) {
+        matched.push_back("");
+      }
+      else {
+        matched.push_back(str.substr(rm[n].rm_so, rm[n].rm_eo - rm[n].rm_so));
+      }
+    }
+    return true;
+  }
+
   bool RegularExpression::match(const std::string& str, std::list<std::string>& unmatched, std::list<std::string>& matched) const {
     if (status == 0) {
       int st;

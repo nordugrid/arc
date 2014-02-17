@@ -12,11 +12,13 @@ class ArcRegexTest
   CPPUNIT_TEST_SUITE(ArcRegexTest);
   CPPUNIT_TEST(TestRegex);
   CPPUNIT_TEST(TestCaseInsensitive);
+  CPPUNIT_TEST(TestSubExpression);
   CPPUNIT_TEST_SUITE_END();
 
 public:
   void TestRegex();
   void TestCaseInsensitive();
+  void TestSubExpression();
 };
 
 void ArcRegexTest::TestRegex() {
@@ -80,4 +82,42 @@ void ArcRegexTest::TestCaseInsensitive() {
   CPPUNIT_ASSERT(cs.match("foo"));
   CPPUNIT_ASSERT(!cs.match("fOo"));
 }
+
+void ArcRegexTest::TestSubExpression() {
+  Arc::RegularExpression r("^(abc)?def(ghi)jkl(mno)?$");
+  CPPUNIT_ASSERT(r.isOk());
+  std::vector<std::string> matches;
+  
+  CPPUNIT_ASSERT(r.match("defghijkl", matches));
+  CPPUNIT_ASSERT_EQUAL(3, (int)matches.size());
+  CPPUNIT_ASSERT(matches[0].empty());
+  CPPUNIT_ASSERT_EQUAL((std::string)"ghi", matches[1]);
+  CPPUNIT_ASSERT(matches[2].empty());
+  matches.clear();
+  
+  CPPUNIT_ASSERT(r.match("abcdefghijkl", matches));
+  CPPUNIT_ASSERT_EQUAL(3, (int)matches.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"abc", matches[0]);
+  CPPUNIT_ASSERT_EQUAL((std::string)"ghi", matches[1]);
+  CPPUNIT_ASSERT(matches[2].empty());
+  matches.clear();
+  
+  CPPUNIT_ASSERT(r.match("defghijklmno", matches));
+  CPPUNIT_ASSERT_EQUAL(3, (int)matches.size());
+  CPPUNIT_ASSERT(matches[0].empty());
+  CPPUNIT_ASSERT_EQUAL((std::string)"ghi", matches[1]);
+  CPPUNIT_ASSERT_EQUAL((std::string)"mno", matches[2]);
+  matches.clear();
+  
+  CPPUNIT_ASSERT(r.match("abcdefghijklmno", matches));
+  CPPUNIT_ASSERT_EQUAL(3, (int)matches.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"abc", matches[0]);
+  CPPUNIT_ASSERT_EQUAL((std::string)"ghi", matches[1]);
+  CPPUNIT_ASSERT_EQUAL((std::string)"mno", matches[2]);
+  matches.clear();
+
+  CPPUNIT_ASSERT(!r.match("defjkl", matches));
+  matches.clear();
+}
+
 CPPUNIT_TEST_SUITE_REGISTRATION(ArcRegexTest);
