@@ -113,7 +113,9 @@ class DelegationConsumerSOAP: public DelegationConsumer {
  used during delegation procedure. */
 class DelegationProviderSOAP: public DelegationProvider {
  protected:
+  /** Delegation request as returned by service accepting delegations. */
   std::string request_;
+  /** Assigned delegation identifier. */
   std::string id_;
  public:
   typedef enum {
@@ -160,6 +162,9 @@ class DelegationProviderSOAP: public DelegationProvider {
      This identifier may then be used to refer to credentials stored 
      at service. */
   const std::string& ID(void) { return id_;};
+  /** Assigns identifier to be used for while initiating delegation procedure.
+     Assigning identifier is useful only for *RENEW ServiceTypes. */
+  void ID(const std::string& id) { id_ = id; };
 };
 
 // Implementaion of the container for delegation credentials

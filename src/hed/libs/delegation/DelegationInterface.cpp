@@ -1094,14 +1094,26 @@ bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,Mes
             (stype == DelegationProviderSOAP::EMIDSRENEW)) {
     NS ns; ns["deleg"]=EMIDS_NAMESPACE;
     PayloadSOAP req_soap(ns);
-    req_soap.NewChild("deleg:getNewProxyReq");
-    PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
-    if(!resp_soap) return false;
-    XMLNode token = (*resp_soap)["getNewProxyReqResponse"];
-    if(!token) { delete resp_soap; return false; };
-    id_=(std::string)(token["delegationID"]);
-    request_=(std::string)(token["proxyRequest"]);
-    delete resp_soap;
+    if((!id_.empty()) && 
+       ((stype == DelegationProviderSOAP::GDS20RENEW) ||
+        (stype == DelegationProviderSOAP::EMIDSRENEW))) {
+      req_soap.NewChild("deleg:renewProxyReq").NewChild("deleg:delegationID") = id_;
+      PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
+      if(!resp_soap) return false;
+      XMLNode token = (*resp_soap)["renewProxyReqResponse"];
+      if(!token) { delete resp_soap; return false; };
+      request_=(std::string)(token["renewProxyReqReturn"]);
+      delete resp_soap;
+    } else {
+      req_soap.NewChild("deleg:getNewProxyReq");
+      PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
+      if(!resp_soap) return false;
+      XMLNode token = (*resp_soap)["getNewProxyReqResponse"];
+      if(!token) { delete resp_soap; return false; };
+      id_=(std::string)(token["delegationID"]);
+      request_=(std::string)(token["proxyRequest"]);
+      delete resp_soap;
+    }
     if(id_.empty() || request_.empty()) return false;
     return true;
   } else if((stype == DelegationProviderSOAP::EMIES)) {
@@ -1726,10 +1738,12 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       DelegationConsumerSOAP* c = FindConsumer(id,client);
       if(!c) {
         found=false;
-        if(!(c = AddConsumer(id,client))) {
+        // Probably it is wrong to create new delegation if
+        // client explicitely requests to renew.
+        //if(!(c = AddConsumer(id,client))) {
           GDS20FAULT(out,"Wrong identifier"); // ?
           return true;
-        };
+        //};
       };
       std::string x509_request;
       c->Request(x509_request);
