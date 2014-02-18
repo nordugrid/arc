@@ -31,22 +31,6 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
   
-  static URL CreateURL(std::string str) {
-    std::string::size_type pos1 = str.find("://");
-    if (pos1 == std::string::npos) {
-      str = "https://" + str;
-      pos1 = 5;
-    } else {
-      if(lower(str.substr(0,pos1)) != "https" && lower(str.substr(0,pos1)) != "http" ) return URL();
-    }
-    std::string::size_type pos2 = str.find(":", pos1 + 3);
-    std::string::size_type pos3 = str.find("/", pos1 + 3);
-    if (pos3 == std::string::npos && pos2 == std::string::npos)  str += ":443";
-    else if (pos2 == std::string::npos || pos2 > pos3) str.insert(pos3, ":443");
-
-    return str;
-  }
-  
   bool SubmitterPluginEMIES::getDelegationID(const URL& durl, std::string& delegation_id) {
     if(!durl) {
       logger.msg(INFO, "Failed to delegate credentials to server - no delegation interface found");
@@ -69,7 +53,7 @@ namespace Arc {
     // TODO: this is multi step process. So having retries would be nice.
     // TODO: If delegation interface is not on same endpoint as submission interface this method is faulty.
 
-    URL url = CreateURL(endpoint);
+    URL url((endpoint.find("://") == std::string::npos ? "https://" : "") + endpoint, false, 443);
 
     SubmissionStatus retval;
     bool need_delegation = false;

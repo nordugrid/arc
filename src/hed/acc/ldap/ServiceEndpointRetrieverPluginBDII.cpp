@@ -22,32 +22,16 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.URLString.substr(0, pos)) != "ldap";
   }
 
-  static URL CreateURL(std::string service) {
-    std::string::size_type pos1 = service.find("://");
-    if (pos1 == std::string::npos) {
-      service = "ldap://" + service;
-      pos1 = 4;
-    } else if(lower(service.substr(0,pos1)) != "ldap") return URL();
-    
-    std::string::size_type pos2 = service.find(":", pos1 + 3);
-    std::string::size_type pos3 = service.find("/", pos1 + 3);
-    if (pos2 == std::string::npos && pos3 == std::string::npos) {
-      service.append(":2170");
-    }
-    else if (pos2 == std::string::npos || pos2 > pos3) {
-      service.insert(pos3, ":2170");
-    }
-
-    return service;
-  }
-
   static std::string CreateBDIIResourceURL(const std::string& host) { return "ldap://" + host + ":2170/Mds-Vo-name=resource,o=grid"; }
   
   EndpointQueryingStatus ServiceEndpointRetrieverPluginBDII::Query(const UserConfig& uc,
                                                                     const Endpoint& rEndpoint,
                                                                     std::list<Endpoint>& seList,
                                                                     const EndpointQueryOptions<Endpoint>&) const {
-    URL url(CreateURL(rEndpoint.URLString));
+    if (isEndpointNotSupported(rEndpoint)) {
+      return EndpointQueryingStatus::FAILED;
+    }
+    URL url((rEndpoint.URLString.find("://") == std::string::npos ? "ldap://" : "") + rEndpoint.URLString, false, 2170);
     url.ChangeLDAPScope(URL::subtree);
     //url.ChangeLDAPFilter("(|(GlueServiceType=bdii_site)(GlueServiceType=bdii_top))");
     if (!url) return EndpointQueryingStatus::FAILED;

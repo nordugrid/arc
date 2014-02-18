@@ -29,30 +29,13 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.URLString.substr(0, pos)) != "ldap";
   }
 
-  static URL CreateURL(std::string service) {
-    std::string::size_type pos1 = service.find("://");
-    if (pos1 == std::string::npos) {
-      service = "ldap://" + service;
-      pos1 = 4;
-    } else {
-      if(lower(service.substr(0,pos1)) != "ldap") return URL();
-    }
-    std::string::size_type pos2 = service.find(":", pos1 + 3);
-    std::string::size_type pos3 = service.find("/", pos1 + 3);
-    if (pos3 == std::string::npos) {
-      if (pos2 == std::string::npos) service += ":2170";
-      service += "/Mds-Vo-name=resource,o=grid";
-    }
-    else if (pos2 == std::string::npos || pos2 > pos3)
-      service.insert(pos3, ":2170");
-
-    return service;
-  }
-
   EndpointQueryingStatus TargetInformationRetrieverPluginLDAPGLUE1::Query(const UserConfig& uc, const Endpoint& cie, std::list<ComputingServiceType>& csList, const EndpointQueryOptions<ComputingServiceType>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
-    URL url(CreateURL(cie.URLString));
+    if (isEndpointNotSupported(cie)) {
+      return s;
+    }
+    URL url((cie.URLString.find("://") == std::string::npos ? "ldap://" : "") + cie.URLString, false, 2170, "/Mds-Vo-name=resource,o=grid");
     url.ChangeLDAPScope(URL::subtree);
 
     if (!url) {

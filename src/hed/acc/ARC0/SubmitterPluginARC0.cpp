@@ -33,48 +33,6 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "gsiftp";
   }
 
-  static URL CreateURL(std::string str) {
-    std::string::size_type pos1 = str.find("://");
-    if (pos1 == std::string::npos) {
-      str = "gsiftp://" + str;
-      pos1 = 6;
-    } else {
-      if(lower(str.substr(0,pos1)) != "gsiftp") return URL();
-    }
-    std::string::size_type pos2 = str.find(":", pos1 + 3);
-    std::string::size_type pos3 = str.find("/", pos1 + 3);
-    if (pos3 == std::string::npos) {
-      if (pos2 == std::string::npos)
-        str += ":2811";
-      str += "/jobs";
-    }
-    else if (pos2 == std::string::npos || pos2 > pos3)
-      str.insert(pos3, ":2811");
-
-    return str;
-  }
-  
-  static URL CreateInfoURL(std::string str) {
-    std::string::size_type pos1 = str.find("://");
-    if (pos1 == std::string::npos) {
-      str = "ldap://" + str;
-      pos1 = 4;
-    } else {
-      if(lower(str.substr(0,pos1)) != "ldap") return URL();
-    }
-    std::string::size_type pos2 = str.find(":", pos1 + 3);
-    std::string::size_type pos3 = str.find("/", pos1 + 3);
-    if (pos3 == std::string::npos) {
-      if (pos2 == std::string::npos)
-        str += ":2135";
-      str += "/Mds-Vo-name=local,o=Grid";
-    }
-    else if (pos2 == std::string::npos || pos2 > pos3)
-      str.insert(pos3, ":2135");
-
-    return str;
-  }
-  
   Plugin* SubmitterPluginARC0::Instance(PluginArgument *arg) {
     SubmitterPluginArgument *subarg =
       dynamic_cast<SubmitterPluginArgument*>(arg);
@@ -93,8 +51,8 @@ namespace Arc {
 
   SubmissionStatus SubmitterPluginARC0::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     FTPControl ctrl;
-    URL url = CreateURL(endpoint);
-    URL infoURL = CreateInfoURL(url.Host());
+    URL url((endpoint.find("://") == std::string::npos ? "gsiftp://" : "") + endpoint, false, 2811, "/jobs");
+    URL infoURL("ldap://" + url.Host(), false, 2135, "/Mds-Vo-name=local,o=Grid");
     
     SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
@@ -353,7 +311,7 @@ namespace Arc {
 
       if (!infoendpoint) {
         // Should not happen
-        infoendpoint = CreateInfoURL(ContactString.Host());
+        infoendpoint = URL("ldap://" + url.Host(), false, 2135, "/Mds-Vo-name=local,o=Grid");
       }
 
       Job j;

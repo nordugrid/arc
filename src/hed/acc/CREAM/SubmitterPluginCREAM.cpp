@@ -23,47 +23,12 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  static URL CreateURL(std::string str) {
-    std::string::size_type pos1 = str.find("://");
-    if (pos1 == std::string::npos) {
-      str = "https://" + str;
-      pos1 = 5;
-    } else {
-      if(lower(str.substr(0,pos1)) != "https" && lower(str.substr(0,pos1)) != "http" ) return URL();
-    }
-    std::string::size_type pos2 = str.find(":", pos1 + 3);
-    std::string::size_type pos3 = str.find("/", pos1 + 3);
-    if (pos3 == std::string::npos && pos2 == std::string::npos) str += ":8443";
-    else if (pos2 == std::string::npos || pos2 > pos3) str.insert(pos3, ":8443");
-
-    return str;
-  }
-  
-  static URL CreateInfoURL(std::string str) {
-    std::string::size_type pos1 = str.find("://");
-    if (pos1 == std::string::npos) {
-      str = "ldap://" + str;
-      pos1 = 4;
-    } else {
-      if(lower(str.substr(0,pos1)) != "ldap") return URL();
-    }
-    std::string::size_type pos2 = str.find(":", pos1 + 3);
-    std::string::size_type pos3 = str.find("/", pos1 + 3);
-    if (pos3 == std::string::npos) {
-      if (pos2 == std::string::npos) str += ":2170";
-      str += "/o=grid";
-    }
-    else if (pos2 == std::string::npos || pos2 > pos3)
-      str.insert(pos3, ":2170");
-
-    return str;
-  }
-  
   SubmissionStatus SubmitterPluginCREAM::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    URL url = CreateURL(endpoint);
-    URL infourl = CreateInfoURL(url.Host());
+    
+    URL url((endpoint.find("://") == std::string::npos ? "https://" : "") + endpoint, false, 8443);
+    URL infourl("ldap://" + url.Host(), false, 2170, "/o=grid");
 
     SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {

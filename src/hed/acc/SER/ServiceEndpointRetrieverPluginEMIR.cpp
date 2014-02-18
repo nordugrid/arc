@@ -31,36 +31,6 @@ namespace Arc {
     return false;
   }
 
-  static URL CreateURL(std::string service, int entryPerMessage, int skipOffset) {
-    std::string::size_type pos1 = service.find("://");
-    if (pos1 == std::string::npos) {
-      service = "http://" + service;
-      pos1 = service.find("://");
-    } else {
-      std::string proto = lower(service.substr(0,pos1));
-      if((proto != "http") && (proto != "https")) return URL();
-    }
-    /* 
-     *  URL structure and response format: 
-     *    * in JSON: http[s]://<host_name>:<port>/services?limit=<nr_of_entries_per_message>[&skip=<offset>]
-     *
-     *    * in XML:  http[s]://<host_name>:<port>/services/query.xml?limit=<nr_of_entries_per_message>[&skip=<offset>]
-     */
-    std::string::size_type pos2 = service.find(":", pos1 + 3);
-    std::string::size_type pos3 = service.find("/", pos1 + 3);
-    if (pos2 == std::string::npos && pos3 == std::string::npos) {
-      service += ":9126"; // Default port seems to be 9126.
-    }
-    if (pos3 == std::string::npos || pos3 == service.size()-1) {
-      service += "/services/query.xml";
-    }
-    URL serviceURL(service);
-
-    if (entryPerMessage > 0) serviceURL.AddHTTPOption("limit", tostring(entryPerMessage));
-    if (skipOffset > 0)      serviceURL.AddHTTPOption("skip",  tostring(skipOffset));
-    return serviceURL;
-  }
-
   EndpointQueryingStatus ServiceEndpointRetrieverPluginEMIR::Query(const UserConfig& uc,
                                                                    const Endpoint& rEndpoint,
                                                                    std::list<Endpoint>& seList,
@@ -71,14 +41,21 @@ namespace Arc {
     MCCConfig cfg;
     uc.ApplyToConfig(cfg);
     
+    if (isEndpointNotSupported(rEndpoint)) {
+      return EndpointQueryingStatus::FAILED;
+    }
+    URL url((rEndpoint.URLString.find("://") == std::string::npos ? "http://" : "") + rEndpoint.URLString, false, 9126, "/services/query.xml");
+    if (!url) {
+      s = EndpointQueryingStatus::FAILED;
+      return s;
+    }
+
     // Limitation: Max number of services the below loop will fetch, according to parameters:
     // ServiceEndpointRetrieverPluginEMIR::maxEntries * 100 = 500.000 (currently)
     for (int iAvoidInfiniteLoop = 0; iAvoidInfiniteLoop < 100; ++iAvoidInfiniteLoop) {
-      URL url(CreateURL(rEndpoint.URLString, maxEntries, currentSkip));
-      if (!url) {
-        s = EndpointQueryingStatus::FAILED;
-        return s;
-      }
+      if (maxEntries > 0)  url.AddHTTPOption("limit", tostring(maxEntries),  true);
+      if (currentSkip > 0) url.AddHTTPOption("skip",  tostring(currentSkip), true);
+
       // increment the starting point of the fetched DB 
       currentSkip += maxEntries;
 

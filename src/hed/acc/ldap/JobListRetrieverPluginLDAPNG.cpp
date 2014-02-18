@@ -24,31 +24,13 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.URLString.substr(0, pos)) != "ldap";
   }
 
-  static URL CreateURL(std::string service) {
-    std::string::size_type pos1 = service.find("://");
-    if (pos1 == std::string::npos) {
-      service = "ldap://" + service;
-      pos1 = 4;
-    } else {
-      if(lower(service.substr(0,pos1)) != "ldap") return URL();
-    }
-    std::string::size_type pos2 = service.find(":", pos1 + 3);
-    std::string::size_type pos3 = service.find("/", pos1 + 3);
-    if (pos3 == std::string::npos) {
-      if (pos2 == std::string::npos)
-        service += ":2135";
-      service += "/Mds-Vo-name=local, o=Grid";
-    }
-    else if (pos2 == std::string::npos || pos2 > pos3)
-      service.insert(pos3, ":2135");
-    
-    return service;
-  }
-
   EndpointQueryingStatus JobListRetrieverPluginLDAPNG::Query(const UserConfig& uc, const Endpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
-    URL url(CreateURL(endpoint.URLString));
+    if (isEndpointNotSupported(endpoint)) {
+      return s;
+    }
+    URL url((endpoint.URLString.find("://") == std::string::npos ? "ldap://" : "") + endpoint.URLString, false, 2135, "/Mds-Vo-name=local,o=Grid");
     if (!url) {
       return s;
     }

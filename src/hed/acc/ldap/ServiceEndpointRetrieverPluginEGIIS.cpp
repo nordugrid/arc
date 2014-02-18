@@ -22,32 +22,16 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.URLString.substr(0, pos)) != "ldap";
   }
 
-  static URL CreateURL(std::string service) {
-    std::string::size_type pos1 = service.find("://");
-    if (pos1 == std::string::npos) {
-      service = "ldap://" + service;
-      pos1 = 4;
-    } else if(lower(service.substr(0,pos1)) != "ldap") return URL();
-    
-    std::string::size_type pos2 = service.find(":", pos1 + 3);
-    std::string::size_type pos3 = service.find("/", pos1 + 3);
-    if (pos2 == std::string::npos && pos3 == std::string::npos) {
-      service.append(":2135");
-    }
-    else if (pos2 == std::string::npos || pos2 > pos3) {
-      service.insert(pos3, ":2135");
-    }
-
-    return service;
-  }
-
   EndpointQueryingStatus ServiceEndpointRetrieverPluginEGIIS::Query(const UserConfig& uc,
                                                                     const Endpoint& rEndpoint,
                                                                     std::list<Endpoint>& seList,
                                                                     const EndpointQueryOptions<Endpoint>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::STARTED);
 
-    URL url(CreateURL(rEndpoint.URLString));
+    if (isEndpointNotSupported(rEndpoint)) {
+      return s;
+    }
+    URL url((rEndpoint.URLString.find("://") == std::string::npos ? "ldap://" : "") + rEndpoint.URLString, false, 2135);
     url.ChangeLDAPScope(URL::base);
     // This is not needed for EGIIS
     // It was needed for the original ancient Globus GIIS
