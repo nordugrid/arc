@@ -141,9 +141,37 @@ namespace Arc {
   }
 
   bool JobControllerPluginEMIES::RenewJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
+    MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
+
+    bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
-      logger.msg(INFO, "Renewal of EMI ES jobs is not supported");
-      IDsNotProcessed.push_back((*it)->JobID);
+      // 1. Fetch/find delegation ids for each job
+      if((*it)->DelegationID.empty()) {
+        logger.msg(INFO, "Job %s has no delegation associated. Can't renew such job.", (*it)->JobID);
+        IDsNotProcessed.push_back((*it)->JobID);
+        continue;
+      }
+      // 2. Leave only unique IDs - not needed yet because current code uses 
+      //    different delegations for each job.
+      // 3. Renew credentials for every ID
+      Job& job = **it;
+      EMIESJob ejob;
+      ejob = job;
+      AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(ejob.manager));
+      std::list<std::string>::const_iterator did = (*it)->DelegationID.begin();
+      for(;did != (*it)->DelegationID.end();++did) {
+        if(ac->delegation(*did).empty()) {
+          logger.msg(INFO, "Job %s failed to renew delegation %s - %s.", (*it)->JobID, *did, ac->failure());
+          break;
+        }
+      }
+      if(did != (*it)->DelegationID.end()) {
+        IDsNotProcessed.push_back((*it)->JobID);
+        continue;
+      }
+      IDsProcessed.push_back((*it)->JobID);
+      ((EMIESClients&)clients).release(ac.Release());
     }
     return false;
   }

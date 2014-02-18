@@ -102,15 +102,14 @@ namespace Arc {
       }
 
       if (need_delegation && delegation_id.empty()) {
-      // Assume that delegation interface is on same machine as submission interface.
-      if (need_delegation && delegation_id.empty() && !getDelegationID(url, delegation_id)) {
-        notSubmitted.push_back(&*itJ);
-        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-        products.pop_back();
-        have_uploads.pop_back();
-        continue;
-      }
-      
+        // Assume that delegation interface is on same machine as submission interface.
+        if (!getDelegationID(url, delegation_id)) {
+          notSubmitted.push_back(&*itJ);
+          retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+          products.pop_back();
+          have_uploads.pop_back();
+          continue;
+        }
       }
 
       if(have_uploads.back()) {
@@ -149,6 +148,10 @@ namespace Arc {
 
         if(!j->manager) {
           j->manager = url;
+        }
+
+        if(j->delegation_id.empty()) {
+          j->delegation_id = delegation_id;
         }
   
         JobDescription preparedjobdesc(*itJ);
@@ -447,17 +450,7 @@ namespace Arc {
 
     std::string delegation_id;
     if(need_delegation) {
-      if(!durl) {
-        logger.msg(INFO, "Failed to delegate credentials to server - no delegation interface found");
-        return false;
-      }
-      AutoPointer<EMIESClient> ac(clients.acquire(durl));
-      delegation_id = ac->delegation();
-      if(delegation_id.empty()) {
-        logger.msg(INFO, "Failed to delegate credentials to server - %s",ac->failure());
-        return false;
-      }
-      clients.release(ac.Release());
+      if(!getDelegationID(durl, delegation_id)) return false;
     }
 
     EMIESResponse *response = NULL;
@@ -479,6 +472,7 @@ namespace Arc {
     delete response;
     
     if(!jobid.manager) jobid.manager = url;
+    if(jobid.delegation_id.empty()) jobid.delegation_id = delegation_id;
   
     // Check if we have anything to upload. Otherwise there is no need to wait.
     if(have_uploads) {

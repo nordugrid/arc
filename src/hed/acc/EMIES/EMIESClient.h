@@ -98,6 +98,7 @@ namespace Arc {
     std::list<URL> session;
     std::list<URL> stageout;
     EMIESJobState state;
+    std::string delegation_id;
     EMIESJob& operator=(XMLNode job);
     EMIESJob& operator=(const Job& job);
     EMIESJob& operator=(const std::string& s) { XMLNode n(s); return operator=(n); }
@@ -302,14 +303,14 @@ namespace Arc {
       return lfailure;
     }
 
-    std::string delegation(void);
+    std::string delegation(const std::string& renew_id = "");
 
   private:
     bool process(PayloadSOAP& req, XMLNode& response, bool retry = true);
 
     void process_with_vector_limit(PayloadSOAP& req, XMLNode& response);
     
-    std::string dodelegation(void);
+    std::string dodelegation(const std::string& renew_id);
 
     bool reconnect(void);
 

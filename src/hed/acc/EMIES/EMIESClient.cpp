@@ -89,15 +89,15 @@ namespace Arc {
 
 
   
-  std::string EMIESClient::delegation(void) {
-    std::string id = dodelegation();
+  std::string EMIESClient::delegation(const std::string& renew_id) {
+    std::string id = dodelegation(renew_id);
     if(!id.empty()) return id;
     delete client; client = NULL;
     if(!reconnect()) return id;
-    return dodelegation();
+    return dodelegation(renew_id);
   }
 
-  std::string EMIESClient::dodelegation(void) {
+  std::string EMIESClient::dodelegation(const std::string& renew_id) {
     const std::string& cert = (!cfg.proxy.empty() ? cfg.proxy : cfg.cert);
     const std::string& key  = (!cfg.proxy.empty() ? cfg.proxy : cfg.key);
 
@@ -118,11 +118,13 @@ namespace Arc {
     }
 
     DelegationProviderSOAP deleg(cert, key);
+    if(!renew_id.empty()) deleg.ID(renew_id);
     logger.msg(VERBOSE, "Initiating delegation procedure");
     MessageAttributes attrout;
     MessageAttributes attrin;
     attrout.set("SOAP:ENDPOINT",rurl.str());
-    if (!deleg.DelegateCredentialsInit(*entry,&attrout,&attrin,&(client->GetContext()),DelegationProviderSOAP::EMIDS)) {
+    if (!deleg.DelegateCredentialsInit(*entry,&attrout,&attrin,&(client->GetContext()),
+          (renew_id.empty()?DelegationProviderSOAP::EMIDS:DelegationProviderSOAP::EMIDSRENEW))) {
       lfailure = "Failed to initiate delegation credentials";
       return "";
     }
@@ -1239,6 +1241,7 @@ namespace Arc {
     stagein.clear();
     session.clear();
     stageout.clear();
+    delegation_id.clear();
     id = (std::string)job["ActivityID"];
     manager = (std::string)job["ActivityMgmtEndpointURL"];
     resource = (std::string)job["ResourceInfoEndpointURL"];
@@ -1259,6 +1262,7 @@ namespace Arc {
     id = getIDFromJob(job);
     manager = job.JobManagementURL;
     resource = job.ServiceInformationURL;
+    delegation_id = job.DelegationID.empty()?std::string(""):*job.DelegationID.begin();
     // State information is not transfered from Job object. Currently not needed.
     return *this;
   }
@@ -1293,6 +1297,8 @@ namespace Arc {
     if (!stagein.empty()) j.StageInDir = stagein.front();
     if (!stageout.empty()) j.StageInDir = stageout.front();
     if (!session.empty()) j.StageInDir = session.front();
+    j.DelegationID.clear();
+    if(!delegation_id.empty()) j.DelegationID.push_back(delegation_id);
   }
 
   std::string EMIESJob::toXML() const {
