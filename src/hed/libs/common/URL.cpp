@@ -104,7 +104,7 @@ namespace Arc {
       ldapscope(base),
       valid(false) {}
 
-  URL::URL(const std::string& url, bool encoded)
+  URL::URL(const std::string& url, bool encoded, int defaultPort, const std::string& defaultPath)
     : ip6addr(false),
       port(-1),
       ldapscope(base),
@@ -277,6 +277,10 @@ namespace Arc {
       }
     }
 
+    if (path.empty() && !defaultPath.empty()) {
+      path += defaultPath;
+    }
+
     // At this point path must be absolutely absolute (starts with /) or empty
     if ((!path.empty()) && (path[0] != '/')) {
       URLLogger.msg(VERBOSE, "Illegal URL - path must be absolute or empty: %s", url);
@@ -331,7 +335,10 @@ namespace Arc {
       if (ip6addr) host = host.substr(1,host.length()-2);
     }
 
-    if (port == -1) {
+    if (port == -1 && defaultPort != -1) {
+      port = defaultPort;
+    }
+    else if (port == -1) {
       // If port is not default set default one
       if (protocol == "rc") port = RC_DEFAULT_PORT;
       if (protocol == "http") port = HTTP_DEFAULT_PORT;

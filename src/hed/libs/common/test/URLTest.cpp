@@ -27,6 +27,7 @@ class URLTest
   CPPUNIT_TEST(TestIP6Url2);
   CPPUNIT_TEST(TestIP6Url3);
   CPPUNIT_TEST(TestBadUrl);
+  CPPUNIT_TEST(TestWithDefaults);
   CPPUNIT_TEST(TestStringMatchesURL);
   CPPUNIT_TEST(TestOptions);
   CPPUNIT_TEST_SUITE_END();
@@ -47,6 +48,7 @@ public:
   void TestIP6Url2();
   void TestIP6Url3();
   void TestBadUrl();
+  void TestWithDefaults();
   void TestStringMatchesURL();
   void TestOptions();
 
@@ -322,6 +324,48 @@ void URLTest::TestBadUrl() {
   url = new Arc::URL("http:/file1");
   CPPUNIT_ASSERT(!(*url));
   delete url;
+}
+
+void URLTest::TestWithDefaults() {
+  Arc::URL url("http://example.org", false, 123, "/test");
+  CPPUNIT_ASSERT(url);
+  CPPUNIT_ASSERT_EQUAL(123, url.Port());
+  CPPUNIT_ASSERT_EQUAL((std::string)"/test", url.Path());
+  
+  url = Arc::URL("http://example.org:321", false, 123, "/test");
+  CPPUNIT_ASSERT(url);
+  CPPUNIT_ASSERT_EQUAL(321, url.Port());
+  CPPUNIT_ASSERT_EQUAL((std::string)"/test", url.Path());
+  
+  url = Arc::URL("http://example.org/testing", false, 123, "/test");
+  CPPUNIT_ASSERT(url);
+  CPPUNIT_ASSERT_EQUAL(123, url.Port());
+  CPPUNIT_ASSERT_EQUAL((std::string)"/testing", url.Path());
+  
+  url = Arc::URL("http://example.org:321/testing", false, 123, "/test");
+  CPPUNIT_ASSERT(url);
+  CPPUNIT_ASSERT_EQUAL(321, url.Port());
+  CPPUNIT_ASSERT_EQUAL((std::string)"/testing", url.Path());
+
+  url = Arc::URL("http://[::1]", false, 123, "/test");
+  CPPUNIT_ASSERT(url);
+  CPPUNIT_ASSERT_EQUAL(123, url.Port());
+  CPPUNIT_ASSERT_EQUAL((std::string)"/test", url.Path());
+  
+  url = Arc::URL("http://[::1]:321", false, 123, "/test");
+  CPPUNIT_ASSERT(url);
+  CPPUNIT_ASSERT_EQUAL(321, url.Port());
+  CPPUNIT_ASSERT_EQUAL((std::string)"/test", url.Path());
+  
+  url = Arc::URL("http://[::1]/testing", false, 123, "/test");
+  CPPUNIT_ASSERT(url);
+  CPPUNIT_ASSERT_EQUAL(123, url.Port());
+  CPPUNIT_ASSERT_EQUAL((std::string)"/testing", url.Path());
+  
+  url = Arc::URL("http://[::1]:321/testing", false, 123, "/test");
+  CPPUNIT_ASSERT(url);
+  CPPUNIT_ASSERT_EQUAL(321, url.Port());
+  CPPUNIT_ASSERT_EQUAL((std::string)"/testing", url.Path());
 }
 
 void URLTest::TestStringMatchesURL() {

@@ -93,8 +93,10 @@ namespace Arc {
     /**
      * \param url      The string representation of URL
      * \param encoded  Set to true if URL is encoded according to RFC 3986
+     * \param defaultPort Port to use if 'url' doesn't specify port
+     * \param defaultPath Path to use if 'url' doesn't specify path
      **/
-    URL(const std::string& url, bool encoded = false);
+    URL(const std::string& url, bool encoded = false, int defaultPort = -1, const std::string& defaultPath = "");
 
     /// Empty destructor.
     virtual ~URL();
