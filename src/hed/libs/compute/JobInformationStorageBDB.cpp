@@ -42,15 +42,17 @@ namespace Arc {
   }
   
   static void serialiseJob(const Job& j, Dbt& data) {
-    const std::string version = "3.0.0";
-    const unsigned nItems = 14;
+    const std::string version = "3.0.1";
+    const std::string empty_string;
     const std::string dataItems[] =
       {version, j.IDFromEndpoint, j.Name,
        j.JobStatusInterfaceName, j.JobStatusURL.fullstr(),
        j.JobManagementInterfaceName, j.JobManagementURL.fullstr(),
        j.ServiceInformationInterfaceName, j.ServiceInformationURL.fullstr(),
        j.SessionDir.fullstr(), j.StageInDir.fullstr(), j.StageOutDir.fullstr(),
-       j.JobDescriptionDocument, tostring(j.LocalSubmissionTime.GetTime())};
+       j.JobDescriptionDocument, tostring(j.LocalSubmissionTime.GetTime()),
+       j.DelegationID.size()>0?*j.DelegationID.begin():empty_string};
+    const unsigned nItems = sizeof(dataItems)/sizeof(dataItems[0]);
       
     data.set_data(NULL); data.set_size(0);
     uint32_t l = 0;
@@ -71,7 +73,7 @@ namespace Arc {
     
     std::string version;
     d = parse_string(version, d, size);
-    if (version == "3.0.0") {
+    if ((version == "3.0.0") || (version == "3.0.1")) {
       /* Order of items in record. Version 3.0.0
           {version, j.IDFromEndpoint, j.Name,
            j.JobStatusInterfaceName, j.JobStatusURL.fullstr(),
@@ -79,6 +81,8 @@ namespace Arc {
            j.ServiceInformationInterfaceName, j.ServiceInformationURL.fullstr(),
            j.SessionDir.fullstr(), j.StageInDir.fullstr(), j.StageOutDir.fullstr(),
            j.JobDescriptionDocument, tostring(j.LocalSubmissionTime.GetTime())};
+         Version 3.0.1
+           ..., j.DelegationID}
        */
       std::string s;
       d = parse_string(j.IDFromEndpoint, d, size);
@@ -94,6 +98,11 @@ namespace Arc {
       d = parse_string(s, d, size); j.StageOutDir = URL(s);
       d = parse_string(j.JobDescriptionDocument, d, size);
       d = parse_string(s, d, size); j.LocalSubmissionTime.SetTime(stringtoi(s));
+      j.DelegationID.clear();
+      if (version == "3.0.1") {
+        d = parse_string(s, d, size);
+        if(!s.empty()) j.DelegationID.push_back(s);
+      }
     }
   }
   
@@ -106,7 +115,7 @@ namespace Arc {
     
     std::string version;
     d = parse_string(version, d, size);
-    if (version == "3.0.0") {
+    if ((version == "3.0.0") || (version == "3.0.1")) {
       for (unsigned i = 0; i < n-1; ++i) {
         d = parse_string(attr, d, size);
       }

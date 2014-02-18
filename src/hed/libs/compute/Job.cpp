@@ -233,6 +233,7 @@ namespace Arc {
 
     ActivityOldID = j.ActivityOldID;
     LocalInputFiles = j.LocalInputFiles;
+    DelegationID = j.DelegationID;
 
     return *this;
   }
@@ -377,6 +378,13 @@ namespace Arc {
       }
     }
 
+    if (job["Associations"]["DelegationID"]) {
+      DelegationID.clear();
+      for (XMLNode n = job["Associations"]["DelegationID"]; n; ++n) {
+        DelegationID.push_back((std::string)n);
+      }
+    }
+
     // Pick generic GLUE2 information
     SetFromXML(job);
 
@@ -515,7 +523,8 @@ namespace Arc {
     STRINGTOXML(SubmissionClientName)
     STRINGLISTTOXML(OtherMessages)
 
-    if ((ActivityOldID.size() > 0 || LocalInputFiles.size() > 0) && !node["Associations"]) {
+    if ((ActivityOldID.size() > 0 || LocalInputFiles.size() > 0 || DelegationID.size() > 0) &&
+        !node["Associations"]) {
       node.NewChild("Associations");
     }
 
@@ -529,6 +538,11 @@ namespace Arc {
       XMLNode lif = node["Associations"].NewChild("LocalInputFile");
       lif.NewChild("Source") = it->first;
       lif.NewChild("CheckSum") = it->second;
+    }
+
+    for (std::list<std::string>::const_iterator it = DelegationID.begin();
+         it != DelegationID.end(); it++) {
+      node["Associations"].NewChild("DelegationID") = *it;
     }
   }
 
@@ -633,6 +647,13 @@ namespace Arc {
       if (StageInDir) out << IString(" Stagein directory URL: %s", StageInDir.fullstr()) << std::endl;
       if (StageOutDir) out << IString(" Stageout directory URL: %s", StageOutDir.fullstr()) << std::endl;
       if (SessionDir) out << IString(" Session directory URL: %s", SessionDir.fullstr()) << std::endl;
+      if (!DelegationID.empty()) {
+        out << IString(" Delegation IDs:") << std::endl;
+        for (std::list<std::string>::const_iterator it = DelegationID.begin();
+             it != DelegationID.end(); ++it) {
+          out << "  " << *it << std::endl;
+        }
+      }
     }
 
     out << std::endl;

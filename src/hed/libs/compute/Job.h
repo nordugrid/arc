@@ -114,6 +114,7 @@ namespace Arc {
     //Associations
     std::list<std::string>  ActivityOldID;
     std::map<std::string, std::string> LocalInputFiles;
+    std::list<std::string> DelegationID;
 
 
     enum ResourceType {
