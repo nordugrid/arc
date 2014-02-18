@@ -145,9 +145,16 @@ namespace ArcDMCACIX {
 
     std::string content;
     DataStatus res = queryACIX(content, queryURL.FullPath());
-    if (!res) return res;
-
-    return parseLocations(content, urls);
+    // It should not be an error when ACIX is unavailable
+    if (!res) {
+      logger.msg(WARNING, "Failed to query ACIX: %s", std::string(res));
+    } else {
+      res = parseLocations(content, urls);
+      if (!res) {
+        logger.msg(WARNING, "Failed to parse ACIX response: %s", std::string(res));
+      }
+    }
+    return DataStatus::Success;
   }
 
   DataStatus DataPointACIX::Stat(FileInfo& file, DataPoint::DataPointInfoType verb) {
@@ -157,7 +164,7 @@ namespace ArcDMCACIX {
     if (!r) {
       return r;
     }
-    if (files.empty()) {
+    if (files.empty() || !files.front()) {
       return DataStatus(DataStatus::StatError, EARCRESINVAL, "No results returned");
     }
     file = files.front();
@@ -174,10 +181,12 @@ namespace ArcDMCACIX {
     }
     for (std::list<DataPoint*>::const_iterator f = urls.begin(); f != urls.end(); ++f) {
       FileInfo info;
-      // Only name and replicas are available
-      info.SetName((*f)->GetURL().HTTPOption("url"));
-      for (; (*f)->LocationValid(); (*f)->NextLocation()) {
-        info.AddURL((*f)->CurrentLocation());
+      if ((*f)->HaveLocations()) {
+        // Only name and replicas are available
+        info.SetName((*f)->GetURL().HTTPOption("url"));
+        for (; (*f)->LocationValid(); (*f)->NextLocation()) {
+          info.AddURL((*f)->CurrentLocation());
+        }
       }
       files.push_back(info);
     }
