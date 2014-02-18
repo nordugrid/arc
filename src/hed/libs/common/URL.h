@@ -90,8 +90,10 @@ namespace Arc {
     URL();
 
     /// Constructs a new URL from a string representation.
-    /* \param url      The string representation of URL
-       \param encoded  Set to true if URL is encoded according to RFC 3986 */
+    /**
+     * \param url      The string representation of URL
+     * \param encoded  Set to true if URL is encoded according to RFC 3986
+     **/
     URL(const std::string& url, bool encoded = false);
 
     /// Empty destructor.
