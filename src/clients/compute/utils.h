@@ -160,4 +160,8 @@ public:
 
   std::list<std::string> rejectdiscovery;
   std::list<std::string> rejectmanagement;
+  
+  std::string cmdwithargs;
+  
+  std::list<std::string> Parse(int argc, char **argv);
 };

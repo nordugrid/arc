@@ -505,3 +505,13 @@ ClientOptions::ClientOptions(Client_t c,
 
 }
 
+std::list<std::string> ClientOptions::Parse(int argc, char **argv) {
+  if (argc > 0) {
+    cmdwithargs = argv[0];
+    for (int i = 1; i < argc; ++i) {
+      cmdwithargs += " " + std::string(argv[i]);
+    }
+  }
+  
+  return this->Arc::OptionParser::Parse(argc, argv);
+}

@@ -49,6 +49,8 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!opt.debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(opt.debug));
+  
+  logger.msg(Arc::VERBOSE, "Running command: %s", opt.cmdwithargs);
 
   if (opt.show_plugins) {
     std::list<std::string> types;

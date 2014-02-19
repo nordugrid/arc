@@ -153,6 +153,8 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
   if (!opt.debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(opt.debug));
 
+  logger.msg(Arc::VERBOSE, "Running command: %s", opt.cmdwithargs);
+
   if (opt.show_plugins) {
     std::list<std::string> types;
     types.push_back("HED:JobListRetrieverPlugin");
