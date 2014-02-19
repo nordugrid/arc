@@ -114,6 +114,7 @@ namespace Arc {
     Time lastModified; /// Reported modification time
     std::string type; /// Content-type
     std::list<std::string> cookies; /// All collected cookies
+    std::multimap<std::string, std::string> headers; /// All returned headers
     std::string location; /// Value of location attribute in HTTP response
   };
 
