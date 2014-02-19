@@ -1940,7 +1940,26 @@ err:
         if(vo_name.empty()) return "";
         return "/"+vo_name; // Primary VO with no group
     }
-    else return "";
+    else if (property == "voms:nickname"){
+        size_t pos1;
+        unsigned int i;
+        unsigned int n;
+        std::string vo_name;
+        for (n=0;n<output.size();++n) {
+                if(output[n].voname.empty()) continue;
+                if(vo_name.empty()) vo_name = output[n].voname;
+                for (i=0;i<output[n].attributes.size();++i){
+                        std::string attribute = output[n].attributes[i];
+                        pos1 = attribute.find("nickname=");
+                        if(pos1 != std::string::npos){
+                                std::string nickname(attribute.substr(pos1+9));
+                                return nickname;
+                        }
+                }
+        }
+    }
+
+    return "";
   }
 
   std::string VOMSFQANToFull(const std::string& voname, const std::string& fqan) {
