@@ -87,7 +87,7 @@ static std::string init_logger(Arc::Config& cfg)
     for(;(bool)xlevel;++xlevel) {
       std::string domain = xlevel.Attribute("Domain");
       Arc::LogLevel level = Arc::WARNING;
-      if(!string_to_level((std::string)xlevel, level)) {
+      if(!istring_to_level((std::string)xlevel, level)) {
         logger.msg(Arc::WARNING, "Unknown log level %s", (std::string)xlevel);
       } else {
         Arc::Logger::setThresholdForDomain(level,domain);

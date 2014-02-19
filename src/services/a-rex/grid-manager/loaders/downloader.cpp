@@ -319,7 +319,7 @@ int main(int argc,char** argv) {
         use_conf_cache=true;
       }; break;
       case 'd': {
-        Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(optarg));
+        Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(optarg));
       }; break;
       case 'r': {
         preferred_pattern = optarg;

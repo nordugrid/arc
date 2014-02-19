@@ -246,7 +246,7 @@ bool StagingConfig::readStagingConf(const Arc::XMLNode& cfg) {
     }
     if (!elementtobool(tmp_node, "localDelivery", use_host_cert_for_remote_delivery, &logger)) return false;
     if (tmp_node["logLevel"]) {
-      if (!Arc::string_to_level((std::string)tmp_node["logLevel"], log_level)) {
+      if (!Arc::istring_to_level((std::string)tmp_node["logLevel"], log_level)) {
         logger.msg(Arc::ERROR, "Bad value for logLevel");
         return false;
       }

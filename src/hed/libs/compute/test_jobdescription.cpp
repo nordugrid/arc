@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
   }
 
   if (!debug.empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+    Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(debug));
 
   std::cout << Arc::IString(" [ JobDescription tester ] ") << std::endl;
 

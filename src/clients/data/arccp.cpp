@@ -639,7 +639,7 @@ int main(int argc, char **argv) {
   }
 
   // If debug is specified as argument, it should be set before loading the configuration.
-  if (!debug.empty()) Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+  if (!debug.empty()) Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(debug));
 
   if (show_plugins) {
     std::list<Arc::ModuleDesc> modules;
@@ -668,7 +668,7 @@ int main(int argc, char **argv) {
   usercfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY);
 
   if (debug.empty() && !usercfg.Verbosity().empty()) {
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
+    Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(usercfg.Verbosity()));
   }
 
   if (params.size() != 2) {

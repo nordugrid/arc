@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 
   options.Parse(argc, argv);
 
-  if (!debug.empty()) Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+  if (!debug.empty()) Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(debug));
 
   if (filename.empty()) {
     std::cerr << "ERROR: No filename specified." << std::endl;

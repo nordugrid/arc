@@ -161,7 +161,7 @@ int main(int argc, char* argv[]){
       config_file = argv[2];
       argv[2]=argv[0]; argv+=2; argc-=2;
     } else if(strcmp(argv[1],"-d") == 0) {
-      debug_level=Arc::string_to_level(argv[2]);
+      debug_level=Arc::istring_to_level(argv[2]);
       argv[2]=argv[0]; argv+=2; argc-=2;
     } else if(strcmp(argv[1],"-f") == 0) {
       fixedMsgSize = true; msgSize=atoi(argv[2]);

@@ -117,7 +117,7 @@ void LoggerTest::thread(void* arg) {
 
 void LoggerTest::TestLoggerDEFAULT() {
   Arc::LogLevel default_level = Arc::Logger::getRootLogger().getThreshold();
-  Arc::LogLevel bad_level = Arc::string_to_level("COW");
+  Arc::LogLevel bad_level = Arc::istring_to_level("COW");
   CPPUNIT_ASSERT_EQUAL(bad_level, default_level);
 }
 

@@ -991,7 +991,7 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
   os_name_ = (std::string)((*cfg)["OperatingSystem"]);
   std::string debugLevel = (std::string)((*cfg)["debugLevel"]);
   if(!debugLevel.empty()) {
-    logger_.setThreshold(Arc::string_to_level(debugLevel));
+    logger_.setThreshold(Arc::istring_to_level(debugLevel));
   };
   int valuei;
   if ((!(*cfg)["InfoproviderWakeupPeriod"]) ||

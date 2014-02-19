@@ -610,7 +610,7 @@ int main(int argc, char *argv[]) {
 
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!debug.empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+    Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(debug));
 
   // This ensure command line args overwrite all other options
   if(!cert_path.empty())Arc::SetEnv("X509_USER_CERT", cert_path);
@@ -678,7 +678,7 @@ int main(int argc, char *argv[]) {
   if(voms_dir.empty()) voms_dir = Arc::GetEnv("X509_VOMS_DIR");
 
   if (debug.empty() && !usercfg.Verbosity().empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
+    Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(usercfg.Verbosity()));
 
   if (timeout > 0) usercfg.Timeout(timeout);
 

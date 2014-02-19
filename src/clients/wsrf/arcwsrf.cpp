@@ -94,7 +94,7 @@ int RUN(main)(int argc, char **argv) {
 
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!debug.empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+    Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(debug));
 
   Arc::UserConfig usercfg(conffile);
   if (!usercfg) {
@@ -106,7 +106,7 @@ int RUN(main)(int argc, char **argv) {
     usercfg.Timeout(timeout);
 
   if (debug.empty() && !usercfg.Verbosity().empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
+    Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(usercfg.Verbosity()));
 
   //if (timeout > 0) {
   //  usercfg.SetTimeout(timeout);

@@ -83,7 +83,7 @@ int main(int argc,char* argv[]) {
 
   std::list<std::string> params = options.Parse(argc, argv);
 
-  if (!debug.empty()) Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+  if (!debug.empty()) Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(debug));
   if (params.size() != 1 && params.size() != 2) {
     logger.msg(Arc::ERROR, "Wrong number of arguments given");
     return -1;
