@@ -151,7 +151,7 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
 
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!opt.debug.empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(opt.debug));
+    Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(opt.debug));
 
   logger.msg(Arc::VERBOSE, "Running command: %s", opt.cmdwithargs);
 
@@ -176,7 +176,7 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
   }
 
   if (opt.debug.empty() && !usercfg.Verbosity().empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
+    Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(usercfg.Verbosity()));
 
   //sanity check
   if (!opt.forcesync) {
