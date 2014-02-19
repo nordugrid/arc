@@ -60,6 +60,8 @@ namespace Arc {
   std::ostream& operator<<(std::ostream& os, LogLevel level);
   /// Convert string to a LogLevel.
   LogLevel string_to_level(const std::string& str);
+  /// Convert string case-insensitively to a LogLevel
+  LogLevel istring_to_level(const std::string& llStr);
   /// Case-insensitive parsing of a string to a LogLevel with error response.
   /**
    * The method will try to parse (case-insensitive) the argument string

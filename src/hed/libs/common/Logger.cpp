@@ -53,22 +53,16 @@ namespace Arc {
   }
 
   LogLevel string_to_level(const std::string& str) {
-    if (str == "DEBUG")
-      return DEBUG;
-    else if (str == "VERBOSE")
-      return VERBOSE;
-    else if (str == "INFO")
-      return INFO;
-    else if (str == "WARNING")
-      return WARNING;
-    else if (str == "ERROR")
-      return ERROR;
-    else if (str == "FATAL")
-      return FATAL;
+    LogLevel ll;
+    if (string_to_level(str, ll)) return ll;
     else { // should not happen...
       Logger::getRootLogger().msg(WARNING, "Invalid log level. Using default "+level_to_string(DefaultLogLevel)+".");
       return DefaultLogLevel;
     }
+  }
+
+  LogLevel istring_to_level(const std::string& llStr) {
+    return string_to_level(upper(llStr));
   }
 
   bool string_to_level(const std::string& str, LogLevel& ll) {
@@ -91,23 +85,7 @@ namespace Arc {
   }
 
   bool istring_to_level(const std::string& llStr, LogLevel& ll) {
-    const std::string str = upper(llStr);
-    if (str == "DEBUG")
-      ll = DEBUG;
-    else if (str == "VERBOSE")
-      ll = VERBOSE;
-    else if (str == "INFO")
-      ll = INFO;
-    else if (str == "WARNING")
-      ll = WARNING;
-    else if (str == "ERROR")
-      ll = ERROR;
-    else if (str == "FATAL")
-      ll = FATAL;
-    else
-      return false;
-
-    return true;
+    return string_to_level(upper(llStr), ll);
   }
 
   std::string level_to_string(const LogLevel& level) {
