@@ -3,6 +3,5 @@ debian/tmp/usr/share/arc/glue-generator.pl
 debian/tmp/usr/share/arc/glite-info-provider-ldap
 debian/tmp/usr/share/arc/se.pl
 
-debian/tmp/usr/share/arc/LRMS.pm
 debian/tmp/usr/share/arc/Shared.pm
 debian/tmp/usr/share/arc/ConfigParser.pm

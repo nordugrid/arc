@@ -314,7 +314,6 @@ sub cluster_info ($) {
     slurm_get_data($config);
 
     # Return data structure %lrms_cluster{$keyword}
-    # should contain the keyvords listed in LRMS.pm namely:
     #
     # lrms_type          LRMS type (eg. LoadLeveler)
     # lrms_version       LRMS version
@@ -390,7 +389,6 @@ sub queue_info ($$) {
     # The return data structure is %lrms_queue.
     my (%lrms_queue);
     # Return data structure %lrms_queue{$keyword}
-    # should contain the keyvords listed in LRMS.pm:
     #
     # status        available slots in the queue, negative number signals
     #               some kind of LRMS error state for the queue

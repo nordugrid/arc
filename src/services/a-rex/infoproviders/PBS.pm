@@ -362,7 +362,6 @@ sub cluster_info ($) {
     my ($path) = $$config{pbs_bin_path};
 
     # Return data structure %lrms_cluster{$keyword}
-    # should contain the keywords listed in LRMS.pm.
     #
     # All values should be defined, empty values "" are ok if field
     # does not apply to particular LRMS.
@@ -506,7 +505,6 @@ sub queue_info ($$) {
     # only in the scope of this subroutine, as %lrms_cluster previously.
 
     # Return data structure %lrms_queue{$keyword}
-    # should contain the keyvords listed in LRMS.pm.
     #
     # All values should be defined, empty values "" are ok if field
     # does not apply to particular LRMS.
@@ -745,7 +743,6 @@ sub jobs_info ($$@) {
     my ($jids) = shift;
 
     # Return data structure %lrms_jobs{$lrms_local_job_id}{$keyword}
-    # should contain the keywords listed in LRMS.pm.
     #
     # All values should be defined, empty values "" are ok if field
     # does not apply to particular LRMS.
@@ -923,7 +920,6 @@ sub users_info($$@) {
     my ($accts) = shift;
 
     # Return data structure %lrms_users{$unix_local_username}{$keyword}
-    # should contain the keywords listed in LRMS.pm.
     #
     # All values should be defined, empty values "" are ok if field
     # does not apply to particular LRMS.

@@ -8,7 +8,7 @@ dist_pkgdata_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm DGBridge.pm \
 	LRMSInfo.pm GMJobsInfo.pm HostInfo.pm RTEInfo.pm \
 	InfoChecker.pm ConfigCentral.pm \
 	ARC0ClusterInfo.pm ARC1ClusterInfo.pm \
-	SGE.pm Fork.pm LRMS.pm Shared.pm \
+	SGE.pm Fork.pm Shared.pm \
 	XmlPrinter.pm GLUE2xmlPrinter.pm \
 	LdifPrinter.pm GLUE2ldifPrinter.pm \
 	NGldifPrinter.pm InfosysHelper.pm
