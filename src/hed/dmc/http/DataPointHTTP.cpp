@@ -1226,6 +1226,11 @@ using namespace Arc;
       }
       break;
     }
+    if(expect100) {
+      // No proper response received hence no real transfer was done
+      point.failure_code = DataStatus(DataStatus::WriteError, "No expected response received from HTTP server");
+      return false;
+    }
     return true;
   }
 
