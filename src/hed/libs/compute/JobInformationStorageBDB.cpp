@@ -193,19 +193,20 @@ namespace Arc {
       throw BDBException(IString("Unable to set duplicate flags for secondary key DB (%s)", name).str(), ret);
     }
 
-    if ((ret = jobDB->open(NULL, name.c_str(), "job_records", type, flags, 0)) != 0) {
+    std::string absPathToDB = URL(name).Path();
+    if ((ret = jobDB->open(NULL, absPathToDB.c_str(), "job_records", type, flags, 0)) != 0) {
       tearDown();
       throw BDBException(IString("Unable to create job database (%s)", name).str(), ret);
     }
-    if ((ret = nameSecondaryKeyDB->open(NULL, name.c_str(), "name_keys", type, flags, 0)) != 0) {
+    if ((ret = nameSecondaryKeyDB->open(NULL, absPathToDB.c_str(), "name_keys", type, flags, 0)) != 0) {
       tearDown();
       throw BDBException(IString("Unable to create DB for secondary name keys (%s)", name).str(), ret);
     }
-    if ((ret = endpointSecondaryKeyDB->open(NULL, name.c_str(), "endpoint_keys", type, flags, 0)) != 0) {
+    if ((ret = endpointSecondaryKeyDB->open(NULL, absPathToDB.c_str(), "endpoint_keys", type, flags, 0)) != 0) {
       tearDown();
       throw BDBException(IString("Unable to create DB for secondary endpoint keys (%s)", name).str(), ret);
     }
-    if ((ret = serviceInfoSecondaryKeyDB->open(NULL, name.c_str(), "serviceinfo_keys", type, flags, 0)) != 0) {
+    if ((ret = serviceInfoSecondaryKeyDB->open(NULL, absPathToDB.c_str(), "serviceinfo_keys", type, flags, 0)) != 0) {
       tearDown();
       throw BDBException(IString("Unable to create DB for secondary service info keys (%s)", name).str(), ret);
     }
