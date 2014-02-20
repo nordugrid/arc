@@ -1,0 +1,60 @@
+.TH arc-blahp-logger 8 "2014-02-20" "NorduGrid @VERSION@" "NorduGrid Toolkit"
+.SH NAME
+
+arc-blahp-logger \- ARC authplugin to store BLAH accouting logs about FINISHED jobs
+
+
+.SH DESCRIPTION
+
+.B ARC BLAH logger 
+is an authplugin to store FINISHED jobs information in log files used by BLAH parser.
+Generated logs can be used by APEL/DGAS client tools to send accounting information.
+
+.SH SYNOPSIS
+
+arc-blahp-logger -I <jobID> -U <user> -P <proxy file> -L <job status file> [-c <ceid prefix>] [-p <log prefix> ] [-d <log level>]
+
+
+.SH OPTIONS
+
+.IP "\fB-I\fR \fIjobID\fR"
+A-REX job identifier
+.IP "\fB-U\fR \fIuser\fR"
+local account that own the job files and processes
+.IP "\fB-P\fR \fIuser proxy\fR"
+path to user proxy certificate file to get VOMS membership info
+.IP "\fB-L\fR \fIjob status file\fR"
+A-REX jobstatus .local file containint more info about job (like LRMS id)
+.IP "\fB-c\fR \fIceid prefix\fR"
+prefix to generate CE ID in accordance to GLUE1.3 publishing
+.IP "\fB-p\fR \fIlog prefix\fR"
+logs location and filename prefix. Default is \fB/var/log/arc/accounting/blahp.log\fR
+.IP "\fB-d\fR \fIloglevel\fR"
+logging level from 0(ERROR) to 5(DEBUG)
+
+.SH ENABLING PLUGIN IN A-REX CONFIGURATION
+
+You need to add BLAH logger plugin as a handler for FINISHED state, e.g.:
+
+.B authplugin="FINISHED timeout=10,onfailure=pass /usr/libexec/arc/arc-blahp-logger -I %I -U %u -L %C/job.%I.local -P %C/job.%I.proxy"
+
+.SH CONFIGURATION
+
+There are no particular plugin configuration except passing correct options.
+
+By default BLAH log is written to 
+.B /var/log/arc/accounting/blahp.log-YYYYMMDD. 
+The log prefix (without \fB-YYYYMMDD\fR) can be redefined with optional \fB-p\fR option.
+
+CE ID is generated automatically and has a format 
+.B host.fqdn:2811/nordugrid-torque-queue
+in accordance to GLUE1.3 publishing. 
+Queue is added in runtime anyway, but prefix can be redefined with \fB-c\fR option.
+This option should be added in case of LRMS.
+
+To debug logger execution you can add \fB-d 5\fR option and see all ARC logger output from all subsystems used.
+
+.SH AUTHOR
+
+Andrii Salnikov <manf at grid dot org dot ua>
+

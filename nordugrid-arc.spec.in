@@ -529,6 +529,7 @@ Provides:	nordugrid-arc1-arex = 1.3.0
 Obsoletes:	nordugrid-arc1-arex < 1.0.0
 Provides:	nordugrid-arc-nox-arex = 1.3.0
 Obsoletes:	nordugrid-arc-nox-arex < 1.3.0
+Obsoletes:	nordugrid-arc-blahp-logger
 
 Requires(post):		chkconfig
 Requires(preun):	chkconfig
@@ -1351,6 +1352,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libexecdir}/%{pkgdir}/inputcheck
 %{_libexecdir}/%{pkgdir}/arc-vomsac-check
 %{_libexecdir}/%{pkgdir}/arc-config-check
+%{_libexecdir}/%{pkgdir}/arc-blahp-logger
 %{_datadir}/%{pkgdir}/cancel-*-job
 %{_datadir}/%{pkgdir}/scan-*-job
 %{_datadir}/%{pkgdir}/submit-*-job
@@ -1402,6 +1404,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man8/gm-jobs.8*
 %doc %{_mandir}/man1/arc-config-check.1*
 %doc %{_mandir}/man8/arc-vomsac-check.8*
+%doc %{_mandir}/man8/arc-blahp-logger.8*
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-arex
 %dir %{_localstatedir}/log/arc
 %dir %{_localstatedir}/spool/arc
