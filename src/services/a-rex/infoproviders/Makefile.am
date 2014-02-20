@@ -24,6 +24,7 @@ TESTS = $(PERLSCRIPTS)
 
 check_SCRIPTS = $(PERLSCRIPTS)
 
+# Check if BDI module is available, if not exclude Boinc.pm from TESTS variable.
 Boinc.pm: FORCE
 	$(eval TESTS := $(shell if `$(PERL) -e "use BDI; exit;" > /dev/null 2>&1`; then echo "$(TESTS)"; else echo "$(TESTS)" | sed 's/Boinc.pm//'; fi))
 FORCE:
