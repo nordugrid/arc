@@ -363,33 +363,45 @@
 %typemap(javainterfaces) Arc::EntityContainer<Arc::Job> "JobConsumer";
 %typemap(javainterfaces) Arc::EntityContainer<Arc::ComputingServiceType> "ComputingServiceTypeConsumer";
 
-%typemap(javacode) Arc::EntityRetriever<Arc::Endpoint> %{
+%typemap(javacode,noblock=1) Arc::EntityRetriever<Arc::Endpoint> {
   // Copied verbatim from '%typemape(javacode) SWIGTYPE'.
   private Object objectManagingMyMemory;
   protected void setMemoryManager(Object r) {
     objectManagingMyMemory = r;
   } // %typemap(javacode) SWIGTYPE - End
   
+#ifdef JAVA_IS_15_OR_ABOVE
   private java.util.HashMap<EndpointConsumer, NativeEndpointConsumer> consumers = new java.util.HashMap<EndpointConsumer, NativeEndpointConsumer>();
-%}
-%typemap(javacode) Arc::EntityRetriever<Arc::ComputingServiceType> %{
+#else
+  private java.util.HashMap consumers = new java.util.HashMap();
+#endif
+}
+%typemap(javacode,noblock=1) Arc::EntityRetriever<Arc::ComputingServiceType> {
   // Copied verbatim from '%typemape(javacode) SWIGTYPE'.
   private Object objectManagingMyMemory;
   protected void setMemoryManager(Object r) {
     objectManagingMyMemory = r;
   } // %typemap(javacode) SWIGTYPE - End
   
+#ifdef JAVA_IS_15_OR_ABOVE
   private java.util.HashMap<ComputingServiceTypeConsumer, NativeComputingServiceTypeConsumer> consumers = new java.util.HashMap<ComputingServiceTypeConsumer, NativeComputingServiceTypeConsumer>();
-%}
-%typemap(javacode) Arc::EntityRetriever<Arc::Job> %{
+#else
+  private java.util.HashMap consumers = new java.util.HashMap();
+#endif
+}
+%typemap(javacode,noblock=1) Arc::EntityRetriever<Arc::Job> {
   // Copied verbatim from '%typemape(javacode) SWIGTYPE'.
   private Object objectManagingMyMemory;
   protected void setMemoryManager(Object r) {
     objectManagingMyMemory = r;
   } // %typemap(javacode) SWIGTYPE - End
-  
+
+#ifdef JAVA_IS_15_OR_ABOVE
   private java.util.HashMap<JobConsumer, NativeJobConsumer> consumers = new java.util.HashMap<JobConsumer, NativeJobConsumer>();
-%}
+#else
+  private java.util.HashMap consumers = new java.util.HashMap();
+#endif
+}
 #endif
 %include "../src/hed/libs/compute/EntityRetriever.h"
 #ifdef SWIGPYTHON
@@ -502,15 +514,19 @@ template <class Type> struct traits_from<const Type *> {
 }
 #endif
 #ifdef SWIGJAVA
-%typemap(javacode) Arc::Submitter %{
+%typemap(javacode,noblock=1) Arc::Submitter {
   // Copied verbatim from '%typemape(javacode) SWIGTYPE'.
   private Object objectManagingMyMemory;
   protected void setMemoryManager(Object r) {
     objectManagingMyMemory = r;
   } // %typemap(javacode) SWIGTYPE - End
   
+#ifdef JAVA_IS_15_OR_ABOVE
   private java.util.HashMap<JobConsumer, NativeJobConsumer> consumers = new java.util.HashMap<JobConsumer, NativeJobConsumer>();
-%}
+#else
+  private java.util.HashMap consumers = new java.util.HashMap();
+#endif
+}
 #endif
 %template(EndpointQueryingStatusMap) std::map<Arc::Endpoint, Arc::EndpointQueryingStatus>;
 %template(EndpointSubmissionStatusMap) std::map<Arc::Endpoint, Arc::EndpointSubmissionStatus>;
@@ -536,15 +552,19 @@ template <class Type> struct traits_from<const Type *> {
 }
 #endif
 #ifdef SWIGJAVA
-%typemap(javacode) Arc::ComputingServiceRetriever %{
+%typemap(javacode,noblock=1) Arc::ComputingServiceRetriever {
   // Copied verbatim from '%typemape(javacode) SWIGTYPE'.
   private Object objectManagingMyMemory;
   protected void setMemoryManager(Object r) {
     objectManagingMyMemory = r;
   } // %typemap(javacode) SWIGTYPE - End
   
+#ifdef JAVA_IS_15_OR_ABOVE
   private java.util.HashMap<ComputingServiceTypeConsumer, NativeComputingServiceTypeConsumer> consumers = new java.util.HashMap<ComputingServiceTypeConsumer, NativeComputingServiceTypeConsumer>();
-%}
+#else
+  private java.util.HashMap consumers = new java.util.HashMap();
+#endif
+}
 %rename(_wait) Arc::ComputingServiceRetriever::wait;
 %warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE) Arc::ComputingServiceRetriever;
 %typemap(javainterfaces) Arc::ComputingServiceRetriever "EndpointConsumer";
