@@ -551,8 +551,12 @@ namespace Arc {
     if (!Name.empty())
       out << IString(" Name: %s", Name) << std::endl;
     if (!State().empty())
-      out << IString(" State: %s (%s)", State.GetGeneralState(), State.GetSpecificState())
+      out << IString(" State: %s", State.GetGeneralState())
                 << std::endl;
+    if (longlist && !State().empty()) {
+      out << IString(" Specific state: %s", State.GetSpecificState())
+                << std::endl;
+    }
     if (State == JobState::QUEUING && WaitingPosition != -1) {
       out << IString(" Waiting Position: %d", WaitingPosition) << std::endl;
     }
