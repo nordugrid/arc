@@ -2076,10 +2076,23 @@ AC_ARG_ENABLE(gridftpd_service, AC_HELP_STRING([--disable-gridftpd-service], [di
   [enables_gridftpd_service=$enableval],[])
 if test "$enables_gridftpd_service" = "yes"; then
   if test "x$WIN32" = "xyes" ; then
-    AC_MSG_NOTICE([Gridftpd can't be built for WIN32 environment - disabling])
+    AC_MSG_NOTICE([Gridftpd can not be built for WIN32 environment - disabling])
     enables_gridftpd_service="no"
-  elif test -z "$GLOBUS_COMMON_VERSION" ; then
-    AC_MSG_NOTICE([Gridftpd can't be built without Globus - disabling])
+  fi
+  gridftpd_service_globus_pkgs="globus-common globus-io globus-gsi-credential globus-openssl-module globus-ftp-control"
+  gridftpd_service_globus_pkgs_missing=""
+  for pkg in $gridftpd_service_globus_pkgs
+  do
+      var=`echo '$'$pkg|tr '[\-a-z]' '[_A-Z]'|sed 's/$/_VERSION/'`
+      if test -z "`eval echo $var`"
+      then
+        gridftpd_service_globus_pkgs_missing="$gridftpd_service_globus_pkgs_missing $pkg"
+      fi
+  done
+
+
+  if test -n "$gridftpd_service_globus_pkgs_missing" ; then
+    AC_MSG_NOTICE([GridFTP service can not be built (missing development packages for$gridftpd_service_globus_pkgs_missing) - disabling])
     enables_gridftpd_service="no"
   fi
 
