@@ -109,13 +109,11 @@ namespace Arc {
        \ref ResourcesType.NetworkInfo "NetworkInfo" | in | \ref ComputingManagerAttributes.NetworkInfo "NetworkInfo"
        \ref DiskSpaceRequirementType.SessionDiskSpace "SessionDiskSpace" | <= | 1024*\ref ComputingShareAttributes.MaxDiskSpace "MaxDiskSpace" <sup>[\ref genericMatch_Note7 "7"]</sup>
        \ref DiskSpaceRequirementType.SessionDiskSpace "SessionDiskSpace" | <= | 1024*\ref ComputingShareAttributes.WorkingAreaFree "WorkingAreaFree" <sup>[\ref genericMatch_Note7 "7"]</sup>
-       \ref DiskSpaceRequirementType.DiskSpace "DiskSpace" - \ref DiskSpaceRequirementType.CacheDiskSpace "CacheDiskSpace" | <= | 1024*\ref ComputingShareAttributes.MaxDiskSpace "MaxDiskSpace" <sup>[\ref genericMatch_Note8 "8"]</sup>
-       \ref DiskSpaceRequirementType.DiskSpace "DiskSpace" - \ref DiskSpaceRequirementType.CacheDiskSpace "CacheDiskSpace" | <= | 1024*\ref ComputingManagerAttributes.WorkingAreaFree "WorkingAreaFree" <sup>[\ref genericMatch_Note8 "8"]</sup>
-       \ref DiskSpaceRequirementType.DiskSpace "DiskSpace" | <= | 1024*\ref ComputingShareAttributes.MaxDiskSpace "MaxDiskSpace" <sup>[\ref genericMatch_Note9 "9"]</sup>
-       \ref DiskSpaceRequirementType.DiskSpace "DiskSpace" | <= | 1024*\ref ComputingManagerAttributes.WorkingAreaFree "WorkingAreaFree" <sup>[\ref genericMatch_Note9 "9"]</sup>
+       \ref DiskSpaceRequirementType.DiskSpace "DiskSpace" | <= | 1024*\ref ComputingShareAttributes.MaxDiskSpace "MaxDiskSpace" <sup>[\ref genericMatch_Note8 "8"]</sup>
+       \ref DiskSpaceRequirementType.DiskSpace "DiskSpace" | <= | 1024*\ref ComputingManagerAttributes.WorkingAreaFree "WorkingAreaFree" <sup>[\ref genericMatch_Note8 "8"]</sup>
        \ref DiskSpaceRequirementType.CacheDiskSpace "CacheDiskSpace" | <= | 1024*\ref ComputingManagerAttributes.CacheTotal "CacheTotal"
-       \ref SlotRequirementType.NumberOfSlots "NumberOfSlots" | <= | \ref ComputingManagerAttributes.TotalSlots "TotalSlots" <sup>[\ref genericMatch_Note10 "10"]</sup>
-       \ref SlotRequirementType.NumberOfSlots "NumberOfSlots" | <= | \ref ComputingShareAttributes.MaxSlotsPerJob "MaxSlotsPerJob" <sup>[\ref genericMatch_Note10 "10"]</sup>
+       \ref SlotRequirementType.NumberOfSlots "NumberOfSlots" | <= | \ref ComputingManagerAttributes.TotalSlots "TotalSlots" <sup>[\ref genericMatch_Note9 "9"]</sup>
+       \ref SlotRequirementType.NumberOfSlots "NumberOfSlots" | <= | \ref ComputingShareAttributes.MaxSlotsPerJob "MaxSlotsPerJob" <sup>[\ref genericMatch_Note9 "9"]</sup>
        \ref ResourcesType.SessionLifeTime "SessionLifeTime" | <= | \ref ComputingManagerAttributes.WorkingAreaLifeTime "WorkingAreaLifeTime"
        \ref ResourcesType.NodeAccess "NodeAccess" is NAT_INBOUND OR NAT_INOUTBOUND | AND | \ref ExecutionEnvironmentAttributes.ConnectivityIn "ConnectivityIn" is true
        \ref ResourcesType.NodeAccess "NodeAccess" is NAT_OUTBOUND OR NAT_INOUTBOUND | AND | \ref ExecutionEnvironmentAttributes.ConnectivityOut "ConnectivityOut" is true
@@ -149,16 +147,9 @@ namespace Arc {
      *  \ref ComputingShareAttributes.MaxDiskSpace "MaxDiskSpace" or
      *  \ref ComputingShareAttributes.MaxMainMemory "MaxMainMemory"
      *  respectively is not set. Both attributes must be unspecified, and
-     *  \ref DiskSpaceRequirementType.DiskSpace "DiskSpace" and
-     *  \ref DiskSpaceRequirementType.CacheDiskSpace "CacheDiskSpace"
-     *  be specified before the checks fails.
-     * 9. \anchor genericMatch_Note9 Check doesn't fail if
-     *  \ref ComputingShareAttributes.MaxDiskSpace "MaxDiskSpace" or
-     *  \ref ComputingShareAttributes.MaxMainMemory "MaxMainMemory"
-     *  respectively is not set. Both attributes must be unspecified, and
      *  \ref DiskSpaceRequirementType.DiskSpace "DiskSpace"
      *  be specified before the checks fails.
-     * 10. \anchor genericMatch_Note10 Check doesn't fail if
+     * 9. \anchor genericMatch_Note9 Check doesn't fail if
      *  \ref ComputingManagerAttributes.TotalSlots "TotalSlots" or
      *  \ref ComputingShareAttributes.MaxSlotsPerJob "MaxSlotsPerJob"
      *  respectively is not set. Both attributes must be unspecified, and

@@ -417,27 +417,6 @@ namespace Arc {
       }
     }
 
-    if (j.Resources.DiskSpaceRequirement.DiskSpace.max > -1 && j.Resources.DiskSpaceRequirement.CacheDiskSpace > -1) {
-      if (t.ComputingShare->MaxDiskSpace > -1) {     // Example: 5656
-        if (t.ComputingShare->MaxDiskSpace*1024 < j.Resources.DiskSpaceRequirement.DiskSpace.max - j.Resources.DiskSpaceRequirement.CacheDiskSpace) {
-          logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace*1024 >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace), %d MB (CacheDiskSpace)", t.ComputingShare->MaxDiskSpace*1024, j.Resources.DiskSpaceRequirement.DiskSpace.max, j.Resources.DiskSpaceRequirement.CacheDiskSpace);
-          return false;
-        }
-      }
-
-      if (t.ComputingManager->WorkingAreaFree > -1) {     // Example: 5656
-        if (t.ComputingManager->WorkingAreaFree*1024 < j.Resources.DiskSpaceRequirement.DiskSpace.max - j.Resources.DiskSpaceRequirement.CacheDiskSpace) {
-          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree*1024 >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace), %d MB (CacheDiskSpace)", t.ComputingManager->WorkingAreaFree*1024, j.Resources.DiskSpaceRequirement.DiskSpace.max, j.Resources.DiskSpaceRequirement.CacheDiskSpace);
-          return false;
-        }
-      }
-
-      if (t.ComputingShare->MaxDiskSpace <= -1 && t.ComputingManager->WorkingAreaFree <= -1) {
-        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", t.ComputingEndpoint->URLString);
-        return false;
-      }
-    }
-
     if (j.Resources.DiskSpaceRequirement.DiskSpace.max > -1) {
       if (t.ComputingShare->MaxDiskSpace > -1) {     // Example: 5656
         if (t.ComputingShare->MaxDiskSpace*1024 < j.Resources.DiskSpaceRequirement.DiskSpace.max) {
