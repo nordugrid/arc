@@ -24,6 +24,7 @@ our $lrms_info;
 
 our $path;
 our(%scont_config, %scont_part, %scont_jobs, %scont_nodes, %sinfo_cpuinfo);
+our $log = LogUtils->getLogger("SLURMmod");
 
 sub get_lrms_options_schema {
     return {
@@ -42,6 +43,8 @@ sub get_lrms_info($) {
     $options = shift;
 
     $path = ($options->{slurm_bin_path} or "/usr/bin");
+	
+#	slurm_init_check();
 	
     slurm_get_data();
     
@@ -68,6 +71,17 @@ sub get_lrms_info($) {
 ##########################################
 # Private subs
 ##########################################
+
+#sub slurm_init_check() {
+#
+#$log->info("Verifying slurm commands...");
+#
+#my @slurm_commands = ('scontrol','squeue','sinfo');
+#
+#foreach my $slurmcmd (@slurm_commands) {
+#	unless (-e "$path/$slurmcmd") {$log->error("$slurmcmd command not found. Exiting...")};
+#	}	
+#}
 
 sub nodes_info() {
     my $lrms_nodes = {};
