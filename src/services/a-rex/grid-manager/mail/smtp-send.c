@@ -184,12 +184,12 @@ int main(int argc,char** argv) {
 
   domain_rcpt=strchr(mail_to,'@');
   if(domain_rcpt == NULL) {
-    fprintf(stderr,"Bad recepient address\n");
+    fprintf(stderr,"Bad recepient address (%s)\n", mail_to);
     exit(1);
   };
   domain_rcpt++;
   if(strlen(domain_rcpt) == 0) {
-    fprintf(stderr,"Recepient address does not contain domain\n");
+    fprintf(stderr,"Recepient address does not contain domain (%s)\n", mail_to);
     exit(1);
   };
 

@@ -52,7 +52,7 @@ bool send_mail(const GMJob &job,const GMConfig& config) {
   cmd += " " + job.get_id();
   cmd += " " + config.ControlDir();
   cmd += " " + config.SupportMailAddress();
-  cmd += " " + jobname;
+  cmd += " \"" + jobname + "\"";
   cmd += " " + failure_reason;
   /* go through mail addresses and flags */
   std::string::size_type pos=0;
@@ -82,6 +82,7 @@ bool send_mail(const GMJob &job,const GMConfig& config) {
   for(mail_n--;mail_n>=0;mail_n--) {
     cmd += " " + mails[mail_n];
   };
+  logger.msg(Arc::DEBUG, "Running mailer command (%s)", cmd);
   if(!RunParallel::run(config,job,cmd,&child)) {
     logger.msg(Arc::ERROR,"Failed running mailer");
     return false;
