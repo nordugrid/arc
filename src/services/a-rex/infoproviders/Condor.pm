@@ -372,11 +372,10 @@ sub condor_job_suspended($) {
 # CPU distribution string (e.g., '1cpu:5 2cpu:1').
 #
 sub cpudistribution {
-    # List all machines in the pool.  Machines with multiple CPUs are listed
-    # one time for each CPU, with a prefix such as 'slot1@', 'slot2@', etc.
-    # (or 'vm1@', 'vm2@' in older Condor releases)
+    # List all machines in the pool. Create a hash specifying the TotalCpus
+    # for each machine.
     my %machines;
-    $machines{$$_{machine}}++ for @allnodedata;
+    $machines{$$_{machine}} = $$_{totalcpus} for @allnodedata;
 
     # Count number of machines with one CPU, number with two, etc.
     my %dist;
