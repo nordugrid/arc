@@ -787,7 +787,7 @@ sub collect($) {
     
     # for org.nordugrid.xbes
     my $arexhostport = '';
-    if ($config->{arexhostport} && !($config->{enable_arc_interface} && ($config->{enable_arc_interface} eq "no"))) {
+    if ($config->{enable_arc_interface}) {
       $arexhostport = $config->{arexhostport};
       $csvendpointsnum = $csvendpointsnum + 2; # xbes and wsrf
       $epscapabilities->{'org.nordugrid.xbes'} = [
@@ -808,7 +808,7 @@ sub collect($) {
         
     # The following are for EMI-ES
     my $emieshostport = '';
-    if ($config->{arexhostport} && $config->{enable_emies_interface} && ($config->{enable_emies_interface} eq "yes")) {
+    if ($config->{enable_emies_interface}) {
         $emieshostport = $config->{arexhostport};
         $csvendpointsnum = $csvendpointsnum + 5;
         $epscapabilities->{'org.ogf.glue.emies.activitycreation'} = [
@@ -879,15 +879,15 @@ sub collect($) {
     
     # Computing Endpoints IDs
     my $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:gsiftp://$gridftphostport".$config->{GridftpdMountPoint}; # ARCGridFTPComputingEndpoint ID
-    my $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:xbes:$config->{endpoint}" if $config->{endpoint}; # ARCWSComputingEndpoint ID
-    my $EMIEScepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $config->{endpoint}; # EMIESComputingEndpoint ID
+    my $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:xbes:$config->{endpoint}" if $config->{enable_arc_interface}; # ARCWSComputingEndpoint ID
+    my $EMIEScepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $config->{enable_emies_interface}; # EMIESComputingEndpoint ID
     my $StageincepID = "urn:ogf:ComputingEndpoint:$hostname:gridftp:$stageinhostport"; # StageinComputingEndpoint ID
     # the following is needed to publish in shares. Must be modified
     # if we support share-per-endpoint configurations.
     my @cepIDs = ();
     push(@cepIDs,$ARCgftpjobcepID) if ($config->{GridftpdEnabled} == 1);
-    push(@cepIDs,$ARCWScepID) unless ($arexhostport eq '');
-    push(@cepIDs,$EMIEScepIDp) unless ($emieshostport eq '');
+    push(@cepIDs,$ARCWScepID) if ($config->{enable_arc_interface});
+    push(@cepIDs,$EMIEScepIDp) if ($config->{enable_emies_interface});
     
     my $cactIDp = "urn:caid:$hostname"; # ComputingActivity ID prefix
     my $cshaIDp = "urn:ogf:ComputingShare:$hostname"; # ComputingShare ID prefix
@@ -1377,7 +1377,7 @@ sub collect($) {
         };
 
         # don't publish if arex_mount_point not configured in arc.conf
-        $arexceps->{ARCWSComputingEndpoint} = $getARCWSComputingEndpoint if $arexhostport ne '';
+        $arexceps->{ARCWSComputingEndpoint} = $getARCWSComputingEndpoint if ($config->{enable_arc_interface});
 
         # ARC GridFTPd job submission interface 
           
@@ -1509,7 +1509,7 @@ sub collect($) {
         my $getEMIESActivityCreationComputingEndpoint = sub {
 
             # don't publish if no endpoint URL
-            return undef unless $emieshostport ne '';
+            return undef unless $config->{enable_emies_interface};
 
             my $cep = {};
 
@@ -1630,14 +1630,14 @@ sub collect($) {
         };
 
         # don't publish if no EMIES endpoint configured
-        $arexceps->{EMIESActivityCreationComputingEndpoint} = $getEMIESActivityCreationComputingEndpoint if $emieshostport ne '';
+        $arexceps->{EMIESActivityCreationComputingEndpoint} = $getEMIESActivityCreationComputingEndpoint if ($config->{enable_emies_interface});
 
         # EMI-ES ActivityManagement port type
         
         my $getEMIESActivityManagementComputingEndpoint = sub {
 
             # don't publish if no endpoint URL
-            return undef unless $emieshostport ne '';
+            return undef unless $config->{enable_emies_interface};
 
             my $cep = {};
 
@@ -1758,7 +1758,7 @@ sub collect($) {
         };
 
         # don't publish if no EMIES endpoint configured
-        $arexceps->{EMIESActivityManagementComputingEndpoint} = $getEMIESActivityManagementComputingEndpoint if $emieshostport ne '';
+        $arexceps->{EMIESActivityManagementComputingEndpoint} = $getEMIESActivityManagementComputingEndpoint if ($config->{enable_emies_interface});
 
 
         # EMI-ES ResourceInfo port type
@@ -1874,7 +1874,7 @@ sub collect($) {
             return $ep;
         };
         
-        $arexceps->{EMIESResourceInfoEndpoint} = $getEMIESResourceInfoEndpoint if $emieshostport ne '';
+        $arexceps->{EMIESResourceInfoEndpoint} = $getEMIESResourceInfoEndpoint if ($config->{enable_emies_interface});
 
         # TODO: add EMIES Delegation, ActivityInfo, ActivityManagement
         
@@ -1883,7 +1883,7 @@ sub collect($) {
         my $getEMIESActivityInfoComputingEndpoint = sub {
 
             # don't publish if no endpoint URL
-            return undef unless $emieshostport ne '';
+            return undef unless $config->{enable_emies_interface};
 
             my $cep = {};
 
@@ -2004,7 +2004,7 @@ sub collect($) {
         };
 
         # don't publish if no EMIES endpoint configured
-        $arexceps->{EMIESActivityInfoComputingEndpoint} = $getEMIESActivityInfoComputingEndpoint if $emieshostport ne '';
+        $arexceps->{EMIESActivityInfoComputingEndpoint} = $getEMIESActivityInfoComputingEndpoint if ($config->{enable_emies_interface});
         
         
         # EMIES Delegation port type
@@ -2116,7 +2116,7 @@ sub collect($) {
             return $ep;
         };
         
-        $arexceps->{EMIESDelegationEndpoint} = $getEMIESDelegationEndpoint if $emieshostport ne '';
+        $arexceps->{EMIESDelegationEndpoint} = $getEMIESDelegationEndpoint if ($config->{enable_emies_interface});
 
 
 
@@ -2571,7 +2571,7 @@ sub collect($) {
             return $ep;
         };
         
-        $arexceps->{WSRFGLUE2Endpoint} = $getArisWSRFGlue2Endpoint if $arexhostport ne '';
+        $arexceps->{WSRFGLUE2Endpoint} = $getArisWSRFGlue2Endpoint if ($config->{enable_arc_interface});
 
         
         # Collect endpoints in the datastructure

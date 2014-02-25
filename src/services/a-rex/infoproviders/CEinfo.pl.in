@@ -384,6 +384,7 @@ sub read_grid_mapfile($) {
 # Alters the parsed configuration options by:
 #  * adding some defaults
 #  * flattening per-user options
+# 20140225 - synched some options from GMConfig.cpp
 
 sub fix_config {
     my ($config) = @_;
@@ -403,7 +404,9 @@ sub fix_config {
                    defaultttl     => 604800,
                    SlapdPort      => 2135,
                    infosys_glue2_service_qualitylevel   => 'production',
-                   shared_filesystem => 1
+                   shared_filesystem => 1,
+                   enable_arc_interface => 1,
+                   enable_emies_interface => 0
 
     );
     for (keys %config_defaults) {
@@ -436,6 +439,7 @@ sub fix_config {
         chomp ($config->{service}{ClusterName} ||= $config->{service}{ClusterAlias} ||= $shorthost);
     }
 
+    # Manage A-REX WS interfaces publication
     if ($config->{endpoint} and $config->{endpoint} =~ m{^(https?)://([^:/]+)(?::(\d+))?(.*)}) {
         my ($proto,$host,$port,$mountpoint) = ($1,$2,$3,$4);
         $port ||= 80 if $proto eq "http";
@@ -443,12 +447,13 @@ sub fix_config {
         $config->{arexhostport} = "$host:$port";
         # fix endpoint information if not complete
         $config->{endpoint} = "$proto://$host:$port$mountpoint"
-    } 
-    
-    if ($config->{enable_emies_interface} and $config->{enable_emies_interface} = "yes") {
-        if (!$config->{arexhostport}) { $log->warning("EMI-ES interface cannot be enabled. arex_mount_point not defined in configuration."); }
-    }
-    
+    } else {
+		# disable all WS interfaces
+		$config->{enable_arc_interface} = 0;
+		$config->{enable_emies_interface} = 0;
+		$log->warning("arex_mount_point not configured. WS interfaces org.nordugrid.xbes and EMI-ES will not be published.");
+	}
+        
     # fire warning if GLUE2 Service Quality Level is not good
     # TODO: I'd like this to be done by InfoChecker
     if ($config->{infosys_glue2_service_qualitylevel}) {
