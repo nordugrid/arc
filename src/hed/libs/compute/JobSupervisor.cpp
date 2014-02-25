@@ -232,12 +232,14 @@ namespace Arc {
         else {
           processed.push_back((*itJ)->JobID);
           if (downloaddir.Protocol() == "file") {
-            std::string cwd = URL(".").Path();
-            cwd.resize(cwd.size()-1);
-            if (downloaddir.Path().substr(0, cwd.size()) == cwd) {
-              downloaddirectories.push_back(downloaddir.Path().substr(cwd.size()));
-            } else {
-              downloaddirectories.push_back(downloaddir.Path());
+            if (Glib::file_test(downloaddir.Path(), Glib::FILE_TEST_IS_DIR)) {
+              std::string cwd = URL(".").Path();
+              cwd.resize(cwd.size()-1);
+              if (downloaddir.Path().substr(0, cwd.size()) == cwd) {
+                downloaddirectories.push_back(downloaddir.Path().substr(cwd.size()));
+              } else {
+                downloaddirectories.push_back(downloaddir.Path());
+              }
             }
           } else {
             downloaddirectories.push_back(downloaddir.str());

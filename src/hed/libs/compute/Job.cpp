@@ -724,15 +724,20 @@ namespace Arc {
       return false;
     }
 
-    // We must make it sure it is directory and it exists 
-    if (!DirCreate(dst.Path(), S_IRWXU, true)) {
-      logger.msg(WARNING, "Failed to create directory %s! Skipping job.", dst.Path());
-      return false;
-    }
-
     std::list<std::string> files;
     if (!ListFilesRecursive(uc, src, files)) {
       logger.msg(ERROR, "Unable to retrieve list of job files to download for job %s", JobID);
+      return false;
+    }
+
+    if (files.empty()) {
+      logger.msg(WARNING, "No files to retrieve for job %s", JobID);
+      return true;
+    }
+
+    // We must make it sure it is directory and it exists 
+    if (!DirCreate(dst.Path(), S_IRWXU, true)) {
+      logger.msg(WARNING, "Failed to create directory %s! Skipping job.", dst.Path());
       return false;
     }
 

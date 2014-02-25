@@ -160,8 +160,8 @@ int RUNMAIN(arcget)(int argc, char **argv) {
     std::cout << Arc::IString("Results stored at: %s", *it) << std::endl;
   }
 
-  unsigned int retrieved_num = jobmaster.GetIDsProcessed().size();
-  unsigned int notretrieved_num = jobmaster.GetIDsNotProcessed().size();
+  unsigned int processed_num = jobmaster.GetIDsProcessed().size();
+  unsigned int retrieved_num = downloaddirectories.size();
   unsigned int cleaned_num = 0;
 
   if (!opt.keep) {
@@ -181,11 +181,11 @@ int RUNMAIN(arcget)(int argc, char **argv) {
       retval = 1;
     }
 
-    std::cout << Arc::IString("Jobs processed: %d, successfully retrieved: %d, successfully cleaned: %d", retrieved_num+notretrieved_num, retrieved_num, cleaned_num) << std::endl;
+    std::cout << Arc::IString("Jobs processed: %d, successfully retrieved: %d, successfully cleaned: %d", processed_num, retrieved_num, cleaned_num) << std::endl;
 
   } else {
 
-    std::cout << Arc::IString("Jobs processed: %d, successfully retrieved: %d", retrieved_num+notretrieved_num, retrieved_num) << std::endl;
+    std::cout << Arc::IString("Jobs processed: %d, successfully retrieved: %d", processed_num, retrieved_num) << std::endl;
 
   }
   delete jobstore;
