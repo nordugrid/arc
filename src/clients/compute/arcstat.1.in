@@ -36,6 +36,8 @@ long format (more information)
 sort jobs according to jobid, submissiontime or jobname
 .IP "\fB-R\fR, \fB--rsort\fR"
 reverse sorting of jobs according to jobid, submissiontime or jobname
+.IP "\fB-u\fR, \fB--show-unavailable\fR"
+show jobs where status information is unavailable
 .IP "\fB-p\fR, \fB--print-jobids\fR"
 instead of the status only the IDs of the selected jobs will be printed
 .IP "\fB-P\fR, \fB--listplugins\fR"

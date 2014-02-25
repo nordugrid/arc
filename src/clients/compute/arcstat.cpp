@@ -136,7 +136,9 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
   jobmaster.Update();
-  jobmaster.SelectValid();
+  if (!opt.show_unavailable) {
+    jobmaster.SelectValid();
+  }
   if (!opt.status.empty()) {
     jobmaster.SelectByStatus(opt.status);
   }

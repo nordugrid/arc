@@ -134,6 +134,7 @@ public:
   bool forcedownload;
   bool list_configured_services;
   bool direct_submission;
+  bool show_unavailable;
 
   int testjobid;
   int runtime;

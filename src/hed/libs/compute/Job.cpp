@@ -550,9 +550,8 @@ namespace Arc {
     out << IString("Job: %s", JobID) << std::endl;
     if (!Name.empty())
       out << IString(" Name: %s", Name) << std::endl;
-    if (!State().empty())
-      out << IString(" State: %s", State.GetGeneralState())
-                << std::endl;
+    out << IString(" State: %s", State.GetGeneralState())
+              << std::endl;
     if (longlist && !State().empty()) {
       out << IString(" Specific state: %s", State.GetSpecificState())
                 << std::endl;

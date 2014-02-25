@@ -242,6 +242,7 @@ ClientOptions::ClientOptions(Client_t c,
     forcedownload(false),
     list_configured_services(false),
     direct_submission(false),
+    show_unavailable(false),
     testjobid(-1),
     runtime(5),
     timeout(-1)
@@ -348,6 +349,10 @@ ClientOptions::ClientOptions(Client_t c,
     AddOption('R', "rsort",
               istring("reverse sorting of jobs according to jobid, submissiontime or jobname"),
               istring("order"), rsort);
+
+    AddOption('u', "show-unavailable",
+              istring("show jobs where status information is unavailable"),
+              show_unavailable);
   }
 
   if (c == CO_RESUB) {
