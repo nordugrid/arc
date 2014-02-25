@@ -330,7 +330,17 @@ sub condor_cluster_get_usedcpus() {
 # returns the total number of nodes in the cluster
 #
 sub condor_cluster_totalcpus() {
-    return scalar @allnodedata;
+    # List all machines in the pool. Create a hash specifying the TotalCpus
+    # for each machine.
+    my %machines;
+    $machines{$$_{machine}} = $$_{totalcpus} for @allnodedata;
+
+    my $totalcpus = 0;
+    for (keys %machines) {
+        $totalcpus += $machines{$_};
+    }
+
+    return $totalcpus;
 }
 
 #
