@@ -75,7 +75,7 @@ sub type_and_version() {
 sub collect_node_data() {
     return if $allnodedata_initialized;
     $allnodedata_initialized = 1;
-    my ($out, $err, $ret) = condor_run("condor_status -long");
+    my ($out, $err, $ret) = condor_run('condor_status -format "Name = %V\n" Name -format "Machine = %V\n" Machine -format "State = %V\n" State -format "Cpus = %V\n" Cpus -format "TotalCpus = %V\n" TotalCpus -format "SlotType = %V\n\n" SlotType');
     error("Failed collecting node information.") if $ret;
     for (split /\n\n+/, $out) {
         my %target = condor_digest_classad($_);
