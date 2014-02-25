@@ -327,6 +327,27 @@ sub condor_cluster_get_usedcpus() {
 }
 
 #
+# returns the total number of CPUs in the cluster
+#
+sub condor_queue_totalcpus() {
+    my @qnod = condor_queue_get_nodes();
+
+    # List all machines in the pool. Create a hash specifying the TotalCpus
+    # for each machine.
+    my %machines;
+    $machines{$$_{machine}} = $$_{totalcpus} for @allnodedata;
+
+    my $totalcpus = 0;
+    for (keys %machines) {
+        my $machine = $_;
+        next unless grep { $machine eq $_ } @qnod;
+        $totalcpus += $machines{$_};
+    }
+
+    return $totalcpus;
+}
+
+#
 # returns the total number of nodes in the cluster
 #
 sub condor_cluster_totalcpus() {
@@ -459,7 +480,7 @@ sub queue_info ($$) {
 
     # Number of available (free) cpus can not be larger that
     # free cpus in the whole cluster
-    my $totalcpus = scalar condor_queue_get_nodes();
+    my $totalcpus = condor_queue_totalcpus();
     my $usedcpus = condor_queue_get_running();
     my $queuedcpus = condor_queue_get_queued();
 
