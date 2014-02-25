@@ -300,16 +300,17 @@ sub condor_cluster_get_running_jobs() {
 # interactively by their owners
 #
 sub condor_queue_get_running() {
-    my @free;
+    my $running = 0;
     my @qnod = condor_queue_get_nodes();
-    for (@allnodedata) {
+
+    for (@allnodedata)
+    {
         my %node = %$_;
-        next unless grep { $node{name} =~ /^((vm|slot)\d+@)?$_/i } @qnod;
-        next unless $node{state} =~ /^Unclaimed/i;
-        push @free, $node{name};
+        next unless grep { $_ eq $node{machine} } @qnod;
+        $running += $node{cpus} if ($node{slottype} !~ /^Partitionable/i && $node{state} !~ /^Unclaimed/i);
     }
-    my $running = @qnod - @free;
-    debug "===condor_queue_get_running: $running; free nodes: ". scalar @free ." (@free)";
+
+    debug "===condor_queue_get_running: $running";
     return $running;
 }
 
@@ -501,7 +502,7 @@ sub queue_info ($$) {
     # nordugrid-queue-maxuserrun
     # nordugrid-queue-mincputime
     # nordugrid-queue-defaultcputime
-    $lrms_queue{maxrunning} = scalar condor_queue_get_nodes();
+    $lrms_queue{maxrunning} = $totalcpus;
     $lrms_queue{maxqueuable} = 2 * $lrms_queue{maxrunning};
     $lrms_queue{maxuserrun} = $lrms_queue{maxrunning};
 
