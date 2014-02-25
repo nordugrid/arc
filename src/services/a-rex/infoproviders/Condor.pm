@@ -443,7 +443,7 @@ sub cluster_info ($) {
     # Note: SGE has the concept of "slots", which roughly corresponds to
     # concept of "cpus" in ARC (PBS) LRMS interface.
 
-    $lrms_cluster{totalcpus} = scalar @allnodedata;
+    $lrms_cluster{totalcpus} = condor_cluster_totalcpus();
     $lrms_cluster{cpudistribution} = cpudistribution();
     $lrms_cluster{usedcpus} = condor_cluster_get_usedcpus();
     #NOTE: counts jobs, not cpus.
