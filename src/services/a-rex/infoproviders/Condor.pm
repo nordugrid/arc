@@ -317,9 +317,11 @@ sub condor_queue_get_running() {
 # Same as above, but for the whole cluster
 #
 sub condor_cluster_get_usedcpus() {
-    my $free = 0;
-    do {$free += 1 if $$_{state} =~ /^Unclaimed/i} for @allnodedata;
-    my $used = condor_cluster_totalcpus() - $free;
+    my $used = 0;
+    for (@allnodedata)
+    {
+       $used += $$_{cpus} if ($$_{slottype} !~ /^Partitionable/i && $$_{state} !~ /^Unclaimed/i);
+    }
     debug "===condor_cluster_get_usedcpus: $used";
     return $used;
 }
