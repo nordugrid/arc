@@ -647,8 +647,9 @@ namespace Arc {
           bool is_file = true;
           long fileSize = -1;
           std::string fileChecksum;
-          // The second string in the list (it2) might either be a URL or filesize.checksum.
-          if (!it2->empty()) {
+          // For USER dialect (default) the second string must be a path to a file or an URL.
+          // For GRIDMANAGER dialect the second string in the list might either be a URL or filesize.checksum.
+          if (dialect == "GRIDMANAGER" && !it2->empty()) {
             std::string::size_type sep = it2->find('.');
             if(sep == std::string::npos) {
               if(!stringto(*it2, fileSize)) is_file = false;
@@ -658,7 +659,7 @@ namespace Arc {
             }
             if(fileSize < 0) is_file = false;
           }
-          if (!is_file) {
+          if (dialect != "GRIDMANAGER" || !is_file) {
             URL turl(*it2);
             if (!turl) {
               return false;
