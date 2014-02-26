@@ -95,6 +95,13 @@ namespace ArcDMCRucio {
     if (account.empty()) {
       logger.msg(WARNING, "Failed to extract VOMS nickname from proxy");
     }
+    // Take auth url from env var if available, otherwise use hard-coded one
+    // TODO: specify through url option instead?
+    std::string rucio_auth_url(Arc::GetEnv("RUCIO_AUTH_URL"));
+    if (rucio_auth_url.empty()) {
+      rucio_auth_url = "https://voatlasrucio-auth-prod.cern.ch/auth/x509_proxy";
+    }
+    auth_url = URL(rucio_auth_url);
   }
 
   DataPointRucio::~DataPointRucio() {}
@@ -225,11 +232,6 @@ namespace ArcDMCRucio {
       return DataStatus::Success;
     }
     // Get a new token
-    // TODO remove hard-coded hostname. Use URL option?
-    URL auth_url(url);
-    auth_url.ChangeHost("voatlasrucio-auth-prod.cern.ch");
-    auth_url.ChangePath("/auth/x509_proxy");
-
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     ClientHTTP client(cfg, auth_url, usercfg.Timeout());

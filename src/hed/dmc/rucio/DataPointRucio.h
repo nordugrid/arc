@@ -64,6 +64,8 @@ namespace ArcDMCRucio {
     std::string account;
     /// In-memory cache of auth tokens
     static RucioTokenStore tokens;
+    /// Rucio auth url
+    Arc::URL auth_url;
     /// Check if a valid auth token exists in the cache and if not get a new one
     Arc::DataStatus checkToken(std::string& token);
     /// Call Rucio to obtain metalink
