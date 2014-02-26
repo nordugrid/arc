@@ -112,7 +112,8 @@ class DTRGenerator: public DataStaging::DTRCallback {
                               const std::string& session_dir,
                               const std::string& jobid,
                               std::string& error,
-                              uid_t uid, gid_t gid);
+                              uid_t uid, gid_t gid,
+                              const std::list<std::string>* uploaded_files);
 
  public:
   /**

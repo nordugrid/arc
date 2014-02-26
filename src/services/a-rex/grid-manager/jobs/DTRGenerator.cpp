@@ -877,12 +877,17 @@ int DTRGenerator::checkUploadedFiles(GMJob& job) {
   if (job.get_local() && !job.get_local()->sessiondir.empty()) session_dir = job.get_local()->sessiondir;
   else session_dir = config.SessionRoot(jobid) + '/' + jobid;
   // get input files list
+  std::list<std::string> uploaded_files;
+  std::list<std::string>* uploaded_files_ = NULL;
   std::list<FileData> input_files;
   std::list<FileData> input_files_ = input_files;
   if (!job_input_read_file(jobid, config, input_files)) {
     job.AddFailure("Error reading list of input files");
     logger.msg(Arc::ERROR, "%s: Can't read list of input files", jobid);
     return 1;
+  }
+  if (job_input_status_read_file(jobid, config, uploaded_files)) {
+    uploaded_files_ = &uploaded_files;
   }
   int res = 0;
 
@@ -895,7 +900,7 @@ int DTRGenerator::checkUploadedFiles(GMJob& job) {
     }
     logger.msg(Arc::VERBOSE, "%s: Checking user uploadable file: %s", jobid, i->pfn);
     std::string error;
-    int err = user_file_exists(*i, session_dir, jobid, error, job_uid, job_gid);
+    int err = user_file_exists(*i, session_dir, jobid, error, job_uid, job_gid, uploaded_files_);
 
     if (err == 0) { // file is uploaded
       logger.msg(Arc::VERBOSE, "%s: User has uploaded file %s", jobid, i->pfn);
@@ -932,11 +937,22 @@ int DTRGenerator::checkUploadedFiles(GMJob& job) {
   return res;
 }
 
+bool match_list(const std::list<std::string>& slist, const std::string& str) {
+  for(std::list<std::string>::const_iterator s = slist.begin();
+               s != slist.end(); ++s) {
+    if(*s == str) return true;
+  }
+  return false;
+}
+
+
+
 int DTRGenerator::user_file_exists(FileData &dt,
                                    const std::string& session_dir,
                                    const std::string& jobid,
                                    std::string& error,
-                                   uid_t uid, gid_t gid) {
+                                   uid_t uid, gid_t gid,
+                                   const std::list<std::string>* uploaded_files) {
   struct stat st;
   std::string file_info(dt.lfn);
   if (file_info == "*.*") return 0; // do not wait for this file
@@ -946,7 +962,13 @@ int DTRGenerator::user_file_exists(FileData &dt,
   if (!Arc::FileStat(fname.c_str(), &st, uid, gid, false)) return 2;
 
   // if no size/checksum was supplied, return success
-  if (file_info.empty()) return 0;
+  if (file_info.empty()) {
+    // but check status first if avaialble
+    if (uploaded_files) {
+      if (!match_list(*uploaded_files, dt.pfn)) return 2;
+    }
+    return 0;
+  }
 
   if (S_ISDIR(st.st_mode)) {
     error = "Expected file. Directory found.";
@@ -1009,7 +1031,9 @@ int DTRGenerator::user_file_exists(FileData &dt,
     }
   }
 
-  if (have_checksum) { // calculate checksum
+  if (uploaded_files) {
+    if (!match_list(*uploaded_files, dt.pfn)) return 2;
+  } else if (have_checksum) { // calculate checksum (if no better way)
     int h = -1;
     Arc::FileAccess* fa = NULL;
 
