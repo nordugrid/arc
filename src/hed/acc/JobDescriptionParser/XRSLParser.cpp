@@ -657,7 +657,6 @@ namespace Arc {
               fileChecksum = it2->substr(sep+1);
               if(stringto(it2->substr(0,sep), fileSize)) is_size_and_checksum = true;
             }
-            if(fileSize >= 0) is_size_and_checksum = true;
           }
           if (dialect == "GRIDMANAGER" && is_size_and_checksum) {
             file.FileSize = fileSize;
