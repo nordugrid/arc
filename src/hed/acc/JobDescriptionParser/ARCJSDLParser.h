@@ -43,9 +43,9 @@ namespace Arc {
     void outputSoftware(const SoftwareRequirement& sr, XMLNode& xmlSoftware) const;
 
     template<typename T>
-    void parseRange(XMLNode xmlRange, Range<T>& range, const T& undefValue) const;
+    bool parseRange(XMLNode xmlRange, Range<T>& range) const;
     template<typename T>
-    Range<T> parseRange(XMLNode xmlRange, const T& undefValue) const;
+    bool parseMinMax(XMLNode min, XMLNode max, Range<T>& range) const;
     template<typename T>
     void outputARCJSDLRange(const Range<T>& range, XMLNode& arcJSDL, const T& undefValue) const;
     template<typename T>

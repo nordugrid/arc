@@ -82,33 +82,82 @@ namespace Arc {
   }
 
   template<typename T>
-  void ARCJSDLParser::parseRange(XMLNode xmlRange, Range<T>& range, const T& undefValue) const {
-    if (!xmlRange) return;
+  bool ARCJSDLParser::parseRange(XMLNode xmlRange, Range<T>& range) const {
+    std::map<std::string, XMLNodeList> types;
+    types["Exact"] = xmlRange.Path("Exact");
+    types["UpperBoundedRange"] = xmlRange.Path("UpperBoundedRange");
+    types["LowerBoundedRange"] = xmlRange.Path("LowerBoundedRange");
+    types["Range"] = xmlRange.Path("Range");
+    types["Range/LowerBound"] = xmlRange.Path("Range/LowerBound");
+    types["Range/UpperBound"] = xmlRange.Path("Range/UpperBound");
+    types["Min"] = xmlRange.Path("Min");
+    types["Max"] = xmlRange.Path("Max");
 
-    if (bool(xmlRange["Min"])) {
-      if (!stringto<T>((std::string)xmlRange["Min"], range.min))
-        range.min = undefValue;
+    for (std::map<std::string, XMLNodeList>::const_iterator it = types.begin();
+         it != types.end(); ++it) {
+      if (it->second.size() > 1) {
+        logger.msg(VERBOSE, "Multiple '%s' elements are not supported.", it->first);
+        return false;
+      }
     }
-    else if (bool(xmlRange["LowerBoundedRange"])) {
-      if (!stringto<T>((std::string)xmlRange["LowerBoundedRange"], range.min))
-        range.min = undefValue;
+    
+    int allowed = types["Exact"].size() + (types["Range"].size() | types["Range/UpperBound"].size() | types["Range/LowerBound"].size()) + (types["UpperBoundedRange"].size() | types["LowerBoundedRange"].size()) + (types["Max"].size() | types["Min"].size());
+    
+    if (!xmlRange || allowed == 0) {
+      logger.msg(VERBOSE, "One of the elements 'Exact', 'UpperBoundedRange', 'LowerBoundedRange', 'Range', 'Min' or 'Max' was expected.");
+      return false;
     }
 
-    if (bool(xmlRange["Max"])) {
-      if (!stringto<T>((std::string)xmlRange["Max"], range.max))
-        range.max = undefValue;
+    if (allowed > 1) {
+      logger.msg(VERBOSE, "Combinations of 'Exact', 'Range', 'UpperBoundedRange'/'LowerBoundedRange' and 'Max'/'Min' are not supported.");
+      return false;
     }
-    else if (bool(xmlRange["UpperBoundedRange"])) {
-      if (!stringto<T>((std::string)xmlRange["UpperBoundedRange"], range.max))
-        range.max = undefValue;
+    
+    XMLNode xmlMin, xmlMax;
+    if (types["UpperBoundedRange"].size() == 1) xmlMax = types["UpperBoundedRange"].front();
+    if (types["LowerBoundedRange"].size() == 1) xmlMin = types["LowerBoundedRange"].front();
+    if (types["Range/UpperBound"].size() == 1) xmlMax = types["Range/UpperBound"].front();
+    if (types["Range/LowerBound"].size() == 1) xmlMin = types["Range/LowerBound"].front();
+
+    if (bool(xmlMax.Attribute("exclusiveBound"))) {
+      logger.msg(VERBOSE, "The 'exclusiveBound' attribute to the '%s' element is not supported.", xmlMax.Name());
+      return false;
     }
+    if (bool(xmlMin.Attribute("exclusiveBound"))) {
+      logger.msg(VERBOSE, "The 'exclusiveBound' attribute to the '%s' element is not supported.", xmlMin.Name());
+      return false;
+    }
+
+    if (types["Max"].size() == 1) xmlMax = types["Max"].front();
+    if (types["Min"].size() == 1) xmlMin = types["Min"].front();
+
+    if (types["Exact"].size() == 1) {
+      if (bool(types["Exact"].front().Attribute("epsilon"))) {
+        logger.msg(VERBOSE, "The 'epsilon' attribute to the 'Exact' element is not supported.");
+        return false;
+      } 
+      xmlMax = types["Exact"].front();
+    }
+    
+    return parseMinMax(xmlMin, xmlMax, range);
   }
-
+  
   template<typename T>
-  Range<T> ARCJSDLParser::parseRange(XMLNode xmlRange, const T& undefValue) const {
-    Range<T> range;
-    parseRange(xmlRange, range, undefValue);
-    return range;
+  bool ARCJSDLParser::parseMinMax(XMLNode xmlMin, XMLNode xmlMax, Range<T>& range) const {
+    std::pair<bool, double> min(false, 0.), max(false, 0.);
+    if (xmlMin) min.first = stringto<double>((std::string)xmlMin, min.second);
+    if (xmlMax) max.first = stringto<double>((std::string)xmlMax, max.second);
+    
+    if (xmlMin && xmlMax && min.first && max.first &&
+        min.second > max.second) {
+      logger.msg(VERBOSE, "Parsing error: Value of %s element is greater than value of %s element", xmlMin.Name(), xmlMax.Name());
+      return false;
+    }
+    
+    if (xmlMin && min.first) range.min = static_cast<T>(min.second);
+    if (xmlMax && max.first) range.max = static_cast<T>(max.second);
+    
+    return true;
   }
 
   template<typename T>
@@ -391,7 +440,9 @@ namespace Arc {
       job.Resources.NetworkInfo = (std::string)resource["NetworkInfo"];
     else if (bool(resource["IndividualNetworkBandwidth"])) {
       Range<long long> bits_per_sec;
-      parseRange<long long>(resource["IndividualNetworkBandwidth"], bits_per_sec, -1);
+      if (!parseRange<long long>(resource["IndividualNetworkBandwidth"], bits_per_sec)) {
+        return false;
+      }
       const long long network = 1024 * 1024;
       if (bits_per_sec < 100 * network)
         job.Resources.NetworkInfo = "100megabitethernet";
@@ -405,8 +456,11 @@ namespace Arc {
 
     // Range<int> IndividualPhysicalMemory;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
-    if (bool(resource["IndividualPhysicalMemory"]))
-      parseRange<int>(resource["IndividualPhysicalMemory"], job.Resources.IndividualPhysicalMemory, -1);
+    if (bool(resource["IndividualPhysicalMemory"])) {
+      if (!parseRange<int>(resource["IndividualPhysicalMemory"], job.Resources.IndividualPhysicalMemory)) {
+        return false;
+      }
+    }
     else if (bool(xmlXApplication["MemoryLimit"])) {
       long long jsdlMemoryLimit = -1; 
       if (stringto<long long>((std::string)xmlXApplication["MemoryLimit"], jsdlMemoryLimit)) {
@@ -421,7 +475,9 @@ namespace Arc {
     // Range<int> IndividualVirtualMemory;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
     if (bool(resource["IndividualVirtualMemory"])) {
-      parseRange<int>(resource["IndividualVirtualMemory"], job.Resources.IndividualVirtualMemory, -1);
+      if (!parseRange<int>(resource["IndividualVirtualMemory"], job.Resources.IndividualVirtualMemory)) {
+        return false;
+      }
     }
     else if (bool(xmlXApplication["VirtualMemoryLimit"])) {
       if (!stringto<int>((std::string)xmlXApplication["VirtualMemoryLimit"], job.Resources.IndividualVirtualMemory.max))
@@ -430,20 +486,30 @@ namespace Arc {
 
     // Range<int> IndividualCPUTime;
     if (bool(resource["IndividualCPUTime"]["Value"])) {
-      parseRange<int>(resource["IndividualCPUTime"]["Value"], job.Resources.IndividualCPUTime.range, -1);
+      if (!parseRange<int>(resource["IndividualCPUTime"]["Value"], job.Resources.IndividualCPUTime.range)) {
+        return false;
+      }
       parseBenchmark(resource["IndividualCPUTime"], job.Resources.IndividualCPUTime.benchmark);
     }
-    else if (bool(resource["IndividualCPUTime"])) // JSDL compliance...
-      parseRange<int>(resource["IndividualCPUTime"], job.Resources.IndividualCPUTime.range, -1);
+    else if (bool(resource["IndividualCPUTime"])) { // JSDL compliance...
+      if (!parseRange<int>(resource["IndividualCPUTime"], job.Resources.IndividualCPUTime.range)) {
+        return false;
+      }
+    }
 
     // Range<int> TotalCPUTime;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
     if (bool(resource["TotalCPUTime"]["Value"])) {
-      parseRange<int>(resource["TotalCPUTime"]["Value"], job.Resources.TotalCPUTime.range, -1);
+      if (!parseRange<int>(resource["TotalCPUTime"]["Value"], job.Resources.TotalCPUTime.range)) {
+        return false;
+      }
       parseBenchmark(resource["TotalCPUTime"], job.Resources.TotalCPUTime.benchmark);
     }
-    else if (bool(resource["TotalCPUTime"])) // JSDL compliance...
-      parseRange<int>(resource["TotalCPUTime"], job.Resources.TotalCPUTime.range, -1);
+    else if (bool(resource["TotalCPUTime"])) { // JSDL compliance...
+      if (!parseRange<int>(resource["TotalCPUTime"], job.Resources.TotalCPUTime.range)) {
+        return false;
+      }
+    }
     else if (bool(xmlXApplication["CPUTimeLimit"])) { // POSIX compliance...
       if (!stringto<int>((std::string)xmlXApplication["CPUTimeLimit"], job.Resources.TotalCPUTime.range.max))
         job.Resources.TotalCPUTime.range = Range<int>(-1);
@@ -451,14 +517,18 @@ namespace Arc {
 
     // Range<int> IndividualWallTime;
     if (bool(resource["IndividualWallTime"]["Value"])) {
-      parseRange<int>(resource["IndividualWallTime"]["Value"], job.Resources.IndividualWallTime.range, -1);
+      if (!parseRange<int>(resource["IndividualWallTime"]["Value"], job.Resources.IndividualWallTime.range)) {
+        return false;
+      }
       parseBenchmark(resource["IndividualCPUTime"], job.Resources.IndividualWallTime.benchmark);
     }
 
     // Range<int> TotalWallTime;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
     if (bool(resource["TotalWallTime"]["Value"])) {
-      parseRange<int>(resource["TotalWallTime"]["Value"], job.Resources.TotalWallTime.range, -1);
+      if (!parseRange<int>(resource["TotalWallTime"]["Value"], job.Resources.TotalWallTime.range)) {
+        return false;
+      }
       parseBenchmark(resource["TotalWallTime"], job.Resources.TotalWallTime.benchmark);
     }
     else if (bool(xmlXApplication["WallTimeLimit"])) {
@@ -470,7 +540,9 @@ namespace Arc {
     // If the consolidated element exist parse it, else try to parse the JSDL one.
     if (bool(resource["DiskSpaceRequirement"]["DiskSpace"])) {
       Range<long long int> diskspace = -1;
-      parseRange<long long int>(resource["DiskSpaceRequirement"]["DiskSpace"], diskspace, -1);
+      if (!parseRange<long long int>(resource["DiskSpaceRequirement"]["DiskSpace"], diskspace)) {
+        return false;
+      }
       if (diskspace > -1) {
         job.Resources.DiskSpaceRequirement.DiskSpace.max = diskspace.max/(1024*1024);
         job.Resources.DiskSpaceRequirement.DiskSpace.min = diskspace.min/(1024*1024);
@@ -478,7 +550,9 @@ namespace Arc {
     }
     else if (bool(resource["FileSystem"]["DiskSpace"])) {
       Range<long long int> diskspace = -1;
-      parseRange<long long int>(resource["FileSystem"]["DiskSpace"], diskspace, -1);
+      if (!parseRange<long long int>(resource["FileSystem"]["DiskSpace"], diskspace)) {
+        return false;
+      }
       if (diskspace.max > -1) {
         job.Resources.DiskSpaceRequirement.DiskSpace.max = diskspace.max/(1024*1024);
       }
@@ -566,9 +640,15 @@ namespace Arc {
       }
     }
     else if (bool(resource["TotalCPUCount"])) {
-      if (!stringto<int>(resource["TotalCPUCount"], job.Resources.SlotRequirement.SlotsPerHost)) {
-        job.Resources.SlotRequirement.SlotsPerHost = -1;
+      Range<int> cpuCount;
+      if (!parseRange(resource["TotalCPUCount"], cpuCount)) {
+        return false;
       }
+      if (cpuCount.min > 0) {
+        logger.msg(VERBOSE, "Lower bounded range is not supported for the 'TotalCPUCount' element.");
+        return false;
+      }
+      job.Resources.SlotRequirement.SlotsPerHost = cpuCount.max;
     }
 
     // std::string SPMDVariation;

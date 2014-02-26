@@ -31,6 +31,7 @@ class ARCJSDLParserTest
   CPPUNIT_TEST(TestBasicJSDLCompliance);
   CPPUNIT_TEST(TestPOSIXCompliance);
   CPPUNIT_TEST(TestHPCCompliance);
+  CPPUNIT_TEST(TestRangeValueType);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -52,6 +53,7 @@ public:
   void TestBasicJSDLCompliance();
   void TestPOSIXCompliance();
   void TestHPCCompliance();
+  void TestRangeValueType();
 
 private:
   Arc::JobDescription INJOB;
@@ -631,6 +633,65 @@ void ARCJSDLParserTest::TestHPCCompliance() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE("HPC compliance failure", (std::string)"value2", (std::string)pApp["Environment"][1]);
   CPPUNIT_ASSERT_EQUAL_MESSAGE("HPC compliance failure", (std::string)"var3",   (std::string)pApp["Environment"][2].Attribute("name"));
   CPPUNIT_ASSERT_EQUAL_MESSAGE("HPC compliance failure", (std::string)"value3", (std::string)pApp["Environment"][2]);
+}
+
+void ARCJSDLParserTest::TestRangeValueType() {
+  /** Testing compliance with the RangeValue_Type **/
+  MESSAGE = "Error: The parser does not comply with the JSDL RangeValue_Type type.";
+
+  const std::string beforeElement = "<?xml version=\"1.0\"?>"
+"<JobDefinition xmlns=\"http://schemas.ggf.org/jsdl/2005/11/jsdl\""
+" xmlns:posix-jsdl=\"http://schemas.ggf.org/jsdl/2005/11/jsdl-posix\"><JobDescription>"
+"<Application><posix-jsdl:POSIXApplication><posix-jsdl:Executable>executable</posix-jsdl:Executable></posix-jsdl:POSIXApplication></Application>"
+"<Resources><IndividualCPUTime>";
+  const std::string afterElement ="</IndividualCPUTime></Resources></JobDescription></JobDefinition>";
+
+  std::string element;
+
+  element = "<Exact>3600.3</Exact>";
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 3600, OUTJOBS.front().Resources.IndividualCPUTime.range.max);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, -1, OUTJOBS.front().Resources.IndividualCPUTime.range.min);
+
+  element = "<LowerBoundedRange>134.5</LowerBoundedRange>";
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, -1, OUTJOBS.front().Resources.IndividualCPUTime.range.max);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 134, OUTJOBS.front().Resources.IndividualCPUTime.range.min);
+
+  element = "<UpperBoundedRange>234.5</UpperBoundedRange>";
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 234, OUTJOBS.front().Resources.IndividualCPUTime.range.max);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, -1, OUTJOBS.front().Resources.IndividualCPUTime.range.min);
+
+  element = "<UpperBoundedRange>234.5</UpperBoundedRange><LowerBoundedRange>123.4</LowerBoundedRange>";
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 234, OUTJOBS.front().Resources.IndividualCPUTime.range.max);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 123, OUTJOBS.front().Resources.IndividualCPUTime.range.min);
+
+  element = "<Range><UpperBound>234.5</UpperBound><LowerBound>123.4</LowerBound></Range>";
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 234, OUTJOBS.front().Resources.IndividualCPUTime.range.max);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 123, OUTJOBS.front().Resources.IndividualCPUTime.range.min);
+
+  element = "<Range><UpperBound>123.4</UpperBound><LowerBound>234.5</LowerBound></Range>";
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
+
+  element = "<Range><UpperBound>234.5</UpperBound></Range><Range><LowerBound>123.4</LowerBound></Range>";
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
+
+  element = "<Exact>234.5</Exact><Exact>123.4</Exact>";
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
+
+  element = "<Exact epsilon=\"1.2\">234.5</Exact>";
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
+
+  element = "<LowerBoundedRange exclusiveBound=\"1.2\">234.5</LowerBoundedRange>";
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ARCJSDLParserTest);
