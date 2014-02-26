@@ -74,7 +74,7 @@ License: CPL
  version of the Common Public License.
  http://www.opensource.org/licenses/cpl1.0.php
 
-Files: src/hed/dmc/dq2/cJSON/cJSON.c src/hed/dmc/dq2/cJSON/cJSON.h
+Files: src/external/cJSON/cJSON.c src/external/cJSON/cJSON.h
 Copyright: 2009 Dave Gamble
 License: MIT
  Permission is hereby granted, free of charge, to any person obtaining a copy
