@@ -136,15 +136,16 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
   jobmaster.Update();
-  if (!opt.show_unavailable) {
-    jobmaster.SelectValid();
-  }
+  unsigned int queried_num = jobmaster.GetAllJobs().size();
   if (!opt.status.empty()) {
     jobmaster.SelectByStatus(opt.status);
   }
+  if (!opt.show_unavailable) {
+    jobmaster.SelectValid();
+  }
   jobs = jobmaster.GetSelectedJobs();
 
-  if (jobs.empty()) {
+  if (queried_num == 0) {
     std::cout << Arc::IString("No jobs found, try later") << std::endl;
     return 1;
   }
@@ -166,6 +167,13 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
       std::cout << it->JobID << std::endl;
     }
   }
+
+  if (opt.show_unavailable) {
+    jobmaster.SelectValid();
+  }
+  unsigned int returned_info_num = jobmaster.GetSelectedJobs().size();
+
+  std::cout << Arc::IString("Status of %d jobs was queried, %d jobs returned information", queried_num, returned_info_num) << std::endl;
 
   return 0;
 }
