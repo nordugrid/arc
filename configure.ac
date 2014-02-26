@@ -135,7 +135,7 @@ AM_GNU_GETTEXT([external])
 # Using Autoconf 2.60 or later you will get a warning during configure:
 #  config.status: WARNING:  'po/Makefile.in.in' seems to ignore the --datarootdir setting
 # This warning can be removed by bumping the gettext version requirement below from 0.12 to at least 0.15
-# See more: info Autoconf "Changed Directory Variables"  
+# See more: info Autoconf "Changed Directory Variables"
 AM_GNU_GETTEXT_VERSION([0.12])
 [[ -r $srcdir/po/POTFILES.in ]] || touch $srcdir/po/POTFILES.in
 
@@ -298,7 +298,7 @@ if test "x$enables_pedantic_compile" = "xyes"; then
     )
     AC_LANG_RESTORE
     CPPFLAGS=$SAVE_CPPFLAGS
-  else 
+  else
     # TODO: set generic flags for generic compiler
     AM_CXXFLAGS=""
   fi
@@ -442,11 +442,11 @@ if test "$enables_java" = "yes"; then
   elif test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xjavac"; then
     JAVAC_FLAGS="$JAVAC_VM_FLAGS -source 1.5 -target 1.5 -cp ."
   fi
-  
+
   if test "x$JAVA" != "x" && test "x`basename $JAVA`" = "xjava"; then
     JAVA_FLAGS="$JAVA_VM_FLAGS"
   fi
-  
+
   # Check if version is 1.5 (Iterable was first introduced in 1.5)
   echo "public abstract class TestIterable implements Iterable< Object > {}" > TestIterable.java
   if $JAVAC $JAVAC_FLAGS TestIterable.java >/dev/null 2>&1; then
@@ -664,7 +664,7 @@ if test "$enables_python" = "yes"; then
     AC_MSG_NOTICE([Missing pre-compiled Python wrapper and SWIG - skipping Python bindings])
     enables_swig_python=no
   fi
-  
+
 fi
 fi
 
@@ -1437,7 +1437,7 @@ fi
 AC_ARG_ENABLE(dbjstore, AC_HELP_STRING([--disable-dbjstore], [disable storing local jobs information in BDB]),
   [enables_dbjstore=$enableval],[])
 if test "$enables_dbjstore" = "yes"; then
-  if test "x$DBCXX_LIBS" = "x" ; then 
+  if test "x$DBCXX_LIBS" = "x" ; then
     AC_MSG_NOTICE([For storing jobs in BDB C++ API is needed (dbcxx) - disabling])
     enables_dbjstore="no"
   fi
@@ -2424,6 +2424,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/mock/Makefile
                  src/hed/dmc/dq2/Makefile
                  src/hed/dmc/acix/Makefile
+                 src/hed/dmc/rucio/Makefile
                  src/hed/profiles/general/general.xml
                  src/hed/shc/Makefile
                  src/hed/shc/arcpdp/Makefile

@@ -1464,6 +1464,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libdmcldap.so
 %{_libdir}/%{pkgdir}/libdmcsrm.so
 %{_libdir}/%{pkgdir}/libdmcdq2.so
+%{_libdir}/%{pkgdir}/libdmcrucio.so
 %{_libdir}/%{pkgdir}/libdmcacix.so
 %{_libdir}/%{pkgdir}/libidentitymap.so
 %{_libdir}/%{pkgdir}/libarguspdpclient.so
@@ -1487,6 +1488,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libdmcldap.apd
 %{_libdir}/%{pkgdir}/libdmcsrm.apd
 %{_libdir}/%{pkgdir}/libdmcdq2.apd
+%{_libdir}/%{pkgdir}/libdmcrucio.apd
 %{_libdir}/%{pkgdir}/libdmcacix.apd
 %{_libdir}/%{pkgdir}/libidentitymap.apd
 %{_libdir}/%{pkgdir}/libarguspdpclient.apd
