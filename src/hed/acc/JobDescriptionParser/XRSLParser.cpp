@@ -644,22 +644,26 @@ namespace Arc {
             return false;
           }
 
-          bool is_file = true;
+          bool is_size_and_checksum = false;
           long fileSize = -1;
           std::string fileChecksum;
-          // For USER dialect (default) the second string must be a path to a file or an URL.
+          // For USER dialect (default) the second string must be empty, a path to a file or an URL.
           // For GRIDMANAGER dialect the second string in the list might either be a URL or filesize.checksum.
           if (dialect == "GRIDMANAGER" && !it2->empty()) {
             std::string::size_type sep = it2->find('.');
             if(sep == std::string::npos) {
-              if(!stringto(*it2, fileSize)) is_file = false;
+              if(stringto(*it2, fileSize)) is_size_and_checksum = true;
             } else {
               fileChecksum = it2->substr(sep+1);
-              if(!stringto(it2->substr(0,sep), fileSize)) is_file = false;
+              if(stringto(it2->substr(0,sep), fileSize)) is_size_and_checksum = true;
             }
-            if(fileSize < 0) is_file = false;
+            if(fileSize >= 0) is_size_and_checksum = true;
           }
-          if (dialect != "GRIDMANAGER" || !is_file) {
+          if (dialect == "GRIDMANAGER" && is_size_and_checksum) {
+            file.FileSize = fileSize;
+            file.Checksum = fileChecksum;
+          }
+          else if (dialect == "GRIDMANAGER" || !it2->empty()) {
             URL turl(*it2);
             if (!turl) {
               return false;
@@ -692,11 +696,6 @@ namespace Arc {
             if (location)
               turl.AddLocation(location);
             file.Sources.push_back(turl);
-          }
-          else {
-            file.FileSize = fileSize;
-            file.Checksum = fileChecksum;
-            if(dialect != "GRIDMANAGER") file.Sources.push_back(URL(file.Name));
           }
           file.IsExecutable = false;
 

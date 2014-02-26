@@ -156,18 +156,58 @@ void XRSLParserTest::TestInputFileClientStageable() {
   f.close();
 
   std::string tempjobdesc;
+
+
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
-
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
-
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().DataStaging.InputFiles.size());
-
   std::list<Arc::InputFileType>::const_iterator it = OUTJOBS.front().DataStaging.InputFiles.begin();
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.FileSize,  it->FileSize);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Sources.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Sources.back(),  it->Sources.front());
+
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl", "GRIDMANAGER"));
+  OUTJOBS.clear();
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS, "", "GRIDMANAGER"));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().DataStaging.InputFiles.size());
+  it = OUTJOBS.front().DataStaging.InputFiles.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.FileSize,  it->FileSize);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Sources.size());
+
+
+  // Remove source path
+  INJOB.DataStaging.InputFiles.front().Sources.clear();
+
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
+  OUTJOBS.clear();
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS, "", ""));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().DataStaging.InputFiles.size());
+  it = OUTJOBS.front().DataStaging.InputFiles.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Sources.size());
+
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl", "GRIDMANAGER"));
+  OUTJOBS.clear();
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS, "", "GRIDMANAGER"));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().DataStaging.InputFiles.size());
+  it = OUTJOBS.front().DataStaging.InputFiles.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.FileSize,  it->FileSize);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Sources.size());
+
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl", ""));
+  OUTJOBS.clear();
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(tempjobdesc, OUTJOBS, "", "GRIDMANAGER"));
+
 
   remove(file.Name.c_str());
 }
