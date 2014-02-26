@@ -1,3 +1,6 @@
+2014-02-26  David Cameron <d.g.cameron@fys.uio.no>
+  * Add Rucio DMC for access to new ATLAS data management system
+
 2014-02-20  Anders Waananen <waananen@nbi.dk>
   * Add arc-blahp-logger 
 
