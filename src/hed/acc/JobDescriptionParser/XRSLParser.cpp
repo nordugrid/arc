@@ -1615,7 +1615,7 @@ namespace Arc {
       if (l) r.Add(new RSLCondition("outputfiles", RSLEqual, l));
       l = NULL;
 
-    } else { // (dialect == "GRIDMANAGER")
+    } else { // dialect != "GRIDMANAGER"
 
       if (!j.DataStaging.InputFiles.empty() || !j.Application.Executable.Path.empty() || !j.Application.Input.empty()) {
         RSLList *l = NULL;
@@ -1626,13 +1626,7 @@ namespace Arc {
           if (it->Sources.empty()) {
             s->Add(new RSLLiteral(""));
           } else if (it->Sources.front().Protocol() == "file" && it->FileSize != -1) {
-            // This hides possibly unequal name and path of local file.
-            // TODO: rethink, maybe it is better to loose FileSize instead of original path
-            std::string fsizechecksum = tostring(it->FileSize);
-            if (!it->Checksum.empty()) {
-              fsizechecksum += "."+it->Checksum;
-            }
-            s->Add(new RSLLiteral(fsizechecksum));
+            s->Add(new RSLLiteral(it->Sources.front().Path()));
           }
           else {
             s->Add(new RSLLiteral(it->Sources.front().fullstr()));
