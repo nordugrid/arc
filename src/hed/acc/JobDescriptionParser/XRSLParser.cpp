@@ -1564,10 +1564,9 @@ namespace Arc {
         RSLList *s = new RSLList;
         s->Add(new RSLLiteral(it->Name));
         if (it->Sources.empty() || (it->Sources.front().Protocol() == "file")) { // Local file
-          std::string fsizechecksum = ".";
-          if(it->FileSize != -1) fsizechecksum = tostring(it->FileSize)+fsizechecksum;
-          if (!it->Checksum.empty()) fsizechecksum = fsizechecksum+it->Checksum;
-          if(fsizechecksum == ".") fsizechecksum = "";
+          std::string fsizechecksum;
+          if(it->FileSize != -1) fsizechecksum = tostring(it->FileSize);
+          if (!it->Checksum.empty()) fsizechecksum = "." + fsizechecksum+it->Checksum;
           s->Add(new RSLLiteral(fsizechecksum));
         } else {
           s->Add(new RSLLiteral(it->Sources.front().fullstr()));
