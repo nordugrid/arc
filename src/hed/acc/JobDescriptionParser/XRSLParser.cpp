@@ -699,6 +699,9 @@ namespace Arc {
               turl.AddLocation(location);
             file.Sources.push_back(turl);
           }
+          else if (itValues->empty()) { // Only non GRIDMANAGER dialect is applicable here, since itValues.empty() is checked above.
+            file.Sources.push_back(URL(file.Name));
+          }
           file.IsExecutable = false;
 
           j.DataStaging.InputFiles.push_back(file);
