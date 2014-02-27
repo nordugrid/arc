@@ -650,6 +650,11 @@ namespace Arc {
           std::list<std::string>::iterator itValues = ++(it->begin());
           bool is_size_and_checksum = false;
           if (dialect == "GRIDMANAGER") {
+            if (itValues->empty()) {
+              logger.msg(VERBOSE, "Second string of 'inputfiles' attribute value for GM input (GRIDMANAGER dialect) cannot be empty.");
+              return false;
+            }
+            
             long fileSize = -1;
             std::string::size_type sep = itValues->find('.');
             if(stringto(itValues->substr(0,sep), fileSize)) {
