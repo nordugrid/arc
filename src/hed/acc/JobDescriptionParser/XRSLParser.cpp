@@ -699,9 +699,9 @@ namespace Arc {
           file.IsExecutable = false;
 
           j.DataStaging.InputFiles.push_back(file);
-          for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
-               it != j.GetAlternatives().end(); it++) {
-            it->DataStaging.InputFiles.push_back(file);
+          for (std::list<JobDescription>::iterator itAlt = j.GetAlternatives().begin();
+               itAlt != j.GetAlternatives().end(); ++itAlt) {
+            itAlt->DataStaging.InputFiles.push_back(file);
           }
         }
         return true;
