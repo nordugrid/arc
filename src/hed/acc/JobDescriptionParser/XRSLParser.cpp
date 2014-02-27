@@ -628,22 +628,24 @@ namespace Arc {
         if (!SeqListValue(c, ll))
           return false;
         for (std::list<std::list<std::string> >::iterator it = ll.begin();
-             it != ll.end(); it++) {
-          std::list<std::string>::iterator it2 = it->begin();
-
-          // Check whether the first string exists in the list
-          if (it2 == it->end()) {
+             it != ll.end(); ++it) {
+          /* Each of the elements of the inputfiles attribute should have at
+           * least two values.
+           */
+          if (it->size() < 2) {
+            logger.msg(VERBOSE, "At least two values are needed for the 'inputfiles' attribute.");
+            return false;
+          }
+          
+          if (it->front().empty()) {
+            logger.msg(VERBOSE, "filename cannot be empty.");
             return false;
           }
 
           InputFileType file;
-          file.Name = *it2++;
+          file.Name = it->front();
 
-          // Check whether the second string exists in the list
-          if (it2 == it->end()) {
-            return false;
-          }
-
+          std::list<std::string>::iterator it2 = ++(it->begin());
           bool is_size_and_checksum = false;
           long fileSize = -1;
           std::string fileChecksum;
