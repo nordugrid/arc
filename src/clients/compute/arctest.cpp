@@ -254,6 +254,12 @@ int RUNMAIN(arctest)(int argc, char **argv) {
   if (opt.dumpdescription) {
      return dumpjobdescription(usercfg, ets, testJob);
   }
+  
+  std::cout << Arc::IString("Submitting test-job %d:", opt.testjobid) << std::endl;
+  std::string testJobXRSL;
+  testJob.UnParse(testJobXRSL, "nordugrid:xrsl");
+  std::cout << testJobXRSL << std::endl;
+  std::cout << Arc::IString("Client version: nordugrid-arc-%s", VERSION) << std::endl;
   return test(usercfg, ets, testJob, opt.jobidoutfile);
 }
 
@@ -276,6 +282,7 @@ int test(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorter& ets, const 
   for (ets.reset(); !ets.endOfList(); ets.next()) {
     if (ets->Submit(usercfg, testJob, submittedJobs.back())) {
       printjobid(submittedJobs.back().JobID, jobidfile);
+      std::cout << Arc::IString("Computing service: %s", ets->ComputingService->Name) << std::endl;
       break;
     }
   }
