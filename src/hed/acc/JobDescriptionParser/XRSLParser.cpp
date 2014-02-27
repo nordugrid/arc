@@ -645,41 +645,41 @@ namespace Arc {
           InputFileType file;
           file.Name = it->front();
 
-          std::list<std::string>::iterator it2 = ++(it->begin());
+          std::list<std::string>::iterator itValues = ++(it->begin());
           bool is_size_and_checksum = false;
           long fileSize = -1;
           std::string fileChecksum;
           // For USER dialect (default) the second string must be empty, a path to a file or an URL.
           // For GRIDMANAGER dialect the second string in the list might either be a URL or filesize.checksum.
-          if (dialect == "GRIDMANAGER" && !it2->empty()) {
-            std::string::size_type sep = it2->find('.');
+          if (dialect == "GRIDMANAGER" && !itValues->empty()) {
+            std::string::size_type sep = itValues->find('.');
             if(sep == std::string::npos) {
-              if(stringto(*it2, fileSize)) is_size_and_checksum = true;
+              if(stringto(*itValues, fileSize)) is_size_and_checksum = true;
             } else {
-              fileChecksum = it2->substr(sep+1);
-              if(stringto(it2->substr(0,sep), fileSize)) is_size_and_checksum = true;
+              fileChecksum = itValues->substr(sep+1);
+              if(stringto(itValues->substr(0,sep), fileSize)) is_size_and_checksum = true;
             }
           }
           if (dialect == "GRIDMANAGER" && is_size_and_checksum) {
             file.FileSize = fileSize;
             file.Checksum = fileChecksum;
           }
-          else if (dialect == "GRIDMANAGER" || !it2->empty()) {
-            URL turl(*it2);
+          else if (dialect == "GRIDMANAGER" || !itValues->empty()) {
+            URL turl(*itValues);
             if (!turl) {
               return false;
             }
             URLLocation location;
-            for (it2++; it2 != it->end(); ++it2) {
+            for (++itValues; itValues != it->end(); ++itValues) {
               // add any options and locations
               // an option applies to the URL preceding it (main or location)
-              std::string::size_type pos = it2->find('=');
+              std::string::size_type pos = itValues->find('=');
               if (pos == std::string::npos) {
-                logger.msg(ERROR, "Invalid URL option syntax in option %s for input file %s", *it2, file.Name);
+                logger.msg(ERROR, "Invalid URL option syntax in option %s for input file %s", *itValues, file.Name);
                 return false;
               }
-              std::string attr_name(it2->substr(0, pos));
-              std::string attr_value(it2->substr(pos+1));
+              std::string attr_name(itValues->substr(0, pos));
+              std::string attr_value(itValues->substr(pos+1));
               if (attr_name == "location") {
                 if (location)
                   turl.AddLocation(location);
