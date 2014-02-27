@@ -645,26 +645,22 @@ namespace Arc {
           InputFileType file;
           file.Name = it->front();
 
-          std::list<std::string>::iterator itValues = ++(it->begin());
-          bool is_size_and_checksum = false;
-          long fileSize = -1;
-          std::string fileChecksum;
           // For USER dialect (default) the second string must be empty, a path to a file or an URL.
           // For GRIDMANAGER dialect the second string in the list might either be a URL or filesize.checksum.
-          if (dialect == "GRIDMANAGER" && !itValues->empty()) {
+          std::list<std::string>::iterator itValues = ++(it->begin());
+          bool is_size_and_checksum = false;
+          if (dialect == "GRIDMANAGER") {
+            long fileSize = -1;
             std::string::size_type sep = itValues->find('.');
-            if(sep == std::string::npos) {
-              if(stringto(*itValues, fileSize)) is_size_and_checksum = true;
-            } else {
-              fileChecksum = itValues->substr(sep+1);
-              if(stringto(itValues->substr(0,sep), fileSize)) is_size_and_checksum = true;
+            if(stringto(itValues->substr(0,sep), fileSize)) {
+              is_size_and_checksum = true;
+              file.FileSize = fileSize;
+              if(sep != std::string::npos) {
+                file.Checksum = itValues->substr(sep+1);                  
+              }
             }
           }
-          if (dialect == "GRIDMANAGER" && is_size_and_checksum) {
-            file.FileSize = fileSize;
-            file.Checksum = fileChecksum;
-          }
-          else if (dialect == "GRIDMANAGER" || !itValues->empty()) {
+          if (!itValues->empty() && !is_size_and_checksum) {
             URL turl(*itValues);
             if (!turl) {
               return false;
