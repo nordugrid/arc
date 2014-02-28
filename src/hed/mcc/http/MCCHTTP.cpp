@@ -176,6 +176,10 @@ static MCC_Status make_raw_fault(Message& outmsg,const char* desc = NULL) {
   return MCC_Status(GENERIC_ERROR,"HTTP");
 }
 
+static MCC_Status make_raw_fault(Message& outmsg,const std::string desc) {
+  return make_raw_fault(outmsg,desc.c_str());
+}
+
 static MCC_Status make_raw_fault(Message& outmsg,const MCC_Status& desc) {
   PayloadRaw* outpayload = new PayloadRaw;
   std::string errstr = (std::string)desc;
@@ -220,6 +224,21 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   if(nextpayload.Method() == "END") {
     return MCC_Status(SESSION_CLOSE);
   };
+  // By now PayloadHTTPIn only parsed header of incoming message.
+  // If header contains Expect: 100-continue then intermediate
+  // response must be returned to client followed by real response.
+  if(nextpayload.AttributeMatch("expect", "100-continue")) {
+    // For this request intermediate 100 response must be sent
+    // TODO: maybe use PayloadHTTPOut for sending header.
+    std::string oheader = "HTTP/1.1 100 CONTINUE\r\n\r\n"; // 100-continue happens only in version 1.1.
+    if(!inpayload->Put(oheader)) {
+      // Failed to send intermediate response.
+      // Most probbaly connection was closed.
+      return MCC_Status(SESSION_CLOSE);
+    }
+    // Now client will send body of message and it will become
+    // available through PayloadHTTPIn
+  }
   bool keep_alive = nextpayload.KeepAlive();
   // Creating message to pass to next MCC and setting new payload.
   Message nextinmsg = inmsg;
@@ -387,6 +406,42 @@ MCC_HTTP_Client::MCC_HTTP_Client(Config *cfg,PluginArgument* parg):MCC_HTTP(cfg,
 MCC_HTTP_Client::~MCC_HTTP_Client(void) {
 }
 
+static MCC_Status extract_http_response(Message& nextoutmsg, Message& outmsg, bool is_head, PayloadHTTPIn * & outpayload) {
+  // Do checks and process response - supported response so far is stream
+  // Generated result is HTTP payload with Raw and Stream interfaces
+  // Check if any payload in message
+  if(!nextoutmsg.Payload()) {
+    return make_raw_fault(outmsg,"No response received by HTTP layer");
+  };
+  // Check if payload is stream (currently no other payload kinds are supported)
+  PayloadStreamInterface* retpayload = NULL;
+  try {
+    retpayload = dynamic_cast<PayloadStreamInterface*>(nextoutmsg.Payload());
+  } catch(std::exception& e) { };
+  if(!retpayload) {
+    delete nextoutmsg.Payload();
+    return make_raw_fault(outmsg,"HTTP layer got something that is not stream");
+  };
+  // Try to parse payload. At least header part.
+  outpayload  = new PayloadHTTPIn(*retpayload,true,is_head);
+  if(!outpayload) {
+    delete retpayload;
+    return make_raw_fault(outmsg,"Returned payload is not recognized as HTTP");
+  };
+  if(!(*outpayload)) {
+    std::string errstr = "Returned payload is not recognized as HTTP: "+outpayload->GetError();
+    delete outpayload; outpayload = NULL;
+    return make_raw_fault(outmsg,errstr.c_str());
+  };
+  // Check for closed connection during response - not suitable in client mode
+  if(outpayload->Method() == "END") {
+    delete outpayload; outpayload = NULL;
+    return make_raw_fault(outmsg,"Connection was closed");
+  };
+  return MCC_Status(STATUS_OK);
+}
+
+
 MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   // Take payload, add HTTP stuf by using PayloadHTTPOut and
   // pass further through chain.
@@ -407,18 +462,23 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   std::string http_endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
   if(http_method.empty()) http_method=method_;
   if(http_endpoint.empty()) http_endpoint=endpoint_;
-  AutoPointer<PayloadHTTPOut> nextpayload(
-    inrpayload?
-      (PayloadHTTPOut*)(new PayloadHTTPOutRaw(http_method,http_endpoint)):
-      (PayloadHTTPOut*)(new PayloadHTTPOutStream(http_method,http_endpoint))
+  AutoPointer<PayloadHTTPOutRaw> nextrpayload(inrpayload?new PayloadHTTPOutRaw(http_method,http_endpoint):NULL);
+  AutoPointer<PayloadHTTPOutStream> nextspayload(inspayload?new PayloadHTTPOutStream(http_method,http_endpoint):NULL);
+  PayloadHTTPOut* nextpayload(inrpayload?
+      dynamic_cast<PayloadHTTPOut*>(nextrpayload.Ptr()):
+      dynamic_cast<PayloadHTTPOut*>(nextspayload.Ptr())
   );
+  bool expect100 = false;
   for(AttributeIterator i = inmsg.Attributes()->getAll();i.hasMore();++i) {
     const char* key = i.key().c_str();
     if(strncmp("HTTP:",key,5) == 0) {
       key+=5;
       // TODO: check for special attributes: method, code, reason, endpoint, etc.
-      if(strcmp(key,"METHOD") == 0) continue;
-      if(strcmp(key,"ENDPOINT") == 0) continue;
+      if(strcasecmp(key,"METHOD") == 0) continue;
+      if(strcasecmp(key,"ENDPOINT") == 0) continue;
+      if(strcasecmp(key,"EXPECT") == 0) {
+        if(Arc::lower(*i) == "100-continue") expect100 = true;
+      }
       nextpayload->Attribute(std::string(key),*i);
     };
   };
@@ -427,49 +487,67 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   // Creating message to pass to next MCC and setting new payload..
   Message nextinmsg = inmsg;
   if(inrpayload) {
-    ((PayloadHTTPOutRaw*)nextpayload.Ptr())->Body(*inrpayload,false);
-    nextinmsg.Payload((PayloadHTTPOutRaw*)nextpayload.Ptr());
+    nextrpayload->Body(*inrpayload,false);
+    nextinmsg.Payload(nextrpayload.Ptr());
   } else {
-    ((PayloadHTTPOutStream*)nextpayload.Ptr())->Body(*inspayload,false);
-    nextinmsg.Payload((PayloadHTTPOutStream*)nextpayload.Ptr());
+    nextspayload->Body(*inspayload,false);
+    nextinmsg.Payload(nextspayload.Ptr());
   };
 
   // Call next MCC
   MCCInterface* next = Next();
   if(!next) return make_raw_fault(outmsg,"Chain has no continuation");
   Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
-  MCC_Status ret = next->process(nextinmsg,nextoutmsg);
-  // Do checks and process response - supported response so far is stream
-  // Generated result is HTTP payload with Raw and Stream interfaces
-  if(!ret) {
-    if(nextoutmsg.Payload()) delete nextoutmsg.Payload();
-    return make_raw_fault(outmsg,ret);
-  };
-  if(!nextoutmsg.Payload()) return make_raw_fault(outmsg,"No response received by HTTP layer");
-  PayloadStreamInterface* retpayload = NULL;
-  try {
-    retpayload = dynamic_cast<PayloadStreamInterface*>(nextoutmsg.Payload());
-  } catch(std::exception& e) { };
-  if(!retpayload) {
-    delete nextoutmsg.Payload();
-    return make_raw_fault(outmsg,"HTTP layer got something that is not stream");
-  };
-  // Stream retpayload becomes owned by outpayload. This is needed because
-  // HTTP payload may postpone extracting information from stream till demanded.
-  PayloadHTTPIn* outpayload  = new PayloadHTTPIn(*retpayload,true,request_is_head);
-  if(!outpayload) {
-    delete retpayload;
-    return make_raw_fault(outmsg,"Returned payload is not recognized as HTTP");
-  };
-  if(!(*outpayload)) {
-    std::string errstr = "Returned payload is not recognized as HTTP: "+outpayload->GetError();
-    delete outpayload;
-    return make_raw_fault(outmsg,errstr.c_str());
-  };
-  // Check for closed connection during response - not suitable in client mode
-  if(outpayload->Method() == "END") {
-    delete outpayload; return make_raw_fault(outmsg,"Connection was closed");
-  };
+  MCC_Status ret;
+  PayloadHTTPIn* outpayload  = NULL;
+  if(!expect100) {
+    // Simple request and response
+    ret = next->process(nextinmsg,nextoutmsg);
+    if(!ret) {
+      delete nextoutmsg.Payload();
+      return make_raw_fault(outmsg,ret);
+    };
+    ret = extract_http_response(nextoutmsg, outmsg, request_is_head, outpayload);
+    if(!ret) return ret;
+    // TODO: handle 100 response sent by server just in case
+  } else {
+    // Header and body must be sent separately with intermediate server
+    // response fetched after header is sent.
+    // Turning body off and sending header only
+    nextpayload->ResetOutput(true,false);
+    ret = next->process(nextinmsg,nextoutmsg);
+    if(!ret) {
+      delete nextoutmsg.Payload();
+      return make_raw_fault(outmsg,ret);
+    };
+    // Parse response and check if it is 100
+    ret = extract_http_response(nextoutmsg, outmsg, request_is_head, outpayload);
+    if(!ret) return ret;
+    int resp_code = outpayload->Code();
+    if(resp_code == HTTP_CONTINUE) {
+      // So continue with body
+      delete outpayload; outpayload = NULL;
+      nextpayload->ResetOutput(false,true);
+      ret = next->process(nextinmsg,nextoutmsg);
+      if(!ret) {
+        delete nextoutmsg.Payload();
+        return make_raw_fault(outmsg,ret);
+      };
+      ret = extract_http_response(nextoutmsg, outmsg, request_is_head, outpayload);
+      if(!ret) return ret;
+    } else {
+      // Any other response should mean server can't accept request.
+      // But just in case server responded with 2xx this can fool our caller.
+      if(HTTP_CODE_IS_GOOD(resp_code)) {
+        // Convert positive response into something bad
+        std::string reason = outpayload->Reason();
+        delete outpayload; outpayload = NULL;
+        return make_raw_fault(outmsg,"Unexpected positive response received: "+
+                                     Arc::tostring(resp_code)+" "+reason);
+      }
+    }
+  }
+  // Here outpayload should contain real response
   outmsg = nextoutmsg;
   // Payload returned by next.process is not destroyed here because
   // it is now owned by outpayload.
@@ -484,3 +562,4 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
 }
 
 } // namespace ArcMCCHTTP
+

@@ -19,6 +19,8 @@
 #define HTTP_RANGE_NOT_SATISFIABLE (416)
 #define HTTP_INTERNAL_ERR (500)
 #define HTTP_NOT_IMPLEMENTED (501)
+#define HTTP_CONTINUE     (100)
+#define HTTP_CODE_IS_GOOD(CODE) (((CODE)>=200) && ((CODE)<=300))
 
 namespace ArcMCCHTTP {
 
@@ -74,9 +76,14 @@ class PayloadHTTP {
 
   /** Returns HTTP header attribute with specified name.
     Empty string if no such attribute. */
-  virtual const std::string& Attribute(const std::string& name);
+  virtual const std::string& Attribute(const std::string& name) const;
   /** Returns all HTTP header attributes. */
-  virtual const std::multimap<std::string,std::string>& Attributes(void);
+  virtual const std::multimap<std::string,std::string>& Attributes(void) const;
+  /** Returns HTTP header attributes with specified name. */
+  virtual const std::list<std::string> Attributes(const std::string& name) const;
+  /** Returns true if there is attribute with specified name and value.
+     Matching is case-insensitive with empty space trimed. */
+  virtual bool AttributeMatch(const std::string& name, const std::string& value) const;
 
   /** Returns textual description of last error */
   std::string GetError() { return error_; };
@@ -204,6 +211,12 @@ class PayloadHTTPOut: public PayloadHTTP {
   bool use_chunked_transfer_;      /** Chunked transfer to be used */
 
   uint64_t stream_offset_;         /** Amount of data read read through Stream interface */
+ 
+  bool stream_finished_;           /** Set to true when reading through Stream interface considered to be done */
+
+  bool enable_header_out_;         /** set to false to disable HTTP header in output */
+
+  bool enable_body_out_;           /** set to false to disable HTTP body in output */
 
   bool make_header(bool to_stream);
   bool remake_header(bool to_stream);
@@ -220,14 +233,24 @@ class PayloadHTTPOut: public PayloadHTTP {
 
   virtual ~PayloadHTTPOut(void);
 
+  /** Resets state of Stream and Raw interfaces so that this object 
+     can be used again for providing all HTTP elements */
+  void ResetOutput(bool enable_header, bool enable_body);
+
   /** Adds HTTP header attribute 'name' = 'value' */
   virtual void Attribute(const std::string& name,const std::string& value);
 
   virtual void KeepAlive(bool keep_alive) { keep_alive_=keep_alive; };
 
-  /** Send created object through provided stream. */
+  /** Send header of created object through provided stream. */
+  virtual bool FlushHeader(PayloadStreamInterface& stream);
+
+  /** Send body of created object through provided stream. */
   /* After this call associated stream body object usually is
     positioned at its end of data. */
+  virtual bool FlushBody(PayloadStreamInterface& stream);
+ 
+  /** Shortcut for FlushHeader() && FlushBody() */
   virtual bool Flush(PayloadStreamInterface& stream);
 };
 
@@ -236,7 +259,6 @@ class PayloadHTTPOutStream: public PayloadHTTPOut, public PayloadStreamInterface
   //int chunk_size_get(char* buf,int size,int l,uint64_t chunk_size);
   //std::string chunk_size_str_;     /** Buffer to store chunk size */
   //std::string::size_type chunk_size_offset_; /** How much of chunk_size_str_ is sent */
-  bool stream_finished_;
 
  public:
   PayloadHTTPOutStream(const std::string& method,const std::string& url);
