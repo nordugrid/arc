@@ -13,6 +13,7 @@ class PasswordSource {
     CANCEL = 2       // Request to cancel procedure which need password.
   } Result;
   virtual Result Get(std::string& password, int minsize, int maxsize) = 0;
+  virtual ~PasswordSource(void) { };
 };
 
 class PasswordSourceNone: public PasswordSource {
