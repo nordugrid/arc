@@ -1164,19 +1164,20 @@ using namespace Arc;
     // TODO: Hence retry is needed like in other cases.
 
     // To allow for redirection from the server without uploading the whole
-    // body we send an empty buffer and Expect: 100-continue header. Servers
-    // should return either 100 continue or 30x redirection.
+    // body we send request header with Expect: 100-continue. Servers
+    // should return either 100 continue or 30x redirection without 
+    // waiting for body.
     bool expect100 = true;
-    std::multimap<std::string, std::string> attrs;
-    attrs.insert(std::pair<std::string, std::string>("Expect", "100-continue"));
-    DataBuffer* empty_buffer = new DataBuffer();
-    empty_buffer->eof_read(true);
-    StreamBuffer* request = new StreamBuffer(*empty_buffer);
     for (;;) {
-      MCC_Status r = client->process(ClientHTTPAttributes("PUT", path, attrs), request, &transfer_info,
-                                     &response);
-      if (request) delete request; request = NULL;
-      if (empty_buffer) delete empty_buffer; empty_buffer = NULL;
+      std::multimap<std::string, std::string> attrs;
+      if(expect100) {
+        attrs.insert(std::pair<std::string, std::string>("EXPECT", "100-continue"));
+        // Note: there will be no 100 in response because it will be processed
+        // at lower level.
+      }
+      StreamBuffer request(*point.buffer);
+      MCC_Status r = client->process(ClientHTTPAttributes("PUT", path, attrs),
+                                     &request, &transfer_info, &response);
       if (response) delete response; response = NULL;
       if (!r) {
         // It is not clear how to retry if early chunks are not available anymore.
@@ -1188,6 +1189,7 @@ using namespace Arc;
       if (transfer_info.code == 301 || // Moved permanently
           transfer_info.code == 302 || // Found (temp redirection)
           transfer_info.code == 307) { // Temporary redirection
+        // Got redirection response
         // Recreate connection now to new URL
         point.release_client(client_url,client); client = NULL;
         client_url = transfer_info.location;
@@ -1200,36 +1202,31 @@ using namespace Arc;
           // immediately and leaves an empty file. We cannot use a new
           // connection after 100 continue because redirected URLs that dCache
           // sends are one time use only.
-          request = new StreamBuffer(*point.buffer);
+          // TODO: make it configurable. Maybe through redirection depth.
+          expect100 = false;
           path = client_url.FullPathURIEncoded();
-          attrs.clear();
           continue;
         }
+        // Failed to acquire client for new connection - fail.
         point.buffer->error_write(true);
         point.failure_code = DataStatus(DataStatus::WriteError, "Failed to connect to redirected URL "+client_url.fullstr());
         return false;
       }
-      if (transfer_info.code == 100 || // Continue
-          (transfer_info.code == 200 && expect100) || // RFC2616 says "Many older HTTP/1.0 and HTTP/1.1 applications do not understand the Expect header"
-          transfer_info.code == 417) { // Expectation not supported
-        // Server accepts request so send full body
-        request = new StreamBuffer(*point.buffer);
-        attrs.clear();
+      if (transfer_info.code == 417) { // Expectation not supported
+        // Retry without expect: 100 - probably old server
         expect100 = false;
         continue;
       }
+      // RFC2616 says "Many older HTTP/1.0 and HTTP/1.1 applications do not
+      // understand the Expect header". But this is not currently treated very well.
       if ((transfer_info.code != 201) &&
           (transfer_info.code != 200) &&
           (transfer_info.code != 204)) {  // HTTP error
         point.failure_code = DataStatus(DataStatus::WriteError, point.http2errno(transfer_info.code), transfer_info.reason);
         return false;
       }
+      // Looks like request passed well
       break;
-    }
-    if(expect100) {
-      // No proper response received hence no real transfer was done
-      point.failure_code = DataStatus(DataStatus::WriteError, "No expected response received from HTTP server");
-      return false;
     }
     return true;
   }
