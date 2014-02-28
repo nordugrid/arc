@@ -140,7 +140,6 @@ char* sbuf = buf;
       size+=l_; buf+=l_; l-=l_;
     };
   };
-std::cerr<<"-- body: "<<std::string(sbuf,size)<<std::endl;
   return true;
 }
 
@@ -995,21 +994,18 @@ bool PayloadHTTPOut::FlushBody(PayloadStreamInterface& stream) {
           if(!sbody_->Get(tbuf,lbuf)) break;
           if(lbuf == 0) continue;
           if(use_chunked_transfer_) {
-std::cerr<<"-- body: "<<(inttostr(lbuf,16)+"\r\n")<<std::endl;
             if(!stream.Put(inttostr(lbuf,16)+"\r\n")) {
               error_ = IString("Failed to write body to output stream").str();
               delete[] tbuf;
               return false;
             };
           };
-std::cerr<<"-- body: "<<std::string(tbuf,lbuf)<<std::endl;
           if(!stream.Put(tbuf,lbuf)) {
             error_ = IString("Failed to write body to output stream").str();
             delete[] tbuf;
             return false;
           };
           if(use_chunked_transfer_) {
-std::cerr<<"-- body: "<<std::string("\r\n")<<std::endl;
             if(!stream.Put("\r\n")) {
               error_ = IString("Failed to write body to output stream").str();
               delete[] tbuf;
@@ -1019,7 +1015,6 @@ std::cerr<<"-- body: "<<std::string("\r\n")<<std::endl;
         };
         delete[] tbuf;
         if(use_chunked_transfer_) {
-std::cerr<<"-- body: "<<std::string("0\r\n\r\n")<<std::endl;
           if(!stream.Put("0\r\n\r\n")) {
             error_ = IString("Failed to write body to output stream").str();
             delete[] tbuf;
@@ -1033,19 +1028,16 @@ std::cerr<<"-- body: "<<std::string("0\r\n\r\n")<<std::endl;
           int64_t lbuf = rbody_->BufferSize(n);
           if(lbuf > 0) {
             if(use_chunked_transfer_) {
-std::cerr<<"-- body: "<<inttostr(lbuf,16)+"\r\n"<<std::endl;
               if(!stream.Put(inttostr(lbuf,16)+"\r\n")) {
                 error_ = IString("Failed to write body to output stream").str();
                 return false;
               };
             };
-std::cerr<<"-- body: "<<std::string(tbuf,lbuf)<<std::endl;
             if(!stream.Put(tbuf,lbuf)) {
               error_ = IString("Failed to write body to output stream").str();
               return false;
             };
             if(use_chunked_transfer_) {
-std::cerr<<"-- body: "<<std::string("\r\n")<<std::endl;
               if(!stream.Put("\r\n")) {
                 error_ = IString("Failed to write body to output stream").str();
                 return false;
@@ -1054,7 +1046,6 @@ std::cerr<<"-- body: "<<std::string("\r\n")<<std::endl;
           };
         };
         if(use_chunked_transfer_) {
-std::cerr<<"-- body: "<<std::string("0\r\n\r\n")<<std::endl;
           if(!stream.Put("0\r\n\r\n")) {
             error_ = IString("Failed to write body to output stream").str();
             return false;
@@ -1062,7 +1053,6 @@ std::cerr<<"-- body: "<<std::string("0\r\n\r\n")<<std::endl;
         };
       } else {
         if(use_chunked_transfer_) {
-std::cerr<<"-- body: "<<std::string("0\r\n\r\n")<<std::endl;
           if(!stream.Put("0\r\n\r\n")) {
             error_ = IString("Failed to write body to output stream").str();
             return false;
