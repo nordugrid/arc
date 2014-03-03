@@ -601,6 +601,24 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
 
   if (config.use_dtr && dtr_generator) {  /***** new data staging ******/
 
+    if (config.use_local_transfer) {
+      // just check user-uploaded files for PREPARING jobs
+      if (up) {
+        state_changed = true;
+        return true;
+      }
+      int res = dtr_generator->checkUploadedFiles(*i);
+      if (res == 2) { // still going
+        return true;
+      }
+      if (res == 0) { // finished successfully
+        state_changed=true;
+        return true;
+      }
+      // error
+      return false;
+    }
+
     // first check if job is already in the system
     if (!dtr_generator->hasJob(*i)) {
       dtr_generator->receiveJob(*i);
