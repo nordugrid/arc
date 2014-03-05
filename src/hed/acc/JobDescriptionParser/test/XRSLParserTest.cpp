@@ -204,9 +204,14 @@ void XRSLParserTest::TestInputFileClientStageable() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Sources.size());
 
 
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl", ""));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl", "GRIDMANAGER"));
   OUTJOBS.clear();
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(tempjobdesc, OUTJOBS, "", "GRIDMANAGER"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS, "", "GRIDMANAGER"));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().DataStaging.InputFiles.size());
+  it = OUTJOBS.front().DataStaging.InputFiles.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Sources.size());
 
 
   remove(file.Name.c_str());
