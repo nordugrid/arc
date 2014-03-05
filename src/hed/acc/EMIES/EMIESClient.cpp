@@ -650,6 +650,15 @@ namespace Arc {
     for(;(bool)ext;++ext) job.stageout.push_back((std::string)ext);
     ext  = infodoc["esainfo:SessionDirectory"];
     for(;(bool)ext;++ext) job.session.push_back((std::string)ext);
+    XMLNode exts = infodoc["Extensions"];
+    if((bool)exts) {
+      ext = exts["Extension"];
+      for(;(bool)ext;++ext) {
+        if(ext["LocalID"] == "urn:delegid:nordugrid.org") {
+          arcjob.DelegationID.push_back((std::string)ext["Value"]);
+        };
+      };
+    };
     // Making EMI ES specific job id
     // URL-izing job id
     arcjob.JobID = job.manager.str() + "/" + job.id;
@@ -1368,6 +1377,13 @@ namespace Arc {
     }
     if (aid["esainfo:SessionDirectory"]) {
       j.SessionDir = (std::string)aid["esainfo:SessionDirectory"];
+    }
+    if (aid["Extensions"]) {
+      for(XMLNode ext = aid["Extensions"]["Extension"];(bool)ext;++ext) {
+        if (ext["LocalID"] == "urn:delegid:nordugrid.org") {
+          j.DelegationID.push_back((std::string)ext["Value"]);
+        }
+      }
     }
     // Making EMI ES specific job id
     // URL-izing job id
