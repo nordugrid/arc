@@ -22,8 +22,6 @@
 
 namespace ARex {
 
-static Arc::Logger logger_(Arc::Logger::rootLogger, "FileRecord");
-
   #define FR_DB_NAME "list"
 
   void db_env_clean(const std::string& base) {
