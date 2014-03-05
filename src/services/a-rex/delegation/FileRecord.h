@@ -1,3 +1,6 @@
+#ifndef __ARC_DELEGATION_FILERECORD_H__
+#define __ARC_DELEGATION_FiLERECORD_H__
+
 #include <list>
 #include <string>
 
@@ -59,11 +62,22 @@ class FileRecord {
   std::string Find(const std::string& id, const std::string& owner, std::list<std::string>& meta);
   bool Modify(const std::string& id, const std::string& owner, const std::list<std::string>& meta);
   bool Remove(const std::string& id, const std::string& owner);
+  // Assign specified credential ids specified lock lock_id
   bool AddLock(const std::string& lock_id, const std::list<std::string>& ids, const std::string& owner);
+  // Reomove lock lock_id from all associated credentials
   bool RemoveLock(const std::string& lock_id);
+  // Reomove lock lock_id from all associated credentials and store 
+  // identifiers of associated credentials into ids
   bool RemoveLock(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids);
+  // Fills locks with all known lock ids.
   bool ListLocks(std::list<std::string>& locks);
+  // Fills locks with all lock ids associated with specified credential id
+  bool ListLocks(const std::string& id, const std::string& owner, std::list<std::string>& locks);
+  // Fills ids with identifiers of credentials locked by specified lock_id lock
+  bool ListLocked(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids);
 };
 
 } // namespace ARex
+
+#endif // __ARC_DELEGATION_FiLERECORD_H__
 

@@ -1,3 +1,6 @@
+#ifndef __ARC_DELEGATION_STORES_H__
+#define __ARC_DELEGATION_STORES_H__
+
 #include <string>
 #include <map>
 
@@ -35,4 +38,6 @@ class DelegationStores {
 };
 
 } // namespace ARex
+
+#endif // __ARC_DELEGATION_STORE_H__
 

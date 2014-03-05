@@ -22,6 +22,8 @@
 
 namespace ARex {
 
+static Arc::Logger logger_(Arc::Logger::rootLogger, "FileRecord");
+
   #define FR_DB_NAME "list"
 
   void db_env_clean(const std::string& base) {
@@ -120,8 +122,8 @@ namespace ARex {
     db_link_ = new Db(db_env_,DB_CXX_NO_EXCEPTIONS);
     if(!dberr("Error setting flag DB_DUPSORT",db_lock_->set_flags(DB_DUPSORT))) return false;
     if(!dberr("Error setting flag DB_DUPSORT",db_locked_->set_flags(DB_DUPSORT))) return false;
-    if(!dberr("Error associating databases",db_link_->associate(NULL,db_lock_,&locked_callback,0))) return false;
-    if(!dberr("Error associating databases",db_link_->associate(NULL,db_locked_,&lock_callback,0))) return false;
+    if(!dberr("Error associating databases",db_link_->associate(NULL,db_lock_,&lock_callback,0))) return false;
+    if(!dberr("Error associating databases",db_link_->associate(NULL,db_locked_,&locked_callback,0))) return false;
     if(!dberr("Error opening database 'meta'",
           db_rec_->open(NULL,dbpath.c_str(),   "meta",  DB_BTREE,oflags,mode))) return false;
     if(!dberr("Error opening database 'link'",
@@ -425,6 +427,7 @@ namespace ARex {
       std::string owner;
       uint32_t size = data.get_size();
       void* buf = data.get_data();
+      buf = parse_string(id,buf,size); //  lock_id - skip
       buf = parse_string(id,buf,size);
       buf = parse_string(owner,buf,size);
       ids.push_back(std::pair<std::string,std::string>(id,owner));
@@ -435,6 +438,36 @@ namespace ARex {
       if(!dberr("removelock:get2",cur->get(&key,&data,DB_NEXT_DUP))) break;
     };
     db_lock_->sync(0);
+    ::free(pkey);
+    cur->close();
+    return true;
+  }
+
+
+  bool FileRecord::ListLocked(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids) {
+    if(!valid_) return false;
+    Glib::Mutex::Lock lock(lock_);
+    Dbc* cur = NULL;
+    if(!dberr("listlocked:cursor",db_lock_->cursor(NULL,&cur,0))) return false;
+    Dbt key;
+    Dbt data;
+    make_string(lock_id,key);
+    void* pkey = key.get_data();
+    if(!dberr("listlocked:get1",cur->get(&key,&data,DB_SET))) { // TODO: handle errors
+      ::free(pkey);
+      cur->close(); return false;
+    };
+    for(;;) {
+      std::string id;
+      std::string owner;
+      uint32_t size = data.get_size();
+      void* buf = data.get_data();
+      buf = parse_string(id,buf,size); //  lock_id - skip
+      buf = parse_string(id,buf,size);
+      buf = parse_string(owner,buf,size);
+      ids.push_back(std::pair<std::string,std::string>(id,owner));
+      if(cur->get(&key,&data,DB_NEXT_DUP) != 0) break;
+    };
     ::free(pkey);
     cur->close();
     return true;
@@ -456,6 +489,11 @@ namespace ARex {
     };
     cur->close();
     return true;
+  }
+
+  bool FileRecord::ListLocks(const std::string& id, const std::string& owner, std::list<std::string>& locks) {
+    // Not implemented yet
+    return false;
   }
 
   FileRecord::Iterator::Iterator(FileRecord& frec):frec_(frec),cur_(NULL) {

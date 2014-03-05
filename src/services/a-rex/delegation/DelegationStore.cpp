@@ -271,6 +271,17 @@ namespace ARex {
     return res;
   }
 
+  std::list<std::string> DelegationStore::ListLockedCredIDs(const std::string& lock_id, const std::string& client) {
+    std::list<std::string> res;
+    std::list<std::pair<std::string,std::string> > ids;
+    if(!fstore_->ListLocked(lock_id, ids)) return res;
+    for(std::list<std::pair<std::string,std::string> >::iterator id = ids.begin();
+                               id != ids.end();++id) {
+      if(id->second == client) res.push_back(id->first);
+    }
+    return res;
+  }
+
   std::list<std::pair<std::string,std::string> > DelegationStore::ListCredIDs(void) {
     std::list<std::pair<std::string,std::string> > res;
     FileRecord::Iterator rec(*fstore_);

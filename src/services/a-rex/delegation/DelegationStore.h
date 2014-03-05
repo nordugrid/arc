@@ -1,3 +1,6 @@
+#ifndef __ARC_DELEGATION_STORE_H__
+#define __ARC_DELEGATION_STORE_H__
+
 #include <string>
 #include <list>
 #include <map>
@@ -54,7 +57,10 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
 
   bool LockCred(const std::string& lock_id, const std::list<std::string>& ids,const std::string& client);
   bool ReleaseCred(const std::string& lock_id, bool touch = false, bool remove = false);
+  std::list<std::string> ListLockedCredIDs(const std::string& lock_id, const std::string& client);
 };
 
 } // namespace ARex
+
+#endif // __ARC_DELEGATION_STORE_H__
 
