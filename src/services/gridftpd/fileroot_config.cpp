@@ -209,7 +209,7 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
       if(decision == AAA_POSITIVE_MATCH) user.user.add_group(group_name);
     }
     else if(command == "vo") {
-      if(gridftpd::config_vo(user.user,command,rest) != 0) {
+      if(gridftpd::config_vo(user.user,command,rest,&logger) != 0) {
         logger.msg(Arc::ERROR, "couldn't process VO configuration");
         return 1;
       };
@@ -328,7 +328,7 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
     if(!right_group) {
       if(!cf.SectionNew()) continue;
     };
-    int r = config_vo(user.user,cf,command,rest);
+    int r = config_vo(user.user,cf,command,rest,&logger);
     if(r==0) continue;
     if(cf.SectionNew()) {
       if(right_group) switch(st) {

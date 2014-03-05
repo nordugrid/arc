@@ -318,6 +318,10 @@ const std::list<std::string>& AuthUser::VOs(void) const {
 }
 
 bool AuthUser::add_vo(const char* vo,const char* filename) {
+  if((!filename) || (!filename[0])) {
+    logger.msg(Arc::WARNING,"The [vo] section labeled '%s' has no file associated and can't be used for matching", vo);
+    return false;
+  }
   if(match_file(filename) == AAA_POSITIVE_MATCH) {
     add_vo(vo);
     return true;
