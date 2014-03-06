@@ -95,6 +95,7 @@ namespace Arc {
      * \param encoded  Set to true if URL is encoded according to RFC 3986
      * \param defaultPort Port to use if 'url' doesn't specify port
      * \param defaultPath Path to use if 'url' doesn't specify path
+     * \since Changed in 4.1.0. defaultPort and defaultPath arguments added.
      **/
     URL(const std::string& url, bool encoded = false, int defaultPort = -1, const std::string& defaultPath = "");
 
