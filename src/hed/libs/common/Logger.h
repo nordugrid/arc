@@ -61,6 +61,9 @@ namespace Arc {
   /// Convert string to a LogLevel.
   LogLevel string_to_level(const std::string& str);
   /// Convert string case-insensitively to a LogLevel
+  /**
+   * \since New in 4.1.0.
+   **/
   LogLevel istring_to_level(const std::string& llStr);
   /// Case-insensitive parsing of a string to a LogLevel with error response.
   /**
