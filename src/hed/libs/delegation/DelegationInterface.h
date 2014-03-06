@@ -162,8 +162,12 @@ class DelegationProviderSOAP: public DelegationProvider {
      This identifier may then be used to refer to credentials stored 
      at service. */
   const std::string& ID(void) { return id_;};
-  /** Assigns identifier to be used for while initiating delegation procedure.
-     Assigning identifier is useful only for *RENEW ServiceTypes. */
+  /**
+   * Assigns identifier to be used for while initiating delegation procedure.
+   * Assigning identifier is useful only for *RENEW ServiceTypes.
+   * 
+   * \since New in 4.1.0.
+   **/
   void ID(const std::string& id) { id_ = id; };
 };
 
@@ -179,6 +183,9 @@ class DelegationContainerSOAP {
   /// Stores description of last error. Derived classes should store their errors here.
   std::string failure_;
   class Consumer;
+  /**
+   * \since Changed in 4.1.0. Mapped value (Consumer) changed to pointer.
+   **/
   typedef std::map<std::string,Consumer*> ConsumerMap;
   typedef ConsumerMap::iterator ConsumerIterator;
   ConsumerMap consumers_;

@@ -181,6 +181,9 @@ namespace Arc {
   std::string strip(const std::string& str);
 
   /// Join all the elements in strlist using delimiter
+  /**
+   * \since New in 4.1.0.
+   **/
   std::string join(const std::list<std::string>& strlist, const std::string& delimiter);
 
   /// This method %-encodes characters in URI str.

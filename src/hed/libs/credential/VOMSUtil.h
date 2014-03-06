@@ -289,6 +289,8 @@ namespace Arc {
    * @param ca_cert_file
    * @param vomsdir
    * @param voms_trust_list  the dn chain that is trusted when parsing voms AC
+   * \since Changed in 4.1.0. Provide ability to query credential for VOMS
+   *  nickname attribute.
   */
   std::string getCredentialProperty(const Arc::Credential& u, const std::string& property,
                                     const std::string& ca_cert_dir = std::string(""),

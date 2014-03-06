@@ -540,6 +540,8 @@ namespace Arc {
      * @return \c true in case the verbosity could be set to a allowed
      *         LogLevel, otherwise \c false.
      * @see Verbosity() const
+     * \since Changed in 4.1.0. The argument string is now treated
+     *  case-insensitively.
      **/
     bool Verbosity(const std::string& newVerbosity);
     /// Get the user selected level of verbosity.

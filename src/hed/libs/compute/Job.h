@@ -114,6 +114,10 @@ namespace Arc {
     //Associations
     std::list<std::string>  ActivityOldID;
     std::map<std::string, std::string> LocalInputFiles;
+    /**
+     * This member is not a part of GLUE2.
+     * \since New in 4.1.0.
+     **/
     std::list<std::string> DelegationID;
 
 
