@@ -33,13 +33,21 @@ namespace Arc {
 
   /// Output formats. Defines prefix for each message.
   enum LogFormat {
-    LongFormat,  ///< all information about message is printed
-    MediumFormat,///< all information except domain is printed
-    ShortFormat, ///< only message level is printed
-    DebugFormat, ///< message time (microsecond precision) and time difference
-                 ///< from previous message are printed. This format is mostly
-                 ///< meant for profiling.
-    EmptyFormat  ///< only message is printed
+    /// All information about message is printed
+    LongFormat,
+    /// All information except domain is printed
+    /**
+     * \since Added in 4.0.0.
+     **/
+    MediumFormat,
+    /// Only message level is printed
+    ShortFormat,
+    /// Message time (microsecond precision) and time difference
+    /// from previous message are printed. This format is mostly
+    /// meant for profiling.
+    DebugFormat,
+    /// Only message is printed
+    EmptyFormat
   };
 
   /// Struct to contain LogFormat, to use with operator<<(std::ostream&, const LoggerFormat&)
@@ -62,7 +70,7 @@ namespace Arc {
   LogLevel string_to_level(const std::string& str);
   /// Convert string case-insensitively to a LogLevel
   /**
-   * \since New in 4.1.0.
+   * \since Added in 4.1.0.
    **/
   LogLevel istring_to_level(const std::string& llStr);
   /// Case-insensitive parsing of a string to a LogLevel with error response.
@@ -209,6 +217,7 @@ namespace Arc {
 
     /// Set a prefix for this log destination to be logged before messages.
     /** The prefix is prepended to messages in all formats except EmptyFormat.
+     * \since Added in 4.0.0.
      */
     void setPrefix(const std::string& prefix);
 
@@ -239,6 +248,9 @@ namespace Arc {
     LogFormat format;
 
     /// Prefix to use in this log destination.
+    /**
+     * \since Added in 4.0.0.
+     **/
     std::string prefix;
   };
 

@@ -166,7 +166,7 @@ class DelegationProviderSOAP: public DelegationProvider {
    * Assigns identifier to be used for while initiating delegation procedure.
    * Assigning identifier is useful only for *RENEW ServiceTypes.
    * 
-   * \since New in 4.1.0.
+   * \since Added in 4.1.0.
    **/
   void ID(const std::string& id) { id_ = id; };
 };

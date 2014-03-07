@@ -39,6 +39,10 @@ class CredentialError : public std::runtime_error {
 };
 
 typedef enum {CRED_PEM, CRED_DER, CRED_PKCS, CRED_UNKNOWN} Credformat;
+/// Signal algorithm
+/**
+ * \since Added in 4.0.0.
+ **/
 typedef enum { SIGN_DEFAULT = 0,
                SIGN_SHA1,
 #if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
@@ -93,6 +97,7 @@ class Credential {
 
     /** Same as previuos constructor but allows password to be
     * supplied from different sources.
+    * \since Added in 4.0.0.
     */
     Credential(const std::string& CAfile, const std::string& CAkey,
                const std::string& CAserial,
@@ -163,6 +168,7 @@ class Credential {
 
     /** Same as previuos constructor but allows password to be
     * supplied from different sources.
+    * \since Added in 4.0.0.
     */
     Credential(const std::string& cert, const std::string& key, const std::string& cadir,
                const std::string& cafile, PasswordSource& passphrase4key,
@@ -179,6 +185,7 @@ class Credential {
 
     /** Same as previuos constructor but allows password to be
     * supplied from different sources.
+    * \since Added in 4.0.0.
     */
     Credential(const UserConfig& usercfg, PasswordSource& passphrase4key);
 
@@ -194,8 +201,16 @@ class Credential {
     /**General method for adding a new nid into openssl's global const*/
     void AddCertExtObj(std::string& sn, std::string& oid);
 
+    /// Set signing algorithm
+    /**
+     * \since Added in 4.0.0.
+     **/
     void SetSigningAlgorithm(Signalgorithm signing_algorithm = SIGN_DEFAULT);
 
+    /// Set key bits
+    /**
+     * \since Added in 4.0.0.
+     **/
     void SetKeybits(int keybits = 0);
 
     static std::string NoPassword(void) { return std::string("\0",1); };
@@ -308,10 +323,14 @@ class Credential {
      */
     std::string GetCAName(void) const;
 
-    /**Get signing algorithm used to sign the certificate attached to this object*/
+    /**Get signing algorithm used to sign the certificate attached to this object
+     * \since Added in 4.0.0. 
+     **/
     Signalgorithm GetSigningAlgorithm(void) const;
 
-    /**Get key size of the certificate attached to this object*/
+    /**Get key size of the certificate attached to this object
+     * \since Added in 4.0.0.
+     **/
     int GetKeybits(void) const;
 
     /**Get the proxy policy attached to the "proxy certificate
@@ -336,6 +355,7 @@ class Credential {
      * @param content Filled with private key content
      * @param encryption whether encrypt the output private key or not
      * @param passphrase the source for passphrase to encrypt the output private key
+     * \since Added in 4.0.0.
      */
     bool OutputPrivatekey(std::string &content,  bool encryption, PasswordSource& passphrase);
 

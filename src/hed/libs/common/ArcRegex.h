@@ -62,7 +62,7 @@ namespace Arc {
      * \param str string to match against this regular expression.
      * \param matched vector which to append matched subexpressions to.
      * \return true is returned is string matches, otherwise false.
-     * \since New in 4.1.0.
+     * \since Added in 4.1.0.
      **/
     bool match(const std::string& str, std::vector<std::string>& matched) const;
 

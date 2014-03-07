@@ -214,7 +214,13 @@ namespace Arc {
     const std::string name;
     unsigned nTries;
     unsigned tryInterval;
+    /**
+     * \since Added in 4.0.0.
+     **/
     bool isValid;
+    /**
+     * \since Added in 4.0.0.
+     **/
     bool isStorageExisting;
   };
 

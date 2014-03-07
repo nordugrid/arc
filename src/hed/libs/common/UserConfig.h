@@ -409,6 +409,8 @@ namespace Arc {
      * @return If loading the configuration file succeeds \c true is
      *         returned, otherwise \c false is returned.
      * @see SaveToFile()
+     * \since Changed in 4.0.0. Added the joblisttype attribute to attributes
+     *  being parsed. Parsing of the retired bartender attribute is removed.
      **/
     bool LoadConfigurationFile(const std::string& conffile, bool ignoreJobListFile = true);
 
@@ -436,6 +438,9 @@ namespace Arc {
      * @see BaseConfig
      * @param ccfg a BaseConfig object which will configured with
      *        the credentials of this object.
+     * \since Changed in 4.0.0. %Credential string is checked first and used if
+     *  non-empty (see
+     *  \ref CredentialString(const std::string&) "CredentialString").
      **/
     void ApplyToConfig(BaseConfig& ccfg) const;
 
@@ -465,6 +470,7 @@ namespace Arc {
      * @param path the path to the job list file.
      * @return true is always returned.
      * @see JobListFile() const
+     * \since Changed in 4.0.0. Method now always returns true.
      **/
     bool JobListFile(const std::string& path);
     /// Get a reference to the path of the job list file.
@@ -487,12 +493,14 @@ namespace Arc {
      * @param type of job storage
      * @return true is always returned.
      * @see JobListType()
+     * \since Added in 4.0.0.
      **/
     bool JobListType(const std::string& type);
     /// Get type of job storage
     /**
      * @return The type of job storage is returned.
      * @see JobListType(const std::string&)
+     * \since Added in 4.0.0.
      **/
     const std::string& JobListType() const { return joblisttype; }
 
@@ -679,6 +687,7 @@ namespace Arc {
      * can be used to set the credential as a string stored in memory.
      *
      * @param cred The credential represented as a string
+     * \since Added in 4.0.0.
      */
     void CredentialString(const std::string& cred) { credentialString = cred; }
     /// Get credentials.
@@ -687,6 +696,7 @@ namespace Arc {
      * CredentialString(const std::string&).
      *
      * @return String representation of credentials
+     * \since Added in 4.0.0.
      */
     const std::string& CredentialString() const { return credentialString; }
 
@@ -1219,6 +1229,7 @@ namespace Arc {
      * in the directory specified by the ARCUSERDIRECTORY variable with name
      * 'jobs.dat'.
      * @see ARCUSERDIRECTORY
+     * \since Added in 4.0.0.
      **/
     static const std::string JOBLISTFILE;
 

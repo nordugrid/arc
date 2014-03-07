@@ -182,7 +182,7 @@ namespace Arc {
 
   /// Join all the elements in strlist using delimiter
   /**
-   * \since New in 4.1.0.
+   * \since Added in 4.1.0.
    **/
   std::string join(const std::list<std::string>& strlist, const std::string& delimiter);
 

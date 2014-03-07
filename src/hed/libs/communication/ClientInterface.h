@@ -116,7 +116,7 @@ namespace Arc {
     std::list<std::string> cookies; /// All collected cookies
     /// All returned headers
     /**
-     * \since New in 4.1.0.
+     * \since Added in 4.1.0.
      **/
     std::multimap<std::string, std::string> headers;
     std::string location; /// Value of location attribute in HTTP response

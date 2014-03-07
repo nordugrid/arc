@@ -83,6 +83,9 @@ namespace Arc {
     std::list<std::string> plugin_paths;
   public:
     /// Credential stored as string
+    /**
+     * \since Added in 4.0.0.
+     **/
     std::string credential;
     /// Path to private key
     std::string key;
@@ -102,6 +105,9 @@ namespace Arc {
     /// Adds non-standard location of plugins
     void AddPluginsPath(const std::string& path);
     /// Add credential string
+    /**
+     * \since Added in 4.0.0.
+     **/
     void AddCredential(const std::string& cred);
     /// Add private key
     void AddPrivateKey(const std::string& path);

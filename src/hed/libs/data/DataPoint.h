@@ -640,6 +640,7 @@ namespace Arc {
      * Some protocols require that credentials exist in files (in which case
      * this method returns true), whereas others can use credentials in memory
      * (then this method returns false).
+     * \since Added in 4.0.0.
      */
     virtual bool RequiresCredentialsInFile() const;
 
@@ -686,6 +687,7 @@ namespace Arc {
     /**
      * To be used with protocols which re-direct to different URLs such as
      * Transport URLs (TURLs). Has no effect for other protocols.
+     * \since Added in 4.0.0.
      */
     virtual void ClearTransferLocations() {};
 
