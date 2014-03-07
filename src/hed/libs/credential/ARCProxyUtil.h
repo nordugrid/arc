@@ -4,7 +4,10 @@
 
 namespace Arc {
 
-
+/// Utility class for generating proxies
+/**
+ * \since Added in 3.0.1.
+ **/
 class ARCProxyUtil {
   enum { SHA1,
 #if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)

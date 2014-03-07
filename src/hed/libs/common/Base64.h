@@ -18,8 +18,14 @@ namespace Arc {
     Base64();
     ~Base64();
     /// Encode a string to base 64
+    /**
+     * \since Added in 3.0.1.
+     **/
     static std::string encode(const std::string& bufplain);
     /// Decode a string from base 64
+    /**
+     * \since Added in 3.0.1.
+     **/
     static std::string decode(const std::string& bufcoded);
 
     // The next 4 methods are legacy API kept for backwards compatibility. They
