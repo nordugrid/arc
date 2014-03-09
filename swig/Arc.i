@@ -521,6 +521,12 @@ std::ostream& getStdout() { return std::cout; }
 #endif
 #endif
 
+/* TODO: Python: Avoid creating a new SWIG types for each module, for types that
+ * are general for different modules. E.g. StringPair - put it in common, and
+ * use the one from common in the other modules. In python:
+ * arc.common.StringPair == arc.compute.StringPair => False
+ */
+
 %template(StringPair) std::pair<std::string, std::string>;
 %wraplist(String, std::string)
 %template(StringSet) std::set<std::string>;
