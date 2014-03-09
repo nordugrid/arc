@@ -767,7 +767,7 @@ PayloadHTTPOut::PayloadHTTPOut(const std::string& method,const std::string& url)
     head_response_(false),rbody_(NULL),sbody_(NULL),sbody_size_(0),
     body_own_(false),to_stream_(false),use_chunked_transfer_(false),
     stream_offset_(0),stream_finished_(false),
-    enable_body_out_(true),enable_header_out_(true) {
+    enable_header_out_(true), enable_body_out_(true) {
   valid_ = true;
 }
 
@@ -776,7 +776,7 @@ PayloadHTTPOut::PayloadHTTPOut(int code,const std::string& reason,bool head_resp
     head_response_(head_response),rbody_(NULL),sbody_(NULL),sbody_size_(0),
     body_own_(false),to_stream_(false),use_chunked_transfer_(false),
     stream_offset_(0), stream_finished_(false),
-    enable_body_out_(true),enable_header_out_(true) {
+    enable_header_out_(true), enable_body_out_(true) {
   valid_ = true;
 }
 
