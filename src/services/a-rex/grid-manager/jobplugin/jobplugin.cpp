@@ -43,11 +43,6 @@
 #include "../../../gridftpd/fileplugin/fileplugin.h"
 #include "../../delegation/DelegationStore.h"
 
-#ifdef HAVE_GACL
-#include "../../../gridftpd/auth/gacl_auth.h"
-#include "../../../gridftpd/auth/permission_gacl.h"
-#endif
-
 #include "jobplugin.h"
 
 using namespace ARex;
@@ -60,12 +55,6 @@ typedef struct {
   const std::string* job;
   const char* reason;
 } job_subst_t;
-
-#define IS_ALLOWED_READ  1
-#define IS_ALLOWED_WRITE 2
-#define IS_ALLOWED_LIST  4
-#define IS_ALLOWED_RW    3
-#define IS_ALLOWED_ALL   7
 
 #ifdef HAVE_SETFSUID
 
@@ -1452,31 +1441,17 @@ bool JobPlugin::is_allowed(const char* name,int perm,bool /* locked */,bool* spe
     }
     if(job_desc.DN != subject) {
       // Not an owner. Check acl.
-#ifdef HAVE_GACL
       std::string acl_file = config.ControlDir()+"/job."+id+".acl";
       struct stat st;
       if(stat(acl_file.c_str(),&st) == 0) {
         if(S_ISREG(st.st_mode)) {
-          GACLacl* acl = GACLloadAcl((char*)(acl_file.c_str()));
-          if(acl) {
-            GACLperm perm = AuthUserGACLTest(acl,user_a);
-            int res = 0;
-            if(GACLhasList(perm))
-              res|=IS_ALLOWED_LIST;
-            if(GACLhasRead(perm) | GACLhasWrite(perm))
-              res|=(IS_ALLOWED_READ | IS_ALLOWED_LIST);
-            if(GACLhasAdmin(perm))
-              res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
-            //if(strncmp(l_name,"proxy",5) == 0) res&=IS_ALLOWED_LIST;
-            //if(strncmp(l_name,"acl",3) != 0) res&=~IS_ALLOWED_WRITE;
-            if ( (res & perm) == perm) return true;
-            error_description = "Not allowed for this job: permission denied";
-            return false;
-          };
+          int res = 0;
+          res |= check_acl(acl_file.c_str(), true, id);
+          if ( (res & perm) == perm) return true;
+          error_description = "Not allowed for this job: permission denied";
         };
       };
-#endif
-      return true;
+      return false;
     };
     //if(strncmp(l_name,"proxy",5) == 0) return (IS_ALLOWED_LIST);
     //if(strncmp(l_name,"acl",3) != 0) return (IS_ALLOWED_READ | IS_ALLOWED_LIST);;
@@ -1524,34 +1499,13 @@ bool JobPlugin::is_allowed(const char* name,int perm,bool /* locked */,bool* spe
     res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
   } else {
     // Not an owner. Check acl.
-#ifdef HAVE_GACL
     std::string acl_file = config.ControlDir()+"/job."+id+".acl";
     struct stat st;
     if(stat(acl_file.c_str(),&st) == 0) {
       if(S_ISREG(st.st_mode)) {
-        GACLacl* acl = GACLloadAcl((char*)(acl_file.c_str()));
-        if(acl) {
-          GACLperm perm = AuthUserGACLTest(acl,user_a);
-          if(spec) {
-            if(GACLhasList(perm))
-              res|=IS_ALLOWED_LIST;
-            if(GACLhasRead(perm) | GACLhasWrite(perm))
-              res|=(IS_ALLOWED_READ | IS_ALLOWED_LIST);
-            if(GACLhasAdmin(perm))
-              res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
-          } else {
-            if(GACLhasList(perm)) res|=IS_ALLOWED_LIST;
-            if(GACLhasRead(perm)) res|=IS_ALLOWED_READ;
-            if(GACLhasWrite(perm)) res|=IS_ALLOWED_WRITE;
-            if(GACLhasAdmin(perm))
-              res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
-          };
-        } else {
-          logger.msg(Arc::ERROR, "Failed to read job's ACL for job %s from %s", id, config.ControlDir());
-        };
+        res |= check_acl(acl_file.c_str(), spec, id);
       };
     };
-#endif
   };
   if ((res & perm) == perm) return true;
   error_description="Not allowed for this job: permission denied";

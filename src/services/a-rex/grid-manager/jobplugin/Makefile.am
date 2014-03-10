@@ -10,7 +10,7 @@ GLOBUS_JOBPLUGIN_LIBS = $(GLOBUS_RSL_LIBS) $(GLOBUS_IO_LIBS) \
 
 pkglib_LTLIBRARIES = jobplugin.la
 
-jobplugin_la_SOURCES = jobplugin.cpp jobplugin.h init.cpp
+jobplugin_la_SOURCES = jobplugin.cpp jobplugin_acl.cpp jobplugin.h init.cpp
 jobplugin_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(DBCXX_CPPFLAGS) \
 	$(GLOBUS_FTP_CLIENT_CFLAGS) $(GACL_CFLAGS) $(GRIDSITE_CFLAGS) $(AM_CXXFLAGS)
@@ -27,5 +27,6 @@ jobplugin_la_LIBADD = \
 	../log/liblog.la ../files/libfiles.la ../run/librun.la \
 	../../delegation/libdelegation.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
+	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(DBCXX_LIBS) $(GLOBUS_JOBPLUGIN_LIBS) -lpthread

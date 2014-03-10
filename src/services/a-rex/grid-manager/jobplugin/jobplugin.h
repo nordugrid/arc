@@ -28,9 +28,17 @@ struct gm_dirs_ {
 class JobPlugin: public FilePlugin {
 
  private:
+  enum {
+    IS_ALLOWED_READ  = 1,
+    IS_ALLOWED_WRITE = 2,
+    IS_ALLOWED_LIST  = 4,
+    IS_ALLOWED_RW    = 3,
+    IS_ALLOWED_ALL   = 7
+  };
   bool make_job_id(const std::string &);
   bool make_job_id(void);
   bool delete_job_id(void);
+  int check_acl(const char* acl_file,bool spec,const std::string& id);
   bool is_allowed(const char* name,int perm,bool locked = false,bool* spec_dir = NULL,std::string* id = NULL,char const ** logname = NULL,std::string* log = NULL);
   DirectFilePlugin * selectFilePlugin(std::string id);
   /** Find the control dir used by this job id */
