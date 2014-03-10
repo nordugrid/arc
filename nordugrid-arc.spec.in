@@ -768,7 +768,11 @@ Python bindings for ARC.
 Summary:	ARC Java wrapper
 Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
+%if %{?fedora}%{!?fedora:0} >= 20 || %{?rhel}%{!?rhel:0} >= 7
+Requires:	java-headless
+%else
 Requires:	java
+%endif
 Requires:	jpackage-utils
 %if %{with_gcj}
 Requires(post):		java-gcj-compat
