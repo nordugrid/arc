@@ -338,6 +338,21 @@ bool TLSSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
       //add_xacml_subject_attribute(subj,target_,"http://www.nordugrid.org/schemas/policy-arc/types/tls/hostidentity");
     };
     return true;
+  } else if(format == GACL) {
+    NS ns;
+    val.Namespaces(ns); val.Name("gacl");
+    XMLNode entry = val.NewChild("entry");
+    if(!identity_.empty()) entry.NewChild("person").NewChild("dn") = identity_;
+    XMLNode voms;
+    for(std::vector<VOMSACInfo>::const_iterator v = voms_attributes_.begin();
+                                 v != voms_attributes_.end();++v) {
+      for(std::vector<std::string>::const_iterator a = v->attributes.begin();
+                                 a != v->attributes.end();++a) {
+        if(!voms) voms = entry.NewChild("voms");
+        voms.NewChild("fqan") = *a;
+      };
+      voms = XMLNode(); // ??
+    };
   } else {
   };
   return false;

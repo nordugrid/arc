@@ -239,6 +239,15 @@ bool MessageAuth::Export(SecAttrFormat format,XMLNode &val) const {
       copy_xml_elements(environment, r["Environment"].Child());
     };
     return true;
+  } else if(format == SecAttr::GACL) {
+    NS ns;
+    if(!val) XMLNode(ns,"gacl").New(val);
+    std::map<std::string,SecAttr*>::const_iterator attr = attrs_.begin();
+    for(;attr != attrs_.end();++attr) {
+      if(!(attr->second)) return false;
+      if(!(attr->second->Export(format,val))) continue; // GACL support is not mandatory
+    };
+    return true;
   }
   return false;
 }
