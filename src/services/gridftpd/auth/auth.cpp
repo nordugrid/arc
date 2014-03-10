@@ -233,6 +233,7 @@ struct voms AuthUser::arc_to_voms(const std::string& vo,const std::vector<std::s
 
   struct voms voms_item;
   voms_item.voname = vo;
+  voms_item.fqans = attributes;
   // For matching against pure VO
   voms_item.attrs.push_back(voms_attrs());
   for(std::vector<std::string>::const_iterator v = attributes.begin(); v != attributes.end(); ++v) {

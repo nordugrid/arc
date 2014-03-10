@@ -61,7 +61,6 @@ int JobPlugin::check_acl(const char* acl_file,bool spec,const std::string& id) {
 
 int JobPlugin::check_acl(const char* acl_file,bool spec,const std::string& id) {
   int res = 0;
-#ifdef USE_INTERNAL_GACL
   // TODO: this code is not complete yet
   // Identify and parse policy
   ArcSec::EvaluatorLoader eval_loader;
@@ -91,19 +90,22 @@ int JobPlugin::check_acl(const char* acl_file,bool spec,const std::string& id) {
     bool allowed_to_write = false;
     bool allowed_to_admin = false;
     // Collect all security attributes
-/*!!!!
-    for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
-      if(*a) (*a)->Export(Arc::SecAttr::GACL,request);
+    {
+      std::string user_identity = user_a.DN();
+      const std::vector<struct voms>& user_voms = user_a.voms();
+      Arc::XMLNode entry = request.NewChild("entry");
+      if(!user_identity.empty()) entry.NewChild("person").NewChild("dn") = user_identity;
+      Arc::XMLNode voms;
+      for(std::vector<struct voms>::const_iterator v = user_voms.begin();
+                                     v != user_voms.end();++v) {
+        for(std::vector<std::string>::const_iterator a = v->fqans.begin();
+                                   a != v->fqans.end();++a) {
+          if(!voms) voms = entry.NewChild("voms");
+          voms.NewChild("fqan") = *a;
+        };
+        voms = Arc::XMLNode(); // ??
+      };
     };
-*/
-    // Leave only client identities
-    int entries = 0;
-    for(Arc::XMLNode entry = request["entry"];(bool)entry;++entry) {
-      for(Arc::XMLNode a = entry["allow"];(bool)a;a=entry["allow"]) a.Destroy();
-      for(Arc::XMLNode a = entry["deny"];(bool)a;a=entry["deny"]) a.Destroy();
-      ++entries;
-    };
-    if(!entries) request.NewChild("entry");
     // Evaluate every action separately
     EVALUATE_ACTION(request,allowed_to_list,"list");
     EVALUATE_ACTION(request,allowed_to_read,"read");
@@ -122,7 +124,6 @@ int JobPlugin::check_acl(const char* acl_file,bool spec,const std::string& id) {
   } else {
     logger.msg(Arc::VERBOSE, "Unknown ACL policy %s for job %s", policyname, id);
   };
-#endif // USE_INTERNAL_GACL
   return res;
 }
 

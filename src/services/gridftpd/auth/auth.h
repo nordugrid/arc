@@ -27,6 +27,7 @@ struct voms {
   std::string server;      /*!< The VOMS server DN, as from its certificate */
   std::string voname;      /*!< The name of the VO to which the VOMS belongs */
   std::vector<voms_attrs> attrs;   /*!< User's characteristics */
+  std::vector<std::string> fqans; /*!< Attributes as originally provided by parsing code */
 };
 
 class AuthUser {
