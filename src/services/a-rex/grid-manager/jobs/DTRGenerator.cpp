@@ -499,9 +499,15 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
     return true;
   }
 
-  // no DTRs left, clean up session dir if upload or failed download
+  // No DTRs left, clean up session dir if upload or failed download
+  // But first add the DTR back to the active list to avoid race condition
+  // caused by calling hasJob() between removing from active and adding to
+  // finished, which results in job being submitted to DTR again
+  active_dtrs.insert(std::pair<std::string, std::string>(jobid, dtr->get_id()));
+
   bool finished_with_error = (finished_jobs.find(jobid) != finished_jobs.end() && !finished_jobs[jobid].empty());
   lock.unlock();
+
   if (dtr->get_source()->Local()) {
     // list of files to keep in session dir
     std::list<FileData> files;
@@ -543,8 +549,10 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
     else if (delete_all_files(job.SessionDir(), files, false, job_uid, job_gid) == 2)
       logger.msg(Arc::WARNING, "%s: Failed to clean up session dir", jobid);
   }
-  // add to finished jobs (without overwriting existing error)
+  // add to finished jobs (without overwriting existing error) and finally
+  // remove from active
   lock.lock();
+  active_dtrs.erase(jobid);
   finished_jobs[jobid] += "";
 
   // log summary to DTR log and A-REX log
