@@ -25,7 +25,7 @@ libarex_la_SOURCES  = arex.cpp job.cpp \
 	get_factory_attributes_document.cpp update_credentials.cpp faults.cpp \
 	get.cpp put.cpp PayloadFile.cpp FileChunks.cpp \
 	information_collector.cpp cachecheck.cpp tools.cpp \
-	arex.h job.h PayloadFile.h FileChunks.h gacl.h tools.h
+	arex.h job.h PayloadFile.h FileChunks.h tools.h
 libarex_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
 # Needs real cleaning in respect to dependencies
