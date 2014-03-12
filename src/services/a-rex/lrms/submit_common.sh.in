@@ -401,7 +401,7 @@ setup_local_transfer () {
 
 upload_output_files () {
    if [ "$joboption_localtransfer" = 'yes' ] ; then
-     echo "UPLOADER=\${UPLOADER:-$basedir/uploader}" >> $LRMS_JOB_SCRIPT
+     echo "UPLOADER=\${UPLOADER:-$ARC_LOCATION/@pkglibexecsubdir@/uploader}" >> $LRMS_JOB_SCRIPT
      cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
      if [ "$RESULT" = '0' ] ; then
        $UPLOADER -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR}/job.local.errors
@@ -424,7 +424,7 @@ download_input_files () {
     RUNTIME_GLOBUS_LOCATION="$GLOBUS_LOCATION"
     echo "ARC_LOCATION=\${ARC_LOCATION:-$RUNTIME_ARC_LOCATION}" >> $LRMS_JOB_SCRIPT
     echo "GLOBUS_LOCATION=\${GLOBUS_LOCATION:-$RUNTIME_GLOBUS_LOCATION}" >> $LRMS_JOB_SCRIPT
-    echo "DOWNLOADER=\${DOWNLOADER:-$basedir/downloader}" >> $LRMS_JOB_SCRIPT
+    echo "DOWNLOADER=\${DOWNLOADER:-$ARC_LOCATION/@pkglibexecsubdir@/downloader}" >> $LRMS_JOB_SCRIPT
     cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
     if [ -z "$ARC_LOCATION" ] ; then
       echo 'Variable ARC_LOCATION is not set' 1>&2
