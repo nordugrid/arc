@@ -104,7 +104,7 @@ echo >> $registrationconf
 	    reghn=${CONFIG_targethostname:-"targethostname.not.set"}
 	    regport=${CONFIG_targetport:-2135}
 	    hn=${CONFIG_registranthostname:-$CONFIG_hostname}
-	    port=${CONFIG_registrantport:-$CONFIG_port}
+	    port=${CONFIG_registrantport:-${CONFIG_port:-2135}}
 	    rootdn=${CONFIG_registrantsuffix:-"nordugrid-cluster-name=$hn,Mds-Vo-name=local,o=Grid"}
 	    regperiod=${CONFIG_regperiod:-120}
 	    ttl=${CONFIG_ttl:-$(( $regperiod * 2 ))}
@@ -133,7 +133,7 @@ echo >> $registrationconf
 		    reghn=${CONFIG_targethostname:-"targethostname.not.set"}
 		    regport=${CONFIG_targetport:-2135}
 		    hn=${CONFIG_registranthostname:-$CONFIG_hostname}
-		    port=${CONFIG_registrantport:-$CONFIG_port}
+		    port=${CONFIG_registrantport:-${CONFIG_port:-2135}}
 		    rootdn=${CONFIG_registrantsuffix:-"nordugrid-se-name=$sename:$hn,Mds-Vo-name=local,o=Grid"}
 		    regperiod=${CONFIG_regperiod:-120}
 		    ttl=${CONFIG_ttl:-$(( $regperiod * 2 ))}
@@ -163,7 +163,7 @@ echo >> $registrationconf
 		    reghn=${CONFIG_targethostname:-"targethostname.not.set"}
 		    regport=${CONFIG_targetport:-2135}
 		    hn=${CONFIG_registranthostname:-$CONFIG_hostname}
-		    port=${CONFIG_registrantport:-$CONFIG_port}
+		    port=${CONFIG_registrantport:-${CONFIG_port:-2135}}
 		    rootdn=${CONFIG_registrantsuffix:-"Mds-Vo-name=$indexname,o=Grid"}
 		    regperiod=${CONFIG_regperiod:-120}
 		    ttl=${CONFIG_ttl:-$(( $regperiod * 2 ))}
