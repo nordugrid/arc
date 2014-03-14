@@ -7,7 +7,8 @@
 
 namespace ArcDMCRucio {
 
-  /// Store of auth tokens for different accounts
+  /// Store of auth tokens for different accounts. Not thread-safe so locking
+  /// should be applied by the user of this class.
   class RucioTokenStore {
    private:
     /// Token associated to account and with expiry time
@@ -64,8 +65,12 @@ namespace ArcDMCRucio {
     std::string account;
     /// In-memory cache of auth tokens
     static RucioTokenStore tokens;
+    /// Lock to protect access to tokens
+    static Glib::Mutex lock;
     /// Rucio auth url
     Arc::URL auth_url;
+    /// Length of time for which a token is valid
+    const static Arc::Period token_validity;
     /// Check if a valid auth token exists in the cache and if not get a new one
     Arc::DataStatus checkToken(std::string& token);
     /// Call Rucio to obtain metalink

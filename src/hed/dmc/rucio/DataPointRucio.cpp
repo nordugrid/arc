@@ -13,12 +13,14 @@ namespace ArcDMCRucio {
 
   Arc::Logger DataPointRucio::logger(Arc::Logger::getRootLogger(), "DataPoint.Rucio");
   RucioTokenStore DataPointRucio::tokens;
+  Glib::Mutex DataPointRucio::lock;
+  const Period DataPointRucio::token_validity(3600); // token lifetime is 1h
   Arc::Logger RucioTokenStore::logger(Arc::Logger::getRootLogger(), "DataPoint.RucioTokenStore");
 
   void RucioTokenStore::AddToken(const std::string& account, const Time& expirytime, const std::string& token) {
     // Replace any existing token
     if (tokens.find(account) != tokens.end()) {
-      logger.msg(DEBUG, "Replacing existing token for %s in Rucio token cache", account);
+      logger.msg(VERBOSE, "Replacing existing token for %s in Rucio token cache", account);
     }
     // Create new token
     RucioToken t;
@@ -31,10 +33,10 @@ namespace ArcDMCRucio {
     // Search for account in list
     std::string token;
     if (tokens.find(account) != tokens.end()) {
-      logger.msg(DEBUG, "Found existing token for %s in Rucio token cache with expiry time %s", account, tokens[account].expirytime.str());
+      logger.msg(VERBOSE, "Found existing token for %s in Rucio token cache with expiry time %s", account, tokens[account].expirytime.str());
       // If 5 mins left until expiry time, get new token
       if (tokens[account].expirytime <= Time()+300) {
-        logger.msg(DEBUG, "Rucio token for %s has expired or is about to expire", account);
+        logger.msg(VERBOSE, "Rucio token for %s has expired or is about to expire", account);
       } else {
         token = tokens[account].token;
       }
@@ -226,6 +228,8 @@ namespace ArcDMCRucio {
 
   DataStatus DataPointRucio::checkToken(std::string& token) {
 
+    // Locking the entire method prevents multiple concurrent calls to get tokens
+    Glib::Mutex::Lock l(lock);
     std::string t = tokens.GetToken(account);
     if (!t.empty()) {
       token = t;
@@ -258,8 +262,8 @@ namespace ArcDMCRucio {
       return DataStatus(DataStatus::ReadResolveError, "Failed to obtain auth token");
     }
     token = transfer_info.headers.find("HTTP:x-rucio-auth-token")->second;
-    tokens.AddToken(account, Time()+3600, token);
-    logger.msg(DEBUG, "Acquired auth token for %s: %s", account, token);
+    tokens.AddToken(account, Time()+token_validity, token);
+    logger.msg(VERBOSE, "Acquired auth token for %s: %s", account, token);
     return DataStatus::Success;
   }
 
