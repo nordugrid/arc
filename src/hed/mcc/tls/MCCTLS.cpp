@@ -220,8 +220,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
          processing_failed_ = true; 
          logger.msg(ERROR,"VOMS attribute validation failed");
        };
-     };
-     if(processing_failed_) {
+       logger.msg(ERROR,"VOMS attribute is ignored due to processing/validation error");
        v = voms_attributes_.erase(v);
      } else {
        ++v;
