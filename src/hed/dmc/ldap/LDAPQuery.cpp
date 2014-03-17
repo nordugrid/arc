@@ -10,8 +10,8 @@
 #include <string>
 
 #ifdef USE_WIN32_LDAP_API
-#include <winber.h>
 #include <winldap.h>
+#include <winber.h>
 
 #define timeval l_timeval
 
