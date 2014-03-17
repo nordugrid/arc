@@ -220,6 +220,8 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
          processing_failed_ = true; 
          logger.msg(ERROR,"VOMS attribute validation failed");
        };
+     };
+     if(processing_failed_) {
        v = voms_attributes_.erase(v);
      } else {
        ++v;
@@ -353,6 +355,7 @@ bool TLSSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
       };
       voms = XMLNode(); // ??
     };
+    return true;
   } else {
   };
   return false;
