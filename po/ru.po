@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-03-17 23:45+0100\n"
-"PO-Revision-Date: 2014-03-18 00:08+0100\n"
+"POT-Creation-Date: 2014-03-18 00:10+0100\n"
+"PO-Revision-Date: 2014-03-18 00:13+0100\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -13501,40 +13501,44 @@ msgstr "Сбой обработки критического атрибута VO
 msgid "VOMS attribute validation failed"
 msgstr "Сбой проверки атрибутов VOMS"
 
-#: src/hed/mcc/tls/MCCTLS.cpp:433 src/hed/mcc/tls/MCCTLS.cpp:515
+#: src/hed/mcc/tls/MCCTLS.cpp:223
+msgid "VOMS attribute is ignored due to processing/validation error"
+msgstr "Атрибут VOMS игнорируется из-за ошибки обработки или проверки"
+
+#: src/hed/mcc/tls/MCCTLS.cpp:432 src/hed/mcc/tls/MCCTLS.cpp:514
 #, c-format
 msgid "Peer name: %s"
 msgstr "Имя контакта: %s"
 
-#: src/hed/mcc/tls/MCCTLS.cpp:435 src/hed/mcc/tls/MCCTLS.cpp:517
+#: src/hed/mcc/tls/MCCTLS.cpp:434 src/hed/mcc/tls/MCCTLS.cpp:516
 #, c-format
 msgid "Identity name: %s"
 msgstr "Выделенное имя: %s"
 
-#: src/hed/mcc/tls/MCCTLS.cpp:437 src/hed/mcc/tls/MCCTLS.cpp:519
+#: src/hed/mcc/tls/MCCTLS.cpp:436 src/hed/mcc/tls/MCCTLS.cpp:518
 #, c-format
 msgid "CA name: %s"
 msgstr "Имя сертификационного агентства: %s"
 
-#: src/hed/mcc/tls/MCCTLS.cpp:443
+#: src/hed/mcc/tls/MCCTLS.cpp:442
 msgid "Failed to process security attributes in TLS MCC for incoming message"
 msgstr ""
 "Не удалось обработать атрибуты безопасности в TLS MCC для входящего сообщения"
 
-#: src/hed/mcc/tls/MCCTLS.cpp:452
+#: src/hed/mcc/tls/MCCTLS.cpp:451
 msgid "Security check failed in TLS MCC for incoming message"
 msgstr "Не прошла проверка безопасности в TLS MCC для входящего сообщения"
 
-#: src/hed/mcc/tls/MCCTLS.cpp:525
+#: src/hed/mcc/tls/MCCTLS.cpp:524
 msgid "Security check failed for outgoing TLS message"
 msgstr "Не прошла проверка безопасности для исходящего сообщения TLS"
 
-#: src/hed/mcc/tls/MCCTLS.cpp:536 src/hed/mcc/tcp/MCCTCP.cpp:599
+#: src/hed/mcc/tls/MCCTLS.cpp:535 src/hed/mcc/tcp/MCCTCP.cpp:599
 #: src/hed/mcc/tcp/MCCTCP.cpp:706
 msgid "Failed to send content of buffer"
 msgstr "Не удалось отправить содержимое буфера"
 
-#: src/hed/mcc/tls/MCCTLS.cpp:554
+#: src/hed/mcc/tls/MCCTLS.cpp:553
 msgid "Security check failed for incoming TLS message"
 msgstr "Не прошла проверка безопасности для входящего сообщения TLS "
 
