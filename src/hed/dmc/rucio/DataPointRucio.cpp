@@ -142,7 +142,7 @@ namespace ArcDMCRucio {
   DataStatus DataPointRucio::Resolve(bool source, const std::list<DataPoint*>& urls) {
     // Call rucio
     if (!source) return DataStatus(DataStatus::WriteResolveError, ENOTSUP, "Writing to Rucio is not supported");
-    if (urls.empty()) return DataStatus::Success;
+    if (urls.empty()) return DataStatus(DataStatus::ReadResolveError, ENOTSUP, "Bulk resolving is not supported");
 
     // Check token and get new one if necessary
     std::string token;
@@ -347,7 +347,7 @@ namespace ArcDMCRucio {
       std::string filename = (std::string)file.Attribute("name");
 
       for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
-        if (url.Path().substr(url.Path().rfind('/')+1) == filename) {
+        if ((*i)->GetURL().Path().substr((*i)->GetURL().Path().rfind('/')+1) == filename) {
           if (file["hash"]) {
             std::string csum((std::string)(file["hash"].Attribute("type")) + ":" + (std::string)file["hash"]);
             logger.msg(DEBUG, "%s: checksum %s", filename, csum);
