@@ -70,6 +70,7 @@ static bool CompareIdentity(XMLNode pid,XMLNode rid) {
   if(pid.Size() > 0) {
     for(int n=0;;++n) {
       XMLNode pitem = pid.Child(n);
+      if(!pitem) break;
       XMLNode ritem = rid[pitem.Name()];
       for(;(bool)ritem;++ritem) {
         if(CompareIdentity(pitem,ritem)) break;
