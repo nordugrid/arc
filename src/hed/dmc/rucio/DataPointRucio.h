@@ -73,10 +73,10 @@ namespace ArcDMCRucio {
     const static Arc::Period token_validity;
     /// Check if a valid auth token exists in the cache and if not get a new one
     Arc::DataStatus checkToken(std::string& token);
-    /// Call Rucio to obtain metalink
-    Arc::DataStatus queryRucio(Arc::XMLNode& content, const std::string& path) const;
-    /// Parse metalink xml
-    Arc::DataStatus parseLocations(const Arc::XMLNode& content, const std::list<DataPoint*>& urls) const;
+    /// Call Rucio to obtain json of replica info
+    Arc::DataStatus queryRucio(std::string& content, const std::string& token) const;
+    /// Parse replica json
+    Arc::DataStatus parseLocations(const std::string& content);
 
   };
 

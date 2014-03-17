@@ -129,30 +129,29 @@ namespace ArcDMCRucio {
   }
 
   DataStatus DataPointRucio::Resolve(bool source) {
-    std::list<DataPoint*> urls(1, this);
-    DataStatus r = Resolve(source, urls);
-    if (!r) return r;
-    if (!HaveLocations()) {
-      logger.msg(VERBOSE, "No locations found for %s", url.str());
-      return DataStatus(DataStatus::ReadResolveError, ENOENT, "No valid locations found");
-    }
-    return DataStatus::Success;
-  }
-
-  DataStatus DataPointRucio::Resolve(bool source, const std::list<DataPoint*>& urls) {
-    // Call rucio
-    if (!source) return DataStatus(DataStatus::WriteResolveError, ENOTSUP, "Writing to Rucio is not supported");
-    if (urls.empty()) return DataStatus(DataStatus::ReadResolveError, ENOTSUP, "Bulk resolving is not supported");
 
     // Check token and get new one if necessary
     std::string token;
     DataStatus r = checkToken(token);
     if (!r) return r;
 
-    XMLNode content;
+    std::string content;
     r = queryRucio(content, token);
     if (!r) return r;
-    return parseLocations(content, urls);
+    return parseLocations(content);
+  }
+
+  DataStatus DataPointRucio::Resolve(bool source, const std::list<DataPoint*>& urls) {
+
+    if (!source) return DataStatus(DataStatus::WriteResolveError, ENOTSUP, "Writing to Rucio is not supported");
+    if (urls.empty()) return DataStatus(DataStatus::ReadResolveError, ENOTSUP, "Bulk resolving is not supported");
+
+    // No bulk yet so query in series
+    for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
+      DataStatus r = (*i)->Resolve(source);
+      if (!r) return r;
+    }
+    return DataStatus::Success;
   }
 
   DataStatus DataPointRucio::Stat(FileInfo& file, DataPoint::DataPointInfoType verb) {
@@ -267,7 +266,7 @@ namespace ArcDMCRucio {
     return DataStatus::Success;
   }
 
-  DataStatus DataPointRucio::queryRucio(XMLNode& content,
+  DataStatus DataPointRucio::queryRucio(std::string& content,
                                         const std::string& token) const {
 
     // SSL error happens if client certificate is specified, so only set CA dir
@@ -278,7 +277,8 @@ namespace ArcDMCRucio {
     std::multimap<std::string, std::string> attrmap;
     std::string method("GET");
     attrmap.insert(std::pair<std::string, std::string>("X-Rucio-Auth-Token", token));
-    attrmap.insert(std::pair<std::string, std::string>("Accept", "application/metalink4+xml"));
+    // Adding the line below makes rucio return a metalink xml
+    //attrmap.insert(std::pair<std::string, std::string>("Accept", "application/metalink4+xml"));
     ClientHTTPAttributes attrs(method, url.Path(), attrmap);
 
     HTTPClientInfo transfer_info;
@@ -302,83 +302,88 @@ namespace ArcDMCRucio {
     if (!instream) {
       return DataStatus(DataStatus::ReadResolveError, "Unexpected response from server");
     }
-    std::string xml;
-    std::string buf;
-    while (instream->Get(buf)) xml += buf;
-    logger.msg(DEBUG, "Rucio returned %s", xml);
 
-    // Assignment to existing XMLNode doesn't work so make a tmp
-    XMLNode tmp(xml);
-    if (!tmp) {
-      logger.msg(ERROR, "Rucio returned malormed xml: %s", xml);
-      return DataStatus(DataStatus::ReadResolveError, "Unexpected response from server");
-    }
-    tmp.New(content);
+    std::string buf;
+    while (instream->Get(buf)) content += buf;
+    logger.msg(DEBUG, "Rucio returned %s", content);
     return DataStatus::Success;
   }
 
-  DataStatus DataPointRucio::parseLocations(const XMLNode& content,
-                                            const std::list<DataPoint*>& urls) const {
+  DataStatus DataPointRucio::parseLocations(const std::string& content) {
 
-    // parse XML:
-    //<?xml version="1.0" encoding="UTF-8"?>
-    //<metalink xmlns="urn:ietf:params:xml:ns:metalink">
-    // <files>
-    //  <file name="EVNT.545023._000082.pool.root.1">
-    //   <identity>mc11_7TeV:EVNT.545023._000082.pool.root.1</identity>
-    //   <hash type="adler32">ffa2c799</hash>
-    //   <size>69234676</size>
-    //   <url location="NDGF-T1-RUCIOTEST_DATATAPE" priority="0">https://dav.ndgf.org:443/atlas/disk/atlasdatatape/ruciotest/mc11_7TeV/EVNT/e825/mc11_7TeV.117362.st_tchan_taunu_AcerMC.evgen.EVNT.e825_tid545023_00/EVNT.545023._000082.pool.root.1</url>
-    //   <url location="NDGF-T1-RUCIOTEST_DATATAPE" priority="1">srm://srm.ndgf.org:8443/srm/managerv2?SFN=/atlas/disk/atlasdatatape/ruciotest/mc11_7TeV/EVNT/e825/mc11_7TeV.117362.st_tchan_taunu_AcerMC.evgen.EVNT.e825_tid545023_00/EVNT.545023._000082.pool.root.1</url>
-    //  </file>
-    // </files>
-    //</metalink>
+    // parse JSON:
+    // {"adler32": "ffa2c799",
+    //  "name": "EVNT.545023._000082.pool.root.1",
+    //  "replicas": [],
+    //  "rses": {"LRZ-LMU_DATADISK": ["srm://lcg-lrz-srm.grid.lrz.de:8443/srm/managerv2?SFN=/pnfs/lrz-muenchen.de/data/atlas/dq2/atlasdatadisk/rucio/mc11_7TeV/6c/13/EVNT.545023._000082.pool.root.1"],
+    //           "INFN-FRASCATI_DATADISK": ["srm://atlasse.lnf.infn.it:8446/srm/managerv2?SFN=/dpm/lnf.infn.it/home/atlas/atlasdatadisk/rucio/mc11_7TeV/6c/13/EVNT.545023._000082.pool.root.1"],
+    //           "TAIWAN-LCG2_DATADISK": ["srm://f-dpm001.grid.sinica.edu.tw:8446/srm/managerv2?SFN=/dpm/grid.sinica.edu.tw/home/atlas/atlasdatadisk/rucio/mc11_7TeV/6c/13/EVNT.545023._000082.pool.root.1"]},
+    //  "bytes": 69234676,
+    //  "space_token": "ATLASDATADISK",
+    //  "scope": "mc11_7TeV",
+    //  "md5": null}
 
-    XMLNode files = content["files"];
-    std::string doc;
-    content.GetDoc(doc, true);
-    if (!files) {
-      logger.msg(ERROR, "Failed to parse Rucio response: %s", doc);
-      return DataStatus(DataStatus::ReadResolveError, "Failed to parse Rucio response");
+    if (content.empty()) {
+      // empty response means no such file
+      return DataStatus(DataStatus::ReadResolveError, ENOENT);
     }
-    XMLNode file = files["file"];
-    for (; file; ++file) {
-      // look in returned xml for each url
-      std::string filename = (std::string)file.Attribute("name");
 
-      for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
-        if ((*i)->GetURL().Path().substr((*i)->GetURL().Path().rfind('/')+1) == filename) {
-          if (file["hash"]) {
-            std::string csum((std::string)(file["hash"].Attribute("type")) + ":" + (std::string)file["hash"]);
-            logger.msg(DEBUG, "%s: checksum %s", filename, csum);
-            (*i)->SetCheckSum(csum);
-          }
-          if (file["size"]) {
-            unsigned long long int size;
-            stringto((std::string)file["size"], size);
-            logger.msg(DEBUG, "%s: size %llu", filename, size);
-            (*i)->SetSize(size);
-          }
-          XMLNode replica = file["url"];
-          for (; replica; ++replica) {
-            URL loc((std::string)replica);
-            // Add URL options to replicas
-            for (std::map<std::string, std::string>::const_iterator opt = (*i)->GetURL().CommonLocOptions().begin();
-                 opt != (*i)->GetURL().CommonLocOptions().end(); opt++)
-              loc.AddOption(opt->first, opt->second, false);
-            for (std::map<std::string, std::string>::const_iterator opt = (*i)->GetURL().Options().begin();
-                 opt != (*i)->GetURL().Options().end(); opt++)
-              loc.AddOption(opt->first, opt->second, false);
-            (*i)->AddLocation(loc, loc.ConnectionURL());
-          }
-        }
-      }
+    cJSON *root = cJSON_Parse(content.c_str());
+    if (!root) {
+      logger.msg(ERROR, "Failed to parse Rucio response: %s", content);
+      return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
     }
-    // Go through urls and check locations were found
-    for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
-      if (!(*i)->HaveLocations()) {
-        logger.msg(WARNING, "No locations found for %s", (*i)->GetURL().str());
+    cJSON *name = cJSON_GetObjectItem(root, "name");
+    if (!name) {
+      logger.msg(ERROR, "Filename not returned in Rucio response: %s", content);
+      return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
+    }
+    std::string filename(name->valuestring);
+    if (filename != url.Path().substr(url.Path().rfind('/')+1)) {
+      logger.msg(ERROR, "Unexpected name returned in Rucio response: %s", content);
+      return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
+    }
+    cJSON *rses = cJSON_GetObjectItem(root, "rses");
+    if (!rses) {
+      logger.msg(ERROR, "No RSE information returned in Rucio response: %s", content);
+      return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
+    }
+    cJSON *rse = rses->child;
+    while (rse) {
+      cJSON *replicas = rse->child;
+      while(replicas) {
+        URL loc(std::string(replicas->valuestring));
+        // Add URL options to replicas
+        for (std::map<std::string, std::string>::const_iterator opt = url.CommonLocOptions().begin();
+             opt != url.CommonLocOptions().end(); opt++)
+          loc.AddOption(opt->first, opt->second, false);
+        for (std::map<std::string, std::string>::const_iterator opt = url.Options().begin();
+             opt != url.Options().end(); opt++)
+          loc.AddOption(opt->first, opt->second, false);
+        AddLocation(loc, loc.ConnectionURL());
+        replicas = replicas->next;
       }
+      rse = rse->next;
+    }
+    cJSON *fsize = cJSON_GetObjectItem(root, "bytes");
+    if (!fsize) {
+      logger.msg(WARNING, "No filesize information returned in Rucio response for %s", filename);
+    } else {
+      SetSize((int)fsize->valuedouble);
+      logger.msg(DEBUG, "%s: size %llu", filename, GetSize());
+    }
+    cJSON *csum = cJSON_GetObjectItem(root, "adler32");
+    if (!fsize) {
+      logger.msg(WARNING, "No checksum information returned in Rucio response for %s", filename);
+    } else {
+      SetCheckSum(std::string("adler32:") + std::string(csum->valuestring));
+      logger.msg(DEBUG, "%s: checksum %s", filename, GetCheckSum());
+    }
+    cJSON_Delete(root);
+
+    if (!HaveLocations()) {
+      logger.msg(ERROR, "No locations found for %s", url.str());
+      return DataStatus(DataStatus::ReadResolveError, ENOENT);
     }
     return DataStatus::Success;
   }
