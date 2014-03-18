@@ -125,7 +125,7 @@ Section "NorduGrid ARC clients"
 ;  File "${ARC_LOCATION}/bin/saml_assertion_init.exe"
 
   # Needed by libcanl_c++-1.dll
-  File "${SYS_PATH}/bin/pthreadGC2.dll"
+  File "${SYS_PATH}/bin/libwinpthread-1.dll"
   # Needed by arcproxyalt.exe
   File "${SYS_PATH}/bin/libcanl_c++-1.dll"
   # Needed by libcanl_c++-1.dll
@@ -167,7 +167,7 @@ Section "NorduGrid ARC clients"
   File "${SYS_PATH}/bin/QtGui4.dll"
   File "${SYS_PATH}/bin/QtNetwork4.dll"
   File "${SYS_PATH}/bin/QtWebKit4.dll"
-  File "${SYS_PATH}/bin/libpng15-15.dll"
+  File "${SYS_PATH}/bin/libpng16-16.dll"
   File "${SYS_PATH}/bin/libsqlite3-0.dll"
 !endif
 
@@ -392,8 +392,7 @@ Section "Uninstall"
 
 !ifdef USE_GUI
   Delete /rebootok "$INSTDIR\bin\libsqlite3-0.dll"
-  Delete /rebootok "$INSTDIR\bin\libpng15-15.dll"
-  Delete /rebootok "$INSTDIR\bin\QtGui4.dll"
+  Delete /rebootok "$INSTDIR\bin\libpng16-16.dll"
   Delete /rebootok "$INSTDIR\bin\QtWebKit4.dll"
   Delete /rebootok "$INSTDIR\bin\QtNetwork4.dll"
   Delete /rebootok "$INSTDIR\bin\QtGui4.dll"
@@ -430,7 +429,7 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\bin\libgcc_s_sjlj-1.dll"
   Delete /rebootok "$INSTDIR\bin\libcrypto-10.dll"
 
-  Delete /rebootok "$INSTDIR\bin\pthreadGC2.dll"
+  Delete /rebootok "$INSTDIR\bin\libwinpthread-1.dll"
   Delete /rebootok "$INSTDIR\bin\libdb_cxx-5.3.dll"
   Delete /rebootok "$INSTDIR\bin\libcanl_c++-1.dll"
 
