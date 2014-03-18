@@ -331,21 +331,25 @@ namespace ArcDMCRucio {
     cJSON *root = cJSON_Parse(content.c_str());
     if (!root) {
       logger.msg(ERROR, "Failed to parse Rucio response: %s", content);
+      cJSON_Delete(root);
       return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
     }
     cJSON *name = cJSON_GetObjectItem(root, "name");
     if (!name) {
       logger.msg(ERROR, "Filename not returned in Rucio response: %s", content);
+      cJSON_Delete(root);
       return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
     }
     std::string filename(name->valuestring);
     if (filename != url.Path().substr(url.Path().rfind('/')+1)) {
       logger.msg(ERROR, "Unexpected name returned in Rucio response: %s", content);
+      cJSON_Delete(root);
       return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
     }
     cJSON *rses = cJSON_GetObjectItem(root, "rses");
     if (!rses) {
       logger.msg(ERROR, "No RSE information returned in Rucio response: %s", content);
+      cJSON_Delete(root);
       return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
     }
     cJSON *rse = rses->child;
