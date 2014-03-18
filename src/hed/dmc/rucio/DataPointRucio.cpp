@@ -369,7 +369,7 @@ namespace ArcDMCRucio {
     if (!fsize) {
       logger.msg(WARNING, "No filesize information returned in Rucio response for %s", filename);
     } else {
-      SetSize((int)fsize->valuedouble);
+      SetSize((unsigned long long int)fsize->valuedouble);
       logger.msg(DEBUG, "%s: size %llu", filename, GetSize());
     }
     cJSON *csum = cJSON_GetObjectItem(root, "adler32");
