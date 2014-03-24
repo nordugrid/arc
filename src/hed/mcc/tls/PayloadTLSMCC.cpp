@@ -414,7 +414,7 @@ PayloadTLSMCC::~PayloadTLSMCC(void) {
     int err = SSL_shutdown(ssl_);
     if(err == 0) err = SSL_shutdown(ssl_);
     if(err < 0) { // -1 expected
-      logger_.msg(INFO, "Failed to shut down SSL");
+      logger_.msg(VERBOSE, "Failed to shut down SSL");
       ConfigTLSMCC::HandleError();
       // Trying to get out of error
       SSL_set_quiet_shutdown(ssl_,1);
