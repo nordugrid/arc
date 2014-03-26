@@ -62,6 +62,15 @@ namespace Arc {
     /// \mapattr INLRMS:H -> HOLD
     else if (state_ == "INLRMS:H")
       return JobState::HOLD;
+    /// \mapattr INLRMS:S -> HOLD
+    else if (state_ == "INLRMS:S")
+      return JobState::HOLD;
+    /// \mapattr INLRMS:E -> FINISHING
+    else if (state_ == "INLRMS:E")
+      return JobState::FINISHING;
+    /// \mapattr INLRMS:O -> HOLD
+    else if (state_ == "INLRMS:O")
+      return JobState::HOLD;
     /// \mapattr INLRMS* -> QUEUING
     else if (state_.substr(0,6) == "INLRMS")
       return JobState::QUEUING; // expect worst ?
