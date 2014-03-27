@@ -99,11 +99,11 @@ nodes_string="#SBATCH -n ${joboption_count}"
 echo "$nodes_string" >> $LRMS_JOB_SCRIPT
 
 if [ ! -z $joboption_countpernode ] && [ $joboption_countpernode -gt 0 ] ; then
-  echo "#SBATCH -c $joboption_countpernode" >> $LRMS_JOB_SCRIPT
+  echo "#SBATCH --ntasks-per-node $joboption_countpernode" >> $LRMS_JOB_SCRIPT
 fi
 
-nodes_string="#SBATCH "
 
+nodes_string="#SBATCH "
 i=0
 eval "var_is_set=\${joboption_nodeproperty_$i+yes}"
 while [ ! -z "${var_is_set}" ] ; do
@@ -113,6 +113,7 @@ while [ ! -z "${var_is_set}" ] ; do
   eval "var_is_set=\${joboption_nodeproperty_$i+yes}"
 done
 echo "$nodes_string" >> $LRMS_JOB_SCRIPT
+
 
 if [ "$joboption_exclusivenode" = "true" ]; then
   echo "#SBATCH --exclusive" >> $LRMS_JOB_SCRIPT
