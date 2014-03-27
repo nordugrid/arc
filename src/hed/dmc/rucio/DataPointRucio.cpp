@@ -86,8 +86,15 @@ namespace ArcDMCRucio {
 
   DataPointRucio::DataPointRucio(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
     : DataPointIndex(url, usercfg, parg) {
-    // Use RUCIO_ACCOUNT if set
-    account = Arc::GetEnv("RUCIO_ACCOUNT");
+    // Get RUCIO_ACCOUNT, try in order:
+    // - rucioaccount URL option
+    // - RUCIO_ACCOUNT environment variable
+    // - nickname extracted from VOMS proxy
+    valid_url_options.insert("rucioaccount");
+    account = url.Option("rucioaccount");
+    if (account.empty()) {
+      account = Arc::GetEnv("RUCIO_ACCOUNT");
+    }
     if (account.empty()) {
       // Extract nickname from voms credential
       Credential cred(usercfg);
@@ -97,6 +104,7 @@ namespace ArcDMCRucio {
     if (account.empty()) {
       logger.msg(WARNING, "Failed to extract VOMS nickname from proxy");
     }
+    logger.msg(VERBOSE, "Using Rucio account %s", account);
     // Take auth url from env var if available, otherwise use hard-coded one
     // TODO: specify through url option instead?
     std::string rucio_auth_url(Arc::GetEnv("RUCIO_AUTH_URL"));
