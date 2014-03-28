@@ -5,6 +5,21 @@
 #endif
 
 
+/* Python: Avoid creating a new SWIG types for each module, for types that
+ * are general for different modules. E.g. StringPair - put it in common, and
+ * use the one from common in the other modules.
+ */
+%template(StringPair) std::pair<std::string, std::string>;
+%wraplist(String, std::string)
+%template(StringSet) std::set<std::string>;
+#ifdef SWIGJAVA
+%template(StringSetIterator) setiterator<std::string>;
+#endif
+%template(StringVector) std::vector<std::string>;
+%template(StringStringMap) std::map<std::string, std::string>;
+
+#ifndef SWIGIMPORTED
+
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/XMLNode.h
 %{
 #include <arc/XMLNode.h>
@@ -272,3 +287,5 @@ private:
 #endif
 %include "../src/hed/libs/common/Thread.h"
 %template(SimpleConditionList) std::list<Arc::SimpleCondition*>;
+
+#endif // SWIGIMPORTED

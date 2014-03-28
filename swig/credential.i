@@ -2,6 +2,8 @@
 %module credential
 
 %include "Arc.i"
+// Import common module in order to access common template types.
+%import(module="common") "common.i"
 
 %import "../src/hed/libs/common/UserConfig.h"
 %import "../src/hed/libs/common/DateTime.h"

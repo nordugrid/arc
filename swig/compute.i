@@ -2,6 +2,8 @@
 %module compute
 
 %include "Arc.i"
+// Import common module in order to access common template types.
+%import(module="common") "common.i"
 
 // (module="..") is needed for inheritance from those classes to work in python
 %import "../src/hed/libs/common/ArcConfig.h"
@@ -314,6 +316,7 @@
 %template(ComputingShareMap) std::map<int, Arc::ComputingShareType>;
 %template(ComputingManagerMap) std::map<int, Arc::ComputingManagerType>;
 %template(ExecutionEnvironmentMap) std::map<int, Arc::ExecutionEnvironmentType>;
+%template(StringDoubleMap) std::map<std::string, double>;
 %template(SharedBenchmarkMap) Arc::CountedPointer< std::map<std::string, double> >;
 %template(SharedApplicationEnvironmentList) Arc::CountedPointer< std::list<Arc::ApplicationEnvironment> >;
 %template(GLUE2EntityLocationAttributes) Arc::GLUE2Entity<Arc::LocationAttributes>;
