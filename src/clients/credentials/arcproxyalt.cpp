@@ -462,6 +462,12 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
   }
 
+  // If debug is specified as argument, it should be set before loading the configuration.
+  if (!debug.empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(debug));
+
+  logger.msg(Arc::VERBOSE, "Running command: %s", options.GetCommandWithArguments());
+
 #ifdef HAVE_NSS
   //Using nss db dominate other option
   if(use_nssdb) {
@@ -536,10 +542,6 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
   }
 #endif
-
-  // If debug is specified as argument, it should be set before loading the configuration.
-  if (!debug.empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(debug));
 
   // This ensure command line args overwrite all other options
   if(!cert_path.empty())Arc::SetEnv("X509_USER_CERT", cert_path);

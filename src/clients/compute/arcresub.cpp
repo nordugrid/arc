@@ -46,7 +46,7 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
   if (!opt.debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(opt.debug));
 
-  logger.msg(Arc::VERBOSE, "Running command: %s", opt.cmdwithargs);
+  logger.msg(Arc::VERBOSE, "Running command: %s", opt.GetCommandWithArguments());
 
   Arc::UserConfig usercfg(opt.conffile, opt.joblist);
   if (!usercfg) {

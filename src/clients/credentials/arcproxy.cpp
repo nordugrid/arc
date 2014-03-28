@@ -612,6 +612,8 @@ int main(int argc, char *argv[]) {
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(debug));
 
+  logger.msg(Arc::VERBOSE, "Running command: %s", options.GetCommandWithArguments());
+
   // This ensure command line args overwrite all other options
   if(!cert_path.empty())Arc::SetEnv("X509_USER_CERT", cert_path);
   if(!key_path.empty())Arc::SetEnv("X509_USER_KEY", key_path);

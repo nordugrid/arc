@@ -226,6 +226,13 @@ namespace Arc {
 #ifdef HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY
   std::list<std::string> OptionParser::Parse(int argc, char **argv) {
 
+    if (argc > 0) {
+      origcmdwithargs = argv[0];
+      for (int i = 1; i < argc; ++i) {
+        origcmdwithargs += " " + std::string(argv[i]);
+      }
+    }
+
     Glib::OptionContext ctx(arguments);
     if (!summary.empty())
       ctx.set_summary(summary);
@@ -282,6 +289,13 @@ namespace Arc {
   }
 
   std::list<std::string> OptionParser::Parse(int argc, char **argv) {
+
+    if (argc > 0) {
+      origcmdwithargs = argv[0];
+      for (int i = 1; i < argc; ++i) {
+        origcmdwithargs += " " + std::string(argv[i]);
+      }
+    }
 
     struct option *longoptions = new struct option[options.size() + 3];
     int i = 0;

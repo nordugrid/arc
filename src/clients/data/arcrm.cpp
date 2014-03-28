@@ -151,6 +151,8 @@ int main(int argc, char **argv) {
     Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(debug));
   }
 
+  logger.msg(Arc::VERBOSE, "Running command: %s", options.GetCommandWithArguments());
+
   if (show_plugins) {
     std::list<Arc::ModuleDesc> modules;
     Arc::PluginsFactory pf(Arc::BaseConfig().MakeConfig(Arc::Config()).Parent());

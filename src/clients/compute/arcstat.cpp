@@ -48,7 +48,7 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
   if (!opt.debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(opt.debug));
 
-  logger.msg(Arc::VERBOSE, "Running command: %s", opt.cmdwithargs);
+  logger.msg(Arc::VERBOSE, "Running command: %s", opt.GetCommandWithArguments());
 
   if (opt.show_plugins) {
     std::list<std::string> types;

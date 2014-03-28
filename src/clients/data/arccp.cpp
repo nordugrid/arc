@@ -641,6 +641,8 @@ int main(int argc, char **argv) {
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!debug.empty()) Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(debug));
 
+  logger.msg(Arc::VERBOSE, "Running command: %s", options.GetCommandWithArguments());
+
   if (show_plugins) {
     std::list<Arc::ModuleDesc> modules;
     Arc::PluginsFactory pf(Arc::BaseConfig().MakeConfig(Arc::Config()).Parent());

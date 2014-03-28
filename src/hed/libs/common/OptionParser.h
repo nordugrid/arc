@@ -106,11 +106,21 @@ namespace Arc {
      */
     std::list<std::string> Parse(int argc, char **argv);
 
+    /// Get command and arguments
+    /**
+     * Get the arguments as they were passed to the Parse method as a string
+     * joined by spaces.
+     * @return The command and all arguments joined by a spaces.
+     * @since Added in 4.1.0.
+     **/
+    const std::string& GetCommandWithArguments() const { return origcmdwithargs; }
+    
   private:
     std::string arguments;
     std::string summary;
     std::string description;
     std::list<OptionBase*> options;
+    std::string origcmdwithargs;
   };
 
 } // namespace Arc

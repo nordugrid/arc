@@ -213,6 +213,8 @@ int main(int argc, char *argv[]) {
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(debug));
 
+  logger.msg(Arc::VERBOSE, "Running command: %s", options.GetCommandWithArguments());
+
   Arc::UserConfig usercfg(conffile,  Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");

@@ -53,7 +53,7 @@ int RUNMAIN(arcacl)(int argc, char **argv) {
   if (!opt.debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(opt.debug));
 
-  logger.msg(Arc::VERBOSE, "Running command: %s", opt.cmdwithargs);
+  logger.msg(Arc::VERBOSE, "Running command: %s", opt.GetCommandWithArguments());
 
   if (jobidentifiers.empty()) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
