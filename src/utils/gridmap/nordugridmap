@@ -1010,6 +1010,11 @@ sub voms_subjects_soap {
         return (4, \%Subjects);
     }
 
+    if ( ref($soap_req->result) ne 'ARRAY' ) {
+        &Logger("SOAP returned non-array result for URL: $url", VERBOSE);
+        return (0, \%Subjects);
+    }
+
     if ( ! @{$soap_req->result} ) {
         &Logger("SOAP returned empty result for URL: $url", VERBOSE);
         return (0, \%Subjects);
