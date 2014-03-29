@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-03-18 00:10+0100\n"
-"PO-Revision-Date: 2014-03-18 00:13+0100\n"
+"POT-Creation-Date: 2014-03-29 23:45+0100\n"
+"PO-Revision-Date: 2014-03-29 23:46+0100\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -686,6 +686,11 @@ msgstr "Неверный формат контрольной суммы %s"
 #: src/clients/compute/arccat.cpp:52 src/clients/compute/arcrenew.cpp:46
 #: src/clients/compute/arcsync.cpp:156 src/clients/compute/arctest.cpp:84
 #: src/clients/compute/arcstat.cpp:51 src/clients/compute/arckill.cpp:49
+#: src/clients/data/arcrename.cpp:138 src/clients/data/arcmkdir.cpp:127
+#: src/clients/data/arccp.cpp:644 src/clients/data/arcrm.cpp:154
+#: src/clients/data/arcls.cpp:354 src/clients/credentials/arcproxy.cpp:615
+#: src/clients/credentials/arcslcs.cpp:216
+#: src/clients/credentials/arcproxyalt.cpp:469
 #, c-format
 msgid "Running command: %s"
 msgstr "Выполняется команда %s"
@@ -1225,15 +1230,15 @@ msgstr "%s, версия %s"
 #: src/clients/compute/arccat.cpp:63 src/clients/compute/arcrenew.cpp:57
 #: src/clients/compute/arcsync.cpp:167 src/clients/compute/arctest.cpp:88
 #: src/clients/compute/arcstat.cpp:62 src/clients/compute/arckill.cpp:60
-#: src/clients/data/arcrename.cpp:158 src/clients/data/arcmkdir.cpp:147
-#: src/clients/data/arccp.cpp:665 src/clients/data/arcrm.cpp:174
-#: src/clients/data/arcls.cpp:374 src/clients/credentials/arcslcs.cpp:218
+#: src/clients/data/arcrename.cpp:160 src/clients/data/arcmkdir.cpp:149
+#: src/clients/data/arccp.cpp:667 src/clients/data/arcrm.cpp:176
+#: src/clients/data/arcls.cpp:376 src/clients/credentials/arcslcs.cpp:220
 #: src/clients/wsrf/arcwsrf.cpp:101
 msgid "Failed configuration initialization"
 msgstr "Не удалось загрузить настройки"
 
-#: src/clients/echo/arcecho.cpp:84 src/clients/credentials/arcproxy.cpp:688
-#: src/clients/credentials/arcproxyalt.cpp:602
+#: src/clients/echo/arcecho.cpp:84 src/clients/credentials/arcproxy.cpp:690
+#: src/clients/credentials/arcproxyalt.cpp:604
 msgid "Wrong number of arguments!"
 msgstr "Недопустимое число аргументов!"
 
@@ -2561,15 +2566,15 @@ msgstr "Команда arcrename переименовывает файлы на 
 msgid "list the available plugins (protocols supported)"
 msgstr "Показать список доступных модулей (поддерживаемые протоколы)"
 
-#: src/clients/data/arcrename.cpp:144 src/clients/data/arcmkdir.cpp:133
-#: src/clients/data/arccp.cpp:650 src/clients/data/arcrm.cpp:160
-#: src/clients/data/arcls.cpp:360
+#: src/clients/data/arcrename.cpp:146 src/clients/data/arcmkdir.cpp:135
+#: src/clients/data/arccp.cpp:652 src/clients/data/arcrm.cpp:162
+#: src/clients/data/arcls.cpp:362
 msgid "Protocol plugins available:"
 msgstr "Доступны модули для следующих протоколов:"
 
-#: src/clients/data/arcrename.cpp:167 src/clients/data/arcmkdir.cpp:157
-#: src/clients/data/arccp.cpp:675 src/clients/data/arcrm.cpp:185
-#: src/clients/data/arcls.cpp:385
+#: src/clients/data/arcrename.cpp:169 src/clients/data/arcmkdir.cpp:159
+#: src/clients/data/arccp.cpp:677 src/clients/data/arcrm.cpp:187
+#: src/clients/data/arcls.cpp:387
 msgid "Wrong number of parameters specified"
 msgstr "Задано неверное количество параметров"
 
@@ -2838,7 +2843,7 @@ msgstr ""
 "выполнить стороннюю пересылку, когда назначение закачивает файл из источника "
 "(доступно только с модулем GFAL)"
 
-#: src/clients/data/arccp.cpp:680
+#: src/clients/data/arccp.cpp:682
 msgid "Options 'p' and 'n' can't be used simultaneously"
 msgstr "Опции 'p' и 'n' не могут быть использованы одновременно"
 
@@ -2915,11 +2920,11 @@ msgstr ""
 msgid "check readability of object, does not show any information about object"
 msgstr "проверить читаемость объекта, не показывать информацию об объекте"
 
-#: src/clients/data/arcls.cpp:390
+#: src/clients/data/arcls.cpp:392
 msgid "Incompatible options --nolist and --forcelist requested"
 msgstr "Запрошены несовместимые опции --nolist и --forcelist"
 
-#: src/clients/data/arcls.cpp:395
+#: src/clients/data/arcls.cpp:397
 msgid "Requesting recursion and --nolist has no sense"
 msgstr "Запрос рекурсивного просмотра и --nolist не имеет смысла"
 
@@ -3343,15 +3348,15 @@ msgstr "ограничения доверенности"
 msgid "password sources"
 msgstr "источники пароля"
 
-#: src/clients/credentials/arcproxy.cpp:631
-#: src/clients/credentials/arcproxy.cpp:1222
-#: src/clients/credentials/arcproxyalt.cpp:507
-#: src/clients/credentials/arcproxyalt.cpp:554
+#: src/clients/credentials/arcproxy.cpp:633
+#: src/clients/credentials/arcproxy.cpp:1224
+#: src/clients/credentials/arcproxyalt.cpp:513
+#: src/clients/credentials/arcproxyalt.cpp:556
 msgid "Failed configuration initialization."
 msgstr "Не удалось загрузить настройки."
 
-#: src/clients/credentials/arcproxy.cpp:645
-#: src/clients/credentials/arcproxyalt.cpp:561
+#: src/clients/credentials/arcproxy.cpp:647
+#: src/clients/credentials/arcproxyalt.cpp:563
 msgid ""
 "Failed to find certificate and/or private key or files have improper "
 "permissions or ownership."
@@ -3359,22 +3364,22 @@ msgstr ""
 "Не удалось обнаружить сертификат и/или закрытый ключ, либо у файлов "
 "неподходящие параметры доступа"
 
-#: src/clients/credentials/arcproxy.cpp:646
-#: src/clients/credentials/arcproxy.cpp:658
-#: src/clients/credentials/arcproxyalt.cpp:562
-#: src/clients/credentials/arcproxyalt.cpp:572
+#: src/clients/credentials/arcproxy.cpp:648
+#: src/clients/credentials/arcproxy.cpp:660
+#: src/clients/credentials/arcproxyalt.cpp:564
+#: src/clients/credentials/arcproxyalt.cpp:574
 msgid "You may try to increase verbosity to get more information."
 msgstr ""
 "Вы можете попытаться увеличить уровень детальности для получения "
 "дополнительной информации."
 
-#: src/clients/credentials/arcproxy.cpp:654
-#: src/clients/credentials/arcproxyalt.cpp:568
+#: src/clients/credentials/arcproxy.cpp:656
+#: src/clients/credentials/arcproxyalt.cpp:570
 msgid "Failed to find CA certificates"
 msgstr "Невозможно найти сертификаты CA."
 
-#: src/clients/credentials/arcproxy.cpp:655
-#: src/clients/credentials/arcproxyalt.cpp:569
+#: src/clients/credentials/arcproxy.cpp:657
+#: src/clients/credentials/arcproxyalt.cpp:571
 msgid ""
 "Cannot find the CA certificates directory path, please set environment "
 "variable X509_CERT_DIR, or cacertificatesdirectory in a configuration file."
@@ -3383,8 +3388,8 @@ msgstr ""
 "переменную среды X509_CERT_DIR, или значение cacertificatesdirectory в файле "
 "настроек"
 
-#: src/clients/credentials/arcproxy.cpp:659
-#: src/clients/credentials/arcproxyalt.cpp:573
+#: src/clients/credentials/arcproxy.cpp:661
+#: src/clients/credentials/arcproxyalt.cpp:575
 msgid ""
 "The CA certificates directory is required for contacting VOMS and MyProxy "
 "servers."
@@ -3392,10 +3397,10 @@ msgstr ""
 "Каталог сертификатов агентств CA необходим для связи с серверами VOMS и "
 "MyProxy"
 
-#: src/clients/credentials/arcproxy.cpp:696
-#: src/clients/credentials/arcproxy.cpp:716
-#: src/clients/credentials/arcproxyalt.cpp:610
-#: src/clients/credentials/arcproxyalt.cpp:630
+#: src/clients/credentials/arcproxy.cpp:698
+#: src/clients/credentials/arcproxy.cpp:718
+#: src/clients/credentials/arcproxyalt.cpp:612
+#: src/clients/credentials/arcproxyalt.cpp:632
 msgid ""
 "Cannot find the path of the proxy file, please setup environment "
 "X509_USER_PROXY, or proxypath in a configuration file"
@@ -3403,20 +3408,20 @@ msgstr ""
 "Не удалось найти доверенность пользователя. Пожалуйста, задайте переменную "
 "среды X509_USER_PROXY, или значение proxypath в файле настроек"
 
-#: src/clients/credentials/arcproxy.cpp:701
-#: src/clients/credentials/arcproxyalt.cpp:615
+#: src/clients/credentials/arcproxy.cpp:703
+#: src/clients/credentials/arcproxyalt.cpp:617
 #, c-format
 msgid "Cannot remove proxy file at %s, because it's not there"
 msgstr "Невозможно удалить файл доверенности в %s, потому что его там нет"
 
-#: src/clients/credentials/arcproxy.cpp:705
-#: src/clients/credentials/arcproxyalt.cpp:619
+#: src/clients/credentials/arcproxy.cpp:707
+#: src/clients/credentials/arcproxyalt.cpp:621
 #, c-format
 msgid "Cannot remove proxy file at %s"
 msgstr "Невозможно удалить файл доверенности в %s"
 
-#: src/clients/credentials/arcproxy.cpp:722
-#: src/clients/credentials/arcproxyalt.cpp:636
+#: src/clients/credentials/arcproxy.cpp:724
+#: src/clients/credentials/arcproxyalt.cpp:638
 #, c-format
 msgid ""
 "Cannot find file at %s for getting the proxy. Please make sure this file "
@@ -3425,100 +3430,100 @@ msgstr ""
 "Не удалось найти файл по адресу %s, содержащий доверенность. Пожалуйста, "
 "убедитесь, что файл существует."
 
-#: src/clients/credentials/arcproxy.cpp:728
-#: src/clients/credentials/arcproxyalt.cpp:649
+#: src/clients/credentials/arcproxy.cpp:730
+#: src/clients/credentials/arcproxyalt.cpp:651
 #, c-format
 msgid "Subject: %s"
 msgstr "Субъект: %s"
 
-#: src/clients/credentials/arcproxy.cpp:729
-#: src/clients/credentials/arcproxyalt.cpp:650
+#: src/clients/credentials/arcproxy.cpp:731
+#: src/clients/credentials/arcproxyalt.cpp:652
 #, c-format
 msgid "Issuer: %s"
 msgstr "Кем выдана: %s"
 
-#: src/clients/credentials/arcproxy.cpp:730
-#: src/clients/credentials/arcproxyalt.cpp:651
+#: src/clients/credentials/arcproxy.cpp:732
+#: src/clients/credentials/arcproxyalt.cpp:653
 #, c-format
 msgid "Identity: %s"
 msgstr "Личные данные: %s"
 
-#: src/clients/credentials/arcproxy.cpp:732
-#: src/clients/credentials/arcproxyalt.cpp:655
+#: src/clients/credentials/arcproxy.cpp:734
+#: src/clients/credentials/arcproxyalt.cpp:657
 msgid "Time left for proxy: Proxy expired"
 msgstr "Доверенность действительна на: Срок действия доверенности вышел"
 
-#: src/clients/credentials/arcproxy.cpp:734
-#: src/clients/credentials/arcproxyalt.cpp:657
+#: src/clients/credentials/arcproxy.cpp:736
+#: src/clients/credentials/arcproxyalt.cpp:659
 msgid "Time left for proxy: Proxy not valid yet"
 msgstr "Доверенность действительна на: Доверенность пока недействительна"
 
-#: src/clients/credentials/arcproxy.cpp:736
-#: src/clients/credentials/arcproxyalt.cpp:659
+#: src/clients/credentials/arcproxy.cpp:738
+#: src/clients/credentials/arcproxyalt.cpp:661
 #, c-format
 msgid "Time left for proxy: %s"
 msgstr "Доверенность действительна на: %s"
 
-#: src/clients/credentials/arcproxy.cpp:737
-#: src/clients/credentials/arcproxyalt.cpp:661
+#: src/clients/credentials/arcproxy.cpp:739
+#: src/clients/credentials/arcproxyalt.cpp:663
 #, c-format
 msgid "Proxy path: %s"
 msgstr "Расположение доверенности: %s"
 
-#: src/clients/credentials/arcproxy.cpp:738
+#: src/clients/credentials/arcproxy.cpp:740
 #, c-format
 msgid "Proxy type: %s"
 msgstr "Тип доверенности: %s"
 
-#: src/clients/credentials/arcproxy.cpp:739
+#: src/clients/credentials/arcproxy.cpp:741
 #, c-format
 msgid "Proxy key length: %i"
 msgstr "Длина ключа доверенности: %i"
 
-#: src/clients/credentials/arcproxy.cpp:740
+#: src/clients/credentials/arcproxy.cpp:742
 #, c-format
 msgid "Proxy signature: %s"
 msgstr "Подпись доверенности: %s"
 
-#: src/clients/credentials/arcproxy.cpp:749
-#: src/clients/credentials/arcproxyalt.cpp:673
+#: src/clients/credentials/arcproxy.cpp:751
+#: src/clients/credentials/arcproxyalt.cpp:675
 msgid "AC extension information for VO "
 msgstr "Информация о расширении AC для VO "
 
-#: src/clients/credentials/arcproxy.cpp:752
-#: src/clients/credentials/arcproxyalt.cpp:676
+#: src/clients/credentials/arcproxy.cpp:754
+#: src/clients/credentials/arcproxyalt.cpp:678
 msgid "Error detected while parsing this AC"
 msgstr "Обнаружена ошибка при разборе сертификата атрибута"
 
-#: src/clients/credentials/arcproxy.cpp:765
-#: src/clients/credentials/arcproxyalt.cpp:689
+#: src/clients/credentials/arcproxy.cpp:767
+#: src/clients/credentials/arcproxyalt.cpp:691
 msgid "AC is invalid: "
 msgstr "Сертификат атрибута недействителен:"
 
-#: src/clients/credentials/arcproxy.cpp:818
-#: src/clients/credentials/arcproxyalt.cpp:730
+#: src/clients/credentials/arcproxy.cpp:820
+#: src/clients/credentials/arcproxyalt.cpp:732
 msgid "Time left for AC: AC is not valid yet"
 msgstr "Сертификат атрибута действителен на: Сертификат пока недействителен"
 
-#: src/clients/credentials/arcproxy.cpp:820
-#: src/clients/credentials/arcproxyalt.cpp:732
+#: src/clients/credentials/arcproxy.cpp:822
+#: src/clients/credentials/arcproxyalt.cpp:734
 msgid "Time left for AC: AC has expired"
 msgstr ""
 "Сертификат атрибута действителен на: Срок действия сертификата закончился"
 
-#: src/clients/credentials/arcproxy.cpp:822
-#: src/clients/credentials/arcproxyalt.cpp:734
+#: src/clients/credentials/arcproxy.cpp:824
+#: src/clients/credentials/arcproxyalt.cpp:736
 #, c-format
 msgid "Time left for AC: %s"
 msgstr "Сертификат атрибута действителен на: %s"
 
-#: src/clients/credentials/arcproxy.cpp:913
+#: src/clients/credentials/arcproxy.cpp:915
 #, c-format
 msgid "Information item '%s' is not known"
 msgstr "Неизвестный тип информации '%s'"
 
-#: src/clients/credentials/arcproxy.cpp:922
-#: src/clients/credentials/arcproxyalt.cpp:744
+#: src/clients/credentials/arcproxy.cpp:924
+#: src/clients/credentials/arcproxyalt.cpp:746
 msgid ""
 "Cannot find the user certificate path, please setup environment "
 "X509_USER_CERT, or certificatepath in a configuration file"
@@ -3527,8 +3532,8 @@ msgstr ""
 "переменную среды X509_USER_CERT, или значение certificatepath в файле "
 "настроек"
 
-#: src/clients/credentials/arcproxy.cpp:926
-#: src/clients/credentials/arcproxyalt.cpp:748
+#: src/clients/credentials/arcproxy.cpp:928
+#: src/clients/credentials/arcproxyalt.cpp:750
 msgid ""
 "Cannot find the user private key path, please setup environment "
 "X509_USER_KEY, or keypath in a configuration file"
@@ -3536,7 +3541,7 @@ msgstr ""
 "Не удалось найти закрытый ключ пользователя. Пожалуйста, задайте переменную "
 "среды X509_USER_KEY, или значение keypath в файле настроек"
 
-#: src/clients/credentials/arcproxy.cpp:950
+#: src/clients/credentials/arcproxy.cpp:952
 #, c-format
 msgid ""
 "Cannot parse password source expression %s it must be of type=source format"
@@ -3544,14 +3549,14 @@ msgstr ""
 "Не удалось разобрать выражение %s для источника пароля: формат должен быть "
 "type=source"
 
-#: src/clients/credentials/arcproxy.cpp:959
+#: src/clients/credentials/arcproxy.cpp:961
 #, c-format
 msgid "Cannot parse password type %s. Currently supported value is 'key'."
 msgstr ""
 "Не удалось разобрать тип пароля %s. В настоящий момент единственное "
 "поддерживаемое значение - 'key'."
 
-#: src/clients/credentials/arcproxy.cpp:973
+#: src/clients/credentials/arcproxy.cpp:975
 #, c-format
 msgid ""
 "Cannot parse password source %s it must be of source_type or source_type:"
@@ -3561,13 +3566,13 @@ msgstr ""
 "source_type:data format. Поддерживаются следующие типы источников: int,stdin,"
 "stream,file."
 
-#: src/clients/credentials/arcproxy.cpp:987
+#: src/clients/credentials/arcproxy.cpp:989
 msgid "Only standard input is currently supported for password source."
 msgstr ""
 "На настоящий момент единственным поддерживаемым источником пароля является "
 "стандартный вход."
 
-#: src/clients/credentials/arcproxy.cpp:992
+#: src/clients/credentials/arcproxy.cpp:994
 #, c-format
 msgid ""
 "Cannot parse password source type %s. Supported source types are int,stdin,"
@@ -3576,75 +3581,75 @@ msgstr ""
 "Не удалось разобрать тип источника пароля %s. Поддерживаются следующие типы "
 "источников: int,stdin,stream,file."
 
-#: src/clients/credentials/arcproxy.cpp:1021
-#: src/clients/credentials/arcproxyalt.cpp:780
+#: src/clients/credentials/arcproxy.cpp:1023
+#: src/clients/credentials/arcproxyalt.cpp:782
 msgid "The start, end and period can't be set simultaneously"
 msgstr "Опции start, end и period не могут быть заданы одновременно"
 
-#: src/clients/credentials/arcproxy.cpp:1027
-#: src/clients/credentials/arcproxyalt.cpp:786
+#: src/clients/credentials/arcproxy.cpp:1029
+#: src/clients/credentials/arcproxyalt.cpp:788
 #, c-format
 msgid "The start time that you set: %s can't be recognized."
 msgstr "Невозможно распознать заданное Вами время начала: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1034
-#: src/clients/credentials/arcproxyalt.cpp:793
+#: src/clients/credentials/arcproxy.cpp:1036
+#: src/clients/credentials/arcproxyalt.cpp:795
 #, c-format
 msgid "The period that you set: %s can't be recognized."
 msgstr "Невозможно распознать заданный Вами интервал: %s."
 
-#: src/clients/credentials/arcproxy.cpp:1041
-#: src/clients/credentials/arcproxyalt.cpp:800
+#: src/clients/credentials/arcproxy.cpp:1043
+#: src/clients/credentials/arcproxyalt.cpp:802
 #, c-format
 msgid "The end time that you set: %s can't be recognized."
 msgstr "Невозможно распознать заданное Вами время окончания: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1050
-#: src/clients/credentials/arcproxyalt.cpp:809
+#: src/clients/credentials/arcproxy.cpp:1052
+#: src/clients/credentials/arcproxyalt.cpp:811
 #, c-format
 msgid "The end time that you set: %s is before start time:%s."
 msgstr "Заданное Вами время окончания: %s предшествует времени начала: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1061
-#: src/clients/credentials/arcproxyalt.cpp:820
+#: src/clients/credentials/arcproxy.cpp:1063
+#: src/clients/credentials/arcproxyalt.cpp:822
 #, c-format
 msgid "WARNING: The start time that you set: %s is before current time: %s"
 msgstr ""
 "ПРЕДУПРЕЖДЕНИЕ: Заданное Вами время начала: %s предшествует текущему "
 "времени: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1064
-#: src/clients/credentials/arcproxyalt.cpp:823
+#: src/clients/credentials/arcproxy.cpp:1066
+#: src/clients/credentials/arcproxyalt.cpp:825
 #, c-format
 msgid "WARNING: The end time that you set: %s is before current time: %s"
 msgstr ""
 "ПРЕДУПРЕЖДЕНИЕ: Заданное Вами время окончания: %s предшествует текущему "
 "времени: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1074
-#: src/clients/credentials/arcproxyalt.cpp:833
+#: src/clients/credentials/arcproxy.cpp:1076
+#: src/clients/credentials/arcproxyalt.cpp:835
 #, c-format
 msgid "The VOMS AC period that you set: %s can't be recognized."
 msgstr "Невозможно распознать заданный Вами период VOMS AC: %s."
 
-#: src/clients/credentials/arcproxy.cpp:1092
-#: src/clients/credentials/arcproxyalt.cpp:851
+#: src/clients/credentials/arcproxy.cpp:1094
+#: src/clients/credentials/arcproxyalt.cpp:853
 #, c-format
 msgid "The MyProxy period that you set: %s can't be recognized."
 msgstr "Невозможно распознать заданный Вами период MyProxy: %s."
 
-#: src/clients/credentials/arcproxy.cpp:1107
+#: src/clients/credentials/arcproxy.cpp:1109
 #, c-format
 msgid "The keybits constraint is wrong: %s."
 msgstr "Недопустимое значение ограничения keybits: %s."
 
-#: src/clients/credentials/arcproxy.cpp:1120
-#: src/clients/credentials/arcproxyalt.cpp:470
+#: src/clients/credentials/arcproxy.cpp:1122
+#: src/clients/credentials/arcproxyalt.cpp:476
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1303
 msgid "The NSS database can not be detected in the Firefox profile"
 msgstr "База данных NSS в профиле Firefox не обнаружена"
 
-#: src/clients/credentials/arcproxy.cpp:1129
+#: src/clients/credentials/arcproxy.cpp:1131
 #, c-format
 msgid ""
 "There are %d NSS base directories where the certificate, key, and module "
@@ -3653,137 +3658,137 @@ msgstr ""
 "Обнаружено %d основных директорий NSS, содержащих базы данных сертификатов, "
 "ключей и модулей"
 
-#: src/clients/credentials/arcproxy.cpp:1133
+#: src/clients/credentials/arcproxy.cpp:1135
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1315
 #, c-format
 msgid "Number %d is: %s"
 msgstr "Номер %d: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1135
+#: src/clients/credentials/arcproxy.cpp:1137
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1317
 #, c-format
 msgid "Please choose the NSS database you would use (1-%d): "
 msgstr "Пожалуйста, выберите базу данных NSS для использования (1-%d):"
 
-#: src/clients/credentials/arcproxy.cpp:1148
-#: src/clients/credentials/arcproxyalt.cpp:476
+#: src/clients/credentials/arcproxy.cpp:1150
+#: src/clients/credentials/arcproxyalt.cpp:482
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1329
 #, c-format
 msgid "NSS database to be accessed: %s\n"
 msgstr "Будет использоваться база данных NSS %s\n"
 
-#: src/clients/credentials/arcproxy.cpp:1203
+#: src/clients/credentials/arcproxy.cpp:1205
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1503
 #, c-format
 msgid "Certificate to use is: %s"
 msgstr "Используемый сертификат: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1251
-#: src/clients/credentials/arcproxy.cpp:1353
-#: src/clients/credentials/arcproxyalt.cpp:533
-#: src/clients/credentials/arcproxyalt.cpp:953
+#: src/clients/credentials/arcproxy.cpp:1253
+#: src/clients/credentials/arcproxy.cpp:1355
+#: src/clients/credentials/arcproxyalt.cpp:539
+#: src/clients/credentials/arcproxyalt.cpp:955
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1560
 msgid "Proxy generation succeeded"
 msgstr "Доверенность успешно создана"
 
-#: src/clients/credentials/arcproxy.cpp:1252
-#: src/clients/credentials/arcproxy.cpp:1354
-#: src/clients/credentials/arcproxyalt.cpp:534
-#: src/clients/credentials/arcproxyalt.cpp:954
+#: src/clients/credentials/arcproxy.cpp:1254
+#: src/clients/credentials/arcproxy.cpp:1356
+#: src/clients/credentials/arcproxyalt.cpp:540
+#: src/clients/credentials/arcproxyalt.cpp:956
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1561
 #, c-format
 msgid "Your proxy is valid until: %s"
 msgstr "Ваша доверенность действительна до: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1285 src/hed/mcc/tls/MCCTLS.cpp:164
+#: src/clients/credentials/arcproxy.cpp:1287 src/hed/mcc/tls/MCCTLS.cpp:164
 #: src/hed/mcc/tls/MCCTLS.cpp:193 src/hed/mcc/tls/MCCTLS.cpp:217
 msgid "VOMS attribute parsing failed"
 msgstr "Сбой обработки атрибутов VOMS"
 
-#: src/clients/credentials/arcproxy.cpp:1287
+#: src/clients/credentials/arcproxy.cpp:1289
 msgid "Myproxy server did not return proxy with VOMS AC included"
 msgstr "Сервер Myproxy не прислал сертификат с расширением VOMS AC"
 
-#: src/clients/credentials/arcproxy.cpp:1308
-#: src/clients/credentials/arcproxyalt.cpp:890
+#: src/clients/credentials/arcproxy.cpp:1310
+#: src/clients/credentials/arcproxyalt.cpp:892
 #: src/hed/libs/credential/ARCProxyUtil.cpp:341
 msgid "Proxy generation failed: No valid certificate found."
 msgstr "Сбой создания доверенности: Не обнаружено действительных сертификатов."
 
-#: src/clients/credentials/arcproxy.cpp:1314
-#: src/clients/credentials/arcproxyalt.cpp:897
+#: src/clients/credentials/arcproxy.cpp:1316
+#: src/clients/credentials/arcproxyalt.cpp:899
 #: src/hed/libs/credential/ARCProxyUtil.cpp:348
 msgid "Proxy generation failed: No valid private key found."
 msgstr ""
 "Сбой создания доверенности: Не обнаружено действительных закрытых ключей."
 
-#: src/clients/credentials/arcproxy.cpp:1319
-#: src/clients/credentials/arcproxyalt.cpp:900
+#: src/clients/credentials/arcproxy.cpp:1321
+#: src/clients/credentials/arcproxyalt.cpp:902
 #: src/hed/libs/credential/ARCProxyUtil.cpp:173
 #, c-format
 msgid "Your identity: %s"
 msgstr "Ваши личные данные: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1321
-#: src/clients/credentials/arcproxyalt.cpp:905
+#: src/clients/credentials/arcproxy.cpp:1323
+#: src/clients/credentials/arcproxyalt.cpp:907
 #: src/hed/libs/credential/ARCProxyUtil.cpp:356
 msgid "Proxy generation failed: Certificate has expired."
 msgstr "Сбой создания доверенности: Срок действия сертификата истёк"
 
-#: src/clients/credentials/arcproxy.cpp:1325
-#: src/clients/credentials/arcproxyalt.cpp:909
+#: src/clients/credentials/arcproxy.cpp:1327
+#: src/clients/credentials/arcproxyalt.cpp:911
 #: src/hed/libs/credential/ARCProxyUtil.cpp:361
 msgid "Proxy generation failed: Certificate is not valid yet."
 msgstr "Сбой создания доверенности: Срок действия сертификата ещё не начался"
 
-#: src/clients/credentials/arcproxy.cpp:1435
-#: src/clients/credentials/arcproxyalt.cpp:1220
+#: src/clients/credentials/arcproxy.cpp:1437
+#: src/clients/credentials/arcproxyalt.cpp:1222
 #: src/hed/libs/credential/ARCProxyUtil.cpp:403
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1410
 msgid "Failed to add VOMS AC extension. Your proxy may be incomplete."
 msgstr ""
 "Сбой добавления расширения VOMS AC. Ваша доверенность может быть неполной."
 
-#: src/clients/credentials/arcproxy.cpp:1493
-#: src/clients/credentials/arcproxyalt.cpp:1038
+#: src/clients/credentials/arcproxy.cpp:1495
+#: src/clients/credentials/arcproxyalt.cpp:1040
 #: src/hed/libs/credential/ARCProxyUtil.cpp:629
 #, c-format
 msgid "There are %d commands to the same VOMS server %s"
 msgstr "%d инструкций направлено на один и тот же сервер VOMS, %s"
 
-#: src/clients/credentials/arcproxy.cpp:1504
-#: src/clients/credentials/arcproxyalt.cpp:1049
+#: src/clients/credentials/arcproxy.cpp:1506
+#: src/clients/credentials/arcproxyalt.cpp:1051
 #: src/hed/libs/credential/ARCProxyUtil.cpp:640
 #, c-format
 msgid "Cannot get VOMS server address information from vomses line: \"%s\""
 msgstr "Информация об адресе сервера VOMS отсутствует в строке: %s\""
 
-#: src/clients/credentials/arcproxy.cpp:1514
 #: src/clients/credentials/arcproxy.cpp:1516
-#: src/clients/credentials/arcproxyalt.cpp:1059
+#: src/clients/credentials/arcproxy.cpp:1518
 #: src/clients/credentials/arcproxyalt.cpp:1061
+#: src/clients/credentials/arcproxyalt.cpp:1063
 #: src/hed/libs/credential/ARCProxyUtil.cpp:650
 #: src/hed/libs/credential/ARCProxyUtil.cpp:652
 #, c-format
 msgid "Contacting VOMS server (named %s): %s on port: %s"
 msgstr "Устанавливается связь с сервером VOMS (по имени %s): %s по порту: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1547
-#: src/clients/credentials/arcproxyalt.cpp:1092
+#: src/clients/credentials/arcproxy.cpp:1549
+#: src/clients/credentials/arcproxyalt.cpp:1094
 #: src/hed/libs/credential/ARCProxyUtil.cpp:683
 #, c-format
 msgid "Try to get attribute from VOMS server with order: %s"
 msgstr "Попытка получить атрибут с сервера VOMS с порядком: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1550
-#: src/clients/credentials/arcproxyalt.cpp:1095
+#: src/clients/credentials/arcproxy.cpp:1552
+#: src/clients/credentials/arcproxyalt.cpp:1097
 #: src/hed/libs/credential/ARCProxyUtil.cpp:686
 #, c-format
 msgid "Message sent to VOMS server %s is: %s"
 msgstr "Сообщение, отправленное на сервер VOMS %s: %s "
 
-#: src/clients/credentials/arcproxy.cpp:1569
-#: src/clients/credentials/arcproxyalt.cpp:1114
+#: src/clients/credentials/arcproxy.cpp:1571
+#: src/clients/credentials/arcproxyalt.cpp:1116
 #: src/hed/libs/credential/ARCProxyUtil.cpp:705
 #, c-format
 msgid ""
@@ -3795,24 +3800,24 @@ msgstr ""
 "\t%s\n"
 "пожалуйста, проверьте, доступен ли этот сервер"
 
-#: src/clients/credentials/arcproxy.cpp:1573
-#: src/clients/credentials/arcproxyalt.cpp:1118
+#: src/clients/credentials/arcproxy.cpp:1575
+#: src/clients/credentials/arcproxyalt.cpp:1120
 #: src/hed/libs/credential/ARCProxyUtil.cpp:709
 msgid "No HTTP response from VOMS server"
 msgstr "Сервер VOMS не отзывается по HTTP"
 
-#: src/clients/credentials/arcproxy.cpp:1578
-#: src/clients/credentials/arcproxy.cpp:1604
-#: src/clients/credentials/arcproxyalt.cpp:1123
-#: src/clients/credentials/arcproxyalt.cpp:1149
+#: src/clients/credentials/arcproxy.cpp:1580
+#: src/clients/credentials/arcproxy.cpp:1606
+#: src/clients/credentials/arcproxyalt.cpp:1125
+#: src/clients/credentials/arcproxyalt.cpp:1151
 #: src/hed/libs/credential/ARCProxyUtil.cpp:714
 #: src/hed/libs/credential/ARCProxyUtil.cpp:740
 #, c-format
 msgid "Returned message from VOMS server: %s"
 msgstr "Сообщение с сервера VOMS: %s "
 
-#: src/clients/credentials/arcproxy.cpp:1590
-#: src/clients/credentials/arcproxyalt.cpp:1135
+#: src/clients/credentials/arcproxy.cpp:1592
+#: src/clients/credentials/arcproxyalt.cpp:1137
 #: src/hed/libs/credential/ARCProxyUtil.cpp:726
 #, c-format
 msgid ""
@@ -3824,14 +3829,14 @@ msgstr ""
 "\t%s\"\n"
 "пожалуйста, проверьте, доступен ли этот сервер"
 
-#: src/clients/credentials/arcproxy.cpp:1594
-#: src/clients/credentials/arcproxyalt.cpp:1139
+#: src/clients/credentials/arcproxy.cpp:1596
+#: src/clients/credentials/arcproxyalt.cpp:1141
 #: src/hed/libs/credential/ARCProxyUtil.cpp:730
 msgid "No stream response from VOMS server"
 msgstr "Сервер VOMS не отзывается"
 
-#: src/clients/credentials/arcproxy.cpp:1616
-#: src/clients/credentials/arcproxyalt.cpp:1161
+#: src/clients/credentials/arcproxy.cpp:1618
+#: src/clients/credentials/arcproxyalt.cpp:1163
 #: src/hed/libs/credential/ARCProxyUtil.cpp:752
 #, c-format
 msgid ""
@@ -3841,8 +3846,8 @@ msgstr ""
 "Срок действия сертификата атрибута VOMS (AC) сокращён с %s до %s, в связи с "
 "ограничением со стороны сервера VOMS.\n"
 
-#: src/clients/credentials/arcproxy.cpp:1619
-#: src/clients/credentials/arcproxyalt.cpp:1164
+#: src/clients/credentials/arcproxy.cpp:1621
+#: src/clients/credentials/arcproxyalt.cpp:1166
 #: src/hed/libs/credential/ARCProxyUtil.cpp:755
 #, c-format
 msgid ""
@@ -3853,22 +3858,22 @@ msgstr ""
 "сервера VOMS: %s;\n"
 "       Сообщение, возвращённое сервером VOMS: %s\n"
 
-#: src/clients/credentials/arcproxy.cpp:1624
-#: src/clients/credentials/arcproxyalt.cpp:1169
+#: src/clients/credentials/arcproxy.cpp:1626
+#: src/clients/credentials/arcproxyalt.cpp:1171
 #: src/hed/libs/credential/ARCProxyUtil.cpp:760
 #, c-format
 msgid "Returned message from VOMS server %s is: %s\n"
 msgstr "Сообщение, полученное с сервера VOMS %s: %s\n"
 
-#: src/clients/credentials/arcproxy.cpp:1646
-#: src/clients/credentials/arcproxyalt.cpp:1191
+#: src/clients/credentials/arcproxy.cpp:1648
+#: src/clients/credentials/arcproxyalt.cpp:1193
 #: src/hed/libs/credential/ARCProxyUtil.cpp:782
 #, c-format
 msgid "The attribute information from VOMS server: %s is list as following:"
 msgstr "Информация об атрибутах с сервера VOMS: %s содержит:"
 
-#: src/clients/credentials/arcproxy.cpp:1658
-#: src/clients/credentials/arcproxyalt.cpp:1203
+#: src/clients/credentials/arcproxy.cpp:1660
+#: src/clients/credentials/arcproxyalt.cpp:1205
 #: src/hed/libs/credential/ARCProxyUtil.cpp:794
 #, c-format
 msgid ""
@@ -3880,55 +3885,55 @@ msgstr ""
 "доступны или правильно отзываются. В любом случае, расширение VOMS AC будет "
 "создано."
 
-#: src/clients/credentials/arcproxy.cpp:1676
-#: src/clients/credentials/arcproxyalt.cpp:1236
+#: src/clients/credentials/arcproxy.cpp:1678
+#: src/clients/credentials/arcproxyalt.cpp:1238
 #: src/hed/libs/credential/Credential.cpp:914
 #: src/hed/libs/credential/ARCProxyUtil.cpp:443
 #, c-format
 msgid "Error: can't open policy file: %s"
 msgstr "Ошибка: невозможно открыть файл политик: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1686
-#: src/clients/credentials/arcproxyalt.cpp:1246
+#: src/clients/credentials/arcproxy.cpp:1688
+#: src/clients/credentials/arcproxyalt.cpp:1248
 #: src/hed/libs/credential/Credential.cpp:927
 #: src/hed/libs/credential/ARCProxyUtil.cpp:453
 #, c-format
 msgid "Error: policy location: %s is not a regular file"
 msgstr "Ошибка: местонахождение политик: %s не является стандартным файлом"
 
-#: src/clients/credentials/arcproxy.cpp:1747
-#: src/clients/credentials/arcproxyalt.cpp:1310
+#: src/clients/credentials/arcproxy.cpp:1749
+#: src/clients/credentials/arcproxyalt.cpp:1312
 #: src/hed/libs/credential/ARCProxyUtil.cpp:844
 msgid "Succeeded to get info from MyProxy server"
 msgstr "Удалось получить информацию с сервера MyProxy"
 
-#: src/clients/credentials/arcproxy.cpp:1795
-#: src/clients/credentials/arcproxyalt.cpp:1366
+#: src/clients/credentials/arcproxy.cpp:1797
+#: src/clients/credentials/arcproxyalt.cpp:1368
 #: src/hed/libs/credential/ARCProxyUtil.cpp:900
 msgid "Succeeded to change password on MyProxy server"
 msgstr "Удалось поменять пароль на сервере MyProxy"
 
-#: src/clients/credentials/arcproxy.cpp:1840
-#: src/clients/credentials/arcproxyalt.cpp:1415
+#: src/clients/credentials/arcproxy.cpp:1842
+#: src/clients/credentials/arcproxyalt.cpp:1417
 #: src/hed/libs/credential/ARCProxyUtil.cpp:949
 msgid "Succeeded to destroy credential on MyProxy server"
 msgstr "Удалось уничтожить доверенность на сервере MyProxy"
 
-#: src/clients/credentials/arcproxy.cpp:1924
-#: src/clients/credentials/arcproxyalt.cpp:1504
+#: src/clients/credentials/arcproxy.cpp:1926
+#: src/clients/credentials/arcproxyalt.cpp:1506
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1038
 #, c-format
 msgid "Succeeded to get a proxy in %s from MyProxy server %s"
 msgstr "Удалось получить доверенность в %s с сервера MyProxy %s"
 
-#: src/clients/credentials/arcproxy.cpp:1979
-#: src/clients/credentials/arcproxyalt.cpp:1563
+#: src/clients/credentials/arcproxy.cpp:1981
+#: src/clients/credentials/arcproxyalt.cpp:1565
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1097
 msgid "Succeeded to put a proxy onto MyProxy server"
 msgstr "Удалось делегировать доверенность серверу MyProxy"
 
-#: src/clients/credentials/arcproxy.cpp:2014
-#: src/clients/credentials/arcproxyalt.cpp:1598
+#: src/clients/credentials/arcproxy.cpp:2016
+#: src/clients/credentials/arcproxyalt.cpp:1600
 msgid ""
 "$X509_VOMS_FILE, and $X509_VOMSES are not set;\n"
 "User has not specify the location for vomses information;\n"
@@ -3945,16 +3950,16 @@ msgstr ""
 "vomses, $ARC_LOCATION/etc/grid-security/vomses, $PWD/vomses, /etc/vomses, /"
 "etc/grid-security/vomses, а также в соответствующих подкаталогах"
 
-#: src/clients/credentials/arcproxy.cpp:2054
-#: src/clients/credentials/arcproxyalt.cpp:1638
+#: src/clients/credentials/arcproxy.cpp:2056
+#: src/clients/credentials/arcproxyalt.cpp:1640
 #: src/hed/libs/credential/ARCProxyUtil.cpp:552
 #, c-format
 msgid "VOMS line contains wrong number of tokens (%u expected): \"%s\""
 msgstr ""
 "Строка VOMS содержит неверное количество токенов (ожидается %u): \"%s\""
 
-#: src/clients/credentials/arcproxy.cpp:2098
-#: src/clients/credentials/arcproxyalt.cpp:1682
+#: src/clients/credentials/arcproxy.cpp:2100
+#: src/clients/credentials/arcproxyalt.cpp:1684
 #: src/hed/libs/credential/ARCProxyUtil.cpp:596
 #, c-format
 msgid "Cannot get VOMS server %s information from the vomses files"
@@ -4157,7 +4162,7 @@ msgstr ""
 msgid "use NSS credential database in the Firefox profile"
 msgstr "использовать базу данных параметров доступа NSS из профиля Firefox"
 
-#: src/clients/credentials/arcproxyalt.cpp:1218
+#: src/clients/credentials/arcproxyalt.cpp:1220
 #, c-format
 msgid "Failed to add extension: %s"
 msgstr "Сбой добавления расширения: %s"
@@ -7443,27 +7448,27 @@ msgstr ""
 msgid "Cannot parse integer value '%s' for -%c"
 msgstr "Не удаётся разобрать целое значение '%s' для -%c"
 
-#: src/hed/libs/common/OptionParser.cpp:258
+#: src/hed/libs/common/OptionParser.cpp:265
 msgid "Use -? to get usage description"
 msgstr "Для получения справки используйте \"-?\"."
 
-#: src/hed/libs/common/OptionParser.cpp:328
+#: src/hed/libs/common/OptionParser.cpp:342
 msgid "Usage:"
 msgstr "Использование:"
 
-#: src/hed/libs/common/OptionParser.cpp:331
+#: src/hed/libs/common/OptionParser.cpp:345
 msgid "OPTION..."
 msgstr "ПАРАМЕТР..."
 
-#: src/hed/libs/common/OptionParser.cpp:337
+#: src/hed/libs/common/OptionParser.cpp:351
 msgid "Help Options:"
 msgstr "Параметры справки:"
 
-#: src/hed/libs/common/OptionParser.cpp:338
+#: src/hed/libs/common/OptionParser.cpp:352
 msgid "Show help options"
 msgstr "Показать параметры справки"
 
-#: src/hed/libs/common/OptionParser.cpp:340
+#: src/hed/libs/common/OptionParser.cpp:354
 msgid "Application Options:"
 msgstr "Параметры приложения:"
 
@@ -11159,8 +11164,8 @@ msgid "Duplicate replica location: %s"
 msgstr "Идентичное местонахождение реплики: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:338 src/hed/dmc/lfc/DataPointLFC.cpp:1091
-#: src/hed/dmc/rucio/DataPointRucio.cpp:185
-#: src/hed/dmc/rucio/DataPointRucio.cpp:385
+#: src/hed/dmc/rucio/DataPointRucio.cpp:193
+#: src/hed/dmc/rucio/DataPointRucio.cpp:397
 #: src/hed/dmc/acix/DataPointACIX.cpp:90
 #: src/hed/dmc/acix/DataPointACIX.cpp:325
 #, c-format
@@ -11376,62 +11381,67 @@ msgstr ""
 msgid "Rucio token for %s has expired or is about to expire"
 msgstr "Срок действия маркера Rucio для %s истёк, или вскоре истечёт"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:95
+#: src/hed/dmc/rucio/DataPointRucio.cpp:102
 #, c-format
 msgid "Extracted nickname %s from credentials to use for RUCIO_ACCOUNT"
 msgstr ""
 "Выделен псевдоним %s для параметров доступа, используемых в RUCIO_ACCOUNT"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:98
+#: src/hed/dmc/rucio/DataPointRucio.cpp:105
 msgid "Failed to extract VOMS nickname from proxy"
 msgstr "Сбой извлечения псевдонима VOMS из сертификата доверенности"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:265
+#: src/hed/dmc/rucio/DataPointRucio.cpp:107
+#, c-format
+msgid "Using Rucio account %s"
+msgstr "Используется учётная запись Rucio %s"
+
+#: src/hed/dmc/rucio/DataPointRucio.cpp:273
 #, c-format
 msgid "Acquired auth token for %s: %s"
 msgstr "Получен маркер доступа для %s: %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:308
+#: src/hed/dmc/rucio/DataPointRucio.cpp:316
 #, c-format
 msgid "Rucio returned %s"
 msgstr "Rucio возвратил %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:333
+#: src/hed/dmc/rucio/DataPointRucio.cpp:341
 #, c-format
 msgid "Failed to parse Rucio response: %s"
 msgstr "Не удалось разобрать отзыв Rucio: %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:338
+#: src/hed/dmc/rucio/DataPointRucio.cpp:347
 #, c-format
 msgid "Filename not returned in Rucio response: %s"
 msgstr "В отзыве Rucio отсутствует имя файла: %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:343
+#: src/hed/dmc/rucio/DataPointRucio.cpp:353
 #, c-format
 msgid "Unexpected name returned in Rucio response: %s"
 msgstr "Отзыв Rucio содержит недопустимое имя: %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:348
+#: src/hed/dmc/rucio/DataPointRucio.cpp:359
 #, c-format
 msgid "No RSE information returned in Rucio response: %s"
 msgstr "В отзыве Rucio отсутствует информация RSE: %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:370
+#: src/hed/dmc/rucio/DataPointRucio.cpp:382
 #, c-format
 msgid "No filesize information returned in Rucio response for %s"
 msgstr "В отзыве Rucio для %s отсутствует информация о размере файла"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:373
+#: src/hed/dmc/rucio/DataPointRucio.cpp:385
 #, c-format
 msgid "%s: size %llu"
 msgstr "%s: размер %llu"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:377
+#: src/hed/dmc/rucio/DataPointRucio.cpp:389
 #, c-format
 msgid "No checksum information returned in Rucio response for %s"
 msgstr "В отзыве Rucio для %s отсутствует информация о контрольной сумме"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:380
+#: src/hed/dmc/rucio/DataPointRucio.cpp:392
 #, c-format
 msgid "%s: checksum %s"
 msgstr "%s: контрольная сумма %s"
