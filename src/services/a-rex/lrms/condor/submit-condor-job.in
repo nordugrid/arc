@@ -1,545 +1,471 @@
-#!/usr/bin/perl -w
-
-use File::Spec;
-use File::Temp 'tempfile';
-use File::Basename;
-use Sys::Hostname;
-use Cwd;
-
-BEGIN {
-    my $oldcwd = getcwd();
-
-    my $basedir = dirname($0);
-    chdir $basedir or die "$basedir: $!";
-    $basedir = getcwd();
-
-    my $pkgdatadir = $basedir;
-
-    chdir $oldcwd or die "$oldcwd: $!";
-
-    unshift @INC, $pkgdatadir;
-}
-
-use ConfigCentral;
-use condor_env;
-
-use strict;
-use warnings;
-
-# True if the program is run in debugging mode.
-my $debug;
-
-# The name of the Condor job description file.  This file is generated from the
-# GRAMI file.
-my $cmd_filename;
-
-# Pathname of the Condor log.
-my $condor_log;
-
-# Pathname of the real executable.
-my $real_exe;
-
-# Pathname of the wrapper script.
-my $exewrapper;
-
-my %grami;
-
-$0 =~ s#.*/##;
-warn "----- starting $0 -----\n";
-
-if (@ARGV > 1 && $ARGV[0] eq '--config') {
-    $ENV{ARC_CONFIG} = $ARGV[1];
-    shift;
-    shift;
-}
-if (@ARGV > 0 && $ARGV[0] eq '-d') {
-    $debug = 1;
-    shift;
-}
-die "Usage: $0 [--config CONFIG_FILE] [-d] GRAMI_FILE\n" unless @ARGV;
-
-parse_grami(my $gramifile = $ARGV[0]);
-
-$grami{joboption_controldir} ||= dirname($gramifile) || getwd();
-$grami{joboption_gridid} ||= $1 if basename($gramifile) =~ /job\.(.*)\.grami$/;
-
-my $configfile = $ENV{ARC_CONFIG} ? $ENV{ARC_CONFIG} : '/etc/arc.conf';
-my $fullconfig = ConfigCentral::parseConfig($configfile);
-my $share = $grami{joboption_queue};
-die "$0: ERROR: Job requested invalid share: $share\n"
-    unless exists $fullconfig->{shares}{$share};
-my %config = ( %$fullconfig, %{$fullconfig->{shares}{$share}} );
-
-# this finds location of condor executables, and sets up environment vars.
-configure_condor_env(%config) or die "Condor executables not found\n";
-
-my $condor_bin_path = $ENV{CONDOR_BIN_PATH};
-$ENV{RUNTIME_CONFIG_DIR} = $config{runtimedir} || '.'; # avoid undefined warning
-
-if ($debug) {
-    # Use a bogus name for the logfile if debugging -- it doesn't matter.
-    $condor_log = 'job.log';
-} else {
-    $condor_log = File::Temp::tempnam($grami{joboption_directory}, 'log.');
-}
-
-run_rte0();
-create_shell_wrapper();
-create_condor_job_description();
-submit_condor_job();
-warn "$0: job submitted successfully\n",
-     "----- exiting $0 -----\n";
-exit;
-
-##############################################################################
-## Function Definitons
-##############################################################################
-
-sub parse_grami {
-    local @ARGV = $_[0];
-    warn "$0: ----- begin grami file ($_[0]) -----\n";
-    while (my $line = <>) {
-        chomp $line;
-
-        # Dump every line of the grami file into the log.
-        warn "$0: $line\n";
-
-        my ($name, $value) = split /=/, $line, 2;
-        next if !$name;
-
-        # Remove outer layer of single quotes.  Backslash escaped single quotes
-        # are stripped of their backslashes, and strings protected by single
-        # quotes are stripped of the single quotes.  This is supposed to work
-        # exactly like Bourne shell quote removal:
-        #
-        #   foo'bar'     --> foobar
-        #   foo\''bar'\' --> foo'bar'
-        #
-        {
-            no warnings 'uninitialized';
-            $value =~ s/(?:\\('))?'([^']*)'(?:\\('))?/$1$2$3/g;
-        }
-
-        # The variable names are case insensitive, so lowercase them and
-        # remember to always refer to them by their lowercase names!
-        $grami{lc $name} = $value;
-    }
-    warn "$0: ----- end grami file ($_[0]) -----\n";
-}
-
+#!@posix_shell@
+# set -x
 #
-# Run RTE stage 0 scripts. Also update %grami hash to match the variables set by the
-# scripts (but only those beginnig with joboption_)
+#  Based on globus submission script for pbs
 #
-sub run_rte0 {
-    for (my $i = 0; my $r = $grami{"joboption_runtime_$i"}; $i++) {
-
-        # Shell script which will source RTE scripts
-        my $script = '';
-
-        # construct randon string to use as separator
-        my @chars = ("0".."9","A".."Z");
-        my $sep = "----";
-        $sep .= $chars[rand(@chars)] for 1..16;
-        $sep .= "----";
-
-        my $r_args = '0';
-        for (my $n = 1; my $r_arg = $grami{"joboption_runtime_${i}_$n"}; $n++) {
-            $r_args = "$r_args \"$r_arg\"";
-        }
-
-        # initialize joboption_* variables
-        $script .= "$_=\Q$grami{$_}\E\n" for (grep /^joboption_[A-Za-z0-9_]+$/, keys %grami);
-
-        # source RTE script
-#        $script .= ". \Q$ENV{RUNTIME_CONFIG_DIR}/$r\E 0 $r_args>&2\n";
-        $script .= "\nsourcewithargs() {\n script=\$1;shift;. \$script\n } ; sourcewithargs \Q$ENV{RUNTIME_CONFIG_DIR}/$r\E 0 $r_args >&2\n";
-        $script .= "ret=\$?\n";
-
-        # print joboption_* variables to stdout. First export them, then use perl for printing.
-        $script .= 'export $(set | sed -n "s/^\(joboption_[A-Za-z0-9_]*\)=.*/\1/p")';
-        $script .= "\n/usr/bin/perl -we 'print \"\$_=\$ENV{\$_}$sep\" for grep /^joboption_[A-Za-z0-9_]+\$/, keys \%ENV'\n";
-        $script .= "echo STATUS=\$ret\n";
-
-        # write script to temporary file and run it.
-        my $dir = $ENV{TMPDIR} || File::Spec->tmpdir;
-        my ($fh, $fname) = tempfile('condor_XXXXXXXX', DIR => $dir);
-        print $fh $script or die "$0: write $fname: $!\n";
-        close $fh           or die "$0: close $fname: $!\n";
-        my $output = `@posix_shell@ $fname`;
-        unlink $fname;
-
-        # is output complete?
-        if (not $output =~ m/^(?:joboption_\w+=.*?$sep)+STATUS=(\d+)$/s) {
-            die "$0: ERROR: RTE script $r exited unexpectedly\n";
-        }
-
-        delete $grami{$_} for grep /^joboption_/, keys %grami;
-        $grami{$1} = $2 while ($output =~ m/(\w+)=(.*?)$sep/sg);
-    }
-}
-
-# This function extracts the first string from each line of the file given as
-# argument. Handles files like job.*.output which contain two strings
-# separated by a space on each line. The second string can be emty. Spaces
-# and backslashes within the strings are escaped with a backslash. See the
-# FileData class in src/services/a-rex/grid-manager/files/info_types.cpp for
-# the c++ implementation.
-
-# OBS: The same can be achieved simpler with the shell built-in 'read'
-sub get_outputfiles {
-    my $file = shift;
-    my @names = ();
-    open(F, "<$file") or die "$file: $!\n";
-    while (<F>) {
-        chomp;
-        my @chars = split "";
-        my $esc = 0;
-        my $str = "";
-        for (my $curr = shift @chars; defined $curr; $curr = shift @chars) {
-            if ($esc) {
-                $esc = 0;
-                $str .= $curr;
-                next;
-            }
-            last if $curr eq " ";
-            $str .= $curr unless $esc = ($curr eq "\\");
-        }
-        push @names, $str;
-    }
-    return @names;
-}
-
+#  Submits job to HTCondor.
+#  Input: path to grami file (same as Globus).
 #
-# Creates a shell script that:
-#
-#  (1) Sources the runtime scripts with argument "0" before evaluating the job
-#      executable.  (This is in case the job refers to variables set by the
-#      runtime scripts.)  TODO: should variables be expanded in
-#      joboption_runtime_0?
-#
-#  (2) Sources the runtime scripts with argument "1" before running the job.
-#
-#  (3) Runs the job, redirecting output as requested in the xRSL.
-#
-#  (4) Sources the runtime scripts with argument "2" after running the job.
-#
-#  (5) Exits with the value returned by the job executable in step (3).
-#
-sub create_shell_wrapper {
-    # Create the shell commands to run runtime environment files (stages 1-2).
-    my ($setrte1, $setrte2) = ('', '');
-    if (notnull($grami{joboption_runtime_0})) {
-        for (my $i = 0; notnull(my $r = $grami{"joboption_runtime_$i"}); $i++) {
-            my $r_args = '';
-            for (my $n = 1; my $r_arg = $grami{"joboption_runtime_${i}_$n"}; $n++) {
-                $r_args = "$r_args \"$r_arg\"";
-            }
-            $setrte1 .= qq{. "\$RUNTIME_CONFIG_DIR/$r" 1 $r_args\n};
-            $setrte2 .= qq{. "\$RUNTIME_CONFIG_DIR/$r" 2 $r_args\n};
-        }
-    }
+# The temporary job description file is created for the submission and then removed 
+# at the end of this script. 
 
-    # Set $real_exe to the path to the job executable (environment variables
-    # expanded).  $exewrapper contains the script which will be submitted to condor.
-    $real_exe = $grami{joboption_arg_0};
-    $exewrapper = File::Temp::tempnam($grami{joboption_directory}, "condorjob.sh.");
+echo "----- starting submit_condor_job -----" 1>&2
+joboption_lrms=condor
 
-    # Get the name of the stdout file.
-    my $stdout = notnull($grami{joboption_stdout}) ?
-                 $grami{joboption_stdout} : '/dev/null';
-    $stdout =~ s{^\Q$grami{joboption_directory}\E/*}{};
+# ARC1 passes first the config file.
+if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
-    # Get the name of the stderr file.
-    my $stderr = notnull($grami{joboption_stderr}) ?
-                 $grami{joboption_stderr} : '/dev/null';
-    $stderr =~ s{^\Q$grami{joboption_directory}\E/*}{};
+basedir=`dirname $0`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
-    # Start creating the output script.  Note that the script is created
-    # in-memory, instead of being written to file, part by part.  This is
-    # because we want to test for all I/O errors, and having just a single
-    # write means that there is only one place we have to test for write
-    # errors.
-    my $output = "#!/bin/sh\n";
+pkgdatadir="$basedir"
 
-    # If the custom RSL attribute 'wrapperdebug' is set, enable command
-    # tracing (set -x) and list all files in the session directory.  (This
-    # output is sent to stderr.)
-    if (notnull($grami{joboption_rsl_wrapperdebug})) {
-        $output .= "set -x\nexec &>\Q$stderr\E\nls -la\n";
-    }
+. ${pkgdatadir}/submit_common.sh || exit $?
 
-    # set HOME to the working directory of the job
-    $output .= "HOME=\`pwd\`\nexport HOME\n";
+##############################################################
+# Parse grami file, read arc config
+##############################################################
 
-    # Overide umask of execution node
-    $output .= "umask 077\n";
+init $1
 
-    # Source runtime scripts with argument 1.
-    $output .= $setrte1;
+read_arc_conf
 
-    # Enable the executable bit for non-preinstalled executables.
-    if ($real_exe !~ m{^/}) {
-        $output .= "eval chmod +x \"\Q$real_exe\E\"\n";
-    }
+failures_file="$joboption_controldir/job.$joboption_gridid.failed"
 
-    # Incomplete job command; arguments may follow.
-    $output .= "eval \"\Q$real_exe\E\"";
+if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+   RUNTIME_LOCAL_SCRATCH_DIR="\${_CONDOR_SCRATCH_DIR}"
+fi
 
-    # Add optional arguments to the command line.
-    if (defined $grami{joboption_arg_1}) {
-        for (my $i = 1; defined(my $arg = $grami{"joboption_arg_$i"}); $i++) {
-            $output .= $arg ne '' ? " \"\Q$arg\E\"" : " ''";
-        }
-    }
+if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+  if [ -z "${RUNTIME_LOCAL_SCRATCH_DIR}" ] ; then
+    echo "Need to know at which directory to run job: RUNTIME_LOCAL_SCRATCH_DIR must be set if RUNTIME_NODE_SEES_FRONTEND is empty" 1>&2
+    echo "Submission: Configuration error.">>"$failures_file"
+    exit 1
+  fi
+fi
 
-    # Redirect stdout/stderr.  These variables are always set to something
-    # (/dev/null if unspecified), so it's safe to unconditionally add these
-    # redirections.
-    $output .= " >\Q$stdout\E";
-    # If we're debugging the wrapper script, we don't do stderr redirection.
-    if (!notnull($grami{joboption_rsl_wrapperdebug})) {
-        if ($stdout eq $stderr) {
-            # We're here if stdout and stderr is redirected to the same file.
-            # This will happen when (join = yes) in the xRSL.
-            $output .= ' 2>&1';
-        } else {
-            $output .= " 2>\Q$stderr\E";
-        }
-    }
+##############################################################
+# Zero stage of runtime environments
+##############################################################
+RTE_stage0
 
-    # Always a newline to terminate the job command.
-    # Preserve the job's exit code.
-    # Run runtime environment files with argument 2.
-    $output .= "\n_exitcode=\$?\n$setrte2";
+##############################################################
+# create job script
+##############################################################
+mktempscript
 
-    # Now generate code that removes everything but the requested output.
-    # Note that, bashims have been avoided so that there are less strict
-    # requirements on /bin/sh on the execute nodes.  (Note that the file
-    # utilities used (mkdir, dirname, find, etc.) may still be
-    # GNU-centric.  TODO: fix this if we're to support non-x86-Linux.)
-    $output .= <<EOF;
-find ./ -type l -exec rm -f "{}" ";"
-find ./ -type f ! -name '.job.ad' ! -name '.machine.ad' -exec chmod u+w "{}" ";"
-EOF
-    my $outputlist = "$grami{joboption_controldir}/job.$grami{joboption_gridid}.output";
-    if (-e $outputlist) {
-        my @fileslst = grep {$_ ne ""} get_outputfiles($outputlist);
-        # Add condor_log (with path stripped) to the list of files to keep.
-        push @fileslst, (my $basename) = $condor_log =~ m{([^/]+)$};
-        # Remove leading backslashes, if any
-        s/^\/*// for @fileslst;
-        # Make it safe for shell by replacing single quotes with '\''
-        s/'/'\\''/g for @fileslst;
+is_cluster=true
+##############################################################
+# Start job description file
+##############################################################
 
-        # Protect from deleting output files including those in the dynamic list
-        for my $file ( @fileslst ) {
-            if ($file =~ s/^@//) {
-                $output .= "dynlist='$file'\n";
-                $output .= <<'EOF'
-chmod -R u-w "./$dynlist" 2>/dev/null
-cat "./$dynlist" | while read name rest; do
-  chmod -R u-w "./$name" 2>/dev/null
+CONDOR_SUBMIT='condor_submit'
+if [ ! -z "$CONDOR_BIN_PATH" ] ; then
+  CONDOR_SUBMIT=${CONDOR_BIN_PATH}/${CONDOR_SUBMIT}
+fi
+
+# HTCondor job script and submit description file
+rm -f "$LRMS_JOB_SCRIPT"
+LRMS_JOB_SCRIPT="${joboption_directory}/condorjob.sh"
+LRMS_JOB_DESCRIPT="${joboption_directory}/condorjob.jdl"
+
+echo "# HTCondor job description built by grid-manager" > $LRMS_JOB_DESCRIPT
+echo "Executable = condorjob.sh" >> $LRMS_JOB_DESCRIPT
+echo "Input = $joboption_stdin" >> $LRMS_JOB_DESCRIPT
+echo "Log = ${joboption_directory}/log">> $LRMS_JOB_DESCRIPT
+
+# write HTCondor output to .comment file if possible, but handle the situation when
+# jobs are submitted by HTCondor-G < 8.0.5
+condor_stdout="${joboption_directory}.comment"
+condor_stderr="${joboption_directory}.comment"
+if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+   if [[ $joboption_stdout =~ _condor_stdout$ ]]; then
+      condor_stdout=$joboption_stdout;
+      condor_stderr=$joboption_stderr;
+   fi
+fi
+echo "Output = $condor_stdout">> $LRMS_JOB_DESCRIPT
+echo "Error = $condor_stderr">> $LRMS_JOB_DESCRIPT
+
+# queue
+if [ ! -z "${joboption_queue}" ] ; then
+  echo "+NordugridQueue = $joboption_queue" >> $LRMS_JOB_DESCRIPT
+fi
+
+# job name for convenience
+if [ ! -z "${joboption_jobname}" ] ; then
+    #TODO is this necessary? do parts of the infosys need these limitations?
+  jobname=`echo "$joboption_jobname" | \
+           sed 's/^\([^[:alpha:]]\)/N\1/' | \
+           sed 's/[^[:alnum:]]/_/g' | \
+           sed 's/\(...............\).*/\1/'`
+  echo "Description = $jobname" >> $LRMS_JOB_DESCRIPT
+else
+    jobname="gridjob"
+    echo "Description = $jobname" >> $LRMS_JOB_DESCRIPT
+fi
+
+# environment
+echo "GetEnv = True" >> $LRMS_JOB_DESCRIPT
+
+# universe
+echo "Universe = vanilla" >> $LRMS_JOB_DESCRIPT
+
+# notification
+echo "Notification = Never" >> $LRMS_JOB_DESCRIPT
+
+# requirements
+if [ ! -z "$CONFIG_condor_requirements" ] ; then
+  echo "Requirements = $CONFIG_condor_requirements" >> $LRMS_JOB_DESCRIPT
+fi
+
+# rank
+if [ ! -z "$CONFIG_condor_rank" ] ; then
+  echo "Rank = $CONFIG_condor_rank" >> $LRMS_JOB_DESCRIPT
+fi
+
+##############################################################
+# (non-)parallel jobs
+##############################################################
+
+set_count
+
+if [ ! -z $joboption_count ] && [ $joboption_count -gt 0 ] ; then
+  echo "request_cpus = $joboption_count" >> $LRMS_JOB_DESCRIPT
+fi
+
+if [ "$joboption_exclusivenode" = "true" ]; then
+  echo "+RequiresWholeMachine=True" >> $LRMS_JOB_DESCRIPT
+fi
+
+##############################################################
+# Execution times (minutes)
+##############################################################
+
+REMOVE="FALSE"
+
+if [ ! -z "$joboption_cputime" ] ; then
+  if [ $joboption_cputime -lt 0 ] ; then
+    joboption_cputime=0
+  fi
+  maxcputime=$(( $joboption_cputime / $joboption_count ))
+  echo "+JobCpuLimit = $maxcputime" >> $LRMS_JOB_DESCRIPT
+  REMOVE="${REMOVE} || RemoteUserCpu + RemoteSysCpu > JobCpuLimit"
+  
+fi  
+  
+if [ -z "$joboption_walltime" ] ; then
+  if [ ! -z "$joboption_cputime" ] ; then
+    # Set walltime for backward compatibility or incomplete requests
+    joboption_walltime=$(( $maxcputime * $walltime_ratio ))
+  fi
+fi
+
+if [ ! -z "$joboption_walltime" ] ; then
+  if [ $joboption_walltime -lt 0 ] ; then
+    joboption_walltime=0
+  fi
+  echo "+JobTimeLimit = $joboption_walltime" >> $LRMS_JOB_DESCRIPT
+  REMOVE="${REMOVE} || RemoteWallClockTime > JobTimeLimit"
+fi
+
+##############################################################
+# Requested memory (mb)
+##############################################################
+
+set_req_mem
+
+if [ ! -z "$joboption_memory" ] ; then
+  echo "request_memory=${joboption_memory}" >> $LRMS_JOB_DESCRIPT
+  memory_bytes=$(( $joboption_memory * 1024 ))
+  # HTCondor needs to know the total memory for the job, not memory per core
+  if [ ! -z $joboption_countpernode ] && [ $joboption_countpernode -gt 0 ] ; then
+     memory_bytes=$(( $joboption_countpernode * $memory_bytes ))
+  fi
+  echo "+JobMemoryLimit = $memory_bytes" >> $LRMS_JOB_DESCRIPT
+  REMOVE="${REMOVE} || ResidentSetSize > JobMemoryLimit"
+fi
+
+##############################################################
+#  HTCondor stage in/out
+##############################################################
+if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+  (
+    cd "$joboption_directory"
+    if [ $? -ne '0' ] ; then
+      echo "Can't change to session directory: $joboption_directory" 1>&2
+      rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_DESCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+      echo "Submission: Configuration error.">>"$failures_file"
+      exit 1
+    fi
+    scratch_dir=`dirname "$joboption_directory"`
+    echo "should_transfer_files = YES" >> $LRMS_JOB_DESCRIPT
+    echo "When_to_transfer_output = ON_EXIT_OR_EVICT" >> $LRMS_JOB_DESCRIPT
+    echo "x509userproxy = $joboption_controldir/job.$joboption_gridid.proxy" >> $LRMS_JOB_DESCRIPT
+
+    count=0
+    input_files="Transfer_input_files = "
+    input_file="joboption_inputfile_$count"
+    while [ -n "${!input_file}" ]; do
+      if [ "$count" -gt "0" ]; then
+          input_files="${input_files},"
+      fi
+      input_files="${input_files} ${joboption_directory}${!input_file}"
+      count=$((count+1))
+      input_file="joboption_inputfile_$count"
+    done
+    echo "${input_files}" >> $LRMS_JOB_DESCRIPT
+  )
+fi
+
+echo "Periodic_remove = ${REMOVE}" >> $LRMS_JOB_DESCRIPT
+echo "Queue" >> $LRMS_JOB_DESCRIPT
+
+echo "#!/bin/bash -l" > $LRMS_JOB_SCRIPT
+
+echo "" >> $LRMS_JOB_SCRIPT
+echo "# Overide umask of execution node (sometime values are really strange)" >> $LRMS_JOB_SCRIPT
+echo "umask 077" >> $LRMS_JOB_SCRIPT
+echo " " >> $LRMS_JOB_SCRIPT
+
+# Script must have execute permission
+chmod 0755 $LRMS_JOB_SCRIPT
+
+sourcewithargs_jobscript
+
+##############################################################
+# Add environment variables
+##############################################################
+add_user_env
+
+##############################################################
+# Check for existance of executable,
+# there is no sense to check for executable if files are 
+# downloaded directly to computing node
+##############################################################
+if [ -z "${joboption_arg_0}" ] ; then
+  echo 'Executable is not specified' 1>&2
+  rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_DESCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+  echo "Submission: Job description error.">>"$failures_file"
+  exit 1
+fi
+
+#######################################################################
+# copy information useful for transfering files to/from node directly
+#######################################################################
+if [ "$joboption_localtransfer" = 'yes' ] ; then
+  setup_local_transfer
+fi
+
+######################################################################
+# Adjust working directory for tweaky nodes
+# RUNTIME_GRIDAREA_DIR should be defined by external means on nodes
+######################################################################
+if [ ! -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+  setup_runtime_env
+else
+  echo "RUNTIME_JOB_DIR=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid" >> $LRMS_JOB_SCRIPT
+  echo "RUNTIME_JOB_DIAG=$RUNTIME_LOCAL_SCRATCH_DIR/${joboption_gridid}.diag" >> $LRMS_JOB_SCRIPT
+  RUNTIME_STDIN_REL=`echo "${joboption_stdin}" | sed "s#^${joboption_directory}/*##"`
+  RUNTIME_STDOUT_REL=`echo "${joboption_stdout}" | sed "s#^${joboption_directory}/*##"`
+  RUNTIME_STDERR_REL=`echo "${joboption_stderr}" | sed "s#^${joboption_directory}/*##"`
+  if [ "$RUNTIME_STDIN_REL" = "${joboption_stdin}" ] ; then
+    echo "RUNTIME_JOB_STDIN=\"${joboption_stdin}\"" >> $LRMS_JOB_SCRIPT
+  else
+    echo "RUNTIME_JOB_STDIN=\"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$RUNTIME_STDIN_REL\"" >> $LRMS_JOB_SCRIPT
+  fi
+  if [ "$RUNTIME_STDOUT_REL" = "${joboption_stdout}" ] ; then
+    echo "RUNTIME_JOB_STDOUT=\"${joboption_stdout}\"" >> $LRMS_JOB_SCRIPT
+  else
+    echo "RUNTIME_JOB_STDOUT=\"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$RUNTIME_STDOUT_REL\"" >> $LRMS_JOB_SCRIPT
+  fi
+  if [ "$RUNTIME_STDERR_REL" = "${joboption_stderr}" ] ; then
+    echo "RUNTIME_JOB_STDERR=\"${joboption_stderr}\"" >> $LRMS_JOB_SCRIPT
+  else
+    echo "RUNTIME_JOB_STDERR=\"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$RUNTIME_STDERR_REL\"" >> $LRMS_JOB_SCRIPT
+  fi
+fi
+
+##############################################################
+# Add std... to job arguments
+##############################################################
+include_std_streams
+
+##############################################################
+#  Move files to local working directory (job is done on node only)
+#  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
+##############################################################
+move_files_to_node
+
+echo "" >> $LRMS_JOB_SCRIPT
+echo "RESULT=0" >> $LRMS_JOB_SCRIPT
+echo "" >> $LRMS_JOB_SCRIPT
+
+if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+    echo "# move input files to local working directory" >> $LRMS_JOB_SCRIPT
+    count=0
+    input_file="joboption_inputfile_$count"
+    while [ -n "${!input_file}" ]; do
+      echo "mv .${!input_file} ${joboption_gridid}/." >> $LRMS_JOB_SCRIPT
+      count=$((count+1))
+      input_file="joboption_inputfile_$count"
+    done
+fi
+
+#####################################################
+#  Download input files
+####################################################
+download_input_files
+
+##############################################################
+#  Skip execution if something already failed
+##############################################################
+echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
+
+##############################################################
+#  Runtime configuration at computing node
+##############################################################
+RTE_stage1
+
+##############################################################
+#  Diagnostics
+##############################################################
+echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
+EOSCR
+
+##############################################################
+#  Check intermediate result again
+##############################################################
+echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
+
+##############################################################
+#  Execution
+##############################################################
+cd_and_run
+
+##############################################################
+#  End of RESULT checks
+##############################################################
+echo "fi" >> $LRMS_JOB_SCRIPT
+echo "fi" >> $LRMS_JOB_SCRIPT
+
+##############################################################
+#  Runtime (post)configuration at computing node
+##############################################################
+configure_runtime
+
+#####################################################
+#  Upload output files
+####################################################
+if [ "$joboption_localtransfer" = 'yes' ] ; then
+  upload_output_files
+else
+# There is no sense to keep trash till GM runs uploader
+  echo 'if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then' >> $LRMS_JOB_SCRIPT
+# Delete all files except listed in job.#.output
+  echo '  find ./ -type l -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
+  echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
+
+  if [ -f "$joboption_controldir/job.$joboption_gridid.output" ] ; then
+    cat "$joboption_controldir/job.$joboption_gridid.output" | \
+    # remove leading backslashes, if any
+    sed 's/^\/*//' | \
+    # backslashes and spaces are escaped with a backslash in job.*.output. The
+    # shell built-in read undoes this escaping.
+    while read name rest; do
+
+      # make it safe for shell by replacing single quotes with '\''
+      name=`printf "%s" "$name"|sed "s/'/'\\\\\\''/g"`;
+
+      # protect from deleting output files including those in the dynamic list
+      if [ "${name#@}" != "$name" ]; then     # Does $name start with a @ ?
+
+        dynlist=${name#@}
+        echo "  dynlist='$dynlist'" >> $LRMS_JOB_SCRIPT
+        cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
+  chmod -R u-w "./$dynlist" 2>/dev/null
+  cat "./$dynlist" | while read name rest; do
+    chmod -R u-w "./$name" 2>/dev/null
+  done
+EOSCR
+      else
+
+        echo "  chmod -R u-w \"\$RUNTIME_JOB_DIR\"/'$name' 2>/dev/null" >> $LRMS_JOB_SCRIPT
+        if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+           echo "  mv \"\$RUNTIME_JOB_DIR\"/'$name' ../." >> $LRMS_JOB_SCRIPT
+        fi
+      fi
+    done
+  fi
+
+  echo '  find ./ -type f -perm /200 -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
+  echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
+  echo 'fi' >> $LRMS_JOB_SCRIPT
+fi
+echo "" >> $LRMS_JOB_SCRIPT
+
+##############################################################
+#  Move files back to session directory (job is done on node only)
+#  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
+# !!!!!!!!!!!!!!!!!!! would be better to know the names of files !!!!!!!!!!!
+##############################################################
+move_files_to_frontend
+
+#######################################
+#  Submit the job
+#######################################
+echo "HTCondor job script built" 1>&2
+# Execute condor_submit command
+cd "$joboption_directory"
+echo "HTCondor script follows:" 1>&2
+echo "-------------------------------------------------------------------" 1>&2
+cat "$LRMS_JOB_SCRIPT" 1>&2
+echo "-------------------------------------------------------------------" 1>&2
+echo "" 1>&2
+CONDOR_RESULT=1
+CONDOR_TRIES=0
+while [ "$CONDOR_TRIES" -lt '10' ] ; do
+  ${CONDOR_SUBMIT} $LRMS_JOB_DESCRIPT 1>$LRMS_JOB_OUT 2>$LRMS_JOB_ERR
+  CONDOR_RESULT="$?"
+  if [ "$CONDOR_RESULT" -eq '0' ] ; then break ; fi
+  CONDOR_TRIES=$(( $CONDOR_TRIES + 1 ))
+  sleep 2
 done
-EOF
-            } else {
-                $output .= "chmod u-w './$file' 2>/dev/null\n";
-            }
-        }
-        $output .= <<EOF;
-find ./ -type f -perm /200 -exec rm -f "{}" ";"
-find ./ -type f -exec chmod u+w "{}" ";"
-EOF
-    }
-
-    # Exit with the job's exit code.
-    $output .= "exit \$_exitcode\n";
-
-    # Create the actual shell script from $output.
-    open EXE, ">$exewrapper"              or die "$0: creat $exewrapper: $!\n";
-    print EXE $output                     or die "$0: write $exewrapper: $!\n";
-    close EXE                             or die "$0: close $exewrapper: $!\n";
-    chmod 0755, $exewrapper               or die "$0: chmod $exewrapper: $!\n";
-
-    # Log the Condor job submission script in gmlog/errors.
-    unless ($debug) {
-        warn "$0: ----- begin wrapper script ($exewrapper) -----\n";
-        warn "$0: $_\n" for split /\n/, $output;
-        warn "$0: ----- end wrapper script ($exewrapper) -----\n";
-    }
-}
-
-#
-# Create a Condor job description that submits the wrapper script created
-# above.  The Condor job description should mirror the xRSL as much as
-# possible.
-#
-sub create_condor_job_description {
-    # As above, the job description is created in-memory, so that only one I/O
-    # operation has to be done when writing to disk.
-    my $output = "Executable = $exewrapper\n" .
-                 "Input = $grami{joboption_stdin}\n";
-
-    $output .= "Log = $condor_log\n";
-
-    if ($grami{joboption_stdout} =~ /_condor_stdout/ && $grami{joboption_stderr} =~ /_condor_stderr/ && $config{shared_filesystem} =~ /^no/i && notnull($grami{joboption_inputfile_0})) {
-       $output .= "Output = $grami{joboption_stdout}\n";
-       $output .= "Error = $grami{joboption_stderr}\n";
-    } else {
-       $output .= "Output = $grami{joboption_directory}.comment\n";
-       $output .= "Error = $grami{joboption_directory}.comment\n";
-    }
-
-    my @requirements = ();
-
-    if (notnull($grami{joboption_queue})) {
-        my $queue = $grami{joboption_queue};
-        $output .= "+NordugridQueue = $queue\n";
-    }
-
-    if (notnull($config{condor_rank})) {
-        $output .= "Rank = $config{condor_rank}\n";
-    }
-
-    if (notnull($config{condor_requirements})) {
-        $config{condor_requirements} =~ s/\[separator\]//g;
-        push @requirements, $config{condor_requirements};
-    }
-
-    # This is a custom RSL attribute used for debugging.  If the xRSL contains
-    # (machine = foo), the job will only run on machine "foo".
-    if (notnull($grami{joboption_rsl_machine})) {
-        push @requirements, "Machine == \"$grami{joboption_rsl_machine}\"";
-    }
-
-    if (@requirements) {
-        $output .= "Requirements = (" . (join ") && (", @requirements) . ")\n";
-    }
-
-    if($grami{joboption_exclusivenode} eq "true"){
-        $output .= "+RequiresWholeMachine=True\n";
-    }
-
-    # Option to force Condor to transfer of input and output files by itself
-    if ($config{shared_filesystem} =~ /^no/i && notnull($grami{joboption_inputfile_0})) { 
-        $output .= "Transfer_input_files = ";
-        my $i;
-        for ($i = 0; notnull($grami{"joboption_inputfile_$i"}); $i++) {
-            $output .= ',' if $i > 0;
-            $output .= $grami{"joboption_directory"};
-            $output .= $grami{"joboption_inputfile_$i"};
-        }
-        $output .= "\n";
-        $output .= "should_transfer_files = YES\n";
-        # Ensure the proxy is transferred
-        $output .= "use_x509userproxy = True\n";
-        # No need to specify output files explicitly. Condor will transfer all
-        # files from the job directory that were created or modified by the job
-        $output .= "When_to_transfer_output = ON_EXIT_OR_EVICT\n";
-
-        if (notnull($grami{joboption_rsl_disk})) {
-            push @requirements, "Disk >= " . ($grami{joboption_rsl_disk} * 1024);
-        }
-    }
-
-    if (notnull($grami{joboption_env_0})) {
-        $output .= "Environment = ";
-        my $has_globalid = '';
-        my $i;
-        for ($i = 0; notnull($grami{"joboption_env_$i"}); $i++) {
-            $output .= ";" if $i > 0;
-            $output .= $grami{"joboption_env_$i"};
-            $has_globalid = 1 if $grami{"joboption_env_$i"} =~ m/^GRID_GLOBAL_JOBID=/;
-        }
-        # guess globalid in case not already provided and export it to the job
-        if (not $has_globalid) {
-            my $hostname = $config{hostname} || hostname();
-            my $gm_port = $config{gm_port} || 2811;
-            my $gm_mount_point = $config{gm_mount_point} || "/jobs";
-            $output .= ";" if $i > 0;
-            $output .= "GRID_GLOBAL_JOBID=gsiftp://$hostname:$gm_port$gm_mount_point/$grami{joboption_gridid}";
-        }
-        $output .= "\n";
-    }
-
-    my $remove="FALSE";
-    if (notnull($grami{joboption_cputime})) {
-        $output .= "+JobCpuLimit = $grami{joboption_cputime}\n";
-        $remove .= " || RemoteUserCpu + RemoteSysCpu > JobCpuLimit";
-        warn "$0: Setting CPU limit\n";
-    }
-    if (notnull($grami{joboption_walltime})) {
-        $output .= "+JobTimeLimit = $grami{joboption_walltime}\n";
-        $remove .= " || RemoteWallClockTime > JobTimeLimit";
-        warn "$0: Setting time limit\n";
-    }
-
-    # If multiple CPUs requested, the memory requested in the job description is actually the memory per core
-    if ($grami{joboption_count} > 1 && notnull($grami{joboption_memory}))
-    {
-       $grami{joboption_memory} *= $grami{joboption_count};
-    }
-
-    # Set the memory limit.
-    # The limit is set by checking the next values in the following order and applying the first present
-    #   1. Memory in the job description
-    #   2. defaultmemory from the queue configuration
-    #   3. defaultmemory from common cluster configuration
-    #   4. nodememory from the queue configuration
-    #   5. nodememory from common cluster configuration
-    #   6. hardcoded limit on 1 GB
-    $grami{joboption_memory} ||= $config{defaultmemory} || $config{service}{defaultmemory} || $config{MaxVirtualMemory} || $config{service}{MaxVirtualMemory} || 1000;
-    $output .= "+JobMemoryLimit = ".int(1024*$grami{joboption_memory})."\n";
-    $remove .= " || ResidentSetSize > JobMemoryLimit";
-    warn "$0: Setting memory limit\n";
-
-    $output .= "request_memory = $grami{joboption_memory}\n";
-    $output .= "request_cpus = $grami{joboption_count}\n";
-    $output .= "GetEnv = True\n" .
-               "Universe = vanilla\n" .
-               "Notification = Never\n" .
-#              "When_to_transfer_output = ON_EXIT\n" .
-               "Periodic_remove = $remove\n" .
-               "Queue\n";
-
-    if ($debug) {
-        print $output;
-    } else {
-        my $cmd_fh;
-        ($cmd_fh, $cmd_filename) = tempfile('XXXXXXXX',
-                                            DIR => $grami{joboption_directory},
-                                            SUFFIX => '.cmd');
-        print $cmd_fh $output  or die "$0: write $cmd_filename: $!\n";
-        close $cmd_fh          or die "$0: close $cmd_filename: $!\n";
-
-        # Log the Condor job submission script in gmlog/errors.
-        warn "$0: ----- begin condor job description ($cmd_filename) -----\n";
-        warn "$0: $_\n" for split /\n/, $output;
-        warn "$0: ----- end condor job description ($cmd_filename) -----\n";
-    }
-}
-
-sub submit_condor_job {
-    return if $debug;
-    chdir $grami{joboption_directory}
-      or die "$0: chdir $grami{joboption_directory}: $!\n";
-
-    my $condor_submit_exe = "$condor_bin_path/condor_submit";
-    warn "$0: running $condor_submit_exe $cmd_filename\n";
-    my $submit_out = `\Q$condor_submit_exe\E \Q$cmd_filename\E 2>&1`;
-    #my $submit_out = `\Qcat\E \Q$cmd_filename\E 2>&1; exit 22`;
-    my $err = $?;
-    warn "$0: $_\n" for split /\n/, $submit_out;
-    die "$0: condor_submit failed!\n" if $err;
-
-    warn "$0: appending local job id to grami file $gramifile\n";
-    my ($localid) = $submit_out =~ /submitted to cluster (\d+)\./;
-    open GRAMI, ">>$gramifile"                      or die "$0: $gramifile: $!";
-    print GRAMI "joboption_jobid=$localid.".hostname()."\n" or die "$0: $gramifile: $!";
-    print GRAMI "condor_log=$condor_log\n"          or die "$0: $gramifile: $!";
-    close GRAMI                                     or die "$0: $gramifile: $!";
-}
-
-sub notnull {
-    return defined $_[0] && $_[0] ne '';
-}
+if [ $CONDOR_RESULT -eq '0' ] ; then
+   job_out=`cat $LRMS_JOB_OUT`
+   
+   if [ "${job_out}" = "" ]; then
+      echo "job *NOT* submitted successfully!" 1>&2
+      echo "failed getting the condor jobid for the job!" 1>&2
+      echo "Submission: Local submission client behaved unexpectedly.">>"$failures_file"
+   elif [ `echo "${job_out}" | grep -Ec "submitted to cluster\s[0-9]+"` != "1" ]; then
+      echo "job *NOT* submitted successfully!" 1>&2
+      echo "badly formatted condor jobid for the job !" 1>&2
+      echo "Submission: Local submission client behaved unexpectedly.">>"$failures_file"
+   else
+      job_id=`echo $job_out | grep cluster | awk '{print $8}' | sed 's/[\.]//g'`
+      hostname=`hostname -f`
+      echo "joboption_jobid=${job_id}.${hostname}" >> $arg_file
+      echo "condor_log=${joboption_directory}/log" >> $arg_file
+      echo "job submitted successfully!" 1>&2
+      echo "local job id: $job_id" 1>&2
+      # Remove temporary files
+      rm -f $LRMS_JOB_OUT $LRMS_JOB_ERR
+      echo "----- exiting submit_condor_job -----" 1>&2
+      echo "" 1>&2
+      exit 0
+   fi
+else
+  echo "job *NOT* submitted successfully!" 1>&2
+  echo "got error code from condor_submit: $CONDOR_RESULT !" 1>&2
+  echo "Submission: Local submission client failed.">>"$failures_file"
+fi
+echo "Output is:" 1>&2
+cat $LRMS_JOB_OUT 1>&2
+echo "Error output is:"
+cat $LRMS_JOB_ERR 1>&2
+rm -f "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+echo "----- exiting submit_condor_job -----" 1>&2
+echo "" 1>&2
+exit 1
