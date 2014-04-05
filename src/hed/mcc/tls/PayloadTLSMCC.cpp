@@ -414,8 +414,21 @@ PayloadTLSMCC::~PayloadTLSMCC(void) {
     int err = SSL_shutdown(ssl_);
     if(err == 0) err = SSL_shutdown(ssl_);
     if(err < 0) { // -1 expected
-      logger_.msg(VERBOSE, "Failed to shut down SSL");
-      ConfigTLSMCC::HandleError();
+      err = SSL_get_error(ssl_,err);
+      if((err == SSL_ERROR_WANT_READ) || (err == SSL_ERROR_WANT_WRITE)) {
+        // We are not going to wait for connection to
+        // close nicely. We are too impatient.
+        ConfigTLSMCC::HandleError();
+      } else if(err == SSL_ERROR_SYSCALL) {
+        // It would be interesting to check errno. But
+        // unfortunately it seems to be lost already
+        // inside SSL_shutdown().
+        ConfigTLSMCC::HandleError();
+      } else {
+        // This case is unexpected. So it is better to
+        // report it.
+        logger_.msg(VERBOSE, "Failed to shut down SSL: %s",ConfigTLSMCC::HandleError(err));
+      }
       // Trying to get out of error
       SSL_set_quiet_shutdown(ssl_,1);
       SSL_shutdown(ssl_);
