@@ -309,7 +309,7 @@ using namespace Arc;
         // Lookig for HREF
         const char *href = strstr(tag_start + 3, "href=");
         if (!href) href = strstr(tag_start + 3, "HREF=");
-        if (href) {
+        if (href && (href < tag_end)) {
           const char *url_start = href + 5;
           const char *url_end = NULL;
           if ((*url_start) == '"') {
