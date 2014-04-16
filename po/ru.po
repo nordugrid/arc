@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-03-29 23:45+0100\n"
-"PO-Revision-Date: 2014-03-29 23:46+0100\n"
+"POT-Creation-Date: 2014-04-16 02:32+0100\n"
+"PO-Revision-Date: 2014-04-16 02:33+0100\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -13703,9 +13703,10 @@ msgstr "Используется алгоритм шифрования %s"
 msgid "Failed to accept SSL connection"
 msgstr "Не удалось принять соединение SSL"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:417
-msgid "Failed to shut down SSL"
-msgstr "Не удалось прервать SSL"
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:430
+#, c-format
+msgid "Failed to shut down SSL: %s"
+msgstr "Не удалось прервать соединение SSL: %s"
 
 #: src/hed/mcc/gsi/MCCGSI.cpp:162 src/hed/mcc/gsi/MCCGSI.cpp:347
 #: src/hed/mcc/gsi/MCCGSI.cpp:564
