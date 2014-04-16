@@ -1,25 +1,22 @@
 ARC Middleware
 ==============
 
-The Advanced Resource Connector (ARC) middleware, introduced by the
+The Advanced Resource Connector (ARC) middleware, developed by the
 NorduGrid Collaboration (www.nordugrid.org), is an open source software
-solution enabling production quality computational and data grids.
+solution enabling computing grid infrastructures with emphasis on
+processing of large data volumes. ARC is being used to enable national
+and international e-infrastructures since its first release in 2002.
 
-Since its first release (May 2002) the middleware has been deployed and
-been used in production environments. Emphasis is put on scalability,
-stability, reliability and performance of the middleware. A growing
-number of grid projects, like Swegrid, NDGF and Swiss Bio Grid have
-chosen ARC as their middleware.
 
 
 Dependencies
 ============
 
-The core part of middleware is written in C/C++.
-Building the software from source or installing a pre-compiled binary 
-requires different external packages, furthermore the client and server
-packages have different dependencies too. Below a list of the explicit 
-requirements is shown:
+The core part of middleware is written in C/C++. Building the software
+from source or installing a pre-compiled binary requires different
+external packages, furthermore the client and server packages have
+different dependencies too. Below a list of the explicit requirements
+is shown: 
 
 Mandatory dependencies
 ----------------------
@@ -88,23 +85,20 @@ ARC you may need to install development versions of mentioned packages.
 Getting the software
 ====================
 
-The middleware is free to deploy anywhere by anybody. Pre-built binary
-releases for many Linux platforms can be downloaded from the NorduGrid
-software repository at download.nordugrid.org.
+The middleware is free to deploy anywhere by anybody. Binary packages
+are available from Ubuntu, Fedora and EPEL repositories, as well as
+from NorduGrid's own repositories, as described at
+http://download.nordugrid.org 
 
-The software is released under the Apache 2.0 License (see the LICENSE
-file).
+The software code is released under the Apache 2.0 License (see the
+LICENSE file). It is available from the NorduGrid's Subversion
+repository, see http://svn.nordugrid.org for more details.
 
-The NorduGrid repository hosts the source code. The external software
-required is usually part of standard Linux distributions.
+The necessary 3rd party libraries are usually available in standard
+Linux distributions; in rare cases NorduGrid repositories offer them.
 
-You can get the latest source code for ARC from the Subversion 
-repository. See http://svn.nordugrid.org for more details.
-
-There are also nightly code snapshots available at
+There are also nightly code snapshots and package builds available at
 http://download.nordugrid.org/nightlies/packages/nordugrid-arc/trunk/ .
-Choose latest version available, go in to the src directory and
-download the tarball.
 
 
 
@@ -113,7 +107,7 @@ Building & Installation
 
 The recommended way to install ARC is from repositories.  If you want
 to build it yourself and downloaded the tarball, unpack it and cd into
-the created directory.
+the created directory (below, replace 1.0.0 with the desired tag):
 
   tar -zxvf nordugrid-arc-1.0.0.tar.gz
   cd nordugrid-arc-1.0.0
@@ -199,7 +193,7 @@ keys available at:
 
  http://svn.nordugrid.org/trac/nordugrid/browser/doc/trunk/tech_doc/sec/TestCA
 
-Alternatively You may choose to use KnowARC Instant CA service available at 
+Alternatively, you may choose to use KnowARC Instant CA service available at 
 https://arc-emi.grid.upjs.sk/instantCA/instantCA . It is especially useful when
 testing installations consisting of multiple hosts.
 
@@ -271,8 +265,11 @@ configuration of A-REX.
 Testing and Using A-REX (clients)
 =================================
 
-Now you may use the command line utility 'arcinfo' to obtain a service description.
-You can do something like
+Instructions below refer to the Web Service interface; similar tests
+can be done for the original GridFTP-based interface (gsiftp:// protocol).
+
+Now you may use the command line utility 'arcinfo' to obtain a service
+description.  You can do something like
 
  arcinfo -c https://localhost:60000/arex -l
 
