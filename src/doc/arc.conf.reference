@@ -1115,8 +1115,8 @@
 ## are rejected
 #allowunknown="no"
 
-## maxconnections - maximum number of connections accepted by a gridftpd server
-## only supported in the 0.5.x tags. Default is 100.
+## maxconnections - maximum number of connections accepted by a gridftpd server.
+## Default is 100.
 #maxconnections="200"
 
 ## defaultbuffer size - defines size of every buffer for data
