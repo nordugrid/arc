@@ -164,9 +164,10 @@ namespace ArcDMCGridFTP {
                                           &ftp_opattr, GLOBUS_NULL, 0, 1,
                                           &ftp_complete_callback, cbarg);
       if (!res) {
+        std::string globus_err(res.str());
         logger.msg(VERBOSE, "check_ftp: globus_ftp_client_get failed");
-        logger.msg(VERBOSE, res.str());
-        return DataStatus(DataStatus::CheckError, res.str());
+        logger.msg(VERBOSE, globus_err);
+        return DataStatus(DataStatus::CheckError, globus_err);
       }
       // use eof_flag to pass result from callback
       ftp_eof_flag = false;
@@ -388,12 +389,13 @@ namespace ArcDMCGridFTP {
     }
     if (!res) {
       logger.msg(VERBOSE, "start_reading_ftp: globus_ftp_client_get failed");
-      logger.msg(VERBOSE, res.str());
+      std::string globus_err(res.str());
+      logger.msg(VERBOSE, globus_err);
 
       globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
       buffer->error_read(true);
       reading = false;
-      return DataStatus(DataStatus::ReadStartError, res.str());
+      return DataStatus(DataStatus::ReadStartError, globus_err);
     }
     if (globus_thread_create(&ftp_control_thread, GLOBUS_NULL,
                              &ftp_read_thread, this) != 0) {
@@ -421,10 +423,11 @@ namespace ArcDMCGridFTP {
         // This mostly means transfer failed and Globus did not call complete 
         // callback. Because it was reported that Globus may call it even
         // 1 hour after abort initiated here that callback is imitated.
-        logger.msg(INFO, "Failed to abort transfer of ftp file: %s",res.str());
+        std::string globus_err(res.str());
+        logger.msg(INFO, "Failed to abort transfer of ftp file: %s", globus_err);
         logger.msg(INFO, "Assuming transfer is already aborted or failed.");
         cond.lock();
-        failure_code = DataStatus(DataStatus::ReadStopError, res.str());
+        failure_code = DataStatus(DataStatus::ReadStopError, globus_err);
         cond.unlock();
         buffer->error_read(true);
       }
@@ -610,11 +613,12 @@ namespace ArcDMCGridFTP {
     }
     if (!res) {
       logger.msg(VERBOSE, "start_writing_ftp: put failed");
-      logger.msg(VERBOSE, "%s", res.str());
+      std::string globus_err(res.str());
+      logger.msg(VERBOSE, globus_err);
       globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
       buffer->error_write(true);
       writing = false;
-      return DataStatus(DataStatus::WriteStartError, res.str());
+      return DataStatus(DataStatus::WriteStartError, globus_err);
     }
     if (globus_thread_create(&ftp_control_thread, GLOBUS_NULL,
                              &ftp_write_thread, this) != 0) {
@@ -640,10 +644,11 @@ namespace ArcDMCGridFTP {
         // This mostly means transfer failed and Globus did not call complete 
         // callback. Because it was reported that Globus may call it even
         // 1 hour after abort initiated here that callback is imitated.
-        logger.msg(INFO, "Failed to abort transfer of ftp file: %s",res.str());
+        std::string globus_err(res.str());
+        logger.msg(INFO, "Failed to abort transfer of ftp file: %s", globus_err);
         logger.msg(INFO, "Assuming transfer is already aborted or failed.");
         cond.lock();
-        failure_code = DataStatus(DataStatus::WriteStopError, res.str());
+        failure_code = DataStatus(DataStatus::WriteStopError, globus_err);
         cond.unlock();
         buffer->error_write(true);
       }
