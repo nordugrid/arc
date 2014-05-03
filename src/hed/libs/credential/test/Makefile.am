@@ -5,11 +5,11 @@ check_DATA = ca_key.pem ca_cert.pem
 
 CredentialTest_SOURCES = $(top_srcdir)/src/Test.cpp CredentialTest.cpp
 CredentialTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 CredentialTest_LDADD = \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 
 VOMSUtilTest_SOURCES = $(top_srcdir)/src/Test.cpp VOMSUtilTest.cpp
 VOMSUtilTest_CXXFLAGS = -I$(top_srcdir)/include \
