@@ -1504,7 +1504,7 @@ err:
     return rv;
   }
 
-  static SECStatus deleteKeyAndCert(const char* privkeyname, const char* passwd, bool delete_cert) {
+  static SECStatus deleteKeyAndCert(const char* privkeyname, PasswordSource& passphrase, bool delete_cert) {
     SECKEYPrivateKeyList* list;
     SECKEYPrivateKeyListNode* node;
     int count = 0;
@@ -1516,14 +1516,14 @@ err:
     if(!privkeyname) NSSUtilLogger.msg(WARNING, "The name of the private key to delete is empty");
 
     if(PK11_NeedLogin(slot)) {
-      rv = PK11_Authenticate(slot, PR_TRUE, (void*)passwd);
+      rv = PK11_Authenticate(slot, PR_TRUE, (void*)&passphrase);
       if(rv != SECSuccess) {
         NSSUtilLogger.msg(ERROR, "Failed to authenticate to token %s.", PK11_GetTokenName(slot));
         return SECFailure;
       }
     }
  
-    list = PK11_ListPrivKeysInSlot(slot, (char *)privkeyname, (void*)passwd);
+    list = PK11_ListPrivKeysInSlot(slot, (char *)privkeyname, (void*)&passphrase);
     if(list == NULL) {
       NSSUtilLogger.msg(INFO, "No private key with nickname %s exist in NSS database", privkeyname);
       return SECFailure;
@@ -1556,7 +1556,7 @@ err:
       cert = PK11_GetCertFromPrivateKey(node->key);
       if(cert && delete_cert){
         //Delete the private key and the cert related
-        rv = PK11_DeleteTokenCertAndKey(cert, (void*)passwd);
+        rv = PK11_DeleteTokenCertAndKey(cert, (void*)&passphrase);
         if(rv != SECSuccess) {
           NSSUtilLogger.msg(ERROR, "Failed to delete private key and certificate");
           CERT_DestroyCertificate(cert); continue;
@@ -1585,33 +1585,33 @@ err:
     return SECSuccess;
   }
 
-  static SECStatus DeleteKeyOnly(const char* privkeyname, const char* passwd) {
-    return deleteKeyAndCert(privkeyname, passwd, false);
+  static SECStatus DeleteKeyOnly(const char* privkeyname, PasswordSource& passphrase) {
+    return deleteKeyAndCert(privkeyname, passphrase, false);
   }
 
-  static SECStatus DeleteKeyAndCert(const char* privkeyname, const char* passwd) {
-    return deleteKeyAndCert(privkeyname, passwd, true);
+  static SECStatus DeleteKeyAndCert(const char* privkeyname, PasswordSource& passphrase) {
+    return deleteKeyAndCert(privkeyname, passphrase, true);
   }
 
-  static SECStatus DeleteCertAndKey(const char* certname, const char* passwd) {
+  static SECStatus DeleteCertAndKey(const char* certname, PasswordSource& passphrase) {
     SECStatus rv;
     CERTCertificate* cert;
     PK11SlotInfo* slot;
 
     slot = PK11_GetInternalKeySlot();
     if(PK11_NeedLogin(slot)) {
-      SECStatus rv = PK11_Authenticate(slot, PR_TRUE, (void*)passwd);
+      SECStatus rv = PK11_Authenticate(slot, PR_TRUE, (void*)&passphrase);
       if(rv != SECSuccess) {
         NSSUtilLogger.msg(ERROR, "Failed to authenticate to token %s.", PK11_GetTokenName(slot));
         return SECFailure;
       }
     }
-    cert = PK11_FindCertFromNickname((char*)certname, (void*)passwd);
+    cert = PK11_FindCertFromNickname((char*)certname, (void*)&passphrase);
     if(!cert) {
       PK11_FreeSlot(slot);
       return SECFailure;
     }
-    rv = PK11_DeleteTokenCertAndKey(cert, (void*)passwd);
+    rv = PK11_DeleteTokenCertAndKey(cert, (void*)&passphrase);
     if(rv != SECSuccess) {
       NSSUtilLogger.msg(ERROR, "Failed to delete private key that attaches to certificate: %s", certname);
     }
@@ -1736,14 +1736,14 @@ err:
     return true;
   }
 
-  static bool GenerateKeyPair(const char* slotpw, SECKEYPublicKey **pubk, SECKEYPrivateKey **privk, std::string& privk_str, int keysize, const std::string& nick_str) {
+  static bool GenerateKeyPair(PasswordSource& passphrase, SECKEYPublicKey **pubk, SECKEYPrivateKey **privk, std::string& privk_str, int keysize, const std::string& nick_str) {
     PK11RSAGenParams rsaParams;
     rsaParams.keySizeInBits = keysize;
     rsaParams.pe = 0x10001;
 
     PK11SlotInfo* slot = NULL;
     slot = PK11_GetInternalKeySlot();
-    if(PK11_Authenticate(slot, PR_TRUE, (void*)slotpw) != SECSuccess) {
+    if(PK11_Authenticate(slot, PR_TRUE, (void*)&passphrase) != SECSuccess) {
       NSSUtilLogger.msg(ERROR, "Failed to authenticate to key database");
       if(slot) PK11_FreeSlot(slot);
       return false;
@@ -1769,7 +1769,7 @@ err:
     return true;
   }
  
-  static bool ImportPrivateKey(const char* slotpw, const std::string& keyfile, const std::string& nick_str) {
+  static bool ImportPrivateKey(PasswordSource& passphrase, const std::string& keyfile, const std::string& nick_str) {
     BIO* key = NULL;
     key = BIO_new_file(keyfile.c_str(), "r");
     std::string key_str;
@@ -1785,12 +1785,12 @@ err:
 
     PK11SlotInfo* slot = NULL;
     slot = PK11_GetInternalKeySlot();
-    if(PK11_Authenticate(slot, PR_TRUE, (void*)slotpw) != SECSuccess) {
+    if(PK11_Authenticate(slot, PR_TRUE, (void*)&passphrase) != SECSuccess) {
       NSSUtilLogger.msg(ERROR, "Failed to authenticate to key database");
       if(slot) PK11_FreeSlot(slot);
       return false;
     }
-    DeleteKeyOnly((nick_str.c_str()), slotpw);
+    DeleteKeyOnly((nick_str.c_str()), passphrase);
 
     ImportDERPrivateKey(slot, input, nick_str);
 
@@ -1798,8 +1798,19 @@ err:
     return true;
   }
 
-  bool nssGenerateCSR(const std::string& privkey_name, const std::string& dn, const char* slotpw, 
-        const std::string& outfile, std::string& privk_str, bool ascii) {
+  bool nssGenerateCSR(const std::string& privkey_name, const std::string& dn, const char* slotpw, const std::string& outfile, std::string& privk_str, bool ascii) {
+    PasswordSource* passphrase = NULL;
+    if(slotpw) {
+      passphrase = new PasswordSourceString(slotpw);
+    } else {
+      passphrase = new PasswordSourceInteractive("TODO: prompt here",false);
+    }
+    bool r = nssGenerateCSR(privkey_name, dn, *passphrase, outfile, privk_str, ascii);
+    delete passphrase;
+    return r;
+  }
+
+  bool nssGenerateCSR(const std::string& privkey_name, const std::string& dn, Arc::PasswordSource& passphrase, const std::string& outfile, std::string& privk_str, bool ascii) {
     CERTCertificateRequest* req = NULL;
     CERTSubjectPublicKeyInfo* spki;
     SECKEYPrivateKey* privkey = NULL;
@@ -1822,9 +1833,9 @@ err:
     }
 
     //Remove the existing private key and related cert in nss db
-    rv = DeleteKeyAndCert((privkey_name.c_str()), slotpw);
+    rv = DeleteKeyAndCert((privkey_name.c_str()), passphrase);
 
-    if(!GenerateKeyPair(slotpw, &pubkey, &privkey, privk_str, keybits, privkey_name)) return false;
+    if(!GenerateKeyPair(passphrase, &pubkey, &privkey, privk_str, keybits, privkey_name)) return false;
     //PK11_SetPrivateKeyNickname(privkey, privkey_name.c_str());    
 
     //privkey = SECKEY_CreateRSAPrivateKey(keybits, &pubkey, NULL);
@@ -2885,6 +2896,18 @@ error:
   } 
 
   bool nssImportCert(char* slotpw, const std::string& certfile, const std::string& name, const char* trusts, bool ascii) {
+    PasswordSource* passphrase = NULL;
+    if(slotpw) {
+      passphrase = new PasswordSourceString(slotpw);
+    } else {
+      passphrase = new PasswordSourceInteractive("TODO: prompt here",false);
+    }
+    bool r = nssImportCert(*passphrase, certfile, name, trusts, ascii);
+    delete passphrase;
+    return r;
+  }
+
+  bool nssImportCert(PasswordSource& passphrase, const std::string& certfile, const std::string& name, const char* trusts, bool ascii) {
     PK11SlotInfo* slot = NULL;
     CERTCertDBHandle* certhandle;
     CERTCertTrust* trust = NULL;
@@ -2894,7 +2917,7 @@ error:
     SECStatus rv = SECSuccess;
 
     slot = PK11_GetInternalKeySlot();
-    if(PK11_Authenticate(slot, PR_TRUE, (void*)slotpw) != SECSuccess) {
+    if(PK11_Authenticate(slot, PR_TRUE, (void*)&passphrase) != SECSuccess) {
       NSSUtilLogger.msg(ERROR, "Failed to authenticate to key database");
       if(slot) PK11_FreeSlot(slot);
       return false;
@@ -2945,7 +2968,7 @@ error:
       rv = PK11_ImportCert(slot, cert, CK_INVALID_HANDLE, (char*)(name.c_str()), PR_FALSE);
       if(rv != SECSuccess) {
         if(PORT_GetError() == SEC_ERROR_TOKEN_NOT_LOGGED_IN) {
-          if(PK11_Authenticate(slot, PR_TRUE, (void*)slotpw) != SECSuccess) {
+          if(PK11_Authenticate(slot, PR_TRUE, (void*)&passphrase) != SECSuccess) {
             NSSUtilLogger.msg(ERROR, "Failed to authenticate to token %s", PK11_GetTokenName(slot));
             rv = SECFailure; break;
           }
@@ -2962,7 +2985,7 @@ error:
       rv = CERT_ChangeCertTrust(certhandle, cert, trust);
       if(rv != SECSuccess) {
         if (PORT_GetError() == SEC_ERROR_TOKEN_NOT_LOGGED_IN) {
-          if(PK11_Authenticate(slot, PR_TRUE, (void*)slotpw) != SECSuccess) {
+          if(PK11_Authenticate(slot, PR_TRUE, (void*)&passphrase) != SECSuccess) {
             NSSUtilLogger.msg(ERROR, "Failed to authenticate to token %s", PK11_GetTokenName(slot));
             rv = SECFailure; break;
           }
@@ -2987,10 +3010,22 @@ error:
   }
 
   bool nssImportCertAndPrivateKey(char* slotpw, const std::string& keyfile, const std::string& keyname, const std::string& certfile, const std::string& certname, const char* trusts, bool ascii) { 
+    PasswordSource* passphrase = NULL;
+    if(slotpw) {
+      passphrase = new PasswordSourceString(slotpw);
+    } else {
+      passphrase = new PasswordSourceInteractive("TODO: prompt here",false);
+    }
+    bool r = nssImportCertAndPrivateKey(*passphrase, keyfile, keyname, certfile, certname, trusts, ascii);
+    delete passphrase;
+    return r;
+  }
+
+  bool nssImportCertAndPrivateKey(PasswordSource& passphrase, const std::string& keyfile, const std::string& keyname, const std::string& certfile, const std::string& certname, const char* trusts, bool ascii) { 
     bool res;
-    res = ImportPrivateKey(slotpw, keyfile, keyname);
+    res = ImportPrivateKey(passphrase, keyfile, keyname);
     if(!res) { NSSUtilLogger.msg(ERROR, "Failed to import private key from file: %s", keyfile.c_str()); return false; }
-    res = nssImportCert(slotpw, certfile, certname, trusts, ascii);
+    res = nssImportCert(passphrase, certfile, certname, trusts, ascii);
     if(!res) { NSSUtilLogger.msg(ERROR, "Failed to import certificate from file: %s", certfile.c_str()); return false; }
     return true;
   }
