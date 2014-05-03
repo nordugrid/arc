@@ -274,7 +274,9 @@ namespace Arc {
   void LogFile::setBackups(int newbackups) {
     backups = newbackups;
   }
+
   void LogFile::setReopen(bool newreopen) {
+    Glib::Mutex::Lock lock(mutex);
     reopen = newreopen;
     if(reopen) {
       destination.close();
