@@ -389,7 +389,8 @@ typedef enum {
   pass_all,
   pass_private_key,
   pass_myproxy,
-  pass_myproxy_new
+  pass_myproxy_new,
+  pass_nss
 } pass_destination_type;
 
 std::map<pass_destination_type, Arc::PasswordSource*> passsources;
@@ -464,7 +465,21 @@ int main(int argc, char *argv[]) {
                                     "  keybits - size of proxy certificate key in bits.\n"
                                     "  signingAlgorithm - algorith used to sign proxy certificate.\n"
                                     "Items are printed in requested order and are separated by newline.\n"
-                                    "If item has multiple values they are printed in same line separated by |."
+                                    "If item has multiple values they are printed in same line separated by |.\n"
+                                    "\n"
+                                    "Supported password destinations are:\n"
+                                    "  key - for reading private key\n"
+                                    "  myproxy - for accessing credentials at MyProxy service\n"
+                                    "  myproxynew - for creating credentials at MyProxy service\n"
+                                    "  all - for any purspose.\n"
+                                    "\n"
+                                    "Supported password sources are:\n"
+                                    "  quoted string (\"password\") - explicitely specified password\n"
+                                    "  int - interactively request password from console\n"
+                                    "  stdin - read password from standard input delimited by newline\n"
+                                    "  file:filename - read password from file named filename\n"
+                                    "  stream:# - read password from input stream number #.\n"
+                                    "             Currently only 0 (standard input) is supported.\n"
   ));
 
   std::string proxy_path;
@@ -580,7 +595,7 @@ int main(int argc, char *argv[]) {
                     istring("string"), constraintlist);
 
   std::list<std::string> passsourcelist;
-  options.AddOption('p', "passwordsource", istring("password sources"),
+  options.AddOption('p', "passwordsource", istring("password destination=password source"),
                     istring("string"), passsourcelist);
 
   int timeout = -1;
@@ -957,18 +972,27 @@ int main(int argc, char *argv[]) {
     pass_destination_type pass_dest;
     if(dest == "key") {
       pass_dest = pass_private_key;
+    } else if(dest == "myproxy") {
+      pass_dest = pass_myproxy;
+    } else if(dest == "myproxynew") {
+      pass_dest = pass_myproxy_new;
+    } else if(dest == "nss") {
+      pass_dest = pass_nss;
+    } else if(dest == "all") {
+      pass_dest = pass_all;
     } else {
       logger.msg(Arc::ERROR, "Cannot parse password type %s. "
-                 "Currently supported value is 'key'.", dest);
+                 "Currently supported values are 'key','myproxy','myproxynew' and 'all'.", dest);
       return EXIT_FAILURE;
     }
+    Arc::PasswordSource* pass_source;
     std::string pass = it->substr(pos + 1);
     if((pass[0] == '"') && (pass[pass.length()-1] == '"')) {
-      passsources[pass_dest] = new Arc::PasswordSourceString(pass.substr(1,pass.length()-2));
+      pass_source = new Arc::PasswordSourceString(pass.substr(1,pass.length()-2));
     } else if(pass == "int") {
-      passsources[pass_dest] = new Arc::PasswordSourceInteractive(passprompts[pass_private_key].first,passprompts[pass_private_key].second);
+      pass_source = new Arc::PasswordSourceInteractive(passprompts[pass_private_key].first,passprompts[pass_private_key].second);
     } else if(pass == "stdin") {
-      passsources[pass_dest] = new Arc::PasswordSourceStream(&std::cin);
+      pass_source = new Arc::PasswordSourceStream(&std::cin);
     } else {
       pos = pass.find(':');
       if(pos == std::string::npos) {
@@ -980,11 +1004,11 @@ int main(int argc, char *argv[]) {
       std::string data = pass.substr(pos + 1);
       pass.resize(pos);
       if(pass == "file") {
-        passsources[pass_dest] = new PasswordSourceFile(data);
+        pass_source = new PasswordSourceFile(data);
         // TODO: combine same files
       } else if(pass == "stream") {
         if(data == "0") {
-          passsources[pass_dest] = new Arc::PasswordSourceStream(&std::cin);
+          pass_source = new Arc::PasswordSourceStream(&std::cin);
         } else {
           logger.msg(Arc::ERROR, "Only standard input is currently supported "
                      "for password source.");
@@ -994,6 +1018,16 @@ int main(int argc, char *argv[]) {
         logger.msg(Arc::ERROR, "Cannot parse password source type %s. "
                    "Supported source types are int,stdin,stream,file.", pass);
         return EXIT_FAILURE;
+      }
+    }
+    if(pass_source) {
+      if(pass_dest != pass_all) {
+        passsources[pass_dest] = pass_source;
+      } else {
+        passsources[pass_private_key] = pass_source;
+        passsources[pass_myproxy] = pass_source;
+        passsources[pass_myproxy_new] = pass_source;
+        passsources[pass_nss] = pass_source;
       }
     }
   }
@@ -1011,7 +1045,7 @@ int main(int argc, char *argv[]) {
   // TODO: Is default validityPeriod since now or since validityStart?
   Arc::Time validityStart = now; // now by default
   Arc::Period validityPeriod(12*60*60);
-  if (myproxy_command == "put" || myproxy_command == "PUT" || myproxy_command == "Put") {
+  if (Arc::lower(myproxy_command) == "put") {
     //For myproxy PUT operation, the proxy should be 7 days according to the default 
     //definition in myproxy implementation.
     validityPeriod = 7*24*60*60;
@@ -1127,29 +1161,29 @@ int main(int argc, char *argv[]) {
     // if multiple profiles exist
     bool res;
     std::string configdir;
-    if(nssdb_paths.size()) {
-      std::cout<<Arc::IString("There are %d NSS base directories where the certificate, key, and module datbases live",
-        nssdb_paths.size())<<std::endl;
-    }
-    for(int i=0; i < nssdb_paths.size(); i++) {
-      std::cout<<Arc::IString("Number %d is: %s", i+1, nssdb_paths[i])<<std::endl;
-    }
-    std::cout << Arc::IString("Please choose the NSS database you would use (1-%d): ", nssdb_paths.size());
-    if(nssdb_paths.size() == 1) { configdir = nssdb_paths[0]; }
-    char c;
-    while(true && (nssdb_paths.size()>1)) {
-      c = getchar();
-      int num = c - '0';
-      if((num<=nssdb_paths.size()) && (num>=1)) {
-        configdir = nssdb_paths[num-1];
-        break;
+    if(nssdb_paths.size() > 1) {
+      std::cout<<Arc::IString("There are %d NSS base directories where the certificate, key, and module databases live", nssdb_paths.size())<<std::endl;
+      for(int i=0; i < nssdb_paths.size(); i++) {
+        std::cout<<Arc::IString("Number %d is: %s", i+1, nssdb_paths[i])<<std::endl;
       }
+      std::cout << Arc::IString("Please choose the NSS database you would like to use (1-%d): ", nssdb_paths.size());
+      // todo: more than 9 paths
+      while(true) {
+        char c;
+        c = getchar();
+        int num = c - '0';
+        if((num<=nssdb_paths.size()) && (num>=1)) {
+          configdir = nssdb_paths[num-1];
+          break;
+        }
+      }
+    } else {
+      configdir = nssdb_paths[0];
     }
 
     res = AuthN::nssInit(configdir);
     std::cout<< Arc::IString("NSS database to be accessed: %s\n", configdir.c_str());
 
-    char* slotpw = NULL; //"secretpw";  
     //The nss db under firefox profile seems to not be protected by any passphrase by default
     bool ascii = true;
     const char* trusts = "u,u,u";
@@ -1158,7 +1192,7 @@ int main(int argc, char *argv[]) {
     std::string proxy_csrfile = "proxy.csr";
     std::string proxy_keyname = "proxykey";
     std::string proxy_privk_str;
-    res = AuthN::nssGenerateCSR(proxy_keyname, "CN=Test,OU=ARC,O=EMI", slotpw, proxy_csrfile, proxy_privk_str, ascii);
+    res = AuthN::nssGenerateCSR(proxy_keyname, "CN=Test,OU=ARC,O=EMI", *passsources[pass_nss], proxy_csrfile, proxy_privk_str, ascii);
     if(!res) return EXIT_FAILURE;
 
     // Create a temporary proxy and contact voms server
@@ -1213,7 +1247,7 @@ int main(int argc, char *argv[]) {
     if(!res) return EXIT_FAILURE;
 
     const char* proxy_certname = "proxycert";
-    res = AuthN::nssImportCert(slotpw, proxy_certfile, proxy_certname, trusts, ascii);
+    res = AuthN::nssImportCert(*passsources[pass_nss], proxy_certfile, proxy_certname, trusts, ascii);
     if(!res) return EXIT_FAILURE;
 
     //Compose the proxy certificate 
