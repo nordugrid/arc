@@ -37,7 +37,6 @@
 #include <arc/Logger.h>
 
 #include "NSSUtil.h"
-#include "NSSGetPassword.h"
 #include "nssprivkeyinfocodec.h"
 
 /*********************************
@@ -266,6 +265,15 @@ namespace AuthN {
 
     return rv;
   }
+
+  static char* nss_obtain_password(PK11SlotInfo* slot, PRBool retry, void *arg) {
+    PasswordSource* source = (PasswordSource*)arg;
+    if(!source) return NULL;
+    std::string password;
+    PasswordSource::Result result = source->Get(password, -1, -1);
+    if(result != PasswordSource::PASSWORD) return NULL;
+    return PL_strdup(password.c_str());
+  }
   
   bool nssInit(const std::string& configdir) {
     SECStatus rv;
@@ -291,7 +299,7 @@ namespace AuthN {
       return false;
     }
 */
-    PK11_SetPasswordFunc(nss_get_password_from_console); //(nss_get_password);
+    PK11_SetPasswordFunc(nss_obtain_password);
     NSSUtilLogger.msg(INFO, "Succeeded to initialize NSS");
 
     PORT_SetUCS2_ASCIIConversionFunction(p12u_ucs2_ascii_conversion_function);
@@ -1321,8 +1329,26 @@ loser:
   }
 
 
-  bool nssOutputPKCS12(const std::string certname, char* outfile,
-       char* slotpw, char* p12pw) {
+  bool nssOutputPKCS12(const std::string certname, char* outfile, char* slotpw, char* p12pw) {
+    PasswordSource* passphrase = NULL;
+    if(slotpw) {
+      passphrase = new PasswordSourceString(slotpw);
+    } else {
+      passphrase = new PasswordSourceInteractive("TODO: prompt here",false);
+    }
+    PasswordSource* p12passphrase = NULL;
+    if(p12pw) {
+      p12passphrase = new PasswordSourceString(p12pw);
+    } else {
+      p12passphrase = new PasswordSourceNone();
+    }
+    bool r = nssOutputPKCS12(certname, outfile, *passphrase, *p12passphrase);
+    delete passphrase;
+    delete p12passphrase;
+    return r;
+  }
+
+  bool nssOutputPKCS12(const std::string certname, char* outfile, PasswordSource& passphrase, PasswordSource& p12passphrase) {
     SEC_PKCS12ExportContext *p12ecx = NULL;
     SEC_PKCS12SafeInfo *keySafe = NULL, *certSafe = NULL;
     SECItem *pwitem = NULL;
@@ -1332,12 +1358,12 @@ loser:
     CERTCertListNode* node = NULL;
 
     slot = PK11_GetInternalKeySlot();
-    if (PK11_Authenticate(slot, PR_TRUE, (void*)slotpw) != SECSuccess) {
+    if (PK11_Authenticate(slot, PR_TRUE, (void*)&passphrase) != SECSuccess) {
       NSSUtilLogger.msg(ERROR, "Failed to authenticate to PKCS11 slot %s", PK11_GetSlotName(slot));
       goto err;
     }
 
-    certlist = PK11_FindCertsFromNickname((char*)(certname.c_str()), (void*)slotpw);
+    certlist = PK11_FindCertsFromNickname((char*)(certname.c_str()), (void*)&passphrase);
     if(!certlist) {
       NSSUtilLogger.msg(ERROR, "Failed to find certificates by nickname: %s", certname.c_str());
       return false;
@@ -1346,13 +1372,6 @@ loser:
     if((SECSuccess != CERT_FilterCertListForUserCerts(certlist)) || CERT_LIST_EMPTY(certlist)) {
       NSSUtilLogger.msg(ERROR, "No user certificate by nickname %s found", certname.c_str());
       return false;
-    }
-
-    //Password for the output PKCS12 file.
-    if(p12pw != NULL) {
-      pwitem = SECITEM_AllocItem(NULL, NULL, PL_strlen(p12pw) + 1);
-      memset(pwitem->data, 0, pwitem->len);
-      memcpy(pwitem->data, p12pw, pwitem->len);
     }
 
     if(certlist) {
@@ -1368,10 +1387,26 @@ loser:
       goto err;
     }
 
-    p12ecx = SEC_PKCS12CreateExportContext(NULL, NULL, slot, (void*)slotpw);
+    p12ecx = SEC_PKCS12CreateExportContext(NULL, NULL, slot, (void*)&passphrase);
     if(!p12ecx) {
       NSSUtilLogger.msg(ERROR, "Failed to create export context");
       goto err;
+    }
+
+    //Password for the output PKCS12 file.
+    {
+      std::string p12pw;
+      PasswordSource::Result p12res = p12passphrase.Get(p12pw,-1,-1);
+      if(p12res == PasswordSource::PASSWORD) {
+        pwitem = SECITEM_AllocItem(NULL, NULL, p12pw.length() + 1);
+        if(pwitem) {
+          memset(pwitem->data, 0, pwitem->len); // ??
+          memcpy(pwitem->data, p12pw.c_str(), pwitem->len);
+        }
+      } else if(p12res == PasswordSource::CANCEL) {
+        NSSUtilLogger.msg(ERROR, "PKCS12 output password not provided");
+        goto err;
+      }
     }
 
     if(pwitem != NULL) {
