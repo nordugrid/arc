@@ -638,8 +638,7 @@ int main(int argc, char *argv[]) {
   // Set default, predefined or guessed credentials. Also check if they exist.
 #ifdef HAVE_NSS
   Arc::UserConfig usercfg(conffile,
-        Arc::initializeCredentialsType(use_nssdb ? Arc::initializeCredentialsType::NotTryCredentials 
-        : Arc::initializeCredentialsType::TryCredentials));
+        Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
 #else
   Arc::UserConfig usercfg(conffile,
         Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
@@ -648,11 +647,15 @@ int main(int argc, char *argv[]) {
     logger.msg(Arc::ERROR, "Failed configuration initialization.");
     return EXIT_FAILURE;
   }
+  if(use_nssdb) {
+    usercfg.CertificatePath("");;
+    usercfg.KeyPath("");;
+  }
 
   // Check for needed credentials objects
   // Can proxy be used for? Could not find it in documentation.
   // Key and certificate not needed if only printing proxy information
-  if (!(Arc::lower(myproxy_command) == "get")) {
+  if ( (!(Arc::lower(myproxy_command) == "get")) && (!use_nssdb) ) {
     if((usercfg.CertificatePath().empty() || 
         (
          usercfg.KeyPath().empty() && 
