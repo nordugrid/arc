@@ -1,3 +1,6 @@
+#ifndef __ARC_FILEUTILS_H__
+#define __ARC_FILEUTILS_H__
+
 #include <glibmm.h>
 
 #include <arc/Thread.h>
@@ -132,3 +135,4 @@ namespace Arc {
   /** @} */
 } // namespace Arc
 
+#endif // __ARC_FILEUTILS_H__
