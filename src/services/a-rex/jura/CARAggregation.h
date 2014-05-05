@@ -44,6 +44,10 @@ namespace Arc
     std::string Current_Time( time_t parameter_time = time(NULL) );
     /** APEL Synch record generation from the CAR aggregation record */
     std::string SynchMessage(Arc::XMLNode records);
+    /** Update the "name" Child of the "node" with the time value.
+     *  It will create only 10 element with same name and update always 
+     *  the latest one.*/
+    void UpdateElement(Arc::XMLNode& node, std::string name, std::string time);
 
   public:
     /**

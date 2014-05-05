@@ -497,11 +497,32 @@ namespace Arc
   {
     std::string current_time = Current_Time();
     for(Arc::XMLNodeList::iterator liter = records.begin(); liter != records.end(); ++liter) {
-      (*liter).NewChild("LastSending") = current_time;
+      UpdateElement( *liter, "LastSending", current_time);
     }
     if(records.size() > 0){
       aggr_record_update_need = true;
     }
+  }
+
+  void CARAggregation::UpdateElement(Arc::XMLNode& node, std::string name, std::string time) {
+    Arc::XMLNode mod_node = node[name];
+    //find latest date
+    Arc::XMLNode cnode = node[name];
+    for (int i=0; i<10; i++) {
+     if (cnode) {
+        if ( std::string(cnode) < std::string(mod_node)) {
+          mod_node = cnode;
+          break;
+        }
+      } else {
+		// create a new child
+		mod_node = node.NewChild(name);
+		break;
+	  }
+	  ++cnode;
+    }
+    //update the element
+    mod_node = time;
   }
 
   std::string CARAggregation::SynchMessage(Arc::XMLNode records)
