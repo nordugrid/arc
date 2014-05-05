@@ -584,8 +584,8 @@ int main(int argc, char *argv[]) {
                                                ),
                     istring("string"), myproxy_command);
 
-#ifdef HAVE_NSS
   bool use_nssdb = false;
+#ifdef HAVE_NSS
   options.AddOption('F', "nssdb", istring("use NSS credential database in default Mozilla profiles, \n"
                                           "              including Firefox, Seamonkey and Thunderbird.\n"), use_nssdb);
 #endif
