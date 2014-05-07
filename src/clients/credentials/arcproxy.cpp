@@ -4,40 +4,22 @@
 #include <config.h>
 #endif
 
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <map>
-#include <stdexcept>
 #include <unistd.h>
-#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <glibmm/stringutils.h>
-#include <glibmm/fileutils.h>
-#include <glibmm.h>
-#include <unistd.h>
 
 #include <arc/ArcLocation.h>
-#include <arc/Logger.h>
-#include <arc/DateTime.h>
-#include <arc/delegation/DelegationInterface.h>
 #include <arc/OptionParser.h>
 #include <arc/StringConv.h>
-#include <arc/User.h>
 #include <arc/Utils.h>
 #include <arc/UserConfig.h>
+#include <arc/FileUtils.h>
 #include <arc/communication/ClientInterface.h>
-#include <arc/credential/VOMSAttribute.h>
 #include <arc/credential/VOMSUtil.h>
 #include <arc/credential/Credential.h>
-#include <arc/credential/CertUtil.h>
 #include <arc/credentialstore/CredentialStore.h>
 #include <arc/crypto/OpenSSL.h>
-#include <arc/FileUtils.h>
-
-#include <openssl/ui.h>
 
 #ifdef HAVE_NSS
 #include <arc/credential/NSSUtil.h>
@@ -64,61 +46,26 @@ static void create_proxy(std::string& proxy_cert, Arc::Credential& signer,
 
 static std::string get_proxypolicy(const std::string& policy_source);
 
-static int create_proxy_file(const std::string& path) {
-  int f = -1;
-
-  if((::unlink(path.c_str()) != 0) && (errno != ENOENT)) {
-    throw std::runtime_error("Failed to remove proxy file " + path);
-  }
-  f = ::open(path.c_str(), O_WRONLY | O_CREAT | O_EXCL | O_TRUNC, S_IRUSR | S_IWUSR);
-  if (f == -1) {
-    throw std::runtime_error("Failed to create proxy file " + path);
-  }
-  if(::chmod(path.c_str(), S_IRUSR | S_IWUSR) != 0) {
-    ::unlink(path.c_str());
-    ::close(f);
-    throw std::runtime_error("Failed to change permissions of proxy file " + path);
-  }
-  return f;
-}
-
 static void write_proxy_file(const std::string& path, const std::string& content) {
   std::string::size_type off = 0;
-  int f = create_proxy_file(path);
-  while(off < content.length()) {
-    ssize_t l = ::write(f, content.c_str(), content.length()-off);
-    if(l < 0) {
-      ::unlink(path.c_str());
-      ::close(f);
-      throw std::runtime_error("Failed to write into proxy file " + path);
-    }
-    off += (std::string::size_type)l;
+  if((!Arc::FileDelete(path)) && (errno != ENOENT)) {
+    throw std::runtime_error("Failed to remove proxy file " + path);
   }
-  ::close(f);
+  if(!Arc::FileCreate(path, content, 0, 0, S_IRUSR | S_IWUSR)) {
+    throw std::runtime_error("Failed to create proxy file " + path);
+  }
 }
 
 static void remove_proxy_file(const std::string& path) {
-  if((::unlink(path.c_str()) != 0) && (errno != ENOENT)) {
+  if((!Arc::FileDelete(path)) && (errno != ENOENT)) {
     throw std::runtime_error("Failed to remove proxy file " + path);
   }
 }
 
 static void remove_cert_file(const std::string& path) {
-  if((::unlink(path.c_str()) != 0) && (errno != ENOENT)) {
+  if((!Arc::FileDelete(path)) && (errno != ENOENT)) {
     throw std::runtime_error("Failed to remove certificate file " + path);
   }
-}
-
-static void tls_process_error(Arc::Logger& logger) {
-  unsigned long err;
-  err = ERR_get_error();
-  if (err != 0) {
-    logger.msg(Arc::ERROR, "OpenSSL error -- %s", ERR_error_string(err, NULL));
-    logger.msg(Arc::ERROR, "Library  : %s", ERR_lib_error_string(err));
-    logger.msg(Arc::ERROR, "Function : %s", ERR_func_error_string(err));
-    logger.msg(Arc::ERROR, "Reason   : %s", ERR_reason_error_string(err));
-  }
-  return;
 }
 
 static bool is_file(std::string path) {
@@ -717,13 +664,14 @@ int main(int argc, char *argv[]) {
                  "please setup environment X509_USER_PROXY, "
                  "or proxypath in a configuration file");
       return EXIT_FAILURE;
-    } else if (!(Glib::file_test(proxy_path, Glib::FILE_TEST_EXISTS))) {
-        logger.msg(Arc::ERROR, "Cannot remove proxy file at %s, because it's not there", proxy_path);
-        return EXIT_FAILURE;
     }
-    if((unlink(proxy_path.c_str()) != 0) && (errno != ENOENT)) {
+    if(!Arc::FileDelete(proxy_path)) {
+      if(errno != ENOENT) {
         logger.msg(Arc::ERROR, "Cannot remove proxy file at %s", proxy_path);
-        return EXIT_FAILURE;
+      } else {
+        logger.msg(Arc::ERROR, "Cannot remove proxy file at %s, because it's not there", proxy_path);
+      }
+      return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
   }
@@ -1203,22 +1151,35 @@ int main(int argc, char *argv[]) {
     std::string vomsacseq;
     if (!vomslist.empty()) {
       std::string tmp_proxy_path;
-      tmp_proxy_path = Glib::build_filename(Glib::get_tmp_dir(), std::string("tmp_proxy.pem"));
+      if(!Arc::TmpFileCreate(tmp_proxy_path,"")) return EXIT_FAILURE;
+
       get_nss_certname(issuername, logger);
       
       // Create tmp proxy cert
       int duration = 12;
       res = AuthN::nssCreateCert(proxy_csrfile, issuername, NULL, duration, "", tmp_proxy_path, ascii);
-      if(!res) return EXIT_FAILURE;
+      if(!res) {
+        remove_proxy_file(tmp_proxy_path);
+        return EXIT_FAILURE;
+      }
+      // TODO: Use FileUtils
       std::string tmp_proxy_cred_str;
       std::ifstream tmp_proxy_cert_s(tmp_proxy_path.c_str());
       std::getline(tmp_proxy_cert_s, tmp_proxy_cred_str,'\0');
       tmp_proxy_cert_s.close();
 
       // Export EEC
-      std::string cert_file = "cert.pem";
+      std::string cert_file;
+      if(!Arc::TmpFileCreate(cert_file,"")) {
+        remove_proxy_file(tmp_proxy_path);
+        return EXIT_FAILURE;
+      }
       res = AuthN::nssExportCertificate(issuername, cert_file);
-      if(!res) return EXIT_FAILURE;
+      if(!res) {
+        remove_cert_file(cert_file);
+        remove_proxy_file(tmp_proxy_path);
+        return EXIT_FAILURE;
+      }
       std::string eec_cert_str;
       std::ifstream eec_s(cert_file.c_str());
       std::getline(eec_s, eec_cert_str,'\0');
@@ -1370,7 +1331,10 @@ int main(int argc, char *argv[]) {
       //Generate a temporary self-signed proxy certificate
       //to contact the voms server
       std::string tmp_proxy_path;
-      tmp_proxy_path = Glib::build_filename(Glib::get_tmp_dir(), std::string("tmp_proxy.pem"));
+      if(!Arc::TmpFileCreate(tmp_proxy_path,"")) {
+        std::cerr << Arc::IString("Proxy generation failed: Failed to create temporary file.") << std::endl;
+        return EXIT_FAILURE;
+      }
       create_tmp_proxy(tmp_proxy_path, signer);
       contact_voms_servers(vomslist, orderlist, vomses_path, use_gsi_comm,
           use_http_comm, voms_period, usercfg, logger, tmp_proxy_path, vomsacseq);
@@ -1395,7 +1359,6 @@ int main(int argc, char *argv[]) {
     //return EXIT_SUCCESS;
   } catch (std::exception& err) {
     logger.msg(Arc::ERROR, err.what());
-    tls_process_error(logger);
     return EXIT_FAILURE;
   }
 
@@ -1709,17 +1672,10 @@ static std::string get_proxypolicy(const std::string& policy_source) {
     //If the argument is a location which specifies a file that
     //includes the policy content
     if(Glib::file_test(policy_source, Glib::FILE_TEST_IS_REGULAR)) {
-      std::ifstream fp;
-      fp.open(policy_source.c_str());
-      if(!fp) {
-        std::cout << Arc::IString("Error: can't open policy file: %s", policy_source.c_str()) << std::endl;
+      if(!Arc::FileRead(policy_source, policystring)) {
+        std::cout << Arc::IString("Error: can't read policy file: %s", policy_source.c_str()) << std::endl;
         return std::string();
       }
-      fp.unsetf(std::ios::skipws);
-      char c;
-      while(fp.get(c))
-        policystring += c;
-      fp.close();
     }
     else {
       std::cout << Arc::IString("Error: policy location: %s is not a regular file", policy_source.c_str()) <<std::endl;
@@ -1790,7 +1746,6 @@ static bool contact_myproxy_server(const std::string& myproxy_server, const std:
 
   } catch (std::exception& err) {
     logger.msg(Arc::ERROR, err.what());
-    tls_process_error(logger);
     return false;
   }
 
@@ -1838,7 +1793,6 @@ static bool contact_myproxy_server(const std::string& myproxy_server, const std:
 
   } catch (std::exception& err) {
     logger.msg(Arc::ERROR, err.what());
-    tls_process_error(logger);
     return false;
   }
 
@@ -1882,7 +1836,6 @@ static bool contact_myproxy_server(const std::string& myproxy_server, const std:
     }
   } catch (std::exception& err) {
     logger.msg(Arc::ERROR, err.what());
-    tls_process_error(logger);
     return false;
   }
 
@@ -1967,7 +1920,6 @@ static bool contact_myproxy_server(const std::string& myproxy_server, const std:
 
   } catch (std::exception& err) {
     logger.msg(Arc::ERROR, err.what());
-    tls_process_error(logger);
     return false;
   }
 
@@ -2021,7 +1973,6 @@ static bool contact_myproxy_server(const std::string& myproxy_server, const std:
     }
   } catch (std::exception& err) {
     logger.msg(Arc::ERROR, err.what());
-    tls_process_error(logger);
     remove_proxy_file(proxy_path);
     return false;
   }
