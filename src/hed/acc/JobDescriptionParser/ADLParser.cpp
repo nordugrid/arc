@@ -383,6 +383,12 @@ namespace Arc {
         jobdescs.clear();
         return false;
       }
+      // ARC extension: Rerun
+      // TODO: Add note about this being a ARC extension.
+      /// \mapattr Application.Rerun -> Rerun
+      if((bool)application["nordugrid-adl:Rerun"])
+      job.Application.Rerun = stringtoi((std::string)application["nordugrid-adl:Rerun"]);
+
       /// \mapattr Application.Input -> Input
       job.Application.Input = (std::string)application["adl:Input"];
       /// \mapattr Application.Output -> Output
@@ -873,6 +879,7 @@ namespace Arc {
       identification.NewChild("nordugrid-adl:ActivityOldID") = *it;
     }
 
+
     // Application
     /// \mapattr Application.Executable.Path <- ExecutableType::Path
     /// \mapattr Application.Executable.Argument <- ExecutableType::Argument
@@ -883,6 +890,14 @@ namespace Arc {
     if(!job.Application.Output.empty()) application.NewChild("Output") = job.Application.Output;
     /// \mapattr Application.Error <- Error
     if(!job.Application.Error.empty()) application.NewChild("Error") = job.Application.Error;
+    // ARC extension: Rerun
+    /// \mapattr Application.Rerun -> Rerun
+    /// TODO: Add mapping note that this element is an extention.
+    if(job.Application.Rerun > -1) {
+      XMLNode rerun = application.NewChild("nordugrid-adl:Rerun");
+      rerun = tostring(job.Application.Rerun);
+    }
+
     /// \mapattr Application.Environment <- Environment
     for(std::list< std::pair<std::string, std::string> >::const_iterator it =
         job.Application.Environment.begin(); it != job.Application.Environment.end(); it++) {
@@ -935,7 +950,7 @@ namespace Arc {
         notification.NewChild("OnState") = st;
       }
     }
-    // job.Application.Rerun
+
     // job.Application.Priority
     // job.Application.ProcessingStartTime
     // job.Application.AccessControl

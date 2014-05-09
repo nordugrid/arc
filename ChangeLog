@@ -1,3 +1,7 @@
+2014-05-09  Jon Kerr Nilsen <j.k.nilsen@usit.uio.no>
+  * Add Rerun option as nordugrid extension to ADL - needed to enable arcresume
+    for EMI-ES (fixes bug 3266).
+
 2014-03-05  Martin Skou Andersen <skou@nbi.dk>
   * Only parse second part of the inputfiles xRSL attribute value as file size
     and checksum for GM input (fixes bug 3334). Als simplify parsing of this
