@@ -3,6 +3,7 @@
 
 #include <list>
 #include <string>
+#include <pthread.h>
 
 #include "Policy.h"
 #include "Entry.h"

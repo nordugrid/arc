@@ -10,7 +10,6 @@
 #include <dlfcn.h>
 #include <lber.h>
 #include <ldap_features.h>
-#include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <iostream>

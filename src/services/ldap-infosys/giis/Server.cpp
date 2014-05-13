@@ -11,6 +11,7 @@
 #include <string.h>
 #include <fstream>
 #include <cstdlib>
+#include <pthread.h>
 
 #include "Server.h"
 #include "Index.h"
