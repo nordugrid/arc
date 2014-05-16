@@ -128,6 +128,12 @@ sub main {
     timed 'GLUE2xml', sub { $xmlPrinter->Domains($glue2data) };
     $xmlPrinter->end('InfoRoot');
 
+    # Glue1.2/1.3 cannot be generated without NorduGrid, so we force publishing
+    if (!$config->{infosys_nordugrid} and $config->{infosys_glue12}) {
+		$log->warning("NorduGrid schema disabled in arc.conf. Glue1.2/1.3 cannot be generated without NorduGrid Schema, reenabling");
+		$config->{infosys_nordugrid} = 1;
+	}
+
     # Generate ldif for infosys-ldap
 	$log->info("Generating LDIF renderings");
 	my $ngdata;

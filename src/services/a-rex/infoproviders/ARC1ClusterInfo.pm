@@ -839,7 +839,7 @@ sub collect($) {
     # ARIS LDAP endpoints
     
     # ldapng
-    if ($config->{infosys_nordugrid}) {
+    if ($config->{infosys_nordugrid} || $config->{infosys_glue12}) {
         $csvendpointsnum++;
         $ldapngendpoint = $ldaphostport."Mds-Vo-Name=local,o=grid";
         $epscapabilities->{'org.nordugrid.ldapng'} = [ 'information.discovery.resource' ];
