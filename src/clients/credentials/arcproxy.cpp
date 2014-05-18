@@ -1575,7 +1575,8 @@ static bool contact_voms_servers(std::list<std::string>& vomslist, std::list<std
         Arc::MCC_Status status = client.process("GET", &request, &info, &response);
         if (!status) {
           if (response) delete response;
-          std::cout << Arc::IString("The VOMS server with the information:\n\t%s\ncan not be reached, please make sure it is available", tokens_to_string(voms_line)) << std::endl;
+          std::cout << Arc::IString("The VOMS server with the information:\n\t%s\ncan not be reached, please make sure it is available.", tokens_to_string(voms_line)) << std::endl;
+          std::cout << Arc::IString("Collected error is:\n\t%s",(std::string)status) << std::endl;
           continue; //There could be another voms replicated server with the same name exists
         }
         if (!response) {
@@ -1596,7 +1597,8 @@ static bool contact_voms_servers(std::list<std::string>& vomslist, std::list<std
         if (!status) {
           //logger.msg(Arc::ERROR, (std::string)status);
           if (response) delete response;
-          std::cout << Arc::IString("The VOMS server with the information:\n\t%s\"\ncan not be reached, please make sure it is available", tokens_to_string(voms_line)) << std::endl;
+          std::cout << Arc::IString("The VOMS server with the information:\n\t%s\"\ncan not be reached, please make sure it is available.", tokens_to_string(voms_line)) << std::endl;
+          std::cout << Arc::IString("Collected error is:\n\t%s",(std::string)status) << std::endl;
           continue; //There could be another voms replicated server with the same name exists
         }
         if (!response) {
