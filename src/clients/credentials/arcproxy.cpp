@@ -1190,8 +1190,11 @@ int main(int argc, char *argv[]) {
       tmp_proxy_cred_str.append(proxy_privk_str).append(eec_cert_str);
       write_proxy_file(tmp_proxy_path, tmp_proxy_cred_str);
 
-      contact_voms_servers(vomslist, orderlist, vomses_path, use_gsi_comm,
-          use_http_comm, voms_period, usercfg, logger, tmp_proxy_path, vomsacseq);
+      if(!contact_voms_servers(vomslist, orderlist, vomses_path, use_gsi_comm,
+          use_http_comm, voms_period, usercfg, logger, tmp_proxy_path, vomsacseq)) {
+        remove_proxy_file(tmp_proxy_path);
+        return EXIT_FAILURE;
+      }
       remove_proxy_file(tmp_proxy_path);
     }
 
@@ -1336,8 +1339,12 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
       }
       create_tmp_proxy(tmp_proxy_path, signer);
-      contact_voms_servers(vomslist, orderlist, vomses_path, use_gsi_comm,
-          use_http_comm, voms_period, usercfg, logger, tmp_proxy_path, vomsacseq);
+      if(!contact_voms_servers(vomslist, orderlist, vomses_path, use_gsi_comm,
+          use_http_comm, voms_period, usercfg, logger, tmp_proxy_path, vomsacseq)) {
+        remove_proxy_file(tmp_proxy_path);
+        std::cerr << Arc::IString("Proxy generation failed: Failed to retrieve VOMS information.") << std::endl;
+        return EXIT_FAILURE;
+      }
       remove_proxy_file(tmp_proxy_path);
     }
 
@@ -2083,10 +2090,13 @@ static bool find_matched_vomses(std::map<std::string, std::vector<std::vector<st
   //}
   //if (matched_voms_line.size() != server_command_map.size())
   for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
-       it != server_command_map.end(); it++)
-    if (matched_voms_line.find((*it).first) == matched_voms_line.end())
+       it != server_command_map.end(); it++) {
+    if (matched_voms_line.find((*it).first) == matched_voms_line.end()) {
       logger.msg(Arc::ERROR, "Cannot get VOMS server %s information from the vomses files",
                  (*it).first);
+      return false;
+    };
+  };
   return true;
 }
 
