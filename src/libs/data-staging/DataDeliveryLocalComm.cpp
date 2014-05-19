@@ -87,9 +87,12 @@ namespace DataStaging {
       args.push_back(surl);
       args.push_back("--durl");
       args.push_back(durl);
-      if (!dtr->get_source()->RequiresCredentialsInFile() &&
-          !dtr->get_destination()->RequiresCredentialsInFile() &&
-          !dtr->get_usercfg().CredentialString().empty()) {
+      // Check if credentials are needed for source/dest
+      Arc::DataHandle surl_h(surl, dtr->get_usercfg());
+      Arc::DataHandle durl_h(durl, dtr->get_usercfg());
+      if (!dtr->get_usercfg().CredentialString().empty() &&
+          !surl_h->RequiresCredentialsInFile() &&
+          !durl_h->RequiresCredentialsInFile()) {
         // If file-based credentials are not required then send through stdin
         stdin_ = dtr->get_usercfg().CredentialString();
       } else {
