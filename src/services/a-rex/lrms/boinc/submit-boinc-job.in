@@ -50,16 +50,27 @@ chmod u+x ${LRMS_JOB_SCRIPT}
 ##############################################################
 # Start job script
 ##############################################################
+
+N=0
+x=$joboption_directory_orig
+while [ "$x" != "/" ]
+do
+ x=`dirname $x`
+let N=$N+1
+done
+
 echo '#!/bin/sh' > $LRMS_JOB_SCRIPT
+
 echo "#job script built by grid-manager and input file for BOINC job" >> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
 cat >> $LRMS_JOB_SCRIPT <<"FMARK"
 set -x 
 export RUNTIME_CONFIG_DIR=`pwd`/runtime
 tar zxvf RTE.tar.gz
-tar --strip-components=3 -zxvf *input.tar.gz
 
 FMARK
+echo tar --strip-components=$N -zxvf *input.tar.gz >> $LRMS_JOB_SCRIPT
+
 ##############################################################
 # non-parallel jobs
 ##############################################################
@@ -239,6 +250,12 @@ chmod g+r $LRMS_JOB_SCRIPT
 #######################################
 #  Submit the job
 #######################################
+PROJECT_ROOT="/home/boinc/projects/ATLAS"
+BOINC_APP="ATLAS"
+WU_TEMPLATE="templates/ATLAS_IN"
+RESULT_TEMPLATE="templates/ATLAS_OUT"
+RTE_LOCATION="/home/boinc/projects/ATLAS/Input/rte.tar.gz"
+
 echo "job script ${LRMS_JOB_SCRIPT} built" 1>&2
 JobId=`basename $joboption_directory_orig`
 JobInput="/tmp/"$JobId"_input.tar.gz"
@@ -255,9 +272,8 @@ echo "cp $JobInput "'`bin/dir_hier_path '$(basename $JobInput)'`' >> $LRMS_JOB_B
 echo "chmod g+r "'`bin/dir_hier_path '$(basename $JobInput)'`' >> $LRMS_JOB_BOINC
 echo "cp $LRMS_JOB_SCRIPT " '`bin/dir_hier_path' $(basename $LRMS_JOB_SCRIPT)'`' >>$LRMS_JOB_BOINC
 echo "chmod g+r " '`bin/dir_hier_path' $(basename $LRMS_JOB_SCRIPT)'`' >>$LRMS_JOB_BOINC
-#echo "cp /home/boinc/projects/ATLAS/Input/RTE.tar.gz "'`bin/dir_hier_path RTE.tar.gz`' >> $LRMS_JOB_BOINC
-echo "cp $RTE_LOCATION "'`bin/dir_hier_path RTE.tar.gz`' >> $LRMS_JOB_BOINC
-echo "chmod g+r "'`bin/dir_hier_path RTE.tar.gz`' >> $LRMS_JOB_BOINC
+echo "cp $RTE_LOCATION "'`bin/dir_hier_path rte.tar.gz`' >> $LRMS_JOB_BOINC
+echo "chmod g+r "'`bin/dir_hier_path rte.tar.gz`' >> $LRMS_JOB_BOINC
 
 if [[ -z $joboption_memory ]];then
 memreq=2000000000
@@ -270,8 +286,7 @@ else
 let maxcputime=$joboption_cputime*3000000000
 fi
 
-#echo "bin/create_work -appname ATLAS -wu_name $wu  -wu_template templates/ATLAS_IN -result_template templates/ATLAS_OUT  --rsc_memory_bound $memreq  --rsc_fpops_est $maxcputime $(basename $JobInput) RTE.tar.gz $(basename $LRMS_JOB_SCRIPT)" >> $LRMS_JOB_BOINC
-echo "bin/create_work -appname $BOINC_APP -wu_name $wu  -wu_template $WU_TEMPLATE -result_template $RESULT_TEMPLATE  --rsc_memory_bound $memreq  --rsc_fpops_est $maxcputime $(basename $JobInput) RTE.tar.gz $(basename $LRMS_JOB_SCRIPT)" >> $LRMS_JOB_BOINC
+echo "bin/create_work -appname $BOINC_APP -wu_name $wu  -wu_template $WU_TEMPLATE -result_template $RESULT_TEMPLATE  --rsc_memory_bound $memreq  --rsc_fpops_est $maxcputime $(basename $JobInput) rte.tar.gz $(basename $LRMS_JOB_SCRIPT)" >> $LRMS_JOB_BOINC
 
 echo 'ret=$?' >>$LRMS_JOB_BOINC
 if [ $ret -eq 0 ];then
