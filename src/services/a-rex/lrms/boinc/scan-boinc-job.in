@@ -103,8 +103,8 @@ for control_dir in "$@" ; do
 	fi
         uid=$(printuid "${control_dir}/job.${job}.local")
         $debug "local user id = $uid"
-        #diagfile=${joboption_directory}.diag
-	diagfile=${joboption_directory}/${joboption_jobid}.diag
+        diagfile=${joboption_directory}.diag
+	#diagfile=${joboption_directory}/${joboption_jobid}.diag
 	#diagfile=${control_dir}/job.${joboption_jobid}.diag
         $debug "checking $diagfile"
         exitcode=$(do_as_uid "$uid" "cat '$diagfile'" | sed -n 's/^exitcode=\([0-9]*\).*/\1/p')
