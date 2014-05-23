@@ -34,7 +34,7 @@ void ARexService::InformationCollector(void) {
     int r = -1;
     {
       std::string cmd;
-      cmd=Arc::ArcLocation::GetDataDir()+"/CEinfo.pl --nonordugrid --splitjobs --config "+config_.ConfigFile();
+      cmd=Arc::ArcLocation::GetDataDir()+"/CEinfo.pl --splitjobs --config "+config_.ConfigFile();
       std::string stdin_str;
       std::string stderr_str;
       Arc::Run run(cmd);

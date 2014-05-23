@@ -46,5 +46,5 @@ chmod -R 777 /tmp/run/arc/infosys
 chmod -R 777 /tmp/tmp/arc/bdii
 
 echo "please see ldif-print-test-arc.conf and pass it to CEinfo.pl"
-echo "AREX call: ./CEinfo.pl --nonordugrid --splitjobs --config test/ldif-print-test-arc.conf"
-echo "Simple execution that includes jobs in XML and LDIF: sudo ./CEinfo.pl --nonordugrid --splitjobs --config test/ldif-print-test-arc.conf" 
+echo "AREX call: ./CEinfo.pl --splitjobs --config test/ldif-print-test-arc.conf"
+echo "Simple execution that includes jobs in XML and LDIF: sudo ./CEinfo.pl --splitjobs --config test/ldif-print-test-arc.conf" 

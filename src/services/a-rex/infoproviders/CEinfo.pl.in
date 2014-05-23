@@ -73,13 +73,11 @@ sub main {
 
     # Parse command line options
     my $splitjobs;
-    my $nonordugrid;
     my $print_help;
 
     GetOptions("config:s" => \$configfile,
                "nojobs|n" => \$nojobs,
                "splitjobs|s" => \$splitjobs,
-               "nonordugrid|g" => \$nonordugrid,
                "help|h"   => \$print_help ); 
 
     if ($print_help) { 
