@@ -1,5 +1,5 @@
 #ifndef __ARC_DELEGATION_FILERECORD_H__
-#define __ARC_DELEGATION_FiLERECORD_H__
+#define __ARC_DELEGATION_FILERECORD_H__
 
 #include <list>
 #include <string>
