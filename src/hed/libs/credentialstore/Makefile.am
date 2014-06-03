@@ -2,8 +2,8 @@ lib_LTLIBRARIES = libarccredentialstore.la
 #noinst_PROGRAMS = test
 
 libarccredentialstore_ladir = $(pkgincludedir)/credentialstore
-libarccredentialstore_la_HEADERS = CredentialStore.h
-libarccredentialstore_la_SOURCES = CredentialStore.cpp
+libarccredentialstore_la_HEADERS = CredentialStore.h ClientVOMS.h ClientVOMSRESTful.h
+libarccredentialstore_la_SOURCES = CredentialStore.cpp ClientVOMS.cpp ClientVOMSRESTful.cpp
 libarccredentialstore_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
 libarccredentialstore_la_LIBADD = \

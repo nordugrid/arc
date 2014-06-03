@@ -248,7 +248,7 @@ bool CredentialStore::Store(const std::map<std::string,std::string>& options,con
   return true;
 }
 
-bool CredentialStore::Retrieve(const std::map<std::string,std::string>& options,std::string& cred,bool if_delegate) {
+bool CredentialStore::Retrieve(const std::map<std::string,std::string>& options, std::string& cred, bool if_delegate) {
   if(!valid) return false;
   std::string msg("VERSION=MYPROXYv2\nCOMMAND=0\n");
   if(!compose_msg(msg, options)) return false;

@@ -7,7 +7,8 @@
 
 namespace Arc {
 
-  /** This class provides functionality for storing delegated crdentials
+
+  /** This class provides functionality for storing delegated credentials
      and retrieving them from some store services. This is very preliminary
      implementation and currently support only one type of credentials - 
      X.509 proxies, and only one type of store service - MyProxy.
@@ -32,7 +33,7 @@ namespace Arc {
     // The options contains key=value pairs affecting how credentials are
     // stored. For MyProxy following options are supported -
     //  username, password, credname, lifetime.
-    // If cred is not empty it should contains credentials to delegate/store.
+    // If cred is not empty it should contain credentials to delegate/store.
     // Otherwise credentials of user configuration are used.
     bool Store(const std::map<std::string,std::string>& options,
                const std::string& cred = "", bool if_delegate = true, const Arc::Time deleg_start = Arc::Time(), const Arc::Period deleg_period = 604800);
@@ -41,6 +42,6 @@ namespace Arc {
     bool Info(const std::map<std::string,std::string>& options,std::string& respinfo);
     bool Destroy(const std::map<std::string,std::string>& options);
     bool ChangePassword(const std::map<std::string,std::string>& options);
-};
+  };
 
 }
