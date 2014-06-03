@@ -1156,6 +1156,7 @@ void *acseq_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
     ac_str = acseq_str.substr(pos1+1, (pos2-1) - (pos1+1));
 
     pos2 = acseq_str.find_first_of("\r\n", pos2);
+    if(pos2 == std::string::npos) pos2 = acseq_str.length();
     pos1 = pos2+1;
 
     // decode the AC string
