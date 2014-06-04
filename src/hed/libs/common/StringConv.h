@@ -186,6 +186,12 @@ namespace Arc {
    **/
   std::string join(const std::list<std::string>& strlist, const std::string& delimiter);
 
+  /// Join all the elements in strlist using delimiter
+  /**
+   * \since Added in 4.1.1.
+   **/
+  std::string join(const std::vector<std::string>& strlist, const std::string& delimiter);
+
   /// This method %-encodes characters in URI str.
   /** Characters which are not unreserved according to RFC 3986 are encoded.
       If encode_slash is true forward slashes will also be encoded. It is
