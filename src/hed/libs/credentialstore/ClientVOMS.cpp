@@ -169,7 +169,7 @@ std::cerr<<"--- out: "<<msg_str<<std::endl;
     return status;
   }
   if(!response) {
-    return MCC_Status();
+    return MCC_Status(GENERIC_ERROR,"VOMS","Response is empty");
   }
 
   // vomsans
