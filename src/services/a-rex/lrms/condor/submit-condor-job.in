@@ -124,6 +124,9 @@ if [ ! -z "$CONFIG_condor_rank" ] ; then
   echo "Rank = $CONFIG_condor_rank" >> $LRMS_JOB_DESCRIPT
 fi
 
+# proxy
+echo "x509userproxy = $joboption_controldir/job.$joboption_gridid.proxy" >> $LRMS_JOB_DESCRIPT
+
 ##############################################################
 # (non-)parallel jobs
 ##############################################################
@@ -201,7 +204,6 @@ if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
     scratch_dir=`dirname "$joboption_directory"`
     echo "should_transfer_files = YES" >> $LRMS_JOB_DESCRIPT
     echo "When_to_transfer_output = ON_EXIT_OR_EVICT" >> $LRMS_JOB_DESCRIPT
-    echo "x509userproxy = $joboption_controldir/job.$joboption_gridid.proxy" >> $LRMS_JOB_DESCRIPT
 
     count=0
     input_files="Transfer_input_files = "
