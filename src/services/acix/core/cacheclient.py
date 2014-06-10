@@ -2,6 +2,8 @@
 Client for retrieving cache.
 """
 
+from urlparse import urlparse
+
 from twisted.python import log
 from twisted.internet import reactor
 from twisted.web import client
@@ -22,17 +24,17 @@ def retrieveCache(url, contextFactory=None):
     Returns a deferred, which will fire with a tuple
     consisting of a the hashes, generation-time, and the cache.
     """
-    scheme, host, port, path = client._parse(url)
+    u = urlparse(url)
     factory = client.HTTPClientFactory(url)
     factory.noisy = False
 
-    if scheme == 'https':
+    if u.scheme == 'https':
         from twisted.internet import ssl
         if contextFactory is None:
             contextFactory = ssl.ClientContextFactory()
-        reactor.connectSSL(host, port, factory, contextFactory)
+        reactor.connectSSL(u.hostname, u.port, factory, contextFactory)
     else:
-        reactor.connectTCP(host, port, factory)
+        reactor.connectTCP(u.hostname, u.port, factory)
 
     factory.deferred.addCallback(_gotCache, factory, url)
     return factory.deferred
