@@ -179,12 +179,14 @@ fi
 set_req_mem
 
 if [ ! -z "$joboption_memory" ] ; then
-  echo "request_memory=${joboption_memory}" >> $LRMS_JOB_DESCRIPT
   memory_bytes=$(( $joboption_memory * 1024 ))
+  memory_req=$(( $joboption_memory ))
   # HTCondor needs to know the total memory for the job, not memory per core
-  if [ ! -z $joboption_countpernode ] && [ $joboption_countpernode -gt 0 ] ; then
-     memory_bytes=$(( $joboption_countpernode * $memory_bytes ))
+  if [ ! -z $joboption_count ] && [ $joboption_count -gt 0 ] ; then
+     memory_bytes=$(( $joboption_count * $memory_bytes ))
+     memory_req=$(( $joboption_count * $memory_req ))
   fi
+  echo "request_memory=$memory_req" >> $LRMS_JOB_DESCRIPT
   echo "+JobMemoryLimit = $memory_bytes" >> $LRMS_JOB_DESCRIPT
   REMOVE="${REMOVE} || ResidentSetSize > JobMemoryLimit"
 fi
