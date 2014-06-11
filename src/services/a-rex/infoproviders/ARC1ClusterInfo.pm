@@ -216,11 +216,13 @@ sub getGMStatus {
         unless (open (GMJOB_STATUS, "<$gmjob_status")) {
             next;
         } else {
-            chomp (my ($first_line) = <GMJOB_STATUS>);
+			my ($first_line) = <GMJOB_STATUS>;
             close GMJOB_STATUS;
             unless ($first_line) {
+				$log->warning("Job $ID: cannot get status from file $gmjob_status : Skipping job");
                 next;
             }
+            chomp $first_line;
             return $first_line;
         }
     }
@@ -671,7 +673,8 @@ sub collect($) {
             $gmsharecount{$share}{notsubmitted}++;
             $requestedslots{$share} += $job->{count} || 1;
             $share_prepping{$share}++;
-            $user_prepping{$gridowner}++;
+            # TODO: is this used anywhere?
+            $user_prepping{$gridowner}++ if $gridowner;
         }
         if ($age < 2) {
             $pending{$share}++;

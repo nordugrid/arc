@@ -188,14 +188,15 @@ sub get_gmjobs {
             next;
         } else {
             my @file_stat = stat GMJOB_STATUS;
-            chomp (my ($first_line) = <GMJOB_STATUS>);
+            my ($first_line) = <GMJOB_STATUS>;
             close GMJOB_STATUS;
 
             unless ($first_line) {
-                $log->warning("Job $ID: Failed to read status from file, skipping job");
+                $log->warning("Job $ID: Failed to read status from file $gmjob_status, skipping job");
                 delete $gmjobs{$ID};
                 next;
             }
+            chomp ($first_line);
             $job->{status} = $first_line;
 
             if (@file_stat) {
