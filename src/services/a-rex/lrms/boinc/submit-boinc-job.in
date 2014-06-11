@@ -71,6 +71,50 @@ tar zxvf RTE.tar.gz
 FMARK
 echo tar --strip-components=$N -zxvf *input.tar.gz >> $LRMS_JOB_SCRIPT
 
+#######################################################################
+# copy information useful for transfering files to/from node directly
+#######################################################################
+if [ "$joboption_localtransfer" = 'yes' ] ; then
+   setup_local_transfer
+fi
+
+setup_runtime_env
+
+##############################################################
+# Add std... to job arguments
+##############################################################
+include_std_streams
+
+##############################################################
+#  Move files to local working directory (job is done on node only)
+#  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
+##############################################################
+move_files_to_node 
+
+echo "" >> $LRMS_JOB_SCRIPT
+echo "RESULT=0" >> $LRMS_JOB_SCRIPT
+echo "" >> $LRMS_JOB_SCRIPT
+
+
+#####################################################
+#  Download input files
+#####################################################
+download_input_files
+
+echo "" >> $LRMS_JOB_SCRIPT
+
+echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
+
+##############################################################
+#  Runtime configuration
+##############################################################
+#echo RUNTIME_JOB_DIAG='`pwd`/job.'`basename $joboption_directory_orig`.diag >>$LRMS_JOB_SCRIPT
+echo RUNTIME_JOB_DIAG='`pwd`/'`basename $joboption_directory_orig`.diag >>$LRMS_JOB_SCRIPT
+RTE_stage1 
+echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+
+
+
 ##############################################################
 # non-parallel jobs
 ##############################################################
@@ -118,53 +162,22 @@ if [ -z "${joboption_arg_0}" ] ; then
   exit 1
 fi
 
-#######################################################################
-# copy information useful for transfering files to/from node directly
-#######################################################################
-if [ "$joboption_localtransfer" = 'yes' ] ; then
-   setup_local_transfer
-fi
-
-setup_runtime_env
-
-##############################################################
-# Add std... to job arguments
-##############################################################
-include_std_streams
-
-##############################################################
-#  Move files to local working directory (job is done on node only)
-#  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
-##############################################################
-move_files_to_node 
-
-echo "" >> $LRMS_JOB_SCRIPT
-echo "RESULT=0" >> $LRMS_JOB_SCRIPT
-echo "" >> $LRMS_JOB_SCRIPT
-
-
-#####################################################
-#  Download input files
-#####################################################
-download_input_files
-
-echo "" >> $LRMS_JOB_SCRIPT
-
-echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
-
-##############################################################
-#  Runtime configuration
-##############################################################
-#echo RUNTIME_JOB_DIAG='`pwd`/job.'`basename $joboption_directory_orig`.diag >>$LRMS_JOB_SCRIPT
-echo RUNTIME_JOB_DIAG='`pwd`/'`basename $joboption_directory_orig`.diag >>$LRMS_JOB_SCRIPT
-RTE_stage1 
-echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
-
 #####################################################
 #  Go to working dir and start job
 #####################################################
 cd_and_run
 echo "fi" >> $LRMS_JOB_SCRIPT
+
+## print nodename
+cat >> $LRMS_JOB_SCRIPT <<"FMARK"
+sed -i -e '/nodename=/d' $RUNTIME_JOB_DIAG
+hostname=` grep domain_name init_data.xml |awk -F '>' '{print $2}'|awk -F "<" '{print $1}'`
+username=` grep user_name init_data.xml |awk -F '>' '{print $2}'|awk -F "<" '{print $1}'`
+nodename=$username@$hostname
+echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
+
+FMARK
+
 
 #####################################################
 #  Upload output files
@@ -255,11 +268,13 @@ BOINC_APP="ATLAS"
 WU_TEMPLATE="templates/ATLAS_IN"
 RESULT_TEMPLATE="templates/ATLAS_OUT"
 RTE_LOCATION="/home/boinc/projects/ATLAS/Input/rte.tar.gz"
+
 echo "job script ${LRMS_JOB_SCRIPT} built" 1>&2
 JobId=`basename $joboption_directory_orig`
 JobInput="/tmp/"$JobId"_input.tar.gz"
 wu=$JobId
 RTE_FILE="rte_"$wu".tar.gz"
+
 echo "#!/bin/bash" >> $LRMS_JOB_BOINC
 echo "tar zcvf $JobInput $joboption_directory_orig" >> $LRMS_JOB_BOINC
 echo "cd $PROJECT_ROOT " >>$LRMS_JOB_BOINC
@@ -272,6 +287,7 @@ echo "cp $JobInput "'`bin/dir_hier_path '$(basename $JobInput)'`' >> $LRMS_JOB_B
 echo "chmod g+r "'`bin/dir_hier_path '$(basename $JobInput)'`' >> $LRMS_JOB_BOINC
 echo "cp $LRMS_JOB_SCRIPT " '`bin/dir_hier_path' $(basename $LRMS_JOB_SCRIPT)'`' >>$LRMS_JOB_BOINC
 echo "chmod g+r " '`bin/dir_hier_path' $(basename $LRMS_JOB_SCRIPT)'`' >>$LRMS_JOB_BOINC
+
 echo "cp $RTE_LOCATION " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
 echo "chmod g+r " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
 
@@ -293,6 +309,7 @@ if [ $ret -eq 0 ];then
 echo "succesfully submitted workunit $wu"
 fi
 echo 'exit $ret' >>$LRMS_JOB_BOINC
+
 sh $LRMS_JOB_BOINC
 #cat $LRMS_JOB_BOINC
 rc=$?
