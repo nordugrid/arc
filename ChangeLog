@@ -1,3 +1,6 @@
+2014-05-09  David Cameron <d.g.cameron@fys.uio.no>
+  * Add writing/deleting capability to xrootd DMC
+
 2014-05-09  Jon Kerr Nilsen <j.k.nilsen@usit.uio.no>
   * Add Rerun option as nordugrid extension to ADL - needed to enable arcresume
     for EMI-ES (fixes bug 3266).
