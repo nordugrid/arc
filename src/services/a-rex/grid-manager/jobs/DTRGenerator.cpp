@@ -599,6 +599,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
     lock.lock();
     finished_jobs[jobid] = std::string("Failed to read list of output files");
     lock.unlock();
+    if (job.get_state() == JOB_STATE_FINISHING) CleanCacheJobLinks(config, job);
     if (kicker_func) (*kicker_func)(kicker_arg);
     return false;
   }
@@ -660,8 +661,14 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
         if (!job_Xput_read_file(outputfilelist, files, job_uid, job_gid)) {
           logger.msg(Arc::ERROR, "%s: Error reading user generated output file list in %s", jobid, outputfilelist);
           lock.lock();
-          finished_jobs[jobid] = std::string("Error reading user generated output file list");
+          // Only write this failure if no previous failure
+          if (job.GetFailure(config).empty()) {
+            finished_jobs[jobid] = std::string("Error reading user generated output file list");
+          } else {
+            finished_jobs[jobid] = "";
+          }
           lock.unlock();
+          CleanCacheJobLinks(config, job);
           if (kicker_func) (*kicker_func)(kicker_arg);
           return false;
         }
@@ -679,6 +686,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
             lock.lock();
             finished_jobs[jobid] = std::string("Two identical output destinations: " + it->lfn);
             lock.unlock();
+            CleanCacheJobLinks(config, job);
             if (kicker_func) (*kicker_func)(kicker_arg);
             return false;
           }
@@ -691,6 +699,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
               lock.lock();
               finished_jobs[jobid] = std::string("Cannot upload two different files to same LFN: " + it->lfn);
               lock.unlock();
+              CleanCacheJobLinks(config, job);
               if (kicker_func) (*kicker_func)(kicker_arg);
               return false;
             }
@@ -709,6 +718,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
       lock.lock();
       finished_jobs[jobid] = std::string("Failed to clean up session dir before uploading outputs");
       lock.unlock();
+      CleanCacheJobLinks(config, job);
       if (kicker_func) (*kicker_func)(kicker_arg);
       return false;
     }
