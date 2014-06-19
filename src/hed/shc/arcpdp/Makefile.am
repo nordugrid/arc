@@ -15,5 +15,5 @@ libarcpdp_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
 
-doc_DATA = Policy.xsd Request.xsd Response.xsd
-EXTRA_DIST = $(doc_DATA)
+noinst_DATA = Policy.xsd Request.xsd Response.xsd
+EXTRA_DIST = $(noinst_DATA)
