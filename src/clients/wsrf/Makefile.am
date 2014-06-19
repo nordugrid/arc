@@ -13,5 +13,4 @@ arcwsrf_LDADD = \
 	$(GLIBMM_LIBS)
 
 sysconf_DATA =
-doc_DATA =
-EXTRA_DIST = $(doc_DATA) $(sysconf_DATA)
+EXTRA_DIST = $(sysconf_DATA)
