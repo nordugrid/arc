@@ -1331,7 +1331,7 @@ then
   AC_MSG_NOTICE([Looking for db_cxx.h in standard locations])
   AC_CHECK_HEADERS(db_cxx.h,HAVE_DBCXX=yes,HAVE_DBCXX=no)
   # If the user did not provide a location we have some good suggestions
-  dbcxx_include_paths="/usr/include/db4 /usr/include/db44"
+  dbcxx_include_paths="/usr/include/db4 /usr/include/db44 /usr/include/db43"
 else
   HAVE_DBCXX=no
 fi
@@ -1386,29 +1386,17 @@ else
 
   LDFLAGS="$LDFLAGS $db4_library_path"
 
-  AC_CHECK_LIB(db_cxx,main,DBCXX_LIBS="$db4_library_path -ldb_cxx",DBCXX_LIBS="")
+  for db_ver in "" -4.7 -4.3 -4.2
+  do
+    AC_CHECK_LIB(db_cxx$db_ver,main,DBCXX_LIBS="$db4_library_path -ldb_cxx$db_ver",DBCXX_LIBS="")
 
-  if test "$DBCXX_LIBS" = ""
-  then
-    AC_MSG_WARN([BerkeleyDB library libdb_cxx was not found!])
-    AC_CHECK_LIB(db_cxx-4.2,main,DBCXX_LIBS="$db4_library_path -ldb_cxx-4.2",DBCXX_LIBS="")
-  fi
-
-  if test "$DBCXX_LIBS" = ""
-  then
-    AC_MSG_WARN([BerkeleyDB library libdb_cxx-4.2 was not found!])
-  fi
-
-  if test "$DBCXX_LIBS" = ""
-  then
-    AC_MSG_WARN([BerkeleyDB library libdb_cxx was not found!])
-    AC_CHECK_LIB(db_cxx-4.7,main,DBCXX_LIBS="$db4_library_path -ldb_cxx-4.7",DBCXX_LIBS="")
-  fi
-
-  if test "$DBCXX_LIBS" = ""
-  then
-    AC_MSG_WARN([BerkeleyDB library libdb_cxx-4.7 was not found!])
-  fi
+    if test "$DBCXX_LIBS" = ""
+    then
+      AC_MSG_WARN([BerkeleyDB library libdb_cxx$db_ver was not found!])
+    else
+      break
+    fi
+  done
 
   if test "$DBCXX_LIBS" = ""
   then
