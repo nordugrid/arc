@@ -12,8 +12,8 @@
 # Required-Stop:        $network
 # Should-Start:         $time
 # Should-Stop:          $time
-# Default-Start:
-# Default-Stop:
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 1 6
 # Short-Description:    ARC cacheindex, index server
 # Description:          The ARC cache index server collects cache information
 #                       from cache servers and can be queried for the locations

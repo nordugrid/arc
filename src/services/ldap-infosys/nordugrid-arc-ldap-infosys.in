@@ -10,6 +10,15 @@
 # description: NorduGrid/ARC Information system
 #
 ######################################################################
+### BEGIN INIT INFO
+# Provides:          nordugrid-arc-ldap-infosys
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: NorduGrid/ARC Information LDAP Information System
+# Description:       Init file for the NorduGrid/ARC LDAP Information System
+### END INIT INFO
 
 case "$1" in
     start | stop | restart | force-reload | reload | status | condrestart | try-restart)
