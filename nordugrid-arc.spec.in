@@ -946,13 +946,6 @@ find $RPM_BUILD_ROOT -type f -name \*.la -exec rm -fv '{}' ';'
 # libarcglobusutils is not part of the ARC api.
 find $RPM_BUILD_ROOT -name libarcglobusutils.so -exec rm -fv '{}' ';'
 
-# Turn off default enabling of the services
-mkdir -p $RPM_BUILD_ROOT%{_initrddir}
-sed -e 's/\(chkconfig: \) *[^ ]*/\1-/' \
-    -e '/Default-Start/d' \
-    -e 's/\(Default-Stop:\s*\).*/\10 1 2 3 4 5 6/' \
-    -i $RPM_BUILD_ROOT%{_initrddir}/*
-
 # Create log directory
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/arc
 
