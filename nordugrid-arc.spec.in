@@ -89,11 +89,7 @@
 %global with_canl 0
 %endif
 
-%if %{?suse_version:0}%{!?suse_version:1}
-%global with_gacl 1
-%else
-%global with_gacl 0
-%endif
+%global with_gacl %{!?_without_gacl:1}%{?_without_gacl:0}
 
 %global pkgdir arc
 
