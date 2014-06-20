@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-04-16 02:32+0100\n"
-"PO-Revision-Date: 2014-04-16 02:33+0100\n"
+"POT-Creation-Date: 2014-06-20 23:35+0100\n"
+"PO-Revision-Date: 2014-06-20 23:35+0100\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -557,9 +557,8 @@ msgstr "Ошибка отмены: %s"
 
 #: src/libs/data-staging/DataDeliveryRemoteComm.cpp:245
 #: src/hed/libs/credential/Credential.cpp:1106
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:559
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:613
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:815
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:562
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:820
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:133
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:173
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1215
@@ -673,12 +672,12 @@ msgstr "Инициализация процедуры делегирования
 msgid "Failed to initiate delegation credentials"
 msgstr "Сбой инициализации параметров доступа для делегирования"
 
-#: src/libs/data-staging/DataDeliveryLocalComm.cpp:130
+#: src/libs/data-staging/DataDeliveryLocalComm.cpp:133
 #, c-format
 msgid "Bad checksum format %s"
 msgstr "Неверный формат контрольной суммы %s"
 
-#: src/libs/data-staging/DataDeliveryLocalComm.cpp:158
+#: src/libs/data-staging/DataDeliveryLocalComm.cpp:161
 #: src/clients/compute/arcinfo.cpp:53 src/clients/compute/arcsub.cpp:63
 #: src/clients/compute/arcclean.cpp:50 src/clients/compute/arcget.cpp:51
 #: src/clients/compute/arcresub.cpp:49 src/clients/compute/arcresume.cpp:46
@@ -688,24 +687,24 @@ msgstr "Неверный формат контрольной суммы %s"
 #: src/clients/compute/arcstat.cpp:51 src/clients/compute/arckill.cpp:49
 #: src/clients/data/arcrename.cpp:138 src/clients/data/arcmkdir.cpp:127
 #: src/clients/data/arccp.cpp:644 src/clients/data/arcrm.cpp:154
-#: src/clients/data/arcls.cpp:354 src/clients/credentials/arcproxy.cpp:615
+#: src/clients/data/arcls.cpp:354 src/clients/credentials/arcproxy.cpp:577
 #: src/clients/credentials/arcslcs.cpp:216
 #: src/clients/credentials/arcproxyalt.cpp:469
 #, c-format
 msgid "Running command: %s"
 msgstr "Выполняется команда %s"
 
-#: src/libs/data-staging/DataDeliveryLocalComm.cpp:196
+#: src/libs/data-staging/DataDeliveryLocalComm.cpp:199
 #, c-format
 msgid "DataDelivery: %s"
 msgstr "DataDelivery: %s"
 
-#: src/libs/data-staging/DataDeliveryLocalComm.cpp:208
+#: src/libs/data-staging/DataDeliveryLocalComm.cpp:211
 #, c-format
 msgid "DataStagingDelivery exited with code %i"
 msgstr "Процесс DataStagingDelivery завершился с кодом %i"
 
-#: src/libs/data-staging/DataDeliveryLocalComm.cpp:227
+#: src/libs/data-staging/DataDeliveryLocalComm.cpp:230
 #, c-format
 msgid "Transfer killed after %i seconds without communication"
 msgstr "Пересылка оборвана после %i секунд бездействия"
@@ -1135,7 +1134,7 @@ msgstr ""
 #: src/clients/echo/arcecho.cpp:41 src/clients/compute/utils.cpp:497
 #: src/clients/data/arcrename.cpp:110 src/clients/data/arcmkdir.cpp:99
 #: src/clients/data/arccp.cpp:617 src/clients/data/arcrm.cpp:125
-#: src/clients/data/arcls.cpp:326 src/clients/credentials/arcproxy.cpp:587
+#: src/clients/data/arcls.cpp:326 src/clients/credentials/arcproxy.cpp:549
 #: src/clients/credentials/arcproxyalt.cpp:441 src/clients/wsrf/arcwsrf.cpp:51
 msgid "timeout in seconds (default 20)"
 msgstr "время ожидания в секундах (по умолчанию 20)"
@@ -1143,7 +1142,7 @@ msgstr "время ожидания в секундах (по умолчанию
 #: src/clients/echo/arcecho.cpp:42 src/clients/compute/utils.cpp:498
 #: src/clients/data/arcrename.cpp:111 src/clients/data/arcmkdir.cpp:100
 #: src/clients/data/arccp.cpp:618 src/clients/data/arcrm.cpp:126
-#: src/clients/data/arcls.cpp:327 src/clients/credentials/arcproxy.cpp:588
+#: src/clients/data/arcls.cpp:327 src/clients/credentials/arcproxy.cpp:550
 #: src/clients/credentials/arcproxyalt.cpp:442 src/clients/wsrf/arcwsrf.cpp:52
 msgid "seconds"
 msgstr "секунд(а/ы)"
@@ -1151,7 +1150,7 @@ msgstr "секунд(а/ы)"
 #: src/clients/echo/arcecho.cpp:46 src/clients/compute/utils.cpp:494
 #: src/clients/data/arcrename.cpp:115 src/clients/data/arcmkdir.cpp:104
 #: src/clients/data/arccp.cpp:622 src/clients/data/arcrm.cpp:130
-#: src/clients/data/arcls.cpp:331 src/clients/credentials/arcproxy.cpp:592
+#: src/clients/data/arcls.cpp:331 src/clients/credentials/arcproxy.cpp:554
 #: src/clients/credentials/arcslcs.cpp:193
 #: src/clients/credentials/arcproxyalt.cpp:446 src/clients/wsrf/arcwsrf.cpp:56
 msgid "configuration file (default ~/.arc/client.conf)"
@@ -1162,7 +1161,7 @@ msgstr "файл настроек (по умолчанию ~/.arc/client.conf)"
 #: src/clients/compute/utils.cpp:495 src/clients/data/arcrename.cpp:116
 #: src/clients/data/arcmkdir.cpp:105 src/clients/data/arccp.cpp:623
 #: src/clients/data/arcrm.cpp:131 src/clients/data/arcls.cpp:332
-#: src/clients/credentials/arcproxy.cpp:593
+#: src/clients/credentials/arcproxy.cpp:555
 #: src/clients/credentials/arcslcs.cpp:194
 #: src/clients/credentials/arcproxyalt.cpp:447 src/clients/wsrf/arcwsrf.cpp:57
 msgid "filename"
@@ -1172,7 +1171,7 @@ msgstr "файл"
 #: src/clients/saml/saml_assertion_init.cpp:52
 #: src/clients/data/arcrename.cpp:120 src/clients/data/arcmkdir.cpp:109
 #: src/clients/data/arccp.cpp:627 src/clients/data/arcrm.cpp:135
-#: src/clients/data/arcls.cpp:336 src/clients/credentials/arcproxy.cpp:597
+#: src/clients/data/arcls.cpp:336 src/clients/credentials/arcproxy.cpp:559
 #: src/clients/credentials/arcslcs.cpp:198
 #: src/clients/credentials/arcproxyalt.cpp:451 src/clients/wsrf/arcwsrf.cpp:61
 #: src/hed/libs/compute/test_jobdescription.cpp:38
@@ -1184,7 +1183,7 @@ msgstr "FATAL, ERROR, WARNING, INFO, VERBOSE или DEBUG"
 #: src/clients/saml/saml_assertion_init.cpp:53
 #: src/clients/data/arcrename.cpp:121 src/clients/data/arcmkdir.cpp:110
 #: src/clients/data/arccp.cpp:628 src/clients/data/arcrm.cpp:136
-#: src/clients/data/arcls.cpp:337 src/clients/credentials/arcproxy.cpp:598
+#: src/clients/data/arcls.cpp:337 src/clients/credentials/arcproxy.cpp:560
 #: src/clients/credentials/arcslcs.cpp:199
 #: src/clients/credentials/arcproxyalt.cpp:452 src/clients/wsrf/arcwsrf.cpp:62
 #: src/hed/libs/compute/test_jobdescription.cpp:39
@@ -1196,7 +1195,7 @@ msgstr "уровень"
 #: src/clients/saml/saml_assertion_init.cpp:56
 #: src/clients/data/arcrename.cpp:124 src/clients/data/arcmkdir.cpp:113
 #: src/clients/data/arccp.cpp:631 src/clients/data/arcrm.cpp:139
-#: src/clients/data/arcls.cpp:340 src/clients/credentials/arcproxy.cpp:601
+#: src/clients/data/arcls.cpp:340 src/clients/credentials/arcproxy.cpp:563
 #: src/clients/credentials/arcslcs.cpp:202
 #: src/clients/credentials/arcproxyalt.cpp:455 src/clients/wsrf/arcwsrf.cpp:65
 msgid "print version information"
@@ -1213,7 +1212,7 @@ msgstr "вывести информацию о версии"
 #: src/clients/saml/saml_assertion_init.cpp:62
 #: src/clients/data/arcrename.cpp:130 src/clients/data/arcmkdir.cpp:119
 #: src/clients/data/arccp.cpp:637 src/clients/data/arcrm.cpp:145
-#: src/clients/data/arcls.cpp:346 src/clients/credentials/arcproxy.cpp:607
+#: src/clients/data/arcls.cpp:346 src/clients/credentials/arcproxy.cpp:569
 #: src/clients/credentials/arcslcs.cpp:208
 #: src/clients/credentials/arcproxyalt.cpp:461 src/clients/wsrf/arcwsrf.cpp:74
 #: src/hed/daemon/win32/main_win32.cpp:148
@@ -1237,7 +1236,7 @@ msgstr "%s, версия %s"
 msgid "Failed configuration initialization"
 msgstr "Не удалось загрузить настройки"
 
-#: src/clients/echo/arcecho.cpp:84 src/clients/credentials/arcproxy.cpp:690
+#: src/clients/echo/arcecho.cpp:84 src/clients/credentials/arcproxy.cpp:655
 #: src/clients/credentials/arcproxyalt.cpp:604
 msgid "Wrong number of arguments!"
 msgstr "Недопустимое число аргументов!"
@@ -1903,15 +1902,15 @@ msgid "jobdescription string describing the job to be submitted"
 msgstr "Строка, содержащая описание запускаемой задачи"
 
 #: src/clients/compute/utils.cpp:411 src/clients/compute/utils.cpp:417
-#: src/clients/credentials/arcproxy.cpp:506
-#: src/clients/credentials/arcproxy.cpp:513
-#: src/clients/credentials/arcproxy.cpp:531
-#: src/clients/credentials/arcproxy.cpp:538
-#: src/clients/credentials/arcproxy.cpp:554
-#: src/clients/credentials/arcproxy.cpp:558
-#: src/clients/credentials/arcproxy.cpp:570
-#: src/clients/credentials/arcproxy.cpp:580
-#: src/clients/credentials/arcproxy.cpp:584
+#: src/clients/credentials/arcproxy.cpp:468
+#: src/clients/credentials/arcproxy.cpp:475
+#: src/clients/credentials/arcproxy.cpp:493
+#: src/clients/credentials/arcproxy.cpp:500
+#: src/clients/credentials/arcproxy.cpp:516
+#: src/clients/credentials/arcproxy.cpp:520
+#: src/clients/credentials/arcproxy.cpp:532
+#: src/clients/credentials/arcproxy.cpp:542
+#: src/clients/credentials/arcproxy.cpp:546
 #: src/clients/credentials/arcslcs.cpp:170
 #: src/clients/credentials/arcslcs.cpp:173
 #: src/clients/credentials/arcslcs.cpp:176
@@ -2461,12 +2460,12 @@ msgid "path to config file"
 msgstr "путь к файлу настроек"
 
 #: src/clients/saml/saml_assertion_init.cpp:48 src/clients/data/arccp.cpp:580
-#: src/clients/credentials/arcproxy.cpp:472
-#: src/clients/credentials/arcproxy.cpp:476
-#: src/clients/credentials/arcproxy.cpp:480
-#: src/clients/credentials/arcproxy.cpp:484
-#: src/clients/credentials/arcproxy.cpp:488
-#: src/clients/credentials/arcproxy.cpp:492
+#: src/clients/credentials/arcproxy.cpp:434
+#: src/clients/credentials/arcproxy.cpp:438
+#: src/clients/credentials/arcproxy.cpp:442
+#: src/clients/credentials/arcproxy.cpp:446
+#: src/clients/credentials/arcproxy.cpp:450
+#: src/clients/credentials/arcproxy.cpp:454
 #: src/clients/credentials/arcproxyalt.cpp:335
 #: src/clients/credentials/arcproxyalt.cpp:339
 #: src/clients/credentials/arcproxyalt.cpp:343
@@ -2928,80 +2927,49 @@ msgstr "Запрошены несовместимые опции --nolist и --f
 msgid "Requesting recursion and --nolist has no sense"
 msgstr "Запрос рекурсивного просмотра и --nolist не имеет смысла"
 
-#: src/clients/credentials/arcproxy.cpp:116
-#: src/clients/credentials/arcproxyalt.cpp:108
-#: src/hed/libs/credential/ARCProxyUtil.cpp:258
-#, c-format
-msgid "OpenSSL error -- %s"
-msgstr "Ошибка OpenSSL -- %s"
-
-#: src/clients/credentials/arcproxy.cpp:117
-#: src/clients/credentials/arcslcs.cpp:42
-#: src/clients/credentials/arcproxyalt.cpp:109
-#: src/hed/libs/credential/ARCProxyUtil.cpp:259
-#, c-format
-msgid "Library  : %s"
-msgstr "Библиотека: %s"
-
-#: src/clients/credentials/arcproxy.cpp:118
-#: src/clients/credentials/arcslcs.cpp:43
-#: src/clients/credentials/arcproxyalt.cpp:110
-#: src/hed/libs/credential/ARCProxyUtil.cpp:260
-#, c-format
-msgid "Function : %s"
-msgstr "Функция:    %s"
-
-#: src/clients/credentials/arcproxy.cpp:119
-#: src/clients/credentials/arcslcs.cpp:44
-#: src/clients/credentials/arcproxyalt.cpp:111
-#: src/hed/libs/credential/ARCProxyUtil.cpp:261
-#, c-format
-msgid "Reason   : %s"
-msgstr "Причина:    %s"
-
-#: src/clients/credentials/arcproxy.cpp:321
+#: src/clients/credentials/arcproxy.cpp:268
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1248
 #, c-format
 msgid "There are %d user certificates existing in the NSS database"
 msgstr "В базе данных NSS обнаружено %d сертификата пользователя"
 
-#: src/clients/credentials/arcproxy.cpp:337
+#: src/clients/credentials/arcproxy.cpp:284
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1264
 #, c-format
 msgid "Number %d is with nickname: %s%s"
 msgstr "Номер %d с кратким именем: %s%s"
 
-#: src/clients/credentials/arcproxy.cpp:346
+#: src/clients/credentials/arcproxy.cpp:293
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1273
 #, c-format
 msgid "    expiration time: %s "
 msgstr "    действителен до:  %s "
 
-#: src/clients/credentials/arcproxy.cpp:350
+#: src/clients/credentials/arcproxy.cpp:297
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1277
 #, c-format
 msgid "    certificate dn:  %s"
 msgstr "    DN сертификата:   %s"
 
-#: src/clients/credentials/arcproxy.cpp:351
+#: src/clients/credentials/arcproxy.cpp:298
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1278
 #, c-format
 msgid "    issuer dn:       %s"
 msgstr "    DN эмитента:      %s"
 
-#: src/clients/credentials/arcproxy.cpp:352
+#: src/clients/credentials/arcproxy.cpp:299
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1279
 #, c-format
 msgid "    serial number:   %d"
 msgstr "    Серийный номер:   %d"
 
-#: src/clients/credentials/arcproxy.cpp:356
+#: src/clients/credentials/arcproxy.cpp:303
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1283
 #, c-format
 msgid "Please choose the one you would use (1-%d): "
 msgstr "Пожалуйста, выберите то, что будет использоваться (1-%d): "
 
-#: src/clients/credentials/arcproxy.cpp:423
+#: src/clients/credentials/arcproxy.cpp:371
 #: src/clients/credentials/arcproxyalt.cpp:317
 msgid ""
 "The arcproxy command creates a proxy from a key/certificate pair which can\n"
@@ -3010,7 +2978,7 @@ msgstr ""
 "Команда arcproxy создаёт доверенность из пары закрытый/открытый ключ\n"
 "для получения доступа к гриду."
 
-#: src/clients/credentials/arcproxy.cpp:425
+#: src/clients/credentials/arcproxy.cpp:373
 msgid ""
 "Supported constraints are:\n"
 "  validityStart=time (e.g. 2008-05-29T10:20:30Z; if not specified, start "
@@ -3063,7 +3031,21 @@ msgid ""
 "  keybits - size of proxy certificate key in bits.\n"
 "  signingAlgorithm - algorith used to sign proxy certificate.\n"
 "Items are printed in requested order and are separated by newline.\n"
-"If item has multiple values they are printed in same line separated by |."
+"If item has multiple values they are printed in same line separated by |.\n"
+"\n"
+"Supported password destinations are:\n"
+"  key - for reading private key\n"
+"  myproxy - for accessing credentials at MyProxy service\n"
+"  myproxynew - for creating credentials at MyProxy service\n"
+"  all - for any purspose.\n"
+"\n"
+"Supported password sources are:\n"
+"  quoted string (\"password\") - explicitely specified password\n"
+"  int - interactively request password from console\n"
+"  stdin - read password from standard input delimited by newline\n"
+"  file:filename - read password from file named filename\n"
+"  stream:# - read password from input stream number #.\n"
+"             Currently only 0 (standard input) is supported.\n"
 msgstr ""
 "Поддерживаемые ограничения:\n"
 "  validityStart=время (например, 2008-05-29T10:20:30Z; если не указано, то "
@@ -3122,21 +3104,35 @@ msgstr ""
 "  signingAlgorithm - алгоритм, используемый при подписи сертификата.\n"
 "Значения выводятся в порядке запроса, каждое с новой строки.\n"
 "Если полю соответствуют несколько значений, они выводятся в строку и "
-"разделяются |."
+"разделяются |.\n"
+"\n"
+"Поддерживаемые назначения паролей:\n"
+"  key - для чтения закрытых ключей\n"
+"  myproxy - для доступа к сертификатам на сервере MyProxy\n"
+"  myproxynew - для создания сертификатов на сервере MyProxy\n"
+"  all - с любой целью.\n"
+"\n"
+"Поддерживаемые источники паролей:\n"
+"  quoted string (\"password\") - явно указанный пароль\n"
+"  int - интерактивный запрос на ввод пароля с терминала\n"
+"  stdin - чтение пароля со стандартного ввода по переводу строки\n"
+"  file:filename - чтение пароля из файла filename\n"
+"  stream:# - чтение пароля из входного потока номер #.\n"
+"             На текущий момент поддерживается только 0 (стандартный ввод).\n"
 
-#: src/clients/credentials/arcproxy.cpp:471
+#: src/clients/credentials/arcproxy.cpp:433
 #: src/clients/credentials/arcproxyalt.cpp:334
 msgid "path to the proxy file"
 msgstr "путь к файлу доверенности"
 
-#: src/clients/credentials/arcproxy.cpp:475
+#: src/clients/credentials/arcproxy.cpp:437
 #: src/clients/credentials/arcproxyalt.cpp:338
 msgid ""
 "path to the certificate file, it can be either PEM, DER, or PKCS12 formated"
 msgstr ""
 "путь к файлу сертификата, который может быть в формате PEM, DER, или PKCS12"
 
-#: src/clients/credentials/arcproxy.cpp:479
+#: src/clients/credentials/arcproxy.cpp:441
 #: src/clients/credentials/arcproxyalt.cpp:342
 msgid ""
 "path to the private key file, if the certificate is in PKCS12 format, then "
@@ -3145,7 +3141,7 @@ msgstr ""
 "путь к закрытому ключу; если сертификат указан в формате PKCS12, закрытый "
 "ключ не нужен"
 
-#: src/clients/credentials/arcproxy.cpp:483
+#: src/clients/credentials/arcproxy.cpp:445
 #: src/clients/credentials/arcproxyalt.cpp:346
 msgid ""
 "path to the trusted certificate directory, only needed for the VOMS client "
@@ -3154,7 +3150,7 @@ msgstr ""
 "путь к каталогу с доверяемыми сертификатами, используется только клиентом "
 "VOMS"
 
-#: src/clients/credentials/arcproxy.cpp:487
+#: src/clients/credentials/arcproxy.cpp:449
 #: src/clients/credentials/arcproxyalt.cpp:350
 msgid ""
 "path to the top directory of VOMS *.lsc files, only needed for the VOMS "
@@ -3163,12 +3159,12 @@ msgstr ""
 "путь к корневому каталогу с файлами VOMS *.lsc, используется только клиентом "
 "VOMS"
 
-#: src/clients/credentials/arcproxy.cpp:491
+#: src/clients/credentials/arcproxy.cpp:453
 #: src/clients/credentials/arcproxyalt.cpp:354
 msgid "path to the VOMS server configuration file"
 msgstr "путь к файлу настроек серверов VOMS"
 
-#: src/clients/credentials/arcproxy.cpp:495
+#: src/clients/credentials/arcproxy.cpp:457
 #: src/clients/credentials/arcproxyalt.cpp:358
 msgid ""
 "voms<:command>. Specify VOMS server (More than one VOMS server \n"
@@ -3210,7 +3206,7 @@ msgstr ""
 "роль, она\n"
 "                                 будет добавлена.\n"
 
-#: src/clients/credentials/arcproxy.cpp:509
+#: src/clients/credentials/arcproxy.cpp:471
 #: src/clients/credentials/arcproxyalt.cpp:372
 msgid ""
 "group<:role>. Specify ordering of attributes \n"
@@ -3229,12 +3225,12 @@ msgstr ""
 " Имейте в виду, что при использовании нескольких серверов VOMS  не имеет "
 "смысла указывать последовательность атрибутов"
 
-#: src/clients/credentials/arcproxy.cpp:516
+#: src/clients/credentials/arcproxy.cpp:478
 #: src/clients/credentials/arcproxyalt.cpp:379
 msgid "use GSI communication protocol for contacting VOMS services"
 msgstr "использовать протокол GSI для контакта служб VOMS"
 
-#: src/clients/credentials/arcproxy.cpp:519
+#: src/clients/credentials/arcproxy.cpp:481
 #: src/clients/credentials/arcproxyalt.cpp:382
 msgid ""
 "use HTTP communication protocol for contacting VOMS services that provide "
@@ -3247,31 +3243,31 @@ msgstr ""
 "               Внимание: для доступа REST, команда 'list' и множественный "
 "сервер VOMS не поддерживаются\n"
 
-#: src/clients/credentials/arcproxy.cpp:525
+#: src/clients/credentials/arcproxy.cpp:487
 msgid "use GSI proxy (RFC 3820 compliant proxy is default)"
 msgstr ""
 "использовать доверенность GSI (по умолчанию используется\n"
 "              RFC 3820-совместимая доверенность)"
 
-#: src/clients/credentials/arcproxy.cpp:528
+#: src/clients/credentials/arcproxy.cpp:490
 msgid "print all information about this proxy."
 msgstr "вывести всю информацию об этой доверенности."
 
-#: src/clients/credentials/arcproxy.cpp:531
+#: src/clients/credentials/arcproxy.cpp:493
 msgid "print selected information about this proxy."
 msgstr "вывести избранную информацию об этой доверенности."
 
-#: src/clients/credentials/arcproxy.cpp:534
+#: src/clients/credentials/arcproxy.cpp:496
 #: src/clients/credentials/arcproxyalt.cpp:395
 msgid "remove proxy"
 msgstr "удаление доверенности"
 
-#: src/clients/credentials/arcproxy.cpp:537
+#: src/clients/credentials/arcproxy.cpp:499
 #: src/clients/credentials/arcproxyalt.cpp:398
 msgid "username to MyProxy server"
 msgstr "Имя пользователя сервера MyProxy"
 
-#: src/clients/credentials/arcproxy.cpp:541
+#: src/clients/credentials/arcproxy.cpp:503
 #: src/clients/credentials/arcproxyalt.cpp:402
 msgid ""
 "don't prompt for a credential passphrase, when retrieve a \n"
@@ -3293,7 +3289,7 @@ msgstr ""
 "              Эта опция используется только командой GET в отношении сервера "
 "Myproxy."
 
-#: src/clients/credentials/arcproxy.cpp:551
+#: src/clients/credentials/arcproxy.cpp:513
 #: src/clients/credentials/arcproxyalt.cpp:412
 msgid ""
 "Allow specified entity to retrieve credential without passphrase.\n"
@@ -3304,12 +3300,12 @@ msgstr ""
 "              Эта опция используется только командой PUT в отношении сервера "
 "Myproxy."
 
-#: src/clients/credentials/arcproxy.cpp:557
+#: src/clients/credentials/arcproxy.cpp:519
 #: src/clients/credentials/arcproxyalt.cpp:418
 msgid "hostname[:port] of MyProxy server"
 msgstr "hostname[:port] сервера MyProxy"
 
-#: src/clients/credentials/arcproxy.cpp:561
+#: src/clients/credentials/arcproxy.cpp:523
 msgid ""
 "command to MyProxy server. The command can be PUT or GET.\n"
 "              PUT -- put a delegated credential to the MyProxy server; \n"
@@ -3331,7 +3327,7 @@ msgstr ""
 "если\n"
 "              в доверенность необходимо включить атрибуты VOMS.\n"
 
-#: src/clients/credentials/arcproxy.cpp:574
+#: src/clients/credentials/arcproxy.cpp:536
 msgid ""
 "use NSS credential database in default Mozilla profiles, \n"
 "              including Firefox, Seamonkey and Thunderbird.\n"
@@ -3339,23 +3335,23 @@ msgstr ""
 "использовать базу данных параметров доступа NSS из профилей Mozilla \n"
 "              по умолчанию, включая Firefox, Seamonkey и Thunderbird.\n"
 
-#: src/clients/credentials/arcproxy.cpp:579
+#: src/clients/credentials/arcproxy.cpp:541
 #: src/clients/credentials/arcproxyalt.cpp:432
 msgid "proxy constraints"
 msgstr "ограничения доверенности"
 
-#: src/clients/credentials/arcproxy.cpp:583
-msgid "password sources"
-msgstr "источники пароля"
+#: src/clients/credentials/arcproxy.cpp:545
+msgid "password destination=password source"
+msgstr "назначение пароля=источник пароля"
 
-#: src/clients/credentials/arcproxy.cpp:633
-#: src/clients/credentials/arcproxy.cpp:1224
+#: src/clients/credentials/arcproxy.cpp:594
+#: src/clients/credentials/arcproxy.cpp:1225
 #: src/clients/credentials/arcproxyalt.cpp:513
 #: src/clients/credentials/arcproxyalt.cpp:556
 msgid "Failed configuration initialization."
 msgstr "Не удалось загрузить настройки."
 
-#: src/clients/credentials/arcproxy.cpp:647
+#: src/clients/credentials/arcproxy.cpp:612
 #: src/clients/credentials/arcproxyalt.cpp:563
 msgid ""
 "Failed to find certificate and/or private key or files have improper "
@@ -3364,8 +3360,8 @@ msgstr ""
 "Не удалось обнаружить сертификат и/или закрытый ключ, либо у файлов "
 "неподходящие параметры доступа"
 
-#: src/clients/credentials/arcproxy.cpp:648
-#: src/clients/credentials/arcproxy.cpp:660
+#: src/clients/credentials/arcproxy.cpp:613
+#: src/clients/credentials/arcproxy.cpp:625
 #: src/clients/credentials/arcproxyalt.cpp:564
 #: src/clients/credentials/arcproxyalt.cpp:574
 msgid "You may try to increase verbosity to get more information."
@@ -3373,12 +3369,12 @@ msgstr ""
 "Вы можете попытаться увеличить уровень детальности для получения "
 "дополнительной информации."
 
-#: src/clients/credentials/arcproxy.cpp:656
+#: src/clients/credentials/arcproxy.cpp:621
 #: src/clients/credentials/arcproxyalt.cpp:570
 msgid "Failed to find CA certificates"
 msgstr "Невозможно найти сертификаты CA."
 
-#: src/clients/credentials/arcproxy.cpp:657
+#: src/clients/credentials/arcproxy.cpp:622
 #: src/clients/credentials/arcproxyalt.cpp:571
 msgid ""
 "Cannot find the CA certificates directory path, please set environment "
@@ -3388,7 +3384,7 @@ msgstr ""
 "переменную среды X509_CERT_DIR, или значение cacertificatesdirectory в файле "
 "настроек"
 
-#: src/clients/credentials/arcproxy.cpp:661
+#: src/clients/credentials/arcproxy.cpp:626
 #: src/clients/credentials/arcproxyalt.cpp:575
 msgid ""
 "The CA certificates directory is required for contacting VOMS and MyProxy "
@@ -3397,8 +3393,8 @@ msgstr ""
 "Каталог сертификатов агентств CA необходим для связи с серверами VOMS и "
 "MyProxy"
 
-#: src/clients/credentials/arcproxy.cpp:698
-#: src/clients/credentials/arcproxy.cpp:718
+#: src/clients/credentials/arcproxy.cpp:663
+#: src/clients/credentials/arcproxy.cpp:684
 #: src/clients/credentials/arcproxyalt.cpp:612
 #: src/clients/credentials/arcproxyalt.cpp:632
 msgid ""
@@ -3408,19 +3404,19 @@ msgstr ""
 "Не удалось найти доверенность пользователя. Пожалуйста, задайте переменную "
 "среды X509_USER_PROXY, или значение proxypath в файле настроек"
 
-#: src/clients/credentials/arcproxy.cpp:703
-#: src/clients/credentials/arcproxyalt.cpp:617
-#, c-format
-msgid "Cannot remove proxy file at %s, because it's not there"
-msgstr "Невозможно удалить файл доверенности в %s, потому что его там нет"
-
-#: src/clients/credentials/arcproxy.cpp:707
+#: src/clients/credentials/arcproxy.cpp:670
 #: src/clients/credentials/arcproxyalt.cpp:621
 #, c-format
 msgid "Cannot remove proxy file at %s"
 msgstr "Невозможно удалить файл доверенности в %s"
 
-#: src/clients/credentials/arcproxy.cpp:724
+#: src/clients/credentials/arcproxy.cpp:672
+#: src/clients/credentials/arcproxyalt.cpp:617
+#, c-format
+msgid "Cannot remove proxy file at %s, because it's not there"
+msgstr "Невозможно удалить файл доверенности в %s, потому что его там нет"
+
+#: src/clients/credentials/arcproxy.cpp:690
 #: src/clients/credentials/arcproxyalt.cpp:638
 #, c-format
 msgid ""
@@ -3430,99 +3426,99 @@ msgstr ""
 "Не удалось найти файл по адресу %s, содержащий доверенность. Пожалуйста, "
 "убедитесь, что файл существует."
 
-#: src/clients/credentials/arcproxy.cpp:730
+#: src/clients/credentials/arcproxy.cpp:696
 #: src/clients/credentials/arcproxyalt.cpp:651
 #, c-format
 msgid "Subject: %s"
 msgstr "Субъект: %s"
 
-#: src/clients/credentials/arcproxy.cpp:731
+#: src/clients/credentials/arcproxy.cpp:697
 #: src/clients/credentials/arcproxyalt.cpp:652
 #, c-format
 msgid "Issuer: %s"
 msgstr "Кем выдана: %s"
 
-#: src/clients/credentials/arcproxy.cpp:732
+#: src/clients/credentials/arcproxy.cpp:698
 #: src/clients/credentials/arcproxyalt.cpp:653
 #, c-format
 msgid "Identity: %s"
 msgstr "Личные данные: %s"
 
-#: src/clients/credentials/arcproxy.cpp:734
+#: src/clients/credentials/arcproxy.cpp:700
 #: src/clients/credentials/arcproxyalt.cpp:657
 msgid "Time left for proxy: Proxy expired"
 msgstr "Доверенность действительна на: Срок действия доверенности вышел"
 
-#: src/clients/credentials/arcproxy.cpp:736
+#: src/clients/credentials/arcproxy.cpp:702
 #: src/clients/credentials/arcproxyalt.cpp:659
 msgid "Time left for proxy: Proxy not valid yet"
 msgstr "Доверенность действительна на: Доверенность пока недействительна"
 
-#: src/clients/credentials/arcproxy.cpp:738
+#: src/clients/credentials/arcproxy.cpp:704
 #: src/clients/credentials/arcproxyalt.cpp:661
 #, c-format
 msgid "Time left for proxy: %s"
 msgstr "Доверенность действительна на: %s"
 
-#: src/clients/credentials/arcproxy.cpp:739
+#: src/clients/credentials/arcproxy.cpp:705
 #: src/clients/credentials/arcproxyalt.cpp:663
 #, c-format
 msgid "Proxy path: %s"
 msgstr "Расположение доверенности: %s"
 
-#: src/clients/credentials/arcproxy.cpp:740
+#: src/clients/credentials/arcproxy.cpp:706
 #, c-format
 msgid "Proxy type: %s"
 msgstr "Тип доверенности: %s"
 
-#: src/clients/credentials/arcproxy.cpp:741
+#: src/clients/credentials/arcproxy.cpp:707
 #, c-format
 msgid "Proxy key length: %i"
 msgstr "Длина ключа доверенности: %i"
 
-#: src/clients/credentials/arcproxy.cpp:742
+#: src/clients/credentials/arcproxy.cpp:708
 #, c-format
 msgid "Proxy signature: %s"
 msgstr "Подпись доверенности: %s"
 
-#: src/clients/credentials/arcproxy.cpp:751
+#: src/clients/credentials/arcproxy.cpp:717
 #: src/clients/credentials/arcproxyalt.cpp:675
 msgid "AC extension information for VO "
 msgstr "Информация о расширении AC для VO "
 
-#: src/clients/credentials/arcproxy.cpp:754
+#: src/clients/credentials/arcproxy.cpp:720
 #: src/clients/credentials/arcproxyalt.cpp:678
 msgid "Error detected while parsing this AC"
 msgstr "Обнаружена ошибка при разборе сертификата атрибута"
 
-#: src/clients/credentials/arcproxy.cpp:767
+#: src/clients/credentials/arcproxy.cpp:733
 #: src/clients/credentials/arcproxyalt.cpp:691
 msgid "AC is invalid: "
 msgstr "Сертификат атрибута недействителен:"
 
-#: src/clients/credentials/arcproxy.cpp:820
+#: src/clients/credentials/arcproxy.cpp:786
 #: src/clients/credentials/arcproxyalt.cpp:732
 msgid "Time left for AC: AC is not valid yet"
 msgstr "Сертификат атрибута действителен на: Сертификат пока недействителен"
 
-#: src/clients/credentials/arcproxy.cpp:822
+#: src/clients/credentials/arcproxy.cpp:788
 #: src/clients/credentials/arcproxyalt.cpp:734
 msgid "Time left for AC: AC has expired"
 msgstr ""
 "Сертификат атрибута действителен на: Срок действия сертификата закончился"
 
-#: src/clients/credentials/arcproxy.cpp:824
+#: src/clients/credentials/arcproxy.cpp:790
 #: src/clients/credentials/arcproxyalt.cpp:736
 #, c-format
 msgid "Time left for AC: %s"
 msgstr "Сертификат атрибута действителен на: %s"
 
-#: src/clients/credentials/arcproxy.cpp:915
+#: src/clients/credentials/arcproxy.cpp:881
 #, c-format
 msgid "Information item '%s' is not known"
 msgstr "Неизвестный тип информации '%s'"
 
-#: src/clients/credentials/arcproxy.cpp:924
+#: src/clients/credentials/arcproxy.cpp:890
 #: src/clients/credentials/arcproxyalt.cpp:746
 msgid ""
 "Cannot find the user certificate path, please setup environment "
@@ -3532,7 +3528,7 @@ msgstr ""
 "переменную среды X509_USER_CERT, или значение certificatepath в файле "
 "настроек"
 
-#: src/clients/credentials/arcproxy.cpp:928
+#: src/clients/credentials/arcproxy.cpp:894
 #: src/clients/credentials/arcproxyalt.cpp:750
 msgid ""
 "Cannot find the user private key path, please setup environment "
@@ -3541,7 +3537,7 @@ msgstr ""
 "Не удалось найти закрытый ключ пользователя. Пожалуйста, задайте переменную "
 "среды X509_USER_KEY, или значение keypath в файле настроек"
 
-#: src/clients/credentials/arcproxy.cpp:952
+#: src/clients/credentials/arcproxy.cpp:918
 #, c-format
 msgid ""
 "Cannot parse password source expression %s it must be of type=source format"
@@ -3549,14 +3545,16 @@ msgstr ""
 "Не удалось разобрать выражение %s для источника пароля: формат должен быть "
 "type=source"
 
-#: src/clients/credentials/arcproxy.cpp:961
+#: src/clients/credentials/arcproxy.cpp:935
 #, c-format
-msgid "Cannot parse password type %s. Currently supported value is 'key'."
+msgid ""
+"Cannot parse password type %s. Currently supported values are "
+"'key','myproxy','myproxynew' and 'all'."
 msgstr ""
-"Не удалось разобрать тип пароля %s. В настоящий момент единственное "
-"поддерживаемое значение - 'key'."
+"Не удалось разобрать тип пароля %s. В настоящий момент поддерживаются "
+"значения 'key','myproxy','myproxynew' и 'all'."
 
-#: src/clients/credentials/arcproxy.cpp:975
+#: src/clients/credentials/arcproxy.cpp:950
 #, c-format
 msgid ""
 "Cannot parse password source %s it must be of source_type or source_type:"
@@ -3566,13 +3564,13 @@ msgstr ""
 "source_type:data format. Поддерживаются следующие типы источников: int,stdin,"
 "stream,file."
 
-#: src/clients/credentials/arcproxy.cpp:989
+#: src/clients/credentials/arcproxy.cpp:964
 msgid "Only standard input is currently supported for password source."
 msgstr ""
 "На настоящий момент единственным поддерживаемым источником пароля является "
 "стандартный вход."
 
-#: src/clients/credentials/arcproxy.cpp:994
+#: src/clients/credentials/arcproxy.cpp:969
 #, c-format
 msgid ""
 "Cannot parse password source type %s. Supported source types are int,stdin,"
@@ -3581,36 +3579,36 @@ msgstr ""
 "Не удалось разобрать тип источника пароля %s. Поддерживаются следующие типы "
 "источников: int,stdin,stream,file."
 
-#: src/clients/credentials/arcproxy.cpp:1023
+#: src/clients/credentials/arcproxy.cpp:1008
 #: src/clients/credentials/arcproxyalt.cpp:782
 msgid "The start, end and period can't be set simultaneously"
 msgstr "Опции start, end и period не могут быть заданы одновременно"
 
-#: src/clients/credentials/arcproxy.cpp:1029
+#: src/clients/credentials/arcproxy.cpp:1014
 #: src/clients/credentials/arcproxyalt.cpp:788
 #, c-format
 msgid "The start time that you set: %s can't be recognized."
 msgstr "Невозможно распознать заданное Вами время начала: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1036
+#: src/clients/credentials/arcproxy.cpp:1021
 #: src/clients/credentials/arcproxyalt.cpp:795
 #, c-format
 msgid "The period that you set: %s can't be recognized."
 msgstr "Невозможно распознать заданный Вами интервал: %s."
 
-#: src/clients/credentials/arcproxy.cpp:1043
+#: src/clients/credentials/arcproxy.cpp:1028
 #: src/clients/credentials/arcproxyalt.cpp:802
 #, c-format
 msgid "The end time that you set: %s can't be recognized."
 msgstr "Невозможно распознать заданное Вами время окончания: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1052
+#: src/clients/credentials/arcproxy.cpp:1037
 #: src/clients/credentials/arcproxyalt.cpp:811
 #, c-format
 msgid "The end time that you set: %s is before start time:%s."
 msgstr "Заданное Вами время окончания: %s предшествует времени начала: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1063
+#: src/clients/credentials/arcproxy.cpp:1048
 #: src/clients/credentials/arcproxyalt.cpp:822
 #, c-format
 msgid "WARNING: The start time that you set: %s is before current time: %s"
@@ -3618,7 +3616,7 @@ msgstr ""
 "ПРЕДУПРЕЖДЕНИЕ: Заданное Вами время начала: %s предшествует текущему "
 "времени: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1066
+#: src/clients/credentials/arcproxy.cpp:1051
 #: src/clients/credentials/arcproxyalt.cpp:825
 #, c-format
 msgid "WARNING: The end time that you set: %s is before current time: %s"
@@ -3626,73 +3624,73 @@ msgstr ""
 "ПРЕДУПРЕЖДЕНИЕ: Заданное Вами время окончания: %s предшествует текущему "
 "времени: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1076
+#: src/clients/credentials/arcproxy.cpp:1061
 #: src/clients/credentials/arcproxyalt.cpp:835
 #, c-format
 msgid "The VOMS AC period that you set: %s can't be recognized."
 msgstr "Невозможно распознать заданный Вами период VOMS AC: %s."
 
-#: src/clients/credentials/arcproxy.cpp:1094
+#: src/clients/credentials/arcproxy.cpp:1079
 #: src/clients/credentials/arcproxyalt.cpp:853
 #, c-format
 msgid "The MyProxy period that you set: %s can't be recognized."
 msgstr "Невозможно распознать заданный Вами период MyProxy: %s."
 
-#: src/clients/credentials/arcproxy.cpp:1109
+#: src/clients/credentials/arcproxy.cpp:1094
 #, c-format
 msgid "The keybits constraint is wrong: %s."
 msgstr "Недопустимое значение ограничения keybits: %s."
 
-#: src/clients/credentials/arcproxy.cpp:1122
+#: src/clients/credentials/arcproxy.cpp:1107
 #: src/clients/credentials/arcproxyalt.cpp:476
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1303
 msgid "The NSS database can not be detected in the Firefox profile"
 msgstr "База данных NSS в профиле Firefox не обнаружена"
 
-#: src/clients/credentials/arcproxy.cpp:1131
+#: src/clients/credentials/arcproxy.cpp:1116
+#: src/hed/libs/credential/ARCProxyUtil.cpp:1311
 #, c-format
 msgid ""
 "There are %d NSS base directories where the certificate, key, and module "
-"datbases live"
+"databases live"
 msgstr ""
 "Обнаружено %d основных директорий NSS, содержащих базы данных сертификатов, "
 "ключей и модулей"
 
-#: src/clients/credentials/arcproxy.cpp:1135
+#: src/clients/credentials/arcproxy.cpp:1118
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1315
 #, c-format
 msgid "Number %d is: %s"
 msgstr "Номер %d: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1137
-#: src/hed/libs/credential/ARCProxyUtil.cpp:1317
+#: src/clients/credentials/arcproxy.cpp:1120
 #, c-format
-msgid "Please choose the NSS database you would use (1-%d): "
-msgstr "Пожалуйста, выберите базу данных NSS для использования (1-%d):"
+msgid "Please choose the NSS database you would like to use (1-%d): "
+msgstr "Пожалуйста, выберите базу данных NSS для использования (1-%d): "
 
-#: src/clients/credentials/arcproxy.cpp:1150
+#: src/clients/credentials/arcproxy.cpp:1136
 #: src/clients/credentials/arcproxyalt.cpp:482
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1329
 #, c-format
 msgid "NSS database to be accessed: %s\n"
 msgstr "Будет использоваться база данных NSS %s\n"
 
-#: src/clients/credentials/arcproxy.cpp:1205
+#: src/clients/credentials/arcproxy.cpp:1206
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1503
 #, c-format
 msgid "Certificate to use is: %s"
 msgstr "Используемый сертификат: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1253
-#: src/clients/credentials/arcproxy.cpp:1355
+#: src/clients/credentials/arcproxy.cpp:1254
+#: src/clients/credentials/arcproxy.cpp:1363
 #: src/clients/credentials/arcproxyalt.cpp:539
 #: src/clients/credentials/arcproxyalt.cpp:955
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1560
 msgid "Proxy generation succeeded"
 msgstr "Доверенность успешно создана"
 
-#: src/clients/credentials/arcproxy.cpp:1254
-#: src/clients/credentials/arcproxy.cpp:1356
+#: src/clients/credentials/arcproxy.cpp:1255
+#: src/clients/credentials/arcproxy.cpp:1364
 #: src/clients/credentials/arcproxyalt.cpp:540
 #: src/clients/credentials/arcproxyalt.cpp:956
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1561
@@ -3700,48 +3698,56 @@ msgstr "Доверенность успешно создана"
 msgid "Your proxy is valid until: %s"
 msgstr "Ваша доверенность действительна до: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1287 src/hed/mcc/tls/MCCTLS.cpp:164
+#: src/clients/credentials/arcproxy.cpp:1288 src/hed/mcc/tls/MCCTLS.cpp:164
 #: src/hed/mcc/tls/MCCTLS.cpp:193 src/hed/mcc/tls/MCCTLS.cpp:217
 msgid "VOMS attribute parsing failed"
 msgstr "Сбой обработки атрибутов VOMS"
 
-#: src/clients/credentials/arcproxy.cpp:1289
+#: src/clients/credentials/arcproxy.cpp:1290
 msgid "Myproxy server did not return proxy with VOMS AC included"
 msgstr "Сервер Myproxy не прислал сертификат с расширением VOMS AC"
 
-#: src/clients/credentials/arcproxy.cpp:1310
+#: src/clients/credentials/arcproxy.cpp:1311
 #: src/clients/credentials/arcproxyalt.cpp:892
 #: src/hed/libs/credential/ARCProxyUtil.cpp:341
 msgid "Proxy generation failed: No valid certificate found."
 msgstr "Сбой создания доверенности: Не обнаружено действительных сертификатов."
 
-#: src/clients/credentials/arcproxy.cpp:1316
+#: src/clients/credentials/arcproxy.cpp:1317
 #: src/clients/credentials/arcproxyalt.cpp:899
 #: src/hed/libs/credential/ARCProxyUtil.cpp:348
 msgid "Proxy generation failed: No valid private key found."
 msgstr ""
 "Сбой создания доверенности: Не обнаружено действительных закрытых ключей."
 
-#: src/clients/credentials/arcproxy.cpp:1321
+#: src/clients/credentials/arcproxy.cpp:1322
 #: src/clients/credentials/arcproxyalt.cpp:902
 #: src/hed/libs/credential/ARCProxyUtil.cpp:173
 #, c-format
 msgid "Your identity: %s"
 msgstr "Ваши личные данные: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1323
+#: src/clients/credentials/arcproxy.cpp:1324
 #: src/clients/credentials/arcproxyalt.cpp:907
 #: src/hed/libs/credential/ARCProxyUtil.cpp:356
 msgid "Proxy generation failed: Certificate has expired."
 msgstr "Сбой создания доверенности: Срок действия сертификата истёк"
 
-#: src/clients/credentials/arcproxy.cpp:1327
+#: src/clients/credentials/arcproxy.cpp:1328
 #: src/clients/credentials/arcproxyalt.cpp:911
 #: src/hed/libs/credential/ARCProxyUtil.cpp:361
 msgid "Proxy generation failed: Certificate is not valid yet."
 msgstr "Сбой создания доверенности: Срок действия сертификата ещё не начался"
 
-#: src/clients/credentials/arcproxy.cpp:1437
+#: src/clients/credentials/arcproxy.cpp:1338
+msgid "Proxy generation failed: Failed to create temporary file."
+msgstr "Сбой создания доверенности: Сбой создания временного файла."
+
+#: src/clients/credentials/arcproxy.cpp:1345
+msgid "Proxy generation failed: Failed to retrieve VOMS information."
+msgstr "Сбой создания доверенности: Сбой получения информации VOMS."
+
+#: src/clients/credentials/arcproxy.cpp:1444
 #: src/clients/credentials/arcproxyalt.cpp:1222
 #: src/hed/libs/credential/ARCProxyUtil.cpp:403
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1410
@@ -3749,22 +3755,22 @@ msgid "Failed to add VOMS AC extension. Your proxy may be incomplete."
 msgstr ""
 "Сбой добавления расширения VOMS AC. Ваша доверенность может быть неполной."
 
-#: src/clients/credentials/arcproxy.cpp:1495
+#: src/clients/credentials/arcproxy.cpp:1502
 #: src/clients/credentials/arcproxyalt.cpp:1040
 #: src/hed/libs/credential/ARCProxyUtil.cpp:629
 #, c-format
 msgid "There are %d commands to the same VOMS server %s"
 msgstr "%d инструкций направлено на один и тот же сервер VOMS, %s"
 
-#: src/clients/credentials/arcproxy.cpp:1506
+#: src/clients/credentials/arcproxy.cpp:1513
 #: src/clients/credentials/arcproxyalt.cpp:1051
 #: src/hed/libs/credential/ARCProxyUtil.cpp:640
 #, c-format
 msgid "Cannot get VOMS server address information from vomses line: \"%s\""
 msgstr "Информация об адресе сервера VOMS отсутствует в строке: %s\""
 
-#: src/clients/credentials/arcproxy.cpp:1516
-#: src/clients/credentials/arcproxy.cpp:1518
+#: src/clients/credentials/arcproxy.cpp:1523
+#: src/clients/credentials/arcproxy.cpp:1525
 #: src/clients/credentials/arcproxyalt.cpp:1061
 #: src/clients/credentials/arcproxyalt.cpp:1063
 #: src/hed/libs/credential/ARCProxyUtil.cpp:650
@@ -3773,41 +3779,49 @@ msgstr "Информация об адресе сервера VOMS отсутс�
 msgid "Contacting VOMS server (named %s): %s on port: %s"
 msgstr "Устанавливается связь с сервером VOMS (по имени %s): %s по порту: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1549
+#: src/clients/credentials/arcproxy.cpp:1556
 #: src/clients/credentials/arcproxyalt.cpp:1094
 #: src/hed/libs/credential/ARCProxyUtil.cpp:683
 #, c-format
 msgid "Try to get attribute from VOMS server with order: %s"
 msgstr "Попытка получить атрибут с сервера VOMS с порядком: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1552
+#: src/clients/credentials/arcproxy.cpp:1559
 #: src/clients/credentials/arcproxyalt.cpp:1097
 #: src/hed/libs/credential/ARCProxyUtil.cpp:686
 #, c-format
 msgid "Message sent to VOMS server %s is: %s"
 msgstr "Сообщение, отправленное на сервер VOMS %s: %s "
 
-#: src/clients/credentials/arcproxy.cpp:1571
-#: src/clients/credentials/arcproxyalt.cpp:1116
-#: src/hed/libs/credential/ARCProxyUtil.cpp:705
+#: src/clients/credentials/arcproxy.cpp:1578
 #, c-format
 msgid ""
 "The VOMS server with the information:\n"
 "\t%s\n"
-"can not be reached, please make sure it is available"
+"can not be reached, please make sure it is available."
 msgstr ""
 "Невозможно связаться с сервером VOMS с информацией:\n"
 "\t%s\n"
-"пожалуйста, проверьте, доступен ли этот сервер"
+"Пожалуйста, проверьте, доступен ли этот сервер."
 
-#: src/clients/credentials/arcproxy.cpp:1575
+#: src/clients/credentials/arcproxy.cpp:1579
+#: src/clients/credentials/arcproxy.cpp:1601
+#, c-format
+msgid ""
+"Collected error is:\n"
+"\t%s"
+msgstr ""
+"Полученная ошибка:\n"
+"\t%s"
+
+#: src/clients/credentials/arcproxy.cpp:1583
 #: src/clients/credentials/arcproxyalt.cpp:1120
 #: src/hed/libs/credential/ARCProxyUtil.cpp:709
 msgid "No HTTP response from VOMS server"
 msgstr "Сервер VOMS не отзывается по HTTP"
 
-#: src/clients/credentials/arcproxy.cpp:1580
-#: src/clients/credentials/arcproxy.cpp:1606
+#: src/clients/credentials/arcproxy.cpp:1588
+#: src/clients/credentials/arcproxy.cpp:1615
 #: src/clients/credentials/arcproxyalt.cpp:1125
 #: src/clients/credentials/arcproxyalt.cpp:1151
 #: src/hed/libs/credential/ARCProxyUtil.cpp:714
@@ -3816,26 +3830,24 @@ msgstr "Сервер VOMS не отзывается по HTTP"
 msgid "Returned message from VOMS server: %s"
 msgstr "Сообщение с сервера VOMS: %s "
 
-#: src/clients/credentials/arcproxy.cpp:1592
-#: src/clients/credentials/arcproxyalt.cpp:1137
-#: src/hed/libs/credential/ARCProxyUtil.cpp:726
+#: src/clients/credentials/arcproxy.cpp:1600
 #, c-format
 msgid ""
 "The VOMS server with the information:\n"
 "\t%s\"\n"
-"can not be reached, please make sure it is available"
+"can not be reached, please make sure it is available."
 msgstr ""
 "Невозможно связаться с сервером VOMS с информацией:\n"
 "\t%s\"\n"
-"пожалуйста, проверьте, доступен ли этот сервер"
+"Пожалуйста, проверьте, доступен ли этот сервер."
 
-#: src/clients/credentials/arcproxy.cpp:1596
+#: src/clients/credentials/arcproxy.cpp:1605
 #: src/clients/credentials/arcproxyalt.cpp:1141
 #: src/hed/libs/credential/ARCProxyUtil.cpp:730
 msgid "No stream response from VOMS server"
 msgstr "Сервер VOMS не отзывается"
 
-#: src/clients/credentials/arcproxy.cpp:1618
+#: src/clients/credentials/arcproxy.cpp:1627
 #: src/clients/credentials/arcproxyalt.cpp:1163
 #: src/hed/libs/credential/ARCProxyUtil.cpp:752
 #, c-format
@@ -3846,7 +3858,7 @@ msgstr ""
 "Срок действия сертификата атрибута VOMS (AC) сокращён с %s до %s, в связи с "
 "ограничением со стороны сервера VOMS.\n"
 
-#: src/clients/credentials/arcproxy.cpp:1621
+#: src/clients/credentials/arcproxy.cpp:1630
 #: src/clients/credentials/arcproxyalt.cpp:1166
 #: src/hed/libs/credential/ARCProxyUtil.cpp:755
 #, c-format
@@ -3858,21 +3870,21 @@ msgstr ""
 "сервера VOMS: %s;\n"
 "       Сообщение, возвращённое сервером VOMS: %s\n"
 
-#: src/clients/credentials/arcproxy.cpp:1626
+#: src/clients/credentials/arcproxy.cpp:1635
 #: src/clients/credentials/arcproxyalt.cpp:1171
 #: src/hed/libs/credential/ARCProxyUtil.cpp:760
 #, c-format
 msgid "Returned message from VOMS server %s is: %s\n"
 msgstr "Сообщение, полученное с сервера VOMS %s: %s\n"
 
-#: src/clients/credentials/arcproxy.cpp:1648
+#: src/clients/credentials/arcproxy.cpp:1657
 #: src/clients/credentials/arcproxyalt.cpp:1193
 #: src/hed/libs/credential/ARCProxyUtil.cpp:782
 #, c-format
 msgid "The attribute information from VOMS server: %s is list as following:"
 msgstr "Информация об атрибутах с сервера VOMS: %s содержит:"
 
-#: src/clients/credentials/arcproxy.cpp:1660
+#: src/clients/credentials/arcproxy.cpp:1669
 #: src/clients/credentials/arcproxyalt.cpp:1205
 #: src/hed/libs/credential/ARCProxyUtil.cpp:794
 #, c-format
@@ -3885,15 +3897,12 @@ msgstr ""
 "доступны или правильно отзываются. В любом случае, расширение VOMS AC будет "
 "создано."
 
-#: src/clients/credentials/arcproxy.cpp:1678
-#: src/clients/credentials/arcproxyalt.cpp:1238
-#: src/hed/libs/credential/Credential.cpp:914
-#: src/hed/libs/credential/ARCProxyUtil.cpp:443
+#: src/clients/credentials/arcproxy.cpp:1685
 #, c-format
-msgid "Error: can't open policy file: %s"
-msgstr "Ошибка: невозможно открыть файл политик: %s"
+msgid "Error: can't read policy file: %s"
+msgstr "Ошибка: невозможно прочесть файл политик: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1688
+#: src/clients/credentials/arcproxy.cpp:1690
 #: src/clients/credentials/arcproxyalt.cpp:1248
 #: src/hed/libs/credential/Credential.cpp:927
 #: src/hed/libs/credential/ARCProxyUtil.cpp:453
@@ -3901,13 +3910,13 @@ msgstr "Ошибка: невозможно открыть файл полити�
 msgid "Error: policy location: %s is not a regular file"
 msgstr "Ошибка: местонахождение политик: %s не является стандартным файлом"
 
-#: src/clients/credentials/arcproxy.cpp:1749
+#: src/clients/credentials/arcproxy.cpp:1751
 #: src/clients/credentials/arcproxyalt.cpp:1312
 #: src/hed/libs/credential/ARCProxyUtil.cpp:844
 msgid "Succeeded to get info from MyProxy server"
 msgstr "Удалось получить информацию с сервера MyProxy"
 
-#: src/clients/credentials/arcproxy.cpp:1797
+#: src/clients/credentials/arcproxy.cpp:1798
 #: src/clients/credentials/arcproxyalt.cpp:1368
 #: src/hed/libs/credential/ARCProxyUtil.cpp:900
 msgid "Succeeded to change password on MyProxy server"
@@ -3919,20 +3928,20 @@ msgstr "Удалось поменять пароль на сервере MyProxy
 msgid "Succeeded to destroy credential on MyProxy server"
 msgstr "Удалось уничтожить доверенность на сервере MyProxy"
 
-#: src/clients/credentials/arcproxy.cpp:1926
+#: src/clients/credentials/arcproxy.cpp:1925
 #: src/clients/credentials/arcproxyalt.cpp:1506
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1038
 #, c-format
 msgid "Succeeded to get a proxy in %s from MyProxy server %s"
 msgstr "Удалось получить доверенность в %s с сервера MyProxy %s"
 
-#: src/clients/credentials/arcproxy.cpp:1981
+#: src/clients/credentials/arcproxy.cpp:1979
 #: src/clients/credentials/arcproxyalt.cpp:1565
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1097
 msgid "Succeeded to put a proxy onto MyProxy server"
 msgstr "Удалось делегировать доверенность серверу MyProxy"
 
-#: src/clients/credentials/arcproxy.cpp:2016
+#: src/clients/credentials/arcproxy.cpp:2013
 #: src/clients/credentials/arcproxyalt.cpp:1600
 msgid ""
 "$X509_VOMS_FILE, and $X509_VOMSES are not set;\n"
@@ -3950,7 +3959,7 @@ msgstr ""
 "vomses, $ARC_LOCATION/etc/grid-security/vomses, $PWD/vomses, /etc/vomses, /"
 "etc/grid-security/vomses, а также в соответствующих подкаталогах"
 
-#: src/clients/credentials/arcproxy.cpp:2056
+#: src/clients/credentials/arcproxy.cpp:2053
 #: src/clients/credentials/arcproxyalt.cpp:1640
 #: src/hed/libs/credential/ARCProxyUtil.cpp:552
 #, c-format
@@ -3958,7 +3967,7 @@ msgid "VOMS line contains wrong number of tokens (%u expected): \"%s\""
 msgstr ""
 "Строка VOMS содержит неверное количество токенов (ожидается %u): \"%s\""
 
-#: src/clients/credentials/arcproxy.cpp:2100
+#: src/clients/credentials/arcproxy.cpp:2097
 #: src/clients/credentials/arcproxyalt.cpp:1684
 #: src/hed/libs/credential/ARCProxyUtil.cpp:596
 #, c-format
@@ -3982,6 +3991,27 @@ msgstr "Сообщение с сервера VOMS: %s "
 #, c-format
 msgid "OpenSSL Error -- %s"
 msgstr "Ошибка OpenSSL -- %s"
+
+#: src/clients/credentials/arcslcs.cpp:42
+#: src/clients/credentials/arcproxyalt.cpp:109
+#: src/hed/libs/credential/ARCProxyUtil.cpp:259
+#, c-format
+msgid "Library  : %s"
+msgstr "Библиотека: %s"
+
+#: src/clients/credentials/arcslcs.cpp:43
+#: src/clients/credentials/arcproxyalt.cpp:110
+#: src/hed/libs/credential/ARCProxyUtil.cpp:260
+#, c-format
+msgid "Function : %s"
+msgstr "Функция:    %s"
+
+#: src/clients/credentials/arcslcs.cpp:44
+#: src/clients/credentials/arcproxyalt.cpp:111
+#: src/hed/libs/credential/ARCProxyUtil.cpp:261
+#, c-format
+msgid "Reason   : %s"
+msgstr "Причина:    %s"
 
 #: src/clients/credentials/arcslcs.cpp:98
 msgid "Creating and sending soap request"
@@ -4071,6 +4101,12 @@ msgstr "Сервер myproxy возвратил следующее сообще�
 #: src/clients/credentials/test2myproxyserver_put.cpp:135
 msgid "Delegate proxy failed"
 msgstr "Не удалось делегирование доверенности"
+
+#: src/clients/credentials/arcproxyalt.cpp:108
+#: src/hed/libs/credential/ARCProxyUtil.cpp:258
+#, c-format
+msgid "OpenSSL error -- %s"
+msgstr "Ошибка OpenSSL -- %s"
 
 #: src/clients/credentials/arcproxyalt.cpp:167
 #: src/hed/libs/credential/ARCProxyUtil.cpp:317
@@ -4162,10 +4198,41 @@ msgstr ""
 msgid "use NSS credential database in the Firefox profile"
 msgstr "использовать базу данных параметров доступа NSS из профиля Firefox"
 
+#: src/clients/credentials/arcproxyalt.cpp:1116
+#: src/hed/libs/credential/ARCProxyUtil.cpp:705
+#, c-format
+msgid ""
+"The VOMS server with the information:\n"
+"\t%s\n"
+"can not be reached, please make sure it is available"
+msgstr ""
+"Невозможно связаться с сервером VOMS с информацией:\n"
+"\t%s\n"
+"пожалуйста, проверьте, доступен ли этот сервер"
+
+#: src/clients/credentials/arcproxyalt.cpp:1137
+#: src/hed/libs/credential/ARCProxyUtil.cpp:726
+#, c-format
+msgid ""
+"The VOMS server with the information:\n"
+"\t%s\"\n"
+"can not be reached, please make sure it is available"
+msgstr ""
+"Невозможно связаться с сервером VOMS с информацией:\n"
+"\t%s\"\n"
+"пожалуйста, проверьте, доступен ли этот сервер"
+
 #: src/clients/credentials/arcproxyalt.cpp:1220
 #, c-format
 msgid "Failed to add extension: %s"
 msgstr "Сбой добавления расширения: %s"
+
+#: src/clients/credentials/arcproxyalt.cpp:1238
+#: src/hed/libs/credential/Credential.cpp:914
+#: src/hed/libs/credential/ARCProxyUtil.cpp:443
+#, c-format
+msgid "Error: can't open policy file: %s"
+msgstr "Ошибка: невозможно открыть файл политик: %s"
 
 #: src/clients/credentials/test2myproxyserver_get.cpp:149
 #, c-format
@@ -8451,14 +8518,10 @@ msgstr "Пустая команда VOMS"
 msgid "Failed to sign proxy"
 msgstr "Сбой подписи доверенности"
 
-#: src/hed/libs/credential/ARCProxyUtil.cpp:1311
+#: src/hed/libs/credential/ARCProxyUtil.cpp:1317
 #, c-format
-msgid ""
-"There are %d NSS base directories where the certificate, key, and module "
-"databases live"
-msgstr ""
-"Обнаружено %d основных директорий NSS, содержащих базы данных сертификатов, "
-"ключей и модулей"
+msgid "Please choose the NSS database you would use (1-%d): "
+msgstr "Пожалуйста, выберите базу данных NSS для использования (1-%d):"
 
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1353
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1460
@@ -8485,144 +8548,148 @@ msgstr "Сбой импортирования сертификата X509 в б�
 msgid "Failed to initialize the credential configuration"
 msgstr "Сбой инициализации настроек параметров доступа"
 
-#: src/hed/libs/credential/NSSUtil.cpp:148
+#: src/hed/libs/credential/NSSUtil.cpp:147
 msgid "Error writing raw certificate"
 msgstr "Ошибка записи исходного сертификата"
 
-#: src/hed/libs/credential/NSSUtil.cpp:225
+#: src/hed/libs/credential/NSSUtil.cpp:224
 msgid "Failed to add RFC proxy OID"
 msgstr "Не удалось добавить OID доверенности RFC"
 
-#: src/hed/libs/credential/NSSUtil.cpp:228
+#: src/hed/libs/credential/NSSUtil.cpp:227
 #, c-format
 msgid "Succeeded to add RFC proxy OID, tag %d is returned"
 msgstr "Успешно добавлен OID доверенности RFC, возвращена метка %d"
 
-#: src/hed/libs/credential/NSSUtil.cpp:234
+#: src/hed/libs/credential/NSSUtil.cpp:233
 msgid "Failed to add anyLanguage OID"
 msgstr "Не удалось добавить anyLanguage OID "
 
-#: src/hed/libs/credential/NSSUtil.cpp:237
-#: src/hed/libs/credential/NSSUtil.cpp:255
+#: src/hed/libs/credential/NSSUtil.cpp:236
+#: src/hed/libs/credential/NSSUtil.cpp:254
 #, c-format
 msgid "Succeeded to add anyLanguage OID, tag %d is returned"
 msgstr "Успешно добавлен OID anyLanguage, возвращена метка %d"
 
-#: src/hed/libs/credential/NSSUtil.cpp:243
+#: src/hed/libs/credential/NSSUtil.cpp:242
 msgid "Failed to add inheritAll OID"
 msgstr "Не удалось добавить inheritAll OID"
 
-#: src/hed/libs/credential/NSSUtil.cpp:246
+#: src/hed/libs/credential/NSSUtil.cpp:245
 #, c-format
 msgid "Succeeded to add inheritAll OID, tag %d is returned"
 msgstr "Успешно добавлен OID inheritAll, возвращена метка %d"
 
-#: src/hed/libs/credential/NSSUtil.cpp:252
+#: src/hed/libs/credential/NSSUtil.cpp:251
 msgid "Failed to add Independent OID"
 msgstr "Не удалось добавить Independent OID"
 
-#: src/hed/libs/credential/NSSUtil.cpp:261
+#: src/hed/libs/credential/NSSUtil.cpp:260
 msgid "Failed to add VOMS AC sequence OID"
 msgstr "Не удалось добавить OID последовательности VOMS AC"
 
-#: src/hed/libs/credential/NSSUtil.cpp:264
+#: src/hed/libs/credential/NSSUtil.cpp:263
 #, c-format
 msgid "Succeeded to add VOMS AC sequence OID, tag %d is returned"
 msgstr "Успешно добавлен OID последовательности VOMS AC, возвращена метка %d "
 
-#: src/hed/libs/credential/NSSUtil.cpp:284
+#: src/hed/libs/credential/NSSUtil.cpp:292
 #, c-format
 msgid "NSS initialization failed on certificate database: %s"
 msgstr "Инициализация NSS оборвалась на базе данных сертификатов: %s"
 
-#: src/hed/libs/credential/NSSUtil.cpp:295
+#: src/hed/libs/credential/NSSUtil.cpp:303
 msgid "Succeeded to initialize NSS"
 msgstr "NSS успешно инициализирован"
 
-#: src/hed/libs/credential/NSSUtil.cpp:317
+#: src/hed/libs/credential/NSSUtil.cpp:325
 #, c-format
 msgid "Failed to read attribute %x from private key."
 msgstr "Не удалось прочесть атрибут %x из закрытого ключа"
 
-#: src/hed/libs/credential/NSSUtil.cpp:369
+#: src/hed/libs/credential/NSSUtil.cpp:377
 msgid "Succeeded to get credential"
 msgstr "Параметры доступа получены"
 
-#: src/hed/libs/credential/NSSUtil.cpp:370
+#: src/hed/libs/credential/NSSUtil.cpp:378
 msgid "Failed to get credential"
 msgstr "Не удалось получить параметры доступа"
 
-#: src/hed/libs/credential/NSSUtil.cpp:432
+#: src/hed/libs/credential/NSSUtil.cpp:440
 msgid "p12 file is empty"
 msgstr "Файл сертификата p12 пуст."
 
-#: src/hed/libs/credential/NSSUtil.cpp:442
+#: src/hed/libs/credential/NSSUtil.cpp:450
 msgid "Unable to write to p12 file"
 msgstr "Сбой записи в файл p12"
 
-#: src/hed/libs/credential/NSSUtil.cpp:458
+#: src/hed/libs/credential/NSSUtil.cpp:466
 msgid "Failed to open pk12 file"
 msgstr "Сбой при открытии файла pk12"
 
-#: src/hed/libs/credential/NSSUtil.cpp:493
+#: src/hed/libs/credential/NSSUtil.cpp:501
 msgid "Failed to allocate p12 context"
 msgstr "Не удалось зарезервировать контекст p12"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1203
+#: src/hed/libs/credential/NSSUtil.cpp:1211
 msgid "Failed to find issuer certificate for proxy certificate"
 msgstr "Не удалось обнаружить агентство, выдавшее сертификат доверенности"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1336
+#: src/hed/libs/credential/NSSUtil.cpp:1362
 #, c-format
 msgid "Failed to authenticate to PKCS11 slot %s"
 msgstr "Сбой проверки подлинности для ячейки PKCS11 %s"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1342
+#: src/hed/libs/credential/NSSUtil.cpp:1368
 #, c-format
 msgid "Failed to find certificates by nickname: %s"
 msgstr "Не удалось обнаружить сертификат по краткому имени: %s"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1347
+#: src/hed/libs/credential/NSSUtil.cpp:1373
 #, c-format
 msgid "No user certificate by nickname %s found"
 msgstr "Не удалось обнаружить сертификат пользователя с кратким именем %s"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1367
-#: src/hed/libs/credential/NSSUtil.cpp:1387
+#: src/hed/libs/credential/NSSUtil.cpp:1386
+#: src/hed/libs/credential/NSSUtil.cpp:1422
 msgid "Certificate does not have a slot"
 msgstr "У сертификата нет ячейки"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1373
+#: src/hed/libs/credential/NSSUtil.cpp:1392
 msgid "Failed to create export context"
 msgstr "Не удалось создать контекст для экспорта"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1379
+#: src/hed/libs/credential/NSSUtil.cpp:1407
+msgid "PKCS12 output password not provided"
+msgstr "Не задан пароль для нового сертификата PKCS12"
+
+#: src/hed/libs/credential/NSSUtil.cpp:1414
 msgid "PKCS12 add password integrity failed"
 msgstr "Не удалось задать способ проверки целостности PKCS12 и пароля"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1400
+#: src/hed/libs/credential/NSSUtil.cpp:1435
 msgid "Failed to create key or certificate safe"
 msgstr ""
 "Не удалось создать безопасное хранилище для закрытого ключа или сертификата"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1416
+#: src/hed/libs/credential/NSSUtil.cpp:1451
 msgid "Failed to add certificate and key"
 msgstr "Не удалось добавить закрытый ключ и сертификат"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1425
+#: src/hed/libs/credential/NSSUtil.cpp:1460
 #, c-format
 msgid "Failed to initialize PKCS12 file: %s"
 msgstr "Не удалось инициализировать файл PKCS12: %s"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1430
+#: src/hed/libs/credential/NSSUtil.cpp:1465
 msgid "Failed to encode PKCS12"
 msgstr "Не удалось шифрование в формат PKCS12"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1433
+#: src/hed/libs/credential/NSSUtil.cpp:1468
 msgid "Succeeded to export PKCS12"
 msgstr "Удалось извлечь сертификат в формате PKCS12"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1461
+#: src/hed/libs/credential/NSSUtil.cpp:1496
 #, c-format
 msgid ""
 "There is no certificate named %s found, the certificate could be removed "
@@ -8630,299 +8697,299 @@ msgid ""
 msgstr ""
 "Не найден сертификат с именем %s, сертификат мог быть удалён при создании CSR"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1467
+#: src/hed/libs/credential/NSSUtil.cpp:1502
 msgid "Failed to delete certificate"
 msgstr "Не удалось уничтожить сертификат"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1481
+#: src/hed/libs/credential/NSSUtil.cpp:1516
 msgid "The name of the private key to delete is empty"
 msgstr "Имя закрытого ключа для уничтожения пусто"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1486
-#: src/hed/libs/credential/NSSUtil.cpp:1570
+#: src/hed/libs/credential/NSSUtil.cpp:1521
+#: src/hed/libs/credential/NSSUtil.cpp:1605
 #, c-format
 msgid "Failed to authenticate to token %s."
 msgstr "Не удалось аутентифицироваться к маркёру %s."
 
-#: src/hed/libs/credential/NSSUtil.cpp:1493
+#: src/hed/libs/credential/NSSUtil.cpp:1528
 #, c-format
 msgid "No private key with nickname %s exist in NSS database"
 msgstr "Закрытый ключ с именем %s отсутствует в базе данных NSS"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1526
+#: src/hed/libs/credential/NSSUtil.cpp:1561
 msgid "Failed to delete private key and certificate"
 msgstr "Не удалось уничтожить закрытый ключ и сертификат"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1536
+#: src/hed/libs/credential/NSSUtil.cpp:1571
 msgid "Failed to delete private key"
 msgstr "Не удалось уничтожить закрытый ключ"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1547
+#: src/hed/libs/credential/NSSUtil.cpp:1582
 #, c-format
 msgid "Can not find key with name: %s"
 msgstr "Не удалось найти закрытый ключ по имени: %s"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1581
+#: src/hed/libs/credential/NSSUtil.cpp:1616
 #, c-format
 msgid "Failed to delete private key that attaches to certificate: %s"
 msgstr "Сбой уничтожения закрытого ключа, прикрепляемого к сертификату: %s"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1602
+#: src/hed/libs/credential/NSSUtil.cpp:1637
 msgid "Can not read PEM private key: probably bad password"
 msgstr ""
 "Невозможно прочесть закрытый ключ PEM: возможно, введён неверный пароль"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1604
+#: src/hed/libs/credential/NSSUtil.cpp:1639
 msgid "Can not read PEM private key: failed to decrypt"
 msgstr "Сбой при чтении файла личного ключа PEM: не удалось расшифровать"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1606
-#: src/hed/libs/credential/NSSUtil.cpp:1608
+#: src/hed/libs/credential/NSSUtil.cpp:1641
+#: src/hed/libs/credential/NSSUtil.cpp:1643
 msgid "Can not read PEM private key: failed to obtain password"
 msgstr "Сбой при чтении файла личного ключа PEM: не был введён пароль"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1609
+#: src/hed/libs/credential/NSSUtil.cpp:1644
 msgid "Can not read PEM private key"
 msgstr "Не удалось прочесть закрытый ключ PEM"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1617
+#: src/hed/libs/credential/NSSUtil.cpp:1652
 msgid "Failed to convert EVP_PKEY to PKCS8"
 msgstr "Не удалось преобразовать EVP_PKEY в PKCS8"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1654
+#: src/hed/libs/credential/NSSUtil.cpp:1689
 msgid "Failed to load private key"
 msgstr "Не удалось загрузить закрытый ключ"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1655
+#: src/hed/libs/credential/NSSUtil.cpp:1690
 msgid "Succeeded to load PrivateKeyInfo"
 msgstr "Успешно подгружен PrivateKeyInfo"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1658
+#: src/hed/libs/credential/NSSUtil.cpp:1693
 msgid "Failed to convert PrivateKeyInfo to EVP_PKEY"
 msgstr "Сбой преобразования PrivateKeyInfo в EVP_PKEY"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1659
+#: src/hed/libs/credential/NSSUtil.cpp:1694
 msgid "Succeeded to convert PrivateKeyInfo to EVP_PKEY"
 msgstr "Успешное преобразование PrivateKeyInfo в EVP_PKEY"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1696
+#: src/hed/libs/credential/NSSUtil.cpp:1731
 msgid "Failed to import private key"
 msgstr "Не удалось получить закрытый ключ"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1699
+#: src/hed/libs/credential/NSSUtil.cpp:1734
 msgid "Succeeded to import private key"
 msgstr "Закрытый ключ успешно получен"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1712
-#: src/hed/libs/credential/NSSUtil.cpp:1754
-#: src/hed/libs/credential/NSSUtil.cpp:2863
+#: src/hed/libs/credential/NSSUtil.cpp:1747
+#: src/hed/libs/credential/NSSUtil.cpp:1789
+#: src/hed/libs/credential/NSSUtil.cpp:2921
 msgid "Failed to authenticate to key database"
 msgstr "Сбой проверки подлинности на базе данных ключей"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1721
+#: src/hed/libs/credential/NSSUtil.cpp:1756
 msgid "Succeeded to generate public/private key pair"
 msgstr "Успешное создание пары открытого/закрытого ключей"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1723
+#: src/hed/libs/credential/NSSUtil.cpp:1758
 msgid "Failed to generate public/private key pair"
 msgstr "Сбой создания пары открытого/закрытого ключей"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1728
+#: src/hed/libs/credential/NSSUtil.cpp:1763
 msgid "Failed to export private key"
 msgstr "Не удалось сохранить закрытый ключ"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1784
+#: src/hed/libs/credential/NSSUtil.cpp:1830
 msgid "Failed to create subject name"
 msgstr "Не удалось сформировать имя субъекта"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1800
+#: src/hed/libs/credential/NSSUtil.cpp:1846
 msgid "Failed to create certificate request"
 msgstr "Не удалось создать запрос сертификата"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1813
+#: src/hed/libs/credential/NSSUtil.cpp:1859
 msgid "Failed to call PORT_NewArena"
 msgstr "Не удалось вызвать PORT_NewArena"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1821
+#: src/hed/libs/credential/NSSUtil.cpp:1867
 msgid "Failed to encode the certificate request with DER format"
 msgstr "Сбой шифрования запроса сертификата в формате DER"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1828
+#: src/hed/libs/credential/NSSUtil.cpp:1874
 msgid "Unknown key or hash type"
 msgstr "Неизвестный ключ или тип хеширования"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1834
+#: src/hed/libs/credential/NSSUtil.cpp:1880
 msgid "Failed to sign the certificate request"
 msgstr "Не удалось подписать запрос сертификата"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1850
+#: src/hed/libs/credential/NSSUtil.cpp:1896
 msgid "Failed to output the certificate request as ASCII format"
 msgstr "Сбой вывода запроса сертификата в формате ASCII"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1859
+#: src/hed/libs/credential/NSSUtil.cpp:1905
 msgid "Failed to output the certificate request as DER format"
 msgstr "Сбой вывода запроса сертификата в формате DER"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1868
+#: src/hed/libs/credential/NSSUtil.cpp:1914
 #, c-format
 msgid "Succeeded to output the certificate request into %s"
 msgstr "Успешный вывод запроса сертификата в %s"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1907
-#: src/hed/libs/credential/NSSUtil.cpp:1944
+#: src/hed/libs/credential/NSSUtil.cpp:1953
+#: src/hed/libs/credential/NSSUtil.cpp:1990
 msgid "Failed to read data from input file"
 msgstr "Невозможно прочитать данные из входного файла"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1923
+#: src/hed/libs/credential/NSSUtil.cpp:1969
 msgid "Input is without trailer\n"
 msgstr "Входные данные не содержат строки окончания\n"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1934
+#: src/hed/libs/credential/NSSUtil.cpp:1980
 msgid "Failed to convert ASCII to DER"
 msgstr "Не удалось преобразовать ASCII в DER"
 
-#: src/hed/libs/credential/NSSUtil.cpp:1985
+#: src/hed/libs/credential/NSSUtil.cpp:2031
 msgid "Certificate request is invalid"
 msgstr "Недопустимый запрос сертификата"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2207
+#: src/hed/libs/credential/NSSUtil.cpp:2253
 #, c-format
 msgid "The policy language: %s is not supported"
 msgstr "Язык политик %s не поддерживается"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2215
-#: src/hed/libs/credential/NSSUtil.cpp:2240
-#: src/hed/libs/credential/NSSUtil.cpp:2263
-#: src/hed/libs/credential/NSSUtil.cpp:2285
+#: src/hed/libs/credential/NSSUtil.cpp:2261
+#: src/hed/libs/credential/NSSUtil.cpp:2286
+#: src/hed/libs/credential/NSSUtil.cpp:2309
+#: src/hed/libs/credential/NSSUtil.cpp:2331
 msgid "Failed to new arena"
 msgstr "Сбой выделения новой области"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2224
-#: src/hed/libs/credential/NSSUtil.cpp:2249
+#: src/hed/libs/credential/NSSUtil.cpp:2270
+#: src/hed/libs/credential/NSSUtil.cpp:2295
 msgid "Failed to create path length"
 msgstr "Сбой создания длины пути"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2227
-#: src/hed/libs/credential/NSSUtil.cpp:2252
-#: src/hed/libs/credential/NSSUtil.cpp:2272
-#: src/hed/libs/credential/NSSUtil.cpp:2294
+#: src/hed/libs/credential/NSSUtil.cpp:2273
+#: src/hed/libs/credential/NSSUtil.cpp:2298
+#: src/hed/libs/credential/NSSUtil.cpp:2318
+#: src/hed/libs/credential/NSSUtil.cpp:2340
 msgid "Failed to create policy language"
 msgstr "Сбой создания языка политик"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2693
+#: src/hed/libs/credential/NSSUtil.cpp:2739
 #, c-format
 msgid "Failed to parse certificate request from CSR file %s"
 msgstr "Сбой обработки запроса сертификата из файла CSR %s"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2700
+#: src/hed/libs/credential/NSSUtil.cpp:2746
 #, c-format
 msgid "Can not find certificate with name %s"
 msgstr "Не удалось найти открытый ключ по имени: %s"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2731
+#: src/hed/libs/credential/NSSUtil.cpp:2777
 #, c-format
 msgid "Proxy subject: %s"
 msgstr "Имя субъекта доверенности: %s"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2750
+#: src/hed/libs/credential/NSSUtil.cpp:2796
 msgid "Failed to start certificate extension"
 msgstr "Сбой начала создания расширения сертификата"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2755
+#: src/hed/libs/credential/NSSUtil.cpp:2801
 msgid "Failed to add key usage extension"
 msgstr "Сбой добавления расширения об использовании ключа"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2760
+#: src/hed/libs/credential/NSSUtil.cpp:2806
 msgid "Failed to add proxy certificate information extension"
 msgstr "Сбой добавления расширения об информации сертификата доверенности"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2764
+#: src/hed/libs/credential/NSSUtil.cpp:2810
 msgid "Failed to add voms AC extension"
 msgstr "Сбой добавления расширения VOMS AC"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2784
+#: src/hed/libs/credential/NSSUtil.cpp:2830
 msgid "Failed to retrieve private key for issuer"
 msgstr "Сбой извлечения файла закрытого ключа издателя"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2791
+#: src/hed/libs/credential/NSSUtil.cpp:2837
 msgid "Unknown key or hash type of issuer"
 msgstr "Неизвестный ключ или тип хеширования издателя сертификата"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2797
+#: src/hed/libs/credential/NSSUtil.cpp:2843
 msgid "Failed to set signature algorithm ID"
 msgstr "Сбой задания ID алгоритма подписи"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2809
+#: src/hed/libs/credential/NSSUtil.cpp:2855
 msgid "Failed to encode certificate"
 msgstr "Ошибка шифрования сертификата"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2815
+#: src/hed/libs/credential/NSSUtil.cpp:2861
 msgid "Failed to allocate item for certificate data"
 msgstr "Не удалось зарезервировать элемент для данных о сертификате"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2821
+#: src/hed/libs/credential/NSSUtil.cpp:2867
 msgid "Failed to sign encoded certificate data"
 msgstr "Сбой подписи данных зашифрованного сертификата"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2830
+#: src/hed/libs/credential/NSSUtil.cpp:2876
 #, c-format
 msgid "Failed to open file %s"
 msgstr "Не удалось открыть файл %s"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2841
+#: src/hed/libs/credential/NSSUtil.cpp:2887
 #, c-format
 msgid "Succeeded to output certificate to %s"
 msgstr "Успешный вывод сертификата в %s"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2870
+#: src/hed/libs/credential/NSSUtil.cpp:2928
 #, c-format
 msgid "Failed to open input certificate file %s"
 msgstr "Сбой открытия файла входного сертификата %s"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2888
+#: src/hed/libs/credential/NSSUtil.cpp:2946
 msgid "Failed to read input certificate file"
 msgstr "Сбой чтения файла входного сертификата"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2893
+#: src/hed/libs/credential/NSSUtil.cpp:2951
 msgid "Failed to get certificate from certificate file"
 msgstr "Сбой извлечения сертификата из файла"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2900
+#: src/hed/libs/credential/NSSUtil.cpp:2958
 msgid "Failed to allocate certificate trust"
 msgstr "Сбой резервирования доверительных отношений сертификата"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2905
+#: src/hed/libs/credential/NSSUtil.cpp:2963
 msgid "Failed to decode trust string"
 msgstr "Сбой расшифровки описания доверительных отношений"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2914
-#: src/hed/libs/credential/NSSUtil.cpp:2931
+#: src/hed/libs/credential/NSSUtil.cpp:2972
+#: src/hed/libs/credential/NSSUtil.cpp:2989
 #, c-format
 msgid "Failed to authenticate to token %s"
 msgstr "Не удалось аутентифицироваться к маркёру %s"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2919
-#: src/hed/libs/credential/NSSUtil.cpp:2936
+#: src/hed/libs/credential/NSSUtil.cpp:2977
+#: src/hed/libs/credential/NSSUtil.cpp:2994
 msgid "Failed to add certificate to token or database"
 msgstr "Сбой добавления сертификата к маркёру или базе данных"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2922
-#: src/hed/libs/credential/NSSUtil.cpp:2925
+#: src/hed/libs/credential/NSSUtil.cpp:2980
+#: src/hed/libs/credential/NSSUtil.cpp:2983
 msgid "Succeeded to import certificate"
 msgstr "Успешное импортирование сертификата "
 
-#: src/hed/libs/credential/NSSUtil.cpp:2939
-#: src/hed/libs/credential/NSSUtil.cpp:2942
+#: src/hed/libs/credential/NSSUtil.cpp:2997
+#: src/hed/libs/credential/NSSUtil.cpp:3000
 #, c-format
 msgid "Succeeded to change trusts to: %s"
 msgstr "Успешная смена доверительных отношений на: %s"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2957
+#: src/hed/libs/credential/NSSUtil.cpp:3027
 #, c-format
 msgid "Failed to import private key from file: %s"
 msgstr "Сбой импортирования закрытого ключа из файла: %s"
 
-#: src/hed/libs/credential/NSSUtil.cpp:2959
+#: src/hed/libs/credential/NSSUtil.cpp:3029
 #, c-format
 msgid "Failed to import certificate from file: %s"
 msgstr "Сбой импортирования сертификата из файла: %s"
@@ -10674,6 +10741,10 @@ msgstr "Изменилось число блокировок OpenSSL - повт�
 msgid "MyProxy failure: %s"
 msgstr "Сбой MyProxy: %s"
 
+#: src/hed/libs/credentialstore/ClientVOMS.cpp:143
+msgid "voms"
+msgstr "VOMS"
+
 #: src/hed/libs/infosys/BootstrapISIS.cpp:26
 msgid "Initialize ISIS handler"
 msgstr "Инициализация обработчика ISIS"
@@ -11323,8 +11394,9 @@ msgstr "Ошибка создания требуемых директорий LF
 msgid "Cannot rename to root directory"
 msgstr "Невозможно переименовать в корневой каталог"
 
-#: src/hed/dmc/lfc/DataPointLFC.cpp:908 src/hed/dmc/srm/DataPointSRM.cpp:160
-#: src/hed/dmc/file/DataPointFile.cpp:518
+#: src/hed/dmc/lfc/DataPointLFC.cpp:908
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:474
+#: src/hed/dmc/srm/DataPointSRM.cpp:160 src/hed/dmc/file/DataPointFile.cpp:518
 #, c-format
 msgid "Renaming %s to %s"
 msgstr "%s переименовывается в %s"
@@ -11463,18 +11535,18 @@ msgstr "ftp_check_callback"
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:91
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:117
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:136
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:306
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:342
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:674
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:843
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:875
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:909
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1048
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1100
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1110
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1118
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1126
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1134
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:307
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:343
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:679
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:848
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:880
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:914
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1053
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1105
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1115
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1123
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1131
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1139
 #: src/services/gridftpd/commands.cpp:1220
 #: src/services/gridftpd/dataread.cpp:76
 #: src/services/gridftpd/dataread.cpp:173
@@ -11526,46 +11598,48 @@ msgstr "check_ftp: сбой при определении времени изм�
 msgid "check_ftp: obtained modification date: %s"
 msgstr "check_ftp: получена дата изменения: %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:167
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:168
 msgid "check_ftp: globus_ftp_client_get failed"
 msgstr "check_ftp: сбой в globus_ftp_client_get"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:174
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:175
 msgid "check_ftp: globus_ftp_client_register_read"
 msgstr "check_ftp: globus_ftp_client_register_read"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:185
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:186
 msgid "check_ftp: timeout waiting for partial get"
 msgstr "check_ftp: истекло время ожидания частичной загрузки"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:215
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:216
 #, c-format
 msgid "File delete failed, attempting directory delete for %s"
 msgstr "Сбой при удалении файла, попытка удаления каталога для %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:225
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:226
 msgid "delete_ftp: globus_ftp_client_delete failed"
 msgstr "delete_ftp: сбой в globus_ftp_client_delete"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:231
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:252
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:232
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:253
 msgid "delete_ftp: timeout waiting for delete"
 msgstr "delete_ftp: истекло время ожидания команды delete"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:246
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:247
 msgid "delete_ftp: globus_ftp_client_rmdir failed"
 msgstr "delete_ftp: сбой в globus_ftp_client_rmdir"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:301
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:302
 #, c-format
 msgid "mkdir_ftp: making %s"
 msgstr "mkdir_ftp: создаётся %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:310
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:311
 msgid "mkdir_ftp: timeout waiting for mkdir"
 msgstr "mkdir_ftp: истекло время ожидания команды mkdir"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:336
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:337
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:440
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:460
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1467
 #: src/hed/dmc/file/DataPointFile.cpp:510
 #: src/services/a-rex/jura/JobLogFile.cpp:581
@@ -11574,165 +11648,165 @@ msgstr "mkdir_ftp: истекло время ожидания команды mkd
 msgid "Creating directory %s"
 msgstr "Создается директория %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:346
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:347
 msgid "Timeout waiting for mkdir"
 msgstr "Истекло время ожидания команды mkdir"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:372
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:373
 msgid "start_reading_ftp"
 msgstr "start_reading_ftp"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:376
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:377
 msgid "start_reading_ftp: globus_ftp_client_get"
 msgstr "start_reading_ftp: globus_ftp_client_get"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:390
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:391
 msgid "start_reading_ftp: globus_ftp_client_get failed"
 msgstr "start_reading_ftp: сбой в globus_ftp_client_get"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:400
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:402
 msgid "start_reading_ftp: globus_thread_create failed"
 msgstr "start_reading_ftp: сбой в globus_thread_create"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:418
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:420
 msgid "stop_reading_ftp: aborting connection"
 msgstr "stop_reading_ftp: отменяется соединение"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:424
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:643
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:427
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:648
 #, c-format
 msgid "Failed to abort transfer of ftp file: %s"
 msgstr "Сбой прерывания передачи файла по ftp: %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:425
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:644
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:428
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:649
 msgid "Assuming transfer is already aborted or failed."
 msgstr "Предполагаем, что пересылка уже отменена, либо оборвалась"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:432
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:435
 msgid "stop_reading_ftp: waiting for transfer to finish"
 msgstr "stop_reading_ftp: ожидание завершения пересылки"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:434
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:437
 #, c-format
 msgid "stop_reading_ftp: exiting: %s"
 msgstr "stop_reading_ftp: выход: %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:448
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:451
 msgid "ftp_read_thread: get and register buffers"
 msgstr "ftp_read_thread: получение и регистрация буферов"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:454
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:457
 #, c-format
 msgid "ftp_read_thread: for_read failed - aborting: %s"
 msgstr "ftp_read_thread: сбой for_read - прерывание: %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:464
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:467
 #, c-format
 msgid "ftp_read_thread: data callback failed - aborting: %s"
 msgstr "ftp_read_thread: сбой обратного вызова данных - прерывание: %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:476
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:479
 #, c-format
 msgid "ftp_read_thread: Globus error: %s"
 msgstr "ftp_read_thread: ошибка Globus: %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:489
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:492
 #, c-format
 msgid "ftp_read_thread: too many registration failures - abort: %s"
 msgstr "ftp_read_thread: слишком много сбоев регистрации - отмена: %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:494
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:497
 #, c-format
 msgid "ftp_read_thread: failed to register Globus buffer - will try later: %s"
 msgstr ""
 "ftp_read_thread: сбой при регистрации буфера Globus - попробуем попозже: %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:507
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:510
 msgid "ftp_read_thread: waiting for eof"
 msgstr "ftp_read_thread: ожидание конца файла"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:511
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:514
 msgid "ftp_read_thread: waiting for buffers released"
 msgstr "ftp_read_thread: ожидание разблокировки буферов"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:515
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:518
 msgid "ftp_read_thread: failed to release buffers - leaking"
 msgstr "ftp_read_thread: сбой сброса буферов - утечка"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:520
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:523
 msgid "ftp_read_thread: exiting"
 msgstr "ftp_read_thread: выход"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:538
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:541
 #, c-format
 msgid "ftp_read_callback: failure: %s"
 msgstr "ftp_read_callback: сбой: %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:541
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:544
 msgid "ftp_read_callback: success"
 msgstr "ftp_read_callback: успех"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:557
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:560
 msgid "Failed to get ftp file"
 msgstr "Не удалось получить файл ftp"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:593
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:596
 msgid "start_writing_ftp: mkdir"
 msgstr "start_writing_ftp: mkdir"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:596
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:599
 msgid "start_writing_ftp: mkdir failed - still trying to write"
 msgstr "start_writing_ftp: сбой mkdir - всё же пытаемся записать"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:598
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:601
 msgid "start_writing_ftp: put"
 msgstr "start_writing_ftp: put"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:612
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:615
 msgid "start_writing_ftp: put failed"
 msgstr "start_writing_ftp: сбой в put"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:621
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:625
 msgid "start_writing_ftp: globus_thread_create failed"
 msgstr "start_writing_ftp: сбой в globus_thread_create"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:637
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:641
 msgid "StopWriting: aborting connection"
 msgstr "StopWriting: прерывание связи"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:660
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:665
 #, c-format
 msgid "StopWriting: Calculated checksum %s"
 msgstr "StopWriting: Вычислена контрольная сумма %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:664
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:669
 #, c-format
 msgid "StopWriting: looking for checksum of %s"
 msgstr "StopWriting: поиск контрольной суммы %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:673
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:908
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:678
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:913
 msgid "list_files_ftp: globus_ftp_client_cksm failed"
 msgstr "list_files_ftp: сбой globus_ftp_client_cksm"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:677
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:912
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:682
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:917
 msgid "list_files_ftp: timeout waiting for cksum"
 msgstr "list_files_ftp: истекло время ожидания проверочной суммы"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:684
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:919
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:689
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:924
 msgid "list_files_ftp: no checksum information possible"
 msgstr "list_files_ftp: информация о контрольных суммах недоступна"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:687
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:922
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:692
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:927
 #, c-format
 msgid "list_files_ftp: checksum %s"
 msgstr "list_files_ftp: проверочная сумма %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:690
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:695
 msgid ""
 "Checksum type returned by server is different to requested type, cannot "
 "compare"
@@ -11740,13 +11814,13 @@ msgstr ""
 "Тип контрольной суммы на сервере отличается от запрошенного, сравнение "
 "невозможно"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:692
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:697
 #, c-format
 msgid "Calculated checksum %s matches checksum reported by server"
 msgstr ""
 "Вычисленная проверочная сумма %s совпадает с проверочной суммой сервера"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:695
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:700
 #, c-format
 msgid ""
 "Checksum mismatch between calculated checksum %s and checksum reported by "
@@ -11755,175 +11829,175 @@ msgstr ""
 "Несовпадение между вычисленной контрольной суммой %s и контрольной суммой, "
 "выданной сервером %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:717
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:722
 msgid "ftp_write_thread: get and register buffers"
 msgstr "ftp_write_thread: получение и регистрация буферов"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:721
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:726
 msgid "ftp_write_thread: for_write failed - aborting"
 msgstr "ftp_write_thread: сбой for_write - прерывание"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:739
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:744
 msgid "ftp_write_thread: data callback failed - aborting"
 msgstr "ftp_write_thread: сбой обратного вызова данных - прерывание"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:755
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:760
 msgid "ftp_write_thread: waiting for eof"
 msgstr "ftp_read_thread: ожидание конца файла"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:759
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:764
 msgid "ftp_write_thread: waiting for buffers released"
 msgstr "ftp_write_thread: ожидание разблокировки буферов"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:767
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:772
 msgid "ftp_write_thread: failed to release buffers - leaking"
 msgstr "ftp_write_thread: сбой сброса буферов - утечка"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:772
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:777
 msgid "ftp_write_thread: exiting"
 msgstr "ftp_write_thread: выход"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:795
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:800
 #, c-format
 msgid "ftp_write_callback: failure: %s"
 msgstr "ftp_write_callback: сбой: %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:798
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:803
 #, c-format
 msgid "ftp_write_callback: success %s"
 msgstr "ftp_write_callback: успех %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:813
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:818
 msgid "Failed to store ftp file"
 msgstr "Не удалось сохранить файл ftp"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:821
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:826
 msgid "ftp_put_complete_callback: success"
 msgstr "ftp_put_complete_callback: успех"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:837
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:842
 #, c-format
 msgid "list_files_ftp: looking for size of %s"
 msgstr "list_files_ftp: поиск размера %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:841
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:846
 msgid "list_files_ftp: globus_ftp_client_size failed"
 msgstr "list_files_ftp: сбой в globus_ftp_client_size"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:847
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:848
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:852
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:853
 msgid "list_files_ftp: timeout waiting for size"
 msgstr "list_files_ftp: истекло время ожидания размера"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:854
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:859
 msgid "list_files_ftp: failed to get file's size"
 msgstr "list_files_ftp: не удалось определить размер файла"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:866
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:871
 #, c-format
 msgid "list_files_ftp: looking for modification time of %s"
 msgstr "list_files_ftp: определение времени изменения %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:872
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:877
 msgid "list_files_ftp: globus_ftp_client_modification_time failed"
 msgstr "list_files_ftp: сбой globus_ftp_client_modification_time"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:879
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:884
 msgid "list_files_ftp: timeout waiting for modification_time"
 msgstr "list_files_ftp: истекло время ожидания modification_time"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:887
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:892
 msgid "list_files_ftp: failed to get file's modification time"
 msgstr "list_files_ftp: не удалось определить время изменения файла"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:899
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:904
 #, c-format
 msgid "list_files_ftp: looking for checksum of %s"
 msgstr "list_files_ftp: поиск проверочной суммы %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:938
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:943
 #, c-format
 msgid "Failed to obtain stat from FTP: %s"
 msgstr "Не удалось получить список статус через FTP: %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:944
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:949
 msgid "No results returned from stat"
 msgstr "Вызов stat не возвратил никаких результатов"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:950
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:955
 #, c-format
 msgid "Wrong number of objects (%i) for stat from ftp: %s"
 msgstr "Неверное количество объектов (%i) для операции stat от ftp: %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:964
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:969
 #, c-format
 msgid "Unexpected path %s returned from server"
 msgstr "Сервер возвратил неожиданный путь %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1003
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1008
 #, c-format
 msgid "Failed to obtain listing from FTP: %s"
 msgstr "Не удалось получить список файлов через FTP: %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1046
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1051
 msgid "Rename: globus_ftp_client_move failed"
 msgstr "Переименование: сбой в globus_ftp_client_move"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1052
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1057
 msgid "Rename: timeout waiting for operation to complete"
 msgstr "Переименование: истекло время ожидания завершения операции"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1099
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1104
 msgid "init_handle: globus_ftp_client_handleattr_init failed"
 msgstr "init_handle: сбой в globus_ftp_client_handleattr_init"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1108
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1113
 msgid "init_handle: globus_ftp_client_handleattr_set_gridftp2 failed"
 msgstr "init_handle: сбой в globus_ftp_client_handleattr_set_gridftp2"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1117
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1122
 msgid "init_handle: globus_ftp_client_handle_init failed"
 msgstr "init_handle: сбой в globus_ftp_client_handlea_init"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1124
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1129
 msgid "init_handle: globus_ftp_client_operationattr_init failed"
 msgstr "init_handle: сбой в globus_ftp_client_operationattr_init"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1132
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1137
 msgid "init_handle: globus_ftp_client_operationattr_set_allow_ipv6 failed"
 msgstr "init_handle: сбой globus_ftp_client_operationattr_set_allow_ipv6"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1180
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1208
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1185
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1213
 #, c-format
 msgid "globus_ftp_client_operationattr_set_authorization: error: %s"
 msgstr "globus_ftp_client_operationattr_set_authorization: ошибка: %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1207
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1212
 msgid "Failed to set credentials for GridFTP transfer"
 msgstr "Не удалось установить параметры доступа для передачи данных по GridFTP"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1213
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1218
 msgid "Using secure data transfer"
 msgstr "Используется защищённая передача данных"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1218
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1223
 msgid "Using insecure data transfer"
 msgstr "Используется незащищённая передача данных"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1245
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1250
 msgid "~DataPoint: destroy ftp_handle"
 msgstr "~DataPoint: уничтожение ftp_handle"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1248
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1253
 msgid "~DataPoint: destroy ftp_handle failed - retrying"
 msgstr "~DataPoint: уничтожение ftp_handle не удалось - новая попытка"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1266
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1271
 msgid "~DataPoint: failed to destroy ftp_handle - leaking"
 msgstr "~DataPoint: уничтожение ftp_handle не удалось - утечка"
 
-#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1284
+#: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1289
 msgid ""
 "Missing reference to factory and/or module. It is unsafe to use Globus in "
 "non-persistent mode - (Grid)FTP code is disabled. Report to developers."
@@ -12352,61 +12426,117 @@ msgstr "Ошибка: не послан запрос LDAP к %s"
 msgid "LDAP query timed out: %s"
 msgstr "Истекло время ожидания ответа на запрос LDAP:  %s"
 
-#: src/hed/dmc/xrootd/DataPointXrootd.cpp:87
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:91
 #, c-format
 msgid "Reading %u bytes from byte %llu"
 msgstr "Чтение %u байтов из байта %llu"
 
-#: src/hed/dmc/xrootd/DataPointXrootd.cpp:89
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:93
 #, c-format
 msgid "Read %i bytes"
 msgstr "Прочитано %i байт"
 
-#: src/hed/dmc/xrootd/DataPointXrootd.cpp:120
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:124
 #, c-format
 msgid "Could not open file %s for reading: %s"
 msgstr "Невозможно открыть файл %s для чтения: %s"
 
-#: src/hed/dmc/xrootd/DataPointXrootd.cpp:135
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:139
 #, c-format
 msgid "Unable to find file size of %s"
 msgstr "Не удалось определить размер файла %s"
 
-#: src/hed/dmc/xrootd/DataPointXrootd.cpp:175
-msgid "Writing to xrootd is not (yet) supported"
-msgstr "Запись по протоколу xrootd (пока) не поддерживается"
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:203
+#, c-format
+msgid "DataPointXrootd::write_file got position %d and offset %d, has to seek"
+msgstr ""
+"DataPointXrootd::write_file получил адрес %d и сдвиг %d, проводится поиск"
 
-#: src/hed/dmc/xrootd/DataPointXrootd.cpp:188
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:226
+#, c-format
+msgid "xrootd write failed: %s"
+msgstr "Сбой при записи xrootd: %s"
+
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:235
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:309
+#, c-format
+msgid "xrootd close failed: %s"
+msgstr "Сбой при закрытии xrootd: %s"
+
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:258
+#, c-format
+msgid "Failed to open %s, trying to create parent directories"
+msgstr "Сбой открытия %s, попытка создания родительских каталогов"
+
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:271
+#, c-format
+msgid "xrootd open failed: %s"
+msgstr "Сбой при открытии xrootd: %s"
+
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:285
+#, c-format
+msgid "close failed: %s"
+msgstr "Сбой при закрытии: %s"
+
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:302
+#: src/hed/dmc/gfal/DataPointGFAL.cpp:393
+msgid "StopWriting starts waiting for transfer_condition."
+msgstr "StopWriting начинает ожидание transfer_condition."
+
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:304
+#: src/hed/dmc/gfal/DataPointGFAL.cpp:395
+msgid "StopWriting finished waiting for transfer_condition."
+msgstr "StopWriting закончил ожидание transfer_condition."
+
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:327
 #, c-format
 msgid "Read access not allowed for %s: %s"
 msgstr "Закрыт доступ на чтение для %s: %s"
 
-#: src/hed/dmc/xrootd/DataPointXrootd.cpp:207
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:346
 #, c-format
 msgid "Could not stat file %s: %s"
 msgstr "Не удалось определить состояние файла  %s: %s"
 
-#: src/hed/dmc/xrootd/DataPointXrootd.cpp:242
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:381
 #, c-format
 msgid "Failed to open directory %s: %s"
 msgstr "Не удалось открыть каталог %s: %s"
 
-#: src/hed/dmc/xrootd/DataPointXrootd.cpp:257
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:396
 #, c-format
 msgid "Error while reading dir %s: %s"
 msgstr "Ошибка при чтении каталога %s: %s"
 
-#: src/hed/dmc/xrootd/DataPointXrootd.cpp:266
-msgid "Cannot (yet) remove files through xrootd"
-msgstr "Невозможно (пока) удалить файл через xrootd"
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:412
+#: src/hed/dmc/file/DataPointFile.cpp:487
+#, c-format
+msgid "File is not accessible %s: %s"
+msgstr "Файл недоступен %s: %s"
 
-#: src/hed/dmc/xrootd/DataPointXrootd.cpp:271
-msgid "Cannot (yet) create directories through xrootd"
-msgstr "Невозможно (пока) создать каталог через xrootd"
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:418
+#: src/hed/dmc/file/DataPointFile.cpp:493
+#, c-format
+msgid "Can't delete directory %s: %s"
+msgstr "Невозможно удалить каталог %s: %s"
 
-#: src/hed/dmc/xrootd/DataPointXrootd.cpp:276
-msgid "Cannot (yet) rename files through xrootd"
-msgstr "Невозможно (пока) переименовать файл через xrootd"
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:425
+#: src/hed/dmc/file/DataPointFile.cpp:500
+#, c-format
+msgid "Can't delete file %s: %s"
+msgstr "Невозможно удалить файл %s: %s"
+
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:446
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:464
+#, c-format
+msgid "Error creating required dirs: %s"
+msgstr "Ошибка создания требуемых каталогов: %s"
+
+#: src/hed/dmc/xrootd/DataPointXrootd.cpp:483
+#: src/hed/dmc/file/DataPointFile.cpp:520
+#, c-format
+msgid "Can't rename file %s: %s"
+msgstr "Не удалось переименовать файл %s: %s"
 
 #: src/hed/dmc/gfal/GFALTransfer3rdParty.cpp:19
 #, c-format
@@ -12503,14 +12633,6 @@ msgstr ""
 #, c-format
 msgid "gfal_write failed: %s"
 msgstr "Сбой gfal_write: %s"
-
-#: src/hed/dmc/gfal/DataPointGFAL.cpp:393
-msgid "StopWriting starts waiting for transfer_condition."
-msgstr "StopWriting начинает ожидание transfer_condition."
-
-#: src/hed/dmc/gfal/DataPointGFAL.cpp:395
-msgid "StopWriting finished waiting for transfer_condition."
-msgstr "StopWriting закончил ожидание transfer_condition."
 
 #: src/hed/dmc/gfal/DataPointGFAL.cpp:421
 #, c-format
@@ -13184,26 +13306,6 @@ msgstr "%s не является каталогом"
 #, c-format
 msgid "Failed to read object %s: %s"
 msgstr "Сбой чтения объекта %s: %s"
-
-#: src/hed/dmc/file/DataPointFile.cpp:487
-#, c-format
-msgid "File is not accessible %s: %s"
-msgstr "Файл недоступен %s: %s"
-
-#: src/hed/dmc/file/DataPointFile.cpp:493
-#, c-format
-msgid "Can't delete directory %s: %s"
-msgstr "Невозможно удалить каталог %s: %s"
-
-#: src/hed/dmc/file/DataPointFile.cpp:500
-#, c-format
-msgid "Can't delete file %s: %s"
-msgstr "Невозможно удалить файл %s: %s"
-
-#: src/hed/dmc/file/DataPointFile.cpp:520
-#, c-format
-msgid "Can't rename file %s: %s"
-msgstr "Не удалось переименовать файл %s: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:551
 #, c-format
@@ -14341,7 +14443,7 @@ msgstr "Не обнаружено элементов URI в Location для фа
 
 #: src/hed/acc/JobDescriptionParser/ARCJSDLParser.cpp:727
 #: src/hed/acc/JobDescriptionParser/ARCJSDLParser.cpp:786
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:785
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:791
 #, c-format
 msgid "Location URI for file %s is invalid"
 msgstr "Недопустимый URI в Location для файла %s"
@@ -14868,31 +14970,31 @@ msgstr "[ADLParser] Неверная структура XML! "
 msgid "[ADLParser] Root element is not ActivityDescription "
 msgstr "[ADLParser] Корневой элемент не является ActivityDescription "
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:426
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:432
 #, c-format
 msgid "[ADLParser] Unsupported URL %s for RemoteLogging."
 msgstr "[ADLParser] Неподдерживаемый URL %s в RemoteLogging."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:448
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:454
 #, c-format
 msgid "[ADLParser] Wrong time %s in ExpirationTime."
 msgstr "[ADLParser] ExpirationTime содержит недопустимое время %s."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:480
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:484
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:486
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:490
 msgid "[ADLParser] Only email Prorocol for Notification is supported yet."
 msgstr ""
 "[ADLParser] Пока что поддерживается только email Prorocol для Notification."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:544
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:550
 msgid "[ADLParser] Missing or wrong value in ProcessesPerSlot."
 msgstr "[ADLParser] Значение ProcessesPerSlot отсутствует или неверно."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:550
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:556
 msgid "[ADLParser] Missing or wrong value in ThreadsPerProcess."
 msgstr "[ADLParser] Значение ThreadsPerProcess отсутствует или неверно."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:557
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:563
 msgid ""
 "[ADLParser] Missing Name element or value in ParallelEnvironment/Option "
 "element."
@@ -14900,20 +15002,20 @@ msgstr ""
 "[ADLParser] Отсутствует элемент Name или значение элемента "
 "ParallelEnvironment/Option."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:576
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:582
 msgid "[ADLParser] NetworkInfo is not supported yet."
 msgstr "[ADLParser] NetworkInfo пока что не поддерживается."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:591
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:597
 #, c-format
 msgid "[ADLParser] NodeAccess value %s is not supported yet."
 msgstr "[ADLParser] Значение NodeAccess %s пока что не поддерживается."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:600
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:606
 msgid "[ADLParser] Missing or wrong value in NumberOfSlots."
 msgstr "[ADLParser] Значение NumberOfSlots отсутствует или неверно."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:608
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:614
 msgid ""
 "[ADLParser] The NumberOfSlots element should be specified, when the value of "
 "useNumberOfSlots attribute of SlotsPerHost element is \"true\"."
@@ -14921,57 +15023,57 @@ msgstr ""
 "[ADLParser] Значение элемента NumberOfSlots должно быть указано, если "
 "значение атрибута useNumberOfSlots элемента SlotsPerHost - \"true\"."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:615
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:621
 msgid "[ADLParser] Missing or wrong value in SlotsPerHost."
 msgstr "[ADLParser] Значение SlotsPerHost отсутствует или неверно."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:644
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:650
 msgid "[ADLParser] Missing or wrong value in IndividualPhysicalMemory."
 msgstr "[ADLParser] Значение IndividualPhysicalMemory отсутствует или неверно."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:653
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:659
 msgid "[ADLParser] Missing or wrong value in IndividualVirtualMemory."
 msgstr "[ADLParser] Значение IndividualVirtualMemory отсутствует или неверно."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:663
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:669
 msgid "[ADLParser] Missing or wrong value in DiskSpaceRequirement."
 msgstr "[ADLParser] Значение DiskSpaceRequirement отсутствует или неверно."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:679
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:685
 msgid "[ADLParser] Benchmark is not supported yet."
 msgstr "[ADLParser] Benchmark пока что не поддерживается."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:688
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:694
 msgid "[ADLParser] Missing or wrong value in IndividualCPUTime."
 msgstr "[ADLParser] Значение IndividualCPUTime отсутствует или неверно."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:697
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:703
 msgid "[ADLParser] Missing or wrong value in TotalCPUTime."
 msgstr "[ADLParser] Значение TotalCPUTime отсутствует или неверно."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:707
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:713
 msgid "[ADLParser] Missing or wrong value in WallTime."
 msgstr "[ADLParser] Значение WallTime отсутствует или неверно."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:729
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:735
 msgid "[ADLParser] Missing or empty Name in InputFile."
 msgstr "[ADLParser] Значение Name в InputFile отсутствует или неверно."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:741
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:747
 #, c-format
 msgid "[ADLParser] Wrong URI specified in Source - %s."
 msgstr "[ADLParser] Указан неверный URI в Source - %s."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:764
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:770
 msgid "[ADLParser] Missing or empty Name in OutputFile."
 msgstr "[ADLParser] Значение Name в OutputFile отсутствует или неверно."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:771
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:777
 #, c-format
 msgid "[ADLParser] Wrong URI specified in Target - %s."
 msgstr "[ADLParser] Указан неверный URI в Target - %s."
 
-#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:813
+#: src/hed/acc/JobDescriptionParser/ADLParser.cpp:819
 #, c-format
 msgid "[ADLParser] CreationFlag value %s is not supported."
 msgstr "[ADLParser] Значение CreationFlag %s не поддерживается."
@@ -19516,7 +19618,7 @@ msgid "Does not sending empty aggregation/synch message."
 msgstr ""
 "Отсылка пустого агрегированного/синхронизационного сообщения не производится."
 
-#: src/services/a-rex/jura/CARAggregation.cpp:527
+#: src/services/a-rex/jura/CARAggregation.cpp:548
 #, c-format
 msgid "synch message: %s"
 msgstr "синхронизационное сообщение: %s"
@@ -21080,7 +21182,7 @@ msgstr "%s: Не удалось записать список выходных �
 #: src/services/a-rex/grid-manager/jobs/JobsList.cpp:434
 #: src/services/a-rex/grid-manager/jobs/JobsList.cpp:948
 #: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:344
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:850
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:860
 #, c-format
 msgid "%s: Failed reading local information"
 msgstr "%s: Не удалось прочесть локальную информацию"
@@ -21569,7 +21671,7 @@ msgid "%s: Failed to write list of output status files"
 msgstr "%s: Не удалось вывести список состояний выходных файлов "
 
 #: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:434
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:608
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:609
 #, c-format
 msgid "%s: Failed to read list of input files"
 msgstr "%s: Не удалось прочесть список входных файлов"
@@ -21593,8 +21695,8 @@ msgstr ""
 
 #: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:539
 #: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:550
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:644
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:708
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:645
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:717
 #, c-format
 msgid "%s: Failed to clean up session dir"
 msgstr "%s: Не удалось очистить каталог сессии"
@@ -21621,37 +21723,37 @@ msgstr "%s: Некоторые процессы %s дали сбой"
 msgid "%s: Received data staging request to %s files"
 msgstr "%s: Получен запрос на размещение файлов (%s)"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:619
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:620
 #, c-format
 msgid "%s: Duplicate file in list of input files: %s"
 msgstr "%s: Повторяющееся имя файла в списке входных файлов: %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:659
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:660
 #, c-format
 msgid "%s: Reading output files from user generated list in %s"
 msgstr "%s: Чтение выходных файлов в списке пользователя %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:661
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:662
 #, c-format
 msgid "%s: Error reading user generated output file list in %s"
 msgstr "%s: Чтение выходных файлов в списке пользователя %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:678
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:685
 #, c-format
 msgid "%s: Two identical output destinations: %s"
 msgstr "%s: Два одинаковых назначения для выдачи: %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:690
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:698
 #, c-format
 msgid "%s: Cannot upload two different files %s and %s to same LFN: %s"
 msgstr "%s: Невозможно записать два разных файла %s и %s с одним LFN: %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:718
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:728
 #, c-format
 msgid "%s: Received job in a bad state: %s"
 msgstr "%s: Задача получена в плохом состоянии: %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:784
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:794
 #, c-format
 msgid ""
 "%s: Destination file %s was possibly left unfinished from previous A-REX "
@@ -21660,101 +21762,101 @@ msgstr ""
 "%s: Файл назначения %s вероятно остался недописанным после предыдущего "
 "запуска A-REX, перезапись"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:856
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:866
 #, c-format
 msgid "%s: Failed writing local information"
 msgstr "%s: Не удалось записать локальную информацию"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:873
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:883
 #, c-format
 msgid "%s: Cancelling active DTRs"
 msgstr "%s: Прерывание активных запросов"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:894
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:904
 #, c-format
 msgid "%s: Can't read list of input files"
 msgstr "%s: Невозможно прочесть список входных файлов"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:909
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:919
 #, c-format
 msgid "%s: Checking user uploadable file: %s"
 msgstr "%s: Проверка отгружаемого файла пользователя: %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:914
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:924
 #, c-format
 msgid "%s: User has uploaded file %s"
 msgstr "%s: Пользователь отгрузил файл %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:921
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:931
 #, c-format
 msgid "%s: Failed writing changed input file."
 msgstr "%s: Не удалось записать изменившийся входной файл"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:925
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:935
 #, c-format
 msgid "%s: Critical error for uploadable file %s"
 msgstr "%s: Критическая ошибка для отгружаемого файла %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:942
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:952
 #, c-format
 msgid "%s: Uploadable files timed out"
 msgstr "%s: Истекло время ожидания отгружаемых файлов"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:998
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1024
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1008
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1034
 #, c-format
 msgid "%s: Can't convert checksum %s to int for %s"
 msgstr "%s: Невозможно преобразовать контрольную сумму файла %s в целое для %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1005
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1019
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1015
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1029
 #, c-format
 msgid "%s: Can't convert filesize %s to int for %s"
 msgstr "%s: Невозможно преобразовать размер файла %s в целое для %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1014
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1024
 #, c-format
 msgid "%s: Invalid size/checksum information (%s) for %s"
 msgstr "%s: Неверная информация о размере/контрольной сумме (%s) для %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1036
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1046
 #, c-format
 msgid "%s: Invalid file: %s is too big."
 msgstr "%s: Неверный файл: %s слишком велик."
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1052
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1062
 #, c-format
 msgid "%s: Failed to switch user ID to %d/%d to read file %s"
 msgstr ""
 "%s: Не удалось изменить идентификатор пользователя на %d/%d для чтения файла "
 "%s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1058
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1068
 #, c-format
 msgid "%s: Failed to open file %s for reading"
 msgstr "%s: Не удалось открыть файл %s на чтение"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1066
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1076
 #, c-format
 msgid "%s: Error accessing file %s"
 msgstr "%s: Ошибка доступа к файлу %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1078
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1088
 #, c-format
 msgid "%s: Error reading file %s"
 msgstr "%s: Ошибка при чтении файла %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1093
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1103
 #, c-format
 msgid "%s: File %s has wrong checksum: %llu. Expected %lli"
 msgstr "%s: У файла %s неверная контрольная сумма: %llu. Ожидалась %lli"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1099
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1109
 #, c-format
 msgid "%s: Checksum %llu verified for %s"
 msgstr "%s: Проверочная сумма %llu подтверждена для %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1111
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1121
 msgid ""
 "Found unfinished DTR transfers. It is possible the previous A-REX process "
 "did not shut down normally"
@@ -21762,7 +21864,7 @@ msgstr ""
 "Найдены незаконченные процессы DTR. Вероятно, предыдущий процесс A-REX "
 "завершился сбоем"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1118
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1128
 #, c-format
 msgid "Found DTR %s for file %s left in transferring state from previous run"
 msgstr ""
@@ -23438,6 +23540,28 @@ msgstr "Ждём 10 секунд..."
 msgid "Waiting ends."
 msgstr "Ожидание завершено."
 
+#~ msgid "password sources"
+#~ msgstr "источники пароля"
+
+#~ msgid ""
+#~ "There are %d NSS base directories where the certificate, key, and module "
+#~ "datbases live"
+#~ msgstr ""
+#~ "Обнаружено %d основных директорий NSS, содержащих базы данных "
+#~ "сертификатов, ключей и модулей"
+
+#~ msgid "Writing to xrootd is not (yet) supported"
+#~ msgstr "Запись по протоколу xrootd (пока) не поддерживается"
+
+#~ msgid "Cannot (yet) remove files through xrootd"
+#~ msgstr "Невозможно (пока) удалить файл через xrootd"
+
+#~ msgid "Cannot (yet) create directories through xrootd"
+#~ msgstr "Невозможно (пока) создать каталог через xrootd"
+
+#~ msgid "Cannot (yet) rename files through xrootd"
+#~ msgstr "Невозможно (пока) переименовать файл через xrootd"
+
 #~ msgid "Rucio returned malormed xml: %s"
 #~ msgstr "Rucio возвратил некорректный XML: %s"
 
@@ -24247,10 +24371,6 @@ msgstr "Ожидание завершено."
 
 #~ msgid "lfn: %s - pfn: %s"
 #~ msgstr "LFN: %s - PFN: %s"
-
-#, fuzzy
-#~ msgid "Failed to create parent directories: "
-#~ msgstr "Ошибка создания родительского фрейма MDI."
 
 #, fuzzy
 #~ msgid "Rename: failed to rename file"
@@ -26487,10 +26607,6 @@ msgstr "Ожидание завершено."
 #, fuzzy
 #~ msgid "Error listing dir %s: %s"
 #~ msgstr "Ошибка перечисления каталогов: %s\n"
-
-#, fuzzy
-#~ msgid "Error creating required dirs: %s"
-#~ msgstr "Ошибка перечисления каталогов в \"%s\": %s"
 
 #, fuzzy
 #~ msgid "Error reading srm info file %s:%s"
