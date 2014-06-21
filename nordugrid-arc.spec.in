@@ -162,9 +162,9 @@ BuildRequires:	nss-devel
 BuildRequires:	mozilla-nss-devel
 %endif
 %if %{?suse_version:1}%{!?suse_version:0}
-BuildRequires:  openldap2-devel
+BuildRequires:	openldap2-devel
 %else
-BuildRequires:  openldap-devel
+BuildRequires:	openldap-devel
 %endif
 BuildRequires:	globus-common-devel
 BuildRequires:	globus-ftp-client-devel
