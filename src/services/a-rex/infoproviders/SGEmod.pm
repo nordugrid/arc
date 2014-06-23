@@ -5,6 +5,8 @@ our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(get_lrms_info get_lrms_options_schema);
 
 use POSIX qw(floor ceil);
+# force locale LANG to POSIX see bug #3314
+$ENV{LANG}="POSIX";
 use LogUtils;
 use XML::Simple qw(:strict);
 
