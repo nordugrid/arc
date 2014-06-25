@@ -786,7 +786,13 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
     }
     else {
       source = "file:" + job.SessionDir() + i->pfn;
-      destination = i->lfn;
+      // Upload to dest ending in '/': append filename to lfn
+      // Note: won't work for nested URLs used for index services
+      if (i->lfn.rfind('/') == i->lfn.length()-1) {
+        destination = i->lfn + i->pfn.substr(i->pfn.rfind('/')+1);
+      } else {
+        destination = i->lfn;
+      }
     }
     // Check if this file was recovered from a crash, if so add overwrite option
     for (std::list<std::string>::iterator file = recovered_files.begin(); file != recovered_files.end();) {
