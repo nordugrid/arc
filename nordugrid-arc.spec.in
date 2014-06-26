@@ -633,7 +633,7 @@ ARC xrootd plugins. These allow access to data through the xrootd protocol.
 %if %{with_gfal}
 %package plugins-gfal
 
-Summary:	ARC Globus plugins
+Summary:	ARC GFAL plugins
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 
