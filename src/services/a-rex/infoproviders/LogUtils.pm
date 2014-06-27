@@ -14,6 +14,7 @@ package LogUtils;
 #    error("Can't go on!");
 
 use strict;
+use warnings;
 
 use POSIX;
 use FileHandle;
@@ -29,6 +30,33 @@ our $loglevel = 2; # default level is WARNING
 our $ts_enabled = 0; # by default do not print timestamps
 
 our $default_logger = LogUtils->getLogger(basename($0));
+
+# redirect perl warnings to ARC logging format, 
+# and attempt to limit number of warnings if not verbose
+my %WARNS if ($loglevel < 4);
+$SIG{__WARN__} = sub {
+    my $message = shift;
+    chomp($message);
+    if ( $loglevel < 4 ) {
+		if (exists($WARNS{$message})) {
+	        if ($WARNS{$message} == 1) {
+				$default_logger->warning("\'PERL: $message\' repeated more than once, skipping... set loglevel to VERBOSE to see all messages.");
+	            $WARNS{$message} = 2;
+	            return;
+	        }
+	    }
+	    else { 
+			$default_logger->warning("PERL: $message");  
+			$WARNS{$message} = 1;
+			return;
+		}
+    }
+	else { 
+		$default_logger->warning("PERL: $message"); 
+		return;
+	}
+};
+
 
 # For backwards compatibility
 
