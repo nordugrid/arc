@@ -168,8 +168,8 @@ echo "fi" >> $LRMS_JOB_SCRIPT
 ## print nodename
 cat >> $LRMS_JOB_SCRIPT <<"FMARK"
 sed -i -e '/nodename=/d' $RUNTIME_JOB_DIAG
-hostname=` grep domain_name init_data.xml |awk -F '>' '{print $2}'|awk -F "<" '{print $1}'`
-username=` grep user_name init_data.xml |awk -F '>' '{print $2}'|awk -F "<" '{print $1}'`
+hostname=` grep domain_name init_data.xml |awk -F '>' '{print $2}'|awk -F "<" '{print $1}'|sed -e "s# #_#g"`
+username=` grep user_name init_data.xml |awk -F '>' '{print $2}'|awk -F "<" '{print $1}|sed -e "s# #_#g"'`
 nodename=$username@$hostname
 echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
 
@@ -249,6 +249,7 @@ fi
 EOF
 
 echo 'tar czvf result.tar.gz $flist' >>$LRMS_JOB_SCRIPT
+echo 'touch ATLAS_done' >>$LRMS_JOB_SCRIPT
 
 
 echo 
