@@ -35,43 +35,70 @@ sub init_globals($) {
 ##########################################
 # Private subs
 ##########################################
-sub db_conn(){
-    my $dbh = DBI->connect('DBI:mysql:ATLAS;host=localhost','','',{RaiseError=>1});
+sub db_conn($){
+    my $config=shift;
+    my $DB_HOST=$$config{boinc_db_host};
+    my $DB_NAME=$$config{boinc_db_name};
+    my $DB_USER=$$config{boinc_db_user};
+    my $DB_PASS=$$config{boinc_db_pass};
+    my $dbh = DBI->connect("DBI:mysql:$DB_NAME;host=$DB_HOST","$DB_USER","$DB_PASS",{RaiseError=>1});
     return $dbh;
 }
 
-sub get_total_cpus(){
-    my $dbh = db_conn();
+sub get_total_cpus($){
+   
+    my $config=shift;
+    my $dbh = db_conn($config);
     my $sth = $dbh->prepare('select sum(p_ncpus) from host where expavg_credit>0');
     $sth->execute();
     my $result = $sth->fetchrow_array();
     if(defined($result)){return $result;}
     else{ return 0;}
 }
-sub get_max_cpus(){
-    my $dbh = db_conn();
+sub get_max_cpus($){
+    my $config=shift;
+    my $dbh = db_conn($config);
     my $sth = $dbh->prepare('select sum(p_ncpus) from host');
     $sth->execute();
     my $result = $sth->fetchrow_array();
     if(defined($result)){return $result;}
     else{ return 0;}
 }
-sub get_jobs_in_que(){
-    my $dbh = db_conn();
-    my $sth = $dbh->prepare('select count(*) from result where server_state=2');
+sub get_jobs_in_que($){
+    my $config=shift;
+    my $dbh = db_conn($config);
+    my $sth = $dbh->prepare('select count(*) from result where server_state in (1,2)');
     $sth->execute();
     my $result = $sth->fetchrow_array();
     if(defined($result)){return $result;}
     else{ return 0;}
 }
-sub get_jobs_in_run(){
-    my $dbh = db_conn();
+sub get_jobs_in_run($){
+    my $config=shift;
+    my $dbh = db_conn($config);
     my $sth = $dbh->prepare('select count(*) from result where server_state=4');
     $sth->execute();
     my $result = $sth->fetchrow_array();
     if(defined($result)){return $result;}
     else{ return 0;}
 }
+sub get_jobs_status($){
+    my $config=shift;
+    my $dbh = db_conn($config);
+    my $sth = $dbh->prepare('select server_state,name from result where server_state in (1,2,4)');
+    $sth->execute();
+    my (%jobs_status, @result,$job_status, $job_state, $job_name);
+    while(($job_state, $job_name) = $sth->fetchrow_array())
+    {
+	$job_status="Q";
+	my @tmp=split(/_/,$job_name);
+	$job_name=$tmp[0];
+	if($job_state==4){$job_status="R";}
+	$jobs_status{$job_name}=$job_status;
+    }
+    return \%jobs_status;
+}
+
 
 ############################################
 # Public subs
@@ -88,14 +115,14 @@ sub cluster_info ($) {
     # only enforcing per-process cputime limit
     $lrms_cluster{has_total_cputime_limit} = 0;
 
-    my ($total_cpus) = get_total_cpus();
-    my ($max_cpus) = get_max_cpus();
+    my ($total_cpus) = get_total_cpus($config);
+    my ($max_cpus) = get_max_cpus($config);
     $lrms_cluster{totalcpus} = $total_cpus;
 
     $lrms_cluster{cpudistribution} = $lrms_cluster{totalcpus}."cpu:1";
 
-    my $que_jobs = get_jobs_in_que();
-    my $run_jobs = get_jobs_in_run();
+    my $que_jobs = get_jobs_in_que($config);
+    my $run_jobs = get_jobs_in_run($config);
     $lrms_cluster{usedcpus} = $run_jobs;
 
     $lrms_cluster{runningjobs} = $lrms_cluster{usedcpus};
@@ -112,10 +139,10 @@ sub queue_info ($$) {
 
     init_globals($qname);
 
-    my ($total_cpus) = get_total_cpus();
-    my ($max_cpus) = get_max_cpus();
-    my $que_jobs = get_jobs_in_que();
-    my $running = get_jobs_in_run();
+    my ($total_cpus) = get_total_cpus($config);
+    my ($max_cpus) = get_max_cpus($config);
+    my $que_jobs = get_jobs_in_que($config);
+    my $running = get_jobs_in_run($config);
     if (defined $running) {
         # job_info was already called, we know exactly how many grid jobs
         # are running
@@ -165,21 +192,30 @@ sub jobs_info ($$@) {
 
     init_globals($qname);
 
-    my (%lrms_jobs);
-
+    my (%lrms_jobs,$jstatus);
+    $jstatus=get_jobs_status($config);
     foreach my $id (@$jids){
         $lrms_jobs{$id}{nodes} = [ hostname ];
     	$lrms_jobs{$id}{mem} = 2000000000;
         $lrms_jobs{$id}{walltime} = "";
         $lrms_jobs{$id}{cputime} = "";
-        $lrms_jobs{$id}{status} = 'R';
         $lrms_jobs{$id}{comment} = [ "LRMS: Running under boinc" ];
 
 	$lrms_jobs{$id}{reqwalltime} = "";
 	$lrms_jobs{$id}{reqcputime} = "";   
         $lrms_jobs{$id}{rank} = "0";
 	$lrms_jobs{$id}{cpus} = "1"; 
-    }
+   
+	if(! exists $$jstatus{$id})
+	{$lrms_jobs{$id}{status}="O";}
+	elsif($$jstatus{$id} eq "R")
+	{$lrms_jobs{$id}{status}="R"}
+	elsif($$jstatus{$id} eq "Q")
+	{$lrms_jobs{$id}{status}="Q";}
+	else
+	{$lrms_jobs{$id}{status}="O";}
+	
+   }
 
     return %lrms_jobs;
 }
