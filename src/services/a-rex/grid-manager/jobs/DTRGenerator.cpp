@@ -653,8 +653,9 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
   else if (job.get_state() == JOB_STATE_FINISHING) {
     files = output_files;
     std::list<FileData>::iterator it;
-    // add any output files dynamically added by the user during the job
-    for (it = files.begin(); it != files.end() ; ++it) {
+    // add any output files dynamically added by the user during the job and
+    // resolve directories
+    for (it = files.begin(); it != files.end() ;) {
       if (it->pfn.find("@") == 1) { // GM puts a slash on the front of the local file
         std::string outputfilelist = job.SessionDir() + std::string("/") + it->pfn.substr(2);
         logger.msg(Arc::INFO, "%s: Reading output files from user generated list in %s", jobid, outputfilelist);
@@ -673,7 +674,40 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
           return false;
         }
         it->pfn.erase(1, 1);
+        ++it;
+        continue;
       }
+      if (it->pfn.rfind('/') == it->pfn.length()-1 && it->lfn.find(':') != std::string::npos) {
+        std::string dir(job.SessionDir() + it->pfn);
+        std::list<std::string> entries;
+        if (!Arc::DirList(dir, entries, true, job_uid, job_gid)) {
+          logger.msg(Arc::ERROR, "%s: Failed to list output directory %s: %s", jobid, dir, Arc::StrError(errno));
+          lock.lock();
+          // Only write this failure if no previous failure
+          if (job.GetFailure(config).empty()) {
+            finished_jobs[jobid] = std::string("Failed to list output directory");
+          } else {
+            finished_jobs[jobid] = "";
+          }
+          lock.unlock();
+          CleanCacheJobLinks(config, job);
+          if (kicker_func) (*kicker_func)(kicker_arg);
+          return false;
+        }
+        // add entries which are not directories or links to output file list
+        struct stat st;
+        for (std::list<std::string>::iterator i = entries.begin(); i != entries.end(); ++i) {
+          if (Arc::FileStat(*i, &st, job_uid, job_gid, false) && S_ISREG(st.st_mode)) {
+            std::string lfn(it->lfn + '/' + i->substr(job.SessionDir().length()+it->pfn.length()));
+            std::string pfn(i->substr(job.SessionDir().length()));
+            logger.msg(Arc::DEBUG, "%s: Adding new output file %s: %s", jobid, pfn, lfn);
+            files.push_back(FileData(pfn, lfn));
+          }
+        }
+        it = files.erase(it);
+        continue;
+      }
+      ++it;
     }
     // check if any files share the same LFN, if so allow overwriting existing LFN
     for (it = files.begin(); it != files.end(); it++) {
