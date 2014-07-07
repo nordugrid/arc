@@ -107,6 +107,18 @@ namespace Arc {
       Specified uid and gid are used for accessing filesystem. */
   bool DirDelete(const std::string& path, bool recursive, uid_t uid, gid_t gid);
 
+  /// List all entries in a directory.
+  /** If path is not a directory or cannot be listed then false is returned. On
+      success entries is filled with the list of entries in the directory. The
+      entries are appended to path. */
+  bool DirList(const std::string& path, std::list<std::string>& entries, bool recursive);
+
+  /// List all entries in a directory using the specified uid and gid.
+  /** If path is not a directory or cannot be listed then false is returned. On
+      success entries is filled with the list of entries in the directory. The
+      entries are appended to path. */
+  bool DirList(const std::string& path, std::list<std::string>& entries, bool recursive, uid_t uid, gid_t gid);
+
   /// Create a temporary directory under the system defined temp location, and return its path.
   /** Uses mkdtemp if available, and a combination of random parameters if not.
       This latter method is not as safe as mkdtemp. */
@@ -128,9 +140,10 @@ namespace Arc {
   /// Removes /../ from 'name'.
   /** If leading_slash=true '/' will be added at the beginning of 'name' if
    * missing. Otherwise it will be removed. The directory separator used here
-   * depends on the platform.
+   * depends on the platform. If trailing_slash=true a trailing slash will not
+   * be removed.
    * \return false if it is not possible to remove all the ../ */
-  bool CanonicalDir(std::string& name, bool leading_slash = true);
+  bool CanonicalDir(std::string& name, bool leading_slash = true, bool trailing_slash = false);
 
   /** @} */
 } // namespace Arc

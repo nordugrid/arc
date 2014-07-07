@@ -22,6 +22,7 @@ class FileUtilsTest
   CPPUNIT_TEST(TestMakeAndDeleteDir);
   CPPUNIT_TEST(TestTmpDirCreate);
   CPPUNIT_TEST(TestTmpFileCreate);
+  CPPUNIT_TEST(TestDirList);
   CPPUNIT_TEST(TestCanonicalDir);
   CPPUNIT_TEST_SUITE_END();
 
@@ -36,6 +37,7 @@ public:
   void TestMakeAndDeleteDir();
   void TestTmpDirCreate();
   void TestTmpFileCreate();
+  void TestDirList();
   void TestCanonicalDir();
 
 private:
@@ -196,6 +198,38 @@ void FileUtilsTest::TestTmpFileCreate() {
   CPPUNIT_ASSERT(stat(path.c_str(), &st) != 0);
 }
 
+void FileUtilsTest::TestDirList() {
+  // create a few subdirs and files then list
+  struct stat st;
+  std::list<std::string> entries;
+  CPPUNIT_ASSERT(stat(testroot.c_str(), &st) == 0);
+  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot+sep+"dir1"), S_IRUSR | S_IWUSR | S_IXUSR));
+  CPPUNIT_ASSERT(_createFile(testroot+sep+"dir1"+sep+"file1"));
+  CPPUNIT_ASSERT(_createFile(testroot+sep+"file1"));
+
+  // No such dir
+  CPPUNIT_ASSERT(!Arc::DirList(std::string(testroot+sep+"test"), entries, false));
+  CPPUNIT_ASSERT(entries.empty());
+
+  // Not a dir
+  CPPUNIT_ASSERT(!Arc::DirList(std::string(testroot+sep+"file1"), entries, false));
+  CPPUNIT_ASSERT(entries.empty());
+
+  // Should only list top-level
+  CPPUNIT_ASSERT(Arc::DirList(std::string(testroot), entries, false));
+  CPPUNIT_ASSERT_EQUAL(2, (int)entries.size());
+  // The order of entries is not guaranteed
+  CPPUNIT_ASSERT(std::find(entries.begin(), entries.end(), std::string(testroot+sep+"dir1")) != entries.end());
+  CPPUNIT_ASSERT(std::find(entries.begin(), entries.end(), std::string(testroot+sep+"file1")) != entries.end());
+
+  // List recursively
+  CPPUNIT_ASSERT(Arc::DirList(std::string(testroot), entries, true));
+  CPPUNIT_ASSERT_EQUAL(3, (int)entries.size());
+  // The order of entries is not guaranteed
+  CPPUNIT_ASSERT(std::find(entries.begin(), entries.end(), std::string(testroot+sep+"dir1")) != entries.end());
+  CPPUNIT_ASSERT(std::find(entries.begin(), entries.end(), std::string(testroot+sep+"file1")) != entries.end());
+  CPPUNIT_ASSERT(std::find(entries.begin(), entries.end(), std::string(testroot+sep+"dir1"+sep+"file1")) != entries.end());
+}
 
 void FileUtilsTest::TestCanonicalDir() {
   std::string dir(sep+"home"+sep+"me"+sep+"dir1");
@@ -220,6 +254,10 @@ void FileUtilsTest::TestCanonicalDir() {
 
   dir = sep+"home"+sep+"me"+sep+".."+sep+".."+sep+"..";
   CPPUNIT_ASSERT(!Arc::CanonicalDir(dir, false));
+
+  dir = sep+"home"+sep+"me"+sep;
+  CPPUNIT_ASSERT(Arc::CanonicalDir(dir, true, true));
+  CPPUNIT_ASSERT_EQUAL(std::string(sep+"home"+sep+"me"+sep), dir);
 }
 
 

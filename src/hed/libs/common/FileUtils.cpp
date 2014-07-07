@@ -459,6 +459,67 @@ bool DirDelete(const std::string& path, bool recursive) {
   return true;
 }
 
+static bool list_recursive(FileAccess* fa,const std::string& path,std::list<std::string>& entries,bool recursive) {
+  std::string curpath = path;
+  while (curpath.rfind('/') == curpath.length()-1) curpath.erase(curpath.length()-1);
+  if (!fa->fa_opendir(curpath)) return false;
+  std::string entry;
+  while (fa->fa_readdir(entry)) {
+    if (entry == "." || entry == "..") continue;
+    std::string fullentry(curpath + '/' + entry);
+    struct stat st;
+    if (!fa->fa_lstat(fullentry, st)) return false;
+    entries.push_back(fullentry);
+    if (recursive && S_ISDIR(st.st_mode)) {
+      FileAccess fa_;
+      if (!list_recursive(&fa_, fullentry, entries, recursive)) return false;
+    }
+  }
+  return true;
+}
+
+bool DirList(const std::string& path,std::list<std::string>& entries,bool recursive,uid_t uid,gid_t gid) {
+  entries.clear();
+  if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
+    FileAccess fa;
+    if(!fa.fa_setuid(uid,gid)) { errno = fa.geterrno(); return false; }
+    if(!list_recursive(&fa,path,entries,recursive)) { errno = fa.geterrno(); return false; }
+    return true;
+  }
+  return DirList(path, entries, recursive);
+}
+
+static bool list_recursive(const std::string& path,std::list<std::string>& entries,bool recursive) {
+  struct stat st;
+  std::string curpath = path;
+  while (curpath.rfind('/') == curpath.length()-1) curpath.erase(curpath.length()-1);
+  try {
+    Glib::Dir dir(curpath);
+    std::string file_name;
+    while ((file_name = dir.read_name()) != "") {
+      std::string fullpath(curpath);
+      fullpath += G_DIR_SEPARATOR_S + file_name;
+      if (::lstat(fullpath.c_str(), &st) != 0) return false;
+      entries.push_back(fullpath);
+      if (recursive && S_ISDIR(st.st_mode)) {
+        if (!list_recursive(fullpath, entries, recursive)) {
+          return false;
+        }
+      }
+    }
+  }
+  catch (Glib::FileError& e) {
+    return false;
+  }
+  return true;
+}
+
+bool DirList(const std::string& path, std::list<std::string>& entries, bool recursive) {
+
+  entries.clear();
+  return list_recursive(path, entries, recursive);
+}
+
 bool TmpDirCreate(std::string& path) {
   std::string tmpdir(Glib::get_tmp_dir());
   bool result = false;
@@ -510,7 +571,7 @@ bool TmpFileCreate(std::string& filename, const std::string& data, uid_t uid, gi
 }
 
 
-bool CanonicalDir(std::string& name, bool leading_slash) {
+bool CanonicalDir(std::string& name, bool leading_slash, bool trailing_slash) {
   std::string::size_type i,ii,n;
   char separator = G_DIR_SEPARATOR_S[0];
   ii=0; i=0;
@@ -520,6 +581,7 @@ bool CanonicalDir(std::string& name, bool leading_slash) {
     if(name[i] == separator) {
       n=i+1;
       if(n >= name.length()) {
+        if(trailing_slash) ii++;
         n=i; break;
       }
       else if(name[n] == '.') {
