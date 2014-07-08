@@ -391,8 +391,14 @@ namespace ArcDMCSRM {
       return DataStatus::Success;
     }
 
-    if (statuscode == SRM_REQUEST_QUEUED) {
+    if (statuscode == SRM_REQUEST_QUEUED ||
+        statuscode == SRM_REQUEST_INPROGRESS) {
       unsigned int sleeptime = 10;
+
+      if (statuscode == SRM_REQUEST_INPROGRESS && res["arrayOfFileStatuses"]) {
+        // some files have been queued and some are online. Check each file
+        fileStatus(creq, res["arrayOfFileStatuses"]);
+      }
       if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]) {
         sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"]);
       }
@@ -429,14 +435,6 @@ namespace ArcDMCSRM {
       creq.finished_abort();
       delete response;
       return DataStatus(DataStatus::ReadPrepareError, EARCREQUESTTIMEOUT, err_msg);
-    }
-
-    if (statuscode == SRM_REQUEST_INPROGRESS) {
-      // some files have been queued and some are online. check each file
-      fileStatus(creq, res["arrayOfFileStatuses"]);
-      creq.wait();
-      delete response;
-      return DataStatus::Success;
     }
 
     if (statuscode == SRM_PARTIAL_SUCCESS) {
@@ -689,6 +687,12 @@ namespace ArcDMCSRM {
       if (explanation.empty()) explanation = file_explanation;
       else if (!file_explanation.empty()) explanation += ": " + file_explanation;
       logger.msg(VERBOSE, explanation);
+
+      if (file_status == SRM_FILE_BUSY) {
+        // a previous upload failed to be aborted so kill it
+
+      }
+
       creq.finished_error();
       delete response;
       return DataStatus(DataStatus::WritePrepareError, srm2errno(statuscode, file_status), explanation);

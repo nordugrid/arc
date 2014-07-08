@@ -172,7 +172,7 @@ namespace Arc {
   }
 
   bool DataPointDirect::LastLocation() {
-    return (triesleft == 0);
+    return (triesleft == 1 || triesleft == 0);
   }
 
   DataStatus DataPointDirect::AddLocation(const URL&, const std::string&) {
