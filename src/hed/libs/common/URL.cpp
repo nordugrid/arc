@@ -1056,18 +1056,18 @@ namespace Arc {
 
   URLLocation::~URLLocation() {}
 
-  std::string URLLocation::str() const {
+  std::string URLLocation::str(bool encode) const {
 
     if (*this)
-      return URL::str();
+      return URL::str(encode);
     else
       return name;
   }
 
-  std::string URLLocation::fullstr() const {
+  std::string URLLocation::fullstr(bool encode) const {
 
     if (*this)
-      return URL::fullstr();
+      return URL::fullstr(encode);
     else if (urloptions.empty())
       return name;
     else

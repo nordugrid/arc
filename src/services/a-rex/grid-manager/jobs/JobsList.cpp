@@ -1665,7 +1665,7 @@ class JobFDesc {
   gid_t gid;
   time_t t;
   JobFDesc(const std::string& s):id(s),uid(0),gid(0),t(-1) { }
-  bool operator<(JobFDesc &right) { return (t < right.t); }
+  bool operator<(const JobFDesc &right) const { return (t < right.t); }
 };
 
 bool JobsList::RestartJobs(const std::string& cdir,const std::string& odir) {

@@ -401,10 +401,10 @@ namespace Arc {
     const std::string& Name() const;
 
     /// Returns a string representation of the URLLocation.
-    virtual std::string str() const;
+    virtual std::string str(bool encode = false) const;
 
     /// Returns a string representation including options and locations
-    virtual std::string fullstr() const;
+    virtual std::string fullstr(bool encode = false) const;
 
   protected:
     /// the URLLocation name as registered in the indexing service.
