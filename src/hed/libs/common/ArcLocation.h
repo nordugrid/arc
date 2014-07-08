@@ -30,6 +30,11 @@ namespace Arc {
      * \since Added in 3.0.0
      **/
     static std::string GetDataDir();
+    /// Returns location of ARC system libraries, e.g. $ARC_LOCATION/lib/arc
+    /**
+     * \since Added in 4.2.0
+     **/
+    static std::string GetLibDir();
     /// Returns location of ARC system tools, e.g. $ARC_LOCATION/libexec/arc
     /** 
      * \since Added in 3.0.0

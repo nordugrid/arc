@@ -68,7 +68,7 @@ namespace Arc {
     // TODO: pool
     std::list<std::string> argv;
     if(!do_tests) {
-      argv.push_back(Arc::ArcLocation::Get()+G_DIR_SEPARATOR_S+PKGLIBEXECSUBDIR+G_DIR_SEPARATOR_S+"arc-file-access");
+      argv.push_back(Arc::ArcLocation::Get()+G_DIR_SEPARATOR_S+PKGLIBSUBDIR+G_DIR_SEPARATOR_S+"arc-file-access");
     } else {
       argv.push_back(std::string("..")+G_DIR_SEPARATOR_S+"arc-file-access");
     }

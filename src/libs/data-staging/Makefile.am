@@ -25,7 +25,7 @@ libarcdatastaging_la_LIBADD = \
   $(GLIBMM_LIBS)
 libarcdatastaging_la_LDFLAGS = -version-info 3:0:0
 
-pkglibexec_PROGRAMS = DataStagingDelivery
+pkglib_PROGRAMS = DataStagingDelivery
 
 DataStagingDelivery_SOURCES = DataStagingDelivery.cpp
 DataStagingDelivery_CXXFLAGS = -I$(top_srcdir)/include \
