@@ -1207,7 +1207,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/libarccrypto.so.*
 %{_libdir}/libarcdata.so.*
 %{_libdir}/libarcdatastaging.so.*
-%{_libdir}/%{pkgdir}/DataStagingDelivery
+%{_libexecdir}/%{pkgdir}/DataStagingDelivery
 %{_libdir}/libarcloader.so.*
 %{_libdir}/libarcmessage.so.*
 %{_libdir}/libarcsecurity.so.*
@@ -1221,7 +1221,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 # We need to have libmodcredential.so close to libarccredential
 %{_libdir}/%{pkgdir}/libmodcredential.so
 %{_libdir}/%{pkgdir}/libmodcredential.apd
-%{_libdir}/%{pkgdir}/arc-file-access
+%{_libexecdir}/%{pkgdir}/arc-file-access
 %{_datadir}/%{pkgdir}/examples/arc.conf.reference
 %dir %{_datadir}/%{pkgdir}/test-jobs
 %{_datadir}/%{pkgdir}/test-jobs/test-job-*
