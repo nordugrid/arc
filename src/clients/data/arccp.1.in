@@ -24,7 +24,7 @@ do not try to force passive transfer
 .IP "\fB-f\fR, \fB--force\fR"
 if the destination is an indexing service and not the same as the source and the destination is already registered, then the copy is normally not done. However, if this option is specified the source is assumed to be a replica of the destination created in an uncontrolled way and the copy is done like in case of replication. Using this option also skips validation of completed transfers.
 .IP "\fB-i\fR, \fB--indicate\fR"
-show progress indicator
+show progress indicator. Using this option forces a check of the source file before trying to transfer it, in order to find its size. Depending on other information obtained about the source, there may be side-effects of using this option, for example checksum verification or pre-staging data from tape. 
 .IP "\fB-T\fR, \fB--notransfer\fR"
 do not transfer, but register source into destination. destination must be a meta-url. If destination already exists then meta-information of source must match meta-information of destination. This can be overridden using the --force option.
 .IP "\fB-3\fR, \fB--thirdparty\fR"
