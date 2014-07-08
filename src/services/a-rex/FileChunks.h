@@ -15,7 +15,7 @@ class FileChunks {
  private:
   Glib::Mutex lock;
   FileChunksList& list;
-  std::map<std::string,FileChunks>::iterator self;
+  std::map<std::string,FileChunks*>::iterator self;
   typedef std::list<std::pair<off_t,off_t> > chunks_t;
   chunks_t chunks;
   off_t size;
@@ -52,7 +52,7 @@ class FileChunksList {
  friend class FileChunks;
  private:
   Glib::Mutex lock;
-  typedef std::map<std::string,FileChunks> files_t;
+  typedef std::map<std::string,FileChunks*> files_t;
   files_t files;
   int timeout;
   time_t last_timeout;

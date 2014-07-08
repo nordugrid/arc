@@ -414,7 +414,7 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
         Arc::XMLNode(job_xml_template).New(glue_xml);
         Arc::URL headnode(config.GmConfig().HeadNode());
         glue_xml["ID"] = std::string("urn:caid:")+headnode.Host()+":org.ogf.glue.emies.activitycreation:"+jobid;
-        glue_xml["IDFromEndpoint"] = "urn:idfe:"+id;
+        glue_xml["IDFromEndpoint"] = "urn:idfe:"+jobid;
         {
           // Collecting job state
           bool job_pending = false;

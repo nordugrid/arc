@@ -1,5 +1,5 @@
 #ifndef __ARC_SEC_BOOLEANATTRIBUTE_H__
-#define __ARC_SEC_BOOlEANATTRIBUTE_H__
+#define __ARC_SEC_BOOLEANATTRIBUTE_H__
 
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
 

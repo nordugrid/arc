@@ -235,9 +235,9 @@ namespace Arc {
         EntryToInt(url, queue["nordugrid-queue-localqueued"], ComputingShare->LocalWaitingJobs);
         EntryToInt(url, queue["nordugrid-queue-prelrmsqueued"], ComputingShare->PreLRMSWaitingJobs);
         ComputingShare->TotalJobs =
-          (ComputingShare->RunningJobs > 0) ? ComputingShare->RunningJobs : 0 +
-          (ComputingShare->WaitingJobs > 0) ? ComputingShare->WaitingJobs : 0 +
-          (ComputingShare->PreLRMSWaitingJobs > 0) ? ComputingShare->PreLRMSWaitingJobs : 0;
+          ((ComputingShare->RunningJobs > 0) ? ComputingShare->RunningJobs : 0) +
+          ((ComputingShare->WaitingJobs > 0) ? ComputingShare->WaitingJobs : 0) +
+          ((ComputingShare->PreLRMSWaitingJobs > 0) ? ComputingShare->PreLRMSWaitingJobs : 0);
         if (authuser["nordugrid-authuser-freecpus"]) {
           std::string value =
             (std::string)authuser["nordugrid-authuser-freecpus"];

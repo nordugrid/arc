@@ -36,17 +36,17 @@ FileChunks::FileChunks(const FileChunks& obj):
 FileChunks* FileChunksList::GetStuck(void) {
   if(((int)(time(NULL)-last_timeout)) < timeout) return NULL;
   lock.lock();
-  for(std::map<std::string,FileChunks>::iterator f = files.begin();
+  for(std::map<std::string,FileChunks*>::iterator f = files.begin();
                     f != files.end();++f) {
-    f->second.lock.lock();
-    if((f->second.refcount <= 0) && 
-       (((int)(time(NULL) - f->second.last_accessed)) >= timeout )) {
-      ++(f->second.refcount);
-      f->second.lock.unlock();
+    f->second->lock.lock();
+    if((f->second->refcount <= 0) &&
+       (((int)(time(NULL) - f->second->last_accessed)) >= timeout )) {
+      ++(f->second->refcount);
+      f->second->lock.unlock();
       lock.unlock();
-      return &(f->second);
+      return f->second;
     }
-    f->second.lock.unlock();
+    f->second->lock.unlock();
   }
   last_timeout=time(NULL);
   lock.unlock();
@@ -89,6 +89,7 @@ void FileChunks::Remove(void) {
     list.lock.lock();
     if(self != list.files.end()) {
       lock.unlock();
+      delete self->second;
       list.files.erase(self);
       list.lock.unlock();
       return;
@@ -100,19 +101,19 @@ void FileChunks::Remove(void) {
 
 FileChunks& FileChunksList::Get(std::string path) {
   lock.lock();
-  std::map<std::string,FileChunks>::iterator c = files.find(path);
+  std::map<std::string,FileChunks*>::iterator c = files.find(path);
   if(c == files.end()) {
-    c=files.insert(std::pair<std::string,FileChunks>(path,FileChunks(*this))).first;
-    c->second.lock.lock();
-    c->second.self=c;
+    c=files.insert(std::pair<std::string,FileChunks*>(path,new FileChunks(*this))).first;
+    c->second->lock.lock();
+    c->second->self=c;
   } else {
-    c->second.lock.lock();
+    c->second->lock.lock();
   }
-  ++(c->second.refcount);
-  c->second.lock.unlock();
+  ++(c->second->refcount);
+  c->second->lock.unlock();
   lock.unlock();
   RemoveStuck();
-  return (c->second);
+  return *(c->second);
 }
 
 void FileChunks::Release(void) {

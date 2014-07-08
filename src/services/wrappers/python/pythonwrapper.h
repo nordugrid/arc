@@ -1,4 +1,4 @@
-#ifndef __ARC_SERVICE_PYTHON_WRAPPER_H_
+#ifndef __ARC_SERVICE_PYTHON_WRAPPER_H__
 #define __ARC_SERVICE_PYTHON_WRAPPER_H__
 
 #include <Python.h>
