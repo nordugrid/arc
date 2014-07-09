@@ -689,8 +689,7 @@ namespace ArcDMCSRM {
       logger.msg(VERBOSE, explanation);
 
       if (file_status == SRM_FILE_BUSY) {
-        // a previous upload failed to be aborted so kill it
-
+        // TODO: a previous upload failed to be aborted so kill it
       }
 
       creq.finished_error();
