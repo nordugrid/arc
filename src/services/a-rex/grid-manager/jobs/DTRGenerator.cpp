@@ -678,6 +678,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
         continue;
       }
       if (it->pfn.rfind('/') == it->pfn.length()-1 && it->lfn.find(':') != std::string::npos) {
+        std::string cred(it->cred);
         std::string dir(job.SessionDir() + it->pfn);
         std::list<std::string> entries;
         if (!Arc::DirList(dir, entries, true, job_uid, job_gid)) {
@@ -701,7 +702,9 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
             std::string lfn(it->lfn + '/' + i->substr(job.SessionDir().length()+it->pfn.length()));
             std::string pfn(i->substr(job.SessionDir().length()));
             logger.msg(Arc::DEBUG, "%s: Adding new output file %s: %s", jobid, pfn, lfn);
-            files.push_back(FileData(pfn, lfn));
+            FileData fd(pfn, lfn);
+            fd.cred = cred;
+            files.push_back(fd);
           }
         }
         it = files.erase(it);
