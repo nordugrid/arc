@@ -1,3 +1,6 @@
+
+if PYTHON_ENABLED
+
 pythondir = $(PYTHON_SITE_LIB)/acix
 
 nobase_python_PYTHON = __init__.py \
@@ -20,3 +23,5 @@ nobase_python_PYTHON = __init__.py \
 
 SUBDIRS = core cacheserver indexserver
 DIST_SUBDIRS = core cacheserver indexserver
+
+endif
