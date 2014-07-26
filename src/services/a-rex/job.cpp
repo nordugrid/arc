@@ -382,7 +382,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
                                                  f != desc.DataStaging.OutputFiles.end();++f) {
       if(f->Name[0] == '@') {
         // dynamic file
-        // It should be error here. But cirrent workaround is to try to use
+        // It should be error here. But current workaround is to try to use
         // any of provided delegations.
         need_delegation = true; 
         break;

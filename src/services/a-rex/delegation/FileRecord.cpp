@@ -96,18 +96,27 @@ namespace ARex {
     int mode = S_IRUSR|S_IWUSR;
 
     db_env_ = new DbEnv(DB_CXX_NO_EXCEPTIONS);
+    if(!dberr("Error setting database environment flags",
+          db_env_->set_flags(DB_CDB_ALLDB,1))) {
+      delete db_env_; db_env_ = NULL;
+      return false;
+    }
     if(!dberr("Error opening database environment",
           db_env_->open(basepath_.c_str(),eflags,mode))) {
       delete db_env_; db_env_ = NULL;
       db_env_clean(basepath_);
       db_env_ = new DbEnv(DB_CXX_NO_EXCEPTIONS);
+      if(!dberr("Error setting database environment flags",
+            db_env_->set_flags(DB_CDB_ALLDB,1))) {
+        delete db_env_; db_env_ = NULL;
+        return false;
+      }
       if(!dberr("Error opening database environment",
             db_env_->open(basepath_.c_str(),eflags,mode))) {
+        delete db_env_; db_env_ = NULL;
         return false;
       };
     };
-    dberr("Error setting database environment flags",
-          db_env_->set_flags(DB_CDB_ALLDB,1));
 
     std::string dbpath = FR_DB_NAME;
     if(!verify()) return false;
