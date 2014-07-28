@@ -961,9 +961,26 @@ sub run_qhost {
    return $result;
 }
 
+sub check_host_state_na {
+   my ($host) = @_;
+   my $result;
+
+   loop_callback("$path/qstat -f | grep `echo $host | cut -d . -f 1`", sub {
+        my $l = shift;
+        if ( $l =~ /-NA-/) {
+           $result=1;
+	}
+ 	else {
+	   $result=0;
+	}
+   }) or $log->error("Failed check host");
+   return $result;
+}
+
+
 sub nodes_info {
 
-   require Data::Dumper; import Data::Dumper qw(Dumper);
+   #require Data::Dumper; import Data::Dumper qw(Dumper);
 
    my $lrms_nodes = {};
 
@@ -986,17 +1003,31 @@ sub nodes_info {
       $lrms_nodes->{$host}{lcpus} = $node_stats{$host}{totalcpus};
       $lrms_nodes->{$host}{slots} = $node_stats{$host}{totalcpus};
 
-      my $pmem = run_qhost($host);
-      my $vmem = run_qhost($host);
-      my $nsock = run_qhost($host);
+      my $pmem;
+      my $vmem;
+      my $nsock;
 
-      $lrms_nodes->{$host}{pmem} = $pmem->{$host}{pmem};
-      $lrms_nodes->{$host}{vmem} = $vmem->{$host}{vmem};
-      $lrms_nodes->{$host}{nsock} = $nsock->{$host}{nsock};
+      if (check_host_state_na($host) != 1) {
+         $pmem = run_qhost($host);
+         $vmem = run_qhost($host);
+         $nsock = run_qhost($host);
+         $lrms_nodes->{$host}{pmem} = $pmem->{$host}{pmem};
+         $lrms_nodes->{$host}{vmem} = $vmem->{$host}{vmem};
+         $lrms_nodes->{$host}{nsock} = $nsock->{$host}{nsock};
+         $lrms_nodes->{$host}{isfree} = 1;
+         $lrms_nodes->{$host}{isavailable} = 1;
+      }
+      else {
+         $lrms_nodes->{$host}{pmem} = 0;
+         $lrms_nodes->{$host}{vmem} = 0;
+         $lrms_nodes->{$host}{nsock} = 0;
+         $lrms_nodes->{$host}{lcpus} = 0;
+         $lrms_nodes->{$host}{slots} = 0;
+         $lrms_nodes->{$host}{isfree} = 0;
+         $lrms_nodes->{$host}{isavailable} = 0;
+      }
 
       # TODO
-      $lrms_nodes->{$host}{isfree} = 1;
-      $lrms_nodes->{$host}{isavailable} = 1;
       # $lrms_nodes->{$host}{tags} =
       # $lrms_nodes->{$host}{release} =
       #my %system = qw(lx Linux sol SunOS darwin Darwin);
