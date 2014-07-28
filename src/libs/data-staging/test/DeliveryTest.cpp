@@ -42,7 +42,7 @@ void DeliveryTest::setUp() {
   // in DTR code which tells it to use this local executable.
   Arc::DirCreate(std::string("../tmp/")+std::string(PKGLIBEXECSUBDIR), S_IRWXU, true);
   Arc::ArcLocation::Init("../tmp/x/x");
-  Arc::FileLink("../../../DataStagingDelivery", std::string("../tmp/")+std::string(PKGLIBEXECSUBDIR)+std::string("/DataStagingDelivery"), true);
+  Arc::FileLink("../../../DataStagingDelivery", std::string("../tmp/")+std::string(PKGLIBSUBDIR)+std::string("/DataStagingDelivery"), true);
   logger = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStagingTest");
 }
 

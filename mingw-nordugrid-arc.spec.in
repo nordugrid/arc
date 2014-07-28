@@ -332,8 +332,8 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw32_libdir}/%{pkgdir}/libmodcrypto.dll*
 %{mingw32_libdir}/%{pkgdir}/libmodcredential.dll*
 %{mingw32_datadir}/%{pkgdir}/schema
-%{mingw32_libexecdir}/%{pkgdir}/arc-file-access.exe
-%{mingw32_libexecdir}/%{pkgdir}/DataStagingDelivery.exe
+%{mingw32_libdir}/%{pkgdir}/arc-file-access.exe
+%{mingw32_libdir}/%{pkgdir}/DataStagingDelivery.exe
 %dir %{mingw32_datadir}/%{pkgdir}/test-jobs
 %{mingw32_datadir}/%{pkgdir}/test-jobs/test-job-*
 
@@ -512,8 +512,8 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw64_libdir}/%{pkgdir}/libmodcrypto.dll*
 %{mingw64_libdir}/%{pkgdir}/libmodcredential.dll*
 %{mingw64_datadir}/%{pkgdir}/schema
-%{mingw64_libexecdir}/%{pkgdir}/arc-file-access.exe
-%{mingw64_libexecdir}/%{pkgdir}/DataStagingDelivery.exe
+%{mingw64_libdir}/%{pkgdir}/arc-file-access.exe
+%{mingw64_libdir}/%{pkgdir}/DataStagingDelivery.exe
 %dir %{mingw64_datadir}/%{pkgdir}/test-jobs
 %{mingw64_datadir}/%{pkgdir}/test-jobs/test-job-*
 

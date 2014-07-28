@@ -10,7 +10,9 @@ MYSQL_WRAPPER_CPP =
 endif
 
 lib_LTLIBRARIES = libarccommon.la
-pkglibexec_PROGRAMS = arc-file-access
+
+pgmpkglibdir = $(pkglibdir)
+pgmpkglib_PROGRAMS = arc-file-access
 
 libarccommon_ladir = $(pkgincludedir)
 libarccommon_la_HEADERS = ArcVersion.h ArcConfig.h ArcLocation.h ArcRegex.h \
