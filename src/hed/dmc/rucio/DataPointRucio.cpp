@@ -90,7 +90,6 @@ namespace ArcDMCRucio {
     // - rucioaccount URL option
     // - RUCIO_ACCOUNT environment variable
     // - nickname extracted from VOMS proxy
-    valid_url_options.insert("rucioaccount");
     account = url.Option("rucioaccount");
     if (account.empty()) {
       account = Arc::GetEnv("RUCIO_ACCOUNT");
@@ -259,10 +258,10 @@ namespace ArcDMCRucio {
     MCC_Status r = client.process(attrs, &request, &transfer_info, &response);
 
     if (!r) {
-      return DataStatus(DataStatus::ReadResolveError, "Failed to contact server: " + r.getExplanation());
+      return DataStatus(DataStatus::ReadResolveError, "Failed to contact auth server: " + r.getExplanation());
     }
     if (transfer_info.code != 200) {
-      return DataStatus(DataStatus::ReadResolveError, http2errno(transfer_info.code), "HTTP error when contacting server: %s" + transfer_info.reason);
+      return DataStatus(DataStatus::ReadResolveError, http2errno(transfer_info.code), "HTTP error when contacting auth server: " + transfer_info.reason);
     }
     // Get auth token from header
     if (transfer_info.headers.find("HTTP:x-rucio-auth-token") == transfer_info.headers.end()) {
