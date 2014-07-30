@@ -169,7 +169,7 @@ echo "fi" >> $LRMS_JOB_SCRIPT
 cat >> $LRMS_JOB_SCRIPT <<"FMARK"
 sed -i -e '/nodename=/d' $RUNTIME_JOB_DIAG
 hostname=` grep domain_name init_data.xml |awk -F '>' '{print $2}'|awk -F "<" '{print $1}'|sed -e "s# #_#g"`
-username=` grep user_name init_data.xml |awk -F '>' '{print $2}'|awk -F "<" '{print $1}|sed -e "s# #_#g"'`
+username=` grep user_name init_data.xml |awk -F '>' '{print $2}'|awk -F "<" '{print $1}'|sed -e "s# #_#g"`
 nodename=$username@$hostname
 echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
 
