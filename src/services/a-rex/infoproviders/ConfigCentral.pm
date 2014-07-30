@@ -40,6 +40,10 @@ my $lrms_options = {
     slurm_wakeupperiod => '*',
     dgbridge_stage_dir => '*',
     dgbridge_stage_prepend => '*',
+    boinc_db_host => '*',
+    boinc_db_name => '*',
+    boinc_db_user => '*',
+    boinc_db_pass => '*',
 };
 my $lrms_share_options = {
     queue_node_string => '*',
