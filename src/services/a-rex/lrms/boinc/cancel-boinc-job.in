@@ -1,14 +1,14 @@
 #!/bin/sh
 # set -x
 # 
-#  Cancel job running in FORK.
+#  Cancel job running in boinc.
 # 
 ProjectDir=/home/boinc/projects/ATLAS
 
-echo "----- starting cancel_fork_job -----" 1>&2
-trap 'echo "----- exiting cancel_fork_job -----" 1>&2; echo "" 1>&2' EXIT
+echo "----- starting cancel_boinc_job -----" 1>&2
+trap 'echo "----- exiting cancel_boinc_job -----" 1>&2; echo "" 1>&2' EXIT
 
-joboption_lrms=fork
+joboption_lrms=boinc
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi

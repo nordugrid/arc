@@ -1,5 +1,5 @@
 #
-# set environment fork variables:
+# set environment variables for boinc
 #
 
 ##############################################################
