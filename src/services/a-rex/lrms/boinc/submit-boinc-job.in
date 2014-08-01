@@ -260,18 +260,14 @@ chmod g+r $LRMS_JOB_SCRIPT
 #######################################
 #  Submit the job
 #######################################
-PROJECT_ROOT="/home/boinc/projects/ATLAS"
-BOINC_APP="ATLAS"
-WU_TEMPLATE="templates/ATLAS_IN"
-RESULT_TEMPLATE="templates/ATLAS_OUT"
-RTE_LOCATION="/home/boinc/projects/ATLAS/Input/rte.tar.gz"
+
 echo "job script ${LRMS_JOB_SCRIPT} built" 1>&2
 JobId=`basename $joboption_directory_orig`
 JobInput="/tmp/"$JobId"_input.tar.gz"
 wu=$JobId
 RTE_FILE="rte_"$wu".tar.gz"
 echo "#!/bin/bash" >> $LRMS_JOB_BOINC
-echo "tar zcvf $JobInput $joboption_directory_orig" >> $LRMS_JOB_BOINC
+echo "tar zhcvf $JobInput $joboption_directory_orig" >> $LRMS_JOB_BOINC
 echo "cd $PROJECT_ROOT " >>$LRMS_JOB_BOINC
 
 JobInput_basename=`basename $JobInput`
