@@ -249,9 +249,6 @@ fi
 EOF
 
 echo 'tar czvf result.tar.gz $flist' >>$LRMS_JOB_SCRIPT
-echo 'touch ATLAS_done' >>$LRMS_JOB_SCRIPT
-
-
 echo 
 
 chmod g+r $LRMS_JOB_SCRIPT
