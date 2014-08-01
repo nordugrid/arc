@@ -91,6 +91,7 @@
 ##    lsf    - LSF
 ##    ll     - LoadLeveler
 ##    slurm  - SLURM
+##    boinc  - Boinc
 ## PBS has many flavours, ARC currenly supports OpenPBS, PBSPro, ScalablePBS
 ## and Torque (the official name for ScalablePBS). There is no need to specify
 ## the flavour or the version number of the PBS, simply write 'pbs'. Similarly,
@@ -195,6 +196,15 @@
 
 ## Desktop Bridge url prefix pointing to dgbridge_stage_dir
 #dgbridge_stage_prepend="http://edgi-bridge.example.com/DGBridge/"
+
+### Boinc
+#lrms="boinc"
+## Connection strings for the boinc database
+#boinc_db_host="localhost"
+#boinc_db_port="3306"
+#boinc_db_name="myproject"
+#boinc_db_user="boinc"
+#boinc_db_pass="password"
 
 
 ### Globus specifics

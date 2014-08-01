@@ -247,7 +247,7 @@ no need to set if LSF is not used
 lsf_profile_path="/usr/share/lsf/conf"
 .br
 
-# LL options
+.SH LL options
 
 .TP
 .B ll_bin_path
@@ -284,6 +284,25 @@ Desktop Bridge URL prefix pointing to dgbridge_stage_dir
 .IR Example:
 .br
 dgbridge_stage_prepend="http://edgi-bridge.example.com/DGBridge/"
+
+.SH Boinc options
+
+.TP
+.B boinc_db_host boinc_db_port boinc_db_name boinc_db_user boinc_db_pass
+Connection details for the Boinc database.
+
+.IR Example:
+.br
+boinc_db_host="localhost"
+.br
+boinc_db_port="3306"
+.br
+boinc_db_name="myproject"
+.br
+boinc_db_user="boinc"
+.br
+boinc_db_pass="password"
+
 
 .SH Other [common] options
 
