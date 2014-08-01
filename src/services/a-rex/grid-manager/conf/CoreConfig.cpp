@@ -26,6 +26,7 @@
 namespace ARex {
 
 Arc::Logger CoreConfig::logger(Arc::Logger::getRootLogger(), "CoreConfig");
+#define REPORTER_PERIOD "3600";
 
 void CoreConfig::CheckLRMSBackends(const std::string& default_lrms) {
   std::string tool_path;
@@ -202,6 +203,20 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
         publisher = "jura";
       }
       config.job_log->SetLogger(publisher.c_str());
+    }
+    else if (command == "jobreport_period") { // Period of running in seconds: e.g. 3600
+      if (!config.job_log) continue;
+      std::string period_s = config_next_arg(rest);
+      if (period_s.empty()) {
+        period_s = REPORTER_PERIOD;
+      }
+      int period;
+      if (!Arc::stringto(period_s, period)) {
+        logger.msg(Arc::ERROR, "Wrong number in jobreport_period: %s", period_s); return false;
+      }
+      if (!config.job_log->SetPeriod(period)) {
+        logger.msg(Arc::ERROR, "Wrong number in jobreport_period: %d, minimal value: REPORTER_PERIOD", period); return false;
+      }
     }
     else if (command == "jobreport_credentials") {
       if (!config.job_log) continue;
@@ -511,6 +526,15 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
       config.job_log->SetLogger(publisher.c_str());
       unsigned int i;
       if (Arc::stringto(tmp_node["expiration"], i)) config.job_log->SetExpiration(i);
+      std::string period = tmp_node["Period"];
+      if (period.empty()) period = REPORTER_PERIOD;
+      unsigned int p;
+      if (Arc::stringto(period, p)) {
+        logger.msg(Arc::ERROR, "Wrong number in jobreport_period: %s", period); return false;
+      }
+      if (!config.job_log->SetPeriod(p)) {
+        logger.msg(Arc::ERROR, "Wrong number in jobreport_period: %d, minimal value: REPORTER_PERIOD", p); return false;
+      }      
       std::string parameters = tmp_node["parameters"];
       if (!parameters.empty()) config.job_log->set_options(parameters);
       std::string jobreport_key = tmp_node["KeyPath"];

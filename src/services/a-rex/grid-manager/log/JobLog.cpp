@@ -17,7 +17,7 @@
 
 namespace ARex {
 
-JobLog::JobLog(void):filename(""),proc(NULL),last_run(0),ex_period(0) {
+JobLog::JobLog(void):filename(""),proc(NULL),last_run(0),period(3600),ex_period(0) {
 }
 
 //JobLog::JobLog(const char* fname):proc(NULL),last_run(0),ex_period(0) {
@@ -30,6 +30,12 @@ void JobLog::SetOutput(const char* fname) {
 
 void JobLog::SetExpiration(time_t period) {
   ex_period=period;
+}
+
+bool JobLog::SetPeriod(int period_time) {
+    if ( period < 3600 ) return false;
+    period=period_time;
+    return true;
 }
 
 bool JobLog::open_stream(std::ofstream &o) {
@@ -99,7 +105,7 @@ bool JobLog::RunReporter(const GMConfig &config) {
     delete proc;
     proc=NULL;
   };
-  if(time(NULL) < (last_run+3600)) return true; // once per hour
+  if(time(NULL) < (last_run+period)) return true; // default: once per hour
   last_run=time(NULL);
   std::string cmd = Arc::ArcLocation::GetToolsDir()+"/"+logger;
   if(ex_period) cmd += " -E " + Arc::tostring(ex_period);

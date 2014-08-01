@@ -28,6 +28,7 @@ class JobLog {
   std::string logger;
   Arc::Run *proc;
   time_t last_run;
+  int period;
   time_t ex_period;
   bool open_stream(std::ofstream &o);
  public:
@@ -42,6 +43,8 @@ class JobLog {
   bool finish_info(GMJob &job,const GMConfig& config);
   /* Run external utility to report gathered information to logger service */
   bool RunReporter(const GMConfig& config);
+  /* Set period of running */
+  bool SetPeriod(int period);
   /* Set name of the accounting reporter */
   bool SetLogger(const char* fname);
   /* Set filters of VO that allow to report to accounting service */
