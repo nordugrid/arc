@@ -41,6 +41,7 @@ my $lrms_options = {
     dgbridge_stage_dir => '*',
     dgbridge_stage_prepend => '*',
     boinc_db_host => '*',
+    boinc_db_port => '*',
     boinc_db_name => '*',
     boinc_db_user => '*',
     boinc_db_pass => '*',

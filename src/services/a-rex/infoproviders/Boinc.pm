@@ -38,10 +38,11 @@ sub init_globals($) {
 sub db_conn($){
     my $config=shift;
     my $DB_HOST=$$config{boinc_db_host};
+    my $DB_PORT=$$config{boinc_db_port};
     my $DB_NAME=$$config{boinc_db_name};
     my $DB_USER=$$config{boinc_db_user};
     my $DB_PASS=$$config{boinc_db_pass};
-    my $dbh = DBI->connect("DBI:mysql:$DB_NAME;host=$DB_HOST","$DB_USER","$DB_PASS",{RaiseError=>1});
+    my $dbh = DBI->connect("DBI:mysql:$DB_NAME;host=$DB_HOST:$DB_PORT","$DB_USER","$DB_PASS",{RaiseError=>1});
     return $dbh;
 }
 
