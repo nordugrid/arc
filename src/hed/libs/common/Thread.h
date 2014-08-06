@@ -190,6 +190,7 @@ namespace Arc {
     void forceReset(void) {
       flag_ = 0;
       waiting_ = 0;
+      lock_.trylock(); // make sure mutex is locked when unlock() is called
       lock_.unlock();
     }
   };
@@ -225,6 +226,7 @@ namespace Arc {
     /// This method is meant to be used only after fork.
     /** It resets state of all internal locks and variables. */
     virtual void forceReset(void) {
+      lock_.trylock(); // make sure mutex is locked when unlock() is called
       lock_.unlock();
     }
   };
@@ -279,6 +281,7 @@ namespace Arc {
     /** It resets state of all internal locks and variables. */
     void forceReset(void) {
       locked_ = false;
+      lock_.trylock(); // make sure mutex is locked when unlock() is called
       lock_.unlock();
     }
   };
@@ -316,7 +319,7 @@ namespace Arc {
     void lockExclusive(void);
     /// Release exclusive lock.
     void unlockExclusive(void);
-    /// Returns true if at the exclusive lock is held.
+    /// Returns true if the exclusive lock is held.
     bool isLockExclusive(void) {
       return (exclusive_ > 0);
     };
@@ -326,6 +329,7 @@ namespace Arc {
       exclusive_ = 0;
       thread_ = NULL;
       shared_.clear();
+      lock_.trylock(); // make sure mutex is locked when unlock() is called
       lock_.unlock();
     };
   };
@@ -534,6 +538,7 @@ namespace Arc {
     void forceReset(void) {
       counter_ = 0;
       cancel_ = false;
+      lock_.trylock(); // make sure mutex is locked when unlock() is called
       lock_.unlock();
     }
   };

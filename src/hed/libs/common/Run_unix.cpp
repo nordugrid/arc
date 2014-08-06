@@ -270,7 +270,6 @@ namespace Arc {
       //if(r->child_conn_.empty()) std::cerr<<"connect for signal_child_watch failed"<<std::endl;
 #endif
     } catch (Glib::Exception& e) {} catch (std::exception& e) {}
-    ;
     pump_lock_.unlock();
     list_lock_.unlock();
   }
