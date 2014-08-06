@@ -1,3 +1,7 @@
+2014-08-06  Gabor Szigeti <szigeti@niif.hu>
+  * Add new configuration option that able to set the frequency of accouting
+    message publishing. (fixing bug #3399)
+  
 2014-05-09  David Cameron <d.g.cameron@fys.uio.no>
   * Add writing/deleting capability to xrootd DMC
 
