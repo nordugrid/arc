@@ -529,7 +529,7 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
       std::string period = tmp_node["Period"];
       if (period.empty()) period = REPORTER_PERIOD;
       unsigned int p;
-      if (Arc::stringto(period, p)) {
+      if (!Arc::stringto(period, p)) {
         logger.msg(Arc::ERROR, "Wrong number in jobreport_period: %s", period); return false;
       }
       if (!config.job_log->SetPeriod(p)) {

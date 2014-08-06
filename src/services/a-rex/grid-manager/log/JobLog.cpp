@@ -32,9 +32,9 @@ void JobLog::SetExpiration(time_t period) {
   ex_period=period;
 }
 
-bool JobLog::SetPeriod(int period_time) {
-    if ( period < 3600 ) return false;
-    period=period_time;
+bool JobLog::SetPeriod(int new_period) {
+    if ( new_period < 3600 ) return false;
+    period=new_period;
     return true;
 }
 
