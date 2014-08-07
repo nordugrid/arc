@@ -16,7 +16,7 @@
    @author: Will Rogers
 '''
 
-import crypto
+from ssm import crypto
 from dirq.QueueSimple import QueueSimple
 from dirq.queue import Queue
 
@@ -42,7 +42,8 @@ class Ssm2Exception(Exception):
     '''
     pass
 
-class Ssm2(object):
+
+class Ssm2(stomp.ConnectionListener):
     '''
     Minimal SSM implementation.
     '''
@@ -274,7 +275,7 @@ class Ssm2(object):
         log.info('Found %s messages.' % self._outq.count())
         for msgid in self._outq:
             if not self._outq.lock(msgid):
-                log.warn('Message queue was locked. %s will not be sent.' % msgid)
+                log.warn('Message was locked. %s will not be sent.' % msgid)
                 continue
 
             text = self._outq.get(msgid)
@@ -289,6 +290,13 @@ class Ssm2(object):
 
             self._last_msg = None
             self._outq.remove(msgid)
+
+        log.info('Tidying message directory.')
+        try:
+            # Remove empty dirs and unlock msgs older than 5 min (default)
+            self._outq.purge()
+        except OSError, e:
+            log.error('OSError raised while purging message queue: %s' % e)
 
     ############################################################################
     # Connection handling methods
@@ -400,7 +408,7 @@ class Ssm2(object):
         if it is not ended.
         '''
         try:
-            self._conn.disconnect()
+            self._conn.stop()  # Same as diconnect() but waits for thread exit
         except (stomp.exception.NotConnectedException, socket.error):
             self._conn = None
         except AttributeError:
