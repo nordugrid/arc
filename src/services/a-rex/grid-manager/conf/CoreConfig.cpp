@@ -215,7 +215,8 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
         logger.msg(Arc::ERROR, "Wrong number in jobreport_period: %s", period_s); return false;
       }
       if (!config.job_log->SetPeriod(period)) {
-        logger.msg(Arc::ERROR, "Wrong number in jobreport_period: %d, minimal value: REPORTER_PERIOD", period); return false;
+        std::string default_value = REPORTER_PERIOD;
+        logger.msg(Arc::ERROR, "Wrong number in jobreport_period: %d, minimal value: %s", period, default_value); return false;
       }
     }
     else if (command == "jobreport_credentials") {
@@ -533,7 +534,8 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
         logger.msg(Arc::ERROR, "Wrong number in jobreport_period: %s", period); return false;
       }
       if (!config.job_log->SetPeriod(p)) {
-        logger.msg(Arc::ERROR, "Wrong number in jobreport_period: %d, minimal value: REPORTER_PERIOD", p); return false;
+        std::string default_value = REPORTER_PERIOD;
+        logger.msg(Arc::ERROR, "Wrong number in jobreport_period: %d, minimal value: %s", p, default_value); return false;
       }      
       std::string parameters = tmp_node["parameters"];
       if (!parameters.empty()) config.job_log->set_options(parameters);
