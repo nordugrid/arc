@@ -362,6 +362,10 @@ namespace Arc {
           }
         }
       }
+
+      if (!DataStaging.DelegationID.empty()) {
+        out << IString(" DelegationID element: %s", DataStaging.DelegationID) << std::endl;
+      }
     }
 
     if (!OtherAttributes.empty()) {

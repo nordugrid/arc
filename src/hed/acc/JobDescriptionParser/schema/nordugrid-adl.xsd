@@ -9,5 +9,7 @@
   <xsd:element name="LoggingDirectory" type="xsd:string" minOccurs="0"/>
 
   <xsd:element name="Rerun" type="xsd:unsignedLong" minOccurs="0"/>
-  
+
+  <xsd:element name="DelegationID" type="xsd:string" minOccurs="0"/>
+
 </xsd:schema>

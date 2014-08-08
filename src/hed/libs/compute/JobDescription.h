@@ -793,6 +793,8 @@ namespace Arc {
     std::list<InputFileType> InputFiles;
     /// List of outputfiles
     std::list<OutputFileType> OutputFiles;
+    /// Delegation for all data staging operations
+    std::string DelegationID;
   };
 
 

@@ -826,6 +826,9 @@ namespace Arc {
         }
         job.DataStaging.OutputFiles.push_back(file);
       }
+      if((bool)staging["nordugrid-adl:DelegationID"]) {
+        job.DataStaging.DelegationID = (std::string)staging["nordugrid-adl:DelegationID"];
+      }
     }
     return true;
   }
@@ -1186,6 +1189,9 @@ namespace Arc {
         target.NewChild("UseIfCancel") = booltostr(u->UseIfCancel);
         target.NewChild("UseIfSuccess") = booltostr(u->UseIfSuccess);
       }
+    }
+    if(!job.DataStaging.DelegationID.empty()) {
+      staging.NewChild("nordugrid-adl:DelegationID") = job.DataStaging.DelegationID;
     }
 
     description.GetDoc(product, true);

@@ -375,6 +375,17 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   };
   std::string cred = credentials;
   if(cred.empty()) {
+    // If job comes through EMI-ES it has delegations assigned only per file through source and target.
+    // But ARC has extension to pass global delegation for whole DataStaging.
+    if(!desc.DataStaging.DelegationID.empty()) {
+      std::string path = (*deleg)[config_.GmConfig().DelegationDir()].
+                                FindCred(desc.DataStaging.DelegationID,config_.GridName());
+      if(!path.empty()) {
+        Arc::FileRead(path, cred);
+      }
+    }
+  }
+  if(cred.empty()) {
     // If job comes through EMI-ES it has delegations assigned per file.
     // But special dynamic output files @list have no targets and no delegations.
     bool need_delegation = false;

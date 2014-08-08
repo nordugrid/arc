@@ -99,6 +99,7 @@ namespace Arc {
       for(std::list<OutputFileType>::const_iterator itOF = itJ->DataStaging.OutputFiles.begin();
           itOF != itJ->DataStaging.OutputFiles.end() && !need_delegation; ++itOF) {
         need_delegation = !itOF->Targets.empty();
+        need_delegation |= (itOF->Name[0] == '@'); // ARC specific - dynamic list of output files
       }
 
       if (need_delegation && delegation_id.empty()) {
@@ -415,6 +416,9 @@ namespace Arc {
           itOF != preparedjobdesc.DataStaging.OutputFiles.end(); ++itOF) {
       if(need_delegation)  break;
       if(!itOF->Targets.empty()) {
+        need_delegation = true;
+      } else if(itOF->Name[0] == '@') {
+        // ARC specific - dynamic list of output files
         need_delegation = true;
       }
     }
