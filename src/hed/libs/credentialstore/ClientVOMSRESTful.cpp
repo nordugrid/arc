@@ -68,7 +68,7 @@ MCC_Status ClientVOMSRESTful::process(const std::string& principal,
                                       const std::list<std::string>& targets,
                                       std::string& result) {
   URL url = GetURL();
-  url.ChangePath("/generate-ac");
+  url.ChangePath(url.Path()+"/generate-ac");
   if(!principal.empty()) url.AddHTTPOption("principal",principal,true);
   if(!fqans.empty()) url.AddHTTPOption("fqans",join(fqans,","),true);
   if(lifetime != 0) url.AddHTTPOption("lifetime",(std::string)lifetime,true);
@@ -88,6 +88,9 @@ MCC_Status ClientVOMSRESTful::process(const std::string& principal,
   // voms
   //  ac
   //  warning*
+  // error
+  //  code
+  //  message
   std::string resp_str;
   // TODO: something more effective is needed
   do {
@@ -98,28 +101,28 @@ MCC_Status ClientVOMSRESTful::process(const std::string& principal,
     if(resp_str.length() > 4*1024*1024) break; // Some sanity check
   } while(true);
   delete response;
+  //std::cerr<<"--- response: "<<resp_str<<std::endl;
   XMLNode resp(resp_str);
   if(!resp) {
     return MCC_Status(GENERIC_ERROR,"VOMS","Response is not recognized as XML");
   }
-  if(resp.Name() != "voms") {
-    return MCC_Status(GENERIC_ERROR,"VOMS","Response is missing required 'voms' element");
-  }
-  if(resp["ac"]) {
-    result = (std::string)resp["ac"];
-  } else {
-    result.resize(0);
-  }
-  XMLNode warning = resp["warning"];
-  if((bool)warning) {
-    std::string err_str;
-    for(;(bool)warning;++warning) {
-      if(!err_str.empty()) err_str += " ; ";
-      err_str += (std::string)warning;
+  if(resp.Name() == "voms") {
+    if(resp["ac"]) {
+      result = (std::string)resp["ac"];
+    } else {
+      result.resize(0);
     }
-    return MCC_Status(GENERIC_ERROR,"VOMS",err_str);
+    XMLNode warning = resp["warning"];
+    std::string warn_str;
+    for(;(bool)warning;++warning) {
+      if(!warn_str.empty()) warn_str += " ; ";
+      warn_str += (std::string)warning;
+    }
+    return MCC_Status(STATUS_OK,"VOMS",warn_str);
+  } else if(resp.Name() == "error") {
+    return MCC_Status(GENERIC_ERROR,"VOMS",(std::string)resp["code"]+": "+(std::string)resp["message"]);
   }
-  return MCC_Status(STATUS_OK);
+  return MCC_Status(GENERIC_ERROR,"VOMS","Response is missing required 'voms' and 'error' elements");
 }
 
 } // namespace Arc
