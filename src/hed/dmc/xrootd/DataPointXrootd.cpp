@@ -119,9 +119,9 @@ namespace ArcDMCXrootd {
 
     {
       CertEnvLocker env(usercfg);
-      fd = XrdPosixXrootd::Open(url.str().c_str(), O_RDONLY);
+      fd = XrdPosixXrootd::Open(url.plainstr().c_str(), O_RDONLY);
       if (fd == -1) {
-        logger.msg(VERBOSE, "Could not open file %s for reading: %s", url.str(), StrError(errno));
+        logger.msg(VERBOSE, "Could not open file %s for reading: %s", url.plainstr(), StrError(errno));
         reading = false;
         return DataStatus(DataStatus::ReadStartError, errno);
       }
@@ -136,7 +136,7 @@ namespace ArcDMCXrootd {
         return DataStatus(DataStatus::ReadStartError, res.GetErrno(), res.GetDesc());
       }
       if (!CheckSize()) {
-        logger.msg(VERBOSE, "Unable to find file size of %s", url.str());
+        logger.msg(VERBOSE, "Unable to find file size of %s", url.plainstr());
         reading = false;
         return DataStatus(DataStatus::ReadStartError, std::string("Unable to obtain file size"));
       }
@@ -250,12 +250,12 @@ namespace ArcDMCXrootd {
     {
       CertEnvLocker env(usercfg);
       // Open the file
-      fd = XrdPosixXrootd::Open(url.str().c_str(), O_WRONLY | O_CREAT, 0600);
+      fd = XrdPosixXrootd::Open(url.plainstr().c_str(), O_WRONLY | O_CREAT, 0600);
     }
     if (fd < 0) {
       // If no entry try to create parent directories
       if (errno == ENOENT) {
-        logger.msg(VERBOSE, "Failed to open %s, trying to create parent directories", url.str());
+        logger.msg(VERBOSE, "Failed to open %s, trying to create parent directories", url.plainstr());
         std::string original_path(url.Path());
         url.ChangePath(Glib::path_get_dirname(url.Path()));
         DataStatus r = CreateDirectory(true);
@@ -264,7 +264,7 @@ namespace ArcDMCXrootd {
 
         { // Try to open again
           CertEnvLocker env(usercfg);
-          fd = XrdPosixXrootd::Open(url.str().c_str(), O_WRONLY | O_CREAT, 0600);
+          fd = XrdPosixXrootd::Open(url.plainstr().c_str(), O_WRONLY | O_CREAT, 0600);
         }
       }
       if (fd < 0) {
@@ -323,8 +323,8 @@ namespace ArcDMCXrootd {
 
     {
       CertEnvLocker env(usercfg);
-      if (XrdPosixXrootd::Access(url.str().c_str(), R_OK) != 0) {
-        logger.msg(VERBOSE, "Read access not allowed for %s: %s", url.str(), StrError(errno));
+      if (XrdPosixXrootd::Access(url.plainstr().c_str(), R_OK) != 0) {
+        logger.msg(VERBOSE, "Read access not allowed for %s: %s", url.plainstr(), StrError(errno));
         return DataStatus(DataStatus::CheckError, errno);
       }
     }
@@ -342,8 +342,8 @@ namespace ArcDMCXrootd {
       CertEnvLocker env(usercfg);
       // When used against dcache stat returns 0 even if file does not exist
       // so check inode number
-      if (XrdPosixXrootd::Stat(u.str().c_str(), &st) != 0 || st.st_ino == (unsigned long long int)(-1)) {
-        logger.msg(VERBOSE, "Could not stat file %s: %s", u.str(), StrError(errno));
+      if (XrdPosixXrootd::Stat(u.plainstr().c_str(), &st) != 0 || st.st_ino == (unsigned long long int)(-1)) {
+        logger.msg(VERBOSE, "Could not stat file %s: %s", u.plainstr(), StrError(errno));
         return DataStatus(DataStatus::StatError, errno);
       }
     }
@@ -375,10 +375,10 @@ namespace ArcDMCXrootd {
     DIR* dir = NULL;
     {
       CertEnvLocker env(usercfg);
-      dir = XrdPosixXrootd::Opendir(url.str().c_str());
+      dir = XrdPosixXrootd::Opendir(url.plainstr().c_str());
     }
     if (!dir) {
-      logger.msg(VERBOSE, "Failed to open directory %s: %s", url.str(), StrError(errno));
+      logger.msg(VERBOSE, "Failed to open directory %s: %s", url.plainstr(), StrError(errno));
       return DataStatus(DataStatus::ListError, errno);
     }
 
@@ -386,14 +386,14 @@ namespace ArcDMCXrootd {
     while ((entry = XrdPosixXrootd::Readdir(dir))) {
       FileInfo f;
       if (verb > INFO_TYPE_NAME) {
-        std::string path = url.str() + '/' + entry->d_name;
+        std::string path = url.plainstr() + '/' + entry->d_name;
         do_stat(path, f, verb);
       }
       f.SetName(entry->d_name);
       files.push_back(f);
     }
     if (errno != 0) {
-      logger.msg(VERBOSE, "Error while reading dir %s: %s", url.str(), StrError(errno));
+      logger.msg(VERBOSE, "Error while reading dir %s: %s", url.plainstr(), StrError(errno));
       return DataStatus(DataStatus::ListError, errno);
     }
     XrdPosixXrootd::Closedir(dir);
@@ -407,23 +407,23 @@ namespace ArcDMCXrootd {
 
     struct stat st;
     CertEnvLocker env(usercfg);
-    if (XrdPosixXrootd::Stat(url.str().c_str(), &st) != 0) {
+    if (XrdPosixXrootd::Stat(url.plainstr().c_str(), &st) != 0) {
       if (errno == ENOENT) return DataStatus::Success;
-      logger.msg(VERBOSE, "File is not accessible %s: %s", url.str(), StrError(errno));
-      return DataStatus(DataStatus::DeleteError, errno, "Failed to stat file "+url.str());
+      logger.msg(VERBOSE, "File is not accessible %s: %s", url.plainstr(), StrError(errno));
+      return DataStatus(DataStatus::DeleteError, errno, "Failed to stat file "+url.plainstr());
     }
     // path is a directory
     if (S_ISDIR(st.st_mode)) {
-      if (XrdPosixXrootd::Rmdir(url.str().c_str()) != 0) {
-        logger.msg(VERBOSE, "Can't delete directory %s: %s", url.str(), StrError(errno));
-        return DataStatus(DataStatus::DeleteError, errno, "Failed to delete directory "+url.str());
+      if (XrdPosixXrootd::Rmdir(url.plainstr().c_str()) != 0) {
+        logger.msg(VERBOSE, "Can't delete directory %s: %s", url.plainstr(), StrError(errno));
+        return DataStatus(DataStatus::DeleteError, errno, "Failed to delete directory "+url.plainstr());
       }
       return DataStatus::Success;
     }
     // path is a file
-    if (XrdPosixXrootd::Unlink(url.str().c_str()) != 0) {
-      logger.msg(VERBOSE, "Can't delete file %s: %s", url.str(), StrError(errno));
-      return DataStatus(DataStatus::DeleteError, errno, "Failed to delete file "+url.str());
+    if (XrdPosixXrootd::Unlink(url.plainstr().c_str()) != 0) {
+      logger.msg(VERBOSE, "Can't delete file %s: %s", url.plainstr(), StrError(errno));
+      return DataStatus(DataStatus::DeleteError, errno, "Failed to delete file "+url.plainstr());
     }
     return DataStatus::Success;
   }
@@ -437,10 +437,10 @@ namespace ArcDMCXrootd {
     if (!with_parents) {
       dir.ChangePath(url.Path().substr(0, url.Path().rfind("/")));
       if (dir.Path().empty() || dir == url.Path()) return DataStatus::Success;
-      logger.msg(VERBOSE, "Creating directory %s", dir.str());
+      logger.msg(VERBOSE, "Creating directory %s", dir.plainstr());
 
       CertEnvLocker env(usercfg);
-      r = XrdPosixXrootd::Mkdir(dir.str().c_str(), 0775);
+      r = XrdPosixXrootd::Mkdir(dir.plainstr().c_str(), 0775);
       if (r == 0 || errno == EEXIST) return DataStatus::Success;
 
       logger.msg(VERBOSE, "Error creating required dirs: %s", StrError(errno));
@@ -451,14 +451,14 @@ namespace ArcDMCXrootd {
       // stat dir to see if it exists
       struct stat st;
       CertEnvLocker env(usercfg);
-      r = XrdPosixXrootd::Stat(dir.str().c_str(), &st);
+      r = XrdPosixXrootd::Stat(dir.plainstr().c_str(), &st);
       if (r == 0) {
         slashpos = url.Path().find("/", slashpos + 1);
         continue;
       }
 
-      logger.msg(VERBOSE, "Creating directory %s", dir.str());
-      r = XrdPosixXrootd::Mkdir(dir.str().c_str(), 0775);
+      logger.msg(VERBOSE, "Creating directory %s", dir.plainstr());
+      r = XrdPosixXrootd::Mkdir(dir.plainstr().c_str(), 0775);
       if (r != 0) {
         if (errno != EEXIST) {
           logger.msg(VERBOSE, "Error creating required dirs: %s", StrError(errno));
@@ -471,7 +471,7 @@ namespace ArcDMCXrootd {
   }
 
   DataStatus DataPointXrootd::Rename(const URL& newurl) {
-    logger.msg(VERBOSE, "Renaming %s to %s", url.str(), newurl.str());
+    logger.msg(VERBOSE, "Renaming %s to %s", url.plainstr(), newurl.plainstr());
 
     URL tmpurl(newurl);
     // xrootd requires 2 slashes at the start of the URL path
@@ -479,9 +479,9 @@ namespace ArcDMCXrootd {
       tmpurl.ChangePath(std::string("/"+tmpurl.Path()));
     }
 
-    if (XrdPosixXrootd::Rename(url.str().c_str(), tmpurl.str().c_str()) != 0) {
-      logger.msg(VERBOSE, "Can't rename file %s: %s", url.str(), StrError(errno));
-      return DataStatus(DataStatus::RenameError, errno, "Failed to rename file "+url.str());
+    if (XrdPosixXrootd::Rename(url.plainstr().c_str(), tmpurl.plainstr().c_str()) != 0) {
+      logger.msg(VERBOSE, "Can't rename file %s: %s", url.plainstr(), StrError(errno));
+      return DataStatus(DataStatus::RenameError, errno, "Failed to rename file "+url.plainstr());
     }
     return DataStatus::Success;
   }
