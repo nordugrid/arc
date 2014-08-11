@@ -110,7 +110,7 @@ namespace ArcDMCGridFTP {
     time_t modify_time;
     set_attributes();
     if (check_meta) {
-      res = globus_ftp_client_size(&ftp_handle, url.str().c_str(), &ftp_opattr,
+      res = globus_ftp_client_size(&ftp_handle, url.plainstr().c_str(), &ftp_opattr,
                                    &size, &ftp_complete_callback, cbarg);
       if (!res) {
         logger.msg(VERBOSE, "check_ftp: globus_ftp_client_size failed");
@@ -127,7 +127,7 @@ namespace ArcDMCGridFTP {
         SetSize(size);
         logger.msg(VERBOSE, "check_ftp: obtained size: %lli", GetSize());
       }
-      res = globus_ftp_client_modification_time(&ftp_handle, url.str().c_str(),
+      res = globus_ftp_client_modification_time(&ftp_handle, url.plainstr().c_str(),
                                                 &ftp_opattr, &gl_modify_time,
                                                 &ftp_complete_callback, cbarg);
       if (!res) {
@@ -160,7 +160,7 @@ namespace ArcDMCGridFTP {
     // Do not use partial_get for ordinary ftp. Stupid globus tries to
     // use non-standard commands anyway.
     if (is_secure) {
-      res = globus_ftp_client_partial_get(&ftp_handle, url.str().c_str(),
+      res = globus_ftp_client_partial_get(&ftp_handle, url.plainstr().c_str(),
                                           &ftp_opattr, GLOBUS_NULL, 0, 1,
                                           &ftp_complete_callback, cbarg);
       if (!res) {
@@ -187,7 +187,7 @@ namespace ArcDMCGridFTP {
         globus_ftp_client_abort(&ftp_handle);
         cond.wait();
         return DataStatus(DataStatus::CheckError, EARCREQUESTTIMEOUT,
-                          "timeout waiting for partial get from server: "+url.str());
+                          "timeout waiting for partial get from server: "+url.plainstr());
       }
       if (ftp_eof_flag) return DataStatus::Success;
       return DataStatus(DataStatus::CheckError, callback_status.GetDesc());
@@ -213,14 +213,14 @@ namespace ArcDMCGridFTP {
     // all server implementations.
     DataStatus rm_res = RemoveFile();
     if (!rm_res && rm_res.GetErrno() != ENOENT && rm_res.GetErrno() != EACCES) {
-      logger.msg(INFO, "File delete failed, attempting directory delete for %s", url.str());
+      logger.msg(INFO, "File delete failed, attempting directory delete for %s", url.plainstr());
       rm_res = RemoveDir();
     }
     return rm_res;
   }
 
   DataStatus DataPointGridFTP::RemoveFile() {
-    GlobusResult res = globus_ftp_client_delete(&ftp_handle, url.str().c_str(),
+    GlobusResult res = globus_ftp_client_delete(&ftp_handle, url.plainstr().c_str(),
                                    &ftp_opattr, &ftp_complete_callback, cbarg);
     if (!res) {
       logger.msg(VERBOSE, "delete_ftp: globus_ftp_client_delete failed");
@@ -232,7 +232,7 @@ namespace ArcDMCGridFTP {
       logger.msg(VERBOSE, "delete_ftp: timeout waiting for delete");
       globus_ftp_client_abort(&ftp_handle);
       cond.wait();
-      return DataStatus(DataStatus::DeleteError, EARCREQUESTTIMEOUT, "Timeout waiting for delete for "+url.str());
+      return DataStatus(DataStatus::DeleteError, EARCREQUESTTIMEOUT, "Timeout waiting for delete for "+url.plainstr());
     }
     if (!callback_status) {
       return DataStatus(DataStatus::DeleteError, callback_status.GetErrno(), callback_status.GetDesc());
@@ -241,7 +241,7 @@ namespace ArcDMCGridFTP {
   }
 
   DataStatus DataPointGridFTP::RemoveDir() {
-    GlobusResult res = globus_ftp_client_rmdir(&ftp_handle, url.str().c_str(),
+    GlobusResult res = globus_ftp_client_rmdir(&ftp_handle, url.plainstr().c_str(),
                                   &ftp_opattr, &ftp_complete_callback, cbarg);
     if (!res) {
       logger.msg(VERBOSE, "delete_ftp: globus_ftp_client_rmdir failed");
@@ -253,7 +253,7 @@ namespace ArcDMCGridFTP {
       logger.msg(VERBOSE, "delete_ftp: timeout waiting for delete");
       globus_ftp_client_abort(&ftp_handle);
       cond.wait();
-      return DataStatus(DataStatus::DeleteError, EARCREQUESTTIMEOUT, "Timeout waiting for delete of "+url.str());
+      return DataStatus(DataStatus::DeleteError, EARCREQUESTTIMEOUT, "Timeout waiting for delete of "+url.plainstr());
     }
     if (!callback_status) {
       return DataStatus(DataStatus::DeleteError, callback_status.GetErrno(), callback_status.GetDesc());
@@ -291,13 +291,13 @@ namespace ArcDMCGridFTP {
   }
 
   bool DataPointGridFTP::mkdir_ftp() {
-    std::string ftp_dir_path = url.str();
+    std::string ftp_dir_path = url.plainstr();
     for (;;)
       if (!remove_last_dir(ftp_dir_path))
         break;
     bool result = true;
     for (;;) {
-      if (!add_last_dir(ftp_dir_path, url.str()))
+      if (!add_last_dir(ftp_dir_path, url.plainstr()))
         break;
       logger.msg(VERBOSE, "mkdir_ftp: making %s", ftp_dir_path);
       GlobusResult res =
@@ -330,7 +330,7 @@ namespace ArcDMCGridFTP {
       return mkdir_ftp() ? DataStatus::Success : DataStatus::CreateDirectoryError;
 
     // the globus mkdir call uses the full URL
-    std::string dirpath = url.str();
+    std::string dirpath = url.plainstr();
     // check if file is in root directory
     if (!remove_last_dir(dirpath)) return DataStatus::Success;
 
@@ -349,7 +349,7 @@ namespace ArcDMCGridFTP {
       globus_ftp_client_abort(&ftp_handle);
       cond.wait();
       return DataStatus(DataStatus::CreateDirectoryError, EARCREQUESTTIMEOUT,
-                        "Timeout waiting for mkdir at "+url.str());
+                        "Timeout waiting for mkdir at "+url.plainstr());
     }
     if (!callback_status) {
       return DataStatus(DataStatus::CreateDirectoryError, callback_status.GetErrno(), callback_status.GetDesc());
@@ -372,18 +372,18 @@ namespace ArcDMCGridFTP {
     }
     logger.msg(VERBOSE, "start_reading_ftp");
     ftp_eof_flag = false;
-    globus_ftp_client_handle_cache_url_state(&ftp_handle, url.str().c_str());
+    globus_ftp_client_handle_cache_url_state(&ftp_handle, url.plainstr().c_str());
     GlobusResult res;
     logger.msg(VERBOSE, "start_reading_ftp: globus_ftp_client_get");
     cond.reset();
     if (limit_length) {
-      res = globus_ftp_client_partial_get(&ftp_handle, url.str().c_str(),
+      res = globus_ftp_client_partial_get(&ftp_handle, url.plainstr().c_str(),
                                           &ftp_opattr, GLOBUS_NULL,
                                           range_start,
                                           range_start + range_length + 1,
                                           &ftp_get_complete_callback, cbarg);
     } else {
-      res = globus_ftp_client_get(&ftp_handle, url.str().c_str(),
+      res = globus_ftp_client_get(&ftp_handle, url.plainstr().c_str(),
                                   &ftp_opattr, GLOBUS_NULL,
                                   &ftp_get_complete_callback, cbarg);
     }
@@ -392,7 +392,7 @@ namespace ArcDMCGridFTP {
       std::string globus_err(res.str());
       logger.msg(VERBOSE, globus_err);
 
-      globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
+      globus_ftp_client_handle_flush_url_state(&ftp_handle, url.plainstr().c_str());
       buffer->error_read(true);
       reading = false;
       return DataStatus(DataStatus::ReadStartError, globus_err);
@@ -402,7 +402,7 @@ namespace ArcDMCGridFTP {
       logger.msg(VERBOSE, "start_reading_ftp: globus_thread_create failed");
       globus_ftp_client_abort(&ftp_handle);
       cond.wait();
-      globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
+      globus_ftp_client_handle_flush_url_state(&ftp_handle, url.plainstr().c_str());
       buffer->error_read(true);
       reading = false;
       return DataStatus(DataStatus::ReadStartError, "Failed to create new thread");
@@ -434,8 +434,8 @@ namespace ArcDMCGridFTP {
     }
     logger.msg(VERBOSE, "stop_reading_ftp: waiting for transfer to finish");
     cond.wait();
-    logger.msg(VERBOSE, "stop_reading_ftp: exiting: %s", url.str());
-    //globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
+    logger.msg(VERBOSE, "stop_reading_ftp: exiting: %s", url.plainstr());
+    //globus_ftp_client_handle_flush_url_state(&ftp_handle, url.plainstr().c_str());
     if (!callback_status) return DataStatus(DataStatus::ReadStopError, callback_status.GetDesc());
     return DataStatus::Success;
   }
@@ -455,7 +455,7 @@ namespace ArcDMCGridFTP {
       if (!it->buffer->for_read(h, l, true)) { /* eof or error */
         if (it->buffer->error()) { /* error -> abort reading */
           logger.msg(VERBOSE, "ftp_read_thread: for_read failed - aborting: %s",
-                     it->url.str());
+                     it->url.plainstr());
           globus_ftp_client_abort(&(it->ftp_handle));
         }
         break;
@@ -465,7 +465,7 @@ namespace ArcDMCGridFTP {
         // See comment in ftp_write_thread.
         it->buffer->is_read(h, 0, 0);
         logger.msg(VERBOSE, "ftp_read_thread: data callback failed - aborting: %s",
-                   it->url.str());
+                   it->url.plainstr());
         globus_ftp_client_abort(&(it->ftp_handle));
         break;
       }
@@ -491,12 +491,12 @@ namespace ArcDMCGridFTP {
           it->buffer->eof_read(true);
           logger.msg(DEBUG, "ftp_read_thread: "
                      "too many registration failures - abort: %s",
-                     it->url.str());
+                     it->url.plainstr());
         }
         else {
           logger.msg(DEBUG, "ftp_read_thread: "
                      "failed to register Globus buffer - will try later: %s",
-                     it->url.str());
+                     it->url.plainstr());
           it->buffer->is_read(h, 0, 0);
           // First retry quickly for race condition.
           // Then slowly for pecularities.
@@ -591,7 +591,7 @@ namespace ArcDMCGridFTP {
     }
     ftp_eof_flag = false;
     GlobusResult res;
-    globus_ftp_client_handle_cache_url_state(&ftp_handle, url.str().c_str());
+    globus_ftp_client_handle_cache_url_state(&ftp_handle, url.plainstr().c_str());
     if (autodir) {
       logger.msg(VERBOSE, "start_writing_ftp: mkdir");
       if (!mkdir_ftp())
@@ -601,13 +601,13 @@ namespace ArcDMCGridFTP {
     logger.msg(VERBOSE, "start_writing_ftp: put");
     cond.reset();
     if (limit_length) {
-      res = globus_ftp_client_partial_put(&ftp_handle, url.str().c_str(),
+      res = globus_ftp_client_partial_put(&ftp_handle, url.plainstr().c_str(),
                                           &ftp_opattr, GLOBUS_NULL,
                                           range_start,
                                           range_start + range_length,
                                           &ftp_put_complete_callback, cbarg);
     } else {
-      res = globus_ftp_client_put(&ftp_handle, url.str().c_str(),
+      res = globus_ftp_client_put(&ftp_handle, url.plainstr().c_str(),
                                   &ftp_opattr, GLOBUS_NULL,
                                   &ftp_put_complete_callback, cbarg);
     }
@@ -615,7 +615,7 @@ namespace ArcDMCGridFTP {
       logger.msg(VERBOSE, "start_writing_ftp: put failed");
       std::string globus_err(res.str());
       logger.msg(VERBOSE, globus_err);
-      globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
+      globus_ftp_client_handle_flush_url_state(&ftp_handle, url.plainstr().c_str());
       buffer->error_write(true);
       writing = false;
       return DataStatus(DataStatus::WriteStartError, globus_err);
@@ -623,7 +623,7 @@ namespace ArcDMCGridFTP {
     if (globus_thread_create(&ftp_control_thread, GLOBUS_NULL,
                              &ftp_write_thread, this) != 0) {
       logger.msg(VERBOSE, "start_writing_ftp: globus_thread_create failed");
-      globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
+      globus_ftp_client_handle_flush_url_state(&ftp_handle, url.plainstr().c_str());
       buffer->error_write(true);
       writing = false;
       return DataStatus(DataStatus::WriteStartError, "Failed to create new thread");
@@ -667,10 +667,10 @@ namespace ArcDMCGridFTP {
           // list checksum and compare
           // note: not all implementations support checksum
           logger.msg(DEBUG, "StopWriting: "
-                            "looking for checksum of %s", url.str());
+                            "looking for checksum of %s", url.plainstr());
           char cksum[256];
           std::string cksumtype(upper(DefaultCheckSum()));
-          GlobusResult res = globus_ftp_client_cksm(&ftp_handle, url.str().c_str(),
+          GlobusResult res = globus_ftp_client_cksm(&ftp_handle, url.plainstr().c_str(),
                                                     &ftp_opattr, cksum, (globus_off_t)0,
                                                     (globus_off_t)-1, cksumtype.c_str(),
                                                     &ftp_complete_callback, cbarg);
@@ -705,7 +705,7 @@ namespace ArcDMCGridFTP {
         }
       }
     }
-    //globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
+    //globus_ftp_client_handle_flush_url_state(&ftp_handle, url.plainstr().c_str());
     if (!callback_status) return DataStatus(DataStatus::WriteStopError, callback_status.GetDesc());
     return DataStatus::Success;
   }
@@ -947,12 +947,12 @@ namespace ArcDMCGridFTP {
     DataStatus result = DataStatus::StatError;
     if (lister->size() == 0) {
       logger.msg(VERBOSE, "No results returned from stat");
-      result.SetDesc("No results found for "+url.str());
+      result.SetDesc("No results found for "+url.plainstr());
       reading = false;
       return result;
     }
     if(lister->size() != 1) {
-      logger.msg(VERBOSE, "Wrong number of objects (%i) for stat from ftp: %s", lister->size(), url.str());
+      logger.msg(VERBOSE, "Wrong number of objects (%i) for stat from ftp: %s", lister->size(), url.plainstr());
       // guess - that probably means it is directory 
       file.SetName(FileInfo(url.Path()).GetName());
       file.SetType(FileInfo::file_type_dir);
@@ -967,7 +967,7 @@ namespace ArcDMCGridFTP {
     if ((lister_info.GetName().substr(lister_info.GetName().rfind('/')+1)) !=
               (fname.substr(fname.rfind('/')+1))) {
       logger.msg(VERBOSE, "Unexpected path %s returned from server", lister_info.GetName());
-      result.SetDesc("Unexpected path returned from server for "+url.str());
+      result.SetDesc("Unexpected path returned from server for "+url.plainstr());
       reading = false;
       return result;
     }
@@ -1042,8 +1042,8 @@ namespace ArcDMCGridFTP {
     set_attributes();
 
     GlobusResult res = globus_ftp_client_move(&ftp_handle,
-                                              url.str().c_str(),
-                                              newurl.str().c_str(),
+                                              url.plainstr().c_str(),
+                                              newurl.plainstr().c_str(),
                                               &ftp_opattr,
                                               &ftp_complete_callback,
                                               cbarg);
@@ -1057,7 +1057,7 @@ namespace ArcDMCGridFTP {
       logger.msg(VERBOSE, "Rename: timeout waiting for operation to complete");
       globus_ftp_client_abort(&ftp_handle);
       cond.wait();
-      return DataStatus(DataStatus::RenameError, EARCREQUESTTIMEOUT, "Timeout waiting for rename at "+url.str());
+      return DataStatus(DataStatus::RenameError, EARCREQUESTTIMEOUT, "Timeout waiting for rename at "+url.plainstr());
     }
     if (!callback_status) {
       return DataStatus(DataStatus::RenameError, callback_status.GetErrno(), callback_status.GetDesc());
@@ -1322,7 +1322,7 @@ namespace ArcDMCGridFTP {
     url = u;
     if(triesleft < 1) triesleft = 1;
     // Cache control connection
-    globus_ftp_client_handle_cache_url_state(&ftp_handle, url.str().c_str());
+    globus_ftp_client_handle_cache_url_state(&ftp_handle, url.plainstr().c_str());
     return true;
   }
 
