@@ -24,14 +24,49 @@
 %filter_setup
 %endif
 
+#
+# Build dependency descrepancies across platforms
+#
+%if %{?suse_version:1}%{!?suse_version:0}
+%global glibmm2_devel  glibmm2-devel
+%global openldap_devel openldap2-devel
+%else
+%global glibmm2_devel  glibmm24-devel
+%global openldap_devel openldap-devel
+%endif
+%if %{?fedora}%{!?fedora:5} > 4 && %{?suse_version:0}%{!?suse_version:1}
+%global nss_devel nss-devel
+%else
+%global nss_devel mozilla-nss-devel
+%endif
+
+%if %{?fedora}%{!?fedora:0} >= 12 || %{?rhel}%{!?rhel:0} >= 6 || %{?suse_version:1}%{!?suse_version:0}
+%global libuuid_devel libuuid-devel
+%else
+%global libuuid_devel e2fsprogs-devel
+%endif
+
+#
+# xROOTd
+#
 %if %{?fedora}%{!?fedora:0} >= 12 || %{?rhel}%{!?rhel:0}
 %global with_xrootd %{!?_without_xrootd:1}%{?_without_xrootd:0}
 %else
 %global with_xrootd 0
 %endif
 
+#
+# LFC
+#
+%if %{?suse_version:1}%{!?suse_version:0}
+%global with_lfc 0
+%else
 %global with_lfc %{!?_without_lfc:1}%{?_without_lfc:0}
+%endif
 
+#
+# Java
+#
 %if %{?fedora}%{!?fedora:0} >= 7 || %{?rhel}%{!?rhel:0} >= 5
 %if %{?rhel}%{!?rhel:0} == 5
 %ifarch ppc
@@ -52,6 +87,9 @@
 %endif
 %global with_gcj %{!?_with_gcj:0}%{?_with_gcj:1}
 
+#
+# Python
+#
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5 || %{?suse_version:1}%{!?suse_version:0}
 %if %{?rhel}%{!?rhel:0} == 6
 %ifarch ppc64
@@ -89,7 +127,26 @@
 %global with_canl 0
 %endif
 
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} <= 6
+%global with_xmlsec1 %{!?_without_xmlsec1:1}%{?_without_xmlsec1:0}
+%else
+%global with_xmlsec1 0
+%endif
+
+%if %{?suse_version:1}%{!?suse_version:0}
+%global with_gacl 0
+%else
 %global with_gacl %{!?_without_gacl:1}%{?_without_gacl:0}
+%endif
+
+#
+# CA utils
+#
+%if %{?suse_version:1}%{!?suse_version:0}
+%global with_cautils 0
+%else
+%global with_cautils 1
+%endif
 
 %global pkgdir arc
 
@@ -149,23 +206,17 @@ BuildRequires:	python3-devel
 %if %{with_pylint}
 BuildRequires:	pylint
 %endif
-BuildRequires:	glibmm24-devel
+BuildRequires:	%{glibmm2_devel}
 BuildRequires:	glib2-devel
 BuildRequires:	libxml2-devel
 BuildRequires:	openssl
 BuildRequires:	openssl-devel
+%if %{with_xmlsec1}
 BuildRequires:	xmlsec1-devel >= 1.2.4
 BuildRequires:	xmlsec1-openssl-devel >= 1.2.4
-%if %{?fedora}%{!?fedora:5} > 4 && %{?suse_version:0}%{!?suse_version:1}
-BuildRequires:	nss-devel
-%else
-BuildRequires:	mozilla-nss-devel
 %endif
-%if %{?suse_version:1}%{!?suse_version:0}
-BuildRequires:	openldap2-devel
-%else
-BuildRequires:	openldap-devel
-%endif
+BuildRequires:	%{nss_devel}
+BuildRequires:	%{openldap_devel}
 BuildRequires:	globus-common-devel
 BuildRequires:	globus-ftp-client-devel
 BuildRequires:	globus-ftp-control-devel
@@ -720,7 +771,7 @@ files.
 Summary:	ARC development files
 Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	glibmm24-devel
+Requires:	%{glibmm2_devel}
 Requires:	glib2-devel
 Requires:	libxml2-devel
 Requires:	openssl-devel
@@ -833,6 +884,7 @@ This package contains the ARC authorization machinery.
 A prominent tool distributed in this package is the nordugridmap
 script to collect user information from the virtual organizations.
 
+%if %{with_cautils}
 %package ca-utils
 Summary:	NorduGrid authentication tools
 Group:		Applications/Internet
@@ -851,6 +903,7 @@ Connector (ARC).
 The nordugrid-arc-ca-utils packages has been obsoleted.
 The functionality of the grid-update-crls tool is provided by the
 fetch-crl tool in the fetch-crl package.
+%endif
 
 %package misc-utils
 Summary:	NorduGrid misc tools
@@ -988,6 +1041,7 @@ make -C src/hed				DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-profileDATA
 make -C src/doc DESTDIR=$RPM_BUILD_ROOT install-exampleDATA
 
 # Link to arc.conf.reference from doc
+rm -f $PWD/docdir/arc.conf.reference
 ln -s %{_datadir}/%{pkgdir}/examples/arc.conf.reference $PWD/docdir/arc.conf.reference
 
 %clean
@@ -1191,14 +1245,18 @@ fi
 [ -x %{_bindir}/rebuild-gcj-db ] && %{_bindir}/rebuild-gcj-db
 %endif
 
+%if %{with_cautils}
 %post ca-utils
 # Enable and start CRL updates via cron for backward compatibility
 /sbin/chkconfig fetch-crl-cron on
 service fetch-crl-cron start > /dev/null 2>&1
+%endif
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
 %doc docdir/arc.conf.reference README AUTHORS LICENSE NOTICE ChangeLog
+%dir %{_libdir}/%{pkgdir}
+%dir %{_libexecdir}/%{pkgdir}
 %{_libdir}/libarccompute.so.*
 %{_libdir}/libarccommunication.so.*
 %{_libdir}/libarccommon.so.*
@@ -1214,7 +1272,9 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/libarcinfosys.so.*
 %{_libdir}/libarcws.so.*
 %{_libdir}/libarcwssecurity.so.*
+%if %{with_xmlsec1}
 %{_libdir}/libarcxmlsec.so.*
+%endif
 # We need to have libmodcrypto.so close to libarccrypto
 %{_libdir}/%{pkgdir}/libmodcrypto.so
 %{_libdir}/%{pkgdir}/libmodcrypto.apd
@@ -1222,6 +1282,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libmodcredential.so
 %{_libdir}/%{pkgdir}/libmodcredential.apd
 %{_libdir}/%{pkgdir}/arc-file-access
+%dir %{_datadir}/%{pkgdir}/examples
 %{_datadir}/%{pkgdir}/examples/arc.conf.reference
 %dir %{_datadir}/%{pkgdir}/test-jobs
 %{_datadir}/%{pkgdir}/test-jobs/test-job-*
@@ -1248,11 +1309,14 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_bindir}/arcresub
 %{_bindir}/arcresume
 %{_bindir}/arcrm
+%if %{with_xmlsec1}
 %{_bindir}/arcslcs
+%endif
 %{_bindir}/arcstat
 %{_bindir}/arcsub
 %{_bindir}/arcsync
 %{_bindir}/arctest
+%dir %{_sysconfdir}/%{pkgdir}
 %config(noreplace) %{_sysconfdir}/%{pkgdir}/client.conf
 %doc %{_mandir}/man1/arcacl.1*
 %doc %{_mandir}/man1/arccat.1*
@@ -1271,7 +1335,9 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/arcresub.1*
 %doc %{_mandir}/man1/arcresume.1*
 %doc %{_mandir}/man1/arcrm.1*
+%if %{with_xmlsec1}
 %doc %{_mandir}/man1/arcslcs.1*
+%endif
 %doc %{_mandir}/man1/arcstat.1*
 %doc %{_mandir}/man1/arcsub.1*
 %doc %{_mandir}/man1/arcsync.1*
@@ -1433,6 +1499,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %dir %{_localstatedir}/spool/arc/urs
 %if %{with_python}
 %{_libexecdir}/%{pkgdir}/ssmsend
+%dir %{_datadir}/%{pkgdir}/ssm
 %{_datadir}/%{pkgdir}/ssm/__init__.py*
 %{_datadir}/%{pkgdir}/ssm/crypto.py*
 %{_datadir}/%{pkgdir}/ssm/ssm2.py*
@@ -1443,6 +1510,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %if %{with_acix}
 %files acix-core
 %defattr(-,root,root,-)
+%dir %{python_sitelib}/acix
 %{python_sitelib}/acix/__init__.py*
 %{python_sitelib}/acix/core
 
@@ -1470,6 +1538,8 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files plugins-needed
 %defattr(-,root,root,-)
+%dir %{_libdir}/%{pkgdir}/test
+%{_libdir}/%{pkgdir}/test/libaccTEST.so
 %{_libdir}/%{pkgdir}/libaccARC1.so
 %{_libdir}/%{pkgdir}/libaccBroker.so
 %{_libdir}/%{pkgdir}/libaccCREAM.so
@@ -1477,7 +1547,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.so
 %{_libdir}/%{pkgdir}/libaccSER.so
 %{_libdir}/%{pkgdir}/libaccldap.so
-%{_libdir}/%{pkgdir}/test/libaccTEST.so
 %{_libdir}/%{pkgdir}/libarcshc.so
 %{_libdir}/%{pkgdir}/libarcshclegacy.so
 %{_libdir}/%{pkgdir}/libdmcfile.so
@@ -1601,19 +1670,23 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc src/utils/gridmap/nordugridmap.conf
 %doc %{_mandir}/man8/nordugridmap.8*
 
+%if %{with_cautils}
 %files ca-utils
 %defattr(-,root,root,-)
+%endif
 
 %files misc-utils
 %defattr(-,root,root,-)
 %{_bindir}/arcemiestest
 %{_bindir}/arcwsrf
 %{_bindir}/arcperftest
+%if %{with_xmlsec1}
 %{_bindir}/saml_assertion_init
+%doc %{_mandir}/man1/saml_assertion_init.1*
+%endif
 %doc %{_mandir}/man1/arcemiestest.1*
 %doc %{_mandir}/man1/arcwsrf.1*
 %doc %{_mandir}/man1/arcperftest.1*
-%doc %{_mandir}/man1/saml_assertion_init.1*
 
 %changelog
 * @SPECDATE@ Anders Waananen <waananen@nbi.dk> - @baseversion@-@fedorarelease@
