@@ -32,9 +32,15 @@ std::string VOMSConfigLine::Str() const {
   return "\"" + name + "\" \"" + host + "\" \"" + port + "\" \"" + subject + "\" \"" + alias + "\"";
 }
 
-VOMSConfig::iterator::operator bool(void) const { return (*this != list_.end()); }
+VOMSConfig::iterator::operator bool(void) const { return (list_ && (*this != list_->end())); }
 
-bool VOMSConfig::iterator::operator!(void) const { return (*this == list_.end()); }
+bool VOMSConfig::iterator::operator!(void) const { return (!list_ || (*this == list_->end())); }
+
+VOMSConfig::iterator::iterator(void):
+  list_(NULL),
+  std::list<VOMSConfigLine>::iterator() 
+{
+}
 
 VOMSConfig::iterator::iterator(const iterator& it):
   list_(it.list_),
@@ -42,8 +48,13 @@ VOMSConfig::iterator::iterator(const iterator& it):
 {
 }
 
+VOMSConfig::iterator& VOMSConfig::iterator::operator=(const VOMSConfig::iterator& it) {
+  list_ = it.list_;
+  std::list<VOMSConfigLine>::iterator::operator=((const std::list<VOMSConfigLine>::iterator&)it);
+}
+
 VOMSConfig::iterator::iterator(std::list<VOMSConfigLine>& list, std::list<VOMSConfigLine>::iterator it):
-  list_(list),
+  list_(&list),
   std::list<VOMSConfigLine>::iterator(it) {
 }
 
@@ -81,33 +92,37 @@ VOMSConfig::iterator VOMSConfig::First(const VOMSConfig::filter& lfilter) {
 }
 
 VOMSConfig::iterator VOMSConfig::iterator::NextByName(void) {
-  for(std::list<VOMSConfigLine>::iterator line = *this; line != this->list_.end(); ++line) {
+  if(!this->list_) return iterator();
+  for(std::list<VOMSConfigLine>::iterator line = *this; line != this->list_->end(); ++line) {
     if(line->Name() == (*this)->Name()) {
-      return iterator(this->list_,line);
+      return iterator(*(this->list_),line);
     };
   };
-  return iterator(this->list_,this->list_.end());
+  return iterator(*(this->list_),this->list_->end());
 }
 
 VOMSConfig::iterator VOMSConfig::iterator::NextByAlias(void) {
-  for(std::list<VOMSConfigLine>::iterator line = *this; line != this->list_.end(); ++line) {
+  if(!this->list_) return iterator();
+  for(std::list<VOMSConfigLine>::iterator line = *this; line != this->list_->end(); ++line) {
     if(line->Alias() == (*this)->Alias()) {
-      return iterator(this->list_,line);
+      return iterator(*(this->list_),line);
     };
   };
-  return iterator(this->list_,this->list_.end());
+  return iterator(*(this->list_),this->list_->end());
 }
 
 VOMSConfig::iterator VOMSConfig::iterator::Next(const VOMSConfig::filter& lfilter) {
-  for(std::list<VOMSConfigLine>::iterator line = *this; line != this->list_.end(); ++line) {
+  if(!this->list_) return iterator();
+  for(std::list<VOMSConfigLine>::iterator line = *this; line != this->list_->end(); ++line) {
     if(lfilter.match(*line)) {
-      return iterator(this->list_,line);
+      return iterator(*(this->list_),line);
     };
   };
-  return iterator(this->list_,this->list_.end());
+  return iterator(*(this->list_),this->list_->end());
 }
 
 VOMSConfigLine* VOMSConfig::iterator::operator->(void) const {
+  if(!this->list_) return NULL;
   return std::list<VOMSConfigLine>::iterator::operator->();
 }
 

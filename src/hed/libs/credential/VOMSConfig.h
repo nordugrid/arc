@@ -40,10 +40,11 @@ class VOMSConfig {
      iterator& operator=(const iterator& it);
      operator bool(void) const;
      bool operator!(void) const;
+     iterator(void);
      iterator(const iterator& it);
      VOMSConfigLine* operator->() const;
     private:
-     std::list<VOMSConfigLine>& list_;
+     std::list<VOMSConfigLine>* list_;
      iterator(std::list<VOMSConfigLine>& list, std::list<VOMSConfigLine>::iterator it);
   };
   VOMSConfig(const std::string& path, const filter& lfilter = filter());
