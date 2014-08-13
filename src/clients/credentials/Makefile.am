@@ -1,7 +1,9 @@
 if XMLSEC_ENABLED
 SLCS_CLIENT_PROGRAM = arcslcs
+SLCS_CLIENT_MAN     = arcslcs.1
 else
 SLCS_CLIENT_PROGRAM =
+SLCS_CLIENT_MAN     =
 endif
 if CANLXX_ENABLED
 ARCPROXYALT_PROGRAM = arcproxyalt
@@ -87,4 +89,4 @@ test2myproxyserver_get_LDADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 
-man_MANS = arcproxy.1 arcslcs.1
+man_MANS = arcproxy.1 $(SLCS_CLIENT_MAN)
