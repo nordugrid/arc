@@ -37,25 +37,27 @@ VOMSConfig::iterator::operator bool(void) const { return (list_ && (*this != lis
 bool VOMSConfig::iterator::operator!(void) const { return (!list_ || (*this == list_->end())); }
 
 VOMSConfig::iterator::iterator(void):
-  list_(NULL),
-  std::list<VOMSConfigLine>::iterator() 
+  std::list<VOMSConfigLine>::iterator(),
+  list_(NULL)
 {
 }
 
 VOMSConfig::iterator::iterator(const iterator& it):
-  list_(it.list_),
-  std::list<VOMSConfigLine>::iterator(it) 
+  std::list<VOMSConfigLine>::iterator(it),
+  list_(it.list_)
 {
 }
 
 VOMSConfig::iterator& VOMSConfig::iterator::operator=(const VOMSConfig::iterator& it) {
   list_ = it.list_;
   std::list<VOMSConfigLine>::iterator::operator=((const std::list<VOMSConfigLine>::iterator&)it);
+  return *this;
 }
 
 VOMSConfig::iterator::iterator(std::list<VOMSConfigLine>& list, std::list<VOMSConfigLine>::iterator it):
-  list_(&list),
-  std::list<VOMSConfigLine>::iterator(it) {
+  std::list<VOMSConfigLine>::iterator(it),
+  list_(&list)
+{
 }
 
 bool VOMSConfig::filter::match(const VOMSConfigLine& line) const { return true; }
