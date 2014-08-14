@@ -150,6 +150,64 @@
 
 %global pkgdir arc
 
+#
+# Macros for scripts
+#
+
+# Stop and disable service on package removal
+%if %{?stop_on_removal:0}%{!?stop_on_removal:1}
+%global stop_on_removal() \
+if [ $1 -eq 0 ]; then \
+  for s in %*; do \
+    service $s stop > /dev/null 2>&1 || : ; \
+  done; \
+  for s in %*; do \
+    /sbin/chkconfig --del $s; \
+  done; \
+fi \
+%nil
+%endif
+
+# Enable a service
+%if %{?suse_version:1}%{!?suse_version:0}
+%define enable_service() \
+%{expand:%%fillup_and_insserv -f %{?*}} \
+%nil
+%else
+%define enable_service() \
+for s in %{?*}; do \
+  /sbin/chkconfig --add $s ; \
+done \
+%nil
+%endif
+
+# Conditionally restart service on package update
+%if %{?suse_version:1}%{!?suse_version:0}
+%define condrestart_on_update() \
+%{expand:%%restart_on_update %{?*}} \
+%{expand:%%insserv_cleanup} \
+%nil
+%else
+%define condrestart_on_update() \
+if [ $1 -ge 1 ]; then \
+  for s in %{?*}; do \
+    service $s condrestart > /dev/null 2>&1 || : ; \
+  done; \
+fi \
+%nil
+%endif
+
+# Standard service requirements
+%if %{?suse_version:1}%{!?suse_version:0}
+%define service_post_requires   %{insserv_prereq}
+%define service_preun_requires  %{insserv_prereq}
+%define service_postun_requires %{insserv_prereq}
+%else
+%define service_post_requires   chkconfig
+%define service_preun_requires  chkconfig, initscripts
+%define service_postun_requires initscripts
+%endif
+
 Name:		@PACKAGE@
 Version:	@baseversion@
 Release:	@fedorarelease@%{?dist}
@@ -348,10 +406,9 @@ Obsoletes:	nordugrid-arc1-server < 1.0.0
 Provides:	nordugrid-arc-nox-hed = 1.3.0
 Obsoletes:	nordugrid-arc-nox-hed < 1.3.0
 
-Requires(post):		chkconfig
-Requires(preun):	chkconfig
-Requires(preun):	initscripts
-Requires(postun):	initscripts
+Requires(post):		%{service_post_requires}
+Requires(preun):	%{service_preun_requires}
+Requires(postun):	%{service_postun_requires}
 
 %description hed
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -369,10 +426,9 @@ Requires:	%{name}-plugins-globus
 Provides:	nordugrid-arc-nox-gridftp-server = 1.3.0
 Obsoletes:	nordugrid-arc-nox-gridftp-server < 1.3.0
 
-Requires(post):		chkconfig
-Requires(preun):	chkconfig
-Requires(preun):	initscripts
-Requires(postun):	initscripts
+Requires(post):		%{service_post_requires}
+Requires(preun):	%{service_preun_requires}
+Requires(postun):	%{service_postun_requires}
 
 %description gridftpd
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -397,10 +453,9 @@ Requires:	%{name}-plugins-needed = %{version}-%{release}
 Provides:	nordugrid-arc-nox-cache-service = 1.3.0
 Obsoletes:	nordugrid-arc-nox-cache-service < 1.3.0
 
-Requires(post):		chkconfig
-Requires(preun):	chkconfig
-Requires(preun):	initscripts
-Requires(postun):	initscripts
+Requires(post):		%{service_post_requires}
+Requires(preun):	%{service_preun_requires}
+Requires(postun):	%{service_postun_requires}
 
 %description cache-service
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -418,10 +473,9 @@ Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-hed = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
 
-Requires(post):		chkconfig
-Requires(preun):	chkconfig
-Requires(preun):	initscripts
-Requires(postun):	initscripts
+Requires(post):		%{service_post_requires}
+Requires(preun):	%{service_preun_requires}
+Requires(postun):	%{service_postun_requires}
 
 %description datadelivery-service
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -444,10 +498,9 @@ Requires:	openldap-servers
 Requires:	glue-schema >= 2.0.10
 Requires:	bdii
 
-Requires(post):		chkconfig
-Requires(preun):	chkconfig
-Requires(preun):	initscripts
-Requires(postun):	initscripts
+Requires(post):		%{service_post_requires}
+Requires(preun):	%{service_preun_requires}
+Requires(postun):	%{service_postun_requires}
 
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 Requires(post):		policycoreutils
@@ -486,10 +539,9 @@ Requires:	openldap-servers
 Requires:	glue-schema >= 2.0.10
 Requires:	bdii
 
-Requires(post):		chkconfig
-Requires(preun):	chkconfig
-Requires(preun):	initscripts
-Requires(postun):	initscripts
+Requires(post):		%{service_post_requires}
+Requires(preun):	%{service_preun_requires}
+Requires(postun):	%{service_postun_requires}
 
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 Requires(post):		policycoreutils
@@ -520,10 +572,9 @@ Obsoletes:	nordugrid-arc-nox-giis < 1.3.0
 Requires:	openldap-servers
 Requires:	glue-schema >= 2.0.10
 
-Requires(post):		chkconfig
-Requires(preun):	chkconfig
-Requires(preun):	initscripts
-Requires(postun):	initscripts
+Requires(post):		%{service_post_requires}
+Requires(preun):	%{service_preun_requires}
+Requires(postun):	%{service_postun_requires}
 
 %if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 Requires(post):		policycoreutils
@@ -604,10 +655,9 @@ Provides:	nordugrid-arc-nox-arex = 1.3.0
 Obsoletes:	nordugrid-arc-nox-arex < 1.3.0
 Obsoletes:	nordugrid-arc-blahp-logger
 
-Requires(post):		chkconfig
-Requires(preun):	chkconfig
-Requires(preun):	initscripts
-Requires(postun):	initscripts
+Requires(post):		%{service_post_requires}
+Requires(preun):	%{service_preun_requires}
+Requires(postun):	%{service_postun_requires}
 
 %description arex
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -712,6 +762,10 @@ Requires:	pyOpenSSL
 Requires:	python-hashlib
 %endif
 
+Requires(post):		%{service_post_requires}
+Requires(preun):	%{service_preun_requires}
+Requires(postun):	%{service_postun_requires}
+
 %description acix-core
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
@@ -732,6 +786,10 @@ Requires:	pyOpenSSL
 Requires:	python-hashlib
 %endif
 Requires:	%{name}-acix-core = %{version}-%{release}
+
+Requires(post):		%{service_post_requires}
+Requires(preun):	%{service_preun_requires}
+Requires(postun):	%{service_postun_requires}
 
 %description acix-cache
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -755,6 +813,10 @@ Requires:	pyOpenSSL
 Requires:	python-hashlib
 %endif
 Requires:	%{name}-acix-core = %{version}-%{release}
+
+Requires(post):		%{service_post_requires}
+Requires(preun):	%{service_preun_requires}
+Requires(postun):	%{service_postun_requires}
 
 %description acix-index
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -1056,96 +1118,62 @@ rm -rf $RPM_BUILD_ROOT
 %postun plugins-globus -p /sbin/ldconfig
 
 %post hed
-/sbin/chkconfig --add arched
+%enable_service arched
 
 %preun hed
-if [ $1 -eq 0 ]; then
-  service arched stop > /dev/null 2>&1
-  /sbin/chkconfig --del arched
-fi
+%stop_on_removal arched
 
 %postun hed
-if [ $1 -ge 1 ]; then
-  service arched condrestart > /dev/null 2>&1
-fi
+%condrestart_on_update arched
 
 %post arex
-/sbin/chkconfig --add a-rex
+%enable_service a-rex
 
 %preun arex
-if [ $1 -eq 0 ]; then
-  service a-rex stop > /dev/null 2>&1
-  /sbin/chkconfig --del a-rex
-fi
+%stop_on_removal a-rex
 
 %postun arex
-if [ $1 -ge 1 ]; then
-  service a-rex condrestart > /dev/null 2>&1
-fi
+%condrestart_on_update a-rex
 
 %post gridftpd
-/sbin/chkconfig --add gridftpd
+%enable_service gridftpd
 
 %preun gridftpd
-if [ $1 -eq 0 ]; then
-  service gridftpd stop > /dev/null 2>&1
-  /sbin/chkconfig --del gridftpd
-fi
+%stop_on_removal gridftpd
 
 %postun gridftpd
-if [ $1 -ge 1 ]; then
-  service gridftpd condrestart > /dev/null 2>&1
-fi
+%condrestart_on_update gridftpd
 
 %post cache-service
-/sbin/chkconfig --add arc-cache-service
+%enable_service arc-cache-service
 
 %preun cache-service
-if [ $1 -eq 0 ]; then
-  service arc-cache-service stop > /dev/null 2>&1
-  /sbin/chkconfig --del arc-cache-service
-fi
+%stop_on_removal arc-cache-service
 
 %postun cache-service
-if [ $1 -ge 1 ]; then
-  service arc-cache-service condrestart > /dev/null 2>&1
-fi
+%condrestart_on_update arc-cache-service
 
 %post datadelivery-service
-/sbin/chkconfig --add arc-datadelivery-service
+%enable_service arc-datadelivery-service
 
 %preun datadelivery-service
-if [ $1 -eq 0 ]; then
-  service arc-datadelivery-service stop > /dev/null 2>&1
-  /sbin/chkconfig --del arc-datadelivery-service
-fi
+%stop_on_removal arc-datadelivery-service
 
 %postun datadelivery-service
-if [ $1 -ge 1 ]; then
-  service arc-datadelivery-service condrestart > /dev/null 2>&1
-fi
+%condrestart_on_update arc-datadelivery-service
 
 %post ldap-infosys
-/sbin/chkconfig --add nordugrid-arc-slapd
-/sbin/chkconfig --add nordugrid-arc-inforeg
+%enable_service nordugrid-arc-slapd nordugrid-arc-inforeg
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 semanage port -a -t ldap_port_t -p tcp 2135 2>/dev/null || :
 semanage fcontext -a -t slapd_etc_t "/var/run/arc/infosys/bdii-slapd\.conf" 2>/dev/null || :
 %endif
 
 %preun ldap-infosys
-if [ $1 -eq 0 ]; then
-  service nordugrid-arc-slapd stop > /dev/null 2>&1
-  service nordugrid-arc-inforeg stop > /dev/null 2>&1
-  /sbin/chkconfig --del nordugrid-arc-slapd
-  /sbin/chkconfig --del nordugrid-arc-inforeg
-fi
+%stop_on_removal nordugrid-arc-slapd nordugrid-arc-inforeg
 
 %postun ldap-infosys
-if [ $1 -ge 1 ]; then
-  service nordugrid-arc-slapd condrestart > /dev/null 2>&1
-  service nordugrid-arc-inforeg condrestart > /dev/null 2>&1
-fi
+%condrestart_on_update nordugrid-arc-slapd nordugrid-arc-inforeg
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 if [ $1 -eq 0 ]; then
   semanage port -d -t ldap_port_t -p tcp 2135 2>/dev/null || :
@@ -1154,7 +1182,7 @@ fi
 %endif
 
 %post aris
-/sbin/chkconfig --add nordugrid-arc-bdii
+%enable_service nordugrid-arc-bdii
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 semanage fcontext -a -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
 semanage fcontext -a -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null || :
@@ -1163,15 +1191,10 @@ semanage fcontext -d -t slapd_db_t "/var/run/arc/bdii(/.*)?" 2>/dev/null || :
 %endif
 
 %preun aris
-if [ $1 -eq 0 ]; then
-  service nordugrid-arc-bdii stop > /dev/null 2>&1 || :
-  /sbin/chkconfig --del nordugrid-arc-bdii
-fi
+%stop_on_removal nordugrid-arc-bdii
 
 %postun aris
-if [ $1 -ge 1 ]; then
-  service nordugrid-arc-bdii condrestart > /dev/null 2>&1 || :
-fi
+%condrestart_on_update nordugrid-arc-bdii
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 if [ $1 -eq 0 ]; then
   semanage fcontext -d -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
@@ -1180,25 +1203,25 @@ fi
 %endif
 
 %triggerun aris -- bdii
+%if %{?suse_version:1}%{!?suse_version:0}
+FIRST_ARG=1
+%restart_on_update nordugrid-arc-bdii
+%else
 service nordugrid-arc-bdii condrestart > /dev/null 2>&1 || :
+%endif
 
 %post egiis
-/sbin/chkconfig --add nordugrid-arc-egiis
+%enable_service nordugrid-arc-egiis
 %if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 /usr/sbin/semodule -i %{_datadir}/selinux/packages/%{name}/%{name}-egiis.pp > /dev/null 2>&1 || :
 /sbin/restorecon %{_sbindir}/arc-infoindex-relay
 %endif
 
 %preun egiis
-if [ $1 -eq 0 ]; then
-  service nordugrid-arc-egiis stop > /dev/null 2>&1 || :
-  /sbin/chkconfig --del nordugrid-arc-egiis
-fi
+%stop_on_removal nordugrid-arc-egiis
 
 %postun egiis
-if [ $1 -ge 1 ]; then
-  service nordugrid-arc-egiis condrestart > /dev/null 2>&1 || :
-fi
+%condrestart_on_update nordugrid-arc-egiis
 %if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 if [ $1 -eq 0 ] ; then
   /usr/sbin/semodule -r %{name}-egiis > /dev/null 2>&1 || :
@@ -1207,32 +1230,22 @@ fi
 
 %if %{with_acix}
 %post acix-cache
-/sbin/chkconfig --add acix-cache
+%enable_service acix-cache
 
 %preun acix-cache
-if [ $1 -eq 0 ]; then
-  service acix-cache stop > /dev/null 2>&1
-  /sbin/chkconfig --del acix-cache
-fi
+%stop_on_removal acix-cache
 
 %postun acix-cache
-if [ $1 -ge 1 ]; then
-  service acix-cache condrestart > /dev/null 2>&1 || :
-fi
+%condrestart_on_update acix-cache
 
 %post acix-index
-/sbin/chkconfig --add acix-index
+%enable_service acix-index
 
 %preun acix-index
-if [ $1 -eq 0 ]; then
-  service acix-index stop > /dev/null 2>&1 || :
-  /sbin/chkconfig --del acix-index
-fi
+%stop_on_removal acix-index
 
 %postun acix-index
-if [ $1 -ge 1 ]; then
-  service acix-index condrestart > /dev/null 2>&1 || :
-fi
+%condrestart_on_update acix-index
 %endif
 
 %if %{with_java} && %{with_gcj}
