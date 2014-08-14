@@ -145,7 +145,7 @@ int RUNMAIN(arckill)(int argc, char **argv) {
 
     if (!jobstore->Remove(jobmaster.GetIDsProcessed())) {
       std::cout << Arc::IString("Warning: Failed removing jobs from file (%s)", usercfg.JobListFile()) << std::endl;
-      std::cout << Arc::IString("         Run 'arcclean -s Undefined' to remove killed jobs from job list", usercfg.JobListFile()) << std::endl;
+      std::cout << Arc::IString("         Run 'arcclean -s Undefined' to remove killed jobs from job list") << std::endl;
       retval = 1;
     }
     std::cout << Arc::IString("Jobs processed: %d, successfully killed: %d, successfully cleaned: %d", selected_num, canceled_num, cleaned_num) << std::endl;
