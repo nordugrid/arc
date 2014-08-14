@@ -138,7 +138,7 @@ int RUNMAIN(arckill)(int argc, char **argv) {
     jobmaster.SelectByID(canceled);
     if(!jobmaster.Clean()) {
       std::cout << Arc::IString("Warning: Some jobs were not removed from server") << std::endl;
-      std::cout << Arc::IString("         Use arclean to remove retrieved jobs from job list", usercfg.JobListFile()) << std::endl;
+      std::cout << Arc::IString("         Use arcclean to remove retrieved jobs from job list", usercfg.JobListFile()) << std::endl;
       retval = 1;
     }
     cleaned_num = jobmaster.GetIDsProcessed().size();
