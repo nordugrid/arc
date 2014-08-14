@@ -1403,12 +1403,12 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files ldap-monitor
 %defattr(-,root,root,-)
-%{_datadir}/%{pkgdir}/ldap-monitor/*
+%{_datadir}/%{pkgdir}/ldap-monitor
 %doc %{_mandir}/man7/ldap-monitor.7*
 
 %files ws-monitor
 %defattr(-,root,root,-)
-%{_datadir}/%{pkgdir}/ws-monitor/*
+%{_datadir}/%{pkgdir}/ws-monitor
 %doc %{_mandir}/man7/ws-monitor.7*
 
 %files cache-service
