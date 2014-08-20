@@ -1,15 +1,15 @@
 #!/bin/sh
 # ARC cache index server
 #
-# chkconfig: - 75 25
+# chkconfig: 2345 75 25
 # description:  The ARC cache index server collects cache information from \
 #               cache servers and can be queried for the locations of cached \
 #               files.
 
 ### BEGIN INIT INFO
 # Provides:             acix-index
-# Required-Start:       $network
-# Required-Stop:        $network
+# Required-Start:       $network $local_fs
+# Required-Stop:        $network $local_fs
 # Should-Start:         $time
 # Should-Stop:          $time
 # Default-Start:        2 3 4 5
