@@ -4,13 +4,13 @@ nordugrid-arc (@debianversion@-1) unstable; urgency=low
 
  -- Anders Waananen <waananen@nbi.dk>  @DATER@
 
-nordugrid-arc (4.0.0rc2-1) unstable; urgency=low
+nordugrid-arc (4.0.0~rc2-1) unstable; urgency=low
 
   * 4.0.0 Release Candidate 2
 
  -- Anders Waananen <waananen@nbi.dk>  Thu, 07 Nov 2013 11:01:24 +0100
 
-nordugrid-arc (4.0.0rc1-1) unstable; urgency=low
+nordugrid-arc (4.0.0~rc1-1) unstable; urgency=low
 
   * 4.0.0 Release Candidate 1
 
