@@ -127,7 +127,7 @@
 %global with_canl 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} <= 6
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0}
 %global with_xmlsec1 %{!?_without_xmlsec1:1}%{?_without_xmlsec1:0}
 %else
 %global with_xmlsec1 0
