@@ -5,6 +5,9 @@
 #include <iostream>
 #include <string>
 
+#include <list>
+std::ostream& operator<<(std::ostream& os, const std::list<std::string>& strings);
+
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <arc/StringConv.h>

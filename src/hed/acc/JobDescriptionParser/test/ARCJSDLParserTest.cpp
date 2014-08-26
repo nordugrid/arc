@@ -4,6 +4,9 @@
 
 #include <string>
 
+#include <list>
+std::ostream& operator<<(std::ostream& os, const std::list<std::string>& strings);
+
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <arc/StringConv.h>
@@ -422,7 +425,7 @@ void ARCJSDLParserTest::TestAccessControl() {
   CPPUNIT_ASSERT_EQUAL((std::string)"gacl", OUTJOBS.front().Application.AccessControl.Name());
   CPPUNIT_ASSERT_EQUAL(1, OUTJOBS.front().Application.AccessControl.Size());
   CPPUNIT_ASSERT_EQUAL((std::string)"entry", OUTJOBS.front().Application.AccessControl.Child().Name());
-  
+
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "nordugrid:jsdl"));
   OUTJOBS.clear();
@@ -463,7 +466,7 @@ void ARCJSDLParserTest::TestBasicJSDLCompliance() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 123, OUTJOBS.front().Resources.DiskSpaceRequirement.DiskSpace.min);
-  
+
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "nordugrid:jsdl"));
 
