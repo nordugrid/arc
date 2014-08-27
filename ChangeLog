@@ -1,10 +1,16 @@
 2014-08-08  Gabor Szigeti <szigeti@niif.hu>
   * Accounting message publisher update to SSM 2.1.3.
 
+2014-08-07  Gabor Roczei <roczei@niif.hu>
+  * Bug fixed: SGE BDII integration has problems with long hostnames (#3306)
+
 2014-08-06  Gabor Szigeti <szigeti@niif.hu>
   * Add new configuration option that able to set the frequency of accouting
     message publishing. (fixing bug #3399)
   
+2014-07-28  Gabor Roczei <roczei@niif.hu>
+  * Bug fixed: down nodes cause SGEmod to fail (#3303)
+
 2014-05-09  David Cameron <d.g.cameron@fys.uio.no>
   * Add writing/deleting capability to xrootd DMC
 
