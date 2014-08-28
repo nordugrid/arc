@@ -96,6 +96,7 @@ namespace Arc {
     if (lower(msg).find("object unavailable")   != std::string::npos) return ENOENT;
     if (lower(msg).find("object not available") != std::string::npos) return ENOENT;
     if (lower(msg).find("no such job")          != std::string::npos) return ENOENT;
+    if (lower(msg).find("file unavailable")     != std::string::npos) return ENOENT;
     if (lower(msg).find("file exists")          != std::string::npos) return EEXIST;
     if (lower(msg).find("file not allowed")     != std::string::npos) return EACCES;
     if (lower(msg).find("permission denied")    != std::string::npos) return EACCES;
