@@ -28,7 +28,9 @@ use specified configuration file
 .IP "\fB-d, --controldir=dir\fR"
 read information from specified control directory
 .IP "\fB-s, --showshares\fR"
-print summary of jobs in each transfer share
+print summary of jobs in each transfer share. Shows for input (preparing) and
+output (finishing) files the number of files being copied and the number queued
+per transfer share
 .IP "\fB-J, --notshowjobs\fR"
 do not print list of jobs (printed by default)
 .IP "\fB-S, --notshowstates\fR"
