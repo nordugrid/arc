@@ -806,6 +806,24 @@ namespace Arc
         }
       }
 
+    if (find("jobreport_option_vo_group")!=end())
+      {
+        bool find = false;
+        Arc::XMLNode node = useridentity["GroupAttribute"];
+        while ( bool(node) ){
+          if (node.Attribute("urf:type") == "vo-group" &&
+              std::string(node) == (*this)["jobreport_option_vo_group"]) {
+            find = true;
+            break;
+          }
+          ++node;
+        }
+        if ( !find ) {
+          Arc::XMLNode vog=useridentity.NewChild("GroupAttribute")=(*this)["jobreport_option_vo_group"];
+          vog.NewAttribute("urf:type")="vo-group";
+        }
+      }
+
     if (find("projectname")!=end())
       {
         Arc::XMLNode project=useridentity.NewChild("GroupAttribute")=(*this)["projectname"];
