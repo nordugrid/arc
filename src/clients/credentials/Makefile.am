@@ -14,7 +14,7 @@ bin_PROGRAMS = arcproxy $(SLCS_CLIENT_PROGRAM) $(ARCPROXYALT_PROGRAM)
 
 noinst_PROGRAMS = test2vomsserver test2myproxyserver_put test2myproxyserver_get
 
-arcproxy_SOURCES = arcproxy.cpp arcproxy_voms.cpp arcproxy_myproxy.cpp arcproxy_proxy.cpp
+arcproxy_SOURCES = arcproxy.cpp arcproxy_voms.cpp arcproxy_myproxy.cpp arcproxy_proxy.cpp arcproxy.h
 arcproxy_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arcproxy_LDADD = \
