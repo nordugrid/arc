@@ -1,3 +1,6 @@
+2014-09-02  Gabor Szigeti <szigeti@niif.hu>
+  * Set extra VO attribute to every generated CAR accounting record. (fixes bug #3404)
+
 2014-08-08  Gabor Szigeti <szigeti@niif.hu>
   * Accounting message publisher update to SSM 2.1.3.
 
