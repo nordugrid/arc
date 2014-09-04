@@ -404,18 +404,20 @@ int main(int argc, char *argv[]) {
                     istring("string"), user_name);
 
   bool use_empty_passphrase = false; //if use empty passphrase to myproxy server
-  options.AddOption('N', "nopassphrase", istring("don't prompt for a credential passphrase, when retrieve a \n"
-                                         "              credential from on MyProxy server. \n"
-                                         "              The precondition of this choice is the credential is PUT onto\n"
-                                         "              the MyProxy server without a passphrase by using -R (--retrievable_by_cert) \n"
-                                         "              option when being PUTing onto Myproxy server. \n"
-                                         "              This option is specific for the GET command when contacting Myproxy server."
+  options.AddOption('N', "nopassphrase", istring(
+              "don't prompt for a credential passphrase, when retrieve a \n"
+              "              credential from on MyProxy server. \n"
+              "              The precondition of this choice is the credential is PUT onto\n"
+              "              the MyProxy server without a passphrase by using -R (--retrievable_by_cert) \n"
+              "              option when being PUTing onto Myproxy server. \n"
+              "              This option is specific for the GET command when contacting Myproxy server."
                                          ),
                     use_empty_passphrase);
   
   std::string retrievable_by_cert; //if use empty passphrase to myproxy server
-  options.AddOption('R', "retrievable_by_cert", istring("Allow specified entity to retrieve credential without passphrase.\n"
-                                         "              This option is specific for the PUT command when contacting Myproxy server."
+  options.AddOption('R', "retrievable_by_cert", istring(
+              "Allow specified entity to retrieve credential without passphrase.\n"
+              "              This option is specific for the PUT command when contacting Myproxy server."
                                          ),
                     istring("string"), retrievable_by_cert);
 
@@ -424,14 +426,17 @@ int main(int argc, char *argv[]) {
                     istring("string"), myproxy_server);
 
   std::string myproxy_command; //command to myproxy server
-  options.AddOption('M', "myproxycmd", istring("command to MyProxy server. The command can be PUT or GET.\n"
-                                               "              PUT -- put a delegated credential to the MyProxy server; \n"
-                                               "              GET -- get a delegated credential from the MyProxy server, \n"
-                                               "              credential (certificate and key) is not needed in this case. \n"
-                                               "              MyProxy functionality can be used together with VOMS\n"
-                                               "              functionality.\n"
-                                               "              voms and vomses can be used for Get command if VOMS attributes\n"
-                                               "              is required to be included in the proxy.\n"
+  options.AddOption('M', "myproxycmd", istring(
+        "command to MyProxy server. The command can be PUT, GET, INFO, NEWPASS or DESTROY.\n"
+        "              PUT -- put a delegated credentials to the MyProxy server; \n"
+        "              GET -- get a delegated credentials from the MyProxy server; \n"
+        "              INFO -- get and present information about credentials stored at the MyProxy server; \n"
+        "              NEWPASS -- change password protecting credentials stored at the MyProxy server; \n"
+        "              DESTROY -- wipe off credentials stored at the MyProxy server; \n"
+        "              Local credentials (certificate and key) are not necessary except in case of PUT. \n"
+        "              MyProxy functionality can be used together with VOMS functionality.\n"
+        "              --voms and --vomses can be used for Get command if VOMS attributes\n"
+        "              is required to be included in the proxy.\n"
                                                ),
                     istring("string"), myproxy_command);
 
