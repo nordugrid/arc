@@ -62,6 +62,12 @@ bool contact_myproxy_server(const std::string& myproxy_server, const std::string
   key_path = usercfg.KeyPath();
   cert_path = usercfg.CertificatePath();
   ca_dir = usercfg.CACertificatesDirectory();
+  if(user_name.empty()) {
+    user_name = get_cert_dn(proxy_path);
+  }
+  if(user_name.empty() && !cert_path.empty()) {
+    user_name = get_cert_dn(cert_path);
+  }
 
   //If the "INFO" myproxy command is given, try to get the 
   //information about the existence of stored credentials 
@@ -71,9 +77,6 @@ bool contact_myproxy_server(const std::string& myproxy_server, const std::string
       if (myproxy_server.empty())
         throw std::invalid_argument("URL of MyProxy server is missing");
 
-      if(user_name.empty()) {
-        user_name = get_cert_dn(proxy_path);
-      }
       if (user_name.empty())
         throw std::invalid_argument("Username to MyProxy server is missing");
 
@@ -112,9 +115,6 @@ bool contact_myproxy_server(const std::string& myproxy_server, const std::string
       if (myproxy_server.empty())
         throw std::invalid_argument("URL of MyProxy server is missing");
 
-      if(user_name.empty()) {
-        user_name = get_cert_dn(proxy_path);
-      }
       if (user_name.empty())
         throw std::invalid_argument("Username to MyProxy server is missing");
 
@@ -159,9 +159,6 @@ bool contact_myproxy_server(const std::string& myproxy_server, const std::string
       if (myproxy_server.empty())
         throw std::invalid_argument("URL of MyProxy server is missing");
 
-      if(user_name.empty()) {
-        user_name = get_cert_dn(proxy_path);
-      }
       if (user_name.empty())
         throw std::invalid_argument("Username to MyProxy server is missing");
 
@@ -203,9 +200,6 @@ bool contact_myproxy_server(const std::string& myproxy_server, const std::string
       if (myproxy_server.empty())
         throw std::invalid_argument("URL of MyProxy server is missing");
 
-      if(user_name.empty()) {
-        user_name = get_cert_dn(proxy_path);
-      }
       if (user_name.empty())
         throw std::invalid_argument("Username to MyProxy server is missing");
 
@@ -282,11 +276,10 @@ bool contact_myproxy_server(const std::string& myproxy_server, const std::string
   //myproxy server
   try {
     if (Arc::lower(myproxy_command) == "put") {
+
       if (myproxy_server.empty())
         throw std::invalid_argument("URL of MyProxy server is missing");
-      if(user_name.empty()) {
-        user_name = get_cert_dn(proxy_path);
-      }
+
       if (user_name.empty()) 
         throw std::invalid_argument("Username to MyProxy server is missing");
 

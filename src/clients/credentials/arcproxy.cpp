@@ -400,7 +400,7 @@ int main(int argc, char *argv[]) {
   options.AddOption('r', "remove", istring("remove proxy"), remove_proxy);
 
   std::string user_name; //user name to MyProxy server
-  options.AddOption('U', "user", istring("username to MyProxy server"),
+  options.AddOption('U', "user", istring("username to MyProxy server (if missing subject of user certificate is used)"),
                     istring("string"), user_name);
 
   bool use_empty_passphrase = false; //if use empty passphrase to myproxy server
