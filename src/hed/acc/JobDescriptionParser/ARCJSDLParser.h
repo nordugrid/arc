@@ -45,7 +45,7 @@ namespace Arc {
     template<typename T>
     bool parseRange(XMLNode xmlRange, Range<T>& range) const;
     template<typename T>
-    bool parseMinMax(XMLNode min, XMLNode max, Range<T>& range) const;
+    bool parseMinMax(XMLNodeList min, XMLNodeList max, Range<T>& range) const;
     template<typename T>
     void outputARCJSDLRange(const Range<T>& range, XMLNode& arcJSDL, const T& undefValue) const;
     template<typename T>

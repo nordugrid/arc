@@ -101,61 +101,95 @@ namespace Arc {
       }
     }
     
-    int allowed = types["Exact"].size() + (types["Range"].size() | types["Range/UpperBound"].size() | types["Range/LowerBound"].size()) + (types["UpperBoundedRange"].size() | types["LowerBoundedRange"].size()) + (types["Max"].size() | types["Min"].size());
-    
-    if (!xmlRange || allowed == 0) {
-      logger.msg(VERBOSE, "One of the elements 'Exact', 'UpperBoundedRange', 'LowerBoundedRange', 'Range', 'Min' or 'Max' was expected.");
-      return false;
+    XMLNodeList xmlMin, xmlMax;
+
+    if(types["LowerBoundedRange"].size()) xmlMin.push_back(types["LowerBoundedRange"].front());
+    if(types["Range/LowerBound"].size()) xmlMin.push_back(types["Range/LowerBound"].front());
+
+    if(types["UpperBoundedRange"].size()) xmlMax.push_back(types["UpperBoundedRange"].front());
+    if(types["Range/UpperBound"].size()) xmlMax.push_back(types["Range/UpperBound"].front());
+
+    for(XMLNodeList::iterator xel = xmlMin.begin(); xel != xmlMin.end(); ++xel) {
+      if (bool(xel->Attribute("exclusiveBound"))) {
+        logger.msg(VERBOSE, "The 'exclusiveBound' attribute to the '%s' element is not supported.", xel->Name());
+        return false;
+      }
     }
 
-    if (allowed > 1) {
-      logger.msg(VERBOSE, "Combinations of 'Exact', 'Range', 'UpperBoundedRange'/'LowerBoundedRange' and 'Max'/'Min' are not supported.");
-      return false;
+    for(XMLNodeList::iterator xel = xmlMax.begin(); xel != xmlMax.end(); ++xel) {
+      if (bool(xel->Attribute("exclusiveBound"))) {
+        logger.msg(VERBOSE, "The 'exclusiveBound' attribute to the '%s' element is not supported.", xel->Name());
+        return false;
+      }
     }
-    
-    XMLNode xmlMin, xmlMax;
-    if (types["UpperBoundedRange"].size() == 1) xmlMax = types["UpperBoundedRange"].front();
-    if (types["LowerBoundedRange"].size() == 1) xmlMin = types["LowerBoundedRange"].front();
-    if (types["Range/UpperBound"].size() == 1) xmlMax = types["Range/UpperBound"].front();
-    if (types["Range/LowerBound"].size() == 1) xmlMin = types["Range/LowerBound"].front();
-
-    if (bool(xmlMax.Attribute("exclusiveBound"))) {
-      logger.msg(VERBOSE, "The 'exclusiveBound' attribute to the '%s' element is not supported.", xmlMax.Name());
-      return false;
-    }
-    if (bool(xmlMin.Attribute("exclusiveBound"))) {
-      logger.msg(VERBOSE, "The 'exclusiveBound' attribute to the '%s' element is not supported.", xmlMin.Name());
-      return false;
-    }
-
-    if (types["Max"].size() == 1) xmlMax = types["Max"].front();
-    if (types["Min"].size() == 1) xmlMin = types["Min"].front();
 
     if (types["Exact"].size() == 1) {
       if (bool(types["Exact"].front().Attribute("epsilon"))) {
         logger.msg(VERBOSE, "The 'epsilon' attribute to the 'Exact' element is not supported.");
         return false;
       } 
-      xmlMax = types["Exact"].front();
+      xmlMax.push_back(types["Exact"].front());
     }
-    
+
+    if(types["Min"].size()) xmlMin.push_back(types["Min"].front());
+    if(types["Max"].size()) xmlMax.push_back(types["Max"].front());
+
     return parseMinMax(xmlMin, xmlMax, range);
   }
   
+  static std::string namesToString(XMLNodeList xlist) {
+    std::string str;
+    for(XMLNodeList::iterator xel = xlist.begin(); xel != xlist.end(); ++xel) {
+      if(!str.empty()) str += ", ";
+      str += xel->Name();
+    }
+    return str;
+  }
+
   template<typename T>
-  bool ARCJSDLParser::parseMinMax(XMLNode xmlMin, XMLNode xmlMax, Range<T>& range) const {
-    std::pair<bool, double> min(false, 0.), max(false, 0.);
-    if (xmlMin) min.first = stringto<double>((std::string)xmlMin, min.second);
-    if (xmlMax) max.first = stringto<double>((std::string)xmlMax, max.second);
-    
-    if (xmlMin && xmlMax && min.first && max.first &&
-        min.second > max.second) {
-      logger.msg(VERBOSE, "Parsing error: Value of %s element is greater than value of %s element", xmlMin.Name(), xmlMax.Name());
+  bool ARCJSDLParser::parseMinMax(XMLNodeList xmlMin, XMLNodeList xmlMax, Range<T>& range) const {
+    std::pair<bool, double> min(false, .0), max(false, .0);
+
+    for(XMLNodeList::iterator xel = xmlMax.begin(); xel != xmlMax.end(); ++xel) {
+      double value;
+      if(!stringto<double>((std::string)*xel, value)) {
+        logger.msg(VERBOSE, "Parsing error: Value of %s element can't be parsed as number", xel->Name());
+        return false;
+      }
+      if(max.first) {
+        if(max.second != value) {
+          logger.msg(VERBOSE, "Parsing error: Elements (%s) representing upper range have different values", namesToString(xmlMax));
+          return false;
+        }
+      } else {
+        max.second = value;
+        max.first = true;
+      }
+    }
+
+    for(XMLNodeList::iterator xel = xmlMin.begin(); xel != xmlMin.end(); ++xel) {
+      double value;
+      if(!stringto<double>((std::string)*xel, value)) {
+        logger.msg(VERBOSE, "Parsing error: Value of %s element can't be parsed as number", xel->Name());
+        return false;
+      }
+      if(min.first) {
+        if(max.second != value) {
+          logger.msg(VERBOSE, "Parsing error: Elements (%s) representing lower range have different values", namesToString(xmlMax));
+        }
+      } else {
+        min.second = value;
+        min.first = true;
+      }
+    }
+
+    if (min.first && max.first && (min.second > max.second)) {
+      logger.msg(VERBOSE, "Parsing error: Value of lower range (%s) is greater than value of upper range (%s)", namesToString(xmlMin), namesToString(xmlMax));
       return false;
     }
     
-    if (xmlMin && min.first) range.min = static_cast<T>(min.second);
-    if (xmlMax && max.first) range.max = static_cast<T>(max.second);
+    if (min.first) range.min = static_cast<T>(min.second);
+    if (max.first) range.max = static_cast<T>(max.second);
     
     return true;
   }
