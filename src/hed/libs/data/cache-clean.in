@@ -123,8 +123,8 @@ sub usage {
     -h       - This help
     -s       - Statistics mode, show cache usage stats, dont delete anything
     -c       - path to an A-REX config file, xml or ini format
-    -m NN    - Min free space to start cleaning (percent)
-    -M NN    - Free space to stop cleaning (percent)
+    -m NN    - Maximum usage of file system. When to start cleaning the cache (percent)
+    -M NN    - Minimum usage of file system. When to stop cleaning cache (percent)
     -E N     - Delete all files whose access time is older than N. Examples
                  of N are 1800, 90s, 24h, 30d (default is seconds)
     -D level - Debug level, FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG.
