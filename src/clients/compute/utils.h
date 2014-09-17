@@ -8,11 +8,27 @@
 #include <arc/compute/Job.h>
 #include <arc/compute/JobInformationStorage.h>
 
+struct termios;
+
+// This class records current state of console
+// when created and recovers it when destroyed.
+// Its main purpose is to recover console in 
+// case application had to cancel any UI actions
+// involving changing console state like 
+// password input.
+class ConsoleRecovery {
+ private:
+  struct termios * ti;
+ public:
+  ConsoleRecovery(void);
+  ~ConsoleRecovery(void);
+};
+
 #ifdef TEST
 #define RUNMAIN(X) test_##X##_main
 #else
 #define RUNMAIN(X) X(int argc, char **argv); \
-  int main(int argc, char **argv) { _exit(X(argc,argv)); return 0; } \
+  int main(int argc, char **argv) { int xr = 0; { ConsoleRecovery cr; xr = X(argc,argv); }; _exit(xr); return 0; } \
   int X
 #endif
 
