@@ -9,7 +9,7 @@
 
 if [ -z "$pkgdatadir" ]; then echo 'pkgdatadir must be set' 1>&2; exit 1; fi
 
-. "$pkgdatadir/config_parser.sh" || exit $?
+. "$pkgdatadir/config_parser_compat.sh" || exit $?
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 config_parse_file $ARC_CONFIG 1>&2 || exit $?
