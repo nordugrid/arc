@@ -1569,7 +1569,7 @@ fi
 if test "x$GLOBUS_IO_VERSION" = "x"; then
   IO_VERSION_MAJOR=0
 else
-  IO_VERSION_MAJOR=`echo "$GLOBUS_IO_VERSION" | sed 's/^\([[^.]]\).*/\1/'`;
+  IO_VERSION_MAJOR=`echo "$GLOBUS_IO_VERSION" | sed 's/^\([[^.]]*\).*/\1/'`;
 fi
 AC_DEFINE_UNQUOTED(GLOBUS_IO_VERSION,$IO_VERSION_MAJOR,[Globus IO version])
 
