@@ -49,13 +49,17 @@ class CacheIndex(service.Service):
     def _updateCache(self, result, url):
 
         hashes, cache_time, cache, cache_url = result
-
+        
         if not cache_url:
             host = urlparse.urlparse(url).netloc
             if ':' in host:
                 host = host.split(':')[0]
             cache_url = host
             
+        if not cache:
+            log.msg("No cache info returned from %s" % cache_url)
+            return
+
         try:
             size = len(cache) * 8
             self.filters[cache_url] = bloomfilter.BloomFilter(size=size, bits=cache, hashes=hashes)
