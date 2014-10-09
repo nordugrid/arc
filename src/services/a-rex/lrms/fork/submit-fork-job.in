@@ -136,6 +136,14 @@ echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG
 #####################################################
 #  Go to working dir and start job
 #####################################################
+# Set the nice value (20 to -20) based on priority (1 to 100)
+# Note negative values are normally only settable by superusers 
+priority=$joboption_priority
+if [ ! -z $priority ]; then
+    nicevalue=$[ 20 - ($priority * 2 / 5) ]
+    joboption_args="nice -n $nicevalue $joboption_args"
+fi
+
 cd_and_run
 echo "fi" >> $LRMS_JOB_SCRIPT
 
