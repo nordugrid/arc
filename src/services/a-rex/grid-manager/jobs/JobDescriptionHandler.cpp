@@ -258,6 +258,7 @@ bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc,
   f<<"joboption_queue="<<value_for_shell(job_local_desc.queue,true)<<std::endl;
   f<<"joboption_starttime="<<(job_local_desc.exectime != -1?job_local_desc.exectime.str(Arc::MDSTime):"")<<std::endl;
   f<<"joboption_gridid="<<value_for_shell(job.get_id(),true)<<std::endl;
+  f<<"joboption_priority="<<Arc::tostring(job_local_desc.priority)<<std::endl;
 
   // Here we need another 'local' description because some info is not
   // stored in job.#.local and still we do not want to mix both.
