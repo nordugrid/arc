@@ -28,6 +28,7 @@ class ContextFactory:
 
         ctx = SSL.Context(SSL.SSLv23_METHOD) # this also allows tls 1.0
         ctx.set_options(SSL.OP_NO_SSLv2) # ssl2 is unsafe
+        ctx.set_options(SSL.OP_NO_SSLv3) # ssl3 is also unsafe
 
         ctx.use_privatekey_file(self.key_path)
         ctx.use_certificate_file(self.cert_path)
