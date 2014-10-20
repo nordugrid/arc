@@ -36,7 +36,7 @@ bool contact_voms_servers(std::map<std::string,std::list<std::string> >& vomscmd
    private:
     const std::string& voms_;
    public:
-    bool match(const Arc::VOMSConfigLine& line) {
+    virtual bool match(const Arc::VOMSConfigLine& line) const {
       return ((line.Name() == voms_) || (line.Alias() == voms_));
     };
     voms_match(const std::string& voms):voms_(voms) { }; 
@@ -46,7 +46,7 @@ bool contact_voms_servers(std::map<std::string,std::list<std::string> >& vomscmd
    private:
     const std::map<std::string,std::list<std::string> >& vomses_;
    public:
-    bool match(const Arc::VOMSConfigLine& line) {
+    virtual bool match(const Arc::VOMSConfigLine& line) const {
       // TODO: this will not scale for many voms servers specified at command line
       for(std::map<std::string,std::list<std::string> >::const_iterator voms = vomses_.begin();
                      voms != vomses_.end(); ++voms) {
@@ -60,6 +60,7 @@ bool contact_voms_servers(std::map<std::string,std::list<std::string> >& vomscmd
   Arc::VOMSConfig voms_config(vomses_path, vomses_match(vomscmdlist));
   if(!voms_config) {
     // logger
+    logger.msg(Arc::ERROR, "Failed to process VOMS configuration or no suitable configuration lines found.");
     return false;
   }
 
@@ -67,15 +68,12 @@ bool contact_voms_servers(std::map<std::string,std::list<std::string> >& vomscmd
   Arc::MCCConfig cfg;
   cfg.AddProxy(tmp_proxy_path);
   cfg.AddCADir(ca_dir);
-std::cerr<<"--- proxy path: "<<tmp_proxy_path<<std::endl;
-std::cerr<<"--- ca path: "<<ca_dir<<std::endl;
-std::cerr<<"--- voms period: "<<voms_period<<std::endl;
   Arc::Period lifetime;
   if(!voms_period.empty()) {
     time_t voms_period_sec;
     if(!Arc::stringto(voms_period,voms_period_sec)) {
-      // Failed to parse port
-      exit(-1);
+      logger.msg(Arc::ERROR, "Failed to parse requested VOMS lifetime: %s", voms_period);
+      return false;
     }
     lifetime = voms_period_sec;
   }
@@ -91,6 +89,7 @@ std::cerr<<"--- voms period: "<<voms_period<<std::endl;
     // Loop through suitable voms configuration lines
     for (Arc::VOMSConfig::iterator vomsline = voms_config.First(voms_match(voms_server));
                                (bool)vomsline; vomsline = vomsline.Next(voms_match(voms_server))) {
+    const std::string& voms_server = vomscmd->first; // server name
       if(vomsline->Host().empty()) {
         logger.msg(Arc::ERROR, "Cannot get VOMS server address information from vomses line: \"%s\"", vomsline->Str());
         throw std::runtime_error("Cannot get VOMS server address information from vomses line: \"" + vomsline->Str() + "\"");
@@ -104,7 +103,8 @@ std::cerr<<"--- voms period: "<<voms_period<<std::endl;
       if(!vomsline->Port().empty()) {
         if(!Arc::stringto(vomsline->Port(),port_num)) {
           // Failed to parse port
-          exit(-1);
+          logger.msg(Arc::ERROR, "Failed to parse requested VOMS server port number: %s", vomsline->Port());
+          continue;
         }
       } else {
         //port_num = ; 
