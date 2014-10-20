@@ -160,7 +160,6 @@ MCC_Status ClientVOMS::process(const std::list<VOMSCommand>& commands,
     msg.GetXML(msg_str,"US-ASCII");
     msg_str.insert(0,"<?xml version=\"1.0\" encoding=\"US-ASCII\"?>");
     request.Insert(msg_str.c_str(), 0, msg_str.length());
-std::cerr<<"--- out: "<<msg_str<<std::endl;
   }
   Arc::PayloadStreamInterface *response = NULL;
   Arc::MCC_Status status = ClientTCP::process(&request, &response, true);
@@ -188,17 +187,13 @@ std::cerr<<"--- out: "<<msg_str<<std::endl;
   do {
     char buf[1024];
     int len = sizeof(buf);
-    if(!response->Get(buf,len)) {
-std::cerr<<"---- last: "<<len<<": "<<std::string(buf,len)<<resp_str<<std::endl;
-break;
-}
+    if(!response->Get(buf,len)) break;
     resp_str.append(buf,len);
     if(resp_str.length() > 4*1024*1024) break; // Some sanity check
   } while(true);
   delete response;
   XMLNode resp(resp_str);
   if(!resp) {
-std::cerr<<"----: \n"<<resp_str<<std::endl;
     return MCC_Status(GENERIC_ERROR,"VOMS","Response is not recognized as XML");
   }
   if(resp.Name() != "vomsans") {
