@@ -1278,7 +1278,7 @@ int main(int argc, char *argv[]) {
         std::cerr << Arc::IString("Proxy generation failed: Failed to create temporary file.") << std::endl;
         return EXIT_FAILURE;
       }
-      create_tmp_proxy(tmp_proxy_path, signer);
+      create_tmp_proxy(tmp_proxy, signer);
       write_proxy_file(tmp_proxy_path, tmp_proxy);
       if(!contact_voms_servers(vomscmdlist, orderlist, vomses_path, use_gsi_comm,
           use_http_comm, voms_period, usercfg, logger, tmp_proxy_path, vomsacseq)) {
