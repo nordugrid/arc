@@ -819,6 +819,9 @@ namespace Arc
           ++node;
         }
         if ( !find ) {
+          if ( !useridentity["Group"] ) {
+            useridentity.NewChild("Group")=(*this)["jobreport_option_vo_group"].substr(1);
+          }
           Arc::XMLNode vog=useridentity.NewChild("GroupAttribute")=(*this)["jobreport_option_vo_group"];
           vog.NewAttribute("urf:type")="vo-group";
         }
