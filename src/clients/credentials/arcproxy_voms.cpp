@@ -89,7 +89,6 @@ bool contact_voms_servers(std::map<std::string,std::list<std::string> >& vomscmd
     // Loop through suitable voms configuration lines
     for (Arc::VOMSConfig::iterator vomsline = voms_config.First(voms_match(voms_server));
                                (bool)vomsline; vomsline = vomsline.Next(voms_match(voms_server))) {
-    const std::string& voms_server = vomscmd->first; // server name
       if(vomsline->Host().empty()) {
         logger.msg(Arc::ERROR, "Cannot get VOMS server address information from vomses line: \"%s\"", vomsline->Str());
         throw std::runtime_error("Cannot get VOMS server address information from vomses line: \"" + vomsline->Str() + "\"");
@@ -107,7 +106,7 @@ bool contact_voms_servers(std::map<std::string,std::list<std::string> >& vomscmd
           continue;
         }
       } else {
-        //port_num = ; 
+        port_num = 8443; // default VOMS port ? 
       }
       if(use_http_comm) {
         // RESTful interface
@@ -119,7 +118,9 @@ bool contact_voms_servers(std::map<std::string,std::list<std::string> >& vomscmd
             // ?? fqans.push_back("/"+voms_name);
           } else if (Arc::lower(*c_it) == "list") {
             // N
-            exit(-1); // not supported
+            // not supported
+            logger.msg(Arc::ERROR, "List functionality is not supported for RESTful VOMS interface");
+            continue;
           } else {
             fqans.push_back(*c_it); // ??
           }
@@ -150,7 +151,9 @@ bool contact_voms_servers(std::map<std::string,std::list<std::string> >& vomscmd
             commands.push_back(Arc::VOMSCommand().GetEverything());
           } else if (Arc::lower(*c_it) == "list") {
             // N
-            exit(-1); // not supported
+            // not supported
+            logger.msg(Arc::ERROR, "List functionality is not supported for legacy VOMS interface");
+            continue;
           } else {
             std::string::size_type pos = c_it->find("/Role=");
             if (pos == 0) {
@@ -161,7 +164,8 @@ bool contact_voms_servers(std::map<std::string,std::list<std::string> >& vomscmd
               commands.push_back(Arc::VOMSCommand().GetGroup(*c_it));
             } else {
               // unexpected
-              exit(-1);
+              logger.msg(Arc::ERROR, "Failed to parse VOMS command: %s",*c_it);
+              continue;
             }
           }
         }
