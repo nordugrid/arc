@@ -95,7 +95,7 @@ VOMSConfig::iterator VOMSConfig::First(const VOMSConfig::filter& lfilter) {
 
 VOMSConfig::iterator VOMSConfig::iterator::NextByName(void) {
   if(!this->list_) return iterator();
-  for(std::list<VOMSConfigLine>::iterator line = *this; line != this->list_->end(); ++line) {
+  for(std::list<VOMSConfigLine>::iterator line = *this; ++line != this->list_->end(); ) {
     if(line->Name() == (*this)->Name()) {
       return iterator(*(this->list_),line);
     };
@@ -105,7 +105,7 @@ VOMSConfig::iterator VOMSConfig::iterator::NextByName(void) {
 
 VOMSConfig::iterator VOMSConfig::iterator::NextByAlias(void) {
   if(!this->list_) return iterator();
-  for(std::list<VOMSConfigLine>::iterator line = *this; line != this->list_->end(); ++line) {
+  for(std::list<VOMSConfigLine>::iterator line = *this; ++line != this->list_->end(); ) {
     if(line->Alias() == (*this)->Alias()) {
       return iterator(*(this->list_),line);
     };
@@ -115,7 +115,7 @@ VOMSConfig::iterator VOMSConfig::iterator::NextByAlias(void) {
 
 VOMSConfig::iterator VOMSConfig::iterator::Next(const VOMSConfig::filter& lfilter) {
   if(!this->list_) return iterator();
-  for(std::list<VOMSConfigLine>::iterator line = *this; line != this->list_->end(); ++line) {
+  for(std::list<VOMSConfigLine>::iterator line = *this; ++line != this->list_->end(); ) {
     if(lfilter.match(*line)) {
       return iterator(*(this->list_),line);
     };
@@ -133,8 +133,10 @@ VOMSConfigLine::VOMSConfigLine(const std::string& line) {
   if(p == std::string::npos) return;
   if(line[p] == '#') return;
   std::vector<std::string> tokens;
-  Arc::tokenize(line, tokens, " \t", "\"", "\n");
-  if(tokens.size() != 5) return;
+  Arc::tokenize(line, tokens, " \t", "\"", "\"");
+  // Normally there must be 5 items in line. 
+  // But older voms files (still in use) have 6 parameters.
+  if((tokens.size() != 5) && (tokens.size() != 6)) return;
   name    = tokens[0];
   host    = tokens[1];
   port    = tokens[2];
@@ -163,7 +165,7 @@ bool VOMSConfig::AddPath(const std::string& path, int depth, const filter& lfilt
     int n = 0;
     while(!iv.eof()) {
       if(iv.fail()) return false;
-      if((n++) >= max_lines_num) return false; // to many lines
+      if((n++) >= max_lines_num) return false; // too many lines
       char buf[max_line_length];
       iv.getline(buf,sizeof(buf));
       if(iv.gcount() >= (sizeof(buf)-1)) return false; // to long line
