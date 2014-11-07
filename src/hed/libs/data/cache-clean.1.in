@@ -22,12 +22,12 @@ is used, then statistics are printed on each cache. If
 .B -m
 and
 .B -M
-are used then files in each cache are deleted if the free space on 
-the file system is less than that given by
-.B -m,
-in the order of least recently accessed, until the free space is equal
+are used then files in each cache are deleted if the used space on 
+the file system is more than that given by
+.B -M,
+in the order of least recently accessed, until the used space is equal
 to what is specified by
-.B -M.
+.B -m.
 If
 .B -E
 is used, then all files accessed less recently than the given time are
@@ -41,7 +41,7 @@ but deleting files using
 .B -E
 is carried out first. If after this the cache free space is still less
 than that given by
-.B -m
+.B -M
 then cleaning according to those options is performed. Cache directories are given by
 .B dir1, dir2..
 or taken from the config file specified by
@@ -57,11 +57,11 @@ for each cache the number of deletable (and locked) files, the total size of
 these files, the percentage usage of the file system in which the cache is
 stored, and a histogram of access times of the files in the cache.
 
-.B -m
-- the minimum free space (as % of the file system) at which to start cleaning
-
 .B -M
-- the minimum free space (as % of the file system) at which to stop cleaning
+- the maximum used space (as % of the file system) at which to start cleaning
+
+.B -m
+- the minimum used space (as % of the file system) at which to stop cleaning
 
 .B -E
 - files accessed less recently than the given time period will be
@@ -104,8 +104,8 @@ will then automatically only look at files within the data directory.
 Cache directories are taken from the configuration file
 .B /etc/arc.conf
 and all cache files accessed more than 30 days ago are deleted. Then
-if the free space in a cache is below 20%, data is deleted until the
-free space reaches 30%. Verbose debug output is enabled so information
+if the used space in a cache is above 30%, data is deleted until the
+used space reaches 20%. Verbose debug output is enabled so information
 is output on each file that is deleted.
 
 .SH COPYRIGHT

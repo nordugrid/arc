@@ -27,6 +27,7 @@ namespace ARex {
 #define HARD_JOB_PERIOD 7200
 
 /* cache cleaning every 5 minutes */
+
 #define CACHE_CLEAN_PERIOD 300
 
 /* cache cleaning default timeout */
@@ -61,16 +62,15 @@ static void cache_func(void* arg) {
   std::vector<std::string> cache_info_dirs = cache_info.getCacheDirs();
   if (cache_info_dirs.empty()) return;
 
-  // in arc.conf % of used space is given, but cache-clean uses % of free space
-  std::string minfreespace = Arc::tostring(100-cache_info.getCacheMax());
-  std::string maxfreespace = Arc::tostring(100-cache_info.getCacheMin());
+  std::string maxusedspace = Arc::tostring(cache_info.getCacheMax());
+  std::string minusedspace = Arc::tostring(cache_info.getCacheMin());
   std::string cachelifetime = cache_info.getLifeTime();
   std::string logfile = cache_info.getLogFile();
 
   // do cache-clean -h for explanation of options
   std::string cmd = Arc::ArcLocation::GetToolsDir() + "/cache-clean";
-  cmd += " -m " + minfreespace;
-  cmd += " -M " + maxfreespace;
+  cmd += " -m " + minusedspace;
+  cmd += " -M " + maxusedspace;
   if (!cachelifetime.empty()) cmd += " -E " + cachelifetime;
   cmd += " -D " + cache_info.getLogLevel();
   for (std::vector<std::string>::iterator i = cache_info_dirs.begin(); i != cache_info_dirs.end(); i++) {

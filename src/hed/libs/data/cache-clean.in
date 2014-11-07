@@ -49,8 +49,8 @@ my(%opts);
 my $configfile;
 
 # Min free percentage
-my $minfree = 0;
-my $mincleanfree = 0;
+my $maxusedpercent = 0;
+my $minusedpercent = 0;
 my $expirytime = 0;
 
 my %files;
@@ -71,11 +71,11 @@ getopts('hsc:m:M:E:D:', \%opts);
 if(defined($opts{c})) {
     $configfile = $opts{c};
 }
-if(defined($opts{m})) {
-    $minfree = $opts{m};
-}
 if(defined($opts{M})) {
-    $mincleanfree = $opts{M};
+    $maxusedpercent = $opts{M};
+}
+if(defined($opts{m})) {
+    $minusedpercent = $opts{m};
 }
 if(defined($opts{D})) {
     $debuglevel = $opts{D};
@@ -86,14 +86,14 @@ if(defined($opts{s})) {
     LogUtils::level($debuglevel);
 }
 
-if($minfree < 0 || $minfree > 100) {
-    die "Bad value for -m: $minfree\n";
+if($maxusedpercent < 0 || $maxusedpercent > 100) {
+    die "Bad value for -M: $maxusedpercent\n";
 }
-if($mincleanfree < 0 || $mincleanfree > 100) {
-    die "Bad value for -M: $mincleanfree\n";
+if($minusedpercent < 0 || $minusedpercent > 100) {
+    die "Bad value for -m: $minusedpercent\n";
 }
-if($mincleanfree < $minfree) {
-    die "-M can't be smaller than -m (now $mincleanfree/$minfree)\n";
+if($minusedpercent > $maxusedpercent) {
+    die "-M can't be smaller than -m (now $maxusedpercent/$minusedpercent)\n";
 }
 
 if(defined($opts{E})) {
@@ -123,8 +123,8 @@ sub usage {
     -h       - This help
     -s       - Statistics mode, show cache usage stats, dont delete anything
     -c       - path to an A-REX config file, xml or ini format
-    -m NN    - Maximum usage of file system. When to start cleaning the cache (percent)
-    -M NN    - Minimum usage of file system. When to stop cleaning cache (percent)
+    -M NN    - Maximum usage of file system. When to start cleaning the cache (percent)
+    -m NN    - Minimum usage of file system. When to stop cleaning cache (percent)
     -E N     - Delete all files whose access time is older than N. Examples
                  of N are 1800, 90s, 24h, 30d (default is seconds)
     -D level - Debug level, FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG.
@@ -158,7 +158,7 @@ if (!@caches) {
         next unless $control->{cachedir} and ref $control->{cachedir} eq 'ARRAY';
         for (@{$control->{cachedir}}) {
             $log->warning("\n Warning: cache-clean cannot deal with substitutions - $_") and next if /%/;
-            $log->warning("\n Warning: ignoring malformed cahe location - $_\n") and next unless m{^(/\S+)};
+            $log->warning("\n Warning: ignoring malformed cache location - $_\n") and next unless m{^(/\S+)};
             push @caches, $1;
         }
     }
@@ -200,15 +200,16 @@ foreach my $filesystem (@caches) {
 
     my $fssize = $fsvalues->{total};
     my $fsfree = $fsvalues->{free};
+    my $fsused = $fsvalues->{used};
 
-    my $maxfbytes=$fssize*$minfree/100;
-    $log->info(join("", "$filesystem: used space ", printsize($fssize-$fsfree), " / ", printsize($fssize), " (", sprintf("%.2f",100-100*$fsfree/$fssize), "%)"));
-    if ($expirytime == 0 && $fsfree > $maxfbytes && !$opts{'s'}) {
-        $log->info(join("", "Used space is lower than upper limit (", 100-$minfree, "%)"));
+    my $maxfbytes=$fssize*$maxusedpercent/100;
+    $log->info(join("", "$filesystem: used space ", printsize($fsused), " / ", printsize($fssize), " (", sprintf("%.2f",100*$fsused/$fssize), "%)"));
+    if ($expirytime == 0 && $fsused < $maxfbytes && !$opts{'s'}) {
+        $log->info(join("", "Used space is lower than upper limit (", $maxusedpercent, "%)"));
         next;
     }
 
-    my $minfbytes=$fssize*$mincleanfree/100;
+    my $minfbytes=$fssize*$minusedpercent/100;
     
     %files = ();
     %expiredfiles = ();
@@ -219,11 +220,11 @@ foreach my $filesystem (@caches) {
     File::Find::find({wanted => \&wanted}, $filesystem."/data");
 
     if($opts{'s'}) {
-    my %allfiles = (%files, %expiredfiles);
+        my %allfiles = (%files, %expiredfiles);
         print "\nUsage statistics: $filesystem\n";
         print "Total deletable files found: ",scalar keys %allfiles," ($totlockfiles files locked or in use)\n";
         print "Total size of deletable files found: ",printsize($totsize)," (",printsize($totlocksize)," locked or in use)\n";
-        print "Used space on file system: ",printsize($fssize-$fsfree)," / ",printsize($fssize), " (",sprintf("%.2f",100-100*$fsfree/$fssize),"%)\n";
+        print "Used space on file system: ",printsize($fsused)," / ",printsize($fssize), " (",sprintf("%.2f",100*$fsused/$fssize),"%)\n";
         my $increment = $totsize / 10;
         if($increment < 1) {
             print "Total size too small to show usage histogram\n";
@@ -274,7 +275,7 @@ foreach my $filesystem (@caches) {
             }
 
             if ( unlink $fil ) {
-                $fsfree+=$expiredfiles{$fil}{size};
+                $fsused-=$expiredfiles{$fil}{size};
                 if (defined($opts{'D'}) && -e "$fil.meta") {
                     open FILE, "$fil.meta";
                     my @lines = <FILE>;
@@ -301,11 +302,11 @@ foreach my $filesystem (@caches) {
             } 
         }
     }
-
-    if ($fsfree < $maxfbytes) {
+	#Are we still exceding limit after deleting expired files.
+    if ($fsused > $maxfbytes) {
         # delete in order of access
         foreach my $fil (sort { $files{$a}{atime} <=> $files{$b}{atime} } keys %files) {
-            last if $fsfree > $minfbytes;
+            last if $fsused > $minfbytes;
             next if (-d "$fil");
             if (-e "$fil.lock") {
                 my $atime = (stat("$fil.lock"))[8];
@@ -314,7 +315,7 @@ foreach my $filesystem (@caches) {
             }
 
             if ( unlink $fil ) {
-                $fsfree+=$files{$fil}{size};
+                $fsused-=$files{$fil}{size};
                 if (defined($opts{'D'}) && -e "$fil.meta") {
                     open FILE, "$fil.meta";
                     my $line = <FILE>;
@@ -340,7 +341,7 @@ foreach my $filesystem (@caches) {
             } 
         }
     }
-    $log->info(join("", "Cleaning finished, used space now ", printsize($fssize-$fsfree), " / ", printsize($fssize), " (", sprintf("%.2f",100-100*$fsfree/$fssize),"%)"));
+    $log->info(join("", "Cleaning finished, used space now ", printsize($fsused), " / ", printsize($fssize), " (", sprintf("%.2f",100*$fsused/$fssize),"%)"));
 }
 exit 0;
 
@@ -409,13 +410,14 @@ sub printsize($)
 }
 
 #
-# Returns disk space (total and free) in bytes on a filesystem
+# Returns disk space (total, used by cache and free) in bytes on a filesystem
 # Taken from arc1/trunk/src/services/a-rex/infoproviders/HostInfo.pm
+# Updated to calculate actual use
 # TODO: Put in common place
 #
 sub diskspace ($) {
     my $path = shift;
-    my ($diskfree, $disktotal);
+    my ($diskfree, $diskused, $disktotal);
 
     if ( -d "$path") {
         # check if on afs
@@ -443,11 +445,20 @@ sub diskspace ($) {
             } else {
                 $log->warning("Failed interpreting output of: df -k $path");
             }
+            # need to get actual used disk for caches on shared partitions
+            my @dustring =`du -ks $path 2>/dev/null`;
+            if ($? != 0) {
+                $log->warning("Failed running: du -ks $path");
+            } elsif ($dustring[-1] =~ /(\d+)\s+[\w\/]+/) {
+                $diskused = $1*1024;
+            } else {
+                $log->warning("Failed interpreting output of: du -ks $path");
+            }
         }
     } else {
         $log->warning("Not a directory: $path");
     }
 
     return undef unless defined($disktotal) and defined($diskfree);
-    return {total => $disktotal, free => $diskfree};
+    return {total => $disktotal, free => $diskfree, used => $diskused};
 }
