@@ -260,7 +260,13 @@ namespace Arc
         //NOTE! Current LUTS also sets a "creationTime"[sic!] for each record
         
         // ID for record
-        if (!mainnode.empty())
+        if (find("headnode")!=end()) {
+          Arc::URL headnode((*this)["headnode"]);
+          rid.NewAttribute("urf:recordId")=
+            std::string(recordid_prefix) + headnode.Host() + 
+            '-' + (*this)["ngjobid"]; 
+        }
+        else  if (!mainnode.empty())
           rid.NewAttribute("urf:recordId")=
             std::string(recordid_prefix) + mainnode + 
             '-' + (*this)["ngjobid"];
@@ -714,7 +720,13 @@ namespace Arc
         rid.NewAttribute("urf:createTime")=nowstamp;
 
         // ID for record
-        if (!mainnode.empty())
+        if (find("headnode")!=end()){
+          Arc::URL headnode((*this)["headnode"]);
+          rid.NewAttribute("urf:recordId")=
+            std::string(recordid_prefix) + headnode.Host() + 
+            '-' + (*this)["ngjobid"]; 
+        }      
+        else if (!mainnode.empty())
           rid.NewAttribute("urf:recordId")=
             std::string(recordid_prefix) + mainnode + 
             '-' + (*this)["ngjobid"];
