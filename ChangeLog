@@ -1,3 +1,6 @@
+2014-11-17  Gabor Szigeti <szigeti@niif.hu>
+  * Replace the mainnode to headnode URL in the recordID. (fixes bug #3435)
+
 2014-10-20  Gabor Szigeti <szigeti@niif.hu>
   * Set extra VO Group attribute to every generated CAR accounting record 
     if the proxy does not contains VOM attributes. (fixes bug #3404)
