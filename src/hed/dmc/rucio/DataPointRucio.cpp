@@ -269,7 +269,7 @@ namespace ArcDMCRucio {
     }
     token = transfer_info.headers.find("HTTP:x-rucio-auth-token")->second;
     tokens.AddToken(account, Time()+token_validity, token);
-    logger.msg(VERBOSE, "Acquired auth token for %s: %s", account, token);
+    logger.msg(DEBUG, "Acquired auth token for %s: %s", account, token);
     return DataStatus::Success;
   }
 
