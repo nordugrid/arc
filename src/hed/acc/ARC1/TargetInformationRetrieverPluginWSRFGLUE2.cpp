@@ -315,6 +315,7 @@ namespace Arc {
         EntryToInt(url, xmlCSNode["MaxTotalJobs"], ComputingShare->MaxTotalJobs);
         EntryToInt(url, xmlCSNode["MaxRunningJobs"], ComputingShare->MaxRunningJobs);
         EntryToInt(url, xmlCSNode["MaxWaitingJobs"], ComputingShare->MaxWaitingJobs);
+        EntryToInt(url, xmlCSNode["WaitingJobs"], ComputingShare->WaitingJobs);
         EntryToInt(url, xmlCSNode["MaxPreLRMSWaitingJobs"], ComputingShare->MaxPreLRMSWaitingJobs);
         EntryToInt(url, xmlCSNode["MaxUserRunningJobs"], ComputingShare->MaxUserRunningJobs);
         EntryToInt(url, xmlCSNode["MaxSlotsPerJob"], ComputingShare->MaxSlotsPerJob);
