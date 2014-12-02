@@ -16,7 +16,7 @@
    @author: Will Rogers
 '''
 
-from ssm import crypto
+import crypto
 from dirq.QueueSimple import QueueSimple
 from dirq.queue import Queue
 
