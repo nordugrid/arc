@@ -28,18 +28,6 @@ else
 WS_MONITOR =
 endif
 
-if PYTHON_SERVICE
-PYTHON_SERVICE = echo_python
-else
-PYTHON_SERVICE =
-endif
-
-#if JAVA_ENABLED
-#JAVA_SERVICE = echo_java
-#else
-JAVA_SERVICE =
-#endif
-
 if CACHE_SERVICE_ENABLED
 CACHE_SERVICE = cache_service
 else
@@ -63,8 +51,8 @@ SUBDIRS = $(GRIDFTPD_SERVICE) $(AREX_SERVICE) $(LDAP_SERVICE) \
 	$(CACHE_SERVICE) \
 	$(DATADELIVERY_SERVICE) \
 	$(ACIX) \
-	wrappers $(PYTHON_SERVICE) $(JAVA_SERVICE)
+	wrappers examples
 DIST_SUBDIRS = gridftpd a-rex ldap-infosys \
 	ldap-monitor ws-monitor \
 	cache_service \
-	data-staging wrappers echo_python echo_java acix
+	data-staging wrappers examples acix

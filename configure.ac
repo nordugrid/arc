@@ -2578,8 +2578,9 @@ AC_CONFIG_FILES([Makefile
                  src/services/ws-monitor/includes/Makefile
                  src/services/ws-monitor/mon-icons/Makefile
                  src/services/ws-monitor/lang/Makefile
-                 src/services/echo_java/Makefile
-                 src/services/echo_python/Makefile
+                 src/services/examples/Makefile
+                 src/services/examples/echo_java/Makefile
+                 src/services/examples/echo_python/Makefile
                  src/services/wrappers/Makefile
                  src/services/wrappers/java/Makefile
                  src/services/wrappers/java/schema/Makefile
