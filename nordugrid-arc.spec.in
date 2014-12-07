@@ -56,15 +56,6 @@
 %endif
 
 #
-# LFC
-#
-%if %{?suse_version:1}%{!?suse_version:0}
-%global with_lfc 0
-%else
-%global with_lfc %{!?_without_lfc:1}%{?_without_lfc:0}
-%endif
-
-#
 # Java
 #
 %if %{?fedora}%{!?fedora:0} >= 7 || %{?rhel}%{!?rhel:0} >= 5
@@ -278,9 +269,6 @@ BuildRequires:	%{openldap_devel}
 BuildRequires:	globus-common-devel
 BuildRequires:	globus-ftp-client-devel
 BuildRequires:	globus-ftp-control-devel
-%if %{with_lfc}
-BuildRequires:	lfc-devel
-%endif
 %if %{with_gacl}
 BuildRequires:	gridsite-devel
 %endif
@@ -997,9 +985,6 @@ cd -
 %if ! %{with_java}
      --disable-java \
 %endif
-%if ! %{with_lfc}
-     --disable-lfc \
-%endif
 %if ! %{with_python}
      --disable-swig-python \
 %endif
@@ -1564,7 +1549,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libdmchttp.so
 %{_libdir}/%{pkgdir}/libdmcldap.so
 %{_libdir}/%{pkgdir}/libdmcsrm.so
-%{_libdir}/%{pkgdir}/libdmcdq2.so
 %{_libdir}/%{pkgdir}/libdmcrucio.so
 %{_libdir}/%{pkgdir}/libdmcacix.so
 %{_libdir}/%{pkgdir}/libidentitymap.so
@@ -1588,7 +1572,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libdmchttp.apd
 %{_libdir}/%{pkgdir}/libdmcldap.apd
 %{_libdir}/%{pkgdir}/libdmcsrm.apd
-%{_libdir}/%{pkgdir}/libdmcdq2.apd
 %{_libdir}/%{pkgdir}/libdmcrucio.apd
 %{_libdir}/%{pkgdir}/libdmcacix.apd
 %{_libdir}/%{pkgdir}/libidentitymap.apd
@@ -1605,10 +1588,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libdmcgridftp.so
 %{_libdir}/%{pkgdir}/libaccARC0.apd
 %{_libdir}/%{pkgdir}/libdmcgridftp.apd
-%if %{with_lfc}
-%{_libdir}/%{pkgdir}/libdmclfc.so
-%{_libdir}/%{pkgdir}/libdmclfc.apd
-%endif
 %{_libdir}/%{pkgdir}/libmccgsi.so
 %{_libdir}/%{pkgdir}/libmccgsi.apd
 %{_libdir}/libarcglobusutils.so.*

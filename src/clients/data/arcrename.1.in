@@ -62,7 +62,7 @@ Resource Locators (URL) and Extensions Supported in ARC" [NORDUGRID-TECH-7]
 Depending on the installed libraries (check with
 .B -P
 ), the following protocols may be used: file  (file://  prefix  may  be
-omitted), http, https, httpg, ftp, gsiftp, lfc, srm, root. However
+omitted), http, https, httpg, ftp, gsiftp, srm, root. However
 renaming is not supported or implemented for some of those protocols.
 
 .SH FILES
@@ -96,7 +96,7 @@ default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
 
 .SH EXAMPLE
 
-arcrename lfc://lfc.org/grid/file.dat lfc://lfc.org/grid/new.file.dat
+arcrename gsiftp://example.com/grid/file.dat gsiftp://example.com/grid/new.file.dat
 
 .SH COPYRIGHT
 

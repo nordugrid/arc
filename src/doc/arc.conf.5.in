@@ -917,8 +917,6 @@ A-REX web interface is enabled via arex_mount_point.
 
 .IR Examples:
 .br
-cacheaccess="lfc://lfc.myvo.org/.* voms:vo myvo"
-.br
 cacheaccess="gsiftp://host.org/private/data/.* voms:vo myvo:production"
 .br
 cacheaccess="gsiftp://host.org/private/data/bob/.* dn /O=Grid/CN=Bob"

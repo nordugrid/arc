@@ -545,7 +545,6 @@ prepare() {
     # GRIDSITE_LOCATION
     GRIDSITE_LOCATION=${GRIDSITE_LOCATION:-@DEFAULT_GRIDSITE_LOCATION@}
 
-    add_library_path "$LFC_LOCATION"
     add_library_path "$GRIDSITE_LOCATION"
     add_library_path "$VOMS_LOCATION"
     add_library_path "$GLOBUS_LOCATION"

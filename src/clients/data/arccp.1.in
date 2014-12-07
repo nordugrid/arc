@@ -103,7 +103,7 @@ possible if the GFAL2 plugin is installed.
 Depending on the installed libraries (check with
 .B -P
 ), the following protocols may be used: file  (file://  prefix  may  be
-omitted), http, https, httpg, ftp, gsiftp, lfc, srm, root. To connect 
+omitted), http, https, httpg, ftp, gsiftp, srm, root. To connect 
 source or destination to standard input/output use '-' instead of URL.
 
 .SH FILES
@@ -136,7 +136,7 @@ locations can be specified by separating them by : (; in Windows). The
 default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
 
 .SH EXAMPLE
-arccp -i lfc://lfc.org/grid/file1.dat /tmp/file1.dat
+arccp -i gsiftp://example.com/grid/file1.dat /tmp/file1.dat
 
 .SH COPYRIGHT
 

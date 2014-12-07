@@ -44,7 +44,6 @@ my %ports = (
     'ldap'  => '389',
     'ftp'   => '21',
     'gsiftp'=> '2811',
-    'lfc'   => '5010'
     );
 
 my @files;

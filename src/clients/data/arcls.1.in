@@ -64,7 +64,7 @@ command lists files and directories on grid storage elements and in
 file index catalogues. Depending on the installed libraries (check with
 .B -P
 ), the following protocols may be used: file  (file://  prefix  may  be
-omitted), http, https, httpg, ftp, gsiftp, lfc, srm, root.
+omitted), http, https, httpg, ftp, gsiftp, srm, root.
  
 In the case of a directory/fileset, attributes of objects belonging
 to it will be retrieved, unless
@@ -108,7 +108,7 @@ default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
 
 .SH EXAMPLE
 
-arcls -lL lfc://lfc.org/grid/file.dat
+arcls -l gsiftp://example.com/grid/file.dat
 
 .SH COPYRIGHT
 

@@ -59,7 +59,6 @@ Build & runtime:
   o globus-ftp-control 4 (compute client)
   o globus-io  4 (compute client)
   o globus-openssl (compute client)
-  o LHC File Catalog (LFC DMC)
   o xrootd (xrootd DMC)
   o GFAL 2 (GFAL DMC)
   o Berkeley DB C++ interface (Delegation)
@@ -72,7 +71,7 @@ Runtime dependencies:
   o Perl, perl-SOAP-Lite, perl-Crypt-OpenSSL-X509 (nordugridmap)
   o perl-DBI (Boinc backend)
   o GNU time (A-rex)
-  o VOMS (LFC DMC)
+  o VOMS
   o Stomppy, m2Crypto (APEL publisher by Jura)
   o pyOpenSSL, python-twisted-web, python-twisted-core, python-simplejson,
     (Python 2.4 only) python-hashlib (ACIX)

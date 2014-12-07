@@ -61,7 +61,7 @@ performs like it were called with all those URLs as arguments.
 Depending on the installed libraries (check with
 .B -P
 ), the following protocols may be used: file  (file://  prefix  may  be
-omitted), http, https, httpg, ftp, gsiftp, lfc, srm, root.
+omitted), http, https, httpg, ftp, gsiftp, srm, root.
 
 .SH FILES
 
@@ -94,7 +94,7 @@ default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
 
 .SH EXAMPLE
 
-arcrm lfc://lfc.org/grid/file.dat
+arcrm gsiftp://example.com/grid/file.dat
 
 .SH NOTES
 

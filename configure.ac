@@ -165,7 +165,6 @@ enables_python=yes
 enables_altpython=yes
 enables_pylint=yes
 enables_mock_dmc=no
-enables_lfc=yes
 enables_gfal=no
 enables_xrootd=yes
 enables_gacl=yes
@@ -230,7 +229,6 @@ enables_altpython=$enableval
 enables_pylint=$enableval
 enables_gacl=$enableval
 enables_mock_dmc=$enableval
-enables_lfc=$enableval
 enables_gfal=$enableval
 enables_xrootd=$enableval
 enables_xmlsec1=$enableval
@@ -1697,44 +1695,6 @@ fi
 # Check if mock DMC is enabled
 AC_ARG_ENABLE(mock-dmc, AC_HELP_STRING([--enable-mock-dmc], [enable mock DMC, default is disable]),[enables_mock_dmc="$enableval"],[])
 
-# Check for LFC
-AC_ARG_ENABLE(lfc, AC_HELP_STRING([--disable-lfc], [disable the LFC support, default is enable]),[enables_lfc="$enableval"],[])
-if test "x$enables_lfc" = "xyes"; then
-  if test "x$GLOBUS_OPENSSL_MODULE_LIBS" = "x"; then
-    AC_MSG_NOTICE([LFC plugin needs GLOBUS_OPENSSL_MODULE component - disabling])
-    enables_lfc=no
-  fi
-fi
-if test "x$enables_lfc" = "xyes"; then
-  LFC_CFLAGS="-I/usr/include/lfc"
-  LFC_LDFLAGS="-ldl"
-  AC_ARG_WITH(lfc, [  --with-lfc=(PATH)  LFC location])
-  if test ! "x$with_lfc" = "x" ; then
-    LFC_LOCATION="$with_lfc"
-    LFC_CFLAGS="-I$LFC_LOCATION/include/lfc"
-    if test -d $LFC_LOCATION/lib64; then
-      LFC_LDFLAGS="-L$LFC_LOCATION/lib64 -ldl"
-    else
-      LFC_LDFLAGS="-L$LFC_LOCATION/lib -ldl"
-    fi
-  fi
-  SAVE_CPPFLAGS=$CPPFLAGS
-  CPPFLAGS="$CPPFLAGS $LFC_CFLAGS"
-  AC_CHECK_HEADER(lfc_api.h, [], [enables_lfc="no"])
-  CPPFLAGS=$SAVE_CPPFLAGS
-  SAVE_LDFLAGS=$LDFLAGS
-  LDFLAGS="$LDFLAGS $LFC_LDFLAGS"
-  AC_CHECK_LIB([lfc], [lfc_apiinit],
-               [LFC_LIBS="$LFC_LDFLAGS -llfc"], [enables_lfc="no"])
-  # Check if lcgdm is a separate library
-  AC_CHECK_LIB([lcgdm], [C__serrno], [LFC_LIBS="$LFC_LIBS -llcgdm"],
-  AC_CHECK_LIB([lfc], [C__serrno], [LFC_LIBS="$LFC_LIBS"], [enables_lfc="no"]))
-  LDFLAGS=$SAVE_LDFLAGS
-fi
-AC_SUBST(LFC_CFLAGS)
-AC_SUBST(LFC_LIBS)
-
-
 # Check for GFAL2
 
 AC_ARG_ENABLE(gfal, AC_HELP_STRING([--enable-gfal], [enable the GFAL support, default is disable]),[enables_gfal="$enableval"],[])
@@ -1782,7 +1742,6 @@ AC_LANG_RESTORE
 AM_CONDITIONAL([GLOBUSUTILS_ENABLED], test -n "$GLOBUS_COMMON_VERSION")
 AM_CONDITIONAL([GRIDFTP_ENABLED], test -n "$GLOBUS_FTP_CLIENT_VERSION")
 AM_CONDITIONAL([MOCK_DMC_ENABLED], test x$enables_mock_dmc = xyes)
-AM_CONDITIONAL([LFC_ENABLED], test x$enables_lfc = xyes)
 AM_CONDITIONAL([GFAL_ENABLED], test x$enables_gfal = xyes)
 AM_CONDITIONAL([XROOTD_ENABLED], test x$enables_xrootd = xyes)
 AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
@@ -2420,11 +2379,9 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/ldap/Makefile
                  src/hed/dmc/srm/Makefile
                  src/hed/dmc/srm/srmclient/Makefile
-                 src/hed/dmc/lfc/Makefile
                  src/hed/dmc/gfal/Makefile
                  src/hed/dmc/xrootd/Makefile
                  src/hed/dmc/mock/Makefile
-                 src/hed/dmc/dq2/Makefile
                  src/hed/dmc/acix/Makefile
                  src/hed/dmc/rucio/Makefile
                  src/hed/profiles/general/general.xml
@@ -2677,7 +2634,6 @@ Alt.Python binding: ${enables_altpython} ($ALTPYTHON_VERSION)
 Available third-party features:
 
 GridFTP:            ${enables_gridftp}
-LFC:                ${enables_lfc}
 GFAL:               ${enables_gfal}
 Xrootd:             ${enables_xrootd}
 MYSQL CLIENT LIB:   ${enables_mysql}

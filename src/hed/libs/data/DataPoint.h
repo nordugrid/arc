@@ -38,19 +38,12 @@ namespace Arc {
  * grids mainly to store information about grid services or resources rather
  * than to store data itself.
  *
- * - LFC (lfc://) - The LCG File Catalog (LFC) is a replica catalog developed
- * by CERN. It consists of a hierarchical namespace of grid files and each
- * filename can be associated with one or more physical locations.
- *
  * - SRM (srm://) - The Storage Resource Manager (SRM) protocol allows access
  * to data distributed across physical storage through a unified namespace
  * and management interface.
  *
  * - XRootd (root://) - Protocol for data access across large scale storage
  * clusters. More information can be found at http://xrootd.slac.stanford.edu/
- *
- * - DQ2 (dq2://) - The ATLAS Data Management System is a catalog of all
- * datasets and files in the ATLAS experiment.
  *
  * - ACIX (acix://) - The ARC Cache Index contains locations of cached files
  * in ARC CE caches.

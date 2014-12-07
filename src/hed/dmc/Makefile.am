@@ -1,6 +1,3 @@
-if LFC_ENABLED
-LFC_SD = lfc
-endif
 if GRIDFTP_ENABLED
 GRIDFTP_SD = gridftp
 endif
@@ -20,5 +17,5 @@ if MOCK_DMC_ENABLED
 MOCK_SD=mock
 endif
 
-SUBDIRS = http file dq2 rucio acix $(LDAP_SD) $(GRIDFTP_SD) $(LFC_SD) $(SRM_SD) $(XROOTD_SD) $(GFAL_SD) $(MOCK_SD)
-DIST_SUBDIRS = http file dq2 rucio acix ldap gridftp lfc srm xrootd gfal mock
+SUBDIRS = http file rucio acix $(LDAP_SD) $(GRIDFTP_SD) $(SRM_SD) $(XROOTD_SD) $(GFAL_SD) $(MOCK_SD)
+DIST_SUBDIRS = http file rucio acix ldap gridftp srm xrootd gfal mock

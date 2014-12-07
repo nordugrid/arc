@@ -1,3 +1,6 @@
+2014-12-02  Anders Waananen <waananen@nbi.dk>
+  * Removed LFC and DQ2 DMCs
+
 2014-11-25  Gabor Roczei <roczei@niif.hu>
   * Adding ComputingShare->WaitingJobs GLUE2 attribute to ARC1 target retriever, because FastestQueueBroker require it
 

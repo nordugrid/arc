@@ -634,7 +634,6 @@
 ## required for that pattern. Possible values for credential attribute are dn,
 ## voms:vo, voms:role and voms:group. Remote cache access requires that the
 ## A-REX web interface is enabled via arex_mount_point.
-#cacheaccess="lfc://lfc.myvo.org/.* voms:vo myvo"
 #cacheaccess="gsiftp://host.org/private/data/.* voms:vo myvo:production"
 #cacheaccess="gsiftp://host.org/private/data/bob/.* dn /O=Grid/CN=Bob"
 

@@ -6,14 +6,7 @@
 COMMA = ,
 LDFLAGS := $(filter-out -Wl$(COMMA)-Bsymbolic-functions,$(LDFLAGS))
 
-LFC_SUPPORT = yes
 CANL_SUPPORT = yes
-
-ifeq ($(LFC_SUPPORT),yes)
-LFC_CONFIGURE_OPTION =
-else
-LFC_CONFIGURE_OPTION = --disable-lfc
-endif
 
 ifeq ($(CANL_SUPPORT),yes)
 CANL_CONFIGURE_OPTION = --enable-canlxx
@@ -44,7 +37,7 @@ configure-stamp:
 		    --with-docdir='$${datadir}/doc/nordugrid-arc' \
 		    --with-jnidir='$${datadir}/java' \
 		    --with-jninativedir='$${libdir}/jni' \
-		    $(LFC_CONFIGURE_OPTION) $(CANL_CONFIGURE_OPTION)
+		    $(CANL_CONFIGURE_OPTION)
 	touch $@
 
 build: build-arch build-indep
