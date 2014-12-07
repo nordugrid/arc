@@ -13,7 +13,6 @@ class ClientsTest : public CppUnit::TestFixture
   CPPUNIT_TEST( testarcget );
   CPPUNIT_TEST( testarcinfo );
   CPPUNIT_TEST( testarckill );
-  CPPUNIT_TEST( testarcmigrate );
   CPPUNIT_TEST( testarcrenew );
   CPPUNIT_TEST( testarcresub );
   CPPUNIT_TEST( testarcresume );
@@ -32,7 +31,6 @@ public:
   void testarcget();
   void testarcinfo();
   void testarckill();
-  void testarcmigrate();
   void testarcrenew();
   void testarcresub();
   void testarcresume();

@@ -20,7 +20,6 @@ The following commands are implemented:
  o arcclean   - job clean-up
  o arccat     - job output capture
  o arcresub   - job re-submission
- o arcmigrate - job migration
  o arcrenew   - remote credentials renewal
  o arcsync    - syncronisation of user job list
  o arcresume  - job resumption

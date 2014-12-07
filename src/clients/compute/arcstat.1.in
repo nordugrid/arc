@@ -238,7 +238,6 @@ ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 .BR arcinfo (1),
 .BR arckill (1),
 .BR arcls (1),
-.BR arcmigrate (1),
 .BR arcmkdir (1),
 .BR arcproxy (1),
 .BR arcrenew (1),

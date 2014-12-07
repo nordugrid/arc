@@ -37,6 +37,5 @@ complete -F _arclib arcresub
 complete -F _arclib arcsync
 complete -F _arclib arcget
 complete -F _arclib arcinfo
-complete -F _arclib arcmigrate
 complete -F _arclib arcsub
 

@@ -1314,7 +1314,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_bindir}/arcinfo
 %{_bindir}/arckill
 %{_bindir}/arcls
-%{_bindir}/arcmigrate
 %{_bindir}/arcmkdir
 %{_bindir}/arcrename
 %{_bindir}/arcproxy
@@ -1340,7 +1339,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/arcinfo.1*
 %doc %{_mandir}/man1/arckill.1*
 %doc %{_mandir}/man1/arcls.1*
-%doc %{_mandir}/man1/arcmigrate.1*
 %doc %{_mandir}/man1/arcmkdir.1*
 %doc %{_mandir}/man1/arcrename.1*
 %doc %{_mandir}/man1/arcproxy.1*

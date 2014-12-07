@@ -116,7 +116,6 @@ APACHE LICENSE Version 2.0
 .BR arcinfo (1),
 .BR arckill (1),
 .BR arcls (1),
-.BR arcmigrate (1),
 .BR arcmkdir (1),
 .BR arcproxy (1),
 .BR arcrenew (1),

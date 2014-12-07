@@ -7,7 +7,6 @@ debian/tmp/usr/bin/arcget
 debian/tmp/usr/bin/arcinfo
 debian/tmp/usr/bin/arckill
 debian/tmp/usr/bin/arcls
-debian/tmp/usr/bin/arcmigrate
 debian/tmp/usr/bin/arcmkdir
 debian/tmp/usr/bin/arcproxy
 debian/tmp/usr/bin/arcrename
@@ -31,7 +30,6 @@ debian/tmp/usr/share/man/man1/arcget.1
 debian/tmp/usr/share/man/man1/arcinfo.1
 debian/tmp/usr/share/man/man1/arckill.1
 debian/tmp/usr/share/man/man1/arcls.1
-debian/tmp/usr/share/man/man1/arcmigrate.1
 debian/tmp/usr/share/man/man1/arcmkdir.1
 debian/tmp/usr/share/man/man1/arcproxy.1
 debian/tmp/usr/share/man/man1/arcrename.1

@@ -363,7 +363,6 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw32_bindir}/arcget.exe
 %{mingw32_bindir}/arcclean.exe
 %{mingw32_bindir}/arckill.exe
-%{mingw32_bindir}/arcmigrate.exe
 %{mingw32_bindir}/arcrenew.exe
 %{mingw32_bindir}/arcresume.exe
 %{mingw32_bindir}/arcacl.exe
@@ -392,7 +391,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{mingw32_mandir}/man1/arcget.1*
 %doc %{mingw32_mandir}/man1/arcclean.1*
 %doc %{mingw32_mandir}/man1/arckill.1*
-%doc %{mingw32_mandir}/man1/arcmigrate.1*
 %doc %{mingw32_mandir}/man1/arcrenew.1*
 %doc %{mingw32_mandir}/man1/arcresume.1*
 %doc %{mingw32_mandir}/man1/arcacl.1*
@@ -543,7 +541,6 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw64_bindir}/arcget.exe
 %{mingw64_bindir}/arcclean.exe
 %{mingw64_bindir}/arckill.exe
-%{mingw64_bindir}/arcmigrate.exe
 %{mingw64_bindir}/arcrenew.exe
 %{mingw64_bindir}/arcresume.exe
 %{mingw64_bindir}/arcacl.exe
@@ -572,7 +569,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{mingw64_mandir}/man1/arcget.1*
 %doc %{mingw64_mandir}/man1/arcclean.1*
 %doc %{mingw64_mandir}/man1/arckill.1*
-%doc %{mingw64_mandir}/man1/arcmigrate.1*
 %doc %{mingw64_mandir}/man1/arcrenew.1*
 %doc %{mingw64_mandir}/man1/arcresume.1*
 %doc %{mingw64_mandir}/man1/arcacl.1*

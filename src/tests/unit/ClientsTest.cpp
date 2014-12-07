@@ -16,7 +16,6 @@
 #include "../../clients/compute/arcresub.cpp"
 #include "../../clients/compute/arcsub.cpp"
 #include "../../clients/compute/arcget.cpp"
-#include "../../clients/compute/arcmigrate.cpp"
 #include "../../clients/compute/arcresume.cpp"
 #include "../../clients/compute/arcsync.cpp"
 #undef TEST
@@ -109,12 +108,6 @@ ClientsTest::testarcinfo()
 
 void
 ClientsTest::testarckill()
-{
-  CPPUNIT_FAIL( "not implemented" );
-}
-
-void
-ClientsTest::testarcmigrate()
 {
   CPPUNIT_FAIL( "not implemented" );
 }
