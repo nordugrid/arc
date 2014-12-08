@@ -1762,14 +1762,6 @@ fi
 
 AM_CONDITIONAL([SRM_DMC_ENABLED],[test "x$enables_srm_dmc" = "xyes"])
 
-enables_gsi_mcc=no
-if test "$enables_hed" = "yes"; then
-if test ! "x$GLOBUS_GSSAPI_GSI_VERSION" = 'x'; then
-  enables_gsi_mcc=yes
-fi
-fi
-AM_CONDITIONAL([GSI_MCC_ENABLED],[test "x$enables_gsi_mcc" = "xyes"])
-
 # Setup defines
 if test -n "$GLOBUS_COMMON_VERSION"; then
     AC_DEFINE(HAVE_GLOBUS,,[define if GLOBUS is available])
@@ -2671,7 +2663,6 @@ WSRF client:        ${enables_wsrf_client}
 UNICORE client (ACC): ${enables_unicore_client}
 EMI ES client (ACC): ${enables_emies_client}
 SRM client (DMC):   ${enables_srm_dmc}
-GSI channel (MCC):  ${enables_gsi_mcc}
 
 Documentation:      ${enables_doc}
 
