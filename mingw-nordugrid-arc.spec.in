@@ -446,7 +446,6 @@ rm -rf $RPM_BUILD_ROOT
 %if %{with_mingw32_globus}
 %files -n mingw32-%{mingw_pkg_name}-plugins-globus
 %defattr(-,root,root,-)
-%{mingw32_libdir}/%{pkgdir}/libmccgsi.dll*
 %{mingw32_libdir}/%{pkgdir}/libdmcgridftp.dll*
 %{mingw32_libdir}/%{pkgdir}/libaccARC0.dll*
 %{mingw32_libexecdir}/%{pkgdir}/arc-lcas.exe
@@ -622,7 +621,6 @@ rm -rf $RPM_BUILD_ROOT
 %if %{with_mingw64_globus}
 %files -n mingw64-%{mingw_pkg_name}-plugins-globus
 %defattr(-,root,root,-)
-%{mingw64_libdir}/%{pkgdir}/libmccgsi.dll*
 %{mingw64_libdir}/%{pkgdir}/libdmcgridftp.dll*
 %{mingw64_libdir}/%{pkgdir}/libaccARC0.dll*
 %{mingw64_libexecdir}/%{pkgdir}/arc-lcas.exe

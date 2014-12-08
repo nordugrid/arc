@@ -1588,8 +1588,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libdmcgridftp.so
 %{_libdir}/%{pkgdir}/libaccARC0.apd
 %{_libdir}/%{pkgdir}/libdmcgridftp.apd
-%{_libdir}/%{pkgdir}/libmccgsi.so
-%{_libdir}/%{pkgdir}/libmccgsi.apd
 %{_libdir}/libarcglobusutils.so.*
 %{_libexecdir}/%{pkgdir}/arc-lcas
 %{_libexecdir}/%{pkgdir}/arc-lcmaps
