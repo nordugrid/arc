@@ -350,7 +350,6 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw32_bindir}/arcmkdir.exe
 %{mingw32_bindir}/arcrename.exe
 %if %{with_mingw32_xmlsec1}
-%{mingw32_bindir}/arcslcs.exe
 %endif
 %{mingw32_bindir}/arcstat.exe
 %{mingw32_bindir}/arcsub.exe
@@ -372,7 +371,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{mingw32_mandir}/man1/arcinfo.1*
 %doc %{mingw32_mandir}/man1/arcproxy.1*
 %if %{with_mingw32_xmlsec1}
-%doc %{mingw32_mandir}/man1/arcslcs.1*
 %endif
 %doc %{mingw32_mandir}/man1/arccat.1*
 %doc %{mingw32_mandir}/man1/arccp.1*
@@ -525,7 +523,6 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw64_bindir}/arcmkdir.exe
 %{mingw64_bindir}/arcrename.exe
 %if %{with_mingw64_xmlsec1}
-%{mingw64_bindir}/arcslcs.exe
 %endif
 %{mingw64_bindir}/arcstat.exe
 %{mingw64_bindir}/arcsub.exe
@@ -547,7 +544,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{mingw64_mandir}/man1/arcinfo.1*
 %doc %{mingw64_mandir}/man1/arcproxy.1*
 %if %{with_mingw64_xmlsec1}
-%doc %{mingw64_mandir}/man1/arcslcs.1*
 %endif
 %doc %{mingw64_mandir}/man1/arccat.1*
 %doc %{mingw64_mandir}/man1/arccp.1*

@@ -7,16 +7,6 @@
 Features not yet included into testing framework
 ------------------------------------------------
 
-2008-12-12 Weizhong Qiang
-SLCS Service and SLCS client. This feature needs the external Identity Provider
-for authenticating the users.
-Now there is a test Identity Provider hosted in squark.uio.no.
-When running arcslcs (SLCS client), the idp name "https://squark.uio.no/idp/shibboleth"
-needs to be specified.
-As result, a short-lived X.509 Credential will be generated.
-
-
-
 ===========================================================================
 
 Features already included into testing framework

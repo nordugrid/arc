@@ -1307,7 +1307,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_bindir}/arcresume
 %{_bindir}/arcrm
 %if %{with_xmlsec1}
-%{_bindir}/arcslcs
 %endif
 %{_bindir}/arcstat
 %{_bindir}/arcsub
@@ -1332,7 +1331,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/arcresume.1*
 %doc %{_mandir}/man1/arcrm.1*
 %if %{with_xmlsec1}
-%doc %{_mandir}/man1/arcslcs.1*
 %endif
 %doc %{_mandir}/man1/arcstat.1*
 %doc %{_mandir}/man1/arcsub.1*
