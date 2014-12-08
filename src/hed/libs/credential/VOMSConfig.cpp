@@ -10,6 +10,8 @@
 #include <arc/FileUtils.h>
 #include <arc/StringConv.h>
 
+#include "Credential.h"
+
 #include "VOMSConfig.h"
 
 namespace Arc {
@@ -136,7 +138,10 @@ VOMSConfigLine::VOMSConfigLine(const std::string& line) {
   Arc::tokenize(line, tokens, " \t", "\"", "\"");
   // Normally there must be 5 items in line. 
   // But older voms files (still in use) have 6 parameters.
-  if((tokens.size() != 5) && (tokens.size() != 6)) return;
+  if((tokens.size() != 5) && (tokens.size() != 6)) {
+    CredentialLogger.msg(ERROR,"ERROR: VOMS configuration line contains too many tokens. Expecting 5 or 6. Line was: %s", line);
+    return;
+  };
   name    = tokens[0];
   host    = tokens[1];
   port    = tokens[2];
@@ -149,7 +154,10 @@ bool VOMSConfig::AddPath(const std::string& path, int depth, const filter& lfilt
   const int max_lines_num = 1024;
   const int max_depth = 64;
   if(Glib::file_test(path, Glib::FILE_TEST_IS_DIR)) {
-    if((++depth) >= max_depth) return false;
+    if((++depth) >= max_depth) {
+      CredentialLogger.msg(ERROR,"ERROR: file tree is too deep while scanning VOMS configuration. Max allowed nesting is %i.",max_depth);
+      return false;
+    };
     Glib::Dir dir(path);
     bool r = true;
     while(true) {
@@ -164,16 +172,28 @@ bool VOMSConfig::AddPath(const std::string& path, int depth, const filter& lfilt
     std::ifstream iv(path.c_str());
     int n = 0;
     while(!iv.eof()) {
-      if(iv.fail()) return false;
-      if((n++) >= max_lines_num) return false; // too many lines
+      if(iv.fail()) {
+        CredentialLogger.msg(ERROR,"ERROR: failed to read file %s while scanning VOMS configuration.",path);
+        return false;
+      };
+      if((n++) >= max_lines_num) {
+        // too many lines
+        CredentialLogger.msg(ERROR,"ERROR: VOMS configuration file %s contains too many lines. Max supported number is %i.",path,max_lines_num);
+        return false;
+      };
       char buf[max_line_length];
       iv.getline(buf,sizeof(buf));
-      if(iv.gcount() >= (sizeof(buf)-1)) return false; // to long line
+      if(iv.gcount() >= (sizeof(buf)-1)) {
+        // too long line
+        CredentialLogger.msg(ERROR,"ERROR: VOMS configuration file %s contains too long line(s). Max supported length is %i characters.",path,max_line_length-1);
+        return false;
+      };
       VOMSConfigLine vline(buf);
       if(vline && lfilter.match(vline)) lines.push_back(vline);
     };
     return true;
   };
+  // This is not error. Just file we can't process. So skip logging.
   return false;
 }
 
