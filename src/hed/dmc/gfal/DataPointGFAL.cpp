@@ -98,6 +98,7 @@ namespace ArcDMCGFAL {
     if (((const URL &)(*dmcarg)).Protocol() != "rfio" &&
         ((const URL &)(*dmcarg)).Protocol() != "dcap" &&
         ((const URL &)(*dmcarg)).Protocol() != "gsidcap" &&
+        ((const URL &)(*dmcarg)).Protocol() != "lfc" &&
         // gfal protocol is used in 3rd party transfer to load this DMC
         ((const URL &)(*dmcarg)).Protocol() != "gfal")
       return NULL;
