@@ -2512,7 +2512,6 @@ AC_CONFIG_FILES([Makefile
                  src/clients/compute/arcsync.1
                  src/clients/compute/arcrenew.1
                  src/clients/compute/arcresume.1
-                 src/clients/compute/arcacl.1
                  src/clients/compute/arctest.1
                  src/clients/wsrf/arcwsrf.1
                  src/clients/wsrf/Makefile

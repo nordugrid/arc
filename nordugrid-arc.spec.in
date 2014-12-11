@@ -1278,7 +1278,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %files client
 %defattr(-,root,root,-)
 %doc docdir/client/*
-%{_bindir}/arcacl
 %{_bindir}/arccat
 %{_bindir}/arcclean
 %{_bindir}/arccp
@@ -1302,7 +1301,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_bindir}/arctest
 %dir %{_sysconfdir}/%{pkgdir}
 %config(noreplace) %{_sysconfdir}/%{pkgdir}/client.conf
-%doc %{_mandir}/man1/arcacl.1*
 %doc %{_mandir}/man1/arccat.1*
 %doc %{_mandir}/man1/arcclean.1*
 %doc %{_mandir}/man1/arccp.1*

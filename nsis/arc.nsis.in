@@ -78,7 +78,6 @@ Section "NorduGrid ARC clients"
   File "${ARC_LOCATION}/share/arc/examples/client.conf"
 
   SetOutPath "$INSTDIR\bin"
-  File "${ARC_LOCATION}/bin/arcacl.exe"
   File "${ARC_LOCATION}/bin/arccat.exe"
   File "${ARC_LOCATION}/bin/arcclean.exe"
   File "${ARC_LOCATION}/bin/arccp.exe"
@@ -469,7 +468,6 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\bin\arccp.exe"
   Delete /rebootok "$INSTDIR\bin\arcclean.exe"
   Delete /rebootok "$INSTDIR\bin\arccat.exe"
-  Delete /rebootok "$INSTDIR\bin\arcacl.exe"
 
   ; NSS
   Delete /rebootok "$INSTDIR\bin\ssl3.dll"

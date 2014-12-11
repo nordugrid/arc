@@ -1,4 +1,3 @@
-debian/tmp/usr/bin/arcacl
 debian/tmp/usr/bin/arccat
 debian/tmp/usr/bin/arcclean
 debian/tmp/usr/bin/arccp
@@ -20,7 +19,6 @@ debian/tmp/usr/bin/arcsync
 debian/tmp/usr/bin/arctest
 debian/tmp/etc/arc/client.conf
 debian/tmp/usr/share/arc/examples/client.conf
-debian/tmp/usr/share/man/man1/arcacl.1
 debian/tmp/usr/share/man/man1/arccat.1
 debian/tmp/usr/share/man/man1/arcclean.1
 debian/tmp/usr/share/man/man1/arccp.1
