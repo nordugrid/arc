@@ -6,6 +6,11 @@
   * Remove old data-staging related code. Move all data-staging options in
     arc.conf to [data-staging] section.
 
+2014-12-05 Jon Kerr Nilsen <j.k.nilsen@usit.uio.no>
+  * Remove confusa (moved to obsolete)
+  * Move echo services to examples dir
+  * Remove arcmigrate
+
 2014-12-02  Anders Waananen <waananen@nbi.dk>
   * Removed LFC and DQ2 DMCs
 
