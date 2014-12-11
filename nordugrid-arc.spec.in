@@ -124,12 +124,6 @@
 %global with_xmlsec1 0
 %endif
 
-%if %{?suse_version:1}%{!?suse_version:0}
-%global with_gacl 0
-%else
-%global with_gacl %{!?_without_gacl:1}%{?_without_gacl:0}
-%endif
-
 #
 # CA utils
 #
@@ -269,9 +263,6 @@ BuildRequires:	%{openldap_devel}
 BuildRequires:	globus-common-devel
 BuildRequires:	globus-ftp-client-devel
 BuildRequires:	globus-ftp-control-devel
-%if %{with_gacl}
-BuildRequires:	gridsite-devel
-%endif
 %if %{with_canl}
 BuildRequires:	canl-c++-devel
 %endif
@@ -427,9 +418,6 @@ This package contains the ARC gridftp server which has a plugin framework.
 Current plugins include:
 
   fileplugin : Standard gridftp server based on Globus globus-ftp-control
-%if %{with_gacl}
-  gaclplugin : Enhanced server with support for GACL authorization
-%endif
   jobplugin  : Classical ARC job submission interface
 
 %package cache-service
@@ -1353,9 +1341,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_initrddir}/gridftpd
 %{_sbindir}/gridftpd
 %{_libdir}/%{pkgdir}/jobplugin.*
-%if %{with_gacl}
-%{_libdir}/%{pkgdir}/gaclplugin.*
-%endif
 %{_libdir}/%{pkgdir}/fileplugin.*
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
 %doc %{_mandir}/man8/gridftpd.8*

@@ -167,7 +167,6 @@ enables_pylint=yes
 enables_mock_dmc=no
 enables_gfal=no
 enables_xrootd=yes
-enables_gacl=yes
 enables_argus=no
 enables_xmlsec1=yes
 enables_dbjstore=yes
@@ -227,7 +226,6 @@ enables_junit=$enableval
 enables_python=$enableval
 enables_altpython=$enableval
 enables_pylint=$enableval
-enables_gacl=$enableval
 enables_mock_dmc=$enableval
 enables_gfal=$enableval
 enables_xrootd=$enableval
@@ -1221,47 +1219,6 @@ LDFLAGS=$SAVE_LDFLAGS
 fi
 AC_SUBST(ZLIB_CFLAGS)
 AC_SUBST(ZLIB_LIBS)
-
-# check gridsite
-GRIDSITE_CFLAGS=""
-GRIDSITE_LDFLAGS=""
-AC_ARG_WITH(gridsite,
-  AC_HELP_STRING([--with-gridsite=PATH], [where gridsite is installed]),
-  [
-    if test ! "x$with_gridsite" = "x"; then
-      GRIDSITE_LOCATION="$with_gridsite"
-      GRIDSITE_CFLAGS="-I$GRIDSITE_LOCATION/include"
-      if test -d "$GRIDSITE_LOCATION/lib64"; then
-        GRIDSITE_LDFLAGS="-L$GRIDSITE_LOCATION/lib64"
-      else
-        GRIDSITE_LDFLAGS="-L$GRIDSITE_LOCATION/lib"
-      fi
-    fi
-  ]
-)
-SAVE_LIBS=$LIBS
-SAVE_CPPFLAGS=$CPPFLAGS
-SAVE_LDFLAGS=$LDFLAGS
-CPPFLAGS="$CPPFLAGS $GRIDSITE_CFLAGS"
-LDFLAGS="$LDFLAGS $GRIDSITE_LDFLAGS"
-if test "x$enables_gacl" = "xyes"; then
-  AC_CHECK_HEADER([gridsite.h],, enables_gacl="no")
-fi
-if test "x$enables_gacl" = "xyes"; then
-  AC_CHECK_LIB([gridsite], [GRSTgaclInit], [GRIDSITE_LIBS="$GRIDSITE_LDFLAGS -lgridsite"], enables_gacl="no")
-fi
-LIBS=$SAVE_LIBS
-CPPFLAGS=$SAVE_CPPFLAGS
-LDFLAGS=$SAVE_LDFLAGS
-AM_CONDITIONAL(GACL_ENABLED, test "x$enables_gacl" = "xyes")
-if test "x$enables_gacl" = "xyes"; then
-   AC_DEFINE(HAVE_GACL,, [define if gridsite GACL is available])
-else
-  GRIDSITE_CFLAGS=
-  GRIDSITE_LIBS=
-fi
-AC_SUBST(GRIDSITE_CFLAGS)
-AC_SUBST(GRIDSITE_LIBS)
 
 # check ARGUS
 ARGUS_CFLAGS=
@@ -2491,12 +2448,9 @@ AC_CONFIG_FILES([Makefile
                  src/services/gridftpd/gridftpd.8
                  src/services/gridftpd/auth/Makefile
                  src/services/gridftpd/conf/Makefile
-                 src/services/gridftpd/external/Makefile
-                 src/services/gridftpd/external/gacl/Makefile
                  src/services/gridftpd/misc/Makefile
                  src/services/gridftpd/run/Makefile
                  src/services/gridftpd/fileplugin/Makefile
-                 src/services/gridftpd/gaclplugin/Makefile
                  src/services/ldap-infosys/Makefile
                  src/services/ldap-infosys/create-bdii-config
                  src/services/ldap-infosys/create-inforeg-config
@@ -2629,7 +2583,6 @@ MYSQL CLIENT LIB:   ${enables_mysql}
 LDAP:               ${enables_ldap}
 xmlsec1:            ${enables_xmlsec1}
 ARGUS:              ${enables_argus}
-GACL:               ${enables_gacl}
 NSS:                ${enables_nss}
 CANL++:             ${enables_canlxx}
 BDB C++:            ${enables_dbcxx}

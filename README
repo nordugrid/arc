@@ -63,7 +63,6 @@ Build & runtime:
   o GFAL 2 (GFAL DMC)
   o Berkeley DB C++ interface (Delegation)
   o xmlsec1 1.2.4 or higher (Security)
-  o GridSite (GridFTP)
   o NSS 3 (credential)
 
 Runtime dependencies:

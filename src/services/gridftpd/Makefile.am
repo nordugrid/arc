@@ -38,14 +38,8 @@ gridftpd_LDADD = libgridftpd.la conf/libconf.la run/librun.la \
 
 gridftpd_LDFLAGS = -rdynamic
 
-if GACL_ENABLED
-GACL_PLUGIN = gaclplugin
-else
-GACL_PLUGIN =
-endif
+SUBDIRS = misc conf run auth . fileplugin
 
-SUBDIRS = misc conf run external auth . fileplugin $(GACL_PLUGIN)
-
-DIST_SUBDIRS = misc conf run external auth . fileplugin gaclplugin
+DIST_SUBDIRS = misc conf run auth . fileplugin
 
 man_MANS = gridftpd.8

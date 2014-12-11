@@ -287,8 +287,8 @@
 ## affect nordugridmap utility)
 #id="vo_1"
 
-## vo vo_name - specifies the VO name, this name can be used in other blocks
-## and in gacl expressions. MUST be given.
+## vo vo_name - specifies the VO name, this name can be used in other blocks.
+## MUST be given.
 #vo="nordugrid"
 
 ## file path - output gridmap-file where GENERATED mapping list will be
@@ -1258,51 +1258,6 @@
 ## Adjust permissions on some subdirectories
 #dir="/section1 nouser read mkdir *:* 700:700 cd dirlist"
 #dir="/section2 nouser read mkdir *:* 700:700 cd dirlist"
-
-###########################################################
-##
-### [gridftpd/gacldir] block ############################
-## [gridftpd/gacldir] "gaclplugin" GACL-controlled storage block
-## Subblock for "exporting" a directory through  gaclplugin,
-## gridftp plugins are shared libraries. "gacldir" is a
-## unique label. The acess control is set through "gacl" files placed in the
-## physical directories assigned to every file/directory.
-## Newly created directories and uploaded files automatically obtain their
-## default "gacl" files: only the creator of the file/directory has the
-## "read,write,list,admin" capabilities, this default is not configureable yet.
-## Additionally the 'mount' directory MUST contain a .gacl file with
-## initial ACL otherwise rule will be "deny all for everyone"
-##
-#[gridftpd/gacldir]
-
-## plugin name - specifies name of shared library to be loaded relative to
-## "pluginpath".
-## The next line is MUST for a gridftp file server with "gaclplugin", don't
-## change anything
-#plugin="gaclplugin.so"
-
-## groupcfg group_name [group_name ...] - specifies authorization groups
-## for which this plugin is activated. In case groupcfg is not used the
-## plugin is loaded for every mapped grid user.
-#groupcfg="users"
-
-## the name of the virtual directory served by the gridftp server, REQUIRED
-## the exported storage area is accessable as gsiftp://server/gacltop.
-## "gacltop" is just an example, call the virtual path anything you like,
-## even "/" is a valid choice.
-#path="/gacltop"
-
-## the physical directory corresponding to the virtual one:
-## gsiftp://server/gacltop will give access to the
-## /scratch/GACL directory on server.
-## The directory MUST contain a .gacl file with the some default gacl settings.
-## This parameter is REQUIRED.
-#mount="/scratch/GACL"
-
-## gacl - specifies the default GACL rule for new objects. The GACL expression
-## must be given in one line and in GACL XML format.
-#gacl="<gacl>very long single line</gacl>"
-
 
 ############################################################
 ##

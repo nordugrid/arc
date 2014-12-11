@@ -1,9 +1,3 @@
-if GACL_ENABLED
-GACL_CFLAGS = -I$(top_srcdir)/src/services/gridftpd/external/gacl
-else
-GACL_CFLAGS =
-endif
-
 GLOBUS_JOBPLUGIN_LIBS = $(GLOBUS_RSL_LIBS) $(GLOBUS_IO_LIBS) \
 	$(GLOBUS_GSSAPI_GSI_LIBS) $(GLOBUS_GSI_CREDENTIAL_LIBS) \
 	$(GLOBUS_GSI_CERT_UTILS_LIBS) $(GLOBUS_COMMON_LIBS)
@@ -13,7 +7,7 @@ pkglib_LTLIBRARIES = jobplugin.la
 jobplugin_la_SOURCES = jobplugin.cpp jobplugin_acl.cpp jobplugin.h init.cpp
 jobplugin_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(DBCXX_CPPFLAGS) \
-	$(GLOBUS_FTP_CLIENT_CFLAGS) $(GACL_CFLAGS) $(GRIDSITE_CFLAGS) $(AM_CXXFLAGS)
+	$(GLOBUS_FTP_CLIENT_CFLAGS) $(AM_CXXFLAGS)
 jobplugin_la_LDFLAGS = -no-undefined -avoid-version -module
 
 jobplugin_la_LIBADD = \
