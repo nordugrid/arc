@@ -1,3 +1,7 @@
+2014-12-11  David Cameron <d.g.cameron@fys.uio.no>
+  * Remove old data-staging related code. Move all data-staging options in
+    arc.conf to [data-staging] section.
+
 2014-12-02  Anders Waananen <waananen@nbi.dk>
   * Removed LFC and DQ2 DMCs
 

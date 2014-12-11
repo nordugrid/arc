@@ -268,17 +268,15 @@ bool GridManager::thread() {
   jobs.RestartJobs();
 
   hard_job_time = time(NULL) + HARD_JOB_PERIOD;
-  if (config_.UseDTR()) {
-    logger.msg(Arc::INFO, "Starting data staging threads");
-    DTRGenerator* dtr_generator = new DTRGenerator(config_, &kick_func, wakeup_);
-    if (!(*dtr_generator)) {
-      delete dtr_generator;
-      logger.msg(Arc::ERROR, "Failed to start data staging threads, exiting Grid Manager thread");
-      return false;
-    }
-    dtr_generator_ = dtr_generator;
-    jobs.SetDataGenerator(dtr_generator);
+  logger.msg(Arc::INFO, "Starting data staging threads");
+  DTRGenerator* dtr_generator = new DTRGenerator(config_, &kick_func, wakeup_);
+  if (!(*dtr_generator)) {
+    delete dtr_generator;
+    logger.msg(Arc::ERROR, "Failed to start data staging threads, exiting Grid Manager thread");
+    return false;
   }
+  dtr_generator_ = dtr_generator;
+  jobs.SetDataGenerator(dtr_generator);
   bool scan_old = false;
   std::string heartbeat_file("gm-heartbeat");
   Arc::WatchdogChannel wd(config_.WakeupPeriod()*3+300);

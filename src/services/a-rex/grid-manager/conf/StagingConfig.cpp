@@ -10,10 +10,10 @@ namespace ARex {
 Arc::Logger StagingConfig::logger(Arc::Logger::getRootLogger(), "StagingConfig");
 
 StagingConfig::StagingConfig(const GMConfig& config):
-  max_delivery(-1),
-  max_processor(-1),
-  max_emergency(-1),
-  max_prepared(-1),
+  max_delivery(10),
+  max_processor(10),
+  max_emergency(1),
+  max_prepared(200),
   min_speed(0),
   min_speed_time(300),
   min_average_speed(0),
@@ -21,6 +21,7 @@ StagingConfig::StagingConfig(const GMConfig& config):
   max_retries(10),
   passive(false),
   secure(false),
+  local_transfer(false),
   remote_size_limit(0),
   use_host_cert_for_remote_delivery(false),
   log_level(Arc::Logger::getRootLogger().getThreshold()),
@@ -28,9 +29,6 @@ StagingConfig::StagingConfig(const GMConfig& config):
 {
 
   // For ini-style, use [data-staging] section, for xml use <dataTransfer> node
-
-  // Fill from GMConfig, then override those values with values in data-staging conf
-  fillFromGMConfig(config);
 
   std::ifstream cfile;
   if (!config_open(cfile, config.ConfigFile())) {
@@ -65,25 +63,6 @@ StagingConfig::StagingConfig(const GMConfig& config):
     } break;
   }
   config_close(cfile);
-}
-
-void StagingConfig::fillFromGMConfig(const GMConfig& config) {
-
-  max_delivery = config.max_jobs_staging;
-  max_emergency = config.max_jobs_staging_emergency;
-  if (max_delivery > 0 && config.max_downloads > 0) max_delivery *= config.max_downloads;
-  max_processor = max_delivery;
-  if (max_emergency > 0 && config.max_downloads > 0) max_emergency *= config.max_downloads;
-  min_speed = config.min_speed;
-  min_speed_time = config.min_speed_time;
-  min_average_speed = config.min_average_speed;
-  max_inactivity_time = config.max_inactivity_time;
-  passive = config.use_passive_transfer;
-  secure = config.use_secure_transfer;
-  max_retries = config.max_retries;
-  preferred_pattern = config.preferred_pattern;
-  share_type = config.share_type;
-  defined_shares = config.limited_share;
 }
 
 bool StagingConfig::readStagingConf(std::ifstream& cfile) {
@@ -174,6 +153,10 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
       std::string sec = config_next_arg(rest);
       if (sec == "yes") secure = true;
     }
+    else if (command == "localtransfer") {
+      std::string sec = config_next_arg(rest);
+      if (sec == "yes") local_transfer = true;
+    }
     else if (command == "preferredpattern") {
       preferred_pattern = config_next_arg(rest);
     }
@@ -191,6 +174,15 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
     }
     else if (command == "dtrlog") {
       dtr_log = config_next_arg(rest);
+    }
+    else if (command == "acix_endpoint")  {
+      std::string endpoint(config_next_arg(rest));
+      if (!Arc::URL(endpoint) || endpoint.find("://") == std::string::npos) {
+        logger.msg(Arc::ERROR, "Bad URL in acix_endpoint");
+        return false;
+      }
+      endpoint.replace(0, endpoint.find("://"), "acix");
+      acix_endpoint = endpoint;
     }
   }
   return true;
@@ -252,6 +244,46 @@ bool StagingConfig::readStagingConf(const Arc::XMLNode& cfg) {
       }
     }
     if (tmp_node["dtrLog"]) dtr_log = (std::string)tmp_node["dtrLog"];
+  }
+  /*
+  dataTransfer
+    secureTransfer
+    passiveTransfer
+    localTransfer
+    preferredPattern
+    acixEndpoint
+    timeouts
+      minSpeed
+      minSpeedTime
+      minAverageSpeed
+      maxInactivityTime
+    maxRetries
+    mapURL (link)
+      from
+      to
+  */
+  tmp_node = cfg["dataTransfer"];
+  if (tmp_node) {
+    Arc::XMLNode to_node = tmp_node["timeouts"];
+    if (to_node) {
+      if (!elementtoint(tmp_node, "minSpeed", min_speed, &logger)) return false;
+      if (!elementtoint(tmp_node, "minAverageSpeed", min_average_speed, &logger)) return false;
+      if (!elementtoint(tmp_node, "minSpeedTime", min_speed_time, &logger)) return false;
+      if (!elementtoint(tmp_node, "maxInactivityTime", max_inactivity_time, &logger)) return false;
+    }
+    if (!elementtobool(tmp_node, "passiveTransfer", passive, &logger)) return false;
+    if (!elementtobool(tmp_node, "secureTransfer", secure, &logger)) return false;
+    if (!elementtobool(tmp_node, "localTransfer", local_transfer, &logger)) return false;
+    if (!elementtoint(tmp_node, "maxRetries", max_retries, &logger)) return false;
+    if (tmp_node["preferredPattern"]) preferred_pattern = (std::string)(tmp_node["preferredPattern"]);
+    if (tmp_node["acixEndpoint"]) {
+      std::string endpoint((std::string)(tmp_node["acixEndPoint"]));
+      if (!Arc::URL(endpoint) || endpoint.find("://") == std::string::npos) {
+        logger.msg(Arc::ERROR, "Bad URL in acix_endpoint"); return false;
+      }
+      endpoint.replace(0, endpoint.find("://"), "acix");
+      acix_endpoint = endpoint;
+    }
   }
 
   return true;

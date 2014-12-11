@@ -27,12 +27,8 @@ namespace ARex {
 #define DEFAULT_KEEP_FINISHED (7*24*60*60)
 // default job ttr after deleted - 1 month
 #define DEFAULT_KEEP_DELETED (30*24*60*60)
-// default maximum number of jobs in download/upload
-#define DEFAULT_MAX_LOAD (10)
 // default maximal allowed amount of reruns
 #define DEFAULT_JOB_RERUNS (5)
-// default maximum down/upload retries
-#define DEFAULT_MAX_RETRIES (10)
 // default wake up period for main job loop
 #define DEFAULT_WAKE_UP (120)
 
@@ -83,26 +79,10 @@ void GMConfig::SetDefaults() {
   reruns = DEFAULT_JOB_RERUNS;
   wakeup_period = DEFAULT_WAKE_UP;
 
-  use_secure_transfer = false;
-  use_passive_transfer = false;
-  use_local_transfer = false;
-  use_dtr = true;
-
   max_jobs_running = -1;
   max_jobs_total = -1;
   max_jobs = -1;
   max_jobs_per_dn = -1;
-
-  min_speed = 0;
-  min_speed_time = 300;
-  min_average_speed = 0;
-  max_inactivity_time = 300;
-
-  max_jobs_staging = DEFAULT_MAX_LOAD;
-  max_jobs_staging_emergency = 1;
-  max_downloads = -1;
-  max_staging_share = 0;
-  max_retries = DEFAULT_MAX_RETRIES;
 
   enable_arc_interface = true;
   enable_emies_interface = false;

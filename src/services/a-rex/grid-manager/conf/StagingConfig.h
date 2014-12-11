@@ -17,9 +17,8 @@ class DTRGenerator;
 class StagingConfig {
   friend class DTRGenerator;
 public:
-  /// Load config from configuration file. Information from GMConfig is
-  /// used first, then it is overwritten by parameters in [data-staging] (for
-  /// ini style) or new staging parameters in <dataTransfer> (for xml style).
+  /// Load config from [data-staging] or <dataTransfer> section of ini or xml
+  /// configuration file.
   StagingConfig(const GMConfig& config);
 
   operator bool() const { return valid; };
@@ -36,6 +35,7 @@ public:
   int get_max_retries() const { return max_retries; };
   bool get_passive() const { return passive; };
   bool get_secure() const { return secure; };
+  bool get_local_transfer() const { return local_transfer; };
   std::string get_preferred_pattern() const { return preferred_pattern; };
   std::vector<Arc::URL> get_delivery_services() const { return delivery_services; };
   unsigned int get_remote_size_limit() const { return remote_size_limit; };
@@ -44,6 +44,7 @@ public:
   bool get_use_host_cert_for_remote_delivery() const { return use_host_cert_for_remote_delivery; };
   Arc::LogLevel get_log_level() const { return log_level; };
   std::string get_dtr_log() const { return dtr_log; };
+  std::string get_acix_endpoint() const { return acix_endpoint; };
 
 private:
   /// Max transfers in delivery
@@ -73,6 +74,8 @@ private:
   bool passive;
   /// Whether or not to use secure transfer (off by default)
   bool secure;
+  /// Whether or not to use local transfer on worker node (off by default)
+  bool local_transfer;
   /// Pattern for choosing preferred replicas
   std::string preferred_pattern;
 
@@ -91,14 +94,15 @@ private:
   /// where to log DTR state information
   std::string dtr_log;
 
+  /// ACIX endpoint from which to find locations of cached files
+  std::string acix_endpoint;
+
   /// Validity of configuration
   bool valid;
 
   /// Logger object
   static Arc::Logger logger;
 
-  /// Fill parameters from info in GMConfig object
-  void fillFromGMConfig(const GMConfig& jcfg);
   /// Read in params from XML config
   bool readStagingConf(const Arc::XMLNode& cfg);
   /// Read in params from ini config

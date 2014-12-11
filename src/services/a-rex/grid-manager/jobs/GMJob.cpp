@@ -62,8 +62,12 @@ void GMJob::set_share(std::string share) {
 GMJob::GMJob(void) {
   job_state=JOB_STATE_UNDEFINED;
   job_pending=false;
+  keep_finished=-1;
+  keep_deleted=-1;
   child=NULL;
   local=NULL;
+  retries=0;
+  next_retry=time(NULL);
   start_time=time(NULL);
 }
 

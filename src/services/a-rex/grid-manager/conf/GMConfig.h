@@ -204,18 +204,6 @@ public:
   /// Max total jobs in the system
   int MaxTotal() const { return max_jobs_total; }
 
-  /// Max jobs in data staging states (PREPARING and FINISHING)
-  int MaxJobsStaging() const { return max_jobs_staging; }
-  /// Max jobs started if all staging slots are taken by one state
-  int MaxStagingEmergency() const { return max_jobs_staging_emergency; }
-  /// Max files downloaded in parallel per job
-  int MaxDownloads() const { return max_downloads; }
-  /// ACIX endpoint from which to find locations of cached files
-  const std::string & ACIXEndpoint() const { return acix_endpoint; };
-
-  /// Whether to use new data staging (DTR)
-  bool UseDTR() const { return use_dtr; }
-
   /// Returns true if the shared uid matches the given uid
   bool MatchShareUid(uid_t suid) const { return ((share_uid==0) || (share_uid==suid)); };
   /// Returns true if any of the shared gids matches the given gid
@@ -301,17 +289,6 @@ private:
   /// List of associated external processes
   std::list<ExternalHelper> helpers;
 
-  /// Whether to use secure (encrypted) data transfer
-  bool use_secure_transfer;
-  /// Whether to use passive transfer
-  bool use_passive_transfer;
-  /// Whether to do staging on the worker node instead of frontend
-  bool use_local_transfer;
-  /// Whether to use the new data staging framework (DTR)
-  bool use_dtr;
-  /// Pattern defining the preferred choice of replica
-  std::string preferred_pattern;
-
   /// Maximum number of jobs running (between PREPARING and FINISHING)
   int max_jobs_running;
   /// Maximum total jobs in the system, including FINISHED and DELETED
@@ -320,34 +297,6 @@ private:
   int max_jobs;
   /// Maximum jobs running per DN
   int max_jobs_per_dn;
-
-  /// Minimum speed for transfer over min_speed_time seconds
-  unsigned long long int min_speed;
-  /// Time over which to calculate min_speed
-  time_t min_speed_time;
-  /// Minimum average speed for entire transfer
-  unsigned long long int min_average_speed;
-  /// Maximum time with no transfer activity
-  time_t max_inactivity_time;
-
-  // The next block of parameters is replaced in DTR by StagingConfig
-  /// Maximum number of jobs in data staging states (PREPARING or FINISHING)
-  int max_jobs_staging;
-  /// Maximum number of jobs in a staging state if the other staging state is
-  /// using all the available slots
-  int max_jobs_staging_emergency;
-  /// Maximum files downloaded in parallel for each job
-  int max_downloads;
-  /// Maximum jobs staging in each share
-  unsigned int max_staging_share;
-  /// Type of data staging share
-  std::string share_type;
-  /// List of shares with defined limits
-  std::map<std::string, int> limited_share;
-  /// Maximum retries for data transfer
-  int max_retries;
-  /// ACIX endpoint from which to find locations of cached files
-  std::string acix_endpoint;
 
   /// Whether WS-interface is enabled
   bool enable_arc_interface;

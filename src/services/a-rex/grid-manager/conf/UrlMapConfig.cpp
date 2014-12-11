@@ -67,7 +67,7 @@ UrlMapConfig::UrlMapConfig(const GMConfig& config) {
     case config_file_INI: {
       cf=new ConfigSections(cfile);
       cf->AddSection("common");
-      cf->AddSection("grid-manager");
+      cf->AddSection("data-staging");
       for(;;) {
         std::string rest;
         std::string command;

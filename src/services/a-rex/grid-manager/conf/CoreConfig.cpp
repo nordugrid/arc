@@ -269,55 +269,14 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       }
       if (config.max_jobs_total < 0) config.max_jobs_total = -1;
     }
-    else if (command == "speedcontrol") {
-      std::string speed_s = config_next_arg(rest);
-      if (!Arc::stringto(speed_s, config.min_speed)) {
-        logger.msg(Arc::ERROR, "Wrong number in speedcontrol: %s", speed_s); return false;
-      }
-      speed_s = config_next_arg(rest);
-      if (!Arc::stringto(speed_s, config.min_speed_time)) {
-        logger.msg(Arc::ERROR, "Wrong number in speedcontrol: %s", speed_s); return false;
-      }
-      speed_s = config_next_arg(rest);
-      if (!Arc::stringto(speed_s, config.min_average_speed)) {
-        logger.msg(Arc::ERROR, "Wrong number in speedcontrol: %s", speed_s); return false;
-      }
-      speed_s = config_next_arg(rest);
-      if (!Arc::stringto(speed_s, config.max_inactivity_time)) {
-        logger.msg(Arc::ERROR, "Wrong number in speedcontrol: %s", speed_s); return false;
-      }
-    }
     else if (command == "wakeupperiod") {
       std::string wakeup_s = config_next_arg(rest);
       if (!Arc::stringto(wakeup_s, config.wakeup_period)) {
         logger.msg(Arc::ERROR,"Wrong number in wakeupperiod: %s",wakeup_s); return false;
       }
     }
-    else if (command == "securetransfer") {
-      if (!CheckYesNoCommand(config.use_secure_transfer, command, rest)) return false;
-    }
-    else if(command == "passivetransfer") {
-      if (!CheckYesNoCommand(config.use_passive_transfer, command, rest)) return false;
-    }
-    else if (command == "maxtransfertries") {
-      std::string maxtries_s = config_next_arg(rest);
-      if (!Arc::stringto(maxtries_s, config.max_retries)) {
-        logger.msg(Arc::ERROR, "Wrong number in maxtransfertries"); return false;
-      }
-    }
-    else if (command == "acix_endpoint")  {
-      std::string endpoint(config_next_arg(rest));
-      if (!Arc::URL(endpoint) || endpoint.find("://") == std::string::npos) {
-        logger.msg(Arc::ERROR, "Bad URL in acix_endpoint"); return false;
-      }
-      endpoint.replace(0, endpoint.find("://"), "acix");
-      config.acix_endpoint = endpoint;
-    }
     else if(command == "norootpower") {
       if (!CheckYesNoCommand(config.strict_session, command, rest)) return false;
-    }
-    else if (command == "localtransfer") {
-      if (!CheckYesNoCommand(config.use_local_transfer, command, rest)) return false;
     }
     else if (command == "mail") { // internal address from which to send mail
       config.support_email_address = config_next_arg(rest);
@@ -375,10 +334,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
         logger.msg(Arc::ERROR, "Wrong number for timeout in plugin command"); return false;
       }
       config.cred_plugin->timeout(timeout);
-    }
-    else if (command == "preferredpattern") {
-      std::string preferred_pattern = config_next_arg(rest);
-      config.preferred_pattern = preferred_pattern;
     }
     else if (command == "fixdirectories") {
       std::string s = config_next_arg(rest);
@@ -551,11 +506,7 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     maxJobsTracked
     maxJobsRun
     maxJobsTotal
-    maxJobsTransferred
-    maxJobsTransferredAdditional
-    maxFilesTransferred
-    maxLoadShare
-    loadShareType
+    maxJobsPerDN
     wakeupPeriod
   */
   tmp_node = cfg["loadLimits"];
@@ -564,74 +515,9 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     if (!elementtoint(tmp_node, "maxJobsRun", config.max_jobs_running, &logger)) return false;
     if (!elementtoint(tmp_node, "maxJobsTotal", config.max_jobs_total, &logger)) return false;
     if (!elementtoint(tmp_node, "maxJobsPerDN", config.max_jobs_per_dn, &logger)) return false;
-    if (!elementtoint(tmp_node, "maxJobsTransferred", config.max_jobs_staging, &logger)) return false;
-    if (!elementtoint(tmp_node, "maxJobsTransferredAdditional", config.max_jobs_staging_emergency, &logger)) return false;
-    if (!elementtoint(tmp_node, "maxFilesTransferred", config.max_downloads, &logger)) return false;
-    std::string transfer_share = tmp_node["loadShareType"];
-    int max_share;
-    if (elementtoint(tmp_node, "maxLoadShare", max_share, &logger) && (max_share > 0) && ! transfer_share.empty()){
-      config.share_type = transfer_share;
-      config.max_staging_share = max_share;
-    }
     if (!elementtoint(tmp_node, "wakeupPeriod", config.wakeup_period, &logger)) return false;
-    Arc::XMLNode share_limit_node = tmp_node["shareLimit"];
-    for (; share_limit_node; ++share_limit_node) {
-      int share_limit = -1;
-      std::string limited_share = share_limit_node["name"];
-      if (elementtoint(share_limit_node, "limit", share_limit, &logger) && (share_limit > 0) && ! limited_share.empty()) {
-        config.limited_share[limited_share] = share_limit;
-      }
-    }
   }
 
-  /*
-  dataTransfer
-    secureTransfer
-    passiveTransfer
-    localTransfer
-    preferredPattern
-    acixEndpoint
-    timeouts
-      minSpeed
-      minSpeedTime
-      minAverageSpeed
-      maxInactivityTime
-    maxRetries
-    mapURL (link)
-      from
-      to
-    Globus
-      gridmapfile
-      CACertificatesDir
-      CertificatePath
-      KeyPath
-      TCPPortRange
-      UDPPortRange
-    httpProxy
-  */
-  tmp_node = cfg["dataTransfer"];
-  if (tmp_node) {
-    Arc::XMLNode to_node = tmp_node["timeouts"];
-    if (to_node) {
-      if (!elementtoint(tmp_node, "minSpeed", config.min_speed, &logger)) return false;
-      if (!elementtoint(tmp_node, "minAverageSpeed", config.min_average_speed, &logger)) return false;
-      if (!elementtoint(tmp_node, "minSpeedTime", config.min_speed_time, &logger)) return false;
-      if (!elementtoint(tmp_node, "maxInactivityTime", config.max_inactivity_time, &logger)) return false;
-    }
-    if (!elementtobool(tmp_node, "passiveTransfer", config.use_passive_transfer, &logger)) return false;
-    if (!elementtobool(tmp_node, "secureTransfer", config.use_secure_transfer, &logger)) return false;
-    if (!elementtobool(tmp_node, "localTransfer", config.use_local_transfer, &logger)) return false;
-    if (!elementtoint(tmp_node, "maxRetries", config.max_retries, &logger)) return false;
-    if (tmp_node["preferredPattern"]) config.preferred_pattern = (std::string)(tmp_node["preferredPattern"]);
-    if (tmp_node["acixEndpoint"]) {
-      std::string endpoint((std::string)(tmp_node["acixEndPoint"]));
-      if (!Arc::URL(endpoint) || endpoint.find("://") == std::string::npos) {
-        logger.msg(Arc::ERROR, "Bad URL in acix_endpoint"); return false;
-      }
-      endpoint.replace(0, endpoint.find("://"), "acix");
-      config.acix_endpoint = endpoint;
-    }
-  }
   /*
   serviceMail
   */

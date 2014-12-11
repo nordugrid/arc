@@ -922,18 +922,6 @@ cacheaccess="gsiftp://host.org/private/data/.* voms:vo myvo:production"
 cacheaccess="gsiftp://host.org/private/data/bob/.* dn /O=Grid/CN=Bob"
 
 .TP
-.B acix_endpoint
-acix_endpoint URL - the ARC Cache Index specified here will be queried for 
-every input file specified in a job description and any replicas found in
-sites with accessible caches will be added to the replica list of the input
-file. The replicas will be tried in the order specified by
-.B preferredpattern.
-
-.IR Example:
-.br
-acix_endpoint="https://cacheindex.ndgf.org:6443/data/index"
-
-.TP
 .B enable_cache_service
 enable_cache_service yes|no - Turn on or off the cache service interface.
 If turned on the cache service must be installed and the A-REX WS interface
@@ -1152,49 +1140,6 @@ script + wakeupperiod.
 wakeupperiod="180"
 
 .TP
-.B securetransfer
-securetransfer yes|no - if data connection allows to choose use 
-secure|non-secure data transfer. Currently only works for gridftp.
-default is no
-
-.IR Example:
-.br
-securetransfer="no"
-
-.TP
-.B passivetransfer
-passivetransfer yes|no - If yes, gridftp transfers are passive. Setting
-this option to yes can solve transfer problems caused by firewalls.
-default is no
-
-.IR Example:
-.br
-passivetransfer="no"
-
-.TP
-.B localtransfer
-localtransfer yes|no - If yes, then the data download from to Grid to the
-session directory (stagein) will be part of the batch job (prior to the
-execution of the binary). Default is no.
-
-.IR Example:
-.br
-localtransfer="no"
-
-.TP
-.B speedcontrol
-speedcontrol min_speed min_time min_average_speed max_inactivity - specifies
-how slow data transfer must be to trigger error. Tranfer is canceled if 
-speed is below min_speed bytes per second for at least min_time seconds,
-or if average rate is below min_average_speed bytes per second, or no data
-was transfered for longer than max_inactivity seconds. Value of zero turns
-feature off. Default is "0 300 0 300"
-
-.IR Example:
-.br
-speedcontrol="0 300 0 300"
-
-.TP
 .B defaultttl
 defaultttl [ttl [ttr]] - ttl is the time in seconds for how long a session
 directory will survive after job execution has finished. If not specified
@@ -1307,50 +1252,6 @@ alternative to /etc/init.d or cron to (re)start external processes.
 helper=". /usr/local/bin/myutility"
 
 .TP
-.B preferredpattern
-preferredpattern pattern - specifies a preferred pattern on which
-to sort multiple replicas of an input file. It consists of one or
-more patterns separated by a pipe  character (|) listed in order of
-preference. Replicas will be ordered by the earliest match. If the
-dollar character ($) is used at the end of a pattern, the pattern
-will be matched to the end of the hostname of the replica.
-
-.IR Example:
-.br
-preferredpattern="srm://myhost.ac.uk|.uk$|ndgf.org$"
-
-.TP
-.B copyurl
-copyurl url_head local_path - specifies that URLs, starting from 'url_head'
-should be accessed in a different way (most probaly unix open). The
-'url_head' part of the URL will be replaced with 'local_path' and
-file from obtained path will be copied to the session directory.
-NOTE: 'local_path' can also be of URL type.
-you can have several copyurl lines
-
-.IR Example:
-.br
-copyurl="gsiftp://example.org:2811/data/ gsiftp://example.org/data/"
-.br
-copyurl="gsiftp://example2.org:2811/data/ gsiftp://example2.org/data/"
-
-.TP
-.B linkurl
-linkurl url_head local_path [node_path] - identical to 'copyurl', only
-file won't be copied, but soft-link will be created. The 'local_path'
-specifies the way to access the file from the gatekeeper, and is used
-to check permissions. The 'node_path' specifies how the file can be
-accessed from computing nodes, and will be used for soft-link creation.
-If 'node_path' is missing - 'local_path' will be used.
-you can have multiple linkurl settings
-
-.IR Example:
-.br
-linkurl="gsiftp://somewhere.org/data /data"
-.br
-linkurl="gsiftp://example.org:2811/data/  /scratch/data/"
-
-.TP
 .B tmpdir
 tmpdir - used by the A-REX, default is /tmp
 
@@ -1367,16 +1268,6 @@ by the user in his xrsl.
 .IR Example:
 .br
 maxrerun="5" 
-
-.TP
-.B maxtransfertries
-maxtransfertries - the maximum number of times download and upload will
-be attempted per job (retries are only performed if an error is judged
-to be temporary)
-
-.IR Example:
-.br
-maxtransfertries="10"
 
 .TP
 .B globus_tcp_port_range
@@ -1676,6 +1567,115 @@ communication with remote hosts instead of the users' proxies. Default is no.
 .IR Example:
 .br
 usehostcert="yes"
+
+.TP
+.B acix_endpoint
+acix_endpoint URL - the ARC Cache Index specified here will be queried for 
+every input file specified in a job description and any replicas found in
+sites with accessible caches will be added to the replica list of the input
+file. The replicas will be tried in the order specified by
+.B preferredpattern.
+
+.IR Example:
+.br
+acix_endpoint="https://cacheindex.ndgf.org:6443/data/index"
+
+.TP
+.B securetransfer
+securetransfer yes|no - if data connection allows to choose use 
+secure|non-secure data transfer. Currently only works for gridftp.
+default is no
+
+.IR Example:
+.br
+securetransfer="no"
+
+.TP
+.B passivetransfer
+passivetransfer yes|no - If yes, gridftp transfers are passive. Setting
+this option to yes can solve transfer problems caused by firewalls.
+default is no
+
+.IR Example:
+.br
+passivetransfer="no"
+
+.TP
+.B localtransfer
+localtransfer yes|no - If yes, then the data download from to Grid to the
+session directory (stagein) will be part of the batch job (prior to the
+execution of the binary). Default is no.
+
+.IR Example:
+.br
+localtransfer="no"
+
+.TP
+.B speedcontrol
+speedcontrol min_speed min_time min_average_speed max_inactivity - specifies
+how slow data transfer must be to trigger error. Tranfer is canceled if 
+speed is below min_speed bytes per second for at least min_time seconds,
+or if average rate is below min_average_speed bytes per second, or no data
+was transfered for longer than max_inactivity seconds. Value of zero turns
+feature off. Default is "0 300 0 300"
+
+.IR Example:
+.br
+speedcontrol="0 300 0 300"
+
+.TP
+.B preferredpattern
+preferredpattern pattern - specifies a preferred pattern on which
+to sort multiple replicas of an input file. It consists of one or
+more patterns separated by a pipe  character (|) listed in order of
+preference. Replicas will be ordered by the earliest match. If the
+dollar character ($) is used at the end of a pattern, the pattern
+will be matched to the end of the hostname of the replica.
+
+.IR Example:
+.br
+preferredpattern="srm://myhost.ac.uk|.uk$|ndgf.org$"
+
+.TP
+.B copyurl
+copyurl url_head local_path - specifies that URLs, starting from 'url_head'
+should be accessed in a different way (most probaly unix open). The
+'url_head' part of the URL will be replaced with 'local_path' and
+file from obtained path will be copied to the session directory.
+NOTE: 'local_path' can also be of URL type.
+you can have several copyurl lines
+
+.IR Example:
+.br
+copyurl="gsiftp://example.org:2811/data/ gsiftp://example.org/data/"
+.br
+copyurl="gsiftp://example2.org:2811/data/ gsiftp://example2.org/data/"
+
+.TP
+.B linkurl
+linkurl url_head local_path [node_path] - identical to 'copyurl', only
+file won't be copied, but soft-link will be created. The 'local_path'
+specifies the way to access the file from the gatekeeper, and is used
+to check permissions. The 'node_path' specifies how the file can be
+accessed from computing nodes, and will be used for soft-link creation.
+If 'node_path' is missing - 'local_path' will be used.
+you can have multiple linkurl settings
+
+.IR Example:
+.br
+linkurl="gsiftp://somewhere.org/data /data"
+.br
+linkurl="gsiftp://example.org:2811/data/  /scratch/data/"
+
+.TP
+.B maxtransfertries
+maxtransfertries - the maximum number of times download and upload will
+be attempted per job (retries are only performed if an error is judged
+to be temporary)
+
+.IR Example:
+.br
+maxtransfertries="10"
 
 .SH [gridftpd] block
 

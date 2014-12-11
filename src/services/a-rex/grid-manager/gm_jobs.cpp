@@ -23,11 +23,11 @@
 using namespace ARex;
 
 /** Fill maps with shares taken from data staging states log */
-static void get_new_data_staging_shares(const GMConfig& config,
-                                        std::map<std::string, int>& share_preparing,
-                                        std::map<std::string, int>& share_preparing_pending,
-                                        std::map<std::string, int>& share_finishing,
-                                        std::map<std::string, int>& share_finishing_pending) {
+static void get_data_staging_shares(const GMConfig& config,
+                                    std::map<std::string, int>& share_preparing,
+                                    std::map<std::string, int>& share_preparing_pending,
+                                    std::map<std::string, int>& share_finishing,
+                                    std::map<std::string, int>& share_finishing_pending) {
   // get DTR configuration
   StagingConfig staging_conf(config);
   if (!staging_conf) {
@@ -217,9 +217,9 @@ int main(int argc, char* argv[]) {
   if((!notshow_jobs) || (!notshow_states) || (show_share) ||
      (cancel_users.size() > 0) || (clean_users.size() > 0) ||
      (cancel_jobs.size() > 0) || (clean_jobs.size() > 0)) {
-    if (show_share && config.UseDTR()) {
-      get_new_data_staging_shares(config, share_preparing, share_preparing_pending,
-                                  share_finishing, share_finishing_pending);
+    if (show_share) {
+      get_data_staging_shares(config, share_preparing, share_preparing_pending,
+                              share_finishing, share_finishing_pending);
     }
     if(filter_jobs.size() > 0) {
       for(std::list<std::string>::iterator id = filter_jobs.begin(); id != filter_jobs.end(); ++id) {
@@ -245,15 +245,6 @@ int main(int argc, char* argv[]) {
         continue;
       }
       JobLocalDescription& job_desc = *(i->get_local());
-      if (show_share && !config.UseDTR()) {
-        if(new_state == JOB_STATE_PREPARING && !pending) share_preparing[job_desc.transfershare]++;
-        else if(new_state == JOB_STATE_ACCEPTED && pending) share_preparing_pending[job_desc.transfershare]++;
-        else if(new_state == JOB_STATE_FINISHING) share_finishing[job_desc.transfershare]++;
-        else if(new_state == JOB_STATE_INLRMS && pending) {
-          std::string jobid = i->get_id();
-          if (job_lrms_mark_check(jobid,config)) share_finishing_pending[job_desc.transfershare]++;
-        }
-      }
       if(match_list(job_desc.DN,cancel_users)) {
         cancel_jobs_list.push_back(&(*i));
       }
@@ -296,7 +287,7 @@ int main(int argc, char* argv[]) {
   }
   
   if(show_share) {
-    std::cout<<"\n Preparing/Pending "<<(config.UseDTR() ? "files" : "jobs ")<<"\tTransfer share"<<std::endl;
+    std::cout<<"\n Preparing/Pending files\tTransfer share"<<std::endl;
     for (std::map<std::string, int>::iterator i = share_preparing.begin(); i != share_preparing.end(); i++) {
       std::cout<<"         "<<i->second<<"/"<<share_preparing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
     }
@@ -304,7 +295,7 @@ int main(int argc, char* argv[]) {
       if (share_preparing[i->first] == 0)
         std::cout<<"         0/"<<share_preparing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
     }
-    std::cout<<"\n Finishing/Pending "<<(config.UseDTR() ? "files" : "jobs ")<<"\tTransfer share"<<std::endl;
+    std::cout<<"\n Finishing/Pending files\tTransfer share"<<std::endl;
     for (std::map<std::string, int>::iterator i = share_finishing.begin(); i != share_finishing.end(); i++) {
       std::cout<<"         "<<i->second<<"/"<<share_finishing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
     }
@@ -335,8 +326,7 @@ int main(int argc, char* argv[]) {
     std::cout<<" Total: "<<jobs_total<<"/"<<config.MaxTotal()<<std::endl;
     std::cout<<" Processing: "<<
     counters[JOB_STATE_PREPARING]-counters_pending[JOB_STATE_PREPARING]<<"+"<<
-    counters[JOB_STATE_FINISHING]-counters_pending[JOB_STATE_FINISHING]<<"/"<<
-    config.MaxJobsStaging()<<"+"<<config.MaxStagingEmergency()<<std::endl;
+    counters[JOB_STATE_FINISHING]-counters_pending[JOB_STATE_FINISHING]<<std::endl;
   }
 
   if(show_delegs || (show_deleg_ids.size() > 0)) {

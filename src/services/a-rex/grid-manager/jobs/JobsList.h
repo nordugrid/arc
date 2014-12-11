@@ -4,6 +4,8 @@
 #include <sys/types.h>
 #include <list>
 
+#include "../conf/StagingConfig.h"
+
 #include "GMJob.h"
 #include "JobDescriptionHandler.h"
 
@@ -43,14 +45,10 @@ class JobsList {
  private:
   // List of jobs currently tracked in memory
   std::list<GMJob> jobs;
-  // counters of share for preparing/finishing states
-  std::map<std::string, int> preparing_job_share;
-  std::map<std::string, int> finishing_job_share;
-  // current max share for preparing/finishing
-  std::map<std::string, int> preparing_max_share;
-  std::map<std::string, int> finishing_max_share;
   // GM configuration
   const GMConfig& config;
+  // Staging configuration
+  StagingConfig staging_config;
   // Dir containing finished/deleted jobs which is scanned in ScanOldJobs.
   // Since this can happen over multiple calls a pointer is kept as a member
   // variable so scanning picks up where it finished last time.
@@ -81,10 +79,7 @@ class JobsList {
   // Perform actions necessary in case job goes to/is in SUBMITTING/CANCELING state
   bool state_submitting(const iterator &i,bool &state_changed,bool cancel=false);
   // Same for PREPARING/FINISHING
-  bool state_loading(const iterator &i,bool &state_changed,bool up,bool &retry);
-  // Check if job is allowed to progress to a staging state. up is true
-  // for uploads (FINISHING) and false for downloads (PREPARING).
-  bool CanStage(const JobsList::iterator &i, bool up);
+  bool state_loading(const iterator &i,bool &state_changed,bool up);
   // Returns true if job is waiting on some condition or limit before
   // progressing to the next state
   bool JobPending(JobsList::iterator &i);
@@ -103,11 +98,6 @@ class JobsList {
   // Called after service restart to move jobs that were processing to a
   // restarting state
   bool RestartJobs(const std::string& cdir,const std::string& odir);
-  // Choose the share for a new job (for old staging only)
-  void ChooseShare(JobsList::iterator& i);
-  // Calculate share information for data staging (downloader/uploader staging
-  // only), in DTR this is done internally
-  void CalculateShares();
   // Release delegation after job finishes
   void UnlockDelegation(JobsList::iterator &i);
   // Calculate job expiration time from last state change and configured lifetime
@@ -138,7 +128,7 @@ class JobsList {
 
  public:
   // Constructor.
-  JobsList(const GMConfig& config);
+  JobsList(const GMConfig& gmconfig);
   // std::list methods for using JobsList like a regular list
   iterator begin(void) { return jobs.begin(); };
   iterator end(void) { return jobs.end(); };

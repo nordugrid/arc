@@ -804,10 +804,10 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
     if (job.get_state() == JOB_STATE_PREPARING) {
       // If ACIX should be used, use it as source and add original URL as
       // location after DTR is created
-      if (!config.ACIXEndpoint().empty()) {
+      if (!staging_conf.get_acix_endpoint().empty()) {
         // Encode the original url so it is not parsed as part of the acix url
         original_source = i->lfn;
-        Arc::URL acix_source(config.ACIXEndpoint() + "?url=" + Arc::uri_encode(original_source, false));
+        Arc::URL acix_source(staging_conf.get_acix_endpoint() + "?url=" + Arc::uri_encode(original_source, false));
         Arc::URL original_url(original_source);
         // Add URL options to ACIX URL
         for (std::map<std::string, std::string>::const_iterator opt = original_url.Options().begin();

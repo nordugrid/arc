@@ -34,8 +34,8 @@ namespace ARex {
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-JobsList::JobsList(const GMConfig& config) :
-    config(config), old_dir(NULL), dtr_generator(NULL), job_desc_handler(config), jobs_pending(0) {
+JobsList::JobsList(const GMConfig& gmconfig) :
+    config(gmconfig), staging_config(gmconfig), old_dir(NULL), dtr_generator(NULL), job_desc_handler(config), jobs_pending(0) {
   for(int n = 0;n<JOB_STATE_NUM;n++) jobs_num[n]=0;
   jobs.clear();
 }
@@ -100,149 +100,6 @@ int JobsList::FinishingJobs() const {
   return jobs_num[JOB_STATE_FINISHING];
 }
 
-void JobsList::ChooseShare(JobsList::iterator& i) {
-  // only applies to old staging
-  if (config.use_dtr || config.share_type.empty()) return;
-  std::string user_proxy_file = job_proxy_filename(i->get_id(), config);
-  std::string cert_dir = "/etc/grid-security/certificates";
-  if (!config.cert_dir.empty()) cert_dir = config.cert_dir;
-  Arc::Credential u(user_proxy_file,"",cert_dir,"");
-  const std::string share = getCredentialProperty(u,config.share_type);
-  i->set_share(share);
-  logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
-  i->local->transfershare = i->transfer_share;
-  job_local_write_file(*i,config,*i->local);
-}
-
-void JobsList::CalculateShares(){
-  // transfer share calculation - look at current share for preparing and
-  // finishing states, then look at jobs ready to go into preparing or finished
-  // and set the share. Need to do it here because in the ActJob* methods we
-  // don't have an overview of all jobs. In those methods we check the share to
-  // see if each job can proceed. This method is only used for old
-  // (down/uploader) data staging. With DTR it is handled internally.
-  // clear shares with 0 count
-  std::map<std::string, int> preparing_job_share_copy = preparing_job_share;
-  std::map<std::string, int> finishing_job_share_copy = finishing_job_share;
-  preparing_job_share.clear();
-  finishing_job_share.clear();
-  for (std::map<std::string, int>::iterator i = preparing_job_share_copy.begin(); i != preparing_job_share_copy.end(); i++)
-    if (i->second != 0) preparing_job_share[i->first] = i->second;
-  for (std::map<std::string, int>::iterator i = finishing_job_share_copy.begin(); i != finishing_job_share_copy.end(); i++)
-    if (i->second != 0) finishing_job_share[i->first] = i->second;
-  
-  // counters of current and potential preparing/finishing jobs
-  std::map<std::string, int> pre_preparing_job_share = preparing_job_share;
-  std::map<std::string, int> pre_finishing_job_share = finishing_job_share;
-
-  for (iterator i=jobs.begin();i!=jobs.end();i++) {
-    if (i->job_state == JOB_STATE_ACCEPTED) {
-      // is job ready to move to preparing?
-      if (i->retries == 0 && i->local->processtime != -1) {
-        if (i->local->processtime <= time(NULL)) {
-            pre_preparing_job_share[i->transfer_share]++;
-        }
-      }
-      else if (i->next_retry <= time(NULL)) {
-        pre_preparing_job_share[i->transfer_share]++;
-      }
-    }
-    else if (i->job_state == JOB_STATE_INLRMS) {
-      // is job ready to move to finishing?
-      if ((job_lrms_mark_check(i->job_id,config) || i->job_pending) && i->next_retry <= time(NULL)) {
-        pre_finishing_job_share[i->transfer_share]++;
-      }
-    }
-  }
-  
-  // Now calculate how many of limited transfer shares are active
-  // We need to try to preserve the maximum number of transfer threads 
-  // for each active limited share. Jobs that belong to limited 
-  // shares will be excluded from calculation of a share limit later
-  int privileged_total_pre_preparing = 0;
-  int privileged_total_pre_finishing = 0;
-  int privileged_jobs_processing = 0;
-  int privileged_preparing_job_share = 0;
-  int privileged_finishing_job_share = 0;
-  std::map<std::string, int> limited_shares = config.limited_share;
-  for (std::map<std::string, int>::iterator i = limited_shares.begin(); i != limited_shares.end(); i++) {
-    if (pre_preparing_job_share.find(i->first) != pre_preparing_job_share.end()) {
-      privileged_preparing_job_share++;
-      privileged_jobs_processing += i->second;
-      privileged_total_pre_preparing += pre_preparing_job_share[i->first];
-    }
-    if (pre_finishing_job_share.find(i->first) != pre_finishing_job_share.end()) {
-      privileged_finishing_job_share++;
-      privileged_jobs_processing += i->second;
-      privileged_total_pre_finishing += pre_finishing_job_share[i->first];
-    }
-  }
-  int unprivileged_jobs_processing = config.max_jobs_staging - privileged_jobs_processing;
-
-  // calculate the number of slots that can be allocated per unprivileged share
-  // count the total number of unprivileged jobs (pre)preparing
-  int total_pre_preparing = 0;
-  int unprivileged_preparing_limit;
-  int unprivileged_preparing_job_share = pre_preparing_job_share.size() - privileged_preparing_job_share;
-  for (std::map<std::string, int>::iterator i = pre_preparing_job_share.begin(); i != pre_preparing_job_share.end(); i++) { 
-    total_pre_preparing += i->second;
-  }
-  // exclude privileged jobs
-  total_pre_preparing -= privileged_total_pre_preparing;
-  if (config.max_jobs_staging == -1 || unprivileged_preparing_job_share <= (unprivileged_jobs_processing / config.max_staging_share))
-    unprivileged_preparing_limit = config.max_staging_share;
-  else if (unprivileged_preparing_job_share > unprivileged_jobs_processing || unprivileged_preparing_job_share <= 0)
-    unprivileged_preparing_limit = 1;
-  else if (total_pre_preparing <= unprivileged_jobs_processing)
-    unprivileged_preparing_limit = config.max_staging_share;
-  else
-    unprivileged_preparing_limit = unprivileged_jobs_processing / unprivileged_preparing_job_share;
-
-  // count the total number of jobs (pre)finishing
-  int total_pre_finishing = 0;
-  int unprivileged_finishing_limit;
-  int unprivileged_finishing_job_share = pre_finishing_job_share.size() - privileged_finishing_job_share;
-  for (std::map<std::string, int>::iterator i = pre_finishing_job_share.begin(); i != pre_finishing_job_share.end(); i++) {
-    total_pre_finishing += i->second;
-  }
-  // exclude privileged jobs
-  total_pre_finishing -= privileged_total_pre_finishing;
-  if (config.max_jobs_staging == -1 || unprivileged_finishing_job_share <= (unprivileged_jobs_processing / config.max_staging_share))
-    unprivileged_finishing_limit = config.max_staging_share;
-  else if (unprivileged_finishing_job_share > unprivileged_jobs_processing || unprivileged_finishing_job_share <= 0)
-    unprivileged_finishing_limit = 1;
-  else if (total_pre_finishing <= unprivileged_jobs_processing)
-    unprivileged_finishing_limit = config.max_staging_share;
-  else
-    unprivileged_finishing_limit = unprivileged_jobs_processing / unprivileged_finishing_job_share;
-
-  // if there are queued jobs for both preparing and finishing, split the share between the two states
-  if (config.max_jobs_staging > 0 && total_pre_preparing > unprivileged_jobs_processing/2 && total_pre_finishing > unprivileged_jobs_processing/2) {
-    unprivileged_preparing_limit = unprivileged_preparing_limit < 2 ? 1 : unprivileged_preparing_limit/2;
-    unprivileged_finishing_limit = unprivileged_finishing_limit < 2 ? 1 : unprivileged_finishing_limit/2;
-  }
-
-  if (config.max_jobs_staging > 0 && privileged_total_pre_preparing > privileged_jobs_processing/2 && privileged_total_pre_finishing > privileged_jobs_processing/2) {
-    for (std::map<std::string, int>::iterator i = limited_shares.begin(); i != limited_shares.end(); i++) {
-      i->second = i->second < 2 ? 1 : i->second/2;
-    }
-  }
-      
-  preparing_max_share = pre_preparing_job_share;
-  finishing_max_share = pre_finishing_job_share;
-  for (std::map<std::string, int>::iterator i = preparing_max_share.begin(); i != preparing_max_share.end(); i++){
-    if (limited_shares.find(i->first) != limited_shares.end())
-      i->second = limited_shares[i->first];
-    else
-      i->second = unprivileged_preparing_limit;
-  }
-  for (std::map<std::string, int>::iterator i = finishing_max_share.begin(); i != finishing_max_share.end(); i++){
-    if (limited_shares.find(i->first) != limited_shares.end())
-      i->second = limited_shares[i->first];
-    else
-      i->second = unprivileged_finishing_limit;
-  }
-}
 
 void JobsList::PrepareToDestroy(void) {
   for(iterator i=jobs.begin();i!=jobs.end();++i) {
@@ -252,47 +109,16 @@ void JobsList::PrepareToDestroy(void) {
 
 bool JobsList::ActJobs(void) {
 
-  // Need to calculate the shares here here because in the ActJob* methods we
-  // don't have an overview of all jobs. In those methods we check the share
-  // to see if each job can proceed.
-  if (!config.share_type.empty() && config.max_staging_share > 0) {
-    CalculateShares();
-  }
-
   bool res = true;
   bool once_more = false;
-  bool postpone_preparing = false;
-  bool postpone_finishing = false;
-  if (!(config.use_dtr && dtr_generator)) {
-    if((config.max_jobs_staging != -1) &&
-       (!config.use_local_transfer) &&
-       ((ProcessingJobs()*3) > (config.max_jobs_staging*2))) {
-      if(PreparingJobs() > FinishingJobs()) {
-        postpone_preparing=true; 
-      } else if(PreparingJobs() < FinishingJobs()) {
-        postpone_finishing=true;
-      }
-    }
-  }
-  // first pass - optionally skipping some states
+
+  // first pass
   for(iterator i=jobs.begin();i!=jobs.end();) {
     if(i->job_state == JOB_STATE_UNDEFINED) { once_more=true; }
-    else if(((i->job_state == JOB_STATE_ACCEPTED) && postpone_preparing) ||
-            ((i->job_state == JOB_STATE_INLRMS) && postpone_finishing)  ) {
-      once_more=true;
-      i++; continue;
-    }
     res &= ActJob(i);
   }
 
-  // Recalculation of the shares before the second pass to update the shares
-  // that appeared as a result of moving some jobs to ACCEPTED during the first
-  // pass.
-  if (!config.share_type.empty() && config.max_staging_share > 0) {
-    CalculateShares();
-  }
-
-  // second pass - process skipped states and new jobs
+  // second pass - process new jobs again
   if(once_more) for(iterator i=jobs.begin();i!=jobs.end();) {
     res &= ActJob(i);
   }
@@ -362,10 +188,8 @@ bool JobsList::FailedJob(const JobsList::iterator &i,bool cancel) {
   } else {
     r=false;
   }
-  // If the job failed during FINISHING then uploader or DTR deals with .output
-  // The exception is cancelling uploader since process is simply killed and
-  // does not get the chance to change .output.
-  if (i->get_state() == JOB_STATE_FINISHING && (!cancel || dtr_generator)) {
+  // If the job failed during FINISHING then DTR deals with .output
+  if (i->get_state() == JOB_STATE_FINISHING) {
     if (i->local) job_local_write_file(*i,config,*(i->local));
     return r;
   }
@@ -440,7 +264,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     }
     if(!cancel) {  // in case of cancel all preparations are already done
       const char *local_transfer_s = NULL;
-      if(config.use_local_transfer) {
+      if(staging_config.get_local_transfer()) {
         local_transfer_s="joboption_localtransfer=yes";
       }
       if(!job_desc_handler.write_grami(*i,local_transfer_s)) {
@@ -597,251 +421,67 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
   return true;
 }
 
-bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,bool up,bool &retry) {
+bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,bool up) {
 
-  if (config.use_dtr && dtr_generator) {  /***** new data staging ******/
+  if (staging_config.get_local_transfer()) {
+    // just check user-uploaded files for PREPARING jobs
+    if (up) {
+      state_changed = true;
+      return true;
+    }
+    int res = dtr_generator->checkUploadedFiles(*i);
+    if (res == 2) { // still going
+      return true;
+    }
+    if (res == 0) { // finished successfully
+      state_changed=true;
+      return true;
+    }
+    // error
+    return false;
+  }
 
-    if (config.use_local_transfer) {
-      // just check user-uploaded files for PREPARING jobs
-      if (up) {
-        state_changed = true;
-        return true;
-      }
+  // first check if job is already in the system
+  if (!dtr_generator->hasJob(*i)) {
+    dtr_generator->receiveJob(*i);
+    return true;
+  }
+  // if job has already failed then do not set failed state again if DTR failed
+  bool already_failed = !i->GetFailure(config).empty();
+  // queryJobFinished() calls i->AddFailure() if any DTR failed
+  if (dtr_generator->queryJobFinished(*i)) {
+
+    bool done = true;
+    bool result = true;
+
+    // check for failure
+    if (!i->GetFailure(config).empty()) {
+      if (!already_failed) JobFailStateRemember(i, (up ? JOB_STATE_FINISHING : JOB_STATE_PREPARING));
+      result = false;
+    }
+    else if (!up) { // check for user-uploadable files if downloading
       int res = dtr_generator->checkUploadedFiles(*i);
       if (res == 2) { // still going
-        return true;
+        done = false;
       }
-      if (res == 0) { // finished successfully
+      else if (res == 0) { // finished successfully
         state_changed=true;
-        return true;
       }
-      // error
-      return false;
-    }
-
-    // first check if job is already in the system
-    if (!dtr_generator->hasJob(*i)) {
-      dtr_generator->receiveJob(*i);
-      return true;
-    }
-    // if job has already failed then do not set failed state again if DTR failed
-    bool already_failed = !i->GetFailure(config).empty();
-    // queryJobFinished() calls i->AddFailure() if any DTR failed
-    if (dtr_generator->queryJobFinished(*i)) {
-
-      bool done = true;
-      bool result = true;
-
-      // check for failure
-      if (!i->GetFailure(config).empty()) {
-        if (!already_failed) JobFailStateRemember(i, (up ? JOB_STATE_FINISHING : JOB_STATE_PREPARING));
+      else { // error
         result = false;
       }
-      else if (!up) { // check for user-uploadable files if downloading
-        int res = dtr_generator->checkUploadedFiles(*i);
-        if (res == 2) { // still going
-          done = false;
-        }
-        else if (res == 0) { // finished successfully
-          state_changed=true;
-        }
-        else { // error
-          result = false;
-        }
-      }
-      else { // if uploading we are done
-        state_changed = true;
-      }
-      if (done) dtr_generator->removeJob(*i);
-      return result;
     }
-    else {
-      // not finished yet
-      logger.msg(Arc::VERBOSE, "%s: State: %s: still in data staging", i->job_id, (up ? "FINISHING" : "PREPARING"));
-      return true;
+    else { // if uploading we are done
+      state_changed = true;
     }
+    if (done) dtr_generator->removeJob(*i);
+    return result;
   }
-  else {  /*************** old downloader/uploader *********************/
-
-    // Job description was analyzed/parsed - now run child process downloader
-    // to download job input files and to wait for user uploaded ones
-    if(i->child == NULL) { // no child started
-      logger.msg(Arc::INFO,"%s: state: %s: starting new child",i->job_id,up?"FINISHING":"PREPARING");
-      // no child was running yet, or recovering from fault
-      // run it anyway and exit code will give more inforamtion
-      std::string cmd_name;
-      if(up) { cmd_name=Arc::ArcLocation::GetToolsDir()+"/uploader"; }
-      else { cmd_name=Arc::ArcLocation::GetToolsDir()+"/downloader"; }
-      std::string user_id = Arc::tostring(i->get_user().get_uid());
-      std::string cmd = cmd_name + " -U " + user_id + " -f";
-      if(config.max_downloads > 0) {
-        cmd += " -n " + Arc::tostring(config.max_downloads);
-      }
-      if(!config.use_secure_transfer) {
-        cmd += " -c";
-      }
-      if(config.use_passive_transfer) {
-        cmd += " -p";
-      }
-      if(config.use_local_transfer) {
-        cmd += " -l";
-      }
-      if(config.min_speed) {
-        cmd += " -s " + Arc::tostring(config.min_speed);
-        cmd += " -S " + Arc::tostring(config.min_speed_time);
-      }
-      if(config.min_average_speed) {
-        cmd += " -a " + Arc::tostring(config.min_average_speed);
-      }
-      if(config.max_inactivity_time) {
-        cmd += " -i " + Arc::tostring(config.max_inactivity_time);
-      }
-      std::string debug_level = Arc::level_to_string(Arc::Logger::getRootLogger().getThreshold());
-      if (!debug_level.empty()) {
-        cmd += " -d " + debug_level;
-      }
-      if (!config.conffile.empty()) {
-        cmd += " -C " + config.conffile;
-      }
-      if(!config.preferred_pattern.empty()) {
-        cmd += " -r " + config.preferred_pattern;
-      }
-      cmd += " " + i->job_id;
-      cmd += " " + config.control_dir;
-      cmd += " " + i->session_dir;
-
-      logger.msg(Arc::INFO,"%s: State %s: starting child: %s",i->job_id,up?"FINISHING":"PREPARING",cmd_name);
-      job_errors_mark_put(*i,config);
-      // Remove restart mark because restart point may change. Keep it if we are
-      // already processing failed job.
-      if(!job_failed_mark_check(i->job_id,config)) job_restart_mark_remove(i->job_id,config);
-      if(!RunParallel::run(config,*i,cmd,&(i->child),config.strict_session)) {
-        if(up) {
-          logger.msg(Arc::ERROR,"%s: Failed to run uploader process",i->job_id);
-          i->AddFailure("Failed to run uploader (post-processing)");
-        } else {
-          logger.msg(Arc::ERROR,"%s: Failed to run downloader process",i->job_id);
-          i->AddFailure("Failed to run downloader (pre-processing)");
-        }
-        return false;
-      }
-    } else {
-      if(i->child->Running()) {
-        logger.msg(Arc::VERBOSE,"%s: State: PREPARING/FINISHING: child is running",i->job_id);
-        // child is running - come later
-        return true;
-      }
-      // child was run - check exit code
-      if(!up) { logger.msg(Arc::INFO,"%s: State: PREPARING: child exited with code: %i",i->job_id,i->child->Result()); }
-      else { logger.msg(Arc::INFO,"%s: State: FINISHING: child exited with code: %i",i->job_id,i->child->Result()); }
-      if(i->child->Result() != 0) {
-        if(i->child->Result() == 1) {
-          // unrecoverable failure detected - all we can do is to kill the job
-          if(up) {
-            logger.msg(Arc::ERROR,"%s: State: FINISHING: unrecoverable error detected (exit code 1)",i->job_id);
-            i->AddFailure("Failed in files upload (post-processing)");
-          } else {
-            logger.msg(Arc::ERROR,"%s: State: PREPARING: unrecoverable error detected (exit code 1)",i->job_id);
-            i->AddFailure("Failed in files download (pre-processing)");
-          }
-        } else if(i->child->Result() == 4) { // retryable error
-          logger.msg(Arc::DEBUG, "%s: State: PREPARING/FINISHING: retryable error", i->job_id);
-          delete i->child; i->child=NULL;
-          retry = true;
-          return true;
-        }
-        else {
-          // Because we have no information (anymore) if failure happened
-          // due to expired credentials let's just check them
-          std::string old_proxy_file =
-                      config.control_dir+"/job."+i->job_id+".proxy";
-          Arc::Credential cred(old_proxy_file,"","","");
-          // TODO: check if cred is at all there
-          if(cred.GetEndTime() < Arc::Time()) {
-            // Credential is expired
-            logger.msg(Arc::ERROR,"%s: State: %s: credentials probably expired (exit code %i)",i->job_id,up?"FINISHING":"PREPARING",i->child->Result());
-            // in case of expired credentials there is a chance to get them
-            // from credentials server - so far myproxy only
-            if(GetLocalDescription(i)) {
-              if(i->local->credentialserver.length()) {
-                std::string new_proxy_file = config.control_dir+"/job."+i->job_id+".proxy.tmp";
-                remove(new_proxy_file.c_str());
-                int h = ::open(new_proxy_file.c_str(),
-                        O_WRONLY | O_CREAT | O_EXCL,S_IRUSR | S_IWUSR);
-                if(h!=-1) {
-                  close(h);
-                  logger.msg(Arc::INFO,"%s: State: %s: trying to renew credentials",i->job_id,up?"FINISHING":"PREPARING");
-                  if(myproxy_renew(old_proxy_file.c_str(),new_proxy_file.c_str(),
-                          i->local->credentialserver.c_str())) {
-                    renew_proxy(old_proxy_file.c_str(),new_proxy_file.c_str());
-                    // imitate rerun request
-                    job_restart_mark_put(*i,config);
-                  } else {
-                    logger.msg(Arc::ERROR,"%s: State: %s: failed to renew credentials",i->job_id,up?"FINISHING":"PREPARING");
-                  }
-                } else {
-                  logger.msg(Arc::ERROR,"%s: State: %s: failed to create temporary proxy for renew: %s",i->job_id,up?"FINISHING":"PREPARING",new_proxy_file);
-                }
-              }
-            } else {
-              i->AddFailure("Internal error");
-            }
-            if(up) {
-              i->AddFailure("Failed in files upload probably due to expired credentials - try to renew");
-            } else {
-              i->AddFailure("Failed in files download probably due to expired credentials - try to renew");
-            }
-          } else {
-            // Credentials were alright
-            logger.msg(Arc::ERROR,"%s: State: %s: some error detected (exit code %i). Recover from such type of errors is not supported yet.",i->job_id,up?"FINISHING":"PREPARING",i->child->Result());
-            if(up) {
-              i->AddFailure("Failed in files upload (post-processing)");
-            } else {
-              i->AddFailure("Failed in files download (pre-processing)");
-            }
-          }
-        }
-        delete i->child; i->child=NULL;
-        JobFailStateRemember(i, (up ? JOB_STATE_FINISHING : JOB_STATE_PREPARING));
-        return false;
-      }
-      // success code - move to next state
-      state_changed=true;
-      delete i->child; i->child=NULL;
-    }
+  else {
+    // not finished yet
+    logger.msg(Arc::VERBOSE, "%s: State: %s: still in data staging", i->job_id, (up ? "FINISHING" : "PREPARING"));
+    return true;
   }
-  return true;
-}
-
-bool JobsList::CanStage(const JobsList::iterator &i, bool up) {
-
-  // new data staging - all jobs can proceed immediately
-  if (config.use_dtr && dtr_generator) return true;
-  // transfer is done on worker nodes
-  if (config.use_local_transfer) return true;
-  // nothing to stage
-  if (!up && (i->local->downloads == 0)) return true;
-  if (up && (i->local->uploads == 0)) return true;
-  // before checking limits, check the retry time
-  if (i->next_retry > time(NULL)) return false;
-  // no limit on staging jobs
-  if (config.max_jobs_staging == -1) return true;
-  if (!up) {
-    // limits on downloads
-    if (((ProcessingJobs() < config.max_jobs_staging) ||
-        ((FinishingJobs() >= config.max_jobs_staging) &&
-         (PreparingJobs() < config.max_jobs_staging_emergency))) &&
-        (config.share_type.empty() ||
-         preparing_job_share[i->transfer_share] < preparing_max_share[i->transfer_share])) return true;
-  } else {
-    // limits on uploads
-    if (((ProcessingJobs() < config.max_jobs_staging) ||
-        ((PreparingJobs() >= config.max_jobs_staging) &&
-         (FinishingJobs() < config.max_jobs_staging_emergency))) &&
-        (config.share_type.empty() ||
-         finishing_job_share[i->transfer_share] < finishing_max_share[i->transfer_share])) return true;
-  }
-  return false;
 }
 
 bool JobsList::JobPending(JobsList::iterator &i) {
@@ -1011,8 +651,6 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
               i->AddFailure("Could not process job description");
               return; // go to next job
             }
-            // set transfer share
-            ChooseShare(i);
             job_state_write_file(*i,config,i->job_state);
             // prepare information for logger
             // This call is not needed here because at higher level make_file()
@@ -1029,11 +667,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
                 GMJob::get_state_name(new_state),i->get_user().get_uid(),i->get_user().get_gid());
             // Make it clean state after restart
             job_state_write_file(*i,config,i->job_state);
-            i->retries = config.max_retries;
-            // set transfer share and counters
-            ChooseShare(i);
-            if (new_state == JOB_STATE_PREPARING) preparing_job_share[i->transfer_share]++;
-            if (new_state == JOB_STATE_FINISHING) finishing_job_share[i->transfer_share]++;
+            i->retries = staging_config.get_max_retries();
             i->Start();
 
             // add to DN map
@@ -1071,11 +705,6 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,
           JobPending(i);
           return;
         }
-        // check other limits on staging
-        if (!CanStage(i, false)) {
-          JobPending(i);
-          return;
-        }
         // check for user specified time
         if(i->retries == 0 && i->local->processtime != -1 && (i->local->processtime) > time(NULL)) {
           logger.msg(Arc::INFO,"%s: State: ACCEPTED: has process time %s",i->job_id.c_str(),
@@ -1088,13 +717,12 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,
         state_changed=true; once_more=true;
         i->job_state = JOB_STATE_PREPARING;
         // if first pass then reset retries
-        if (i->retries == 0) i->retries = config.max_retries;
-        preparing_job_share[i->transfer_share]++;
+        if (i->retries == 0) i->retries = staging_config.get_max_retries();
         i->Start();
 
         // gather some frontend specific information for user, do it only once
         // Runs user-supplied executable placed at "frontend-info-collector"
-        if(state_changed && i->retries == config.max_retries) {
+        if(state_changed && i->retries == staging_config.get_max_retries()) {
           std::string cmd = Arc::ArcLocation::GetToolsDir()+"/frontend-info-collector";
           char const * const args[2] = { cmd.c_str(), NULL };
           job_controldiag_mark_put(*i,config,args);
@@ -1107,10 +735,8 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,
         // preparing state - job is in data staging system, so check if it has
         // finished and whether all user uploadable files have been uploaded.
         logger.msg(Arc::VERBOSE,"%s: State: PREPARING",i->job_id);
-        bool retry = false;
-        if(i->job_pending || state_loading(i,state_changed,false,retry)) {
+        if(i->job_pending || state_loading(i,state_changed,false)) {
           if(i->job_pending || state_changed) {
-            if (state_changed) preparing_job_share[i->transfer_share]--;
             if(!GetLocalDescription(i)) {
               logger.msg(Arc::ERROR,"%s: Failed obtaining local job information.",i->job_id);
               i->AddFailure("Internal error");
@@ -1141,48 +767,23 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,
               if((config.max_jobs_running==-1) || (RunningJobs()<config.max_jobs_running)) {
                 i->job_state = JOB_STATE_SUBMITTING;
                 state_changed=true; once_more=true;
-                i->retries = config.max_retries;
+                i->retries = staging_config.get_max_retries();
               } else {
                 state_changed=false;
                 JobPending(i);
               }
-            } else if(CanStage(i, true)) {
+            } else {
               i->job_state = JOB_STATE_FINISHING;
               state_changed=true; once_more=true;
-              i->retries = config.max_retries;
-              finishing_job_share[i->transfer_share]++;
-            } else {
-              JobPending(i);
+              i->retries = staging_config.get_max_retries();
             }
-          }
-          else if (retry){
-            preparing_job_share[i->transfer_share]--;
-            if(--i->retries == 0) { // no tries left
-              logger.msg(Arc::ERROR,"%s: Data staging failed. No retries left.",i->job_id);
-              i->AddFailure("Data staging failed (pre-processing)");
-              job_error=true;
-              JobFailStateRemember(i,JOB_STATE_PREPARING);
-              return;
-            }
-            // set next retry time
-            //  exponential back-off algorithm - wait 10s, 40s, 90s, 160s,...
-            // with a bit of randomness thrown in - vary by up to 50% of wait_time
-            int wait_time = 10 * (config.max_retries - i->retries) * (config.max_retries - i->retries);
-            int randomness = (rand() % wait_time) - (wait_time/2);
-            wait_time += randomness;
-            i->next_retry = time(NULL) + wait_time;
-            logger.msg(Arc::ERROR,"%s: Download failed. %d retries left. Will wait for %ds before retrying",i->job_id,i->retries,wait_time);
-            // set back to ACCEPTED
-            i->job_state = JOB_STATE_ACCEPTED;
-            if (--(jobs_dn[i->local->DN]) <= 0) jobs_dn.erase(i->local->DN);
-            state_changed = true;
           }
         } 
         else {
-          if(i->GetFailure(config).empty())
-            i->AddFailure("Data staging failed (pre-processing)");
+          if(i->GetFailure(config).empty()) {
+            i->AddFailure("Data download failed");
+          }
           job_error=true;
-          preparing_job_share[i->transfer_share]--;
         }
 }
 
@@ -1209,7 +810,6 @@ void JobsList::ActJobCanceling(JobsList::iterator &i,
         if(state_submitting(i,state_changed,true)) {
           if(state_changed) {
             i->job_state = JOB_STATE_FINISHING;
-            finishing_job_share[i->transfer_share]++;
             once_more=true;
           }
         }
@@ -1229,7 +829,7 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,
           return; // go to next job
         }
         // only check lrms job status on first pass
-        if(i->retries == 0 || i->retries == config.max_retries) {
+        if(i->retries == 0 || i->retries == staging_config.get_max_retries()) {
           if(i->job_pending || job_lrms_mark_check(i->job_id,config)) {
             if(!i->job_pending) {
               logger.msg(Arc::INFO,"%s: Job finished",i->job_id);
@@ -1247,20 +847,14 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,
                 return;
               }
             }
-            if (CanStage(i, true)) {
-              state_changed=true; once_more=true;
-              i->job_state = JOB_STATE_FINISHING;
-              // if first pass then reset retries
-              if (i->retries == 0) i->retries = config.max_retries;
-              finishing_job_share[i->transfer_share]++;
-            } else JobPending(i);
+            state_changed=true; once_more=true;
+            i->job_state = JOB_STATE_FINISHING;
+            // if first pass then reset retries
+            if (i->retries == 0) i->retries = staging_config.get_max_retries();
           }
-        } else if (CanStage(i, true)) {
+        } else {
           state_changed=true; once_more=true;
           i->job_state = JOB_STATE_FINISHING;
-          finishing_job_share[i->transfer_share]++;
-        } else {
-          JobPending(i);
         }
 }
 
@@ -1270,32 +864,8 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,
         // Batch job has finished and now ready to upload output files, or
         // upload is already on-going
         logger.msg(Arc::VERBOSE,"%s: State: FINISHING",i->job_id);
-        bool retry = false;
-        if(state_loading(i,state_changed,true,retry)) {
-          if (retry) {
-            finishing_job_share[i->transfer_share]--;
-            if(--i->retries == 0) { // no tries left
-              logger.msg(Arc::ERROR,"%s: Upload failed. No retries left.",i->job_id);
-              i->AddFailure("uploader failed (post-processing)");
-              job_error=true;
-              JobFailStateRemember(i,JOB_STATE_FINISHING);
-              return;
-            }
-            // set next retry time
-            // exponential back-off algorithm - wait 10s, 40s, 90s, 160s,...
-            // with a bit of randomness thrown in - vary by up to 50% of wait_time
-            int wait_time = 10 * (config.max_retries - i->retries) * (config.max_retries - i->retries);
-            int randomness = (rand() % wait_time) - (wait_time/2);
-            wait_time += randomness;
-            i->next_retry = time(NULL) + wait_time;
-            logger.msg(Arc::ERROR,"%s: Upload failed. %d retries left. Will wait for %ds before retrying.",i->job_id,i->retries,wait_time);
-            // set back to INLRMS
-            i->job_state = JOB_STATE_INLRMS;
-            state_changed = true;
-            return;
-          }
-          else if(state_changed) {
-            finishing_job_share[i->transfer_share]--;
+        if(state_loading(i,state_changed,true)) {
+          if(state_changed) {
             i->job_state = JOB_STATE_FINISHED;
             if(GetLocalDescription(i)) {
               if (--(jobs_dn[i->local->DN]) <= 0) jobs_dn.erase(i->local->DN);
@@ -1308,10 +878,10 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,
         } else {
           state_changed=true; // to send mail
           once_more=true;
-          if(i->GetFailure(config).empty())
-            i->AddFailure("uploader failed (post-processing)");
+          if(i->GetFailure(config).empty()) {
+            i->AddFailure("Data upload failed");
+          }
           job_error=true;
-          finishing_job_share[i->transfer_share]--;
         }
 }
 
@@ -1438,8 +1008,7 @@ bool JobsList::ActJob(JobsList::iterator &i) {
        (i->job_state != JOB_STATE_SUBMITTING)) {
       if(job_cancel_mark_check(i->job_id,config)) {
         logger.msg(Arc::INFO,"%s: Canceling job because of user request",i->job_id);
-        if (config.use_dtr && dtr_generator &&
-            (i->job_state == JOB_STATE_PREPARING || i->job_state == JOB_STATE_FINISHING)) {
+        if (i->job_state == JOB_STATE_PREPARING || i->job_state == JOB_STATE_FINISHING) {
           dtr_generator->cancelJob(*i);
         }
         // kill running child
@@ -1447,9 +1016,6 @@ bool JobsList::ActJob(JobsList::iterator &i) {
           i->child->Kill(0);
           delete i->child; i->child=NULL;
         }
-        // update transfer share counters
-        if (i->job_state == JOB_STATE_PREPARING && !i->job_pending) preparing_job_share[i->transfer_share]--;
-        else if (i->job_state == JOB_STATE_FINISHING) finishing_job_share[i->transfer_share]--;
         // put some explanation
         i->AddFailure("User requested to cancel the job");
         JobFailStateRemember(i,i->job_state,false);
@@ -1461,18 +1027,9 @@ bool JobsList::ActJob(JobsList::iterator &i) {
         if(i->job_state == JOB_STATE_INLRMS) {
           i->job_state = JOB_STATE_CANCELING;
         }
-        // if new data staging we wait to get back all DTRs
-        else if(i->job_state == JOB_STATE_FINISHING) {
-          if (!config.use_dtr) {
-            i->job_state = JOB_STATE_FINISHED;
-            if(GetLocalDescription(i)) {
-              if (--(jobs_dn[i->local->DN]) <= 0) jobs_dn.erase(i->local->DN);
-            }
-          }
-        }
-        else if (!config.use_dtr || i->job_state != JOB_STATE_PREPARING) {
+        // if FINISHING we wait to get back all DTRs
+        else if (i->job_state != JOB_STATE_PREPARING) {
           i->job_state = JOB_STATE_FINISHING;
-          finishing_job_share[i->transfer_share]++;
         }
         job_cancel_mark_remove(i->job_id,config);
         state_changed=true;
@@ -1535,7 +1092,6 @@ bool JobsList::ActJob(JobsList::iterator &i) {
             once_more=true;
           } else {
             i->job_state = JOB_STATE_FINISHING;
-            finishing_job_share[i->transfer_share]++;
             state_changed=true;
             once_more=true;
           }
