@@ -235,7 +235,7 @@ RTE_stage0 () {
   # joboption_count might have been changed by an RTE. Save it for accouting purposes.
   if [ -n "$joboption_count" ]; then
     diagfile="${joboption_controldir}/job.${joboption_gridid}.diag"
-    echo "ExecutionUnits=$joboption_count" >> "$diagfile"
+    echo "Processors=$joboption_count" >> "$diagfile"
   fi
 }
 
@@ -665,7 +665,7 @@ EOSCR
     echo "echo \"nodename=\$nodename\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
   fi
   #TODO this should probably be done on headnode instead
-  echo "echo \"ExecutionUnits=${joboption_count}\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+  echo "echo \"Processors=${joboption_count}\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
 
   # In case the job executable does not exist the error message might be
   # printed by GNU_TIME, which can be confusing for the user.  

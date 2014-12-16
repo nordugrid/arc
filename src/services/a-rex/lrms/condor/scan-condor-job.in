@@ -187,7 +187,7 @@ job_read_diag() {
 
     # These are set on the font-end. Not to be overwritten
     diagstring=$(echo "$diagstring" | grep -v "^frontend_")
-    diagstring=$(echo "$diagstring" | grep -v "^ExecutionUnits=")
+    diagstring=$(echo "$diagstring" | grep -v "^Processors=")
 }
 
 #
