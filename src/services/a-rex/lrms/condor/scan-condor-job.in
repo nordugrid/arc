@@ -577,7 +577,7 @@ condor_read_history() {
     historyfile=`grep "$hostname#$lrmsid.0" -l $historydir*`
 
     # try to get the full job classad
-    if [[ "$historyfile" == *condor* ]]; then
+    if expr match "$historyfile" '.*condor.*' > /dev/null; then
        { histstring=$( $CONDOR_BIN_PATH/condor_history -l -file $historyfile -match 1 "$lrmsid" ); } 2>&1
     else
        histstring=""

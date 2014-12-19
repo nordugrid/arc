@@ -79,7 +79,8 @@ echo "Log = ${joboption_directory}/log">> $LRMS_JOB_DESCRIPT
 condor_stdout="${joboption_directory}.comment"
 condor_stderr="${joboption_directory}.comment"
 if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-   if [[ $joboption_stdout =~ _condor_stdout$ ]]; then
+#   if [[ $joboption_stdout =~ _condor_stdout$ ]]; then
+   if expr match "$joboption_stdout" '_condor_stdout$' > /dev/null; then
       condor_stdout=$joboption_stdout;
       condor_stderr=$joboption_stderr;
    fi
@@ -209,14 +210,14 @@ if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
 
     count=0
     input_files="Transfer_input_files = "
-    input_file="joboption_inputfile_$count"
-    while [ -n "${!input_file}" ]; do
+    eval "input_file=\$joboption_inputfile_$count"
+    while [ -n "${input_file}" ]; do
       if [ "$count" -gt "0" ]; then
           input_files="${input_files},"
       fi
-      input_files="${input_files} ${joboption_directory}${!input_file}"
+      input_files="${input_files} ${joboption_directory}${input_file}"
       count=$((count+1))
-      input_file="joboption_inputfile_$count"
+      eval "input_file=\$joboption_inputfile_$count"
     done
     echo "${input_files}" >> $LRMS_JOB_DESCRIPT
   )
@@ -308,11 +309,11 @@ echo "" >> $LRMS_JOB_SCRIPT
 if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
     echo "# move input files to local working directory" >> $LRMS_JOB_SCRIPT
     count=0
-    input_file="joboption_inputfile_$count"
-    while [ -n "${!input_file}" ]; do
-      echo "mv .${!input_file} ${joboption_gridid}/." >> $LRMS_JOB_SCRIPT
+    eval "input_file=\$joboption_inputfile_$count"
+    while [ -n "${input_file}" ]; do
+      echo "mv .${input_file} ${joboption_gridid}/." >> $LRMS_JOB_SCRIPT
       count=$((count+1))
-      input_file="joboption_inputfile_$count"
+      eval "input_file=\$joboption_inputfile_$count"
     done
 fi
 

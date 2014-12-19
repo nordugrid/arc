@@ -56,7 +56,7 @@ x=$joboption_directory_orig
 while [ "$x" != "/" ]
 do
  x=`dirname $x`
-let N=$N+1
+N=$((N+1))
 done
 
 echo '#!/bin/sh' > $LRMS_JOB_SCRIPT
@@ -197,7 +197,7 @@ echo 'echo exitcode=$RESULT >> $RUNTIME_JOB_DIAG'  >> $LRMS_JOB_SCRIPT
 #############################################################
 # zip the result files into 1 file zip.tar.gz
 #############################################################
-function notnull
+notnull ()
 {
    if [ -z $1 ];then
 	echo 0
@@ -214,7 +214,7 @@ do
    output_file=$(echo $opt|sed -e "s#^/#./#")
    output_file=$(echo $output_file|sed -e "s#@##")
    result_list=$result_list" "$output_file
-   let i=$i+1
+   i=$((i+1))
    eval opt=\${joboption_outputfile_$i}
    ret=`notnull $opt`
    echo $ret
@@ -278,15 +278,15 @@ echo "chmod g+r " '`bin/dir_hier_path' $(basename $LRMS_JOB_SCRIPT)'`' >>$LRMS_J
 echo "cp $RTE_LOCATION " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
 echo "chmod g+r " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
 
-if [[ -z $joboption_memory ]];then
+if [ -z $joboption_memory ];then
 memreq=2000000000
 else
-let memreq=${joboption_memory}*1000000
+memreq=$((joboption_memory*1000000))
 fi
-if [[ -z $joboption_cputime ]];then
-let maxcputime=2*3600*3000000000
+if [ -z $joboption_cputime ];then
+maxcputime=$((2*3600*3000000000))
 else
-let maxcputime=$joboption_cputime*3000000000
+maxcputime=$((joboption_cputime*3000000000))
 fi
 
 echo "bin/create_work -appname $BOINC_APP -wu_name $wu  -wu_template $WU_TEMPLATE -result_template $RESULT_TEMPLATE  --rsc_memory_bound $memreq  --rsc_fpops_est $maxcputime $(basename $JobInput) $RTE_FILE $(basename $LRMS_JOB_SCRIPT)" >> $LRMS_JOB_BOINC
