@@ -141,45 +141,21 @@
 
 # Stop and disable service on package removal
 %if %{?stop_on_removal:0}%{!?stop_on_removal:1}
-%global stop_on_removal() \
-if [ $1 -eq 0 ]; then \
-  for s in %*; do \
-    service $s stop > /dev/null 2>&1 || : ; \
-  done; \
-  for s in %*; do \
-    /sbin/chkconfig --del $s; \
-  done; \
-fi \
-%nil
+%global stop_on_removal() if [ $1 -eq 0 ]; then for s in %*; do service $s stop > /dev/null 2>&1 || : ; done; for s in %*; do /sbin/chkconfig --del $s; done; fi %nil
 %endif
 
 # Enable a service
 %if %{?suse_version:1}%{!?suse_version:0}
-%define enable_service() \
-%{expand:%%fillup_and_insserv -f %{?*}} \
-%nil
+%define enable_service() %{expand:%%fillup_and_insserv -f %{?*}} %nil
 %else
-%define enable_service() \
-for s in %{?*}; do \
-  /sbin/chkconfig --add $s ; \
-done \
-%nil
+%define enable_service() for s in %{?*}; do /sbin/chkconfig --add $s ; done %nil
 %endif
 
 # Conditionally restart service on package update
 %if %{?suse_version:1}%{!?suse_version:0}
-%define condrestart_on_update() \
-%{expand:%%restart_on_update %{?*}} \
-%{expand:%%insserv_cleanup} \
-%nil
+%define condrestart_on_update() %{expand:%%restart_on_update %{?*}} %{expand:%%insserv_cleanup} %nil
 %else
-%define condrestart_on_update() \
-if [ $1 -ge 1 ]; then \
-  for s in %{?*}; do \
-    service $s condrestart > /dev/null 2>&1 || : ; \
-  done; \
-fi \
-%nil
+%define condrestart_on_update() if [ $1 -ge 1 ]; then for s in %{?*}; do service $s condrestart > /dev/null 2>&1 || : ; done; fi %nil
 %endif
 
 # Standard service requirements
