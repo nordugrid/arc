@@ -48,7 +48,7 @@ int main(int argc, char **argv)
   std::string month = "";
   std::string vo_filters=""; 
   int n;
-  while((n=getopt(argc,argv,":E:u:t:o:y:F:m:afsv")) != -1) {
+  while((n=getopt(argc,argv,":E:u:t:o:y:F:m:afsvL")) != -1) {
     switch(n) {
     case ':': { std::cerr<<"Missing argument\n"; return 1; }
     case '?': { std::cerr<<"Unrecognized option\n"; return 1; }
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
       output_dir = (std::string(optarg));
       break;
     case 'a':
-          aggregation = true;
+      aggregation = true;
       break;
     case 'y':
       year = (std::string(optarg));
@@ -101,6 +101,9 @@ int main(int argc, char **argv)
       std::cout << Arc::IString("%s version %s", "jura", VERSION)
               << std::endl;
       return 0;
+      break;
+    case 'L':
+      logcerr.setFormat(Arc::LongFormat);
       break;
     default: { std::cerr<<"Options processing error\n"; return 1; }
     }

@@ -737,6 +737,9 @@
 #         default value: false
 #    - localid_prefix:prefix string for the SGAS records
 
+## jobreport logfile - name of the file to store stderr of the publisher executable.
+#jobreport_logile="/var/log/arc/jura.log"
+
 ## max_job_control_requests number - max number of simultaneously processed job management
 ## requests over WS interface - like job submission, cancel, status check etc.
 ## Default value is 100.

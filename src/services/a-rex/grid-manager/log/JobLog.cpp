@@ -5,17 +5,25 @@
 /* write essential information about job started/finished */
 #include <fstream>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <fcntl.h>
+
 #include <arc/ArcLocation.h>
 #include <arc/StringConv.h>
 #include <arc/DateTime.h>
+#include <arc/Run.h>
 #include "../files/ControlFileContent.h"
 #include "../files/JobLogFile.h"
 #include "../conf/GMConfig.h"
 #include "../misc/escaped.h"
-#include "../run/RunParallel.h"
 #include "JobLog.h"
 
 namespace ARex {
+
+static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 JobLog::JobLog(void):filename(""),proc(NULL),last_run(0),period(3600),ex_period(0) {
 }
@@ -107,16 +115,35 @@ bool JobLog::RunReporter(const GMConfig &config) {
   };
   if(time(NULL) < (last_run+period)) return true; // default: once per hour
   last_run=time(NULL);
-  std::string cmd = Arc::ArcLocation::GetToolsDir()+"/"+logger;
+  std::string cmd = Arc::ArcLocation::GetToolsDir()+"/"+logger_name;
   if(ex_period) cmd += " -E " + Arc::tostring(ex_period);
   if(!vo_filters.empty()) cmd += " -F " + vo_filters;
   cmd += " " + config.ControlDir();
-  bool res = RunParallel::run(config,Arc::User(),"logger",cmd,&proc,false,false);
-  return res;
+  proc = new Arc::Run(cmd);
+  if((!proc) || (!(*proc))) {
+    delete proc;
+    proc = NULL;
+    logger.msg(Arc::ERROR,": Failure creating slot for reporter child process");
+    return false;
+  };
+  proc->AssignInitializer(&initializer,(void*)&config);
+  logger.msg(Arc::DEBUG, "Running command %s", cmd);
+  if(!proc->Start()) {
+    delete proc;
+    proc = NULL;
+    logger.msg(Arc::ERROR,": Failure starting reporter child process");
+    return false;
+  };
+  return true;
 }
 
 bool JobLog::SetLogger(const char* fname) {
-  if(fname) logger = (std::string(fname));
+  if(fname) logger_name = (std::string(fname));
+  return true;
+}
+
+bool JobLog::SetLogFile(const char* fname) {
+  if(fname) logfile = (std::string(fname));
   return true;
 }
 
@@ -155,7 +182,7 @@ bool JobLog::make_file(GMJob &job, const GMConfig& config) {
   return result;
 }
 
-void JobLog::set_credentials(std::string &key_path,std::string &certificate_path,std::string &ca_certificates_dir)
+void JobLog::SetCredentials(std::string &key_path,std::string &certificate_path,std::string &ca_certificates_dir)
 {
   if (!key_path.empty()) 
     report_config.push_back(std::string("key_path=")+key_path);
@@ -172,5 +199,32 @@ JobLog::~JobLog(void) {
     proc=NULL;
   };
 }
+
+void JobLog::initializer(void* arg) {
+  GMConfig& config = *(GMConfig*)arg;
+  JobLog* joblog = config.GetJobLog();
+  // set good umask
+  ::umask(0077);
+  // close all handles inherited from parent
+  struct rlimit lim;
+  rlim_t max_files = RLIM_INFINITY;
+  if(::getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; };
+  if(max_files == RLIM_INFINITY) max_files=4096; // sane number
+  for(int i=0;i<max_files;i++) { ::close(i); };
+  int h;
+  // set up stdin,stdout and stderr
+  h=::open("/dev/null",O_RDONLY);
+  if(h != 0) { if(dup2(h,0) != 0) { sleep(10); exit(1); }; close(h); };
+  h=::open("/dev/null",O_WRONLY);
+  if(h != 1) { if(dup2(h,1) != 1) { sleep(10); exit(1); }; close(h); };
+  std::string errlog = config.ControlDir() + "/job.logger.errors"; // backward compatibility
+  if(joblog) {
+    if(!joblog->logfile.empty()) errlog = joblog->logfile;
+  };
+  h=::open(errlog.c_str(),O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
+  if(h==-1) { h=::open("/dev/null",O_WRONLY); };
+  if(h != 2) { if(dup2(h,2) != 2) { sleep(10); exit(1); }; close(h); };
+}
+
 
 } // namespace ARex

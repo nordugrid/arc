@@ -224,12 +224,20 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       std::string jobreport_key = config_next_arg(rest);
       std::string jobreport_cert = config_next_arg(rest);
       std::string jobreport_cadir = config_next_arg(rest);
-      config.job_log->set_credentials(jobreport_key, jobreport_cert, jobreport_cadir);
+      config.job_log->SetCredentials(jobreport_key, jobreport_cert, jobreport_cadir);
     }
     else if (command == "jobreport_options") { // e.g. for SGAS, interpreted by usage reporter
       if (!config.job_log) continue;
       std::string accounting_options = config_next_arg(rest);
-      config.job_log->set_options(accounting_options);
+      config.job_log->SetOptions(accounting_options);
+    }
+    else if (command == "jobreport_logfile") {
+      if (!config.job_log) continue;
+      std::string logfile = config_next_arg(rest);
+      if (logfile.empty()) {
+        logger.msg(Arc::ERROR, "Missing file name in jobreport_logfile"); return false;
+      }
+      config.job_log->SetLogFile(logfile.c_str());
     }
     else if (command == "scratchdir") {
       std::string scratch = config_next_arg(rest);
@@ -449,6 +457,7 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     KeyPath
     CertificatePath
     CACertificatesDir
+    logfile
   */
   tmp_node = cfg["enableARCInterface"];
   if (tmp_node) {
@@ -493,11 +502,13 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
         logger.msg(Arc::ERROR, "Wrong number in jobreport_period: %d, minimal value: %s", p, default_value); return false;
       }      
       std::string parameters = tmp_node["parameters"];
-      if (!parameters.empty()) config.job_log->set_options(parameters);
+      if (!parameters.empty()) config.job_log->SetOptions(parameters);
       std::string jobreport_key = tmp_node["KeyPath"];
       std::string jobreport_cert = tmp_node["CertificatePath"];
       std::string jobreport_cadir = tmp_node["CACertificatesDir"];
-      config.job_log->set_credentials(jobreport_key, jobreport_cert, jobreport_cadir);
+      config.job_log->SetCredentials(jobreport_key, jobreport_cert, jobreport_cadir);
+      std::string logfile = tmp_node["logfile"];
+      if (!logfile.empty()) config.job_log->SetLogFile(logfile.c_str());
     }
   }
 

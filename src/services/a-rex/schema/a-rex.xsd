@@ -626,6 +626,8 @@
                              minOccurs="0"/>
            <xsd:element name="CACertificatesDir" type="xsd:string"
                              minOccurs="0"/>
+           <xsd:element name="logfile" type="xsd:string"
+                            minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="jobReport" type="arex:jobReport_Type"/>

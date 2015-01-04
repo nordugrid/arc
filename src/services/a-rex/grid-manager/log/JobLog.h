@@ -25,12 +25,14 @@ class JobLog {
   std::string vo_filters;
   std::string certificate_path;
   std::string ca_certificates_dir;
-  std::string logger;
+  std::string logger_name;
+  std::string logfile;
   Arc::Run *proc;
   time_t last_run;
   int period;
   time_t ex_period;
   bool open_stream(std::ofstream &o);
+  static void initializer(void* arg);
  public:
   JobLog(void);
   //JobLog(const char* fname);
@@ -47,6 +49,8 @@ class JobLog {
   bool SetPeriod(int period);
   /* Set name of the accounting reporter */
   bool SetLogger(const char* fname);
+  /* Set name of the log file for accounting reporter */
+  bool SetLogFile(const char* fname);
   /* Set filters of VO that allow to report to accounting service */
   bool SetVoFilters(const char* filters);
   /* Set url of service and local name to use */
@@ -57,9 +61,9 @@ class JobLog {
   /* Create data file for Reporter */
   bool make_file(GMJob &job,const GMConfig &config);
   /* Set credential file names for accessing logging service */
-  void set_credentials(std::string &key_path,std::string &certificate_path,std::string &ca_certificates_dir);
+  void SetCredentials(std::string &key_path,std::string &certificate_path,std::string &ca_certificates_dir);
   /* Set accounting options (e.g. batch size for SGAS LUTS) */
-  void set_options(std::string &options) { report_config.push_back(std::string("accounting_options=")+options); }
+  void SetOptions(std::string &options) { report_config.push_back(std::string("accounting_options=")+options); }
 };
 
 } // namespace ARex

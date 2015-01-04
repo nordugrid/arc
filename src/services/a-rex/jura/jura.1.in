@@ -13,7 +13,7 @@ application is a resource-side accounting (usage logging) client.
 
 .SH SYNOPSIS
 
-jura [\fB-E\fR \fIexp_time\fR] [\fB-u\fR \fIurl\fR [\fB-u\fR
+jura [\fB-E\fR \fIexp_time\fR] [\fB-L\fR] [\fB-u\fR \fIurl\fR [\fB-u\fR
 \fIurl\fR \fB-t\fR \fItopic\fR \fB-u\fR \fIurl\fR ...] ] 
 \fIctrl_dir\fR [\fIctrl_dir\fR ...]
 
@@ -27,6 +27,8 @@ logging destination URL
 topic for a destination URL
 .IP "\fB-o\fR"
 aggregated Apel accounting records directory
+.IP "\fB-L\fR"
+turns on timestamps and logging level in messages printed during execution
 .LP
 
 .SH ARGUMENTS

@@ -1080,6 +1080,14 @@ the jobreporter.
 jobreport_options="urbatch:50,archiving:/tmp/archive,topic:/topic/global.accounting.cpu.central"
 
 .TP
+.B jobreport_logfile
+jobreport logfile - name of the file to store stderr of the publisher executable.
+
+.IR Example:
+.br
+jobreport_logile="/var/log/arc/jura.log"
+
+.TP
 .B max_job_control_requests
 max_job_control_requests number - max number of simultaneously processed job management
 requests over WS interface - like job submission, cancel, status check etc. 
