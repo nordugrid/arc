@@ -964,6 +964,14 @@ namespace Arc
         Arc::XMLNode alln = ur.NewChild("CpuDuration")=cpudurs;
         alln.NewAttribute("urf:usageType")="all";
       }
+    else
+      {
+        Arc::Logger::rootLogger.msg(Arc::VERBOSE,
+                        "Missing required element \"CpuDuration\" in job log file %s",
+                        filename.c_str());
+        usagerecord.Destroy();
+        return;
+      }
 
     //ServiceLevel
     std::string benchmark_type = "Si2K";
