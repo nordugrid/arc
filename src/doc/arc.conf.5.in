@@ -1085,7 +1085,7 @@ jobreport logfile - name of the file to store stderr of the publisher executable
 
 .IR Example:
 .br
-jobreport_logile="/var/log/arc/jura.log"
+jobreport_logfile="/var/log/arc/jura.log"
 
 .TP
 .B max_job_control_requests
