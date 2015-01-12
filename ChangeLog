@@ -1,3 +1,6 @@
+2015-01-12  Gabor Szigeti <szigeti@niif.hu>
+  * Accounting message publisher update to SSM 2.1.5.
+
 2014-12-11  Anders Waananen <waananen@nbi.dk>
   * Remove gridsite dependency and therefore gridftpd gacl file support
   * Remove arcacl client utility
