@@ -209,9 +209,11 @@ start () {
     $RUNUSER -s "$USERSHELL" -c "${bdii_update_cmd} -c ${BDII_CONF} -d" ${bdii_user}
     touch ${update_lock_file}
 
-    if [ ! -r ${update_pid_file} ]; then
-	sleep 2
-    fi
+    iterlimit=30
+    while [ $iterlimit -ge 0 ] && ! [ -r ${update_pid_file} ]; do
+	sleep 1
+	iterlimit=$(expr $iterlimit - 1)
+    done
     if [ ! -r ${update_pid_file} ]; then
 	log_failure_msg "$prog failed to start"
 	rm -f ${update_lock_file}
