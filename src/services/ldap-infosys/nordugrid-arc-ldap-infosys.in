@@ -21,14 +21,16 @@
 # Description:       Init file for the NorduGrid/ARC LDAP Information System
 ### END INIT INFO
 
+prefix=@prefix@
+
 case "$1" in
     start | stop | restart | force-reload | reload | status | condrestart | try-restart)
-	[ -x /etc/init.d/nordugrid-arc-slapd ] && \
-	    /etc/init.d/nordugrid-arc-slapd "$1"
-	[ -x /etc/init.d/nordugrid-arc-bdii ] && \
-	    /etc/init.d/nordugrid-arc-bdii "$1"
-	[ -x /etc/init.d/nordugrid-arc-egiis ] && \
-	    /etc/init.d/nordugrid-arc-egiis "$1"
+	[ -x @initddir@/nordugrid-arc-slapd ] && \
+	    @initddir@/nordugrid-arc-slapd "$1"
+	[ -x @initddir@/nordugrid-arc-bdii ] && \
+	    @initddir@/nordugrid-arc-bdii "$1"
+	[ -x @initddir@/nordugrid-arc-egiis ] && \
+	    @initddir@/nordugrid-arc-egiis "$1"
 	exit 0
 	;;
     *)
