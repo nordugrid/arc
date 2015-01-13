@@ -165,7 +165,11 @@ start () {
 	exit 1
     fi
 
-    $RUNUSER -s "$USERSHELL" -c "${giis_location}/sbin/arc-infoindex-server -c $ARC_CONFIG -f $giis_fifo" ${bdii_user}
+    if [ `id -u` = 0 ]; then
+	$RUNUSER -s "$USERSHELL" -c "${giis_location}/sbin/arc-infoindex-server -c $ARC_CONFIG -f $giis_fifo" ${bdii_user}
+    else
+	${giis_location}/sbin/arc-infoindex-server -c $ARC_CONFIG -f $giis_fifo
+    fi
 
     touch ${lockfile}
 

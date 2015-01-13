@@ -207,7 +207,11 @@ start () {
 	exit 1
     fi
 
-    $RUNUSER -s "$USERSHELL" -c "${bdii_update_cmd} -c ${BDII_CONF} -d" ${bdii_user}
+    if [ `id -u` = 0 ]; then
+	$RUNUSER -s "$USERSHELL" -c "${bdii_update_cmd} -c ${BDII_CONF} -d" ${bdii_user}
+    else
+	${bdii_update_cmd} -c ${BDII_CONF} -d
+    fi
     touch ${update_lock_file}
 
     iterlimit=30

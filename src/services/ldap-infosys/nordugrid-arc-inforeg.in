@@ -107,20 +107,6 @@ config_hide_all
 config_import_section common
 config_import_section infosys
 
-# Use this command to change user
-if [ -x /sbin/runuser ]; then
-    RUNUSER=runuser
-else
-    RUNUSER=su
-fi
-
-# If missing, we have a problem
-USERSHELL=${USERSHELL:-"/bin/sh"}
-if [ ! -x ${USERSHELL} ]; then
-    log_failure_msg "Could not find ${USERSHELL}"
-    exit 1
-fi
-
 # Debian does not have /var/lock/subsys
 if [ -d /var/lock/subsys ]; then
     lockfile=/var/lock/subsys/$prog
