@@ -77,8 +77,47 @@ if [ ! -d "$ARC_LOCATION" ]; then
     exit 1
 fi
 
-bdii_run_dir=/var/run/arc/bdii
-slapd_pid_file=$bdii_run_dir/db/slapd.pid
+# Source the config parsing routines
+if [ -r "$ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh" ]; then
+    . $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh || exit $?
+else
+    log_failure_msg "Could not find $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh"
+    exit 1
+fi
+
+ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
+if [ ! -r "$ARC_CONFIG" ]; then
+    log_failure_msg "ARC configuration file ($ARC_CONFIG) not found"
+    log_failure_msg "If this file is in a non-standard place it can be set"
+    log_failure_msg "  with the ARC_CONFIG environment variable"
+    exit 1
+fi
+
+# Read arc.conf
+config_parse_file $ARC_CONFIG || exit $?
+
+# Check for infosys-block
+if ! config_match_section infosys; then
+    log_failure_msg "Missing infosys configuration block"
+    exit 1
+fi
+
+config_hide_all
+config_import_section common
+config_import_section infosys
+
+bdii_location=${CONFIG_bdii_location:-/usr}
+bdii_update_cmd=${CONFIG_bdii_update_cmd:-${bdii_location}/sbin/bdii-update}
+if [ ! -x $bdii_update_cmd ] || grep -q BDII_PID_FILE $bdii_update_cmd; then
+    bdii_var_dir=${CONFIG_bdii_var_dir:-/var/lib/arc/bdii}
+    bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
+else
+    bdii_var_dir=${CONFIG_bdii_var_dir:-/var/run/arc/bdii}
+    bdii_run_dir=${bdii_var_dir}
+fi
+slapd_pid_file=${bdii_run_dir}/db/slapd.pid
+
+infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}
 
 # Debian does not have /var/lock/subsys
 if [ -d /var/lock/subsys ]; then
@@ -99,7 +138,7 @@ start () {
 	log_failure_msg "Failed to create configuration for $prog"
 	exit 1
     fi
-    /bin/sh /var/run/arc/infosys/bdii-slapd.cmd
+    /bin/sh ${infosys_ldap_run_dir}/bdii-slapd.cmd
 
     touch ${slapd_lock_file}
 
@@ -118,8 +157,9 @@ start () {
 
     log_success_msg "$prog started"
 
-    if [ -x "/etc/init.d/nordugrid-arc-bdii" ] ; then
-	/etc/init.d/nordugrid-arc-bdii condrestart
+    prefix=${ARC_LOCATION:-@prefix@}
+    if [ -x @initddir@/nordugrid-arc-bdii ] ; then
+	@initddir@/nordugrid-arc-bdii condrestart
     fi
 }
 
@@ -155,19 +195,18 @@ stop () {
 		sleep 2
 		ps ${slapd_pid} >/dev/null 2>&1
 		if [ $? = 0 ]; then
-		    RETVAL=2
-		else
-		    rm -f {slapd_pid_file}
+		    RETVAL=1
 		fi
 	    fi
 	fi
     fi
 
-    if [ ${RETVAL} = 2 ];  then
-	log_failure_msg "Could not stop $prog with pid: $slapd_pid"
-    else
+    if [ ${RETVAL} = 0 ];  then
+	rm -f ${slapd_pid_file}
 	rm -f ${slapd_lock_file}
 	log_success_msg "$prog stopped"
+    else
+	log_failure_msg "Could not stop $prog with pid: $slapd_pid"
     fi
 
     return ${RETVAL}
@@ -189,7 +228,7 @@ status ()  {
 	fi
     else
 	log_failure_msg "$prog process has no pid file"
-	RETVAL=1
+	RETVAL=2
 	return ${RETVAL}
     fi
 

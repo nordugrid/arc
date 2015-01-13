@@ -61,11 +61,11 @@ mkdir -p `dirname $registrationlog`
 touch ${registrationlog}
 chown ${bdii_user}: ${registrationlog}
 
-arc_runtime_config="/var/run/arc/infosys"
-mkdir -p ${arc_runtime_config}
-chown ${bdii_user}: ${arc_runtime_config}
+infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}
+mkdir -p ${infosys_ldap_run_dir}
+chown ${bdii_user}: ${infosys_ldap_run_dir}
 
-registrationconf=$arc_runtime_config/grid-info-resource-register.conf
+registrationconf=${infosys_ldap_run_dir}/grid-info-resource-register.conf
 
 printregldif () {
     cat <<-EOF

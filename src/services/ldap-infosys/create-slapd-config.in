@@ -65,12 +65,12 @@ timelimit=${CONFIG_timelimit:-2400}
 bdii_location=${CONFIG_bdii_location:-/usr}
 bdii_update_cmd=${CONFIG_bdii_update_cmd:-${bdii_location}/sbin/bdii-update}
 
-arc_runtime_config=/var/run/arc/infosys
-mkdir -p ${arc_runtime_config}
-chown ${bdii_user}: ${arc_runtime_config}
+infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}
+mkdir -p ${infosys_ldap_run_dir}
+chown ${bdii_user}: ${infosys_ldap_run_dir}
 
 giis_location=${CONFIG_giis_location:-$ARC_LOCATION}
-giis_fifo=${CONFIG_giis_fifo:-$arc_runtime_config/giis-fifo}
+giis_fifo=${CONFIG_giis_fifo:-${infosys_ldap_run_dir}/giis-fifo}
 
 bdii_tmp_dir=${CONFIG_bdii_tmp_dir:-/var/tmp/arc/bdii}
 if [ ! -x $bdii_update_cmd ] || grep -q BDII_PID_FILE $bdii_update_cmd; then
@@ -78,7 +78,7 @@ if [ ! -x $bdii_update_cmd ] || grep -q BDII_PID_FILE $bdii_update_cmd; then
     bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
 else
     bdii_var_dir=${CONFIG_bdii_var_dir:-/var/run/arc/bdii}
-    bdii_run_dir=$bdii_var_dir
+    bdii_run_dir=${bdii_var_dir}
 fi
 
 bdii_db_config=${CONFIG_bdii_db_config:-"/etc/bdii/DB_CONFIG"}
@@ -255,9 +255,9 @@ for i in "/etc/bdii/BDII.schema" "${bdii_location}/etc/BDII.schema"; do
     fi
 done
 
-bdii_slapd_conf=$arc_runtime_config/bdii-slapd.conf
+bdii_slapd_conf=${infosys_ldap_run_dir}/bdii-slapd.conf
 rm -f $bdii_slapd_conf
-bdii_slapd_cmd=$arc_runtime_config/bdii-slapd.cmd
+bdii_slapd_cmd=${infosys_ldap_run_dir}/bdii-slapd.cmd
 rm -f $bdii_slapd_cmd
 
 # Ensure the configuration file is not world-readable,

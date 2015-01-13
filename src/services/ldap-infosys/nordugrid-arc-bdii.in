@@ -87,8 +87,9 @@ fi
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 if [ ! -r "$ARC_CONFIG" ]; then
-    log_failure_msg "arc.conf was not found. If this file is in a non-standard place,"
-    log_failure_msg "  it can be set with the ARC_CONFIG environment variable"
+    log_failure_msg "ARC configuration file ($ARC_CONFIG) not found"
+    log_failure_msg "If this file is in a non-standard place it can be set"
+    log_failure_msg "  with the ARC_CONFIG environment variable"
     exit 1
 fi
 
@@ -97,8 +98,8 @@ config_parse_file $ARC_CONFIG || exit $?
 
 # Check for infosys-block
 if ! config_match_section infosys; then
-    log_warning_msg "Missing infosys configuration block"
-    exit 0
+    log_failure_msg "Missing infosys configuration block"
+    exit 1
 fi
 
 config_hide_all
@@ -138,14 +139,14 @@ fi
 # If missing, we have a problem
 USERSHELL=${USERSHELL:-"/bin/sh"}
 if [ ! -x ${USERSHELL} ]; then
-    log_failure_msg "Could not find /bin/sh"
+    log_failure_msg "Could not find ${USERSHELL}"
     exit 1
 fi
 
 bdii_location=${CONFIG_bdii_location:-/usr}
 giis_location=${CONFIG_giis_location:-$ARC_LOCATION}
 
-bdii_update_cmd=${CONFIG_bdii_update_cmd:-"${bdii_location}/sbin/bdii-update"}
+bdii_update_cmd=${CONFIG_bdii_update_cmd:-${bdii_location}/sbin/bdii-update}
 if [ ! -e $bdii_update_cmd ]; then
     log_failure_msg "Can not find bdii-update command at: $bdii_update_cmd."
     log_failure_msg "Please set bdii_update_cmd in arc.conf"
@@ -160,10 +161,10 @@ if grep -q BDII_PID_FILE $bdii_update_cmd ; then
     bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
 else
     bdii_var_dir=${CONFIG_bdii_var_dir:-/var/run/arc/bdii}
-    bdii_run_dir=$bdii_var_dir
+    bdii_run_dir=${bdii_var_dir}
 fi
 bdii_log_dir=${CONFIG_bdii_log_dir:-/var/log/arc/bdii}
-bdii_log_file="${bdii_log_dir}/bdii-update.log"
+bdii_log_file=${bdii_log_dir}/bdii-update.log
 
 mkdir -p $bdii_log_dir
 
@@ -190,8 +191,8 @@ fi
 
 chown ${bdii_user}: ${bdii_log_dir}
 
-arc_runtime_config="/var/run/arc/infosys"
-BDII_CONF=${CONFIG_bdii_conf:-${arc_runtime_config}/bdii.conf}
+infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}
+BDII_CONF=${CONFIG_bdii_conf:-${infosys_ldap_run_dir}/bdii.conf}
 
 start () {
     if [ -r "${update_lock_file}" ]; then
@@ -202,7 +203,7 @@ start () {
 
     ${ARC_LOCATION}/@pkgdatasubdir@/create-bdii-config
     if [ ! $? = 0 ]; then
-	log_failure_msg "Failed to create configration for $prog"
+	log_failure_msg "Failed to create configuration for $prog"
 	exit 1
     fi
 
@@ -214,13 +215,12 @@ start () {
 	sleep 1
 	iterlimit=$(expr $iterlimit - 1)
     done
+
     if [ ! -r ${update_pid_file} ]; then
 	log_failure_msg "$prog failed to start"
 	rm -f ${update_lock_file}
-	exit 1
-    else
-	touch ${update_lock_file}
-	RETVAL=0
+	RETVAL=1
+	return ${RETVAL}
     fi
 
     log_success_msg "$prog started"
@@ -266,22 +266,15 @@ stop () {
 	fi
     fi
 
+    # Clean up
+    rm -f ${infosys_ldap_run_dir}/arc-glue-bdii-ldif
+
     if [ ${RETVAL} = 0 ];  then
 	rm -f ${update_pid_file}
 	rm -f ${update_lock_file}
+	log_success_msg "$prog stopped"
     else
 	log_failure_msg "Could not kill $prog with pid ${update_pid}"
-    fi
-
-    # Clean up
-    rm -f ${arc_runtime_config}/arc-glue-bdii-ldif
-
-    if [ ! ${RETVAL} = 0 ];  then
-	log_failure_msg
-	return 1
-    else
-	rm -f ${update_lock_file}
-	log_success_msg "$prog stopped"
     fi
 
     return ${RETVAL}
@@ -303,7 +296,7 @@ status ()  {
 	fi
     else
 	log_failure_msg "$prog process has no pid file"
-	RETVAL=1
+	RETVAL=2
 	return ${RETVAL}
     fi
 

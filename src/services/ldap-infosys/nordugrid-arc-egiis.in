@@ -88,8 +88,9 @@ fi
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 if [ ! -r "$ARC_CONFIG" ]; then
-    log_failure_msg "arc.conf was not found. If this file is in a non-standard place,"
-    log_failure_msg "  it can be set with the ARC_CONFIG environment variable"
+    log_failure_msg "ARC configuration file ($ARC_CONFIG) not found"
+    log_failure_msg "If this file is in a non-standard place it can be set"
+    log_failure_msg "  with the ARC_CONFIG environment variable"
     exit 1
 fi
 
@@ -133,7 +134,7 @@ fi
 # If missing, we have a problem
 USERSHELL=${USERSHELL:-"/bin/sh"}
 if [ ! -x ${USERSHELL} ]; then
-    log_failure_msg "Could not find /bin/sh"
+    log_failure_msg "Could not find ${USERSHELL}"
     exit 1
 fi
 
@@ -146,11 +147,11 @@ else
     lockfile=/var/lock/$prog
 fi
 
-arc_runtime_config="/var/run/arc/infosys"
-mkdir -p ${arc_runtime_config}
-chown ${bdii_user}: ${arc_runtime_config}
+infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}
+mkdir -p ${infosys_ldap_run_dir}
+chown ${bdii_user}: ${infosys_ldap_run_dir}
 
-giis_fifo=${CONFIG_giis_fifo:-$arc_runtime_config/giis-fifo}
+giis_fifo=${CONFIG_giis_fifo:-${infosys_ldap_run_dir}/giis-fifo}
 
 start () {
     if [ -r "${lockfile}" ]; then

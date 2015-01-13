@@ -21,7 +21,7 @@
 # Description:       Init file for the NorduGrid/ARC LDAP Information System
 ### END INIT INFO
 
-prefix=@prefix@
+prefix=${ARC_LOCATION:-@prefix@}
 
 case "$1" in
     start | stop | restart | force-reload | reload | status | condrestart | try-restart)

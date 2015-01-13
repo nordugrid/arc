@@ -23,7 +23,7 @@
 ### END INIT INFO
 
 # Helper functions
-if [ -f /etc/init.d/functions ]; then
+if [ -r /etc/init.d/functions ]; then
     . /etc/init.d/functions
     log_success_msg() {
         echo -n "$@"
@@ -40,7 +40,7 @@ if [ -f /etc/init.d/functions ]; then
         failure "$@"
         echo
     }
-elif [ -f /lib/lsb/init-functions ]; then
+elif [ -r /lib/lsb/init-functions ]; then
     . /lib/lsb/init-functions
 else
     echo "Error: Cannot source neither init.d nor lsb functions"
@@ -63,18 +63,18 @@ elif [ -r /etc/default/$prog ]; then
     . /etc/default/$prog
 fi
 
-[ -n "$ARC_LOCATION ] && export ARC_LOCATION
-[ -n "$ARC_CONFIG ]   && export ARC_CONFIG
-
 if [ "x$RUN" != "xyes" ]; then
-    echo "$prog disabled, please adjust the configuration to your needs "
-    echo "and then set RUN to 'yes' in /etc/default/$prog to enable it."
+    log_warning_msg "$prog disabled, please adjust the configuration to your"
+    log_warning_msg "needs and then set RUN to 'yes' in /etc/default/$prog to enable it."
     exit 0
 fi
 
+[ -n "$ARC_LOCATION" ] && export ARC_LOCATION
+[ -n "$ARC_CONFIG" ]   && export ARC_CONFIG
+
 ARC_LOCATION=${ARC_LOCATION:-@prefix@}
 if [ ! -d "$ARC_LOCATION" ]; then
-    echo "ARC_LOCATION ($ARC_LOCATION) not found"
+    log_failure_msg "ARC_LOCATION ($ARC_LOCATION) not found"
     exit 1
 fi
 
@@ -82,15 +82,15 @@ fi
 if [ -r "$ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh" ]; then
     . $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh || exit $?
 else
-    echo "Could not find $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh"
+    log_failure_msg "Could not find $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh"
     exit 1
 fi
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 if [ ! -r "$ARC_CONFIG" ]; then
-    echo "ARC configuration file ($ARC_CONFIG) not found"
-    echo "If this file is in a non-standard place it can be set with the"
-    echo "  ARC_CONFIG environment variable"
+    log_failure_msg "ARC configuration file ($ARC_CONFIG) not found"
+    log_failure_msg "If this file is in a non-standard place it can be set"
+    log_failure_msg "  with the ARC_CONFIG environment variable"
     exit 1
 fi
 
@@ -99,8 +99,8 @@ config_parse_file $ARC_CONFIG || exit $?
 
 # Check for infosys-block
 if ! config_match_section infosys; then
-    echo "Missing infosys configuration block"
-    exit 0
+    log_failure_msg "Missing infosys configuration block"
+    exit 1
 fi
 
 config_hide_all
@@ -117,7 +117,7 @@ fi
 # If missing, we have a problem
 USERSHELL=${USERSHELL:-"/bin/sh"}
 if [ ! -x ${USERSHELL} ]; then
-    log_failure_msg "Could not find /bin/sh"
+    log_failure_msg "Could not find ${USERSHELL}"
     exit 1
 fi
 
@@ -129,9 +129,9 @@ else
 fi
 
 registrationlog=${CONFIG_registrationlog:-/var/log/arc/inforegistration.log}
-arc_runtime_config="/var/run/arc/infosys"
-registrationconf=$arc_runtime_config/grid-info-resource-register.conf
-pid_file="/var/run/nordugrid-arc-inforeg.pid"
+infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}
+registrationconf=${infosys_ldap_run_dir}/grid-info-resource-register.conf
+pid_file=${CONFIG_registration_pid_file:-/var/run/nordugrid-arc-inforeg.pid}
 
 start () {
     echo -n "Starting $prog: "
