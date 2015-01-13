@@ -140,11 +140,15 @@ fi
 
 giis_location=${CONFIG_giis_location:-$ARC_LOCATION}
 
-# Debian does not have /var/lock/subsys
-if [ -d /var/lock/subsys ]; then
-    lockfile=/var/lock/subsys/$prog
+if [ `id -u` = 0 ]; then
+    # Debian does not have /var/lock/subsys
+    if [ -d /var/lock/subsys ]; then
+	lockfile=/var/lock/subsys/$prog
+    else
+	lockfile=/var/lock/$prog
+    fi
 else
-    lockfile=/var/lock/$prog
+    lockfile=$HOME/$prog
 fi
 
 infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}

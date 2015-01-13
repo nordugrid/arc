@@ -182,11 +182,15 @@ infosys_glue2_ldap=${CONFIG_infosys_glue2_ldap:-"disable"}
 
 update_pid_file=${CONFIG_bdii_update_pid_file:-$bdii_run_dir/bdii-update.pid}
 
-# Debian does not have /var/lock/subsys
-if [ -d /var/lock/subsys ]; then
-    update_lock_file=${update_lock_file:-/var/lock/subsys/$prog}
+if [ `id -u` = 0 ]; then
+    # Debian does not have /var/lock/subsys
+    if [ -d /var/lock/subsys ]; then
+	update_lock_file=${update_lock_file:-/var/lock/subsys/$prog}
+    else
+	update_lock_file=${update_lock_file:-/var/lock/$prog}
+    fi
 else
-    update_lock_file=${update_lock_file:-/var/lock/$prog}
+    update_lock_file=$HOME/$prog
 fi
 
 chown ${bdii_user}: ${bdii_log_dir}

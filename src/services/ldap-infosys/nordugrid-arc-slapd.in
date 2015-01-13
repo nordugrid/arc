@@ -119,11 +119,15 @@ slapd_pid_file=${bdii_run_dir}/db/slapd.pid
 
 infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}
 
-# Debian does not have /var/lock/subsys
-if [ -d /var/lock/subsys ]; then
-    slapd_lock_file=${slapd_lock_file:-/var/lock/subsys/$prog}
+if [ `id -u` = 0 ]; then
+    # Debian does not have /var/lock/subsys
+    if [ -d /var/lock/subsys ]; then
+	slapd_lock_file=${slapd_lock_file:-/var/lock/subsys/$prog}
+    else
+	slapd_lock_file=${slapd_lock_file:-/var/lock/$prog}
+    fi
 else
-    slapd_lock_file=${slapd_lock_file:-/var/lock/$prog}
+    slapd_lock_file=$HOME/$prog
 fi
 
 start () {

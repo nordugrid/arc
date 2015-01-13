@@ -107,11 +107,15 @@ config_hide_all
 config_import_section common
 config_import_section infosys
 
-# Debian does not have /var/lock/subsys
-if [ -d /var/lock/subsys ]; then
-    lockfile=/var/lock/subsys/$prog
+if [ `id -u` = 0 ]; then
+    # Debian does not have /var/lock/subsys
+    if [ -d /var/lock/subsys ]; then
+	lockfile=/var/lock/subsys/$prog
+    else
+	lockfile=/var/lock/$prog
+    fi
 else
-    lockfile=/var/lock/$prog
+    lockfile=$HOME/$prog
 fi
 
 registrationlog=${CONFIG_registrationlog:-/var/log/arc/inforegistration.log}
