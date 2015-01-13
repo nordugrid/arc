@@ -372,6 +372,36 @@ namespace Arc
             return;
         }
       }
+
+    if (find("jobreport_option_vo_group")!=end())
+      {
+        bool find = false;
+        if ( !ur["UserIdentity"] ) {
+          ur.NewChild("UserIdentity");
+        }
+        Arc::XMLNode useridentity = ur["UserIdentity"];
+
+        Arc::XMLNode node = useridentity["vo:VO"]["vo:Attribute"]["vo:Group"];
+        while ( bool(node) ){
+          if (std::string(node) == (*this)["jobreport_option_vo_group"]) {
+            find = true;
+            break;
+          }
+          ++node;
+        }
+        if ( !find ) {
+          if ( !useridentity["vo:VO"] ) {
+            Arc::XMLNode vo = useridentity.NewChild("vo:VO");
+            vo.NewAttribute("vo:type")="voms";
+          }
+          if ( !useridentity["vo:VO"]["vo:Attribute"] ) {
+            useridentity["vo:VO"].NewChild("vo:Attribute");
+          }
+          useridentity["vo:VO"]["vo:Attribute"].NewChild("vo:Group")=(*this)["jobreport_option_vo_group"].substr(1);
+        }
+      }
+
+      
     
     //JobName
     if (find("jobname")!=end())
