@@ -875,6 +875,16 @@ time period will be deleted. Example values of this option are 1800, 90s, 24h,
 cachelifetime="30d"
 
 .TP
+.B cacheshared
+cacheshared yes|no - specifies whether the caches share a filesystem with
+other data. If set to yes then cache-clean calculates the size of the cache
+instead of using filesystem used space.
+
+.IR Example:
+.br
+cacheshared="yes"
+
+.TP
 .B cachelogfile
 cachelogfile path - specifies the filename where output of the cache-clean
 tool should be logged. Defaults to /var/log/arc/cache-clean.log.

@@ -63,6 +63,10 @@ class CacheConfig {
     */
    std::string _lifetime;
    /**
+    * Whether the cache is shared with other data on the file system
+    */
+   bool _cache_shared;
+   /**
     * Timeout for cleaning process
     */
    int _clean_timeout;
@@ -89,7 +93,7 @@ class CacheConfig {
   /**
    * Empty CacheConfig
    */
-  CacheConfig(): _cache_max(0), _cache_min(0), _clean_timeout(0) {};
+  CacheConfig(): _cache_max(0), _cache_min(0), _cache_shared(false), _clean_timeout(0) {};
   std::vector<std::string> getCacheDirs() const { return _cache_dirs; };
   std::vector<std::string> getRemoteCacheDirs() const { return _remote_cache_dirs; };
   std::vector<std::string> getDrainingCacheDirs() const { return _draining_cache_dirs; };
@@ -101,6 +105,7 @@ class CacheConfig {
   std::string getLogFile() const { return _log_file; };
   std::string getLogLevel() const { return _log_level; };
   std::string getLifeTime() const { return _lifetime; };
+  bool getCacheShared() const { return _cache_shared; };
   int getCleanTimeout() const { return _clean_timeout; };
   const std::list<struct CacheAccess>& getCacheAccess() const { return _cache_access; };
 };

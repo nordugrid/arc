@@ -66,12 +66,14 @@ static void cache_func(void* arg) {
   std::string minusedspace = Arc::tostring(cache_info.getCacheMin());
   std::string cachelifetime = cache_info.getLifeTime();
   std::string logfile = cache_info.getLogFile();
+  bool cacheshared = cache_info.getCacheShared();
 
   // do cache-clean -h for explanation of options
   std::string cmd = Arc::ArcLocation::GetToolsDir() + "/cache-clean";
   cmd += " -m " + minusedspace;
   cmd += " -M " + maxusedspace;
   if (!cachelifetime.empty()) cmd += " -E " + cachelifetime;
+  if (cacheshared) cmd += " -S ";
   cmd += " -D " + cache_info.getLogLevel();
   for (std::vector<std::string>::iterator i = cache_info_dirs.begin(); i != cache_info_dirs.end(); i++) {
     cmd += " " + (i->substr(0, i->find(" ")));

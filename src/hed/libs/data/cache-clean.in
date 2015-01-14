@@ -48,7 +48,7 @@ my(%opts);
 
 my $configfile;
 
-# Min free percentage
+# max/min used percentage
 my $maxusedpercent = 0;
 my $minusedpercent = 0;
 my $expirytime = 0;
@@ -66,7 +66,7 @@ my $log = LogUtils->getLogger('cache-clean');
 
 my $currenttime = time();
 
-getopts('hsc:m:M:E:D:', \%opts);
+getopts('hsSc:m:M:E:D:', \%opts);
 
 if(defined($opts{c})) {
     $configfile = $opts{c};
@@ -118,10 +118,11 @@ if(defined($opts{E})) {
 
 sub usage {
     print <<EOH;
-   usage: cache-clean [-h] [-s] [-m <NN> -M <NN>] [-E N] [-D debug_level]
+   usage: cache-clean [-h] [-s] [-S] [-m <NN> -M <NN>] [-E N] [-D debug_level]
             [ -c <arex_config_file> | <dir1> [<dir2> [...]] ]
     -h       - This help
     -s       - Statistics mode, show cache usage stats, dont delete anything
+    -S       - Calculate cache size rather than using used file system space
     -c       - path to an A-REX config file, xml or ini format
     -M NN    - Maximum usage of file system. When to start cleaning the cache (percent)
     -m NN    - Minimum usage of file system. When to stop cleaning cache (percent)
@@ -306,7 +307,7 @@ foreach my $filesystem (@caches) {
     if ($fsused > $maxfbytes) {
         # delete in order of access
         foreach my $fil (sort { $files{$a}{atime} <=> $files{$b}{atime} } keys %files) {
-            last if $fsused > $minfbytes;
+            last if $fsused < $minfbytes;
             next if (-d "$fil");
             if (-e "$fil.lock") {
                 my $atime = (stat("$fil.lock"))[8];
@@ -445,14 +446,18 @@ sub diskspace ($) {
             } else {
                 $log->warning("Failed interpreting output of: df -k $path");
             }
-            # need to get actual used disk for caches on shared partitions
-            my @dustring =`du -ks $path 2>/dev/null`;
-            if ($? != 0) {
-                $log->warning("Failed running: du -ks $path");
-            } elsif ($dustring[-1] =~ /(\d+)\s+[\w\/]+/) {
-                $diskused = $1*1024;
+            # get actual used disk for caches on shared partitions if configured
+            if (defined($opts{S})) {
+                my @dustring =`du -ks $path 2>/dev/null`;
+                if ($? != 0) {
+                    $log->warning("Failed running: du -ks $path");
+                } elsif ($dustring[-1] =~ /(\d+)\s+[\w\/]+/) {
+                    $diskused = $1*1024;
+                } else {
+                    $log->warning("Failed interpreting output of: du -ks $path");
+                }
             } else {
-                $log->warning("Failed interpreting output of: du -ks $path");
+                $diskused = $disktotal - $diskfree;
             }
         }
     } else {

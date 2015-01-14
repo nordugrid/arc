@@ -21,6 +21,7 @@ CacheConfig::CacheConfig(const GMConfig& config):
     _log_file("/var/log/arc/cache-clean.log"),
     _log_level("INFO") ,
     _lifetime("0"),
+    _cache_shared(false),
     _clean_timeout(0) {
   // Load conf file
   std::ifstream cfile;
@@ -65,6 +66,7 @@ CacheConfig::CacheConfig(const Arc::XMLNode& cfg):
     _log_file("/var/log/arc/cache-clean.log"),
     _log_level("INFO") ,
     _lifetime("0"),
+    _cache_shared(false),
     _clean_timeout(0) {
   parseXMLConf(cfg);
 }
@@ -197,6 +199,15 @@ void CacheConfig::parseINIConf(ConfigSections& cf) {
         _lifetime = lifetime;
       }
     }
+    else if(command == "cacheshared") {
+      std::string cache_shared = config_next_arg(rest);
+      if (cache_shared == "yes") {
+        _cache_shared = true;
+      }
+      else if (cache_shared != "no") {
+        throw CacheConfigException("Bad value in cacheshared parameter");
+      }
+    }
     else if (command == "cachecleantimeout") {
       std::string timeout = config_next_arg(rest);
       if(timeout.length() == 0)
@@ -242,6 +253,7 @@ void CacheConfig::parseXMLConf(const Arc::XMLNode& cfg) {
       cacheLogFile
       cacheLogLevel
       cacheCleanTimeout
+      cacheShared
     defaultTTL
     defaultTTR
     maxReruns
@@ -327,6 +339,10 @@ void CacheConfig::parseXMLConf(const Arc::XMLNode& cfg) {
   std::string cache_lifetime = cache_node["cacheLifetime"];
   if (!cache_lifetime.empty())
     _lifetime = cache_lifetime;
+  std::string cache_shared = cache_node["cacheShared"];
+  if (cache_shared == "yes") {
+    _cache_shared = true;
+  }
   std::string clean_timeout = cache_node["cacheCleanTimeout"];
   if (!clean_timeout.empty()) {
     if(!Arc::stringto(clean_timeout, _clean_timeout))

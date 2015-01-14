@@ -1,3 +1,7 @@
+2015-01-14  David Cameron <d.g.cameron@fys.uio.no>
+  * Add new arc.conf option cacheshared to enable better management of caches on
+    filesystems shared with other data.
+
 2015-01-12  Gabor Szigeti <szigeti@niif.hu>
   * Accounting message publisher update to SSM 2.1.5.
 

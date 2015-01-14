@@ -5,7 +5,7 @@ cache-clean \- Administration tool for the A-REX cache.
 
 .SH SYNOPSIS
 
-cache-clean [-h] [-s] [-m NN -M NN] [-E N] [-D debug_level]
+cache-clean [-h] [-s] [-S] [-m NN -M NN] [-E N] [-D debug_level]
   [ -c <arex_config_file> | <dir1> [<dir2> [...]] ]
 .SH DESCRIPTION
 
@@ -22,10 +22,10 @@ is used, then statistics are printed on each cache. If
 .B -m
 and
 .B -M
-are used then files in each cache are deleted if the used space on 
+are used then files in each cache are deleted if the space used by the cache on 
 the file system is more than that given by
 .B -M,
-in the order of least recently accessed, until the used space is equal
+in the order of least recently accessed, until the space used by the cache is equal
 to what is specified by
 .B -m.
 If
@@ -39,10 +39,17 @@ and
 .B -M
 but deleting files using
 .B -E
-is carried out first. If after this the cache free space is still less
+is carried out first. If after this the cache used space is still more
 than that given by
 .B -M
-then cleaning according to those options is performed. Cache directories are given by
+then cleaning according to those options is performed. If the cache is on a
+file system shared with other data then
+.B -S
+should be specified so that the space used by the cache is calculated. Otherwise
+all the used space on the file system is assumed to be for the cache. Using
+.B -S
+is slower so should only be used when the cache is shared. Cache directories
+are given by
 .B dir1, dir2..
 or taken from the config file specified by
 .B -c
@@ -56,6 +63,11 @@ or the ARC_CONFIG environment variable.
 for each cache the number of deletable (and locked) files, the total size of
 these files, the percentage usage of the file system in which the cache is
 stored, and a histogram of access times of the files in the cache.
+
+.B -S
+- Calculate the size of the cache instead of taking used space on the file
+system. This should only be used when the cache file system is shared with
+other data.
 
 .B -M
 - the maximum used space (as % of the file system) at which to start cleaning

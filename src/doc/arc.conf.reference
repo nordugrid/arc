@@ -611,6 +611,11 @@
 ## 30d. When no suffix is given the unit is seconds.
 #cachelifetime="30d"
 
+## cacheshared yes|no - specifies whether the caches share a filesystem with
+## other data. If set to yes then cache-clean calculates the size of the cache
+## instead of using filesystem used space.
+#cacheshared="yes"
+
 ## cachelogfile path - specifies the filename where output of the cache-clean
 ## tool should be logged. Defaults to /var/log/arc/cache-clean.log.
 #cachelogfile="/tmp/cache-clean.log"
