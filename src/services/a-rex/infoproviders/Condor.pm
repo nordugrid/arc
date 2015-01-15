@@ -206,12 +206,14 @@ sub condor_grep_nodes {
 #   3 (Removed)    --> E (finishing in the LRMS)
 #   4 (Completed)  --> E (finishing in the LRMS)
 #   5 (Held)       --> O (other)
+#   6 (Transfer)   --> O (other, almost finished. Transferring output.)
+#   7 (Suspended)  --> S (newer condor version support suspended)
 #
 # If the job couldn't be found, E is returned since it is probably finished.
 #
 sub condor_get_job_status($) {
     my $id = shift;
-    my %num2letter = qw(1 Q 2 R 3 E 4 E 5 O);
+    my %num2letter = qw(1 Q 2 R 3 E 4 E 5 O 6 O 7 S);
     return 'E' unless $alljobdata{$id};
     my $s = $alljobdata{$id}{jobstatus};
     return 'E' if !defined $s;
