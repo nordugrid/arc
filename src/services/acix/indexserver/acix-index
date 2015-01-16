@@ -48,9 +48,11 @@ fi
 
 PIDFILE=/var/run/acix-index.pid
 LOGFILE=/var/log/arc/acix-index.log
+LOGD=`dirname $LOGFILE`
+LOGN=`basename $LOGFILE`
 
-if [ ! -d `dirname $LOGFILE` ]; then
-    mkdir -p `dirname $LOGFILE`
+if [ ! -d $LOGD ]; then
+    mkdir -p $LOGD
 fi
 
 prog=twistd
@@ -80,7 +82,13 @@ else
     LOCKFILE=$HOME/acix-index.lock
 fi
 
-APPSTART="from acix import indexserver ; application = indexserver.createApplication()"
+APPSTART="
+from acix import indexserver;
+from twisted.python import log;
+from twisted.python.logfile import LogFile;
+application = indexserver.createApplication();
+log.startLogging(LogFile('$LOGN', '$LOGD', rotateLength=1000000, maxRotatedFiles=25))
+"
 
 do_start() {
 
@@ -116,8 +124,8 @@ do_start() {
     
     TACFILE=`mktemp` || exit 1
     echo $APPSTART > $TACFILE
-        
-    $prog --pidfile $PIDFILE -l $LOGFILE -y $TACFILE
+
+    $prog --pidfile $PIDFILE -y $TACFILE
     RETVAL=$?
     rm -f $TACFILE
     

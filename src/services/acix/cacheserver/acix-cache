@@ -72,8 +72,6 @@ else
     LOCKFILE=$HOME/acix-cache.lock
 fi
 
-APPSTART="from acix import cacheserver ; application = cacheserver.createApplication()"
-
 do_start() {
 
     if [ "$RUN" != "yes" ] ; then
@@ -117,14 +115,25 @@ do_start() {
                < $ARC_CONFIG \
                | sed -n -e "/^\[$CONFIG_SECTION\]/,/^\s*\[/{/^[^;].*\=.*/p;}" `
     LOGFILE=${logfile:-$DEFAULT_LOGFILE}
-    if [ ! -d `dirname $LOGFILE` ]; then
-        mkdir -p `dirname $LOGFILE`
+    LOGD=`dirname $LOGFILE`
+    LOGN=`basename $LOGFILE`
+    
+    if [ ! -d $LOGD ]; then
+        mkdir -p $LOGD
     fi  
+
+    APPSTART="
+from acix import cacheserver;
+from twisted.python import log;
+from twisted.python.logfile import LogFile;
+application = cacheserver.createApplication();
+log.startLogging(LogFile('$LOGN', '$LOGD', rotateLength=1000000, maxRotatedFiles=25))
+"
 
     TACFILE=`mktemp` || exit 1
     echo $APPSTART > $TACFILE
 
-    $prog --pidfile $PIDFILE -l $LOGFILE -y $TACFILE
+    $prog --pidfile $PIDFILE -y $TACFILE
     RETVAL=$?
     rm -f $TACFILE
     if [ $RETVAL -eq 0 ]; then
