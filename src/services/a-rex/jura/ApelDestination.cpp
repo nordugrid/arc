@@ -177,7 +177,7 @@ namespace Arc
   {
     //Filename generation
     std::string output_filename = Current_Time();
-    char chars[] = "-+T:";
+    char chars[] = ".-+T:";
     for (unsigned int i = 0; i < strlen(chars); ++i) {
         output_filename.erase (
                         std::remove(output_filename.begin(),
