@@ -68,6 +68,27 @@ echo "" >> $LRMS_JOB_SCRIPT
 if [ ! -z "${joboption_queue}" ] ; then
   echo "#SBATCH -p $joboption_queue" >> $LRMS_JOB_SCRIPT
 fi
+
+##############################################################
+# priority
+##############################################################
+if [ ! -z "$joboption_priority" ]; then
+  #Slurm priority is -10000 to 10000. Lower is better.
+  #Default is 0, and only superusers can assign priorities 
+  #less than 0.
+  #We set the priority as 100 - arc piority.
+  #This will have the desired effect for all grid jobs
+  #Local jobs will unfortunatly have a default priority equal 
+  #to ARC priority 100, but there is no way around that.
+  priority=$((100-joboption_priority))
+  echo "#SBATCH --nice=${priority}" >> $LRMS_JOB_SCRIPT
+else
+  #If priority is not set we should set it to 
+  #50 to match the default in the documentation
+  priority=50
+  echo "#SBATCH --nice=${priority}" >> $LRMS_JOB_SCRIPT
+fi
+
 # project name for accounting
 if [ ! -z "${joboption_rsl_project}" ] ; then
   echo "#SBATCH -U $joboption_rsl_project" >> $LRMS_JOB_SCRIPT

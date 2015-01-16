@@ -63,6 +63,16 @@ echo "#$ -j y" >> $LRMS_JOB_SCRIPT
 # Write output to comment file:
 echo "#$ -o ${joboption_directory}/.comment" >> $LRMS_JOB_SCRIPT
 
+##############################################################
+# priority
+##############################################################
+if [ ! -z "$joboption_priority" ]; then
+  #first we must scale priority.  SGE: -1023 -> 1024 ARC: 0-100
+  priority=$((joboption_priority * (1024+1023) / 100))
+  priority=$((priority-1023))
+  echo "#$ -p ${priority}" >> $LRMS_JOB_SCRIPT
+fi
+
 # Choose queue.
 echo "#$ -q $joboption_queue" >> $LRMS_JOB_SCRIPT
 

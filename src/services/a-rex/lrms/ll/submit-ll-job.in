@@ -213,6 +213,15 @@ echo "# @ class=${class}" >> $LRMS_JOB_SCRIPT
 
 
 ###################################################################
+#Priority of jobs
+##################################################################
+if [ ! -z $joboption_priority ]; then
+  # LL: priority from 0-100. 50 is default
+  # We can just use ARC priority directly
+  echo "# @ user_priority = ${joboption_priority}" >> $LRMS_JOB_SCRIPT
+fi
+
+###################################################################
 #Queue job
 #No mail notification
 ##################################################################

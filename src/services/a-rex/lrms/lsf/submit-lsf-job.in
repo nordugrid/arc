@@ -55,8 +55,10 @@ mktempscript
 ##############################################################
 
 LSF_BSUB='bsub'
+LSF_BPARAMS='bparams'
 if [ ! -z "$LSF_BIN_PATH" ] ; then
   LSF_BSUB=${LSF_BIN_PATH}/${LSF_BSUB}
+  LSF_BPARAMS=${LSF_BIN_PATH}/${LSF_BPARAMS}
 fi
 
 echo "#! /bin/bash" > $LRMS_JOB_SCRIPT
@@ -152,6 +154,21 @@ fi
 ##############################################################
 if [ -n "$joboption_starttime" ] ; then
   echo "#BSUB -b ${joboption_starttime}" >> $LRMS_JOB_SCRIPT
+fi
+
+##############################################################
+# priority
+##############################################################
+if [ ! -z "$joboption_priority" ]; then
+  #first we must parse the max priority
+  maxprio=`bparams -a| grep MAX_USER_PRIORITY | cut -f 2 -d '=' | cut -f 2 -d ' '`
+  #scale priority LSF: 1 -> MAX_USER_PRIORITY ARC: 0-100
+  if [ ! -z "$maxprio" ]; then
+    if [ "$maxprio" -gt "0" ]; then
+      priority=$((joboption_priority * ($maxprio - 1) / 100 +1))
+      echo "#BSUB -sp ${priority}" >> $LRMS_JOB_SCRIPT
+    fi
+  fi
 fi
 
 ##############################################################

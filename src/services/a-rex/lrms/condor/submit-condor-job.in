@@ -120,6 +120,17 @@ if [ ! -z "$CONFIG_condor_requirements" ] ; then
   echo "Requirements = $CONFIG_condor_requirements" >> $LRMS_JOB_DESCRIPT
 fi
 
+#####################################################
+# priority
+#####################################################
+if [ ! -z "$joboption_priority" ]; then
+  #Condor uses any integer as priority. 0 being default. Only per user basis.
+  #We assume that only grid jobs are relevant.
+  #In that case we can use ARC 0-100 but translated so default is 0.
+  priority=$((joboption_priority-50))
+  echo "Priority = $priority" >> $LRMS_JOB_DESCRIPT
+fi
+
 # rank
 if [ ! -z "$CONFIG_condor_rank" ] ; then
   echo "Rank = $CONFIG_condor_rank" >> $LRMS_JOB_DESCRIPT
