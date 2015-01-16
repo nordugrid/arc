@@ -137,6 +137,13 @@ namespace DataStaging {
           args.push_back("--csvalue");
           args.push_back(csum.substr(pos+1));
         }
+      } else if (!dtr->get_destination()->GetURL().MetaDataOption("checksumtype").empty()) {
+        args.push_back("--cstype");
+        args.push_back(dtr->get_destination()->GetURL().MetaDataOption("checksumtype"));
+        if (!dtr->get_destination()->GetURL().MetaDataOption("checksumvalue").empty()) {
+          args.push_back("--csvalue");
+          args.push_back(dtr->get_destination()->GetURL().MetaDataOption("checksumvalue"));
+        }
       } else if (!dtr->get_destination()->GetURL().Option("checksum").empty()) {
         args.push_back("--cstype");
         args.push_back(dtr->get_destination()->GetURL().Option("checksum"));
