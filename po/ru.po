@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-12-17 01:06+0100\n"
-"PO-Revision-Date: 2014-12-17 01:06+0100\n"
+"POT-Creation-Date: 2015-01-18 19:01+0100\n"
+"PO-Revision-Date: 2015-01-18 19:07+0100\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -638,8 +638,8 @@ msgid "OptimizedInformationContainer failed to parse XML"
 msgstr "OptimizedInformationContainer не смог разобрать XML"
 
 #: src/services/a-rex/cachecheck.cpp:34
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:426
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:682
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:434
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:693
 #: src/services/a-rex/grid-manager/loaders/uploader.cpp:337
 #: src/services/a-rex/grid-manager/loaders/downloader.cpp:424
 #, c-format
@@ -1174,13 +1174,13 @@ msgid "VO filter for host: %s"
 msgstr "Фильтр ВО для узла: %s"
 
 #: src/services/a-rex/jura/JobLogFile.cpp:198
-#: src/services/a-rex/jura/JobLogFile.cpp:628
+#: src/services/a-rex/jura/JobLogFile.cpp:658
 #, c-format
 msgid "Read archive file %s"
 msgstr "Читается архивный файл %s"
 
 #: src/services/a-rex/jura/JobLogFile.cpp:203
-#: src/services/a-rex/jura/JobLogFile.cpp:633
+#: src/services/a-rex/jura/JobLogFile.cpp:663
 #, c-format
 msgid ""
 "Could not read archive file %s for job log file %s (%s), generating new "
@@ -1190,7 +1190,7 @@ msgstr ""
 "создаётся новая запись Usage Record"
 
 #: src/services/a-rex/jura/JobLogFile.cpp:291
-#: src/services/a-rex/jura/JobLogFile.cpp:757
+#: src/services/a-rex/jura/JobLogFile.cpp:787
 #, c-format
 msgid ""
 "Missing required Usage Record element \"RecordIdentity\", in job log file %s"
@@ -1208,14 +1208,14 @@ msgstr "Фильтр ВО (%s) не настроен для этого серв�
 msgid "[VO filter] Job log will be not send. %s."
 msgstr "[VO filter] запись о задаче не будет отправлена. %s."
 
-#: src/services/a-rex/jura/JobLogFile.cpp:393
-#: src/services/a-rex/jura/JobLogFile.cpp:878
+#: src/services/a-rex/jura/JobLogFile.cpp:423
+#: src/services/a-rex/jura/JobLogFile.cpp:908
 #, c-format
 msgid "Missing required element \"Status\" in job log file %s"
 msgstr "Отсутствует обязательный элемент \"Status\" в файле журнала задач %s"
 
-#: src/services/a-rex/jura/JobLogFile.cpp:587
-#: src/services/a-rex/jura/JobLogFile.cpp:1174
+#: src/services/a-rex/jura/JobLogFile.cpp:617
+#: src/services/a-rex/jura/JobLogFile.cpp:1212
 #: src/hed/dmc/file/DataPointFile.cpp:510
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:440
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:460
@@ -1225,37 +1225,43 @@ msgstr "Отсутствует обязательный элемент \"Status\
 msgid "Creating directory %s"
 msgstr "Создается директория %s"
 
-#: src/services/a-rex/jura/JobLogFile.cpp:593
-#: src/services/a-rex/jura/JobLogFile.cpp:1180
+#: src/services/a-rex/jura/JobLogFile.cpp:623
+#: src/services/a-rex/jura/JobLogFile.cpp:1218
 #, c-format
 msgid "Failed to create archive directory %s: %s"
 msgstr "Не удалось создать архивный каталог %s: %s"
 
-#: src/services/a-rex/jura/JobLogFile.cpp:600
-#: src/services/a-rex/jura/JobLogFile.cpp:1187
+#: src/services/a-rex/jura/JobLogFile.cpp:630
+#: src/services/a-rex/jura/JobLogFile.cpp:1225
 #, c-format
 msgid "Archiving Usage Record to file %s"
 msgstr "Архивирование записи Usage Record в файл %s"
 
-#: src/services/a-rex/jura/JobLogFile.cpp:606
-#: src/services/a-rex/jura/JobLogFile.cpp:1193
+#: src/services/a-rex/jura/JobLogFile.cpp:636
+#: src/services/a-rex/jura/JobLogFile.cpp:1231
 #, c-format
 msgid "Failed to write file %s: %s"
 msgstr "Сбой при записи файла %s: %s"
 
-#: src/services/a-rex/jura/JobLogFile.cpp:982
+#: src/services/a-rex/jura/JobLogFile.cpp:1000
+#, c-format
+msgid "Missing required element \"CpuDuration\" in job log file %s"
+msgstr ""
+"Отсутствует обязательный элемент \"CpuDuration\" в файле журнала задач %s"
+
+#: src/services/a-rex/jura/JobLogFile.cpp:1020
 #, c-format
 msgid "Set non standard bechmark type: %s"
 msgstr "Задан нестандартный тип эталонного теста: %s"
 
-#: src/services/a-rex/jura/JobLogFile.cpp:995
+#: src/services/a-rex/jura/JobLogFile.cpp:1033
 #, c-format
 msgid "Ignored incomming benchmark value: %s, Use float value!"
 msgstr ""
 "Игнорируется полученное значение эталонного теста: %s, используйте значение "
 "с плавающей запятой!"
 
-#: src/services/a-rex/jura/JobLogFile.cpp:1224
+#: src/services/a-rex/jura/JobLogFile.cpp:1262
 #, c-format
 msgid "Failed to delete file %s:%s"
 msgstr "Не удалось удалить файл %s: %s"
@@ -1665,7 +1671,7 @@ msgstr ""
 "Использование очереди '%s' запрещено для указанных полных атрибутов в "
 "соответствии с локальной политикой доступа"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:92
+#: src/services/a-rex/grid-manager/GridManager.cpp:94
 #, c-format
 msgid ""
 "Cannot create directories for log file %s. Messages will be logged to this "
@@ -1674,7 +1680,7 @@ msgstr ""
 "Не удалось создать каталоги для журнального файла %s. Сообщения будут "
 "записываться в этот журнал"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:98
+#: src/services/a-rex/grid-manager/GridManager.cpp:100
 #, c-format
 msgid ""
 "Cannot open cache log file %s: %s. Cache cleaning messages will be logged to "
@@ -1683,29 +1689,30 @@ msgstr ""
 "Не удалось открыть журнальный файл кэша %s: %s. Сообщения об очистке кэша "
 "будут записываться в этот журнал"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:104
+#: src/services/a-rex/grid-manager/GridManager.cpp:106
+#: src/services/a-rex/grid-manager/log/JobLog.cpp:130
 #, c-format
 msgid "Running command %s"
 msgstr "Выполняется команда %s"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:108
+#: src/services/a-rex/grid-manager/GridManager.cpp:110
 msgid "Failed to start cache clean script"
 msgstr "Не удалось запустить скрипт очистки кэша"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:109
+#: src/services/a-rex/grid-manager/GridManager.cpp:111
 msgid "Cache cleaning script failed"
 msgstr "Сбой в работе скрипта очистки кэша"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:171
+#: src/services/a-rex/grid-manager/GridManager.cpp:173
 msgid "Starting jobs processing thread"
 msgstr "Запускается поток обработки задачи"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:172
+#: src/services/a-rex/grid-manager/GridManager.cpp:174
 #, c-format
 msgid "Used configuration file %s"
 msgstr "Используется файл настроек %s"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:181
+#: src/services/a-rex/grid-manager/GridManager.cpp:183
 #, c-format
 msgid ""
 "Error adding communication interface in %s. Maybe another instance of A-REX "
@@ -1714,7 +1721,7 @@ msgstr ""
 "Сбой при добавлении интерфейса связи в %s. Возможно, уже запущен другой "
 "процесс A-REX."
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:184
+#: src/services/a-rex/grid-manager/GridManager.cpp:186
 #, c-format
 msgid ""
 "Error adding communication interface in %s. Maybe permissions are not "
@@ -1723,7 +1730,7 @@ msgstr ""
 "Сбой при добавлении интерфейса связи в %s. Возможно, отсутствует доступ к "
 "директории."
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:193
+#: src/services/a-rex/grid-manager/GridManager.cpp:195
 #, c-format
 msgid ""
 "Error initiating delegation database in %s. Maybe permissions are not "
@@ -1732,53 +1739,53 @@ msgstr ""
 "Сбой при создании базы данных делегирования в %s. Возможно, отсутствует "
 "доступ к директории. Возвращена ошибка %s."
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:205
+#: src/services/a-rex/grid-manager/GridManager.cpp:207
 msgid "Failed to start new thread"
 msgstr "Не удалось запустить новый поток"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:262
+#: src/services/a-rex/grid-manager/GridManager.cpp:264
 msgid "Failed to start new thread: cache won't be cleaned"
 msgstr "Не удалось запустить новый поток: кэш не будет очищен"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:267
+#: src/services/a-rex/grid-manager/GridManager.cpp:269
 msgid "Picking up left jobs"
 msgstr "Обработка оставшихся задач"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:271
+#: src/services/a-rex/grid-manager/GridManager.cpp:273
 msgid "Starting data staging threads"
 msgstr "Запускаются потоки размещения данных"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:275
+#: src/services/a-rex/grid-manager/GridManager.cpp:277
 msgid "Failed to start data staging threads, exiting Grid Manager thread"
 msgstr ""
 "Не удалось запустить потоки размещения данных, закрывается поток Grid Manager"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:284
+#: src/services/a-rex/grid-manager/GridManager.cpp:286
 msgid "Starting jobs' monitoring"
 msgstr "Запуск мониторинга задач"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:294
+#: src/services/a-rex/grid-manager/GridManager.cpp:296
 #, c-format
 msgid "Failed to open heartbeat file %s"
 msgstr "Не удалось открыть мониторинговый файл %s"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:321
+#: src/services/a-rex/grid-manager/GridManager.cpp:323
 msgid "Waking up"
 msgstr "Активизация"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:324
+#: src/services/a-rex/grid-manager/GridManager.cpp:326
 msgid "Stopping jobs processing thread"
 msgstr "Останавливается поток обработки задачи"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:327
+#: src/services/a-rex/grid-manager/GridManager.cpp:329
 msgid "Exiting jobs processing thread"
 msgstr "Останавливается поток обработки задачи"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:340
+#: src/services/a-rex/grid-manager/GridManager.cpp:342
 msgid "Shutting down job processing"
 msgstr "Отключение обработки задач"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:345
+#: src/services/a-rex/grid-manager/GridManager.cpp:347
 msgid "Shutting down data staging threads"
 msgstr "Закрываются потоки размещения данных"
 
@@ -2788,83 +2795,87 @@ msgid "No queue name given in queue block name"
 msgstr "Не указано название очереди в названии блока queue"
 
 #: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:215
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:489
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:498
 #, c-format
 msgid "Wrong number in jobreport_period: %s"
 msgstr "Недопустимое число в jobreport_period: %s"
 
 #: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:219
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:493
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:502
 #, c-format
 msgid "Wrong number in jobreport_period: %d, minimal value: %s"
 msgstr "Недопустимое число в jobreport_period: %d, наименьшее значение: %s"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:247
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:254
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:261
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:268
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:238
+msgid "Missing file name in jobreport_logfile"
+msgstr "Отсутствует имя файла в jobreport_logfile"
+
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:255
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:262
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:269
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:276
 #, c-format
 msgid "Wrong number in maxjobs: %s"
 msgstr "Недопустимое число в maxjobs: %s"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:275
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:283
 #, c-format
 msgid "Wrong number in wakeupperiod: %s"
 msgstr "Недопустимое число в wakeupperiod: %s"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:284
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:292
 msgid "mail parameter is empty"
 msgstr "Параметр mail пуст"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:290
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:294
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:298
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:302
 msgid "Wrong number in defaultttl command"
 msgstr "Недопустимое число в команде defaultttl"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:300
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:308
 msgid "Wrong number in maxrerun command"
 msgstr "Недопустимое число в команде maxrerun"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:306
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:314
 msgid "defaultlrms is empty"
 msgstr "пустое значение defaultlrms"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:319
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:327
 msgid "State name for plugin is missing"
 msgstr "Отсутствует наименование состояния подключаемого модуля"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:323
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:331
 msgid "Options for plugin are missing"
 msgstr "Этот модуль не имеет настраиваемых параметров."
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:326
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:590
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:334
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:601
 #, c-format
 msgid "Failed to register plugin for state %s"
 msgstr "Сбой регистрации подключаемого модуля для состояния %s"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:334
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:342
 msgid "Wrong number for timeout in plugin command"
 msgstr ""
 "Недопустимое значение времени ожидания в инструкции подключаемого модуля"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:350
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:358
 msgid "Wrong option in fixdirectories"
 msgstr "Неверная опция в fixdirectories"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:365
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:373
 msgid "Session root directory is missing"
 msgstr "Отсутствует корневая директория сессии"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:368
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:376
 msgid "Junk in sessiondir command"
 msgstr "Бессмыслица в команде sessiondir"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:380
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:388
 msgid "Missing directory in control command"
 msgstr "В контрольной инструкции пропущен каталог"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:385
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:393
 msgid ""
 "'control' configuration option is no longer supported, please use "
 "'controldir' instead"
@@ -2872,74 +2883,74 @@ msgstr ""
 "Опция настроек 'control' теперь называется 'controldir'; пожалуйста, "
 "используйте новое название"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:390
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:398
 msgid "User for helper program is missing"
 msgstr "Отсутствует пользователь для вспомогательной программы"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:393
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:705
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:401
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:716
 msgid "Only user '.' for helper program is supported"
 msgstr "Для вспомогательной программы поддерживается только пользователь '.'"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:396
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:404
 msgid "Helper program is missing"
 msgstr "Отсутствует вспомогательная программа"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:528
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:539
 msgid "serviceMail is empty"
 msgstr "пустой serviceMail"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:542
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:553
 msgid "Type in LRMS is missing"
 msgstr "Отсутствует тип в СУПО"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:555
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:566
 msgid "LRMS is missing"
 msgstr "Отсутствует СУПО"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:568
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:579
 msgid "State name for authPlugin is missing"
 msgstr "Отсутствует наименование состояния модуля authPlugin"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:573
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:584
 msgid "Command for authPlugin is missing"
 msgstr "Отсутствует команда для модуля authPlugin"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:587
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:598
 #, c-format
 msgid "Registering plugin for state %s; options: %s; command: %s"
 msgstr ""
 "Регистрируется подключаемый модуль для состояния %s; опции: %s; команда: %s"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:603
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:614
 msgid "Command for localCred is missing"
 msgstr "Отсутствует команда для модуля localCred"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:609
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:620
 msgid "Timeout for localCred is missing"
 msgstr "Отсутствует тайм-аут для модуля localCred"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:614
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:625
 msgid "Timeout for localCred is incorrect number"
 msgstr "Недопустимое значение тайм-аута для модуля localCred"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:642
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:653
 msgid "Control element must be present"
 msgstr "Элемент Control должен присутствовать"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:647
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:658
 msgid "controlDir is missing"
 msgstr "Отсутствует controlDir"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:654
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:665
 msgid "sessionRootDir is missing"
 msgstr "Отсутствует sessionRootDir"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:696
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:707
 msgid "Command in helperUtility is missing"
 msgstr "Отсутствует команда в модуле helperUtility"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:701
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:712
 msgid "Username in helperUtility is empty"
 msgstr "Не указано имя пользователя в модуле helperUtility"
 
@@ -3134,6 +3145,14 @@ msgstr "неверная булева переменная в %s: %s"
 #, c-format
 msgid "wrong number in %s: %s"
 msgstr "неверное число в %s: %s"
+
+#: src/services/a-rex/grid-manager/log/JobLog.cpp:126
+msgid ": Failure creating slot for reporter child process"
+msgstr ": Сбой подготовки дочернего процесса для отчёта"
+
+#: src/services/a-rex/grid-manager/log/JobLog.cpp:134
+msgid ": Failure starting reporter child process"
+msgstr ": Сбой запуска дочернего процесса для отчёта"
 
 #: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:106
 #: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:920
@@ -5737,7 +5756,7 @@ msgstr "Не найдено ни одного местонахождения ф�
 msgid "Bad checksum format %s"
 msgstr "Неверный формат контрольной суммы %s"
 
-#: src/libs/data-staging/DataDeliveryLocalComm.cpp:161
+#: src/libs/data-staging/DataDeliveryLocalComm.cpp:168
 #: src/clients/compute/arckill.cpp:49 src/clients/compute/arcsub.cpp:63
 #: src/clients/compute/arcresume.cpp:46 src/clients/compute/arcresub.cpp:49
 #: src/clients/compute/arcstat.cpp:51 src/clients/compute/arcget.cpp:51
@@ -5752,17 +5771,17 @@ msgstr "Неверный формат контрольной суммы %s"
 msgid "Running command: %s"
 msgstr "Выполняется команда %s"
 
-#: src/libs/data-staging/DataDeliveryLocalComm.cpp:199
+#: src/libs/data-staging/DataDeliveryLocalComm.cpp:206
 #, c-format
 msgid "DataDelivery: %s"
 msgstr "DataDelivery: %s"
 
-#: src/libs/data-staging/DataDeliveryLocalComm.cpp:211
+#: src/libs/data-staging/DataDeliveryLocalComm.cpp:218
 #, c-format
 msgid "DataStagingDelivery exited with code %i"
 msgstr "Процесс DataStagingDelivery завершился с кодом %i"
 
-#: src/libs/data-staging/DataDeliveryLocalComm.cpp:230
+#: src/libs/data-staging/DataDeliveryLocalComm.cpp:237
 #, c-format
 msgid "Transfer killed after %i seconds without communication"
 msgstr "Пересылка оборвана после %i секунд бездействия"
