@@ -6,7 +6,7 @@ cache-clean \- Administration tool for the A-REX cache.
 .SH SYNOPSIS
 
 cache-clean [-h] [-s] [-S] [-m NN -M NN] [-E N] [-D debug_level]
-  [ -c <arex_config_file> | <dir1> [<dir2> [...]] ]
+  [-f space_command] [ -c <arex_config_file> | <dir1> [<dir2> [...]] ]
 .SH DESCRIPTION
 
 .B cache-clean
@@ -42,14 +42,26 @@ but deleting files using
 is carried out first. If after this the cache used space is still more
 than that given by
 .B -M
-then cleaning according to those options is performed. If the cache is on a
-file system shared with other data then
+then cleaning according to those options is performed.
+
+If the cache is on a file system shared with other data then
 .B -S
 should be specified so that the space used by the cache is calculated. Otherwise
 all the used space on the file system is assumed to be for the cache. Using
 .B -S
-is slower so should only be used when the cache is shared. Cache directories
-are given by
+is slower so should only be used when the cache is shared.
+
+By default the "df" command is used to determine total and (if
+.B -S
+is not specified) used space. If this command is not supported on the cache
+file system then
+.B -f
+can be used to specify an alternate command. The output of this command must be
+"total_bytes used_bytes", and so the command would normally be a small script
+around the file system space information tool. The cache directory is passed as
+the last argument to this command.
+
+Cache directories are given by
 .B dir1, dir2..
 or taken from the config file specified by
 .B -c
@@ -79,6 +91,11 @@ other data.
 - files accessed less recently than the given time period will be
 deleted. Example values of this option are 1800, 90s, 24h,
 30d. The default when no suffix is given is seconds.
+
+.B -f
+- alternative command to "df" for obtaining the file system total and used
+space. The output of this command must be "total_bytes used_bytes". The cache
+directory is passed as the last argument to this command.
 
 .B -D
 - debug level. Possible values are FATAL, ERROR, WARNING, INFO,

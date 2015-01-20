@@ -66,7 +66,7 @@ my $log = LogUtils->getLogger('cache-clean');
 
 my $currenttime = time();
 
-getopts('hsSc:m:M:E:D:', \%opts);
+getopts('hsSc:m:M:E:f:D:', \%opts);
 
 if(defined($opts{c})) {
     $configfile = $opts{c};
@@ -119,7 +119,7 @@ if(defined($opts{E})) {
 sub usage {
     print <<EOH;
    usage: cache-clean [-h] [-s] [-S] [-m <NN> -M <NN>] [-E N] [-D debug_level]
-            [ -c <arex_config_file> | <dir1> [<dir2> [...]] ]
+            [-f space_command] [ -c <arex_config_file> | <dir1> [<dir2> [...]] ]
     -h       - This help
     -s       - Statistics mode, show cache usage stats, dont delete anything
     -S       - Calculate cache size rather than using used file system space
@@ -128,6 +128,9 @@ sub usage {
     -m NN    - Minimum usage of file system. When to stop cleaning cache (percent)
     -E N     - Delete all files whose access time is older than N. Examples
                  of N are 1800, 90s, 24h, 30d (default is seconds)
+    -f command - Path and optionally arguments to a command which outputs
+                 "total_bytes used_bytes" of the file system the cache is on.
+                 The cache dir is passed as an argument to this command.
     -D level - Debug level, FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG.
                  Default is INFO
 
@@ -200,7 +203,6 @@ foreach my $filesystem (@caches) {
     }
 
     my $fssize = $fsvalues->{total};
-    my $fsfree = $fsvalues->{free};
     my $fsused = $fsvalues->{used};
 
     my $maxfbytes=$fssize*$maxusedpercent/100;
@@ -418,17 +420,30 @@ sub printsize($)
 #
 sub diskspace ($) {
     my $path = shift;
-    my ($diskfree, $diskused, $disktotal);
+    my ($diskused, $disktotal);
 
     if ( -d "$path") {
+        # user-specified tool
+        if (defined($opts{f})) {
+            my $spacecmd = $opts{f};
+            my @output= `$spacecmd $path`;
+            if ($? != 0) {
+                $log->warning("Failed running $spacecmd");
+            } elsif ($output[0] =~ m/(\d+) (\d+)/) {
+                $disktotal = $1;
+                $diskused  = $2;
+            } else {
+                $log->warning("Bad output from $spacecmd: @output");
+            }
+        }   
         # check if on afs
-        if ($path =~ m#/afs/#) {
+        elsif ($path =~ m#/afs/#) {
             my @dfstring =`fs listquota $path 2>/dev/null`;
             if ($? != 0) {
                 $log->warning("Failed running: fs listquota $path");
             } elsif ($dfstring[-1] =~ /\s+(\d+)\s+(\d+)\s+\d+%\s+\d+%/) {
-                $disktotal = int $1/1024;
-                $diskfree  = int(($1 - $2)/1024);
+                $disktotal = $1*1024;
+                $diskused  = $2*1024;
             } else {
                 $log->warning("Failed interpreting output of: fs listquota $path");
             }
@@ -440,30 +455,29 @@ sub diskspace ($) {
 
             # The first column may be printed on a separate line.
             # The relevant numbers are always on the last line.
-            } elsif ($dfstring[-1] =~ /\s+(\d+)\s+\d+\s+(\d+)\s+\d+%\s+\//) {
+            } elsif ($dfstring[-1] =~ /\s+(\d+)\s+(\d+)\s+\d+\s+\d+%\s+\//) {
                 $disktotal = $1*1024;
-                $diskfree  = $2*1024;
+                $diskused  = $2*1024;
             } else {
                 $log->warning("Failed interpreting output of: df -k $path");
             }
-            # get actual used disk for caches on shared partitions if configured
-            if (defined($opts{S})) {
-                my @dustring =`du -ks $path 2>/dev/null`;
-                if ($? != 0) {
-                    $log->warning("Failed running: du -ks $path");
-                } elsif ($dustring[-1] =~ /(\d+)\s+[\w\/]+/) {
-                    $diskused = $1*1024;
-                } else {
-                    $log->warning("Failed interpreting output of: du -ks $path");
-                }
+        }
+        # get actual used disk for caches on shared partitions if configured
+        if (defined($opts{S})) {
+            $diskused = undef;
+            my @dustring =`du -ks $path 2>/dev/null`;
+            if ($? != 0) {
+                $log->warning("Failed running: du -ks $path");
+            } elsif ($dustring[-1] =~ /(\d+)\s+[\w\/]+/) {
+                $diskused = $1*1024;
             } else {
-                $diskused = $disktotal - $diskfree;
+                $log->warning("Failed interpreting output of: du -ks $path");
             }
         }
     } else {
         $log->warning("Not a directory: $path");
     }
 
-    return undef unless defined($disktotal) and defined($diskfree);
-    return {total => $disktotal, free => $diskfree, used => $diskused};
+    return undef unless defined($disktotal) and defined($diskused);
+    return {total => $disktotal, used => $diskused};
 }
