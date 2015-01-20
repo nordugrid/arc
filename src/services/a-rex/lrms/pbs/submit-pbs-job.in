@@ -146,7 +146,9 @@ if [ ! -z "$joboption_cputime" ] ; then
 # TODO: parallel jobs, add initialization time, make walltime bigger, ...
 # is cputime for every process ?
   if [ $joboption_cputime -lt 0 ] ; then
+    echo 'WARNING: Less than 0 cpu time requested: $joboption_cputime' 1>&2
     joboption_cputime=0
+    echo 'WARNING: cpu time set to 0' 1>&2
   fi
   maxcputime="$joboption_cputime"
   cputime_min=$(( $maxcputime / 60 ))
@@ -163,7 +165,9 @@ fi
 
 if [ ! -z "$joboption_walltime" ] ; then
   if [ $joboption_walltime -lt 0 ] ; then
+    echo 'WARNING: Less than 0 wall time requested: $joboption_walltime' 1>&2
     joboption_walltime=0
+    echo 'WARNING: wall time set to 0' 1>&2
   fi
   maxwalltime="$joboption_walltime"
   walltime_min=$(( $maxwalltime / 60 ))
@@ -191,7 +195,7 @@ if [ "$joboption_exclusivenode" = "true" ]; then
      memreq="${tempmem}"
    fi
   else
-    echo "WARNING: Could not set memory limit to simulate exclusice execution." 1>&2
+    echo "WARNING: Could not set memory limit to simulate exclusive execution." 1>&2
   fi 
 fi
 

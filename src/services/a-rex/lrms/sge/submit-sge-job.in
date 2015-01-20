@@ -159,7 +159,9 @@ fi
 
 if [ -n "$joboption_walltime" ] ; then  
   if [ $joboption_walltime -lt 0 ] ; then
+    echo 'WARNING: Less than 0 wall time requested: $joboption_walltime' 1>&2
     joboption_walltime=0
+    echo 'WARNING: wall time set to 0' 1>&2
   fi
   joboption_walltime_hard=$(( $joboption_walltime * $time_hardlimit_ratio ))
   s_rt_requestable=$($SGE_QCONF -sc|awk '($1=="s_rt" && ( $5=="YES" || $5=="FORCED" )){print $5}')

@@ -105,7 +105,9 @@ if ( [ -n "$joboption_cputime" ] && [ $joboption_cputime -gt 0 ] ) ; then
 fi
 if [ -n "$joboption_walltime" ] ; then  
   if [ $joboption_walltime -lt 0 ] ; then
+    echo 'WARNING: Less than 0 wall time requested: $joboption_walltime' 1>&2
     joboption_walltime=0
+    echo 'WARNING: wall time set to 0' 1>&2
   fi
   joboption_walltime_hard=$(($(( $joboption_walltime * $time_hardlimit_ratio))+30))
   echo "# @ wall_clock_limit = ${joboption_walltime_hard} , ${joboption_walltime}" >> $LRMS_JOB_SCRIPT

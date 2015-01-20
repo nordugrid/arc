@@ -58,12 +58,16 @@ set_count
 ##############################################################
 if [ ! -z "$joboption_walltime" ] ; then
   if [ $joboption_walltime -lt 0 ] ; then
+    echo 'WARNING: Less than 0 wall time requested: $joboption_walltime' 1>&2
     joboption_walltime=0
+    echo 'WARNING: wall time set to 0' 1>&2
   fi
   maxwalltime="$joboption_walltime"
 elif [ ! -z "$joboption_cputime" ] ; then
   if [ $joboption_cputime -lt 0 ] ; then
+    echo 'WARNING: Less than 0 cpu time requested: $joboption_cputime' 1>&2
     joboption_cputime=0
+    echo 'WARNING: cpu time set to 0' 1>&2
   fi
   maxwalltime="$joboption_cputime"
 fi
