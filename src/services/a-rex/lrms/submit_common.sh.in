@@ -71,7 +71,7 @@ init () {
 
 read_arc_conf () {
    ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-   . $pkgdatadir/config_parser.sh || exit $?
+   . $pkgdatadir/config_parser_compat.sh || exit $?
 
    config_parse_file $ARC_CONFIG 1>&2 || exit $?
    config_import_section "common"
