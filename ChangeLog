@@ -1,9 +1,25 @@
+2015-01-20  Christian Ulrik Søttrup <soettrup@nbi.dk>
+  * change submit_common.sh to use compat config parser.
+
+2015-01-16  Christian Ulrik Søttrup <soettrup@nbi.dk>
+  * Added support for job priority in backends: Condor,LL,LSF,PBS,SGE,SLURM
+
+2015-01-15  Christian Ulrik Søttrup <soettrup@nbi.dk>
+  * Added support for recognizing suspended jobs in newer condor versions
+  * Added support for per job history file in condor backend
+
 2015-01-14  David Cameron <d.g.cameron@fys.uio.no>
   * Add new arc.conf option cacheshared to enable better management of caches on
     filesystems shared with other data.
 
 2015-01-12  Gabor Szigeti <szigeti@niif.hu>
   * Accounting message publisher update to SSM 2.1.5.
+
+2014-12-19  Christian Ulrik Søttrup <soettrup@nbi.dk>
+  * removed bashisms in condor and boinc backends.
+
+2014-12-16  Christian Ulrik Søttrup <soettrup@nbi.dk>
+  * Changed "ExecutionUnits" default in submit common to "Processors" to match accounting
 
 2014-12-11  Anders Waananen <waananen@nbi.dk>
   * Remove gridsite dependency and therefore gridftpd gacl file support
