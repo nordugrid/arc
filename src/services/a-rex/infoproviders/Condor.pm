@@ -289,6 +289,9 @@ sub condor_cluster_get_queued_jobs() {
 #
 # Counts all running jobs in the cluster.
 # TODO: also counts suspended jobs apparently.
+# only counts suspended jobs in earlier versions of Condor
+# Newer versions have separate state (7) for supended jobs
+
 sub condor_cluster_get_running_jobs() {
     my $sum = 0;
     do {$sum++ if $$_{jobstatus} == 2} for values %alljobdata;
