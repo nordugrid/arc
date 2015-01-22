@@ -55,14 +55,14 @@ sub consumable_distribution ($$) {
     
     my @cons_dist = ();
     while (<LLSTATUSOUT>) {
-       if ( /[^# ]*(#*) *.*$consumable_type.([0-9]*),([0-9]*).*/ ) {
+       if ( /[^# ]*(#*) *.*$consumable_type\*?\(([0-9]*),([0-9]*).*/ ) {
        #if displayed as total cpus
           # Check if node is down
           if ( $1 ne "#" ) {
              my @a = ($3 - $2,$3);
              push @cons_dist, [ @a ];
           }
-	   } elsif ( /[^# ]*(#*) *.*$consumable_type<([^>]*)><([^>]*)>.*/ ){
+       } elsif ( /[^# ]*(#*) *.*$consumable_type<([^>]*)><([^>]*)>.*/ ){
        #if displayed as individual cpu numbers
           if ( $1 ne "#" ) {
              my $availcpu=total_from_individual($2);
