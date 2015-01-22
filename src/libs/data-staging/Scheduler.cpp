@@ -886,7 +886,27 @@ namespace DataStaging {
     }
 
     // only local
-    if (possible_delivery_services.size() == 1 && can_use_local) return;
+    if (possible_delivery_services.size() == 1 && can_use_local) {
+      request->set_delivery_endpoint(DTR::LOCAL_DELIVERY);
+      return;
+    }
+
+    // Exclude full services with transfers greater than slots/no services
+    for (std::vector<Arc::URL>::iterator possible = possible_delivery_services.begin();
+         possible != possible_delivery_services.end();) {
+      if (delivery_hosts[possible->Host()] > (int)(DeliverySlots/configured_delivery_services.size())) {
+        request->get_logger()->msg(Arc::DEBUG, "Not using delivery service at %s because it is full", possible->str());
+        possible = possible_delivery_services.erase(possible);
+      } else {
+        ++possible;
+      }
+    }
+
+    // If none left then we should not use local but wait
+    if (possible_delivery_services.empty()) {
+      request->set_delivery_endpoint(Arc::URL());
+      return;
+    }
 
     // First try, use any service
     if (request->get_tries_left() == request->get_initial_tries()) {
@@ -968,6 +988,14 @@ namespace DataStaging {
     // The active DTRs currently in processing states
     std::map<DTRStatus::DTRStatusType, std::list<DTR_ptr> > DTRRunningStates;
     DtrList.filter_dtrs_by_statuses(DTRStatus::ProcessingStates, DTRRunningStates);
+
+    // Get the number of current transfers for each delivery service for
+    // enforcing limits per server
+    delivery_hosts.clear();
+    for (std::list<DTR_ptr>::const_iterator i = DTRRunningStates[DTRStatus::TRANSFERRING].begin();
+         i != DTRRunningStates[DTRStatus::TRANSFERRING].end(); i++) {
+      delivery_hosts[(*i)->get_delivery_endpoint().Host()]++;
+    }
 
     // Get all the DTRs in a staged state
     staged_queue.clear();
@@ -1203,7 +1231,15 @@ namespace DataStaging {
           else if (tmp->is_destined_for_post_processor()) DTR::push(tmp, POST_PROCESSOR);
           else if (tmp->is_destined_for_delivery()) {
             choose_delivery_service(tmp);
+            if (!tmp->get_delivery_endpoint()) {
+              // With a large queue waiting for delivery and different dirs per
+              // delivery service this could slow things down as it could go
+              // through every DTR in the queue
+              tmp->get_logger()->msg(Arc::DEBUG, "No delivery endpoints available, will try later");
+              continue;
+            }
             DTR::push(tmp, DELIVERY);
+            delivery_hosts[tmp->get_delivery_endpoint().Host()]++;
           }
 
           ++running;

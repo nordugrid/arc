@@ -93,6 +93,9 @@ class Scheduler: public DTRCallback {
     /// File size limit (in bytes) under which local transfer is used
     unsigned long long int remote_size_limit;
 
+    /// Counter of transfers per delivery service
+    std::map<std::string, int> delivery_hosts;
+
     /// Logger object
     static Arc::Logger logger;
 
