@@ -885,6 +885,17 @@ instead of using filesystem used space.
 cacheshared="yes"
 
 .TP
+.B cachespacetool
+cachespacetool path [options] - specifies an alternative tool to "df" that
+cache-clean should use to obtain space information on the cache file system.
+The output of this command must be "total_bytes used_bytes". The cache
+directory is passed as the last argument to this command.
+
+.IR Example:
+.br
+cachespacetool="/etc/getspace.sh"
+
+.TP
 .B cachelogfile
 cachelogfile path - specifies the filename where output of the cache-clean
 tool should be logged. Defaults to /var/log/arc/cache-clean.log.

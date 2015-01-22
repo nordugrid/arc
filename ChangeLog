@@ -1,3 +1,7 @@
+2015-01-22  David Cameron <d.g.cameron@fys.uio.no>
+  * Add new arc.conf option cachespacetool to allow a user-specified tool for
+    the cache cleaner to find file system space information.
+
 2015-01-20  Christian Ulrik Søttrup <soettrup@nbi.dk>
   * change submit_common.sh to use compat config parser.
 

@@ -67,6 +67,10 @@ class CacheConfig {
     */
    bool _cache_shared;
    /**
+    * User-specified tool for getting space information for cleaning tool
+    */
+   std::string _cache_space_tool;
+   /**
     * Timeout for cleaning process
     */
    int _clean_timeout;
@@ -106,6 +110,7 @@ class CacheConfig {
   std::string getLogLevel() const { return _log_level; };
   std::string getLifeTime() const { return _lifetime; };
   bool getCacheShared() const { return _cache_shared; };
+  std::string getCacheSpaceTool() const { return _cache_space_tool; };
   int getCleanTimeout() const { return _clean_timeout; };
   const std::list<struct CacheAccess>& getCacheAccess() const { return _cache_access; };
 };

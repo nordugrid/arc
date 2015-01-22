@@ -208,6 +208,9 @@ void CacheConfig::parseINIConf(ConfigSections& cf) {
         throw CacheConfigException("Bad value in cacheshared parameter");
       }
     }
+    else if (command == "cachespacetool") {
+      _cache_space_tool = rest;
+    }
     else if (command == "cachecleantimeout") {
       std::string timeout = config_next_arg(rest);
       if(timeout.length() == 0)
@@ -254,6 +257,7 @@ void CacheConfig::parseXMLConf(const Arc::XMLNode& cfg) {
       cacheLogLevel
       cacheCleanTimeout
       cacheShared
+      cacheSpaceTool
     defaultTTL
     defaultTTR
     maxReruns
@@ -342,6 +346,10 @@ void CacheConfig::parseXMLConf(const Arc::XMLNode& cfg) {
   std::string cache_shared = cache_node["cacheShared"];
   if (cache_shared == "yes") {
     _cache_shared = true;
+  }
+  std::string cache_space_tool = cache_node["cacheSpaceTool"];
+  if (!cache_space_tool.empty()) {
+    _cache_space_tool = cache_space_tool;
   }
   std::string clean_timeout = cache_node["cacheCleanTimeout"];
   if (!clean_timeout.empty()) {
