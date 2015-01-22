@@ -52,6 +52,11 @@ write_diagfile_acct () {
   qacct_command=$2
   id=$3
   extraargs=$4
+  
+  #Check that qacct is available.
+  if ! `which $qacct_command >dev/null` ; then
+    olog "WARNING: qacct was not found. Accounting data will not be recorded."
+  fi
 
   $qacct_command -j $id $extraargs 2> /dev/null \
         | /usr/bin/perl -e 'while(<>) {
