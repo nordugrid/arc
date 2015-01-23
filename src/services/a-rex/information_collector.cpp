@@ -10,6 +10,7 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <time.h>
 
 #include <glibmm.h>
 
@@ -44,11 +45,35 @@ void ARexService::InformationCollector(void) {
       logger_.msg(Arc::DEBUG,"Resource information provider: %s",cmd);
       if(!run.Start()) {
       };
-      if(!run.Wait(infoprovider_wakeup_period_)) {
-        logger_.msg(Arc::WARNING,"Resource information provider timeout: %u seconds",
+      while(!run.Wait(infoprovider_wakeup_period_)) {
+        logger_.msg(Arc::WARNING,"Resource information provider timed out: %u seconds. Checking heartbeat file...",
                     infoprovider_wakeup_period_);
-        run.Kill(1);
-      } else {
+        /* check freshness of heartbeat file. If no infoprovider created a new file during the run, performance is not acceptable,
+        and can proceed to kill.
+        */
+        std::string heartbeatFileName;
+        //heartbeatFileName="/tmp/infosys_heartbeat";
+        heartbeatFileName=config_.ControlDir()+"/infosys_heartbeat";
+        struct stat buf;
+        bool statresult;
+        statresult=Arc::FileStat(heartbeatFileName, &buf, false);
+        if (!statresult) {
+			logger_.msg(Arc::WARNING,"Cannot stat %s. Are infoproviders running?", heartbeatFileName);
+		} else {
+			time_t now;
+			time(&now);
+			// kill infoprovider only if heartbeat has never been updated before timeout
+			if (difftime(now, buf.st_mtime) > infoprovider_wakeup_period_) {
+				logger_.msg(Arc::ERROR,"Checked time: %d | Heartbeat file stat: %d | %s has not beed touched before timeout (%d). \n The performance is too low, infoproviders will be killed. A-REX functionality is not ensured.", now, buf.st_mtime, heartbeatFileName, infoprovider_wakeup_period_);
+				// abruptly kill the infoprovider
+				run.Kill(1);
+			} else {
+				logger_.msg(Arc::DEBUG,"Found recent heartbeat file %s , waiting other %d seconds", heartbeatFileName, infoprovider_wakeup_period_);
+			}
+		}
+      }
+      // if out of the while loop, infoprovider has finished correctly
+      {
         r = run.Result();
         if (r!=0)
           logger_.msg(Arc::WARNING,"Resource information provider failed with exit status: %i\n%s",r,stderr_str);

@@ -15,7 +15,7 @@ use Cwd;
 ## enable this below to dump datastructures
 ## Note: Concise is not an ARC dependency!
 ## must be installed separately.
-# use Data::Dumper::Concise;
+## use Data::Dumper::Concise;
 ## usage:
 # print Dumper($datastructure); 
 
@@ -70,7 +70,7 @@ sub timed {
 sub main {
 
     LogUtils::level('INFO');
-
+    
     # Parse command line options
     my $splitjobs;
     my $print_help;
@@ -92,7 +92,7 @@ sub main {
     }
 
     # Read ARC configuration
-    my $config = timed 'ConfigCentral', sub { ConfigCentral::parseConfig($configfile) };
+    our $config = timed 'ConfigCentral', sub { ConfigCentral::parseConfig($configfile) };
 
     # Change level for root logger (affects all loggers from now on)
     LogUtils::level($config->{debugLevel}) if defined $config->{debugLevel};
@@ -115,6 +115,9 @@ sub main {
     fix_config($config);
     check_config($config);
 
+    # start heartbeat
+    InfosysHelper::heartbeatBeat($config);
+
     my $data = timed 'all info collectors', sub { CEInfo::collect($config) };
     $data->{nojobs} = $nojobs;
 
@@ -125,6 +128,8 @@ sub main {
     $xmlPrinter->begin('InfoRoot');
     timed 'GLUE2xml', sub { $xmlPrinter->Domains($glue2data) };
     $xmlPrinter->end('InfoRoot');
+
+    InfosysHelper::heartbeatBeat($config);
 
     # Glue1.2/1.3 cannot be generated without NorduGrid, so we force publishing
     if (!$config->{infosys_nordugrid} and $config->{infosys_glue12}) {
@@ -176,6 +181,8 @@ sub main {
 		}
 	};
 
+    InfosysHelper::heartbeatBeat($config);
+
 	# only notifiy ldap infosys if ldap is enabled!
 	if ($config->{infosys_nordugrid} or $config->{infosys_glue12} or $config->{infosys_glue2_ldap}) {
 		# check that fifo is working and notify if so.
@@ -191,8 +198,11 @@ sub main {
 	} else {
 		$log->verbose("LDAP/ldif information generation is disabled. To enable it, enable one of the options infosys_nordugrid, infosys_glue12, infosys_glue2_ldap.");
 	}
-
+    
+    InfosysHelper::heartbeatRemove($config);
+    
     $log->info("############## A-REX infoprovider finished ##############");
+    
 }
 
 
@@ -233,14 +243,25 @@ sub collect($) {
         push @jobids, $job->{localid};
     }
 
+    InfosysHelper::heartbeatBeat($config);
+
     # build hash with all the input necessary for the renderers
     my $data = {};
     $data->{config} = $config;
     $data->{usermap} = $usermap;
+    
+    InfosysHelper::heartbeatBeat($config);
+    
     $log->info("Updating frontend information (HostInfo.pm)");
     $data->{host_info} = get_host_info($config,\@localusers);
+    
+    InfosysHelper::heartbeatBeat($config);
+    
     $log->info("Updating RTE information (RTEInfo.pm)");
     $data->{rte_info} = get_rte_info($config);
+    
+    InfosysHelper::heartbeatBeat($config);
+    
     $data->{gmjobs_info} = $gmjobs_info;
     $log->info("Updating LRMS information (LRMSInfo.pm)");
     $data->{lrms_info} = get_lrms_info($config,\@localusers,\@jobids);
@@ -248,6 +269,8 @@ sub collect($) {
     $log->info("Discovering adotf values");
     fix_adotf($config->{service}, $data->{host_info});
     fix_adotf($_, $data->{host_info}) for values %{$config->{xenvs}};
+
+	InfosysHelper::heartbeatBeat($config);
 
     return $data;
 }
@@ -410,7 +433,8 @@ sub fix_config {
                    infosys_glue2_service_qualitylevel   => 'production',
                    shared_filesystem => 1,
                    enable_arc_interface => 1,
-                   enable_emies_interface => 0
+                   enable_emies_interface => 0,
+                   infoproviders_timeout => 600
 
     );
     for (keys %config_defaults) {
