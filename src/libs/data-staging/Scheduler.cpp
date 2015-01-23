@@ -589,6 +589,18 @@ namespace DataStaging {
             request->get_error_status().GetErrorStatus() == DTRErrorStatus::TRANSFER_SPEED_ERROR ||
             request->get_error_status().GetErrorStatus() == DTRErrorStatus::INTERNAL_PROCESS_ERROR) {
           if (request->get_tries_left() > 0) {
+            // Check if credentials are ok
+            if (request->get_source()->RequiresCredentials() || request->get_destination()->RequiresCredentials()) {
+               Arc::Credential cred(request->get_usercfg());
+               if (cred.GetEndTime() < Arc::Time()) {
+                 request->get_logger()->msg(Arc::WARNING, "Proxy has expired");
+                 // Append this information to the error string
+                 DTRErrorStatus status = request->get_error_status();
+                 request->set_error_status(status.GetErrorStatus(), status.GetErrorLocation(), status.GetDesc()+" (Proxy expired)");
+                 request->set_status(DTRStatus::ERROR);
+                 return;
+               }
+            }
             // exponential back off - 10s, 40s, 90s, ...
             request->set_process_time(10*(request->get_initial_tries()-request->get_tries_left())*
                                          (request->get_initial_tries()-request->get_tries_left()));
