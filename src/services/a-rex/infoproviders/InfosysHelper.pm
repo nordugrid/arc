@@ -362,7 +362,7 @@ sub heartbeatBeat {
     #my $heartbeatFileName = '/tmp/infosys_heartbeat';
     
     # check if heartbeat file exists, if not create it
-    $mtime = (stat($heartbeatFileName))[9];
+    my $mtime = (stat($heartbeatFileName))[9];
     if ( !( defined $mtime ) ) {
 		$log->debug("Creating heartbeat file $heartbeatFileName");
         local (*HB);
