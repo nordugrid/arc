@@ -1,9 +1,18 @@
+2015-01-26  Christian Ulrik Søttrup <soettrup@nbi.dk>
+  * Added a defined check to LL.pm for hosts and walltime to get rid of 
+    undefined warnings when running perl with strict.
+
+2015-01-22  Christian Ulrik Søttrup <soettrup@nbi.dk>
+  * Added a check for the availability of qacct to the sge backend,
+  * Changed RegExp to work for several version of llstatus in LL.pm
+
 2015-01-22  David Cameron <d.g.cameron@fys.uio.no>
   * Add new arc.conf option cachespacetool to allow a user-specified tool for
     the cache cleaner to find file system space information.
 
 2015-01-20  Christian Ulrik Søttrup <soettrup@nbi.dk>
   * change submit_common.sh to use compat config parser.
+  * added warning to backend log, when requesting less than 0 cpu/wall time
 
 2015-01-16  Christian Ulrik Søttrup <soettrup@nbi.dk>
   * Added support for job priority in backends: Condor,LL,LSF,PBS,SGE,SLURM
