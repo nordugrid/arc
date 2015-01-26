@@ -21,7 +21,7 @@ catalogues.
 .IP "\fB-l\fR, \fB--long\fR"
 long format (like ls -l). The name of the object is followed by these
 elements: filetype of object, size in bytes, modification time,
-validity time, checksum and access latency (ONLINE or NEARLINE). The
+checksum and access latency (ONLINE or NEARLINE). The
 elements for which information is available is protocol-dependent.
 .IP "\fB-L\fR, \fB--locations\fR"
 show URLs of file locations (replicas) registered in index services.

@@ -56,7 +56,6 @@ void print_details(const std::list<Arc::FileInfo>& files, bool show_urls, bool s
   std::cout << "<Type>  ";
   std::cout << std::setw(sizewidth + 4) << std::left << "<Size>     ";
   std::cout << "<Modified>      ";
-  std::cout << "<Validity> ";
   std::cout << "<CheckSum> ";
   std::cout << std::setw(csumwidth) << std::right << "<Latency>";
   std::cout << std::endl;
@@ -90,11 +89,6 @@ void print_details(const std::list<Arc::FileInfo>& files, bool show_urls, bool s
       std::cout << " " << i->GetModified();
     } else {
       std::cout << "       (n/a)        ";
-    }
-    if (i->CheckValid()) {
-      std::cout << " " << i->GetValid();
-    } else {
-      std::cout << "   (n/a)  ";
     }
     if (i->CheckCheckSum()) {
       std::cout << " " << std::setw(csumwidth) << std::left << i->GetCheckSum();
