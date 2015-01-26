@@ -514,7 +514,7 @@ sub queue_info ($$) {
     
     # LL v3 has Def_wall... and LL v5 has Default_wall...
     $_ = $long_queue_info{$queue}{'Def_wall_clock_limit'};
-    if ($_ eq ""){
+    if (! defined $_ || $_ eq ""){
        $_ = $long_queue_info{$queue}{'Default_wall_clock_limit'};
     }
     
@@ -598,7 +598,9 @@ sub jobs_info ($$$) {
 	}
 	$lrms_jobs{$id}{reqcputime} = $lrms_jobs{$id}{reqwalltime};
 	$lrms_jobs{$id}{comment} = [ "LRMS: $jobinfo{$id}{Status}" ];
-        if ($jobinfo{$id}{Allocated_Hosts} ne "") {
+        if (defined $jobinfo{$id}{Allocated_Host} && $jobinfo{$id}{Allocated_Host} ne "") {
+            $lrms_jobs{$id}{nodes} =  ["$jobinfo{$id}{Allocated_Host}"];
+        } elsif (defined $jobinfo{$id}{Allocated_Hosts} && $jobinfo{$id}{Allocated_Hosts} ne "") {
             $lrms_jobs{$id}{nodes} =  ["$jobinfo{$id}{Allocated_Hosts}"];
         } else {
             $lrms_jobs{$id}{nodes} = [];
