@@ -49,6 +49,9 @@ namespace DataStaging {
     /// for bulk handling. The list is cleared after the DTR with bulk_end set.
     std::list<DTR_ptr> bulk_list;
 
+    /// Our hostname
+    static std::string hostname;
+
     /* Thread methods which deal with each state */
     /// Check the cache to see if the file already exists
     static void DTRCheckCache(void* arg);
@@ -74,7 +77,7 @@ namespace DataStaging {
    public:
 
     /// Constructor
-    Processor() {};
+    Processor();
     /// Destructor waits for all active threads to stop.
     ~Processor() { stop(); };
 

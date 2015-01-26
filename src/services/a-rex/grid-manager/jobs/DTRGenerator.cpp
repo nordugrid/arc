@@ -879,6 +879,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
     // set real location if ACIX is used
     if (!original_source.empty()) {
       dtr->get_source()->AddLocation(Arc::URL(original_source), Arc::URL(original_source).ConnectionURL());
+      dtr->set_use_acix(true);
     }
 
     DataStaging::DTRCacheParameters cache_parameters;

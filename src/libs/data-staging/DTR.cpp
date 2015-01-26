@@ -48,6 +48,7 @@ namespace DataStaging {
        destination_endpoint(destination_url, cfg),
        source_url_str(source_url.str()),
        destination_url_str(destination_url.str()),
+       use_acix(false),
        user(uid),
        rfc_proxy(false),
        parent_job_id(jobid),

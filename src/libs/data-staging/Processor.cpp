@@ -14,6 +14,8 @@
 
 namespace DataStaging {
 
+  std::string Processor::hostname;
+
   /** Set up logging. Should be called at the start of each thread method. */
   void setUpLogger(DTR_ptr request) {
     // disconnect this thread's root logger
@@ -26,6 +28,13 @@ namespace DataStaging {
     request->disconnect_logger();
   }
 
+  Processor::Processor() {
+    // Get hostname, needed to exclude ACIX replicas on localhost
+    char hostn[256];
+    if (gethostname(hostn, sizeof(hostn)) == 0){
+      hostname = hostn;
+    }
+  }
 
   /* Thread methods for each state of the DTR */
 
@@ -196,6 +205,20 @@ namespace DataStaging {
         DTR::push(request, SCHEDULER);
         return;
       }
+    }
+    // If using ACIX, remove sources on our own host
+    if (request->get_use_acix()) {
+      int tries = request->get_source()->GetTries();
+      while (request->get_source()->LocationValid()) {
+        if (request->get_source()->CurrentLocation().Host() == Processor::hostname) {
+          request->get_logger()->msg(Arc::INFO, "Skipping replica on local host %s", request->get_source()->CurrentLocation().str());
+          request->get_source()->RemoveLocation();
+        } else {
+          request->get_source()->NextLocation();
+        }
+      }
+      // reset retries
+      request->get_source()->SetTries(tries);
     }
     // If overwrite is requested, the resolving and pre-registering of the
     // destination will be done in the pre-clean stage after deleting.
