@@ -40,7 +40,6 @@ class FileCacheTest
   CPPUNIT_TEST(testCheckDN);
   CPPUNIT_TEST(testTwoCaches);
   CPPUNIT_TEST(testCreationDate);
-  CPPUNIT_TEST(testValidityDate);
   CPPUNIT_TEST(testConstructor);
   CPPUNIT_TEST(testBadConstructor);
   CPPUNIT_TEST(testInternal);
@@ -65,7 +64,6 @@ public:
   void testCheckDN();
   void testTwoCaches();
   void testCreationDate();
-  void testValidityDate();
   void testConstructor();
   void testBadConstructor();
   void testInternal();
@@ -237,16 +235,9 @@ void FileCacheTest::testStart() {
   // put different url in meta file
   _createFile(_fc1->File(_url) + ".meta", "http://badfile");
   CPPUNIT_ASSERT(!_fc1->Start(_url, available, is_locked));
-  CPPUNIT_ASSERT_EQUAL(0, remove(std::string(_fc1->File(_url)+".meta").c_str()));
-
-  // put old validity format in meta file and check it is changed to new
-  _createFile(_fc1->File(_url) + ".meta", _url + " 1234567890");
-  CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
-  meta_url = _readFile(meta_file);
-  CPPUNIT_ASSERT_EQUAL(std::string(_url + '\n' + "1234567890\n"), meta_url);
-  CPPUNIT_ASSERT(_fc1->Stop(_url));
 
   // locked meta file - this is ok and will be ignored
+  _createFile(_fc1->File(_url) + ".meta", _url);
   _createFile(meta_lock, "1@" + _hostname);
   CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
   CPPUNIT_ASSERT(!available);
@@ -1039,63 +1030,6 @@ void FileCacheTest::testCreationDate() {
   // sleep 1 second and check dates still match
   sleep(1);
   CPPUNIT_ASSERT(fileStat.st_ctime == _fc1->GetCreated(_url).GetTime());
-
-  // Stop cache to release lock
-  CPPUNIT_ASSERT(_fc1->Stop(_url));
-
-}
-
-void FileCacheTest::testValidityDate() {
-
-  // call with non-existent file
-  CPPUNIT_ASSERT(!_fc1->CheckValid(_url));
-  CPPUNIT_ASSERT_EQUAL(0, (int)(_fc1->GetValid(_url).GetTime()));
-  CPPUNIT_ASSERT(!_fc1->SetValid(_url, Arc::Time(time(NULL))));
-
-  // Start cache and add file
-  bool available = false;
-  bool is_locked = false;
-  CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
-
-  // test cache is ok
-  CPPUNIT_ASSERT(*_fc1);
-  CPPUNIT_ASSERT(!available);
-  CPPUNIT_ASSERT(!is_locked);
-
-  // create cache file
-  CPPUNIT_ASSERT(_createFile(_fc1->File(_url)));
-
-  // test validity date is not available
-  CPPUNIT_ASSERT(!_fc1->CheckValid(_url));
-
-  // look inside the meta file to check
-  std::string meta_file = _fc1->File(_url) + ".meta";
-  CPPUNIT_ASSERT_EQUAL(_url + '\n', _readFile(meta_file));
-
-  // set validity time to now
-  Arc::Time now;
-  now = now.GetTime(); // smash resolution to seconds
-  CPPUNIT_ASSERT(_fc1->SetValid(_url, now));
-  CPPUNIT_ASSERT(_fc1->CheckValid(_url));
-  CPPUNIT_ASSERT_EQUAL(now, _fc1->GetValid(_url));
-  CPPUNIT_ASSERT_EQUAL(_url + '\n' + now.str(Arc::MDSTime), _readFile(meta_file));
-
-  // put bad format inside metafile
-  CPPUNIT_ASSERT(_createFile(_fc1->File(_url) + ".meta", _url + " abcd"));
-  CPPUNIT_ASSERT_EQUAL(0, (int)(_fc1->GetValid(_url).GetTime()));
-  CPPUNIT_ASSERT(_createFile(_fc1->File(_url) + ".meta", _url + "\nabc 1234567890"));
-  CPPUNIT_ASSERT_EQUAL(0, (int)(_fc1->GetValid(_url).GetTime()));
-  CPPUNIT_ASSERT(_createFile(_fc1->File(_url) + ".meta", _url + "\nabc1234567890"));
-  CPPUNIT_ASSERT_EQUAL(0, (int)(_fc1->GetValid(_url).GetTime()));
-  // cannot be more than MAX_INT
-  CPPUNIT_ASSERT(_createFile(_fc1->File(_url) + ".meta", _url + "\n1234567890123"));
-  CPPUNIT_ASSERT_EQUAL(0, (int)(_fc1->GetValid(_url).GetTime()));
-
-  // set new time
-  Arc::Time newtime(time(NULL) + 10);
-  CPPUNIT_ASSERT(_fc1->SetValid(_url, newtime));
-  CPPUNIT_ASSERT_EQUAL(newtime, _fc1->GetValid(_url));
-  CPPUNIT_ASSERT_EQUAL(_url + '\n' + newtime.str(Arc::MDSTime), _readFile(meta_file));
 
   // Stop cache to release lock
   CPPUNIT_ASSERT(_fc1->Stop(_url));

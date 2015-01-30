@@ -349,31 +349,6 @@ namespace Arc {
      */
     Time GetCreated(const std::string& url);
 
-    /// Check if there is an expiry time of the given url in the cache.
-    /**
-     * @param url the url corresponding to the cache file for which we
-     * want to know if the expiration time exists
-     * @return true if an expiry time exists
-     */
-    bool CheckValid(const std::string& url);
-
-    /// Get expiry time of a cached file.
-    /**
-     * @param url the url corresponding to the cache file for which we
-     * want to know the expiry time
-     * @return the expiry time or 0 if none is available
-     */
-    Time GetValid(const std::string& url);
-
-    /// Set expiry time of a cache file.
-    /**
-     * @param url the url corresponding to the cache file for which we
-     * want to set the expiry time
-     * @param val expiry time
-     * @return true if the expiry time was successfully set
-     */
-    bool SetValid(const std::string& url, const Time& val);
-
     /// Returns true if object is useable.
     operator bool() {
       return (!_caches.empty());
@@ -416,9 +391,6 @@ namespace Arc {
     bool CheckDN(const std::string& url, const std::string& DN) { return false; }
     bool CheckCreated(const std::string& url){ return false; }
     Time GetCreated(const std::string& url) { return Time(); }
-    bool CheckValid(const std::string& url) { return false; }
-    Time GetValid(const std::string& url)  { return Time(); }
-    bool SetValid(const std::string& url, const Time& val) { return false; }
     operator bool() {
       return false;
     };

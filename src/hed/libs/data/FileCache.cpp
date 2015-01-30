@@ -709,8 +709,7 @@ namespace Arc {
     std::string first_line(*line);
 
     // check for possible hash collisions between URLs
-    // taking into account old meta file format
-    if (first_line != url && first_line.substr(0, first_line.rfind(' ')) != url) {
+    if (first_line != url) {
       logger.msg(ERROR, "File %s is already cached at %s under a different URL: %s - will not add DN to cached list",
                  url, File(url), first_line);
       return false;
@@ -718,12 +717,12 @@ namespace Arc {
 
     std::string newdnlist(first_line + '\n');
 
-    // second line may contain validity time
+    // second line may contain validity time, this is no longer supported so
+    // remove it
     ++line;
     if (line != lines.end()) {
       std::string::size_type space_pos = line->rfind(' ');
       if (space_pos == std::string::npos) {
-        newdnlist += std::string(*line + '\n');
         ++line;
       }
 
@@ -829,64 +828,6 @@ namespace Arc {
     return Time(mtime);
   }
 
-  bool FileCache::CheckValid(const std::string& url) {
-    return (GetValid(url) != Time(0));
-  }
-
-  Time FileCache::GetValid(const std::string& url) {
-
-    // open meta file and pick out expiry time if it exists
-    std::string meta_file(_getMetaFileName(url));
-    struct stat fileStat;
-    if (!FileStat(meta_file, &fileStat, true)) {
-      if (errno != ENOENT)
-        logger.msg(ERROR, "Error reading meta file %s: %s", meta_file, StrError(errno));
-      return Time(0);
-    }
-    std::list<std::string> lines;
-    if (!FileRead(meta_file, lines)) {
-      logger.msg(ERROR, "Error opening meta file %s", meta_file);
-      return Time(0);
-    }
-    if (lines.empty()) {
-      logger.msg(ERROR, "meta file %s is empty", meta_file);
-      return Time(0);
-    }
-
-    // if the file contains only one line, we don't have an expiry time
-    if (lines.size() == 1)
-      return Time(0);
-
-    // second line may contain expiry time in form 20080101123456Z,
-    // but it could be a cached DN
-    std::string meta_str(*(lines.erase(lines.begin())));
-
-    if (meta_str.find(' ') != std::string::npos || meta_str.length() != 15)
-      return Time(0);
-
-    // convert to Time object
-    return Time(meta_str);
-  }
-
-  bool FileCache::SetValid(const std::string& url, const Time& val) {
-
-    std::string meta_file(_getMetaFileName(url));
-    std::string file_data(url + '\n' + val.str(MDSTime));
-    FileLock meta_lock(meta_file, CACHE_META_LOCK_TIMEOUT);
-    if (!meta_lock.acquire()) {
-      // not critical if writing fails
-      logger.msg(INFO, "Could not acquire lock on meta file %s", meta_file);
-      return false;
-    }
-    if (!FileCreate(meta_file, file_data)) {
-      logger.msg(ERROR, "Error opening meta file for writing %s", meta_file);
-      meta_lock.release();
-      return false;
-    }
-    meta_lock.release();
-    return true;
-  }
-
   bool FileCache::operator==(const FileCache& a) {
     if (a._caches.size() != _caches.size()) return false;
     for (int i = 0; i < (int)a._caches.size(); i++) {
@@ -934,21 +875,14 @@ namespace Arc {
         logger.msg(WARNING, "Cache meta file %s possibly corrupted, will recreate", meta_file);
         return _createMetaFile(meta_file, std::string(url + '\n'), is_locked);
       }
-      // check new and old format for validity time - if old change to new
+      // Prior to ARC1 the first line was url validity
+      // From ARC1 to 4 validity was stored on the second line
+      // Validity was removed in ARC 5
+      // There is probably no need now to check for pre-ARC1 format
       if (meta_str != url) {
-        if (meta_str.substr(0, meta_str.rfind(' ')) != url) {
-          logger.msg(WARNING, "File %s is already cached at %s under a different URL: %s - this file will not be cached",
-                     url, filename, meta_str);
-          return false;
-        } else {
-          logger.msg(VERBOSE, "Changing old validity time format to new in %s", meta_file);
-          std::string new_meta(url + '\n' + meta_str.substr(meta_str.rfind(' ')+1) + '\n');
-          lines.pop_front();
-          for (std::list<std::string>::const_iterator i = lines.begin(); i != lines.end(); ++i) {
-            new_meta += *i + '\n';
-          }
-          return _createMetaFile(meta_file, new_meta, is_locked);
-        }
+        logger.msg(WARNING, "File %s is already cached at %s under a different URL: %s - this file will not be cached",
+                   url, filename, meta_str);
+        return false;
       }
     }
     else if (errno == ENOENT) {

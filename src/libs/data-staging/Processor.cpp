@@ -166,14 +166,6 @@ namespace DataStaging {
           if (sourcetime <= cachetime)
             outdated = false;
         }
-        if (cache.CheckValid(canonic_url)) {
-          Arc::Time validtime = cache.GetValid(canonic_url);
-          request->get_logger()->msg(Arc::VERBOSE, "Cache file valid until: %s", validtime.str());
-          if (validtime > Arc::Time())
-            outdated = false;
-          else
-            outdated = true;
-        }
         if (outdated) {
           request->get_logger()->msg(Arc::INFO, "Cached file is outdated, will re-download");
           use_remote = false;

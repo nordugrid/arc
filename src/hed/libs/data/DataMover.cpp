@@ -617,14 +617,6 @@ namespace Arc {
               if (sourcetime <= cachetime)
                 outdated = false;
             }
-            if (cache.CheckValid(canonic_url)) {
-              Time validtime = cache.GetValid(canonic_url);
-              logger.msg(VERBOSE, "Cache file valid until: %s", validtime.str());
-              if (validtime > Time())
-                outdated = false;
-              else
-                outdated = true;
-            }
             if (outdated) {
               delete_first = true;
               logger.msg(INFO, "Cached file is outdated, will re-download");
@@ -1137,8 +1129,6 @@ namespace Arc {
       }
 #ifndef WIN32
       if (cacheable) {
-        if (source.CheckValid())
-          cache.SetValid(canonic_url, source.GetValid());
         cache.AddDN(canonic_url, dn, exp_time);
         logger.msg(INFO, "Linking/copying cached file");
         bool is_locked = false;
