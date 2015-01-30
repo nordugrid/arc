@@ -74,7 +74,10 @@ namespace ArcDMCACIX {
     // If original location is set, check that
     if (original_location) {
       DataHandle h(original_location, usercfg);
-      return h->Check(check_meta);
+      DataStatus r = h->Check(check_meta);
+      if (!r) return r;
+      SetMeta(*h);
+      return DataStatus::Success;
     }
     // If not simply check that the file can be resolved
     DataStatus r = Resolve(true);
