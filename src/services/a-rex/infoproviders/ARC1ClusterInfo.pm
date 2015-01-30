@@ -756,14 +756,12 @@ sub collect($) {
                     'data.transfer.cepull.httpg',
                     'data.transfer.cepull.gridftp',
                     'data.transfer.cepull.srm',
-                    'data.transfer.cepull.lfc',
                     'data.transfer.cepush.ftp',
                     'data.transfer.cepush.http',
                     'data.transfer.cepush.https',
                     'data.transfer.cepush.httpg',
                     'data.transfer.cepush.gridftp',
                     'data.transfer.cepush.srm',
-                    'data.transfer.cepush.lfc'
                     ];
     
     ## Endpoints initialization.
