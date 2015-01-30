@@ -442,7 +442,7 @@ Arc::MCC_Status ARexService::cache_get(Arc::Message& outmsg, const std::string& 
     return make_http_fault(outmsg, 400, "Bad request: Invalid URL");
   }
   // Security check. The access is configured in arc.conf like
-  // cache_access="lfc://prod-lfc-atlas.cern.ch/grid/atlas* voms:vo atlas"
+  // cache_access="srm://srm-atlas.cern.ch/grid/atlas* voms:vo atlas"
   // then the url is compared to the certificate attribute specified
   if (!cache_get_allowed(cacheurl.str(), config, logger)) {
     return make_http_fault(outmsg, 403, "Forbidden");

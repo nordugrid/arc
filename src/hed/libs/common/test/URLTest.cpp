@@ -51,7 +51,7 @@ public:
   void TestOptions();
 
 private:
-  Arc::URL *gsiftpurl, *gsiftpurl2, *ldapurl, *httpurl, *fileurl, *ldapurl2, *opturl, *ftpurl, *lfcurl, *srmurl, *ip6url, *ip6url2, *ip6url3;
+  Arc::URL *gsiftpurl, *gsiftpurl2, *ldapurl, *httpurl, *fileurl, *ldapurl2, *opturl, *ftpurl, *srmurl, *ip6url, *ip6url2, *ip6url3;
 };
 
 
@@ -64,7 +64,6 @@ void URLTest::setUp() {
   ldapurl2 = new Arc::URL("ldap://grid.uio.no/mds-vo-name=local, o=grid");
   opturl = new Arc::URL("gsiftp://hathi.hep.lu.se;threads=10;autodir=yes/public/test.txt");
   ftpurl = new Arc::URL("ftp://user:secret@ftp.nordugrid.org/pub/files/guide.pdf");
-  lfcurl = new Arc::URL("lfc://atlaslfc.nordugrid.org;cache=no/grid/atlas/file1:guid=7d36da04-430f-403c-adfb-540b27506cfa:checksumtype=ad:checksumvalue=12345678");
   srmurl = new Arc::URL("srm://srm.nordugrid.org/srm/managerv2?SFN=/data/public:/test.txt:checksumtype=adler32");
   ip6url = new Arc::URL("ftp://[ffff:eeee:dddd:cccc:aaaa:9999:8888:7777]/path");
   ip6url2 = new Arc::URL("ftp://[ffff:eeee:dddd:cccc:aaaa:9999:8888:7777]:2021/path");
@@ -81,7 +80,6 @@ void URLTest::tearDown() {
   delete ldapurl2;
   delete opturl;
   delete ftpurl;
-  delete lfcurl;
   delete srmurl;
   delete ip6url;
   delete ip6url2;
