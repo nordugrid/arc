@@ -75,6 +75,7 @@ namespace DataStaging {
     Arc::Time exp_time = cred.GetEndTime();
 
     std::string canonic_url(request->get_source()->GetURL().plainstr());
+    std::string cacheoption(request->get_source()->GetURL().Option("cache"));
     // add guid if present
     // TODO handle guids better in URL class so we don't need to care here
     if (!request->get_source()->GetURL().MetaDataOption("guid").empty())
@@ -84,7 +85,7 @@ namespace DataStaging {
     bool is_locked = false;
     bool use_remote = true;
     // check for forced re-download option
-    bool renew = (request->get_source()->GetURL().Option("cache") == "renew");
+    bool renew = (cacheoption == "renew");
     if (renew) request->get_logger()->msg(Arc::VERBOSE, "Forcing re-download of file %s", canonic_url);
 
     for (;;) {
@@ -118,32 +119,45 @@ namespace DataStaging {
       }
       request->set_cache_file(cache.File(canonic_url));
       if (is_in_cache) {
-        // just need to check permissions
-        request->get_logger()->msg(Arc::INFO, "File %s is cached (%s) - checking permissions",
-                   canonic_url, cache.File(canonic_url));
-        // check the list of cached DNs
-        bool have_permission = false;
-        // don't request metadata from source if user says not to
-        bool check_meta = (request->get_source()->GetURL().Option("cache") != "invariant");
-        if (request->get_source()->GetURL().Option("cache") != "check" && cache.CheckDN(canonic_url, dn))
-          have_permission = true;
-        else {
-          Arc::DataStatus cres = request->get_source()->Check(check_meta);
+        // Whether cache file is outdated
+        bool outdated = (cacheoption != "invariant");
+        // Check source if requested
+        if (cacheoption == "check") {
+          request->get_logger()->msg(Arc::INFO, "Force-checking source of cache file %s", cache.File(canonic_url));
+          Arc::DataStatus cres = request->get_source()->Check(true);
           if (!cres.Passed()) {
-            request->get_logger()->msg(Arc::ERROR, "Permission checking failed");
+            request->get_logger()->msg(Arc::ERROR, "Source check requested but failed: %s", std::string(cres));
+            // Try again skipping cache, maybe this is not worth it
             request->set_cache_state(CACHE_SKIP);
             request->set_error_status(DTRErrorStatus::CACHE_ERROR,
-                                  DTRErrorStatus::ERROR_DESTINATION,
-                                  "Failed to check cache permissions for " + canonic_url + ": " + std::string(cres));
+                                      DTRErrorStatus::ERROR_DESTINATION,
+                                      "Failed to check source for " + canonic_url + ": " + std::string(cres));
             break;
           }
-          cache.AddDN(canonic_url, dn, exp_time);
+        }
+        else {
+          // just need to check permissions
+          request->get_logger()->msg(Arc::INFO, "File %s is cached (%s) - checking permissions",
+                                     canonic_url, cache.File(canonic_url));
+          // check the list of cached DNs
+          if (cache.CheckDN(canonic_url, dn)) {
+            outdated = false; // If DN is cached then don't check creation date
+          }
+          else {
+            Arc::DataStatus cres = request->get_source()->Check(cacheoption != "invariant");
+            if (!cres.Passed()) {
+              request->get_logger()->msg(Arc::ERROR, "Permission checking failed, will try downloading without using cache");
+              request->set_cache_state(CACHE_SKIP);
+              request->set_error_status(DTRErrorStatus::CACHE_ERROR,
+                                        DTRErrorStatus::ERROR_DESTINATION,
+                                        "Failed to check cache permissions for " + canonic_url + ": " + std::string(cres));
+              break;
+            }
+            cache.AddDN(canonic_url, dn, exp_time);
+          }
         }
         request->get_logger()->msg(Arc::INFO, "Permission checking passed");
         // check if file is fresh enough
-        bool outdated = true;
-        if (have_permission || !check_meta)
-          outdated = false; // cached DN means don't check creation date
         if (request->get_source()->CheckModified() && cache.CheckCreated(canonic_url)) {
           Arc::Time sourcetime = request->get_source()->GetModified();
           Arc::Time cachetime = cache.GetCreated(canonic_url);
