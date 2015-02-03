@@ -879,9 +879,12 @@ sub collect($) {
     my $cmgrID = "urn:ogf:ComputingManager:$hostname:$lrmsname"; # ComputingManager ID
     
     # Computing Endpoints IDs
-    my $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:gsiftp://$gridftphostport".$config->{GridftpdMountPoint}; # ARCGridFTPComputingEndpoint ID
-    my $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:xbes:$config->{endpoint}" if $config->{enable_arc_interface}; # ARCWSComputingEndpoint ID
-    my $EMIEScepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $config->{enable_emies_interface}; # EMIESComputingEndpoint ID
+    my $ARCgftpjobcepID;
+    $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:gsiftp://$gridftphostport".$config->{GridftpdMountPoint}; # ARCGridFTPComputingEndpoint ID
+    my $ARCWScepID;
+    $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:xbes:$config->{endpoint}" if $config->{enable_arc_interface}; # ARCWSComputingEndpoint ID
+    my $EMIEScepIDp;
+    $EMIEScepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $config->{enable_emies_interface}; # EMIESComputingEndpoint ID
     my $StageincepID = "urn:ogf:ComputingEndpoint:$hostname:gridftp:$stageinhostport"; # StageinComputingEndpoint ID
     # the following is needed to publish in shares. Must be modified
     # if we support share-per-endpoint configurations.
