@@ -8,12 +8,12 @@ def retrieve(uc, endpoints):
     # to use in case of HTTPS connections
     retriever = arc.ComputingServiceRetriever(uc, endpoints)
     # the constructor of the ComputingServiceRetriever returns immediately
-    print
-    print "ComputingServiceRetriever created with the following endpoints:"
+    print('')
+    print("ComputingServiceRetriever created with the following endpoints:")
     for endpoint in endpoints:
-        print "-", endpoint.str()
+        print("- %s"%endpoint.str())
     # here we want to wait until all the results arrive
-    print "Waiting for the results..."
+    print("Waiting for the results...")
     retriever.wait()
     return retriever
 
@@ -36,11 +36,11 @@ def example():
     retriever = retrieve(uc, registries)
 
     # The retriever acts as a list containing all the discovered ComputingServices:
-    print "Discovered ComputingServices:", ", ".join([service.Name for service in retriever])
+    print("Discovered ComputingServices: %s"%(", ".join([service.Name for service in retriever])))
 
     # Get all the ExecutionTargets on these ComputingServices
     targets = retriever.GetExecutionTargets()
-    print "Number of ExecutionTargets on these ComputingServices:", len(targets)
+    print("Number of ExecutionTargets on these ComputingServices: %d"%len(targets))
 
     # Query the local infosys (COMPUTINGINFO) of computing elements
     computing_elements = [
@@ -55,9 +55,9 @@ def example():
     # Get all the ExecutionTargets on these ComputingServices
     targets2 = retriever2.GetExecutionTargets()
 
-    print "The discovered ExecutionTargets:"
+    print("The discovered ExecutionTargets:")
     for target in targets2:
-        print target
+        print(target)
     
     
     # Query both registries and computing elements at the same time:
@@ -68,7 +68,7 @@ def example():
 
     retriever3 = retrieve(uc, endpoints)
 
-    print "Discovered ComputingServices:", ", ".join([service.Name for service in retriever3])
+    print("Discovered ComputingServices: %s"%(", ".join([service.Name for service in retriever3])))
 
 
 # wait for all the background threads to finish before we destroy the objects they may use

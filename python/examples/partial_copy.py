@@ -13,7 +13,7 @@ point = handle.__ref__()
 point.SetSecure(False) # GridFTP servers generally do not have encrypted data channel
 info = arc.FileInfo("")
 point.Stat(info)
-print "Name: ", info.GetName()
+print("Name: %s"%str(info.GetName()))
 fsize = info.GetSize()
 if fsize > desired_size:
     point.Range(fsize-desired_size,fsize-1)
@@ -25,6 +25,6 @@ while True:
     offset = 0
     ( r, n, length, offset, buf) = buffer.for_write(True)
     if not r: break
-    print "BUFFER: ", offset, ": ", length, " :", buf
+    print("BUFFER: %d :  %d  : %s"%(offset, length, str(buf)))
     buffer.is_written(n);
 point.StopReading()

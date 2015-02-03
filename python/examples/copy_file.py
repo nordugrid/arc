@@ -50,4 +50,4 @@ mover.retry(False)
 status = mover.Transfer(source, destination, arc.FileCache(), arc.URLMap())
 
 # Print the exit status of the transfer
-print (str(status)) 
+print(str(status))
