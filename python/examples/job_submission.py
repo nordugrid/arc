@@ -33,19 +33,19 @@ def example():
     success = False;
     # Submit job directly to the execution targets, without a broker
     for target in targets:
-        print("Trying to submit to %s (%s) ..."%(target.ComputingEndpoint.URLString, target.ComputingEndpoint.InterfaceName))
+        sys.stdout.write("Trying to submit to %s (%s) ... "%(target.ComputingEndpoint.URLString, target.ComputingEndpoint.InterfaceName))
         sys.stdout.flush()
         success = target.Submit(uc, jobdesc, job)
         if success:
-            print("succeeded!")
+            sys.stdout.write("succeeded!\n")
             break
         else:
-            print("failed!")
+            sys.stdout.write("failed!\n")
     if success:
-        print("Job was submitted:")
+        sys.stdout.write("Job was submitted:\n")
         job.SaveToStream(arc.CPyOstream(sys.stdout), False)
     else:
-        print("Job submission failed")
+        sys.stdout.write("Job submission failed\n")
     
 # wait for all the background threads to finish before we destroy the objects they may use
 import atexit

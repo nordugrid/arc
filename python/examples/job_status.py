@@ -17,7 +17,7 @@ def example():
     job.JobManagementURL = arc.URL("https://piff.hep.lu.se:443/arex")
     job.JobStatusURL = arc.URL("https://piff.hep.lu.se:443/arex")
     
-    print("Job object before update:")
+    sys.stdout.write("Job object before update:\n")
     job.SaveToStream(arc.CPyOstream(sys.stdout), True)
     
     job_supervisor = arc.JobSupervisor(uc, [job])
@@ -29,7 +29,7 @@ def example():
     jobs = job_supervisor.GetAllJobs()
     job = jobs[0]
     
-    print("Job object after update:")
+    sys.stdout.write("Job object after update:\n")
     job.SaveToStream(arc.CPyOstream(sys.stdout), True)
     
 # wait for all the background threads to finish before we destroy the objects they may use

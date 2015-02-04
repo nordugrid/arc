@@ -53,15 +53,15 @@ class DTRGenerator(arc.DTRCallback):
         # Since the callback is not available, wait until the transfer reaches a final state
         while dtrptr.get_status() != arc.DTRStatus.ERROR and dtrptr.get_status() != arc.DTRStatus.DONE:
             time.sleep(1)
-        print(dtrptr.get_status().str())
+        sys.stdout.write("%s\n"%dtrptr.get_status().str())
 
     # This is never called in the current version
     def receiveDTR(self, dtr):
-        print('Received back DTR %s'%str(dtr.get_id()))
+        sys.stdout.write('Received back DTR %s\n'%str(dtr.get_id()))
 
 def main(args):
     if len(args) != 3:
-        print("Usage: python dtr_generator.py source destination")
+        sys.stdout.write("Usage: python dtr_generator.py source destination\n")
         sys.exit(1)
     generator = DTRGenerator()
     generator.add(args[1], args[2])

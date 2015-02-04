@@ -8,12 +8,12 @@ def retrieve(uc, endpoints):
     # to use in case of HTTPS connections
     retriever = arc.ComputingServiceRetriever(uc, endpoints)
     # the constructor of the ComputingServiceRetriever returns immediately
-    print('')
-    print("ComputingServiceRetriever created with the following endpoints:")
+    sys.stdout.write('\n')
+    sys.stdout.write("ComputingServiceRetriever created with the following endpoints:\n")
     for endpoint in endpoints:
-        print("- %s"%endpoint.str())
+        sys.stdout.write("- %s\n"%endpoint.str())
     # here we want to wait until all the results arrive
-    print("Waiting for the results...")
+    sys.stdout.write("Waiting for the results...\n")
     retriever.wait()
     return retriever
 
@@ -36,11 +36,11 @@ def example():
     retriever = retrieve(uc, registries)
 
     # The retriever acts as a list containing all the discovered ComputingServices:
-    print("Discovered ComputingServices: %s"%(", ".join([service.Name for service in retriever])))
+    sys.stdout.write("Discovered ComputingServices: %s\n"%(", ".join([service.Name for service in retriever])))
 
     # Get all the ExecutionTargets on these ComputingServices
     targets = retriever.GetExecutionTargets()
-    print("Number of ExecutionTargets on these ComputingServices: %d"%len(targets))
+    sys.stdout.write("Number of ExecutionTargets on these ComputingServices: %d\n"%len(targets))
 
     # Query the local infosys (COMPUTINGINFO) of computing elements
     computing_elements = [
@@ -55,9 +55,9 @@ def example():
     # Get all the ExecutionTargets on these ComputingServices
     targets2 = retriever2.GetExecutionTargets()
 
-    print("The discovered ExecutionTargets:")
+    sys.stdout.write("The discovered ExecutionTargets:\n")
     for target in targets2:
-        print(target)
+        sys.stdout.write("%s\n"%str(target))
     
     
     # Query both registries and computing elements at the same time:
@@ -68,7 +68,7 @@ def example():
 
     retriever3 = retrieve(uc, endpoints)
 
-    print("Discovered ComputingServices: %s"%(", ".join([service.Name for service in retriever3])))
+    sys.stdout.write("Discovered ComputingServices: %s\n"%(", ".join([service.Name for service in retriever3])))
 
 
 # wait for all the background threads to finish before we destroy the objects they may use

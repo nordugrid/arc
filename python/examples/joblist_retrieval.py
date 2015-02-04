@@ -28,9 +28,9 @@ def example():
     retriever.wait()
 
     # Get the status of the retrieval
-    print(retriever.getStatusOfEndpoint(endpoint).str())
+    sys.stdout.write("%s\n"%retriever.getStatusOfEndpoint(endpoint).str())
 
-    print("Number of jobs found: %d"%len(jobs))
+    sys.stdout.write("Number of jobs found: %d\n"%len(jobs))
     for job in jobs:
         job.SaveToStream(arc.CPyOstream(sys.stdout), True)
 

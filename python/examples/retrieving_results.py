@@ -16,12 +16,12 @@ def example():
     job.Flavour = "ARC1"
     job.ServiceInformationURL = job.JobStatusURL = job.JobManagementURL = arc.URL("https://piff.hep.lu.se:443/arex")
     
-    print("Get job information from the computing element...")
+    sys.stdout.write("Get job information from the computing element...\n")
     # Put the job into a JobSupervisor and update its information
     job_supervisor = arc.JobSupervisor(uc, [job])
     job_supervisor.Update()
     
-    print("Downloading results...")
+    sys.stdout.write("Downloading results...\n")
     # Prepare a list for storing the directories for the downloaded job results (if there would be more jobs)
     downloadeddirectories = arc.StringList()
     # Start retrieving results of all the selected jobs
@@ -31,12 +31,12 @@ def example():
     #   collect the downloaded directories into the variable "downloadeddirectories" (forth argument)
     success = job_supervisor.Retrieve("/tmp", False, False, downloadeddirectories)
     if not success:
-        print("Downloading results failed.")
+        sys.stdout.write("Downloading results failed.\n")
     for downloadeddirectory in downloadeddirectories:
-        print("Job results were downloaded to %s"%str(downloadeddirectory))
-        print("Contents of the directory:")
+        sys.stdout.write("Job results were downloaded to %s\n"%str(downloadeddirectory))
+        sys.stdout.write("Contents of the directory:\n")
         for filename in os.listdir(downloadeddirectory):
-            print("   %s"%filename)
+            sys.stdout.write("   %s\n"%filename)
         
 # wait for all the background threads to finish before we destroy the objects they may use
 import atexit

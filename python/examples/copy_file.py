@@ -12,7 +12,7 @@ def wait_exit():
     arc.ThreadInitializer().waitExit()
 
 def usage():
-    print(' Usage: copy_file.py source destination')
+    sys.stdout.write(' Usage: copy_file.py source destination\n')
     
 if len(sys.argv) != 3:
     usage()
@@ -50,4 +50,4 @@ mover.retry(False)
 status = mover.Transfer(source, destination, arc.FileCache(), arc.URLMap())
 
 # Print the exit status of the transfer
-print(str(status))
+sys.stdout.write("%s\n"%str(status))

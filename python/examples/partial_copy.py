@@ -2,7 +2,7 @@ import arc
 import sys
 
 if len(sys.argv) != 2:
-    print "Usage: python partial_copy.py filename"
+    sys.stdout.write("Usage: python partial_copy.py filename\n")
     sys.exit(1)
     
 desired_size = 512
@@ -13,7 +13,7 @@ point = handle.__ref__()
 point.SetSecure(False) # GridFTP servers generally do not have encrypted data channel
 info = arc.FileInfo("")
 point.Stat(info)
-print("Name: %s"%str(info.GetName()))
+sys.stdout.write("Name: %s\n"%str(info.GetName()))
 fsize = info.GetSize()
 if fsize > desired_size:
     point.Range(fsize-desired_size,fsize-1)
@@ -25,6 +25,6 @@ while True:
     offset = 0
     ( r, n, length, offset, buf) = buffer.for_write(True)
     if not r: break
-    print("BUFFER: %d :  %d  : %s"%(offset, length, str(buf)))
+    sys.stdout.write("BUFFER: %d :  %d  : %s\n"%(offset, length, str(buf)))
     buffer.is_written(n);
 point.StopReading()
