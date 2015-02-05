@@ -15,7 +15,7 @@ use Cwd;
 ## enable this below to dump datastructures
 ## Note: Concise is not an ARC dependency!
 ## must be installed separately.
-## use Data::Dumper::Concise;
+# use Data::Dumper::Concise;
 ## usage:
 # print Dumper($datastructure); 
 
@@ -123,6 +123,7 @@ sub main {
 
     # Print GLUE2 XML
     $log->info("Generating GLUE2 XML rendering");
+        
     my $glue2data = timed 'ARC1ClusterInfo', sub { ARC1ClusterInfo::collect($data) };
     my $xmlPrinter = GLUE2xmlPrinter->new(*STDOUT, $splitjobs);
     $xmlPrinter->begin('InfoRoot');

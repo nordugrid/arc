@@ -16,7 +16,6 @@ use InfoChecker;
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 
-
 # the time now in ISO 8061 format
 sub timenow {
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = gmtime(time);
@@ -307,6 +306,14 @@ sub intersection {
     return \%isec;
 }
 
+# union of two arrays using hashes. Returns an array.
+sub union {
+	my (@a, @b) = @_;
+	my %union;
+	foreach (@a) {$union{$_} = 1;}
+	foreach (@b) {$union{$_} = 1;}
+	return keys %union;
+}
 
 # processes NodeSelection options and returns the matching nodes.
 sub selectnodes {
@@ -517,6 +524,16 @@ sub max_userfreeslots {
     return %timeslots;
 }
 
+# adds a prefix to a set of strings in an array.
+# input: the prefix string, an array.
+sub addprefix {
+   my $prefix = shift @_;
+   my @set = @_;
+   my @prefixedset = @set;
+   @prefixedset = map { $prefix.$_ } @prefixedset;
+   return @prefixedset;	
+}
+
 
 ############################################################################
 # Combine info from all sources to prepare the final representation
@@ -573,12 +590,12 @@ sub collect($) {
     $totalpcpus ||= $lrms_info->{cluster}{totalcpus};
     $totallcpus ||= $lrms_info->{cluster}{totalcpus};
 
-    my @authorizedvos = (); 
-    if ($config->{service}{AuthorizedVO}) {
-        @authorizedvos = @{$config->{service}{AuthorizedVO}};
-        # add VO: suffix to each authorized VO
-        @authorizedvos = map { "vo:".$_ } @authorizedvos;
-    }
+#    my @authorizedvos = (); 
+#    if ($config->{service}{AuthorizedVO}) {
+#        @authorizedvos = @{$config->{service}{AuthorizedVO}};
+#        # add VO: suffix to each authorized VO
+#        @authorizedvos = map { "vo:".$_ } @authorizedvos;
+#    }
 
     # # # # # # # # # # # # # # # # # # #
     # # # # # Job statistics  # # # # # #
@@ -953,6 +970,36 @@ sub collect($) {
 
     my $callcount = 0;
 
+
+    ### Authorized VOs: Policy stuff
+    
+    # calculate union of the authorizedvos in shares - a hash is used as a set
+    # and add it to the cluster accepted authorizedvos
+    
+    my @clusterauthorizedvos;
+    if ($config->{service}{AuthorizedVO}) { @clusterauthorizedvos = @{$config->{service}{AuthorizedVO}}; }
+    my $unionauthorizedvos;
+    if (@clusterauthorizedvos) {
+		foreach my $vo (@clusterauthorizedvos) {
+			$unionauthorizedvos->{$vo}='';
+		}
+		my $shares = $config->{shares};
+			for my $share ( keys %$shares ) {
+			my @tempvos = @{$config->{shares}{$share}{authorizedvo}} if ($config->{shares}{$share}{authorizedvo});
+			foreach my $vo (@tempvos) {
+				$unionauthorizedvos->{$vo}='';
+			}
+		}
+	}   
+    
+    
+    my @unionauthorizedvos;
+    if ($unionauthorizedvos) {
+		@unionauthorizedvos =  keys %$unionauthorizedvos ;
+		@unionauthorizedvos = addprefix('vo:',@unionauthorizedvos);
+		undef $unionauthorizedvos;
+	}
+    
     
     # AccessPolicies implementation. Can be called for each endpoint.
     # the basic policy value is taken from the service AuthorizedVO.
@@ -962,6 +1009,7 @@ sub collect($) {
     
     my $accesspolicies = {};
        
+    # Basic access policy: union of authorizedvos   
     my $getBasicAccessPolicy = sub {
          my $apol = {};
          my ($epID) = @_;
@@ -969,13 +1017,13 @@ sub collect($) {
          $apol->{CreationTime} = $creation_time;
          $apol->{Validity} = $validity_ttl;
          $apol->{Scheme} = "basic";
-         if (@authorizedvos) { $apol->{Rule} = [ @authorizedvos ]; };
+         if (@unionauthorizedvos) { $apol->{Rule} = [ @unionauthorizedvos ]; };
          # $apol->{UserDomainID} = $apconf->{UserDomainID};
          $apol->{EndpointID} = $epID;
          return $apol;
     };
     
-    $accesspolicies->{BasicAccessPolicy} = $getBasicAccessPolicy if (@authorizedvos);
+    $accesspolicies->{BasicAccessPolicy} = $getBasicAccessPolicy if (@unionauthorizedvos);
     
     ## more accesspolicies can go here.
     
@@ -995,21 +1043,27 @@ sub collect($) {
     # then every endpoint passes custom values to the getMappingPolicies sub.
     
     my $mappingpolicies = {};
-       
+    
+    # Basic mapping policy: it's the union of the service AuthorizedVO and
+    # per-queue authorizedvo.     
+    
     my $getBasicMappingPolicy = sub {
+		 my ($shareID, $sharename) = @_;
+		 return unless ($config->{shares}{$sharename}{authorizedvo} || @clusterauthorizedvos);
+		 my @shareauthorizedvos;
+		 @shareauthorizedvos = addprefix('vo:', union(@clusterauthorizedvos, @{$config->{shares}{$sharename}{authorizedvo}}) );
          my $mpol = {};
-         my ($shareID) = @_;
          $mpol->{CreationTime} = $creation_time;
          $mpol->{Validity} = $validity_ttl;
          $mpol->{ID} = "$mpolIDp:basic";
          $mpol->{Scheme} = "basic";
-         if (@authorizedvos) { $mpol->{Rule} = [ @authorizedvos ]; };
+	     $mpol->{Rule} = [ @shareauthorizedvos ];
          # $mpol->{UserDomainID} = $apconf->{UserDomainID};
          $mpol->{ShareID} = $shareID;
          return $mpol;
     };
     
-    $mappingpolicies->{BasicMappingPolicy} = $getBasicMappingPolicy if (@authorizedvos);
+    $mappingpolicies->{BasicMappingPolicy} = $getBasicMappingPolicy;
     
      ## more accesspolicies can go here.
     
@@ -1018,8 +1072,9 @@ sub collect($) {
     
     my $getMappingPolicies = sub {
        return undef unless my ($mappingpolicy, $sub) = each %$mappingpolicies; 
-       my ($shareID) = @_;
-      return &{$sub}($shareID);
+       my ($shareID, $sharename) = @_;
+       $log->debug("shareid: $shareID, sharename: $sharename");
+      return &{$sub}($shareID, $sharename);
      };
 
     # TODO: the above policies can be rewritten in an object oriented fashion
@@ -2843,7 +2898,7 @@ sub collect($) {
 
         # Florido's Mapping Policies 
         
-        $csha->{MappingPolicies} = sub { &{$getMappingPolicies}($csha->{ID}); };
+        $csha->{MappingPolicies} = sub { &{$getMappingPolicies}($csha->{ID},$csha->{Name}); };
 
         # Tag: skip it for now
 

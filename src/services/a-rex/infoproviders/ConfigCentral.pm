@@ -84,6 +84,7 @@ my $share_options = {
     Preemption => '*',
     totalcpus => '*',
     defaultmemory => '*',
+    authorizedvo =>  [ '*' ],
 };
 my $gmuser_options = {
     controldir => '',
