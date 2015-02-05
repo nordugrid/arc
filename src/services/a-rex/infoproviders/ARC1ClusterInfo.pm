@@ -983,8 +983,11 @@ sub collect($) {
 		foreach my $vo (@clusterauthorizedvos) {
 			$unionauthorizedvos->{$vo}='';
 		}
-		my $shares = $config->{shares};
-			for my $share ( keys %$shares ) {
+	}
+	# add the per-queue authorizedvo if any
+	my $shares = $config->{shares};
+	for my $share ( keys %$shares ) {
+		if ($config->{shares}{$share}{authorizedvo}) {
 			my @tempvos = @{$config->{shares}{$share}{authorizedvo}} if ($config->{shares}{$share}{authorizedvo});
 			foreach my $vo (@tempvos) {
 				$unionauthorizedvos->{$vo}='';
