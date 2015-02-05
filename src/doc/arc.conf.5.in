@@ -3430,6 +3430,23 @@ ac_policy="-VOMS: /badvo"
 ac_policy="VOMS: /.*/Role=production"
 
 .TP
+.B authorizedvo
+authorizedvo - this attribute is used to advertise which VOs are authorized 
+on the specific queue. Multiple entries are allowed.
+This entries will be shown in the MappingPolicy objects. If something is
+already defined in the [cluster] block, the shown VOs will be the
+union set of those defined in [cluster] with those specific to this
+[queue] block.
+
+.IR Example:
+.br
+authorizedvo="LocalUsers"
+.br
+authorizedvo="atlas"
+.br
+authorizedvo="community.nordugrid.org"
+
+.TP
 .B cachetime
 this affects old infoproviders, and forces the validity time of the record.
 
