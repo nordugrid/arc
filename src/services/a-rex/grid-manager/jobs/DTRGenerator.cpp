@@ -677,38 +677,42 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
         ++it;
         continue;
       }
-      if (it->pfn.rfind('/') == it->pfn.length()-1 && it->lfn.find(':') != std::string::npos) {
-        std::string cred(it->cred);
-        std::string dir(job.SessionDir() + it->pfn);
-        std::list<std::string> entries;
-        if (!Arc::DirList(dir, entries, true, job_uid, job_gid)) {
-          logger.msg(Arc::ERROR, "%s: Failed to list output directory %s: %s", jobid, dir, Arc::StrError(errno));
-          lock.lock();
-          // Only write this failure if no previous failure
-          if (job.GetFailure(config).empty()) {
-            finished_jobs[jobid] = std::string("Failed to list output directory");
-          } else {
-            finished_jobs[jobid] = "";
+      if (it->pfn.rfind('/') == it->pfn.length()-1) {
+        if (it->lfn.find(':') != std::string::npos) {
+          std::string cred(it->cred);
+          std::string dir(job.SessionDir() + it->pfn);
+          std::list<std::string> entries;
+          if (!Arc::DirList(dir, entries, true, job_uid, job_gid)) {
+            logger.msg(Arc::ERROR, "%s: Failed to list output directory %s: %s", jobid, dir, Arc::StrError(errno));
+            lock.lock();
+            // Only write this failure if no previous failure
+            if (job.GetFailure(config).empty()) {
+              finished_jobs[jobid] = std::string("Failed to list output directory");
+            } else {
+              finished_jobs[jobid] = "";
+            }
+            lock.unlock();
+            CleanCacheJobLinks(config, job);
+            if (kicker_func) (*kicker_func)(kicker_arg);
+            return false;
           }
-          lock.unlock();
-          CleanCacheJobLinks(config, job);
-          if (kicker_func) (*kicker_func)(kicker_arg);
-          return false;
-        }
-        // add entries which are not directories or links to output file list
-        struct stat st;
-        for (std::list<std::string>::iterator i = entries.begin(); i != entries.end(); ++i) {
-          if (Arc::FileStat(*i, &st, job_uid, job_gid, false) && S_ISREG(st.st_mode)) {
-            std::string lfn(it->lfn + '/' + i->substr(job.SessionDir().length()+it->pfn.length()));
-            std::string pfn(i->substr(job.SessionDir().length()));
-            logger.msg(Arc::DEBUG, "%s: Adding new output file %s: %s", jobid, pfn, lfn);
-            FileData fd(pfn, lfn);
-            fd.cred = cred;
-            files.push_back(fd);
+          // add entries which are not directories or links to output file list
+          struct stat st;
+          for (std::list<std::string>::iterator i = entries.begin(); i != entries.end(); ++i) {
+            if (Arc::FileStat(*i, &st, job_uid, job_gid, false) && S_ISREG(st.st_mode)) {
+              std::string lfn(it->lfn + '/' + i->substr(job.SessionDir().length()+it->pfn.length()));
+              std::string pfn(i->substr(job.SessionDir().length()));
+              logger.msg(Arc::DEBUG, "%s: Adding new output file %s: %s", jobid, pfn, lfn);
+              FileData fd(pfn, lfn);
+              fd.cred = cred;
+              files.push_back(fd);
+            }
           }
+          it = files.erase(it);
+          continue;
         }
-        it = files.erase(it);
-        continue;
+        // Remove trailing slashes otherwise it will be cleaned in delete_all_files
+        while (it->pfn.rfind('/') == it->pfn.length()-1) it->pfn.erase(it->pfn.rfind('/'));
       }
       ++it;
     }
