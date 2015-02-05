@@ -1822,7 +1822,11 @@
 
 ## authorizedvo - this attribute is used to advertise which VOs are authorized
 ## on the cluster. Multiple entries are allowed.
-## This entries will be shown in GLUE2 AccessPolicy and MappingPolicy objects.
+## Add only one VO for each authorizedvo entry. Multiple VOs in the same line
+## will cause errors.
+## These entries will be shown in all GLUE2 AccessPolicy and MappingPolicy 
+## objects, that is, they will apply for all Endpoints(Interfaces) and all 
+## Shares(currently queues).
 #authorizedvo="developer.nordugrid.org"
 #authorizedvo="community.nordugrid.org"
 
@@ -2135,6 +2139,18 @@
 ## Each LRMS might have a different meaning for this value.
 #maxslotsperjob="5"
 
+## authorizedvo - this attribute is used to advertise which VOs are authorized
+## on each specific queue. Multiple entries are allowed.
+## Add only one VO for each authorizedvo entry. Multiple VOs in the same line
+## will cause errors.
+## These entries will be shown in the MappingPolicy objects, that is, 
+## they will apply for the Shares that corresponds to the queue.
+## NOTE: if you have also configured authorizedvo in the [cluster] block,
+## the result authorized VOs per queue is the union set of what is 
+## contained in the [cluster] and in this [queue] block.
+#authorizedvo="LocalUsers"
+#authorizedvo="atlas"
+#authorizedvo="community.nordugrid.org"
 
 ## LDAP parameters of the queue+jobs+users.pl (old) infoprovider, use the defaults,
 ## do NOT change them unless you know what you are doing
