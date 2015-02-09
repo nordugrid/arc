@@ -699,6 +699,16 @@ sub queue_info ($$) {
 	   }
 	}
 
+        # the above gets the number of nodes not the number of cores in use. If multi core jobs are running, "running" will be underestimated.
+        # Instead use totalcpus - freecpus (This might overrepresent running. because pbsnodes count whole nodes in use.)
+        # CUS (2015-02-09)
+ 
+        my $runningcores = $torque_totalcpus - $torque_freecpus ; 
+        $runningcores = 0 if $runningcores < 0;
+
+        $lrms_queue{running} = $runningcores if $runningcores > $lrms_queue{running};
+
+
 	if ($lrms_queue{totalcpus} eq 0) {
 	    warning("Can't determine number of cpus for queue $qname");
 	}
