@@ -373,6 +373,28 @@ namespace Arc
         }
       }
 
+    if (find("jobreport_option_vomsless_vo")!=end() && !ur["UserIdentity"]["vo:VO"])
+      {
+        if ( !ur["UserIdentity"] ) {
+          ur.NewChild("UserIdentity");
+        }
+        Arc::XMLNode vo=ur["UserIdentity"].NewChild("vo:VO");
+        vo.NewAttribute("vo:type")="voms";
+
+        std::string option=(*this)["jobreport_option_vomsless_vo"];
+        std::string name=option;
+        std::string issuer=option;
+        // separate opt_vo_name#opt_vo_issuer pair
+        pcolon=option.find('#');
+        if (pcolon!=std::string::npos)
+          {
+            name=option.substr(0, pcolon), 
+            issuer=option.substr(pcolon+1, std::string::npos);
+          }
+        vo.NewChild("vo:Name")=name;
+        vo.NewChild("vo:Issuer")=issuer;
+      }
+
     if (find("jobreport_option_vo_group")!=end())
       {
         bool find = false;
@@ -846,6 +868,26 @@ namespace Arc
                 }
             }
         }
+      }
+
+    if (find("jobreport_option_vomsless_vo")!=end() && !useridentity["Group"])
+      {
+        if ( !useridentity["Group"] ) {
+          useridentity.NewChild("Group");
+        }
+        Arc::XMLNode vo=useridentity["Group"];
+
+        std::string option=(*this)["jobreport_option_vomsless_vo"];
+        std::string name=option;
+        std::string issuer=option;
+        // separate opt_vo_name#opt_vo_issuer pair
+        pcolon=option.find('#');
+        if (pcolon!=std::string::npos)
+          {
+            name=option.substr(0, pcolon), 
+            issuer=option.substr(pcolon+1, std::string::npos);
+          }
+        vo=name;
       }
 
     if (find("jobreport_option_vo_group")!=end())
