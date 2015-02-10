@@ -312,7 +312,7 @@ for vo in `config_subsections infosys/index`; do
 
 		# Index Service: $vo
 		database        shell
-		suffix          "Mds-Vo-name=$indexname,o=Grid"
+		suffix          "Mds-Vo-name=$indexname,o=grid"
 		bind            $giis_location/sbin/arc-infoindex-relay $giis_fifo
 		add             $giis_location/sbin/arc-infoindex-relay $giis_fifo
 		search          $giis_location/sbin/arc-infoindex-relay $giis_fifo

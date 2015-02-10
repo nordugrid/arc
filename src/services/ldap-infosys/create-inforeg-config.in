@@ -103,12 +103,12 @@ echo >> $registrationconf
 	(
 	    config_import_section infosys/cluster/registration/$p
 
-	    targetsuffix=${CONFIG_targetsuffix:-"Mds-Vo-name=$p,o=Grid"}
+	    targetsuffix=${CONFIG_targetsuffix:-"Mds-Vo-name=$p,o=grid"}
 	    reghn=${CONFIG_targethostname:-"targethostname.not.set"}
 	    regport=${CONFIG_targetport:-2135}
 	    hn=${CONFIG_registranthostname:-$CONFIG_hostname}
 	    port=${CONFIG_registrantport:-${CONFIG_port:-2135}}
-	    rootdn=${CONFIG_registrantsuffix:-"nordugrid-cluster-name=$hn,Mds-Vo-name=local,o=Grid"}
+	    rootdn=${CONFIG_registrantsuffix:-"nordugrid-cluster-name=$hn,Mds-Vo-name=local,o=grid"}
 	    regperiod=${CONFIG_regperiod:-120}
 	    ttl=${CONFIG_ttl:-$(( $regperiod * 2 ))}
 	    timeout=${CONFIG_timeout:-45}
@@ -132,12 +132,12 @@ echo >> $registrationconf
 		(
 		    config_import_section infosys/se/$seentry/registration/$p
 
-		    targetsuffix=${CONFIG_targetsuffix:-"Mds-Vo-name=$p,o=Grid"}
+		    targetsuffix=${CONFIG_targetsuffix:-"Mds-Vo-name=$p,o=grid"}
 		    reghn=${CONFIG_targethostname:-"targethostname.not.set"}
 		    regport=${CONFIG_targetport:-2135}
 		    hn=${CONFIG_registranthostname:-$CONFIG_hostname}
 		    port=${CONFIG_registrantport:-${CONFIG_port:-2135}}
-		    rootdn=${CONFIG_registrantsuffix:-"nordugrid-se-name=$sename:$hn,Mds-Vo-name=local,o=Grid"}
+		    rootdn=${CONFIG_registrantsuffix:-"nordugrid-se-name=$sename:$hn,Mds-Vo-name=local,o=grid"}
 		    regperiod=${CONFIG_regperiod:-120}
 		    ttl=${CONFIG_ttl:-$(( $regperiod * 2 ))}
 		    timeout=${CONFIG_timeout:-45}
@@ -162,12 +162,12 @@ echo >> $registrationconf
 		(
 		    config_import_section infosys/index/$vo/registration/$r
 
-		    targetsuffix=${CONFIG_targetsuffix:-"Mds-Vo-name=$r,o=Grid"}
+		    targetsuffix=${CONFIG_targetsuffix:-"Mds-Vo-name=$r,o=grid"}
 		    reghn=${CONFIG_targethostname:-"targethostname.not.set"}
 		    regport=${CONFIG_targetport:-2135}
 		    hn=${CONFIG_registranthostname:-$CONFIG_hostname}
 		    port=${CONFIG_registrantport:-${CONFIG_port:-2135}}
-		    rootdn=${CONFIG_registrantsuffix:-"Mds-Vo-name=$indexname,o=Grid"}
+		    rootdn=${CONFIG_registrantsuffix:-"Mds-Vo-name=$indexname,o=grid"}
 		    regperiod=${CONFIG_regperiod:-120}
 		    ttl=${CONFIG_ttl:-$(( $regperiod * 2 ))}
 		    timeout=${CONFIG_timeout:-120}

@@ -275,19 +275,19 @@ cat <<-EOF > $bdii_default_ldif
 	use POSIX;
 
 	print "\n";
-	print "dn: o=Grid\n";
+	print "dn: o=grid\n";
 	print "objectClass: organization\n";
-	print "o: Grid\n";
+	print "o: grid\n";
 	print "\n";
 
-	print "dn: Mds-Vo-name=local,o=Grid\n";
+	print "dn: Mds-Vo-name=local,o=grid\n";
 	print "objectClass: Mds\n";
 	print "Mds-Vo-name: local\n";
 	print "Mds-validfrom: " . strftime("%Y%m%d%H%M%SZ\n", gmtime());
 	print "Mds-validto: " . strftime("%Y%m%d%H%M%SZ\n", gmtime(time() + 3600));
 	print "\n";
 
-	print "dn: Mds-Vo-name=resource,o=Grid\n";
+	print "dn: Mds-Vo-name=resource,o=grid\n";
 	print "objectClass: Mds\n";
 	print "Mds-Vo-name: resource\n";
 	print "Mds-validfrom: " . strftime("%Y%m%d%H%M%SZ\n", gmtime());
@@ -326,7 +326,7 @@ for se in `config_subsections se`; do
 	
 	BEGIN {
 	    print "\n";
-	    system('$ARC_LOCATION/@pkgdatasubdir@/se.pl -valid-to $cachetime -config $ARC_CONFIG -dn nordugrid-se-name=$se:$hostname,Mds-Vo-name=local,o=Grid -se $se 2>> "$providerlog"');
+	    system('$ARC_LOCATION/@pkgdatasubdir@/se.pl -valid-to $cachetime -config $ARC_CONFIG -dn nordugrid-se-name=$se:$hostname,Mds-Vo-name=local,o=grid -se $se 2>> "$providerlog"');
 	}
 	EOF
 )
