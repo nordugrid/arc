@@ -393,6 +393,7 @@ namespace Arc
           }
         vo.NewChild("vo:Name")=name;
         vo.NewChild("vo:Issuer")=issuer;
+        vo.NewChild("vo:Attribute").NewChild("vo:Group")="/"+name;
       }
 
     if (find("jobreport_option_vo_group")!=end())
@@ -888,6 +889,8 @@ namespace Arc
             issuer=option.substr(pcolon+1, std::string::npos);
           }
         vo=name;
+        Arc::XMLNode gattr=useridentity.NewChild("GroupAttribute")="/"+name;
+        gattr.NewAttribute("urf:type")="vo-role";
       }
 
     if (find("jobreport_option_vo_group")!=end())
