@@ -166,7 +166,7 @@ if [ ! -z "$joboption_cputime" ] ; then
     echo 'WARNING: cpu time set to 0' 1>&2
   fi
   maxcputime=$(( $joboption_cputime / $joboption_count ))
-  echo "+JobCpuLimit = $maxcputime" >> $LRMS_JOB_DESCRIPT
+  echo "+JobCpuLimit = $joboption_cputime" >> $LRMS_JOB_DESCRIPT
   REMOVE="${REMOVE} || RemoteUserCpu + RemoteSysCpu > JobCpuLimit"
   
 fi  
