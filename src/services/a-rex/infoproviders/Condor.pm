@@ -272,7 +272,7 @@ sub condor_queue_get_queued() {
 sub condor_cluster_get_queued_cpus() {
     my $sum = 0;
     do {$sum++ if $$_{jobstatus} == 1 || $$_{jobstatus} == 5} for values %alljobdata;
-    debug "===condor_cluster_get_queued: $sum";
+    debug "===condor_cluster_get_queued_cpus: $sum";
     return $sum;
 }
 
@@ -282,7 +282,7 @@ sub condor_cluster_get_queued_cpus() {
 sub condor_cluster_get_queued_jobs() {
     my $sum = 0;
     do {$sum++ if $$_{jobstatus} == 1 || $$_{jobstatus} == 5} for values %alljobdata;
-    debug "===condor_cluster_get_queued: $sum";
+    debug "===condor_cluster_get_queued_jobs: $sum";
     return $sum;
 }
 
@@ -295,7 +295,7 @@ sub condor_cluster_get_queued_jobs() {
 sub condor_cluster_get_running_jobs() {
     my $sum = 0;
     do {$sum++ if $$_{jobstatus} == 2} for values %alljobdata;
-    debug "===condor_cluster_get_queued: $sum";
+    debug "===condor_cluster_get_running_jobs: $sum";
     return $sum;
 }
 
