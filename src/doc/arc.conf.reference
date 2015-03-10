@@ -166,6 +166,8 @@
 ## How long should infosys wait before querying SLURM for new data (seconds)
 #slurm_wakeupperiod="15"
 
+## Should ARC use sacct instead of scontrol to get information about finished jobs
+#slurm_use_sacct="yes"
 
 ### LSF
 #lrms="lsf"

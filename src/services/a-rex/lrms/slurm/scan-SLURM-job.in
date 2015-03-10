@@ -47,6 +47,16 @@ trap 'rm $lockfile' EXIT KILL TERM
 #Default sleep-time is 30 seconds
 sleep ${CONFIG_slurm_wakeupperiod:-30}
 
+### use sacct?
+unset use_sacct
+
+if [ ! -z "${CONFIG_slurm_use_sacct}" ]; then
+  if [ "${CONFIG_slurm_use_sacct}" = "yes" ]; then
+    use_sacct="true"
+  fi
+fi
+
+
 ### If GM sees the session dirs... copied from scan-pbs-jobs
 RUNTIME_NODE_SEES_FRONTEND=$CONFIG_shared_filesystem
 #default is NFS
@@ -132,10 +142,16 @@ function handle_exitcode {
     tmpexitcode="$2"
     reason="$3"
 
-    jobinfostring=$("$scontrol" -o show job $localid)
+    if [ "$use_sacct" ]; then 
+      jobinfostring=$("$sacct" -j $localid.batch -o ExitCode -P | tail -n 1)
+      exitcode1=$(echo $jobinfostring|awk -F':' '{print $1}')
+      exitcode2=$(echo $jobinfostring|awk -F':' '{print $2}')
+    else
+      jobinfostring=$("$scontrol" -o show job $localid)
 
-    exitcode1=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\1/p')
-    exitcode2=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\2/p')
+      exitcode1=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\1/p')
+      exitcode2=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\2/p')
+    fi
 
     if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
 	exitcode=$tmpexitcode
@@ -160,12 +176,17 @@ function handle_exitcode_cancelled {
     localid="$1"
     tmpexitcode="$2"
     reason="$3"
- 
-    jobinfostring=$("$scontrol" -o show job $localid)
- 
-    exitcode1=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\1/p')
-    exitcode2=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\2/p')
- 
+
+    if [ "$use_sacct" ]; then 
+      jobinfostring=$("$sacct" -j $localid.batch -o ExitCode -P | tail -n 1)
+      exitcode1=$(echo $jobinfostring|awk -F':' '{print $1}')
+      exitcode2=$(echo $jobinfostring|awk -F':' '{print $2}')
+    else
+      jobinfostring=$("$scontrol" -o show job $localid)
+      exitcode1=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\1/p')
+      exitcode2=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\2/p')
+    fi
+
     if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
       exitcode=$tmpexitcode
     elif [ $exitcode2 -ne 0 ]; then
@@ -191,21 +212,35 @@ function handle_exitcode_cancelled {
 function handle_diag_file {
     localid="$1"
     ctr_diag="$2"
-    jobinfostring=$("$scontrol" -o show job $localid)
 
     job_read_diag
 
-    #Slurm can report StartTime and EndTime in at least these two formats:
-    #2010-02-15T15:30:29
-    #02/15-15:25:15
-    #For our code to be able to manage both, the first needs to keep its hyphens,
-    #the second needs them removed
+    if [ "$use_sacct" ]; then 
+      jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,NNODES,CPUTime,Start,End,ExitCode,State -P | tail -n 1)
 
-    starttime=$(echo "$jobinfostring"|sed -n 's/.*StartTime=\([^ ]*\) .*/\1/p' | \
+      cpus=$(echo "$jobinfostring" | awk -F'|' '{print $1}')
+
+      starttime=$(echo "$jobinfostring"|awk -F'|' '{print $4}'|sed -n 's/.*StartTime=\([^ ]*\) .*/\1/p' | \
+  	sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
+
+      endtime=$(echo "$jobinfostring"|awk -F'|' '{print $5}'|sed -n 's/.*EndTime=\([^ ]*\) .*/\1/p' | \
 	sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
-    endtime=$(echo "$jobinfostring"|sed -n 's/.*EndTime=\([^ ]*\) .*/\1/p' | \
+
+      cputime=$(echo "$jobinfostring" | awk -F'|' '{print $3}')
+    else
+      jobinfostring=$("$scontrol" -o show job $localid)
+
+      #Slurm can report StartTime and EndTime in at least these two formats:
+      #2010-02-15T15:30:29
+      #02/15-15:25:15
+      #For our code to be able to manage both, the first needs to keep its hyphens,
+      #the second needs them removed
+      starttime=$(echo "$jobinfostring"|sed -n 's/.*StartTime=\([^ ]*\) .*/\1/p' | \
+  	sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
+      endtime=$(echo "$jobinfostring"|sed -n 's/.*EndTime=\([^ ]*\) .*/\1/p' | \
 	sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
-    cpus=$(echo "$jobinfostring"|sed -n 's/.*NumCPUs=\([^ ]*\) .*/\1/p')
+      cpus=$(echo "$jobinfostring"|sed -n 's/.*NumCPUs=\([^ ]*\) .*/\1/p')
+    fi
 
     date_to_utc_seconds "$starttime"
     starttime_seconds="$return_date_seconds"
@@ -222,7 +257,7 @@ function handle_diag_file {
     # Values to write to diag. These will override values already written.
     [ -n "$walltime" ] && WallTime=$walltime
     [ -n "$cpus" ] && Processors=$cpus
-    #[ -n "$cputime" ] && UserTime=$cputime
+    [ -n "$cputime" ] && UserTime=$cputime
     #[ -n "$cputime" ] && KernelTime=0
 
     job_write_diag

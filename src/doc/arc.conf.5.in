@@ -226,6 +226,14 @@ How long should infosys wait before querying SLURM for new data (seconds)
 .br
 slurm_wakeupperiod="15"
 
+.TP
+.B slurm_use_sacct
+Should ARC use sacct instead of scontrol to get information on finished jobs. Requires that accounting is turned on in SLURM. Default is "no".
+
+.IR Example:
+.br
+slurm_use_sacct="yes"
+
 .SH LSF options
 
 .TP

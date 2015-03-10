@@ -1,3 +1,7 @@
+2015-03-10  Christian Ulrik Søttrup <soettrup@nbi.dk>
+  * Fixed wrong debug output in Condor.pm
+  * Added option to use sacct in slurm backend
+
 2015-01-26  Christian Ulrik Søttrup <soettrup@nbi.dk>
   * Added a defined check to LL.pm for hosts and walltime to get rid of 
     undefined warnings when running perl with strict.

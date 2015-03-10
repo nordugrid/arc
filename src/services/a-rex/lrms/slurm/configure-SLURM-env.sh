@@ -35,6 +35,7 @@ scontrol="$SLURM_BIN_PATH/scontrol"
 sinfo="$SLURM_BIN_PATH/sinfo"
 scancel="$SLURM_BIN_PATH/scancel"
 sbatch="$SLURM_BIN_PATH/sbatch"
+sacct="$SLURM_BIN_PATH/sacct"
 
 # Verifies that a SLURM jobid is set, and is an integer
 verify_jobid () {
