@@ -365,7 +365,7 @@ namespace Arc
                 }
             }
         }
-        if ( !needToSend ) {
+        if ( !needToSend && (int)voms_attributes.size() > 0) {
             Arc::Logger::rootLogger.msg(Arc::INFO,
                  "[VO filter] Job log will be not send. %s.", filename.c_str());
             usagerecord.Destroy();
