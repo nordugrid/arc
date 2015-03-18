@@ -1,3 +1,6 @@
+2015-03-18  Christian Ulrik Søttrup <soettrup@nbi.dk>
+  * Added a infosystem support for new format of exec_host in PBS backend
+
 2015-03-10  Christian Ulrik Søttrup <soettrup@nbi.dk>
   * Fixed wrong debug output in Condor.pm
   * Added option to use sacct in slurm backend

@@ -109,6 +109,7 @@ sub read_pbsnodes ($) {
 #   (2) hosta/J1+hostb/J2*P       (according to the PBSPro manual)
 #   (3) node1+node1+node2+node2
 #   (4) altix:ssinodes=2:mem=7974912kb:ncpus=4  (found on the web)
+#   (5) grid-wn0749.desy.de/2 Resource_List.neednodes=1:ppn=8 (reported by Andreas Gellrich from Desy HH)
 sub split_hostlist {
     my ($exec_host_string) = @_;
     my @nodes;
@@ -120,6 +121,12 @@ sub split_hostlist {
         } elsif ($nodespec =~ m{^([^/:]+)(?::(.+))?$}) {  # cases (3) and (4)
             my ($nodename, $resc) = ($1, $2 || '');
             my $multiplier = get_ncpus($resc);
+            push @nodes, $nodename for 1..$multiplier;
+        } elsif ($nodespec =~ m{^([^/]+)/\d+ Resource_List\.neednodes=(\d+):ppn=(\d+)?$}  ){   # case (5)
+            my $nodename = $1;
+            my $numnodes = $2 || 1;
+            my $ppn = $3 || 1;
+            my $multiplier = $ppn;   #Not sure if this is the correct multiplier. Is there an entry for each node? or should multiplier be numnodes*ppn?
             push @nodes, $nodename for 1..$multiplier;
         } else {
             $err = $nodespec;
