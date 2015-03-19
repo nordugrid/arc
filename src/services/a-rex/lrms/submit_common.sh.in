@@ -232,10 +232,13 @@ RTE_stage0 () {
       eval "var_is_set=\${joboption_runtime_$joboption_num+yes}"
    done
 
-  # joboption_count might have been changed by an RTE. Save it for accouting purposes.
+  # joboption_count might have been changed by an RTE. Save it for accounting purposes.
   if [ -n "$joboption_count" ]; then
     diagfile="${joboption_controldir}/job.${joboption_gridid}.diag"
     echo "Processors=$joboption_count" >> "$diagfile"
+    if [ -n "$joboption_numnodes" ]; then
+      echo "Nodecount=$joboption_numnodes" >> "$diagfile"
+    fi
   fi
 }
 
@@ -661,8 +664,10 @@ cd_and_run () {
 EOSCR
 
   if [ ! -z "$NODENAME" ] ; then
-    echo "nodename=\`$NODENAME\`" >> $LRMS_JOB_SCRIPT
-    echo "echo \"nodename=\$nodename\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+    if [ -z "$NODENAME_WRITTEN" ] ; then
+      echo "nodename=\`$NODENAME\`" >> $LRMS_JOB_SCRIPT
+      echo "echo \"nodename=\$nodename\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+    fi
   fi
   #TODO this should probably be done on headnode instead
   echo "echo \"Processors=${joboption_count}\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT

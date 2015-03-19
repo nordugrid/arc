@@ -341,17 +341,12 @@ cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
 if [ ! "X$PBS_NODEFILE" = 'X' ] ; then
   if [ -r "$PBS_NODEFILE" ] ; then
     cat "$PBS_NODEFILE" | sed 's/\(.*\)/nodename=\1/' >> "$RUNTIME_JOB_DIAG"
+    NODENAME_WRITTEN="1"
   else
     PBS_NODEFILE=
   fi
 fi
 EOSCR
-if [ ! -z "$NODENAME" ] ; then
-  echo 'if [ "X$PBS_NODEFILE" = X ] ; then' >> $LRMS_JOB_SCRIPT
-  echo "  nodename=\`$NODENAME\`" >> $LRMS_JOB_SCRIPT
-  echo "  echo \"nodename=\$nodename\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
-  echo 'fi' >> $LRMS_JOB_SCRIPT
-fi
 
 ##############################################################
 #  Check intermediate result again

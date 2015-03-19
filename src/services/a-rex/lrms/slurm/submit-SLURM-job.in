@@ -285,6 +285,7 @@ cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
 if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
   if [ -r "$SLURM_NODEFILE" ] ; then
     cat "$SLURM_NODEFILE" | sed 's/\(.*\)/nodename=\1/' >> "$RUNTIME_JOB_DIAG"
+    NODENAME_WRITTEN="1"
   else
     SLURM_NODEFILE=
   fi

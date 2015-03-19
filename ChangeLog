@@ -1,3 +1,7 @@
+2015-03-19  Christian Ulrik Søttrup <soettrup@nbi.dk>
+  * Fixed a possible double output of nodename to diag in PBS and SLURM
+  * Added a baseline nodecount to diag file
+
 2015-03-18  Christian Ulrik Søttrup <soettrup@nbi.dk>
   * Added a infosystem support for new format of exec_host in PBS backend
 
