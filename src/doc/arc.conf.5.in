@@ -1648,6 +1648,15 @@ execution of the binary). Default is no.
 localtransfer="no"
 
 .TP
+B httpgetpartial
+httpgetpartial yes|no - If yes, HTTP GET transfers may transfer data in
+chunks/parts. If no - data is always transfered in one piece. Default is yes.
+
+.IR Example:
+.br
+httpgetpartial="yes"
+
+.TP
 .B speedcontrol
 speedcontrol min_speed min_time min_average_speed max_inactivity - specifies
 how slow data transfer must be to trigger error. Tranfer is canceled if 

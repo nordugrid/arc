@@ -1047,6 +1047,11 @@
 ## execution of the binary). Default is no.
 #localtransfer="no"
 
+## httpgetpartial yes|no - If yes, HTTP GET transfers may transfer data in
+## chunks/parts. If no - data is always transfered in one piece.
+## default is yes
+#httpgetpartial="yes"
+
 ## speedcontrol min_speed min_time min_average_speed max_inactivity - specifies
 ##  how slow data transfer must be to trigger error. Tranfer is canceled if
 ##  speed is below min_speed bytes per second for at least min_time seconds,
