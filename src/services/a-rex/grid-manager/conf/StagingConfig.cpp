@@ -22,6 +22,7 @@ StagingConfig::StagingConfig(const GMConfig& config):
   passive(false),
   secure(false),
   local_transfer(false),
+  httpgetpartial(true),
   remote_size_limit(0),
   use_host_cert_for_remote_delivery(false),
   log_level(Arc::Logger::getRootLogger().getThreshold()),
@@ -157,6 +158,10 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
       std::string sec = config_next_arg(rest);
       if (sec == "yes") local_transfer = true;
     }
+    else if (command == "httpgetpartial") {
+      std::string partial = config_next_arg(rest);
+      if (partial == "no") httpgetpartial = false;
+    }
     else if (command == "preferredpattern") {
       preferred_pattern = config_next_arg(rest);
     }
@@ -250,6 +255,7 @@ bool StagingConfig::readStagingConf(const Arc::XMLNode& cfg) {
     secureTransfer
     passiveTransfer
     localTransfer
+    httpGetPartial
     preferredPattern
     acixEndpoint
     timeouts
@@ -274,6 +280,7 @@ bool StagingConfig::readStagingConf(const Arc::XMLNode& cfg) {
     if (!elementtobool(tmp_node, "passiveTransfer", passive, &logger)) return false;
     if (!elementtobool(tmp_node, "secureTransfer", secure, &logger)) return false;
     if (!elementtobool(tmp_node, "localTransfer", local_transfer, &logger)) return false;
+    if (!elementtobool(tmp_node, "httpGetPartial", httpgetpartial, &logger)) return false;
     if (!elementtoint(tmp_node, "maxRetries", max_retries, &logger)) return false;
     if (tmp_node["preferredPattern"]) preferred_pattern = (std::string)(tmp_node["preferredPattern"]);
     if (tmp_node["acixEndpoint"]) {
