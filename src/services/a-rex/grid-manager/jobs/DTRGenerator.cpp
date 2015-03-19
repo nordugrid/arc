@@ -852,7 +852,15 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
         ++file;
       }
     }
-
+    // Add common purpose URL options from configuration
+    {
+      Arc::URL u(destination);
+      if (u) {
+        u.AddOption("httpgetpartial", staging_conf.get_httpgetpartial()?"yes":"no", false);
+        // Consider adding passive and secure here
+        destination = u.fullstr();
+      }
+    }
     std::string proxy_cred;
     if(!i->cred.empty()) {
       usercfg.ProxyPath(i->cred);
