@@ -40,6 +40,7 @@ using namespace Arc;
     virtual bool RequiresCredentials() const { return url.Protocol() != "http"; };
   private:
     static void read_thread(void *arg);
+    static bool read_single(void *arg);
     static void write_thread(void *arg);
     static bool write_single(void *arg);
     DataStatus do_stat_http(URL& curl, FileInfo& file);

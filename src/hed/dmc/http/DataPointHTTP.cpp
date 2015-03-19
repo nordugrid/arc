@@ -945,6 +945,108 @@ using namespace Arc;
     return DataStatus::Success;
   }
 
+  bool DataPointHTTP::read_single(void *arg) {
+    HTTPInfo_t& info = *((HTTPInfo_t*)arg);
+    DataPointHTTP& point = *(info.point);
+    URL client_url = point.url;
+    ClientHTTP *client = point.acquire_client(client_url);
+    bool transfer_failure = false;
+    int retries = 0;
+    std::string path = point.CurrentLocation().FullPathURIEncoded();
+    DataStatus failure_code;
+    if (!client) return false;
+    HTTPClientInfo transfer_info;
+    PayloadRaw request;
+    PayloadStreamInterface *instream = NULL;
+    for(;;) {  // for retries
+      MCC_Status r = client->process(ClientHTTPAttributes("GET", path),
+                                     &request, &transfer_info,
+                                     &instream);
+      if (!r) {
+        if (instream) delete instream;
+        delete client; client = NULL;
+        // Failed to transfer - retry.
+        // 10 times in a row seems to be reasonable number
+        // TODO: mark failure?
+        if ((++retries) > 10) {
+          transfer_failure = true;
+          failure_code = DataStatus(DataStatus::ReadError, r.getExplanation());
+          break;
+        }
+        // Recreate connection
+        client = point.acquire_new_client(client_url);
+        continue;
+      }
+      if((transfer_info.code == 301) || // permanent redirection
+         (transfer_info.code == 302) || // temporary redirection
+         (transfer_info.code == 303) || // POST to GET redirection
+         (transfer_info.code == 304)) { // redirection to cache
+        // 305 - redirection to proxy - unhandled
+        if (instream) delete instream;
+        // Recreate connection now to new URL
+        point.release_client(client_url,client); client = NULL; // return client to poll
+        client_url = transfer_info.location;
+        logger.msg(VERBOSE,"Redirecting to %s",transfer_info.location);
+        client = point.acquire_client(client_url);
+        if (client) {
+          path = client_url.FullPathURIEncoded();
+          continue;
+        }
+        transfer_failure = true;
+        break;
+      }
+      if ((transfer_info.code != 200) &&
+          (transfer_info.code != 206)) { // HTTP error - retry?
+        if (instream) delete instream;
+        if ((transfer_info.code == 500) ||
+            (transfer_info.code == 503) ||
+            (transfer_info.code == 504)) {
+          if ((++retries) <= 10) continue;
+        }
+        logger.msg(VERBOSE,"HTTP failure %u - %s",transfer_info.code,transfer_info.reason);
+        std::string reason = Arc::tostring(transfer_info.code) + " - " + transfer_info.reason;
+        failure_code = DataStatus(DataStatus::ReadError, point.http2errno(transfer_info.code), reason);
+        transfer_failure = true;
+        break;
+      }
+      if(!instream) {
+        transfer_failure = true;
+        break;
+      }
+      // pick up usefull information from HTTP header
+      point.modified = transfer_info.lastModified;
+      retries = 0;
+      // Pull from stream and store in buffer
+      unsigned int transfer_size = 0;
+      int transfer_handle = -1;
+      uint64_t transfer_pos = 0;
+      for(;;) {
+        if (transfer_handle == -1) {
+          if (!point.buffer->for_read(transfer_handle, transfer_size, true)) {
+            // No transfer buffer - must be failure or close initiated
+            // externally
+            break;
+          }
+        }
+        int l = transfer_size;
+        uint64_t pos = instream->Pos();
+        if(!instream->Get((*point.buffer)[transfer_handle],l)) {
+          //  Trying to find out if stream ended due to error
+          if(transfer_pos < instream->Size()) transfer_failure = true;
+          break;
+        }
+        point.buffer->is_read(transfer_handle, l, pos);
+        transfer_handle = -1;
+        transfer_pos = pos + l;
+      }
+      if (transfer_handle != -1) point.buffer->is_read(transfer_handle, 0, 0);
+      if (instream) delete instream;
+      // End of transfer - either success or not retrying transfer of whole body
+      break;
+    }
+    return !transfer_failure;
+  }
+
   void DataPointHTTP::read_thread(void *arg) {
     HTTPInfo_t& info = *((HTTPInfo_t*)arg);
     DataPointHTTP& point = *(info.point);
@@ -956,7 +1058,8 @@ using namespace Arc;
     int retries = 0;
     std::string path = point.CurrentLocation().FullPathURIEncoded();
     DataStatus failure_code;
-    for (;;) {
+    bool partial_read_allowed = (client_url.Option("httpgetpartial","yes") == "yes");
+    if(partial_read_allowed) for (;;) {
       if (!client) {
         transfer_failure = true;
         break;
@@ -1143,6 +1246,13 @@ using namespace Arc;
     }
     if (point.transfers_tofinish == 0) {
       // TODO: process/report failure?
+      if(!partial_read_allowed) {
+        // Reading in single chunk to be done in single thread
+        if(!read_single(arg)) {
+          transfer_failure = true;
+          point.buffer->error_read(true);
+        }
+      }
       point.buffer->eof_read(true);
     }
     point.release_client(client_url,client); client = NULL;

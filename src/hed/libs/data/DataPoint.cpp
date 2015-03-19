@@ -46,6 +46,7 @@ namespace Arc {
     valid_url_options.insert("transferprotocol");
     valid_url_options.insert("encryption");
     valid_url_options.insert("httpputpartial");
+    valid_url_options.insert("httpgetpartial");
     valid_url_options.insert("rucioaccount");
   }
 
