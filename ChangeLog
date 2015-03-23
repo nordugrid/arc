@@ -1,3 +1,7 @@
+2015-03-23  Christian Ulrik Søttrup <soettrup@nbi.dk>
+  * Changed scan-ll-job to use Luca's method. Should solve 3395 for Rod and improve performance.
+  * Added Luca to AUTHORS
+
 2015-03-19  Christian Ulrik Søttrup <soettrup@nbi.dk>
   * Fixed a possible double output of nodename to diag in PBS and SLURM
   * Added a baseline nodecount to diag file

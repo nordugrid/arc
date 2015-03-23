@@ -4,7 +4,31 @@
 # The script is called periodically by the grid-manager.
 #
 
-# ARC1 passes first the config file.
+# This function retrieve the jobs status and id in one shot
+# look for jobs which have a known status but are not completed (!=C)
+# and save the localid of these jobe in the string variable $outLocalIdsString
+# The input variable is a string list of localid to check.
+# Example of usage
+# get_bunch_jobs_status "$inLocalIdsString"
+
+outLocalIdsString=""
+get_bunch_jobs_status() {
+
+  #get the string list of jobs
+  loop=`$LL_BIN_PATH/llq -r %st %id $1`
+  for elm in $loop
+  do
+    if [ `echo $elm | grep '^[A-Z]\{1,2\}!.\+$'` ]; then
+      if [ ! `echo $elm | grep '^C!'` ]; then
+        outLocalIdsString=$outLocalIdsString" "`echo $elm | awk -F! '{ print $NF}'`
+      fi
+    fi
+  done
+}
+
+##################
+
+# ARC1 passes the config file first.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
 basedir=`dirname $0`
@@ -28,19 +52,25 @@ test -d "$control_dir" || exit 1
 
 my_id=`id -u`
 
-#for i in "$control_dir"/job.*.local
-find "$control_dir/processing" -maxdepth 1 -type f -name 'job.*.status' \
-| sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1.local/' \
-| while read i
+# mergedlist: array where each element is made of
+# key:value, where key is the arc jobid and value is the 
+# localid
+mergedlist=()
+# inLocalIdsString: in this string we save the localid retrived by from 
+# the arc .local file divided by space 
+inLocalIdsString=""
+
+findoutput=$(find "$control_dir/processing" -maxdepth 1 -type f -name 'job.*.status' | sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1.local/') 
+
+while read i
 do
+
   # Continue if no glob expansion or other problems
   test -f "$i" || continue
-
+  
   jobid=`basename $i .local|sed 's/^job.//'`
   donefile="${control_dir}/job.${jobid}.lrms_done"
   statusfile="${control_dir}/processing/job.${jobid}.status"
-  jobfile="${control_dir}/job.${jobid}.local"
-  errorsfile="${control_dir}/job.${jobid}.errors"
 
   # Continue if the job is already flagged as done?
   test -f "$donefile" && continue
@@ -56,16 +86,45 @@ do
   # Did we get a local id?
   test "$localid" = "" && continue
 
-  # Get job status
-  if status=`$LL_BIN_PATH/llq -l $localid|grep '^ *Status'`
-  then
-    status=`echo $status | sed 's/^ *Status: //'`
-    case "$status" in
-      		Completed) ;;
-     		 Canceled) continue;;
-                        *) continue;;
-    esac
+  # HACK: save the localid to be queried into inLocalIdsString
+  # associate the localid to its jobid and save them in a list
+  inLocalIdsString=$inLocalIdsString" "$localid
+  mergedlist+=("$jobid:$localid")
+
+done <<< "$findoutput"
+
+# Query the LoadLeveler for jobs 
+# and save the not completed into $outLocalIdsString
+# Call the funcion only if there is some into the string
+if [[ $inLocalIdsString =~ /^[0-9]|[a-z]|[A-Z]*$/ ]]; then
+  get_bunch_jobs_status "$inLocalIdsString"
+fi 
+
+
+# Start the loop based on element of the mergelist
+for element in ${mergedlist[@]}
+do
+
+  # Divide the jobid from the localid
+  jobid=`echo $element | awk '{split($0,a,":"); print a[1]}'`
+  localid=`echo $element | awk '{split($0,a,":"); print a[2]}'`
+
+  # Exclude the not completed jobs stored into the $outLocalIdsString
+  if [[ $outLocalIdsString == *$localid*  ]]
+  then 
+      continue
   fi
+
+  donefile="${control_dir}/job.${jobid}.lrms_done"
+  statusfile="${control_dir}/processing/job.${jobid}.status"
+  jobfile="${control_dir}/job.${jobid}.local"
+  errorsfile="${control_dir}/job.${jobid}.errors"
+
+  # Continue if the job is already flagged as done?
+  test -f "$donefile" && continue
+
+  if [ ! -f "$statusfile" ] ; then continue ; fi
+  gmstatus=`cat "$statusfile"`
 
   exitcode=''
 
