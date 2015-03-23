@@ -359,7 +359,7 @@ namespace Arc
                     vo_attr.NewChild("vo:Role")=str;
                   }
                   if((pos = attr.find("Capability=")) != std::string::npos) {
-                    std::string str = attr.substr(pos+5);
+                    std::string str = attr.substr(pos+11);
                     vo_attr.NewChild("vo:Capability")=str;
                   }
                 }
