@@ -854,11 +854,11 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
     }
     // Add common purpose URL options from configuration
     {
-      Arc::URL u(destination);
+      Arc::URL u(source);
       if (u) {
         u.AddOption("httpgetpartial", staging_conf.get_httpgetpartial()?"yes":"no", false);
         // Consider adding passive and secure here
-        destination = u.fullstr();
+        source = u.fullstr();
       }
     }
     std::string proxy_cred;
