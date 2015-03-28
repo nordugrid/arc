@@ -1,3 +1,9 @@
+2015-03-28  Gabor Roczei <roczei@niif.hu>
+  * Bugfix: adding correct free slot number to SLURM partition
+
+This can be usefuly in a 
+    multicore system where the jobs can use more than one core
+
 2015-03-23  Christian Ulrik Søttrup <soettrup@nbi.dk>
   * Changed scan-ll-job to use Luca's method. Should solve 3395 for Rod and improve performance.
   * Added Luca to AUTHORS

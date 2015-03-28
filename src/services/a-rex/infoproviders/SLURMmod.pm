@@ -248,7 +248,6 @@ sub queue_info ($) {
     # add this queue to the info tree
     $lrms_info->{queues}{$queue} = $lrms_queue;
 
-    #TODO available slots, not max jobs.
     $lrms_queue->{status} = $scont_config{"MaxJobCount"};
     $lrms_queue->{maxrunning} = $scont_config{"MaxJobCount"};
     $lrms_queue->{maxqueuable} = $scont_config{"MaxJobCount"};
@@ -264,6 +263,7 @@ sub queue_info ($) {
     $lrms_queue->{defaultwallt} = $maxtime;
     ($lrms_queue->{queued}, $lrms_queue->{running}) = slurm_get_jobs($queue);
     $lrms_queue->{totalcpus} = $scont_part{$queue}{TotalCPUs};
+    $lrms_queue->{freeslots} = $scont_part{$queue}{IdleCPUs};
     
 }
 
