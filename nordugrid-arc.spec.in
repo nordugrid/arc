@@ -1451,7 +1451,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %dir %{_localstatedir}/spool/arc
 %dir %{_localstatedir}/spool/arc/ssm
 %dir %{_localstatedir}/spool/arc/urs
-%if %{with_python}
 %{_libexecdir}/%{pkgdir}/ssmsend
 %dir %{_datadir}/%{pkgdir}/ssm
 %{_datadir}/%{pkgdir}/ssm/__init__.py*
@@ -1459,7 +1458,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/ssm/ssm2.py*
 %{_datadir}/%{pkgdir}/ssm/brokers.py*
 %{_datadir}/%{pkgdir}/ssm/sender.cfg
-%endif
 
 %if %{with_acix}
 %files acix-core

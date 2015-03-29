@@ -4,7 +4,7 @@ else
 ARC0 =
 endif
 
-if PYTHON_ENABLED
+if PYTHON_SWIG_ENABLED
 PYTHONBROKER = PythonBroker
 else
 PYTHONBROKER =

@@ -640,12 +640,6 @@ if test "$enables_python" = "yes"; then
   if test "X$PYTHON" = "X"; then
     AC_MSG_NOTICE([Missing Python - skipping Python components])
     enables_python=no
-  elif test "X$PYTHON_LIBS" = "X"; then
-    AC_MSG_NOTICE([Missing Python library - skipping Python components])
-    enables_python=no
-  elif test "X$pythonh" != "Xyes"; then
-    AC_MSG_NOTICE([Missing Python header - skipping Python components])
-    enables_python=no
   elif test "X$PYTHON_SITE_ARCH" = "X" || test "X$PYTHON_SITE_LIB" = "X"; then
     AC_MSG_NOTICE([Missing python site packages location - skipping Python components])
     enables_python=no
@@ -655,6 +649,12 @@ if test "$enables_python" = "yes"; then
 
   if test "x$enables_python" != "xyes"; then
     AC_MSG_NOTICE([Missing Python - skipping Python bindings])
+    enables_swig_python=no
+  elif test "X$PYTHON_LIBS" = "X"; then
+    AC_MSG_NOTICE([Missing Python library - skipping Python bindings])
+    enables_swig_python=no
+  elif test "X$pythonh" != "Xyes"; then
+    AC_MSG_NOTICE([Missing Python header - skipping Python bindings])
     enables_swig_python=no
   elif ! test -f python/arc_wrap.cpp && test "x$enables_swig_python" != "xyes"; then
     AC_MSG_NOTICE([Missing pre-compiled Python wrapper and SWIG - skipping Python bindings])
@@ -670,7 +670,7 @@ AC_MSG_NOTICE([Python SWIG bindings enabled: $enables_swig_python])
 AM_CONDITIONAL([PYTHON_ENABLED],[test "x$enables_python" = "xyes"])
 AM_CONDITIONAL([PYTHON3], [test "x$enables_python" = "xyes" && test "x$PYTHON_MAJOR" = "x3"])
 AM_CONDITIONAL([PYTHON_SWIG_ENABLED],[test "x$enables_swig_python" = "xyes"])
-AM_CONDITIONAL([PYTHON_SERVICE],[test "x$enables_python" = "xyes" &&
+AM_CONDITIONAL([PYTHON_SERVICE],[test "x$enables_swig_python" = "xyes" &&
                                  test "x$enables_python_service" = "xyes"])
 
 # Alternative Python
