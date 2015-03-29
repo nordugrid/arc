@@ -685,7 +685,6 @@ ARC xrootd plugins. These allow access to data through the xrootd protocol.
 
 %if %{with_gfal}
 %package plugins-gfal
-
 Summary:	ARC GFAL plugins
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
@@ -1275,8 +1274,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_bindir}/arcresub
 %{_bindir}/arcresume
 %{_bindir}/arcrm
-%if %{with_xmlsec1}
-%endif
 %{_bindir}/arcstat
 %{_bindir}/arcsub
 %{_bindir}/arcsync
@@ -1298,8 +1295,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/arcresub.1*
 %doc %{_mandir}/man1/arcresume.1*
 %doc %{_mandir}/man1/arcrm.1*
-%if %{with_xmlsec1}
-%endif
 %doc %{_mandir}/man1/arcstat.1*
 %doc %{_mandir}/man1/arcsub.1*
 %doc %{_mandir}/man1/arcsync.1*
