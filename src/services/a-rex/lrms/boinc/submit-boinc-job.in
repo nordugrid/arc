@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # set -x
 #
 #  Input: path to grami file (same as Globus).
@@ -324,7 +324,7 @@ echo "chmod g+r " '`bin/dir_hier_path' $(basename $LRMS_JOB_SCRIPT)'`' >>$LRMS_J
 echo "ln $RTE_LOCATION " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
 echo "chmod g+r " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
 
-[[ -L $RootFile ]] && RootFile=`ls -l $RootFile|awk '{print $11}'`
+[ -L $RootFile ] && RootFile=`ls -l $RootFile|awk '{print $11}'`
 echo "ln  $RootFile "'`bin/dir_hier_path' $Root_basename '`' >> $LRMS_JOB_BOINC
 echo "chmod g+r "'`bin/dir_hier_path ' $Root_basename '`' >> $LRMS_JOB_BOINC
 
