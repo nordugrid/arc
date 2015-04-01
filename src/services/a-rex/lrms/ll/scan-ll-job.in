@@ -1,4 +1,4 @@
-#!@posix_shell@
+#!/bin/bash
 
 # Helper script to flag done LoadLeveler jobs.
 # The script is called periodically by the grid-manager.
