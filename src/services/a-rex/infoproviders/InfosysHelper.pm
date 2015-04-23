@@ -53,6 +53,8 @@ sub uidGidFromFile {
 
 #
 # switch effective user if possible. This is reversible.
+# It switches back to root if the passed parameter
+# is 0.
 #
 sub switchEffectiveUser {
     my ($uid) = @_;
@@ -62,7 +64,12 @@ sub switchEffectiveUser {
         eval { $EGID = $gid;
                $EUID = $uid;
         };
-    }
+    # Switch back to original UID/GID
+	} else {
+		eval { $EGID = $GID;
+               $EUID = $UID;
+        };
+    };
 }
 
 #
