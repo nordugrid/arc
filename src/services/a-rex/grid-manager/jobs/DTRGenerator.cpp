@@ -713,7 +713,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
         }
         // Remove trailing slashes otherwise it will be cleaned in delete_all_files
         std::string::size_type pos = it->pfn.find_last_not_of('/');
-        it->pfn.resize((pos == std::string::npos)?0:(pos+1));
+        it->pfn.resize((pos == std::string::npos)?1:(pos+1));
       }
       ++it;
     }
