@@ -301,11 +301,12 @@ namespace Arc
     //NOTE! original JARM used "GlobalUserId"
     if (find("usersn")!=end())
       {
+        ur.NewChild("UserIdentity");
         if (find("localuser")!=end())
           ur["UserIdentity"].NewChild("LocalUserId")=
             (*this)["localuser"];
 
-        ur.NewChild("UserIdentity").NewChild("GlobalUserName")=
+        ur["UserIdentity"].NewChild("GlobalUserName")=
           (*this)["usersn"];
       }
     
