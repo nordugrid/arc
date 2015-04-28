@@ -68,7 +68,9 @@ echo "#$ -o ${joboption_directory}/.comment" >> $LRMS_JOB_SCRIPT
 ##############################################################
 if [ ! -z "$joboption_priority" ]; then
   #first we must scale priority.  SGE: -1023 -> 1024 ARC: 0-100
-  priority=$((joboption_priority * (1024+1023) / 100))
+  #user can only decrease priority: i.e. -1023 -> 0 (info from gsciacca@lhep.unibe.ch)
+  #Same problem as SLURM. We can only prioritize grid jobs. Locally submitted jobs will get highest priority.
+  priority=$((joboption_priority * 1023/ 100))
   priority=$((priority-1023))
   echo "#$ -p ${priority}" >> $LRMS_JOB_SCRIPT
 fi

@@ -76,7 +76,7 @@ if [ ! -z "$joboption_priority" ]; then
   #Slurm priority is -10000 to 10000. Lower is better.
   #Default is 0, and only superusers can assign priorities 
   #less than 0.
-  #We set the priority as 100 - arc piority.
+  #We set the priority as 100 - arc priority.
   #This will have the desired effect for all grid jobs
   #Local jobs will unfortunatly have a default priority equal 
   #to ARC priority 100, but there is no way around that.
