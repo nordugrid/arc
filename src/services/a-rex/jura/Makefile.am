@@ -11,6 +11,7 @@ SUBDIRS = $(APEL_CLIENT)
 DIST_SUBDIRS = ssm
 
 jura_SOURCES = jura.cpp jura.h UsageReporter.cpp UsageReporter.h \
+	Reporter.h ReReporter.cpp ReReporter.h \
 	JobLogFile.cpp JobLogFile.h Destinations.cpp Destinations.h \
 	Destination.cpp Destination.h LutsDestination.cpp LutsDestination.h \
         ApelDestination.cpp ApelDestination.h CARDestination.cpp CARDestination.h \

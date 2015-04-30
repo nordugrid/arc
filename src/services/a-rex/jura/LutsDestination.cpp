@@ -11,17 +11,40 @@
 
 namespace Arc
 {
+  LutsDestination::LutsDestination(std::string url_, std::string vo_filter_):
+    logger(Arc::Logger::rootLogger, "JURA.LutsReReporter"),
+    urn(0),
+    usagerecordset(Arc::NS("","http://schema.ogf.org/urf/2003/09/urf"),
+                   "UsageRecords")
+  {
+    init(url_,"","","");
+  }
+
   LutsDestination::LutsDestination(JobLogFile& joblog):
     logger(Arc::Logger::rootLogger, "JURA.LutsDestination"),
     urn(0),
     usagerecordset(Arc::NS("","http://schema.ogf.org/urf/2003/09/urf"),
                    "UsageRecords")
   {
+    init(joblog["loggerurl"], joblog["certificate_path"], joblog["key_path"], joblog["ca_certificates_dir"]);
+
+    //From jobreport_options:
+    std::string urbatch=joblog["jobreport_option_urbatch"];
+    if (!urbatch.empty())
+      {
+        std::istringstream is(urbatch);
+        is>>max_ur_set_size;
+      }
+
+  }
+
+  void LutsDestination::init(std::string serviceurl_, std::string cert_, std::string key_, std::string ca_)
+  {
     //Get service URL, cert, key, CA path from job log file
-    std::string serviceurl=joblog["loggerurl"];
-    std::string certfile=joblog["certificate_path"];
-    std::string keyfile=joblog["key_path"];
-    std::string cadir=joblog["ca_certificates_dir"];
+    std::string serviceurl=serviceurl_;
+    std::string certfile=cert_;
+    std::string keyfile=key_;
+    std::string cadir=ca_;
     // ...or get them from environment
     if (certfile.empty())
       certfile=Arc::GetEnv("X509_USER_CERT");
@@ -76,14 +99,6 @@ namespace Arc
     //Get Batch Size:
     //Default value:
     max_ur_set_size=JURA_DEFAULT_MAX_UR_SET_SIZE;
-    //From jobreport_options:
-    std::string urbatch=joblog["jobreport_option_urbatch"];
-    if (!urbatch.empty())
-      {
-        std::istringstream is(urbatch);
-        is>>max_ur_set_size;
-      }
-
   }
 
   void LutsDestination::report(Arc::JobLogFile &joblog)
@@ -108,6 +123,28 @@ namespace Arc
           }
       }
     
+    if (urn==max_ur_set_size)
+      // Batch is full. Submit and delete job log files.
+      submit_batch();
+  }
+
+  void LutsDestination::report(std::string &joblog)
+  {
+    //Create UR if can
+    //Arc::XMLNode usagerecord(Arc::NS(), "");
+    Arc::XMLNode usagerecord;
+    usagerecord.ReadFromFile(joblog);
+    if (usagerecord)
+      {
+        usagerecordset.NewChild(usagerecord);
+        ++urn;
+      }
+    else
+      {
+        logger.msg(Arc::INFO,"Ignoring incomplete log file \"%s\"",
+                   joblog.c_str());
+      }
+
     if (urn==max_ur_set_size)
       // Batch is full. Submit and delete job log files.
       submit_batch();

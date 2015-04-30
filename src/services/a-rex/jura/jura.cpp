@@ -22,7 +22,9 @@
 #include <arc/win32.h>
 #endif
 
+#include "Reporter.h"
 #include "UsageReporter.h"
+#include "ReReporter.h"
 #include "CARAggregation.h"
 
 
@@ -44,11 +46,13 @@ int main(int argc, char **argv)
   bool aggregation  = false;
   bool sync = false;
   bool force_resend = false;
+  bool ur_resend = false;
+  std::string resend_range = "";
   std::string year  = "";
   std::string month = "";
   std::string vo_filters=""; 
   int n;
-  while((n=getopt(argc,argv,":E:u:t:o:y:F:m:afsvL")) != -1) {
+  while((n=getopt(argc,argv,":E:u:t:o:y:F:m:r:afsvL")) != -1) {
     switch(n) {
     case ':': { std::cerr<<"Missing argument\n"; return 1; }
     case '?': { std::cerr<<"Unrecognized option\n"; return 1; }
@@ -88,6 +92,10 @@ int main(int argc, char **argv)
       break;
     case 'm':
       month = (std::string(optarg));
+      break;
+    case 'r':
+      ur_resend = true;
+      resend_range = (std::string(optarg));
       break;
     case 'f':
       std::cout << "Force resend all aggregation records." << std::endl;
@@ -154,12 +162,20 @@ int main(int argc, char **argv)
 
   // The essence:
   int argind;
-  Arc::UsageReporter *usagereporter;
+  Arc::Reporter *usagereporter;
   for (argind=optind ; argind<argc ; ++argind)
     {
-      usagereporter=new Arc::UsageReporter(
+      if ( ur_resend ) {
+          std::cerr << "resend opt:" << resend_range << std::endl;
+          usagereporter=new Arc::ReReporter(
+                          std::string(argv[argind]),
+                          resend_range, urls, topics, vo_filters );
+
+      } else {
+          usagereporter=new Arc::UsageReporter(
                           std::string(argv[argind])+"/logs",
                           ex_period, urls, topics, vo_filters, output_dir );
+      }
       usagereporter->report();
       delete usagereporter;
     }

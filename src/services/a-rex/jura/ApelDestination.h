@@ -29,6 +29,7 @@ namespace Arc
     std::string output_dir;
     /** Max number of URs to put in a set before submitting it */
     int max_ur_set_size;
+    bool rereport;
     /** Require to set to ture this option by production message broker */
     std::string use_ssl;
     /** Actual number of usage records in set */
@@ -41,7 +42,7 @@ namespace Arc
     Arc::XMLNode usagerecordset;
     CARAggregation* aggregationManager;
 
-    
+    void init(std::string serviceurl_, std::string topic_, std::string outputdir_, std::string cert_, std::string key_, std::string ca_);
     int submit_batch();
     Arc::MCC_Status send_request(const std::string &urset);
     void clear();
@@ -51,10 +52,12 @@ namespace Arc
      *  batch size) are extracted from the given job log file.
      */
     ApelDestination(JobLogFile& joblog);
+    ApelDestination(std::string url_, std::string topic_);
     /** Generates record from job log file content, collects it into the
      *  UR batch, and if batch is full, submits it to the service. 
      */
     void report(JobLogFile& joblog);
+    void report(std::string& joblog);
     void finish();
     ~ApelDestination();
   };

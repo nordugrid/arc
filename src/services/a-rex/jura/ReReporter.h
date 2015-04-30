@@ -1,5 +1,5 @@
-#ifndef _USAGEREPORTER_H
-#define _USAGEREPORTER_H
+#ifndef _REREPORTER_H
+#define _REREPORTER_H
 
 #include <time.h>
 
@@ -13,7 +13,7 @@
 #endif
 
 #include "Reporter.h"
-#include "Destinations.h"
+#include "Destination.h"
 
 namespace Arc
 {
@@ -21,30 +21,30 @@ namespace Arc
    *  of the given control directory, and reports usage data extracted from 
    *  job log files within.
    */
-  class UsageReporter:public Reporter
+  class ReReporter:public Reporter
   {
   private:
     Arc::Logger logger;
-    Arc::Destinations *dests;
-    /** Directory where A-REX puts job logs */
-    std::string job_log_dir;
-    time_t expiration_time;
+    Arc::Destination *dest;
+    /** Directory where A-REX puts archived job logs */
+    std::string archivedjob_log_dir;
+    struct tm* start;
+    struct tm* end;
     std::vector<std::string> urls; 
     std::vector<std::string> topics;
     std::string vo_filters;
-    std::string out_dir;
+    std::string regexp;
   public:
     /** Constructor. Gets the job log dir and the expiration time in seconds.
      *  Default expiration time is infinity (represented by zero value).
      */
-    UsageReporter(std::string job_log_dir_, time_t expiration_time_=0,
+    ReReporter(std::string archivedjob_log_dir_, std::string time_range_="",
                   std::vector<std::string> urls_=std::vector<std::string>(),
                   std::vector<std::string> topics_=std::vector<std::string>(),
-                  std::string vo_filters_="",
-                  std::string out_dir_="");
+                  std::string vo_filters_="");
     /** Processes job log files in '<control_dir>/logs'. */
     int report();
-    ~UsageReporter();
+    ~ReReporter();
   };
 
 }

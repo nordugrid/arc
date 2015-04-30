@@ -32,6 +32,7 @@ namespace Arc
     /** Usage Record set XML */
     Arc::XMLNode usagerecordset;
     
+    void init(std::string serviceurl_, std::string cert_, std::string key_, std::string ca_);
     int submit_batch();
     Arc::MCC_Status send_request(const std::string &urset);
     void clear();
@@ -41,10 +42,12 @@ namespace Arc
      *  batch size) are extracted from the given job log file.
      */
     LutsDestination(JobLogFile& joblog);
+    LutsDestination(std::string url_, std::string vo_filter_);
     /** Generates record from job log file content, collects it into the
      *  UR batch, and if batch is full, submits it to the service. 
      */
     void report(JobLogFile& joblog);
+    void report(std::string& joblog);
     void finish();
     ~LutsDestination();
   };

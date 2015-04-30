@@ -14,8 +14,22 @@
 
 namespace Arc
 {
+  ApelDestination::ApelDestination(std::string url_, std::string topic_):
+    logger(Arc::Logger::rootLogger, "JURA.ApelReReporter"),
+    rereport(true),
+    use_ssl("true"),
+    urn(0),
+    sequence(0),
+    usagerecordset(Arc::NS("","http://eu-emi.eu/namespaces/2012/11/computerecord"),
+                   "UsageRecords")
+
+  {
+    init(url_.substr(5), topic_, "", "", "", "");
+  }
+
   ApelDestination::ApelDestination(JobLogFile& joblog):
     logger(Arc::Logger::rootLogger, "JURA.ApelDestination"),
+    rereport(false),
     use_ssl("false"),
     urn(0),
     sequence(0),
@@ -23,13 +37,32 @@ namespace Arc
                    "UsageRecords")
 
   {
+    init(joblog["loggerurl"].substr(5), joblog["topic"], joblog["outputdir"], joblog["certificate_path"], joblog["key_path"], joblog["ca_certificates_dir"]);
+
+    //From jobreport_options:
+    std::string urbatch=joblog["jobreport_option_urbatch"];
+    if (!urbatch.empty())
+      {
+         std::istringstream is(urbatch);
+        is>>max_ur_set_size;
+      }
+    std::string o_use_ssl=joblog["jobreport_option_use_ssl"];
+    std::transform(o_use_ssl.begin(), o_use_ssl.end(), o_use_ssl.begin(), tolower);
+    if (o_use_ssl == "true")
+      {
+          use_ssl="true";
+      }
+  }
+
+  void ApelDestination::init(std::string serviceurl_,std::string topic_, std::string outputdir_, std::string cert_, std::string key_, std::string ca_)
+  {
     //Get service URL, cert, key, CA path from job log file
-    std::string serviceurl=joblog["loggerurl"].substr(5);
-    topic=joblog["topic"];
-    output_dir=joblog["outputdir"];
-    std::string certfile=joblog["certificate_path"];
-    std::string keyfile=joblog["key_path"];
-    std::string cadir=joblog["ca_certificates_dir"];
+    std::string serviceurl=serviceurl_;
+    topic=topic_;
+    output_dir=outputdir_;
+    std::string certfile=cert_;
+    std::string keyfile=key_;
+    std::string cadir=ca_;
     // ...or get them from environment
     if (certfile.empty())
       certfile=Arc::GetEnv("X509_USER_CERT");
@@ -72,24 +105,12 @@ namespace Arc
       }
 
     //read the previous aggregation records
-    aggregationManager = new CARAggregation(host,port,topic, true);
+    if (!rereport)
+        aggregationManager = new CARAggregation(host,port,topic, true);
 
     //Get Batch Size:
     //Default value:
     max_ur_set_size=JURA_DEFAULT_MAX_APEL_UR_SET_SIZE;
-    //From jobreport_options:
-    std::string urbatch=joblog["jobreport_option_urbatch"];
-    if (!urbatch.empty())
-      {
-         std::istringstream is(urbatch);
-        is>>max_ur_set_size;
-      }
-    std::string o_use_ssl=joblog["jobreport_option_use_ssl"];
-    std::transform(o_use_ssl.begin(), o_use_ssl.end(), o_use_ssl.begin(), tolower);
-    if (o_use_ssl == "true")
-      {
-          use_ssl="true";
-      }
   }
 
   void ApelDestination::report(Arc::JobLogFile &joblog)
@@ -120,12 +141,36 @@ namespace Arc
       submit_batch();
   }
 
+  void ApelDestination::report(std::string &joblog)
+  {
+    //Create UR if can
+    //Arc::XMLNode usagerecord(Arc::NS(), "");
+    Arc::XMLNode usagerecord;
+    usagerecord.ReadFromFile(joblog);
+    if (usagerecord)
+      {
+        usagerecordset.NewChild(usagerecord);
+        ++urn;
+        //aggregationManager->UpdateAggregationRecord(usagerecord);
+      }
+    else
+      {
+        logger.msg(Arc::INFO,"Ignoring incomplete log file \"%s\"",
+                   joblog.c_str());
+      }
+
+    if (urn==max_ur_set_size)
+      // Batch is full. Submit and delete job log files.
+      submit_batch();
+  }
+
   void ApelDestination::finish()
   {
     if (urn>0)
       // Send the remaining URs and delete job log files.
       submit_batch();
-    delete aggregationManager;
+    if (!rereport)
+        delete aggregationManager;
   }
 
   int ApelDestination::submit_batch()
@@ -145,10 +190,12 @@ namespace Arc
 
     if (status.isOk())
       {
-        // Save the modified aggregation records
-        aggregationManager->save_records();
-        // Reported the new synch record
-        aggregationManager->Reporting_records();
+        if (!rereport) {
+            // Save the modified aggregation records
+            aggregationManager->save_records();
+            // Reported the new synch record
+            aggregationManager->Reporting_records();
+        }
 
         // Delete log files
         for (std::list<JobLogFile>::iterator jp=joblogs.begin();

@@ -17,6 +17,8 @@ namespace Arc
   public:
     /** Reports the job log file content to the destination. */
     virtual void report(Arc::JobLogFile &joblog)=0;
+    /** Reports the archived job log file content to the destination. */
+    virtual void report(std::string &joblog) {};
     /** Finishes pending submission of records. */
     virtual void finish() {};
     virtual ~Destination() {}
