@@ -91,7 +91,7 @@ declare -a jobstates
 # Array to store localids of jobs that are determined to have finished, which are sent to gm-kick
 declare -a kicklist
 # Array with jobid blocks 
-declare Ã-a lidblocks
+declare -a lidblocks
 
 # Find list of grid jobs with status INLRMS, store localid and
 # basename for those jobs
