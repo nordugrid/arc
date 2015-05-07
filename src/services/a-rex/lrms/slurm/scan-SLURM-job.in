@@ -90,6 +90,8 @@ declare -a basenames
 declare -a jobstates
 # Array to store localids of jobs that are determined to have finished, which are sent to gm-kick
 declare -a kicklist
+# Array with jobid blocks 
+declare Ã-a lidblocks
 
 # Find list of grid jobs with status INLRMS, store localid and
 # basename for those jobs
@@ -112,9 +114,14 @@ if [ ${#localids[@]} -eq 0 ]; then
     exit 0
 fi
 
+# Distribute localids into block so that we don't exceed max command line length
+for jids in `echo "${localids[@]}" | xargs -n 4000 | tr ' ' ,`; do
+  lidblocks[${#lidblocks[@]}]=$jids
+done
+
+
 # Get JobStates from SLURM
-jobstate_squeue=$($squeue -a -h -o "%i:%T" -t all \
-    -j $(echo "${localids[@]}" | tr ' ' ,))\
+jobstate_squeue=$(echo "$lidblocks[@] | xargs -n 1 $squeue -a -h -o "%i:%T" -t all -j )\
     || { echo "squeue failed" 1>&2; exit 1; }
 
 for record in $jobstate_squeue; do
