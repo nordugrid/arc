@@ -45,8 +45,15 @@ void ARexService::InformationCollector(void) {
       logger_.msg(Arc::DEBUG,"Resource information provider: %s",cmd);
       if(!run.Start()) {
       };
+      int failedstat = 0;
+      bool infoproviderhastimedout = false;
       while(!run.Wait(infoprovider_wakeup_period_)) {
-        logger_.msg(Arc::WARNING,"Resource information provider timed out: %u seconds. Checking heartbeat file...",
+        if (!infoproviderhastimedout) {
+			logger_.msg(Arc::WARNING,"Resource information provider timed out: %u seconds. Using heartbeat file from now on... Consider increasing infoproviders_timeout in arc.conf",
+                    infoprovider_wakeup_period_);
+            infoproviderhastimedout = true;
+        }
+        logger_.msg(Arc::DEBUG,"Resource information provider timed out: %u seconds. Checking heartbeat file...",
                     infoprovider_wakeup_period_);
         /* check freshness of heartbeat file. If no infoprovider created a new file during the run, performance is not acceptable,
         and can proceed to kill.
@@ -57,8 +64,13 @@ void ARexService::InformationCollector(void) {
         struct stat buf;
         bool statresult;
         statresult=Arc::FileStat(heartbeatFileName, &buf, false);
-        if (!statresult) {
-			logger_.msg(Arc::WARNING,"Cannot stat %s. Are infoproviders running?", heartbeatFileName);
+        if ( !statresult ) {
+			failedstat++;
+			if (failedstat == 1) {
+				logger_.msg(Arc::WARNING,"Cannot stat %s. Are infoproviders running? This message will not be repeated.", heartbeatFileName);
+			} else {
+				logger_.msg(Arc::DEBUG,"Cannot stat %s. Are infoproviders running? It happened already %d times.", heartbeatFileName, failedstat);
+			}
 		} else {
 			time_t now;
 			time(&now);
