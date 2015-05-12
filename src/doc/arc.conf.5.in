@@ -1001,7 +1001,7 @@ logfile to combine the logs. Default is /var/log/arc/ws-interface.log.
 
 .IR Example:
 .br
-logfile="/var/log/arc/ws-interface.log"
+wslogfile="/var/log/arc/ws-interface.log"
 
 .TP
 .B logsize
