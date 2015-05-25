@@ -115,6 +115,9 @@ sub get_gmjobs {
 
     my %gmjobs;
 
+    my $jobstoscan = 0;
+    my $jobsskipped = 0;
+
     # read the list of jobs from the jobdir and create the @gridmanager_jobs
     # the @gridmanager_jobs contains the IDs from the job.ID.status
 
@@ -127,6 +130,10 @@ sub get_gmjobs {
     closedir JOBDIR;
 
     my @gridmanager_jobs = map {$_=~m/job\.(.+)\.status/; $_=$1;} @allfiles;
+
+    # count job IDs to scan
+    $jobstoscan = $jobstoscan + @gridmanager_jobs;
+    $log->verbose("Found ". scalar @gridmanager_jobs. " jobs in $controlsubdir");
 
     foreach my $ID (@gridmanager_jobs) {
 
@@ -142,6 +149,7 @@ sub get_gmjobs {
         unless ( open (GMJOB_LOCAL, "<$gmjob_local") ) {
             $log->warning( "Job $ID: Can't read jobfile $gmjob_local, skipping job" );
             delete $gmjobs{$ID};
+            $jobsskipped++;
             next;
         }
         my @local_allines = <GMJOB_LOCAL>;
@@ -161,7 +169,7 @@ sub get_gmjobs {
         }
         close GMJOB_LOCAL;
 
-        # Extract jobID uri
+        # Extrasct jobID uri
         if ($job->{globalid}) {
             $job->{globalid} =~ s/.*JobSessionDir>([^<]+)<.*/$1/;
         } else {
@@ -185,6 +193,7 @@ sub get_gmjobs {
         unless (open (GMJOB_STATUS, "<$gmjob_status")) {
             $log->warning("Job $ID: Can't open status file $gmjob_status, skipping job");
             delete $gmjobs{$ID};
+            $jobsskipped++;
             next;
         } else {
             my @file_stat = stat GMJOB_STATUS;
@@ -194,6 +203,7 @@ sub get_gmjobs {
             unless ($first_line) {
                 $log->warning("Job $ID: Failed to read status from file $gmjob_status, skipping job");
                 delete $gmjobs{$ID};
+                $jobsskipped++;
                 next;
             }
             chomp ($first_line);
@@ -366,7 +376,9 @@ sub get_gmjobs {
     } # job ID loop
 
     } # controlsubdir loop
-
+ 
+    $log->verbose("Number of jobs to scan: $jobstoscan ; Number of jobs skipped: $jobsskipped");
+   
     return \%gmjobs;
 }
 
