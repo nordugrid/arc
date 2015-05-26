@@ -89,9 +89,9 @@ std::vector<std::string> split(const std::string &s, char delim) {
             } 
         }
       }
-    logger.msg(Arc::VERBOSE, "Requested time range: %d.%d.%d-%d.%d.%d ",
+    logger.msg(Arc::VERBOSE, "Requested time range: %d.%d.%d. 0:00 - %d.%d.%d. %d:%d ",
                start->tm_year, start->tm_mon, start->tm_mday,
-               end->tm_year, end->tm_mon, end->tm_mday);
+               end->tm_year, end->tm_mon, end->tm_mday, end->tm_hour, end->tm_min);
     //Collection of logging destinations:
     if (!urls.empty())
       {
