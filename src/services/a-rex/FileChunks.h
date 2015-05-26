@@ -38,7 +38,7 @@ class FileChunks {
   void Print(void);
   /// Release reference obtained through FileChunksList::Get() method. 
   /// This operation may lead to destruction of FileChunk instance
-  /// hence previously obtained refrence mus tnot be used.
+  /// hence previously obtained refrence must not be used.
   void Release(void);
   /// Relases reference obtained through Get() method and destroys its instance.
   /// Normally this method to be called instead of Release() after whole 

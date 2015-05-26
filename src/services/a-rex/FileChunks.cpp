@@ -83,10 +83,10 @@ FileChunks* FileChunksList::GetFirst(void) {
 */
 
 void FileChunks::Remove(void) {
+  list.lock.lock();
   lock.lock();
   --refcount;
   if(refcount <= 0) {
-    list.lock.lock();
     if(self != list.files.end()) {
       lock.unlock();
       delete self->second;
@@ -94,9 +94,9 @@ void FileChunks::Remove(void) {
       list.lock.unlock();
       return;
     }
-    list.lock.unlock();
   }
   lock.unlock();
+  list.lock.unlock();
 }
 
 FileChunks& FileChunksList::Get(std::string path) {
