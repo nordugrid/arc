@@ -60,10 +60,14 @@ std::vector<std::string> split(const std::string &s, char delim) {
     start->tm_year = aTime->tm_year + 1900;
     start->tm_mon  = aTime->tm_mon + 1;
     start->tm_mday = 1;
+    start->tm_hour = 0;
+    start->tm_min  = 0;
     end = new tm();
     end->tm_year   = start->tm_year;
     end->tm_mon    = start->tm_mon;
     end->tm_mday   = 31;
+    end->tm_hour   = 23;
+    end->tm_min    = 59;
     if (!time_range_.empty())
       {
         logger.msg(Arc::VERBOSE, "Incoming time range: %s", time_range_);
