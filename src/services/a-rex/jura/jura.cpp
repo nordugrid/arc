@@ -35,7 +35,7 @@ int main(int argc, char **argv)
   signal(SIGTTIN,SIG_IGN);
 
   Arc::LogStream logcerr(std::cerr);
-  logcerr.setFormat(Arc::ShortFormat);
+  logcerr.setFormat(Arc::LongFormat);
   Arc::Logger::rootLogger.addDestination(logcerr);
 
   opterr=0;
