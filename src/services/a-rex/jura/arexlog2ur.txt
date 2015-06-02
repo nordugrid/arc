@@ -43,7 +43,7 @@ Memory:              Memory
   physical,average     Physical, average      usedaverageresident
 Swap:                Swap                     [MISSING]                usedswap
 NodeCount:           NodeCount                nodecount                nodecount              NodeCount
-Processors:          Processors               [MISSING]                processors             Processors
+Processors:          Processors               processors               processors             Processors
 
 TimeDuration:                                 [MISSING]
 TimeInstant:         TimeInstant              [MISSING]
