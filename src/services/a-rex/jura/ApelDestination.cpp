@@ -375,7 +375,8 @@ namespace Arc
     } else {
         return Arc::MCC_Status(Arc::GENERIC_ERROR,
                                "apelclient",
-                               "Some error has during the APEL message sending.");
+                               "Some error has during the APEL message sending. \
+                                See SSM log (/var/spool/arc/ssm/ssmsend.log) for more details.");
     }
   }
 
