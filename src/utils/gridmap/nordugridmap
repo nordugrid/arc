@@ -166,6 +166,13 @@ my $gridvomapfile   = $parsedconfig{'nordugridmap'}{'vomapfile'} ||
 my $default_mapfile = $parsedconfig{'nordugridmap'}{'gridmap'} ||
                       $parsedconfig{'common'}{'gridmap'} ||
                       "/etc/grid-security/grid-mapfile";
+my $mapfile_owner   = $parsedconfig{'nordugridmap'}{'gridmap_owner'} ||
+                      $parsedconfig{'grid-manager'}{'user'} ||
+                      "root";
+my $mapfile_group   = $parsedconfig{'nordugridmap'}{'gridmap_group'} ||
+                      "root";
+my $mapfile_chmod   = $parsedconfig{'nordugridmap'}{'gridmap_permissions'} || 
+                      "0600";
 my $logfile         = $parsedconfig{'nordugridmap'}{'logfile'} ||
                       "/var/log/arc/nordugridmap.log";
 my $cachedir        = $parsedconfig{'nordugridmap'}{'cachedir'} ||
@@ -268,7 +275,7 @@ if ( $config_flags{'generate_vomapfile'} ) {
 if ( $opt_test ) {
     &write_mapfiles_data(\%mapfile_data, 1);
 } else {
-    &write_mapfiles_data(\%mapfile_data);
+    &write_mapfiles_data(\%mapfile_data, 0, $mapfile_owner, $mapfile_group, $mapfile_chmod);
 }
 
 # END OF MAIN ROUTINE :-)
@@ -579,7 +586,7 @@ sub process_vo_blocks {
 
 # write mapfiles to disk
 sub write_mapfiles_data {
-    my ( $ref_mapfile_data, $dryrun) = @_;
+    my ( $ref_mapfile_data, $dryrun, $owner, $group, $chmod ) = @_;
 
     foreach my $mapfile ( keys %$ref_mapfile_data ) {
         unless ( $dryrun ) {
@@ -593,6 +600,10 @@ sub write_mapfiles_data {
             }
 
             close($gmf);
+	    my $uid = getpwnam($owner);
+	    my $gid = getgrnam($group);
+            chown $uid, $gid, $tmp_mapfile;
+            chmod oct($chmod), $tmp_mapfile;
             rename $tmp_mapfile, $mapfile;
         } else {
             my $gmf_string = "";

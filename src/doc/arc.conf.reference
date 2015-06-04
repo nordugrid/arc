@@ -2223,6 +2223,16 @@
 ## option. Default is '/etc/grid-security/certificates/'.
 #x509_cert_dir="/etc/grid-security/certificates/"
 
+## gridmap_owner username - owner of generated gridmapfiles. 
+## Default is a owner of grid-manager process (default is 'root').
+#gridmap_owner="root"
+## gridmap_group groupname - group of generated gridmapfiles.
+## Default is 'root'
+#gridmap_group="root"
+## gridmap_permissions filemode - permissions of generated gridmapfiles.
+## Default is '0600'
+#gridmap_permissions="0600"
+
 ## generate_vomapfile - control is nordugridmap will generate
 ## vo-mapfile used by arc-ur-logger. Default is 'yes'.
 #generate_vomapfile="yes"
