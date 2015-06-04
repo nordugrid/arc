@@ -190,6 +190,7 @@ namespace Arc
 
     if (status.isOk())
       {
+        log_sent_ids(usagerecordset, urn, logger, "APEL");
         if (!rereport) {
             // Save the modified aggregation records
             aggregationManager->save_records();

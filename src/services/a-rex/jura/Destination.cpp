@@ -108,5 +108,24 @@ namespace Arc
     }
     return Arc::MCC_Status(STATUS_OK);
   }
+  
+  void Destination::log_sent_ids(Arc::XMLNode usagerecordset, int nr_of_records, Arc::Logger &logger, std::string type) {
+        Arc::NS ns_query;
+        std::string query = "";
+        if ( type == "" ) {
+            ns_query["urf"] = "http://schema.ogf.org/urf/2003/09/urf";
+            query = "//JobUsageRecord/RecordIdentity";
+        } else if ( type == "APEL" ) {
+            ns_query["urf"] = "http://eu-emi.eu/namespaces/2012/11/computerecord";
+            query = "//UsageRecord/RecordIdentity";
+        }
+        Arc::XMLNodeList list = usagerecordset.XPathLookup(query,ns_query);
+        logger.msg(Arc::DEBUG, "Sent jobIDs: (nr. of job(s) %d)", nr_of_records);
+        for (std::list<Arc::XMLNode>::iterator it = list.begin(); it != list.end(); it++) {
+            std::string id = (*it).Attribute("urf:recordId");
+            //std::size_t found = id.find_last_of("-");
+            logger.msg(Arc::DEBUG, id);
+        } 
+  }
 }
 

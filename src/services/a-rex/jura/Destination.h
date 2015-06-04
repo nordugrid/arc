@@ -29,6 +29,8 @@ namespace Arc
     static Destination* createDestination(Arc::JobLogFile &joblog);
     std::string Current_Time( time_t parameter_time = time(NULL) );
     Arc::MCC_Status OutputFileGeneration(std::string prefix, Arc::URL url, std::string output_dir, std::string message,Arc::Logger& logger);
+    /** Logged the sent jobIds */
+    void log_sent_ids(Arc::XMLNode usagerecordset, int nr_of_records, Arc::Logger &logger,std::string type="");
   };
 }
 

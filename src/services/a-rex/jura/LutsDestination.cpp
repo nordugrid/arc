@@ -174,6 +174,7 @@ namespace Arc
 
     if (status.isOk())
       {
+        log_sent_ids(usagerecordset, urn, logger);
         // Delete log files
         for (std::list<JobLogFile>::iterator jp=joblogs.begin();
              jp!=joblogs.end();
