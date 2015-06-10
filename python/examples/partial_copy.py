@@ -26,5 +26,5 @@ while True:
     ( r, n, length, offset, buf) = buffer.for_write(True)
     if not r: break
     sys.stdout.write("BUFFER: %d :  %d  : %s\n"%(offset, length, str(buf)))
-    buffer.is_written(n);
+    buffer.is_written(n)
 point.StopReading()

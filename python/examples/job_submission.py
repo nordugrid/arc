@@ -30,7 +30,7 @@ def example():
 
     # create an empty job object which will contain our submitted job
     job = arc.Job()
-    success = False;
+    success = False
     # Submit job directly to the execution targets, without a broker
     for target in targets:
         sys.stdout.write("Trying to submit to %s (%s) ... "%(target.ComputingEndpoint.URLString, target.ComputingEndpoint.InterfaceName))
