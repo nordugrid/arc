@@ -17,14 +17,14 @@ sys.stdout.write("Name: %s\n"%str(info.GetName()))
 fsize = info.GetSize()
 if fsize > desired_size:
     point.Range(fsize-desired_size,fsize-1)
-buffer = arc.DataBuffer()
-point.StartReading(buffer)
+databuffer = arc.DataBuffer()
+point.StartReading(databuffer)
 while True:
     n = 0
     length = 0
     offset = 0
-    ( r, n, length, offset, buf) = buffer.for_write(True)
+    ( r, n, length, offset, buf) = databuffer.for_write(True)
     if not r: break
     sys.stdout.write("BUFFER: %d :  %d  : %s\n"%(offset, length, str(buf)))
-    buffer.is_written(n)
+    databuffer.is_written(n)
 point.StopReading()
