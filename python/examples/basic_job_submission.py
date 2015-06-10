@@ -18,8 +18,8 @@ jobdescstring = "&(executable=/bin/hostname)(stdout=stdout)"
 # Parse job description
 jobdescs = arc.JobDescriptionList()
 if not arc.JobDescription_Parse(jobdescstring, jobdescs):
-  logger.msg(arc.ERROR, "Invalid job description")
-  sys.exit(1);
+    logger.msg(arc.ERROR, "Invalid job description")
+    sys.exit(1)
 
 # Use top-level NorduGrid information index to find resources
 index = arc.Endpoint("ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid",
@@ -31,13 +31,13 @@ services = arc.EndpointList(1, index)
 jobs = arc.JobList()
 submitter = arc.Submitter(usercfg)
 if submitter.BrokeredSubmit(services, jobdescs, jobs) != arc.SubmissionStatus.NONE:
-  logger.msg(arc.ERROR, "Failed to submit job")
-  sys.exit(1)
+    logger.msg(arc.ERROR, "Failed to submit job")
+    sys.exit(1)
 
 # Write information on submitted job to local job list (~/.arc/jobs.xml)
 jobList = arc.JobInformationStorageXML(usercfg.JobListFile())
 if not jobList.Write(jobs):
-  logger.msg(arc.WARNING, "Failed to write to local job list %s", usercfg.JobListFile())
+    logger.msg(arc.WARNING, "Failed to write to local job list %s", usercfg.JobListFile())
 
 # Job submitted ok
 sys.stdout.write("Job submitted with job id %s\n" % str(jobs.front().JobID))
