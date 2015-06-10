@@ -2820,7 +2820,11 @@ sub collect($) {
         $csha->{SuspendedJobs} = $localsuspended + ( $inlrmsjobs{$share}{suspended} || 0 );
 
         # TODO: backends to count suspended jobs
-
+        
+        # fix localrunning when displaying the values if negative
+        if ( $localrunning < 0 ) {
+             $localrunning = 0;
+        }
         $csha->{LocalRunningJobs} = $localrunning;
         $csha->{LocalWaitingJobs} = $localqueued;
         $csha->{LocalSuspendedJobs} = $localsuspended;
