@@ -20,9 +20,9 @@ namespace Arc {
   /**
    * The JobSupervisor class is tool for loading JobControllerPlugin plugins
    * for managing Grid jobs.
-   * 
+   *
    * \ingroup compute
-   * \headerfile JobSupervisor.h arc/compute/JobSupervisor.h 
+   * \headerfile JobSupervisor.h arc/compute/JobSupervisor.h
    **/
   class JobSupervisor : public EntityConsumer<Job> {
   public:
@@ -345,7 +345,7 @@ namespace Arc {
     void SelectByID(const std::list<std::string>& ids);
 
     void ClearSelection();
-    
+
     const std::list<std::string>& GetIDsProcessed() const { return processed; }
     const std::list<std::string>& GetIDsNotProcessed() const { return notprocessed; }
 

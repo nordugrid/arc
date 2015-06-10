@@ -7,7 +7,7 @@
 # python dtr_generator.py /bin/ls /tmp/dtrtest
 #
 # If nordugrid-arc-python is installed to a non-standard location, PYTHONPATH
-# may need to be set. 
+# may need to be set.
 
 import os
 import sys

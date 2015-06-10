@@ -58,8 +58,8 @@ def example():
     sys.stdout.write("The discovered ExecutionTargets:\n")
     for target in targets2:
         sys.stdout.write("%s\n"%str(target))
-    
-    
+
+
     # Query both registries and computing elements at the same time:
     endpoints = [
         arc.Endpoint("arc-emi.grid.upjs.sk/O=Grid/Mds-Vo-Name=ARC-EMI", arc.Endpoint.REGISTRY),

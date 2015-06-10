@@ -73,7 +73,7 @@ namespace Arc {
       return false;
     }
 
-    // Because jobs are identified by ID there should probably be 
+    // Because jobs are identified by ID there should probably be
     // protection against duplicate job ID
     jobs.push_back(job);
     jobs.back().jc = currentJC->second;
@@ -135,7 +135,7 @@ namespace Arc {
     if (ids.empty()) {
       return;
     }
-    
+
     for (JobSelectionMap::iterator it = jcJobMap.begin();
          it != jcJobMap.end(); ++it) {
       for (std::list<Job*>::iterator itJ = it->second.first.begin();
@@ -440,7 +440,7 @@ namespace Arc {
           break;
         }
       }
-      
+
       if (ets.endOfList()) {
         resubmittedJobs.pop_back();
         notprocessed.push_back((**itJ)->JobID);

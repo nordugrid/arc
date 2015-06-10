@@ -213,7 +213,7 @@
  * causes an swig error. The two __nonzero__ methods probably stems from
  * the "operator bool" and "operator ->" methods. At least in the Arc.i
  * file the "operator bool" method is renamed to "__nonzero__". In
- * order to avoid that name clash the following "operator bool" methods 
+ * order to avoid that name clash the following "operator bool" methods
  * are ignored.
  */
 %ignore Arc::CountedPointer< std::map<std::string, double> >::operator bool;
@@ -372,7 +372,7 @@
   protected void setMemoryManager(Object r) {
     objectManagingMyMemory = r;
   } // %typemap(javacode) SWIGTYPE - End
-  
+
 #ifdef JAVA_IS_15_OR_ABOVE
   private java.util.HashMap<EndpointConsumer, NativeEndpointConsumer> consumers = new java.util.HashMap<EndpointConsumer, NativeEndpointConsumer>();
 #else
@@ -385,7 +385,7 @@
   protected void setMemoryManager(Object r) {
     objectManagingMyMemory = r;
   } // %typemap(javacode) SWIGTYPE - End
-  
+
 #ifdef JAVA_IS_15_OR_ABOVE
   private java.util.HashMap<ComputingServiceTypeConsumer, NativeComputingServiceTypeConsumer> consumers = new java.util.HashMap<ComputingServiceTypeConsumer, NativeComputingServiceTypeConsumer>();
 #else
@@ -523,7 +523,7 @@ template <class Type> struct traits_from<const Type *> {
   protected void setMemoryManager(Object r) {
     objectManagingMyMemory = r;
   } // %typemap(javacode) SWIGTYPE - End
-  
+
 #ifdef JAVA_IS_15_OR_ABOVE
   private java.util.HashMap<JobConsumer, NativeJobConsumer> consumers = new java.util.HashMap<JobConsumer, NativeJobConsumer>();
 #else
@@ -561,7 +561,7 @@ template <class Type> struct traits_from<const Type *> {
   protected void setMemoryManager(Object r) {
     objectManagingMyMemory = r;
   } // %typemap(javacode) SWIGTYPE - End
-  
+
 #ifdef JAVA_IS_15_OR_ABOVE
   private java.util.HashMap<ComputingServiceTypeConsumer, NativeComputingServiceTypeConsumer> consumers = new java.util.HashMap<ComputingServiceTypeConsumer, NativeComputingServiceTypeConsumer>();
 #else

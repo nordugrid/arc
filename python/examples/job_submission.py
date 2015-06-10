@@ -17,12 +17,12 @@ def example():
     # Get the ExecutionTargets of this ComputingElement
     retriever = arc.ComputingServiceRetriever(uc, [endpoint])
     retriever.wait()
-    targets = retriever.GetExecutionTargets()    
+    targets = retriever.GetExecutionTargets()
 
     # Shuffle the targets to simulate a random broker
     targets = list(targets)
     random.shuffle(targets)
-    
+
     # Create a JobDescription
     jobdesc = arc.JobDescription()
     jobdesc.Application.Executable.Path = "/bin/hostname"
@@ -46,7 +46,7 @@ def example():
         job.SaveToStream(arc.CPyOstream(sys.stdout), False)
     else:
         sys.stdout.write("Job submission failed\n")
-    
+
 # wait for all the background threads to finish before we destroy the objects they may use
 import atexit
 @atexit.register

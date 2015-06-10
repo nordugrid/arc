@@ -4,7 +4,7 @@ import sys
 if len(sys.argv) != 2:
     sys.stdout.write("Usage: python partial_copy.py filename\n")
     sys.exit(1)
-    
+
 desired_size = 512
 usercfg = arc.UserConfig()
 url = arc.URL(sys.argv[1])
