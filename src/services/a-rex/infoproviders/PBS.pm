@@ -562,9 +562,9 @@ sub queue_info ($$) {
     my (%keywords_pbspro) = ( 'resources_max.ncpus' => 'MaxSlotsPerJob' );
 
     get_pbs_version($config);
-    if ( $lrms_type eq "torque" ) {
+    if ( $lrms_type eq lc "torque" ) {
         %keywords = (%keywords_all, %keywords_torque);
-    } elsif ( $lrms_type eq "pbspro" ) {
+    } elsif ( $lrms_type eq lc "pbspro" ) {
         %keywords = (%keywords_all, %keywords_pbspro);
     } else {
         %keywords = %keywords_all;
