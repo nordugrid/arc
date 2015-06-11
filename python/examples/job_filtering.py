@@ -1,42 +1,34 @@
 #! /usr/bin/env python
 import arc
 import sys
-import os
 
 def example():
-    # Creating a UserConfig object with the user's proxy
-    # and the path of the trusted CA certificates
     uc = arc.UserConfig()
-    uc.ProxyPath("/tmp/x509up_u%s" % os.getuid())
-    uc.CACertificatesDirectory("/etc/grid-security/certificates")
+
+    # Create a JobSupervisor to handle all the jobs
+    job_supervisor = arc.JobSupervisor(uc)
 
     # Retrieve all the jobs from this computing element
-    endpoint = arc.Endpoint("piff.hep.lu.se:443/arex", arc.Endpoint.COMPUTINGINFO)
+    endpoint = arc.Endpoint("https://piff.hep.lu.se:443/arex", arc.Endpoint.JOBLIST)
     sys.stdout.write("Querying %s for jobs...\n" % endpoint.str())
-    jobs = arc.JobContainer()
     retriever = arc.JobListRetriever(uc)
-    retriever.addConsumer(jobs)
+    retriever.addConsumer(job_supervisor)
     retriever.addEndpoint(endpoint)
     retriever.wait()
-    
-    sys.stdout.write("%s jobs found\n" % len(jobs))
-        
-    # Create a JobSupervisor to handle all the jobs
-    job_supervisor = arc.JobSupervisor(uc, jobs)
-    
+
+    sys.stdout.write("%s jobs found\n" % len(job_supervisor.GetAllJobs()))
+
     sys.stdout.write("Getting job states...\n")
     # Update the states of the jobs
     job_supervisor.Update()
-    
-    # Get the updated jobs
-    jobs = job_supervisor.GetAllJobs()
-    
-    sys.stdout.write("The jobs have the following states: %s\n"%(", ".join([job.State.GetGeneralState() for job in jobs])))
-    
+
+    # Print state of updated jobs
+    sys.stdout.write("The jobs have the following states: %s\n"%(", ".join([job.State.GetGeneralState() for job in job_supervisor.GetAllJobs()])))
+
     # Select failed jobs
     job_supervisor.SelectByStatus(["Failed"])
     failed_jobs = job_supervisor.GetSelectedJobs()
-    
+
     sys.stdout.write("The failed jobs:\n")
     for job in failed_jobs:
         job.SaveToStream(arc.CPyOstream(sys.stdout), True)
