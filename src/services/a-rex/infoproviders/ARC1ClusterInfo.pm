@@ -554,7 +554,7 @@ sub collect($) {
     my $nojobs = $data->{nojobs};
 
     my $creation_time = timenow();
-    my $validity_ttl = $config->{ttl};
+    my $validity_ttl = $config->{validity_ttl};
     my $hostname = $config->{hostname} || $host_info->{hostname};
 
     my @allxenvs = keys %{$config->{xenvs}};
