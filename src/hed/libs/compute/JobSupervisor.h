@@ -16,6 +16,27 @@ namespace Arc {
   class Endpoint;
   class UserConfig;
 
+  /// Abstract class used for selecting jobs with JobSupervisor
+  /**
+   * Only the select method is meant to be extended.
+   * \since Added in 5.1.0.
+   **/
+  class JobSelector {
+    public:
+    JobSelector() {}
+    virtual ~JobSelector() {}
+
+    /// Indicate whether a job should be selected or not
+    /**
+     * This method should be extended and should indicate whether the passed job
+     * should be selected or not by returning a boolean.
+     * @param job A Job object which should either be selected or rejected.
+     * @return true if passed job should be selected otherwise false is
+     * returned.
+     **/
+    virtual bool Select(const Job& job) const = 0;
+  };
+
   /// JobSupervisor class
   /**
    * The JobSupervisor class is tool for loading JobControllerPlugin plugins
@@ -343,6 +364,16 @@ namespace Arc {
     void SelectValid();
     void SelectByStatus(const std::list<std::string>& status);
     void SelectByID(const std::list<std::string>& ids);
+
+    /// Select jobs based on custom selector
+    /**
+     * Used to do more advanced job selections. NOTE: operations will only be
+     * done on selected jobs.
+     * \param js A JobSelector object which will be used for selecting jobs.
+     * \see Arc::JobSelector
+     * \since Added in 5.1.0.
+     **/
+    void Select(const JobSelector& js);
 
     void ClearSelection();
 

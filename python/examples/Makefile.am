@@ -7,7 +7,7 @@ endif
 EXAMPLES = \
 	basic_job_submission.py partial_copy.py copy_file.py job_filtering.py \
 	joblist_retrieval.py job_status.py job_submission.py retrieving_results.py \
-	service_discovery.py dtr_generator.py
+	service_discovery.py dtr_generator.py job_selector.py
 
 if PYLINT_ENABLED
 # Do not generate report

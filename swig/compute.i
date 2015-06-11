@@ -1,5 +1,15 @@
 #ifdef SWIGPYTHON
-%module compute
+%module(directors="1") compute
+// In case of exceptions, try to get error message and then exit python.
+%feature("director:except") {
+    if( $error != NULL ) {
+        PyObject *ptype, *pvalue, *ptraceback;
+        PyErr_Fetch( &ptype, &pvalue, &ptraceback );
+        PyErr_Restore( ptype, pvalue, ptraceback );
+        PyErr_Print();
+        Py_Exit(1);
+    }
+}
 
 %include "Arc.i"
 // Import common module in order to access common template types.
@@ -616,6 +626,7 @@ template <class Type> struct traits_from<const Type *> {
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/compute/JobSupervisor.h
+%feature("director") Arc::JobSelector;
 %{
 #include <arc/compute/JobSupervisor.h>
 %}

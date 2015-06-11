@@ -25,6 +25,7 @@ class JobSupervisorTest
   CPPUNIT_TEST(TestResubmit);
   CPPUNIT_TEST(TestCancel);
   CPPUNIT_TEST(TestClean);
+  CPPUNIT_TEST(TestSelector);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -39,6 +40,7 @@ public:
   void TestResubmit();
   void TestCancel();
   void TestClean();
+  void TestSelector();
 
 private:
   Arc::UserConfig usercfg;
@@ -46,6 +48,21 @@ private:
   Arc::Job j;
 };
 
+class ThreeDaysOldJobSelector : public Arc::JobSelector {
+public:
+  ThreeDaysOldJobSelector() {
+    now = Arc::Time();
+    three_days = Arc::Period(60*60*24*3);
+  }
+
+  bool Select(const Arc::Job& job) const {
+    return (now - job.EndTime) > three_days;
+  }
+
+private:
+  Arc::Time now;
+  Arc::Period three_days;
+};
 
 JobSupervisorTest::JobSupervisorTest() : usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)), js(NULL) {
   j.JobStatusURL = Arc::URL("http://test.nordugrid.org");
@@ -284,6 +301,44 @@ void JobSupervisorTest::TestClean()
   CPPUNIT_ASSERT_EQUAL(0, (int)js->GetIDsProcessed().size());
   CPPUNIT_ASSERT_EQUAL(1, (int)js->GetIDsNotProcessed().size());
   CPPUNIT_ASSERT_EQUAL(id1, js->GetIDsNotProcessed().front());
+
+  delete js;
+}
+
+void JobSupervisorTest::TestSelector()
+{
+  js = new Arc::JobSupervisor(usercfg);
+
+  j.JobID = "test-job-1-day-old";
+  j.EndTime = Arc::Time()-Arc::Period("P1D");
+  js->AddJob(j);
+
+  j.JobID = "test-job-2-days-old";
+  j.EndTime = Arc::Time()-Arc::Period("P2D");
+  js->AddJob(j);
+
+  j.JobID = "test-job-3-days-old";
+  j.EndTime = Arc::Time()-Arc::Period("P3D");
+  js->AddJob(j);
+
+  j.JobID = "test-job-4-days-old";
+  j.EndTime = Arc::Time()-Arc::Period("P4D");
+  js->AddJob(j);
+
+  CPPUNIT_ASSERT_EQUAL(4, (int)js->GetAllJobs().size());
+
+  ThreeDaysOldJobSelector selector;
+  js->Select(selector);
+
+  std::list<Arc::Job> selectedJobs = js->GetSelectedJobs();
+  CPPUNIT_ASSERT_EQUAL(2, (int)js->GetSelectedJobs().size());
+
+
+  for (std::list<Arc::Job>::iterator itJ = selectedJobs.begin();
+       itJ != selectedJobs.end(); ++itJ) {
+    CPPUNIT_ASSERT(itJ->JobID == "test-job-3-days-old" || itJ->JobID == "test-job-4-days-old");
+    CPPUNIT_ASSERT(itJ->EndTime < (Arc::Time()-Arc::Period("P3D")));
+  }
 
   delete js;
 }

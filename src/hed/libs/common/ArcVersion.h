@@ -42,7 +42,7 @@ namespace Arc {
     ArcVersion(const char* ver);
   };
 
-  /// Use this object to obtain current ARC HED version 
+  /// Use this object to obtain current ARC HED version
   /// at runtime.
   extern const ArcVersion Version;
 
@@ -53,14 +53,14 @@ namespace Arc {
    * manipulation of jobs and data in a Grid environment. The SDK is divided
    * into a set of <a href="modules.html">modules</a> which take care of
    * different aspects of Grid interaction.
-   * 
+   *
    * In the figure below an overview of the SDK is illustrated, showing
    * software components depending on the SDK, supported security standards and
    * in particular plugins providing functionality for different index and
    * registry services, local information systems, job submission and management
    * interfaces, matching and ranking algorithms, data access protocols and
    * job description languages.
-   * 
+   *
    * \image html arcsdk.png
    *
    * \version The version of the SDK that this documentation refers to can be
@@ -113,6 +113,17 @@ namespace Arc {
    * \include BasicJobSubmission.java
    *
    * \page jobfiltering %Job Filtering
+   * \tableofcontents
+   * When managing multiple jobs it is a speedup and may be more convenient to
+   * use the JobSupervisor class, instead of working on single Job objects.
+   * In the JobSupervisor class jobs can be filtered so operations can be
+   * limited to a subset of jobs. Such examples are shown below:
+   * \section cpp C++
+   * \include job_selector.cpp
+   * \section py Python
+   * \subsection job_selector Select jobs using custom class
+   * \include job_selector.py
+   * \subsection job_filtering Select jobs based on job state
    * \include job_filtering.py
    *
    * \page jobstatus %Job Status
