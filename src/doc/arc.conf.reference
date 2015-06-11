@@ -1352,7 +1352,13 @@
 ## infoproviders need more time to process.
 ## The value is in seconds.
 ## Default is 600 seconds.
-#infoproviders_timeout = "600"
+#infoproviders_timeout="600"
+
+## validity_ttl - allowa the sysadmin to define a specific validity
+## time for the records in the information system. The number is in
+## seconds. This number appears as in in GLUE2.
+## Default is 600 seconds.
+#validity_ttl="600"
 
 ## debug - sets the debug level/verbosity of the startup script {0 or 1}.
 ## Default is 0.
