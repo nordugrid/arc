@@ -1351,12 +1351,12 @@
 ## Increase this value if you have many jobs in the controldir and
 ## infoproviders need more time to process.
 ## The value is in seconds.
-## Default is 600 seconds.
-#infoproviders_timeout="600"
+## Default is 1200 seconds.
+#infoproviders_timeout="1200"
 
-## validity_ttl - allowa the sysadmin to define a specific validity
+## validity_ttl - allows the sysadmin to define a specific validity
 ## time for the records in the information system. The number is in
-## seconds. This number appears as in in GLUE2.
+## seconds. This number appears "as is" in the GLUE2 Validity fields.
 ## Default is 600 seconds.
 #validity_ttl="600"
 
