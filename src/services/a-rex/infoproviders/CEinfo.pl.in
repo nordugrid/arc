@@ -314,7 +314,7 @@ sub get_lrms_info($$$) {
 
     # possibly any options from config are needed, so just clone it all
     my $lrms_opts = Storable::dclone($config);
-    delete $lrms_opts->{$_} for qw(control xenvs shares);
+    delete $lrms_opts->{$_} for qw(xenvs shares);
     $lrms_opts->{jobs} = $jobids;
     for my $share ( keys %{$config->{shares}} ) {
         $lrms_opts->{queues}{$share} = $config->{shares}{$share};
