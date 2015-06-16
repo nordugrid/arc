@@ -17,7 +17,7 @@ TESTS_ENVIRONMENT = \
 	ARC_PLUGIN_PATH=$(top_builddir)/src/hed/acc/TEST/.libs \
 	DYLD_LIBRARY_PATH="$(DYLD_LIBRARY_PATH)" \
 	PYTHONPATH="../python:../python/arc/.libs" \
-	$(PYLINT) -rno --disable=C,R --disable=arguments-differ
+	$(PYLINT) -rno --disable=C,R $(PYLINT_ARGUMENTS_DIFFER)
 TESTS = $(EXAMPLES)
 else
 TESTS =
