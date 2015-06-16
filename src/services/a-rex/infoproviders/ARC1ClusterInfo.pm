@@ -2976,10 +2976,6 @@ sub collect($) {
                 $cmgr->{WorkingAreaShared} = $sharedsession;
                 $cmgr->{WorkingAreaGuaranteed} = "false";
 
-                my ($sessionlifetime) = (split ' ', $config->{defaultttl});
-                $sessionlifetime ||= 7*24*60*60;
-                $cmgr->{WorkingAreaLifeTime} = $sessionlifetime;
-
                 my $gigstotal = ceil($host_info->{session_total} / 1024);
                 my $gigsfree = ceil($host_info->{session_free} / 1024);
                 $cmgr->{WorkingAreaTotal} = $gigstotal;
@@ -2991,6 +2987,11 @@ sub collect($) {
                 #$cmgr->{WorkingAreaMPIFree} = $gigsfree;
                 #$cmgr->{WorkingAreaMPILifeTime} = $sessionlifetime;
             }
+            
+            my ($sessionlifetime) = (split ' ', $config->{control}{'.'}{defaultttl});
+            $sessionlifetime ||= 7*24*60*60;
+            $cmgr->{WorkingAreaLifeTime} = $sessionlifetime;
+            
             if (defined $host_info->{cache_total}) {
                 my $gigstotal = ceil($host_info->{cache_total} / 1024);
                 my $gigsfree = ceil($host_info->{cache_free} / 1024);

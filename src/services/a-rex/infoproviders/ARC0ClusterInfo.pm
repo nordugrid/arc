@@ -251,8 +251,8 @@ sub collect($) {
         $c->{localse} = $config->{service}{LocalSE} if $config->{service}{LocalSE};
         $c->{'sessiondir-free'} = $host_info->{session_free};
         $c->{'sessiondir-total'} = $host_info->{session_total};
-        if ($config->{defaultttl}) {
-            my ($sessionlifetime) = split ' ', $config->{defaultttl};
+        if ($config->{control}{'.'}{defaultttl}) {
+            my ($sessionlifetime) = split ' ', $config->{control}{'.'}{defaultttl};
             $c->{'sessiondir-lifetime'} = int $sessionlifetime/60 if $sessionlifetime;
         }
         $c->{'cache-free'} = $host_info->{cache_free};
