@@ -591,15 +591,33 @@ template <class Type> struct traits_from<const Type *> {
       return self.getResults().__iter__()
   %}
 }
-%pythonprepend Arc::ComputingServiceRetriever::GetExecutionTargets %{
-        etList = ExecutionTargetList()
-        args = args + (etList,)
-%}
-%pythonappend Arc::ComputingServiceRetriever::GetExecutionTargets %{
-        return etList
-%}
+/* This typemap tells SWIG that we don't want to use the
+ * 'std::list<Arc::ExecutionTarget>& etList' argument from the target language,
+ * but we need a temporary variable for internal use, and we want this
+ * argument to point to this temporary variable
+ */
+%typemap(in, numinputs=0) std::list<Arc::ExecutionTarget>& etList (std::list<Arc::ExecutionTarget> temp) { $1 = &temp; }
+/* This typemap tells SWIG what to with the
+ * 'std::list<Arc::ExecutionTarget>& etList' argument after the method finished.
+ * This typemap applies to
+ * 'void GetExecutionTargets(std::list<ExecutionTarget>& etList)' and since it
+ * does not return anything we simply return the argument list.
+ */
+%typemap(argout) std::list<Arc::ExecutionTarget>& etList {
+  PyObject *o = PyList_New(0);
+  for (std::list<Arc::ExecutionTarget>::iterator it = (*$1).begin();
+       it != (*$1).end(); ++it) {
+    PyList_Append(o, SWIG_NewPointerObj(new Arc::ExecutionTarget(*it), SWIGTYPE_p_Arc__ExecutionTarget, SWIG_POINTER_OWN | 0 ));
+  }
+  $result = o;
+} /* applies to:
+ * void GetExecutionTargets(std::list<ExecutionTarget>& etList)
+ */
 #endif
 %include "../src/hed/libs/compute/ComputingServiceRetriever.h"
+#ifdef SWIGPYTHON
+%clear std::list<Arc::ExecutionTarget>& etList;
+#endif
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/compute/BrokerPlugin.h
