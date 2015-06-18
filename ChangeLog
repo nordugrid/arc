@@ -12,6 +12,10 @@
 2015-06-02  Gabor Szigeti <szigeti@niif.hu>
   * Extend (with timestamp) JURA's log to long format. (fixes bug #3480)
 
+2015-04-28  Christian Ulrik Søttrup <soettrup@nbi.dk>
+  * Changed priority calculation for SGE jobs to only negative priorities. 
+  * fixed comment typos.
+
 2015-03-28  Gabor Roczei <roczei@niif.hu>
   * Bugfix: adding correct free slot number to SLURM partition
 
