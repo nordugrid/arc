@@ -10,14 +10,12 @@ EXAMPLES = \
 	service_discovery.py dtr_generator.py job_selector.py
 
 if PYLINT_ENABLED
-# Do not generate report
-# Disable convention and recommendation messages - we are only interested in fatals, errors and warnings.
-# Disable arguments differ messages since Swig uses tuple syntax (*args).
+# Any options to arguments to pylint should be defined and checked in configure.
 TESTS_ENVIRONMENT = \
 	ARC_PLUGIN_PATH=$(top_builddir)/src/hed/acc/TEST/.libs \
 	DYLD_LIBRARY_PATH="$(DYLD_LIBRARY_PATH)" \
 	PYTHONPATH="../python:../python/arc/.libs" \
-	$(PYLINT) -rno --disable=C,R $(PYLINT_ARGUMENTS_DIFFER)
+	$(PYLINT) $(PYLINT_ARGS) $(PYLINT_ARGS_ARGUMENTS_DIFFER)
 TESTS = $(EXAMPLES)
 else
 TESTS =

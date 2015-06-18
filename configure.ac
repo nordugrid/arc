@@ -785,30 +785,29 @@ AC_ARG_ENABLE(pylint, AC_HELP_STRING([--disable-pylint], [disable python example
     enables_pylint="no"
   else
     PYLINT_VERSION=`$PYLINT --version 2> /dev/null | sed -n 's/^pylint \([[0-9.]]*\).*/\1/p'`
-    PYLINT_VERSION_MAJOR=`echo $PYLINT_VERSION | cut -d. -f1`
-    PYLINT_VERSION_MINOR=`echo $PYLINT_VERSION | cut -d. -f2`
-    # Version prior to 0.13.0 doesn't seem to support the --errors-only flag.
-    # In version 0.20.0 when specifying --errors-only, convention warnings (C) are treated like errors.
-    if test $PYLINT_VERSION_MAJOR -eq 0 && test $PYLINT_VERSION_MINOR -ge 13 && test $PYLINT_VERSION_MINOR -ne 20; then
-      enables_pylint="yes"
-      AC_MSG_NOTICE([pylint version $PYLINT_VERSION found - version ok])
-    elif test $PYLINT_VERSION_MAJOR -ge 1; then
-      enables_pylint="yes"
-      AC_MSG_NOTICE([pylint version $PYLINT_VERSION found - version ok])
+    # Check if pylint supports the following arguments, otherwise disable pylint (python example checking).
+    # Do not generate report
+    # Disable convention and recommendation messages - we are only interested in fatals, errors and warnings.
+    PYLINT_ARGS="--reports=no --disable=C,R"
+    if $PYLINT $PYLINT_ARGS /dev/null > /dev/null 2>&1 ; then
+       AC_MSG_NOTICE([pylint version $PYLINT_VERSION found - version ok])
+       enables_pylint="yes"
     else
-      enables_pylint="no"
-      AC_MSG_NOTICE([pylint version $PYLINT_VERSION found - bad version])
+       AC_MSG_NOTICE([pylint version $PYLINT_VERSION found - bad version])
+       enables_pylint="no"
+       PYLINT_ARGS=""
     fi
+    AC_SUBST(PYLINT_ARGS)
   fi
 
   # Check if the --disable=W0221 option is supported
   # W0221: Disable arguments differ messages since Swig uses tuple syntax (*args).
   if test "$enables_pylint" = "yes"; then
-    PYLINT_ARGUMENTS_DIFFER="--disable=W0221"
-    if ! echo | $PYLINT -E $PYLINT_ARGUMENTS_DIFFER -- - > /dev/null 2>&1 ; then
-      PYLINT_ARGUMENTS_DIFFER=""
+    PYLINT_ARGS_ARGUMENTS_DIFFER="--disable=W0221"
+    if ! $PYLINT $PYLINT_ARGS $PYLINT_ARGS_ARGUMENTS_DIFFER /dev/null > /dev/null 2>&1 ; then
+      PYLINT_ARGS_ARGUMENTS_DIFFER=""
     fi
-    AC_SUBST(PYLINT_ARGUMENTS_DIFFER)
+    AC_SUBST(PYLINT_ARGS_ARGUMENTS_DIFFER)
   fi
 fi
 AM_CONDITIONAL([PYLINT_ENABLED], [test "x$enables_pylint" = "xyes"])
