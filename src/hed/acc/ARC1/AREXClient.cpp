@@ -73,19 +73,27 @@ namespace Arc {
   }
 
   bool AREXClient::delegation(XMLNode& op) {
-    const std::string& cert = (!cfg.proxy.empty() ? cfg.proxy : cfg.cert);
-    const std::string& key  = (!cfg.proxy.empty() ? cfg.proxy : cfg.key);
+    DelegationProviderSOAP* deleg;
+    if (!cfg.credential.empty()) {
+      deleg = new DelegationProviderSOAP(cfg.credential);
+    }
+    else {
+      const std::string& cert = (!cfg.proxy.empty() ? cfg.proxy : cfg.cert);
+      const std::string& key  = (!cfg.proxy.empty() ? cfg.proxy : cfg.key);
 
-    if (key.empty() || cert.empty()) {
-      logger.msg(VERBOSE, "Failed locating credentials.");
-      error_description = "Failed locating credentials for delegationg to "+rurl.str();
-      return false;
+      if (key.empty() || cert.empty()) {
+        logger.msg(VERBOSE, "Failed locating credentials.");
+        error_description = "Failed locating credentials for delegation to "+rurl.str();
+        return false;
+      }
+      deleg = new DelegationProviderSOAP(cert, key);
     }
 
     MCC_Status r = client->Load();
     if(!r) {
       logger.msg(VERBOSE, "Failed initiate client connection.");
-      error_description = "Failed initating communication to "+rurl.str()+" - "+(std::string)r;
+      error_description = "Failed initiating communication to "+rurl.str()+" - "+(std::string)r;
+      delete deleg;
       return false;
     }
 
@@ -93,6 +101,7 @@ namespace Arc {
     if(!entry) {
       logger.msg(VERBOSE, "Client connection has no entry point.");
       error_description = "Internal error: failed to properly initiate communication object for "+rurl.str();
+      delete deleg;
       return false;
     }
 
@@ -101,15 +110,16 @@ namespace Arc {
      * impracticable and should coordinated across execution.
      *DelegationProviderSOAP deleg(cert, key, (!cfg.proxy.empty() ? NULL : &std::cin));
      */
-    DelegationProviderSOAP deleg(cert, key);
     logger.msg(VERBOSE, "Initiating delegation procedure");
-    if (!deleg.DelegateCredentialsInit(*entry,&(client->GetContext()))) {
+    if (!deleg->DelegateCredentialsInit(*entry,&(client->GetContext()))) {
       logger.msg(VERBOSE, "Failed to initiate delegation credentials");
       error_description = "Internal error: failed to initiate delagtion at "+rurl.str();
       // TODO: propagate error from DelegationProviderSOAP
+      delete deleg;
       return false;
     }
-    deleg.DelegatedToken(op);
+    deleg->DelegatedToken(op);
+    delete deleg;
     return true;
   }
 

@@ -98,46 +98,57 @@ namespace Arc {
   }
 
   std::string EMIESClient::dodelegation(const std::string& renew_id) {
-    const std::string& cert = (!cfg.proxy.empty() ? cfg.proxy : cfg.cert);
-    const std::string& key  = (!cfg.proxy.empty() ? cfg.proxy : cfg.key);
+    DelegationProviderSOAP* deleg;
+    if (!cfg.credential.empty()) {
+      deleg = new DelegationProviderSOAP(cfg.credential);
+    }
+    else {
+      const std::string& cert = (!cfg.proxy.empty() ? cfg.proxy : cfg.cert);
+      const std::string& key  = (!cfg.proxy.empty() ? cfg.proxy : cfg.key);
 
-    if (key.empty() || cert.empty()) {
-      lfailure = "Failed locating credentials for delegating.";
-      return "";
+      if (key.empty() || cert.empty()) {
+        lfailure = "Failed locating credentials for delegating.";
+        return "";
+      }
+      deleg = new DelegationProviderSOAP(cert, key);
     }
 
     if(!client->Load()) {
       lfailure = "Failed to initiate client connection.";
+      delete deleg;
       return "";
     }
 
     MCC* entry = client->GetEntry();
     if(!entry) {
       lfailure = "Client connection has no entry point.";
+      delete deleg;
       return "";
     }
 
-    DelegationProviderSOAP deleg(cert, key);
-    if(!renew_id.empty()) deleg.ID(renew_id);
+    if(!renew_id.empty()) deleg->ID(renew_id);
     logger.msg(VERBOSE, "Initiating delegation procedure");
     MessageAttributes attrout;
     MessageAttributes attrin;
     attrout.set("SOAP:ENDPOINT",rurl.str());
-    if (!deleg.DelegateCredentialsInit(*entry,&attrout,&attrin,&(client->GetContext()),
+    if (!deleg->DelegateCredentialsInit(*entry,&attrout,&attrin,&(client->GetContext()),
           (renew_id.empty()?DelegationProviderSOAP::EMIDS:DelegationProviderSOAP::EMIDSRENEW))) {
       lfailure = "Failed to initiate delegation credentials";
+      delete deleg;
       return "";
     }
-    std::string delegation_id = deleg.ID();
+    std::string delegation_id = deleg->ID();
     if(delegation_id.empty()) {
       lfailure = "Failed to obtain delegation identifier";
+      delete deleg;
       return "";
     };
-    if (!deleg.UpdateCredentials(*entry,&(client->GetContext()),DelegationRestrictions(),DelegationProviderSOAP::EMIDS)) {
+    if (!deleg->UpdateCredentials(*entry,&(client->GetContext()),DelegationRestrictions(),DelegationProviderSOAP::EMIDS)) {
       lfailure = "Failed to pass delegated credentials";
+      delete deleg;
       return "";
     }
-
+    delete deleg;
     return delegation_id;
   }
 
