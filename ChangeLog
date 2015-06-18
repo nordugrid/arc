@@ -1,3 +1,6 @@
+2015-06-18 Christian Ulrik Søttrup <soettrup@nbi.dk>
+  * Bugfix: fixed file permission filter in submit-condor-job
+
 2015-06-18  Gabor Szigeti <szigeti@niif.hu>
   * Add accounting records re-report functionality by JURA. (fixes bug #3458)
 

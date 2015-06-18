@@ -80,7 +80,7 @@ condor_stdout="${joboption_directory}.comment"
 condor_stderr="${joboption_directory}.comment"
 if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
 #   if [[ $joboption_stdout =~ _condor_stdout$ ]]; then
-   if expr match "$joboption_stdout" '_condor_stdout$' > /dev/null; then
+   if expr match "$joboption_stdout" '.*_condor_stdout$' > /dev/null; then
       condor_stdout=$joboption_stdout;
       condor_stderr=$joboption_stderr;
    fi
