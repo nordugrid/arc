@@ -801,10 +801,10 @@ AC_ARG_ENABLE(pylint, AC_HELP_STRING([--disable-pylint], [disable python example
     fi
   fi
 
-  # Check if the --disable=arguments-differ is supported
-  # Disable arguments differ messages since Swig uses tuple syntax (*args).
+  # Check if the --disable=W0221 option is supported
+  # W0221: Disable arguments differ messages since Swig uses tuple syntax (*args).
   if test "$enables_pylint" = "yes"; then
-    PYLINT_ARGUMENTS_DIFFER="--disable=arguments-differ"
+    PYLINT_ARGUMENTS_DIFFER="--disable=W0221"
     if ! echo | $PYLINT -E $PYLINT_ARGUMENTS_DIFFER -- - > /dev/null 2>&1 ; then
       PYLINT_ARGUMENTS_DIFFER=""
     fi
