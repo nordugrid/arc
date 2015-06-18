@@ -15,7 +15,9 @@ application is a resource-side accounting (usage logging) client.
 
 jura [\fB-E\fR \fIexp_time\fR] [\fB-L\fR] [\fB-u\fR \fIurl\fR [\fB-u\fR
 \fIurl\fR \fB-t\fR \fItopic\fR \fB-u\fR \fIurl\fR ...] ] 
+[\fB-r\fR \fItime_range\fR]
 \fIctrl_dir\fR [\fIctrl_dir\fR ...]
+
 
 .SH OPTIONS
 
@@ -26,9 +28,13 @@ logging destination URL
 .IP "\fB-t\fR"
 topic for a destination URL
 .IP "\fB-o\fR"
-aggregated Apel accounting records directory
+archived accounting records directory
 .IP "\fB-L\fR"
 turns on timestamps and logging level in messages printed during execution
+.IP "\fB-r\fR"
+time range of archived messages that will be resend
+.IP "\fB-v\fR"
+show version of Jura (ARC)
 .LP
 
 .SH ARGUMENTS
@@ -49,7 +55,7 @@ configuration options for accounting (see NORDUGRID-TECH-24 for
 details of their content). These files are parsed by \fBjura\fR,
 converted into UR format, and submitted in batches to reporting
 destinations. A destination is a resource usage logging service;
-currently SGAS LUTS and CAR 1.0 message propagation are supported.
+currently SGAS LUTS and CAR 1.2 message propagation are supported.
 Job log files older than the
 expiration time specified with the \fB-E\fR option are deleted without
 parsing.
@@ -64,6 +70,9 @@ submitted only to these destinations (one UR per job to each
 destination). In this case, job log files are preserved even if
 submitting succeeds.
 
+If the \fB-r\fR option is absent, \fI<ctrl_dir>\fR parameter be using as 
+location of archived files, URs from the given directory are submitted to the destination
+URLs specified with \fB-u\fR option in the CLI.
 .SH ENVIRONMENT VARIABLES
 
 .TP

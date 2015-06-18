@@ -1,3 +1,6 @@
+2015-06-18  Gabor Szigeti <szigeti@niif.hu>
+  * Add accounting records re-report functionality by JURA. (fixes bug #3458)
+
 2015-06-10  Martin Skou Andersen <skou@nbi.dk>
   * [JobSupervisor] Add method for selecting jobs using custom selector class (fixes bug 3484).
   * [Python examples] Better checking of python examples.
@@ -5,6 +8,9 @@
 2015-06-04 Andrii Salnikov <manf@grid.org.ua>
   * Added options to allow to set ownership/permissions on generated
   gridmapfile
+
+2015-06-02  Gabor Szigeti <szigeti@niif.hu>
+  * Extend (with timestamp) JURA's log to long format. (fixes bug #3480)
 
 2015-03-28  Gabor Roczei <roczei@niif.hu>
   * Bugfix: adding correct free slot number to SLURM partition
