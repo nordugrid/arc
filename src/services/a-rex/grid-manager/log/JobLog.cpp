@@ -116,6 +116,7 @@ bool JobLog::RunReporter(const GMConfig &config) {
   if(time(NULL) < (last_run+period)) return true; // default: once per hour
   last_run=time(NULL);
   std::string cmd = Arc::ArcLocation::GetToolsDir()+"/"+logger_name;
+  cmd += " -L";  // for log format of logging
   if(ex_period) cmd += " -E " + Arc::tostring(ex_period);
   if(!vo_filters.empty()) cmd += " -F " + vo_filters;
   cmd += " " + config.ControlDir();
