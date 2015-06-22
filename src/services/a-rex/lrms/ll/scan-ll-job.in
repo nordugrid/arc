@@ -16,14 +16,16 @@ get_bunch_jobs_status() {
 
   #get the string list of jobs
   loop=`$LL_BIN_PATH/llq -r %st %id $1`
-  for elm in $loop
-  do
-    if [ `echo $elm | grep '^[A-Z]\{1,2\}!.\+$'` ]; then
-      if [ ! `echo $elm | grep '^C!'` ]; then
-        outLocalIdsString=$outLocalIdsString" "`echo $elm | awk -F! '{ print $NF}'`
+  if [ $? -eq 0 ]; then
+    for elm in $loop
+    do
+      if [ `echo $elm | grep '^[A-Z]\{1,2\}!.\+$'` ]; then
+        if [ ! `echo $elm | grep '^C!'` ]; then
+          outLocalIdsString=$outLocalIdsString" "`echo $elm | awk -F! '{ print $NF}'`
+        fi
       fi
-    fi
-  done
+    done
+  fi
 }
 
 ##################
