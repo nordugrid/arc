@@ -30,3 +30,12 @@
   rotate 14
   create
 }
+
+/var/log/arc/accounting-jura.log {
+  missingok
+  compress
+  delaycompress
+  daily
+  rotate 14
+  create
+}
