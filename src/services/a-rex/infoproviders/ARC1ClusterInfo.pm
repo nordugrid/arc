@@ -884,6 +884,18 @@ sub collect($) {
             }
     }
 
+    # if all sessiondirs are in drain state, put the endpoints in
+    # drain state too
+    
+    my $servingstate = 'draining';
+    my ($sessiondirs) = ($config->{control}{'.'}{sessiondir});
+    foreach my $sd (@$sessiondirs) {
+		my @hasdrain = split(' ',$sd);
+		if ($hasdrain[-1] ne 'drain') {
+			$servingstate = 'production';
+		}
+	}
+	
     # TODO: userdomain
     my $userdomain='';
 
@@ -1368,14 +1380,15 @@ sub collect($) {
 
             # OBS: Do 'queueing' and 'closed' states apply for a-rex?
             # OBS: Is there an allownew option for a-rex?
+            # TODO: check if the option below still applies
             #if ( $config->{GridftpdAllowNew} == 0 ) {
             #    $cep->{ServingState} = 'draining';
             #} else {
             #    $cep->{ServingState} = 'production';
             #}
-            $cep->{ServingState} = 'production';
+            $cep->{ServingState} = $servingstate;
 
-            # StartTime: get it from hed
+            # TODO: StartTime: get it from hed - maybe look at logs?
 
             $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
             $cep->{TrustedCA} = $host_info->{trustedcas}; # array
@@ -1515,7 +1528,7 @@ sub collect($) {
             if ( $config->{GridftpdAllowNew} == 0 ) {
                 $cep->{ServingState} = 'draining';
             } else {
-                $cep->{ServingState} = 'production';
+                $cep->{ServingState} = $servingstate;
             }
 
             # StartTime: get it from hed
@@ -1646,7 +1659,7 @@ sub collect($) {
             #} else {
             #    $cep->{ServingState} = 'production';
             #}
-            $cep->{ServingState} = 'production';
+            $cep->{ServingState} = $servingstate;
 
             # StartTime: get it from hed
 
@@ -1774,7 +1787,7 @@ sub collect($) {
             #} else {
             #    $cep->{ServingState} = 'production';
             #}
-            $cep->{ServingState} = 'production';
+            $cep->{ServingState} = $servingstate;
 
             # StartTime: get it from hed
 
@@ -2264,7 +2277,7 @@ sub collect($) {
             #} else {
             #    $cep->{ServingState} = 'production';
             #}
-            $cep->{ServingState} = 'production';
+            $cep->{ServingState} = $servingstate;
 
             # StartTime: get it from hed
 
