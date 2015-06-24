@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-02-03 21:53+0100\n"
-"PO-Revision-Date: 2015-02-03 22:13+0100\n"
+"POT-Creation-Date: 2015-06-24 18:16+0100\n"
+"PO-Revision-Date: 2015-06-24 18:25+0100\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -162,19 +162,19 @@ msgstr "Создаётся клиент A-REX"
 msgid "Unable to create SOAP client used by AREXClient."
 msgstr "Не удалось создать клиент SOAP использующийся AREXClient."
 
-#: src/hed/acc/ARC1/AREXClient.cpp:80
+#: src/hed/acc/ARC1/AREXClient.cpp:85
 msgid "Failed locating credentials."
 msgstr "Сбой обнаружения параметров доступа."
 
-#: src/hed/acc/ARC1/AREXClient.cpp:87
+#: src/hed/acc/ARC1/AREXClient.cpp:94
 msgid "Failed initiate client connection."
 msgstr "Сбой инициализации соединения с клиентом"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:94
+#: src/hed/acc/ARC1/AREXClient.cpp:102
 msgid "Client connection has no entry point."
 msgstr "Отсутствует точка входа в клиентскую цепь."
 
-#: src/hed/acc/ARC1/AREXClient.cpp:105 src/hed/acc/EMIES/EMIESClient.cpp:122
+#: src/hed/acc/ARC1/AREXClient.cpp:113 src/hed/acc/EMIES/EMIESClient.cpp:130
 #: src/hed/acc/UNICORE/UNICOREClient.cpp:191
 #: src/hed/acc/UNICORE/UNICOREClient.cpp:222
 #: src/libs/data-staging/DataDeliveryRemoteComm.cpp:490
@@ -182,120 +182,120 @@ msgstr "Отсутствует точка входа в клиентскую ц�
 msgid "Initiating delegation procedure"
 msgstr "Инициализация процедуры делегирования:"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:107
+#: src/hed/acc/ARC1/AREXClient.cpp:115
 #: src/libs/data-staging/DataDeliveryRemoteComm.cpp:492
 msgid "Failed to initiate delegation credentials"
 msgstr "Сбой инициализации параметров доступа для делегирования"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:118
+#: src/hed/acc/ARC1/AREXClient.cpp:128
 msgid "Re-creating an A-REX client"
 msgstr "Воссоздаётся клиент A-REX"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:136
+#: src/hed/acc/ARC1/AREXClient.cpp:146
 msgid "AREXClient was not created properly."
 msgstr "AREXClient не был создан надлежащим образом."
 
-#: src/hed/acc/ARC1/AREXClient.cpp:141 src/hed/acc/EMIES/EMIESClient.cpp:163
+#: src/hed/acc/ARC1/AREXClient.cpp:151 src/hed/acc/EMIES/EMIESClient.cpp:174
 #, c-format
 msgid "Processing a %s request"
 msgstr "Обработка запроса %s"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:163 src/hed/acc/CREAM/CREAMClient.cpp:134
-#: src/hed/acc/EMIES/EMIESClient.cpp:169
+#: src/hed/acc/ARC1/AREXClient.cpp:173 src/hed/acc/CREAM/CREAMClient.cpp:134
+#: src/hed/acc/EMIES/EMIESClient.cpp:180
 #, c-format
 msgid "%s request failed"
 msgstr "Запрос %s не выполнен"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:171 src/hed/acc/EMIES/EMIESClient.cpp:178
+#: src/hed/acc/ARC1/AREXClient.cpp:181 src/hed/acc/EMIES/EMIESClient.cpp:189
 #, c-format
 msgid "No response from %s"
 msgstr "Нет ответа от %s"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:180 src/hed/acc/EMIES/EMIESClient.cpp:187
+#: src/hed/acc/ARC1/AREXClient.cpp:190 src/hed/acc/EMIES/EMIESClient.cpp:198
 #, c-format
 msgid "%s request to %s failed with response: %s"
 msgstr "Запрос %s к %s не выполнен, получен ответ: %s"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:185 src/hed/acc/EMIES/EMIESClient.cpp:202
+#: src/hed/acc/ARC1/AREXClient.cpp:195 src/hed/acc/EMIES/EMIESClient.cpp:213
 #, c-format
 msgid "XML response: %s"
 msgstr "Отзыв XML: %s"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:194
+#: src/hed/acc/ARC1/AREXClient.cpp:204
 #, c-format
 msgid "%s request to %s failed. No expected response."
 msgstr "Сбой запроса %s к %s. Отсутствует ожидаемый отклик."
 
-#: src/hed/acc/ARC1/AREXClient.cpp:208
+#: src/hed/acc/ARC1/AREXClient.cpp:218
 #, c-format
 msgid "Creating and sending submit request to %s"
 msgstr "Создаётся и отправляется запрос на засылку к %s"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:224 src/hed/acc/ARC1/AREXClient.cpp:472
-#: src/hed/acc/EMIES/EMIESClient.cpp:286 src/hed/acc/EMIES/EMIESClient.cpp:389
+#: src/hed/acc/ARC1/AREXClient.cpp:234 src/hed/acc/ARC1/AREXClient.cpp:482
+#: src/hed/acc/EMIES/EMIESClient.cpp:297 src/hed/acc/EMIES/EMIESClient.cpp:400
 #: src/hed/acc/UNICORE/UNICOREClient.cpp:160
 #, c-format
 msgid "Job description to be sent: %s"
 msgstr "описание засылаемой задачи: %s"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:238 src/hed/acc/EMIES/EMIESClient.cpp:475
-#: src/hed/acc/EMIES/EMIESClient.cpp:509 src/hed/acc/EMIES/EMIESClient.cpp:565
+#: src/hed/acc/ARC1/AREXClient.cpp:248 src/hed/acc/EMIES/EMIESClient.cpp:486
+#: src/hed/acc/EMIES/EMIESClient.cpp:520 src/hed/acc/EMIES/EMIESClient.cpp:576
 #, c-format
 msgid "Creating and sending job information query request to %s"
 msgstr "Создание и отправка запроса о состоянии задачи на %s"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:283 src/hed/acc/ARC1/AREXClient.cpp:326
+#: src/hed/acc/ARC1/AREXClient.cpp:293 src/hed/acc/ARC1/AREXClient.cpp:336
 #, c-format
 msgid "Unable to retrieve status of job (%s)"
 msgstr "Ошибка при получении информации о состоянии задачи (%s)"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:336 src/hed/acc/EMIES/EMIESClient.cpp:805
+#: src/hed/acc/ARC1/AREXClient.cpp:346 src/hed/acc/EMIES/EMIESClient.cpp:816
 #, c-format
 msgid "Creating and sending service information query request to %s"
 msgstr "Создание и отправка запроса о состоянии службы на %s"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:356
+#: src/hed/acc/ARC1/AREXClient.cpp:366
 #, c-format
 msgid "Creating and sending ISIS information query request to %s"
 msgstr "Создание и отправка запроса об информации ISIS на %s"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:373
+#: src/hed/acc/ARC1/AREXClient.cpp:383
 #, c-format
 msgid "Service %s of type %s ignored"
 msgstr "Игнорируется сервис %s типа %s"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:376
+#: src/hed/acc/ARC1/AREXClient.cpp:386
 msgid "No execution services registered in the index service"
 msgstr "Ни одна служба исполнения не зарегистрирована в службе регистрации"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:382
+#: src/hed/acc/ARC1/AREXClient.cpp:392
 #, c-format
 msgid "Creating and sending terminate request to %s"
 msgstr "Создание и отправка запроса о прерывании задачи на %s"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:393
+#: src/hed/acc/ARC1/AREXClient.cpp:403
 #: src/hed/acc/UNICORE/UNICOREClient.cpp:619
 #: src/hed/acc/UNICORE/UNICOREClient.cpp:691
 msgid "Job termination failed"
 msgstr "Ошибка прерывания задачи"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:404
+#: src/hed/acc/ARC1/AREXClient.cpp:414
 #, c-format
 msgid "Creating and sending clean request to %s"
 msgstr ""
 "Создание и отправка запроса об удалении результатов работы задачи на %s"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:434
+#: src/hed/acc/ARC1/AREXClient.cpp:444
 #, c-format
 msgid "Creating and sending job description retrieval request to %s"
 msgstr "Создание и отправка запроса на получение описания задачи на %s"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:454
+#: src/hed/acc/ARC1/AREXClient.cpp:464
 #, c-format
 msgid "Creating and sending job migrate request to %s"
 msgstr "Создание и отправка запроса о миграции задачи на %s"
 
-#: src/hed/acc/ARC1/AREXClient.cpp:488 src/hed/acc/EMIES/EMIESClient.cpp:916
+#: src/hed/acc/ARC1/AREXClient.cpp:498 src/hed/acc/EMIES/EMIESClient.cpp:927
 #, c-format
 msgid "Creating and sending job resume request to %s"
 msgstr "Создание и отправка запроса о возобновлении задачи на %s"
@@ -1573,29 +1573,29 @@ msgstr "Создаётся клиент EMI ES"
 msgid "Unable to create SOAP client used by EMIESClient."
 msgstr "Не удалось создать клиент SOAP использующийся EMIESClient."
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:146
+#: src/hed/acc/EMIES/EMIESClient.cpp:157
 msgid "Re-creating an EMI ES client"
 msgstr "Воссоздаётся клиент EMI ES"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:212
+#: src/hed/acc/EMIES/EMIESClient.cpp:223
 #, c-format
 msgid "%s request to %s failed. Unexpected response: %s."
 msgstr "Запрос %s к %s не выполнен, неожиданный ответ: %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:226 src/hed/acc/EMIES/EMIESClient.cpp:328
+#: src/hed/acc/EMIES/EMIESClient.cpp:237 src/hed/acc/EMIES/EMIESClient.cpp:339
 #, c-format
 msgid "Creating and sending job submit request to %s"
 msgstr "Создание и отправка запроса об исполнении задачи на %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:399 src/hed/acc/EMIES/EMIESClient.cpp:582
-#: src/hed/acc/EMIES/EMIESClient.cpp:1071
+#: src/hed/acc/EMIES/EMIESClient.cpp:410 src/hed/acc/EMIES/EMIESClient.cpp:593
+#: src/hed/acc/EMIES/EMIESClient.cpp:1082
 #, c-format
 msgid "New limit for vector queries returned by EMI ES service: %d"
 msgstr ""
 "Сервис EMI ES установил новые значения пределов для параллельных запросов: %d"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:407 src/hed/acc/EMIES/EMIESClient.cpp:590
-#: src/hed/acc/EMIES/EMIESClient.cpp:1079
+#: src/hed/acc/EMIES/EMIESClient.cpp:418 src/hed/acc/EMIES/EMIESClient.cpp:601
+#: src/hed/acc/EMIES/EMIESClient.cpp:1090
 #, c-format
 msgid ""
 "Error: Service returned a limit higher or equal to current limit (current: "
@@ -1604,38 +1604,38 @@ msgstr ""
 "Ошибка: Сервис требует предел, превышающий или равный текущему (текущий: %d; "
 "требуемый: %d)"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:748
+#: src/hed/acc/EMIES/EMIESClient.cpp:759
 #, c-format
 msgid "Creating and sending service information request to %s"
 msgstr "Создание и отправка запроса информации о службе на %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:853 src/hed/acc/EMIES/EMIESClient.cpp:874
+#: src/hed/acc/EMIES/EMIESClient.cpp:864 src/hed/acc/EMIES/EMIESClient.cpp:885
 #, c-format
 msgid "Creating and sending job clean request to %s"
 msgstr ""
 "Создание и отправка запроса об удалении результатов работы задачи на %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:895
+#: src/hed/acc/EMIES/EMIESClient.cpp:906
 #, c-format
 msgid "Creating and sending job suspend request to %s"
 msgstr "Создание и отправка запроса о приостановке задачи на %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:937
+#: src/hed/acc/EMIES/EMIESClient.cpp:948
 #, c-format
 msgid "Creating and sending job restart request to %s"
 msgstr "Создание и отправка запроса о перезапуске задачи на %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:994
+#: src/hed/acc/EMIES/EMIESClient.cpp:1005
 #, c-format
 msgid "Creating and sending job notify request to %s"
 msgstr "Создание и отправка запроса об уведомлении о задаче на %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:1049
+#: src/hed/acc/EMIES/EMIESClient.cpp:1060
 #, c-format
 msgid "Creating and sending notify request to %s"
 msgstr "Создание и отправка запроса об уведомлении на %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:1139
+#: src/hed/acc/EMIES/EMIESClient.cpp:1150
 #, c-format
 msgid "Creating and sending job list request to %s"
 msgstr "Создание и отправка запроса о просмотре задачи на %s"
@@ -4013,8 +4013,9 @@ msgstr "Сбой gfal_rename: %s"
 #: src/hed/dmc/http/DataPointHTTP.cpp:387
 #: src/hed/dmc/http/DataPointHTTP.cpp:516
 #: src/hed/dmc/http/DataPointHTTP.cpp:594
-#: src/hed/dmc/http/DataPointHTTP.cpp:1023
-#: src/hed/dmc/http/DataPointHTTP.cpp:1196
+#: src/hed/dmc/http/DataPointHTTP.cpp:989
+#: src/hed/dmc/http/DataPointHTTP.cpp:1126
+#: src/hed/dmc/http/DataPointHTTP.cpp:1306
 #, c-format
 msgid "Redirecting to %s"
 msgstr "Перенаправление к %s"
@@ -4039,7 +4040,8 @@ msgstr "Проверка: получен размер %llu"
 msgid "Check: obtained modification time %s"
 msgstr "Check: получено время изменения %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:1042
+#: src/hed/dmc/http/DataPointHTTP.cpp:1006
+#: src/hed/dmc/http/DataPointHTTP.cpp:1145
 #, c-format
 msgid "HTTP failure %u - %s"
 msgstr "Ошибка HTTP %u - %s"
@@ -4139,8 +4141,8 @@ msgstr "Невозможно удалить файл %s: %s"
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1470
 #: src/hed/dmc/file/DataPointFile.cpp:510
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:337
-#: src/services/a-rex/jura/JobLogFile.cpp:617
-#: src/services/a-rex/jura/JobLogFile.cpp:1212
+#: src/services/a-rex/jura/JobLogFile.cpp:641
+#: src/services/a-rex/jura/JobLogFile.cpp:1258
 #, c-format
 msgid "Creating directory %s"
 msgstr "Создается директория %s"
@@ -4856,8 +4858,8 @@ msgstr ""
 #: src/services/gridftpd/misc/ldapquery.cpp:392
 #: src/services/gridftpd/misc/ldapquery.cpp:623
 #: src/services/gridftpd/misc/ldapquery.cpp:632
-#: src/services/a-rex/jura/LutsDestination.cpp:154
-#: src/services/a-rex/jura/ApelDestination.cpp:167
+#: src/services/a-rex/jura/LutsDestination.cpp:192
+#: src/services/a-rex/jura/ApelDestination.cpp:215
 #: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:618
 #, c-format
 msgid "%s: %s"
@@ -7892,25 +7894,25 @@ msgstr ""
 "Игнорируется задача (%s), предыдущая попытка подгрузить JobControllerPlugin "
 "завершилась неудачей"
 
-#: src/hed/libs/compute/JobSupervisor.cpp:364
+#: src/hed/libs/compute/JobSupervisor.cpp:385
 #, c-format
 msgid "Job resubmission failed: Unable to load broker (%s)"
 msgstr "Перезасылка задачи оборвана: Невозможно подгрузить планировщик (%s)"
 
-#: src/hed/libs/compute/JobSupervisor.cpp:379
+#: src/hed/libs/compute/JobSupervisor.cpp:400
 msgid "Job resubmission aborted because no resource returned any information"
 msgstr ""
 "Перезасылка задачи оборвана, т.к. ни один из ресурсов не предоставил "
 "информацию"
 
-#: src/hed/libs/compute/JobSupervisor.cpp:400
+#: src/hed/libs/compute/JobSupervisor.cpp:421
 #, c-format
 msgid "Unable to resubmit job (%s), unable to parse obtained job description"
 msgstr ""
 "Не удалось перезаслать задачу (%s), т.к. невозможно разобрать полученное "
 "описание задачи"
 
-#: src/hed/libs/compute/JobSupervisor.cpp:422
+#: src/hed/libs/compute/JobSupervisor.cpp:443
 #, c-format
 msgid ""
 "Unable to resubmit job (%s), target information retrieval failed for target: "
@@ -7918,12 +7920,12 @@ msgid ""
 msgstr ""
 "Невозможно перезапустить задачу (%s), сбой извлечения информации о цели %s"
 
-#: src/hed/libs/compute/JobSupervisor.cpp:448
+#: src/hed/libs/compute/JobSupervisor.cpp:469
 #, c-format
 msgid "Unable to resubmit job (%s), no targets applicable for submission"
 msgstr "Невозможно перезапустить задачу (%s), нет подходящих целей"
 
-#: src/hed/libs/compute/JobSupervisor.cpp:483
+#: src/hed/libs/compute/JobSupervisor.cpp:504
 #, c-format
 msgid ""
 "Unable to migrate job (%s), job description could not be retrieved remotely"
@@ -7931,32 +7933,32 @@ msgstr ""
 "Невозможно мигрировать задачу (%s), описание задачи не может быть извлечено "
 "с удалённого источника"
 
-#: src/hed/libs/compute/JobSupervisor.cpp:503
+#: src/hed/libs/compute/JobSupervisor.cpp:524
 msgid "Job migration aborted, no resource returned any information"
 msgstr ""
 "Перенаправление задачи оборвано, т.к. ни один из ресурсов не предоставил "
 "информацию"
 
-#: src/hed/libs/compute/JobSupervisor.cpp:515
+#: src/hed/libs/compute/JobSupervisor.cpp:536
 #, c-format
 msgid "Job migration aborted, unable to load broker (%s)"
 msgstr ""
 "Перенаправление задачи оборвано, невозможно подгрузить планировщик (%s)"
 
-#: src/hed/libs/compute/JobSupervisor.cpp:531
+#: src/hed/libs/compute/JobSupervisor.cpp:552
 #, c-format
 msgid "Unable to migrate job (%s), unable to parse obtained job description"
 msgstr ""
 "Не удалось перенаправить задачу (%s), т.к. невозможно разобрать полученное "
 "описание задачи"
 
-#: src/hed/libs/compute/JobSupervisor.cpp:552
+#: src/hed/libs/compute/JobSupervisor.cpp:573
 #, c-format
 msgid "Unable to load submission plugin for %s interface"
 msgstr ""
 "Невозможно погрузить подключаемый модуль для запуска задач через интерфейс %s"
 
-#: src/hed/libs/compute/JobSupervisor.cpp:562
+#: src/hed/libs/compute/JobSupervisor.cpp:583
 #, c-format
 msgid "Job migration failed for job (%s), no applicable targets"
 msgstr "Не удалось перенаправить задачу (%s), возможные назначения отсутствуют"
@@ -8705,17 +8707,17 @@ msgstr "Ошибка получения информации от statvfs для
 msgid "Cache %s: Free space %f GB"
 msgstr "Кэш %s: Свободное пространство %f GB"
 
-#: src/hed/libs/data/DataPoint.cpp:80
+#: src/hed/libs/data/DataPoint.cpp:81
 #, c-format
 msgid "Invalid URL option: %s"
 msgstr "Недопустимая опция URL: %s"
 
-#: src/hed/libs/data/DataPoint.cpp:244
+#: src/hed/libs/data/DataPoint.cpp:245
 #, c-format
 msgid "Skipping invalid URL option %s"
 msgstr "Пропускается недопустимая опция URL %s"
 
-#: src/hed/libs/data/DataPoint.cpp:259
+#: src/hed/libs/data/DataPoint.cpp:260
 msgid ""
 "Third party transfer was requested but the corresponding plugin could\n"
 "       not be loaded. Is the GFAL plugin installed? If not, please install "
@@ -13507,7 +13509,7 @@ msgstr "Запуск с высоким приоритетом"
 #: src/clients/data/arcmkdir.cpp:119 src/clients/data/arcls.cpp:340
 #: src/clients/data/arccp.cpp:637 src/clients/data/arcrename.cpp:130
 #: src/clients/echo/arcecho.cpp:61 src/clients/wsrf/arcwsrf.cpp:74
-#: src/services/a-rex/jura/jura.cpp:101
+#: src/services/a-rex/jura/jura.cpp:109
 #, c-format
 msgid "%s version %s"
 msgstr "%s, версия %s"
@@ -19188,7 +19190,17 @@ msgstr ""
 msgid "Resource information provider: %s"
 msgstr "Сборщик информации о ресурсе: %s"
 
-#: src/services/a-rex/information_collector.cpp:49
+#: src/services/a-rex/information_collector.cpp:52
+#, c-format
+msgid ""
+"Resource information provider timed out: %u seconds. Using heartbeat file "
+"from now on... Consider increasing infoproviders_timeout in arc.conf"
+msgstr ""
+"Истекло время на сбор информации о ресурсе: %u секунд. Проверяется "
+"контрольный файл... Попробуйте увеличить значение infoproviders_timeout в "
+"arc.conf"
+
+#: src/services/a-rex/information_collector.cpp:56
 #, c-format
 msgid ""
 "Resource information provider timed out: %u seconds. Checking heartbeat "
@@ -19197,12 +19209,22 @@ msgstr ""
 "Истекло время на сбор информации о ресурсе: %u секунд. Проверяется "
 "контрольный файл..."
 
-#: src/services/a-rex/information_collector.cpp:61
+#: src/services/a-rex/information_collector.cpp:70
 #, c-format
-msgid "Cannot stat %s. Are infoproviders running?"
-msgstr "Невозможно проверить %s. Запущены ли сборщики информации?"
+msgid ""
+"Cannot stat %s. Are infoproviders running? This message will not be repeated."
+msgstr ""
+"Невозможно проверить %s. Запущены ли сборщики информации? Это сообщение не "
+"будет больше повторяться."
 
-#: src/services/a-rex/information_collector.cpp:67
+#: src/services/a-rex/information_collector.cpp:72
+#, c-format
+msgid ""
+"Cannot stat %s. Are infoproviders running? It happened already %d times."
+msgstr ""
+"Невозможно проверить %s. Запущены ли сборщики информации? Это уже %d-й раз."
+
+#: src/services/a-rex/information_collector.cpp:79
 #, c-format
 msgid ""
 "Checked time: %d | Heartbeat file stat: %d | %s has not beed touched before "
@@ -19215,13 +19237,13 @@ msgstr ""
 " Низкая производительность, сборщики информации будут остановлены. "
 "Работоспособность A-REX под угрозой."
 
-#: src/services/a-rex/information_collector.cpp:71
+#: src/services/a-rex/information_collector.cpp:83
 #, c-format
 msgid "Found recent heartbeat file %s , waiting other %d seconds"
 msgstr ""
 "Обнаружен недавно обновлённый контрольный файл %s , ожидание ещё %d секунд"
 
-#: src/services/a-rex/information_collector.cpp:79
+#: src/services/a-rex/information_collector.cpp:91
 #, c-format
 msgid ""
 "Resource information provider failed with exit status: %i\n"
@@ -19230,7 +19252,7 @@ msgstr ""
 "Сбой сборщика информации о ресурсе с выходным статусом: %i\n"
 "%s"
 
-#: src/services/a-rex/information_collector.cpp:81
+#: src/services/a-rex/information_collector.cpp:93
 #, c-format
 msgid ""
 "Resource information provider log:\n"
@@ -19239,24 +19261,24 @@ msgstr ""
 "Журнал сборщика информации о ресурсе:\n"
 "%s"
 
-#: src/services/a-rex/information_collector.cpp:85
+#: src/services/a-rex/information_collector.cpp:97
 msgid "No new informational document assigned"
 msgstr "Не присвоено новых информационных документов"
 
-#: src/services/a-rex/information_collector.cpp:87
+#: src/services/a-rex/information_collector.cpp:99
 #, c-format
 msgid "Obtained XML: %s"
 msgstr "Полученный XML: %s"
 
-#: src/services/a-rex/information_collector.cpp:163
+#: src/services/a-rex/information_collector.cpp:175
 msgid "Informational document is empty"
 msgstr "Пустой информационный документ"
 
-#: src/services/a-rex/information_collector.cpp:174
+#: src/services/a-rex/information_collector.cpp:186
 msgid "Passing service's information from collector to registrator"
 msgstr "Идёт передача информации о службе от сборщика к регистратору"
 
-#: src/services/a-rex/information_collector.cpp:230
+#: src/services/a-rex/information_collector.cpp:242
 #, c-format
 msgid ""
 "Registered static information: \n"
@@ -19265,7 +19287,7 @@ msgstr ""
 "Зарегистрирована статическая информация: \n"
 " документ: %s"
 
-#: src/services/a-rex/information_collector.cpp:233
+#: src/services/a-rex/information_collector.cpp:245
 #, c-format
 msgid ""
 "Information Registered without static attributes: \n"
@@ -19274,22 +19296,22 @@ msgstr ""
 "Информация зарегистрирована без статических аттрибутов: \n"
 " документ: %s"
 
-#: src/services/a-rex/information_collector.cpp:403
+#: src/services/a-rex/information_collector.cpp:415
 msgid "OptimizedInformationContainer failed to create temporary file"
 msgstr "OptimizedInformationContainer не смог создать временный файл"
 
-#: src/services/a-rex/information_collector.cpp:406
+#: src/services/a-rex/information_collector.cpp:418
 #, c-format
 msgid "OptimizedInformationContainer created temporary file: %s"
 msgstr "OptimizedInformationContainer создал временный файл: %s"
 
-#: src/services/a-rex/information_collector.cpp:412
+#: src/services/a-rex/information_collector.cpp:424
 msgid ""
 "OptimizedInformationContainer failed to store XML document to temporary file"
 msgstr ""
 "OptimizedInformationContainer не смог записать документ XML во временный файл"
 
-#: src/services/a-rex/information_collector.cpp:422
+#: src/services/a-rex/information_collector.cpp:434
 msgid "OptimizedInformationContainer failed to parse XML"
 msgstr "OptimizedInformationContainer не смог разобрать XML"
 
@@ -19445,39 +19467,80 @@ msgid "Response is not expected WS-RP"
 msgstr "Отзыв не является ожидаемым WS-RP"
 
 #: src/services/a-rex/jura/CARDestination.cpp:49
-#: src/services/a-rex/jura/LutsDestination.cpp:48
-#: src/services/a-rex/jura/ApelDestination.cpp:56
+#: src/services/a-rex/jura/LutsDestination.cpp:71
+#: src/services/a-rex/jura/ApelDestination.cpp:89
 msgid "ServiceURL missing"
 msgstr "Отсутствует ServiceURL"
 
 #: src/services/a-rex/jura/CARDestination.cpp:56
-#: src/services/a-rex/jura/LutsDestination.cpp:66
-#: src/services/a-rex/jura/ApelDestination.cpp:64
+#: src/services/a-rex/jura/LutsDestination.cpp:89
+#: src/services/a-rex/jura/ApelDestination.cpp:97
 #, c-format
 msgid "Protocol is %s, should be https"
 msgstr "Указан протокол %s, а должен быть https"
 
 #: src/services/a-rex/jura/CARDestination.cpp:95
-#: src/services/a-rex/jura/LutsDestination.cpp:105
-#: src/services/a-rex/jura/ApelDestination.cpp:112
+#: src/services/a-rex/jura/LutsDestination.cpp:120
+#: src/services/a-rex/jura/LutsDestination.cpp:144
+#: src/services/a-rex/jura/ApelDestination.cpp:133
+#: src/services/a-rex/jura/ApelDestination.cpp:158
 #, c-format
 msgid "Ignoring incomplete log file \"%s\""
 msgstr "Игнорируется неполный журнальный файл \"%s\""
 
 #: src/services/a-rex/jura/CARDestination.cpp:119
-#: src/services/a-rex/jura/LutsDestination.cpp:129
-#: src/services/a-rex/jura/ApelDestination.cpp:137
+#: src/services/a-rex/jura/LutsDestination.cpp:166
+#: src/services/a-rex/jura/ApelDestination.cpp:182
 #, c-format
 msgid "Logging UR set of %d URs."
 msgstr "Записывается набор UR из %d записей UR."
 
 #: src/services/a-rex/jura/CARDestination.cpp:122
-#: src/services/a-rex/jura/LutsDestination.cpp:132
+#: src/services/a-rex/jura/LutsDestination.cpp:169
 #: src/services/a-rex/jura/Destination.cpp:61
-#: src/services/a-rex/jura/ApelDestination.cpp:140
+#: src/services/a-rex/jura/ApelDestination.cpp:185
 #, c-format
 msgid "UR set dump: %s"
 msgstr "Выведен набор записей UR: %s"
+
+#: src/services/a-rex/jura/ReReporter.cpp:53
+#, c-format
+msgid "Initialised, archived job log dir: %s"
+msgstr ""
+"Инициализирован каталог архивного хранения учётных записей о задачах: %s"
+
+#: src/services/a-rex/jura/ReReporter.cpp:73
+#, c-format
+msgid "Incoming time range: %s"
+msgstr "Промежуток времени засылки: %s"
+
+#: src/services/a-rex/jura/ReReporter.cpp:92
+#, c-format
+msgid "Requested time range: %d.%d.%d. 0:00 - %d.%d.%d. %d:%d "
+msgstr "Запрошенный промежуток времени: %d.%d.%d. 0:00 - %d.%d.%d. %d:%d "
+
+#: src/services/a-rex/jura/ReReporter.cpp:98
+#: src/services/a-rex/jura/UsageReporter.cpp:45
+msgid "Interactive mode."
+msgstr "Интерактивный режим."
+
+#: src/services/a-rex/jura/ReReporter.cpp:127
+#: src/services/a-rex/jura/UsageReporter.cpp:68
+#, c-format
+msgid "Could not open log directory \"%s\": %s"
+msgstr "Невозможно открыть каталог с журналами \"%s\": %s"
+
+#: src/services/a-rex/jura/ReReporter.cpp:167
+#: src/services/a-rex/jura/UsageReporter.cpp:193
+#, c-format
+msgid "Error reading log directory \"%s\": %s"
+msgstr "Ошибка чтения каталога журналов \"%s\": %s"
+
+#: src/services/a-rex/jura/ReReporter.cpp:179
+#: src/services/a-rex/jura/UsageReporter.cpp:205
+#, c-format
+msgid "Finished, job log dir: %s"
+msgstr "Завершено, каталог журнала задач: %s"
 
 #: src/services/a-rex/jura/Destinations.cpp:27
 msgid "Unable to create adapter for the specific reporting destination type"
@@ -19504,13 +19567,13 @@ msgid "VO filter for host: %s"
 msgstr "Фильтр ВО для узла: %s"
 
 #: src/services/a-rex/jura/JobLogFile.cpp:198
-#: src/services/a-rex/jura/JobLogFile.cpp:658
+#: src/services/a-rex/jura/JobLogFile.cpp:682
 #, c-format
 msgid "Read archive file %s"
 msgstr "Читается архивный файл %s"
 
 #: src/services/a-rex/jura/JobLogFile.cpp:203
-#: src/services/a-rex/jura/JobLogFile.cpp:663
+#: src/services/a-rex/jura/JobLogFile.cpp:687
 #, c-format
 msgid ""
 "Could not read archive file %s for job log file %s (%s), generating new "
@@ -19520,7 +19583,7 @@ msgstr ""
 "создаётся новая запись Usage Record"
 
 #: src/services/a-rex/jura/JobLogFile.cpp:291
-#: src/services/a-rex/jura/JobLogFile.cpp:787
+#: src/services/a-rex/jura/JobLogFile.cpp:811
 #, c-format
 msgid ""
 "Missing required Usage Record element \"RecordIdentity\", in job log file %s"
@@ -19528,59 +19591,59 @@ msgstr ""
 "Отсутствует обязательный элемент Usage Record \"RecordIdentity\", в файле "
 "журнала задач %s"
 
-#: src/services/a-rex/jura/JobLogFile.cpp:337
+#: src/services/a-rex/jura/JobLogFile.cpp:338
 #, c-format
 msgid "VO (%s) not set for this (%s) SGAS server by VO filter."
 msgstr "Фильтр ВО (%s) не настроен для этого сервера SGAS (%s)."
 
-#: src/services/a-rex/jura/JobLogFile.cpp:370
+#: src/services/a-rex/jura/JobLogFile.cpp:371
 #, c-format
 msgid "[VO filter] Job log will be not send. %s."
 msgstr "[VO filter] запись о задаче не будет отправлена. %s."
 
-#: src/services/a-rex/jura/JobLogFile.cpp:423
-#: src/services/a-rex/jura/JobLogFile.cpp:908
+#: src/services/a-rex/jura/JobLogFile.cpp:447
+#: src/services/a-rex/jura/JobLogFile.cpp:954
 #, c-format
 msgid "Missing required element \"Status\" in job log file %s"
 msgstr "Отсутствует обязательный элемент \"Status\" в файле журнала задач %s"
 
-#: src/services/a-rex/jura/JobLogFile.cpp:623
-#: src/services/a-rex/jura/JobLogFile.cpp:1218
+#: src/services/a-rex/jura/JobLogFile.cpp:647
+#: src/services/a-rex/jura/JobLogFile.cpp:1264
 #, c-format
 msgid "Failed to create archive directory %s: %s"
 msgstr "Не удалось создать архивный каталог %s: %s"
 
-#: src/services/a-rex/jura/JobLogFile.cpp:630
-#: src/services/a-rex/jura/JobLogFile.cpp:1225
+#: src/services/a-rex/jura/JobLogFile.cpp:654
+#: src/services/a-rex/jura/JobLogFile.cpp:1271
 #, c-format
 msgid "Archiving Usage Record to file %s"
 msgstr "Архивирование записи Usage Record в файл %s"
 
-#: src/services/a-rex/jura/JobLogFile.cpp:636
-#: src/services/a-rex/jura/JobLogFile.cpp:1231
+#: src/services/a-rex/jura/JobLogFile.cpp:660
+#: src/services/a-rex/jura/JobLogFile.cpp:1277
 #, c-format
 msgid "Failed to write file %s: %s"
 msgstr "Сбой при записи файла %s: %s"
 
-#: src/services/a-rex/jura/JobLogFile.cpp:1000
+#: src/services/a-rex/jura/JobLogFile.cpp:1046
 #, c-format
 msgid "Missing required element \"CpuDuration\" in job log file %s"
 msgstr ""
 "Отсутствует обязательный элемент \"CpuDuration\" в файле журнала задач %s"
 
-#: src/services/a-rex/jura/JobLogFile.cpp:1020
+#: src/services/a-rex/jura/JobLogFile.cpp:1066
 #, c-format
 msgid "Set non standard bechmark type: %s"
 msgstr "Задан нестандартный тип эталонного теста: %s"
 
-#: src/services/a-rex/jura/JobLogFile.cpp:1033
+#: src/services/a-rex/jura/JobLogFile.cpp:1079
 #, c-format
 msgid "Ignored incomming benchmark value: %s, Use float value!"
 msgstr ""
 "Игнорируется полученное значение эталонного теста: %s, используйте значение "
 "с плавающей запятой!"
 
-#: src/services/a-rex/jura/JobLogFile.cpp:1262
+#: src/services/a-rex/jura/JobLogFile.cpp:1308
 #, c-format
 msgid "Failed to delete file %s:%s"
 msgstr "Не удалось удалить файл %s: %s"
@@ -19595,15 +19658,6 @@ msgstr "Запущено, каталог журнала задач: %s"
 msgid "Expiration time: %d seconds"
 msgstr "Время истечения действительности: %d секунд"
 
-#: src/services/a-rex/jura/UsageReporter.cpp:45
-msgid "Interactive mode."
-msgstr "Интерактивный режим."
-
-#: src/services/a-rex/jura/UsageReporter.cpp:68
-#, c-format
-msgid "Could not open log directory \"%s\": %s"
-msgstr "Невозможно открыть каталог с журналами \"%s\": %s"
-
 #: src/services/a-rex/jura/UsageReporter.cpp:80
 #, c-format
 msgid "Could not open output directory \"%s\": %s"
@@ -19614,17 +19668,7 @@ msgstr "Невозможно открыть выходной каталог \"%s
 msgid "Removing outdated job log file %s"
 msgstr "Удаляется устаревший файл журнала задач %s"
 
-#: src/services/a-rex/jura/UsageReporter.cpp:193
-#, c-format
-msgid "Error reading log directory \"%s\": %s"
-msgstr "Ошибка чтения каталога журналов \"%s\": %s"
-
-#: src/services/a-rex/jura/UsageReporter.cpp:205
-#, c-format
-msgid "Finished, job log dir: %s"
-msgstr "Завершено, каталог журнала задач: %s"
-
-#: src/services/a-rex/jura/LutsDestination.cpp:185
+#: src/services/a-rex/jura/LutsDestination.cpp:223
 #, c-format
 msgid "UsageRecords registration response: %s"
 msgstr "Отклик регистрации записи UsageRecords: %s"
@@ -19666,7 +19710,7 @@ msgid "APEL aggregation message file (%s) created."
 msgstr "Создан файл агрегированного сообщения APEL (%s)."
 
 #: src/services/a-rex/jura/CARAggregation.cpp:208
-#: src/services/a-rex/jura/ApelDestination.cpp:322
+#: src/services/a-rex/jura/ApelDestination.cpp:370
 #, c-format
 msgid "system retval: %d"
 msgstr "Системное значение retval: %d"
@@ -19718,12 +19762,17 @@ msgid "synch message: %s"
 msgstr "синхронизационное сообщение: %s"
 
 #: src/services/a-rex/jura/Destination.cpp:96
-#: src/services/a-rex/jura/ApelDestination.cpp:223
+#: src/services/a-rex/jura/ApelDestination.cpp:271
 #, c-format
 msgid "Backup file (%s) created."
 msgstr "Создан резервный файл (%s)."
 
-#: src/services/a-rex/jura/ApelDestination.cpp:268
+#: src/services/a-rex/jura/Destination.cpp:123
+#, c-format
+msgid "Sent jobIDs: (nr. of job(s) %d)"
+msgstr "Отправленные jobID: (всего %d задач(и))"
+
+#: src/services/a-rex/jura/ApelDestination.cpp:316
 #, c-format
 msgid "APEL message file (%s) created."
 msgstr "Создан файл сообщений APEL (%s)."
@@ -19850,7 +19899,7 @@ msgstr ""
 "будут записываться в этот журнал"
 
 #: src/services/a-rex/grid-manager/GridManager.cpp:108
-#: src/services/a-rex/grid-manager/log/JobLog.cpp:130
+#: src/services/a-rex/grid-manager/log/JobLog.cpp:131
 #, c-format
 msgid "Running command %s"
 msgstr "Выполняется команда %s"
@@ -20323,7 +20372,7 @@ msgstr "%s: Не удалось записать список выходных �
 #: src/services/a-rex/grid-manager/jobs/JobsList.cpp:258
 #: src/services/a-rex/grid-manager/jobs/JobsList.cpp:588
 #: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:344
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:905
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:918
 #, c-format
 msgid "%s: Failed reading local information"
 msgstr "%s: Не удалось прочесть локальную информацию"
@@ -20738,7 +20787,7 @@ msgstr ""
 #: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:539
 #: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:550
 #: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:645
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:754
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:759
 #, c-format
 msgid "%s: Failed to clean up session dir"
 msgstr "%s: Не удалось очистить каталог сессии"
@@ -20780,32 +20829,32 @@ msgstr "%s: Чтение выходных файлов в списке поль�
 msgid "%s: Error reading user generated output file list in %s"
 msgstr "%s: Чтение выходных файлов в списке пользователя %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:685
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:686
 #, c-format
 msgid "%s: Failed to list output directory %s: %s"
 msgstr "%s: Сбой вывода содержимого каталога назначения %s: %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:704
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:705
 #, c-format
 msgid "%s: Adding new output file %s: %s"
 msgstr "%s: Добавление нового файла выхода %s: %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:722
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:727
 #, c-format
 msgid "%s: Two identical output destinations: %s"
 msgstr "%s: Два одинаковых назначения для выдачи: %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:735
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:740
 #, c-format
 msgid "%s: Cannot upload two different files %s and %s to same LFN: %s"
 msgstr "%s: Невозможно записать два разных файла %s и %s с одним LFN: %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:765
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:770
 #, c-format
 msgid "%s: Received job in a bad state: %s"
 msgstr "%s: Задача получена в плохом состоянии: %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:838
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:843
 #, c-format
 msgid ""
 "%s: Destination file %s was possibly left unfinished from previous A-REX "
@@ -20814,101 +20863,101 @@ msgstr ""
 "%s: Файл назначения %s вероятно остался недописанным после предыдущего "
 "запуска A-REX, перезапись"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:911
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:924
 #, c-format
 msgid "%s: Failed writing local information"
 msgstr "%s: Не удалось записать локальную информацию"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:928
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:941
 #, c-format
 msgid "%s: Cancelling active DTRs"
 msgstr "%s: Прерывание активных запросов"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:949
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:962
 #, c-format
 msgid "%s: Can't read list of input files"
 msgstr "%s: Невозможно прочесть список входных файлов"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:964
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:977
 #, c-format
 msgid "%s: Checking user uploadable file: %s"
 msgstr "%s: Проверка отгружаемого файла пользователя: %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:969
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:982
 #, c-format
 msgid "%s: User has uploaded file %s"
 msgstr "%s: Пользователь отгрузил файл %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:976
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:989
 #, c-format
 msgid "%s: Failed writing changed input file."
 msgstr "%s: Не удалось записать изменившийся входной файл"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:980
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:993
 #, c-format
 msgid "%s: Critical error for uploadable file %s"
 msgstr "%s: Критическая ошибка для отгружаемого файла %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:997
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1010
 #, c-format
 msgid "%s: Uploadable files timed out"
 msgstr "%s: Истекло время ожидания отгружаемых файлов"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1053
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1079
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1066
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1092
 #, c-format
 msgid "%s: Can't convert checksum %s to int for %s"
 msgstr "%s: Невозможно преобразовать контрольную сумму файла %s в целое для %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1060
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1074
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1073
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1087
 #, c-format
 msgid "%s: Can't convert filesize %s to int for %s"
 msgstr "%s: Невозможно преобразовать размер файла %s в целое для %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1069
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1082
 #, c-format
 msgid "%s: Invalid size/checksum information (%s) for %s"
 msgstr "%s: Неверная информация о размере/контрольной сумме (%s) для %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1091
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1104
 #, c-format
 msgid "%s: Invalid file: %s is too big."
 msgstr "%s: Неверный файл: %s слишком велик."
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1107
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1120
 #, c-format
 msgid "%s: Failed to switch user ID to %d/%d to read file %s"
 msgstr ""
 "%s: Не удалось изменить идентификатор пользователя на %d/%d для чтения файла "
 "%s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1113
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1126
 #, c-format
 msgid "%s: Failed to open file %s for reading"
 msgstr "%s: Не удалось открыть файл %s на чтение"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1121
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1134
 #, c-format
 msgid "%s: Error accessing file %s"
 msgstr "%s: Ошибка доступа к файлу %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1133
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1146
 #, c-format
 msgid "%s: Error reading file %s"
 msgstr "%s: Ошибка при чтении файла %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1148
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1161
 #, c-format
 msgid "%s: File %s has wrong checksum: %llu. Expected %lli"
 msgstr "%s: У файла %s неверная контрольная сумма: %llu. Ожидалась %lli"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1154
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1167
 #, c-format
 msgid "%s: Checksum %llu verified for %s"
 msgstr "%s: Проверочная сумма %llu подтверждена для %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1166
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1179
 msgid ""
 "Found unfinished DTR transfers. It is possible the previous A-REX process "
 "did not shut down normally"
@@ -20916,7 +20965,7 @@ msgstr ""
 "Найдены незаконченные процессы DTR. Вероятно, предыдущий процесс A-REX "
 "завершился сбоем"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1173
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1186
 #, c-format
 msgid "Found DTR %s for file %s left in transferring state from previous run"
 msgstr ""
@@ -21142,11 +21191,11 @@ msgstr "Выполнение команды рассылки (%s)"
 msgid "Failed running mailer"
 msgstr "Не удалось запустить службу рассылки"
 
-#: src/services/a-rex/grid-manager/log/JobLog.cpp:126
+#: src/services/a-rex/grid-manager/log/JobLog.cpp:127
 msgid ": Failure creating slot for reporter child process"
 msgstr ": Сбой подготовки дочернего процесса для отчёта"
 
-#: src/services/a-rex/grid-manager/log/JobLog.cpp:134
+#: src/services/a-rex/grid-manager/log/JobLog.cpp:135
 msgid ": Failure starting reporter child process"
 msgstr ": Сбой запуска дочернего процесса для отчёта"
 
@@ -21236,7 +21285,7 @@ msgid "Can't open configuration file"
 msgstr "Не удалось открыть файл настроек"
 
 #: src/services/a-rex/grid-manager/conf/UrlMapConfig.cpp:31
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:44
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:45
 msgid "Can't interpret configuration file as XML"
 msgstr "Не удалось разобрать файл настроек как XML"
 
@@ -21257,7 +21306,7 @@ msgid "Not enough parameters in linkurl"
 msgstr "Недостаточное количество параметров в linkurl"
 
 #: src/services/a-rex/grid-manager/conf/UrlMapConfig.cpp:99
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:61
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:62
 msgid "Can't recognize type of configuration file"
 msgstr "Невозможно определить тип файла настроек"
 
@@ -21465,68 +21514,68 @@ msgstr "Отсутствует команда в модуле helperUtility"
 msgid "Username in helperUtility is empty"
 msgstr "Не указано имя пользователя в модуле helperUtility"
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:35
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:36
 msgid "Can't read configuration file"
 msgstr "Не удалось прочесть файл настроек"
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:48
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:55
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:49
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:56
 msgid "Configuration error"
 msgstr "Ошибка настройки"
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:80
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:81
 msgid "Bad number in maxdelivery"
 msgstr "Недопустимое значение maxdelivery"
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:86
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:87
 msgid "Bad number in maxemergency"
 msgstr "Недопустимое значение maxemergency"
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:92
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:93
 msgid "Bad number in maxprocessor"
 msgstr "Недопустимое значение maxprocessor"
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:98
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:99
 msgid "Bad number in maxprepared"
 msgstr "Недопустимое значение maxprepared"
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:104
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:105
 msgid "Bad number in maxtransfertries"
 msgstr "недопустимое число в maxtransfertries"
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:113
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:114
 msgid "Bad number in speedcontrol"
 msgstr "Недопустимое значение speedcontrol"
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:124
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:125
 #, c-format
 msgid "Bad number in definedshare %s"
 msgstr "Недопустимое значение definedshare %s"
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:133
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:134
 #, c-format
 msgid "Bad URL in deliveryservice: %s"
 msgstr "Недопустимый URL в deliveryservice: %s"
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:144
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:145
 msgid "Bad number in remotesizelimit"
 msgstr "Недопустимое значение remotesizelimit"
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:170
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:175
 msgid "Bad value for debug"
 msgstr "Недопустимое значение debug"
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:181
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:282
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:186
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:289
 msgid "Bad URL in acix_endpoint"
 msgstr "Недопустимый URL в acix_endpoint"
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:228
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:233
 #, c-format
 msgid "Bad URL in deliveryService: %s"
 msgstr "Недопустимый URL в deliveryService: %s"
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:242
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:247
 msgid "Bad value for logLevel"
 msgstr "Недопустимое значение logLevel"
 
