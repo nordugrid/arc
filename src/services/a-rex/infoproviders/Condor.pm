@@ -547,7 +547,7 @@ sub jobs_info ($$@) {
             $lrms_jobs{$id}{mem} = $job{lc 'ImageSize'};
             $lrms_jobs{$id}{walltime} = floor($job{lc 'RemoteWallClockTime'} / 60);
             $lrms_jobs{$id}{cputime} = floor(($job{lc 'RemoteUserCpu'} + $job{lc 'RemoteSysCpu'}) / 60);
-            $lrms_jobs{$id}{nodes} = "";
+            $lrms_jobs{$id}{nodes} = [];
             $lrms_jobs{$id}{nodes} = [$job{lc 'LastRemoteHost'}] if ($job{lc 'LastRemoteHost'} ne "undefined");
             $lrms_jobs{$id}{nodes} = [$job{lc 'RemoteHost'}] if ($job{lc 'RemoteHost'} ne "undefined");
             if ($job{lc 'JobTimeLimit'} ne "undefined") {
