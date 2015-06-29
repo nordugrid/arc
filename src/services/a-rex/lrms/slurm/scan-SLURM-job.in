@@ -121,7 +121,7 @@ done
 
 
 # Get JobStates from SLURM
-jobstate_squeue=$(echo "$lidblocks[@]" | xargs -n 1 $squeue -a -h -o "%i:%T" -t all -j )\
+jobstate_squeue=$(echo "${lidblocks[@]}" | xargs -n 1 $squeue -a -h -o "%i:%T" -t all -j )\
     || { echo "squeue failed" 1>&2; exit 1; }
 
 for record in $jobstate_squeue; do
